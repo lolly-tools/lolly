@@ -26,7 +26,7 @@ import {
   fmtTime, indexOfId, isTimed, moveOverlay,
   moveSeqClip, packSeq,
   removeAndRipple, rippleOverlays, seqBoxes, setClipIn, setDuration, setSpeed,
-  detachAudio, isThroughEdit, joinClips, reattachAudio, splitAll,
+  detachAudio, isThroughEdit, joinClips, reattachAudio, restackOverlay, splitAll,
   onionNeighbours, ONION_MAX_STEPS,
   snapTime, splitBox, trimClip,
   // The keyframe EDITING surface (plans/104 section 8) - the arithmetic the panel is
@@ -2181,4 +2181,44 @@ test('the sample count is bounded, and an UNTIMED animated box uses the sequence
   const sc = kfMotionPath(scenery, pathCfg, 'a', { x: 5, y: 5 }, { ...STAGE, totalMs: 5000 });
   assert.equal(sc.pts[sc.pts.length - 1]!.t, 5000, 'the whole run, because it is on screen for it');
   assert.deepEqual(sc.keys.map((k) => k.t), [0, 2000]);
+});
+
+
+// ── restackOverlay (plans/165 Slice C-tracks) ─────────────────────────────────
+
+test('restackOverlay: onto shares the row and stacks directly in front', () => {
+  const cfgG = { ...cfg, groupField: 'group' };
+  const before = [overlay('a', 0, { dur: 2 }), overlay('b', 0, { dur: 2 }), clip('s1', 0, 3)];
+  const next = restackOverlay(before, cfgG, 'a', { onto: 'b' });
+  assert.deepEqual(next.map((b) => b.id), ['b', 'a', 's1'], 'a stacks directly in front of b');
+  assert.equal(next[0]!.group, 'share-b', 'the target minted the shared group');
+  assert.equal(next[1]!.group, 'share-b', 'the moved box joined it');
+  // A target that already carries a group keeps it.
+  const grouped = [overlay('a', 0, { dur: 2 }), overlay('b', 0, { dur: 2, group: 'g9' })];
+  assert.equal(restackOverlay(grouped, cfgG, 'a', { onto: 'b' })[1]!.group, 'g9');
+  // Without a groupField, sharing degrades to plain adjacency.
+  const plain = restackOverlay(before, cfg, 'a', { onto: 'b' });
+  assert.deepEqual(plain.map((b) => b.id), ['b', 'a', 's1']);
+  assert.equal(plain[1]!.group, undefined, 'no group written where no field is declared');
+});
+
+test('restackOverlay: before takes its own row and leaves a shared one', () => {
+  const cfgG = { ...cfg, groupField: 'group' };
+  const before = [overlay('a', 0, { dur: 2, group: 'g1' }), overlay('b', 3, { dur: 2, group: 'g1' }), overlay('c', 0, { dur: 1 })];
+  const next = restackOverlay(before, cfgG, 'b', { before: 'a' });
+  assert.deepEqual(next.map((b) => b.id), ['b', 'a', 'c'], 'b now sits directly behind a');
+  assert.equal(next[0]!.group, '', 'leaving the shared row clears the group');
+  // before: null = in FRONT of every overlay (the new top row).
+  const front = restackOverlay(before, cfgG, 'b', { before: null });
+  assert.deepEqual(front.map((b) => b.id), ['a', 'c', 'b']);
+});
+
+test('restackOverlay: seq boxes are never restacked and identity costs nothing', () => {
+  const before = [clip('s1', 0, 3), overlay('a', 0, { dur: 2 }), overlay('b', 0, { dur: 2 })];
+  assert.equal(restackOverlay(before, cfg, 's1', { onto: 'a' }), before, 'a seq clip is refused');
+  assert.equal(restackOverlay(before, cfg, 'a', { onto: 's1' }), before, 'a seq target is refused');
+  assert.equal(restackOverlay(before, cfg, 'a', { onto: 'ghost' }), before, 'an unknown target is refused');
+  // Dropping b in front of a (onto a) when b is ALREADY directly in front and
+  // ungrouped-vs-grouped differs - with no groupField, order unchanged = identity.
+  assert.equal(restackOverlay(before, cfg, 'b', { onto: 'a' }), before, 'a no-op drag returns the array by identity');
 });
