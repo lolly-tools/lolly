@@ -29,7 +29,6 @@ import { dirname, join } from 'node:path';
 
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
-import { parseUrlState } from '../engine/src/url-mode.ts';
 import { baseHost } from './helpers/host.ts';
 
 // print-sheet ships in the PUBLIC community pack. Load from the SOURCE pack, not
@@ -91,6 +90,15 @@ function attrs(html: string, re: RegExp): Shape[] {
 const cellRects = (html: string) => attrs(html, /<rect class="ps-empty"[^>]*>/g);
 const cutRects = (html: string) => attrs(html, /<rect class="ps-cut"[^>]*>/g);
 const tickLines = (html: string) => attrs(html, /<line class="ps-tick"[^>]*>/g);
+const images = (html: string): string[] => html.match(/<image [^>]*>/g) ?? [];
+const pages = (html: string): number => (html.match(/data-pdf-page/g) ?? []).length;
+
+// A second distinct tool link, so the cycle/compose-per-design tests can tell one
+// design's child render from another's.
+const TOOL_LINK2 = 'https://lolly.tools/tool/qr-code.svg?url=https%3A%2F%2Fexample.com';
+// One `cells` block holding a pasted tool link, the URL-mode ref shape the runtime
+// resolves (a bare string is ignored - assetRefId reads .id off an object).
+const cellRef = (link: string) => ({ art: { source: 'remote', id: link, _unresolved: true } });
 
 describe('print-sheet geometry', { skip: SKIP }, () => {
   test('A4 2 x 2, gap 5, margin 10 puts every cell on its millimetre', async () => {
@@ -187,7 +195,8 @@ describe('print-sheet limits', { skip: SKIP }, () => {
     assert.equal(rt.getHydratedString('{{rowsOut}}'), '4');
     const note = rt.getHydratedString('{{note}}') as string;
     assert.match(note, /40/);
-    assert.match(note, /second sheet/i);
+    // v2 paginates, so the overflow remedy is more pages or a smaller grid.
+    assert.match(note, /pages|smaller grid/i);
   });
 
   test('spacing that cannot fit is trimmed, never a negative box', async () => {
@@ -268,45 +277,72 @@ describe('print-sheet hardening', { skip: SKIP }, () => {
     const capped = await mount({ rows: 10, cols: 10 });
     assert.equal(cellRects(capped.html).length, 40);
     // 10 x 10 is capped to 4 x 10, and the label has to say 4 - not the asked-for 10.
+    // v2 drops "of the same artwork": cells can now hold different designs.
     assert.equal(capped.rt.getHydratedString(tool.manifest.a11yLabel),
-      'Print sheet, 4 rows by 10 columns of the same artwork');
+      'Print sheet, 4 rows by 10 columns');
     assert.match(capped.html, /aria-label="Print sheet, 4 rows by 10 columns"/);
   });
 });
 
 describe('print-sheet artwork', { skip: SKIP }, () => {
-  test('a pasted Lolly tool link fills every cell, composed once', async () => {
+  test('one dropped design fills every cell, composed once', async () => {
     const calls: string[] = [];
     const { html } = await mount(
-      { sheet: 'a4', rows: 2, cols: 2, image: { source: 'remote', id: TOOL_LINK, _unresolved: true } },
+      { sheet: 'a4', rows: 2, cols: 2, fill: 'repeat', cells: [cellRef(TOOL_LINK)] },
       composeHost(calls),
     );
-    // One child render for the whole sheet - imposition repeats the SAME artwork.
+    // One child render for the one design; repeat-to-fill places it in all four cells.
     assert.deepEqual(calls, [TOOL_LINK]);
-    const images = html.match(/<image [^>]*>/g) ?? [];
-    assert.equal(images.length, 4);
-    for (const img of images) assert.match(img, /href="blob:composed-art"/);
-    // With artwork placed there is no empty-cell outline and no hint left.
+    const imgs = images(html);
+    assert.equal(imgs.length, 4);
+    for (const img of imgs) assert.match(img, /href="blob:composed-art"/);
+    // Filled cells carry no empty-cell outline and no hint.
     assert.equal(cellRects(html).length, 0);
-    assert.doesNotMatch(html, /Paste a Lolly tool link/);
+    assert.doesNotMatch(html, /Drop designs/);
   });
 
-  test('the same link arrives through a URL param', async () => {
+  test('several designs each compose once and cycle across the cells', async () => {
     const calls: string[] = [];
-    const state = parseUrlState(`image=${encodeURIComponent(TOOL_LINK)}&rows=2&cols=3`, tool.manifest);
-    const { html } = await mount(state.values as Record<string, unknown>, composeHost(calls));
-    assert.deepEqual(calls, [TOOL_LINK]);
-    assert.equal((html.match(/<image [^>]*>/g) ?? []).length, 6);
+    const { html } = await mount(
+      { sheet: 'a4', rows: 2, cols: 2, fill: 'repeat', cells: [cellRef(TOOL_LINK), cellRef(TOOL_LINK2)] },
+      composeHost(calls),
+    );
+    // Two designs -> two child renders (one per DESIGN, not one per cell).
+    assert.equal(calls.length, 2);
+    assert.equal(images(html).length, 4);   // cycled to fill the grid
+  });
+
+  test('each once places every design a single time, then paginates', async () => {
+    const { rt } = await mount(
+      // 5 designs, 4 cells a sheet -> 2 pages; the last cell of page 2 stays empty.
+      { sheet: 'a4', rows: 2, cols: 2, fill: 'once', cells: [TOOL_LINK, TOOL_LINK2, TOOL_LINK, TOOL_LINK2, TOOL_LINK].map(cellRef) },
+      composeHost(),
+    );
+    const html = rt.getHydrated() as string;
+    assert.equal(pages(html), 2);
+    assert.equal(images(html).length, 5);   // each design once, no cycling
+  });
+
+  test('the Send-to-Print-Sheet seed shape ({art:{id}}) renders', async () => {
+    // multi-edit / batch seed each cell as { art: { id: <embed url> } } - a REF OBJECT,
+    // not a bare string (assetRefId ignores bare strings, so a bare url renders an empty
+    // grid). Guards the exact "batch view doesn't populate the tool" regression.
+    const { html } = await mount(
+      { sheet: 'a4', rows: 2, cols: 2, fill: 'repeat', cells: [{ art: { id: TOOL_LINK } }] },
+      composeHost(),
+    );
+    assert.equal(images(html).length, 4);
+    assert.equal(cellRects(html).length, 0);
   });
 
   test('a shell with no compose bridge still renders the grid and says what to do', async () => {
     const { html } = await mount(
-      { sheet: 'a4', rows: 2, cols: 2, image: { source: 'remote', id: TOOL_LINK, _unresolved: true } },
+      { sheet: 'a4', rows: 2, cols: 2, cells: [cellRef(TOOL_LINK)] },
       baseHost(),
     );
     assert.equal(html.includes('<image '), false);
     assert.equal(cellRects(html).length, 4);
-    assert.match(html, /Paste a Lolly tool link/);
+    assert.match(html, /Drop designs/);
   });
 });
 
@@ -341,7 +377,9 @@ describe('print-sheet seeds', { skip: SKIP }, () => {
       assert.equal(rt.getHydratedString('{{error}}'), '', `${label} surfaced a hook error`);
       assert.match(html, /<svg class="ps-svg"/, `${label} did not render a sheet`);
       const wanted = Number(values.rows ?? 2) * Number(values.cols ?? 2);
-      assert.equal(cellRects(html).length, Math.min(40, wanted), `${label} laid out the wrong cell count`);
+      // A cell is either a placed <image> (a seeded design) or an empty ps-rect; on
+      // the first page the two together are the grid, capped at 40 a sheet.
+      assert.equal(images(html).length + cellRects(html).length, Math.min(40, wanted), `${label} laid out the wrong cell count`);
       if (values.tickShape === 'round-rect') {
         assert.equal(cutRects(html).length, Math.min(40, wanted), `${label} lost its die lines`);
       }
@@ -352,7 +390,7 @@ describe('print-sheet seeds', { skip: SKIP }, () => {
     // Imposition composes ONCE and repeats the placement, so cell count is
     // template work, not render work. Recorded so a regression is visible.
     const t0 = performance.now();
-    await mount({ sheet: 'a4', rows: 5, cols: 2, image: { source: 'remote', id: TOOL_LINK, _unresolved: true } }, composeHost());
+    await mount({ sheet: 'a4', rows: 5, cols: 2, fill: 'repeat', cells: [cellRef(TOOL_LINK)] }, composeHost());
     const ms = performance.now() - t0;
     console.log(`  10-cell mount: ${ms.toFixed(1)} ms`);
     assert.ok(ms < 2000, `a 10-cell mount took ${ms.toFixed(0)} ms, past the onInput hook budget`);

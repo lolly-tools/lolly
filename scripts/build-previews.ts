@@ -468,7 +468,7 @@ const RASTER_MAX_DIM = 1024;
 //
 // It might never run: the raster screenshot in captureTool above is a 2× deviceScaleFactor
 // capture of the whole canvas, and dev:web's auto-backfill used to invoke this script
-// WITHOUT the optimize step behind it. That is how a 7.5 MB mesh-gradient.png and ~60 MB of
+// WITHOUT the optimize step behind it. That is how a 7.5 MB gradient.png and ~60 MB of
 // siblings came to be committed (plans/155 finding 3). Encoding at the point of capture
 // means a fallback is tile-sized even when nothing sweeps up after it: that same 7.5 MB
 // capture comes out of this function at 7 KB.

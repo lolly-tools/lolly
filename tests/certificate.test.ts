@@ -172,7 +172,11 @@ test('every page-size option declares a real export size, and the sheet follows 
   const a4 = expected['a4-landscape']!;
   assert.equal(manifest.render.width, a4.px[0], 'the canvas opens at A4 landscape');
   assert.equal(manifest.render.height, a4.px[1]);
-  assert.deepEqual(manifest.render.formats, ['pdf', 'pdf-cmyk', 'svg', 'png']);
+  // The vector/print set a certificate is issued in, plus the raster print
+  // formats (tool.json 1.0.2). Pinned exactly, so a format cannot come or go
+  // without this line being changed with it.
+  assert.deepEqual(manifest.render.formats,
+    ['pdf', 'pdf-cmyk', 'svg', 'png', 'jpg', 'webp', 'tiff', 'cmyk-tiff']);
   assert.equal(manifest.render.printMarks, true, 'a certificate is print intent');
 });
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Screenshot Frame (community/screenshot-frame) - render contract.
+ * Screenshot Frame (community/frame) - render contract.
  *
  * Loads the REAL tool from the community pack (manifest + template + hooks) and
  * drives it through the engine with the shared baseHost, whose asset bridge
@@ -17,7 +17,7 @@
  *  - the corner slider reaches every frame, not only the bare shot;
  *  - every example, template seed and preset overlay mounts and draws.
  *
- * Run with: node --import ./tests/css-stub.mjs --test tests/screenshot-frame.test.ts
+ * Run with: node --import ./tests/css-stub.mjs --test tests/frame.test.ts
  */
 
 import { test } from 'node:test';
@@ -39,11 +39,11 @@ const fetchFile = (path: string) => readFile(join(COMMUNITY, path), 'utf8');
 const PACK_MOUNTED = existsSync(COMMUNITY);
 const SKIP = !PACK_MOUNTED && 'community pack not mounted (clone without submodules)';
 if (PACK_MOUNTED) {
-  assert.ok(existsSync(join(COMMUNITY, 'screenshot-frame', 'tool.json')),
-    'community/screenshot-frame/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
+  assert.ok(existsSync(join(COMMUNITY, 'frame', 'tool.json')),
+    'community/frame/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
 }
 
-const tool: any = SKIP ? null : await loadTool('screenshot-frame', fetchFile);
+const tool: any = SKIP ? null : await loadTool('frame', fetchFile);
 
 async function render(state: Record<string, any>): Promise<string> {
   const rt = await createRuntime(tool, baseHost(), state);
@@ -178,7 +178,7 @@ test('junk values never throw out of the hook', { skip: SKIP }, async () => {
 test('the corner radius reaches the frame, not only the bare shot', { skip: SKIP }, async () => {
   // The slider drove --sf-radius but the browser and laptop windows pinned
   // their own corner, so the control did nothing on three frames out of four.
-  const css = await readFile(join(COMMUNITY, 'screenshot-frame', 'styles.css'), 'utf8');
+  const css = await readFile(join(COMMUNITY, 'frame', 'styles.css'), 'utf8');
   for (const sel of ['.sf-frame--browser .sf-window', '.sf-frame--laptop .sf-window']) {
     const block = css.slice(css.indexOf(sel));
     const radius = block.slice(0, block.indexOf('}')).match(/border-radius:([^;]+);/)?.[1] ?? '';
@@ -195,7 +195,7 @@ function seeds(): Seed[] {
   for (const ex of (tool.manifest.examples ?? []) as Array<{ label: string; values: Record<string, unknown> }>) {
     out.push({ label: `example ${ex.label}`, values: ex.values });
   }
-  const dir = join(COMMUNITY, 'screenshot-frame', 'templates');
+  const dir = join(COMMUNITY, 'frame', 'templates');
   for (const file of readdirSync(dir).sort()) {
     if (!file.endsWith('.json')) continue;
     const t = JSON.parse(readFileSync(join(dir, file), 'utf8'));

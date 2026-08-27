@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Web Icon Maker (community/web-icon) - the app-identity kit contract.
+ * Web Icon Maker (community/icon) - the app-identity kit contract.
  *
  * Loads the REAL tool from disk (manifest + template + hooks) and drives it
  * through the engine. Two promises are guarded here:
@@ -13,7 +13,7 @@
  *     `readZip` can read back, CRCs and all. Every other format declines and
  *     takes the normal render path untouched.
  *
- * Run with: node --import ./tests/css-stub.mjs --test tests/web-icon-kit.test.ts
+ * Run with: node --import ./tests/css-stub.mjs --test tests/icon-kit.test.ts
  */
 
 import { describe, test } from 'node:test';
@@ -28,7 +28,7 @@ import { createRuntime } from '../engine/src/runtime.ts';
 import { readZip } from '../engine/src/zip.ts';
 import { baseHost } from './helpers/host.ts';
 
-// web-icon ships in the PUBLIC community pack. Load from the SOURCE pack, not the
+// icon ships in the PUBLIC community pack. Load from the SOURCE pack, not the
 // gitignored tools/ profile view, so the suite is profile-independent: skip only
 // when community/ isn't checked out (a clone without submodules); with it present,
 // a missing tool dir means a rename/delete and must FAIL loudly.
@@ -38,11 +38,11 @@ const fetchFile = (path: string) => readFile(join(COMMUNITY, path), 'utf8');
 const PACK_MOUNTED = existsSync(COMMUNITY);
 const SKIP = !PACK_MOUNTED && 'community pack not mounted (clone without submodules)';
 if (PACK_MOUNTED) {
-  assert.ok(existsSync(join(COMMUNITY, 'web-icon', 'tool.json')),
-    'community/web-icon/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
+  assert.ok(existsSync(join(COMMUNITY, 'icon', 'tool.json')),
+    'community/icon/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
 }
 
-const tool: any = SKIP ? null : await loadTool('web-icon', fetchFile);
+const tool: any = SKIP ? null : await loadTool('icon', fetchFile);
 
 type ComposeCall = { format: string; width: number; height: number; variant: unknown; showGrid: unknown };
 
@@ -86,7 +86,7 @@ const kitFilesOf = async (state: any) => {
   return JSON.parse(rt.getHydratedString('{{{kitFilesJson}}}') as string) as string[];
 };
 
-describe('web-icon: the PWA manifest', { skip: SKIP }, () => {
+describe('icon: the PWA manifest', { skip: SKIP }, () => {
   test('is valid JSON naming the app and every icon the kit ships', async () => {
     const m = await manifestOf({ appName: 'Field Notes', appShortName: 'Notes', background: '#0c322c' });
     assert.equal(m.name, 'Field Notes');
@@ -159,7 +159,7 @@ describe('web-icon: the PWA manifest', { skip: SKIP }, () => {
   });
 });
 
-describe('web-icon: the kit zip', { skip: SKIP }, () => {
+describe('icon: the kit zip', { skip: SKIP }, () => {
   test('packs one render per member plus the manifest, readable by readZip', async () => {
     const calls: ComposeCall[] = [];
     const { host } = makeHost(calls);
@@ -261,7 +261,7 @@ const markupOf = (rt: any): string => (rt.getHydrated() as string).split('</styl
 // bridge detaches, so they must not decide any of these assertions.
 const tileOf = (rt: any): string => markupOf(rt).split('favx-preview')[0]!;
 
-describe('web-icon: the canvas faces', { skip: SKIP }, () => {
+describe('icon: the canvas faces', { skip: SKIP }, () => {
   test('the icon face is the default and carries none of the new markup', async () => {
     const rt = await mount({}, makeHost().host);
     assert.match(markupOf(rt), /data-variant="icon"/);
@@ -312,7 +312,7 @@ describe('web-icon: the canvas faces', { skip: SKIP }, () => {
 // The stylesheet, and the rules that make up the social-card face. Geometry is a
 // browser's job, so these assert the two CSS facts a headless run CAN check - and
 // both are facts a renderer would only reveal at a size nobody tests at.
-const css = SKIP ? '' : (await readFile(join(COMMUNITY, 'web-icon', 'template.html'), 'utf8'))
+const css = SKIP ? '' : (await readFile(join(COMMUNITY, 'icon', 'template.html'), 'utf8'))
   .split('</style>')[0]!
   .replace(/\/\*[\s\S]*?\*\//g, ''); // comments carry selectors and prose - never rules
 const ogBlock = () => {
@@ -325,7 +325,7 @@ const ogBlock = () => {
   };
 };
 
-describe('web-icon: the social card measures the render box, not the window', { skip: SKIP }, () => {
+describe('icon: the social card measures the render box, not the window', { skip: SKIP }, () => {
   test('no container-query unit sits on the stage\'s own box', () => {
     // An element is never its OWN query container: a cqh written here resolves
     // against the stage's nearest ANCESTOR container, and there is none, so it
@@ -366,7 +366,7 @@ describe('web-icon: the social card measures the render box, not the window', { 
   });
 });
 
-describe('web-icon: seeds', { skip: SKIP }, () => {
+describe('icon: seeds', { skip: SKIP }, () => {
   test('every example and template seed hydrates with no hook error', async () => {
     const seeds: Array<{ label: string; values: any }> = [{ label: 'defaults', values: {} }];
     for (const [i, ex] of ((tool.manifest.examples ?? []) as any[]).entries()) {

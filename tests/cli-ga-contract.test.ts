@@ -91,7 +91,7 @@ const TOOLS: Array<[string, string, string]> = [
   // A tool gated on a capability this shell cannot provide (contract B11).
   ['mic-tool', VEC_TEMPLATE, manifest('mic-tool', { capabilities: ['microphone', 'screen'] })],
   // A tool whose INPUT is named like a reserved export flag (contract B7) - the shape
-  // chart-creator, d3, filter-* and prompt-to-image all have in the shipping catalog.
+  // chart, filter-* and prompt-card all have in the shipping catalog.
   ['shadow-tool', '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80"><rect width="120" height="80" fill="#000"/><desc>{{width}}</desc></svg>',
     JSON.stringify({
       id: 'shadow-tool', name: 'shadow-tool', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',

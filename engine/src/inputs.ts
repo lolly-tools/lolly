@@ -42,6 +42,13 @@ export type TableValue = {
 };
 
 /**
+ * The editor a shell offers for one `table` column (schema `columnEditors`).
+ * 'text' is a plain cell, 'url' a plain cell with a URL keyboard, 'emoji' a
+ * button that opens an emoji picker. Cells stay plain strings in every case.
+ */
+export type TableColumnEditor = 'text' | 'url' | 'emoji';
+
+/**
  * Any value an input can hold in the model (and the shapes URL/saved-state
  * initial values arrive in). Structured members cover: token-linked colours
  * ({ ref, value }), loaded files, asset refs, vector compounds, blocks lists,
@@ -186,13 +193,13 @@ export interface InputSpec {
   /** Embed this input's value into the export's provenance metadata under the named
    *  field (EXIF/XMP/PNG text + the C2PA manifest), overriding the profile-derived
    *  default. 'copyright'/'license' are USER-ASSERTED IP fields with no profile
-   *  source. See engine/src/metadata.ts (buildExportMeta) and the embed-track-image
+   *  source. See engine/src/metadata.ts (buildExportMeta) and the claim
    *  tool. Carried onto InputModelItem via this extends. */
   bindToMeta?: 'author' | 'contact' | 'description' | 'copyright' | 'license';
   /** For an `asset`/`file` input: the export format DEFAULTS to this input's uploaded
    *  format (a dropped JPEG defaults the export to jpg) until the user picks a format
    *  themselves. The uploaded format must be one the tool offers. Read by the web
-   *  shell's renderActions; see the embed-track-image tool. */
+   *  shell's renderActions; see the claim tool. */
   matchExportFormat?: boolean;
   group?: string;
   showIf?: Record<string, InputValue>;
@@ -255,6 +262,12 @@ export interface InputSpec {
   /** Unit label shown beside a slider value (e.g. "mm"). */
   unit?: string;
   suffix?: string;
+  // table presentation
+  /** On a `table` input: which editor each COLUMN uses, matched to the columns by
+   *  position (a column with no entry edits as plain text). The engine only carries
+   *  it - the stored TableValue is the same strings whichever editor wrote them, so
+   *  URL mode and the CLI are unaffected. See schema `columnEditors`. */
+  columnEditors?: TableColumnEditor[];
   // blocks presentation/behaviour
   addMenu?: BlocksAddMenu;
   labelledFields?: boolean;

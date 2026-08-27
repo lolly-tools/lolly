@@ -607,7 +607,7 @@ const RASTER_PREVIEWS: Record<string, string> = {
     'Grain 45: darkroom bakes its texture pass (grain, halation, dust) per-pixel into a real <canvas> - hooks.js says so at its head - so captureThumbnail hands back a bitmap, not a walkable DOM. The three grain-free looks (0/2/4) do come back as SVG.',
   'darkroom.look3.webp':
     'Grain 35 on the black-and-white look - same canvas texture pass as look1: the pixels are computed, there is no geometry behind them.',
-  'prompt-to-image.webp':
+  'prompt-card.webp':
     'The generated illustration arrives as one traced shape: 2 <path> elements, one of them a 193,303-char `d`. That is 196,041 B of SVG for a picture WebP stores in 94,254 B, and the path is a tessellation of pixels, not drawn geometry.',
   'diagram-builder.webp':
     'The card embeds three source photographs. Even downscaled to the 512 px thumbnail cap they are 117,685 B of data: URI inside a 167,916 B SVG - an SVG wrapper around bitmaps costs base64 (+33%) for nothing.',
@@ -657,9 +657,23 @@ const RASTER_PREVIEWS: Record<string, string> = {
     'Brand duotone: a graded photograph, one embedded <image>, 453 B of surviving markup. The duotone is a per-pixel colour map applied to bitmap data.',
   'darkroom.look4.svg':
     'Vivid slide LUT: a 3-D LUT applied per pixel to a photograph. One embedded <image>, 450 B of surviving markup.',
-  'mesh-gradient.look2.svg':
+  // backdrop: every effect is a WebGL2 fragment shader painted into a <canvas>
+  // (vendored Paper Shaders) - a per-pixel field with no geometry to recover,
+  // the incl-neuro-viz class. The whole tool is raster by design; both .svg
+  // (walker-wrapped bitmap) and .webp (encoded) spellings occur depending on
+  // what the capture pipeline chose per file.
+  'backdrop.svg': 'Default metaballs - GPU per-pixel field, one embedded <image>.',
+  'backdrop.look0.svg': 'Lava lamp (metaballs) - GPU per-pixel field, one embedded <image>.',
+  'backdrop.look1.webp': 'Cathedral rays (god-rays) - GPU per-pixel field.',
+  'backdrop.look2.webp': 'Neural drift (neuro-noise) - GPU per-pixel field.',
+  'backdrop.look3.webp': 'Smoke halo (smoke-ring) - GPU per-pixel field.',
+  'backdrop.look4.webp': 'Velvet warp (warp) - GPU per-pixel field.',
+  'backdrop.look5.svg': 'Ember orbit (dot-orbit) - GPU per-pixel field, one embedded <image>.',
+  'backdrop.look6.svg': 'Stained cells (voronoi) - GPU per-pixel field, one embedded <image>.',
+  'backdrop.look7.svg': 'Light panels (color-panels) - GPU per-pixel field, one embedded <image>.',
+  'gradient.look2.svg':
     'Silk flow: the Flow mode is a WebGL fragment shader (simplex-noise colour field) painted into a <canvas> - a per-pixel field with no geometry to recover, the incl-neuro-viz class. The Blend/Subdivide looks stay SVG.',
-  'mesh-gradient.look4.svg':
+  'gradient.look4.svg':
     'Studio mesh: the Mesh mode gouraud-rasterises its Coons patches per pixel into a <canvas> (that raster finish is the mode\'s whole point - the vector spelling of the same mesh is the Subdivide look, which IS SVG).',
   'filter.look1.svg':
     'Duotone: a per-pixel colour map over a source photograph. Two embedded rasters and 514 B of surviving markup - there is no vector content in this look at all.',

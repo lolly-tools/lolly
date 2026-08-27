@@ -75,7 +75,7 @@ export const BLANK_STDDEV = 1.0;
  * placeholder text looks like from a distance.
  *
  * This is a SUSPICION, not a verdict, and the measurements are why. Rendered and looked at,
- * 2026-08-26 (suse pack): `run-web-code.svg` at 0.0096 is a bare editor showing its own
+ * 2026-08-26 (suse pack): `sandbox.svg` at 0.0096 is a bare editor showing its own
  * "Paste your code here" prompt, `print-sheet.svg` at 0.0077 is an empty sheet of crop
  * marks, `logo-wall.svg` at 0.019 is a "Drop your logos here" drop zone - all empty states.
  * But `countdown-timer.svg` at 0.0083 sits between two of them and is a perfectly good

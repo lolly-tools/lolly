@@ -10,7 +10,7 @@
  *
  * Scope: provenance (who/what made the file) PLUS user-asserted copyright/licence
  * when a tool's inputs supply them via `bindToMeta` (the artist declaring the IP of
- * their OWN work; see the embed-track-image tool). Those two are NEVER auto-derived
+ * their OWN work; see the claim tool). Those two are NEVER auto-derived
  * from the profile. Lolly does not assert ownership the user did not state. Personal
  * fields (author/contact) appear only if the user filled in their profile; the
  * "Lolly" software/source tags are always stamped.

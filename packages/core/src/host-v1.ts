@@ -3046,7 +3046,7 @@ export interface ExportOpts {
 
 // Provenance attribution, auto-assembled from the profile + tool. The trailing two
 // are USER-ASSERTED IP fields, filled ONLY when a tool's inputs carry them via
-// `bindToMeta` (e.g. embed-track-image, where the artist explicitly declares the
+// `bindToMeta` (e.g. claim, where the artist explicitly declares the
 // copyright/licence of their OWN work). They are NEVER auto-derived from the profile
 // - Lolly won't assert ownership the user didn't state - and, like every EXIF
 // Copyright / XMP dc:rights out there, they are self-declared, not verified facts.

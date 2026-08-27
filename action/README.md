@@ -177,7 +177,7 @@ jobs:
 The CLI renders in two tiers:
 
 - **Tier A (default, browser-free):** SVG/EMF/EPS/DXF, the data formats (ics/vcf/csv),
-  and raster/PDF of SVG-native tools (qr-code, wordmark, design, mesh-gradient, …)
+  and raster/PDF of SVG-native tools (qr-code, wordmark, design, gradient, …)
   render headlessly via jsdom + resvg. No browser, fast.
 - **Tier B (`browser: 'true'`):** raster/pdf/video exports of HTML-*layout* tools need a
   real browser. Setting `browser: 'true'` runs `lolly install-browser --with-deps`

@@ -140,7 +140,7 @@ tools/<id>/
 | `shells/cli/` | `bin/lolly.ts` (entry), `src/run.ts` (jsdom render), `src/bridge.ts` (CLI bridge) |
 | `shells/tauri-desktop`, `shells/tauri-mobile` | Tauri shells with `bridge-overrides/` (`.ts`, typechecked via `npm run typecheck:tauri`) |
 | `shells/tauri-shared/` | parent-owned `bridge-overrides/state-fs.ts` - the filesystem state logic BOTH Tauri shells call into, over an injected `fs` adapter |
-| `community/` | 38 brand-agnostic tool dirs (design, darkroom, filter, flythrough, qr-code, street-map, strip-data, text-helper, mesh-gradient, chart-creator, d3, compress-pdf, countdown-timer, url-shot) - public submodule `lolly-tools` |
+| `community/` | 38 brand-agnostic tool dirs (design, darkroom, filter, flythrough, qr-code, street-map, strip-data, text-helper, gradient, chart, compress-pdf, countdown-timer, url-shot) - public submodule `lolly-tools` |
 | `brands/suse/` | PRIVATE submodule `suse-lolly`: `tools/` (18 SUSE tool dirs) + `catalog/` (assets incl. `assets/suse/tokens/brand.json`, fonts, previews, og, generated `tools/index.json`) |
 | `brands/lolly-start/` | parent-owned blank brand: `tools/` (voice-recorder) + a neutral `catalog/` (assets/fonts/og/previews + generated `tools/index.json`) - where the brand-import (DTCG) experience gets built |
 | `tools/`, `catalog/` | gitignored profile VIEWS of the above (scripts/use-profile.ts + profiles.json) - what every script/shell actually reads |
@@ -160,7 +160,7 @@ Users add fonts in the web shell's brand editor Fonts tab (`shells/web/src/lib/b
 
 ### Smooth gradients
 
-"Smooth" means perceptual OKLab interpolation instead of muddy linear-RGB blends. The math lives in the engine: `rampOklab` in `engine/src/color-tools.ts` (exported from `engine/src/index.ts`), with OKLCH conversions in `engine/src/brand-derive.ts`; gradient token entries (`type: 'gradient'`) resolve through `engine/src/tokens.ts`. Brand palette gradients are authored in the web shell's brand editor (`shells/web/src/lib/brand-editor.ts`). The Mesh Gradient tool (`community/mesh-gradient/`) is an ordinary data-only tool, not an engine feature: its `hooks.js` builds the whole SVG as a string of stacked `<radialGradient>`s over a base fill (there is no SVG `<meshpatch>` anywhere in this codebase). Test coverage: `tests/gradient-round-trip.test.ts` (gradient tokens round-trip), `tests/color-ramp.test.ts` (rampOklab behaviour, including re-import of SVG stop colours via the real `extractSvgColors` parser), and `tests/svg-colors.test.ts` (`engine/src/svg-colors.ts`).
+"Smooth" means perceptual OKLab interpolation instead of muddy linear-RGB blends. The math lives in the engine: `rampOklab` in `engine/src/color-tools.ts` (exported from `engine/src/index.ts`), with OKLCH conversions in `engine/src/brand-derive.ts`; gradient token entries (`type: 'gradient'`) resolve through `engine/src/tokens.ts`. Brand palette gradients are authored in the web shell's brand editor (`shells/web/src/lib/brand-editor.ts`). The Mesh Gradient tool (`community/gradient/`) is an ordinary data-only tool, not an engine feature: its `hooks.js` builds the whole SVG as a string of stacked `<radialGradient>`s over a base fill (there is no SVG `<meshpatch>` anywhere in this codebase). Test coverage: `tests/gradient-round-trip.test.ts` (gradient tokens round-trip), `tests/color-ramp.test.ts` (rampOklab behaviour, including re-import of SVG stop colours via the real `extractSvgColors` parser), and `tests/svg-colors.test.ts` (`engine/src/svg-colors.ts`).
 
 ---
 

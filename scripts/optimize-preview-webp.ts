@@ -4,9 +4,9 @@
  * Raster preview → WebP converter.
  *
  * `npm run previews` rasterises the previews it can't keep as vector - a canvas tool
- * (code-canvas), a dense-synthetic-vector tool the SVG walker would make expensive to
+ * (snippet), a dense-synthetic-vector tool the SVG walker would make expensive to
  * paint (filter-halftone, street-map), or a photo-heavy look - to PNG at up to render
- * resolution (code-canvas.png alone is 1.46 MB). Shown as gallery tiles at ~300–600 CSS px
+ * resolution (snippet.png alone is 1.46 MB). Shown as gallery tiles at ~300–600 CSS px
  * they're both oversized AND in a format 3–5× heavier than it needs to be.
  *
  * This resizes every raster preview (default <id>.png AND look <id>.look<i>.png) to a

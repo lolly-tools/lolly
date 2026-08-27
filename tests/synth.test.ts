@@ -1063,7 +1063,13 @@ function runTemplate(opts: {
     head: { appendChild() {} },
   };
   const win: Record<string, any> = opts.win ?? {
-    LollySynth: { create: () => ({ renderLoopFrame() {}, dispose() {} }) },
+    __strikes: [] as [number, number][],
+    LollySynth: {
+      create: () => ({
+        renderLoopFrame() {}, dispose() {},
+        strike: (n: number, v: number) => win.__strikes.push([n, v]),
+      }),
+    },
   };
   const nav: any = {};
   if (opts.midi || opts.midiFails) {
@@ -1157,11 +1163,23 @@ test('a MIDI knob turns the sidebar control itself, and only once the tool is li
   send([0xb0, 1, 64]);
   assert.equal(intensity.value, 1, 'the middle of the knob is the middle of the range');
 
-  // Everything that is not a control-change message, or not a mapped CC, or
-  // arrives malformed, is ignored rather than guessed at.
+  // An unmapped CC, or a message that arrives malformed, is ignored rather than
+  // guessed at.
   const before = intensity.value;
-  for (const msg of [[0x90, 1, 127], [0xb0, 9, 127], [0xb0, 1], [], [0xb0]]) send(msg);
+  const keysBefore = intensity.keys.length;
+  for (const msg of [[0xb0, 9, 127], [0xb0, 1], [], [0xb0]]) send(msg);
   assert.equal(intensity.value, before);
+
+  // A struck key is not a knob: it plays the picture live through the instrument
+  // (an Alesis V25's keys, the report that started this), never the sidebar, so
+  // a melody is not a stream of undo steps or a URL that grows a param per note.
+  send([0x90, 60, 100]);
+  assert.deepEqual(win.__strikes.at(-1), [60, 100], 'a note on plays the picture');
+  assert.equal(intensity.keys.length, keysBefore, 'and it never turns a knob');
+  // A note off (status 0x80, or a note on at velocity 0) has no splat to release.
+  const struck = win.__strikes.length;
+  send([0x80, 60, 0]); send([0x90, 60, 0]);
+  assert.equal(win.__strikes.length, struck, 'note offs are not strikes');
 
   // The registration is once per session (the template re-runs on every paint),
   // and a knob whose control this scene does not show does nothing at all.

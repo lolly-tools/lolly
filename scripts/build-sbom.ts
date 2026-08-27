@@ -187,7 +187,7 @@ const VENDORED_LIBS = [
     files: ['tools/qr-code/hooks.js'],
   },
   {
-    name: 'd3',
+    name: 'chart',
     version: '7.9.0',
     license: 'ISC',
     files: ['tools/meeting-planner/lib/d3.min.js', 'tools/street-map/lib/d3.min.js'],

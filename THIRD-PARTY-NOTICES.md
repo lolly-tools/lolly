@@ -1056,6 +1056,95 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+### unicode-emoji-picker 2.0.1
+
+- SPDX-License-Identifier: `MIT`
+- Copyright: Copyright (c) 2021 Julien Marcou
+
+```text
+MIT License
+
+Copyright (c) 2021 Julien Marcou
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### unicode-emoji 2.8.0
+
+- SPDX-License-Identifier: `MIT`
+- Copyright: Copyright (c) 2021 Julien Marcou
+- Transitive dependency bundled via unicode-emoji-picker.
+
+```text
+MIT License
+
+Copyright (c) 2021 Julien Marcou
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### scrollable-component 2.0.4
+
+- SPDX-License-Identifier: `MIT`
+- Copyright: Copyright (c) 2021 Julien Marcou
+- Transitive dependency bundled via unicode-emoji-picker.
+
+```text
+MIT License
+
+Copyright (c) 2021 Julien Marcou
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ### butterchurn 2.6.7
 
 - SPDX-License-Identifier: `MIT`
@@ -2715,10 +2804,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+### @paper-design/shaders (Paper Shaders) 0.0.80
+
+- SPDX-License-Identifier: `Apache-2.0`
+- Files: `tools/backdrop/lib/paper-shaders.min.js` (tree-shaken bundle: ShaderMount + 15
+  generative fragment shaders; built from the published npm package)
+- Copyright: © Paper Design (paper.design) — https://github.com/paper-design/shaders
+- Full license text: shipped verbatim beside the bundle at `tools/backdrop/lib/LICENSE`
+  (and reproduced in this file under "ZXing C++ (compiled WASM)" — the identical
+  Apache License 2.0). Upstream NOTICE file ships at `tools/backdrop/lib/NOTICE`.
+
 ### webgl-noise (3D simplex noise GLSL)
 
 - SPDX-License-Identifier: `MIT`
-- Files: `tools/mesh-gradient/template.html (inlined - the Flow mode fragment shader)`
+- Files: `tools/gradient/template.html (inlined - the Flow mode fragment shader)`
 - Copyright: Copyright (C) 2011 Ashima Arts (Ian McEwan); Copyright (C) 2011-2016 Stefan Gustavson
 
 ```text
@@ -2879,6 +2978,27 @@ avoid divergence; it ships verbatim with the fonts at:
 and is also carried in-band in every binary's name table (IDs 0, 13, 14).
 "SUSE" is a trademark of SUSE; the OFL grant does not include trademark
 rights (see OFL section 3-4).
+```
+
+### Noto Color Emoji (COLRv1, noto-emoji v2.051)
+
+- SPDX-License-Identifier: `OFL-1.1`
+- Files: `shells/web/public/fonts/NotoColorEmoji-COLRv1.woff2`
+- Copyright: Copyright 2013 Google LLC
+
+```text
+Copyright 2013 Google LLC (https://github.com/googlefonts/noto-emoji)
+
+Noto Color Emoji is licensed under the SIL Open Font License, Version 1.1
+(OFL-1.1). The full license is NOT reproduced here to avoid divergence; it
+ships verbatim beside the font at:
+
+  shells/web/public/fonts/OFL-NotoColorEmoji.txt
+  (served in the web build at /fonts/OFL-NotoColorEmoji.txt)
+
+The shipped file is the COLRv1 build from release v2.051 (the Unicode 17.0
+update), recompressed to WOFF2 for the web. No glyphs, metrics or name-table
+entries were changed.
 ```
 
 ## Map data

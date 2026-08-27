@@ -77,7 +77,7 @@ export const DEFAULT_THRESHOLDS: ShotThresholds = {
   // has ever had, and a number tight enough to be satisfying today would either
   // block legitimate shots or collect waivers. `maxWidth` is the derived rule and
   // does the real work; this is the backstop for the OTHER failure mode, where the
-  // pixels are in budget but the content is incompressible - the mesh-gradient and
+  // pixels are in budget but the content is incompressible - the gradient and
   // street-map canvases run ~1.5 B/px against a UI shot's ~0.36, and are the
   // heaviest files left once width is capped. A dense full-window UI shot at the
   // width ceiling measures ~0.45 B/px (1800x1125 ≈ 910 KB), so 1 MB clears those

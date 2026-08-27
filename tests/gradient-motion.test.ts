@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Mesh Gradient (community/mesh-gradient) - motion export contract.
+ * Mesh Gradient (community/gradient) - motion export contract.
  *
  * The tool has always drifted on screen; what is pinned here is that the drift
  * is EXPORTABLE and that turning it off changes nothing. Three promises:
@@ -16,7 +16,7 @@
  * Plus the wave standard: every example, template and preset seed hydrates
  * with no hook error.
  *
- * Run with: node --import ./tests/css-stub.mjs --test tests/mesh-gradient-motion.test.ts
+ * Run with: node --import ./tests/css-stub.mjs --test tests/gradient-motion.test.ts
  */
 
 import { test } from 'node:test';
@@ -31,22 +31,22 @@ import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
-// mesh-gradient ships in the PUBLIC community pack. Load from the SOURCE pack, not
+// gradient ships in the PUBLIC community pack. Load from the SOURCE pack, not
 // the gitignored tools/ profile view, so the suite is profile-independent: skip
 // only when community/ isn't checked out (a clone without submodules); with it
 // present, a missing tool dir means a rename/delete and must FAIL loudly.
 const COMMUNITY = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
-const PKG = join(COMMUNITY, 'mesh-gradient');
+const PKG = join(COMMUNITY, 'gradient');
 const fetchFile = (path: string) => readFile(join(COMMUNITY, path), 'utf8');
 
 const PACK_MOUNTED = existsSync(COMMUNITY);
 const SKIP = !PACK_MOUNTED && 'community pack not mounted (clone without submodules)';
 if (PACK_MOUNTED) {
   assert.ok(existsSync(join(PKG, 'tool.json')),
-    'community/mesh-gradient/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
+    'community/gradient/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
 }
 
-const tool: any = SKIP ? null : await loadTool('mesh-gradient', fetchFile);
+const tool: any = SKIP ? null : await loadTool('gradient', fetchFile);
 const manifest: any = SKIP ? null : JSON.parse(readFileSync(join(PKG, 'tool.json'), 'utf8'));
 
 /** The rendered gradient itself - the hook extra the template drops in raw. */
@@ -199,7 +199,7 @@ test('the frame budget shortens a long loop, and a typed duration wins', { skip:
   assert.equal(fast.opts.duration, Math.floor(595 / 60), 'a 60 fps clip is capped by the frame budget');
   // A shortened loop pops at the seam, so the tool has to SAY so. host.log is a
   // (level, msg) function; calling it as an object of level methods logs nothing.
-  assert.match(fast.logs.join('\n'), /^warn: mesh-gradient: 24s loop shortened to 9s/m,
+  assert.match(fast.logs.join('\n'), /^warn: gradient: 24s loop shortened to 9s/m,
     'the seam warning must actually reach host.log');
   const whole = await exportWith({ animate: true, speed: 8 }, 'webm', { fps: 60 });
   assert.deepEqual(whole.logs, [], 'a loop that fits warns about nothing');

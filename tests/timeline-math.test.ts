@@ -521,6 +521,33 @@ test('splitBox: refuses an open-ended clip, an unknown id, and a non-finite t', 
   assert.equal(splitBox([clip('x', { start: 0, dur: 4 })], cfg, 'x', 'abc' as never, mintId), null);
 });
 
+test('splitBox: an open-ended clip splits against the sequence end when totalSec is given', () => {
+  minted = 0;
+  // Open-ended from 1s in a 6s sequence, playing at 2x from clipIn 0.5.
+  const before = [clip('x', { start: 1, dur: '', clipIn: 0.5, speed: 2 })];
+  const after = splitBox(before, cfg, 'x', 3, mintId, 6)!;
+  assert.ok(after, 'the open-ended clip splits once its end is resolvable');
+  const [a, b] = after;
+  assert.equal(a!.dur, 2, 'the left half gets the authored span up to the cut');
+  assert.equal(b!.start, 3, 'the right half starts at the cut');
+  assert.equal(b!.dur, '', 'the right half stays OPEN-ENDED - it keeps following the sequence end');
+  assert.equal(b!.clipIn, 0.5 + 2 * 2, 'its in-point advances by the media the left half consumed');
+  // The MIN_DUR guard works against the RESOLVED end: a cut just shy of 6s is refused.
+  assert.equal(splitBox(before, cfg, 'x', 5.95, mintId, 6), null);
+  // No total, or a total the clip starts at/after: the old refusal stands.
+  assert.equal(splitBox(before, cfg, 'x', 3, mintId), null);
+  assert.equal(splitBox(before, cfg, 'x', 3, mintId, 1), null);
+});
+
+test('splitAll: totalSec lets the open-ended clip join the cut instead of being skipped', () => {
+  minted = 0;
+  const before = [overlay('open', 0, { dur: '' }), overlay('ok', 0, { dur: 4 })];
+  const r = splitAll(before, cfg, ['open', 'ok'], 2, mintId, 6);
+  assert.deepEqual(r.skipped, [], 'nothing refused once the end is resolvable');
+  assert.equal(r.split.length, 2, 'both clips split');
+  assert.equal(byId(r.next, 'open').dur, 2, 'the open left half is authored to the cut');
+});
+
 test('splitBox: splitting a seq clip leaves the row gapless without a repack', () => {
   minted = 0;
   const before = [clip('a', { start: 0, dur: 4 }), clip('b', { start: 4, dur: 2 })];

@@ -35,7 +35,7 @@ export {
 } from './raster-layers.ts';
 export type { CssBlendMode, RasterLayer, LayeredRasterDoc, InflateFn } from './raster-layers.ts';
 export { buildInputModel, summarizeInputs, normalizeTableValue, deriveExportFilename, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
-export type { TableValue } from './inputs.ts';
+export type { TableValue, TableColumnEditor } from './inputs.ts';
 export { parseUrlState, serializeUrlState, serializeHdr, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS } from './url-mode.ts';
 // The `s=` state address + the still-export frame filter both shells apply (plan 112).
 export { parseFrameAddress, selectFramePage, frameFilterApplies, FRAME_FILTER_SKIP_FORMATS } from './frame-address.ts';

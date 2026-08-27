@@ -187,6 +187,14 @@ const NPM_COMPONENTS: NpmComponent[] = [
   { pkg: '@tiptap/extension-text-align', where: 'web' },
   { pkg: '@tiptap/extension-text-style', where: 'web' },
 
+  // The emoji picker behind a `table` input's `emoji` column, and the two
+  // packages it pulls in (all three MIT, all three by Julien Marcou): the raw
+  // Unicode Emoji data and the custom scrollbar the grid scrolls with. Its own
+  // chunk, fetched the first time someone opens an emoji cell - but shipped.
+  { pkg: 'unicode-emoji-picker', where: 'web' },
+  { pkg: 'unicode-emoji', where: 'web', transitiveVia: 'unicode-emoji-picker' },
+  { pkg: 'scrollable-component', where: 'web', transitiveVia: 'unicode-emoji-picker' },
+
   // Media / export pipeline (all lazy-imported, but distributed all the same).
   { pkg: 'butterchurn', where: 'web' },
   { pkg: 'butterchurn-presets', where: 'web' },
@@ -326,6 +334,22 @@ and is also carried in-band in every binary's name table (IDs 0, 13, 14).
 "SUSE" is a trademark of SUSE; the OFL grant does not include trademark
 rights (see OFL section 3-4).`;
 
+// Google's Noto Color Emoji, COLRv1 build, served from the web shell's own
+// /fonts/ so the emoji picker shows Unicode Emoji 17.0 on any device. Same
+// no-divergence rule as the SUSE faces: the OFL ships verbatim beside the font.
+const NOTO_EMOJI_TEXT = `Copyright 2013 Google LLC (https://github.com/googlefonts/noto-emoji)
+
+Noto Color Emoji is licensed under the SIL Open Font License, Version 1.1
+(OFL-1.1). The full license is NOT reproduced here to avoid divergence; it
+ships verbatim beside the font at:
+
+  shells/web/public/fonts/OFL-NotoColorEmoji.txt
+  (served in the web build at /fonts/OFL-NotoColorEmoji.txt)
+
+The shipped file is the COLRv1 build from release v2.051 (the Unicode 17.0
+update), recompressed to WOFF2 for the web. No glyphs, metrics or name-table
+entries were changed.`;
+
 // world-atlas TopoJSON bundled for the meeting-planner map.
 const WORLD_ATLAS_TEXT = `tools/meeting-planner/lib/countries-110m.json is a world-atlas TopoJSON
 build (https://github.com/topojson/world-atlas), under the ISC License,
@@ -402,7 +426,7 @@ const MANIFEST: {
       where: 'web',
     },
     {
-      name: 'd3',
+      name: 'chart',
       version: '7.9.0',
       spdx: 'ISC',
       copyright: 'Copyright 2010-2023 Mike Bostock',
@@ -449,6 +473,15 @@ const MANIFEST: {
       copyright: 'Copyright 2025 The SUSE Project Authors',
       files: 'catalog/fonts/',
       text: SUSE_FONTS_TEXT,
+      where: 'web',
+    },
+    {
+      name: 'Noto Color Emoji',
+      version: '(COLRv1, noto-emoji v2.051)',
+      spdx: 'OFL-1.1',
+      copyright: 'Copyright 2013 Google LLC',
+      files: 'shells/web/public/fonts/NotoColorEmoji-COLRv1.woff2',
+      text: NOTO_EMOJI_TEXT,
       where: 'web',
     },
   ],

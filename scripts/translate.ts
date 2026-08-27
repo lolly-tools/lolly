@@ -43,6 +43,7 @@
  *   npm run translate -- --corpus docs --lang de              # every DOCS_PAGES page
  *   npm run translate -- --corpus docs --only privacy --all   # one page, all 26 languages
  *   npm run translate -- --check              # exit non-zero on stale/missing, no API calls
+ *   npm run translate -- --corpus spa --all --regenerate   # rewrite catalogs from cache, no API calls
  *
  * Future corpora (site.json chrome) plug into the generic runCorpus() shape - 
  * see plans/38-localize.md section 8.
@@ -1411,14 +1412,14 @@ async function runCorpus(client: Anthropic | null, corpus: CorpusDef, lang: Lang
 }
 
 // ─── CLI ────────────────────────────────────────────────────────────────────
-function parseArgs(argv: string[]): { corpus?: string; lang?: Lang; all: boolean; check: boolean; only?: string; seedSiteCache: boolean; force: boolean; exportPending: boolean; seedDocsCache: boolean; importPath?: string; outDir?: string } {
+function parseArgs(argv: string[]): { corpus?: string; lang?: Lang; all: boolean; check: boolean; only?: string; seedSiteCache: boolean; force: boolean; exportPending: boolean; seedDocsCache: boolean; importPath?: string; outDir?: string; regenerate: boolean } {
   const flags: Record<string, string | boolean> = {};
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]!;
     if (!a.startsWith('--')) continue;
     const eq = a.indexOf('=');
     const key = eq === -1 ? a.slice(2) : a.slice(2, eq);
-    if (key === 'all' || key === 'check' || key === 'seed-site-cache' || key === 'force' || key === 'export-pending' || key === 'seed-docs-cache') { flags[key] = true; continue; }
+    if (key === 'all' || key === 'check' || key === 'seed-site-cache' || key === 'force' || key === 'export-pending' || key === 'seed-docs-cache' || key === 'regenerate') { flags[key] = true; continue; }
     const value = eq === -1 ? argv[++i] : a.slice(eq + 1);
     if (value !== undefined) flags[key] = value;
   }
@@ -1433,6 +1434,7 @@ function parseArgs(argv: string[]): { corpus?: string; lang?: Lang; all: boolean
     seedDocsCache: !!flags['seed-docs-cache'],
     importPath: typeof flags.import === 'string' ? flags.import : undefined,
     outDir: typeof flags['out'] === 'string' ? flags['out'] : undefined,
+    regenerate: !!flags.regenerate,
   };
 }
 
@@ -1443,7 +1445,7 @@ const ALL_CORPUS_IDS = [...Object.keys(CORPORA), 'tools', 'docs'];
 
 
 async function main(): Promise<void> {
-  const { corpus: corpusId, lang, all, check, only, seedSiteCache, force, exportPending: doExport, seedDocsCache, importPath, outDir } = parseArgs(process.argv.slice(2));
+  const { corpus: corpusId, lang, all, check, only, seedSiteCache, force, exportPending: doExport, seedDocsCache, importPath, outDir, regenerate } = parseArgs(process.argv.slice(2));
 
   // One-shot migration, before any corpus work: lift the 26 shipped site.json
   // catalogs into the cache so the first real `--corpus site` run translates
@@ -1559,6 +1561,35 @@ async function main(): Promise<void> {
 
   if (doExport) {
     await exportPending(corpusIds, targetLangs, cache, glossary, join(REPO_ROOT, outDir ?? 'scripts/i18n/pending'), only);
+    return;
+  }
+
+  // Rewrite catalogs from cache + overrides, no API calls and no cache writes.
+  //
+  // `--import` already ends in exactly this call, but only for the languages whose work
+  // file contributed a translation - deliberately, so a still-pending file cannot stamp
+  // English over a catalog nobody asked us to touch. That leaves no way to regenerate a
+  // catalog that is merely STALE: one whose language has nothing left to import, but
+  // whose file predates keys the corpus has since gained or lost. Those keys are then
+  // missing rather than untranslated, which is invisible at runtime (t() falls back to
+  // English either way) and is what locales.test.ts's key-set equality catches.
+  //
+  // Distinct from `--check`, which must stay read-only: an audit that writes is how
+  // English placeholders got seeded into the cache as though they were translations.
+  // This flag is the opposite contract - you asked for a write, it says which languages
+  // it wrote, and it still never touches the cache, so nothing it emits can be read back
+  // as a translation later.
+  if (regenerate) {
+    for (const id of corpusIds) {
+      const corpus = CORPORA[id];
+      if (!corpus) { console.error(`--regenerate covers ${Object.keys(CORPORA).join(', ')}; "${id}" writes its catalogs elsewhere.`); process.exit(1); }
+      const keys = await corpus.keys();
+      for (const l of targetLangs) {
+        const { written, english } = writeCatalogFromCache(corpus, l, keys, cache);
+        console.log(`  [${id}/${l}] wrote ${relative(REPO_ROOT, corpus.outPath(l))} (${written} keys`
+          + `${english ? `, ${english} still English` : ''})`);
+      }
+    }
     return;
   }
 

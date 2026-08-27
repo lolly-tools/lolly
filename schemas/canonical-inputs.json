@@ -19,7 +19,7 @@
     "windowStyle": {
       "type": "select",
       "label": "Window buttons",
-      "description": "Window-manager chrome look for a framed window: Nuremberg = GNOME Adwaita, Cupertino = macOS, Redmond = Windows. Shared by code-canvas and screenshot-frame (plans/147).",
+      "description": "Window-manager chrome look for a framed window: Nuremberg = GNOME Adwaita, Cupertino = macOS, Redmond = Windows. Shared by snippet and frame (plans/147).",
       "options": [
         { "value": "cupertino", "label": "Cupertino" },
         { "value": "redmond",   "label": "Redmond" },

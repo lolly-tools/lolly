@@ -217,6 +217,17 @@ export interface Runtime {
    * exactly once, after the last hook.
    */
   applyPatch(values: Record<string, unknown>): Promise<void>;
+  /**
+   * Re-resolve unresolved asset + token refs in the CURRENT model, then re-emit if
+   * anything changed. createRuntime resolves these once from the initial seed, but a
+   * batch applied AFTER mount (a template/preset picked mid-doc, via applyPatch or a
+   * setInput loop) arrives with its `{color.*}` token aliases and tool-URL asset stubs
+   * still unresolved - setInput/applyPatch deliberately never re-render a child or hit
+   * the token set per keystroke. Call this ONCE after such a batch so a picked template
+   * renders exactly like one opened fresh. Both underlying resolvers no-op when there is
+   * nothing to resolve (and resolveTokenRefs is a no-op without host.tokens).
+   */
+  resolveRefs(): Promise<void>;
   subscribe(fn: (state: RuntimeState) => void): () => void;
   /** Re-notify subscribers with the CURRENT model - no value change. */
   refresh(): void;
@@ -262,7 +273,7 @@ export interface Runtime {
    * is denied or there's no mic (the shell shows that error). No-op (false) if
    * already metering, the tool has no onLevel, or the shell provides no host.recorder.
    */
-  startMeter(): Promise<boolean>;
+  startMeter(opts?: { deviceId?: string }): Promise<boolean>;
   /** Stop the level-meter loop and release the mic reference (idempotent). */
   stopMeter(): void;
   /** Whether a recording session is currently capturing. */
@@ -799,6 +810,20 @@ export async function createRuntime(
     // deferred preview (manifest.render.preview) when the capture geometry changes.
     refresh: emit,
 
+    // Re-resolve asset + token refs the mount already ran once (see the top of
+    // createRuntime), for values applied AFTER mount. A template/preset picked
+    // mid-doc pushes its `{color.*}` backdrop tokens and tool-URL image stubs in through
+    // applyPatch/setInput, neither of which resolves them; without this a picked
+    // template renders black colours + a placeholder image where a freshly-opened one
+    // renders the real gradient. Both resolvers return the same model reference when
+    // nothing needed resolving, so a call that changed nothing skips the re-emit.
+    async resolveRefs() {
+      const before = model;
+      model = await resolveAssetRefs(model, host, droppedAssets, composeStack, tool.manifest.id);
+      model = await resolveTokenRefs(model, host);
+      if (model !== before) emit();
+    },
+
     // True when this tool declares an `onFrame` hook - i.e. it CAN react to a live
     // camera. The shell still gates the actual "go live" affordance on host.media
     // being present, so a tool without a camera shell just runs as a still tool.
@@ -880,11 +905,14 @@ export async function createRuntime(
      * sound check). Rejects if permission is denied or there's no mic (the shell
      * catches). No-op (false) if already metering, no onLevel, or no host.recorder.
      */
-    async startMeter() {
+    async startMeter(opts) {
       const onLevel = hooks?.onLevel;
       const recorder = host.recorder;
       if (meterUnsub || !onLevel || !recorder) return false;
-      await recorder.meter.start(); // may reject (permission/no mic) - the shell catches
+      // The sound-check MUST open the same mic the take will (opts.deviceId ===
+      // the startRecording opts.audioDeviceId), or its levels describe a different
+      // device. The caller (record-control) passes the chosen mic to both.
+      await recorder.meter.start(opts?.deviceId ? { deviceId: opts.deviceId } : undefined); // may reject - the shell catches
       stopMeterSource = () => recorder.meter.stop();
       meterUnsub = driveLevels(recorder.meter);
       return true;

@@ -94,21 +94,21 @@ function perPixelFilterWork(svg: string): number {
  *
  *    ms   file                    per-pixel work   blurs  bytes
  *    61.9 filter.look4.svg        3×feTurbulence@2 + feDisplacementMap = 7   1   47,669
- *    17.6 mesh-gradient.svg       1×feTurbulence@2 = 2                       1    6,016
+ *    17.6 gradient.svg       1×feTurbulence@2 = 2                       1    6,016
  *     9.6 design.svg              0                                          2    3,273
- *     8.7 code-canvas.svg         0                                          2   24,396
+ *     8.7 snippet.svg         0                                          2   24,396
  *     8.1 doc-studio.svg          0                                          1   68,343
- *     7.5 screenshot-frame.svg    0                                          1    7,819
+ *     7.5 frame.svg    0                                          1    7,819
  *     4.4 deck-studio.svg         0                                          1   15,005
  *
- *  So: blur alone never crossed 10 ms, and mesh-gradient - the worst offender the old
+ *  So: blur alone never crossed 10 ms, and gradient - the worst offender the old
  *  clause produced, a 3,430 B SVG of real <radialGradient> stops answered by a
  *  7,881,038 B committed PNG, 2298× - paints in a sixth of the time of the one look
  *  that genuinely is expensive. Bytes and element count separate them no better than
- *  blur does (mesh-gradient 6 KB / 6 elems vs filter.look4 47 KB / 3 elems; doc-studio
+ *  blur does (gradient 6 KB / 6 elems vs filter.look4 47 KB / 3 elems; doc-studio
  *  is 68 KB and paints in 8 ms). The thing that actually differs is the per-pixel
  *  filter work, and the gate is set on that, at >3 octave-equivalents - clear of
- *  mesh-gradient's 2 in both directions and well under filter.look4's 7.
+ *  gradient's 2 in both directions and well under filter.look4's 7.
  *
  *  If this ever needs re-tuning, re-measure; do not go back to presence-testing. A
  *  workaround with no expiry is exactly how the docs' `format=png` allowlist rotted

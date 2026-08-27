@@ -2,9 +2,9 @@
 /**
  * Mesh Gradient - the five-mode split (blend / subdivide / mesh / warp / flow).
  *
- * Run with: node --test tests/mesh-gradient-modes.test.ts
+ * Run with: node --test tests/gradient-modes.test.ts
  *
- * Drives the SHIPPED community/mesh-gradient/hooks.js exactly the way the
+ * Drives the SHIPPED community/gradient/hooks.js exactly the way the
  * engine's in-realm executor does (`new Function('host', source)`), plus the
  * shared mesh-core region (canonical: community/_shared/mesh.js) directly.
  * Covers:
@@ -35,8 +35,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const HOOKS_PATH = join(ROOT, 'community', 'mesh-gradient', 'hooks.js');
-const TOOL_JSON_PATH = join(ROOT, 'community', 'mesh-gradient', 'tool.json');
+const HOOKS_PATH = join(ROOT, 'community', 'gradient', 'hooks.js');
+const TOOL_JSON_PATH = join(ROOT, 'community', 'gradient', 'tool.json');
 const SHARED_MESH_PATH = join(ROOT, 'community', '_shared', 'mesh.js');
 
 const hooksSource = await readFile(HOOKS_PATH, 'utf8');
