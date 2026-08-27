@@ -227,27 +227,27 @@ test('every verdict is a solid chip: crosses on fails, ticks on passes, ink that
   ];
   const rt = await mount({ color: '#14171a', background: '#ffffff', mode: 'palette' }, { swatches });
   const cells = rows(
-    rt.getHydratedString('{{#each cells}}{{level}}|{{chipFill}}|{{chipMark}}|{{chipWord}}|{{chipInk}};{{/each}}') as string,
-    ['level', 'fill', 'mark', 'word', 'ink'],
+    rt.getHydratedString('{{#each cells}}{{level}}|{{chipFill}}|{{chipMark}}|{{chipWord}}|{{chipInk}}|{{ratioText}};{{/each}}') as string,
+    ['level', 'fill', 'mark', 'word', 'ink', 'ratio'],
   );
   assert.equal(cells.length, 16);
   const seen = new Set<string>();
   for (const c of cells) {
     seen.add(c.level!);
     assert.equal(c.ink, CHIP.ink);
+    // Andy 2026-08-27: the value lives INSIDE the chip, so a failing (low-contrast)
+    // pair's ratio stays readable. The fill/mark still key off the WCAG level.
+    assert.equal(c.word, c.ratio, 'the WCAG chip carries the ratio value, not the level word');
     if (c.level === 'AAA' || c.level === 'AA') {
       assert.equal(c.fill, CHIP.pass, `${c.level} is a green chip`);
       assert.equal(c.mark, TICK);
-      assert.equal(c.word, c.level);
     } else if (c.level === 'UI') {
       assert.equal(c.fill, CHIP.warn, 'UI-only is an amber chip: fine for borders, not for the text judged');
       assert.equal(c.mark, CROSS);
-      assert.equal(c.word, 'UI only');
     } else {
       assert.equal(c.level, 'Fail');
       assert.equal(c.fill, CHIP.fail, 'a fail is a solid red chip');
       assert.equal(c.mark, CROSS);
-      assert.equal(c.word, 'Fail');
     }
   }
   assert.ok(seen.has('Fail') && seen.has('AAA'), 'the fixture must exercise both ends');
@@ -266,23 +266,83 @@ test('every verdict is a solid chip: crosses on fails, ticks on passes, ink that
   assert.equal(extra(rt, 'verdictChip.chipFill'), CHIP.pass);
 });
 
-test('the matrix chips stay inside their cells at the 12-swatch cap', { skip: SKIP }, async () => {
-  const swatches = Array.from({ length: 12 }, (_, i) => {
-    const v = Math.round((i / 11) * 255).toString(16).padStart(2, '0');
+test('no cap: the whole palette is covered on fixed cells, and the sheet grows to fit', { skip: SKIP }, async () => {
+  // 20 swatches, past the old 12 cap: a rich brand gets a large reference sheet
+  // rather than shrinking cells to a fixed canvas. Cells are a fixed size; the
+  // value-carrying chip is centred in each and never spills.
+  const swatches = Array.from({ length: 20 }, (_, i) => {
+    const v = Math.round((i / 19) * 255).toString(16).padStart(2, '0');
     return { name: `Step ${i}`, value: `#${v}${v}${v}` };
   });
   const rt = await mount({ color: '#14171a', background: '#ffffff', mode: 'palette' }, { swatches });
   const cells = rows(
-    rt.getHydratedString('{{#each cells}}{{x}}|{{y}}|{{w}}|{{h}}|{{chipX}}|{{chipY}}|{{chipW}}|{{chipH}}|{{ratioY}};{{/each}}') as string,
-    ['x', 'y', 'w', 'h', 'cx', 'cy', 'cw', 'ch', 'ratioY'],
+    rt.getHydratedString('{{#each cells}}{{x}}|{{y}}|{{w}}|{{h}}|{{chipX}}|{{chipY}}|{{chipW}}|{{chipH}};{{/each}}') as string,
+    ['x', 'y', 'w', 'h', 'cx', 'cy', 'cw', 'ch'],
   ).map((c) => Object.fromEntries(Object.entries(c).map(([k, v]) => [k, Number(v)])));
-  assert.equal(cells.length, 144);
+  assert.equal(cells.length, 400, 'every one of 20x20 pairings, past the old cap');
   for (const c of cells) {
-    assert.ok(c.cx! >= c.x! && c.cx! + c.cw! <= c.x! + c.w!, `chip overflows its cell horizontally: ${JSON.stringify(c)}`);
-    assert.ok(c.cy! + c.ch! <= c.y! + c.h!, `chip overflows its cell vertically: ${JSON.stringify(c)}`);
-    assert.ok(c.cy! > c.ratioY!, 'the chip sits below the ratio line');
+    assert.ok(c.cx! >= c.x! - 0.5 && c.cx! + c.cw! <= c.x! + c.w! + 0.5, `chip overflows its cell horizontally: ${JSON.stringify(c)}`);
+    assert.ok(c.cy! >= c.y! && c.cy! + c.ch! <= c.y! + c.h!, `chip overflows its cell vertically: ${JSON.stringify(c)}`);
     assert.ok(c.ch! >= 14, 'the chip is never too small to read');
   }
+  // The palette sheet grows past the fixed 1600x1000 pair-mode canvas.
+  assert.ok(Number(extra(rt, 'vbW')) > 1600 && Number(extra(rt, 'vbH')) > 1000,
+    'the sheet grows with the swatch count');
+  // A tiny palette stays compact but never narrower than the title needs.
+  const small = await mount({ color: '#14171a', background: '#ffffff', mode: 'palette' },
+    { swatches: swatches.slice(0, 3) });
+  assert.equal(Number(extra(small, 'vbW')), 980, 'a 3-swatch sheet floors at the min width');
+
+  // Pair mode is untouched: the fixed canvas the CLI export path shares.
+  const pair = await mount({ color: '#767676', background: '#ffffff', mode: 'pair' });
+  assert.equal(extra(pair, 'vbW'), '1600');
+  assert.equal(extra(pair, 'vbH'), '1000');
+});
+
+// The whole-palette WCAG/APCA toggle (Andy, 2026-08-27). APCA has no size-free
+// pass/fail, so its cells carry no green/amber grade: a usable pill is tinted with
+// the row colour (best-contrast ink), red only below the 'Not usable' floor (Lc 30),
+// and never a tick/cross.
+test('palette APCA metric: usable pills take the row colour, red only below Lc 30, never a pass/fail grade', { skip: SKIP }, async () => {
+  const swatches = [
+    { name: 'Ink', value: '#14171a' },
+    { name: 'Paper', value: '#f7f7f5' },
+    { name: 'Mid', value: '#9aa3ab' },
+  ];
+  const rt = await mount({ color: '#14171a', background: '#ffffff', mode: 'palette', metric: 'apca' }, { swatches });
+  const cells = rows(
+    rt.getHydratedString('{{#each cells}}{{fg}}|{{bg}}|{{chipWord}}|{{chipFill}}|{{chipMark}}|{{chipInk}};{{/each}}') as string,
+    ['fg', 'bg', 'word', 'fill', 'mark', 'ink'],
+  );
+  assert.equal(cells.length, 9);
+  let sawTint = false, sawFail = false;
+  for (const c of cells) {
+    assert.equal(c.mark, '', 'APCA cells carry no tick or cross');
+    const lc = Math.round(Math.abs(apcaContrast(c.fg!, c.bg!)));
+    assert.equal(c.word, `Lc ${lc}`, 'the chip carries the Lc value');
+    assert.notEqual(c.fill, CHIP.pass, 'APCA never claims a green pass without a size');
+    assert.notEqual(c.fill, CHIP.warn, 'APCA has no amber grade');
+    if (lc < 30) {
+      assert.equal(c.fill, CHIP.fail, 'a pair below the floor stays red');
+      assert.equal(c.ink, CHIP.ink, 'white ink on the red fail chip');
+      sawFail = true;
+    } else {
+      // Usable: the pill takes the ROW colour (this cell's text colour) so the row
+      // is legible across a big chart; ink is black/white by best APCA contrast.
+      assert.equal(c.fill!.toLowerCase(), c.fg!.toLowerCase(), 'the pill takes the row colour above the floor');
+      const black = Math.abs(apcaContrast('#000000', c.fg!));
+      const white = Math.abs(apcaContrast('#ffffff', c.fg!));
+      assert.equal(c.ink, black >= white ? '#000000' : '#ffffff', 'ink picks the better APCA contrast on the row colour');
+      sawTint = true;
+    }
+  }
+  assert.ok(sawTint && sawFail, 'the fixture exercises both a usable (row-tinted) pill and one below the floor');
+  assert.match(extra(rt, 'subtitle'), /APCA Lc/);
+  assert.match(extra(rt, 'paletteCaption'), /Lc 30/);
+
+  // The same palette in WCAG is the default and keeps the graded pass/fail chips.
+  const wcag = await mount({ color: '#14171a', background: '#ffffff', mode: 'palette' }, { swatches });
+  assert.match(extra(wcag, 'subtitle'), /WCAG ratios/);
 });
 
 test('a shell with no host.color still renders on the local WCAG fallback', { skip: SKIP }, async () => {

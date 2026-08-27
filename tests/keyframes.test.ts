@@ -206,8 +206,8 @@ test('the char cap DOMINATES the key cap: a full-density track always fits', () 
   // "derived, not picked" has to have a derivation that reproduces, so the prose is
   // pinned here rather than left to be read: change a clamp, a quantum or the channel
   // list and this fails beside the headroom assertion above, naming both figures.
-  assert.equal(widestKey, 174, 'the widest single keyframe, as the docblock states it');
-  assert.equal(fullDensity, 44_799, 'a full-density 256-key track, as the docblock states it');
+  assert.equal(widestKey, 181, 'the widest single keyframe, as the docblock states it');
+  assert.equal(fullDensity, 46_591, 'a full-density 256-key track, as the docblock states it');
 
   // …and empirically, on the worst track the grammar can express.
   const worst = Array.from({ length: KF_MAX_KEYS }, (_v, i) => ({
@@ -840,7 +840,8 @@ test('the channel vocabulary, its clamps and its quanta are all declared togethe
   // joined at the TAIL, never beside x/y where they read better, because inserting in
   // the middle would re-spell every track already on the wire.
   assert.deepEqual([...KF_CHANNELS],
-    ['x', 'y', 'z', 's', 'r', 'rx', 'ry', 'o', 'b', 'f', 'a', 'p', 'w', 'h']);
+    // `v` is clip volume (plans/165 WP-3), appended at the tail like every channel before it.
+    ['x', 'y', 'z', 's', 'r', 'rx', 'ry', 'o', 'b', 'f', 'a', 'p', 'w', 'h', 'v']);
   for (const ch of KF_CHANNELS) {
     assert.ok(isKfChannel(ch));
     assert.ok(Object.hasOwn(KF_CLAMPS, ch), `${ch} has a clamp`);

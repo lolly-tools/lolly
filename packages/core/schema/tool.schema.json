@@ -1660,6 +1660,10 @@
                     "type": "string",
                     "description": "Boolean sub-field: silence this box's own audio track when the sequence is mixed."
                   },
+                  "gainField": {
+                    "type": "string",
+                    "description": "Number sub-field: this box's audio level when the sequence is mixed (1 = as recorded, 0 = silent, up to 2 = boosted). Machine-written by the timeline inspector, so the sub-field carries showFor:[]. Absent or empty reads as unity gain."
+                  },
                   "linkField": {
                     "type": "string",
                     "description": "String sub-field: the id of the box this one is A/V-linked to (written on BOTH sides when audio is detached from a video). Absent or naming a missing box reads as unlinked."

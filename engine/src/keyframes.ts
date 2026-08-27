@@ -79,8 +79,14 @@
  * than beside `x`/`y` where they read better, because the order IS the serialisation
  * order: inserting one in the middle would re-spell every track already on the wire
  * and break the section 4.6 round-trip law for links that are already shared.
+ *
+ * `v` (plans/165 WP-3) is CLIP VOLUME, a 0..2 multiplier over the box's own gain
+ * field. It is an AUDIO channel: the audio mix and the preview clock consume it,
+ * and every visual fold ignores it - a keyed `v` on a video box never moves a
+ * pixel. It rides this grammar (rather than its own field) so split/trim/join
+ * rebase volume keys exactly as they rebase pose keys, with zero extra code.
  */
-export const KF_CHANNELS = ['x', 'y', 'z', 's', 'r', 'rx', 'ry', 'o', 'b', 'f', 'a', 'p', 'w', 'h'] as const;
+export const KF_CHANNELS = ['x', 'y', 'z', 's', 'r', 'rx', 'ry', 'o', 'b', 'f', 'a', 'p', 'w', 'h', 'v'] as const;
 
 export type KfChannel = (typeof KF_CHANNELS)[number];
 
@@ -149,6 +155,8 @@ export const KF_CLAMPS = Object.freeze({
   // clamp tighter than that would silently disagree with the budget on big boards.
   w: [0, 16384],
   h: [0, 16384],
+  // Clip volume multiplier: silent to a 2x boost, the gain field's own range.
+  v: [0, 2],
 } as const) satisfies Readonly<Record<KfChannel, readonly [number, number]>>;
 
 /**
@@ -170,6 +178,7 @@ export const KF_QUANTA = Object.freeze({
   s: 0.001, o: 0.001, a: 0.001,
   f: 0.01, p: 0.01,
   w: 0.01, h: 0.01,
+  v: 0.001,
 } as const) satisfies Readonly<Record<KfChannel, number>>;
 
 /** Bezier control points quantise finer than px (section 4.6). */
@@ -190,9 +199,9 @@ export const KF_MAX_KEYS = 256;
  * `KF_MAX_KEYS` rather than picked: the two caps have to be mutually
  * satisfiable or the module produces a wire it then mangles. The widest a
  * single keyframe can serialise to is `t` at its cap (8) + the separator + the
- * widest custom bezier (32) + all 14 channels at the widest spelling their
- * clamp and quantum allow (119) + one separator per channel (14) = 174 chars,
- * so a full-density track is 256 × 174 + 255 = 44 799.
+ * widest custom bezier (32) + all 15 channels at the widest spelling their
+ * clamp and quantum allow (125) + one separator per channel (15) = 181 chars,
+ * so a full-density track is 256 × 181 + 255 = 46 591.
  * 49 152 (48 KiB) clears that, which is what makes the section 4.6 round-trip law
  * `parse(serialise(parse(s))) === parse(s)` hold BY CONSTRUCTION for every
  * input: the key cap dominates, so `serialiseKf` can never hand back a string
@@ -201,7 +210,8 @@ export const KF_MAX_KEYS = 256;
  * re-derive this constant then, don't paper over it. It has already happened
  * once, which is why the test exists: `w`/`h` (plans/104 section 5.2, P1) added two
  * channels worth 20 chars per key, i.e. 5 120 chars of full-density track, and
- * 40 960 stopped dominating.
+ * 40 960 stopped dominating. `v` (plans/165) later added 7 more per key and the
+ * headroom absorbed it - 2 561 chars now remain under the 48 KiB cap.
  *
  * (Plan section 5.1 said 8 KB, written before anyone measured a full-pose track: at
  * 8 KB a 256-key camera track loses ~148 of its keyframes on the way out.)

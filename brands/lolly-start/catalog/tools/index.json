@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-27T18:12:23.059Z",
+  "generatedAt": "2026-08-27T20:12:17.935Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3988,7 +3988,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
-      "version": "1.14.1",
+      "version": "1.14.2",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -5732,7 +5732,7 @@
       "id": "contrast-check",
       "name": "Contrast",
       "description": "Check a text and background pair, or every pairing in your brand palette, against WCAG 2.1 and APCA, and see how it reads to colour-blind viewers.",
-      "version": "1.1.1",
+      "version": "1.2.0",
       "status": "community",
       "category": "utility",
       "tags": [
@@ -5795,6 +5795,7 @@
             "color": "#14171a",
             "background": "#ffffff",
             "mode": "palette",
+            "metric": "wcag",
             "textSize": "normal"
           }
         }

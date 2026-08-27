@@ -1925,6 +1925,9 @@ test('the neutral table IS what an absent channel composes to (the foldKfPose re
     // the box's own size. Never seeded (see KF_POSE_SEED) - a size in every diamond
     // would reflow every keyed box.
     w: 0, h: 0,
+    // Clip volume (plans/165 WP-3): a multiplier, neutral at unity. The visual fold
+    // never reads it - it is the audio mix's channel.
+    v: 1,
   });
 });
 
