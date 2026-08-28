@@ -7,7 +7,7 @@
 #                   webkit2gtk toolchain; a normal runner, NOT the offline Flatpak
 #                   sandbox). Uploads the .deb as an artifact.
 #   2. flatpak    - inside the GNOME-49 flatpak-builder container, unpack that .deb via
-#                   shells/tauri-desktop/flatpak/tools.lolly.desktop.yml and export a
+#                   shells/tauri-desktop/flatpak/tools.lolly.Desktop.yml and export a
 #                   single-file Lolly.flatpak bundle.
 #
 # Triggers on version tags (v*) and manual dispatch. Keep the container tag (gnome-49)
@@ -114,5 +114,5 @@ jobs:
         uses: flatpak/flatpak-github-actions/flatpak-builder@401fe28a8384095fc1531b9d320b292f0ee45adb # v6.7
         with:
           bundle: Lolly.flatpak
-          manifest-path: shells/tauri-desktop/flatpak/tools.lolly.desktop.yml
+          manifest-path: shells/tauri-desktop/flatpak/tools.lolly.Desktop.yml
           cache-key: flatpak-builder-${{ github.sha }}
