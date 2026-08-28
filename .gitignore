@@ -283,3 +283,4 @@ scripts/i18n/cache.json
 # details (legal name, phone, home address) for Apple/BIS, so it stays out of git.
 # Keep a private backup; nothing in any build or test path reads this directory.
 /appstore/
+deploy/models-host/models/

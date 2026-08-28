@@ -97,6 +97,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/models/:path*", "destination": "https://lolly-models.vercel.app/models/:path*" },
     { "source": "/t/:id", "destination": "/t/:id.html" },
     { "source": "/design", "destination": "/t/design.html" },
     { "source": "/tools", "destination": "/view/tools.html" },
