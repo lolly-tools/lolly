@@ -76,9 +76,10 @@ async function main(): Promise<void> {
       try { id = JSON.parse(readFileSync(manifest, 'utf8')).id ?? entry.name; } catch { /* dir name stands in */ }
       seen.add(id);
       const date = firstAddedDate(manifest);
-      if (date && dates[id] && date !== dates[id]) dates[id] = date < dates[id] ? date : dates[id];
+      const prev = dates[id];
+      if (date && prev && date !== prev) dates[id] = date < prev ? date : prev;
       else if (date) dates[id] = date;
-      else if (dates[id]) console.warn(`  = ${id} - no git history here yet (a fresh copy or move); keeping its recorded date ${dates[id]}`);
+      else if (prev) console.warn(`  = ${id} - no git history here yet (a fresh copy or move); keeping its recorded date ${prev}`);
       else console.warn(`  ? ${id} - no git history for its tool.json (uncommitted?), skipped`);
     }
   }

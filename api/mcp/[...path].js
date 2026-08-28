@@ -2802,7 +2802,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.154.0";
+    ENGINE_VERSION = "1.155.0";
   }
 });
 
@@ -8121,8 +8121,8 @@ function parseToolUrl(src) {
     if (hId !== void 0 && ID_RE2.test(hId)) return { toolId: hId, format: null, query: hQuery };
   }
   const segs = u.pathname.split("/").filter(Boolean);
-  const cand = segs.length === 2 && segs[0] === "tool" ? segs[1] : segs.length === 1 ? segs[0] : null;
-  if (cand && ID_RE2.test(cand) && !APP_ROUTES.has(cand)) {
+  const cand = segs.length === 2 && (segs[0] === "tool" || segs[0] === "t") ? segs[1] : segs.length === 1 ? segs[0] : null;
+  if (cand && ID_RE2.test(cand) && !APP_PATH_WORDS.has(cand)) {
     return { toolId: cand, format: null, query: u.search.replace(/^\?/, "") };
   }
   return null;
@@ -8137,14 +8137,61 @@ function buildEmbedUrl({ toolId, format, query = "" } = {}) {
   const url = q ? `https://lolly.tools/tool/${toolId}.${ext}?${q}` : `https://lolly.tools/tool/${toolId}.${ext}`;
   return url.length > MAX_URL ? null : url;
 }
-var ID_RE2, FORMAT_EXT, APP_ROUTES, MAX_URL;
+var ID_RE2, FORMAT_EXT, APP_PATH_WORDS, MAX_URL;
 var init_tool_url = __esm({
   "engine/src/tool-url.ts"() {
     "use strict";
     init_embed();
     ID_RE2 = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
     FORMAT_EXT = { png: "png", jpg: "jpg", jpeg: "jpg", webp: "webp", svg: "svg", pdf: "pdf", webm: "webm", mp4: "mp4", gif: "gif", apng: "apng" };
-    APP_ROUTES = /* @__PURE__ */ new Set(["tool", "pro", "platform", "capabilities", "profile", "gallery"]);
+    APP_PATH_WORDS = /* @__PURE__ */ new Set([
+      "tool",
+      "t",
+      "tools",
+      "batch",
+      "pro",
+      "start",
+      "verify",
+      "valid",
+      "v",
+      "c",
+      "catalog",
+      "u",
+      "utilities",
+      "p",
+      "projects",
+      "d",
+      "dashboard",
+      "b",
+      "brand",
+      "lab",
+      "unpack",
+      "pdf",
+      "docs",
+      "components",
+      "ask",
+      "multi",
+      "convert",
+      "data",
+      "script",
+      "join",
+      "join-reply",
+      "profile",
+      "gallery",
+      "platform",
+      "capabilities",
+      "info",
+      "og",
+      "api",
+      "assets",
+      "fonts",
+      "ort",
+      "ort-hf",
+      "models",
+      "icons",
+      "l",
+      "a"
+    ]);
     MAX_URL = 4096;
   }
 });
@@ -16097,6 +16144,7 @@ function parseUrlState(searchParams, manifest) {
   }
   for (const [key, raw] of params.entries()) {
     if (RESERVED.has(key)) continue;
+    if (key.startsWith("_")) continue;
     const vec = vectorFieldByKey[key];
     if (vec) {
       const n2 = Number(raw);
@@ -16182,7 +16230,9 @@ function serializeUrlState(model2, opts = {}) {
       const t = normalizeTableValue(input.value);
       if (!t || !t.columns.length && !t.rows.length) continue;
     }
-    params.set(input.id, coerceToString(input, input.value));
+    const str5 = coerceToString(input, input.value, opts.keepUserIds === true);
+    if (input.type === "asset" && opts.keepUserIds !== true && str5.startsWith("user/")) continue;
+    params.set(input.id, str5);
   }
   if (opts.format) params.set("format", opts.format);
   if (opts.export) params.set("export", "");
@@ -16247,14 +16297,17 @@ function coerceFromString(input, raw) {
       return raw;
   }
 }
-function coerceToString(input, value) {
+function coerceToString(input, value, keepUserIds = false) {
   if (input.type === "boolean") return value ? "1" : "0";
   if (input.type === "asset" && value && typeof value === "object") {
     const ref = value;
     return assetIdForUrl(ref);
   }
   if (input.type === "color" && isTokenValue(value)) return value.ref;
-  if (input.type === "blocks") return JSON.stringify(blocksForUrl(value) ?? []);
+  if (input.type === "blocks") {
+    const compact = encodeBlocksCompact(value, input.fields ?? [], { keepUserIds });
+    return compact ?? JSON.stringify(blocksForUrl(value) ?? []);
+  }
   if (input.type === "table") return encodeTableCompact(normalizeTableValue(value));
   return String(value);
 }
@@ -16282,6 +16335,26 @@ function decodeBlocksCompact(str5, fields) {
     return obj;
   });
 }
+function encodeBlocksCompact(items, fields, opts = {}) {
+  if (!Array.isArray(items) || !items.length || !fields.length) return null;
+  const cell = (s) => encodeURIComponent(s).replace(/~/g, "%7E");
+  return items.map((item) => {
+    const row = item && typeof item === "object" ? item : {};
+    const vals = fields.map((f) => {
+      const raw = row[f.id] !== void 0 ? row[f.id] : f.default;
+      if (f.type === "asset") {
+        const id = raw && typeof raw === "object" ? assetIdForUrl(raw) : "";
+        return cell(id && (opts.keepUserIds || !String(id).startsWith("user/")) ? String(id) : "");
+      }
+      let v = String(raw ?? "");
+      if (f.type === "color" && HEX_COLOR.test(v)) v = v.slice(1);
+      return cell(v);
+    });
+    let end = vals.length;
+    while (end > 0 && vals[end - 1] === "") end--;
+    return vals.slice(0, end).join(",");
+  }).join("~");
+}
 function encodeTableCompact(t) {
   if (!t) return "";
   const cell = (c) => encodeURIComponent(c).replace(/~/g, "%7E");
@@ -16307,7 +16380,7 @@ function splitToFields(str5, count2) {
   if (parts.length <= count2) return parts;
   return [...parts.slice(0, count2 - 1), parts.slice(count2 - 1).join(",")];
 }
-var HDR_DEFAULTS, DEPTH_VALUES, RESERVED, CUTS_MAX;
+var HDR_DEFAULTS, DEPTH_VALUES, RESERVED, CUTS_MAX, HEX_COLOR;
 var init_url_mode = __esm({
   "engine/src/url-mode.ts"() {
     "use strict";
@@ -16319,8 +16392,9 @@ var init_url_mode = __esm({
     init_inputs();
     HDR_DEFAULTS = { peakNits: 1e3, reach: 45, lift: 0, richness: 40 };
     DEPTH_VALUES = /* @__PURE__ */ new Map([["8", 8], ["16", 16], ["float", "float"], ["auto", "auto"]]);
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "lang", "designv", "full", "options", "nostage", "template", "preset", "present", "s", "z", "zx"]);
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "lang", "designv", "full", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx"]);
     CUTS_MAX = 64;
+    HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
   }
 });
 
@@ -50921,6 +50995,7 @@ __export(src_exports, {
   emitWmf: () => emitWmf,
   encodeAuthoredPath: () => encodeAuthoredPath,
   encodeAuthoredPaths: () => encodeAuthoredPaths,
+  encodeBlocksCompact: () => encodeBlocksCompact,
   encodeBmp: () => encodeBmp,
   encodeFsToken: () => encodeFsToken,
   encodeOklch: () => encodeOklch,
@@ -55618,6 +55693,20 @@ var unavailableHere = (message, kind = "UNAVAILABLE_HERE") => new CliError(messa
 // shells/cli/src/bridge.ts
 var REPO_ROOT2 = repoRoot();
 var CLI_CAPABILITIES = ["network", "wasm", "compose", "capture"];
+function urlAssetKind(mime, id) {
+  const m2 = (mime || "").toLowerCase().split(";")[0].trim();
+  if (m2 === "image/svg+xml") return { type: "vector", format: "svg" };
+  if (m2.startsWith("image/")) return { type: "raster", format: m2.slice(6).replace("jpeg", "jpg") };
+  if (m2.startsWith("video/")) return { type: "video", format: m2.slice(6) };
+  if (m2.startsWith("audio/")) return { type: "audio", format: m2.slice(6).replace("mpeg", "mp3") };
+  const ext = /\.([a-z0-9]{2,5})(?:[?#]|$)/i.exec(id)?.[1]?.toLowerCase();
+  if (!ext) return null;
+  if (ext === "svg") return { type: "vector", format: "svg" };
+  if (["png", "jpg", "jpeg", "webp", "gif", "avif"].includes(ext)) return { type: "raster", format: ext.replace("jpeg", "jpg") };
+  if (["mp4", "webm", "mov"].includes(ext)) return { type: "video", format: ext };
+  if (["mp3", "wav", "ogg", "m4a"].includes(ext)) return { type: "audio", format: ext };
+  return null;
+}
 async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion } = {}) {
   const w = dom.window;
   const assetCatalogPath = join8(REPO_ROOT2, "catalog", "assets", "index.json");
@@ -55766,6 +55855,21 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
           url: canonical2,
           meta: { name: "Generated music", generated: true, seed: ref.seed, ...ref.style ? { style: ref.style } : {} }
         };
+      }
+      if (/^data:/i.test(id)) {
+        const mime2 = /^data:([^;,]+)/i.exec(id)?.[1] ?? "";
+        const kind = urlAssetKind(mime2, id);
+        if (!kind) throw new Error(`Unsupported data: asset type: ${mime2 || "unknown"}`);
+        return { source: "remote", id, type: kind.type, format: kind.format, url: id };
+      }
+      if (/^https?:\/\//i.test(id)) {
+        const res = await fetch(id, { signal: AbortSignal.timeout(2e4) });
+        if (!res.ok) throw new Error(`URL asset fetch failed (${res.status}): ${id}`);
+        const buf2 = Buffer.from(await res.arrayBuffer());
+        const mime2 = res.headers.get("content-type") ?? "";
+        const kind = urlAssetKind(mime2, id);
+        if (!kind) throw new Error(`Unsupported URL asset type (${mime2 || "unknown"}): ${id}`);
+        return { source: "remote", id, type: kind.type, format: kind.format, url: `data:${mime2.split(";")[0] || "application/octet-stream"};base64,${buf2.toString("base64")}` };
       }
       const { baseId: themedBase, theme } = parseThemedAssetId(id);
       const { baseId: treatedBase, treatment } = parseTreatedAssetId(id);

@@ -764,11 +764,13 @@ const RASTER_PREVIEWS: Record<string, string> = {
   'backdrop.look0.svg': 'Lava lamp (metaballs) - GPU per-pixel field, one embedded <image>.',
   'backdrop.look1.webp': 'Cathedral rays (god-rays) - GPU per-pixel field.',
   'backdrop.look2.webp': 'Neural drift (neuro-noise) - GPU per-pixel field.',
-  'backdrop.look3.webp': 'Smoke halo (smoke-ring) - GPU per-pixel field.',
+  'backdrop.look3.svg': 'Smoke halo (smoke-ring) - GPU per-pixel field, one embedded <image>.',
   'backdrop.look4.webp': 'Velvet warp (warp) - GPU per-pixel field.',
   'backdrop.look5.svg': 'Ember orbit (dot-orbit) - GPU per-pixel field, one embedded <image>.',
   'backdrop.look6.svg': 'Stained cells (voronoi) - GPU per-pixel field, one embedded <image>.',
   'backdrop.look7.svg': 'Light panels (color-panels) - GPU per-pixel field, one embedded <image>.',
+  'frame.look2.svg':
+    'Laptop - synth headline swarm inside: the framed screen content is Synth\'s WebGL2 dye field (the synth.look1 class), so the capture is the frame geometry around one embedded <image> of GPU pixels.',
   'gradient.look2.svg':
     'Silk flow: the Flow mode is a WebGL fragment shader (simplex-noise colour field) painted into a <canvas> - a per-pixel field with no geometry to recover, the incl-neuro-viz class. The Blend/Subdivide looks stay SVG.',
   'gradient.look4.svg':
@@ -793,6 +795,8 @@ const RASTER_PREVIEWS: Record<string, string> = {
     'Halftone (the default effect): ~1,910 image-coloured <circle> dots, past the 800-element SVG ceiling. Now transparent by default so the screen drops onto any design, which is exactly why the card is raster - a transparent WebP carries the dots + alpha where an 800+-element SVG cannot.',
   'filter.look0.webp':
     'Halftone look: same ~1,900-dot screen as the default card (see filter.webp), rasterised for the same reason and carrying its transparency in the WebP alpha channel.',
+  'print-sheet.look0.webp':
+    'QR codes, 3 x 3 to cut apart: nine QR module grids on one sheet - thousands of module <rect>s, far past the 800-element SVG ceiling, so the capture pipeline rasterises it at the point of capture (finalizePreview). The other imposition looks carry lighter content and stay SVG.',
   'contrast-check.look3.webp':
     'The full type-scale matrix: 315 <text> runs over 312 <rect> swatches plus 147 <path>, serialising to 166,949 B - past the 140 KB ceiling - for a tile nobody reads the numbers off. 94,666 B as WebP.',
   'street-map.webp':

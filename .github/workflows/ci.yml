@@ -115,7 +115,9 @@ jobs:
       # per-test conditions (fixture presence, loops, dynamic t.skip) make the
       # exact number impractical to derive statically, so it is pinned to the
       # count observed on main (run 30541115113, 2026-07-30; +16 browser-gated
-      # golden/emission tests added 2026-07-31). What legitimately skips on
+      # golden/emission tests added 2026-07-31; 426->430 on run 33186818905,
+      # 2026-08-28 - the ship-tree push added pack/browser-gated tests without
+      # raising the pin in the same push). What legitimately skips on
       # this runner, by reason (informational; these lines sum to 217 - one
       # bucket has overcounted by 1 since the 2026-07-30 baseline run, which
       # observed 200 against lines then summing to 201. Reconcile against the
@@ -162,7 +164,7 @@ jobs:
       - name: Skipped tests must not exceed the CI baseline
         if: always()
         env:
-          EXPECTED_SKIPS: 426
+          EXPECTED_SKIPS: 430
         run: |
           # node:test prints a run summary - "ℹ skipped N" (spec reporter) or
           # "# skipped N" (tap, the non-TTY default on some Node lines). Strip

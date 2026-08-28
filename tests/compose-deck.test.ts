@@ -53,8 +53,10 @@ test('specToDeck: only the deck-level flags the spec sets are emitted', () => {
   };
   const { deck, flags } = specToDeck(spec);
   assert.equal(deck.length, 1);
-  assert.deepEqual(flags, { size: 'wide', footerText: 'Confidential', pageNumbers: 'true' });
+  // theme first: deepEqual narrows `flags` to the literal's type, and `.theme` on the
+  // narrowed type is a typecheck error.
   assert.equal(flags.theme, undefined, 'an unset flag is omitted, not defaulted');
+  assert.deepEqual(flags, { size: 'wide', footerText: 'Confidential', pageNumbers: 'true' });
 });
 
 test('lintDeck: flags a long title, too many/long bullets, missing notes, extra media, unknown layout', () => {

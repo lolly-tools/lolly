@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:2152a405-3f7a-41f9-8596-afc414d772ee",
+  "serialNumber": "urn:uuid:c133e0ff-8a5c-4236-8937-d21c6cbeb43b",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-08-28T12:09:34.104Z",
+    "timestamp": "2026-08-28T17:24:48.019Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -84,10 +84,10 @@
         },
         {
           "type": "library",
-          "bom-ref": "pkg:npm/%40lolly/engine@1.154.0",
+          "bom-ref": "pkg:npm/%40lolly/engine@1.155.0",
           "name": "@lolly/engine",
-          "version": "1.154.0",
-          "purl": "pkg:npm/%40lolly/engine@1.154.0",
+          "version": "1.155.0",
+          "purl": "pkg:npm/%40lolly/engine@1.155.0",
           "licenses": [
             {
               "license": {
@@ -25230,7 +25230,7 @@
       "properties": [
         {
           "name": "lolly:vendored",
-          "value": "tools/street-map/lib/d3.min.js"
+          "value": "tools/meeting-planner/lib/d3.min.js"
         }
       ]
     },
@@ -35143,6 +35143,33 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/topojson-client@3.1.0",
+      "name": "topojson-client",
+      "version": "3.1.0",
+      "purl": "pkg:npm/topojson-client@3.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "17a2d16f2c3565d104d8b7f0f095cf7aab0f925e2097765d8f17d0f9303d0b026e65307e3790c035bd2a42d10d922f97dc83005499d1b1cdcd4e0047df3728ac"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "tools/meeting-planner/lib/topojson.min.js"
         }
       ]
     },

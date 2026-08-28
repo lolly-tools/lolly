@@ -52,10 +52,6 @@ const STALE_ALLOWED: Record<string, string> = {
   // committed launch page fresh against its source. An entry here is a debt with
   // a face: add one only with a reason and a date when a page is knowingly left
   // stale, and delete it the moment the page is re-rendered.
-  'en/about': 'copy edits in the 2026-08-26 docs pass drifted the spoken text; narration re-record deferred to the next batched Kokoro run',
-  'en/builders': 'source text edited 2026-08-27 in the docs pass; narration re-record deferred to the next batched Kokoro run',
-  'en/creators': 'copy edits in the 2026-08-26 docs pass drifted the spoken text; narration re-record deferred to the next batched Kokoro run',
-  'en/operators': 'copy edits in the 2026-08-26 docs pass drifted the spoken text; narration re-record deferred to the next batched Kokoro run',
 };
 
 interface Committed { key: string; lang: string; slug: string; meta: AudioMeta }

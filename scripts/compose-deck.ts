@@ -6,7 +6,7 @@
  * mapped onto the `deck-builder` tool's `deck` blocks input and rendered THROUGH
  * deck-builder, so this adds no second renderer: each slide's media slot may be a
  * Lolly tool link (chart, org-chart, filter, ...) that composes in via
- * host.compose, text lands as vector paths, and brand theming is inherited.
+ * host.compose, text is rendered as vector paths, and brand theming is inherited.
  *
  * This is the native equivalent of a hand-rolled pptxgenjs+resvg harness: the
  * "data + tools -> a deck" path an agent reached for, but built on the tool that

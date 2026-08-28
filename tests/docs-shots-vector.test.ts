@@ -44,6 +44,13 @@ const RASTER_ALLOWED: Record<string, string> = {
   // snapshots the <canvas> (export.ts, tag === 'canvas') and downscales it to its rendered
   // box via the rasterDpi recipe param - walker=1&format=svg&rasterDpi=110 - so the audiogram
   // ships as vector chrome with the canvas embedded as a smaller bitmap, under the budget.
+  design:
+    'The subject includes the floating tool rail, and .fc-toolbar-dock is [data-export-hide] '
+    + 'editor chrome - deliberately unreachable from every export/walker render, so a vector '
+    + 'walk can only ever show a bare artboard (which is exactly the complaint that retired '
+    + 'the old blank shot). The walker also mis-inlines the lolly/logo/primary gradient swirl '
+    + '(defs survive but the green spiral paints drop). Re-check when the walker gains a '
+    + 'docs-capture root that can opt INTO export-hidden chrome, same as seq-onion-ghosts.',
   'seq-onion-ghosts':
     'Onion ghosts over the scene they ghost. Neither vector path can hold both at once: '
     + 'the ghost layer is [data-export-hide] (editor chrome is deliberately unreachable '
