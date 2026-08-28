@@ -99,8 +99,8 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `brand-treatments.ts` | 253 | Brand-derived photo treatments + icon duo themes. | yes | `tests/brand-treatments.test.ts` | – |
 | `bridge/host-v1.ts` | 23 | Capability Bridge - v1 (re-export). | no | indirect | – |
 | `bytes.ts` | 77 | Shared byte-level primitives for the engine's binary/crypto format modules (c2pa, c2pa-verify, seal, x509, zip-crypto, pdf-crypto-r6, …). | no | indirect | – |
-| `c2pa-containers.ts` | 1843 | C2PA container placement - the per-format byte-splicing side of the writer: classic-xref PDF incremental update, the png/jpeg/gif/svg/tiff/webp embedders, ISO BMFF (mp4) with its own c2pa.hash.bmff.v2 binding, and the… | no | `tests/c2pa-containers.test.ts` | yes |
-| `c2pa-extract.ts` | 1908 | C2PA structural extraction - the read side's format-sniffing, CBOR decoding, JUMBF-store walking, and per-container manifest extraction (pdf/png/jpeg/gif/ svg/tiff/webp/mp4/webm/mp3/wav, plus the C2PA 2.4 TEXT bindings… | no | `tests/c2pa-extract.test.ts` | yes |
+| `c2pa-containers.ts` | 1917 | C2PA container placement - the per-format byte-splicing side of the writer: classic-xref PDF incremental update, the png/jpeg/gif/svg/tiff/webp embedders, ISO BMFF (mp4) with its own c2pa.hash.bmff.v2 binding, and the… | no | `tests/c2pa-containers.test.ts` | yes |
+| `c2pa-extract.ts` | 1936 | C2PA structural extraction - the read side's format-sniffing, CBOR decoding, JUMBF-store walking, and per-container manifest extraction (pdf/png/jpeg/gif/ svg/tiff/webp/mp4/webm/mp3/wav, plus the C2PA 2.4 TEXT bindings… | no | `tests/c2pa-extract.test.ts` | yes |
 | `c2pa-trust.ts` | 1503 | Vendored C2PA trust anchors - the root/anchor certificates whose signing chains verifyC2pa() upgrades from "valid" to TRUSTED (a named, CA-verified signer). | yes | `tests/c2pa-trust.test.ts` | – |
 | `c2pa-verdict.ts` | 286 | C2PA verdict resolution - the single source of truth for (a) the check-code vocabulary verifyC2pa emits, (b) the flags→verdict ladder every surface renders, and (c) trust-anchor assembly. | yes | `tests/c2pa-verdict.test.ts` | – |
 | `c2pa-verify.ts` | 1643 | C2PA (Content Credentials) verifier - pure, DOM-free. | yes | `tests/c2pa-verify.test.ts` | yes |
@@ -170,7 +170,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `grade.ts` | 579 | Colour grading: LUT reading, LUT sampling, and the film grain + vignette pass. | yes | `tests/grade.test.ts` | – |
 | `gradient-spec.ts` | 255 | The Lolly gradient spec: one terse, URL-safe string that describes a gradient, and the CSS it bakes down to. | yes | `tests/gradient-spec.test.ts` | – |
 | `gzip.ts` | 420 | gzip (RFC 1952): the member wrapper around raw DEFLATE, plus a self-contained inflater so a `.gz`/`.svgz` can be read back without a platform decoder. | yes | indirect | – |
-| `hdr.ts` | 444 | HDR raster export: brand-colour highlight boost + PQ (SMPTE ST 2084) encoding. | yes | `tests/hdr.test.ts` | – |
+| `hdr.ts` | 555 | HDR raster export: brand-colour highlight boost + PQ (SMPTE ST 2084) encoding. | yes | `tests/hdr.test.ts` | – |
 | `humanize.ts` | 88 | "Humanize" a text asset - a DETERMINISTIC, on-device clean-up of the AI artifacts a text-signal analysis flags, plus a tidy of the typography to house style. | yes | `tests/humanize.test.ts` | – |
 | `icc-pixels.ts` | 482 | ICC profiles applied to deep pixel buffers: the digiKam act (deeprichpixels section 3, section 5.1): input profile → PCS → working/output space, per pixel, over a {@link DeepFrame}. | yes | `tests/icc-pixels.test.ts` | – |
 | `icc.ts` | 1390 | ICC profile reader: the authority for "what can this device actually print?". | yes | `tests/icc.test.ts` | yes |
@@ -179,9 +179,9 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `image-cloud.ts` | 274 | An image's colours as a point cloud in OKLCH, plus what the distribution says. | yes | `tests/image-cloud.test.ts` | – |
 | `image-meta.ts` | 1111 | Image-metadata byte stampers and the metadata-carry core - DOM-free, shared by the web export bridge and the Node shells. | yes | indirect | – |
 | `inpaint.ts` | 422 | Telea inpainting: fill a brushed-out region of an RGBA frame from the pixels around it, by fast marching inward from the region boundary. | yes | `tests/inpaint.test.ts` | – |
-| `inputs.ts` | 766 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
+| `inputs.ts` | 779 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
 | `jpeg-segments.ts` | 372 | JPEG marker-segment walker and writer - one shared primitive, DOM-free. | no | `tests/jpeg-segments.test.ts` | – |
-| `keyframes.ts` | 1597 | Keyframe tracks, the `kf` wire grammar, and the depth-camera projection - the shared, DOM-free maths every consumer of plans/104 trusts. | yes | `tests/keyframes.test.ts` | – |
+| `keyframes.ts` | 1607 | Keyframe tracks, the `kf` wire grammar, and the depth-camera projection - the shared, DOM-free maths every consumer of plans/104 trusts. | yes | `tests/keyframes.test.ts` | – |
 | `lang.ts` | 171 | Supported UI/content languages, shared by the `lang` reserved URL param (url-mode.ts), `Profile.lang`, tool-manifest i18n sidecars, and every shell's language picker. | yes | indirect | – |
 | `loader.ts` | 477 | Tool loader. | yes | indirect | – |
 | `media-sniff.ts` | 255 | Pure, DOM-free media classification from header bytes. | yes | `tests/media-sniff.test.ts` | yes |
@@ -218,7 +218,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `rate-card.ts` | 689 | The printer's own rate card - stored, validated, never a source of prices. | yes | indirect | – |
 | `reword.ts` | 401 | Reword flagged text - the SEMANTIC half humanize.ts's header defers (plans/127). | yes | `tests/reword.test.ts` | – |
 | `riff-meta.ts` | 98 | WAV provenance tags: the RIFF LIST/INFO chunk. | yes | `tests/riff-meta.test.ts` | – |
-| `runtime.ts` | 1580 | Runtime - orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
+| `runtime.ts` | 1613 | Runtime - orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
 | `seal.ts` | 728 | SEAL (hackerfactor.com) signature verifier - pure, DOM-free (globalThis.crypto only, like c2pa-verify.ts / x509.ts). | yes | `tests/seal.test.ts` | – |
 | `semver-range.ts` | 112 | Minimal SemVer range satisfaction - enough to enforce a tool manifest's `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3). | yes | `tests/semver-range.test.ts` | – |
 | `session-record.ts` | 99 | Saved-session record envelope - the version stamps a shell's state bridge writes for one saved tool session, and the migrate-or-warn branch it runs on load. | yes | `tests/session-record.test.ts` | – |
@@ -240,10 +240,10 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `tiff.ts` | 224 | Baseline TIFF encoder (uncompressed, single strip, little-endian). | yes | `tests/tiff.test.ts` | – |
 | `token-ext.ts` | 27 | The DTCG vendor-extension namespace, alone in its own module. | no | none | – |
 | `tokens.ts` | 552 | Design tokens: a platform-agnostic DTCG model. | yes | `tests/tokens.test.ts` | – |
-| `tool-url.ts` | 133 | Lolly tool-URL recognition. | yes | `tests/tool-url.test.ts` | – |
+| `tool-url.ts` | 153 | Lolly tool-URL recognition. | yes | `tests/tool-url.test.ts` | – |
 | `trustmark.ts` | 971 | Adobe TrustMark: BCH data-layer decode (pure GF(2^7) math, DOM-free). | yes | `tests/trustmark.test.ts` | – |
 | `units.ts` | 98 | Physical unit conversions for output dimensions - platform-agnostic, no DOM. | yes | `tests/units.test.ts` | – |
-| `url-mode.ts` | 795 | URL mode. | yes | indirect | – |
+| `url-mode.ts` | 896 | URL mode. | yes | indirect | – |
 | `url-pack.ts` | 360 | Packed URL state - the compact transport for large tool state. | yes | `tests/url-pack.test.ts` | yes |
 | `validate.ts` | 78 | Validates a tool manifest against the JSON Schema. | yes | indirect | – |
 | `version.ts` | 16 | The engine's HostV1 contract version. | yes | indirect | – |

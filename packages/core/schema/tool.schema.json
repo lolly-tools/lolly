@@ -700,6 +700,12 @@
           "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
           "description": "Referenced in the template as {{id}}. Also becomes a URL param."
         },
+        "urlKey": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*$",
+          "maxLength": 16,
+          "description": "Short URL-param alias for compact links (e.g. textColor -> tc). A WIRE CONTRACT once shipped: links carry it forever, so never rename or reuse one. Lowercase alphanumeric; must be unique within the tool across all input ids and urlKeys, must not be a reserved URL param, and must not start with _ (the reserved namespace) - validate-catalog enforces all three."
+        },
         "label": {
           "type": "string"
         },
@@ -1125,6 +1131,12 @@
                   "properties": {
                     "id": {
                       "type": "string"
+                    },
+                    "urlKey": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9]*$",
+                      "maxLength": 16,
+                      "description": "Short alias for this sub-field in the compact blocks URL form. Same wire-contract rules as an input urlKey: permanent once shipped, unique within the blocks input, never a reserved param, never _-prefixed."
                     },
                     "label": {
                       "type": "string"
