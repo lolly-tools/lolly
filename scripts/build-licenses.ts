@@ -173,6 +173,9 @@ const NPM_COMPONENTS: NpmComponent[] = [
   // Demux + WebCodecs decode for timeline/sequence video export. Lazy-imported, so it
   // only reaches a user who exports a timed composition - but it IS distributed.
   { pkg: 'mediabunny', where: 'web', elect: 'MPL-2.0' },
+  // FLAC encode for the signed-FLAC export path (engine C2PA placer). Same project,
+  // same licence, same lazy-import distribution story as mediabunny itself.
+  { pkg: '@mediabunny/flac-encoder', where: 'web', elect: 'MPL-2.0' },
 
   // Rich-text editing (Tiptap + its bundled ProseMirror). All MIT, one project.
   { pkg: '@tiptap/core', where: 'web' },

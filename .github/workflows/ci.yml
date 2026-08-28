@@ -151,9 +151,10 @@ jobs:
       # (AudioBufferSink waveforms, sequence-editor E2E, mesh-gradient looks: the
       # 'no browser - Playwright Chromium' bucket), and the 08-28 pack moves
       # (deck-builder/battlecards/pricing-table gated on the SUSE pack, which CI
-      # never mounts: ~60 in the 'SUSE brand pack not mounted' bucket). +1 on top
-      # of the observed count: the ask chunks.test drift guard now skips (with a
-      # reason) instead of failing where public/info was never built.
+      # never mounts: ~60 in the 'SUSE brand pack not mounted' bucket). +3 on top
+      # of the observed count: the ask chunks.test drift guard and the two
+      # docs-landing-fragment built-site reads now skip (with a reason) instead
+      # of failing where public/info was never built.
       # If a PR legitimately adds environment-gated tests, raise the baseline in
       # that same PR; when skips are removed (e.g. browsers installed in CI, or
       # fixtures committed), LOWER it so the ratchet keeps its teeth. Local runs
@@ -161,7 +162,7 @@ jobs:
       - name: Skipped tests must not exceed the CI baseline
         if: always()
         env:
-          EXPECTED_SKIPS: 424
+          EXPECTED_SKIPS: 426
         run: |
           # node:test prints a run summary - "ℹ skipped N" (spec reporter) or
           # "# skipped N" (tap, the non-TTY default on some Node lines). Strip

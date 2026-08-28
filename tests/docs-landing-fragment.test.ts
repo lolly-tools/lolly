@@ -43,7 +43,14 @@ function landingPages(): string[] {
   return out;
 }
 
-test('every built /info landing wraps its body in the .docs-landing fragment marker', () => {
+test('every built /info landing wraps its body in the .docs-landing fragment marker', (t) => {
+  // Reads the BUILT docs site; the built .html pages are gitignored, so runners
+  // that never run build:info (CI) have nothing to check. Skip with a reason -
+  // the ship gate and local runs, where the site is built, still enforce this.
+  if (!existsSync(join(INFO, 'index.html'))) {
+    t.skip('no built /info on disk (run npm run build:info) - enforced where the site is built');
+    return;
+  }
   const pages = landingPages();
   // Non-vacuity: 27 locales ship today (English unprefixed + 26 directories).
   assert.ok(pages.length >= 20, `only ${pages.length} landing pages found under ${INFO}`);
@@ -86,7 +93,7 @@ test('the shared landing stylesheet still hides bands until .visible, so the ove
   );
 });
 
-test('the audience tabs are CSS-only: radio pairing in the stylesheet, radios in the build', () => {
+test('the audience tabs are CSS-only: radio pairing in the stylesheet, radios in the build', (t) => {
   // The whole tab mechanism is stylesheet + markup (plan 123 D1 final form) - if either
   // half loses its side of the contract, the section silently shows one frozen card.
   const css = readFileSync(join(WEB_SRC, 'styles/parts/docs-landing.css'), 'utf8');
@@ -103,6 +110,13 @@ test('the audience tabs are CSS-only: radio pairing in the stylesheet, radios in
     'the radios stay focusable (visually hidden, never display:none) - they ARE the keyboard interface',
   );
 
+  // The markup half reads the BUILT landing - absent where /info was never built
+  // (CI; the built .html is gitignored). The stylesheet asserts above already ran,
+  // so a CSS regression still fails there before this skip is reached.
+  if (!existsSync(join(INFO, 'index.html'))) {
+    t.skip('no built /info on disk (run npm run build:info) - markup half enforced where the site is built');
+    return;
+  }
   const landing = readFileSync(join(INFO, 'index.html'), 'utf8');
   assert.ok(landing.includes('<input class="aud-radio" type="radio" name="audience"'), 'the built landing ships the radio group');
   assert.ok(landing.includes('<label class="audience-tab" for="aud-'), 'each pill is a label for its radio');

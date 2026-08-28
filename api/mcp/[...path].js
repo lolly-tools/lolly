@@ -24,7 +24,15 @@ var init_tool_schema = __esm({
       title: "Tool Manifest",
       description: "Declares everything the engine needs to know about a tool: its identity, its inputs, its render target, and its capabilities. The template consumes inputs by name; this manifest declares them.",
       type: "object",
-      required: ["id", "name", "version", "engineVersion", "status", "render", "inputs"],
+      required: [
+        "id",
+        "name",
+        "version",
+        "engineVersion",
+        "status",
+        "render",
+        "inputs"
+      ],
       additionalProperties: false,
       properties: {
         id: {
@@ -34,7 +42,9 @@ var init_tool_schema = __esm({
         },
         extends: {
           type: "string",
-          enum: ["community"],
+          enum: [
+            "community"
+          ],
           description: `Brand-overlay marker - only valid on a tool inside a brand pack (brands/<brand>/tools/<id>/), never on a community tool. Declares this directory a per-file OVERLAY of the base pack's tool with the SAME id: scripts/use-profile.ts composes the profile view from community/<id>/ plus this dir (overlay file wins on filename collision, recursing one level into subdirs such as i18n/ and assets/) and strips this field from the composed tool.json, so shells and the engine never see it. The base community/<id>/tool.json must exist - a missing base fails the profile build loudly (never a silent partial tool). v1 supports only "community" as the base pack.`
         },
         name: {
@@ -65,7 +75,11 @@ var init_tool_schema = __esm({
         },
         status: {
           type: "string",
-          enum: ["official", "community", "experimental"],
+          enum: [
+            "official",
+            "community",
+            "experimental"
+          ],
           description: "Drives gallery sorting, watermarking, and brand-approval messaging. Experimental tools watermark their exports."
         },
         category: {
@@ -82,12 +96,16 @@ var init_tool_schema = __esm({
         },
         privacy: {
           type: "string",
-          enum: ["on-device"],
+          enum: [
+            "on-device"
+          ],
           description: "Marks an on-device utility - a tool that processes the user's OWN content (file in \u2192 transformed file out) entirely on the device, with nothing uploaded. The host shows a 'Runs on your device - nothing is uploaded' badge. Enforced conventions (validated): status must not be 'experimental' (no watermark on the user's own file) and the tool must not embed provenance metadata into the output. This is the marker for the privacy-flagship utility category (EXIF strip, redact, compress, convert) that replaces content exfiltration to single-purpose SaaS."
         },
         tags: {
           type: "array",
-          items: { type: "string" },
+          items: {
+            type: "string"
+          },
           description: "Free-form search tags."
         },
         featured: {
@@ -106,43 +124,126 @@ var init_tool_schema = __esm({
             variants: {
               type: "array",
               description: "DEPRECATED alias for top-level `examples` - kept for tools authored before `examples` existed. When both are present, `examples` wins (in the featured row and the gallery tile). Prefer authoring `examples` (it also drives the gallery tile's preview strip).",
-              items: { $ref: "#/$defs/exampleVariant" }
+              items: {
+                $ref: "#/$defs/exampleVariant"
+              }
             }
           }
         },
         examples: {
           type: "array",
           description: "Example input value-sets that demonstrate the tool's range. They render live on the client (the same off-screen engine path an export takes) and are shown as the gallery tile's horizontally-scrollable preview strip - after the most-recent saved-session preview - and, when the tool is `featured`, as the hero row's cross-fade. Each is memoised so later visits are instant. Omit for a tool whose single committed preview says enough.",
-          items: { $ref: "#/$defs/exampleVariant" }
+          items: {
+            $ref: "#/$defs/exampleVariant"
+          }
         },
         templates: {
           type: "array",
           description: 'Named starting points offered by the web shell\'s "New from template" chooser on a blank fresh open (no `?slot`, no URL values, no in-process seed, no `?template`). SOURCE OF TRUTH is the per-template files tools/<id>/templates/<tid>.json (each { id, name, category?, description?, thumb?, values }); build-catalog-index.ts scans that dir and the synced index carries METADATA ONLY (id/name/category/description/thumb) - the heavy `values` seed lives in the external file and is fetched on demand (chooser-select and the reserved `?template=<id>` launcher), never packed into the URL. This inline `templates[]` field is an OPTIONAL fallback for a tool that prefers inline metadata; when present the same items apply. Adding templates never changes a tool that lacks them, and never affects the manifest `default` composition (URL-mode / CLI / deep links still render with no chooser).',
-          items: { $ref: "#/$defs/templateVariant" }
+          items: {
+            $ref: "#/$defs/templateVariant"
+          }
         },
         render: {
           type: "object",
-          required: ["width", "height", "formats"],
+          required: [
+            "width",
+            "height",
+            "formats"
+          ],
           additionalProperties: false,
           description: "Defines the template render area and supported export formats.",
           properties: {
-            width: { type: "integer", minimum: 1 },
-            height: { type: "integer", minimum: 1 },
+            width: {
+              type: "integer",
+              minimum: 1
+            },
+            height: {
+              type: "integer",
+              minimum: 1
+            },
             formats: {
               type: "array",
-              items: { type: "string", enum: ["png", "jpg", "jpeg", "svg", "svg-anim", "emf", "eps", "eps-cmyk", "dxf", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "exr", "hdr", "pptx", "docx", "odt", "html", "md", "txt", "json", "csv", "css", "scss", "gpl", "ase", "ics", "vcf", "srt", "vtt", "ico", "zip", "webp", "webp-anim", "avif", "webm", "mp4", "gif", "apng", "wav", "mp3", "m4a", "opus", "ttf", "otf", "woff"] },
+              items: {
+                type: "string",
+                enum: [
+                  "png",
+                  "jpg",
+                  "jpeg",
+                  "svg",
+                  "svg-anim",
+                  "emf",
+                  "eps",
+                  "eps-cmyk",
+                  "dxf",
+                  "pdf",
+                  "pdf-cmyk",
+                  "cmyk-tiff",
+                  "tiff",
+                  "exr",
+                  "hdr",
+                  "pptx",
+                  "docx",
+                  "odt",
+                  "html",
+                  "md",
+                  "txt",
+                  "json",
+                  "csv",
+                  "css",
+                  "scss",
+                  "gpl",
+                  "ase",
+                  "ics",
+                  "vcf",
+                  "srt",
+                  "vtt",
+                  "ico",
+                  "zip",
+                  "webp",
+                  "webp-anim",
+                  "avif",
+                  "webm",
+                  "mp4",
+                  "gif",
+                  "apng",
+                  "wav",
+                  "mp3",
+                  "m4a",
+                  "opus",
+                  "ttf",
+                  "otf",
+                  "woff"
+                ]
+              },
               minItems: 1,
               description: "Output formats the tool supports. The host filters action buttons to these. Clipboard is an action (see render.actions), not a format."
             },
-            denseSections: { type: "array", items: { type: "string" }, description: "Section labels (input.section values) whose controls render in a denser 2-column grid instead of one control per row. A chrome-only presentation hint for input-dense pro tools; it never changes the input model, URL encoding, or determinism, and collapses back to one column on narrow panels/large-text. Wide controls (vector, blocks, textarea, asset, colour) still span the full width." },
+            denseSections: {
+              type: "array",
+              items: {
+                type: "string"
+              },
+              description: "Section labels (input.section values) whose controls render in a denser 2-column grid instead of one control per row. A chrome-only presentation hint for input-dense pro tools; it never changes the input model, URL encoding, or determinism, and collapses back to one column on narrow panels/large-text. Wide controls (vector, blocks, textarea, asset, colour) still span the full width."
+            },
             actions: {
               type: "array",
-              items: { type: "string", enum: ["copy", "download", "save", "share"] },
+              items: {
+                type: "string",
+                enum: [
+                  "copy",
+                  "download",
+                  "save",
+                  "share"
+                ]
+              },
               description: "Default actions to show. Defaults to ['copy', 'download', 'save'] if omitted."
             },
             filenameFrom: {
               type: "array",
-              items: { type: "string" },
+              items: {
+                type: "string"
+              },
               minItems: 1,
               description: "Input ids whose VALUES name the exported file: their current values are slugified in order ('ana-kovac', or a URL value's host+path 'suse-com-events') and used as the download filename, falling back to the tool name when every listed value is empty. The batch grid uses the same derivation for its auto row filenames (row-number prefix kept). Engine: deriveExportFilename."
             },
@@ -158,7 +259,13 @@ var init_tool_schema = __esm({
             },
             layout: {
               type: "string",
-              enum: ["sidebar", "canvas", "editor", "document", "deck"],
+              enum: [
+                "sidebar",
+                "canvas",
+                "editor",
+                "document",
+                "deck"
+              ],
               default: "sidebar",
               description: "Presentation of the tool's interface. 'sidebar' (default) renders inputs in the left control panel. 'canvas' hides the sidebar and presents the tool as a full-bleed working area - a single declared 'file' input is shown as a drag-and-drop / click-to-pick zone on the canvas itself (for on-device file utilities). 'editor' hides the sidebar too, but keeps the fixed-size render canvas AND the full render/export controls (render pill + export popup): a chromeless WYSIWYG surface. A tool using 'editor' declares one 'blocks' input carrying a `canvas` flag (which maps its geometry fields); the web shell mounts a direct-manipulation overlay (select / drag / resize / rotate / z-order / align / distribute) that reads and writes that flat blocks array. Data stays flat and URL-expressible, so CLI/URL mode render the same artwork with no overlay. Input semantics are unchanged. 'document' is a chromeless multi-page flowing-document surface (paged tools): it keeps the render/export controls like 'editor' but mounts a rich-text document editor (on-canvas format ribbon, per-block controls, contenteditable, rich-HTML paste) over a 'blocks' input whose rows are content blocks (heading/text/lolly/table). Pagination lives in the tool's hook, so CLI/URL render the same document with no editor. 'deck' is a slide-deck editor: it KEEPS the input sidebar (not chromeless) and mounts a live on-canvas overlay (deck-editor.js) over a 'blocks' input whose rows are slides - click a slide to edit its text/colour/images in place, navigate a thumbnail rail. Bounded DOM: an edit-mode hook render-mode shows one active slide plus tiny thumbnails, and the overlay restores a full-deck render before export."
             },
@@ -174,10 +281,14 @@ var init_tool_schema = __esm({
             },
             paginate: {
               type: "object",
-              required: ["source"],
+              required: [
+                "source"
+              ],
               additionalProperties: false,
               properties: {
-                source: { type: "string" }
+                source: {
+                  type: "string"
+                }
               },
               description: "Engine-driven pagination. `source` names a `table` input whose rows each produce one page: the runtime hydrates the template once per row (with a `page` context object: index/number/count, `first` = the row's first cell, `cells` = [{column, value}], `fields` = cells minus the first) and wraps each hydration in its own [data-pdf-page] box. The tool authors ONE page and never manages pagination itself. Pair with `paged: true` for the scrolling all-pages canvas + filmstrip."
             },
@@ -186,24 +297,60 @@ var init_tool_schema = __esm({
               default: false,
               description: "Marks a multi-page document tool - one whose output lays out several `[data-pdf-page]` boxes (e.g. multi-page-pdf). The gallery renders each page as its own horizontally-scrollable preview slide (via renderToolPages) instead of input-variant example looks."
             },
+            webPreview: {
+              type: "boolean",
+              default: false,
+              description: "A no-export web-page tool (a landing page, an email): the editor preview becomes a real viewport instead of a scaled artboard - the canvas fills the preview pane's width, reflows live as the pane resizes, grows to its natural height and scrolls, so the page feels exactly as a visitor will see it. render.width then only names the artboard fallback for chromes that cannot flow."
+            },
             filmstrip: {
               type: "string",
-              enum: ["left", "bottom"],
+              enum: [
+                "left",
+                "bottom"
+              ],
               default: "left",
               description: "Which edge the paged tool's slide-sorter filmstrip runs along. `left` (the default) is a vertical rail beside the canvas - right for tall documents. `bottom` is the deck-strip shape, for tools whose pages are wide and few (cards, slides), where a left rail would eat the width the page needs. Only read when `paged: true`."
             },
             pages: {
               type: "object",
               additionalProperties: false,
-              required: ["count", "width", "height"],
+              required: [
+                "count",
+                "width",
+                "height"
+              ],
               description: "Turns an `editor`-layout tool into a MULTI-PAGE canvas (carousel-maker): the web shell sizes `#tool-canvas` to a horizontal strip of N same-size page frames (fit-to-single-page off) and the free-canvas overlay places boxes across all frames. Box coordinates stay a single flat, global, URL-expressible array; the tool's hook derives which page each box belongs to (by centre) and emits one `[data-pdf-page]` frame per page, so headless CLI/URL render identically and export fans out (multi-page PDF, or one still image per page). Requires `layout:'editor'` and `paged:true`. Values name the input ids the page geometry is read from, so the shell stays generic.",
               properties: {
-                count: { type: "string", description: "Input id (a number input) holding the page count. Clamped to [min, max]." },
-                width: { type: "string", description: "Input id (a number input, px) holding each page's width. All pages share it." },
-                height: { type: "string", description: "Input id (a number input, px) holding each page's height. All pages share it." },
-                gap: { type: "integer", minimum: 0, default: 56, description: "Gap in px between page frames in the editor strip. MUST equal the tool template/hook's own frame gap so overlay handles and rendered boxes stay aligned." },
-                min: { type: "integer", minimum: 1, default: 1, description: "Minimum page count." },
-                max: { type: "integer", minimum: 1, default: 6, description: "Maximum page count." }
+                count: {
+                  type: "string",
+                  description: "Input id (a number input) holding the page count. Clamped to [min, max]."
+                },
+                width: {
+                  type: "string",
+                  description: "Input id (a number input, px) holding each page's width. All pages share it."
+                },
+                height: {
+                  type: "string",
+                  description: "Input id (a number input, px) holding each page's height. All pages share it."
+                },
+                gap: {
+                  type: "integer",
+                  minimum: 0,
+                  default: 56,
+                  description: "Gap in px between page frames in the editor strip. MUST equal the tool template/hook's own frame gap so overlay handles and rendered boxes stay aligned."
+                },
+                min: {
+                  type: "integer",
+                  minimum: 1,
+                  default: 1,
+                  description: "Minimum page count."
+                },
+                max: {
+                  type: "integer",
+                  minimum: 1,
+                  default: 6,
+                  description: "Maximum page count."
+                }
               }
             },
             printMarks: {
@@ -237,8 +384,21 @@ var init_tool_schema = __esm({
             },
             liveFacing: {
               type: "string",
-              enum: ["user", "environment"],
+              enum: [
+                "user",
+                "environment"
+              ],
               description: "For onFrame (live camera) tools: which camera to open by default - 'user' (front, the default) or 'environment' (rear). A code reader / document scanner wants 'environment'. The user can still flip front/rear from the live controls; this only sets the initial camera. Honoured where the shell can choose a facing; ignored on a single-camera device and by shells without a camera."
+            },
+            liveCameraWhen: {
+              type: "object",
+              additionalProperties: false,
+              required: ["input", "value"],
+              properties: {
+                input: { type: "string", description: "Id of an input whose value drives the live camera." },
+                value: { type: "string", description: "The input value that means 'camera on'." }
+              },
+              description: "For onFrame (live camera) tools: AUTO-start the camera when the named input holds `value`, and stop it otherwise - so a reader/scanner turns the camera on when it loads in that mode (and when the user selects it) without a manual 'Use camera' tap. Prompts for permission the first time; a denial degrades to the tool's non-camera modes. Honoured only where a camera is usable."
             },
             convertPaths: {
               type: "boolean",
@@ -252,7 +412,15 @@ var init_tool_schema = __esm({
               properties: {
                 format: {
                   type: "string",
-                  enum: ["png", "jpg", "jpeg", "svg", "pdf", "webp", "avif"],
+                  enum: [
+                    "png",
+                    "jpg",
+                    "jpeg",
+                    "svg",
+                    "pdf",
+                    "webp",
+                    "avif"
+                  ],
                   description: "Format used for the preview render. Defaults to the tool's first render format. Pick a cheap raster (e.g. webp) - the blob is discarded; only the painted frame is kept."
                 },
                 auto: {
@@ -267,41 +435,83 @@ var init_tool_schema = __esm({
               description: "Default video capture settings used when webm or mp4 is in formats.",
               additionalProperties: false,
               properties: {
-                wait: { type: "number", minimum: 0, description: "Seconds to wait before recording starts. Default 1." },
-                duration: { type: "number", minimum: 0.5, description: "Length of the recorded clip in seconds. Default 5." }
+                wait: {
+                  type: "number",
+                  minimum: 0,
+                  description: "Seconds to wait before recording starts. Default 1."
+                },
+                duration: {
+                  type: "number",
+                  minimum: 0.5,
+                  description: "Length of the recorded clip in seconds. Default 5."
+                }
               }
             },
             capture: {
               type: "string",
-              enum: ["audio", "video", "av", "screen"],
+              enum: [
+                "audio",
+                "video",
+                "av",
+                "screen"
+              ],
               description: "Marks a device-recording tool (requires host.recorder + the matching 'microphone'/'camera' capability). Tells the shell which record affordance to mount: 'audio' = mic-only (a voice recorder - also shows a live level meter when the tool declares an onLevel hook); 'video' = camera-only, SILENT (no mic track); 'av' = camera+mic (a talking-head/video recorder - use this, not 'video', when the clip needs sound, and declare BOTH 'camera' and 'microphone'; the shell also shows an audio-level + background-noise coaching HUD). 'screen' = display capture (requires the 'screen' capability): the shell mounts a Screenshot + Record pair and the browser's own picker chooses the screen/window/tab, so the tool never names or sees a target it wasn't handed. Absent = no record button. The recorded bytes reach the user via the transform path (host.export.file, never watermarked) or, for a compositing tool, become a template asset the render wraps."
             },
             transcribe: {
               type: "object",
-              required: ["source", "target"],
+              required: [
+                "source",
+                "target"
+              ],
               additionalProperties: false,
               description: "Speech to text, declared instead of built (engine 1.150). Names an audio/video input to listen to and a text input that receives the result, and the shell mounts one Transcribe affordance: the consent sheet for the one-time on-device speech-model download, a background job whose toast owns progress and cancel, and a single undoable write into the target input. Nothing is uploaded, and a clip with no speech writes an empty value rather than invented words. Feature-detected, never capability-gated: a shell without host.speech transcription (the CLI) simply mounts no button and leaves the target input exactly as the URL or the saved session set it.",
               properties: {
-                source: { type: "string", description: "Id of the 'asset' input holding the audio or video to listen to. Empty value = the affordance is disabled with a plain reason." },
-                target: { type: "string", description: "Id of the 'longtext' (or 'text') input the cues are written into. One write, so one undo step." },
+                source: {
+                  type: "string",
+                  description: "Id of the 'asset' input holding the audio or video to listen to. Empty value = the affordance is disabled with a plain reason."
+                },
+                target: {
+                  type: "string",
+                  description: "Id of the 'longtext' (or 'text') input the cues are written into. One write, so one undo step."
+                },
                 format: {
                   type: "string",
-                  enum: ["srt", "vtt", "words"],
+                  enum: [
+                    "srt",
+                    "vtt",
+                    "words"
+                  ],
                   default: "srt",
                   description: "What is written into the target input. 'srt' (default) and 'vtt' are numbered/headered subtitle cue blocks; 'words' is the plain spoken text, one cue per line, with no timestamps."
                 },
-                auto: { type: "string", description: "Optional id of a boolean input. While it is true, a newly recorded or newly picked source is transcribed with no click (the consent sheet still appears the first time the model is not on-device)." }
+                auto: {
+                  type: "string",
+                  description: "Optional id of a boolean input. While it is true, a newly recorded or newly picked source is transcribed with no click (the consent sheet still appears the first time the model is not on-device)."
+                }
               }
             },
             aspectWarning: {
               type: "object",
               additionalProperties: false,
-              required: ["message"],
+              required: [
+                "message"
+              ],
               description: "Editor-only guard for tools whose layout only suits a certain orientation (e.g. a portrait-only document). Shows a prominent warning beside the dimension controls when the current page aspect ratio (width \xF7 height) falls outside [min, max]. Never affects - or appears in - the rendered/exported output.",
               properties: {
-                min: { type: "number", exclusiveMinimum: 0, description: "Minimum acceptable aspect ratio (width \xF7 height). Below this, the warning shows. Omit to leave the low end unbounded." },
-                max: { type: "number", exclusiveMinimum: 0, description: "Maximum acceptable aspect ratio (width \xF7 height). Above this, the warning shows. Omit to leave the high end unbounded." },
-                message: { type: "string", description: "The warning text shown to the editor." }
+                min: {
+                  type: "number",
+                  exclusiveMinimum: 0,
+                  description: "Minimum acceptable aspect ratio (width \xF7 height). Below this, the warning shows. Omit to leave the low end unbounded."
+                },
+                max: {
+                  type: "number",
+                  exclusiveMinimum: 0,
+                  description: "Maximum acceptable aspect ratio (width \xF7 height). Above this, the warning shows. Omit to leave the high end unbounded."
+                },
+                message: {
+                  type: "string",
+                  description: "The warning text shown to the editor."
+                }
               }
             }
           }
@@ -309,19 +519,34 @@ var init_tool_schema = __esm({
         inputs: {
           type: "array",
           description: "Declares user-facing inputs. The host generates UI from this. The template references inputs by id.",
-          items: { $ref: "#/$defs/input" }
+          items: {
+            $ref: "#/$defs/input"
+          }
         },
         capabilities: {
           type: "array",
           items: {
             type: "string",
-            enum: ["network", "filesystem", "clipboard", "camera", "microphone", "ffmpeg", "wasm", "capture", "compose", "screen"]
+            enum: [
+              "network",
+              "filesystem",
+              "clipboard",
+              "camera",
+              "microphone",
+              "ffmpeg",
+              "wasm",
+              "capture",
+              "compose",
+              "screen"
+            ]
           },
           description: "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera'/'screen' recording tool is unavailable in the headless CLI). 'screen' (v1.54) is DISPLAY capture via host.recorder - the user picks a screen/window/tab in browser-native UI; distinct from 'capture', which rasterises a URL the tool itself names."
         },
         network: {
           type: "object",
-          required: ["allowlist"],
+          required: [
+            "allowlist"
+          ],
           additionalProperties: false,
           description: `Configuration for the 'network' capability: which URLs host.net.fetch may reach. Only meaningful alongside capabilities:["network"]. Fail-closed - without this block (or for a URL no entry matches) every host.net fetch rejects.`,
           properties: {
@@ -343,7 +568,10 @@ var init_tool_schema = __esm({
           description: "Nested renders (tool composition). Each entry renders another tool's output to an embeddable asset, exposed to the template as an extra referenced via {{asset <id>}} (so a logic-less template can embed one tool's render inside another). Requires the 'compose' capability. Recursion is depth- and cycle-guarded by the host. Capped (maxItems) well under the render cache so a single tool's composes can't self-evict mid-render.",
           items: {
             type: "object",
-            required: ["id", "tool"],
+            required: [
+              "id",
+              "tool"
+            ],
             additionalProperties: false,
             properties: {
               id: {
@@ -363,7 +591,14 @@ var init_tool_schema = __esm({
               },
               format: {
                 type: "string",
-                enum: ["png", "jpg", "jpeg", "svg", "pdf", "webp"],
+                enum: [
+                  "png",
+                  "jpg",
+                  "jpeg",
+                  "svg",
+                  "pdf",
+                  "webp"
+                ],
                 description: "Render format for the composed output. Default: svg when the child supports it (vector embeds stay crisp in svg/pdf exports), else png."
               },
               width: {
@@ -382,7 +617,9 @@ var init_tool_schema = __esm({
         guide: {
           type: "object",
           additionalProperties: false,
-          required: ["tracks"],
+          required: [
+            "tracks"
+          ],
           description: "A short 'how do I actually use the thing I just made' walkthrough, shown as a dialog behind a help button beside the tool's title (web shell) and opened once automatically on a device's first visit to the tool. For the last mile a render can't teach on its own - where the export goes and what to do with it there. Keep it to a handful of steps: it is a nudge, not documentation (link to docs from a step for the long version). Translatable via the tool's i18n sidecar under `guide.*`.",
           properties: {
             title: {
@@ -397,20 +634,29 @@ var init_tool_schema = __esm({
               items: {
                 type: "object",
                 additionalProperties: false,
-                required: ["id", "label", "steps"],
+                required: [
+                  "id",
+                  "label",
+                  "steps"
+                ],
                 properties: {
                   id: {
                     type: "string",
                     pattern: "^[a-z0-9-]+$",
                     description: "Stable key for this track - the i18n sidecar path (`guide.tracks.<id>.\u2026`) is built from it, so treat it like an input id."
                   },
-                  label: { type: "string", description: "Tab label. Keep it to one or two words." },
+                  label: {
+                    type: "string",
+                    description: "Tab label. Keep it to one or two words."
+                  },
                   steps: {
                     type: "array",
                     minItems: 1,
                     maxItems: 8,
                     description: "Ordered steps, rendered as a numbered list. Plain text - `**bold**` is the only markup, for naming the control being pointed at.",
-                    items: { type: "string" }
+                    items: {
+                      type: "string"
+                    }
                   },
                   note: {
                     type: "string",
@@ -426,14 +672,34 @@ var init_tool_schema = __esm({
           additionalProperties: false,
           description: "Optional escape hatch. If present, the tool ships a hooks.js file that the host loads in a sandboxed context.",
           properties: {
-            onInit: { type: "boolean" },
-            onInput: { type: "boolean" },
-            onFrame: { type: "boolean", description: "The tool reacts to a live camera stream. When the shell provides host.media (a camera) the runtime drives this hook once per frame with { frame, model, host }, where frame is { width, height, data (RGBA), t }; the returned patch updates the render exactly like onInit/onInput. Pure progressive enhancement - the tool still runs as a still-image tool where no camera is available, so it must NOT be declared as a required 'camera' capability." },
-            onLevel: { type: "boolean", description: "The tool reacts to live audio levels while metering/recording (e.g. a mic recorder's VU meter + coaching). When the shell provides host.recorder the runtime drives this hook per level sample with { level, model, host }, where level is { rms, peak, dbfs, clipping, t }; the returned patch updates the render like onFrame (drop-overlap, not time-boxed). The tool declares the 'microphone' capability, so - unlike onFrame - it only runs where a mic can be recorded." },
-            beforeExport: { type: "boolean" },
-            afterExport: { type: "boolean" },
-            exportFile: { type: "boolean", description: "The tool produces output via the transform path (file in \u2192 transformed file out) rather than rasterising the DOM. The hook reads the picked file's bytes (input.value.bytes) and returns a { bytes, mime, filename } record; the host wraps it in a Blob and delivers it via host.export.file (no watermark, no embedded provenance). A batch tool (a `multiple` file input) may instead return an ARRAY of such records - one per file - which the host delivers as a single zip. Used by on-device utilities." },
-            exportStill: { type: "boolean", description: "The tool owns a raster still export at a bit depth the 8-bit DOM raster cannot originate (16-bit/HDR PNG, OpenEXR, Radiance). The runtime calls this hook (engine 1.100+) before host.export.render with { node, format, opts (depth/hdr/width/height/dpi), host }; returning { bytes, mime } short-circuits the export to those bytes (via host.codec, computed in float), while returning null declines and falls through to the normal path for that format. Tool-supplied bytes carry no watermark or engine provenance." }
+            onInit: {
+              type: "boolean"
+            },
+            onInput: {
+              type: "boolean"
+            },
+            onFrame: {
+              type: "boolean",
+              description: "The tool reacts to a live camera stream. When the shell provides host.media (a camera) the runtime drives this hook once per frame with { frame, model, host }, where frame is { width, height, data (RGBA), t }; the returned patch updates the render exactly like onInit/onInput. Pure progressive enhancement - the tool still runs as a still-image tool where no camera is available, so it must NOT be declared as a required 'camera' capability."
+            },
+            onLevel: {
+              type: "boolean",
+              description: "The tool reacts to live audio levels while metering/recording (e.g. a mic recorder's VU meter + coaching). When the shell provides host.recorder the runtime drives this hook per level sample with { level, model, host }, where level is { rms, peak, dbfs, clipping, t }; the returned patch updates the render like onFrame (drop-overlap, not time-boxed). The tool declares the 'microphone' capability, so - unlike onFrame - it only runs where a mic can be recorded."
+            },
+            beforeExport: {
+              type: "boolean"
+            },
+            afterExport: {
+              type: "boolean"
+            },
+            exportFile: {
+              type: "boolean",
+              description: "The tool produces output via the transform path (file in \u2192 transformed file out) rather than rasterising the DOM. The hook reads the picked file's bytes (input.value.bytes) and returns a { bytes, mime, filename } record; the host wraps it in a Blob and delivers it via host.export.file (no watermark, no embedded provenance). A batch tool (a `multiple` file input) may instead return an ARRAY of such records - one per file - which the host delivers as a single zip. Used by on-device utilities."
+            },
+            exportStill: {
+              type: "boolean",
+              description: "The tool owns a raster still export at a bit depth the 8-bit DOM raster cannot originate (16-bit/HDR PNG, OpenEXR, Radiance). The runtime calls this hook (engine 1.100+) before host.export.render with { node, format, opts (depth/hdr/width/height/dpi), host }; returning { bytes, mime } short-circuits the export to those bytes (via host.codec, computed in float), while returning null declines and falls through to the normal path for that format. Tool-supplied bytes carry no watermark or engine provenance."
+            }
           }
         },
         isolate: {
@@ -444,29 +710,72 @@ var init_tool_schema = __esm({
       $defs: {
         input: {
           type: "object",
-          required: ["id", "type"],
+          required: [
+            "id",
+            "type"
+          ],
           properties: {
             id: {
               type: "string",
               pattern: "^[a-zA-Z][a-zA-Z0-9_]*$",
               description: "Referenced in the template as {{id}}. Also becomes a URL param."
             },
-            label: { type: "string" },
-            help: { type: "string" },
-            notice: { type: "string", description: "Always-visible fine print rendered above the control (unlike help, which sits behind an info button). For what the user should read before typing - e.g. the consent disclosure on an input whose value triggers a network lookup." },
+            urlKey: {
+              type: "string",
+              pattern: "^[a-z][a-z0-9]*$",
+              maxLength: 16,
+              description: "Short URL-param alias for compact links (e.g. textColor -> tc). A WIRE CONTRACT once shipped: links carry it forever, so never rename or reuse one. Lowercase alphanumeric; must be unique within the tool across all input ids and urlKeys, must not be a reserved URL param, and must not start with _ (the reserved namespace) - validate-catalog enforces all three."
+            },
+            label: {
+              type: "string"
+            },
+            help: {
+              type: "string"
+            },
+            notice: {
+              type: "string",
+              description: "Always-visible fine print rendered above the control (unlike help, which sits behind an info button). For what the user should read before typing - e.g. the consent disclosure on an input whose value triggers a network lookup."
+            },
             type: {
               type: "string",
-              enum: ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "blocks", "vector", "file", "table"]
+              enum: [
+                "text",
+                "longtext",
+                "number",
+                "boolean",
+                "color",
+                "select",
+                "asset",
+                "date",
+                "time",
+                "datetime-local",
+                "url",
+                "blocks",
+                "vector",
+                "file",
+                "table"
+              ]
             },
-            required: { type: "boolean", default: false },
-            default: { description: "Type-appropriate default value." },
+            required: {
+              type: "boolean",
+              default: false
+            },
+            default: {
+              description: "Type-appropriate default value."
+            },
             bindToProfile: {
               type: "string",
               description: "If set, pre-fills from the user profile field of this name (e.g. 'firstname', 'headshot'). User can override."
             },
             bindToMeta: {
               type: "string",
-              enum: ["author", "contact", "description", "copyright", "license"],
+              enum: [
+                "author",
+                "contact",
+                "description",
+                "copyright",
+                "license"
+              ],
               description: "If set, this input's value is embedded into the export's provenance metadata (EXIF/XMP/PNG text + the C2PA manifest) under this field, overriding the profile-derived default. 'copyright' and 'license' are user-asserted IP fields with no profile source (see the claim tool)."
             },
             matchExportFormat: {
@@ -490,6 +799,18 @@ var init_tool_schema = __esm({
               type: "string",
               description: "On a `vector` input holding image framing ({ zoom, x, y, rotate? }): the id of the asset input whose content it frames. Declares the input as THE framing control for that image, which is what lets the shell mount its generic on-canvas pan/zoom/rotate overlay, bound zoom against the image's real aspect ratio, and offer 'Use as a new image' (bake the framing into a new library asset). Reuse the canonical `imageFraming` field set (schemas/canonical-inputs.json) so the values stay bulk-writable in /batch. Ignored if the target id does not exist or is not an asset input. See plans/148."
             },
+            columnEditors: {
+              type: "array",
+              description: "On a `table` input: which editor each COLUMN uses, matched to the table columns by position. A column with no entry (or 'text') edits as a plain text cell. 'url' keeps the text cell but asks the device for a URL keyboard and turns autocapitalise, autocorrect and spellcheck off. 'emoji' turns that column's cells into buttons that open the emoji picker, and the chosen emoji becomes the whole cell value. Presentation only: columns and rows are still user data, the stored value is the same TableValue of strings either way, and URL mode plus the CLI are unaffected.",
+              items: {
+                type: "string",
+                enum: [
+                  "text",
+                  "url",
+                  "emoji"
+                ]
+              }
+            },
             dataSource: {
               type: "object",
               description: "Adds a unified 'Add data' affordance to this input: the user picks a file (csv/json/txt/md/xlsx) or a catalog text/boilerplate asset, and its content fills the field. For a text/longtext input the content is applied as text (an .xlsx is serialised to CSV, first sheet). Replaces per-tool paste buttons / 'paste your CSV here' instructions. See plan 87.",
@@ -497,7 +818,9 @@ var init_tool_schema = __esm({
               properties: {
                 tags: {
                   type: "array",
-                  items: { type: "string" },
+                  items: {
+                    type: "string"
+                  },
                   description: 'Catalog text-asset tags to offer from the library, AND-matched. Default ["boilerplate"].'
                 },
                 accept: {
@@ -509,44 +832,97 @@ var init_tool_schema = __esm({
           },
           allOf: [
             {
-              if: { properties: { type: { const: "text" } } },
+              if: {
+                properties: {
+                  type: {
+                    const: "text"
+                  }
+                }
+              },
               then: {
                 properties: {
-                  maxLength: { type: "integer" },
-                  minLength: { type: "integer" },
-                  pattern: { type: "string", description: "Regex." }
+                  maxLength: {
+                    type: "integer"
+                  },
+                  minLength: {
+                    type: "integer"
+                  },
+                  pattern: {
+                    type: "string",
+                    description: "Regex."
+                  }
                 }
               }
             },
             {
-              if: { properties: { type: { const: "longtext" } } },
+              if: {
+                properties: {
+                  type: {
+                    const: "longtext"
+                  }
+                }
+              },
               then: {
                 properties: {
-                  maxLength: { type: "integer" },
-                  rows: { type: "integer" }
+                  maxLength: {
+                    type: "integer"
+                  },
+                  rows: {
+                    type: "integer"
+                  }
                 }
               }
             },
             {
-              if: { properties: { type: { const: "number" } } },
+              if: {
+                properties: {
+                  type: {
+                    const: "number"
+                  }
+                }
+              },
               then: {
                 properties: {
-                  min: { type: "number" },
-                  max: { type: "number" },
-                  step: { type: "number" },
-                  display: { type: "string", enum: ["input", "slider"], default: "input" },
+                  min: {
+                    type: "number"
+                  },
+                  max: {
+                    type: "number"
+                  },
+                  step: {
+                    type: "number"
+                  },
+                  display: {
+                    type: "string",
+                    enum: [
+                      "input",
+                      "slider"
+                    ],
+                    default: "input"
+                  },
                   rangeWhen: {
                     type: "array",
                     description: "Conditional slider bounds: the first entry whose `when` map matches the current model overrides min/max/step (e.g. per-mode limits). Drives the web slider UI only - a tool that must enforce the bound elsewhere (URL/CLI values are not auto-clamped) does so in a hook.",
                     items: {
                       type: "object",
-                      required: ["when"],
+                      required: [
+                        "when"
+                      ],
                       additionalProperties: false,
                       properties: {
-                        when: { type: "object", additionalProperties: true },
-                        min: { type: "number" },
-                        max: { type: "number" },
-                        step: { type: "number" }
+                        when: {
+                          type: "object",
+                          additionalProperties: true
+                        },
+                        min: {
+                          type: "number"
+                        },
+                        max: {
+                          type: "number"
+                        },
+                        step: {
+                          type: "number"
+                        }
                       }
                     }
                   }
@@ -554,7 +930,13 @@ var init_tool_schema = __esm({
               }
             },
             {
-              if: { properties: { type: { const: "color" } } },
+              if: {
+                properties: {
+                  type: {
+                    const: "color"
+                  }
+                }
+              },
               then: {
                 properties: {
                   palette: {
@@ -569,13 +951,25 @@ var init_tool_schema = __esm({
               }
             },
             {
-              if: { properties: { type: { const: "select" } } },
+              if: {
+                properties: {
+                  type: {
+                    const: "select"
+                  }
+                }
+              },
               then: {
-                required: ["options"],
+                required: [
+                  "options"
+                ],
                 properties: {
                   display: {
                     type: "string",
-                    enum: ["select", "icon-toggle", "segmented"],
+                    enum: [
+                      "select",
+                      "icon-toggle",
+                      "segmented"
+                    ],
                     default: "select",
                     description: "'icon-toggle' renders the select as ONE compact button that cycles its options, showing the current option's `icon` instead of a dropdown. Intended for 2-state modifiers (with attachTo); a longer option list still cycles, but a dropdown reads better past ~3. 'segmented' renders the options as a row of side-by-side tabs (a radiogroup) instead of a dropdown - for a small, mutually-exclusive mode switch (2\u20134 options) like Hue/Saturation/Luminance; past ~4 a dropdown reads better."
                   },
@@ -583,16 +977,52 @@ var init_tool_schema = __esm({
                     type: "array",
                     items: {
                       type: "object",
-                      required: ["value"],
+                      required: [
+                        "value"
+                      ],
                       properties: {
-                        value: { type: "string" },
-                        label: { type: "string" },
-                        icon: { type: "string", description: "Icon name from the web shell's registry (shells/web/src/lib/icons.ts), shown instead of the label when display is 'icon-toggle'. Falls back to the label if the name is unknown." },
-                        badge: { type: "string", description: "Short pill shown beside this option's label. If ANY option carries a badge, the web shell renders the select as a badged picker (a radiogroup of labelled pills) instead of a native dropdown - so the badge is visible while choosing, not only after. For discovery/evaluation hints, e.g. 'vector' / 'raster' on a filter-effect picker. Keep it to one short word." },
-                        formats: { type: "array", items: { type: "string" }, description: "Export formats to offer while THIS option is selected - a subset of render.formats. Lets one select (e.g. an effect picker) drive the export format bar so each choice offers only the formats it produces well, while render.formats stays the union. Intersected with the tool's render.formats and the device's capability filter. Ignored unless the shell wires the option to the format bar." },
-                        width: { type: "number", exclusiveMinimum: 0, description: "Export width this option implies, in `unit`. With `height`, selecting the option sets the export dimensions (so a 'size' select drives the printed page size). The shell applies it to the export bar; the user can still override." },
-                        height: { type: "number", exclusiveMinimum: 0, description: "Export height this option implies, in `unit`." },
-                        unit: { type: "string", enum: ["px", "mm", "cm", "in", "pt"], description: "Unit for this option's width/height. Defaults to 'mm' when width/height are present." }
+                        value: {
+                          type: "string"
+                        },
+                        label: {
+                          type: "string"
+                        },
+                        icon: {
+                          type: "string",
+                          description: "Icon name from the web shell's registry (shells/web/src/lib/icons.ts), shown instead of the label when display is 'icon-toggle'. Falls back to the label if the name is unknown."
+                        },
+                        badge: {
+                          type: "string",
+                          description: "Short pill shown beside this option's label. If ANY option carries a badge, the web shell renders the select as a badged picker (a radiogroup of labelled pills) instead of a native dropdown - so the badge is visible while choosing, not only after. For discovery/evaluation hints, e.g. 'vector' / 'raster' on a filter-effect picker. Keep it to one short word."
+                        },
+                        formats: {
+                          type: "array",
+                          items: {
+                            type: "string"
+                          },
+                          description: "Export formats to offer while THIS option is selected - a subset of render.formats. Lets one select (e.g. an effect picker) drive the export format bar so each choice offers only the formats it produces well, while render.formats stays the union. Intersected with the tool's render.formats and the device's capability filter. Ignored unless the shell wires the option to the format bar."
+                        },
+                        width: {
+                          type: "number",
+                          exclusiveMinimum: 0,
+                          description: "Export width this option implies, in `unit`. With `height`, selecting the option sets the export dimensions (so a 'size' select drives the printed page size). The shell applies it to the export bar; the user can still override."
+                        },
+                        height: {
+                          type: "number",
+                          exclusiveMinimum: 0,
+                          description: "Export height this option implies, in `unit`."
+                        },
+                        unit: {
+                          type: "string",
+                          enum: [
+                            "px",
+                            "mm",
+                            "cm",
+                            "in",
+                            "pt"
+                          ],
+                          description: "Unit for this option's width/height. Defaults to 'mm' when width/height are present."
+                        }
                       }
                     }
                   }
@@ -600,16 +1030,40 @@ var init_tool_schema = __esm({
               }
             },
             {
-              if: { properties: { type: { const: "asset" } } },
+              if: {
+                properties: {
+                  type: {
+                    const: "asset"
+                  }
+                }
+              },
               then: {
                 properties: {
-                  assetType: { type: "string", enum: ["vector", "raster", "image", "video", "audio", "lottie", "any"] },
+                  assetType: {
+                    type: "string",
+                    enum: [
+                      "vector",
+                      "raster",
+                      "image",
+                      "video",
+                      "audio",
+                      "lottie",
+                      "any"
+                    ]
+                  },
                   filter: {
                     type: "object",
                     description: "Constraints passed to host.assets.query(). Limits the picker.",
                     properties: {
-                      tags: { type: "array", items: { type: "string" } },
-                      namespace: { type: "string" }
+                      tags: {
+                        type: "array",
+                        items: {
+                          type: "string"
+                        }
+                      },
+                      namespace: {
+                        type: "string"
+                      }
                     }
                   },
                   allowUpload: {
@@ -621,12 +1075,20 @@ var init_tool_schema = __esm({
               }
             },
             {
-              if: { properties: { type: { const: "file" } } },
+              if: {
+                properties: {
+                  type: {
+                    const: "file"
+                  }
+                }
+              },
               then: {
                 properties: {
                   accept: {
                     type: "array",
-                    items: { type: "string" },
+                    items: {
+                      type: "string"
+                    },
                     description: 'Allowlist of accepted file types - MIME types and/or extensions (e.g. ["image/jpeg", "image/png", ".heic"]). Used as the file picker\'s `accept` attribute. Empty/omitted accepts any file. This is a UX hint, not a security boundary - the hook should still validate bytes.'
                   },
                   maxSize: {
@@ -642,16 +1104,30 @@ var init_tool_schema = __esm({
               }
             },
             {
-              if: { properties: { type: { const: "blocks" } } },
+              if: {
+                properties: {
+                  type: {
+                    const: "blocks"
+                  }
+                }
+              },
               then: {
                 properties: {
                   addMenu: {
                     type: "object",
                     description: "Turns the '+ Add' button into a typed menu. Each option of the named discriminator sub-field becomes a menu entry; an entry already used is disabled unless its option sets repeatable:true. The discriminator is fixed at creation and shown as the block's label rather than an editable control.",
-                    required: ["field"],
+                    required: [
+                      "field"
+                    ],
                     properties: {
-                      field: { type: "string", description: "id of the select sub-field whose options drive the menu." },
-                      label: { type: "string", description: "Menu button label (default 'Add')." }
+                      field: {
+                        type: "string",
+                        description: "id of the select sub-field whose options drive the menu."
+                      },
+                      label: {
+                        type: "string",
+                        description: "Menu button label (default 'Add')."
+                      }
                     }
                   },
                   labelledFields: {
@@ -669,21 +1145,49 @@ var init_tool_schema = __esm({
                     description: "Sub-fields for each repeatable block entry. A field may declare a `type` (text|color|select|asset|number|boolean); text is the default. `showFor` limits a field to blocks whose discriminator value is listed; `showIf` limits it by sibling-field and/or top-level input values.",
                     items: {
                       type: "object",
-                      required: ["id"],
+                      required: [
+                        "id"
+                      ],
                       properties: {
-                        id: { type: "string" },
-                        label: { type: "string" },
-                        placeholder: { type: "string" },
+                        id: {
+                          type: "string"
+                        },
+                        urlKey: {
+                          type: "string",
+                          pattern: "^[a-z][a-z0-9]*$",
+                          maxLength: 16,
+                          description: "Short alias for this sub-field in the compact blocks URL form. Same wire-contract rules as an input urlKey: permanent once shipped, unique within the blocks input, never a reserved param, never _-prefixed."
+                        },
+                        label: {
+                          type: "string"
+                        },
+                        placeholder: {
+                          type: "string"
+                        },
                         type: {
                           type: "string",
-                          enum: ["text", "color", "select", "asset", "number", "boolean"],
+                          enum: [
+                            "text",
+                            "color",
+                            "select",
+                            "asset",
+                            "number",
+                            "boolean"
+                          ],
                           default: "text"
                         },
-                        default: { description: "Value a newly-added block's field starts at." },
-                        help: { type: "string", description: "Short hint shown under the sub-field (labelledFields blocks only)." },
+                        default: {
+                          description: "Value a newly-added block's field starts at."
+                        },
+                        help: {
+                          type: "string",
+                          description: "Short hint shown under the sub-field (labelledFields blocks only)."
+                        },
                         showFor: {
                           type: "array",
-                          items: { type: "string" },
+                          items: {
+                            type: "string"
+                          },
                           description: "Render this field only when the block's discriminator value is one of these."
                         },
                         showIf: {
@@ -692,63 +1196,155 @@ var init_tool_schema = __esm({
                         },
                         multilineFor: {
                           type: "array",
-                          items: { type: "string" },
+                          items: {
+                            type: "string"
+                          },
                           description: "Render a text field as a multi-line textarea (rather than a single-line input) when the block's discriminator value is one of these."
                         },
-                        rows: { type: "integer", description: "Visible rows for a multi-line text field (see multilineFor). Default 3." },
+                        rows: {
+                          type: "integer",
+                          description: "Visible rows for a multi-line text field (see multilineFor). Default 3."
+                        },
                         options: {
                           type: "array",
                           description: "Choices for a select sub-field. An option's repeatable:true lets the add-menu offer it more than once.",
                           items: {
                             type: "object",
-                            required: ["value"],
+                            required: [
+                              "value"
+                            ],
                             properties: {
-                              value: { type: "string" },
-                              label: { type: "string" },
-                              repeatable: { type: "boolean" }
+                              value: {
+                                type: "string"
+                              },
+                              label: {
+                                type: "string"
+                              },
+                              repeatable: {
+                                type: "boolean"
+                              }
                             }
                           }
                         },
-                        min: { type: "number" },
-                        max: { type: "number" },
-                        step: { type: "number" },
-                        display: { type: "string", enum: ["input", "slider"], default: "input" },
-                        assetType: { type: "string", enum: ["vector", "raster", "image", "video", "audio", "lottie", "any"] },
-                        allowUpload: { type: "boolean", default: false },
-                        framingFor: { type: "string", description: "On an ASSET sub-field: the shared PREFIX of the row's framing numbers - <prefix>Zoom / <prefix>X / <prefix>Y / <prefix>Rotate / <prefix>Pitch / <prefix>Yaw - declaring that those sibling values frame THIS image (plans/148). Normally the asset field's own id; name a different prefix only where the numbers already ship under one (color-block's bgImage + bgX/bgY/bgZoom), since those ids are permanent URL contracts. A block sub-field cannot be a `vector`, so a row spells the values out; this is what lets the shell's generic framing overlay bind a block row. Render with the {{framing}} helper's block mode." },
+                        min: {
+                          type: "number"
+                        },
+                        max: {
+                          type: "number"
+                        },
+                        step: {
+                          type: "number"
+                        },
+                        display: {
+                          type: "string",
+                          enum: [
+                            "input",
+                            "slider"
+                          ],
+                          default: "input"
+                        },
+                        assetType: {
+                          type: "string",
+                          enum: [
+                            "vector",
+                            "raster",
+                            "image",
+                            "video",
+                            "audio",
+                            "lottie",
+                            "any"
+                          ]
+                        },
+                        allowUpload: {
+                          type: "boolean",
+                          default: false
+                        },
+                        framingFor: {
+                          type: "string",
+                          description: "On an ASSET sub-field: the shared PREFIX of the row's framing numbers - <prefix>Zoom / <prefix>X / <prefix>Y / <prefix>Rotate / <prefix>Pitch / <prefix>Yaw - declaring that those sibling values frame THIS image (plans/148). Normally the asset field's own id; name a different prefix only where the numbers already ship under one (color-block's bgImage + bgX/bgY/bgZoom), since those ids are permanent URL contracts. A block sub-field cannot be a `vector`, so a row spells the values out; this is what lets the shell's generic framing overlay bind a block row. Render with the {{framing}} helper's block mode."
+                        },
                         filter: {
                           type: "object",
                           properties: {
-                            tags: { type: "array", items: { type: "string" } },
-                            namespace: { type: "string" }
+                            tags: {
+                              type: "array",
+                              items: {
+                                type: "string"
+                              }
+                            },
+                            namespace: {
+                              type: "string"
+                            }
                           }
                         },
                         optionsFrom: {
                           type: "object",
                           description: "Render this sub-field as a reference picker whose choices are the rows of another blocks input (or several). The stored value is each target row's derived id (slug of its key field, else its label, else an ordinal) - the same id a tool's hook resolves - so it replaces hand-typed ID cross-references with a dropdown. A stored value matching no current row is surfaced as an '(unknown)' option rather than silently dropped.",
                           properties: {
-                            input: { type: "string", description: "id of the blocks input to draw rows from (single-source form)." },
-                            value: { type: "string", default: "nodeId", description: "Source-row sub-field used as the stored id (slugged + de-duplicated to match the tool's resolution)." },
-                            label: { type: "string", default: "label", description: "Source-row sub-field shown to the user (falls back to the derived id)." },
-                            prefix: { type: "string", default: "node-", description: "Ordinal id prefix for rows with neither key nor label." },
+                            input: {
+                              type: "string",
+                              description: "id of the blocks input to draw rows from (single-source form)."
+                            },
+                            value: {
+                              type: "string",
+                              default: "nodeId",
+                              description: "Source-row sub-field used as the stored id (slugged + de-duplicated to match the tool's resolution)."
+                            },
+                            label: {
+                              type: "string",
+                              default: "label",
+                              description: "Source-row sub-field shown to the user (falls back to the derived id)."
+                            },
+                            prefix: {
+                              type: "string",
+                              default: "node-",
+                              description: "Ordinal id prefix for rows with neither key nor label."
+                            },
                             sources: {
                               type: "array",
                               description: "Several source inputs merged into one option list (e.g. cards AND layers). De-duplicated by value, first wins.",
                               items: {
                                 type: "object",
-                                required: ["input"],
+                                required: [
+                                  "input"
+                                ],
                                 properties: {
-                                  input: { type: "string" },
-                                  value: { type: "string", default: "nodeId" },
-                                  label: { type: "string", default: "label" },
-                                  prefix: { type: "string" }
+                                  input: {
+                                    type: "string"
+                                  },
+                                  value: {
+                                    type: "string",
+                                    default: "nodeId"
+                                  },
+                                  label: {
+                                    type: "string",
+                                    default: "label"
+                                  },
+                                  prefix: {
+                                    type: "string"
+                                  }
                                 }
                               }
                             },
-                            freeText: { type: "boolean", default: false, description: "Render as a combobox (datalist) that also accepts a typed value not in the list - e.g. a kanban column invented on the spot." },
-                            excludeSelf: { type: "boolean", default: false, description: "Omit the current row from its own options (a card can't be its own parent)." },
-                            excludeDescendants: { type: "boolean", default: false, description: "Omit the current row's descendants (requires the input's `nesting`) so a node can't reparent into its own subtree." },
-                            emptyLabel: { type: "string", description: "Label for the blank/none option (default '- none -')." }
+                            freeText: {
+                              type: "boolean",
+                              default: false,
+                              description: "Render as a combobox (datalist) that also accepts a typed value not in the list - e.g. a kanban column invented on the spot."
+                            },
+                            excludeSelf: {
+                              type: "boolean",
+                              default: false,
+                              description: "Omit the current row from its own options (a card can't be its own parent)."
+                            },
+                            excludeDescendants: {
+                              type: "boolean",
+                              default: false,
+                              description: "Omit the current row's descendants (requires the input's `nesting`) so a node can't reparent into its own subtree."
+                            },
+                            emptyLabel: {
+                              type: "string",
+                              description: "Label for the blank/none option (default '- none -')."
+                            }
                           }
                         }
                       }
@@ -757,12 +1353,29 @@ var init_tool_schema = __esm({
                   nesting: {
                     type: "object",
                     description: "Treat this blocks array as an editable TREE: the sidebar renders it as an indented outline and the header drag lets a card be dropped above, below, or INSIDE another, updating the dragged card's parent reference (its whole subtree travels with it). The data stays a flat reference-by-id array - only the presentation is tree-shaped - so it serialises and renders exactly as before.",
-                    required: ["parentField"],
+                    required: [
+                      "parentField"
+                    ],
                     properties: {
-                      parentField: { type: "string", description: "Sub-field holding each row's parent reference (the id of another row)." },
-                      keyField: { type: "string", default: "nodeId", description: "Sub-field used as a row's id (what parentField points at)." },
-                      labelField: { type: "string", default: "label", description: "Fallback id source when keyField is blank, and the human label for indentation." },
-                      prefix: { type: "string", default: "node-", description: "Ordinal id prefix for rows with neither key nor label." },
+                      parentField: {
+                        type: "string",
+                        description: "Sub-field holding each row's parent reference (the id of another row)."
+                      },
+                      keyField: {
+                        type: "string",
+                        default: "nodeId",
+                        description: "Sub-field used as a row's id (what parentField points at)."
+                      },
+                      labelField: {
+                        type: "string",
+                        default: "label",
+                        description: "Fallback id source when keyField is blank, and the human label for indentation."
+                      },
+                      prefix: {
+                        type: "string",
+                        default: "node-",
+                        description: "Ordinal id prefix for rows with neither key nor label."
+                      },
                       activeWhen: {
                         type: "object",
                         description: 'Only treat the input as a tree when these top-level input values match (an array value matches by membership), e.g. { "diagramType": ["org", "mindmap"] }. Omit to always nest.',
@@ -773,10 +1386,18 @@ var init_tool_schema = __esm({
                   dropToAdd: {
                     type: "object",
                     description: "Turns the blocks list into a drop zone: dragging or selecting several image files at once creates one block per file, each with the file uploaded into the named asset sub-field. Every other field of a new block starts at its declared default.",
-                    required: ["field"],
+                    required: [
+                      "field"
+                    ],
                     properties: {
-                      field: { type: "string", description: "id of the block's `asset` sub-field that each dropped file is uploaded into." },
-                      accept: { type: "string", description: 'MIME accept filter for dropped files (default "image/*"). A trailing /* matches a whole type group.' }
+                      field: {
+                        type: "string",
+                        description: "id of the block's `asset` sub-field that each dropped file is uploaded into."
+                      },
+                      accept: {
+                        type: "string",
+                        description: 'MIME accept filter for dropped files (default "image/*"). A trailing /* matches a whole type group.'
+                      }
                     }
                   },
                   mdPaste: {
@@ -791,18 +1412,29 @@ var init_tool_schema = __esm({
                     properties: {
                       formats: {
                         type: "array",
-                        items: { type: "string", enum: ["csv", "json"] },
+                        items: {
+                          type: "string",
+                          enum: [
+                            "csv",
+                            "json"
+                          ]
+                        },
                         description: "Accepted data formats. Defaults to both csv and json."
                       },
                       mode: {
                         type: "string",
-                        enum: ["replace", "append"],
+                        enum: [
+                          "replace",
+                          "append"
+                        ],
                         default: "replace",
                         description: "Whether an import replaces the current rows or appends to them. Default replace."
                       },
                       columns: {
                         type: "object",
-                        additionalProperties: { type: "string" },
+                        additionalProperties: {
+                          type: "string"
+                        },
                         description: 'Explicit fieldId \u2192 source column/key overrides. Omit to auto-map by header (field id, then label). e.g. { "value": "Amount" }.'
                       }
                     }
@@ -812,87 +1444,320 @@ var init_tool_schema = __esm({
                     description: "Marks this blocks array as a free-form WYSIWYG canvas of positioned 'boxes' (requires render.layout:'editor'). The web shell mounts a direct-manipulation overlay - select, drag, resize, rotate, re-stack (z-order = array order, later rows paint on top), align and distribute - that reads and writes this flat array through the normal input path. The fields named below give the overlay the geometry to manipulate; every field remains an ordinary block sub-field, so the layout stays flat, URL-expressible, and renders identically headless (CLI/URL) with no overlay. Field ORDER in `fields` is the compact-URL wire format - never reorder or remove once shipped. CLOSED SET: unknown keys are rejected, because a typo'd `*Field` name is silently inert at runtime (the overlay reads a field nothing writes) - so the schema, not a bug report, has to catch it. Every `*Field` value must also name a real sub-field id in the SIBLING `fields` array; scripts/validate-catalog.ts enforces that half. Adding a key here is therefore a BREAKING change for older shells: the same schema is what engine/src/loader.ts validates a manifest against at load time, so a manifest carrying a key an older engine's copy does not list is refused whole, not partially ignored. Ship a new canvas key together with an `engineVersion` floor that names the engine which introduced it - the loader checks that range BEFORE validating, so an old shell reports the version, not a schema error.",
                     additionalProperties: false,
                     properties: {
-                      idField: { type: "string", description: "Sub-field holding each box's stable id (used to track selection across re-stacking). Default 'id'." },
-                      xField: { type: "string", description: "Number sub-field: box left, in canvas (native render) pixels. Default 'x'." },
-                      yField: { type: "string", description: "Number sub-field: box top, in canvas pixels. Default 'y'." },
-                      wField: { type: "string", description: "Number sub-field: box width, in canvas pixels. Default 'w'." },
-                      hField: { type: "string", description: "Number sub-field: box height, in canvas pixels. Default 'h'." },
-                      rotationField: { type: "string", description: "Number sub-field: clockwise rotation in degrees about the box centre. Default 'rot'." },
-                      shapeField: { type: "string", description: "Select sub-field: box shape (e.g. rectangle/rounded/ellipse)." },
-                      radiusField: { type: "string", description: "Number sub-field: corner radius in px (used when shape is rounded)." },
-                      fillField: { type: "string", description: "Color sub-field: box background fill (empty = transparent)." },
-                      gradField: { type: "string", description: "Text sub-field: a gradient fill as a Lolly gradient spec (kind_angle_colour-pos_colour-pos, e.g. lin_90_30ba78-0_efefef-100). Painted OVER the flat fill, so a translucent stop composites onto it; empty = no gradient. The hook lowers it through host.color.gradientCss, so an engine that predates that primitive degrades to the flat fill." },
-                      opacityField: { type: "string", description: "Number sub-field: box opacity 0\u2013100." },
-                      imageField: { type: "string", description: "Asset sub-field: image drawn inside the box." },
-                      fitField: { type: "string", description: "Select sub-field: how the image fills the box (object-fit: cover/contain/fill)." },
-                      imgPosField: { type: "string", description: "Select sub-field: CSS object-position anchor (which edge/corner a contained image sits against, or which part of a cover-cropped image stays in frame). Honoured in raster + SVG (preserveAspectRatio) + PDF export." },
-                      blendField: { type: "string", description: "Select sub-field: CSS mix-blend-mode for the whole box (faithful in raster export; flattened in vector)." },
-                      textField: { type: "string", description: "Text sub-field: text drawn inside the box." },
-                      textColorField: { type: "string", description: "Color sub-field: text colour." },
-                      fontSizeField: { type: "string", description: "Number sub-field: text size in px." },
-                      alignField: { type: "string", description: "Select sub-field: horizontal text alignment (left/center/right)." },
-                      valignField: { type: "string", description: "Select sub-field: vertical text alignment (top/middle/bottom)." },
-                      weightField: { type: "string", description: "Select sub-field: text weight." },
-                      fontField: { type: "string", description: "Select sub-field: text font family." },
-                      lineHeightField: { type: "string", description: "Number sub-field: text line-height (unitless multiplier)." },
-                      padField: { type: "string", description: "Number sub-field: inner padding in px between the box edge and its text." },
-                      fitTextField: { type: "string", description: "Boolean sub-field: shrink the text until it fits inside the box (shrink-ONLY - never larger than the authored size). Off = the box is expected to grow to its text instead." },
-                      groupField: { type: "string", description: "Text sub-field: id of the group this box belongs to (empty = ungrouped). Boxes sharing a group id move / scale / rotate together; purely an editor concept (no render effect)." },
-                      clipField: { type: "string", description: "Text sub-field: id of another box whose shape clips this one (a clip-path mask). Faithful in raster + SVG export; flattened in PDF/EMF." },
-                      pathField: { type: "string", description: "Text sub-field holding a VECTOR path box's authored path - the pen tool's own form (nodes + handles + spline kind), encoded as one delimiter-safe value by host.geom.encodeAuthored. Node coordinates are NORMALISED to the box frame (fractions of w/h, values outside 0..1 legal), so the ordinary move / resize / rotate gestures act on a path box through x/y/w/h/rot without rewriting a single node. Machine-written and machine-read only: the field carries showFor:[] so it never renders as a sidebar control. The tool's hook lowers it via host.geom.fromNodes and emits an inline <svg><path>, which vector-exports with no extra export code." },
-                      strokeField: { type: "string", description: "Color sub-field: stroke paint for a path/box/image outline (empty = no stroke). Defaults to 'stroke' when the canvas omits it, so the overlay and the vector operations read the same sub-field." },
-                      strokeWField: { type: "string", description: "Number sub-field: stroke width in canvas px. Default 'strokeW'." },
-                      fillRuleField: { type: "string", description: "Select sub-field: a path's fill rule - nonzero or evenodd. Default 'fillRule'." },
-                      strokeDashField: { type: "string", description: "Select sub-field: dash STYLE as a keyword ('' solid / dashed / dotted). The pattern is derived from the stroke width so it keeps its proportions when the width changes; an authored `strokeDashArrayField` wins over it. Default 'strokeDash'." },
-                      strokeCapField: { type: "string", description: "Select sub-field: line cap - round, butt or square. Default 'strokeCap'." },
-                      strokeJoinField: { type: "string", description: "Select sub-field: line join - round, miter or bevel. Default 'strokeJoin'." },
-                      strokeDashArrayField: { type: "string", description: "Text sub-field: an AUTHORED dash pattern as SPACE-separated numbers in stroke-width units (\"6 4\" = a 6-long dash, a 4-long gap). A string, not a list, and space-separated rather than comma-separated, because one block sub-field is one scalar and a comma would split the compact blocks URL row. Set, it wins over the `strokeDashField` keyword. Default 'strokeDashArray'." },
-                      dashFitField: { type: "string", description: "Boolean sub-field: stretch the authored dash pattern slightly so a whole number of dashes fits between each corner and each end of the path (Illustrator's corner-aligned dashes) instead of a half dash landing on a corner. Applied by the tool's hook. Default 'dashFit'." },
-                      headStartField: { type: "string", description: "Select sub-field: the decoration drawn at the path's FIRST point, along that end's own tangent - none \xB7 triangle \xB7 open \xB7 circle \xB7 diamond \xB7 bar. Same vocabulary as the connector heads, because a spline, a line and a connector are one primitive carrying one decoration set. Default 'headStart'." },
-                      headEndField: { type: "string", description: "Select sub-field: the same decoration at the path's LAST point. Default 'headEnd'." },
-                      bindStartField: { type: "string", description: "Text sub-field: the id of the box this path's FIRST point is attached to, '' for a free end. Machine-written by the bind gesture (carries showFor:[]), never typed; a bound end is what hands the path to connector routing. Default 'bindStart'." },
-                      bindEndField: { type: "string", description: "Text sub-field: the same binding for the path's LAST point. Default 'bindEnd'." },
-                      routeField: { type: "string", description: "Select sub-field: how a path with a BOUND end routes between its boxes (straight, elbow-*, curved-*, arc-*). '' = auto, read off the path's own spline kind - the explicit value exists because six spline kinds cannot name the engine's thirteen routes. Default 'route'." },
-                      pathLayerClass: { type: "string", description: "Class the tool's hook puts on its committed BOUND-PATH <svg> layer. The overlay hides that layer for the duration of a drag so the live preview doesn't double up with the stale committed one - only the manifest knows what its own hook emits. Default 'lolly-connectors'." },
-                      trackingField: { type: "string", description: "Number sub-field: letter-spacing in px." },
-                      ligaturesField: { type: "string", description: "Boolean sub-field: enable common ligatures." },
-                      alternatesField: { type: "string", description: "Boolean/select sub-field: stylistic alternates." },
-                      shadowField: { type: "string", description: "SELECT sub-field (not a Boolean - a shadow has a target, and the value names it): 'none' \xB7 'box' (the frame's own silhouette, a box-shadow) \xB7 'text' (the type only, a text-shadow) \xB7 'content' (the artwork's alpha silhouette, a filter: drop-shadow). The vocabulary is additive: a depth-capable tool may extend it with 'depth', whose offset/blur are DERIVED from the box's `zField` rather than authored. Whatever the value, the x/y/blur/colour sub-fields below supply the geometry." },
-                      shadowColorField: { type: "string", description: "Color sub-field: drop-shadow colour." },
-                      shadowXField: { type: "string", description: "Number sub-field: drop-shadow x offset in px." },
-                      shadowYField: { type: "string", description: "Number sub-field: drop-shadow y offset in px." },
-                      shadowBlurField: { type: "string", description: "Number sub-field: drop-shadow blur radius in px." },
-                      zField: { type: "string", description: "Number sub-field: the box's DEPTH - how far it sits in front of (positive) or behind (negative) the stage plane, in canvas px. Layers stay parallel to the screen, so a camera turns z into a per-layer uniform scale + translate (parallax, push-in, depth-of-field) and the render stays affine end-to-end. Absent field or 0 = the flat, unlifted board; the authored slider runs 0\u2013300 and the value clamps to \u2212300\u2026900." },
-                      startField: { type: "string", description: "Number sub-field: when this box appears, in SECONDS from the start of the sequence. Empty = the box is 'scenery' (always visible). Timing is inert unless a shell mounts a timeline panel; static exports ignore it." },
-                      durField: { type: "string", description: "Number sub-field: how long the box stays visible, in SECONDS. Empty = runs to the end of the sequence." },
-                      clipInField: { type: "string", description: "Number sub-field: trim in-point WITHIN the box's own media (video/lottie/audio), in SECONDS from the media's start. Ignored for non-media boxes." },
-                      speedField: { type: "string", description: "Number sub-field: media playback rate multiplier (1 = normal). Affects how much source media a given timeline duration consumes." },
-                      enterField: { type: "string", description: "Select sub-field: named animate-in preset played at the box's start (e.g. fade, rise, pop; 'none' disables). Presets are shell-rendered; no keyframes are authored." },
-                      exitField: { type: "string", description: "Select sub-field: named animate-out preset played at the box's end (e.g. fade, rise, pop; 'none' disables). Presets are shell-rendered; no keyframes are authored." },
-                      enterMsField: { type: "string", description: "Number sub-field: duration of the enter preset, in MILLISECONDS." },
-                      exitMsField: { type: "string", description: "Number sub-field: duration of the exit preset, in MILLISECONDS." },
-                      enterEaseField: { type: "string", description: "String sub-field: the timing curve the enter preset's GEOMETRY follows - a preset name (linear, ease-out, ease-in, ease-in-out, overshoot, anticipate) or a CSS cubic-bezier(a,b,c,d). Empty = the preset's own built-in curve. Opacity is deliberately not governed by it: a fade that tracks a slow curve turns to mud under video compression, so alpha keeps its fixed ramp." },
-                      exitEaseField: { type: "string", description: "String sub-field: the same curve control for the exit preset. Same wire format, same geometry-only reach." },
-                      muteField: { type: "string", description: "Boolean sub-field: silence this box's own audio track when the sequence is mixed." },
-                      linkField: { type: "string", description: "String sub-field: the id of the box this one is A/V-linked to (written on BOTH sides when audio is detached from a video). Absent or naming a missing box reads as unlinked." },
-                      laneField: { type: "string", description: "Select sub-field: '' places the box on a free overlay lane; 'seq' places it on the magnetic main sequence row, where clips are kept gapless and edits ripple." },
-                      kfField: { type: "string", description: "Text sub-field: the box's KEYFRAME TRACK - its whole authored animation as one compact, delimiter-safe string (times in ms, per-channel values at the pinned quanta, per-segment easing). Machine-written by the timeline, so the sub-field carries showFor:[] and never renders as a sidebar control. Absent or empty = the box is not keyframed and every keyframe path is inert for it." },
-                      frameField: { type: "string", description: "Text sub-field: the id of the FRAME (page/artboard container) box this box belongs to; '' = it sits on the open board. Declaring it turns on the frame primitive - the overlay drives gestures in frame-local space via each frame's DOM offset, and re-buckets a moved/created/resized box into whichever frame its centre lands in on drop. Absent leaves every frame-aware path dead (byte-identical to a frameless editor)." },
-                      frameKind: { type: "string", description: "NOT a field name: the literal `kind` VALUE that marks a box as a frame rather than ordinary content (e.g. 'frame'). Frames render as free-placed [data-pdf-page] pages at their authored x/y." },
-                      orderField: { type: "string", description: "Number sub-field on a FRAME box: its page order in a multi-page export. Read by the tool's hook; the overlay's frame-reorder control writes it. Absent = no reorder affordance." },
-                      clipChildrenField: { type: "string", description: "Boolean sub-field on a FRAME box: whether content overflowing the frame is clipped to it. Absent = the overlay offers no clip toggle." },
-                      minSize: { type: "number", description: "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8." },
+                      idField: {
+                        type: "string",
+                        description: "Sub-field holding each box's stable id (used to track selection across re-stacking). Default 'id'."
+                      },
+                      xField: {
+                        type: "string",
+                        description: "Number sub-field: box left, in canvas (native render) pixels. Default 'x'."
+                      },
+                      yField: {
+                        type: "string",
+                        description: "Number sub-field: box top, in canvas pixels. Default 'y'."
+                      },
+                      wField: {
+                        type: "string",
+                        description: "Number sub-field: box width, in canvas pixels. Default 'w'."
+                      },
+                      hField: {
+                        type: "string",
+                        description: "Number sub-field: box height, in canvas pixels. Default 'h'."
+                      },
+                      rotationField: {
+                        type: "string",
+                        description: "Number sub-field: clockwise rotation in degrees about the box centre. Default 'rot'."
+                      },
+                      shapeField: {
+                        type: "string",
+                        description: "Select sub-field: box shape (e.g. rectangle/rounded/ellipse)."
+                      },
+                      radiusField: {
+                        type: "string",
+                        description: "Number sub-field: corner radius in px (used when shape is rounded)."
+                      },
+                      fillField: {
+                        type: "string",
+                        description: "Color sub-field: box background fill (empty = transparent)."
+                      },
+                      gradField: {
+                        type: "string",
+                        description: "Text sub-field: a gradient fill as a Lolly gradient spec (kind_angle_colour-pos_colour-pos, e.g. lin_90_30ba78-0_efefef-100). Painted OVER the flat fill, so a translucent stop composites onto it; empty = no gradient. The hook lowers it through host.color.gradientCss, so an engine that predates that primitive degrades to the flat fill."
+                      },
+                      opacityField: {
+                        type: "string",
+                        description: "Number sub-field: box opacity 0\u2013100."
+                      },
+                      imageField: {
+                        type: "string",
+                        description: "Asset sub-field: image drawn inside the box."
+                      },
+                      fitField: {
+                        type: "string",
+                        description: "Select sub-field: how the image fills the box (object-fit: cover/contain/fill)."
+                      },
+                      imgPosField: {
+                        type: "string",
+                        description: "Select sub-field: CSS object-position anchor (which edge/corner a contained image sits against, or which part of a cover-cropped image stays in frame). Honoured in raster + SVG (preserveAspectRatio) + PDF export."
+                      },
+                      blendField: {
+                        type: "string",
+                        description: "Select sub-field: CSS mix-blend-mode for the whole box (faithful in raster export; flattened in vector)."
+                      },
+                      textField: {
+                        type: "string",
+                        description: "Text sub-field: text drawn inside the box."
+                      },
+                      textColorField: {
+                        type: "string",
+                        description: "Color sub-field: text colour."
+                      },
+                      fontSizeField: {
+                        type: "string",
+                        description: "Number sub-field: text size in px."
+                      },
+                      alignField: {
+                        type: "string",
+                        description: "Select sub-field: horizontal text alignment (left/center/right)."
+                      },
+                      valignField: {
+                        type: "string",
+                        description: "Select sub-field: vertical text alignment (top/middle/bottom)."
+                      },
+                      weightField: {
+                        type: "string",
+                        description: "Select sub-field: text weight."
+                      },
+                      fontField: {
+                        type: "string",
+                        description: "Select sub-field: text font family."
+                      },
+                      lineHeightField: {
+                        type: "string",
+                        description: "Number sub-field: text line-height (unitless multiplier)."
+                      },
+                      padField: {
+                        type: "string",
+                        description: "Number sub-field: inner padding in px between the box edge and its text."
+                      },
+                      fitTextField: {
+                        type: "string",
+                        description: "Boolean sub-field: shrink the text until it fits inside the box (shrink-ONLY - never larger than the authored size). Off = the box is expected to grow to its text instead."
+                      },
+                      groupField: {
+                        type: "string",
+                        description: "Text sub-field: id of the group this box belongs to (empty = ungrouped). Boxes sharing a group id move / scale / rotate together; purely an editor concept (no render effect)."
+                      },
+                      clipField: {
+                        type: "string",
+                        description: "Text sub-field: id of another box whose shape clips this one (a clip-path mask). Faithful in raster + SVG export; flattened in PDF/EMF."
+                      },
+                      pathField: {
+                        type: "string",
+                        description: "Text sub-field holding a VECTOR path box's authored path - the pen tool's own form (nodes + handles + spline kind), encoded as one delimiter-safe value by host.geom.encodeAuthored. Node coordinates are NORMALISED to the box frame (fractions of w/h, values outside 0..1 legal), so the ordinary move / resize / rotate gestures act on a path box through x/y/w/h/rot without rewriting a single node. Machine-written and machine-read only: the field carries showFor:[] so it never renders as a sidebar control. The tool's hook lowers it via host.geom.fromNodes and emits an inline <svg><path>, which vector-exports with no extra export code."
+                      },
+                      strokeField: {
+                        type: "string",
+                        description: "Color sub-field: stroke paint for a path/box/image outline (empty = no stroke). Defaults to 'stroke' when the canvas omits it, so the overlay and the vector operations read the same sub-field."
+                      },
+                      strokeWField: {
+                        type: "string",
+                        description: "Number sub-field: stroke width in canvas px. Default 'strokeW'."
+                      },
+                      fillRuleField: {
+                        type: "string",
+                        description: "Select sub-field: a path's fill rule - nonzero or evenodd. Default 'fillRule'."
+                      },
+                      strokeDashField: {
+                        type: "string",
+                        description: "Select sub-field: dash STYLE as a keyword ('' solid / dashed / dotted). The pattern is derived from the stroke width so it keeps its proportions when the width changes; an authored `strokeDashArrayField` wins over it. Default 'strokeDash'."
+                      },
+                      strokeCapField: {
+                        type: "string",
+                        description: "Select sub-field: line cap - round, butt or square. Default 'strokeCap'."
+                      },
+                      strokeJoinField: {
+                        type: "string",
+                        description: "Select sub-field: line join - round, miter or bevel. Default 'strokeJoin'."
+                      },
+                      strokeDashArrayField: {
+                        type: "string",
+                        description: "Text sub-field: an AUTHORED dash pattern as SPACE-separated numbers in stroke-width units (\"6 4\" = a 6-long dash, a 4-long gap). A string, not a list, and space-separated rather than comma-separated, because one block sub-field is one scalar and a comma would split the compact blocks URL row. Set, it wins over the `strokeDashField` keyword. Default 'strokeDashArray'."
+                      },
+                      dashFitField: {
+                        type: "string",
+                        description: "Boolean sub-field: stretch the authored dash pattern slightly so a whole number of dashes fits between each corner and each end of the path (Illustrator's corner-aligned dashes) instead of a half dash landing on a corner. Applied by the tool's hook. Default 'dashFit'."
+                      },
+                      headStartField: {
+                        type: "string",
+                        description: "Select sub-field: the decoration drawn at the path's FIRST point, along that end's own tangent - none \xB7 triangle \xB7 open \xB7 circle \xB7 diamond \xB7 bar. Same vocabulary as the connector heads, because a spline, a line and a connector are one primitive carrying one decoration set. Default 'headStart'."
+                      },
+                      headEndField: {
+                        type: "string",
+                        description: "Select sub-field: the same decoration at the path's LAST point. Default 'headEnd'."
+                      },
+                      bindStartField: {
+                        type: "string",
+                        description: "Text sub-field: the id of the box this path's FIRST point is attached to, '' for a free end. Machine-written by the bind gesture (carries showFor:[]), never typed; a bound end is what hands the path to connector routing. Default 'bindStart'."
+                      },
+                      bindEndField: {
+                        type: "string",
+                        description: "Text sub-field: the same binding for the path's LAST point. Default 'bindEnd'."
+                      },
+                      routeField: {
+                        type: "string",
+                        description: "Select sub-field: how a path with a BOUND end routes between its boxes (straight, elbow-*, curved-*, arc-*). '' = auto, read off the path's own spline kind - the explicit value exists because six spline kinds cannot name the engine's thirteen routes. Default 'route'."
+                      },
+                      pathLayerClass: {
+                        type: "string",
+                        description: "Class the tool's hook puts on its committed BOUND-PATH <svg> layer. The overlay hides that layer for the duration of a drag so the live preview doesn't double up with the stale committed one - only the manifest knows what its own hook emits. Default 'lolly-connectors'."
+                      },
+                      trackingField: {
+                        type: "string",
+                        description: "Number sub-field: letter-spacing in px."
+                      },
+                      ligaturesField: {
+                        type: "string",
+                        description: "Boolean sub-field: enable common ligatures."
+                      },
+                      alternatesField: {
+                        type: "string",
+                        description: "Boolean/select sub-field: stylistic alternates."
+                      },
+                      shadowField: {
+                        type: "string",
+                        description: "SELECT sub-field (not a Boolean - a shadow has a target, and the value names it): 'none' \xB7 'box' (the frame's own silhouette, a box-shadow) \xB7 'text' (the type only, a text-shadow) \xB7 'content' (the artwork's alpha silhouette, a filter: drop-shadow). The vocabulary is additive: a depth-capable tool may extend it with 'depth', whose offset/blur are DERIVED from the box's `zField` rather than authored. Whatever the value, the x/y/blur/colour sub-fields below supply the geometry."
+                      },
+                      shadowColorField: {
+                        type: "string",
+                        description: "Color sub-field: drop-shadow colour."
+                      },
+                      shadowXField: {
+                        type: "string",
+                        description: "Number sub-field: drop-shadow x offset in px."
+                      },
+                      shadowYField: {
+                        type: "string",
+                        description: "Number sub-field: drop-shadow y offset in px."
+                      },
+                      shadowBlurField: {
+                        type: "string",
+                        description: "Number sub-field: drop-shadow blur radius in px."
+                      },
+                      zField: {
+                        type: "string",
+                        description: "Number sub-field: the box's DEPTH - how far it sits in front of (positive) or behind (negative) the stage plane, in canvas px. Layers stay parallel to the screen, so a camera turns z into a per-layer uniform scale + translate (parallax, push-in, depth-of-field) and the render stays affine end-to-end. Absent field or 0 = the flat, unlifted board; the authored slider runs 0\u2013300 and the value clamps to \u2212300\u2026900."
+                      },
+                      startField: {
+                        type: "string",
+                        description: "Number sub-field: when this box appears, in SECONDS from the start of the sequence. Empty = the box is 'scenery' (always visible). Timing is inert unless a shell mounts a timeline panel; static exports ignore it."
+                      },
+                      durField: {
+                        type: "string",
+                        description: "Number sub-field: how long the box stays visible, in SECONDS. Empty = runs to the end of the sequence."
+                      },
+                      clipInField: {
+                        type: "string",
+                        description: "Number sub-field: trim in-point WITHIN the box's own media (video/lottie/audio), in SECONDS from the media's start. Ignored for non-media boxes."
+                      },
+                      speedField: {
+                        type: "string",
+                        description: "Number sub-field: media playback rate multiplier (1 = normal). Affects how much source media a given timeline duration consumes."
+                      },
+                      enterField: {
+                        type: "string",
+                        description: "Select sub-field: named animate-in preset played at the box's start (e.g. fade, rise, pop; 'none' disables). Presets are shell-rendered; no keyframes are authored."
+                      },
+                      exitField: {
+                        type: "string",
+                        description: "Select sub-field: named animate-out preset played at the box's end (e.g. fade, rise, pop; 'none' disables). Presets are shell-rendered; no keyframes are authored."
+                      },
+                      enterMsField: {
+                        type: "string",
+                        description: "Number sub-field: duration of the enter preset, in MILLISECONDS."
+                      },
+                      exitMsField: {
+                        type: "string",
+                        description: "Number sub-field: duration of the exit preset, in MILLISECONDS."
+                      },
+                      enterEaseField: {
+                        type: "string",
+                        description: "String sub-field: the timing curve the enter preset's GEOMETRY follows - a preset name (linear, ease-out, ease-in, ease-in-out, overshoot, anticipate) or a CSS cubic-bezier(a,b,c,d). Empty = the preset's own built-in curve. Opacity is deliberately not governed by it: a fade that tracks a slow curve turns to mud under video compression, so alpha keeps its fixed ramp."
+                      },
+                      exitEaseField: {
+                        type: "string",
+                        description: "String sub-field: the same curve control for the exit preset. Same wire format, same geometry-only reach."
+                      },
+                      muteField: {
+                        type: "string",
+                        description: "Boolean sub-field: silence this box's own audio track when the sequence is mixed."
+                      },
+                      gainField: {
+                        type: "string",
+                        description: "Number sub-field: this box's audio level when the sequence is mixed (1 = as recorded, 0 = silent, up to 2 = boosted). Machine-written by the timeline inspector, so the sub-field carries showFor:[]. Absent or empty reads as unity gain."
+                      },
+                      linkField: {
+                        type: "string",
+                        description: "String sub-field: the id of the box this one is A/V-linked to (written on BOTH sides when audio is detached from a video). Absent or naming a missing box reads as unlinked."
+                      },
+                      labelField: {
+                        type: "string",
+                        description: "Text sub-field: the user's own name for this box on the timeline - shown on its clip bar in place of the derived text/media label. Machine-written by the timeline (double-click or context-menu rename), so the sub-field carries showFor:[]. Absent or empty falls back to the derived label."
+                      },
+                      laneField: {
+                        type: "string",
+                        description: "Select sub-field: '' places the box on a free overlay lane; 'seq' places it on the magnetic main sequence row, where clips are kept gapless and edits ripple."
+                      },
+                      kfField: {
+                        type: "string",
+                        description: "Text sub-field: the box's KEYFRAME TRACK - its whole authored animation as one compact, delimiter-safe string (times in ms, per-channel values at the pinned quanta, per-segment easing). Machine-written by the timeline, so the sub-field carries showFor:[] and never renders as a sidebar control. Absent or empty = the box is not keyframed and every keyframe path is inert for it."
+                      },
+                      frameField: {
+                        type: "string",
+                        description: "Text sub-field: the id of the FRAME (page/artboard container) box this box belongs to; '' = it sits on the open board. Declaring it turns on the frame primitive - the overlay drives gestures in frame-local space via each frame's DOM offset, and re-buckets a moved/created/resized box into whichever frame its centre lands in on drop. Absent leaves every frame-aware path dead (byte-identical to a frameless editor)."
+                      },
+                      frameKind: {
+                        type: "string",
+                        description: "NOT a field name: the literal `kind` VALUE that marks a box as a frame rather than ordinary content (e.g. 'frame'). Frames render as free-placed [data-pdf-page] pages at their authored x/y."
+                      },
+                      orderField: {
+                        type: "string",
+                        description: "Number sub-field on a FRAME box: its page order in a multi-page export. Read by the tool's hook; the overlay's frame-reorder control writes it. Absent = no reorder affordance."
+                      },
+                      clipChildrenField: {
+                        type: "string",
+                        description: "Boolean sub-field on a FRAME box: whether content overflowing the frame is clipped to it. Absent = the overlay offers no clip toggle."
+                      },
+                      minSize: {
+                        type: "number",
+                        description: "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8."
+                      },
                       addKinds: {
                         type: "array",
                         description: "The kinds of box the 'add' tool offers. Each entry seeds a new box's fields (id excluded - the shell assigns it).",
                         items: {
                           type: "object",
-                          required: ["id"],
+                          required: [
+                            "id"
+                          ],
                           properties: {
-                            id: { type: "string", description: "Kind id (also the default select value of the shape/kind field if present)." },
-                            label: { type: "string", description: "Menu label." },
-                            icon: { type: "string", description: "Optional inline SVG or glyph for the menu entry." },
-                            seed: { type: "object", description: "Field values a newly-added box of this kind starts at (merged over the block's declared defaults).", additionalProperties: true }
+                            id: {
+                              type: "string",
+                              description: "Kind id (also the default select value of the shape/kind field if present)."
+                            },
+                            label: {
+                              type: "string",
+                              description: "Menu label."
+                            },
+                            icon: {
+                              type: "string",
+                              description: "Optional inline SVG or glyph for the menu entry."
+                            },
+                            seed: {
+                              type: "object",
+                              description: "Field values a newly-added box of this kind starts at (merged over the block's declared defaults).",
+                              additionalProperties: true
+                            }
                           }
                         }
                       },
@@ -903,57 +1768,125 @@ var init_tool_schema = __esm({
                         properties: {
                           formats: {
                             type: "array",
-                            items: { type: "string" },
+                            items: {
+                              type: "string"
+                            },
                             description: "The design formats this canvas advertises accepting (today: svg, penpot, pdf, ai, idml). Documents intent for the import panel; the engine's importer is the authority on what it can actually parse."
                           },
                           mode: {
                             type: "string",
-                            enum: ["scenes"],
+                            enum: [
+                              "scenes"
+                            ],
                             description: "'scenes' (Sequence Studio): an imported design's frames land as timed clips APPENDED to the main sequence instead of replacing the canvas. Requires the full time model to be mapped; omit for editors whose import replaces the board."
                           }
                         }
                       },
                       connect: {
                         type: "object",
-                        required: ["input"],
+                        required: [
+                          "input"
+                        ],
                         additionalProperties: false,
                         description: "Opt into connector authoring (Org Chart): a SECOND blocks input holding {from,to} edges between boxes, plus a 'Connect' rail mode to author them (click a source card, then targets). The overlay reads/writes that array and draws a live preview; the tool's hooks.js owns the real routed geometry. Absent = the editor's toolbar and gestures are unchanged.",
                         properties: {
-                          input: { type: "string", description: "id of the blocks input storing the connector edges. Its sub-fields - not this canvas's `fields` - are what the *Field names below refer to." },
-                          fromField: { type: "string", description: "Edge sub-field holding the SOURCE box id. Default 'from'." },
-                          toField: { type: "string", description: "Edge sub-field holding the TARGET box id. Default 'to'." },
-                          styleField: { type: "string", description: "Edge sub-field: route style (elbow, straight, curved \u2026)." },
-                          arrowField: { type: "string", description: "Edge sub-field: which ENDS carry an arrowhead (none/end/both)." },
-                          headField: { type: "string", description: "Edge sub-field: arrowhead SHAPE (triangle/open/circle/diamond/bar) - same vocabulary as the path decorations." },
-                          colorField: { type: "string", description: "Edge sub-field: line colour." },
-                          dashField: { type: "string", description: "Edge sub-field: dash style keyword." },
-                          widthField: { type: "string", description: "Edge sub-field: line width in canvas px." },
-                          layerClass: { type: "string", description: "Class of the tool's rendered connector <svg>, hidden mid-drag so the live preview doesn't double up with the committed one. Default 'oc-connectors'." },
-                          defaultStyle: { type: "string", description: "Route style a newly-authored edge starts at. Default 'elbow'." },
-                          defaultArrow: { type: "string", description: "Arrow ends a newly-authored edge starts at. Default 'end'." },
-                          defaultHead: { type: "string", description: "Arrowhead shape a newly-authored edge starts at. Default 'triangle'." },
-                          defaultColor: { type: "string", description: "Line colour a newly-authored edge starts at. Default '#94a3b8'." },
-                          defaultWidth: { type: "number", description: "Line width a newly-authored edge starts at. Default 2.5." }
+                          input: {
+                            type: "string",
+                            description: "id of the blocks input storing the connector edges. Its sub-fields - not this canvas's `fields` - are what the *Field names below refer to."
+                          },
+                          fromField: {
+                            type: "string",
+                            description: "Edge sub-field holding the SOURCE box id. Default 'from'."
+                          },
+                          toField: {
+                            type: "string",
+                            description: "Edge sub-field holding the TARGET box id. Default 'to'."
+                          },
+                          styleField: {
+                            type: "string",
+                            description: "Edge sub-field: route style (elbow, straight, curved \u2026)."
+                          },
+                          arrowField: {
+                            type: "string",
+                            description: "Edge sub-field: which ENDS carry an arrowhead (none/end/both)."
+                          },
+                          headField: {
+                            type: "string",
+                            description: "Edge sub-field: arrowhead SHAPE (triangle/open/circle/diamond/bar) - same vocabulary as the path decorations."
+                          },
+                          colorField: {
+                            type: "string",
+                            description: "Edge sub-field: line colour."
+                          },
+                          dashField: {
+                            type: "string",
+                            description: "Edge sub-field: dash style keyword."
+                          },
+                          widthField: {
+                            type: "string",
+                            description: "Edge sub-field: line width in canvas px."
+                          },
+                          layerClass: {
+                            type: "string",
+                            description: "Class of the tool's rendered connector <svg>, hidden mid-drag so the live preview doesn't double up with the committed one. Default 'oc-connectors'."
+                          },
+                          defaultStyle: {
+                            type: "string",
+                            description: "Route style a newly-authored edge starts at. Default 'elbow'."
+                          },
+                          defaultArrow: {
+                            type: "string",
+                            description: "Arrow ends a newly-authored edge starts at. Default 'end'."
+                          },
+                          defaultHead: {
+                            type: "string",
+                            description: "Arrowhead shape a newly-authored edge starts at. Default 'triangle'."
+                          },
+                          defaultColor: {
+                            type: "string",
+                            description: "Line colour a newly-authored edge starts at. Default '#94a3b8'."
+                          },
+                          defaultWidth: {
+                            type: "number",
+                            description: "Line width a newly-authored edge starts at. Default 2.5."
+                          }
                         }
                       },
                       grid: {
                         type: "object",
                         description: "Opt into snap-to-grid: the overlay rounds drag/resize to this lattice (per-axis alignment smart-guides still win; Alt disables).",
                         properties: {
-                          size: { type: "number", description: "Grid step in canvas px." },
-                          default: { type: "boolean", description: "Whether snap-to-grid starts on." }
+                          size: {
+                            type: "number",
+                            description: "Grid step in canvas px."
+                          },
+                          default: {
+                            type: "boolean",
+                            description: "Whether snap-to-grid starts on."
+                          }
                         }
                       },
-                      fixedCanvas: { type: "boolean", description: "Lock the canvas to render.width/height: the shell withholds setCanvasSize and ignores reserved ?width/?height, so box coordinates stay 1:1 with the render size (required when a hook draws into a fixed-viewBox overlay, e.g. connectors)." }
+                      fixedCanvas: {
+                        type: "boolean",
+                        description: "Lock the canvas to render.width/height: the shell withholds setCanvasSize and ignores reserved ?width/?height, so box coordinates stay 1:1 with the render size (required when a hook draws into a fixed-viewBox overlay, e.g. connectors)."
+                      }
                     }
                   }
                 }
               }
             },
             {
-              if: { properties: { type: { const: "vector" } } },
+              if: {
+                properties: {
+                  type: {
+                    const: "vector"
+                  }
+                }
+              },
               then: {
-                required: ["fields"],
+                required: [
+                  "fields"
+                ],
                 properties: {
                   fields: {
                     type: "array",
@@ -961,15 +1894,32 @@ var init_tool_schema = __esm({
                     description: "Numeric sub-fields, each a labelled Figma-style scrubber. Stored as one compound value { fieldId: number } and rendered as a single control / column.",
                     items: {
                       type: "object",
-                      required: ["id"],
+                      required: [
+                        "id"
+                      ],
                       properties: {
-                        id: { type: "string" },
-                        label: { type: "string" },
-                        symbol: { type: "string", description: 'Single character shown inside the field as its scrub handle (e.g. "+" for zoom). Defaults to the first letter of the label.' },
-                        min: { type: "number" },
-                        max: { type: "number" },
-                        step: { type: "number" },
-                        default: { type: "number" }
+                        id: {
+                          type: "string"
+                        },
+                        label: {
+                          type: "string"
+                        },
+                        symbol: {
+                          type: "string",
+                          description: 'Single character shown inside the field as its scrub handle (e.g. "+" for zoom). Defaults to the first letter of the label.'
+                        },
+                        min: {
+                          type: "number"
+                        },
+                        max: {
+                          type: "number"
+                        },
+                        step: {
+                          type: "number"
+                        },
+                        default: {
+                          type: "number"
+                        }
                       }
                     }
                   }
@@ -981,13 +1931,21 @@ var init_tool_schema = __esm({
         exampleVariant: {
           type: "object",
           additionalProperties: false,
-          required: ["values"],
+          required: [
+            "values"
+          ],
           description: "One example look: a set of input values (and optionally the UI theme it suits) rendered live to demonstrate the tool.",
           properties: {
-            label: { type: "string", description: "Short human label for this look (not shown to end users; documents the intent)." },
+            label: {
+              type: "string",
+              description: "Short human label for this look (not shown to end users; documents the intent)."
+            },
             theme: {
               type: "string",
-              enum: ["light", "dark"],
+              enum: [
+                "light",
+                "dark"
+              ],
               description: "Which UI theme this look suits - set only on looks that render ink on a TRANSPARENT background (e.g. a reverse/white logo). 'dark' looks show on the dark/SUSE themes, 'light' looks on the light theme; the clashing look is filtered out so it's never near-invisible on the tile. Omit for looks that bake their own background (shown on any theme)."
             },
             values: {
@@ -999,14 +1957,32 @@ var init_tool_schema = __esm({
         templateVariant: {
           type: "object",
           additionalProperties: false,
-          required: ["id", "name"],
+          required: [
+            "id",
+            "name"
+          ],
           description: 'One named starting point in the "New from template" chooser: an id, a display name, and (in the external per-template file) a full input seed. Two shapes validate against this def: the EXTERNAL file tools/<id>/templates/<tid>.json, which carries `values`; and the METADATA-ONLY entry the synced index carries, which strips `values` (hence `values` is optional). Like an exampleVariant\'s `values` but read directly into a fresh session rather than rendered as an illustrative preview.',
           properties: {
-            id: { type: "string", description: "Stable id, unique within this tool's `templates[]`. Addressable via the reserved `?template=<id>` param, so treat it as a permanent contract like a tool/asset id." },
-            name: { type: "string", description: "Display name shown on the chooser tile." },
-            description: { type: "string", description: "Optional one-line description shown under the name on the tile." },
-            category: { type: "string", description: "Optional grouping label; tiles sharing a category are grouped together in the chooser." },
-            thumb: { type: "string", description: "Optional thumbnail: a tool-relative asset path or data URI. Absent \u2192 the chooser draws a glyph tile." },
+            id: {
+              type: "string",
+              description: "Stable id, unique within this tool's `templates[]`. Addressable via the reserved `?template=<id>` param, so treat it as a permanent contract like a tool/asset id."
+            },
+            name: {
+              type: "string",
+              description: "Display name shown on the chooser tile."
+            },
+            description: {
+              type: "string",
+              description: "Optional one-line description shown under the name on the tile."
+            },
+            category: {
+              type: "string",
+              description: "Optional grouping label; tiles sharing a category are grouped together in the chooser."
+            },
+            thumb: {
+              type: "string",
+              description: "Optional thumbnail: a tool-relative asset path or data URI. Absent \u2192 the chooser draws a glyph tile."
+            },
             values: {
               type: "object",
               description: "Map of input id -> value read directly into the fresh session - the same shape URL params resolve to, and the same shape a `default` composition uses. Authored in the EXTERNAL per-template file tools/<id>/templates/<tid>.json (not the synced index, which carries metadata only). Any size (a free-canvas `boxes` array can be many KB), because it is fetched on demand and seeded in-process, never serialised into a URL."
@@ -1056,6 +2032,11 @@ var init_asset_schema = __esm({
           type: "array",
           items: { type: "string" },
           description: "Used by host.assets.query() and pickers to filter."
+        },
+        added: {
+          type: "string",
+          pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+          description: "The date this asset's primary file was first added to its brand pack (YYYY-MM-DD). Never hand-authored: `scripts/gen-asset-added-dates.ts` mints a committed map from the packs' git history and `npm run build:catalog` stamps it here, so the index regenerates identically on a shallow CI checkout. Assets that moved in during the 2026-07 repository split floor at the split date."
         },
         formats: {
           type: "array",
@@ -1821,7 +2802,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.154.0";
+    ENGINE_VERSION = "1.155.0";
   }
 });
 
@@ -7140,8 +8121,8 @@ function parseToolUrl(src) {
     if (hId !== void 0 && ID_RE2.test(hId)) return { toolId: hId, format: null, query: hQuery };
   }
   const segs = u.pathname.split("/").filter(Boolean);
-  const cand = segs.length === 2 && segs[0] === "tool" ? segs[1] : segs.length === 1 ? segs[0] : null;
-  if (cand && ID_RE2.test(cand) && !APP_ROUTES.has(cand)) {
+  const cand = segs.length === 2 && (segs[0] === "tool" || segs[0] === "t") ? segs[1] : segs.length === 1 ? segs[0] : null;
+  if (cand && ID_RE2.test(cand) && !APP_PATH_WORDS.has(cand)) {
     return { toolId: cand, format: null, query: u.search.replace(/^\?/, "") };
   }
   return null;
@@ -7156,14 +8137,61 @@ function buildEmbedUrl({ toolId, format, query = "" } = {}) {
   const url = q ? `https://lolly.tools/tool/${toolId}.${ext}?${q}` : `https://lolly.tools/tool/${toolId}.${ext}`;
   return url.length > MAX_URL ? null : url;
 }
-var ID_RE2, FORMAT_EXT, APP_ROUTES, MAX_URL;
+var ID_RE2, FORMAT_EXT, APP_PATH_WORDS, MAX_URL;
 var init_tool_url = __esm({
   "engine/src/tool-url.ts"() {
     "use strict";
     init_embed();
     ID_RE2 = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
     FORMAT_EXT = { png: "png", jpg: "jpg", jpeg: "jpg", webp: "webp", svg: "svg", pdf: "pdf", webm: "webm", mp4: "mp4", gif: "gif", apng: "apng" };
-    APP_ROUTES = /* @__PURE__ */ new Set(["tool", "pro", "platform", "capabilities", "profile", "gallery"]);
+    APP_PATH_WORDS = /* @__PURE__ */ new Set([
+      "tool",
+      "t",
+      "tools",
+      "batch",
+      "pro",
+      "start",
+      "verify",
+      "valid",
+      "v",
+      "c",
+      "catalog",
+      "u",
+      "utilities",
+      "p",
+      "projects",
+      "d",
+      "dashboard",
+      "b",
+      "brand",
+      "lab",
+      "unpack",
+      "pdf",
+      "docs",
+      "components",
+      "ask",
+      "multi",
+      "convert",
+      "data",
+      "script",
+      "join",
+      "join-reply",
+      "profile",
+      "gallery",
+      "platform",
+      "capabilities",
+      "info",
+      "og",
+      "api",
+      "assets",
+      "fonts",
+      "ort",
+      "ort-hf",
+      "models",
+      "icons",
+      "l",
+      "a"
+    ]);
     MAX_URL = 4096;
   }
 });
@@ -11134,6 +12162,19 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     // one render path instead of mutating the DOM itself. Used to invalidate a
     // deferred preview (manifest.render.preview) when the capture geometry changes.
     refresh: emit,
+    // Re-resolve asset + token refs the mount already ran once (see the top of
+    // createRuntime), for values applied AFTER mount. A template/preset picked
+    // mid-doc pushes its `{color.*}` backdrop tokens and tool-URL image stubs in through
+    // applyPatch/setInput, neither of which resolves them; without this a picked
+    // template renders black colours + a placeholder image where a freshly-opened one
+    // renders the real gradient. Both resolvers return the same model reference when
+    // nothing needed resolving, so a call that changed nothing skips the re-emit.
+    async resolveRefs() {
+      const before = model2;
+      model2 = await resolveAssetRefs(model2, host, droppedAssets, composeStack, tool.manifest.id);
+      model2 = await resolveTokenRefs(model2, host);
+      if (model2 !== before) emit();
+    },
     // True when this tool declares an `onFrame` hook - i.e. it CAN react to a live
     // camera. The shell still gates the actual "go live" affordance on host.media
     // being present, so a tool without a camera shell just runs as a still tool.
@@ -15103,6 +16144,7 @@ function parseUrlState(searchParams, manifest) {
   }
   for (const [key, raw] of params.entries()) {
     if (RESERVED.has(key)) continue;
+    if (key.startsWith("_")) continue;
     const vec = vectorFieldByKey[key];
     if (vec) {
       const n2 = Number(raw);
@@ -15188,7 +16230,9 @@ function serializeUrlState(model2, opts = {}) {
       const t = normalizeTableValue(input.value);
       if (!t || !t.columns.length && !t.rows.length) continue;
     }
-    params.set(input.id, coerceToString(input, input.value));
+    const str5 = coerceToString(input, input.value, opts.keepUserIds === true);
+    if (input.type === "asset" && opts.keepUserIds !== true && str5.startsWith("user/")) continue;
+    params.set(input.id, str5);
   }
   if (opts.format) params.set("format", opts.format);
   if (opts.export) params.set("export", "");
@@ -15253,14 +16297,17 @@ function coerceFromString(input, raw) {
       return raw;
   }
 }
-function coerceToString(input, value) {
+function coerceToString(input, value, keepUserIds = false) {
   if (input.type === "boolean") return value ? "1" : "0";
   if (input.type === "asset" && value && typeof value === "object") {
     const ref = value;
     return assetIdForUrl(ref);
   }
   if (input.type === "color" && isTokenValue(value)) return value.ref;
-  if (input.type === "blocks") return JSON.stringify(blocksForUrl(value) ?? []);
+  if (input.type === "blocks") {
+    const compact = encodeBlocksCompact(value, input.fields ?? [], { keepUserIds });
+    return compact ?? JSON.stringify(blocksForUrl(value) ?? []);
+  }
   if (input.type === "table") return encodeTableCompact(normalizeTableValue(value));
   return String(value);
 }
@@ -15288,6 +16335,26 @@ function decodeBlocksCompact(str5, fields) {
     return obj;
   });
 }
+function encodeBlocksCompact(items, fields, opts = {}) {
+  if (!Array.isArray(items) || !items.length || !fields.length) return null;
+  const cell = (s) => encodeURIComponent(s).replace(/~/g, "%7E");
+  return items.map((item) => {
+    const row = item && typeof item === "object" ? item : {};
+    const vals = fields.map((f) => {
+      const raw = row[f.id];
+      if (f.type === "asset") {
+        const id = raw && typeof raw === "object" ? assetIdForUrl(raw) : "";
+        return cell(id && (opts.keepUserIds || !String(id).startsWith("user/")) ? String(id) : "");
+      }
+      let v = String(raw ?? "");
+      if (f.type === "color" && HEX_COLOR.test(v)) v = v.slice(1);
+      return cell(v);
+    });
+    let end = vals.length;
+    while (end > 0 && vals[end - 1] === "") end--;
+    return vals.slice(0, end).join(",");
+  }).join("~");
+}
 function encodeTableCompact(t) {
   if (!t) return "";
   const cell = (c) => encodeURIComponent(c).replace(/~/g, "%7E");
@@ -15313,7 +16380,7 @@ function splitToFields(str5, count2) {
   if (parts.length <= count2) return parts;
   return [...parts.slice(0, count2 - 1), parts.slice(count2 - 1).join(",")];
 }
-var HDR_DEFAULTS, DEPTH_VALUES, RESERVED, CUTS_MAX;
+var HDR_DEFAULTS, DEPTH_VALUES, RESERVED, CUTS_MAX, HEX_COLOR;
 var init_url_mode = __esm({
   "engine/src/url-mode.ts"() {
     "use strict";
@@ -15325,8 +16392,9 @@ var init_url_mode = __esm({
     init_inputs();
     HDR_DEFAULTS = { peakNits: 1e3, reach: 45, lift: 0, richness: 40 };
     DEPTH_VALUES = /* @__PURE__ */ new Map([["8", 8], ["16", 16], ["float", "float"], ["auto", "auto"]]);
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "lang", "designv", "full", "options", "nostage", "template", "preset", "present", "s", "z", "zx"]);
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "lang", "designv", "full", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx"]);
     CUTS_MAX = 64;
+    HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
   }
 });
 
@@ -49429,7 +50497,7 @@ var KF_CHANNELS, KF_CAMERA_CHANNELS, CHANNEL_SET, CHANNELS_BY_LENGTH, KF_CLAMPS,
 var init_keyframes = __esm({
   "engine/src/keyframes.ts"() {
     "use strict";
-    KF_CHANNELS = ["x", "y", "z", "s", "r", "rx", "ry", "o", "b", "f", "a", "p", "w", "h"];
+    KF_CHANNELS = ["x", "y", "z", "s", "r", "rx", "ry", "o", "b", "f", "a", "p", "w", "h", "v"];
     KF_CAMERA_CHANNELS = Object.freeze(
       ["x", "y", "z", "rx", "ry", "f", "a", "p"]
     );
@@ -49458,7 +50526,9 @@ var init_keyframes = __esm({
       // long-side cap, which is measured in device px and knows the export scale. A wire
       // clamp tighter than that would silently disagree with the budget on big boards.
       w: [0, 16384],
-      h: [0, 16384]
+      h: [0, 16384],
+      // Clip volume multiplier: silent to a 2x boost, the gain field's own range.
+      v: [0, 2]
     });
     KF_Z_FIELD_CLAMP = Object.freeze([-300, 900]);
     KF_QUANTA = Object.freeze({
@@ -49475,7 +50545,8 @@ var init_keyframes = __esm({
       f: 0.01,
       p: 0.01,
       w: 0.01,
-      h: 0.01
+      h: 0.01,
+      v: 1e-3
     });
     KF_BEZIER_QUANTUM = 1e-3;
     KF_BEZIER_Y_MAX = 10;
@@ -49924,6 +50995,7 @@ __export(src_exports, {
   emitWmf: () => emitWmf,
   encodeAuthoredPath: () => encodeAuthoredPath,
   encodeAuthoredPaths: () => encodeAuthoredPaths,
+  encodeBlocksCompact: () => encodeBlocksCompact,
   encodeBmp: () => encodeBmp,
   encodeFsToken: () => encodeFsToken,
   encodeOklch: () => encodeOklch,
@@ -54621,6 +55693,20 @@ var unavailableHere = (message, kind = "UNAVAILABLE_HERE") => new CliError(messa
 // shells/cli/src/bridge.ts
 var REPO_ROOT2 = repoRoot();
 var CLI_CAPABILITIES = ["network", "wasm", "compose", "capture"];
+function urlAssetKind(mime, id) {
+  const m2 = (mime || "").toLowerCase().split(";")[0].trim();
+  if (m2 === "image/svg+xml") return { type: "vector", format: "svg" };
+  if (m2.startsWith("image/")) return { type: "raster", format: m2.slice(6).replace("jpeg", "jpg") };
+  if (m2.startsWith("video/")) return { type: "video", format: m2.slice(6) };
+  if (m2.startsWith("audio/")) return { type: "audio", format: m2.slice(6).replace("mpeg", "mp3") };
+  const ext = /\.([a-z0-9]{2,5})(?:[?#]|$)/i.exec(id)?.[1]?.toLowerCase();
+  if (!ext) return null;
+  if (ext === "svg") return { type: "vector", format: "svg" };
+  if (["png", "jpg", "jpeg", "webp", "gif", "avif"].includes(ext)) return { type: "raster", format: ext.replace("jpeg", "jpg") };
+  if (["mp4", "webm", "mov"].includes(ext)) return { type: "video", format: ext };
+  if (["mp3", "wav", "ogg", "m4a"].includes(ext)) return { type: "audio", format: ext };
+  return null;
+}
 async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion } = {}) {
   const w = dom.window;
   const assetCatalogPath = join8(REPO_ROOT2, "catalog", "assets", "index.json");
@@ -54769,6 +55855,21 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
           url: canonical2,
           meta: { name: "Generated music", generated: true, seed: ref.seed, ...ref.style ? { style: ref.style } : {} }
         };
+      }
+      if (/^data:/i.test(id)) {
+        const mime2 = /^data:([^;,]+)/i.exec(id)?.[1] ?? "";
+        const kind = urlAssetKind(mime2, id);
+        if (!kind) throw new Error(`Unsupported data: asset type: ${mime2 || "unknown"}`);
+        return { source: "remote", id, type: kind.type, format: kind.format, url: id };
+      }
+      if (/^https?:\/\//i.test(id)) {
+        const res = await fetch(id, { signal: AbortSignal.timeout(2e4) });
+        if (!res.ok) throw new Error(`URL asset fetch failed (${res.status}): ${id}`);
+        const buf2 = Buffer.from(await res.arrayBuffer());
+        const mime2 = res.headers.get("content-type") ?? "";
+        const kind = urlAssetKind(mime2, id);
+        if (!kind) throw new Error(`Unsupported URL asset type (${mime2 || "unknown"}): ${id}`);
+        return { source: "remote", id, type: kind.type, format: kind.format, url: `data:${mime2.split(";")[0] || "application/octet-stream"};base64,${buf2.toString("base64")}` };
       }
       const { baseId: themedBase, theme } = parseThemedAssetId(id);
       const { baseId: treatedBase, treatment } = parseTreatedAssetId(id);
