@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": { "deploymentEnabled": false },
   "buildCommand": "npm run build:web && npm run build:mcp-fn && npm run build:ca-fn",
   "outputDirectory": "shells/web/dist",
   "functions": {
