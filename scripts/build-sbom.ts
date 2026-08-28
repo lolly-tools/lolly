@@ -166,37 +166,44 @@ for (const [path, entry] of Object.entries(lock.packages ?? {}) as [string, any]
 }
 
 // ─── Vendored libraries (checked into the tree, not via npm install) ─────────
-// d3 / topojson-client ship as pre-minified bundles under tools/*/lib and never
-// appear in the lockfile. We pin the version read from each file's banner-comment
-// provenance, the license from the project's license audit (both ISC), and hash
-// the bytes on disk ourselves so the component is still independently verifiable.
+// d3 / topojson-client ship as pre-minified bundles under the community pack's
+// */lib and never appear in the lockfile. We pin the version read from each
+// file's banner-comment provenance, the license from the project's license audit
+// (both ISC), and hash the bytes on disk ourselves so the component is still
+// independently verifiable.
+//
+// Paths name the PACK (community/…), never the tools/ profile VIEW: the view's
+// contents depend on the active profile (street-map is lolly-start-only, and CI
+// has no suse pack at all), so a view-scanned SBOM regenerates differently per
+// machine and the drift gate can never stay green. The pack is the same bytes
+// in every checkout.
 const VENDORED_LIBS = [
   // bwip-js (and the qrcode-svg encoder before it) is inlined INSIDE
-  // tools/qr-code/hooks.js rather than a lib/ file - hooks ship as one
+  // community/qr-code/hooks.js rather than a lib/ file - hooks ship as one
   // self-contained data file - so the hash pins the carrier file.
   {
     name: 'bwip-js',
     version: '4.11.4',
     license: 'MIT',
-    files: ['tools/qr-code/hooks.js'],
+    files: ['community/qr-code/hooks.js'],
   },
   {
     name: 'qrcode-svg',
     version: '1.1.0',
     license: 'MIT',
-    files: ['tools/qr-code/hooks.js'],
+    files: ['community/qr-code/hooks.js'],
   },
   {
     name: 'chart',
     version: '7.9.0',
     license: 'ISC',
-    files: ['tools/meeting-planner/lib/d3.min.js', 'tools/street-map/lib/d3.min.js'],
+    files: ['community/meeting-planner/lib/d3.min.js', 'community/street-map/lib/d3.min.js'],
   },
   {
     name: 'topojson-client',
     version: '3.1.0',
     license: 'ISC',
-    files: ['tools/meeting-planner/lib/topojson.min.js'],
+    files: ['community/meeting-planner/lib/topojson.min.js'],
   },
 ];
 for (const lib of VENDORED_LIBS) {
@@ -222,8 +229,12 @@ for (const lib of VENDORED_LIBS) {
 
 // ─── SUSE brand fonts (OFL-1.1, under catalog/fonts) ─────────────────────────
 // Shipped as binary font files, not an npm package; one component stands in for
-// the whole family. License is OFL-1.1 (see catalog/fonts/OFL.txt).
-if (existsSync(join(ROOT, 'catalog/fonts'))) {
+// the whole family. License is OFL-1.1 (see the pack's fonts/OFL.txt). Emitted
+// UNCONDITIONALLY: the fonts live in the private brands/suse pack, which a public
+// clone and CI legitimately lack - gating on the catalog/ view made the committed
+// SBOM regenerate differently per machine and fail the CI drift gate. The entry
+// is static metadata (no byte hashes), so it is deterministic everywhere.
+{
   const purl = 'pkg:generic/suse-fonts';
   if (!byPurl.has(purl)) {
     byPurl.set(purl, {
@@ -231,9 +242,9 @@ if (existsSync(join(ROOT, 'catalog/fonts'))) {
       'bom-ref': purl,
       name: 'SUSE / SUSE Mono fonts',
       purl,
-      scope: 'required', // shipped brand assets
+      scope: 'required', // shipped brand assets (suse profile)
       licenses: licensesFromString('OFL-1.1'),
-      properties: [{ name: 'lolly:vendored', value: 'catalog/fonts' }],
+      properties: [{ name: 'lolly:vendored', value: 'brands/suse/catalog/fonts' }],
     });
   }
 }
