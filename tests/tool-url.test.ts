@@ -43,14 +43,31 @@ test('accepts the pretty path shortcut, with and without /tool/', () => {
     { toolId: 'qr-code', format: null, query: 'url=x' });
 });
 
+test('accepts the canonical /t/<id> address-bar form, packed query included (plan 171)', () => {
+  // This is the URL the address bar, the Share dialog and the OG stubs actually
+  // emit - a user pasting their own link back into a picker must be recognised.
+  assert.deepEqual(parseToolUrl('https://lolly.tools/t/qr-code?url=x'),
+    { toolId: 'qr-code', format: null, query: 'url=x' });
+  assert.deepEqual(parseToolUrl('http://localhost:5173/t/design?z=1eJyFkc'),
+    { toolId: 'design', format: null, query: 'z=1eJyFkc' });
+});
+
+test('accepts the /design vanity path (the one sanctioned vanity-path tool)', () => {
+  assert.deepEqual(parseToolUrl('https://lolly.tools/design?bx=a'),
+    { toolId: 'design', format: null, query: 'bx=a' });
+});
+
 test('hash route with no query yields an empty query string', () => {
   assert.equal(parseToolUrl('https://lolly.tools/#/tool/qr-code')!.query, '');
 });
 
-test('does not mistake app routes for tools', () => {
-  for (const route of ['pro', 'platform', 'capabilities', 'profile', 'gallery']) {
+test('does not mistake app routes for tools (the frozen APP_PATH_WORDS vocabulary)', () => {
+  for (const route of ['pro', 'batch', 'start', 'unpack', 'docs', 'catalog', 'platform', 'capabilities', 'profile', 'gallery', 'join-reply']) {
     assert.equal(parseToolUrl(`https://lolly.tools/${route}`), null, `should reject /${route}`);
   }
+  // The two-segment /t/ form checks the id, not the prefix: an app word after /t/
+  // is still refused.
+  assert.equal(parseToolUrl('https://lolly.tools/t/batch'), null);
 });
 
 test('rejects non-tool URLs and junk', () => {

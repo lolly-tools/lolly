@@ -151,7 +151,7 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
   const documented = [
     'format', 'export', 'copy', 'full', 'options', 'slot', 'output', 'filename',
     '_v', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'profile', 'password',
-    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'nostage', 'template', 'preset', 'present', 's', 'z', 'zx',
+    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 
@@ -172,6 +172,17 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
   // a name that is not a reserved param has no row key either.
   assert.equal(rowKeys.has('depth'), true);
   assert.equal(rowKeys.has('bitdepth'), false);
+});
+
+test('url-mode: the `_` prefix is a reserved namespace, skipped before input matching', () => {
+  // Plan 171 (the freeze-day break): a future reserved param minted as `_name` must
+  // read as an unknown control on THIS engine - never as a tool input - and the
+  // validator refuses `_`-prefixed input ids/urlKeys, so both sides of the contract
+  // hold. `_v` (already reserved) is the founding member.
+  const s = parseUrlState('_future=1&_v=2.0.0&heading=Hi', SAMPLE_MANIFEST);
+  assert.equal(s.values._future, undefined);
+  assert.equal(s.values.heading, 'Hi');
+  assert.equal(s.version, '2.0.0');
 });
 
 test('url-mode: designv is the design-system version override, read-only', () => {

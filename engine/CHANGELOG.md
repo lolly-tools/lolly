@@ -6,6 +6,38 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.155.0 - URL contract freeze (plans/171), executed on the last day of the id-break
+window. Parse surface is strictly widened; the one behavioural break is app-level:
+- BREAK (app flag, not bridge): the presenter kiosk flag renamed `loop` → `kiosk`
+  and `kiosk` added to RESERVED - `loop` is a live input id in five tools and could
+  never be reserved. Old `?present&loop` links open the deck but no longer wrap.
+- The `_` prefix is a reserved namespace forever: parseUrlState skips any `_`-named
+  param before input matching (`_v` is the founding member), and the schema +
+  validate-catalog refuse `_`-prefixed input ids/urlKeys. Future reserved params
+  are minted there so they can never collide with a shipped tool's inputs.
+- `tool-url.ts`: parseToolUrl now recognises the CANONICAL `/t/<id>` address-bar/
+  Share/OG form (it never did - pasting your own link into a picker failed) and
+  `/design`; the stale APP_ROUTES exclusion set became the exported, frozen
+  APP_PATH_WORDS top-level path vocabulary, which validate-catalog now enforces
+  against tool ids (`design` stays the one sanctioned vanity-path tool).
+- `encodeBlocksCompact` moved INTO the engine (url-mode.ts, beside its decoder;
+  the web's lib/blocks-url.ts re-exports it) and serializeUrlState's blocks branch
+  now emits the compact tilde form instead of JSON - every shell mints the same
+  compact link for the same state (the CLI/MCP path was 1.5-10x larger before).
+  Decode accepted both forms all along, so no existing link changes meaning.
+  The encoder materialises a field's declared DEFAULT when a row omits it: the
+  positional form has no absent token (decode re-pads to an explicit ''), so a
+  sparse row - a hook or composition seed - would otherwise lose per-field
+  defaults on the round-trip the JSON form preserved by omission.
+- serializeUrlState gained `keepUserIds?` (default false): the "device-local
+  `user/…` ids never leave the device" rule is now an engine guarantee - a
+  top-level `user/` asset param is omitted, a block sub-field blanked - instead of
+  a web-shell call-site courtesy. The web address bar passes true (same device).
+- urlKey entered the tool schema (pattern + 16-char cap) and validate-catalog:
+  unique per tool across ids+urlKeys, never RESERVED, never `_`-prefixed. Blocks
+  field ORDER is pinned per input in schemas/blocks-wire-order.json (append-only,
+  validator-enforced) - the positional wire format is now a guarded contract.
+
 1.154.0 - device-picker + picker fixes (plans/162), all optional/additive:
 - `AssetQuery.motion?` - a boolean on the `host.assets` query/pick filter. When set
   on a `type:'image'` query it also admits `video` - a motion tool (an onFrame

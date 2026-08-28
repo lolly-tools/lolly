@@ -377,8 +377,12 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // Then 1.154.0 (plans/162: AssetQuery.motion? - an optional/additive field that
   // widens an image asset query to admit video for a motion/onFrame slot, fixing
   // the picker hiding catalog video. Additive-only - see assets.test.ts).
+  // Then 1.155.0 (plans/171 URL contract freeze: kiosk flag reserved, `_` prefix
+  // namespace, /t/ recognised by parseToolUrl, engine-owned encodeBlocksCompact +
+  // keepUserIds. Parse strictly widens; no HostV1 change - see engine.test.ts +
+  // tool-url.test.ts).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.154.0');
+  assert.equal(ENGINE_VERSION, '1.155.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

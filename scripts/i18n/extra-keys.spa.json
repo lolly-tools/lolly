@@ -253,5 +253,6 @@
   "AI-declared ingredient in this design: {names}. The export's own credential declares this AI origin, signed and machine-readable.",
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.",
-  "likely AI-made"
+  "likely AI-made",
+  "DRAFT"
 ]

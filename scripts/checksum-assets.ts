@@ -15,6 +15,10 @@
  * for no offline-PWA benefit). CI runs `validate-catalog.js`, which recomputes
  * and compares, so a stale checksum fails the build rather than a user's device.
  *
+ * It also stamps each asset's `added` date from the committed map minted by
+ * `scripts/gen-asset-added-dates.ts` - maintained exactly like the checksums
+ * below, so the index never has to be hand-edited for it.
+ *
  * It also labels each raster format file with its `depth` (bits per channel),
  * sniffed from the container header - see `depthForFormat` below and
  * plans/61-deeprichpixels.md section 10 item 6. Depth follows provenance: the label is a
@@ -36,6 +40,16 @@ import { depthHint } from '../shells/web/src/lib/image-sample.ts';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const INDEX_PATH = join(ROOT, 'catalog/assets/index.json');
 
+// Asset id → the date its primary file was first added (YYYY-MM-DD), minted by
+// scripts/gen-asset-added-dates.ts from the packs' git history and COMMITTED -
+// this script never asks git itself, so the index regenerates byte-identically on
+// shallow CI checkouts (the validate-catalog drift gate). Feeds the catalog
+// details modal's "Added" line, the asset twin of the tool info dialog's.
+export const ADDED_DATES: Record<string, string> = (() => {
+  const p = join(ROOT, 'scripts/data/asset-added-dates.json');
+  try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return {}; }
+})();
+
 /** One format entry (mutated in place with the freshly-computed checksum + size). */
 interface AssetFormat {
   url: string;
@@ -48,6 +62,7 @@ interface AssetFormat {
 interface Asset {
   id: string;
   type?: string;
+  added?: string;
   formats?: AssetFormat[];
   locales?: Record<string, AssetFormat[]>;
 }
@@ -103,6 +118,13 @@ async function run(): Promise<void> {
   const missing: string[] = [];
 
   for (const asset of index.assets) {
+    // When this asset was first added to its pack (see ADDED_DATES above). An
+    // asset the map does not cover LOSES the field rather than keeping a stale
+    // date, the same rule `depth` follows below.
+    const added = ADDED_DATES[asset.id];
+    if (asset.added !== added) updated++;
+    if (added) asset.added = added;
+    else delete asset.added;
     // Base formats + any locale-specific format variants.
     const formatLists = [asset.formats, ...Object.values(asset.locales ?? {})];
     for (const formats of formatLists) {

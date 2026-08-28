@@ -1,0 +1,46 @@
+{
+  "title": "Quarterly Review",
+  "size": "wide",
+  "theme": "auto",
+  "footer": "Confidential",
+  "pageNumbers": true,
+  "brandLogo": true,
+  "slides": [
+    {
+      "layout": "title",
+      "title": "Quarterly Review",
+      "subtitle": "FY26 Q3 · Alex Rivera",
+      "notes": "Welcome. Set the tone: strong quarter, one risk to watch."
+    },
+    {
+      "layout": "mainpoint",
+      "title": "Revenue grew 24% year on year"
+    },
+    {
+      "layout": "split",
+      "title": "Where the growth came from",
+      "bullets": [
+        "New regions opened in Q2 now contributing",
+        "Renewals up on the back of the platform release",
+        "Services attach rate climbing"
+      ],
+      "media": ["https://lolly.tools/tool/chart.svg?type=bar&data=Q1%2C10%0AQ2%2C14%0AQ3%2C19"],
+      "notes": "The chart is a live Lolly render, composed in - not a pasted image."
+    },
+    {
+      "layout": "bignum",
+      "number": "24%",
+      "label": "Year-on-year revenue growth"
+    },
+    {
+      "layout": "full",
+      "title": "How the team is organised",
+      "media": ["https://lolly.tools/tool/org-chart.svg"],
+      "notes": "Org chart composed from the org-chart tool's own render."
+    },
+    {
+      "layout": "mainpoint",
+      "title": "Thank you"
+    }
+  ]
+}

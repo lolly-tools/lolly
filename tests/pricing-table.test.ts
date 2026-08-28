@@ -292,6 +292,96 @@ test('a whitespace-only button label drops the row, like an empty one', { skip: 
   assert.ok(!html.includes('pt-hascta'), 'the layout must not reserve room for it');
 });
 
+test('a Button row is authoritative per plan; an empty cell leaves a gap, not the global label', { skip: SKIP }, async () => {
+  const { rt, html } = await mount({
+    cta: 'Get started',
+    highlight: 0,
+    data: {
+      columns: ['Feature', 'Free', 'Pro'],
+      rows: [
+        ['Price', '$0', '$9'],
+        ['Button', '', 'Buy for $9'],   // empty = no button under Free (a gap)
+        ['Link', '/signup', 'https://example.com/pro'],
+        ['Seats', '1', 'yes'],
+      ],
+    },
+  });
+
+  // The Button/Link rows drop out of the feature list.
+  assert.equal(rt.getHydratedString('{{featureCount}}'), '1');
+  // Empty cell does NOT fall back to the global "Get started".
+  assert.equal(rt.getHydratedString('{{#each tiers}}{{ctaLabel}}|{{href}};{{/each}}'),
+    '|/signup;Buy for $9|https://example.com/pro;');
+
+  // The button ROW still appears (Pro has a button), but Free's slot is empty -
+  // no button element even though it carries a link.
+  assert.equal(count(html, /class="pt-act/g), 2, 'both plans keep their slot');
+  assert.equal(count(html, /class="pt-cta"/g), 1, 'only the plan with a label has a button');
+  assert.match(html, /<a class="pt-cta" href="https:\/\/example\.com\/pro"[^>]*>Buy for \$9<\/a>/);
+  assert.ok(html.includes('rel="noopener noreferrer"'), 'external links carry a safe rel');
+
+  // With no Button row at all, the global label sits under every plan.
+  const global = (await mount({
+    cta: 'Start now', highlight: 0,
+    data: { columns: ['Feature', 'A', 'B'], rows: [['Price', '$1', '$2'], ['Seats', '1', '2']] },
+  })).rt;
+  assert.equal(global.getHydratedString('{{#each tiers}}{{ctaLabel}};{{/each}}'), 'Start now;Start now;');
+});
+
+test('a bare domain gets https, and javascript/data links are dropped', { skip: SKIP }, async () => {
+  const { rt, html } = await mount({
+    cta: 'Go',
+    highlight: 0,
+    data: {
+      columns: ['Feature', 'A', 'B', 'C'],
+      rows: [
+        ['Price', '$1', '$2', '$3'],
+        // eslint-disable-next-line no-script-url
+        ['Link', 'suse.com/pricing', 'javascript:alert(1)', 'data:text/html,x'],
+        ['Seats', '1', '2', '3'],
+      ],
+    },
+  });
+  assert.equal(rt.getHydratedString('{{#each tiers}}[{{href}}]{{/each}}'),
+    '[https://suse.com/pricing][][]');
+  // The unsafe schemes leave a plain-text button, never an anchor.
+  assert.ok(!/javascript:|data:text/.test(html), 'no unsafe scheme reaches the markup');
+  assert.equal(count(html, /<a class="pt-cta"/g), 1, 'only the safe link is an anchor');
+});
+
+test('the text colour is derived from the background, not taken as an input', { skip: SKIP }, async () => {
+  // `color` is no longer a declared input.
+  const manifest = await readJson('tool.json');
+  assert.ok(!manifest.inputs.some((i: { id: string }) => i.id === 'color'),
+    'the text colour must not be a user input');
+
+  // A light sheet gets dark ink; a dark sheet gets light ink. The property is
+  // always a real hex, so the render never leaks an empty colour.
+  const onLight = await mount({ background: '#ffffff' });
+  const onDark = await mount({ background: '#101418' });
+  const inkLight = onLight.rt.getHydratedString('{{inkColor}}') as string;
+  const inkDark = onDark.rt.getHydratedString('{{inkColor}}') as string;
+  assert.match(inkLight, /^#[0-9a-f]{6}$/);
+  assert.match(inkDark, /^#[0-9a-f]{6}$/);
+  assert.notEqual(inkLight, inkDark, 'the ink flips with the background lightness');
+  // Ink and paper stay far apart in luminance (readable), whichever way round.
+  assert.ok(Math.abs(apcaContrast(inkLight, '#ffffff')) > 60);
+  assert.ok(Math.abs(apcaContrast(inkDark, '#101418')) > 60);
+});
+
+test('the featured plan is carried by fill and badge, never an accent border', { skip: SKIP }, async () => {
+  // The one-sided / coloured accent border on a rounded card is a banned tell.
+  const css = await readFile(join(PKG, 'styles.css'), 'utf8');
+  // No rule paints an accent-coloured border anywhere.
+  assert.ok(!/border[a-z-]*:\s*[^;]*var\(--pt-accent/.test(css),
+    'the accent colour must never be used as a border');
+  // The highlight is a background wash, and the featured cells all carry it.
+  const { html } = await mount({ highlight: 1 });
+  assert.ok(/\.pt-on[^{]*{[^}]*background:\s*var\(--pt-tint/.test(css.replace(/\s+/g, ' ')),
+    'the featured wash is a tint fill');
+  assert.ok(count(html, /class="pt-cell pt-on/g) >= 1);
+});
+
 test('the grid layout rules the first feature row, not the plan headers', { skip: SKIP }, async () => {
   // The header rule is the first feature row's own top border. Drawing it under
   // the plan headers stacked two lines and skipped the label column, which has
@@ -330,7 +420,7 @@ test('the template reads only ids and extras the tool actually supplies', { skip
   assert.ok(roots.size >= 6, 'the scan found the root references');
 
   const supplied = new Set<string>(manifest.inputs.map((i: { id: string }) => i.id));
-  for (const key of ['error', 'ctaText', 'gridCols', 'tiers', 'rows',
+  for (const key of ['error', 'ctaText', 'hasButtons', 'gridCols', 'tiers', 'rows',
     'inkColor', 'paperColor', 'accentColor', 'onAccentColor',
     'cardColor', 'edgeColor', 'mutedColor', 'tintColor']) supplied.add(key);
   for (const name of roots) {

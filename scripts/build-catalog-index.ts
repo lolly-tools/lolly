@@ -44,6 +44,16 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const INDEX_PATH = join(ROOT, 'catalog/tools/index.json');
 const SLIM_INDEX_PATH = join(ROOT, 'catalog/tools/index.slim.json');
 
+// Tool id → the date its tool.json was first added (YYYY-MM-DD), minted by
+// scripts/gen-tool-added-dates.ts from the packs' git history and COMMITTED -
+// the builder never asks git itself, so the index regenerates byte-identically
+// on shallow CI checkouts (the validate-catalog drift gate). Feeds the info
+// dialog's "Added" line (the retired "New" badge's honest replacement).
+const ADDED_DATES: Record<string, string> = (() => {
+  const p = join(ROOT, 'scripts/data/tool-added-dates.json');
+  try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return {}; }
+})();
+
 // Fields the index mirrors from each manifest. `capabilities` lets the gallery
 // gate tools a shell can't fulfil (e.g. 'capture' in the web PWA) without
 // fetching every manifest first. `privacy` surfaces the on-device note in the
@@ -76,6 +86,9 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   for (const f of INDEX_FIELDS) {
     if (manifest[f] !== undefined) entry[f] = manifest[f];
   }
+  // When this tool was first added to its pack (see ADDED_DATES above). Full index
+  // only - it paints the info dialog, never the grid, so it stays off the slim cut.
+  if (ADDED_DATES[manifest.id]) entry.added = ADDED_DATES[manifest.id];
   // Output formats the tool supports (tool.json render.formats). Carried so the
   // gallery's tool-info modal can list them with no per-open manifest fetch.
   // (For render.export:false utilities this is the set of input types they

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-27T23:05:59.185Z",
+  "generatedAt": "2026-08-28T12:29:26.082Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -23,6 +23,7 @@
         "downsample",
         "privacy"
       ],
+      "added": "2026-07-08",
       "formats": [
         "pdf"
       ],
@@ -33,107 +34,107 @@
       "preview": "/catalog/previews/compress-pdf.svg",
       "i18n": {
         "ar": {
-          "name": "الضغط",
+          "name": "Compress",
           "description": "قلّص حجم ملف PDF بإعادة ضغط صوره - على جهازك."
         },
         "bg": {
-          "name": "Компресиране",
+          "name": "Compress",
           "description": "Смали PDF, като компресираш повторно изображенията му - на твоето устройство."
         },
         "bn": {
-          "name": "কম্প্রেস",
+          "name": "Compress",
           "description": "এর ছবিগুলো পুনরায় সংকুচিত করে একটি PDF ছোট করুন - আপনার ডিভাইসেই।"
         },
         "cs": {
-          "name": "Komprese",
+          "name": "Compress",
           "description": "Zmenši PDF překomprimováním jeho obrázků - na tvém zařízení."
         },
         "de": {
-          "name": "Komprimieren",
+          "name": "Compress",
           "description": "Verkleinert ein PDF durch Neukomprimierung seiner Bilder - auf Ihrem Gerät."
         },
         "es": {
-          "name": "Comprimir",
+          "name": "Compress",
           "description": "Reduce el tamaño de un PDF recomprimiendo sus imágenes - en tu dispositivo."
         },
         "fr": {
-          "name": "Compression",
+          "name": "Compress",
           "description": "Réduisez un PDF en recompressant ses images - sur votre appareil."
         },
         "hi": {
-          "name": "कंप्रेस",
+          "name": "Compress",
           "description": "अपनी डिवाइस पर - इमेज को फिर से कंप्रेस करके PDF का आकार घटाएँ।"
         },
         "id": {
-          "name": "Kompres",
+          "name": "Compress",
           "description": "Perkecil PDF dengan mengompresi ulang gambarnya - di perangkat Anda."
         },
         "it": {
-          "name": "Comprimi",
+          "name": "Compress",
           "description": "Riduci un PDF ricomprimendo le sue immagini - sul tuo dispositivo."
         },
         "ja": {
-          "name": "圧縮",
+          "name": "Compress",
           "description": "画像を再圧縮してPDFを軽量化 - デバイス上で処理します。"
         },
         "ko": {
-          "name": "압축",
+          "name": "Compress",
           "description": "PDF 내 이미지를 재압축해 용량을 줄입니다 - 기기 내에서 처리됩니다."
         },
         "ms": {
-          "name": "Mampat",
+          "name": "Compress",
           "description": "Kecilkan PDF dengan memampatkan semula imejnya - pada peranti anda."
         },
         "nl": {
-          "name": "Comprimeren",
+          "name": "Compress",
           "description": "Verklein een PDF door de afbeeldingen erin opnieuw te comprimeren - op je eigen apparaat."
         },
         "no": {
-          "name": "Komprimer",
+          "name": "Compress",
           "description": "Krymp en PDF ved å komprimere bildene på nytt - på din enhet."
         },
         "pl": {
-          "name": "Kompresja",
+          "name": "Compress",
           "description": "Zmniejsz plik PDF poprzez ponowną kompresję jego obrazów - na Twoim urządzeniu."
         },
         "pt": {
-          "name": "Compactar",
+          "name": "Compress",
           "description": "Reduza um PDF recomprimindo suas imagens - no seu dispositivo."
         },
         "ro": {
-          "name": "Comprimă",
+          "name": "Compress",
           "description": "Micșorează un PDF recomprimându-i imaginile - pe dispozitivul tău."
         },
         "sv": {
-          "name": "Komprimera",
+          "name": "Compress",
           "description": "Krympa en PDF genom att komprimera om bilderna - på din enhet."
         },
         "tl": {
-          "name": "I-compress",
+          "name": "Compress",
           "description": "Paliitin ang isang PDF sa pamamagitan ng muling pag-compress ng mga larawan nito - sa iyong device."
         },
         "tr": {
-          "name": "Sıkıştırma",
+          "name": "Compress",
           "description": "Görsellerini yeniden sıkıştırarak bir PDF'yi küçültün - cihazınızda."
         },
         "uk": {
-          "name": "Стиснення",
+          "name": "Compress",
           "description": "Зменште PDF, перестиснувши його зображення - на вашому пристрої."
         },
         "ur": {
-          "name": "کمپریس",
+          "name": "Compress",
           "description": "اپنی تصاویر کو دوبارہ کمپریس کر کے PDF کو چھوٹا کریں - آپ کے آلے پر۔"
         },
         "vi": {
-          "name": "Nén",
+          "name": "Compress",
           "description": "Thu nhỏ PDF bằng cách nén lại hình ảnh trong đó - ngay trên thiết bị của bạn."
         },
         "zh-hant": {
-          "name": "壓縮",
+          "name": "Compress",
           "description": "透過重新壓縮圖片來縮小 PDF - 在您的裝置上完成。"
         },
         "zh": {
-          "name": "压缩",
+          "name": "Compress",
           "description": "通过重新压缩图片来缩小 PDF - 在你的设备上完成。"
         }
       }
@@ -150,6 +151,7 @@
         "productivity",
         "utility"
       ],
+      "added": "2026-07-08",
       "formats": [
         "html"
       ],
@@ -160,19 +162,19 @@
       "preview": "/catalog/previews/countdown-timer.svg",
       "i18n": {
         "ar": {
-          "name": "العد التنازلي",
+          "name": "Countdown",
           "description": "عد تنازلي مركز مع حلقة تقدم مباشرة. انقر للإيقاف المؤقت."
         },
         "bg": {
-          "name": "Обратно броене",
+          "name": "Countdown",
           "description": "Изчистено обратно броене с жив пръстен на напредъка. Щракни за пауза."
         },
         "bn": {
-          "name": "কাউন্টডাউন",
+          "name": "Countdown",
           "description": "লাইভ প্রগ্রেস রিং সহ একটি ফোকাসড কাউন্টডাউন। থামাতে ক্লিক করুন।"
         },
         "cs": {
-          "name": "Odpočítávač",
+          "name": "Countdown",
           "description": "Přehledný odpočet s živým průběhovým kruhem. Kliknutím pozastavíš."
         },
         "de": {
@@ -180,59 +182,59 @@
           "description": "Ein fokussierter Countdown mit einem Live-Fortschrittsring. Klicken Sie zum Pausieren."
         },
         "es": {
-          "name": "Cuenta atrás",
+          "name": "Countdown",
           "description": "Una cuenta atrás minimalista con un anillo de progreso en vivo. Haz clic para pausar."
         },
         "fr": {
-          "name": "Compte à rebours",
+          "name": "Countdown",
           "description": "Un compte à rebours épuré avec un anneau de progression en direct. Clique pour mettre en pause."
         },
         "hi": {
-          "name": "काउंटडाउन",
+          "name": "Countdown",
           "description": "लाइव प्रोग्रेस रिंग के साथ एक फ़ोकस्ड काउंटडाउन। रोकने के लिए क्लिक करें।"
         },
         "id": {
-          "name": "Hitung Mundur",
+          "name": "Countdown",
           "description": "Hitung mundur yang fokus dengan cincin progres langsung. Klik untuk jeda."
         },
         "it": {
-          "name": "Conto alla rovescia",
+          "name": "Countdown",
           "description": "Un conto alla rovescia essenziale con un anello di avanzamento in tempo reale. Clicca per mettere in pausa."
         },
         "ja": {
-          "name": "カウントダウン",
+          "name": "Countdown",
           "description": "進捗リングでひと目でわかるカウントダウンです。クリックで一時停止できます。"
         },
         "ko": {
-          "name": "카운트다운",
+          "name": "Countdown",
           "description": "실시간 진행 링이 있는 집중 카운트다운이에요. 클릭하면 일시정지돼요."
         },
         "ms": {
-          "name": "Kira Undur",
+          "name": "Countdown",
           "description": "Kira undur yang fokus dengan gelang kemajuan langsung. Klik untuk jeda."
         },
         "nl": {
-          "name": "Aftellen",
+          "name": "Countdown",
           "description": "Een overzichtelijke aftelklok met een live voortgangsring. Klik om te pauzeren."
         },
         "no": {
-          "name": "Nedtelling",
+          "name": "Countdown",
           "description": "En fokusert nedtelling med en fremdriftsring i sanntid. Klikk for å sette på pause."
         },
         "pl": {
-          "name": "Odliczanie",
+          "name": "Countdown",
           "description": "Skoncentrowane odliczanie z pierścieniem postępu na żywo. Kliknij, aby wstrzymać."
         },
         "pt": {
-          "name": "Contagem Regressiva",
+          "name": "Countdown",
           "description": "Uma contagem regressiva focada com um anel de progresso ao vivo. Clique para pausar."
         },
         "ro": {
-          "name": "Numărătoare inversă",
+          "name": "Countdown",
           "description": "O numărătoare inversă clară, cu un inel de progres live. Dă clic pentru pauză."
         },
         "sv": {
-          "name": "Nedräkning",
+          "name": "Countdown",
           "description": "En fokuserad nedräkning med en förloppsring i realtid. Klicka för att pausa."
         },
         "tl": {
@@ -240,27 +242,27 @@
           "description": "Isang nakatutok na countdown na may live na progress ring. I-click para mag-pause."
         },
         "tr": {
-          "name": "Geri Sayım",
+          "name": "Countdown",
           "description": "Canlı ilerleme halkalı, odaklanmış bir geri sayım. Duraklatmak için tıkla."
         },
         "uk": {
-          "name": "Зворотний відлік",
+          "name": "Countdown",
           "description": "Зосереджений зворотний відлік із живим кільцем прогресу. Клацніть, щоб призупинити."
         },
         "ur": {
-          "name": "کاؤنٹ ڈاؤن",
+          "name": "Countdown",
           "description": "لائیو پروگریس رِنگ کے ساتھ ایک مرکوز کاؤنٹ ڈاؤن۔ رکنے کے لیے کلک کریں۔"
         },
         "vi": {
-          "name": "Đếm Ngược",
+          "name": "Countdown",
           "description": "Đếm ngược tập trung với vòng tiến trình trực tiếp. Nhấp để tạm dừng."
         },
         "zh-hant": {
-          "name": "倒數",
+          "name": "Countdown",
           "description": "專注倒數計時，搭配即時進度環，點一下即可暫停。"
         },
         "zh": {
-          "name": "倒计时",
+          "name": "Countdown",
           "description": "带实时进度环的专注倒计时，点击即可暂停。"
         }
       }
@@ -285,6 +287,7 @@
         "shipping",
         "packaging"
       ],
+      "added": "2026-07-08",
       "formats": [
         "svg",
         "png",
@@ -607,32 +610,32 @@
       ],
       "i18n": {
         "ar": {
-          "name": "رمز QR",
+          "name": "QR Code",
           "description": "رموز QR لرابط، أو بطاقة تواصل، أو شبكة Wi-Fi، أو موعد في التقويم، أو موقع جغرافي، أو نص عادي.",
           "blurb": "رموز QR بأي لون من ألوان علامتك"
         },
         "bg": {
-          "name": "QR код",
+          "name": "QR Code",
           "description": "QR кодове за линк, визитка за контакт, Wi-Fi мрежа, събитие в календара, местоположение или обикновен текст.",
           "blurb": "QR кодове във всеки брандов цвят"
         },
         "bn": {
-          "name": "QR কোড",
+          "name": "QR Code",
           "description": "লিঙ্ক, কন্টাক্ট কার্ড, Wi-Fi নেটওয়ার্ক, ক্যালেন্ডার ইভেন্ট, লোকেশন বা সাধারণ টেক্সটের জন্য QR কোড।",
           "blurb": "যেকোনো ব্র্যান্ড রঙে QR কোড"
         },
         "cs": {
-          "name": "QR kód",
+          "name": "QR Code",
           "description": "QR kódy pro odkaz, kontaktní kartu, síť Wi-Fi, událost v kalendáři, polohu nebo prostý text.",
           "blurb": "QR kódy v libovolné barvě značky"
         },
         "de": {
-          "name": "QR-Code",
+          "name": "QR Code",
           "description": "QR-Codes für einen Link, eine Kontaktkarte, ein Wi-Fi-Netzwerk, einen Kalendertermin, einen Standort oder reinen Text.",
           "blurb": "QR-Codes in jeder Markenfarbe"
         },
         "es": {
-          "name": "Código QR",
+          "name": "QR Code",
           "description": "Códigos QR para un enlace, una tarjeta de contacto, una red Wi-Fi, un evento de calendario, una ubicación o texto sencillo.",
           "blurb": "Códigos QR en cualquier color de marca"
         },
@@ -642,47 +645,47 @@
           "blurb": "Des codes QR dans toutes les couleurs de ta marque"
         },
         "hi": {
-          "name": "QR कोड",
+          "name": "QR Code",
           "description": "लिंक, कॉन्टैक्ट कार्ड, Wi-Fi नेटवर्क, कैलेंडर इवेंट, लोकेशन या सादे टेक्स्ट के लिए QR कोड।",
           "blurb": "किसी भी ब्रांड रंग में QR कोड"
         },
         "id": {
-          "name": "Kode QR",
+          "name": "QR Code",
           "description": "Kode QR untuk tautan, kartu kontak, jaringan Wi-Fi, acara kalender, lokasi, atau teks biasa.",
           "blurb": "Kode QR dalam warna brand apa pun"
         },
         "it": {
-          "name": "Codice QR",
+          "name": "QR Code",
           "description": "Codici QR per un link, una scheda contatto, una rete Wi-Fi, un evento di calendario, una posizione o del semplice testo.",
           "blurb": "Codici QR in qualsiasi colore del brand"
         },
         "ja": {
-          "name": "QRコード",
+          "name": "QR Code",
           "description": "リンク、連絡先カード、Wi-Fiネットワーク、カレンダーの予定、位置情報、プレーンテキストのQRコードを作成します。",
           "blurb": "ブランドカラーでQRコードを作成"
         },
         "ko": {
-          "name": "QR 코드",
+          "name": "QR Code",
           "description": "링크, 연락처 카드, Wi-Fi 네트워크, 캘린더 일정, 위치, 일반 텍스트까지 QR 코드로 만들어요.",
           "blurb": "브랜드 색상 그대로 만드는 QR 코드"
         },
         "ms": {
-          "name": "Kod QR",
+          "name": "QR Code",
           "description": "Kod QR untuk pautan, kad kenalan, rangkaian Wi-Fi, acara kalendar, lokasi atau teks biasa.",
           "blurb": "Kod QR dalam sebarang warna jenama"
         },
         "nl": {
-          "name": "QR-code",
+          "name": "QR Code",
           "description": "QR-codes voor een link, contactkaart, Wi-Fi-netwerk, agenda-afspraak, locatie of platte tekst.",
           "blurb": "QR-codes in elke merkkleur"
         },
         "no": {
-          "name": "QR-kode",
+          "name": "QR Code",
           "description": "QR-koder for en lenke, et kontaktkort, et Wi-Fi-nettverk, en kalenderhendelse, et sted eller ren tekst.",
           "blurb": "QR-koder i valgfri merkefarge"
         },
         "pl": {
-          "name": "Kod QR",
+          "name": "QR Code",
           "description": "Kody QR dla linku, wizytówki, sieci Wi-Fi, wydarzenia w kalendarzu, lokalizacji lub zwykłego tekstu.",
           "blurb": "Kody QR w każdym kolorze marki"
         },
@@ -692,12 +695,12 @@
           "blurb": "Códigos QR em qualquer cor da marca"
         },
         "ro": {
-          "name": "Cod QR",
+          "name": "QR Code",
           "description": "Coduri QR pentru un link, o carte de vizită, o rețea Wi-Fi, un eveniment de calendar, o locație sau text simplu.",
           "blurb": "Coduri QR în orice culoare de brand"
         },
         "sv": {
-          "name": "QR-kod",
+          "name": "QR Code",
           "description": "QR-koder för en länk, ett kontaktkort, Wi-Fi-nätverk, kalenderhändelse, plats eller vanlig text.",
           "blurb": "QR-koder i valfri varumärkesfärg"
         },
@@ -707,22 +710,22 @@
           "blurb": "Mga QR code sa kahit anong kulay ng brand"
         },
         "tr": {
-          "name": "QR Kod",
+          "name": "QR Code",
           "description": "Bağlantı, kişi kartı, Wi-Fi ağı, takvim etkinliği, konum ya da düz metin için QR kodları.",
           "blurb": "Her marka renginde QR kodları"
         },
         "uk": {
-          "name": "QR-код",
+          "name": "QR Code",
           "description": "QR-коди для посилання, контактної картки, мережі Wi-Fi, події в календарі, місця розташування або звичайного тексту.",
           "blurb": "QR-коди у будь-якому брендовому кольорі"
         },
         "ur": {
-          "name": "QR کوڈ",
+          "name": "QR Code",
           "description": "کسی لنک، رابطہ کارڈ، Wi-Fi نیٹ ورک، کیلنڈر ایونٹ، مقام یا سادہ متن کے لیے QR کوڈز۔",
           "blurb": "کسی بھی برانڈ رنگ میں QR کوڈز"
         },
         "vi": {
-          "name": "Mã QR",
+          "name": "QR Code",
           "description": "Tạo mã QR cho một liên kết, danh thiếp liên hệ, mạng Wi-Fi, sự kiện lịch, vị trí hoặc văn bản thuần.",
           "blurb": "Mã QR theo bất kỳ màu thương hiệu nào"
         },
@@ -732,7 +735,7 @@
           "blurb": "任何品牌色都能產生 QR Code"
         },
         "zh": {
-          "name": "二维码",
+          "name": "QR Code",
           "description": "生成链接、联系人名片、Wi-Fi 网络、日历事件、位置或纯文本的二维码。",
           "blurb": "任意品牌色都能生成二维码"
         }
@@ -754,6 +757,7 @@
         "offline",
         "osm"
       ],
+      "added": "2026-07-08",
       "formats": [
         "svg",
         "emf",
@@ -1029,6 +1033,7 @@
         "inkscape",
         "illustrator"
       ],
+      "added": "2026-07-08",
       "formats": [
         "jpg",
         "png",
@@ -1176,6 +1181,7 @@
         "redact",
         "pii"
       ],
+      "added": "2026-07-08",
       "formats": [
         "html"
       ],
@@ -1310,6 +1316,7 @@
         "developer",
         "qa"
       ],
+      "added": "2026-07-08",
       "formats": [
         "png",
         "jpg",
@@ -1456,6 +1463,7 @@
         "meter",
         "levels"
       ],
+      "added": "2026-07-08",
       "formats": [
         "png",
         "svg",
@@ -1622,6 +1630,7 @@
         "accessibility",
         "colour-blind"
       ],
+      "added": "2026-07-08",
       "formats": [
         "svg",
         "png",
@@ -1853,6 +1862,7 @@
         "developer",
         "qa"
       ],
+      "added": "2026-07-16",
       "formats": [
         "png",
         "jpg",
@@ -1989,6 +1999,7 @@
         "brand",
         "blocks"
       ],
+      "added": "2026-07-16",
       "formats": [
         "pptx",
         "pdf",
@@ -2173,6 +2184,7 @@
         "convert",
         "privacy"
       ],
+      "added": "2026-07-17",
       "formats": [
         "pptx"
       ],
@@ -2183,107 +2195,107 @@
       "preview": "/catalog/previews/rebrand-deck.svg",
       "i18n": {
         "ar": {
-          "name": "إعادة العلامة",
+          "name": "Rebrand",
           "description": "ارفع عرض PowerPoint واضبط ألوانه وخطوطه على علامتك التجارية - يُعاد بناؤه على جهازك، دون رفع أي شيء."
         },
         "bg": {
-          "name": "Пребрандиране",
+          "name": "Rebrand",
           "description": "Качи PowerPoint презентация и подравни цветовете и шрифтовете й към бранда си - възстановена на твоето устройство, нищо не се качва."
         },
         "bn": {
-          "name": "রিব্র্যান্ড",
+          "name": "Rebrand",
           "description": "একটি PowerPoint ডেক আপলোড করুন এবং এর রঙ ও ফন্ট আপনার ব্র্যান্ডের সাথে মিলিয়ে নিন - আপনার ডিভাইসেই পুনর্নির্মিত, কিছুই আপলোড হয় না।"
         },
         "cs": {
-          "name": "Rebranding",
+          "name": "Rebrand",
           "description": "Nahraj prezentaci PowerPoint a přizpůsob její barvy a fonty své značce - přestavěno na tvém zařízení, nic se nikam nenahrává."
         },
         "de": {
-          "name": "Rebranding",
+          "name": "Rebrand",
           "description": "Laden Sie eine PowerPoint-Präsentation hoch und richten Sie ihre Farben und Schriften an Ihrer Marke aus - neu aufgebaut auf Ihrem Gerät, nichts wird hochgeladen."
         },
         "es": {
-          "name": "Rebranding",
+          "name": "Rebrand",
           "description": "Sube una presentación de PowerPoint y ajusta sus colores y fuentes a tu marca - reconstruida en tu dispositivo, sin subir nada."
         },
         "fr": {
-          "name": "Rebranding",
+          "name": "Rebrand",
           "description": "Chargez un diaporama PowerPoint et calez ses couleurs et polices sur votre marque - reconstruit sur votre appareil, rien n'est envoyé en ligne."
         },
         "hi": {
-          "name": "रीब्रांड",
+          "name": "Rebrand",
           "description": "PowerPoint डेक अपलोड करें और उसके रंग व फ़ॉन्ट अपने ब्रांड के अनुरूप कर लें - आपकी डिवाइस पर फिर से बनाया गया, कुछ भी अपलोड नहीं होता।"
         },
         "id": {
-          "name": "Rebranding",
+          "name": "Rebrand",
           "description": "Unggah dek PowerPoint dan sesuaikan warna serta fontnya dengan brand Anda - dibangun ulang di perangkat Anda, tidak ada yang diunggah."
         },
         "it": {
-          "name": "Rebranding",
+          "name": "Rebrand",
           "description": "Carica una presentazione PowerPoint e adatta colori e font al tuo brand - ricostruita sul tuo dispositivo, senza caricamenti."
         },
         "ja": {
-          "name": "リブランド",
+          "name": "Rebrand",
           "description": "PowerPointデッキをアップロードして色とフォントをブランドに合わせます - デバイス上で再構築、何もアップロードされません。"
         },
         "ko": {
-          "name": "리브랜딩",
+          "name": "Rebrand",
           "description": "PowerPoint 덱을 업로드하면 색상과 폰트를 브랜드에 맞춰 스냅합니다 - 기기 내에서 재구성되며, 아무것도 업로드되지 않습니다."
         },
         "ms": {
-          "name": "Jenama Semula",
+          "name": "Rebrand",
           "description": "Muat naik koleksi PowerPoint dan padankan warna serta fonnya dengan jenama anda - dibina semula pada peranti anda, tiada apa dimuat naik."
         },
         "nl": {
-          "name": "Herbranden",
+          "name": "Rebrand",
           "description": "Upload een PowerPoint-presentatie en pas de kleuren en fonts aan je merk aan - herbouwd op je eigen apparaat, niets wordt geüpload."
         },
         "no": {
-          "name": "Ombranding",
+          "name": "Rebrand",
           "description": "Last opp en PowerPoint-presentasjon og tilpass fargene og skriftene til merkevaren din - gjenoppbygd på din enhet, ingenting lastes opp."
         },
         "pl": {
-          "name": "Rebranding",
+          "name": "Rebrand",
           "description": "Prześlij prezentację PowerPoint i dopasuj jej kolory i czcionki do swojej marki - odbudowane na Twoim urządzeniu, nic nie jest przesyłane."
         },
         "pt": {
-          "name": "Rebranding",
+          "name": "Rebrand",
           "description": "Envie uma apresentação PowerPoint e ajuste suas cores e fontes à sua marca - reconstruída no seu dispositivo, nada é enviado."
         },
         "ro": {
-          "name": "Rebranding",
+          "name": "Rebrand",
           "description": "Încarcă o prezentare PowerPoint și adaptează-i culorile și fonturile la brandul tău - reconstruită pe dispozitivul tău, nimic nu este încărcat."
         },
         "sv": {
-          "name": "Omprofilering",
+          "name": "Rebrand",
           "description": "Ladda upp en PowerPoint-presentation och matcha dess färger och typsnitt mot ditt varumärke - ombyggd på din enhet, inget laddas upp."
         },
         "tl": {
-          "name": "I-rebrand",
+          "name": "Rebrand",
           "description": "Mag-upload ng PowerPoint deck at i-snap ang kulay at font nito sa iyong brand - muling binuo sa iyong device, walang na-upload."
         },
         "tr": {
-          "name": "Yeniden Markalama",
+          "name": "Rebrand",
           "description": "Bir PowerPoint destesi yükleyin ve renklerini ile yazı tiplerini markanıza uydurun - cihazınızda yeniden oluşturulur, hiçbir şey yüklenmez."
         },
         "uk": {
-          "name": "Ребрендинг",
+          "name": "Rebrand",
           "description": "Завантажте презентацію PowerPoint і приведіть її кольори й шрифти до вашого бренду - перебудовано на вашому пристрої, нічого не завантажується."
         },
         "ur": {
-          "name": "ری برانڈ",
+          "name": "Rebrand",
           "description": "ایک PowerPoint ڈیک اپ لوڈ کریں اور اس کے رنگ اور فونٹس اپنے برانڈ کے مطابق کر لیں - آپ کے آلے پر دوبارہ بنایا گیا، کچھ بھی اپ لوڈ نہیں ہوتا۔"
         },
         "vi": {
-          "name": "Đổi Thương Hiệu",
+          "name": "Rebrand",
           "description": "Tải lên một bộ PowerPoint và khớp màu sắc, font chữ theo thương hiệu của bạn - dựng lại ngay trên thiết bị của bạn, không tải lên đâu cả."
         },
         "zh-hant": {
-          "name": "重塑品牌",
+          "name": "Rebrand",
           "description": "上傳 PowerPoint 簡報，讓其色彩與字型套用您的品牌 - 在您的裝置上重建，不會上傳任何內容。"
         },
         "zh": {
-          "name": "改版",
+          "name": "Rebrand",
           "description": "上传 PowerPoint 演示文稿,将其颜色和字体适配为你的品牌 - 在你的设备上重建,无需上传任何内容。"
         }
       }
@@ -2312,6 +2324,7 @@
         "iphone",
         "privacy"
       ],
+      "added": "2026-07-17",
       "formats": [
         "webp",
         "jpg",
@@ -2445,6 +2458,7 @@
         "lockup",
         "svg"
       ],
+      "added": "2026-07-17",
       "formats": [
         "svg",
         "emf",
@@ -2637,6 +2651,7 @@
         "quote",
         "visualizer"
       ],
+      "added": "2026-07-17",
       "formats": [
         "png",
         "webm",
@@ -2854,6 +2869,7 @@
         "acropalypse",
         "hidden text"
       ],
+      "added": "2026-07-31",
       "formats": [
         "png",
         "jpg",
@@ -2996,6 +3012,7 @@
         "vector",
         "image"
       ],
+      "added": "2026-07-31",
       "formats": [
         "svg",
         "pdf",
@@ -3059,132 +3076,132 @@
       ],
       "i18n": {
         "ar": {
-          "name": "التشطيبات",
+          "name": "Finishes",
           "description": "عاين تشطيبات الرقائق الذهبية وطلاء UV الموضعي والنقش والملمس الناعم على تصميمك - ثم صدّر لوحة النقاط الجاهزة للطباعة. اللمعان الظاهر على الشاشة للعرض فقط؛ اللوحة هي المنتج الحقيقي الذي تحتاجه مطبعتك.",
           "blurb": "رقائق ذهبية وUV موضعي ونقش - مع اللوحة التي تحتاجها مطبعتك"
         },
         "bg": {
-          "name": "Финиши",
+          "name": "Finishes",
           "description": "Прегледай фолио, локален UV лак, релеф и мек допир върху творбата си - после изнеси плочата за печат, готова за печатницата. Блясъкът на екрана е само за представяне; плочата е истинската доставка, от която се нуждае твоята печатница.",
           "blurb": "Фолио, локален UV лак и релеф - с плочата, от която печатницата ти се нуждае"
         },
         "bn": {
-          "name": "ফিনিশ",
+          "name": "Finishes",
           "description": "আপনার আর্টওয়ার্কে ফয়েল, স্পট UV, এমবস ও সফট-টাচ ফিনিশ প্রিভিউ করুন - তারপর প্রিন্টার-রেডি স্পট প্লেট এক্সপোর্ট করুন। অন-স্ক্রিন শাইন শুধু উপস্থাপনার জন্য; প্লেটই আপনার প্রিন্ট হাউসের প্রয়োজনীয় প্রকৃত ডেলিভারেবল।",
           "blurb": "ফয়েল, স্পট UV ও এমবস - আপনার প্রিন্টারের প্রয়োজনীয় প্লেট সহ"
         },
         "cs": {
-          "name": "Povrchové úpravy",
+          "name": "Finishes",
           "description": "Náhledni fólii, bodový lak UV, ražbu a soft-touch úpravy na svém návrhu - pak exportuj tiskárnou požadovanou spot desku. Náhled na obrazovce je jen prezentační; deska je skutečný výstup, který tvá tiskárna potřebuje.",
           "blurb": "Fólie, bodový lak UV a ražba - s deskou, kterou tvá tiskárna potřebuje"
         },
         "de": {
-          "name": "Veredelungen",
+          "name": "Finishes",
           "description": "Zeigt Folie, Spotlack, Prägung und Soft-Touch-Veredelungen an Ihrer Vorlage - und exportiert dann die druckfertige Spotplatte. Der Glanz am Bildschirm dient nur der Präsentation; die Platte ist die eigentliche Lieferung für Ihre Druckerei.",
           "blurb": "Folie, Spotlack und Prägung - mit der Platte, die Ihre Druckerei braucht"
         },
         "es": {
-          "name": "Acabados",
+          "name": "Finishes",
           "description": "Previsualiza acabados de foil, UV localizado, relieve y soft-touch en tu diseño - luego exporta la plancha lista para imprenta. El brillo en pantalla es solo presentación; la plancha es el entregable real que necesita tu imprenta.",
           "blurb": "Foil, UV localizado y relieve - con la plancha que necesita tu imprenta"
         },
         "fr": {
-          "name": "Finitions",
+          "name": "Finishes",
           "description": "Prévisualisez les finitions dorure, vernis sélectif, gaufrage et soft-touch sur votre visuel - puis exportez la plaque spot prête pour l'impression. Le lustre à l'écran n'est qu'une présentation ; la plaque est le vrai livrable dont votre imprimeur a besoin.",
           "blurb": "Dorure, vernis sélectif et gaufrage - avec la plaque dont votre imprimeur a besoin"
         },
         "hi": {
-          "name": "फ़िनिश",
+          "name": "Finishes",
           "description": "अपनी आर्टवर्क पर फ़ॉइल, स्पॉट UV, एम्बॉस और सॉफ़्ट-टच फ़िनिश का प्रीव्यू करें - फिर प्रिंटर-रेडी स्पॉट प्लेट एक्सपोर्ट करें। स्क्रीन पर दिखने वाली चमक केवल प्रेज़ेंटेशन के लिए है; प्लेट ही वह असली डिलीवरेबल है जो आपके प्रिंट हाउस को चाहिए।",
           "blurb": "फ़ॉइल, स्पॉट UV और एम्बॉस - उस प्लेट के साथ जो आपके प्रिंटर को चाहिए"
         },
         "id": {
-          "name": "Finishing",
+          "name": "Finishes",
           "description": "Pratinjau foil, spot UV, emboss dan sentuhan lembut pada karya Anda - lalu ekspor plat spot siap cetak. Kilau di layar hanya untuk presentasi; plat adalah hasil sesungguhnya yang dibutuhkan percetakan Anda.",
           "blurb": "Foil, spot UV dan emboss - dengan plat yang dibutuhkan percetakan Anda"
         },
         "it": {
-          "name": "Finiture",
+          "name": "Finishes",
           "description": "Visualizza in anteprima finiture in foil, UV a rilievo, goffratura e soft-touch sulla tua grafica - poi esporta il piano di stampa pronto per la tipografia. La brillantezza a schermo è solo dimostrativa; il piano è il deliverable reale richiesto dalla tua tipografia.",
           "blurb": "Foil, UV a rilievo e goffratura - con il piano richiesto dalla tipografia"
         },
         "ja": {
-          "name": "仕上げ",
+          "name": "Finishes",
           "description": "箔押し、スポットUV、エンボス、ソフトタッチ仕上げをアートワーク上でプレビュー - 印刷対応のスポットプレートを書き出します。画面上のツヤはプレゼンテーション用であり、印刷所が必要とする実際の成果物はプレートです。",
           "blurb": "箔押し、スポットUV、エンボス - 印刷所が必要とするプレート付き"
         },
         "ko": {
-          "name": "마감",
+          "name": "Finishes",
           "description": "작업물에 박, 스팟 UV, 엠보싱, 소프트터치 마감을 미리보세요 - 그런 다음 인쇄용 스팟 플레이트를 내보냅니다. 화면상의 광택은 시연용일 뿐, 실제 결과물은 인쇄소가 필요로 하는 플레이트입니다.",
           "blurb": "박, 스팟 UV, 엠보싱 - 인쇄소가 필요로 하는 플레이트까지"
         },
         "ms": {
-          "name": "Kemasan",
+          "name": "Finishes",
           "description": "Pratonton kemasan kerajang, spot UV, timbul dan sentuhan lembut pada karya seni anda - kemudian eksport plat spot sedia cetak. Kilauan pada skrin hanya untuk persembahan; plat itulah hasil sebenar yang diperlukan rumah percetakan anda.",
           "blurb": "Kerajang, spot UV dan timbul - dengan plat yang diperlukan pencetak anda"
         },
         "nl": {
-          "name": "Afwerkingen",
+          "name": "Finishes",
           "description": "Bekijk een preview van folie, spot-UV, reliëf en soft-touch afwerkingen op je artwork - exporteer daarna de drukklare spotplaat. De glans op het scherm is alleen voor presentatie; de plaat is de echte deliverable die je drukkerij nodig heeft.",
           "blurb": "Folie, spot-UV en reliëf - met de plaat die je drukkerij nodig heeft"
         },
         "no": {
-          "name": "Overflater",
+          "name": "Finishes",
           "description": "Forhåndsvis folie, spot-UV, preging og myktouch-overflater på grafikken din - eksporter deretter den trykkeklare spotplaten. Glansen på skjermen er kun til presentasjon; platen er den egentlige leveransen trykkeriet trenger.",
           "blurb": "Folie, spot-UV og preging - med platen trykkeriet trenger"
         },
         "pl": {
-          "name": "Wykończenia",
+          "name": "Finishes",
           "description": "Podejrzyj foliowanie, punktowy lakier UV, wytłaczanie i wykończenie soft-touch na swojej grafice - a następnie wyeksportuj płytę spot gotową dla drukarni. Połysk na ekranie to tylko prezentacja; płyta jest prawdziwym plikiem, którego potrzebuje Twoja drukarnia.",
           "blurb": "Folia, punktowy lakier UV i wytłaczanie - z płytą, której potrzebuje Twoja drukarnia"
         },
         "pt": {
-          "name": "Acabamentos",
+          "name": "Finishes",
           "description": "Visualize acabamentos de foil, verniz UV localizado, relevo e soft-touch na sua arte - depois exporte a chapa de plate pronta para gráfica. O brilho na tela é apenas apresentação; a chapa é a entrega real que sua gráfica precisa.",
           "blurb": "Foil, verniz UV localizado e relevo - com a chapa que sua gráfica precisa"
         },
         "ro": {
-          "name": "Finisaje",
+          "name": "Finishes",
           "description": "Previzualizează finisaje de folie, spot UV, embosare și soft-touch pe lucrarea ta - apoi exportă placa spot gata de tipar. Luciul de pe ecran este doar pentru prezentare; placa este livrabilul real de care are nevoie tipografia ta.",
           "blurb": "Folie, spot UV și embosare - cu placa de care are nevoie tipografia ta"
         },
         "sv": {
-          "name": "Finish",
+          "name": "Finishes",
           "description": "Förhandsgranska folie, spot-UV, prägling och mjuktouch-finish på ditt konstverk - exportera sedan den tryckklara spotplattan. Skimret på skärmen är bara för presentation; plattan är den verkliga leveransen ditt tryckeri behöver.",
           "blurb": "Folie, spot-UV och prägling - med plattan ditt tryckeri behöver"
         },
         "tl": {
-          "name": "Mga Finish",
+          "name": "Finishes",
           "description": "I-preview ang foil, spot UV, emboss at soft-touch finishes sa iyong artwork - pagkatapos ay i-export ang printer-ready spot plate. Ang sheen sa screen ay para sa presentasyon lang; ang plate ang tunay na deliverable na kailangan ng iyong print house.",
           "blurb": "Foil, spot UV at emboss - kasama ang plate na kailangan ng iyong printer"
         },
         "tr": {
-          "name": "Kaplamalar",
+          "name": "Finishes",
           "description": "Sanat çalışmanızda folyo, spot UV, kabartma ve yumuşak dokunuş bitişlerini önizleyin - ardından baskıya hazır spot plakayı dışa aktarın. Ekrandaki parlaklık yalnızca sunum amaçlıdır; plaka, matbaanızın ihtiyaç duyduğu gerçek teslim edilebilir üründür.",
           "blurb": "Folyo, spot UV ve kabartma - matbaanızın ihtiyaç duyduğu plakayla"
         },
         "uk": {
-          "name": "Оздоблення",
+          "name": "Finishes",
           "description": "Перегляньте фольгування, вибірковий УФ-лак, тиснення й м'яке покриття на своєму макеті - потім експортуйте друкарську пластину, готову до виробництва. Екранний блиск лише для презентації; пластина - справжній результат, потрібний вашій друкарні.",
           "blurb": "Фольгування, вибірковий УФ-лак і тиснення - з пластиною, потрібною друкарні"
         },
         "ur": {
-          "name": "فنشز",
+          "name": "Finishes",
           "description": "اپنے آرٹ ورک پر فوئل، اسپاٹ UV، ایمبوس اور سافٹ ٹچ فنشز کا پریویو دیکھیں - پھر پرنٹر کے لیے تیار اسپاٹ پلیٹ ایکسپورٹ کریں۔ آن اسکرین چمک صرف پیشکش کے لیے ہے؛ پلیٹ ہی وہ حقیقی ڈلیوریبل ہے جو آپ کے پرنٹ ہاؤس کو چاہیے۔",
           "blurb": "فوئل، اسپاٹ UV اور ایمبوس - وہ پلیٹ جو آپ کے پرنٹر کو چاہیے"
         },
         "vi": {
-          "name": "Hoàn Thiện",
+          "name": "Finishes",
           "description": "Xem trước hiệu ứng dập nhũ, UV cục bộ, dập nổi và hoàn thiện mềm mại trên tác phẩm của bạn - sau đó xuất bản kẽm sẵn sàng cho nhà in. Độ bóng trên màn hình chỉ mang tính trình bày; bản kẽm mới là sản phẩm thực sự nhà in của bạn cần.",
           "blurb": "Dập nhũ, UV cục bộ và dập nổi - kèm bản kẽm nhà in của bạn cần"
         },
         "zh-hant": {
-          "name": "印刷加工",
+          "name": "Finishes",
           "description": "預覽作品上的燙金、局部上光、壓花與軟觸感等加工效果 - 再匯出印刷廠所需的印版檔。畫面上的光澤僅供展示；印版檔才是印刷廠真正需要的交付物。",
           "blurb": "燙金、局部上光與壓花 - 附上印刷廠所需的印版"
         },
         "zh": {
-          "name": "工艺",
+          "name": "Finishes",
           "description": "预览烫金、局部 UV、压凸和软触感等工艺效果 - 然后导出印刷厂所需的专色印版。屏幕上的光泽效果仅供演示;印版才是印刷厂真正需要的成品。",
           "blurb": "烫金、局部 UV 和压凸 - 附印刷厂所需印版"
         }
@@ -3210,6 +3227,7 @@
         "typography",
         "sfnt"
       ],
+      "added": "2026-07-08",
       "formats": [
         "ttf",
         "otf",
@@ -3351,6 +3369,7 @@
         "risograph",
         "on-device"
       ],
+      "added": "2026-08-07",
       "formats": [
         "svg",
         "pdf",
@@ -3585,6 +3604,7 @@
         "exploded",
         "extrude"
       ],
+      "added": "2026-08-14",
       "formats": [
         "png",
         "jpg",
@@ -3734,6 +3754,7 @@
         "indesign",
         "adobe"
       ],
+      "added": "2026-08-16",
       "formats": [
         "png",
         "svg",
@@ -4181,145 +4202,6 @@
       }
     },
     {
-      "id": "3d",
-      "name": "3D",
-      "description": "Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation.",
-      "version": "1.2.4",
-      "status": "official",
-      "category": "designer",
-      "tags": [
-        "3d",
-        "gltf",
-        "glb",
-        "render",
-        "turntable",
-        "product"
-      ],
-      "formats": [
-        "png",
-        "jpg",
-        "webp",
-        "webm",
-        "mp4",
-        "gif",
-        "avif",
-        "tiff",
-        "apng",
-        "webp-anim"
-      ],
-      "width": 1280,
-      "height": 1280,
-      "exportable": true,
-      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"/><path d=\"m3.3 7 8.7 5 8.7-5\"/><path d=\"M12 22V12\"/></svg>",
-      "preview": "/catalog/previews/3d.svg",
-      "i18n": {
-        "ar": {
-          "name": "3D",
-          "description": "حمل نموذجا ثلاثي الأبعاد في مشهد مضاء، وحرك الكاميرا واضبط زاويتها، ثم صدر صورة ثابتة أو حركة دوران."
-        },
-        "bg": {
-          "name": "3D",
-          "description": "Зареди 3D модел в осветена сцена, завърти и позиционирай камерата и рендерирай статичен кадър или turntable анимация."
-        },
-        "bn": {
-          "name": "3D",
-          "description": "আলোকিত দৃশ্যে একটি 3D মডেল লোড করুন, ক্যামেরা অরবিট ও পোজ করুন, আর একটি স্টিল বা টার্নটেবল অ্যানিমেশন রেন্ডার করুন।"
-        },
-        "cs": {
-          "name": "3D",
-          "description": "Načti 3D model do nasvícené scény, otáčej a polohuj kameru a vykresli statický snímek nebo otáčivou animaci."
-        },
-        "de": {
-          "name": "3D",
-          "description": "Laden Sie ein 3D-Modell in eine beleuchtete Szene, umkreisen und positionieren Sie die Kamera, und rendern Sie ein Standbild oder eine Turntable-Animation."
-        },
-        "es": {
-          "name": "3D",
-          "description": "Carga un modelo 3D en una escena iluminada, orbita y posiciona la cámara, y renderiza una imagen fija o una animación giratoria."
-        },
-        "fr": {
-          "name": "3D",
-          "description": "Charge un modèle 3D dans une scène éclairée, fais pivoter et positionne la caméra, puis génère une image fixe ou une animation en rotation."
-        },
-        "hi": {
-          "name": "3D",
-          "description": "किसी 3D मॉडल को प्रकाशित सीन में लोड करें, कैमरे को ऑर्बिट और पोज़ करें, और स्टिल या टर्नटेबल एनिमेशन रेंडर करें।"
-        },
-        "id": {
-          "name": "3D",
-          "description": "Muat model 3D ke dalam scene yang diterangi, atur orbit dan pose kamera, lalu render gambar diam atau animasi turntable."
-        },
-        "it": {
-          "name": "3D",
-          "description": "Carica un modello 3D in una scena illuminata, ruota e imposta la fotocamera, e renderizza un fermo immagine o un'animazione a giostra."
-        },
-        "ja": {
-          "name": "3D",
-          "description": "3D モデルをライティングされたシーンに読み込み、カメラを周回・調整して、静止画またはターンテーブルアニメーションをレンダリングします。"
-        },
-        "ko": {
-          "name": "3D",
-          "description": "3D 모델을 조명이 설정된 장면에 불러와 카메라를 회전하고 자세를 조정하여, 정지 이미지 또는 턴테이블 애니메이션으로 렌더링합니다."
-        },
-        "ms": {
-          "name": "3D",
-          "description": "Muatkan model 3D ke dalam adegan bercahaya, putarkan dan laraskan kamera, kemudian render imej pegun atau animasi turntable."
-        },
-        "nl": {
-          "name": "3D",
-          "description": "Laad een 3D-model in een verlichte scene, draai en positioneer de camera, en render een still of een turntable-animatie."
-        },
-        "no": {
-          "name": "3D",
-          "description": "Last en 3D-modell inn i en belyst scene, roter og posisjoner kameraet, og render et stillbilde eller en turntable-animasjon."
-        },
-        "pl": {
-          "name": "3D",
-          "description": "Wczytaj model 3D do oświetlonej sceny, obróć i ustaw kamerę, a następnie wyrenderuj kadr lub animację obrotową."
-        },
-        "pt": {
-          "name": "3D",
-          "description": "Carregue um modelo 3D em uma cena iluminada, gire e posicione a câmera, e renderize uma imagem estática ou uma animação giratória."
-        },
-        "ro": {
-          "name": "3D",
-          "description": "Încarcă un model 3D într-o scenă luminată, rotește și poziționează camera, apoi randează o imagine statică sau o animație turntable."
-        },
-        "sv": {
-          "name": "3D",
-          "description": "Läs in en 3D-modell i en belyst scen, rotera och justera kameran, och rendera en stillbild eller en turntable-animation."
-        },
-        "tl": {
-          "name": "3D",
-          "description": "I-load ang 3D model sa isang naiilawang scene, i-orbit at i-adjust ang camera, at i-render ang isang still o turntable animation."
-        },
-        "tr": {
-          "name": "3D",
-          "description": "Bir 3D modeli aydınlatılmış bir sahneye yükle, kamerayı döndürüp konumlandır, ardından durağan bir görüntü ya da döner bir animasyon oluştur."
-        },
-        "uk": {
-          "name": "3D",
-          "description": "Завантажте 3D-модель у освітлену сцену, обертайте й позиціонуйте камеру та створіть статичне зображення або анімацію-турнтейбл."
-        },
-        "ur": {
-          "name": "3D",
-          "description": "ایک 3D ماڈل کو روشن سین میں لوڈ کریں، کیمرا کو گھمائیں اور پوز دیں، اور ایک اسٹیل یا ٹرن ٹیبل اینیمیشن رینڈر کریں۔"
-        },
-        "vi": {
-          "name": "3D",
-          "description": "Tải mô hình 3D vào một cảnh có ánh sáng, xoay và chỉnh camera, rồi kết xuất ảnh tĩnh hoặc video quay vòng."
-        },
-        "zh-hant": {
-          "name": "3D",
-          "description": "將 3D 模型載入打光場景,環繞並調整鏡頭,算圖靜態影像或轉台動畫。"
-        },
-        "zh": {
-          "name": "3D",
-          "description": "将 3D 模型加载到打光的场景中,环绕并调整相机,渲染静态图像或转台动画。"
-        }
-      }
-    },
-    {
       "id": "asset-export",
       "name": "Asset Export",
       "description": "Render any catalog asset - or a Lolly tool link - out to any format and size.",
@@ -4338,6 +4220,7 @@
         "png",
         "pdf"
       ],
+      "added": "2026-08-16",
       "formats": [
         "svg",
         "png",
@@ -4482,6 +4365,7 @@
         "stand",
         "exhibition"
       ],
+      "added": "2026-08-16",
       "formats": [
         "png",
         "jpg",
@@ -4592,7 +4476,7 @@
           "description": "سپانسر آرٹ ورک کے ساتھ 3D ایونٹ بوتھ سجائیں۔ کسی بھی پینل پر تصویر ڈراپ کرنے کے لیے کلک کریں، بوتھ ڈیزائن منتخب کریں، اور سپانسر پچ کے لیے ایک اسٹل یا ٹرن ٹیبل رینڈر کریں۔"
         },
         "vi": {
-          "name": "Gian Hàng",
+          "name": "Gian hàng",
           "description": "Trang trí gian hàng sự kiện 3D bằng hình ảnh nhà tài trợ. Nhấp vào bất kỳ tấm nào để thả ảnh vào, chọn kiểu gian hàng, và render ảnh tĩnh hoặc turntable quay vòng cho bài thuyết trình tài trợ."
         },
         "zh-hant": {
@@ -4627,6 +4511,7 @@
         "tables",
         "compose"
       ],
+      "added": "2026-08-16",
       "formats": [
         "pdf",
         "pptx",
@@ -4769,6 +4654,7 @@
         "gif",
         "apng"
       ],
+      "added": "2026-08-16",
       "formats": [
         "mp4",
         "gif",
@@ -4908,6 +4794,7 @@
         "layout",
         "print"
       ],
+      "added": "2026-08-16",
       "formats": [
         "pdf",
         "pptx",
@@ -4927,97 +4814,97 @@
       "paged": true,
       "i18n": {
         "ar": {
-          "name": "الكتيّب",
+          "name": "Booklet",
           "description": "ابنِ ملف PDF متعدد الصفحات - غلاف، كتل محتوى متدفقة، وصفحة خلفية.",
           "blurb": "ملفات PDF متعددة الصفحات - غلاف، محتوى، خلفية"
         },
         "bg": {
-          "name": "Брошура",
+          "name": "Booklet",
           "description": "Изгради многостраничен PDF - корица, преливащи блокове съдържание и задна страница.",
           "blurb": "Многостраничен PDF - корица, съдържание, гръб"
         },
         "bn": {
-          "name": "পুস্তিকা",
+          "name": "Booklet",
           "description": "একটি বহু-পৃষ্ঠার PDF তৈরি করুন - একটি কভার, প্রবাহিত কনটেন্ট ব্লক, এবং একটি পেছনের পৃষ্ঠা।",
           "blurb": "বহু-পৃষ্ঠার PDF - কভার, কনটেন্ট, পেছনের পৃষ্ঠা"
         },
         "cs": {
-          "name": "Brožura",
+          "name": "Booklet",
           "description": "Sestav vícestránkové PDF - obálku, plynoucí obsahové bloky a zadní stránku.",
           "blurb": "Vícestránková PDF - obálka, obsah, zadní strana"
         },
         "de": {
-          "name": "Broschüre",
+          "name": "Booklet",
           "description": "Erstellt ein mehrseitiges PDF - ein Deckblatt, fließende Inhaltsblöcke und eine Rückseite.",
           "blurb": "Mehrseitige PDFs - Deckblatt, Inhalt, Rückseite"
         },
         "es": {
-          "name": "Cuadernillo",
+          "name": "Booklet",
           "description": "Crea un PDF de varias páginas - una portada, bloques de contenido fluido y una contraportada.",
           "blurb": "PDFs de varias páginas - portada, contenido, contraportada"
         },
         "fr": {
-          "name": "Livret",
+          "name": "Booklet",
           "description": "Construisez un PDF multi-pages - une couverture, des blocs de contenu qui s'écoulent, et une quatrième de couverture.",
           "blurb": "PDF multi-pages - couverture, contenu, dos"
         },
         "hi": {
-          "name": "पुस्तिका",
+          "name": "Booklet",
           "description": "मल्टी-पेज PDF बनाएँ - एक कवर, बहते हुए कंटेंट ब्लॉक और एक बैक पेज।",
           "blurb": "मल्टी-पेज PDF - कवर, कंटेंट, बैक"
         },
         "id": {
-          "name": "Buklet",
+          "name": "Booklet",
           "description": "Buat PDF multihalaman - sampul, blok konten yang mengalir, dan halaman belakang.",
           "blurb": "PDF multihalaman - sampul, konten, belakang"
         },
         "it": {
-          "name": "Libretto",
+          "name": "Booklet",
           "description": "Crea un PDF multipagina - una copertina, blocchi di contenuto fluidi e una pagina finale.",
           "blurb": "PDF multipagina - copertina, contenuto, retro"
         },
         "ja": {
-          "name": "冊子",
+          "name": "Booklet",
           "description": "複数ページのPDFを作成 - 表紙、流し込みのコンテンツブロック、裏表紙。",
           "blurb": "複数ページのPDF - 表紙、本文、裏表紙"
         },
         "ko": {
-          "name": "소책자",
+          "name": "Booklet",
           "description": "여러 페이지 PDF를 만드세요 - 표지, 흐르는 콘텐츠 블록, 뒤표지까지.",
           "blurb": "여러 페이지 PDF - 표지, 콘텐츠, 뒤표지"
         },
         "ms": {
-          "name": "Buku Kecil",
+          "name": "Booklet",
           "description": "Bina PDF berbilang halaman - muka depan, blok kandungan yang mengalir, dan muka belakang.",
           "blurb": "PDF berbilang halaman - muka depan, kandungan, belakang"
         },
         "nl": {
-          "name": "Boekje",
+          "name": "Booklet",
           "description": "Bouw een meerpagina-PDF - een omslag, doorlopende inhoudsblokken en een achterpagina.",
           "blurb": "Meerpagina-PDF's - omslag, inhoud, achterkant"
         },
         "no": {
-          "name": "Hefte",
+          "name": "Booklet",
           "description": "Bygg en flersides PDF - en forside, flytende innholdsblokker og en bakside.",
           "blurb": "Flersides PDF-er - forside, innhold, bakside"
         },
         "pl": {
-          "name": "Broszura",
+          "name": "Booklet",
           "description": "Zbuduj wielostronicowy PDF - okładkę, płynące bloki treści i tylną stronę.",
           "blurb": "Wielostronicowe PDF-y - okładka, treść, tył"
         },
         "pt": {
-          "name": "Livreto",
+          "name": "Booklet",
           "description": "Monte um PDF multipágina - uma capa, blocos de conteúdo fluido e uma contracapa.",
           "blurb": "PDFs multipágina - capa, conteúdo, contracapa"
         },
         "ro": {
-          "name": "Broșură",
+          "name": "Booklet",
           "description": "Construiește un PDF cu mai multe pagini - o copertă, blocuri de conținut fluide și o pagină de final.",
           "blurb": "PDF-uri cu mai multe pagini - copertă, conținut, final"
         },
         "sv": {
-          "name": "Häfte",
+          "name": "Booklet",
           "description": "Bygg en flersidig PDF - ett omslag, flödande innehållsblock och en baksida.",
           "blurb": "Flersidiga PDF:er - omslag, innehåll, baksida"
         },
@@ -5027,32 +4914,32 @@
           "blurb": "Multi-page na PDF - cover, content, back"
         },
         "tr": {
-          "name": "Kitapçık",
+          "name": "Booklet",
           "description": "Çok sayfalı bir PDF oluşturun - bir kapak, akan içerik blokları ve bir arka sayfa.",
           "blurb": "Çok sayfalı PDF'ler - kapak, içerik, arka sayfa"
         },
         "uk": {
-          "name": "Буклет",
+          "name": "Booklet",
           "description": "Створіть багатосторінковий PDF - обкладинку, блоки контенту, що перетікають, і задню сторінку.",
           "blurb": "Багатосторінкові PDF - обкладинка, вміст, задня сторінка"
         },
         "ur": {
-          "name": "کتابچہ",
+          "name": "Booklet",
           "description": "ملٹی پیج PDF بنائیں - ایک کور، بہتے ہوئے مواد کے بلاکس، اور ایک بیک پیج۔",
           "blurb": "ملٹی پیج PDFs - کور، مواد، بیک"
         },
         "vi": {
-          "name": "Sách Nhỏ",
+          "name": "Booklet",
           "description": "Tạo PDF nhiều trang - trang bìa, khối nội dung tự chảy, và trang cuối.",
           "blurb": "PDF nhiều trang - bìa, nội dung, trang cuối"
         },
         "zh-hant": {
-          "name": "小冊子",
+          "name": "Booklet",
           "description": "製作多頁 PDF - 含封面、內文區塊與封底。",
           "blurb": "多頁 PDF - 封面、內文、封底"
         },
         "zh": {
-          "name": "小册子",
+          "name": "Booklet",
           "description": "制作多页 PDF - 封面、流动的内容区块和封底。",
           "blurb": "多页 PDF - 封面、内容、封底"
         }
@@ -5090,6 +4977,7 @@
         "motion",
         "wysiwyg"
       ],
+      "added": "2026-08-16",
       "formats": [
         "mp4",
         "webm",
@@ -5256,6 +5144,7 @@
         "on-device",
         "blend"
       ],
+      "added": "2026-08-04",
       "formats": [
         "png",
         "jpg",
@@ -5467,6 +5356,7 @@
         "colour-blind",
         "a11y"
       ],
+      "added": "2026-08-24",
       "formats": [
         "svg",
         "png",
@@ -5686,6 +5576,7 @@
         "video",
         "audio"
       ],
+      "added": "2026-08-24",
       "formats": [
         "png",
         "svg",
@@ -5887,6 +5778,7 @@
         "print",
         "roster"
       ],
+      "added": "2026-08-24",
       "formats": [
         "pdf",
         "pdf-cmyk",
@@ -6124,6 +6016,7 @@
         "letter",
         "step and repeat"
       ],
+      "added": "2026-08-24",
       "formats": [
         "pdf",
         "pdf-cmyk",
@@ -6365,6 +6258,7 @@
         "identity",
         "stationery"
       ],
+      "added": "2026-08-24",
       "formats": [
         "pdf",
         "pdf-cmyk",
@@ -6600,6 +6494,7 @@
         "marketing",
         "share"
       ],
+      "added": "2026-08-24",
       "formats": [
         "html"
       ],
@@ -6919,6 +6814,7 @@
         "documentation",
         "image"
       ],
+      "added": "2026-08-24",
       "formats": [
         "png",
         "jpg",
@@ -7170,6 +7066,7 @@
         "twitter card",
         "thumbnail"
       ],
+      "added": "2026-08-24",
       "formats": [
         "png",
         "jpg",
@@ -7391,6 +7288,7 @@
         "transparent",
         "svg"
       ],
+      "added": "2026-08-24",
       "formats": [
         "svg",
         "png",
@@ -7402,7 +7300,7 @@
       "height": 400,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 16c1.5-8 3-10 4-8s0 8 1.5 8 3-11 4.5-11 1 9 2.5 9 2-2.5 3-4.5\"/><path d=\"M3 20h18\"/></svg>",
-      "preview": "/catalog/previews/signature.svg",
+      "preview": "/tools/signature/card.svg",
       "examples": [
         {
           "label": "Flowing script",
@@ -7561,6 +7459,7 @@
         "organic",
         "pattern"
       ],
+      "added": "2026-08-26",
       "formats": [
         "svg",
         "pdf",
@@ -7753,6 +7652,7 @@
         "fluid",
         "visualizer"
       ],
+      "added": "2026-08-26",
       "formats": [
         "png",
         "jpg",
@@ -7937,6 +7837,7 @@
         "loop",
         "webgl"
       ],
+      "added": "2026-08-26",
       "formats": [
         "png",
         "jpg",
@@ -8077,6 +7978,7 @@
         "offline",
         "privacy"
       ],
+      "added": "2026-08-26",
       "formats": [
         "png"
       ],
@@ -8088,6 +7990,138 @@
       "featured": {
         "order": 7,
         "blurb": "Read any code, safely and offline"
+      },
+      "i18n": {
+        "ar": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "bg": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "bn": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "cs": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "de": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "es": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "fr": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "hi": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "id": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "it": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "ja": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "ko": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "ms": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "nl": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "no": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "pl": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "pt": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "ro": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "sv": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "tl": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "tr": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "uk": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "ur": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "vi": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "zh-hant": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        },
+        "zh": {
+          "name": "Scan",
+          "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+          "blurb": "Read any code, safely and offline"
+        }
       }
     },
     {
@@ -8122,6 +8156,7 @@
         "vector",
         "csv"
       ],
+      "added": "2026-07-11",
       "formats": [
         "png",
         "md",
@@ -8314,7 +8349,7 @@
       ],
       "i18n": {
         "ar": {
-          "name": "الرسم البياني",
+          "name": "المخطط",
           "description": "رسوم بيانية قوية مدفوعة بالبيانات مع D3 - الصق جدولاً وسيرسم نفسه. أعمدة، خطوط، مساحات، تشتت، دائرية، رادار، خريطة شجرية، خريطة حرارية، أعمدة ودوائر ثلاثية الأبعاد وسحب كلمات. تُستمد لوحات الألوان من ألوان علامتك التجارية، مع تعبئات نقشية وإعادة تلوين بنقرة - متوافقة مع العلامة التجارية ونظيفة كمتجهات.",
           "blurb": "الصق جدولا — يرسمه D3 بهوية علامتك وبنقاء متجهي"
         },
@@ -8414,7 +8449,7 @@
           "blurb": "I-paste ang table — ico-chart ito ng D3, on-brand at malinis na vector"
         },
         "tr": {
-          "name": "Grafik",
+          "name": "Chart",
           "description": "D3 ile güçlü veri odaklı grafikler - bir tablo yapıştırın, kendini çizsin. Çubuklar, çizgiler, alanlar, dağılım, pasta, radar, ısı haritası, 3D çubuklar ve pastalar ile kelime bulutları. Paletler markanızın renklerinden türetilir, desenli dolgular ve tıkla-yeniden-renklendir ile - markanıza uygun ve vektör temiz.",
           "blurb": "Bir tablo yapıştır — D3 onu grafiğe dönüştürsün, markana uygun ve vektör netliğinde"
         },
@@ -8429,7 +8464,7 @@
           "blurb": "ایک ٹیبل پیسٹ کریں — D3 اسے چارٹ کرتا ہے، برانڈ کے مطابق اور ویکٹر لحاظ سے صاف"
         },
         "vi": {
-          "name": "Biểu Đồ",
+          "name": "Biểu đồ",
           "description": "Biểu đồ mạnh mẽ dựa trên dữ liệu với D3 - dán một bảng và nó tự vẽ biểu đồ. Cột, đường, vùng, phân tán, tròn, radar, treemap, heatmap, cột & tròn 3D và đám mây từ. Bảng màu lấy từ màu thương hiệu của bạn, với hình mẫu tô và bấm để đổi màu - đúng thương hiệu và sắc nét dạng vector.",
           "blurb": "Dán một bảng vào — D3 tự vẽ biểu đồ, đúng chuẩn thương hiệu và sạch đẹp dạng vector"
         },
@@ -8475,6 +8510,7 @@
         "rights",
         "batch"
       ],
+      "added": "2026-07-19",
       "formats": [
         "png",
         "jpg",
@@ -8497,55 +8533,55 @@
       "preview": "/catalog/previews/claim.svg",
       "i18n": {
         "ar": {
-          "name": "النسب",
+          "name": "Claim",
           "description": "اطلب اسمك على أي وسائط سبق أن أنشأتها - صورة، PDF، فيديو أو صوت. اختم مؤلفك وحقوق النشر والترخيص كاعتمادات محتوى (Content Credentials) (مع ختم راستر دائم أيضاً)، مع الحفاظ على أي اعتماد موجود مسبقاً داخل الملف - كل ذلك على جهازك، قبل رفعه إلى أي مكان."
         },
         "bg": {
-          "name": "Авторство",
+          "name": "Claim",
           "description": "Заяви правата си над всяка медия, която вече си създал - изображение, PDF, видео или аудио. Постави автор, авторско право и лиценз като Content Credentials (и траен растерен Imprint), запазвайки всеки идентификационен данни, вече вградени във файла - всичко на твоето устройство, преди да го качиш някъде."
         },
         "bn": {
-          "name": "দাবি",
+          "name": "Claim",
           "description": "আপনি ইতিমধ্যে তৈরি করা যেকোনো মিডিয়ায় আপনার নাম দাবি করুন - ছবি, PDF, ভিডিও বা অডিও। আপনার লেখক, কপিরাইট ও লাইসেন্স Content Credentials হিসেবে স্ট্যাম্প করুন (একটি টেকসই রাস্টার ইম্প্রিন্টও), ফাইলের ভেতরে আগে থেকে থাকা যেকোনো ক্রেডেনশিয়াল সংরক্ষণ করে - সব আপনার ডিভাইসে, কোথাও আপলোড করার আগেই।"
         },
         "cs": {
-          "name": "Autorství",
+          "name": "Claim",
           "description": "Zabodni si své jméno do jakéhokoli média, které jsi už vytvořil/a - obrázek, PDF, video nebo audio. Otiskni autora, autorská práva a licenci jako Content Credentials (i trvalý rastrový otisk), přičemž zachováš jakoukoli přihlašovací informaci už uvnitř souboru - vše na tvém zařízení, ještě než to kamkoli nahraješ."
         },
         "de": {
-          "name": "Anspruch",
+          "name": "Claim",
           "description": "Beanspruchen Sie Ihren Namen für jedes Medium, das Sie bereits erstellt haben - Bild, PDF, Video oder Audio. Stempeln Sie Autor, Copyright und Lizenz als Content Credentials (auch ein dauerhaftes Raster-Imprint), wobei jede bereits in der Datei vorhandene Berechtigung erhalten bleibt - alles auf Ihrem Gerät, bevor Sie es irgendwo hochladen."
         },
         "es": {
-          "name": "Autoría",
+          "name": "Claim",
           "description": "Reclama tu nombre en cualquier contenido que ya hayas creado - imagen, PDF, vídeo o audio. Sella tu autoría, copyright y licencia como Content Credentials (también un Imprint ráster duradero), preservando cualquier credencial ya presente en el archivo - todo en tu dispositivo, antes de subirlo a ningún sitio."
         },
         "fr": {
-          "name": "Revendication",
+          "name": "Claim",
           "description": "Revendiquez votre nom sur tout média que vous avez déjà créé - image, PDF, vidéo ou audio. Apposez votre auteur, copyright et licence comme Content Credentials (aussi un Imprint raster durable), en préservant tout credential déjà présent dans le fichier - le tout sur votre appareil, avant de le mettre en ligne."
         },
         "hi": {
-          "name": "दावा",
+          "name": "Claim",
           "description": "अपने बनाए किसी भी मीडिया - इमेज, PDF, वीडियो या ऑडियो - पर अपना नाम दर्ज करें। अपने लेखक, कॉपीराइट और लाइसेंस को Content Credentials के रूप में स्टैंप करें (साथ ही एक टिकाऊ रास्टर Imprint भी), फ़ाइल के अंदर पहले से मौजूद किसी भी क्रेडेंशियल को सुरक्षित रखते हुए - यह सब कहीं भी अपलोड करने से पहले, आपकी डिवाइस पर।"
         },
         "id": {
-          "name": "Klaim",
+          "name": "Claim",
           "description": "Klaim nama Anda pada media yang sudah Anda buat - gambar, PDF, video atau audio. Cap penulis, hak cipta dan lisensi Anda sebagai Content Credentials (juga Imprint raster yang tahan lama), sambil mempertahankan kredensial apa pun yang sudah ada di dalam file - semuanya di perangkat Anda, sebelum diunggah ke mana pun."
         },
         "it": {
-          "name": "Rivendicazione",
+          "name": "Claim",
           "description": "Rivendica il tuo nome su qualsiasi media che hai già creato - immagine, PDF, video o audio. Marca autore, copyright e licenza come Content Credentials (anche un Imprint raster durevole), preservando ogni credenziale già presente nel file - tutto sul tuo dispositivo, prima di caricarlo ovunque."
         },
         "ja": {
-          "name": "主張",
+          "name": "Claim",
           "description": "すでに制作したメディアに自分の名前を主張 - 画像、PDF、動画、音声。作者、著作権、ライセンスをContent Credentialsとして刻印(耐久性のあるラスターImprintも)し、ファイル内にすでにある資格情報は保持します - すべてどこかにアップロードする前にデバイス上で処理します。"
         },
         "ko": {
-          "name": "저작권 주장",
+          "name": "Claim",
           "description": "이미 만든 미디어에 이름을 새기세요 - 이미지, PDF, 영상 또는 오디오. 저자, 저작권, 라이선스를 Content Credentials로 스탬프하고(내구성 있는 래스터 각인도 함께), 파일 안에 이미 있는 자격 증명은 그대로 보존합니다 - 어디에 업로드하기 전에 모두 기기 내에서 처리됩니다."
         },
         "ms": {
-          "name": "Tuntutan",
+          "name": "Claim",
           "description": "Tuntut nama anda pada mana-mana media yang telah anda hasilkan - imej, PDF, video atau audio. Cop pengarang, hak cipta dan lesen anda sebagai Content Credentials (turut ada Imprint raster yang tahan lama), sambil mengekalkan mana-mana kelayakan yang sudah ada dalam fail - semuanya pada peranti anda, sebelum anda memuat naik ke mana-mana."
         },
         "nl": {
@@ -8553,51 +8589,51 @@
           "description": "Claim je naam op elke media die je al gemaakt hebt - afbeelding, PDF, video of audio. Stempel je auteur, copyright en licentie als Content Credentials (ook een duurzame raster-Imprint), met behoud van elke credential die al in het bestand zit - allemaal op je eigen apparaat, voordat je het ergens uploadt."
         },
         "no": {
-          "name": "Krav",
+          "name": "Claim",
           "description": "Krev ditt navn på medier du allerede har laget - bilde, PDF, video eller lyd. Stempl forfatter, opphavsrett og lisens som Content Credentials (også et varig rasterstempel), samtidig som eksisterende legitimasjon i filen bevares - alt på din enhet, før du laster det opp noe sted."
         },
         "pl": {
-          "name": "Zastrzeżenie",
+          "name": "Claim",
           "description": "Zastrzeż swoje imię na dowolnych mediach, które już stworzyłeś - obraz, PDF, wideo lub audio. Oznacz autora, prawa autorskie i licencję jako Content Credentials (także trwały raster Imprint), zachowując wszelkie dane uwierzytelniające już obecne w pliku - wszystko na Twoim urządzeniu, zanim gdziekolwiek to prześlesz."
         },
         "pt": {
-          "name": "Autoria",
+          "name": "Claim",
           "description": "Reivindique seu nome em qualquer mídia que você já criou - imagem, PDF, vídeo ou áudio. Carimbe seu autor, direitos autorais e licença como Content Credentials (também um Imprint raster durável), preservando qualquer credencial já presente no arquivo - tudo no seu dispositivo, antes de enviá-lo a qualquer lugar."
         },
         "ro": {
-          "name": "Revendicare",
+          "name": "Claim",
           "description": "Revendică-ți numele pe orice media pe care ai creat-o deja - imagine, PDF, video sau audio. Marchează autorul, drepturile de autor și licența ca Content Credentials (și un Imprint raster durabil), păstrând orice credențial deja prezent în fișier - totul pe dispozitivul tău, înainte să-l încarci undeva."
         },
         "sv": {
-          "name": "Anspråk",
+          "name": "Claim",
           "description": "Gör anspråk på ditt namn på media du redan skapat - bild, PDF, video eller ljud. Stämpla författare, upphovsrätt och licens som Content Credentials (även en beständig raster-prägling), samtidigt som eventuella befintliga uppgifter i filen bevaras - allt på din enhet, innan du laddar upp den någonstans."
         },
         "tl": {
-          "name": "Angkinin",
+          "name": "Claim",
           "description": "I-claim ang iyong pangalan sa anumang media na nagawa mo na - larawan, PDF, video o audio. I-stamp ang iyong author, copyright at lisensya bilang Content Credentials (may durable raster Imprint din), na pinapanatili ang anumang credential na nasa loob na ng file - lahat sa iyong device, bago mo ito i-upload kahit saan."
         },
         "tr": {
-          "name": "Sahiplenme",
+          "name": "Claim",
           "description": "Zaten oluşturduğunuz herhangi bir medyada - görsel, PDF, video veya ses - adınızı hak edin. Yazarınızı, telif hakkınızı ve lisansınızı İçerik Kimlik Bilgileri olarak damgalayın (kalıcı bir raster Damga da dahil), dosyanın içindeki mevcut kimlik bilgilerini koruyarak - hepsi cihazınızda, herhangi bir yere yüklemeden önce."
         },
         "uk": {
-          "name": "Заява",
+          "name": "Claim",
           "description": "Заявіть своє ім'я на будь-якому вже створеному медіа - зображенні, PDF, відео чи аудіо. Проштампуйте автора, авторське право й ліцензію як Content Credentials (також довговічний растровий відбиток), зберігаючи будь-який уже наявний у файлі мандат - усе на вашому пристрої, до того, як ви кудись його завантажите."
         },
         "ur": {
-          "name": "دعویٰ",
+          "name": "Claim",
           "description": "اپنے پہلے سے بنائے گئے کسی بھی میڈیا پر اپنا نام دعویٰ کریں - تصویر، PDF، ویڈیو یا آڈیو۔ اپنے مصنف، کاپی رائٹ اور لائسنس کو Content Credentials کے طور پر اسٹیمپ کریں (ایک پائیدار ریسٹر Imprint بھی)، فائل کے اندر پہلے سے موجود کسی بھی کریڈینشل کو محفوظ رکھتے ہوئے - یہ سب آپ کے آلے پر، کہیں بھی اپ لوڈ کرنے سے پہلے۔"
         },
         "vi": {
-          "name": "Xác Nhận",
+          "name": "Claim",
           "description": "Xác nhận tên của bạn trên bất kỳ media nào bạn đã tạo - ảnh, PDF, video hoặc âm thanh. Đóng dấu tác giả, bản quyền và giấy phép của bạn dưới dạng Content Credentials (kèm Imprint dạng raster bền vững), giữ nguyên mọi thông tin xác thực đã có sẵn trong file - tất cả trên thiết bị của bạn, trước khi bạn tải lên bất kỳ đâu."
         },
         "zh-hant": {
-          "name": "認領",
+          "name": "Claim",
           "description": "為您已完成的任何媒體聲明作者身分 - 圖片、PDF、影片或音訊。將作者、版權與授權以 Content Credentials 方式標記（也可用耐用的點陣烙印），並保留檔案中既有的任何憑證 - 全程在您的裝置上完成，上傳前即可處理。"
         },
         "zh": {
-          "name": "声明",
+          "name": "Claim",
           "description": "为你已制作完成的任意媒体声明署名 - 图像、PDF、视频或音频。以 Content Credentials 的形式标记作者、版权和许可(还提供持久的光栅印记),并保留文件中已有的任何凭证 - 全部在你的设备上完成,上传前即可处理。"
         }
       }
@@ -8617,6 +8653,7 @@
         "browser",
         "social"
       ],
+      "added": "2026-08-24",
       "formats": [
         "png",
         "jpg",
@@ -8882,6 +8919,7 @@
         "warp",
         "animated"
       ],
+      "added": "2026-07-11",
       "formats": [
         "svg",
         "png",
@@ -9091,63 +9129,63 @@
       ],
       "i18n": {
         "ar": {
-          "name": "التدرج",
+          "name": "Gradient",
           "description": "تدرجات لونية ناعمة بأسلوب الشبكة من ألوان علامتك التجارية. اسحب نقاط اللون مباشرة على اللوحة، أو فعّل خاصية الانجراف وصدّر الحلقة بصيغة WebM أو MP4 أو GIF."
         },
         "bg": {
-          "name": "Градиент",
+          "name": "Gradient",
           "description": "Меки градиенти в стил мрежа от цветовете на твоя бранд. Провлачи цветовите точки директно върху платното, или включи Дрейф и експортирай цикъла като WebM, MP4 или GIF."
         },
         "bn": {
-          "name": "গ্রেডিয়েন্ট",
+          "name": "Gradient",
           "description": "আপনার ব্র্যান্ডের রং থেকে সফট মেশ-স্টাইল গ্রেডিয়েন্ট। রঙের বিন্দুগুলি সরাসরি ক্যানভাসে টেনে সরান, অথবা ড্রিফট চালু করে লুপটি WebM, MP4 বা GIF হিসেবে এক্সপোর্ট করুন।"
         },
         "cs": {
-          "name": "Přechod",
+          "name": "Gradient",
           "description": "Jemné síťové přechody z barev tvé značky. Táhni barevné body přímo na plátně, nebo zapni pomalý plynulý pohyb bodů a exportuj smyčku jako WebM, MP4 nebo GIF."
         },
         "de": {
-          "name": "Verlauf",
+          "name": "Gradient",
           "description": "Weiche Mesh-Verläufe aus den Farbfeldern Ihrer Marke. Ziehen Sie die Farbpunkte direkt auf der Zeichenfläche, oder aktivieren Sie Drift und exportieren Sie die Schleife als WebM, MP4 oder GIF."
         },
         "es": {
-          "name": "Degradado",
+          "name": "Gradient",
           "description": "Degradados suaves tipo malla a partir de los colores de tu marca. Arrastra los puntos de color directamente en el lienzo, o activa Deriva y exporta el bucle como WebM, MP4 o GIF."
         },
         "fr": {
-          "name": "Dégradé",
+          "name": "Gradient",
           "description": "Des dégradés doux façon maillage à partir des couleurs de ta marque. Fais glisser les points de couleur directement sur le canevas, ou active la dérive et exporte la boucle en WebM, MP4 ou GIF."
         },
         "hi": {
-          "name": "ग्रेडिएंट",
+          "name": "Gradient",
           "description": "अपने ब्रांड के रंगों से सॉफ़्ट मेश-स्टाइल ग्रेडिएंट। रंग बिंदुओं को सीधे कैनवास पर खींचें, या ड्रिफ़्ट चालू करके लूप को WebM, MP4 या GIF के रूप में एक्सपोर्ट करें।"
         },
         "id": {
-          "name": "Gradien",
+          "name": "Gradient",
           "description": "Gradien bergaya mesh yang lembut dari warna brand Anda. Seret titik warna langsung di kanvas, atau aktifkan Mengambang dan ekspor loop-nya sebagai WebM, MP4, atau GIF."
         },
         "it": {
-          "name": "Sfumatura",
+          "name": "Gradient",
           "description": "Gradienti morbidi in stile mesh dai colori del tuo brand. Trascina i punti colore direttamente sul canvas, oppure attiva il Drift ed esporta il loop come WebM, MP4 o GIF."
         },
         "ja": {
-          "name": "グラデーション",
+          "name": "Gradient",
           "description": "ブランドのスウォッチから、やわらかいメッシュ風グラデーションを作成します。キャンバス上でカラーポイントを直接ドラッグしたり、「ドリフト」をオンにしてループをWebM、MP4、GIFとして書き出したりできます。"
         },
         "ko": {
-          "name": "그라데이션",
+          "name": "Gradient",
           "description": "브랜드 색상 샘플로 만드는 부드러운 메시 그라데이션이에요. 캔버스에서 색상 포인트를 직접 드래그하거나, Drift를 켜서 루프를 WebM·MP4·GIF로 내보내요."
         },
         "ms": {
-          "name": "Kecerunan",
+          "name": "Gradient",
           "description": "Kecerunan gaya jaringan yang lembut daripada sampel warna jenama anda. Seret titik warna terus pada kanvas, atau hidupkan Hanyut dan eksport gelung itu sebagai WebM, MP4 atau GIF."
         },
         "nl": {
-          "name": "Verloop",
+          "name": "Gradient",
           "description": "Zachte mesh-verlopen uit je merkkleuren. Sleep de kleurpunten direct op het canvas, of zet een langzame zwevende beweging aan en exporteer de loop als WebM, MP4 of GIF."
         },
         "no": {
-          "name": "Fargeovergang",
+          "name": "Gradient",
           "description": "Myke mesh-fargeoverganger fra fargeprøvene i merkevaren din. Dra fargepunktene rett på lerretet, eller slå på Drift og eksporter løkken som WebM, MP4 eller GIF."
         },
         "pl": {
@@ -9155,11 +9193,11 @@
           "description": "Miękkie gradienty w stylu siatki z kolorów Twojej marki. Przeciągaj punkty kolorów wprost na płótnie albo włącz Dryf i eksportuj pętlę jako WebM, MP4 lub GIF."
         },
         "pt": {
-          "name": "Gradiente",
+          "name": "Gradient",
           "description": "Gradientes suaves em malha a partir das amostras de cor da sua marca. Arraste os pontos de cor direto na tela, ou ative a Deriva e exporte o loop como WebM, MP4 ou GIF."
         },
         "ro": {
-          "name": "Degrade",
+          "name": "Gradient",
           "description": "Degrade-uri moi în stil mesh, din eșantioanele brandului tău. Trage punctele de culoare direct pe canvas, sau activează Derivă și exportă bucla ca WebM, MP4 sau GIF."
         },
         "sv": {
@@ -9171,27 +9209,27 @@
           "description": "Malumanay na mesh-style na gradient mula sa mga swatch ng iyong brand. I-drag ang mga colour point direkta sa canvas, o i-on ang Drift mode at i-export ang loop bilang WebM, MP4 o GIF."
         },
         "tr": {
-          "name": "Gradyan",
+          "name": "Gradient",
           "description": "Marka renklerinden yumuşak, mesh tarzı gradyanlar. Renk noktalarını doğrudan tuval üzerinde sürükle ya da Kayma özelliğini aç, döngüyü WebM, MP4 veya GIF olarak dışa aktar."
         },
         "uk": {
-          "name": "Градієнт",
+          "name": "Gradient",
           "description": "М'які сіткові градієнти з кольорів вашого бренду. Перетягуйте точки кольору прямо на полотні або увімкніть Дрейф і експортуйте цикл як WebM, MP4 чи GIF."
         },
         "ur": {
-          "name": "گریڈینٹ",
+          "name": "Gradient",
           "description": "آپ کے برانڈ رنگوں سے نرم میش طرز کے گریڈینٹس۔ رنگ پوائنٹس کو براہ راست کینوس پر گھسیٹیں، یا بہاؤ آن کریں اور لوپ کو WebM، MP4 یا GIF کے طور پر ایکسپورٹ کریں۔"
         },
         "vi": {
-          "name": "Dải Màu",
+          "name": "Gradient",
           "description": "Gradient mượt kiểu lưới, tạo từ các màu trong bảng màu thương hiệu của bạn. Kéo các điểm màu ngay trên canvas, hoặc bật chế độ trôi (Drift) để xuất vòng lặp dưới dạng WebM, MP4 hoặc GIF."
         },
         "zh-hant": {
-          "name": "漸層",
+          "name": "Gradient",
           "description": "以你的品牌色票打造柔和的網格式漸層。直接在畫布上拖曳色點，或開啟漂移，將循環匯出為 WebM、MP4 或 GIF。"
         },
         "zh": {
-          "name": "渐变",
+          "name": "Gradient",
           "description": "由品牌色板生成的柔和网格渐变。直接在画布上拖动颜色点，或开启漂移效果，将循环动画导出为 WebM、MP4 或 GIF。"
         }
       }
@@ -9216,6 +9254,7 @@
         "pwa",
         "manifest"
       ],
+      "added": "2026-08-16",
       "formats": [
         "ico",
         "png",
@@ -9230,19 +9269,19 @@
       "preview": "/catalog/previews/icon.svg",
       "i18n": {
         "ar": {
-          "name": "الأيقونة",
+          "name": "Icon",
           "description": "أداة إنشاء الفافيكون وأيقونة التطبيق - ملف .ico متعدد الأحجام، وPNG وSVG، أو مجموعة أيقونات التطبيق كاملة في ملف zip واحد."
         },
         "bg": {
-          "name": "Икона",
+          "name": "Icon",
           "description": "Инструмент за фавикони и икони на приложения - многоразмерен .ico, PNG и SVG файл, или целия комплект за приложение в един zip."
         },
         "bn": {
-          "name": "আইকন",
+          "name": "Icon",
           "description": "ফেভিকন ও অ্যাপ-আইকন মেকার - মাল্টি-সাইজ .ico, PNG এবং SVG, অথবা পুরো অ্যাপ কিট একটি ZIP হিসেবে।"
         },
         "cs": {
-          "name": "Ikona",
+          "name": "Icon",
           "description": "Tvorba faviconů a ikon aplikací - vícevelikostní .ico, PNG a SVG, nebo celá sada pro aplikaci v jednom ZIPu."
         },
         "de": {
@@ -9250,59 +9289,59 @@
           "description": "Favicon- und App-Icon-Generator - eine .ico-Datei mit mehreren Größen, PNG und SVG, oder das komplette App-Icon-Set als eine ZIP-Datei."
         },
         "es": {
-          "name": "Icono",
+          "name": "Icon",
           "description": "Generador de favicons e iconos de app - un archivo .ico con varios tamaños, PNG y SVG, o todo el kit de la app en un solo zip."
         },
         "fr": {
-          "name": "Icône",
+          "name": "Icon",
           "description": "Générateur de favicon et d'icône d'application - un fichier .ico multi-tailles, en PNG et SVG, ou le kit complet dans un seul zip."
         },
         "hi": {
-          "name": "आइकन",
+          "name": "Icon",
           "description": "फ़ेविकॉन और ऐप-आइकन मेकर - मल्टी-साइज़ .ico, PNG और SVG, या पूरी ऐप किट एक ZIP के रूप में।"
         },
         "id": {
-          "name": "Ikon",
+          "name": "Icon",
           "description": "Pembuat favicon dan ikon aplikasi - file .ico multi-ukuran, PNG, dan SVG, atau seluruh kit aplikasi sebagai satu zip."
         },
         "it": {
-          "name": "Icona",
+          "name": "Icon",
           "description": "Creatore di favicon e icone per app - un file .ico multi-dimensione, PNG e SVG, oppure l'intero kit dell'app in un unico zip."
         },
         "ja": {
-          "name": "アイコン",
+          "name": "Icon",
           "description": "ファビコンとアプリアイコンを作成します - マルチサイズの.ico、PNG、SVG、またはアプリキット一式を1つのZIPファイルとして書き出せます。"
         },
         "ko": {
-          "name": "아이콘",
+          "name": "Icon",
           "description": "파비콘과 앱 아이콘을 만들어요 - 여러 크기가 담긴 .ico 파일과 PNG, SVG로 받거나, 전체 앱 아이콘 세트를 zip 파일 하나로 받을 수 있어요."
         },
         "ms": {
-          "name": "Ikon",
+          "name": "Icon",
           "description": "Pembuat favicon dan ikon aplikasi - fail .ico pelbagai saiz, PNG dan SVG, atau keseluruhan kit aplikasi sebagai satu zip."
         },
         "nl": {
-          "name": "Icoon",
+          "name": "Icon",
           "description": "Favicon- en app-iconmaker - een .ico, PNG en SVG in meerdere formaten, of de hele app-iconenset als één zip-bestand."
         },
         "no": {
-          "name": "Ikon",
+          "name": "Icon",
           "description": "Favicon- og app-ikon-generator - en flerstørrelses .ico-fil, PNG og SVG, eller hele appikonpakken som én zip-fil."
         },
         "pl": {
-          "name": "Ikona",
+          "name": "Icon",
           "description": "Kreator favicon i ikon aplikacji - wielorozmiarowy plik .ico, PNG i SVG, albo cały zestaw aplikacji w jednym archiwum zip."
         },
         "pt": {
-          "name": "Ícone",
+          "name": "Icon",
           "description": "Criador de favicon e ícone de aplicativo - um .ico multitamanho, PNG e SVG, ou o kit completo do aplicativo em um único zip."
         },
         "ro": {
-          "name": "Iconiță",
+          "name": "Icon",
           "description": "Creator de favicon și iconițe de aplicație - un fișier .ico cu mai multe dimensiuni, PNG și SVG, sau întregul kit de aplicație într-o singură arhivă zip."
         },
         "sv": {
-          "name": "Ikon",
+          "name": "Icon",
           "description": "Favicon- och app-ikonmakare - en flerstorleks .ico, PNG och SVG, eller hela appkitet som en enda zip-fil."
         },
         "tl": {
@@ -9310,27 +9349,27 @@
           "description": "Favicon at app-icon maker - isang multi-size na .ico, PNG at SVG, o ang buong app kit bilang isang zip."
         },
         "tr": {
-          "name": "Simge",
+          "name": "Icon",
           "description": "Favicon ve uygulama simgesi oluşturucu - çok boyutlu bir .ico, PNG ve SVG dosyası, ya da tüm uygulama setini tek bir zip içinde."
         },
         "uk": {
-          "name": "Іконка",
+          "name": "Icon",
           "description": "Створення favicon та іконок застосунків - багаторозмірний .ico, PNG і SVG, або весь набір застосунку одним zip-архівом."
         },
         "ur": {
-          "name": "آئیکون",
+          "name": "Icon",
           "description": "فیوی آئیکون اور ایپ آئیکون میکر - ایک ملٹی سائز .ico، PNG اور SVG، یا پورا ایپ کٹ ایک ہی zip کے طور پر۔"
         },
         "vi": {
-          "name": "Biểu Tượng",
+          "name": "Icon",
           "description": "Công cụ tạo favicon và biểu tượng ứng dụng - xuất file .ico đa kích thước, PNG và SVG, hoặc trọn bộ app kit dưới dạng một file ZIP."
         },
         "zh-hant": {
-          "name": "圖示",
+          "name": "Icon",
           "description": "Favicon 與應用程式圖示產生工具 - 提供多尺寸的 .ico、PNG 與 SVG，或整組應用程式圖示打包成一個 zip 檔。"
         },
         "zh": {
-          "name": "图标",
+          "name": "Icon",
           "description": "Favicon 与应用图标生成工具 - 可生成多尺寸 .ico、PNG 和 SVG 文件，或将整套应用图标打包成一个 zip。"
         }
       }
@@ -9356,6 +9395,7 @@
         "paste",
         "on-device"
       ],
+      "added": "2026-07-15",
       "formats": [
         "png",
         "webp",
@@ -9404,107 +9444,107 @@
       ],
       "i18n": {
         "ar": {
-          "name": "بطاقة المطالبة",
+          "name": "Prompt Card",
           "description": "صفّ نصاً طويلاً كصورة واحدة مضغوطة وواضحة لنموذج متعدد الوسائط - إدخال الصورة غالباً أرخص من نفس الكلمات كرموز نصية."
         },
         "bg": {
-          "name": "Промпт карта",
+          "name": "Prompt Card",
           "description": "Набери дълга подсказка в едно компактно, четимо изображение за мултимодален модел - входно изображение често е по-евтино от същите думи като текстови токени."
         },
         "bn": {
-          "name": "প্রম্পট কার্ড",
+          "name": "Prompt Card",
           "description": "একটি লম্বা প্রম্পটকে একটি মাল্টিমোডাল মডেলের জন্য একটি কমপ্যাক্ট, পঠনযোগ্য ছবিতে টাইপসেট করুন - একই শব্দ টেক্সট টোকেন হিসেবে দেওয়ার চেয়ে ছবি ইনপুট প্রায়ই সস্তা।"
         },
         "cs": {
-          "name": "Promptová karta",
+          "name": "Prompt Card",
           "description": "Vysázej dlouhý prompt do jednoho kompaktního, čitelného obrázku pro multimodální model - vstup obrázkem bývá levnější než stejná slova jako textové tokeny."
         },
         "de": {
-          "name": "Prompt-Karte",
+          "name": "Prompt Card",
           "description": "Setzt einen langen Prompt zu einem kompakten, gut lesbaren Bild für ein multimodales Modell - Bildeingabe ist oft günstiger als dieselben Wörter als Text-Tokens."
         },
         "es": {
-          "name": "Tarjeta de prompt",
+          "name": "Prompt Card",
           "description": "Compone un prompt largo en una imagen compacta y legible para un modelo multimodal - la entrada de imagen suele ser más barata que las mismas palabras como tokens de texto."
         },
         "fr": {
-          "name": "Carte Prompt",
+          "name": "Prompt Card",
           "description": "Composez une longue consigne en une seule image compacte et lisible pour un modèle multimodal - une image en entrée coûte souvent moins cher que les mêmes mots en jetons de texte."
         },
         "hi": {
-          "name": "प्रॉम्प्ट कार्ड",
+          "name": "Prompt Card",
           "description": "किसी लंबे प्रॉम्प्ट को मल्टीमॉडल मॉडल के लिए एक कॉम्पैक्ट, पठनीय इमेज में टाइपसेट करें - इमेज इनपुट अक्सर उतने ही शब्दों को टेक्स्ट टोकन के रूप में देने से सस्ता पड़ता है।"
         },
         "id": {
-          "name": "Kartu Prompt",
+          "name": "Prompt Card",
           "description": "Susun prompt panjang menjadi satu gambar yang ringkas dan mudah dibaca untuk model multimodal - input gambar sering lebih murah daripada kata-kata yang sama sebagai token teks."
         },
         "it": {
-          "name": "Scheda prompt",
+          "name": "Prompt Card",
           "description": "Impagina un prompt lungo in un'unica immagine compatta e leggibile per un modello multimodale - l'input immagine è spesso più economico delle stesse parole come token testuali."
         },
         "ja": {
-          "name": "プロンプトカード",
+          "name": "Prompt Card",
           "description": "長いプロンプトをマルチモーダルモデル向けの、コンパクトで読みやすい1枚の画像に組版 - 画像入力は同じ内容をテキストトークンにするより安く済むことがよくあります。"
         },
         "ko": {
-          "name": "프롬프트 카드",
+          "name": "Prompt Card",
           "description": "긴 프롬프트를 멀티모달 모델을 위한 작고 읽기 쉬운 이미지 하나로 조판하세요 - 이미지 입력이 같은 내용을 텍스트 토큰으로 넣는 것보다 저렴한 경우가 많습니다."
         },
         "ms": {
-          "name": "Kad Prompt",
+          "name": "Prompt Card",
           "description": "Aturhuruf gesaan panjang menjadi satu imej padat dan mudah dibaca untuk model multimodal - input imej selalunya lebih murah daripada perkataan yang sama sebagai token teks."
         },
         "nl": {
-          "name": "Promptkaart",
+          "name": "Prompt Card",
           "description": "Zet een lange prompt in typografie om tot één compacte, leesbare afbeelding voor een multimodaal model - afbeeldingsinvoer is vaak goedkoper dan diezelfde woorden als teksttokens."
         },
         "no": {
-          "name": "Promptkort",
+          "name": "Prompt Card",
           "description": "Sett en lang prompt i ett kompakt, lesbart bilde for en multimodal modell - bildeinndata er ofte billigere enn de samme ordene som teksttokener."
         },
         "pl": {
-          "name": "Karta promptu",
+          "name": "Prompt Card",
           "description": "Złóż długi prompt w jeden zwarty, czytelny obraz dla modelu multimodalnego - wejście obrazowe jest często tańsze niż te same słowa jako tokeny tekstowe."
         },
         "pt": {
-          "name": "Cartão de Prompt",
+          "name": "Prompt Card",
           "description": "Diagrame um prompt longo numa imagem compacta e legível para um modelo multimodal - entrada de imagem costuma ser mais barata do que as mesmas palavras como tokens de texto."
         },
         "ro": {
-          "name": "Card cu prompt",
+          "name": "Prompt Card",
           "description": "Culege un prompt lung într-o singură imagine compactă, lizibilă, pentru un model multimodal - o imagine ca intrare este adesea mai ieftină decât aceleași cuvinte ca token-uri text."
         },
         "sv": {
-          "name": "Promptkort",
+          "name": "Prompt Card",
           "description": "Sätt en lång prompt i typsnitt som en kompakt, läsbar bild för en multimodal modell - bildinmatning är ofta billigare än samma ord som texttokens."
         },
         "tl": {
-          "name": "Card ng Prompt",
+          "name": "Prompt Card",
           "description": "I-typeset ang isang mahabang prompt sa isang compact, malinaw na larawan para sa multimodal model - kadalasang mas mura ang image input kaysa sa parehong mga salita bilang text tokens."
         },
         "tr": {
-          "name": "Prompt Kartı",
+          "name": "Prompt Card",
           "description": "Uzun bir istemi çok modelli bir model için kompakt, okunaklı tek bir görsele dizin - görsel girdi genellikle aynı sözcüklerin metin token'ı olarak kullanılmasından daha ucuzdur."
         },
         "uk": {
-          "name": "Картка промпту",
+          "name": "Prompt Card",
           "description": "Наберіть довгий промпт в одне компактне, читабельне зображення для мультимодальної моделі - зображення на вході часто дешевше за ті самі слова у вигляді текстових токенів."
         },
         "ur": {
-          "name": "پرامپٹ کارڈ",
+          "name": "Prompt Card",
           "description": "ایک لمبے پرامپٹ کو ملٹی موڈل ماڈل کے لیے ایک کمپیکٹ، پڑھنے کے قابل تصویر میں ٹائپ سیٹ کریں - تصویری ان پٹ اکثر انہی الفاظ کے ٹیکسٹ ٹوکنز سے سستا ہوتا ہے۔"
         },
         "vi": {
-          "name": "Thẻ Prompt",
+          "name": "Prompt Card",
           "description": "Dàn trang một prompt dài thành một hình ảnh gọn, dễ đọc cho mô hình đa phương thức - đầu vào hình ảnh thường rẻ hơn cùng số từ đó ở dạng token văn bản."
         },
         "zh-hant": {
-          "name": "提示卡",
+          "name": "Prompt Card",
           "description": "將長篇提示詞排版成一張精簡易讀的圖片，供多模態模型使用 - 圖片輸入的成本往往低於相同文字轉換成的 token。"
         },
         "zh": {
-          "name": "提示卡",
+          "name": "Prompt Card",
           "description": "将一段长提示词排版为一张紧凑清晰的图片,供多模态模型使用 - 图像输入的开销往往低于同样文字所需的文本令牌。"
         }
       }
@@ -9540,6 +9580,7 @@
         "gemini",
         "offline"
       ],
+      "added": "2026-07-08",
       "formats": [
         "png",
         "svg",
@@ -9554,15 +9595,15 @@
       "preview": "/catalog/previews/sandbox.svg",
       "i18n": {
         "ar": {
-          "name": "البيئة المعزولة",
+          "name": "Sandbox",
           "description": "الصق HTML أو CSS أو JS - أو مكوّن JSX/TypeScript - وشاهده يعمل في بيئة معزولة خاصة وغير متصلة. مثالية لمعاينة كود من مساعد ذكاء اصطناعي."
         },
         "bg": {
-          "name": "Пясъчник",
+          "name": "Sandbox",
           "description": "Постави HTML, CSS, JS - или JSX/TypeScript компонент - и го гледай как работи в личен, офлайн пясъчник. Идеално за преглед на код от AI асистент."
         },
         "bn": {
-          "name": "স্যান্ডবক্স",
+          "name": "Sandbox",
           "description": "HTML, CSS, JS - বা একটি JSX/TypeScript কম্পোনেন্ট - পেস্ট করুন এবং এটি একটি প্রাইভেট, অফলাইন স্যান্ডবক্সে চলতে দেখুন। একটি AI অ্যাসিস্ট্যান্টের কোড প্রিভিউ করার জন্য নিখুঁত।"
         },
         "cs": {
@@ -9582,7 +9623,7 @@
           "description": "Collez du HTML, CSS, JS - ou un composant JSX/TypeScript - et regardez-le s'exécuter dans un bac à sable privé et hors ligne. Parfait pour prévisualiser du code venant d'un assistant IA."
         },
         "hi": {
-          "name": "सैंडबॉक्स",
+          "name": "Sandbox",
           "description": "HTML, CSS, JS - या एक JSX/TypeScript कंपोनेंट - पेस्ट करें और इसे एक निजी, ऑफ़लाइन सैंडबॉक्स में चलते देखें। किसी AI असिस्टेंट से मिले कोड का पूर्वावलोकन करने के लिए एकदम सही।"
         },
         "id": {
@@ -9594,11 +9635,11 @@
           "description": "Incolla HTML, CSS, JS - o un componente JSX/TypeScript - e guardalo eseguire in una sandbox privata e offline. Perfetto per visualizzare in anteprima il codice generato da un assistente IA."
         },
         "ja": {
-          "name": "サンドボックス",
+          "name": "Sandbox",
           "description": "HTML、CSS、JS、またはJSX/TypeScriptコンポーネントを貼り付けて、プライベートなオフラインサンドボックスで実行を確認。AIアシスタントからのコードのプレビューに最適です。"
         },
         "ko": {
-          "name": "샌드박스",
+          "name": "Sandbox",
           "description": "HTML, CSS, JS - 또는 JSX/TypeScript 컴포넌트 - 를 붙여넣고 비공개 오프라인 샌드박스에서 실행되는 모습을 보세요. AI 어시스턴트가 준 코드를 미리보기에 안성맞춤입니다."
         },
         "ms": {
@@ -9610,7 +9651,7 @@
           "description": "Plak HTML, CSS, JS - of een JSX/TypeScript-component - en zie het draaien in een privé, offline sandbox. Perfect om code van een AI-assistent te previewen."
         },
         "no": {
-          "name": "Sandkasse",
+          "name": "Sandbox",
           "description": "Lim inn HTML, CSS, JS - eller en JSX/TypeScript-komponent - og se den kjøre i en privat, frakoblet sandkasse. Perfekt for å forhåndsvise kode fra en KI-assistent."
         },
         "pl": {
@@ -9626,7 +9667,7 @@
           "description": "Lipește HTML, CSS, JS - sau o componentă JSX/TypeScript - și privește-l rulând într-un sandbox privat, offline. Perfect pentru previzualizarea codului de la un asistent AI."
         },
         "sv": {
-          "name": "Sandlåda",
+          "name": "Sandbox",
           "description": "Klistra in HTML, CSS, JS - eller en JSX-/TypeScript-komponent - och se den köra i en privat, offline sandlåda. Perfekt för att förhandsgranska kod från en AI-assistent."
         },
         "tl": {
@@ -9638,11 +9679,11 @@
           "description": "HTML, CSS, JS - veya bir JSX/TypeScript bileşeni - yapıştırın ve özel, çevrimdışı bir kum havuzunda çalıştığını izleyin. Bir yapay zeka asistanından gelen kodu önizlemek için mükemmel."
         },
         "uk": {
-          "name": "Пісочниця",
+          "name": "Sandbox",
           "description": "Вставте HTML, CSS, JS - або компонент JSX/TypeScript - і подивіться, як він працює в приватній офлайн-пісочниці. Ідеально для перегляду коду від ШІ-асистента."
         },
         "ur": {
-          "name": "سینڈ باکس",
+          "name": "Sandbox",
           "description": "HTML، CSS، JS - یا ایک JSX/TypeScript کمپوننٹ - پیسٹ کریں اور اسے ایک نجی، آف لائن سینڈ باکس میں چلتا دیکھیں۔ AI اسسٹنٹ سے کوڈ کا پریویو دیکھنے کے لیے بہترین۔"
         },
         "vi": {
@@ -9650,11 +9691,11 @@
           "description": "Dán HTML, CSS, JS - hoặc một thành phần JSX/TypeScript - và xem nó chạy trong hộp cát riêng tư, ngoại tuyến. Hoàn hảo để xem trước mã từ trợ lý AI."
         },
         "zh-hant": {
-          "name": "沙盒",
+          "name": "Sandbox",
           "description": "貼上 HTML、CSS、JS - 或 JSX/TypeScript 元件 - 即可在私密、離線的沙盒中執行。非常適合預覽 AI 助理產生的程式碼。"
         },
         "zh": {
-          "name": "沙盒",
+          "name": "Sandbox",
           "description": "粘贴 HTML、CSS、JS - 或 JSX/TypeScript 组件 - 即可在私密离线沙盒中查看运行效果。非常适合预览 AI 助手生成的代码。"
         }
       }
@@ -9672,6 +9713,7 @@
         "snippet",
         "export"
       ],
+      "added": "2026-08-16",
       "formats": [
         "png",
         "svg",
@@ -9689,19 +9731,19 @@
       },
       "i18n": {
         "ar": {
-          "name": "المقتطف",
+          "name": "Snippet",
           "description": "حول مقتطفات الكود إلى صور أنيقة مع تمييز الصياغة، جاهزة للمشاركة."
         },
         "bg": {
-          "name": "Сниппет",
+          "name": "Snippet",
           "description": "Превърни кодови фрагменти в чисти, синтактично оцветени изображения за споделяне."
         },
         "bn": {
-          "name": "স্নিপেট",
+          "name": "Snippet",
           "description": "কোড স্নিপেটকে পরিচ্ছন্ন, সিনট্যাক্স-হাইলাইট করা, শেয়ারযোগ্য ছবিতে বদলে নিন।"
         },
         "cs": {
-          "name": "Úryvek",
+          "name": "Snippet",
           "description": "Proměň úryvky kódu v čisté obrázky se zvýrazněnou syntaxí, připravené ke sdílení."
         },
         "de": {
@@ -9717,7 +9759,7 @@
           "description": "Transforme tes extraits de code en images nettes, avec coloration syntaxique, prêtes à partager."
         },
         "hi": {
-          "name": "स्निपेट",
+          "name": "Snippet",
           "description": "कोड स्निपेट्स को साफ़, सिंटैक्स-हाइलाइट की गई, शेयर करने लायक इमेज में बदलें।"
         },
         "id": {
@@ -9729,11 +9771,11 @@
           "description": "Trasforma frammenti di codice in immagini pulite, con syntax highlighting, pronte da condividere."
         },
         "ja": {
-          "name": "スニペット",
+          "name": "Snippet",
           "description": "コードスニペットをシンプルでシンタックスハイライト付きの共有可能な画像に変換します。"
         },
         "ko": {
-          "name": "스니펫",
+          "name": "Snippet",
           "description": "코드 스니펫을 깔끔하고 신택스 하이라이트가 적용된 공유 가능한 이미지로 변환하세요."
         },
         "ms": {
@@ -9745,7 +9787,7 @@
           "description": "Verander codefragmenten in nette afbeeldingen met syntaxiskleuring, klaar om te delen."
         },
         "no": {
-          "name": "Kodesnutt",
+          "name": "Snippet",
           "description": "Gjør kodesnutter om til rene, syntaksmarkerte bilder, klare til å dele."
         },
         "pl": {
@@ -9757,11 +9799,11 @@
           "description": "Transforme trechos de código em imagens limpas, com destaque de sintaxe, prontas para compartilhar."
         },
         "ro": {
-          "name": "Fragment",
+          "name": "Snippet",
           "description": "Transformă fragmente de cod în imagini curate, cu evidențierea sintaxei, gata de distribuit."
         },
         "sv": {
-          "name": "Kodsnutt",
+          "name": "Snippet",
           "description": "Gör kodsnuttar till rena, syntaxmarkerade bilder som är enkla att dela."
         },
         "tl": {
@@ -9773,11 +9815,11 @@
           "description": "Kod parçacıklarını temiz, sözdizimi vurgulamalı, paylaşılabilir görüntülere dönüştür."
         },
         "uk": {
-          "name": "Сніпет",
+          "name": "Snippet",
           "description": "Перетворює фрагменти коду на чисті зображення з підсвіткою синтаксису, зручні для поширення."
         },
         "ur": {
-          "name": "سنیپٹ",
+          "name": "Snippet",
           "description": "کوڈ کے ٹکڑوں کو صاف ستھری، سنٹیکس-ہائی لائٹڈ، قابلِ اشتراک تصاویر میں بدلیں۔"
         },
         "vi": {
@@ -9785,11 +9827,11 @@
           "description": "Biến đoạn mã thành hình ảnh gọn gàng, có tô sáng cú pháp và dễ chia sẻ."
         },
         "zh-hant": {
-          "name": "程式碼片段",
+          "name": "Snippet",
           "description": "將程式碼片段轉換成簡潔、具語法高亮、可分享的圖片。"
         },
         "zh": {
-          "name": "片段",
+          "name": "Snippet",
           "description": "将代码片段转换为简洁、带语法高亮、可分享的图片。"
         }
       }
@@ -9810,6 +9852,7 @@
         "generative",
         "brand"
       ],
+      "added": "2026-08-27",
       "formats": [
         "png",
         "jpg",
@@ -9901,7 +9944,113 @@
             "speed": 70
           }
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "bg": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "bn": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "cs": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "de": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "es": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "fr": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "hi": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "id": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "it": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "ja": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "ko": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "ms": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "nl": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "no": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "pl": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "pt": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "ro": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "sv": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "tl": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "tr": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "uk": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "ur": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "vi": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "zh-hant": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        },
+        "zh": {
+          "name": "Backdrop",
+          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+        }
+      }
     },
     {
       "id": "calendar-ics",
@@ -9921,6 +10070,7 @@
         "month",
         "print"
       ],
+      "added": "2026-08-28",
       "formats": [
         "ics",
         "png",
@@ -9956,71 +10106,71 @@
       ],
       "i18n": {
         "ar": {
-          "name": "التقويم",
+          "name": "Calendar",
           "description": "حول تفاصيل الفعالية إلى ملف تقويم (.ics) يعمل مع أي تطبيق تقويم."
         },
         "bg": {
-          "name": "Календар",
+          "name": "Calendar",
           "description": "Превърни детайлите на събитието в календарен файл (.ics) за всяко календарно приложение."
         },
         "bn": {
-          "name": "ক্যালেন্ডার",
+          "name": "Calendar",
           "description": "ইভেন্টের বিবরণকে যেকোনো ক্যালেন্ডার অ্যাপের জন্য একটি ক্যালেন্ডার (.ics) ফাইলে পরিণত করুন।"
         },
         "cs": {
-          "name": "Kalendář",
+          "name": "Calendar",
           "description": "Převede podrobnosti akce na soubor kalendáře (.ics) pro jakoukoli kalendářovou aplikaci."
         },
         "de": {
-          "name": "Kalender",
+          "name": "Calendar",
           "description": "Wandeln Sie Termindetails in eine Kalenderdatei (.ics) für jede Kalender-App um."
         },
         "es": {
-          "name": "Calendario",
+          "name": "Calendar",
           "description": "Convierte los detalles de un evento en un archivo de calendario (.ics) para cualquier app de calendario."
         },
         "fr": {
-          "name": "Calendrier",
+          "name": "Calendar",
           "description": "Transforme les détails d'un événement en fichier calendrier (.ics) pour toute appli de calendrier."
         },
         "hi": {
-          "name": "कैलेंडर",
+          "name": "Calendar",
           "description": "इवेंट विवरण को किसी भी कैलेंडर ऐप के लिए कैलेंडर (.ics) फ़ाइल में बदलें।"
         },
         "id": {
-          "name": "Kalender",
+          "name": "Calendar",
           "description": "Ubah detail acara menjadi berkas kalender (.ics) untuk aplikasi kalender apa pun."
         },
         "it": {
-          "name": "Calendario",
+          "name": "Calendar",
           "description": "Trasforma i dettagli di un evento in un file calendario (.ics) per qualsiasi app di calendario."
         },
         "ja": {
-          "name": "カレンダー",
+          "name": "Calendar",
           "description": "イベントの詳細を、どのカレンダーアプリでも使えるカレンダーファイル(.ics)に変換します。"
         },
         "ko": {
-          "name": "캘린더",
+          "name": "Calendar",
           "description": "일정 정보를 어떤 캘린더 앱에서도 사용할 수 있는 캘린더 파일(.ics)로 변환합니다."
         },
         "ms": {
-          "name": "Kalendar",
+          "name": "Calendar",
           "description": "Tukar butiran acara kepada fail kalendar (.ics) untuk mana-mana aplikasi kalendar."
         },
         "nl": {
-          "name": "Kalender",
+          "name": "Calendar",
           "description": "Zet evenementgegevens om in een kalenderbestand (.ics) voor elke agenda-app."
         },
         "no": {
-          "name": "Kalender",
+          "name": "Calendar",
           "description": "Gjør hendelsesdetaljer om til en kalenderfil (.ics) for alle kalenderapper."
         },
         "pl": {
-          "name": "Kalendarz",
+          "name": "Calendar",
           "description": "Zmień szczegóły wydarzenia w plik kalendarza (.ics) dla każdej aplikacji kalendarza."
         },
         "pt": {
-          "name": "Calendário",
+          "name": "Calendar",
           "description": "Transforma os detalhes do evento em um arquivo de calendário (.ics) para qualquer app de calendário."
         },
         "ro": {
@@ -10028,35 +10178,35 @@
           "description": "Transformă detaliile unui eveniment într-un fișier de calendar (.ics) pentru orice aplicație de calendar."
         },
         "sv": {
-          "name": "Kalender",
+          "name": "Calendar",
           "description": "Omvandla evenemangsdetaljer till en kalenderfil (.ics) för valfri kalenderapp."
         },
         "tl": {
-          "name": "Kalendaryo",
+          "name": "Calendar",
           "description": "I-convert ang mga detalye ng event sa isang calendar file (.ics) na pwedeng gamitin sa kahit anong calendar app."
         },
         "tr": {
-          "name": "Takvim",
+          "name": "Calendar",
           "description": "Etkinlik bilgilerini herhangi bir takvim uygulaması için bir takvim (.ics) dosyasına dönüştür."
         },
         "uk": {
-          "name": "Календар",
+          "name": "Calendar",
           "description": "Перетворює деталі події на файл календаря (.ics) для будь-якого календарного застосунку."
         },
         "ur": {
-          "name": "کیلنڈر",
+          "name": "Calendar",
           "description": "ایونٹ کی تفصیلات کو کسی بھی کیلنڈر ایپ کے لیے کیلنڈر (.ics) فائل میں تبدیل کریں۔"
         },
         "vi": {
-          "name": "Lịch",
+          "name": "Calendar",
           "description": "Chuyển chi tiết sự kiện thành tệp lịch (.ics) dùng được cho mọi ứng dụng lịch."
         },
         "zh-hant": {
-          "name": "行事曆",
+          "name": "Calendar",
           "description": "將活動詳情轉換成行事曆檔案（.ics），適用於任何行事曆應用程式。"
         },
         "zh": {
-          "name": "日历",
+          "name": "Calendar",
           "description": "把活动详情转换成日历文件（.ics），适用于任何日历应用。"
         }
       }
@@ -10100,6 +10250,7 @@
         "graphviz",
         "csv"
       ],
+      "added": "2026-08-28",
       "formats": [
         "svg",
         "pdf",
@@ -10123,132 +10274,132 @@
       },
       "i18n": {
         "ar": {
-          "name": "المخططات",
+          "name": "Diagrams",
           "description": "مخططات هيكلية، ومخططات تدفق، وخطوط زمنية، والمزيد - من بطاقات، أو نص، أو Mermaid، أو DOT، أو CSV.",
           "blurb": "حول البطاقات أو النص إلى مخططات متوافقة مع الهوية"
         },
         "bg": {
-          "name": "Диаграми",
+          "name": "Diagrams",
           "description": "Организационни диаграми, блок-схеми, времеви линии и още - от карти, текст, Mermaid, DOT или CSV.",
           "blurb": "Превърни карти или текст в диаграми в стила на бранда"
         },
         "bn": {
-          "name": "ডায়াগ্রাম",
+          "name": "Diagrams",
           "description": "অর্গ চার্ট, ফ্লোচার্ট, টাইমলাইন ও আরও অনেক কিছু - কার্ড, টেক্সট, Mermaid, DOT বা CSV থেকে।",
           "blurb": "কার্ড বা টেক্সটকে অন-ব্র্যান্ড ডায়াগ্রামে বদলে দিন"
         },
         "cs": {
-          "name": "Diagramy",
+          "name": "Diagrams",
           "description": "Organizační schémata, vývojové diagramy, časové osy a další - z karet, textu, Mermaid, DOT nebo CSV.",
           "blurb": "Změň karty nebo text na diagramy podle značky"
         },
         "de": {
-          "name": "Diagramme",
+          "name": "Diagrams",
           "description": "Organigramme, Flussdiagramme, Zeitleisten und mehr - aus Karten, Text, Mermaid, DOT oder CSV.",
           "blurb": "Verwandeln Sie Karten oder Text in markenkonforme Diagramme"
         },
         "es": {
-          "name": "Diagramas",
+          "name": "Diagrams",
           "description": "Organigramas, diagramas de flujo, líneas de tiempo y más - a partir de tarjetas, texto, Mermaid, DOT o CSV.",
           "blurb": "Convierte tarjetas o texto en diagramas con tu marca"
         },
         "fr": {
-          "name": "Diagrammes",
+          "name": "Diagrams",
           "description": "Organigrammes, logigrammes, frises chronologiques et bien plus - à partir de fiches, de texte, de Mermaid, de DOT ou de CSV.",
           "blurb": "Transforme cartes ou texte en diagrammes à ta marque"
         },
         "hi": {
-          "name": "डायग्राम",
+          "name": "Diagrams",
           "description": "ऑर्ग चार्ट, फ़्लोचार्ट, टाइमलाइन और भी बहुत कुछ - कार्ड, टेक्स्ट, Mermaid, DOT या CSV से।",
           "blurb": "कार्ड या टेक्स्ट को ऑन-ब्रांड डायग्राम में बदलें"
         },
         "id": {
-          "name": "Diagram",
+          "name": "Diagrams",
           "description": "Bagan organisasi, flowchart, linimasa, dan lainnya - dari kartu, teks, Mermaid, DOT, atau CSV.",
           "blurb": "Ubah kartu atau teks menjadi diagram yang sesuai brand"
         },
         "it": {
-          "name": "Diagrammi",
+          "name": "Diagrams",
           "description": "Organigrammi, diagrammi di flusso, timeline e altro ancora - da schede, testo, Mermaid, DOT o CSV.",
           "blurb": "Trasforma schede o testo in diagrammi in linea con il brand"
         },
         "ja": {
-          "name": "ダイアグラム",
+          "name": "Diagrams",
           "description": "組織図、フローチャート、タイムラインなどを作成できます - カード、テキスト、Mermaid、DOT、CSVから生成します。",
           "blurb": "カードやテキストをブランドに合わせた図表に変換します"
         },
         "ko": {
-          "name": "다이어그램",
+          "name": "Diagrams",
           "description": "조직도, 순서도, 타임라인 등 다양한 다이어그램을 만들어요 - 카드, 텍스트, Mermaid, DOT, CSV로 시작할 수 있어요.",
           "blurb": "카드나 텍스트를 브랜드에 맞는 다이어그램으로 바꿔요"
         },
         "ms": {
-          "name": "Rajah",
+          "name": "Diagrams",
           "description": "Carta organisasi, carta alir, garis masa dan banyak lagi - daripada kad, teks, Mermaid, DOT atau CSV.",
           "blurb": "Tukar kad atau teks kepada rajah mengikut jenama anda"
         },
         "nl": {
-          "name": "Diagrammen",
+          "name": "Diagrams",
           "description": "Organogrammen, stroomdiagrammen, tijdlijnen en meer - vanuit kaarten, tekst, Mermaid, DOT of CSV.",
           "blurb": "Verander kaarten of tekst in diagrammen in jouw huisstijl"
         },
         "no": {
-          "name": "Diagrammer",
+          "name": "Diagrams",
           "description": "Organisasjonskart, flytskjemaer, tidslinjer og mer - fra kort, tekst, Mermaid, DOT eller CSV.",
           "blurb": "Gjør kort eller tekst om til diagrammer i din merkevarestil"
         },
         "pl": {
-          "name": "Diagramy",
+          "name": "Diagrams",
           "description": "Schematy organizacyjne, schematy blokowe, osie czasu i inne - z kart, tekstu, Mermaid, DOT lub CSV.",
           "blurb": "Zamień karty lub tekst w diagramy zgodne z marką"
         },
         "pt": {
-          "name": "Diagramas",
+          "name": "Diagrams",
           "description": "Organogramas, fluxogramas, linhas do tempo e mais - a partir de cartões, texto, Mermaid, DOT ou CSV.",
           "blurb": "Transforme cartões ou texto em diagramas com a cara da sua marca"
         },
         "ro": {
-          "name": "Diagrame",
+          "name": "Diagrams",
           "description": "Organigrame, diagrame flux, cronologii și multe altele - din carduri, text, Mermaid, DOT sau CSV.",
           "blurb": "Transformă carduri sau text în diagrame aliniate brandului"
         },
         "sv": {
-          "name": "Scheman",
+          "name": "Diagrams",
           "description": "Organisationsscheman, flödesscheman, tidslinjer och mer - från kort, text, Mermaid, DOT eller CSV.",
           "blurb": "Gör om kort eller text till diagram i din varumärkesstil"
         },
         "tl": {
-          "name": "Mga Diagram",
+          "name": "Diagrams",
           "description": "Mga org chart, flowchart, timeline at higit pa - mula sa card, text, Mermaid, DOT o CSV.",
           "blurb": "I-convert ang cards o text sa diagrams na naaayon sa brand mo"
         },
         "tr": {
-          "name": "Diyagramlar",
+          "name": "Diagrams",
           "description": "Organizasyon şemaları, akış şemaları, zaman çizelgeleri ve daha fazlası - kartlardan, metinden, Mermaid, DOT veya CSV'den.",
           "blurb": "Kartları veya metni markana uygun diyagramlara dönüştür"
         },
         "uk": {
-          "name": "Діаграми",
+          "name": "Diagrams",
           "description": "Організаційні схеми, блок-схеми, часові шкали та інше - із карток, тексту, Mermaid, DOT або CSV.",
           "blurb": "Перетворюйте картки або текст на фірмові діаграми"
         },
         "ur": {
-          "name": "ڈایاگرامز",
+          "name": "Diagrams",
           "description": "تنظیمی چارٹس، فلو چارٹس، ٹائم لائنز اور مزید - کارڈز، متن، Mermaid، DOT یا CSV سے۔",
           "blurb": "کارڈز یا متن کو آن-برانڈ ڈایاگرامز میں بدلیں"
         },
         "vi": {
-          "name": "Sơ Đồ",
+          "name": "Diagrams",
           "description": "Sơ đồ tổ chức, sơ đồ luồng, dòng thời gian và nhiều hơn nữa - tạo từ thẻ, văn bản, Mermaid, DOT hoặc CSV.",
           "blurb": "Biến thẻ hoặc văn bản thành sơ đồ đúng thương hiệu"
         },
         "zh-hant": {
-          "name": "圖解",
+          "name": "Diagrams",
           "description": "組織圖、流程圖、時間軸等多種圖表 - 可從卡片、文字、Mermaid、DOT 或 CSV 建立。",
           "blurb": "將卡片或文字轉換為符合品牌風格的圖表"
         },
         "zh": {
-          "name": "图示",
+          "name": "Diagrams",
           "description": "组织架构图、流程图、时间线等多种图表 - 可通过卡片、文字、Mermaid、DOT 或 CSV 生成。",
           "blurb": "将卡片或文本转换为符合品牌风格的图表"
         }
@@ -10279,6 +10430,7 @@
         "threshold",
         "on-device"
       ],
+      "added": "2026-08-28",
       "formats": [
         "png",
         "svg",
@@ -10299,79 +10451,79 @@
       "preview": "/catalog/previews/logo-wall.svg",
       "i18n": {
         "ar": {
-          "name": "حائط الشعارات",
+          "name": "Logo Wall",
           "description": "رتّب كومة من الشعارات في شبكة رعاة نظيفة ومتساوية - جدار \"NASCAR\"."
         },
         "bg": {
-          "name": "Лого стена",
+          "name": "Logo Wall",
           "description": "Подреди купчина лога в чиста, равномерна спонсорска мрежа - стената тип „NASCAR“."
         },
         "bn": {
-          "name": "লোগো ওয়াল",
+          "name": "Logo Wall",
           "description": "একগুচ্ছ লোগোকে একটি পরিষ্কার, সমান স্পনসর গ্রিডে সাজান - “NASCAR” দেয়াল।"
         },
         "cs": {
-          "name": "Sestava log",
+          "name": "Logo Wall",
           "description": "Uspořádej hromadu log do čisté, rovnoměrné mřížky sponzorů - „NASCAR“ stěna."
         },
         "de": {
-          "name": "Logowand",
+          "name": "Logo Wall",
           "description": "Ordnet einen Haufen Logos zu einem sauberen, gleichmäßigen Sponsorenraster an - die „NASCAR“-Wand."
         },
         "es": {
-          "name": "Muro de logos",
+          "name": "Logo Wall",
           "description": "Organiza un montón de logotipos en una cuadrícula de patrocinadores limpia y uniforme - el muro “NASCAR”."
         },
         "fr": {
-          "name": "Mur de Logos",
+          "name": "Logo Wall",
           "description": "Disposez une pile de logos en une grille de sponsors propre et régulière - le mur « NASCAR »."
         },
         "hi": {
-          "name": "लोगो वॉल",
+          "name": "Logo Wall",
           "description": "ढेर सारे लोगो को एक साफ़, समान स्पॉन्सर ग्रिड में व्यवस्थित करें - “NASCAR” वॉल।"
         },
         "id": {
-          "name": "Dinding Logo",
+          "name": "Logo Wall",
           "description": "Susun setumpuk logo menjadi grid sponsor yang rapi dan merata - dinding “NASCAR”."
         },
         "it": {
-          "name": "Muro di loghi",
+          "name": "Logo Wall",
           "description": "Disponi un insieme di loghi in una griglia sponsor pulita e uniforme - il muro “NASCAR”."
         },
         "ja": {
-          "name": "ロゴウォール",
+          "name": "Logo Wall",
           "description": "大量のロゴをきれいに揃ったスポンサーグリッドに配置 - いわゆる「NASCAR」ウォール。"
         },
         "ko": {
-          "name": "로고 벽",
+          "name": "Logo Wall",
           "description": "여러 로고를 깔끔하고 균일한 스폰서 그리드로 배치하세요 - “나스카” 월."
         },
         "ms": {
-          "name": "Dinding Logo",
+          "name": "Logo Wall",
           "description": "Susun timbunan logo menjadi grid penaja yang kemas dan sekata - dinding “NASCAR”."
         },
         "nl": {
-          "name": "Logomuur",
+          "name": "Logo Wall",
           "description": "Rangschik een stapel logo's tot een nette, gelijkmatige sponsorgrid - de \"NASCAR\"-muur."
         },
         "no": {
-          "name": "Logovegg",
+          "name": "Logo Wall",
           "description": "Ordne en haug med logoer i et ryddig, jevnt sponsorrutenett - \"NASCAR\"-veggen."
         },
         "pl": {
-          "name": "Ściana logo",
+          "name": "Logo Wall",
           "description": "Ułóż stos logo w czystą, równą siatkę sponsorów - ścianę „NASCAR”."
         },
         "pt": {
-          "name": "Mural de Logos",
+          "name": "Logo Wall",
           "description": "Organize uma pilha de logotipos numa grade de patrocinadores limpa e uniforme - o mural “NASCAR”."
         },
         "ro": {
-          "name": "Perete de logo-uri",
+          "name": "Logo Wall",
           "description": "Aranjează un morman de logo-uri într-o grilă de sponsori curată și uniformă - peretele „NASCAR”."
         },
         "sv": {
-          "name": "Logotypvägg",
+          "name": "Logo Wall",
           "description": "Arrangera en hög med logotyper i ett snyggt, jämnt sponsorrutnät - ”NASCAR”-väggen."
         },
         "tl": {
@@ -10379,27 +10531,27 @@
           "description": "Ayusin ang tambak ng mga logo sa isang malinis, pantay na sponsor grid - ang “NASCAR” wall."
         },
         "tr": {
-          "name": "Logo Duvarı",
+          "name": "Logo Wall",
           "description": "Bir logo yığınını düzenli, eşit bir sponsor ızgarasına yerleştirin - “NASCAR” duvarı."
         },
         "uk": {
-          "name": "Стіна логотипів",
+          "name": "Logo Wall",
           "description": "Впорядкуйте купу логотипів у чисту, рівномірну сітку спонсорів - стіну «NASCAR»."
         },
         "ur": {
-          "name": "لوگو وال",
+          "name": "Logo Wall",
           "description": "لوگوز کے ڈھیر کو ایک صاف، ہموار اسپانسر گرڈ میں ترتیب دیں - “NASCAR” وال۔"
         },
         "vi": {
-          "name": "Tường Logo",
+          "name": "Logo Wall",
           "description": "Sắp xếp một loạt logo thành lưới nhà tài trợ gọn gàng, đều đặn - bức tường “NASCAR”."
         },
         "zh-hant": {
-          "name": "標誌牆",
+          "name": "Logo Wall",
           "description": "將一堆標誌排列成整齊均勻的贊助商牆網格 - 即「NASCAR」牆。"
         },
         "zh": {
-          "name": "标志墙",
+          "name": "Logo Wall",
           "description": "将一堆徽标排布成整齐均匀的赞助商墙 - 即“NASCAR”式墙面。"
         }
       }
@@ -10423,6 +10575,7 @@
         "poster",
         "navigation"
       ],
+      "added": "2026-08-28",
       "formats": [
         "pdf",
         "pdf-cmyk",
@@ -10447,97 +10600,97 @@
       },
       "i18n": {
         "ar": {
-          "name": "الإرشاد",
+          "name": "Wayfinding",
           "description": "لافتات فعاليات اتجاهية - وجهات، كل منها بسهم. جاهزة للطباعة.",
           "blurb": "لافتات اتجاهات للفعاليات، جاهزة للطباعة"
         },
         "bg": {
-          "name": "Навигация",
+          "name": "Wayfinding",
           "description": "Насочващи табели за събития - дестинации, всяка със стрелка. Готово за печат.",
           "blurb": "Указателни табели за събития, готови за печат"
         },
         "bn": {
-          "name": "ওয়েফাইন্ডিং",
+          "name": "Wayfinding",
           "description": "দিকনির্দেশক ইভেন্ট সাইন - গন্তব্য, প্রতিটির সাথে একটি তীর। প্রিন্ট-রেডি।",
           "blurb": "দিকনির্দেশক ইভেন্ট সাইন, প্রিন্ট-রেডি"
         },
         "cs": {
-          "name": "Orientační značení",
+          "name": "Wayfinding",
           "description": "Směrové značky událostí - cíle, každý se šipkou. Připravené k tisku.",
           "blurb": "Směrové cedule pro akce, připravené k tisku"
         },
         "de": {
-          "name": "Wegweiser",
+          "name": "Wayfinding",
           "description": "Wegweiser-Schilder für Veranstaltungen - Ziele, jeweils mit einem Pfeil. Druckfertig.",
           "blurb": "Richtungsweisende Veranstaltungsschilder, druckfertig"
         },
         "es": {
-          "name": "Señalización",
+          "name": "Wayfinding",
           "description": "Carteles direccionales para eventos - destinos, cada uno con una flecha. Listos para imprenta.",
           "blurb": "Carteles direccionales para eventos, listos para imprimir"
         },
         "fr": {
-          "name": "Signalétique",
+          "name": "Wayfinding",
           "description": "Panneaux d'événement directionnels - des destinations, chacune avec une flèche. Prêts pour l'impression.",
           "blurb": "Panneaux directionnels d'événement, prêts à imprimer"
         },
         "hi": {
-          "name": "दिशासूचक",
+          "name": "Wayfinding",
           "description": "दिशा-सूचक इवेंट साइन - गंतव्य, हर एक तीर के साथ। प्रिंट-रेडी।",
           "blurb": "दिशासूचक इवेंट साइन, प्रिंट के लिए तैयार"
         },
         "id": {
-          "name": "Penunjuk Arah",
+          "name": "Wayfinding",
           "description": "Papan penunjuk arah acara - tujuan, masing-masing dengan panah. Siap cetak.",
           "blurb": "Papan penunjuk arah acara, siap cetak"
         },
         "it": {
-          "name": "Segnaletica direzionale",
+          "name": "Wayfinding",
           "description": "Cartelli direzionali per eventi - destinazioni, ciascuna con una freccia. Pronti per la stampa.",
           "blurb": "Cartelli direzionali per eventi, pronti per la stampa"
         },
         "ja": {
-          "name": "誘導サイン",
+          "name": "Wayfinding",
           "description": "方向案内サイン - 各行き先に矢印付き。印刷対応。",
           "blurb": "印刷対応のイベント誘導サイン"
         },
         "ko": {
-          "name": "길안내",
+          "name": "Wayfinding",
           "description": "방향 안내 표지판 - 목적지마다 화살표가 붙습니다. 인쇄 준비 완료.",
           "blurb": "인쇄 준비 완료된 이벤트 방향 안내 표지판"
         },
         "ms": {
-          "name": "Tanda Arah",
+          "name": "Wayfinding",
           "description": "Papan tanda acara berarah - destinasi, setiap satu dengan anak panah. Sedia cetak.",
           "blurb": "Papan tanda arah acara, sedia untuk cetak"
         },
         "nl": {
-          "name": "Bewegwijzering",
+          "name": "Wayfinding",
           "description": "Richtingaanduidende evenementenborden - bestemmingen, elk met een pijl. Drukklaar.",
           "blurb": "Richtingaanwijzende evenementborden, printklaar"
         },
         "no": {
-          "name": "Veivisning",
+          "name": "Wayfinding",
           "description": "Retningsbestemte hendelsesskilt - destinasjoner, hver med en pil. Trykkeklare.",
           "blurb": "Retningsskilt for arrangementer, trykkeklart"
         },
         "pl": {
-          "name": "Oznakowanie",
+          "name": "Wayfinding",
           "description": "Kierunkowe znaki wydarzeń - miejsca docelowe, każdy ze strzałką. Gotowe do druku.",
           "blurb": "Tablice informacyjne dla wydarzeń, gotowe do druku"
         },
         "pt": {
-          "name": "Sinalização",
+          "name": "Wayfinding",
           "description": "Placas direcionais de eventos - destinos, cada um com uma seta. Prontas para impressão.",
           "blurb": "Placas direcionais para eventos, prontas para impressão"
         },
         "ro": {
-          "name": "Orientare",
+          "name": "Wayfinding",
           "description": "Indicatoare direcționale pentru evenimente - destinații, fiecare cu o săgeată. Gata de tipar.",
           "blurb": "Panouri direcționale pentru evenimente, gata de print"
         },
         "sv": {
-          "name": "Vägvisning",
+          "name": "Wayfinding",
           "description": "Riktningsskyltar för evenemang - destinationer, var och en med en pil. Tryckklara.",
           "blurb": "Riktningsskyltar för evenemang, tryckfärdiga"
         },
@@ -10547,32 +10700,32 @@
           "blurb": "Mga signage ng direksyon para sa event, ready for print"
         },
         "tr": {
-          "name": "Yönlendirme",
+          "name": "Wayfinding",
           "description": "Yönlü etkinlik tabelaları - her biri bir okla, hedefler. Baskıya hazır.",
           "blurb": "Yönlü etkinlik tabelaları, baskıya hazır"
         },
         "uk": {
-          "name": "Навігація",
+          "name": "Wayfinding",
           "description": "Напрямні покажчики подій - напрямки, кожен зі стрілкою. Готово до друку.",
           "blurb": "Напрямні вказівники для заходу, готові до друку"
         },
         "ur": {
-          "name": "راستہ نما",
+          "name": "Wayfinding",
           "description": "سمتی ایونٹ سائنز - منزلیں، ہر ایک تیر کے ساتھ۔ پرنٹ کے لیے تیار۔",
           "blurb": "سمتی ایونٹ سائن، پرنٹ کے لیے تیار"
         },
         "vi": {
-          "name": "Biển Chỉ Dẫn",
+          "name": "Wayfinding",
           "description": "Biển báo sự kiện chỉ hướng - các điểm đến, mỗi cái kèm một mũi tên. Sẵn sàng in.",
           "blurb": "Biển chỉ dẫn sự kiện, sẵn sàng để in"
         },
         "zh-hant": {
-          "name": "導向標示",
+          "name": "Wayfinding",
           "description": "方向指示牌 - 各目的地附箭頭。印刷用。",
           "blurb": "活動方向標示,可直接列印"
         },
         "zh": {
-          "name": "导视",
+          "name": "Wayfinding",
           "description": "方向指示牌 - 目的地及对应箭头。印刷级质量。",
           "blurb": "活动方向标识,可直接打印"
         }

@@ -10,7 +10,9 @@
  * explicit, every shape the app can hand them is accepted:
  *
  *   - embed form ....... https://lolly.tools/tool/qr-code.svg?url=…   (parseEmbedUrl)
- *   - hash share route . https://lolly.tools/#/tool/qr-code?url=…     (the Share dialog)
+ *   - hash share route . https://lolly.tools/#/tool/qr-code?url=…     (legacy share form)
+ *   - canonical path ... https://lolly.tools/t/qr-code?url=…          (the address bar +
+ *                        Share dialog + OG stubs; `/design` is the one vanity path)
  *   - pretty path ...... https://lolly.tools/qr-code?url=…            (the path shortcut)
  *
  * Host is NOT checked for the hash/path forms (a link copied from localhost or a
@@ -52,8 +54,23 @@ const ID_RE = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 // MOVING embed re-renders as motion, not a still, when its id is reloaded.
 const FORMAT_EXT: Record<string, string> = { png: 'png', jpg: 'jpg', jpeg: 'jpg', webp: 'webp', svg: 'svg', pdf: 'pdf', webm: 'webm', mp4: 'mp4', gif: 'gif', apng: 'apng' };
 
-// Top-level app routes that share the pretty-path shape but are NOT tools.
-const APP_ROUTES = new Set(['tool', 'pro', 'platform', 'capabilities', 'profile', 'gallery']);
+// The RESERVED top-level path vocabulary (plan 171, frozen with the id window on
+// 2026-08-28): every single-segment path word the app's router or static deploy
+// owns. A tool id may never equal one of these - validate-catalog enforces that -
+// and the recogniser below uses the same set to keep a pasted app link (e.g.
+// https://lolly.tools/start) from reading as a tool id. `design` is deliberately
+// ABSENT: it is the one sanctioned vanity-path tool. `l` and `a` are pre-reserved
+// for future short-link / asset-link paths (tool ids are >=2 chars, so the single
+// letters are belt-and-braces). Grow this set only alongside the router; entries
+// are forever, like reserved params.
+export const APP_PATH_WORDS = new Set([
+  'tool', 't', 'tools', 'batch', 'pro', 'start', 'verify', 'valid', 'v', 'c',
+  'catalog', 'u', 'utilities', 'p', 'projects', 'd', 'dashboard', 'b', 'brand',
+  'lab', 'unpack', 'pdf', 'docs', 'components', 'ask', 'multi', 'convert', 'data',
+  'script', 'join', 'join-reply', 'profile', 'gallery', 'platform', 'capabilities',
+  'info', 'og', 'api', 'assets', 'fonts', 'ort', 'ort-hf', 'models', 'icons',
+  'l', 'a',
+]);
 
 // Max URL length. Matches parseEmbedUrl's cap so a URL we ACCEPT here and the
 // canonical embed id we MINT from it (buildEmbedUrl) share one bound. The minted
@@ -94,13 +111,16 @@ export function parseToolUrl(src: unknown): ToolUrlRef | null {
     if (hId !== undefined && ID_RE.test(hId)) return { toolId: hId, format: null, query: hQuery };
   }
 
-  // 3) Pretty path shortcut (…/<id> or …/tool/<id>, no extension): the path the
-  //    router rewrites into the hash route on load.
+  // 3) Path forms. `/t/<id>` is the CANONICAL address-bar/Share/OG form - the one
+  //    a user most often copies - so it must parse here (it did not before plan
+  //    171: the recogniser predated the /t/ migration). `/tool/<id>` is the older
+  //    long spelling, and a bare `/<id>` is the pretty shortcut a dedicated deploy
+  //    uses (`/design` rides this branch - it is not in APP_PATH_WORDS).
   const segs = u.pathname.split('/').filter(Boolean);
-  const cand = segs.length === 2 && segs[0] === 'tool' ? segs[1]
+  const cand = segs.length === 2 && (segs[0] === 'tool' || segs[0] === 't') ? segs[1]
     : segs.length === 1 ? segs[0]
       : null;
-  if (cand && ID_RE.test(cand) && !APP_ROUTES.has(cand)) {
+  if (cand && ID_RE.test(cand) && !APP_PATH_WORDS.has(cand)) {
     return { toolId: cand, format: null, query: u.search.replace(/^\?/, '') };
   }
 

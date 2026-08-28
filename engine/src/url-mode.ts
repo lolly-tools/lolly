@@ -31,7 +31,11 @@
  *                  only; ignored by the CLI.
  *   - `output` - output filename (CLI only)
  *   - `filename` - download filename (web shell)
- *   - `_v` - tool version pinning (optional)
+ *   - `_v` - tool version pinning (optional). The `_` PREFIX as a whole is a
+ *                  reserved namespace: any param starting with `_` is skipped before
+ *                  input matching (and the schema/validator refuse `_`-prefixed
+ *                  input ids/urlKeys), so future reserved params minted there can
+ *                  never collide with a tool input.
  *   - `width`/`w`, `height`/`h` - output dimensions (value in `unit`, default px)
  *   - `unit` - physical unit for width/height: px (default), mm, cm, in, pt
  *   - `dpi` - raster resolution for physical units (default 300; px → 96)
@@ -133,8 +137,16 @@
  *                  why it is carried verbatim in UrlState: `frame-address.ts` resolves
  *                  it against the rendered pages for the web fan-out and the CLI alike.
  *                  Build steps are presenter-only - a still export always shows every
- *                  build. (The signage flag `loop` is NOT reserved - see the RESERVED
- *                  set below for why - but travels alongside these as `?present&loop`.)
+ *                  build.
+ *   - `kiosk` - presence flag (web shell only): with `present`, the presenter wraps
+ *                  at the ends and a timed document's transport loops, so
+ *                  `?present&kiosk` is digital signage. Renamed from the unreserved
+ *                  `loop` flag on 2026-08-28 (the last day of the id-break window):
+ *                  `loop` is a live input id in several tools (deck-builder, 3d,
+ *                  flythrough, digi-ad, lottie-digi-ad), so reserving it would have
+ *                  stripped their `?loop=…` value on parse forever, and reading it
+ *                  raw was a standing ambiguity if presentation mode ever reached a
+ *                  tool with a `loop` input. `kiosk` collides with nothing.
  *   - `z` - a PACKED whole-state token (raw DEFLATE + base64url) that carries
  *                  the entire query for complex tools whose readable form would blow
  *                  past practical URL limits. Expanded back into a plain query by
@@ -333,19 +345,31 @@ export interface SerializeUrlOpts {
   /** UI/content language to stamp on a share link (see `lang` in the header
    *  comment). Omitted for English - the implicit default. */
   lang?: string | null;
+  /** Keep device-local `user/…` asset ids in the serialised state (plan 171).
+   *  Default FALSE - the engine-enforced product contract is that a device-local
+   *  id never leaves the device (docs/url-mode.md), so a top-level `user/` asset
+   *  is omitted and a `user/` block sub-field is blanked. The web address bar
+   *  passes true: on the SAME device a refresh/bookmark resolves them fine. */
+  keepUserIds?: boolean;
 }
 
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'full', 'options', 'nostage', 'template', 'preset', 'present', 's', 'z', 'zx']);
-// NOTE on the presentation-mode kiosk flag `loop` (plan 112): it is deliberately
-// NOT in this set. `loop` is a live *input* id in several tools (slides, deck-builder,
-// 3d, digi-ad, lottie-digi-ad - a GIF-playback / animation control), so reserving it
-// would strip their `?loop=…` value on parse. The presenter reads `loop` as a raw
-// presence flag only in design, which has no `loop` input, so there is no
-// ambiguity there; the shell keeps it through shrinkUrl via RESERVED_KEEP instead.
-// If design ever gains a `loop` input, rename the signage flag (e.g. `kiosk`).
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'full', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx']);
+// NOTE on the presentation-mode kiosk flag: it was the unreserved `loop` until
+// 2026-08-28 (plan 171 executed the rename inside the id-break window). `loop` is a
+// live *input* id in several tools (deck-builder, 3d, flythrough, digi-ad,
+// lottie-digi-ad - a GIF-playback / animation control), so reserving IT would strip
+// their `?loop=…` value on parse; reading it raw was a standing ambiguity instead.
+// `kiosk` collides with no input id or urlKey in any profile (checked at the rename,
+// and validate-catalog now rejects new collisions with RESERVED outright).
+//
+// The `_` PREFIX IS RESERVED FOREVER (plan 171, same window): parseUrlState skips
+// any param whose name starts with '_' before input matching, the schema/validator
+// refuse `_`-prefixed input ids and urlKeys, and future reserved params must be
+// minted from that namespace (`_v` is the founding member) so they can never
+// collide with a shipped tool's input the way `loop` did.
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -498,6 +522,10 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
 
   for (const [key, raw] of params.entries()) {
     if (RESERVED.has(key)) continue;
+    // The `_` prefix is a reserved namespace (see the RESERVED note): a key minted
+    // there in a future engine must read as an unknown control on an old one, never
+    // as a tool input - and no input may claim such a name (validator-enforced).
+    if (key.startsWith('_')) continue;
     const vec = vectorFieldByKey[key];
     if (vec) {
       const n = Number(raw);
@@ -597,7 +625,12 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
       const t = normalizeTableValue(input.value);
       if (!t || (!t.columns.length && !t.rows.length)) continue;
     }
-    params.set(input.id, coerceToString(input, input.value));
+    const str = coerceToString(input, input.value, opts.keepUserIds === true);
+    // A device-local `user/…` asset id never leaves the device (plan 171 made this
+    // an engine guarantee, not a web-shell courtesy): omit the param entirely so
+    // the recipient's tool falls back to its default instead of a dead ref.
+    if (input.type === 'asset' && opts.keepUserIds !== true && str.startsWith('user/')) continue;
+    params.set(input.id, str);
   }
   if (opts.format) params.set('format', opts.format);
   if (opts.export) params.set('export', '');
@@ -680,7 +713,7 @@ function coerceFromString(input: InputSpec, raw: string): InputValue {
   }
 }
 
-function coerceToString(input: UrlSerializableInput, value: InputValue): string {
+function coerceToString(input: UrlSerializableInput, value: InputValue, keepUserIds = false): string {
   if (input.type === 'boolean') return value ? '1' : '0';
   if (input.type === 'asset' && value && typeof value === 'object') {
     const ref = value as AssetRef;
@@ -692,10 +725,16 @@ function coerceToString(input: UrlSerializableInput, value: InputValue): string 
   // A token-backed colour serialises to its reference ('{color.brand.jungle}'),
   // so a shared link re-resolves against the destination's tokens (canonical).
   if (input.type === 'color' && isTokenValue(value)) return value.ref;
-  // Baked refs in block sub-fields get the same degradation as top-level assets
-  // (blocksForUrl) - otherwise a frozen block image would inline its whole
-  // data: URL into the query and blow every link-length ceiling.
-  if (input.type === 'blocks') return JSON.stringify(blocksForUrl(value) ?? []);
+  // Blocks emit the compact tilde form (plan 171: engine-owned, so CLI/web links
+  // match byte-for-byte; the encoder handles baked refs via assetIdForUrl and the
+  // user/ policy per field). The JSON fallback covers what compact structurally
+  // can't carry: an empty array, or an input with no declared fields - there
+  // blocksForUrl still degrades baked refs so a frozen image never inlines its
+  // data: URL into the query.
+  if (input.type === 'blocks') {
+    const compact = encodeBlocksCompact(value, input.fields ?? [], { keepUserIds });
+    return compact ?? JSON.stringify(blocksForUrl(value) ?? []);
+  }
   if (input.type === 'table') return encodeTableCompact(normalizeTableValue(value));
   // 'vector' is serialised per-field in serializeUrlState, not here.
   return String(value);
@@ -743,6 +782,68 @@ function decodeBlocksCompact(str: string, fields: BlockFieldSpec[]): InputValue[
     });
     return obj;
   });
+}
+
+/** A real hex colour (`#rgb`..`#rrggbbaa`) - only these lose their '#' in the
+ *  compact blocks form (restored by decodeBlocksCompact). A CSS var()/keyword/token
+ *  colour is left verbatim. */
+const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
+
+/**
+ * Encode a blocks array into the compact tilde-delimited URL format, or null only
+ * when it structurally can't be one (not an array, empty, or no declared fields) -
+ * the caller falls back to the lossless JSON form.
+ *
+ * Engine-owned since plan 171 (moved from the web shell's lib/blocks-url.ts, which
+ * now re-exports it) so every shell mints the SAME compact link for the same state:
+ * before the move, the CLI/engine path always emitted the 1.5-10x larger JSON form.
+ *
+ * Format: rows joined by '~', each row its declared fields joined by ',' in FIELD
+ * ORDER - the order IS the wire format, so a blocks `fields` list is append-only
+ * forever (schemas/blocks-wire-order.json pins every list; validate-catalog
+ * enforces it). Each value is encodeURIComponent'd with '~' hand-escaped (it is
+ * unreserved, so encodeURIComponent leaves it raw and it would split the row);
+ * real hex colours drop their '#'; trailing empty fields are trimmed (decode
+ * re-pads). The compact string is a query-param VALUE and always travels through
+ * one more url-encode layer (URLSearchParams / encodeURIComponent), so the load
+ * boundary's single decode restores in-value %2C/%7E escapes intact - same
+ * discipline as encodeTableCompact.
+ *
+ * `keepUserIds` is the ADDRESS-BAR variant: a `user/…` upload id is device-local,
+ * so it resolves on a refresh/bookmark of THIS device; everywhere else it is
+ * blanked - a link that referenced one would not resolve on another device.
+ */
+export function encodeBlocksCompact(
+  items: InputValue,
+  fields: BlockFieldSpec[],
+  opts: { keepUserIds?: boolean } = {},
+): string | null {
+  if (!Array.isArray(items) || !items.length || !fields.length) return null;
+  const cell = (s: string): string => encodeURIComponent(s).replace(/~/g, '%7E');
+  return items.map(item => {
+    const row = (item && typeof item === 'object' ? item : {}) as Record<string, InputValue | undefined>;
+    const vals = fields.map(f => {
+      // A row that OMITS a field means "the field's declared default" (the JSON
+      // wire form preserved that by omission), but this positional form has no
+      // absent token - decode re-pads a missing part to an explicit '' - so the
+      // default must be materialised at encode time or a sparse row (a hook /
+      // composition seed) loses it on the round-trip. An explicit '' (a cleared
+      // field) still encodes as '' and stays cleared.
+      const raw = row[f.id] !== undefined ? row[f.id] : (f as { default?: InputValue }).default;
+      // Asset sub-fields hold an AssetRef - share its link-safe id (a baked ref
+      // shares as its provenance URL via assetIdForUrl, never its data: bytes).
+      if (f.type === 'asset') {
+        const id = raw && typeof raw === 'object' ? assetIdForUrl(raw as AssetRef) : '';
+        return cell(id && (opts.keepUserIds || !String(id).startsWith('user/')) ? String(id) : '');
+      }
+      let v = String(raw ?? '');
+      if (f.type === 'color' && HEX_COLOR.test(v)) v = v.slice(1);
+      return cell(v);
+    });
+    let end = vals.length;
+    while (end > 0 && vals[end - 1] === '') end--;
+    return vals.slice(0, end).join(',');
+  }).join('~');
 }
 
 /**

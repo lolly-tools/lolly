@@ -165,18 +165,22 @@ const VIEWS: View[] = [
     icon: mark('<path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/>'),
   },
   {
-    slug: 'pro',
+    // Canonical route name since 2026-08-20 (#/batch); /pro stays a rewrite alias
+    // in vercel.json so old shared links keep their OG card (plan 171).
+    slug: 'batch',
     title: 'Batch mode',
     description: 'Hundreds of assets from one spreadsheet, a row at a time.',
-    hash: '#/pro',
+    hash: '#/batch',
     // checklist - lib/icons.ts
     icon: mark('<path d="M9 6h11M9 12h11M9 18h11"/><path d="m3 6 1.3 1.3L6.5 5"/><path d="m3 12 1.3 1.3 2.2-2.3"/><path d="m3 18 1.3 1.3 2.2-2.3"/>'),
   },
   {
-    slug: 'pdf',
+    // Canonical route name (#/unpack); /pdf stays a rewrite alias in vercel.json
+    // so old shared links keep their OG card (plan 171).
+    slug: 'unpack',
     title: 'Take a PDF apart',
     description: 'Pull the text, images and vectors out of any PDF, on your device.',
-    hash: '#/pdf',
+    hash: '#/unpack',
     // document - lib/icons.ts
     icon: mark('<path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'),
   },

@@ -25,7 +25,8 @@
           "checksum": "sha256-7I1q4blBou5bFjLLr9vSg6cG+t6QsTe2xp9BBJ8GRj8=",
           "size": 5895
         }
-      ]
+      ],
+      "added": "2026-07-08"
     },
     {
       "id": "lolly/logo/primary",
@@ -47,7 +48,8 @@
           "checksum": "sha256-NWmujlVZ1zygr2em+Zf3aFJUrr3l1OJK9w2O7Sz+8rY=",
           "size": 19479
         }
-      ]
+      ],
+      "added": "2026-08-23"
     },
     {
       "id": "lolly/logo/reverse",
@@ -70,7 +72,8 @@
           "checksum": "sha256-zXo3qFxarWE1FeQyfE+2q47t4RwDhm7lnq2BznFe56s=",
           "size": 20301
         }
-      ]
+      ],
+      "added": "2026-08-23"
     },
     {
       "id": "lolly/logo/mono",
@@ -92,7 +95,8 @@
           "checksum": "sha256-WIAYZJMPOpN9KRvRutBVHKse7+3wG9AeKKRAMhnYkLk=",
           "size": 17711
         }
-      ]
+      ],
+      "added": "2026-08-23"
     },
     {
       "id": "lolly/logo/mono-reverse",
@@ -115,7 +119,8 @@
           "checksum": "sha256-HKdZbrfwOO9hBPfk0US9n1LjpC7PO97O7awGIqfva/w=",
           "size": 15448
         }
-      ]
+      ],
+      "added": "2026-08-23"
     },
     {
       "id": "lolly/palette/photo-treatments",
@@ -135,7 +140,8 @@
           "checksum": "sha256-fn/lU3DaRkqk8w1/bgSS2MluZ2ybJTqFyEgP0XaToag=",
           "size": 839
         }
-      ]
+      ],
+      "added": "2026-07-17"
     },
     {
       "id": "lolly/palette/icon-themes",
@@ -155,7 +161,8 @@
           "checksum": "sha256-aQmurROi2BCjIJK1cS+s9PkSEIKGflqr+ziWj95N6uM=",
           "size": 636
         }
-      ]
+      ],
+      "added": "2026-07-17"
     },
     {
       "id": "lolly/palette/riso-inks",
@@ -179,7 +186,8 @@
           "checksum": "sha256-UJ3thKapRCUQ0eoz4N7nJX5J/noXoGfk4lxaLoKR7jg=",
           "size": 3437
         }
-      ]
+      ],
+      "added": "2026-07-31"
     },
     {
       "id": "lolly/loops/pixel-quest-save-point",
@@ -206,7 +214,8 @@
         }
       ],
       "license": "CC0-1.0",
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/loops/breezy-afternoon-terrace",
@@ -233,7 +242,8 @@
         }
       ],
       "license": "CC0-1.0",
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/loops/rain-on-the-boulevard",
@@ -260,7 +270,8 @@
         }
       ],
       "license": "CC0-1.0",
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/loops/fireplace-loop",
@@ -287,7 +298,8 @@
         }
       ],
       "license": "CC0-1.0",
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/loops/first-coffee-thoughts",
@@ -314,7 +326,8 @@
         }
       ],
       "license": "CC0-1.0",
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/loops/continue-screen-dreams",
@@ -341,7 +354,8 @@
         }
       ],
       "license": "CC0-1.0",
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/loops/slow-dance-in-the-living-room",
@@ -368,7 +382,8 @@
         }
       ],
       "license": "CC0-1.0",
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/loops/3-am-echoes",
@@ -395,7 +410,8 @@
         }
       ],
       "license": "CC0-1.0",
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/loops/after-school-rain",
@@ -422,7 +438,8 @@
         }
       ],
       "license": "CC0-1.0",
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/loops/3am-sink-light",
@@ -449,7 +466,8 @@
         }
       ],
       "license": "CC0-1.0",
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/loops/saxophone-in-the-rain",
@@ -476,7 +494,8 @@
         }
       ],
       "license": "CC0-1.0",
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/loops/empty-street-static",
@@ -503,7 +522,8 @@
         }
       ],
       "license": "CC0-1.0",
-      "aiGenerated": "full"
+      "aiGenerated": "full",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/songs/drift",
@@ -528,7 +548,8 @@
           "size": 962
         }
       ],
-      "license": "CC0-1.0"
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/songs/amber-glow",
@@ -554,7 +575,8 @@
           "size": 946
         }
       ],
-      "license": "CC0-1.0"
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/songs/tide-pool",
@@ -581,7 +603,8 @@
           "size": 924
         }
       ],
-      "license": "CC0-1.0"
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/songs/paper-lanterns",
@@ -606,7 +629,8 @@
           "size": 974
         }
       ],
-      "license": "CC0-1.0"
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/songs/meadow",
@@ -631,7 +655,8 @@
           "size": 974
         }
       ],
-      "license": "CC0-1.0"
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/songs/bn-copacabana-breeze",
@@ -657,7 +682,8 @@
           "size": 1037
         }
       ],
-      "license": "CC0-1.0"
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/songs/ct-turbo-dash",
@@ -684,7 +710,8 @@
           "size": 1287
         }
       ],
-      "license": "CC0-1.0"
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/songs/ct-pixel-quest",
@@ -711,7 +738,8 @@
           "size": 1106
         }
       ],
-      "license": "CC0-1.0"
+      "license": "CC0-1.0",
+      "added": "2026-07-10"
     },
     {
       "id": "lolly/modules/aleja-deszczu",
@@ -739,7 +767,8 @@
           "durationMs": 193333
         }
       ],
-      "license": "CC-PDDC"
+      "license": "CC-PDDC",
+      "added": "2026-07-29"
     },
     {
       "id": "lolly/modules/blue-intermission",
@@ -768,7 +797,8 @@
           "durationMs": 237188
         }
       ],
-      "license": "CC0-1.0"
+      "license": "CC0-1.0",
+      "added": "2026-07-29"
     },
     {
       "id": "lolly/modules/headspin",
@@ -797,7 +827,8 @@
           "durationMs": 205232
         }
       ],
-      "license": "CC0-1.0"
+      "license": "CC0-1.0",
+      "added": "2026-07-29"
     },
     {
       "id": "lolly/modules/jazzical-interpolation",
@@ -826,7 +857,8 @@
           "durationMs": 152295
         }
       ],
-      "license": "CC-PDDC"
+      "license": "CC-PDDC",
+      "added": "2026-07-29"
     },
     {
       "id": "lolly/modules/wild-perspective",
@@ -854,7 +886,8 @@
           "durationMs": 88320
         }
       ],
-      "license": "CC-PDDC"
+      "license": "CC-PDDC",
+      "added": "2026-07-29"
     },
     {
       "id": "lolly/modules/take-a-walk",
@@ -882,7 +915,8 @@
           "durationMs": 79680
         }
       ],
-      "license": "CC-PDDC"
+      "license": "CC-PDDC",
+      "added": "2026-07-29"
     },
     {
       "id": "lolly/modules/jazznocn",
@@ -910,7 +944,8 @@
           "durationMs": 176160
         }
       ],
-      "license": "CC-PDDC"
+      "license": "CC-PDDC",
+      "added": "2026-07-29"
     },
     {
       "id": "lolly/demo/lolly-spin",
@@ -938,7 +973,8 @@
           "height": 542,
           "size": 10628
         }
-      ]
+      ],
+      "added": "2026-08-10"
     },
     {
       "id": "lolly/demo/app-screenshot",
@@ -964,7 +1000,8 @@
           "height": 900,
           "size": 618013
         }
-      ]
+      ],
+      "added": "2026-08-14"
     }
   ]
 }

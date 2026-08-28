@@ -28,6 +28,8 @@
     "profile:start": "node scripts/use-profile.ts lolly-start",
     "ingest:brand": "node scripts/ingest-brand.ts",
     "ingest:boilerplate": "node scripts/ingest-epub.ts",
+    "compose:deck": "node scripts/compose-deck.ts",
+    "models:vendor": "node scripts/vendor-models.ts",
     "translate": "node scripts/translate.ts",
     "dev:web": "node scripts/dev-web.ts",
     "build:ort": "node scripts/copy-ort.ts && node scripts/copy-transformers-ort.ts",

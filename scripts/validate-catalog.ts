@@ -76,6 +76,10 @@ import { verifySharedRegions } from './sync-shared-hooks.ts';
 // re-sniffs and compares). Same import-without-side-effect pattern as above:
 // that module only rewrites the index when run directly.
 import { depthForFormat } from './checksum-assets.ts';
+// The committed asset date map, read from the module that WRITES `added` into the
+// index, for the same reason: one definition of the expected date, so the guard
+// below cannot agree with a stale one.
+import { ADDED_DATES as ASSET_ADDED_DATES } from './checksum-assets.ts';
 // The blank-preview probe's thresholds and report name (plans/155 Task 4.4). Imported for
 // the same reason as everything else here: the gate below judges rows the probe wrote, so a
 // threshold it re-stated would be a second definition free to drift from the one that
@@ -89,6 +93,7 @@ import { RESERVED_SUBCOMMANDS } from '../shells/cli/src/args.ts';
 // parseUrlState skips every reserved key, so the value silently won't apply. See
 // the reserved-id guard below.
 import { RESERVED } from '../engine/src/url-mode.ts';
+import { APP_PATH_WORDS } from '../engine/src/tool-url.ts';
 // `canvas.*Field` → sub-field-id existence. The schema closes the canvas key SET;
 // this closes the reference side, which no JSON Schema can (it has to look at a
 // SIBLING array). Pure module so tests can drive it without running the script.
@@ -103,6 +108,17 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PROFILE_FIELDS = new Set([
   'firstname', 'lastname', 'email', 'phone', 'city', 'country', 'headshot',
 ]);
+
+// The compact blocks URL form is POSITIONAL (decodeBlocksCompact maps parts onto
+// fields by declared order), so a blocks input's field ORDER is a permanent wire
+// contract - one field reordered, renamed or removed scrambles every link ever
+// shared. schemas/blocks-wire-order.json pins every list; the per-tool check below
+// refuses anything but a pure append, and an append must ratchet the fixture
+// forward in the same change (the diagnostic prints the exact replacement line).
+// Plan 171, frozen with the id window on 2026-08-28.
+const WIRE_ORDER: Record<string, string[]> = JSON.parse(
+  readFileSync(join(ROOT, 'schemas/blocks-wire-order.json'), 'utf8'),
+).inputs;
 
 // ─── Load schemas ───────────────────────────────────────────────────────────
 
@@ -167,6 +183,18 @@ for (const dir of toolDirs) {
       `[${dir}] tool id "${manifest.id}" is a reserved CLI subcommand word ` +
       `(${RESERVED_SUBCOMMANDS.join(', ')}) - \`lolly ${manifest.id}\` would run the verb, ` +
       `so the tool would be permanently unreachable. Rename the tool.`,
+    );
+  }
+  // A tool id may never be a reserved top-level path word (plan 171, frozen with
+  // the id window): the router and the static deploy own those single-segment
+  // paths, so `/-<id>` deep links, OG stubs and the pasted-link recogniser would
+  // all collide. `design` is the one sanctioned vanity-path tool and is absent
+  // from the set by construction.
+  if (APP_PATH_WORDS.has(manifest.id)) {
+    errors.push(
+      `[${dir}] tool id "${manifest.id}" is a reserved top-level path word ` +
+      `(engine/src/tool-url.ts APP_PATH_WORDS) - the app router owns that path, ` +
+      `so the tool's own links could never resolve. Rename the tool.`,
     );
   }
   seenToolIds.add(manifest.id);
@@ -264,6 +292,78 @@ for (const dir of toolDirs) {
   for (const input of manifest.inputs) {
     if (RESERVED.has(input.id) && !DIMENSIONAL_IDS.has(input.id)) {
       errors.push(`[${dir}] input "${input.id}" collides with a reserved URL/export parameter - it can never be set via URL or CLI (parseUrlState skips reserved keys). Rename it; the id-break window is the time to. Sanctioned overlaps: ${[...DIMENSIONAL_IDS].join(', ')}.`);
+    }
+  }
+
+  // urlKey wire-contract guards (plan 171, frozen with the id window). A urlKey is
+  // transport: parseUrlState keys inputs by BOTH id and urlKey, last declaration
+  // wins silently - so a duplicate, a reserved name, or a key shadowing another
+  // input's id ships a link param that quietly sets the wrong input or nothing.
+  // The `_` prefix is the reserved namespace future engine params are minted from,
+  // so no id or urlKey may claim it (the schema also refuses both).
+  {
+    const claimed = new Map<string, string>(); // key -> "input <id>" that claimed it
+    for (const input of manifest.inputs) claimed.set(input.id, `input "${input.id}" (id)`);
+    for (const input of manifest.inputs) {
+      if (input.id.startsWith('_')) {
+        errors.push(`[${dir}] input id "${input.id}" starts with "_" - that prefix is the reserved URL-param namespace (parseUrlState skips it), so the input could never be set via URL or CLI.`);
+      }
+      const uk = (input as { urlKey?: unknown }).urlKey;
+      if (typeof uk !== 'string') continue;
+      if (uk.startsWith('_')) {
+        errors.push(`[${dir}] input "${input.id}" urlKey "${uk}" starts with "_" - reserved namespace, the alias would never parse.`);
+      }
+      if (RESERVED.has(uk)) {
+        errors.push(`[${dir}] input "${input.id}" urlKey "${uk}" is a reserved URL/export parameter - the alias would never parse (parseUrlState strips reserved keys first).`);
+      }
+      const prior = claimed.get(uk);
+      if (prior && uk !== input.id) {
+        errors.push(`[${dir}] input "${input.id}" urlKey "${uk}" collides with ${prior} - parseUrlState keys inputs by both id and urlKey, so one of them silently wins.`);
+      } else {
+        claimed.set(uk, `input "${input.id}" (urlKey)`);
+      }
+    }
+    // Blocks field ORDER is a positional wire contract - see WIRE_ORDER above.
+    for (const input of manifest.inputs) {
+      const fields = (input as { fields?: Array<{ id: string }> }).fields;
+      if (input.type !== 'blocks' || !Array.isArray(fields)) continue;
+      const key = `${manifest.id}:${input.id}`;
+      const current = fields.map(f => f.id);
+      const pinned = WIRE_ORDER[key];
+      if (!pinned) {
+        errors.push(`[${dir}] blocks input "${input.id}" is not pinned in schemas/blocks-wire-order.json - its field order is a permanent wire contract (positional compact URLs). Add:\n    "${key}": ${JSON.stringify(current)}`);
+        continue;
+      }
+      if (!pinned.every((id, i) => current[i] === id)) {
+        errors.push(`[${dir}] blocks input "${input.id}" BREAKS its pinned wire order - a shipped link now decodes with fields shifted. NEVER reorder, rename or remove a blocks field; append only.\n    pinned:  ${JSON.stringify(pinned)}\n    current: ${JSON.stringify(current)}`);
+        continue;
+      }
+      if (current.length > pinned.length) {
+        errors.push(`[${dir}] blocks input "${input.id}" appended field(s) ${JSON.stringify(current.slice(pinned.length))} - fine, but ratchet the pin forward in the same change. Replace the schemas/blocks-wire-order.json entry with:\n    "${key}": ${JSON.stringify(current)}`);
+      }
+    }
+
+    // Block-field urlKeys: unique within their own blocks input (the JSON form and
+    // any future keyed encoding address fields by these; a duplicate is silent
+    // last-wins), and never `_`-prefixed.
+    for (const input of manifest.inputs) {
+      const fields = (input as { fields?: Array<{ id: string; urlKey?: unknown }> }).fields;
+      if (input.type !== 'blocks' || !Array.isArray(fields)) continue;
+      const seen = new Map<string, string>();
+      for (const f of fields) seen.set(f.id, `field "${f.id}" (id)`);
+      for (const f of fields) {
+        const uk = f.urlKey;
+        if (typeof uk !== 'string') continue;
+        if (uk.startsWith('_')) {
+          errors.push(`[${dir}] blocks input "${input.id}" field "${f.id}" urlKey "${uk}" starts with "_" - reserved namespace.`);
+        }
+        const prior = seen.get(uk);
+        if (prior && uk !== f.id) {
+          errors.push(`[${dir}] blocks input "${input.id}" field "${f.id}" urlKey "${uk}" collides with ${prior}.`);
+        } else {
+          seen.set(uk, `field "${f.id}" (urlKey)`);
+        }
+      }
     }
   }
 
@@ -738,15 +838,9 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
       '24,387 B brotli where the WebP transfers all 747,526 - the disk cost buys a picture ' +
       'that is right on every platform, the wire cost is the reverse.',
   },
-  'street-map.look1.webp': {
-    max: 256 * 1024,
-    why:
-      'Tokyo neon, the densest street network in the set: 244,960 B of WebP at the 1024 px ' +
-      'cap against 279,881 B of SVG (10 paths, the largest a 167,764-char `d`), so vector is ' +
-      'not the way out. Quality alone does not clear it either - q60 at full size is still ' +
-      '163 KB; it needs an 896 px cap, which is a decision about every look capture, not ' +
-      'this file. lolly-start only; the suse profile excludes street-map.',
-  },
+  // (street-map.look1.webp shipped an exception here until the 2026-08-28 full
+  // re-capture brought it to 139 KB - inside the 150 KB look budget, so the
+  // ceiling died with its reason.)
 };
 
 {
@@ -1152,6 +1246,13 @@ for (const asset of assetsIndex.assets) {
       errors.push(`[asset ${(asset as { id: string }).id}] schema: ${err.instancePath || '/'} ${err.message}`);
     }
     continue;
+  }
+
+  // `added` is generated, never hand-authored: it must be exactly what the
+  // committed date map says, in both directions, or the index is stale.
+  const expectedAdded = ASSET_ADDED_DATES[asset.id];
+  if (asset.added !== expectedAdded) {
+    errors.push(`[asset ${asset.id}] added "${asset.added ?? '(absent)'}" does not match the committed date map's "${expectedAdded ?? '(absent)'}" - run \`npm run build:catalog\``);
   }
 
   // Format files exist on disk, and their checksums match the actual bytes?
