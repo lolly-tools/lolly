@@ -42,6 +42,7 @@
     "lint:fix": "biome lint --write",
     "format": "biome format --write",
     "pack:engine": "node scripts/pack-engine.ts",
+    "gen:chrome-tokens": "node scripts/gen-chrome-tokens.ts",
     "build:catalog": "node scripts/build-catalog-index.ts && node scripts/checksum-assets.ts && node scripts/build-preview-bundle.ts",
     "build:pack": "node scripts/build-instance-pack.ts",
     "build:catalog:all": "node scripts/build-catalog-all.ts",
