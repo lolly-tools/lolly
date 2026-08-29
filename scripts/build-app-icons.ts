@@ -151,8 +151,15 @@ async function main(): Promise<void> {
     return;
   }
   let master: Buffer;
+  // The docs hero's still cover derives from the RICH 3-D mark (icon-primary.svg),
+  // not the flat mark the PWA rasters use - see the hero-still block below.
+  const PRIMARY = resolve(ROOT, 'icon-primary.svg');
+  let primaryMaster: Buffer | null = null;
   try {
     master = await rasterizer.rasterize(staticIconSvg(readFileSync(SOURCE, 'utf8')), { width: MASTER, height: MASTER, background: 'transparent' });
+    if (existsSync(PRIMARY)) {
+      primaryMaster = await rasterizer.rasterize(staticIconSvg(readFileSync(PRIMARY, 'utf8')), { width: MASTER, height: MASTER, background: 'transparent' });
+    }
   } finally {
     await rasterizer.close();
   }
@@ -173,6 +180,17 @@ async function main(): Promise<void> {
   writeFileSync(join(webIcons, 'icon-512-maskable.png'), await iconPng(master, 512, PINE, 0.14));
   writeFileSync(join(webIcons, 'apple-touch-icon.png'), await iconPng(master, 180, PINE, 0.06));
   console.log('✓ web icons (192, 512, 512-maskable, apple-touch)');
+
+  // ── Docs hero still - a static frame of the 3-D primary mark. ──
+  // The /info hero animates the signed icon.svg; `.hero-logo-still` covers it at
+  // rest (and stays under reduced motion) with a static raster. It used to borrow
+  // icon-512.png, which silently regressed the hero the day the PWA rasters
+  // switched to the flat mark - so the still gets its own derivative, bound to its
+  // own source (icon-primary.svg, the glossy 3-D lollipop).
+  if (primaryMaster) {
+    writeFileSync(join(webIcons, 'hero-still.png'), await iconPng(primaryMaster, 512, TRANSPARENT));
+    console.log('✓ web icons hero-still.png (from icon-primary.svg)');
+  }
 
   // ── favicon.ico - 16/32/48, transparent. ──
   const favSizes = [16, 32, 48];
