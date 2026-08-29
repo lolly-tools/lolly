@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.156.0 - a brand's typefaces travel with its palette (plans/173 slice 1).
+`paletteTokensJson` (palette-export) takes an optional `PaletteTokensOpts`:
+`fonts: [{role, families}]` emits DTCG `fontFamilies` tokens under `font.<role>`
+beside the colour leaves - the shape Penpot (>= 2.6) and Tokens Studio import
+natively, and the same group vocabulary the web shell's chrome scale uses.
+Additive: existing single-argument call sites emit byte-identical output.
+
 1.155.0 - URL contract freeze (plans/171), executed on the last day of the id-break
 window. Parse surface is strictly widened; the one behavioural break is app-level:
 - BREAK (app flag, not bridge): the presenter kiosk flag renamed `loop` → `kiosk`
@@ -3181,3 +3188,4 @@ manifest store as a GEOB frame in the leading ID3v2 tag (existing frames kept,
 re-stamp replaces, the whole tag excluded from the hard binding), with sniff +
 extraction so verify reads it back. No signature changed and existing manifests
 hash identically.
+

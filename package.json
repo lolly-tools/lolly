@@ -97,6 +97,7 @@
     "mcp:install-browser": "node services/mcp/scripts/install-browser.ts",
     "build:mcp-fn": "node scripts/build-mcp-fn.ts",
     "build:ca-fn": "node scripts/build-ca-fn.ts",
+    "build:penpot-fn": "node scripts/build-penpot-fn.ts",
     "dev:desktop": "cd shells/tauri-desktop && npm run dev",
     "build:desktop": "cd shells/tauri-desktop && npm run build",
     "dev:android": "cd shells/tauri-mobile && npm run dev:android",

@@ -346,9 +346,9 @@ jobs:
         run: npm ci
 
       - name: Rebuild the api/ function bundles
-        run: npm run build:mcp-fn && npm run build:ca-fn
+        run: npm run build:mcp-fn && npm run build:ca-fn && npm run build:penpot-fn
 
-      - name: No drift (stale bundle? rerun build:mcp-fn / build:ca-fn and commit)
+      - name: No drift (stale bundle? rerun build:mcp-fn / build:ca-fn / build:penpot-fn and commit)
         run: git diff --exit-code -- api/
 
   # Self-test of the in-tree composite action (action/ - ready to split into

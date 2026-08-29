@@ -54,8 +54,22 @@ const isPlainObj = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
 
 /** A DTCG tokens document, colour leaves only, nested by each swatch's dotted key. */
-export function paletteTokensJson(swatches: PaletteSwatch[]): string {
+/** Optional non-colour extras a brand tokens export may carry alongside the
+ *  palette. `fonts` become DTCG `fontFamilies` tokens under `font.<role>` -
+ *  the shape Penpot (>= 2.6) and Tokens Studio import natively, and the same
+ *  group/vocabulary the chrome scale uses (font.brand / font.mono), so a
+ *  brand's faces travel with its colours instead of staying behind in the app. */
+export interface PaletteTokensOpts {
+  fonts?: Array<{ role: string; families: string[] }>;
+}
+
+export function paletteTokensJson(swatches: PaletteSwatch[], opts?: PaletteTokensOpts): string {
   const root: Record<string, unknown> = {};
+  for (const f of opts?.fonts ?? []) {
+    if (!f.families.length) continue;
+    const font = (root.font ??= {}) as Record<string, unknown>;
+    font[f.role] = { $value: f.families, $type: 'fontFamilies' };
+  }
   for (const s of resolved(swatches)) {
     const segs = s.key.split('.');
     let node = root;

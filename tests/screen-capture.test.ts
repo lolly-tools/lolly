@@ -381,8 +381,12 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // namespace, /t/ recognised by parseToolUrl, engine-owned encodeBlocksCompact +
   // keepUserIds. Parse strictly widens; no HostV1 change - see engine.test.ts +
   // tool-url.test.ts).
+  // Then 1.156.0 (plans/173 slice 1: paletteTokensJson gains optional
+  // PaletteTokensOpts.fonts - fontFamilies tokens beside the colour leaves so a
+  // brand's faces travel to Penpot/Tokens Studio. Additive; single-argument
+  // call sites emit byte-identical output - see palette-export.test.ts).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.155.0');
+  assert.equal(ENGINE_VERSION, '1.156.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

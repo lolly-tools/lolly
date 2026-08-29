@@ -244,6 +244,7 @@ lolly-url-screenshot-*.zip
 # present at Vercel function-detection time; buildCommand regenerates it fresh each deploy.
 api/mcp/[...path].js.map
 api/ca/[...path].js.map
+api/penpot/[...path].js.map
 .env*
 
 # ── Profile views ────────────────────────────────────────────────────────────
