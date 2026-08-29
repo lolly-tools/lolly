@@ -11,7 +11,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, lstatSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -250,13 +250,36 @@ function anyNumericRate(v: unknown): boolean {
   return false;
 }
 
+// The scan is a whole-repo sweep, so it meets whatever a developer's checkout
+// happens to contain - including build output that is gitignored but still on
+// disk. Three things follow, all of them found by one flatpak build:
+//
+//  - NEVER FOLLOW A SYMLINK. This is the one that matters. flatpak-builder stages
+//    an unpacked root filesystem, and `flatpak/build-dir/var/run` is a symlink to
+//    the real `/run`. statSync resolves symlinks, so the walk left the repository
+//    and began enumerating the live system - unreadable directories, live mounts
+//    and all. It first showed up as an EACCES crash on /run/.../audit; guarding
+//    that crash alone only turned it into a walk that never finished. lstatSync,
+//    and no descent into a symlink: a symlink points either somewhere already
+//    walked or somewhere that is not this repository, so it can hold no shipped
+//    rate card either way.
+//  - readdirSync needs the same try/catch statSync always had, for a directory
+//    that is simply unreadable.
+//  - dot-directories and `target` are skipped: tool state (.flatpak-builder,
+//    .vercel) and Rust build output (3.4 GB, 2286 .json files in this checkout),
+//    never shipped content.
 function walkJson(dir: string, out: string[]): void {
-  for (const name of readdirSync(dir)) {
-    if (name === 'node_modules' || name === '.git' || name === 'dist' || name === 'build' ||
-        name === 'coverage' || name === 'tools' || name === 'catalog') continue;
+  let names: string[];
+  try { names = readdirSync(dir); } catch { return; }
+  for (const name of names) {
+    if (name.startsWith('.')) continue;
+    if (name === 'node_modules' || name === 'dist' || name === 'build' ||
+        name === 'coverage' || name === 'tools' || name === 'catalog' ||
+        name === 'target') continue;
     const abs = join(dir, name);
     let st;
-    try { st = statSync(abs); } catch { continue; }
+    try { st = lstatSync(abs); } catch { continue; }
+    if (st.isSymbolicLink()) continue;
     if (st.isDirectory()) walkJson(abs, out);
     else if (name.endsWith('.json')) out.push(abs);
   }

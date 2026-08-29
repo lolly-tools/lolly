@@ -70,9 +70,9 @@ const tailSection = siteSections[siteSections.length - 1]!;
 // no longer apply to them (the landing keeps a one-line teaser, which lives in
 // build.ts and IS scanned).
 const LANDING_JSON = [
-  'about-items.json', 'assure.json', 'audience-chrome.json', 'everywhere.json',
-  'hero-chrome.json', 'pathways.json', 'platform-chrome.json', 'qol.json',
-  'social-proof.json', 'whats-a-tool.json', 'why.json',
+  'about-items.json', 'assure.json', 'audience-chrome.json', 'downloads.json',
+  'everywhere.json', 'hero-chrome.json', 'pathways.json', 'platform-chrome.json',
+  'qol.json', 'social-proof.json', 'whats-a-tool.json', 'why.json',
 ];
 const LANDING_SITE_MD = ['about.md', 'opensource.md'];
 const MOVED_OFF_LANDING = ['formats.json', 'formats-catalog.json', 'import.json'];
