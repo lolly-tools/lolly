@@ -25,6 +25,11 @@
  *  6. tauri.conf.json bundle.fileAssociations names .lolly with the canonical MIME.
  *  7. systemd example units - basic ini shape, no ExecStart into a repo-absolute
  *     path that does not exist.
+ *  8. AUR recipe (linux/arch/PKGBUILD + .SRCINFO) - mandatory fields, pinned
+ *     pkgname/license spellings, the source URL derived from $pkgver on host
+ *     lolli.li, real sha256 (64 hex, never SKIP), .SRCINFO generated-not-drifted
+ *     against the PKGBUILD, and pkgver locked to tauri.conf.json's version so a
+ *     release bump loudly demands the AUR ritual.
  *
  * All parsing here is intentionally small and local (INI + XML well-formedness) -
  * the point is zero extra dependencies so `npm test` stays green on a bare machine.
@@ -686,4 +691,289 @@ test('xml lint: all shipped XML under linux/ and flatpak/ is well-formed', () =>
     const err = xmlError(readFileSync(file, 'utf8'));
     assert.equal(err, null, `${rel(file)} is not well-formed XML: ${err}`);
   }
+});
+
+// ── 8. AUR recipe (PKGBUILD + .SRCINFO) ───────────────────────────────────────
+// The -bin package repacks the official deb, so the recipe is pure data: a
+// PKGBUILD whose every fatal AUR mistake is a *textual* one - a hand-bumped URL
+// that forgot pkgver, a SKIP checksum, a .SRCINFO regenerated last release.
+// Same policy as above: hand-rolled parsers (no bash execution - `makepkg` does
+// not exist on this machine and the point is linting the text, not building),
+// skip while agent-owned files are absent, fail once present-and-wrong.
+
+const ARCH_DIR = path.join(LINUX_DIR, 'arch');
+const PKGBUILD_PATH = path.join(ARCH_DIR, 'PKGBUILD');
+const SRCINFO_PATH = path.join(ARCH_DIR, '.SRCINFO');
+
+interface PkgbuildAssign { values: string[]; raw: string; line: number }
+interface Pkgbuild { vars: Map<string, PkgbuildAssign>; errors: string[] }
+
+/** Index of the first ')' outside single/double quotes, or -1. */
+function unquotedParen(text: string): number {
+  let q: "'" | '"' | null = null;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]!;
+    if (q === "'") { if (c === "'") q = null; continue; }
+    if (q === '"') { if (c === '"') q = null; else if (c === '\\') i++; continue; }
+    if (c === "'" || c === '"') { q = c; continue; }
+    if (c === '\\') { i++; continue; }
+    if (c === '#') { const nl = text.indexOf('\n', i); if (nl === -1) return -1; i = nl; continue; }
+    if (c === ')') return i;
+  }
+  return -1;
+}
+
+/** Split a PKGBUILD value into shell words, honouring quotes and # comments.
+ *  Deliberately no globbing/expansion here - expansion is a separate pass so the
+ *  RAW text stays inspectable (the $pkgver-in-source check needs it). */
+function shellWords(text: string, errors: string[], where: string): string[] {
+  const words: string[] = [];
+  let cur = '';
+  let started = false;
+  let q: "'" | '"' | null = null;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]!;
+    if (q === "'") { if (c === "'") q = null; else cur += c; continue; }
+    if (q === '"') {
+      if (c === '"') q = null;
+      else if (c === '\\' && i + 1 < text.length) { cur += text[++i]!; }
+      else cur += c;
+      continue;
+    }
+    if (c === "'" || c === '"') { q = c; started = true; continue; }
+    if (c === '\\' && i + 1 < text.length) { cur += text[++i]!; started = true; continue; }
+    if (c === '#' && !started) { const nl = text.indexOf('\n', i); if (nl === -1) break; i = nl; continue; }
+    if (/\s/.test(c)) { if (started) { words.push(cur); cur = ''; started = false; } continue; }
+    cur += c; started = true;
+  }
+  if (q) errors.push(`${where}: unterminated ${q === "'" ? 'single' : 'double'} quote`);
+  if (started) words.push(cur);
+  return words;
+}
+
+/** Parse top-level `name=value` / `name=(array)` assignments. Column-0 anchored
+ *  on purpose: package()/build() bodies are indented, so function-local
+ *  assignments never shadow the metadata this lint reads. */
+function parsePkgbuild(src: string): Pkgbuild {
+  const vars = new Map<string, PkgbuildAssign>();
+  const errors: string[] = [];
+  const lines = src.split('\n');
+  for (let n = 0; n < lines.length; n++) {
+    const m = /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/.exec(lines[n]!.replace(/\r$/, ''));
+    if (!m) continue;
+    const name = m[1]!;
+    const startLine = n + 1;
+    let text: string;
+    if (m[2]!.startsWith('(')) {
+      let buf = m[2]!.slice(1);
+      let close = unquotedParen(buf);
+      while (close === -1 && n + 1 < lines.length) {
+        n++;
+        buf += '\n' + lines[n]!.replace(/\r$/, '');
+        close = unquotedParen(buf);
+      }
+      if (close === -1) { errors.push(`line ${startLine}: unterminated array ${name}=(...`); continue; }
+      text = buf.slice(0, close);
+    } else {
+      text = m[2]!;
+    }
+    vars.set(name, { values: shellWords(text, errors, `line ${startLine} (${name}=)`), raw: text, line: startLine });
+  }
+  return { vars, errors };
+}
+
+/** Expand $name / ${name} against parsed scalar vars, iterated so nested
+ *  references (source using $pkgname AND $pkgver) settle. Unknown names are left
+ *  as-is - the assertions then fail loudly on the visible '$', which is right. */
+function expandPkgbuildVars(value: string, pb: Pkgbuild): string {
+  let out = value;
+  for (let round = 0; round < 5; round++) {
+    const next = out.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)/g, (whole, braced, bare) => {
+      const v = pb.vars.get((braced ?? bare) as string);
+      return v && v.values.length === 1 ? v.values[0]! : whole;
+    });
+    if (next === out) break;
+    out = next;
+  }
+  return out;
+}
+
+/** Parse .SRCINFO - `key = value` lines under pkgbase/pkgname headers. This
+ *  recipe is single-package, so one flat multimap is the honest model; the
+ *  pkgbase/pkgname header VALUES are still captured for the name check. */
+function parseSrcinfo(src: string): { entries: Map<string, string[]>; errors: string[] } {
+  const entries = new Map<string, string[]>();
+  const errors: string[] = [];
+  const lines = src.split('\n');
+  for (let n = 0; n < lines.length; n++) {
+    const t = lines[n]!.replace(/\r$/, '').trim();
+    if (t === '' || t.startsWith('#')) continue;
+    const m = /^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/.exec(t);
+    if (!m) { errors.push(`line ${n + 1}: not a 'key = value' line: ${t.slice(0, 60)}`); continue; }
+    const list = entries.get(m[1]!) ?? [];
+    list.push(m[2]!);
+    entries.set(m[1]!, list);
+  }
+  return { entries, errors };
+}
+
+/** All source-shaped array names, base + arch-suffixed (source_x86_64 etc.), so
+ *  the comparison below cannot be defeated by moving the deb under an arch key. */
+function keysMatching(prefix: string, names: Iterable<string>): string[] {
+  return [...names].filter((k) => k === prefix || k.startsWith(`${prefix}_`)).sort();
+}
+
+test('self-check: parsePkgbuild/parseSrcinfo reject and read the shapes the AUR lint depends on', () => {
+  const pb = parsePkgbuild([
+    'pkgname=lolly-desktop-bin',
+    'pkgver=9.9.9',
+    "arch=('x86_64') # one line, with a comment",
+    'depends=(', "  'gtk3'", '  webkit2gtk-4.1', ')',
+    'source=("lolly-desktop-${pkgver}_amd64.deb::https://lolli.li/lolly-desktop-${pkgver}_amd64.deb")',
+    '  indented=ignored-function-body-assignment',
+  ].join('\n'));
+  assert.deepEqual(pb.errors, []);
+  assert.equal(pb.vars.get('pkgname')?.values[0], 'lolly-desktop-bin');
+  assert.deepEqual(pb.vars.get('arch')?.values, ['x86_64']);
+  assert.deepEqual(pb.vars.get('depends')?.values, ['gtk3', 'webkit2gtk-4.1']);
+  assert.ok(!pb.vars.has('indented'), 'indented assignments are function-body locals, not metadata');
+  assert.equal(
+    expandPkgbuildVars(pb.vars.get('source')!.values[0]!, pb),
+    'lolly-desktop-9.9.9_amd64.deb::https://lolli.li/lolly-desktop-9.9.9_amd64.deb',
+  );
+  assert.match(parsePkgbuild('broken=(never closed').errors[0] ?? '', /unterminated array/);
+  assert.match(parsePkgbuild("bad='no close\n").errors[0] ?? '', /unterminated single/);
+  const si = parseSrcinfo('pkgbase = lolly-desktop-bin\n\tpkgver = 9.9.9\n\tdepends = gtk3\n\tdepends = webkit2gtk-4.1\n\npkgname = lolly-desktop-bin\n');
+  assert.deepEqual(si.errors, []);
+  assert.deepEqual(si.entries.get('depends'), ['gtk3', 'webkit2gtk-4.1']);
+  assert.match(parseSrcinfo('just words\n').errors[0] ?? '', /not a 'key = value'/);
+});
+
+test('aur: PKGBUILD mandatory fields, pinned spellings, source URL and checksum shape', (t) => {
+  if (!existsSync(PKGBUILD_PATH)) {
+    return t.skip('shells/tauri-desktop/linux/arch/PKGBUILD not built yet - packaging agent owns it');
+  }
+  const pb = parsePkgbuild(readFileSync(PKGBUILD_PATH, 'utf8'));
+  assert.deepEqual(pb.errors, [], `PKGBUILD parse errors:\n  ${pb.errors.join('\n  ')}`);
+
+  // Mandatory fields. source/sha256sums may legitimately be arch-suffixed
+  // (source_x86_64=) - either spelling satisfies presence, both get linted below.
+  for (const name of ['pkgname', 'pkgver', 'pkgrel', 'arch', 'url', 'license', 'depends']) {
+    assert.ok(pb.vars.has(name), `PKGBUILD missing mandatory field ${name}=`);
+  }
+  const sourceKeys = keysMatching('source', pb.vars.keys());
+  const sumKeys = keysMatching('sha256sums', pb.vars.keys());
+  assert.ok(sourceKeys.length > 0, 'PKGBUILD missing source= (or source_<arch>=)');
+  assert.ok(sumKeys.length > 0, 'PKGBUILD missing sha256sums= (or sha256sums_<arch>=)');
+
+  assert.equal(pb.vars.get('pkgname')!.values[0], 'lolly-desktop-bin',
+    `pkgname must be lolly-desktop-bin (the AUR repack of the official deb), got '${pb.vars.get('pkgname')!.values[0]}'`);
+  assert.match(pb.vars.get('pkgver')!.values[0] ?? '', /^[0-9]+(\.[0-9]+)*$/,
+    `pkgver must be a plain dotted version, got '${pb.vars.get('pkgver')!.values[0]}'`);
+  assert.match(pb.vars.get('pkgrel')!.values[0] ?? '', /^[0-9]+$/,
+    `pkgrel must be a bare integer, got '${pb.vars.get('pkgrel')!.values[0]}'`);
+  // The official deb is amd64-only, so 'any'/'i686' would promise installs the
+  // package cannot honour.
+  assert.deepEqual(pb.vars.get('arch')!.values, ['x86_64'],
+    `arch must be exactly ('x86_64') - the upstream artifact is an amd64 deb - got (${pb.vars.get('arch')!.values.join(' ')})`);
+  assert.equal((pb.vars.get('url')!.values[0] ?? '').replace(/\/$/, ''), 'https://lolly.tools',
+    `url must be the upstream https://lolly.tools, got '${pb.vars.get('url')!.values[0]}'`);
+  // License spelling is pinned to the SPDX identifier: Arch switched to SPDX
+  // (RFC 16, 2023) and current AUR packages ship 'MPL-2.0'; 'MPL2' is the
+  // pre-SPDX legacy spelling namcap now flags.
+  assert.deepEqual(pb.vars.get('license')!.values, ['MPL-2.0'],
+    `license must be exactly ('MPL-2.0') (SPDX per Arch RFC 16; not the legacy 'MPL2'), got (${pb.vars.get('license')!.values.join(' ')})`);
+
+  // Runtime needs of the shipped payload. The binary links these three, so they
+  // are hard depends; /usr/bin/lolly-thumbnail is a python3 script but degrades
+  // gracefully (exit 1 = generic icon), so python may legitimately sit in
+  // optdepends instead - what is enforced is that it is declared SOMEWHERE.
+  const deps = pb.vars.get('depends')!.values.map((d) => d.replace(/[<>=].*$/, ''));
+  for (const need of ['webkit2gtk-4.1', 'gtk3', 'libayatana-appindicator']) {
+    assert.ok(deps.includes(need), `depends must include ${need} (the binary links it); have: ${deps.join(', ')}`);
+  }
+  const optdeps = (pb.vars.get('optdepends')?.values ?? []).map((d) => d.split(':')[0]!.replace(/[<>=].*$/, ''));
+  assert.ok(deps.includes('python') || optdeps.includes('python'),
+    `python must be declared in depends or optdepends - the shipped /usr/bin/lolly-thumbnail is a python3 script; depends: ${deps.join(', ')}; optdepends: ${optdeps.join(', ') || 'none'}`);
+
+  // The deb source entry: derived from $pkgver (so a version bump cannot leave
+  // the URL behind), fetched from lolli.li, filename carrying the version.
+  const pkgver = pb.vars.get('pkgver')!.values[0]!;
+  const allSources = sourceKeys.flatMap((k) => pb.vars.get(k)!.values.map((v) => ({ raw: v, expanded: expandPkgbuildVars(v, pb) })));
+  const deb = allSources.find((s) => s.expanded.replace(/^[^:]*::/, '').endsWith('.deb'));
+  assert.ok(deb, `no source entry fetches a .deb; sources: ${allSources.map((s) => s.expanded).join(', ')}`);
+  assert.match(deb!.raw, /\$\{?pkgver\}?/,
+    `the deb source entry must reference \${pkgver}, not hard-code a version - '${deb!.raw}' would silently keep fetching the old deb after a pkgver bump`);
+  const urlPart = deb!.expanded.replace(/^[^:]*::/, ''); // strip AUR filename::url rename prefix
+  const host = /^https:\/\/([^/]+)\//.exec(urlPart)?.[1];
+  assert.equal(host, 'lolli.li', `deb source URL host must be lolli.li, got '${host ?? urlPart}'`);
+  assert.ok(urlPart.slice(urlPart.lastIndexOf('/') + 1).includes(pkgver),
+    `deb source filename must embed pkgver ${pkgver}: '${urlPart}'`);
+
+  // Checksums: real hashes only. SKIP on a remote binary is the AUR cardinal sin -
+  // it turns every install into "run whatever lolli.li serves today".
+  for (const key of sumKeys) {
+    const sums = pb.vars.get(key)!.values;
+    assert.ok(sums.length > 0, `${key}= is empty`);
+    for (const sum of sums) {
+      assert.notEqual(sum.toUpperCase(), 'SKIP', `${key}= contains SKIP - a remote binary source must carry its real sha256`);
+      assert.match(sum, /^[0-9a-f]{64}$/, `${key}= entry is not 64 lowercase hex chars: '${sum}'`);
+    }
+    assert.equal(sums.length, (pb.vars.get(key.replace(/^sha256sums/, 'source'))?.values ?? []).length,
+      `${key}= has ${sums.length} entries but its source array has ${(pb.vars.get(key.replace(/^sha256sums/, 'source'))?.values ?? []).length} - they must pair 1:1`);
+  }
+});
+
+test('aur: .SRCINFO is the PKGBUILD, not a drifted hand-maintained copy', (t) => {
+  if (!existsSync(PKGBUILD_PATH)) {
+    return t.skip('shells/tauri-desktop/linux/arch/PKGBUILD not built yet - packaging agent owns it');
+  }
+  if (!existsSync(SRCINFO_PATH)) {
+    return t.skip('shells/tauri-desktop/linux/arch/.SRCINFO not built yet - generate it with `makepkg --printsrcinfo > .SRCINFO` (AUR reads only .SRCINFO, so a PKGBUILD without one never publishes)');
+  }
+  const pb = parsePkgbuild(readFileSync(PKGBUILD_PATH, 'utf8'));
+  const si = parseSrcinfo(readFileSync(SRCINFO_PATH, 'utf8'));
+  assert.deepEqual(pb.errors, [], `PKGBUILD parse errors:\n  ${pb.errors.join('\n  ')}`);
+  assert.deepEqual(si.errors, [], `.SRCINFO parse errors:\n  ${si.errors.join('\n  ')}`);
+
+  const ritual = 'regenerate it: makepkg --printsrcinfo > .SRCINFO';
+  assert.equal(si.entries.get('pkgbase')?.[0], pb.vars.get('pkgname')?.values[0], `.SRCINFO pkgbase != PKGBUILD pkgname - ${ritual}`);
+  assert.equal(si.entries.get('pkgname')?.[0], pb.vars.get('pkgname')?.values[0], `.SRCINFO pkgname != PKGBUILD pkgname - ${ritual}`);
+  for (const scalar of ['pkgver', 'pkgrel'] as const) {
+    assert.equal(si.entries.get(scalar)?.[0], pb.vars.get(scalar)?.values[0],
+      `.SRCINFO ${scalar} (${si.entries.get(scalar)?.[0]}) != PKGBUILD ${scalar} (${pb.vars.get(scalar)?.values[0]}) - the classic AUR drift; ${ritual}`);
+  }
+  assert.deepEqual(si.entries.get('depends') ?? [], pb.vars.get('depends')?.values ?? [],
+    `.SRCINFO depends != PKGBUILD depends - ${ritual}`);
+  assert.deepEqual(si.entries.get('license') ?? [], pb.vars.get('license')?.values ?? [],
+    `.SRCINFO license != PKGBUILD license - ${ritual}`);
+
+  // source/sha256sums compare per exact key (base or arch-suffixed), with the
+  // PKGBUILD side expanded - makepkg writes .SRCINFO expanded, so raw-vs-raw
+  // would never match and expanded-vs-expanded is the generated truth.
+  for (const prefix of ['source', 'sha256sums'] as const) {
+    const pbKeys = keysMatching(prefix, pb.vars.keys());
+    const siKeys = keysMatching(prefix, si.entries.keys());
+    assert.deepEqual(siKeys, pbKeys, `.SRCINFO ${prefix} keys (${siKeys.join(', ') || 'none'}) != PKGBUILD's (${pbKeys.join(', ') || 'none'}) - ${ritual}`);
+    for (const key of pbKeys) {
+      const expanded = pb.vars.get(key)!.values.map((v) => expandPkgbuildVars(v, pb));
+      assert.deepEqual(si.entries.get(key) ?? [], expanded,
+        `.SRCINFO ${key} != PKGBUILD ${key} (expanded) - ${ritual}`);
+    }
+  }
+});
+
+test('aur: PKGBUILD pkgver matches tauri.conf.json version', (t) => {
+  if (!existsSync(PKGBUILD_PATH)) {
+    return t.skip('shells/tauri-desktop/linux/arch/PKGBUILD not built yet - packaging agent owns it');
+  }
+  const pb = parsePkgbuild(readFileSync(PKGBUILD_PATH, 'utf8'));
+  const pkgver = pb.vars.get('pkgver')?.values[0];
+  const appVersion = (JSON.parse(readFileSync(TAURI_CONF, 'utf8')) as { version?: string }).version;
+  assert.ok(appVersion, 'tauri.conf.json has no version field - the drift anchor moved; update this test');
+  // The recipe may trail a release by hours, never silently by a version. If this
+  // fails right after a version bump, that is BY DESIGN - it is the reminder to do
+  // the AUR ritual, spelled out in the message below.
+  assert.equal(pkgver, appVersion,
+    `PKGBUILD pkgver (${pkgver}) != tauri.conf.json version (${appVersion}). The recipe may trail a release by hours, never silently by a version - this failure IS the reminder to do the AUR ritual: bump pkgver (reset pkgrel to 1), update sha256sums for the new deb, regenerate .SRCINFO (makepkg --printsrcinfo > .SRCINFO), and push both to the AUR.`);
 });
