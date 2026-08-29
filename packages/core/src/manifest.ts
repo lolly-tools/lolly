@@ -272,6 +272,12 @@ export interface ToolManifest {
   category?: string;
   new?: boolean;
   listed?: boolean;
+  /** The tool assumes it is the ONLY instance on the page - it parks a mutable handle
+   *  on `window` and disposes the previous instance when a new one mounts, and/or holds
+   *  a WebGL context (capped ~16/tab), so N live copies can't coexist. Multi-edit renders
+   *  such a tool's cells as sequential still previews rather than N live instances (which
+   *  would dispose each other). Default false: an ordinary tool runs live in every cell. */
+  singleInstance?: boolean;
   /** `'on-device'` marks a privacy utility: never watermarked, no embedded provenance. */
   privacy?: 'on-device';
   tags?: string[];

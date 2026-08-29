@@ -74,6 +74,10 @@
       "type": "boolean",
       "description": "Whether the tool appears in the gallery listing - the grid, search, favourites and the featured/utility strips (default true). Set false to UNLIST a tool that is a MECHANISM invoked from context rather than a destination the user browses to (e.g. asset-export, reached from the catalog's per-asset 'Download'). An unlisted tool still loads normally via #/tool/<id>, URL mode, and the CLI; unlisting only removes it from the gallery listing."
     },
+    "singleInstance": {
+      "type": "boolean",
+      "description": "The tool assumes it is the ONLY instance on the page - its template/hooks park a mutable handle on `window` and dispose the PREVIOUS instance when a new one mounts, and/or it holds a WebGL context (capped ~16 per tab), so N live copies cannot coexist. Set true for the WebGL / window-global tools (3D viewers, spatial-photo, synth, live viz). Multi-edit renders such a tool's cells as sequential still previews (rendered through the export path, so async loads land) instead of N live instances that would dispose each other; the single-tool view, URL mode and CLI are unaffected. Default false: an ordinary tool runs live in every multi-edit cell."
+    },
     "privacy": {
       "type": "string",
       "enum": [

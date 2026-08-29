@@ -1002,6 +1002,241 @@
         }
       ],
       "added": "2026-08-14"
+    },
+    {
+      "id": "lolly/3d/duck",
+      "name": "Duck",
+      "description": "A low-poly rubber duck - a sample 3-D model. Drop it into the 3D tool's lit scene, orbit the camera, render a still or a turntable.",
+      "type": "model",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "3d",
+        "model",
+        "glb",
+        "duck",
+        "sample",
+        "toy"
+      ],
+      "aiGenerated": "full",
+      "formats": [
+        {
+          "format": "glb",
+          "url": "/catalog/assets/lolly/3d/duck.glb",
+          "checksum": "sha256-9vPq65Db4jOWHUYQ5FORzMo+QQtK0eGRFRdlLxmkbsY=",
+          "size": 299744
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/3d/duck.png",
+          "checksum": "sha256-4bTiAgvqINTyQOJUeues258FNjiSZtyyklE4E08wJ3E=",
+          "size": 283450,
+          "depth": 8
+        }
+      ]
+    },
+    {
+      "id": "lolly/3d/cat",
+      "name": "Cat",
+      "description": "A calico bobtail cat - a sample 3-D model. Load it into the 3D tool, pose the camera and light, render a still or a turntable.",
+      "type": "model",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "3d",
+        "model",
+        "glb",
+        "cat",
+        "calico",
+        "animal",
+        "sample"
+      ],
+      "aiGenerated": "full",
+      "formats": [
+        {
+          "format": "glb",
+          "url": "/catalog/assets/lolly/3d/cat.glb",
+          "checksum": "sha256-wQK8Y4bHL+yxWZkZUiUqqutLdMhKbz2xtgLvIdSMag0=",
+          "size": 1347192
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/3d/cat.png",
+          "checksum": "sha256-gTEsLxEonIE/CPlSL1cuJ6k4TU3EZw+KtUuAlV63+QU=",
+          "size": 220566,
+          "depth": 8
+        }
+      ]
+    },
+    {
+      "id": "lolly/luts/slide-standard",
+      "name": "Standard Slide",
+      "description": "A neutral daylight slide-film look (Provia-style) - balanced colour, gentle contrast.",
+      "type": "lut",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "lut",
+        "grade",
+        "colour",
+        "cube",
+        "film",
+        "slide",
+        "daylight"
+      ],
+      "license": "cc0-1.0",
+      "formats": [
+        {
+          "format": "cube",
+          "url": "/catalog/assets/lolly/luts/slide-standard.cube",
+          "checksum": "sha256-PU+Qf+vZmVJ3fI8EcAYzu2UJnyYqqBuJWYCqag0gXRw=",
+          "size": 970598
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/luts/slide-standard.png",
+          "checksum": "sha256-CUBn/+DZJ3awC3Guk/hjP3De6TWGAek30yIfK9LCooA=",
+          "size": 128886,
+          "depth": 8
+        }
+      ]
+    },
+    {
+      "id": "lolly/luts/slide-vivid",
+      "name": "Vivid Slide",
+      "description": "A punchy slide-film look - richer saturation and contrast for landscapes and product.",
+      "type": "lut",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "lut",
+        "grade",
+        "colour",
+        "cube",
+        "film",
+        "slide",
+        "vivid",
+        "saturated"
+      ],
+      "license": "cc0-1.0",
+      "formats": [
+        {
+          "format": "cube",
+          "url": "/catalog/assets/lolly/luts/slide-vivid.cube",
+          "checksum": "sha256-z+bzvaKGdsddGXk6Uv7iUyaHSbpLxeURlY57Ykj8uIA=",
+          "size": 970600
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/luts/slide-vivid.png",
+          "checksum": "sha256-9HtSpV6WLSGI5sTyMdfGw71X3kI3UOy1K2ZIjyNYJq0=",
+          "size": 127501,
+          "depth": 8
+        }
+      ]
+    },
+    {
+      "id": "lolly/luts/chrome-muted",
+      "name": "Muted Chrome",
+      "description": "A restrained, desaturated chrome look - muted colour with a soft tonal roll-off.",
+      "type": "lut",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "lut",
+        "grade",
+        "colour",
+        "cube",
+        "film",
+        "chrome",
+        "muted",
+        "desaturated"
+      ],
+      "license": "cc0-1.0",
+      "formats": [
+        {
+          "format": "cube",
+          "url": "/catalog/assets/lolly/luts/chrome-muted.cube",
+          "checksum": "sha256-rjh7ItGYw9kJ3OJnaG2peCLVryFBkrJ3SSs6edj/aBw=",
+          "size": 970600
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/luts/chrome-muted.png",
+          "checksum": "sha256-N1gWsZCzv1He76LMgbTsMqcpx8XA1MTL7BhB7cDGHv8=",
+          "size": 136864,
+          "depth": 8
+        }
+      ]
+    },
+    {
+      "id": "lolly/luts/mono-fine",
+      "name": "Fine Mono",
+      "description": "A fine black-and-white conversion (Acros-style) - smooth tones, clean neutrals.",
+      "type": "lut",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "lut",
+        "grade",
+        "cube",
+        "film",
+        "mono",
+        "black-and-white",
+        "monochrome"
+      ],
+      "license": "cc0-1.0",
+      "formats": [
+        {
+          "format": "cube",
+          "url": "/catalog/assets/lolly/luts/mono-fine.cube",
+          "checksum": "sha256-Sbj1psyTxJquJB0okua+RLLG/CHx3t8CXp1sNzhJ5Z4=",
+          "size": 970588
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/luts/mono-fine.png",
+          "checksum": "sha256-AHZvpe9aDqNrzWYHb+qTxNRHB3te06C4wP+p7lhjI9E=",
+          "size": 53522,
+          "depth": 8
+        }
+      ]
+    },
+    {
+      "id": "lolly/luts/suse7-slog3-heavy",
+      "name": "SUSE7 S-Log3 (Heavy)",
+      "description": "A cinema grade for Sony S-Log3 footage, authored in DaVinci Resolve. Credit: SUSE - Peter Chamalian (CC BY 4.0). Expects S-Log3 input; will look wrong on Rec.709.",
+      "type": "lut",
+      "version": "1.0.0",
+      "tier": "catalog",
+      "tags": [
+        "lut",
+        "grade",
+        "colour",
+        "cube",
+        "cinema",
+        "slog3",
+        "log",
+        "suse",
+        "video"
+      ],
+      "license": "cc-by-4.0",
+      "formats": [
+        {
+          "format": "cube",
+          "url": "/catalog/assets/lolly/luts/suse7-slog3-heavy.cube",
+          "checksum": "sha256-4ZpPfK7Sb0s4AVmoAkF3jDVRvqOrEzo2bVCHtB2J7dI=",
+          "size": 4921197
+        },
+        {
+          "format": "png",
+          "url": "/catalog/assets/lolly/luts/suse7-slog3-heavy.png",
+          "checksum": "sha256-FwzMovsKGoZUL1XDVpwrYllS2JhQLW9+qJRoKwINICc=",
+          "size": 96837,
+          "depth": 8
+        }
+      ],
+      "attribution": "SUSE · Peter Chamalian"
     }
   ]
 }

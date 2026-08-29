@@ -123,6 +123,10 @@ test('depthForFormat is gated on type "raster" - no depth on non-raster assets',
     assert.equal(await depthForFormat(type, deep), null, `type ${String(type)} must not carry depth`);
   }
   assert.equal(await depthForFormat('raster', deep), 16, 'control: the same bytes DO answer as a raster');
+  // model (3-D GLB) and lut (.cube) carry a rendered PNG poster - a real raster with a
+  // real depth - so their poster bytes answer too (plans/61 depth-follows-the-bytes).
+  assert.equal(await depthForFormat('model', deep), 16, 'a model poster carries depth');
+  assert.equal(await depthForFormat('lut', deep), 16, 'a lut poster carries depth');
 });
 
 // ── 2. the schema (both copies) ───────────────────────────────────────────────

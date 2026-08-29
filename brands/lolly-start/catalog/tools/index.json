@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-28T12:29:26.082Z",
+  "generatedAt": "2026-08-29T07:50:02.978Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -10728,6 +10728,146 @@
           "name": "Wayfinding",
           "description": "方向指示牌 - 目的地及对应箭头。印刷级质量。",
           "blurb": "活动方向标识,可直接打印"
+        }
+      }
+    },
+    {
+      "id": "3d",
+      "name": "3D",
+      "description": "Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation.",
+      "version": "1.2.6",
+      "status": "official",
+      "category": "designer",
+      "tags": [
+        "3d",
+        "gltf",
+        "glb",
+        "render",
+        "turntable",
+        "product"
+      ],
+      "added": "2026-07-08",
+      "formats": [
+        "png",
+        "jpg",
+        "webp",
+        "webm",
+        "mp4",
+        "gif",
+        "avif",
+        "tiff",
+        "apng",
+        "webp-anim"
+      ],
+      "width": 1280,
+      "height": 1280,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"/><path d=\"m3.3 7 8.7 5 8.7-5\"/><path d=\"M12 22V12\"/></svg>",
+      "preview": "/catalog/previews/3d.svg",
+      "i18n": {
+        "ar": {
+          "name": "3D",
+          "description": "حمل نموذجا ثلاثي الأبعاد في مشهد مضاء، وحرك الكاميرا واضبط زاويتها، ثم صدر صورة ثابتة أو حركة دوران."
+        },
+        "bg": {
+          "name": "3D",
+          "description": "Зареди 3D модел в осветена сцена, завърти и позиционирай камерата и рендерирай статичен кадър или turntable анимация."
+        },
+        "bn": {
+          "name": "3D",
+          "description": "আলোকিত দৃশ্যে একটি 3D মডেল লোড করুন, ক্যামেরা অরবিট ও পোজ করুন, আর একটি স্টিল বা টার্নটেবল অ্যানিমেশন রেন্ডার করুন।"
+        },
+        "cs": {
+          "name": "3D",
+          "description": "Načti 3D model do nasvícené scény, otáčej a polohuj kameru a vykresli statický snímek nebo otáčivou animaci."
+        },
+        "de": {
+          "name": "3D",
+          "description": "Laden Sie ein 3D-Modell in eine beleuchtete Szene, umkreisen und positionieren Sie die Kamera, und rendern Sie ein Standbild oder eine Turntable-Animation."
+        },
+        "es": {
+          "name": "3D",
+          "description": "Carga un modelo 3D en una escena iluminada, orbita y posiciona la cámara, y renderiza una imagen fija o una animación giratoria."
+        },
+        "fr": {
+          "name": "3D",
+          "description": "Charge un modèle 3D dans une scène éclairée, fais pivoter et positionne la caméra, puis génère une image fixe ou une animation en rotation."
+        },
+        "hi": {
+          "name": "3D",
+          "description": "किसी 3D मॉडल को प्रकाशित सीन में लोड करें, कैमरे को ऑर्बिट और पोज़ करें, और स्टिल या टर्नटेबल एनिमेशन रेंडर करें।"
+        },
+        "id": {
+          "name": "3D",
+          "description": "Muat model 3D ke dalam scene yang diterangi, atur orbit dan pose kamera, lalu render gambar diam atau animasi turntable."
+        },
+        "it": {
+          "name": "3D",
+          "description": "Carica un modello 3D in una scena illuminata, ruota e imposta la fotocamera, e renderizza un fermo immagine o un'animazione a giostra."
+        },
+        "ja": {
+          "name": "3D",
+          "description": "3D モデルをライティングされたシーンに読み込み、カメラを周回・調整して、静止画またはターンテーブルアニメーションをレンダリングします。"
+        },
+        "ko": {
+          "name": "3D",
+          "description": "3D 모델을 조명이 설정된 장면에 불러와 카메라를 회전하고 자세를 조정하여, 정지 이미지 또는 턴테이블 애니메이션으로 렌더링합니다."
+        },
+        "ms": {
+          "name": "3D",
+          "description": "Muatkan model 3D ke dalam adegan bercahaya, putarkan dan laraskan kamera, kemudian render imej pegun atau animasi turntable."
+        },
+        "nl": {
+          "name": "3D",
+          "description": "Laad een 3D-model in een verlichte scene, draai en positioneer de camera, en render een still of een turntable-animatie."
+        },
+        "no": {
+          "name": "3D",
+          "description": "Last en 3D-modell inn i en belyst scene, roter og posisjoner kameraet, og render et stillbilde eller en turntable-animasjon."
+        },
+        "pl": {
+          "name": "3D",
+          "description": "Wczytaj model 3D do oświetlonej sceny, obróć i ustaw kamerę, a następnie wyrenderuj kadr lub animację obrotową."
+        },
+        "pt": {
+          "name": "3D",
+          "description": "Carregue um modelo 3D em uma cena iluminada, gire e posicione a câmera, e renderize uma imagem estática ou uma animação giratória."
+        },
+        "ro": {
+          "name": "3D",
+          "description": "Încarcă un model 3D într-o scenă luminată, rotește și poziționează camera, apoi randează o imagine statică sau o animație turntable."
+        },
+        "sv": {
+          "name": "3D",
+          "description": "Läs in en 3D-modell i en belyst scen, rotera och justera kameran, och rendera en stillbild eller en turntable-animation."
+        },
+        "tl": {
+          "name": "3D",
+          "description": "I-load ang 3D model sa isang naiilawang scene, i-orbit at i-adjust ang camera, at i-render ang isang still o turntable animation."
+        },
+        "tr": {
+          "name": "3D",
+          "description": "Bir 3D modeli aydınlatılmış bir sahneye yükle, kamerayı döndürüp konumlandır, ardından durağan bir görüntü ya da döner bir animasyon oluştur."
+        },
+        "uk": {
+          "name": "3D",
+          "description": "Завантажте 3D-модель у освітлену сцену, обертайте й позиціонуйте камеру та створіть статичне зображення або анімацію-турнтейбл."
+        },
+        "ur": {
+          "name": "3D",
+          "description": "ایک 3D ماڈل کو روشن سین میں لوڈ کریں، کیمرا کو گھمائیں اور پوز دیں، اور ایک اسٹیل یا ٹرن ٹیبل اینیمیشن رینڈر کریں۔"
+        },
+        "vi": {
+          "name": "3D",
+          "description": "Tải mô hình 3D vào một cảnh có ánh sáng, xoay và chỉnh camera, rồi kết xuất ảnh tĩnh hoặc video quay vòng."
+        },
+        "zh-hant": {
+          "name": "3D",
+          "description": "將 3D 模型載入打光場景,環繞並調整鏡頭,算圖靜態影像或轉台動畫。"
+        },
+        "zh": {
+          "name": "3D",
+          "description": "将 3D 模型加载到打光的场景中,环绕并调整相机,渲染静态图像或转台动画。"
         }
       }
     }

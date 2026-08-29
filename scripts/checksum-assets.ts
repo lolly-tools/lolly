@@ -93,8 +93,10 @@ export function sriForFile(absPath: string): { checksum: string; size: number; b
  * The gate is deliberately narrow, because the governing principle of
  * plans/61-deeprichpixels.md is "never emit bits the pipeline did not produce" - 
  * and a label is an emission too:
- *   - only `type: 'raster'` assets are asked at all (an SVG has no channels; a
- *     video/lottie/font/palette depth would be a category error),
+ *   - only `type: 'raster'`, `model` and `lut` assets are asked at all: a raster
+ *     IS the image, and a model (3-D GLB) or lut (.cube) carries a rendered PNG
+ *     POSTER whose bytes are a real raster with a real depth. An SVG has no
+ *     channels; a video/lottie/font/palette depth would be a category error,
  *   - only a container whose header STATES the depth answers (png/tiff/jpeg/
  *     webp). heic/avif are recognised by `depthHint` but bury depth in codec
  *     config boxes, so they stay null rather than being guessed at 8,
@@ -106,7 +108,7 @@ export function sriForFile(absPath: string): { checksum: string; size: number; b
  * that is the drift guard, and it only works because both call THIS function.
  */
 export async function depthForFormat(assetType: string | undefined, bytes: Uint8Array): Promise<number | null> {
-  if (assetType !== 'raster') return null;
+  if (assetType !== 'raster' && assetType !== 'model' && assetType !== 'lut') return null;
   const hint = await depthHint(bytes);
   return hint.bitsPerChannel;
 }

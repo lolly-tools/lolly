@@ -13,8 +13,9 @@
  *               (community ∪ brands/lolly-start/tools, composed independently
  *               of the ACTIVE view) plus a ~1 MB neutral catalog seed - the
  *               generated tool index, the asset index filtered to the entries
- *               whose bytes ride along, and those bytes. No previews/, no
- *               og/, no loops/modules media: brand content arrives from the
+ *               whose bytes ride along, and those bytes - plus the tool
+ *               gallery previews/ so the gallery paints on first run offline.
+ *               No og/, no loops/modules media: brand content arrives from the
  *               instance the user connects (lib/instance.ts) or a loaded
  *               .lolly pack. Also drops the /info narration audio (plans/131
  *               B.3: Listen moves to device TTS in the apps).
@@ -120,6 +121,11 @@ function copyNeutralCatalog(repoRoot, outDir) {
   const brandCatalog = join(repoRoot, 'brands/lolly-start/catalog');
   const destCatalog = join(outDir, 'catalog');
   copyTreeDereferenced(join(brandCatalog, 'tools'), join(destCatalog, 'tools'));
+  // Gallery thumbnails (~7 MB of rendered previews) ride along so the gallery
+  // paints on first run OFFLINE, instead of live-rendering every tile - the
+  // wait a fresh install shows. Just previews/ - not the 23 MB of og/ cards or
+  // the excluded loops/modules media - so the app-store build stays lean.
+  copyTreeDereferenced(join(brandCatalog, 'previews'), join(destCatalog, 'previews'));
   const index = JSON.parse(readFileSync(join(brandCatalog, 'assets/index.json'), 'utf8'));
   const kept = index.assets.filter((a) => !NEUTRAL_EXCLUDED_ASSET_PREFIXES.some((p) => a.id.startsWith(p)));
   mkdirSync(join(destCatalog, 'assets'), { recursive: true });
@@ -233,7 +239,7 @@ export function assertDistState({ outDirDefault, mode }) {
       must('tools/qr-code/tool.json', 'community tools embed in every mode');
       mustNot('models', 'runtime-downloaded models must never embed (pruneEmbeddedDownloads)');
       if (mode === 'neutral') {
-        mustNot('catalog/previews', 'the neutral seed carries no previews (plans/131 WP-A)');
+        must('catalog/previews/bundle.json', 'gallery thumbnails embed so first run paints instead of live-rendering every tile');
         mustNot('catalog/og', 'the neutral seed carries no og cards');
         mustNot('catalog/assets/lolly/loops', 'excluded asset family (NEUTRAL_EXCLUDED_ASSET_PREFIXES)');
         mustNot('catalog/assets/lolly/modules', 'excluded asset family (NEUTRAL_EXCLUDED_ASSET_PREFIXES)');

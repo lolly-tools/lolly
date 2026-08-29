@@ -16,7 +16,7 @@
     "description": { "type": "string" },
     "type": {
       "type": "string",
-      "enum": ["vector", "raster", "video", "audio", "lottie", "palette", "tokens", "font", "profile", "ratecard", "text", "data"]
+      "enum": ["vector", "raster", "video", "audio", "lottie", "model", "lut", "palette", "tokens", "font", "profile", "ratecard", "text", "data"]
     },
     "version": {
       "type": "string",
@@ -83,6 +83,10 @@
     "license": {
       "type": "string",
       "description": "e.g. 'internal', 'cc-by-4.0', 'all-rights-reserved'."
+    },
+    "attribution": {
+      "type": "string",
+      "description": "Human-readable credit for a licensed asset that requires attribution (e.g. a CC-BY work). Shown in the catalog asset details view. e.g. 'SUSE · Peter Chamalian'."
     },
     "aiGenerated": {
       "type": "string",
