@@ -47,6 +47,7 @@ test('the markers exist once each, in order', () => {
 test('every emitted token the migration relies on is present', () => {
   const block = emitBlock(doc);
   for (const name of [
+    '--font-brand', '--font-mono',
     '--edge', '--edge-faint', '--edge-strong',
     '--shadow-1', '--shadow-2', '--shadow-3', '--shadow-4', '--shadow-5',
     '--bevel', '--ring-focus', '--ring-focus-strong',

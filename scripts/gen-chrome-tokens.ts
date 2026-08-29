@@ -63,6 +63,14 @@ function cssValue(group: string, name: string, tok: Rec, groupExt: Rec): string 
       if (typeof v !== 'string') throw new Error(`${group}.${name}: dimension $value must be a string`);
       return groupExt.a11yScale === true ? `calc(${v} * var(--a11y-fs))` : v;
     }
+    case 'fontFamilies': {
+      if (!Array.isArray(v) || v.some((f) => typeof f !== 'string')) {
+        throw new Error(`${group}.${name}: fontFamilies $value must be an array of strings`);
+      }
+      // Quote named families; generic/ui- keywords stay bare - matches the
+      // hand-authored spelling this group replaced ('SUSE', ui-sans-serif, ...).
+      return v.map((f) => /^[a-z][a-z-]*$/.test(f) ? f : `'${f}'`).join(', ');
+    }
     case 'duration': return durCss(String(v));
     case 'cubicBezier': return bezierCss(v);
     case 'number': return String(v);
