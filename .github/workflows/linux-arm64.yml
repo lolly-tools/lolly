@@ -1,0 +1,104 @@
+# Build the Linux desktop app for aarch64.
+#
+# There is no local path to this artifact: cross-compiling needs a full arm64 sysroot
+# for webkit2gtk/GTK, and emulating the build under qemu takes many hours for a tree
+# this size. GitHub's arm64 runners are native and free for public repositories, so
+# this is where the aarch64 packages come from.
+#
+# This produces the .deb only. The aarch64 RPM is deliberately NOT built here: the
+# spec is fed prebuilt tarballs by rpm/make-sources.sh (OBS builds offline, and this
+# tree cannot be built that way from a plain checkout), so an RPM job would have to
+# run that script on the runner and then rpmbuild in an openSUSE container. That is
+# the same path the x86_64 RPM already takes and it is worth wiring up - but an
+# untested second toolchain producing a package nobody has run on real hardware is
+# worse than not shipping one.
+#
+# Triggers on version tags (v*) and manual dispatch. Artifacts are uploaded to the run;
+# attach them to the release with `gh release upload` once verified on real hardware.
+name: Linux arm64
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linux-arm64-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build .deb (aarch64)
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'          # the tree runs .ts directly; engines require >= 22.18
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
+
+      - name: Cache cargo build
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            shells/tauri-desktop/src-tauri/target
+          key: cargo-arm64-${{ hashFiles('shells/tauri-desktop/src-tauri/Cargo.lock') }}
+
+      # Same set as the x86_64 job. libssl-dev is NOT optional here - it is only absent
+      # from that job's list because ubuntu-latest happens to preinstall it.
+      - name: System dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev \
+            libayatana-appindicator3-dev libsoup-3.0-dev libssl-dev \
+            build-essential patchelf file
+
+      - name: Install workspace deps
+        run: npm ci
+      - name: Install desktop shell deps
+        working-directory: shells/tauri-desktop
+        run: npm ci
+
+      - name: Build desktop .deb
+        working-directory: shells/tauri-desktop
+        run: |
+          npm run build:frontend
+          npm run tauri -- build --bundles deb
+
+      # The binary must carry the embedded frontend. Without
+      # --features tauri/custom-protocol a Tauri build is a DEV build that tries to
+      # load devUrl and shows "Could not connect to localhost" - and nothing else in
+      # the build fails. Size is the reliable tell; the RPM spec's %check uses the
+      # same floor.
+      - name: Verify the binary embeds the frontend
+        run: |
+          set -e
+          bin=shells/tauri-desktop/src-tauri/target/release/lolly-desktop
+          size=$(stat -c%s "$bin")
+          echo "binary: $((size/1048576)) MB"
+          test "$size" -ge 83886080 || { echo "::error::binary is $((size/1048576)) MB, under the 80 MB floor - the frontend was not embedded"; exit 1; }
+
+      - name: Collect the .deb
+        run: |
+          set -e
+          deb=$(find shells/tauri-desktop/src-tauri/target/release/bundle/deb -name '*.deb' | head -1)
+          test -n "$deb" || { echo "::error::no .deb produced"; exit 1; }
+          mkdir -p out && cp "$deb" out/
+          ls -la out/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: lolly-linux-arm64
+          path: out/*
+          if-no-files-found: error
