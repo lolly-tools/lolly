@@ -70,14 +70,21 @@ jobs:
         working-directory: shells/tauri-desktop
         run: npm ci
 
+      # LOLLY_EMBED_CATALOG must be set for the whole STEP, not just the frontend
+      # script. `tauri build` re-runs beforeBuildCommand (`npm run build:frontend`)
+      # itself, so setting it only on an explicit build:frontend:profile call gets
+      # silently undone - Tauri rebuilds dist/ in the default neutral mode and embeds
+      # that. Neutral drops catalog/previews and og/ (plans/131 WP-A), giving a gallery
+      # where every tile renders itself on first load. Every released artifact has been
+      # a profile build, so a neutral one is quietly not the same package.
+      # lolly-start is the public blank brand and safe to embed; suse is not, and
+      # nothing here selects it.
       - name: Build desktop .deb
+        env:
+          LOLLY_EMBED_CATALOG: profile
         working-directory: shells/tauri-desktop
         run: |
-          # profile mode, NOT the default neutral. Neutral drops catalog/previews and og/
-          # (plans/131 WP-A), which ships a gallery where every tile renders itself on
-          # first load - and the released artifacts have always been profile builds, so a
-          # neutral CI artifact would quietly not be the same package.
-          npm run build:frontend:profile
+          npm run build:frontend
           npm run tauri -- build --bundles deb
 
       # The binary must carry the embedded frontend. Without
