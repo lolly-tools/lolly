@@ -94,6 +94,10 @@ var init_tool_schema = __esm({
           type: "boolean",
           description: "Whether the tool appears in the gallery listing - the grid, search, favourites and the featured/utility strips (default true). Set false to UNLIST a tool that is a MECHANISM invoked from context rather than a destination the user browses to (e.g. asset-export, reached from the catalog's per-asset 'Download'). An unlisted tool still loads normally via #/tool/<id>, URL mode, and the CLI; unlisting only removes it from the gallery listing."
         },
+        singleInstance: {
+          type: "boolean",
+          description: "The tool assumes it is the ONLY instance on the page - its template/hooks park a mutable handle on `window` and dispose the PREVIOUS instance when a new one mounts, and/or it holds a WebGL context (capped ~16 per tab), so N live copies cannot coexist. Set true for the WebGL / window-global tools (3D viewers, spatial-photo, synth, live viz). Multi-edit renders such a tool's cells as sequential still previews (rendered through the export path, so async loads land) instead of N live instances that would dispose each other; the single-tool view, URL mode and CLI are unaffected. Default false: an ordinary tool runs live in every multi-edit cell."
+        },
         privacy: {
           type: "string",
           enum: [
@@ -2016,7 +2020,7 @@ var init_asset_schema = __esm({
         description: { type: "string" },
         type: {
           type: "string",
-          enum: ["vector", "raster", "video", "audio", "lottie", "palette", "tokens", "font", "profile", "ratecard", "text", "data"]
+          enum: ["vector", "raster", "video", "audio", "lottie", "model", "lut", "palette", "tokens", "font", "profile", "ratecard", "text", "data"]
         },
         version: {
           type: "string",
@@ -2084,6 +2088,10 @@ var init_asset_schema = __esm({
           type: "string",
           description: "e.g. 'internal', 'cc-by-4.0', 'all-rights-reserved'."
         },
+        attribution: {
+          type: "string",
+          description: "Human-readable credit for a licensed asset that requires attribution (e.g. a CC-BY work). Shown in the catalog asset details view. e.g. 'SUSE \xB7 Peter Chamalian'."
+        },
         aiGenerated: {
           type: "string",
           enum: ["full", "partial"],
@@ -2134,7 +2142,7 @@ var init_asset_ref_schema = __esm({
           type: "string",
           description: "For library: the canonical asset id (e.g. 'suse/logo/primary'). For user: a host-generated local id. For remote: the source URL."
         },
-        type: { type: "string", enum: ["vector", "raster", "video", "audio", "lottie", "palette", "tokens", "font"] },
+        type: { type: "string", enum: ["vector", "raster", "video", "audio", "lottie", "model", "lut", "palette", "tokens", "font"] },
         format: {
           type: "string",
           description: "The specific variant resolved, e.g. 'svg', 'png@2x'."
@@ -2802,7 +2810,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.155.0";
+    ENGINE_VERSION = "1.156.0";
   }
 });
 
@@ -47511,8 +47519,13 @@ function resolved(swatches) {
 function slug(key) {
   return key.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "swatch";
 }
-function paletteTokensJson(swatches) {
+function paletteTokensJson(swatches, opts) {
   const root = {};
+  for (const f of opts?.fonts ?? []) {
+    if (!f.families.length) continue;
+    const font = root.font ??= {};
+    font[f.role] = { $value: f.families, $type: "fontFamilies" };
+  }
   for (const s of resolved(swatches)) {
     const segs = s.key.split(".");
     let node = root;
