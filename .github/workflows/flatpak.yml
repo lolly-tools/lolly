@@ -6,12 +6,12 @@
 #   1. build-deb  - build the Tauri desktop app into a .deb (needs network + the
 #                   webkit2gtk toolchain; a normal runner, NOT the offline Flatpak
 #                   sandbox). Uploads the .deb as an artifact.
-#   2. flatpak    - inside the GNOME-49 flatpak-builder container, unpack that .deb via
+#   2. flatpak    - inside the GNOME-50 flatpak-builder container, unpack that .deb via
 #                   shells/tauri-desktop/flatpak/tools.lolly.Desktop.yml and export a
 #                   single-file Lolly.flatpak bundle.
 #
-# Triggers on version tags (v*) and manual dispatch. Keep the container tag (gnome-49)
-# in lockstep with `runtime-version: '49'` in the manifest.
+# Triggers on version tags (v*) and manual dispatch. Keep the container tag (gnome-50)
+# in lockstep with `runtime-version: '50'` in the manifest.
 name: Flatpak (Linux)
 
 on:
@@ -95,7 +95,7 @@ jobs:
     needs: build-deb
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-49
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
       options: --privileged
     steps:
       - uses: actions/checkout@v7
