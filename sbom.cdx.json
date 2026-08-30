@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:6de548e9-d559-4681-8618-cd6d76818f52",
+  "serialNumber": "urn:uuid:b0d5f613-998f-4926-812d-b222e9a60ada",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-08-30T00:45:51.655Z",
+    "timestamp": "2026-08-30T20:18:36.260Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -485,9 +485,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -513,7 +511,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -539,9 +537,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -566,9 +562,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -593,9 +587,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -620,9 +612,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -647,9 +637,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -674,9 +662,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -701,9 +687,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -728,9 +712,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -755,9 +737,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -782,9 +762,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1221,9 +1199,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -1423,9 +1399,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Unlicense OR MIT"
         }
       ],
       "hashes": [
@@ -2067,7 +2041,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "BSL-1.0"
           }
         }
       ],
@@ -2600,7 +2574,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3838,7 +3812,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3864,9 +3838,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3891,9 +3863,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3994,7 +3964,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "BSL-1.0"
           }
         }
       ],
@@ -4047,9 +4017,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -4074,9 +4042,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -4154,7 +4120,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4585,7 +4551,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4711,9 +4677,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -5055,7 +5019,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Apache-2.0"
           }
         }
       ],
@@ -5528,9 +5492,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5707,9 +5669,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6358,9 +6318,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6463,7 +6421,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "ISC"
           }
         }
       ],
@@ -6490,7 +6448,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "ISC"
           }
         }
       ],
@@ -6950,7 +6908,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -6977,7 +6935,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -7354,15 +7312,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/lolly-desktop@1.0.1",
+      "bom-ref": "pkg:cargo/lolly-desktop@1.0.3",
       "name": "lolly-desktop",
-      "version": "1.0.1",
-      "purl": "pkg:cargo/lolly-desktop@1.0.1",
+      "version": "1.0.3",
+      "purl": "pkg:cargo/lolly-desktop@1.0.3",
       "scope": "required",
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MPL-2.0"
           }
         }
       ],
@@ -7383,7 +7341,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MPL-2.0"
           }
         }
       ],
@@ -7782,9 +7740,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "BSD-3-Clause OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8013,9 +7969,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8041,7 +7995,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "CC0-1.0"
           }
         }
       ],
@@ -8856,9 +8810,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9064,9 +9016,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -9376,9 +9326,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9557,9 +9505,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10013,9 +9959,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "BSD-3-Clause OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10040,9 +9984,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12759,9 +12701,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13242,9 +13182,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -13722,7 +13660,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -14492,7 +14430,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -14725,7 +14663,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -16254,9 +16192,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -18274,9 +18210,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -18301,9 +18235,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -18408,7 +18340,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -18435,7 +18367,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -18462,7 +18394,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -18489,7 +18421,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -18777,9 +18709,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0 OR Zlib"
         }
       ],
       "hashes": [
@@ -18804,9 +18734,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0 OR Zlib"
         }
       ],
       "hashes": [
@@ -18832,7 +18760,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -18859,7 +18787,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -18886,7 +18814,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
