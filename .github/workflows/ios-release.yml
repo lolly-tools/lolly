@@ -118,6 +118,9 @@ jobs:
         run: npm run tauri -- ios build --export-method app-store-connect --ci --verbose
         env:
           ONNXRUNTIME_NODE_INSTALL_CUDA: skip
+          # The docs (build:info, 27 locales) + vite build blow past Node's default
+          # heap on the 7 GB runner. Give V8 more room (exit 134 = V8 OOM, not OS OOM).
+          NODE_OPTIONS: --max-old-space-size=6144
 
       - name: Locate the ipa + confirm it is NOT beta-built
         id: ipa
