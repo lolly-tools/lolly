@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-29T07:50:02.978Z",
+  "generatedAt": "2026-08-30T18:57:16.203Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -4205,7 +4205,7 @@
       "id": "asset-export",
       "name": "Asset Export",
       "description": "Render any catalog asset - or a Lolly tool link - out to any format and size.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "status": "official",
       "category": "everyone",
       "listed": false,
@@ -4242,6 +4242,47 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"14\" rx=\"2\"/><circle cx=\"8.5\" cy=\"8.5\" r=\"1.5\"/><path d=\"m21 15-5-5L5 21\"/><path d=\"M12 21v-6\"/><path d=\"m9 18 3 3 3-3\"/></svg>",
       "preview": "/catalog/previews/asset-export.svg",
+      "examples": [
+        {
+          "label": "Whole asset, brand surface",
+          "values": {
+            "src": {
+              "source": "library",
+              "id": "lolly/demo/lolly-spin",
+              "_unresolved": true
+            },
+            "fit": "contain",
+            "width": 1000,
+            "height": 1000
+          }
+        },
+        {
+          "label": "Filled square crop",
+          "values": {
+            "src": {
+              "source": "library",
+              "id": "lolly/demo/lolly-spin",
+              "_unresolved": true
+            },
+            "fit": "cover",
+            "width": 1000,
+            "height": 1000
+          }
+        },
+        {
+          "label": "Wide banner",
+          "values": {
+            "src": {
+              "source": "library",
+              "id": "lolly/demo/lolly-spin",
+              "_unresolved": true
+            },
+            "fit": "contain",
+            "width": 1600,
+            "height": 600
+          }
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "تصدير الأصول",
