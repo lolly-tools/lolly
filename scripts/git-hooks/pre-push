@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+# Local vernacular gate. A push to the parent now triggers a lolly.tools (bt) git
+# deploy, so block the push if code/docs comments carry claudisms or banned tics -
+# the same checks loldev's gate ran. Emergency bypass: git push --no-verify.
+root=$(git rev-parse --show-toplevel) || exit 1
+cd "$root" || exit 1
+printf '→ pre-push: vernacular gate…\n'
+npm run --silent check:code-comments || { printf '\n✗ code-comment vernacular failed - fix, or bypass with: git push --no-verify\n'; exit 1; }
+node scripts/check-docs-vernacular.ts   || { printf '\n✗ docs vernacular failed - fix, or bypass with: git push --no-verify\n'; exit 1; }
+printf '✓ vernacular clean\n'
