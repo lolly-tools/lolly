@@ -6,14 +6,20 @@
 # `tauri ios build` output can never be submitted. GitHub's hosted macOS runners
 # run a released (GM) macOS, which clears it. See memory ios-app-store-submission.
 #
-# Manual trigger only (macOS runner minutes + signing are expensive). Bump the
-# version in shells/tauri-mobile/src-tauri/tauri.conf.json first (each App Store
-# build needs a higher CFBundleVersion), commit, then run this.
+# Signing: Tauri's own xcodebuild call handles provisioning via the App Store
+# Connect API key when APPLE_API_KEY / APPLE_API_ISSUER / APPLE_API_KEY_PATH are
+# set (it then passes -authenticationKey* + -allowProvisioningUpdates). The
+# Apple Distribution cert is imported into a throwaway keychain. `--export-method
+# app-store-connect` makes Tauri build + export a distribution-signed ipa.
 #
-# Required repo secrets (Settings → Secrets and variables → Actions):
+# Manual trigger only. Bump the version in
+# shells/tauri-mobile/src-tauri/tauri.conf.json first (each App Store build needs
+# a higher CFBundleVersion), commit, then run this.
+#
+# Required repo secrets:
 #   IOS_DIST_CERT_P12       base64 of an Apple Distribution cert .p12 (cert + private key)
 #   IOS_DIST_CERT_PASSWORD  the .p12 export password
-#   ASC_KEY_P8              base64 of the App Store Connect API key .p8 (AuthKey_6WNY433QKD.p8)
+#   ASC_KEY_P8              base64 of the App Store Connect API key .p8
 #   ASC_KEY_ID             App Store Connect API key id (6WNY433QKD)
 #   ASC_ISSUER_ID          App Store Connect issuer id (e529261d-…)
 
@@ -43,7 +49,6 @@ jobs:
       - name: Select the newest GM Xcode (needs iOS 26+ SDK)
         run: |
           set -euo pipefail
-          # Newest installed Xcode 26+ ; fall back to the default. NEVER a beta.
           XC=$(ls -d /Applications/Xcode_26*.app /Applications/Xcode.app 2>/dev/null | sort -V | tail -1)
           echo "Using $XC"
           sudo xcode-select -s "$XC/Contents/Developer"
@@ -90,67 +95,62 @@ jobs:
           rm -f /tmp/dist.p12
           security find-identity -v -p codesigning "$KC"
 
-      - name: Write App Store Connect API key
+      - name: Write App Store Connect API key + export signing env
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-        run: |
-          set -euo pipefail
-          mkdir -p ~/.appstoreconnect/private_keys ~/private_keys
-          echo "$ASC_KEY_P8" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
-          cp ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8 ~/private_keys/
-
-      - name: Build iOS app (Tauri → device archive)
-        working-directory: shells/tauri-mobile
-        run: npm run tauri -- ios build
-        env:
-          ONNXRUNTIME_NODE_INSTALL_CUDA: skip
-
-      - name: Confirm the archive is NOT beta-built
-        working-directory: shells/tauri-mobile/src-tauri/gen/apple
-        run: |
-          set -euo pipefail
-          APP=build/lolly-mobile_iOS.xcarchive/Products/Applications/Lolly.app
-          OSB=$(/usr/bin/defaults read "$PWD/$APP/Info" BuildMachineOSBuild)
-          echo "BuildMachineOSBuild=$OSB  DTSDKName=$(/usr/bin/defaults read "$PWD/$APP/Info" DTSDKName)"
-          # Beta seed builds carry a 5xxx build number with a trailing lowercase letter.
-          if echo "$OSB" | grep -Eq '[0-9]{2}[A-Z]5[0-9]{3}[a-z]$'; then
-            echo "::error::Archive was built on a BETA macOS ($OSB) — Apple will reject with ITMS-90111. This runner is not GM."
-            exit 1
-          fi
-
-      - name: Export App Store ipa
-        working-directory: shells/tauri-mobile/src-tauri/gen/apple
-        env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
           set -euo pipefail
-          rm -rf build/appstore-export
-          xcodebuild -exportArchive \
-            -archivePath build/lolly-mobile_iOS.xcarchive \
-            -exportOptionsPlist ExportOptions-appstore.plist \
-            -exportPath build/appstore-export \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
-          ls -la build/appstore-export
+          mkdir -p ~/.appstoreconnect/private_keys ~/private_keys
+          P8=~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+          echo "$ASC_KEY_P8" | base64 --decode > "$P8"
+          cp "$P8" ~/private_keys/
+          # Tauri reads these and passes -authenticationKey* + -allowProvisioningUpdates to xcodebuild.
+          {
+            echo "APPLE_API_KEY=$ASC_KEY_ID"
+            echo "APPLE_API_ISSUER=$ASC_ISSUER_ID"
+            echo "APPLE_API_KEY_PATH=$P8"
+          } >> "$GITHUB_ENV"
+
+      - name: Build + export App Store ipa (Tauri, API-key signing)
+        working-directory: shells/tauri-mobile
+        run: npm run tauri -- ios build --export-method app-store-connect --ci --verbose
+        env:
+          ONNXRUNTIME_NODE_INSTALL_CUDA: skip
+
+      - name: Locate the ipa + confirm it is NOT beta-built
+        id: ipa
+        working-directory: shells/tauri-mobile/src-tauri/gen/apple
+        run: |
+          set -euo pipefail
+          IPA=$(find build -name '*.ipa' -type f | head -1)
+          [ -z "$IPA" ] && { echo "::error::no ipa produced"; ls -R build | head -50; exit 1; }
+          echo "found $IPA"
+          echo "ipa=$PWD/$IPA" >> "$GITHUB_OUTPUT"
+          ARCH=build/lolly-mobile_iOS.xcarchive/Products/Applications/Lolly.app
+          if [ -d "$ARCH" ]; then
+            OSB=$(/usr/bin/defaults read "$PWD/$ARCH/Info" BuildMachineOSBuild)
+            echo "BuildMachineOSBuild=$OSB  DTSDKName=$(/usr/bin/defaults read "$PWD/$ARCH/Info" DTSDKName)"
+            if echo "$OSB" | grep -Eq '[0-9]{2}[A-Z]5[0-9]{3}[a-z]$'; then
+              echo "::error::Archive was built on a BETA macOS ($OSB) — Apple will reject with ITMS-90111."
+              exit 1
+            fi
+          fi
 
       - name: Upload the ipa as a workflow artifact
         uses: actions/upload-artifact@v4
         with:
           name: Lolly-ios-ipa
-          path: shells/tauri-mobile/src-tauri/gen/apple/build/appstore-export/*.ipa
+          path: ${{ steps.ipa.outputs.ipa }}
           if-no-files-found: error
 
       - name: Upload to App Store Connect
         if: ${{ inputs.upload }}
-        working-directory: shells/tauri-mobile/src-tauri/gen/apple
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
           set -euo pipefail
-          xcrun altool --upload-app -f build/appstore-export/Lolly.ipa -t ios \
+          xcrun altool --upload-app -f "${{ steps.ipa.outputs.ipa }}" -t ios \
             --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
