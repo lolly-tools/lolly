@@ -101,6 +101,7 @@ import { measureImage, verdictReason, type Measured } from './check-blank-previe
 // carousel would render from (shells/web/src/lib/seed-url.ts).
 import { buildInputModel, serializeUrlState } from '../engine/src/index.ts';
 import { stampVector, stampBitmap } from './lib/stamp-media.ts';
+import { previewUnchanged, sharpDecoder, type RasterDecoder } from './lib/preview-compare.ts';
 import type { InputValue } from '../engine/src/inputs.ts';
 
 /** Parsed CLI options. */
@@ -287,6 +288,7 @@ async function main(): Promise<void> {
     console.log('  Bake these tools an example look (or a template preset) so there is a real');
     console.log('  state to capture. Do not draw a picture of the tool and commit it as a card.');
   }
+  if (keptUnchanged) console.log(`\n${keptUnchanged} preview${keptUnchanged === 1 ? '' : 's'} unchanged - committed bytes kept (no history churn).`);
   console.log('\nDone.');
 }
 
@@ -449,9 +451,24 @@ async function writePreview(toolId: string, ext: string, bytes: Buffer): Promise
   const final = await finalizePreview(toolId, ext, bytes, { id: toolId, name: toolId });
   const file = join(PREVIEWS_DIR, `${toolId}.${final.ext}`);
   await mkdir(dirname(file), { recursive: true });
-  await writeFile(file, final.bytes);
+  await writeUnlessSamePicture(file, final.ext, final.bytes);
   await clearSiblings(`${toolId}`, final.ext);
   return file;
+}
+
+// Compare-before-write (scripts/lib/preview-compare.ts): the render path is not
+// byte-stable, so a preview whose PICTURE did not change keeps its committed bytes -
+// otherwise every run rewrites every file, the OG input-hash gate sees new preview
+// bytes and re-renders every share card, and git history grows by ~20 MB per ship.
+let rasterDecoder: RasterDecoder | null | undefined;
+let keptUnchanged = 0;
+async function writeUnlessSamePicture(file: string, ext: string, fresh: Buffer): Promise<void> {
+  if (existsSync(file)) {
+    if (rasterDecoder === undefined) rasterDecoder = await sharpDecoder();
+    const existing = await readFile(file);
+    if (await previewUnchanged(ext, existing, fresh, rasterDecoder)) { keptUnchanged++; return; }
+  }
+  await writeFile(file, fresh);
 }
 
 // Retina-safe cap for a captured raster, MIRRORING MAX_DIM in optimize-preview-webp.ts:
@@ -646,7 +663,7 @@ async function writeLookPreview(toolId: string, i: number, ext: string, bytes: B
   const final = await finalizePreview(base, ext, bytes, { id: base, name: toolId }, LOOK_BUDGET_BYTES);
   const file = join(PREVIEWS_DIR, `${base}.${final.ext}`);
   await mkdir(dirname(file), { recursive: true });
-  await writeFile(file, final.bytes);
+  await writeUnlessSamePicture(file, final.ext, final.bytes);
   await clearSiblings(base, final.ext);
   return file;
 }

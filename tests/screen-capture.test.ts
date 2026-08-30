@@ -385,8 +385,11 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // PaletteTokensOpts.fonts - fontFamilies tokens beside the colour leaves so a
   // brand's faces travel to Penpot/Tokens Studio. Additive; single-argument
   // call sites emit byte-identical output - see palette-export.test.ts).
+  // Then 1.157.0 (an export names the exact tool that made it: ExportMeta gains
+  // optional toolId/toolVersion, source becomes the tool's /t/<id> page, both ride
+  // the tools.lolly.export assertion and /verify recreates by id - see metadata.test.ts).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.156.0');
+  assert.equal(ENGINE_VERSION, '1.157.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

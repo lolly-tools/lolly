@@ -26,6 +26,7 @@ export interface MetadataHost {
 export interface MetadataManifest {
   id?: string;
   name?: string;
+  version?: string;
 }
 
 /** The slice of an input-model item buildExportMeta reads for bindToMeta merging. */
@@ -56,14 +57,20 @@ export async function buildExportMeta(
   const author  = optedIn ? [clean(p.firstname), clean(p.lastname)].filter(Boolean).join(' ') : '';
   const contact = optedIn ? [clean(p.email), clean(p.phone)].filter(Boolean).join(' · ') : '';
   const tool    = clean(manifest?.name) || clean(manifest?.id);
+  const toolId  = clean(manifest?.id);
+  const toolVersion = clean(manifest?.version);
 
   const description = ['Made with https://lolly.tools', tool && `: ${tool}`, author && `by ${author}`]
     .filter(Boolean).join(' ');
 
   const meta: ExportMeta = {
     software: 'Lolly',
-    source: 'https://lolly.tools',
+    // The tool's own page in the canonical share form (/t/<id>, engine/src/tool-url.ts)
+    // when the id is known, else the site root. An identifier only - no inputs ride here.
+    source: toolId ? `https://lolly.tools/t/${toolId}` : 'https://lolly.tools',
     tool,
+    ...(toolId ? { toolId } : {}),
+    ...(toolVersion ? { toolVersion } : {}),
     author,                                                   // '' if not opted in
     contact,                                                  // '' if none
     description,

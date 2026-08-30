@@ -17,6 +17,8 @@
  *                     auto-promoted; --accept is the snapshot-update gesture.
  */
 
+import { stripSvgC2pa } from '@lolly-tools/node-shell/lolly-file';
+
 /** Decoded raster: tightly-packed RGBA, `data.length === width * height * 4`. */
 export interface RawImage {
   width: number;
@@ -210,19 +212,17 @@ export function classifyShot(c: ShotComparison, t: ShotThresholds = DEFAULT_THRE
 // block (whose signature carries a timestamp) from the committed baseline.
 // Pixel-percentage metrics don't apply - size delta and dims carry the report.
 
-/** Remove the C2PA <metadata><c2pa:manifest>…</> block + xmlns (engine placeSvg shape). */
-export function stripSvgC2pa(svg: string): string {
-  // GLOBAL, all three. A shot is not limited to one manifest: the walker inlines catalog
-  // preview SVGs as real nested vector, and those previews are themselves credentialed - 
-  // the gallery shot carries EIGHT. Stripping only the first removed the shot's own
-  // manifest from a stamped baseline but the first inlined preview's from a fresh
-  // unstamped capture, so the two could never compare equal and the shot reported
-  // `changed` on every run no matter how deterministic the capture was.
-  return svg
-    .replace(/<metadata><c2pa:manifest>[^<]*<\/c2pa:manifest><\/metadata>/g, '')
-    .replace(/<c2pa:manifest>[^<]*<\/c2pa:manifest>/g, '')
-    .replace(/ xmlns:c2pa="[^"]*"/g, '');
-}
+/**
+ * Remove the C2PA <metadata><c2pa:manifest>…</> block + xmlns (engine placeSvg shape).
+ *
+ * Re-exported, not implemented here. `lolly validate --rebuild` compares a rebuilt SVG
+ * against a delivered one and needs exactly this normalisation, so the function moved to
+ * `@lolly-tools/node-shell/lolly-file` where both callers reach it. A shot is not limited
+ * to one manifest (the gallery shot carries eight inlined credentialed previews), and two
+ * copies stripping different sets is precisely the drift that made every shot report
+ * `changed` before the strip was made global.
+ */
+export { stripSvgC2pa };
 
 /** width/height attributes of the root <svg> element, if numeric. */
 /**

@@ -28,10 +28,10 @@
       "components": [
         {
           "type": "library",
-          "bom-ref": "pkg:npm/%40lolly-tools/core@0.1.0",
+          "bom-ref": "pkg:npm/%40lolly-tools/core@1.0.0",
           "name": "@lolly-tools/core",
-          "version": "0.1.0",
-          "purl": "pkg:npm/%40lolly-tools/core@0.1.0",
+          "version": "1.0.0",
+          "purl": "pkg:npm/%40lolly-tools/core@1.0.0",
           "licenses": [
             {
               "license": {
@@ -84,10 +84,10 @@
         },
         {
           "type": "library",
-          "bom-ref": "pkg:npm/%40lolly/engine@1.156.0",
+          "bom-ref": "pkg:npm/%40lolly/engine@1.157.0",
           "name": "@lolly/engine",
-          "version": "1.156.0",
-          "purl": "pkg:npm/%40lolly/engine@1.156.0",
+          "version": "1.157.0",
+          "purl": "pkg:npm/%40lolly/engine@1.157.0",
           "licenses": [
             {
               "license": {

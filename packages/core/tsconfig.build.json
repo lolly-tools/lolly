@@ -1,0 +1,13 @@
+{
+  "//": "Publish build ONLY (scripts/pack-core.ts). The checked-in package.json exports point at src/*.ts because in-repo consumers import source with no build step; this config emits the compiled ESM + .d.ts that the npm tarball ships instead. rewriteRelativeImportExtensions turns the source's explicit `.ts` specifiers into `.js` in the emitted output. No rootDir: TS infers packages/core/ as the common root, so src/ and the schema/*.json that validate.ts imports both land under outDir with their relative paths intact (../schema/x.json still resolves from src/).",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "rewriteRelativeImportExtensions": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "outDir": "../../dist/core-pack/pkg"
+  },
+  "include": ["src/**/*"]
+}

@@ -4,6 +4,8 @@ This file is a **router**. It tells you where things live, which repo owns the f
 
 Start with [`README.md`](README.md) for what Lolly is, and [`docs/`](docs/) for the architecture and authoring guides.
 
+**Contributing one tool? You can skip the clone.** A tool is a folder: `tool.json`, `template.html`, and whatever else it needs. Write one, zip the folder, drop the zip on [lolly.tools](https://lolly.tools) or any Lolly instance, and choose **Install this tool** to run it on that device. When it works, open a pull request against [`lolly-tools`](https://github.com/lolly-tools/lolly-tools), the small public repo of community tools. The steps and the consent prompt are in [Try it without the monorepo](docs/authoring-tools.md#try-it-without-the-monorepo). Everything below is for changing the platform itself.
+
 ## 1. Clone recursively, before you install
 
 ```bash

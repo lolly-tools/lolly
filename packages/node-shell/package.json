@@ -24,6 +24,7 @@
     "./url-capture": "./src/url-capture.ts",
     "./net": "./src/net.ts",
     "./pptx": "./src/pptx.ts",
+    "./lolly-file": "./src/lolly-file.ts",
     "./inspect": "./src/inspect.ts",
     "./inspect-render": "./src/inspect-render.ts",
     "./pdf-pages": "./src/pdf-pages.ts",

@@ -3052,8 +3052,14 @@ export interface ExportOpts {
 // Copyright / XMP dc:rights out there, they are self-declared, not verified facts.
 export interface ExportMeta {
   software: string;     // "Lolly"
-  source: string;       // "https://lolly.tools"
+  source: string;       // the tool's page ("https://lolly.tools/t/<id>"), or the site root when the id is unknown
   tool: string;         // the tool's name
+  /** The tool's manifest id and version. A display name is not unique across
+   *  brands or locales; these let an inspected export name the exact tool that
+   *  made it and let /verify reopen it by id. Absent on records written before
+   *  engine 1.157 and on hand-built metas. */
+  toolId?: string;
+  toolVersion?: string;
   author: string;       // "First Last" - '' if the user hasn't set a profile
   contact: string;      // "email · phone" - '' if none
   description: string;  // human-readable credit line

@@ -2,6 +2,10 @@
 
 **The contract for building a [Lolly](https://lolly.tools) tool - without cloning the platform.**
 
+```bash
+npm i -D @lolly-tools/core
+```
+
 A Lolly tool is **data, not bundled code**: a `tool.json` manifest, a Handlebars
 `template.html`, optional `styles.css`, and an optional `hooks.js`. The same tool
 runs unchanged in every Lolly shell (web PWA, Tauri desktop/mobile, CLI) because it
@@ -20,100 +24,89 @@ it:
 | `@lolly-tools/core/schema/tool.schema.json` | The manifest schema, bundled for offline validation. |
 
 It depends only on [`ajv`](https://ajv.js.org/) - no DOM library, framework, or
-platform code. It knows nothing about SUSE, storage, or networking; all of that is
+platform code. It knows nothing about storage or networking; all of that is
 injected by the host at runtime.
 
-## Install
+## Quickstart
 
-```bash
-npm install --save-dev @lolly-tools/core
+A whole tool is four files in a folder. Here is the smallest useful one.
+
+`tool.json` - inputs are declared here, never inferred from the template:
+
+```json
+{
+  "id": "hello-badge",
+  "name": "Hello Badge",
+  "version": "1.0.0",
+  "engineVersion": "1.0.0",
+  "status": "community",
+  "render": { "width": 600, "height": 400, "formats": ["svg", "png"] },
+  "inputs": [{ "id": "name", "type": "text", "label": "Name", "default": "Ada Lovelace" }],
+  "hooks": { "onInit": true }
+}
 ```
 
-## Anatomy of a tool
+`hooks.js` - the escape hatch when the logic-less template is not enough. It is
+tool **data**, not a module: bare function declarations, no imports, no exports.
+The runtime injects `host` and collects the hooks by name. A hook returns a plain
+object; keys matching a declared input `id` update it, anything else becomes an
+extra the template uses directly as `{{initials}}`:
 
+```js
+function onInit(ctx) {
+  var name = '';
+  for (var i = 0; i < ctx.model.length; i++) if (ctx.model[i].id === 'name') name = ctx.model[i].value;
+  host.log('info', 'badge for ' + name);
+  return { initials: String(name).split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase() };
+}
 ```
-my-tool/
-├── tool.json        # manifest (validated against the schema)
-├── template.html    # Handlebars markup for the canvas
-├── styles.css       # optional - auto-scoped to the tool canvas
-└── hooks.js         # optional - imperative escape hatch (only if the manifest declares it)
-```
 
-Inputs are **declared in the manifest, not inferred from the template**, and every
-input is expressible as a URL param - that is what lets one render path serve the
-GUI and the CLI identically.
+`template.html` is Handlebars: `<svg …><text>{{initials}}</text></svg>`.
 
-## Author a manifest with type-checking
+Now test it with no browser. `createMockHost` implements the required bridge
+surface in memory and records what your tool did. Load the hook the way the
+runtime does - inject `host`, take the function by name:
 
-```ts
-import { defineTool, validateTool } from '@lolly-tools/core';
+```js
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { createMockHost, validateTool } from '@lolly-tools/core';
+import manifest from './tool.json' with { type: 'json' };
 
-export const manifest = defineTool({
-  id: 'hello-badge',            // permanent contract - never rename or reuse
-  name: 'Hello Badge',
-  version: '1.0.0',
-  engineVersion: '1.0.0',       // minimum HostV1 minor your tool needs
-  status: 'community',
-  render: { width: 600, height: 400, formats: ['svg', 'png'] },
-  inputs: [
-    { id: 'name', type: 'text', label: 'Name', default: 'Ada Lovelace' },
-    { id: 'bg', type: 'color', label: 'Background', default: '#30ba78' },
-  ],
-  hooks: { onInit: true },
+test('manifest is valid and onInit derives initials', () => {
+  assert.equal(validateTool(manifest).valid, true);
+  const host = createMockHost();
+  const src = readFileSync(new URL('./hooks.js', import.meta.url), 'utf8');
+  const { onInit } = new Function('host', `${src}\nreturn { onInit };`)(host);
+  assert.equal(onInit({ model: [{ id: 'name', value: 'Ada Lovelace' }] }).initials, 'AL');
+  assert.equal(host.inspect.logs.at(-1)?.level, 'info');
 });
-
-const { valid, errors } = validateTool(manifest);
-if (!valid) throw new Error(errors.map((e) => `${e.path}: ${e.message}`).join('\n'));
 ```
 
-## Write typed hooks
+To see it render, zip the tool folder and drop the zip on
+[lolly.tools](https://lolly.tools).
 
-Hooks return a plain object: keys matching a declared input `id` update that input;
-any other key becomes a computed **extra** the template can reference directly.
+## Authoring with types
+
+`defineTool` and `defineHooks` are identity functions that give you autocomplete
+and type-checking while you write. `hooks.js` ships as tool **data**, so author in
+TypeScript if you like but ship plain `.js`.
 
 ```ts
 import { defineHooks } from '@lolly-tools/core';
 
 export default defineHooks({
   onInit({ model, host }) {
-    const name = String(model.find((m) => m.id === 'name')?.value ?? '');
-    host.log('info', `rendering badge for ${name}`);
-    const initials = name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
-    return { initials }; // no input has id "initials" → exposed as {{initials}}
+    /* `model` and `host` are fully typed here */
   },
 });
 ```
 
-> `hooks.js` ships as tool **data** (it is not compiled into the app). Authoring it
-> in TypeScript with `defineHooks` is a convenience for your own editor; ship the
-> compiled/plain `.js`.
-
-## Test hooks against a mock host
-
-`createMockHost` implements the required bridge surface in memory and records what
-your tool did, so you can assert on it without a browser.
-
-```ts
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { createMockHost } from '@lolly-tools/core';
-import hooks from './hooks.js';
-
-test('onInit derives initials and logs', async () => {
-  const host = createMockHost({ profile: { firstname: 'Ada' } });
-  const patch = await hooks.onInit({
-    model: [{ id: 'name', value: 'Ada Lovelace' }],
-    host,
-  });
-  assert.equal(patch.initials, 'AL');
-  assert.equal(host.inspect.logs.at(-1)?.level, 'info');
-});
-```
-
 The optional capabilities (`net`, `tokens`, `text`, `pdf`, `capture`, `compose`,
-`media`, `recorder`) are absent on the mock by default - a hook that feature-detects
-one (`if (host.pdf) …`) sees it as unavailable. Assign your own stub to the returned
-host to exercise those paths.
+`audio`, `media`, `recorder`) are absent on the mock by default, so a hook that
+feature-detects one (`if (host.pdf) …`) sees it as unavailable. Assign your own
+stub to the returned host to exercise those paths.
 
 ## Versioning
 
@@ -121,6 +114,11 @@ The bridge follows the rule in `HostV1`: methods may be **added** in a minor
 version, never removed or signature-changed without a major bump. Your manifest's
 `engineVersion` is the minimum contract minor your tool needs; a shell refuses to
 load a tool that asks for more than it implements.
+
+**Compatibility:** `HostV1` contract version `1` (`CONTRACT_VERSION`), built
+against Lolly engine 1.157.0 and shipped alongside Lolly 1.0.1. This package
+keeps its own semver: it moves when the tool-author surface moves, not when the
+app releases.
 
 ## License
 

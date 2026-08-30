@@ -6,6 +6,15 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.157.0 - an export names the exact tool that made it. `ExportMeta` (packages/core
+host-v1) gains optional `toolId` + `toolVersion`, filled by `buildExportMeta` from the
+manifest; `source` becomes the tool's own page in the canonical share form
+(`https://lolly.tools/t/<id>`) when the id is known, the site root otherwise. The web
+shell writes both new fields into the `tools.lolly.export` C2PA assertion beside the
+display name, and /verify's "Recreate with these settings" resolves the tool by id
+before falling back to the name match. Additive: metas built without an id are
+byte-identical to before; older records simply lack the two keys.
+
 1.156.0 - a brand's typefaces travel with its palette (plans/173 slice 1).
 `paletteTokensJson` (palette-export) takes an optional `PaletteTokensOpts`:
 `fonts: [{role, families}]` emits DTCG `fontFamilies` tokens under `font.<role>`

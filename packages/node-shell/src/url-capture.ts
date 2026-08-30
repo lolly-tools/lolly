@@ -21,6 +21,60 @@
  */
 import { getBrowser, BrowserError } from './browsers.ts';
 
+/**
+ * Refuse a capture target that a HOSTED process must never navigate to: a
+ * non-http(s) scheme, embedded credentials, or a literal loopback, link-local,
+ * private-range (RFC 1918 + CGNAT), multicast or unspecified address - IPv4,
+ * IPv6, and the IPv4-mapped IPv6 forms. The WHATWG URL parser has already
+ * normalised decimal/hex/octal IPv4 spellings to dotted form by the time the
+ * hostname is read, so those need no special casing.
+ *
+ * Literal hostnames only. A public name that resolves to a private address
+ * (DNS rebinding) or a redirect into one is not caught here; on a hosted worker
+ * that is the egress policy's job (docs/threat-model.md names it as residual).
+ * Only the MCP host turns this on (`createCliBridge({ capturePublicOnly })`) - a
+ * person running the CLI or TUI on their own machine may capture their own
+ * localhost, and that stays the default.
+ */
+export function assertPublicHttpUrl(raw: string): void {
+  let u: URL;
+  try { u = new URL(raw); } catch { throw new BrowserError(`Not a valid URL: ${raw}`); }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+    throw new BrowserError(`Only http(s) pages can be captured here (got ${u.protocol})`);
+  }
+  if (u.username || u.password) throw new BrowserError('A capture URL must not carry credentials');
+  const host = u.hostname.replace(/^\[|\]$/g, '').toLowerCase();
+  if (isPrivateHost(host)) throw new BrowserError(`Refusing to capture a private or local address: ${u.hostname}`);
+}
+
+const V4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+/** Non-public IPv4 by first two octets: 0/8, 10/8, 127/8, 169.254/16, 172.16/12,
+ *  192.168/16, 100.64/10 (CGNAT) and everything from 224/4 up (multicast, reserved). */
+function isPrivateV4(a: number, b: number): boolean {
+  return a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31)
+    || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224;
+}
+function isPrivateHost(host: string): boolean {
+  if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || host.endsWith('.internal')) return true;
+  const m = V4.exec(host);
+  if (m) return isPrivateV4(Number(m[1]), Number(m[2]));
+  if (host.includes(':')) {
+    // An IPv6 literal (brackets stripped). The URL parser serialises it in
+    // lowercase compressed form, so these prefixes are stable.
+    if (host === '::' || host === '::1') return true;
+    if (/^f[cd][0-9a-f]{2}:/.test(host)) return true;   // fc00::/7 unique local
+    if (/^fe[89ab][0-9a-f]:/.test(host)) return true;    // fe80::/10 link-local
+    const dotted = /^::ffff:(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/.exec(host);
+    if (dotted) return isPrivateV4(Number(dotted[1]), Number(dotted[2]));
+    const hex = /^::ffff:([0-9a-f]{1,4}):[0-9a-f]{1,4}$/.exec(host);
+    if (hex) { const hi = parseInt(hex[1]!, 16); return isPrivateV4(hi >> 8, hi & 0xff); }
+  }
+  return false;
+}
+
+/** Per-call capture policy. `publicOnly` runs assertPublicHttpUrl first. */
+export interface CaptureOpts { publicOnly?: boolean }
+
 export interface CaptureParams {
   url: string;
   scrollDepth: number;   // 0..1 fraction of scrollable height (or px when > 1)
@@ -259,10 +313,11 @@ function recolorCss(p: CaptureParams): string {
  * Throws BrowserError with an actionable message when Chromium isn't installed.
  */
 export async function captureUrl(
-  params: CaptureParams, format: string, dims: CaptureDims,
+  params: CaptureParams, format: string, dims: CaptureDims, opts: CaptureOpts = {},
 ): Promise<{ bytes: Uint8Array; mime: string }> {
   const fmt = format.toLowerCase() === 'jpeg' ? 'jpg' : format.toLowerCase();
   if (!params.url) throw new BrowserError('Enter a URL to capture.');
+  if (opts.publicOnly) assertPublicHttpUrl(params.url);
   if (!['png', 'jpg', 'pdf', 'svg', 'webp'].includes(fmt)) {
     throw new BrowserError(`url-shot can't produce "${format}" - use png, jpg, pdf, or svg.`);
   }

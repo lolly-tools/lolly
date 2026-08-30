@@ -392,6 +392,15 @@ for (const dir of toolDirs) {
       errors.push(`[${dir}] declares "composes" but is missing the "compose" capability`);
     }
   }
+
+  // network.allowlist without the capability: host.net would honour the list while
+  // the shell's availability gate (shells/web/src/capabilities.ts toolSupport) never
+  // learns the tool wants a network, so a shell that cannot provide one would mount
+  // it anyway. The two travel together - docs/threat-model.md states them as a pair.
+  const allowlist = manifest.network?.allowlist;
+  if (Array.isArray(allowlist) && allowlist.length && !(manifest.capabilities ?? []).includes('network')) {
+    errors.push(`[${dir}] declares "network.allowlist" but is missing the "network" capability`);
+  }
 }
 
 // composes must reference real tools - a typo'd child id would only 404 at render
