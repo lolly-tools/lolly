@@ -2810,7 +2810,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.156.0";
+    ENGINE_VERSION = "1.157.0";
   }
 });
 
@@ -7968,11 +7968,17 @@ async function buildExportMeta(host, manifest, profile, inputs) {
   const author = optedIn ? [clean2(p.firstname), clean2(p.lastname)].filter(Boolean).join(" ") : "";
   const contact = optedIn ? [clean2(p.email), clean2(p.phone)].filter(Boolean).join(" \xB7 ") : "";
   const tool = clean2(manifest?.name) || clean2(manifest?.id);
+  const toolId = clean2(manifest?.id);
+  const toolVersion = clean2(manifest?.version);
   const description = ["Made with https://lolly.tools", tool && `: ${tool}`, author && `by ${author}`].filter(Boolean).join(" ");
   const meta = {
     software: "Lolly",
-    source: "https://lolly.tools",
+    // The tool's own page in the canonical share form (/t/<id>, engine/src/tool-url.ts)
+    // when the id is known, else the site root. An identifier only - no inputs ride here.
+    source: toolId ? `https://lolly.tools/t/${toolId}` : "https://lolly.tools",
     tool,
+    ...toolId ? { toolId } : {},
+    ...toolVersion ? { toolVersion } : {},
     author,
     // '' if not opted in
     contact,
@@ -54071,6 +54077,17 @@ async function fontUrlUsable(url) {
   }
   return p;
 }
+function describeFace(family, face) {
+  const file = face.staticUrl || face.srcUrl || "";
+  return {
+    family,
+    weight: face.weight,
+    style: face.style,
+    source: face.assetId ? "user" : file.includes("/catalog/") ? "catalog" : "platform",
+    ...file ? { file } : {},
+    ...face.assetId ? { assetId: face.assetId } : {}
+  };
+}
 async function faceUrl(face) {
   if (face.staticUrl) return face.staticUrl;
   const cacheKey = face.assetId || (face.srcUrl ? `src:${face.srcUrl}` : "");
@@ -54117,7 +54134,9 @@ async function resolveVectorFont(style, text) {
     const key = family.toLowerCase();
     if (key === "suse" || key === "suse mono") {
       const url = resolveSuseFontUrl({ ...style, fontFamily: family });
-      if (url && await fontUrlUsable(url)) return { url };
+      if (url && await fontUrlUsable(url)) {
+        return { url, face: { family, weight: style.fontWeight ?? "400", style: style.fontStyle ?? "normal", source: "catalog", file: url } };
+      }
     }
     const list2 = faces.get(key);
     if (!list2?.length) return null;
@@ -54129,7 +54148,8 @@ async function resolveVectorFont(style, text) {
       return {
         url: primary.fontUrl,
         ...primary.variations ? { variations: primary.variations } : {},
-        ...rest.length ? { fallbacks: rest } : {}
+        ...rest.length ? { fallbacks: rest } : {},
+        face: describeFace(family, chain2[0].face)
       };
     } catch {
       return null;
@@ -55127,6 +55147,42 @@ async function getBrowser() {
 }
 
 // packages/node-shell/src/url-capture.ts
+function assertPublicHttpUrl(raw) {
+  let u;
+  try {
+    u = new URL(raw);
+  } catch {
+    throw new BrowserError(`Not a valid URL: ${raw}`);
+  }
+  if (u.protocol !== "http:" && u.protocol !== "https:") {
+    throw new BrowserError(`Only http(s) pages can be captured here (got ${u.protocol})`);
+  }
+  if (u.username || u.password) throw new BrowserError("A capture URL must not carry credentials");
+  const host = u.hostname.replace(/^\[|\]$/g, "").toLowerCase();
+  if (isPrivateHost(host)) throw new BrowserError(`Refusing to capture a private or local address: ${u.hostname}`);
+}
+var V4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+function isPrivateV4(a, b) {
+  return a === 0 || a === 10 || a === 127 || a === 169 && b === 254 || a === 172 && b >= 16 && b <= 31 || a === 192 && b === 168 || a === 100 && b >= 64 && b <= 127 || a >= 224;
+}
+function isPrivateHost(host) {
+  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal")) return true;
+  const m2 = V4.exec(host);
+  if (m2) return isPrivateV4(Number(m2[1]), Number(m2[2]));
+  if (host.includes(":")) {
+    if (host === "::" || host === "::1") return true;
+    if (/^f[cd][0-9a-f]{2}:/.test(host)) return true;
+    if (/^fe[89ab][0-9a-f]:/.test(host)) return true;
+    const dotted = /^::ffff:(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/.exec(host);
+    if (dotted) return isPrivateV4(Number(dotted[1]), Number(dotted[2]));
+    const hex = /^::ffff:([0-9a-f]{1,4}):[0-9a-f]{1,4}$/.exec(host);
+    if (hex) {
+      const hi = parseInt(hex[1], 16);
+      return isPrivateV4(hi >> 8, hi & 255);
+    }
+  }
+  return false;
+}
 var DRIVE_TIMEOUT_MS = 15e3;
 var DRIVE_SETTLE_MS = 250;
 async function runDriveSteps(page2, steps, opts = {}) {
@@ -55204,9 +55260,10 @@ function recolorCss(p) {
       return "";
   }
 }
-async function captureUrl(params, format, dims) {
+async function captureUrl(params, format, dims, opts = {}) {
   const fmt3 = format.toLowerCase() === "jpeg" ? "jpg" : format.toLowerCase();
   if (!params.url) throw new BrowserError("Enter a URL to capture.");
+  if (opts.publicOnly) assertPublicHttpUrl(params.url);
   if (!["png", "jpg", "pdf", "svg", "webp"].includes(fmt3)) {
     throw new BrowserError(`url-shot can't produce "${format}" - use png, jpg, pdf, or svg.`);
   }
@@ -55720,7 +55777,7 @@ function urlAssetKind(mime, id) {
   if (["mp3", "wav", "ogg", "m4a"].includes(ext)) return { type: "audio", format: ext };
   return null;
 }
-async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion } = {}) {
+async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion, capturePublicOnly = false } = {}) {
   const w = dom.window;
   const assetCatalogPath = join8(REPO_ROOT2, "catalog", "assets", "index.json");
   const assetIndex = JSON.parse(await readFile6(assetCatalogPath, "utf8"));
@@ -56205,7 +56262,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
           // zoom rides in spec.css (html{zoom:…})
         },
         "png",
-        { width: spec.width, height: spec.height ?? spec.width, dpi: (spec.dpr ?? 1) * 96 }
+        { width: spec.width, height: spec.height ?? spec.width, dpi: (spec.dpr ?? 1) * 96 },
+        { publicOnly: capturePublicOnly }
       );
       const url = `data:${mime};base64,${Buffer.from(bytes).toString("base64")}`;
       return { source: "remote", id: `capture:${spec.url}`, type: "raster", format: "png", url, width: spec.width, height: spec.height };
@@ -56453,7 +56511,7 @@ function withHost(profile, fn) {
     g2["document"] = dom.window.document;
     g2["Element"] = dom.window.Element;
     try {
-      const host = await createCliBridge({ dom, profile });
+      const host = await createCliBridge({ dom, profile, capturePublicOnly: true });
       host.log = (level, msg, ctx) => {
         process.stderr.write(`[mcp:${level}] ${msg}${ctx ? " " + safeJson(ctx) : ""}
 `);

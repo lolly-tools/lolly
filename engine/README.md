@@ -185,7 +185,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `lang.ts` | 171 | Supported UI/content languages, shared by the `lang` reserved URL param (url-mode.ts), `Profile.lang`, tool-manifest i18n sidecars, and every shell's language picker. | yes | indirect | – |
 | `loader.ts` | 477 | Tool loader. | yes | indirect | – |
 | `media-sniff.ts` | 255 | Pure, DOM-free media classification from header bytes. | yes | `tests/media-sniff.test.ts` | yes |
-| `metadata.ts` | 85 | Export provenance: the generic authorship record embedded into every exported media file (platform-agnostic; no format/DOM knowledge here). | yes | `tests/metadata.test.ts` | – |
+| `metadata.ts` | 92 | Export provenance: the generic authorship record embedded into every exported media file (platform-agnostic; no format/DOM knowledge here). | yes | `tests/metadata.test.ts` | – |
 | `midi.ts` | 169 | Standard MIDI File to ZzFXM. | yes | `tests/midi.test.ts` | – |
 | `odt.ts` | 181 | OpenDocument Text (.odt) writer: pure, DOM-free, platform-agnostic. | yes | `tests/odt.test.ts` | – |
 | `ogg.ts` | 199 | Ogg (RFC 3533) page + Opus comment-header primitives, shared by the C2PA write side (c2pa-containers.ts placeOgg) and the read side (c2pa-extract.ts extractC2paFromOgg). | no | indirect | – |
