@@ -289,7 +289,7 @@
     "lock_api@0.4.14": "MIT OR Apache-2.0",
     "log@0.4.32": "MIT OR Apache-2.0",
     "log@0.4.33": "MIT OR Apache-2.0",
-    "lolly-desktop@1.0.3": "MPL-2.0",
+    "lolly-desktop@1.0.5": "MPL-2.0",
     "lolly-mobile@1.0.1": "MPL-2.0",
     "lru-slab@0.1.2": "MIT OR Apache-2.0 OR Zlib",
     "macro_rules_attribute-proc_macro@0.2.3": "Apache-2.0 OR MIT OR Zlib",
