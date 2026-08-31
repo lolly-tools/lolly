@@ -142,7 +142,7 @@ jobs:
           fi
 
       - name: Upload the ipa as a workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Lolly-ios-ipa
           path: ${{ steps.ipa.outputs.ipa }}
