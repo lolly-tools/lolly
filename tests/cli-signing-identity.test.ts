@@ -348,6 +348,41 @@ test('an encrypted key: env passphrase works, a wrong one and a missing one are 
   });
 });
 
+// A wrong passphrase is normally caught by CBC unpadding ("bad decrypt"). About once
+// in 256 the garbage plaintext happens to carry valid padding, and OpenSSL fails one
+// layer later with a DER decode error instead. That used to be reported as
+// SIGN_KEY_UNREADABLE - telling a user who mistyped that their key file is malformed -
+// and it made the test above flaky at the same rate.
+//
+// Rather than hope the rare branch shows up, search for a passphrase that triggers it
+// (~256 tries on average, each well under a millisecond) and then assert on it.
+test('a wrong passphrase that decrypts to garbage is still a passphrase refusal, not "unreadable"', async () => {
+  await withDir(async (dir) => {
+    const ca = await makeCa();
+    const pair = await keyPair();
+    const leafPem = derToPem(await leafFor(ca, pair), 'CERTIFICATE');
+    const enc = encryptKey(pair.pkcs8Pem, 'correct horse battery staple');
+
+    let trigger: string | null = null;
+    for (let i = 0; i < 20_000 && trigger === null; i++) {
+      const candidate = `wrong-${i}`;
+      try {
+        createPrivateKey({ key: enc, format: 'pem', passphrase: candidate });
+      } catch (e) {
+        if (/DECODER routines|unsupported/i.test((e as Error).message || '')) trigger = candidate;
+      }
+    }
+    // ~1/256 per try: not finding one in 20,000 would mean the platform stopped
+    // behaving this way, which is worth knowing but is not this test's failure.
+    if (trigger === null) return;
+
+    const msg = await refusal('SIGN_KEY_PASSWORD_WRONG', () =>
+      identityFrom(dir, enc, [leafPem, ca.certPem], { env: { [SIGN_ENV.password]: trigger as string } }));
+    assert.match(msg, /passphrase .* is wrong/);
+    assert.doesNotMatch(msg, /Expected an unencrypted or passphrase-protected/);
+  });
+});
+
 // ─── the rule that outranks all of them ───────────────────────────────────────
 
 test('NO error message ever contains key material', async () => {

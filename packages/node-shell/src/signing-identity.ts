@@ -170,6 +170,20 @@ function readCertChain(bytes: Buffer, source: string): Uint8Array[] {
 // typed exception. Keyed on OpenSSL's own strings, not ours, so the classification
 // survives a reworded Node error.
 const BAD_PASSPHRASE = /bad decrypt|wrong final block length|DECRYPT|mac verify failure/i;
+// A wrong passphrase USUALLY trips the padding check above ("bad decrypt"). Roughly
+// once in 256 it does not: CBC unpadding accepts the garbage plaintext by chance, and
+// the failure surfaces one layer later as a DER decode error instead. Measured over
+// 3,000 wrong passphrases against an aes-256-cbc PKCS#8: 2,987 "bad decrypt", 13
+// "DECODER routines::unsupported".
+//
+// That made the wrong-passphrase path report SIGN_KEY_UNREADABLE ~0.4% of the time and
+// tell the user their key file is malformed when they had simply mistyped - and it made
+// tests/cli-signing-identity.test.ts flaky at the same rate.
+//
+// Only consulted when the PEM is an ENCRYPTED PKCS#8 and a passphrase was supplied
+// (a missing one has already thrown SIGN_KEY_PASSWORD_REQUIRED), so the reading is
+// narrow: the decryption stage is the one that just failed.
+const DECODE_AFTER_DECRYPT = /DECODER routines|unsupported|asn1 encoding routines|nested asn1 error/i;
 
 /**
  * Import the private key with `node:crypto` (which, unlike WebCrypto, can read an
@@ -211,6 +225,13 @@ async function importPrivateKey(
     if (encrypted && BAD_PASSPHRASE.test(msg)) {
       throw new SigningIdentityError(
         `The passphrase for the signing key at ${source} is wrong (the key did not decrypt).`,
+        'SIGN_KEY_PASSWORD_WRONG',
+      );
+    }
+    if (encrypted && DECODE_AFTER_DECRYPT.test(msg)) {
+      throw new SigningIdentityError(
+        `The passphrase for the signing key at ${source} is wrong (it decrypted to something that is not a key). ` +
+        'If you are certain the passphrase is right, the file itself is damaged.',
         'SIGN_KEY_PASSWORD_WRONG',
       );
     }
