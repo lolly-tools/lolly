@@ -373,7 +373,7 @@ test('a wrong passphrase that decrypts to garbage is still a passphrase refusal,
       }
     }
     // ~1/256 per try: not finding one in 20,000 would mean the platform stopped
-    // behaving this way, which is worth knowing but is not this test's failure.
+    // behaving this way, which is a separate problem, not this test's failure.
     if (trigger === null) return;
 
     const msg = await refusal('SIGN_KEY_PASSWORD_WRONG', () =>
