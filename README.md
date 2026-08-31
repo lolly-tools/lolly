@@ -130,7 +130,7 @@ npm run profile:suse     # SUSE brand pack (needs: git submodule update --init -
 npm run profile:start    # blank starter brand: community tools + neutral tokens
 ```
 
-See `docs/authoring-tools.md` to build your first tool, and [Development](#development) below for the submodule workflow. A new brand pack can be generated from design tokens with `npm run ingest:brand` (DTCG / Tokens Studio / Penpot exports).
+See `docs/authoring-tools.md` to build your first tool, and [Development](#development) below for the submodule workflow. Writing a tool without cloning the platform? `npm i -D @lolly-tools/core` installs the tool-author SDK from npm: the `HostV1` contract types, the manifest validator and a mock host for testing hooks headlessly (see [`packages/core/README.md`](packages/core/README.md)). A new brand pack can be generated from design tokens with `npm run ingest:brand` (DTCG / Tokens Studio / Penpot exports).
 
 ## The CLI
 

@@ -84,6 +84,11 @@ carry a PREVIEW watermark for testing until graduated).
 - **Build from source / self-host** - clone, `npm install`, `npm run dev:web` (Node >=22.18 or
   >=24); a first render takes about 60 seconds ([`docs/make-something.md`](docs/make-something.md)).
   Self-host the built web shell for a team; full operator documentation lives under `docs/`.
+- **Write a tool without the platform** - the tool-author SDK is on npm as
+  [`@lolly-tools/core`](https://www.npmjs.com/package/@lolly-tools/core) (`npm i -D @lolly-tools/core`,
+  1.0.0, MPL-2.0): the `HostV1` contract types, `validateTool` (the same manifest check the catalog
+  CI runs) and `createMockHost` to unit-test `hooks.js` with no browser. It keeps its own semver and
+  moves when the tool-author surface moves, not with app releases.
 - **Governed at org scale (optional):** pair a deployment with the open-source **lolly.work**
   control plane for SSO, feature-flag / export / watermark policy, catalog federation,
   approvals and a hash-chained audit log - served to the shell without a code change. Lolly

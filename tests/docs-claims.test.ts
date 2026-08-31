@@ -478,7 +478,7 @@ function ledgerHosts(): Set<string> {
   const hosts = new Set<string>();
   for (const m of table.matchAll(/`([a-z0-9*-]+(?:\.[a-z0-9*-]+)+)`/gi)) {
     const tok = m[1]!.toLowerCase();
-    if (/\.(com|org|net|tools|io|dev)$/.test(tok)) hosts.add(tok); // a host, not `.icc`
+    if (/\.(com|org|net|tools|io|dev|li)$/.test(tok)) hosts.add(tok); // a host, not `.icc`
   }
   return hosts;
 }
