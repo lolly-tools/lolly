@@ -1,7 +1,8 @@
-# Lolly 1.0.1
+# Lolly 1.0.5
 
-_First public open-source release — 2026-08-30. Free software under the **Mozilla Public
-License 2.0**; the content below is brand-agnostic and reflects the current platform._
+_Current release: **1.0.5** (2026-08-31). First public release was 1.0.1 (2026-08-30). Free
+software under the **Mozilla Public License 2.0**; the content below is brand-agnostic and
+reflects the current platform._
 
 ## Lolly - public launch
 
@@ -76,11 +77,12 @@ carry a PREVIEW watermark for testing until graduated).
   - **macOS** (Apple silicon): signed + notarized [`.dmg`](https://lolli.li/lolly-latest.dmg).
   - **Linux**: [`.rpm`](https://lolli.li/lolly-latest.rpm) (openSUSE / Fedora family),
     [`.flatpak`](https://lolli.li/lolly-latest.flatpak) (any distro),
-    [`.deb`](https://lolli.li/lolly-latest.deb) (Debian / Ubuntu), and an **Arch** pacman
+    [`.deb`](https://lolli.li/lolly-latest.deb) (Debian / Ubuntu amd64; arm64 at
+    [`lolly-latest-arm64.deb`](https://lolli.li/lolly-latest-arm64.deb)), and an **Arch** pacman
     channel - add `[lolly]` with `Server = https://lolli.li/arch/$arch`
     (`SigLevel = Optional TrustAll`) to `/etc/pacman.conf`, then `pacman -Syu lolly-desktop-bin`.
   - **Android**: [`.apk`](https://lolli.li/lolly-latest.apk) (sideload; no store).
-  - **iOS** is pending App Store review; a sideloadable build exists on request.
+  - **iOS**: the 1.0.5 build is submitted and in App Store review; a sideloadable build exists on request.
 - **Build from source / self-host** - clone, `npm install`, `npm run dev:web` (Node >=22.18 or
   >=24); a first render takes about 60 seconds ([`docs/make-something.md`](docs/make-something.md)).
   Self-host the built web shell for a team; full operator documentation lives under `docs/`.
