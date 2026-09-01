@@ -117,7 +117,8 @@
       "flipV",
       "cls",
       "gain",
-      "name"
+      "name",
+      "ignored"
     ],
     "diagram-builder:nodes": [
       "shape",

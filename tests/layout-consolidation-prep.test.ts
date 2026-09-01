@@ -106,15 +106,16 @@ test('boxes.fields tail: z/kf/linkOf then the deck fields - appended, never reor
     // The presentation-mode deck fields (plan 112) were APPENDED after linkOf - slots 72-76.
     // The flip (mirror) fields followed at slots 77-78, the per-box CSS class `cls`
     // (plan 112 M4, the Custom CSS companion) at 79, the clip volume `gain`
-    // (plans/165 WP-1) at 80, and the timeline clip name `name` (the rename editor's
-    // labelField) at 81 - each appended, never squeezed in behind - so `name` is now
-    // the tail. This pin extends the same append-only guard: a later field must land
-    // at 82, not shift any of these.
+    // (plans/165 WP-1) at 80, the timeline clip name `name` (the rename editor's
+    // labelField) at 81, and the strikethrough-skip flag `ignored` (plan 174 section 5.5)
+    // at 82 - each appended, never squeezed in behind - so `ignored` is now the
+    // tail. This pin extends the same append-only guard: a later field must land
+    // at 83, not shift any of these.
     assert.deepEqual(fields.slice(72).map((f) => f.id),
-      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls', 'gain', 'name'],
+      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls', 'gain', 'name', 'ignored'],
       `${brand}: a deck/flip/class field was inserted out of order - appended slots must stay put`);
-    assert.equal(fields.length, 82, `${brand}: expected 82 sub-fields, got ${fields.length}`);
-    assert.equal(fields[fields.length - 1]!.id, 'name', `${brand}: name is not the tail`);
+    assert.equal(fields.length, 83, `${brand}: expected 83 sub-fields, got ${fields.length}`);
+    assert.equal(fields[fields.length - 1]!.id, 'ignored', `${brand}: ignored is not the tail`);
     // Ids are unique - an accidental second `linkOf` would give the codec two columns of
     // the same name and the shell would read whichever it found first.
     assert.equal(new Set(fields.map((f) => f.id)).size, fields.length, `${brand}: duplicate sub-field id`);

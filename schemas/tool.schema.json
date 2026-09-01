@@ -1680,6 +1680,10 @@
                     "type": "string",
                     "description": "Number sub-field: this box's audio level when the sequence is mixed (1 = as recorded, 0 = silent, up to 2 = boosted). Machine-written by the timeline inspector, so the sub-field carries showFor:[]. Absent or empty reads as unity gain."
                   },
+                  "ignoredField": {
+                    "type": "string",
+                    "description": "Boolean sub-field: the reversible-cut / strikethrough flag (transcript-driven editing, plans/174). A true value keeps the box's media and its place on the timeline but skips it on playback and drops it from export - the dual of a hard delete. Machine-written by the transcript panel, so the sub-field carries showFor:[]. Absent reads as not-ignored."
+                  },
                   "linkField": {
                     "type": "string",
                     "description": "String sub-field: the id of the box this one is A/V-linked to (written on BOTH sides when audio is detached from a video). Absent or naming a missing box reads as unlinked."

@@ -354,6 +354,17 @@ test('activity is half-open [start, start + dur)', () => {
   assert.deepEqual(at(l, 1500), []);             // exclusive tail - the clean cut
 });
 
+test('a struck-through (ignored) layer never draws - plans/174', () => {
+  // readLayer reads the marker off the DOM...
+  const struck = layerFrom('<div data-t-start="0" data-t-dur="4000" data-t-ignored="1"></div>');
+  assert.equal(struck.ignored, true);
+  assert.equal(layerFrom('<div data-t-start="0" data-t-dur="4000"></div>').ignored, false);
+  // ...and the plan drops it, even squarely inside its own window.
+  const kept = fakeLayer({ idx: 0, startMs: 0, durMs: 4000 });
+  const ignored = fakeLayer({ idx: 1, startMs: 0, durMs: 4000, ignored: true });
+  assert.deepEqual(at([kept, ignored], 1000), [0]);
+});
+
 test('two gapless clips never both appear on a plain cut', () => {
   const layers = [
     fakeLayer({ idx: 0, startMs: 0, durMs: 2000 }),

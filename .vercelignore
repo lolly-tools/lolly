@@ -61,6 +61,16 @@ shells/web/public/ort-hf
 # from this directory; only the Vercel upload excludes it.
 shells/web/public/models
 
+# The PRIVATE SUSE brand pack (~102 MB: catalog assets, OG cards, fonts, previews,
+# the Geeko GLBs). Since 2026-08-29 every deploy target builds the lolly-start
+# profile (SUSE went offline - lolly.tools flipped to start), and a lolly-start
+# build reads only community/ + brands/lolly-start/, never this pack. So it is pure
+# upload weight now AND it is private content that has no business in the app
+# archive. If a SUSE-profile deploy ever comes back, drop this line (its build needs
+# the pack) - the loldev clean-worktree ship also excludes it for start by simply
+# not initialising the submodule.
+brands/suse
+
 # Profile views - derived from the packs (community/, brands/**), which DO ship.
 # postinstall (use-profile --auto) rebuilds them on Vercel as real copies, so
 # vercel.json's includeFiles globs and the web build's dist copy see real files.
@@ -125,6 +135,18 @@ shells/web/public/info/**/*.html
 shells/web/public/info/**/*.md
 shells/web/public/info/sitemap.xml
 shells/web/public/info/llms.txt
+
+# Docs "Listen" narration audio (~55 MB: the 29 MB committed source docs/audio, plus
+# a 29 MB UNTRACKED built copy at shells/web/public/info/audio). English-only - every
+# other language already falls back to the device voice (speechSynthesis), because
+# only en/ has audio.opus files. Excluding the SOURCE makes collectDocsAudio() return
+# empty on Vercel, so build:info emits a byte-identical no-audio /info (the dist cpSync
+# at build.ts:5636 is guarded by `audioBySlug.size`, and audio-index.json/docs-player
+# are only written when it is non-empty), and the Listen control falls back to device
+# TTS uniformly - matching the mobile apps (plans/131 B.3). Source stays git-tracked,
+# so this is reversible and local dev still narrates; only the deploy drops it.
+docs/audio
+shells/web/public/info/audio
 
 # Translation memory for scripts/translate.ts (13 MB, ~6 MB gzipped). A developer
 # tool: no Vercel-side step invokes translate.ts, and the file stays git-tracked,

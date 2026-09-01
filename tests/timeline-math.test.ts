@@ -179,6 +179,34 @@ test('deriveDuration: byte-identical to design hooks.js seqDurationMs', () => {
   }
 });
 
+test('design hooks.js: an ignored seq clip is compressed out of the played sequence (plans/174)', () => {
+  const hooksPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'community', 'design', 'hooks.js');
+  const src = readFileSync(hooksPath, 'utf8');
+  const api = new Function('host', `${src}\n;return { seqDurationMs, timeAttrsFor, ignoredSeqSpans };`)(
+    { log: () => {} },
+  ) as {
+    seqDurationMs: (b: unknown[]) => number;
+    timeAttrsFor: (b: unknown, spans: unknown[]) => string;
+    ignoredSeqSpans: (b: unknown[]) => unknown[];
+  };
+
+  // A[0,2] B[2,2] C[4,2] on the seq lane; B is struck. The played/exported sequence is
+  // 4s (B removed), and C rides earlier by B's 2s. The RULER (deriveDuration) still reads
+  // the full 6s - that divergence is the whole point of non-destructive ignore.
+  const boxes: Box[] = [
+    clip('a', { start: 0, dur: 2 }),
+    clip('b', { start: 2, dur: 2, ignored: true }),
+    clip('c', { start: 4, dur: 2 }),
+  ];
+  assert.equal(api.seqDurationMs(boxes), 4000, 'B (2s) drops out of the played length');
+  assert.equal(deriveDuration(boxes, cfg), 6000, 'the ruler still spans the full authored length');
+
+  const spans = api.ignoredSeqSpans(boxes);
+  assert.match(api.timeAttrsFor(boxes[0], spans), /data-t-start="0"/);            // A: nothing before it
+  assert.match(api.timeAttrsFor(boxes[1], spans), /data-t-ignored="1"/);          // B: the skip marker
+  assert.match(api.timeAttrsFor(boxes[2], spans), /data-t-start="2000"/);         // C: rides earlier by 2s
+});
+
 // ── 3. packSeq ─────────────────────────────────────────────────────────────────
 
 test('packSeq: seq clips become gapless from 0; overlays and scenery are untouched', () => {

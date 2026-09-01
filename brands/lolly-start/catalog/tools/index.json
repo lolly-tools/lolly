@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-08-30T18:57:16.203Z",
+  "generatedAt": "2026-08-31T22:28:44.921Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3732,7 +3732,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
-      "version": "1.14.4",
+      "version": "1.14.5",
       "status": "community",
       "category": "designer",
       "tags": [
