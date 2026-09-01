@@ -390,9 +390,11 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // the tools.lolly.export assertion and /verify recreates by id - see metadata.test.ts).
   // Then 1.158.0 (native PPTX animation, plans/175 WP-E: PptxAnim/PptxEffect +
   // timingXml, one <p:timing> per slide with anim - see pptx-anim.test.ts; a deck
-  // with none serialises byte-identically).
+  // with none serialises byte-identically). Then 1.159.0 (host.text.toPath
+  // `clusters`, plans/175 WP-D - the per-cluster breakdown behind the shaped-glyph
+  // letter tier; see text-clusters.test.ts).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.158.0');
+  assert.equal(ENGINE_VERSION, '1.159.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

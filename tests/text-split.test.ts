@@ -151,6 +151,11 @@ test('letter tier degrades to word for joining scripts - per-letter spans would 
   assert.ok(html.includes('data-t-split="word"'), 'Arabic letter tier reads as word on the wire');
   assert.equal(count(html, 'class="lly-u"'), 2, 'two words, two units');
   assert.equal(count(html, 'class="lly-w"'), 0, 'no letter wrappers on the degraded path');
+  // …but the intent survives for a shell that can shape (plans/175 WP-D): the glyph
+  // enhancer reads this and gives per-letter animation on correctly joined glyphs.
+  assert.ok(html.includes('data-t-split-want="letter"'), 'the degraded box still says it wanted letters');
+  const latin = await mount([{ ...TEXT_BOX, split: 'letter' }]);
+  assert.equal(count(latin, 'data-t-split-want'), 0, 'an undegraded letter box carries no want attribute');
 });
 
 // ── 5. line tier + the cap ──────────────────────────────────────────────────

@@ -6,6 +6,17 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.159.0 - a shaped run can be handed back in pieces (plans/175 WP-D). `TextToPathOpts`
+gains `clusters?: boolean` and `TextPathResult` gains `clusters?: TextPathCluster[]` -
+one entry per HarfBuzz cluster (a grapheme; a ligature or base+marks sequence stays ONE
+piece), each with its UTF-16 `start`/`end`, its own outline `d` in the merged path's
+coordinates, pen `x` and `advance`, sorted in logical order. Both text APIs (the web
+bridge and the Node-shell port) implement it identically. This is the primitive the
+web shell's glyph-tier letter animation is built on: shape the word first, then move
+the pieces - so kerning, ligatures and Arabic joining survive a per-letter animation
+that HTML span-splitting could never keep. Off by default; the merged `d` is unchanged
+either way, so every existing caller is byte-identical.
+
 1.158.0 - a deck's animations travel natively (plans/175 WP-E). `pptx.ts` gains
 `PptxAnim`/`PptxEffect` - an optional `anim` on every shape kind - and `timingXml`,
 which emits one `<p:timing>` tree per slide after `<p:clrMapOvr>`: a root par →

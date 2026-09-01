@@ -3143,6 +3143,33 @@ export interface TextToPathOpts {
    * counted in `notdef`. (v1.29)
    */
   fallbackFonts?: Array<{ fontUrl: string; variations?: string[] }>;
+  /**
+   * Also return the run broken into per-cluster pieces (`TextPathResult.clusters`)
+   * - one entry per HarfBuzz cluster, which at the default clustering level is one
+   * per grapheme, with a ligature or a base+marks sequence kept as ONE piece. This
+   * is what lets a caller animate "letters" of a shaped run without un-shaping it:
+   * kerning, ligatures and contextual joining (Arabic) are already applied, and
+   * each piece is just moved. Off by default - the merged `d` is unchanged either
+   * way. Optional/additive (v1.159).
+   */
+  clusters?: boolean;
+}
+
+/**
+ * One shaped cluster of a run (see `TextToPathOpts.clusters`). `start`/`end` are
+ * UTF-16 offsets into the source text (a ligature spans several), `d` is that
+ * cluster's outline in the SAME coordinates as the merged path (absolute x,
+ * baseline y=0), `x` its pen origin in px and `advance` its summed pen advance.
+ * Sorted by `start` - logical (reading) order, which for an RTL run is right to
+ * left visually. Concatenating every `d` in this order reproduces the merged `d`
+ * for a single-direction run. (v1.159)
+ */
+export interface TextPathCluster {
+  start: number;
+  end: number;
+  d: string;
+  x: number;
+  advance: number;
 }
 
 export interface TextPathResult {
@@ -3162,6 +3189,8 @@ export interface TextPathResult {
    * non-zero. Absent on hosts that predate the field; treat as 0. (v1.29)
    */
   notdef?: number;
+  /** The per-cluster breakdown, present only when `opts.clusters` was set. (v1.159) */
+  clusters?: TextPathCluster[];
 }
 
 // ─── Network ────────────────────────────────────────────────────────────────
