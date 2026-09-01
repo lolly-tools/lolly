@@ -509,6 +509,11 @@ test('keyframes: the emitted track is the ENGINE\'s canonical serialisation, byt
     't0_x1.0049999', 't0_s1.0005_o0.12345',            // quantisation
     't0_p1200_f800_a0.4',                              // camera channels
     't0_z-5000*t2000_z-600',                           // a camera DOLLY, past the z field's range
+    // A keyed SIZE (section 5.2) and a keyed VOLUME (plans/165) - the two channels the hook's
+    // transcription has silently dropped in the past. Absent from this corpus, a missing
+    // table entry reads as "hook emits less than the engine" only on a user's board.
+    't0_w320_h180*t1000_eo_w640_h360_v0.5',
+    't0_w99999_h-5*t5_v9',                             // size/volume clamps
     Array.from({ length: 400 }, (_v, i) => `t${i}_x${i}`).join('*'),  // the 256 cap
     't0_x1*'.repeat(3000),                             // the char cap
     // Full density: 256 full poses, the shape section 8's UI writes. This is what the char cap
