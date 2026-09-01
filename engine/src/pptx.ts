@@ -607,8 +607,8 @@ function effectBehaviorsXml(nextId: () => number, spid: number, cls: 'entr' | 'e
   const entering = cls === 'entr';
   // An entrance reveals the shape as its first act; an exit hides it as its last
   // (delay dur-1 puts the hide on the effect's final tick, PowerPoint's own shape).
+  // Ids are minted in DOCUMENT order - the hide's id is drawn after the motion's.
   const show = entering ? setVisibilityXml(nextId(), spid, true, 0) : '';
-  const hide = entering ? '' : setVisibilityXml(nextId(), spid, false, Math.max(0, dur - 1));
   let motion = '';
   switch (fx.preset) {
     case 'appear': break; // visibility is the whole effect
@@ -623,11 +623,18 @@ function effectBehaviorsXml(nextId: () => number, spid: number, cls: 'entr' | 'e
         + fadeFxXml(nextId(), spid, dur, entering, fx);
       break;
   }
+  const hide = entering ? '' : setVisibilityXml(nextId(), spid, false, Math.max(0, dur - 1));
   return show + motion + hide;
 }
 
-/** One effect's `<p:par>`: the preset-labelled cTn, its (optional) text iterate, its behaviours. */
-function effectParXml(nextId: () => number, spid: number, cls: 'entr' | 'exit', fx: PptxEffect, nodeType: string): string {
+/**
+ * One effect's `<p:par>`: the preset-labelled cTn, its (optional) text iterate, its
+ * behaviours. `grpId` is the effect's index AMONG THIS SHAPE'S effects - PowerPoint's
+ * own numbering, mirrored by one `<p:bldP>` per (shape, group) below. Two effects on
+ * one shape sharing a group is how a timed exit after an entrance silently never
+ * plays (the 2026-09-01 real-PowerPoint finding), so the group is never reused.
+ */
+function effectParXml(nextId: () => number, spid: number, grpId: number, cls: 'entr' | 'exit', fx: PptxEffect, nodeType: string): string {
   const id = nextId();
   const presetSubtype = fx.preset === 'fly' ? FLY_SUBTYPE[fx.dir ?? 'b'] : fx.preset === 'zoomOut' ? 32 : fx.preset === 'zoom' ? 16 : 0;
   const delay = clampInt(fx.delayMs ?? 0, 0, MAX_DELAY_MS);
@@ -635,46 +642,50 @@ function effectParXml(nextId: () => number, spid: number, cls: 'entr' | 'exit', 
     ? `<p:iterate type="${fx.iterate.by === 'word' ? 'wd' : 'lt'}"${fx.iterate.backwards ? ' backwards="1"' : ''}>` +
       `<p:tmAbs val="${clampInt(fx.iterate.staggerMs, 1, MAX_EFFECT_MS)}"/></p:iterate>`
     : '';
-  return `<p:par><p:cTn id="${id}" presetID="${EFFECT_PRESET_IDS[fx.preset]}" presetClass="${cls}" presetSubtype="${presetSubtype}" fill="hold" grpId="0" nodeType="${nodeType}">` +
+  return `<p:par><p:cTn id="${id}" presetID="${EFFECT_PRESET_IDS[fx.preset]}" presetClass="${cls}" presetSubtype="${presetSubtype}" fill="hold" grpId="${grpId}" nodeType="${nodeType}">` +
     `<p:stCondLst><p:cond delay="${delay}"/></p:stCondLst>${it}` +
     `<p:childTnLst>${effectBehaviorsXml(nextId, spid, cls, fx)}</p:childTnLst></p:cTn></p:par>`;
 }
 
 /** The whole `<p:timing>` for a slide, or '' when nothing animates (byte-identity). */
 export function timingXml(slide: PptxSlide): string {
-  interface Row { spid: number; cls: 'entr' | 'exit'; fx: PptxEffect; click: number; text: boolean }
+  interface Row { spid: number; grpId: number; cls: 'entr' | 'exit'; fx: PptxEffect; click: number; text: boolean }
   const rows: Row[] = [];
   slide.shapes.forEach((s, i) => {
     const anim = (s as { anim?: PptxAnim }).anim;
     if (!anim) return;
     const spid = i + 2; // slideXml's own numbering: shape i is cNvPr id i+2
     const click = clampInt(Number.isFinite(anim.click as number) ? (anim.click as number) : 0, 0, 999);
-    if (anim.enter) rows.push({ spid, cls: 'entr', fx: anim.enter, click, text: s.kind === 'text' });
-    if (anim.exit) rows.push({ spid, cls: 'exit', fx: anim.exit, click, text: s.kind === 'text' });
+    // Each effect on a shape takes the next group number: enter 0, exit 1.
+    let grp = 0;
+    if (anim.enter) rows.push({ spid, grpId: grp++, cls: 'entr', fx: anim.enter, click, text: s.kind === 'text' });
+    if (anim.exit) rows.push({ spid, grpId: grp++, cls: 'exit', fx: anim.exit, click, text: s.kind === 'text' });
   });
   if (!rows.length) return '';
   let n = 2; // ids 1 (root) and 2 (main seq) are taken below
   const nextId = (): number => ++n;
   const clicks = [...new Set(rows.map((r) => r.click))].sort((a, b) => a - b);
   const groups = clicks.map((click) => {
+    // Group and inner ids first, so the tree's ids read in document order.
+    const groupId = nextId();
+    const innerId = nextId();
     const inGroup = rows.filter((r) => r.click === click)
       .sort((a, b) => (a.fx.delayMs ?? 0) - (b.fx.delayMs ?? 0) || a.spid - b.spid);
     const effects = inGroup.map((r, idx) => effectParXml(
-      nextId, r.spid, r.cls, r.fx,
+      nextId, r.spid, r.grpId, r.cls, r.fx,
       // Step 0 plays with the slide; a click step's first effect is the click itself.
       click === 0 ? (idx === 0 ? 'afterEffect' : 'withEffect') : (idx === 0 ? 'clickEffect' : 'withEffect'),
     )).join('');
-    const groupId = nextId();
-    const innerId = nextId();
     return `<p:par><p:cTn id="${groupId}" fill="hold"><p:stCondLst><p:cond delay="${click === 0 ? '0' : 'indefinite'}"/></p:stCondLst>` +
       `<p:childTnLst><p:par><p:cTn id="${innerId}" fill="hold"><p:stCondLst><p:cond delay="0"/></p:stCondLst>` +
       `<p:childTnLst>${effects}</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par>`;
   }).join('');
-  // One build entry per animated TEXT shape - what makes the animation pane treat its
-  // paragraphs/iterate units as a build rather than an opaque object.
-  const bldSpids = [...new Set(rows.filter((r) => r.text).map((r) => r.spid))];
-  const bld = bldSpids.length
-    ? `<p:bldLst>${bldSpids.map((spid) => `<p:bldP spid="${spid}" grpId="0"/>`).join('')}</p:bldLst>`
+  // One build entry per animated TEXT shape PER EFFECT GROUP - PowerPoint's own list,
+  // which is what makes the pane treat the iterate units as a build and keeps a
+  // shape's second effect (a timed exit) alive as its own group.
+  const bldRows = rows.filter((r) => r.text);
+  const bld = bldRows.length
+    ? `<p:bldLst>${bldRows.map((r) => `<p:bldP spid="${r.spid}" grpId="${r.grpId}"/>`).join('')}</p:bldLst>`
     : '';
   return `<p:timing><p:tnLst><p:par><p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"><p:childTnLst>` +
     `<p:seq concurrent="1" nextAc="seek"><p:cTn id="2" dur="indefinite" nodeType="mainSeq"><p:childTnLst>${groups}</p:childTnLst></p:cTn>` +

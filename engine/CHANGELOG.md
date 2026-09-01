@@ -16,6 +16,10 @@ web shell's glyph-tier letter animation is built on: shape the word first, then 
 the pieces - so kerning, ligatures and Arabic joining survive a per-letter animation
 that HTML span-splitting could never keep. Off by default; the merged `d` is unchanged
 either way, so every existing caller is byte-identical.
+Also in this minor (a fix, no contract change): `timingXml` now gives each effect on a
+shape its own `grpId` (entrance 0, exit 1) with one `<p:bldP>` per (shape, group) and
+mints cTn ids in document order - real PowerPoint (2026-09-01) played an entrance but
+silently dropped the same shape's timed exit while both carried `grpId="0"`.
 
 1.158.0 - a deck's animations travel natively (plans/175 WP-E). `pptx.ts` gains
 `PptxAnim`/`PptxEffect` - an optional `anim` on every shape kind - and `timingXml`,

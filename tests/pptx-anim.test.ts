@@ -67,6 +67,21 @@ test('an entrance fade: preset label, visibility set, fade behaviour, well-forme
   assert.match(xml, /<p:bldLst><p:bldP spid="2" grpId="0"\/><\/p:bldLst>/);
 });
 
+test('a shape with an entrance AND an exit gets two effect groups, each with its own build entry', () => {
+  // The 2026-09-01 real-PowerPoint finding: both effects stamped grpId="0" on one shape
+  // played the entrance and silently dropped the timed exit. PowerPoint numbers a
+  // shape's effects 0, 1, ... and lists one bldP per (shape, group).
+  const t = timingXml(slideOf(textShape({
+    enter: { preset: 'fly', dir: 'b', ms: 500 }, exit: { preset: 'fade', ms: 400, delayMs: 4000 }, click: 1,
+  })));
+  assert.match(t, /presetClass="entr" presetSubtype="4" fill="hold" grpId="0"/);
+  assert.match(t, /presetClass="exit" presetSubtype="0" fill="hold" grpId="1"/);
+  assert.match(t, /<p:bldLst><p:bldP spid="2" grpId="0"\/><p:bldP spid="2" grpId="1"\/><\/p:bldLst>/);
+  // And every cTn id appears in document order - the hide's id is minted after the fade's.
+  const ids = [...t.matchAll(/<p:cTn id="(\d+)"/g)].map((m) => Number(m[1]));
+  assert.deepEqual(ids, [...ids].sort((x, y) => x - y), `ids out of document order: ${ids.join(',')}`);
+});
+
 test('the typewriter: appear + iterate by letter with the ABSOLUTE stagger, backwards for reverse', () => {
   const t = timingXml(slideOf(textShape({
     enter: { preset: 'appear', ms: 100, iterate: { by: 'letter', staggerMs: 80 } },
