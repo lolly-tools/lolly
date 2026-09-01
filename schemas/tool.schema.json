@@ -1700,6 +1700,26 @@
                     "type": "string",
                     "description": "Text sub-field: the box's KEYFRAME TRACK - its whole authored animation as one compact, delimiter-safe string (times in ms, per-channel values at the pinned quanta, per-segment easing). Machine-written by the timeline, so the sub-field carries showFor:[] and never renders as a sidebar control. Absent or empty = the box is not keyframed and every keyframe path is inert for it."
                   },
+                  "splitField": {
+                    "type": "string",
+                    "description": "Select sub-field: the text-animation SPLIT TIER ('' whole text, 'word', 'line', 'letter') - the box's Animate in/out runs per unit with a stagger instead of as one block (plans/175 WP-A). Absent = the tool offers no text animation and every split path is inert."
+                  },
+                  "staggerField": {
+                    "type": "string",
+                    "description": "Number sub-field: the start-to-start gap between text units, ms (0-2000). Only read when splitField names a tier."
+                  },
+                  "splitOrderField": {
+                    "type": "string",
+                    "description": "Select sub-field: the order text units animate in ('' first-to-last, 'reverse', 'center', 'random'). Random deals from a seed hashed off the box id so preview, export and shared URLs shuffle identically."
+                  },
+                  "holdField": {
+                    "type": "string",
+                    "description": "Select sub-field: the HOLD effect ('' still, 'pulse', 'bob', 'sway', 'flicker') - a small deterministic looping motion while the box is on screen (plans/175 WP-B). Absent = the tool offers no hold effect and every hold path is inert."
+                  },
+                  "holdRateField": {
+                    "type": "string",
+                    "description": "Number sub-field: the hold motion's rate, cycles per second (0.2-4). Only read when holdField names an effect."
+                  },
                   "frameField": {
                     "type": "string",
                     "description": "Text sub-field: the id of the FRAME (page/artboard container) box this box belongs to; '' = it sits on the open board. Declaring it turns on the frame primitive - the overlay drives gestures in frame-local space via each frame's DOM offset, and re-buckets a moved/created/resized box into whichever frame its centre lands in on drop. Absent leaves every frame-aware path dead (byte-identical to a frameless editor)."

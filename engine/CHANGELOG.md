@@ -6,6 +6,23 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.158.0 - a deck's animations travel natively (plans/175 WP-E). `pptx.ts` gains
+`PptxAnim`/`PptxEffect` - an optional `anim` on every shape kind - and `timingXml`,
+which emits one `<p:timing>` tree per slide after `<p:clrMapOvr>`: a root par →
+main `<p:seq>` → one group par per click step (step 0 fires with the slide, the
+presentation-mode `build` order becomes real clicks) → one effect par per
+entrance/exit. The supported effect vocabulary is deliberately PowerPoint's own
+subset (appear, fade, fly with a t/r/b/l edge, zoom, zoomOut); behaviours are
+emitted in PowerPoint's own triple-nested shape (`p:set` visibility, `p:anim`
+ppt_x/ppt_y formulas, `p:animScale`, `p:animEffect` fade), with per-behaviour
+`accel`/`decel` as the easing approximation. Split-text animation maps through
+`<p:iterate type="lt"|"wd">` with an ABSOLUTE `p:tmAbs` gap - Lolly's stagger
+field verbatim, so appear+iterate IS the native typewriter - and `backwards`
+carries the reverse order. Animated text shapes get a `<p:bldP>` build entry.
+A slide with no `anim` emits no timing element at all: every deck built before
+this version serialises byte-identically. The Lolly-kind → subset mapping (and
+its logged degrades) lives shell-side in pptx-deck.ts, not here.
+
 1.157.0 - an export names the exact tool that made it. `ExportMeta` (packages/core
 host-v1) gains optional `toolId` + `toolVersion`, filled by `buildExportMeta` from the
 manifest; `source` becomes the tool's own page in the canonical share form

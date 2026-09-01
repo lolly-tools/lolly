@@ -67,14 +67,14 @@ export interface PptxPara {
   spaceAfterPt?: number;
 }
 
-export interface PptxRect { kind: 'rect'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number; alpha?: number }; radius?: number; }
+export interface PptxRect { kind: 'rect'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number; alpha?: number }; radius?: number; anim?: PptxAnim; }
 /** A NATIVE custom-geometry vector shape (`p:sp` with `a:custGeom`). Its `paths` are
  *  SVG `d` strings whose coordinates already live in this shape's EMU box space
  *  (0..cx, 0..cy). The emitter parses each with parseSvgPath and lowers M/L/C/Z to
  *  a:moveTo / a:lnTo / a:cubicBezTo / a:close inside one `a:path w=cx h=cy`, so holes
  *  (opposite-wound subpaths) survive. Solid fill + solid stroke only; svg-custgeom.ts
  *  bails to a raster pic for gradients/filters/opacity/blend. */
-export interface PptxPath { kind: 'path'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number; alpha?: number }; paths: Array<{ d: string }>; }
+export interface PptxPath { kind: 'path'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number; alpha?: number }; paths: Array<{ d: string }>; anim?: PptxAnim; }
 export interface PptxText {
   kind: 'text'; x: number; y: number; cx: number; cy: number; rot?: number; paras: PptxPara[]; anchor?: 't' | 'ctr' | 'b';
   /** Bind this text to a layout placeholder (emits `<p:ph>` in nvPr). The shape KEEPS its
@@ -82,6 +82,8 @@ export interface PptxText {
    *  drops the layout still renders the text where it was. Bound text is what makes
    *  outline view / Reset Slide / re-layout work in PowerPoint. */
   ph?: { type: PptxPhType; idx?: number };
+  /** Native animation (plans/175 WP-E) - see PptxAnim below. */
+  anim?: PptxAnim;
 }
 /** A picture. `media` is the index (into the slide's media[]) of the raster blip;
  *  `svg`, when set, is the index of an .svg part embedded via svgBlip (media is then
@@ -91,6 +93,8 @@ export interface PptxPic {
   /** Source crop (object-fit:cover), as fractions 0..1 cropped off each edge. The
    *  blip stays the full image (un-croppable in PowerPoint), only the view is cropped. */
   srcRect?: { l?: number; t?: number; r?: number; b?: number };
+  /** Native animation (plans/175 WP-E) - see PptxAnim below. */
+  anim?: PptxAnim;
 }
 /** A cell border edge (colour + width in EMU). */
 export interface PptxLine { color: string; w: number; }
@@ -121,8 +125,45 @@ export interface PptxTable {
   rows: Array<{ h?: number; cells: PptxTableCell[] }>;
   firstRow?: boolean;
   styleId?: string;
+  /** Native animation (plans/175 WP-E) - see PptxAnim below. */
+  anim?: PptxAnim;
 }
 export type PptxShape = PptxRect | PptxText | PptxPic | PptxTable | PptxPath;
+
+// ─── native animation (plans/175 WP-E) ──────────────────────────────────────────
+/**
+ * One entrance/exit effect on a shape, in the SUPPORTED OOXML subset. The vocabulary
+ * here is already PowerPoint's - the shell (pptx-deck.ts) maps Lolly's richer kinds
+ * onto it and logs each degrade; this module only ever emits what it names.
+ *
+ * The behaviours (`p:set`/`p:anim`/`p:animScale`/`p:animEffect`) are what actually
+ * play; `presetID`/`presetClass` are the label PowerPoint's animation pane shows.
+ */
+export interface PptxEffect {
+  preset: 'appear' | 'fade' | 'fly' | 'zoom' | 'zoomOut';
+  /** Fly edge: the shape enters FROM this edge (or exits TOWARD it). */
+  dir?: 't' | 'r' | 'b' | 'l';
+  /** Effect duration, ms. */
+  ms: number;
+  /** Delay after the group's trigger, ms - a timed box's offset into its slide. */
+  delayMs?: number;
+  /**
+   * Per-text-unit iteration - OOXML `<p:iterate>` with an ABSOLUTE gap, which is
+   * exactly Lolly's stagger field (the typewriter maps losslessly: appear + iterate).
+   */
+  iterate?: { by: 'letter' | 'word'; staggerMs: number; backwards?: boolean };
+  /** Easing approximation: fraction of the duration spent accelerating/decelerating,
+   *  in 1000ths of a percent (0..100000) - CT_TLCommonTimeNodeData's own units. */
+  accel?: number;
+  decel?: number;
+}
+export interface PptxAnim {
+  enter?: PptxEffect;
+  exit?: PptxEffect;
+  /** Click step: 0/absent = plays automatically with the slide; 1+ = on the Nth click
+   *  (the presentation-mode `build` order, natively). */
+  click?: number;
+}
 
 export interface PptxMedia { bytes: Uint8Array; ext: 'png' | 'jpeg' | 'emf' | 'svg'; }
 /** `notes` is the slide's speaker note (PowerPoint's Notes pane). Blank/absent =>
@@ -504,6 +545,144 @@ function shapeXml(shape: PptxShape, id: number): string {
   }
 }
 
+// ─── the timing tree (plans/175 WP-E) ───────────────────────────────────────────
+//
+// One `<p:timing>` per slide that carries any PptxAnim: a root par → the main `<p:seq>`
+// → one group par per click step (step 0 fires with the slide, steps 1+ on each click)
+// → an inner par → one effect par per shape effect. That triple nesting is exactly what
+// PowerPoint itself writes, and diverging from it is what earns a repair prompt.
+//
+// The BEHAVIOURS drive playback; presetID/presetClass only label the effect in the
+// animation pane. Every duration/delay is clamped, every id is unique within the tree,
+// and a slide with no anim emits NOTHING - byte-identity with every deck before this.
+
+const EFFECT_PRESET_IDS: Record<PptxEffect['preset'], number> = { appear: 1, fly: 2, fade: 10, zoom: 23, zoomOut: 23 };
+/** Fly-direction bitfield (t=1, r=2, b=4, l=8) - the OOXML presetSubtype convention. */
+const FLY_SUBTYPE: Record<NonNullable<PptxEffect['dir']>, number> = { t: 1, r: 2, b: 4, l: 8 };
+const MAX_EFFECT_MS = 60_000;
+const MAX_DELAY_MS = 600_000;
+
+/** The `<p:spTgt>` every behaviour points at. */
+const tgt = (spid: number): string => `<p:tgtEl><p:spTgt spid="${spid}"/></p:tgtEl>`;
+
+/** A behaviour's own cTn: duration + the easing approximation. */
+function bhvrCTn(id: number, dur: number, fx: PptxEffect): string {
+  const accel = fx.accel && fx.accel > 0 ? ` accel="${clampInt(fx.accel, 0, 100000)}"` : '';
+  const decel = fx.decel && fx.decel > 0 ? ` decel="${clampInt(fx.decel, 0, 100000)}"` : '';
+  return `<p:cTn id="${id}" dur="${dur}"${accel}${decel} fill="hold"/>`;
+}
+
+/** `style.visibility` set - entrance shows the shape up front, exit hides it at the end. */
+function setVisibilityXml(id: number, spid: number, visible: boolean, delay: number): string {
+  return `<p:set><p:cBhvr><p:cTn id="${id}" dur="1" fill="hold"><p:stCondLst><p:cond delay="${delay}"/></p:stCondLst></p:cTn>` +
+    `${tgt(spid)}<p:attrNameLst><p:attrName>style.visibility</p:attrName></p:attrNameLst></p:cBhvr>` +
+    `<p:to><p:strVal val="${visible ? 'visible' : 'hidden'}"/></p:to></p:set>`;
+}
+
+function fadeFxXml(id: number, spid: number, dur: number, entering: boolean, fx: PptxEffect): string {
+  return `<p:animEffect transition="${entering ? 'in' : 'out'}" filter="fade"><p:cBhvr>${bhvrCTn(id, dur, fx)}${tgt(spid)}</p:cBhvr></p:animEffect>`;
+}
+
+/** The moving axis of a fly, as PowerPoint's own `#ppt_*` formulas (fractions of the slide). */
+function flyAnimXml(id: number, spid: number, dur: number, dir: NonNullable<PptxEffect['dir']>, entering: boolean, fx: PptxEffect): string {
+  const attr = dir === 'l' || dir === 'r' ? 'ppt_x' : 'ppt_y';
+  const rest = `#${attr}`;
+  const off = dir === 'r' ? '1+#ppt_w/2' : dir === 'l' ? '0-#ppt_w/2' : dir === 'b' ? '1+#ppt_h/2' : '0-#ppt_h/2';
+  const from = entering ? off : rest;
+  const to = entering ? rest : off;
+  return `<p:anim calcmode="lin" valueType="num"><p:cBhvr additive="base">${bhvrCTn(id, dur, fx)}${tgt(spid)}` +
+    `<p:attrNameLst><p:attrName>${attr}</p:attrName></p:attrNameLst></p:cBhvr>` +
+    `<p:tavLst><p:tav tm="0"><p:val><p:strVal val="${from}"/></p:val></p:tav>` +
+    `<p:tav tm="100000"><p:val><p:strVal val="${to}"/></p:val></p:tav></p:tavLst></p:anim>`;
+}
+
+function scaleFxXml(id: number, spid: number, dur: number, fromPct: number, toPct: number, fx: PptxEffect): string {
+  return `<p:animScale><p:cBhvr>${bhvrCTn(id, dur, fx)}${tgt(spid)}</p:cBhvr>` +
+    `<p:from x="${fromPct}" y="${fromPct}"/><p:to x="${toPct}" y="${toPct}"/></p:animScale>`;
+}
+
+/** The behaviours one effect plays, per preset × direction. */
+function effectBehaviorsXml(nextId: () => number, spid: number, cls: 'entr' | 'exit', fx: PptxEffect): string {
+  const dur = clampInt(fx.ms, 1, MAX_EFFECT_MS);
+  const entering = cls === 'entr';
+  // An entrance reveals the shape as its first act; an exit hides it as its last
+  // (delay dur-1 puts the hide on the effect's final tick, PowerPoint's own shape).
+  const show = entering ? setVisibilityXml(nextId(), spid, true, 0) : '';
+  const hide = entering ? '' : setVisibilityXml(nextId(), spid, false, Math.max(0, dur - 1));
+  let motion = '';
+  switch (fx.preset) {
+    case 'appear': break; // visibility is the whole effect
+    case 'fade': motion = fadeFxXml(nextId(), spid, dur, entering, fx); break;
+    case 'fly': motion = flyAnimXml(nextId(), spid, dur, fx.dir ?? 'b', entering, fx); break;
+    case 'zoom':
+      motion = scaleFxXml(nextId(), spid, dur, entering ? 25000 : 100000, entering ? 100000 : 25000, fx)
+        + fadeFxXml(nextId(), spid, dur, entering, fx);
+      break;
+    case 'zoomOut':
+      motion = scaleFxXml(nextId(), spid, dur, entering ? 150000 : 100000, entering ? 100000 : 150000, fx)
+        + fadeFxXml(nextId(), spid, dur, entering, fx);
+      break;
+  }
+  return show + motion + hide;
+}
+
+/** One effect's `<p:par>`: the preset-labelled cTn, its (optional) text iterate, its behaviours. */
+function effectParXml(nextId: () => number, spid: number, cls: 'entr' | 'exit', fx: PptxEffect, nodeType: string): string {
+  const id = nextId();
+  const presetSubtype = fx.preset === 'fly' ? FLY_SUBTYPE[fx.dir ?? 'b'] : fx.preset === 'zoomOut' ? 32 : fx.preset === 'zoom' ? 16 : 0;
+  const delay = clampInt(fx.delayMs ?? 0, 0, MAX_DELAY_MS);
+  const it = fx.iterate && fx.iterate.staggerMs > 0
+    ? `<p:iterate type="${fx.iterate.by === 'word' ? 'wd' : 'lt'}"${fx.iterate.backwards ? ' backwards="1"' : ''}>` +
+      `<p:tmAbs val="${clampInt(fx.iterate.staggerMs, 1, MAX_EFFECT_MS)}"/></p:iterate>`
+    : '';
+  return `<p:par><p:cTn id="${id}" presetID="${EFFECT_PRESET_IDS[fx.preset]}" presetClass="${cls}" presetSubtype="${presetSubtype}" fill="hold" grpId="0" nodeType="${nodeType}">` +
+    `<p:stCondLst><p:cond delay="${delay}"/></p:stCondLst>${it}` +
+    `<p:childTnLst>${effectBehaviorsXml(nextId, spid, cls, fx)}</p:childTnLst></p:cTn></p:par>`;
+}
+
+/** The whole `<p:timing>` for a slide, or '' when nothing animates (byte-identity). */
+export function timingXml(slide: PptxSlide): string {
+  interface Row { spid: number; cls: 'entr' | 'exit'; fx: PptxEffect; click: number; text: boolean }
+  const rows: Row[] = [];
+  slide.shapes.forEach((s, i) => {
+    const anim = (s as { anim?: PptxAnim }).anim;
+    if (!anim) return;
+    const spid = i + 2; // slideXml's own numbering: shape i is cNvPr id i+2
+    const click = clampInt(Number.isFinite(anim.click as number) ? (anim.click as number) : 0, 0, 999);
+    if (anim.enter) rows.push({ spid, cls: 'entr', fx: anim.enter, click, text: s.kind === 'text' });
+    if (anim.exit) rows.push({ spid, cls: 'exit', fx: anim.exit, click, text: s.kind === 'text' });
+  });
+  if (!rows.length) return '';
+  let n = 2; // ids 1 (root) and 2 (main seq) are taken below
+  const nextId = (): number => ++n;
+  const clicks = [...new Set(rows.map((r) => r.click))].sort((a, b) => a - b);
+  const groups = clicks.map((click) => {
+    const inGroup = rows.filter((r) => r.click === click)
+      .sort((a, b) => (a.fx.delayMs ?? 0) - (b.fx.delayMs ?? 0) || a.spid - b.spid);
+    const effects = inGroup.map((r, idx) => effectParXml(
+      nextId, r.spid, r.cls, r.fx,
+      // Step 0 plays with the slide; a click step's first effect is the click itself.
+      click === 0 ? (idx === 0 ? 'afterEffect' : 'withEffect') : (idx === 0 ? 'clickEffect' : 'withEffect'),
+    )).join('');
+    const groupId = nextId();
+    const innerId = nextId();
+    return `<p:par><p:cTn id="${groupId}" fill="hold"><p:stCondLst><p:cond delay="${click === 0 ? '0' : 'indefinite'}"/></p:stCondLst>` +
+      `<p:childTnLst><p:par><p:cTn id="${innerId}" fill="hold"><p:stCondLst><p:cond delay="0"/></p:stCondLst>` +
+      `<p:childTnLst>${effects}</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par>`;
+  }).join('');
+  // One build entry per animated TEXT shape - what makes the animation pane treat its
+  // paragraphs/iterate units as a build rather than an opaque object.
+  const bldSpids = [...new Set(rows.filter((r) => r.text).map((r) => r.spid))];
+  const bld = bldSpids.length
+    ? `<p:bldLst>${bldSpids.map((spid) => `<p:bldP spid="${spid}" grpId="0"/>`).join('')}</p:bldLst>`
+    : '';
+  return `<p:timing><p:tnLst><p:par><p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"><p:childTnLst>` +
+    `<p:seq concurrent="1" nextAc="seek"><p:cTn id="2" dur="indefinite" nodeType="mainSeq"><p:childTnLst>${groups}</p:childTnLst></p:cTn>` +
+    `<p:prevCondLst><p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:prevCondLst>` +
+    `<p:nextCondLst><p:cond evt="onNext" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:nextCondLst></p:seq>` +
+    `</p:childTnLst></p:cTn></p:par></p:tnLst>${bld}</p:timing>`;
+}
+
 function slideXml(slide: PptxSlide): string {
   let id = 1;
   const shapes = slide.shapes.map(s => shapeXml(s, ++id)).join('');
@@ -515,6 +694,8 @@ function slideXml(slide: PptxSlide): string {
     `<p:grpSpPr/>` +
     shapes +
     `</p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr>` +
+    // The timing tree (plans/175 WP-E) sits after clrMapOvr in CT_Slide's child order.
+    timingXml(slide) +
     `</p:sld>`
   );
 }

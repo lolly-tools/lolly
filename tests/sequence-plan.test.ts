@@ -29,9 +29,10 @@ import {
   sequenceError, toCodedError,
   camerasMove, composeFilter, foldKfPose, kfTrackOf, ownsLayerFx, planCameraView,
   readDepthZ, REST_TRANSITION, splitFilterBlur, stageCameras,
+  splitActive, splitAnimatingAt,
   type PlanItem, type SeqLayer, type SeqPlanEnv,
 } from '../shells/web/src/bridge/sequence-plan.ts';
-import { recTransition } from '../shells/web/src/lib/transitions.ts';
+import { recTransition, holdPose, withHold } from '../shells/web/src/lib/transitions.ts';
 import {
   applyTimeToElements, authoredStyleOf, borrowAuthoredPose, createAuthoredStore,
   isActiveAt, readTiming, transitionAt, withAuthoredDom,
@@ -41,7 +42,7 @@ import {
 // export-time read/restore seam at the end of this file exists to stand down.
 // `sequencePoseOf` is the same applier's published fold, which the editor chrome reads
 // back rather than re-evaluating (plans/104 section 6.5).
-import { createSequenceTime, sequencePoseOf } from '../shells/web/src/bridge/sequence-dom.ts';
+import { applySplitUnits, clearSplitUnits, createSequenceTime, sequencePoseOf } from '../shells/web/src/bridge/sequence-dom.ts';
 // …and the pure map from that pose to the rect the selection outline is drawn on.
 import { posedRect } from '../shells/web/src/views/free-canvas-math.ts';
 import {
@@ -86,6 +87,8 @@ function fakeLayer(over: Partial<SeqLayer> & { idx: number }): SeqLayer {
     startMs: 0, durMs: 1000, clipInMs: 0, speed: 1, mute: false, gain: 1,
     enter: null, enterMs: DEFAULT_TRANSITION_MS, exit: null, exitMs: DEFAULT_TRANSITION_MS,
     enterEase: '', exitEase: '',
+    split: '', splitStaggerMs: 0, splitOrder: '', splitUnits: 0, splitSeed: 0,
+    hold: '', holdRate: 1,
     lane: 'seq', kind: 'static',
     rect: { x: 0, y: 0, w: 100, h: 100, rot: 0 },
     opacity: 1, blend: '', radius: '', clipPath: '', openEnded: false, frameScene: false,
@@ -2434,4 +2437,235 @@ test('section 5.2 w/h: a size key round-trips the wire, and clamps rather than s
     pose: { w: 400 }, zField: 0, authoredBlur: 0, boxW: 0, boxH: 0,
   });
   assert.deepEqual({ w: fold.w, h: fold.h, sized: fold.sized }, { w: 0, h: 0, sized: false });
+});
+
+// ── split text animation (plans/175 WP-A) ────────────────────────────────────
+//
+// The hook wraps a split box's text in `.lly-u` unit spans and stamps
+// `data-t-split`/`data-t-stagger`/`data-t-split-order`; the units then carry the
+// enter/exit while the box stays at rest. What has to hold, on both evaluators:
+// the parse reads the same facts, the whole-box transition is suppressed on
+// exactly the frames the units animate, junction crossfades never form around a
+// split layer, and the live-raster window predicate agrees with the DOM applier.
+
+function splitBoxHtml(units: number, time: string, order = ''): string {
+  const spans = Array.from({ length: units }, (_, i) =>
+    `<span class="lly-u" aria-hidden="true">u${i}</span>`).join(' ');
+  const ord = order ? ` data-t-split-order="${order}"` : '';
+  return `<div class="lolly-box" data-box-id="b1" style="left:0px;top:0px;width:600px;height:200px;" ${time} data-t-split="word" data-t-stagger="100"${ord}>`
+    + `<div class="lolly-box-text"><span class="lly-split" role="text" aria-label="x">${spans}</span></div></div>`;
+}
+
+test('split: readLayer and readTiming read the same tier/gap/order, and count units', () => {
+  const node = stageOf(splitBoxHtml(3, 'data-t-start="0" data-t-dur="3000" data-t-enter="rise" data-t-enter-ms="400"', 'reverse'));
+  const stage = parseSequenceStage(node)!;
+  const layer = stage.layers[0] as SeqLayer;
+  assert.equal(layer.split, 'word');
+  assert.equal(layer.splitStaggerMs, 100);
+  assert.equal(layer.splitOrder, 'reverse');
+  assert.equal(layer.splitUnits, 3);
+  assert.ok(splitActive(layer));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const timing = readTiming(el);
+  assert.equal(timing.split, layer.split);
+  assert.equal(timing.stagger, layer.splitStaggerMs);
+  assert.equal(timing.splitOrder, layer.splitOrder);
+});
+
+test('split: junk tier/order values read as not-split', () => {
+  const html = `<div class="lolly-box" style="left:0px;top:0px;width:600px;height:200px;" data-t-start="0" data-t-dur="3000" data-t-split="constructor" data-t-split-order="valueOf"></div>`;
+  const stage = parseSequenceStage(stageOf(html))!;
+  const layer = stage.layers[0] as SeqLayer;
+  assert.equal(layer.split, '');
+  assert.equal(layer.splitOrder, '');
+  assert.ok(!splitActive(layer));
+});
+
+test('split: the whole-box transition is SUPPRESSED while units carry it', () => {
+  const time = 'data-t-start="0" data-t-dur="3000" data-t-enter="rise" data-t-enter-ms="400"';
+  const split = parseSequenceStage(stageOf(splitBoxHtml(3, time)))!;
+  const plain = parseSequenceStage(stageOf(boxHtml({ time })))!;
+  const t = 100; // mid-enter for both
+  const splitItem = sequenceDrawPlan(split.layers, t, 3000)[0] as PlanItem;
+  const plainItem = sequenceDrawPlan(plain.layers, t, 3000)[0] as PlanItem;
+  assert.notEqual(plainItem.dy, 0, 'the un-split twin really is mid-rise');
+  assert.ok(plainItem.alpha < 1);
+  assert.equal(splitItem.dy, 0, 'the split box is at rest - its units animate instead');
+  assert.equal(splitItem.alpha, 1);
+});
+
+test('split: splitAnimatingAt opens the enter window to stagger×(n−1)+enterMs', () => {
+  const stage = parseSequenceStage(stageOf(splitBoxHtml(3, 'data-t-start="0" data-t-dur="3000" data-t-enter="rise" data-t-enter-ms="400"')))!;
+  const layer = stage.layers[0] as SeqLayer;
+  assert.ok(splitAnimatingAt(layer, 0, 3000));
+  assert.ok(splitAnimatingAt(layer, 599, 3000), 'window = 2×100 + 400');
+  assert.ok(!splitAnimatingAt(layer, 600, 3000));
+  assert.ok(!splitAnimatingAt(layer, 1500, 3000), 'the steady middle is one at-rest shot');
+});
+
+test('split: the CUT tier (no authored kind) still opens a stagger window - the typewriter', () => {
+  const stage = parseSequenceStage(stageOf(splitBoxHtml(3, 'data-t-start="0" data-t-dur="3000"')))!;
+  const layer = stage.layers[0] as SeqLayer;
+  assert.equal(layer.enter, null);
+  assert.ok(splitAnimatingAt(layer, 100, 3000), 'window = 2×100 with no kind');
+  assert.ok(!splitAnimatingAt(layer, 250, 3000));
+  // …and the exit side needs an authored kind: absent means no exit window at all.
+  assert.ok(!splitAnimatingAt(layer, 2950, 3000));
+});
+
+test('split: a split layer never forms a junction crossfade', () => {
+  const a = boxHtml({ time: 'data-t-start="0" data-t-dur="1000" data-t-lane="seq" data-t-exit="fade" data-t-exit-ms="400"' });
+  const b = splitBoxHtml(3, 'data-t-start="1000" data-t-dur="1000" data-t-lane="seq" data-t-enter="fade" data-t-enter-ms="400"');
+  const stage = parseSequenceStage(stageOf(a + b))!;
+  assert.deepEqual(crossfadeJunctions(stage.layers), [], 'split kills the junction');
+  // The same pair WITHOUT the split forms one - so the assertion above is not vacuous.
+  const b2 = boxHtml({ time: 'data-t-start="1000" data-t-dur="1000" data-t-lane="seq" data-t-enter="fade" data-t-enter-ms="400"' });
+  const stage2 = parseSequenceStage(stageOf(a + b2))!;
+  assert.equal(crossfadeJunctions(stage2.layers).length, 1);
+});
+
+test('split: applySplitUnits drives the spans, steps the cut tier, and clears at rest', () => {
+  // Cut tier: no authored kind, stagger 100, 3 units.
+  const node = stageOf(splitBoxHtml(3, 'data-t-start="0" data-t-dur="3000"'));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const timing = readTiming(el);
+  const spans = [...el.querySelectorAll<HTMLElement>('.lly-u')];
+
+  assert.equal(applySplitUnits(el, timing, 150, 7000), 'animating');
+  // A unit that has cut in is AT REST and carries no style at all - only the
+  // still-hidden unit holds a write. That is the cheapest correct steady state.
+  assert.deepEqual(spans.map((s) => s.style.opacity), ['', '', '0'],
+    'at 150ms with a 100ms gap: units 0 and 1 have cut in, unit 2 has not');
+  assert.deepEqual(spans.map((s) => s.style.transform), ['', '', ''], 'a cut never transforms');
+
+  assert.equal(applySplitUnits(el, timing, 1000, 7000), 'rest');
+  assert.deepEqual(spans.map((s) => s.style.opacity), ['', '', ''], 'rest hands the spans back clean');
+});
+
+test('split: an animated kind moves each unit through its own offset ramp', () => {
+  const node = stageOf(splitBoxHtml(3, 'data-t-start="0" data-t-dur="3000" data-t-enter="rise" data-t-enter-ms="400"'));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const timing = readTiming(el);
+  const spans = [...el.querySelectorAll<HTMLElement>('.lly-u')];
+  assert.equal(applySplitUnits(el, timing, 200, 7000), 'animating');
+  // Unit 0 is half way up its rise; unit 2 (offset 200) has not started - fully out.
+  assert.match(spans[0]!.style.transform, /translate\(/);
+  assert.equal(spans[2]!.style.opacity, '0');
+  const dy0 = parseFloat(/translate\(0px, (-?[\d.]+)px\)/.exec(spans[0]!.style.transform)?.[1] ?? 'NaN');
+  const dy1 = parseFloat(/translate\(0px, (-?[\d.]+)px\)/.exec(spans[1]!.style.transform)?.[1] ?? 'NaN');
+  assert.ok(dy1 > dy0, 'the later unit is further from rest than the earlier one');
+  // clearSplitUnits is the export teardown - it must strip everything it wrote.
+  clearSplitUnits(el);
+  assert.deepEqual(spans.map((s) => s.style.opacity + s.style.transform), ['', '', '']);
+});
+
+test('split: a single unit falls back to the whole-box path - null, not a phantom split', () => {
+  const node = stageOf(splitBoxHtml(1, 'data-t-start="0" data-t-dur="3000" data-t-enter="rise" data-t-enter-ms="400"'));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  assert.equal(applySplitUnits(el, readTiming(el), 100, 7000), null);
+  // …and the planner agrees: one unit is not an active split.
+  const stage = parseSequenceStage(node)!;
+  assert.ok(!splitActive(stage.layers[0] as SeqLayer));
+  const item = sequenceDrawPlan(stage.layers, 100, 3000)[0] as PlanItem;
+  assert.notEqual(item.dy, 0, 'the whole-box rise runs instead');
+});
+
+test('split: reverse order deals the LAST unit first', () => {
+  const node = stageOf(splitBoxHtml(3, 'data-t-start="0" data-t-dur="3000"', 'reverse'));
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const timing = readTiming(el);
+  const spans = [...el.querySelectorAll<HTMLElement>('.lly-u')];
+  assert.equal(applySplitUnits(el, timing, 150, 7000), 'animating');
+  assert.deepEqual(spans.map((s) => s.style.opacity), ['0', '', ''],
+    'reverse: units 2 and 1 have cut in (at rest, no style), unit 0 has not');
+});
+
+test('split: the DOM applier suppresses the whole-box transition too - both sides agree', () => {
+  const node = stageOf(splitBoxHtml(3, 'data-t-start="0" data-t-dur="3000" data-t-enter="rise" data-t-enter-ms="400"'));
+  const els = [...node.querySelectorAll<HTMLElement>('.lolly-box')];
+  const ctx = applyCtx(3000);
+  applyTimeToElements(els, 100, ctx);
+  const el = els[0]!;
+  assert.equal(el.style.transform, '', 'no whole-box transform mid-enter');
+  assert.equal(el.style.opacity, '', 'no whole-box alpha either');
+  const spans = [...el.querySelectorAll<HTMLElement>('.lly-u')];
+  assert.notEqual(spans[0]!.style.transform, '', 'the units carry the rise');
+  // Standing the writer down for an export hands the units back at rest with the box.
+  ctx.store.restoreAll();
+  assert.deepEqual(spans.map((s) => s.style.opacity + s.style.transform), ['', '', '']);
+});
+
+// ── hold effects (plans/175 WP-B) ────────────────────────────────────────────
+//
+// The while-on-screen looping pose, composed with the transition offset in BOTH
+// evaluators through the same withHold. What must hold: the two readers see the
+// same kind/rate, the plan's numbers ARE holdPose's, the DOM applier writes the
+// same pose, and an unauthored box is byte-identical to before the field existed.
+
+test('hold: both readers parse the kind and rate; junk reads as still', () => {
+  const html = boxHtml({ time: 'data-t-start="0" data-t-dur="4000" data-t-hold="pulse" data-t-hold-rate="2"' });
+  const node = stageOf(html);
+  const layer = parseSequenceStage(node)!.layers[0] as SeqLayer;
+  assert.equal(layer.hold, 'pulse');
+  assert.equal(layer.holdRate, 2);
+  const el = node.querySelector('.lolly-box') as HTMLElement;
+  const timing = readTiming(el);
+  assert.equal(timing.hold, layer.hold);
+  assert.equal(timing.holdRate, layer.holdRate);
+  const junk = parseSequenceStage(stageOf(boxHtml({ time: 'data-t-start="0" data-t-dur="4000" data-t-hold="constructor" data-t-hold-rate="1e9"' })))!;
+  assert.equal((junk.layers[0] as SeqLayer).hold, '', 'prototype keys are not hold kinds');
+});
+
+test('hold: the plan composes holdPose over the transition offset - mid-life AND mid-enter', () => {
+  const stage = parseSequenceStage(stageOf(boxHtml({
+    style: 'left:0px;top:0px;width:320px;height:180px;',
+    time: 'data-t-start="0" data-t-dur="4000" data-t-enter="rise" data-t-enter-ms="400" data-t-hold="bob" data-t-hold-rate="1"',
+  })))!;
+  // Mid-life (t=1250, past the enter): the pose IS holdPose alone over rest.
+  const midItem = sequenceDrawPlan(stage.layers, 1250, 4000)[0] as PlanItem;
+  const midHold = holdPose('bob', 1250, 1, 320, 180);
+  assert.equal(midItem.dy, midHold.dy, 'the loop is live in the steady middle');
+  assert.equal(midItem.alpha, 1);
+  // Mid-enter (t=200): transition ⊕ hold, exactly withHold's composition.
+  const enterItem = sequenceDrawPlan(stage.layers, 200, 4000)[0] as PlanItem;
+  const tr = recTransition('rise', 0.5, 320, 180, '');
+  const expected = withHold(tr, holdPose('bob', 200, 1, 320, 180));
+  assert.equal(enterItem.dy, expected.dy, 'continuous through the enter - no pop at the seam');
+  assert.equal(enterItem.alpha, expected.alpha);
+});
+
+test('hold: the DOM applier writes the same pose the plan computes', () => {
+  const node = stageOf(boxHtml({
+    style: 'left:0px;top:0px;width:320px;height:180px;',
+    time: 'data-t-start="0" data-t-dur="4000" data-t-hold="sway" data-t-hold-rate="1"',
+  }));
+  const els = [...node.querySelectorAll<HTMLElement>('.lolly-box')];
+  const ctx = applyCtx(4000);
+  applyTimeToElements(els, 250, ctx);
+  const el = els[0]!;
+  const pose = holdPose('sway', 250, 1, 0, 0); // jsdom measures 0x0; sway ignores the box anyway
+  assert.match(el.style.transform, /rotate\(/, 'the sway is a live rotate');
+  assert.ok(el.style.transform.includes(`rotate(${Math.round(pose.rot * 1000) / 1000}deg)`),
+    `the applier writes holdPose's own number: ${el.style.transform}`);
+  // Standing the writer down hands the authored styles back, hold included.
+  ctx.store.restoreAll();
+  assert.equal(el.style.transform, '');
+});
+
+test('hold: a split box pulses whole-box while its units carry the enter', () => {
+  const node = stageOf(splitBoxHtml(3, 'data-t-start="0" data-t-dur="3000" data-t-enter="rise" data-t-enter-ms="400" data-t-hold="pulse" data-t-hold-rate="1"'));
+  const stage = parseSequenceStage(node)!;
+  const item = sequenceDrawPlan(stage.layers, 100, 3000)[0] as PlanItem;
+  const hold = holdPose('pulse', 100, 1, 600, 200);
+  assert.equal(item.dy, 0, 'the whole-box transition stays suppressed (units carry it)');
+  assert.equal(item.scale, hold.sc, 'while the hold still breathes the box');
+});
+
+test('hold: an unauthored box takes exactly the pre-hold path', () => {
+  const time = 'data-t-start="0" data-t-dur="4000" data-t-enter="rise" data-t-enter-ms="400"';
+  const stage = parseSequenceStage(stageOf(boxHtml({ time })))!;
+  assert.equal((stage.layers[0] as SeqLayer).hold, '');
+  const item = sequenceDrawPlan(stage.layers, 200, 4000)[0] as PlanItem;
+  const off = recTransition('rise', 0.5, 1920, 1080, '');
+  assert.equal(item.dy, off.dy, 'byte-identical numbers with no hold authored');
 });

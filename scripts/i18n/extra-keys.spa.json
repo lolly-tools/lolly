@@ -254,5 +254,16 @@
   "An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.",
   "This file is packaged the way {vendor} AI products package downloads ({hint}). A signal, not proof.",
   "likely AI-made",
-  "DRAFT"
+  "DRAFT",
+  "Word",
+  "Line",
+  "Letter",
+  "First to last",
+  "Last to first",
+  "From the centre",
+  "Random",
+  "Pulse",
+  "Bob",
+  "Sway",
+  "Flicker"
 ]

@@ -186,3 +186,55 @@ test('the Slide deck TEMPLATE seeds a deck of 3 slides, each with a title + body
     assert.ok(texts.length >= 2, 'each slide has a title + body text element');
   }
 });
+
+// ── native animation in the deck model (plans/175 WP-E) ─────────────────────────
+//
+// The hook carries a box's animation fields RAW (Lolly vocabulary) on the deck
+// element's `anim`; the shell's pptx-deck.ts owns the mapping to PowerPoint's subset.
+// What the hook must get right: attach only when something animates (a still deck's
+// JSON is byte-identical to before), derive slide-local delays from the box's own
+// timing, hand exits a concrete end moment, and let `build` become the click step.
+
+const FRAME = { id: 'f1', kind: 'frame', x: 0, y: 0, w: 1280, h: 720, order: 0, bg: '#ffffff' };
+const CHILD = { id: 'c1', kind: 'text', frame: 'f1', x: 100, y: 100, w: 400, h: 120, text: 'Hello brave world', fontSize: 40 };
+
+test('anim: a still deck element carries NO anim key at all', async () => {
+  const deck = deckOf(await mount([FRAME, CHILD]));
+  assert.ok(deck, 'frames → deck model');
+  assert.ok(!('anim' in deck.slides[0].elements[0]), 'nothing animates, nothing is carried');
+});
+
+test('anim: enter kind + timing lower to raw fields with a slide-local delay', async () => {
+  const deck = deckOf(await mount([FRAME, { ...CHILD, enter: 'fade', enterMs: 500, enterEase: 'ease-in', start: 2, dur: 4 }]));
+  const anim = deck.slides[0].elements[0].anim;
+  assert.equal(anim.enter, 'fade');
+  assert.equal(anim.enterMs, 500);
+  assert.equal(anim.enterEase, 'ease-in');
+  assert.equal(anim.delayMs, 2000, 'the box start becomes the slide-local delay');
+});
+
+test('anim: an exit gets its concrete end moment only from a timed box', async () => {
+  const timed = deckOf(await mount([FRAME, { ...CHILD, exit: 'fade', exitMs: 400, start: 1, dur: 3 }]));
+  const a1 = timed.slides[0].elements[0].anim;
+  assert.equal(a1.exit, 'fade');
+  assert.equal(a1.exitDelayMs, 3600, '(start+dur)·1000 − exitMs: the exit FINISHES at the box end');
+  const untimed = deckOf(await mount([FRAME, { ...CHILD, exit: 'fade', exitMs: 400 }]));
+  const a2 = untimed.slides[0].elements[0].anim;
+  assert.equal(a2.exit, 'fade', 'the raw kind still travels');
+  assert.ok(!('exitDelayMs' in a2), 'but with no derived moment - pptx-deck will skip it, loudly');
+});
+
+test('anim: split + stagger travel raw, letter degrades for joining scripts, build is the click', async () => {
+  const deck = deckOf(await mount([FRAME,
+    { ...CHILD, split: 'word', stagger: 80, splitOrder: 'reverse', build: 2 },
+    { ...CHILD, id: 'c2', y: 300, text: 'مرحبا بالعالم', split: 'letter', stagger: 60 },
+  ]));
+  const a = deck.slides[0].elements[0].anim;
+  assert.equal(a.enter, 'none', 'split with no kind is the cut - the typewriter trigger');
+  assert.equal(a.split, 'word');
+  assert.equal(a.stagger, 80);
+  assert.equal(a.order, 'reverse');
+  assert.equal(a.click, 2, 'the presentation build order becomes the click step');
+  const ar = deck.slides[0].elements[1].anim;
+  assert.equal(ar.split, 'word', 'letter degrades to word for joining scripts in the deck too');
+});

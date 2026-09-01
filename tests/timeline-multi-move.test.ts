@@ -9,8 +9,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  moveOverlays, moveSeqClips, groupDropIndex, moveSeqClip,
-  boxTiming, type Box, type TimeCfg,
+  moveOverlays, moveSeqClips, groupDropIndex, moveSeqClip, staggerOverlays,
+  boxTiming, MAX_TIME_S, type Box, type TimeCfg,
 } from '../shells/web/src/views/timeline-math.ts';
 
 const cfg: TimeCfg = {
@@ -99,4 +99,68 @@ test('moveSeqClips never mutates its input', () => {
   const snap = JSON.stringify(src);
   moveSeqClips(src, cfg, ['B', 'D'], 0);
   assert.equal(JSON.stringify(src), snap);
+});
+
+// ---- staggerOverlays (plans/175 WP-C) ---------------------------------------
+
+test('staggerOverlays deals an even gap, anchored on the earliest start', () => {
+  const boxes: Box[] = [
+    { id: 'o1', lane: '', start: 2, dur: 1 },
+    { id: 'o2', lane: '', start: 2.3, dur: 1 },
+    { id: 'o3', lane: '', start: 9, dur: 1 },
+  ];
+  const out = staggerOverlays(boxes, cfg, ['o1', 'o2', 'o3'], 0.25);
+  assert.deepEqual([startOf(out, 'o1'), startOf(out, 'o2'), startOf(out, 'o3')], [2, 2.25, 2.5]);
+});
+
+test('staggerOverlays keeps the CURRENT start order, breaking ties by row order', () => {
+  const boxes: Box[] = [
+    { id: 'late', lane: '', start: 8, dur: 1 },
+    { id: 'tieB', lane: '', start: 3, dur: 1 },
+    { id: 'tieA', lane: '', start: 3, dur: 1 },
+    { id: 'first', lane: '', start: 1, dur: 1 },
+  ];
+  const out = staggerOverlays(boxes, cfg, ['late', 'tieA', 'tieB', 'first'], 0.5);
+  // Dealt order: first(1) → tieB(3, earlier row) → tieA(3) → late(8).
+  assert.deepEqual(
+    [startOf(out, 'first'), startOf(out, 'tieB'), startOf(out, 'tieA'), startOf(out, 'late')],
+    [1, 1.5, 2, 2.5]);
+});
+
+test('staggerOverlays ignores seq-lane and untimed members; under two eligible is a no-op', () => {
+  const boxes: Box[] = [
+    { id: 's1', lane: 'seq', start: 0, dur: 2 },
+    { id: 's2', lane: 'seq', start: 2, dur: 2 },
+    { id: 'o1', lane: '', start: 4, dur: 1 },
+    { id: 'o2', lane: '', start: 4, dur: 1 },
+    { id: 'scenery', lane: '' },
+  ];
+  const out = staggerOverlays(boxes, cfg, ['s1', 's2', 'o1', 'o2', 'scenery'], 1);
+  assert.deepEqual([startOf(out, 's1'), startOf(out, 's2')], [0, 2], 'the magnetic row is never dealt');
+  assert.equal(out.find((b) => b.id === 'scenery')!.start, undefined, 'scenery stays untimed');
+  assert.deepEqual([startOf(out, 'o1'), startOf(out, 'o2')], [4, 5], 'the two overlays are dealt');
+  // One eligible overlay → identity per box.
+  const solo = staggerOverlays(boxes, cfg, ['o1', 's1'], 1);
+  assert.deepEqual(solo.map((b) => b === boxes[solo.indexOf(b)]), [true, true, true, true, true]);
+});
+
+test('staggerOverlays preserves per-box identity on an already-dealt board (no undo step)', () => {
+  const boxes: Box[] = [
+    { id: 'o1', lane: '', start: 1, dur: 1 },
+    { id: 'o2', lane: '', start: 1.5, dur: 1 },
+  ];
+  const out = staggerOverlays(boxes, cfg, ['o1', 'o2'], 0.5);
+  assert.equal(out[0], boxes[0]);
+  assert.equal(out[1], boxes[1]);
+});
+
+test('staggerOverlays clamps: junk gaps read as 0, and no start passes MAX_TIME_S', () => {
+  const boxes: Box[] = [
+    { id: 'o1', lane: '', start: 5, dur: 1 },
+    { id: 'o2', lane: '', start: 3, dur: 1 },
+  ];
+  const zero = staggerOverlays(boxes, cfg, ['o1', 'o2'], Number.NaN);
+  assert.deepEqual([startOf(zero, 'o2'), startOf(zero, 'o1')], [3, 3], 'NaN gap deals a zero gap');
+  const huge = staggerOverlays(boxes, cfg, ['o1', 'o2'], 1e9);
+  assert.equal(startOf(huge, 'o1'), MAX_TIME_S, 'the ceiling holds');
 });

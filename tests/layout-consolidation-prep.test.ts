@@ -107,15 +107,17 @@ test('boxes.fields tail: z/kf/linkOf then the deck fields - appended, never reor
     // The flip (mirror) fields followed at slots 77-78, the per-box CSS class `cls`
     // (plan 112 M4, the Custom CSS companion) at 79, the clip volume `gain`
     // (plans/165 WP-1) at 80, the timeline clip name `name` (the rename editor's
-    // labelField) at 81, and the strikethrough-skip flag `ignored` (plan 174 section 5.5)
-    // at 82 - each appended, never squeezed in behind - so `ignored` is now the
-    // tail. This pin extends the same append-only guard: a later field must land
-    // at 83, not shift any of these.
+    // labelField) at 81, the strikethrough-skip flag `ignored` (plan 174 section 5.5)
+    // at 82, the split-text animation trio `split`/`stagger`/`splitOrder`
+    // (plans/175 WP-A) at 83-85, and the hold-effect pair `hold`/`holdRate`
+    // (plans/175 WP-B) at 86-87 - each appended, never squeezed in behind - so
+    // `holdRate` is now the tail. This pin extends the same append-only guard:
+    // a later field must land at 88, not shift any of these.
     assert.deepEqual(fields.slice(72).map((f) => f.id),
-      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls', 'gain', 'name', 'ignored'],
+      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls', 'gain', 'name', 'ignored', 'split', 'stagger', 'splitOrder', 'hold', 'holdRate'],
       `${brand}: a deck/flip/class field was inserted out of order - appended slots must stay put`);
-    assert.equal(fields.length, 83, `${brand}: expected 83 sub-fields, got ${fields.length}`);
-    assert.equal(fields[fields.length - 1]!.id, 'ignored', `${brand}: ignored is not the tail`);
+    assert.equal(fields.length, 88, `${brand}: expected 88 sub-fields, got ${fields.length}`);
+    assert.equal(fields[fields.length - 1]!.id, 'holdRate', `${brand}: holdRate is not the tail`);
     // Ids are unique - an accidental second `linkOf` would give the codec two columns of
     // the same name and the shell would read whichever it found first.
     assert.equal(new Set(fields.map((f) => f.id)).size, fields.length, `${brand}: duplicate sub-field id`);

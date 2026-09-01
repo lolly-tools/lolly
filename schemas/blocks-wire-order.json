@@ -118,7 +118,12 @@
       "cls",
       "gain",
       "name",
-      "ignored"
+      "ignored",
+      "split",
+      "stagger",
+      "splitOrder",
+      "hold",
+      "holdRate"
     ],
     "diagram-builder:nodes": [
       "shape",

@@ -207,7 +207,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `png.ts` | 485 | PNG encoder: 8-bit and 16-bit truecolour, pure bytes, DOM-free. | yes | `tests/png.test.ts` | – |
 | `pptx-patch.ts` | 352 | pptx-patch.ts: SURGICAL rebrand of an unzipped .pptx part map (Pipeline A, plans/49-fable-new-potential-pptx.md section 2.2 / track E2). | yes | `tests/pptx-patch.test.ts` | yes |
 | `pptx-read.ts` | 1284 | pptx-read.ts: PARSE an unzipped .pptx part map into a read-model. | yes | `tests/pptx-read.test.ts` | yes |
-| `pptx.ts` | 888 | PPTX (PowerPoint / OOXML) builder. | yes | `tests/pptx.test.ts` | – |
+| `pptx.ts` | 1069 | PPTX (PowerPoint / OOXML) builder. | yes | `tests/pptx.test.ts` | – |
 | `preflight.ts` | 1579 | Preflight: pre-export findings over a plain job description. | yes | `tests/preflight.test.ts` | – |
 | `print-marks.ts` | 315 | Print-marks & bleed geometry. | yes | `tests/print-marks.test.ts` | – |
 | `provenance-defaults.ts` | 91 | Whether an export carries provenance marks WHEN NOBODY SAID. | yes | none | – |
