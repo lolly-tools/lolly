@@ -51,6 +51,18 @@ const RASTER_ALLOWED: Record<string, string> = {
     + 'the old blank shot). The walker also mis-inlines the lolly/logo/primary gradient swirl '
     + '(defs survive but the green spiral paints drop). Re-check when the walker gains a '
     + 'docs-capture root that can opt INTO export-hidden chrome, same as seq-onion-ghosts.',
+  'anim-timeline-choreographed':
+    'The subject is the keyframe DIAMONDS on nine clip bars - the 10px `.tl-kf-dot` markers '
+    + 'in each bar\'s `.tl-kf-strip` - and the walker does not carry them through: measured '
+    + '2026-09-01, the walked `.tl-panel` came out with zero `tl-kf` nodes (bars, ruler, chips '
+    + 'and transport all faithful). A vector timeline with no diamonds says the opposite of '
+    + 'what the caption says. Re-check when the walker traces the dot markers.',
+  'anim-choreograph-picker':
+    'The subject IS the Choreograph picker (an .fc-panel over the selected grid), and the '
+    + 'floating panels are [data-export-hide] editor chrome the walker detaches from every '
+    + 'render by design - a vector walk would show the bare artboard with nothing to point at. '
+    + 'The same reason as `design` above; re-check with it when the walker gains a docs-capture '
+    + 'root that can opt INTO export-hidden chrome.',
   'seq-onion-ghosts':
     'Onion ghosts over the scene they ghost. Neither vector path can hold both at once: '
     + 'the ghost layer is [data-export-hide] (editor chrome is deliberately unreachable '
