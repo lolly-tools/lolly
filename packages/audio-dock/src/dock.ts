@@ -883,7 +883,11 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     const y = Math.max(6, Math.min(clientY - r.top, r.height - mh - 6));
     vizMenu.style.left = `${x}px`;
     vizMenu.style.top = `${y}px`;
-    vizSearchEl.focus();
+    // Auto-focus the preset search only on fine pointers. On touch the menu opens via the
+    // two-finger tap / ▾ chevron, and focusing a text input there summons the on-screen
+    // keyboard, which reflows and shakes the dock. The box is still there to tap when the
+    // user actually wants to search. (Same rule as pro/index.ts's preset search.)
+    if (!isCoarsePointer()) vizSearchEl.focus();
   }
   function closeVizMenu(): void { vizMenu.hidden = true; }
 
