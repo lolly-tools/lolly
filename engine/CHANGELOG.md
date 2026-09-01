@@ -6,6 +6,23 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.160.0 - a BOX can tilt, not just the camera (plans/104 P2.1). `KfLayerPose` gains
+optional `rx`/`ry` in degrees - the box's own tilt, resolved base-field-then-keyed
+exactly as `z` is - and `projectLayer` composes the box's local homography onto
+whatever the camera handed back, in BOTH branches: onto the camera's element-local
+matrix when the camera tilts, onto the leading `translate(dx, dy)` when it does not.
+So `KfProjection.m` is now non-null for a tilted box under a parked camera, and every
+consumer reads it unchanged - it still REPLACES the leading translate and nothing else,
+`scale` still carries eff, `rot` still applies after it. A box tilt is authored in the
+BOX's own frame, pivoting on its centre at the scene perspective, and composes with a
+tilted camera as a homography product rather than as a plate rotated in world space.
+It is CSS's `perspective(P) rotateY(ry) rotateX(rx)` exactly - the OBJECT rotation
+`R = Ry·Rx`, not the camera's `Rᵀ` - so a box `rx` and a camera `rx` tip the picture
+opposite ways, and a board posed with no timeline (which renders through that CSS
+string alone) shows the same picture the first frame of a timeline does. With no angle
+on either the camera or the box, `m` stays null and every expression is the one that
+shipped - the byte-identity floor is untouched.
+
 1.159.0 - a shaped run can be handed back in pieces (plans/175 WP-D). `TextToPathOpts`
 gains `clusters?: boolean` and `TextPathResult` gains `clusters?: TextPathCluster[]` -
 one entry per HarfBuzz cluster (a grapheme; a ligature or base+marks sequence stays ONE

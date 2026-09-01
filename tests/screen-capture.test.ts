@@ -392,9 +392,11 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // timingXml, one <p:timing> per slide with anim - see pptx-anim.test.ts; a deck
   // with none serialises byte-identically). Then 1.159.0 (host.text.toPath
   // `clusters`, plans/175 WP-D - the per-cluster breakdown behind the shaped-glyph
-  // letter tier; see text-clusters.test.ts).
+  // letter tier; see text-clusters.test.ts). Then 1.160.0 (per-box rx/ry tilt -
+  // KfLayerPose gains the box's own pitch/yaw and projectLayer composes its local
+  // homography, plans/104 P2.1; see keyframes-tilt.test.ts).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.159.0');
+  assert.equal(ENGINE_VERSION, '1.160.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

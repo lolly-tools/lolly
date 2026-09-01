@@ -50,13 +50,27 @@ function grid(): ChoreoBox[] {
 
 const BOX_REST: Record<string, number> = { x: 0, y: 0, s: 1, o: 1, b: 0 };
 const CAM_REST: Record<string, number> = { x: 0, y: 0, z: 0, rx: 0, ry: 0, f: 0, a: 0 };
+/** Every channel a BOX track may key. An allow-list, so a channel that turns up here
+ *  without a rest value of its own fails loudly instead of being read as neutral. */
+const BOX_CHANNELS: readonly string[] = ['x', 'y', 'z', 's', 'o', 'b', 'rx', 'ry'];
+
+/**
+ * A box's rest value for one channel. Three of them are the box's OWN authored field
+ * rather than the neutral - depth and the two tilts (P2.1) - because a keyed value
+ * REPLACES the field for its segment, so rest is where the field is, never 0.
+ */
+function boxRest(box: ChoreoBox, ch: KfChannel): number | undefined {
+  if (ch === 'z') return box.z;
+  if (ch === 'rx' || ch === 'ry') return box[ch] ?? 0;
+  return BOX_REST[ch];
+}
 
 function poseAt(keys: Parameters<typeof serialiseKf>[0], t: number): KfPose {
   return evaluateKf(parseKf(serialiseKf(keys)), t);
 }
 function assertBoxAtRest(pose: KfPose, box: ChoreoBox, label: string): void {
   for (const ch of Object.keys(pose) as KfChannel[]) {
-    const want = ch === 'z' ? box.z : BOX_REST[ch];
+    const want = boxRest(box, ch);
     assert.ok(want !== undefined, `${label}: channel ${ch} has no rest value`);
     assert.ok(Math.abs(pose[ch]! - want) < 1e-6, `${label}: ${ch} = ${pose[ch]} at rest should be ${want}`);
   }
@@ -92,7 +106,7 @@ test('every showcase obeys its arc type - the Resolution Rule, per INTRO/FEATURE
         case 'feature': assertBoxAtRest(start, box, `${label} start`); assertBoxAtRest(end, box, `${label} end`); break;
         case 'outro': {
           assertBoxAtRest(start, box, `${label} start`);
-          assert.ok(Object.keys(end).some((ch) => Math.abs(end[ch as KfChannel]! - (ch === 'z' ? box.z : BOX_REST[ch]!)) > 1), `${label}: an OUTRO ends exploded`);
+          assert.ok(Object.keys(end).some((ch) => Math.abs(end[ch as KfChannel]! - boxRest(box, ch as KfChannel)!) > 1), `${label}: an OUTRO ends exploded`);
           break;
         }
         case 'loop': {
@@ -102,7 +116,7 @@ test('every showcase obeys its arc type - the Resolution Rule, per INTRO/FEATURE
           break;
         }
       }
-      assert.ok(leavesRest(entry.keys, (ch) => (ch === 'z' ? box.z : BOX_REST[ch]!), T), `${label}: the move never leaves rest, so the ending proves nothing`);
+      assert.ok(leavesRest(entry.keys, (ch) => boxRest(box, ch)!, T), `${label}: the move never leaves rest, so the ending proves nothing`);
     }
 
     const cam = plan.camera!;
@@ -139,7 +153,10 @@ test('wire laws: charset, round trip, key times inside the arc, field clamp on z
       for (const k of entry.keys) {
         const z = (k.v as Record<string, number>)?.z;
         if (typeof z === 'number') assert.ok(z >= KF_Z_FIELD_CLAMP[0] && z <= KF_Z_FIELD_CLAMP[1], `${id}: box z ${z} outside the field clamp`);
-        for (const ch of Object.keys(k.v ?? {})) assert.ok(!'rxryfapvwh'.includes(ch) || ch === 'x' || ch === 'y', `${id}: a box never keys ${ch}`);
+        // An explicit allow-list, not a substring test: `'rxryfapvwh'.includes(ch)` used
+        // to forbid 'rx'/'ry' AND, by accident, 'r', 'f', 'a', 'p', 'v', 'w' and 'h'.
+        // The tumble makes rx/ry legal on a box; every camera-only channel stays out.
+        for (const ch of Object.keys(k.v ?? {})) assert.ok(BOX_CHANNELS.includes(ch), `${id}: a box never keys ${ch}`);
       }
     }
     for (const k of plan.camera!) {
@@ -177,6 +194,92 @@ test('deterministic from the seed; a different seed moves the random order and t
   // float off: no nudges, no breath, so the output is the plain deal.
   const flat = choreograph(stack, STAGE, { showcase: 'buildup', seed: 5, float: false });
   for (const e of flat.boxes) for (const k of e.keys) assert.ok(!(typeof (k.v as Record<string, number>)?.s === 'number' && (k.v as Record<string, number>).s !== 1), 'no breath without float');
+});
+
+// ── the FLOAT tumble (plans/104 P2.1) ─────────────────────────────────────────
+
+test('float writes a perspective tumble on the exploded pose that resolves EXACTLY to the box\'s own tilt', () => {
+  const stack = grid();
+  for (const id of ['buildup', 'deconstruct', 'loop', 'hero', 'trench'] as const) {
+    const plan = choreograph(stack, STAGE, { showcase: id, seed: 6, tumble: true });
+    for (const entry of plan.boxes) {
+      const box = stack.find((b) => b.id === entry.id)!;
+      const tilted = entry.keys.filter((k) => typeof (k.v as Record<string, number>)?.rx === 'number');
+      assert.ok(tilted.length >= 2, `${id}/${entry.id}: the tumble and its resolution are both written`);
+      for (const ch of ['rx', 'ry'] as const) {
+        const offs = tilted.map((k) => Math.abs((k.v as Record<string, number>)[ch]! - (box[ch] ?? 0)));
+        const away = Math.max(...offs);
+        assert.ok(away >= 3 - 1e-9 && away <= 8 + 1e-9, `${id}/${entry.id}: ${ch} tumbles ${away} deg, outside 3-8`);
+        assert.ok(Math.min(...offs) < 1e-9, `${id}/${entry.id}: ${ch} comes back to the box's own tilt`);
+      }
+      // And the settled pose is the field itself, not merely near it. Where an arc
+      // rests is the arc grammar's business: an OUTRO at its start, a LOOP through the
+      // middle (it opens and closes exploded, which is what makes a gif cycle), the
+      // rest at the end.
+      const restAt = plan.arc === 'outro' ? 0 : plan.arc === 'loop' ? Math.round(plan.durationMs / 2) : plan.durationMs;
+      const settled = poseAt(entry.keys, restAt);
+      assert.equal(settled.rx, box.rx ?? 0, `${id}/${entry.id}: rx at rest`);
+      assert.equal(settled.ry, box.ry ?? 0, `${id}/${entry.id}: ry at rest`);
+    }
+  }
+  // Map-scan is the camera's showcase: it hardly raises the boxes and never tumbles them.
+  for (const e of choreograph(stack, STAGE, { showcase: 'scan', seed: 6 }).boxes) {
+    for (const k of e.keys) assert.ok(!('rx' in (k.v as object)) && !('ry' in (k.v as object)), 'the Map-scan leaves the cards flat');
+  }
+});
+
+test('float OFF is byte-identical to the wire before the tumble existed - no rx/ry token at all', () => {
+  const stack = grid();
+  // Pinned from the generator as it stood before P2.1, same seed, same stack. The tumble
+  // draws from the SAME rnd stream but strictly AFTER the nudge and the breath, so
+  // nothing already drawn moved; with float off it draws nothing at all.
+  assert.deepEqual(
+    choreograph(stack, STAGE, { showcase: 'buildup', seed: 5, float: false }).boxes.map((e) => serialiseKf(e.keys)),
+    [
+      't0_eo_x-126.47_y-63.23_z120_s1_o0_b6*t2100_x0_y0_z0_s1_o1_b0',
+      't90_eo_x0_y-76.5_z143.53_s1_o0_b6*t2190_x0_y0_z23.53_s1_o1_b0',
+      't180_eo_x126.47_y-63.23_z166.15_s1_o0_b6*t2280_x0_y0_z46.15_s1_o1_b0',
+      't270_eo_x-126.47_y63.23_z187.92_s1_o0_b6*t2370_x0_y0_z67.92_s1_o1_b0',
+      't360_eo_x0_y76.5_z208.89_s1_o0_b6*t2460_x0_y0_z88.89_s1_o1_b0',
+      't450_eo_x126.47_y63.23_z229.09_s1_o0_b6*t2550_x0_y0_z109.09_s1_o1_b0',
+    ],
+  );
+  for (const id of SHOWCASE_IDS) {
+    for (const e of choreograph(stack, STAGE, { showcase: id, seed: 5, float: false }).boxes) {
+      for (const k of e.keys) {
+        for (const ch of ['rx', 'ry'] as const) {
+          assert.ok(!(ch in (k.v as object)), `${id}: float off writes no ${ch} token, so an untilted board's wire is what it was`);
+        }
+      }
+    }
+  }
+});
+
+test('a stack with an AUTHORED tilt tumbles off it and comes home to it, and never past the field range', () => {
+  const stack: ChoreoBox[] = [
+    { id: 'p', z: 0, rx: 40, ry: -25, cx: 200, cy: 200, w: 200, h: 200 },
+    // At the ceiling: base + tumble would overshoot, so the post-pass holds it.
+    { id: 'q', z: 20, rx: 72, ry: -74, cx: 600, cy: 200, w: 200, h: 200 },
+  ];
+  const plan = choreograph(stack, STAGE, { showcase: 'hero', seed: 8 , tumble: true });
+  for (const entry of plan.boxes) {
+    const box = stack.find((b) => b.id === entry.id)!;
+    const rest = poseAt(entry.keys, plan.durationMs);
+    assert.equal(rest.rx, box.rx, `${entry.id}: a FEATURE ends at the authored pitch, not flat`);
+    assert.equal(rest.ry, box.ry, `${entry.id}: and at the authored yaw`);
+    assert.equal(poseAt(entry.keys, 0).rx, box.rx, `${entry.id}: and starts there too`);
+    for (const k of entry.keys) {
+      for (const ch of ['rx', 'ry'] as const) {
+        const v = (k.v as Record<string, number>)[ch];
+        if (typeof v === 'number') assert.ok(Math.abs(v) <= 75, `${entry.id}: ${ch} ${v} past the field range`);
+      }
+    }
+  }
+  // A box that authored no tilt at all still comes home flat beside one that did. A
+  // LOOP rests in the middle, not at its ends.
+  const mixed = choreograph([...stack, { id: 'r', z: 0, cx: 400, cy: 500, w: 100, h: 100 }], STAGE, { showcase: 'loop', seed: 8 , tumble: true });
+  const flat = mixed.boxes.find((e) => e.id === 'r')!;
+  assert.equal(poseAt(flat.keys, Math.round(mixed.durationMs / 2)).rx, 0);
 });
 
 test('the stagger honours the order: reading, reverse, centre-out, depth, random', () => {
@@ -266,7 +369,7 @@ test('hostile options: unknown showcase, NaN duration/stagger, absurd durations 
 const cfg: TimeCfg = {
   startField: 'start', durField: 'dur', clipInField: 'clipIn', speedField: 'speed', enterField: 'enter', exitField: 'exit',
   enterMsField: 'enterMs', exitMsField: 'exitMs', muteField: 'mute', laneField: 'lane', idField: 'id',
-  kfField: 'kf', zField: 'z', groupField: 'group',
+  kfField: 'kf', zField: 'z', rxField: 'rx', ryField: 'ry', groupField: 'group',
 };
 const rect = (b: Box) => ({ x: Number(b.x), y: Number(b.y), w: Number(b.w), h: Number(b.h) });
 const env = (over: Partial<Parameters<typeof applyChoreograph>[3]> = {}) => ({
@@ -277,14 +380,15 @@ const board = (): Box[] => [
   { id: 'bg', x: 0, y: 0, w: 1200, h: 800, z: 0 },
   { id: 'a', x: 100, y: 100, w: 200, h: 200, z: 23.53, group: 'g1' },
   { id: 'b', x: 400, y: 100, w: 200, h: 200, z: 46.15, group: 'g1' },
-  { id: 'c', x: 700, y: 100, w: 200, h: 200, z: 67.92, group: 'g1' },
+  // c carries an authored tilt, so the model read of `rxField` is exercised end to end.
+  { id: 'c', x: 700, y: 100, w: 200, h: 200, z: 67.92, rx: 30, group: 'g1' },
   // Untimed, so the board has NO sequence yet - a timed audio row would make it one.
   { id: 'snd', kind: 'audio' },
 ];
 
 test('applyChoreograph on an UNTIMED board promotes the posed boxes to clips and mints the camera - one array', () => {
   const rows = board();
-  const res = applyChoreograph(rows, ['a', 'b', 'c', 'snd', 'missing'], { showcase: 'buildup', seed: 4 }, env())!;
+  const res = applyChoreograph(rows, ['a', 'b', 'c', 'snd', 'missing'], { showcase: 'buildup', seed: 4, tumble: true }, env())!;
   assert.ok(res);
   assert.notEqual(res.rows, rows);
   assert.deepEqual(res.ids, ['a', 'b', 'c'], 'the audio clip and the unknown id are skipped');
@@ -301,6 +405,8 @@ test('applyChoreograph on an UNTIMED board promotes the posed boxes to clips and
     const track = kfBoxTrack(b, cfg);
     assert.ok(track.length >= 2, `${id} has a track`);
     assert.equal(evaluateKf(track, SHOWCASE_MS.buildup).z, Number(b.z), `${id} rests at its own depth`);
+    // And at its own tilt: c authored 30 degrees of pitch, a and b authored none.
+    assert.equal(evaluateKf(track, SHOWCASE_MS.buildup).rx, id === 'c' ? 30 : 0, `${id} rests at its own tilt`);
   }
   assert.equal(res.rows.find((r) => r.id === 'bg')!.kf, undefined, 'an unselected box is untouched');
   assert.equal(rows.find((r) => r.id === 'a')!.kf, undefined, 'the input array is not mutated');
@@ -410,4 +516,17 @@ test('the camera option off leaves every camera row alone and mints none', () =>
 test('the options type is exhaustive enough for the picker', () => {
   const o: ChoreoOptions = { showcase: 'scan', durationMs: 8000, staggerMs: 90, order: 'center', seed: 1, camera: true, float: true };
   assert.equal(choreograph(grid(), STAGE, o).arc, 'intro');
+});
+
+test('the tumble is OPT-IN: a default arc writes no rx/ry key, so exporting stays on the fast tier', () => {
+  const stack = grid();
+  for (const id of SHOWCASE_IDS) {
+    const plan = choreograph(stack, STAGE, { showcase: id, seed: 6 });
+    for (const e of plan.boxes) {
+      for (const k of e.keys) {
+        assert.ok(!('rx' in (k.v as object)) && !('ry' in (k.v as object)),
+          `${id}: a default arc must not key a tilt (boxesTilt would send the export to the capture tier)`);
+      }
+    }
+  }
 });

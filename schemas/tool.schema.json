@@ -1632,6 +1632,14 @@
                     "type": "string",
                     "description": "Number sub-field: the box's DEPTH - how far it sits in front of (positive) or behind (negative) the stage plane, in canvas px. Layers stay parallel to the screen, so a camera turns z into a per-layer uniform scale + translate (parallax, push-in, depth-of-field) and the render stays affine end-to-end. Absent field or 0 = the flat, unlifted board; the authored slider runs 0–300 and the value clamps to −300…900."
                   },
+                  "rxField": {
+                    "type": "string",
+                    "description": "Number sub-field: the box's own PITCH in degrees - it leans out of the stage plane about its own horizontal axis, pivoting on its centre. Unlike zField (which keeps every layer parallel to the screen and stays affine), a tilt is projective: the box gets its own vanishing point at the scene perspective, and it composes with a tilted camera as a product of homographies, not as a world-space rotation of the plate. Absent field or 0 = flat, and the whole render path stays byte-identical to the untilted one."
+                  },
+                  "ryField": {
+                    "type": "string",
+                    "description": "Number sub-field: the box's own YAW in degrees, the companion to rxField. Applied BEFORE the pitch (R = Ry·Rx, the pan/tilt-head order the camera channels already use), so a box wearing both angles never acquires roll - a third channel the wire does not have."
+                  },
                   "startField": {
                     "type": "string",
                     "description": "Number sub-field: when this box appears, in SECONDS from the start of the sequence. Empty = the box is 'scenery' (always visible). Timing is inert unless a shell mounts a timeline panel; static exports ignore it."

@@ -1919,6 +1919,34 @@ test('a pose\'s unauthored `z` is the box\'s own depth FIELD, never a neutral ze
   assert.deepEqual({ ...parseKf(String(noZ[0]!.kf))[1]!.v }, { x: 60, z: 10 });
 });
 
+test('a pose\'s unauthored `rx`/`ry` is the box\'s own TILT field, on `z`\'s rule verbatim', () => {
+  // P2.1: an `rx`/`ry` token REPLACES the tilt field for its segment, exactly as `z`
+  // replaces the depth field. So the unkeyed value in a full pose is the FIELD, not the
+  // table's 0 - otherwise keying a tumble onto a box the user had already posed at
+  // rx -12 would flatten it on the first diamond, silently.
+  const tiltCfg: TimeCfg = { ...cfg, kfField: 'kf', zField: 'z', rxField: 'rx', ryField: 'ry' };
+  const rows = [clip('x', { start: 0, dur: 4, z: 140, rx: -12, ry: 30, kf: 't0_x0*t2000_x60' })];
+  // A full pose written over the active set carries the authored tilt through.
+  const out = writeKfPose(rows, tiltCfg, 'x', 2, { rx: -40 }, 'set');
+  assert.deepEqual({ ...parseKf(String(out[0]!.kf))[1]!.v }, { x: 60, rx: -40 },
+    'the channel this edit touched is the typed value');
+  const both = writeKfPose(rows, tiltCfg, 'x', 2, { rx: -40, ry: 0 }, 'set');
+  assert.deepEqual({ ...parseKf(String(both[0]!.kf))[1]!.v }, { x: 60, rx: -40, ry: 0 },
+    'and an explicit 0 is an authored flat, not an absent channel');
+  // 'add' is a delta over the authored base, which is the whole point of the exception.
+  const nudged = writeKfPose(rows, tiltCfg, 'x', 2, { ry: 10 }, 'add');
+  assert.deepEqual({ ...parseKf(String(nudged[0]!.kf))[1]!.v }, { x: 60, ry: 40 }, '30 + 10');
+  // The exception is only for a channel the track does NOT mention: once rx is keyed,
+  // the evaluated curve wins, which is what "an existing curve survives the write" means.
+  const keyed = [clip('x', { start: 0, dur: 4, rx: -12, kf: 't0_rx-40*t2000_rx-40' })];
+  const later = writeKfPose(keyed, tiltCfg, 'x', 2, { x: 5 }, 'add');
+  assert.deepEqual({ ...parseKf(String(later[0]!.kf))[1]!.v }, { x: 5, rx: -40 },
+    'a keyed tilt is the track\'s, never the field\'s');
+  // A tool that declares no tilt fields has no authored tilt to preserve.
+  const noTilt = writeKfPose(rows, { ...cfg, kfField: 'kf' }, 'x', 2, { ry: 10 }, 'add');
+  assert.deepEqual({ ...parseKf(String(noTilt[0]!.kf))[1]!.v }, { x: 60, ry: 10 });
+});
+
 test('writeKfPose returns the array by IDENTITY when the pose it would write is the one already there', () => {
   // The caller's "did this write anything?" test is `next === boxes`, and `Array.map`
   // mints a new array even when nothing changed. Without this, "+Keyframe" on a diamond

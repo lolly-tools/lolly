@@ -16,6 +16,7 @@
  */
 
 import { test } from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -97,8 +98,19 @@ test('wire order: compact-blocks encode/decode round-trips every field (id..fill
   // reason - a bounded slice, so a 72nd field stays legal, but an INSERT in front of
   // these two (which is what silently re-columns every shared link) fails right here.
   assert.deepEqual(ids.slice(69, 71), ['z', 'kf'], 'z/kf appended at slots 69/70');
-  for (const id of ['z', 'kf']) {
+  // plan 104 P2.1: the per-box perspective tilt pair appends at 88/89, after holdRate.
+  // Same bounded-slice rule - a 91st field stays legal, an INSERT in front of these fails.
+  assert.deepEqual(ids.slice(88, 90), ['rx', 'ry'], 'rx/ry appended at slots 88/89');
+  for (const id of ['z', 'kf', 'rx', 'ry']) {
     assert.deepEqual(fields.find((f: any) => f.id === id).showFor, [], `${id} is machine-managed`);
+  }
+  // The tilt fields default to '' and NOT to 0, and that is a wire decision rather than a
+  // taste one: encodeBlocksCompact materialises each field's declared default and then
+  // trims only TRAILING EMPTY cells, so a `0` default would permanently add ",0,0" to
+  // every row of every design link ever shared, while '' is trimmed back to nothing.
+  for (const id of ['rx', 'ry']) {
+    assert.equal(fields.find((f: any) => f.id === id).default, '',
+      `${id} must default to '' - a 0 default grows every existing share link by two cells`);
   }
   assert.equal(new Set(ids).size, ids.length, 'no duplicate sub-field ids');
 
@@ -479,6 +491,74 @@ test('depth: z is clamped to [-300, 900] - the field range, not whatever a URL s
   assert.match(boxTag(await mount([timed({ z: 1e308 })]), 'a'), /data-t-z="900"/, 'no Infinity, no exponent notation');
 });
 
+// ── 7b. per-box perspective tilt (plan 104 P2.1) ────────────────────────────────────
+//
+// `rx`/`ry` are the box's OWN pitch and yaw, and they have two consumers with one
+// number between them: the inline transform boxCss bakes (which is the whole static
+// pose - it renders with no timeline, headless in the CLI, and in every export) and
+// the data-t-rx/-ry attributes the sequence readers fold into the camera homography.
+// Both go through the hook's single `tiltDeg`, so these tests pin the same clamp twice
+// on purpose: a drift between them is a board that looks different once it is timed.
+
+test('tilt: an authored rx/ry rides through as clamped attributes, and 0 emits nothing', async () => {
+  const on = boxTag(await mount([timed({ rx: -12, ry: 30 })]), 'a');
+  assert.match(on, /data-t-rx="-12"/, 'the authored pitch reaches the attribute');
+  assert.match(on, /data-t-ry="30"/, 'and the yaw');
+
+  for (const v of [0, undefined, '', 'abc', Number.NaN]) {
+    const tag = boxTag(await mount([timed({ rx: v, ry: v })]), 'a');
+    assert.ok(!/data-t-rx=|data-t-ry=/.test(tag), `${JSON.stringify(v)} → both absent (flat is the default)`);
+  }
+});
+
+test('tilt: rx/ry clamp to the FIELD range [-75, 75] and round to 2dp', async () => {
+  assert.match(boxTag(await mount([timed({ rx: 1e9 })]), 'a'), /data-t-rx="75"/, 'clamps to the ceiling');
+  assert.match(boxTag(await mount([timed({ ry: -1e9 })]), 'a'), /data-t-ry="-75"/, 'clamps to the floor');
+  assert.match(boxTag(await mount([timed({ rx: 1e308 })]), 'a'), /data-t-rx="75"/, 'no Infinity, no exponent notation');
+  // The kf WIRE clamp is ±180 and always has been; the base FIELD is tighter, exactly as
+  // z's field range (−300…900) is tighter than its ±12000 wire. Do not conflate them.
+  assert.match(boxTag(await mount([timed({ ry: 120 })]), 'a'), /data-t-ry="75"/, 'the wire range is not the field range');
+  assert.match(boxTag(await mount([timed({ rx: 12.3456 })]), 'a'), /data-t-rx="12.35"/, '2dp, so no float noise leaks');
+});
+
+// The static pose. This is the half that needs no timeline at all: the transform is
+// inline, so it renders in the editor, in the CLI, and in every raster export - and the
+// perspective() FUNCTION is what routes SVG/PDF to the per-box raster tier instead of
+// emitting the box unsquashed on the bounding-box path (engine/src/css-box.ts).
+test('tilt: boxCss bakes perspective + yaw + pitch INSIDE everything the box does in its own plane', async () => {
+  const tag = boxTag(await mount([timed({ rx: -12, ry: 30, rot: 15, flipH: true })]), 'a');
+  assert.match(tag, /transform:perspective\(1200px\) rotateY\(30deg\) rotateX\(-12deg\) rotate\(15deg\) scale\(-1,1\);/,
+    'yaw before pitch (R = Ry*Rx), and both prepended so the rotate/flip happen first: ' + tag);
+  // Only the authored angles appear - a zero half contributes no function at all.
+  const yawOnly = boxTag(await mount([timed({ ry: 30 })]), 'a');
+  assert.match(yawOnly, /transform:perspective\(1200px\) rotateY\(30deg\);/, yawOnly);
+  assert.ok(!/rotateX/.test(yawOnly), 'no rotateX(0deg) padding: ' + yawOnly);
+});
+
+test('tilt: a flat box emits no transform at all - the byte-identity floor', async () => {
+  for (const over of [{}, { rx: 0, ry: 0 }, { rx: '', ry: '' }]) {
+    const tag = boxTag(await mount([timed(over)]), 'a');
+    assert.ok(!/transform:/.test(tag), `${JSON.stringify(over)} → no transform: ${tag}`);
+    assert.ok(!/perspective/.test(tag), `and no stray perspective: ${tag}`);
+  }
+});
+
+// Same exclusion, same reason as z/kf: frameGroupsFor stamps timeAttrsFor's string onto
+// the [data-pdf-page] div, so a frame must not carry a tilt it cannot render (its
+// pageStyle is built by hand and never goes through boxCss).
+test('tilt: a FRAME page carries neither data-t-rx nor data-t-ry', async () => {
+  const html = await mount([
+    { id: 'f', kind: 'frame', x: 0, y: 0, w: 400, h: 300, rx: -20, ry: 20, lane: 'seq', start: 0, dur: 3 },
+    { id: 'a', kind: 'box', frame: 'f', x: 10, y: 10, w: 50, h: 50, rx: -20, ry: 20 },
+  ]);
+  const page = html.match(/<div[^>]*data-pdf-page[^>]*>/);
+  assert.ok(page, 'the frame renders a page div');
+  assert.ok(!/data-t-rx=|data-t-ry=/.test(page[0]), `no tilt on a page: ${page[0]}`);
+  // A child box on that page is unaffected: the exclusion is the frame's, not the page's.
+  assert.match(boxTag(html, 'a'), /data-t-rx="-20"/);
+  assert.match(boxTag(html, 'a'), /data-t-ry="20"/);
+});
+
 // Depth and keyframes are NOT timing: a scenery box on a sequence stage is visible
 // throughout and can still be lifted or animated (an always-on camera is exactly that
 // box). So these two attributes escape the scenery guard - and nothing else does.
@@ -629,5 +709,15 @@ test('shadow: the target whitelist is an own-property test (a prototype key is n
   for (const shadow of ['constructor', '__proto__', 'toString', 'valueOf', 'hasOwnProperty']) {
     const tag = boxTag(await mount([timed({ shadow })]), 'a');
     assert.ok(!/box-shadow|drop-shadow|text-shadow/.test(tag), `shadow="${shadow}" paints nothing: ${tag}`);
+  }
+});
+
+test('the manifest\'s tilt range is the field clamp, not a sixth opinion', () => {
+  const manifest = JSON.parse(readFileSync(new URL('../community/design/tool.json', import.meta.url), 'utf8'));
+  const boxes = manifest.inputs.find((i: { id: string }) => i.id === 'boxes');
+  for (const id of ['rx', 'ry']) {
+    const f = boxes.fields.find((x: { id: string }) => x.id === id);
+    assert.equal(f.min, -75, `${id}.min`);
+    assert.equal(f.max, 75, `${id}.max`);
   }
 });

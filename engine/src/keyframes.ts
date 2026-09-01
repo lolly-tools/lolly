@@ -1083,6 +1083,33 @@ export interface KfLayerPose {
    */
   w?: number;
   h?: number;
+  /**
+   * The BOX's OWN tilt, degrees, resolved base-field-then-keyed exactly as `z` is
+   * (P2.1): the box's `rx`/`ry` field unless an `rx`/`ry` token in the track replaces
+   * it for that segment. Absent or zero is the byte-identity floor.
+   *
+   * **A box tilt is authored in the BOX'S OWN FRAME**, pivoting on the box centre at the
+   * scene perspective. It is exactly what CSS's `perspective(P) rotateY(ry) rotateX(rx)`
+   * does to a card, angle for angle and sign for sign, because that string IS the other
+   * consumer: a design tool bakes it into the box's own inline transform so an UNTIMED
+   * board poses without an engine anywhere in the picture. The two have to be the same
+   * matrix or adding a timeline would flip every tilted box.
+   *
+   * So a box `rx` and a CAMERA `rx` move the picture in OPPOSITE directions, and that is
+   * not an oversight: rotating an object one way is rotating the rig the other. The
+   * camera's matrix is `Rᵀ` (world → camera, {@link camRotationT}); a box's is `R`.
+   *
+   * Composed with a TILTED camera it is a homography PRODUCT, not a plate rotated in
+   * world space: the camera sees an already-flattened trapezoid. Under a tilted rig a
+   * box therefore keeps the foreshortening that was authored instead of responding to
+   * it. That is the model, stated so nobody has to rediscover it.
+   *
+   * The tilt is SCREEN-AXIS: the matrix sits to the LEFT of the authored
+   * `rotate()`/`scale(±1)` in a DOM consumer's list, so `rx` always pitches about the
+   * horizontal screen axis whatever the box's own rotation is.
+   */
+  rx?: number;
+  ry?: number;
 }
 
 /** What the caller folds into its own item. `scale` is eff and multiplies the transition/kf scale. */
@@ -1096,8 +1123,8 @@ export interface KfProjection {
   /** Multiply the item's alpha by this; skip the layer entirely at 0. */
   alphaGuard: number;
   /**
-   * P2 - the ELEMENT-LOCAL homography a tilted camera needs, or null on the
-   * screen-parallel path (every untilted camera, i.e. everything P0/P1 ships).
+   * P2 - the ELEMENT-LOCAL homography a tilted camera OR a tilted box needs, or null
+   * on the screen-parallel path (nothing tilted, i.e. everything P0/P1 ships).
    *
    * Null is the byte-identity floor: a consumer that sees null writes exactly the
    * `translate(dx,dy) … scale(scale)` it always wrote. When it is present, it REPLACES
@@ -1185,6 +1212,42 @@ function mul3(a: KfMatrix3, b: KfMatrix3): KfMatrix3 {
     }
   }
   return out as unknown as KfMatrix3;
+}
+
+/**
+ * The BOX-LOCAL tilt homography (P2.1) - CSS's own
+ * `perspective(P) rotateY(ry) rotateX(rx)` about the element's centre, written as one
+ * 3x3 over element-local `[u, v, 1]`.
+ *
+ * The rotation is `R = Ry(ry)·Rx(rx)`, the OBJECT rotation - which is the TRANSPOSE of
+ * what {@link camRotationT} returns, since that function is `Rᵀ`, the world → camera
+ * rotation. Reading its rows back as columns is the whole difference between the two
+ * readings, and it is the reason a box `rx` and a camera `rx` tip the picture opposite
+ * ways. Getting it wrong is not subtle and it is not detectable from a still: a board
+ * posed with no timeline renders through the CSS string alone, and the first frame of
+ * a timeline would flip it.
+ *
+ * The rotated point's z then divides through the box's own perspective, giving
+ * `W = 1 − (R20·u + R21·v)/P`. The centre maps to itself, so `dx`/`dy` - and every
+ * consumer that reads a position rather than a shape - are untouched by a tilt.
+ *
+ * Null on the EXACT zero test, {@link cameraTilted}'s own: it is structurally typed and
+ * nothing about it is camera-specific, and reusing it is what keeps the byte-identity
+ * floor one predicate instead of two that can drift apart.
+ *
+ * Private on purpose. It is fully exercised through {@link projectLayer} under an
+ * untilted camera, and the rule stated above `KF_MATRIX3_IDENTITY`'s absence applies
+ * here too - an export is a forever commitment, so it waits for a caller.
+ */
+function boxTiltMatrix(rx: number, ry: number, p: unknown): KfMatrix3 | null {
+  if (!cameraTilted({ rx, ry })) return null;
+  const P = sanePerspective(p);
+  // `t` is Rᵀ, row-major; `R = (Rᵀ)ᵀ`, so R's row r is t's column r.
+  const t = camRotationT(rx, ry);
+  const r00 = t[0], r01 = t[3];
+  const r10 = t[1], r11 = t[4];
+  const r20 = t[2], r21 = t[5];
+  return [r00, r01, 0, r10, r11, 0, -r20 / P, -r21 / P, 1];
 }
 
 /**
@@ -1385,12 +1448,23 @@ export function projectLayer(cam: KfCameraView, layer: KfLayerPose): KfProjectio
   const by = Number.isFinite(layer.by) ? layer.by : 0;
   const cx = bx + (layer.dxT ?? 0) + (layer.dxK ?? 0);
   const cy = by + (layer.dyT ?? 0) + (layer.dyK ?? 0);
+  // P2.1. The box's own tilt, on the same exact-zero terms: null here means every line
+  // below is the expression that shipped, and `m` stays null unless something tilts.
+  // Pivoted at the DEFAULT perspective, never the camera's `p`: a box tilt is authored
+  // in the box's own frame, and the hook's static bake is a fixed 1200 - pivoting at a
+  // live camera channel would re-angle every still the moment the FOV slider moved,
+  // and the untimed board (which renders with no engine at all) could never follow.
+  const B = boxTiltMatrix(layer.rx ?? 0, layer.ry ?? 0, DEFAULT_PERSPECTIVE);
   // P2. The branch is `cameraTilted`, an exact zero test, so a camera that authors no
   // angle never reaches a line of the homography tier and the screen-parallel path
   // below is the one that shipped - same expressions, same order, same bits.
   if (cameraTilted(cam)) {
     const t = projectLayerTilted(cam, layer, cx, cy, bx, by);
-    if (t) return t;
+    // The camera's matrix already carries the projected translation, so the box's own
+    // plane composes on its RIGHT - the camera photographs a card that has already been
+    // pitched in its own frame. A layer the guard has faded out has no matrix and gets
+    // none: a box tilt does not resurrect something that is past the near plane.
+    if (t) return B && t.m ? { ...t, m: mul3(t.m, B) } : t;
   }
   const { eff, alphaGuard } = projectDepth(cam, layer.z ?? 0);
   const w = Number.isFinite(cam.w) ? cam.w : 0;
@@ -1399,7 +1473,13 @@ export function projectLayer(cam: KfCameraView, layer: KfLayerPose): KfProjectio
   const camY = Number.isFinite(cam.y) ? cam.y : 0;
   const px = w / 2 + (cx - camX - w / 2) * eff;
   const py = h / 2 + (cy - camY - h / 2) * eff;
-  return { dx: px - bx, dy: py - by, scale: eff, alphaGuard, m: null };
+  const dx = px - bx;
+  const dy = py - by;
+  // With no camera matrix to compose onto, the leading `translate(dx, dy)` a consumer
+  // would otherwise emit becomes the left factor - so the "m3 REPLACES the leading
+  // translate and nothing else" contract stays true for a box tilt under an untilted
+  // camera, with no third branch anywhere downstream.
+  return { dx, dy, scale: eff, alphaGuard, m: B ? mul3([1, 0, dx, 0, 1, dy, 0, 0, 1], B) : null };
 }
 
 /**

@@ -181,7 +181,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `inpaint.ts` | 422 | Telea inpainting: fill a brushed-out region of an RGBA frame from the pixels around it, by fast marching inward from the region boundary. | yes | `tests/inpaint.test.ts` | – |
 | `inputs.ts` | 779 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
 | `jpeg-segments.ts` | 372 | JPEG marker-segment walker and writer - one shared primitive, DOM-free. | no | `tests/jpeg-segments.test.ts` | – |
-| `keyframes.ts` | 1607 | Keyframe tracks, the `kf` wire grammar, and the depth-camera projection - the shared, DOM-free maths every consumer of plans/104 trusts. | yes | `tests/keyframes.test.ts` | – |
+| `keyframes.ts` | 1683 | Keyframe tracks, the `kf` wire grammar, and the depth-camera projection - the shared, DOM-free maths every consumer of plans/104 trusts. | yes | `tests/keyframes.test.ts` | – |
 | `lang.ts` | 171 | Supported UI/content languages, shared by the `lang` reserved URL param (url-mode.ts), `Profile.lang`, tool-manifest i18n sidecars, and every shell's language picker. | yes | indirect | – |
 | `loader.ts` | 477 | Tool loader. | yes | indirect | – |
 | `media-sniff.ts` | 255 | Pure, DOM-free media classification from header bytes. | yes | `tests/media-sniff.test.ts` | yes |
@@ -207,7 +207,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `png.ts` | 485 | PNG encoder: 8-bit and 16-bit truecolour, pure bytes, DOM-free. | yes | `tests/png.test.ts` | – |
 | `pptx-patch.ts` | 352 | pptx-patch.ts: SURGICAL rebrand of an unzipped .pptx part map (Pipeline A, plans/49-fable-new-potential-pptx.md section 2.2 / track E2). | yes | `tests/pptx-patch.test.ts` | yes |
 | `pptx-read.ts` | 1284 | pptx-read.ts: PARSE an unzipped .pptx part map into a read-model. | yes | `tests/pptx-read.test.ts` | yes |
-| `pptx.ts` | 1069 | PPTX (PowerPoint / OOXML) builder. | yes | `tests/pptx.test.ts` | – |
+| `pptx.ts` | 1080 | PPTX (PowerPoint / OOXML) builder. | yes | `tests/pptx.test.ts` | – |
 | `preflight.ts` | 1579 | Preflight: pre-export findings over a plain job description. | yes | `tests/preflight.test.ts` | – |
 | `print-marks.ts` | 315 | Print-marks & bleed geometry. | yes | `tests/print-marks.test.ts` | – |
 | `provenance-defaults.ts` | 91 | Whether an export carries provenance marks WHEN NOBODY SAID. | yes | none | – |

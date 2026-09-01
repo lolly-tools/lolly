@@ -24,7 +24,7 @@ import assert from 'node:assert/strict';
 import {
   cameraTilted, dofBlur, kfMatrix3dCss, parseKf, projectLayer, projectSurfacePoint,
   resolveCamera, DEFAULT_CAMERA, KF_EFF_MAX, KF_GUARD_BAND,
-  type KfCameraView,
+  type KfCameraView, type KfMatrix3,
 } from '../engine/src/keyframes.ts';
 
 const W = 1920;
@@ -356,5 +356,189 @@ test('the Orbit track swings the camera around the aim point and settles square'
     if (!p) continue;                       // the last key is flat, and has no matrix
     near(p.x, W / 2, 1e-9, `aim x at ${t}ms`);
     near(p.y, H / 2, 1e-9, `aim y at ${t}ms`);
+  }
+});
+
+// ── 4. the BOX's own tilt (P2.1) ─────────────────────────────────────────────
+
+// CSS's own elementary rotations, spelled from the transforms spec rather than from
+// this file's camera maths, so the comparison below is against an INDEPENDENT source.
+// Row-major 3x3 over `[x, y, z]` in CSS's axes: x right, y DOWN, z toward the viewer.
+const cssRotateX = (deg: number): number[] => {
+  const c = Math.cos(deg * DEG); const s = Math.sin(deg * DEG);
+  return [1, 0, 0, 0, c, -s, 0, s, c];
+};
+const cssRotateY = (deg: number): number[] => {
+  const c = Math.cos(deg * DEG); const s = Math.sin(deg * DEG);
+  return [c, 0, s, 0, 1, 0, -s, 0, c];
+};
+const mul3x3 = (a: number[], b: number[]): number[] => {
+  const o = new Array<number>(9);
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      o[r * 3 + c] = (a[r * 3] as number) * (b[c] as number)
+        + (a[r * 3 + 1] as number) * (b[3 + c] as number)
+        + (a[r * 3 + 2] as number) * (b[6 + c] as number);
+    }
+  }
+  return o;
+};
+
+/** Where `perspective(p) rotateY(ry) rotateX(rx)` puts an element-local `(u, v)`. */
+const cssTiltPoint = (rx: number, ry: number, p: number, u: number, v: number): [number, number] => {
+  // A CSS transform list applies RIGHT TO LEFT, so the point meets rotateX first.
+  const M = mul3x3(cssRotateY(ry), cssRotateX(rx));
+  const X = (M[0] as number) * u + (M[1] as number) * v;
+  const Y = (M[3] as number) * u + (M[4] as number) * v;
+  const Z = (M[6] as number) * u + (M[7] as number) * v;
+  const W = 1 - Z / p; // perspective(p): the 4th row is (0, 0, −1/p, 1)
+  return [X / W, Y / W];
+};
+
+/** Where the engine's element-local homography puts the same `(u, v)`. */
+const enginePoint = (m: KfMatrix3, u: number, v: number): [number, number] => {
+  const W = (m[6] as number) * u + (m[7] as number) * v + (m[8] as number);
+  return [
+    ((m[0] as number) * u + (m[1] as number) * v + (m[2] as number)) / W,
+    ((m[3] as number) * u + (m[4] as number) * v + (m[5] as number)) / W,
+  ];
+};
+
+test('a box tilt IS the CSS chain the static pose bakes: perspective rotateY rotateX', () => {
+  // THE pin for P2.1, because the feature has two renderers and only one of them is
+  // this file. An UNTIMED board never runs the engine at all: the design tool bakes
+  // `perspective(1200px) rotateY(ry) rotateX(rx)` into the box's own inline transform
+  // (community/design hooks.js `boxCss`, pinned as a literal string by
+  // tests/timeline-model.test.ts) and the browser draws it. The moment a timeline
+  // exists the applier writes THIS matrix instead. Same box, same two angles, so it has
+  // to be the same picture - and the only honest way to know is to compose the CSS
+  // chain from the spec's own matrices and compare where the corners land.
+  //
+  // Note the box sits OFF the aim point: the tilt pivots on the element's own centre,
+  // which is what CSS does and what the design tool's transform-origin: 50% 50% means.
+  for (const [rx, ry] of [[-40, 0], [0, 25], [-30, 20], [12.5, -75], [75, 75]] as const) {
+    const m = projectLayer(view(), { bx: 300, by: 200, z: 0, w: 400, h: 300, rx, ry }).m as KfMatrix3;
+    assert.ok(m, `a tilted box hands out a matrix at ${rx}/${ry}`);
+    for (const [u, v] of [[200, 150], [-200, 150], [200, -150], [-200, -150], [0, 0], [37, -91]] as const) {
+      const want = cssTiltPoint(rx, ry, P, u, v);
+      const got = enginePoint(m, u, v);
+      near(got[0], want[0], 1e-9, `rx ${rx} ry ${ry}: x of (${u}, ${v})`);
+      near(got[1], want[1], 1e-9, `rx ${rx} ry ${ry}: y of (${u}, ${v})`);
+    }
+  }
+});
+
+test('…so a box `rx` and a CAMERA `rx` tip the picture OPPOSITE ways', () => {
+  // Rotating an object one way is rotating the rig the other, and this is the assertion
+  // that says so out loud rather than leaving it to be rediscovered from a screenshot.
+  // `rx = -40` about the box centre at `P = 1200`: `R = Rx(-40)` is
+  // [1,0,0, 0,cos40,sin40, 0,−sin40,cos40], so the box matrix is
+  // [1, 0, 0,  0, cos40, 0,  0, sin40/1200, 1].
+  const m = projectLayer(view(), { bx: W / 2, by: H / 2, z: 0, w: 400, h: 300, rx: -40 }).m as KfMatrix3;
+  near(m[0], 1, 1e-12, 'x is untouched by a pure pitch');
+  near(m[4], Math.cos(40 * DEG), 1e-12, 'y foreshortens by cos(rx)');
+  near(m[7], Math.sin(40 * DEG) / 1200, 1e-12, 'and the w row is +sin(40°)/P');
+  assert.equal(m[8], 1, 'the box matrix is already normalised');
+  // A point BELOW the centre (larger y in CSS axes) gets w > 1, so it divides DOWN: the
+  // BOTTOM edge recedes and the top edge comes forward, which is what CSS rotateX(−40)
+  // does to a card. The CAMERA at rx −40 makes exactly the other picture (its own
+  // golden is `surfaceMatrix`'s, and its w-row entry is NEGATIVE) - `camRotationT` is
+  // Rᵀ, the box uses R.
+  const wBelow = (m[6] as number) * 0 + (m[7] as number) * 100 + 1;
+  assert.ok(wBelow > 1, `the near edge is the TOP one (w = ${wBelow})`);
+  const cam = projectLayer(view({ rx: -40 }), { bx: W / 2, by: H / 2, z: 0, w: 400, h: 300 }).m as KfMatrix3;
+  assert.ok((cam[7] as number) < 0 && (m[7] as number) > 0, 'the two w rows have opposite sign');
+});
+
+test('a box tilt moves no scalar - not the centre, not eff, not the guard', () => {
+  // Nothing that reads a POSITION (handles, the motion path, the paint-order key) may
+  // move because a box tilted: the box centre is a fixed point of its own matrix.
+  for (const [rx, ry] of [[-40, 0], [0, 25], [-30, 20]] as const) {
+    const at = { bx: W / 2, by: H / 2, z: 0, w: 400, h: 300 };
+    const byBox = projectLayer(view(), { ...at, rx, ry });
+    assert.equal(byBox.dx, 0);
+    assert.equal(byBox.dy, 0);
+    assert.equal(byBox.scale, 1, 'a box tilt is not a magnification');
+    assert.equal(byBox.alphaGuard, 1, 'nor does it move the layer toward the near plane');
+    const m = byBox.m as KfMatrix3;
+    assert.deepEqual(enginePoint(m, 0, 0), [0, 0], 'the centre maps to itself');
+  }
+});
+
+test('nothing tilted means NO matrix - the byte-identity floor for a box, too', () => {
+  const layer = { bx: 300, by: 200, dxT: 10, dyT: -5, dxK: 4, dyK: 7, z: 160, w: 400, h: 300 };
+  const plain = projectLayer(view(), layer);
+  assert.equal(plain.m, null, 'precondition: no camera angle, no box angle, no matrix');
+  // Every spelling of "the box authors no angle", on `cameraTilted`'s exact-zero terms.
+  for (const over of [
+    {}, { rx: 0 }, { ry: 0 }, { rx: 0, ry: -0 },
+    { rx: Number.NaN }, { ry: Number.POSITIVE_INFINITY },
+  ]) {
+    const got = projectLayer(view(), { ...layer, ...over });
+    assert.equal(got.m, null, `m must stay null for ${JSON.stringify(over)}`);
+    assert.deepEqual(got, plain, 'and every other number is the one that shipped');
+  }
+  // …and the smallest angle that is not zero DOES produce one.
+  assert.ok(projectLayer(view(), { ...layer, rx: Number.MIN_VALUE }).m, 'zero or not zero');
+});
+
+test('under an UNTILTED camera the box matrix carries the projected translate', () => {
+  // `composeTransform`'s contract is "m3 REPLACES the leading translate and nothing
+  // else". With no camera matrix to compose onto, the translate has to move INSIDE the
+  // box matrix or a lifted, tilted box would paint at its authored centre.
+  const layer = { bx: 300, by: 200, dxT: 40, dyT: -25, z: 240, w: 400, h: 300 };
+  const flat = projectLayer(view(), layer);
+  const tilted = projectLayer(view(), { ...layer, rx: -20 });
+  assert.equal(tilted.dx, flat.dx, 'the reported centre is unmoved by the tilt');
+  assert.equal(tilted.dy, flat.dy);
+  const m = tilted.m as KfMatrix3;
+  // The element's own origin maps to (dx, dy): T(dx,dy) · Hbox applied to (0,0,1).
+  near((m[2] as number) / (m[8] as number), flat.dx, 1e-9, 'the matrix moves the centre to the projected one');
+  near((m[5] as number) / (m[8] as number), flat.dy, 1e-9);
+});
+
+test('a tilted box under a tilted camera is the PRODUCT, and the camera leads', () => {
+  // The documented model: the box is posed in its own frame, and the camera then
+  // photographs an already-flattened trapezoid. Composed the other way round the
+  // picture is a plate rotated in world space, which is a different (and unbuilt) tier.
+  const layer = { bx: W / 2 + 220, by: H / 2 - 90, z: 0, w: 400, h: 300 };
+  const cam = view({ rx: -30 });
+  const both = projectLayer(cam, { ...layer, ry: 25 });
+  const camOnly = projectLayer(cam, layer).m as KfMatrix3;
+  const boxOnly = projectLayer(view(), { ...layer, ry: 25 }).m as KfMatrix3;
+  assert.ok(both.m, 'a tilted camera over a tilted box still hands out a matrix');
+  // C · B, computed here by hand from the two matrices the tiers hand out separately.
+  // `boxOnly` carries T(dx,dy) as well, so strip it: under an untilted camera at z = 0
+  // the projection is the identity, dx = dy = 0, and boxOnly IS the bare box matrix.
+  assert.equal(projectLayer(view(), layer).dx, 0, 'precondition: this box needs no translate');
+  const want = new Array<number>(9);
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      want[r * 3 + c] = (camOnly[r * 3] as number) * (boxOnly[c] as number)
+        + (camOnly[r * 3 + 1] as number) * (boxOnly[3 + c] as number)
+        + (camOnly[r * 3 + 2] as number) * (boxOnly[6 + c] as number);
+    }
+  }
+  assert.equal(kfMatrix3dCss(both.m as KfMatrix3), kfMatrix3dCss(want as unknown as KfMatrix3));
+  // The centre, the magnification and the guard are the CAMERA's alone - a box tilt
+  // changes no depth, so none of the scalars may move.
+  const camAlone = projectLayer(cam, layer);
+  assert.equal(both.dx, camAlone.dx);
+  assert.equal(both.dy, camAlone.dy);
+  assert.equal(both.scale, camAlone.scale);
+  assert.equal(both.alphaGuard, camAlone.alphaGuard);
+});
+
+test("a BOX tilt pivots at the DEFAULT perspective, never the camera's own p dial", () => {
+  // The hook's static bake is a fixed 1200; if the engine pivoted at cam.p, turning the
+  // FOV slider would re-angle every still against the same board under the timeline.
+  const layer = { bx: 320, by: 180, z: 0, rx: -40, ry: 25 };
+  const base = projectLayer({ x: 0, y: 0, z: 0, p: 1200, f: 0, a: 0, w: 1280, h: 720 }, layer);
+  for (const p of [400, 600, 3000, 12000]) {
+    const m = projectLayer({ x: 0, y: 0, z: 0, p, f: 0, a: 0, w: 1280, h: 720 }, layer).m;
+    assert.ok(m && base.m, 'both tilted');
+    for (let i = 0; i < 9; i++) {
+      assert.ok(Math.abs(m![i]! - base.m![i]!) < 1e-12, `entry ${i} moved when only cam.p did (p=${p})`);
+    }
   }
 });

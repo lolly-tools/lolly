@@ -27,8 +27,8 @@ import {
   activeFrameWindow, activeSpanTimestamps, crossfadeExtensions, crossfadeJunctions, endOf, frameTimestamps,
   layerKind, normalizeFrameScene, parseSequenceStage, readLayer, reconcileDecoded, rotationOf, sequenceDrawPlan,
   sequenceError, toCodedError,
-  camerasMove, composeFilter, foldKfPose, kfTrackOf, ownsLayerFx, planCameraView,
-  readDepthZ, REST_TRANSITION, splitFilterBlur, stageCameras,
+  boxesTilt, camerasMove, composeFilter, foldKfPose, kfTrackOf, ownsLayerFx, planCameraView,
+  readDepthZ, readTiltDeg, REST_TRANSITION, splitFilterBlur, stageCameras,
   splitActive, splitAnimatingAt,
   type PlanItem, type SeqLayer, type SeqPlanEnv,
 } from '../shells/web/src/bridge/sequence-plan.ts';
@@ -47,7 +47,8 @@ import { applySplitUnits, clearSplitUnits, createSequenceTime, sequencePoseOf } 
 import { posedRect } from '../shells/web/src/views/free-canvas-math.ts';
 import {
   DEFAULT_PERSPECTIVE, KF_CLAMPS, KF_EFF_MAX, KF_Z_FIELD_CLAMP,
-  dofBlur, evaluateKf, projectLayer,
+  dofBlur, evaluateKf, kfMatrix3dCss, projectLayer,
+  type KfMatrix3,
 } from '@lolly/engine';
 
 /** The at-rest transition, as the fold's own callers pass it. */
@@ -92,7 +93,7 @@ function fakeLayer(over: Partial<SeqLayer> & { idx: number }): SeqLayer {
     lane: 'seq', kind: 'static',
     rect: { x: 0, y: 0, w: 100, h: 100, rot: 0 },
     opacity: 1, blend: '', radius: '', clipPath: '', openEnded: false, frameScene: false,
-    z: 0, kf: EMPTY_KF_TRACK, blur: 0, shadowFilter: '',
+    z: 0, rx: 0, ry: 0, kf: EMPTY_KF_TRACK, blur: 0, shadowFilter: '',
     ...over,
   };
 }
@@ -1315,6 +1316,111 @@ test('both readers read data-t-z through the ENGINE clamp, not a re-typed one', 
   }
   assert.equal(readDepthZ('99999'), hi);
   assert.equal(hi, 900, 'the field clamp is still the plan\'s 900 - if this moves, the engine moved it');
+});
+
+test('both readers read data-t-rx / data-t-ry through ONE readTiltDeg (P2.1)', () => {
+  // The audio/camera-marker precedent, restated for the tilt: a reader added to one
+  // evaluator only is precisely the "the two evaluators enumerate different scenes"
+  // defect. Same function, same band, same answer to the same junk.
+  for (const [raw, want] of [
+    ['0', 0], ['-40', -40], ['12.5', 12.5], ['999', 75], ['-999', -75],
+    ['', 0], ['nope', 0], ['Infinity', 0], ['NaN', 0],
+  ] as const) {
+    const node = depthStage(depthBox({ time: `data-t-start="0" data-t-dur="1000" data-t-rx="${raw}" data-t-ry="${raw}"` }));
+    const el = node.querySelector('.lolly-box') as HTMLElement;
+    assert.equal(readTiming(el).rx, want, `clock rx for "${raw}"`);
+    assert.equal(readTiming(el).ry, want, `clock ry for "${raw}"`);
+    const layer = parseSequenceStage(node)!.layers[0] as SeqLayer;
+    assert.equal(layer.rx, want, `plan rx for "${raw}"`);
+    assert.equal(layer.ry, want, `plan ry for "${raw}"`);
+  }
+  // The FIELD clamp is deliberately tighter than the kf WIRE clamp, exactly as z's is:
+  // a hand-authored link past the control range is held, not honoured.
+  assert.equal(readTiltDeg('180'), 75);
+  assert.deepEqual(KF_CLAMPS.rx, [-180, 180], 'the wire is still the wider number');
+});
+
+test('boxesTilt is the export gate\'s box half - coarse, exact-non-zero, film-wide', () => {
+  // Null when nothing tilts: the byte-identity floor, and what keeps every existing
+  // document on the canvas compositor.
+  assert.equal(boxesTilt(null), null);
+  assert.equal(boxesTilt([]), null);
+  assert.equal(boxesTilt([fakeLayer({ idx: 0 })]), null);
+  assert.equal(boxesTilt([fakeLayer({ idx: 0, z: 220, kf: kfTrackOf('t0_x0*t1000_x40') })]), null,
+    'depth and a position track are not a tilt');
+
+  // A BASE FIELD triggers it, and reports itself as the scene pose (atMs null).
+  assert.deepEqual(boxesTilt([fakeLayer({ idx: 0 }), fakeLayer({ idx: 1, rx: -40 })]),
+    { ch: 'rx', deg: -40, atMs: null });
+  assert.deepEqual(boxesTilt([fakeLayer({ idx: 0, ry: 25 })]), { ch: 'ry', deg: 25, atMs: null });
+
+  // A KEY triggers it too, at absolute film time - the layer's start plus the key's own.
+  assert.deepEqual(boxesTilt([fakeLayer({ idx: 0, startMs: 1500, kf: kfTrackOf('t0_x0*t800_rx-8') })]),
+    { ch: 'rx', deg: -8, atMs: 2300 });
+  // …and a track that only ever says ZERO is not a tilt: gating on "has an rx channel"
+  // would move every settled tumble onto the ten-times-slower tier for nothing.
+  assert.equal(boxesTilt([fakeLayer({ idx: 0, kf: kfTrackOf('t0_rx0*t800_rx0') })]), null);
+
+  // The projection's own exclusions apply: an audio bed and a camera marker paint
+  // nothing, and a camera's own tilt is `camerasTilt`'s answer, not this one's.
+  assert.equal(boxesTilt([fakeLayer({ idx: 0, kind: 'audio', rx: -40 })]), null);
+  assert.equal(boxesTilt([fakeLayer({ idx: 0, kind: 'camera', kf: kfTrackOf('t0_rx-40') })]), null);
+  assert.equal(boxesTilt([fakeLayer({ idx: 0, frameScene: true, rx: -40 })]), null, 'a frame page is out of scope');
+});
+
+test('PARITY: a tilted box writes the SAME matrix in the applier and the planner (P2.1)', () => {
+  // The whole reason `foldKfPose` is one function: a box tilt reaches the preview
+  // through `composeTransform`'s `matrix3d` and the export through `PlanItem.m3`, and
+  // if those are ever two matrices the file and the picture disagree.
+  //
+  // Three cases, and each of them is a latch that was inert before P2.1: a base field
+  // with no depth, no track and no camera (which nothing on the stage would otherwise
+  // measure); a keyed tilt (which reaches the fold on `kf.length` but used to be
+  // dropped there); and the two together, where the KEY replaces the FIELD.
+  for (const [what, time, t] of [
+    ['a base field alone', 'data-t-rx="-40" data-t-ry="25"', 0],
+    ['a keyed tilt', 'data-t-start="0" data-t-dur="2000" data-t-kf="t0_rx-40*t2000_rx-40"', 500],
+    ['a key over a field', 'data-t-start="0" data-t-dur="2000" data-t-rx="-12" data-t-ry="25"'
+      + ' data-t-kf="t0_rx-40*t2000_rx-40"', 500],
+  ] as const) {
+    const node = depthStage(depthBox({ time }));
+    const el = node.querySelector('.lolly-box') as HTMLElement;
+    applyTimeToElements([el], t, applyCtx(4000));
+    const written = el.style.transform;
+    const stage = parseSequenceStage(node)!;
+    const item = sequenceDrawPlan(stage.layers, t, 4000, PLAN_ENV)[0] as PlanItem;
+    assert.ok(item.m3, `${what}: the planner must hand the executor a homography`);
+    assert.ok(written.startsWith(kfMatrix3dCss(item.m3 as KfMatrix3)),
+      `${what}: the applier wrote ${written}, the planner planned ${kfMatrix3dCss(item.m3 as KfMatrix3)}`);
+    // The matrix REPLACES the leading translate; it never rides beside one.
+    assert.ok(!/translate\(/.test(written), `${what}: no translate beside the matrix (${written})`);
+    // And the pose the editor chrome reads back knows it is looking at a trapezoid.
+    assert.equal(sequencePoseOf(el)?.tilted, true, `${what}: the published pose is flagged tilted`);
+  }
+});
+
+test('PARITY: the fold\'s flat short-circuit must not swallow a box tilt', () => {
+  // `flat` is an IEEE byte-identity path that takes the transition offset straight
+  // through and throws the homography away. Under a parked camera a box tilt leaves
+  // `proj.scale` at exactly 1 and the camera at the origin, so every other clause of
+  // that test is true - only `!boxTilted` stops it, and this is the assertion that
+  // fails if the clause is ever dropped as redundant.
+  const view = planCameraView(PLAN_ENV, 0);
+  const flat = foldKfPose({
+    view, cx: 520, cy: 280, tr: REST, pose: {}, zField: 0, authoredBlur: 0, boxW: 640, boxH: 360,
+  });
+  assert.equal(flat.m3, null, 'precondition: an untilted box on a parked camera is flat');
+  const tilted = foldKfPose({
+    view, cx: 520, cy: 280, tr: REST, pose: {}, zField: 0, rxField: -40, authoredBlur: 0,
+    boxW: 640, boxH: 360,
+  });
+  assert.ok(tilted.m3, 'a tilted box takes the homography path even with the camera parked');
+  // …and a keyed rx REPLACES the field, exactly as a keyed z replaces the depth field.
+  const keyed = foldKfPose({
+    view, cx: 520, cy: 280, tr: REST, pose: { rx: 0 }, zField: 0, rxField: -40, authoredBlur: 0,
+    boxW: 640, boxH: 360,
+  });
+  assert.equal(keyed.m3, null, 'a keyed 0 flattens an authored tilt for its segment');
 });
 
 test('both readers parse data-t-kf through ONE cache, junk and all', () => {

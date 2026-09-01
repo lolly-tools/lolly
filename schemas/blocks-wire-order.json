@@ -123,7 +123,9 @@
       "stagger",
       "splitOrder",
       "hold",
-      "holdRate"
+      "holdRate",
+      "rx",
+      "ry"
     ],
     "diagram-builder:nodes": [
       "shape",
