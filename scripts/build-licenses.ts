@@ -457,6 +457,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'GTCRN speech enhancement (WASM, via @sapphi-red/web-noise-suppressor)',
+      version: '0.4.0 (GTCRN (c) 2024 Rong Xiaobin)',
+      spdx: 'MIT',
+      copyright: 'GTCRN Copyright (c) 2024 Rong Xiaobin; wrapper (c) sapphi-red; pffft (c) 2004 UCAR, 2013 Julien Pommier, 2019 Hayati Ayguen, 2020 Dario Mambro',
+      files: 'shells/web/src/vendor/gtcrn/gtcrn-core.mjs',
+      text: `GTCRN: Copyright (c) 2024 Rong Xiaobin\n\n${MIT_BODY}\n\npffft (the FFT inside the wasm) is BSD-style (UCAR/NCAR + contributors) - the full text is carried in shells/web/src/vendor/gtcrn/LICENSE.pffft.txt and in the vendored file's header.`,
+      note: 'On-device voice cleanup (the fx grammar clean() entry, plans/101 P6). The official GTCRN repository is MIT and ships its checkpoints under the same terms; provenance, patch and checksums in the vendor README.',
+      where: 'web',
+    },
+    {
       name: 'libopenmpt (compiled WASM)',
       version: '0.8.7 (Emscripten build)',
       spdx: 'BSD-3-Clause',

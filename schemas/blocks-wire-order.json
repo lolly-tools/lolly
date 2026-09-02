@@ -129,7 +129,8 @@
       "pan",
       "duck",
       "pitch",
-      "varispeed"
+      "varispeed",
+      "fx"
     ],
     "diagram-builder:nodes": [
       "shape",

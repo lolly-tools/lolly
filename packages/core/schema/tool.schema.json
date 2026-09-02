@@ -1704,6 +1704,10 @@
                     "type": "string",
                     "description": "Boolean sub-field: when true a speed-changed clip plays tape-style (pitch follows speed) instead of pitch-preserved. Absent or empty = preserve pitch, the editor default. Machine-written by the timeline inspector, so the sub-field carries showFor:[]."
                   },
+                  "fxField": {
+                    "type": "string",
+                    "description": "Text sub-field: this clip's audio effect chain in the engine's append-only fx grammar (dot-joined name(params) entries, e.g. hp(90).rv(20-35); unknown entries skipped, never an error; empty = none). The inspector's Effect presets write the EXPANDED chain, so a later preset re-tune never changes a shared link's sound. Machine-written, so the sub-field carries showFor:[]."
+                  },
                   "ignoredField": {
                     "type": "string",
                     "description": "Boolean sub-field: the reversible-cut / strikethrough flag (transcript-driven editing, plans/174). A true value keeps the box's media and its place on the timeline but skips it on playback and drops it from export - the dual of a hard delete. Machine-written by the transcript panel, so the sub-field carries showFor:[]. Absent reads as not-ignored."

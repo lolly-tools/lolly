@@ -3258,6 +3258,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+### GTCRN speech enhancement (WASM, via @sapphi-red/web-noise-suppressor) 0.4.0 (GTCRN (c) 2024 Rong Xiaobin)
+
+- SPDX-License-Identifier: `MIT`
+- Files: `shells/web/src/vendor/gtcrn/gtcrn-core.mjs`
+- Copyright: GTCRN Copyright (c) 2024 Rong Xiaobin; wrapper (c) sapphi-red; pffft (c) 2004 UCAR, 2013 Julien Pommier, 2019 Hayati Ayguen, 2020 Dario Mambro
+- On-device voice cleanup (the fx grammar clean() entry, plans/101 P6). The official GTCRN repository is MIT and ships its checkpoints under the same terms; provenance, patch and checksums in the vendor README.
+
+```text
+GTCRN: Copyright (c) 2024 Rong Xiaobin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+pffft (the FFT inside the wasm) is BSD-style (UCAR/NCAR + contributors) - the full text is carried in shells/web/src/vendor/gtcrn/LICENSE.pffft.txt and in the vendored file's header.
+```
+
 ### libopenmpt (compiled WASM) 0.8.7 (Emscripten build)
 
 - SPDX-License-Identifier: `BSD-3-Clause`

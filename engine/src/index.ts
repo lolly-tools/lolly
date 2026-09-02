@@ -672,6 +672,8 @@ export { createTruePeakLimiter, activitySpans } from './audio-dynamics.ts';
 export type { TruePeakLimiter, TruePeakLimiterOpts, ActivitySpanOpts } from './audio-dynamics.ts';
 export { createLoudnessMeter, integratedLoudness, normalizeGain, LOUDNESS_RATE } from './audio-loudness.ts';
 export type { LoudnessMeter } from './audio-loudness.ts';
+export { parseFxChain, serializeFxChain, processFxPcm, FX_PRESETS, FX_CHAIN_MAX_CHARS } from './audio-fx.ts';
+export type { FxEntry, ParsedFxChain } from './audio-fx.ts';
 export { satisfiesRange, parseVersion } from './semver-range.ts';
 export { encodeFsToken, decodeFsToken } from './fs-token.ts';
 export {

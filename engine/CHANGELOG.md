@@ -6,6 +6,22 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.164.0 - the per-clip fx kernels + grammar (plans/101 sections 2.2/3.4, the
+deferred tier). `audio-fx.ts`: RBJ-cookbook biquads (hp/lp/peak/shelves/notch),
+public-domain Freeverb rescaled to the running rate, echo, an envelope-followed
+noise gate, mains de-hum, bitcrush and reverse - plus `parseFxChain` /
+`serializeFxChain` / `processFxPcm` for the append-only wire grammar (entries
+joined by dots, integer params in fixed scales, unknown tokens skipped and
+reported, 200-char cap) and `FX_PRESETS` (writers that store the EXPANDED chain,
+so a later re-tune never changes a shared link's sound). The registry also carries
+`clean()` - on-device GTCRN speech enhancement - as a SHELL entry: it parses like
+any token but `processFxPcm` skips it (the model cannot live in the zero-dep
+engine); the web shell splices its driver in at the token's position, and a shell
+without the model plays the rest of the chain. Deviation from the 101
+spec, stated in the module: pitch is NOT a grammar token - it shipped as its own
+wire field (WP-7b) and two doors onto one value would drift. See
+tests/audio-fx.test.ts.
+
 1.163.0 - BS.1770-4 integrated loudness (plans/101 section 2.5, the deferred tier).
 `createLoudnessMeter` / `integratedLoudness` / `normalizeGain` in
 `audio-loudness.ts`: K-weighting with the standard's published 48 kHz biquads

@@ -400,9 +400,10 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // 1.162.0 (activitySpans, plans/165 WP-6 v2 - signal-derived duck spans over
   // decoded PCM; same test file). Then 1.163.0 (BS.1770-4 integrated loudness,
   // plans/101 - createLoudnessMeter behind the Normalize targets; see
-  // audio-loudness.test.ts).
+  // audio-loudness.test.ts). Then 1.164.0 (the fx kernels + grammar, plans/101
+  // sections 2.2/3.4 - parseFxChain/processFxPcm; see audio-fx.test.ts).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.163.0');
+  assert.equal(ENGINE_VERSION, '1.164.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
