@@ -2813,13 +2813,15 @@ test('duckSpansFor: other audible clips overlap in clip-local seconds, self excl
   assert.deepEqual(spans, [{ from: 1, to: 4 }, { from: 7, to: 8 }]);
 });
 
-test('duckSpansFor: muted, ignored, sped-up and non-media clips duck nothing', () => {
+test('duckSpansFor: muted, ignored and non-media clips duck nothing; a sped clip does', () => {
   const bed = fakeLayer({ idx: 0, kind: 'audio', startMs: 0, durMs: 10000 });
   const others = [
     fakeLayer({ idx: 1, kind: 'audio', startMs: 1000, durMs: 1000, mute: true }),
     fakeLayer({ idx: 2, kind: 'audio', startMs: 2000, durMs: 1000, ignored: true }),
-    fakeLayer({ idx: 3, kind: 'video', startMs: 3000, durMs: 1000, speed: 2 }),
     fakeLayer({ idx: 4, kind: 'text', startMs: 4000, durMs: 1000 } as never),
   ];
   assert.deepEqual(duckSpansFor([bed, ...others], bed), []);
+  // A sped-up clip SOUNDS since WP-7 (pitch-preserving stretch), so it ducks.
+  const sped = fakeLayer({ idx: 3, kind: 'video', startMs: 3000, durMs: 1000, speed: 2 });
+  assert.deepEqual(duckSpansFor([bed, sped], bed), [{ from: 3, to: 4 }]);
 });

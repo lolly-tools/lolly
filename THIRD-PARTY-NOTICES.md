@@ -3229,6 +3229,35 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ```
 
+### signalsmith-stretch (WASM) 1.3.2
+
+- SPDX-License-Identifier: `MIT`
+- Files: `shells/web/src/vendor/signalsmith-stretch/SignalsmithStretch.mjs`
+- Copyright: Copyright (c) Geraint Luff / Signalsmith Audio Ltd.
+- Time-stretch / pitch-shift engine (plans/165 WP-7), the official npm build with a 3-line patch exporting the raw Emscripten factory - provenance, patch and checksums in the vendor README. The npm tarball declares MIT but ships no LICENSE file; the text is reproduced from the standard MIT template with the package author attribution.
+
+```text
+Copyright (c) Geraint Luff / Signalsmith Audio Ltd.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ### libopenmpt (compiled WASM) 0.8.7 (Emscripten build)
 
 - SPDX-License-Identifier: `BSD-3-Clause`

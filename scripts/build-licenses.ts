@@ -447,6 +447,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'signalsmith-stretch (WASM)',
+      version: '1.3.2',
+      spdx: 'MIT',
+      copyright: 'Copyright (c) Geraint Luff / Signalsmith Audio Ltd.',
+      files: 'shells/web/src/vendor/signalsmith-stretch/SignalsmithStretch.mjs',
+      text: `Copyright (c) Geraint Luff / Signalsmith Audio Ltd.\n\n${MIT_BODY}`,
+      note: 'Time-stretch / pitch-shift engine (plans/165 WP-7), the official npm build with a 3-line patch exporting the raw Emscripten factory - provenance, patch and checksums in the vendor README. The npm tarball declares MIT but ships no LICENSE file; the text is reproduced from the standard MIT template with the package author attribution.',
+      where: 'web',
+    },
+    {
       name: 'libopenmpt (compiled WASM)',
       version: '0.8.7 (Emscripten build)',
       spdx: 'BSD-3-Clause',
