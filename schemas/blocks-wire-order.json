@@ -127,7 +127,9 @@
       "rx",
       "ry",
       "pan",
-      "duck"
+      "duck",
+      "pitch",
+      "varispeed"
     ],
     "diagram-builder:nodes": [
       "shape",

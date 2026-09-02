@@ -85,7 +85,7 @@ function layerFrom(html: string, totalMs = 7000): SeqLayer {
 function fakeLayer(over: Partial<SeqLayer> & { idx: number }): SeqLayer {
   return {
     el: doc.createElement('div'),
-    startMs: 0, durMs: 1000, clipInMs: 0, speed: 1, mute: false, gain: 1, pan: 0, duck: 1,
+    startMs: 0, durMs: 1000, clipInMs: 0, speed: 1, mute: false, gain: 1, pan: 0, duck: 1, pitch: 0, varispeed: false,
     enter: null, enterMs: DEFAULT_TRANSITION_MS, exit: null, exitMs: DEFAULT_TRANSITION_MS,
     enterEase: '', exitEase: '',
     split: '', splitStaggerMs: 0, splitOrder: '', splitUnits: 0, splitSeed: 0,

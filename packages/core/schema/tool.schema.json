@@ -1696,6 +1696,14 @@
                     "type": "string",
                     "description": "Number sub-field: the level 0..1 this audio box drops to while any other clip's audio plays (clip-presence ducking; 1 or empty = no duck). Machine-written by the timeline inspector, so the sub-field carries showFor:[]."
                   },
+                  "pitchField": {
+                    "type": "string",
+                    "description": "Number sub-field: transpose this clip's audio in semitones (-12..12, formants preserved; 0 or empty = as recorded). Works at any speed. Machine-written by the timeline inspector's Pitch row, so the sub-field carries showFor:[]."
+                  },
+                  "varispeedField": {
+                    "type": "string",
+                    "description": "Boolean sub-field: when true a speed-changed clip plays tape-style (pitch follows speed) instead of pitch-preserved. Absent or empty = preserve pitch, the editor default. Machine-written by the timeline inspector, so the sub-field carries showFor:[]."
+                  },
                   "ignoredField": {
                     "type": "string",
                     "description": "Boolean sub-field: the reversible-cut / strikethrough flag (transcript-driven editing, plans/174). A true value keeps the box's media and its place on the timeline but skips it on playback and drops it from export - the dual of a hard delete. Machine-written by the transcript panel, so the sub-field carries showFor:[]. Absent reads as not-ignored."

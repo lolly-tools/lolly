@@ -81,3 +81,11 @@ test('speed 1 with no transpose is a verbatim copy', async () => {
   const [out] = await stretchPcm([inp], { speed: 1, rate: RATE });
   assert.deepEqual(out, inp);
 });
+
+test('varispeed (factor = speed) makes pitch follow speed, tape-style', async () => {
+  const inp = tone(2, 440);
+  const [out] = await stretchPcm([inp], { speed: 2, factor: 2, rate: RATE });
+  assert.equal(out!.length, inp.length / 2, 'half the duration at 2x');
+  const hz = hzOf(out!);
+  assert.ok(Math.abs(hz - 880) < 12, `pitch should follow speed to ~880 Hz: ${hz.toFixed(1)}`);
+});
