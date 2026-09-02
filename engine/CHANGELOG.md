@@ -6,6 +6,18 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.161.0 - the master true-peak limiter (plans/165 Slice E, plans/101 section 2.5).
+`createTruePeakLimiter` in `audio-dynamics.ts`: pure, deterministic, streaming - a
+4x-oversampled Kaiser-sinc true-peak detector, a sliding-minimum lookahead gain with
+exponential release, and a copy-not-multiply path while the gain sits at 1, so any
+mix that never approaches the ceiling comes out byte-identical. Chunk-invariant by
+construction (state is a pure function of the stream consumed), which is what lets
+the web shell's 0.1 s windowed feeder and the worker's whole-range call stay
+byte-identical. Never a DynamicsCompressorNode: that node's detector is
+implementation-defined, and a mix must render the same on every machine. Shipped as
+the gate WP-7 time-stretch waits on (the spike's 0.5x stretch peaked at 1.004 from a
+0.99 input). See tests/audio-dynamics.test.ts.
+
 1.160.0 - a BOX can tilt, not just the camera (plans/104 P2.1). `KfLayerPose` gains
 optional `rx`/`ry` in degrees - the box's own tilt, resolved base-field-then-keyed
 exactly as `z` is - and `projectLayer` composes the box's local homography onto

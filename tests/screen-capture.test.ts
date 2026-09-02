@@ -394,9 +394,11 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // `clusters`, plans/175 WP-D - the per-cluster breakdown behind the shaped-glyph
   // letter tier; see text-clusters.test.ts). Then 1.160.0 (per-box rx/ry tilt -
   // KfLayerPose gains the box's own pitch/yaw and projectLayer composes its local
-  // homography, plans/104 P2.1; see keyframes-tilt.test.ts).
+  // homography, plans/104 P2.1; see keyframes-tilt.test.ts). Then 1.161.0 (the
+  // master true-peak limiter, plans/165 Slice E - createTruePeakLimiter in
+  // audio-dynamics.ts, the WP-7 stretch gate; see audio-dynamics.test.ts).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.160.0');
+  assert.equal(ENGINE_VERSION, '1.161.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
