@@ -401,9 +401,14 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // decoded PCM; same test file). Then 1.163.0 (BS.1770-4 integrated loudness,
   // plans/101 - createLoudnessMeter behind the Normalize targets; see
   // audio-loudness.test.ts). Then 1.164.0 (the fx kernels + grammar, plans/101
-  // sections 2.2/3.4 - parseFxChain/processFxPcm; see audio-fx.test.ts).
+  // sections 2.2/3.4 - parseFxChain/processFxPcm; see audio-fx.test.ts). Then
+  // 1.165.0 (RecordOpts.frame - a camera take cover-cropped into an exact target
+  // frame, behind the timeline's Record a video button; see frame-crop.test.ts).
+  // Then 1.166.0 (readPptx surfaces what a slide inherits from its layout and master -
+  // a Google Slides export of a branded template no longer reads as blank pages).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.164.0');
+  // 1.167.0: the .penpot writer (penpot-file.ts, plans/178) - additive, no capture change.
+  assert.equal(ENGINE_VERSION, '1.167.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

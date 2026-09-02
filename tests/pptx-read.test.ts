@@ -1053,3 +1053,113 @@ test('readPptx surfaces docProps/core.xml, round-tripping buildPptxParts meta', 
   assert.equal(deck.coreProps!.description, 'H2 plan');
   assert.equal(deck.coreProps!.created, '2026-08-24T00:00:00Z');
 });
+
+// ─── inherited furniture + ground (engine 1.166) ─────────────────────────────
+//
+// A template deck (a Google Slides export of a branded template is the canonical
+// case) keeps every logo, colour bar and page ground on its LAYOUTS and MASTER;
+// its slides hold nothing but empty placeholders. The read model surfaces that
+// layer so a consumer can paint it behind the slide.
+
+const FURN_SLIDE = (extra = '') => `${XML_DECL}
+<p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld>${extra}<p:spTree>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="2" name="Title"/><p:cNvSpPr/><p:nvPr><p:ph type="title"/></p:nvPr></p:nvSpPr>
+    <p:spPr/>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>Hello</a:t></a:r></a:p></p:txBody>
+  </p:sp>
+</p:spTree></p:cSld></p:sld>`;
+const FURN_SLIDE_RELS = `${XML_DECL}
+<Relationships xmlns="${NS_PKG_REL}">
+  <Relationship Id="rId1" Type="${NS_R}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>
+</Relationships>`;
+// The layout: the title SLOT with real geometry, a colour bar, and a logo picture
+// whose r:embed only resolves through the LAYOUT's own rels.
+const FURN_LAYOUT = (attrs = '') => `${XML_DECL}
+<p:sldLayout xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}" type="title"${attrs}><p:cSld><p:spTree>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="2" name="Title 1"/><p:cNvSpPr/><p:nvPr><p:ph type="title"/></p:nvPr></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="100000" y="200000"/><a:ext cx="3000000" cy="400000"/></a:xfrm></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="en-US"/></a:p></p:txBody>
+  </p:sp>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="5" name="Bar"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="9144000" cy="300000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="30BA78"/></a:solidFill></p:spPr>
+  </p:sp>
+  <p:pic>
+    <p:nvPicPr><p:cNvPr id="6" name="Logo"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr>
+    <p:blipFill><a:blip r:embed="rId2"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>
+    <p:spPr><a:xfrm><a:off x="8000000" y="6000000"/><a:ext cx="1000000" cy="500000"/></a:xfrm></p:spPr>
+  </p:pic>
+</p:spTree></p:cSld></p:sldLayout>`;
+const FURN_LAYOUT_RELS = `${XML_DECL}
+<Relationships xmlns="${NS_PKG_REL}">
+  <Relationship Id="rId1" Type="${NS_R}/slideMaster" Target="../slideMasters/slideMaster1.xml"/>
+  <Relationship Id="rId2" Type="${NS_R}/image" Target="../media/logo.png"/>
+</Relationships>`;
+// The master: a page ground and a footer bar; its title slot has no geometry.
+const FURN_MASTER = `${XML_DECL}
+<p:sldMaster xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld>
+  <p:bg><p:bgPr><a:solidFill><a:srgbClr val="FAFAFA"/></a:solidFill></p:bgPr></p:bg>
+  <p:spTree>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="9" name="Footer bar"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="0" y="6558000"/><a:ext cx="9144000" cy="300000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="0C322C"/></a:solidFill></p:spPr>
+  </p:sp>
+  <p:sp>
+    <p:nvSpPr><p:cNvPr id="2" name="Title Placeholder"/><p:cNvSpPr/><p:nvPr><p:ph type="title"/></p:nvPr></p:nvSpPr>
+    <p:spPr/>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="en-US"/></a:p></p:txBody>
+  </p:sp>
+</p:spTree></p:cSld></p:sldMaster>`;
+
+function furnitureParts(o: { layoutAttrs?: string; slideExtra?: string } = {}): PptxParts {
+  return deckParts({
+    'ppt/slides/slide1.xml': FURN_SLIDE(o.slideExtra),
+    'ppt/slides/_rels/slide1.xml.rels': FURN_SLIDE_RELS,
+    'ppt/slideLayouts/slideLayout1.xml': FURN_LAYOUT(o.layoutAttrs),
+    'ppt/slideLayouts/_rels/slideLayout1.xml.rels': FURN_LAYOUT_RELS,
+    'ppt/slideMasters/slideMaster1.xml': FURN_MASTER,
+    'ppt/media/logo.png': new Uint8Array([0x89, 0x50, 0x4e, 0x47]),
+  });
+}
+
+test('a slide inherits the master’s and the layout’s furniture, in that order, never their placeholders', () => {
+  const slide = readPptx(furnitureParts(), parseXml).slides[0]!;
+  assert.ok(slide.inherited, 'the layer is surfaced');
+  const f = slide.inherited!;
+  assert.deepEqual(f.map((n) => n.type), ['shape', 'shape', 'pic'], 'master bar, layout bar, layout logo');
+  assert.equal((f[0] as PptxShapeNode).fill?.hex, '0C322C', 'the master paints first (behind)');
+  assert.equal((f[1] as PptxShapeNode).fill?.hex, '30BA78');
+  assert.equal((f[2] as PptxPicNode).media, 'ppt/media/logo.png', 'resolved through the LAYOUT’s rels, not the slide’s');
+  assert.ok(f.every((n) => !('ph' in n) || !n.ph), 'a slot is not furniture');
+  // The slide's own content is untouched by the layer.
+  assert.equal(slide.nodes.length, 1);
+  assert.equal(firstText(slide.nodes), 'Hello');
+});
+
+test('a placeholder with no geometry sits where its layout slot does', () => {
+  const title = readPptx(furnitureParts(), parseXml).slides[0]!.nodes[0] as PptxTextNode;
+  assert.equal(title.type, 'text');
+  assert.deepEqual([title.xEmu, title.yEmu, title.cxEmu, title.cyEmu], [100000, 200000, 3000000, 400000]);
+});
+
+test('the ground resolves slide → layout → master, and a slide’s own wins', () => {
+  assert.deepEqual(readPptx(furnitureParts(), parseXml).slides[0]!.background, { color: { hex: 'FAFAFA' } }, 'the master’s');
+  const own = '<p:bg><p:bgPr><a:solidFill><a:srgbClr val="123456"/></a:solidFill></p:bgPr></p:bg>';
+  assert.deepEqual(readPptx(furnitureParts({ slideExtra: own }), parseXml).slides[0]!.background, { color: { hex: '123456' } });
+});
+
+test('showMasterSp="0" on the layout hides the master’s shapes, and keeps the layout’s own', () => {
+  const slide = readPptx(furnitureParts({ layoutAttrs: ' showMasterSp="0"' }), parseXml).slides[0]!;
+  assert.deepEqual(slide.inherited!.map((n) => n.type), ['shape', 'pic']);
+  assert.equal((slide.inherited![0] as PptxShapeNode).fill?.hex, '30BA78', 'the layout bar, not the master footer');
+  assert.deepEqual(slide.background, { color: { hex: 'FAFAFA' } }, 'the ground still cascades - only SHAPES are hidden');
+});
+
+test('a deck with no layout parts reads exactly as before: no inherited, no background', () => {
+  const slide = readPptx(deckParts(), parseXml).slides[0]!;
+  assert.equal(slide.inherited, undefined);
+  assert.equal(slide.background, undefined);
+});
+

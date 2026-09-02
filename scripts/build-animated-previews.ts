@@ -167,6 +167,12 @@ const JOBS: Job[] = [
   // (12) to hold the file down. 480x480 keeps the square aspect under the tile ceiling;
   // duration 4 samples the scrub without carrying the full 8 s loop past the 2-4 s budget.
   { tool: 'audiogram', kind: 'card', format: 'webm', width: 480, height: 480, duration: 4, fps: 12, wait: 0, values: { duration: 4 } },
+  // 3d - the turntable IS the tool's promise (plans/177: the landing covers want the
+  // studios that move to actually move). The default duck orbits on cameraMove:orbit
+  // with a 4 s loop period set on BOTH the tool input and the export, so the clip is
+  // one full revolution and the seam is invisible. WebM for the same reason as
+  // flythrough: a lit photographic scene has no flat palette for APNG to share.
+  { tool: '3d', kind: 'card', format: 'webm', width: 480, height: 300, duration: 4, fps: 15, wait: 6, values: { duration: 4 } },
 ];
 
 interface Opts { url: string; only: string[] }

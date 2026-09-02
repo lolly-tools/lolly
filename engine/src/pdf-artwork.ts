@@ -70,6 +70,22 @@ const MIN_SHAPES = 2;
 const MIN_SIDE = 8;
 /** Wider than this fraction of the page is a background, not a mark. */
 const MAX_PAGE_FRACTION = 0.55;
+/**
+ * A plain rectangle covering more than this fraction of the page is a PANEL - the
+ * slide's ground, a card, a photo placeholder - and takes no part in clustering.
+ *
+ * It is refused as a mark either way (MAX_PAGE_FRACTION below); the point of
+ * refusing it EARLIER is that a ground overlaps every shape on the page, so with
+ * it in the pool proximity glued a whole slide into one cluster and that one
+ * cluster was then refused as a background - a deck with a full-bleed fill on
+ * every slide yielded zero marks, its logo included (measured on a real
+ * Google Slides export, 2026-09-02). Plain rectangles only: a curved shape that
+ * big is artwork, and belongs in the pool.
+ */
+const PANEL_FRACTION = 0.2;
+/** A plain rectangle spanning more than this fraction of the page's long side is a
+ *  rule or a banner bar, and is likewise kept out of the pool - for the same reason. */
+const BAR_SPAN = 0.8;
 /** Longer:shorter beyond this is a bar, not a mark. */
 const MAX_ASPECT = 12;
 /** Guard against a pathological page turning into thousands of candidates. */
@@ -170,7 +186,7 @@ function median(xs: number[]): number {
  * and its wordmark set as one form XObject a few points apart - is still
  * caught, because those shapes are close by construction.
  */
-function cluster(items: Array<{ i: number; rect: ArtworkRect; group: string }>): Array<{ idx: number[]; rect: ArtworkRect; group: string }> {
+function cluster(items: Array<{ i: number; rect: ArtworkRect; group: string; plain: boolean }>): Array<{ idx: number[]; rect: ArtworkRect; group: string }> {
   const parent = items.map((_, i) => i);
   const find = (i: number): number => { while (parent[i] !== i) { parent[i] = parent[parent[i]!]!; i = parent[i]!; } return i; };
   const join = (a: number, b: number): void => { const ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb; };
@@ -189,14 +205,14 @@ function cluster(items: Array<{ i: number; rect: ArtworkRect; group: string }>):
     }
   }
 
-  const collect = (): Map<number, { idx: number[]; rect: ArtworkRect; group: string }> => {
-    const m = new Map<number, { idx: number[]; rect: ArtworkRect; group: string }>();
+  const collect = (): Map<number, { idx: number[]; rect: ArtworkRect; group: string; plain: boolean }> => {
+    const m = new Map<number, { idx: number[]; rect: ArtworkRect; group: string; plain: boolean }>();
     for (let i = 0; i < items.length; i++) {
       const root = find(i);
       const it = items[i]!;
       const got = m.get(root);
-      if (got) { got.idx.push(it.i); got.rect = union(got.rect, it.rect); got.group ||= it.group; }
-      else m.set(root, { idx: [it.i], rect: it.rect, group: it.group });
+      if (got) { got.idx.push(it.i); got.rect = union(got.rect, it.rect); got.group ||= it.group; got.plain &&= it.plain; }
+      else m.set(root, { idx: [it.i], rect: it.rect, group: it.group, plain: it.plain });
     }
     return m;
   };
@@ -208,6 +224,12 @@ function cluster(items: Array<{ i: number; rect: ArtworkRect; group: string }>):
     const byGroup = new Map<string, Array<[number, ArtworkRect]>>();
     for (const [root, c] of clusters) {
       if (!c.group) continue;
+      // A cluster that is nothing but plain rectangles is furniture - a placeholder
+      // panel, a table, a rule - and does not become part of a mark because it shares
+      // the page's group. Slide exporters wrap the WHOLE page in one q/Q frame, and by
+      // this rejoin alone a logo swallowed the black text placeholder 200pt beneath
+      // it (measured 2026-09-02). Two curved clusters in one group still rejoin.
+      if (c.plain) continue;
       const list = byGroup.get(c.group);
       if (list) list.push([root, c.rect]);
       else byGroup.set(c.group, [[root, c.rect]]);
@@ -227,7 +249,7 @@ function cluster(items: Array<{ i: number; rect: ArtworkRect; group: string }>):
     if (!merged) break;
   }
 
-  return [...collect().values()];
+  return [...collect().values()].map(({ idx, rect, group }) => ({ idx, rect, group }));
 }
 
 // ── the pass ──────────────────────────────────────────────────────────────────
@@ -251,14 +273,22 @@ export function findVectorArtwork(nodes: PdfNode[], opts: ArtworkOptions = {}): 
   if (!Array.isArray(nodes) || !nodes.length) return out;
 
   const pageArea = Math.max(1, (opts.width ?? 0) * (opts.height ?? 0));
+  const pageLong = Math.max(opts.width ?? 0, opts.height ?? 0);
 
-  const items: Array<{ i: number; rect: ArtworkRect; group: string }> = [];
+  const items: Array<{ i: number; rect: ArtworkRect; group: string; plain: boolean }> = [];
   for (let i = 0; i < nodes.length && items.length < MAX_NODES; i++) {
     const n = nodes[i]!;
     if (!isVectorPaint(n)) continue;
     const e = pdfNodeExtent(n);
     if (!e || !(e.w > 0) || !(e.h > 0)) continue;
-    items.push({ i, rect: { x: e.x, y: e.y, w: e.w, h: e.h }, group: String(n.group ?? '') });
+    // Furniture that would glue the page together stays out of the pool: a ground,
+    // a panel, a page-wide bar. Never a mark, so nothing is lost - and every real
+    // mark on the slide keeps its own neighbourhood.
+    if (isPlainRect(n)) {
+      if (pageArea > 1 && (e.w * e.h) / pageArea > PANEL_FRACTION) continue;
+      if (pageLong > 0 && Math.max(e.w, e.h) > pageLong * BAR_SPAN) continue;
+    }
+    items.push({ i, rect: { x: e.x, y: e.y, w: e.w, h: e.h }, group: String(n.group ?? ''), plain: isPlainRect(n) });
   }
   if (items.length < MIN_SHAPES) return out;
 

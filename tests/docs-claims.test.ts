@@ -55,6 +55,7 @@ const siteMd = read('docs/site.md');
 const buildTs = read('docs/build.ts');
 const faqMd = read('docs/faq.md');
 const trustMd = read('docs/trust.md');
+const siteJson = (name: string): unknown => JSON.parse(read(`docs/site/${name}`));
 
 // site.md splits on \n---\n: [0] is the hero subtitle, the middle sections are the
 // audience tabs, the last is the platform/tools tail. Same parse buildLandingContent
@@ -64,18 +65,46 @@ const heroSection = siteSections[0]!;
 const audienceSections = siteSections.slice(1, -1);
 const tailSection = siteSections[siteSections.length - 1]!;
 
-// The landing site JSONs. formats.json / formats-catalog.json / import.json are
-// absent BY DESIGN: plan 117 block 9 moved both of those bands off the landing onto
-// their own pages, so they are tier-2 sources now and the landing's register rules
-// no longer apply to them (the landing keeps a one-line teaser, which lives in
-// build.ts and IS scanned).
-const LANDING_JSON = [
-  'about-items.json', 'assure.json', 'audience-chrome.json', 'downloads.json',
-  'everywhere.json', 'hero-chrome.json', 'pathways.json', 'platform-chrome.json',
-  'qol.json', 'social-proof.json', 'whats-a-tool.json', 'why.json',
-];
-const LANDING_SITE_MD = ['about.md', 'opensource.md'];
+// The landing site JSONs - the door IS these files since plans/177 P4 (the
+// five beats in hero-chrome / covers / whatwhy / persona / behind, plus the
+// download rail). build.ts renders them; the register rules below scan them.
+// formats.json / formats-catalog.json / import.json are absent BY DESIGN: plan
+// 117 block 9 moved those bands off the landing onto their own pages, so they
+// are tier-2 sources and the landing register no longer applies to them.
+const LANDING_JSON = ['downloads.json', 'hero-chrome.json', 'covers.json', 'whatwhy.json', 'persona.json', 'work.json', 'behind.json'];
+const LANDING_SITE_MD: string[] = [];
 const MOVED_OFF_LANDING = ['formats.json', 'formats-catalog.json', 'import.json'];
+
+/**
+ * The marked exceptions, JSON edition: a rule's allowlist is written down here
+ * beside the file and dotted path it excuses (build.ts used to carry them as
+ * CLAIMS-ALLOW comment blocks around the literals; JSON cannot hold a comment,
+ * so the test is where the allowlist lives). A path names a subtree: every
+ * string under it is excused from THAT rule and no other.
+ */
+const CLAIMS_ALLOW: Record<string, Array<[file: string, path: string]>> = {
+  // The hero's cycling words carry the offline claim ("available offline") and
+  // the page's one esoteric term ("content sovereignty").
+  'hero-cycle': [['hero-chrome.json', 'cycle']],
+  // The Why column IS the offline claim - its one home on the door.
+  'offline-statement': [['whatwhy.json', 'why.statement']],
+  // FINAL copy, pinned identical in three homes, that happens to contain the phrase.
+  'sceptic-paragraph': [['behind.json', 'sceptic']],
+};
+
+/** [dotted path, string] pairs for every string value in a site JSON. */
+function jsonStringsWithPaths(value: unknown, path = '', out: Array<[string, string]> = []): Array<[string, string]> {
+  if (typeof value === 'string') out.push([path, value]);
+  else if (Array.isArray(value)) value.forEach((v, i) => jsonStringsWithPaths(v, path ? `${path}.${i}` : String(i), out));
+  else if (value && typeof value === 'object') for (const [k, v] of Object.entries(value)) jsonStringsWithPaths(v, path ? `${path}.${k}` : k, out);
+  return out;
+}
+
+/** A file's strings minus the subtrees the named rules excuse. */
+function jsonStringsExcept(name: string, ...rules: string[]): Array<[string, string]> {
+  const excused = rules.flatMap((r) => CLAIMS_ALLOW[r] ?? []).filter(([f]) => f === name).map(([, p]) => p);
+  return jsonStringsWithPaths(siteJson(name)).filter(([path]) => !excused.some((p) => path === p || path.startsWith(`${p}.`)));
+}
 
 // ── the build.ts landing region + its marked exceptions ──────────────────────
 
@@ -166,62 +195,61 @@ function offend(text: string): string[] {
   return OFFLINE_PHRASES.filter(([, re]) => re.test(text)).map(([label]) => label);
 }
 
-test('say offline once: the hero decodes the claim and block 3 states it', () => {
+/**
+ * The hero cycle's first word IS the H1's esoteric term (plans/177) - the one
+ * other permitted "sovereign(ty)" on the page, keyed to the exact literal so a
+ * reworded hero retires its own exemption. Andy shortened the five claims to
+ * single words on 2026-09-02 ("is sovereign /is inclusive /is ethical AI / is private /
+ * free"); the long forms live on their receipt pages.
+ */
+const CYCLE_H1 = 'is sovereign';
+
+test('say offline once: the hero cycle carries the claim and the Why column states it', () => {
+  // plans/177: the hero is "Lolly is <cycling word>" + a tagline and a one-liner
+  // from site.md. The offline claim above the fold is the cycle word "available
+  // offline" (a marked hero-cycle allow block in build.ts); the subtitle lines
+  // must not repeat it.
   const heroLines = heroSection.split('\n').filter(l => l.trim() && !l.startsWith('#'));
-  assert.ok(heroLines.length >= 3, 'the hero subtitle should still be at least three lines');
-  // Line 1 is the decode of "Content Sovereignty" and is the ONLY offline mention
-  // allowed above the fold.
-  assert.match(heroLines[0]!, /on your own device/,
-    'the hero\'s first line is the plain decode of the H1 and must keep "on your own device"');
-  for (const line of heroLines.slice(1)) {
+  assert.ok(heroLines.length >= 2, 'the hero subtitle should still be at least two lines (tagline + one-liner)');
+  for (const line of heroLines) {
     assert.deepEqual(offend(line), [], `hero line repeats the offline claim: ${line}`);
   }
+  const hero = siteJson('hero-chrome.json') as { cycle: Array<{ word: string; slug: string }> };
+  const words = hero.cycle.map((c) => c.word);
+  // Andy's 2026-09-02 short form: single words. The privacy receipt is the
+  // cycle's stand-in for the offline claim (the Why column states it in full).
+  assert.ok(hero.cycle.some((c) => c.slug === 'privacy'), 'the hero cycle must carry the privacy receipt');
+  assert.equal(words[0], CYCLE_H1, 'the hero cycle must lead with the one esoteric term');
+  for (const c of hero.cycle) assert.match(buildTs, new RegExp(`slug: '${c.slug}'`), `cycle word "${c.word}" links a page that is not registered: ${c.slug}`);
 
-  // Block 3 must actually make the claim - a purge that purged everything would
-  // pass every other assertion in this file.
-  const block3 = buildTs.slice(
-    buildTs.indexOf('// CLAIMS-ALLOW: offline-statement'),
-    buildTs.indexOf('// CLAIMS-ALLOW END', buildTs.indexOf('// CLAIMS-ALLOW: offline-statement')),
-  );
-  assert.match(block3, /Nothing you make ever leaves your device/);
-  assert.match(block3, /Go offline and everything you have works/);
-  assert.match(block3, /Freedom is sweet/);
+  // The Why column must actually make the full claim - a purge that purged
+  // everything would pass every other assertion in this file.
+  const why = (siteJson('whatwhy.json') as { why: { statement: string } }).why.statement;
+  // Andy's short form (2026-09-02); the full statement lives on docs/trust.md.
+  assert.match(why, /works offline/);
+  assert.match(why, /Nothing you make ever leaves your device/);
+  assert.match(why, /Freedom is sweet/);
 });
 
 test('say offline once: no second telling in the landing sources', () => {
-  // build.ts: the landing region, minus the two marked carriers (block 3 IS the
-  // claim; the sceptic paragraph is FINAL copy that happens to contain the phrase).
-  const region = stripComments(withoutAllow(landingRegion(), 'offline-statement', 'sceptic-paragraph'));
+  // build.ts: the landing region, minus the three marked carriers (the hero cycle's
+  // "available offline" word; the Why column IS the claim; the sceptic paragraph is
+  // FINAL copy that happens to contain the phrase).
+  const region = stripComments(withoutAllow(landingRegion(), 'hero-cycle', 'offline-statement', 'sceptic-paragraph'));
   assert.deepEqual(offend(region), [], 'docs/build.ts landing region repeats the offline claim');
 
-  // site.md's hero is covered above; the tail and the audience tabs go here.
-  assert.deepEqual(offend(tailSection), [], 'site.md tail (the platform box) repeats the offline claim');
+  // site.md is the hero alone since plans/177 (the audience tabs retired to the
+  // operator playbooks and hub pages); anything beyond the hero would be a new
+  // landing source this test is not scanning, so pin the shape.
+  assert.equal(audienceSections.length, 0,
+    'site.md grew extra --- sections - the plans/177 landing takes only the hero from site.md');
 
-  // The IT tab keeps ONE bullet - the professional-register version, with the
-  // privacy-policy pointer. Pinned by its opening words so the allowlist cannot
-  // quietly widen to the whole tab.
-  const IT_BULLET = '- **Data stays on the device.**';
-  const itTab = audienceSections.find(s => s.includes(IT_BULLET));
-  assert.ok(itTab, `the IT tab must still carry the allowlisted bullet "${IT_BULLET}"`);
-  for (const section of audienceSections) {
-    const lines = section.split('\n').filter(l => !l.startsWith(IT_BULLET));
-    const heading = section.split('\n').find(l => l.startsWith('## ')) ?? '?';
-    assert.deepEqual(offend(lines.join('\n')), [], `audience tab ${heading} repeats the offline claim`);
-  }
-
-  // The landing content files.
+  // The landing content files, minus the three marked carriers.
   for (const name of LANDING_JSON) {
-    const strings = jsonStrings(JSON.parse(read(`docs/site/${name}`))).join('\n');
-    assert.deepEqual(offend(strings), [], `docs/site/${name} repeats the offline claim`);
+    for (const [path, str] of jsonStringsExcept(name, 'hero-cycle', 'offline-statement', 'sceptic-paragraph')) {
+      assert.deepEqual(offend(str), [], `docs/site/${name} ${path} repeats the offline claim: ${str}`);
+    }
   }
-  for (const name of LANDING_SITE_MD) {
-    assert.deepEqual(offend(read(`docs/site/${name}`)), [], `docs/site/${name} repeats the offline claim`);
-  }
-
-  // The FAQ renders inside the landing, so it is landing source too - minus the
-  // sceptic paragraph, which is FINAL copy pinned identical in three homes.
-  const faqWithoutSceptic = faqMd.split('\n').filter(l => !l.startsWith(SCEPTIC_PARAGRAPH.slice(0, 40))).join('\n');
-  assert.deepEqual(offend(faqWithoutSceptic), [], 'docs/faq.md repeats the offline claim');
 });
 
 test('say offline once: the moved bands are no longer landing sources', () => {
@@ -245,9 +273,12 @@ test('say offline once: the moved bands are no longer landing sources', () => {
     'the design-import page must host the import band itself');
   assert.match(buildTs, /function renderFormatsPage[\s\S]{0,400}formatsSection\(/,
     'the formats page must host the three-zone table itself');
-  // …and the landing keeps only the teaser links to them.
-  assert.match(region, /href: localeHref\(lang, 'formats'\)/);
-  assert.match(region, /href: localeHref\(lang, 'design-import'\)/);
+  // …and the landing still reaches both pages: formats through the What column's
+  // stat tiles, design-import through the Designers lane of the persona device.
+  const statSlugs = (siteJson('whatwhy.json') as { stats: Array<{ slug: string }> }).stats.map((s) => s.slug);
+  assert.ok(statSlugs.includes('formats'), 'a What-column stat tile must link the formats page');
+  const laneSlugs = jsonStringsWithPaths(siteJson('persona.json')).filter(([p]) => p.endsWith('.slug')).map(([, v]) => v);
+  assert.ok(laneSlugs.includes('design-import'), 'the Designers lane must link the design-import page');
 });
 
 // ── 2. no competitor names outside the FAQ ───────────────────────────────────
@@ -281,11 +312,18 @@ test('design-app names appear only where a file is being brought IN', () => {
   const region = stripComments(withoutAllow(landingRegion(), 'app-names'));
   for (const name of APP_NAMES) {
     assert.ok(!new RegExp(`\\b${name}\\b`).test(region),
-      `${name} appears in landing copy outside the marked interop teaser`);
+      `${name} appears in landing copy outside the marked interop region`);
+    for (const file of LANDING_JSON) {
+      for (const [path, str] of jsonStringsWithPaths(siteJson(file))) {
+        assert.ok(!new RegExp(`\\b${name}\\b`).test(str), `${name} appears in docs/site/${file} ${path}`);
+      }
+    }
   }
-  // …and the teaser itself still says it, so the reader with a drawer full of
-  // .fig files knows this page is for them.
-  assert.match(landingRegion(), /bring Figma, Penpot, Illustrator, InDesign or any SVG/);
+  // The interop sentence moved to the design-import page's own band with the
+  // import teaser (plans/177); the reader with a drawer full of .fig files still
+  // meets it there, and the landing's Designers lane names only the extensions.
+  const importJson = jsonStrings(JSON.parse(read('docs/site/import.json'))).join('\n');
+  assert.match(importJson, /Figma, Penpot, Illustrator, InDesign or any SVG/);
 });
 
 // ── 3. the sceptic paragraph, one wording, three homes ───────────────────────
@@ -294,7 +332,7 @@ const SCEPTIC_PARAGRAPH = '**We built Lolly for ourselves.** SUSE needed thousan
 
 test('the sceptic paragraph is byte-identical in all three homes', () => {
   const homes: Array<[string, string]> = [
-    ['docs/build.ts (landing block 7)', buildTs],
+    ['docs/site/behind.json (the landing\'s block 7)', read('docs/site/behind.json')],
     ['docs/faq.md', faqMd],
     ['docs/trust.md', trustMd],
   ];
@@ -302,11 +340,11 @@ test('the sceptic paragraph is byte-identical in all three homes', () => {
     const hits = src.split(SCEPTIC_PARAGRAPH).length - 1;
     assert.equal(hits, 1, `${label} must carry the sceptic paragraph exactly once, verbatim (found ${hits})`);
   }
-  // On the landing it is block 7's own paragraph, and nowhere else in the page's
-  // composition - the assure band's old copy of it retired when the block landed.
-  const region = landingRegion();
-  assert.equal(region.split('We built Lolly for ourselves').length - 1, 1,
-    'the landing composes the sceptic paragraph once, in block 7');
+  // On the landing it is block 7's own paragraph (behind.json `sceptic`), and
+  // nowhere else in the page's composition - build.ts carries no copy of it.
+  assert.equal((siteJson('behind.json') as { sceptic: string }).sceptic, SCEPTIC_PARAGRAPH);
+  assert.equal(landingRegion().split('We built Lolly for ourselves').length - 1, 0,
+    'the landing renderer must not carry a second copy of the sceptic paragraph');
   assert.ok(!/assure-why-free/.test(buildTs),
     'the assure band no longer carries the why-free paragraph (it moved to block 7)');
 });
@@ -347,15 +385,15 @@ test('banned words stay off the landing', () => {
   // retires the exemption and any third 'sovereignty' on the landing still fails.
   const SOVEREIGNTY_HOME = /zero-trust creative sovereignty for all/;
   for (const copy of tLiterals(landingRegion())) {
-    const hits = banned(copy).filter((w) => !(w === 'sovereignty' && SOVEREIGNTY_HOME.test(copy)));
+    const hits = banned(copy).filter((w) => !(w === 'sovereignty' && (SOVEREIGNTY_HOME.test(copy) || copy === CYCLE_H1)));
     assert.deepEqual(hits, [], `landing copy carries a banned word: ${copy}`);
   }
-  // The landing content files, minus the one deliberate exception.
+  // The landing content files: the same two "sovereignty" exceptions, keyed
+  // to the exact copy so a reworded line retires its own exemption.
   for (const name of LANDING_JSON) {
-    const data = JSON.parse(read(`docs/site/${name}`));
-    for (const s of jsonStrings(data)) {
-      if (name === 'hero-chrome.json' && s === data.statement) continue; // the H1, see below
-      assert.deepEqual(banned(s), [], `docs/site/${name} carries a banned word: ${s}`);
+    for (const [path, s] of jsonStringsWithPaths(siteJson(name))) {
+      const hits = banned(s).filter((w) => !(w === 'sovereignty' && (SOVEREIGNTY_HOME.test(s) || s === CYCLE_H1)));
+      assert.deepEqual(hits, [], `docs/site/${name} ${path} carries a banned word: ${s}`);
     }
   }
   for (const name of LANDING_SITE_MD) {
@@ -363,10 +401,35 @@ test('banned words stay off the landing', () => {
   }
 });
 
-test('"Content Sovereignty" is the page\'s one esoteric term, and it is the H1', () => {
-  const hero = JSON.parse(read('docs/site/hero-chrome.json'));
-  assert.equal(hero.statement, 'Content Sovereignty',
-    'the hero statement is FINAL copy - it is the single deliberate-curiosity claim the door makes');
+test('"sovereign" is the page\'s one esoteric term, and it leads the H1', () => {
+  // The H1 is "Lolly is <cycling word>"; the first word is what stands under
+  // reduced motion and what the page opens on - FINAL copy, the single
+  // deliberate-curiosity claim the door makes.
+  const hero = siteJson('hero-chrome.json') as { lead: string; cycle: Array<{ word: string }> };
+  assert.equal(hero.lead, 'Lolly');
+  assert.equal(hero.cycle[0]!.word, CYCLE_H1);
+});
+
+test('the persona device jumps into the app where the plan says it can', () => {
+  // plans/177 CTA policy: a seeded app route where one is honest, the docs
+  // page as the compromise where none is (Legal, Developers, AI). Pinned so the
+  // door cannot quietly drift to "read the docs" everywhere. "Open the app" names
+  // the tools view (#/) rather than the bare root, which was landing a returning
+  // visitor on the dashboard (Andy, 2026-09-02).
+  const persona = siteJson('persona.json') as { doors: Array<{ id: string; lanes: Array<{ tab: string; cta?: { href: string }; doc: { slug: string } }> }> };
+  const ctas: Record<string, string | null> = {};
+  for (const d of persona.doors) for (const l of d.lanes) ctas[`${d.id}/${l.tab}`] = l.cta?.href ?? null;
+  assert.deepEqual(ctas, {
+    'creators/Make': '#/', 'creators/Animate': '#/tool/design', 'creators/Record': '#/tool/record',
+    'creators/Collaborate': '#/tool/design', 'creators/Post': '#/',
+    'builders/Designers': '#/start', 'builders/Developers': null, 'builders/Infrastructure': null,
+    'operators/AI': null, 'operators/Sales': '#/', 'operators/Marketing': '#/',
+    'operators/Security': '#/utilities', 'operators/Press': '#/tool/chart', 'operators/Legal': null,
+  });
+  // Every lane's docs page is a registered page.
+  for (const d of persona.doors) for (const l of d.lanes) {
+    assert.match(buildTs, new RegExp(`slug: '${l.doc.slug}'`), `${d.id}/${l.tab} links an unregistered page: ${l.doc.slug}`);
+  }
 });
 
 // ── 5. block 2's worked examples ─────────────────────────────────────────────
@@ -437,10 +500,17 @@ test('no banned overclaims anywhere in the docs sources', () => {
       }
     });
   }
-  // The landing copy composed in build.ts (its t() literals) too.
+  // The landing copy - build.ts's remaining t() literals and the site JSON.
   for (const copy of tLiterals(landingRegion())) {
     for (const [label, re] of BANNED_OVERCLAIMS) {
       if (re.test(copy)) failures.push(`docs/build.ts landing overclaims "${label}": ${copy}`);
+    }
+  }
+  for (const name of LANDING_JSON) {
+    for (const [path, copy] of jsonStringsWithPaths(siteJson(name))) {
+      for (const [label, re] of BANNED_OVERCLAIMS) {
+        if (re.test(copy)) failures.push(`docs/site/${name} ${path} overclaims "${label}": ${copy}`);
+      }
     }
   }
   assert.deepEqual(failures, [], 'a banned overclaim reached the docs - Content Credentials are tamper-EVIDENT and strippable, and the network claim is consent-gated, never absolute');
@@ -468,27 +538,53 @@ function cspHosts(): Set<string> {
   return hosts;
 }
 
-function ledgerHosts(): Set<string> {
+/**
+ * The marker a network-table row uses to say "this crossing does not exist in
+ * the web app at all". A row carrying it (Send to LinkedIn, plans/129 WP4b:
+ * LinkedIn's token endpoint demands a client secret, so the driver is
+ * desktop-only) is held to the OPPOSITE rule - its hosts must be ABSENT from
+ * the web CSP - so the phrase is exact and mechanical, not a turn of prose.
+ */
+const DESKTOP_ONLY = 'desktop apps only';
+
+/** The table's hosts, split by whether their row is web or desktop-only. */
+function ledgerHosts(): { web: Set<string>; desktopOnly: Set<string> } {
   const privacy = read('docs/privacy.md');
   const start = privacy.indexOf('| What | What actually leaves your device');
   assert.ok(start > 0, 'privacy.md must carry the consent-ledger table');
   const rest = privacy.slice(start);
   const end = rest.indexOf('\n\n');
   const table = end > 0 ? rest.slice(0, end) : rest;
-  const hosts = new Set<string>();
-  for (const m of table.matchAll(/`([a-z0-9*-]+(?:\.[a-z0-9*-]+)+)`/gi)) {
-    const tok = m[1]!.toLowerCase();
-    if (/\.(com|org|net|tools|io|dev|li)$/.test(tok)) hosts.add(tok); // a host, not `.icc`
+  const web = new Set<string>();
+  const desktopOnly = new Set<string>();
+  for (const row of table.split('\n')) {
+    const into = row.includes(DESKTOP_ONLY) ? desktopOnly : web;
+    for (const m of row.matchAll(/`([a-z0-9*-]+(?:\.[a-z0-9*-]+)+)`/gi)) {
+      const tok = m[1]!.toLowerCase();
+      if (/\.(com|org|net|tools|io|dev|li)$/.test(tok)) into.add(tok); // a host, not `.icc`
+    }
   }
-  return hosts;
+  return { web, desktopOnly };
 }
 
 test('the consent ledger and the CSP allowlist name the same fixed hosts', () => {
-  const ledger = ledgerHosts();
+  const { web: ledger } = ledgerHosts();
   const csp = cspHosts();
   const onlyLedger = [...ledger].filter(h => !csp.has(h)).sort();
   const onlyCsp = [...csp].filter(h => !ledger.has(h)).sort();
   assert.deepEqual(onlyLedger, [], `the consent ledger names a host the CSP does not allow: ${onlyLedger.join(', ')}`);
   assert.deepEqual(onlyCsp, [], `the CSP allows a host the consent ledger does not disclose: ${onlyCsp.join(', ')}`);
   assert.ok(ledger.size >= 6, `the ledger should list the fixed optional hosts (found ${ledger.size})`);
+});
+
+test(`a "${DESKTOP_ONLY}" ledger row's hosts are absent from the web CSP, not quietly allowed`, () => {
+  const { desktopOnly } = ledgerHosts();
+  assert.ok(desktopOnly.size >= 2, 'the LinkedIn row names both of its hosts');
+  const csp = cspHosts();
+  for (const host of desktopOnly) {
+    assert.ok(
+      !csp.has(host),
+      `docs/privacy.md says ${host} is reached by the desktop apps only, but the web CSP allows it - one of the two is lying`,
+    );
+  }
 });

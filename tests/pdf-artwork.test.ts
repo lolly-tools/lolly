@@ -97,6 +97,42 @@ test('a full-page background panel is not artwork', () => {
   assert.deepEqual(found, []);
 });
 
+test('a full-bleed ground does not glue the page into one refused cluster', () => {
+  // Page 1 of a real Google Slides export (SUSE deck, 2026-09-02): the slide's
+  // ground, the wordmark and the mascot side by side, and the black placeholder
+  // panels the exporter leaves behind. The ground overlaps everything, so with it
+  // in the pool the whole slide was one cluster - refused as a background, logo
+  // and all. The ground and the panels are furniture; the two curved paths are
+  // the mark.
+  const found = findVectorArtwork([
+    rect(0, 0, 720, 405, '#07443b', 'g2'),
+    path(109, 38, 90, 22, '#ffffff', true, 'g2'),
+    path(43, 37, 56, 28, '#30ba78', true, 'g2'),
+    rect(434, 65, 286, 340, '#000000', 'g9'),
+    rect(33, 86, 376, 162, '#000000', 'g2'),
+    rect(35, 261, 373, 108, '#000000', 'g2'),
+  ], { width: 720, height: 405 });
+  assert.equal(found.length, 1, 'the logo, and only the logo');
+  assert.deepEqual(found[0]!.indices, [1, 2], 'the wordmark and the mascot, in paint order');
+  assert.equal(found[0]!.rect.x, 43);
+  assert.match(found[0]!.reason, /curved/);
+});
+
+test('a page-wide header bar stays out of the pool too', () => {
+  // A 671pt bar across a 720pt page sits 36pt above a diagram; it must neither
+  // become a member of the diagram's mark nor stretch its crop to the page width.
+  const found = findVectorArtwork([
+    rect(0, 0, 720, 405, '#ffffff'),
+    rect(25, 14, 671, 45, '#000000'),
+    path(75, 95, 59, 47, '#42d29f'),
+    path(31, 100, 56, 45, '#30ba78'),
+    path(96, 103, 39, 66, '#83e1be'),
+  ], { width: 720, height: 405 });
+  assert.equal(found.length, 1);
+  assert.deepEqual(found[0]!.indices, [2, 3, 4]);
+  assert.ok(found[0]!.rect.w < 200, `cropped to the diagram, not the bar: ${found[0]!.rect.w}`);
+});
+
 test('a wide banner bar is rejected on aspect ratio', () => {
   const found = findVectorArtwork([
     rect(20, 100, 555, 20, '#123456'),

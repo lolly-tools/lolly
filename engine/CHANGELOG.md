@@ -6,6 +6,42 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.167.0 - `.penpot` writer (plans/178): `engine/src/penpot-file.ts` emits the binfile-v3 archive Penpot
+itself exports and imports. `buildPenpotEntries` writes manifest, file, pages, one JSON per shape, media
+with their storage objects, library colours, typographies and the brand's `tokens.json`
+(`penpotTokensJson` filters a Tokens-Studio/DTCG document to the types Penpot reads and pushes group
+`$type`s onto leaves). Three producers feed one shape IR: `boxesToPenpotDoc` (the Design tool's raw box
+rows - frames become boards, boxes become rects/ellipses/texts/images/paths with gradients, strokes,
+shadows, blurs, blend modes and rotation), `svgToPenpotDoc` (any vector render, lowered permissively and
+returning null where Penpot has no equivalent so the caller keeps the SVG whole as one picture), and
+`imageToPenpotDoc` (one board, one picture). Also `parsePenpotImportStream` (Penpot's `import-binfile`
+server-sent-event body: file ids from `end`, the hint from `error`), `imageDimensions` (PNG/GIF/JPEG/
+WebP/SVG headers), `decodeDataUrl`, `parsePenpotColor`, `gradSpecToPenpot` (the inverse of design-map's
+`penpotGradientToSpec`), `penpotWorkspaceUrl`, and the `PENPOT_MIME` blob type. Additive.
+
+1.166.0 - `readPptx` surfaces what a slide INHERITS (additive read model): `PptxReadSlide.inherited`
+carries the master's and the layout's non-placeholder shapes, pictures and graphic frames in
+paint order (master first, honouring `showMasterSp` on the layout and the slide), and
+`PptxReadSlide.background` the slide's ground resolved slide → layout → master (`p:bgPr`
+solid or picture fill, or a `p:bgRef` colour). A slide placeholder with no `a:xfrm` now takes
+its slot's geometry from the layout, else the master. Why: a Google Slides export of a
+branded template holds nothing on its slides but empty placeholders - every logo, colour
+bar and page ground lives in the layouts - so the deck read as 28 blank pages. Consumers
+(`pptxSlideToSvg`, the Design importer's `pptxSlideToNodes`) paint `inherited` behind
+`nodes`; a consumer that ignores both fields reads exactly what it read before.
+Same minor, `findVectorArtwork` (pdf-artwork.ts): a plain rectangle that is a page
+ground, a panel (> 20 % of the page) or a page-wide bar (> 80 % of the long side) is
+kept OUT of the clustering pool. It was already refused as a mark, but as a pool
+member a full-bleed ground overlapped every shape and glued the slide into one
+cluster - so a deck on full-bleed fills yielded zero marks, logo included.
+
+1.165.0 - `RecordOpts.frame` (bridge, additive): a camera take can name a target
+frame `{width, height}` and the shell records a cover-cropped canvas of exactly
+that size - the timeline panel's "Record a video" button asks for the artboard's
+export dimensions, so a colleague's take lands as a clip that already fits the
+frame. The web shell publishes the framed stream as the self-view, so what the
+person sees is what the file gets. Video only; ignored otherwise.
+
 1.164.0 - the per-clip fx kernels + grammar (plans/101 sections 2.2/3.4, the
 deferred tier). `audio-fx.ts`: RBJ-cookbook biquads (hp/lp/peak/shelves/notch),
 public-domain Freeverb rescaled to the running rate, echo, an envelope-followed

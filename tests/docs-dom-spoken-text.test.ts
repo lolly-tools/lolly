@@ -27,8 +27,10 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BUILT = join(ROOT, 'shells/web/public/info');
 
 // A committed English page that has both a built HTML page and its markdown twin.
+// The HTML lives behind its door directory (plans/177 P1: /info/<door>/<slug>.html);
+// the twin stays flat.
 const SLUG = 'build-guide';
-const htmlPath = join(BUILT, `${SLUG}.html`);
+const htmlPath = join(BUILT, 'operate', `${SLUG}.html`);
 const mdPath = join(BUILT, `${SLUG}.md`);
 
 let JSDOM: typeof import('jsdom').JSDOM | null = null;

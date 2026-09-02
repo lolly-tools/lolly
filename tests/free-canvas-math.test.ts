@@ -25,6 +25,7 @@ import {
   edgeWaypoints, buildConnectorSvg,
   pathEndTangents, pathEndPoints,
   liftRows, applyLift, liftDepths, liftSlots, liftCanCrop, LIFT_EFF_STEP, LIFT_EFF_CEIL, LIFT_STRENGTH,
+  layoutArtboards,
   posedRect,
 } from '../shells/web/src/views/free-canvas-math.ts';
 import type { SeqPose } from '../shells/web/src/views/free-canvas-math.ts';
@@ -911,6 +912,22 @@ test('liftRows: depth climbs the eff band and every row shares one group', () =>
   assert.deepEqual(rows.map((r) => r.group), ['g9', 'g9', 'g9']);
 });
 
+test('liftRows flat: an UNGROUP keeps the source depth and shadow - only the layering changes', () => {
+  const src = liftSrc({ z: 35, shadow: 'box' });
+  const rows = liftRows(src, LAYERS, LIFT_CFG, { group: 'g9', zClamp: KF_Z_FIELD_CLAMP, flat: true }) as any[];
+  assert.equal(rows.length, 3);
+  assert.deepEqual(rows.map((r) => r.z), [35, 35, 35], 'no depth ladder - the board has no camera to climb for');
+  assert.deepEqual(rows.map((r) => r.shadow), ['box', 'box', 'box'], 'the source’s own shadow, not `depth`');
+  assert.deepEqual(rows.map((r) => r.group), ['g9', 'g9', 'g9'], 'still one group, so the parts move as one');
+  assert.deepEqual(rows.map((r) => r.image), LAYERS.map((l) => l.src));
+  // Paint order is still distributed: background on the bottom row, caption on the top.
+  assert.deepEqual(rows.map((r) => r.bg), ['#101418', '', '']);
+  assert.deepEqual(rows.map((r) => r.text), ['', '', 'Caption']);
+  // An explicit shadow still wins over flat's default of "leave it".
+  const shadowed = liftRows(src, LAYERS, LIFT_CFG, { group: 'g9', flat: true, shadow: 'depth' }) as any[];
+  assert.deepEqual(shadowed.map((r) => r.shadow), ['depth', 'depth', 'depth']);
+});
+
 test('liftDepths: the band is a CEILING - N layers never climb past it', () => {
   for (const n of [2, 3, 5, 14, 25, 35, 54, 64]) {
     const slots = Array.from({ length: n }, (_, i) => i);
@@ -1068,3 +1085,60 @@ test('applyLift: an out-of-range index changes nothing', () => {
   assert.equal(applyLift(boxes, -1, [{ id: 'x' }]), boxes);
   assert.equal(applyLift(boxes, 0, []), boxes);
 });
+
+// ── layoutArtboards: imported pages as frames ──────────────────────────────────
+
+const AB_CFG: any = {
+  ...CFG, kindField: 'kind', groupField: 'group', clipField: 'clip', labelField: 'label', fillField: 'bg',
+};
+const abOpts = (o: any = {}): any => {
+  let n = 0;
+  return {
+    cfg: AB_CFG, frameField: 'frame', frameKind: 'frame', orderField: 'order',
+    frameSeed: { kind: 'frame', bg: '' }, mintId: () => `id${++n}`, background: '#ffffff', ...o,
+  };
+};
+const page = (name: string, boxes: any[], w = 960, h = 540, extra: any = {}): any => ({ name, width: w, height: h, boxes, ...extra });
+
+test('layoutArtboards: one frame per page, left to right, with the page’s parts inside it', () => {
+  const rows = layoutArtboards([
+    page('Slide 1', [{ id: 'p0', kind: 'text', x: 10, y: 20, w: 100, h: 30 }]),
+    page('Slide 2', [{ id: 'p0', kind: 'box', x: 5, y: 5, w: 50, h: 50 }, { id: 'p1', kind: 'box', x: 0, y: 0, w: 1, h: 1 }]),
+  ], abOpts());
+  assert.equal(rows.length, 5, 'two frames + three members');
+  const frames = rows.filter((r) => r.kind === 'frame');
+  assert.deepEqual(frames.map((f) => [f.x, f.y, f.w, f.h, f.order, f.label]), [[0, 0, 960, 540, 0, 'Slide 1'], [960 + 77, 0, 960, 540, 1, 'Slide 2']],
+    'the first at the origin; the gap is 8 % of the widest page');
+  assert.deepEqual(frames.map((f) => f.frame), ['', ''], 'a frame never nests');
+  assert.deepEqual(frames.map((f) => f.bg), ['#ffffff', '#ffffff'], 'the document ground on a frame with no fill');
+  const m1 = rows[1]!, m2 = rows[3]!;
+  assert.equal(m1.frame, frames[0]!.id);
+  assert.deepEqual([m1.x, m1.y], [10, 20], 'page 1 members keep their place');
+  assert.equal(m2.frame, frames[1]!.id);
+  assert.deepEqual([m2.x, m2.y], [1037 + 5, 5], 'page 2 members shift by their frame’s x');
+  assert.equal(new Set(rows.map((r) => r.id)).size, 5, 'fresh, unique ids - two pages both arrived as p0');
+});
+
+test('layoutArtboards: references survive the re-id - clips re-point, groups stay per page', () => {
+  const rows = layoutArtboards([
+    page('A', [{ id: 'p0', kind: 'box', x: 0, y: 0, w: 10, h: 10, group: 'g1' }, { id: 'p1', kind: 'image', x: 0, y: 0, w: 10, h: 10, clip: 'p0', group: 'g1' }]),
+    page('B', [{ id: 'p0', kind: 'box', x: 0, y: 0, w: 10, h: 10, group: 'g1' }]),
+  ], abOpts());
+  const [, a0, a1, , b0] = rows;
+  assert.equal(a1!.clip, a0!.id, 'the mask id followed the box it names');
+  assert.equal(a0!.group, a1!.group, 'page A’s pair is still one group');
+  assert.notEqual(a0!.group, b0!.group, 'page B’s "g1" is not page A’s "g1"');
+});
+
+test('layoutArtboards: a page’s own ground beats the document’s; degenerate pages are dropped', () => {
+  const rows = layoutArtboards([
+    page('dark', [], 960, 540, { background: '#0C322C' }),
+    page('empty', [], 0, 0),
+    page('light', []),
+  ], abOpts());
+  assert.equal(rows.length, 2);
+  assert.deepEqual(rows.map((r) => r.bg), ['#0C322C', '#ffffff']);
+  assert.deepEqual(rows.map((r) => r.order), [0, 1]);
+  assert.deepEqual(layoutArtboards([], abOpts()), []);
+});
+

@@ -30,6 +30,16 @@ import { dirname, join } from 'node:path';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p: string): string => readFileSync(join(ROOT, p), 'utf8');
 
+/**
+ * The exact phrase a docs/privacy.md egress row uses to declare that its
+ * crossing does not exist in the web app - only in the desktop apps (Send to
+ * LinkedIn, plans/129 WP4b: LinkedIn's token endpoint requires a client secret,
+ * which a web page cannot hold). Such a row is held to the OPPOSITE rule from
+ * every other: its hosts must be ABSENT from the CSP. Mechanical on purpose -
+ * a row that wants the exemption has to say those three words.
+ */
+const DESKTOP_ONLY = 'desktop apps only';
+
 interface HeaderEntry { key: string; value: string }
 interface VercelConfig { headers?: Array<{ source: string; headers: HeaderEntry[] }> }
 
@@ -163,17 +173,35 @@ test('every host docs/privacy.md discloses is ALLOWED by the CSP', () => {
   // absent from the first draft of the policy.
   const privacy = read('docs/privacy.md');
   const csp = rootHeaders['Content-Security-Policy']!;
-  // Hosts named in backticks in the egress table.
-  const declared = [...privacy.matchAll(/`(?:\*\.)?([a-z0-9-]+(?:\.[a-z0-9-]+)+)`/g)]
-    .map(m => m[1] ?? '')
-    .filter(h => /\.(com|org|net|io|dev|tools)$/.test(h))
-    .filter(h => !h.endsWith('lolly.tools'));   // first-party, covered by 'self'
+  // Hosts named in backticks in the egress table, LINE BY LINE - because a row
+  // saying "desktop apps only" (Send to LinkedIn, plans/129 WP4b) is making the
+  // opposite promise about the web app, and is checked as such below.
+  const hostsIn = (text: string): string[] =>
+    [...text.matchAll(/`(?:\*\.)?([a-z0-9-]+(?:\.[a-z0-9-]+)+)`/g)]
+      .map(m => m[1] ?? '')
+      .filter(h => /\.(com|org|net|io|dev|tools)$/.test(h))
+      .filter(h => !h.endsWith('lolly.tools'));   // first-party, covered by 'self'
+  const lines = privacy.split('\n');
+  const desktopOnly = new Set(lines.filter(l => l.includes(DESKTOP_ONLY)).flatMap(hostsIn));
+  const declared = lines.filter(l => !l.includes(DESKTOP_ONLY)).flatMap(hostsIn)
+    .filter(h => !desktopOnly.has(h));
   assert.ok(declared.length >= 3, 'expected the egress table to name hosts in backticks');
   for (const host of new Set(declared)) {
     const wildcard = host.replace(/^[a-z0-9-]+\./, '*.');
     assert.ok(
       csp.includes(host) || csp.includes(wildcard),
       `docs/privacy.md says the app contacts ${host}, but the CSP does not allow it - that feature is broken on any deployment serving these headers`,
+    );
+  }
+  // The new invariant, not a weakening of the old one: a desktop-only crossing
+  // must be UNREACHABLE from the web app, so its hosts have to be missing from
+  // the policy. Adding one to the CSP without moving the row fails here.
+  assert.ok(desktopOnly.size >= 2, 'the desktop-only row names its hosts in backticks');
+  for (const host of desktopOnly) {
+    const wildcard = host.replace(/^[a-z0-9-]+\./, '*.');
+    assert.ok(
+      !csp.includes(host) && !csp.includes(wildcard),
+      `docs/privacy.md says ${host} is reached by the desktop apps only, but the web CSP allows it`,
     );
   }
 });

@@ -22,17 +22,21 @@
  *
  * The command ALLOWLIST below is the security boundary: without it this would
  * be a general relay to every Penpot RPC command (profile reads, team admin,
- * deletion, ...) reachable from any origin with a stolen token. Only the four
- * commands the publish flow actually uses may pass; everything else is 403.
+ * deletion, ...) reachable from any origin with a stolen token. Only the two
+ * commands the send flow actually uses may pass - list the user's projects,
+ * and import a `.penpot` archive into the one they picked - and everything
+ * else is 403. `import-binfile` answers a server-sent-event stream (progress
+ * per section, then `end` or `error`), so the upstream body is PIPED through
+ * rather than buffered.
  */
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 
 /** The ONLY RPC commands this proxy will relay - see the header comment. */
 export const ALLOWLIST = [
   'get-all-projects',
-  'get-project-files',
-  'create-file',
-  'upload-file-media-object',
+  'import-binfile',
 ] as const;
 const ALLOWED = new Set<string>(ALLOWLIST);
 
@@ -55,7 +59,7 @@ const UPSTREAM_TIMEOUT_MS = 25_000;
 // so a misbehaving client can't balloon the buffer.
 const MAX_BODY = 32 * 1024 * 1024;
 
-// Tell @vercel/node NOT to parse the body: upload-file-media-object is
+// Tell @vercel/node NOT to parse the body: import-binfile is
 // multipart/form-data and must reach Penpot byte-exact - a parse/re-serialise
 // round trip would corrupt the boundary. We buffer the raw stream ourselves.
 export const config = { api: { bodyParser: false } };
@@ -154,12 +158,25 @@ export function createPenpotProxy(
     // Pass status + body through untouched; the shell interprets Penpot's own
     // JSON (including its error shapes). Command + status only - never headers.
     console.log(`[penpot] ${command} -> ${upstream.status}`);
-    const payload = Buffer.from(await upstream.arrayBuffer());
     res.writeHead(upstream.status, {
       ...CORS,
       'content-type': upstream.headers.get('content-type') ?? 'application/json',
     });
-    res.end(payload);
+    // import-binfile answers text/event-stream: PIPE it so an import's progress
+    // events reach the browser as they happen instead of the whole stream being
+    // held in memory until Penpot finishes. Buffering stays the fallback for a
+    // response with no readable web stream (some fetch stubs).
+    if (upstream.body) {
+      try {
+        await pipeline(Readable.fromWeb(upstream.body as Parameters<typeof Readable.fromWeb>[0]), res);
+      } catch {
+        // The client went away, or the stream broke after the head was sent -
+        // there is no error body to write at that point, so just close.
+        if (!res.writableEnded) res.end();
+      }
+    } else {
+      res.end(Buffer.from(await upstream.arrayBuffer()));
+    }
   };
 }
 

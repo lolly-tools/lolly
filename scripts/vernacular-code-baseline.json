@@ -1,5 +1,5 @@
 {
-  "docs/build.ts": 8,
+  "docs/build.ts": 7,
   "docs/page-seal.ts": 1,
   "docs/player/narration-host.ts": 2,
   "docs/shot-anatomy.ts": 1,
@@ -465,7 +465,7 @@
   "tests/design-path.test.ts": 2,
   "tests/design-sequence.test.ts": 1,
   "tests/design-version.test.ts": 5,
-  "tests/docs-claims.test.ts": 5,
+  "tests/docs-claims.test.ts": 4,
   "tests/docs-logos.test.ts": 1,
   "tests/docs-masthead.test.ts": 1,
   "tests/docs-search-index.test.ts": 1,

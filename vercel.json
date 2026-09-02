@@ -122,6 +122,8 @@
     { "source": "/pdf", "destination": "/view/unpack.html" },
     { "source": "/profile", "destination": "/view/profile.html" },
     { "source": "/docs", "destination": "/info/index.html" },
+    { "source": "/docs/:door(start|create|build|operate|trust)/:slug([a-z0-9-]+)", "destination": "/info/:door/:slug.html" },
+    { "source": "/docs/:lang(ar|bg|bn|cs|de|es|fr|hi|id|it|ja|ko|ms|nl|no|pl|pt|ro|sv|tl|tr|uk|ur|vi|zh|zh-hant)/:door(start|create|build|operate|trust)/:slug([a-z0-9-]+)", "destination": "/info/:lang/:door/:slug.html" },
     { "source": "/docs/:slug([a-z0-9-]+)", "destination": "/info/:slug.html" },
     { "source": "/docs/:lang(ar|bg|bn|cs|de|es|fr|hi|id|it|ja|ko|ms|nl|no|pl|pt|ro|sv|tl|tr|uk|ur|vi|zh|zh-hant)/:slug([a-z0-9-]+)", "destination": "/info/:lang/:slug.html" },
     { "source": "/tool/:file([a-z0-9-]+\\.[a-z0-9-]+)", "destination": "/api/mcp/[...path]" },

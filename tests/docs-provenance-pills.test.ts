@@ -64,9 +64,30 @@ test('every provenance marker in docs/*.md closes its brace', () => {
 // what the source could produce. A failure here means the build output on disk
 // is older than docs/ - rebuild with `npm run build:info`.
 
+// English pages live behind door directories (plans/177 P1); the flat root now
+// holds the landing, the redirect stubs and the generated side-door folders.
+const DOORS = ['start', 'create', 'build', 'operate', 'trust'];
 const builtPages = existsSync(BUILT)
-  ? readdirSync(BUILT).filter((f) => f.endsWith('.html'))
+  ? [
+      ...readdirSync(BUILT).filter((f) => f.endsWith('.html')),
+      ...DOORS.flatMap((d) =>
+        existsSync(join(BUILT, d))
+          ? readdirSync(join(BUILT, d)).filter((f) => f.endsWith('.html')).map((f) => join(d, f))
+          : []),
+    ]
   : [];
+
+/** The built HTML for one docs source file - its doored path when one exists,
+ *  falling back to the flat root (the landing; a stub would false-negative). */
+const builtFor = (mdFile: string): string | null => {
+  const html = mdFile.replace(/\.md$/, '.html');
+  for (const d of DOORS) {
+    const p = join(BUILT, d, html);
+    if (existsSync(p)) return p;
+  }
+  const flat = join(BUILT, html);
+  return existsSync(flat) ? flat : null;
+};
 
 test('no built page ships an unrendered provenance marker', { skip: builtPages.length ? false : 'no built /info on disk' }, () => {
   const leaked: string[] = [];
@@ -84,8 +105,8 @@ test('a page whose source uses pills ships them as rendered spans', { skip: buil
   for (const f of mdFiles) {
     const src = readFileSync(join(DOCS, f), 'utf-8');
     if (!new RegExp(`%(${KINDS.join('|')})\\{`).test(src)) continue;
-    const built = join(BUILT, f.replace(/\.md$/, '.html'));
-    if (!existsSync(built)) continue;
+    const built = builtFor(f);
+    if (!built) continue;
     assert.match(readFileSync(built, 'utf-8'), /class="prov-pill prov-/,
       `${f} authors provenance pills but its built page has none - stale artifact?`);
   }

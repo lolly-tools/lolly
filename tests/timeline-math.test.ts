@@ -28,7 +28,7 @@ import {
   removeAndRipple, rippleOverlays, seqBoxes, setClipIn, setDuration, setSpeed,
   detachAudio, isThroughEdit, joinClips, reattachAudio, restackOverlay, splitAll,
   onionNeighbours, ONION_MAX_STEPS,
-  snapTime, splitBox, trimClip,
+  snapTime, splitBox, trimClip, trimClips,
   // The keyframe EDITING surface (plans/104 section 8) - the arithmetic the panel is
   // forbidden from doing itself.
   KF_NEUTRAL, KF_POSE_SEED, clearKfTrack, kfDiamondAt, kfDiamondTimes, kfDuplicateMs,
@@ -489,6 +489,62 @@ test('trimClip: open-ended and unknown clips are handled without inventing NaN',
   const miss = trimClip(openEnded, cfg, 'nope', 'in', 1, null);
   assert.notEqual(miss, openEnded);
   assert.deepEqual(miss, openEnded);
+});
+
+// ── 6b. trimClips - one edge, the whole selection ──────────────────────────────
+
+test('trimClips out: every selected clip grows by the same delta, the rest are untouched', () => {
+  const before = [overlay('o', 1, { dur: 2 }), overlay('p', 4, { dur: 1 }), overlay('q', 8, { dur: 3 })];
+  const after = trimClips(before, cfg, ['o', 'p'], 'out', 1.5, () => null);
+  assert.equal(byId(after, 'o').dur, 3.5);
+  assert.equal(byId(after, 'p').dur, 2.5);
+  assert.equal(byId(after, 'q').dur, 3, 'not selected, so not trimmed');
+  assert.equal(byId(after, 'o').start, 1, 'an out-trim never moves a start');
+  assert.equal(byId(after, 'p').start, 4);
+});
+
+test('trimClips in: each head moves by the delta and consumes its own source', () => {
+  const before = [overlay('o', 2, { dur: 3, clipIn: 0, speed: 1 }), overlay('p', 5, { dur: 3, clipIn: 1, speed: 2 })];
+  const after = trimClips(before, cfg, ['o', 'p'], 'in', 0.5, () => null);
+  const o = byId(after, 'o'), p = byId(after, 'p');
+  assert.equal(o.start, 2.5); assert.equal(o.dur, 2.5); assert.equal(o.clipIn, 0.5);
+  assert.equal(p.start, 5.5); assert.equal(p.dur, 2.5); assert.equal(p.clipIn, 2, 'd × speed, like trimClip');
+});
+
+test('trimClips clamps PER CLIP: the one that runs out of file stops, the others keep going', () => {
+  // o has 1s of headroom (3s source behind a 2s clip); p is a card with no source at all.
+  const before = [overlay('o', 0, { dur: 2, clipIn: 0 }), overlay('p', 5, { dur: 2 })];
+  const media = (id: string): number | null => (id === 'o' ? 3 : null);
+  const after = trimClips(before, cfg, ['o', 'p'], 'out', 4, media);
+  assert.equal(byId(after, 'o').dur, 3, 'held at the end of its source');
+  assert.equal(byId(after, 'p').dur, 6, 'unconstrained, so it took the whole delta');
+  // And the floor is per clip too: shrinking past MIN_DUR stops each at MIN_DUR.
+  const floored = trimClips(before, cfg, ['o', 'p'], 'out', -9, media);
+  assert.equal(byId(floored, 'o').dur, MIN_DUR);
+  assert.equal(byId(floored, 'p').dur, MIN_DUR);
+});
+
+test('trimClips on the magnetic row: both clips shorten and the row stays gapless', () => {
+  const before = [clip('a', { start: 0, dur: 3 }), clip('b', { start: 3, dur: 2 }), clip('c', { start: 5, dur: 4 }), overlay('o', 5.5, { dur: 1 })];
+  const after = trimClips(before, cfg, ['a', 'b'], 'out', -1, () => null);
+  assert.deepEqual(seqBoxes(after, cfg).map((b) => [b.id, b.start, b.dur]), [['a', 0, 2], ['b', 2, 1], ['c', 3, 4]]);
+  assert.equal(byId(after, 'o').start, 3.5, 'the overlay anchored inside c rippled with it');
+  // The same edge on the in side: both heads come off the source, starts repack from 0.
+  const heads = trimClips(before, cfg, ['b', 'c'], 'in', 1, () => null);
+  assert.deepEqual(seqBoxes(heads, cfg).map((b) => [b.id, b.start, b.dur, b.clipIn ?? 0]), [['a', 0, 3, 0], ['b', 3, 1, 1], ['c', 4, 3, 1]]);
+});
+
+test('trimClips skips ids that are not timed rows, and one id is exactly trimClip', () => {
+  const before = [overlay('o', 1, { dur: 2 }), scenery('s'), overlay('p', 4, { dur: 1 })];
+  const after = trimClips(before, cfg, ['o', 's', 'ghost'], 'out', 1, () => null);
+  assert.equal(byId(after, 'o').dur, 3);
+  assert.deepEqual(byId(after, 's'), scenery('s'), 'scenery is never given timing by a trim');
+  assert.equal(byId(after, 'p').dur, 1);
+  assert.deepEqual(trimClips(before, cfg, ['o'], 'in', 0.5, () => null), trimClip(before, cfg, 'o', 'in', 0.5, null));
+  // Nothing eligible: a fresh copy, unchanged.
+  const none = trimClips(before, cfg, ['s', 'ghost'], 'out', 1, () => null);
+  assert.notEqual(none, before);
+  assert.deepEqual(none, before);
 });
 
 // ── 7. splitBox ────────────────────────────────────────────────────────────────

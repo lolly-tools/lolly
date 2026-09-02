@@ -28,7 +28,10 @@ import { repoRoot } from './repo-root.ts';
 // `txt` is in neither. The web shell produces it by serialising the rendered DOM
 // (`renderPlainText`). So it is a browser-tier format like `ico`, and claiming otherwise
 // made `--export=txt` exit 3 with a message blaming a browser that was never consulted.
-export const NODE_FORMATS = ['svg', 'svgz', 'emf', 'wmf', 'eps', 'eps-cmyk', 'dxf', 'bmp', 'exr', 'hdr', 'html', 'json', 'csv', 'ics', 'vcf', 'md'];
+// `penpot` joins the DOM-free list for the same reason emf/eps do: the .penpot writer
+// (engine/src/penpot-file.ts) is pure - it reads the tool's own <svg> and emits zip
+// entries, with no rasteriser and no browser anywhere in the path (plans/178).
+export const NODE_FORMATS = ['svg', 'svgz', 'emf', 'wmf', 'eps', 'eps-cmyk', 'dxf', 'penpot', 'bmp', 'exr', 'hdr', 'html', 'json', 'csv', 'ics', 'vcf', 'md'];
 
 /**
  * The float interchange formats (plans/61-deeprichpixels.md section 4.2 / section 6 B3, surfaced

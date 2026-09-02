@@ -93,20 +93,22 @@ test('the shared landing stylesheet still hides bands until .visible, so the ove
   );
 });
 
-test('the audience tabs are CSS-only: radio pairing in the stylesheet, radios in the build', (t) => {
-  // The whole tab mechanism is stylesheet + markup (plan 123 D1 final form) - if either
-  // half loses its side of the contract, the section silently shows one frozen card.
+test('the persona device is CSS-only: radio pairing in the stylesheet, radios in the build', (t) => {
+  // The device (top tabs + side tabs, plans/177) is stylesheet + markup, the same
+  // contract the audience tabs held before it: if either half loses its side, the
+  // section silently shows one frozen pane - and the in-app reader (which strips
+  // scripts) would break invisibly.
   const css = readFileSync(join(WEB_SRC, 'styles/parts/docs-landing.css'), 'utf8');
   assert.ok(
-    /\.aud-radio:nth-of-type\(1\):checked ~ \.audience-panels > \.audience-card:nth-child\(1\)/.test(css),
-    'the :checked pairing rules drive card visibility',
+    /#door-creators:checked ~ \.persona-panes \.persona-pane:nth-child\(1\)/.test(css),
+    'the :checked pairing rules drive door-pane visibility',
   );
   assert.ok(
-    /\.aud-radio ~ \.audience-panels > \.audience-card\{display:none\}/.test(css),
-    'the hide rule anchors on a preceding radio sibling (so the machines band is never gated)',
+    /\.lane-radio:nth-of-type\(1\):checked ~ \.lane-cols \.lane-panes \.lane-pane:nth-child\(1\)/.test(css),
+    'the :checked pairing rules drive lane-pane visibility',
   );
   assert.ok(
-    !/display:none/.test(css.match(/\.aud-radio\{[^}]*\}/)?.[0] ?? ''),
+    !/display:none/.test(css.match(/\.persona-radio,\.lane-radio\{[^}]*\}/)?.[0] ?? 'display:none'),
     'the radios stay focusable (visually hidden, never display:none) - they ARE the keyboard interface',
   );
 
@@ -118,7 +120,8 @@ test('the audience tabs are CSS-only: radio pairing in the stylesheet, radios in
     return;
   }
   const landing = readFileSync(join(INFO, 'index.html'), 'utf8');
-  assert.ok(landing.includes('<input class="aud-radio" type="radio" name="audience"'), 'the built landing ships the radio group');
-  assert.ok(landing.includes('<label class="audience-tab" for="aud-'), 'each pill is a label for its radio');
-  assert.ok(!landing.includes('activateBySlug'), 'no tab script ships on the landing');
+  assert.ok(landing.includes('<input class="persona-radio" type="radio" name="persona-door"'), 'the built landing ships the door radio group');
+  assert.ok(landing.includes('<input class="lane-radio" type="radio" name="lane-creators"'), 'each pane ships its lane radio group');
+  assert.ok(landing.includes('<label class="persona-tab" for="door-'), 'each door tab is a label for its radio');
+  assert.ok(landing.includes('<label class="lane-tab" for="lane-'), 'each side tab is a label for its radio');
 });

@@ -67,10 +67,6 @@ export const NOT_PAGES: Record<string, string> = {
   'README.md':
     'the docs directory\'s own index - a map for contributors reading the repo, ' +
     'not a page for readers of the site (it describes the nav rather than joining it)',
-  'faq.md':
-    'the source for the accordion on the /info landing page, parsed by loadFaqs() in ' +
-    'build.ts - it ships as part of index.html, so registering it would publish the ' +
-    'same content twice',
 };
 
 /**

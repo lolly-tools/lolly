@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-02T12:52:09.541Z",
+  "generatedAt": "2026-09-02T15:42:04.921Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -290,6 +290,7 @@
       "added": "2026-07-08",
       "formats": [
         "svg",
+        "penpot",
         "png",
         "jpeg",
         "webp",
@@ -760,6 +761,7 @@
       "added": "2026-07-08",
       "formats": [
         "svg",
+        "penpot",
         "emf",
         "dxf",
         "pdf",
@@ -1038,6 +1040,7 @@
         "jpg",
         "png",
         "svg",
+        "penpot",
         "pdf"
       ],
       "width": 760,
@@ -1322,6 +1325,7 @@
         "jpg",
         "webp",
         "svg",
+        "penpot",
         "pdf",
         "webm",
         "mp4",
@@ -1633,6 +1637,7 @@
       "added": "2026-07-08",
       "formats": [
         "svg",
+        "penpot",
         "png",
         "jpg",
         "webp",
@@ -2461,6 +2466,7 @@
       "added": "2026-07-17",
       "formats": [
         "svg",
+        "penpot",
         "emf",
         "eps",
         "eps-cmyk",
@@ -2875,6 +2881,7 @@
         "jpg",
         "webp",
         "svg",
+        "penpot",
         "pdf"
       ],
       "width": 760,
@@ -3015,6 +3022,7 @@
       "added": "2026-07-31",
       "formats": [
         "svg",
+        "penpot",
         "pdf",
         "pdf-cmyk",
         "png",
@@ -3372,6 +3380,7 @@
       "added": "2026-08-07",
       "formats": [
         "svg",
+        "penpot",
         "pdf",
         "pdf-cmyk",
         "emf",
@@ -3758,6 +3767,7 @@
       "formats": [
         "png",
         "svg",
+        "penpot",
         "pdf",
         "pdf-cmyk",
         "cmyk-tiff",
@@ -4223,6 +4233,7 @@
       "added": "2026-08-16",
       "formats": [
         "svg",
+        "penpot",
         "png",
         "jpg",
         "webp",
@@ -4557,6 +4568,7 @@
         "pdf",
         "pptx",
         "svg",
+        "penpot",
         "md",
         "docx",
         "odt",
@@ -4703,6 +4715,7 @@
         "apng",
         "png",
         "svg",
+        "penpot",
         "svg-anim",
         "webp",
         "webp-anim"
@@ -4840,6 +4853,7 @@
         "pdf",
         "pptx",
         "svg",
+        "penpot",
         "md"
       ],
       "width": 794,
@@ -5191,6 +5205,7 @@
         "jpg",
         "webp",
         "svg",
+        "penpot",
         "webm",
         "mp4",
         "exr",
@@ -5400,6 +5415,7 @@
       "added": "2026-08-24",
       "formats": [
         "svg",
+        "penpot",
         "png",
         "pdf",
         "csv",
@@ -5621,6 +5637,7 @@
       "formats": [
         "png",
         "svg",
+        "penpot",
         "srt",
         "vtt",
         "json",
@@ -5824,6 +5841,7 @@
         "pdf",
         "pdf-cmyk",
         "svg",
+        "penpot",
         "png",
         "jpg",
         "webp",
@@ -6062,6 +6080,7 @@
         "pdf",
         "pdf-cmyk",
         "svg",
+        "penpot",
         "png",
         "cmyk-tiff"
       ],
@@ -6304,6 +6323,7 @@
         "pdf",
         "pdf-cmyk",
         "svg",
+        "penpot",
         "png",
         "jpg",
         "webp",
@@ -7113,6 +7133,7 @@
         "jpg",
         "webp",
         "svg",
+        "penpot",
         "pdf",
         "avif",
         "tiff"
@@ -7332,6 +7353,7 @@
       "added": "2026-08-24",
       "formats": [
         "svg",
+        "penpot",
         "png",
         "webp",
         "avif",
@@ -7503,6 +7525,7 @@
       "added": "2026-08-26",
       "formats": [
         "svg",
+        "penpot",
         "pdf",
         "png",
         "jpg",
@@ -8202,6 +8225,7 @@
         "png",
         "md",
         "svg",
+        "penpot",
         "emf",
         "pdf",
         "pdf-cmyk",
@@ -8560,6 +8584,7 @@
         "tiff",
         "gif",
         "svg",
+        "penpot",
         "pdf",
         "mp4",
         "webm",
@@ -8700,6 +8725,7 @@
         "jpg",
         "webp",
         "svg",
+        "penpot",
         "pdf",
         "avif",
         "tiff"
@@ -8963,6 +8989,7 @@
       "added": "2026-07-11",
       "formats": [
         "svg",
+        "penpot",
         "png",
         "jpg",
         "webp",
@@ -9300,6 +9327,7 @@
         "ico",
         "png",
         "svg",
+        "penpot",
         "zip",
         "webp"
       ],
@@ -9443,6 +9471,7 @@
         "jpg",
         "avif",
         "svg",
+        "penpot",
         "pdf"
       ],
       "width": 1024,
@@ -9625,6 +9654,7 @@
       "formats": [
         "png",
         "svg",
+        "penpot",
         "pdf",
         "jpg",
         "webp"
@@ -9758,6 +9788,7 @@
       "formats": [
         "png",
         "svg",
+        "penpot",
         "jpg",
         "webp",
         "pdf"
@@ -10116,6 +10147,7 @@
         "ics",
         "png",
         "svg",
+        "penpot",
         "pdf",
         "jpg",
         "webp"
@@ -10294,6 +10326,7 @@
       "added": "2026-08-28",
       "formats": [
         "svg",
+        "penpot",
         "pdf",
         "dxf",
         "png",
@@ -10475,6 +10508,7 @@
       "formats": [
         "png",
         "svg",
+        "penpot",
         "pdf",
         "dxf",
         "jpg",
@@ -10621,6 +10655,7 @@
         "pdf",
         "pdf-cmyk",
         "svg",
+        "penpot",
         "dxf",
         "png",
         "jpg",

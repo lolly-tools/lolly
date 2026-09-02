@@ -14,7 +14,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Readable } from 'node:stream';
+import { Readable, Writable } from 'node:stream';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
 import { ALLOWLIST, createPenpotProxy } from '../services/penpot/vercel-entry.ts';
@@ -36,7 +36,10 @@ function makeReq(opts: {
   return req;
 }
 
-/** A fake ServerResponse capturing status, headers, and body. */
+/** A fake ServerResponse capturing status, headers, and body. A REAL Writable:
+ *  the handler pipes the upstream stream into it (import-binfile answers SSE),
+ *  and a pipe needs a destination with the whole Writable surface, not two
+ *  stubbed methods. */
 function makeRes(): {
   res: ServerResponse;
   status: () => number;
@@ -46,11 +49,17 @@ function makeRes(): {
   let status = 0;
   let headers: Record<string, string> = {};
   const chunks: Buffer[] = [];
-  const res = {
-    writeHead(s: number, h?: Record<string, string>) { status = s; headers = h ?? {}; return this; },
-    end(c?: unknown) { if (c !== undefined) chunks.push(Buffer.from(c as Buffer | string)); },
-  } as unknown as ServerResponse;
-  return { res, status: () => status, headers: () => headers, body: () => Buffer.concat(chunks) };
+  const sink = new Writable({
+    write(c: Buffer, _enc, cb) { chunks.push(Buffer.from(c)); cb(); },
+  });
+  (sink as unknown as { writeHead: (s: number, h?: Record<string, string>) => unknown }).writeHead =
+    (s: number, h?: Record<string, string>) => { status = s; headers = h ?? {}; return sink; };
+  return {
+    res: sink as unknown as ServerResponse,
+    status: () => status,
+    headers: () => headers,
+    body: () => Buffer.concat(chunks),
+  };
 }
 
 /** Run fn with console spied; returns everything logged, stringified. */
@@ -81,7 +90,7 @@ test('allowlisted command forwards POST with Authorization and raw body intact',
   const logged = await withConsoleSpy(() =>
     handler(
       makeReq({
-        url: '/api/penpot/rpc/upload-file-media-object',
+        url: '/api/penpot/rpc/import-binfile',
         headers: {
           authorization: TOKEN,
           'content-type': 'multipart/form-data; boundary=xyz',
@@ -93,7 +102,7 @@ test('allowlisted command forwards POST with Authorization and raw body intact',
     ),
   );
 
-  assert.equal(seenUrl, 'https://design.penpot.app/api/rpc/command/upload-file-media-object');
+  assert.equal(seenUrl, 'https://design.penpot.app/api/rpc/command/import-binfile');
   assert.equal(seenInit?.method, 'POST');
   const h = seenInit?.headers as Record<string, string>;
   assert.equal(h.authorization, TOKEN, 'PAT must transit untouched');
@@ -121,7 +130,44 @@ test('every allowlisted command is accepted', async () => {
   }
 });
 
+test('import-binfile streams the upstream body through with its own content-type', async () => {
+  // The real answer is a server-sent-event stream: progress per section, then
+  // `end` with the new file id. The handler must PIPE it, not buffer it.
+  const sse = 'event: progress\ndata: {"~:section":"~:manifest"}\n\nevent: end\ndata: ["~ubf9b4e3a-0b2a-4a4c-9c1e-2a6b7d8e9f01"]\n\n';
+  const stream = new ReadableStream<Uint8Array>({
+    start(c) {
+      c.enqueue(new TextEncoder().encode(sse.slice(0, 40)));
+      c.enqueue(new TextEncoder().encode(sse.slice(40)));
+      c.close();
+    },
+  });
+  const handler = createPenpotProxy(async () =>
+    new Response(stream, { status: 200, headers: { 'content-type': 'text/event-stream' } }));
+  const { res, status, headers, body } = makeRes();
+  await withConsoleSpy(() =>
+    handler(makeReq({ url: '/api/penpot/rpc/import-binfile', headers: { authorization: TOKEN } }), res));
+
+  assert.equal(status(), 200);
+  assert.equal(headers()['content-type'], 'text/event-stream');
+  assert.equal(headers()['access-control-allow-origin'], '*');
+  assert.equal(body().toString(), sse, 'every chunk reaches the caller, in order');
+});
+
 // ─── the allowlist boundary ──────────────────────────────────────────────────
+
+test('the retired publish commands are off the allowlist now', async () => {
+  // create-file + upload-file-media-object were the 2.x no-op path (an
+  // is-local=false media row nothing references); import-binfile replaced them.
+  for (const cmd of ['create-file', 'upload-file-media-object', 'get-project-files']) {
+    let fetched = false;
+    const handler = createPenpotProxy(async () => { fetched = true; return okJson(); });
+    const { res, status } = makeRes();
+    await withConsoleSpy(() =>
+      handler(makeReq({ url: `/api/penpot/rpc/${cmd}`, headers: { authorization: TOKEN } }), res));
+    assert.equal(status(), 403, `${cmd} must be refused`);
+    assert.equal(fetched, false, `${cmd} must never reach upstream`);
+  }
+});
 
 test('a command off the allowlist is refused with 403 naming the allowlist', async () => {
   let fetched = false;
@@ -178,7 +224,7 @@ test('upstream network failure returns 502 with a JSON hint, token unlogged', as
   const { res, status, headers, body } = makeRes();
   const logged = await withConsoleSpy(() =>
     handler(
-      makeReq({ url: '/api/penpot/rpc/create-file', headers: { authorization: TOKEN } }),
+      makeReq({ url: '/api/penpot/rpc/import-binfile', headers: { authorization: TOKEN } }),
       res,
     ),
   );
@@ -198,7 +244,7 @@ test('upstream non-2xx status passes through untouched', async () => {
   );
   const { res, status, body } = makeRes();
   await withConsoleSpy(() =>
-    handler(makeReq({ url: '/api/penpot/rpc/get-project-files', headers: { authorization: TOKEN } }), res),
+    handler(makeReq({ url: '/api/penpot/rpc/get-all-projects', headers: { authorization: TOKEN } }), res),
   );
   assert.equal(status(), 401, 'Penpot speaks its own error statuses through the proxy');
   assert.equal(body().toString(), '{"type":"authentication"}');

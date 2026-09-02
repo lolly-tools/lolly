@@ -323,6 +323,27 @@ function evalDataLiteral<T>(text: string, what: string, where = 'docs/build.ts')
   }
 }
 
+/**
+ * The landing's authored copy lives in docs/site/*.json (plans/177 P4: the door
+ * is DATA the way every other docs page is, not literals in build.ts). Its
+ * string values are looked up through the same `t()` as the chrome, so they
+ * are site-corpus keys too. Walked here with the SAME skip list build.ts's
+ * `localizeSiteJson` applies (`LANDING_I18N_SKIP` there - keys whose values are
+ * routes, slugs, file names, css classes and code notes, never copy).
+ * tests/docs-landing-i18n.test.ts pins the two lists and the file list equal,
+ * so a key added on one side cannot be quietly missed on the other.
+ */
+export const LANDING_SITE_JSON = ['hero-chrome.json', 'covers.json', 'whatwhy.json', 'persona.json', 'work.json', 'behind.json'];
+export const LANDING_I18N_SKIP = ['href', 'slug', 'class', 'img', 'video', 'mascot', 'id', 'count', 'note'];
+
+/** Every translatable string in one landing JSON value, in document order. */
+export function landingJsonStrings(value: unknown, out: string[] = [], key = ''): string[] {
+  if (typeof value === 'string') { if (!LANDING_I18N_SKIP.includes(key) && value.trim()) out.push(value); }
+  else if (Array.isArray(value)) for (const v of value) landingJsonStrings(v, out, key);
+  else if (value && typeof value === 'object') for (const [k, v] of Object.entries(value)) landingJsonStrings(v, out, k);
+  return out;
+}
+
 interface SitePage { slug: string; title: string; isLanding?: boolean }
 interface SiteNavLink { label: string }
 interface SiteSidebar { title: string; groups: Array<{ label: string; items: Array<{ label: string }> }> }
@@ -362,6 +383,15 @@ export function extractSiteKeys(): string[] {
   // t(page.title) - but wrapPage uses LANDING_TITLE for the landing page and
   // never calls t() on its title, so `index`'s "Lolly" is deliberately not a key.
   for (const page of pages) if (!page.isLanding) keys.add(page.title);
+
+  // The landing content files (see LANDING_SITE_JSON above).
+  for (const name of LANDING_SITE_JSON) {
+    const p = join(REPO_ROOT, 'docs', 'site', name);
+    if (!existsSync(p)) throw new Error(`site corpus: docs/site/${name} is missing - the landing cannot build without it`);
+    const strings = landingJsonStrings(JSON.parse(readFileSync(p, 'utf8')));
+    if (!strings.length) throw new Error(`site corpus: docs/site/${name} yielded no copy - the walk is broken, not the file`);
+    for (const str of strings) keys.add(str);
+  }
 
   return [...keys];
 }

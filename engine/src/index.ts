@@ -620,6 +620,20 @@ export {
   scanPenpotAppliedTokens,
 } from './brand-import.ts';
 export type { TokensExtraction, PenpotUsage, PenpotUsageColor, PenpotUsageGradient, PenpotAppliedToken } from './brand-import.ts';
+// .penpot writer (plans/178): binfile-v3 entries from a Lolly document + the brand tokens.
+export {
+  buildPenpotEntries, boxesToPenpotDoc, svgToPenpotDoc, imageToPenpotDoc, penpotTokensJson,
+  parsePenpotImportStream, penpotWorkspaceUrl, imageDimensions, decodeDataUrl, decodeBase64,
+  parsePenpotColor, gradSpecToPenpot, designTextRuns, penpotUuid, seededPenpotUuid,
+  PENPOT_MIME, PENPOT_ROOT_ID, PENPOT_FILE_VERSION, PENPOT_FEATURES, PENPOT_MIGRATIONS, PENPOT_IMAGE_MTYPES,
+} from './penpot-file.ts';
+export type {
+  PenpotDoc, PenpotIrPage, PenpotIrShape, PenpotIrBoard, PenpotIrGroup, PenpotIrRect, PenpotIrCircle, PenpotIrPath,
+  PenpotIrText, PenpotIrImage, PenpotIrFill, PenpotIrGradient, PenpotIrGradientStop, PenpotIrStroke, PenpotIrShadow,
+  PenpotIrTextRun, PenpotIrParagraph, PenpotIrTypography, PenpotPaletteColor, PenpotMedia, PenpotBuild,
+  PenpotBuildOptions, BoxesToPenpotOptions, SvgToPenpotOptions, SvgToPenpotResult, PenpotPendingImage,
+  PenpotImportResult, PenpotColor, PenpotMatrix,
+} from './penpot-file.ts';
 export {
   parseThemedAssetId, buildThemedAssetId, isThemableIconSvg, isValidThemeId,
   applyIconTheme, restyleIconTheme, parseIconThemesDoc,

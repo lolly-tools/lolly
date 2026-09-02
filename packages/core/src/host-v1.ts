@@ -1898,6 +1898,16 @@ export interface RecordOpts {
    *  'environment' (rear). Ignored for audio-only and for source:'screen'; falls back to any
    *  camera if unavailable. */
   facingMode?: 'user' | 'environment';
+  /**
+   * v1.165 - a target FRAME for a camera take: the shell cover-crops and scales the
+   * camera into a canvas of exactly this size and records THAT, so the clip matches a
+   * target such as the artboard's export dimensions instead of whatever the camera
+   * natively produces (a 4:3 webcam into a 9:16 story, say). Video only; the live
+   * self-view (where the shell offers one) shows the same framing the file gets.
+   * Ignored when either side is not a positive integer. Costs one canvas redraw per
+   * frame, so it is asked for by the caller that needs an exact size, never assumed.
+   */
+  frame?: { width: number; height: number };
   /** Which microphone to record from (v1.154, device picker) - a specific
    *  `deviceId`, else the platform default. Pairs with `MeterAPI.start({deviceId})`:
    *  a sound-check meter MUST open the SAME mic as the take, or its levels describe
