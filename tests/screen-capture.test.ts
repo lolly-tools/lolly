@@ -398,9 +398,11 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // master true-peak limiter, plans/165 Slice E - createTruePeakLimiter in
   // audio-dynamics.ts, the WP-7 stretch gate; see audio-dynamics.test.ts). Then
   // 1.162.0 (activitySpans, plans/165 WP-6 v2 - signal-derived duck spans over
-  // decoded PCM; same test file).
+  // decoded PCM; same test file). Then 1.163.0 (BS.1770-4 integrated loudness,
+  // plans/101 - createLoudnessMeter behind the Normalize targets; see
+  // audio-loudness.test.ts).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.162.0');
+  assert.equal(ENGINE_VERSION, '1.163.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

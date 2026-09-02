@@ -670,6 +670,8 @@ export type {
 export { ENGINE_VERSION } from './version.ts';
 export { createTruePeakLimiter, activitySpans } from './audio-dynamics.ts';
 export type { TruePeakLimiter, TruePeakLimiterOpts, ActivitySpanOpts } from './audio-dynamics.ts';
+export { createLoudnessMeter, integratedLoudness, normalizeGain, LOUDNESS_RATE } from './audio-loudness.ts';
+export type { LoudnessMeter } from './audio-loudness.ts';
 export { satisfiesRange, parseVersion } from './semver-range.ts';
 export { encodeFsToken, decodeFsToken } from './fs-token.ts';
 export {

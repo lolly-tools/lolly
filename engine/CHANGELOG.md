@@ -6,6 +6,16 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.163.0 - BS.1770-4 integrated loudness (plans/101 section 2.5, the deferred tier).
+`createLoudnessMeter` / `integratedLoudness` / `normalizeGain` in
+`audio-loudness.ts`: K-weighting with the standard's published 48 kHz biquads
+(any other rate is refused, never mis-measured), 400 ms blocks at 75% overlap,
+the -70 LKFS absolute gate then the -10 LU relative gate. Streaming and
+chunk-invariant - the meter keeps block energies, never PCM, so a mix meters in
+constant memory. The calibration the tests pin: a 997 Hz stereo sine reads its
+own dBFS level as LKFS. Behind the export bar's Normalize-loudness targets and
+the inspector's per-clip Normalize. See tests/audio-loudness.test.ts.
+
 1.162.0 - signal activity detection (plans/165 WP-6 v2). `activitySpans` in
 `audio-dynamics.ts`: block-RMS gating with hysteresis (-45 dBFS open / -51 close by
 default) over decoded PCM, with near-miss merging and short-span dropping - where a
