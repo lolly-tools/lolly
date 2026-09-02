@@ -208,3 +208,73 @@ export function createTruePeakLimiter(opts: TruePeakLimiterOpts = {}): TruePeakL
     engaged(): boolean { return didEngage; },
   };
 }
+
+// ── signal activity detection (plans/165 WP-6 v2, plans/101) ────────────────────
+
+export interface ActivitySpanOpts {
+  /** Sample rate, Hz. Default 48000. */
+  rate?: number;
+  /** RMS level that OPENS a span, dBFS. Default -45. */
+  openDb?: number;
+  /** RMS level that CLOSES one, dBFS - lower than openDb, the hysteresis. Default -51. */
+  closeDb?: number;
+  /** Analysis block, ms. Default 50. */
+  blockMs?: number;
+  /** Spans shorter than this are dropped, ms. Default 150. */
+  minSpanMs?: number;
+  /** Gaps shorter than this merge their neighbours, ms. Default 300. */
+  minGapMs?: number;
+}
+
+/**
+ * Where a clip actually MAKES SOUND (plans/165 WP-6 v2): block-RMS gating with
+ * hysteresis over decoded PCM, in seconds from the clip's own start. This is what
+ * upgrades clip-presence ducking to signal-derived ducking - a voiceover clip with
+ * two sentences and a long pause ducks the bed twice, not once across the whole
+ * window. Pure and deterministic: the same PCM yields the same spans everywhere.
+ *
+ * The gate opens at `openDb` and closes at `closeDb` (lower), so a syllable's dip
+ * does not flap the gate; gaps shorter than `minGapMs` merge, spans shorter than
+ * `minSpanMs` drop - the same smoothing the duck envelope would otherwise fight.
+ */
+export function activitySpans(channels: readonly Float32Array[], opts: ActivitySpanOpts = {}): { from: number; to: number }[] {
+  const rate = opts.rate && opts.rate > 0 ? opts.rate : 48_000;
+  const block = Math.max(1, Math.round(((opts.blockMs ?? 50) / 1000) * rate));
+  const open = 10 ** ((opts.openDb ?? -45) / 20);
+  const close = 10 ** ((opts.closeDb ?? -51) / 20);
+  const minSpan = (opts.minSpanMs ?? 150) / 1000;
+  const minGap = (opts.minGapMs ?? 300) / 1000;
+  const n = channels[0]?.length ?? 0;
+  if (!n) return [];
+
+  const raw: { from: number; to: number }[] = [];
+  let openAt = -1;
+  const blocks = Math.ceil(n / block);
+  for (let b = 0; b < blocks; b++) {
+    const s = b * block;
+    const e = Math.min(s + block, n);
+    let sum = 0;
+    for (const ch of channels) {
+      for (let i = s; i < e; i++) sum += (ch[i] as number) * (ch[i] as number);
+    }
+    const rms = Math.sqrt(sum / ((e - s) * channels.length));
+    const t = s / rate;
+    if (openAt < 0) {
+      if (rms >= open) openAt = t;
+    } else if (rms < close) {
+      raw.push({ from: openAt, to: t });
+      openAt = -1;
+    }
+  }
+  if (openAt >= 0) raw.push({ from: openAt, to: n / rate });
+
+  // Merge near-misses, then drop the too-short - in that order, so two syllables
+  // either side of a small gap survive as one span rather than dying separately.
+  const merged: { from: number; to: number }[] = [];
+  for (const s of raw) {
+    const last = merged[merged.length - 1];
+    if (last && s.from - last.to < minGap) last.to = s.to;
+    else merged.push({ ...s });
+  }
+  return merged.filter((s) => s.to - s.from >= minSpan);
+}

@@ -6,6 +6,14 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.162.0 - signal activity detection (plans/165 WP-6 v2). `activitySpans` in
+`audio-dynamics.ts`: block-RMS gating with hysteresis (-45 dBFS open / -51 close by
+default) over decoded PCM, with near-miss merging and short-span dropping - where a
+clip actually MAKES SOUND, in its own seconds. This upgrades clip-presence ducking to
+signal-derived ducking in the export mix: a voiceover with two sentences and a long
+pause ducks the bed twice, not once across its whole window. Pure and deterministic.
+See tests/audio-dynamics.test.ts.
+
 1.161.0 - the master true-peak limiter (plans/165 Slice E, plans/101 section 2.5).
 `createTruePeakLimiter` in `audio-dynamics.ts`: pure, deterministic, streaming - a
 4x-oversampled Kaiser-sinc true-peak detector, a sliding-minimum lookahead gain with

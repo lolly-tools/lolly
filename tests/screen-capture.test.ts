@@ -396,9 +396,11 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // KfLayerPose gains the box's own pitch/yaw and projectLayer composes its local
   // homography, plans/104 P2.1; see keyframes-tilt.test.ts). Then 1.161.0 (the
   // master true-peak limiter, plans/165 Slice E - createTruePeakLimiter in
-  // audio-dynamics.ts, the WP-7 stretch gate; see audio-dynamics.test.ts).
+  // audio-dynamics.ts, the WP-7 stretch gate; see audio-dynamics.test.ts). Then
+  // 1.162.0 (activitySpans, plans/165 WP-6 v2 - signal-derived duck spans over
+  // decoded PCM; same test file).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
-  assert.equal(ENGINE_VERSION, '1.161.0');
+  assert.equal(ENGINE_VERSION, '1.162.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

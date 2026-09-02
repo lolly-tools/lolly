@@ -668,8 +668,8 @@ export type {
 // Per-minor contract changelog: engine/CHANGELOG.md (one entry per ENGINE_VERSION
 // minor, moved out of this barrel so prose edits stop conflicting with exports).
 export { ENGINE_VERSION } from './version.ts';
-export { createTruePeakLimiter } from './audio-dynamics.ts';
-export type { TruePeakLimiter, TruePeakLimiterOpts } from './audio-dynamics.ts';
+export { createTruePeakLimiter, activitySpans } from './audio-dynamics.ts';
+export type { TruePeakLimiter, TruePeakLimiterOpts, ActivitySpanOpts } from './audio-dynamics.ts';
 export { satisfiesRange, parseVersion } from './semver-range.ts';
 export { encodeFsToken, decodeFsToken } from './fs-token.ts';
 export {

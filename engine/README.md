@@ -89,7 +89,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `apng-decode.ts` | 258 | APNG demuxer - pure, DOM-free, platform-agnostic. | yes | `tests/apng-decode.test.ts` | – |
 | `apng.ts` | 194 | APNG packer - pure, DOM-free, platform-agnostic. | yes | `tests/apng.test.ts` | – |
 | `audio-analyse.ts` | 539 | Audio analysis - decoded PCM in, a per-frame reactivity track out. | yes | `tests/audio-analyse.test.ts` | – |
-| `audio-dynamics.ts` | 210 | audio-dynamics.ts - the master true-peak limiter (plans/165 Slice E, plans/101 section 2.5). | yes | `tests/audio-dynamics.test.ts` | – |
+| `audio-dynamics.ts` | 280 | audio-dynamics.ts - the master true-peak limiter (plans/165 Slice E, plans/101 section 2.5). | yes | `tests/audio-dynamics.test.ts` | – |
 | `bake.ts` | 149 | Bake - freeze a composed render into a static asset, plus the shared compose recursion policy (the depth/cycle guard every shell bridge enforces). | yes | indirect | – |
 | `batch.ts` | 186 | Batch - the shared, DOM-free contract for "many URL-mode rows under one file". | yes | none | – |
 | `bmp.ts` | 258 | BMP (Windows Bitmap) - uncompressed BI_RGB encoder + decoder. | yes | `tests/bmp.test.ts` | – |

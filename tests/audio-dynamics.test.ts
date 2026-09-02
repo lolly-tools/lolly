@@ -15,7 +15,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { createTruePeakLimiter } from '../engine/src/audio-dynamics.ts';
+import { activitySpans, createTruePeakLimiter } from '../engine/src/audio-dynamics.ts';
 
 const RATE = 48_000;
 const CEILING = 10 ** (-1 / 20);   // -1 dBTP
@@ -162,4 +162,38 @@ test('a peak at the very end is still limited (the flush path looks ahead)', () 
   l[997] = 1.5;
   const [outL] = limitWhole(l, l);
   assert.ok(Math.abs(outL[997] as number) <= CEILING + 1e-4, `end spike survived: ${outL[997]}`);
+});
+
+// ── activitySpans (plans/165 WP-6 v2): where a clip actually makes sound ────────
+
+test('activitySpans: silence yields nothing, a burst yields its window', () => {
+  assert.deepEqual(activitySpans([new Float32Array(RATE)]), []);
+  const x = new Float32Array(RATE * 2);
+  x.set(sine(RATE / 2, 440, 0.5), Math.round(RATE * 0.5));   // 0.5s..1.0s of tone
+  const spans = activitySpans([x], { rate: RATE });
+  assert.equal(spans.length, 1, `expected one span, got ${JSON.stringify(spans)}`);
+  const s = spans[0]!;
+  assert.ok(Math.abs(s.from - 0.5) <= 0.06, `opens near 0.5s: ${s.from}`);
+  assert.ok(Math.abs(s.to - 1.0) <= 0.11, `closes near 1.0s: ${s.to}`);
+});
+
+test('activitySpans: hysteresis rides through a dip, a real gap splits after minGap', () => {
+  // Two sentences of tone with a 0.2s pause: merges (gap < 300ms default).
+  const a = new Float32Array(RATE * 2);
+  a.set(sine(Math.round(RATE * 0.6), 440, 0.5), 0);
+  a.set(sine(Math.round(RATE * 0.6), 440, 0.5), Math.round(RATE * 0.8));
+  assert.equal(activitySpans([a], { rate: RATE }).length, 1, 'a 200ms pause merges');
+  // The same two sentences a full second apart: two spans.
+  const b = new Float32Array(RATE * 3);
+  b.set(sine(Math.round(RATE * 0.6), 440, 0.5), 0);
+  b.set(sine(Math.round(RATE * 0.6), 440, 0.5), Math.round(RATE * 1.6));
+  assert.equal(activitySpans([b], { rate: RATE }).length, 2, 'a 1s pause splits');
+});
+
+test('activitySpans: quiet content under the gate and blips under minSpan stay out', () => {
+  const quiet = sine(RATE, 440, 0.002);   // ~-54 dBFS, under the -45 open gate
+  assert.deepEqual(activitySpans([quiet], { rate: RATE }), []);
+  const blip = new Float32Array(RATE);
+  blip.set(sine(Math.round(RATE * 0.05), 440, 0.5), 1000);   // 50ms - under minSpan
+  assert.deepEqual(activitySpans([blip], { rate: RATE }), []);
 });
