@@ -133,19 +133,27 @@ export function createPenpotProxy(
     if (typeof req.headers['content-type'] === 'string') headers['content-type'] = req.headers['content-type'];
     if (typeof req.headers.accept === 'string') headers.accept = req.headers.accept;
 
+    // The timeout covers the REQUEST phase only (connect + headers). It is cleared
+    // the moment upstream answers, so a body that is still streaming - an import
+    // Penpot takes 26 s to finish and does finish - is never cut mid-flight; the
+    // function's own maxDuration bounds the pipe below.
+    const ac = new AbortController();
+    let timerFired = false;
+    const timer = setTimeout(() => { timerFired = true; ac.abort(); }, UPSTREAM_TIMEOUT_MS);
     let upstream: Response;
     try {
       upstream = await fetchImpl(UPSTREAM_BASE + command, {
         method: 'POST',
         headers,
         body: body.length > 0 ? new Uint8Array(body) : undefined,
-        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+        signal: ac.signal,
       });
     } catch (err) {
       // Network failure / timeout. The hint stays generic: an upstream error
       // string could not contain the token, but keeping the body synthetic
       // guarantees nothing user-supplied is ever echoed.
-      const timedOut = (err as Error)?.name === 'TimeoutError';
+      clearTimeout(timer);
+      const timedOut = timerFired || (err as Error)?.name === 'TimeoutError';
       sendJson(res, 502, {
         error: 'penpot-unreachable',
         hint: timedOut
@@ -157,6 +165,7 @@ export function createPenpotProxy(
 
     // Pass status + body through untouched; the shell interprets Penpot's own
     // JSON (including its error shapes). Command + status only - never headers.
+    clearTimeout(timer);
     console.log(`[penpot] ${command} -> ${upstream.status}`);
     res.writeHead(upstream.status, {
       ...CORS,

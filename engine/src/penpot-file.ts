@@ -35,6 +35,7 @@
 import { parseSvgPath, type SubPath, type PathSegment } from './svg-path.ts';
 import { colorToHex } from './tokens.ts';
 import { makeGeomApi } from './geom-api.ts';
+import { pathBounds, pathFromSubPaths } from './geom/path.ts';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -105,7 +106,10 @@ export interface PenpotIrGradientStop { color: string; opacity?: number; offset:
 export interface PenpotIrGradient {
   type: 'linear' | 'radial';
   startX: number; startY: number; endX: number; endY: number;
-  /** Radial only: the ellipse's width relative to its height (1 = circle). */
+  /** Radial only: the perpendicular scale in the shape's NORMALIZED unit box, applied
+   *  before the box maps it to px (Penpot's `gradients.cljs` scales by `(width, 1)`
+   *  about the start point). So the painted semi-axes are `width·r·w` by `r·h`:
+   *  `1` is an ellipse matching the shape box, `h/w` a true circle. */
   width?: number;
   stops: PenpotIrGradientStop[];
 }
@@ -301,7 +305,10 @@ export function seededPenpotUuid(seed = 1): () => string {
 
 // ─── colour ───────────────────────────────────────────────────────────────────
 
-const NAMED: Record<string, string> = {
+/** Null-prototype on purpose: a plain literal would answer `NAMED['constructor']` and
+ *  `NAMED['__proto__']` with an inherited non-string, which every caller then treats as
+ *  a colour (see the `typeof` guard in {@link parsePenpotColor}). */
+const NAMED: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, {
   black: '#000000', white: '#ffffff', red: '#ff0000', green: '#008000', blue: '#0000ff', yellow: '#ffff00',
   cyan: '#00ffff', aqua: '#00ffff', magenta: '#ff00ff', fuchsia: '#ff00ff', gray: '#808080', grey: '#808080',
   silver: '#c0c0c0', maroon: '#800000', olive: '#808000', lime: '#00ff00', teal: '#008080', navy: '#000080',
@@ -315,14 +322,17 @@ const NAMED: Record<string, string> = {
   royalblue: '#4169e1', dodgerblue: '#1e90ff', deepskyblue: '#00bfff', forestgreen: '#228b22', seagreen: '#2e8b57',
   limegreen: '#32cd32', springgreen: '#00ff7f', hotpink: '#ff69b4', deeppink: '#ff1493', firebrick: '#b22222',
   darkorange: '#ff8c00', orangered: '#ff4500', goldenrod: '#daa520', rebeccapurple: '#663399', mintcream: '#f5fffa',
-};
+});
 
 export interface PenpotColor { hex: string; alpha: number }
 /**
  * Read a CSS/DTCG colour into Penpot's `#rrggbb` + alpha. Accepts hex (3/4/6/8),
  * rgb[a](), hsl[a](), oklch(), the common named colours, and `var(--x, <fallback>)`
- * (the fallback). `transparent`, `none`, an alias `{a.b}` or anything unreadable
- * → null, so the caller either resolves it (brand tokens) or drops the paint.
+ * - for which it returns the LITERAL fallback, a stale copy of whatever the brand
+ * paints today, so a caller holding a live resolver must ask that first and treat
+ * this as the last resort (see `boxesToPenpotDoc`'s `color()`). `transparent`,
+ * `none`, an alias `{a.b}` or anything unreadable → null, so the caller either
+ * resolves it (brand tokens) or drops the paint.
  */
 export function parsePenpotColor(input: unknown): PenpotColor | null {
   if (input == null) return null;
@@ -334,7 +344,7 @@ export function parsePenpotColor(input: unknown): PenpotColor | null {
   const lower = s.toLowerCase();
   if (lower === 'transparent' || lower === 'none' || lower === 'currentcolor' || lower === 'inherit') return null;
   const named = NAMED[lower];
-  if (named) return { hex: named, alpha: 1 };
+  if (typeof named === 'string') return { hex: named, alpha: 1 };
   const hex = colorToHex(s);
   if (!hex || hex === 'transparent') return null;
   const m = /^#([0-9a-f]{6})([0-9a-f]{2})?$/i.exec(hex);
@@ -377,8 +387,17 @@ function geometry(x: number, y: number, w: number, h: number, rotation = 0): Rec
   };
 }
 
-/** Bounding box of parsed subpaths. */
+/**
+ * TIGHT bounding box of parsed subpaths - the curve's own extrema, not the control
+ * hull, because this box IS the shape's stored `selrect` / `points` / width / height
+ * (plan 178 section 3.1: "x, y, width, height = the path's bbox"), and the same box
+ * maps a userSpaceOnUse gradient into the shape's unit square. `pathBounds` solves the
+ * per-axis cubic derivative roots; a degenerate subpath (a lone `M`) yields no curves,
+ * so the point scan stays as the fallback for that case.
+ */
 function subpathBounds(subs: SubPath[]): { x: number; y: number; w: number; h: number } | null {
+  const exact = pathBounds(pathFromSubPaths(subs));
+  if (exact) return { x: exact.x0, y: exact.y0, w: exact.x1 - exact.x0, h: exact.y1 - exact.y0 };
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   const take = (x: number, y: number): void => { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; };
   for (const sp of subs) for (const s of sp.segments) {
@@ -553,7 +572,9 @@ function baseRecord(
   return rec;
 }
 
-function textContentRecord(t: PenpotIrText, google: Set<string>): Rec | null {
+/** `key` is Penpot's editor-side paragraph identity. It comes from the BUILD's own
+ *  counter, never a module-global one, so a build is a pure function of (doc, uuid, now). */
+function textContentRecord(t: PenpotIrText, google: Set<string>, nextKey: () => string): Rec | null {
   const paras = t.paragraphs.slice(0, MAX_TEXT_PARAGRAPHS).map((p) => {
     const runs = p.runs.filter((r) => typeof r.text === 'string');
     if (!runs.length) return null;
@@ -579,7 +600,7 @@ function textContentRecord(t: PenpotIrText, google: Set<string>): Rec | null {
     const lead = spans[0]!;
     const align = p.align && ['left', 'center', 'right', 'justify'].includes(p.align) ? p.align : 'left';
     const para: Rec = {
-      type: 'paragraph', key: fallbackKey(),
+      type: 'paragraph', key: nextKey(),
       textAlign: align, textDirection: 'ltr',
       fontId: lead.fontId, fontFamily: lead.fontFamily, fontVariantId: lead.fontVariantId, fontSize: lead.fontSize,
       fontWeight: lead.fontWeight, fontStyle: lead.fontStyle, lineHeight: lead.lineHeight, letterSpacing: lead.letterSpacing,
@@ -596,18 +617,19 @@ function textContentRecord(t: PenpotIrText, google: Set<string>): Rec | null {
     fills: [],
   };
 }
-let keySeq = 0;
-const fallbackKey = (): string => (keySeq = (keySeq + 1) % 1e9, `lolly${keySeq.toString(36)}`);
-
 // ─── the archive ──────────────────────────────────────────────────────────────
 
 /**
  * Write the binfile-v3 entries for one file. Ids are fresh uuids (or `opts.uuid`'s),
- * so two builds of the same doc are two distinct Penpot files.
+ * so two builds of the same doc are two distinct Penpot files - and, the other way
+ * round, the build holds NO module state: with `opts.uuid` + `opts.now` pinned it is
+ * a pure function of (doc, uuid, now) and two builds are byte-identical.
  */
 export function buildPenpotEntries(doc: PenpotDoc, opts: PenpotBuildOptions = {}): PenpotBuild {
   const uuid = opts.uuid ?? penpotUuid;
   const now = opts.now ?? (() => new Date().toISOString());
+  let keySeq = 0;
+  const nextKey = (): string => `lolly${(++keySeq).toString(36)}`;
   const warnings: string[] = [];
   const warn = (s: string): void => { if (warnings.length < 200) warnings.push(s); };
   const entries: Record<string, Uint8Array | string> = {};
@@ -712,7 +734,7 @@ export function buildPenpotEntries(doc: PenpotDoc, opts: PenpotBuildOptions = {}
           break;
         }
         case 'text': {
-          const content = textContentRecord(sh, google);
+          const content = textContentRecord(sh, google, nextKey);
           if (!content) return null;
           rec = baseRecord(id, 'text', { ...sh, fills: [] }, parentId, frameId, pageId, media, uuid, warn, nameOf('Text'));
           rec.content = content;
@@ -793,21 +815,28 @@ export function buildPenpotEntries(doc: PenpotDoc, opts: PenpotBuildOptions = {}
  * Lolly's `asset` or `lineHeights` are dropped, `$description` kept on leaves
  * only), `$themes` with the required `description`, and `$metadata` naming the
  * set order and the active sets. Null when nothing survives.
+ *
+ * The token document is third-party data (a brand pack's DTCG blob, JSON.parsed), so
+ * every accumulator here is null-prototype: a set or group named `__proto__` must be
+ * an ordinary key rather than a prototype write, and `k in sets` must answer for the
+ * sets that exist rather than for `toString` / `valueOf` / `constructor`.
  */
 export function penpotTokensJson(doc: unknown): Record<string, unknown> | null {
   if (!isRec(doc)) return null;
   const isTokenLeaf = (v: unknown): v is Rec => isRec(v) && ('$value' in v || 'value' in v);
-  const sets: Record<string, unknown> = {};
+  const sets: Record<string, unknown> = Object.create(null);
   const reserved = new Set(['$themes', '$metadata', '$description', '$extensions', '$type', '$schema']);
   const convert = (node: Rec, inherited: string | null): Rec | null => {
-    const out: Rec = {};
+    const out: Rec = Object.create(null);
     let kept = 0;
     for (const [k, v] of Object.entries(node)) {
       if (k.startsWith('$')) continue;
       if (isTokenLeaf(v)) {
         const rawType = typeof v.$type === 'string' ? v.$type : (typeof v.type === 'string' ? v.type : inherited);
         const mapped = rawType ? TOKEN_TYPE_MAP[rawType] : undefined;
-        if (!mapped) continue;
+        // `typeof`, not truthiness: `$type: 'constructor'` would otherwise index the map's
+        // prototype and write a leaf whose `$type` JSON.stringify then drops entirely.
+        if (typeof mapped !== 'string') continue;
         const leaf: Rec = { $value: '$value' in v ? v.$value : v.value, $type: mapped };
         const desc = v.$description ?? v.description;
         if (typeof desc === 'string' && desc) leaf.$description = desc;
@@ -863,7 +892,7 @@ export function penpotTokensJson(doc: unknown): Record<string, unknown> | null {
   const active = first
     ? Object.entries(first.selectedTokenSets as Record<string, string>).filter(([, s]) => s === 'enabled').map(([n]) => n)
     : order.slice();
-  const out: Record<string, unknown> = {};
+  const out: Record<string, unknown> = Object.create(null);
   for (const n of order) out[n] = sets[n];
   if (themes.length) out.$themes = themes;
   out.$metadata = { tokenSetOrder: order, activeSets: active.length ? active : order.slice() };
@@ -883,7 +912,11 @@ export interface BoxesToPenpotOptions {
   googleFamilies?: Iterable<string>;
   /** The bytes behind an image box, resolved by the shell (fetch/decode are not the engine's). */
   mediaFor?: (box: Record<string, unknown>) => PenpotMedia | null;
-  /** Resolve a colour the parser cannot (`var(--brand-…)` without a fallback, `{token}` aliases). */
+  /** Resolve a colour against the LIVE brand. Asked first for any `var(…)` or `{token}`
+   *  value - the literal fallback inside `var(--brand-primary, #1e293b)` is a stale copy
+   *  of the brand, and every shipped Design template paints that way - and asked as the
+   *  last resort for anything else the parser cannot read. A caller with no live cascade
+   *  (CLI, jsdom) supplies none and the literal fallback stands. */
   resolveColor?: (css: string) => string | null;
   tokens?: unknown;
   palette?: PenpotPaletteColor[];
@@ -908,7 +941,10 @@ export function gradSpecToPenpot(spec: unknown, w: number, h: number): PenpotIrG
     stops.push({ color: `#${sm[1]!.toLowerCase()}`, opacity: sm[2] ? parseInt(sm[2], 16) / 255 : 1, offset: clamp(fin(sm[3]) / 100, 0, 1) });
   }
   if (stops.length < 2) return null;
-  if (m[1] === 'rad') return { type: 'radial', startX: 0.5, startY: 0.5, endX: 0.5, endY: 1, width: h > 0 ? w / h : 1, stops };
+  // `rad.` is CSS's `radial-gradient(ellipse farthest-corner …)`, an ellipse that fills
+  // the box - which is exactly Penpot's `width: 1` (the scale is applied in the unit box,
+  // BEFORE the box maps it to px, so the aspect must not be pre-multiplied in here).
+  if (m[1] === 'rad') return { type: 'radial', startX: 0.5, startY: 0.5, endX: 0.5, endY: 1, width: 1, stops };
   // CSS angle: 0 = to top, 90 = to right. The gradient line spans the box like CSS does.
   const th = fin(m[2]) * Math.PI / 180;
   const dx = Math.sin(th), dy = -Math.cos(th);
@@ -922,8 +958,24 @@ export function gradSpecToPenpot(spec: unknown, w: number, h: number): PenpotIrG
   };
 }
 
-interface MdRun { text: string; color?: string; weight?: number; family?: 'sans' | 'mono'; italic?: boolean }
-/** The Design tool's inline markdown subset → runs: `{#hex w700 mono|text}`, `**b**`, `*i*`, `_i_`, `` `code` ``. */
+interface MdRun {
+  text: string;
+  color?: string;
+  weight?: number;
+  family?: 'sans' | 'mono';
+  italic?: boolean;
+  decoration?: 'underline' | 'line-through';
+}
+/**
+ * The Design tool's inline markdown subset → runs: `{#hex w700 mono u s|text}`, `**b**`,
+ * `*i*`, `_i_`, `` `code` ``. The attribute tokens are exactly the ones `inlineMd` in
+ * `community/design/hooks.js` paints on the artboard - a colour, `w100`..`w900`,
+ * `mono`/`sans`, and the decorations `u` (underline) / `s` (line-through) - and an
+ * UNRECOGNISED token (an unreadable colour included) leaves the `{…|…}` braces standing
+ * as literal text there, so it does here too: the archive must not say something the
+ * artboard does not. Penpot's `textDecoration` is one enum value, so `{u s|…}` keeps
+ * the underline where the artboard draws both bars.
+ */
 export function designTextRuns(line: string): MdRun[] {
   const out: MdRun[] = [];
   const push = (text: string, style: Omit<MdRun, 'text'>): void => { if (text) out.push({ text, ...style }); };
@@ -935,10 +987,24 @@ export function designTextRuns(line: string): MdRun[] {
     push(unesc(rest.slice(0, m.index)), {});
     if (m[1] != null) {
       const style: Omit<MdRun, 'text'> = {};
+      let known = true;
       for (const tok of m[1].trim().split(/\s+/)) {
         if (/^#[0-9a-f]{3,8}$/i.test(tok)) style.color = tok;
         else if (/^w[1-9]00$/.test(tok)) style.weight = parseInt(tok.slice(1), 10);
         else if (tok === 'mono' || tok === 'sans') style.family = tok;
+        else if (tok === 'u') style.decoration = 'underline';
+        else if (tok === 's') style.decoration = style.decoration ?? 'line-through';
+        else { known = false; break; }
+      }
+      if (!known) {
+        // The artboard keeps the whole run literal. Emit the `{attrs|` head as text and
+        // carry on scanning the body, so its `**bold**` still reads as bold and the
+        // closing brace comes out as text - what `inlineMd` leaves behind, character for
+        // character.
+        const head = `{${m[1]}|`;
+        push(unesc(head), {});
+        rest = rest.slice(m.index + head.length);
+        continue;
       }
       push(unesc(m[2] ?? ''), style);
     } else if (m[3] != null) push(unesc(m[3]), { weight: 700 });
@@ -964,11 +1030,21 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
   for (const b of boxes) { const id = str(b.id); if (id && !byId.has(id)) byId.set(id, b); }
   const google = new Set(Array.from(o.googleFamilies ?? [], (f) => String(f).trim().toLowerCase()));
 
+  const hexOf = (p: PenpotColor): string => (p.alpha < 1 ? `${p.hex}${Math.round(p.alpha * 255).toString(16).padStart(2, '0')}` : p.hex);
   const color = (v: unknown): string | null => {
     const s = str(v).trim();
     if (!s) return null;
+    // A `var(…)` or `{token}` NAMES brand data, so the live cascade answers first: the
+    // literal inside `var(--brand-primary, #1e293b)` is only the authored fallback, and
+    // parsePenpotColor would happily return it and never ask. With no resolver (or none
+    // that answers) the literal still stands, so the headless path is unchanged.
+    if (/var\(/i.test(s) || s.startsWith('{')) {
+      const live = o.resolveColor?.(s) ?? null;
+      const lp = live ? parsePenpotColor(live) : null;
+      if (lp) return hexOf(lp);
+    }
     const p = parsePenpotColor(s);
-    if (p) return p.alpha < 1 ? `${p.hex}${Math.round(p.alpha * 255).toString(16).padStart(2, '0')}` : p.hex;
+    if (p) return hexOf(p);
     const r = o.resolveColor?.(s) ?? null;
     return r && parsePenpotColor(r) ? r : null;
   };
@@ -1009,7 +1085,8 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
     const sc = color(b.stroke);
     const sw = fin(b.strokeW);
     if (!sc || !(sw > 0)) return [];
-    const p = parsePenpotColor(sc)!;
+    const p = parsePenpotColor(sc);
+    if (!p) return [];
     const st: PenpotIrStroke = { color: p.hex, opacity: p.alpha, width: sw, alignment: 'center' };
     const dashKind = str(b.strokeDash);
     if (dashKind === 'dashed' || dashKind === 'dotted') {
@@ -1030,7 +1107,8 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
     if (grad) return [{ gradient: grad }];
     const c = color(b.bg);
     if (!c) return [];
-    const p = parsePenpotColor(c)!;
+    const p = parsePenpotColor(c);
+    if (!p) return [];
     return [{ color: p.hex, opacity: p.alpha }];
   };
   const nameOf = (b: Box, fallback: string): string => str(b.name).trim() || fallback;
@@ -1066,6 +1144,7 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
             fontFamily: r.family ? familyOf(r.family) : family,
             fontWeight: r.weight ?? weight, italic: r.italic === true,
             fontSize: size, lineHeight: lh, letterSpacing: tracking, color: rp.hex, opacity: rp.alpha,
+            decoration: r.decoration,
           };
         });
         if (!runs.length) runs.push({ text: '', fontFamily: family, fontWeight: weight, fontSize: size, lineHeight: lh, letterSpacing: tracking, color: fg });
@@ -1154,11 +1233,16 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
         const s = lowerBox(cb); if (s) children.push(s);
       }
       const bg = color(fb.bg) ?? '#ffffff';
-      const p = parsePenpotColor(bg)!;
+      const p = parsePenpotColor(bg) ?? { hex: '#ffffff', alpha: 1 };
       const board: PenpotIrBoard = {
         type: 'board', name: nameOf(fb, `Board ${shapes.length + 1}`),
         x: fin(fb.x), y: fin(fb.y), w: Math.max(1, fin(fb.w, 1)), h: Math.max(1, fin(fb.h, 1)),
-        fills: [{ color: p.hex, opacity: p.alpha }], children, showContent: fb.clipChildren === false,
+        fills: [{ color: p.hex, opacity: p.alpha }],
+        // A frame carries a REAL border (the Artboard add-kind seeds one), and a Penpot
+        // board takes strokes like any other shape. `inner`, because the design tool
+        // paints that border inside the box (`box-sizing: border-box`).
+        strokes: strokeOf(fb).map((s) => ({ ...s, alignment: 'inner' as const })),
+        children, showContent: fb.clipChildren === false,
       };
       effects(fb, board);
       shapes.push(board);
@@ -1198,6 +1282,10 @@ export interface SvgToPenpotOptions {
   background?: string;
   /** Injectable uuid source for the media ids the lowering assigns (seeded in tests). */
   uuid?: () => string;
+  /** A sink for the same notes {@link SvgToPenpotResult.notes} carries. A DECLINED
+   *  lowering returns null and takes its result (and its notes) with it, so a caller
+   *  that wants to log WHY the whole SVG became one picture passes an array here. */
+  notes?: string[];
 }
 /** An `<image>` whose bytes the caller must supply before building (an http(s) href). */
 export interface PenpotPendingImage { mediaId: string; href: string; width: number; height: number; name: string }
@@ -1404,7 +1492,9 @@ export function svgToPenpotDoc(svgText: string, o: SvgToPenpotOptions): SvgToPen
   if (typeof svgText !== 'string' || !svgText.trim() || svgText.length > MAX_SVG_LEN) return null;
   const src = svgText.replace(/<!--[\s\S]*?-->/g, '').replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, '').replace(/<\?[\s\S]*?\?>/g, '').replace(/<!DOCTYPE[^>]*>/gi, '');
   const notes: string[] = [];
-  const note = (s: string): void => { if (notes.length < 100) notes.push(s); };
+  // Notes ride the result, and ALSO the caller's own sink (`o.notes`) - the one place a
+  // caller can still read why a lowering declined after it has returned null.
+  const note = (s: string): void => { if (notes.length < 100) notes.push(s); if (o.notes && o.notes.length < 100) o.notes.push(s); };
 
   // Tokenise.
   const tags: SvgTag[] = [];
@@ -1451,10 +1541,19 @@ export function svgToPenpotDoc(svgText: string, o: SvgToPenpotOptions): SvgToPen
       href: (a.href ?? a['xlink:href'] ?? '').replace(/^#/, ''), transform: a.gradienttransform ?? '', stops: [],
     };
     const rel = g.units === 'objectBoundingBox';
-    const pl = (v: string | undefined, d: number): number => { if (v == null) return d; const s = v.trim(); return s.endsWith('%') ? parseFloat(s) / 100 * (rel ? 1 : 1) : (rel ? parseFloat(s) : parseLen(s, d)); };
-    g.x1 = pl(a.x1, 0); g.y1 = pl(a.y1, 0); g.x2 = pl(a.x2, rel ? 1 : 0); g.y2 = pl(a.y2, 0);
-    g.cx = pl(a.cx, 0.5); g.cy = pl(a.cy, 0.5); g.r = pl(a.r, 0.5);
-    if (!rel && a.x2 == null) g.x2 = g.x1 + 1;
+    // A percentage is a fraction of the unit box in objectBoundingBox space and a
+    // fraction of the VIEWPORT (the viewBox when there is one) in user space.
+    const refW = hasVb ? vb[2]! : width, refH = hasVb ? vb[3]! : height;
+    const pl = (v: string | undefined, d: number, ref: number): number => {
+      if (v == null) return d;
+      const s = v.trim();
+      if (s.endsWith('%')) return parseFloat(s) / 100 * (rel ? 1 : ref);
+      return rel ? parseFloat(s) : parseLen(s, d);
+    };
+    // SVG's own defaults: x2 is 100% (the unit box, or the viewport width in user space).
+    g.x1 = pl(a.x1, 0, refW); g.y1 = pl(a.y1, 0, refH); g.x2 = pl(a.x2, rel ? 1 : refW, refW); g.y2 = pl(a.y2, 0, refH);
+    g.cx = pl(a.cx, rel ? 0.5 : refW / 2, refW); g.cy = pl(a.cy, rel ? 0.5 : refH / 2, refH);
+    g.r = pl(a.r, rel ? 0.5 : Math.sqrt(refW * refW + refH * refH) / Math.SQRT2 / 2, Math.sqrt(refW * refW + refH * refH) / Math.SQRT2);
     if (!t.selfClosing) {
       for (let j = i + 1; j < tags.length; j++) {
         const s = tags[j]!;
@@ -1528,16 +1627,37 @@ export function svgToPenpotDoc(svgText: string, o: SvgToPenpotOptions): SvgToPen
     const id = /^url\(\s*['"]?#([^'")]+)['"]?\s*\)/i.exec(paint)?.[1];
     const g = id ? grads.get(id) : undefined;
     if (!g || !g.stops.length) { note('paint references something that is not a gradient'); return null; }
-    if (g.transform && parseTransform(g.transform) && !isIdentity(parseTransform(g.transform)!)) { note('gradientTransform is not expressible'); return null; }
+    // gradientTransform acts in the gradient's own space (the unit box, or user space)
+    // BEFORE the element's CTM. A linear gradient is exact under any affine map (a line
+    // stays a line); a radial one keeps its centre and per-axis radii under a scale or
+    // translate, and only rotation/skew has no Penpot equivalent.
+    const gm = g.transform ? parseTransform(g.transform) : { ...IDENT };
+    if (!gm) { note('unreadable gradientTransform'); return null; }
+    const obb = g.units === 'objectBoundingBox';
     const toUnit = (x: number, y: number): [number, number] => {
-      if (g.units === 'objectBoundingBox') return [x, y];
-      const [px, py] = apply(m, x, y);
+      const [gx, gy] = apply(gm, x, y);
+      if (obb) return [gx, gy];
+      const [px, py] = apply(m, gx, gy);
       return [bbox.w > 0 ? (px - bbox.x) / bbox.w : 0.5, bbox.h > 0 ? (py - bbox.y) / bbox.h : 0.5];
     };
     if (g.type === 'radial') {
+      if (Math.abs(gm.b) > 1e-9 || Math.abs(gm.c) > 1e-9) { note('a rotated or skewed radial gradientTransform is not expressible'); return null; }
       const [cx, cy] = toUnit(g.cx, g.cy);
-      const ru = g.units === 'objectBoundingBox' ? g.r : g.r * meanScale(m) / Math.max(1, bbox.h);
-      return { type: 'radial', startX: cx, startY: cy, endX: cx, endY: cy + ru, width: bbox.h > 0 ? bbox.w / bbox.h : 1, stops: g.stops };
+      const sx = Math.abs(gm.a) || 1, sy = Math.abs(gm.d) || 1;
+      // Penpot paints the semi-axes as (width * r * w) by (r * h) in the unit box, so
+      // `r` is the vertical unit radius and `width` the horizontal/vertical ratio in
+      // that normalized space (1 = an ellipse matching the box, h/w = a circle).
+      let ru: number, width: number;
+      if (obb) {
+        ru = g.r * sy;
+        width = sx / sy;
+      } else {
+        const k = meanScale(m);
+        const pxY = g.r * sy * k, pxX = g.r * sx * k;
+        ru = pxY / Math.max(1, bbox.h);
+        width = bbox.w > 0 && bbox.h > 0 ? (pxX / bbox.w) / (pxY / bbox.h) : 1;
+      }
+      return { type: 'radial', startX: cx, startY: cy, endX: cx, endY: cy + ru, width: r4(width) || 1, stops: g.stops };
     }
     const [sx, sy] = toUnit(g.x1, g.y1), [ex, ey] = toUnit(g.x2, g.y2);
     return { type: 'linear', startX: sx, startY: sy, endX: ex, endY: ey, stops: g.stops };
@@ -1594,7 +1714,11 @@ export function svgToPenpotDoc(svgText: string, o: SvgToPenpotOptions): SvgToPen
 
   // Walk.
   let shapeBudget = MAX_SHAPES;
-  const walk = (from: number, to: number, parent: Frame, out: PenpotIrShape[]): boolean => {
+  // Recursion is bounded well under the engine's stack and far above real content: a
+  // document nested deeper than this is hostile, and the caller keeps it whole as a picture.
+  const MAX_WALK_DEPTH = 512;
+  const walk = (from: number, to: number, parent: Frame, out: PenpotIrShape[], depth = 0): boolean => {
+    if (depth > MAX_WALK_DEPTH) { note('nesting ceiling reached'); return false; }
     let i = from;
     while (i < to) {
       const t = tags[i]!;
@@ -1625,7 +1749,7 @@ export function svgToPenpotDoc(svgText: string, o: SvgToPenpotOptions): SvgToPen
           const kids: PenpotIrShape[] = [];
           // Group opacity is carried by the group itself, not multiplied into children.
           const inner: Frame = { ...gf, opacity: 1, blend: 'normal' };
-          if (!walk(i + 1, close, inner, kids)) return false;
+          if (!walk(i + 1, close, inner, kids, depth + 1)) return false;
           if (kids.length === 1 && t.name !== 'svg') {
             const k = kids[0]!;
             if (f.opacity < 1) k.opacity = (k.opacity ?? 1) * f.opacity;
@@ -1777,7 +1901,7 @@ export function svgToPenpotDoc(svgText: string, o: SvgToPenpotOptions): SvgToPen
           break;
         }
         default:
-          if (!t.selfClosing && close > i) { if (!walk(i + 1, close, f, out)) return false; }
+          if (!t.selfClosing && close > i) { if (!walk(i + 1, close, f, out, depth + 1)) return false; }
           break;
       }
       i = close + 1;

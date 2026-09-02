@@ -910,7 +910,7 @@ test('gradSpecToPenpot ↔ penpotGradientToSpec: linear angles and a radial spec
   const rad = gradSpecToPenpot(radSpec, 200, 100);
   assert.ok(rad);
   assert.equal(rad!.type, 'radial');
-  assert.equal(rad!.width, 2, 'the radial ellipse carries the box aspect');
+  assert.equal(rad!.width, 1, 'a box-filling ellipse is width 1 in Penpot\'s normalized space');
   assert.equal(penpotGradientToSpec(rad, 200, 100, 1), radSpec);
 
   // Stop alpha survives as the 8-digit form.
@@ -1438,4 +1438,138 @@ test('parsePenpotColor: the CSS forms a brand or an SVG can hand it', () => {
   assert.equal(parsePenpotColor(''), null);
   assert.equal(parsePenpotColor(null), null);
   assert.equal(parsePenpotColor(undefined), null);
+});
+
+
+// ── review fixes (plans/178 review workflow, 2026-09-02) ───────────────────────
+import {
+  penpotUuid as _pUuid, seededPenpotUuid as _seeded, buildPenpotEntries as _build, svgToPenpotDoc as _svgDoc,
+  boxesToPenpotDoc as _boxesDoc, designTextRuns as _runs, parsePenpotColor as _color,
+} from '../engine/src/penpot-file.ts';
+
+const _shapesOf = (entries: Record<string, Uint8Array | string>) =>
+  Object.entries(entries).filter(([k]) => /pages\/[^/]+\/[^/]+\.json$/.test(k)).map(([, v]) => JSON.parse(String(v)) as Record<string, any>);
+const _grad = (doc: ReturnType<typeof _svgDoc>, name: string) => {
+  const board = doc!.doc.pages[0]!.shapes[0]! as any;
+  const sh = board.children.find((c: any) => c.name === name);
+  return sh?.fills?.[0]?.gradient;
+};
+
+test('review #1: a radial gradient width follows Penpot\'s normalized model - obb r=0.5 is 1, a user-space circle is h/w', () => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="200"><defs>
+    <radialGradient id="a" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
+    <radialGradient id="b" gradientUnits="userSpaceOnUse" cx="400" cy="100" r="100"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
+  </defs><rect id="obb" width="800" height="200" fill="url(#a)"/><rect id="usr" width="800" height="200" fill="url(#b)"/></svg>`;
+  const r = _svgDoc(svg, { name: 't' });
+  assert.ok(r);
+  const a = _grad(r, 'obb'), b = _grad(r, 'usr');
+  assert.equal(a.width, 1, 'obb r maps 1:1 onto Penpot\'s unit radius');
+  assert.ok(Math.abs(a.endY - a.startY - 0.5) < 1e-6);
+  assert.ok(Math.abs(b.width - 200 / 800) < 1e-6, 'a true circle on a 4:1 box is h/w');
+  assert.ok(Math.abs(b.endY - b.startY - 0.5) < 1e-6, 'r=100 on a 200 tall box is 0.5 of the height');
+});
+
+test('review #5: gradientTransform is applied to a linear gradient and to a scaled radial one; rotation on a radial bails', () => {
+  const lin = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="0" gradientTransform="rotate(90 0.5 0.5)"><stop offset="0" stop-color="#f00"/><stop offset="1" stop-color="#00f"/></linearGradient>
+  </defs><rect id="r" width="100" height="100" fill="url(#g)"/></svg>`;
+  const rl = _svgDoc(lin, { name: 't' });
+  assert.ok(rl, 'a rotated linear gradient is exact');
+  const g = _grad(rl, 'r');
+  // rotate(90 .5 .5) turns the horizontal line into a vertical one at x=1: (0,0)→(1,0), (1,0)→(1,1).
+  assert.ok(Math.abs(g.startX - g.endX) < 1e-6 && Math.abs(g.startY - 0) < 1e-6 && Math.abs(g.endY - 1) < 1e-6, JSON.stringify(g));
+  const radScale = lin.replace(/<linearGradient[^>]*>/, '<radialGradient id="g" cx=".5" cy=".5" r=".5" gradientTransform="matrix(1 0 0 0.5 0 0.25)">').replace('</linearGradient>', '</radialGradient>');
+  const rr = _svgDoc(radScale, { name: 't' });
+  assert.ok(rr, 'an axis scale on a radial gradient is expressible');
+  const gr = _grad(rr, 'r');
+  assert.ok(Math.abs(gr.endY - gr.startY - 0.25) < 1e-6, 'the vertical radius is scaled');
+  assert.ok(Math.abs(gr.width - 2) < 1e-6, 'the horizontal radius kept its size, so the ratio doubles');
+  const radRot = lin.replace(/<linearGradient[^>]*>/, '<radialGradient id="g" gradientTransform="rotate(30)">').replace('</linearGradient>', '</radialGradient>');
+  assert.equal(_svgDoc(radRot, { name: 't' }), null, 'a rotated radial gradient keeps the SVG whole');
+  const bad = lin.replace('rotate(90 0.5 0.5)', 'rotate(nope)');
+  assert.equal(_svgDoc(bad, { name: 't' }), null, 'an unreadable gradientTransform is a bail, not identity');
+});
+
+test('review #4: percentages on a userSpaceOnUse gradient are fractions of the viewBox', () => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" width="400" height="100"><defs>
+    <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="0%" y1="0" x2="100%" y2="0"><stop offset="0" stop-color="#f00"/><stop offset="1" stop-color="#00f"/></linearGradient>
+  </defs><rect id="r" x="0" y="0" width="200" height="100" fill="url(#g)"/></svg>`;
+  const g = _grad(_svgDoc(svg, { name: 't' }), 'r');
+  assert.ok(Math.abs(g.startX - 0) < 1e-6 && Math.abs(g.endX - 2) < 1e-6, `x2=100% spans the 400 wide viewport, twice this 200 wide rect: ${JSON.stringify(g)}`);
+});
+
+test('review #2: a document nested past the walk ceiling keeps the SVG whole instead of blowing the stack', () => {
+  const depth = 20000;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">${'<g>'.repeat(depth)}<rect width="1" height="1"/>${'</g>'.repeat(depth)}</svg>`;
+  const notes: string[] = [];
+  assert.equal(_svgDoc(svg, { name: 't', notes }), null);
+  assert.ok(notes.some((n) => /nesting ceiling/.test(n)), notes.join('; '));
+});
+
+test('review #3: a colour named like an Object prototype member is not a colour', () => {
+  for (const v of ['constructor', '__proto__', 'toString', 'hasOwnProperty']) assert.equal(_color(v), null, v);
+  const doc = _boxesDoc([{ id: 'b', kind: 'box', x: 0, y: 0, w: 10, h: 10, bg: 'constructor' }], { name: 't', canvas: { w: 10, h: 10 } });
+  const rect = (doc.pages[0]!.shapes[0] as any).children[0];
+  assert.deepEqual(rect.fills, [], 'no fill rather than a poisoned one');
+});
+
+test('review #10: a resolver wins over the literal fallback of var(--x, #fallback) and resolves token aliases', () => {
+  const boxes = [
+    { id: 'a', kind: 'box', x: 0, y: 0, w: 10, h: 10, bg: 'var(--brand-surface, #ffffff)' },
+    { id: 'b', kind: 'box', x: 0, y: 0, w: 10, h: 10, bg: '{color.semantic.primary}' },
+  ];
+  const doc = _boxesDoc(boxes, { name: 't', canvas: { w: 10, h: 10 }, resolveColor: (css) => (/^var\(/.test(css) ? 'rgb(48, 186, 120)' : css.startsWith('{') ? '#123456' : null) });
+  const [a, b] = (doc.pages[0]!.shapes[0] as any).children;
+  assert.equal(a.fills[0].color, '#30ba78', 'the live brand colour, not the stale literal');
+  assert.equal(b.fills[0].color, '#123456');
+  const plain = _boxesDoc(boxes.slice(0, 1), { name: 't', canvas: { w: 10, h: 10 } });
+  assert.equal((plain.pages[0]!.shapes[0] as any).children[0].fills[0].color, '#ffffff', 'without a resolver the literal fallback still paints');
+});
+
+test('review #13: the u / s decoration tokens reach the run, and an invalid colour token leaves the literal', () => {
+  const runs = _runs('{u|under} {s|struck} {#zz|bad}');
+  assert.deepEqual(runs.slice(0, 4).map((r) => [r.text, r.decoration ?? null]), [['under', 'underline'], [' ', null], ['struck', 'line-through'], [' ', null]]);
+  // An invalid colour token keeps the literal - the artboard's inlineMd leaves `{#zz|bad}` in the text.
+  assert.equal(runs.slice(4).map((r) => r.text).join(''), '{#zz|bad}');
+  assert.ok(runs.slice(4).every((r) => !r.color && !r.decoration));
+  const doc = _boxesDoc([{ id: 't', kind: 'text', x: 0, y: 0, w: 100, h: 20, text: '{u|hi}', fg: '#000000', fontSize: 10 }], { name: 't', canvas: { w: 100, h: 20 } });
+  const text = (doc.pages[0]!.shapes[0] as any).children[0];
+  assert.equal(text.paragraphs[0].runs[0].decoration, 'underline');
+  const entries = _build(doc, { uuid: _seeded(3), now: () => 'X' }).entries;
+  const span = _shapesOf(entries).find((s) => s.type === 'text')!.content.children[0].children[0].children[0];
+  assert.equal(span.textDecoration, 'underline');
+});
+
+test('review #6: a build is a pure function of (doc, uuid, now)', () => {
+  const doc = _boxesDoc([{ id: 't', kind: 'text', x: 0, y: 0, w: 100, h: 40, text: 'one\ntwo', fg: '#000000', fontSize: 10 }], { name: 't', canvas: { w: 100, h: 40 } });
+  const a = _build(doc, { uuid: _seeded(9), now: () => 'X' }).entries;
+  const b = _build(doc, { uuid: _seeded(9), now: () => 'X' }).entries;
+  assert.deepEqual(Object.keys(a).sort(), Object.keys(b).sort());
+  for (const k of Object.keys(a)) assert.equal(String(a[k]), String(b[k]), k);
+});
+
+test('review #7: a frame\'s authored border becomes an inner stroke on the board', () => {
+  const doc = _boxesDoc([{ id: 'f', kind: 'frame', x: 0, y: 0, w: 100, h: 100, bg: '#ffffff', stroke: '#ff0000', strokeW: 3 }], { name: 't', canvas: { w: 100, h: 100 } });
+  const board = doc.pages[0]!.shapes[0] as any;
+  assert.equal(board.type, 'board');
+  assert.deepEqual(board.strokes.map((s: any) => [s.color, s.width, s.alignment]), [['#ff0000', 3, 'inner']]);
+});
+
+test('review #8: a curved path\'s box is the curve\'s own bounds, not its control hull', () => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path id="p" d="M0,0 C0,200 100,200 100,0" fill="#000"/></svg>`;
+  const board = _svgDoc(svg, { name: 't' })!.doc.pages[0]!.shapes[0] as any;
+  const p = board.children.find((c: any) => c.name === 'p');
+  assert.ok(p.h > 149 && p.h < 151, `the cubic tops out at 150, not the 200 of its control points: ${p.h}`);
+});
+
+test('review #9: tokenSetOrder and set names cannot reach the prototype chain', () => {
+  const out = penpotTokensJson({
+    $metadata: { tokenSetOrder: ['toString', 'base'] },
+    $themes: [{ name: 't', selectedTokenSets: { base: 'enabled', hasOwnProperty: 'enabled' } }],
+    base: { color: { $type: 'color', a: { $value: '#000000' } } },
+    __proto__: { color: { $type: 'color', b: { $value: '#ffffff' } } },
+  } as any)!;
+  assert.deepEqual((out.$metadata as any).tokenSetOrder, ['base']);
+  assert.deepEqual(Object.keys(out).filter((k) => !k.startsWith('$')), ['base']);
+  assert.deepEqual((out.$themes as any)[0].selectedTokenSets, { base: 'enabled' });
 });

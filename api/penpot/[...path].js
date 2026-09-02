@@ -76,22 +76,30 @@ function createPenpotProxy(fetchImpl = fetch) {
     if (typeof req.headers.authorization === "string") headers.authorization = req.headers.authorization;
     if (typeof req.headers["content-type"] === "string") headers["content-type"] = req.headers["content-type"];
     if (typeof req.headers.accept === "string") headers.accept = req.headers.accept;
+    const ac = new AbortController();
+    let timerFired = false;
+    const timer = setTimeout(() => {
+      timerFired = true;
+      ac.abort();
+    }, UPSTREAM_TIMEOUT_MS);
     let upstream;
     try {
       upstream = await fetchImpl(UPSTREAM_BASE + command, {
         method: "POST",
         headers,
         body: body.length > 0 ? new Uint8Array(body) : void 0,
-        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS)
+        signal: ac.signal
       });
     } catch (err) {
-      const timedOut = err?.name === "TimeoutError";
+      clearTimeout(timer);
+      const timedOut = timerFired || err?.name === "TimeoutError";
       sendJson(res, 502, {
         error: "penpot-unreachable",
         hint: timedOut ? `design.penpot.app did not answer within ${UPSTREAM_TIMEOUT_MS / 1e3}s` : "could not reach design.penpot.app - check your connection and Penpot status"
       });
       return;
     }
+    clearTimeout(timer);
     console.log(`[penpot] ${command} -> ${upstream.status}`);
     res.writeHead(upstream.status, {
       ...CORS,

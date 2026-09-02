@@ -187,6 +187,7 @@ var init_tool_schema = __esm({
                   "exr",
                   "hdr",
                   "pptx",
+                  "penpot",
                   "docx",
                   "odt",
                   "html",
@@ -1652,6 +1653,14 @@ var init_tool_schema = __esm({
                         type: "string",
                         description: "Number sub-field: the box's DEPTH - how far it sits in front of (positive) or behind (negative) the stage plane, in canvas px. Layers stay parallel to the screen, so a camera turns z into a per-layer uniform scale + translate (parallax, push-in, depth-of-field) and the render stays affine end-to-end. Absent field or 0 = the flat, unlifted board; the authored slider runs 0\u2013300 and the value clamps to \u2212300\u2026900."
                       },
+                      rxField: {
+                        type: "string",
+                        description: "Number sub-field: the box's own PITCH in degrees - it leans out of the stage plane about its own horizontal axis, pivoting on its centre. Unlike zField (which keeps every layer parallel to the screen and stays affine), a tilt is projective: the box gets its own vanishing point at the scene perspective, and it composes with a tilted camera as a product of homographies, not as a world-space rotation of the plate. Absent field or 0 = flat, and the whole render path stays byte-identical to the untilted one."
+                      },
+                      ryField: {
+                        type: "string",
+                        description: "Number sub-field: the box's own YAW in degrees, the companion to rxField. Applied BEFORE the pitch (R = Ry\xB7Rx, the pan/tilt-head order the camera channels already use), so a box wearing both angles never acquires roll - a third channel the wire does not have."
+                      },
                       startField: {
                         type: "string",
                         description: "Number sub-field: when this box appears, in SECONDS from the start of the sequence. Empty = the box is 'scenery' (always visible). Timing is inert unless a shell mounts a timeline panel; static exports ignore it."
@@ -1700,6 +1709,30 @@ var init_tool_schema = __esm({
                         type: "string",
                         description: "Number sub-field: this box's audio level when the sequence is mixed (1 = as recorded, 0 = silent, up to 2 = boosted). Machine-written by the timeline inspector, so the sub-field carries showFor:[]. Absent or empty reads as unity gain."
                       },
+                      panField: {
+                        type: "string",
+                        description: "Number sub-field: this box's stereo position when the sequence is mixed (-1 = left, 0 = centred, 1 = right; equal-power). Machine-written by the timeline inspector's Pan row, so the sub-field carries showFor:[]. Absent or empty reads as centred."
+                      },
+                      duckField: {
+                        type: "string",
+                        description: "Number sub-field: the level 0..1 this audio box drops to while any other clip's audio plays (clip-presence ducking; 1 or empty = no duck). Machine-written by the timeline inspector, so the sub-field carries showFor:[]."
+                      },
+                      pitchField: {
+                        type: "string",
+                        description: "Number sub-field: transpose this clip's audio in semitones (-12..12, formants preserved; 0 or empty = as recorded). Works at any speed. Machine-written by the timeline inspector's Pitch row, so the sub-field carries showFor:[]."
+                      },
+                      varispeedField: {
+                        type: "string",
+                        description: "Boolean sub-field: when true a speed-changed clip plays tape-style (pitch follows speed) instead of pitch-preserved. Absent or empty = preserve pitch, the editor default. Machine-written by the timeline inspector, so the sub-field carries showFor:[]."
+                      },
+                      fxField: {
+                        type: "string",
+                        description: "Text sub-field: this clip's audio effect chain in the engine's append-only fx grammar (dot-joined name(params) entries, e.g. hp(90).rv(20-35); unknown entries skipped, never an error; empty = none). The inspector's Effect presets write the EXPANDED chain, so a later preset re-tune never changes a shared link's sound. Machine-written, so the sub-field carries showFor:[]."
+                      },
+                      ignoredField: {
+                        type: "string",
+                        description: "Boolean sub-field: the reversible-cut / strikethrough flag (transcript-driven editing, plans/174). A true value keeps the box's media and its place on the timeline but skips it on playback and drops it from export - the dual of a hard delete. Machine-written by the transcript panel, so the sub-field carries showFor:[]. Absent reads as not-ignored."
+                      },
                       linkField: {
                         type: "string",
                         description: "String sub-field: the id of the box this one is A/V-linked to (written on BOTH sides when audio is detached from a video). Absent or naming a missing box reads as unlinked."
@@ -1715,6 +1748,26 @@ var init_tool_schema = __esm({
                       kfField: {
                         type: "string",
                         description: "Text sub-field: the box's KEYFRAME TRACK - its whole authored animation as one compact, delimiter-safe string (times in ms, per-channel values at the pinned quanta, per-segment easing). Machine-written by the timeline, so the sub-field carries showFor:[] and never renders as a sidebar control. Absent or empty = the box is not keyframed and every keyframe path is inert for it."
+                      },
+                      splitField: {
+                        type: "string",
+                        description: "Select sub-field: the text-animation SPLIT TIER ('' whole text, 'word', 'line', 'letter') - the box's Animate in/out runs per unit with a stagger instead of as one block (plans/175 WP-A). Absent = the tool offers no text animation and every split path is inert."
+                      },
+                      staggerField: {
+                        type: "string",
+                        description: "Number sub-field: the start-to-start gap between text units, ms (0-2000). Only read when splitField names a tier."
+                      },
+                      splitOrderField: {
+                        type: "string",
+                        description: "Select sub-field: the order text units animate in ('' first-to-last, 'reverse', 'center', 'random'). Random deals from a seed hashed off the box id so preview, export and shared URLs shuffle identically."
+                      },
+                      holdField: {
+                        type: "string",
+                        description: "Select sub-field: the HOLD effect ('' still, 'pulse', 'bob', 'sway', 'flicker') - a small deterministic looping motion while the box is on screen (plans/175 WP-B). Absent = the tool offers no hold effect and every hold path is inert."
+                      },
+                      holdRateField: {
+                        type: "string",
+                        description: "Number sub-field: the hold motion's rate, cycles per second (0.2-4). Only read when holdField names an effect."
                       },
                       frameField: {
                         type: "string",
@@ -2687,8 +2740,8 @@ function bytesToBase64Url(bytes) {
   for (const b of bytes) bin += String.fromCharCode(b);
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
-function base64UrlToBytes(str5) {
-  return base64ToBytes(str5.replace(/-/g, "+").replace(/_/g, "/"));
+function base64UrlToBytes(str6) {
+  return base64ToBytes(str6.replace(/-/g, "+").replace(/_/g, "/"));
 }
 function canonicalJson(value) {
   if (value === null || typeof value !== "object") {
@@ -2810,7 +2863,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.157.0";
+    ENGINE_VERSION = "1.167.0";
   }
 });
 
@@ -11346,15 +11399,15 @@ function readAiDisclosure(content) {
       m2 = json && typeof json === "object" && !Array.isArray(json) ? new Map(Object.entries(json)) : null;
     }
     if (!(m2 instanceof Map)) return void 0;
-    const str5 = (v) => typeof v === "string" && v.trim() ? v.trim() : void 0;
+    const str6 = (v) => typeof v === "string" && v.trim() ? v.trim() : void 0;
     const profile = m2.get("contentProfile");
-    const oversight = profile instanceof Map ? str5(profile.get("humanOversightLevel")) : profile && typeof profile === "object" ? str5(profile.humanOversightLevel) : void 0;
+    const oversight = profile instanceof Map ? str6(profile.get("humanOversightLevel")) : profile && typeof profile === "object" ? str6(profile.humanOversightLevel) : void 0;
     const rawDomain = m2.get("scientificDomain");
-    const domains = (Array.isArray(rawDomain) ? rawDomain : [rawDomain]).map(str5).filter((s) => !!s);
+    const domains = (Array.isArray(rawDomain) ? rawDomain : [rawDomain]).map(str6).filter((s) => !!s);
     const out = {
-      ...str5(m2.get("modelType")) ? { modelType: str5(m2.get("modelType")) } : {},
-      ...str5(m2.get("modelName")) ? { modelName: str5(m2.get("modelName")) } : {},
-      ...str5(m2.get("modelIdentifier")) ? { modelIdentifier: str5(m2.get("modelIdentifier")) } : {},
+      ...str6(m2.get("modelType")) ? { modelType: str6(m2.get("modelType")) } : {},
+      ...str6(m2.get("modelName")) ? { modelName: str6(m2.get("modelName")) } : {},
+      ...str6(m2.get("modelIdentifier")) ? { modelIdentifier: str6(m2.get("modelIdentifier")) } : {},
       ...oversight ? { oversight } : {},
       ...domains.length ? { scientificDomain: domains } : {}
     };
@@ -12029,11 +12082,11 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       return `<section data-pdf-page class="lolly-page" data-page-index="${index}">${body}</section>`;
     }).join("");
   }
-  function getHydratedString(str5) {
-    return str5 ? hydrate(str5, templateContext()) : "";
+  function getHydratedString(str6) {
+    return str6 ? hydrate(str6, templateContext()) : "";
   }
-  function getHydratedText(str5) {
-    return str5 ? hydrate(str5, templateContext(), { raw: true }) : "";
+  function getHydratedText(str6) {
+    return str6 ? hydrate(str6, templateContext(), { raw: true }) : "";
   }
   return {
     getModel: () => model2,
@@ -16244,9 +16297,9 @@ function serializeUrlState(model2, opts = {}) {
       const t = normalizeTableValue(input.value);
       if (!t || !t.columns.length && !t.rows.length) continue;
     }
-    const str5 = coerceToString(input, input.value, opts.keepUserIds === true);
-    if (input.type === "asset" && opts.keepUserIds !== true && str5.startsWith("user/")) continue;
-    params.set(input.id, str5);
+    const str6 = coerceToString(input, input.value, opts.keepUserIds === true);
+    if (input.type === "asset" && opts.keepUserIds !== true && str6.startsWith("user/")) continue;
+    params.set(input.id, str6);
   }
   if (opts.format) params.set("format", opts.format);
   if (opts.export) params.set("export", "");
@@ -16325,9 +16378,9 @@ function coerceToString(input, value, keepUserIds = false) {
   if (input.type === "table") return encodeTableCompact(normalizeTableValue(value));
   return String(value);
 }
-function decodeBlocksCompact(str5, fields) {
-  if (!str5 || !fields.length) return [];
-  return str5.split("~").filter(Boolean).map((item) => {
+function decodeBlocksCompact(str6, fields) {
+  if (!str6 || !fields.length) return [];
+  return str6.split("~").filter(Boolean).map((item) => {
     const parts = splitToFields(item, fields.length);
     const obj = {};
     fields.forEach((f, i) => {
@@ -16375,8 +16428,8 @@ function encodeTableCompact(t) {
   const row = (r3) => r3.map(cell).join(",");
   return [row(t.columns), ...t.rows.map(row)].join("~");
 }
-function decodeTableCompact(str5) {
-  if (!str5) return { columns: [], rows: [] };
+function decodeTableCompact(str6) {
+  if (!str6) return { columns: [], rows: [] };
   const dec = (part) => {
     try {
       return decodeURIComponent(part);
@@ -16384,13 +16437,13 @@ function decodeTableCompact(str5) {
       return part;
     }
   };
-  const segments = str5.split("~");
+  const segments = str6.split("~");
   const columns = (segments[0] ?? "").split(",").map(dec);
   const rows = segments.slice(1).filter(Boolean).map((seg) => splitToFields(seg, columns.length).map(dec));
   return normalizeTableValue({ columns, rows }) ?? { columns: [], rows: [] };
 }
-function splitToFields(str5, count2) {
-  const parts = str5.split(",");
+function splitToFields(str6, count2) {
+  const parts = str6.split(",");
   if (parts.length <= count2) return parts;
   return [...parts.slice(0, count2 - 1), parts.slice(count2 - 1).join(",")];
 }
@@ -16549,8 +16602,8 @@ function bytesToBase64Url2(bytes) {
   for (const b of bytes) bin += String.fromCharCode(b);
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
-function base64UrlToBytes2(str5) {
-  const b64 = str5.replace(/-/g, "+").replace(/_/g, "/");
+function base64UrlToBytes2(str6) {
+  const b64 = str6.replace(/-/g, "+").replace(/_/g, "/");
   const bin = atob(b64);
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
@@ -16571,12 +16624,12 @@ function bytesToBase32(bytes) {
   if (bits > 0) out += B32_ALPHABET[acc << 5 - bits & 31];
   return out;
 }
-function base32ToBytes(str5) {
-  const out = new Uint8Array(Math.floor(str5.length * 5 / 8));
+function base32ToBytes(str6) {
+  const out = new Uint8Array(Math.floor(str6.length * 5 / 8));
   let acc = 0;
   let bits = 0;
   let i = 0;
-  for (const ch of str5) {
+  for (const ch of str6) {
     const v = B32_ALPHABET.indexOf(ch);
     if (v < 0) return null;
     acc = acc << 5 | v;
@@ -16925,8 +16978,8 @@ function sniff(b) {
   if (/<svg[\s>]/i.test(head) || /^\s*<\?xml/i.test(head) && /<svg[\s>]/i.test(new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096))))) return "SVG";
   return "";
 }
-function matchAscii(b, off, str5) {
-  for (let i = 0; i < str5.length; i++) if (b[off + i] !== str5.charCodeAt(i)) return false;
+function matchAscii(b, off, str6) {
+  for (let i = 0; i < str6.length; i++) if (b[off + i] !== str6.charCodeAt(i)) return false;
   return true;
 }
 function clip(s) {
@@ -20836,10 +20889,10 @@ function textType(ascii2) {
   b.set(a, 8);
   return b;
 }
-function mlucType(str5) {
+function mlucType(str6) {
   const HEADER = 16;
   const RECORD = 12;
-  const bytes = str5.length * 2;
+  const bytes = str6.length * 2;
   const b = new Uint8Array(HEADER + RECORD + bytes);
   const dv = new DataView(b.buffer);
   writeSig(b, 0, "mluc");
@@ -20849,7 +20902,7 @@ function mlucType(str5) {
   dv.setUint16(18, 21843);
   dv.setUint32(20, bytes);
   dv.setUint32(24, HEADER + RECORD);
-  for (let i = 0; i < str5.length; i++) dv.setUint16(HEADER + RECORD + i * 2, str5.charCodeAt(i));
+  for (let i = 0; i < str6.length; i++) dv.setUint16(HEADER + RECORD + i * 2, str6.charCodeAt(i));
   return b;
 }
 function sf32Type(values) {
@@ -22937,11 +22990,11 @@ var init_rate_card = __esm({
 });
 
 // engine/src/svg-path.ts
-function parseSvgPathArgs(str5) {
-  const m2 = str5.match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
+function parseSvgPathArgs(str6) {
+  const m2 = str6.match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
   return m2 ? m2.map(Number) : [];
 }
-function parseArcArgs(str5) {
+function parseArcArgs(str6) {
   const numRe = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;
   const flagRe = /[01]/y;
   const sepRe = /[\s,]*/y;
@@ -22949,18 +23002,18 @@ function parseArcArgs(str5) {
   let i = 0;
   const skipSep = () => {
     sepRe.lastIndex = i;
-    sepRe.exec(str5);
+    sepRe.exec(str6);
     i = sepRe.lastIndex;
   };
   const grab = (re) => {
     skipSep();
     re.lastIndex = i;
-    const mm = re.exec(str5);
+    const mm = re.exec(str6);
     if (!mm) return null;
     i = re.lastIndex;
     return mm[0];
   };
-  while (i < str5.length) {
+  while (i < str6.length) {
     const rx = grab(numRe);
     if (rx === null) break;
     const ry = grab(numRe);
@@ -25872,7 +25925,7 @@ var init_text_facts = __esm({
 function humanizeText(input) {
   let text = input;
   const changes = [];
-  const apply2 = (re, repl, kind, label) => {
+  const apply4 = (re, repl, kind, label) => {
     const g2 = re.flags.includes("g") ? re : new RegExp(re.source, `${re.flags}g`);
     let n2 = 0;
     text = text.replace(g2, () => {
@@ -25893,18 +25946,18 @@ function humanizeText(input) {
     });
   }
   if (fpCount > 0) changes.push({ kind: "fingerprint", label: `Model scaffolding tokens (${[...fpModels].join(", ")})`, count: fpCount });
-  apply2(/[\u200b\u2060\ufeff\u180e\u00ad]/g, "", "invisible", "Invisible / zero-width characters");
-  apply2(/[\u{E0000}-\u{E007F}]/gu, "", "tag-char", "Hidden tag characters");
-  apply2(/[\u202d\u202e]/g, "", "bidi", "Bidirectional override characters");
-  apply2(/[\u{E0100}-\u{E01EF}]/gu, "", "variation", "Unusual variation selectors");
-  apply2(/\u2014/g, " - ", "em-dash", 'Em-dashes to " - "');
-  apply2(/(?<!\d)\s*–\s*(?!\d)/g, " - ", "en-dash", 'En-dashes to " - "');
-  apply2(/[‘’]/g, "'", "curly-apos", "Curly apostrophes to straight");
-  apply2(/[“”]/g, '"', "curly-quote", "Curly quotes to straight");
-  apply2(/…/g, "...", "ellipsis", 'Unicode ellipsis to "..."');
-  apply2(/\u00a0(?![;:!?\u00bb])/g, " ", "nbsp", "Non-breaking spaces to a space");
-  apply2(/[ \t]{2,}/g, " ", "multi-space", "Collapsed repeated spaces");
-  apply2(/[ \t]+$/gm, "", "trailing-space", "Removed trailing whitespace");
+  apply4(/[\u200b\u2060\ufeff\u180e\u00ad]/g, "", "invisible", "Invisible / zero-width characters");
+  apply4(/[\u{E0000}-\u{E007F}]/gu, "", "tag-char", "Hidden tag characters");
+  apply4(/[\u202d\u202e]/g, "", "bidi", "Bidirectional override characters");
+  apply4(/[\u{E0100}-\u{E01EF}]/gu, "", "variation", "Unusual variation selectors");
+  apply4(/\u2014/g, " - ", "em-dash", 'Em-dashes to " - "');
+  apply4(/(?<!\d)\s*–\s*(?!\d)/g, " - ", "en-dash", 'En-dashes to " - "');
+  apply4(/[‘’]/g, "'", "curly-apos", "Curly apostrophes to straight");
+  apply4(/[“”]/g, '"', "curly-quote", "Curly quotes to straight");
+  apply4(/…/g, "...", "ellipsis", 'Unicode ellipsis to "..."');
+  apply4(/\u00a0(?![;:!?\u00bb])/g, " ", "nbsp", "Non-breaking spaces to a space");
+  apply4(/[ \t]{2,}/g, " ", "multi-space", "Collapsed repeated spaces");
+  apply4(/[ \t]+$/gm, "", "trailing-space", "Removed trailing whitespace");
   return { text, changes };
 }
 var init_humanize = __esm({
@@ -26730,11 +26783,11 @@ function midiToSong(parsed, opts = {}) {
   const stepTicks = division / stepsPerQuarter;
   const quant2 = (tick) => Math.round(tick / stepTicks);
   const minMidi = notes.reduce((m2, n2) => Math.min(m2, n2.midi), Infinity);
-  const K = minMidi - 1;
-  const baseFreq = 440 * 2 ** ((K - 57) / 12);
+  const K2 = minMidi - 1;
+  const baseFreq = 440 * 2 ** ((K2 - 57) / 12);
   const piano = [...PIANO];
   piano[2] = baseFreq;
-  const events = notes.map((n2) => ({ s: quant2(n2.start), e: Math.max(quant2(n2.start) + 1, quant2(n2.end)), z: n2.midi - K })).filter((ev) => ev.s < MAX_STEPS).sort((a, b) => a.s - b.s || b.z - a.z);
+  const events = notes.map((n2) => ({ s: quant2(n2.start), e: Math.max(quant2(n2.start) + 1, quant2(n2.end)), z: n2.midi - K2 })).filter((ev) => ev.s < MAX_STEPS).sort((a, b) => a.s - b.s || b.z - a.z);
   if (!events.length) throw new Error("no notes in MIDI");
   const totalSteps = Math.min(events.reduce((m2, e) => Math.max(m2, e.e), 1), MAX_STEPS);
   const voiceEnd = [];
@@ -27550,27 +27603,27 @@ function cornerRadii(corners, w, h) {
   const scale = (p) => [p[0] * f, p[1] * f];
   return { topLeft: scale(tl), topRight: scale(tr), bottomRight: scale(br), bottomLeft: scale(bl) };
 }
-function uniformRadius(radii) {
-  const c = [radii.topLeft, radii.topRight, radii.bottomRight, radii.bottomLeft];
-  const [rx, ry] = radii.topLeft;
+function uniformRadius(radii2) {
+  const c = [radii2.topLeft, radii2.topRight, radii2.bottomRight, radii2.bottomLeft];
+  const [rx, ry] = radii2.topLeft;
   const equal = c.every((p) => Math.abs(p[0] - rx) < 1e-3 && Math.abs(p[1] - ry) < 1e-3);
   if (!equal) return null;
   if (rx <= 0 && ry <= 0) return [0, 0];
   return [rx, ry];
 }
-function insetCorners(radii, inset) {
+function insetCorners(radii2, inset) {
   const r3 = (p) => [Math.max(0, p[0] - inset), Math.max(0, p[1] - inset)];
   return {
-    topLeft: r3(radii.topLeft),
-    topRight: r3(radii.topRight),
-    bottomRight: r3(radii.bottomRight),
-    bottomLeft: r3(radii.bottomLeft)
+    topLeft: r3(radii2.topLeft),
+    topRight: r3(radii2.topRight),
+    bottomRight: r3(radii2.bottomRight),
+    bottomLeft: r3(radii2.bottomLeft)
   };
 }
-function splitTopLevel(str5) {
+function splitTopLevel(str6) {
   const out = [];
   let depth = 0, cur = "";
-  for (const ch of String(str5)) {
+  for (const ch of String(str6)) {
     if (ch === "(") depth++;
     else if (ch === ")") depth = Math.max(0, depth - 1);
     if (ch === "," && depth === 0) {
@@ -27654,15 +27707,15 @@ function gaussianShadowRings(blur, alpha, bands) {
   }
   return out;
 }
-function roundedRectPath(x, y, w, h, radii) {
+function roundedRectPath(x, y, w, h, radii2) {
   const cl = (p) => [
     Math.max(0, Math.min(p[0], w)),
     Math.max(0, Math.min(p[1], h))
   ];
-  const [tlh, tlv] = cl(radii.topLeft);
-  const [trh, trv] = cl(radii.topRight);
-  const [brh, brv] = cl(radii.bottomRight);
-  const [blh, blv] = cl(radii.bottomLeft);
+  const [tlh, tlv] = cl(radii2.topLeft);
+  const [trh, trv] = cl(radii2.topRight);
+  const [brh, brv] = cl(radii2.bottomRight);
+  const [blh, blv] = cl(radii2.bottomLeft);
   return [
     `M${n3(x + tlh)},${n3(y)}`,
     `H${n3(x + w - trh)}`,
@@ -27792,18 +27845,18 @@ function expandGradientStops(stops) {
     { colorStr: s.colorStr, opacity: s.opacity, offset: s.offset2 }
   ] : [s]);
 }
-function splitCssArgs(str5) {
+function splitCssArgs(str6) {
   const parts = [];
   let depth = 0, start = 0;
-  for (let i = 0; i < str5.length; i++) {
-    if (str5[i] === "(") depth++;
-    else if (str5[i] === ")") depth--;
-    else if (str5[i] === "," && depth === 0) {
-      parts.push(str5.slice(start, i).trim());
+  for (let i = 0; i < str6.length; i++) {
+    if (str6[i] === "(") depth++;
+    else if (str6[i] === ")") depth--;
+    else if (str6[i] === "," && depth === 0) {
+      parts.push(str6.slice(start, i).trim());
       start = i + 1;
     }
   }
-  parts.push(str5.slice(start).trim());
+  parts.push(str6.slice(start).trim());
   return parts;
 }
 function parseGradientAngle(token2) {
@@ -27822,10 +27875,10 @@ function parseGradientAngle(token2) {
   if (t.endsWith("rad")) return parseFloat(t);
   return Math.PI;
 }
-function splitTopLevelWs(str5) {
+function splitTopLevelWs(str6) {
   const out = [];
   let depth = 0, cur = "";
-  for (const ch of str5) {
+  for (const ch of str6) {
     if (ch === "(") {
       depth++;
       cur += ch;
@@ -27994,10 +28047,10 @@ function parseConicGradient(value, w, h) {
   if (stops.length < 2) return null;
   return { cx, cy, fromRad, stops, repeating };
 }
-function splitFilterFunctions(str5) {
+function splitFilterFunctions(str6) {
   const out = [];
   let depth = 0, cur = "";
-  for (const ch of str5) {
+  for (const ch of str6) {
     if (ch === "(") {
       depth++;
       cur += ch;
@@ -29497,16 +29550,16 @@ function rawMomentsCubic(c) {
   const x2 = c[4] - x0, y2 = c[5] - y0;
   const x3 = c[6] - x0, y3 = c[7] - y0;
   const r0 = 3 * x1, r1 = 3 * y1;
-  const r23 = x2 * y3, r3 = x3 * y2, r4 = x3 * y3;
+  const r23 = x2 * y3, r3 = x3 * y2, r42 = x3 * y3;
   const r5 = 27 * y1, r6 = x1 * x2, r7 = 27 * y2, r8 = 45 * r23, r9 = 18 * x3;
   const r10 = x1 * y1, r11 = 30 * x1, r12 = 45 * x3, r13 = x2 * y1, r14 = 45 * r3;
   const r15 = x1 * x1, r16 = 18 * y3, r17 = x2 * x2, r18 = 45 * y3, r19 = x3 * x3;
   const r20 = 30 * y1, r21 = y2 * y2, r222 = y3 * y3, r232 = y1 * y1;
-  const a = -r0 * y2 - r0 * y3 + r1 * x2 + r1 * x3 - 6 * r23 + 6 * r3 + 10 * r4;
+  const a = -r0 * y2 - r0 * y3 + r1 * x2 + r1 * x3 - 6 * r23 + 6 * r3 + 10 * r42;
   const lift = x3 * y0;
   const area = a * 0.05 + lift;
-  const x = r10 * r9 - r11 * r4 + r12 * r13 + r14 * x2 - r15 * r16 - r15 * r7 - r17 * r18 + r17 * r5 + r19 * r20 + 105 * r19 * y2 + 280 * r19 * y3 - 105 * r23 * x3 + r5 * r6 - r6 * r7 - r8 * x1;
-  const y = -r10 * r16 - r10 * r7 - r11 * r222 + r12 * r21 + r13 * r7 + r14 * y1 - r18 * x1 * y2 + r20 * r4 - 27 * r21 * x1 - 105 * r222 * x2 + 140 * r222 * x3 + r232 * r9 + 27 * r232 * x2 + 105 * r3 * y3 - r8 * y2;
+  const x = r10 * r9 - r11 * r42 + r12 * r13 + r14 * x2 - r15 * r16 - r15 * r7 - r17 * r18 + r17 * r5 + r19 * r20 + 105 * r19 * y2 + 280 * r19 * y3 - 105 * r23 * x3 + r5 * r6 - r6 * r7 - r8 * x1;
+  const y = -r10 * r16 - r10 * r7 - r11 * r222 + r12 * r21 + r13 * r7 + r14 * y1 - r18 * x1 * y2 + r20 * r42 - 27 * r21 * x1 - 105 * r222 * x2 + 140 * r222 * x3 + r232 * r9 + 27 * r232 * x2 + 105 * r3 * y3 - r8 * y2;
   return {
     a: area,
     x: x * (1 / 840) + x0 * area + 0.5 * x3 * lift,
@@ -33634,8 +33687,8 @@ function emitMarksPs(geo, markSpace, L) {
       const [cy, m2, y, k] = b.cmyk;
       L.push(n(cy) + " " + n(m2) + " " + n(y) + " " + n(k) + " setcmykcolor");
     } else {
-      const [r4, g2, bl] = b.rgb;
-      L.push(n(r4) + " " + n(g2) + " " + n(bl) + " setrgbcolor");
+      const [r5, g2, bl] = b.rgb;
+      L.push(n(r5) + " " + n(g2) + " " + n(bl) + " setrgbcolor");
     }
     const r3 = Math.min(b.r ?? 0, b.w / 2, b.h / 2);
     if (r3 > 0) {
@@ -34227,11 +34280,100 @@ function shapeXml(shape, id) {
       return pathXml(shape, id);
   }
 }
+function bhvrCTn(id, dur, fx) {
+  const accel = fx.accel && fx.accel > 0 ? ` accel="${clampInt3(fx.accel, 0, 1e5)}"` : "";
+  const decel = fx.decel && fx.decel > 0 ? ` decel="${clampInt3(fx.decel, 0, 1e5)}"` : "";
+  return `<p:cTn id="${id}" dur="${dur}"${accel}${decel} fill="hold"/>`;
+}
+function setVisibilityXml(id, spid, visible, delay) {
+  return `<p:set><p:cBhvr><p:cTn id="${id}" dur="1" fill="hold"><p:stCondLst><p:cond delay="${delay}"/></p:stCondLst></p:cTn>${tgt(spid)}<p:attrNameLst><p:attrName>style.visibility</p:attrName></p:attrNameLst></p:cBhvr><p:to><p:strVal val="${visible ? "visible" : "hidden"}"/></p:to></p:set>`;
+}
+function fadeFxXml(id, spid, dur, entering, fx) {
+  return `<p:animEffect transition="${entering ? "in" : "out"}" filter="fade"><p:cBhvr>${bhvrCTn(id, dur, fx)}${tgt(spid)}</p:cBhvr></p:animEffect>`;
+}
+function flyAnimXml(id, spid, dur, dir, entering, fx) {
+  const attr4 = dir === "l" || dir === "r" ? "ppt_x" : "ppt_y";
+  const rest = `#${attr4}`;
+  const off = dir === "r" ? "1+#ppt_w/2" : dir === "l" ? "0-#ppt_w/2" : dir === "b" ? "1+#ppt_h/2" : "0-#ppt_h/2";
+  const from = entering ? off : rest;
+  const to = entering ? rest : off;
+  return `<p:anim calcmode="lin" valueType="num"><p:cBhvr additive="base">${bhvrCTn(id, dur, fx)}${tgt(spid)}<p:attrNameLst><p:attrName>${attr4}</p:attrName></p:attrNameLst></p:cBhvr><p:tavLst><p:tav tm="0"><p:val><p:strVal val="${from}"/></p:val></p:tav><p:tav tm="100000"><p:val><p:strVal val="${to}"/></p:val></p:tav></p:tavLst></p:anim>`;
+}
+function scaleFxXml(id, spid, dur, fromPct, toPct, fx) {
+  return `<p:animScale><p:cBhvr>${bhvrCTn(id, dur, fx)}${tgt(spid)}</p:cBhvr><p:from x="${fromPct}" y="${fromPct}"/><p:to x="${toPct}" y="${toPct}"/></p:animScale>`;
+}
+function effectBehaviorsXml(nextId, spid, cls, fx) {
+  const dur = clampInt3(fx.ms, 1, MAX_EFFECT_MS);
+  const entering = cls === "entr";
+  const show = entering ? setVisibilityXml(nextId(), spid, true, 0) : "";
+  let motion = "";
+  switch (fx.preset) {
+    case "appear":
+      break;
+    // visibility is the whole effect
+    case "fade":
+      motion = fadeFxXml(nextId(), spid, dur, entering, fx);
+      break;
+    case "fly":
+      motion = flyAnimXml(nextId(), spid, dur, fx.dir ?? "b", entering, fx);
+      break;
+    case "zoom":
+      motion = scaleFxXml(nextId(), spid, dur, entering ? 25e3 : 1e5, entering ? 1e5 : 25e3, fx) + fadeFxXml(nextId(), spid, dur, entering, fx);
+      break;
+    case "zoomOut":
+      motion = scaleFxXml(nextId(), spid, dur, entering ? 15e4 : 1e5, entering ? 1e5 : 15e4, fx) + fadeFxXml(nextId(), spid, dur, entering, fx);
+      break;
+  }
+  const hide = entering ? "" : setVisibilityXml(nextId(), spid, false, Math.max(0, dur - 1));
+  return show + motion + hide;
+}
+function effectParXml(nextId, spid, grpId, cls, fx, nodeType) {
+  const id = nextId();
+  const presetSubtype = fx.preset === "fly" ? FLY_SUBTYPE[fx.dir ?? "b"] : fx.preset === "zoomOut" ? 32 : fx.preset === "zoom" ? 16 : 0;
+  const delay = clampInt3(fx.delayMs ?? 0, 0, MAX_DELAY_MS);
+  const it = fx.iterate && fx.iterate.staggerMs > 0 ? `<p:iterate type="${fx.iterate.by === "word" ? "wd" : "lt"}"${fx.iterate.backwards ? ' backwards="1"' : ""}><p:tmAbs val="${clampInt3(fx.iterate.staggerMs, 1, MAX_EFFECT_MS)}"/></p:iterate>` : "";
+  return `<p:par><p:cTn id="${id}" presetID="${EFFECT_PRESET_IDS[fx.preset]}" presetClass="${cls}" presetSubtype="${presetSubtype}" fill="hold" grpId="${grpId}" nodeType="${nodeType}"><p:stCondLst><p:cond delay="${delay}"/></p:stCondLst>${it}<p:childTnLst>${effectBehaviorsXml(nextId, spid, cls, fx)}</p:childTnLst></p:cTn></p:par>`;
+}
+function timingXml(slide) {
+  const rows = [];
+  slide.shapes.forEach((s, i) => {
+    const anim = s.anim;
+    if (!anim) return;
+    const spid = i + 2;
+    const click = clampInt3(Number.isFinite(anim.click) ? anim.click : 0, 0, 999);
+    let grp = 0;
+    if (anim.enter) rows.push({ spid, grpId: grp++, cls: "entr", fx: anim.enter, click, text: s.kind === "text" });
+    if (anim.exit) rows.push({ spid, grpId: grp++, cls: "exit", fx: anim.exit, click, text: s.kind === "text" });
+  });
+  if (!rows.length) return "";
+  let n2 = 2;
+  const nextId = () => ++n2;
+  const clicks = [...new Set(rows.map((r3) => r3.click))].sort((a, b) => a - b);
+  const groups = clicks.map((click) => {
+    const groupId = nextId();
+    const innerId = nextId();
+    const inGroup = rows.filter((r3) => r3.click === click).sort((a, b) => (a.fx.delayMs ?? 0) - (b.fx.delayMs ?? 0) || a.spid - b.spid);
+    const effects = inGroup.map((r3, idx) => effectParXml(
+      nextId,
+      r3.spid,
+      r3.grpId,
+      r3.cls,
+      r3.fx,
+      // Step 0 plays with the slide; a click step's first effect is the click itself.
+      click === 0 ? idx === 0 ? "afterEffect" : "withEffect" : idx === 0 ? "clickEffect" : "withEffect"
+    )).join("");
+    return `<p:par><p:cTn id="${groupId}" fill="hold"><p:stCondLst><p:cond delay="${click === 0 ? "0" : "indefinite"}"/></p:stCondLst><p:childTnLst><p:par><p:cTn id="${innerId}" fill="hold"><p:stCondLst><p:cond delay="0"/></p:stCondLst><p:childTnLst>${effects}</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par>`;
+  }).join("");
+  const bldRows = rows.filter((r3) => r3.text);
+  const bld = bldRows.length ? `<p:bldLst>${bldRows.map((r3) => `<p:bldP spid="${r3.spid}" grpId="${r3.grpId}"/>`).join("")}</p:bldLst>` : "";
+  return `<p:timing><p:tnLst><p:par><p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"><p:childTnLst><p:seq concurrent="1" nextAc="seek"><p:cTn id="2" dur="indefinite" nodeType="mainSeq"><p:childTnLst>${groups}</p:childTnLst></p:cTn><p:prevCondLst><p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:prevCondLst><p:nextCondLst><p:cond evt="onNext" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:nextCondLst></p:seq></p:childTnLst></p:cTn></p:par></p:tnLst>${bld}</p:timing>`;
+}
 function slideXml(slide) {
   let id = 1;
   const shapes = slide.shapes.map((s) => shapeXml(s, ++id)).join("");
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>` + shapes + `</p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr></p:sld>`;
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>` + shapes + `</p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr>` + // The timing tree (plans/175 WP-E) sits after clrMapOvr in CT_Slide's child order.
+  timingXml(slide) + `</p:sld>`;
 }
 function collectLinkTargets(slide) {
   const set = /* @__PURE__ */ new Set();
@@ -34422,7 +34564,7 @@ function buildPptxParts(slides, opts = {}) {
   }
   return parts;
 }
-var EMU_PER_INCH, EMU_PER_PX, xmlEsc2, REL, PKG_REL_NS, CT, SVG_EXT_URI, MEDIA_CT, clampInt3, finInt, lineXml, xfrmXml, slideLinkRid, BULLET_STEP, PH_TYPES, mediaRid, DEFAULT_TABLE_STYLE, spanOf, EMPTY_TXBODY, lnSideXml, MAX_TABLE_COLS, MAX_TABLE_ROWS, mediaName, layoutMediaName, linkRidBase, notesMasterRels, ROOT_RELS, MASTER_TX_STYLES, THEME_DEFAULT_COLORS, hexNorm, appPropsXml;
+var EMU_PER_INCH, EMU_PER_PX, xmlEsc2, REL, PKG_REL_NS, CT, SVG_EXT_URI, MEDIA_CT, clampInt3, finInt, lineXml, xfrmXml, slideLinkRid, BULLET_STEP, PH_TYPES, mediaRid, DEFAULT_TABLE_STYLE, spanOf, EMPTY_TXBODY, lnSideXml, MAX_TABLE_COLS, MAX_TABLE_ROWS, EFFECT_PRESET_IDS, FLY_SUBTYPE, MAX_EFFECT_MS, MAX_DELAY_MS, tgt, mediaName, layoutMediaName, linkRidBase, notesMasterRels, ROOT_RELS, MASTER_TX_STYLES, THEME_DEFAULT_COLORS, hexNorm, appPropsXml;
 var init_pptx = __esm({
   "engine/src/pptx.ts"() {
     "use strict";
@@ -34455,6 +34597,11 @@ var init_pptx = __esm({
     lnSideXml = (tag2, line) => line ? `<a:${tag2} w="${Math.max(0, Math.round(line.w))}" cap="flat" cmpd="sng" algn="ctr"><a:solidFill>${clr(line.color)}</a:solidFill></a:${tag2}>` : "";
     MAX_TABLE_COLS = 128;
     MAX_TABLE_ROWS = 512;
+    EFFECT_PRESET_IDS = { appear: 1, fly: 2, fade: 10, zoom: 23, zoomOut: 23 };
+    FLY_SUBTYPE = { t: 1, r: 2, b: 4, l: 8 };
+    MAX_EFFECT_MS = 6e4;
+    MAX_DELAY_MS = 6e5;
+    tgt = (spid) => `<p:tgtEl><p:spTgt spid="${spid}"/></p:tgtEl>`;
     mediaName = (slideIdx, mediaIdx, ext) => `image${slideIdx + 1}_${mediaIdx + 1}.${ext}`;
     layoutMediaName = (layoutIdx, mediaIdx, ext) => `limage${layoutIdx + 1}_${mediaIdx + 1}.${ext}`;
     linkRidBase = (mediaCount, hasNotes) => mediaCount + 2 + (hasNotes ? 1 : 0);
@@ -35750,6 +35897,10 @@ function readSp(sp, theme, cascade) {
     const resolved2 = layoutPh?.type ?? masterPh?.type;
     if (resolved2) ph = { ...ph, type: resolved2 };
   }
+  if (ph && box2.cxEmu === 0 && box2.cyEmu === 0) {
+    const slot = layoutPh?.box ?? masterPh?.box;
+    if (slot) Object.assign(box2, slot);
+  }
   const txBody = firstChildByLocal(sp, "txBody");
   const shapeLvls = readLevels(txBody ? firstChildByLocal(txBody, "lstStyle") : null, theme);
   const layers = [shapeLvls, layoutPh?.lvls, masterPh?.lvls, ph ? txStyleFor(cascade?.master, ph.type) : void 0, cascade?.defaults].filter(
@@ -35789,7 +35940,9 @@ function readPhLayer(store, path, parseXml, theme) {
   const doc = parsePart(store, path, parseXml);
   const root = doc?.documentElement;
   if (!root) return null;
-  const layer = { phs: [] };
+  const layer = { phs: [], furniture: [], showMasterSp: attrByLocal(root, "showMasterSp") !== "0" };
+  const rels = parseRels(store, path, parseXml);
+  const relsById = new Map(rels.map((r3) => [r3.id, r3]));
   const spTree = descendantByLocal(root, "spTree");
   if (spTree) {
     for (const sp of childrenByLocal(spTree, "sp")) {
@@ -35800,9 +35953,14 @@ function readPhLayer(store, path, parseXml, theme) {
       const entry = { type: read.ph.type, idx: read.ph.idx };
       const lvls = readLevels(txBody ? firstChildByLocal(txBody, "lstStyle") : null, theme);
       if (lvls) entry.lvls = lvls;
+      const box2 = readXfrm(firstChildByLocal(sp, "spPr"));
+      if (box2.cxEmu > 0 || box2.cyEmu > 0) entry.box = box2;
       layer.phs.push(entry);
     }
+    walkTree(spTree, theme, relsById, layer.furniture, 0, void 0, true);
   }
+  const bg = readBackground(root, relsById, theme);
+  if (bg) layer.background = bg;
   const txStyles = firstChildByLocal(root, "txStyles");
   if (txStyles) {
     layer.titleStyle = readLevels(firstChildByLocal(txStyles, "titleStyle"), theme);
@@ -35812,6 +35970,29 @@ function readPhLayer(store, path, parseXml, theme) {
   const masterRel = parseRels(store, path, parseXml).find((r3) => /slideMaster$/i.test(r3.type) && !r3.external);
   if (masterRel?.target) layer.masterPath = masterRel.target;
   return layer;
+}
+function readBackground(root, relsById, theme) {
+  const cSld = firstChildByLocal(root, "cSld");
+  const bg = cSld ? firstChildByLocal(cSld, "bg") : null;
+  if (!bg) return void 0;
+  const bgPr = firstChildByLocal(bg, "bgPr");
+  if (bgPr) {
+    const out = {};
+    const color = readColor2(firstChildByLocal(bgPr, "solidFill"), theme);
+    if (color) out.color = color;
+    const blipFill = firstChildByLocal(bgPr, "blipFill");
+    const blip = blipFill ? firstChildByLocal(blipFill, "blip") : null;
+    const embed = blip ? attrByLocal(blip, "embed") || attrByLocal(blip, "link") : null;
+    const rel = embed ? relsById.get(embed) : void 0;
+    if (rel && !rel.external) out.media = rel.target;
+    return out.color || out.media ? out : void 0;
+  }
+  const bgRef = firstChildByLocal(bg, "bgRef");
+  if (bgRef) {
+    const color = readColor2(bgRef, theme);
+    if (color) return { color };
+  }
+  return void 0;
 }
 function readPic(pic, slideRelsById) {
   const spPr = firstChildByLocal(pic, "spPr");
@@ -35851,7 +36032,7 @@ function readGraphicFrame(gf, theme) {
   if (uri) node.tag = uri;
   return node;
 }
-function walkTree(tree, theme, slideRelsById, out, depth, cascade) {
+function walkTree(tree, theme, slideRelsById, out, depth, cascade, skipPlaceholders = false) {
   if (depth > MAX_GROUP_DEPTH) return;
   for (const child of childElements(tree)) {
     if (out.length >= MAX_NODES_PER_SLIDE) return;
@@ -35859,6 +36040,7 @@ function walkTree(tree, theme, slideRelsById, out, depth, cascade) {
     try {
       switch (ln) {
         case "sp":
+          if (skipPlaceholders && readPlaceholder(child)) break;
           out.push(readSp(child, theme, cascade));
           break;
         case "cxnSp":
@@ -35871,7 +36053,7 @@ function walkTree(tree, theme, slideRelsById, out, depth, cascade) {
           out.push(readGraphicFrame(child, theme));
           break;
         case "grpSp":
-          walkTree(child, theme, slideRelsById, out, depth + 1, cascade);
+          walkTree(child, theme, slideRelsById, out, depth + 1, cascade, skipPlaceholders);
           break;
         case "nvGrpSpPr":
         case "grpSpPr":
@@ -36059,6 +36241,13 @@ function readPptx(parts, parseXml) {
         const cascade = layout || master || defaults ? { layout, master, defaults } : void 0;
         const spTree = descendantByLocal(doc.documentElement, "spTree");
         if (spTree) walkTree(spTree, deck.theme, relsById, slide.nodes, 0, cascade);
+        const slideShowsMaster = attrByLocal(doc.documentElement, "showMasterSp") !== "0";
+        const inherited = [];
+        if (master && slideShowsMaster && (!layout || layout.showMasterSp)) inherited.push(...master.furniture);
+        if (layout) inherited.push(...layout.furniture);
+        if (inherited.length) slide.inherited = inherited;
+        const background = readBackground(doc.documentElement, relsById, deck.theme) ?? layout?.background ?? master?.background;
+        if (background) slide.background = background;
         const notesRel = rels.find((r3) => /notesSlide$/i.test(r3.type) && !r3.external);
         if (notesRel) {
           const notes = readNotes(store, notesRel.target, parseXml);
@@ -42155,20 +42344,20 @@ function writeDocx(doc) {
     id: i + 1,
     runs: inlinesXml(b.inlines ?? [], ctx, NO_MARKS, false, true, 0)
   }));
-  const str5 = (s) => encoder3.encode(s);
+  const str6 = (s) => encoder3.encode(s);
   const now2 = doc.now ?? "2026-01-01T00:00:00Z";
   const coreMeta = { ...doc.meta, title: doc.meta?.title ?? doc.title };
   const entries = [
-    { name: "[Content_Types].xml", bytes: str5(contentTypesXml3(ctx.exts, hasLists, notes.length > 0)) },
-    { name: "_rels/.rels", bytes: str5(ROOT_RELS2) },
-    { name: "docProps/core.xml", bytes: str5(corePropsXml(coreMeta, now2, "Document")) },
-    { name: "docProps/app.xml", bytes: str5(APP_PROPS) },
-    { name: "word/document.xml", bytes: str5(document2) },
-    { name: "word/styles.xml", bytes: str5(stylesXml2(ctx)) },
-    { name: "word/_rels/document.xml.rels", bytes: str5(documentRels(ctx.rels)) }
+    { name: "[Content_Types].xml", bytes: str6(contentTypesXml3(ctx.exts, hasLists, notes.length > 0)) },
+    { name: "_rels/.rels", bytes: str6(ROOT_RELS2) },
+    { name: "docProps/core.xml", bytes: str6(corePropsXml(coreMeta, now2, "Document")) },
+    { name: "docProps/app.xml", bytes: str6(APP_PROPS) },
+    { name: "word/document.xml", bytes: str6(document2) },
+    { name: "word/styles.xml", bytes: str6(stylesXml2(ctx)) },
+    { name: "word/_rels/document.xml.rels", bytes: str6(documentRels(ctx.rels)) }
   ];
-  if (hasLists) entries.push({ name: "word/numbering.xml", bytes: str5(NUMBERING_XML) });
-  if (notes.length) entries.push({ name: "word/footnotes.xml", bytes: str5(footnotesXml(notes)) });
+  if (hasLists) entries.push({ name: "word/numbering.xml", bytes: str6(NUMBERING_XML) });
+  if (notes.length) entries.push({ name: "word/footnotes.xml", bytes: str6(footnotesXml(notes)) });
   for (const m2 of ctx.media) entries.push(m2);
   return storeZip(entries);
 }
@@ -42529,9 +42718,9 @@ function collectPenpotFontUsage(contentJson) {
     const fid = pget(n2, "font-id");
     if (fid !== void 0) {
       const fontId = String(fid);
-      const fontVariantId = String(pget(n2, "font-variant-id") ?? "");
+      const fontVariantId2 = String(pget(n2, "font-variant-id") ?? "");
       const fontStyle = String(pget(n2, "font-style") ?? "normal");
-      const key = `${fontId}|${fontVariantId}|${fontStyle}`;
+      const key = `${fontId}|${fontVariantId2}|${fontStyle}`;
       const cur = byKey.get(key);
       if (cur) {
         cur.runs++;
@@ -42540,7 +42729,7 @@ function collectPenpotFontUsage(contentJson) {
         byKey.set(key, {
           fontId,
           fontFamily: String(pget(n2, "font-family") ?? ""),
-          fontVariantId,
+          fontVariantId: fontVariantId2,
           fontWeight: Number.isFinite(w) ? w : 400,
           fontStyle,
           runs: 1
@@ -42611,14 +42800,14 @@ function mirrorPenpotGradient(g2, flipX, flipY) {
 }
 function penpotRoundedRectD(x, y, w, h, r3) {
   const px = (v) => `${Math.max(0, num5(v, 0))}px`;
-  const radii = cornerRadii({ topLeft: px(r3[0]), topRight: px(r3[1]), bottomRight: px(r3[2]), bottomLeft: px(r3[3]) }, w, h);
-  return roundedRectPath(x, y, w, h, radii);
+  const radii2 = cornerRadii({ topLeft: px(r3[0]), topRight: px(r3[1]), bottomRight: px(r3[2]), bottomLeft: px(r3[3]) }, w, h);
+  return roundedRectPath(x, y, w, h, radii2);
 }
 function penpotUnequalCorners(sh) {
   const r1 = num5(sh.r1, 0);
-  const r23 = num5(sh.r2, r1), r3 = num5(sh.r3, r1), r4 = num5(sh.r4, r1);
-  if (r1 === r23 && r1 === r3 && r1 === r4) return null;
-  let c = [r1, r23, r3, r4];
+  const r23 = num5(sh.r2, r1), r3 = num5(sh.r3, r1), r42 = num5(sh.r4, r1);
+  if (r1 === r23 && r1 === r3 && r1 === r42) return null;
+  let c = [r1, r23, r3, r42];
   if (sh.flipX === true) c = [c[1], c[0], c[3], c[2]];
   if (sh.flipY === true) c = [c[3], c[2], c[1], c[0]];
   return c;
@@ -45892,7 +46081,8 @@ function cluster(items) {
         got.idx.push(it.i);
         got.rect = union(got.rect, it.rect);
         got.group ||= it.group;
-      } else m2.set(root, { idx: [it.i], rect: it.rect, group: it.group });
+        got.plain &&= it.plain;
+      } else m2.set(root, { idx: [it.i], rect: it.rect, group: it.group, plain: it.plain });
     }
     return m2;
   };
@@ -45901,6 +46091,7 @@ function cluster(items) {
     const byGroup = /* @__PURE__ */ new Map();
     for (const [root, c] of clusters) {
       if (!c.group) continue;
+      if (c.plain) continue;
       const list2 = byGroup.get(c.group);
       if (list2) list2.push([root, c.rect]);
       else byGroup.set(c.group, [[root, c.rect]]);
@@ -45922,19 +46113,24 @@ function cluster(items) {
     }
     if (!merged) break;
   }
-  return [...collect2().values()];
+  return [...collect2().values()].map(({ idx, rect, group }) => ({ idx, rect, group }));
 }
 function findVectorArtwork(nodes, opts = {}) {
   const out = [];
   if (!Array.isArray(nodes) || !nodes.length) return out;
   const pageArea = Math.max(1, (opts.width ?? 0) * (opts.height ?? 0));
+  const pageLong = Math.max(opts.width ?? 0, opts.height ?? 0);
   const items = [];
   for (let i = 0; i < nodes.length && items.length < MAX_NODES3; i++) {
     const n2 = nodes[i];
     if (!isVectorPaint(n2)) continue;
     const e = pdfNodeExtent(n2);
     if (!e || !(e.w > 0) || !(e.h > 0)) continue;
-    items.push({ i, rect: { x: e.x, y: e.y, w: e.w, h: e.h }, group: String(n2.group ?? "") });
+    if (isPlainRect(n2)) {
+      if (pageArea > 1 && e.w * e.h / pageArea > PANEL_FRACTION) continue;
+      if (pageLong > 0 && Math.max(e.w, e.h) > pageLong * BAR_SPAN) continue;
+    }
+    items.push({ i, rect: { x: e.x, y: e.y, w: e.w, h: e.h }, group: String(n2.group ?? ""), plain: isPlainRect(n2) });
   }
   if (items.length < MIN_SHAPES) return out;
   for (const c of cluster(items)) {
@@ -45973,7 +46169,7 @@ function findVectorArtwork(nodes, opts = {}) {
   out.sort((a, b) => b.rect.w * b.rect.h - a.rect.w * a.rect.h);
   return out;
 }
-var CLUSTER_GAP2, GAP_FACTOR2, MAX_CLUSTER_GAP2, GROUP_REACH, MIN_SHAPES, MIN_SIDE, MAX_PAGE_FRACTION, MAX_ASPECT, MAX_NODES3, MAX_CANDIDATES, hasCurve, diagonal;
+var CLUSTER_GAP2, GAP_FACTOR2, MAX_CLUSTER_GAP2, GROUP_REACH, MIN_SHAPES, MIN_SIDE, MAX_PAGE_FRACTION, PANEL_FRACTION, BAR_SPAN, MAX_ASPECT, MAX_NODES3, MAX_CANDIDATES, hasCurve, diagonal;
 var init_pdf_artwork = __esm({
   "engine/src/pdf-artwork.ts"() {
     "use strict";
@@ -45985,6 +46181,8 @@ var init_pdf_artwork = __esm({
     MIN_SHAPES = 2;
     MIN_SIDE = 8;
     MAX_PAGE_FRACTION = 0.55;
+    PANEL_FRACTION = 0.2;
+    BAR_SPAN = 0.8;
     MAX_ASPECT = 12;
     MAX_NODES3 = 4e3;
     MAX_CANDIDATES = 60;
@@ -49517,6 +49715,1986 @@ var init_brand_import = __esm({
   }
 });
 
+// engine/src/penpot-file.ts
+function fallbackUuid() {
+  const b = new Uint8Array(16);
+  const c = globalThis.crypto;
+  if (c?.getRandomValues) c.getRandomValues(b);
+  else for (let i = 0; i < 16; i++) b[i] = Math.floor(Math.random() * 256);
+  b[6] = b[6] & 15 | 64;
+  b[8] = b[8] & 63 | 128;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+function penpotUuid() {
+  const c = globalThis.crypto;
+  return c?.randomUUID ? c.randomUUID() : fallbackUuid();
+}
+function seededPenpotUuid(seed = 1) {
+  let n2 = seed >>> 0 || 1;
+  return () => {
+    const w = [];
+    for (let i = 0; i < 4; i++) {
+      n2 ^= n2 << 13;
+      n2 >>>= 0;
+      n2 ^= n2 >>> 17;
+      n2 ^= n2 << 5;
+      n2 >>>= 0;
+      w.push(n2);
+    }
+    const h = w.map((x) => x.toString(16).padStart(8, "0")).join("");
+    const s = h.slice(0, 12) + "4" + h.slice(13, 16) + "8" + h.slice(17, 32);
+    return `${s.slice(0, 8)}-${s.slice(8, 12)}-${s.slice(12, 16)}-${s.slice(16, 20)}-${s.slice(20, 32)}`;
+  };
+}
+function parsePenpotColor(input) {
+  if (input == null) return null;
+  let s = String(input).trim();
+  if (!s) return null;
+  const varM = /^var\(\s*--[\w-]+\s*,\s*([\s\S]+)\)$/.exec(s);
+  if (varM) s = varM[1].trim();
+  if (/^var\(/.test(s) || /^\{/.test(s)) return null;
+  const lower3 = s.toLowerCase();
+  if (lower3 === "transparent" || lower3 === "none" || lower3 === "currentcolor" || lower3 === "inherit") return null;
+  const named = NAMED[lower3];
+  if (typeof named === "string") return { hex: named, alpha: 1 };
+  const hex = colorToHex(s);
+  if (!hex || hex === "transparent") return null;
+  const m2 = /^#([0-9a-f]{6})([0-9a-f]{2})?$/i.exec(hex);
+  if (!m2) return null;
+  return { hex: `#${m2[1].toLowerCase()}`, alpha: m2[2] ? parseInt(m2[2], 16) / 255 : 1 };
+}
+function geometry(x, y, w, h, rotation = 0) {
+  const W = Math.max(0.01, w), H = Math.max(0.01, h);
+  const rot = (fin2(rotation) % 360 + 360) % 360;
+  const rad = rot * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
+  const cx = x + W / 2, cy = y + H / 2;
+  const corner = (px, py) => {
+    const dx = px - cx, dy = py - cy;
+    return { x: r4(cx + dx * cos - dy * sin), y: r4(cy + dx * sin + dy * cos) };
+  };
+  const ident = rot === 0;
+  return {
+    x: r4(x),
+    y: r4(y),
+    width: r4(W),
+    height: r4(H),
+    rotation: r4(rot),
+    selrect: { x: r4(x), y: r4(y), width: r4(W), height: r4(H), x1: r4(x), y1: r4(y), x2: r4(x + W), y2: r4(y + H) },
+    points: ident ? [{ x: r4(x), y: r4(y) }, { x: r4(x + W), y: r4(y) }, { x: r4(x + W), y: r4(y + H) }, { x: r4(x), y: r4(y + H) }] : [corner(x, y), corner(x + W, y), corner(x + W, y + H), corner(x, y + H)],
+    transform: ident ? { ...IDENT } : { a: r4(cos), b: r4(sin), c: r4(-sin), d: r4(cos), e: 0, f: 0 },
+    transformInverse: ident ? { ...IDENT } : { a: r4(cos), b: r4(-sin), c: r4(sin), d: r4(cos), e: 0, f: 0 }
+  };
+}
+function subpathBounds(subs) {
+  const exact = pathBounds(pathFromSubPaths(subs));
+  if (exact) return { x: exact.x0, y: exact.y0, w: exact.x1 - exact.x0, h: exact.y1 - exact.y0 };
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const take = (x, y) => {
+    if (x < x0) x0 = x;
+    if (x > x1) x1 = x;
+    if (y < y0) y0 = y;
+    if (y > y1) y1 = y;
+  };
+  for (const sp of subs) for (const s of sp.segments) {
+    take(s.x, s.y);
+    if (s.op === "C") {
+      take(s.x1, s.y1);
+      take(s.x2, s.y2);
+    }
+  }
+  if (!Number.isFinite(x0)) return null;
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+}
+function transformSubpaths(subs, m2) {
+  return subs.map((sp) => ({
+    closed: sp.closed,
+    segments: sp.segments.map((s) => {
+      const [x, y] = apply2(m2, s.x, s.y);
+      if (s.op === "C") {
+        const [x1, y1] = apply2(m2, s.x1, s.y1), [x2, y2] = apply2(m2, s.x2, s.y2);
+        return { op: "C", x1, y1, x2, y2, x, y };
+      }
+      return { op: s.op, x, y };
+    })
+  }));
+}
+function subpathsToD(subs) {
+  const n2 = (v) => String(r4(v));
+  const out = [];
+  for (const sp of subs) {
+    for (const s of sp.segments) {
+      if (s.op === "M") out.push(`M${n2(s.x)},${n2(s.y)}`);
+      else if (s.op === "L") out.push(`L${n2(s.x)},${n2(s.y)}`);
+      else out.push(`C${n2(s.x1)},${n2(s.y1)} ${n2(s.x2)},${n2(s.y2)} ${n2(s.x)},${n2(s.y)}`);
+    }
+    if (sp.closed) out.push("Z");
+  }
+  return out.join("");
+}
+function ellipseSubpath(cx, cy, rx, ry) {
+  const kx = rx * K, ky = ry * K;
+  return { closed: true, segments: [
+    { op: "M", x: cx + rx, y: cy },
+    { op: "C", x1: cx + rx, y1: cy + ky, x2: cx + kx, y2: cy + ry, x: cx, y: cy + ry },
+    { op: "C", x1: cx - kx, y1: cy + ry, x2: cx - rx, y2: cy + ky, x: cx - rx, y: cy },
+    { op: "C", x1: cx - rx, y1: cy - ky, x2: cx - kx, y2: cy - ry, x: cx, y: cy - ry },
+    { op: "C", x1: cx + kx, y1: cy - ry, x2: cx + rx, y2: cy - ky, x: cx + rx, y: cy }
+  ] };
+}
+function roundedRectSubpath(x, y, w, h, rx, ry) {
+  rx = clamp10(rx, 0, w / 2);
+  ry = clamp10(ry, 0, h / 2);
+  if (rx <= 0 || ry <= 0) {
+    return { closed: true, segments: [{ op: "M", x, y }, { op: "L", x: x + w, y }, { op: "L", x: x + w, y: y + h }, { op: "L", x, y: y + h }] };
+  }
+  const kx = rx * K, ky = ry * K;
+  return { closed: true, segments: [
+    { op: "M", x: x + rx, y },
+    { op: "L", x: x + w - rx, y },
+    { op: "C", x1: x + w - rx + kx, y1: y, x2: x + w, y2: y + ry - ky, x: x + w, y: y + ry },
+    { op: "L", x: x + w, y: y + h - ry },
+    { op: "C", x1: x + w, y1: y + h - ry + ky, x2: x + w - rx + kx, y2: y + h, x: x + w - rx, y: y + h },
+    { op: "L", x: x + rx, y: y + h },
+    { op: "C", x1: x + rx - kx, y1: y + h, x2: x, y2: y + h - ry + ky, x, y: y + h - ry },
+    { op: "L", x, y: y + ry },
+    { op: "C", x1: x, y1: y + ry - ky, x2: x + rx - kx, y2: y, x: x + rx, y }
+  ] };
+}
+function fontIdFor(family, google) {
+  const slug2 = family.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  if (!slug2) return TEXT_DEFAULTS.fontFamily;
+  return google.has(family.trim().toLowerCase()) ? `gfont-${slug2}` : slug2;
+}
+function fontVariantId(weight, italic) {
+  const w = clamp10(Math.round(weight / 100) * 100, 100, 900);
+  if (w === 400) return italic ? "italic" : "regular";
+  return `${w}${italic ? "italic" : ""}`;
+}
+function fillRecord(f, media, warn) {
+  const op = f.opacity == null ? 1 : clamp10(fin2(f.opacity, 1), 0, 1);
+  if (f.media) {
+    const m2 = media.get(f.media);
+    if (!m2) {
+      warn(`fill names unknown media ${f.media}`);
+      return null;
+    }
+    return {
+      fillImage: { id: m2.id, mtype: m2.mtype, width: Math.max(1, Math.round(m2.width)), height: Math.max(1, Math.round(m2.height)), name: m2.name, keepAspectRatio: f.keepAspectRatio !== false },
+      fillOpacity: r4(op)
+    };
+  }
+  if (f.gradient) {
+    const g2 = f.gradient;
+    const stops = g2.stops.map((s) => {
+      const c2 = parsePenpotColor(s.color);
+      if (!c2) return null;
+      const a = clamp10(fin2(s.opacity, 1), 0, 1) * c2.alpha;
+      return { color: c2.hex, opacity: r4(a), offset: r4(clamp10(fin2(s.offset), 0, 1)) };
+    }).filter((s) => !!s);
+    if (stops.length < 1) return null;
+    return {
+      fillColorGradient: {
+        type: g2.type === "radial" ? "radial" : "linear",
+        startX: r4(fin2(g2.startX)),
+        startY: r4(fin2(g2.startY)),
+        endX: r4(fin2(g2.endX, 1)),
+        endY: r4(fin2(g2.endY, 1)),
+        width: r4(fin2(g2.width, 1)) || 1,
+        stops
+      },
+      fillOpacity: r4(op)
+    };
+  }
+  const c = parsePenpotColor(f.color);
+  if (!c) return null;
+  return { fillColor: c.hex, fillOpacity: r4(op * c.alpha) };
+}
+function strokeRecord(s) {
+  const c = parsePenpotColor(s.color);
+  const w = fin2(s.width);
+  if (!c || !(w > 0)) return null;
+  const rec2 = {
+    strokeColor: c.hex,
+    strokeOpacity: r4(clamp10(fin2(s.opacity, 1), 0, 1) * c.alpha),
+    strokeWidth: r4(w),
+    strokeAlignment: s.alignment === "inner" || s.alignment === "outer" ? s.alignment : "center",
+    strokeStyle: s.style === "dashed" || s.style === "dotted" ? s.style : "solid"
+  };
+  if (s.dash != null && s.dash > 0) rec2.strokeDash = r4(s.dash);
+  if (s.gap != null && s.gap > 0) rec2.strokeGap = r4(s.gap);
+  if (s.capStart && STROKE_CAPS.has(s.capStart)) rec2.strokeCapStart = s.capStart;
+  if (s.capEnd && STROKE_CAPS.has(s.capEnd)) rec2.strokeCapEnd = s.capEnd;
+  return rec2;
+}
+function shadowRecord(sh, uuid) {
+  const c = parsePenpotColor(sh.color);
+  if (!c) return null;
+  return {
+    id: uuid(),
+    style: sh.style === "inner-shadow" ? "inner-shadow" : "drop-shadow",
+    hidden: false,
+    offsetX: r4(fin2(sh.x)),
+    offsetY: r4(fin2(sh.y)),
+    blur: r4(Math.max(0, fin2(sh.blur))),
+    spread: r4(fin2(sh.spread)),
+    color: { color: c.hex, opacity: r4(clamp10(fin2(sh.opacity, 1), 0, 1) * c.alpha) }
+  };
+}
+function radii(r3, w, h) {
+  const cap = Math.max(0, Math.min(w, h) / 2);
+  const one = (v2) => r4(clamp10(fin2(v2), 0, cap));
+  if (Array.isArray(r3)) return [one(r3[0]), one(r3[1]), one(r3[2]), one(r3[3])];
+  const v = one(r3);
+  return [v, v, v, v];
+}
+function baseRecord(id, type, sh, parentId, frameId, pageId, media, uuid, warn, fallbackName) {
+  const rec2 = {
+    id,
+    name: sh.name && String(sh.name).trim() || fallbackName,
+    type,
+    ...geometry(fin2(sh.x), fin2(sh.y), fin2(sh.w), fin2(sh.h), fin2(sh.rotation)),
+    parentId,
+    frameId,
+    pageId,
+    flipX: sh.flipX === true ? true : null,
+    flipY: sh.flipY === true ? true : null,
+    proportionLock: false,
+    proportion: r4(fin2(sh.h) > 0 ? fin2(sh.w) / fin2(sh.h) : 1) || 1,
+    fills: (sh.fills ?? []).map((f) => fillRecord(f, media, warn)).filter((f) => !!f),
+    strokes: (sh.strokes ?? []).map(strokeRecord).filter((s) => !!s)
+  };
+  if (sh.opacity != null && fin2(sh.opacity, 1) < 1) rec2.opacity = r4(clamp10(fin2(sh.opacity, 1), 0, 1));
+  if (sh.blend && sh.blend !== "normal" && BLEND_MODES.has(sh.blend)) rec2.blendMode = sh.blend;
+  if (sh.hidden) rec2.hidden = true;
+  const shadows = (sh.shadows ?? []).map((s) => shadowRecord(s, uuid)).filter((s) => !!s);
+  if (shadows.length) rec2.shadow = shadows;
+  if (sh.blur != null && fin2(sh.blur) > 0) rec2.blur = { id: uuid(), type: "layer-blur", value: r4(fin2(sh.blur)), hidden: false };
+  if (sh.backgroundBlur != null && fin2(sh.backgroundBlur) > 0) {
+    rec2.backgroundBlur = { id: uuid(), type: "background-blur", value: r4(Math.max(0, (fin2(sh.backgroundBlur) - BG_BLUR_SIGMA_B2) / BG_BLUR_SIGMA_A2)), hidden: false };
+  }
+  return rec2;
+}
+function textContentRecord(t, google, nextKey) {
+  const paras = t.paragraphs.slice(0, MAX_TEXT_PARAGRAPHS).map((p) => {
+    const runs = p.runs.filter((r3) => typeof r3.text === "string");
+    if (!runs.length) return null;
+    const spans = runs.map((r3) => {
+      const family = r3.fontFamily && r3.fontFamily.trim() || TEXT_DEFAULTS.fontFamily;
+      const weight = clamp10(Math.round(fin2(r3.fontWeight, TEXT_DEFAULTS.fontWeight) / 100) * 100, 100, 900);
+      const italic = r3.italic === true;
+      const c = parsePenpotColor(r3.color ?? "#000000") ?? { hex: "#000000", alpha: 1 };
+      const rec2 = {
+        text: r3.text,
+        fontId: fontIdFor(family, google),
+        fontFamily: family,
+        fontVariantId: fontVariantId(weight, italic),
+        fontSize: String(r4(Math.max(1, fin2(r3.fontSize, TEXT_DEFAULTS.fontSize)))),
+        fontWeight: String(weight),
+        fontStyle: italic ? "italic" : "normal",
+        lineHeight: String(r4(Math.max(0.1, fin2(r3.lineHeight, TEXT_DEFAULTS.lineHeight)))),
+        letterSpacing: String(r4(fin2(r3.letterSpacing, 0))),
+        textTransform: r3.transform ?? "none",
+        textDecoration: r3.decoration ?? "none",
+        textDirection: "ltr",
+        fills: [{ fillColor: c.hex, fillOpacity: r4(clamp10(fin2(r3.opacity, 1), 0, 1) * c.alpha) }]
+      };
+      return rec2;
+    });
+    const lead = spans[0];
+    const align = p.align && ["left", "center", "right", "justify"].includes(p.align) ? p.align : "left";
+    const para = {
+      type: "paragraph",
+      key: nextKey(),
+      textAlign: align,
+      textDirection: "ltr",
+      fontId: lead.fontId,
+      fontFamily: lead.fontFamily,
+      fontVariantId: lead.fontVariantId,
+      fontSize: lead.fontSize,
+      fontWeight: lead.fontWeight,
+      fontStyle: lead.fontStyle,
+      lineHeight: lead.lineHeight,
+      letterSpacing: lead.letterSpacing,
+      textTransform: lead.textTransform,
+      textDecoration: lead.textDecoration,
+      fills: lead.fills,
+      children: spans
+    };
+    return para;
+  }).filter((p) => !!p);
+  if (!paras.length) return null;
+  return {
+    type: "root",
+    verticalAlign: t.valign === "center" || t.valign === "bottom" ? t.valign : "top",
+    children: [{ type: "paragraph-set", children: paras }],
+    fills: []
+  };
+}
+function buildPenpotEntries(doc, opts = {}) {
+  const uuid = opts.uuid ?? penpotUuid;
+  const now2 = opts.now ?? (() => (/* @__PURE__ */ new Date()).toISOString());
+  let keySeq = 0;
+  const nextKey = () => `lolly${(++keySeq).toString(36)}`;
+  const warnings = [];
+  const warn = (s) => {
+    if (warnings.length < 200) warnings.push(s);
+  };
+  const entries = {};
+  const put = (path, obj) => {
+    entries[path] = JSON.stringify(obj);
+  };
+  const google = new Set(Array.from(doc.googleFamilies ?? [], (f) => String(f).trim().toLowerCase()));
+  const fileId = uuid();
+  const fileName = doc.name && doc.name.trim() || "From Lolly";
+  const stamp2 = now2();
+  const media = /* @__PURE__ */ new Map();
+  for (const m2 of doc.media ?? []) {
+    if (!m2 || !m2.id || !(m2.bytes instanceof Uint8Array) || !m2.bytes.length) {
+      warn("media entry without bytes skipped");
+      continue;
+    }
+    if (!MTYPE_EXT[m2.mtype]) {
+      warn(`media ${m2.name} has unsupported type ${m2.mtype}; skipped`);
+      continue;
+    }
+    if (!(m2.width > 0 && m2.height > 0)) {
+      warn(`media ${m2.name} has no size; skipped`);
+      continue;
+    }
+    media.set(m2.id, m2);
+  }
+  const mediaRecords = /* @__PURE__ */ new Map();
+  for (const m2 of media.values()) {
+    const objectId = uuid();
+    mediaRecords.set(m2.id, { mediaId: m2.id, objectId });
+    put(`objects/${objectId}.json`, { id: objectId, size: m2.bytes.length, contentType: m2.mtype, bucket: "file-media-object" });
+    entries[`objects/${objectId}${MTYPE_EXT[m2.mtype]}`] = m2.bytes;
+    put(`files/${fileId}/media/${m2.id}.json`, {
+      id: m2.id,
+      name: m2.name || "image",
+      width: Math.max(1, Math.round(m2.width)),
+      height: Math.max(1, Math.round(m2.height)),
+      mtype: m2.mtype,
+      mediaId: objectId,
+      isLocal: true,
+      createdAt: stamp2
+    });
+  }
+  const pageIds = [];
+  let shapeCount = 0;
+  const pages = doc.pages.length ? doc.pages : [{ name: "Page 1", shapes: [] }];
+  pages.forEach((page2, index) => {
+    const pageId = uuid();
+    pageIds.push(pageId);
+    const pageRec = { id: pageId, name: page2.name && page2.name.trim() || `Page ${index + 1}`, index };
+    const bg = parsePenpotColor(page2.background);
+    if (bg) pageRec.background = bg.hex;
+    put(`files/${fileId}/pages/${pageId}.json`, pageRec);
+    const topIds = [];
+    const emit = (sh, parentId, frameId, depth) => {
+      if (shapeCount >= MAX_SHAPES2) {
+        warn("shape ceiling reached; remaining shapes dropped");
+        return null;
+      }
+      if (depth > 64) {
+        warn("nesting ceiling reached; shape dropped");
+        return null;
+      }
+      const id = uuid();
+      const nameOf2 = (fallback) => fallback;
+      let rec2;
+      switch (sh.type) {
+        case "board": {
+          rec2 = baseRecord(id, "frame", sh, parentId, frameId, pageId, media, uuid, warn, nameOf2("Board"));
+          const [r1, r23, r3, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
+          Object.assign(rec2, { r1, r2: r23, r3, r4: r4v, hideFillOnExport: false, growType: "fixed" });
+          if (sh.showContent) rec2.showContent = true;
+          shapeCount++;
+          const kids = [];
+          for (const child of sh.children) {
+            const cid = emit(child, id, id, depth + 1);
+            if (cid) kids.push(cid);
+          }
+          rec2.shapes = kids;
+          break;
+        }
+        case "group": {
+          const kids = sh.children.filter(Boolean);
+          if (!kids.length) return null;
+          rec2 = baseRecord(id, "group", sh, parentId, frameId, pageId, media, uuid, warn, nameOf2("Group"));
+          rec2.fills = [];
+          rec2.strokes = [];
+          if (sh.masked) rec2.maskedGroup = true;
+          shapeCount++;
+          const ids = [];
+          for (const child of kids) {
+            const cid = emit(child, id, frameId, depth + 1);
+            if (cid) ids.push(cid);
+          }
+          if (!ids.length) {
+            shapeCount--;
+            return null;
+          }
+          rec2.shapes = ids;
+          break;
+        }
+        case "rect": {
+          rec2 = baseRecord(id, "rect", sh, parentId, frameId, pageId, media, uuid, warn, nameOf2("Rectangle"));
+          const [r1, r23, r3, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
+          Object.assign(rec2, { r1, r2: r23, r3, r4: r4v });
+          shapeCount++;
+          break;
+        }
+        case "image": {
+          const m2 = media.get(sh.media);
+          if (!m2) {
+            warn(`image shape names unknown media ${sh.media}; dropped`);
+            return null;
+          }
+          const fills = [{ media: sh.media, keepAspectRatio: sh.keepAspectRatio !== false, opacity: 1 }];
+          rec2 = baseRecord(id, "rect", { ...sh, fills }, parentId, frameId, pageId, media, uuid, warn, nameOf2(m2.name || "Image"));
+          const [r1, r23, r3, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
+          Object.assign(rec2, { r1, r2: r23, r3, r4: r4v });
+          shapeCount++;
+          break;
+        }
+        case "circle": {
+          rec2 = baseRecord(id, "circle", sh, parentId, frameId, pageId, media, uuid, warn, nameOf2("Ellipse"));
+          shapeCount++;
+          break;
+        }
+        case "path": {
+          const d = typeof sh.d === "string" ? sh.d.trim() : "";
+          if (!d) return null;
+          rec2 = baseRecord(id, "path", sh, parentId, frameId, pageId, media, uuid, warn, nameOf2("Path"));
+          rec2.content = d;
+          shapeCount++;
+          break;
+        }
+        case "text": {
+          const content = textContentRecord(sh, google, nextKey);
+          if (!content) return null;
+          rec2 = baseRecord(id, "text", { ...sh, fills: [] }, parentId, frameId, pageId, media, uuid, warn, nameOf2("Text"));
+          rec2.content = content;
+          rec2.growType = sh.growType ?? "fixed";
+          shapeCount++;
+          break;
+        }
+        default:
+          return null;
+      }
+      put(`files/${fileId}/pages/${pageId}/${id}.json`, rec2);
+      return id;
+    };
+    for (const sh of page2.shapes) {
+      const id = emit(sh, PENPOT_ROOT_ID, PENPOT_ROOT_ID, 0);
+      if (id) topIds.push(id);
+    }
+    put(`files/${fileId}/pages/${pageId}/${PENPOT_ROOT_ID}.json`, {
+      id: PENPOT_ROOT_ID,
+      name: "Root Frame",
+      type: "frame",
+      ...geometry(0, 0, 0.01, 0.01, 0),
+      parentId: PENPOT_ROOT_ID,
+      frameId: PENPOT_ROOT_ID,
+      pageId,
+      flipX: null,
+      flipY: null,
+      hideFillOnExport: false,
+      proportionLock: false,
+      proportion: 1,
+      r1: 0,
+      r2: 0,
+      r3: 0,
+      r4: 0,
+      strokes: [],
+      fills: [{ fillColor: "#ffffff", fillOpacity: 1 }],
+      shapes: topIds
+    });
+  });
+  for (const c of doc.palette ?? []) {
+    const col = parsePenpotColor(c.color);
+    if (!col || !c.name) continue;
+    const id = uuid();
+    const rec2 = { id, name: String(c.name), color: col.hex, opacity: r4(clamp10(fin2(c.opacity, 1), 0, 1) * col.alpha), modifiedAt: stamp2 };
+    if (c.path && String(c.path).trim()) rec2.path = String(c.path).trim();
+    put(`files/${fileId}/colors/${id}.json`, rec2);
+  }
+  for (const t of doc.typographies ?? []) {
+    if (!t || !t.name || !t.fontFamily) continue;
+    const id = uuid();
+    const weight = clamp10(Math.round(fin2(t.fontWeight, 400) / 100) * 100, 100, 900);
+    const rec2 = {
+      id,
+      name: String(t.name),
+      fontId: fontIdFor(t.fontFamily, google),
+      fontFamily: t.fontFamily,
+      fontVariantId: fontVariantId(weight, t.italic === true),
+      fontWeight: String(weight),
+      fontStyle: t.italic ? "italic" : "normal",
+      fontSize: String(r4(Math.max(1, fin2(t.fontSize, 14)))),
+      lineHeight: String(r4(Math.max(0.1, fin2(t.lineHeight, 1.2)))),
+      letterSpacing: String(r4(fin2(t.letterSpacing, 0))),
+      textTransform: t.textTransform || "none",
+      modifiedAt: stamp2
+    };
+    if (t.path) rec2.path = t.path;
+    put(`files/${fileId}/typographies/${id}.json`, rec2);
+  }
+  const tokens = doc.tokens == null ? null : penpotTokensJson(doc.tokens);
+  if (tokens) put(`files/${fileId}/tokens.json`, tokens);
+  else if (doc.tokens != null) warn("token document carried nothing Penpot can read; tokens.json omitted");
+  put(`files/${fileId}.json`, {
+    id: fileId,
+    name: fileName,
+    revn: 0,
+    vern: 0,
+    version: PENPOT_FILE_VERSION,
+    features: [...PENPOT_FEATURES],
+    migrations: [...PENPOT_MIGRATIONS],
+    isShared: false,
+    hasMediaTrimmed: false,
+    createdAt: stamp2,
+    modifiedAt: stamp2,
+    options: { componentsV2: true, baseFontSize: "16px" }
+  });
+  put("manifest.json", {
+    type: "penpot/export-files",
+    version: 1,
+    generatedBy: doc.generatedBy || "lolly",
+    referer: "lolly",
+    files: [{ id: fileId, name: fileName, features: [...PENPOT_FEATURES] }],
+    relations: []
+  });
+  return { entries, fileId, pageIds, shapeCount, mediaCount: media.size, warnings };
+}
+function penpotTokensJson(doc) {
+  if (!isRec4(doc)) return null;
+  const isTokenLeaf = (v) => isRec4(v) && ("$value" in v || "value" in v);
+  const sets = /* @__PURE__ */ Object.create(null);
+  const reserved = /* @__PURE__ */ new Set(["$themes", "$metadata", "$description", "$extensions", "$type", "$schema"]);
+  const convert = (node, inherited) => {
+    const out2 = /* @__PURE__ */ Object.create(null);
+    let kept = 0;
+    for (const [k, v] of Object.entries(node)) {
+      if (k.startsWith("$")) continue;
+      if (isTokenLeaf(v)) {
+        const rawType = typeof v.$type === "string" ? v.$type : typeof v.type === "string" ? v.type : inherited;
+        const mapped = rawType ? TOKEN_TYPE_MAP[rawType] : void 0;
+        if (typeof mapped !== "string") continue;
+        const leaf = { $value: "$value" in v ? v.$value : v.value, $type: mapped };
+        const desc = v.$description ?? v.description;
+        if (typeof desc === "string" && desc) leaf.$description = desc;
+        out2[k] = leaf;
+        kept++;
+      } else if (isRec4(v)) {
+        const groupType = typeof v.$type === "string" ? v.$type : inherited;
+        const sub = convert(v, groupType);
+        if (sub) {
+          out2[k] = sub;
+          kept++;
+        }
+      }
+    }
+    return kept ? out2 : null;
+  };
+  const hasSets = "$themes" in doc || "$metadata" in doc;
+  if (hasSets) {
+    for (const [name, v] of Object.entries(doc)) {
+      if (reserved.has(name) || !isRec4(v)) continue;
+      const set = convert(v, typeof v.$type === "string" ? v.$type : null);
+      if (set) sets[name] = set;
+    }
+  } else {
+    const set = convert(doc, typeof doc.$type === "string" ? doc.$type : null);
+    if (set) sets.global = set;
+  }
+  const setNames = Object.keys(sets);
+  if (!setNames.length) return null;
+  const metaIn = isRec4(doc.$metadata) ? doc.$metadata : {};
+  const order = (Array.isArray(metaIn.tokenSetOrder) ? metaIn.tokenSetOrder : []).map(String).filter((n2) => n2 in sets);
+  for (const n2 of setNames) if (!order.includes(n2)) order.push(n2);
+  const themes = [];
+  for (const raw of Array.isArray(doc.$themes) ? doc.$themes : []) {
+    if (!isRec4(raw) || typeof raw.name !== "string" || !raw.name) continue;
+    const sel = {};
+    const srcSel = isRec4(raw.selectedTokenSets) ? raw.selectedTokenSets : {};
+    for (const [set, state] of Object.entries(srcSel)) {
+      if (!(set in sets)) continue;
+      sel[set] = state === "disabled" ? "disabled" : "enabled";
+    }
+    const theme = {
+      name: raw.name,
+      description: typeof raw.description === "string" ? raw.description : "",
+      isSource: raw.isSource === true,
+      selectedTokenSets: sel
+    };
+    if (typeof raw.id === "string" && raw.id) theme.id = raw.id;
+    if (typeof raw.group === "string" && raw.group) theme.group = raw.group;
+    themes.push(theme);
+  }
+  const first = themes[0];
+  const active = first ? Object.entries(first.selectedTokenSets).filter(([, s]) => s === "enabled").map(([n2]) => n2) : order.slice();
+  const out = /* @__PURE__ */ Object.create(null);
+  for (const n2 of order) out[n2] = sets[n2];
+  if (themes.length) out.$themes = themes;
+  out.$metadata = { tokenSetOrder: order, activeSets: active.length ? active : order.slice() };
+  return out;
+}
+function gradSpecToPenpot(spec, w, h) {
+  const m2 = /^(lin|rad)\.srgb_(-?\d+(?:\.\d+)?)_(.+)$/.exec(str5(spec).trim());
+  if (!m2) return null;
+  const stops = [];
+  for (const part of m2[3].split("_")) {
+    const sm = /^([0-9a-f]{6})([0-9a-f]{2})?-(\d+(?:\.\d+)?)$/i.exec(part);
+    if (!sm) return null;
+    stops.push({ color: `#${sm[1].toLowerCase()}`, opacity: sm[2] ? parseInt(sm[2], 16) / 255 : 1, offset: clamp10(fin2(sm[3]) / 100, 0, 1) });
+  }
+  if (stops.length < 2) return null;
+  if (m2[1] === "rad") return { type: "radial", startX: 0.5, startY: 0.5, endX: 0.5, endY: 1, width: h > 0 ? w / h : 1, stops };
+  const th = fin2(m2[2]) * Math.PI / 180;
+  const dx = Math.sin(th), dy = -Math.cos(th);
+  const W = Math.max(1, w), H = Math.max(1, h);
+  const L = Math.abs(W * dx) + Math.abs(H * dy);
+  return {
+    type: "linear",
+    startX: 0.5 - dx * L / (2 * W),
+    startY: 0.5 - dy * L / (2 * H),
+    endX: 0.5 + dx * L / (2 * W),
+    endY: 0.5 + dy * L / (2 * H),
+    stops
+  };
+}
+function designTextRuns(line) {
+  const out = [];
+  const push = (text, style) => {
+    if (text) out.push({ text, ...style });
+  };
+  const unesc = (s) => s.replace(/\\\*/g, "*").replace(/\\_/g, "_");
+  let rest = line;
+  while (rest.length) {
+    const m2 = /\{([^|{}]+)\|([^{}]*)\}|\*\*([^*]+)\*\*|`([^`]+)`|(?<![\w\\])\*([^*\s][^*]*?)\*(?!\w)|(?<![\w\\])_([^_\s][^_]*?)_(?!\w)/.exec(rest);
+    if (!m2) {
+      push(unesc(rest), {});
+      break;
+    }
+    push(unesc(rest.slice(0, m2.index)), {});
+    if (m2[1] != null) {
+      const style = {};
+      for (const tok of m2[1].trim().split(/\s+/)) {
+        if (/^#[0-9a-f]{3,8}$/i.test(tok)) style.color = tok;
+        else if (/^w[1-9]00$/.test(tok)) style.weight = parseInt(tok.slice(1), 10);
+        else if (tok === "mono" || tok === "sans") style.family = tok;
+      }
+      push(unesc(m2[2] ?? ""), style);
+    } else if (m2[3] != null) push(unesc(m2[3]), { weight: 700 });
+    else if (m2[4] != null) push(m2[4], { family: "mono" });
+    else if (m2[5] != null) push(unesc(m2[5]), { italic: true });
+    else if (m2[6] != null) push(unesc(m2[6]), { italic: true });
+    rest = rest.slice(m2.index + m2[0].length);
+  }
+  return out;
+}
+function boxesToPenpotDoc(boxesIn, o) {
+  const boxes = (Array.isArray(boxesIn) ? boxesIn : []).filter(isRec4);
+  const geomApi = o.geom ?? makeGeomApi();
+  const media = [];
+  const byId = /* @__PURE__ */ new Map();
+  for (const b of boxes) {
+    const id = str5(b.id);
+    if (id && !byId.has(id)) byId.set(id, b);
+  }
+  const google = new Set(Array.from(o.googleFamilies ?? [], (f) => String(f).trim().toLowerCase()));
+  const color = (v) => {
+    const s = str5(v).trim();
+    if (!s) return null;
+    const p = parsePenpotColor(s);
+    if (p) return p.alpha < 1 ? `${p.hex}${Math.round(p.alpha * 255).toString(16).padStart(2, "0")}` : p.hex;
+    const r3 = o.resolveColor?.(s) ?? null;
+    return r3 && parsePenpotColor(r3) ? r3 : null;
+  };
+  const familyOf = (key) => {
+    const k = str5(key).trim();
+    if (!k || k === "sans") return o.fonts?.sans || "sans-serif";
+    if (k === "mono") return o.fonts?.mono || "monospace";
+    return k.replace(/[^\w \-]/g, "").trim() || (o.fonts?.sans || "sans-serif");
+  };
+  const weightOf = (b) => {
+    let w = clamp10(Math.round(fin2(b.weight, 700) / 100) * 100, 100, 900);
+    if (/mono/i.test(str5(b.font)) && w > 800) w = 800;
+    return w;
+  };
+  const effects = (b, base) => {
+    const op = clamp10(fin2(b.opacity, 100), 0, 100) / 100;
+    if (op < 1) base.opacity = op;
+    const blend = str5(b.blend);
+    if (blend && blend !== "normal" && BLEND_MODES.has(blend)) base.blend = blend;
+    const rot = fin2(b.rot);
+    if (rot) base.rotation = rot;
+    const shadowKind = str5(b.shadow);
+    if (shadowKind === "depth") {
+      const dz = clamp10(fin2(b.z), -300, 900);
+      base.shadows = [{ style: "drop-shadow", x: 0, y: dz * 0.15, blur: clamp10(10 + dz * 0.2, 0, 300), spread: 0, color: "#000000", opacity: 85 / 255 }];
+    } else if (shadowKind && shadowKind !== "none") {
+      const c = color(b.shadowColor) ?? "#00000055";
+      const p = parsePenpotColor(c);
+      base.shadows = [{ style: "drop-shadow", x: fin2(b.shadowX), y: fin2(b.shadowY), blur: fin2(b.shadowBlur, 10), spread: 0, color: p?.hex ?? "#000000", opacity: p?.alpha ?? 85 / 255 }];
+    }
+    const blur = fin2(b.blur);
+    if (blur > 0) base.blur = blur;
+    const bgBlur = fin2(b.bgBlur);
+    if (bgBlur > 0) base.backgroundBlur = bgBlur;
+  };
+  const strokeOf = (b) => {
+    const sc = color(b.stroke);
+    const sw = fin2(b.strokeW);
+    if (!sc || !(sw > 0)) return [];
+    const p = parsePenpotColor(sc);
+    const st = { color: p.hex, opacity: p.alpha, width: sw, alignment: "center" };
+    const dashKind = str5(b.strokeDash);
+    if (dashKind === "dashed" || dashKind === "dotted") {
+      st.style = dashKind;
+      const dl = fin2(b.strokeDashLen), gl = fin2(b.strokeGapLen);
+      if (dl > 0) st.dash = dl;
+      if (gl > 0) st.gap = gl;
+    }
+    const cap = str5(b.strokeCap);
+    if (cap === "round" || cap === "square") {
+      st.capStart = cap;
+      st.capEnd = cap;
+    }
+    const hs = MARKER_CAP[str5(b.headStart)], he = MARKER_CAP[str5(b.headEnd)];
+    if (hs) st.capStart = hs;
+    if (he) st.capEnd = he;
+    return [st];
+  };
+  const fillsOf = (b, w, h) => {
+    const grad = gradSpecToPenpot(b.grad, w, h);
+    if (grad) return [{ gradient: grad }];
+    const c = color(b.bg);
+    if (!c) return [];
+    const p = parsePenpotColor(c);
+    return [{ color: p.hex, opacity: p.alpha }];
+  };
+  const nameOf2 = (b, fallback) => str5(b.name).trim() || fallback;
+  const lowerBox = (b) => {
+    const kind = str5(b.kind) || "box";
+    if (kind === "audio" || kind === "camera" || kind === "frame") return null;
+    const x = fin2(b.x), y = fin2(b.y), w = Math.max(1, fin2(b.w, 1)), h = Math.max(1, fin2(b.h, 1));
+    const base = { name: nameOf2(b, kind), x, y, w, h };
+    effects(b, base);
+    let shape = null;
+    if (kind === "text") {
+      const text = str5(b.text);
+      if (!text.trim()) return null;
+      const family = familyOf(b.font);
+      const weight = weightOf(b);
+      const fg = color(b.fg) ?? "#000000";
+      const size = Math.max(1, Math.round(fin2(b.fontSize, 48)));
+      const lh = fin2(b.lineHeight, 1.12) || 1.12;
+      const tracking = clamp10(fin2(b.tracking), -100, 400);
+      const align = H_ALIGN.has(str5(b.align)) ? str5(b.align) : "center";
+      const valignRaw = str5(b.valign);
+      const paragraphs = text.split("\n").map((line) => {
+        let ln = line;
+        const mb = /^(\s*)[-*•]\s+(.*)$/.exec(ln);
+        const mo = /^(\s*)(\d{1,3})\.\s+(.*)$/.exec(ln);
+        if (mb) ln = `${mb[1]}\u2022  ${mb[2]}`;
+        else if (mo) ln = `${mo[1]}${mo[2]}.  ${mo[3]}`;
+        const runs = designTextRuns(ln).map((r3) => {
+          const rc = r3.color ? color(r3.color) ?? fg : fg;
+          const rp = parsePenpotColor(rc) ?? { hex: "#000000", alpha: 1 };
+          return {
+            text: r3.text,
+            fontFamily: r3.family ? familyOf(r3.family) : family,
+            fontWeight: r3.weight ?? weight,
+            italic: r3.italic === true,
+            fontSize: size,
+            lineHeight: lh,
+            letterSpacing: tracking,
+            color: rp.hex,
+            opacity: rp.alpha
+          };
+        });
+        if (!runs.length) runs.push({ text: "", fontFamily: family, fontWeight: weight, fontSize: size, lineHeight: lh, letterSpacing: tracking, color: fg });
+        return { align, runs };
+      });
+      shape = { ...base, type: "text", paragraphs, valign: valignRaw === "top" ? "top" : valignRaw === "bottom" ? "bottom" : "center", growType: "fixed" };
+      shape.strokes = strokeOf(b);
+    } else if (kind === "image") {
+      const m2 = o.mediaFor?.(b) ?? null;
+      if (!m2) {
+        const fills = fillsOf(b, w, h);
+        if (!fills.length) return null;
+        shape = { ...base, type: "rect", fills, strokes: strokeOf(b), radius: str5(b.shape) === "rounded" ? fin2(b.radius) : 0 };
+      } else {
+        media.push(m2);
+        shape = {
+          ...base,
+          type: "image",
+          media: m2.id,
+          keepAspectRatio: str5(b.fit) !== "fill",
+          strokes: strokeOf(b),
+          radius: str5(b.shape) === "rounded" ? fin2(b.radius) : str5(b.shape) === "pill" ? Math.min(w, h) / 2 : 0,
+          flipX: b.flipH === true,
+          flipY: b.flipV === true
+        };
+      }
+    } else if (kind === "path") {
+      const raw = str5(b.path).trim();
+      if (!raw) return null;
+      const dec = geomApi.decodeAuthored(raw);
+      if (!dec || !dec.ok || !Array.isArray(dec.value)) return null;
+      const ds = [];
+      for (const src of dec.value) {
+        const nodes = src.nodes.map((n2) => {
+          const out = { x: fin2(n2.x) * w, y: fin2(n2.y) * h };
+          for (const k of ["hInX", "hOutX"]) if (n2[k] != null) out[k] = fin2(n2[k]) * w;
+          for (const k of ["hInY", "hOutY"]) if (n2[k] != null) out[k] = fin2(n2[k]) * h;
+          if (n2.continuity) out.continuity = n2.continuity;
+          return out;
+        });
+        const res = geomApi.fromNodes({ kind: src.kind, nodes, closed: src.closed === true, tension: src.tension, decimals: 3 });
+        if (res?.ok && res.d) ds.push(res.d);
+      }
+      if (!ds.length) return null;
+      let m2 = { a: 1, b: 0, c: 0, d: 1, e: x, f: y };
+      const rot = fin2(b.rot);
+      const fx = b.flipH === true, fy = b.flipV === true;
+      if (rot || fx || fy) {
+        const cx = w / 2, cy = h / 2, rad = rot * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
+        const about = mul2(mul2({ a: 1, b: 0, c: 0, d: 1, e: cx, f: cy }, { a: cos, b: sin, c: -sin, d: cos, e: 0, f: 0 }), { a: fx ? -1 : 1, b: 0, c: 0, d: fy ? -1 : 1, e: 0, f: 0 });
+        m2 = mul2(m2, mul2(about, { a: 1, b: 0, c: 0, d: 1, e: -cx, f: -cy }));
+      }
+      const subs = transformSubpaths(parseSvgPath(ds.join(" ")), m2);
+      const bb = subpathBounds(subs);
+      if (!bb) return null;
+      shape = { ...base, type: "path", d: subpathsToD(subs), x: bb.x, y: bb.y, w: Math.max(0.01, bb.w), h: Math.max(0.01, bb.h), rotation: 0, fills: fillsOf(b, w, h), strokes: strokeOf(b) };
+    } else {
+      const shapeKind = str5(b.shape);
+      const fills = fillsOf(b, w, h);
+      const strokes = strokeOf(b);
+      if (shapeKind === "ellipse" || shapeKind === "circle") shape = { ...base, type: "circle", fills, strokes };
+      else shape = { ...base, type: "rect", fills, strokes, radius: shapeKind === "rounded" ? fin2(b.radius) : shapeKind === "pill" ? Math.min(w, h) / 2 : 0 };
+    }
+    const clipId = str5(b.clip);
+    const mask = clipId && clipId !== str5(b.id) ? byId.get(clipId) : void 0;
+    if (shape && mask) {
+      const mw = Math.max(1, fin2(mask.w, 1)), mh = Math.max(1, fin2(mask.h, 1));
+      const mshape = str5(mask.shape);
+      const maskShape = mshape === "ellipse" || mshape === "circle" ? { type: "circle", name: "Mask", x: fin2(mask.x), y: fin2(mask.y), w: mw, h: mh, rotation: fin2(mask.rot), fills: [{ color: "#000000" }] } : { type: "rect", name: "Mask", x: fin2(mask.x), y: fin2(mask.y), w: mw, h: mh, rotation: fin2(mask.rot), fills: [{ color: "#000000" }], radius: mshape === "rounded" ? fin2(mask.radius) : mshape === "pill" ? Math.min(mw, mh) / 2 : 0 };
+      return { type: "group", name: `${shape.name ?? "Box"} (clipped)`, x: shape.x, y: shape.y, w: shape.w, h: shape.h, masked: true, children: [maskShape, shape] };
+    }
+    return shape;
+  };
+  const frames = boxes.map((b, idx) => ({ b, idx })).filter(({ b }) => str5(b.kind) === "frame").sort((p, q) => fin2(p.b.order) - fin2(q.b.order) || fin2(p.b.x) - fin2(q.b.x) || p.idx - q.idx);
+  const shapes = [];
+  if (frames.length) {
+    const frameIds = new Set(frames.map(({ b, idx }) => str5(b.id) || String(idx)));
+    for (const { b: fb, idx } of frames) {
+      const fid = str5(fb.id) || String(idx);
+      const children = [];
+      for (const cb of boxes) {
+        if (str5(cb.kind) === "frame" || str5(cb.frame) !== fid) continue;
+        const s = lowerBox(cb);
+        if (s) children.push(s);
+      }
+      const bg = color(fb.bg) ?? "#ffffff";
+      const p = parsePenpotColor(bg);
+      const board = {
+        type: "board",
+        name: nameOf2(fb, `Board ${shapes.length + 1}`),
+        x: fin2(fb.x),
+        y: fin2(fb.y),
+        w: Math.max(1, fin2(fb.w, 1)),
+        h: Math.max(1, fin2(fb.h, 1)),
+        fills: [{ color: p.hex, opacity: p.alpha }],
+        children,
+        showContent: fb.clipChildren === false
+      };
+      effects(fb, board);
+      shapes.push(board);
+    }
+    for (const cb of boxes) {
+      if (str5(cb.kind) === "frame") continue;
+      const f = str5(cb.frame);
+      if (f && frameIds.has(f)) continue;
+      const s = lowerBox(cb);
+      if (s) shapes.push(s);
+    }
+  } else {
+    const children = [];
+    for (const cb of boxes) {
+      const s = lowerBox(cb);
+      if (s) children.push(s);
+    }
+    const bg = o.background == null ? null : color(o.background);
+    const p = bg ? parsePenpotColor(bg) : null;
+    shapes.push({
+      type: "board",
+      name: "Artboard",
+      x: 0,
+      y: 0,
+      w: Math.max(1, fin2(o.canvas.w, 1)),
+      h: Math.max(1, fin2(o.canvas.h, 1)),
+      fills: p ? [{ color: p.hex, opacity: p.alpha }] : [],
+      children
+    });
+  }
+  return {
+    name: o.name,
+    pages: [{ name: "Page 1", shapes }],
+    media,
+    tokens: o.tokens,
+    palette: o.palette,
+    typographies: o.typographies,
+    googleFamilies: google,
+    generatedBy: o.generatedBy
+  };
+}
+function parseAttrs2(src) {
+  const out = {};
+  const re = /([\w:.-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+  let m2;
+  while (m2 = re.exec(src)) out[m2[1].toLowerCase()] = decodeEntities3(m2[2] ?? m2[3] ?? "");
+  return out;
+}
+function decodeEntities3(s) {
+  if (s.indexOf("&") < 0) return s;
+  return s.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos|nbsp);/gi, (all, ent) => {
+    const e = ent.toLowerCase();
+    if (e === "amp") return "&";
+    if (e === "lt") return "<";
+    if (e === "gt") return ">";
+    if (e === "quot") return '"';
+    if (e === "apos") return "'";
+    if (e === "nbsp") return "\xA0";
+    if (e.startsWith("#x")) return String.fromCodePoint(parseInt(e.slice(2), 16) || 32);
+    if (e.startsWith("#")) return String.fromCodePoint(parseInt(e.slice(1), 10) || 32);
+    return all;
+  });
+}
+function parseStyle2(s) {
+  const out = {};
+  if (!s) return out;
+  for (const part of s.split(";")) {
+    const i = part.indexOf(":");
+    if (i < 0) continue;
+    out[part.slice(0, i).trim().toLowerCase()] = part.slice(i + 1).trim();
+  }
+  return out;
+}
+function parseTransform3(s) {
+  if (!s || !s.trim()) return { ...IDENT };
+  let m2 = { ...IDENT };
+  const re = /(matrix|translate|scale|rotate|skewx|skewy)\s*\(([^)]*)\)/gi;
+  let hit;
+  let any = false;
+  while (hit = re.exec(s)) {
+    any = true;
+    const fn = hit[1].toLowerCase();
+    const a = hit[2].trim().split(/[\s,]+/).filter(Boolean).map(Number);
+    if (a.some((n2) => !Number.isFinite(n2))) return null;
+    let t;
+    if (fn === "matrix" && a.length === 6) t = { a: a[0], b: a[1], c: a[2], d: a[3], e: a[4], f: a[5] };
+    else if (fn === "translate") t = { a: 1, b: 0, c: 0, d: 1, e: a[0] ?? 0, f: a[1] ?? 0 };
+    else if (fn === "scale") t = { a: a[0] ?? 1, b: 0, c: 0, d: a[1] ?? a[0] ?? 1, e: 0, f: 0 };
+    else if (fn === "rotate") {
+      const r3 = (a[0] ?? 0) * Math.PI / 180, cos = Math.cos(r3), sin = Math.sin(r3);
+      const rot = { a: cos, b: sin, c: -sin, d: cos, e: 0, f: 0 };
+      if (a.length >= 3) t = mul2(mul2({ a: 1, b: 0, c: 0, d: 1, e: a[1], f: a[2] }, rot), { a: 1, b: 0, c: 0, d: 1, e: -a[1], f: -a[2] });
+      else t = rot;
+    } else if (fn === "skewx") t = { a: 1, b: 0, c: Math.tan((a[0] ?? 0) * Math.PI / 180), d: 1, e: 0, f: 0 };
+    else if (fn === "skewy") t = { a: 1, b: Math.tan((a[0] ?? 0) * Math.PI / 180), c: 0, d: 1, e: 0, f: 0 };
+    else return null;
+    m2 = mul2(m2, t);
+  }
+  return any ? m2 : null;
+}
+function parseLen(v, d = 0, ref = 0) {
+  if (v == null || v === "") return d;
+  const m2 = /^(-?\d*\.?\d+(?:e[-+]?\d+)?)\s*(px|pt|mm|cm|in|%|em|rem)?$/i.exec(v.trim());
+  if (!m2) return d;
+  const n2 = parseFloat(m2[1]);
+  switch ((m2[2] ?? "px").toLowerCase()) {
+    case "%":
+      return ref * n2 / 100;
+    case "pt":
+      return n2 * 96 / 72;
+    case "mm":
+      return n2 * 96 / 25.4;
+    case "cm":
+      return n2 * 96 / 2.54;
+    case "in":
+      return n2 * 96;
+    case "em":
+    case "rem":
+      return n2 * 16;
+    default:
+      return n2;
+  }
+}
+function decodeBase64(b64) {
+  const clean2 = b64.replace(/[^A-Za-z0-9+/=_-]/g, "").replace(/-/g, "+").replace(/_/g, "/");
+  const A = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const len2 = clean2.length;
+  const pad = clean2.endsWith("==") ? 2 : clean2.endsWith("=") ? 1 : 0;
+  const out = new Uint8Array(Math.floor(len2 * 3 / 4) - pad);
+  let o = 0, bits = 0, acc = 0;
+  for (let i = 0; i < len2; i++) {
+    const ch = clean2[i];
+    if (ch === "=") break;
+    const v = A.indexOf(ch);
+    if (v < 0) continue;
+    acc = acc << 6 | v;
+    bits += 6;
+    if (bits >= 8) {
+      bits -= 8;
+      if (o < out.length) out[o++] = acc >> bits & 255;
+    }
+  }
+  return o === out.length ? out : out.slice(0, o);
+}
+function decodeDataUrl(href) {
+  const m2 = /^data:([^;,]+)?((?:;[^;,]+)*),([\s\S]*)$/i.exec(href.trim());
+  if (!m2) return null;
+  const mtype = (m2[1] || "application/octet-stream").toLowerCase();
+  const isB64 = /;base64/i.test(m2[2] ?? "");
+  const payload = m2[3] ?? "";
+  const bytes = isB64 ? decodeBase64(payload) : new TextEncoder().encode(decodeURIComponent(payload));
+  return { bytes, mtype };
+}
+function imageDimensions(bytes, mtype) {
+  const b = bytes;
+  if (b.length >= 24 && b[0] === 137 && b[1] === 80 && b[2] === 78 && b[3] === 71) {
+    const dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
+    return { w: dv.getUint32(16), h: dv.getUint32(20) };
+  }
+  if (b.length >= 10 && b[0] === 71 && b[1] === 73 && b[2] === 70 && b[3] === 56) {
+    return { w: b[6] | b[7] << 8, h: b[8] | b[9] << 8 };
+  }
+  if (b.length >= 4 && b[0] === 255 && b[1] === 216) {
+    let i = 2;
+    while (i + 9 < b.length) {
+      if (b[i] !== 255) {
+        i++;
+        continue;
+      }
+      const marker = b[i + 1];
+      if (marker >= 192 && marker <= 207 && marker !== 196 && marker !== 200 && marker !== 204) {
+        return { w: b[i + 7] << 8 | b[i + 8], h: b[i + 5] << 8 | b[i + 6] };
+      }
+      const len2 = b[i + 2] << 8 | b[i + 3];
+      if (len2 < 2) break;
+      i += 2 + len2;
+    }
+    return null;
+  }
+  if (b.length >= 30 && b[0] === 82 && b[1] === 73 && b[2] === 70 && b[3] === 70 && b[8] === 87 && b[9] === 69 && b[10] === 66 && b[11] === 80) {
+    const tag2 = String.fromCharCode(b[12], b[13], b[14], b[15]);
+    if (tag2 === "VP8X") return { w: 1 + (b[24] | b[25] << 8 | b[26] << 16), h: 1 + (b[27] | b[28] << 8 | b[29] << 16) };
+    if (tag2 === "VP8L") {
+      const b0 = b[21], b1 = b[22], b2 = b[23], b3 = b[24];
+      return { w: 1 + ((b1 & 63) << 8 | b0), h: 1 + ((b3 & 15) << 10 | b2 << 2 | (b1 & 192) >> 6) };
+    }
+    if (tag2 === "VP8 ") return { w: (b[26] | b[27] << 8) & 16383, h: (b[28] | b[29] << 8) & 16383 };
+    return null;
+  }
+  const looksSvg = mtype === "image/svg+xml" || b.length > 5 && (b[0] === 60 || b[0] === 239 && b[3] === 60);
+  if (looksSvg) {
+    const head = new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096)));
+    const tag2 = /<svg\b([^>]*)>/i.exec(head);
+    if (!tag2) return null;
+    const a = parseAttrs2(tag2[1]);
+    const vb = (a.viewbox ?? "").trim().split(/[\s,]+/).map(Number);
+    const vbW = vb.length === 4 && Number.isFinite(vb[2]) ? vb[2] : 0, vbH = vb.length === 4 && Number.isFinite(vb[3]) ? vb[3] : 0;
+    const w = parseLen(a.width, vbW, vbW), h = parseLen(a.height, vbH, vbH);
+    return w > 0 && h > 0 ? { w: Math.round(w), h: Math.round(h) } : null;
+  }
+  return null;
+}
+function svgToPenpotDoc(svgText, o) {
+  if (typeof svgText !== "string" || !svgText.trim() || svgText.length > MAX_SVG_LEN2) return null;
+  const src = svgText.replace(/<!--[\s\S]*?-->/g, "").replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, "").replace(/<\?[\s\S]*?\?>/g, "").replace(/<!DOCTYPE[^>]*>/gi, "");
+  const notes = [];
+  const note = (s) => {
+    if (notes.length < 100) notes.push(s);
+  };
+  const tags = [];
+  const re = /<(\/?)([a-zA-Z][\w:.-]*)((?:\s+[\w:.-]+\s*=\s*(?:"[^"]*"|'[^']*'))*)\s*(\/?)>/g;
+  let m2;
+  while (m2 = re.exec(src)) {
+    if (tags.length > MAX_SVG_TAGS) return null;
+    const name = m2[2].toLowerCase().replace(/^svg:/, "");
+    if (BAIL_TAGS2.has(name)) {
+      note(`<${name}> is not expressible; kept as a picture`);
+      return null;
+    }
+    tags.push({ name, attrs: parseAttrs2(m2[3] ?? ""), selfClosing: m2[4] === "/", closing: m2[1] === "/", start: m2.index, end: m2.index + m2[0].length });
+  }
+  const rootIdx = tags.findIndex((t) => t.name === "svg" && !t.closing);
+  if (rootIdx < 0) return null;
+  const root = tags[rootIdx];
+  const vb = (root.attrs.viewbox ?? "").trim().split(/[\s,]+/).map(Number);
+  const hasVb = vb.length === 4 && vb.every(Number.isFinite) && vb[2] > 0 && vb[3] > 0;
+  const width = Math.round(parseLen(root.attrs.width, hasVb ? vb[2] : 0, hasVb ? vb[2] : 0));
+  const height = Math.round(parseLen(root.attrs.height, hasVb ? vb[3] : 0, hasVb ? vb[3] : 0));
+  if (!(width > 0 && height > 0)) return null;
+  let rootM = { ...IDENT };
+  if (hasVb) {
+    const par = (root.attrs.preserveaspectratio ?? "xMidYMid meet").trim().toLowerCase();
+    const sx = width / vb[2], sy = height / vb[3];
+    if (par === "none") rootM = { a: sx, b: 0, c: 0, d: sy, e: -vb[0] * sx, f: -vb[1] * sy };
+    else {
+      const s = par.includes("slice") ? Math.max(sx, sy) : Math.min(sx, sy);
+      const ox = (width - vb[2] * s) / 2, oy = (height - vb[3] * s) / 2;
+      rootM = { a: s, b: 0, c: 0, d: s, e: ox - vb[0] * s, f: oy - vb[1] * s };
+    }
+  }
+  const grads = /* @__PURE__ */ new Map();
+  for (let i = 0; i < tags.length; i++) {
+    const t = tags[i];
+    if (t.closing || t.name !== "lineargradient" && t.name !== "radialgradient") continue;
+    const id = t.attrs.id;
+    if (!id) continue;
+    const a = t.attrs;
+    const g2 = {
+      type: t.name === "radialgradient" ? "radial" : "linear",
+      units: (a.gradientunits ?? "objectBoundingBox").toLowerCase() === "userspaceonuse" ? "userSpaceOnUse" : "objectBoundingBox",
+      x1: 0,
+      y1: 0,
+      x2: 1,
+      y2: 0,
+      cx: 0.5,
+      cy: 0.5,
+      r: 0.5,
+      href: (a.href ?? a["xlink:href"] ?? "").replace(/^#/, ""),
+      transform: a.gradienttransform ?? "",
+      stops: []
+    };
+    const rel = g2.units === "objectBoundingBox";
+    const pl = (v, d) => {
+      if (v == null) return d;
+      const s = v.trim();
+      return s.endsWith("%") ? parseFloat(s) / 100 * (rel ? 1 : 1) : rel ? parseFloat(s) : parseLen(s, d);
+    };
+    g2.x1 = pl(a.x1, 0);
+    g2.y1 = pl(a.y1, 0);
+    g2.x2 = pl(a.x2, rel ? 1 : 0);
+    g2.y2 = pl(a.y2, 0);
+    g2.cx = pl(a.cx, 0.5);
+    g2.cy = pl(a.cy, 0.5);
+    g2.r = pl(a.r, 0.5);
+    if (!rel && a.x2 == null) g2.x2 = g2.x1 + 1;
+    if (!t.selfClosing) {
+      for (let j = i + 1; j < tags.length; j++) {
+        const s = tags[j];
+        if (s.closing && s.name === t.name) break;
+        if (s.name !== "stop" || s.closing) continue;
+        const st = parseStyle2(s.attrs.style);
+        const col = parsePenpotColor(st["stop-color"] ?? s.attrs["stop-color"] ?? "#000000");
+        if (!col) {
+          note("gradient stop with an unreadable colour");
+          return null;
+        }
+        const so = s.attrs["stop-opacity"] ?? st["stop-opacity"];
+        const off = (s.attrs.offset ?? "0").trim();
+        g2.stops.push({ color: col.hex, opacity: clamp10((so == null ? 1 : fin2(so, 1)) * col.alpha, 0, 1), offset: clamp10(off.endsWith("%") ? parseFloat(off) / 100 : fin2(off), 0, 1) });
+      }
+    }
+    grads.set(id, g2);
+  }
+  for (const g2 of grads.values()) if (!g2.stops.length && g2.href && grads.get(g2.href)?.stops.length) g2.stops = grads.get(g2.href).stops;
+  const google = new Set(Array.from(o.googleFamilies ?? [], (f) => String(f).trim().toLowerCase()));
+  const uuid = o.uuid ?? penpotUuid;
+  const media = [];
+  const pending = [];
+  const base = {
+    m: rootM,
+    fill: void 0,
+    fillOpacity: 1,
+    stroke: null,
+    strokeWidth: 1,
+    strokeOpacity: 1,
+    strokeDash: "",
+    strokeCap: "butt",
+    opacity: 1,
+    fontFamily: "",
+    fontSize: 16,
+    fontWeight: 400,
+    fontStyle: "normal",
+    textAnchor: "start",
+    letterSpacing: 0,
+    blend: "normal",
+    visible: true
+  };
+  const frameFor2 = (parent, t) => {
+    const a = t.attrs, st = parseStyle2(a.style);
+    const get3 = (k) => st[k] ?? a[k];
+    const local = parseTransform3(a.transform);
+    if (local === null) {
+      note("unreadable transform");
+      return null;
+    }
+    const f = { ...parent, m: mul2(parent.m, local) };
+    const fill = get3("fill");
+    if (fill != null) {
+      const v = fill.trim();
+      if (/^none$/i.test(v)) f.fill = null;
+      else if (/^url\(/i.test(v)) f.fill = v;
+      else if (parsePenpotColor(v)) f.fill = v;
+      else if (/^currentcolor$/i.test(v)) f.fill = "#000000";
+      else {
+        note(`unreadable fill ${v}`);
+        return null;
+      }
+    }
+    const fo = get3("fill-opacity");
+    if (fo != null) f.fillOpacity = clamp10(fin2(fo, 1), 0, 1);
+    const stroke = get3("stroke");
+    if (stroke != null) {
+      const v = stroke.trim();
+      if (/^none$/i.test(v)) f.stroke = null;
+      else if (parsePenpotColor(v)) f.stroke = v;
+      else if (/^currentcolor$/i.test(v)) f.stroke = "#000000";
+      else if (/^url\(/i.test(v)) {
+        note("gradient stroke is not expressible");
+        return null;
+      } else {
+        note(`unreadable stroke ${v}`);
+        return null;
+      }
+    }
+    const sw = get3("stroke-width");
+    if (sw != null) f.strokeWidth = Math.max(0, parseLen(sw, 1));
+    const so = get3("stroke-opacity");
+    if (so != null) f.strokeOpacity = clamp10(fin2(so, 1), 0, 1);
+    const sd = get3("stroke-dasharray");
+    if (sd != null) f.strokeDash = sd.trim();
+    const sc = get3("stroke-linecap");
+    if (sc != null) f.strokeCap = sc.trim().toLowerCase();
+    const op = get3("opacity");
+    if (op != null) f.opacity = parent.opacity * clamp10(fin2(op, 1), 0, 1);
+    else f.opacity = parent.opacity;
+    const ff = get3("font-family");
+    if (ff != null) f.fontFamily = ff.split(",")[0].trim().replace(/^['"]|['"]$/g, "");
+    const fs = get3("font-size");
+    if (fs != null) f.fontSize = Math.max(1, parseLen(fs, 16));
+    const fw = get3("font-weight");
+    if (fw != null) f.fontWeight = /^bold/i.test(fw) ? 700 : /^normal/i.test(fw) ? 400 : clamp10(Math.round(fin2(fw, 400) / 100) * 100, 100, 900);
+    const fst = get3("font-style");
+    if (fst != null) f.fontStyle = fst.trim().toLowerCase();
+    const ta = get3("text-anchor");
+    if (ta != null) f.textAnchor = ta.trim().toLowerCase();
+    const ls = get3("letter-spacing");
+    if (ls != null) f.letterSpacing = /normal/i.test(ls) ? 0 : parseLen(ls, 0);
+    const bm = get3("mix-blend-mode");
+    if (bm != null && BLEND_MODES.has(bm.trim())) f.blend = bm.trim();
+    const vis = get3("visibility"), disp = get3("display");
+    if (vis && /hidden|collapse/i.test(vis) || disp && /none/i.test(disp)) f.visible = false;
+    if (get3("filter") || get3("mask") || get3("clip-path")) {
+      note("filter/mask/clip-path is not expressible");
+      return null;
+    }
+    return f;
+  };
+  const gradientFor = (paint, bbox, m3) => {
+    const id = /^url\(\s*['"]?#([^'")]+)['"]?\s*\)/i.exec(paint)?.[1];
+    const g2 = id ? grads.get(id) : void 0;
+    if (!g2 || !g2.stops.length) {
+      note("paint references something that is not a gradient");
+      return null;
+    }
+    if (g2.transform && parseTransform3(g2.transform) && !isIdentity(parseTransform3(g2.transform))) {
+      note("gradientTransform is not expressible");
+      return null;
+    }
+    const toUnit2 = (x, y) => {
+      if (g2.units === "objectBoundingBox") return [x, y];
+      const [px, py] = apply2(m3, x, y);
+      return [bbox.w > 0 ? (px - bbox.x) / bbox.w : 0.5, bbox.h > 0 ? (py - bbox.y) / bbox.h : 0.5];
+    };
+    if (g2.type === "radial") {
+      const [cx, cy] = toUnit2(g2.cx, g2.cy);
+      const ru = g2.units === "objectBoundingBox" ? g2.r : g2.r * meanScale(m3) / Math.max(1, bbox.h);
+      return { type: "radial", startX: cx, startY: cy, endX: cx, endY: cy + ru, width: bbox.h > 0 ? bbox.w / bbox.h : 1, stops: g2.stops };
+    }
+    const [sx, sy] = toUnit2(g2.x1, g2.y1), [ex, ey] = toUnit2(g2.x2, g2.y2);
+    return { type: "linear", startX: sx, startY: sy, endX: ex, endY: ey, stops: g2.stops };
+  };
+  const paintFills = (f, bbox) => {
+    const fill = f.fill === void 0 ? "#000000" : f.fill;
+    if (fill === null) return [];
+    if (/^url\(/i.test(fill)) {
+      const g2 = gradientFor(fill, bbox, f.m);
+      if (!g2) return null;
+      return [{ gradient: g2, opacity: f.fillOpacity }];
+    }
+    const c = parsePenpotColor(fill);
+    return c ? [{ color: c.hex, opacity: f.fillOpacity * c.alpha }] : [];
+  };
+  const strokesOf = (f) => {
+    if (!f.stroke || !(f.strokeWidth > 0)) return [];
+    const c = parsePenpotColor(f.stroke);
+    if (!c) return [];
+    const s = { color: c.hex, opacity: f.strokeOpacity * c.alpha, width: f.strokeWidth * meanScale(f.m), alignment: "center" };
+    if (f.strokeDash && !/^none$/i.test(f.strokeDash)) {
+      const nums = f.strokeDash.split(/[\s,]+/).map((v) => parseLen(v, 0)).filter((n2) => Number.isFinite(n2));
+      if (nums.length && nums.some((n2) => n2 > 0)) {
+        const k = meanScale(f.m);
+        const dash = (nums[0] ?? 0) * k, gap = (nums[1] ?? nums[0] ?? 0) * k;
+        s.style = dash <= s.width * 1.05 && f.strokeCap === "round" ? "dotted" : "dashed";
+        s.dash = dash;
+        s.gap = gap;
+      }
+    }
+    if (f.strokeCap === "round" || f.strokeCap === "square") {
+      s.capStart = f.strokeCap;
+      s.capEnd = f.strokeCap;
+    }
+    return [s];
+  };
+  const decorate = (sh, f, t) => {
+    if (f.opacity < 1) sh.opacity = f.opacity;
+    if (f.blend !== "normal") sh.blend = f.blend;
+    const id = t.attrs.id ?? t.attrs["data-name"] ?? t.attrs["aria-label"];
+    if (id && !sh.name) sh.name = id;
+    return sh;
+  };
+  const pathShape = (subs, f, t, name) => {
+    const ts = transformSubpaths(subs, f.m);
+    const bb = subpathBounds(ts);
+    if (!bb) return null;
+    const fills = paintFills(f, bb);
+    if (fills === null) return "bail";
+    const strokes = strokesOf(f);
+    if (!fills.length && !strokes.length) return null;
+    return decorate({ type: "path", name, d: subpathsToD(ts), x: bb.x, y: bb.y, w: Math.max(0.01, bb.w), h: Math.max(0.01, bb.h), fills, strokes }, f, t);
+  };
+  const boxOf2 = (f, x, y, w, h) => {
+    const [x0, y0] = apply2(f.m, x, y), [x1, y1] = apply2(f.m, x + w, y + h);
+    return { x: Math.min(x0, x1), y: Math.min(y0, y1), w: Math.abs(x1 - x0), h: Math.abs(y1 - y0) };
+  };
+  let shapeBudget = MAX_SHAPES2;
+  const walk2 = (from, to, parent, out) => {
+    let i = from;
+    while (i < to) {
+      const t = tags[i];
+      if (t.closing) {
+        i++;
+        continue;
+      }
+      let close = i;
+      if (!t.selfClosing) {
+        let depth = 0;
+        for (let j = i + 1; j < to; j++) {
+          const u = tags[j];
+          if (u.name !== t.name) continue;
+          if (u.closing) {
+            if (depth === 0) {
+              close = j;
+              break;
+            }
+            depth--;
+          } else if (!u.selfClosing) depth++;
+        }
+        if (close === i) close = to;
+      }
+      if (SKIP_TAGS.has(t.name) || t.name === "lineargradient" || t.name === "radialgradient" || t.name === "stop") {
+        i = close + 1;
+        continue;
+      }
+      const f = frameFor2(parent, t);
+      if (!f) return false;
+      if (!f.visible) {
+        i = close + 1;
+        continue;
+      }
+      if (--shapeBudget < 0) {
+        note("shape ceiling reached");
+        return false;
+      }
+      const name = t.attrs.id ?? "";
+      const a = t.attrs;
+      switch (t.name) {
+        case "g":
+        case "svg":
+        case "a": {
+          let gf = f;
+          if (t.name === "svg" && i !== rootIdx) gf = { ...f, m: mul2(f.m, { a: 1, b: 0, c: 0, d: 1, e: parseLen(a.x), f: parseLen(a.y) }) };
+          const kids = [];
+          const inner = { ...gf, opacity: 1, blend: "normal" };
+          if (!walk2(i + 1, close, inner, kids)) return false;
+          if (kids.length === 1 && t.name !== "svg") {
+            const k = kids[0];
+            if (f.opacity < 1) k.opacity = (k.opacity ?? 1) * f.opacity;
+            if (f.blend !== "normal" && !k.blend) k.blend = f.blend;
+            out.push(k);
+          } else if (kids.length > 1 || t.name === "svg" && kids.length) {
+            const bb = kids.reduce((acc, k) => ({ x0: Math.min(acc.x0, k.x), y0: Math.min(acc.y0, k.y), x1: Math.max(acc.x1, k.x + k.w), y1: Math.max(acc.y1, k.y + k.h) }), { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity });
+            const g2 = { type: "group", name: name || (t.name === "svg" ? "SVG" : "Group"), x: bb.x0, y: bb.y0, w: bb.x1 - bb.x0, h: bb.y1 - bb.y0, children: kids };
+            if (f.opacity < 1) g2.opacity = f.opacity;
+            if (f.blend !== "normal") g2.blend = f.blend;
+            out.push(g2);
+          }
+          break;
+        }
+        case "rect": {
+          const x = parseLen(a.x), y = parseLen(a.y), w = parseLen(a.width), h = parseLen(a.height);
+          if (!(w > 0 && h > 0)) break;
+          const rx = a.rx != null ? parseLen(a.rx) : a.ry != null ? parseLen(a.ry) : 0, ry = a.ry != null ? parseLen(a.ry) : rx;
+          if (isAxisAligned(f.m)) {
+            const box2 = boxOf2(f, x, y, w, h);
+            const fills = paintFills(f, box2);
+            if (fills === null) return false;
+            const strokes = strokesOf(f);
+            if (!fills.length && !strokes.length) break;
+            out.push(decorate({ type: "rect", name, ...box2, fills, strokes, radius: Math.max(rx, ry) * meanScale(f.m) }, f, t));
+          } else {
+            const r3 = pathShape([roundedRectSubpath(x, y, w, h, rx, ry)], f, t, name);
+            if (r3 === "bail") return false;
+            if (r3) out.push(r3);
+          }
+          break;
+        }
+        case "circle":
+        case "ellipse": {
+          const cx = parseLen(a.cx), cy = parseLen(a.cy);
+          const rx = t.name === "circle" ? parseLen(a.r) : parseLen(a.rx), ry = t.name === "circle" ? parseLen(a.r) : parseLen(a.ry);
+          if (!(rx > 0 && ry > 0)) break;
+          if (isAxisAligned(f.m)) {
+            const box2 = boxOf2(f, cx - rx, cy - ry, rx * 2, ry * 2);
+            const fills = paintFills(f, box2);
+            if (fills === null) return false;
+            const strokes = strokesOf(f);
+            if (!fills.length && !strokes.length) break;
+            out.push(decorate({ type: "circle", name, ...box2, fills, strokes }, f, t));
+          } else {
+            const r3 = pathShape([ellipseSubpath(cx, cy, rx, ry)], f, t, name);
+            if (r3 === "bail") return false;
+            if (r3) out.push(r3);
+          }
+          break;
+        }
+        case "line": {
+          const subs = [{ closed: false, segments: [{ op: "M", x: parseLen(a.x1), y: parseLen(a.y1) }, { op: "L", x: parseLen(a.x2), y: parseLen(a.y2) }] }];
+          const r3 = pathShape(subs, { ...f, fill: null }, t, name);
+          if (r3 === "bail") return false;
+          if (r3) out.push(r3);
+          break;
+        }
+        case "polyline":
+        case "polygon": {
+          const pts = (a.points ?? "").trim().split(/[\s,]+/).map(Number).filter(Number.isFinite);
+          if (pts.length < 4) break;
+          const segs = [{ op: "M", x: pts[0], y: pts[1] }];
+          for (let k = 2; k + 1 < pts.length; k += 2) segs.push({ op: "L", x: pts[k], y: pts[k + 1] });
+          const r3 = pathShape([{ closed: t.name === "polygon", segments: segs }], t.name === "polyline" && f.fill === void 0 ? { ...f, fill: null } : f, t, name);
+          if (r3 === "bail") return false;
+          if (r3) out.push(r3);
+          break;
+        }
+        case "path": {
+          const d = a.d ?? "";
+          if (!d.trim()) break;
+          let subs;
+          try {
+            subs = parseSvgPath(d);
+          } catch {
+            note("unreadable path data");
+            return false;
+          }
+          if (!subs.length) break;
+          const r3 = pathShape(subs, f, t, name);
+          if (r3 === "bail") return false;
+          if (r3) out.push(r3);
+          break;
+        }
+        case "image": {
+          const href = a.href ?? a["xlink:href"] ?? "";
+          const x = parseLen(a.x), y = parseLen(a.y), w = parseLen(a.width), h = parseLen(a.height);
+          if (!href || !(w > 0 && h > 0)) break;
+          if (!isAxisAligned(f.m)) {
+            note("a rotated <image> is not expressible");
+            return false;
+          }
+          const box2 = boxOf2(f, x, y, w, h);
+          const mediaId = uuid();
+          const data = /^data:/i.test(href) ? decodeDataUrl(href) : null;
+          const fname = name || "image";
+          if (data) {
+            if (!MTYPE_EXT[data.mtype]) {
+              note(`embedded ${data.mtype} image is not a Penpot media type`);
+              return false;
+            }
+            const dim = imageDimensions(data.bytes, data.mtype) ?? { w: Math.round(box2.w), h: Math.round(box2.h) };
+            media.push({ id: mediaId, name: fname, mtype: data.mtype, width: dim.w, height: dim.h, bytes: data.bytes });
+          } else {
+            pending.push({ mediaId, href, width: Math.round(box2.w), height: Math.round(box2.h), name: fname });
+          }
+          const par = (a.preserveaspectratio ?? "").toLowerCase();
+          out.push(decorate({ type: "image", name: fname, ...box2, media: mediaId, keepAspectRatio: par !== "none", fills: [], strokes: [] }, f, t));
+          break;
+        }
+        case "text": {
+          if (!isAxisAligned(f.m) && Math.abs(f.m.a * f.m.d - f.m.b * f.m.c) <= 0) {
+            note("degenerate text transform");
+            return false;
+          }
+          let hasPositionedSpan = false;
+          for (let j = i + 1; j < close; j++) {
+            const u = tags[j];
+            if (u.closing) continue;
+            if (u.name !== "tspan") {
+              note(`<${u.name}> inside <text> is not expressible`);
+              return false;
+            }
+            if (u.attrs.x != null || u.attrs.y != null || u.attrs.dx != null || u.attrs.dy != null || u.attrs.rotate != null) hasPositionedSpan = true;
+          }
+          if (hasPositionedSpan) {
+            note("positioned <tspan> is not expressible");
+            return false;
+          }
+          if (a.textlength != null || a.rotate != null || a.dx != null || a.dy != null) {
+            note("text with textLength/rotate/dx/dy is not expressible");
+            return false;
+          }
+          const bodyStart = tags[i].end, bodyEnd = tags[close].start;
+          const text = decodeEntities3(src.slice(bodyStart, bodyEnd).replace(/<[^>]*>/g, "")).replace(/\s+/g, " ").trim();
+          if (!text) break;
+          const scale = meanScale(f.m);
+          const size = f.fontSize * scale;
+          const rotDeg = Math.atan2(f.m.b, f.m.a) * 180 / Math.PI;
+          const lx = parseLen((a.x ?? "0").split(/[\s,]+/)[0]), ly = parseLen((a.y ?? "0").split(/[\s,]+/)[0]);
+          const [px, py] = apply2(f.m, lx, ly);
+          const estW = Math.max(size * 0.6, text.length * size * 0.56 + Math.max(0, text.length - 1) * f.letterSpacing * scale);
+          const lineH = 1.2;
+          const db = (parseStyle2(a.style)["dominant-baseline"] ?? a["dominant-baseline"] ?? a["alignment-baseline"] ?? "").toLowerCase();
+          const ascent = db === "middle" || db === "central" ? size * 0.55 : db === "hanging" || db === "text-before-edge" ? size * 0.05 : size * 0.95;
+          const align = f.textAnchor === "middle" ? "center" : f.textAnchor === "end" ? "right" : "left";
+          const ax = align === "center" ? px - estW / 2 : align === "right" ? px - estW : px;
+          const top = py - ascent;
+          const fillFrame = f.fill === void 0 ? "#000000" : f.fill;
+          const col = fillFrame && !/^url\(/i.test(fillFrame) ? parsePenpotColor(fillFrame) : null;
+          if (fillFrame && /^url\(/i.test(fillFrame)) {
+            note("gradient text is not expressible");
+            return false;
+          }
+          if (!col) break;
+          const run = {
+            text,
+            fontFamily: f.fontFamily || void 0,
+            fontWeight: f.fontWeight,
+            italic: /italic|oblique/.test(f.fontStyle),
+            fontSize: size,
+            lineHeight: lineH,
+            letterSpacing: f.letterSpacing * scale,
+            color: col.hex,
+            opacity: f.fillOpacity * col.alpha
+          };
+          const strokes = strokesOf(f);
+          const shape = {
+            type: "text",
+            name: name || text.slice(0, 40),
+            x: ax,
+            y: top,
+            w: estW,
+            h: size * lineH,
+            paragraphs: [{ align, runs: [run] }],
+            valign: "top",
+            growType: "auto-width",
+            strokes
+          };
+          if (Math.abs(rotDeg) > 0.01) {
+            const cx = ax + estW / 2, cy = top + size * lineH / 2;
+            const rad = rotDeg * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
+            const dx = cx - px, dy = cy - py;
+            const ncx = px + dx * cos - dy * sin, ncy = py + dx * sin + dy * cos;
+            shape.x = ncx - estW / 2;
+            shape.y = ncy - size * lineH / 2;
+            shape.rotation = rotDeg;
+          }
+          out.push(decorate(shape, f, t));
+          break;
+        }
+        default:
+          if (!t.selfClosing && close > i) {
+            if (!walk2(i + 1, close, f, out)) return false;
+          }
+          break;
+      }
+      i = close + 1;
+    }
+    return true;
+  };
+  const rootClose = (() => {
+    let depth = 0;
+    for (let j = rootIdx + 1; j < tags.length; j++) {
+      const u = tags[j];
+      if (u.name !== "svg") continue;
+      if (u.closing) {
+        if (depth === 0) return j;
+        depth--;
+      } else if (!u.selfClosing) depth++;
+    }
+    return tags.length;
+  })();
+  const rootFrame = frameFor2(base, { ...root, attrs: { ...root.attrs, transform: "" } });
+  if (!rootFrame) return null;
+  const children = [];
+  if (!walk2(rootIdx + 1, rootClose, rootFrame, children)) return null;
+  const bg = o.background ? parsePenpotColor(o.background) : null;
+  const board = {
+    type: "board",
+    name: o.name || "Artboard",
+    x: 0,
+    y: 0,
+    w: width,
+    h: height,
+    fills: bg ? [{ color: bg.hex, opacity: bg.alpha }] : [],
+    children,
+    showContent: false
+  };
+  return {
+    doc: { name: o.name, pages: [{ name: "Page 1", shapes: [board] }], media, tokens: o.tokens, palette: o.palette, typographies: o.typographies, googleFamilies: google, generatedBy: o.generatedBy },
+    width,
+    height,
+    pending,
+    notes
+  };
+}
+function isIdentity(m2) {
+  return Math.abs(m2.a - 1) < 1e-9 && Math.abs(m2.d - 1) < 1e-9 && Math.abs(m2.b) < 1e-9 && Math.abs(m2.c) < 1e-9 && Math.abs(m2.e) < 1e-9 && Math.abs(m2.f) < 1e-9;
+}
+function imageToPenpotDoc(media, o) {
+  const w = Math.max(1, Math.round(media.width)), h = Math.max(1, Math.round(media.height));
+  const bg = o.background ? parsePenpotColor(o.background) : null;
+  const board = {
+    type: "board",
+    name: o.name || media.name || "Artboard",
+    x: 0,
+    y: 0,
+    w,
+    h,
+    fills: bg ? [{ color: bg.hex, opacity: bg.alpha }] : [],
+    children: [{ type: "image", name: media.name || "Image", x: 0, y: 0, w, h, media: media.id, keepAspectRatio: true }]
+  };
+  return { name: o.name, pages: [{ name: "Page 1", shapes: [board] }], media: [media], tokens: o.tokens, palette: o.palette, typographies: o.typographies, googleFamilies: o.googleFamilies, generatedBy: o.generatedBy };
+}
+function parsePenpotImportStream(text) {
+  const out = { fileIds: [], error: null, sections: [] };
+  const strip = (v) => String(v ?? "").replace(/^~[:u]/, "");
+  let event = "";
+  for (const raw of String(text ?? "").split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) {
+      event = "";
+      continue;
+    }
+    if (line.startsWith("event:")) {
+      event = line.slice(6).trim();
+      continue;
+    }
+    if (!line.startsWith("data:")) continue;
+    const body = line.slice(5).trim();
+    let data = null;
+    try {
+      data = JSON.parse(body);
+    } catch {
+      data = body;
+    }
+    if (event === "end") {
+      const ids = Array.isArray(data) ? data : [data];
+      for (const id of ids) {
+        const s = strip(id);
+        if (/^[0-9a-f-]{36}$/i.test(s)) out.fileIds.push(s);
+      }
+    } else if (event === "error") {
+      const rec2 = isRec4(data) ? data : {};
+      const hint = rec2["~:hint"] ?? rec2.hint ?? rec2["~:code"] ?? rec2.code ?? rec2["~:type"] ?? body;
+      out.error = strip(hint) || "Penpot refused the import";
+    } else if (event === "progress") {
+      const rec2 = isRec4(data) ? data : {};
+      const sec = strip(rec2["~:section"] ?? rec2.section);
+      if (sec) out.sections.push(sec);
+    }
+  }
+  if (!out.fileIds.length && !out.error) out.error = "Penpot did not confirm the import";
+  return out;
+}
+function penpotWorkspaceUrl(teamId, fileId, pageId, origin = "https://design.penpot.app") {
+  const q = new URLSearchParams({ "team-id": teamId, "file-id": fileId });
+  if (pageId) q.set("page-id", pageId);
+  return `${origin}/#/workspace?${q.toString()}`;
+}
+var PENPOT_MIME, PENPOT_ROOT_ID, PENPOT_FILE_VERSION, PENPOT_FEATURES, PENPOT_MIGRATIONS, MTYPE_EXT, PENPOT_IMAGE_MTYPES, BLEND_MODES, STROKE_CAPS, TOKEN_TYPE_MAP, BG_BLUR_SIGMA_A2, BG_BLUR_SIGMA_B2, MAX_SVG_LEN2, MAX_SVG_TAGS, MAX_SHAPES2, MAX_TEXT_PARAGRAPHS, isRec4, fin2, clamp10, r4, NAMED, IDENT, mul2, apply2, meanScale, isAxisAligned, K, TEXT_DEFAULTS, str5, H_ALIGN, MARKER_CAP, BAIL_TAGS2, SKIP_TAGS;
+var init_penpot_file = __esm({
+  "engine/src/penpot-file.ts"() {
+    "use strict";
+    init_svg_path();
+    init_tokens();
+    init_geom_api();
+    init_path();
+    PENPOT_MIME = "application/x-penpot";
+    PENPOT_ROOT_ID = "00000000-0000-0000-0000-000000000000";
+    PENPOT_FILE_VERSION = 67;
+    PENPOT_FEATURES = Object.freeze([
+      "fdata/path-data",
+      "design-tokens/v1",
+      "variants/v1",
+      "layout/grid",
+      "components/v2",
+      "fdata/shape-data-type"
+    ]);
+    PENPOT_MIGRATIONS = Object.freeze([
+      "legacy-2",
+      "legacy-3",
+      "legacy-5",
+      "legacy-6",
+      "legacy-7",
+      "legacy-8",
+      "legacy-9",
+      "legacy-10",
+      "legacy-11",
+      "legacy-12",
+      "legacy-13",
+      "legacy-14",
+      "legacy-16",
+      "legacy-17",
+      "legacy-18",
+      "legacy-19",
+      "legacy-25",
+      "legacy-26",
+      "legacy-27",
+      "legacy-28",
+      "legacy-29",
+      "legacy-31",
+      "legacy-32",
+      "legacy-33",
+      "legacy-34",
+      "legacy-36",
+      "legacy-37",
+      "legacy-38",
+      "legacy-39",
+      "legacy-40",
+      "legacy-41",
+      "legacy-42",
+      "legacy-43",
+      "legacy-44",
+      "legacy-45",
+      "legacy-46",
+      "legacy-47",
+      "legacy-48",
+      "legacy-49",
+      "legacy-50",
+      "legacy-51",
+      "legacy-52",
+      "legacy-53",
+      "legacy-54",
+      "legacy-55",
+      "legacy-56",
+      "legacy-57",
+      "legacy-59",
+      "legacy-62",
+      "legacy-65",
+      "legacy-66",
+      "legacy-67",
+      "0001-remove-tokens-from-groups",
+      "0002-normalize-bool-content-v2",
+      "0002-clean-shape-interactions",
+      "0003-fix-root-shape",
+      "0003-convert-path-content-v2",
+      "0005-deprecate-image-type",
+      "0006-fix-old-texts-fills",
+      "0008-fix-library-colors-v4",
+      "0009-clean-library-colors",
+      "0009-add-partial-text-touched-flags",
+      "0010-fix-swap-slots-pointing-non-existent-shapes",
+      "0011-fix-invalid-text-touched-flags",
+      "0012-fix-position-data",
+      "0013-fix-component-path",
+      "0013-clear-invalid-strokes-and-fills",
+      "0014-fix-tokens-lib-duplicate-ids",
+      "0014-clear-components-nil-objects",
+      "0015-fix-text-attrs-blank-strings",
+      "0015-clean-shadow-color",
+      "0016-copy-fills-from-position-data-to-text-node",
+      "0017-fix-layout-flex-dir",
+      "0018-remove-unneeded-objects-from-components",
+      "0019-fix-missing-swap-slots",
+      "0020-sync-component-id-with-near-main",
+      "0021-fix-shape-svg-attrs",
+      "0022-normalize-component-root-and-resync",
+      "0023-repair-token-themes-with-inexistent-sets",
+      "0024b-fix-stroke-cap-placement"
+    ]);
+    MTYPE_EXT = {
+      "image/png": ".png",
+      "image/jpeg": ".jpg",
+      "image/gif": ".gif",
+      "image/svg+xml": ".svg",
+      "image/webp": ".webp",
+      "image/avif": ".avif",
+      "image/apng": ".apng"
+    };
+    PENPOT_IMAGE_MTYPES = Object.freeze(Object.keys(MTYPE_EXT));
+    BLEND_MODES = /* @__PURE__ */ new Set([
+      "normal",
+      "darken",
+      "multiply",
+      "color-burn",
+      "lighten",
+      "screen",
+      "color-dodge",
+      "overlay",
+      "soft-light",
+      "hard-light",
+      "difference",
+      "exclusion",
+      "hue",
+      "saturation",
+      "color",
+      "luminosity"
+    ]);
+    STROKE_CAPS = /* @__PURE__ */ new Set(["round", "square", "line-arrow", "triangle-arrow", "square-marker", "circle-marker", "diamond-marker"]);
+    TOKEN_TYPE_MAP = {
+      boolean: "boolean",
+      borderRadius: "borderRadius",
+      color: "color",
+      dimension: "dimension",
+      fontFamilies: "fontFamilies",
+      fontFamily: "fontFamilies",
+      fontSizes: "fontSizes",
+      fontSize: "fontSizes",
+      fontWeights: "fontWeights",
+      fontWeight: "fontWeights",
+      letterSpacing: "letterSpacing",
+      number: "number",
+      opacity: "opacity",
+      other: "other",
+      rotation: "rotation",
+      shadow: "shadow",
+      boxShadow: "shadow",
+      sizing: "sizing",
+      spacing: "spacing",
+      string: "string",
+      borderWidth: "borderWidth",
+      textCase: "textCase",
+      textDecoration: "textDecoration",
+      typography: "typography"
+    };
+    BG_BLUR_SIGMA_A2 = 1.1547;
+    BG_BLUR_SIGMA_B2 = 1;
+    MAX_SVG_LEN2 = 8e6;
+    MAX_SVG_TAGS = 6e4;
+    MAX_SHAPES2 = 6e3;
+    MAX_TEXT_PARAGRAPHS = 400;
+    isRec4 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    fin2 = (v, d = 0) => {
+      const n2 = typeof v === "number" ? v : parseFloat(String(v));
+      return Number.isFinite(n2) ? n2 : d;
+    };
+    clamp10 = (v, a, b) => v < a ? a : v > b ? b : v;
+    r4 = (v) => {
+      const n2 = Math.round(v * 1e4) / 1e4;
+      return Number.isFinite(n2) ? Object.is(n2, -0) ? 0 : n2 : 0;
+    };
+    NAMED = Object.assign(/* @__PURE__ */ Object.create(null), {
+      black: "#000000",
+      white: "#ffffff",
+      red: "#ff0000",
+      green: "#008000",
+      blue: "#0000ff",
+      yellow: "#ffff00",
+      cyan: "#00ffff",
+      aqua: "#00ffff",
+      magenta: "#ff00ff",
+      fuchsia: "#ff00ff",
+      gray: "#808080",
+      grey: "#808080",
+      silver: "#c0c0c0",
+      maroon: "#800000",
+      olive: "#808000",
+      lime: "#00ff00",
+      teal: "#008080",
+      navy: "#000080",
+      purple: "#800080",
+      orange: "#ffa500",
+      pink: "#ffc0cb",
+      brown: "#a52a2a",
+      gold: "#ffd700",
+      indigo: "#4b0082",
+      violet: "#ee82ee",
+      tomato: "#ff6347",
+      coral: "#ff7f50",
+      salmon: "#fa8072",
+      khaki: "#f0e68c",
+      tan: "#d2b48c",
+      beige: "#f5f5dc",
+      ivory: "#fffff0",
+      lavender: "#e6e6fa",
+      crimson: "#dc143c",
+      turquoise: "#40e0d0",
+      orchid: "#da70d6",
+      plum: "#dda0dd",
+      chocolate: "#d2691e",
+      sienna: "#a0522d",
+      wheat: "#f5deb3",
+      snow: "#fffafa",
+      skyblue: "#87ceeb",
+      steelblue: "#4682b4",
+      slategray: "#708090",
+      slategrey: "#708090",
+      dimgray: "#696969",
+      dimgrey: "#696969",
+      darkgray: "#a9a9a9",
+      darkgrey: "#a9a9a9",
+      lightgray: "#d3d3d3",
+      lightgrey: "#d3d3d3",
+      whitesmoke: "#f5f5f5",
+      gainsboro: "#dcdcdc",
+      darkblue: "#00008b",
+      darkgreen: "#006400",
+      darkred: "#8b0000",
+      royalblue: "#4169e1",
+      dodgerblue: "#1e90ff",
+      deepskyblue: "#00bfff",
+      forestgreen: "#228b22",
+      seagreen: "#2e8b57",
+      limegreen: "#32cd32",
+      springgreen: "#00ff7f",
+      hotpink: "#ff69b4",
+      deeppink: "#ff1493",
+      firebrick: "#b22222",
+      darkorange: "#ff8c00",
+      orangered: "#ff4500",
+      goldenrod: "#daa520",
+      rebeccapurple: "#663399",
+      mintcream: "#f5fffa"
+    });
+    IDENT = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+    mul2 = (m2, n2) => ({
+      a: m2.a * n2.a + m2.c * n2.b,
+      b: m2.b * n2.a + m2.d * n2.b,
+      c: m2.a * n2.c + m2.c * n2.d,
+      d: m2.b * n2.c + m2.d * n2.d,
+      e: m2.a * n2.e + m2.c * n2.f + m2.e,
+      f: m2.b * n2.e + m2.d * n2.f + m2.f
+    });
+    apply2 = (m2, x, y) => [m2.a * x + m2.c * y + m2.e, m2.b * x + m2.d * y + m2.f];
+    meanScale = (m2) => Math.sqrt(Math.abs(m2.a * m2.d - m2.b * m2.c)) || 1;
+    isAxisAligned = (m2) => Math.abs(m2.b) < 1e-9 && Math.abs(m2.c) < 1e-9 && m2.a > 0 && m2.d > 0;
+    K = 0.5522847498;
+    TEXT_DEFAULTS = { fontFamily: "sourcesanspro", fontSize: 14, fontWeight: 400, lineHeight: 1.2, letterSpacing: 0 };
+    str5 = (v) => v == null ? "" : String(v);
+    H_ALIGN = /* @__PURE__ */ new Set(["left", "center", "right"]);
+    MARKER_CAP = { triangle: "triangle-arrow", open: "line-arrow", circle: "circle-marker", diamond: "diamond-marker", bar: "square-marker" };
+    BAIL_TAGS2 = /* @__PURE__ */ new Set(["filter", "mask", "clippath", "pattern", "foreignobject", "use", "symbol", "marker", "textpath", "style", "switch", "animate", "animatetransform", "animatemotion", "set"]);
+    SKIP_TAGS = /* @__PURE__ */ new Set(["title", "desc", "metadata", "defs"]);
+  }
+});
+
 // engine/src/icon-theme.ts
 function parseThemedAssetId(id) {
   if (typeof id !== "string" || id.includes("://")) return { baseId: id, theme: null };
@@ -49754,7 +51932,7 @@ function pickInk(cands) {
   return dark.sort((a, b) => a.l - b.l || b.c - a.c || a.hex.localeCompare(b.hex))[0];
 }
 function duotoneShadow(a) {
-  return oklchToHex({ l: 0.26, c: clamp10(a.c * 0.5, 0.02, 0.075), h: a.h });
+  return oklchToHex({ l: 0.26, c: clamp11(a.c * 0.5, 0.02, 0.075), h: a.h });
 }
 function derivePhotoTreatmentsDoc(source) {
   const accents = pickAccents(toCandidates(source));
@@ -49768,7 +51946,7 @@ function derivePhotoTreatmentsDoc(source) {
       label: i === 0 ? "Brand" : titleCase(id),
       kind: "duotone",
       shadow: duotoneShadow(a),
-      highlight: oklchToHex({ l: 0.93, c: clamp10(a.c * 0.4, 0.015, 0.055), h: a.h })
+      highlight: oklchToHex({ l: 0.93, c: clamp11(a.c * 0.4, 0.015, 0.055), h: a.h })
     });
   });
   if (accents.length) {
@@ -49798,13 +51976,13 @@ function deriveIconThemesDoc(source) {
   if (accents.length) {
     const p = accents[0];
     const ink = pickInk(cands);
-    const inkHex = ink && ink.hex !== p.hex && p.l - ink.l >= 0.15 ? ink.hex : oklchToHex({ l: clamp10(p.l - 0.35, 0.14, 0.3), c: clamp10(p.c * 0.5, 0.01, 0.06), h: p.h });
+    const inkHex = ink && ink.hex !== p.hex && p.l - ink.l >= 0.15 ? ink.hex : oklchToHex({ l: clamp11(p.l - 0.35, 0.14, 0.3), c: clamp11(p.c * 0.5, 0.01, 0.06), h: p.h });
     themes.push({ id: "brand", label: "Brand", c1: p.hex, c2: inkHex });
     if (p.l < 0.78) {
       themes.push({
         id: "tint",
         label: "Tint",
-        c1: oklchToHex({ l: 0.87, c: clamp10(p.c * 0.8, 0.02, 0.1), h: p.h }),
+        c1: oklchToHex({ l: 0.87, c: clamp11(p.c * 0.8, 0.02, 0.1), h: p.h }),
         c2: p.hex
       });
     }
@@ -49814,7 +51992,7 @@ function deriveIconThemesDoc(source) {
         id,
         label: titleCase(id),
         c1: a.hex,
-        c2: oklchToHex({ l: clamp10(a.l - 0.35, 0.14, 0.45), c: clamp10(a.c * 0.6, 0.01, 0.075), h: a.h })
+        c2: oklchToHex({ l: clamp11(a.l - 0.35, 0.14, 0.45), c: clamp11(a.c * 0.6, 0.01, 0.075), h: a.h })
       });
     }
     themes.push({ id: "paper", label: "Paper", c1: "#ffffff", c2: "#f0f0f0", previewBg: inkHex });
@@ -49825,7 +52003,7 @@ function deriveIconThemesDoc(source) {
     themes
   };
 }
-var MAX_SWATCHES2, ACCENT_MIN_CHROMA, HUE_APART_DEG, MAX_ACCENTS, HUE_NAMES, clamp10, hueDist, hueName, titleCase;
+var MAX_SWATCHES2, ACCENT_MIN_CHROMA, HUE_APART_DEG, MAX_ACCENTS, HUE_NAMES, clamp11, hueDist, hueName, titleCase;
 var init_brand_treatments = __esm({
   "engine/src/brand-treatments.ts"() {
     "use strict";
@@ -49849,7 +52027,7 @@ var init_brand_treatments = __esm({
       "violet",
       "rose"
     ];
-    clamp10 = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    clamp11 = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
     hueDist = (a, b) => {
       const d = Math.abs(a - b) % 360;
       return d > 180 ? 360 - d : d;
@@ -49875,21 +52053,21 @@ async function aesEcbBlock(key, block16) {
   return aesCbcNoPad(key, ZERO_IV, block16);
 }
 async function hashR6(password, salt, udata = new Uint8Array(0)) {
-  let K = await digest("SHA-256", concat5(password, salt, udata));
+  let K2 = await digest("SHA-256", concat5(password, salt, udata));
   let round4 = 0;
   for (; ; ) {
     round4++;
-    const block = concat5(password, K, udata);
+    const block = concat5(password, K2, udata);
     const K1 = new Uint8Array(block.length * 64);
     for (let i = 0; i < 64; i++) K1.set(block, i * block.length);
-    const E = await aesCbcNoPad(K.subarray(0, 16), K.subarray(16, 32), K1);
+    const E = await aesCbcNoPad(K2.subarray(0, 16), K2.subarray(16, 32), K1);
     let sum = 0;
     for (let i = 0; i < 16; i++) sum += E[i];
     const algo = sum % 3 === 0 ? "SHA-256" : sum % 3 === 1 ? "SHA-384" : "SHA-512";
-    K = await digest(algo, E);
+    K2 = await digest(algo, E);
     if (round4 >= 64 && E[E.length - 1] <= round4 - 32) break;
   }
-  return K.subarray(0, 32);
+  return K2.subarray(0, 32);
 }
 function preparePassword(pw) {
   const bytes = new TextEncoder().encode(pw);
@@ -49939,7 +52117,7 @@ function isKfChannel(v) {
 function isKfSafe(s) {
   return typeof s === "string" && KF_CHARSET_RE.test(s);
 }
-function clamp11(v, lo, hi) {
+function clamp12(v, lo, hi) {
   return v < lo ? lo : v > hi ? hi : v;
 }
 function quant(v, q) {
@@ -49985,10 +52163,10 @@ function cubicBezierAt(x1, y1, x2, y2, x) {
 }
 function easeFromPoints(x1, y1, x2, y2) {
   const p = [
-    quant(clamp11(x1, 0, 1), KF_BEZIER_QUANTUM),
-    quant(clamp11(y1, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM),
-    quant(clamp11(x2, 0, 1), KF_BEZIER_QUANTUM),
-    quant(clamp11(y2, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM)
+    quant(clamp12(x1, 0, 1), KF_BEZIER_QUANTUM),
+    quant(clamp12(y1, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM),
+    quant(clamp12(x2, 0, 1), KF_BEZIER_QUANTUM),
+    quant(clamp12(y2, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM)
   ];
   for (const tok of KF_EASE_TOKENS) {
     const q = KF_EASE_PRESETS[tok].pts;
@@ -50088,7 +52266,7 @@ function easeParamAtX(x1, x2, x) {
     else hi = t;
     t = (lo + hi) / 2;
   }
-  return clamp11(t, 0, 1);
+  return clamp12(t, 0, 1);
 }
 function subdividedEaseToken(x1, y1, x2, y2) {
   if (!Number.isFinite(x1) || !Number.isFinite(y1) || !Number.isFinite(x2) || !Number.isFinite(y2)) return null;
@@ -50118,7 +52296,7 @@ function subdivideKfEase(ease, lambda) {
 function channelValue(ch, raw) {
   if (!Number.isFinite(raw)) return null;
   const [lo, hi] = KF_CLAMPS[ch];
-  return quant(clamp11(raw, lo, hi), KF_QUANTA[ch]);
+  return quant(clamp12(raw, lo, hi), KF_QUANTA[ch]);
 }
 function normaliseTrack(keys, onWarn) {
   let src = keys;
@@ -50130,7 +52308,7 @@ function normaliseTrack(keys, onWarn) {
   for (const k of src) {
     if (!k || typeof k !== "object") continue;
     const rawT = typeof k.t === "number" && Number.isFinite(k.t) ? k.t : 0;
-    const t = Math.round(clamp11(rawT, 0, KF_MAX_TIME_MS));
+    const t = Math.round(clamp12(rawT, 0, KF_MAX_TIME_MS));
     const v = {};
     const kv = k.v ?? {};
     for (const ch of KF_CHANNELS) {
@@ -50276,7 +52454,7 @@ function evaluateKf(track, tMs, channels) {
 }
 function sanePerspective(p) {
   const [lo, hi] = KF_CLAMPS.p;
-  return typeof p === "number" && Number.isFinite(p) ? clamp11(p, lo, hi) : DEFAULT_PERSPECTIVE;
+  return typeof p === "number" && Number.isFinite(p) ? clamp12(p, lo, hi) : DEFAULT_PERSPECTIVE;
 }
 function projectDepth(cam, z) {
   const P = sanePerspective(cam.p);
@@ -50285,7 +52463,7 @@ function projectDepth(cam, z) {
   const dz = zz - camZ;
   const u = dz / P;
   const eff = Math.min(P / (P - Math.min(dz, KF_GUARD_U * P)), KF_EFF_MAX);
-  const alphaGuard = clamp11((KF_GUARD_U - u) / KF_GUARD_BAND, 0, 1);
+  const alphaGuard = clamp12((KF_GUARD_U - u) / KF_GUARD_BAND, 0, 1);
   return { u, eff, alphaGuard };
 }
 function depthForEff(eff, cam = DEFAULT_CAMERA) {
@@ -50325,6 +52503,15 @@ function mul32(a, b) {
     }
   }
   return out;
+}
+function boxTiltMatrix(rx, ry, p) {
+  if (!cameraTilted({ rx, ry })) return null;
+  const P = sanePerspective(p);
+  const t = camRotationT(rx, ry);
+  const r00 = t[0], r01 = t[3];
+  const r10 = t[1], r11 = t[4];
+  const r20 = t[2], r21 = t[5];
+  return [r00, r01, 0, r10, r11, 0, -r20 / P, -r21 / P, 1];
 }
 function surfaceMatrix(cam, z) {
   if (!cameraTilted(cam)) return null;
@@ -50406,9 +52593,10 @@ function projectLayer(cam, layer) {
   const by = Number.isFinite(layer.by) ? layer.by : 0;
   const cx = bx + (layer.dxT ?? 0) + (layer.dxK ?? 0);
   const cy = by + (layer.dyT ?? 0) + (layer.dyK ?? 0);
+  const B = boxTiltMatrix(layer.rx ?? 0, layer.ry ?? 0, DEFAULT_PERSPECTIVE);
   if (cameraTilted(cam)) {
     const t = projectLayerTilted(cam, layer, cx, cy, bx, by);
-    if (t) return t;
+    if (t) return B && t.m ? { ...t, m: mul32(t.m, B) } : t;
   }
   const { eff, alphaGuard } = projectDepth(cam, layer.z ?? 0);
   const w = Number.isFinite(cam.w) ? cam.w : 0;
@@ -50417,7 +52605,9 @@ function projectLayer(cam, layer) {
   const camY = Number.isFinite(cam.y) ? cam.y : 0;
   const px = w / 2 + (cx - camX - w / 2) * eff;
   const py = h / 2 + (cy - camY - h / 2) * eff;
-  return { dx: px - bx, dy: py - by, scale: eff, alphaGuard, m: null };
+  const dx = px - bx;
+  const dy = py - by;
+  return { dx, dy, scale: eff, alphaGuard, m: B ? mul32([1, 0, dx, 0, 1, dy, 0, 0, 1], B) : null };
 }
 function projectLayerTilted(cam, layer, cx, cy, bx, by) {
   const s = surfaceMatrix(cam, layer.z ?? 0);
@@ -50438,7 +52628,7 @@ function projectLayerTilted(cam, layer, cx, cy, bx, by) {
       }
     }
   }
-  const alphaGuard = clamp11(dMin / (KF_GUARD_BAND * s.P) - 1, 0, 1);
+  const alphaGuard = clamp12(dMin / (KF_GUARD_BAND * s.P) - 1, 0, 1);
   const [h0, h1, h2, h3, h4, h5, h6, h7, h8] = s.m;
   const wC = h6 * cx + h7 * cy + h8;
   const ok3 = wC > 0;
@@ -50453,7 +52643,7 @@ function projectLayerTilted(cam, layer, cx, cy, bx, by) {
   };
 }
 function dofBlur(cam, z) {
-  const a = clamp11(typeof cam.a === "number" && Number.isFinite(cam.a) ? cam.a : 0, 0, 1);
+  const a = clamp12(typeof cam.a === "number" && Number.isFinite(cam.a) ? cam.a : 0, 0, 1);
   if (!(a > 0)) return 0;
   const P = sanePerspective(cam.p);
   const f = typeof cam.f === "number" && Number.isFinite(cam.f) ? cam.f : 0;
@@ -50463,10 +52653,10 @@ function dofBlur(cam, z) {
     const camZ = typeof cam.z === "number" && Number.isFinite(cam.z) ? cam.z : 0;
     const near = (1 - KF_GUARD_U) * P;
     const effAt = (v) => Math.min(P / Math.max(P - kappa * (v - camZ), near), KF_EFF_MAX);
-    return clamp11(a * DOF_K * Math.abs(zz - f) * effAt(zz) * effAt(f) * Math.abs(kappa) / P, 0, KF_MAX_BLUR);
+    return clamp12(a * DOF_K * Math.abs(zz - f) * effAt(zz) * effAt(f) * Math.abs(kappa) / P, 0, KF_MAX_BLUR);
   }
   const blur = a * DOF_K * Math.abs(zz - f) * projectDepth(cam, zz).eff * projectDepth(cam, f).eff / P;
-  return clamp11(blur, 0, KF_MAX_BLUR);
+  return clamp12(blur, 0, KF_MAX_BLUR);
 }
 function resolveCamera(cameras, tMs) {
   const t = Number.isFinite(tMs) ? tMs : 0;
@@ -50507,7 +52697,7 @@ function resolveCamera(cameras, tMs) {
     const val = pose[ch];
     if (typeof val !== "number" || !Number.isFinite(val)) continue;
     const [lo, hi] = KF_CLAMPS[ch];
-    pose[ch] = clamp11(val, lo, hi);
+    pose[ch] = clamp12(val, lo, hi);
   }
   pose.p = sanePerspective(pose.p);
   return pose;
@@ -50610,6 +52800,515 @@ var init_keyframes = __esm({
   }
 });
 
+// engine/src/audio-dynamics.ts
+function besselI0(x) {
+  let sum = 1;
+  let term = 1;
+  for (let k = 1; k < 32; k++) {
+    term *= x / (2 * k) * (x / (2 * k));
+    sum += term;
+    if (term < 1e-12 * sum) break;
+  }
+  return sum;
+}
+function tpPhases() {
+  const N2 = TP_PHASE_TAPS * TP_OVERSAMPLE;
+  const beta = 8;
+  const denom = besselI0(beta);
+  const centre = (N2 - 1) / 2;
+  const h = new Float64Array(N2);
+  for (let n2 = 0; n2 < N2; n2++) {
+    const x = (n2 - centre) / TP_OVERSAMPLE;
+    const sinc = x === 0 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
+    const w = besselI0(beta * Math.sqrt(Math.max(0, 1 - ((n2 - centre) / centre) ** 2))) / denom;
+    h[n2] = sinc * w;
+  }
+  const phases = [];
+  for (let p = 0; p < TP_OVERSAMPLE; p++) {
+    const taps = new Float64Array(TP_PHASE_TAPS);
+    for (let k = 0; k < TP_PHASE_TAPS; k++) taps[k] = h[k * TP_OVERSAMPLE + p];
+    phases.push(taps);
+  }
+  return phases;
+}
+function createTruePeakLimiter(opts = {}) {
+  const rate = opts.rate && opts.rate > 0 ? opts.rate : 48e3;
+  const ceiling = 10 ** ((opts.ceilingDb ?? -1) / 20);
+  const look2 = Math.max(TP_PHASE_TAPS / 2 + 1, Math.round((opts.lookaheadMs ?? 2.5) / 1e3 * rate));
+  const relCoef = Math.exp(-1 / ((opts.releaseMs ?? 60) / 1e3 * rate));
+  const cap = look2 + 2;
+  const delayL = new Float32Array(cap);
+  const delayR = new Float32Array(cap);
+  const req = new Float32Array(cap);
+  const dqCap = cap + 1;
+  const deque = new Float64Array(dqCap);
+  let dqHead = 0;
+  let dqTail = 0;
+  const histL = new Float32Array(TP_PHASE_TAPS);
+  const histR = new Float32Array(TP_PHASE_TAPS);
+  let written = 0;
+  let emitted = 0;
+  let gain = 1;
+  let didEngage = false;
+  function truePeakOfNewest() {
+    let peak = 0;
+    for (let p = 0; p < TP_OVERSAMPLE; p++) {
+      const taps = PHASES[p];
+      let accL = 0;
+      let accR = 0;
+      for (let k = 0; k < TP_PHASE_TAPS; k++) {
+        const h = ((written - 1 - k) % TP_PHASE_TAPS + TP_PHASE_TAPS) % TP_PHASE_TAPS;
+        accL += taps[k] * histL[h];
+        accR += taps[k] * histR[h];
+      }
+      const m2 = Math.max(Math.abs(accL), Math.abs(accR));
+      if (m2 > peak) peak = m2;
+    }
+    return peak;
+  }
+  function consume(l, r3, outL, outR, oi) {
+    const i = written;
+    delayL[i % cap] = l;
+    delayR[i % cap] = r3;
+    histL[i % TP_PHASE_TAPS] = l;
+    histR[i % TP_PHASE_TAPS] = r3;
+    written++;
+    const tp = Math.max(truePeakOfNewest(), Math.abs(l), Math.abs(r3));
+    req[i % cap] = tp > ceiling ? ceiling / tp : 1;
+    while (dqHead < dqTail && deque[dqHead % dqCap] < i - look2) dqHead++;
+    while (dqHead < dqTail && req[deque[(dqTail - 1) % dqCap] % cap] >= req[i % cap]) dqTail--;
+    deque[dqTail % dqCap] = i;
+    dqTail++;
+    if (written <= look2) return oi;
+    const winMin = req[deque[dqHead % dqCap] % cap];
+    gain = Math.min(winMin, 1 - (1 - gain) * relCoef);
+    const j = emitted % cap;
+    if (gain < 1) {
+      didEngage = true;
+      outL[oi] = delayL[j] * gain;
+      outR[oi] = delayR[j] * gain;
+    } else {
+      outL[oi] = delayL[j];
+      outR[oi] = delayR[j];
+    }
+    emitted++;
+    return oi + 1;
+  }
+  return {
+    process(left, right) {
+      const n2 = left.length;
+      const emittable = Math.max(0, written + n2 - look2) - emitted;
+      const outL = new Float32Array(emittable);
+      const outR = new Float32Array(emittable);
+      let oi = 0;
+      for (let i = 0; i < n2; i++) oi = consume(left[i], right[i] ?? left[i], outL, outR, oi);
+      return [outL, outR];
+    },
+    flush() {
+      const remain = written - emitted;
+      const outL = new Float32Array(remain);
+      const outR = new Float32Array(remain);
+      let oi = 0;
+      for (let i = 0; i < look2 && oi < remain; i++) oi = consume(0, 0, outL, outR, oi);
+      emitted = written;
+      return [outL, outR];
+    },
+    engaged() {
+      return didEngage;
+    }
+  };
+}
+function activitySpans(channels, opts = {}) {
+  const rate = opts.rate && opts.rate > 0 ? opts.rate : 48e3;
+  const block = Math.max(1, Math.round((opts.blockMs ?? 50) / 1e3 * rate));
+  const open = 10 ** ((opts.openDb ?? -45) / 20);
+  const close = 10 ** ((opts.closeDb ?? -51) / 20);
+  const minSpan = (opts.minSpanMs ?? 150) / 1e3;
+  const minGap = (opts.minGapMs ?? 300) / 1e3;
+  const n2 = channels[0]?.length ?? 0;
+  if (!n2) return [];
+  const raw = [];
+  let openAt = -1;
+  const blocks = Math.ceil(n2 / block);
+  for (let b = 0; b < blocks; b++) {
+    const s = b * block;
+    const e = Math.min(s + block, n2);
+    let sum = 0;
+    for (const ch of channels) {
+      for (let i = s; i < e; i++) sum += ch[i] * ch[i];
+    }
+    const rms = Math.sqrt(sum / ((e - s) * channels.length));
+    const t = s / rate;
+    if (openAt < 0) {
+      if (rms >= open) openAt = t;
+    } else if (rms < close) {
+      raw.push({ from: openAt, to: t });
+      openAt = -1;
+    }
+  }
+  if (openAt >= 0) raw.push({ from: openAt, to: n2 / rate });
+  const merged = [];
+  for (const s of raw) {
+    const last = merged[merged.length - 1];
+    if (last && s.from - last.to < minGap) last.to = s.to;
+    else merged.push({ ...s });
+  }
+  return merged.filter((s) => s.to - s.from >= minSpan);
+}
+var TP_OVERSAMPLE, TP_PHASE_TAPS, PHASES;
+var init_audio_dynamics = __esm({
+  "engine/src/audio-dynamics.ts"() {
+    "use strict";
+    TP_OVERSAMPLE = 4;
+    TP_PHASE_TAPS = 12;
+    PHASES = tpPhases();
+  }
+});
+
+// engine/src/audio-loudness.ts
+function createLoudnessMeter(rate = LOUDNESS_RATE) {
+  if (rate !== LOUDNESS_RATE) {
+    throw new Error(`BS.1770 coefficients are published for ${LOUDNESS_RATE} Hz; got ${rate}`);
+  }
+  const hop = Math.round(rate * 0.1);
+  const HOPS_PER_BLOCK = 4;
+  const filters = [
+    { s1: new Biquad(S1_B, S1_A), s2: new Biquad(S2_B, S2_A) },
+    { s1: new Biquad(S1_B, S1_A), s2: new Biquad(S2_B, S2_A) }
+  ];
+  let hopSum = [0, 0];
+  let hopFill = 0;
+  const hopEnergies = [[], []];
+  const blocks = [];
+  const closeHop = () => {
+    hopEnergies[0].push(hopSum[0]);
+    hopEnergies[1].push(hopSum[1]);
+    hopSum = [0, 0];
+    hopFill = 0;
+    const hops = hopEnergies[0].length;
+    if (hops >= HOPS_PER_BLOCK) {
+      let ms = 0;
+      for (let c = 0; c < 2; c++) {
+        const e = hopEnergies[c];
+        ms += (e[hops - 4] + e[hops - 3] + e[hops - 2] + e[hops - 1]) / (hop * HOPS_PER_BLOCK);
+      }
+      blocks.push(-0.691 + 10 * Math.log10(Math.max(ms, 1e-15)));
+    }
+  };
+  return {
+    push(left, right) {
+      for (let i = 0; i < left.length; i++) {
+        const kl = filters[0].s2.step(filters[0].s1.step(left[i]));
+        const kr = filters[1].s2.step(filters[1].s1.step(right[i] ?? left[i]));
+        hopSum[0] += kl * kl;
+        hopSum[1] += kr * kr;
+        hopFill++;
+        if (hopFill === hop) closeHop();
+      }
+    },
+    integrated() {
+      const abs = blocks.filter((b) => b > -70);
+      if (!abs.length) return null;
+      const meanEnergy = (list2) => list2.reduce((a, b) => a + 10 ** ((b + 0.691) / 10), 0) / list2.length;
+      const relGate = -0.691 + 10 * Math.log10(meanEnergy(abs)) - 10;
+      const rel = abs.filter((b) => b > relGate);
+      if (!rel.length) return null;
+      return -0.691 + 10 * Math.log10(meanEnergy(rel));
+    }
+  };
+}
+function integratedLoudness(channels, rate = LOUDNESS_RATE) {
+  const m2 = createLoudnessMeter(rate);
+  m2.push(channels[0] ?? new Float32Array(0), channels[1] ?? channels[0] ?? new Float32Array(0));
+  return m2.integrated();
+}
+function normalizeGain(measuredLkfs, targetLkfs) {
+  const db = Math.max(-24, Math.min(24, targetLkfs - measuredLkfs));
+  return 10 ** (db / 20);
+}
+var LOUDNESS_RATE, S1_B, S1_A, S2_B, S2_A, Biquad;
+var init_audio_loudness = __esm({
+  "engine/src/audio-loudness.ts"() {
+    "use strict";
+    LOUDNESS_RATE = 48e3;
+    S1_B = [1.53512485958697, -2.69169618940638, 1.19839281085285];
+    S1_A = [1, -1.69065929318241, 0.73248077421585];
+    S2_B = [1, -2, 1];
+    S2_A = [1, -1.99004745483398, 0.99007225036621];
+    Biquad = class {
+      b;
+      a;
+      x1 = 0;
+      x2 = 0;
+      y1 = 0;
+      y2 = 0;
+      constructor(b, a) {
+        this.b = b;
+        this.a = a;
+      }
+      step(x) {
+        const y = this.b[0] * x + this.b[1] * this.x1 + this.b[2] * this.x2 - this.a[1] * this.y1 - this.a[2] * this.y2;
+        this.x2 = this.x1;
+        this.x1 = x;
+        this.y2 = this.y1;
+        this.y1 = y;
+        return y;
+      }
+    };
+  }
+});
+
+// engine/src/audio-fx.ts
+function parseFxChain(value) {
+  const out = { entries: [], skipped: [] };
+  const s = String(value ?? "").trim().toLowerCase();
+  if (!s || s.length > FX_CHAIN_MAX_CHARS) {
+    if (s.length > FX_CHAIN_MAX_CHARS) out.skipped.push("(overlong chain)");
+    return out;
+  }
+  for (const raw of s.split(".")) {
+    if (!raw) continue;
+    const m2 = TOKEN_RE.exec(raw);
+    const reg = m2 ? REGISTRY[m2[1]] : void 0;
+    if (!m2 || !reg) {
+      out.skipped.push(raw);
+      continue;
+    }
+    const params = m2[2] ? m2[2].split("-").map((p) => Number(p)) : [];
+    const ok3 = params.length === reg.params.length && params.every((p, i) => Number.isInteger(p) && p >= reg.params[i][0] && p <= reg.params[i][1]);
+    if (!ok3) {
+      out.skipped.push(raw);
+      continue;
+    }
+    out.entries.push({ name: m2[1], params });
+  }
+  return out;
+}
+function serializeFxChain(entries) {
+  return entries.map((e) => `${e.name}(${e.params.join("-")})`).join(".");
+}
+function rbj(kind, rate, freq, q, gainDb = 0) {
+  const w0 = 2 * Math.PI * Math.min(freq, rate / 2 - 1) / rate;
+  const cw = Math.cos(w0);
+  const sw = Math.sin(w0);
+  const alpha = sw / (2 * q);
+  const A = 10 ** (gainDb / 40);
+  let b0 = 1, b1 = 0, b2 = 0, a0 = 1, a1 = 0, a2 = 0;
+  if (kind === "hp") {
+    b0 = (1 + cw) / 2;
+    b1 = -(1 + cw);
+    b2 = (1 + cw) / 2;
+    a0 = 1 + alpha;
+    a1 = -2 * cw;
+    a2 = 1 - alpha;
+  } else if (kind === "lp") {
+    b0 = (1 - cw) / 2;
+    b1 = 1 - cw;
+    b2 = (1 - cw) / 2;
+    a0 = 1 + alpha;
+    a1 = -2 * cw;
+    a2 = 1 - alpha;
+  } else if (kind === "peak") {
+    b0 = 1 + alpha * A;
+    b1 = -2 * cw;
+    b2 = 1 - alpha * A;
+    a0 = 1 + alpha / A;
+    a1 = -2 * cw;
+    a2 = 1 - alpha / A;
+  } else if (kind === "notch") {
+    b0 = 1;
+    b1 = -2 * cw;
+    b2 = 1;
+    a0 = 1 + alpha;
+    a1 = -2 * cw;
+    a2 = 1 - alpha;
+  } else {
+    const sqA = Math.sqrt(A);
+    const sign = kind === "lowshelf" ? 1 : -1;
+    b0 = A * (A + 1 - sign * (A - 1) * cw + 2 * sqA * alpha);
+    b1 = sign * 2 * A * (A - 1 - sign * (A + 1) * cw);
+    b2 = A * (A + 1 - sign * (A - 1) * cw - 2 * sqA * alpha);
+    a0 = A + 1 + sign * (A - 1) * cw + 2 * sqA * alpha;
+    a1 = sign * -2 * (A - 1 + sign * (A + 1) * cw);
+    a2 = A + 1 + sign * (A - 1) * cw - 2 * sqA * alpha;
+  }
+  return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: a1 / a0, a2: a2 / a0 };
+}
+function runBiquad(x, c) {
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+  for (let i = 0; i < x.length; i++) {
+    const xi = x[i];
+    const y = c.b0 * xi + c.b1 * x1 + c.b2 * x2 - c.a1 * y1 - c.a2 * y2;
+    x2 = x1;
+    x1 = xi;
+    y2 = y1;
+    y1 = y;
+    x[i] = y;
+  }
+}
+function freeverb(channels, rate, mixPct, roomPct) {
+  const wet = Math.min(1, Math.max(0, mixPct / 100));
+  if (wet === 0) return;
+  const feedback = 0.7 + roomPct / 100 * 0.28;
+  const damp = 0.2;
+  const scale = rate / 44100;
+  const n2 = channels[0].length;
+  for (let ch = 0; ch < channels.length; ch++) {
+    const spread = ch === 0 ? 0 : FV_SPREAD;
+    const src = Float32Array.from(channels[ch]);
+    const acc = new Float32Array(n2);
+    for (const base of FV_COMBS) {
+      const len2 = Math.max(1, Math.round((base + spread) * scale));
+      const buf = new Float32Array(len2);
+      let idx = 0;
+      let store = 0;
+      for (let i = 0; i < n2; i++) {
+        const out = buf[idx];
+        store = out * (1 - damp) + store * damp;
+        buf[idx] = src[i] + store * Math.min(0.98, feedback);
+        idx = (idx + 1) % len2;
+        acc[i] = acc[i] + out;
+      }
+    }
+    let wetCh = acc;
+    for (const base of FV_ALLPASSES) {
+      const len2 = Math.max(1, Math.round((base + spread) * scale));
+      const buf = new Float32Array(len2);
+      let idx = 0;
+      const next = new Float32Array(n2);
+      for (let i = 0; i < n2; i++) {
+        const bufout = buf[idx];
+        const input = wetCh[i];
+        next[i] = -input + bufout;
+        buf[idx] = input + bufout * 0.5;
+        idx = (idx + 1) % len2;
+      }
+      wetCh = next;
+    }
+    const dst = channels[ch];
+    const wetGain = wet * 0.015 * 3;
+    for (let i = 0; i < n2; i++) dst[i] = dst[i] * (1 - wet) + wetCh[i] * wetGain;
+  }
+}
+function echoFx(channels, rate, ms, fbPct, mixPct) {
+  const wet = Math.min(1, Math.max(0, mixPct / 100));
+  if (wet === 0) return;
+  const fb = Math.min(0.9, Math.max(0, fbPct / 100));
+  const len2 = Math.max(1, Math.round(ms / 1e3 * rate));
+  for (const ch of channels) {
+    const buf = new Float32Array(len2);
+    let idx = 0;
+    for (let i = 0; i < ch.length; i++) {
+      const delayed = buf[idx];
+      buf[idx] = ch[i] + delayed * fb;
+      idx = (idx + 1) % len2;
+      ch[i] = ch[i] + delayed * wet;
+    }
+  }
+}
+function gateFx(channels, rate, thresholdDb) {
+  const thr = 10 ** (-thresholdDb / 20);
+  const envAtt = Math.exp(-1 / (2e-3 * rate));
+  const envRel = Math.exp(-1 / (0.03 * rate));
+  const gAtt = Math.exp(-1 / (5e-3 * rate));
+  const gRel = Math.exp(-1 / (0.06 * rate));
+  for (const ch of channels) {
+    let env = 0;
+    let g2 = 0;
+    for (let i = 0; i < ch.length; i++) {
+      const a = Math.abs(ch[i]);
+      env = a > env ? a + (env - a) * envAtt : a + (env - a) * envRel;
+      const want = env >= thr ? 1 : 0;
+      g2 = want > g2 ? want + (g2 - want) * gAtt : want + (g2 - want) * gRel;
+      ch[i] = ch[i] * g2;
+    }
+  }
+}
+function dehumFx(channels, rate, mains) {
+  for (let h = 1; h <= 4; h++) {
+    const c = rbj("notch", rate, mains * h, 30);
+    for (const ch of channels) runBiquad(ch, c);
+  }
+}
+function crushFx(channels, bits) {
+  const steps = 2 ** (bits - 1);
+  for (const ch of channels) {
+    for (let i = 0; i < ch.length; i++) ch[i] = Math.round(ch[i] * steps) / steps;
+  }
+}
+function processFxPcm(channels, rate, chain2) {
+  for (const e of chain2) {
+    if (e.name === "hp") {
+      const c = rbj("hp", rate, e.params[0], Math.SQRT1_2);
+      for (const ch of channels) runBiquad(ch, c);
+    } else if (e.name === "lp") {
+      const c = rbj("lp", rate, e.params[0], Math.SQRT1_2);
+      for (const ch of channels) runBiquad(ch, c);
+    } else if (e.name === "eq") {
+      const low = rbj("lowshelf", rate, 200, Math.SQRT1_2, eqDb(e.params[0]));
+      const mid3 = rbj("peak", rate, 1e3, 1, eqDb(e.params[1]));
+      const high = rbj("highshelf", rate, 4e3, Math.SQRT1_2, eqDb(e.params[2]));
+      for (const ch of channels) {
+        runBiquad(ch, low);
+        runBiquad(ch, mid3);
+        runBiquad(ch, high);
+      }
+    } else if (e.name === "rv") {
+      freeverb(channels, rate, e.params[0], e.params[1]);
+    } else if (e.name === "echo") {
+      echoFx(channels, rate, e.params[0], e.params[1], e.params[2]);
+    } else if (e.name === "gate") {
+      gateFx(channels, rate, e.params[0]);
+    } else if (e.name === "dehum") {
+      dehumFx(channels, rate, e.params[0]);
+    } else if (e.name === "crush") {
+      crushFx(channels, e.params[0]);
+    } else if (e.name === "rev") {
+      for (const ch of channels) ch.reverse();
+    }
+  }
+}
+var TOKEN_RE, REGISTRY, FX_CHAIN_MAX_CHARS, FX_PRESETS, FV_COMBS, FV_ALLPASSES, FV_SPREAD, eqDb;
+var init_audio_fx = __esm({
+  "engine/src/audio-fx.ts"() {
+    "use strict";
+    TOKEN_RE = /^([a-z]+)\(([0-9-]*)\)$/;
+    REGISTRY = {
+      hp: { params: [[20, 12e3]] },
+      lp: { params: [[100, 2e4]] },
+      eq: { params: [[0, 480], [0, 480], [0, 480]] },
+      rv: { params: [[0, 100], [0, 100]] },
+      echo: { params: [[1, 2e3], [0, 90], [0, 100]] },
+      gate: { params: [[20, 90]] },
+      dehum: { params: [[50, 60]] },
+      crush: { params: [[2, 12]] },
+      rev: { params: [] },
+      clean: { params: [] }
+    };
+    FX_CHAIN_MAX_CHARS = 200;
+    FX_PRESETS = {
+      "voice-cleanup": "clean().hp(80)",
+      "voice-clarity": "hp(90).eq(230-280-270).gate(55)",
+      warm: "eq(280-240-210)",
+      bright: "eq(220-240-300)",
+      telephone: "hp(300).lp(3400).eq(240-300-240)",
+      muffled: "lp(1200)",
+      radio: "hp(120).lp(8000).eq(250-270-250).crush(10)",
+      "lo-fi": "crush(6).lp(6000)",
+      echo: "echo(280-35-35)",
+      room: "rv(20-35)",
+      hall: "rv(30-75)",
+      plate: "rv(25-55)",
+      "de-hum": "dehum(50)",
+      gate: "gate(55)"
+    };
+    FV_COMBS = [1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617];
+    FV_ALLPASSES = [556, 441, 341, 225];
+    FV_SPREAD = 23;
+    eqDb = (p) => (p - 240) / 10;
+  }
+});
+
 // engine/src/fs-token.ts
 function encodeFsToken(name) {
   const bytes = new TextEncoder().encode(String(name));
@@ -50709,6 +53408,8 @@ __export(src_exports, {
   FINISH_MASK_CMYK: () => FINISH_MASK_CMYK,
   FRAME_FILTER_SKIP_FORMATS: () => FRAME_FILTER_SKIP_FORMATS,
   FRAMING_PERSPECTIVE: () => FRAMING_PERSPECTIVE,
+  FX_CHAIN_MAX_CHARS: () => FX_CHAIN_MAX_CHARS,
+  FX_PRESETS: () => FX_PRESETS,
   GAMUTS: () => GAMUTS,
   GAMUT_PROBE_MAX: () => GAMUT_PROBE_MAX,
   GAMUT_PROBE_START: () => GAMUT_PROBE_START,
@@ -50764,6 +53465,7 @@ __export(src_exports, {
   LOLLY_DURABLE_SCHEMA_VERSION: () => LOLLY_DURABLE_SCHEMA_VERSION,
   LOLLY_EXPORT_ASSERTION: () => LOLLY_EXPORT_ASSERTION,
   LOSSLESS_STRENGTH: () => LOSSLESS_STRENGTH,
+  LOUDNESS_RATE: () => LOUDNESS_RATE,
   MAX_BAKED_URL_CHARS: () => MAX_BAKED_URL_CHARS,
   MAX_COMPOSE_DEPTH: () => MAX_COMPOSE_DEPTH,
   MAX_GRADIENT_STOPS: () => MAX_GRADIENT_STOPS,
@@ -50785,6 +53487,12 @@ __export(src_exports, {
   PACK_PARAM: () => PACK_PARAM,
   PAGED_FORMATS: () => PAGED_FORMATS,
   PDFX_VERSION: () => PDFX_VERSION,
+  PENPOT_FEATURES: () => PENPOT_FEATURES,
+  PENPOT_FILE_VERSION: () => PENPOT_FILE_VERSION,
+  PENPOT_IMAGE_MTYPES: () => PENPOT_IMAGE_MTYPES,
+  PENPOT_MIGRATIONS: () => PENPOT_MIGRATIONS,
+  PENPOT_MIME: () => PENPOT_MIME,
+  PENPOT_ROOT_ID: () => PENPOT_ROOT_ID,
   PIXEL_SPACES: () => PIXEL_SPACES,
   PRESETS: () => PRESETS,
   PRINT_MARK_DEFAULTS: () => PRINT_MARK_DEFAULTS,
@@ -50837,6 +53545,7 @@ __export(src_exports, {
   XcfUnsupportedError: () => XcfUnsupportedError,
   ZZFXM_ARCHETYPES: () => ZZFXM_ARCHETYPES,
   ZZFXM_SCHEME: () => ZZFXM_SCHEME,
+  activitySpans: () => activitySpans,
   addGreenBias: () => addGreenBias,
   adler32: () => adler32,
   aesZipEncryptEntry: () => aesZipEncryptEntry,
@@ -50873,6 +53582,7 @@ __export(src_exports, {
   boundsCubic: () => boundsCubic,
   boxGeomFromBBox: () => boxGeomFromBBox,
   boxesOverlap: () => boxesOverlap2,
+  boxesToPenpotDoc: () => boxesToPenpotDoc,
   buildC2paManifest: () => buildC2paManifest,
   buildCarryExifTiff: () => buildCarryExifTiff,
   buildCmykPaletteMap: () => buildCmykPaletteMap,
@@ -50886,6 +53596,7 @@ __export(src_exports, {
   buildInputModel: () => buildInputModel,
   buildLollyDurablePayload: () => buildLollyDurablePayload,
   buildPdfXXmp: () => buildPdfXXmp,
+  buildPenpotEntries: () => buildPenpotEntries,
   buildPptxParts: () => buildPptxParts,
   buildRewordMessages: () => buildRewordMessages,
   buildThemedAssetId: () => buildThemedAssetId,
@@ -50944,8 +53655,10 @@ __export(src_exports, {
   cornerRadii: () => cornerRadii,
   crc32: () => crc322,
   createDeepFrame: () => createDeepFrame,
+  createLoudnessMeter: () => createLoudnessMeter,
   createRuntime: () => createRuntime,
   createTokenSet: () => createTokenSet,
+  createTruePeakLimiter: () => createTruePeakLimiter,
   cubicAsSource: () => cubicAsSource,
   cubicBezierAt: () => cubicBezierAt,
   cubicRoots01: () => cubicRoots01,
@@ -50959,7 +53672,9 @@ __export(src_exports, {
   decodeAuthoredPath: () => decodeAuthoredPath,
   decodeAuthoredPaths: () => decodeAuthoredPaths,
   decodeAuthoredPathsResult: () => decodeAuthoredPathsResult,
+  decodeBase64: () => decodeBase64,
   decodeBmp: () => decodeBmp,
+  decodeDataUrl: () => decodeDataUrl,
   decodeFigVectorPath: () => decodeFigVectorPath,
   decodeFsToken: () => decodeFsToken,
   decodeIco: () => decodeIco,
@@ -50984,6 +53699,7 @@ __export(src_exports, {
   describeColor: () => describeColor,
   describeHiddenText: () => describeHiddenText,
   deserializeCurve: () => deserializeCurve,
+  designTextRuns: () => designTextRuns,
   detectDelimiter: () => detectDelimiter,
   detectWatermark: () => detectWatermark,
   detectWatermarkSearch: () => detectWatermarkSearch,
@@ -51082,6 +53798,7 @@ __export(src_exports, {
   generateCaRoot: () => generateCaRoot,
   generateSchemeAccents: () => generateSchemeAccents,
   generatedSongSpec: () => generatedSongSpec,
+  gradSpecToPenpot: () => gradSpecToPenpot,
   gradeMulberry32: () => gradeMulberry32,
   gradientSpecStops: () => gradientSpecStops,
   gradientSpecToCss: () => gradientSpecToCss,
@@ -51115,6 +53832,8 @@ __export(src_exports, {
   iccRoundTripDecides: () => iccRoundTripDecides,
   iccRoundTripDeltaE: () => iccRoundTripDeltaE,
   imageColorCloud: () => imageColorCloud,
+  imageDimensions: () => imageDimensions,
+  imageToPenpotDoc: () => imageToPenpotDoc,
   importSealKey: () => importSealKey,
   importSpkiOrJwkPublicKey: () => importSpkiOrJwkPublicKey,
   imprintDefaultOn: () => imprintDefaultOn,
@@ -51135,6 +53854,7 @@ __export(src_exports, {
   insertPngXmp: () => insertPngXmp,
   insertWebpMeta: () => insertWebpMeta,
   insetCorners: () => insetCorners,
+  integratedLoudness: () => integratedLoudness,
   interpolateColor: () => interpolateColor,
   interpretPdfPage: () => interpretPdfPage,
   intersectCubics: () => intersectCubics,
@@ -51225,6 +53945,7 @@ __export(src_exports, {
   nodeToBox: () => nodeToBox,
   normaliseKfEase: () => normaliseKfEase,
   normalizeFraming: () => normalizeFraming,
+  normalizeGain: () => normalizeGain,
   normalizeLang: () => normalizeLang,
   normalizeRewordReply: () => normalizeRewordReply,
   normalizeTableValue: () => normalizeTableValue,
@@ -51275,6 +53996,7 @@ __export(src_exports, {
   parseEdgePoint: () => parseEdgePoint,
   parseEmbedUrl: () => parseEmbedUrl,
   parseFrameAddress: () => parseFrameAddress,
+  parseFxChain: () => parseFxChain,
   parseGradientAngle: () => parseGradientAngle,
   parseGradientSpec: () => parseGradientSpec,
   parseGradientStop: () => parseGradientStop,
@@ -51284,7 +54006,9 @@ __export(src_exports, {
   parseLutText: () => parseLutText,
   parseMidi: () => parseMidi,
   parseOklch: () => parseOklch,
+  parsePenpotColor: () => parsePenpotColor,
   parsePenpotContent: () => parsePenpotContent,
+  parsePenpotImportStream: () => parsePenpotImportStream,
   parsePhotoTreatmentsDoc: () => parsePhotoTreatmentsDoc,
   parseRadialGradient: () => parseRadialGradient,
   parseRateCard: () => parseRateCard,
@@ -51327,6 +54051,9 @@ __export(src_exports, {
   penpotGroupToSvg: () => penpotGroupToSvg,
   penpotPathContentToD: () => penpotPathContentToD,
   penpotShapeToNode: () => penpotShapeToNode,
+  penpotTokensJson: () => penpotTokensJson,
+  penpotUuid: () => penpotUuid,
+  penpotWorkspaceUrl: () => penpotWorkspaceUrl,
   phonemeTokenSpans: () => phonemeTokenSpans,
   phonemizeChunk: () => phonemizeChunk,
   pickHeadAssetId: () => pickHeadAssetId,
@@ -51345,6 +54072,7 @@ __export(src_exports, {
   prepareC2paIngredient: () => prepareC2paIngredient,
   prepareC2paIngredientFromStore: () => prepareC2paIngredientFromStore,
   preparePassword: () => preparePassword,
+  processFxPcm: () => processFxPcm,
   projectDepth: () => projectDepth,
   projectFramingPoint: () => projectFramingPoint,
   projectGamutSolid: () => projectGamutSolid,
@@ -51399,10 +54127,12 @@ __export(src_exports, {
   scanPenpotAppliedTokens: () => scanPenpotAppliedTokens,
   scanPenpotUsage: () => scanPenpotUsage,
   scoreTokenWatermark: () => scoreTokenWatermark,
+  seededPenpotUuid: () => seededPenpotUuid,
   selectFramePage: () => selectFramePage,
   selfUnion: () => selfUnion,
   serialiseKf: () => serialiseKf,
   serializeCurve: () => serializeCurve,
+  serializeFxChain: () => serializeFxChain,
   serializeHdr: () => serializeHdr,
   serializeUrlState: () => serializeUrlState,
   sessionVersionStamp: () => sessionVersionStamp,
@@ -51454,6 +54184,7 @@ __export(src_exports, {
   svgRootViewBox: () => svgRootViewBox,
   svgToCustGeomPaths: () => svgToCustGeomPaths,
   svgToNativePptx: () => svgToNativePptx,
+  svgToPenpotDoc: () => svgToPenpotDoc,
   tangentAt: () => tangentAt,
   textFacts: () => textFacts,
   toCSV: () => toCSV,
@@ -51670,6 +54401,7 @@ var init_src2 = __esm({
     init_color_vision();
     init_brand_map();
     init_brand_import();
+    init_penpot_file();
     init_icon_theme();
     init_photo_treatment();
     init_brand_treatments();
@@ -51677,6 +54409,9 @@ var init_src2 = __esm({
     init_zip_crypto();
     init_keyframes();
     init_version();
+    init_audio_dynamics();
+    init_audio_loudness();
+    init_audio_fx();
     init_semver_range();
     init_fs_token();
     init_session_record();
@@ -52514,7 +55249,7 @@ var init_raster = __esm({
     init_exr();
     init_radiance();
     init_repo_root();
-    NODE_FORMATS = ["svg", "svgz", "emf", "wmf", "eps", "eps-cmyk", "dxf", "bmp", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "md"];
+    NODE_FORMATS = ["svg", "svgz", "emf", "wmf", "eps", "eps-cmyk", "dxf", "penpot", "bmp", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "md"];
     DEEP_FORMATS = ["exr", "hdr"];
     FONTS_DIR2 = join3(repoRoot(), "catalog", "fonts");
     PRINT_PREP_FORMATS = /* @__PURE__ */ new Set(["pdf", "pdf-cmyk", "cmyk-tiff"]);
@@ -53177,6 +55912,7 @@ import { readFile as readFile8 } from "node:fs/promises";
 init_src2();
 import { readFile as readFile6, writeFile, mkdir, readdir as readdir2, rm } from "node:fs/promises";
 import { join as join8 } from "node:path";
+import { zipSync as zipSync2 } from "fflate";
 
 // engine/src/deep-encode.ts
 init_pixels();
@@ -53666,13 +56402,13 @@ async function rebrandPptx(bytes, plan) {
   }
   if (plan?.dropEmbeddedFonts === true) enginePlan.dropEmbeddedFonts = true;
   const { parts: outParts, report } = rebrandPptxParts2(parts, enginePlan);
-  const { zipSync: zipSync2 } = await import("fflate");
+  const { zipSync: zipSync3 } = await import("fflate");
   const enc4 = new TextEncoder();
   const files = {};
   for (const [path, content] of Object.entries(outParts)) {
     files[path] = typeof content === "string" ? enc4.encode(content) : content;
   }
-  return { bytes: zipSync2(files), report };
+  return { bytes: zipSync3(files), report };
 }
 function createPptxAPI(opts = {}) {
   const parseXml = opts.parseXml ?? ((xml) => new DOMParser().parseFromString(xml, "application/xml"));
@@ -54256,8 +56992,8 @@ function rectPath(x, y, w, h, rx, ry) {
 }
 var circlePath = (cx, cy, r3) => r3 <= 0 ? "" : `M${cx - r3},${cy} A${r3},${r3} 0 1 0 ${cx + r3},${cy} A${r3},${r3} 0 1 0 ${cx - r3},${cy} Z`;
 var ellipsePath = (cx, cy, rx, ry) => rx <= 0 || ry <= 0 ? "" : `M${cx - rx},${cy} A${rx},${ry} 0 1 0 ${cx + rx},${cy} A${rx},${ry} 0 1 0 ${cx - rx},${cy} Z`;
-function pointsPath(str5, close) {
-  const nums = (str5 || "").match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
+function pointsPath(str6, close) {
+  const nums = (str6 || "").match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
   if (!nums || nums.length < 4) return "";
   let d = `M${nums[0]},${nums[1]}`;
   for (let i = 2; i + 1 < nums.length; i += 2) d += ` L${nums[i]},${nums[i + 1]}`;
@@ -54274,11 +57010,11 @@ function matMul5(m2, n2) {
     f: m2.b * n2.e + m2.d * n2.f + m2.f
   };
 }
-function parseTransformList(str5) {
+function parseTransformList(str6) {
   let m2 = IDENTITY4;
   const re = /(matrix|translate|scale|rotate|skewX|skewY)\s*\(([^)]*)\)/gi;
   let hit;
-  while (hit = re.exec(str5)) {
+  while (hit = re.exec(str6)) {
     const fn = (hit[1] ?? "").toLowerCase();
     const a = (hit[2] ?? "").split(/[\s,]+/).map(parseFloat).filter((n2) => !Number.isNaN(n2));
     const g2 = (i, d) => {
@@ -54906,11 +57642,19 @@ function transformPath(pathStr, offsetX, offsetY, scale) {
     return cmd + out.join(" ");
   });
 }
+function clustersFrom(pieces, textLength) {
+  const r23 = (n2) => Math.round(n2 * 100) / 100;
+  const starts = [...pieces.keys()].sort((a, b) => a - b);
+  return starts.map((start, i) => {
+    const p = pieces.get(start);
+    return { start, end: i + 1 < starts.length ? starts[i + 1] : textLength, d: p.d, x: r23(p.x), advance: r23(p.advance) };
+  });
+}
 function createNodeTextAPI({ repoRoot: repoRoot2 }) {
   return {
-    async toPath({ text, fontUrl, fontSize, features, letterSpacing = 0, variations, fallbackFonts }) {
+    async toPath({ text, fontUrl, fontSize, features, letterSpacing = 0, variations, fallbackFonts, clusters: wantClusters }) {
       if (!text || !text.trim()) {
-        return { d: "", advanceWidth: 0, bbox: null, notdef: 0 };
+        return { d: "", advanceWidth: 0, bbox: null, notdef: 0, ...wantClusters ? { clusters: [] } : {} };
       }
       const chain2 = [
         await loadFont(fontUrl, repoRoot2, variations),
@@ -54922,6 +57666,8 @@ function createNodeTextAPI({ repoRoot: repoRoot2 }) {
       let d = "";
       let notdef = 0;
       let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+      const pieces = wantClusters ? /* @__PURE__ */ new Map() : null;
+      let segStart = 0;
       for (const seg of segmentByFace(text, chain2)) {
         const { font, upem } = chain2[seg.face];
         const scale = fontSize / upem;
@@ -54935,6 +57681,7 @@ function createNodeTextAPI({ repoRoot: repoRoot2 }) {
         for (const g2 of buf.getGlyphInfosAndPositions()) {
           const {
             codepoint: glyphId,
+            cluster: cluster2 = 0,
             xAdvance = 0,
             xOffset = 0,
             yOffset = 0
@@ -54943,7 +57690,19 @@ function createNodeTextAPI({ repoRoot: repoRoot2 }) {
           const ox = originUnits + penX + xOffset;
           const oy = yOffset;
           const rawPath = font.glyphToPath(glyphId);
-          if (rawPath) d += transformPath(rawPath, ox, oy, scale);
+          const glyphD = rawPath ? transformPath(rawPath, ox, oy, scale) : "";
+          if (glyphD) d += glyphD;
+          if (pieces) {
+            const key = segStart + cluster2;
+            const piece = pieces.get(key);
+            const penPxHere = (originUnits + penX) * scale;
+            const advPx = (xAdvance + lsUnits) * scale;
+            if (piece) {
+              piece.d += glyphD;
+              piece.advance += advPx;
+              if (penPxHere < piece.x) piece.x = penPxHere;
+            } else pieces.set(key, { d: glyphD, x: penPxHere, advance: advPx });
+          }
           const ext = font.glyphExtents(glyphId);
           if (ext) {
             const bx1 = (ox + ext.xBearing) * scale;
@@ -54958,12 +57717,14 @@ function createNodeTextAPI({ repoRoot: repoRoot2 }) {
           penX += xAdvance + lsUnits;
         }
         penPx += penX * scale;
+        segStart += seg.text.length;
       }
       return {
         d,
         advanceWidth: penPx,
         bbox: x1 !== Infinity ? { x1, y1, x2, y2 } : null,
-        notdef
+        notdef,
+        ...pieces ? { clusters: clustersFrom(pieces, text.length) } : {}
       };
     },
     /** Warm the font cache without shaping. Call fire-and-forget. */
@@ -56154,6 +58915,34 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         const bytes = emitEmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([bytes], { type: "application/x-msmetafile" });
       }
+      if (format === "penpot") {
+        const svg = rootSvgOf(node);
+        if (!svg) throw new Error("Penpot export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
+        const svgText = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
+        const name = opts.meta?.tool?.trim() || "From Lolly";
+        const palette = (await tokenSet()).colors().filter((c) => typeof c.value === "string" && /^#[0-9a-f]{6,8}$/i.test(c.value)).map((c) => ({ name: c.name || c.path, path: c.group ?? void 0, color: c.value }));
+        const shared = { name, tokens: await resolvedDoc(), palette, generatedBy: `lolly/${ENGINE_VERSION}` };
+        const lowered = svgToPenpotDoc(svgText, { ...shared, background: opts.background });
+        let doc = lowered?.doc;
+        if (!doc) {
+          host.log("warn", "penpot: the render was kept whole as one picture, not lowered to editable shapes - something in it (a filter, mask, clip path, pattern, <use> or inline <style>) has no Penpot construct. The board carries the whole SVG as one image, so nothing is lost, but the shapes are not separable in Penpot.");
+          const bytes = new TextEncoder().encode(svgText);
+          const size = imageDimensions(bytes, "image/svg+xml") ?? { w: 1e3, h: 1e3 };
+          doc = imageToPenpotDoc(
+            { id: penpotUuid(), name, mtype: "image/svg+xml", width: size.w, height: size.h, bytes },
+            { ...shared, background: opts.background }
+          );
+        }
+        const build2 = buildPenpotEntries(doc);
+        for (const note of lowered?.notes ?? []) host.log("warn", `penpot: ${note}`);
+        for (const wmsg of build2.warnings) host.log("warn", `penpot: ${wmsg}`);
+        const files = {};
+        const enc4 = new TextEncoder();
+        for (const [path, content] of Object.entries(build2.entries)) {
+          files[path] = typeof content === "string" ? enc4.encode(content) : content;
+        }
+        return new Blob([zipSync2(files)], { type: PENPOT_MIME });
+      }
       if (format === "eps" || format === "eps-cmyk") {
         const svg = rootSvgOf(node);
         if (!svg) throw new Error("EPS export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
@@ -56460,6 +59249,10 @@ function mimeFor(format) {
     case "eps":
     case "eps-cmyk":
       return "application/postscript";
+    // A .penpot archive IS a zip, but never says so: application/zip is what makes a
+    // shell rename the download to .zip, and Penpot's Import wants the .penpot name.
+    case "penpot":
+      return PENPOT_MIME;
     // Pro float formats (plans/61-deeprichpixels.md section 6 B3). `image/x-exr` is the de-facto
     // OpenEXR type (never IANA-registered); `image/vnd.radiance` IS registered for RGBE.
     case "exr":
@@ -56621,7 +59414,7 @@ function serveDist(dist2) {
 }
 
 // services/mcp/src/render.ts
-var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "html", "md", "txt", "json", "csv", "ics", "vcf"]);
+var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "penpot", "html", "md", "txt", "json", "csv", "ics", "vcf"]);
 var MAX_RASTER_EDGE_PX = 1e4;
 var RenderError = class extends Error {
 };
@@ -56669,6 +59462,11 @@ function mimeForFormat(fmt3) {
       return "image/tiff";
     case "ico":
       return "image/x-icon";
+    // A Penpot binfile archive. It IS a zip, but the type must not say so: a
+    // `zip` MIME is what renames the download to `.zip` downstream, and Penpot's
+    // Import wants the `.penpot` name. PENPOT_MIME is the engine's own constant.
+    case "penpot":
+      return PENPOT_MIME;
     case "zip":
       return "application/zip";
     case "webm":
@@ -57843,7 +60641,7 @@ async function renderGet(path, query, opts) {
 var te10 = new TextEncoder();
 var subtle8 = globalThis.crypto.subtle;
 var bytesToB64u = (bytes) => Buffer.from(bytes).toString("base64url");
-var b64uToBytes = (str5) => new Uint8Array(Buffer.from(String(str5), "base64url"));
+var b64uToBytes = (str6) => new Uint8Array(Buffer.from(String(str6), "base64url"));
 var randomB64u = (n2 = 32) => bytesToB64u(globalThis.crypto.getRandomValues(new Uint8Array(n2)));
 async function hmac(secret, text) {
   if (!secret) throw new Error("signing secret is not set");
