@@ -494,7 +494,7 @@ test('under an UNTILTED camera the box matrix carries the projected translate', 
   const m = tilted.m as KfMatrix3;
   // The element's own origin maps to (dx, dy): T(dx,dy) · Hbox applied to (0,0,1).
   near((m[2] as number) / (m[8] as number), flat.dx, 1e-9, 'the matrix moves the centre to the projected one');
-  near((m[5] as number) / (m[8] as number), flat.dy, 1e-9);
+  near((m[5] as number) / (m[8] as number), flat.dy, 1e-9, 'and the y half agrees');
 });
 
 test('a tilted box under a tilted camera is the PRODUCT, and the camera leads', () => {

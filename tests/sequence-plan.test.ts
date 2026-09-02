@@ -24,7 +24,7 @@ import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exi
 import {
   DEFAULT_TRANSITION_MS, EMPTY_KF_TRACK, MAX_SPEED, MAX_TIME_MS, MIN_SPEED,
   MAX_TRANSITION_MS, MIN_TRANSITION_MS, SEQ_ERROR_CODES, TRUNCATION_TOLERANCE_FRAMES,
-  activeFrameWindow, activeSpanTimestamps, crossfadeExtensions, crossfadeJunctions, endOf, frameTimestamps,
+  activeFrameWindow, activeSpanTimestamps, audioCrossfades, crossfadeExtensions, crossfadeJunctions, endOf, frameTimestamps,
   layerKind, normalizeFrameScene, parseSequenceStage, readLayer, reconcileDecoded, rotationOf, sequenceDrawPlan,
   sequenceError, toCodedError,
   boxesTilt, camerasMove, composeFilter, foldKfPose, kfTrackOf, ownsLayerFx, planCameraView,
@@ -85,7 +85,7 @@ function layerFrom(html: string, totalMs = 7000): SeqLayer {
 function fakeLayer(over: Partial<SeqLayer> & { idx: number }): SeqLayer {
   return {
     el: doc.createElement('div'),
-    startMs: 0, durMs: 1000, clipInMs: 0, speed: 1, mute: false, gain: 1,
+    startMs: 0, durMs: 1000, clipInMs: 0, speed: 1, mute: false, gain: 1, pan: 0,
     enter: null, enterMs: DEFAULT_TRANSITION_MS, exit: null, exitMs: DEFAULT_TRANSITION_MS,
     enterEase: '', exitEase: '',
     split: '', splitStaggerMs: 0, splitOrder: '', splitUnits: 0, splitSeed: 0,
@@ -2774,4 +2774,30 @@ test('hold: an unauthored box takes exactly the pre-hold path', () => {
   const item = sequenceDrawPlan(stage.layers, 200, 4000)[0] as PlanItem;
   const off = recTransition('rise', 0.5, 1920, 1080, '');
   assert.equal(item.dy, off.dy, 'byte-identical numbers with no hold authored');
+});
+
+// ── plans/165 WP-4: the audio half of junction crossfades ────────────────────────
+
+test('audioCrossfades mirrors the junction: A gains a tail, B a shortened head', () => {
+  const a = fakeLayer({ idx: 0, lane: 'seq', kind: 'video', startMs: 0, durMs: 1000, exit: 'fade', exitMs: 400, openEnded: false });
+  const b = fakeLayer({ idx: 1, lane: 'seq', kind: 'video', startMs: 1000, durMs: 1000, enter: 'fade', enterMs: 600, openEnded: false });
+  const m = audioCrossfades([a, b]);
+  assert.deepEqual(m.get(0), { tailSec: 0.4 }, 'A keeps playing 400ms past the cut');
+  assert.deepEqual(m.get(1), { headSec: 0.4 }, 'B fades in over the handover, not its own 600ms');
+});
+
+test('a middle clip in a fade chain carries both sides at once', () => {
+  const a = fakeLayer({ idx: 0, lane: 'seq', kind: 'video', startMs: 0, durMs: 1000, exit: 'fade', exitMs: 300, openEnded: false });
+  const b = fakeLayer({ idx: 1, lane: 'seq', kind: 'video', startMs: 1000, durMs: 1000, enter: 'fade', enterMs: 500, exit: 'fade', exitMs: 200, openEnded: false });
+  const c = fakeLayer({ idx: 2, lane: 'seq', kind: 'video', startMs: 2000, durMs: 1000, enter: 'fade', enterMs: 800, openEnded: false });
+  const m = audioCrossfades([a, b, c]);
+  assert.deepEqual(m.get(0), { tailSec: 0.3 });
+  assert.deepEqual(m.get(1), { headSec: 0.3, tailSec: 0.2 });
+  assert.deepEqual(m.get(2), { headSec: 0.2 });
+});
+
+test('a hard cut (either side not fade) hands nothing over', () => {
+  const a = fakeLayer({ idx: 0, lane: 'seq', kind: 'video', startMs: 0, durMs: 1000, exit: 'rise', exitMs: 400, openEnded: false });
+  const b = fakeLayer({ idx: 1, lane: 'seq', kind: 'video', startMs: 1000, durMs: 1000, enter: 'fade', enterMs: 600, openEnded: false });
+  assert.equal(audioCrossfades([a, b]).size, 0);
 });
