@@ -113,15 +113,16 @@ test('boxes.fields tail: z/kf/linkOf then the deck fields - appended, never reor
     // (plans/175 WP-B) at 86-87, the per-box perspective tilt pair `rx`/`ry`
     // (plan 104 P2.1) at 88-89, the stereo pan `pan` (plans/165 WP-5) at 90, the
     // duck-to level `duck` (plans/165 WP-6) at 91, the pitch pair
-    // `pitch`/`varispeed` (plans/165 WP-7b) at 92-93, and the audio effect chain
-    // `fx` (plans/101 section 3.4) at 94 - each appended, never squeezed in
-    // behind - so `fx` is now the tail. This pin extends the same append-only
-    // guard: a later field must land at 95, not shift any of these.
+    // `pitch`/`varispeed` (plans/165 WP-7b) at 92-93, the audio effect chain
+    // `fx` (plans/101 section 3.4) at 94, and the sub-slide stack head `stackOf`
+    // (plan 112 M5) at 95 - each appended, never squeezed in behind - so
+    // `stackOf` is now the tail. This pin extends the same append-only guard:
+    // a later field must land at 96, not shift any of these.
     assert.deepEqual(fields.slice(72).map((f) => f.id),
-      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls', 'gain', 'name', 'ignored', 'split', 'stagger', 'splitOrder', 'hold', 'holdRate', 'rx', 'ry', 'pan', 'duck', 'pitch', 'varispeed', 'fx'],
+      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls', 'gain', 'name', 'ignored', 'split', 'stagger', 'splitOrder', 'hold', 'holdRate', 'rx', 'ry', 'pan', 'duck', 'pitch', 'varispeed', 'fx', 'stackOf'],
       `${brand}: a deck/flip/class field was inserted out of order - appended slots must stay put`);
-    assert.equal(fields.length, 95, `${brand}: expected 95 sub-fields, got ${fields.length}`);
-    assert.equal(fields[fields.length - 1]!.id, 'fx', `${brand}: fx is not the tail`);
+    assert.equal(fields.length, 96, `${brand}: expected 96 sub-fields, got ${fields.length}`);
+    assert.equal(fields[fields.length - 1]!.id, 'stackOf', `${brand}: stackOf is not the tail`);
     // Ids are unique - an accidental second `linkOf` would give the codec two columns of
     // the same name and the shell would read whichever it found first.
     assert.equal(new Set(fields.map((f) => f.id)).size, fields.length, `${brand}: duplicate sub-field id`);

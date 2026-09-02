@@ -130,7 +130,8 @@
       "duck",
       "pitch",
       "varispeed",
-      "fx"
+      "fx",
+      "stackOf"
     ],
     "diagram-builder:nodes": [
       "shape",
