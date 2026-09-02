@@ -246,6 +246,10 @@ const ALLOW: Record<string, string[]> = {
     'The line is sharp on purpose'],
   'docs/faq.md': ['That line is drawn in the licence',
     'The boundary is structural rather than promised'],
+  // The sequence editor's transcript: "Edit transcript" is the literal button label
+  // and the transcript editor is that UI's real object (plans/174), not prose flourish.
+  'docs/sequence-editor.md': ['### Subtitles and the transcript',
+    '**Edit transcript** opens the transcript as flowing text'],
   'docs/parser-inventory.md': ['the boundary is what lets a reviewer'],
   'docs/threat-model.md': ['the boundary is simply gone'],
 };
