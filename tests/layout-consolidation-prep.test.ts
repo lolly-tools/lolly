@@ -111,15 +111,15 @@ test('boxes.fields tail: z/kf/linkOf then the deck fields - appended, never reor
     // at 82, the split-text animation trio `split`/`stagger`/`splitOrder`
     // (plans/175 WP-A) at 83-85, and the hold-effect pair `hold`/`holdRate`
     // (plans/175 WP-B) at 86-87, the per-box perspective tilt pair `rx`/`ry`
-    // (plan 104 P2.1) at 88-89, and the stereo pan `pan` (plans/165 WP-5) at 90 -
-    // each appended, never squeezed in behind - so `pan` is now the tail. This pin
-    // extends the same append-only guard: a later field must land at 91, not shift
-    // any of these.
+    // (plan 104 P2.1) at 88-89, the stereo pan `pan` (plans/165 WP-5) at 90, and
+    // the duck-to level `duck` (plans/165 WP-6) at 91 - each appended, never
+    // squeezed in behind - so `duck` is now the tail. This pin extends the same
+    // append-only guard: a later field must land at 92, not shift any of these.
     assert.deepEqual(fields.slice(72).map((f) => f.id),
-      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls', 'gain', 'name', 'ignored', 'split', 'stagger', 'splitOrder', 'hold', 'holdRate', 'rx', 'ry', 'pan'],
+      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls', 'gain', 'name', 'ignored', 'split', 'stagger', 'splitOrder', 'hold', 'holdRate', 'rx', 'ry', 'pan', 'duck'],
       `${brand}: a deck/flip/class field was inserted out of order - appended slots must stay put`);
-    assert.equal(fields.length, 91, `${brand}: expected 91 sub-fields, got ${fields.length}`);
-    assert.equal(fields[fields.length - 1]!.id, 'pan', `${brand}: pan is not the tail`);
+    assert.equal(fields.length, 92, `${brand}: expected 92 sub-fields, got ${fields.length}`);
+    assert.equal(fields[fields.length - 1]!.id, 'duck', `${brand}: duck is not the tail`);
     // Ids are unique - an accidental second `linkOf` would give the codec two columns of
     // the same name and the shell would read whichever it found first.
     assert.equal(new Set(fields.map((f) => f.id)).size, fields.length, `${brand}: duplicate sub-field id`);

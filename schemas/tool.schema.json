@@ -1692,6 +1692,10 @@
                     "type": "string",
                     "description": "Number sub-field: this box's stereo position when the sequence is mixed (-1 = left, 0 = centred, 1 = right; equal-power). Machine-written by the timeline inspector's Pan row, so the sub-field carries showFor:[]. Absent or empty reads as centred."
                   },
+                  "duckField": {
+                    "type": "string",
+                    "description": "Number sub-field: the level 0..1 this audio box drops to while any other clip's audio plays (clip-presence ducking; 1 or empty = no duck). Machine-written by the timeline inspector, so the sub-field carries showFor:[]."
+                  },
                   "ignoredField": {
                     "type": "string",
                     "description": "Boolean sub-field: the reversible-cut / strikethrough flag (transcript-driven editing, plans/174). A true value keeps the box's media and its place on the timeline but skips it on playback and drops it from export - the dual of a hard delete. Machine-written by the transcript panel, so the sub-field carries showFor:[]. Absent reads as not-ignored."

@@ -24,7 +24,7 @@ import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exi
 import {
   DEFAULT_TRANSITION_MS, EMPTY_KF_TRACK, MAX_SPEED, MAX_TIME_MS, MIN_SPEED,
   MAX_TRANSITION_MS, MIN_TRANSITION_MS, SEQ_ERROR_CODES, TRUNCATION_TOLERANCE_FRAMES,
-  activeFrameWindow, activeSpanTimestamps, audioCrossfades, crossfadeExtensions, crossfadeJunctions, endOf, frameTimestamps,
+  activeFrameWindow, activeSpanTimestamps, audioCrossfades, crossfadeExtensions, crossfadeJunctions, duckSpansFor, endOf, frameTimestamps,
   layerKind, normalizeFrameScene, parseSequenceStage, readLayer, reconcileDecoded, rotationOf, sequenceDrawPlan,
   sequenceError, toCodedError,
   boxesTilt, camerasMove, composeFilter, foldKfPose, kfTrackOf, ownsLayerFx, planCameraView,
@@ -85,7 +85,7 @@ function layerFrom(html: string, totalMs = 7000): SeqLayer {
 function fakeLayer(over: Partial<SeqLayer> & { idx: number }): SeqLayer {
   return {
     el: doc.createElement('div'),
-    startMs: 0, durMs: 1000, clipInMs: 0, speed: 1, mute: false, gain: 1, pan: 0,
+    startMs: 0, durMs: 1000, clipInMs: 0, speed: 1, mute: false, gain: 1, pan: 0, duck: 1,
     enter: null, enterMs: DEFAULT_TRANSITION_MS, exit: null, exitMs: DEFAULT_TRANSITION_MS,
     enterEase: '', exitEase: '',
     split: '', splitStaggerMs: 0, splitOrder: '', splitUnits: 0, splitSeed: 0,
@@ -2800,4 +2800,26 @@ test('a hard cut (either side not fade) hands nothing over', () => {
   const a = fakeLayer({ idx: 0, lane: 'seq', kind: 'video', startMs: 0, durMs: 1000, exit: 'rise', exitMs: 400, openEnded: false });
   const b = fakeLayer({ idx: 1, lane: 'seq', kind: 'video', startMs: 1000, durMs: 1000, enter: 'fade', enterMs: 600, openEnded: false });
   assert.equal(audioCrossfades([a, b]).size, 0);
+});
+
+// ── plans/165 WP-6 v1: clip-presence duck spans ──────────────────────────────────
+
+test('duckSpansFor: other audible clips overlap in clip-local seconds, self excluded', () => {
+  const bed = fakeLayer({ idx: 0, kind: 'audio', startMs: 1000, durMs: 8000 });
+  const voice = fakeLayer({ idx: 1, kind: 'audio', startMs: 2000, durMs: 3000 });
+  const vid = fakeLayer({ idx: 2, kind: 'video', lane: 'seq', startMs: 8000, durMs: 4000 });
+  const spans = duckSpansFor([bed, voice, vid], bed);
+  // voice: 2s..5s absolute → 1s..4s local; vid: 8s..12s absolute clamps to 8s..9s → 7s..8s local.
+  assert.deepEqual(spans, [{ from: 1, to: 4 }, { from: 7, to: 8 }]);
+});
+
+test('duckSpansFor: muted, ignored, sped-up and non-media clips duck nothing', () => {
+  const bed = fakeLayer({ idx: 0, kind: 'audio', startMs: 0, durMs: 10000 });
+  const others = [
+    fakeLayer({ idx: 1, kind: 'audio', startMs: 1000, durMs: 1000, mute: true }),
+    fakeLayer({ idx: 2, kind: 'audio', startMs: 2000, durMs: 1000, ignored: true }),
+    fakeLayer({ idx: 3, kind: 'video', startMs: 3000, durMs: 1000, speed: 2 }),
+    fakeLayer({ idx: 4, kind: 'text', startMs: 4000, durMs: 1000 } as never),
+  ];
+  assert.deepEqual(duckSpansFor([bed, ...others], bed), []);
 });

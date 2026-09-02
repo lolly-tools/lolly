@@ -126,7 +126,8 @@
       "holdRate",
       "rx",
       "ry",
-      "pan"
+      "pan",
+      "duck"
     ],
     "diagram-builder:nodes": [
       "shape",
