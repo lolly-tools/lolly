@@ -596,6 +596,10 @@ test('keyframes: the emitted track is the ENGINE\'s canonical serialisation, byt
     't0_w99999_h-5*t5_v9',                             // size/volume clamps
     Array.from({ length: 400 }, (_v, i) => `t${i}_x${i}`).join('*'),  // the 256 cap
     't0_x1*'.repeat(3000),                             // the char cap
+    // ~42.6 KB: BETWEEN the hook's old hand-derived cap (40 960) and the engine's
+    // measured one (49 152). While they disagreed, the two sides truncated this
+    // track at different points and read different keyframes off the same string.
+    't1_x2*'.repeat(7100),
     // Full density: 256 full poses, the shape section 8's UI writes. This is what the char cap
     // has to be derived from - at 8 KB the two sides truncated at different points.
     Array.from({ length: 256 }, (_v, i) => `t${i * 100}_x${i}.5_y-${i}.25_z${i}_s1.${i}_o0.${i}_b${i % 300}`).join('*'),
