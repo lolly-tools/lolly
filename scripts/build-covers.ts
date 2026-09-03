@@ -26,7 +26,7 @@
  * profile - poses install a user brand over the starter tokens, which a locked
  * brand pack would refuse. ffmpeg on PATH for the loops.
  */
-import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, unlinkSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -84,6 +84,11 @@ interface CoverPose {
    *  takes its poster from a frame of the file. */
   exportVideo?: { fps: number; seconds: number; quality?: 'smaller' | 'balanced' | 'best' };
   exportStill?: 'png' | 'svg';
+  /** Capture the APP VIEW as vector: the web shell's DOM-to-SVG walker (the same
+   *  `__lollyWalkerShot` loopback hook the docs screenshots use), windowed to the
+   *  viewport, saved as `<slug>.svg`. For a cover of an app surface that should
+   *  stay crisp at every card size. */
+  walkerSvg?: boolean;
   /** Capture-only CSS (hide a control that reads as noise at card size). */
   css?: string;
   /** Selectors to click, in order, once the route has loaded (open a panel the
@@ -153,7 +158,9 @@ const POSES: CoverPose[] = [
   // the app chrome around it is dropped and the export fills the frame.
   { slug: 'snippet', hue: 292.5, route: '#/tool/snippet?language=typescript&fileName=make-a-card.ts&code=%2F%2F%20Every%20input%20is%20a%20URL%20param%20-%20the%20CLI%20is%20URL%20mode%0Aconst%20card%20%3D%20new%20URL%28%27https%3A%2F%2Flolly.tools%2Ftool%2Fqr-code.svg%27%29%3B%0Acard.searchParams.set%28%27url%27%2C%20%27https%3A%2F%2Flolly.tools%27%29%3B%0Acard.searchParams.set%28%27color%27%2C%20brand.primary%29%3B%0A%0Aconst%20svg%20%3D%20await%20fetch%28card%29.then%28%28r%29%20%3D%3E%20r.text%28%29%29%3B&full', crop: '#tool-canvas', settleMs: 4000 },
   { slug: 'catalogue', hue: 315, route: '#/c?section=swatches,fonts', wait: '.catalog-view, .cat-view, [data-view="catalog"]', settleMs: 3500 },
-  { slug: 'gallery', hue: 337.5, route: '#/', wait: '.gallery-view, .gallery', settleMs: 3500 },
+  // The Utilities shelf as a vector screenshot (Andy, 2026-09-03: "an svg screenshot
+  // of the utilities view in the right colors").
+  { slug: 'utilities', hue: 337.5, route: '#/utilities', wait: '.gallery-view, .gallery', settleMs: 3500, walkerSvg: true },
 ];
 
 interface Opts { url: string; only: string[]; stills: boolean; videos: boolean; headed: boolean; list: boolean }
@@ -239,7 +246,7 @@ async function main(): Promise<void> {
     if (missing.length) throw new Error(`--only names unknown poses: ${missing.join(', ')}`);
   }
   if (opts.list) {
-    for (const p of POSES) console.log(`${String(p.hue).padStart(5)}°  ${p.slug.padEnd(12)} ${[p.exportStill, p.exportVideo && 'mp4', p.video && 'loop', !p.exportStill && !p.exportVideo && !p.video && 'still'].filter(Boolean).join('+').padEnd(7)}  ${p.route}`);
+    for (const p of POSES) console.log(`${String(p.hue).padStart(5)}°  ${p.slug.padEnd(12)} ${[p.walkerSvg && 'walker', p.exportStill, p.exportVideo && 'mp4', p.video && 'loop', !p.exportStill && !p.exportVideo && !p.video && !p.walkerSvg && 'still'].filter(Boolean).join('+').padEnd(7)}  ${p.route}`);
     return;
   }
   if (!poses.length) { console.log('Nothing to pose.'); return; }
@@ -252,10 +259,11 @@ async function main(): Promise<void> {
     for (const pose of poses) {
       const t0 = Date.now();
       try {
+        if (pose.walkerSvg && opts.stills) await poseWalker(browser, opts.url, pose);
         if (pose.exportStill && opts.stills) await poseExport(browser, opts.url, pose, pose.exportStill);
         if (pose.exportVideo && opts.videos) await poseExport(browser, opts.url, pose, 'mp4');
         else if (pose.video && opts.videos) await poseLoop(browser, opts.url, pose);
-        if (!pose.exportStill && !pose.exportVideo && !pose.video) await poseStill(browser, opts.url, pose);
+        if (!pose.exportStill && !pose.exportVideo && !pose.video && !pose.walkerSvg) await poseStill(browser, opts.url, pose);
         console.log(`✓ ${pose.slug.padEnd(12)} ${String(pose.hue).padStart(5)}°  ${((Date.now() - t0) / 1000).toFixed(1)}s`);
       } catch (err) {
         failures.push(pose.slug);
@@ -501,6 +509,70 @@ async function poseExport(browser: Browser, base: string, pose: CoverPose, fmt: 
   }
   const kb = Math.round(statSync(out).size / 1024);
   console.log(`   ${pose.slug}.mp4 ${kb} KB  (${codec} ${w}x${h} @ ${Math.round(fpsOut)} fps)`);
+}
+
+/**
+ * Vector screenshot of an app view through the shell's walker. The walker emits
+ * every node relative to body's border-box, so the visible band is the viewport
+ * window at body's scroll offset - the viewBox is set to exactly that (the
+ * off-screen rest stays in the file; a cover is one page, not a corpus). Neutral
+ * capture is pinned as for the raster stills, so example strips hydrate up front
+ * and motion is off.
+ */
+async function poseWalker(browser: Browser, base: string, pose: CoverPose): Promise<void> {
+  const ctx = await browser.newContext({
+    viewport: { width: VIEW_W, height: VIEW_H },
+    deviceScaleFactor: 1,
+    colorScheme: 'light',
+    reducedMotion: 'reduce',
+    forcedColors: 'none',
+  });
+  try {
+    await ctx.addInitScript({ content: initScript(true) });
+    const page = await ctx.newPage();
+    await bootWithBrand(page, base, pose);
+    await page.addStyleTag({ content: HIDE_CSS });
+    await page.waitForTimeout(400);
+    const out = await page.evaluate(async ({ w, h }) => {
+      const hook = (window as unknown as { __lollyWalkerShot?: (sel?: string, o?: Record<string, unknown>) => Promise<{ svg: string }> }).__lollyWalkerShot;
+      if (!hook) throw new Error('the served shell has no __lollyWalkerShot hook');
+      const body = document.body;
+      // The walker paints per-element backgrounds only; give body the page's own
+      // backdrop so the frame is opaque (the docs pipeline does the same).
+      const pageBg = getComputedStyle(body).backgroundColor || getComputedStyle(document.documentElement).backgroundColor;
+      const r = await hook('body', {});
+      const rect = body.getBoundingClientRect();
+      const off = { x: Math.max(0, -rect.left), y: Math.max(0, -rect.top) };
+      const doc = new DOMParser().parseFromString(r.svg, 'image/svg+xml');
+      if (doc.querySelector('parsererror')) throw new Error('the walker returned an SVG that does not parse');
+      const root = doc.documentElement;
+      const vb = (root.getAttribute('viewBox') || '').split(/[\s,]+/).map(Number);
+      const natW = vb.length === 4 ? (vb[2] as number) : w;
+      const natH = vb.length === 4 ? (vb[3] as number) : h;
+      const wx = Math.min(Math.max(0, off.x), Math.max(0, natW - w));
+      const wy = Math.min(Math.max(0, off.y), Math.max(0, natH - h));
+      root.setAttribute('viewBox', `${wx} ${wy} ${w} ${h}`);
+      root.setAttribute('width', String(w));
+      root.setAttribute('height', String(h));
+      root.removeAttribute('style');
+      if (pageBg && pageBg !== 'transparent' && !/rgba\(0, 0, 0, 0\)/.test(pageBg)) {
+        const bg = doc.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        bg.setAttribute('x', String(wx)); bg.setAttribute('y', String(wy));
+        bg.setAttribute('width', String(w)); bg.setAttribute('height', String(h));
+        bg.setAttribute('fill', pageBg);
+        root.insertBefore(bg, root.firstChild);
+      }
+      return new XMLSerializer().serializeToString(doc);
+    }, { w: VIEW_W, h: VIEW_H });
+    const file = resolve(OUT_DIR, `${pose.slug}.svg`);
+    if (existsSync(file)) unlinkSync(file);
+    writeFileSync(file, out);
+    console.log(`   ${pose.slug}.svg ${Math.round(statSync(file).size / 1024)} KB (walker)`);
+    await ctx.close();
+  } catch (err) {
+    await ctx.close().catch(() => {});
+    throw err;
+  }
 }
 
 main().catch((err) => {
