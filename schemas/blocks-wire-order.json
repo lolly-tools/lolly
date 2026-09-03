@@ -131,7 +131,10 @@
       "pitch",
       "varispeed",
       "fx",
-      "stackOf"
+      "stackOf",
+      "hidden",
+      "locked",
+      "slideTransition"
     ],
     "diagram-builder:nodes": [
       "shape",

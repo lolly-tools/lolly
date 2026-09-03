@@ -101,17 +101,29 @@ test('committed lolly-start neutral set is exactly the derivation of its starter
     readFileSync(join(ROOT, 'brands/lolly-start/catalog/assets/lolly/tokens/brand.json'), 'utf8'),
   );
   const paletteDir = join(ROOT, 'brands/lolly-start/catalog/assets/lolly/palette');
+  const icons = deriveIconThemesDoc(tokens);
+  // A colourless starter derives no pairings, and the validator rejects an empty
+  // themes[] doc - so the pack ships no icon-themes asset then, exactly as
+  // scripts/ingest-brand.ts does for an accent-free pack. Both directions are
+  // checked: a starter that regains an accent must ship the asset again.
   const expected: [string, unknown][] = [
     ['photo-treatments.json', derivePhotoTreatmentsDoc(tokens)],
-    ['icon-themes.json', deriveIconThemesDoc(tokens)],
+    ...(icons.themes.length ? ([['icon-themes.json', icons]] as [string, unknown][]) : []),
   ];
   const index = JSON.parse(readFileSync(join(ROOT, 'brands/lolly-start/catalog/assets/index.json'), 'utf8'));
+  const indexed = (id: string) => index.assets.find((a: { id: string }) => a.id === id);
+  if (!icons.themes.length) {
+    assert.equal(existsSync(join(paletteDir, 'icon-themes.json')), false,
+      'the colourless starter derives no icon pairings, so the pack must not ship an icon-themes doc');
+    assert.equal(indexed('lolly/palette/icon-themes'), undefined,
+      'lolly/palette/icon-themes must not be indexed while the starter palette is colourless');
+  }
   for (const [file, derived] of expected) {
     const committed = readFileSync(join(paletteDir, file), 'utf8');
     assert.equal(committed, JSON.stringify(derived, null, 2) + '\n',
       `${file} drifted from derivation - regenerate it (and its index checksum) after retuning brand-treatments.ts`);
     const id = `lolly/palette/${file.replace('.json', '')}`;
-    const entry = index.assets.find((a: { id: string }) => a.id === id);
+    const entry = indexed(id);
     assert.ok(entry, `${id} indexed in the lolly-start catalog`);
     const fmt = entry.formats[0];
     assert.equal(fmt.checksum, `sha256-${createHash('sha256').update(committed).digest('base64')}`);

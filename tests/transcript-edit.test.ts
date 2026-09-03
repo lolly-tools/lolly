@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import {
   transcriptRows, deleteMediaRange, ignoreMediaRange, restoreIgnored,
   mediaWindow, snapCut, removedSpansTimeline, originalToEdited, editedToOriginal,
-  flattenIgnored,
+  flattenIgnored, alignWords, spliceSentences,
 } from '../shells/web/src/views/transcript-edit.ts';
 import { boxTiming, type Box, type TimeCfg } from '../shells/web/src/views/timeline-math.ts';
 import type { SpeechWordTiming } from '../packages/core/src/host-v1.ts';
@@ -321,4 +321,145 @@ test('a word straddling a box boundary is one row, not two - review finding 4', 
   const idxs = rows.flatMap((r) => r.wordIdxs);
   assert.equal(idxs.length, new Set(idxs).size); // no duplicates
   assert.equal(rows.length, 10);                 // each word exactly once
+});
+
+// ---- alignWords + spliceSentences (plans/181 section 5.3) -------------------
+
+/** Ten words with a real gap after each, so snapCut has somewhere to land. */
+const GAPPED: SpeechWordTiming[] = Array.from({ length: 10 }, (_, i) => ({
+  text: `w${i}`, start: i, end: i + 0.8,
+}));
+/** The same ten words with everything from index `from` on moved by `by`. */
+const shifted = (from: number, by: number): SpeechWordTiming[] =>
+  GAPPED.map((w, i) => (i >= from ? { ...w, start: w.start + by, end: w.end + by } : { ...w }));
+
+/** One overlay clip of source a1. */
+const ov = (id: string, start: number, dur: number, clipIn: number, extra: Partial<Box> = {}): Box =>
+  ({ id, lane: '', start, dur, clipIn, speed: 1, image: { id: 'a1' }, ...extra });
+
+test('alignWords: a punctuation-only edit is the identity', () => {
+  assert.deepEqual(alignWords(['wow', 'that', 'worked'], ['wow!', 'that', 'worked.']), [0, 1, 2]);
+});
+
+test('alignWords: an inserted word keeps the words around it aligned', () => {
+  assert.deepEqual(
+    alignWords(['the', 'render', 'finished'], ['the', 'render', 'just', 'finished']),
+    [0, 1, 3],
+  );
+});
+
+test('alignWords: a merged token that normalizing split still aligns its neighbours', () => {
+  // '$45' normalizes to '45 dollars', so the old single token matches '45' and
+  // the word after it finds its new index past the extra word.
+  assert.deepEqual(
+    alignWords(['that', 'is', '$45', 'today'], ['that', 'is', '45', 'dollars', 'today']),
+    [0, 1, 2, 4],
+  );
+});
+
+test('alignWords: a word with no counterpart reports null, not a wrong match', () => {
+  assert.deepEqual(alignWords(['one', 'two', 'three'], ['one', 'three']), [0, null, 1]);
+});
+
+test('spliceSentences: with no cuts the single box just grows by delta', () => {
+  const boxes = [ov('b1', 0, 10, 0)];
+  const out = spliceSentences(boxes, cfg, ['b1'], GAPPED, shifted(6, 1), [{ from: 3, to: 6, delta: 1 }]);
+  assert.equal(out[0]!.clipIn, 0);
+  assert.equal(out[0]!.dur, 11);
+  assert.equal(out[0]!.start, 0);
+});
+
+test('spliceSentences: a cut before the edit is untouched, one after shifts exactly', () => {
+  const boxes = [ov('a', 0, 3, 0), ov('b', 3, 4, 4), ov('c', 8, 2, 8)];
+  const out = spliceSentences(boxes, cfg, ['a', 'b', 'c'], GAPPED, shifted(6, 0.5), [
+    { from: 5, to: 6, delta: 0.5 },
+  ]);
+  const by = (id: string): Box => out.find((x) => x.id === id)!;
+  assert.deepEqual(
+    { clipIn: by('a').clipIn, dur: by('a').dur, start: by('a').start },
+    { clipIn: 0, dur: 3, start: 0 }, 'the box before the edit does not move at all',
+  );
+  assert.equal(by('b').dur, 4.5, 'the box containing the edit absorbs the delta');
+  assert.equal(by('b').start, 3, 'and keeps its place, because it starts before the edit');
+  assert.deepEqual(
+    { clipIn: by('c').clipIn, dur: by('c').dur, start: by('c').start },
+    { clipIn: 8.5, dur: 2, start: 8.5 }, 'the box after it shifts by exactly the delta',
+  );
+});
+
+test('spliceSentences: a cut inside the edited sentence re-fits to the new gaps', () => {
+  // The sentence over words 3..6 comes back with word 4 replaced; the cut sat
+  // between old words 3 and 4, so it must come back between the new 3 and 4.
+  const next: SpeechWordTiming[] = GAPPED.map((w, i) =>
+    (i === 4 ? { text: 'four', start: 3.9, end: 4.7 } : { ...w }));
+  const boxes = [ov('a', 0, 4, 0), ov('b', 4, 6, 4)];
+  const out = spliceSentences(boxes, cfg, ['a', 'b'], GAPPED, next, [{ from: 3, to: 7, delta: 0 }]);
+  const by = (id: string): Box => out.find((x) => x.id === id)!;
+  // Gap between the new word 3 (ends 3.8) and the new word 4 (starts 3.9).
+  assert.equal(by('a').dur, 3.85, 'the cut lands in the middle of the new silence');
+  assert.equal(by('b').clipIn, 3.85, 'and the next box picks up exactly where it left off');
+  assert.equal(by('b').dur, 6.15);
+});
+
+test('spliceSentences: a skipped run stays skipped, including a URL round-trip "true"', () => {
+  const boxes = [
+    ov('a', 0, 3, 0, { ignored: true }),
+    ov('b', 3, 7, 3, { ignored: 'true' }),
+  ];
+  const out = spliceSentences(boxes, cfg, ['a', 'b'], GAPPED, shifted(6, 1), [{ from: 5, to: 6, delta: 1 }]);
+  assert.equal(out[0]!.ignored, true, 'the flag is not rewritten');
+  assert.equal(out[1]!.ignored, 'true', 'and the wire form is left exactly as it came');
+  sameSet(new Set(removedSpansTimeline(out, cfg).map(() => 0)), []); // overlays compress nothing
+  assert.equal(out[1]!.dur, 8, 'a skipped box is still re-fitted to the new audio');
+});
+
+test('spliceSentences: a second source on the same lane never moves', () => {
+  const boxes = [
+    ov('a', 0, 4, 0),
+    { id: 'music', lane: '', start: 4, dur: 6, clipIn: 0, speed: 1, image: { id: 'a2' } } as Box,
+  ];
+  const out = spliceSentences(boxes, cfg, ['a'], GAPPED, shifted(2, 2), [{ from: 1, to: 2, delta: 2 }]);
+  assert.equal(out[0]!.dur, 6, 'the voiceover grows');
+  assert.deepEqual(
+    { start: out[1]!.start, dur: out[1]!.dur, clipIn: out[1]!.clipIn },
+    { start: 4, dur: 6, clipIn: 0 }, 'the bed underneath keeps its place',
+  );
+});
+
+test('spliceSentences: two dirty lines accumulate their deltas in order', () => {
+  const boxes = [ov('a', 0, 1, 0), ov('b', 1, 9, 1)];
+  const out = spliceSentences(boxes, cfg, ['a', 'b'], GAPPED, GAPPED, [
+    { from: 1, to: 2, delta: 0.5 },
+    { from: 5, to: 6, delta: -0.25 },
+  ]);
+  assert.equal(out[0]!.dur, 1, 'the box before both edits is untouched');
+  assert.equal(out[1]!.clipIn, 1, 'the second box starts before the first edit');
+  assert.equal(out[1]!.dur, 9.25, 'and takes 0.5 minus 0.25 of length change');
+});
+
+test('spliceSentences: a sentence typed BETWEEN two others still moves the boxes', () => {
+  // A pure insert replaces no old audio, so its range is zero width - and a
+  // zero-width edit is a real edit. Dropping it left the box at its old length
+  // with the new sentence hanging off the end of it, and every box after the
+  // insert playing seconds that had moved.
+  const boxes = [ov('b1', 0, 10, 0)];
+  const out = spliceSentences(boxes, cfg, ['b1'], GAPPED, shifted(5, 2), [{ from: 5, to: 5, delta: 2 }]);
+  assert.equal(out[0]!.dur, 12, 'the box grew by the inserted sentence');
+  assert.equal(out[0]!.clipIn, 0);
+});
+
+test('spliceSentences: a front insert pushes every later box by its length', () => {
+  const boxes = [ov('a', 0, 4, 0), ov('b', 4, 6, 4)];
+  const out = spliceSentences(boxes, cfg, ['a', 'b'], GAPPED, shifted(0, 1.5), [{ from: 0, to: 0, delta: 1.5 }]);
+  const by = (id: string): Box => out.find((x) => x.id === id)!;
+  assert.equal(by('a').clipIn, 1.5, 'the first box starts past the new sentence');
+  assert.equal(by('a').dur, 4, 'and is otherwise the same window of the same words');
+  assert.equal(by('b').clipIn, 5.5);
+  assert.equal(by('b').dur, 6);
+});
+
+test('spliceSentences: no edits is a no-op, and an unknown source id changes nothing', () => {
+  const boxes = [ov('a', 0, 10, 0)];
+  assert.deepEqual(spliceSentences(boxes, cfg, ['a'], GAPPED, GAPPED, []), boxes);
+  assert.deepEqual(spliceSentences(boxes, cfg, ['zz'], GAPPED, GAPPED, [{ from: 1, to: 2, delta: 1 }]), boxes);
 });

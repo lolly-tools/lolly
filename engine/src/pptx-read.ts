@@ -185,6 +185,24 @@ export interface PptxReadSlide {
   inherited?: PptxReadNode[];
   /** The slide's ground, resolved slide → layout → master. Absent when none declares one. */
   background?: PptxBackground;
+  /**
+   * The slide's narration clip, resolved from its audio relationship (plans/180
+   * section 5). Absent when the slide has no sound. The Design importer binds this to a
+   * `kind:'audio'` box; the bytes stay in the caller's part map, this only names the part.
+   *
+   * NOT a claim about word timings. Audio we did not synthesise has none, so captions for
+   * it must be recovered by Whisper and filed under their own key - see the plan's note
+   * that the two rungs are different claims about where the words came from.
+   */
+  audio?: PptxSlideAudio;
+}
+
+/** One sound part a slide points at: the zip part path and its lowercased extension. */
+export interface PptxSlideAudio {
+  /** The zip part path, e.g. "ppt/media/audio1.wav". */
+  part: string;
+  /** The part's extension, lowercased and without the dot, e.g. "wav". */
+  ext: string;
 }
 
 export interface PptxReadTheme {
@@ -1086,6 +1104,44 @@ function walkTree(
   }
 }
 
+// ─── narration (plans/180 section 5) ─────────────────────────────────────────
+
+/** Sound extensions a slide's media rel may legitimately name. Everything else on the
+ *  media relationship is a video, and a video is not narration. */
+const AUDIO_EXTS: ReadonlySet<string> = new Set(['wav', 'mp3', 'm4a', 'mp4a', 'aac', 'ogg', 'oga', 'flac', 'wma', 'aiff', 'aif', 'mid', 'midi']);
+
+/** The extension of a part path, lowercased and without the dot ('' when it has none). */
+function extOf(path: string): string {
+  const base = path.slice(path.lastIndexOf('/') + 1);
+  const dot = base.lastIndexOf('.');
+  return dot > 0 ? base.slice(dot + 1).toLowerCase() : '';
+}
+
+/**
+ * The slide's narration part, from its relationships.
+ *
+ * PowerPoint writes an embedded sound as TWO relationships to one part - `audio` (the
+ * `a:audioFile` link) and `media` (the p14 embed) - so reading either one finds it. The
+ * `audio` rel is preferred because only a sound ever carries it; the `media` rel is taken
+ * only when its target's extension says sound, since an embedded VIDEO uses that same
+ * relationship type. An external (linked) sound is skipped: there are no bytes in the
+ * package to bind.
+ */
+function readSlideAudio(rels: readonly Rel[]): PptxSlideAudio | undefined {
+  for (const r of rels) {
+    if (r.external || !r.target) continue;
+    if (!/\/audio$/i.test(r.type)) continue;
+    return { part: r.target, ext: extOf(r.target) };
+  }
+  for (const r of rels) {
+    if (r.external || !r.target) continue;
+    if (!/\/media$/i.test(r.type)) continue;
+    const ext = extOf(r.target);
+    if (AUDIO_EXTS.has(ext)) return { part: r.target, ext };
+  }
+  return undefined;
+}
+
 // ─── notes ───────────────────────────────────────────────────────────────────
 
 function readNotes(store: PartStore, notesPath: string, parseXml: XmlParser): string | undefined {
@@ -1358,6 +1414,11 @@ export function readPptx(parts: PptxParts, parseXml: XmlParser): PptxDeckRead {
         if (inherited.length) slide.inherited = inherited;
         const background = readBackground(doc.documentElement, relsById, deck.theme) ?? layout?.background ?? master?.background;
         if (background) slide.background = background;
+        // narration (plans/180): the audio rel is the classic one, the media rel is the
+        // p14 embed pointing at the same part. Prefer audio; fall back to media only
+        // when its target really is a sound, because a VIDEO uses the media rel too.
+        const audio = readSlideAudio(rels);
+        if (audio) slide.audio = audio;
         // notes
         const notesRel = rels.find((r) => /notesSlide$/i.test(r.type) && !r.external);
         if (notesRel) {

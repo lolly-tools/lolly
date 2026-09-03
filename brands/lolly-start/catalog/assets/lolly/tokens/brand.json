@@ -1,5 +1,5 @@
 {
-  "$description": "Lolly starter tokens - a deliberately minimal cut of the SUSE palette: one green brand ramp (Pine → Jungle → Mint) over a quiet Fog neutral base, and nothing else. A new brand grows by ADDING colours in the #/start Design System studio, not by clearing out a big preset palette. Layered DTCG: a shared 'base' set of two ramps (primary + neutral) with per-theme semantic slots that alias into them, plus the default logo slots (asset.logo.*) pointing at the shipped Lolly marks. $values are hex, like the SUSE pack; the engine's colorToHex reads either hex or oklch. Replace the lot via the #/start wizard or 'npm run ingest:brand'.",
+  "$description": "Lolly starter tokens - ink-and-paper scaffolding, and nothing else. One neutral ramp (1 Ink through 9 Paper) carries surfaces, text and hairlines, and every semantic slot in both themes aliases into it, so a fresh install renders in black and white and the accent is ink until somebody picks a colour. A design system grows by ADDING colours in the #/start studio, not by clearing out a big preset palette. Layered DTCG: a shared 'base' set with the neutral ramp, the two faces (shell-served, no font binaries in this pack) and the default logo slots (asset.logo.*) pointing at the shipped Lolly marks, plus per-theme semantic slots that alias into the ramp. $values are hex; the engine's colorToHex reads either hex or oklch. Replace the lot via the #/start wizard or 'npm run ingest:brand'.",
   "$metadata": {
     "tokenSetOrder": [
       "base",
@@ -27,67 +27,43 @@
     "color": {
       "$type": "color",
       "ramp": {
-        "primary": {
-          "$description": "The SUSE green ramp, dark (1) to light (9): Pine → Jungle → Mint. Step 4 is Jungle (the light-theme primary), step 6 is Mint (the dark-theme primary), step 1 is Pine (the on-primary ink).",
-          "1": {
-            "$value": "#0c322c",
-            "$description": "Pine"
-          },
-          "2": {
-            "$value": "#025937"
-          },
-          "3": {
-            "$value": "#008657"
-          },
-          "4": {
-            "$value": "#30ba78",
-            "$description": "Jungle"
-          },
-          "5": {
-            "$value": "#42d29f"
-          },
-          "6": {
-            "$value": "#90ebcd",
-            "$description": "Mint"
-          },
-          "7": {
-            "$value": "#c0efde"
-          },
-          "8": {
-            "$value": "#eafaf4"
-          },
-          "9": {
-            "$value": "#f5fefb"
-          }
-        },
         "neutral": {
-          "$description": "SUSE Fog - quiet true grays for surfaces, text and hairlines. Dark (1) to light (9); the themes invert it so ink and paper swap.",
+          "$description": "Ink and paper - the whole starter palette, and deliberately colourless. Quiet true greys from 1 Ink (the darkest) to 9 Paper (the lightest), carrying surfaces, text, muted copy and hairlines; the themes invert the ramp so ink and paper swap. Nothing here is a brand colour: add your own in the #/start studio and the roles follow them.",
           "1": {
-            "$value": "#1d1d1d"
+            "$value": "#1d1d1d",
+            "$description": "Ink"
           },
           "2": {
-            "$value": "#3e3e3e"
+            "$value": "#3e3e3e",
+            "$description": "Charcoal"
           },
           "3": {
-            "$value": "#525252"
+            "$value": "#525252",
+            "$description": "Slate"
           },
           "4": {
-            "$value": "#6f6f6f"
+            "$value": "#6f6f6f",
+            "$description": "Stone"
           },
           "5": {
-            "$value": "#999999"
+            "$value": "#999999",
+            "$description": "Ash"
           },
           "6": {
-            "$value": "#bababa"
+            "$value": "#bababa",
+            "$description": "Mist"
           },
           "7": {
-            "$value": "#dcdbdc"
+            "$value": "#dcdbdc",
+            "$description": "Cloud"
           },
           "8": {
-            "$value": "#efefef"
+            "$value": "#efefef",
+            "$description": "Linen"
           },
           "9": {
-            "$value": "#ffffff"
+            "$value": "#ffffff",
+            "$description": "Paper"
           }
         }
       }
@@ -146,13 +122,13 @@
       "$type": "color",
       "semantic": {
         "primary": {
-          "$value": "{color.ramp.primary.4}"
+          "$value": "{color.ramp.neutral.1}"
         },
         "on-primary": {
-          "$value": "{color.ramp.primary.1}"
+          "$value": "{color.ramp.neutral.9}"
         },
         "secondary": {
-          "$value": "{color.ramp.primary.6}"
+          "$value": "{color.ramp.neutral.3}"
         },
         "surface": {
           "$value": "{color.ramp.neutral.9}"
@@ -174,13 +150,13 @@
       "$type": "color",
       "semantic": {
         "primary": {
-          "$value": "{color.ramp.primary.6}"
+          "$value": "{color.ramp.neutral.9}"
         },
         "on-primary": {
-          "$value": "{color.ramp.primary.1}"
+          "$value": "{color.ramp.neutral.1}"
         },
         "secondary": {
-          "$value": "{color.ramp.primary.4}"
+          "$value": "{color.ramp.neutral.7}"
         },
         "surface": {
           "$value": "{color.ramp.neutral.1}"

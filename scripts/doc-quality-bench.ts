@@ -278,7 +278,9 @@ function deckModelToPptx(model: Record<string, unknown>): Uint8Array {
   const layouts: PptxLayout[] = rawLayouts.map((raw) => {
     const L = (raw ?? {}) as Record<string, unknown>;
     const placeholders = (Array.isArray(L.placeholders) ? L.placeholders : [])
-      .map(deckPlaceholder)
+      // Arrow, not a bare reference: deckPlaceholder's 2nd arg is now the optional
+      // colour resolver (plan 179 A12), which Array#map would fill with the index.
+      .map((p: unknown) => deckPlaceholder(p))
       .filter((p): p is NonNullable<ReturnType<typeof deckPlaceholder>> => p != null);
     return { name: asStr(L.name) ?? 'Layout', bg: deckFill(L.bg), shapes: shapesOf(L.elements), media: [], placeholders };
   });

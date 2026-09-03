@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-02T15:42:04.921Z",
+  "generatedAt": "2026-09-03T08:39:54.085Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3782,6 +3782,7 @@
         "m4a",
         "opus",
         "pptx",
+        "scorm",
         "avif",
         "tiff",
         "emf",
@@ -3961,7 +3962,7 @@
           "id": "launch-teaser",
           "name": "Launch teaser",
           "category": "Video",
-          "description": "A four-beat launch teaser: kicker, headline, and a closing call to action.",
+          "description": "A timed launch teaser: a kicker, a headline, and a closing call to action.",
           "presets": [
             {
               "id": "story",
@@ -9775,7 +9776,7 @@
       "id": "snippet",
       "name": "Snippet",
       "description": "Turn code snippets into clean, syntax-highlighted, shareable images.",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "status": "official",
       "category": "everyone",
       "tags": [

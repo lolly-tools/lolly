@@ -18,7 +18,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { parseToolUrl, buildEmbedUrl, isToolUrl } from '../engine/src/tool-url.ts';
+import { parseToolUrl, buildEmbedUrl, isToolUrl, lollySchemeToHttps } from '../engine/src/tool-url.ts';
 import { parseEmbedUrl } from '../engine/src/embed.ts';
 
 test('accepts the canonical embed form (delegates to parseEmbedUrl)', () => {
@@ -128,4 +128,31 @@ test('a pasted hash route canonicalises into a re-parseable embed id', () => {
   // The canonical id is the strict form, so the runtime can re-resolve it anywhere.
   assert.ok(parseEmbedUrl(id), 'canonical id must satisfy the strict parser');
   assert.equal(isToolUrl(id), true);
+});
+
+test('the lolly:// scheme is the https address with the site name taken for granted', () => {
+  // Every https form has a scheme twin that parses to the same reference.
+  assert.deepEqual(parseToolUrl('lolly://t/qr-code?url=x'), { toolId: 'qr-code', format: null, query: 'url=x' });
+  assert.deepEqual(parseToolUrl('lolly://tool/qr-code?url=x'), { toolId: 'qr-code', format: null, query: 'url=x' });
+  assert.deepEqual(parseToolUrl('lolly://qr-code'), { toolId: 'qr-code', format: null, query: '' });
+  assert.equal(parseToolUrl('lolly://tool/qr-code.svg?url=x')?.format, 'svg', 'the strict embed form parses through parseEmbedUrl');
+  // A copied link with s/https/lolly/ applied keeps its host; the host is dropped, not read as a tool.
+  assert.deepEqual(parseToolUrl('lolly://lolly.tools/t/qr-code?url=x'), { toolId: 'qr-code', format: null, query: 'url=x' });
+  assert.deepEqual(parseToolUrl('lolly://www.lolly.art/qr-code'), { toolId: 'qr-code', format: null, query: '' });
+  assert.equal(isToolUrl('lolly:///t/qr-code'), true, 'a third slash is tolerated');
+  // App routes are not tools on the scheme either.
+  assert.equal(parseToolUrl('lolly://lab'), null);
+  assert.equal(parseToolUrl('lolly://verify?asset=x'), null);
+  assert.equal(parseToolUrl('lolly://'), null);
+  assert.equal(parseToolUrl('lolly://lolly.tools'), null);
+});
+
+test('lollySchemeToHttps is a no-op off the scheme and drops a pasted host on it', () => {
+  assert.equal(lollySchemeToHttps('https://lolly.tools/t/qr-code'), 'https://lolly.tools/t/qr-code');
+  assert.equal(lollySchemeToHttps('qr-code'), 'qr-code');
+  assert.equal(lollySchemeToHttps('lolly://t/qr-code?url=x'), 'https://lolly.tools/t/qr-code?url=x');
+  assert.equal(lollySchemeToHttps('LOLLY://lab'), 'https://lolly.tools/lab', 'schemes are case-insensitive');
+  assert.equal(lollySchemeToHttps('lolly://lolly.tools/lab'), 'https://lolly.tools/lab');
+  assert.equal(lollySchemeToHttps('lolly://lolly.tools?x=1'), 'https://lolly.tools/?x=1');
+  assert.equal(lollySchemeToHttps('lolly://lolly.toolsy/lab'), 'https://lolly.tools/lolly.toolsy/lab', 'only the exact site names are a host');
 });

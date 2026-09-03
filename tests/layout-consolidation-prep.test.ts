@@ -115,14 +115,16 @@ test('boxes.fields tail: z/kf/linkOf then the deck fields - appended, never reor
     // duck-to level `duck` (plans/165 WP-6) at 91, the pitch pair
     // `pitch`/`varispeed` (plans/165 WP-7b) at 92-93, the audio effect chain
     // `fx` (plans/101 section 3.4) at 94, and the sub-slide stack head `stackOf`
-    // (plan 112 M5) at 95 - each appended, never squeezed in behind - so
-    // `stackOf` is now the tail. This pin extends the same append-only guard:
-    // a later field must land at 96, not shift any of these.
+    // (plan 112 M5) at 95 - each appended, never squeezed in behind. The layer
+    // flags `hidden`/`locked` (plan 179 M4) followed at 96-97 and the per-frame
+    // `slideTransition` (the M4 motion model) at 98, so `slideTransition` is now
+    // the tail. This pin extends the same append-only guard: a later field must
+    // land at 99, not shift any of these.
     assert.deepEqual(fields.slice(72).map((f) => f.id),
-      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls', 'gain', 'name', 'ignored', 'split', 'stagger', 'splitOrder', 'hold', 'holdRate', 'rx', 'ry', 'pan', 'duck', 'pitch', 'varispeed', 'fx', 'stackOf'],
+      ['presentAudio', 'build', 'state', 'matchOf', 'notes', 'flipH', 'flipV', 'cls', 'gain', 'name', 'ignored', 'split', 'stagger', 'splitOrder', 'hold', 'holdRate', 'rx', 'ry', 'pan', 'duck', 'pitch', 'varispeed', 'fx', 'stackOf', 'hidden', 'locked', 'slideTransition'],
       `${brand}: a deck/flip/class field was inserted out of order - appended slots must stay put`);
-    assert.equal(fields.length, 96, `${brand}: expected 96 sub-fields, got ${fields.length}`);
-    assert.equal(fields[fields.length - 1]!.id, 'stackOf', `${brand}: stackOf is not the tail`);
+    assert.equal(fields.length, 99, `${brand}: expected 99 sub-fields, got ${fields.length}`);
+    assert.equal(fields[fields.length - 1]!.id, 'slideTransition', `${brand}: slideTransition is not the tail`);
     // Ids are unique - an accidental second `linkOf` would give the codec two columns of
     // the same name and the shell would read whichever it found first.
     assert.equal(new Set(fields.map((f) => f.id)).size, fields.length, `${brand}: duplicate sub-field id`);
@@ -141,6 +143,52 @@ test('linkOf is machine-managed: text, empty default, showFor [] (never in the s
     // inspector for the user to mistype.
     assert.ok(Array.isArray(f!.showFor) && f!.showFor!.length === 0,
       `${brand}: linkOf.showFor must be [] - got ${JSON.stringify(f!.showFor)}`);
+  }
+});
+
+test('the M4 layer flags and the per-frame transition are machine-managed too', () => {
+  for (const brand of BRANDS) {
+    const fields = fieldsOf(brand);
+    const get = (id: string): FieldSpec => {
+      const f = fields.find((x) => x.id === id);
+      assert.ok(f, `${brand}: no ${id} sub-field`);
+      return f!;
+    };
+    // Same contract linkOf holds above: the inspector and the layers column write these,
+    // no showFor value can match, so none of the three renders a sidebar control.
+    for (const id of ['hidden', 'locked', 'slideTransition']) {
+      const f = get(id);
+      assert.ok(Array.isArray(f.showFor) && f.showFor!.length === 0,
+        `${brand}: ${id}.showFor must be [] - got ${JSON.stringify(f.showFor)}`);
+    }
+    for (const id of ['hidden', 'locked']) {
+      const f = get(id);
+      assert.equal(f.type, 'boolean', `${brand}: ${id} is a flag`);
+      assert.equal(f.default, false, `${brand}: ${id} must default to false - every layer starts visible and editable`);
+    }
+    const st = get('slideTransition');
+    assert.equal(st.type, 'select', `${brand}: slideTransition is a select`);
+    assert.equal(st.default, '', `${brand}: slideTransition must default to "" - follow the deck`);
+    // The option VALUES are the wire format the hook's whitelist and the presenter both
+    // read, so they are pinned in full. '' first (the inherit case), 'custom' last (the
+    // timeline owns the frame's own enter/exit and nothing derives them).
+    const opts = ((st as unknown as { options?: Array<{ value: string }> }).options || []).map((o) => o.value);
+    assert.deepEqual(opts, ['', 'slide', 'fade', 'morph', 'flight', 'none', 'custom'],
+      `${brand}: the slideTransition values are a wire contract`);
+  }
+});
+
+test('the canvas declares the layer-flag and per-frame-transition field names', () => {
+  for (const brand of BRANDS) {
+    const cv = canvasOf(brand);
+    const ids = new Set(fieldsOf(brand).map((f) => f.id));
+    // Each is a DECLARATION the shell reads: no key, no feature (the overlay's hit-test
+    // gate, the hook's hidden skip, the "Place in order" derivation). Assert each names
+    // a field that actually exists rather than merely being present.
+    for (const [key, field] of [['hiddenField', 'hidden'], ['lockedField', 'locked'], ['frameTransitionField', 'slideTransition']]) {
+      assert.equal(cv[key!], field, `${brand}: canvas.${key} must name the ${field} sub-field`);
+      assert.ok(ids.has(field!), `${brand}: canvas.${key} names a field the manifest does not declare`);
+    }
   }
 });
 
@@ -419,9 +467,15 @@ function assertComposition(brand: string, where: string, values: Record<string, 
 }
 
 test('the two migrated Video templates ship in both packs, in the Video category', () => {
+  // Counts updated deliberately (plan 179 section 5.6 / the template brand pass):
+  // launch-teaser gained the accent bar that took the colour off the kicker, whose
+  // `var(--brand-accent, …)` was a custom property the runtime never defines, so it
+  // painted the same teal in every brand; feature-tour gained the same bar plus the
+  // THIRD highlight its own description has always promised ("three timed highlights"),
+  // which the file shipped with two of. Both still fit render.video.duration (12s).
   const EXPECTED: Record<string, { name: string; boxes: number }> = {
-    'launch-teaser': { name: 'Launch teaser', boxes: 4 },
-    'feature-tour': { name: 'Feature tour', boxes: 5 },
+    'launch-teaser': { name: 'Launch teaser', boxes: 5 },
+    'feature-tour': { name: 'Feature tour', boxes: 7 },
   };
   for (const brand of BRANDS) {
     for (const [tid, want] of Object.entries(EXPECTED)) {

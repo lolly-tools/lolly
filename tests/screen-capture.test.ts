@@ -408,7 +408,17 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // a Google Slides export of a branded template no longer reads as blank pages).
   // The ^1.54.0 screencap floor below still holds (a minor bump satisfies it).
   // 1.167.0: the .penpot writer (penpot-file.ts, plans/178) - additive, no capture change.
-  assert.equal(ENGINE_VERSION, '1.167.0');
+  // 1.168.0: the lolly:// scheme is a recognised Lolly address (tool-url.ts
+  // lollySchemeToHttps, plans/174) - additive, no capture change.
+  // 1.169.0: PptxSlide.transition - a real <p:transition> in the .pptx writer
+  // (plans/179 M4) - additive, no capture change.
+  // 1.170.0: the expressive-speech pure half (speech-text.ts, plans/181) - the
+  // vocab filter, the script marks grammar, voice blending and the segment
+  // tiling - additive, no capture change.
+  // 1.171.0: narrated slides (plans/180) - PptxSlide.audio and its part family,
+  // the new scorm.ts manifest/adapter/launch builders, and captions.cuesForSlide -
+  // additive, no capture change.
+  assert.equal(ENGINE_VERSION, '1.171.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

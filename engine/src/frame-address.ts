@@ -71,7 +71,10 @@ function isPositional(s: string): boolean {
  * from the fan-out is what would need justifying, not filtering it.
  */
 export const FRAME_FILTER_SKIP_FORMATS: ReadonlySet<string> = new Set([
-  'pdf', 'zip', 'html', 'pptx',
+  // `scorm` joins them for the same reason (plans/180 M-D1): a course package IS the whole
+  // deck - a manifest, a launch page and every slide - so filtering it to one slide would
+  // produce a one-slide course, not a shorter file.
+  'pdf', 'zip', 'html', 'pptx', 'scorm',
   'webm', 'mp4', 'gif', 'apng', 'webp-anim', 'svg-anim',
 ]);
 

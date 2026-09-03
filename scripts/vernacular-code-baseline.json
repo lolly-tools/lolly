@@ -246,8 +246,6 @@
   "shells/web/src/lib/design-system/census.ts": 1,
   "shells/web/src/lib/design-system/classify-logo.ts": 1,
   "shells/web/src/lib/design-system/pending-files.ts": 1,
-  "shells/web/src/lib/design-system/roles.test.ts": 2,
-  "shells/web/src/lib/design-system/roles.ts": 3,
   "shells/web/src/lib/design-system/rooms/overview.ts": 1,
   "shells/web/src/lib/design-system/rooms/versions.test.ts": 4,
   "shells/web/src/lib/design-system/rooms/versions.ts": 6,

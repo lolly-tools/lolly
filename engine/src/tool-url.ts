@@ -77,6 +77,26 @@ export const APP_PATH_WORDS = new Set([
 // id must re-parse through parseEmbedUrl on load (the persistent-identity invariant).
 const MAX_URL = 4096;
 
+// The app's own URL scheme (plans/174): `lolly://<route>` is the https address with
+// the site name taken for granted, so the installed app can be opened by a
+// launcher, a shell (`open` / `xdg-open` / `start`), a .desktop Action or a link
+// tap without going through a browser. A naive `s/https:\/\//lolly:\/\//` over a
+// copied link leaves the host in place (`lolly://lolly.tools/t/…`), so that host
+// segment is dropped rather than misread as a tool id.
+const LOLLY_SCHEME_RE = /^lolly:\/\/+/i;
+const LOLLY_HOST_RE = /^(?:www\.)?lolly\.(?:tools|art)(?=[/?#]|$)\/?/i;
+
+/**
+ * `lolly://<route>` → `https://lolly.tools/<route>`. Anything not on the scheme
+ * comes back untouched, so every caller that already accepts an https Lolly link
+ * (the picker, the pasted-link paths, the CLI) accepts the scheme form for free.
+ */
+export function lollySchemeToHttps(src: string): string {
+  if (!LOLLY_SCHEME_RE.test(src)) return src;
+  const rest = src.replace(LOLLY_SCHEME_RE, '').replace(LOLLY_HOST_RE, '');
+  return `https://lolly.tools/${rest}`;
+}
+
 /**
  * Recognise any Lolly tool URL a user might paste. Returns
  * `{ toolId, format, query }`. `format` is the explicit choice from an embed-form
@@ -86,7 +106,7 @@ const MAX_URL = 4096;
  */
 export function parseToolUrl(src: unknown): ToolUrlRef | null {
   if (typeof src !== 'string') return null;
-  const s = src.trim();
+  const s = lollySchemeToHttps(src.trim());
   if (!s || s.length > MAX_URL) return null;
 
   // 1) Strict embed form (…/tool/<id>.<ext>?…). Reuse the canonical parser, so

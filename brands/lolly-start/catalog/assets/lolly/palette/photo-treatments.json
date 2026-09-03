@@ -7,22 +7,6 @@
       "label": "Greyscale",
       "kind": "greyscale",
       "previewBg": "#f0f0f0"
-    },
-    {
-      "id": "brand",
-      "label": "Brand",
-      "kind": "duotone",
-      "shadow": "#002e14",
-      "highlight": "#cbf4da"
-    },
-    {
-      "id": "deep",
-      "label": "Deep",
-      "kind": "duotone",
-      "shadow": "#000000",
-      "mid": "#002e14",
-      "highlight": "#30ba78",
-      "previewBg": "#002e14"
     }
   ]
 }

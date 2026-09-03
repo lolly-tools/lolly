@@ -33,6 +33,7 @@ import { dirname, join } from 'node:path';
 
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
+import { makeColorApi } from '../engine/src/color-tools.ts';
 import { baseHost } from './helpers/host.ts';
 
 // Public community pack - present in every checkout (brands/suse is private + CI-skipped).
@@ -44,8 +45,8 @@ assert.ok(existsSync(join(PACK_DIR, 'design', 'tool.json')),
 
 const tool: any = await loadTool('design', fetchFile);
 
-async function mount(boxes: unknown[]) {
-  const rt = await createRuntime(tool, baseHost(), { boxes: boxes as never });
+async function mount(boxes: unknown[], hostOverrides: Record<string, unknown> = {}) {
+  const rt = await createRuntime(tool, baseHost(hostOverrides), { boxes: boxes as never });
   assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');
   return rt.getHydrated() as string;
 }
@@ -120,6 +121,22 @@ test('present-mode authoring stamps: data-build on a fragment child, data-presen
   assert.ok(video, 'the video box renders a <video>');
   assert.equal(video!.getAttribute('data-present-audio'), '1', 'opted-in video stamps data-present-audio');
   assert.ok(video!.hasAttribute('muted'), 'the video is still emitted muted (present mode unmutes at runtime)');
+});
+
+test('the present-audio opt-in reads the STRING a URL carries, not bare truthiness', async () => {
+  // `presentAudio=false` arrives as the string "false", which is truthy in JS - the trap
+  // every boolean field in the hook reads through boolVal to avoid. Getting it wrong
+  // unmutes a box at the podium whose author had turned the opt-in off.
+  const html = await mount([
+    { id: 'f', kind: 'frame', x: 0, y: 0, w: 800, h: 600, order: 0, bg: '#ffffff' },
+    { id: 'off', kind: 'box', x: 0, y: 0, w: 200, h: 120, frame: 'f', image: { url: 'a.mp4', type: 'video' }, presentAudio: 'false' },
+    { id: 'zero', kind: 'box', x: 0, y: 140, w: 200, h: 120, frame: 'f', image: { url: 'b.mp4', type: 'video' }, presentAudio: '0' },
+    { id: 'on', kind: 'box', x: 0, y: 280, w: 200, h: 120, frame: 'f', image: { url: 'c.mp4', type: 'video' }, presentAudio: '1' },
+  ]);
+  const doc = new JSDOM(html).window.document;
+  assert.equal(doc.querySelector('video[data-video-key="off"]')!.hasAttribute('data-present-audio'), false);
+  assert.equal(doc.querySelector('video[data-video-key="zero"]')!.hasAttribute('data-present-audio'), false);
+  assert.equal(doc.querySelector('video[data-video-key="on"]')!.getAttribute('data-present-audio'), '1');
 });
 
 test('frame `state` → sanitised data-frame-state on the page (plan 112 M4)', async () => {
@@ -376,4 +393,147 @@ test('a frame stroke honours the dashed style', async () => {
     { id: 'f1', kind: 'frame', x: 0, y: 0, w: 800, h: 600, shape: 'rect', stroke: '#000000', strokeW: 2, strokeDash: 'dashed' },
   ]);
   assert.match(html, /data-pdf-page[^>]*style="[^"]*border:2px dashed #000000/, 'dashed frame border');
+});
+
+// ── FRAME (ARTBOARD) PAINT - the fills a board was offered and never rendered ──────
+//
+// plan 179 A3/A4. The inspector has always offered an artboard a gradient, a picture,
+// opacity, a blend, a corner radius and a shadow; frameGroupsFor emitted only
+// left/top/width/height/background/border/overflow, so every one of those controls wrote
+// a model value that painted nothing. These pin that each now reaches the page element,
+// INLINE (the SVG/PDF/raster walkers read the style attribute, never a stylesheet).
+
+/** The opening tag of the first [data-pdf-page] in a render. */
+const pageTag = (html: string): string => /(<[^>]*data-pdf-page[^>]*>)/.exec(html)?.[1] ?? '';
+
+test('a frame with grad + image + opacity + radius + shadow paints EVERY one of them', async () => {
+  const html = await mount([
+    {
+      id: 'f1', kind: 'frame', x: 0, y: 0, w: 800, h: 600, order: 0,
+      bg: '#123456',
+      grad: 'lin_90_30ba78-0_efefef-100',
+      image: { url: 'photo.png' },
+      fit: 'cover',
+      imgpos: 'left top',
+      opacity: 50,
+      blend: 'multiply',
+      shape: 'rounded', radius: 24,
+      shadow: 'box', shadowColor: '#00000055', shadowX: 0, shadowY: 8, shadowBlur: 20,
+    },
+    { id: 't', kind: 'text', x: 40, y: 40, w: 200, h: 80, text: 'Hi', fontSize: 32, frame: 'f1' },
+  ], { color: makeColorApi() });
+
+  const page = pageTag(html);
+  assert.ok(page, 'a page div exists');
+  // The flat fill stays, and the gradient is written AFTER it (the `background` shorthand
+  // resets background-image, so the order is what makes a translucent stop composite).
+  assert.ok(page.includes('background:#123456;'), `flat fill kept: ${page}`);
+  const bgAt = page.indexOf('background:#123456');
+  const gradAt = page.indexOf('background-image:linear-gradient(90deg,');
+  assert.ok(gradAt > bgAt, `the gradient paints over the flat fill: ${page}`);
+  assert.ok(page.includes('#30ba78 0%') && page.includes('#efefef 100%'),
+    'the authored stops travel verbatim (OKLab-baked to plain sRGB)');
+  // Opacity, blend, radius and the box shadow.
+  assert.match(page, /opacity:0\.5;/, 'opacity 50 → 0.5');
+  assert.match(page, /mix-blend-mode:multiply;/, 'the blend mode reaches the page');
+  assert.match(page, /border-radius:24px;/, 'shape rounded + radius 24 → a real corner radius');
+  assert.match(page, /box-shadow:0px 8px 20px #00000055;/, 'the shadow fields reach the page');
+  assert.match(page, /overflow:hidden;/, 'clipChildren default still clips the board');
+
+  // The image fill is a REAL <img>, the page's FIRST child, so it paints under every
+  // member box and the walkers export it like any other picture.
+  const doc = new JSDOM(html).window.document;
+  const pageEl = doc.querySelector('[data-pdf-page]') as HTMLElement;
+  const first = pageEl.firstElementChild as HTMLElement;
+  assert.equal(first.tagName, 'IMG', 'the picture layer is the page\'s first child');
+  assert.ok(first.classList.contains('lolly-frame-img'), 'it carries the .lolly-frame-img hook');
+  assert.equal(first.getAttribute('src'), 'photo.png');
+  const istyle = first.getAttribute('style') ?? '';
+  assert.match(istyle, /position:absolute;left:0;top:0;width:100%;height:100%/, 'sized to the page');
+  assert.match(istyle, /object-fit:cover;/, 'the frame\'s own fit');
+  assert.match(istyle, /object-position:left top;/, 'the frame\'s own image position');
+  assert.match(istyle, /border-radius:24px;/, 'the picture wears the board\'s corner radius');
+  assert.match(istyle, /pointer-events:none;/, 'paint, never a hit target');
+  // …and the member box still follows it, so the picture is BEHIND the content.
+  assert.equal(pageEl.querySelector('[data-box-id="t"]')?.previousElementSibling, first,
+    'the member box sits after the picture layer in paint order');
+});
+
+test('a plain frame emits NONE of the new declarations (the pre-179 page, byte for byte)', async () => {
+  const html = await mount([
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 800, h: 600, shape: 'rect', bg: '#ffffff' },
+  ]);
+  const page = pageTag(html);
+  assert.equal(
+    /style="([^"]*)"/.exec(page)?.[1],
+    'position:absolute;left:0px;top:0px;width:800px;height:600px;background:#ffffff;overflow:hidden;',
+    'an unpainted board serialises exactly as it did before A3/A4',
+  );
+  assert.ok(!html.includes('lolly-frame-img'), 'no picture layer without an image');
+});
+
+test('a frame image degrades to NO layer for a video / lottie / audio asset', async () => {
+  for (const image of [
+    { url: 'movie.mp4', type: 'video' },
+    { url: 'anim.json', type: 'lottie' },
+    { url: 'blob:bed', type: 'audio' },
+  ]) {
+    const html = await mount([
+      { id: 'f1', kind: 'frame', x: 0, y: 0, w: 800, h: 600, bg: '#ffffff', image },
+    ]);
+    assert.ok(!html.includes('lolly-frame-img'),
+      `${image.type} needs the shell's own enhancer, so a board takes no <img> layer for it`);
+  }
+});
+
+test('a shape:rect frame emits no border-radius at all (0 is not a declaration)', async () => {
+  const html = await mount([
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 400, h: 400, shape: 'rect', radius: 40, bg: '#ffffff' },
+  ]);
+  assert.ok(!/border-radius/.test(pageTag(html)), 'a square board says nothing about its corners');
+});
+
+// ── FRAME NAME - the label the canvas can finally read back (plan 179 A10) ─────────
+
+test('a frame `name` → attribute-escaped data-frame-name on the page', async () => {
+  const html = await mount([
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 800, h: 600, bg: '#ffffff', name: 'Cover & "intro" <slide>' },
+    { id: 'f2', kind: 'frame', x: 1000, y: 0, w: 800, h: 600, bg: '#ffffff' },
+  ]);
+  const doc = new JSDOM(html).window.document;
+  const pages = doc.querySelectorAll('[data-pdf-page]');
+  assert.equal(pages.length, 2);
+  assert.equal((pages[0] as HTMLElement).getAttribute('data-frame-name'), 'Cover & "intro" <slide>',
+    'the name survives the attribute escape intact');
+  assert.equal((pages[1] as HTMLElement).getAttribute('data-frame-name'), null,
+    'an unnamed board stamps nothing - the label fallback is unchanged');
+  // Escaped in the SOURCE, so the name can never open an attribute or a tag.
+  assert.ok(html.includes('data-frame-name="Cover &amp; &quot;intro&quot; &lt;slide&gt;"'), html.slice(0, 400));
+});
+
+test('a whitespace-only frame name stamps nothing', async () => {
+  const html = await mount([
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 800, h: 600, bg: '#ffffff', name: '   ' },
+  ]);
+  assert.ok(!html.includes('data-frame-name'), 'blank is not a name');
+});
+
+// ── ONE PAPER PER DOCUMENT (plan 179 A6) ──────────────────────────────────────────
+//
+// The default document seeds artboard-1 as brand paper with no stroke; the Artboard
+// add-kind used to seed #fafbfe plus a baked 2px #dfe3ec border. So the second board a
+// user drew never matched the first, and the grey edge could not be removed from any UI
+// (the stroke controls are gated on paths). Same paper, no stroke, one document.
+
+test('the Artboard add-kind seeds the SAME paper as the default artboard-1', () => {
+  const boxesInput = (tool.manifest.inputs as Array<any>).find(i => i.id === 'boxes');
+  const seed = (boxesInput.canvas.addKinds as Array<any>).find(k => k.id === 'frame')?.seed;
+  assert.ok(seed, 'canvas.addKinds has a frame (Artboard) entry');
+  const dflt = (boxesInput.default as Array<any>).find(b => b.kind === 'frame');
+  assert.ok(dflt, 'the boxes default seeds an artboard');
+  assert.equal(seed.kind, 'frame');
+  assert.equal(seed.shape, 'rect', 'a board is still drawn square-cornered');
+  assert.equal(seed.bg, dflt.bg, 'a drawn board is the same paper as the document default');
+  assert.ok(!('stroke' in seed) && !('strokeW' in seed),
+    'no baked border: the stroke controls cannot reach a frame, so it must not be born wearing one');
 });

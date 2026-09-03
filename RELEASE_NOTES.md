@@ -1,6 +1,6 @@
-# Lolly 1.0.5
+# Lolly 1.0.6
 
-_Current release: **1.0.5** (2026-08-31). First public release was 1.0.1 (2026-08-30). Free
+_Current release: **1.0.6** (2026-09-03). First public release was 1.0.1 (2026-08-30). Free
 software under the **Mozilla Public License 2.0**; the content below is brand-agnostic and
 reflects the current platform._
 
@@ -33,6 +33,49 @@ Lolly is completely free and open source. It is licensed under the **Mozilla Pub
 - **Governed automation via MCP.** An optional Model Context Protocol server exposes the
   catalog and render path to AI agents (list, describe, build a link, render, transform,
   redact, verify) under the same rules as the app.
+
+### New in 1.0.6
+
+A formal release across every platform: web, macOS, Linux (deb, rpm, Flatpak, Arch), Android and iOS.
+
+- **The design-system studio starts with one colour.** `/start` now shows one thing per room until
+  the system has something of its own: pick a colour, choose a face, add a logo. Roles, shades, the
+  colour chart, gradients and bulk editing appear as the palette grows. The blank starter ships only
+  ink and paper, so nothing you did not choose looks like yours; what shipped is tagged Starter, what
+  you chose is tinted, and a role that follows another says so. The first colour is a picker, not a
+  text field. A Google Font previews on the first press with one consent, and no button in the
+  studio is ever greyed out waiting for a previous step. Drag across the palette to select swatches
+  in bulk and move, assign, download or delete them in one undoable action. Whether the interface
+  takes the palette's primary is now an Appearance setting on the profile.
+- **Design tool ease of use.** One motion model, a top bar, a navigator and an inspector; artboards
+  fill again; controls say what they do. Text animation with split, stagger and order, hold
+  effects and native PowerPoint animation on export. A box can tilt, and six one-click Choreograph
+  showcases stack a camera move with keyframes. Sub-slide stacks and Morph matching for
+  presentations. Transcript-driven editing: strike a line through and playback and export skip
+  it; marquee-move many timeline clips at once.
+- **Sequence audio.** Stereo pan, junction crossfades, ducking that follows the signal, a master
+  true-peak limiter at every mix, pitch-preserving time-stretch and a pitch pair, a three-band EQ
+  in a compact audio strip, level faders, BS.1770 loudness normalisation per clip, an effect rack
+  with on-device voice cleanup, and waveforms that warn where a clip clips.
+- **Narrated slides.** Speaker notes become a voice track, captions travel inside the file, a PPTX
+  carries its narration as real slide audio, and a deck exports as a SCORM 1.2 or 2004 package with
+  a launch page and captions. Expressive speech marks in the script: `[pause N]`, `[slow]`,
+  `[fast]`, a pronunciation override per word and voice blends. Parentheses no longer break word
+  timings.
+- **Deep links and automation.** `lolly://` opens a tool with its inputs filled from another app,
+  a shortcut or a QR code, registered on desktop, Android and iOS. Editor-state links (`_sel`,
+  `_t`, `_panel`) pose the editor from a URL, and `window.lolly.ui` plus a postMessage channel
+  drive it at runtime.
+- **Reliability.** The service worker heals runtime cache entries stored before the isolation
+  headers, which had left the on-device models stuck at 100% for returning users. Raster exports on
+  WebKit keep offset box shadows. The iOS radio visualiser no longer summons the keyboard. PPTX
+  timing writes one effect group per effect so a timed exit plays.
+- **Docs.** A new landing with mascots beside the lanes, a Get-the-app band, Legal, AI and Security
+  lanes; the sequence editor's Sound section; the animating pages with Choreograph, tilt and
+  camera screenshots; the design-system studio page rewritten for the new flow.
+- **Engine 1.159 to 1.171.** Shaped-glyph letter tier for split text, per-box tilt, activity spans,
+  the true-peak limiter, BS.1770 integrated loudness, the fx kernels and grammar, expressive speech
+  and narrated slides. All additive; every tool that ran on 1.0.5 runs unchanged.
 
 ### The tool set
 
@@ -82,7 +125,7 @@ carry a PREVIEW watermark for testing until graduated).
     channel - add `[lolly]` with `Server = https://lolli.li/arch/$arch`
     (`SigLevel = Optional TrustAll`) to `/etc/pacman.conf`, then `pacman -Syu lolly-desktop-bin`.
   - **Android**: [`.apk`](https://lolli.li/lolly-latest.apk) (sideload; no store).
-  - **iOS**: the 1.0.5 build is submitted and in App Store review; a sideloadable build exists on request.
+  - **iOS**: 1.0.6 goes to App Store review with this release (1.0.5 was not approved); a sideloadable build exists on request.
 - **Build from source / self-host** - clone, `npm install`, `npm run dev:web` (Node >=22.18 or
   >=24); a first render takes about 60 seconds ([`docs/make-something.md`](docs/make-something.md)).
   Self-host the built web shell for a team; full operator documentation lives under `docs/`.

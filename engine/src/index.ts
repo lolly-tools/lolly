@@ -47,7 +47,7 @@ export type { Lang, LangMeta, LangSort } from './lang.ts';
 export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.ts';
 export { packEncrypted, unpackEncrypted, hasEncryptedState, isEncryptAvailable, ENC_PARAM } from './url-pack.ts';
 export { parseEmbedUrl } from './embed.ts';
-export { parseToolUrl, buildEmbedUrl, isToolUrl } from './tool-url.ts';
+export { parseToolUrl, buildEmbedUrl, isToolUrl, lollySchemeToHttps, APP_PATH_WORDS } from './tool-url.ts';
 export {
   assertComposeStack, ComposeGuardError, MAX_COMPOSE_DEPTH,
   bakeAssetRef, isBakedRef, MAX_BAKED_URL_CHARS,
@@ -194,8 +194,8 @@ export type { AudioAnalysis, AudioAnalyseOpts, AudioFrames } from './audio-analy
 // Captions (host.speech, v1.96) - spoken-word timings in, subtitle cues out. The
 // grouping and VTT/SRT timestamp maths live here so the browser and a headless
 // export break caption lines at the same words.
-export { groupWordsToCues, cuesToVtt, cuesToSrt, cueAt } from './captions.ts';
-export type { CaptionCue, GroupWordsOpts } from './captions.ts';
+export { groupWordsToCues, cuesForSlide, cuesToVtt, cuesToSrt, cueAt } from './captions.ts';
+export type { CaptionCue, GroupWordsOpts, SlideCueOpts } from './captions.ts';
 // Text AI-likelihood signals (plans/125) - a string in, a tiered SIGNAL (never a
 // verdict) out: byte-level artifact tells on digital text, chatbot-boilerplate
 // phrase evidence, English-gated writing-style heuristics, per-finding heat
@@ -253,8 +253,18 @@ export {
   splitSentences, splitWords, phonemeTokenSpans, chunkByPhonemeLength,
   wordTimingsFromDurations, concatClips, normalizeText, splitPunctuation,
   postProcessPhonemes, phonemizeChunk,
+  // v1.170 (plans/181): the vocab-safe phoneme filter, the script marks
+  // grammar, voice blending and the per-sentence segment tiling.
+  KOKORO_VOCAB, filterToVocab, normalizeForSpeech,
+  PAUSE_DEFAULT_S, SLOW_SPEED, FAST_SPEED, MIN_SPEECH_SPEED, MAX_SPEECH_SPEED,
+  CLIP_EDGE_PAD_S, pauseGapS, parseScriptMarks, scriptLinesOf,
+  parseVoiceBlend, accentOfBlend,
+  MIN_SEAM_GAP_S, endsSentence, deriveSegmentsFromWords,
 } from './speech-text.ts';
-export type { TokenSpan, PhonemeChunk, SentenceClip, EspeakFn } from './speech-text.ts';
+export type {
+  TokenSpan, PhonemeChunk, SentenceClip, EspeakFn,
+  ScriptSentence, ParsedScript, ParseScriptOpts, VoiceBlendComponent, TtsSegment,
+} from './speech-text.ts';
 // The dependency-free WAV reader that backs host.audio where there is no platform
 // codec (the Node shells). Byte parsing, so it lives beside tiff.ts/apng.ts.
 export { parseWav, packWav } from './wav.ts';
@@ -393,6 +403,7 @@ export { buildPptxParts, EMU_PER_INCH, EMU_PER_PX } from './pptx.ts';
 export type {
   PptxSlide, PptxShape, PptxRect, PptxText, PptxPic, PptxRun, PptxPara, PptxFill, PptxMedia, PptxBuildOpts,
   PptxTable, PptxTableCell, PptxLine, PptxTheme, PptxPath, PptxLayout, PptxPlaceholder, PptxPhType,
+  PptxSlideTransition, PptxAudio,
 } from './pptx.ts';
 export { svgToCustGeomPaths, svgToNativePptx } from './svg-custgeom.ts';
 export type { SvgNativePptx } from './svg-custgeom.ts';
@@ -403,11 +414,18 @@ export { isPptx, readPptx, pptxMediaImages, readingOrder as pptxReadingOrder } f
 export type {
   PptxParts, XmlParser, PptxDeckRead, PptxReadSlide, PptxReadNode, PptxReadTheme,
   PptxReadColor, PptxReadRun, PptxReadPara, PptxTextNode, PptxShapeNode, PptxPicNode,
-  PptxTableNode, PptxUnknownNode, PptxMediaImage,
+  PptxTableNode, PptxUnknownNode, PptxMediaImage, PptxSlideAudio,
   // The read-side placeholder record; aliased because the WRITER's layout
   // placeholder (pptx.ts) already owns the bare name on this surface.
   PptxPlaceholder as PptxReadPlaceholder,
 } from './pptx-read.ts';
+// SCORM packaging, the pure half (plans/180 section 6): manifests, the runtime
+// adapter source and the D1 launch page. The shell owns the zip.
+export { scormManifest, scormManifest12, scormManifest2004, scormAdapterJs, scormLaunchHtml } from './scorm.ts';
+export type {
+  ScormVersion, ScormManifestOpts, ScormSlide, ScormVideo, ScormFont, ScormLaunchOpts,
+  ScormLaunchLabels,
+} from './scorm.ts';
 export { deckToMarkdown } from './deck-md.ts';
 export type { DeckMarkdown, DeckMediaRef } from './deck-md.ts';
 export type { DocBlock, DocInline, DocListItem, DocTableCell, DocMedia } from './doc-model.ts';

@@ -85,6 +85,64 @@ export function groupWordsToCues(
   return cues;
 }
 
+const round3 = (v: number): number => Math.round(v * 1000) / 1000;
+
+/** How the narration clip sits inside its slide, plus the grouping knobs. */
+export interface SlideCueOpts extends GroupWordsOpts {
+  /**
+   * Where the clip's own t=0 sits, in milliseconds AFTER `slideStartMs`. Default 0.
+   * A narrated slide passes its lead-in here (plans/180 T2: narration starts once the
+   * slide's enter motion has settled), so the cues land on the words.
+   */
+  offsetMs?: number;
+  /**
+   * A cue the window clamps shorter than this many SECONDS is dropped rather than kept
+   * as an unreadable flash. Default 0.05 - the timeline's own floor, so a caption box
+   * drawn on the canvas and a cue written into a file survive or die together.
+   */
+  minKeepS?: number;
+}
+
+/**
+ * The subtitle cues for ONE slide's narration, on the film's clock, clamped to the
+ * slide's window (plans/180 T4).
+ *
+ * The words are the clip's own - media seconds from the start of the sound - and the
+ * clip begins `offsetMs` into the slide. Everything comes back in film-clock SECONDS
+ * (`CaptionCue`'s unit), which is what a sidecar `.vtt` and an embedded subtitle track
+ * both want; a per-slide file subtracts `slideStartMs / 1000` itself.
+ *
+ * The clamp is the point. T1 and T3 already size a slide to hold its narration plus the
+ * tail, so under normal timing nothing needs cutting - but an author can shorten a slide
+ * by hand, and a cue that outlives its slide would sit over the next one's first words.
+ * A cue straddling an edge is trimmed to it; a cue entirely outside is dropped; a cue
+ * trimmed below `minKeepS` is dropped rather than flashed. Times are rounded to the
+ * millisecond, which is all VTT and SRT can express anyway.
+ *
+ * A window that is empty or backwards yields no cues, never a throw.
+ */
+export function cuesForSlide(
+  words: readonly SpeechWordTiming[],
+  slideStartMs: number,
+  slideEndMs: number,
+  opts: SlideCueOpts = {},
+): CaptionCue[] {
+  const startS = Number.isFinite(slideStartMs) ? Math.max(0, slideStartMs) / 1000 : 0;
+  const endS = Number.isFinite(slideEndMs) ? slideEndMs / 1000 : 0;
+  if (!(endS > startS)) return [];
+  const offsetS = Number.isFinite(opts.offsetMs) ? Math.max(0, opts.offsetMs as number) / 1000 : 0;
+  const minKeepS = Number.isFinite(opts.minKeepS) && (opts.minKeepS as number) > 0 ? (opts.minKeepS as number) : 0.05;
+  const base = startS + offsetS;
+  const out: CaptionCue[] = [];
+  for (const c of groupWordsToCues(words, opts)) {
+    const s = Math.max(startS, base + c.start);
+    const e = Math.min(endS, base + c.end);
+    if (!(e > s) || e - s < minKeepS) continue;
+    out.push({ start: round3(s), end: round3(e), text: c.text });
+  }
+  return out;
+}
+
 /** `seconds` → `HH:MM:SS<sep>mmm`. VTT wants a dot, SRT a comma. */
 function stamp(seconds: number, sep: '.' | ','): string {
   const ms = Math.max(0, Math.round(seconds * 1000));

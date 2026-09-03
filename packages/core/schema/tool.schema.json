@@ -167,6 +167,7 @@
               "exr",
               "hdr",
               "pptx",
+              "scorm",
               "penpot",
               "docx",
               "odt",
@@ -1764,6 +1765,18 @@
                   "clipChildrenField": {
                     "type": "string",
                     "description": "Boolean sub-field on a FRAME box: whether content overflowing the frame is clipped to it. Absent = the overlay offers no clip toggle."
+                  },
+                  "hiddenField": {
+                    "type": "string",
+                    "description": "Boolean sub-field on ANY box: the layer is hidden - not drawn and not exported. The tool's hook skips a hidden row everywhere it walks the boxes; the overlay refuses to hit-test one. Absent = no hide affordance."
+                  },
+                  "lockedField": {
+                    "type": "string",
+                    "description": "Boolean sub-field on ANY box: the layer is locked - the overlay refuses to select or move it on the canvas. Editor-only: it changes no rendered pixel and no export. Absent = no lock affordance."
+                  },
+                  "frameTransitionField": {
+                    "type": "string",
+                    "description": "Select sub-field on a FRAME box: how THIS slide changes into the next one, overriding the document's own transition. Empty follows the document. Absent = every slide uses the document transition."
                   },
                   "minSize": {
                     "type": "number",

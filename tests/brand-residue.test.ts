@@ -122,31 +122,35 @@ const TYPEFACE_EXEMPT = new Set([
   join(PACK, 'catalog', 'assets', 'lolly', 'tokens', 'brand.json'),
 ]);
 
-// THE STARTER-PALETTE EXEMPTION (2026-08-23) - Andy's call, made at ship time
-// for the new starter tokens: lolly-start's blank-brand palette is deliberately
-// a minimal cut of the SUSE palette (one green ramp, Pine to Mint, over Fog
-// neutrals), authored by the brand's own director, who is entitled to publish
-// those colours here. The four brand hexes it reuses (#30ba78 / #0c322c /
-// #90ebcd / #efefef) are therefore permitted in EXACTLY these files: the
-// starter tokens and the two palette docs derive-generated from them. The hex
-// ban stays live in every other pack file, and the suse/* asset-id check still
-// runs on these three unchanged. Do not widen this to a directory.
+// THE STARTER-PALETTE EXEMPTION (2026-08-23, NARROWED 2026-09-03 by plan 182 M0b)
+// - Andy's call, made at ship time for the new starter tokens: the pack may
+// reuse a brand hex where the brand's own director chose to publish it here.
+//
+// The 2026-08-23 set covered a green starter ramp and the two derive-generated
+// palette docs beside it. Plan 182 section 12 cut the starter to ink-and-paper
+// scaffolding, so the green is gone: `photo-treatments.json` derives to
+// greyscale alone (no brand hex left), `icon-themes.json` derives to nothing at
+// all and the pack no longer ships it, and both left this set. What remains is
+// two reasons, one hex each:
+//   • the starter tokens still carry #efefef as neutral step 8 (Linen) - a plain
+//     light grey that happens to sit in the SUSE list;
+//   • the shipped Lolly swirl marks are still painted in Pine (#0c322c).
+// The hex ban stays live in every other pack file, and the suse/* asset-id check
+// still runs on these four unchanged. Do not widen this to a directory.
 const STARTER_PALETTE_HEX_EXEMPT = new Set([
   join(PACK, 'catalog', 'assets', 'lolly', 'tokens', 'brand.json'),
-  join(PACK, 'catalog', 'assets', 'lolly', 'palette', 'photo-treatments.json'),
-  join(PACK, 'catalog', 'assets', 'lolly', 'palette', 'icon-themes.json'),
-  // The shipped Lolly swirl marks are painted with the same starter palette
-  // (Pine ink), so the mark files that carry it are part of the same decision.
   join(PACK, 'catalog', 'assets', 'lolly', 'logo', 'mono.svg'),
   join(PACK, 'catalog', 'assets', 'lolly', 'logo', 'mono-reverse.svg'),
   join(PACK, 'catalog', 'assets', 'lolly', 'logo', 'reverse.svg'),
 ]);
 
-// Same decision, same date: the assets index names the palette's origin once,
-// in the starter-tokens asset description ("a minimal cut of the SUSE
-// palette"). That sentence is attribution, not a dangling reference, so this
-// one file skips the bare-name check the way the typeface exemption does. The
-// hex and asset-id checks still run on it.
+// The assets index names SUSE where a catalog entry genuinely credits it: the
+// CC BY 4.0 grading LUT `lolly/luts/suse7-slog3-heavy` (id, name and
+// attribution line). That is credit, not a dangling reference, so this one file
+// skips the bare-name check the way the typeface exemption does. The hex and
+// asset-id checks still run on it. (Until 2026-09-03 this exemption also covered
+// the starter-tokens description's "a minimal cut of the SUSE palette" sentence,
+// retired with the palette itself.)
 const PALETTE_ORIGIN_EXEMPT = new Set([
   join(PACK, 'catalog', 'assets', 'index.json'),
 ]);

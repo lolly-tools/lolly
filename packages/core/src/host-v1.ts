@@ -1633,10 +1633,27 @@ export interface SpeechProgress {
 }
 
 export interface SpeechSynthesizeOpts {
-  /** A `SpeechVoiceInfo.id`. The shell's default voice when omitted. */
+  /**
+   * A `SpeechVoiceInfo.id`, or a `+`-joined weighted blend of them
+   * ('af_heart+bf_lily:0.3'): components carry an optional `:weight`, the
+   * unweighted ones split what is left, and the shares normalise to 1. The
+   * shell mixes the style rows and takes the heaviest component's accent.
+   * `voices()` still lists only the atomic ids, because a blend is a setting
+   * rather than a voice you pick from a list. The shell's default voice when
+   * omitted.
+   */
   voice?: string;
   /** Speaking rate multiplier, 1 = the voice's natural pace. */
   speed?: number;
+  /**
+   * The text already went through the shell's speech normalizer, so skip it
+   * (v1.170). Set it when re-synthesizing text the shell handed back, such as
+   * a saved clip's stored script: normalizing twice is not the same as
+   * normalizing once (a second pass reads '2,024', already collapsed to
+   * '2024', as the year '20 24'), so a second pass would change the words.
+   * Shells that do no normalizing ignore it.
+   */
+  prenormalized?: boolean;
   /**
    * Abort a long synthesis: the promise rejects promptly (AbortError) and the
    * shell stops synthesizing at the next sentence boundary. Aborting during
@@ -2510,6 +2527,19 @@ export interface Profile {
     highContrast?: boolean;
     /** Larger app-chrome type (never scales the tool canvas or exports). */
     largeText?: boolean;
+  };
+  /** How the app itself dresses - the shell's OWN use of the design system,
+   *  which is secondary to what a design system is for (tools and exports).
+   *  Additive + optional: absent means the defaults below, so a profile without
+   *  it is byte-identical to today. Shells mirror it to their own device storage
+   *  for the pre-paint restore, exactly as `a11y` and the theme do. */
+  appearance?: {
+    /** Take the app's accent from the design system's primary colour (plans/182
+     *  section 5.6). Default ON when unset - the reward loop after a first
+     *  colour is worth keeping; a person who wants neutral chrome turns it off.
+     *  Never reaches a tool canvas or an export: those follow the design system
+     *  whatever this says. */
+    followDesignSystem?: boolean;
   };
   /** Nearby-discovery preferences (plans/110). Additive + optional, so a profile
    *  without it is byte-identical to today. The only PERSISTED visibility mode is

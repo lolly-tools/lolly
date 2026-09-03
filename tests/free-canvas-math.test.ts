@@ -19,6 +19,8 @@ import {
   snapMove, snapPoint, scaleGroup, rotateGroup,
   gradientLine, gradientPosAt, gradientAngleAt,
   resolveFrame, frameLocalXY, cascadeFrameMove, seedFrameOrder, renumberFrameOrder,
+  framesInPageOrder, activeFrameIdFor, nextFrameOrder, seedFrameOrders,
+  rehomeChildrenOfDeletedFrames, duplicateFrameWithChildren, filterMarqueeFrames,
   sequenceFramesInOrder, framesAreSequenced,
   parseDashArray, formatDashArray, DASH_ARRAY_MAX,
   routedLineSvg, pathRouteStyle, isConnectorRouteStyle, CONNECTOR_ROUTE_STYLES,
@@ -588,6 +590,263 @@ test('renumberFrameOrder: an unset order is written even when its rank is 0 (den
   assert.notEqual(next[0], boxes[0]);
 });
 
+// ── Artboard housekeeping (plans/179 section 5.2 - A1, A7, A8, A9, A13) ────────
+//
+// The pure half of the M0 bug wave: which artboard is ACTIVE (the fill swatch and the
+// still export both follow it), what happens to the children of a deleted one, the deep
+// duplicate, the explicit page `order`, and the marquee's fully-enclosed rule.
+
+const FF = {
+  idField: 'id', kindField: 'kind', xField: 'x', yField: 'y', wField: 'w', hField: 'h',
+  frameField: 'frame', orderField: 'order', frameKind: 'frame',
+};
+
+/** Two 400x300 artboards side by side, each with one child. */
+const DECK = (): any[] => ([
+  { id: 'F1', kind: 'frame', x: 0, y: 0, w: 400, h: 300, order: 0 },
+  { id: 'a1', kind: 'text', x: 20, y: 20, w: 100, h: 40, frame: 'F1' },
+  { id: 'F2', kind: 'frame', x: 500, y: 0, w: 400, h: 300, order: 1 },
+  { id: 'b1', kind: 'box', x: 520, y: 40, w: 100, h: 40, frame: 'F2' },
+]);
+
+test('framesInPageOrder: order leads, x is only the tie-break', () => {
+  const boxes: any[] = [
+    { id: 'C', kind: 'frame', x: 0, order: 2 },
+    { id: 'A', kind: 'frame', x: 900, order: 0 },
+    { id: 'B', kind: 'frame', x: 500, order: 1 },
+    { id: 'loose', kind: 'box', x: 10 },
+  ];
+  assert.deepEqual(framesInPageOrder(boxes, FF).map((b: any) => b.id), ['A', 'B', 'C']);
+  // ties fall back to x
+  const tied: any[] = [
+    { id: 'R', kind: 'frame', x: 900, order: 0 },
+    { id: 'L', kind: 'frame', x: 100, order: 0 },
+  ];
+  assert.deepEqual(framesInPageOrder(tied, FF).map((b: any) => b.id), ['L', 'R']);
+});
+
+test('activeFrameIdFor: a selected artboard IS the active one', () => {
+  assert.equal(activeFrameIdFor(DECK(), ['F2'], FF), 'F2');
+});
+
+test('activeFrameIdFor: a selected CHILD resolves to the artboard that holds it (A11)', () => {
+  assert.equal(activeFrameIdFor(DECK(), ['b1'], FF), 'F2');
+});
+
+test('activeFrameIdFor: the STORED membership wins over the geometry, which is the fallback', () => {
+  const boxes = DECK();
+  // A child parked over F2 but still recorded on F1: the render reads the stored field,
+  // so the swatch and the export must read it too.
+  boxes[1] = { ...boxes[1], x: 520, y: 20, frame: 'F1' };
+  assert.equal(activeFrameIdFor(boxes, ['a1'], FF), 'F1');
+  // With no stored membership the geometry answers instead.
+  boxes[1] = { ...boxes[1], frame: '' };
+  assert.equal(activeFrameIdFor(boxes, ['a1'], FF), 'F2');
+});
+
+test('activeFrameIdFor: no selection (or a pasteboard box) falls back to the PRIMARY artboard', () => {
+  const boxes = DECK();
+  assert.equal(activeFrameIdFor(boxes, [], FF), 'F1');
+  boxes.push({ id: 'loose', kind: 'box', x: 2000, y: 2000, w: 10, h: 10, frame: '' });
+  assert.equal(activeFrameIdFor(boxes, ['loose'], FF), 'F1');
+  // "primary" is the first in PAGE order, not the first in the array.
+  const reordered: any[] = [
+    { id: 'F1', kind: 'frame', x: 0, y: 0, w: 10, h: 10, order: 5 },
+    { id: 'F2', kind: 'frame', x: 900, y: 0, w: 10, h: 10, order: 1 },
+  ];
+  assert.equal(activeFrameIdFor(reordered, [], FF), 'F2');
+});
+
+test('activeFrameIdFor: a document with no artboards has no active one', () => {
+  assert.equal(activeFrameIdFor([{ id: 'b', kind: 'box', x: 0 }] as any[], ['b'], FF), '');
+});
+
+test('nextFrameOrder: one past the highest, whatever the x positions say (A9)', () => {
+  assert.equal(nextFrameOrder(DECK(), FF), 2);
+  assert.equal(nextFrameOrder([], FF), 0);
+  // A board drawn to the LEFT of the deck still takes the LAST slot.
+  const withLeft: any[] = [...DECK(), { id: 'F0', kind: 'frame', x: -900, y: 0, w: 400, h: 300, order: 2 }];
+  assert.equal(nextFrameOrder(withLeft, FF), 3);
+  // Frames carrying no order at all do not count as order 0.
+  assert.equal(nextFrameOrder([{ id: 'A', kind: 'frame', x: 0 }] as any[], FF), 0);
+});
+
+test('seedFrameOrders: a legacy doc is seeded from x; anything already ordered is left alone', () => {
+  const legacy: any[] = [
+    { id: 'R', kind: 'frame', x: 900, w: 400 },
+    { id: 'mid', kind: 'box', x: 10, frame: 'R' },
+    { id: 'L', kind: 'frame', x: 100, w: 400 },
+  ];
+  const seeded: any = seedFrameOrders(legacy, FF);
+  assert.notEqual(seeded, legacy);
+  assert.equal(seeded[0].order, 1);      // R is the right-hand board
+  assert.equal(seeded[2].order, 0);      // L is the left-hand board
+  assert.equal(seeded[1], legacy[1]);    // the non-frame row keeps its identity
+  assert.equal(legacy[0].order, undefined, 'input not mutated');
+  // One authored order anywhere means the document has an answer already.
+  const partly: any[] = [{ id: 'A', kind: 'frame', x: 900, order: 0 }, { id: 'B', kind: 'frame', x: 0 }];
+  assert.equal(seedFrameOrders(partly, FF), partly);
+  // No frames at all: same array back, so the caller can skip the commit.
+  const flat: any[] = [{ id: 'b', kind: 'box', x: 0 }];
+  assert.equal(seedFrameOrders(flat, FF), flat);
+});
+
+test('rehomeChildrenOfDeletedFrames: children move to the PREVIOUS artboard, frame-local (A7)', () => {
+  const boxes = DECK();
+  const res: any = rehomeChildrenOfDeletedFrames(boxes, ['F2'], FF);
+  assert.equal(res.homed, 1);
+  assert.equal(res.orphaned, 0);
+  assert.equal(res.boxes.length, boxes.length, 'the caller drops the deleted rows by index');
+  const moved = res.boxes.find((b: any) => b.id === 'b1');
+  assert.equal(moved.frame, 'F1');
+  // b1 sat at (520,40) on a frame at (500,0): local (20,40). On F1 at (0,0) that is (20,40).
+  assert.equal(moved.x, 20);
+  assert.equal(moved.y, 40);
+  assert.equal(boxes[3].x, 520, 'input not mutated');
+});
+
+test('rehomeChildrenOfDeletedFrames: the FIRST artboard has no previous, so its children land on the pasteboard', () => {
+  const res: any = rehomeChildrenOfDeletedFrames(DECK(), ['F1'], FF);
+  assert.equal(res.homed, 0);
+  assert.equal(res.orphaned, 1);
+  const cut = res.boxes.find((b: any) => b.id === 'a1');
+  assert.equal(cut.frame, '');
+  assert.equal(cut.x, 20, 'a pasteboard box keeps its own coordinates');
+});
+
+test('rehomeChildrenOfDeletedFrames: "previous" skips other doomed artboards', () => {
+  const boxes: any[] = [
+    { id: 'F1', kind: 'frame', x: 0, y: 0, w: 400, h: 300, order: 0 },
+    { id: 'F2', kind: 'frame', x: 500, y: 0, w: 400, h: 300, order: 1 },
+    { id: 'F3', kind: 'frame', x: 1000, y: 0, w: 400, h: 300, order: 2 },
+    { id: 'c3', kind: 'box', x: 1010, y: 10, w: 50, h: 50, frame: 'F3' },
+  ];
+  const res: any = rehomeChildrenOfDeletedFrames(boxes, ['F2', 'F3'], FF);
+  const moved = res.boxes.find((b: any) => b.id === 'c3');
+  assert.equal(moved.frame, 'F1', 'F2 is going too, so F1 is the previous survivor');
+  assert.equal(moved.x, 10);
+  assert.equal(res.homed, 1);
+});
+
+test('rehomeChildrenOfDeletedFrames: deleting only plain boxes changes nothing', () => {
+  const boxes = DECK();
+  const res: any = rehomeChildrenOfDeletedFrames(boxes, ['a1'], FF);
+  assert.equal(res.boxes, boxes);
+  assert.equal(res.homed + res.orphaned, 0);
+});
+
+test('duplicateFrameWithChildren: the children come too, with fresh ids and their local position (A8)', () => {
+  const boxes = DECK();
+  let n = 0;
+  const res: any = duplicateFrameWithChildren(boxes, 'F1', FF, { id: () => `n${++n}` }, { gap: 56 });
+  assert.equal(res.frameId, 'n1');
+  assert.equal(res.ids.length, 2, 'the frame and its one child');
+  const copyF = res.boxes.find((b: any) => b.id === 'n1');
+  const copyC = res.boxes.find((b: any) => b.id === 'n2');
+  assert.equal(copyF.x, 956, 'placed clear of the WHOLE deck: F2 ends at 900, + 56');
+  assert.equal(copyF.y, 0, 'same row');
+  assert.equal(copyC.frame, 'n1', 'the child belongs to the copy');
+  assert.equal(copyC.x, 976, 'and keeps its frame-local (20,20)');
+  assert.equal(copyC.y, 20);
+  assert.equal(boxes.length, 4, 'input not mutated');
+});
+
+test('duplicateFrameWithChildren: the copy takes the NEXT page slot and the rest renumber (A8/A9)', () => {
+  let n = 0;
+  const res: any = duplicateFrameWithChildren(DECK(), 'F1', FF, { id: () => `n${++n}` });
+  const byId: Record<string, any> = {};
+  for (const b of res.boxes) byId[b.id] = b;
+  assert.equal(byId.F1.order, 0);
+  assert.equal(byId.n1.order, 1, 'the copy is the next slide');
+  assert.equal(byId.F2.order, 2, 'and the slide that was 2 becomes 3');
+});
+
+test('duplicateFrameWithChildren: a child of the ORIGINAL still resolves to the original (the re-bucket trap)', () => {
+  let n = 0;
+  const res: any = duplicateFrameWithChildren(DECK(), 'F1', FF, { id: () => `n${++n}` });
+  const frames = res.boxes.filter((b: any) => b.kind === 'frame');
+  const orig = res.boxes.find((b: any) => b.id === 'a1');
+  // resolveFrame answers with the LAST containing frame, so an overlapping copy would
+  // steal this box on its next gesture. The copy is placed clear, so it cannot.
+  assert.equal(resolveFrame(orig, frames), 'F1');
+  assert.equal(resolveFrame(res.boxes.find((b: any) => b.id === 'n2'), frames), 'n1');
+});
+
+test('duplicateFrameWithChildren: the copy overlaps NO other artboard, not just the original', () => {
+  // The deck's own gutter (100px here, 56 in carousel.json, 80 in slide-deck.json) is the
+  // same order as `gap`, so "original + w + gap" used to drop the copy on top of the NEXT
+  // slide - and the copies are appended LAST, so `resolveFrame` handed that slide's
+  // children to the copy on their first gesture. Duplicating slide 1 of a 3-board deck:
+  const deck: any[] = [
+    ...DECK(),
+    { id: 'F3', kind: 'frame', x: 1000, y: 0, w: 400, h: 300, order: 2 },
+    { id: 'c1', kind: 'box', x: 1020, y: 40, w: 100, h: 40, frame: 'F3' },
+  ];
+  let n = 0;
+  const res: any = duplicateFrameWithChildren(deck, 'F1', FF, { id: () => `n${++n}` }, { gap: 56 });
+  const frames = res.boxes.filter((b: any) => b.kind === 'frame');
+  const copyF = res.boxes.find((b: any) => b.id === 'n1');
+  assert.equal(copyF.x, 1456, 'past the right edge of F3 (1400), + 56');
+  // No frame rect intersects any other.
+  for (const a of frames) for (const b of frames) {
+    if (a === b) continue;
+    const apart = a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
+    assert.ok(apart, `${a.id} overlaps ${b.id}`);
+  }
+  // …so every existing child still resolves to the board that owns it.
+  for (const [child, frame] of [['a1', 'F1'], ['b1', 'F2'], ['c1', 'F3']]) {
+    assert.equal(resolveFrame(res.boxes.find((b: any) => b.id === child), frames), frame,
+      `${child} must stay on ${frame}`);
+  }
+});
+
+test('duplicateFrameWithChildren: groups are re-keyed, and references INTO the copy repoint', () => {
+  const boxes: any[] = [
+    { id: 'F1', kind: 'frame', x: 0, y: 0, w: 400, h: 300, order: 0 },
+    { id: 'mask', kind: 'box', x: 10, y: 10, w: 80, h: 80, frame: 'F1', group: 'g1' },
+    { id: 'art', kind: 'image', x: 10, y: 10, w: 80, h: 80, frame: 'F1', group: 'g1', clip: 'mask' },
+    { id: 'tag', kind: 'text', x: 200, y: 10, w: 80, h: 80, frame: 'F1', matchOf: 'hero' },
+  ];
+  let n = 0, g = 0;
+  const res: any = duplicateFrameWithChildren(boxes, 'F1', FF,
+    { id: () => `n${++n}`, group: () => `G${++g}` },
+    { groupField: 'group', refFields: ['clip', 'matchOf'] });
+  const copyMask = res.boxes.find((b: any) => b.id === 'n2');
+  const copyArt = res.boxes.find((b: any) => b.id === 'n3');
+  const copyTag = res.boxes.find((b: any) => b.id === 'n4');
+  assert.equal(copyMask.group, 'G1', 'a fresh group id, or clicking a copy would grab the original');
+  assert.equal(copyArt.group, 'G1', 'both members share the ONE new group');
+  assert.equal(copyArt.clip, 'n2', 'the clip repoints at the copied mask');
+  assert.equal(copyTag.matchOf, 'hero', 'a morph TAG is not an id - left alone, so the copy still morphs');
+  assert.equal(boxes[1].group, 'g1', 'input not mutated');
+});
+
+test('duplicateFrameWithChildren: an unknown id is a no-op', () => {
+  const boxes = DECK();
+  const res: any = duplicateFrameWithChildren(boxes, 'nope', FF, { id: () => 'x' });
+  assert.equal(res.boxes, boxes);
+  assert.equal(res.frameId, '');
+  assert.deepEqual(res.ids, []);
+});
+
+test('filterMarqueeFrames: an artboard joins only when the band ENCLOSES it (A13)', () => {
+  const boxes = DECK();
+  const M = { kindField: 'kind', xField: 'x', yField: 'y', wField: 'w', hField: 'h', frameKind: 'frame' };
+  // A band across the middle of F1: it touches the frame and its child.
+  const crossing = { x: -10, y: 10, w: 200, h: 60 };
+  assert.deepEqual(filterMarqueeFrames(boxes, [0, 1], crossing, M), [1],
+    'the child stays, the partially-crossed artboard is dropped');
+  // A band around the whole of F1.
+  const around = { x: -20, y: -20, w: 460, h: 360 };
+  assert.deepEqual(filterMarqueeFrames(boxes, [0, 1], around, M), [0, 1]);
+  // Exactly on the edges counts as enclosed.
+  assert.deepEqual(filterMarqueeFrames(boxes, [0], { x: 0, y: 0, w: 400, h: 300 }, M), [0]);
+  // One pixel short does not.
+  assert.deepEqual(filterMarqueeFrames(boxes, [0], { x: 0, y: 0, w: 399, h: 300 }, M), []);
+  // A band dragged up-and-left is the same band.
+  assert.deepEqual(filterMarqueeFrames(boxes, [0], { x: 440, y: 340, w: -460, h: -360 }, M), [0]);
+});
+
 // ── Frames AS scenes: sequencing (plan 92) ────────────────────────────────────
 
 const SEQ_OPTS = {
@@ -678,6 +937,177 @@ test('sequenceFramesInOrder: existing transition is preserved, only unset gets t
   assert.equal(byId.A.enter, 'slide');   // authored enter kept
   assert.equal(byId.A.exit, 'fade');     // exit was unset → default
   assert.equal(byId.B.exit, 'fade');     // 'none' → default
+});
+
+// ── per-frame slide transitions (plans/179 M4) ────────────────────────────────
+//
+// With `transitionField` the flat defaultEnter/defaultExit stop being the answer: the
+// enter/exit come from the per-frame slide transitions, inheriting the document's where a
+// frame has none. That is the whole point - laying a deck out on the timeline now produces
+// the transitions the author chose per slide, not one blanket fade.
+//
+// THE FIELD MEANS "how THIS slide changes into the NEXT one", so the two halves come off
+// two different frames: a frame exits the way IT says and enters the way its PREDECESSOR
+// said. Taking both off the arriving frame made A ('slide') slide out leftwards while B
+// ('fade') cross-faded in - one move, two answers - where the presenter (min(from, to))
+// and the .pptx writer (slide k gets slide k-1's transition) both read it the right way.
+
+/** The same options the Design overlay passes, plus the per-frame transition field. */
+const SEQ_OPTS_TR = {
+  defaultDurMs: 3000, lane: 'seq',
+  startField: 'start', durField: 'dur', laneField: 'lane', enterField: 'enter', exitField: 'exit',
+  orderField: 'order', kindField: 'kind', frameKind: 'frame',
+  transitionField: 'slideTransition',
+};
+
+test('sequenceFramesInOrder: a frame EXITS the way it says and ENTERS the way its predecessor said', () => {
+  const boxes: any[] = [
+    { id: 'A', kind: 'frame', x: 0, order: 0, slideTransition: 'slide' },
+    { id: 'B', kind: 'frame', x: 100, order: 1, slideTransition: 'fade' },
+    { id: 'C', kind: 'frame', x: 200, order: 2, slideTransition: 'none' },
+  ];
+  const next: any = sequenceFramesInOrder(boxes, { ...SEQ_OPTS_TR, docTransition: 'fade' });
+  const byId: Record<string, any> = {};
+  for (const b of next) byId[b.id] = b;
+  // A is first in play order, so it appears instantly - but it still LEAVES as a slide.
+  assert.equal(byId.A.enter, 'none');
+  assert.equal(byId.A.exit, 'slide-right', 'a departing slide leaves leftwards');
+  // A→B is ONE move, authored on A: B slides in from the right to meet A's exit. The
+  // 'fade' stored on B describes the NEXT move, B→C, so it is B's exit and C's entrance.
+  assert.equal(byId.B.enter, 'slide-left', 'an entering slide comes in from the right');
+  assert.equal(byId.B.exit, 'fade');
+  assert.equal(byId.C.enter, 'fade', 'C arrives the way B said it would');
+  assert.equal(byId.C.exit, 'none');
+});
+
+test('sequenceFramesInOrder: an empty per-frame transition inherits the document one', () => {
+  const boxes: any[] = [
+    { id: 'A', kind: 'frame', x: 0, order: 0 },                        // no field at all
+    { id: 'B', kind: 'frame', x: 100, order: 1, slideTransition: '' }, // explicitly empty
+  ];
+  const next: any = sequenceFramesInOrder(boxes, { ...SEQ_OPTS_TR, docTransition: 'slide' });
+  const byId: Record<string, any> = {};
+  for (const b of next) byId[b.id] = b;
+  assert.equal(byId.A.exit, 'slide-right');
+  assert.equal(byId.B.enter, 'slide-left', 'an entering slide comes in from the right');
+  assert.equal(byId.B.exit, 'slide-right');
+});
+
+test('sequenceFramesInOrder: "custom" leaves enter/exit ALONE - the timeline owns them', () => {
+  const boxes: any[] = [
+    { id: 'A', kind: 'frame', x: 0, order: 0, slideTransition: 'custom' },
+    { id: 'B', kind: 'frame', x: 100, order: 1, slideTransition: 'custom' },
+    { id: 'C', kind: 'frame', x: 200, order: 2, slideTransition: 'fade' },
+  ];
+  const next: any = sequenceFramesInOrder(boxes, { ...SEQ_OPTS_TR, docTransition: 'slide' });
+  const byId: Record<string, any> = {};
+  for (const b of next) byId[b.id] = b;
+  // Both halves are refused, and each for its own frame's reason: B's exit because B is
+  // custom, B's entrance because the frame that authored the move into it (A) is.
+  assert.equal(byId.B.enter, undefined, 'custom on the predecessor derives no enter');
+  assert.equal(byId.B.exit, undefined, 'custom derives no exit');
+  // …and C, whose own value is ordinary, still takes no entrance: the move into it was
+  // authored on B, and B says the timeline owns it.
+  assert.equal(byId.C.enter, undefined, 'the predecessor is what decides the entrance');
+  assert.equal(byId.C.exit, 'fade', 'while C exits the way C says');
+  // The timing is still written - custom is about the transition, not about the layout.
+  assert.equal(byId.B.start, 3);
+  assert.equal(byId.B.lane, 'seq');
+});
+
+test('sequenceFramesInOrder: an authored enter still wins over the derived pair', () => {
+  const boxes: any[] = [
+    { id: 'A', kind: 'frame', x: 0, order: 0, slideTransition: 'fade', enter: 'pop' },
+    { id: 'B', kind: 'frame', x: 100, order: 1, slideTransition: 'fade' },
+  ];
+  const next: any = sequenceFramesInOrder(boxes, { ...SEQ_OPTS_TR, docTransition: 'fade' });
+  const byId: Record<string, any> = {};
+  for (const b of next) byId[b.id] = b;
+  assert.equal(byId.A.enter, 'pop', 'the noTransition guard: an authored kind is never overwritten');
+  assert.equal(byId.A.exit, 'fade');
+});
+
+test('sequenceFramesInOrder: no derivable transition anywhere leaves enter/exit untouched', () => {
+  // No per-frame value and no document value - nothing to derive, so the frames get
+  // their timing and keep whatever transitions they had (which is none).
+  const boxes: any[] = [
+    { id: 'A', kind: 'frame', x: 0, order: 0 },
+    { id: 'B', kind: 'frame', x: 100, order: 1 },
+  ];
+  const next: any = sequenceFramesInOrder(boxes, SEQ_OPTS_TR);
+  for (const b of next) {
+    assert.equal(b.enter, undefined);
+    assert.equal(b.exit, undefined);
+    assert.equal(b.lane, 'seq');
+  }
+});
+
+// ── minDurMs: the narrated-slide dwell floor (plans/180 T1, T7, T8) ───────────
+
+test('sequenceFramesInOrder: minDurMs raises one frame and every later start moves with it', () => {
+  const boxes: any[] = [
+    { id: 'F1', kind: 'frame', x: 0, order: 0 },
+    { id: 'F2', kind: 'frame', x: 500, order: 1 },
+    { id: 'F3', kind: 'frame', x: 1000, order: 2 },
+  ];
+  const next: any = sequenceFramesInOrder(boxes, { ...SEQ_OPTS, minDurMs: { F2: 11400 } });
+  const byId: Record<string, any> = {};
+  for (const b of next) byId[b.id] = b;
+  assert.equal(byId.F1.dur, 3, 'a frame with no floor keeps the default');
+  assert.equal(byId.F2.dur, 11.4, 'the narrated slide is long enough to hold its clip');
+  assert.equal(byId.F2.start, 3);
+  assert.equal(byId.F3.start, 14.4, 'the pack re-flows behind it - gapless, no seam');
+  assert.equal(byId.F3.dur, 3);
+});
+
+test('sequenceFramesInOrder: minDurMs is a FLOOR - a longer authored dwell survives', () => {
+  const boxes: any[] = [
+    { id: 'A', kind: 'frame', x: 0, order: 0, dur: 30 },   // someone left it up for 30 s
+    { id: 'B', kind: 'frame', x: 100, order: 1, dur: 2 },  // shorter than its narration
+  ];
+  const next: any = sequenceFramesInOrder(boxes, { ...SEQ_OPTS, minDurMs: { A: 11400, B: 8000 } });
+  const byId: Record<string, any> = {};
+  for (const b of next) byId[b.id] = b;
+  assert.equal(byId.A.dur, 30, 'the author decided; the floor only raises');
+  assert.equal(byId.B.dur, 8, 'a slide shorter than its voice is stretched to fit');
+  assert.equal(byId.B.start, 30);
+});
+
+test('sequenceFramesInOrder: minDurMs names frames by idField, and junk entries are ignored', () => {
+  const boxes: any[] = [
+    { name: 'A', kind: 'frame', x: 0, order: 0 },
+    { name: 'B', kind: 'frame', x: 100, order: 1 },
+  ];
+  // A tool whose rows are keyed by something other than `id` says so.
+  const next: any = sequenceFramesInOrder(boxes, { ...SEQ_OPTS, idField: 'name', minDurMs: { B: 5000 } });
+  assert.equal(next[1].dur, 5);
+  // Nothing in the map, an unknown id, and values that are not usable lengths all
+  // leave the pack exactly as it was.
+  const plain: any = sequenceFramesInOrder(boxes, { ...SEQ_OPTS, idField: 'name' });
+  for (const junk of [{}, { C: 5000 }, { B: 0 }, { B: -1 }, { B: Number.NaN }] as any[]) {
+    assert.deepEqual(sequenceFramesInOrder(boxes, { ...SEQ_OPTS, idField: 'name', minDurMs: junk }), plain);
+  }
+});
+
+test('sequenceFramesInOrder: a minDurMs over the hour ceiling clamps, it does not overflow', () => {
+  const boxes: any[] = [{ id: 'A', kind: 'frame', x: 0, order: 0 }];
+  const next: any = sequenceFramesInOrder(boxes, { ...SEQ_OPTS, minDurMs: { A: 9_000_000 } });
+  assert.equal(next[0].dur, 3600, 'the same ceiling every other authored length gets');
+});
+
+test('sequenceFramesInOrder: without transitionField the flat defaults are unchanged', () => {
+  // Sequence Studio's call site - the pre-M4 behaviour, byte for byte.
+  const boxes: any[] = [
+    { id: 'A', kind: 'frame', x: 0, order: 0, slideTransition: 'slide' },  // ignored
+    { id: 'B', kind: 'frame', x: 100, order: 1 },
+  ];
+  const next: any = sequenceFramesInOrder(boxes, SEQ_OPTS);
+  const byId: Record<string, any> = {};
+  for (const b of next) byId[b.id] = b;
+  assert.equal(byId.A.enter, 'none');
+  assert.equal(byId.A.exit, 'fade');
+  assert.equal(byId.B.enter, 'fade');
+  assert.equal(byId.B.exit, 'fade');
 });
 
 test('sequenceFramesInOrder: non-frame boxes are untouched (same identity), input not mutated', () => {
@@ -1117,6 +1547,18 @@ test('layoutArtboards: one frame per page, left to right, with the page’s part
   assert.equal(m2.frame, frames[1]!.id);
   assert.deepEqual([m2.x, m2.y], [1037 + 5, 5], 'page 2 members shift by their frame’s x');
   assert.equal(new Set(rows.map((r) => r.id)).size, 5, 'fresh, unique ids - two pages both arrived as p0');
+});
+
+test('layoutArtboards: an imported slide’s SPEAKER NOTES land on the frame (P2)', () => {
+  const rows = layoutArtboards([
+    page('Slide 1', [], 960, 540, { notes: 'Open with the numbers.' }),
+    page('Slide 2', []),
+  ], abOpts({ notesField: 'notes' }));
+  assert.equal(rows[0]!.notes, 'Open with the numbers.');
+  assert.equal(rows[1]!.notes, undefined, 'a slide with none gets no empty field');
+  // No notesField declared: the value is carried nowhere rather than onto a guessed key.
+  const plain = layoutArtboards([page('Slide 1', [], 960, 540, { notes: 'x' })], abOpts());
+  assert.equal(plain[0]!.notes, undefined);
 });
 
 test('layoutArtboards: references survive the re-id - clips re-point, groups stay per page', () => {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { groupWordsToCues, cuesToVtt, cuesToSrt, cueAt } from '../engine/src/captions.ts';
+import { groupWordsToCues, cuesForSlide, cuesToVtt, cuesToSrt, cueAt } from '../engine/src/captions.ts';
 import type { CaptionCue } from '../engine/src/captions.ts';
 
 /** Evenly-spaced word timings from a sentence - 0.3s per word, no gaps. */
@@ -193,4 +193,68 @@ test('cueAt boundaries: start is inclusive, end is exclusive', () => {
   assert.equal(cueAt(TIMELINE, 1.5)?.text, 'b'); // exactly at a start
   assert.equal(cueAt(TIMELINE, 1), null); // exactly at an end - the cue has left
   assert.equal(cueAt(TIMELINE, 3), null);
+});
+
+// ─── cuesForSlide (plans/180 T4) ──────────────────────────────────────────────
+//
+// A narrated slide's cues have to land on the words AND stay inside the slide. T1 and T3
+// already size a slide to hold its narration, so under normal timing nothing is cut -
+// but a slide shortened by hand must not push its last caption over the next slide's
+// first words, which is the one failure a viewer notices immediately.
+
+test('cuesForSlide places the clip at the lead-in and returns film-clock seconds', () => {
+  // Three words at 0.3 s each, the slide starts at 5 s, narration 400 ms after that.
+  const cues = cuesForSlide(words('One two three.'), 5000, 12_000, { offsetMs: 400 });
+  assert.equal(cues.length, 1);
+  assert.equal(cues[0]!.text, 'One two three.');
+  assert.equal(cues[0]!.start, 5.4);
+  assert.equal(cues[0]!.end, 6.3);
+});
+
+test('cuesForSlide with no offset starts the clip at the slide itself', () => {
+  const cues = cuesForSlide(words('One two.'), 2000, 9000);
+  assert.equal(cues[0]!.start, 2);
+  assert.equal(cues[0]!.end, 2.6);
+});
+
+test('a cue running past the slide is clamped to the slide, never leaked onto the next', () => {
+  // Two sentences; the second runs to 1.2 s of media, but the slide closes at 1.0 s.
+  const cues = cuesForSlide(words('One two. Three four.'), 0, 1000);
+  assert.equal(cues.length, 2);
+  assert.equal(cues[1]!.start, 0.6);
+  assert.equal(cues[1]!.end, 1, 'trimmed to the slide edge, not left hanging over the next slide');
+  assert.ok(cues.every((c) => c.end <= 1 && c.start >= 0));
+});
+
+test('a cue entirely past the slide is dropped, and a sliver of one goes with it', () => {
+  // 'Three four.' starts at 0.6 s; a slide ending at 0.6 s has no room for any of it.
+  assert.deepEqual(
+    cuesForSlide(words('One two. Three four.'), 0, 600).map((c) => c.text),
+    ['One two.'],
+  );
+  // A slide ending 20 ms into the second cue leaves a flash, not a caption.
+  assert.deepEqual(
+    cuesForSlide(words('One two. Three four.'), 0, 620).map((c) => c.text),
+    ['One two.'],
+  );
+  // …and 100 ms of it is worth keeping (the default floor is 50 ms).
+  assert.deepEqual(
+    cuesForSlide(words('One two. Three four.'), 0, 700).map((c) => c.text),
+    ['One two.', 'Three four.'],
+  );
+});
+
+test('cuesForSlide takes the grouping options through to groupWordsToCues', () => {
+  const long = words('alpha bravo charlie delta echo foxtrot');
+  assert.equal(cuesForSlide(long, 0, 30_000).length, 1, 'six short words fit one 42-char cue');
+  assert.equal(cuesForSlide(long, 0, 30_000, { maxChars: 12 }).length, 4);
+});
+
+test('an empty or backwards window yields nothing, and never throws', () => {
+  assert.deepEqual(cuesForSlide(words('One two.'), 5000, 5000), []);
+  assert.deepEqual(cuesForSlide(words('One two.'), 5000, 1000), []);
+  assert.deepEqual(cuesForSlide([], 0, 5000), []);
+  assert.deepEqual(cuesForSlide(words('One.'), Number.NaN, Number.NaN), []);
+  // A negative start is read as 0 rather than pulling cues before the film begins.
+  assert.equal(cuesForSlide(words('One.'), -1000, 5000)[0]!.start, 0);
 });

@@ -1,0 +1,2369 @@
+{
+  "corpus": "spa",
+  "lang": "fr",
+  "brief": "Translate the given UI strings from English into fr for a software product.\nThese are short UI microcopy strings - button labels, headings, aria-labels, and one-line descriptions - in a design-tool web app called Lolly. Keep them as short as the source; this is UI chrome, not prose.\nRegister: neutral-informal (tu, not vous).\nNever translate these terms - copy them verbatim wherever they appear: \"Lolly\", \"SUSE\", \"Geeko\", \"Content Credentials\", \"C2PA\", \"Pose Geeko\", \"Neurospicy\".\nPreserve every {placeholder} token exactly (same braces, same name, same count) - these are runtime interpolations, not prose.\nPreserve any inline HTML exactly: the same tags, the same count, every attribute (href, target, rel) byte-for-byte, and every HTML entity (&amp;, &lt;). Translate only the human text around and between the tags - never a tag name, an attribute value, or the contents of a <code> element.\nPreserve punctuation choices like → and & as-is where they read naturally in the target language; do not add explanatory text.\nMatch the source length and register. Do not pad or embellish.\nTerm-sense guidance - translate each of these by its stated sense, NEVER literally: \"house style\" = the organisation's OWN editorial/design standard, as in a publishing or fashion house - never a residence or home decor. Use the target language's established term for an organisation's style standard (German 'Hausstil', Turkish 'kurumsal stil'), or keep the English where local professionals do. | \"house rules\" = an organisation's standing working conventions - never the rules of a household. | \"in-house\" = done inside the organisation itself - never inside a building or dwelling. | \"design house / fashion house / publishing house\" = a company or atelier - never a physical building. | \"powerhouse\" = an idiom for something exceptionally capable - never a power station or building. | \"house reader rule\" = this codebase's own parser convention (never throws, null on bad input) - 'house' means the project, not a home.\nUse a plain hyphen \"-\" for parenthetical dashes. Never use an em-dash or a spaced en-dash: they read as machine-written in this language. An UNSPACED en-dash inside a numeric or alphabetic range (0-1, A-Z) is correct and must be preserved as-is.\nNo Oxford comma before the final conjunction in a list. A comma before a conjunction that joins two main clauses is still correct - only the list-final one is wrong.\nReturn ONLY the JSON matching the given schema - one translation per input id, in the same order.",
+  "items": [
+    {
+      "id": 56,
+      "text": "1 sentence"
+    },
+    {
+      "id": 61,
+      "text": "1 slide narrated."
+    },
+    {
+      "id": 85,
+      "text": "A beat mid-sentence"
+    },
+    {
+      "id": 98,
+      "text": "A mark named its own way."
+    },
+    {
+      "id": 99,
+      "text": "A narration run is already going."
+    },
+    {
+      "id": 110,
+      "text": "A short breath"
+    },
+    {
+      "id": 136,
+      "text": "ALL CAPS does nothing at all. An acronym the voice cannot pronounce is spelled out letter by letter whatever its case, so write it as separate letters if that is what you want."
+    },
+    {
+      "id": 158,
+      "text": "Add a logo"
+    },
+    {
+      "id": 163,
+      "text": "Add an artboard first."
+    },
+    {
+      "id": 164,
+      "text": "Add artboard after"
+    },
+    {
+      "id": 166,
+      "text": "Add colour"
+    },
+    {
+      "id": 172,
+      "text": "Add one thing, and keep going whenever you like. Everything stays on this device."
+    },
+    {
+      "id": 175,
+      "text": "Add slide after"
+    },
+    {
+      "id": 182,
+      "text": "Add the marks - Lolly reads each file and offers it the right slot."
+    },
+    {
+      "id": 200,
+      "text": "Added 1 artboard."
+    },
+    {
+      "id": 209,
+      "text": "Added {n} artboards."
+    },
+    {
+      "id": 282,
+      "text": "Appears"
+    },
+    {
+      "id": 283,
+      "text": "Appears at"
+    },
+    {
+      "id": 303,
+      "text": "Arrange"
+    },
+    {
+      "id": 307,
+      "text": "Artboard added"
+    },
+    {
+      "id": 308,
+      "text": "Artboard fill"
+    },
+    {
+      "id": 309,
+      "text": "Artboard name"
+    },
+    {
+      "id": 314,
+      "text": "As artboards"
+    },
+    {
+      "id": 322,
+      "text": "Ask it"
+    },
+    {
+      "id": 331,
+      "text": "At"
+    },
+    {
+      "id": 332,
+      "text": "At time"
+    },
+    {
+      "id": 333,
+      "text": "At {t}s"
+    },
+    {
+      "id": 334,
+      "text": "At {t}s for {d}s"
+    },
+    {
+      "id": 345,
+      "text": "Auto-advance slides"
+    },
+    {
+      "id": 370,
+      "text": "Before assigning roles"
+    },
+    {
+      "id": 372,
+      "text": "Before moving swatches"
+    },
+    {
+      "id": 398,
+      "text": "Blend with"
+    },
+    {
+      "id": 429,
+      "text": "Bring a file"
+    },
+    {
+      "id": 447,
+      "text": "Build step"
+    },
+    {
+      "id": 448,
+      "text": "Build the palette"
+    },
+    {
+      "id": 458,
+      "text": "Burned in"
+    },
+    {
+      "id": 487,
+      "text": "Cancelled"
+    },
+    {
+      "id": 493,
+      "text": "Caption boxes on the canvas are drawn into every frame."
+    },
+    {
+      "id": 495,
+      "text": "Captions drawn on the canvas are always part of the picture. An embedded track can be switched off by the viewer’s player; the sidecar files are the ones an editor or a video platform will accept."
+    },
+    {
+      "id": 520,
+      "text": "Change the words and the punctuation, then re-speak just what you changed"
+    },
+    {
+      "id": 526,
+      "text": "Chart the data"
+    },
+    {
+      "id": 565,
+      "text": "Choose at send time"
+    },
+    {
+      "id": 573,
+      "text": "Choose them separately"
+    },
+    {
+      "id": 740,
+      "text": "Copy values"
+    },
+    {
+      "id": 837,
+      "text": "Created “{name}” in {project} on Penpot"
+    },
+    {
+      "id": 838,
+      "text": "Created “{name}” on Penpot"
+    },
+    {
+      "id": 839,
+      "text": "Creates a new Penpot file, in the project you pick when you send, with your brand tokens inside. It travels through lolly.tools’s pass-through because Penpot’s API refuses direct browser calls - your token is forwarded, never stored server-side."
+    },
+    {
+      "id": 896,
+      "text": "Default project"
+    },
+    {
+      "id": 902,
+      "text": "Delete artboard"
+    },
+    {
+      "id": 908,
+      "text": "Delete slide"
+    },
+    {
+      "id": 919,
+      "text": "Deleted artboard. Its one item is now on the pasteboard."
+    },
+    {
+      "id": 920,
+      "text": "Deleted artboard. Its one item moved to the previous artboard."
+    },
+    {
+      "id": 921,
+      "text": "Deleted artboard. Its {n} items are now on the pasteboard."
+    },
+    {
+      "id": 922,
+      "text": "Deleted artboard. Its {n} items moved to the previous artboard."
+    },
+    {
+      "id": 933,
+      "text": "Derived"
+    },
+    {
+      "id": 943,
+      "text": "Design tools"
+    },
+    {
+      "id": 980,
+      "text": "Dock to the side"
+    },
+    {
+      "id": 981,
+      "text": "Docked panels"
+    },
+    {
+      "id": 985,
+      "text": "Document name"
+    },
+    {
+      "id": 991,
+      "text": "Double-click to rename"
+    },
+    {
+      "id": 1040,
+      "text": "Drag on the canvas to place a sound, then choose one."
+    },
+    {
+      "id": 1041,
+      "text": "Drag on the canvas to place a tool, then choose one."
+    },
+    {
+      "id": 1042,
+      "text": "Drag on the canvas to place a video, then choose one."
+    },
+    {
+      "id": 1043,
+      "text": "Drag on the canvas to place an animation, then choose one."
+    },
+    {
+      "id": 1044,
+      "text": "Drag on the canvas to place an image, then choose one."
+    },
+    {
+      "id": 1060,
+      "text": "Drop a Figma <b>.fig</b> / SVG, a Penpot <b>.penpot</b>, an Illustrator <b>.ai</b> or <b>.pdf</b>, a PowerPoint <b>.pptx</b>, or an InDesign <b>.idml</b> (File → Export → InDesign Markup). (For editable text from a Figma <b>SVG</b>, uncheck “Outline text” on export.)"
+    },
+    {
+      "id": 1065,
+      "text": "Drop a mark; Lolly reads its shape and offers the right slot."
+    },
+    {
+      "id": 1080,
+      "text": "Duplicate artboard"
+    },
+    {
+      "id": 1083,
+      "text": "Duplicate slide"
+    },
+    {
+      "id": 1091,
+      "text": "Each orientation (horizontal, vertical) can carry each treatment: primary and mono, each with a reverse form for dark backgrounds. Marks the design system names its own way - an icon, a crest - go under Custom marks. A design system with more than one logo can carry each as its own set. Every slot is optional. PNG, SVG, JPEG or WebP; they stay on this device and travel in the design system file."
+    },
+    {
+      "id": 1092,
+      "text": "Each selected colour takes the next role in turn."
+    },
+    {
+      "id": 1098,
+      "text": "Edge"
+    },
+    {
+      "id": 1109,
+      "text": "Edit script"
+    },
+    {
+      "id": 1132,
+      "text": "Embedded track"
+    },
+    {
+      "id": 1148,
+      "text": "End in disbelief"
+    },
+    {
+      "id": 1150,
+      "text": "End with energy"
+    },
+    {
+      "id": 1151,
+      "text": "End with more energy"
+    },
+    {
+      "id": 1155,
+      "text": "English voices only. Blend two with +."
+    },
+    {
+      "id": 1156,
+      "text": "Enter"
+    },
+    {
+      "id": 1157,
+      "text": "Enter (ms)"
+    },
+    {
+      "id": 1161,
+      "text": "Enter curve"
+    },
+    {
+      "id": 1173,
+      "text": "Every colour the design system carries. Click a swatch to recolour, rename or remove it; each section folds and grows with its own <strong>+ Add</strong>. The <strong>Colour chart</strong> below plots the same swatches by hue and chroma. Changes flow to every picker, tool and export."
+    },
+    {
+      "id": 1176,
+      "text": "Every face on this device and the role it serves. Faces of the design system's own travel in its file; starter faces come with the app."
+    },
+    {
+      "id": 1180,
+      "text": "Every narrated slide is already up to date."
+    },
+    {
+      "id": 1183,
+      "text": "Every page or slide becomes its own artboard, side by side, with its parts still editable."
+    },
+    {
+      "id": 1189,
+      "text": "Everything stays on this device. Every tool and export follows it."
+    },
+    {
+      "id": 1194,
+      "text": "Exit"
+    },
+    {
+      "id": 1195,
+      "text": "Exit (ms)"
+    },
+    {
+      "id": 1196,
+      "text": "Exit curve"
+    },
+    {
+      "id": 1200,
+      "text": "Expand {name}"
+    },
+    {
+      "id": 1257,
+      "text": "Fetching from Google…"
+    },
+    {
+      "id": 1263,
+      "text": "File name"
+    },
+    {
+      "id": 1269,
+      "text": "Fill & Stroke"
+    },
+    {
+      "id": 1300,
+      "text": "Fit all"
+    },
+    {
+      "id": 1302,
+      "text": "Fit artboard"
+    },
+    {
+      "id": 1316,
+      "text": "Fly"
+    },
+    {
+      "id": 1335,
+      "text": "Font name"
+    },
+    {
+      "id": 1339,
+      "text": "For"
+    },
+    {
+      "id": 1340,
+      "text": "For a beat in the middle of a sentence, use an em dash, a semicolon or a colon. A comma is the short breath."
+    },
+    {
+      "id": 1381,
+      "text": "Generate a palette to pin a print build for the primary."
+    },
+    {
+      "id": 1383,
+      "text": "Generate matching colours from the primary - pick a harmony, then <strong>+ Add</strong> the ones you want. Each comes pre-named; rename any of them later. See the whole palette on real graphics below."
+    },
+    {
+      "id": 1400,
+      "text": "Give a role"
+    },
+    {
+      "id": 1405,
+      "text": "Go back to cutting. What you typed stays until you Regenerate."
+    },
+    {
+      "id": 1410,
+      "text": "Google Fonts or a font file. Stays on this device."
+    },
+    {
+      "id": 1412,
+      "text": "Google learns the family name and your IP address. The file is then kept on this device and used offline. This is the one step in the studio that reaches a third party."
+    },
+    {
+      "id": 1435,
+      "text": "Group name"
+    },
+    {
+      "id": 1455,
+      "text": "Headings, code and italic are now on the page."
+    },
+    {
+      "id": 1456,
+      "text": "Headings, code and italic follow the primary until you choose them."
+    },
+    {
+      "id": 1473,
+      "text": "Hide docked panels"
+    },
+    {
+      "id": 1476,
+      "text": "Hide inspector"
+    },
+    {
+      "id": 1478,
+      "text": "Hide layer"
+    },
+    {
+      "id": 1492,
+      "text": "Horizontal, vertical, custom marks"
+    },
+    {
+      "id": 1501,
+      "text": "How much of the second voice"
+    },
+    {
+      "id": 1503,
+      "text": "How should this document’s pages come in?"
+    },
+    {
+      "id": 1549,
+      "text": "Import cancelled."
+    },
+    {
+      "id": 1553,
+      "text": "Import pages"
+    },
+    {
+      "id": 1564,
+      "text": "In the design system"
+    },
+    {
+      "id": 1576,
+      "text": "Inspector"
+    },
+    {
+      "id": 1588,
+      "text": "Interface follows the design system"
+    },
+    {
+      "id": 1598,
+      "text": "It becomes the primary. Shades and roles can follow from it."
+    },
+    {
+      "id": 1613,
+      "text": "It’s removed from the design system tokens."
+    },
+    {
+      "id": 1622,
+      "text": "Just one page"
+    },
+    {
+      "id": 1633,
+      "text": "Keep the previous take"
+    },
+    {
+      "id": 1685,
+      "text": "Layer"
+    },
+    {
+      "id": 1688,
+      "text": "Layers"
+    },
+    {
+      "id": 1691,
+      "text": "Lead-in"
+    },
+    {
+      "id": 1752,
+      "text": "Loading the design system…"
+    },
+    {
+      "id": 1759,
+      "text": "Lock layer"
+    },
+    {
+      "id": 1773,
+      "text": "Lolly's ink and paper. Tools use them until the design system has colours of its own."
+    },
+    {
+      "id": 1778,
+      "text": "Loop the deck (kiosk)"
+    },
+    {
+      "id": 1793,
+      "text": "Make a token in Penpot under Settings → Access tokens. Each send creates a new Penpot file, on the canvas with your brand tokens inside, in the project you pick at send time. It travels through lolly.tools’s pass-through, because Penpot’s API does not allow browser calls from other sites - your token is forwarded with each send, not stored server-side. What is remembered on this device is your choice below."
+    },
+    {
+      "id": 1819,
+      "text": "Marks the design system names its own way - an icon, a crest, a favicon."
+    },
+    {
+      "id": 1842,
+      "text": "Mixed"
+    },
+    {
+      "id": 1859,
+      "text": "More actions"
+    },
+    {
+      "id": 1864,
+      "text": "More options in Script audio"
+    },
+    {
+      "id": 1873,
+      "text": "Move"
+    },
+    {
+      "id": 1875,
+      "text": "Move down"
+    },
+    {
+      "id": 1885,
+      "text": "Move up"
+    },
+    {
+      "id": 1894,
+      "text": "Mute narration"
+    },
+    {
+      "id": 1919,
+      "text": "Narrate"
+    },
+    {
+      "id": 1920,
+      "text": "Narrate slides"
+    },
+    {
+      "id": 1921,
+      "text": "Narrate this slide"
+    },
+    {
+      "id": 1922,
+      "text": "Narrate this slide again"
+    },
+    {
+      "id": 1923,
+      "text": "Narrated from these notes."
+    },
+    {
+      "id": 1924,
+      "text": "Narrating in the background. You can keep working."
+    },
+    {
+      "id": 1925,
+      "text": "Narrating slides"
+    },
+    {
+      "id": 1926,
+      "text": "Narration"
+    },
+    {
+      "id": 1927,
+      "text": "Narration muted."
+    },
+    {
+      "id": 1928,
+      "text": "Narration unmuted."
+    },
+    {
+      "id": 1929,
+      "text": "Narration uses an English voice."
+    },
+    {
+      "id": 1931,
+      "text": "Navigator"
+    },
+    {
+      "id": 1944,
+      "text": "New group name"
+    },
+    {
+      "id": 1945,
+      "text": "New group…"
+    },
+    {
+      "id": 2012,
+      "text": "No second voice"
+    },
+    {
+      "id": 2016,
+      "text": "No slide has speaker notes to narrate yet."
+    },
+    {
+      "id": 2017,
+      "text": "No slide has speaker notes yet."
+    },
+    {
+      "id": 2018,
+      "text": "No slides yet."
+    },
+    {
+      "id": 2046,
+      "text": "Not a colour I can read - try #hex, rgb(), oklch() or a name"
+    },
+    {
+      "id": 2049,
+      "text": "Not fetched yet."
+    },
+    {
+      "id": 2050,
+      "text": "Not fetched. Nothing was sent to Google."
+    },
+    {
+      "id": 2053,
+      "text": "Not narrated yet."
+    },
+    {
+      "id": 2076,
+      "text": "Nothing installs until you choose one."
+    },
+    {
+      "id": 2084,
+      "text": "Nothing selected"
+    },
+    {
+      "id": 2094,
+      "text": "Nothing yet"
+    },
+    {
+      "id": 2104,
+      "text": "Numbers and money are read as words before anything is spoken, and the transcript shows what was said."
+    },
+    {
+      "id": 2105,
+      "text": "Object"
+    },
+    {
+      "id": 2120,
+      "text": "Offset starts by"
+    },
+    {
+      "id": 2121,
+      "text": "Offset starts by (ms)"
+    },
+    {
+      "id": 2122,
+      "text": "Offset starts by…"
+    },
+    {
+      "id": 2125,
+      "text": "On click"
+    },
+    {
+      "id": 2126,
+      "text": "On click, step {n}"
+    },
+    {
+      "id": 2129,
+      "text": "On primary"
+    },
+    {
+      "id": 2140,
+      "text": "One face for body copy, buttons and every tool. Search Google Fonts, or drop a font file."
+    },
+    {
+      "id": 2142,
+      "text": "One page replaces the board. A multi-page document asks which page."
+    },
+    {
+      "id": 2189,
+      "text": "Open in timeline"
+    },
+    {
+      "id": 2212,
+      "text": "Optional colour tokens - blends of the palette for backgrounds and accents. Stops wear the swatches, so they follow a recolour. Skip these entirely if the design system doesn't do gradients."
+    },
+    {
+      "id": 2275,
+      "text": "Paste a colour"
+    },
+    {
+      "id": 2276,
+      "text": "Paste a colour, or a list"
+    },
+    {
+      "id": 2285,
+      "text": "Path"
+    },
+    {
+      "id": 2289,
+      "text": "Paused."
+    },
+    {
+      "id": 2294,
+      "text": "Penpot cannot take a {format} file - send a PNG, an SVG or a .penpot export"
+    },
+    {
+      "id": 2304,
+      "text": "Phonemes"
+    },
+    {
+      "id": 2307,
+      "text": "Pick a Penpot project to send to"
+    },
+    {
+      "id": 2308,
+      "text": "Pick a colour"
+    },
+    {
+      "id": 2317,
+      "text": "Pinned"
+    },
+    {
+      "id": 2339,
+      "text": "Player"
+    },
+    {
+      "id": 2344,
+      "text": "Playing."
+    },
+    {
+      "id": 2356,
+      "text": "Popup blocked. Showing the speaker view here."
+    },
+    {
+      "id": 2375,
+      "text": "Present from here"
+    },
+    {
+      "id": 2376,
+      "text": "Present from this slide"
+    },
+    {
+      "id": 2377,
+      "text": "Present options"
+    },
+    {
+      "id": 2380,
+      "text": "Press Enter to end a breath group. Each sentence is read on its own, so a short one paces the read."
+    },
+    {
+      "id": 2390,
+      "text": "Preview this motion"
+    },
+    {
+      "id": 2456,
+      "text": "R"
+    },
+    {
+      "id": 2477,
+      "text": "Read this sentence faster"
+    },
+    {
+      "id": 2478,
+      "text": "Read this sentence slower"
+    },
+    {
+      "id": 2489,
+      "text": "Reading the file…"
+    },
+    {
+      "id": 2495,
+      "text": "Reads the speaker notes on 1 slide aloud on this device and places the audio on that slide. Nothing is uploaded."
+    },
+    {
+      "id": 2572,
+      "text": "Rename this design"
+    },
+    {
+      "id": 2610,
+      "text": "Reset to the deck transition"
+    },
+    {
+      "id": 2615,
+      "text": "Resize docked panels"
+    },
+    {
+      "id": 2649,
+      "text": "Roles · what tools read"
+    },
+    {
+      "id": 2694,
+      "text": "Save as new clip"
+    },
+    {
+      "id": 2697,
+      "text": "Save changes to this clip"
+    },
+    {
+      "id": 2727,
+      "text": "Say it as…"
+    },
+    {
+      "id": 2788,
+      "text": "Select something to edit its properties."
+    },
+    {
+      "id": 2801,
+      "text": "Send"
+    },
+    {
+      "id": 2810,
+      "text": "Send to Penpot"
+    },
+    {
+      "id": 2825,
+      "text": "Serving {roles}"
+    },
+    {
+      "id": 2857,
+      "text": "Shades, a neutral to match, and every role, worked out in OKLCH. You see it before anything changes."
+    },
+    {
+      "id": 2858,
+      "text": "Shades, the colour chart, gradients and bulk editing appear once the palette grows."
+    },
+    {
+      "id": 2860,
+      "text": "Shadow X"
+    },
+    {
+      "id": 2861,
+      "text": "Shadow Y"
+    },
+    {
+      "id": 2877,
+      "text": "Show captions when presenting"
+    },
+    {
+      "id": 2878,
+      "text": "Show docked panels"
+    },
+    {
+      "id": 2884,
+      "text": "Show layer"
+    },
+    {
+      "id": 2901,
+      "text": "Sidecar .vtt + .srt"
+    },
+    {
+      "id": 2944,
+      "text": "Silence before the next sentence"
+    },
+    {
+      "id": 2959,
+      "text": "Slide audio"
+    },
+    {
+      "id": 2964,
+      "text": "Slide style"
+    },
+    {
+      "id": 2966,
+      "text": "Slide {n}"
+    },
+    {
+      "id": 2967,
+      "text": "Slide {n} of {total}"
+    },
+    {
+      "id": 2968,
+      "text": "Slides"
+    },
+    {
+      "id": 2969,
+      "text": "Slow"
+    },
+    {
+      "id": 2991,
+      "text": "Some players ignore captions inside MP4"
+    },
+    {
+      "id": 3007,
+      "text": "Sound marks"
+    },
+    {
+      "id": 3016,
+      "text": "Speaker view opened in a new window."
+    },
+    {
+      "id": 3018,
+      "text": "Speaking the changes"
+    },
+    {
+      "id": 3019,
+      "text": "Speaking the changes…"
+    },
+    {
+      "id": 3025,
+      "text": "Spell one word out in phonemes"
+    },
+    {
+      "id": 3031,
+      "text": "Split"
+    },
+    {
+      "id": 3036,
+      "text": "Spoken with a British accent, from the heavier voice."
+    },
+    {
+      "id": 3037,
+      "text": "Spoken with an American accent, from the heavier voice."
+    },
+    {
+      "id": 3044,
+      "text": "Stack"
+    },
+    {
+      "id": 3064,
+      "text": "Start with one colour"
+    },
+    {
+      "id": 3073,
+      "text": "Stays for"
+    },
+    {
+      "id": 3082,
+      "text": "Stop editing"
+    },
+    {
+      "id": 3094,
+      "text": "Stroke"
+    },
+    {
+      "id": 3136,
+      "text": "Table"
+    },
+    {
+      "id": 3138,
+      "text": "Tail"
+    },
+    {
+      "id": 3141,
+      "text": "Take colours from an image"
+    },
+    {
+      "id": 3146,
+      "text": "Tap the chip to pick it, paste it in any notation, take it from the screen, or pull it from an image."
+    },
+    {
+      "id": 3191,
+      "text": "That could not be spoken again. Your changes are still here."
+    },
+    {
+      "id": 3210,
+      "text": "That file is too big to chart - the limit is 8 MB."
+    },
+    {
+      "id": 3258,
+      "text": "The app\\'s accent takes the primary colour. Tools and exports are not affected."
+    },
+    {
+      "id": 3315,
+      "text": "The first run downloads the voice model once ({size}). It stays on this device."
+    },
+    {
+      "id": 3316,
+      "text": "The first run downloads the voice model once. It stays on this device."
+    },
+    {
+      "id": 3326,
+      "text": "The logo"
+    },
+    {
+      "id": 3328,
+      "text": "The mark at the end sets the mood: a full stop is neutral, ! is energy, ? is a question, … trails off, !? is disbelief."
+    },
+    {
+      "id": 3334,
+      "text": "The notes changed after this slide was narrated."
+    },
+    {
+      "id": 3349,
+      "text": "The palette"
+    },
+    {
+      "id": 3350,
+      "text": "The palette, applied"
+    },
+    {
+      "id": 3360,
+      "text": "The rest of the system - spacing, sizing, stroke widths, opacity, rotation, plain numbers and shadows. Tools that read tokens follow these the way they follow the colours."
+    },
+    {
+      "id": 3383,
+      "text": "The voice and speed this clip was spoken with"
+    },
+    {
+      "id": 3385,
+      "text": "The voices are English only. The clip is marked as a synthetic voice."
+    },
+    {
+      "id": 3414,
+      "text": "This artwork is a single shape, so there is nothing to ungroup."
+    },
+    {
+      "id": 3416,
+      "text": "This becomes a new Penpot file with your brand tokens inside."
+    },
+    {
+      "id": 3435,
+      "text": "This clip has been updated everywhere it is used."
+    },
+    {
+      "id": 3445,
+      "text": "This document has {n} pages. How should they come in?"
+    },
+    {
+      "id": 3497,
+      "text": "This object has no text to edit."
+    },
+    {
+      "id": 3519,
+      "text": "This tool has no artboards."
+    },
+    {
+      "id": 3534,
+      "text": "Those parts could not be separated, so nothing was changed."
+    },
+    {
+      "id": 3549,
+      "text": "Tips"
+    },
+    {
+      "id": 3551,
+      "text": "To change these, open the clip in Script audio."
+    },
+    {
+      "id": 3576,
+      "text": "Trail off softly"
+    },
+    {
+      "id": 3585,
+      "text": "Transition to next"
+    },
+    {
+      "id": 3626,
+      "text": "Type over the words, add punctuation or a mark, then Regenerate. Only the sentences you touched are spoken again."
+    },
+    {
+      "id": 3648,
+      "text": "Ungrouped into {n} parts."
+    },
+    {
+      "id": 3649,
+      "text": "Ungrouping…"
+    },
+    {
+      "id": 3658,
+      "text": "Unlock layer"
+    },
+    {
+      "id": 3662,
+      "text": "Unmute narration"
+    },
+    {
+      "id": 3813,
+      "text": "What each mark does, with an example"
+    },
+    {
+      "id": 3832,
+      "text": "Which colour plays each part in every tool and export. Until a colour of the design system's own takes a role, the starter's stands in. Contrast is measured against the surface, APCA first."
+    },
+    {
+      "id": 3841,
+      "text": "With the slide"
+    },
+    {
+      "id": 3907,
+      "text": "Zoom level"
+    },
+    {
+      "id": 3910,
+      "text": "[pause] puts silence before the next sentence. Add a number for the seconds, and a small one runs two sentences together."
+    },
+    {
+      "id": 3911,
+      "text": "[slow] and [fast] change the pace of the sentence they sit in. These are the biggest levers you have."
+    },
+    {
+      "id": 3912,
+      "text": "[word](/ipa/) says one word your way, and the word itself still shows in the transcript."
+    },
+    {
+      "id": 3927,
+      "text": "and"
+    },
+    {
+      "id": 3940,
+      "text": "bring a file"
+    },
+    {
+      "id": 3946,
+      "text": "choosing…"
+    },
+    {
+      "id": 3973,
+      "text": "explore the tools"
+    },
+    {
+      "id": 3979,
+      "text": "follows Primary"
+    },
+    {
+      "id": 3980,
+      "text": "for"
+    },
+    {
+      "id": 3981,
+      "text": "for code"
+    },
+    {
+      "id": 3982,
+      "text": "for emphasis"
+    },
+    {
+      "id": 3983,
+      "text": "for headings"
+    },
+    {
+      "id": 3984,
+      "text": "for text"
+    },
+    {
+      "id": 4028,
+      "text": "one press each"
+    },
+    {
+      "id": 4070,
+      "text": "starter"
+    },
+    {
+      "id": 4071,
+      "text": "step"
+    },
+    {
+      "id": 4115,
+      "text": "{families} · serving {roles} until you choose"
+    },
+    {
+      "id": 4224,
+      "text": "{title} video"
+    },
+    {
+      "id": 4235,
+      "text": "↳ follows Primary"
+    },
+    {
+      "id": 4236,
+      "text": "↳ follows the starter mono"
+    }
+  ],
+  "translations": [
+    {
+      "id": 56,
+      "text": "1 phrase"
+    },
+    {
+      "id": 61,
+      "text": "1 diapositive racontée."
+    },
+    {
+      "id": 85,
+      "text": "Une pause en milieu de phrase"
+    },
+    {
+      "id": 98,
+      "text": "Une marque nommée à sa façon."
+    },
+    {
+      "id": 99,
+      "text": "Une narration est déjà en cours."
+    },
+    {
+      "id": 110,
+      "text": "Une courte respiration"
+    },
+    {
+      "id": 136,
+      "text": "LES MAJUSCULES n'ont aucun effet. Un acronyme que la voix ne peut pas prononcer est épelé lettre par lettre quelle que soit sa casse, alors écris-le en lettres séparées si c'est ce que tu veux."
+    },
+    {
+      "id": 158,
+      "text": "Ajouter un logo"
+    },
+    {
+      "id": 163,
+      "text": "Ajoute d'abord un plan de travail."
+    },
+    {
+      "id": 164,
+      "text": "Ajouter un plan de travail après"
+    },
+    {
+      "id": 166,
+      "text": "Ajouter une couleur"
+    },
+    {
+      "id": 172,
+      "text": "Ajoute une chose, et continue quand tu veux. Tout reste sur cet appareil."
+    },
+    {
+      "id": 175,
+      "text": "Ajouter une diapositive après"
+    },
+    {
+      "id": 182,
+      "text": "Ajoute les marques - Lolly lit chaque fichier et lui propose le bon emplacement."
+    },
+    {
+      "id": 200,
+      "text": "1 plan de travail ajouté."
+    },
+    {
+      "id": 209,
+      "text": "{n} plans de travail ajoutés."
+    },
+    {
+      "id": 282,
+      "text": "Apparaît"
+    },
+    {
+      "id": 283,
+      "text": "Apparaît à"
+    },
+    {
+      "id": 303,
+      "text": "Organiser"
+    },
+    {
+      "id": 307,
+      "text": "Plan de travail ajouté"
+    },
+    {
+      "id": 308,
+      "text": "Remplissage du plan de travail"
+    },
+    {
+      "id": 309,
+      "text": "Nom du plan de travail"
+    },
+    {
+      "id": 314,
+      "text": "En plans de travail"
+    },
+    {
+      "id": 322,
+      "text": "Demande-lui"
+    },
+    {
+      "id": 331,
+      "text": "À"
+    },
+    {
+      "id": 332,
+      "text": "Au moment"
+    },
+    {
+      "id": 333,
+      "text": "À {t}s"
+    },
+    {
+      "id": 334,
+      "text": "À {t}s pendant {d}s"
+    },
+    {
+      "id": 345,
+      "text": "Avancer les diapositives automatiquement"
+    },
+    {
+      "id": 370,
+      "text": "Avant d'attribuer les rôles"
+    },
+    {
+      "id": 372,
+      "text": "Avant de déplacer les échantillons"
+    },
+    {
+      "id": 398,
+      "text": "Mélanger avec"
+    },
+    {
+      "id": 429,
+      "text": "Apporter un fichier"
+    },
+    {
+      "id": 447,
+      "text": "Étape de construction"
+    },
+    {
+      "id": 448,
+      "text": "Construire la palette"
+    },
+    {
+      "id": 458,
+      "text": "Incrusté"
+    },
+    {
+      "id": 487,
+      "text": "Annulé"
+    },
+    {
+      "id": 493,
+      "text": "Les zones de sous-titres sur le canevas sont incrustées dans chaque image."
+    },
+    {
+      "id": 495,
+      "text": "Les sous-titres dessinés sur le canevas font toujours partie de l'image. Une piste intégrée peut être désactivée par le lecteur du spectateur ; les fichiers annexes sont ceux qu'un logiciel de montage ou une plateforme vidéo accepteront."
+    },
+    {
+      "id": 520,
+      "text": "Change les mots et la ponctuation, puis fais reparler uniquement ce que tu as changé"
+    },
+    {
+      "id": 526,
+      "text": "Créer un graphique"
+    },
+    {
+      "id": 565,
+      "text": "Choisir au moment de l'envoi"
+    },
+    {
+      "id": 573,
+      "text": "Les choisir séparément"
+    },
+    {
+      "id": 740,
+      "text": "Copier les valeurs"
+    },
+    {
+      "id": 837,
+      "text": "« {name} » créé dans {project} sur Penpot"
+    },
+    {
+      "id": 838,
+      "text": "« {name} » créé sur Penpot"
+    },
+    {
+      "id": 839,
+      "text": "Crée un nouveau fichier Penpot, dans le projet que tu choisis au moment de l'envoi, avec tes tokens de marque à l'intérieur. Il transite par le relais de lolly.tools car l'API de Penpot refuse les appels directs du navigateur - ton token est transmis, jamais stocké côté serveur."
+    },
+    {
+      "id": 896,
+      "text": "Projet par défaut"
+    },
+    {
+      "id": 902,
+      "text": "Supprimer le plan de travail"
+    },
+    {
+      "id": 908,
+      "text": "Supprimer la diapositive"
+    },
+    {
+      "id": 919,
+      "text": "Plan de travail supprimé. Son unique élément est maintenant sur le plan de montage."
+    },
+    {
+      "id": 920,
+      "text": "Plan de travail supprimé. Son unique élément a été déplacé vers le plan de travail précédent."
+    },
+    {
+      "id": 921,
+      "text": "Plan de travail supprimé. Ses {n} éléments sont maintenant sur le plan de montage."
+    },
+    {
+      "id": 922,
+      "text": "Plan de travail supprimé. Ses {n} éléments ont été déplacés vers le plan de travail précédent."
+    },
+    {
+      "id": 933,
+      "text": "Dérivé"
+    },
+    {
+      "id": 943,
+      "text": "Outils de design"
+    },
+    {
+      "id": 980,
+      "text": "Ancrer sur le côté"
+    },
+    {
+      "id": 981,
+      "text": "Panneaux ancrés"
+    },
+    {
+      "id": 985,
+      "text": "Nom du document"
+    },
+    {
+      "id": 991,
+      "text": "Double-clique pour renommer"
+    },
+    {
+      "id": 1040,
+      "text": "Fais glisser sur le canevas pour placer un son, puis choisis-en un."
+    },
+    {
+      "id": 1041,
+      "text": "Fais glisser sur le canevas pour placer un outil, puis choisis-en un."
+    },
+    {
+      "id": 1042,
+      "text": "Fais glisser sur le canevas pour placer une vidéo, puis choisis-en une."
+    },
+    {
+      "id": 1043,
+      "text": "Fais glisser sur le canevas pour placer une animation, puis choisis-en une."
+    },
+    {
+      "id": 1044,
+      "text": "Fais glisser sur le canevas pour placer une image, puis choisis-en une."
+    },
+    {
+      "id": 1060,
+      "text": "Dépose un <b>.fig</b> Figma / SVG, un <b>.penpot</b> Penpot, un <b>.ai</b> ou <b>.pdf</b> Illustrator, un <b>.pptx</b> PowerPoint, ou un <b>.idml</b> InDesign (File → Export → InDesign Markup). (Pour un texte modifiable depuis un <b>SVG</b> Figma, décoche « Outline text » à l'export.)"
+    },
+    {
+      "id": 1065,
+      "text": "Dépose une marque ; Lolly lit sa forme et propose le bon emplacement."
+    },
+    {
+      "id": 1080,
+      "text": "Dupliquer le plan de travail"
+    },
+    {
+      "id": 1083,
+      "text": "Dupliquer la diapositive"
+    },
+    {
+      "id": 1091,
+      "text": "Chaque orientation (horizontale, verticale) peut porter chaque traitement : primaire et mono, chacun avec une forme inversée pour les fonds sombres. Les marques que le design system nomme à sa façon - une icône, un blason - vont sous Marques personnalisées. Un design system avec plus d'un logo peut porter chacun comme son propre ensemble. Chaque emplacement est facultatif. PNG, SVG, JPEG ou WebP ; elles restent sur cet appareil et voyagent dans le fichier du design system."
+    },
+    {
+      "id": 1092,
+      "text": "Chaque couleur sélectionnée prend le rôle suivant, tour à tour."
+    },
+    {
+      "id": 1098,
+      "text": "Bord"
+    },
+    {
+      "id": 1109,
+      "text": "Modifier le script"
+    },
+    {
+      "id": 1132,
+      "text": "Piste intégrée"
+    },
+    {
+      "id": 1148,
+      "text": "Finir dans l'incrédulité"
+    },
+    {
+      "id": 1150,
+      "text": "Finir avec énergie"
+    },
+    {
+      "id": 1151,
+      "text": "Finir avec plus d'énergie"
+    },
+    {
+      "id": 1155,
+      "text": "Voix anglaises uniquement. Mélange-en deux avec +."
+    },
+    {
+      "id": 1156,
+      "text": "Entrée"
+    },
+    {
+      "id": 1157,
+      "text": "Entrée (ms)"
+    },
+    {
+      "id": 1161,
+      "text": "Courbe d'entrée"
+    },
+    {
+      "id": 1173,
+      "text": "Toutes les couleurs que porte le design system. Clique sur un échantillon pour le recolorer, le renommer ou le supprimer ; chaque section se replie et s'agrandit avec son propre <strong>+ Ajouter</strong>. La <strong>Charte des couleurs</strong> ci-dessous trace les mêmes échantillons par teinte et chroma. Les changements se répercutent dans chaque sélecteur, outil et export."
+    },
+    {
+      "id": 1176,
+      "text": "Toutes les polices présentes sur cet appareil et le rôle qu'elles servent. Les polices propres au design system voyagent dans son fichier ; les polices de départ viennent avec l'application."
+    },
+    {
+      "id": 1180,
+      "text": "Chaque diapositive racontée est déjà à jour."
+    },
+    {
+      "id": 1183,
+      "text": "Chaque page ou diapositive devient son propre plan de travail, côte à côte, avec ses parties toujours modifiables."
+    },
+    {
+      "id": 1189,
+      "text": "Tout reste sur cet appareil. Chaque outil et export le suit."
+    },
+    {
+      "id": 1194,
+      "text": "Sortie"
+    },
+    {
+      "id": 1195,
+      "text": "Sortie (ms)"
+    },
+    {
+      "id": 1196,
+      "text": "Courbe de sortie"
+    },
+    {
+      "id": 1200,
+      "text": "Développer {name}"
+    },
+    {
+      "id": 1257,
+      "text": "Récupération depuis Google…"
+    },
+    {
+      "id": 1263,
+      "text": "Nom du fichier"
+    },
+    {
+      "id": 1269,
+      "text": "Remplissage et contour"
+    },
+    {
+      "id": 1300,
+      "text": "Tout ajuster"
+    },
+    {
+      "id": 1302,
+      "text": "Ajuster au plan de travail"
+    },
+    {
+      "id": 1316,
+      "text": "Vol"
+    },
+    {
+      "id": 1335,
+      "text": "Nom de la police"
+    },
+    {
+      "id": 1339,
+      "text": "Pour"
+    },
+    {
+      "id": 1340,
+      "text": "Pour une pause au milieu d'une phrase, utilise un tiret cadratin, un point-virgule ou un deux-points. La virgule est la courte respiration."
+    },
+    {
+      "id": 1381,
+      "text": "Génère une palette pour figer une version impression de la couleur primaire."
+    },
+    {
+      "id": 1383,
+      "text": "Génère des couleurs assorties à partir de la primaire - choisis une harmonie, puis <strong>+ Ajouter</strong> celles que tu veux. Chacune arrive prénommée ; renomme-les plus tard si tu veux. Vois toute la palette sur de vrais graphismes ci-dessous."
+    },
+    {
+      "id": 1400,
+      "text": "Donner un rôle"
+    },
+    {
+      "id": 1405,
+      "text": "Retourne au montage. Ce que tu as tapé reste jusqu'à ce que tu régénères."
+    },
+    {
+      "id": 1410,
+      "text": "Google Fonts ou un fichier de police. Reste sur cet appareil."
+    },
+    {
+      "id": 1412,
+      "text": "Google apprend le nom de la famille et ton adresse IP. Le fichier est ensuite conservé sur cet appareil et utilisé hors ligne. C'est la seule étape du studio qui contacte un tiers."
+    },
+    {
+      "id": 1435,
+      "text": "Nom du groupe"
+    },
+    {
+      "id": 1455,
+      "text": "Les titres, le code et l'italique sont maintenant sur la page."
+    },
+    {
+      "id": 1456,
+      "text": "Les titres, le code et l'italique suivent la primaire tant que tu ne les as pas choisis."
+    },
+    {
+      "id": 1473,
+      "text": "Masquer les panneaux ancrés"
+    },
+    {
+      "id": 1476,
+      "text": "Masquer l'inspecteur"
+    },
+    {
+      "id": 1478,
+      "text": "Masquer le calque"
+    },
+    {
+      "id": 1492,
+      "text": "Marques horizontales, verticales, personnalisées"
+    },
+    {
+      "id": 1501,
+      "text": "Combien de la deuxième voix"
+    },
+    {
+      "id": 1503,
+      "text": "Comment les pages de ce document doivent-elles être importées ?"
+    },
+    {
+      "id": 1549,
+      "text": "Import annulé."
+    },
+    {
+      "id": 1553,
+      "text": "Importer les pages"
+    },
+    {
+      "id": 1564,
+      "text": "Dans le design system"
+    },
+    {
+      "id": 1576,
+      "text": "Inspecteur"
+    },
+    {
+      "id": 1588,
+      "text": "L'interface suit le design system"
+    },
+    {
+      "id": 1598,
+      "text": "Elle devient la primaire. Les nuances et les rôles peuvent en découler."
+    },
+    {
+      "id": 1613,
+      "text": "Elle est retirée des tokens du design system."
+    },
+    {
+      "id": 1622,
+      "text": "Une seule page"
+    },
+    {
+      "id": 1633,
+      "text": "Garder la prise précédente"
+    },
+    {
+      "id": 1685,
+      "text": "Calque"
+    },
+    {
+      "id": 1688,
+      "text": "Calques"
+    },
+    {
+      "id": 1691,
+      "text": "Amorce"
+    },
+    {
+      "id": 1752,
+      "text": "Chargement du design system…"
+    },
+    {
+      "id": 1759,
+      "text": "Verrouiller le calque"
+    },
+    {
+      "id": 1773,
+      "text": "L'encre et le papier de Lolly. Les outils les utilisent jusqu'à ce que le design system ait ses propres couleurs."
+    },
+    {
+      "id": 1778,
+      "text": "Boucler le diaporama (kiosque)"
+    },
+    {
+      "id": 1793,
+      "text": "Crée un token dans Penpot sous Paramètres → Access tokens. Chaque envoi crée un nouveau fichier Penpot, sur le canevas avec tes tokens de marque à l'intérieur, dans le projet que tu choisis au moment de l'envoi. Il transite par le relais de lolly.tools, car l'API de Penpot n'autorise pas les appels du navigateur depuis d'autres sites - ton token est transmis à chaque envoi, jamais stocké côté serveur. Ce qui est mémorisé sur cet appareil, c'est ton choix ci-dessous."
+    },
+    {
+      "id": 1819,
+      "text": "Les marques que le design system nomme à sa façon - une icône, un blason, un favicon."
+    },
+    {
+      "id": 1842,
+      "text": "Mixte"
+    },
+    {
+      "id": 1859,
+      "text": "Plus d'actions"
+    },
+    {
+      "id": 1864,
+      "text": "Plus d'options dans Script audio"
+    },
+    {
+      "id": 1873,
+      "text": "Déplacer"
+    },
+    {
+      "id": 1875,
+      "text": "Déplacer vers le bas"
+    },
+    {
+      "id": 1885,
+      "text": "Déplacer vers le haut"
+    },
+    {
+      "id": 1894,
+      "text": "Couper le son de la narration"
+    },
+    {
+      "id": 1919,
+      "text": "Narrer"
+    },
+    {
+      "id": 1920,
+      "text": "Narrer les diapositives"
+    },
+    {
+      "id": 1921,
+      "text": "Narrer cette diapositive"
+    },
+    {
+      "id": 1922,
+      "text": "Narrer à nouveau cette diapositive"
+    },
+    {
+      "id": 1923,
+      "text": "Narrée à partir de ces notes."
+    },
+    {
+      "id": 1924,
+      "text": "Narration en cours en arrière-plan. Tu peux continuer à travailler."
+    },
+    {
+      "id": 1925,
+      "text": "Narration des diapositives"
+    },
+    {
+      "id": 1926,
+      "text": "Narration"
+    },
+    {
+      "id": 1927,
+      "text": "Narration coupée."
+    },
+    {
+      "id": 1928,
+      "text": "Narration réactivée."
+    },
+    {
+      "id": 1929,
+      "text": "La narration utilise une voix anglaise."
+    },
+    {
+      "id": 1931,
+      "text": "Navigateur"
+    },
+    {
+      "id": 1944,
+      "text": "Nom du nouveau groupe"
+    },
+    {
+      "id": 1945,
+      "text": "Nouveau groupe…"
+    },
+    {
+      "id": 2012,
+      "text": "Pas de deuxième voix"
+    },
+    {
+      "id": 2016,
+      "text": "Aucune diapositive n'a encore de notes du présentateur à narrer."
+    },
+    {
+      "id": 2017,
+      "text": "Aucune diapositive n'a encore de notes du présentateur."
+    },
+    {
+      "id": 2018,
+      "text": "Pas encore de diapositives."
+    },
+    {
+      "id": 2046,
+      "text": "Pas une couleur que je peux lire - essaie #hex, rgb(), oklch() ou un nom"
+    },
+    {
+      "id": 2049,
+      "text": "Pas encore récupéré."
+    },
+    {
+      "id": 2050,
+      "text": "Non récupéré. Rien n'a été envoyé à Google."
+    },
+    {
+      "id": 2053,
+      "text": "Pas encore narrée."
+    },
+    {
+      "id": 2076,
+      "text": "Rien ne s'installe tant que tu n'en as pas choisi une."
+    },
+    {
+      "id": 2084,
+      "text": "Rien n'est sélectionné"
+    },
+    {
+      "id": 2094,
+      "text": "Rien pour l'instant"
+    },
+    {
+      "id": 2104,
+      "text": "Les nombres et les montants sont lus en toutes lettres avant d'être prononcés, et la transcription montre ce qui a été dit."
+    },
+    {
+      "id": 2105,
+      "text": "Objet"
+    },
+    {
+      "id": 2120,
+      "text": "Décale le début de"
+    },
+    {
+      "id": 2121,
+      "text": "Décale le début de (ms)"
+    },
+    {
+      "id": 2122,
+      "text": "Décale le début de…"
+    },
+    {
+      "id": 2125,
+      "text": "Au clic"
+    },
+    {
+      "id": 2126,
+      "text": "Au clic, étape {n}"
+    },
+    {
+      "id": 2129,
+      "text": "Sur la primaire"
+    },
+    {
+      "id": 2140,
+      "text": "Une seule police pour le texte courant, les boutons et chaque outil. Cherche dans Google Fonts, ou dépose un fichier de police."
+    },
+    {
+      "id": 2142,
+      "text": "Une page remplace le plan de travail. Un document multi-page demande laquelle."
+    },
+    {
+      "id": 2189,
+      "text": "Ouvrir dans la chronologie"
+    },
+    {
+      "id": 2212,
+      "text": "Tokens de couleur facultatifs - des mélanges de la palette pour les fonds et les accents. Les stops portent les échantillons, donc ils suivent un recolorage. Ignore-les entièrement si le design system ne fait pas de dégradés."
+    },
+    {
+      "id": 2275,
+      "text": "Coller une couleur"
+    },
+    {
+      "id": 2276,
+      "text": "Coller une couleur, ou une liste"
+    },
+    {
+      "id": 2285,
+      "text": "Chemin"
+    },
+    {
+      "id": 2289,
+      "text": "En pause."
+    },
+    {
+      "id": 2294,
+      "text": "Penpot ne peut pas prendre un fichier {format} - envoie un PNG, un SVG ou un export .penpot"
+    },
+    {
+      "id": 2304,
+      "text": "Phonèmes"
+    },
+    {
+      "id": 2307,
+      "text": "Choisis un projet Penpot où envoyer"
+    },
+    {
+      "id": 2308,
+      "text": "Choisir une couleur"
+    },
+    {
+      "id": 2317,
+      "text": "Épinglé"
+    },
+    {
+      "id": 2339,
+      "text": "Lecteur"
+    },
+    {
+      "id": 2344,
+      "text": "Lecture en cours."
+    },
+    {
+      "id": 2356,
+      "text": "Fenêtre pop-up bloquée. Affichage de la vue présentateur ici."
+    },
+    {
+      "id": 2375,
+      "text": "Présenter à partir d'ici"
+    },
+    {
+      "id": 2376,
+      "text": "Présenter à partir de cette diapositive"
+    },
+    {
+      "id": 2377,
+      "text": "Options de présentation"
+    },
+    {
+      "id": 2380,
+      "text": "Appuie sur Entrée pour terminer un groupe de souffle. Chaque phrase est lue seule, donc une phrase courte donne le rythme de la lecture."
+    },
+    {
+      "id": 2390,
+      "text": "Prévisualiser ce mouvement"
+    },
+    {
+      "id": 2456,
+      "text": "R"
+    },
+    {
+      "id": 2477,
+      "text": "Lire cette phrase plus vite"
+    },
+    {
+      "id": 2478,
+      "text": "Lire cette phrase plus lentement"
+    },
+    {
+      "id": 2489,
+      "text": "Lecture du fichier…"
+    },
+    {
+      "id": 2495,
+      "text": "Lit à voix haute les notes du présentateur sur 1 diapositive sur cet appareil et place l'audio sur cette diapositive. Rien n'est envoyé en ligne."
+    },
+    {
+      "id": 2572,
+      "text": "Renommer ce design"
+    },
+    {
+      "id": 2610,
+      "text": "Réinitialiser à la transition du diaporama"
+    },
+    {
+      "id": 2615,
+      "text": "Redimensionner les panneaux ancrés"
+    },
+    {
+      "id": 2649,
+      "text": "Rôles · ce que les outils lisent"
+    },
+    {
+      "id": 2694,
+      "text": "Enregistrer comme nouveau clip"
+    },
+    {
+      "id": 2697,
+      "text": "Enregistrer les modifications de ce clip"
+    },
+    {
+      "id": 2727,
+      "text": "Le dire comme…"
+    },
+    {
+      "id": 2788,
+      "text": "Sélectionne un élément pour modifier ses propriétés."
+    },
+    {
+      "id": 2801,
+      "text": "Envoyer"
+    },
+    {
+      "id": 2810,
+      "text": "Envoyer vers Penpot"
+    },
+    {
+      "id": 2825,
+      "text": "Utilisée pour {roles}"
+    },
+    {
+      "id": 2857,
+      "text": "Les nuances, un neutre assorti, et chaque rôle, calculés en OKLCH. Tu le vois avant que rien ne change."
+    },
+    {
+      "id": 2858,
+      "text": "Les nuances, la charte des couleurs, les dégradés et l'édition groupée apparaissent une fois que la palette grandit."
+    },
+    {
+      "id": 2860,
+      "text": "Ombre X"
+    },
+    {
+      "id": 2861,
+      "text": "Ombre Y"
+    },
+    {
+      "id": 2877,
+      "text": "Afficher les sous-titres pendant la présentation"
+    },
+    {
+      "id": 2878,
+      "text": "Afficher les panneaux ancrés"
+    },
+    {
+      "id": 2884,
+      "text": "Afficher le calque"
+    },
+    {
+      "id": 2901,
+      "text": "Fichiers annexes .vtt + .srt"
+    },
+    {
+      "id": 2944,
+      "text": "Silence avant la phrase suivante"
+    },
+    {
+      "id": 2959,
+      "text": "Audio de la diapositive"
+    },
+    {
+      "id": 2964,
+      "text": "Style de diapositive"
+    },
+    {
+      "id": 2966,
+      "text": "Diapositive {n}"
+    },
+    {
+      "id": 2967,
+      "text": "Diapositive {n} sur {total}"
+    },
+    {
+      "id": 2968,
+      "text": "Diapositives"
+    },
+    {
+      "id": 2969,
+      "text": "Lent"
+    },
+    {
+      "id": 2991,
+      "text": "Certains lecteurs ignorent les sous-titres à l'intérieur des MP4"
+    },
+    {
+      "id": 3007,
+      "text": "Marques sonores"
+    },
+    {
+      "id": 3016,
+      "text": "Vue présentateur ouverte dans une nouvelle fenêtre."
+    },
+    {
+      "id": 3018,
+      "text": "Prononciation des modifications"
+    },
+    {
+      "id": 3019,
+      "text": "Prononciation des modifications…"
+    },
+    {
+      "id": 3025,
+      "text": "Épeler un mot en phonèmes"
+    },
+    {
+      "id": 3031,
+      "text": "Scinder"
+    },
+    {
+      "id": 3036,
+      "text": "Prononcé avec un accent britannique, à partir de la voix plus grave."
+    },
+    {
+      "id": 3037,
+      "text": "Prononcé avec un accent américain, à partir de la voix plus grave."
+    },
+    {
+      "id": 3044,
+      "text": "Pile"
+    },
+    {
+      "id": 3064,
+      "text": "Commencer avec une couleur"
+    },
+    {
+      "id": 3073,
+      "text": "Reste pendant"
+    },
+    {
+      "id": 3082,
+      "text": "Arrêter l'édition"
+    },
+    {
+      "id": 3094,
+      "text": "Contour"
+    },
+    {
+      "id": 3136,
+      "text": "Tableau"
+    },
+    {
+      "id": 3138,
+      "text": "Queue"
+    },
+    {
+      "id": 3141,
+      "text": "Prendre des couleurs depuis une image"
+    },
+    {
+      "id": 3146,
+      "text": "Touche la puce pour la choisir, colle-la dans n'importe quelle notation, prends-la depuis l'écran, ou extrais-la d'une image."
+    },
+    {
+      "id": 3191,
+      "text": "Impossible de le reprononcer. Tes modifications sont toujours là."
+    },
+    {
+      "id": 3210,
+      "text": "Ce fichier est trop volumineux pour être mis en graphique - la limite est de 8 MB."
+    },
+    {
+      "id": 3258,
+      "text": "L'accent de l'application prend la couleur primaire. Les outils et les exports ne sont pas affectés."
+    },
+    {
+      "id": 3315,
+      "text": "La première utilisation télécharge le modèle vocal une fois ({size}). Il reste sur cet appareil."
+    },
+    {
+      "id": 3316,
+      "text": "La première utilisation télécharge le modèle vocal une fois. Il reste sur cet appareil."
+    },
+    {
+      "id": 3326,
+      "text": "Le logo"
+    },
+    {
+      "id": 3328,
+      "text": "Le signe final donne le ton : un point est neutre, ! est de l'énergie, ? est une question, … s'estompe, !? est de l'incrédulité."
+    },
+    {
+      "id": 3334,
+      "text": "Les notes ont changé après que cette diapositive a été narrée."
+    },
+    {
+      "id": 3349,
+      "text": "La palette"
+    },
+    {
+      "id": 3350,
+      "text": "La palette, appliquée"
+    },
+    {
+      "id": 3360,
+      "text": "Le reste du système - espacement, dimensionnement, épaisseurs de contour, opacité, rotation, nombres simples et ombres. Les outils qui lisent les tokens les suivent comme ils suivent les couleurs."
+    },
+    {
+      "id": 3383,
+      "text": "La voix et la vitesse avec lesquelles ce clip a été prononcé"
+    },
+    {
+      "id": 3385,
+      "text": "Les voix sont uniquement en anglais. Le clip est marqué comme voix synthétique."
+    },
+    {
+      "id": 3414,
+      "text": "Ce dessin est une forme unique, il n'y a donc rien à dégrouper."
+    },
+    {
+      "id": 3416,
+      "text": "Cela devient un nouveau fichier Penpot avec tes tokens de marque à l'intérieur."
+    },
+    {
+      "id": 3435,
+      "text": "Ce clip a été mis à jour partout où il est utilisé."
+    },
+    {
+      "id": 3445,
+      "text": "Ce document a {n} pages. Comment doivent-elles être importées ?"
+    },
+    {
+      "id": 3497,
+      "text": "Cet objet n'a pas de texte à modifier."
+    },
+    {
+      "id": 3519,
+      "text": "Cet outil n'a pas de plan de travail."
+    },
+    {
+      "id": 3534,
+      "text": "Ces parties n'ont pas pu être séparées, rien n'a donc changé."
+    },
+    {
+      "id": 3549,
+      "text": "Astuces"
+    },
+    {
+      "id": 3551,
+      "text": "Pour les modifier, ouvre le clip dans Script audio."
+    },
+    {
+      "id": 3576,
+      "text": "S'estomper doucement"
+    },
+    {
+      "id": 3585,
+      "text": "Transition vers le suivant"
+    },
+    {
+      "id": 3626,
+      "text": "Tape par-dessus les mots, ajoute de la ponctuation ou un signe, puis régénère. Seules les phrases que tu as touchées sont reprononcées."
+    },
+    {
+      "id": 3648,
+      "text": "Dégroupé en {n} parties."
+    },
+    {
+      "id": 3649,
+      "text": "Dégroupement…"
+    },
+    {
+      "id": 3658,
+      "text": "Déverrouiller le calque"
+    },
+    {
+      "id": 3662,
+      "text": "Réactiver le son de la narration"
+    },
+    {
+      "id": 3813,
+      "text": "Ce que fait chaque signe, avec un exemple"
+    },
+    {
+      "id": 3832,
+      "text": "Quelle couleur joue chaque rôle dans chaque outil et export. Tant qu'une couleur propre au design system ne prend pas un rôle, celle de départ le remplace. Le contraste est mesuré par rapport à la surface, APCA en priorité."
+    },
+    {
+      "id": 3841,
+      "text": "Avec la diapositive"
+    },
+    {
+      "id": 3907,
+      "text": "Niveau de zoom"
+    },
+    {
+      "id": 3910,
+      "text": "[pause] place un silence avant la phrase suivante. Ajoute un nombre pour les secondes, et un petit nombre enchaîne deux phrases ensemble."
+    },
+    {
+      "id": 3911,
+      "text": "[slow] et [fast] changent le rythme de la phrase où ils se trouvent. Ce sont les leviers les plus puissants dont tu disposes."
+    },
+    {
+      "id": 3912,
+      "text": "[word](/ipa/) prononce un mot à ta façon, et le mot lui-même reste visible dans la transcription."
+    },
+    {
+      "id": 3927,
+      "text": "et"
+    },
+    {
+      "id": 3940,
+      "text": "apporter un fichier"
+    },
+    {
+      "id": 3946,
+      "text": "sélection…"
+    },
+    {
+      "id": 3973,
+      "text": "explorer les outils"
+    },
+    {
+      "id": 3979,
+      "text": "suit la primaire"
+    },
+    {
+      "id": 3980,
+      "text": "pour"
+    },
+    {
+      "id": 3981,
+      "text": "pour le code"
+    },
+    {
+      "id": 3982,
+      "text": "pour l'emphase"
+    },
+    {
+      "id": 3983,
+      "text": "pour les titres"
+    },
+    {
+      "id": 3984,
+      "text": "pour le texte"
+    },
+    {
+      "id": 4028,
+      "text": "une pression chacun"
+    },
+    {
+      "id": 4070,
+      "text": "de départ"
+    },
+    {
+      "id": 4071,
+      "text": "étape"
+    },
+    {
+      "id": 4115,
+      "text": "{families} · utilisée pour {roles} jusqu'à ce que tu choisisses"
+    },
+    {
+      "id": 4224,
+      "text": "Vidéo {title}"
+    },
+    {
+      "id": 4235,
+      "text": "↳ suit la primaire"
+    },
+    {
+      "id": 4236,
+      "text": "↳ suit le mono de départ"
+    }
+  ]
+}

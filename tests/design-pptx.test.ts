@@ -36,6 +36,11 @@ import { dirname, join } from 'node:path';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
+// The bridge half of the path (plan 179 P1/A12): the SHIPPING lowering functions and the
+// engine's OOXML writer, so the notes/fill assertions below are made by the real code.
+import { deckFill, deckNotes, deckSlideTransitions, deckSyncShape, deckTransition, emuOf, type DeckNotes } from '../shells/web/src/bridge/pptx-deck.ts';
+import { buildPptxParts } from '../engine/src/pptx.ts';
+import type { PptxSlide } from '../engine/src/pptx.ts';
 
 const PACK_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(PACK_DIR, path), 'utf8');
@@ -237,4 +242,199 @@ test('anim: split + stagger travel raw, letter degrades for joining scripts, bui
   assert.equal(a.click, 2, 'the presentation build order becomes the click step');
   const ar = deck.slides[0].elements[1].anim;
   assert.equal(ar.split, 'word', 'letter degrades to word for joining scripts in the deck too');
+});
+
+// ── SPEAKER NOTES (plan 179 P1) ───────────────────────────────────────────────
+//
+// The deck model had no `notes` key, so every note an author wrote was dropped on export
+// and the whole notesSlide writer in engine/src/pptx.ts was unreachable from Design.
+// The frame's own `notes` field - the same text stamped as data-frame-notes for the
+// speaker view - now travels on the slide it belongs to.
+
+test('a frame with notes → the deck slide carries them as plain text', async () => {
+  const deck = deckOf(await mount([
+    { ...FRAME, notes: 'Open with the customer story. Pause after the number.' },
+    CHILD,
+  ]));
+  assert.equal(deck.slides[0].notes, 'Open with the customer story. Pause after the number.');
+});
+
+test('notes travel PER SLIDE, and a note-less slide carries no key at all', async () => {
+  const deck = deckOf(await mount([
+    { ...FRAME, id: 'fa', notes: 'Say this on one.' },
+    { ...FRAME, id: 'fb', x: 1400, order: 1 },
+    { ...FRAME, id: 'fc', x: 2800, order: 2, notes: '   ' },
+  ]));
+  assert.equal(deck.slides[0].notes, 'Say this on one.');
+  // `undefined`, never '' - JSON.stringify drops the key, so the deck JSON of a deck with
+  // no notes is byte-identical to what it was before P1.
+  assert.ok(!('notes' in deck.slides[1]), 'slide 2 has no notes key');
+  assert.ok(!('notes' in deck.slides[2]), 'whitespace is not a note');
+});
+
+test('the notes text is the frame\'s own, untouched - markup is not markup here', async () => {
+  // A pptx notes slide is a TEXT body, so the value travels verbatim (no escaping, no
+  // HTML) - the opposite of the data-frame-notes attribute stamp, which must escape.
+  const deck = deckOf(await mount([{ ...FRAME, notes: '5 < 6 & "quote" <b>not bold</b>' }, CHILD]));
+  assert.equal(deck.slides[0].notes, '5 < 6 & "quote" <b>not bold</b>');
+});
+
+// ── …and the notes reach a REAL .pptx notesSlide part (plan 179 P1) ───────────
+//
+// The hook emitting `notes` is only half of P1: the bridge has to lower it and the
+// engine has to emit the parts. renderPptxFromDeck is DOM-bound (its image elements
+// fetch bytes), so this drives its EXACT pure path instead - pptx-deck's own deckNotes
+// + deckFill + deckSyncShape, then the engine's buildPptxParts - over the deck model
+// the real tool just produced. Nothing here is a re-implementation of a rule: every
+// decision is made by the shipping function.
+
+test('P1 end to end: a frame with notes → a notesSlide part in the built OOXML', async () => {
+  const deck = deckOf(await mount([
+    { ...FRAME, id: 'fa', notes: 'Open with the customer story.\nPause after the number.' },
+    { ...CHILD, frame: 'fa' },
+    { ...FRAME, id: 'fb', x: 1400, order: 1 },
+  ]));
+  assert.equal(deck.slides.length, 2);
+
+  const slides = deck.slides.map((s: any) => ({
+    shapes: [
+      ...(deckFill(s.bg) ? [{ kind: 'rect' as const, x: 0, y: 0, cx: emuOf(1280), cy: emuOf(720), fill: deckFill(s.bg)! }] : []),
+      ...(s.elements as any[]).map((el) => deckSyncShape(el)).filter(Boolean),
+    ],
+    media: [],
+    ...(deckNotes(s.notes) ? { notes: deckNotes(s.notes)! } : {}),
+  })) as PptxSlide[];
+
+  assert.equal(slides[0]!.notes, 'Open with the customer story.\nPause after the number.');
+  assert.ok(!('notes' in slides[1]!), 'the note-less frame stays note-less through the lowering');
+
+  const parts = buildPptxParts(slides, { emuW: emuOf(1280), emuH: emuOf(720) });
+  assert.ok('ppt/notesSlides/notesSlide1.xml' in parts, 'slide 1 gets its notesSlide part');
+  assert.ok(!('ppt/notesSlides/notesSlide2.xml' in parts), 'slide 2 has nothing to say, so no part');
+  const notesXml = parts['ppt/notesSlides/notesSlide1.xml'] as string;
+  assert.match(notesXml, /<a:t>Open with the customer story\.<\/a:t>/);
+  assert.match(notesXml, /<a:t>Pause after the number\.<\/a:t>/, 'each line is its own paragraph');
+  // The parts a reader needs to see the pane at all, emitted only because a note exists.
+  assert.ok('ppt/notesMasters/notesMaster1.xml' in parts);
+  assert.match(parts['ppt/slides/_rels/slide1.xml.rels'] as string, /notesSlides\/notesSlide1\.xml/);
+  assert.ok(!/notesSlide/.test(parts['ppt/slides/_rels/slide2.xml.rels'] as string));
+  assert.match(parts['[Content_Types].xml'] as string, /notesSlide\+xml/);
+});
+
+// ── A12: a token-valued artboard fill still reaches the slide background ──────
+
+test('A12: a var() artboard fill lowers to a real background rect', () => {
+  // The default document's fill IS a brand token; deckFill used to return undefined for
+  // it, so the slide got no background rect at all. With no resolver the literal
+  // fallback stands, which is exactly what a CLI/node export sees.
+  const bg = deckFill('var(--brand-surface, #0C322C)');
+  assert.deepEqual(bg, { solid: '0C322C', alpha: undefined });
+  const parts = buildPptxParts(
+    [{ shapes: [{ kind: 'rect', x: 0, y: 0, cx: emuOf(1280), cy: emuOf(720), fill: bg! }], media: [] }],
+    { emuW: emuOf(1280), emuH: emuOf(720) },
+  );
+  assert.match(parts['ppt/slides/slide1.xml'] as string, /<a:srgbClr val="0C322C"\/>/);
+});
+
+// ── M4: slide transitions reach PowerPoint as PowerPoint's own ────────────────
+// A Design deck's per-slide Fade/Slide used to stop at the door: the deck model carried
+// it and the .pptx writer had nowhere to put it, so every deck opened as a deck of cuts.
+// Three things are pinned here - the mapping, the index shift (a Lolly slide says how it
+// leaves, a PowerPoint slide says how it arrives), and the byte-identity floor.
+
+test('deckTransition maps the five values, and says what it could not carry', () => {
+  assert.deepEqual(deckTransition('fade'), { kind: 'fade' });
+  // 'l' is the direction that reads the way Lolly's Slide does: the arriving slide comes
+  // in from the right and everything travels leftwards.
+  assert.deepEqual(deckTransition('slide'), { kind: 'push', dir: 'l' });
+  // A cut, an unresolved '', a per-box timeline, and junk all mean "no transition".
+  assert.equal(deckTransition('none'), undefined);
+  assert.equal(deckTransition('custom'), undefined);
+  assert.equal(deckTransition(''), undefined);
+  assert.equal(deckTransition('constructor'), undefined);
+  assert.equal(deckTransition(null), undefined);
+
+  // Morph and flight fall back to a fade, and the fallback is NAMED at warn level.
+  const notes: DeckNotes = { mapped: [], dropped: [] };
+  assert.deepEqual(deckTransition('morph', notes), { kind: 'fade' });
+  assert.deepEqual(deckTransition('flight', notes), { kind: 'fade' });
+  assert.equal(notes.mapped.length, 0, 'a substitution this big is a warn, not an info');
+  assert.ok(notes.dropped.some((n) => n.includes('Morph')), `${notes.dropped}`);
+  assert.ok(notes.dropped.some((n) => n.includes('Fly between artboards')), `${notes.dropped}`);
+  // The same note never stacks twice.
+  deckTransition('morph', notes);
+  assert.equal(notes.dropped.filter((n) => n.includes('Morph')).length, 1);
+});
+
+test('the transition shifts by one slide: slide 1 plays what slide 0 authored', async () => {
+  const html = await mount([
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 1280, h: 720, order: 0, bg: '#ffffff', slideTransition: 'slide' },
+    { id: 'f2', kind: 'frame', x: 1360, y: 0, w: 1280, h: 720, order: 1, bg: '#0b1220', slideTransition: 'fade' },
+    { id: 'f3', kind: 'frame', x: 2720, y: 0, w: 1280, h: 720, order: 2, bg: '#123456', slideTransition: 'none' },
+  ]);
+  const deck = deckOf(html);
+  assert.deepEqual(deck.slides.map((s: any) => s.transition), ['slide', 'fade', 'none'],
+    'the hook carries each frame OWN transition (how it leaves)');
+
+  const transitions = deckSlideTransitions(deck.slides);
+  assert.deepEqual(transitions, [
+    undefined,                    // slide 0 has no predecessor, so it never gets one
+    { kind: 'push', dir: 'l' },   // …what slide 0 authored
+    { kind: 'fade' },             // …what slide 1 authored
+  ]);
+
+  const slides = transitions.map((t) => ({ shapes: [], media: [], ...(t ? { transition: t } : {}) })) as PptxSlide[];
+  const parts = buildPptxParts(slides, { emuW: emuOf(1280), emuH: emuOf(720) });
+  const xml = (n: number): string => parts[`ppt/slides/slide${n}.xml`] as string;
+  assert.ok(!xml(1).includes('<p:transition'), 'the opening slide is arrived at, not transitioned onto');
+  assert.match(xml(2), /<p:transition spd="med"><p:push dir="l"\/><\/p:transition>/);
+  assert.match(xml(3), /<p:transition spd="med"><p:fade\/><\/p:transition>/);
+  // CT_Slide's child order: the transition sits between clrMapOvr and timing.
+  assert.match(xml(2), /<\/p:clrMapOvr><p:transition[\s\S]*<\/p:sld>$/);
+});
+
+test('a deck of cuts is byte-identical to a deck that never had transitions', async () => {
+  const boxes = (extra: Record<string, unknown>) => ([
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 1280, h: 720, order: 0, bg: '#ffffff', ...extra },
+    { id: 'f2', kind: 'frame', x: 1360, y: 0, w: 1280, h: 720, order: 1, bg: '#0b1220', ...extra },
+  ]);
+  const cuts = deckOf(await mount(boxes({ slideTransition: 'none' })));
+  assert.deepEqual(cuts.slides.map((s: any) => s.transition), ['none', 'none'],
+    'Cut is authored, not absent - the deck says so');
+  assert.deepEqual(deckSlideTransitions(cuts.slides), [undefined, undefined], 'and it lowers to nothing');
+
+  const now = '2026-09-03T00:00:00.000Z';
+  const bare = [{ shapes: [], media: [] }, { shapes: [], media: [] }] as PptxSlide[];
+  const withCuts = deckSlideTransitions(cuts.slides)
+    .map((t) => ({ shapes: [], media: [], ...(t ? { transition: t } : {}) })) as PptxSlide[];
+  const opts = { emuW: emuOf(1280), emuH: emuOf(720), now };
+  assert.deepEqual(buildPptxParts(withCuts, opts), buildPptxParts(bare, opts),
+    'every part of a cuts-only deck matches the deck this builder wrote before transitions existed');
+});
+
+test('what PowerPoint cannot animate is named at warn level, not swallowed', async () => {
+  // Four things the deck model carries ONLY so the export can say they were left
+  // behind: a keyframe track, a hold effect, a morph match key, and a frame state.
+  const html = await mount([
+    { id: 'f1', kind: 'frame', x: 0, y: 0, w: 1280, h: 720, order: 0, bg: '#ffffff', state: 'dark' },
+    { id: 'k', kind: 'box', frame: 'f1', x: 40, y: 40, w: 200, h: 200, shape: 'rect', bg: '#30ba78', kf: 't0_z0*t1500_z140' },
+    { id: 'h', kind: 'box', frame: 'f1', x: 300, y: 40, w: 200, h: 200, shape: 'rect', bg: '#30ba78', hold: 'pulse' },
+    { id: 'm', kind: 'box', frame: 'f1', x: 560, y: 40, w: 200, h: 200, shape: 'rect', bg: '#30ba78', matchOf: 'hero' },
+    { id: 's', kind: 'text', frame: 'f1', x: 40, y: 300, w: 600, h: 120, text: 'By the line', fontSize: 48, enter: 'fade', split: 'line' },
+  ]);
+  const deck = deckOf(html);
+  const notes: DeckNotes = { mapped: [], dropped: [] };
+  for (const el of deck.slides[0].elements) deckSyncShape(el, notes);
+
+  const has = (frag: string): boolean => notes.dropped.some((n) => n.includes(frag));
+  assert.ok(has('keyframe track'), `keyframes are named: ${notes.dropped}`);
+  assert.ok(has('hold effect pulse'), `the hold effect is named: ${notes.dropped}`);
+  assert.ok(has('morph match key'), `the match key is named: ${notes.dropped}`);
+  assert.ok(has('frame state'), `the frame state is named: ${notes.dropped}`);
+  assert.ok(has('split by line'), `the split unit is named: ${notes.dropped}`);
+  // A caller that wants one flat list still gets everything - how this parameter was
+  // first written, kept working so nobody has to know about the two levels to use it.
+  const flat: string[] = [];
+  deckSyncShape(deck.slides[0].elements[0], flat);
+  assert.ok(flat.some((n) => n.includes('keyframe track')), `${flat}`);
 });

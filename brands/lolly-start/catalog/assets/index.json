@@ -9,7 +9,7 @@
     {
       "id": "lolly/tokens/brand",
       "name": "Lolly Starter Tokens",
-      "description": "A minimal cut of the SUSE palette shipped with the blank lolly-start profile: one green brand ramp (Pine → Jungle → Mint), a Fog neutral ramp, light/dark semantic slots, and the default Lolly logo slots (asset.logo.*), so the colour picker, semantic CSS vars and the brand hero all resolve real values. Replace with a real brand via the start wizard or 'npm run ingest:brand'.",
+      "description": "Ink-and-paper scaffolding shipped with the blank lolly-start profile: one neutral ramp (1 Ink through 9 Paper), light/dark semantic slots that all alias into it, and the default Lolly logo slots (asset.logo.*), so the colour picker, semantic CSS vars and the brand hero all resolve real values while the palette stays colourless. A design system grows by adding colours in the start studio. Replace the lot via the start wizard or 'npm run ingest:brand'.",
       "type": "tokens",
       "version": "2.0.0",
       "tier": "core",
@@ -22,8 +22,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/brand.json",
-          "checksum": "sha256-7I1q4blBou5bFjLLr9vSg6cG+t6QsTe2xp9BBJ8GRj8=",
-          "size": 5895
+          "checksum": "sha256-J8E/u7e0FtZVt0ilif281WBBhZV5A4NVc+jMqrLp6K8=",
+          "size": 5670
         }
       ],
       "added": "2026-07-08"
@@ -125,7 +125,7 @@
     {
       "id": "lolly/palette/photo-treatments",
       "name": "Photo Colour Treatments",
-      "description": "Colour treatments for photo assets, derived from the starter tokens: greyscale + soft duotone washes. Regenerate after replacing the tokens (engine derivePhotoTreatmentsDoc).",
+      "description": "Colour treatments for photo assets, derived from the starter tokens. The starter palette is colourless, so this is greyscale alone; duotone washes appear the moment the tokens carry an accent. Regenerate after replacing the tokens (engine derivePhotoTreatmentsDoc).",
       "type": "palette",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -137,29 +137,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/photo-treatments.json",
-          "checksum": "sha256-fn/lU3DaRkqk8w1/bgSS2MluZ2ybJTqFyEgP0XaToag=",
-          "size": 839
-        }
-      ],
-      "added": "2026-07-17"
-    },
-    {
-      "id": "lolly/palette/icon-themes",
-      "name": "Icon Duo Themes",
-      "description": "Colour pairings for themable two-colour icons (c1 accent / c2 base), derived from the starter tokens. Regenerate after replacing the tokens (engine deriveIconThemesDoc).",
-      "type": "palette",
-      "version": "1.0.0",
-      "tier": "on-demand",
-      "tags": [
-        "palette",
-        "icon-themes"
-      ],
-      "formats": [
-        {
-          "format": "json",
-          "url": "/catalog/assets/lolly/palette/icon-themes.json",
-          "checksum": "sha256-aQmurROi2BCjIJK1cS+s9PkSEIKGflqr+ziWj95N6uM=",
-          "size": 636
+          "checksum": "sha256-+V3LtUAPuFrZa8bcqaBO+rFTyEDmOKAzpSqHbs5wZuw=",
+          "size": 509
         }
       ],
       "added": "2026-07-17"

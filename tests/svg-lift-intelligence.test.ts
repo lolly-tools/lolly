@@ -26,6 +26,17 @@
  *
  * These are the acceptance fixtures, so the numbers below are MEASURED, not
  * chosen: each is written with the value that made it fail before the fix.
+ *
+ * ⚑ Re-measured 2026-09-03 against the plan-182 re-capture of two of the six.
+ * `brand-colours` is now the Colours room at beat 0 - one centred column of a
+ * title, a pick row and a line, on an otherwise empty page - so its 5 layers
+ * spread the ink 51/24/8/4/1 and the biggest holds 58 %. It no longer HAS a
+ * hero, and a case that needs one cannot be graded on it: the hero case moved to
+ * `brand-studio`, the one shot of the six that still shows the problem (74 % in
+ * one layer of 3, opened up into 8), and now asserts that its fixture still
+ * exhibits it, so the next re-capture that takes the problem away fails instead
+ * of passing for the wrong reason. `bs-palette-pane` is a 22-colour pane (was
+ * 25). No shot was dropped: the file still grades the same six files.
  */
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
@@ -195,9 +206,18 @@ describe('a derived document is cropped to its ink, and the row is cut to match'
     // full-stage cost the same stack now pays. Measured 2026-08-12; the bound is
     // the measurement plus headroom, so a regression to full-stage rows (100 %)
     // fails loudly.
+    // Re-measured 2026-09-03 on the two plan-182 re-captures, both budgets raised
+    // to the new measurement plus headroom: brand-colours 66.4 % (budget was
+    // 40 %) and bs-palette-pane 13.3 % (was 10 %). Neither is a crop regression.
+    // brand-colours at beat 0 draws 88 paint elements in 5 layers, and 3 of those
+    // ARE the page - background and full-width bands - so they are full-stage
+    // because their ink is; only the title (603 × 28, 1.6 %) and the pick row
+    // (1146 × 283, 30.4 %) have ink smaller than the stage to crop to. A sparse
+    // page has a worse ratio and a far cheaper frame, which is why the assertion
+    // is a share of full-stage and not an area.
     const worst: Record<string, number> = {
-      'brand-colours': 0.40, 'ai-stance-change-history': 0.10, 'cc-verify-mobile': 0.35,
-      'bs-palette-pane': 0.10, 'brand-studio': 0.70, 'seq-studio-timeline': 0.10,
+      'brand-colours': 0.70, 'ai-stance-change-history': 0.10, 'cc-verify-mobile': 0.35,
+      'bs-palette-pane': 0.15, 'brand-studio': 0.70, 'seq-studio-timeline': 0.10,
     };
     for (const s of shots) {
       const stage = s.viewBox!.w * s.viewBox!.h;
@@ -249,7 +269,11 @@ describe('geometric peers share a depth, so grids stay grids', () => {
   // fail in BOTH directions: a coherence regression drops the group, and an
   // over-eager merge collapses the stack into one rung.
   const GRIDS: Record<string, { rungs: number; biggest: number }> = {
-    'bs-palette-pane': { rungs: 6, biggest: 25 },     // 25 swatch wells + 25 chips
+    // Re-measured 2026-09-03: the plan-182 re-capture is a 22-colour pane (was
+    // 25), and the two families each still take exactly one rung of their own -
+    // 22 wells at 66 × 66 on one, 22 chips at 48 × 48 on the next - out of 11
+    // rungs for the pane's 53 layers.
+    'bs-palette-pane': { rungs: 11, biggest: 22 },    // 22 swatch wells + 22 chips
     'cc-verify-mobile': { rungs: 6, biggest: 9 },     // the 3×3 card block
     // Re-measured 2026-08-17: the baseline re-captured against design's timeline
     // (sequence-studio consolidated into design; the recipe now opens design with
@@ -290,10 +314,29 @@ describe('geometric peers share a depth, so grids stay grids', () => {
 // ══ 4. the hero problem ═══════════════════════════════════════════════════════
 
 describe('a layer holding the whole picture is opened up', () => {
-  test('brand-colours: 5 layers of which one held 96% becomes a real stack', () => {
-    const s = shots.find((x) => x.name === 'brand-colours')!;
-    assert.ok(s.layers.length >= 10 && s.layers.length <= 20,
-      `expected 10–20 sensible layers, got ${s.layers.length}`);
+  // Re-fixtured 2026-09-03. This case grades the descent, so it needs a shot that
+  // HAS a hero, and after the plan-182 re-capture `brand-colours` has not: 5
+  // layers, biggest 58 % - a legitimate 5-layer page, not a picture with a frame
+  // around it. `brand-studio` is the one of the six that still shows it, measured
+  // 74 % in one layer of 3, opened up into 8. (`bs-colour-first`, outside the
+  // six, is the other one measured that day: 79 %, 5 layers into 9.)
+  test('brand-studio: 3 layers of which one held 74% becomes a real stack', () => {
+    const s = shots.find((x) => x.name === 'brand-studio')!;
+    // The fixture must still HAVE the problem it grades. Asserted rather than
+    // assumed, because `brand-colours` stopped having one without saying so, and
+    // only the layer-count band below caught it - a re-capture whose count sat
+    // inside the band would have carried this case green and empty.
+    const raw = enumerateSvgLayers(s.src, { heroDescent: false });
+    const rawInks = raw.layers.map((l) => ink(l.markup));
+    const rawTotal = rawInks.reduce((a, b) => a + b, 0);
+    const heroShare = Math.max(...rawInks) / rawTotal;
+    assert.ok(heroShare > 2 / 3,
+      `the fixture must still hold a hero: biggest of ${raw.layers.length} is ${(heroShare * 100).toFixed(0)}%`);
+    // 6 is twice the 3 it starts from, so a descent that stopped working fails;
+    // 20 is SVG_LAYERS_HERO_BUDGET, the count a person can still read in the
+    // dialog, so a descent that ran away fails too. Measured 8.
+    assert.ok(s.layers.length >= 6 && s.layers.length <= 20,
+      `expected 6–20 sensible layers, got ${s.layers.length}`);
     assert.match(s.warnings.join(' '), /held \d+% of this artwork/,
       'and the dialog says why the count is what it is');
   });
@@ -320,12 +363,21 @@ describe('a layer holding the whole picture is opened up', () => {
   });
 
   test('opening a hero up is opt-out, and the opt-out is the old behaviour', () => {
-    const s = shots.find((x) => x.name === 'brand-colours')!;
+    // The descent half follows the hero case onto `brand-studio` (2026-09-03):
+    // on the re-captured `brand-colours` there is no descent to opt out of, so
+    // `heroDescent: false` and the default agree whatever the flag does. Measured
+    // on brand-studio: 8 layers by default, 3 with the descent off.
+    const s = shots.find((x) => x.name === 'brand-studio')!;
     const raw = enumerateSvgLayers(s.src, { heroDescent: false });
-    assert.equal(raw.layers.length, 5, 'the 1.119 enumeration, unchanged');
-    const flat = enumerateSvgLayers(s.src, { cropToInk: false });
+    assert.equal(raw.layers.length, 3, 'the 1.119 enumeration, unchanged');
+    assert.ok(raw.layers.length < s.layers.length,
+      `and the default really does descend: ${raw.layers.length} against ${s.layers.length}`);
+    // Cropping is refused or allowed per DOCUMENT, so its opt-out stays on
+    // `brand-colours` - whose root is 1440 × 740 as re-captured, was 1440 × 900.
+    const bc = shots.find((x) => x.name === 'brand-colours')!;
+    const flat = enumerateSvgLayers(bc.src, { cropToInk: false });
     assert.ok(flat.layers.every((l) => !l.viewBox), 'and cropping is opt-out too');
-    assert.ok(flat.layers.every((l) => /viewBox="0 0 1440 900"/.test(l.markup.slice(0, 400))),
+    assert.ok(flat.layers.every((l) => /viewBox="0 0 1440 740"/.test(l.markup.slice(0, 400))),
       'opting out gives back the source root, verbatim');
   });
 
@@ -350,12 +402,18 @@ describe('opening a hero up respects the ceilings it was given', () => {
     // the cap would hand it members from two different chains and lose the
     // hero's own transform on half of them. It is refused instead, which is
     // 1.119's answer to the same file.
-    const s = shots.find((x) => x.name === 'brand-colours')!;
+    // Re-fixtured 2026-09-03 with the hero case above: the re-captured
+    // `brand-colours` has no hero, so capping it refused nothing and this read as
+    // a pass while proving nothing. On `brand-studio` the descent is real - 3
+    // candidates become 8 - and 8 is past a cap of 6, so it is refused whole.
+    const s = shots.find((x) => x.name === 'brand-studio')!;
     const capped = enumerateSvgLayers(s.src, { maxLayers: 6 });
     assert.ok(capped.layers.length <= 6, `the cap must bind: got ${capped.layers.length}`);
-    assert.equal(capped.layers.filter((l) => l.viewBox).length >= 0, true);
-    // At a cap of 6 the 5-layer enumeration cannot grow to 16, so the hero stays
-    // whole and the artwork is still whole with it.
+    // Measured: 3 layers, which is the un-descended enumeration exactly, and no
+    // descent warning - the cap refuses the descent, it does not make a smaller one.
+    assert.equal(capped.layers.length, 3, 'the hero stays whole under the cap');
+    assert.equal(capped.warnings.filter((w) => /held \d+% of this artwork/.test(w)).length, 0,
+      'and it does not report a descent it declined to make');
     const before = ink(s.src);
     assert.equal(capped.layers.reduce((a, l) => a + ink(l.markup), 0), before,
       'and no artwork is lost either way');

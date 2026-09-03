@@ -14,6 +14,9 @@ declare module 'jsdom' {
   }
   export interface JSDOMOptions {
     virtualConsole?: VirtualConsole;
+    /** The realm's document URL. A suite that drives web-shell view code needs a real
+     *  origin: the default `about:blank` is opaque, so storage and history reads throw. */
+    url?: string;
   }
   export class JSDOM {
     constructor(html?: string, options?: JSDOMOptions);

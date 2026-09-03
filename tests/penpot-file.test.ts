@@ -1202,9 +1202,15 @@ test('penpotTokensJson: the shipped brand doc is filtered to what Penpot reads',
     }
   }
 
-  // Aliases are kept verbatim - Penpot resolves them itself.
+  // Aliases are kept verbatim - Penpot resolves them itself. The pin is the
+  // pass-through, so it reads the alias off the SOURCE doc: which ramp step the
+  // starter brand's primary points at is a palette decision that moves (the blank
+  // brand's ink-and-paper cut moved it off the green ramp), and pinning that here
+  // makes a palette edit look like a filter bug.
+  const srcPrimary = (brand as any).light?.color?.semantic?.primary?.$value as string;
+  assert.match(srcPrimary, /^\{[\w.-]+\}$/, 'the source light primary is an alias, not a literal colour');
   const light = out!.light as any;
-  assert.equal(light.color.semantic.primary.$value, '{color.ramp.primary.4}');
+  assert.equal(light.color.semantic.primary.$value, srcPrimary);
 
   for (const theme of (out!.$themes as Array<Record<string, unknown>>)) {
     assert.equal(typeof theme.description, 'string', `theme ${String(theme.name)} carries the required description`);

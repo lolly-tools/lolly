@@ -6,6 +6,65 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.171.0 - Narrated slides: PPTX audio, SCORM and the caption window (plans/180 sections 3, 5
+and 6). `PptxSlide.audio` (new exported type `PptxAudio`: `{bytes, ext:'wav'|'mp3'|'m4a',
+durationMs, autoplay?, advanceAfterMs?, name?}`) writes a slide's narration as its own part
+family - its own content-type Defaults, its own rel-id run past the images and the notesSlide,
+and the `p:pic` PowerPoint actually reads: `a:hlinkClick action="ppaction://media"`, an
+`a:audioFile r:link` AND the `p14:media r:embed` extension under
+`{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}`, both pointing at one sound part, with a shared
+169-byte speaker PNG as the blipFill poster at the bottom-right. Autoplay is a `<p:audio
+isNarration="1">` media node in the step-0 timing group (there is no attribute for it), and
+`advanceAfterMs` writes `advTm` on `p:transition` - including on a slide with no transition,
+where the empty `<p:transition advTm="…"/>` is what PowerPoint itself writes. The bytes go in
+VERBATIM: a narration clip carries its synthetic-voice C2PA in the RIFF chunks and a re-encode
+would strip it. A deck with no audio anywhere is byte-identical to what this builder wrote
+before. Read side: `PptxReadSlide.audio` (`PptxSlideAudio`, `{part, ext}`) resolves a slide's
+audio rel - or its media rel when the target really is a sound, since a video shares that
+relationship type. New module `scorm.ts`: `scormManifest12` / `scormManifest2004` /
+`scormManifest` build `imsmanifest.xml` for SCORM 1.2 and 2004 4th Edition (one organization,
+one item, one `webcontent` sco resource listing every packaged file; the `scormtype` /
+`scormType` casing differs between the two schemas and both are written correctly),
+`scormAdapterJs` the dependency-free runtime adapter (depth-capped `findAPI` over
+parent/opener for `API` and `API_1484_11`, completion on the last slide, session time in
+1.2's `HHHH:MM:SS.SS` or 2004's ISO 8601 duration, the slide index in `suspend_data`,
+Terminate on unload), and `scormLaunchHtml` the D1 launch page (packaged slide images, a
+plain keyboard/click navigator, the narrated video with a `<track kind="captions">`, a visible
+"AI voice" line, every URL relative and every font a real woff2 file). Also
+`captions.cuesForSlide(words, slideStartMs, slideEndMs, opts)` - the same grouping, clamped to
+one slide's window so a caption can never leak onto the next slide. Additive.
+
+1.170.0 - Expressive speech, the pure half (plans/181 sections 3, 4, 5.1 and 7). `KOKORO_VOCAB`
+pins the tokenizer's 115 symbols and `filterToVocab` drops everything else from a word's phonemes
+inside `phonemizeChunk`, so `input_ids.length === phonemes.length + 2` holds and a clip stops
+falling back to sentence-granular word timings; `normalizeForSpeech` is `normalizeText` with
+kokoro.js's `(` to guillemet mapping undone, which is what broke every parenthesis (48 of 48 cells,
+measured 2026-09-03). New grammar: `parseScriptMarks` / `scriptLinesOf` read `[pause N]`,
+`[slow]` / `[fast]` / `[speed N]` and `[word](/ipa/)` out of a script into per-sentence speed, gap
+and pronunciation overrides, with `pauseGapS` subtracting the clips' own lead-in/lead-out padding so
+`[pause N]` sounds like N. `parseVoiceBlend` / `accentOfBlend` read 'af_heart+bf_lily:0.3' into
+normalised weights and the heaviest component's accent. `SentenceClip.gapBefore` lets one join
+override the default gap, and `concatClips` additionally returns a `TtsSegment[]` tiling;
+`deriveSegmentsFromWords` recovers that tiling from a clip saved before it was recorded.
+`SpeechSynthesizeOpts` gains `prenormalized?: boolean` (the normalizer is not idempotent) and
+`voice`'s doc comment now admits a blend string. All additive.
+
+1.169.0 - Slide transitions in the `.pptx` writer (plans/179 M4): `PptxSlide.transition`
+(`{kind:'fade'|'push'|'cut', dir?, ms?}`, new exported type `PptxSlideTransition`) emits a real
+`<p:transition>` between `</p:clrMapOvr>` and the timing tree, so a Design deck's per-slide
+Fade/Slide reaches PowerPoint as PowerPoint's own transition instead of being dropped at the
+door. `cut` and an absent transition emit nothing, so every deck written before this comes out
+byte-identical. `ms` is bucketed into the element's three `spd` speeds (a true duration needs
+the p14 extension namespace). Additive.
+
+1.168.0 - The `lolly://` URL scheme is a recognised Lolly address (plans/174): `parseToolUrl` and
+`isToolUrl` accept `lolly://t/<id>?…`, `lolly://tool/<id>[.<ext>]?…` and a bare `lolly://<id>?…` exactly
+as they accept the https forms, and `lollySchemeToHttps` (new export, also re-exported from
+`index.ts` with `APP_PATH_WORDS`) is the one-line normalisation behind it - `lolly://<route>` becomes
+`https://lolly.tools/<route>`, with a pasted `lolly://lolly.tools/…` host segment dropped rather than
+read as a tool id. The web shell's deep-link mapper (`lib/deep-link.ts`) builds on the same recogniser
+so the desktop poll loop, the Android bridge and the iOS queue all route one grammar. Additive.
+
 1.167.0 - `.penpot` writer (plans/178): `engine/src/penpot-file.ts` emits the binfile-v3 archive Penpot
 itself exports and imports. `buildPenpotEntries` writes manifest, file, pages, one JSON per shape, media
 with their storage objects, library colours, typographies and the brand's `tokens.json`
