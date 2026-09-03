@@ -956,6 +956,37 @@
       "added": "2026-08-10"
     },
     {
+      "id": "lolly/demo/lorikeet-lollipop",
+      "name": "Lorikeet with a Lolly",
+      "description": "A rainbow lorikeet biting a green-and-white swirl lollipop against a deep green studio backdrop - the starter catalogue's demo photograph and the Darkroom's default subject, so grading, LUTs and the brand colour treatments have a real picture with skin-like feather detail and a full hue range to work on. Generated with Google Gemini and shipped byte-for-byte, so the generator's own Content Credential (a C2PA manifest that declares the image as trained-algorithmic media) stays intact for Verify to read. A removable example - delete it any time.",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "photo",
+        "demo",
+        "example",
+        "placeholder",
+        "lorikeet",
+        "bird",
+        "lollipop",
+        "lolly",
+        "portrait"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/lolly/demo/lorikeet-lollipop.jpg",
+          "checksum": "sha256-PLACEHOLDER",
+          "width": 1628,
+          "height": 2624
+        }
+      ],
+      "license": "CC0-1.0",
+      "aiGenerated": "full",
+      "added": "2026-09-03"
+    },
+    {
       "id": "lolly/demo/app-screenshot",
       "name": "App screenshot (demo)",
       "description": "A real Lolly screenshot - the brand studio's Colours tab, captured as vector by the app's own DOM-to-SVG walker. A demo subject for flythroughs, filters and layered animation. A removable example - delete it any time.",
