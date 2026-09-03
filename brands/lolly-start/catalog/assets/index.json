@@ -977,14 +977,15 @@
         {
           "format": "jpg",
           "url": "/catalog/assets/lolly/demo/lorikeet-lollipop.jpg",
-          "checksum": "sha256-PLACEHOLDER",
+          "checksum": "sha256-zOaMwbZfLSvt7U+W0OgwLtj6JFRz3Qx5jI8a1nARNZI=",
           "width": 1628,
-          "height": 2624
+          "height": 2624,
+          "size": 2779330,
+          "depth": 8
         }
       ],
       "license": "CC0-1.0",
-      "aiGenerated": "full",
-      "added": "2026-09-03"
+      "aiGenerated": "full"
     },
     {
       "id": "lolly/demo/app-screenshot",
