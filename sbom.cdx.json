@@ -4,7 +4,7 @@
   "serialNumber": "urn:uuid:1cb787ad-672f-4ac0-8632-e04791a11723",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-03T11:38:05.215Z",
+    "timestamp": "2026-09-03T12:55:06.437Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -2146,9 +2146,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2173,9 +2171,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3507,9 +3503,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5623,9 +5617,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7428,7 +7420,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MPL-2.0"
           }
         }
       ],
@@ -8919,7 +8911,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -11078,7 +11070,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -13269,9 +13261,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -14026,7 +14016,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "CC0-1.0"
           }
         }
       ],
@@ -17560,9 +17550,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
