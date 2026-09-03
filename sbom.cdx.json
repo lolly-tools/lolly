@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:507333ba-e8a9-4acb-884a-72443455e2c3",
+  "serialNumber": "urn:uuid:1cb787ad-672f-4ac0-8632-e04791a11723",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-08-31T16:39:18.167Z",
+    "timestamp": "2026-09-03T11:38:05.215Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -84,10 +84,10 @@
         },
         {
           "type": "library",
-          "bom-ref": "pkg:npm/%40lolly/engine@1.157.0",
+          "bom-ref": "pkg:npm/%40lolly/engine@1.171.0",
           "name": "@lolly/engine",
-          "version": "1.157.0",
-          "purl": "pkg:npm/%40lolly/engine@1.157.0",
+          "version": "1.171.0",
+          "purl": "pkg:npm/%40lolly/engine@1.171.0",
           "licenses": [
             {
               "license": {
@@ -2139,6 +2139,60 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/const-random-macro@0.1.16",
+      "name": "const-random-macro",
+      "version": "0.1.16",
+      "purl": "pkg:cargo/const-random-macro@0.1.16",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "unknown"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f9d839f2a20b0aee515dc581a6172f2321f96cab76c1a38a4c584a194955390e"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/const-random@0.1.18",
+      "name": "const-random",
+      "version": "0.1.18",
+      "purl": "pkg:cargo/const-random@0.1.18",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "unknown"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "87e00182fe74b066627d63b85fd550ac2998d4b0bd86bfed477a0ae4c7c71359"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/convert_case@0.8.0",
       "name": "convert_case",
       "version": "0.8.0",
@@ -3435,6 +3489,33 @@
         {
           "alg": "SHA-256",
           "content": "5e2c5bd4158e66d1e215c49b837e11d62f3267b30c92f1d171c4d3105e3dc4d4"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/dlv-list@0.5.2",
+      "name": "dlv-list",
+      "version": "0.5.2",
+      "purl": "pkg:cargo/dlv-list@0.5.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "unknown"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "442039f5147480ba31067cb00ada1adae6892028e40e45fc5de7b7df6dcc1b5f"
         }
       ],
       "properties": [
@@ -5535,6 +5616,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/hashbrown@0.14.5",
+      "name": "hashbrown",
+      "version": "0.14.5",
+      "purl": "pkg:cargo/hashbrown@0.14.5",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "unknown"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/hashbrown@0.15.5",
       "name": "hashbrown",
       "version": "0.15.5",
@@ -7312,15 +7420,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/lolly-desktop@1.0.5",
+      "bom-ref": "pkg:cargo/lolly-desktop@1.0.6",
       "name": "lolly-desktop",
-      "version": "1.0.5",
-      "purl": "pkg:cargo/lolly-desktop@1.0.5",
+      "version": "1.0.6",
+      "purl": "pkg:cargo/lolly-desktop@1.0.6",
       "scope": "required",
       "licenses": [
         {
           "license": {
-            "id": "MPL-2.0"
+            "name": "unknown"
           }
         }
       ],
@@ -8792,6 +8900,33 @@
         {
           "alg": "SHA-256",
           "content": "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/ordered-multimap@0.7.3",
+      "name": "ordered-multimap",
+      "version": "0.7.3",
+      "purl": "pkg:cargo/ordered-multimap@0.7.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "unknown"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "49203cdcae0030493bad186b28da2fa25645fa276a51b6fec8010d281e02ef79"
         }
       ],
       "properties": [
@@ -10924,6 +11059,33 @@
         {
           "alg": "SHA-256",
           "content": "a4689e6c2294d81e88dc6261c768b63bc4fcdb852be6d1352498b114f61383b7"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/rust-ini@0.21.3",
+      "name": "rust-ini",
+      "version": "0.21.3",
+      "purl": "pkg:cargo/rust-ini@0.21.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "unknown"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "796e8d2b6696392a43bea58116b667fb4c29727dc5abd27d6acf338bb4f688c7"
         }
       ],
       "properties": [
@@ -13100,6 +13262,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/tauri-plugin-deep-link@2.4.10",
+      "name": "tauri-plugin-deep-link",
+      "version": "2.4.10",
+      "purl": "pkg:cargo/tauri-plugin-deep-link@2.4.10",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "unknown"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "92d489b8ecceae1cd09f6e1f7606f2095ac721cc8d54cf2f0e6bb377cc52cff6"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/tauri-plugin-fs@2.5.1",
       "name": "tauri-plugin-fs",
       "version": "2.5.1",
@@ -13824,6 +14013,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/tiny-keccak@2.0.2",
+      "name": "tiny-keccak",
+      "version": "2.0.2",
+      "purl": "pkg:cargo/tiny-keccak@2.0.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "unknown"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2c9d3793400a45f954c52e73d068316d76b6f4e36977e3fcebb13a2721e80237"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -17326,6 +17542,33 @@
         {
           "alg": "SHA-256",
           "content": "9150af68066c4c5c07ddc0ce30421554771e528bde427614c61038bc2c92c2b1"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/windows-registry@0.5.3",
+      "name": "windows-registry",
+      "version": "0.5.3",
+      "purl": "pkg:cargo/windows-registry@0.5.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "unknown"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5b8a9ed28765efc97bbc954883f4e6796c33a06546ebafacbabee9696967499e"
         }
       ],
       "properties": [
@@ -21717,6 +21960,330 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-android-arm64@1.0.8",
+      "name": "@napi-rs/canvas-android-arm64",
+      "version": "1.0.8",
+      "purl": "pkg:npm/%40napi-rs/canvas-android-arm64@1.0.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "e7e9e487c8b782dea5a92fddda34d9d71027ead760b41e0b7f5996e93d109b9feb5cdc01b95d6c004c8b1166a7e68f6024f53f1aebc7477aef49e67e15a1ab6f"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas-android-arm64/-/canvas-android-arm64-1.0.8.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-darwin-arm64@1.0.8",
+      "name": "@napi-rs/canvas-darwin-arm64",
+      "version": "1.0.8",
+      "purl": "pkg:npm/%40napi-rs/canvas-darwin-arm64@1.0.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "ee3438ee08be7d9eca2667dcff9acdcb2d42630fdcbb8919d0a3c861ba3d514812756d1b290269b7e5a2844a2beace0bca9efec5cddafb71dec9798011b6e73e"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas-darwin-arm64/-/canvas-darwin-arm64-1.0.8.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-darwin-x64@1.0.8",
+      "name": "@napi-rs/canvas-darwin-x64",
+      "version": "1.0.8",
+      "purl": "pkg:npm/%40napi-rs/canvas-darwin-x64@1.0.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "ad18c3319b3da4844a1b18228f07b3a6529cd519c9b2a52892b03d87cf1b6d392a43eede3e3d19378667643cbc56ed2d5ececa465236b502da2b89b1f509711e"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas-darwin-x64/-/canvas-darwin-x64-1.0.8.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-arm-gnueabihf@1.0.8",
+      "name": "@napi-rs/canvas-linux-arm-gnueabihf",
+      "version": "1.0.8",
+      "purl": "pkg:npm/%40napi-rs/canvas-linux-arm-gnueabihf@1.0.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "8c670277ef2b6ba43ad712aa65e888b6e8d3a69f5af5e44b710d235baa98364bbe5a9ba9a8e3c53d8d12aecb929d716f889c24a4a613f69ed0ac1e25b1fdcb35"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas-linux-arm-gnueabihf/-/canvas-linux-arm-gnueabihf-1.0.8.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-arm64-gnu@1.0.8",
+      "name": "@napi-rs/canvas-linux-arm64-gnu",
+      "version": "1.0.8",
+      "purl": "pkg:npm/%40napi-rs/canvas-linux-arm64-gnu@1.0.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "a1de88d98ee453b8b54b06581b610a5bcad6cfa26279db4fa64a385847b50c3b228a4adf6a8b5504245a513339ff279929a67dd846ada004bee711beeae26560"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas-linux-arm64-gnu/-/canvas-linux-arm64-gnu-1.0.8.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-arm64-musl@1.0.8",
+      "name": "@napi-rs/canvas-linux-arm64-musl",
+      "version": "1.0.8",
+      "purl": "pkg:npm/%40napi-rs/canvas-linux-arm64-musl@1.0.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "c9890f6c90c98968fa374800480dc202f472a59995a499f15340d083768186778b0d075ef533cb2800ec424a1b368254b534ff963e3a696a734f8f0f0dbdd072"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas-linux-arm64-musl/-/canvas-linux-arm64-musl-1.0.8.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-riscv64-gnu@1.0.8",
+      "name": "@napi-rs/canvas-linux-riscv64-gnu",
+      "version": "1.0.8",
+      "purl": "pkg:npm/%40napi-rs/canvas-linux-riscv64-gnu@1.0.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "3c1d34312280a785702bfc707ba76e2b144a987f141f8188975a6a1d26f19e0d239d4f43afb170683ca90e2ab034567bef837ef06ee624b1ae2ed83d353710b2"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas-linux-riscv64-gnu/-/canvas-linux-riscv64-gnu-1.0.8.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-x64-gnu@1.0.8",
+      "name": "@napi-rs/canvas-linux-x64-gnu",
+      "version": "1.0.8",
+      "purl": "pkg:npm/%40napi-rs/canvas-linux-x64-gnu@1.0.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "4d63365d62688ad2e220f0af80987b4ab882f8bfd3f6a918095cc2eba02276c672d103f58642b3073570b2109d700deae9f227df21342126eae253094b2f2317"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas-linux-x64-gnu/-/canvas-linux-x64-gnu-1.0.8.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-x64-musl@1.0.8",
+      "name": "@napi-rs/canvas-linux-x64-musl",
+      "version": "1.0.8",
+      "purl": "pkg:npm/%40napi-rs/canvas-linux-x64-musl@1.0.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "85bdb43312975dbe4807b000c0df141f3f5646c6b61e67597e3b030b38c4970268795d5aa2d544c0553816b150718415cec2502de68273fd9076dff443bda632"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas-linux-x64-musl/-/canvas-linux-x64-musl-1.0.8.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-win32-arm64-msvc@1.0.8",
+      "name": "@napi-rs/canvas-win32-arm64-msvc",
+      "version": "1.0.8",
+      "purl": "pkg:npm/%40napi-rs/canvas-win32-arm64-msvc@1.0.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5b03cdd3c2171384a42fe1612723f3fe2167c9c3005246e9845213e1c98a2e5bdb494d197e7d51ec1189dc7aa4cb54bcf5051873443820e49c5dbff8d917bdc1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas-win32-arm64-msvc/-/canvas-win32-arm64-msvc-1.0.8.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-win32-x64-msvc@1.0.8",
+      "name": "@napi-rs/canvas-win32-x64-msvc",
+      "version": "1.0.8",
+      "purl": "pkg:npm/%40napi-rs/canvas-win32-x64-msvc@1.0.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5e4ad5a8a6fea71c9b6bb923cb62c9bc00455414c4d03369125eccac6e0e61499a59aaeb5c7fade78cff0b38f663108ab62cd84d5e2683aa61366df1db8aa385"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas-win32-x64-msvc/-/canvas-win32-x64-msvc-1.0.8.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas@1.0.8",
+      "name": "@napi-rs/canvas",
+      "version": "1.0.8",
+      "purl": "pkg:npm/%40napi-rs/canvas@1.0.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "fd268b72f96a196766d0748258c807bbb7232624177cff3f98e63ee9d53257d7e5433eec3c1059f9e776cd8b68ba4a233e6c4e68bedb9be77f1b819e596a0dee"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas/-/canvas-1.0.8.tgz"
         }
       ]
     },
@@ -29290,10 +29857,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/fast-uri@3.1.5",
+      "bom-ref": "pkg:npm/fast-uri@3.1.7",
       "name": "fast-uri",
-      "version": "3.1.5",
-      "purl": "pkg:npm/fast-uri@3.1.5",
+      "version": "3.1.7",
+      "purl": "pkg:npm/fast-uri@3.1.7",
       "scope": "required",
       "licenses": [
         {
@@ -29305,13 +29872,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "807c00d4ef4b0c870aba730a84e6d2fc78a6c2d7a13b59cf50408a02ee53a4a81a3b5f5f716125e1b96259ed635b1545bc85f3b498e34382fc5d0d4453d7fb27"
+          "content": "74ebd95738dd65dcfba6177dbfa8c26f0c6b056ddf2ba9fc45cd02b5d98ce1bba6ccc9f1cb005886ea61e89f35f51470fe4bbeacb6de9707ccba792dbb35551e"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.5.tgz"
+          "url": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.7.tgz"
         }
       ]
     },
@@ -34414,10 +34981,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/qs@6.15.3",
+      "bom-ref": "pkg:npm/qs@6.16.0",
       "name": "qs",
-      "version": "6.15.3",
-      "purl": "pkg:npm/qs@6.15.3",
+      "version": "6.16.0",
+      "purl": "pkg:npm/qs@6.16.0",
       "scope": "excluded",
       "licenses": [
         {
@@ -34429,13 +34996,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "3bd825df30a5e61e5b970d4a194cd02a1039a145d297caf0508339a344b79c25cc9624afcb90f3c7bfc325c23e4b08080aff889de499c21061d684b210703bd4"
+          "content": "87a7e1388691ac80f609b118d9faacfbbb7e517668f8c2c09d4e60448abce6e16d76250f09db00a4c947857a202953381ccd8355b22318d4d3607d8e7263f5bc"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/qs/-/qs-6.15.3.tgz"
+          "url": "https://registry.npmjs.org/qs/-/qs-6.16.0.tgz"
         }
       ],
       "properties": [

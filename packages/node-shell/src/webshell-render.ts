@@ -14,7 +14,7 @@
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { readFile, stat } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 import { join, resolve, extname, normalize } from 'node:path';
 import { getBrowser, BrowserError } from './browsers.ts';
 import { repoRoot } from './repo-root.ts';
@@ -70,6 +70,15 @@ function serveDist(): Promise<Served> {
       const data = await readFile(filePath);
       res.setHeader('Content-Type', MIME[extname(filePath)] ?? 'application/octet-stream');
       res.setHeader('Cache-Control', 'no-store');
+      // CROSS-ORIGIN ISOLATION, the same pair vercel.json and shells/web/vite.config.js
+      // send (`same-origin` + `credentialless`). Without them `crossOriginIsolated` is
+      // false in the headless page, SharedArrayBuffer is absent, and the built shell's
+      // threaded onnxruntime falls back or stalls - so the durable TrustMark embed
+      // (?durable=1), the /valid deep scan and every model-backed export ran here under
+      // different rules than the browser a person uses. This server is the ONLY place
+      // the dist was served without them.
+      res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+      res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
       res.end(data);
     } catch { res.writeHead(404).end(); }
   });
@@ -125,6 +134,141 @@ function timeoutFor(fmt: string): number {
   if (['webm', 'mp4', 'gif', 'apng'].includes(f)) return 180_000;
   if (['pdf', 'pdf-cmyk', 'cmyk-tiff', 'tiff'].includes(f)) return 90_000;
   return 60_000;
+}
+
+// ── Tier-B debug (--tier-b-debug / LOLLY_TIER_B_DEBUG=1) ──────────────────────
+//
+// A Tier-B failure used to be one sentence with no evidence in it: "the web shell
+// produced no mp4 in time" says nothing about WHICH of the five steps ran out, and
+// the console error that actually explains it died with the browser context. With
+// the switch on, the page's console, its page errors and its network log are kept,
+// the step timings are recorded, and on failure the whole lot is written beside the
+// output file - so the next question is answerable from the log rather than from a
+// second run with a hand-patched module.
+
+interface TierBDebugConfig {
+  enabled: boolean;
+  /** The run's output path; the log is written as `<outPath>.tier-b-debug.log`. */
+  outPath: string | null;
+}
+let tierBDebugConfig: TierBDebugConfig = { enabled: false, outPath: null };
+
+/** Turn the Tier-B debug log on for this process and say where the output is written. */
+export function configureTierBDebug(cfg: { enabled?: boolean; outPath?: string | null }): void {
+  tierBDebugConfig = {
+    enabled: cfg.enabled ?? tierBDebugConfig.enabled,
+    outPath: cfg.outPath === undefined ? tierBDebugConfig.outPath : cfg.outPath,
+  };
+}
+
+function tierBDebugOn(): boolean {
+  return tierBDebugConfig.enabled || /^(1|true|on|yes)$/i.test(process.env.LOLLY_TIER_B_DEBUG ?? '');
+}
+
+/** How much of each log we keep - enough to diagnose, bounded so a chatty page
+ *  cannot grow the process without limit. */
+const DEBUG_MAX_LINES = 500;
+
+interface DebugRecorder {
+  /** Begin a named step; the previous one is closed with its duration. */
+  step(name: string): void;
+  /** Attach console/pageerror/network listeners to the page. */
+  attach(page: import('playwright-core').Page): void;
+  /** The step that was running, and how long it had been running, at failure. */
+  where(): string;
+  /** Write the log beside the output. Returns the path, or null when nothing was written. */
+  write(label: string, failure: string): string | null;
+}
+
+/** A no-op recorder is cheaper than a null check at every call site. */
+const NO_DEBUG: DebugRecorder = {
+  step: () => {}, attach: () => {}, where: () => '', write: () => null,
+};
+
+function startDebug(): DebugRecorder {
+  if (!tierBDebugOn()) return NO_DEBUG;
+  const t0 = Date.now();
+  const steps: Array<{ name: string; at: number; ms?: number }> = [];
+  const console_: string[] = [];
+  const network: string[] = [];
+  // One log per render. `write` is idempotent so the download-timeout sentence and the
+  // outer catch (which covers a failed navigation, a dead browser, a missing dist)
+  // cannot produce two files or two paths in one message.
+  let writtenPath: string | null | undefined;
+  const at = (): string => `${((Date.now() - t0) / 1000).toFixed(2)}s`;
+  const push = (into: string[], line: string): void => {
+    if (into.length < DEBUG_MAX_LINES) into.push(`[${at()}] ${line}`);
+    else if (into.length === DEBUG_MAX_LINES) into.push(`… (further lines dropped at ${DEBUG_MAX_LINES})`);
+  };
+  return {
+    step(name: string): void {
+      const prev = steps[steps.length - 1];
+      if (prev) prev.ms = Date.now() - prev.at;
+      steps.push({ name, at: Date.now() });
+    },
+    attach(page): void {
+      page.on('console', (m) => push(console_, `${m.type()}: ${m.text()}`));
+      page.on('pageerror', (e) => push(console_, `pageerror: ${e.message}`));
+      page.on('requestfailed', (r) => push(network, `FAILED ${r.method()} ${r.url()} - ${r.failure()?.errorText ?? 'unknown'}`));
+      page.on('response', (r) => push(network, `${r.status()} ${r.request().method()} ${r.url()}`));
+    },
+    where(): string {
+      const cur = steps[steps.length - 1];
+      if (!cur) return '';
+      return `step "${cur.name}" after ${((Date.now() - cur.at) / 1000).toFixed(1)}s`;
+    },
+    write(label: string, failure: string): string | null {
+      if (writtenPath !== undefined) return writtenPath;
+      const cur = steps[steps.length - 1];
+      if (cur) cur.ms = Date.now() - cur.at;
+      const lines = [
+        `Lolly Tier-B debug - ${label}`,
+        `failed: ${failure}`,
+        '',
+        'STEPS (the last one is where it stopped)',
+        ...steps.map(s => `  ${s.name}: ${((s.ms ?? 0) / 1000).toFixed(2)}s`),
+        '',
+        `CONSOLE (${console_.length})`,
+        ...(console_.length ? console_.map(l => `  ${l}`) : ['  (nothing)']),
+        '',
+        `NETWORK (${network.length})`,
+        ...(network.length ? network.map(l => `  ${l}`) : ['  (nothing)']),
+        '',
+      ];
+      const path = tierBDebugConfig.outPath
+        ? `${tierBDebugConfig.outPath}.tier-b-debug.log`
+        : join(process.cwd(), `lolly-tier-b-debug-${label.replace(/[^a-z0-9.-]+/gi, '-')}.log`);
+      try {
+        writeFileSync(path, lines.join('\n'), 'utf8');
+        writtenPath = path;
+      } catch {
+        writtenPath = null;
+      }
+      return writtenPath;
+    },
+  };
+}
+
+/** Attach the debug log to a Tier-B failure that is not already carrying one - a failed
+ *  navigation, a page that closed under us, a download that yielded no file. */
+function withDebugLog(err: unknown, label: string, debug: DebugRecorder): unknown {
+  const log = debug.write(label, err instanceof Error ? err.message : String(err));
+  if (log && err instanceof Error && !err.message.includes(log)) {
+    err.message += ` Debug log: ${log}`;
+  }
+  return err;
+}
+
+/** The download-timeout sentence, with the debug log's evidence when it is on. */
+function noFileError(toolId: string, format: string, debug: DebugRecorder): BrowserError {
+  const where = debug.where();
+  const log = debug.write(`${toolId}.${format}`, `no "${format}" file (${where || 'download wait'})`);
+  return new BrowserError(
+    `The web shell produced no "${format}" file for "${toolId}" in time - the tool may have ` +
+    `failed to render or doesn't support that format. Try a different format or check the inputs.` +
+    (where ? ` Timed out in ${where}.` : '') +
+    (log ? ` Debug log: ${log}` : tierBDebugOn() ? '' : ' Re-run with --tier-b-debug for the browser console and network log.'),
+  );
 }
 
 export interface RenderDims {
@@ -376,28 +520,34 @@ export async function renderViaWebShell(
       );
     }
   }
+  const debug = startDebug();
+  debug.step('serve the built web shell');
   const base = await webShellBase();
   const url = exportUrl(base, toolId, query, format, dims);
+  debug.step('launch the browser');
   const browser = await getBrowser();
   const ctx = await browser.newContext({ serviceWorkers: 'block', acceptDownloads: true });
   try {
     const page = await ctx.newPage();
+    debug.attach(page);
     const downloadP = page.waitForEvent('download', { timeout: timeoutFor(format) });
+    debug.step('open the tool page');
     await page.goto(url, { waitUntil: 'commit', timeout: 30_000 });
+    debug.step(`wait for the ${format} download`);
     let download: Awaited<typeof downloadP>;
     try {
       download = await downloadP;
     } catch {
-      throw new BrowserError(
-        `The web shell produced no "${format}" file for "${toolId}" in time - the tool may have ` +
-        `failed to render or doesn't support that format. Try a different format or check the inputs.`,
-      );
+      throw noFileError(toolId, format, debug);
     }
+    debug.step('read the downloaded bytes');
     const path = await download.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
     const bytes = new Uint8Array(await readFile(path));
     await download.delete().catch(() => {});
     return { bytes, mime: MIME['.' + format.toLowerCase()] ?? 'application/octet-stream' };
+  } catch (err) {
+    throw withDebugLog(err, `${toolId}.${format}`, debug);
   } finally {
     await ctx.close();
   }
@@ -431,8 +581,11 @@ export async function renderViaWebShell(
 export async function renderVideoViaScreenshot(
   toolId: string, query: string, format: string, dims: RenderDims = {},
 ): Promise<{ bytes: Uint8Array; mime: string }> {
+  const debug = startDebug();
+  debug.step('serve the built web shell');
   const base = await webShellBase();
   const url = exportUrl(base, toolId, query, format, dims);
+  debug.step('launch the browser');
   const browser = await getBrowser();
   // Generous viewport so #tool-canvas renders near its native size rather than the
   // web shell's own "fit to view" zooming it down to fit a small window. The client
@@ -454,22 +607,25 @@ export async function renderVideoViaScreenshot(
       const buf = await handle.screenshot({ type: 'png' });
       return buf.toString('base64');
     });
+    debug.attach(page);
     const downloadP = page.waitForEvent('download', { timeout: timeoutFor(format) });
+    debug.step('open the tool page');
     await page.goto(url, { waitUntil: 'commit', timeout: 30_000 });
+    debug.step(`wait for the ${format} download`);
     let download: Awaited<typeof downloadP>;
     try {
       download = await downloadP;
     } catch {
-      throw new BrowserError(
-        `The web shell produced no "${format}" file for "${toolId}" in time - the tool may have ` +
-        `failed to render or doesn't support that format. Try a different format or check the inputs.`,
-      );
+      throw noFileError(toolId, format, debug);
     }
+    debug.step('read the downloaded bytes');
     const path = await download.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
     const bytes = new Uint8Array(await readFile(path));
     await download.delete().catch(() => {});
     return { bytes, mime: MIME['.' + format.toLowerCase()] ?? 'application/octet-stream' };
+  } catch (err) {
+    throw withDebugLog(err, `${toolId}.${format}`, debug);
   } finally {
     await ctx.close();
   }

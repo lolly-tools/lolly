@@ -368,7 +368,7 @@ export function deepSourceRefusal(format: string, reason: 'no-hdr' | 'no-headroo
  * a web HDR PNG of the same link agree on what "reach 45" means; if one moves the
  * other must move with it.
  */
-function hdrTune(h: DeepHdrRequest): Record<string, number> {
+export function hdrTune(h: DeepHdrRequest): Record<string, number> {
   const t: Record<string, number> = {};
   if (h.peakNits != null) t.peakNits = h.peakNits;
   if (h.reach != null) {

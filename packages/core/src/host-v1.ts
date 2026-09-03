@@ -256,7 +256,8 @@ export interface HostV1 {
    *
    * Optional/additive (v1.101) and NOT gated by a `capabilities` flag - a tool
    * feature-detects `host.upscale` and hides its "Upscale" affordance where it is
-   * absent (the headless CLI provides none for now). Because the run can take many
+   * absent (the headless CLI attaches it over onnxruntime-node and refuses with a
+   * `lolly models fetch` hint until the weights are staged). Because the run can take many
    * seconds on a weak device, it is NEVER driven from a time-boxed hook: a shell
    * offers it as an explicit, cancellable, progress-bearing action whose result
    * becomes an asset. Runs locally; the image is never uploaded.
@@ -306,8 +307,9 @@ export interface HostV1 {
    * WASM-only by design (`backend()` never reports webgpu): the models are small
    * and ort-web's GPU kernels reject ops these graphs use. Optional/additive and
    * NOT gated by a `capabilities` flag - a tool feature-detects `host.ocr` and
-   * hides its "Copy text" affordance where it is absent (the headless CLI provides
-   * none for now). Like `matte`, NOT driven from a time-boxed hook: a shell
+   * hides its "Copy text" affordance where it is absent (the headless CLI attaches
+   * it over onnxruntime-node once its weights are staged). Like `matte`, NOT
+   * driven from a time-boxed hook: a shell
    * surfaces it as an explicit, cancellable, progress-bearing action. Runs
    * locally; pixels never leave the device.
    */
@@ -331,7 +333,8 @@ export interface HostV1 {
    *
    * Optional/additive (v1.96) and NOT gated by a `capabilities` flag - a tool
    * feature-detects `host.speech` and hides its voiceover affordance where it
-   * is absent (the headless CLI provides none for now). Runs locally; text is
+   * is absent (the headless CLI attaches it over onnxruntime-node once the Kokoro
+   * weights are staged - `lolly speak`). Runs locally; text is
    * never uploaded.
    */
   speech?: SpeechAPI;
@@ -395,8 +398,9 @@ export interface HostV1 {
    * OffscreenCanvas(w, h)` is a realm global a hook constructs directly, so an
    * RPC round-trip would buy nothing. DOM-free CONTRACT - no `HTMLImageElement`
    * or `document` crosses this surface. Optional/additive (v1.105) and NOT gated
-   * by a `capabilities` flag: a tool feature-detects `host.raster` (undefined on
-   * the headless CLI/jsdom shell, which has no canvas) and degrades to its
+   * by a `capabilities` flag: a tool feature-detects `host.raster` (undefined on a
+   * shell with no canvas; the headless CLI attaches it over @napi-rs/canvas when
+   * that package is installed) and degrades to its
    * existing placeholder, exactly as `host.images`/`host.color`/`host.geom` do.
    * Runs locally; the bytes are never uploaded.
    */
@@ -1708,8 +1712,8 @@ export interface SpeechAPI {
    * audio never leaves the device, and the first use downloads the STT model
    * once (a separate download from the TTS model - gate it with its own
    * consent via `transcribeModelBytes`). Word timestamps feed the same
-   * caption cues synthesis produces. The CLI omits transcription for now -
-   * always check `transcribeAvailable()` first.
+   * caption cues synthesis produces. The CLI transcribes WAV input only (Node has
+   * no decoder for the other containers) - always check `transcribeAvailable()` first.
    */
   transcribeAvailable(): boolean;
   /** Are the STT model bytes already on-device? Never downloads. */
@@ -2109,7 +2113,8 @@ export interface PdfAPI {
    * page by 1-based index. Like strip(), the output is not byte-identical and
    * any digital signature is invalidated; unlike strip(), the content under a
    * bar is destroyed, not hidden. Needs a real canvas, so shells without one
-   * (the node CLI) omit it - a tool must feature-detect `host.pdf?.redact`
+   * omit it (the node CLI brings its own over @napi-rs/canvas, so it redacts
+   * natively) - a tool must feature-detect `host.pdf?.redact`
    * per method, exactly as for compress. Runs locally; the bytes are never
    * uploaded.
    */
@@ -2894,7 +2899,7 @@ export interface ExportAPI {
    * hiccup returns the bytes, because losing the file is worse than a missing
    * mark. Distinct from file(): callers combine it with host.c2pa.sign to layer
    * the pixel/durable marks under the C2PA credential. Progressive enhancement:
-   * a shell without a rasteriser (headless CLI) returns the input unchanged.
+   * a shell without a rasteriser returns the input unchanged.
    * (v1.104)
    */
   imprint(bytes: Uint8Array, format: string, opts?: { durable?: boolean }): Promise<Uint8Array>;

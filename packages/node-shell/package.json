@@ -16,8 +16,14 @@
     "./browser-tier": "./src/browser-tier.ts",
     "./webshell-render": "./src/webshell-render.ts",
     "./raster": "./src/raster.ts",
+    "./hdr": "./src/hdr.ts",
     "./format-sniff": "./src/format-sniff.ts",
     "./images": "./src/images.ts",
+    "./ml": "./src/ml/index.ts",
+    "./ml/model-pins": "./src/ml/model-pins.ts",
+    "./models-dir": "./src/models-dir.ts",
+    "./sequence-audio": "./src/sequence-audio.ts",
+    "./speech": "./src/speech.ts",
     "./c2pa-opts": "./src/c2pa-opts.ts",
     "./text": "./src/text.ts",
     "./render-integrity": "./src/render-integrity.ts",
@@ -28,6 +34,10 @@
     "./inspect": "./src/inspect.ts",
     "./inspect-render": "./src/inspect-render.ts",
     "./pdf-pages": "./src/pdf-pages.ts",
+    "./canvas": "./src/canvas.ts",
+    "./pdf-redact": "./src/pdf-redact.ts",
+    "./pdf-redact-core": "./src/pdf-redact-core.ts",
+    "./image-redact": "./src/image-redact.ts",
     "./verdict-slugs": "./src/verdict-slugs.ts",
     "./verdict-report": "./src/verdict-report.ts",
     "./trust-anchors": "./src/trust-anchors.ts",
@@ -50,6 +60,10 @@
     "playwright-core": "^1.49.0"
   },
   "optionalDependencies": {
+    "@huggingface/transformers": "^3.8.1",
+    "@napi-rs/canvas": "^1.0.8",
+    "onnxruntime-node": "^1.29.0",
+    "phonemizer": "^1.2.1",
     "sharp": "^0.35.4"
   },
   "devDependencies": {

@@ -35,7 +35,7 @@
     "build:ort": "node scripts/copy-ort.ts && node scripts/copy-transformers-ort.ts",
     "build:web": "npm run build:ort && npm run build:info && node scripts/build-tool-og.ts && node scripts/build-view-og.ts && npm --workspace shells/web run build",
     "build:info": "node docs/build.ts",
-    "test": "node --import ./tests/css-stub.mjs --test \"tests/**/*.test.js\" \"tests/**/*.test.ts\" \"packages/core/test/**/*.test.ts\" \"packages/docs-render/test/**/*.test.ts\" \"shells/web/src/**/*.test.js\" \"shells/web/src/**/*.test.ts\" \"shells/tui/src/**/*.test.ts\" \"services/mcp/test/**/*.test.ts\"",
+    "test": "node --import ./tests/css-stub.mjs --test \"tests/**/*.test.js\" \"tests/**/*.test.ts\" \"packages/core/test/**/*.test.ts\" \"packages/node-shell/test/**/*.test.ts\" \"packages/docs-render/test/**/*.test.ts\" \"shells/web/src/**/*.test.js\" \"shells/web/src/**/*.test.ts\" \"shells/tui/src/**/*.test.ts\" \"services/mcp/test/**/*.test.ts\"",
     "typecheck": "tsc -p packages/core && tsc -p packages/node-shell && tsc -p engine && tsc -p shells/web && tsc -p shells/web/tsconfig.tests.json && tsc -p shells/cli && tsc -p shells/tui && tsc -p shells/tauri-shared && tsc -p tests && tsc -p scripts && tsc -p services/mcp && npm run typecheck:tauri",
     "typecheck:tauri": "node scripts/typecheck-tauri.ts",
     "lint": "biome lint",

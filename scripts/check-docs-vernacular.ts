@@ -234,11 +234,23 @@ const ALLOW: Record<string, string[]> = {
   // "speech to text" instead.
   'docs/authoring-tools.md': ['### Transcribing audio (`render.transcribe`)',
     '"transcribe": { "source": "clip"'],
+  // `lolly transcribe` (plan 183): the literal SUBCOMMAND a script author types,
+  // in the reserved-verb list, the two `--json` lists, its own paragraph, two
+  // command examples and the verbatim `lolly models ls` output. The prose around
+  // them says "speech to text" and "reads a clip back as text" instead.
+  'docs/cli.md': ['`speak`, `transcribe`, `mix`',
+    'npm run cli -- transcribe ./clip.wav --lang=en --json',
+    '**`lolly transcribe <clip.wav>`** reads a clip back as text',
+    '$ lolly transcribe ./interview.m4a',
+    'whisper    transcription (lolly transcribe)',
+    '`speak`, `transcribe`, `ocr`'],
   // host.speech transcription: the industry feature name and literal API names
   'docs/host-api.md': ['speech synthesis + transcription',
     'Transcription (v1.99) is the reverse',
     '`transcribeAvailable()`', '`transcribeCached()`',
-    '`transcribeModelBytes()`', '`transcribe(src, opts?)`', 'SpeechTranscript'],
+    '`transcribeModelBytes()`', '`transcribe(src, opts?)`', 'SpeechTranscript',
+    // plan 183: the two CLI subcommands that surface this API headlessly
+    '`lolly speak` and `lolly transcribe` are its discovery surface'],
   'docs/overview.md': ['TTS/transcription',
     // Positioning prose that predates the self-reference ban - grandfathered like the
     // code ratchet; the ban stops NEW uses of "(this line is X)"/"the boundary is X"/

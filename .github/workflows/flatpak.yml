@@ -121,6 +121,18 @@ jobs:
       - name: Stage .deb as lolly.deb
         run: mv shells/tauri-desktop/flatpak/*.deb shells/tauri-desktop/flatpak/lolly.deb
 
+      # The 1.0.6 tag run bundled a 313 KB Flatpak: the artifact download had
+      # reported a digest mismatch, the job carried on with a corrupt deb, `ar x`
+      # extracted almost nothing, and flatpak-builder committed 2 MB of content
+      # without a word. A packaged app is over 80 MB by construction (RELEASING.md),
+      # so a small deb here is a broken input, never a small app.
+      - name: Refuse a corrupt or truncated .deb
+        run: |
+          size=$(stat -c%s shells/tauri-desktop/flatpak/lolly.deb)
+          echo "lolly.deb: $size bytes"
+          test "$size" -gt 80000000 || { echo "::error::lolly.deb is $size bytes - the artifact download was corrupt or truncated; re-run the job"; exit 1; }
+          ar t shells/tauri-desktop/flatpak/lolly.deb | grep -q '^data\.tar' || { echo "::error::lolly.deb has no data.tar member"; exit 1; }
+
       - name: Build Flatpak bundle
         uses: flatpak/flatpak-github-actions/flatpak-builder@401fe28a8384095fc1531b9d320b292f0ee45adb # v6.7
         with:

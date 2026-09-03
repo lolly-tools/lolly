@@ -43,8 +43,16 @@ export type { PxDimsInput } from './raster.ts';
 export { buildExportC2paOpts } from './c2pa-opts.ts';
 export type { BuildExportC2paOpts, ExportC2paOpts } from './c2pa-opts.ts';
 export { createNodeTextAPI } from './text.ts';
-export { createNodeAudioAPI } from './audio.ts';
+export { createNodeAudioAPI, decodeAudioPcm } from './audio.ts';
 export type { NodeAudioOptions } from './audio.ts';
+export {
+  mixSequenceAudio, sequenceMixToWav, mixWindow, limitPlanes, clipGainEvents,
+  bedDuckEnvelope, envelopeGainAt, isTrivialGain, MIX_RATE, MIX_CHANNELS,
+} from './sequence-audio.ts';
+export type {
+  SeqAudioPlan, SeqAudioClip, SeqAudioBed, SeqPcm, SeqMixResult,
+  MixSpec, MixClip, MixBed, GainEvent, VolumeKey, DuckSpan, ClipDuck,
+} from './sequence-audio.ts';
 export { assertRenderOk, RenderIntegrityError } from './render-integrity.ts';
 export type { HookErrorLike } from './render-integrity.ts';
 export { captureUrl, captureParamsFrom } from './url-capture.ts';

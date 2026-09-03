@@ -45,76 +45,113 @@ function isRef(src: AudioSource): src is AssetRef {
   return typeof src === 'object' && src !== null && 'url' in src && typeof (src as AssetRef).url === 'string';
 }
 
-export function createNodeAudioAPI(opts: NodeAudioOptions): AudioAPI {
+/** A url/path/data-url/bytes source → raw encoded bytes. */
+async function bytesOf(src: AudioSource, repoRoot: string): Promise<Uint8Array> {
+  if (src instanceof Uint8Array) return src;
+  if (src instanceof ArrayBuffer) return new Uint8Array(src);
+  const url = isRef(src) ? src.url : src;
+
+  if (url.startsWith('data:')) {
+    const comma = url.indexOf(',');
+    if (comma < 0) throw new Error('audio: malformed data URL');
+    const head = url.slice(0, comma);
+    const body = url.slice(comma + 1);
+    return head.includes(';base64')
+      ? new Uint8Array(Buffer.from(body, 'base64'))
+      : new Uint8Array(Buffer.from(decodeURIComponent(body), 'binary'));
+  }
+  if (/^https?:/.test(url)) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`audio: fetch failed (${res.status})`);
+    return new Uint8Array(await res.arrayBuffer());
+  }
+  if (url.startsWith('file:')) return new Uint8Array(await readFile(fileURLToPath(url)));
+  // A site-absolute catalog path (`/catalog/assets/...`) or a plain filesystem path.
+  const path = isAbsolute(url) && !url.startsWith('/catalog/') && !url.startsWith('/community/')
+    ? url
+    : join(repoRoot, url.replace(/^\//, ''));
+  return new Uint8Array(await readFile(path));
+}
+
+async function songOf(src: AudioSource, repoRoot: string): Promise<ZzfxSong> {
+  const bytes = await bytesOf(src, repoRoot);
+  return JSON.parse(Buffer.from(bytes).toString('utf8')) as ZzfxSong;
+}
+
+/**
+ * Decode one source to PCM: the WAV parser and the ZzFXM renderer, nothing else.
+ *
+ * `analyse` below is one caller; the headless sequence mix (`sequence-audio.ts`, driven
+ * by `lolly mix`) is the other, and both must read the same samples or a mixed WAV
+ * would not match the analysis a tool's own hook saw. Rejects BY NAME for anything
+ * needing a platform codec, rather than returning silence.
+ */
+export async function decodeAudioPcm(
+  src: AudioSource, opts: NodeAudioOptions,
+): Promise<{ channels: Float32Array[]; sampleRate: number }> {
   const { repoRoot } = opts;
+  const url = isRef(src) ? src.url : typeof src === 'string' ? src : '';
 
-  /** A url/path/data-url/bytes source → raw encoded bytes. */
-  async function bytesOf(src: AudioSource): Promise<Uint8Array> {
-    if (src instanceof Uint8Array) return src;
-    if (src instanceof ArrayBuffer) return new Uint8Array(src);
-    const url = isRef(src) ? src.url : src;
-
-    if (url.startsWith('data:')) {
-      const comma = url.indexOf(',');
-      if (comma < 0) throw new Error('audio: malformed data URL');
-      const head = url.slice(0, comma);
-      const body = url.slice(comma + 1);
-      return head.includes(';base64')
-        ? new Uint8Array(Buffer.from(body, 'base64'))
-        : new Uint8Array(Buffer.from(decodeURIComponent(body), 'binary'));
-    }
-    if (/^https?:/.test(url)) {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`audio: fetch failed (${res.status})`);
-      return new Uint8Array(await res.arrayBuffer());
-    }
-    if (url.startsWith('file:')) return new Uint8Array(await readFile(fileURLToPath(url)));
-    // A site-absolute catalog path (`/catalog/assets/...`) or a plain filesystem path.
-    const path = isAbsolute(url) && !url.startsWith('/catalog/') && !url.startsWith('/community/')
-      ? url
-      : join(repoRoot, url.replace(/^\//, ''));
-    return new Uint8Array(await readFile(path));
+  // The PROCEDURAL `zzfxm:<seed>` scheme: composed here from the seed, through the
+  // engine's own draw, so the terminal analyses the SAME song the browser plays.
+  if (isZzfxmRef(url)) {
+    const ref = parseZzfxmRef(url);
+    if (!ref) throw new Error(`audio: malformed procedural song ref (${url})`);
+    // 30s is the seeded generator's own house length, matching the web shell's
+    // procedural path. Analysis of the same ref must not depend on the shell.
+    const { left, right, sampleRate } = renderZzfxm(
+      composeSong(generatedSongSpec(ref.seed, 30, ref.style)),
+    );
+    if (!left.length) throw new Error('audio: zzfxm song rendered empty');
+    return { channels: [left, right], sampleRate };
   }
 
-  async function songOf(src: AudioSource): Promise<ZzfxSong> {
-    const bytes = await bytesOf(src);
-    return JSON.parse(Buffer.from(bytes).toString('utf8')) as ZzfxSong;
+  if ((isRef(src) && src.format === 'zzfxm') || /\.zzfxm\.json$/i.test(url)) {
+    const { left, right, sampleRate } = renderZzfxm(await songOf(src, repoRoot));
+    if (!left.length) throw new Error('audio: zzfxm song rendered empty');
+    return { channels: [left, right], sampleRate };
   }
 
-  async function toPcm(src: AudioSource): Promise<{ channels: Float32Array[]; sampleRate: number }> {
-    const url = isRef(src) ? src.url : typeof src === 'string' ? src : '';
-
-    // The PROCEDURAL `zzfxm:<seed>` scheme: composed here from the seed, through the
-    // engine's own draw, so the terminal analyses the SAME song the browser plays.
-    if (isZzfxmRef(url)) {
-      const ref = parseZzfxmRef(url);
-      if (!ref) throw new Error(`audio: malformed procedural song ref (${url})`);
-      // 30s is the seeded generator's own house length, matching the web shell's
-      // procedural path. Analysis of the same ref must not depend on the shell.
-      const { left, right, sampleRate } = renderZzfxm(
-        composeSong(generatedSongSpec(ref.seed, 30, ref.style)),
-      );
-      if (!left.length) throw new Error('audio: zzfxm song rendered empty');
-      return { channels: [left, right], sampleRate };
-    }
-
-    if ((isRef(src) && src.format === 'zzfxm') || /\.zzfxm\.json$/i.test(url)) {
-      const { left, right, sampleRate } = renderZzfxm(await songOf(src));
-      if (!left.length) throw new Error('audio: zzfxm song rendered empty');
-      return { channels: [left, right], sampleRate };
-    }
-
-    if (NEEDS_PLATFORM_CODEC.test(url)) {
-      throw new Error(
-        `audio: ${url.split('.').pop()} needs a platform codec this shell does not have - `
-        + 'analyse WAV or a ZzFXM song headlessly, or render in a browser shell',
-      );
-    }
-
-    const { channels, sampleRate } = parseWav(await bytesOf(src));
-    return { channels, sampleRate };
+  if (NEEDS_PLATFORM_CODEC.test(url)) {
+    throw new Error(
+      `audio: ${url.split('.').pop()} needs a platform codec this shell does not have - `
+      + 'analyse WAV or a ZzFXM song headlessly, or render in a browser shell',
+    );
   }
 
+  const bytes = await bytesOf(src, repoRoot);
+  // Name the container from its OWN bytes when the url could not. A design timeline
+  // inlines an audio box as `data:application/octet-stream;base64,…`, which has no
+  // extension for NEEDS_PLATFORM_CODEC to match, so an Ogg/Opus box used to come back
+  // as "not a RIFF/WAVE file" - true, and useless. This says which format it is and
+  // therefore what to do about it.
+  const container = sniffContainer(bytes);
+  if (container && container !== 'wav') {
+    throw new Error(
+      `audio: ${container} needs a platform codec this shell does not have - `
+      + 'analyse WAV or a ZzFXM song headlessly, or render in a browser shell',
+    );
+  }
+  const { channels, sampleRate } = parseWav(bytes);
+  return { channels, sampleRate };
+}
+
+/** The container a buffer's magic bytes name, or null when nothing matches. */
+function sniffContainer(b: Uint8Array): string | null {
+  const tag = (at: number, s: string): boolean =>
+    b.length >= at + s.length && [...s].every((c, i) => b[at + i] === c.charCodeAt(0));
+  if (tag(0, 'RIFF') && tag(8, 'WAVE')) return 'wav';
+  if (tag(0, 'OggS')) return 'ogg/opus';
+  if (tag(0, 'fLaC')) return 'flac';
+  if (tag(0, 'ID3')) return 'mp3';
+  if (b.length > 1 && b[0] === 0xff && (b[1]! & 0xe0) === 0xe0) return 'mp3';
+  if (tag(4, 'ftyp')) return 'mp4/m4a';
+  if (b.length > 3 && b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3) return 'webm/matroska';
+  return null;
+}
+
+
+export function createNodeAudioAPI(opts: NodeAudioOptions): AudioAPI {
   return {
     // There IS a decoder here (WAV + ZzFXM), so this is true. Per the contract it
     // never promised that a given file decodes. analyse() rejects by name for the
@@ -122,7 +159,7 @@ export function createNodeAudioAPI(opts: NodeAudioOptions): AudioAPI {
     isAvailable: () => true,
 
     async analyse(src: AudioSource, analyseOpts: AudioAnalyseOpts = {}): Promise<AudioAnalysis> {
-      const { channels, sampleRate } = await toPcm(src);
+      const { channels, sampleRate } = await decodeAudioPcm(src, opts);
       // Synchronous: there is no worker here, and a headless render is not competing
       // with a UI for the main thread.
       return analysePcm(channels, sampleRate, analyseOpts);

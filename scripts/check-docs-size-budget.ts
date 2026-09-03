@@ -32,9 +32,11 @@ import { gzipSync } from 'node:zlib';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const infoDir = path.join(root, 'shells/web/public/info');
 
-// Gzip ceiling for the whole /info tree. 160 MB = the ~142 MB measured on 2026-08-22
-// (post-B.1/B.2) plus ~13% headroom for content growth. NOT a target - see the header.
-const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 160) * 1024 * 1024;
+// Gzip ceiling for the whole /info tree. 161 MB = the ~142 MB measured on 2026-08-22
+// (post-B.1/B.2) plus ~13% headroom for content growth, plus the three lane mascots
+// priced on 2026-09-03 (lorikeet, kookaburra-lolly, bandicoot: 424 KB of webp that gzip
+// cannot shrink; 160.3 MB measured with them in). NOT a target - see the header.
+const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 161) * 1024 * 1024;
 
 function fail(msg: string): never {
   console.error(`✗ docs size budget FAILED: ${msg}`);

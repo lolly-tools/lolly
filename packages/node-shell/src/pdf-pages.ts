@@ -28,7 +28,7 @@ import {
   PDFDocument, PDFName, PDFArray, PDFDict, PDFNumber, PDFRawStream, decodePDFRawStream,
 } from 'pdf-lib';
 import type { PDFContext, PDFObject } from 'pdf-lib';
-import { interpretPdfPage, parseToUnicode, toUnicodeDecoder } from '@lolly/engine';
+import { interpretPdfPage, parseToUnicode, toUnicodeDecoder, pdfNodesToSvg, unfilterPng } from '@lolly/engine';
 import type { PdfNode, PdfFontInfo, PdfXObject } from '@lolly/engine';
 
 export interface PdfPageScan {
@@ -272,13 +272,14 @@ const RESOURCE_NODE_BUDGET = 4096;
 function extractResources(
   ctx: PDFContext, resDict: Ref, depth: number,
   stack: Set<PDFDict> = new Set(), budget: { left: number } = { left: RESOURCE_NODE_BUDGET },
+  images?: Map<string, ImageDesc>,
 ): Resources {
   const res: Resources = { fonts: {}, fontNames: {}, xobjects: {}, extgstates: {}, ocgs: {} };
   const dict = dictOf(ctx, resDict);
   if (!dict || depth > 8 || stack.has(dict) || budget.left-- <= 0) return res;
   stack.add(dict);
   try {
-    return fillResources(ctx, res, resDict, depth, stack, budget);
+    return fillResources(ctx, res, resDict, depth, stack, budget, images);
   } finally {
     stack.delete(dict);
   }
@@ -287,6 +288,7 @@ function extractResources(
 function fillResources(
   ctx: PDFContext, res: Resources, resDict: Ref, depth: number,
   stack: Set<PDFDict>, budget: { left: number },
+  images?: Map<string, ImageDesc>,
 ): Resources {
 
   for (const [name, ref] of dictEntries(ctx, getKey(ctx, resDict, 'ExtGState'))) {
@@ -303,10 +305,16 @@ function fillResources(
   for (const [name, ref] of dictEntries(ctx, getKey(ctx, resDict, 'XObject'))) {
     const subtype = nameOf(ctx, getKey(ctx, ref, 'Subtype'));
     if (subtype === 'Image') {
-      res.xobjects[name] = { kind: 'image', imageKey: `img${name}` };
+      // With a sink the key is minted per REGISTRATION, not per resource name: the
+      // same name means different streams in two nested forms, and a name-keyed id
+      // would make one page's raster paint in the other's place. Without a sink
+      // (the inspection walk, which never resolves bytes) the name is enough.
+      const key = images ? `img${images.size}` : `img${name}`;
+      if (images) images.set(key, makeImageDesc(ctx, ref));
+      res.xobjects[name] = { kind: 'image', imageKey: key };
     } else if (subtype === 'Form') {
       const mtx = ctx.lookup(getKey(ctx, ref, 'Matrix'));
-      const sub = extractResources(ctx, getKey(ctx, ref, 'Resources'), depth + 1, stack, budget);
+      const sub = extractResources(ctx, getKey(ctx, ref, 'Resources'), depth + 1, stack, budget, images);
       res.xobjects[name] = {
         kind: 'form',
         content: decodedText(ctx, ref) || '',
@@ -354,4 +362,249 @@ function weightFromName(name: string): number {
   if (/medium/i.test(s)) return 500;
   if (/light/i.test(s)) return 300;
   return 400;
+}
+
+// ── page → SVG, the render half (bytes in, self-contained SVG out) ────────────
+/**
+ * The same two engine calls the web shell's `views/pdf-import.ts pageToSvg` makes -
+ * `interpretPdfPage` for the content stream, `pdfNodesToSvg` for the serialisation -
+ * over the pdf-lib walk above. This is the app's OWN page interpreter, never an
+ * external PDF renderer, so a page rasterised here and the same page rasterised in
+ * the browser come from one set of numbers.
+ *
+ * What this half does NOT carry, and says so rather than pretending: shadings,
+ * tiling patterns and graphics-state soft masks. Their decoders live in
+ * shells/web/src/lib/pdf-objects.ts, on the far side of a submodule boundary this
+ * package must not import across. A gradient therefore paints the flat back-stop
+ * the engine already emits for it, and every warning is reported to the caller.
+ * Text and vector geometry - the content a redaction is about - are complete.
+ */
+
+/** One image XObject, resolved to bytes on demand. `smask` is its alpha plane. */
+interface ImageDesc {
+  stream: PDFRawStream;
+  filter: string[];
+  width: number;
+  height: number;
+  colorSpace: string | null;
+  bpc: number;
+  predictor: number | null;
+  smask?: ImageDesc;
+}
+
+function colorSpaceOf(ctx: PDFContext, o: Ref): string | null {
+  const direct = nameOf(ctx, o);
+  if (direct) return direct;
+  const arr = ctx.lookup(o as PDFObject | undefined);
+  if (arr instanceof PDFArray && arr.size()) return nameOf(ctx, arr.get(0));
+  return null;
+}
+
+function filterList(ctx: PDFContext, o: Ref): string[] {
+  const v = ctx.lookup(o as PDFObject | undefined);
+  if (v instanceof PDFName) return [v.asString().replace(/^\//, '')];
+  if (v instanceof PDFArray) return v.asArray().map((x) => nameOf(ctx, x)).filter(Boolean) as string[];
+  return [];
+}
+
+/** Descriptor for one image XObject, including its /SMask (one level - an SMask
+ *  never carries an SMask of its own). */
+function makeImageDesc(ctx: PDFContext, ref: Ref, depth = 0): ImageDesc {
+  const desc: ImageDesc = {
+    stream: ctx.lookup(ref as PDFObject | undefined) as PDFRawStream,
+    filter: filterList(ctx, getKey(ctx, ref, 'Filter')),
+    width: numOf(ctx, getKey(ctx, ref, 'Width')) || 0,
+    height: numOf(ctx, getKey(ctx, ref, 'Height')) || 0,
+    colorSpace: colorSpaceOf(ctx, getKey(ctx, ref, 'ColorSpace')),
+    bpc: numOf(ctx, getKey(ctx, ref, 'BitsPerComponent')) || 8,
+    predictor: numOf(ctx, getKey(ctx, dictOf(ctx, getKey(ctx, ref, 'DecodeParms')), 'Predictor')),
+  };
+  if (depth === 0) {
+    const smaskRef = getKey(ctx, ref, 'SMask');
+    if (smaskRef && ctx.lookup(smaskRef as PDFObject | undefined) instanceof PDFRawStream) {
+      desc.smask = makeImageDesc(ctx, smaskRef, 1);
+    }
+  }
+  return desc;
+}
+
+/** Inflate + de-predictor a Flate image stream's raw samples (8bpc only), the same
+ *  rules the web half applies: no predictor / TIFF-none (<=1) and PNG predictors
+ *  (>=10, what jsPDF writes); TIFF predictor 2..9 is refused. */
+function flateSamples(desc: ImageDesc, comps: number): Uint8Array | null {
+  if (desc.bpc !== 8 || desc.width < 1 || desc.height < 1) return null;
+  let samples: Uint8Array;
+  try { samples = decodePDFRawStream(desc.stream).decode(); } catch { return null; }
+  const pred = desc.predictor ?? 1;
+  if (pred >= 10) {
+    const un = unfilterPng(samples, desc.width, desc.height, comps);
+    if (!un) return null;
+    samples = un;
+  } else if (pred > 1) {
+    return null;
+  }
+  return samples.length >= desc.width * desc.height * comps ? samples : null;
+}
+
+/** sharp, resolved lazily and optionally - the same conditional-attach stance as
+ *  images.ts. Without it a Flate raster simply does not inline. */
+type SharpRaw = { width: number; height: number; channels: 3 | 4 };
+type SharpPipe = { png(): SharpPipe; toBuffer(): Promise<Buffer> };
+type SharpFn = (input: Buffer, opts?: { raw: SharpRaw }) => SharpPipe;
+let sharpPromise: Promise<SharpFn | null> | null = null;
+function loadSharpForPages(): Promise<SharpFn | null> {
+  sharpPromise ??= import('sharp')
+    .then((m) => ((m as { default?: unknown }).default ?? m) as unknown as SharpFn)
+    .catch(() => null);
+  return sharpPromise;
+}
+
+/** One image XObject as a data: URI, or null with a reason pushed onto `warn`. */
+async function imageDataUri(desc: ImageDesc, warn: string[]): Promise<string | null> {
+  const last = desc.filter[desc.filter.length - 1];
+  try {
+    if (last === 'DCTDecode') {
+      // The raw stream bytes ARE the JPEG - no decode, no re-encode.
+      const jpeg = desc.stream.getContents();
+      if (!desc.smask) return `data:image/jpeg;base64,${Buffer.from(jpeg).toString('base64')}`;
+    }
+    const comps = /RGB/i.test(desc.colorSpace || '') ? 3 : (/Gray/i.test(desc.colorSpace || '') ? 1 : 0);
+    const sharp = await loadSharpForPages();
+    if (!sharp) { warn.push('An embedded image was left out (no image codec in this install).'); return null; }
+    let rgba: Uint8Array | null = null;
+    if (last === 'DCTDecode') {
+      warn.push('An embedded JPEG with a soft mask was kept opaque (its alpha plane needs a decode this half does not do).');
+      return `data:image/jpeg;base64,${Buffer.from(desc.stream.getContents()).toString('base64')}`;
+    }
+    if ((last === 'FlateDecode' || last == null) && comps) {
+      const samples = flateSamples(desc, comps);
+      if (samples) {
+        rgba = new Uint8Array(desc.width * desc.height * 4);
+        for (let i = 0, s = 0, d = 0; i < desc.width * desc.height; i++, d += 4) {
+          if (comps === 3) { rgba[d] = samples[s]!; rgba[d + 1] = samples[s + 1]!; rgba[d + 2] = samples[s + 2]!; s += 3; }
+          else { const g = samples[s]!; rgba[d] = g; rgba[d + 1] = g; rgba[d + 2] = g; s += 1; }
+          rgba[d + 3] = 255;
+        }
+        if (desc.smask && desc.smask.bpc === 8) {
+          const alpha = flateSamples(desc.smask, 1);
+          const aw = desc.smask.width, ah = desc.smask.height;
+          if (alpha && aw > 0 && ah > 0) {
+            for (let y = 0; y < desc.height; y++) {
+              const sy = desc.height === ah ? y : Math.min(ah - 1, Math.floor((y * ah) / desc.height));
+              for (let x = 0; x < desc.width; x++) {
+                const sx = desc.width === aw ? x : Math.min(aw - 1, Math.floor((x * aw) / desc.width));
+                rgba[(y * desc.width + x) * 4 + 3] = alpha[sy * aw + sx]!;
+              }
+            }
+          } else {
+            warn.push('Kept an embedded image opaque (its soft mask was undecodable).');
+          }
+        }
+      }
+    }
+    if (!rgba) { warn.push(`Skipped an embedded image in an unsupported encoding (${last || 'raw'}).`); return null; }
+    const png = await sharp(Buffer.from(rgba.buffer, rgba.byteOffset, rgba.byteLength), {
+      raw: { width: desc.width, height: desc.height, channels: 4 },
+    }).png().toBuffer();
+    return `data:image/png;base64,${png.toString('base64')}`;
+  } catch (err) {
+    warn.push(`Could not read an embedded image (${msg(err)}).`);
+    return null;
+  }
+}
+
+/** One rendered page: a self-contained SVG plus the page's own size in points. */
+export interface RenderedPdfPage {
+  /** Standalone SVG markup, viewBox in PDF points with the origin at the TOP-LEFT. */
+  svg: string;
+  /** 1-based page index in the source document. */
+  page: number;
+  /** MediaBox width in points (the viewBox width). */
+  widthPt: number;
+  /** MediaBox height in points. */
+  heightPt: number;
+  /** What this page could not fully represent. Empty when nothing was lost. */
+  warnings: string[];
+}
+
+export interface RenderPageOpts {
+  /** `<defs>` id namespace - distinct per page when several land in one document. */
+  idPrefix?: string;
+  /** Opaque page background, e.g. '#ffffff'. Default transparent. */
+  background?: string;
+  /** Hoist identical paths into `<defs>`. Terminal output only (see PdfSvgOptions). */
+  dedupePaths?: boolean;
+}
+
+/** An opened document, ready to render pages. Mirrors the web shell's PdfHandle
+ *  so a caller reads the same on both sides. */
+export interface PdfRenderHandle {
+  pageCount: number;
+  /** MediaBox sizes in points, in document order - the geometry a rebuild must reproduce. */
+  sizes: { width: number; height: number }[];
+  pageToSvg(index: number, opts?: RenderPageOpts): Promise<RenderedPdfPage>;
+}
+
+/** Open a PDF for page rendering. Throws when the bytes are not a readable PDF or
+ *  the document has no pages - a caller that wants "never throws" wants scanPdfPages. */
+export async function openPdfForRender(bytes: Uint8Array): Promise<PdfRenderHandle> {
+  let doc: PDFDocument;
+  try {
+    doc = await PDFDocument.load(bytes, {
+      ignoreEncryption: true, throwOnInvalidObject: false, updateMetadata: false,
+    });
+  } catch (err) {
+    throw new Error(`This PDF could not be read - it may be encrypted or damaged. (${msg(err)})`);
+  }
+  // Wrapped, not trusted: a damaged catalog makes pdf-lib read `Pages` off
+  // undefined, and a raw TypeError is not a sentence anyone can act on.
+  let pages: ReturnType<PDFDocument['getPages']>;
+  try { pages = doc.getPages(); } catch (err) {
+    throw new Error(`This PDF's page tree could not be read - it may be damaged. (${msg(err)})`);
+  }
+  if (!pages.length) throw new Error('This PDF has no pages.');
+  const sizes = pages.map((p) => p.getSize());
+  const ctx = doc.context;
+
+  return {
+    pageCount: pages.length,
+    sizes,
+    async pageToSvg(index: number, opts: RenderPageOpts = {}): Promise<RenderedPdfPage> {
+      const page = doc.getPage(index);
+      const mb = safeMediaBox(page);
+      const warnings: string[] = [];
+      const streams = new Map<string, ImageDesc>();
+      const resources = extractResources(ctx, getKey(ctx, page.node, 'Resources'), 0, new Set(), { left: RESOURCE_NODE_BUDGET }, streams);
+      const nodes = interpretPdfPage({
+        content: contentString(ctx, page.node),
+        width: mb.width, height: mb.height, originX: mb.x, originY: mb.y,
+        fonts: resources.fonts, xobjects: resources.xobjects,
+        extgstates: resources.extgstates, ocgs: resources.ocgs,
+        onWarn: (code, detail) => { warnings.push(detail ? `${code} (${detail})` : code); },
+      });
+      // Only the rasters this page actually paints are resolved - a document that
+      // carries fifty images and draws one pays for one.
+      const images: Record<string, string> = {};
+      for (const n of nodes) {
+        const key = n._imageXObject;
+        if (!key || key in images) continue;
+        const desc = streams.get(key);
+        if (!desc) continue;
+        const uri = await imageDataUri(desc, warnings);
+        if (uri) images[key] = uri;
+      }
+      return {
+        svg: pdfNodesToSvg(nodes, {
+          width: mb.width, height: mb.height, images,
+          ...(opts.idPrefix ? { idPrefix: opts.idPrefix } : {}),
+          ...(opts.background ? { background: opts.background } : {}),
+          ...(opts.dedupePaths ? { dedupePaths: true } : {}),
+        }),
+        page: index + 1,
+        widthPt: mb.width,
+        heightPt: mb.height,
+        warnings,
+      };
+    },
+  };
 }

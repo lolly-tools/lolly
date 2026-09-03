@@ -37,7 +37,8 @@ import { ENGINE_VERSION } from '../engine/src/version.ts';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIR = join(ROOT, 'shells/web/public/info/mascots');
 
-/** Total budget for the directory, Andy's number (2026-08-28): quality first, inside 2.2 MB. */
+/** Total budget for the directory, Andy's number (2026-08-28): quality first, inside 2.2 MB
+ *  (still holds with the three lane mascots added 2026-09-03: 2161 KB of 2252). */
 const BUDGET_BYTES = 2.2 * 1024 * 1024;
 
 /** file -> target pixel width = 2x the max width of its docs-landing.css sizing class. */
@@ -50,13 +51,63 @@ const TARGETS: Record<string, number> = {
   'quoll.webp': 1075,             // .audience-mascot  clamp(...,430px)
   'ringtail-possum.webp': 800,    // .refusal-mascot   clamp(...,320px)
   'wedge-tailed-eagle.webp': 1500, // .everywhere-mascot clamp(...,600px)
+  'lorikeet.webp': 600,           // .lane-mascot      clamp(...,240px)  (Designers lane)
+  'kookaburra-lolly.webp': 600,   // .lane-mascot      clamp(...,240px)  (Developers lane)
+  'bandicoot.webp': 600,          // .lane-mascot      clamp(...,240px)  (Make lane)
 };
+/**
+ * PNG cut-outs that become mascots: `--import=<dir>` reads each `from` under that
+ * directory, resizes it to its TARGETS width, encodes webp and writes `out` into
+ * the mascots directory with a fresh credential whose ingredient is the PNG's own
+ * store (which already chains back through the Lolly cut-out to the Google
+ * generation), recording BOTH the container change and the resize. The main loop
+ * then sees the file at target width and keeps it. A PNG without a store refuses,
+ * exactly as the resize does - an undeclared image never becomes a mascot.
+ */
+const IMPORTS: ReadonlyArray<{ from: string; out: string }> = [
+  { from: 'lorikeet.png', out: 'lorikeet.webp' },
+  { from: 'kookaburra.png', out: 'kookaburra-lolly.webp' },
+  { from: 'bandicoot.png', out: 'bandicoot.webp' },
+];
 
 async function main(): Promise<void> {
   const check = process.argv.includes('--check');
   const qArg = process.argv.indexOf('--quality');
   const quality = qArg >= 0 ? Number(process.argv[qArg + 1]) : 94;
   const { default: sharp } = await import('sharp');
+  const importArg = process.argv.find(a => a.startsWith('--import='));
+  if (importArg) {
+    const from = resolve(importArg.slice('--import='.length));
+    for (const { from: name, out } of IMPORTS) {
+      const src = join(from, name);
+      const orig = new Uint8Array(readFileSync(src));
+      const ex = extractC2paStore(orig);
+      if (!ex) throw new Error(`${name}: no C2PA store - refusing to import an uncredentialed image as a mascot`);
+      const targetW = TARGETS[out];
+      if (!targetW) throw new Error(`${out}: no TARGETS entry`);
+      const meta = await sharp(orig).metadata();
+      const srcW = meta.width ?? 0;
+      const outW = Math.min(targetW, srcW);
+      const webp = new Uint8Array(await sharp(orig)
+        .resize({ width: outW, withoutEnlargement: true })
+        .webp({ quality, alphaQuality: 95, effort: 6, smartSubsample: true })
+        .toBuffer());
+      const ingredient = prepareC2paIngredientFromStore(ex.store, ex.format);
+      if (!ingredient) throw new Error(`${name}: could not prepare the existing credential as an ingredient`);
+      const stamped = await embedC2pa(webp, 'webp', {
+        actions: [
+          { action: 'c2pa.converted', description: 'Converted from PNG to WebP for the /info landing' },
+          { action: 'c2pa.resized', description: `Resized to ${outW}px wide for the /info landing weight budget` },
+        ],
+        ingredients: [ingredient],
+        generatorInfo: { name: 'Lolly', version: ENGINE_VERSION },
+      });
+      if (!extractC2paStore(stamped)) throw new Error(`${out}: output lost its C2PA store`);
+      if (collectIngredients(stamped).length < 1) throw new Error(`${out}: output lost its ingredient chain`);
+      if (!check) writeFileSync(join(DIR, out), stamped);
+      console.log(`  ${check ? '~' : '✓'} ${name} → ${out}  ${Math.round(orig.length / 1024)} KB → ${Math.round(stamped.length / 1024)} KB  (${srcW}px → ${outW}px)`);
+    }
+  }
 
   let total = 0;
   const results: { file: string; before: number; after: number; width: number }[] = [];
