@@ -34,6 +34,8 @@ const MASCOTS = [
   // Record and AI.
   'bandicoot.webp', 'lorikeet.webp', 'kookaburra-lolly.webp',
   'pelican.webp', 'wombat.webp', 'bin-chicken.webp',
+  // The Operators door (2026-09-03, replacing the echidna, which moved to the Legal lane).
+  'platypus.webp',
 ];
 
 test('every landing mascot file still exists', () => {

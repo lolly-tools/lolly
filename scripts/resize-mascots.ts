@@ -22,6 +22,8 @@
  *   node scripts/resize-mascots.ts            # resize + re-credential + verify
  *   node scripts/resize-mascots.ts --check    # report what would change
  *   node scripts/resize-mascots.ts --quality 88
+ *   node scripts/resize-mascots.ts --import=<dir> [--only=a.webp,b.webp]   # PNG cut-outs in
+ *   node scripts/resize-mascots.ts --flip=echidna.webp   # mirror one mascot, ONCE, on the record
  *
  * After a run that writes: `npm run build:info` so credentialedMascot() re-bakes
  * each <img>'s intrinsic width/height from the new files.
@@ -40,12 +42,13 @@ const DIR = join(ROOT, 'shells/web/public/info/mascots');
 /** Total budget for the directory, Andy's number (2026-08-28): quality first, inside 2.2 MB
  *  (held with the three lane mascots added 2026-09-03: 2161 KB of 2252). Raised to 2.7 MB
  *  the same day for three more lane mascots Andy supplied (pelican, wombat, bin-chicken:
- *  ~150 KB each at the 600px lane target) - the per-mascot quality bar is unchanged. */
-const BUDGET_BYTES = 2.7 * 1024 * 1024;
+ *  ~150 KB each at the 600px lane target), and to 3.0 MB that evening for the platypus on
+ *  the Operators door - the per-mascot quality bar is unchanged. */
+const BUDGET_BYTES = 3.0 * 1024 * 1024;
 
 /** file -> target pixel width = 2x the max width of its docs-landing.css sizing class. */
 const TARGETS: Record<string, number> = {
-  'echidna.webp': 750,            // .pathways-mascot  clamp(...,300px)
+  'echidna.webp': 600,            // .lane-mascot      clamp(...,240px)  (Legal lane, since 2026-09-03)
   'koala.webp': 900,              // .about-mascot     clamp(...,360px)
   'kookaburra.webp': 850,         // .import-mascot    clamp(...,340px)
   'magpie.webp': 750,             // .assure-mascot    clamp(...,300px)
@@ -59,6 +62,7 @@ const TARGETS: Record<string, number> = {
   'pelican.webp': 600,            // .lane-mascot      clamp(...,240px)  (Animate lane)
   'wombat.webp': 600,             // .lane-mascot      clamp(...,240px)  (Record lane)
   'bin-chicken.webp': 600,        // .lane-mascot      clamp(...,240px)  (AI lane)
+  'platypus.webp': 400,           // .persona-mascot   8.5em square       (Operators door tab)
 };
 /**
  * PNG cut-outs that become mascots: `--import=<dir>` reads each `from` under that
@@ -76,6 +80,7 @@ const IMPORTS: ReadonlyArray<{ from: string; out: string }> = [
   { from: 'pelican.png', out: 'pelican.webp' },
   { from: 'wombat.png', out: 'wombat.webp' },
   { from: 'bin-chicken.png', out: 'bin-chicken.webp' },
+  { from: 'platypus.png', out: 'platypus.webp' },
 ];
 
 async function main(): Promise<void> {
@@ -86,7 +91,13 @@ async function main(): Promise<void> {
   const importArg = process.argv.find(a => a.startsWith('--import='));
   if (importArg) {
     const from = resolve(importArg.slice('--import='.length));
+    // `--only=a.webp,b.webp` imports just those: re-encoding an already-shipped mascot
+    // from its PNG again would rewrite its bytes (a fresh credential timestamp) for
+    // no visible change.
+    const onlyArg = process.argv.find(a => a.startsWith('--only='));
+    const only = onlyArg ? new Set(onlyArg.slice('--only='.length).split(',').map(x => x.trim()).filter(Boolean)) : null;
     for (const { from: name, out } of IMPORTS) {
+      if (only && !only.has(out)) continue;
       const src = join(from, name);
       const orig = new Uint8Array(readFileSync(src));
       const ex = extractC2paStore(orig);
@@ -115,6 +126,43 @@ async function main(): Promise<void> {
       if (!check) writeFileSync(join(DIR, out), stamped);
       console.log(`  ${check ? '~' : '✓'} ${name} → ${out}  ${Math.round(orig.length / 1024)} KB → ${Math.round(stamped.length / 1024)} KB  (${srcW}px → ${outW}px)`);
     }
+  }
+
+  // `--flip=<file>`: mirror one mascot horizontally, ONCE, with the flip on the record.
+  // A one-shot flag rather than a map the main loop reads, because a persistent flip
+  // would apply again on every run and two flips are the original. The output carries a
+  // c2pa.orientation action (the C2PA verb for a mirror or rotation) plus the resize, with
+  // the prior credential as ingredient, so the chain back to the generation holds.
+  const flipArg = process.argv.find(a => a.startsWith('--flip='));
+  if (flipArg) {
+    const file = flipArg.slice('--flip='.length);
+    const targetW = TARGETS[file];
+    if (!targetW) throw new Error(`${file}: no TARGETS entry`);
+    const path = join(DIR, file);
+    const orig = new Uint8Array(readFileSync(path));
+    const ex = extractC2paStore(orig);
+    if (!ex) throw new Error(`${file}: no C2PA store - refusing to edit an uncredentialed mascot`);
+    const meta = await sharp(orig).metadata();
+    const outW = Math.min(targetW, meta.width ?? targetW);
+    const flipped = new Uint8Array(await sharp(orig)
+      .flop()
+      .resize({ width: outW, withoutEnlargement: true })
+      .webp({ quality, alphaQuality: 95, effort: 6, smartSubsample: true })
+      .toBuffer());
+    const ingredient = prepareC2paIngredientFromStore(ex.store, ex.format);
+    if (!ingredient) throw new Error(`${file}: could not prepare the existing credential as an ingredient`);
+    const stamped = await embedC2pa(flipped, 'webp', {
+      actions: [
+        { action: 'c2pa.orientation', description: 'Mirrored horizontally so the animal faces the copy beside it' },
+        { action: 'c2pa.resized', description: `Resized to ${outW}px wide for the /info landing weight budget` },
+      ],
+      ingredients: [ingredient],
+      generatorInfo: { name: 'Lolly', version: ENGINE_VERSION },
+    });
+    if (!extractC2paStore(stamped)) throw new Error(`${file}: output lost its C2PA store`);
+    if (collectIngredients(stamped).length < 1) throw new Error(`${file}: output lost its ingredient chain`);
+    if (!check) writeFileSync(path, stamped);
+    console.log(`  ${check ? '~' : '✓'} ${file} mirrored  ${Math.round(orig.length / 1024)} KB → ${Math.round(stamped.length / 1024)} KB  (${meta.width}px → ${outW}px)`);
   }
 
   let total = 0;
