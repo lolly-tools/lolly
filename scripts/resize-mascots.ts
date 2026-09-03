@@ -38,8 +38,10 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIR = join(ROOT, 'shells/web/public/info/mascots');
 
 /** Total budget for the directory, Andy's number (2026-08-28): quality first, inside 2.2 MB
- *  (still holds with the three lane mascots added 2026-09-03: 2161 KB of 2252). */
-const BUDGET_BYTES = 2.2 * 1024 * 1024;
+ *  (held with the three lane mascots added 2026-09-03: 2161 KB of 2252). Raised to 2.7 MB
+ *  the same day for three more lane mascots Andy supplied (pelican, wombat, bin-chicken:
+ *  ~150 KB each at the 600px lane target) - the per-mascot quality bar is unchanged. */
+const BUDGET_BYTES = 2.7 * 1024 * 1024;
 
 /** file -> target pixel width = 2x the max width of its docs-landing.css sizing class. */
 const TARGETS: Record<string, number> = {
@@ -54,6 +56,9 @@ const TARGETS: Record<string, number> = {
   'lorikeet.webp': 600,           // .lane-mascot      clamp(...,240px)  (Designers lane)
   'kookaburra-lolly.webp': 600,   // .lane-mascot      clamp(...,240px)  (Developers lane)
   'bandicoot.webp': 600,          // .lane-mascot      clamp(...,240px)  (Make lane)
+  'pelican.webp': 600,            // .lane-mascot      clamp(...,240px)  (Animate lane)
+  'wombat.webp': 600,             // .lane-mascot      clamp(...,240px)  (Record lane)
+  'bin-chicken.webp': 600,        // .lane-mascot      clamp(...,240px)  (AI lane)
 };
 /**
  * PNG cut-outs that become mascots: `--import=<dir>` reads each `from` under that
@@ -68,6 +73,9 @@ const IMPORTS: ReadonlyArray<{ from: string; out: string }> = [
   { from: 'lorikeet.png', out: 'lorikeet.webp' },
   { from: 'kookaburra.png', out: 'kookaburra-lolly.webp' },
   { from: 'bandicoot.png', out: 'bandicoot.webp' },
+  { from: 'pelican.png', out: 'pelican.webp' },
+  { from: 'wombat.png', out: 'wombat.webp' },
+  { from: 'bin-chicken.png', out: 'bin-chicken.webp' },
 ];
 
 async function main(): Promise<void> {

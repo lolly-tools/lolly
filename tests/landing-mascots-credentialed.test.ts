@@ -29,6 +29,11 @@ const MASCOT_DIR = resolve(import.meta.dirname, '../shells/web/public/info/masco
 const MASCOTS = [
   'echidna.webp', 'koala.webp', 'kookaburra.webp', 'magpie.webp',
   'quoll.webp', 'ringtail-possum.webp', 'wedge-tailed-eagle.webp',
+  // The persona lanes' mascots (2026-09-03), imported from Gemini PNG cut-outs by
+  // scripts/resize-mascots.ts --import: Make, Designers, Developers, then Animate,
+  // Record and AI.
+  'bandicoot.webp', 'lorikeet.webp', 'kookaburra-lolly.webp',
+  'pelican.webp', 'wombat.webp', 'bin-chicken.webp',
 ];
 
 test('every landing mascot file still exists', () => {
