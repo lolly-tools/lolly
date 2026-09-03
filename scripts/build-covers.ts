@@ -127,7 +127,9 @@ const POSES: CoverPose[] = [
     // Grain at 60 fps is costly to encode (Best 4.5 MB, Balanced 3.3 MB for 6 s); Smaller keeps the tile light.
     settleMs: 3000, exportStill: 'png', exportVideo: { fps: 60, seconds: LOOP_SECONDS, quality: 'smaller' } },
   { slug: 'chart', hue: 67.5, light: 0.78, route: '#/tool/chart?chartType=bar', settleMs: 3500 },
-  { slug: 'qr-code', hue: 90, light: 0.72, route: '#/tool/qr-code?url=https://lolly.tools&color={primaryDark}', settleMs: 3000 },
+  // The QR's own ground is the tile's primary and its modules the dark step, so the
+  // frame washes with the brand hue instead of a white card (Andy, 2026-09-03).
+  { slug: 'qr-code', hue: 90, light: 0.72, route: '#/tool/qr-code?url=https://lolly.tools&background={primary}&color={primaryDark}&color2={primaryDark}', settleMs: 3000 },
   // The render alone, exported by the tool at 60 fps (Andy, 2026-09-03): metaballs on
   // a ground of the tile's own primary (Andy, later: "the same as the colour the
   // carousel item is meant to be"), the first blob in that same colour so the shapes
