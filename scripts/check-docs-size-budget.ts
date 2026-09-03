@@ -40,9 +40,12 @@ const infoDir = path.join(root, 'shells/web/public/info');
 // ~6 s loops (docs/shots/covers, 1.5 MB of webp/webm, again incompressible; 161.3 MB
 // measured with them in). 163.5 MB the same evening for the docs accuracy pass:
 // six recipe shots in light and dark for the export panels and the timeline strip,
-// the SCORM format page and its locale twins (162.3 MB measured with them in). NOT a
-// target - see the header.
-const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 163.5) * 1024 * 1024;
+// the SCORM format page and its locale twins (162.3 MB measured with them in). 170.5 MB
+// from 2026-09-03 (night): three covers became the tools' OWN 60 fps H.264 exports
+// (backdrop 1.9 MB, gradient 2.2 MB, audiogram 3.6 MB - MilkDrop and film grain do not
+// compress; 169.4 MB measured with them in, the two recordings they replaced were
+// 0.2 MB). NOT a target - see the header.
+const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 170.5) * 1024 * 1024;
 
 function fail(msg: string): never {
   console.error(`✗ docs size budget FAILED: ${msg}`);
