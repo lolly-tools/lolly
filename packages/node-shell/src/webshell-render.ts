@@ -92,7 +92,7 @@ function serveDist(): Promise<Served> {
 
 // Reserved params we set ourselves on the export URL. Cleared from the inbound query
 // first so the export dims/format/password win over anything the saved session encoded.
-const EXPORT_URL_RESERVED = ['format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options'];
+const EXPORT_URL_RESERVED = ['format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options', 'fps', 'seconds', 'wait', 'codec', 'vq'];
 
 function exportUrl(base: string, toolId: string, query: string, fmt: string, dims: RenderDims): string {
   const p = new URLSearchParams(query);
@@ -122,6 +122,17 @@ function exportUrl(base: string, toolId: string, query: string, fmt: string, dim
   // The deck state address (plan 112): the web shell's still-export fan-out renders only
   // the named slide. Same param, same meaning as the link a person would paste.
   if (dims.slide) p.set('s', dims.slide);
+  // Video controls (plan 183 follow-up): the panel's Frame rate / Duration / Start after /
+  // Codec / Quality have URL forms now, and the CLI's --fps/--seconds/--wait/--codec/--vq
+  // are those params under another transport. Written only when given.
+  if (dims.video) {
+    const v = dims.video;
+    if (v.fps != null) p.set('fps', String(v.fps));
+    if (v.seconds != null) p.set('seconds', String(v.seconds));
+    if (v.wait != null) p.set('wait', String(v.wait));
+    if (v.codec) p.set('codec', v.codec);
+    if (v.quality) p.set('vq', v.quality);
+  }
   if (dims.c2pa === false) p.set('c2pa', 'off');
   else if (dims.c2pa) p.set('c2pa', [7, 30, 90, 365].includes(Number(dims.c2paDays)) ? String(dims.c2paDays) : '1');
   p.set('export', '1'); // presence flag → the web shell auto-exports on load
@@ -286,6 +297,10 @@ export interface RenderDims {
   /** Embed the opt-in durable Content Credential (neural TrustMark mark) on raster
    *  exports. The web shell's durableEmbedCanvas runs it (?durable=1). */
   durable?: boolean;
+  /** Video export controls for the motion formats, forwarded as the URL params the web
+   *  shell's auto-export reads (`fps`, `seconds`, `wait`, `codec`, `vq` - url-mode.ts).
+   *  Null/undefined fields are simply not written, so the shell keeps its defaults. */
+  video?: { fps?: number | null; seconds?: number | null; wait?: number | null; codec?: string | null; quality?: string | null };
   /** CMYK press condition (e.g. "fogra39") for pdf-cmyk / cmyk-tiff. Named distinctly
    *  from the CLI's --profile (the user-profile FILE) to avoid the url-mode collision. */
   pressProfile?: string;

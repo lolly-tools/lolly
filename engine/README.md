@@ -248,7 +248,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `tool-url.ts` | 173 | Lolly tool-URL recognition. | yes | `tests/tool-url.test.ts` | – |
 | `trustmark.ts` | 971 | Adobe TrustMark: BCH data-layer decode (pure GF(2^7) math, DOM-free). | yes | `tests/trustmark.test.ts` | – |
 | `units.ts` | 98 | Physical unit conversions for output dimensions - platform-agnostic, no DOM. | yes | `tests/units.test.ts` | – |
-| `url-mode.ts` | 896 | URL mode. | yes | indirect | – |
+| `url-mode.ts` | 976 | URL mode. | yes | indirect | – |
 | `url-pack.ts` | 360 | Packed URL state - the compact transport for large tool state. | yes | `tests/url-pack.test.ts` | yes |
 | `validate.ts` | 78 | Validates a tool manifest against the JSON Schema. | yes | indirect | – |
 | `version.ts` | 16 | The engine's HostV1 contract version. | yes | indirect | – |

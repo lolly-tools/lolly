@@ -16151,6 +16151,26 @@ var init_lang = __esm({
 });
 
 // engine/src/url-mode.ts
+function numberIn(raw, min, max, integer = false) {
+  if (raw == null || raw.trim() === "") return null;
+  const n2 = Number(raw);
+  if (!Number.isFinite(n2) || n2 < min || n2 > max) return null;
+  return integer ? Math.round(n2) : n2;
+}
+function parseVideoParams(params) {
+  const codecRaw = (params.get("codec") ?? "").trim().toLowerCase();
+  const vqRaw = (params.get("vq") ?? "").trim().toLowerCase();
+  return {
+    fps: numberIn(params.get("fps"), 1, 120, true),
+    seconds: numberIn(params.get("seconds"), 0.5, 3600),
+    wait: numberIn(params.get("wait"), 0, 30),
+    codec: VIDEO_CODEC_ALIASES[codecRaw] ?? null,
+    quality: vqRaw === "smaller" || vqRaw === "balanced" || vqRaw === "best" ? vqRaw : null
+  };
+}
+function hasVideoParams(v) {
+  return !!v && (v.fps != null || v.seconds != null || v.wait != null || v.codec != null || v.quality != null);
+}
 function parseMarks(raw) {
   if (raw == null) return null;
   const set = new Set(String(raw).split(",").map((s) => s.trim().toLowerCase()).filter(Boolean));
@@ -16281,6 +16301,7 @@ function parseUrlState(searchParams, manifest) {
     durable: parseDurable(params.get("durable")),
     // Opt-in HDR raster export (see header). null ⇒ SDR.
     hdr: parseHdr(params.get("hdr")),
+    video: parseVideoParams(params),
     // Requested export bit depth (see header). Always 8/16/'float'/'auto'; junk
     // and absence both read as 'auto'. Depth follows provenance at the consumer.
     depth: parseDepth(params.get("depth")),
@@ -16338,6 +16359,11 @@ function serializeUrlState(model2, opts = {}) {
   if (opts.metadata === false) params.set("meta", "off");
   if (opts.durable) params.set("durable", "1");
   if (opts.hdr) params.set("hdr", "1");
+  if (opts.fps != null && numberIn(String(opts.fps), 1, 120, true) != null) params.set("fps", String(Math.round(Number(opts.fps))));
+  if (opts.seconds != null && numberIn(String(opts.seconds), 0.5, 3600) != null) params.set("seconds", String(opts.seconds));
+  if (opts.wait != null && numberIn(String(opts.wait), 0, 30) != null) params.set("wait", String(opts.wait));
+  if (opts.codec && VIDEO_CODEC_ALIASES[String(opts.codec).toLowerCase()]) params.set("codec", VIDEO_CODEC_ALIASES[String(opts.codec).toLowerCase()]);
+  if (opts.vq === "smaller" || opts.vq === "balanced" || opts.vq === "best") params.set("vq", opts.vq);
   {
     const d = opts.depth == null ? "auto" : parseDepth(String(opts.depth));
     if (d !== "auto") params.set("depth", String(d));
@@ -16467,7 +16493,7 @@ function splitToFields(str6, count2) {
   if (parts.length <= count2) return parts;
   return [...parts.slice(0, count2 - 1), parts.slice(count2 - 1).join(",")];
 }
-var HDR_DEFAULTS, DEPTH_VALUES, RESERVED, CUTS_MAX, HEX_COLOR;
+var HDR_DEFAULTS, DEPTH_VALUES, VIDEO_CODEC_STRINGS, VIDEO_CODEC_ALIASES, RESERVED, CUTS_MAX, HEX_COLOR;
 var init_url_mode = __esm({
   "engine/src/url-mode.ts"() {
     "use strict";
@@ -16479,7 +16505,27 @@ var init_url_mode = __esm({
     init_inputs();
     HDR_DEFAULTS = { peakNits: 1e3, reach: 45, lift: 0, richness: 40 };
     DEPTH_VALUES = /* @__PURE__ */ new Map([["8", 8], ["16", 16], ["float", "float"], ["auto", "auto"]]);
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "lang", "designv", "full", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx"]);
+    VIDEO_CODEC_STRINGS = Object.freeze({
+      h264: "avc1.640033",
+      hevc: "hvc1.1.6.L93.B0",
+      vp9: "vp09.00.10.08",
+      av1: "av01.0.08M.08"
+    });
+    VIDEO_CODEC_ALIASES = Object.freeze({
+      h264: "h264",
+      avc: "h264",
+      avc1: "h264",
+      "h.264": "h264",
+      hevc: "hevc",
+      h265: "hevc",
+      "h.265": "hevc",
+      hvc1: "hevc",
+      vp9: "vp9",
+      vp09: "vp9",
+      av1: "av1",
+      av01: "av1"
+    });
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "lang", "designv", "full", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx", "fps", "seconds", "wait", "codec", "vq"]);
     CUTS_MAX = 64;
     HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
   }
@@ -54329,6 +54375,7 @@ __export(src_exports, {
   UNIQUE_CAP: () => UNIQUE_CAP,
   UNITS: () => UNITS,
   V2_BAND_SIZE: () => V2_BAND_SIZE,
+  VIDEO_CODEC_STRINGS: () => VIDEO_CODEC_STRINGS,
   WATERMARK_VERSION: () => WATERMARK_VERSION,
   XCF_MODE_TO_CSS: () => XCF_MODE_TO_CSS,
   XcfUnsupportedError: () => XcfUnsupportedError,
@@ -54606,6 +54653,7 @@ __export(src_exports, {
   hasEncryptedState: () => hasEncryptedState,
   hasPackedState: () => hasPackedState,
   hasResidualMetadata: () => hasResidualMetadata,
+  hasVideoParams: () => hasVideoParams,
   hashR6: () => hashR6,
   hdrBoostToPQ: () => hdrBoostToPQ,
   hdrViewTransform: () => hdrViewTransform,
@@ -54821,6 +54869,7 @@ __export(src_exports, {
   parseTreatedAssetId: () => parseTreatedAssetId,
   parseUrlState: () => parseUrlState,
   parseVersion: () => parseVersion,
+  parseVideoParams: () => parseVideoParams,
   parseVoiceBlend: () => parseVoiceBlend,
   parseWav: () => parseWav,
   parseZzfxmRef: () => parseZzfxmRef,

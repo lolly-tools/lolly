@@ -80,6 +80,34 @@ test('an animated tool exports a real mp4 through the browser tier', { skip: MIS
   assert.ok(ms < WALL_BUDGET_MS, `took ${ms}ms, over the ${WALL_BUDGET_MS}ms bound`);
 });
 
+/** The movie header's duration in seconds (version 0 or 1 mvhd), or null when absent. */
+function mvhdSeconds(bytes: Buffer): number | null {
+  const at = bytes.indexOf(Buffer.from('mvhd', 'latin1'));
+  if (at < 0) return null;
+  const version = bytes[at + 4];
+  if (version === 1) {
+    const timescale = bytes.readUInt32BE(at + 4 + 4 + 8 + 8);
+    const duration = Number(bytes.readBigUInt64BE(at + 4 + 4 + 8 + 8 + 4));
+    return timescale > 0 ? duration / timescale : null;
+  }
+  const timescale = bytes.readUInt32BE(at + 4 + 4 + 4 + 4);
+  const duration = bytes.readUInt32BE(at + 4 + 4 + 4 + 4 + 4);
+  return timescale > 0 ? duration / timescale : null;
+}
+
+test('--seconds and --fps shape the clip: the URL-mode video params reach the browser tier', { skip: MISSING ?? false }, async (t) => {
+  const file = join(OUT, 'chart-2s.mp4');
+  const { bytes, ms } = await exportTo(['chart', '--export=mp4', '--seconds=2', '--fps=60', '--codec=h264'], file);
+  t.diagnostic(`${bytes.length} bytes in ${(ms / 1000).toFixed(1)}s`);
+  assert.equal(bytes.subarray(4, 8).toString('latin1'), 'ftyp', 'not an ISO base media file');
+  const secs = mvhdSeconds(bytes);
+  assert.ok(secs != null, 'no mvhd box - cannot read the clip length');
+  // The default chart clip is 3 s (see the test above); --seconds=2 must come back as ~2 s.
+  assert.ok(Math.abs(secs - 2) < 0.35, `clip is ${secs.toFixed(2)}s, asked for 2s`);
+  // H.264 was pinned, so the sample entry is avc1, not av01.
+  assert.ok(bytes.includes(Buffer.from('avc1', 'latin1')), 'no avc1 sample entry - the codec pin did not reach the encoder');
+});
+
 test('a deck exports a real pptx through the browser tier', { skip: MISSING ?? false }, async (t) => {
   const file = join(OUT, 'deck.pptx');
   const { bytes, ms } = await exportTo(['deck-studio', '--export=pptx'], file);

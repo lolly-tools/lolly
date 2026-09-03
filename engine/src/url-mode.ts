@@ -88,6 +88,20 @@
  *                  Junk (`depth=32`, `depth=deep`, empty) degrades to `auto`
  *                  rather than erroring - same total-function discipline as
  *                  `cuts`/`unit`. See plans/61-deeprichpixels.md section 10.
+ *   - `fps`, `seconds`, `wait`, `codec`, `vq` - VIDEO EXPORT CONTROLS for the
+ *                  motion formats (`mp4`/`webm`/`gif`/`apng`/`webp-anim`), the
+ *                  URL form of the export panel's Frame rate, Duration, Start
+ *                  after, Codec and Quality fields - so a link, the CLI and the
+ *                  MCP server can ask for exactly the clip the panel can. `fps` is
+ *                  an integer 1..120; `seconds` the clip length (0.5..3600) and,
+ *                  when present, a DELIBERATE length (`durationUserSet`) that a
+ *                  tool hook must not lengthen to its material; `wait` the settle
+ *                  time before the first frame (0..30); `codec` one of `h264`,
+ *                  `hevc`, `vp9`, `av1` (WebCodecs strings in VIDEO_CODEC_STRINGS);
+ *                  `vq` `smaller`, `balanced` or `best`. Junk degrades to absent
+ *                  (the shell's own default), never an error. Named to collide
+ *                  with no input id in any pack: `duration` and `quality` ARE
+ *                  input ids (3d, flythrough, convert-image), hence `seconds`/`vq`.
  *   - `cuts` - CONTACT SHEET for a still export (`png`/`jpg`/`webp`/`svg`/`pdf`)
  *                  of a TIMED composition (a stage carrying `data-sequence`).
  *                  An integer, default `1`. `cuts=1` renders the frame at the
@@ -232,6 +246,55 @@ export type DepthSetting = 8 | 16 | 'float' | 'auto';
 const DEPTH_VALUES = new Map<string, DepthSetting>([['8', 8], ['16', 16], ['float', 'float'], ['auto', 'auto']]);
 
 /** Parsed URL state: input values plus the reserved export/render controls. */
+/** Codec names the `codec` param accepts, and the WebCodecs strings the web shell's
+ *  export panel offers for them (the panel's <select> values, kept in step by test). */
+export type VideoCodecName = 'h264' | 'hevc' | 'vp9' | 'av1';
+export const VIDEO_CODEC_STRINGS: Readonly<Record<VideoCodecName, string>> = Object.freeze({
+  h264: 'avc1.640033',
+  hevc: 'hvc1.1.6.L93.B0',
+  vp9: 'vp09.00.10.08',
+  av1: 'av01.0.08M.08',
+});
+/** The `vq` param's three stops - the export panel's Quality select. */
+export type VideoQuality = 'smaller' | 'balanced' | 'best';
+/** The video export controls a URL can carry (see the header). Every field is null
+ *  when absent or junk, so a consumer applies its own default per field. */
+export interface VideoUrlSettings {
+  fps: number | null;
+  seconds: number | null;
+  wait: number | null;
+  codec: VideoCodecName | null;
+  quality: VideoQuality | null;
+}
+const VIDEO_CODEC_ALIASES: Readonly<Record<string, VideoCodecName>> = Object.freeze({
+  h264: 'h264', avc: 'h264', avc1: 'h264', 'h.264': 'h264',
+  hevc: 'hevc', h265: 'hevc', 'h.265': 'hevc', hvc1: 'hevc',
+  vp9: 'vp9', vp09: 'vp9',
+  av1: 'av1', av01: 'av1',
+});
+function numberIn(raw: string | null, min: number, max: number, integer = false): number | null {
+  if (raw == null || raw.trim() === '') return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < min || n > max) return null;
+  return integer ? Math.round(n) : n;
+}
+/** Parse the five video params. Total: junk reads as absent, never throws. */
+export function parseVideoParams(params: URLSearchParams): VideoUrlSettings {
+  const codecRaw = (params.get('codec') ?? '').trim().toLowerCase();
+  const vqRaw = (params.get('vq') ?? '').trim().toLowerCase();
+  return {
+    fps: numberIn(params.get('fps'), 1, 120, true),
+    seconds: numberIn(params.get('seconds'), 0.5, 3600),
+    wait: numberIn(params.get('wait'), 0, 30),
+    codec: VIDEO_CODEC_ALIASES[codecRaw] ?? null,
+    quality: vqRaw === 'smaller' || vqRaw === 'balanced' || vqRaw === 'best' ? vqRaw : null,
+  };
+}
+/** True when any of the five video params was given (so a consumer can skip the whole block). */
+export function hasVideoParams(v: VideoUrlSettings | null | undefined): boolean {
+  return !!v && (v.fps != null || v.seconds != null || v.wait != null || v.codec != null || v.quality != null);
+}
+
 export interface UrlState {
   values: Record<string, InputValue>;
   format: string | null;
@@ -269,6 +332,9 @@ export interface UrlState {
    *  PQ encoding with brand-colour luminance boost (raster only), carrying the
    *  author's tuning dials; null ⇒ absent/off ⇒ SDR. `hdr=1` ⇒ HDR_DEFAULTS. */
   hdr: HdrSettings | null;
+  /** Video export controls (`fps`/`seconds`/`wait`/`codec`/`vq`) for the motion
+   *  formats; every field null when absent. See VideoUrlSettings and the header. */
+  video: VideoUrlSettings;
   /** REQUESTED export bit depth (the `depth` param). Always one of 8 / 16 /
    *  'float' / 'auto'; absent or unrecognized ⇒ 'auto' (the default), so there is
    *  no null case to handle. Consumers must apply depth-follows-provenance - see
@@ -335,6 +401,13 @@ export interface SerializeUrlOpts {
   /** HDR raster export (the `hdr` param). Truthy serialised as `hdr=1`; omitted
    *  otherwise - opt-in, off by default. */
   hdr?: string | null;
+  /** Video export controls (the `fps`/`seconds`/`wait`/`codec`/`vq` params). Each is
+   *  written only when given, so an ordinary link carries none of them. */
+  fps?: number | null;
+  seconds?: number | null;
+  wait?: number | null;
+  codec?: VideoCodecName | string | null;
+  vq?: VideoQuality | string | null;
   /** Requested export bit depth (the `depth` param). Written only for a real
    *  request - 'auto' (the default) and anything unrecognized write nothing, so a
    *  plain link stays clean. */
@@ -356,7 +429,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'full', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'full', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq']);
 // NOTE on the presentation-mode kiosk flag: it was the unreserved `loop` until
 // 2026-08-28 (plan 171 executed the rename inside the id-break window). `loop` is a
 // live *input* id in several tools (deck-builder, 3d, flythrough, digi-ad,
@@ -580,6 +653,7 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     durable:  parseDurable(params.get('durable')),
     // Opt-in HDR raster export (see header). null ⇒ SDR.
     hdr:      parseHdr(params.get('hdr')),
+    video:    parseVideoParams(params),
     // Requested export bit depth (see header). Always 8/16/'float'/'auto'; junk
     // and absence both read as 'auto'. Depth follows provenance at the consumer.
     depth:    parseDepth(params.get('depth')),
@@ -653,6 +727,12 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   // Opt-in, off by default: only an explicit request writes the param.
   if (opts.durable) params.set('durable', '1');
   if (opts.hdr) params.set('hdr', '1');
+  // Video controls: only what was given, validated the way the parser reads it back.
+  if (opts.fps != null && numberIn(String(opts.fps), 1, 120, true) != null) params.set('fps', String(Math.round(Number(opts.fps))));
+  if (opts.seconds != null && numberIn(String(opts.seconds), 0.5, 3600) != null) params.set('seconds', String(opts.seconds));
+  if (opts.wait != null && numberIn(String(opts.wait), 0, 30) != null) params.set('wait', String(opts.wait));
+  if (opts.codec && VIDEO_CODEC_ALIASES[String(opts.codec).toLowerCase()]) params.set('codec', VIDEO_CODEC_ALIASES[String(opts.codec).toLowerCase()]!);
+  if (opts.vq === 'smaller' || opts.vq === 'balanced' || opts.vq === 'best') params.set('vq', opts.vq);
   // Only a real depth request writes the param: 'auto' is the default and junk is
   // not worth round-tripping, so both leave the link clean (the parser reads either
   // back as 'auto' anyway).

@@ -418,7 +418,10 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // 1.171.0: narrated slides (plans/180) - PptxSlide.audio and its part family,
   // the new scorm.ts manifest/adapter/launch builders, and captions.cuesForSlide -
   // additive, no capture change.
-  assert.equal(ENGINE_VERSION, '1.171.0');
+  // 1.172.0: video export controls in URL mode - fps/seconds/wait/codec/vq reserved,
+  //          parseVideoParams/VIDEO_CODEC_STRINGS exported, UrlState.video (the CLI/MCP
+  //          parity fix for clips; plans/183 follow-up).
+  assert.equal(ENGINE_VERSION, '1.172.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

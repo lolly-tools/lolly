@@ -6,6 +6,19 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.172.0 - Video export controls in URL mode. Five reserved params for the motion formats
+(`mp4`/`webm`/`gif`/`apng`/`webp-anim`): `fps` (integer 1..120), `seconds` (clip length
+0.5..3600, carried as a DELIBERATE length - `durationUserSet` - so a tool hook that runs a clip
+to its material stands down), `wait` (settle seconds 0..30), `codec` (`h264`/`hevc`/`vp9`/`av1`
+with the common aliases; `VIDEO_CODEC_STRINGS` maps them to the WebCodecs strings the web
+export panel offers) and `vq` (`smaller`/`balanced`/`best`). `parseVideoParams`,
+`hasVideoParams`, the `VideoUrlSettings`/`VideoCodecName`/`VideoQuality` types, and
+`UrlState.video`; `serializeUrlState` writes them only when given, in the parser's own
+vocabulary. Named to collide with no input id in any pack (`duration` and `quality` are input
+ids, so `seconds` and `vq`). The CLI's `--fps/--seconds/--wait/--codec/--vq` and the MCP query
+are these params under other transports; this is the parity fix for a CLI that had no video
+knobs at all (plans/183 follow-up).
+
 1.171.0 - Narrated slides: PPTX audio, SCORM and the caption window (plans/180 sections 3, 5
 and 6). `PptxSlide.audio` (new exported type `PptxAudio`: `{bytes, ext:'wav'|'mp3'|'m4a',
 durationMs, autoplay?, advanceAfterMs?, name?}`) writes a slide's narration as its own part

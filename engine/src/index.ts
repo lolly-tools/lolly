@@ -36,12 +36,12 @@ export {
 export type { CssBlendMode, RasterLayer, LayeredRasterDoc, InflateFn } from './raster-layers.ts';
 export { buildInputModel, summarizeInputs, normalizeTableValue, deriveExportFilename, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export type { TableValue, TableColumnEditor } from './inputs.ts';
-export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS } from './url-mode.ts';
+export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams } from './url-mode.ts';
 // The `s=` state address + the still-export frame filter both shells apply (plan 112).
 export { parseFrameAddress, selectFramePage, frameFilterApplies, FRAME_FILTER_SKIP_FORMATS } from './frame-address.ts';
 export type { FrameAddress, FrameSelection } from './frame-address.ts';
 export { looksLikeTable, parseTableText, toTsv, toMarkdown, toHtmlTable } from './table-text.ts';
-export type { HdrSettings, DepthSetting } from './url-mode.ts';
+export type { HdrSettings, DepthSetting, VideoUrlSettings, VideoCodecName, VideoQuality } from './url-mode.ts';
 export { LANGS, LANG_META, isLang, normalizeLang, flagEmoji, sortedLangs } from './lang.ts';
 export type { Lang, LangMeta, LangSort } from './lang.ts';
 export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.ts';

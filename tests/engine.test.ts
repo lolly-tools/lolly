@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import { validateManifest } from '../engine/src/validate.ts';
-import { parseUrlState, serializeUrlState, serializeHdr, RESERVED, CUTS_MAX, cutTime } from '../engine/src/url-mode.ts';
+import { parseUrlState, serializeUrlState, serializeHdr, RESERVED, CUTS_MAX, cutTime, parseVideoParams, hasVideoParams, VIDEO_CODEC_STRINGS } from '../engine/src/url-mode.ts';
 import type { DepthSetting } from '../engine/src/url-mode.ts';
 import { parseFrameAddress, selectFramePage } from '../engine/src/frame-address.ts';
 import { buildInputModel, updateInput, modelToValues } from '../engine/src/inputs.ts';
@@ -152,6 +152,7 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
     'format', 'export', 'copy', 'full', 'options', 'slot', 'output', 'filename',
     '_v', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'profile', 'password',
     'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx',
+    'fps', 'seconds', 'wait', 'codec', 'vq',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 
@@ -1182,4 +1183,32 @@ test('url-mode: bleed and marks are null unless explicitly in the URL - physical
   const explicit = parseUrlState('heading=Hi&format=pdf&bleed=3mm&marks=crop,reg', SAMPLE_MANIFEST);
   assert.equal(explicit.bleed, '3mm');
   assert.deepEqual(explicit.marks, { crop: true, registration: true, bleed: false, colorBars: false, provenance: false });
+});
+
+test('url-mode: the video params parse totally, alias codecs, and round-trip through the serialiser', () => {
+  const v = parseVideoParams(new URLSearchParams('fps=60&seconds=6&wait=1.5&codec=H.264&vq=best'));
+  assert.deepEqual(v, { fps: 60, seconds: 6, wait: 1.5, codec: 'h264', quality: 'best' });
+  assert.equal(hasVideoParams(v), true);
+  // Junk and out-of-range values read as absent, field by field - never an error.
+  const junk = parseVideoParams(new URLSearchParams('fps=0&seconds=abc&wait=99&codec=mpeg2&vq=huge'));
+  assert.deepEqual(junk, { fps: null, seconds: null, wait: null, codec: null, quality: null });
+  assert.equal(hasVideoParams(junk), false);
+  assert.equal(hasVideoParams(parseVideoParams(new URLSearchParams(''))), false);
+  // Aliases collapse onto the four names; the WebCodecs strings are the panel's option values.
+  assert.equal(parseVideoParams(new URLSearchParams('codec=av01')).codec, 'av1');
+  assert.equal(parseVideoParams(new URLSearchParams('codec=vp09')).codec, 'vp9');
+  assert.equal(parseVideoParams(new URLSearchParams('codec=h265')).codec, 'hevc');
+  assert.equal(VIDEO_CODEC_STRINGS.h264, 'avc1.640033');
+  // The five names are reserved, so a tool input can never shadow them...
+  for (const k of ['fps', 'seconds', 'wait', 'codec', 'vq']) assert.ok(RESERVED.has(k), `${k} is reserved`);
+  // ...and the serialiser writes only what was given, in the parser's own vocabulary.
+  const q = serializeUrlState([] as never, { fps: 60, seconds: 6, codec: 'avc1', vq: 'best', wait: null });
+  const back = new URLSearchParams(q);
+  assert.equal(back.get('fps'), '60');
+  assert.equal(back.get('seconds'), '6');
+  assert.equal(back.get('codec'), 'h264');
+  assert.equal(back.get('vq'), 'best');
+  assert.equal(back.has('wait'), false);
+  // A plain link stays clean.
+  assert.equal(new URLSearchParams(serializeUrlState([] as never, {})).has('fps'), false);
 });
