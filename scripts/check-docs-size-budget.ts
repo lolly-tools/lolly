@@ -38,8 +38,11 @@ const infoDir = path.join(root, 'shells/web/public/info');
 // cannot shrink; 160.3 MB measured with them in). 162.5 MB from 2026-09-03 (later):
 // the landing's Cover Flow went from 6 covers to 16 posed 4:3 covers plus three
 // ~6 s loops (docs/shots/covers, 1.5 MB of webp/webm, again incompressible; 161.3 MB
-// measured with them in). NOT a target - see the header.
-const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 162.5) * 1024 * 1024;
+// measured with them in). 163.5 MB the same evening for the docs accuracy pass:
+// six recipe shots in light and dark for the export panels and the timeline strip,
+// the SCORM format page and its locale twins (162.3 MB measured with them in). NOT a
+// target - see the header.
+const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 163.5) * 1024 * 1024;
 
 function fail(msg: string): never {
   console.error(`✗ docs size budget FAILED: ${msg}`);
