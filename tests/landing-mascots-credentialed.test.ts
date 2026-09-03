@@ -36,6 +36,8 @@ const MASCOTS = [
   'pelican.webp', 'wombat.webp', 'bin-chicken.webp',
   // The Operators door (2026-09-03, replacing the echidna, which moved to the Legal lane).
   'platypus.webp',
+  // Collaborate and Post lanes (2026-09-03, later).
+  'dolphin.webp', 'whale.webp',
 ];
 
 test('every landing mascot file still exists', () => {

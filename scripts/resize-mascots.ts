@@ -43,8 +43,9 @@ const DIR = join(ROOT, 'shells/web/public/info/mascots');
  *  (held with the three lane mascots added 2026-09-03: 2161 KB of 2252). Raised to 2.7 MB
  *  the same day for three more lane mascots Andy supplied (pelican, wombat, bin-chicken:
  *  ~150 KB each at the 600px lane target), and to 3.0 MB that evening for the platypus on
- *  the Operators door - the per-mascot quality bar is unchanged. */
-const BUDGET_BYTES = 3.0 * 1024 * 1024;
+ *  the Operators door, then 3.3 MB for the dolphin and whale on the Collaborate and Post
+ *  lanes - the per-mascot quality bar is unchanged. */
+const BUDGET_BYTES = 3.3 * 1024 * 1024;
 
 /** file -> target pixel width = 2x the max width of its docs-landing.css sizing class. */
 const TARGETS: Record<string, number> = {
@@ -63,6 +64,8 @@ const TARGETS: Record<string, number> = {
   'wombat.webp': 600,             // .lane-mascot      clamp(...,240px)  (Record lane)
   'bin-chicken.webp': 600,        // .lane-mascot      clamp(...,240px)  (AI lane)
   'platypus.webp': 400,           // .persona-mascot   8.5em square       (Operators door tab)
+  'dolphin.webp': 600,            // .lane-mascot      clamp(...,240px)  (Collaborate lane)
+  'whale.webp': 600,              // .lane-mascot      clamp(...,240px)  (Post lane)
 };
 /**
  * PNG cut-outs that become mascots: `--import=<dir>` reads each `from` under that
@@ -81,6 +84,8 @@ const IMPORTS: ReadonlyArray<{ from: string; out: string }> = [
   { from: 'wombat.png', out: 'wombat.webp' },
   { from: 'bin-chicken.png', out: 'bin-chicken.webp' },
   { from: 'platypus.png', out: 'platypus.webp' },
+  { from: 'dolphin.png', out: 'dolphin.webp' },
+  { from: 'whale.png', out: 'whale.webp' },
 ];
 
 async function main(): Promise<void> {
