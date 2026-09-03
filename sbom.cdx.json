@@ -84,10 +84,10 @@
         },
         {
           "type": "library",
-          "bom-ref": "pkg:npm/%40lolly/engine@1.171.0",
+          "bom-ref": "pkg:npm/%40lolly/engine@1.172.0",
           "name": "@lolly/engine",
-          "version": "1.171.0",
-          "purl": "pkg:npm/%40lolly/engine@1.171.0",
+          "version": "1.172.0",
+          "purl": "pkg:npm/%40lolly/engine@1.172.0",
           "licenses": [
             {
               "license": {
