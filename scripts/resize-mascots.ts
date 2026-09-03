@@ -63,9 +63,9 @@ const TARGETS: Record<string, number> = {
   'pelican.webp': 600,            // .lane-mascot      clamp(...,240px)  (Animate lane)
   'wombat.webp': 600,             // .lane-mascot      clamp(...,240px)  (Record lane)
   'bin-chicken.webp': 600,        // .lane-mascot      clamp(...,240px)  (AI lane)
-  'platypus.webp': 400,           // .persona-mascot   8.5em square       (Operators door tab)
+  'platypus.webp': 600,           // .persona-mascot   12em square        (Operators door tab)
   'dolphin.webp': 600,            // .lane-mascot      clamp(...,240px)  (Collaborate lane)
-  'whale.webp': 600,              // .lane-mascot      clamp(...,240px)  (Post lane)
+  'whale.webp': 800,              // .lane-mascot      clamp(...,400px)  (Post lane - wide animal, wide column)
 };
 /**
  * PNG cut-outs that become mascots: `--import=<dir>` reads each `from` under that
