@@ -92,9 +92,9 @@ function serveDist(): Promise<Served> {
 
 // Reserved params we set ourselves on the export URL. Cleared from the inbound query
 // first so the export dims/format/password win over anything the saved session encoded.
-const EXPORT_URL_RESERVED = ['format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options', 'fps', 'seconds', 'wait', 'codec', 'vq'];
+const EXPORT_URL_RESERVED = ['format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options', 'fps', 'seconds', 'wait', 'codec', 'vq', 'hdr', 'depth'];
 
-function exportUrl(base: string, toolId: string, query: string, fmt: string, dims: RenderDims): string {
+export function exportUrl(base: string, toolId: string, query: string, fmt: string, dims: RenderDims): string {
   const p = new URLSearchParams(query);
   for (const k of EXPORT_URL_RESERVED) p.delete(k);
   p.set('format', fmt);
@@ -125,6 +125,10 @@ function exportUrl(base: string, toolId: string, query: string, fmt: string, dim
   // Video controls (plan 183 follow-up): the panel's Frame rate / Duration / Start after /
   // Codec / Quality have URL forms now, and the CLI's --fps/--seconds/--wait/--codec/--vq
   // are those params under another transport. Written only when given.
+  // HDR for the browser-encoded formats (avif/tiff/mp4/webm): the web auto-export reads
+  // ?hdr= and writes Rec.2100 PQ; before this the CLI's --hdr=1 reached only the Node
+  // still writers, so an HDR AVIF or TIFF came back SDR and said nothing.
+  if (dims.hdrParam) p.set('hdr', dims.hdrParam);
   if (dims.video) {
     const v = dims.video;
     if (v.fps != null) p.set('fps', String(v.fps));
@@ -301,6 +305,10 @@ export interface RenderDims {
    *  shell's auto-export reads (`fps`, `seconds`, `wait`, `codec`, `vq` - url-mode.ts).
    *  Null/undefined fields are simply not written, so the shell keeps its defaults. */
   video?: { fps?: number | null; seconds?: number | null; wait?: number | null; codec?: string | null; quality?: string | null };
+  /** The serialised `hdr=` value (url-mode's serializeHdr: `1` or `peak-reach-lift-richness`)
+   *  for the formats whose HDR encode lives in the browser - AVIF, TIFF and the 10-bit
+   *  mp4/webm containers. PNG/JPEG HDR stills are encoded in Node and never set this. */
+  hdrParam?: string | null;
   /** CMYK press condition (e.g. "fogra39") for pdf-cmyk / cmyk-tiff. Named distinctly
    *  from the CLI's --profile (the user-profile FILE) to avoid the url-mode collision. */
   pressProfile?: string;
