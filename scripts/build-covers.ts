@@ -123,11 +123,13 @@ const POSES: CoverPose[] = [
     settleMs: 3000, exportStill: 'png', exportVideo: { fps: 60, seconds: LOOP_SECONDS, quality: 'smaller' } },
   { slug: 'chart', hue: 67.5, light: 0.78, route: '#/tool/chart?chartType=bar', settleMs: 3500 },
   { slug: 'qr-code', hue: 90, light: 0.72, route: '#/tool/qr-code?url=https://lolly.tools&color={primaryDark}', settleMs: 3000 },
-  // The render alone, exported by the tool at 60 fps (Andy, 2026-09-03): metaballs
-  // in the brand's muted and primary-3 on a ground of the same muted, so the shapes
-  // dissolve into their own background, plus one warm accent shifted to the pose.
+  // The render alone, exported by the tool at 60 fps (Andy, 2026-09-03): metaballs on
+  // a ground of the tile's own primary (Andy, later: "the same as the colour the
+  // carousel item is meant to be"), the first blob in that same colour so the shapes
+  // dissolve into their background, the second in primary-3, plus one warm accent
+  // shifted to the pose; scale stays at 300, the zoomed-in look.
   { slug: 'backdrop', hue: 112.5, light: 0.66,
-    route: '#/tool/backdrop?color1=%7Bcolor.semantic.muted%7D&color2=%7Bcolor.ramp.primary.3%7D&color3={shift:f3a761}&background=%7Bcolor.semantic.muted%7D&scale=300',
+    route: '#/tool/backdrop?color1={primary}&color2=%7Bcolor.ramp.primary.3%7D&color3={shift:f3a761}&background={primary}&scale=300',
     settleMs: 3000, exportVideo: { fps: 60, seconds: LOOP_SECONDS } },
   // The Colour Lab (#/lab): one colour reported in full, seeded with the posed primary.
   { slug: 'lab', hue: 135, route: '#/lab?c={primary}', settleMs: 5000 },
