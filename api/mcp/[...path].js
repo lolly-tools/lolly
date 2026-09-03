@@ -56473,6 +56473,15 @@ var init_pdf_structure = __esm({
   }
 });
 
+// scripts/mcp-fn-absent-runtime.ts
+var mcp_fn_absent_runtime_exports = {};
+var init_mcp_fn_absent_runtime = __esm({
+  "scripts/mcp-fn-absent-runtime.ts"() {
+    "use strict";
+    throw new Error("This on-device runtime is not available in the Vercel MCP function.");
+  }
+});
+
 // services/mcp/src/protocol.ts
 var ERR = {
   PARSE: -32700,
@@ -59358,7 +59367,7 @@ function isSharpAvailable() {
 }
 var ortModule = null;
 function loadOrt() {
-  ortModule ??= import("onnxruntime-node").then((m2) => m2.default ?? m2);
+  ortModule ??= Promise.resolve().then(() => (init_mcp_fn_absent_runtime(), mcp_fn_absent_runtime_exports)).then((m2) => m2.default ?? m2);
   return ortModule;
 }
 function executionProviders(env = process.env) {
@@ -60683,7 +60692,7 @@ function isCanvasAvailable() {
 }
 var canvasModule = null;
 function loadCanvasModule() {
-  canvasModule ??= import("@napi-rs/canvas").then((m2) => m2.default ?? m2);
+  canvasModule ??= Promise.resolve().then(() => (init_mcp_fn_absent_runtime(), mcp_fn_absent_runtime_exports)).then((m2) => m2.default ?? m2);
   return canvasModule;
 }
 async function nodeCanvas() {
@@ -61151,7 +61160,7 @@ function loadKokoro(modelsDir, onProgress) {
   const held = kokoroRuntimes.get(modelsDir);
   if (held) return held;
   const loading = (async () => {
-    const { env, AutoTokenizer, StyleTextToSpeech2Model, Tensor } = await import("@huggingface/transformers");
+    const { env, AutoTokenizer, StyleTextToSpeech2Model, Tensor } = await Promise.resolve().then(() => (init_mcp_fn_absent_runtime(), mcp_fn_absent_runtime_exports));
     pointAtLocal(env, modelsDir);
     const progress_callback = downloadMeter(KOKORO_MODEL_BYTES - KOKORO_VOICE_BYTES, onProgress);
     const [model2, tokenizer] = await Promise.all([
@@ -61161,7 +61170,7 @@ function loadKokoro(modelsDir, onProgress) {
       StyleTextToSpeech2Model.from_pretrained(KOKORO_MODEL_ID, { dtype: "q8", progress_callback }),
       AutoTokenizer.from_pretrained(KOKORO_MODEL_ID, { progress_callback })
     ]);
-    const { phonemize } = await import("phonemizer");
+    const { phonemize } = await Promise.resolve().then(() => (init_mcp_fn_absent_runtime(), mcp_fn_absent_runtime_exports));
     return {
       model: model2,
       tokenizer,
@@ -61179,7 +61188,7 @@ function loadWhisper(modelsDir, onProgress) {
   const held = whisperRuntimes.get(modelsDir);
   if (held) return held;
   const loading = (async () => {
-    const { env, pipeline } = await import("@huggingface/transformers");
+    const { env, pipeline } = await Promise.resolve().then(() => (init_mcp_fn_absent_runtime(), mcp_fn_absent_runtime_exports));
     pointAtLocal(env, modelsDir);
     const progress_callback = downloadMeter(WHISPER_MODEL_BYTES, onProgress);
     const asr = await pipeline("automatic-speech-recognition", WHISPER_MODEL_ID, {

@@ -25,7 +25,7 @@
  * `api/mcp/[...path].js.map` is git-ignored.
  */
 import { build } from 'esbuild';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -33,6 +33,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // Catch-all route file: api/mcp/[...path].js (the dir must exist for esbuild).
 const outfile = path.join(root, 'api/mcp/[...path].js');
+const ABSENT_RUNTIMES = ['onnxruntime-node', '@huggingface/transformers', '@napi-rs/canvas', 'phonemizer'];
+const ABSENT_STUB = path.join(root, 'scripts/mcp-fn-absent-runtime.ts');
+
 await mkdir(path.dirname(outfile), { recursive: true });
 
 await build({
@@ -54,6 +57,11 @@ await build({
   // rather than failing the build. That is exactly how it broke on 2026-08-01, so
   // every code subpath in the exports map is aliased here, not just the barrel.
   alias: {
+    // The on-device ML/speech runtimes are aliased to a module that rejects on
+    // import (see scripts/mcp-fn-absent-runtime.ts): the function never runs them
+    // and, left as bare `import('onnxruntime-node')` strings, Vercel's tracer packs
+    // hundreds of MB of native binaries into a function capped at 250 MB.
+    ...Object.fromEntries(ABSENT_RUNTIMES.map((p) => [p, ABSENT_STUB])),
     '@lolly/engine': path.join(root, 'engine/src/index.ts'),
     '@lolly-tools/core': path.join(root, 'packages/core/src/index.ts'),
     '@lolly-tools/core/host-v1': path.join(root, 'packages/core/src/host-v1.ts'),
@@ -64,4 +72,17 @@ await build({
   logLevel: 'info',
 });
 
+// The size guard the api-bundles CI job runs: a bundle that names one of the
+// heavy runtimes would be traced into the function and fail the deploy, so fail
+// the build here instead, where the cause is in view.
+const bundled = await readFile(outfile, 'utf-8');
+// Only import/require forms count: the tracer follows those, not the package
+// names node-shell prints in its "install X" refusals.
+const leaked = ABSENT_RUNTIMES.filter((p) =>
+  new RegExp(`(?:import|require)\\(\\s*["']${p.replace(/[/@.-]/g, '\\$&')}["']|from\\s*["']${p.replace(/[/@.-]/g, '\\$&')}["']`).test(bundled),
+);
+if (leaked.length) {
+  console.error(`✗ api/mcp/[...path].js still references ${leaked.join(', ')} - the Vercel tracer would pack them into the function`);
+  process.exit(1);
+}
 console.log('✓ bundled api/mcp/[...path].js');
