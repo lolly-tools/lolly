@@ -35,8 +35,11 @@ const infoDir = path.join(root, 'shells/web/public/info');
 // Gzip ceiling for the whole /info tree. 161 MB = the ~142 MB measured on 2026-08-22
 // (post-B.1/B.2) plus ~13% headroom for content growth, plus the three lane mascots
 // priced on 2026-09-03 (lorikeet, kookaburra-lolly, bandicoot: 424 KB of webp that gzip
-// cannot shrink; 160.3 MB measured with them in). NOT a target - see the header.
-const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 161) * 1024 * 1024;
+// cannot shrink; 160.3 MB measured with them in). 162.5 MB from 2026-09-03 (later):
+// the landing's Cover Flow went from 6 covers to 16 posed 4:3 covers plus three
+// ~6 s loops (docs/shots/covers, 1.5 MB of webp/webm, again incompressible; 161.3 MB
+// measured with them in). NOT a target - see the header.
+const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 162.5) * 1024 * 1024;
 
 function fail(msg: string): never {
   console.error(`✗ docs size budget FAILED: ${msg}`);
