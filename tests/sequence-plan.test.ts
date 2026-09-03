@@ -2825,3 +2825,19 @@ test('duckSpansFor: muted, ignored and non-media clips duck nothing; a sped clip
   const sped = fakeLayer({ idx: 3, kind: 'video', startMs: 3000, durMs: 1000, speed: 2 });
   assert.deepEqual(duckSpansFor([bed, sped], bed), [{ from: 3, to: 4 }]);
 });
+
+test('frames mode: a timed audio box INSIDE a timed page is an audio layer of its own', () => {
+  // A narration clip lives in its slide's page and only sounds; the page is one still
+  // and its visual children are not layers, but the walk that stopped at the page left
+  // every narrated export silent (2026-09-03).
+  const page = '<div class="lolly-frame-page" data-pdf-page data-t-start="0" data-t-dur="8000" style="left:0;top:0;width:1920px;height:1080px">'
+    + '<div class="lolly-box" style="left:0;top:0;width:100px;height:50px">Title</div>'
+    + '<div class="lolly-box" data-t-start="400" data-t-dur="5000" data-t-lane="seq" style="left:0;top:0;width:10px;height:10px">'
+    + '<div class="lolly-box-audio" data-audio-src="blob:narration" data-narration="1"></div></div></div>';
+  const s = parseSequenceStage(stageOf(page, 8000))!;
+  assert.deepEqual(s.layers.map((l) => [l.kind, l.startMs, l.durMs]), [['static', 0, 8000], ['audio', 400, 5000]],
+    'the page stays a still; the sound inside it is its own audio layer');
+  const quiet = '<div class="lolly-frame-page" data-pdf-page data-t-start="0" data-t-dur="8000" style="left:0;top:0;width:1920px;height:1080px">'
+    + '<div class="lolly-box" style="left:0;top:0;width:100px;height:50px">Title</div></div>';
+  assert.equal(parseSequenceStage(stageOf(quiet, 8000))!.layers.length, 1, 'a page with no sound is still one layer');
+});

@@ -164,7 +164,7 @@ jobs:
       - name: Skipped tests must not exceed the CI baseline
         if: always()
         env:
-          EXPECTED_SKIPS: 431
+          EXPECTED_SKIPS: 432   # +1 on 2026-09-03: the inline-block/backdrop walker cases skip without Chromium on CI
         run: |
           # node:test prints a run summary - "ℹ skipped N" (spec reporter) or
           # "# skipped N" (tap, the non-TTY default on some Node lines). Strip

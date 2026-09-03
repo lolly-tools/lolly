@@ -149,7 +149,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `exr.ts` | 504 | OpenEXR encoder - scanline, HALF (float16) or FLOAT (32-bit), NONE/ZIPS/ZIP. | no | `tests/exr.test.ts` | – |
 | `file-metadata.ts` | 1617 | Embedded-metadata reader | yes | `tests/file-metadata.test.ts` | yes |
 | `font-convert.ts` | 327 | Font container interconversion - TTF/OTF ⇄ WOFF1, DOM-free and synchronous. | yes | `tests/font-convert.test.ts` | – |
-| `frame-address.ts` | 138 | The `s=` state address, and the still-export frame filter it drives (plan 112 section 10). | yes | indirect | – |
+| `frame-address.ts` | 141 | The `s=` state address, and the still-export frame filter it drives (plan 112 section 10). | yes | indirect | – |
 | `framing.ts` | 298 | Image framing - the ONE way an image is placed, cropped and rotated inside a frame (plans/148). | yes | `tests/framing.test.ts` | – |
 | `fs-token.ts` | 40 | Reversible, filesystem-safe token codec - pure string logic, no storage, DOM, or platform coupling (it just maps a string to a safe token and back). | yes | `tests/fs-token.test.ts` | – |
 | `gainmap-jpeg.ts` | 528 | Gain-map JPEG assembly. | no | `tests/gainmap-jpeg.test.ts` | – |
@@ -223,7 +223,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `reword.ts` | 401 | Reword flagged text - the SEMANTIC half humanize.ts's header defers (plans/127). | yes | `tests/reword.test.ts` | – |
 | `riff-meta.ts` | 98 | WAV provenance tags: the RIFF LIST/INFO chunk. | yes | `tests/riff-meta.test.ts` | – |
 | `runtime.ts` | 1613 | Runtime - orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
-| `scorm.ts` | 537 | SCORM packaging - the pure half (plans/180 section 6). | yes | `tests/scorm.test.ts` | – |
+| `scorm.ts` | 613 | SCORM packaging - the pure half (plans/180 section 6). | yes | `tests/scorm.test.ts` | – |
 | `seal.ts` | 728 | SEAL (hackerfactor.com) signature verifier - pure, DOM-free (globalThis.crypto only, like c2pa-verify.ts / x509.ts). | yes | `tests/seal.test.ts` | – |
 | `semver-range.ts` | 112 | Minimal SemVer range satisfaction - enough to enforce a tool manifest's `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3). | yes | `tests/semver-range.test.ts` | – |
 | `session-record.ts` | 99 | Saved-session record envelope - the version stamps a shell's state bridge writes for one saved tool session, and the migrate-or-warn branch it runs on load. | yes | `tests/session-record.test.ts` | – |

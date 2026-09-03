@@ -187,6 +187,7 @@ var init_tool_schema = __esm({
                   "exr",
                   "hdr",
                   "pptx",
+                  "scorm",
                   "penpot",
                   "docx",
                   "odt",
@@ -1785,6 +1786,18 @@ var init_tool_schema = __esm({
                         type: "string",
                         description: "Boolean sub-field on a FRAME box: whether content overflowing the frame is clipped to it. Absent = the overlay offers no clip toggle."
                       },
+                      hiddenField: {
+                        type: "string",
+                        description: "Boolean sub-field on ANY box: the layer is hidden - not drawn and not exported. The tool's hook skips a hidden row everywhere it walks the boxes; the overlay refuses to hit-test one. Absent = no hide affordance."
+                      },
+                      lockedField: {
+                        type: "string",
+                        description: "Boolean sub-field on ANY box: the layer is locked - the overlay refuses to select or move it on the canvas. Editor-only: it changes no rendered pixel and no export. Absent = no lock affordance."
+                      },
+                      frameTransitionField: {
+                        type: "string",
+                        description: "Select sub-field on a FRAME box: how THIS slide changes into the next one, overriding the document's own transition. Empty follows the document. Absent = every slide uses the document transition."
+                      },
                       minSize: {
                         type: "number",
                         description: "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8."
@@ -2863,7 +2876,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.167.0";
+    ENGINE_VERSION = "1.171.0";
   }
 });
 
@@ -4112,7 +4125,7 @@ ${xrefOff}
   let manifestLen = (await build2(dummyHash, [{ start: pdfBytes.length + 512, length: 4096 }], pad)).length;
   let layout = null;
   let placeholder = null;
-  for (let round4 = 0; round4 < 8 && !placeholder; round4++) {
+  for (let round5 = 0; round5 < 8 && !placeholder; round5++) {
     const l = layoutFor(manifestLen);
     const m2 = await build2(dummyHash, [{ start: l.manifestOffset, length: manifestLen }], pad);
     if (m2.length === manifestLen) {
@@ -4930,7 +4943,7 @@ async function embedC2pa(bytes, format, opts = {}) {
   let manifestLen = (await build2(dummyHash, [{ start: bytes.length + 512, length: 4096 }], pad)).length;
   let layout = null;
   let placeholder = null;
-  for (let round4 = 0; round4 < 8 && !layout; round4++) {
+  for (let round5 = 0; round5 < 8 && !layout; round5++) {
     const probe = container.place(bytes, new Uint8Array(manifestLen));
     const m2 = await build2(dummyHash, probe.exclusions, pad);
     if (m2.length === manifestLen) {
@@ -7922,7 +7935,7 @@ var init_template = __esm({
     });
     FIT_VALUES = /* @__PURE__ */ new Set(["cover", "contain"]);
     Handlebars.registerHelper("framing", function(idArg, options) {
-      const esc7 = Handlebars.escapeExpression;
+      const esc8 = Handlebars.escapeExpression;
       const id = String(idArg ?? "").trim();
       if (!id) return new Handlebars.SafeString("");
       const hash = options?.hash ?? {};
@@ -7954,19 +7967,19 @@ var init_template = __esm({
       const perspRaw = Number(hash.persp);
       const style = framingStyle(framing, readFit(fitRaw), Number.isFinite(perspRaw) && perspRaw > 0 ? perspRaw : void 0);
       const extra = hash.style != null ? `;${String(hash.style)}` : "";
-      return new Handlebars.SafeString(`style="${esc7(style + extra)}" data-framing="${esc7(marker)}"`);
+      return new Handlebars.SafeString(`style="${esc8(style + extra)}" data-framing="${esc8(marker)}"`);
     });
     Handlebars.registerHelper("media", (ref, options) => {
       const empty = new Handlebars.SafeString("");
       if (!ref || typeof ref !== "object") return empty;
-      const esc7 = Handlebars.escapeExpression;
+      const esc8 = Handlebars.escapeExpression;
       const get3 = (k) => Reflect.get(ref, k);
       const url = get3("url");
       if (typeof url !== "string" || !url) return empty;
       const type = String(get3("type") ?? "");
       const meta = get3("meta") && typeof get3("meta") === "object" ? get3("meta") : {};
       const hash = options?.hash ?? {};
-      const cls = hash.class != null ? ` class="${esc7(String(hash.class))}"` : "";
+      const cls = hash.class != null ? ` class="${esc8(String(hash.class))}"` : "";
       const root = options?.data?.root ?? {};
       const framingId = hash.framing != null ? String(hash.framing) : "";
       const framingCss = framingId ? framingStyle(
@@ -7974,18 +7987,18 @@ var init_template = __esm({
         readFit(root[hash.fit != null ? String(hash.fit) : framingId.replace(/Framing$/, "") + "Fit"] ?? hash.fit)
       ) : "";
       const styleText = [framingCss, hash.style != null ? String(hash.style) : ""].filter(Boolean).join(";");
-      const marker = framingId ? ` data-framing="${esc7(framingId)}"` : "";
-      const style = styleText ? ` style="${esc7(styleText)}"${marker}` : marker;
+      const marker = framingId ? ` data-framing="${esc8(framingId)}"` : "";
+      const style = styleText ? ` style="${esc8(styleText)}"${marker}` : marker;
       if (type === "lottie" || /\.json($|\?|#)/i.test(url)) {
         const loop = mediaBool(hash.loop, true) ? "1" : "0";
         const autoplay = mediaBool(hash.autoplay, true) ? "1" : "0";
         const fit = hash.fit === "cover" ? "cover" : "contain";
         return new Handlebars.SafeString(
-          `<div${cls} data-lottie-src="${esc7(url)}" data-lottie-loop="${loop}" data-lottie-autoplay="${autoplay}" data-lottie-fit="${fit}"${style}></div>`
+          `<div${cls} data-lottie-src="${esc8(url)}" data-lottie-loop="${loop}" data-lottie-autoplay="${autoplay}" data-lottie-fit="${fit}"${style}></div>`
         );
       }
       if (type === "video" || /\.(mp4|m4v|mov|webm)($|\?|#)/i.test(url)) {
-        const poster = typeof meta.posterUrl === "string" && meta.posterUrl ? ` poster="${esc7(meta.posterUrl)}"` : "";
+        const poster = typeof meta.posterUrl === "string" && meta.posterUrl ? ` poster="${esc8(meta.posterUrl)}"` : "";
         const keyRaw = hash.key != null ? String(hash.key) : typeof get3("id") === "string" ? String(get3("id")) : url;
         const flags = [
           mediaBool(hash.autoplay, true) ? "autoplay" : "",
@@ -7994,10 +8007,10 @@ var init_template = __esm({
           mediaBool(hash.controls, false) ? "controls" : "",
           "playsinline"
         ].filter(Boolean).join(" ");
-        return new Handlebars.SafeString(`<video${cls} src="${esc7(url)}" data-video-key="${esc7(keyRaw)}"${poster} ${flags}${style}></video>`);
+        return new Handlebars.SafeString(`<video${cls} src="${esc8(url)}" data-video-key="${esc8(keyRaw)}"${poster} ${flags}${style}></video>`);
       }
-      const alt = esc7(String(hash.alt ?? meta.name ?? ""));
-      return new Handlebars.SafeString(`<img${cls} src="${esc7(url)}" alt="${alt}"${style}>`);
+      const alt = esc8(String(hash.alt ?? meta.name ?? ""));
+      return new Handlebars.SafeString(`<img${cls} src="${esc8(url)}" alt="${alt}"${style}>`);
     });
     COMPILE_CACHE_MAX = 50;
     compileCache = /* @__PURE__ */ new Map();
@@ -8165,9 +8178,14 @@ var init_embed = __esm({
 });
 
 // engine/src/tool-url.ts
+function lollySchemeToHttps(src) {
+  if (!LOLLY_SCHEME_RE.test(src)) return src;
+  const rest = src.replace(LOLLY_SCHEME_RE, "").replace(LOLLY_HOST_RE, "");
+  return `https://lolly.tools/${rest}`;
+}
 function parseToolUrl(src) {
   if (typeof src !== "string") return null;
-  const s = src.trim();
+  const s = lollySchemeToHttps(src.trim());
   if (!s || s.length > MAX_URL) return null;
   const embed = parseEmbedUrl(s);
   if (embed) return { toolId: embed.toolId, format: embed.format, query: embed.query };
@@ -8204,7 +8222,7 @@ function buildEmbedUrl({ toolId, format, query = "" } = {}) {
   const url = q ? `https://lolly.tools/tool/${toolId}.${ext}?${q}` : `https://lolly.tools/tool/${toolId}.${ext}`;
   return url.length > MAX_URL ? null : url;
 }
-var ID_RE2, FORMAT_EXT, APP_PATH_WORDS, MAX_URL;
+var ID_RE2, FORMAT_EXT, APP_PATH_WORDS, MAX_URL, LOLLY_SCHEME_RE, LOLLY_HOST_RE;
 var init_tool_url = __esm({
   "engine/src/tool-url.ts"() {
     "use strict";
@@ -8260,6 +8278,8 @@ var init_tool_url = __esm({
       "a"
     ]);
     MAX_URL = 4096;
+    LOLLY_SCHEME_RE = /^lolly:\/\/+/i;
+    LOLLY_HOST_RE = /^(?:www\.)?lolly\.(?:tools|art)(?=[/?#]|$)\/?/i;
   }
 });
 
@@ -16506,10 +16526,14 @@ var init_frame_address = __esm({
   "engine/src/frame-address.ts"() {
     "use strict";
     FRAME_FILTER_SKIP_FORMATS = /* @__PURE__ */ new Set([
+      // `scorm` joins them for the same reason (plans/180 M-D1): a course package IS the whole
+      // deck - a manifest, a launch page and every slide - so filtering it to one slide would
+      // produce a one-slide course, not a shorter file.
       "pdf",
       "zip",
       "html",
       "pptx",
+      "scorm",
       "webm",
       "mp4",
       "gif",
@@ -16586,8 +16610,8 @@ function toMarkdown(t) {
   return [row(t.columns), `|${t.columns.map(() => " --- |").join("")}`, ...t.rows.map(row)].join("\n");
 }
 function toHtmlTable(t) {
-  const esc7 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const cells = (r3, tag2) => r3.map((c) => `<${tag2}>${esc7(c)}</${tag2}>`).join("");
+  const esc8 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const cells = (r3, tag2) => r3.map((c) => `<${tag2}>${esc8(c)}</${tag2}>`).join("");
   return `<table><thead><tr>${cells(t.columns, "th")}</tr></thead><tbody>${t.rows.map((r3) => `<tr>${cells(r3, "td")}</tr>`).join("")}</tbody></table>`;
 }
 var init_table_text = __esm({
@@ -18428,19 +18452,19 @@ var init_zip_crypto = __esm({
         const s = inBlk.slice(0, 16);
         const Nr = 14;
         this.addRoundKey(s, 0);
-        for (let round4 = 1; round4 < Nr; round4++) {
+        for (let round5 = 1; round5 < Nr; round5++) {
           this.subBytes(s);
           this.shiftRows(s);
           this.mixColumns(s);
-          this.addRoundKey(s, round4);
+          this.addRoundKey(s, round5);
         }
         this.subBytes(s);
         this.shiftRows(s);
         this.addRoundKey(s, Nr);
         return s;
       }
-      addRoundKey(s, round4) {
-        const o = round4 * 16;
+      addRoundKey(s, round5) {
+        const o = round5 * 16;
         for (let i = 0; i < 16; i++) s[i] = s[i] ^ this.rk[o + i];
       }
       subBytes(s) {
@@ -23841,7 +23865,7 @@ function enumerate(markup, opts, warnings) {
   }
   const cap = Math.max(1, Math.min(SVG_LAYERS_MAX, opts.maxLayers ?? SVG_LAYERS_MAX));
   if (opts.heroDescent !== false) {
-    for (let round4 = 0; round4 < SVG_LAYERS_HERO_ROUNDS && candidates2.length < cap; round4++) {
+    for (let round5 = 0; round5 < SVG_LAYERS_HERO_ROUNDS && candidates2.length < cap; round5++) {
       const total2 = candidates2.reduce((a, c) => a + c.ink, 0);
       if (total2 < SVG_LAYERS_HERO_MIN_INK) break;
       let at = -1;
@@ -24754,6 +24778,22 @@ function groupWordsToCues(words, opts = {}) {
   if (open) cues.push(open);
   return cues;
 }
+function cuesForSlide(words, slideStartMs, slideEndMs, opts = {}) {
+  const startS = Number.isFinite(slideStartMs) ? Math.max(0, slideStartMs) / 1e3 : 0;
+  const endS = Number.isFinite(slideEndMs) ? slideEndMs / 1e3 : 0;
+  if (!(endS > startS)) return [];
+  const offsetS = Number.isFinite(opts.offsetMs) ? Math.max(0, opts.offsetMs) / 1e3 : 0;
+  const minKeepS = Number.isFinite(opts.minKeepS) && opts.minKeepS > 0 ? opts.minKeepS : 0.05;
+  const base = startS + offsetS;
+  const out = [];
+  for (const c of groupWordsToCues(words, opts)) {
+    const s = Math.max(startS, base + c.start);
+    const e = Math.min(endS, base + c.end);
+    if (!(e > s) || e - s < minKeepS) continue;
+    out.push({ start: round3(s), end: round3(e), text: c.text });
+  }
+  return out;
+}
 function stamp(seconds, sep) {
   const ms = Math.max(0, Math.round(seconds * 1e3));
   const h = Math.floor(ms / 36e5);
@@ -24792,11 +24832,12 @@ function cueAt(cues, t) {
   }
   return null;
 }
-var SENTENCE_END;
+var SENTENCE_END, round3;
 var init_captions = __esm({
   "engine/src/captions.ts"() {
     "use strict";
     SENTENCE_END = /[.!?…][)\]"'”’]*$/;
+    round3 = (v) => Math.round(v * 1e3) / 1e3;
   }
 });
 
@@ -26410,20 +26451,58 @@ function wordTimingsFromDurations(durations, spans, waveformLength, sampleRate) 
   }));
 }
 function concatClips(clips, gapS, sampleRate) {
-  const gap = Math.round(gapS * sampleRate);
+  const gaps = clips.map((c, i) => i === 0 ? 0 : Math.round(Math.max(0, c.gapBefore ?? gapS) * sampleRate));
   let total = 0;
-  for (const [i, clip3] of clips.entries()) total += clip3.pcm.length + (i > 0 ? gap : 0);
+  for (const [i, clip3] of clips.entries()) total += clip3.pcm.length + gaps[i];
   const pcm = new Float32Array(total);
   const words = [];
+  const audioStarts = [];
+  const wordStarts = [];
   let offset = 0;
   for (const [i, clip3] of clips.entries()) {
-    if (i > 0) offset += gap;
+    offset += gaps[i];
+    audioStarts.push(offset);
+    wordStarts.push(words.length);
     pcm.set(clip3.pcm, offset);
     const t0 = offset / sampleRate;
     for (const w of clip3.words) words.push({ text: w.text, start: t0 + w.start, end: t0 + w.end });
     offset += clip3.pcm.length;
   }
-  return { pcm, duration: total / sampleRate, words };
+  const segments = clips.map((_, i) => ({
+    words: [wordStarts[i], wordStarts[i + 1] ?? words.length],
+    samples: [audioStarts[i], audioStarts[i + 1] ?? total],
+    gapAfter: gaps[i + 1] ?? 0
+  }));
+  return { pcm, duration: total / sampleRate, words, segments };
+}
+function endsSentence(word) {
+  return /[.!?…]["”»)\]']*$/.test(word);
+}
+function deriveSegmentsFromWords(words, sampleRate, minGapS = MIN_SEAM_GAP_S, totalSamples) {
+  if (words.length === 0 || !(sampleRate > 0)) return null;
+  const ends = [];
+  const seams = [];
+  for (let i = 0; i < words.length - 1; i++) {
+    const here = words[i];
+    const next = words[i + 1];
+    if (!endsSentence(here.text)) continue;
+    if (!(next.start - here.end >= minGapS)) return null;
+    ends.push(i);
+    seams.push(Math.round((here.end + next.start) / 2 * sampleRate));
+  }
+  const lastEnd = Math.max(0, Math.round(words.at(-1).end * sampleRate));
+  const total = totalSamples != null && totalSamples > lastEnd ? totalSamples : lastEnd;
+  const out = [];
+  let w0 = 0;
+  let s0 = 0;
+  for (const [k, end] of ends.entries()) {
+    const seam = Math.max(s0, Math.min(total, seams[k]));
+    out.push({ words: [w0, end + 1], samples: [s0, seam], gapAfter: 0 });
+    w0 = end + 1;
+    s0 = seam;
+  }
+  out.push({ words: [w0, words.length], samples: [s0, Math.max(s0, total)], gapAfter: 0 });
+  return out;
 }
 function splitNum(match) {
   if (match.includes(".")) return match;
@@ -26463,6 +26542,14 @@ function pointNum(match) {
 function normalizeText(text) {
   return text.replace(/[‘’]/g, "'").replace(/«/g, "\u201C").replace(/»/g, "\u201D").replace(/[“”]/g, '"').replace(/\(/g, "\xAB").replace(/\)/g, "\xBB").replace(/、/g, ", ").replace(/。/g, ". ").replace(/！/g, "! ").replace(/，/g, ", ").replace(/：/g, ": ").replace(/；/g, "; ").replace(/？/g, "? ").replace(/[^\S \n]/g, " ").replace(/ {2,}/g, " ").replace(/(?<=\n) +(?=\n)/g, "").replace(/\bD[Rr]\.(?= [A-Z])/g, "Doctor").replace(/\b(?:Mr\.|MR\.(?= [A-Z]))/g, "Mister").replace(/\b(?:Ms\.|MS\.(?= [A-Z]))/g, "Miss").replace(/\b(?:Mrs\.|MRS\.(?= [A-Z]))/g, "Mrs").replace(/\betc\.(?! [A-Z])/gi, "etc").replace(/\b(y)eah?\b/gi, "$1e'a").replace(/\d*\.\d+|\b\d{4}s?\b|(?<!:)\b(?:[1-9]|1[0-2]):[0-5]\d\b(?!:)/g, splitNum).replace(/(?<=\d),(?=\d)/g, "").replace(/[$£]\d+(?:\.\d+)?(?: hundred| thousand| (?:[bm]|tr)illion)*\b|[$£]\d+\.\d\d?\b/gi, flipMoney).replace(/\d*\.\d+/g, pointNum).replace(/(?<=\d)-(?=\d)/g, " to ").replace(/(?<=\d)S/g, " S").replace(/(?<=[BCDFGHJ-NP-TV-Z])'?s\b/g, "'S").replace(/(?<=X')S\b/g, "s").replace(/(?:[A-Za-z]\.){2,} [a-z]/g, (m2) => m2.replace(/\./g, "-")).replace(/(?<=[A-Z])\.(?=[A-Z])/gi, "-").trim();
 }
+function filterToVocab(phonemes) {
+  let out = "";
+  for (const ch of phonemes) if (VOCAB_SET.has(ch)) out += ch;
+  return out;
+}
+function normalizeForSpeech(text) {
+  return normalizeText(text).replace(/«/g, "(").replace(/»/g, ")");
+}
 function splitPunctuation(text) {
   const result = [];
   let prev = 0;
@@ -26485,9 +26572,156 @@ async function phonemizeChunk(espeak, text, language) {
   const ps = (await Promise.all(
     sections.map(async ({ match, text: t }) => match ? t : (await espeak(t, lang)).join(" "))
   )).join("");
-  return postProcessPhonemes(ps, language);
+  return filterToVocab(postProcessPhonemes(ps, language)).trim();
 }
-var KOKORO_SAMPLE_RATE, KOKORO_MODEL_ID, KOKORO_VOICES, KOKORO_DEFAULT_VOICE, SENTENCE_GAP_S, MAX_SENTENCE_CHARS, MAX_INPUT_CHARS, MAX_PHONEME_CHARS, PUNCTUATION, PUNCTUATION_PATTERN;
+function pauseGapS(requestedS) {
+  if (!Number.isFinite(requestedS) || requestedS <= 0) return 0;
+  return Math.max(0, requestedS - CLIP_EDGE_PAD_S);
+}
+function markSource(m2, word = "") {
+  if (m2.kind === "pause") return m2.seconds === PAUSE_DEFAULT_S ? "[pause]" : `[pause ${m2.seconds}]`;
+  if (m2.kind === "speed") {
+    if (m2.speed === SLOW_SPEED) return "[slow]";
+    if (m2.speed === FAST_SPEED) return "[fast]";
+    return `[speed ${m2.speed}]`;
+  }
+  return `[${word}](/${m2.ipa}/)`;
+}
+function parseScriptMarks(text, opts = {}) {
+  const marks = [];
+  const words = [];
+  const phrases = /* @__PURE__ */ new Set();
+  let stripped = "";
+  let seeded = "";
+  let prev = 0;
+  for (const m2 of text.matchAll(MARK_RE)) {
+    const literal = () => {
+      stripped += m2[0];
+      seeded += m2[0];
+    };
+    const before = text.slice(prev, m2.index);
+    stripped += before;
+    seeded += before;
+    prev = m2.index + m2[0].length;
+    if (marks.length >= MAX_MARKS) {
+      literal();
+      continue;
+    }
+    let mark;
+    let word = "";
+    if (m2[1] !== void 0) {
+      word = m2[1];
+      mark = { kind: "say", ipa: filterToVocab(m2[2] ?? "") };
+    } else if (m2[4] !== void 0) {
+      mark = { kind: "speed", speed: m2[4].toLowerCase() === "slow" ? SLOW_SPEED : FAST_SPEED };
+    } else if (m2[5] !== void 0) mark = { kind: "speed", speed: clampSpeed(Number(m2[5])) };
+    else mark = { kind: "pause", seconds: m2[3] === void 0 ? PAUSE_DEFAULT_S : Number(m2[3]) };
+    const sentinel = String.fromCodePoint(SENTINEL_BASE + marks.length);
+    if (/\s/.test(word)) phrases.add(marks.length);
+    marks.push(mark);
+    words.push(word);
+    stripped += word;
+    seeded += word.replace(/\s+/g, PHRASE_SPACE) + sentinel;
+  }
+  stripped += text.slice(prev);
+  seeded += text.slice(prev);
+  stripped = stripped.replace(/[^\S\n]+/g, " ").replace(/ *\n */g, "\n").replace(/\n{2,}/g, "\n").trim();
+  const body = opts.prenormalized ? seeded : normalizeForSpeech(seeded);
+  const out = [];
+  let carried = [];
+  for (const raw of splitSentences(body)) {
+    const spoken = [];
+    const lineParts = carried.map((id) => markSource(marks[id]));
+    const here = carried.map((id) => ({ id, wordIndex: 0 }));
+    carried = [];
+    let phrased = false;
+    for (const token2 of raw.split(/\s+/)) {
+      if (token2.length === 0) continue;
+      if (!HAS_SENTINEL.test(token2)) {
+        spoken.push(token2);
+        lineParts.push(token2);
+        continue;
+      }
+      const ids = [...token2.matchAll(SENTINEL_RE)].map((s) => s[0].codePointAt(0) - SENTINEL_BASE).filter((id) => marks[id] !== void 0);
+      const bare = token2.replace(SENTINEL_RE, "").replace(PHRASE_SPACE_RE, " ");
+      for (const id of ids) here.push({ id, wordIndex: spoken.length });
+      if (bare.length === 0) {
+        for (const id of ids) lineParts.push(markSource(marks[id]));
+        continue;
+      }
+      if (ids.some((id) => phrases.has(id))) phrased = true;
+      spoken.push(bare);
+      lineParts.push(lineToken(token2, marks, words));
+    }
+    if (spoken.length === 0) {
+      carried = here.filter(({ id }) => marks[id].kind !== "say").map(({ id }) => id);
+      continue;
+    }
+    const rec2 = { text: spoken.join(" "), line: lineParts.join(" ") };
+    if (phrased) rec2.tokens = spoken.slice();
+    for (const { id, wordIndex } of here) {
+      const mark = marks[id];
+      if (mark.kind === "pause") rec2.gapBefore = mark.seconds;
+      else if (mark.kind === "speed") rec2.speed = mark.speed;
+      else if (wordIndex < spoken.length) (rec2.pronunciations ??= {})[wordIndex] = mark.ipa;
+    }
+    out.push(rec2);
+  }
+  return { sentences: out, stripped };
+}
+function lineToken(token2, marks, words) {
+  let out = "";
+  let buf = "";
+  const flush = () => {
+    const s = buf.replace(PHRASE_SPACE_RE, " ");
+    buf = "";
+    return s;
+  };
+  for (const ch of token2) {
+    const code = ch.codePointAt(0);
+    if (code >= SENTINEL_BASE && code <= SENTINEL_TOP) {
+      const mark = marks[code - SENTINEL_BASE];
+      if (mark.kind === "say") {
+        out += markSource(mark, flush());
+      } else {
+        out += flush() + markSource(mark, words[code - SENTINEL_BASE]);
+      }
+      continue;
+    }
+    buf += ch;
+  }
+  return out + flush();
+}
+function scriptLinesOf(text, opts = {}) {
+  return parseScriptMarks(text, opts).sentences.map((s) => s.line);
+}
+function unknownVoice(id) {
+  return new Error(`unknown voice "${id}" - one of: ${KOKORO_VOICES.map((v) => v.id).join(", ")}`);
+}
+function parseVoiceBlend(voice) {
+  const parts = String(voice ?? "").split("+").map((p) => p.trim()).filter((p) => p.length > 0);
+  if (parts.length === 0) throw unknownVoice(String(voice ?? ""));
+  const raw = parts.map((part) => {
+    const cut = part.lastIndexOf(":");
+    const id = (cut >= 0 ? part.slice(0, cut) : part).trim();
+    if (!KOKORO_VOICES.some((v) => v.id === id)) throw unknownVoice(id);
+    const n2 = cut >= 0 ? Number(part.slice(cut + 1).trim()) : Number.NaN;
+    return { id, w: Number.isFinite(n2) && n2 >= 0 ? n2 : null };
+  });
+  const namedSum = raw.reduce((a, r3) => a + (r3.w ?? 0), 0);
+  const unnamed = raw.filter((r3) => r3.w === null).length;
+  const share = unnamed > 0 ? Math.max(0, 1 - namedSum) / unnamed : 0;
+  const spread = raw.map((r3) => ({ id: r3.id, w: r3.w ?? share }));
+  const total = spread.reduce((a, c) => a + c.w, 0);
+  if (!(total > 0)) return spread.map((c) => ({ id: c.id, w: 1 / spread.length }));
+  return spread.map((c) => ({ id: c.id, w: c.w / total }));
+}
+function accentOfBlend(components) {
+  let best;
+  for (const c of components) if (!best || c.w > best.w) best = c;
+  return best?.id.startsWith("b") ? "b" : "a";
+}
+var KOKORO_SAMPLE_RATE, KOKORO_MODEL_ID, KOKORO_VOICES, KOKORO_DEFAULT_VOICE, SENTENCE_GAP_S, MAX_SENTENCE_CHARS, MAX_INPUT_CHARS, MAX_PHONEME_CHARS, MIN_SEAM_GAP_S, KOKORO_VOCAB, VOCAB_SET, PUNCTUATION, PUNCTUATION_PATTERN, PAUSE_DEFAULT_S, SLOW_SPEED, FAST_SPEED, MIN_SPEECH_SPEED, MAX_SPEECH_SPEED, CLIP_EDGE_PAD_S, MARK_RE, SENTINEL_BASE, SENTINEL_TOP, SENTINEL_RE, HAS_SENTINEL, MAX_MARKS, PHRASE_SPACE, PHRASE_SPACE_RE, clampSpeed;
 var init_speech_text = __esm({
   "engine/src/speech-text.ts"() {
     "use strict";
@@ -26529,11 +26763,29 @@ var init_speech_text = __esm({
     MAX_SENTENCE_CHARS = 400;
     MAX_INPUT_CHARS = 1e5;
     MAX_PHONEME_CHARS = 508;
+    MIN_SEAM_GAP_S = 0.2;
+    KOKORO_VOCAB = '$;:,.!?\u2014\u2026"()\u201C\u201D \u0303\u02A3\u02A5\u02A6\u02A8\u1D5D\uAB67AIOQSTWY\u1D4Aabcdefhijklmnopqrstuvwxyz\u0251\u0250\u0252\xE6\u03B2\u0254\u0255\xE7\u0256\xF0\u02A4\u0259\u025A\u025B\u025C\u025F\u0261\u0265\u0268\u026A\u029D\u026F\u0270\u014B\u0273\u0272\u0274\xF8\u0278\u03B8\u0153\u0279\u027E\u027B\u0281\u027D\u0282\u0283\u0288\u02A7\u028A\u028B\u028C\u0263\u0264\u03C7\u028E\u0292\u0294\u02C8\u02CC\u02D0\u02B0\u02B2\u2193\u2192\u2197\u2198\u1D7B';
+    VOCAB_SET = /* @__PURE__ */ new Set([...KOKORO_VOCAB]);
     PUNCTUATION = ';:,.!?\xA1\xBF\u2014\u2026"\xAB\xBB\u201C\u201D(){}[]';
     PUNCTUATION_PATTERN = new RegExp(
       `(\\s*[${PUNCTUATION.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}]+\\s*)+`,
       "g"
     );
+    PAUSE_DEFAULT_S = 1.2;
+    SLOW_SPEED = 0.85;
+    FAST_SPEED = 1.15;
+    MIN_SPEECH_SPEED = 0.5;
+    MAX_SPEECH_SPEED = 2;
+    CLIP_EDGE_PAD_S = 0.6;
+    MARK_RE = /\[([^\][\n]+)\]\(\s*\/([^/)\n]*)\/\s*\)|\[\s*pause(?:\s+([0-9]*\.?[0-9]+))?\s*\]|\[\s*(slow|fast)\s*\]|\[\s*speed\s+([0-9]*\.?[0-9]+)\s*\]/gi;
+    SENTINEL_BASE = 57344;
+    SENTINEL_TOP = 59391;
+    SENTINEL_RE = /[\uE000-\uE7FF]/g;
+    HAS_SENTINEL = /[\uE000-\uE7FF]/;
+    MAX_MARKS = SENTINEL_TOP - SENTINEL_BASE + 1;
+    PHRASE_SPACE = "\uE800";
+    PHRASE_SPACE_RE = /\uE800/g;
+    clampSpeed = (n2) => Math.min(MAX_SPEECH_SPEED, Math.max(MIN_SPEECH_SPEED, n2));
   }
 });
 
@@ -34193,6 +34445,26 @@ function picXml(p, id) {
   const srcRect = sr && (sr.l || sr.t || sr.r || sr.b) ? `<a:srcRect l="${pct(sr.l)}" t="${pct(sr.t)}" r="${pct(sr.r)}" b="${pct(sr.b)}"/>` : "";
   return `<p:pic><p:nvPicPr><p:cNvPr id="${id}" name="${xmlEsc2(p.name ?? `pic${id}`)}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr><p:blipFill>${blip}${srcRect}<a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr>${xfrmXml(p)}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>`;
 }
+function audioOf(slide) {
+  const a = slide.audio;
+  if (!a || !a.bytes || typeof a.ext !== "string" || !Object.hasOwn(AUDIO_CT, a.ext)) return void 0;
+  return a;
+}
+function audioRids(mediaCount, hasNotes) {
+  const b = audioRidBase(mediaCount, hasNotes);
+  return { link: `rId${b}`, embed: `rId${b + 1}`, icon: `rId${b + 2}` };
+}
+function audioPicXml(audio, id, emuW, emuH, rids) {
+  const cx = AUDIO_ICON_EMU;
+  const cy = AUDIO_ICON_EMU;
+  const x = Math.max(0, Math.round(emuW - cx - AUDIO_ICON_MARGIN_EMU));
+  const y = Math.max(0, Math.round(emuH - cy - AUDIO_ICON_MARGIN_EMU));
+  const name = xmlEsc2(audio.name?.trim() || `narration.${audio.ext}`);
+  return `<p:pic><p:nvPicPr><p:cNvPr id="${id}" name="${name}"><a:hlinkClick r:id="" action="ppaction://media"/></p:cNvPr><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr><a:audioFile r:link="${rids.link}"/><p:extLst><p:ext uri="${P14_MEDIA_EXT_URI}"><p14:media xmlns:p14="${P14_NS}" r:embed="${rids.embed}"/></p:ext></p:extLst></p:nvPr></p:nvPicPr><p:blipFill><a:blip r:embed="${rids.icon}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr>${xfrmXml({ x, y, cx, cy })}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>`;
+}
+function audioNodeXml(id, embedRid) {
+  return `<p:audio isNarration="1"><p:cMediaNode><p:cTn id="${id}" fill="hold" display="0"><p:stCondLst><p:cond delay="0"/></p:stCondLst></p:cTn><p:tgtEl><p:sndTgt r:embed="${embedRid}"/></p:tgtEl></p:cMediaNode></p:audio>`;
+}
 function buildTableGrid(nCols, rows) {
   const nRows = rows.length;
   const grid = Array.from({ length: nRows }, () => Array(nCols).fill(null));
@@ -34345,10 +34617,15 @@ function timingXml(slide) {
     if (anim.enter) rows.push({ spid, grpId: grp++, cls: "entr", fx: anim.enter, click, text: s.kind === "text" });
     if (anim.exit) rows.push({ spid, grpId: grp++, cls: "exit", fx: anim.exit, click, text: s.kind === "text" });
   });
-  if (!rows.length) return "";
+  const audio = audioOf(slide);
+  const wantAudio = !!(audio && audio.autoplay);
+  if (!rows.length && !wantAudio) return "";
+  const embedRid = wantAudio ? audioRids(slide.media.length, (slide.notes ?? "").trim() !== "").embed : "";
   let n2 = 2;
   const nextId = () => ++n2;
-  const clicks = [...new Set(rows.map((r3) => r3.click))].sort((a, b) => a - b);
+  const clickSet = new Set(rows.map((r3) => r3.click));
+  if (wantAudio) clickSet.add(0);
+  const clicks = [...clickSet].sort((a, b) => a - b);
   const groups = clicks.map((click) => {
     const groupId = nextId();
     const innerId = nextId();
@@ -34362,18 +34639,35 @@ function timingXml(slide) {
       // Step 0 plays with the slide; a click step's first effect is the click itself.
       click === 0 ? idx === 0 ? "afterEffect" : "withEffect" : idx === 0 ? "clickEffect" : "withEffect"
     )).join("");
-    return `<p:par><p:cTn id="${groupId}" fill="hold"><p:stCondLst><p:cond delay="${click === 0 ? "0" : "indefinite"}"/></p:stCondLst><p:childTnLst><p:par><p:cTn id="${innerId}" fill="hold"><p:stCondLst><p:cond delay="0"/></p:stCondLst><p:childTnLst>${effects}</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par>`;
+    const sound = click === 0 && wantAudio ? audioNodeXml(nextId(), embedRid) : "";
+    return `<p:par><p:cTn id="${groupId}" fill="hold"><p:stCondLst><p:cond delay="${click === 0 ? "0" : "indefinite"}"/></p:stCondLst><p:childTnLst><p:par><p:cTn id="${innerId}" fill="hold"><p:stCondLst><p:cond delay="0"/></p:stCondLst><p:childTnLst>${effects}${sound}</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par>`;
   }).join("");
   const bldRows = rows.filter((r3) => r3.text);
   const bld = bldRows.length ? `<p:bldLst>${bldRows.map((r3) => `<p:bldP spid="${r3.spid}" grpId="${r3.grpId}"/>`).join("")}</p:bldLst>` : "";
   return `<p:timing><p:tnLst><p:par><p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"><p:childTnLst><p:seq concurrent="1" nextAc="seek"><p:cTn id="2" dur="indefinite" nodeType="mainSeq"><p:childTnLst>${groups}</p:childTnLst></p:cTn><p:prevCondLst><p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:prevCondLst><p:nextCondLst><p:cond evt="onNext" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:nextCondLst></p:seq></p:childTnLst></p:cTn></p:par></p:tnLst>${bld}</p:timing>`;
 }
-function slideXml(slide) {
+function transitionXml(slide) {
+  const tr = slide.transition;
+  const kind = tr && tr.kind !== "cut" ? tr.kind : null;
+  const rawAdv = audioOf(slide)?.advanceAfterMs;
+  const advTm = Number.isFinite(rawAdv) && rawAdv > 0 ? clampInt3(rawAdv, 1, MAX_ADV_TM_MS) : null;
+  if (!kind && advTm == null) return "";
+  const ms = Number.isFinite(tr?.ms) ? tr.ms : 0;
+  const spd = kind ? ` spd="${ms > 0 && ms < 500 ? "fast" : ms > 1e3 ? "slow" : "med"}"` : "";
+  const adv = advTm != null ? ` advTm="${advTm}"` : "";
+  const inner = !kind ? "" : kind === "push" ? `<p:push dir="${tr.dir === "r" || tr.dir === "u" || tr.dir === "d" ? tr.dir : "l"}"/>` : "<p:fade/>";
+  return inner ? `<p:transition${spd}${adv}>${inner}</p:transition>` : `<p:transition${adv}/>`;
+}
+function slideXml(slide, emuW, emuH) {
   let id = 1;
   const shapes = slide.shapes.map((s) => shapeXml(s, ++id)).join("");
+  const clip3 = audioOf(slide);
+  const audio = clip3 ? audioPicXml(clip3, ++id, emuW, emuH, audioRids(slide.media.length, (slide.notes ?? "").trim() !== "")) : "";
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>` + shapes + `</p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr>` + // The timing tree (plans/175 WP-E) sits after clrMapOvr in CT_Slide's child order.
-  timingXml(slide) + `</p:sld>`;
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>` + shapes + audio + `</p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr>` + // CT_Slide's child order is cSld, clrMapOvr, transition, timing, extLst - so the
+  // slide transition (plans/179 M4) goes here, and the timing tree (plans/175 WP-E)
+  // straight after it. Out of order, PowerPoint offers to repair the file.
+  transitionXml(slide) + timingXml(slide) + `</p:sld>`;
 }
 function collectLinkTargets(slide) {
   const set = /* @__PURE__ */ new Set();
@@ -34383,13 +34677,20 @@ function collectLinkTargets(slide) {
   }
   return [...set].sort((a, b) => a - b);
 }
-function slideRelsXml(slideIdx, media, hasNotes = false, linkTargets = [], layoutIdx = 0) {
+function slideRelsXml(slideIdx, media, hasNotes = false, linkTargets = [], layoutIdx = 0, audio) {
   let rels = `<Relationship Id="rId1" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout${layoutIdx + 1}.xml"/>`;
   media.forEach((m2, i) => {
     rels += `<Relationship Id="${mediaRid(i)}" Type="${REL}/image" Target="../media/${mediaName(slideIdx, i, m2.ext)}"/>`;
   });
   if (hasNotes) rels += `<Relationship Id="rId${media.length + 2}" Type="${REL}/notesSlide" Target="../notesSlides/notesSlide${slideIdx + 1}.xml"/>`;
-  const base = linkRidBase(media.length, hasNotes);
+  if (audio) {
+    const rid = audioRids(media.length, hasNotes);
+    const target = `../media/${audioName(slideIdx, audio.ext)}`;
+    rels += `<Relationship Id="${rid.link}" Type="${REL}/audio" Target="${target}"/>`;
+    rels += `<Relationship Id="${rid.embed}" Type="${REL}/media" Target="${target}"/>`;
+    rels += `<Relationship Id="${rid.icon}" Type="${REL}/image" Target="../media/${AUDIO_ICON_NAME}"/>`;
+  }
+  const base = linkRidBase(media.length, hasNotes, !!audio);
   linkTargets.forEach((t, k) => {
     rels += `<Relationship Id="rId${base + k}" Type="${REL}/slide" Target="slide${t + 1}.xml"/>`;
   });
@@ -34426,12 +34727,13 @@ function presentationRelsXml(n2, hasAnyNotes = false) {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="${PKG_REL_NS}">${rels}</Relationships>`;
 }
-function contentTypesXml(n2, exts, notedIdxs = [], nLayouts = 1) {
+function contentTypesXml(n2, exts, notedIdxs = [], nLayouts = 1, audioExts = /* @__PURE__ */ new Set()) {
   const defaults = [
     `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>`,
     `<Default Extension="xml" ContentType="application/xml"/>`
   ];
   for (const e of exts) defaults.push(`<Default Extension="${e}" ContentType="${MEDIA_CT[e]}"/>`);
+  for (const e of audioExts) defaults.push(`<Default Extension="${e}" ContentType="${AUDIO_CT[e]}"/>`);
   let overrides = `<Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>`;
   for (let i = 0; i < nLayouts; i++) overrides += `<Override PartName="/ppt/slideLayouts/slideLayout${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>`;
   overrides += `<Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>`;
@@ -34511,11 +34813,18 @@ function buildPptxParts(slides, opts = {}) {
   const exts = /* @__PURE__ */ new Set();
   for (const s of slides) for (const m2 of s.media) exts.add(m2.ext);
   if (layouts) for (const L of layouts) for (const m2 of L.media ?? []) exts.add(m2.ext);
+  const audioExts = /* @__PURE__ */ new Set();
+  for (const s of slides) {
+    const a = audioOf(s);
+    if (a) audioExts.add(a.ext);
+  }
+  const hasAnyAudio = audioExts.size > 0;
+  if (hasAnyAudio) exts.add("png");
   const now2 = opts.now ?? "2026-01-01T00:00:00Z";
   const noted = slides.map((s, i) => ({ i, notes: (s.notes ?? "").trim() })).filter((x) => x.notes !== "");
   const hasAnyNotes = noted.length > 0;
   const parts = {
-    "[Content_Types].xml": contentTypesXml(n2, exts, noted.map((x) => x.i), nLayouts),
+    "[Content_Types].xml": contentTypesXml(n2, exts, noted.map((x) => x.i), nLayouts, audioExts),
     "_rels/.rels": ROOT_RELS,
     "ppt/presentation.xml": presentationXml(n2, emuW, emuH, hasAnyNotes),
     "ppt/_rels/presentation.xml.rels": presentationRelsXml(n2, hasAnyNotes),
@@ -34537,21 +34846,24 @@ function buildPptxParts(slides, opts = {}) {
   parts["ppt/theme/theme1.xml"] = themeXml(opts.theme);
   parts["docProps/core.xml"] = corePropsXml(opts.meta, now2, "Presentation");
   parts["docProps/app.xml"] = appPropsXml(n2);
+  if (hasAnyAudio) parts[`ppt/media/${AUDIO_ICON_NAME}`] = AUDIO_ICON_PNG;
   slides.forEach((slide, i) => {
     const hasNotes = (slide.notes ?? "").trim() !== "";
+    const clip3 = audioOf(slide);
     const targets = collectLinkTargets(slide);
     if (targets.length) {
-      const base = linkRidBase(slide.media.length, hasNotes);
+      const base = linkRidBase(slide.media.length, hasNotes, !!clip3);
       const map = new Map(targets.map((t, k) => [t, `rId${base + k}`]));
       slideLinkRid = (t) => map.get(t);
     }
     const layoutIdx = clampInt3(finInt(slide.layout ?? 0), 0, nLayouts - 1);
-    parts[`ppt/slides/slide${i + 1}.xml`] = slideXml(slide);
+    parts[`ppt/slides/slide${i + 1}.xml`] = slideXml(slide, emuW, emuH);
     slideLinkRid = null;
-    parts[`ppt/slides/_rels/slide${i + 1}.xml.rels`] = slideRelsXml(i, slide.media, hasNotes, targets, layoutIdx);
+    parts[`ppt/slides/_rels/slide${i + 1}.xml.rels`] = slideRelsXml(i, slide.media, hasNotes, targets, layoutIdx, clip3);
     slide.media.forEach((m2, j) => {
       parts[`ppt/media/${mediaName(i, j, m2.ext)}`] = m2.bytes;
     });
+    if (clip3) parts[`ppt/media/${audioName(i, clip3.ext)}`] = clip3.bytes;
   });
   if (hasAnyNotes) {
     parts["ppt/notesMasters/notesMaster1.xml"] = notesMasterXml(emuH, emuW);
@@ -34564,12 +34876,13 @@ function buildPptxParts(slides, opts = {}) {
   }
   return parts;
 }
-var EMU_PER_INCH, EMU_PER_PX, xmlEsc2, REL, PKG_REL_NS, CT, SVG_EXT_URI, MEDIA_CT, clampInt3, finInt, lineXml, xfrmXml, slideLinkRid, BULLET_STEP, PH_TYPES, mediaRid, DEFAULT_TABLE_STYLE, spanOf, EMPTY_TXBODY, lnSideXml, MAX_TABLE_COLS, MAX_TABLE_ROWS, EFFECT_PRESET_IDS, FLY_SUBTYPE, MAX_EFFECT_MS, MAX_DELAY_MS, tgt, mediaName, layoutMediaName, linkRidBase, notesMasterRels, ROOT_RELS, MASTER_TX_STYLES, THEME_DEFAULT_COLORS, hexNorm, appPropsXml;
+var EMU_PER_INCH, EMU_PER_PX, xmlEsc2, REL, PKG_REL_NS, CT, SVG_EXT_URI, P14_MEDIA_EXT_URI, P14_NS, MEDIA_CT, AUDIO_CT, AUDIO_ICON_B64, AUDIO_ICON_PNG, AUDIO_ICON_EMU, AUDIO_ICON_MARGIN_EMU, clampInt3, finInt, lineXml, xfrmXml, slideLinkRid, BULLET_STEP, PH_TYPES, mediaRid, audioRidBase, AUDIO_RELS, DEFAULT_TABLE_STYLE, spanOf, EMPTY_TXBODY, lnSideXml, MAX_TABLE_COLS, MAX_TABLE_ROWS, EFFECT_PRESET_IDS, FLY_SUBTYPE, MAX_EFFECT_MS, MAX_DELAY_MS, MAX_ADV_TM_MS, tgt, mediaName, layoutMediaName, audioName, AUDIO_ICON_NAME, linkRidBase, notesMasterRels, ROOT_RELS, MASTER_TX_STYLES, THEME_DEFAULT_COLORS, hexNorm, appPropsXml;
 var init_pptx = __esm({
   "engine/src/pptx.ts"() {
     "use strict";
     init_svg_path();
     init_ooxml_props();
+    init_bytes();
     EMU_PER_INCH = 914400;
     EMU_PER_PX = EMU_PER_INCH / 96;
     xmlEsc2 = (s) => s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -34577,12 +34890,23 @@ var init_pptx = __esm({
     PKG_REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships";
     CT = "http://schemas.openxmlformats.org/package/2006/content-types";
     SVG_EXT_URI = "{96DAC541-7B7A-43D3-8B79-37D633B846F1}";
+    P14_MEDIA_EXT_URI = "{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}";
+    P14_NS = "http://schemas.microsoft.com/office/powerpoint/2010/main";
     MEDIA_CT = {
       emf: "image/x-emf",
       png: "image/png",
       jpeg: "image/jpeg",
       svg: "image/svg+xml"
     };
+    AUDIO_CT = {
+      wav: "audio/wav",
+      mp3: "audio/mpeg",
+      m4a: "audio/mp4"
+    };
+    AUDIO_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAcElEQVR42s2VUQrAIAxDc5bd/44RNj8UBekSrfhhFfIIta14oC2cBDAZQA1ADUA/gBEAB0Bzisg5y0lEzs5+vYkD+ggrydzBF7/7HwBaD4kApgMyc7B4RrmQzKUsN5OhnQ0DxTDSoAOgA3ABYM/vXADdSY0KmlRrpAAAAABJRU5ErkJggg==";
+    AUDIO_ICON_PNG = base64ToBytes(AUDIO_ICON_B64);
+    AUDIO_ICON_EMU = Math.round(EMU_PER_INCH * 0.4);
+    AUDIO_ICON_MARGIN_EMU = Math.round(EMU_PER_INCH * 0.15);
     clampInt3 = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(v)));
     finInt = (v, fallback = 0) => Number.isFinite(v) ? Math.round(v) : fallback;
     lineXml = (line) => line ? `<a:ln w="${Math.max(0, Math.round(line.w))}"><a:solidFill>${clr(line.color, line.alpha)}</a:solidFill></a:ln>` : "";
@@ -34591,6 +34915,8 @@ var init_pptx = __esm({
     BULLET_STEP = 342900;
     PH_TYPES = /* @__PURE__ */ new Set(["title", "ctrTitle", "subTitle", "body", "sldNum"]);
     mediaRid = (i) => `rId${i + 2}`;
+    audioRidBase = (mediaCount, hasNotes) => mediaCount + 2 + (hasNotes ? 1 : 0);
+    AUDIO_RELS = 3;
     DEFAULT_TABLE_STYLE = "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}";
     spanOf = (v) => Number.isFinite(v) && v > 1 ? Math.floor(v) : 1;
     EMPTY_TXBODY = "<a:txBody><a:bodyPr/><a:lstStyle/><a:p/></a:txBody>";
@@ -34601,10 +34927,13 @@ var init_pptx = __esm({
     FLY_SUBTYPE = { t: 1, r: 2, b: 4, l: 8 };
     MAX_EFFECT_MS = 6e4;
     MAX_DELAY_MS = 6e5;
+    MAX_ADV_TM_MS = 36e5;
     tgt = (spid) => `<p:tgtEl><p:spTgt spid="${spid}"/></p:tgtEl>`;
     mediaName = (slideIdx, mediaIdx, ext) => `image${slideIdx + 1}_${mediaIdx + 1}.${ext}`;
     layoutMediaName = (layoutIdx, mediaIdx, ext) => `limage${layoutIdx + 1}_${mediaIdx + 1}.${ext}`;
-    linkRidBase = (mediaCount, hasNotes) => mediaCount + 2 + (hasNotes ? 1 : 0);
+    audioName = (slideIdx, ext) => `audio${slideIdx + 1}.${ext}`;
+    AUDIO_ICON_NAME = "audioIcon.png";
+    linkRidBase = (mediaCount, hasNotes, hasAudio = false) => audioRidBase(mediaCount, hasNotes) + (hasAudio ? AUDIO_RELS : 0);
     notesMasterRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="${PKG_REL_NS}"><Relationship Id="rId1" Type="${REL}/theme" Target="../theme/theme2.xml"/></Relationships>`;
     ROOT_RELS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -34820,7 +35149,7 @@ function lower2(svgText, targetW, targetH, withText) {
   let mVb = null;
   let sawSvg = false;
   let capture = null;
-  const round4 = (n2) => Math.round(n2);
+  const round5 = (n2) => Math.round(n2);
   const emit = (d, f, forceNoFill) => {
     if (!mVb) return;
     const fillA = typeof f.fill === "object" && f.fill ? f.groupAlpha * f.fillOpacity * f.fill.a : 0;
@@ -34836,15 +35165,15 @@ function lower2(svgText, targetW, targetH, withText) {
       for (const seg of sub.segments) {
         if (seg.op === "M") {
           const [x, y] = applyMat(final, seg.x, seg.y);
-          out += `M${round4(x)} ${round4(y)}`;
+          out += `M${round5(x)} ${round5(y)}`;
         } else if (seg.op === "L") {
           const [x, y] = applyMat(final, seg.x, seg.y);
-          out += `L${round4(x)} ${round4(y)}`;
+          out += `L${round5(x)} ${round5(y)}`;
         } else {
           const [x1, y1] = applyMat(final, seg.x1, seg.y1);
           const [x2, y2] = applyMat(final, seg.x2, seg.y2);
           const [x, y] = applyMat(final, seg.x, seg.y);
-          out += `C${round4(x1)} ${round4(y1)} ${round4(x2)} ${round4(y2)} ${round4(x)} ${round4(y)}`;
+          out += `C${round5(x1)} ${round5(y1)} ${round5(x2)} ${round5(y2)} ${round5(x)} ${round5(y)}`;
         }
       }
       if (sub.closed) out += "Z";
@@ -34901,10 +35230,10 @@ function lower2(svgText, targetW, targetH, withText) {
     const align = f.textAnchor === "middle" ? "ctr" : f.textAnchor === "end" ? "r" : "l";
     texts.push({
       kind: "text",
-      x: round4(bx),
-      y: round4(by),
-      cx: Math.max(1, round4(bw)),
-      cy: Math.max(1, round4(boxH)),
+      x: round5(bx),
+      y: round5(by),
+      cx: Math.max(1, round5(bw)),
+      cy: Math.max(1, round5(boxH)),
       anchor: vAnchor,
       paras: [{
         align,
@@ -36066,6 +36395,25 @@ function walkTree(tree, theme, slideRelsById, out, depth, cascade, skipPlacehold
     }
   }
 }
+function extOf2(path) {
+  const base = path.slice(path.lastIndexOf("/") + 1);
+  const dot = base.lastIndexOf(".");
+  return dot > 0 ? base.slice(dot + 1).toLowerCase() : "";
+}
+function readSlideAudio(rels) {
+  for (const r3 of rels) {
+    if (r3.external || !r3.target) continue;
+    if (!/\/audio$/i.test(r3.type)) continue;
+    return { part: r3.target, ext: extOf2(r3.target) };
+  }
+  for (const r3 of rels) {
+    if (r3.external || !r3.target) continue;
+    if (!/\/media$/i.test(r3.type)) continue;
+    const ext = extOf2(r3.target);
+    if (AUDIO_EXTS.has(ext)) return { part: r3.target, ext };
+  }
+  return void 0;
+}
 function readNotes(store, notesPath, parseXml) {
   const doc = parsePart(store, notesPath, parseXml);
   if (!doc?.documentElement) return void 0;
@@ -36248,6 +36596,8 @@ function readPptx(parts, parseXml) {
         if (inherited.length) slide.inherited = inherited;
         const background = readBackground(doc.documentElement, relsById, deck.theme) ?? layout?.background ?? master?.background;
         if (background) slide.background = background;
+        const audio = readSlideAudio(rels);
+        if (audio) slide.audio = audio;
         const notesRel = rels.find((r3) => /notesSlide$/i.test(r3.type) && !r3.external);
         if (notesRel) {
           const notes = readNotes(store, notesRel.target, parseXml);
@@ -36260,7 +36610,7 @@ function readPptx(parts, parseXml) {
   }
   return deck;
 }
-var MAX_PART_BYTES, MAX_PART_CHARS2, MAX_SLIDES, MAX_NODES_PER_SLIDE, MAX_GROUP_DEPTH, MAX_PARAS, MAX_RUNS_PER_PARA, MAX_TABLE_ROWS2, MAX_TABLE_COLS2, MAX_TEXT_LEN, MAX_DFS_VISITS, MAX_PH_TYPE_LEN, MAX_PH_IDX, MAX_OUTLINE_LVL, LVL_COUNT, MAX_PH_PER_PART, MAX_STYLE_PARTS, EMU_PER_PT2, MAX_COORD2, DEFAULT_W_EMU, DEFAULT_H_EMU, ELEMENT_NODE, THEME_SLOTS, MAX_CORE_PROP_LEN, ROW_TOLERANCE_EMU;
+var MAX_PART_BYTES, MAX_PART_CHARS2, MAX_SLIDES, MAX_NODES_PER_SLIDE, MAX_GROUP_DEPTH, MAX_PARAS, MAX_RUNS_PER_PARA, MAX_TABLE_ROWS2, MAX_TABLE_COLS2, MAX_TEXT_LEN, MAX_DFS_VISITS, MAX_PH_TYPE_LEN, MAX_PH_IDX, MAX_OUTLINE_LVL, LVL_COUNT, MAX_PH_PER_PART, MAX_STYLE_PARTS, EMU_PER_PT2, MAX_COORD2, DEFAULT_W_EMU, DEFAULT_H_EMU, ELEMENT_NODE, THEME_SLOTS, MAX_CORE_PROP_LEN, AUDIO_EXTS, ROW_TOLERANCE_EMU;
 var init_pptx_read = __esm({
   "engine/src/pptx-read.ts"() {
     "use strict";
@@ -36301,7 +36651,390 @@ var init_pptx_read = __esm({
       "folHlink"
     ];
     MAX_CORE_PROP_LEN = 2048;
+    AUDIO_EXTS = /* @__PURE__ */ new Set(["wav", "mp3", "m4a", "mp4a", "aac", "ogg", "oga", "flac", "wma", "aiff", "aif", "mid", "midi"]);
     ROW_TOLERANCE_EMU = 114300;
+  }
+});
+
+// engine/src/scorm.ts
+function esc2(s) {
+  return String(s ?? "").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, "").replace(XML_ESC, (c) => XML_MAP[c] ?? c);
+}
+function hesc(s) {
+  return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function xmlId(raw, fallback) {
+  const cleaned = String(raw ?? "").trim().replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
+  const base = cleaned || fallback;
+  return /^[A-Za-z_]/.test(base) ? base.slice(0, 120) : `id-${base}`.slice(0, 120);
+}
+function relPath(p) {
+  const s = String(p ?? "").trim().replace(/^\.\//, "");
+  if (!s) return null;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(s)) return null;
+  if (s.startsWith("/") || s.startsWith("\\")) return null;
+  if (s.split("/").some((seg) => seg === "..")) return null;
+  return s;
+}
+function fileList(opts) {
+  const href = relPath(opts.href) ?? "index.html";
+  const seen = /* @__PURE__ */ new Set([href]);
+  for (const f of opts.files ?? []) {
+    const rel = relPath(f);
+    if (rel) seen.add(rel);
+  }
+  const rest = [...seen].filter((f) => f !== href).sort();
+  return { href, files: [href, ...rest] };
+}
+function scormManifest12(opts) {
+  const id = xmlId(opts.identifier, "lolly-package");
+  const { href, files } = fileList(opts);
+  const title = esc2(opts.title || "Presentation");
+  const itemTitle = esc2(opts.itemTitle || opts.title || "Presentation");
+  const version = esc2(opts.version || "1.0");
+  const fileTags = files.map((f) => `
+      <file href="${esc2(f)}"/>`).join("");
+  return XML_DECL + `<manifest identifier="${id}" version="${version}"
+  xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"
+  xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.imsproject.org/xsd/imscp_rootv1p1p2 imscp_rootv1p1p2.xsd http://www.imsglobal.org/xsd/imsmd_rootv1p2p1 imsmd_rootv1p2p1.xsd http://www.adlnet.org/xsd/adlcp_rootv1p2 adlcp_rootv1p2.xsd">
+  <metadata>
+    <schema>ADL SCORM</schema>
+    <schemaversion>1.2</schemaversion>
+  </metadata>
+  <organizations default="${id}-org">
+    <organization identifier="${id}-org">
+      <title>${title}</title>
+      <item identifier="${id}-item" identifierref="${id}-res" isvisible="true">
+        <title>${itemTitle}</title>
+      </item>
+    </organization>
+  </organizations>
+  <resources>
+    <resource identifier="${id}-res" type="webcontent" adlcp:scormtype="sco" href="${esc2(href)}">${fileTags}
+    </resource>
+  </resources>
+</manifest>
+`;
+}
+function scormManifest2004(opts) {
+  const id = xmlId(opts.identifier, "lolly-package");
+  const { href, files } = fileList(opts);
+  const title = esc2(opts.title || "Presentation");
+  const itemTitle = esc2(opts.itemTitle || opts.title || "Presentation");
+  const version = esc2(opts.version || "1.0");
+  const fileTags = files.map((f) => `
+      <file href="${esc2(f)}"/>`).join("");
+  return XML_DECL + `<manifest identifier="${id}" version="${version}"
+  xmlns="http://www.imsglobal.org/xsd/imscp_v1p1"
+  xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_v1p3"
+  xmlns:adlseq="http://www.adlnet.org/xsd/adlseq_v1p3"
+  xmlns:adlnav="http://www.adlnet.org/xsd/adlnav_v1p3"
+  xmlns:imsss="http://www.imsglobal.org/xsd/imsss"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 imscp_v1p1.xsd http://www.adlnet.org/xsd/adlcp_v1p3 adlcp_v1p3.xsd http://www.adlnet.org/xsd/adlseq_v1p3 adlseq_v1p3.xsd http://www.adlnet.org/xsd/adlnav_v1p3 adlnav_v1p3.xsd http://www.imsglobal.org/xsd/imsss imsss_v1p0.xsd">
+  <metadata>
+    <schema>ADL SCORM</schema>
+    <schemaversion>2004 4th Edition</schemaversion>
+  </metadata>
+  <organizations default="${id}-org">
+    <organization identifier="${id}-org">
+      <title>${title}</title>
+      <item identifier="${id}-item" identifierref="${id}-res">
+        <title>${itemTitle}</title>
+      </item>
+    </organization>
+  </organizations>
+  <resources>
+    <resource identifier="${id}-res" type="webcontent" adlcp:scormType="sco" href="${esc2(href)}">${fileTags}
+    </resource>
+  </resources>
+</manifest>
+`;
+}
+function scormManifest(version, opts) {
+  return version === "2004" ? scormManifest2004(opts) : scormManifest12(opts);
+}
+function scormAdapterJs() {
+  return `/* SCORM runtime adapter - SCORM 1.2 (API) and 2004 4th Edition (API_1484_11). */
+(function (global) {
+  'use strict';
+
+  var MAX_DEPTH = 10;
+  var api = null;
+  var is2004 = false;
+  var started = false;
+  var finished = false;
+  var startedAt = 0;
+
+  function scanWindow(win) {
+    var depth = 0;
+    var w = win;
+    while (w && depth < MAX_DEPTH) {
+      try {
+        if (w.API_1484_11) { is2004 = true; return w.API_1484_11; }
+        if (w.API) { is2004 = false; return w.API; }
+      } catch (e) { /* a cross-origin ancestor is not ours to read */ }
+      if (!w.parent || w.parent === w) break;
+      w = w.parent;
+      depth++;
+    }
+    return null;
+  }
+
+  function findAPI() {
+    var found = scanWindow(global);
+    if (found) return found;
+    try {
+      if (global.opener && !global.opener.closed) found = scanWindow(global.opener);
+    } catch (e) { /* an opener from another origin */ }
+    return found || null;
+  }
+
+  /* args is passed through as-is: some LMS adapters check arguments.length, so a
+     one-argument call must arrive as one argument. */
+  function call(name12, name2004, args) {
+    if (!api) return '';
+    var fn = api[is2004 ? name2004 : name12];
+    if (typeof fn !== 'function') return '';
+    try { return fn.apply(api, args || ['']); }
+    catch (e) { return ''; }
+  }
+
+  function get(key) { return call('LMSGetValue', 'GetValue', [key]); }
+  function set(key, value) { return call('LMSSetValue', 'SetValue', [key, String(value)]); }
+  function commit() { return call('LMSCommit', 'Commit', ['']); }
+
+  /* 1.2 wants HHHH:MM:SS.SS; 2004 wants an ISO 8601 duration.
+
+     ONE rounding, to centiseconds, and every field derived from it. Rounding the
+     fraction on its own let 5.999 s come out as 0000:00:05.100 - three decimal digits
+     where CMITimespan allows exactly two, and a whole second lost - because the seconds
+     were floored separately so the carry had nowhere to go. */
+  function pad(n, w) { var s = String(n); while (s.length < w) s = '0' + s; return s; }
+  function sessionTime(secs) {
+    var cs = Math.max(0, Math.round((Number(secs) || 0) * 100));
+    var h = Math.floor(cs / 360000);
+    var m = Math.floor((cs % 360000) / 6000);
+    var s = Math.floor((cs % 6000) / 100);
+    var rest = cs % 100;
+    if (is2004) {
+      return 'PT' + (h ? h + 'H' : '') + (m ? m + 'M' : '') + s +
+        (rest ? '.' + pad(rest, 2) : '') + 'S';
+    }
+    /* HHHH caps at four digits; a session that long is a stuck tab, not a learner. */
+    return pad(Math.min(h, 9999), 4) + ':' + pad(m, 2) + ':' + pad(s, 2) + '.' + pad(rest, 2);
+  }
+
+  function initialize() {
+    if (started) return !!api;
+    api = findAPI();
+    started = true;
+    startedAt = Date.now();
+    if (!api) return false;
+    call('LMSInitialize', 'Initialize', ['']);
+    /* Anything but 'completed'/'passed' may be overwritten; an LMS that already has one
+       keeps it, which is why this only ever moves 'not attempted' forward. */
+    var status = get(is2004 ? 'cmi.completion_status' : 'cmi.core.lesson_status');
+    if (!is2004 && (!status || status === 'not attempted')) set('cmi.core.lesson_status', 'incomplete');
+    if (is2004 && (!status || status === 'unknown')) set('cmi.completion_status', 'incomplete');
+    commit();
+    return true;
+  }
+
+  function resumeIndex() {
+    var raw = get('cmi.suspend_data');
+    var n = parseInt(raw, 10);
+    return isFinite(n) && n >= 0 ? n : 0;
+  }
+
+  function setSlide(index, count) {
+    if (!api) return;
+    set('cmi.suspend_data', String(index));
+    if (count > 0 && index >= count - 1) {
+      set(is2004 ? 'cmi.completion_status' : 'cmi.core.lesson_status', 'completed');
+    }
+    commit();
+  }
+
+  function finish() {
+    if (!api || finished) return;
+    finished = true;
+    var secs = Math.max(0, (Date.now() - startedAt) / 1000);
+    set(is2004 ? 'cmi.session_time' : 'cmi.core.session_time', sessionTime(secs));
+    commit();
+    call('LMSFinish', 'Terminate', ['']);
+  }
+
+  global.addEventListener('pagehide', finish, false);
+  global.addEventListener('unload', finish, false);
+
+  global.LollyScorm = {
+    initialize: initialize,
+    resumeIndex: resumeIndex,
+    setSlide: setSlide,
+    finish: finish,
+    connected: function () { return !!api; },
+    version: function () { return api ? (is2004 ? '2004' : '1.2') : ''; }
+  };
+})(window);
+`;
+}
+function scormLaunchHtml(opts) {
+  const lang = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(String(opts.lang ?? "")) ? String(opts.lang) : "en";
+  const title = hesc(opts.title || "Presentation");
+  const adapter = relPath(opts.adapterSrc) ?? "scorm/api.js";
+  const slides = (opts.slides ?? []).map((s) => ({ src: relPath(s?.src), alt: s?.alt ?? "", notes: s?.notes ?? "" })).filter((s) => !!s.src);
+  const video = opts.video && relPath(opts.video.src) ? {
+    src: relPath(opts.video.src),
+    captions: relPath(opts.video.captions),
+    poster: relPath(opts.video.poster),
+    lang: /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(String(opts.video.lang ?? "")) ? String(opts.video.lang) : "en"
+  } : null;
+  const lb = opts.labels ?? {};
+  const word = (v, dflt) => {
+    const s = String(v ?? "").trim();
+    return s || dflt;
+  };
+  const labels = {
+    previous: word(lb.previous, "Previous"),
+    next: word(lb.next, "Next"),
+    slide: word(lb.slide, "Slide {n}"),
+    slideOf: word(lb.slideOf, "Slide {n} of {total}"),
+    captions: word(lb.captions, "Captions"),
+    video: word(lb.video, "{title} video")
+  };
+  const fonts = [];
+  for (const f of opts.fonts ?? []) {
+    const family = String(f?.family ?? "").trim();
+    const src = relPath(f?.src);
+    if (!family || !src) continue;
+    fonts.push({ family, src, weight: String(f?.weight ?? "400"), style: String(f?.style ?? "normal") });
+  }
+  const faces = fonts.map(
+    (f) => `@font-face{font-family:"${hesc(f.family)}";src:url("${hesc(f.src)}") format("woff2");font-weight:${hesc(f.weight)};font-style:${hesc(f.style)};font-display:swap}`
+  ).join("\n");
+  const stack = fonts.length ? `"${hesc(fonts[0].family)}", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` : 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+  const slideJson = JSON.stringify(slides.map((s) => ({ src: s.src, alt: s.alt, notes: s.notes }))).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
+  const videoBlock = video ? `
+  <section class="film" aria-label="${hesc(labels.video.replace("{title}", opts.title || "Presentation"))}">
+    <video controls preload="metadata" src="${hesc(video.src)}"${video.poster ? ` poster="${hesc(video.poster)}"` : ""}>
+` + (video.captions ? `      <track kind="captions" src="${hesc(video.captions)}" srclang="${hesc(video.lang)}" label="${hesc(labels.captions)}" default>
+` : "") + `    </video>
+  </section>` : "";
+  const aiNote = opts.aiVoiceNote ? `
+  <p class="ai-voice" role="note">${hesc(opts.aiVoiceNote)}</p>` : "";
+  return `<!doctype html>
+<html lang="${hesc(lang)}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${title}</title>
+<style>
+${faces}
+:root { color-scheme: light dark; --ink: #16211f; --ground: #ffffff; --muted: #5b6b68; --line: #d9e0de; }
+@media (prefers-color-scheme: dark) { :root { --ink: #eef3f1; --ground: #0d1614; --muted: #9fb0ac; --line: #29403b; } }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 16px; background: var(--ground); color: var(--ink); font: 16px/1.5 ${stack}; }
+h1 { font-size: 1.25rem; margin: 0 0 12px; }
+.stage { position: relative; background: #000; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage img { display: block; width: 100%; height: auto; }
+.bar { display: flex; align-items: center; gap: 12px; margin: 12px 0; flex-wrap: wrap; }
+button { font: inherit; padding: 8px 14px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; cursor: pointer; }
+button[disabled] { opacity: .45; cursor: default; }
+.count { color: var(--muted); }
+.notes { white-space: pre-wrap; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+/* The slide-change announcement. Off screen, never display:none - a hidden live region
+   is one no screen reader reads. */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+.ai-voice { color: var(--muted); font-size: .9rem; border-left: 3px solid var(--line); padding-left: 10px; }
+.film video { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; }
+</style>
+</head>
+<body>
+<h1>${title}</h1>
+<div class="stage"><img id="slide" alt="" tabindex="-1"></div>
+<div class="bar">
+  <button id="prev" type="button">${hesc(labels.previous)}</button>
+  <button id="next" type="button">${hesc(labels.next)}</button>
+  <span class="count"><span id="at">1</span> / <span id="of">1</span></span>
+</div>
+<p class="sr-only" id="live" role="status" aria-live="polite"></p>
+<p class="notes" id="notes"></p>${aiNote}${videoBlock}
+<script src="${hesc(adapter)}"></script>
+<script>
+(function () {
+  'use strict';
+  var SLIDES = ${slideJson};
+  var L = ${JSON.stringify(labels).replace(/</g, "\\u003c").replace(/>/g, "\\u003e")};
+  var img = document.getElementById('slide');
+  var at = document.getElementById('at');
+  var of = document.getElementById('of');
+  var live = document.getElementById('live');
+  var notes = document.getElementById('notes');
+  var prev = document.getElementById('prev');
+  var next = document.getElementById('next');
+  var scorm = window.LollyScorm || null;
+  var i = 0;
+  if (scorm) { scorm.initialize(); i = Math.min(scorm.resumeIndex(), SLIDES.length - 1); }
+  if (!(i >= 0)) i = 0;
+
+  function fill(s, n, total) {
+    return String(s).replace('{n}', String(n)).replace('{total}', String(total));
+  }
+
+  function show(n) {
+    if (!SLIDES.length) return;
+    i = Math.max(0, Math.min(n, SLIDES.length - 1));
+    var s = SLIDES[i];
+    img.src = s.src;
+    img.alt = s.alt || fill(L.slide, i + 1, SLIDES.length);
+    notes.textContent = s.notes || '';
+    at.textContent = String(i + 1);
+    of.textContent = String(SLIDES.length);
+    prev.disabled = i === 0;
+    next.disabled = i === SLIDES.length - 1;
+    /* Nothing about a slide change is visible to a screen reader otherwise: the image,
+       the counter and the notes are all rewritten in place, in silence. The live region
+       says where the learner now is and what is on the slide. */
+    if (live) live.textContent = fill(L.slideOf, i + 1, SLIDES.length) + '. ' + img.alt;
+    if (scorm) scorm.setSlide(i, SLIDES.length);
+  }
+
+  prev.addEventListener('click', function () { show(i - 1); });
+  next.addEventListener('click', function () { show(i + 1); });
+  img.addEventListener('click', function () { show(i + 1); });
+  document.addEventListener('keydown', function (e) {
+    /* The narrated film is a real media element with controls in this same document, and
+       Space is its play toggle while the arrows seek it. A document-level handler that
+       cancels both takes the only narrated content in the package away from anyone
+       driving it from the keyboard - so a key aimed at a media element, a form control
+       or a button is left entirely alone. */
+    var el = e.target;
+    var tag = el && el.tagName ? String(el.tagName).toUpperCase() : '';
+    if (tag === 'VIDEO' || tag === 'AUDIO' || tag === 'INPUT' || tag === 'TEXTAREA' ||
+        tag === 'SELECT' || tag === 'BUTTON' || (el && el.isContentEditable)) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { show(i + 1); e.preventDefault(); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { show(i - 1); e.preventDefault(); }
+    else if (k === 'Home') { show(0); e.preventDefault(); }
+    else if (k === 'End') { show(SLIDES.length - 1); e.preventDefault(); }
+  });
+  show(i);
+})();
+</script>
+</body>
+</html>
+`;
+}
+var XML_ESC, XML_MAP, XML_DECL;
+var init_scorm = __esm({
+  "engine/src/scorm.ts"() {
+    "use strict";
+    XML_ESC = /[&<>"']/g;
+    XML_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" };
+    XML_DECL = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n';
   }
 });
 
@@ -36596,13 +37329,13 @@ function htmlInline(node, depth) {
   if (!node || typeof node !== "object" || depth > MAX_INLINE_DEPTH) return "";
   switch (node.type) {
     case "text":
-      return esc2(node.text ?? "");
+      return esc3(node.text ?? "");
     case "code":
-      return `<code>${esc2(node.text ?? "")}</code>`;
+      return `<code>${esc3(node.text ?? "")}</code>`;
     case "br":
       return "<br>";
     case "footnoteRef": {
-      const id = esc2(mdFootnoteId(node.id));
+      const id = esc3(mdFootnoteId(node.id));
       return `<sup><a href="#fn-${id}">${id}</a></sup>`;
     }
     case "strong":
@@ -36616,7 +37349,7 @@ function htmlInline(node, depth) {
     case "link": {
       const inner = htmlInlines(node.inlines, depth + 1);
       const url = safeUrl(String(node.href ?? ""));
-      return url ? `<a href="${esc2(url)}">${inner}</a>` : inner;
+      return url ? `<a href="${esc3(url)}">${inner}</a>` : inner;
     }
     default:
       return "";
@@ -36681,15 +37414,15 @@ function htmlBlock(block) {
     case "code": {
       const lang = String(block.lang ?? "").replace(/[^A-Za-z0-9_+#-]/g, "");
       const cls = lang ? ` class="language-${lang}"` : "";
-      return `<pre><code${cls}>${esc2(block.text ?? "")}</code></pre>`;
+      return `<pre><code${cls}>${esc3(block.text ?? "")}</code></pre>`;
     }
     case "image": {
       const url = safeImageUrl(String(block.ref ?? ""));
-      const alt = esc2(block.alt ?? "");
-      return url ? `<img src="${esc2(url)}" alt="${alt}">` : "";
+      const alt = esc3(block.alt ?? "");
+      return url ? `<img src="${esc3(url)}" alt="${alt}">` : "";
     }
     case "footnote": {
-      const id = esc2(mdFootnoteId(block.id));
+      const id = esc3(mdFootnoteId(block.id));
       return `<p class="footnote" id="fn-${id}"><sup>${id}</sup> ${htmlInlines(block.inlines, 0)}</p>`;
     }
     default:
@@ -36701,7 +37434,7 @@ function htmlFromBlocks(blocks) {
   for (const b of Array.isArray(blocks) ? blocks : []) out += htmlBlock(b);
   return out;
 }
-var MAX_INLINE_DEPTH, MAX_LIST_LEVEL, stripControl, inlineList, clampHeading, clampListLevel, MD_SPECIAL, escapeMd, guardBlockStart, oneLine, mdFootnoteId, esc2;
+var MAX_INLINE_DEPTH, MAX_LIST_LEVEL, stripControl, inlineList, clampHeading, clampListLevel, MD_SPECIAL, escapeMd, guardBlockStart, oneLine, mdFootnoteId, esc3;
 var init_doc_md = __esm({
   "engine/src/doc-md.ts"() {
     "use strict";
@@ -36716,7 +37449,7 @@ var init_doc_md = __esm({
     guardBlockStart = (s) => s.replace(/^([ \t]*)([#>+-]|\d+[.)])(?=\s|$)/, "$1\\$2");
     oneLine = (s) => s.replace(/\\\n/g, " ").replace(/\n/g, " ");
     mdFootnoteId = (id) => (stripControl(String(id ?? "")).replace(/[^A-Za-z0-9_-]/g, "") || "1").slice(0, 32);
-    esc2 = (s) => stripControl(String(s ?? "")).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    esc3 = (s) => stripControl(String(s ?? "")).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 });
 
@@ -37483,7 +38216,7 @@ function buildPdfXXmp(opts = {}) {
     pdfxVersion = PDFX_VERSION
   } = opts;
   if (!createDate) throw new TypeError("buildPdfXXmp: createDate (ISO string) is required");
-  const meta = '<x:xmpmeta xmlns:x="adobe:ns:meta/">\n <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">\n  <rdf:Description rdf:about=""\n    xmlns:dc="http://purl.org/dc/elements/1.1/"\n    xmlns:xmp="http://ns.adobe.com/xap/1.0/"\n    xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/"\n    xmlns:pdf="http://ns.adobe.com/pdf/1.3/"\n    xmlns:pdfxid="http://www.npes.org/pdfx/ns/id/">\n   <dc:title>\n    <rdf:Alt>\n     <rdf:li xml:lang="x-default">' + esc3(title) + "</rdf:li>\n    </rdf:Alt>\n   </dc:title>\n   <xmp:CreateDate>" + esc3(createDate) + "</xmp:CreateDate>\n   <xmp:ModifyDate>" + esc3(modifyDate) + "</xmp:ModifyDate>\n   <xmp:CreatorTool>" + esc3(creatorTool) + "</xmp:CreatorTool>\n   <pdf:Producer>" + esc3(producer) + "</pdf:Producer>\n   <pdf:Trapped>" + esc3(trapped) + "</pdf:Trapped>\n   <pdfxid:GTS_PDFXVersion>" + esc3(pdfxVersion) + "</pdfxid:GTS_PDFXVersion>\n   <xmpMM:DocumentID>" + esc3(documentId) + "</xmpMM:DocumentID>\n   <xmpMM:InstanceID>" + esc3(instanceId) + "</xmpMM:InstanceID>\n  </rdf:Description>\n </rdf:RDF>\n</x:xmpmeta>";
+  const meta = '<x:xmpmeta xmlns:x="adobe:ns:meta/">\n <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">\n  <rdf:Description rdf:about=""\n    xmlns:dc="http://purl.org/dc/elements/1.1/"\n    xmlns:xmp="http://ns.adobe.com/xap/1.0/"\n    xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/"\n    xmlns:pdf="http://ns.adobe.com/pdf/1.3/"\n    xmlns:pdfxid="http://www.npes.org/pdfx/ns/id/">\n   <dc:title>\n    <rdf:Alt>\n     <rdf:li xml:lang="x-default">' + esc4(title) + "</rdf:li>\n    </rdf:Alt>\n   </dc:title>\n   <xmp:CreateDate>" + esc4(createDate) + "</xmp:CreateDate>\n   <xmp:ModifyDate>" + esc4(modifyDate) + "</xmp:ModifyDate>\n   <xmp:CreatorTool>" + esc4(creatorTool) + "</xmp:CreatorTool>\n   <pdf:Producer>" + esc4(producer) + "</pdf:Producer>\n   <pdf:Trapped>" + esc4(trapped) + "</pdf:Trapped>\n   <pdfxid:GTS_PDFXVersion>" + esc4(pdfxVersion) + "</pdfxid:GTS_PDFXVersion>\n   <xmpMM:DocumentID>" + esc4(documentId) + "</xmpMM:DocumentID>\n   <xmpMM:InstanceID>" + esc4(instanceId) + "</xmpMM:InstanceID>\n  </rdf:Description>\n </rdf:RDF>\n</x:xmpmeta>";
   return XPACKET_BEGIN + "\n" + meta + XPACKET_PAD + XPACKET_END;
 }
 function pdfxOutputIntentSpec(kind = "srgb", opts = {}) {
@@ -37528,13 +38261,13 @@ function pdfxProfileEligibility(f, intentSpace) {
   if (major === 4 && minor <= 2) return { ok: true };
   return { ok: false, reason: `ICC version ${f.version} is outside PDF/X's range (2.x\u20134.2)` };
 }
-var PDFX_VERSION, esc3, XPACKET_BEGIN, XPACKET_END, XPACKET_PAD, N_ALLOWED;
+var PDFX_VERSION, esc4, XPACKET_BEGIN, XPACKET_END, XPACKET_PAD, N_ALLOWED;
 var init_pdfx = __esm({
   "engine/src/pdfx.ts"() {
     "use strict";
     init_color();
     PDFX_VERSION = "PDF/X-4";
-    esc3 = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    esc4 = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     XPACKET_BEGIN = '<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>';
     XPACKET_END = "<?xpacket end='w'?>";
     XPACKET_PAD = ("\n" + " ".repeat(99)).repeat(20) + "\n";
@@ -41578,7 +42311,7 @@ function worksheetXml(rows, internString) {
     }
     body += `<row r="${rowNum}">${rowBody}</row>`;
   }
-  return XML_DECL + `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${body}</sheetData></worksheet>`;
+  return XML_DECL2 + `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${body}</sheetData></worksheet>`;
 }
 function cellXml(ref, value, internString) {
   if (typeof value === "boolean") {
@@ -41600,22 +42333,22 @@ function sharedStringsXml(strings, totalRefs) {
     const preserve = s !== s.trim() ? ' xml:space="preserve"' : "";
     items += `<si><t${preserve}>${xmlEsc3(s)}</t></si>`;
   }
-  return XML_DECL + `<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${totalRefs}" uniqueCount="${strings.length}">` + items + "</sst>";
+  return XML_DECL2 + `<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${totalRefs}" uniqueCount="${strings.length}">` + items + "</sst>";
 }
 function contentTypesXml2() {
-  return XML_DECL + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>';
+  return XML_DECL2 + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>';
 }
 function rootRelsXml() {
-  return XML_DECL + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+  return XML_DECL2 + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
 }
 function workbookXml(name) {
-  return XML_DECL + `<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${xmlAttr(name)}" sheetId="1" r:id="rId1"/></sheets></workbook>`;
+  return XML_DECL2 + `<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${xmlAttr(name)}" sheetId="1" r:id="rId1"/></sheets></workbook>`;
 }
 function workbookRelsXml() {
-  return XML_DECL + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/></Relationships>';
+  return XML_DECL2 + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/></Relationships>';
 }
 function stylesXml() {
-  return XML_DECL + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="1"><font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+  return XML_DECL2 + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="1"><font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
 }
 function colLetters(index) {
   let n2 = Math.max(0, Math.floor(index));
@@ -41641,7 +42374,7 @@ function xmlEsc3(s) {
 function xmlAttr(s) {
   return xmlEsc3(s).replace(/"/g, "&quot;");
 }
-var encoder2, SHEET_NAME_MAX, XML_INVALID_CHARS, XML_DECL;
+var encoder2, SHEET_NAME_MAX, XML_INVALID_CHARS, XML_DECL2;
 var init_xlsx_write = __esm({
   "engine/src/xlsx-write.ts"() {
     "use strict";
@@ -41649,13 +42382,13 @@ var init_xlsx_write = __esm({
     encoder2 = new TextEncoder();
     SHEET_NAME_MAX = 31;
     XML_INVALID_CHARS = /[\x00-\x08\x0B\x0C\x0E-\x1F]/g;
-    XML_DECL = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    XML_DECL2 = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
   }
 });
 
 // engine/src/epub.ts
 import { zipSync } from "fflate";
-function esc4(s) {
+function esc5(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 }
 function chapterName(i) {
@@ -41664,10 +42397,10 @@ function chapterName(i) {
 function chapterXhtml(chapter, lang) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${esc4(lang)}" lang="${esc4(lang)}">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${esc5(lang)}" lang="${esc5(lang)}">
   <head>
     <meta charset="utf-8"/>
-    <title>${esc4(chapter.title)}</title>
+    <title>${esc5(chapter.title)}</title>
   </head>
   <body>
 ${chapter.xhtml}
@@ -41676,17 +42409,17 @@ ${chapter.xhtml}
 `;
 }
 function navXhtml(doc, lang) {
-  const items = doc.chapters.map((c, i) => `        <li><a href="${chapterName(i)}.xhtml">${esc4(c.title)}</a></li>`).join("\n");
+  const items = doc.chapters.map((c, i) => `        <li><a href="${chapterName(i)}.xhtml">${esc5(c.title)}</a></li>`).join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${esc4(lang)}" lang="${esc4(lang)}">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${esc5(lang)}" lang="${esc5(lang)}">
   <head>
     <meta charset="utf-8"/>
-    <title>${esc4(doc.title)}</title>
+    <title>${esc5(doc.title)}</title>
   </head>
   <body>
     <nav epub:type="toc" id="toc">
-      <h1>${esc4(doc.title)}</h1>
+      <h1>${esc5(doc.title)}</h1>
       <ol>
 ${items}
       </ol>
@@ -41696,9 +42429,9 @@ ${items}
 `;
 }
 function contentOpf(doc, lang) {
-  const bookId = `urn:lolly:${esc4(doc.title).replace(/\s+/g, "-").toLowerCase() || "untitled"}`;
+  const bookId = `urn:lolly:${esc5(doc.title).replace(/\s+/g, "-").toLowerCase() || "untitled"}`;
   const author = doc.author ? `
-    <dc:creator id="author">${esc4(doc.author)}</dc:creator>` : "";
+    <dc:creator id="author">${esc5(doc.author)}</dc:creator>` : "";
   const manifestItems = [
     '    <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>',
     ...doc.chapters.map(
@@ -41707,11 +42440,11 @@ function contentOpf(doc, lang) {
   ].join("\n");
   const spineItems = doc.chapters.map((_, i) => `    <itemref idref="${chapterName(i)}"/>`).join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="book-id" xml:lang="${esc4(lang)}">
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="book-id" xml:lang="${esc5(lang)}">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:identifier id="book-id">${bookId}</dc:identifier>
-    <dc:title>${esc4(doc.title)}</dc:title>
-    <dc:language>${esc4(lang)}</dc:language>${author}
+    <dc:title>${esc5(doc.title)}</dc:title>
+    <dc:language>${esc5(lang)}</dc:language>${author}
     <meta property="dcterms:modified">1970-01-01T00:00:00Z</meta>
   </metadata>
   <manifest>
@@ -41865,8 +42598,8 @@ function matchTags(s, name) {
   return s.match(re) ?? [];
 }
 function attr2(tag2, name) {
-  const esc7 = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const m2 = tag2.match(new RegExp(`\\b${esc7}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i"));
+  const esc8 = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const m2 = tag2.match(new RegExp(`\\b${esc8}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i"));
   return m2 ? m2[1] ?? m2[2] ?? "" : "";
 }
 function dirOf2(path) {
@@ -41904,7 +42637,7 @@ var init_epub_read = __esm({
 });
 
 // engine/src/odt.ts
-function esc5(s) {
+function esc6(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 }
 function clampLevel(level) {
@@ -41913,7 +42646,7 @@ function clampLevel(level) {
   return n2 > 10 ? 10 : n2;
 }
 function bodyBlock(block) {
-  const text = esc5(block.text);
+  const text = esc6(block.text);
   if (block.type === "heading") {
     const level = clampLevel(block.level);
     return `      <text:h text:style-name="Heading_20_${level}" text:outline-level="${level}">${text}</text:h>`;
@@ -41953,7 +42686,7 @@ function metaXml(title) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <office:document-meta xmlns:office="${NS_OFFICE}" xmlns:meta="${NS_META}" xmlns:dc="${NS_DC}" office:version="1.2">
   <office:meta>
-    <dc:title>${esc5(title)}</dc:title>
+    <dc:title>${esc6(title)}</dc:title>
   </office:meta>
 </office:document-meta>
 `;
@@ -42152,7 +42885,7 @@ function imageXml(ref, alt, ctx) {
   if (!entry) return "";
   let rid = ctx.imageRel.get(ref);
   if (!rid) {
-    const ext = extOf2(ref);
+    const ext = extOf3(ref);
     const path = `media/image${ctx.media.length + 1}.${ext}`;
     ctx.media.push({ name: `word/${path}`, bytes: entry.bytes });
     ctx.exts.add(ext);
@@ -42361,7 +43094,7 @@ function writeDocx(doc) {
   for (const m2 of ctx.media) entries.push(m2);
   return storeZip(entries);
 }
-var encoder3, W_NS, REL2, PKG_REL_NS2, CT_NS, A_NS, PIC_NS, WP_NS, MAX_INLINE_DEPTH3, xmlEsc4, clampLevel2, clampSpan, NO_MARKS, textRun, paraXml2, EMU_PER_PX2, MAX_IMAGE_EMU, FALLBACK_PX, extOf2, MEDIA_TYPES, TBL_BORDERS, CONTENT_TWIPS, SECT_PR, BULLET_NUM_ID, DECIMAL_NUM_ID, MAX_ILVL, HEADING_HALF_PT, BULLET_GLYPHS, NUMBERING_XML, ROOT_RELS2, APP_PROPS, documentRels;
+var encoder3, W_NS, REL2, PKG_REL_NS2, CT_NS, A_NS, PIC_NS, WP_NS, MAX_INLINE_DEPTH3, xmlEsc4, clampLevel2, clampSpan, NO_MARKS, textRun, paraXml2, EMU_PER_PX2, MAX_IMAGE_EMU, FALLBACK_PX, extOf3, MEDIA_TYPES, TBL_BORDERS, CONTENT_TWIPS, SECT_PR, BULLET_NUM_ID, DECIMAL_NUM_ID, MAX_ILVL, HEADING_HALF_PT, BULLET_GLYPHS, NUMBERING_XML, ROOT_RELS2, APP_PROPS, documentRels;
 var init_docx = __esm({
   "engine/src/docx.ts"() {
     "use strict";
@@ -42385,7 +43118,7 @@ var init_docx = __esm({
     EMU_PER_PX2 = 9525;
     MAX_IMAGE_EMU = 6.5 * 914400;
     FALLBACK_PX = { w: 480, h: 360 };
-    extOf2 = (name) => {
+    extOf3 = (name) => {
       const m2 = /\.([A-Za-z0-9]{1,8})$/.exec(name);
       return m2?.[1] ? m2[1].toLowerCase() : "png";
     };
@@ -42506,10 +43239,10 @@ function colorRunsToText(runs, defaultHex) {
     if (last && last.color === r3.color && last.text !== "\n" && r3.text !== "\n") last.text += r3.text;
     else merged.push({ text: r3.text, color: r3.color });
   }
-  const esc7 = (t) => t.replace(/([*_])/g, "\\$1");
+  const esc8 = (t) => t.replace(/([*_])/g, "\\$1");
   return merged.map((r3) => {
     if (r3.text === "\n") return "\n";
-    const t = esc7(r3.text);
+    const t = esc8(r3.text);
     return r3.color && r3.color !== def ? "{" + r3.color + "|" + t + "}" : t;
   }).join("");
 }
@@ -50352,7 +51085,7 @@ function gradSpecToPenpot(spec, w, h) {
     stops.push({ color: `#${sm[1].toLowerCase()}`, opacity: sm[2] ? parseInt(sm[2], 16) / 255 : 1, offset: clamp10(fin2(sm[3]) / 100, 0, 1) });
   }
   if (stops.length < 2) return null;
-  if (m2[1] === "rad") return { type: "radial", startX: 0.5, startY: 0.5, endX: 0.5, endY: 1, width: h > 0 ? w / h : 1, stops };
+  if (m2[1] === "rad") return { type: "radial", startX: 0.5, startY: 0.5, endX: 0.5, endY: 1, width: 1, stops };
   const th = fin2(m2[2]) * Math.PI / 180;
   const dx = Math.sin(th), dy = -Math.cos(th);
   const W = Math.max(1, w), H = Math.max(1, h);
@@ -50382,10 +51115,23 @@ function designTextRuns(line) {
     push(unesc(rest.slice(0, m2.index)), {});
     if (m2[1] != null) {
       const style = {};
+      let known = true;
       for (const tok of m2[1].trim().split(/\s+/)) {
         if (/^#[0-9a-f]{3,8}$/i.test(tok)) style.color = tok;
         else if (/^w[1-9]00$/.test(tok)) style.weight = parseInt(tok.slice(1), 10);
         else if (tok === "mono" || tok === "sans") style.family = tok;
+        else if (tok === "u") style.decoration = "underline";
+        else if (tok === "s") style.decoration = style.decoration ?? "line-through";
+        else {
+          known = false;
+          break;
+        }
+      }
+      if (!known) {
+        const head = `{${m2[1]}|`;
+        push(unesc(head), {});
+        rest = rest.slice(m2.index + head.length);
+        continue;
       }
       push(unesc(m2[2] ?? ""), style);
     } else if (m2[3] != null) push(unesc(m2[3]), { weight: 700 });
@@ -50406,11 +51152,17 @@ function boxesToPenpotDoc(boxesIn, o) {
     if (id && !byId.has(id)) byId.set(id, b);
   }
   const google = new Set(Array.from(o.googleFamilies ?? [], (f) => String(f).trim().toLowerCase()));
+  const hexOf2 = (p) => p.alpha < 1 ? `${p.hex}${Math.round(p.alpha * 255).toString(16).padStart(2, "0")}` : p.hex;
   const color = (v) => {
     const s = str5(v).trim();
     if (!s) return null;
+    if (/var\(/i.test(s) || s.startsWith("{")) {
+      const live = o.resolveColor?.(s) ?? null;
+      const lp = live ? parsePenpotColor(live) : null;
+      if (lp) return hexOf2(lp);
+    }
     const p = parsePenpotColor(s);
-    if (p) return p.alpha < 1 ? `${p.hex}${Math.round(p.alpha * 255).toString(16).padStart(2, "0")}` : p.hex;
+    if (p) return hexOf2(p);
     const r3 = o.resolveColor?.(s) ?? null;
     return r3 && parsePenpotColor(r3) ? r3 : null;
   };
@@ -50451,6 +51203,7 @@ function boxesToPenpotDoc(boxesIn, o) {
     const sw = fin2(b.strokeW);
     if (!sc || !(sw > 0)) return [];
     const p = parsePenpotColor(sc);
+    if (!p) return [];
     const st = { color: p.hex, opacity: p.alpha, width: sw, alignment: "center" };
     const dashKind = str5(b.strokeDash);
     if (dashKind === "dashed" || dashKind === "dotted") {
@@ -50475,6 +51228,7 @@ function boxesToPenpotDoc(boxesIn, o) {
     const c = color(b.bg);
     if (!c) return [];
     const p = parsePenpotColor(c);
+    if (!p) return [];
     return [{ color: p.hex, opacity: p.alpha }];
   };
   const nameOf2 = (b, fallback) => str5(b.name).trim() || fallback;
@@ -50514,7 +51268,8 @@ function boxesToPenpotDoc(boxesIn, o) {
             lineHeight: lh,
             letterSpacing: tracking,
             color: rp.hex,
-            opacity: rp.alpha
+            opacity: rp.alpha,
+            decoration: r3.decoration
           };
         });
         if (!runs.length) runs.push({ text: "", fontFamily: family, fontWeight: weight, fontSize: size, lineHeight: lh, letterSpacing: tracking, color: fg });
@@ -50601,7 +51356,7 @@ function boxesToPenpotDoc(boxesIn, o) {
         if (s) children.push(s);
       }
       const bg = color(fb.bg) ?? "#ffffff";
-      const p = parsePenpotColor(bg);
+      const p = parsePenpotColor(bg) ?? { hex: "#ffffff", alpha: 1 };
       const board = {
         type: "board",
         name: nameOf2(fb, `Board ${shapes.length + 1}`),
@@ -50610,6 +51365,10 @@ function boxesToPenpotDoc(boxesIn, o) {
         w: Math.max(1, fin2(fb.w, 1)),
         h: Math.max(1, fin2(fb.h, 1)),
         fills: [{ color: p.hex, opacity: p.alpha }],
+        // A frame carries a REAL border (the Artboard add-kind seeds one), and a Penpot
+        // board takes strokes like any other shape. `inner`, because the design tool
+        // paints that border inside the box (`box-sizing: border-box`).
+        strokes: strokeOf(fb).map((s) => ({ ...s, alignment: "inner" })),
         children,
         showContent: fb.clipChildren === false
       };
@@ -50820,6 +51579,7 @@ function svgToPenpotDoc(svgText, o) {
   const notes = [];
   const note = (s) => {
     if (notes.length < 100) notes.push(s);
+    if (o.notes && o.notes.length < 100) o.notes.push(s);
   };
   const tags = [];
   const re = /<(\/?)([a-zA-Z][\w:.-]*)((?:\s+[\w:.-]+\s*=\s*(?:"[^"]*"|'[^']*'))*)\s*(\/?)>/g;
@@ -50874,19 +51634,20 @@ function svgToPenpotDoc(svgText, o) {
       stops: []
     };
     const rel = g2.units === "objectBoundingBox";
-    const pl = (v, d) => {
+    const refW = hasVb ? vb[2] : width, refH = hasVb ? vb[3] : height;
+    const pl = (v, d, ref) => {
       if (v == null) return d;
       const s = v.trim();
-      return s.endsWith("%") ? parseFloat(s) / 100 * (rel ? 1 : 1) : rel ? parseFloat(s) : parseLen(s, d);
+      if (s.endsWith("%")) return parseFloat(s) / 100 * (rel ? 1 : ref);
+      return rel ? parseFloat(s) : parseLen(s, d);
     };
-    g2.x1 = pl(a.x1, 0);
-    g2.y1 = pl(a.y1, 0);
-    g2.x2 = pl(a.x2, rel ? 1 : 0);
-    g2.y2 = pl(a.y2, 0);
-    g2.cx = pl(a.cx, 0.5);
-    g2.cy = pl(a.cy, 0.5);
-    g2.r = pl(a.r, 0.5);
-    if (!rel && a.x2 == null) g2.x2 = g2.x1 + 1;
+    g2.x1 = pl(a.x1, 0, refW);
+    g2.y1 = pl(a.y1, 0, refH);
+    g2.x2 = pl(a.x2, rel ? 1 : refW, refW);
+    g2.y2 = pl(a.y2, 0, refH);
+    g2.cx = pl(a.cx, rel ? 0.5 : refW / 2, refW);
+    g2.cy = pl(a.cy, rel ? 0.5 : refH / 2, refH);
+    g2.r = pl(a.r, rel ? 0.5 : Math.sqrt(refW * refW + refH * refH) / Math.SQRT2 / 2, Math.sqrt(refW * refW + refH * refH) / Math.SQRT2);
     if (!t.selfClosing) {
       for (let j = i + 1; j < tags.length; j++) {
         const s = tags[j];
@@ -51006,19 +51767,36 @@ function svgToPenpotDoc(svgText, o) {
       note("paint references something that is not a gradient");
       return null;
     }
-    if (g2.transform && parseTransform3(g2.transform) && !isIdentity(parseTransform3(g2.transform))) {
-      note("gradientTransform is not expressible");
+    const gm = g2.transform ? parseTransform3(g2.transform) : { ...IDENT };
+    if (!gm) {
+      note("unreadable gradientTransform");
       return null;
     }
+    const obb = g2.units === "objectBoundingBox";
     const toUnit2 = (x, y) => {
-      if (g2.units === "objectBoundingBox") return [x, y];
-      const [px, py] = apply2(m3, x, y);
+      const [gx, gy] = apply2(gm, x, y);
+      if (obb) return [gx, gy];
+      const [px, py] = apply2(m3, gx, gy);
       return [bbox.w > 0 ? (px - bbox.x) / bbox.w : 0.5, bbox.h > 0 ? (py - bbox.y) / bbox.h : 0.5];
     };
     if (g2.type === "radial") {
+      if (Math.abs(gm.b) > 1e-9 || Math.abs(gm.c) > 1e-9) {
+        note("a rotated or skewed radial gradientTransform is not expressible");
+        return null;
+      }
       const [cx, cy] = toUnit2(g2.cx, g2.cy);
-      const ru = g2.units === "objectBoundingBox" ? g2.r : g2.r * meanScale(m3) / Math.max(1, bbox.h);
-      return { type: "radial", startX: cx, startY: cy, endX: cx, endY: cy + ru, width: bbox.h > 0 ? bbox.w / bbox.h : 1, stops: g2.stops };
+      const sx2 = Math.abs(gm.a) || 1, sy2 = Math.abs(gm.d) || 1;
+      let ru, width2;
+      if (obb) {
+        ru = g2.r * sy2;
+        width2 = sx2 / sy2;
+      } else {
+        const k = meanScale(m3);
+        const pxY = g2.r * sy2 * k, pxX = g2.r * sx2 * k;
+        ru = pxY / Math.max(1, bbox.h);
+        width2 = bbox.w > 0 && bbox.h > 0 ? pxX / bbox.w / (pxY / bbox.h) : 1;
+      }
+      return { type: "radial", startX: cx, startY: cy, endX: cx, endY: cy + ru, width: r4(width2) || 1, stops: g2.stops };
     }
     const [sx, sy] = toUnit2(g2.x1, g2.y1), [ex, ey] = toUnit2(g2.x2, g2.y2);
     return { type: "linear", startX: sx, startY: sy, endX: ex, endY: ey, stops: g2.stops };
@@ -51077,7 +51855,12 @@ function svgToPenpotDoc(svgText, o) {
     return { x: Math.min(x0, x1), y: Math.min(y0, y1), w: Math.abs(x1 - x0), h: Math.abs(y1 - y0) };
   };
   let shapeBudget = MAX_SHAPES2;
-  const walk2 = (from, to, parent, out) => {
+  const MAX_WALK_DEPTH = 512;
+  const walk2 = (from, to, parent, out, depth = 0) => {
+    if (depth > MAX_WALK_DEPTH) {
+      note("nesting ceiling reached");
+      return false;
+    }
     let i = from;
     while (i < to) {
       const t = tags[i];
@@ -51087,17 +51870,17 @@ function svgToPenpotDoc(svgText, o) {
       }
       let close = i;
       if (!t.selfClosing) {
-        let depth = 0;
+        let depth2 = 0;
         for (let j = i + 1; j < to; j++) {
           const u = tags[j];
           if (u.name !== t.name) continue;
           if (u.closing) {
-            if (depth === 0) {
+            if (depth2 === 0) {
               close = j;
               break;
             }
-            depth--;
-          } else if (!u.selfClosing) depth++;
+            depth2--;
+          } else if (!u.selfClosing) depth2++;
         }
         if (close === i) close = to;
       }
@@ -51125,7 +51908,7 @@ function svgToPenpotDoc(svgText, o) {
           if (t.name === "svg" && i !== rootIdx) gf = { ...f, m: mul2(f.m, { a: 1, b: 0, c: 0, d: 1, e: parseLen(a.x), f: parseLen(a.y) }) };
           const kids = [];
           const inner = { ...gf, opacity: 1, blend: "normal" };
-          if (!walk2(i + 1, close, inner, kids)) return false;
+          if (!walk2(i + 1, close, inner, kids, depth + 1)) return false;
           if (kids.length === 1 && t.name !== "svg") {
             const k = kids[0];
             if (f.opacity < 1) k.opacity = (k.opacity ?? 1) * f.opacity;
@@ -51320,7 +52103,7 @@ function svgToPenpotDoc(svgText, o) {
         }
         default:
           if (!t.selfClosing && close > i) {
-            if (!walk2(i + 1, close, f, out)) return false;
+            if (!walk2(i + 1, close, f, out, depth + 1)) return false;
           }
           break;
       }
@@ -51363,9 +52146,6 @@ function svgToPenpotDoc(svgText, o) {
     pending,
     notes
   };
-}
-function isIdentity(m2) {
-  return Math.abs(m2.a - 1) < 1e-9 && Math.abs(m2.d - 1) < 1e-9 && Math.abs(m2.b) < 1e-9 && Math.abs(m2.c) < 1e-9 && Math.abs(m2.e) < 1e-9 && Math.abs(m2.f) < 1e-9;
 }
 function imageToPenpotDoc(media, o) {
   const w = Math.max(1, Math.round(media.width)), h = Math.max(1, Math.round(media.height));
@@ -52054,9 +52834,9 @@ async function aesEcbBlock(key, block16) {
 }
 async function hashR6(password, salt, udata = new Uint8Array(0)) {
   let K2 = await digest("SHA-256", concat5(password, salt, udata));
-  let round4 = 0;
+  let round5 = 0;
   for (; ; ) {
-    round4++;
+    round5++;
     const block = concat5(password, K2, udata);
     const K1 = new Uint8Array(block.length * 64);
     for (let i = 0; i < 64; i++) K1.set(block, i * block.length);
@@ -52065,7 +52845,7 @@ async function hashR6(password, salt, udata = new Uint8Array(0)) {
     for (let i = 0; i < 16; i++) sum += E[i];
     const algo = sum % 3 === 0 ? "SHA-256" : sum % 3 === 1 ? "SHA-384" : "SHA-512";
     K2 = await digest(algo, E);
-    if (round4 >= 64 && E[E.length - 1] <= round4 - 32) break;
+    if (round5 >= 64 && E[E.length - 1] <= round5 - 32) break;
   }
   return K2.subarray(0, 32);
 }
@@ -53365,6 +54145,7 @@ var src_exports = {};
 __export(src_exports, {
   APCA_BANDS: () => APCA_BANDS,
   APCA_SRGB_ONLY: () => APCA_SRGB_ONLY,
+  APP_PATH_WORDS: () => APP_PATH_WORDS,
   BEYOND_TIER: () => BEYOND_TIER,
   BUILTIN_GAMUT_SOURCES: () => BUILTIN_GAMUT_SOURCES,
   BmpUnsupportedError: () => BmpUnsupportedError,
@@ -53374,6 +54155,7 @@ __export(src_exports, {
   CATALOG_SIGNED_TOOL_FILES: () => CATALOG_SIGNED_TOOL_FILES,
   CATALOG_SIG_ALG: () => CATALOG_SIG_ALG,
   CATALOG_SIG_PATH: () => CATALOG_SIG_PATH,
+  CLIP_EDGE_PAD_S: () => CLIP_EDGE_PAD_S,
   CMYK_CONDITIONS: () => CMYK_CONDITIONS,
   COLOR_PROFILES: () => COLOR_PROFILES,
   COMPOSITE_SOURCE_TYPE: () => COMPOSITE_SOURCE_TYPE,
@@ -53405,6 +54187,7 @@ __export(src_exports, {
   ENGINE_VERSION: () => ENGINE_VERSION,
   EXAMPLE_RATECARD_DIGEST: () => EXAMPLE_RATECARD_DIGEST,
   EXTREMES_CONTRAST_FLOOR: () => EXTREMES_CONTRAST_FLOOR,
+  FAST_SPEED: () => FAST_SPEED,
   FINISH_MASK_CMYK: () => FINISH_MASK_CMYK,
   FRAME_FILTER_SKIP_FORMATS: () => FRAME_FILTER_SKIP_FORMATS,
   FRAMING_PERSPECTIVE: () => FRAMING_PERSPECTIVE,
@@ -53456,6 +54239,7 @@ __export(src_exports, {
   KOKORO_MODEL_ID: () => KOKORO_MODEL_ID,
   KOKORO_SAMPLE_RATE: () => KOKORO_SAMPLE_RATE,
   KOKORO_STYLE_DIM: () => KOKORO_STYLE_DIM,
+  KOKORO_VOCAB: () => KOKORO_VOCAB,
   KOKORO_VOICES: () => KOKORO_VOICES,
   KOKORO_VOICE_BYTES: () => KOKORO_VOICE_BYTES,
   LANGS: () => LANGS,
@@ -53471,10 +54255,13 @@ __export(src_exports, {
   MAX_GRADIENT_STOPS: () => MAX_GRADIENT_STOPS,
   MAX_INPUT_CHARS: () => MAX_INPUT_CHARS,
   MAX_PHONEME_CHARS: () => MAX_PHONEME_CHARS,
+  MAX_SPEECH_SPEED: () => MAX_SPEECH_SPEED,
   META_CARRY_FIELDS: () => META_CARRY_FIELDS,
   META_GROUP_LABEL: () => META_GROUP_LABEL,
   META_GROUP_ORDER: () => META_GROUP_ORDER,
   MIN_IMPRINT_BLOCKS: () => MIN_IMPRINT_BLOCKS,
+  MIN_SEAM_GAP_S: () => MIN_SEAM_GAP_S,
+  MIN_SPEECH_SPEED: () => MIN_SPEECH_SPEED,
   MISSING_ALPHA: () => MISSING_ALPHA,
   MISSING_C0: () => MISSING_C0,
   MISSING_C1: () => MISSING_C1,
@@ -53486,6 +54273,7 @@ __export(src_exports, {
   P3_SOURCE: () => P3_SOURCE,
   PACK_PARAM: () => PACK_PARAM,
   PAGED_FORMATS: () => PAGED_FORMATS,
+  PAUSE_DEFAULT_S: () => PAUSE_DEFAULT_S,
   PDFX_VERSION: () => PDFX_VERSION,
   PENPOT_FEATURES: () => PENPOT_FEATURES,
   PENPOT_FILE_VERSION: () => PENPOT_FILE_VERSION,
@@ -53514,6 +54302,7 @@ __export(src_exports, {
   SEPARATING_FORMATS: () => SEPARATING_FORMATS,
   SESSION_FORMAT_VERSION: () => SESSION_FORMAT_VERSION,
   SESSION_READER_VERSION: () => SESSION_READER_VERSION,
+  SLOW_SPEED: () => SLOW_SPEED,
   SPOT_PLATE_FORMATS: () => SPOT_PLATE_FORMATS,
   SRGB_SOURCE: () => SRGB_SOURCE,
   SVG_LAYERS_HEAVY_BYTES: () => SVG_LAYERS_HEAVY_BYTES,
@@ -53545,6 +54334,7 @@ __export(src_exports, {
   XcfUnsupportedError: () => XcfUnsupportedError,
   ZZFXM_ARCHETYPES: () => ZZFXM_ARCHETYPES,
   ZZFXM_SCHEME: () => ZZFXM_SCHEME,
+  accentOfBlend: () => accentOfBlend,
   activitySpans: () => activitySpans,
   addGreenBias: () => addGreenBias,
   adler32: () => adler32,
@@ -53663,6 +54453,7 @@ __export(src_exports, {
   cubicBezierAt: () => cubicBezierAt,
   cubicRoots01: () => cubicRoots01,
   cueAt: () => cueAt,
+  cuesForSlide: () => cuesForSlide,
   cuesToSrt: () => cuesToSrt,
   cuesToVtt: () => cuesToVtt,
   cullPdfNodes: () => cullPdfNodes,
@@ -53696,6 +54487,7 @@ __export(src_exports, {
   deriveExportFilename: () => deriveExportFilename,
   deriveIconThemesDoc: () => deriveIconThemesDoc,
   derivePhotoTreatmentsDoc: () => derivePhotoTreatmentsDoc,
+  deriveSegmentsFromWords: () => deriveSegmentsFromWords,
   describeColor: () => describeColor,
   describeHiddenText: () => describeHiddenText,
   deserializeCurve: () => deserializeCurve,
@@ -53737,6 +54529,7 @@ __export(src_exports, {
   encodeTableCompact: () => encodeTableCompact,
   encodeTrustmarkPayload: () => encodeTrustmarkPayload,
   encryptObjectBytes: () => encryptObjectBytes,
+  endsSentence: () => endsSentence,
   enforceContinuity: () => enforceContinuity,
   enumerateSvgLayers: () => enumerateSvgLayers,
   evalChannel: () => evalChannel,
@@ -53759,6 +54552,7 @@ __export(src_exports, {
   fftInPlace: () => fftInPlace,
   figmaNodesToNodes: () => figmaNodesToNodes,
   figmaNodesToScenes: () => figmaNodesToScenes,
+  filterToVocab: () => filterToVocab,
   finalizeBoxes: () => finalizeBoxes,
   findColorToken: () => findColorToken,
   findHiddenText: () => findHiddenText,
@@ -53916,6 +54710,7 @@ __export(src_exports, {
   linearToSrgb: () => linearToSrgb3,
   listXlsxSheets: () => listXlsxSheets,
   loadTool: () => loadTool,
+  lollySchemeToHttps: () => lollySchemeToHttps,
   looksLikeTable: () => looksLikeTable,
   makeColorApi: () => makeColorApi,
   makeConnectorsApi: () => makeConnectorsApi,
@@ -53944,6 +54739,7 @@ __export(src_exports, {
   nearestOnCubic: () => nearestOnCubic,
   nodeToBox: () => nodeToBox,
   normaliseKfEase: () => normaliseKfEase,
+  normalizeForSpeech: () => normalizeForSpeech,
   normalizeFraming: () => normalizeFraming,
   normalizeGain: () => normalizeGain,
   normalizeLang: () => normalizeLang,
@@ -54012,6 +54808,7 @@ __export(src_exports, {
   parsePhotoTreatmentsDoc: () => parsePhotoTreatmentsDoc,
   parseRadialGradient: () => parseRadialGradient,
   parseRateCard: () => parseRateCard,
+  parseScriptMarks: () => parseScriptMarks,
   parseSealRecord: () => parseSealRecord,
   parseSealRecords: () => parseSealRecords,
   parseSvgPath: () => parseSvgPath,
@@ -54024,6 +54821,7 @@ __export(src_exports, {
   parseTreatedAssetId: () => parseTreatedAssetId,
   parseUrlState: () => parseUrlState,
   parseVersion: () => parseVersion,
+  parseVoiceBlend: () => parseVoiceBlend,
   parseWav: () => parseWav,
   parseZzfxmRef: () => parseZzfxmRef,
   patchJpegDpi: () => patchJpegDpi,
@@ -54034,6 +54832,7 @@ __export(src_exports, {
   pathHeadSvg: () => pathHeadSvg,
   pathRouteStyle: () => pathRouteStyle,
   patternSeconds: () => patternSeconds,
+  pauseGapS: () => pauseGapS,
   pdfNodeElementKind: () => pdfNodeElementKind,
   pdfNodeExtent: () => pdfNodeExtent,
   pdfNodesToSvg: () => pdfNodesToSvg,
@@ -54127,6 +54926,12 @@ __export(src_exports, {
   scanPenpotAppliedTokens: () => scanPenpotAppliedTokens,
   scanPenpotUsage: () => scanPenpotUsage,
   scoreTokenWatermark: () => scoreTokenWatermark,
+  scormAdapterJs: () => scormAdapterJs,
+  scormLaunchHtml: () => scormLaunchHtml,
+  scormManifest: () => scormManifest,
+  scormManifest12: () => scormManifest12,
+  scormManifest2004: () => scormManifest2004,
+  scriptLinesOf: () => scriptLinesOf,
   seededPenpotUuid: () => seededPenpotUuid,
   selectFramePage: () => selectFramePage,
   selfUnion: () => selfUnion,
@@ -54336,6 +55141,7 @@ var init_src2 = __esm({
     init_svg_custgeom();
     init_pptx_patch();
     init_pptx_read();
+    init_scorm();
     init_deck_md();
     init_doc_md();
     init_docx_read();
@@ -58477,13 +59283,13 @@ async function outlineSvgText(svg, host, opts = {}) {
       if (!DROP_ON_PATH.has(attr4.name)) path.setAttribute(attr4.name, attr4.value);
     }
     const own = el.getAttribute("transform");
-    path.setAttribute("transform", `${own ? own + " " : ""}translate(${round3(tx)} ${round3(y)})`);
+    path.setAttribute("transform", `${own ? own + " " : ""}translate(${round4(tx)} ${round4(y)})`);
     el.replaceWith(path);
     result.outlined++;
   }
   return result;
 }
-var round3 = (n2) => Math.round(n2 * 100) / 100;
+var round4 = (n2) => Math.round(n2 * 100) / 100;
 
 // shells/cli/src/exit-codes.ts
 var EXIT = {
@@ -58922,10 +59728,11 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         const name = opts.meta?.tool?.trim() || "From Lolly";
         const palette = (await tokenSet()).colors().filter((c) => typeof c.value === "string" && /^#[0-9a-f]{6,8}$/i.test(c.value)).map((c) => ({ name: c.name || c.path, path: c.group ?? void 0, color: c.value }));
         const shared = { name, tokens: await resolvedDoc(), palette, generatedBy: `lolly/${ENGINE_VERSION}` };
-        const lowered = svgToPenpotDoc(svgText, { ...shared, background: opts.background });
+        const why = [];
+        const lowered = svgToPenpotDoc(svgText, { ...shared, background: opts.background, notes: why });
         let doc = lowered?.doc;
         if (!doc) {
-          host.log("warn", "penpot: the render was kept whole as one picture, not lowered to editable shapes - something in it (a filter, mask, clip path, pattern, <use> or inline <style>) has no Penpot construct. The board carries the whole SVG as one image, so nothing is lost, but the shapes are not separable in Penpot.");
+          host.log("warn", "penpot: the render was kept whole as one picture, not lowered to editable shapes - " + (why.length ? why.join("; ") : "something in it (a filter, mask, clip path, pattern, <use> or inline <style>) has no Penpot construct") + ". The board carries the whole SVG as one image, so nothing is lost, but the shapes are not separable in Penpot.");
           const bytes = new TextEncoder().encode(svgText);
           const size = imageDimensions(bytes, "image/svg+xml") ?? { w: 1e3, h: 1e3 };
           doc = imageToPenpotDoc(
@@ -60837,11 +61644,11 @@ async function isAuthorized(authorizationHeader, env) {
   const tok = await verifyValue(bearer, signingSecret(env));
   return !!tok && tok.t === "access" && tok.exp >= now();
 }
-var esc6 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+var esc7 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 function page(title, inner) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc6(title)}</title>
+<title>${esc7(title)}</title>
 <style>
   :root { color-scheme: light dark; }
   body { margin:0; min-height:100vh; display:grid; place-items:center;
@@ -60865,7 +61672,7 @@ function page(title, inner) {
 </style></head><body><div class="card">${inner}</div></body></html>`;
 }
 function hidden(params) {
-  const f = (k) => params[k] ? `<input type="hidden" name="${k}" value="${esc6(String(params[k]))}">` : "";
+  const f = (k) => params[k] ? `<input type="hidden" name="${k}" value="${esc7(String(params[k]))}">` : "";
   return ["response_type", "client_id", "redirect_uri", "code_challenge", "code_challenge_method", "state", "scope", "resource"].map((k) => f(k)).join("");
 }
 function consentPage(params, error) {
@@ -60877,17 +61684,17 @@ function consentPage(params, error) {
   return page("Connect to Lolly", `
     <div class="dot">L</div>
     <h1>Connect to Lolly</h1>
-    <p><strong>${esc6(host)}</strong> wants to use the Lolly tools on your behalf. Paste your Lolly access token to allow it.</p>
+    <p><strong>${esc7(host)}</strong> wants to use the Lolly tools on your behalf. Paste your Lolly access token to allow it.</p>
     <form method="post">
       ${hidden(params)}
       <label for="pp">Access token</label>
       <input id="pp" name="passphrase" type="password" autocomplete="off" autofocus required placeholder="LOLLY_MCP_TOKEN">
-      ${error ? `<p class="err">${esc6(error)}</p>` : ""}
+      ${error ? `<p class="err">${esc7(error)}</p>` : ""}
       <button type="submit">Allow</button>
     </form>`);
 }
 function errorPage(message) {
-  return page("Cannot connect", `<div class="dot">L</div><h1>Cannot connect</h1><p>${esc6(message)}</p>`);
+  return page("Cannot connect", `<div class="dot">L</div><h1>Cannot connect</h1><p>${esc7(message)}</p>`);
 }
 
 // services/mcp/src/gateway.ts
