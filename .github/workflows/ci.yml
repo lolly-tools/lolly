@@ -157,6 +157,14 @@ jobs:
       # of the observed count: the ask chunks.test drift guard and the two
       # docs-landing-fragment built-site reads now skip (with a reason) instead
       # of failing where public/info was never built.
+      # Re-counted 2026-09-03 against run 33759336348 (448 observed): +16 are the
+      # plan-183 CLI-parity tests, every one gated with its reason in the skip
+      # message - 3 browser-tier renders (mp4, pptx, the --tier-b-debug failure
+      # path) need shells/web/dist, which the test job never builds; 3 speech
+      # runs need Kokoro/Whisper staged; 5 model-pins staged-size checks and 5
+      # real-model ML runs (upscale, matte, ocr, ai-detect, reword) need weights.
+      # Models are fetched by consent only (`lolly models fetch`), so CI never
+      # has them by design; the pure halves of each module run everywhere.
       # If a PR legitimately adds environment-gated tests, raise the baseline in
       # that same PR; when skips are removed (e.g. browsers installed in CI, or
       # fixtures committed), LOWER it so the ratchet keeps its teeth. Local runs
@@ -164,7 +172,7 @@ jobs:
       - name: Skipped tests must not exceed the CI baseline
         if: always()
         env:
-          EXPECTED_SKIPS: 432   # +1 on 2026-09-03: the inline-block/backdrop walker cases skip without Chromium on CI
+          EXPECTED_SKIPS: 448   # +1 on 2026-09-03: the inline-block/backdrop walker cases skip without Chromium on CI
         run: |
           # node:test prints a run summary - "ℹ skipped N" (spec reporter) or
           # "# skipped N" (tap, the non-TTY default on some Node lines). Strip
