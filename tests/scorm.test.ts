@@ -217,11 +217,13 @@ test('SCORM 1.2: findAPI walks up to window.API, and completion lands on the las
 
   w.LollyScorm.setSlide(0, 3);
   assert.equal(store['cmi.suspend_data'], '0');
+  assert.equal(store['cmi.core.lesson_location'], '0', 'the bookmark field carries the same number');
   assert.equal(store['cmi.core.lesson_status'], 'incomplete');
   assert.equal(w.LollyScorm.resumeIndex(), 0);
 
   w.LollyScorm.setSlide(2, 3);
   assert.equal(store['cmi.suspend_data'], '2', 'the index and nothing else - the 4096-char cap can never bite');
+  assert.equal(store['cmi.core.lesson_location'], '2');
   assert.equal(store['cmi.core.lesson_status'], 'completed');
   assert.equal(w.LollyScorm.resumeIndex(), 2);
 
@@ -229,6 +231,32 @@ test('SCORM 1.2: findAPI walks up to window.API, and completion lands on the las
   assert.ok((listeners['unload'] ?? []).length + (listeners['pagehide'] ?? []).length >= 2);
   listeners['pagehide']![0]!();
   assert.match(store['cmi.core.session_time']!, /^\d{4}:\d{2}:\d{2}\.\d{2}$/, "1.2's HHHH:MM:SS.SS");
+  assert.equal(store['cmi.core.exit'], '', 'a finished deck leaves normally');
+});
+
+test('SCORM 1.2: a deck left mid-way exits as suspend, so the next launch resumes at the bookmark', () => {
+  const { api, store } = fakeApi('LMS');
+  const { win: w, listeners } = mountAdapter((root) => { root.API = api; return root; });
+  assert.equal(w.LollyScorm.initialize(), true);
+  w.LollyScorm.setSlide(1, 4);
+  listeners['pagehide']![0]!();
+  assert.equal(store['cmi.core.exit'], 'suspend', 'left on slide 2 of 4');
+  assert.equal(store['cmi.core.lesson_status'], 'incomplete');
+  assert.equal(store['cmi.core.lesson_location'], '1');
+  assert.equal(store['cmi.suspend_data'], '1');
+
+  // The next launch: the LMS has kept the data, and a course already completed on an
+  // earlier visit exits normally even if this visit never reached the last slide.
+  const again = fakeApi('LMS');
+  again.store['cmi.core.lesson_status'] = 'completed';
+  again.store['cmi.suspend_data'] = '3';
+  const { win: w2, listeners: l2 } = mountAdapter((root) => { root.API = again.api; return root; });
+  assert.equal(w2.LollyScorm.initialize(), true);
+  assert.equal(w2.LollyScorm.resumeIndex(), 3, 'resumes at the bookmark');
+  assert.equal(again.store['cmi.core.lesson_status'], 'completed', 'a completed status is never moved backwards');
+  w2.LollyScorm.setSlide(0, 4);
+  l2['pagehide']![0]!();
+  assert.equal(again.store['cmi.core.exit'], '', 'still a normal exit');
 });
 
 test('session_time rounds to centiseconds ONCE, so it can never carry three digits', () => {
@@ -275,6 +303,8 @@ test('SCORM 2004: the same adapter finds API_1484_11 and speaks the other data m
   w.LollyScorm.setSlide(1, 2);
   assert.equal(store['cmi.completion_status'], 'completed');
   assert.equal(store['cmi.core.lesson_status'], undefined, "1.2's key is never written in 2004");
+  assert.equal(store['cmi.core.lesson_location'], undefined);
+  assert.equal(store['cmi.location'], '1', 'the 2004 bookmark field instead');
   w.LollyScorm.finish();
   assert.match(store['cmi.session_time']!, /^PT[0-9HMS.]+S$/, '2004 wants an ISO 8601 duration');
   // No score and no success_status: this deck asks no questions.

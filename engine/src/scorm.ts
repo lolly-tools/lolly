@@ -226,9 +226,14 @@ export function scormManifest(version: ScormVersion, opts: ScormManifestOpts): s
  * (the top window's parent is itself) is an infinite loop without one.
  *
  * What it reports is deliberately small. Completion on the last slide, session time on
- * exit, and the slide index in `suspend_data` so a learner resumes where they stopped.
- * Only the index: 1.2 caps `suspend_data` at 4096 characters and 2004 at 64000, and a
- * package that stores nothing but a number can never meet either ceiling.
+ * exit, and the slide index in `suspend_data` (and in the bookmark field,
+ * `cmi.core.lesson_location`, which is what an LMS report shows an administrator) so a
+ * learner resumes where they stopped. Only the index: 1.2 caps `suspend_data` at 4096
+ * characters and 2004 at 64000, and a package that stores nothing but a number can never
+ * meet either ceiling. On the way out the adapter says WHY it left: `cmi.core.exit` is
+ * `suspend` for a deck left mid-way (so the LMS opens the next launch as a resume and
+ * keeps the bookmark) and empty for one that was finished - a SCO that terminates
+ * without saying so is, to a strict LMS, an attempt that simply ended.
  *
  * No score and no `success_status`: this deck asks no questions, and claiming a pass the
  * learner never earned would be a lie told to their training record.
@@ -243,6 +248,7 @@ export function scormAdapterJs(): string {
   var is2004 = false;
   var started = false;
   var finished = false;
+  var completed = false;
   var startedAt = 0;
 
   function scanWindow(win) {
@@ -314,6 +320,7 @@ export function scormAdapterJs(): string {
     /* Anything but 'completed'/'passed' may be overwritten; an LMS that already has one
        keeps it, which is why this only ever moves 'not attempted' forward. */
     var status = get(is2004 ? 'cmi.completion_status' : 'cmi.core.lesson_status');
+    completed = status === 'completed' || status === 'passed';
     if (!is2004 && (!status || status === 'not attempted')) set('cmi.core.lesson_status', 'incomplete');
     if (is2004 && (!status || status === 'unknown')) set('cmi.completion_status', 'incomplete');
     commit();
@@ -329,7 +336,11 @@ export function scormAdapterJs(): string {
   function setSlide(index, count) {
     if (!api) return;
     set('cmi.suspend_data', String(index));
+    /* The bookmark, in the field an LMS shows for it. The same number as suspend_data,
+       so the two can never disagree about where the learner is. */
+    set(is2004 ? 'cmi.location' : 'cmi.core.lesson_location', String(index));
     if (count > 0 && index >= count - 1) {
+      completed = true;
       set(is2004 ? 'cmi.completion_status' : 'cmi.core.lesson_status', 'completed');
     }
     commit();
@@ -340,6 +351,9 @@ export function scormAdapterJs(): string {
     finished = true;
     var secs = Math.max(0, (Date.now() - startedAt) / 1000);
     set(is2004 ? 'cmi.session_time' : 'cmi.core.session_time', sessionTime(secs));
+    /* Left mid-deck: 'suspend', so the LMS opens the next launch as a resume and keeps the
+       bookmark. Finished: the normal exit ('' in 1.2, 'normal' in 2004). */
+    set(is2004 ? 'cmi.exit' : 'cmi.core.exit', completed ? (is2004 ? 'normal' : '') : 'suspend');
     commit();
     call('LMSFinish', 'Terminate', ['']);
   }
