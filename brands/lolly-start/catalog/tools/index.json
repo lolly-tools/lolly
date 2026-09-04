@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-04T08:33:36.773Z",
+  "generatedAt": "2026-09-04T09:10:25.423Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -10953,7 +10953,7 @@
       "id": "work-avatar",
       "name": "Work Avatar",
       "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [

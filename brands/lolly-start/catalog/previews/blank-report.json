@@ -3858,19 +3858,19 @@
     },
     {
       "file": "work-avatar.look0.svg",
-      "bytes": 27067,
-      "sha": "4d25e4ef175a5698",
-      "stddev": 65.83,
-      "inkRatio": 0.6591,
+      "bytes": 28204,
+      "sha": "912d3fc4ec7aac4c",
+      "stddev": 64.655,
+      "inkRatio": 0.63776,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 65.83,
-          "inkRatio": 0.6591
+          "stddev": 64.655,
+          "inkRatio": 0.63776
         },
         "black": {
-          "stddev": 65.83,
-          "inkRatio": 0.6591
+          "stddev": 64.655,
+          "inkRatio": 0.63776
         }
       },
       "blank": false,
@@ -3878,19 +3878,19 @@
     },
     {
       "file": "work-avatar.look1.svg",
-      "bytes": 22039,
-      "sha": "ac1e3734c4f144b3",
-      "stddev": 54.946,
-      "inkRatio": 0.59296,
+      "bytes": 23226,
+      "sha": "dbe088ca98e123ae",
+      "stddev": 53.545,
+      "inkRatio": 0.57048,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 54.946,
-          "inkRatio": 0.59296
+          "stddev": 53.545,
+          "inkRatio": 0.57048
         },
         "black": {
-          "stddev": 54.946,
-          "inkRatio": 0.59296
+          "stddev": 53.545,
+          "inkRatio": 0.57048
         }
       },
       "blank": false,
@@ -3898,19 +3898,19 @@
     },
     {
       "file": "work-avatar.look2.svg",
-      "bytes": 30108,
-      "sha": "1c259f2c7022288d",
-      "stddev": 91.153,
-      "inkRatio": 0.68417,
+      "bytes": 27513,
+      "sha": "78fd3e0c02188d32",
+      "stddev": 90.914,
+      "inkRatio": 0.70659,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 91.153,
-          "inkRatio": 0.68417
+          "stddev": 90.914,
+          "inkRatio": 0.70659
         },
         "black": {
-          "stddev": 91.153,
-          "inkRatio": 0.68417
+          "stddev": 90.914,
+          "inkRatio": 0.70659
         }
       },
       "blank": false,
@@ -3918,19 +3918,19 @@
     },
     {
       "file": "work-avatar.look3.svg",
-      "bytes": 28126,
-      "sha": "bec4a8ff5ff24193",
-      "stddev": 91.514,
-      "inkRatio": 0.68417,
+      "bytes": 25531,
+      "sha": "2061a149dafbd572",
+      "stddev": 91.274,
+      "inkRatio": 0.70659,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 91.514,
-          "inkRatio": 0.68417
+          "stddev": 91.274,
+          "inkRatio": 0.70659
         },
         "black": {
-          "stddev": 91.514,
-          "inkRatio": 0.68417
+          "stddev": 91.274,
+          "inkRatio": 0.70659
         }
       },
       "blank": false,
@@ -3938,19 +3938,19 @@
     },
     {
       "file": "work-avatar.svg",
-      "bytes": 27067,
-      "sha": "a33a66bb6fa2b3c1",
-      "stddev": 65.83,
-      "inkRatio": 0.6591,
+      "bytes": 28204,
+      "sha": "cc4935aff892f91a",
+      "stddev": 64.655,
+      "inkRatio": 0.63776,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 65.83,
-          "inkRatio": 0.6591
+          "stddev": 64.655,
+          "inkRatio": 0.63776
         },
         "black": {
-          "stddev": 65.83,
-          "inkRatio": 0.6591
+          "stddev": 64.655,
+          "inkRatio": 0.63776
         }
       },
       "blank": false,
