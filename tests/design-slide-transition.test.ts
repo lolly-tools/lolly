@@ -149,19 +149,27 @@ const webSrc = (rel: string): string => readFileSync(
   join(dirname(fileURLToPath(import.meta.url)), '..', 'shells', 'web', 'src', rel), 'utf8',
 );
 
-test('the doc-level transition reaches the presenter unflattened, `flight` included', () => {
+test('the doc-level transition reaches the presenter unflattened - the allowed set is the manifest\'s own', () => {
   const src = webSrc('views/tool.ts');
-  const call = /transition: transitionVal ===[\s\S]{0,300}?,\n/.exec(src)?.[0] ?? '';
-  assert.ok(call, 'openPresentMode must still resolve the doc transition here');
-  for (const kind of ['morph', 'fade', 'flight']) {
-    assert.ok(call.includes(`'${kind}'`), `${kind} is offered by the manifest and must survive the whitelist`);
-  }
-  // Every value the manifest offers, so a new option cannot be silently downgraded again.
+  // The resolution used to be a literal whitelist, and `flight` was lost from it once. It is
+  // now derived from the manifest's `transition` input (plans/184 R6), so what is asserted is
+  // the derivation and its use, not a list that has to be kept in step by hand.
+  const derive = /const deckTransitionOptions = [\s\S]{0,500}?i\.id === 'transition'[\s\S]{0,300}?options/.exec(src)?.[0] ?? '';
+  assert.ok(derive, 'the allowed set is read off the manifest `transition` input, not a literal list');
+  const call = /transition: deckTransitionOptions\(\)\.has\(transitionVal\)[^\n]*\n/.exec(src)?.[0] ?? '';
+  assert.ok(call, 'openPresentMode must resolve the doc transition through that set');
+  assert.doesNotMatch(call, /=== 'morph' \|\|/, 'no literal whitelist beside the derived one');
+  // Every value the manifest offers is a kind the presenter implements - the other half of
+  // "nothing offered is silently downgraded": the presenter has to know the word.
   const manifest = JSON.parse(readFileSync(join(PACK_DIR, 'design', 'tool.json'), 'utf8'));
   const offered: string[] = (manifest.inputs.find((i: any) => i.id === 'transition')?.options ?? [])
     .map((o: any) => String(o.value));
+  for (const kind of ['morph', 'fade', 'flight', 'slide']) {
+    assert.ok(offered.includes(kind), `${kind} is still offered by the manifest`);
+  }
+  const presenter = webSrc('views/present-mode.ts');
   for (const v of offered) {
-    assert.ok(call.includes(`'${v}'`), `the sidebar offers "${v}" - the presenter must be told about it`);
+    assert.ok(presenter.includes(`'${v}'`), `the sidebar offers "${v}" - the presenter must implement it`);
   }
 });
 
