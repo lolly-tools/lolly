@@ -3858,19 +3858,19 @@
     },
     {
       "file": "work-avatar.look0.svg",
-      "bytes": 28204,
-      "sha": "912d3fc4ec7aac4c",
-      "stddev": 64.655,
-      "inkRatio": 0.63776,
+      "bytes": 28240,
+      "sha": "d97e9bce4b6a72f9",
+      "stddev": 58.695,
+      "inkRatio": 0.63779,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 64.655,
-          "inkRatio": 0.63776
+          "stddev": 58.695,
+          "inkRatio": 0.63779
         },
         "black": {
-          "stddev": 64.655,
-          "inkRatio": 0.63776
+          "stddev": 58.695,
+          "inkRatio": 0.63779
         }
       },
       "blank": false,
@@ -3878,19 +3878,19 @@
     },
     {
       "file": "work-avatar.look1.svg",
-      "bytes": 23226,
-      "sha": "dbe088ca98e123ae",
-      "stddev": 53.545,
-      "inkRatio": 0.57048,
+      "bytes": 23262,
+      "sha": "f83ae805efc97020",
+      "stddev": 48.84,
+      "inkRatio": 0.57054,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 53.545,
-          "inkRatio": 0.57048
+          "stddev": 48.84,
+          "inkRatio": 0.57054
         },
         "black": {
-          "stddev": 53.545,
-          "inkRatio": 0.57048
+          "stddev": 48.84,
+          "inkRatio": 0.57054
         }
       },
       "blank": false,
@@ -3938,19 +3938,19 @@
     },
     {
       "file": "work-avatar.svg",
-      "bytes": 28204,
-      "sha": "cc4935aff892f91a",
-      "stddev": 64.655,
-      "inkRatio": 0.63776,
+      "bytes": 28240,
+      "sha": "16a8d164bd9e666c",
+      "stddev": 58.695,
+      "inkRatio": 0.63779,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 64.655,
-          "inkRatio": 0.63776
+          "stddev": 58.695,
+          "inkRatio": 0.63779
         },
         "black": {
-          "stddev": 64.655,
-          "inkRatio": 0.63776
+          "stddev": 58.695,
+          "inkRatio": 0.63779
         }
       },
       "blank": false,
