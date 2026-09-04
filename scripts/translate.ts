@@ -141,7 +141,11 @@ function walkFiles(dir: string, out: string[]): string[] {
   return out;
 }
 
-const T_CALL_RE = /(^|[^A-Za-z0-9_$.])t\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g;
+// `t(` AND `tRaw(`: both resolve the same catalogue (shells/web/src/i18n.ts interpolate),
+// tRaw only skips param escaping - so a tRaw literal is a key like any other. Until
+// 2026-09-04 only `t(` was scanned, and every tRaw sentence (file-import refusals and
+// the like) shipped English in all 26 locales without ever reporting as pending.
+const T_CALL_RE = /(^|[^A-Za-z0-9_$.])t(?:Raw)?\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g;
 
 function extractSpaKeys(): string[] {
   const srcDir = join(REPO_ROOT, 'shells', 'web', 'src');
