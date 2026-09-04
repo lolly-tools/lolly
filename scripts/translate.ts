@@ -1314,7 +1314,7 @@ async function exportPending(corpusIds: string[], langs: Lang[], cache: Cache, g
     }
   }
   console.log(`\nExported ${items} string(s) across ${files} file(s) to ${relative(REPO_ROOT, dir)}.`);
-  console.log('Translate each file\'s `items[].text`, keeping `id`, then: npm run translate -- --import <dir-or-file>');
+  console.log('Add a `translations` array to each file - one {id, text} per item, ids as in `items`, text in the target language (leave `items` as the English source) - then: npm run translate -- --import <dir-or-file>');
 }
 
 /**
