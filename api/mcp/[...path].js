@@ -36812,6 +36812,7 @@ function scormAdapterJs() {
   var is2004 = false;
   var started = false;
   var finished = false;
+  var completed = false;
   var startedAt = 0;
 
   function scanWindow(win) {
@@ -36883,6 +36884,7 @@ function scormAdapterJs() {
     /* Anything but 'completed'/'passed' may be overwritten; an LMS that already has one
        keeps it, which is why this only ever moves 'not attempted' forward. */
     var status = get(is2004 ? 'cmi.completion_status' : 'cmi.core.lesson_status');
+    completed = status === 'completed' || status === 'passed';
     if (!is2004 && (!status || status === 'not attempted')) set('cmi.core.lesson_status', 'incomplete');
     if (is2004 && (!status || status === 'unknown')) set('cmi.completion_status', 'incomplete');
     commit();
@@ -36898,7 +36900,11 @@ function scormAdapterJs() {
   function setSlide(index, count) {
     if (!api) return;
     set('cmi.suspend_data', String(index));
+    /* The bookmark, in the field an LMS shows for it. The same number as suspend_data,
+       so the two can never disagree about where the learner is. */
+    set(is2004 ? 'cmi.location' : 'cmi.core.lesson_location', String(index));
     if (count > 0 && index >= count - 1) {
+      completed = true;
       set(is2004 ? 'cmi.completion_status' : 'cmi.core.lesson_status', 'completed');
     }
     commit();
@@ -36909,6 +36915,9 @@ function scormAdapterJs() {
     finished = true;
     var secs = Math.max(0, (Date.now() - startedAt) / 1000);
     set(is2004 ? 'cmi.session_time' : 'cmi.core.session_time', sessionTime(secs));
+    /* Left mid-deck: 'suspend', so the LMS opens the next launch as a resume and keeps the
+       bookmark. Finished: the normal exit ('' in 1.2, 'normal' in 2004). */
+    set(is2004 ? 'cmi.exit' : 'cmi.core.exit', completed ? (is2004 ? 'normal' : '') : 'suspend');
     commit();
     call('LMSFinish', 'Terminate', ['']);
   }
