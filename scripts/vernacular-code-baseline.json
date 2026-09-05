@@ -458,7 +458,6 @@
   "tests/design-gradient.test.ts": 1,
   "tests/design-map.test.ts": 1,
   "tests/design-path.test.ts": 2,
-  "tests/design-sequence.test.ts": 1,
   "tests/design-version.test.ts": 5,
   "tests/docs-claims.test.ts": 4,
   "tests/docs-logos.test.ts": 1,
