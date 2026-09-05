@@ -58760,7 +58760,7 @@ function uniq(items) {
   return [...new Set(items.filter(Boolean))];
 }
 function bytesLabel(n2) {
-  if (!isFinite(n2) || n2 < 0) return "";
+  if (!Number.isFinite(n2) || n2 < 0) return "";
   if (n2 < 1024) return `${n2} B`;
   if (n2 < 1024 * 1024) return `${(n2 / 1024).toFixed(n2 < 10 * 1024 ? 1 : 0)} KB`;
   return `${(n2 / (1024 * 1024)).toFixed(1)} MB`;
@@ -58849,7 +58849,7 @@ function walkAction(ctx, action, sink, seen, depth = 0) {
   switch (nameOf(ctx, d.get(PDFName.of("S")))) {
     case "JavaScript": {
       const js = scriptText(ctx, d.get(PDFName.of("JS")));
-      if (js && js.trim()) sink.scripts.push(js);
+      if (js?.trim()) sink.scripts.push(js);
       break;
     }
     case "URI": {
@@ -59419,7 +59419,7 @@ var INFO_FIELDS = [
 ];
 function isoDate2(d) {
   try {
-    return d instanceof Date && !isNaN(d) ? d.toISOString().slice(0, 10) : null;
+    return d instanceof Date && !Number.isNaN(Number(d)) ? d.toISOString().slice(0, 10) : null;
   } catch {
     return null;
   }
@@ -59485,7 +59485,7 @@ async function analyzePdf(bytes) {
 async function stripPdf(bytes) {
   const { PDFDocument: PDFDocument2, PDFName: PDFName3 } = await import("pdf-lib");
   const doc = await PDFDocument2.load(bytes, PDF_LOAD_OPTS);
-  const infoRef = doc.context.trailerInfo && doc.context.trailerInfo.Info;
+  const infoRef = doc.context.trailerInfo?.Info;
   if (infoRef) {
     let info;
     try {
@@ -59512,7 +59512,7 @@ var COMPRESS_LEVELS = {
 var MIN_IMAGE_BYTES = 12 * 1024;
 function clampNum(v, lo, hi, dflt) {
   const n2 = Number(v);
-  return isFinite(n2) ? Math.min(hi, Math.max(lo, n2)) : dflt;
+  return Number.isFinite(n2) ? Math.min(hi, Math.max(lo, n2)) : dflt;
 }
 function compressParams(opts = {}) {
   const base = COMPRESS_LEVELS[opts.level] || COMPRESS_LEVELS.balanced;
@@ -59585,8 +59585,8 @@ async function compressPdf(bytes, opts = {}) {
   if (hasImageCodec()) {
     const maskRefs = /* @__PURE__ */ new Set();
     for (const [, obj] of doc.context.enumerateIndirectObjects()) {
-      const d = obj && obj.dict;
-      if (!d || !d.get) continue;
+      const d = obj?.dict;
+      if (!d?.get) continue;
       for (const key of ["SMask", "Mask"]) {
         const ref = String(d.get(PDFName3.of(key)) ?? "");
         if (/^\d+ \d+ R$/.test(ref)) maskRefs.add(ref);
@@ -59596,7 +59596,7 @@ async function compressPdf(bytes, opts = {}) {
       if (maskRefs.has(String(ref))) continue;
       if (!(obj.contents instanceof Uint8Array)) continue;
       const dict = obj.dict;
-      if (!dict || !dict.get) continue;
+      if (!dict?.get) continue;
       const sub = dict.get(PDFName3.of("Subtype"));
       if (!sub || !String(sub).includes("Image")) continue;
       const filter = dict.get(PDFName3.of("Filter"));
@@ -59885,7 +59885,7 @@ init_src2();
 init_css_box();
 
 // packages/node-shell/src/text-svg.ts
-function canVectoriseText(style, fontUrl, hasTextApi) {
+function canVectoriseText(_style, fontUrl, hasTextApi) {
   return Boolean(hasTextApi && fontUrl);
 }
 function featureSettingsToHb(value) {
@@ -59989,8 +59989,7 @@ function matMul5(m2, n2) {
 function parseTransformList(str7) {
   let m2 = IDENTITY4;
   const re = /(matrix|translate|scale|rotate|skewX|skewY)\s*\(([^)]*)\)/gi;
-  let hit;
-  while (hit = re.exec(str7)) {
+  for (const hit of str7.matchAll(re)) {
     const fn = (hit[1] ?? "").toLowerCase();
     const a = (hit[2] ?? "").split(/[\s,]+/).map(parseFloat).filter((n2) => !Number.isNaN(n2));
     const g2 = (i, d) => {
@@ -60093,7 +60092,7 @@ function parseSvgDropShadow(filt) {
   const off = find("feoffset");
   const flood = find("feflood");
   let rgb = flood ? parseColor2(flood.getAttribute("flood-color") ?? "#000") : null;
-  let alpha = flood ? num7(flood, "flood-opacity", 1) : 1;
+  const alpha = flood ? num7(flood, "flood-opacity", 1) : 1;
   if (!flood) {
     if (kids.includes("fecolormatrix")) return null;
     rgb = [0, 0, 0];
@@ -60239,7 +60238,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
       for (const child of el.children || []) await visit(child, t, inherited);
       return;
     }
-    if (!d || !d.trim()) return;
+    if (!d.trim()) return;
     const fillStr = forceStrokeOnly ? "none" : prop(el, style, "fill", inherited) ?? "black";
     const strokeStr = prop(el, style, "stroke", inherited) ?? "none";
     const fillOp = elemOpacity * parseFloat(prop(el, style, "fill-opacity", inherited) ?? "1");
