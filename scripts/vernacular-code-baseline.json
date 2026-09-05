@@ -404,7 +404,7 @@
   "shells/web/src/views/template-chooser.ts": 1,
   "shells/web/src/views/timeline-math.ts": 16,
   "shells/web/src/views/timeline-panel.test.ts": 13,
-  "shells/web/src/views/timeline-panel.ts": 34,
+  "shells/web/src/views/timeline-panel.ts": 33,
   "shells/web/src/views/timeline-video-matte.test.ts": 1,
   "shells/web/src/views/tool-actions.test.ts": 1,
   "shells/web/src/views/tool-actions.ts": 2,
