@@ -49,7 +49,7 @@
     "test:conformance": "node scripts/run-test-suite.ts conformance",
     "test:shards": "node scripts/run-test-suite.ts all --list",
     "check:skip-identities": "node scripts/check-skip-identities.ts",
-    "test:fuzz:regression": "node --import ./tests/css-stub.mjs --test tests/fuzz-regression.test.ts",
+    "test:fuzz:regression": "node scripts/run-test-suite.ts fuzz:regression",
     "test:fuzz:soak": "node tests/fuzz/run.ts",
     "typecheck": "tsc -p packages/core && tsc -p packages/node-shell && tsc -p engine && tsc -p shells/web && tsc -p shells/web/tsconfig.tests.json && tsc -p shells/cli && tsc -p shells/tui && tsc -p shells/tauri-shared && tsc -p tests && tsc -p scripts && tsc -p services/mcp && npm run typecheck:tauri",
     "typecheck:tauri": "node scripts/typecheck-tauri.ts",

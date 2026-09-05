@@ -106,7 +106,7 @@ test('file digests in the payload path round-trip; a reader can list them (if av
 
   let bsdtar = false;
   try { execFileSync('bsdtar', ['--version'], { stdio: 'ignore' }); bsdtar = true; } catch { /* skip */ }
-  if (!bsdtar) { t.skip('no bsdtar'); return; }
+  if (!bsdtar) { t.skip('no bsdtar executable on this runner'); return; }
   const dir = mkdtempSync(join(tmpdir(), 'lolly-rpm-'));
   try {
     const p = join(dir, 'payload.cpio');

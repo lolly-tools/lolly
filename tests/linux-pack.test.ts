@@ -69,7 +69,7 @@ test('font pack installs under /usr/share/fonts/<foundry> and is deterministic',
     foundry: 'acme', fonts: [{ name: 'Acme-Regular.ttf', data: enc('FAKE-TTF') }, { name: 'Acme-Bold.ttf', data: enc('FAKE-TTF-BOLD') }],
   })), 'deterministic');
 
-  if (!haveBsdtar()) { t.skip('no bsdtar'); return; }
+  if (!haveBsdtar()) { t.skip('no bsdtar executable on this runner'); return; }
   const paths = payloadPaths(rpm);
   assert.ok(paths.includes('./usr/share/fonts/acme/Acme-Regular.ttf'), 'regular font placed');
   assert.ok(paths.includes('./usr/share/fonts/acme/Acme-Bold.ttf'), 'bold font placed');
@@ -82,7 +82,7 @@ test('app-icons pack lands scalable SVG + desktop entry', async (t) => {
     icons: [{ id: 'org.acme.App', svg: enc('<svg/>') }],
     desktopEntries: [{ id: 'org.acme.App', data: enc('[Desktop Entry]\nName=Acme\nExec=acme\nIcon=org.acme.App\nType=Application\n') }],
   });
-  if (!haveBsdtar()) { t.skip('no bsdtar'); return; }
+  if (!haveBsdtar()) { t.skip('no bsdtar executable on this runner'); return; }
   const paths = payloadPaths(rpm);
   assert.ok(paths.includes('./usr/share/icons/hicolor/scalable/apps/org.acme.App.svg'), 'scalable icon');
   assert.ok(paths.includes('./usr/share/applications/org.acme.App.desktop'), 'desktop entry');
@@ -97,7 +97,7 @@ test('buildHomeTarball strips leading / and is a readable .tar.gz', (t) => {
   assert.equal(targz[0], 0x1f); assert.equal(targz[1], 0x8b);
   const tar = new Uint8Array(gunzipSync(Buffer.from(targz)));
   assert.equal(tar.length % 512, 0, 'a whole number of tar blocks');
-  if (!haveBsdtar()) { t.skip('no bsdtar'); return; }
+  if (!haveBsdtar()) { t.skip('no bsdtar executable on this runner'); return; }
   const dir = mkdtempSync(join(tmpdir(), 'lolly-tgz-'));
   try {
     const p = join(dir, 'home.tar.gz'); writeFileSync(p, targz);
@@ -111,7 +111,7 @@ test('packageRender wraps one render at dest/filename', async (t) => {
     bytes: enc('<svg/>'), filename: 'hero.svg', dest: '/usr/share/backgrounds/acme/',
     meta: { ...META, name: 'acme-wallpapers', summary: 'Acme wallpapers', license: 'CC-BY-4.0' },
   });
-  if (!haveBsdtar()) { t.skip('no bsdtar'); return; }
+  if (!haveBsdtar()) { t.skip('no bsdtar executable on this runner'); return; }
   assert.ok(payloadPaths(rpm).includes('./usr/share/backgrounds/acme/hero.svg'));
 });
 
@@ -121,6 +121,6 @@ test('generic pack ships files verbatim', async (t) => {
     meta: { ...META, name: 'acme-data', summary: 'Acme data' },
     files: [{ path: '/usr/share/acme/data.json', data: enc('{}') }],
   });
-  if (!haveBsdtar()) { t.skip('no bsdtar'); return; }
+  if (!haveBsdtar()) { t.skip('no bsdtar executable on this runner'); return; }
   assert.ok(payloadPaths(rpm).includes('./usr/share/acme/data.json'));
 });

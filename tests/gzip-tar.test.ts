@@ -162,7 +162,7 @@ test('packTar rejects an over-long name', () => {
 test('a system tar can list and extract our archive (if available)', (t) => {
   let tarBin = '';
   try { execFileSync('tar', ['--version'], { stdio: 'ignore' }); tarBin = 'tar'; }
-  catch { t.skip('no system tar'); return; }
+  catch { t.skip('no system tar executable on this runner'); return; }
 
   const files: TarFile[] = [
     { name: 'hello.txt', data: enc('hello from lolly') },
@@ -188,7 +188,7 @@ test('a system tar can list and extract our archive (if available)', (t) => {
 
 test('.tar.gz round-trips through gzip + a system tar (if available)', (t) => {
   try { execFileSync('tar', ['--version'], { stdio: 'ignore' }); }
-  catch { t.skip('no system tar'); return; }
+  catch { t.skip('no system tar executable on this runner'); return; }
   const files: TarFile[] = [{ name: 'readme.md', data: enc('# Lolly\n'.repeat(100)) }];
   const targz = gzip(packTar(files));
   // Our own gunzip recovers the tar; a system tar can also read the .tar.gz.

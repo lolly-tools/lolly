@@ -75,7 +75,7 @@ test('a system reader can list + extract our cpio (if available)', (t) => {
   for (const [bin, arg] of [['bsdtar', '--version'], ['cpio', '--version']] as const) {
     try { execFileSync(bin, [arg], { stdio: 'ignore' }); reader = bin as 'bsdtar' | 'cpio'; break; } catch { /* next */ }
   }
-  if (!reader) { t.skip('no bsdtar or cpio'); return; }
+  if (!reader) { t.skip('no bsdtar or cpio executable on this runner'); return; }
 
   const files: CpioFile[] = [
     { name: './hello.txt', data: enc('hello from lolly') },
