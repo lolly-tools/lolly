@@ -3194,6 +3194,41 @@
       "reason": "no ImageMagick binary",
       "capability": "external-tool",
       "owner": "tests"
+    },
+    {
+      "file": "tests/file-batch-history.browser.test.ts",
+      "fullName": "durable batches preserve failures, unread cancellations, quota failures and crash windows across reload and backup",
+      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/file-result-reuse.browser.test.ts",
+      "fullName": "real UI reuses exact result bytes in the library, a new design and another conversion",
+      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/file-history.browser.test.ts",
+      "fullName": "portable file history: two-device restore, immutable collisions, orphan recovery and mobile storage UI",
+      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/file-history.browser.test.ts",
+      "fullName": "built application backs up and restores a converted copy through the real UI",
+      "reason": "no built web shell origin (set LOLLY_PRODUCTION_TEST_URL, browser-driven)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/file-conversion.browser.test.ts",
+      "fullName": "Convert: mobile/desktop, output bytes, receipts, collision-safe batches and failure retention",
+      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
+      "capability": "browser",
+      "owner": "tests"
     }
   ]
 }

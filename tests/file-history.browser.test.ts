@@ -6,7 +6,7 @@ import { readFile } from 'node:fs/promises';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 
 const origin = process.env.LOLLY_CONVERT_TEST_URL;
-test('portable file history: two-device restore, immutable collisions, orphan recovery and mobile storage UI', { skip: !origin, timeout: 90_000 }, async () => {
+test('portable file history: two-device restore, immutable collisions, orphan recovery and mobile storage UI', { skip: origin ? false : 'no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)', timeout: 90_000 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
   const browser = await getBrowser();
   const source = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
@@ -139,7 +139,7 @@ test('portable file history: two-device restore, immutable collisions, orphan re
 });
 
 const productionOrigin = process.env.LOLLY_PRODUCTION_TEST_URL;
-test('built application backs up and restores a converted copy through the real UI', { skip: !productionOrigin, timeout: 60_000 }, async () => {
+test('built application backs up and restores a converted copy through the real UI', { skip: productionOrigin ? false : 'no built web shell origin (set LOLLY_PRODUCTION_TEST_URL, browser-driven)', timeout: 60_000 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(productionOrigin!).hostname));
   const browser = await getBrowser();
   const source = await browser.newContext(), target = await browser.newContext({ viewport: { width: 390, height: 844 } });

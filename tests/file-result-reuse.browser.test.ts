@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 
 const origin = process.env.LOLLY_CONVERT_TEST_URL;
-test('real UI reuses exact result bytes in the library, a new design and another conversion', { skip: !origin, timeout: 90_000 }, async () => {
+test('real UI reuses exact result bytes in the library, a new design and another conversion', { skip: origin ? false : 'no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)', timeout: 90_000 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
   const browser = await getBrowser(); const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   const page = await context.newPage(); const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));

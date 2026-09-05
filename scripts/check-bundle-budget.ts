@@ -76,7 +76,17 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 //   - bridge/capture-extension.ts's two-line "is the extension here?" probe split into
 //     bridge/capture-extension-probe.ts, so the boot-time impl choice no longer pulls the
 //     postMessage transport in behind it.
-const MAX_PRELOAD_JS_GZ = 135 * 1024;
+// 2026-09-05 (Lolly 1.0.7): the day's tree booted at 138.9. The accidental part was
+// bridge/assets.ts statically importing bridge/asset-history.ts, which dragged
+// core's whole image-operation module in behind a sha256 helper (-3.5: history is
+// now a lazy import and hashes locally; host.media.trim and host.audio.clean load
+// their implementations on demand too). The 0.4 that remains is first-paint
+// feature weight, argued here rather than diet-ed: the db upgrade that creates the
+// file-operation, asset-version and batch stores, the WKWebView Jelly gates in
+// lib/jelly.ts and components/view-toggle.ts, and two lazy asset-menu entries in
+// views/catalog.ts. Ceiling moved 135 -> 136 for exactly that; next growth needs
+// its own argument, not this note.
+const MAX_PRELOAD_JS_GZ = 136 * 1024;
 // -----------------------------------------------------------------------------
 
 function fail(msg: string): never {

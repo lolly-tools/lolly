@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 
 const origin = process.env.LOLLY_CONVERT_TEST_URL;
-test('durable batches preserve failures, unread cancellations, quota failures and crash windows across reload and backup', { skip: !origin, timeout: 90_000 }, async () => {
+test('durable batches preserve failures, unread cancellations, quota failures and crash windows across reload and backup', { skip: origin ? false : 'no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)', timeout: 90_000 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
   const browser = await getBrowser();
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });

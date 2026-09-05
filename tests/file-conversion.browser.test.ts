@@ -14,7 +14,7 @@ import { readZip } from '../engine/src/index.ts';
 import type { FileOperationReportV1 } from '../packages/core/src/file-v1.ts';
 
 const origin = process.env.LOLLY_CONVERT_TEST_URL;
-test('Convert: mobile/desktop, output bytes, receipts, collision-safe batches and failure retention', { skip: !origin, timeout: 90_000 }, async () => {
+test('Convert: mobile/desktop, output bytes, receipts, collision-safe batches and failure retention', { skip: origin ? false : 'no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)', timeout: 90_000 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname), 'browser test must target a local development server');
   const browser = await getBrowser();
   const errors: string[] = [];
