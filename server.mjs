@@ -2,7 +2,7 @@
 /**
  * Local dev server: `node services/ca/server.mjs` (default :8787 - the Vite
  * dev proxy forwards /api/ca here). Same handler Vercel runs; env comes from
- * the shell or `node --env-file=.env services/ca/server.mjs`.
+ * the shell or the repository's `npm run ca:dev` private-environment loader.
  */
 
 import { createServer } from 'node:http';

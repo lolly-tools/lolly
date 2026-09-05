@@ -20,9 +20,11 @@
  */
 
 import { buildAuthorizeUrl, configuredProviders, fetchVerifiedEmail, looksLikeEmail, OAUTH_PROVIDERS } from './lib/oidc.mjs';
+import { isIP } from 'node:net';
 import { mintEnrollToken, randomB64u, signValue, verifyValue } from './lib/tokens.mjs';
 import { completionPage, errorPage } from './lib/pages.mjs';
 import { enroll } from './lib/enroll.mjs';
+import { createRateLimiter, RateLimitUnavailableError } from './lib/rate-limit.mjs';
 
 const STATE_COOKIE = 'lolly_ca_state';
 const STATE_TTL_SECONDS = 600;
@@ -35,15 +37,11 @@ const ISOLATION_HEADERS = {
   'cross-origin-embedder-policy': 'credentialless',
 };
 const BODY_CAP = 64 * 1024;
+const RATE_WINDOW_MS = 60 * 1000;
 const STATE_TYP = 'lolly-ca/state'; // domain-separation tag (see tokens.mjs TOKEN_TYP)
 
-// Best-effort per-address magic-link cooldown. /api/ca/email/start dispatches a
-// real email to whatever (allowlisted-origin) caller asks, so an unauthenticated
-// loop could spam an inbox / burn the Resend quota. A warm-instance in-memory
-// map collapses repeats to one send per address per window. This is NOT a hard
-// limit (serverless instances aren't shared, and it resets on cold start) - real
-// rate limiting needs a durable KV/edge limiter; tracked as a follow-up. It does
-// stop the trivial single-process flood and is free. Belt: Resend's own limits.
+// Local belt beneath the durable limiter: collapse repeated sends to one address
+// inside a warm instance as well, before consuming provider quota.
 const EMAIL_COOLDOWN_MS = 60 * 1000;
 const lastEmailAt = new Map();
 function emailOnCooldown(email, now) {
@@ -55,15 +53,8 @@ function emailOnCooldown(email, now) {
   return prev !== undefined && now - prev < EMAIL_COOLDOWN_MS;
 }
 
-// Per-IP rate limit, in addition to the per-address cooldown above. The
-// per-address cooldown alone can't stop an attacker who walks a list of victim
-// addresses from one host - every address is "new", so each request passes. This
-// caps how many /email/start sends a single client IP (x-forwarded-for first
-// hop) can trigger inside a short window, blunting inbox-bombing / Resend-quota
-// burn. Same caveat as the cooldown: this is PER-INSTANCE / best-effort only -
-// serverless instances don't share this map and it resets on cold start, so it
-// only stops a single-process flood. Durable cross-instance limiting needs a
-// shared KV/edge limiter; tracked as a follow-up.
+// A second local belt caps address-list walking inside one warm instance. The
+// durable limiter below is authoritative across instances.
 const IP_WINDOW_MS = 60 * 1000;
 const IP_MAX_PER_WINDOW = 5;
 const ipHits = new Map();
@@ -229,13 +220,16 @@ export async function routeEmailStart(env, body, ip) {
 
 // ─── plumbing ─────────────────────────────────────────────────────────────────
 
-// The client IP for per-IP rate limiting: the x-forwarded-for FIRST hop (the
-// original client as seen by the edge/proxy), falling back to the socket peer
-// for the local/test path. Best-effort - a spoofed XFF only lets a caller widen
-// their own budget, and the per-address cooldown still applies.
-function clientIp(req) {
-  const xff = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-  return xff || req.socket?.remoteAddress || '';
+// Forwarded identity is trusted only through an explicitly enabled, exact
+// direct-proxy allowlist. This matches the MCP gateway: otherwise a caller can
+// mint rate-limit identities by sending arbitrary X-Forwarded-For values.
+function clientIp(req, env) {
+  const peer = req.socket?.remoteAddress || '';
+  if (env.CA_TRUST_PROXY !== '1') return peer;
+  const trusted = new Set(String(env.CA_TRUSTED_PROXIES || '').split(',').map((value) => value.trim()).filter(Boolean));
+  if (!trusted.has(peer)) return peer;
+  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  return isIP(forwarded) ? forwarded : peer;
 }
 
 function parseCookies(header) {
@@ -291,12 +285,37 @@ function writeResult(res, result, cors = {}) {
   res.end(body);
 }
 
-async function route(env, req, url, path) {
+const positiveInt = (raw, fallback) => {
+  const value = Number(raw);
+  return Number.isSafeInteger(value) && value > 0 ? value : fallback;
+};
+
+async function admission(limiter, scope, subject, limit) {
+  try {
+    const result = await limiter.consume(scope, subject || 'unknown', limit, RATE_WINDOW_MS);
+    return result.ok ? null : {
+      status: 429,
+      headers: { 'retry-after': String(result.retryAfter) },
+      json: { error: 'too many requests, please try again shortly' },
+    };
+  } catch (error) {
+    if (!(error instanceof RateLimitUnavailableError)) throw error;
+    return {
+      status: 503,
+      headers: { 'retry-after': '5' },
+      json: { error: 'request admission is temporarily unavailable' },
+    };
+  }
+}
+
+async function route(env, req, url, path, limiter) {
   const m = req.method;
   if (m === 'GET' && path === '/api/ca/health') return routeHealth(env);
   if (m === 'GET' && path === '/api/ca/root.pem') return routeRootPem(env);
   const auth = m === 'GET' && path.match(/^\/api\/ca\/auth\/([a-z0-9_-]+)$/);
   if (auth) {
+    const refusal = await admission(limiter, 'auth', clientIp(req, env), positiveInt(env.CA_AUTH_RPM, 30));
+    if (refusal) return refusal;
     return routeAuth(env, {
       provider: auth[1],
       origin: url.searchParams.get('origin'),
@@ -305,6 +324,8 @@ async function route(env, req, url, path) {
   }
   const cb = m === 'GET' && path.match(/^\/api\/ca\/callback\/([a-z0-9_-]+)$/);
   if (cb) {
+    const refusal = await admission(limiter, 'callback', clientIp(req, env), positiveInt(env.CA_AUTH_RPM, 30));
+    if (refusal) return refusal;
     return routeCallback(env, {
       provider: cb[1],
       query: Object.fromEntries(url.searchParams),
@@ -313,13 +334,22 @@ async function route(env, req, url, path) {
     });
   }
   if (m === 'POST' && (path === '/api/ca/email/start' || path === '/api/ca/enroll')) {
+    const ip = clientIp(req, env);
+    const routeLimit = path === '/api/ca/enroll'
+      ? positiveInt(env.CA_ENROLL_RPM, 30)
+      : positiveInt(env.CA_EMAIL_RPM, 5);
+    const refusal = await admission(limiter, path.endsWith('/enroll') ? 'enroll' : 'email-ip', ip, routeLimit);
+    if (refusal) return refusal;
     let body;
     try {
       body = await readJsonBody(req);
     } catch (err) {
       return { status: err.statusCode || 400, json: { error: err.message } };
     }
-    return path === '/api/ca/enroll' ? enroll(body || {}, env) : routeEmailStart(env, body || {}, clientIp(req));
+    if (path === '/api/ca/enroll') return enroll(body || {}, env);
+    const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : 'invalid';
+    const emailRefusal = await admission(limiter, 'email-address', email, positiveInt(env.CA_EMAIL_PER_ADDRESS_RPM, 1));
+    return emailRefusal ?? routeEmailStart(env, body || {}, ip);
   }
   return { status: 404, json: { error: 'not found' } };
 }
@@ -332,6 +362,7 @@ export function createCaHandler(env = process.env) {
   // serve a CA surface (health/root.pem/enroll) that can only dead-end; 404
   // every route so the endpoint cleanly doesn't exist.
   const caEnabled = !!(env.CA_SERVICE_SECRET || env.CA_ROOT_KEY_PEM);
+  const limiter = caEnabled ? createRateLimiter(env) : null;
   return async function caHandler(req, res) {
     try {
       const url = new URL(req.url, 'http://internal');
@@ -353,7 +384,7 @@ export function createCaHandler(env = process.env) {
         res.end();
         return;
       }
-      writeResult(res, await route(env, req, url, path), cors);
+      writeResult(res, await route(env, req, url, path, limiter), cors);
     } catch (err) {
       // Message only, never the error object: a stack or a fetch error can carry
       // the request URL, and enrollment URLs carry a short-lived (10-minute)
