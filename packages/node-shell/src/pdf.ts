@@ -49,7 +49,7 @@ const INFO_FIELDS: InfoField[] = [
 ];
 
 function isoDate(d: Date | undefined): string | null {
-  try { return d instanceof Date && !isNaN(d as unknown as number) ? d.toISOString().slice(0, 10) : null; }
+  try { return d instanceof Date && !Number.isNaN(Number(d)) ? d.toISOString().slice(0, 10) : null; }
   catch { return null; }
 }
 
@@ -118,7 +118,7 @@ export async function stripPdf(bytes: Uint8Array): Promise<{ bytes: Uint8Array }
   const doc = await PDFDocument.load(bytes, PDF_LOAD_OPTS);
 
   // Remove every entry in the Info dictionary (Author, Producer, dates, …).
-  const infoRef = doc.context.trailerInfo && doc.context.trailerInfo.Info;
+  const infoRef = doc.context.trailerInfo?.Info;
   if (infoRef) {
     let info: DictLike | null;
     try { info = doc.context.lookup(infoRef) as unknown as DictLike; } catch { info = null; }
@@ -155,7 +155,7 @@ const MIN_IMAGE_BYTES = 12 * 1024; // re-encoding anything tinier isn't worth it
 
 function clampNum(v: unknown, lo: number, hi: number, dflt: number): number {
   const n = Number(v);
-  return isFinite(n) ? Math.min(hi, Math.max(lo, n)) : dflt;
+  return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : dflt;
 }
 
 interface CompressParams {
@@ -264,8 +264,8 @@ export async function compressPdf(bytes: Uint8Array, opts: PdfCompressOpts = {})
     // Collect those target refs ("N G R") so the main pass skips them.
     const maskRefs = new Set<string>();
     for (const [, obj] of doc.context.enumerateIndirectObjects() as unknown as Array<[unknown, RawStreamLike]>) {
-      const d = obj && obj.dict;
-      if (!d || !d.get) continue;
+      const d = obj?.dict;
+      if (!d?.get) continue;
       for (const key of ['SMask', 'Mask']) {
         const ref = String(d.get(PDFName.of(key)) ?? '');
         if (/^\d+ \d+ R$/.test(ref)) maskRefs.add(ref); // a PDFRef; array (colour-key) /Mask ignored
@@ -277,7 +277,7 @@ export async function compressPdf(bytes: Uint8Array, opts: PdfCompressOpts = {})
       // Image XObjects are raw streams; content streams, fonts, etc. are skipped.
       if (!(obj.contents instanceof Uint8Array)) continue;
       const dict = obj.dict;
-      if (!dict || !dict.get) continue;
+      if (!dict?.get) continue;
 
       const sub = dict.get(PDFName.of('Subtype'));
       if (!sub || !String(sub).includes('Image')) continue;

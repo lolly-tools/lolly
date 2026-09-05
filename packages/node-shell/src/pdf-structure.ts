@@ -136,7 +136,7 @@ function uniq(items: string[]): string[] {
 }
 
 function bytesLabel(n: number): string {
-  if (!isFinite(n) || n < 0) return '';
+  if (!Number.isFinite(n) || n < 0) return '';
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(n < 10 * 1024 ? 1 : 0)} KB`;
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
@@ -310,7 +310,7 @@ function walkAction(ctx: PDFContext, action: Ref, sink: ActionSink, seen: Set<st
   switch (nameOf(ctx, d.get(PDFName.of('S')))) {
     case 'JavaScript': {
       const js = scriptText(ctx, d.get(PDFName.of('JS')));
-      if (js && js.trim()) sink.scripts.push(js);
+      if (js?.trim()) sink.scripts.push(js);
       break;
     }
     case 'URI': {

@@ -34,7 +34,7 @@
 import { parseSvgPath, parseColorToSrgb8 } from '@lolly/engine';
 import type { HostV1, TextPathResult } from '@lolly-tools/core/host-v1';
 import type { PathSegment } from '../../../engine/src/svg-path.ts';
-import type { VectorPathPrim, VectorImagePrim, VectorTextPrim, VectorPrim, Rgb } from '../../../engine/src/emf.ts';
+import type { VectorTextPrim, VectorPrim, Rgb } from '../../../engine/src/emf.ts';
 import { gaussianShadowRings } from '../../../engine/src/css-box.ts';
 import { canVectoriseText, featureSettingsToHb, letterSpacingPx } from './text-svg.ts';
 import type { FontStyleSlice } from './text-svg.ts';
@@ -158,8 +158,7 @@ function matMul(m: Mat, n: Mat): Mat {
 export function parseTransformList(str: string): Mat {
   let m = IDENTITY;
   const re = /(matrix|translate|scale|rotate|skewX|skewY)\s*\(([^)]*)\)/gi;
-  let hit: RegExpExecArray | null;
-  while ((hit = re.exec(str))) {
+  for (const hit of str.matchAll(re)) {
     const fn = (hit[1] ?? '').toLowerCase();
     const a = (hit[2] ?? '').split(/[\s,]+/).map(parseFloat).filter((n) => !Number.isNaN(n));
     const g = (i: number, d: number): number => { const v = a[i]; return typeof v === 'number' && Number.isFinite(v) ? v : d; };
@@ -351,7 +350,7 @@ export function parseSvgDropShadow(filt: Element): SvgDropShadow | null {
   // overwhelmingly common case and a wrong-coloured shadow is worse than none, so a
   // chain with a colour matrix but no flood is declined.
   let rgb: RgbTuple | null = flood ? parseColor(flood.getAttribute('flood-color') ?? '#000') : null;
-  let alpha = flood ? num(flood, 'flood-opacity', 1) : 1;
+  const alpha = flood ? num(flood, 'flood-opacity', 1) : 1;
   if (!flood) {
     if (kids.includes('fecolormatrix')) return null;
     rgb = [0, 0, 0];
@@ -511,7 +510,7 @@ export async function svgDomToIr(svgEl: Element, ctx: SvgIrContext = {}): Promis
     else if (tag === 'use') { warn('use elements are not supported (skipped)'); return; }
     else { for (const child of el.children || []) await visit(child, t, inherited); return; }
 
-    if (!d || !d.trim()) return;
+    if (!d.trim()) return;
 
     // paint
     const fillStr = forceStrokeOnly ? 'none' : (prop(el, style, 'fill', inherited) ?? 'black');

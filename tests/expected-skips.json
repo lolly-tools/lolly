@@ -3176,6 +3176,13 @@
     },
     {
       "file": "tests/rpm.test.ts",
+      "fullName": "a real rpm accepts the package (gated on $LOLLY_RPM_BIN)",
+      "reason": "set LOLLY_RPM_BIN to an rpm binary to run",
+      "capability": "external-tool",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rpm.test.ts",
       "fullName": "file digests in the payload path round-trip; a reader can list them (if available)",
       "reason": "no bsdtar executable on this runner",
       "capability": "external-tool",

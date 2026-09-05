@@ -377,6 +377,7 @@ test('the one-shot command path passes a tool URL and reads the file the app wro
   const dir = await mkdtemp(join(tmpdir(), 'lolly-desktop-fixture-'));
   const executable = join(dir, 'fake-lolly');
   try {
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: POSIX shell parameter expansion in the fixture script - the literal ${...} is what /bin/sh reads.
     await writeFile(executable, '#!/bin/sh\nout="${2#--output=}"\nprintf desktop-bytes > "$out"\n');
     await chmod(executable, 0o755);
     const result = await renderViaDesktopCommand(

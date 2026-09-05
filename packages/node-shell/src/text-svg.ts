@@ -99,7 +99,7 @@ export function resolveSuseFontUrl(style: FontStyleSlice): string | null {
   const family = (style.fontFamily || '').toLowerCase();
   if (!family.includes('suse')) return null;
   const mono = family.includes('mono');
-  const weight = parseInt(style.fontWeight ?? '') || 400;
+  const weight = parseInt(style.fontWeight ?? '', 10) || 400;
   const italic = style.fontStyle === 'italic' || style.fontStyle === 'oblique';
   return SUSE_FONT_DIR + suseFontFile(weight, italic, mono);
 }
@@ -111,7 +111,7 @@ export function resolveSuseFontUrl(style: FontStyleSlice): string | null {
  * into the shaped path via toPath's letterSpacing/features opts, so they no longer
  * force a fallback - outlined text stays outlined.
  */
-export function canVectoriseText(style: FontStyleSlice, fontUrl: string | null, hasTextApi: boolean): boolean {
+export function canVectoriseText(_style: FontStyleSlice, fontUrl: string | null, hasTextApi: boolean): boolean {
   return Boolean(hasTextApi && fontUrl);
 }
 
