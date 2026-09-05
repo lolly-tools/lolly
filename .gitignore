@@ -288,3 +288,6 @@ scripts/i18n/cache.json
 # Keep a private backup; nothing in any build or test path reads this directory.
 /appstore/
 deploy/models-host/models/
+
+# per-shard skip reports written by CI (tests/expected-skips.json is the committed truth)
+artifacts/
