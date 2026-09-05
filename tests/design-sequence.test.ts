@@ -15,8 +15,9 @@
  *     and each timed box carries data-t-start / data-t-dur / data-t-lane etc.
  *   - STILL → a doc with NO timed boxes stays a plain still artboard: ZERO data-sequence, ZERO
  *     data-t-*. Adding the video formats must not force motion onto a still doc.
- *   - The shipped "video" template is all-timed on a single artboard (NO kind:'frame' box) so it
- *     lands on the {{else}} branch and gets the marker.
+ *   - The shipped "video" template has one named frame, with every visual/timed child
+ *     attached to it, so the navigator opens on an honest scene instead of "No artboards".
+ *     Its frame wrapper still carries the sequence marker.
  */
 
 import { test } from 'node:test';
@@ -76,16 +77,22 @@ test('no timed boxes → still artboard: ZERO data-sequence, ZERO data-t-*', asy
   assert.ok(!/data-seq-ms/.test(html), 'no derived sequence length on a still doc');
 });
 
-// ── The shipped "video" template is all-timed on a single artboard ──────────────────
+// ── The shipped "video" template is a named, timed single scene ────────────────────
 
-test('the shipped "video" template seeds a single-artboard, all-timed sequence', async () => {
+test('the shipped "video" template seeds one named, all-timed scene', async () => {
   // Templates are per-file now (tools/<id>/templates/<tid>.json, not inline in tool.json).
   const video = JSON.parse(await fetchFile('design/templates/video.json'));
   assert.equal(video.id, 'video', 'the video template file exists and is self-identifying');
   const boxes = video.values?.boxes ?? [];
   assert.ok(Array.isArray(boxes) && boxes.length >= 2, 'the video template has multiple boxes');
-  // No kind:'frame' box - keeps frameGroups undefined so the {{else}} artboard carries the marker.
-  assert.ok(!boxes.some((b: any) => b.kind === 'frame'), 'no frame box (all-timed single artboard, not a paged doc)');
+  const frames = boxes.filter((b: any) => b.kind === 'frame');
+  assert.equal(frames.length, 1, 'one artboard - a scene, not a paged deck');
+  assert.equal(frames[0]?.id, 'scene1');
+  assert.equal(frames[0]?.name, 'Scene 1', 'the navigator starts with a meaningful scene name');
+  assert.ok(
+    boxes.filter((b: any) => b.kind !== 'frame').every((b: any) => b.frame === 'scene1'),
+    'every child belongs to the scene rather than leaking onto the pasteboard',
+  );
   // At least one timed clip on the seq lane with a real positive duration.
   assert.ok(
     boxes.some((b: any) => b.lane === 'seq' && Number(b.dur) > 0),
@@ -93,5 +100,5 @@ test('the shipped "video" template seeds a single-artboard, all-timed sequence',
   );
   // The seeded template actually produces the stage marker when mounted.
   const html = await mount(boxes);
-  assert.match(html, /class="artboard"[^>]*data-sequence/, 'the seeded video template stamps data-sequence');
+  assert.match(html, /class="lolly-frames"[^>]*data-sequence/, 'the seeded video scene stamps data-sequence');
 });

@@ -3741,7 +3741,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
-      "version": "1.23.0",
+      "version": "1.24.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -4029,6 +4029,12 @@
               "description": "9:16 for social stories."
             }
           ]
+        },
+        {
+          "id": "screencast",
+          "name": "YouTube screencast",
+          "category": "Video",
+          "description": "A 16:9 recording workspace. Record your screen, then trim, add captions, and export MP4."
         },
         {
           "id": "slide-deck",
