@@ -15,14 +15,10 @@ import type { ToolEntry } from './catalog.ts';
 // that declare these are hidden from the TUI gallery (they need a real device + UI).
 const HEADLESS_UNSUPPORTED = new Set(['microphone', 'camera']);
 
-// Utilities that transform a user's FILE (exportFile hook + a `file` input). They run in
-// Node, but need the TUI's file-path input to feed them - kept visible.
-const FILE_TOOLS = new Set(['strip-data', 'compress-pdf']);
-
 export type ToolSupport = 'ok' | 'needs-file' | 'browser-only';
 
 export function toolSupport(t: ToolEntry): ToolSupport {
-  if (FILE_TOOLS.has(t.id)) return 'needs-file';
+  if (t.fileTransform) return 'needs-file';
   const caps = t.capabilities ?? [];
   // Needs a recording device (mic/camera) the headless browser can't open → hidden.
   if (caps.some(c => HEADLESS_UNSUPPORTED.has(c))) return 'browser-only';

@@ -22,6 +22,8 @@ export interface ToolEntry {
   height?: number;
   unit?: string;
   exportable?: boolean;
+  /** Derived from hooks.exportFile + a file input by the catalog builder. */
+  fileTransform?: boolean;
 }
 
 // repoRoot() is the ONE shared resolver (@lolly-tools/node-shell/repo-root): LOLLY_ROOT,
