@@ -59,14 +59,17 @@ export async function collectPages<T>(
   count: number,
   maxPages: number,
   renderOne: (index: number) => Promise<T>,
+  pageNumbers?: number[],
 ): Promise<{ pages: T[]; truncated: boolean; failed: number[] }> {
-  const limit = Math.min(count, maxPages);
+  const indices = pageNumbers
+    ? [...new Set(pageNumbers)].filter(n => Number.isInteger(n) && n >= 1 && n <= count).slice(0, maxPages).map(n => n - 1)
+    : Array.from({ length: Math.min(count, maxPages) }, (_, i) => i);
   const pages: T[] = [];
   const failed: number[] = [];
-  for (let i = 0; i < limit; i++) {
+  for (const i of indices) {
     try { pages.push(await renderOne(i)); } catch { failed.push(i + 1); }
   }
-  return { pages, truncated: count > maxPages, failed };
+  return { pages, truncated: count > indices.length, failed };
 }
 
 /** A pixel-space rectangle, integer coordinates, ready for fillRect. */

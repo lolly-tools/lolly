@@ -1,6 +1,6 @@
-# Lolly 1.0.6
+# Lolly 1.0.7
 
-_Current release: **1.0.6** (2026-09-03). First public release was 1.0.1 (2026-08-30). Free
+_Current release: **1.0.7** (2026-09-05). First public release was 1.0.1 (2026-08-30). Free
 software under the **Mozilla Public License 2.0**; the content below is brand-agnostic and
 reflects the current platform._
 
@@ -33,6 +33,20 @@ Lolly is completely free and open source. It is licensed under the **Mozilla Pub
 - **Governed automation via MCP.** An optional Model Context Protocol server exposes the
   catalog and render path to AI agents (list, describe, build a link, render, transform,
   redact, verify) under the same rules as the app.
+
+### New in 1.0.7
+
+- **One honest `.lolly` intake.** The manifest now decides whether a file opens as a shared
+  design, adds a separate design system or installs a brand workspace, regardless of whether
+  it arrived through Open, drag and drop, Profile, Brand Studio or the operating system.
+- **Measured before import.** The app reads the small manifest before expanding the bundle,
+  reports its size and contents, warns for large files and low storage, then performs one
+  integrity-checked read after confirmation. New writers put the manifest first.
+- **Safer design-system handling.** Cancelling a picker creates nothing; imports no longer
+  overwrite the active system; a failed import removes its newly-created destination.
+- **Clearer sharing and desktop integration.** The share receipt names embedded files and
+  external references. macOS and Linux display dedicated Lolly document artwork, and supported
+  third-party design/document formats remain alternate openers rather than claimed defaults.
 
 ### New in 1.0.6
 

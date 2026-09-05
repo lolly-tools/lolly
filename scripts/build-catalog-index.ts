@@ -107,6 +107,13 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   // fetching every manifest (/pro batch hides them). Mirrors isExportable() in
   // shells/web/src/pro/render-export.js and the drift check in validate-catalog.js.
   entry.exportable = manifest.render?.export !== false && (manifest.render?.formats?.length ?? 0) > 0;
+  // File-in → bytes-out utilities need a path picker in terminal shells. Carry
+  // the manifest-derived fact rather than teaching the TUI an id list every time
+  // one ships. This is deliberately computed, not authored catalog metadata.
+  if (manifest.hooks?.exportFile === true
+      && (manifest.inputs ?? []).some((input: any) => input.type === 'file')) {
+    entry.fileTransform = true;
+  }
   // Inline the tool's icon (tools/<id>/icon.svg) so the gallery can show it on
   // every card with no per-card fetch. It uses stroke="currentColor", so the
   // shell themes it via CSS. Read here (not from the manifest) so build:catalog

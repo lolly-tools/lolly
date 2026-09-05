@@ -1,0 +1,46 @@
+{
+  "$id": "https://lolly.tools/schemas/file-operation-request-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "operation",
+    "target",
+    "options"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "operation": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9.-]{0,63}$"
+    },
+    "target": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,31}$"
+    },
+    "options": {
+      "type": "object",
+      "maxProperties": 64,
+      "propertyNames": {
+        "maxLength": 80,
+        "pattern": "^(?!__proto__$|constructor$|prototype$)[a-zA-Z][a-zA-Z0-9_.-]*$"
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 4096
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      }
+    }
+  }
+}

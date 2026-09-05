@@ -8,7 +8,7 @@
  * different 44-byte header, a wider per-table directory, and each table
  * optionally zlib-compressed. So the conversions here change the container, not
  * the glyphs: unwrap/rewrap the directory, (de)compress each table, fix offsets
- * and checksums. TTF↔OTF is a pure passthrough - the container is identical, the
+ * and checksums. TTF↔OTF is NOT an outline conversion: the shared container's
  * `flavor` (sfnt version) is the only thing that says whether the outlines live
  * in `glyf` (TrueType, 0x00010000) or `CFF `/`CFF2` (OTTO).
  *
@@ -78,6 +78,27 @@ export function sfntKind(bytes: Uint8Array): SfntKind | null {
   if (magic === WOFF_SIG) return 'woff';
   if (magic === WOFF2_SIG) return 'woff2';
   return null;
+}
+
+/** Legal container targets; unpacking WOFF keeps its actual outline flavor. */
+export function fontConversionTargets(bytes: Uint8Array): Array<'ttf' | 'otf' | 'woff'> {
+  const kind = sfntKind(bytes);
+  if (kind === 'ttf' || kind === 'otf') return [kind, 'woff'];
+  if (kind === 'woff' && bytes.length >= WOFF_HEADER_SIZE) {
+    const flavor = sfntKind(bytes.subarray(4, 8));
+    if (flavor === 'ttf' || flavor === 'otf') return [flavor, 'woff'];
+  }
+  return [];
+}
+
+/** Never relabel TrueType outlines as CFF or vice versa. Invalid targets fail visibly. */
+export function convertFontContainer(bytes: Uint8Array, target: string): Uint8Array {
+  if (!fontConversionTargets(bytes).some((kind) => kind === target)) {
+    throw new Error('That font conversion is not supported. TTF and OTF use different outlines; choose WOFF or the source outline format.');
+  }
+  const kind = sfntKind(bytes);
+  if (kind === target) return bytes;
+  return target === 'woff' ? sfntToWoff(bytes) : woffToSfnt(bytes);
 }
 
 /** One reconstructed table: its 4-char tag as a uint32, checksum, and bytes. */

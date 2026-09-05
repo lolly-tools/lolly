@@ -30,7 +30,17 @@
     "AudioAPI": {
       "module": "audio.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "f32e8f69da5506a6b49c2fd582130589ee0c360cf7a7cc942f5f0940c395c7ba"
+      "sha256": "15c10f564db036bf2c79f801b0facb22c6923da5644144bc8fcb0e9d77fc030c"
+    },
+    "AudioCleanOpts": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "899e98e182a3ffbbd4c4a96d0e5666107a3155560a725a2f2f31361c6fd1cfc1"
+    },
+    "AudioCleanResult": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "bbdec2dfbb8d4166a41aa59191e80375e5f0e4460bfa55ff60242cfe363ce437"
     },
     "AudioSource": {
       "module": "audio.ts",
@@ -455,7 +465,17 @@
     "MediaAPI": {
       "module": "media.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "120afe212c7da9995d15939e1264324df5045c1d195bc51c17e4248400e95207"
+      "sha256": "48620f7cd587c74c8e25ed5f72203627f63738b842a56ca9fd56311bcb7410e8"
+    },
+    "MediaTrimOpts": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "023c1419d9075e9c95dbc19fa304369101f80d645ffc48bf4023004edcce22f4"
+    },
+    "MediaTrimResult": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "35d21e0be11a3ac2de83fa4250cdaba05a2707f7d7c73f72c561d135a2b58890"
     },
     "MediaFrame": {
       "module": "media.ts",
@@ -520,7 +540,47 @@
     "PdfAPI": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "96634f89aa2c15ffe8a4722c6aa73de0037b50040d4901a4cd316b7be44b61b0"
+      "sha256": "55e59d9cbd4fdaebe137b36057e806701874e9125ae25707e83faf05f09eb88a"
+    },
+    "PdfPageOperation": {
+      "module": "pdf.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "e98eff05475a737138b9e48ae7db37907d04b75a435de7947223b523307518fa"
+    },
+    "PdfOrganizeOpts": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a88d817f9b1cf9caa49531e836b67b4312a4327cb8f2b83ba65ba90f9134b7dd"
+    },
+    "PdfOrganizeFile": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "f5ccb13e98ae22ba52e00fc5aa2347b5650fd35f69d5b18ed65fe53d1c4080d0"
+    },
+    "PdfOrganizeResult": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "7e08471b9e55dd3f8e077aecf1b2366f4bb7ea2de502ea783d06957164fcecb4"
+    },
+    "PdfStampImage": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "efdaed759af00b6c564393701eada07d605788e149cea24e8781974cf9e6458c"
+    },
+    "PdfStampText": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a5028a82294f26ffe83b7cdfd7809718c9d6d3fe763b6a12f3fa7ad0177cd43e"
+    },
+    "PdfStampOpts": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "f75684ac38115e30db3ff8ded6e0dac351d056318d08f2b736a29d29eb41723b"
+    },
+    "PdfStampResult": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "ac1e9689f0a6d5b3550dc3cca4b7f07af02e2299a01501aec38b77b2ce2fe35d"
     },
     "PdfCompressOpts": {
       "module": "pdf.ts",
@@ -560,7 +620,7 @@
     "PdfPagesResult": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "2d79a88b3b59c2aa74877a1f40fcd1a7ce93cfd9e7a1ae860665cb59118d76af"
+      "sha256": "b1288b1a8ca397d1c02906053f23d77e9b8ae5d6442bba48f2fddba67e89e11f"
     },
     "PptxAPI": {
       "module": "pptx.ts",

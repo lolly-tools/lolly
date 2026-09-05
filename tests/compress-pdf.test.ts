@@ -51,6 +51,8 @@ async function tinyPdf(): Promise<Uint8Array> {
 // (object streams, on by default) reliably shrinks it even with no canvas.
 async function compressiblePdf(pages = 40): Promise<Uint8Array> {
   const d = await PDFDocument.create();
+  d.setSubject('Quarterly report');
+  d.setProducer('Source application');
   for (let i = 0; i < pages; i++) {
     const p = d.addPage([300, 300]);
     p.drawText(`Page ${i} ` + 'lorem ipsum dolor sit amet '.repeat(4), { x: 10, y: 150, size: 8 });
@@ -89,8 +91,8 @@ test('host.pdf.compress: returns the documented shape and never grows the input'
 
   const out = await PDFDocument.load(res.bytes, { updateMetadata: false });
   assert.equal(out.getPageCount(), 60);               // pages preserved
-  assert.equal(out.getSubject(), 'Compressed with lolly.tools'); // neutral tool credit
-  assert.equal(out.getProducer(), 'Lolly');
+  assert.equal(out.getSubject(), 'Quarterly report'); // source metadata preserved
+  assert.equal(out.getProducer(), 'Source application');
 });
 
 test('host.pdf.compress: a tiny already-optimised PDF is returned no larger', async () => {

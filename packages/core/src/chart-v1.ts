@@ -12,6 +12,23 @@ export const CHART_SPEC_VERSION = 1 as const;
 
 export type ChartValue = string | number | boolean | null;
 export type ChartFieldType = 'string' | 'number' | 'date' | 'datetime' | 'boolean';
+export type ChartFieldRole =
+  | 'dimension'
+  | 'measure'
+  | 'identifier'
+  | 'time'
+  | 'series'
+  | 'uncertainty'
+  | 'unknown';
+export type ChartFieldFormat =
+  | 'plain'
+  | 'integer'
+  | 'decimal'
+  | 'percent'
+  | 'currency'
+  | 'date'
+  | 'datetime'
+  | 'boolean';
 export type ChartDimension = 2 | 3;
 export type ChartExportFidelity = 'vector' | 'hybrid' | 'raster';
 
@@ -81,6 +98,11 @@ export interface ChartFieldV1 {
   id: string;
   label: string;
   type: ChartFieldType;
+  /** Inferred or explicitly assigned semantic role; never renderer vocabulary. */
+  role?: ChartFieldRole;
+  /** Portable display meaning inferred from source cells. */
+  format?: ChartFieldFormat;
+  nullable?: boolean;
 }
 
 export interface ChartDatasetV1 {
@@ -239,6 +261,33 @@ export interface ChartFindingV1 {
   path?: string;
 }
 
+export interface ChartColumnProfileV1 {
+  name: string;
+  type: ChartFieldType;
+  role: ChartFieldRole;
+  format: ChartFieldFormat;
+  missing: number;
+  unique: number;
+}
+
+export interface ChartDataProfileV1 {
+  shape: 'empty' | 'single' | 'wide' | 'long' | 'matrix';
+  rows: number;
+  columns: number;
+  missing: number;
+  fields: ChartColumnProfileV1[];
+}
+
+export interface ChartRecommendationV1 {
+  intent: 'auto' | 'compare' | 'trend' | 'composition' | 'distribution' | 'relationship' | 'uncertainty' | 'story';
+  renderMode: 'vector' | 'statistical' | 'scene' | 'cinematic';
+  chartType: string;
+  label: string;
+  reason: string;
+  confidence: 'low' | 'medium' | 'high';
+  mappings: Partial<Record<'x' | 'y' | 'z' | 'colour' | 'size' | 'facet' | 'label' | 'error' | 'frame' | 'camera', string[]>>;
+}
+
 export interface ChartValidationResultV1 {
   ok: boolean;
   findings: ChartFindingV1[];
@@ -258,5 +307,7 @@ export interface ResolvedChartReportV1 {
     ChartThemeV1,
     'id' | 'source' | 'sourceId' | 'sourceLabel' | 'sourceChecksum' | 'locked'
   >;
+  dataProfile?: ChartDataProfileV1;
+  recommendation?: ChartRecommendationV1;
   findings: ChartFindingV1[];
 }

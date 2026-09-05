@@ -24,6 +24,43 @@ export interface AudioAPI {
    * it to a Worker); either way it is a single await, not a stream.
    */
   analyse(src: AudioSource, opts?: AudioAnalyseOpts): Promise<AudioAnalysis>;
+
+  /**
+   * Decode, clean and encode an audio file locally. Shell support is additive:
+   * Node accepts WAV and emits WAV; browser shells may expose their platform
+   * codecs and an optional speech denoiser. Unsupported containers are refused
+   * by name rather than silently bypassing a requested operation.
+   */
+  clean?(src: AudioSource, opts?: AudioCleanOpts): Promise<AudioCleanResult>;
+}
+
+export interface AudioCleanOpts {
+  denoise?: 'off' | 'light' | 'strong';
+  normalize?: 'off' | -16 | -14 | -23;
+  trimSilence?: boolean;
+  output?: 'wav' | 'mp3' | 'm4a' | 'opus';
+  /** Hints needed when raw bytes came from a file input. */
+  sourceName?: string;
+  sourceMime?: string;
+}
+
+export interface AudioCleanResult {
+  bytes: Uint8Array;
+  mime: string;
+  format: 'wav' | 'mp3' | 'm4a' | 'opus';
+  durationBefore: number;
+  durationAfter: number;
+  secondsTrimmed: number;
+  loudnessBefore: number | null;
+  loudnessAfter: number | null;
+  truePeakDb: number;
+  operations: string[];
+  /** Set when a video input was remuxed with its picture track unchanged. */
+  videoPreserved?: boolean;
+  /** Actual output container when it differs from the requested audio codec. */
+  container?: string;
+  /** Bounded PCM audition for large outputs/video; never substitutes for export bytes. */
+  preview?: { bytes: Uint8Array; mime: string; duration: number; excerpt: boolean };
 }
 
 /**

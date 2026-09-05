@@ -25,7 +25,11 @@
  * makeCanvas and canvasToJpeg through it unchanged.
  */
 import type { PDFDocument as PDFDocumentType, PDFName as PDFNameType } from 'pdf-lib';
-import type { PdfAPI, PdfCompressOpts, PdfCompressResult, PdfFinding } from '@lolly-tools/core/host-v1';
+import { buildEncryptDictValues, encryptObjectBytes, preparePassword } from '@lolly/engine';
+import type {
+  PdfAPI, PdfCompressOpts, PdfCompressResult, PdfFinding,
+  PdfOrganizeOpts, PdfOrganizeResult, PdfStampOpts, PdfStampResult,
+} from '@lolly-tools/core/host-v1';
 
 // Shared with pdf-redact.ts (the web-only rasterise-and-rebuild half of host.pdf).
 export const PDF_LOAD_OPTS = { ignoreEncryption: true, updateMetadata: false };
@@ -314,15 +318,6 @@ export async function compressPdf(bytes: Uint8Array, opts: PdfCompressOpts = {})
     }
   }
 
-  // A light, non-identifying tool credit. The original author/title are left as-is - 
-  // metadata scrubbing is the Strip Hidden Data tool's job, not this one's. Producer
-  // gets overwritten by any re-saver anyway; this just makes it a clean value.
-  try {
-    doc.setProducer('Lolly');
-    doc.setCreator('lolly.tools');
-    doc.setSubject('Compressed with lolly.tools');
-  } catch { /* setters are best-effort */ }
-
   const out = await doc.save({ useObjectStreams: true, updateFieldAppearances: false });
 
   // Hard guarantee: never hand back something larger than the input.
@@ -330,11 +325,327 @@ export async function compressPdf(bytes: Uint8Array, opts: PdfCompressOpts = {})
   return { bytes: input, before, after: before, images: 0 };
 }
 
+// ─── Page transforms + document signing primitives ──────────────────────────
+
+/** A refusal whose wording remains useful when surfaced verbatim by a hook/CLI. */
+function pdfRefusal(message: string): Error {
+  const err = new Error(`pdf: ${message}`);
+  err.name = 'PdfTransformError';
+  return err;
+}
+
+async function loadEditablePdf(bytes: Uint8Array): Promise<PDFDocumentType> {
+  const { PDFDocument } = await import('pdf-lib');
+  let doc: PDFDocumentType;
+  try {
+    // Deliberately do not set ignoreEncryption. A protected input must not be
+    // partially rewritten under the pretence that it was accepted.
+    doc = await PDFDocument.load(bytes, { updateMetadata: false });
+  } catch (error) {
+    const message = String((error as Error)?.message || error);
+    if (/encrypt|password/i.test(message)) {
+      throw pdfRefusal('this PDF is encrypted; unlock it with its password before using this utility');
+    }
+    throw error;
+  }
+  try {
+    if (doc.getForm().hasXFA()) {
+      throw pdfRefusal('XFA forms are not supported because rearranging or flattening them can lose form content');
+    }
+  } catch (error) {
+    if ((error as Error)?.name === 'PdfTransformError') throw error;
+    // A malformed AcroForm is not automatically XFA; pdf-lib will still preserve
+    // its page objects. Do not turn a failed probe into a false XFA refusal.
+  }
+  return doc;
+}
+
+/**
+ * Parse a 1-based page expression. Open-ended ranges are resolved against
+ * `pageCount`; descending ranges are useful for reverse order (`5-1`).
+ */
+export function parsePdfPageExpression(expression: string | undefined, pageCount: number): number[] {
+  if (!Number.isInteger(pageCount) || pageCount < 1) throw pdfRefusal('the document has no pages');
+  const source = String(expression ?? '').trim();
+  if (!source) return Array.from({ length: pageCount }, (_, i) => i + 1);
+  const out: number[] = [];
+  for (const raw of source.split(',')) {
+    const token = raw.trim();
+    if (!token) throw pdfRefusal(`invalid page expression "${source}"`);
+    const single = /^(\d+)$/.exec(token);
+    if (single) {
+      const n = Number(single[1]);
+      if (n < 1 || n > pageCount) throw pdfRefusal(`page ${n} is outside this ${pageCount}-page document`);
+      out.push(n);
+      continue;
+    }
+    const range = /^(\d+)-(\d*)$/.exec(token);
+    if (!range) throw pdfRefusal(`invalid page range "${token}"; use values such as 1-3,7,10-`);
+    const from = Number(range[1]);
+    const to = range[2] ? Number(range[2]) : pageCount;
+    if (from < 1 || from > pageCount || to < 1 || to > pageCount) {
+      throw pdfRefusal(`range "${token}" is outside this ${pageCount}-page document`);
+    }
+    const step = from <= to ? 1 : -1;
+    for (let n = from; ; n += step) {
+      out.push(n);
+      if (n === to) break;
+    }
+  }
+  return out;
+}
+
+function splitPageGroups(expression: string | undefined, pageCount: number): number[][] {
+  const source = String(expression ?? '').trim();
+  if (!source) return Array.from({ length: pageCount }, (_, i) => [i + 1]);
+  return source.split(',').map(part => parsePdfPageExpression(part.trim(), pageCount));
+}
+
+/** Copy the primary document's Info fields onto a newly-created page document. */
+async function copyPdfInfo(source: PDFDocumentType, target: PDFDocumentType): Promise<void> {
+  const copy = <T>(read: () => T | undefined, write: (value: T) => void): void => {
+    try { const value = read(); if (value !== undefined) write(value); } catch { /* malformed source field */ }
+  };
+  copy(() => source.getTitle(), value => target.setTitle(value));
+  copy(() => source.getAuthor(), value => target.setAuthor(value));
+  copy(() => source.getSubject(), value => target.setSubject(value));
+  copy(() => source.getCreator(), value => target.setCreator(value));
+  copy(() => source.getProducer(), value => target.setProducer(value));
+  copy(() => source.getCreationDate(), value => target.setCreationDate(value));
+  copy(() => source.getModificationDate(), value => target.setModificationDate(value));
+  copy(() => source.getKeywords(), value => target.setKeywords(value.split(/\s*,\s*/).filter(Boolean)));
+  // pdf-lib's copyPages intentionally does not copy the catalog-level XMP
+  // stream. Carry a readable XML packet explicitly; an opaque/compressed packet
+  // is left alone rather than guessed at or rewritten as corrupt text.
+  try {
+    const { PDFName } = await import('pdf-lib');
+    const xmp = readXmpText(source, PDFName);
+    if (xmp && /^\s*(?:<\?xpacket|<x:xmpmeta|<rdf:RDF)/i.test(xmp)) {
+      const stream = target.context.stream(new TextEncoder().encode(xmp), { Type: 'Metadata', Subtype: 'XML' });
+      target.catalog.set(PDFName.of('Metadata'), target.context.register(stream));
+    }
+  } catch { /* no readable XMP packet */ }
+}
+
+export async function organizePdf(bytes: Uint8Array, opts: PdfOrganizeOpts): Promise<PdfOrganizeResult> {
+  const input = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  const operation = opts.operation;
+  if (!['reorder', 'rotate', 'extract', 'delete', 'merge', 'split'].includes(operation)) {
+    throw pdfRefusal(`unknown page operation "${String(operation)}"`);
+  }
+  const { PDFDocument, degrees } = await import('pdf-lib');
+  let source = await loadEditablePdf(input);
+  const extras = [
+    ...(opts.extra?.length ? [opts.extra] : []),
+    ...(opts.extras ?? []).filter((part) => part?.length),
+  ];
+  const beforeBytes = input.length + extras.reduce((sum, part) => sum + part.length, 0);
+
+  // Multiple picked PDFs form one virtual document. Every operation then uses
+  // the same global, 1-based page numbers that the Pages UI shows. copyPages
+  // retains each page's own MediaBox, so portrait, landscape and custom sizes
+  // can be freely interleaved without normalising or rasterising them.
+  if (extras.length) {
+    const combined = await PDFDocument.create();
+    await copyPdfInfo(source, combined);
+    for (const doc of [source, ...(await Promise.all(extras.map(loadEditablePdf)))]) {
+      const copied = await combined.copyPages(doc, doc.getPageIndices());
+      copied.forEach((page) => { combined.addPage(page); });
+    }
+    source = combined;
+  }
+
+  const beforePages = source.getPageCount();
+  const selected = parsePdfPageExpression(opts.pages, beforePages);
+  const save = (doc: PDFDocumentType) => doc.save({ useObjectStreams: true, updateFieldAppearances: false });
+
+  if (operation === 'split') {
+    const groups = splitPageGroups(opts.pages, beforePages);
+    const files = [];
+    let afterBytes = 0;
+    for (const group of groups) {
+      const doc = await PDFDocument.create();
+      await copyPdfInfo(source, doc);
+      const pages = await doc.copyPages(source, group.map(n => n - 1));
+      pages.forEach((page) => { doc.addPage(page); });
+      const part = await save(doc);
+      files.push({ bytes: part, pages: group });
+      afterBytes += part.length;
+    }
+    return {
+      files, beforePages, afterPages: groups.reduce((n, g) => n + g.length, 0),
+      beforeBytes, afterBytes,
+      pageOrder: groups.flat(), operations: [`Split into ${files.length} PDF${files.length === 1 ? '' : 's'}`],
+    };
+  }
+
+  if (operation === 'rotate') {
+    const rotation = opts.rotation === 180 || opts.rotation === 270 ? opts.rotation : 90;
+    for (const pageNo of new Set(selected)) {
+      const page = source.getPage(pageNo - 1);
+      const current = ((page.getRotation().angle % 360) + 360) % 360;
+      page.setRotation(degrees((current + rotation) % 360));
+    }
+    const out = await save(source);
+    return {
+      bytes: out, beforePages, afterPages: beforePages, beforeBytes, afterBytes: out.length,
+      pageOrder: Array.from({ length: beforePages }, (_, i) => i + 1),
+      operations: [`Rotated ${new Set(selected).size} page${new Set(selected).size === 1 ? '' : 's'} by ${rotation}°`],
+    };
+  }
+
+  if (operation === 'merge') {
+    if (!extras.length) throw pdfRefusal('choose at least two PDFs to merge');
+    const out = await save(source);
+    return {
+      bytes: out, beforePages, afterPages: source.getPageCount(), beforeBytes, afterBytes: out.length,
+      pageOrder: Array.from({ length: beforePages }, (_, i) => i + 1),
+      operations: [`Merged ${extras.length + 1} PDFs · ${beforePages} pages`],
+    };
+  }
+
+  let order: number[];
+  if (operation === 'delete') {
+    const remove = new Set(selected);
+    order = Array.from({ length: beforePages }, (_, i) => i + 1).filter(n => !remove.has(n));
+    if (!order.length) throw pdfRefusal('delete would leave a document with no pages');
+  } else {
+    order = selected;
+    if (!order.length) throw pdfRefusal(`${operation} selected no pages`);
+    if (operation === 'reorder' && !String(opts.pages ?? '').trim()) {
+      throw pdfRefusal('give the new page order, for example 3,1-2');
+    }
+  }
+
+  const output = await PDFDocument.create();
+  await copyPdfInfo(source, output);
+  const copied = await output.copyPages(source, order.map(n => n - 1));
+  copied.forEach((page) => { output.addPage(page); });
+  const out = await save(output);
+  const verb = operation === 'delete' ? `Deleted ${beforePages - order.length} page${beforePages - order.length === 1 ? '' : 's'}`
+    : operation === 'extract' ? `Extracted ${order.length} page${order.length === 1 ? '' : 's'}`
+      : `Reordered ${order.length} pages`;
+  return {
+    bytes: out, beforePages, afterPages: order.length, beforeBytes, afterBytes: out.length,
+    pageOrder: order, operations: [verb],
+  };
+}
+
+function isPng(bytes: Uint8Array): boolean {
+  return bytes.length > 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+}
+
+function isJpeg(bytes: Uint8Array): boolean {
+  return bytes.length > 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+}
+
+export async function stampPdf(bytes: Uint8Array, opts: PdfStampOpts): Promise<PdfStampResult> {
+  const doc = await loadEditablePdf(bytes);
+  const { StandardFonts, rgb } = await import('pdf-lib');
+  let stamps = 0;
+  for (const mark of opts.images ?? []) {
+    if (!Number.isInteger(mark.page) || mark.page < 1 || mark.page > doc.getPageCount()) {
+      throw pdfRefusal(`signature page ${mark.page} is outside this ${doc.getPageCount()}-page document`);
+    }
+    const image = isPng(mark.bytes) ? await doc.embedPng(mark.bytes)
+      : isJpeg(mark.bytes) ? await doc.embedJpg(mark.bytes)
+        : null;
+    if (!image) throw pdfRefusal('signature image must be PNG or JPEG');
+    const page = doc.getPage(mark.page - 1);
+    const requestedWidth = Math.max(0.1, Number(mark.width) || 1);
+    const requestedHeight = Math.max(0.1, Number(mark.height) || requestedWidth * image.height / image.width);
+    const scale = Math.min(1, page.getWidth() / requestedWidth, page.getHeight() / requestedHeight);
+    const width = requestedWidth * scale, height = requestedHeight * scale;
+    const x = Math.max(0, Math.min(page.getWidth() - width, Number(mark.x) || 0));
+    const top = Math.max(0, Math.min(page.getHeight() - height, Number(mark.y) || 0));
+    page.drawImage(image, { x, y: page.getHeight() - top - height, width, height });
+    stamps++;
+  }
+  if (opts.texts?.length) {
+    const font = await doc.embedFont(StandardFonts.Helvetica);
+    for (const mark of opts.texts) {
+      if (!Number.isInteger(mark.page) || mark.page < 1 || mark.page > doc.getPageCount()) {
+        throw pdfRefusal(`text page ${mark.page} is outside this ${doc.getPageCount()}-page document`);
+      }
+      const page = doc.getPage(mark.page - 1);
+      const size = Math.max(0.1, Math.min(72, Number(mark.size) || 10));
+      page.drawText(String(mark.text || '').slice(0, 256), {
+        x: Math.max(0, Number(mark.x) || 0),
+        y: Math.max(0, page.getHeight() - (Number(mark.y) || 0) - size),
+        size, font, color: rgb(0.08, 0.08, 0.08),
+      });
+      stamps++;
+    }
+  }
+  // A visual signature must not leave editable field appearances floating over
+  // the stamped page. XFA was refused above; AcroForm fields can be flattened.
+  try { doc.getForm().flatten(); } catch { /* no AcroForm, or already flat */ }
+  const out = await doc.save({ useObjectStreams: true, updateFieldAppearances: false });
+  return { bytes: out, pages: doc.getPageCount(), stamps };
+}
+
+export async function lockPdf(bytes: Uint8Array, password: string): Promise<{ bytes: Uint8Array }> {
+  if (!password) throw pdfRefusal('a non-empty open password is required');
+  const { PDFDocument, PDFString, PDFHexString, PDFRawStream, PDFStream, PDFDict, PDFArray } =
+    await import('pdf-lib') as any;
+  const doc = await PDFDocument.load(bytes, { updateMetadata: false });
+  const ctx = doc.context;
+  const rnd = (n: number): Uint8Array => globalThis.crypto.getRandomValues(new Uint8Array(n));
+  const hex = (b: Uint8Array): string => [...b].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+  const P = -4;
+  const fileKey = rnd(32);
+  const vals = await buildEncryptDictValues({
+    userPw: preparePassword(password), ownerPw: preparePassword(password), fileKey,
+    salts: { uvs: rnd(8), uks: rnd(8), ovs: rnd(8), oks: rnd(8) },
+    permsRandom: rnd(4), P, encryptMetadata: true,
+  });
+  const id = PDFArray.withContext(ctx);
+  id.push(PDFHexString.of(hex(rnd(16)))); id.push(PDFHexString.of(hex(rnd(16))));
+  const enc = ctx.obj({
+    Filter: 'Standard', V: 5, R: 6, Length: 256, P,
+    U: PDFHexString.of(hex(vals.U)), O: PDFHexString.of(hex(vals.O)),
+    UE: PDFHexString.of(hex(vals.UE)), OE: PDFHexString.of(hex(vals.OE)),
+    Perms: PDFHexString.of(hex(vals.Perms)),
+    CF: { StdCF: { CFM: 'AESV3', AuthEvent: 'DocOpen', Length: 32 } },
+    StmF: 'StdCF', StrF: 'StdCF', EncryptMetadata: true,
+  });
+  const encString = async (value: any): Promise<any> =>
+    PDFHexString.of(hex(await encryptObjectBytes(fileKey, rnd(16), value.asBytes())));
+  const walk = async (value: any): Promise<void> => {
+    if (value instanceof PDFDict) {
+      for (const [key, child] of value.entries()) {
+        if (child instanceof PDFString || child instanceof PDFHexString) value.set(key, await encString(child));
+        else if (child instanceof PDFDict || child instanceof PDFArray) await walk(child);
+      }
+    } else if (value instanceof PDFArray) {
+      for (let i = 0; i < value.size(); i++) {
+        const child = value.get(i);
+        if (child instanceof PDFString || child instanceof PDFHexString) value.set(i, await encString(child));
+        else if (child instanceof PDFDict || child instanceof PDFArray) await walk(child);
+      }
+    }
+  };
+  for (const [ref, value] of ctx.enumerateIndirectObjects()) {
+    if (value instanceof PDFStream) {
+      const encrypted = await encryptObjectBytes(fileKey, rnd(16), new Uint8Array(value.getContents()));
+      await walk(value.dict);
+      ctx.assign(ref, PDFRawStream.of(value.dict, encrypted));
+    } else if (value instanceof PDFDict || value instanceof PDFArray) await walk(value);
+    else if (value instanceof PDFString || value instanceof PDFHexString) ctx.assign(ref, await encString(value));
+  }
+  ctx.trailerInfo.Encrypt = ctx.register(enc);
+  ctx.trailerInfo.ID = id;
+  return { bytes: await doc.save({ useObjectStreams: false }) };
+}
+
 export function createPdfAPI(): PdfAPI {
   return {
     analyze: (bytes) => analyzePdf(bytes),
     strip: (bytes) => stripPdf(bytes),
     compress: (bytes, opts) => compressPdf(bytes, opts),
+    organize: (bytes, opts) => organizePdf(bytes, opts),
+    stamp: (bytes, opts) => stampPdf(bytes, opts),
+    lock: (bytes, password) => lockPdf(bytes, password),
     // redact (v1.85) is NOT provided here, deliberately: its implementation
     // (pdf-redact.ts) reaches the views/pdf-import renderer and a real canvas,
     // neither of which the node CLI - which imports this same factory - has.

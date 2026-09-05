@@ -259,7 +259,7 @@ test('the chart delivery keeps its progressive renderer and accessibility contra
   );
   assert.ok(vectorValues.has('bar'));
   for (const id of ['bar3d', 'scatter3d', 'surface3d']) assert.ok(sceneValues.has(id), id);
-  for (const id of ['flythrough3d', 'ribbon3d', 'constellation3d']) assert.ok(cinematicValues.has(id), id);
+  for (const id of ['flythrough3d', 'ribbon3d', 'constellation3d', 'skyline3d']) assert.ok(cinematicValues.has(id), id);
   for (const id of [
     'dot-strip',
     'interval',
@@ -280,12 +280,20 @@ test('the chart delivery keeps its progressive renderer and accessibility contra
   ]) {
     assert.ok(plotValues.has(id), id);
   }
-  assert.equal(manifest.inputs[0].id, 'renderMode');
-  assert.equal(manifest.inputs[0].display, 'segmented');
+  assert.equal(manifest.inputs[0].id, 'chartIntent');
   assert.deepEqual(
     manifest.inputs[0].options.map((option: any) => option.value),
+    ['manual', 'auto', 'compare', 'trend', 'composition', 'distribution', 'relationship', 'uncertainty', 'story']
+  );
+  assert.equal(manifest.inputs[1].id, 'renderMode');
+  assert.equal(manifest.inputs[1].display, 'segmented');
+  assert.deepEqual(
+    manifest.inputs[1].options.map((option: any) => option.value),
     ['vector', 'statistical', 'scene', 'cinematic']
   );
+  for (const id of ['labelColumn', 'seriesColumns', 'pivotColumn', 'zColumn', 'sizeColumn', 'errorColumn', 'frameColumn']) {
+    assert.ok(manifest.inputs.some((input: any) => input.id === id), `missing ${id} channel mapping`);
+  }
   assert.equal(manifest.examples.length, 8, 'the gallery keeps a bounded, curated style set');
   assert.match(template, /<title>\{\{_chartTitle\}\}<\/title>/);
   assert.match(template, /<desc>\{\{_chartDescription\}\}<\/desc>/);
@@ -322,6 +330,9 @@ test('the chart delivery keeps its progressive renderer and accessibility contra
   assert.match(plotAdapter, /Plot\.plot\(options\)/);
   assert.match(plotAdapter, /requestAnimationFrame\(tick\)/);
   assert.match(plotAdapter, /__lollyFrameRender/);
+  assert.match(template, /data-export-hide/);
+  assert.match(plotAdapter, /data-export-hide/);
+  assert.match(threeAdapter, /data-export-hide/);
   assert.doesNotMatch(plotAdapter, /eval\(|new Function|innerHTML/);
   assert.match(communityNotice, /chart\/lib\/three-chart\.min\.js/);
   assert.match(communityNotice, /chart\/lib\/observable-plot\.min\.js/);
@@ -329,8 +340,127 @@ test('the chart delivery keeps its progressive renderer and accessibility contra
   assert.match(rootNotice, /tools\/chart\/lib\/observable-plot\.min\.js/);
 });
 
+test('guided goals profile data, explain the recommendation and preserve expert overrides', async () => {
+  const host = {
+    color: {},
+    tokens: {
+      colors: async () => [],
+      resolve: async () => null,
+      active: async () => ({ id: 'acme', label: 'Acme' }),
+    },
+  };
+  const hooks = new Function('host', `${hooksSource}\nreturn { onInit, onInput };`)(host);
+  const trend = await hooks.onInit({
+    model: manifestModel({
+      chartIntent: 'auto',
+      data: 'Month,Revenue,Cost\n2026-01,£128000,£84000\n2026-02,£139000,£88000\n2026-03,£151000,£91000',
+    }),
+  });
+  const trendState = JSON.parse(trend._state);
+  assert.equal(trend.renderMode, 'vector');
+  assert.equal(trend.chartType, 'line');
+  assert.equal(trend.labelColumn, 'Month');
+  assert.equal(trend.seriesColumns, 'Revenue,Cost');
+  assert.equal(trendState.report.dataProfile.shape, 'wide');
+  assert.equal(trendState.report.dataProfile.rows, 3);
+  assert.deepEqual(
+    trendState.report.dataProfile.fields.map((field: any) => [field.name, field.role, field.format]),
+    [['Month', 'time', 'date'], ['Revenue', 'measure', 'currency'], ['Cost', 'measure', 'currency']]
+  );
+  assert.equal(trendState.report.recommendation.intent, 'trend');
+  assert.equal(trendState.report.recommendation.chartType, 'line');
+  assert.match(trendState.report.recommendation.reason, /reads as time/);
+  assert.match(trendState.report.findings[0].message, /^Recommended Line chart:/);
+  assert.equal(trend._dataProfileSummary, '3 rows · 3 columns · 1 time field · 2 measures');
+  assert.equal(trend._recommendationConfidence, 'high');
+  assert.deepEqual(
+    trendState.spec.datasets[0].fields.map((field: any) => [field.role, field.format, field.nullable]),
+    [['time', 'date', false], ['measure', 'currency', false], ['measure', 'currency', false]]
+  );
+  assert.equal(validateShape(trendState.spec), true, JSON.stringify(validateShape.errors));
+
+  const relationship = await hooks.onInit({
+    model: manifestModel({
+      chartIntent: 'auto',
+      data: 'Investment,Demand\n12,19\n16,25\n19,23\n23,34\n27,38\n31,41',
+    }),
+  });
+  const relationshipState = JSON.parse(relationship._state);
+  assert.equal(relationship.renderMode, 'statistical');
+  assert.equal(relationship.plotType, 'regression');
+  assert.equal(relationship.labelColumn, 'Investment');
+  assert.equal(relationship.seriesColumns, 'Demand');
+  assert.deepEqual(relationshipState.data.numericCols.map((field: any) => field.name), ['Investment', 'Demand']);
+
+  const story = await hooks.onInit({
+    model: manifestModel({
+      chartIntent: 'story',
+      data: 'Chapter,Demand,Capacity\nArrival,24,35\nPeak,68,51\nLanding,84,86',
+    }),
+  });
+  assert.equal(story.renderMode, 'cinematic');
+  assert.equal(story.cinematicType, 'flythrough3d');
+  assert.equal(story.flightSeries, 'Demand');
+  assert.equal(JSON.parse(story._state).report.recommendation.intent, 'story');
+
+  const composition = await hooks.onInit({
+    model: manifestModel({ chartIntent: 'composition', data: 'Segment,Share\nEnterprise,38%\nSMB,27%\nPartner,20%\nSelf-serve,15%' }),
+  });
+  assert.equal(composition.renderMode, 'vector');
+  assert.equal(composition.chartType, 'donut');
+
+  const distribution = await hooks.onInit({
+    model: manifestModel({ chartIntent: 'distribution', data: 'Observation\n10\n12\n13\n13\n15\n18\n21\n21\n29' }),
+  });
+  assert.equal(distribution.renderMode, 'statistical');
+  assert.equal(distribution.plotType, 'rug-histogram');
+
+  const bounds = await hooks.onInit({
+    model: manifestModel({ chartIntent: 'uncertainty', data: 'Month,Low,Expected,High\nJan,32,41,52\nFeb,35,46,58\nMar,38,49,61' }),
+  });
+  assert.equal(bounds.renderMode, 'statistical');
+  assert.equal(bounds.plotType, 'range-band');
+  assert.equal(bounds.seriesColumns, 'Low,Expected,High');
+  assert.equal(bounds.errorColumn, undefined, 'bounds are channels, not symmetric error magnitudes');
+
+  const whiskers = await hooks.onInit({
+    model: manifestModel({ chartIntent: 'uncertainty', data: 'Month,Observed,Standard error\nJan,42,3\nFeb,48,4\nMar,55,2' }),
+  });
+  assert.equal(whiskers.renderMode, 'vector');
+  assert.equal(whiskers.chartType, 'line');
+  assert.equal(whiskers.seriesColumns, 'Observed');
+  assert.equal(whiskers.errorColumn, 'Standard error');
+
+  const manualScene = await hooks.onInput({
+    id: 'renderMode',
+    model: manifestModel({
+      chartIntent: 'auto',
+      renderMode: 'scene',
+      sceneType: 'surface3d',
+      data: 'Hour,Monday,Tuesday\n08:00,12,18\n10:00,23,31\n12:00,46,55',
+    }),
+  });
+  assert.equal(manualScene.renderMode, undefined, 'a later mode choice must not be fought by guidance');
+  assert.equal(manualScene._renderMode, 'scene');
+  assert.equal(manualScene._effectiveChartType, 'surface3d');
+
+  const mapped3d = await hooks.onInit({
+    model: manifestModel({
+      renderMode: 'scene', sceneType: 'scatter3d',
+      labelColumn: 'Longitude', seriesColumns: 'Latitude', zColumn: 'Height', sizeColumn: 'Population',
+      data: 'Longitude,Latitude,Height,Population\n12,51,80,200\n13,52,140,500\n14,53,220,900',
+    }),
+  });
+  assert.deepEqual(
+    JSON.parse(mapped3d._state).data.numericCols.map((field: any) => field.name),
+    ['Longitude', 'Latitude', 'Height', 'Population']
+  );
+});
+
 test('the beginner-facing chooser exposes branded styles, editorial statistics and real 3-D', () => {
   const byId = new Map(starterTemplates.map((template) => [template.id, template]));
+  assert.equal(byId.get('guided-chart')?.category, 'Start here');
+  assert.equal(byId.get('guided-chart')?.values.chartIntent, 'auto');
   assert.equal(byId.get('branded-presentations')?.category, 'Styles');
   assert.equal(byId.get('scene-bars')?.values.sceneType, 'bar3d');
   assert.equal(byId.get('brand-terrain')?.values.sceneType, 'surface3d');
@@ -340,7 +470,7 @@ test('the beginner-facing chooser exposes branded styles, editorial statistics a
     assert.equal(byId.get(id)?.values.renderMode, 'scene');
     assert.ok(byId.get(id)?.values.chartStyle, `${id} must visibly exercise a chart style`);
   }
-  for (const id of ['data-flight', 'ribbon-canyon', 'constellation-tour']) {
+  for (const id of ['data-flight', 'ribbon-canyon', 'constellation-tour', 'data-skyline']) {
     assert.equal(byId.get(id)?.category, 'Cinematic');
     assert.equal(byId.get(id)?.values.renderMode, 'cinematic');
     assert.ok(byId.get(id)?.values.cinematicType, `${id} must select a cinematic form`);

@@ -14,9 +14,9 @@ const document = {
     {
       id: 'data',
       fields: [
-        { id: 'category', label: 'Category', type: 'string' },
-        { id: 'value', label: 'Value', type: 'number' },
-        { id: 'series', label: 'Series', type: 'string' },
+        { id: 'category', label: 'Category', type: 'string', role: 'dimension', format: 'plain', nullable: false },
+        { id: 'value', label: 'Value', type: 'number', role: 'measure', format: 'currency', nullable: false },
+        { id: 'series', label: 'Series', type: 'string', role: 'series', format: 'plain', nullable: false },
       ],
       rows: [{ category: 'A', value: 42, series: 'One' }],
     },
@@ -89,4 +89,9 @@ test('the schema closes vendor escape hatches and requires accessibility metadat
   delete inaccessible.accessibility.description;
   assert.equal(validate(inaccessible), false);
   assert.ok(validate.errors?.some((e: any) => e.keyword === 'required'));
+
+  const invalidSemantics = structuredClone(document) as any;
+  invalidSemantics.datasets[0].fields[1].role = 'plotly-colour';
+  assert.equal(validate(invalidSemantics), false);
+  assert.ok(validate.errors?.some((e: any) => e.keyword === 'enum'));
 });

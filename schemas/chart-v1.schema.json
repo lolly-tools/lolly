@@ -26,7 +26,10 @@
               "properties": {
                 "id": { "$ref": "#/$defs/id" },
                 "label": { "type": "string", "maxLength": 256 },
-                "type": { "$ref": "#/$defs/fieldType" }
+                "type": { "$ref": "#/$defs/fieldType" },
+                "role": { "enum": ["dimension", "measure", "identifier", "time", "series", "uncertainty", "unknown"] },
+                "format": { "enum": ["plain", "integer", "decimal", "percent", "currency", "date", "datetime", "boolean"] },
+                "nullable": { "type": "boolean" }
               }
             }
           },

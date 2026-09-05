@@ -21,9 +21,9 @@
   ],
   "modules": {
     "shells/web/src/bridge/export.ts": {
-      "lines": 6869,
+      "lines": 6866,
       "largestFunctionLines": 1866,
-      "importFanIn": 24,
+      "importFanIn": 21,
       "importFanOut": 45,
       "typeEscapes": 163
     },
@@ -31,21 +31,21 @@
       "lines": 1701,
       "largestFunctionLines": 1071,
       "importFanIn": 2,
-      "importFanOut": 24,
+      "importFanOut": 22,
       "typeEscapes": 33
     },
     "shells/web/src/lib/brand-editor.ts": {
       "lines": 4331,
       "largestFunctionLines": 5267,
-      "importFanIn": 2,
+      "importFanIn": 1,
       "importFanOut": 51,
       "typeEscapes": 41
     },
     "shells/web/src/views/catalog.ts": {
-      "lines": 5129,
-      "largestFunctionLines": 6386,
+      "lines": 5144,
+      "largestFunctionLines": 6402,
       "importFanIn": 1,
-      "importFanOut": 98,
+      "importFanOut": 101,
       "typeEscapes": 54
     },
     "shells/web/src/views/color-lab.ts": {
@@ -66,78 +66,78 @@
       "lines": 1774,
       "largestFunctionLines": 145,
       "importFanIn": 3,
-      "importFanOut": 11,
+      "importFanOut": 10,
       "typeEscapes": 89
     },
     "shells/web/src/views/free-canvas.ts": {
-      "lines": 12062,
-      "largestFunctionLines": 15474,
+      "lines": 12246,
+      "largestFunctionLines": 15680,
       "importFanIn": 2,
-      "importFanOut": 35,
+      "importFanOut": 37,
       "typeEscapes": 142
     },
     "shells/web/src/views/gallery.ts": {
       "lines": 2020,
       "largestFunctionLines": 2035,
       "importFanIn": 1,
-      "importFanOut": 57,
+      "importFanOut": 51,
       "typeEscapes": 38
     },
     "shells/web/src/views/picker.ts": {
-      "lines": 2738,
+      "lines": 2749,
       "largestFunctionLines": 2202,
-      "importFanIn": 25,
-      "importFanOut": 49,
+      "importFanIn": 20,
+      "importFanOut": 48,
       "typeEscapes": 38
     },
     "shells/web/src/views/profile.ts": {
-      "lines": 2418,
-      "largestFunctionLines": 2942,
+      "lines": 2437,
+      "largestFunctionLines": 2966,
       "importFanIn": 2,
-      "importFanOut": 58,
-      "typeEscapes": 35
+      "importFanOut": 60,
+      "typeEscapes": 36
     },
     "shells/web/src/views/projects.ts": {
       "lines": 2369,
       "largestFunctionLines": 3078,
       "importFanIn": 1,
-      "importFanOut": 44,
+      "importFanOut": 42,
       "typeEscapes": 28
     },
     "shells/web/src/views/start.ts": {
       "lines": 2631,
       "largestFunctionLines": 3303,
       "importFanIn": 1,
-      "importFanOut": 45,
+      "importFanOut": 44,
       "typeEscapes": 33
     },
     "shells/web/src/views/timeline-panel.ts": {
       "lines": 6903,
       "largestFunctionLines": 9493,
       "importFanIn": 2,
-      "importFanOut": 32,
+      "importFanOut": 31,
       "typeEscapes": 34
     },
     "shells/web/src/views/tool-actions.ts": {
-      "lines": 3636,
-      "largestFunctionLines": 4887,
+      "lines": 3817,
+      "largestFunctionLines": 5079,
       "importFanIn": 1,
-      "importFanOut": 53,
+      "importFanOut": 56,
       "typeEscapes": 44
     },
     "shells/web/src/views/tool-inputs.ts": {
       "lines": 2983,
       "largestFunctionLines": 2078,
       "importFanIn": 2,
-      "importFanOut": 25,
+      "importFanOut": 24,
       "typeEscapes": 21
     },
     "shells/web/src/views/tool.ts": {
-      "lines": 4763,
-      "largestFunctionLines": 5782,
-      "importFanIn": 8,
+      "lines": 4802,
+      "largestFunctionLines": 5818,
+      "importFanIn": 1,
       "importFanOut": 103,
-      "typeEscapes": 59
+      "typeEscapes": 60
     },
     "shells/web/src/views/valid.ts": {
       "lines": 2862,
@@ -152,41 +152,18 @@
       "shells/web/src/bridge/compose.ts",
       "shells/web/src/bridge/index.ts",
       "shells/web/src/bridge/pdf-redact.ts",
-      "shells/web/src/lib/drop-router.ts",
-      "shells/web/src/lib/featured-render.ts",
       "shells/web/src/lib/mount-runtime.ts",
       "shells/web/src/lib/pdf-vector-shot.ts",
-      "shells/web/src/lib/print-marks-csv.ts",
       "shells/web/src/pro/render-export.ts",
-      "shells/web/src/views/design-import.ts",
-      "shells/web/src/views/design-navigator.ts",
-      "shells/web/src/views/framing-overlay.ts",
-      "shells/web/src/views/free-canvas.ts",
-      "shells/web/src/views/idml-import.ts",
       "shells/web/src/views/pdf-import.ts",
-      "shells/web/src/views/penpot-import.ts",
       "shells/web/src/views/picker.ts",
       "shells/web/src/views/pptx-import.ts",
-      "shells/web/src/views/psd-import.ts",
-      "shells/web/src/views/record-control.ts",
-      "shells/web/src/views/screen-capture-control.ts",
-      "shells/web/src/views/svg-unpack.ts",
-      "shells/web/src/views/template-chooser.ts",
-      "shells/web/src/views/timeline-panel.ts",
-      "shells/web/src/views/tool-actions.ts",
-      "shells/web/src/views/tool-inputs.ts",
-      "shells/web/src/views/tool.ts",
-      "shells/web/src/views/unpack-open.ts"
+      "shells/web/src/views/psd-import.ts"
     ],
     [
-      "shells/web/src/bridge/export-gainmap-jpeg.ts",
-      "shells/web/src/bridge/export-hdr-png.ts",
-      "shells/web/src/bridge/export-image-meta.ts",
       "shells/web/src/bridge/export-penpot.ts",
       "shells/web/src/bridge/export-pptx.ts",
       "shells/web/src/bridge/export.ts",
-      "shells/web/src/bridge/sequence-cuts.ts",
-      "shells/web/src/bridge/sequence-render.ts",
       "shells/web/src/lib/penpot-brand.ts"
     ],
     [
@@ -205,10 +182,6 @@
       "shells/web/src/views/sequence-clock.ts"
     ],
     [
-      "shells/web/src/bridge/video-encode-core.ts",
-      "shells/web/src/bridge/video-shared.ts"
-    ],
-    [
       "shells/web/src/catalog/sync.ts",
       "shells/web/src/components/instance-sheet.ts",
       "shells/web/src/lib/instance-choice.ts",
@@ -222,10 +195,6 @@
       "shells/web/src/lib/neurospicy-dock-host.ts"
     ],
     [
-      "shells/web/src/lib/brand-editor.ts",
-      "shells/web/src/lib/design-system/rooms/overview.ts"
-    ],
-    [
       "shells/web/src/lib/contentseal.ts"
     ],
     [
@@ -234,21 +203,15 @@
       "shells/web/src/lib/pack-store.ts"
     ],
     [
-      "shells/web/src/lib/sfx-voices.ts",
-      "shells/web/src/lib/sfx.ts"
-    ],
-    [
       "shells/web/src/lib/trustmark.ts"
     ],
     [
       "shells/web/src/org/banner.ts",
-      "shells/web/src/org/chrome.ts",
       "shells/web/src/org/collab-config.ts",
       "shells/web/src/org/collab-share.ts",
       "shells/web/src/org/collab-work-opener.ts",
       "shells/web/src/org/index.ts",
-      "shells/web/src/org/probe.ts",
-      "shells/web/src/org/share-links.ts"
+      "shells/web/src/org/probe.ts"
     ],
     [
       "shells/web/src/views/free-canvas-math.ts"

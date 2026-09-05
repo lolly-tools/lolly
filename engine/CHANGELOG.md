@@ -6,6 +6,20 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.181.0 - Extends renderer-neutral chart fields with optional semantic role,
+display-format and nullability metadata, and the resolved chart report with a
+portable data profile plus an explained recommendation. Renderers still receive
+the same bounded `ChartSpecV1`; the additions let beginner guidance and expert
+field mapping share one inspectable meaning.
+
+Also adds `fontConversionTargets` and `convertFontContainer`: shared, outline-aware
+font container policy. Shells can reject TTF/CFF relabeling and offer only the
+actual SFNT flavor when unpacking WOFF, without changing the existing codec APIs.
+
+Adds shared values-only `sourceToGrid` / `gridToTarget` file conversion primitives.
+Browser and Node adapters now use the same table conversion and reject headings
+that would silently drop data during JSON object construction.
+
 1.180.0 - Adds renderer-neutral `line3d` and `ribbon3d` marks plus the
 `data-flight` motion preset to `ChartSpecV1`. These describe cinematic charts
 whose camera follows a genuine x/y/z data path; Three.js remains an adapter

@@ -25,11 +25,12 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { isAbsolute, join } from 'node:path';
 import {
-  analysePcm, parseWav, renderZzfxm, isZzfxmRef, parseZzfxmRef, composeSong, generatedSongSpec,
+  analysePcm, parseWav, packWav, cleanAudioPcm, resamplePcm, cleanAudioPreview,
+  renderZzfxm, isZzfxmRef, parseZzfxmRef, composeSong, generatedSongSpec,
 } from '@lolly/engine';
 import type { ZzfxSong } from '@lolly/engine';
 import type {
-  AudioAPI, AudioSource, AudioAnalyseOpts, AudioAnalysis, AssetRef,
+  AudioAPI, AudioSource, AudioAnalyseOpts, AudioAnalysis, AssetRef, AudioCleanOpts,
 } from '@lolly-tools/core/host-v1';
 
 export interface NodeAudioOptions {
@@ -163,6 +164,25 @@ export function createNodeAudioAPI(opts: NodeAudioOptions): AudioAPI {
       // Synchronous: there is no worker here, and a headless render is not competing
       // with a UI for the main thread.
       return analysePcm(channels, sampleRate, analyseOpts);
+    },
+
+    async clean(src: AudioSource, cleanOpts: AudioCleanOpts = {}) {
+      const format = cleanOpts.output ?? 'wav';
+      if (format !== 'wav') {
+        throw new Error(`audio clean: ${format} encoding needs a platform codec this shell does not have - choose WAV or use a browser shell`);
+      }
+      if ((cleanOpts.denoise ?? 'off') !== 'off') {
+        throw new Error('audio clean: speech denoising needs the browser\'s on-device GTCRN model - choose Denoise off or use a browser shell');
+      }
+      const decoded = await decodeAudioPcm(src, opts);
+      const channels = resamplePcm(decoded.channels, decoded.sampleRate);
+      const result = cleanAudioPcm(channels, 48_000, cleanOpts);
+      return {
+        ...result,
+        bytes: packWav({ channels: result.channels, sampleRate: result.sampleRate }, { format: 'int16' }),
+        mime: 'audio/wav', format: 'wav' as const,
+        preview: cleanAudioPreview(result),
+      };
     },
   };
 }

@@ -11,6 +11,9 @@
  * See README.md for the quickstart and examples/ for a complete tool.
  */
 export type * from './contract.ts';
+export * from './file-operation-v1.ts';
+export { FILE_CONTRACT_VERSION, safeFileName, allocateFileName, normalizeSha256 } from './file-v1.ts';
+export type { FileFactsV1, FileReferenceV1, FileOperationFindingV1, FileOperationReportV1 } from './file-v1.ts';
 
 /** The canonical `FinishKind` spellings, as a value: the ONE list. `FinishKind`
  *  is derived from it, and `engine/src/preflight.ts` builds its recognised-finish
@@ -105,13 +108,24 @@ export type {
 // of this saved/public shape.
 export { CHART_SPEC_VERSION } from './chart-v1.ts';
 export type {
-  ChartValue, ChartFieldType, ChartDimension, ChartExportFidelity, ChartMark,
+  ChartValue, ChartFieldType, ChartFieldRole, ChartFieldFormat, ChartDimension, ChartExportFidelity, ChartMark,
   ChartChannel, ChartFieldV1, ChartDatasetV1, ChartEncodingV1, ChartSeriesV1,
   ChartScaleV1, ChartAxisV1, ChartLegendV1, ChartFormatterV1, ChartThemeV1,
   ChartMotionV1, ChartAccessibilityV1, ChartPresentationV1, ChartSpecV1,
-  ChartFindingSeverity, ChartFindingV1, ChartValidationResultV1,
+  ChartFindingSeverity, ChartFindingV1, ChartColumnProfileV1, ChartDataProfileV1,
+  ChartRecommendationV1, ChartValidationResultV1,
   ResolvedChartReportV1,
 } from './chart-v1.ts';
+
+// design-v1 - a semantic READ model over Design's permanent flat `boxes` wire
+// value. Shared by MCP inspection and the web inspector; it does not replace or
+// migrate saved documents.
+export { DESIGN_DOCUMENT_VERSION, DESIGN_LAYER_KINDS, inspectDesignV1 } from './design-v1.ts';
+export type {
+  DesignLayerKindV1, DesignFindingSeverityV1, DesignBoundsV1, DesignTimingV1,
+  DesignLayerInspectionV1, DesignArtboardInspectionV1, DesignFindingIdV1,
+  DesignFindingV1, DesignInspectionV1, InspectDesignV1Options,
+} from './design-v1.ts';
 
 /** The `HostV1` contract version this SDK targets (matches `HostV1.version`). */
 export const CONTRACT_VERSION = '1';

@@ -792,6 +792,8 @@ const RASTER_PREVIEWS: Record<string, string> = {
     'A frame from the 3-D camera flythrough - a canvas render of the scene. One embedded <image>, 522 B of surviving markup.',
 
   // ── Class 2: the geometry IS the pixels ────────────────────────────────────
+  'agenda.look0.webp':
+    'Programme list: every session printed with its speaker, room and note, which is more type than the timetable tile carries - 157,486 B of optimised walker SVG on lolly-start and 141,571 B on suse, both past the 140,000 B thumbnail ceiling, against 28 KB as WebP. Every line of a programme is an outlined glyph path with a five-figure `d`; the tile itself (111-124 KB) and the board look (91-99 KB) stay SVG, so this entry covers the one look that does not fit, and the suse margin is 1.1% - re-measure rather than assume if the default programme ever changes.',
   'filter.look2.webp':
     'Scanline CRT: the scan lines and phosphor mask serialise to a 163,554 B SVG, past the 140 KB thumbnail ceiling, and compress to 124,106 B as WebP. Line-per-pixel-row art is what raster formats are for.',
   'filter.look4.webp':

@@ -61,7 +61,86 @@ export interface PdfAPI {
    * and the node CLI does not - a tool must feature-detect `host.pdf?.pages`.
    * Runs locally; the bytes are never uploaded.
    */
-  pages?(bytes: Uint8Array, opts?: { maxPages?: number }): Promise<PdfPagesResult>;
+  pages?(bytes: Uint8Array, opts?: { maxPages?: number; pageNumbers?: number[] }): Promise<PdfPagesResult>;
+
+  /**
+   * Reorder, rotate, extract, delete, merge, or split pages without rasterising
+   * them. Page expressions are 1-based (`1-3,7,10-`); repeated page numbers are
+   * retained for reorder/extract and rejected where they would be ambiguous.
+   * Document metadata is carried from the primary input and no producer credit
+   * is added. Encrypted documents and XFA forms are refused by name.
+   */
+  organize?(bytes: Uint8Array, opts: PdfOrganizeOpts): Promise<PdfOrganizeResult>;
+
+  /** Place one or more PNG/JPEG stamps using top-left PDF-point coordinates. */
+  stamp?(bytes: Uint8Array, opts: PdfStampOpts): Promise<PdfStampResult>;
+
+  /** Apply an AES-256 open password as the final PDF byte operation. */
+  lock?(bytes: Uint8Array, password: string): Promise<{ bytes: Uint8Array }>;
+}
+
+export type PdfPageOperation = 'reorder' | 'rotate' | 'extract' | 'delete' | 'merge' | 'split';
+
+export interface PdfOrganizeOpts {
+  operation: PdfPageOperation;
+  /** 1-based page expression. Empty means every page. */
+  pages?: string;
+  /** Clockwise degrees; used by rotate. */
+  rotation?: 90 | 180 | 270;
+  /** Legacy second document for merge. */
+  extra?: Uint8Array;
+  /** Additional documents, flattened after the primary document in this order. */
+  extras?: Uint8Array[];
+}
+
+export interface PdfOrganizeFile {
+  bytes: Uint8Array;
+  /** 1-based source page numbers represented by this output. */
+  pages: number[];
+}
+
+export interface PdfOrganizeResult {
+  bytes?: Uint8Array;
+  files?: PdfOrganizeFile[];
+  beforePages: number;
+  afterPages: number;
+  beforeBytes: number;
+  afterBytes: number;
+  /** Output order expressed as global source page numbers across all inputs. */
+  pageOrder: number[];
+  operations: string[];
+}
+
+export interface PdfStampImage {
+  bytes: Uint8Array;
+  /** 1-based destination page. */
+  page: number;
+  x: number;
+  /** Distance from the TOP edge of the page, in PDF points. */
+  y: number;
+  width: number;
+  /** Optional explicit height; otherwise the embedded image aspect ratio is used. */
+  height?: number;
+}
+
+export interface PdfStampText {
+  text: string;
+  page: number;
+  x: number;
+  /** Distance from the TOP edge of the page, in PDF points. */
+  y: number;
+  size?: number;
+}
+
+export interface PdfStampOpts {
+  images: PdfStampImage[];
+  texts?: PdfStampText[];
+}
+
+export interface PdfStampResult {
+  bytes: Uint8Array;
+  pages: number;
+  stamps: number;
 }
 
 export interface PdfCompressOpts {
@@ -165,6 +244,8 @@ export interface PdfPageSvg {
 export interface PdfPagesResult {
   /** Rendered pages in document order. A page that failed to render is absent. */
   pages: PdfPageSvg[];
+  /** Total pages in the source, including pages omitted by the preview cap. */
+  totalPages?: number;
   /** True when the document has more pages than the cap allowed to return. */
   truncated: boolean;
   /**

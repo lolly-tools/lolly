@@ -335,6 +335,17 @@ test('snapPoint snaps a pointer to a sibling right edge', () => {
   assert.ok(s.guides.some((g: any) => g.x1 === 300));
 });
 
+test('persistent ruler guides join move and point snap targets', () => {
+  const active = { minX: 247, minY: 100, maxX: 347, maxY: 200 };
+  const moved = snapMove(active as any, [], { w: 1000, h: 1000 }, 6, { x: [250] });
+  assert.equal(moved.dx, 3);
+  assert.ok(moved.guides.some((g: any) => g.x1 === 250 && g.x2 === 250));
+
+  const point = snapPoint(20, 397, [], { w: 1000, h: 1000 }, 6, { y: [400] });
+  assert.equal(point.y, 400);
+  assert.ok(point.guides.some((g: any) => g.y1 === 400 && g.y2 === 400));
+});
+
 const GCFG: any = { ...CFG, fontSizeField: 'fontSize', radiusField: 'radius' };
 
 test('scaleGroup scales positions + sizes about the anchor, keeping the anchor fixed', () => {
@@ -1583,4 +1594,3 @@ test('layoutArtboards: a page’s own ground beats the document’s; degenerate 
   assert.deepEqual(rows.map((r) => r.order), [0, 1]);
   assert.deepEqual(layoutArtboards([], abOpts()), []);
 });
-

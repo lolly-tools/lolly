@@ -237,9 +237,14 @@ const bundleBytes = Object.values(result.metafile.outputs).reduce((n, o) => n + 
 // A workspace specifier left in an output would be a dangling import at run time, and the
 // sidecar has no node_modules above it to accidentally satisfy it.
 for (const out of outputs) {
-  const src = readFileSync(join(REPO, out), 'utf8');
+  // esbuild reports metafile paths relative to the caller's cwd, not to this
+  // script. Tauri invokes us from shells/tauri-desktop, while developers often
+  // run us from the repository root, so anchoring these paths at REPO breaks
+  // the actual packaging hook (for example ../../dist became /Users/andy/dist).
+  const outputPath = resolve(process.cwd(), out);
+  const src = readFileSync(outputPath, 'utf8');
   const m = /(?:from|import|require)\s*\(?\s*["'](@lolly(?:-tools)?\/[^"']+)["']/.exec(src);
-  if (m) throw new Error(`a workspace import survived bundling: ${relative(REPO, join(REPO, out))} needs ${m[1]}`);
+  if (m) throw new Error(`a workspace import survived bundling: ${relative(REPO, outputPath)} needs ${m[1]}`);
 }
 
 // `lolly --version` reads ../package.json from beside its bundle. Same shape as the npm
@@ -265,9 +270,20 @@ function findPackage(name: string, from: string): string | null {
     const candidate = join(dir, 'node_modules', ...name.split('/'));
     if (existsSync(join(candidate, 'package.json'))) return candidate;
     const parent = dirname(dir);
-    if (parent === dir || !dir.startsWith(REPO)) return null;
+    if (parent === dir || !dir.startsWith(REPO)) break;
     dir = parent;
   }
+  // Cross-platform release containers intentionally reuse the checkout's
+  // portable JavaScript dependencies while keeping target-native optional
+  // packages (notably resvg) outside the macOS node_modules tree. This avoids
+  // mutating or replacing the developer's host install just to build a Linux
+  // sidecar from the same working tree.
+  const externalRoot = process.env.LOLLY_SIDECAR_NODE_MODULES?.trim();
+  if (externalRoot) {
+    const candidate = join(resolve(externalRoot), ...name.split('/'));
+    if (existsSync(join(candidate, 'package.json'))) return candidate;
+  }
+  return null;
 }
 
 const packageDir = (name: string): string => {
@@ -535,8 +551,23 @@ const dirBytes = (dir: string): number =>
 
 const skipVerify = Boolean(flag('skip-verify')) || crossBuilding;
 if (!skipVerify) {
+  // Verify from a directory outside the checkout. When OUT lives under REPO, Node's
+  // normal parent-directory lookup can see the developer's node_modules and make an
+  // intentionally absent optional native package look available. That hid isolation
+  // bugs on a matching host and, during a Linux build from a macOS checkout, selected
+  // the host's incompatible binding. The installed app has no checkout above it, so
+  // stage the exact payload shape in tmp and test what users actually receive.
+  const verifyRoot = mkdtempSync(join(tmpdir(), 'lolly-sidecar-verify-'));
+  const verifyBinDir = join(verifyRoot, 'bin');
+  const verifyLib = join(verifyRoot, PAYLOAD);
+  mkdirSync(verifyBinDir, { recursive: true });
+  const verifySeaPath = join(verifyBinDir, seaName);
+  copyFileSync(seaPath, verifySeaPath);
+  chmodSync(verifySeaPath, 0o755);
+  cpSync(LIB, verifyLib, { recursive: true });
+
   const runSidecar = (args: string[], env: NodeJS.ProcessEnv = {}, cwd = OUT) =>
-    spawnSync(seaPath, args, { encoding: 'utf8', env: { ...process.env, ...env }, cwd });
+    spawnSync(verifySeaPath, args, { encoding: 'utf8', env: { ...process.env, ...env }, cwd });
 
   const version = runSidecar(['--version']);
   if (version.status !== 0 || !version.stdout.startsWith('lolly ')) {
@@ -564,6 +595,7 @@ if (!skipVerify) {
   // package's isolated-install smoke owns the no-content exit-3 assertion; a
   // payload staged under this checkout can discover the checkout by design.
   console.log('verified: --version, list --json, and a rendered SVG');
+  rmSync(verifyRoot, { recursive: true, force: true });
 } else {
   console.log(`verify skipped (${crossBuilding ? `cross build for ${TARGET}` : '--skip-verify'})`);
 }
@@ -577,6 +609,22 @@ if (flag('install')) {
   copyFileSync(seaPath, join(binDest, seaName));
   chmodSync(join(binDest, seaName), 0o755);
   cpSync(LIB, libDest, { recursive: true });
+  // Tauri signs externalBin executables and the app bundle, but it does not
+  // discover Mach-O code nested inside an arbitrary resources directory.
+  // Apple's notarizer does, and rejects an otherwise valid app when this addon
+  // is only ad-hoc signed or unsigned. Release builds provide the same identity
+  // used for the app; sign the installed resource with hardened runtime and a
+  // secure timestamp before Tauri copies it into Lolly.app.
+  const releaseIdentity = process.env.APPLE_SIGNING_IDENTITY?.trim();
+  if (isMacTarget && releaseIdentity) {
+    const installedAddon = join(libDest, 'addons', 'resvgjs.node');
+    codesign([
+      '--force', '--options', 'runtime', '--timestamp',
+      '--sign', releaseIdentity, installedAddon,
+    ], true);
+    codesign(['--verify', '--strict', '--verbose=2', installedAddon], true);
+    console.log('signed nested macOS CLI addon for notarization');
+  }
   console.log(`installed → ${relative(REPO, binDest)}${sep}${seaName} and ${relative(REPO, libDest)}${sep}`);
 }
 

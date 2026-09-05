@@ -15,10 +15,23 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { sfntKind, sfntToWoff, woffToSfnt } from '../engine/src/font-convert.ts';
+import { sfntKind, sfntToWoff, woffToSfnt, fontConversionTargets, convertFontContainer } from '../engine/src/font-convert.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUTFIT = join(HERE, '..', 'shells', 'web', 'public', 'fonts', 'Outfit[wght].ttf');
+
+test('font targets follow the outline flavor, never the requested filename', () => {
+  const ttf = new Uint8Array(readFileSync(OUTFIT));
+  const woff = sfntToWoff(ttf);
+  assert.deepEqual(fontConversionTargets(ttf), ['ttf', 'woff']);
+  assert.deepEqual(fontConversionTargets(woff), ['ttf', 'woff']);
+  assert.throws(() => convertFontContainer(ttf, 'otf'), /different outlines/);
+  assert.throws(() => convertFontContainer(woff, 'otf'), /different outlines/);
+  assert.equal(sfntKind(convertFontContainer(woff, 'ttf')), 'ttf');
+  const cffHeader = woff.slice(); cffHeader.set([0x4f, 0x54, 0x54, 0x4f], 4);
+  assert.deepEqual(fontConversionTargets(cffHeader), ['otf', 'woff']);
+  assert.deepEqual(fontConversionTargets(woff.subarray(0, 8)), []);
+});
 
 /** Parse an sfnt directory into tag → bytes, for structural comparison. */
 function readTables(bytes: Uint8Array): Map<string, Uint8Array> {
@@ -141,7 +154,7 @@ test('reconstructed sfnt has a valid head.checkSumAdjustment', () => {
   assert.equal((checksum(whole) + adjustment) >>> 0, 0xb1b0afba);
 });
 
-test('TTF→OTF passthrough leaves an sfnt untouched', () => {
+test('unpacking an already-sfnt font leaves its actual outline format untouched', () => {
   const ttf = new Uint8Array(readFileSync(OUTFIT));
   // woffToSfnt on an already-sfnt input returns it unchanged (container is sfnt).
   assert.strictEqual(woffToSfnt(ttf), ttf);

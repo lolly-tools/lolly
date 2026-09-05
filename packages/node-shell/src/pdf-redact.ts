@@ -47,7 +47,7 @@ const PAGE_JPEG_QUALITY = 92;
  * preview never passes silently; when every page fails this throws, so a caller
  * shows its render-failure state rather than "previews aren't available here".
  */
-export async function pdfPages(bytes: Uint8Array, opts?: { maxPages?: number }): Promise<PdfPagesResult> {
+export async function pdfPages(bytes: Uint8Array, opts?: { maxPages?: number; pageNumbers?: number[] }): Promise<PdfPagesResult> {
   const input = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   const maxPages = clampMaxPages(opts?.maxPages);
   const handle = await openPdfForRender(input);
@@ -56,11 +56,16 @@ export async function pdfPages(bytes: Uint8Array, opts?: { maxPages?: number }):
     // Several page SVGs can land in one document - the ids must not collide.
     const page = await handle.pageToSvg(i, { idPrefix: `rdpg${i}-`, dedupePaths: true });
     return { svg: page.svg, page: page.page, widthPt: page.widthPt, heightPt: page.heightPt };
-  });
+  }, opts?.pageNumbers);
   if (!res.pages.length) {
     throw new Error('None of the pages in this PDF could be rendered. It may be encrypted or damaged.');
   }
-  return { pages: res.pages, truncated: res.truncated, ...(res.failed.length ? { failed: res.failed } : {}) };
+  return {
+    pages: res.pages,
+    totalPages: handle.sizes.length,
+    truncated: res.truncated,
+    ...(res.failed.length ? { failed: res.failed } : {}),
+  };
 }
 
 /** host.pdf.redact - the rasterise-and-rebuild pass. See the module header. */

@@ -154,6 +154,8 @@ export const HOOK_BUDGET_MS = {
 interface HookContext {
   model: InputModelItem[];
   host: HostV1;
+  /** Publish an intermediate onInit/onInput patch. Ignored after a newer run. */
+  report?: (patch: Record<string, unknown>) => void;
 }
 
 type OnInitHook = (ctx: HookContext) => unknown;
@@ -385,7 +387,7 @@ export async function createRuntime(
   let hookRunSeq = 0;
   function runHook(
     name: keyof typeof HOOK_BUDGET_MS,
-    invoke: () => unknown,
+    invoke: (report?: (patch: Record<string, unknown>) => void) => unknown,
     onLate?: (patch: unknown) => void,
   ): Promise<unknown> {
     const budget = HOOK_BUDGET_MS[name];
@@ -394,7 +396,11 @@ export async function createRuntime(
     // pending late patches; a sync run that skipped the bump would let a stale
     // async result land on top of it.
     const seq = onLate ? ++hookRunSeq : 0;
-    const out = invoke();
+    let finished = false;
+    const report = onLate ? (patch: Record<string, unknown>) => {
+      if (!finished && seq === hookRunSeq) onLate(patch);
+    } : undefined;
+    const out = invoke(report);
     if (out == null || typeof (out as { then?: unknown }).then !== 'function') {
       const elapsed = Date.now() - started;
       if (elapsed > budget) {
@@ -402,7 +408,10 @@ export async function createRuntime(
       }
       return Promise.resolve(out);
     }
-    const p = out as Promise<unknown>;
+    const p = Promise.resolve(out).then(patch => {
+      finished = true;
+      return onLate && seq !== hookRunSeq ? null : patch;
+    }, error => { finished = true; throw error; });
     if (!onLate) return withTimeout(p, budget, tool.manifest.id);
     return withTimeout(p, budget, tool.manifest.id).catch((err: unknown) => {
       // Timed out (a hook REJECTION reaches this catch too, but then the late .then
@@ -429,7 +438,8 @@ export async function createRuntime(
   // Shared late-patch application for onInit/onInput: merge, then repaint.
   const applyLatePatch = (patch: unknown): void => {
     ({ model, extras } = mergePatch(model, extras, patch, inputIds));
-    emit();
+    // During onInit template caches are not initialized and there are no listeners.
+    if (listeners.size) emit();
   };
 
   let hooks: Hooks | null = null;
@@ -443,7 +453,7 @@ export async function createRuntime(
     const onInit = hooks.onInit;
     if (onInit) {
       try {
-        const patch = await runHook('onInit', () => onInit({ model: modelForHooks(model), host }), applyLatePatch);
+        const patch = await runHook('onInit', report => onInit({ model: modelForHooks(model), host, report }), applyLatePatch);
         if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
       } catch (e) {
         // Record the failure (not just log it) so the shell can show a canvas-error
@@ -698,7 +708,7 @@ export async function createRuntime(
       const onInput = hooks?.onInput;
       if (onInput) {
         try {
-          const patch = await runHook('onInput', () => onInput({ id, value: flattenValue(value), model: modelForHooks(model), host }), applyLatePatch);
+          const patch = await runHook('onInput', report => onInput({ id, value: flattenValue(value), model: modelForHooks(model), host, report }), applyLatePatch);
           if (patch) {
             ({ model, extras } = mergePatch(model, extras, patch, inputIds));
             emit(); // re-emit with the hook's patch so the final state is correct
@@ -778,7 +788,7 @@ export async function createRuntime(
       if (onInput) {
         for (const { id, value } of applied) {
           try {
-            const patch = await runHook('onInput', () => onInput({ id, value, model: modelForHooks(model), host }), applyLatePatch);
+            const patch = await runHook('onInput', report => onInput({ id, value, model: modelForHooks(model), host, report }), applyLatePatch);
             if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
           } catch (e) {
             host.log('warn', `onInput ${(e as Error).message}`, { toolId: tool.manifest.id });
@@ -1266,6 +1276,7 @@ export async function createRuntime(
     // (`hooks?.dispose` is undefined); the Worker executor drops its run. Guarded
     // so a shell that never wired destroy - or calls it twice - is harmless.
     destroy() {
+      ++hookRunSeq; // Ignore late reports/results from a tool that is no longer mounted.
       try { hooks?.dispose?.(); } catch (e) { host.log('warn', `hook dispose ${(e as Error).message}`, { toolId: tool.manifest.id }); }
     },
   };

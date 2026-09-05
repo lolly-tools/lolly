@@ -12,11 +12,12 @@ export { resolveChartTheme, validateChartSpec, inspectChartSpec } from './chart-
 export type { ChartBrandThemeInput, ChartThemeOverrides } from './chart-spec.ts';
 export { CHART_SPEC_VERSION } from '@lolly-tools/core';
 export type {
-  ChartValue, ChartFieldType, ChartDimension, ChartExportFidelity, ChartMark,
+  ChartValue, ChartFieldType, ChartFieldRole, ChartFieldFormat, ChartDimension, ChartExportFidelity, ChartMark,
   ChartChannel, ChartFieldV1, ChartDatasetV1, ChartEncodingV1, ChartSeriesV1,
   ChartScaleV1, ChartAxisV1, ChartLegendV1, ChartFormatterV1, ChartThemeV1,
   ChartMotionV1, ChartAccessibilityV1, ChartPresentationV1, ChartSpecV1,
-  ChartFindingSeverity, ChartFindingV1, ChartValidationResultV1, ResolvedChartReportV1,
+  ChartFindingSeverity, ChartFindingV1, ChartColumnProfileV1, ChartDataProfileV1,
+  ChartRecommendationV1, ChartValidationResultV1, ResolvedChartReportV1,
 } from '@lolly-tools/core';
 export {
   canonicalJson, sha256Hex, jwkThumbprint, importSpkiOrJwkPublicKey,
@@ -218,6 +219,8 @@ export type {
 // the web shell and the CLI read identical numbers off the same clip.
 export { analysePcm, fftInPlace } from './audio-analyse.ts';
 export type { AudioAnalysis, AudioAnalyseOpts, AudioFrames } from './audio-analyse.ts';
+export { cleanAudioPcm, resamplePcm, cleanAudioPreview } from './audio-clean.ts';
+export type { CleanPcmOptions, CleanPcmResult } from './audio-clean.ts';
 // Captions (host.speech, v1.96) - spoken-word timings in, subtitle cues out. The
 // grouping and VTT/SRT timestamp maths live here so the browser and a headless
 // export break caption lines at the same words.
@@ -552,7 +555,8 @@ export { buildLinuxPack, buildHomeTarball, packageRender } from './linux-pack.ts
 export type { LinuxPackSpec, PackType, FontFile, DesktopEntry } from './linux-pack.ts';
 export { fontMetainfo, desktopEntry, metainfoPath } from './appstream.ts';
 export type { FontMetainfoOpts, DesktopEntryOpts } from './appstream.ts';
-export { sfntKind, sfntToWoff, woffToSfnt } from './font-convert.ts';
+export { sfntKind, sfntToWoff, woffToSfnt, fontConversionTargets, convertFontContainer } from './font-convert.ts';
+export { sourceToGrid, gridToTarget } from './file-data.ts';
 export type { SfntKind } from './font-convert.ts';
 export { videoProvenanceTags, embedMp4Meta, embedWebmMeta } from './video-meta.ts';
 export { embedWavInfo } from './riff-meta.ts';

@@ -68,6 +68,15 @@ test('a file whose exportFile returns several outputs contributes all of them', 
   assert.deepEqual(entries.map((e) => e.name), ['a.svg', 'b.svg']);
 });
 
+test('generated names cannot collide with later originals or case variants', async () => {
+  const names = ['photo.png', 'photo.png', 'photo-2.png', 'PHOTO.PNG'];
+  const { entries } = await collectBulkFiles(names.map(name => ({ name })), async i => [
+    { bytes: b(i), filename: names[i] },
+  ]);
+  assert.deepEqual(entries.map(e => e.name), ['photo.png', 'photo-2.png', 'photo-2-2.png', 'PHOTO-3.PNG']);
+  assert.equal(new Set(entries.map(e => e.name.toLowerCase())).size, 4);
+});
+
 test('every file failing yields no entries (caller turns this into an error)', async () => {
   const { entries, failed } = await collectBulkFiles([{ name: 'a' }, { name: 'b' }], async () => { throw new Error('x'); });
   assert.equal(entries.length, 0);

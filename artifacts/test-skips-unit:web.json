@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "skips": [
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "a blank/whitespace-only run returns the documented empty sentinel, not a degenerate shape",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "a codepoint no face covers shapes as .notdef and is counted - the caller's cue to keep <text>",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "a fallback face is instanced at its OWN variations (fallbackFonts[].variations is honoured)",
+      "reason": "Missing catalog/fonts/ttf/SUSE-Regular.ttf - skipping fallbackFonts golden case.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "an interior space (no-ink glyph) advances the pen and keeps bbox well-formed without shaping as .notdef",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "axisDefaults reports {} for a pre-instanced static",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "baseline & bbox sanity on an ordinary run: ascenders go negative-y, bbox is well-formed",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "bold and bold-italic outlines differ from regular (real shape difference, not just re-snapshot)",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "fallbackFonts: an uncovered character drops out of notdef once a covering face is chained",
+      "reason": "Missing catalog/fonts/ttf/SUSE-Regular.ttf - skipping fallbackFonts golden case.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: \"office\" with ligatures forced off (liga=0), Regular 48px",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: \"office\" with ligatures on (default), Regular 48px",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: basic Latin run, SUSE Regular 48px",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: blank/whitespace-only run",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: CJK run SUSE cannot cover (tofu/.notdef), Regular 48px",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: letterSpacing=0 baseline, Regular 48px",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: letterSpacing=4px, Regular 48px",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: mixed run with a SUSE-uncovered char, NO fallback face",
+      "reason": "Missing catalog/fonts/ttf/SUSE-Regular.ttf - skipping fallbackFonts golden case.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: same mixed run, WITH Outfit as a fallback face",
+      "reason": "Missing catalog/fonts/ttf/SUSE-Regular.ttf - skipping fallbackFonts golden case.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: same run, SUSE Bold 48px",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: same run, SUSE Bold Italic 48px",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: two-word run with an interior space glyph, Regular 48px",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "letterSpacing strictly widens advanceWidth over the same run at 0",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "liga=0 disables the ffi/fi ligature HarfBuzz applies by default",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    }
+  ]
+}

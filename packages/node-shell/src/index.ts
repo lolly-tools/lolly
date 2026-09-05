@@ -81,6 +81,7 @@ export { VERDICT_SLUGS, verdictSlug } from './verdict-slugs.ts';
 export type { VerdictSlug } from './verdict-slugs.ts';
 export { scanPdfPages } from './pdf-pages.ts';
 export type { PdfScan, PdfScanOptions, PdfPageScan, PdfInfo } from './pdf-pages.ts';
+export { createPdfAPI, organizePdf, stampPdf, lockPdf, parsePdfPageExpression } from './pdf.ts';
 export {
   listNodeDesignSystems, activeNodeDesignSystem, readActiveDesignSystemTokens,
   createNodeDesignSystem, writeNodeDesignSystemTokens, activateNodeDesignSystem, addNodeDesignResources,

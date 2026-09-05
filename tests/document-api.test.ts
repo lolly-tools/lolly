@@ -44,6 +44,31 @@ test('document schema and validation expose typed inputs', () => {
   assert.equal(validateDocument({ kind: 'inputs', manifest, value: { typo: true } }).ok, false);
 });
 
+test('validation admits only manifest-declared empty sentinels', () => {
+  const canvasManifest = {
+    ...manifest,
+    inputs: [{
+      id: 'boxes', type: 'blocks', default: [], fields: [
+        { id: 'start', type: 'number', default: '' },
+        { id: 'enabled', type: 'boolean', default: '' },
+        { id: 'width', type: 'number', default: 100 },
+      ],
+    }],
+  } as any;
+  const schema = documentSchema(canvasManifest) as any;
+  assert.ok(Array.isArray(schema.properties.boxes.items.properties.start.anyOf));
+  assert.equal(validateDocument({
+    kind: 'inputs', manifest: canvasManifest,
+    value: { boxes: [{ start: '', enabled: '', width: 10 }] },
+  }).ok, true);
+  const invalid = validateDocument({
+    kind: 'inputs', manifest: canvasManifest,
+    value: { boxes: [{ width: '' }] },
+  });
+  assert.equal(invalid.ok, false);
+  assert.equal(invalid.errors[0]!.path, '/boxes/0/width');
+});
+
 test('semantic diff and measurement do not rasterize', () => {
   assert.deepEqual(diffDocuments(doc({ title: 'a' }), doc({ title: 'b' })).inputs.changed, ['title']);
   assert.deepEqual(diffDocuments(doc({ product: { id: 1, name: 'mug' } }), doc({ product: { name: 'mug', id: 1 } })).inputs.changed, [], 'object key order is not a semantic change');

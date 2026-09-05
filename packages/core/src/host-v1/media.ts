@@ -42,6 +42,32 @@ export interface MediaAPI {
    * ignores it and keeps its default size.
    */
   subscribe(cb: (frame: MediaFrame) => void, opts?: { maxEdge?: number }): () => void;
+
+  /** Trim or remux an uploaded media file using this shell's local codecs. */
+  trim?(bytes: Uint8Array, opts: MediaTrimOpts): Promise<MediaTrimResult>;
+}
+
+export interface MediaTrimOpts {
+  start?: number;
+  end?: number;
+  container?: 'keep' | 'mp4' | 'webm' | 'gif';
+  mute?: boolean;
+  audioOnly?: false | 'm4a' | 'opus' | 'wav';
+  sourceName?: string;
+  sourceMime?: string;
+}
+
+export interface MediaTrimResult {
+  bytes: Uint8Array;
+  mime: string;
+  container: string;
+  durationBefore: number;
+  durationAfter: number;
+  lossless: boolean;
+  /** Present when the source exposes a count cheaply. */
+  frameCount?: number;
+  /** Present when the source exposes a decoded sample count cheaply. */
+  audioSampleCount?: number;
 }
 
 /** One camera frame as raw RGBA pixels - DOM-free, so the engine can pass it to a hook. */

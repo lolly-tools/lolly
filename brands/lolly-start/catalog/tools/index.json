@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-05T02:38:28.168Z",
+  "generatedAt": "2026-09-05T20:15:42.625Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -30,6 +30,7 @@
       "width": 760,
       "height": 620,
       "exportable": false,
+      "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m15 15 6 6m-6-6v4.8m0-4.8h4.8\" /><path d=\"M9 19.8V15m0 0H4.2M9 15l-6 6\" /><path d=\"M15 4.2V9m0 0h4.8M15 9l6-6\" /><path d=\"M9 4.2V9m0 0H4.2M9 9 3 3\" /></svg>",
       "preview": "/catalog/previews/compress-pdf.svg",
       "i18n": {
@@ -1046,6 +1047,7 @@
       "width": 760,
       "height": 620,
       "exportable": false,
+      "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21\" /><path d=\"m5.082 11.09 8.828 8.828\" /></svg>",
       "preview": "/catalog/previews/strip-data.svg",
       "i18n": {
@@ -2196,6 +2198,7 @@
       "width": 760,
       "height": 620,
       "exportable": false,
+      "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 13.5Z\" /><path d=\"M12 15v2.5\" /><path d=\"m8.5 21 3.5-3.5L15.5 21\" /><path d=\"M12 6.4s-2.4 2.5-2.4 4a2.4 2.4 0 0 0 4.8 0c0-1.5-2.4-4-2.4-4Z\" /></svg>",
       "preview": "/catalog/previews/rebrand-deck.svg",
       "i18n": {
@@ -2339,6 +2342,7 @@
       "width": 760,
       "height": 620,
       "exportable": false,
+      "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M10.3 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6\"/><circle cx=\"9\" cy=\"9\" r=\"2\"/><path d=\"m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21\"/><path d=\"M17 13.7V22\"/><path d=\"m14 19 3 3 3-3\"/></svg>",
       "preview": "/catalog/previews/convert-image.svg",
       "i18n": {
@@ -2887,6 +2891,7 @@
       "width": 760,
       "height": 620,
       "exportable": false,
+      "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><path d=\"M14 2v6h6\"/><path d=\"M8 13.5h8\" stroke-width=\"3.4\" stroke-linecap=\"butt\"/><path d=\"M8 18h5\"/></svg>",
       "preview": "/catalog/previews/redact.svg",
       "i18n": {
@@ -3244,6 +3249,7 @@
       "width": 760,
       "height": 560,
       "exportable": false,
+      "fileTransform": true,
       "icon": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M4 6h8M8 6v10M6.3 16h3.4\"/><path d=\"M13.5 16l3.5-10 3.5 10M14.9 12.3h4.2\"/></svg>",
       "preview": "/catalog/previews/font-convert.svg",
       "i18n": {
@@ -3741,7 +3747,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
-      "version": "1.24.0",
+      "version": "1.25.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -5224,6 +5230,7 @@
       "width": 1080,
       "height": 1080,
       "exportable": true,
+      "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"3\"/><path d=\"M3 15.5 8 10l4.5 4.5L16 11l5 5\"/><circle cx=\"9\" cy=\"7.5\" r=\"1.4\"/><path d=\"M14.5 5.5h4M16.5 3.5v4\"/></svg>",
       "preview": "/catalog/previews/darkroom.svg",
       "featured": {
@@ -5626,7 +5633,7 @@
     {
       "id": "captions",
       "name": "Captions",
-      "description": "Subtitles for a clip - transcribe it on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars.",
+      "description": "Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars.",
       "version": "1.0.2",
       "status": "community",
       "category": "everyone",
@@ -6893,6 +6900,7 @@
       "width": 1200,
       "height": 750,
       "exportable": false,
+      "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M8 15 15 8\"/><path d=\"M10.6 8H15v4.4\"/><path d=\"M7.5 18h6\"/></svg>",
       "preview": "/catalog/previews/annotate.svg",
       "examples": [
@@ -7711,7 +7719,7 @@
     {
       "id": "synth",
       "name": "Synth",
-      "description": "A visual instrument you play. Four scenes run live on the GPU: fluid ink, a particle swarm that flies at your headline or your logo, a feedback field, and your own camera. Every colour comes out of your brand palette, and the picture moves to your pointer, to a music track, and to a MIDI controller. Export a still or a seamless loop.",
+      "description": "A visual instrument you play. Four scenes run live on the GPU: fluid ink, a particle swarm that flies at your headline or your logo, a feedback field, and your own camera. Every colour comes out of your brand palette, and the picture moves to your pointer, to a music track, and to a MIDI controller. Export a still or a join-free loop.",
       "version": "0.2.1",
       "status": "experimental",
       "category": "designer",
@@ -8198,8 +8206,8 @@
     {
       "id": "chart",
       "name": "Chart",
-      "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
-      "version": "1.23.0",
+      "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+      "version": "1.25.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -8391,6 +8399,12 @@
           ]
         },
         {
+          "id": "bullet-targets",
+          "name": "Performance against target",
+          "category": "Comparison",
+          "description": "Actual bars, explicit target ticks and optional target bands on a shared scale."
+        },
+        {
           "id": "candlestick-series",
           "name": "Candlestick series",
           "category": "Financial",
@@ -8466,6 +8480,24 @@
           ]
         },
         {
+          "id": "data-skyline",
+          "name": "Fly the data skyline",
+          "category": "Cinematic",
+          "description": "Build a branded skyline from the values, then travel alongside the series that matters most.",
+          "presets": [
+            {
+              "id": "editorial-overview",
+              "name": "Editorial overview",
+              "description": "Use a calmer, higher camera and a narrower lens for reports and presentations."
+            },
+            {
+              "id": "cost-route",
+              "name": "Follow operating cost",
+              "description": "Keep the shared scale and city, but move the point of view to the comparison series."
+            }
+          ]
+        },
+        {
           "id": "distribution-lab",
           "name": "Distribution explorer",
           "category": "Statistical",
@@ -8507,6 +8539,24 @@
           ]
         },
         {
+          "id": "guided-chart",
+          "name": "Let Chart recommend",
+          "category": "Start here",
+          "description": "Paste or replace a table and get an explained, on-brand starting form with editable field mappings.",
+          "presets": [
+            {
+              "id": "relationship",
+              "name": "Ask about relationship",
+              "description": "Reframe the same measures as an association and start with a statistical view."
+            },
+            {
+              "id": "story",
+              "name": "Tell it cinematically",
+              "description": "Use row order as the route and the first measure as camera altitude."
+            }
+          ]
+        },
+        {
           "id": "hexbin-density",
           "name": "Hexbin density",
           "category": "Statistical",
@@ -8538,6 +8588,12 @@
           ]
         },
         {
+          "id": "pareto-priorities",
+          "name": "Where to focus first",
+          "category": "Comparison",
+          "description": "Rank the biggest causes and see when their cumulative share reaches 80%."
+        },
+        {
           "id": "quarterly-bars",
           "name": "Quarterly bars",
           "category": "Bars",
@@ -8559,6 +8615,12 @@
               "description": "Turn the bars sideways for long category names."
             }
           ]
+        },
+        {
+          "id": "range-comparison",
+          "name": "Compare low–high ranges",
+          "category": "Comparison",
+          "description": "Floating bars show the full interval with optional arithmetic midpoint ticks."
         },
         {
           "id": "regression-story",
@@ -8708,132 +8770,132 @@
       "i18n": {
         "ar": {
           "name": "المخطط",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "bg": {
           "name": "Диаграма",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "bn": {
           "name": "চার্ট",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "cs": {
           "name": "Graf",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "de": {
           "name": "Diagramm",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "es": {
           "name": "Gráfico",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "fr": {
           "name": "Graphique",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "hi": {
           "name": "चार्ट",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "id": {
           "name": "Grafik",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "it": {
           "name": "Grafico",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "ja": {
           "name": "チャート",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "ko": {
           "name": "차트",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "ms": {
           "name": "Carta",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "nl": {
           "name": "Grafiek",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "no": {
           "name": "Diagram",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "pl": {
           "name": "Wykres",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "pt": {
           "name": "Gráfico",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "ro": {
           "name": "Grafic",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "sv": {
           "name": "Diagram",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "tl": {
           "name": "Chart",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "tr": {
           "name": "Chart",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "uk": {
           "name": "Діаграма",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "ur": {
           "name": "چارٹ",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "vi": {
           "name": "Biểu đồ",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "zh-hant": {
           "name": "圖表",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "zh": {
           "name": "图表",
-          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
           "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         }
       }
@@ -8888,6 +8950,7 @@
       "width": 760,
       "height": 620,
       "exportable": false,
+      "fileTransform": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.85\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16 12.2V4.5q0-2-2-2H4q-2 0-2 2v9q0 2 2 2h9\"/><circle cx=\"6.5\" cy=\"7.3\" r=\"1.3\"/><path d=\"M2.4 13.6l3.2-2.9 2.5 2.1 2.7-2.6 1.9 1.85\"/><path d=\"M18 12l4.5 1.8v2.5c0 3.1-1.9 4.8-4.5 5.7-2.6-.9-4.5-2.6-4.5-5.7v-2.5z\"/><path d=\"M16.2 17.2l1.5 1.55 2.8-2.9\"/></svg>",
       "preview": "/catalog/previews/claim.svg",
       "i18n": {
@@ -9264,7 +9327,7 @@
     {
       "id": "gradient",
       "name": "Gradient",
-      "description": "Five ways to build a gradient from your brand swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points, and the animated Flow waves. Drag everything right on the canvas; export stills or seamless video loops.",
+      "description": "Five ways to build a gradient from your brand swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points, and the animated Flow waves. Drag everything right on the canvas; export stills or join-free video loops.",
       "version": "1.2.1",
       "status": "official",
       "category": "everyone",
@@ -11417,6 +11480,764 @@
         "zh": {
           "name": "Work Avatar",
           "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        }
+      }
+    },
+    {
+      "id": "agenda",
+      "name": "Agenda",
+      "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session.",
+      "version": "1.1.0",
+      "status": "community",
+      "category": "event",
+      "tags": [
+        "agenda",
+        "programme",
+        "schedule",
+        "timetable",
+        "conference",
+        "sessions",
+        "tracks",
+        "rooms",
+        "ics"
+      ],
+      "formats": [
+        "pdf",
+        "pdf-cmyk",
+        "svg",
+        "penpot",
+        "png",
+        "jpg",
+        "webp",
+        "ics"
+      ],
+      "width": 794,
+      "height": 1123,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 5h4\" /><path d=\"M3 12h4\" /><path d=\"M3 19h4\" /><rect x=\"10\" y=\"3\" width=\"5\" height=\"7.5\" rx=\"1\" /><rect x=\"17\" y=\"3\" width=\"4\" height=\"4.5\" rx=\"1\" /><rect x=\"10\" y=\"13.5\" width=\"5\" height=\"4.5\" rx=\"1\" /><rect x=\"17\" y=\"10.5\" width=\"4\" height=\"7.5\" rx=\"1\" /></svg>",
+      "preview": "/catalog/previews/agenda.svg",
+      "examples": [
+        {
+          "label": "Programme list",
+          "values": {
+            "layout": "list"
+          }
+        },
+        {
+          "label": "Now and next",
+          "values": {
+            "layout": "board",
+            "now": "2026-10-14T10:05"
+          }
+        }
+      ],
+      "templates": [
+        {
+          "id": "conference-day",
+          "name": "Conference day",
+          "category": "Conference",
+          "description": "One day, three tracks, a keynote to open and drinks to close.",
+          "presets": [
+            {
+              "id": "programme-list",
+              "name": "Printed programme",
+              "description": "The same day with rows sized by their words rather than by the clock."
+            },
+            {
+              "id": "door-screen",
+              "name": "Door screen",
+              "description": "What is on now in each track, for a screen in the foyer."
+            }
+          ]
+        },
+        {
+          "id": "meetup",
+          "name": "Evening meetup",
+          "category": "Meetup",
+          "description": "One evening, one room, four things on. No tracks to split.",
+          "presets": [
+            {
+              "id": "board",
+              "name": "On the door",
+              "description": "The same evening as a screen in the entrance."
+            }
+          ]
+        },
+        {
+          "id": "summit",
+          "name": "Two-day summit",
+          "category": "Conference",
+          "description": "Two days, two tracks, and a plenary opening and closing each day.",
+          "presets": [
+            {
+              "id": "programme-list",
+              "name": "Printed programme",
+              "description": "Both days as a list, rows sized by their words."
+            }
+          ]
+        }
+      ],
+      "i18n": {
+        "ar": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "bg": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "bn": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "cs": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "de": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "es": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "fr": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "hi": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "id": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "it": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "ja": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "ko": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "ms": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "nl": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "no": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "pl": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "pt": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "ro": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "sv": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "tl": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "tr": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "uk": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "ur": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "vi": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "zh-hant": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        },
+        "zh": {
+          "name": "Agenda",
+          "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session."
+        }
+      }
+    },
+    {
+      "id": "pages",
+      "name": "Pages",
+      "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility",
+      "privacy": "on-device",
+      "tags": [
+        "pdf",
+        "pages",
+        "reorder",
+        "rotate",
+        "extract",
+        "delete",
+        "merge",
+        "split"
+      ],
+      "added": "2026-09-05",
+      "formats": [
+        "pdf",
+        "zip"
+      ],
+      "width": 820,
+      "height": 650,
+      "exportable": false,
+      "fileTransform": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><title>Pages</title><rect x=\"7\" y=\"3\" width=\"12\" height=\"16\" rx=\"2\"/><path d=\"M5 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1M10 8h6m-6 4h6m-6 4h3\"/></svg>",
+      "preview": "/catalog/previews/pages.svg",
+      "i18n": {
+        "ar": {
+          "name": "الصفحات",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "bg": {
+          "name": "Страници",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "bn": {
+          "name": "পৃষ্ঠা",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "cs": {
+          "name": "Stránky",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "de": {
+          "name": "Seiten",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "es": {
+          "name": "Páginas",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "fr": {
+          "name": "Pages",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "hi": {
+          "name": "पेज",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "id": {
+          "name": "Halaman",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "it": {
+          "name": "Pagine",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "ja": {
+          "name": "ページ数",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "ko": {
+          "name": "페이지 수",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "ms": {
+          "name": "Halaman",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "nl": {
+          "name": "Pagina's",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "no": {
+          "name": "Sider",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "pl": {
+          "name": "Strony",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "pt": {
+          "name": "Páginas",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "ro": {
+          "name": "Pagini",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "sv": {
+          "name": "Sidor",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "tl": {
+          "name": "Mga Page",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "tr": {
+          "name": "Pages",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "uk": {
+          "name": "Сторінки",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "ur": {
+          "name": "صفحات",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "vi": {
+          "name": "Số trang",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "zh-hant": {
+          "name": "頁數",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        },
+        "zh": {
+          "name": "页数",
+          "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device."
+        }
+      }
+    },
+    {
+      "id": "clean",
+      "name": "Clean",
+      "description": "Clean a voice recording, trim edge silence and set its loudness on your device.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility",
+      "privacy": "on-device",
+      "tags": [
+        "audio",
+        "video",
+        "voice",
+        "denoise",
+        "noise",
+        "normalize",
+        "loudness",
+        "silence",
+        "wav",
+        "mp3",
+        "m4a",
+        "opus"
+      ],
+      "added": "2026-09-05",
+      "formats": [
+        "wav",
+        "mp3",
+        "m4a",
+        "opus",
+        "mp4",
+        "webm"
+      ],
+      "width": 820,
+      "height": 620,
+      "exportable": false,
+      "fileTransform": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"><title>Clean</title><path d=\"M3 12h2l1.5-5 3 10 3-14 3 18 2.5-9H21\"/><path d=\"m18 4 .7 1.8L21 6.5l-2.3.7L18 9l-.7-1.8L15 6.5l2.3-.7L18 4Z\"/></svg>",
+      "preview": "/catalog/previews/clean.svg",
+      "i18n": {
+        "ar": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "bg": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "bn": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "cs": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "de": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "es": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "fr": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "hi": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "id": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "it": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "ja": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "ko": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "ms": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "nl": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "no": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "pl": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "pt": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "ro": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "sv": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "tl": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "tr": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "uk": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "ur": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "vi": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "zh-hant": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        },
+        "zh": {
+          "name": "Clean",
+          "description": "Clean a voice recording, trim edge silence and set its loudness on your device."
+        }
+      }
+    },
+    {
+      "id": "sign",
+      "name": "Sign",
+      "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility",
+      "privacy": "on-device",
+      "tags": [
+        "pdf",
+        "sign",
+        "signature",
+        "initials",
+        "date",
+        "credential",
+        "lock",
+        "password"
+      ],
+      "added": "2026-09-05",
+      "formats": [
+        "pdf"
+      ],
+      "width": 820,
+      "height": 650,
+      "exportable": false,
+      "fileTransform": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><title>Sign</title><path d=\"M3 17.5c2.5-5 3.8-8 5.3-8 2.2 0-1 7.5 1.2 7.5 1.5 0 2.4-4 3.8-4 1.1 0 .2 3 1.6 3 1.2 0 2.2-2 3.6-2 1 0 1.5.7 2.5 1.5M3 20h18\"/><path d=\"m15 5 2-2 4 4-2 2-4-4Z\"/></svg>",
+      "preview": "/catalog/previews/sign.svg",
+      "i18n": {
+        "ar": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "bg": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "bn": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "cs": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "de": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "es": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "fr": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "hi": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "id": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "it": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "ja": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "ko": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "ms": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "nl": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "no": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "pl": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "pt": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "ro": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "sv": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "tl": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "tr": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "uk": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "ur": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "vi": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "zh-hant": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        },
+        "zh": {
+          "name": "Sign",
+          "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result."
+        }
+      }
+    },
+    {
+      "id": "trim",
+      "name": "Trim",
+      "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility",
+      "privacy": "on-device",
+      "tags": [
+        "video",
+        "audio",
+        "trim",
+        "cut",
+        "clip",
+        "mp4",
+        "webm",
+        "gif",
+        "extract audio",
+        "mute"
+      ],
+      "added": "2026-09-05",
+      "formats": [
+        "mp4",
+        "webm",
+        "gif",
+        "m4a",
+        "opus",
+        "wav"
+      ],
+      "width": 860,
+      "height": 620,
+      "exportable": false,
+      "fileTransform": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><title>Trim</title><circle cx=\"6\" cy=\"7\" r=\"3\"/><circle cx=\"6\" cy=\"17\" r=\"3\"/><path d=\"m8.5 8.5 11 7M8.5 15.5 19.5 8M12 12l-3.5-2.2\"/></svg>",
+      "preview": "/catalog/previews/trim.svg",
+      "i18n": {
+        "ar": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "bg": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "bn": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "cs": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "de": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "es": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "fr": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "hi": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "id": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "it": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "ja": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "ko": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "ms": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "nl": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "no": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "pl": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "pt": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "ro": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "sv": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "tl": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "tr": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "uk": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "ur": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "vi": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "zh-hant": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        },
+        "zh": {
+          "name": "Trim",
+          "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
         }
       }
     }

@@ -117,7 +117,10 @@ function typeEscapeCount(source: string): number {
 }
 
 function importSpecifiers(source: string): string[] {
-  const matches = source.matchAll(/(?:\bfrom\s*|\bimport\s*\()\s*['"]([^'"]+)['"]/g);
+  // Type-only imports (`import type ... from`, `export type ... from`) erase at compile time,
+  // so they are not runtime dependency edges and cannot form a load-order cycle.
+  const runtimeSource = source.replace(/\b(?:import|export)\s+type\s+[^;]*?\bfrom\s*['"][^'"]+['"]/g, '');
+  const matches = runtimeSource.matchAll(/(?:\bfrom\s*|\bimport\s*\()\s*['"]([^'"]+)['"]/g);
   return [...matches].flatMap((match) => {
     const value = match[1];
     return value?.startsWith('.') ? [value] : [];

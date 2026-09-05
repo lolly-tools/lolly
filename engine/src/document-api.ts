@@ -60,8 +60,11 @@ export function documentSchema(tool: LoadedTool | ToolManifest): Record<string, 
 }
 function inputSchema(input: InputSpec): Record<string, unknown> {
   const base = { title: input.label ?? input.id, ...(input.help ? { description: input.help } : {}) };
-  if (input.type === 'number') return { ...base, type: 'number', ...(input.min !== undefined ? { minimum: input.min } : {}), ...(input.max !== undefined ? { maximum: input.max } : {}), ...(input.default !== undefined ? { default: input.default } : {}) };
-  if (input.type === 'boolean') return { ...base, type: 'boolean' };
+  if (input.type === 'number') {
+    const number = { type: 'number', ...(input.min !== undefined ? { minimum: input.min } : {}), ...(input.max !== undefined ? { maximum: input.max } : {}) };
+    return { ...base, ...(input.default === '' ? { anyOf: [number, { const: '' }] } : number), ...(input.default !== undefined ? { default: input.default } : {}) };
+  }
+  if (input.type === 'boolean') return { ...base, ...(input.default === '' ? { anyOf: [{ type: 'boolean' }, { const: '' }] } : { type: 'boolean' }), ...(input.default !== undefined ? { default: input.default } : {}) };
   if (input.type === 'blocks') {
     const fields = (input.fields ?? []).map((field) => ({ ...field, type: field.type ?? 'text', label: field.label ?? field.id })) as InputSpec[];
     return { ...base, type: 'array', items: { type: 'object', properties: Object.fromEntries(fields.map((field) => [field.id, inputSchema(field)])), additionalProperties: false } };
@@ -75,6 +78,11 @@ function inputSchema(input: InputSpec): Record<string, unknown> {
 }
 
 function validateInputValue(input: InputSpec, value: unknown, path: string, errors: ValidationIssue[]): void {
+  // Canvas manifests use an explicit empty-string default for optional numbers and
+  // booleans (`start`, `dur`, `build`, `varispeed`): it means "not authored", not a
+  // malformed scalar. Admit that sentinel only when the manifest itself declares it;
+  // a random empty value on an ordinary number remains an error.
+  if (value === '' && input.default === '' && (input.type === 'number' || input.type === 'boolean')) return;
   const object = Boolean(value && typeof value === 'object' && !Array.isArray(value));
   const expected = input.type === 'number' ? 'number' : input.type === 'boolean' ? 'boolean' : input.type === 'blocks' ? 'array' : input.type === 'table' || input.type === 'vector' ? 'object' : input.type === 'asset' ? 'asset' : input.type === 'file' ? 'file' : input.type === 'color' ? 'color' : 'string';
   const matches = expected === 'array' ? Array.isArray(value)

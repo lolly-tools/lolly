@@ -1,0 +1,313 @@
+{
+  "schemaVersion": 1,
+  "skips": [
+    {
+      "file": "tests/color-ramp.test.ts",
+      "fullName": "performance: 1000-color ramp generation < 10ms",
+      "reason": "perf/timing guard - set BENCH=1 to run (wall-clock, flakes under load)",
+      "capability": "benchmark",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/color-ramp.test.ts",
+      "fullName": "performance: correctLightness adds minimal overhead",
+      "reason": "perf/timing guard - set BENCH=1 to run (wall-clock, flakes under load)",
+      "capability": "benchmark",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/core-pack.test.ts",
+      "fullName": "pack-core builds an installable, usable @lolly-tools/core",
+      "reason": "set CORE_PACK=1 to run (runs tsc + npm install)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "a brand font → a quoted --ds-*-family with a sensible fallback baked in",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "an element is only emitted when its chip (<el>On) is on",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "an empty custom CSS box emits no extra <style>",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "an unterminated code fence still renders (consumes to EOF, no throw)",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "an untouched deck emits NO --ds-* custom properties",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "custom CSS is wrapped in .slides { … } and emitted as a <style>",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "freeform box: same parser emits bare <pre>/<code> and <blockquote>",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "layout body: blockquote → <blockquote class=\"sl-quote\"> with inline md",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "layout body: fenced code block → <pre class=\"sl-pre\"><code>, content literal",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "SECURITY: a hostile font name is stripped of style-breakout characters",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "SECURITY: custom CSS cannot close the <style> element or @import",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "SECURITY: html inside a fenced code block is escaped, never a live tag",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "size % becomes a ratio scale var; weight becomes a weight var",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "size is clamped to 25–300%; a bogus weight is ignored",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "the full 100–900 weight scale is accepted (Thin … Black)",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-logos.test.ts",
+      "fullName": "a long page gets the jump nav and a short one does not",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-logos.test.ts",
+      "fullName": "no heading in the built docs carries a technology mark",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-logos.test.ts",
+      "fullName": "the build guide ships the Kubernetes block, decorative and unannounced",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-logos.test.ts",
+      "fullName": "the built build-guide carries the marks it is the flagship for",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-logos.test.ts",
+      "fullName": "the built pages render their markers as .doc-logo spans, with none left over",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-logos.test.ts",
+      "fullName": "the jump nav is exempted from the rules that own every other <nav>",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-logos.test.ts",
+      "fullName": "the jump nav script closes on Escape and returns focus",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-logos.test.ts",
+      "fullName": "the jump nav ships on locale pages too",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-logos.test.ts",
+      "fullName": "the markdown twin carries no logo markers",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "a banked masthead would replace the canvas, not join it",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "every article page opens with the masthead band, and the landing does not",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "hoisting the h1 into the band does not move its anchor",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "no screenshot is offered a clipboard copy of its pixels",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "the band ships no provenance line - it is shell decoration, not a signed asset",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "the canvas never takes a pointer event, in either instance",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "the chip list is generated from the formats catalog, not hand-written",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "the credential line offers Copy signed source, and says what happened",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "the landing and the masthead draw from the same generated list",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "the locale pages get the band too",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "the masthead burst yields to links, buttons and text selection",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "the masthead script honours reduced motion, off-screen and hidden tabs",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "with nothing mapped, every page still gets the default field - not a blank band",
+      "reason": "built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc.test.ts",
+      "fullName": "iccCharacterization: a real profile's targ (gated on LOLLY_ICC_TARG)",
+      "reason": "set LOLLY_ICC_TARG=<path to a .icc carrying a targ tag>",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/penpot-live-import.test.ts",
+      "fullName": "live: Penpot imports a Design-boxes archive with its tokens, colours and typography",
+      "reason": "set PENPOT_PAT and PENPOT_PROJECT to run the live import",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rpm.test.ts",
+      "fullName": "a real rpm accepts the package (gated on $LOLLY_RPM_BIN)",
+      "reason": "set LOLLY_RPM_BIN to an rpm binary to run",
+      "capability": "external-tool",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/wmf.test.ts",
+      "fullName": "ImageMagick cross-check (skipped unless a WMF delegate is present)",
+      "reason": "ImageMagick has no WMF delegate: Command failed: magick /var/folders/_2/4gb5c0292cldj71630vkzgw80000gn/T/wmf-4k4B93/out.wmf /var/folders/_2/4gb5c0292cldj71630vkzgw80000gn/T/wmf-4k4B93/out.png",
+      "capability": "external-tool",
+      "owner": "tests"
+    }
+  ]
+}

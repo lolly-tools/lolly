@@ -84,6 +84,13 @@ export function main(): void {
   }
 
   const shellDir = TAURI_DIR[target];
+  // Both Tauri configs import helpers from the web Vite config. Its release
+  // guard is evaluated while loading that module, before the target-specific
+  // dist directory exists, and deliberately requires the source catalogue to
+  // have a valid envelope. Sign that source first; the output catalogue is
+  // still signed again below so the native package is bound to the exact bytes
+  // it embeds (including neutral/profile composition).
+  sign(env);
   run(npm, ['--prefix', shellDir, 'run', 'build:frontend'], env);
   sign(env, [
     '--tools', `${shellDir}/dist/tools`,

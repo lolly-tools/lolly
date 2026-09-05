@@ -198,73 +198,70 @@ loldev help                              # every command
 ## Current tools
 
 <!-- tools-table:start -->
-The SUSE catalog ships **66 tools** today - 65 listed in the gallery, plus one unlisted helper (Asset Export). Generated from `catalog/tools/index.json` by `npm run build:readme-tools`:
+The Lolly Start (blank brand) catalog ships **61 tools** today - 60 listed in the gallery, plus one unlisted helper (Asset Export). Generated from `catalog/tools/index.json` by `npm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|
-| 3D | Load a 3D model into a lit scene, orbit and pose the camera and render a still or a turntable animation. |
-| Animated Ad | Build animated ads from layered scenes for any standard size. |
+| 3D | Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation. |
+| Agenda | A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session. |
+| Annotate | Mark up your own screenshot on your device - arrows, boxes, numbered steps, callouts, highlighter and a spotlight dim. |
 | Audiogram | Turn a voice clip or song into a branded video that actually moves with the sound - bars, spectrum, ring, ridgeline or scope, ready for social. |
-| Battlecards | Turn any table into a deck of cards - one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc or chat. |
-| Bitmap Studio | A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture - then bake your look as a LUT any editor can use. |
-| Bitmap Upscale | Frame and export an AI-upscaled photo, keeping the render path that carries your credential. |
-| Booth Studio | Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design and render a still or a turntable for a sponsor pitch. |
-| Brand Lockup | Official SUSE logo lockups - chameleon, wordmark and a name. |
-| Calendar ICS | Turn event details into a calendar (.ics) file for any calendar app. |
-| Carousel Maker | Design a multi-page carousel on one canvas - set 1–6 same-size pages, drop objects onto each page, export an image sequence or a multi-page PDF. |
-| Chart Creator | On-brand charts from your data - bar, donut, pie or stacked. |
-| Code Canvas | Turn code snippets into clean, syntax-highlighted, shareable images. |
-| Color Block | Colour blocks - text, image, logo - auto-arranged into a grid. |
-| Color Picker | A handy color picker for the SUSE brand palette - click any swatch to copy it. |
-| Compress PDF | Shrink a PDF by recompressing its images - on your device. |
+| Backdrop | Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds. |
+| Booklet | Build a multi-page PDF - a cover, flowing content blocks, and a back page. |
+| Booth | Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch. |
+| Calendar | Turn event details into a calendar (.ics) file for any calendar app. |
+| Captions | Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars. |
+| Certificate | Completion and award certificates from the active brand - one name at a time, or a whole roster from a CSV in Bulk from rows. |
+| Chart | Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile. |
+| Claim | Claim your name on any media you've already made - image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file - all on your device, before you upload it anywhere. |
+| Clean | Clean a voice recording, trim edge silence and set its loudness on your device. |
+| Compress | Shrink a PDF by recompressing its images - on your device. |
+| Contrast | Check a text and background pair, or every pairing in your brand palette, against WCAG 2.1 and APCA, and see how it reads to colour-blind viewers. |
+| Convert Font | Convert a font between TrueType, OpenType and WOFF - on your device. |
 | Convert Image | Turn HEIC, TIFF or any photo into WebP, JPEG or PNG - on your device. |
-| Countdown Timer | A focused countdown with a live progress ring. Click to pause. |
-| D3 Chart Studio | Powerful data-driven charts with D3 - paste a table and it charts itself. Bars, lines, areas, scatter, pie, radar, treemap, heatmap and more, on-brand and vector-clean. |
-| Deck Builder | Build a slide deck with a live on-canvas editor - edit text, colours and images directly on each slide. |
-| Deck Studio | Build a native, editable PowerPoint deck - real text, bullets, tables and brand theme - from a simple slide builder, pasted Markdown or a JSON spec. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG. |
-| Diagram Builder | Org charts, flowcharts, timelines and more - from cards, text, Mermaid or CSV. |
-| Doc Studio | Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF. |
-| Dynamic Layout | A do-anything layout that recomposes around whatever you add, at any size. |
-| Email Signature | An on-brand SUSE email signature, ready to paste into any client. |
-| Embed & Track Image | Stamp your author, copyright and licence into any image - plus an invisible Lolly Imprint and Content Credentials - before you share it. |
-| Event Name Badge | Conference name badges with a colour-coded role and optional QR. |
-| Filter: Duotone | A two-color duotone for any photo - shadows one color, highlights another. |
-| Filter: Halftone | Vector halftone from any photo - dots sized by brightness. |
-| Filter: Imperfections | Deliberate print imperfections for any photo - offset ink plates, ink bleed, paper grain and photocopy wear. |
-| Filter: Pixel Stretch | Smear a column of pixels across a photo from a threshold line. Works live. |
-| Filter: Posterize Bitmap | Trace any photo into flat, screenprint-style vector colour separations. |
-| Filter: Scanline | Horizontal 'infinity lines' scanline vector effect from any photo |
-| Filter: Voronoi Cells | Shatter any photo into a Voronoi cell mosaic - each cell filled with the nearest colour, as flat vector. |
-| Finish Preview | Preview foil, spot UV, emboss and soft-touch finishes on your artwork - then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs. |
-| Flow Chart | Build flow charts on an open canvas - drag cards, connect them and the lines route and stick to the boxes. |
-| Layers | Open a Photoshop or GIMP file as individual layers - lock each one down with exact X/Y coordinates, visibility, opacity and blend mode, then export flat images or a layered PSD. |
+| Countdown | A focused countdown with a live progress ring. Click to pause. |
+| Darkroom | A pro photo-grading darkroom: film looks, third-party .cube LUTs, brand-seeded colour treatments and finishing texture - then bake your look as a LUT any editor can use. Opens a Photoshop or GIMP file as layers too: position, blend and hide each one, grade the composite, and export flat images or a layered PSD. |
 | Design | An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your brand. |
-| Logo | Place the SUSE logo - it auto-picks the right variant and exports vector. |
-| Logo Lockup: Grid (NASCAR) | Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall. |
-| Logo Lockup: Partner | The SUSE logo beside a partner's, with a divider between - light or dark. |
+| Diagrams | Org charts, flowcharts, timelines and more - from cards, text, Mermaid, DOT or CSV. |
+| Doc Studio | Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF. |
+| Filter | One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, imperfections or glitch (raster). Brand overlays, live camera, and exports to as many formats as each effect supports. |
+| Finishes | Preview foil, spot UV, emboss and soft-touch finishes on your artwork - then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs. |
+| Flythrough | Fly a real 3D camera through a screenshot. The picture lifts into layers at real depth; big shapes extrude into solid objects; a timeline of poses animates the whole move - depth, opacity, perspective, extrusion, tilt, rotate, scale and the camera flight - then loops it home. Add, drag and reorder poses. Export as video. |
+| Frame | Drop in a screenshot and get it framed, padded and shadowed on a brand backdrop. |
+| Gradient | Five ways to build a gradient from your brand swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points, and the animated Flow waves. Drag everything right on the canvas; export stills or join-free video loops. |
+| Growth | Differential growth: a line that repels itself until it folds into coral. Seed it from a ring, a burst, your headline's letterforms or your logo, and export the result as real, plotter-ready SVG paths. |
+| Icon | Favicon and app-icon maker - a multi-size .ico, PNG and SVG, or the whole app kit as one zip. |
+| Jump | A one-link landing page: your links, heading, portrait and colours on an expressive page - and the whole page lives inside the link you share. |
+| Link Card | Paste a link, get a branded social card - title, description, site chip and a thumbnail, at Open Graph, square or summary size. |
+| Logo Wall | Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall. |
 | Lottie Ad | Build animated ads from layered scenes, each carrying a Lottie motion asset, for any standard size. |
-| Meeting Planner | Plan a global meeting and see the time for every teammate's timezone. |
-| Mesh Gradient | Soft mesh-style gradients from your brand swatches. Drag the colour points right on the canvas. |
-| Multi-Page PDF | Build a multi-page PDF - a cover, flowing content blocks and a back page. |
-| Pose Geeko | Pose the SUSE Geeko with sliders - eyes, blink and limbs. No animation, just a still you can dial in and export print-ready. |
-| Prompt to Image | Typeset a long prompt into one compact, legible image for a multimodal model - image input is often cheaper than the same words as text tokens. |
-| QR Code Generator | QR codes for any URL, with full color and style control. |
-| Quote Card | On-brand quote cards for social posts and slides. |
-| Rebrand a Deck | Upload a PowerPoint deck and snap its colours and fonts to your brand - rebuilt on your device, nothing uploaded. |
+| Markdown Slides | Turn Markdown or a JSON spec into a native, editable PowerPoint deck - real text, bullets, tables and brand theme - in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG. |
+| Pages | Reorder, rotate, extract, delete, merge or split PDF pages on your device. |
+| Palette Lab | Grow a palette from one seed colour - harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export. |
+| Print Sheet | Lay one design - or a whole pile of them - out n-up on A4, Letter or A3, across as many pages as it takes, with crop marks in the margin. |
+| Prompt Card | Typeset a long prompt into one compact, legible image for a multimodal model - image input is often cheaper than the same words as text tokens. |
+| QR Code | Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode. |
+| Rebrand | Upload a PowerPoint deck and snap its colours and fonts to your brand - rebuilt on your device, nothing uploaded. |
 | Record | Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically. |
 | Redact | Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device. |
-| Screen Capture | Screenshot or record your whole screen, a window or a browser tab. Drag on the canvas to crop - the export stays the exact pixels you captured. |
-| Sequence Studio | Arrange clips, cards, overlays and music on a timeline, then export the frame. |
-| Slides | Build a deck where every slide arranges other Lolly tools in a chosen layout, with its own title, background and speaker notes - then export to PowerPoint, PDF, GIF or MP4. |
+| Sandbox | Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant. |
+| Scan | Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap. |
+| Screen Capture | Screenshot or record your whole screen, a window, or a browser tab. Drag on the canvas to crop - the export stays the exact pixels you captured. |
+| Sign | Place your signature on a PDF, optionally add a Content Credential and lock the result. |
+| Signature | Sign with a finger, stylus or mouse and get a clean signature on transparency - SVG or PNG, no scanner, no photo of a bit of paper. |
+| Snippet | Turn code snippets into clean, syntax-highlighted, shareable images. |
+| Spatial Photo | Drop in one photo and move a camera through it: depth is read on your device, so a flat picture becomes a scene with real parallax, atmosphere and focus. |
+| Stationery | Business cards, letterhead and compliments slips from your brand - each piece sized to its real print trim, ready as a print PDF. |
 | Street Map | Clean vector street-block maps of any city. Works offline. |
 | Strip Hidden Data | Reveal and remove hidden metadata from images and PDFs - on your device. |
+| Synth | A visual instrument you play. Four scenes run live on the GPU: fluid ink, a particle swarm that flies at your headline or your logo, a feedback field, and your own camera. Every colour comes out of your brand palette, and the picture moves to your pointer, to a music track, and to a MIDI controller. Export a still or a join-free loop. |
 | Text Helper | Format, decode, hash and de-identify text - JSON, JWT and more. |
-| Top & Tail Video | Record a clip in any orientation, then auto-wrap it with branded intro and outro bookends, a lower-third and a music bed. |
+| Trim | Cut an audio or video clip, change its container, mute it or extract its audio on your device. |
 | URL Screenshot | Any web page, at any scroll-depth, with custom CSS |
 | Voice Recorder | Record a voice note with a live level meter and gentle coaching, then save it as MP3. |
-| Wayfinding Signage | Directional event signs - destinations, each with an arrow. Print-ready. |
-| Web Icon Maker | Favicon and app-icon maker - a multi-size .ico, plus PNG and SVG. |
+| Wayfinding | Directional event signs - destinations, each with an arrow. Print-ready. |
 | Wordmark | Type a word, get a pure-path vector wordmark in your brand font - recipients never need the font installed. |
+| Work Avatar | A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face. |
 <!-- tools-table:end -->
 
 The `utility` "Offline Utilities" section always renders last in the gallery.
