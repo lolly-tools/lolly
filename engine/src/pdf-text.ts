@@ -68,6 +68,15 @@ const MAX_COLUMNS = 4;
 /** An image covering this fraction of the page, with no text, means a scan. */
 const SCAN_COVERAGE = 0.5;
 
+/** Direct-call budgets mirror and tighten the upstream interpreter's page cap. */
+export const PDF_TEXT_MAX_NODES = 4_000;
+export const PDF_TEXT_MAX_ITEMS = 20_000;
+export const PDF_TEXT_MAX_CHARS = 16 * 1024 * 1024;
+export const PDF_TEXT_MAX_TAGGED_ELEMENTS = 20_000;
+export const PDF_TEXT_MAX_MCIDS_PER_ELEMENT = 4_000;
+export const PDF_TEXT_MAX_TAGGED_REFERENCES = 100_000;
+export const PDF_TEXT_MAX_JOIN_PAGES = 10_000;
+
 // ── shapes ────────────────────────────────────────────────────────────────────
 
 /** One positioned fragment of text: a node, or one line of a multi-line node. */
@@ -186,35 +195,47 @@ function escapeLeading(s: string): string {
 function toItems(nodes: PdfNode[]): { items: TextItem[]; rotated: number } {
   const items: TextItem[] = [];
   let rotated = 0;
+  let chars = 0;
 
-  for (const n of nodes) {
+  for (let nodeIndex = 0; nodeIndex < nodes.length && nodeIndex < PDF_TEXT_MAX_NODES; nodeIndex++) {
+    const n = nodes[nodeIndex]!;
     if (n.kind !== 'text') continue;
-    const raw = n.text ?? '';
+    const source = typeof n.text === 'string' ? n.text : '';
+    const remaining = PDF_TEXT_MAX_CHARS - chars;
+    if (remaining <= 0 || items.length >= PDF_TEXT_MAX_ITEMS) break;
+    const raw = source.slice(0, remaining);
+    chars += raw.length;
     if (!raw.trim()) continue;
     if (Math.abs(n.rot ?? 0) > MAX_SKEW_DEG) { rotated++; continue; }
 
     const size = Math.max(1, n.fontSize ?? 12);
     const bold = isBold(n);
     const font = String(n.fontFamily ?? '');
-    const lines = raw.split('\n');
-
-    for (let i = 0; i < lines.length; i++) {
-      const text = lines[i]!;
-      if (!text.trim()) continue;
-      items.push({
-        text,
-        x: n.x,
-        // Undo pdf-map's box-top shift, then step down one line per split line
-        // at the node's REAL leading when the interpreter measured one.
-        baseline: n.y + size * 0.8 + i * size * (typeof n.lineHeight === 'number' && isFinite(n.lineHeight) && n.lineHeight > 0 ? n.lineHeight : 1.4),
-        // 0.55em per character is pdf-map's own estimate; reused so the two
-        // agree, and only ever consulted for gutter-width decisions.
-        right: n.x + text.length * size * 0.55,
-        size,
-        font,
-        bold,
-        ...(typeof n.mcid === 'number' ? { mcid: n.mcid } : {}),
-      });
+    let lineStart = 0;
+    let lineIndex = 0;
+    while (lineStart <= raw.length && items.length < PDF_TEXT_MAX_ITEMS) {
+      const newline = raw.indexOf('\n', lineStart);
+      const lineEnd = newline < 0 ? raw.length : newline;
+      const text = raw.slice(lineStart, lineEnd);
+      if (text.trim()) {
+        items.push({
+          text,
+          x: n.x,
+          // Undo pdf-map's box-top shift, then step down one line per split line
+          // at the node's REAL leading when the interpreter measured one.
+          baseline: n.y + size * 0.8 + lineIndex * size * (typeof n.lineHeight === 'number' && isFinite(n.lineHeight) && n.lineHeight > 0 ? n.lineHeight : 1.4),
+          // 0.55em per character is pdf-map's own estimate; reused so the two
+          // agree, and only ever consulted for gutter-width decisions.
+          right: n.x + text.length * size * 0.55,
+          size,
+          font,
+          bold,
+          ...(typeof n.mcid === 'number' ? { mcid: n.mcid } : {}),
+        });
+      }
+      if (newline < 0) break;
+      lineStart = newline + 1;
+      lineIndex++;
     }
   }
   return { items, rotated };
@@ -452,10 +473,20 @@ function taggedBlocks(items: TextItem[], tagged: TaggedElement[]): {
 
   const blocks: TextBlock[] = [];
   const used = new Set<TextItem>();
+  let references = 0;
 
-  for (const el of tagged) {
+  for (let elementIndex = 0; elementIndex < tagged.length && elementIndex < PDF_TEXT_MAX_TAGGED_ELEMENTS; elementIndex++) {
+    const el = tagged[elementIndex]!;
+    if (!el || !Array.isArray(el.mcids) || typeof el.type !== 'string') continue;
     const mine: TextItem[] = [];
-    for (const id of el.mcids) for (const it of byMcid.get(id) ?? []) mine.push(it);
+    for (let idIndex = 0; idIndex < el.mcids.length && idIndex < PDF_TEXT_MAX_MCIDS_PER_ELEMENT; idIndex++) {
+      if (references >= PDF_TEXT_MAX_TAGGED_REFERENCES || mine.length >= PDF_TEXT_MAX_ITEMS) break;
+      references++;
+      for (const it of byMcid.get(el.mcids[idIndex]!) ?? []) {
+        mine.push(it);
+        if (mine.length >= PDF_TEXT_MAX_ITEMS) break;
+      }
+    }
     if (!mine.length) continue;
     for (const it of mine) used.add(it);
 
@@ -600,13 +631,14 @@ function kindFromType(type: string): { kind: BlockKind; level?: number } {
  * front of a user.
  */
 export function extractPageText(nodes: PdfNode[], opts: PdfTextOptions = {}): PageText {
-  const { items, rotated } = toItems(nodes);
+  const boundedNodes = Array.isArray(nodes) ? nodes.slice(0, PDF_TEXT_MAX_NODES) : [];
+  const { items, rotated } = toItems(boundedNodes);
 
   if (!items.length) {
     // No text at all. If a raster covers the page, this is a scan and the right
     // answer is "needs OCR", not "empty".
     const pageArea = Math.max(1, (opts.width ?? 0) * (opts.height ?? 0));
-    const covered = nodes.some((n) =>
+    const covered = boundedNodes.some((n) =>
       n.kind === 'image' && (n.w * n.h) / pageArea >= SCAN_COVERAGE);
     return {
       blocks: [], text: '', markdown: '', columns: 1,
@@ -626,7 +658,7 @@ export function extractPageText(nodes: PdfNode[], opts: PdfTextOptions = {}): Pa
   // A structure tree states the reading order outright, so when the page really
   // is tagged there is nothing for geometry to decide at the block level.
   if (opts.tagged?.length) {
-    const { blocks: tb, used } = taggedBlocks(items, opts.tagged);
+    const { blocks: tb, used } = taggedBlocks(items, opts.tagged.slice(0, PDF_TEXT_MAX_TAGGED_ELEMENTS));
     const totalChars = items.reduce((a, it) => a + it.text.length, 0);
     const taggedChars = [...used].reduce((a, it) => a + it.text.length, 0);
     // Coverage gate: a document with a token structure tree over mostly-untagged
@@ -683,7 +715,7 @@ export function extractPageText(nodes: PdfNode[], opts: PdfTextOptions = {}): Pa
  */
 export function joinPageText(pages: PageText[], opts: { markdown?: boolean } = {}): string {
   const md = opts.markdown !== false;
-  const parts = pages.map((p, i) => {
+  const parts = pages.slice(0, PDF_TEXT_MAX_JOIN_PAGES).map((p, i) => {
     if (p.scanned) return md ? `> _Page ${i + 1} is a scanned image - no text layer to extract._` : `[Page ${i + 1}: scanned image, no text layer]`;
     return md ? p.markdown : p.text;
   });

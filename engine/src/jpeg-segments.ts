@@ -51,9 +51,9 @@
 import { concatBytes } from './bytes.ts';
 
 /** Hard cap on marker segments walked, so a hostile file cannot make us allocate a huge list. Real JPEGs are well under 100; `shells/web/src/lib/image-sample.ts` uses 512 for the same reason. */
-const MAX_SEGMENTS = 4096;
+export const JPEG_MAX_SEGMENTS = 4_096;
 /** Longest APPn identifier string read. The longest real one is extended XMP's 34-byte namespace URI. */
-const MAX_APP_ID = 64;
+export const JPEG_MAX_APP_ID = 64;
 
 /** Canonical APPn identifier strings, as they appear (NUL-terminated) at the head of a segment payload. */
 export const JPEG_APP_IDS = Object.freeze({
@@ -102,7 +102,7 @@ export interface JpegScan {
  * check the bytes after the id.
  */
 function readAppId(bytes: Uint8Array, from: number, to: number): string | null {
-  const limit = Math.min(to, from + MAX_APP_ID, bytes.length);
+  const limit = Math.min(to, from + JPEG_MAX_APP_ID, bytes.length);
   let s = '';
   for (let i = from; i < limit; i++) {
     const b = bytes[i]!;
@@ -144,7 +144,7 @@ export function scanJpegSegments(bytes: Uint8Array | null | undefined): JpegScan
   let eoi: number | null = null;
   let p = 2;
   while (p + 1 < bytes.length) {
-    if (segments.length >= MAX_SEGMENTS) break;
+    if (segments.length >= JPEG_MAX_SEGMENTS) break;
     if (bytes[p] !== 0xff) break; // misaligned - stop, report what we have
     // Any number of 0xFF fill bytes may precede the marker code.
     let q = p + 1;

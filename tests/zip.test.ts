@@ -124,6 +124,24 @@ test('rejects a non-zip buffer', () => {
   assert.throws(() => readZip(enc.encode('not a zip at all, no EOCD here')), /end-of-central-directory/);
 });
 
+test('resource budgets reject entry count and expansion before extraction', () => {
+  const zip = storeZip([
+    { name: 'a.txt', bytes: enc.encode('alpha') },
+    { name: 'b.txt', bytes: enc.encode('bravo') },
+  ]);
+
+  assert.throws(() => readZip(zip, { maxInputBytes: zip.length - 1 }), /input is .* maximum/);
+  assert.throws(() => readZip(zip, { maxEntries: 1 }), /2 entries; maximum is 1/);
+  assert.throws(() => readZip(zip, { maxEntryBytes: 4 }), /a\.txt.*5 bytes; maximum is 4/);
+  assert.throws(() => readZip(zip, { maxTotalBytes: 9 }), /expands to more than 9 bytes/);
+});
+
+test('invalid resource budgets fail closed', () => {
+  const zip = storeZip([]);
+  assert.throws(() => readZip(zip, { maxEntries: -1 }), /maxEntries must be a non-negative safe integer/);
+  assert.throws(() => readZip(zip, { maxTotalBytes: Number.POSITIVE_INFINITY }), /maxTotalBytes must/);
+});
+
 test('rejects duplicate entry names on write', () => {
   assert.throws(
     () => storeZip([

@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { analyzeLsb } from '../engine/src/steganalysis.ts';
+import { analyzeLsb, LSB_MAX_PIXELS } from '../engine/src/steganalysis.ts';
 
 const W = 128, H = 128;
 
@@ -49,4 +49,17 @@ test('analyzeLsb: too-small images never flag', () => {
   const r = analyzeLsb(d, { width: 16, height: 16 });
   assert.equal(r.suspicious, false);
   assert.equal(r.pixels, 256);
+});
+
+test('analyzeLsb: malformed geometry is a safe non-answer and sampling is capped', () => {
+  const d = new Uint8Array(128 * 128 * 4);
+  for (const width of [Number.NaN, Number.POSITIVE_INFINITY, -1, 1.5]) {
+    assert.deepEqual(analyzeLsb(d, { width, height: 128 }), { suspicious: false, score: 0, pixels: 0 });
+  }
+  // A large backing buffer need not be allocated to pin the cap: declare more
+  // pixels than the buffer and confirm capacity wins. The constant itself is
+  // public so callers can budget decoded canvases before invoking the analysis.
+  const r = analyzeLsb(d, { width: Number.MAX_SAFE_INTEGER, height: 2 });
+  assert.equal(r.pixels, 0, 'unsafe dimension products are refused');
+  assert.equal(LSB_MAX_PIXELS, 4_000_000);
 });

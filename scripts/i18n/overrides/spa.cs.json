@@ -200,5 +200,12 @@
   "Imported": "Importováno",
   "Copyright": "Autorská práva",
   "Captured": "Pořízeno",
-  "Keywords": "Klíčová slova"
+  "Keywords": "Klíčová slova",
+  "Check for updates": "Zkontrolovat aktualizace",
+  "Up to date": "Aktuální",
+  "Update available: {version}": "K dispozici je aktualizace: {version}",
+  "Install and restart": "Nainstalovat a restartovat",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "Model v zařízení, který ukrývá neviditelné pověření v exportovaných pixelech. Stáhněte ho nyní (~{size}) a první export s trvalým pověřením začne ihned bez čekání.",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "Model v zařízení, který ukrývá trvalé pověření v exportovaných pixelech. Odebráním uvolníte místo; při příštím použití se s vaším souhlasem stáhne znovu.",
+  "Removed the durable-credential model": "Model trvalého pověření byl odebrán"
 }

@@ -70,6 +70,12 @@ interface NpmComponent {
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const NODE_MODULES = join(ROOT, 'node_modules');
+const INSTALLED_PACKAGE_ROOTS = [
+  NODE_MODULES,
+  join(ROOT, 'shells', 'web', 'node_modules'),
+  join(ROOT, 'shells', 'cli', 'node_modules'),
+  join(ROOT, 'engine', 'node_modules'),
+];
 
 const MD_OUT = join(ROOT, 'THIRD-PARTY-NOTICES.md');
 const TXT_OUT = join(ROOT, 'shells', 'web', 'public', 'THIRD-PARTY-LICENSES.txt');
@@ -78,11 +84,12 @@ const TXT_OUT = join(ROOT, 'shells', 'web', 'public', 'THIRD-PARTY-LICENSES.txt'
 // lockfileVersion 3 keys every installed node by its path, so a top-level
 // component is `node_modules/<pkg>`; anything npm nested elsewhere returns
 // undefined here and falls back to the installed package.json.
-const LOCK_PACKAGES = (
-  JSON.parse(readFileSync(join(ROOT, 'package-lock.json'), 'utf8')) as {
-    packages?: Record<string, { version?: string }>;
-  }
-).packages ?? {};
+const LOCK_PACKAGES =
+  (
+    JSON.parse(readFileSync(join(ROOT, 'package-lock.json'), 'utf8')) as {
+      packages?: Record<string, { version?: string }>;
+    }
+  ).packages ?? {};
 
 function lockedVersion(pkg: string): string | undefined {
   return LOCK_PACKAGES[`node_modules/${pkg}`]?.version;
@@ -210,7 +217,11 @@ const NPM_COMPONENTS: NpmComponent[] = [
   // On-device code reader (plans/162 Part 2, host.scan). The MIT JS wrapper; the
   // zxing-cpp engine it compiles (Apache-2.0) is attributed separately below.
   // Lazy-imported as the fallback rung, but bundled + PWA-precached all the same.
-  { pkg: 'zxing-wasm', where: 'web', note: 'zxing-wasm is the MIT JS/WASM wrapper; the ZXing C++ engine it embeds is Apache-2.0 (see the separate "ZXing C++ (compiled WASM)" entry).' },
+  {
+    pkg: 'zxing-wasm',
+    where: 'web',
+    note: 'zxing-wasm is the MIT JS/WASM wrapper; the ZXing C++ engine it embeds is Apache-2.0 (see the separate "ZXing C++ (compiled WASM)" entry).',
+  },
 
   // On-device speech (Apache-2.0, both from the transformers.js author). Lazy-
   // imported by the Kokoro TTS and Whisper workers - a user who never asks for
@@ -222,8 +233,16 @@ const NPM_COMPONENTS: NpmComponent[] = [
 
   // LGPL-3.0 components - dynamically imported, self-contained modules. Each
   // carries the LGPL dynamic-loading note (see LGPL_DYNAMIC_NOTE).
-  { pkg: 'heic-to', where: 'web', note: lgplDynamicNote('heic-to', 'the libheif HEIC/HEIF decoder compiled to WebAssembly') },
-  { pkg: '@breezystack/lamejs', where: 'web', note: lgplDynamicNote('@breezystack/lamejs', 'the LAME MP3 encoder ported to JavaScript') },
+  {
+    pkg: 'heic-to',
+    where: 'web',
+    note: lgplDynamicNote('heic-to', 'the libheif HEIC/HEIF decoder compiled to WebAssembly'),
+  },
+  {
+    pkg: '@breezystack/lamejs',
+    where: 'web',
+    note: lgplDynamicNote('@breezystack/lamejs', 'the LAME MP3 encoder ported to JavaScript'),
+  },
 
   // Transitive deps that jspdf pulls in and that land in the web bundle.
   { pkg: 'html2canvas', where: 'web', transitiveVia: 'jspdf' },
@@ -429,12 +448,34 @@ const MANIFEST: {
       where: 'web',
     },
     {
-      name: 'chart',
+      name: 'three.js',
+      version: '0.185.1 (r185)',
+      spdx: 'MIT',
+      copyright: 'Copyright © 2010-2026 three.js authors',
+      files:
+        'tools/3d/lib/three.min.js, tools/flythrough/lib/three.min.js, tools/chart/lib/three-chart.min.js',
+      text: `Copyright © 2010-2026 three.js authors\n\n${MIT_BODY}`,
+      note: "The 3d bundle is the WebGPU build (WebGPURenderer, with its WebGL 2 backend as the fallback) plus the GLTFLoader, RoomEnvironment and OrbitControls addons, rebuilt by scripts/build-three-bundle.ts from the root devDependency; the flythrough bundle is the WebGL build with the same addons. Chart's lazy WebGL build carries only its scene, geometry, material and lighting primitives and is rebuilt by scripts/build-chart-three.ts.",
+      where: 'web',
+    },
+    {
+      name: 'd3',
       version: '7.9.0',
       spdx: 'ISC',
       copyright: 'Copyright 2010-2023 Mike Bostock',
-      files: 'tools/street-map/lib/d3.min.js, tools/meeting-planner/lib/d3.min.js',
+      files:
+        'tools/street-map/lib/d3.min.js, tools/meeting-planner/lib/d3.min.js, tools/chart/lib/d3.min.js',
       text: `Copyright 2010-2023 Mike Bostock\n\n${ISC_BODY}`,
+      where: 'web',
+    },
+    {
+      name: 'Observable Plot',
+      version: '0.6.17',
+      spdx: 'ISC',
+      copyright: 'Copyright 2020-2025 Observable, Inc.',
+      files: 'tools/chart/lib/observable-plot.min.js',
+      text: `Copyright 2020-2025 Observable, Inc.\n\n${ISC_BODY}`,
+      note: "Chart lazy-loads Plot's official UMD distribution for the curated statistical/editorial SVG lane. It shares the separately attributed pinned D3 runtime; tools/chart/lib/chart-plot.js is Lolly's MPL-2.0 adapter.",
       where: 'web',
     },
     {
@@ -460,7 +501,8 @@ const MANIFEST: {
       name: 'GTCRN speech enhancement (WASM, via @sapphi-red/web-noise-suppressor)',
       version: '0.4.0 (GTCRN (c) 2024 Rong Xiaobin)',
       spdx: 'MIT',
-      copyright: 'GTCRN Copyright (c) 2024 Rong Xiaobin; wrapper (c) sapphi-red; pffft (c) 2004 UCAR, 2013 Julien Pommier, 2019 Hayati Ayguen, 2020 Dario Mambro',
+      copyright:
+        'GTCRN Copyright (c) 2024 Rong Xiaobin; wrapper (c) sapphi-red; pffft (c) 2004 UCAR, 2013 Julien Pommier, 2019 Hayati Ayguen, 2020 Dario Mambro',
       files: 'shells/web/src/vendor/gtcrn/gtcrn-core.mjs',
       text: `GTCRN: Copyright (c) 2024 Rong Xiaobin\n\n${MIT_BODY}\n\npffft (the FFT inside the wasm) is BSD-style (UCAR/NCAR + contributors) - the full text is carried in shells/web/src/vendor/gtcrn/LICENSE.pffft.txt and in the vendored file's header.`,
       note: 'On-device voice cleanup (the fx grammar clean() entry, plans/101 P6). The official GTCRN repository is MIT and ships its checkpoints under the same terms; provenance, patch and checksums in the vendor README.',
@@ -470,7 +512,8 @@ const MANIFEST: {
       name: 'libopenmpt (compiled WASM)',
       version: '0.8.7 (Emscripten build)',
       spdx: 'BSD-3-Clause',
-      copyright: '© 2004-2026 OpenMPT Project Developers & Contributors; © 1997-2003 Olivier Lapicque',
+      copyright:
+        '© 2004-2026 OpenMPT Project Developers & Contributors; © 1997-2003 Olivier Lapicque',
       files: 'shells/web/src/vendor/libopenmpt/libopenmpt.mjs',
       text: LIBOPENMPT_TEXT,
       note: 'Tracker-module (.mod/.xm/.s3m/.it/…) decoder. Built from source with permissive internal codecs only - see scripts/build-libopenmpt-wasm.sh.',
@@ -590,8 +633,21 @@ const HARFBUZZ_WASM_ENTRY: Entry = {
 };
 
 // ─── Read npm component metadata + license text from node_modules ────────────
-function loadNpmComponent({ pkg, where, elect, transitiveVia, note, fallbackText }: NpmComponent): Entry {
-  const dir = join(NODE_MODULES, pkg);
+function loadNpmComponent({
+  pkg,
+  where,
+  elect,
+  transitiveVia,
+  note,
+  fallbackText,
+}: NpmComponent): Entry {
+  // npm may keep a package beside the workspace that owns it when another
+  // version occupies the root hoist. Attribution must follow the actual
+  // installation layout rather than assuming every package was hoisted.
+  const dir = INSTALLED_PACKAGE_ROOTS.map((root) => join(root, pkg)).find((candidate) =>
+    existsSync(join(candidate, 'package.json'))
+  );
+  if (!dir) throw new Error(`installed package not found for attribution: ${pkg}`);
   // Installed package.json - dynamic JSON, minimally typed for the fields we read.
   const meta = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as {
     version: string;
@@ -622,9 +678,10 @@ function loadNpmComponent({ pkg, where, elect, transitiveVia, note, fallbackText
     copyright,
     text,
     where,
-    note: [transitiveVia && `Transitive dependency bundled via ${transitiveVia}.`, note]
-      .filter(Boolean)
-      .join(' ') || null,
+    note:
+      [transitiveVia && `Transitive dependency bundled via ${transitiveVia}.`, note]
+        .filter(Boolean)
+        .join(' ') || null,
   };
 }
 
@@ -645,10 +702,16 @@ function authorString(author: unknown): string {
 
 // Find the LICENSE file in a package dir, tolerant of the common spellings.
 const LICENSE_NAMES = [
-  'LICENSE', 'LICENSE.md', 'LICENSE.txt',
-  'LICENCE', 'LICENCE.md', 'LICENCE.txt',
-  'LICENSE-MIT', 'LICENSE-MIT.txt',
-  'COPYING', 'COPYING.txt',
+  'LICENSE',
+  'LICENSE.md',
+  'LICENSE.txt',
+  'LICENCE',
+  'LICENCE.md',
+  'LICENCE.txt',
+  'LICENSE-MIT',
+  'LICENSE-MIT.txt',
+  'COPYING',
+  'COPYING.txt',
 ];
 function readLicenseText(dir: string): string {
   for (const name of LICENSE_NAMES) {
@@ -684,11 +747,7 @@ function entryMarkdown(e: Entry): string {
 }
 
 function entryText(e: Entry): string {
-  const lines = [
-    '-'.repeat(80),
-    `${e.name} ${e.version}`,
-    `SPDX-License-Identifier: ${e.spdx}`,
-  ];
+  const lines = ['-'.repeat(80), `${e.name} ${e.version}`, `SPDX-License-Identifier: ${e.spdx}`];
   if (e.files) lines.push(`Files: ${e.files}`);
   if (e.copyright) lines.push(`Copyright: ${e.copyright.replace(/\n\s*/g, '; ')}`);
   if (e.note) lines.push(e.note);
@@ -726,7 +785,12 @@ verifyManifestCoverage();
 
 // Blocks are joined with a blank line between them; empty sections drop out.
 function joinBlocks(parts: string[]): string {
-  return parts.map((p) => p.trim()).filter(Boolean).join('\n\n') + '\n';
+  return (
+    parts
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .join('\n\n') + '\n'
+  );
 }
 
 // ─── THIRD-PARTY-NOTICES.md (full, grouped) ──────────────────────────────────
@@ -745,16 +809,19 @@ const mdHeader = [
   '_Generated by `scripts/build-licenses.ts` (`npm run build:licenses`). Do not edit by hand._',
 ].join('\n');
 
-writeFileSync(MD_OUT, joinBlocks([
-  mdHeader,
-  sectionMarkdown('Bundled in the web app', bundledEntries),
-  sectionMarkdown('CLI', cliNpm),
-  cliCrossRef,
-  sectionMarkdown('Vendored libraries', MANIFEST.vendored),
-  sectionMarkdown('Icons', MANIFEST.icons),
-  sectionMarkdown('Fonts', MANIFEST.fonts),
-  sectionMarkdown('Map data', MANIFEST.mapData),
-]));
+writeFileSync(
+  MD_OUT,
+  joinBlocks([
+    mdHeader,
+    sectionMarkdown('Bundled in the web app', bundledEntries),
+    sectionMarkdown('CLI', cliNpm),
+    cliCrossRef,
+    sectionMarkdown('Vendored libraries', MANIFEST.vendored),
+    sectionMarkdown('Icons', MANIFEST.icons),
+    sectionMarkdown('Fonts', MANIFEST.fonts),
+    sectionMarkdown('Map data', MANIFEST.mapData),
+  ])
+);
 
 // ─── THIRD-PARTY-LICENSES.txt (plain text, web build scope only) ─────────────
 // Everything that actually ships in the web build: web npm deps + HarfBuzz
@@ -767,18 +834,33 @@ const txtHeader = [
   'below. Generated by scripts/build-licenses.ts; do not edit by hand.',
 ].join('\n');
 
-writeFileSync(TXT_OUT, joinBlocks([
-  txtHeader,
-  sectionText('Bundled in the web app', bundledEntries),
-  sectionText('Vendored libraries', MANIFEST.vendored.filter((e) => e.where === 'web')),
-  sectionText('Icons', MANIFEST.icons.filter((e) => e.where === 'web')),
-  sectionText('Fonts', MANIFEST.fonts.filter((e) => e.where === 'web')),
-  sectionText('Map data', MANIFEST.mapData.filter((e) => e.where === 'web')),
-]));
+writeFileSync(
+  TXT_OUT,
+  joinBlocks([
+    txtHeader,
+    sectionText('Bundled in the web app', bundledEntries),
+    sectionText(
+      'Vendored libraries',
+      MANIFEST.vendored.filter((e) => e.where === 'web')
+    ),
+    sectionText(
+      'Icons',
+      MANIFEST.icons.filter((e) => e.where === 'web')
+    ),
+    sectionText(
+      'Fonts',
+      MANIFEST.fonts.filter((e) => e.where === 'web')
+    ),
+    sectionText(
+      'Map data',
+      MANIFEST.mapData.filter((e) => e.where === 'web')
+    ),
+  ])
+);
 
 console.log(
   `✓ Wrote THIRD-PARTY-NOTICES.md (${bundledEntries.length + cliNpm.length} npm + ` +
-  `${MANIFEST.vendored.length + MANIFEST.icons.length + MANIFEST.fonts.length + MANIFEST.mapData.length} non-npm components)`,
+    `${MANIFEST.vendored.length + MANIFEST.icons.length + MANIFEST.fonts.length + MANIFEST.mapData.length} non-npm components)`
 );
 console.log(`✓ Wrote shells/web/public/THIRD-PARTY-LICENSES.txt (web build scope)`);
 
@@ -803,7 +885,7 @@ function verifyManifestCoverage(): void {
   if (missing.length) {
     console.error(
       `✗ ${missing.length} distributed dependency not in NPM_COMPONENTS: ${missing.join(', ')}\n` +
-      `  Add it to scripts/build-licenses.ts so its notice is retained.`,
+        `  Add it to scripts/build-licenses.ts so its notice is retained.`
     );
     process.exit(1);
   }

@@ -17,6 +17,10 @@ import { readFile, stat } from 'node:fs/promises';
 import { existsSync, writeFileSync } from 'node:fs';
 import { join, resolve, extname, normalize } from 'node:path';
 import { getBrowser, BrowserError } from './browsers.ts';
+import {
+  desktopInstalled, launchRenderServer, readRenderServer, renderThroughRungs,
+  rendererPreference, renderViaRenderServer,
+} from './desktop-renderer.ts';
 import { repoRoot } from './repo-root.ts';
 
 const MIME: Record<string, string> = {
@@ -525,7 +529,7 @@ export async function transformViaWebShell(
  * Render a tool to bytes by driving the web shell in Chromium and capturing its
  * download. `query` is the tool's current URL-state (serializeUrlState).
  */
-export async function renderViaWebShell(
+async function renderViaChromiumShell(
   toolId: string, query: string, format: string, dims: RenderDims = {},
 ): Promise<{ bytes: Uint8Array; mime: string }> {
   // The durable embed is best-effort inside the web shell (it never fails an export),
@@ -574,6 +578,44 @@ export async function renderViaWebShell(
   } finally {
     await ctx.close();
   }
+}
+
+/**
+ * Render with the selected full-fidelity host: a running desktop app, an installed
+ * one started for the job, or Chromium (plans/202 WP2.2).
+ *
+ * Both desktop rungs and the Chromium rung are handed the SAME export URL, built by
+ * the same `exportUrl` above, so the URL contract decides what gets rendered exactly
+ * once. That is also what keeps Content Credentials right: the `c2pa` param travels
+ * on the URL, the web shell running inside whichever host stamps the file, and
+ * `shells/cli/src/run.ts` skips its own post-stamp for every one of these rungs
+ * (`usedBrowser`) unless a signing identity is configured, in which case the URL
+ * already carries `c2pa=off` and this shell stamps once. Adding the desktop rung
+ * changed no part of that decision.
+ *
+ * `auto` walks the rungs; an explicit `desktop` or `chromium` does not. A rung that
+ * fails under `auto` says so on stderr before the next one is tried, so a silent
+ * demotion cannot be mistaken for a first-choice render.
+ */
+export async function renderViaWebShell(
+  toolId: string, query: string, format: string, dims: RenderDims = {},
+): Promise<{ bytes: Uint8Array; mime: string }> {
+  const preference = rendererPreference();
+  // The URL is a transport envelope for the desktop rungs. The app extracts its tool
+  // id and query, then loads its OWN embedded origin in the off-screen WebView, so
+  // the host part is never fetched.
+  const toolUrl = exportUrl('https://lolly.tools', toolId, query, format, dims);
+  const { result } = await renderThroughRungs(preference, {
+    runningServer: () => readRenderServer(),
+    installed: () => desktopInstalled(),
+    launchServer: () => launchRenderServer(),
+    renderOnServer: (server) => renderViaRenderServer(server, { toolUrl, format }),
+    renderOnChromium: () => renderViaChromiumShell(toolId, query, format, dims),
+    onFallback: (rung, reason) => {
+      process.stderr.write(`lolly: the ${rung} renderer could not do this job (${reason.message}) - trying the next one.\n`);
+    },
+  });
+  return result;
 }
 
 /**

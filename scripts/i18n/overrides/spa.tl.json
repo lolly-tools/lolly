@@ -209,5 +209,12 @@
   "Imported": "Na-import",
   "Copyright": "Copyright",
   "Captured": "Kinuha",
-  "Keywords": "Mga keyword"
+  "Keywords": "Mga keyword",
+  "Check for updates": "Maghanap ng update",
+  "Up to date": "Napapanahon na",
+  "Update available: {version}": "May update: {version}",
+  "Install and restart": "I-install at i-restart",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "Ang on-device na model na nagtatago ng invisible na kredensyal sa mga ini-export na pixel. I-download ito ngayon (~{size}) para makapagsimula agad ang unang durable export nang walang hintayan.",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "Ang on-device na model na nagtatago ng durable na kredensyal sa mga ini-export na pixel. Makakaluwag ng espasyo ang pag-alis nito; ida-download itong muli sa susunod na paggamit kapag pumayag ka.",
+  "Removed the durable-credential model": "Inalis ang model ng durable na kredensyal"
 }

@@ -10,8 +10,9 @@
  * own `readZip` (which already refuses ZIP64, refuses unknown compression methods and
  * CRC-checks every member) so there is no second zip implementation either.
  *
- * The WRITER stays in the web shell. Nothing in the terminal produces a `.lolly`, and a
- * format with two writers drifts.
+ * This is the SESSION reader. The CLI's `lolly package` writes the minimal
+ * `lolly-share` form, while the shared node-shell design-system command writes
+ * `lolly-brand`; neither changes which manifest family this reader accepts.
  *
  * INTEGRITY IS A GATE, NOT A REPORT. `manifest.integrity` is an SRI map over every payload
  * part. A file whose parts do not match it is refused here rather than handed on with a

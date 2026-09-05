@@ -44,8 +44,12 @@ const infoDir = path.join(root, 'shells/web/public/info');
 // from 2026-09-03 (night): three covers became the tools' OWN 60 fps H.264 exports
 // (backdrop 1.9 MB, gradient 2.2 MB, audiogram 3.6 MB - MilkDrop and film grain do not
 // compress; 169.4 MB measured with them in, the two recordings they replaced were
-// 0.2 MB). NOT a target - see the header.
-const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 170.5) * 1024 * 1024;
+// 0.2 MB). 173.5 MB from 2026-09-05: 172.1 MB measured with that day's docs wave in
+// (plan 202's CLI install, content-root, renderer-rung, TUI-launch and install-row
+// sections, plus the concurrent design-outcome docs work); checked that nothing new
+// is per-locale - the two largest shots carry only their light and dark copies.
+// NOT a target - see the header.
+const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 173.5) * 1024 * 1024;
 
 function fail(msg: string): never {
   console.error(`✗ docs size budget FAILED: ${msg}`);

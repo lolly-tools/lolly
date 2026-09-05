@@ -185,7 +185,22 @@ async function run(args: Args): Promise<void> {
   const envelope = await signCatalogEnvelope(unsigned, privateKey);
 
   // Self-check with the verifier the clients run, so a bad envelope can never ship.
-  const publicKey = await importSpkiOrJwkPublicKey(pubJwk);
+  // When the deployment supplies its runtime pin, verify against THAT key rather
+  // than only the public half we just derived. A mismatched private/public pair
+  // would otherwise build successfully and make every released client fail closed.
+  let publicKey = await importSpkiOrJwkPublicKey(pubJwk);
+  const configuredPublicMaterial = process.env.VITE_CATALOG_PUBLIC_KEY_JWK?.trim();
+  if (configuredPublicMaterial) {
+    publicKey = await importSpkiOrJwkPublicKey(configuredPublicMaterial);
+    const configuredJwk = await subtle.exportKey('jwk', publicKey);
+    const configuredKeyId = await jwkThumbprint(configuredJwk);
+    if (configuredKeyId !== keyId) {
+      throw new Error(
+        `catalog signing key does not match VITE_CATALOG_PUBLIC_KEY_JWK ` +
+        `(signing keyId ${keyId}, configured keyId ${configuredKeyId})`,
+      );
+    }
+  }
   const check = await verifyCatalogEnvelope(envelope, indexBytes, publicKey);
   if (!check.ok) {
     console.error(`✗ self-verification failed: ${check.reason}`);

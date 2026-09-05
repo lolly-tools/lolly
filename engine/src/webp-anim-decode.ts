@@ -56,6 +56,13 @@ const u32LEr = (b: Uint8Array, o: number): number =>
 
 const u24LE = (v: number): number[] => [v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff];
 
+export const WEBP_DEMUX_MAX_INPUT_BYTES = 256 * 1024 * 1024;
+export const WEBP_DEMUX_MAX_CHUNKS = 100_000;
+export const WEBP_DEMUX_MAX_FRAMES = 4_096;
+export const WEBP_DEMUX_MAX_DIM = 32_768;
+export const WEBP_DEMUX_MAX_PIXELS = 128 * 1024 * 1024;
+export const WEBP_DEMUX_MAX_OUTPUT_BYTES = 512 * 1024 * 1024;
+
 // One RIFF chunk: fourcc(4) + u32LE payloadSize + payload + pad(0x00 iff odd).
 function chunk(cc: string, payload: Uint8Array): Uint8Array {
   const out = new Uint8Array(8 + payload.length + (payload.length & 1));
@@ -105,27 +112,44 @@ function buildStill(imageChunks: Uint8Array, hasAlpha: boolean, w: number, h: nu
  * @throws if the RIFF/WEBP signature is bad or a chunk is truncated.
  */
 export function demuxWebpAnim(bytes: Uint8Array): DemuxedWebpAnim {
+  if (bytes.length > WEBP_DEMUX_MAX_INPUT_BYTES) {
+    throw new Error(`demuxWebpAnim: input exceeds ${WEBP_DEMUX_MAX_INPUT_BYTES} byte limit`);
+  }
   if (bytes.length < 12 || fourcc(bytes, 0) !== 'RIFF' || fourcc(bytes, 8) !== 'WEBP') {
     throw new Error('demuxWebpAnim: not a WebP (bad RIFF/WEBP signature)');
   }
+  const riffEnd = 8 + u32LEr(bytes, 4);
+  if (riffEnd > bytes.length) throw new Error('demuxWebpAnim: RIFF size exceeds the input');
 
   let width = 0, height = 0, loops = 0;
   const frames: WebpAnimFrame[] = [];
+  let chunks = 0;
+  let outputBytes = 0;
 
   let p = 12;
-  while (p + 8 <= bytes.length) {
+  while (p + 8 <= riffEnd) {
+    if (++chunks > WEBP_DEMUX_MAX_CHUNKS) {
+      throw new Error(`demuxWebpAnim: more than ${WEBP_DEMUX_MAX_CHUNKS} chunks`);
+    }
     const cc = fourcc(bytes, p);
     const size = u32LEr(bytes, p + 4);
     const full = 8 + size + (size & 1);
-    if (p + 8 + size > bytes.length) throw new Error(`demuxWebpAnim: truncated in ${cc}`);
+    if (p + 8 + size > riffEnd) throw new Error(`demuxWebpAnim: truncated in ${cc}`);
     const q = p + 8;                                   // payload start
 
     if (cc === 'VP8X') {
+      if (size < 10) throw new Error('demuxWebpAnim: VP8X chunk is too short');
       width = u24LEr(bytes, q + 4) + 1;
       height = u24LEr(bytes, q + 7) + 1;
+      validateGeometry(width, height, 'canvas');
     } else if (cc === 'ANIM') {
+      if (size < 6) throw new Error('demuxWebpAnim: ANIM chunk is too short');
       loops = u16LEr(bytes, q + 4);
     } else if (cc === 'ANMF') {
+      if (size < 16) throw new Error('demuxWebpAnim: ANMF chunk is too short');
+      if (frames.length >= WEBP_DEMUX_MAX_FRAMES) {
+        throw new Error(`demuxWebpAnim: more than ${WEBP_DEMUX_MAX_FRAMES} frames`);
+      }
       // 16-byte frame header, then the inner image chunk stream.
       const fx = u24LEr(bytes, q) * 2;
       const fy = u24LEr(bytes, q + 3) * 2;
@@ -135,6 +159,10 @@ export function demuxWebpAnim(bytes: Uint8Array): DemuxedWebpAnim {
       const flags = bytes[q + 15]!;
       const blend = (flags >> 1) & 1;
       const dispose = flags & 1;
+      validateGeometry(fw, fh, 'frame');
+      if (width && height && (fx + fw > width || fy + fh > height)) {
+        throw new Error(`demuxWebpAnim: frame region ${fw}x${fh}+${fx}+${fy} escapes ${width}x${height} canvas`);
+      }
 
       // Walk the frame's own chunk stream, collecting the image bitstream.
       const imgParts: Uint8Array[] = [];
@@ -142,6 +170,9 @@ export function demuxWebpAnim(bytes: Uint8Array): DemuxedWebpAnim {
       const frameEnd = q + size;                       // ANMF payload end (excl. RIFF pad)
       let fp = q + 16;
       while (fp + 8 <= frameEnd) {
+        if (++chunks > WEBP_DEMUX_MAX_CHUNKS) {
+          throw new Error(`demuxWebpAnim: more than ${WEBP_DEMUX_MAX_CHUNKS} chunks`);
+        }
         const icc = fourcc(bytes, fp);
         const isize = u32LEr(bytes, fp + 4);
         const ifull = 8 + isize + (isize & 1);
@@ -152,6 +183,13 @@ export function demuxWebpAnim(bytes: Uint8Array): DemuxedWebpAnim {
         fp += ifull;
       }
       if (imgParts.length === 0) throw new Error('demuxWebpAnim: ANMF has no VP8/VP8L image data');
+
+      const imageBytes = imgParts.reduce((sum, part) => sum + part.length, 0);
+      const stillBytes = 12 + imageBytes + (hasAlpha ? 18 : 0);
+      outputBytes += stillBytes;
+      if (!Number.isSafeInteger(outputBytes) || outputBytes > WEBP_DEMUX_MAX_OUTPUT_BYTES) {
+        throw new Error(`demuxWebpAnim: standalone frames exceed ${WEBP_DEMUX_MAX_OUTPUT_BYTES} byte output limit`);
+      }
 
       frames.push({
         still: buildStill(concat(imgParts), hasAlpha, fw, fh),
@@ -169,4 +207,13 @@ export function demuxWebpAnim(bytes: Uint8Array): DemuxedWebpAnim {
   }
 
   return { width, height, loops, frames };
+}
+
+function validateGeometry(width: number, height: number, label: string): void {
+  if (width < 1 || height < 1 || width > WEBP_DEMUX_MAX_DIM || height > WEBP_DEMUX_MAX_DIM
+    || width * height > WEBP_DEMUX_MAX_PIXELS) {
+    throw new Error(
+      `demuxWebpAnim: ${label} ${width}x${height} exceeds ${WEBP_DEMUX_MAX_DIM} per side / ${WEBP_DEMUX_MAX_PIXELS} pixels`,
+    );
+  }
 }

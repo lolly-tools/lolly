@@ -49,9 +49,15 @@ import { colorToHex } from './tokens.ts';
 import type { PptxPath, PptxText } from './pptx.ts';
 
 // Input / allocation guards (untrusted SVG text). Beyond these → null (raster).
-const MAX_SVG_LEN = 4_000_000;
-const MAX_TAGS = 40_000;
-const MAX_SHAPES = 4_000;
+// The per-attribute ceiling still admits the path parser's 400 KB maximum while
+// preventing style/transform/points helpers from splitting a multi-megabyte tag.
+export const SVG_CUSTGEOM_MAX_CHARS = 4_000_000;
+export const SVG_CUSTGEOM_MAX_TAGS = 40_000;
+export const SVG_CUSTGEOM_MAX_SHAPES = 4_000;
+export const SVG_CUSTGEOM_MAX_ATTR_CHARS = 512_000;
+export const SVG_CUSTGEOM_MAX_STYLE_CHARS = 64_000;
+export const SVG_CUSTGEOM_MAX_TRANSFORM_CHARS = 64_000;
+export const SVG_CUSTGEOM_MAX_POINTS_CHARS = 400_000;
 
 // Tags that mean "not flat solid vector art". Their presence forces a raster
 // fallback. `text`/`tspan` are conditionally allowed by the text-aware entry
@@ -95,6 +101,7 @@ const matScale = (m: Mat): number => Math.sqrt(Math.abs(m[0] * m[3] - m[1] * m[2
 // don't reproduce (rotate/skew/anything non-affine-simple) → caller bails to raster.
 function parseTransform(v: string | undefined): Mat | null {
   if (!v) return IDENTITY;
+  if (v.length > SVG_CUSTGEOM_MAX_TRANSFORM_CHARS) return null;
   const trimmed = v.trim();
   if (trimmed === '' || trimmed.toLowerCase() === 'none') return IDENTITY;
   let acc: Mat = IDENTITY;
@@ -202,7 +209,9 @@ function primitiveToD(tag: string, attrs: string): string | null {
     return `M${x1} ${y1}L${x2} ${y2}`;
   }
   if (tag === 'polygon' || tag === 'polyline') {
-    const pts = (attrOf(attrs, 'points') ?? '').trim().split(/[\s,]+/).map(Number).filter(x => Number.isFinite(x));
+    const rawPoints = attrOf(attrs, 'points') ?? '';
+    if (rawPoints.length > SVG_CUSTGEOM_MAX_POINTS_CHARS) return null;
+    const pts = rawPoints.trim().split(/[\s,]+/).map(Number).filter(x => Number.isFinite(x));
     if (pts.length < 4) return null;
     let d = `M${pts[0]} ${pts[1]}`;
     for (let i = 2; i + 1 < pts.length; i += 2) d += `L${pts[i]} ${pts[i + 1]}`;
@@ -313,7 +322,7 @@ export function svgToNativePptx(svgText: string, targetW: number, targetH: numbe
 }
 
 function lower(svgText: string, targetW: number, targetH: number, withText: boolean): SvgNativePptx | null {
-  if (typeof svgText !== 'string' || svgText.length === 0 || svgText.length > MAX_SVG_LEN) return null;
+  if (typeof svgText !== 'string' || svgText.length === 0 || svgText.length > SVG_CUSTGEOM_MAX_CHARS) return null;
   if (!(Number.isFinite(targetW) && Number.isFinite(targetH) && targetW > 0 && targetH > 0)) return null;
 
   const cx = Math.round(targetW), cy = Math.round(targetH);
@@ -443,10 +452,11 @@ function lower(svgText: string, targetW: number, targetH: number, withText: bool
   let m: RegExpExecArray | null;
   let tagCount = 0;
   while ((m = tagRe.exec(svgText)) !== null) {
-    if (++tagCount > MAX_TAGS) return null;
+    if (++tagCount > SVG_CUSTGEOM_MAX_TAGS) return null;
     const closing = m[1] === '/';
     const tag = m[2]!.toLowerCase();
     const attrsRaw = m[3] ?? '';
+    if (attrsRaw.length > SVG_CUSTGEOM_MAX_ATTR_CHARS) return null;
 
     if (closing) {
       if (capture) {
@@ -462,7 +472,9 @@ function lower(svgText: string, targetW: number, targetH: number, withText: bool
     if (BAIL_TAGS.has(tag) && !textTagAllowed) return null;
 
     const parent = stack[stack.length - 1]!;
-    const style = parseStyle(attrOf(attrsRaw, 'style'));
+    const styleRaw = attrOf(attrsRaw, 'style');
+    if (styleRaw != null && styleRaw.length > SVG_CUSTGEOM_MAX_STYLE_CHARS) return null;
+    const style = parseStyle(styleRaw);
 
     // Effects we can't reproduce as solid geometry → raster fallback. (Opacity
     // is NOT one of them since 1.128: it rides as DrawingML alpha - see Frame.)
@@ -545,14 +557,14 @@ function lower(svgText: string, targetW: number, targetH: number, withText: bool
       if (attrOf(attrsRaw, 'rotate') != null || attrOf(attrsRaw, 'textlength') != null) return null;
       if (!selfClose && !hidden) capture = { start: tagRe.lastIndex, frame, attrs: attrsRaw, style, depth: 0 };
       if (!selfClose) stack.push(frame);
-      if (texts.length + shapes.length > MAX_SHAPES) return null;
+      if (texts.length + shapes.length > SVG_CUSTGEOM_MAX_SHAPES) return null;
       continue;
     }
 
     if (DRAW_TAGS.has(tag) && !frame.defs && !hidden) {
       const d = tag === 'path' ? attrOf(attrsRaw, 'd') : primitiveToD(tag, attrsRaw);
       if (d) emit(d, frame, tag === 'line'); // <line> has no fillable area
-      if (shapes.length + texts.length > MAX_SHAPES) return null;
+      if (shapes.length + texts.length > SVG_CUSTGEOM_MAX_SHAPES) return null;
     }
 
     if (!selfClose) stack.push(frame);

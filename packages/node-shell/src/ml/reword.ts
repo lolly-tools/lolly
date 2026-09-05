@@ -40,7 +40,7 @@ import {
   REWORD_MODEL_BYTES, REWORD_MODEL_DIR, REWORD_MODEL_FILES, REWORD_SAMPLES, REWORD_STAGED,
   REWORD_TEMPERATURE, REWORD_TOP_P, rewordMaxNewTokens,
 } from './reword-models.ts';
-import { isTransformersAvailable, modelFilesExist, refuseMissing, resolveModelsDir } from './session.ts';
+import { isTransformersAvailable, modelFilesExist, refuseMissing, resolveModelsDir, transformersSessionOptions } from './session.ts';
 
 /** The one style the staged model is prompted for. */
 export const REWORD_STYLES = ['plain'] as const;
@@ -134,7 +134,7 @@ function ensureRuntime(): Promise<{ model: ModelLike; tokenizer: TokenizerLike; 
       // 'q4' resolves to the staged onnx/model_q4.onnx. No `device` here: the
       // Node build's default is the native CPU provider, which is what this
       // shell has (the web worker asks for wasm for its own reasons).
-      mod.AutoModelForCausalLM.from_pretrained(REWORD_MODEL_DIR, { dtype: 'q4' }),
+      mod.AutoModelForCausalLM.from_pretrained(REWORD_MODEL_DIR, { dtype: 'q4', ...transformersSessionOptions() }),
       ensureTokenizer(),
     ]);
     return { model: model as ModelLike, tokenizer, wm: watermarkProcessorList(mod) };

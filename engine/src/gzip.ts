@@ -53,6 +53,14 @@ const FNAME = 8;
 const FCOMMENT = 16;
 const FLG_RESERVED = 0xe0; // bits 5-7 MUST be zero (RFC 1952 section 2.3.1.1)
 
+/** Default recovered-size ceiling for a gzip member. Callers may lower it. */
+export const GUNZIP_MAX_OUTPUT_BYTES = 320 * 1024 * 1024;
+
+export interface GunzipOptions {
+  /** Maximum trailer-declared and actually recovered byte length. */
+  maxOutputBytes?: number;
+}
+
 /**
  * Wrap `bytes` in a gzip member (RFC 1952). Body is `deflateRaw(bytes)`; the
  * trailer is CRC-32 and ISIZE of the ORIGINAL bytes, little-endian. Reproducible
@@ -90,7 +98,7 @@ export function gzip(bytes: Uint8Array, opts?: DeflateOptions): Uint8Array {
  * CRC/length mismatch. Reads a gzip written by any conforming producer, not
  * only our own (skips FEXTRA/FNAME/FCOMMENT/FHCRC).
  */
-export function gunzip(bytes: Uint8Array): Uint8Array {
+export function gunzip(bytes: Uint8Array, opts: GunzipOptions = {}): Uint8Array {
   if (bytes.length < 18) throw new Error('gunzip: too short to be a gzip member');
   if (bytes[0] !== ID1 || bytes[1] !== ID2) throw new Error('gunzip: bad magic (not a gzip stream)');
   if (bytes[2] !== CM_DEFLATE) throw new Error(`gunzip: unsupported compression method ${bytes[2]}`);
@@ -117,6 +125,13 @@ export function gunzip(bytes: Uint8Array): Uint8Array {
   const trailer = bytes.length - 8;
   const expectedCrc = readU32LE(bytes, trailer);
   const expectedSize = readU32LE(bytes, trailer + 4);
+  const maxOutputBytes = opts.maxOutputBytes ?? GUNZIP_MAX_OUTPUT_BYTES;
+  if (!Number.isSafeInteger(maxOutputBytes) || maxOutputBytes < 0) {
+    throw new Error('gunzip: maxOutputBytes must be a non-negative safe integer');
+  }
+  if (expectedSize > maxOutputBytes) {
+    throw new Error(`gunzip: declared output ${expectedSize} exceeds ${maxOutputBytes} byte limit`);
+  }
 
   const out = inflateRaw(bytes.subarray(p, trailer), expectedSize);
 

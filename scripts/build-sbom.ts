@@ -7,7 +7,7 @@
  *
  * Emits a CycloneDX 1.5 SBOM at `sbom.cdx.json` describing every third-party npm
  * package in the workspace dependency graph, plus the vendored browser libraries
- * (d3, topojson-client), the SUSE OFL fonts, and - when present - the Tauri shells'
+ * (d3, Observable Plot, topojson-client), the SUSE OFL fonts, and - when present - the Tauri shells'
  * own npm installs and their Rust crate graph (Cargo.lock). This is the
  * supply-chain-transparency
  * half of the sovereignty story (see SOVEREIGNTY.md): it lets anyone audit exactly
@@ -90,7 +90,12 @@ const lock = readJson('package-lock.json');
 // ─── SRI integrity → CycloneDX hashes ───────────────────────────────────────
 // Lockfile integrity is base64 SRI ("sha512-<base64>"); CycloneDX wants the
 // digest hex-encoded with a canonical algorithm name.
-const ALG_NAMES: Record<string, string> = { sha1: 'SHA-1', sha256: 'SHA-256', sha384: 'SHA-384', sha512: 'SHA-512' };
+const ALG_NAMES: Record<string, string> = {
+  sha1: 'SHA-1',
+  sha256: 'SHA-256',
+  sha384: 'SHA-384',
+  sha512: 'SHA-512',
+};
 
 function hashesFromIntegrity(integrity: string): Hash[] | undefined {
   if (!integrity) return undefined;
@@ -128,8 +133,8 @@ const byPurl = new Map<string, Component>(); // purl → component (dedupes hois
 
 for (const [path, entry] of Object.entries(lock.packages ?? {}) as [string, any][]) {
   if (!path.includes('node_modules/')) continue; // root + workspace package dirs
-  if (entry.link) continue;                       // workspace symlink, not a 3rd party
-  if (!entry.version) continue;                   // nothing installable to describe
+  if (entry.link) continue; // workspace symlink, not a 3rd party
+  if (!entry.version) continue; // nothing installable to describe
 
   const name = path.slice(path.lastIndexOf('node_modules/') + 'node_modules/'.length);
   const purl = purlFor(name, entry.version);
@@ -150,7 +155,9 @@ for (const [path, entry] of Object.entries(lock.packages ?? {}) as [string, any]
   // modern string form; packages still using the legacy `licenses: [{type}]`
   // array land here with nothing. Fall back to the installed package.json, which
   // licensesFromPackage() understands in every shape.
-  const licenses = licensesFromString(entry.license) ?? licensesFromPackage(readJsonOptional(join(path, 'package.json')));
+  const licenses =
+    licensesFromString(entry.license) ??
+    licensesFromPackage(readJsonOptional(join(path, 'package.json')));
   if (licenses) component.licenses = licenses;
   const hashes = hashesFromIntegrity(entry.integrity);
   if (hashes) component.hashes = hashes;
@@ -166,7 +173,7 @@ for (const [path, entry] of Object.entries(lock.packages ?? {}) as [string, any]
 }
 
 // ─── Vendored libraries (checked into the tree, not via npm install) ─────────
-// d3 / topojson-client ship as pre-minified bundles under the community pack's
+// d3 / Observable Plot / topojson-client ship as pre-minified bundles under the community pack's
 // */lib and never appear in the lockfile. We pin the version read from each
 // file's banner-comment provenance, the license from the project's license audit
 // (both ISC), and hash the bytes on disk ourselves so the component is still
@@ -194,10 +201,20 @@ const VENDORED_LIBS = [
     files: ['community/qr-code/hooks.js'],
   },
   {
-    name: 'chart',
+    name: 'd3',
     version: '7.9.0',
     license: 'ISC',
-    files: ['community/meeting-planner/lib/d3.min.js', 'community/street-map/lib/d3.min.js'],
+    files: [
+      'community/chart/lib/d3.min.js',
+      'community/meeting-planner/lib/d3.min.js',
+      'community/street-map/lib/d3.min.js',
+    ],
+  },
+  {
+    name: '@observablehq/plot',
+    version: '0.6.17',
+    license: 'ISC',
+    files: ['community/chart/lib/observable-plot.min.js'],
   },
   {
     name: 'topojson-client',
@@ -210,7 +227,21 @@ for (const lib of VENDORED_LIBS) {
   const file = lib.files.find((f) => existsSync(join(ROOT, f)));
   if (!file) continue; // none of the candidate copies are present - skip
   const purl = purlFor(lib.name, lib.version);
-  if (byPurl.has(purl)) continue;
+  const existing = byPurl.get(purl);
+  if (existing) {
+    // A checked-in browser distribution may also be present as a devDependency
+    // solely so its vendoring build is reproducible. The shipped bytes make the
+    // component runtime-required; record and hash those bytes rather than
+    // leaving the SBOM to describe it as build-only.
+    existing.scope = 'required';
+    existing.properties = (existing.properties ?? []).filter(
+      (property) => property.name !== 'cdx:npm:package:development'
+    );
+    existing.properties.push({ name: 'lolly:vendored', value: file });
+    const vendoredHashes = fileHashes(join(ROOT, file));
+    if (vendoredHashes) existing.hashes = vendoredHashes;
+    continue;
+  }
   const component: Component = {
     type: 'library',
     'bom-ref': purl,
@@ -280,7 +311,13 @@ const workspaceSubcomponents = ((rootPkg.workspaces ?? []) as any[])
     if (!pkg?.name) return null;
     const v = pkg.version ?? subjectVersion;
     const purl = purlFor(pkg.name, v);
-    const component: Component = { type: 'library', 'bom-ref': purl, name: pkg.name, version: v, purl };
+    const component: Component = {
+      type: 'library',
+      'bom-ref': purl,
+      name: pkg.name,
+      version: v,
+      purl,
+    };
     const licenses = licensesFromPackage(pkg);
     if (licenses) component.licenses = licenses;
     return component;
@@ -307,10 +344,12 @@ const fingerprint = createHash('sha256')
 const serialNumber = `urn:uuid:${fingerprint.slice(0, 8)}-${fingerprint.slice(8, 12)}-4${fingerprint.slice(13, 16)}-8${fingerprint.slice(17, 20)}-${fingerprint.slice(20, 32)}`;
 
 const previous = existsSync(OUT_PATH) ? readJsonOptional('sbom.cdx.json') : null;
-const sameComponents = previous && JSON.stringify(previous.components) === JSON.stringify(components);
-const timestamp = sameComponents && previous?.metadata?.timestamp
-  ? previous.metadata.timestamp
-  : new Date().toISOString();
+const sameComponents =
+  previous && JSON.stringify(previous.components) === JSON.stringify(components);
+const timestamp =
+  sameComponents && previous?.metadata?.timestamp
+    ? previous.metadata.timestamp
+    : new Date().toISOString();
 
 const bom = {
   bomFormat: 'CycloneDX',
@@ -329,7 +368,7 @@ writeFileSync(OUT_PATH, JSON.stringify(bom, null, 2) + '\n');
 const devCount = components.filter((c) => c.properties?.some((p) => p.value === 'true')).length;
 console.log(
   `✓ Wrote sbom.cdx.json - ${components.length} components ` +
-  `(${components.length - devCount} runtime, ${devCount} dev)${sameComponents ? ' (unchanged)' : ''}`,
+    `(${components.length - devCount} runtime, ${devCount} dev)${sameComponents ? ' (unchanged)' : ''}`
 );
 
 // ─── Surface license gaps without failing the build ──────────────────────────
@@ -337,7 +376,7 @@ console.log(
 // with an empty licenses[] is a real audit gap - something we couldn't attribute.
 // List them so they're visible; never throw or exit non-zero over it.
 const unlicensed = [subject, ...workspaceSubcomponents, ...components].filter(
-  (c) => !Array.isArray(c.licenses) || c.licenses.length === 0,
+  (c) => !Array.isArray(c.licenses) || c.licenses.length === 0
 );
 if (unlicensed.length) {
   console.warn(`⚠ ${unlicensed.length} component(s) without license metadata:`);
@@ -369,7 +408,10 @@ function fileHashes(absPath: string, algs: string[] = ['sha512']): Hash[] | unde
     return undefined;
   }
   // algs values are our own literal keys of ALG_NAMES, so the lookup is total.
-  return algs.map((alg) => ({ alg: ALG_NAMES[alg]!, content: createHash(alg).update(bytes).digest('hex') }));
+  return algs.map((alg) => ({
+    alg: ALG_NAMES[alg]!,
+    content: createHash(alg).update(bytes).digest('hex'),
+  }));
 }
 
 // Normalize any package.json license shape into CycloneDX licenses[]. Handles
@@ -441,7 +483,8 @@ function addNpmShellDeps(shellDir: string): void {
       component.externalReferences = [{ type: 'distribution', url: locked.resolved }];
     }
     const properties: Property[] = [];
-    if (!resolvedVersion) properties.push({ name: 'cdx:npm:package:version-source', value: 'declared-range' });
+    if (!resolvedVersion)
+      properties.push({ name: 'cdx:npm:package:version-source', value: 'declared-range' });
     if (dev.has(name)) properties.push({ name: 'cdx:npm:package:development', value: 'true' });
     if (properties.length) component.properties = properties;
     byPurl.set(purl, component);
@@ -477,8 +520,9 @@ function addCargoCrates(rel: string): void {
           // Linked into the shipped binary unless a license note below says
           // build-only (which flips this to `excluded`).
           scope: 'required',
-          licenses: licensesFromString(cargoLicenses[`${name}@${version}`]) ??
-            [{ license: { name: 'unknown' } }],
+          licenses: licensesFromString(cargoLicenses[`${name}@${version}`]) ?? [
+            { license: { name: 'unknown' } },
+          ],
         };
         // Cargo.lock checksums are the hex SHA-256 of the published .crate tarball.
         if (checksum) component.hashes = [{ alg: ALG_NAMES.sha256!, content: checksum }];

@@ -205,5 +205,12 @@
   "Imported": "Імпортовано",
   "Copyright": "Авторські права",
   "Captured": "Знято",
-  "Keywords": "Ключові слова"
+  "Keywords": "Ключові слова",
+  "Check for updates": "Перевірити оновлення",
+  "Up to date": "Актуальна версія",
+  "Update available: {version}": "Доступне оновлення: {version}",
+  "Install and restart": "Встановити й перезапустити",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "Модель на пристрої, яка приховує невидиме посвідчення в експортованих пікселях. Завантажте її зараз (~{size}), щоб перший експорт зі стійким посвідченням почався одразу, без очікування.",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "Модель на пристрої, яка приховує стійке посвідчення в експортованих пікселях. Її видалення звільняє місце; під час наступного використання вона знову завантажиться з вашої згоди.",
+  "Removed the durable-credential model": "Модель стійкого посвідчення видалено"
 }

@@ -101,6 +101,12 @@ test('gunzip rejects corrupt / truncated / bad-magic input', () => {
   assert.throws(() => gunzip(truncBody));
 });
 
+test('gunzip rejects a trailer-declared output above the caller budget before inflation', () => {
+  const g = gzip(enc('payload here'));
+  assert.throws(() => gunzip(g, { maxOutputBytes: 4 }), /declared output .* exceeds/);
+  assert.throws(() => gunzip(g, { maxOutputBytes: -1 }), /non-negative safe integer/);
+});
+
 test('inflateRaw refuses to over-allocate on a hostile size hint', () => {
   const raw = new Uint8Array(deflateRawSync(Buffer.from(new Uint8Array(50_000))));
   // Declaring a smaller size than the stream decodes to must fail, not silently truncate.

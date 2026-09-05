@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { packWebpAnim } from '../engine/src/webp-anim.ts';
-import { demuxWebpAnim } from '../engine/src/webp-anim-decode.ts';
+import { demuxWebpAnim, WEBP_DEMUX_MAX_DIM } from '../engine/src/webp-anim-decode.ts';
 
 // --- tiny RIFF chunk + still-WebP builders (all little-endian) ---------------
 
@@ -138,4 +138,10 @@ test('demuxWebpAnim reads ANMF frame offsets, duration and blend/dispose flags',
 
 test('demuxWebpAnim rejects non-WebP bytes', () => {
   assert.throws(() => demuxWebpAnim(new Uint8Array([1, 2, 3, 4])), /not a WebP/);
+});
+
+test('demuxWebpAnim refuses hostile canvas dimensions before host decode', () => {
+  const u24 = (v: number): number[] => [v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff];
+  const vp8x = [0x02, 0, 0, 0, ...u24(WEBP_DEMUX_MAX_DIM), ...u24(0)];
+  assert.throws(() => demuxWebpAnim(riff(chunk('VP8X', vp8x))), /canvas .* exceeds/);
 });

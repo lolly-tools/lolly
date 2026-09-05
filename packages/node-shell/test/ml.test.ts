@@ -28,7 +28,7 @@ import {
 } from '../src/ml/index.ts';
 import {
   ModelNotInstalledError, decodeRgba, encodeRgbaPng, familyDir, formatBytes, isSharpAvailable,
-  modelFileExists, modelFilesExist, modelsDirCandidates, refuseMissing, releaseSessions,
+  modelFileExists, modelFilesExist, modelsDirCandidates, refuseMissing, releaseSessions, sessionThreads,
   resolveModelsDir, setRuntimeProbes,
 } from '../src/ml/session.ts';
 import { UPSCALE_MODEL_FILES, stagedUpscaleModels } from '../src/ml/upscale-models.ts';
@@ -37,7 +37,32 @@ import { OCR_MODEL_FILES, ocrModelsFor } from '../src/ml/ocr-models.ts';
 import { REWORD_MODEL_FILES } from '../src/ml/reword-models.ts';
 import { aiDetectModel } from '../src/ml/ai-detect-models.ts';
 
-after(async () => { await releaseSessions(); });
+// One thread per session in this file: under a full-suite run, onnxruntime-node
+// 1.29 on macOS can abort at process exit (`recursive_mutex lock failed`) when a
+// pool thread outlives the runtime's logging mutex, and that abort marks every
+// passed test in the file as failed. With no pool there is nothing to outlive
+// it. Set before the first session is created; the runners read process.env.
+process.env.LOLLY_ORT_THREADS = '1';
+
+after(async () => {
+  await releaseSessions();
+  // Let the released sessions' native teardown finish before node exits.
+  await new Promise((resolve) => setTimeout(resolve, 300));
+});
+
+describe('sessionThreads', () => {
+  test('unset means the runtime default; a whole number from 1 to 256 is honoured', () => {
+    assert.equal(sessionThreads({}), undefined);
+    assert.equal(sessionThreads({ LOLLY_ORT_THREADS: '' }), undefined);
+    assert.equal(sessionThreads({ LOLLY_ORT_THREADS: '1' }), 1);
+    assert.equal(sessionThreads({ LOLLY_ORT_THREADS: ' 4 ' }), 4);
+  });
+  test('zero, negatives, fractions and words fall back to the default', () => {
+    for (const bad of ['0', '-2', '1.5', 'many', '999']) {
+      assert.equal(sessionThreads({ LOLLY_ORT_THREADS: bad }), undefined, bad);
+    }
+  });
+});
 
 // ── The models directory (never skips) ───────────────────────────────────────
 

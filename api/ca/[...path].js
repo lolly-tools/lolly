@@ -144,6 +144,9 @@ async function fetchVerifiedEmail(provider, env, { code, redirectUri, pkceVerifi
   return claims.email;
 }
 
+// services/ca/handler.mjs
+import { isIP } from "node:net";
+
 // services/ca/lib/tokens.mjs
 var te2 = new TextEncoder();
 var subtle2 = globalThis.crypto.subtle;
@@ -507,6 +510,125 @@ async function enroll({ token, spki, pop, days } = {}, env) {
   };
 }
 
+// services/ca/lib/rate-limit.mjs
+import { createHash } from "node:crypto";
+var MAX_MEMORY_KEYS = 2e4;
+var LUA = [
+  "local n = redis.call('INCR', KEYS[1])",
+  "if n == 1 then redis.call('PEXPIRE', KEYS[1], ARGV[1]) end",
+  "local ttl = redis.call('PTTL', KEYS[1])",
+  "return {n, ttl}"
+].join("\n");
+var RateLimitUnavailableError = class extends Error {
+  constructor(message = "Durable rate limiter is unavailable") {
+    super(message);
+    this.name = "RateLimitUnavailableError";
+  }
+};
+var MemoryRateLimiter = class {
+  #windows = /* @__PURE__ */ new Map();
+  #now;
+  constructor(now = Date.now) {
+    this.#now = now;
+  }
+  async consume(scope, subject, limit, windowMs) {
+    validateBudget(limit, windowMs);
+    const now = this.#now();
+    const key = digest("memory", scope, subject);
+    let bucket = this.#windows.get(key);
+    if (!bucket || bucket.expires <= now) {
+      if (this.#windows.size >= MAX_MEMORY_KEYS) {
+        for (const [candidate, value] of this.#windows) {
+          if (value.expires <= now || this.#windows.size >= MAX_MEMORY_KEYS) this.#windows.delete(candidate);
+          if (this.#windows.size < MAX_MEMORY_KEYS) break;
+        }
+      }
+      bucket = { count: 0, expires: now + windowMs };
+      this.#windows.set(key, bucket);
+    }
+    bucket.count += 1;
+    return decision(bucket.count, limit, bucket.expires - now);
+  }
+};
+var RedisRestRateLimiter = class {
+  #url;
+  #token;
+  #fetch;
+  constructor({ url, token, fetchImpl = fetch }) {
+    this.#url = normalizeUrl(url);
+    this.#token = token;
+    this.#fetch = fetchImpl;
+  }
+  async consume(scope, subject, limit, windowMs) {
+    validateBudget(limit, windowMs);
+    const key = `lolly:rl:${digest("ca", scope, subject)}`;
+    let response;
+    try {
+      response = await this.#fetch(this.#url, {
+        method: "POST",
+        headers: { authorization: `Bearer ${this.#token}`, "content-type": "application/json" },
+        body: JSON.stringify(["EVAL", LUA, "1", key, String(windowMs)]),
+        signal: AbortSignal.timeout(2500)
+      });
+    } catch {
+      throw new RateLimitUnavailableError();
+    }
+    if (!response.ok) throw new RateLimitUnavailableError(`Durable rate limiter returned HTTP ${response.status}`);
+    let result;
+    try {
+      result = (await response.json()).result;
+    } catch {
+      throw new RateLimitUnavailableError("Durable rate limiter returned malformed JSON");
+    }
+    if (!Array.isArray(result) || result.length !== 2) throw new RateLimitUnavailableError("Durable rate limiter returned an invalid result");
+    const count = Number(result[0]);
+    const ttl = Number(result[1]);
+    if (!Number.isSafeInteger(count) || count < 1 || !Number.isFinite(ttl)) {
+      throw new RateLimitUnavailableError("Durable rate limiter returned invalid counters");
+    }
+    return decision(count, limit, Math.max(1, ttl));
+  }
+};
+function createRateLimiter(env) {
+  const url = String(env.CA_RATE_LIMIT_REST_URL || env.LOLLY_RATE_LIMIT_REST_URL || "").trim();
+  const token = String(env.CA_RATE_LIMIT_REST_TOKEN || env.LOLLY_RATE_LIMIT_REST_TOKEN || "").trim();
+  if (!!url !== !!token) throw new Error("CA rate-limit REST URL and token must be configured together");
+  if (url && token) return new RedisRestRateLimiter({ url, token });
+  const hosted = !!env.VERCEL || env.CA_HOSTED === "1" || env.NODE_ENV === "production";
+  if (hosted && env.CA_ALLOW_IN_MEMORY_RATE_LIMIT !== "1") {
+    throw new Error("A durable CA rate limiter is required in hosted/production mode");
+  }
+  return new MemoryRateLimiter();
+}
+function digest(namespace, scope, subject) {
+  return createHash("sha256").update(namespace).update("\0").update(scope).update("\0").update(String(subject)).digest("hex");
+}
+function normalizeUrl(raw) {
+  let url;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error("CA rate-limit REST URL must be an absolute HTTPS URL");
+  }
+  if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash) {
+    throw new Error("CA rate-limit REST URL must be HTTPS without credentials, query, or fragment");
+  }
+  return url.toString();
+}
+function validateBudget(limit, windowMs) {
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1e6) throw new Error("rate limit must be a positive safe integer");
+  if (!Number.isSafeInteger(windowMs) || windowMs < 1e3 || windowMs > 24 * 60 * 60 * 1e3) {
+    throw new Error("rate-limit window must be between one second and one day");
+  }
+}
+function decision(count, limit, ttlMs) {
+  return {
+    ok: count <= limit,
+    retryAfter: count <= limit ? 0 : Math.max(1, Math.ceil(ttlMs / 1e3)),
+    remaining: Math.max(0, limit - count)
+  };
+}
+
 // services/ca/handler.mjs
 var STATE_COOKIE = "lolly_ca_state";
 var STATE_TTL_SECONDS = 600;
@@ -515,6 +637,7 @@ var ISOLATION_HEADERS = {
   "cross-origin-embedder-policy": "credentialless"
 };
 var BODY_CAP = 64 * 1024;
+var RATE_WINDOW_MS = 60 * 1e3;
 var STATE_TYP = "lolly-ca/state";
 var EMAIL_COOLDOWN_MS = 60 * 1e3;
 var lastEmailAt = /* @__PURE__ */ new Map();
@@ -646,9 +769,13 @@ If you didn't request this, ignore this email.`
   }
   return { status: 200, json: { sent: true } };
 }
-function clientIp(req) {
-  const xff = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
-  return xff || req.socket?.remoteAddress || "";
+function clientIp(req, env) {
+  const peer = req.socket?.remoteAddress || "";
+  if (env.CA_TRUST_PROXY !== "1") return peer;
+  const trusted = new Set(String(env.CA_TRUSTED_PROXIES || "").split(",").map((value) => value.trim()).filter(Boolean));
+  if (!trusted.has(peer)) return peer;
+  const forwarded = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  return isIP(forwarded) ? forwarded : peer;
 }
 function parseCookies(header) {
   const out = {};
@@ -702,12 +829,35 @@ function writeResult(res, result, cors = {}) {
   res.writeHead(result.status, headers);
   res.end(body);
 }
-async function route(env, req, url, path) {
+var positiveInt = (raw, fallback) => {
+  const value = Number(raw);
+  return Number.isSafeInteger(value) && value > 0 ? value : fallback;
+};
+async function admission(limiter, scope, subject, limit) {
+  try {
+    const result = await limiter.consume(scope, subject || "unknown", limit, RATE_WINDOW_MS);
+    return result.ok ? null : {
+      status: 429,
+      headers: { "retry-after": String(result.retryAfter) },
+      json: { error: "too many requests, please try again shortly" }
+    };
+  } catch (error) {
+    if (!(error instanceof RateLimitUnavailableError)) throw error;
+    return {
+      status: 503,
+      headers: { "retry-after": "5" },
+      json: { error: "request admission is temporarily unavailable" }
+    };
+  }
+}
+async function route(env, req, url, path, limiter) {
   const m = req.method;
   if (m === "GET" && path === "/api/ca/health") return routeHealth(env);
   if (m === "GET" && path === "/api/ca/root.pem") return routeRootPem(env);
   const auth = m === "GET" && path.match(/^\/api\/ca\/auth\/([a-z0-9_-]+)$/);
   if (auth) {
+    const refusal = await admission(limiter, "auth", clientIp(req, env), positiveInt(env.CA_AUTH_RPM, 30));
+    if (refusal) return refusal;
     return routeAuth(env, {
       provider: auth[1],
       origin: url.searchParams.get("origin"),
@@ -716,6 +866,8 @@ async function route(env, req, url, path) {
   }
   const cb = m === "GET" && path.match(/^\/api\/ca\/callback\/([a-z0-9_-]+)$/);
   if (cb) {
+    const refusal = await admission(limiter, "callback", clientIp(req, env), positiveInt(env.CA_AUTH_RPM, 30));
+    if (refusal) return refusal;
     return routeCallback(env, {
       provider: cb[1],
       query: Object.fromEntries(url.searchParams),
@@ -724,18 +876,26 @@ async function route(env, req, url, path) {
     });
   }
   if (m === "POST" && (path === "/api/ca/email/start" || path === "/api/ca/enroll")) {
+    const ip = clientIp(req, env);
+    const routeLimit = path === "/api/ca/enroll" ? positiveInt(env.CA_ENROLL_RPM, 30) : positiveInt(env.CA_EMAIL_RPM, 5);
+    const refusal = await admission(limiter, path.endsWith("/enroll") ? "enroll" : "email-ip", ip, routeLimit);
+    if (refusal) return refusal;
     let body;
     try {
       body = await readJsonBody(req);
     } catch (err) {
       return { status: err.statusCode || 400, json: { error: err.message } };
     }
-    return path === "/api/ca/enroll" ? enroll(body || {}, env) : routeEmailStart(env, body || {}, clientIp(req));
+    if (path === "/api/ca/enroll") return enroll(body || {}, env);
+    const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "invalid";
+    const emailRefusal = await admission(limiter, "email-address", email, positiveInt(env.CA_EMAIL_PER_ADDRESS_RPM, 1));
+    return emailRefusal ?? routeEmailStart(env, body || {}, ip);
   }
   return { status: 404, json: { error: "not found" } };
 }
 function createCaHandler(env = process.env) {
   const caEnabled = !!(env.CA_SERVICE_SECRET || env.CA_ROOT_KEY_PEM);
+  const limiter = caEnabled ? createRateLimiter(env) : null;
   return async function caHandler(req, res) {
     try {
       const url = new URL(req.url, "http://internal");
@@ -752,7 +912,7 @@ function createCaHandler(env = process.env) {
         res.end();
         return;
       }
-      writeResult(res, await route(env, req, url, path), cors);
+      writeResult(res, await route(env, req, url, path, limiter), cors);
     } catch (err) {
       console.error("ca handler error:", err?.message || "unknown");
       try {

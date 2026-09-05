@@ -207,5 +207,12 @@
   "Imported": "Diimpor",
   "Copyright": "Hak cipta",
   "Captured": "Diambil",
-  "Keywords": "Kata kunci"
+  "Keywords": "Kata kunci",
+  "Check for updates": "Periksa pembaruan",
+  "Up to date": "Sudah terbaru",
+  "Update available: {version}": "Pembaruan tersedia: {version}",
+  "Install and restart": "Pasang dan mulai ulang",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "Model di perangkat yang menyembunyikan kredensial tak terlihat dalam piksel yang diekspor. Unduh sekarang (~{size}) agar ekspor berkredensial tahan lama pertama dapat langsung dimulai tanpa menunggu.",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "Model di perangkat yang menyembunyikan kredensial tahan lama dalam piksel yang diekspor. Menghapusnya akan mengosongkan ruang; model akan diunduh lagi dengan persetujuan Anda saat digunakan berikutnya.",
+  "Removed the durable-credential model": "Model kredensial tahan lama telah dihapus"
 }

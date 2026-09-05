@@ -32,6 +32,7 @@ const MAX_HANG_SIZE = 64 * 1024;
 const BASE_SEED = 0x1abe11ed;
 
 mkdirSync(REGRESS, { recursive: true });
+mkdirSync(SCRATCH, { recursive: true });
 
 interface Finding { target: string; iter: number; kind: 'crash' | 'alloc' | 'hang'; ms: number; size: number; message: string; bytes: Uint8Array; }
 

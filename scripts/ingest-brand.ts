@@ -16,7 +16,8 @@
  *   a directory         one-file-per-set export ($metadata.json/$themes.json
  *                       + '<set>.json'; nested dirs = '/' in set names)
  *   project.penpot      a Penpot project archive (zip; tokens per file)
- *   LollyBrand-*.zip    a design system pack exported by the studio
+ *   LollyBrand-*.lolly  a design system pack exported by the studio
+ *   LollyBrand-*.zip    the legacy pre-1.0.7 spelling of the same pack
  *                       (manifest.json `format: "lolly-brand"` + tokens.json).
  *                       Its published VERSIONS travel too (plans/97 section 6a):
  *                       versions/<slug>.json and the frozen/ bytes they pin land

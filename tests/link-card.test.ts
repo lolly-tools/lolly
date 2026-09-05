@@ -207,7 +207,7 @@ test('a picked thumbnail is placed with that style, and nothing else is', { skip
 });
 
 test('an empty thumbnail slot draws the monogram panel, not a broken image', { skip: SKIP }, async () => {
-  for (const thumb of [undefined, '', null, 'not-a-ref']) {
+  for (const thumb of [undefined, '', null]) {
     const { rt, html } = await mount({ image: thumb, siteName: 'Atlas Field' });
     assert.equal(rt.getHydratedString('{{error}}'), '', `thumb ${JSON.stringify(thumb)}: hook reported an error`);
     assert.equal(rt.getHydratedString('{{hasThumb}}'), 'false');

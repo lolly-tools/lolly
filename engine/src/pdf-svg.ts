@@ -306,6 +306,7 @@ export function pdfNodeElementKind(n: PdfNode): PdfElementKind {
  * Nodes render in array order (the interpreter's paint order, back-to-front).
  */
 export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
+  assertPdfSvgBudgets(nodes);
   // Sanitised: an id has to survive as a bare `url(#…)` reference.
   const idp = (opts.idPrefix ?? 'p').replace(/[^A-Za-z0-9_-]/g, '') || 'p';
   const w = Math.max(1, Math.round(opts.width || 0));
@@ -590,21 +591,98 @@ const EMPTY_EXTENT: PdfExtent = { x: 0, y: 0, w: 0, h: 0 };
 
 const finite = (v: unknown): v is number => typeof v === 'number' && isFinite(v);
 
+/** Public direct-call budgets; upstream `pdf-map` emits at most 4,000 page nodes. */
+export const PDF_SVG_MAX_NODES = 4_000;
+export const PDF_SVG_MAX_MASK_NODES = 64;
+export const PDF_SVG_MAX_GRADIENT_STOPS = 4_096;
+export const PDF_SVG_MAX_OUTLINE_LINES = 20_000;
+export const PDF_SVG_MAX_TEXT_LINES = 20_000;
+export const PDF_SVG_MAX_SOURCE_CHARS = 32 * 1024 * 1024;
 /** Clip stacks past this depth are treated as unbounded: pathological nesting. */
-const MAX_CLIPS = 64;
+export const PDF_SVG_MAX_CLIPS = 64;
 /** A clip `d` longer than this isn't scanned (bounded work per node). */
-const MAX_CLIP_D = 64_000;
+export const PDF_SVG_MAX_CLIP_D = 64_000;
 /** A vector node's own `d`; larger than a clip's because real artwork paths are. */
-const MAX_PATH_D = 400_000;
+export const PDF_SVG_MAX_PATH_D = 400_000;
 /** Total outline-path characters scanned for one text node (bounded work). */
-const MAX_OUTLINE_D = 400_000;
+export const PDF_SVG_MAX_OUTLINE_D = 400_000;
 /**
  * Beyond this magnitude a coordinate is not geometry, it is corruption. The
  * serializer's own 2-dp rounding can no longer represent it (see `r`), so the box
  * we'd compute would not describe where the ink actually lands. Fail open.
  * A PDF page is ~1e3 pt; even a pathological UserUnit page is far below this.
  */
-const MAX_COORD = 1e9;
+export const PDF_SVG_MAX_COORD = 1e9;
+
+/**
+ * Validate every allocation-driving collection/string before SVG construction.
+ * The interpreter already obeys these limits; this protects public direct callers
+ * and keeps malformed structured fuzz inputs from bypassing the byte parser.
+ */
+function assertPdfSvgBudgets(nodes: PdfNode[]): void {
+  if (!Array.isArray(nodes)) throw new Error('pdfNodesToSvg: nodes must be an array');
+  if (nodes.length > PDF_SVG_MAX_NODES) {
+    throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_NODES} nodes`);
+  }
+  let sourceChars = 0;
+  const charge = (value: unknown, perValueMax: number, label: string): void => {
+    if (typeof value !== 'string') return;
+    if (value.length > perValueMax) throw new Error(`pdfNodesToSvg: ${label} exceeds ${perValueMax} characters`);
+    sourceChars += value.length;
+    if (!Number.isSafeInteger(sourceChars) || sourceChars > PDF_SVG_MAX_SOURCE_CHARS) {
+      throw new Error(`pdfNodesToSvg: source strings exceed ${PDF_SVG_MAX_SOURCE_CHARS} characters`);
+    }
+  };
+  const inspect = (n: PdfNode, maskChild: boolean): void => {
+    if (!n || typeof n !== 'object') return;
+    charge(n.text, PDF_SVG_MAX_SOURCE_CHARS, 'text');
+    if (typeof n.text === 'string') {
+      let lines = 1;
+      for (let at = n.text.indexOf('\n'); at >= 0; at = n.text.indexOf('\n', at + 1)) {
+        if (++lines > PDF_SVG_MAX_TEXT_LINES) {
+          throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_TEXT_LINES} text lines`);
+        }
+      }
+    }
+    charge(n.group, PDF_SVG_MAX_SOURCE_CHARS, 'group');
+    charge(n._vectorPath, PDF_SVG_MAX_PATH_D, 'vector path');
+    const clips = n._clips;
+    if (clips !== undefined) {
+      if (!Array.isArray(clips) || clips.length > PDF_SVG_MAX_CLIPS) {
+        throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_CLIPS} clips on one node`);
+      }
+      for (const clip of clips) charge(clip?.d, PDF_SVG_MAX_CLIP_D, 'clip path');
+    }
+    const outlines = n._outlinePath;
+    if (outlines !== undefined) {
+      if (!Array.isArray(outlines) || outlines.length > PDF_SVG_MAX_OUTLINE_LINES) {
+        throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_OUTLINE_LINES} outline lines`);
+      }
+      let outlineChars = 0;
+      for (const line of outlines) {
+        if (typeof line !== 'string') continue;
+        outlineChars += line.length;
+        charge(line, PDF_SVG_MAX_OUTLINE_D, 'outline path');
+      }
+      if (outlineChars > PDF_SVG_MAX_OUTLINE_D) {
+        throw new Error(`pdfNodesToSvg: outline paths exceed ${PDF_SVG_MAX_OUTLINE_D} characters`);
+      }
+    }
+    const gradient = n._gradient;
+    if (gradient?.stops !== undefined && (!Array.isArray(gradient.stops) || gradient.stops.length > PDF_SVG_MAX_GRADIENT_STOPS)) {
+      throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_GRADIENT_STOPS} gradient stops`);
+    }
+    if (!maskChild && n._softMask) {
+      const children = n._softMask.nodes;
+      if (!Array.isArray(children) || children.length > PDF_SVG_MAX_MASK_NODES) {
+        throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_MASK_NODES} soft-mask nodes`);
+      }
+      charge(n._softMask.key, PDF_SVG_MAX_SOURCE_CHARS, 'soft-mask key');
+      for (const child of children) inspect(child, true);
+    }
+  };
+  for (const node of nodes) inspect(node, false);
+}
 
 /**
  * "Unbounded on this axis", expressed as a number instead of Infinity: a span so
@@ -615,7 +693,7 @@ const MAX_COORD = 1e9;
  * on this axis", the only honest answer for a `<text>` run, whose advance width is
  * decided by whatever font the RENDERER resolves (see the text branch below).
  */
-const PLANE = MAX_COORD;
+const PLANE = PDF_SVG_MAX_COORD;
 const planeBox = (): PdfExtent => ({ x: -PLANE, y: -PLANE, w: 2 * PLANE, h: 2 * PLANE });
 
 /**
@@ -661,7 +739,7 @@ function clipExtent(c: { d?: string; bbox?: PdfExtent } | null | undefined): Pdf
   if (!c) return null;
   const bb = c.bbox;
   if (bb && finite(bb.x) && finite(bb.y) && finite(bb.w) && finite(bb.h) && bb.w >= 0 && bb.h >= 0) return bb;
-  return pathDataBox(typeof c.d === 'string' ? c.d : '', MAX_CLIP_D);
+  return pathDataBox(typeof c.d === 'string' ? c.d : '', PDF_SVG_MAX_CLIP_D);
 }
 
 /**
@@ -720,8 +798,8 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
     if (!n || typeof n !== 'object') return EMPTY_EXTENT;
     if (!finite(n.x) || !finite(n.y) || !finite(n.w) || !finite(n.h)) return null;
     if (n.rot != null && !finite(n.rot)) return null;
-    if (Math.abs(n.x) > MAX_COORD || Math.abs(n.y) > MAX_COORD
-      || Math.abs(n.w) > MAX_COORD || Math.abs(n.h) > MAX_COORD) return null;
+    if (Math.abs(n.x) > PDF_SVG_MAX_COORD || Math.abs(n.y) > PDF_SVG_MAX_COORD
+      || Math.abs(n.w) > PDF_SVG_MAX_COORD || Math.abs(n.h) > PDF_SVG_MAX_COORD) return null;
     // The serializer's own gate, ahead of the dispatch (pdfNodesToSvg's loop head).
     if (!(n.w > 0) || !(n.h > 0)) return EMPTY_EXTENT;
 
@@ -739,14 +817,14 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
       const lineH = leadOf(n) * size;
       const baseline0 = n.y + size * 0.8;
       const lines = n._outlinePath ?? [];
-      if (!Array.isArray(lines) || lines.length > 1e6) return null;
+      if (!Array.isArray(lines) || lines.length > PDF_SVG_MAX_OUTLINE_LINES) return null;
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      let budget = MAX_OUTLINE_D, scannable = true;
+      let budget = PDF_SVG_MAX_OUTLINE_D, scannable = true;
       for (let i = 0; i < lines.length && scannable; i++) {
         const d = lines[i];
         if (!d) continue;                                  // outlinedTextEl skips it too
         budget -= d.length;
-        const lb = budget < 0 ? null : pathDataBox(d, MAX_OUTLINE_D);
+        const lb = budget < 0 ? null : pathDataBox(d, PDF_SVG_MAX_OUTLINE_D);
         if (!lb) { scannable = false; break; }
         const dy = baseline0 + i * lineH;
         if (n.x + lb.x < minX) minX = n.x + lb.x;
@@ -798,7 +876,7 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
       // that sets one without the other cannot silently lose ink.
       const d = vectorPathD(n);
       if (!d) { box = EMPTY_EXTENT; } else {               // pathEl emits nothing
-        const hull = pathDataBox(d, MAX_PATH_D);
+        const hull = pathDataBox(d, PDF_SVG_MAX_PATH_D);
         if (!hull) box = planeBox();                       // unscannable ⇒ fail open
         else {
           box = {
@@ -847,7 +925,7 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
     // tolerance has to live here.
     const clips = n._clips;
     if (clips && clips.length) {
-      if (!Array.isArray(clips) || clips.length > MAX_CLIPS) return null;
+      if (!Array.isArray(clips) || clips.length > PDF_SVG_MAX_CLIPS) return null;
       for (const c of clips) {
         const ce = clipExtent(c as { d?: string; bbox?: PdfExtent });
         if (!ce) continue;                                   // unknown clip ⇒ don't shrink
@@ -889,6 +967,9 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
 export function cullPdfNodes(nodes: PdfNode[], win: CullWindow): CullResult {
   const list = Array.isArray(nodes) ? nodes : [];
   const total = list.length;
+  if (total > PDF_SVG_MAX_NODES) {
+    return { nodes: list, total, dropped: 0, unbounded: total };
+  }
   if (!win || !finite(win.x) || !finite(win.y) || !finite(win.width) || !finite(win.height)
     || !(win.width > 0) || !(win.height > 0)) {
     return { nodes: list, total, dropped: 0, unbounded: 0 };

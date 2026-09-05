@@ -28,7 +28,9 @@ already a documented, accepted design choice.
   line you can read.
 - **[`docs/parser-inventory.md`](docs/parser-inventory.md)** lists the
   file-format parsers that read attacker-controlled bytes, with their bounds and
-  their fuzz coverage.
+  their fuzz coverage. Its table is generated from
+  `security/parser-assurance.json`; use `npm run build:parser-inventory` after an
+  intentional registry change and `npm run check:parser-inventory` to detect drift.
 
 ### Component to directory
 
@@ -79,3 +81,25 @@ documented in [Security & Verification](https://lolly.tools/info/security.html)
 (`docs/security-verification.md` in this repository). The trust boundaries and
 the accepted residual risks are in
 [`docs/threat-model.md`](docs/threat-model.md).
+
+## Maintainer security checks
+
+`npm run audit:all` inventories and audits every authoritative npm and Cargo
+lockfile. `npm run secrets:scan` scans the parent repository's complete tracked
+history with redacted output; install the pinned Gitleaks 8.29.1 binary and set
+`GITLEAKS_BIN` if it is not on `PATH`. For a pre-commit check, run
+`npm run secrets:scan:staged`.
+
+The ignored/untracked checkout is deliberately not read by either command.
+Auditing it is an explicit opt-in because it may contain personal credentials:
+`npm run secrets:scan:checkout -- --confirm-untracked`. Findings are redacted,
+but any detected credential must still be rotated rather than merely allowlisted.
+Device-local operational files belong outside this checkout and must meet the
+ownership, permission and no-symlink rules in
+[`security/local-credential-storage.md`](security/local-credential-storage.md).
+
+`npm run build:web` is an unsigned development/preview build and labels itself
+as such. Deployments must use `npm run build:web:release`; it requires
+`LOLLY_CATALOG_SIGNING_KEY` and the matching public
+`VITE_CATALOG_PUBLIC_KEY_JWK`, signs the active catalog, and refuses to build if
+the verification pin is missing, private, malformed, or mismatched.

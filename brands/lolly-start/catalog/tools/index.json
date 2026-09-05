@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-04T09:52:16.887Z",
+  "generatedAt": "2026-09-05T02:38:28.168Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -8198,8 +8198,8 @@
     {
       "id": "chart",
       "name": "Chart",
-      "description": "Powerful data-driven charts with D3 — paste a table and it charts itself. Bars, lines, areas, scatter, pie, radar, treemap, heatmap, 3-D bars & pies and word clouds. Palettes derive from your brand's colours, with pattern fills and click-to-recolour — on-brand and vector-clean.",
-      "version": "1.18.1",
+      "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+      "version": "1.23.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -8222,6 +8222,13 @@
         "wordcloud",
         "word cloud",
         "3d",
+        "cinematic",
+        "flythrough",
+        "statistical",
+        "editorial",
+        "regression",
+        "density",
+        "facets",
         "survey",
         "svg",
         "vector",
@@ -8257,7 +8264,7 @@
       "preview": "/catalog/previews/chart.svg",
       "featured": {
         "order": 3,
-        "blurb": "Paste a table — D3 charts it, on-brand and vector-clean"
+        "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
       },
       "examples": [
         {
@@ -8316,26 +8323,86 @@
           }
         },
         {
-          "label": "3-D bars",
+          "label": "Real 3-D bars",
           "values": {
+            "renderMode": "scene",
             "chartType": "bar",
-            "barStyle": "iso3d",
-            "data": "Team,Responses\nDesign,42\nEngineering,58\nSales,33\nSupport,27",
-            "palette": "cool",
-            "showValues": true
+            "sceneType": "bar3d",
+            "chartStyle": "studio-3d",
+            "heading": "Responses by team and wave",
+            "data": "Team,First wave,Second wave,Final wave\nDesign,42,51,63\nEngineering,58,66,74\nSales,33,47,59\nSupport,27,39,52",
+            "motionPreset": "reveal-orbit",
+            "cameraProjection": "orthographic"
           }
         },
         {
-          "label": "Wrapped horizontal bars",
+          "label": "Brand terrain",
           "values": {
-            "chartType": "bar-horizontal",
-            "data": "Question,Responses\n\"How likely are you to recommend us to a friend or colleague?\",71\n\"The onboarding experience felt smooth and well paced\",54\n\"Support resolved my issue on the first contact\",38\n\"Pricing is clear and easy to understand\",22",
-            "sort": "desc",
-            "palette": "suse"
+            "renderMode": "scene",
+            "chartType": "heatmap",
+            "sceneType": "surface3d",
+            "chartStyle": "glass-3d",
+            "heading": "Demand surface",
+            "data": "Hour,Monday,Tuesday,Wednesday,Thursday,Friday\n08:00,12,18,14,17,22\n10:00,23,31,28,35,42\n12:00,46,55,61,58,68\n14:00,38,49,53,57,63\n16:00,29,41,47,51,58\n18:00,18,27,33,39,46",
+            "motionPreset": "orbit"
           }
         }
       ],
       "templates": [
+        {
+          "id": "brand-terrain",
+          "name": "Brand terrain",
+          "category": "3-D",
+          "description": "A genuine value surface whose height, colour and material come from the data and brand.",
+          "presets": [
+            {
+              "id": "matte",
+              "name": "Matte",
+              "description": "Use a softly lit opaque surface."
+            },
+            {
+              "id": "analytical",
+              "name": "Analytical",
+              "description": "Use colour-accurate material and a still orthographic camera."
+            }
+          ]
+        },
+        {
+          "id": "branded-presentations",
+          "name": "Editorial comparison",
+          "category": "Styles",
+          "description": "A quiet comparison that inherits the active brand's type, colours and surface.",
+          "presets": [
+            {
+              "id": "technical",
+              "name": "Technical",
+              "description": "Denser axes, grid and patterns for analytical work."
+            },
+            {
+              "id": "poster",
+              "name": "Poster",
+              "description": "Bold type and direct labels for a presentation graphic."
+            },
+            {
+              "id": "isometric",
+              "name": "Isometric",
+              "description": "Projected vector depth that remains editable in SVG."
+            }
+          ]
+        },
+        {
+          "id": "candlestick-series",
+          "name": "Candlestick series",
+          "category": "Financial",
+          "description": "An honest OHLC view with brand-derived up/down colours and exact source values in the accessible table.",
+          "presets": [
+            {
+              "id": "poster",
+              "name": "Poster",
+              "description": "Increase contrast and title scale for a presentation slide."
+            }
+          ]
+        },
         {
           "id": "comparison-columns",
           "name": "Comparison columns",
@@ -8351,6 +8418,122 @@
               "id": "lollipop",
               "name": "Lollipop",
               "description": "A lighter lollipop look for the same ranking."
+            }
+          ]
+        },
+        {
+          "id": "constellation-tour",
+          "name": "Constellation tour",
+          "category": "Cinematic",
+          "description": "Make every observation a spatial beacon connected by an exact data path.",
+          "presets": [
+            {
+              "id": "reverse",
+              "name": "Out and back",
+              "description": "Fly to the final observation and return without a cut."
+            }
+          ]
+        },
+        {
+          "id": "control-band",
+          "name": "Process control band",
+          "category": "Statistical",
+          "description": "Separate ordinary variation from observations that deserve investigation.",
+          "presets": [
+            {
+              "id": "quiet",
+              "name": "Editorial",
+              "description": "Reduce grid emphasis for a report or article."
+            }
+          ]
+        },
+        {
+          "id": "data-flight",
+          "name": "Fly through the values",
+          "category": "Cinematic",
+          "description": "Turn an ordered series into a camera route: values drive altitude while category order drives the journey.",
+          "presets": [
+            {
+              "id": "calm",
+              "name": "Calm overview",
+              "description": "Rise above the route, look further ahead and use a narrower editorial lens."
+            },
+            {
+              "id": "capacity",
+              "name": "Follow capacity",
+              "description": "Keep the scene but move the point of view onto the second series."
+            }
+          ]
+        },
+        {
+          "id": "distribution-lab",
+          "name": "Distribution explorer",
+          "category": "Statistical",
+          "description": "Start with observations and switch among boxes, rugs, histograms, density ridges and cumulative distributions without repasting data.",
+          "presets": [
+            {
+              "id": "rug",
+              "name": "Histogram + rug",
+              "description": "Keep every observation visible beneath the binned shape."
+            },
+            {
+              "id": "ridges",
+              "name": "Density panels",
+              "description": "Compare smooth distribution shapes in aligned small multiples."
+            },
+            {
+              "id": "cumulative",
+              "name": "Cumulative share",
+              "description": "Read the share of observations at or below any value."
+            }
+          ]
+        },
+        {
+          "id": "editorial-dots",
+          "name": "Editorial dot comparison",
+          "category": "Editorial",
+          "description": "A low-ink comparison that keeps every value visible and uses position, colour and symbol together.",
+          "presets": [
+            {
+              "id": "range",
+              "name": "Range",
+              "description": "Connect the two observations as an interval."
+            },
+            {
+              "id": "technical",
+              "name": "Technical",
+              "description": "Add analytical grid and denser typography."
+            }
+          ]
+        },
+        {
+          "id": "hexbin-density",
+          "name": "Hexbin density",
+          "category": "Statistical",
+          "description": "Aggregate overlapping observations into a perceptual brand ramp instead of painting an unreadable point cloud.",
+          "presets": [
+            {
+              "id": "contours",
+              "name": "Contours",
+              "description": "Use a smoothed density field with source observations underneath."
+            },
+            {
+              "id": "raw-fit",
+              "name": "Regression",
+              "description": "Return to individual observations and fit a relationship."
+            }
+          ]
+        },
+        {
+          "id": "indexed-growth",
+          "name": "Indexed growth",
+          "category": "Editorial",
+          "description": "Compare differently sized series from a shared starting point of 100.",
+          "presets": [
+            {
+              "id": "stagger",
+              "name": "Build the story",
+              "description": "Bring the marks in progressively for a presentation."
             }
           ]
         },
@@ -8378,6 +8561,55 @@
           ]
         },
         {
+          "id": "regression-story",
+          "name": "Regression story",
+          "category": "Statistical",
+          "description": "Show the observations, fitted relationship and uncertainty without surrendering brand styling.",
+          "presets": [
+            {
+              "id": "fit-only",
+              "name": "Fit only",
+              "description": "Hide observations and emphasise the estimated relationship."
+            },
+            {
+              "id": "density",
+              "name": "Density",
+              "description": "Express the same two measures as density contours."
+            }
+          ]
+        },
+        {
+          "id": "ribbon-canyon",
+          "name": "Ribbon canyon",
+          "category": "Cinematic",
+          "description": "Compare several branded trajectories as spatial ribbons while the camera follows one chosen route.",
+          "presets": [
+            {
+              "id": "matte",
+              "name": "Editorial matte",
+              "description": "Use quiet solid ribbons for a restrained report-film look."
+            }
+          ]
+        },
+        {
+          "id": "scene-bars",
+          "name": "Studio 3-D bars",
+          "category": "3-D",
+          "description": "Real depth, lighting and camera motion for a multi-series comparison.",
+          "presets": [
+            {
+              "id": "glass",
+              "name": "Glass",
+              "description": "Use translucent brand-tinted materials."
+            },
+            {
+              "id": "orthographic",
+              "name": "Orthographic",
+              "description": "Remove perspective distortion for direct comparison."
+            }
+          ]
+        },
+        {
           "id": "share-donut",
           "name": "Share donut",
           "category": "Share",
@@ -8392,6 +8624,42 @@
               "id": "sorted",
               "name": "Largest first",
               "description": "Order the slices from largest to smallest."
+            }
+          ]
+        },
+        {
+          "id": "small-multiple-trends",
+          "name": "Small multiple trends",
+          "category": "Statistical",
+          "description": "Give every series its own aligned panel so crossings and different baselines remain legible.",
+          "presets": [
+            {
+              "id": "columns",
+              "name": "Side by side",
+              "description": "Arrange the series as compact columns."
+            },
+            {
+              "id": "distributions",
+              "name": "Distributions",
+              "description": "Compare each series as a faceted histogram."
+            }
+          ]
+        },
+        {
+          "id": "spatial-scatter",
+          "name": "Spatial scatter",
+          "category": "3-D",
+          "description": "Map four numeric columns to x, y, z and point size in a real scene.",
+          "presets": [
+            {
+              "id": "glass",
+              "name": "Glass",
+              "description": "Use translucent points with brand-coloured lighting."
+            },
+            {
+              "id": "still",
+              "name": "Still",
+              "description": "Choose a fixed orthographic analytical view."
             }
           ]
         },
@@ -8417,138 +8685,156 @@
               "description": "Overlay a moving average to smooth the noise."
             }
           ]
+        },
+        {
+          "id": "uncertainty-band",
+          "name": "Forecast range",
+          "category": "Editorial",
+          "description": "Show an expected path inside an honest low-to-high range, with the active brand setting the hierarchy.",
+          "presets": [
+            {
+              "id": "reveal",
+              "name": "Reveal",
+              "description": "Draw the forecast across the page with deterministic motion."
+            },
+            {
+              "id": "difference",
+              "name": "Compare two paths",
+              "description": "Use the first two series to emphasise the distance between them."
+            }
+          ]
         }
       ],
       "i18n": {
         "ar": {
           "name": "المخطط",
-          "description": "رسوم بيانية قوية مدفوعة بالبيانات مع D3 - الصق جدولاً وسيرسم نفسه. أعمدة، خطوط، مساحات، تشتت، دائرية، رادار، خريطة شجرية، خريطة حرارية، أعمدة ودوائر ثلاثية الأبعاد وسحب كلمات. تُستمد لوحات الألوان من ألوان علامتك التجارية، مع تعبئات نقشية وإعادة تلوين بنقرة - متوافقة مع العلامة التجارية ونظيفة كمتجهات.",
-          "blurb": "الصق جدولا — يرسمه D3 بهوية علامتك وبنقاء متجهي"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "bg": {
           "name": "Диаграма",
-          "description": "Мощни диаграми, управлявани от данни, с D3 - постави таблица и тя се изобразява сама. Барове, линии, области, точкови диаграми, кръгови, радарни, дървовидни карти, топлинни карти, 3D барове и кръгови диаграми и облаци от думи. Палитрите произлизат от цветовете на твоя бранд, с шарки за запълване и оцветяване с клик - на бранда и векторно чисто.",
-          "blurb": "Постави таблица — D3 я превръща в диаграма, брандирано и векторно чисто"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "bn": {
           "name": "চার্ট",
-          "description": "D3 দিয়ে শক্তিশালী ডেটা-চালিত চার্ট - একটি টেবিল পেস্ট করুন, এটি নিজে থেকেই চার্ট হয়ে যায়। বার, লাইন, এরিয়া, স্ক্যাটার, পাই, রাডার, ট্রিম্যাপ, হিটম্যাপ, 3-D বার ও পাই এবং ওয়ার্ড ক্লাউড। প্যালেট আপনার ব্র্যান্ডের রঙ থেকে তৈরি হয়, প্যাটার্ন ফিল ও ক্লিক-টু-রিকালার সহ - অন-ব্র্যান্ড এবং ভেক্টর-ক্লিন।",
-          "blurb": "একটি টেবিল পেস্ট করুন — D3 তার চার্ট বানিয়ে দেয়, অন-ব্র্যান্ড ও ভেক্টর-ক্লিন"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "cs": {
           "name": "Graf",
-          "description": "Výkonné datové grafy s D3 - vlož tabulku a graf se vykreslí sám. Sloupce, čáry, plochy, bodové grafy, koláče, paprskové grafy, treemapy, teplotní mapy, 3D sloupce a koláče a slovní mraky. Palety vycházejí z barev tvé značky, s vzorovými výplněmi a přebarvením kliknutím - na značku a vektorově čisté.",
-          "blurb": "Vlož tabulku — D3 z ní udělá graf, podle tvé značky a vektorově čistý"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "de": {
           "name": "Diagramm",
-          "description": "Leistungsstarke datengetriebene Diagramme mit D3 - eine Tabelle einfügen, und sie zeichnet sich selbst. Balken, Linien, Flächen, Streudiagramme, Kreise, Radar, Treemap, Heatmap, 3D-Balken & -Kreise und Wortwolken. Paletten leiten sich aus Ihren Markenfarben ab, mit Musterfüllungen und Umfärben per Klick - markenkonform und vektorsauber.",
-          "blurb": "Tabelle einfügen — D3 erstellt das Diagramm, markenkonform und vektorsauber"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "es": {
           "name": "Gráfico",
-          "description": "Gráficos potentes basados en datos con D3 — pega una tabla y se grafica sola. Barras, líneas, áreas, dispersión, circular, radar, treemap, mapa de calor, barras y circulares en 3D y nubes de palabras. Las paletas derivan de los colores de tu marca, con rellenos de patrón y clic para recolorear - fieles a la marca y nítidos en vectorial.",
-          "blurb": "Pega una tabla y D3 la grafica, con estilo de marca y en vector nítido"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "fr": {
           "name": "Graphique",
-          "description": "Des graphiques puissants pilotés par les données avec D3 - collez un tableau et il se met en graphique tout seul. Barres, lignes, aires, nuage de points, camembert, radar, treemap, carte de chaleur, barres et camemberts 3D et nuages de mots. Les palettes dérivent des couleurs de votre marque, avec remplissages à motifs et reco­loration en un clic - à l'image de la marque et net en vectoriel.",
-          "blurb": "Colle un tableau — D3 le transforme en graphique, à l'image de ta marque et en vectoriel net"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "hi": {
           "name": "चार्ट",
-          "description": "D3 के साथ शक्तिशाली डेटा-आधारित चार्ट्स - एक टेबल पेस्ट करें और यह खुद चार्ट बन जाता है। बार्स, लाइनें, एरिया, स्कैटर, पाई, रडार, ट्रीमैप, हीटमैप, 3-D बार्स व पाई और वर्ड क्लाउड। पैलेट आपके ब्रांड के रंगों से बनते हैं, पैटर्न फिल और क्लिक-टू-रीकलर के साथ - ऑन-ब्रांड और वेक्टर-क्लीन।",
-          "blurb": "टेबल पेस्ट करें — D3 उसका चार्ट बना देता है, ऑन-ब्रांड और वेक्टर-क्लीन"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "id": {
           "name": "Grafik",
-          "description": "Grafik berbasis data yang tangguh dengan D3 - tempel tabel dan grafik terbentuk sendiri. Bar, garis, area, sebar, pai, radar, treemap, heatmap, bar & pai 3D dan word cloud. Palet diturunkan dari warna brand Anda, dengan isian pola dan klik-untuk-ubah-warna - sesuai brand dan bersih secara vektor.",
-          "blurb": "Tempel tabel — D3 membuat grafiknya, sesuai brand dan bersih secara vektor"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "it": {
           "name": "Grafico",
-          "description": "Grafici potenti basati sui dati con D3 - incolla una tabella e si crea da sola. Barre, linee, aree, dispersione, torta, radar, treemap, heatmap, barre e torte 3D e nuvole di parole. Le palette derivano dai colori del tuo brand, con riempimenti a pattern e ricolorazione con un clic - fedeli al brand e nitidi in vettoriale.",
-          "blurb": "Incolla una tabella — D3 crea il grafico, coerente col brand e vettoriale"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "ja": {
           "name": "チャート",
-          "description": "D3による強力なデータドリブンチャート - 表を貼り付けるだけで自動生成。棒、線、面、散布図、円、レーダー、ツリーマップ、ヒートマップ、3D棒・円グラフ、ワードクラウドに対応。パレットはブランドカラーから派生し、パターン塗りとクリックでの色変更も可能 - オンブランドかつベクターできれいに仕上がります。",
-          "blurb": "表を貼り付けるだけで、D3がブランドに合わせたベクター品質のチャートを作成します。"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "ko": {
           "name": "차트",
-          "description": "D3 기반의 강력한 데이터 차트 - 표를 붙여넣으면 스스로 차트가 됩니다. 막대, 선, 영역, 산점도, 파이, 레이더, 트리맵, 히트맵, 3D 막대와 파이, 워드클라우드까지. 팔레트는 브랜드 색상에서 파생되며, 패턴 채우기와 클릭 재색상이 가능합니다 - 온브랜드하고 벡터답게 깔끔합니다.",
-          "blurb": "표를 붙여넣으세요 — D3가 브랜드에 맞는 깔끔한 벡터 차트로 만들어 드려요"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "ms": {
           "name": "Carta",
-          "description": "Carta berkuasa dipacu data dengan D3 — tampal jadual dan ia mencarta sendiri. Bar, garis, kawasan, serakan, pai, radar, treemap, peta haba, bar & pai 3-D dan awan kata. Palet berasal daripada warna jenama anda, dengan isian corak dan klik-untuk-warna semula - sesuai jenama dan bersih vektor.",
-          "blurb": "Tampal jadual — D3 terus menjadikannya carta, berjenama dan kemas dalam bentuk vektor"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "nl": {
           "name": "Grafiek",
-          "description": "Krachtige datagestuurde grafieken met D3 — plak een tabel en hij tekent zichzelf. Staven, lijnen, vlakken, spreiding, taart, radar, boomkaart, heatmap, 3D-staven en -taarten en woordwolken. Paletten komen voort uit je merkkleuren, met patroonvullingen en klikken om te herkleuren - on-brand en vector-scherp.",
-          "blurb": "Plak een tabel — D3 maakt de grafiek, in je huisstijl en messcherp als vector"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "no": {
           "name": "Diagram",
-          "description": "Kraftige datadrevne diagrammer med D3 - lim inn en tabell, så diagramfører den seg selv. Stolper, linjer, arealer, spredning, kake, radar, tremap, varmekart, 3D-stolper og -kaker og ordskyer. Paletter avledes fra merkevarens farger, med mønsterfyll og klikk-for-å-omfarge - merkevaretro og vektorrent.",
-          "blurb": "Lim inn en tabell — D3 lager diagrammet, merkevaretilpasset og vektorrent"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "pl": {
           "name": "Wykres",
-          "description": "Zaawansowane wykresy oparte na danych z D3 - wklej tabelę, a wykres powstanie sam. Słupki, linie, obszary, punkty, koło, radar, mapa drzewa, mapa cieplna, słupki i koła 3D oraz chmury słów. Palety pochodzą z kolorów Twojej marki, z wypełnieniami wzorami i przekolorowaniem jednym kliknięciem - zgodnie z marką i czysto wektorowo.",
-          "blurb": "Wklej tabelę — D3 utworzy wykres, w barwach marki i w czystej wektorowej jakości"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "pt": {
           "name": "Gráfico",
-          "description": "Gráficos poderosos orientados a dados com D3 - cole uma tabela e ela se transforma em gráfico sozinha. Barras, linhas, áreas, dispersão, pizza, radar, treemap, mapa de calor, barras & pizzas 3D e nuvens de palavras. As paletas derivam das cores da sua marca, com preenchimentos padronizados e reclique para recolorir - fiel à marca e nítido em vetor.",
-          "blurb": "Cole uma tabela — o D3 monta o gráfico, alinhado à marca e em vetor limpo"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "ro": {
           "name": "Grafic",
-          "description": "Grafice puternice bazate pe date cu D3 - lipește un tabel și se reprezintă singur. Bare, linii, arii, dispersie, plăcintă, radar, treemap, heatmap, bare și plăcinte 3D și nori de cuvinte. Paletele derivă din culorile brandului tău, cu umpluturi de model și reculorare cu un clic - în ton cu brandul și clare ca vector.",
-          "blurb": "Lipește un tabel — D3 îl transformă în grafic, pe brand și impecabil ca vector"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "sv": {
           "name": "Diagram",
-          "description": "Kraftfulla datadrivna diagram med D3 - klistra in en tabell så diagrammar den sig själv. Staplar, linjer, ytor, spridning, cirkel, radar, träddiagram, värmekarta, 3D-staplar & -cirklar och ordmoln. Paletter härleds från ditt varumärkes färger, med mönsterfyllningar och klick-för-att-omfärga - varumärkesanpassat och vektorrent.",
-          "blurb": "Klistra in en tabell – D3 diagramför den, varumärkesanpassat och vektorrent"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "tl": {
           "name": "Chart",
-          "description": "Makapangyarihang data-driven na mga chart gamit ang D3 - i-paste ang isang table at kusa na itong magiging chart. Bars, lines, areas, scatter, pie, radar, treemap, heatmap, 3-D bars & pies at word clouds. Nagmumula ang mga palette sa kulay ng iyong brand, may pattern fills at click-to-recolour - on-brand at malinis na vector.",
-          "blurb": "I-paste ang table — ico-chart ito ng D3, on-brand at malinis na vector"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "tr": {
           "name": "Chart",
-          "description": "D3 ile güçlü veri odaklı grafikler - bir tablo yapıştırın, kendini çizsin. Çubuklar, çizgiler, alanlar, dağılım, pasta, radar, ısı haritası, 3D çubuklar ve pastalar ile kelime bulutları. Paletler markanızın renklerinden türetilir, desenli dolgular ve tıkla-yeniden-renklendir ile - markanıza uygun ve vektör temiz.",
-          "blurb": "Bir tablo yapıştır — D3 onu grafiğe dönüştürsün, markana uygun ve vektör netliğinde"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "uk": {
           "name": "Діаграма",
-          "description": "Потужні дата-орієнтовані діаграми на D3 - вставте таблицю, і вона побудує себе сама. Стовпчики, лінії, області, точкові, кругові, радарні, деревовидні карти, теплові карти, 3-D стовпчики й кругові діаграми та хмари слів. Палітри походять із кольорів вашого бренду, з візерунковими заливками й перефарбуванням одним кліком - на бренді й векторно чисто.",
-          "blurb": "Вставте таблицю — D3 побудує діаграму, фірмово і чисто векторно"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, data-driven cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "ur": {
           "name": "چارٹ",
-          "description": "D3 کے ساتھ طاقتور ڈیٹا سے چلنے والے چارٹس — ایک ٹیبل پیسٹ کریں اور یہ خود چارٹ بن جاتا ہے۔ بارز، لائنز، ایریاز، اسکیٹر، پائی، ریڈار، ٹری میپ، ہیٹ میپ، 3-D بارز اور پائیز اور ورڈ کلاؤڈز۔ پیلٹس آپ کے برانڈ کے رنگوں سے اخذ ہوتے ہیں، پیٹرن فلز اور کلک ٹو ری کلر کے ساتھ — آن برانڈ اور ویکٹر کلین۔",
-          "blurb": "ایک ٹیبل پیسٹ کریں — D3 اسے چارٹ کرتا ہے، برانڈ کے مطابق اور ویکٹر لحاظ سے صاف"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "vi": {
           "name": "Biểu đồ",
-          "description": "Biểu đồ mạnh mẽ dựa trên dữ liệu với D3 - dán một bảng và nó tự vẽ biểu đồ. Cột, đường, vùng, phân tán, tròn, radar, treemap, heatmap, cột & tròn 3D và đám mây từ. Bảng màu lấy từ màu thương hiệu của bạn, với hình mẫu tô và bấm để đổi màu - đúng thương hiệu và sắc nét dạng vector.",
-          "blurb": "Dán một bảng vào — D3 tự vẽ biểu đồ, đúng chuẩn thương hiệu và sạch đẹp dạng vector"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "zh-hant": {
           "name": "圖表",
-          "description": "以 D3 打造強大的資料驅動圖表 - 貼上表格即自動成圖。長條圖、折線圖、面積圖、散佈圖、圓餅圖、雷達圖、樹狀圖、熱力圖、3D 長條圖與圓餅圖以及文字雲。配色取自您的品牌色，支援圖樣填色與點選變色 - 符合品牌調性且向量清晰。",
-          "blurb": "貼上表格，D3 自動產生符合品牌規範的向量圖表"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         },
         "zh": {
           "name": "图表",
-          "description": "由 D3 驱动的强大数据图表 - 粘贴一张表格即可自动成图。柱状图、折线图、面积图、散点图、饼图、雷达图、树状图、热力图、3D 柱状图与饼图,以及词云。配色源自你的品牌色,支持图案填充与点击换色 - 贴合品牌且矢量清晰。",
-          "blurb": "粘贴表格，D3 自动生成符合品牌规范的矢量图表"
+          "description": "Charts from first paste to advanced visualisation — 32 classic vector families, sixteen statistical and editorial articulations, real-z 3-D scenes, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+          "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
         }
       }
     },
@@ -10818,7 +11104,7 @@
       "id": "3d",
       "name": "3D",
       "description": "Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation.",
-      "version": "1.2.6",
+      "version": "1.3.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -11026,7 +11312,113 @@
             "textSize": 70
           }
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "bg": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "bn": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "cs": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "de": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "es": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "fr": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "hi": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "id": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "it": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "ja": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "ko": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "ms": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "nl": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "no": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "pl": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "pt": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "ro": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "sv": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "tl": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "tr": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "uk": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "ur": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "vi": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "zh-hant": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        },
+        "zh": {
+          "name": "Work Avatar",
+          "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face."
+        }
+      }
     }
   ]
 }

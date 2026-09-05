@@ -41,6 +41,7 @@ import type {
   AudioLevel, RecordOpts, RecordSession, IngredientCredential,
 } from './bridge/host-v1.ts';
 import { prepareC2paIngredientFromStore } from './c2pa-verify.ts';
+import { parseProviderRef } from './asset-provider.ts';
 
 /** One state emission: the current model plus the hydrated template. */
 export interface RuntimeState {
@@ -1336,6 +1337,10 @@ function buildDataPayload(
 // saved-session refs). Null when the value isn't ref-shaped. Mirrors the inline
 // `x && typeof x === 'object' && typeof x.id === 'string'` check.
 function assetRefId(v: unknown): string | null {
+  // Typed-object transports (document API, automation POST, data binding) send
+  // asset ids and provider refs as strings. URL mode often wraps the same value
+  // in an unresolved object, so accept both representations here.
+  if (typeof v === 'string') return v || null;
   if (!v || typeof v !== 'object') return null;
   const id = (v as { id?: unknown }).id;
   return typeof id === 'string' ? id : null;
@@ -1400,6 +1405,17 @@ async function resolveAssetRefs(
           : null;
         if (ref) return ref;
         dropped.push({ inputId, label, id, reason: 'render-failed' });
+        return null;
+      }
+      // The grammar intentionally parses any URI scheme, including http(s),
+      // but plain web URLs retain the established direct-asset path above/below:
+      // Lolly share URLs compose and ordinary URLs go through assets.get. Only
+      // logical schemes are delegated to the additive provider resolver.
+      const providerRef = parseProviderRef(id);
+      if (providerRef && providerRef.provider !== 'http' && providerRef.provider !== 'https') {
+        const resolved = await host.assets.resolveProvider?.(providerRef) ?? null;
+        if (resolved) return resolved;
+        dropped.push({ inputId, label, id, reason: 'not-found' });
         return null;
       }
       return await host.assets.get(id);

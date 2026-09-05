@@ -36,6 +36,16 @@ export {
   getBrowser, browserInstalled, closeBrowser,
 } from './browsers.ts';
 export { needsBrowserTier, NEEDS_BROWSER } from './browser-tier.ts';
+export {
+  DesktopRendererError, desktopExecutableCandidates, desktopInstalled, desktopRendererReport,
+  findDesktopExecutable, launchRenderServer, pingRenderServer, readRenderServer,
+  rendererOrder, rendererPreference, rendererStatus, renderServerPath,
+  renderThroughRungs, renderViaDesktopCommand, renderViaRenderServer,
+} from './desktop-renderer.ts';
+export type {
+  DesktopRendererReport, RendererAvailability, RendererDrivers, RendererPreference,
+  RendererRung, RendererStatus, RenderJob, RenderServer,
+} from './desktop-renderer.ts';
 export { renderViaWebShell, closeWebShell } from './webshell-render.ts';
 export type { RenderDims } from './webshell-render.ts';
 export { NODE_FORMATS, pxDims, rasterizeSvgToPng } from './raster.ts';
@@ -71,3 +81,9 @@ export { VERDICT_SLUGS, verdictSlug } from './verdict-slugs.ts';
 export type { VerdictSlug } from './verdict-slugs.ts';
 export { scanPdfPages } from './pdf-pages.ts';
 export type { PdfScan, PdfScanOptions, PdfPageScan, PdfInfo } from './pdf-pages.ts';
+export {
+  listNodeDesignSystems, activeNodeDesignSystem, readActiveDesignSystemTokens,
+  createNodeDesignSystem, writeNodeDesignSystemTokens, activateNodeDesignSystem, addNodeDesignResources,
+  exportActiveDesignSystem, nodeStartSeen, markNodeStartSeen,
+} from './design-systems.ts';
+export type { NodeDesignSystem, NodeDesignResource } from './design-systems.ts';

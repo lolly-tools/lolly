@@ -205,5 +205,12 @@
   "Imported": "İçe aktarıldı",
   "Copyright": "Telif hakkı",
   "Captured": "Çekildi",
-  "Keywords": "Anahtar kelimeler"
+  "Keywords": "Anahtar kelimeler",
+  "Check for updates": "Güncellemeleri denetle",
+  "Up to date": "Güncel",
+  "Update available: {version}": "Güncelleme var: {version}",
+  "Install and restart": "Kur ve yeniden başlat",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "Dışa aktarılan piksellerde görünmez bir kimlik bilgisini saklayan cihaz içi model. Şimdi indirin (~{size}); ilk dayanıklı kimlik bilgisi dışa aktarımı beklemeden hemen başlasın.",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "Dışa aktarılan piksellerde dayanıklı kimlik bilgisini saklayan cihaz içi model. Kaldırmak alan açar; sonraki kullanımda onayınızla yeniden indirilir.",
+  "Removed the durable-credential model": "Dayanıklı kimlik bilgisi modeli kaldırıldı"
 }

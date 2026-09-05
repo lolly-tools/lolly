@@ -38,6 +38,19 @@ import { gunzip } from './gzip.ts';
 const BLOCK = 512;
 const SIZE_MAX = 0o77777777777; // 11 octal 7s = 8 GiB - 1, the USTAR size limit
 
+/** Maximum headers walked, including directory/link/metadata entries. */
+export const TAR_MAX_MEMBERS = 10_000;
+/** Maximum sum of declared member payloads, including members we skip. */
+export const TAR_MAX_PAYLOAD_BYTES = 256 * 1024 * 1024;
+/** Maximum whole uncompressed tar buffer (headers, payloads and padding). */
+export const TAR_MAX_ARCHIVE_BYTES = 320 * 1024 * 1024;
+
+export interface TarReadOptions {
+  maxMembers?: number;
+  maxPayloadBytes?: number;
+  maxArchiveBytes?: number;
+}
+
 // USTAR header field offsets (bytes from the start of a 512-byte header block).
 const OFF_NAME = 0;
 const NAME_LEN = 100;
@@ -57,10 +70,18 @@ const PREFIX_LEN = 155;
  * overruns the buffer or exceeds the USTAR 8 GiB limit, or a header whose
  * checksum matches neither the unsigned nor the signed sum.
  */
-export function readTar(bytes: Uint8Array): TarFile[] {
+export function readTar(bytes: Uint8Array, opts: TarReadOptions = {}): TarFile[] {
   const files: TarFile[] = [];
   const total = bytes.length;
+  const maxMembers = readLimit(opts.maxMembers, TAR_MAX_MEMBERS, 'maxMembers');
+  const maxPayloadBytes = readLimit(opts.maxPayloadBytes, TAR_MAX_PAYLOAD_BYTES, 'maxPayloadBytes');
+  const maxArchiveBytes = readLimit(opts.maxArchiveBytes, TAR_MAX_ARCHIVE_BYTES, 'maxArchiveBytes');
+  if (total > maxArchiveBytes) {
+    throw new Error(`readTar: archive size ${total} exceeds ${maxArchiveBytes} byte limit`);
+  }
   let off = 0;
+  let members = 0;
+  let payloadBytes = 0;
 
   while (off + BLOCK <= total) {
     // Two all-zero blocks mark the end; in practice the first all-zero header
@@ -70,10 +91,16 @@ export function readTar(bytes: Uint8Array): TarFile[] {
     if (!checksumOk(bytes, off)) {
       throw new Error(`readTar: header checksum mismatch at offset ${off}`);
     }
+    members++;
+    if (members > maxMembers) throw new Error(`readTar: archive carries more than ${maxMembers} members`);
 
     const size = parseOctal(bytes, off + OFF_SIZE, SIZE_LEN);
     if (size > SIZE_MAX) {
       throw new Error(`readTar: member size ${size} exceeds USTAR 8 GiB limit at offset ${off}`);
+    }
+    payloadBytes += size;
+    if (!Number.isSafeInteger(payloadBytes) || payloadBytes > maxPayloadBytes) {
+      throw new Error(`readTar: member payloads exceed ${maxPayloadBytes} byte limit`);
     }
     const dataOff = off + BLOCK;
     const dataEnd = dataOff + size;
@@ -104,13 +131,25 @@ export function readTar(bytes: Uint8Array): TarFile[] {
  * {@link readTar} the recovered tar. The caller can equally gunzip themselves and
  * call `readTar`; this is the one-call path for the common case.
  */
-export function readTarGz(bytes: Uint8Array): TarFile[] {
-  return readTar(gunzip(bytes));
+export function readTarGz(bytes: Uint8Array, opts: TarReadOptions = {}): TarFile[] {
+  const maxArchiveBytes = readLimit(opts.maxArchiveBytes, TAR_MAX_ARCHIVE_BYTES, 'maxArchiveBytes');
+  return readTar(gunzip(bytes, { maxOutputBytes: maxArchiveBytes }), { ...opts, maxArchiveBytes });
 }
 
 /** Round `n` up to the next multiple of 512 (the tar block size). */
 function padTo512(n: number): number {
-  return (n + BLOCK - 1) & ~(BLOCK - 1);
+  // Arithmetic, not bitwise: a valid USTAR member may exceed 2 GiB, while JS
+  // bitwise operators coerce to signed int32 and would make the offset move
+  // backwards (an infinite loop on a hostile skipped member).
+  return Math.ceil(n / BLOCK) * BLOCK;
+}
+
+function readLimit(value: number | undefined, fallback: number, name: string): number {
+  const limit = value ?? fallback;
+  if (!Number.isSafeInteger(limit) || limit < 0) {
+    throw new Error(`readTar: ${name} must be a non-negative safe integer`);
+  }
+  return limit;
 }
 
 /** True if the 512-byte block at `off` is entirely zero (the end-of-archive marker). */

@@ -199,5 +199,12 @@
   "Imported": "Geïmporteerd",
   "Copyright": "Copyright",
   "Captured": "Gemaakt op",
-  "Keywords": "Trefwoorden"
+  "Keywords": "Trefwoorden",
+  "Check for updates": "Controleren op updates",
+  "Up to date": "Up-to-date",
+  "Update available: {version}": "Update beschikbaar: {version}",
+  "Install and restart": "Installeren en opnieuw starten",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "Het model op het apparaat dat een onzichtbaar credential in geëxporteerde pixels verbergt. Download het nu (~{size}), zodat de eerste duurzame export meteen en zonder wachten begint.",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "Het model op het apparaat dat het duurzame credential in geëxporteerde pixels verbergt. Verwijderen maakt ruimte vrij; bij het volgende gebruik wordt het met uw toestemming opnieuw gedownload.",
+  "Removed the durable-credential model": "Model voor duurzame credentials verwijderd"
 }

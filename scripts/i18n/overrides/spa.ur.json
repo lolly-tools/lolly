@@ -207,5 +207,12 @@
   "Imported": "درآمد شدہ",
   "Copyright": "کاپی رائٹ",
   "Captured": "کھینچی گئی",
-  "Keywords": "کلیدی الفاظ"
+  "Keywords": "کلیدی الفاظ",
+  "Check for updates": "اپ ڈیٹ چیک کریں",
+  "Up to date": "تازہ ترین",
+  "Update available: {version}": "اپ ڈیٹ دستیاب ہے: {version}",
+  "Install and restart": "انسٹال کر کے دوبارہ شروع کریں",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "آن ڈیوائس ماڈل جو ایکسپورٹ کیے گئے پکسلز میں غیر مرئی کریڈینشل چھپاتا ہے۔ اسے ابھی ڈاؤن لوڈ کریں (~{size}) تاکہ پہلی پائیدار کریڈینشل ایکسپورٹ بغیر انتظار کے فوراً شروع ہو۔",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "آن ڈیوائس ماڈل جو ایکسپورٹ کیے گئے پکسلز میں پائیدار کریڈینشل چھپاتا ہے۔ اسے ہٹانے سے جگہ خالی ہوگی؛ اگلی بار استعمال پر آپ کی رضامندی سے دوبارہ ڈاؤن لوڈ ہوگا۔",
+  "Removed the durable-credential model": "پائیدار کریڈینشل ماڈل ہٹا دیا گیا"
 }

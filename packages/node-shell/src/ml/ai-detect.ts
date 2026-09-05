@@ -33,6 +33,7 @@ import {
 import {
   familyDir, isTransformersAvailable, modelFilesExist, refuseMissing, resolveModelsDir,
 } from './session.ts';
+import { transformersSessionOptions } from './session.ts';
 
 /** The Node AI-detect surface. `score` returns the engine-shaped estimate, or
  *  null wherever the check cannot or should not run. */
@@ -64,7 +65,7 @@ function ensureRuntime(m: AiDetectModel): Promise<{ model: ClassifierLike; token
     env.allowLocalModels = true;
     env.localModelPath = `${resolveModelsDir()}/`;
     const [model, tokenizer] = await Promise.all([
-      AutoModelForSequenceClassification.from_pretrained(m.dir, { dtype: 'q8' }),
+      AutoModelForSequenceClassification.from_pretrained(m.dir, { dtype: 'q8', ...transformersSessionOptions() }),
       AutoTokenizer.from_pretrained(m.dir),
     ]);
     return { model: model as unknown as ClassifierLike, tokenize: tokenizer as unknown as TokenizeFnLike };

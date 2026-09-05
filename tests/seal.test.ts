@@ -29,6 +29,7 @@ import assert from 'node:assert/strict';
 import {
   verifySeal, parseSealRecord, parseSealRecords, computeSealDigest, assembleSealMessage,
   resolveRanges, verifySealSignature, importSealKey,
+  SEAL_MAX_FIELDS, SEAL_MAX_RANGES, SEAL_MAX_RECORDS, SEAL_SCAN_WHOLE_MAX_BYTES,
   type SealRecord,
 } from '../engine/src/seal.ts';
 import { ecdsaRawToDer } from '../engine/src/x509.ts';
@@ -312,6 +313,24 @@ test('parseSealRecords never throws on hostile / truncated input', () => {
   for (const n of nasty) assert.doesNotThrow(() => parseSealRecords(n));
 });
 
+test('SEAL scanning is edge-bounded and record/field storms fail closed', () => {
+  const record = te.encode('<seal seal="1" ka="ec" d="tail.example" s="AAAA"/>');
+  const large = new Uint8Array(SEAL_SCAN_WHOLE_MAX_BYTES + 4096);
+  const at = large.length - record.length - 3;
+  large.set(record, at);
+  const parsed = parseSealRecord(large);
+  assert.equal(parsed?.recordStart, at);
+  assert.equal(parsed?.domain, 'tail.example');
+
+  const fields = Array.from({ length: SEAL_MAX_FIELDS + 1 }, (_unused, i) => `x${i}="v"`).join(' ');
+  assert.equal(parseSealRecord(te.encode(`<seal seal="1" ka="ec" d="a" ${fields} s="AAAA"/>`)), null);
+  const records = Array.from(
+    { length: SEAL_MAX_RECORDS + 1 },
+    () => '<seal seal="1" ka="ec" d="a" s="AAAA"/>',
+  ).join('');
+  assert.deepEqual(parseSealRecords(te.encode(records)), []);
+});
+
 // ─── computeSealDigest / assembleSealMessage / resolveRanges units ───────────
 
 test('resolveRanges resolves markers, offsets, and the default', () => {
@@ -326,12 +345,17 @@ test('resolveRanges rejects out-of-bounds and unresolved markers', () => {
   assert.throws(() => resolveRanges('F~200', ctx), /out of bounds/);
   assert.throws(() => resolveRanges('s~S', ctx), /out of bounds/); // stop < start
   assert.throws(() => resolveRanges('P~p', ctx), /unresolved marker/); // no previous sig
+  assert.throws(() => resolveRanges(new Array(SEAL_MAX_RANGES + 1).fill('F~F').join(','), ctx), /too many/);
 });
 
 test('assembleSealMessage concatenates the covered ranges exactly', () => {
   const bytes = Uint8Array.from({ length: 20 }, (_, i) => i);
   const msg = assembleSealMessage(bytes, [{ start: 0, stop: 4 }, { start: 10, stop: 14 }]);
   assert.deepEqual([...msg], [0, 1, 2, 3, 10, 11, 12, 13]);
+  assert.throws(
+    () => assembleSealMessage(bytes, new Array(SEAL_MAX_RANGES + 1).fill({ start: 0, stop: 0 })),
+    /too many/,
+  );
 });
 
 test('computeSealDigest equals SHA of the assembled ranges (independent check)', async () => {

@@ -84,6 +84,24 @@ export interface ZipStoreEntry {
   bytes: Uint8Array;
 }
 
+/** Conservative process-wide defaults for untrusted ZIP extraction. */
+export const ZIP_READ_MAX_INPUT_BYTES = 512 * 1024 * 1024;
+export const ZIP_READ_MAX_ENTRIES = 10_000;
+export const ZIP_READ_MAX_ENTRY_BYTES = 256 * 1024 * 1024;
+export const ZIP_READ_MAX_TOTAL_BYTES = 512 * 1024 * 1024;
+
+/** Resource budgets for {@link readZip}; callers may impose stricter product limits. */
+export interface ReadZipOptions {
+  /** Maximum compressed archive size. */
+  maxInputBytes?: number;
+  /** Maximum central-directory records, including directory entries. */
+  maxEntries?: number;
+  /** Maximum declared uncompressed size of one file member. */
+  maxEntryBytes?: number;
+  /** Maximum aggregate declared uncompressed size of all file members. */
+  maxTotalBytes?: number;
+}
+
 /** Options for {@link storeZip}. */
 export interface StoreZipOptions extends DeflateOptions {
   /**
@@ -111,8 +129,15 @@ function u32(b: Uint8Array, o: number): number {
  * @throws on a missing/invalid EOCD, a ZIP64 archive, an unsupported compression
  *         method, a truncated member, or a CRC-32 mismatch.
  */
-export function readZip(bytes: Uint8Array): ZipEntry[] {
+export function readZip(bytes: Uint8Array, opts: ReadZipOptions = {}): ZipEntry[] {
   if (!(bytes instanceof Uint8Array)) throw new Error('readZip: expected a Uint8Array');
+  const maxInputBytes = readLimit(opts.maxInputBytes, ZIP_READ_MAX_INPUT_BYTES, 'maxInputBytes');
+  const maxEntries = readLimit(opts.maxEntries, ZIP_READ_MAX_ENTRIES, 'maxEntries');
+  const maxEntryBytes = readLimit(opts.maxEntryBytes, ZIP_READ_MAX_ENTRY_BYTES, 'maxEntryBytes');
+  const maxTotalBytes = readLimit(opts.maxTotalBytes, ZIP_READ_MAX_TOTAL_BYTES, 'maxTotalBytes');
+  if (bytes.length > maxInputBytes) {
+    throw new Error(`readZip: input is ${bytes.length} bytes; maximum is ${maxInputBytes}`);
+  }
   if (bytes.length < 22) throw new Error('readZip: too short to be a zip archive');
 
   const eocd = findEocd(bytes);
@@ -132,12 +157,22 @@ export function readZip(bytes: Uint8Array): ZipEntry[] {
   ) {
     throw new Error('readZip: ZIP64 archives are not supported');
   }
-  if (cdOffset + cdSize > bytes.length) throw new Error('readZip: central directory runs past end of file');
+  if (u16(bytes, eocd + 4) !== 0 || u16(bytes, eocd + 6) !== 0 || diskCdCount !== totalCdCount) {
+    throw new Error('readZip: multi-disk archives are not supported');
+  }
+  if (totalCdCount > maxEntries) {
+    throw new Error(`readZip: archive has ${totalCdCount} entries; maximum is ${maxEntries}`);
+  }
+  const cdEnd = cdOffset + cdSize;
+  if (!Number.isSafeInteger(cdEnd) || cdEnd > bytes.length || cdEnd > eocd) {
+    throw new Error('readZip: central directory runs past end of file');
+  }
 
   const entries: ZipEntry[] = [];
   let p = cdOffset;
+  let totalBytes = 0;
   for (let i = 0; i < totalCdCount; i++) {
-    if (p + 46 > bytes.length) throw new Error('readZip: truncated central directory');
+    if (p + 46 > cdEnd) throw new Error('readZip: truncated central directory');
     if (u32(bytes, p) !== SIG_CENTRAL) throw new Error('readZip: bad central directory signature');
 
     const method = u16(bytes, p + 10);
@@ -154,13 +189,24 @@ export function readZip(bytes: Uint8Array): ZipEntry[] {
     }
 
     const nameStart = p + 46;
-    if (nameStart + nameLen > bytes.length) throw new Error('readZip: truncated central directory name');
+    const recordEnd = nameStart + nameLen + extraLen + commentLen;
+    if (!Number.isSafeInteger(recordEnd) || recordEnd > cdEnd) {
+      throw new Error('readZip: truncated central directory entry');
+    }
     const name = decoder.decode(bytes.subarray(nameStart, nameStart + nameLen));
 
-    p = nameStart + nameLen + extraLen + commentLen;
+    p = recordEnd;
 
     // Skip directory entries - nothing to extract.
     if (name.endsWith('/')) continue;
+
+    if (uncompSize > maxEntryBytes) {
+      throw new Error(`readZip: entry "${name}" expands to ${uncompSize} bytes; maximum is ${maxEntryBytes}`);
+    }
+    totalBytes += uncompSize;
+    if (!Number.isSafeInteger(totalBytes) || totalBytes > maxTotalBytes) {
+      throw new Error(`readZip: archive expands to more than ${maxTotalBytes} bytes`);
+    }
 
     // Walk the LOCAL header to find where the data actually begins; its name/extra
     // lengths can differ from the central copy, so we must read them here.
@@ -190,6 +236,15 @@ export function readZip(bytes: Uint8Array): ZipEntry[] {
   }
 
   return entries;
+}
+
+/** Validate an extraction budget once, before any archive-controlled allocation. */
+function readLimit(value: number | undefined, fallback: number, name: string): number {
+  const resolved = value ?? fallback;
+  if (!Number.isSafeInteger(resolved) || resolved < 0) {
+    throw new Error(`readZip: ${name} must be a non-negative safe integer`);
+  }
+  return resolved;
 }
 
 /** Scan backward from the tail for the EOCD signature, tolerating a trailing comment. */

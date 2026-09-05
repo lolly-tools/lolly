@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "repositories": [
+    { "id": "parent", "path": ".", "owner": "lolly-tools/lolly", "required": true },
+    { "id": "mcp", "path": "services/mcp", "owner": "lolly-tools/lolly-mcp-server", "required": true },
+    { "id": "ca", "path": "services/ca", "owner": "lolly-tools/lolly-ca", "required": true },
+    { "id": "web", "path": "shells/web", "owner": "lolly-tools/lolly-web", "required": true },
+    { "id": "cli", "path": "shells/cli", "owner": "lolly-tools/lolly-cli", "required": true },
+    { "id": "tui", "path": "shells/tui", "owner": "lolly-tools/lolly-tui", "required": true },
+    { "id": "desktop", "path": "shells/tauri-desktop", "owner": "lolly-tools/lolly-desktop", "required": true },
+    { "id": "mobile", "path": "shells/tauri-mobile", "owner": "lolly-tools/lolly-mobile", "required": true },
+    { "id": "extension", "path": "shells/chrome-extension", "owner": "lolly-tools/lolly-chrome-extension", "required": true },
+    { "id": "docs", "path": "docs", "owner": "lolly-tools/lolly-docs", "required": true },
+    { "id": "community", "path": "community", "owner": "lolly-tools/lolly-tools", "required": true },
+    { "id": "suse", "path": "brands/suse", "owner": "lolly-tools/suse-lolly", "required": false }
+  ],
+  "generatedArtifacts": [
+    { "id": "catalogs", "paths": ["brands/lolly-start/catalog/tools/index.json", "brands/lolly-start/catalog/tools/index.slim.json"], "repair": "npm run build:catalog:all", "check": "npm run validate:catalog:all" },
+    { "id": "api-mcp", "paths": ["api/mcp/[...path].js"], "repair": "npm run build:mcp-fn", "check": "git diff --exit-code -- 'api/mcp/[...path].js'" },
+    { "id": "api-ca", "paths": ["api/ca/[...path].js"], "repair": "npm run build:ca-fn", "check": "git diff --exit-code -- 'api/ca/[...path].js'" },
+    { "id": "api-penpot", "paths": ["api/penpot/[...path].js"], "repair": "npm run build:penpot-fn", "check": "git diff --exit-code -- 'api/penpot/[...path].js'" },
+    { "id": "sbom", "paths": ["sbom.cdx.json"], "repair": "npm run build:sbom", "check": "git diff --exit-code -- sbom.cdx.json" },
+    { "id": "licenses", "paths": ["THIRD-PARTY-NOTICES.md", "cargo-licenses.json"], "repair": "npm run build:licenses && npm run build:cargo-licenses", "check": "npm run check:cargo-licenses" },
+    { "id": "engine-map", "paths": ["engine/README.md"], "repair": "npm run build:engine-modules", "check": "npm run check:engine-modules" },
+    { "id": "web-map", "paths": ["shells/web/src/README.md"], "repair": "npm run build:web-src-readme", "check": "npm run check:web-src-readme" },
+    { "id": "parser-inventory", "paths": ["docs/parser-inventory.md"], "repair": "npm run build:parser-inventory", "check": "npm run check:parser-inventory" },
+    { "id": "host-v1-api", "paths": ["security/host-v1-api.json"], "repair": "npm run build:host-v1-api", "check": "npm run check:host-v1-api" }
+  ],
+  "releaseTargets": [
+    { "id": "web", "build": "npm run build:web:release", "tests": ["test:security", "test:browser", "test:tools"], "signing": true },
+    { "id": "desktop", "build": "npm run build:desktop:frontend:release", "tests": ["test:tauri", "test:security"], "signing": true },
+    { "id": "mobile", "build": "npm run build:mobile:frontend:release", "tests": ["test:tauri", "test:security"], "signing": true },
+    { "id": "cli-tui", "build": "npm run typecheck", "tests": ["test:contracts", "test:tools"], "signing": false },
+    { "id": "core-engine", "build": "npm run pack:core && npm run pack:engine", "tests": ["test:unit:engine", "test:contracts", "test:conformance"], "signing": false }
+  ],
+  "platformMatrix": {
+    "linux": ["test:contracts", "test:security", "test:browser", "test:conformance", "test:tauri"],
+    "macos": ["test:browser", "test:tauri", "test:conformance"],
+    "windows": ["test:browser", "test:tauri", "test:contracts"],
+    "mobile": ["test:tauri", "test:security"]
+  }
+}

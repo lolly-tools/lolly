@@ -16,7 +16,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { extractPageText, joinPageText } from '../engine/src/pdf-text.ts';
+import {
+  extractPageText, joinPageText, PDF_TEXT_MAX_ITEMS, PDF_TEXT_MAX_NODES,
+} from '../engine/src/pdf-text.ts';
 import type { PdfNode } from '../engine/src/pdf-map.ts';
 
 // ─── harness ──────────────────────────────────────────────────────────────────
@@ -410,4 +412,13 @@ test('a page of many runs stays in reading order', () => {
 
 test('order is reported as geometric', () => {
   assert.equal(extractPageText([run('x', 0, 10)]).order, 'geometric');
+});
+
+test('direct structured text fan-out is capped before split allocation', () => {
+  const lines = Array.from({ length: PDF_TEXT_MAX_ITEMS + 100 }, (_, i) => `line ${i}`).join('\n');
+  const result = extractPageText([run(lines, 20, 100)]);
+  assert.ok((result.text.match(/line /g) ?? []).length <= PDF_TEXT_MAX_ITEMS);
+
+  const nodes = Array.from({ length: PDF_TEXT_MAX_NODES + 1 }, (_, i) => run(`node ${i}`, 20, 100 + i));
+  assert.doesNotMatch(extractPageText(nodes).text, new RegExp(`node ${PDF_TEXT_MAX_NODES}`));
 });

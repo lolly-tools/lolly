@@ -1,0 +1,846 @@
+{
+  "schemaVersion": 1,
+  "barrel": "packages/core/src/host-v1.ts",
+  "entries": {
+    "AssetRef": {
+      "module": "asset-ref.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "0d7134ef8a5c37345567f02acdaef34131d5ed7d9bd0d59321362746865ddc86"
+    },
+    "AssetsAPI": {
+      "module": "assets.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "446dee053c047fccc8352b6b9577fbdec071c2d3c739dc7929a50e91302fa031"
+    },
+    "IngredientCredential": {
+      "module": "assets.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "1ccccb422f38a2cd5efec1cbff5af4c6c0b9759c33767c3bca77c5877aab9a0f"
+    },
+    "AssetQuery": {
+      "module": "assets.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "6fae5ffc62b8b97c27e8bf73453ba2f2d714efb9e7419682e1ca24e4ffae2af0"
+    },
+    "AssetPickerOpts": {
+      "module": "assets.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "4dea1322b10f99373af83e9ca4545116b24db040d80cc74f1fc56c9a82ef72e6"
+    },
+    "AudioAPI": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "f32e8f69da5506a6b49c2fd582130589ee0c360cf7a7cc942f5f0940c395c7ba"
+    },
+    "AudioSource": {
+      "module": "audio.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "0991e63ec140be892d82a3ff941db06540c0445d5e8be17bebf105e69b1a0a19"
+    },
+    "AudioAnalyseOpts": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "69121073a5b8ef554e9b8834a0e4801a17e253af63432041b056a778e4688548"
+    },
+    "AudioFrames": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "1d4b672147a3e8e86c38df97046306c82ed3bd1526d685fd7fe30aabf60e7723"
+    },
+    "AudioAnalysis": {
+      "module": "audio.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "b6c8ac75277aea67da17277b35b187f5e9c398dae0defdf3a3ef36fd263b2f39"
+    },
+    "C2paSignOpts": {
+      "module": "c2pa.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "0354f52a7027211aae34afe1f5df3a93817b672e19271f480101e2ecb7b7be43"
+    },
+    "C2paAPI": {
+      "module": "c2pa.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "7bc2b013ceee896913abbc2b1bf2a5fdc9c5aa6bcdbab61d7d188afa749e1c2b"
+    },
+    "CaptureAPI": {
+      "module": "capture.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "42f468ba09ac0336162775fc7de15d70e20e4455ccd684a67d229ac5f4f574c7"
+    },
+    "CaptureSpec": {
+      "module": "capture.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "1ac6261fc2e4be472ceb79be846cd19381e172ea4495c1cc0bff23c17c2aa456"
+    },
+    "LiftLayer": {
+      "module": "capture.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "b1819bf408c9deb9260b62399c9f2ca7f94b3f8776b423e6f15d15696aeacf7e"
+    },
+    "LiftResult": {
+      "module": "capture.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "857a8e7728de6a217b4d6e2ad416f236e81f117904290c37cc444ce8e4efef5f"
+    },
+    "ClipboardAPI": {
+      "module": "clipboard.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "ae8ff33814789b6d915f61d41770e57f02ed3ebf0346961131e47ad88f34f6cb"
+    },
+    "CodecFrame": {
+      "module": "codec.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "ebef96ea1e37e2c9fb9ebaee37473e15af72c076b37e696c544b41670c8abe5b"
+    },
+    "CodecAPI": {
+      "module": "codec.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a8f440b24f6134ce5b1148130428d8c4ce546ed3f45717c958deb62390994069"
+    },
+    "ColorAPI": {
+      "module": "color.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "7d4dcdd0c09411d705d5972f33754b09b7e234e61b89fcb37426a2034f6c7d8f"
+    },
+    "ColorPaletteSwatch": {
+      "module": "color.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e5bf0d77093ab5094f0a4f30ad63931279ac49c7d9697f4dd969d9c799aa230a"
+    },
+    "ColorPaletteTextFormat": {
+      "module": "color.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "213a9310fdbdc847a4e23cc473ce062fdb0fad6cf7e95f9418f2234787dbffc5"
+    },
+    "ColorApcaSolveOptions": {
+      "module": "color.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "da855418b3802de2ff707455c705118e866b9de807292be9da137ccaeebb7d6d"
+    },
+    "ColorApcaSolveResult": {
+      "module": "color.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a74ce6336af39bc0c6b64e8fd3b13cc9c62dd1e623f8ad90ad760ce88ef4b363"
+    },
+    "ColorRenderingIntent": {
+      "module": "color.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "c90024b39d1dfda25d2a45178efc3f28f3174d4a74ff43644963e3ff7c699322"
+    },
+    "ColorProfileGamut": {
+      "module": "color.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e5a54dac8681c8e3bb9ae5a433cf61bce40e33e5222295bd54023bf9960a7aac"
+    },
+    "ColorGamut": {
+      "module": "color.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "4e7d1cb173df1f6b8d2fd8165580f353e46f8c422a3106f5e17039796a3e61e4"
+    },
+    "ColorSlicePlane": {
+      "module": "color.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "c7259cc0e0b98a1990c6cffc1b2b165decb19f32afb4669ff75491933e24b505"
+    },
+    "ColorSliceOptions": {
+      "module": "color.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "f355816fc02f1a648be78eb6f34d71188300e34d120d8d354f029e5f54229624"
+    },
+    "ColorSliceImage": {
+      "module": "color.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "5b4ca7633abe9607ac572c279c515fad8494c5b8a14a423eff702cf7ee74312f"
+    },
+    "ColorMixOptions": {
+      "module": "color.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "c0de5e346738e8cd5f860a4644b80046b00b51141219e84d8cf6d096607e9ccf"
+    },
+    "ColorInterpolationSpace": {
+      "module": "color.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "94a91dbfe4235d0968ea50fb54eea11d7e0ed10f64c3308f5cd233bfba777b2f"
+    },
+    "ColorHueDirection": {
+      "module": "color.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "0fb5e3b6d53e1d9d9938a777b3707cfc32cb83b4669d6f36cda46af47ba1a9d6"
+    },
+    "ColorSchemeKind": {
+      "module": "color.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "95edf2003dd918c4b2c34c556e6cfbb0657f8a8029a544a3f04889a0f511a78e"
+    },
+    "ColorSchemeAccent": {
+      "module": "color.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "9a51bf7f7427feddcd7532de6d1afc39d0818bf4c8b12e7858214a5e8c77aaef"
+    },
+    "ComposeAPI": {
+      "module": "compose.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "baab62f023fd8271933e04382f978d2fb9f9301361e06758897ca9627069c637"
+    },
+    "ComposeUrlOpts": {
+      "module": "compose.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "9b0b375a83ec68ded59ac9e1e87139f713247ece105f53fd3ce94ea36ee97f68"
+    },
+    "ComposeSpec": {
+      "module": "compose.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "6c733bcffeceabd944dc9e401ffea45805dfb042c99bb79e09d6061d6898e82c"
+    },
+    "ConnectorRect": {
+      "module": "connectors.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "3cb3685f5f49841294cd7e7f65f3612f115cf9733081525787cf55448a727ec5"
+    },
+    "ConnectorRenderOpts": {
+      "module": "connectors.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e3fd39fb0d9d66813a33e25c8232ba53e9a1948f5dde0552c3138634c784930d"
+    },
+    "PathHeadOpts": {
+      "module": "connectors.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "107fa19158b36196ad3ebd55c2f35266f4cf6b726b65954d6a5615ca56ad757b"
+    },
+    "DashSegment": {
+      "module": "connectors.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "dc29b0aebfea27dfa7051508d9b39de75dd01eb49a87e4a85d34ee2efd621b41"
+    },
+    "DashFitOpts": {
+      "module": "connectors.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "0d9196344bc3916be2c78f2be71bc6402a0f2bf9ee7f80e3979f85be493ed150"
+    },
+    "DashFitAPI": {
+      "module": "connectors.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "9bc2be86185b771e51920c4e9b3b679280938d8dbfd3a8a776c4904b9bedd6ed"
+    },
+    "ConnectorsAPI": {
+      "module": "connectors.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "4724567ba25a41b1e29b89a425203558f7eefce1ca3524a1ad129da909cc6473"
+    },
+    "ExportPackSpec": {
+      "module": "export.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "cdd3a8daca8beee5609d33a7a506adaa78adfa44e8e446bd9d2540661d958d50"
+    },
+    "ExportAPI": {
+      "module": "export.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "8015bd7c0a67499a5d1a13c9ac939f8bb416443f82ae9865a3fedc90a0d8baa9"
+    },
+    "InputFile": {
+      "module": "export.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "afd848a7cb04ca465aebcd133db8deb49d9f859e4d5e40d54a792f1c39f65894"
+    },
+    "ExportFormat": {
+      "module": "export.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "4a59c8433ffa03035a3dab97763eeeabbbd5820c8c56b9a6827cf8f3a3aee5ce"
+    },
+    "ExportOpts": {
+      "module": "export.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "eb03436e154dc3c9bf30d2273495e28b78320a29222a28450c9bdd15a6ad252e"
+    },
+    "ExportMeta": {
+      "module": "export.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "0a5d937b3cb6703fa9bd2c6ad99f96da8a38e07c0b7a48b3db472073c863c0e5"
+    },
+    "GeomAPI": {
+      "module": "geom.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "765019273f1dc29815ced03131d6e228d0c92de4ba69ccda77d4b7137dd451ed"
+    },
+    "GeomFillRule": {
+      "module": "geom.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "9cfd3010d8aed07ee2150b6a7e7cc4f6b2587f29a40aed5e8edcb2aea80375de"
+    },
+    "GeomJoinStyle": {
+      "module": "geom.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "971039706de8749f1032443e2bb62554cc774789a4ed36ad1510156d7bc87e2b"
+    },
+    "GeomCapStyle": {
+      "module": "geom.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "bba1ec14d3e346608a782c205ef3a34e5aa2454422fe3ad0581efeda5b6b3b08"
+    },
+    "GeomErrorCode": {
+      "module": "geom.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "326767f134e204bdf7b06dc0ff46aafa94629c80bc3c9930c7d049abdaeb2605"
+    },
+    "GeomFailure": {
+      "module": "geom.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "93427b801eba9f99e62bef57a0cf5353c073b7d6db1600ca96256fb6cc5a07f6"
+    },
+    "GeomPathResult": {
+      "module": "geom.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "89b017b95b84634b0c4e9956a6dd7d7725a4d1452db186b7bece563a9a99ba34"
+    },
+    "GeomResult": {
+      "module": "geom.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "70fe81760b44cfe521729d29eae73b896b8bba38b2528f6ed46f2e291be94565"
+    },
+    "GeomBooleanOpts": {
+      "module": "geom.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "0a58a4c315d5b4195ac6921c14c3f4a93586304215d6b2be47e45e9429a8e7f6"
+    },
+    "GeomOffsetOpts": {
+      "module": "geom.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d40e089a54dfe3dc7e44dc28e47bef068b5824a1357b250cc915b292a3f5a26f"
+    },
+    "GeomStrokeOpts": {
+      "module": "geom.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "187903d1c5b79e5bd44655d897632c05dee9c729c734c683d7486168345a11aa"
+    },
+    "GeomContour": {
+      "module": "geom.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "532383c509a45b02b1db29ed2eede29ae11721d59dd245dfba5f72479ad6e998"
+    },
+    "GeomBox": {
+      "module": "geom.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "117b16c4166fc4f7879a6e175d06e71acdb5cee0ec76a89199a65ead397d53a9"
+    },
+    "GeomNearest": {
+      "module": "geom.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "126d636a250367fc08971e7fc64d2594daae7c216a46d32f348777ea2516a78d"
+    },
+    "GeomContinuity": {
+      "module": "geom.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "05f83927ee63aac29af5146749668b425fd85ebb99a6155a516b71eb420926b6"
+    },
+    "GeomNode": {
+      "module": "geom.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "42826c7c6f15efce46e50def98209f78428a631d8851de4f874533ef38f60c27"
+    },
+    "GeomAuthoredPath": {
+      "module": "geom.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a886a3ee161f33dcc942356c9df263e3a0d40ce3530de92c8628de00b4ea7dd6"
+    },
+    "GeomLimits": {
+      "module": "geom.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "8376477380364bea695618fe57fed2bb200d08150448e5284297f22504371bab"
+    },
+    "HostV1": {
+      "module": "host.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "28e2f470c701ee23017ea96ea6e6b6e1a6b2e33744ce5ba665f6c9e718324000"
+    },
+    "Capability": {
+      "module": "host.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "841b487eb10aa9a1c7ab533890a3a0cb55892777bab09075b018664bc641c3c9"
+    },
+    "ImagesAPI": {
+      "module": "images.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "44a2fab039920d49d5b5ed03b379906841f4dc27b250358589615689fa1c65a9"
+    },
+    "ImageInfo": {
+      "module": "images.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "b36e4332a82e11afc715a7c526ada34e80e5781494b329ae99ab64913850643b"
+    },
+    "ImageEncodeFormat": {
+      "module": "images.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "92ec9e00f32a9532767523975a25ceff21c2d49f1cb0956a0c13d830c2529b9f"
+    },
+    "ImageResizeOpts": {
+      "module": "images.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "59c6a4062e929af96ba0abda48145de36e0979879aadf2f5f4832fd0730a0f2e"
+    },
+    "ImageEncodeOpts": {
+      "module": "images.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e32e946727370dde930ce441935dc581bdedf2dfb62ee21b048fa12ccab22599"
+    },
+    "MetaCarryReport": {
+      "module": "images.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "f68ad57bb5e771fdba9995cf0d7bbd90c5c5fdec9f21256e30f63da750ea1c2a"
+    },
+    "ImageResult": {
+      "module": "images.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "b2ee5633c46ec31e3ed4d7ca590a377db32f4df6a204f5bd0cd5697191289c59"
+    },
+    "KeyframesAPI": {
+      "module": "keyframes.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "1252948b921e6dbb4ad4d2ad8b8e280ac6516a6dffe1126f3e939427e8bfdce9"
+    },
+    "LayerWrite": {
+      "module": "layers.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "5ab5249860eaeec07bfd35d5740fa1542c4fd061035a9dff7d8fff1880c8a410"
+    },
+    "LayeredWriteDoc": {
+      "module": "layers.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "15c04408ada3e73b412c38bccc2ea32e1b23a207ed188064f8fb90e45abb52b3"
+    },
+    "LayersAPI": {
+      "module": "layers.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "34aa7b50f48871edf62d72015a3f248c4d843c030c695d1fc3124db061194963"
+    },
+    "LiftAPI": {
+      "module": "lift.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "af574940b69b5aebca740ca2820d601965ae24e767d304a8a4ea9b5ea751cc90"
+    },
+    "MatteFrame": {
+      "module": "matte.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "87b007b72f3653df364d532093486b5a554366b202403f9f14484c31fbcc903c"
+    },
+    "MatteModelId": {
+      "module": "matte.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "6bd747bc07050ee925073b1703f4627b24f1ad7e3c4dcadb3c6f24d0f2651ef3"
+    },
+    "MatteModelInfo": {
+      "module": "matte.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "076f8cafec706e91d46413971e5699500e556c88c3bb286e04668c0003141bc2"
+    },
+    "MatteProgress": {
+      "module": "matte.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d2309ebbc6119e8a695dfc63cb79626fb99dd3f6c4b15c23605023a7143e5a55"
+    },
+    "MatteOpts": {
+      "module": "matte.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "6a6241e34c04ff0a6f6f00122130e99db597314cf6990865ad6505549530a456"
+    },
+    "MatteFeasibility": {
+      "module": "matte.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "874d17cea8166e239b4114e9b4dcd01d09ffec67ac29ab3257a1735c6b3bdeb2"
+    },
+    "MatteAPI": {
+      "module": "matte.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "19e00c4ae8f56777a325aaad5cfbe643a8cbbc4ba508707b9de050f23b4902fc"
+    },
+    "MediaAPI": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "120afe212c7da9995d15939e1264324df5045c1d195bc51c17e4248400e95207"
+    },
+    "MediaFrame": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "55583175a9348432242acc419e8ff38a45a3269eac2055f1c5e0842880784abf"
+    },
+    "NetAPI": {
+      "module": "net.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "1f7521e7cb98b4974d3269b4b61faca8a14f199388b918066e53a45928acd2e4"
+    },
+    "OcrFrame": {
+      "module": "ocr.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "3d8493a751804b53705e058c73569b1e7f99c28f31aa8f600ac286261bd2e141"
+    },
+    "OcrBox": {
+      "module": "ocr.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "75b0e7b7544ef369e8ca34333b36b37fddee1cc63594520586ef26284cb128e0"
+    },
+    "OcrLine": {
+      "module": "ocr.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "06b8cf498552aa868d406c0fd2a411191ad7eb7cebc3151071e86dd3855fb6df"
+    },
+    "OcrResult": {
+      "module": "ocr.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "5f908f264d8aa4437a356efb5c0598c28c736340fbebc6e46d5a7ee5a26493dc"
+    },
+    "OcrModelId": {
+      "module": "ocr.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "1593212d6596611bb931db947fac06eaa7cd8168b92d041f34a07f34fb435d1b"
+    },
+    "OcrModelInfo": {
+      "module": "ocr.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "de827c6a158118c2ea1bc2dafcdff03c8d9cdfd22f3daae311f4f3497e4b0335"
+    },
+    "OcrProgress": {
+      "module": "ocr.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "9db16e5ef8bd2d04e9edc1bae0656ca7922528700da715d30951d7db1da34898"
+    },
+    "OcrOpts": {
+      "module": "ocr.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e2585f57dc3c59562915a1c35e3af4b3103f0f15f96c8cac0a721e9d64f97e7b"
+    },
+    "OcrFeasibility": {
+      "module": "ocr.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "90653b63dfaf7a37dd4b83e439dfeac2b5f58444160db2118f09ffcbec24b066"
+    },
+    "OcrAPI": {
+      "module": "ocr.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "72028555b9d50c7844cbfaae18a2b7b78d4a174278629f82b30fe1cdc3f7a481"
+    },
+    "PdfAPI": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "96634f89aa2c15ffe8a4722c6aa73de0037b50040d4901a4cd316b7be44b61b0"
+    },
+    "PdfCompressOpts": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "5c6f3886e9d9f954c6c9aeba8315e206630977c7cf5135ecf7f9b6339f9637e1"
+    },
+    "PdfCompressResult": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "0d8faffe893f0441bead0b69798a72512dbb1f849abf25897f59cb84939932bc"
+    },
+    "PdfFinding": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "8baf3551d8768e47fd5a99859e04386994f9181e9963e69aaf3da05f256de030"
+    },
+    "PdfRedactBar": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "ab61ec056b202cf6c1bf17a6e7ae7ecc60a6494051a57d2009bc086e49a2f6ab"
+    },
+    "PdfRedactOpts": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "38b5fa328c84579e6b0fcf25b4d851f54932e94d000e49025ec66c0e19cf495d"
+    },
+    "PdfRedactResult": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "9a8a6ab758e7749d9e3f758510b273d6c43edccbb8abd810b07c68911789b529"
+    },
+    "PdfPageSvg": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "c0a1892b3b3f197bd073eaf1c2e8dad0ef5dac473a379a03b4b37bb9f176f5c1"
+    },
+    "PdfPagesResult": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "2d79a88b3b59c2aa74877a1f40fcd1a7ce93cfd9e7a1ae860665cb59118d76af"
+    },
+    "PptxAPI": {
+      "module": "pptx.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e0bf3331afe6556440371ab9bd7912e412a40684d98a116565c03601b61874b1"
+    },
+    "PptxBrandSwatch": {
+      "module": "pptx.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "0c0fd5966792b1d5679c4254b76d6e1b4c492633271d9f38f7e75c8334f01c1b"
+    },
+    "PptxBrandFonts": {
+      "module": "pptx.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "f45893af16ff808df6244394b38ab336890263a758b1afb3b63e3f17db4e267c"
+    },
+    "PptxInspectOpts": {
+      "module": "pptx.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "60302666540899a6fad059e271cd0ad9047bd9a21d0106a6b97d11fa4871e73b"
+    },
+    "PptxInspectColor": {
+      "module": "pptx.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "4c276e1589d2878d94d5df9de1713124ef0ee97c4ec52217d0becf9d1cdaac66"
+    },
+    "PptxInspectContent": {
+      "module": "pptx.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "b24a6a4350fd271c48ec6f8bdd77028a2e93efe92ec29b26ef68c3f6e4963627"
+    },
+    "PptxInspectFont": {
+      "module": "pptx.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "9e8484ec519b68ac1d370a5a5f0fa069117f65c9b9ce037adc755557d46ee4c3"
+    },
+    "PptxInspectResult": {
+      "module": "pptx.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "8268aed3a8ae8395cec027fb35d61a2468b6c08035e7602721b34266d6a31b1e"
+    },
+    "PptxRebrandTheme": {
+      "module": "pptx.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "ff5bd8bc9b0bc3a0afc9ae20a3a6578487a4bd283393eab887e533b226e65983"
+    },
+    "PptxRebrandPlan": {
+      "module": "pptx.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a86bdbd2e5974d03b5b8fb5e80972128a6ca0a41091c25d756de7522a1652858"
+    },
+    "PptxRebrandReport": {
+      "module": "pptx.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "cf2b351df18cfdb88c7b013def2f740f6c7743d1c30c27f296b389c87f7e66bf"
+    },
+    "PptxRebrandResult": {
+      "module": "pptx.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "c7ebae0ba8f394a00333c20dcc9111749ba3fdf8cd1add4147cad22536695334"
+    },
+    "ProfileAPI": {
+      "module": "profile.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d9e14b267cd3efc74fe509134718d5c327012874c158b170b9916be3a69d4ab1"
+    },
+    "Profile": {
+      "module": "profile.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "eca483f2b82adf7c71717c7bfe17c8a638fbdce16b25ffd8f8605a4f28479c87"
+    },
+    "RasterAPI": {
+      "module": "raster.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "9f4ec0d5d18d1a12666ff4138d53308579b63395e45801d72a49b979bee9c6aa"
+    },
+    "RasterSource": {
+      "module": "raster.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "6876913b1b1288cf08067dad2505634672c7a5d31e3106180ca9bb164ca9858f"
+    },
+    "RasterFrame": {
+      "module": "raster.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "1d608ac016112679f89d742d0689f275b575e58bfc5cf97e73f443b67120fdf7"
+    },
+    "RecorderAPI": {
+      "module": "recorder.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "7f232ed2b06890e7c54bafc6dc83c23bec80b534567d59cadefd51dc90e8d70f"
+    },
+    "StillOpts": {
+      "module": "recorder.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "5d588b7b6f3b861409dcfb7f49559e0c07c976f34f5dc414d9402dbaa5a183f7"
+    },
+    "MeterAPI": {
+      "module": "recorder.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "1e8deecdb3693032242251bdd3ad2e05897a8e8e19996bd7ffed812746ef97cf"
+    },
+    "AudioLevel": {
+      "module": "recorder.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "6ea596268847efa58c51bf8cc31780f1a85434c709f707b585d345493e040878"
+    },
+    "RecordOpts": {
+      "module": "recorder.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a78487b904b81aa06e4c3425d890c66b042126df37ac7aa82fd7efa57cd1e8d6"
+    },
+    "RecordSession": {
+      "module": "recorder.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "45998ff76d1de034cca56a07ca309aca499e1bf4d1d97fcb33c4984424a686a8"
+    },
+    "ScanAPI": {
+      "module": "scan.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "9ee13d3a4d99aba4999dd43e5faf8e83cf730b2cdeaf35bf7ccffb64ed2fb521"
+    },
+    "ScanHit": {
+      "module": "scan.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "fe756ef7ad97734f9f7ab8de8aa38ae92964e56aff169ba17b996963523b8008"
+    },
+    "SpeechVoiceInfo": {
+      "module": "speech.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d7fb2ed010b584b1e150022d625988ad244cd81a082cb0017b1ecdb6ad1f648f"
+    },
+    "SpeechWordTiming": {
+      "module": "speech.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "ae711de44e3ae0ad848de724b0b677c8d7b0de4617816ea288fa30a105747d8a"
+    },
+    "SpeechResult": {
+      "module": "speech.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "5d84473b2b87fe9c7afb43db8ad2a01d758cb5cb6b44468d5119d4bb60cebd37"
+    },
+    "SpeechProgress": {
+      "module": "speech.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "26366c4ad7515158a10c8dc3ff5fecaccb164505292ff93906152614f6e69bcd"
+    },
+    "SpeechSynthesizeOpts": {
+      "module": "speech.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "8ef1a309cfa6951f743c19cae66589d968277588edb67d28a80a66c079221240"
+    },
+    "SpeechTranscript": {
+      "module": "speech.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "330c7c3e7a01006d2a4ab9607f59b093ceea706f3484776b94754cfe9dfb8d2d"
+    },
+    "SpeechTranscribeOpts": {
+      "module": "speech.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "81b2c25503fa7fc647588a30f128b7f6bdcf1a016bb39a9f80ad075076e98689"
+    },
+    "SpeechAPI": {
+      "module": "speech.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "fe251771c11223a71e69b0d844d4ecca5e14ed38f6907e2b7e5637f18bb73340"
+    },
+    "StateAPI": {
+      "module": "state.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "b5d84e40f2d4a75dc7c8924fb9011fe20b290ef90f55e9d27383ab7a30045736"
+    },
+    "StateEntry": {
+      "module": "state.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "bef0decf5f73c6db3a0c2849e4d0b7c7ac80b535ae5d42fcdabebf07a9990c5d"
+    },
+    "TextAPI": {
+      "module": "text.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "81116368692488400a3a660ac46c6bbfcae5d352b9d9f7b7de9db3667f35b26f"
+    },
+    "TextToPathOpts": {
+      "module": "text.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "bd909a762b82d3820507e7f2ddca8e94a32f57db2267f5ba9690ea6db75960eb"
+    },
+    "TextPathCluster": {
+      "module": "text.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "59bfefb748fd38516999ea3a939cdc398117b86be750234d1f1673ffbc3fdf42"
+    },
+    "TextPathResult": {
+      "module": "text.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "7abce3d31f784a9b4063b35092933a661ffbe26467aaa1b2087b2edb31841ae3"
+    },
+    "TokensAPI": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "09abeb2ac99849f566870fe9db885b7cb0197d27315dab577eb73f4ce7785a60"
+    },
+    "DesignSystemSummary": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "0e690389f20b6c69a6b17b1c14603af8ef7ce8369ec9af4b1ed04bfc9e7d7737"
+    },
+    "TokenSet": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "7c72046759fbde6f56e54fb6c52f7bf62a158492c7127ddf308e4b16ca6d41c4"
+    },
+    "TokenEntry": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e55efae55b2f873d8ef7ea4868969c3113d9128ba8cad75dc56881b292ed794e"
+    },
+    "ColorSwatch": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "24c5628074d97e8f5395d8d0df88b8950d0ea9cbe40e697ade05ba12820418b2"
+    },
+    "SpotColor": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "752e7ff5270753b4ce7ad8fa50db595012ca63c09e04ccae951ef8403371a386"
+    },
+    "KNOWN_FINISH_KINDS": {
+      "module": "tokens.ts",
+      "kind": "FirstStatement",
+      "sha256": "43f193c47e7f25823f01e6f490317974160145356ec9ad2b4b3f420a091b93fe"
+    },
+    "FinishKind": {
+      "module": "tokens.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "954fbaf93066ff64bf718a00aae857e6bd799fdd1bc662eb8746179b5fb7d7b7"
+    },
+    "UpscaleFrame": {
+      "module": "upscale.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "799ec1f73f8892d0b4c507d02c79b0dbed28564641fd29c15f383918a89896ed"
+    },
+    "UpscaleModelId": {
+      "module": "upscale.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "7e26d15895b98ffee53d092fd984163d332291395685791226b197f22e81ccc2"
+    },
+    "UpscaleModelInfo": {
+      "module": "upscale.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "bbb7b0d7ce0d59407754f9be9e9bdccc20397736de00a18739030d14e54bb3ed"
+    },
+    "UpscaleProgress": {
+      "module": "upscale.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "4cc6ff8b66df42cc61103278e88c2d7abab5fb8d04072ef1524ee03054759b79"
+    },
+    "UpscaleOpts": {
+      "module": "upscale.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d4f895604563adf95e3da3632631bd250a8776539733f381f237b2f66077f4cf"
+    },
+    "UpscaleFeasibility": {
+      "module": "upscale.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "80f129630543e7062697987335c6a9468888a79b8fe13436bf7b637841886009"
+    },
+    "UpscaleAPI": {
+      "module": "upscale.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "c8ca23d474c375e85962f6db2b3ba1dbe70a41d37854f7133694e4b2c0dd7b33"
+    },
+    "VizAPI": {
+      "module": "viz.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "dd68077bb1d4334350462a4f13c133fb2b8c11e5b4b4821776b7ca8c6358b8a9"
+    },
+    "VizPresetInfo": {
+      "module": "viz.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "376d347bc906d38a23a5e4cef818a9d4261edc70e7aac7b2d7a8156ad4cdb77e"
+    }
+  }
+}

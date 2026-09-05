@@ -22,7 +22,8 @@
  *                                              itself with its C2PA + RDF provenance intact
  *   • shells/web/public/icons/* - PWA icon-192/512, 512-maskable, apple-touch
  *   • shells/web/public/favicon.ico - 16/32/48 multi-size
- *   • shells/tauri-desktop/src-tauri/icons/* - via `tauri icon` (icns/ico/png/android/ios)
+ *   • shells/tauri-desktop/src-tauri/icons/* - via `tauri icon` (icns/ico/png/android/ios),
+ *     plus the macOS and Linux `.lolly` document icons from `icon-primary.svg`
  *   • shells/tauri-mobile/src-tauri/icons/* - same, when the shell is mounted + installed
  *
  * og.png (the landing / default share card) is ALSO derived from icon.svg, but it carries
@@ -36,7 +37,7 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, writeFileSync, rmSync, readFileSync, copyFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync, rmSync, readFileSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -215,6 +216,45 @@ async function main(): Promise<void> {
       console.log(`✓ ${shell} icons (via tauri icon)`);
     } catch (e) {
       console.log(`⚠ ${shell}: tauri icon failed (${(e as Error).message.split('\n')[0]})`);
+    }
+  }
+
+  // ── Native `.lolly` document artwork - the rich primary mark, without a mock page. ──
+  // Finder, GNOME Files and Dolphin already supply the file shape, name and kind. Baking
+  // another sheet of paper around the mark makes a Lolly system look like a generic text
+  // document and discards the dimensional primary artwork. Keep every native document icon
+  // derived directly from icon-primary.svg so the platforms cannot drift apart again.
+  if (primaryMaster) {
+    const desktopDir = resolve(ROOT, 'shells/tauri-desktop');
+    const desktopIcons = resolve(desktopDir, 'src-tauri/icons');
+    const documentPng = join(desktopIcons, 'lolly-document.png');
+    writeFileSync(documentPng, await iconPng(primaryMaster, MASTER, TRANSPARENT));
+
+    const linuxMimeIcons = resolve(desktopDir, 'linux/icons');
+    for (const size of [32, 48, 64, 128, 256]) {
+      const targetDir = join(linuxMimeIcons, `${size}x${size}`);
+      mkdirSync(targetDir, { recursive: true });
+      writeFileSync(
+        join(targetDir, 'application-vnd.lolly+zip.png'),
+        await iconPng(primaryMaster, size, TRANSPARENT),
+      );
+    }
+    console.log('✓ GNOME/KDE .lolly MIME icons (icon-primary.svg, no page mockup)');
+
+    const bin = join(desktopDir, 'node_modules/.bin/tauri');
+    if (existsSync(bin)) {
+      const generated = mkdtempSync(join(tmpdir(), 'lolly-document-icon-'));
+      try {
+        execFileSync(bin, ['icon', documentPng, '--output', generated], { cwd: desktopDir, stdio: 'pipe' });
+        copyFileSync(join(generated, 'icon.icns'), join(desktopIcons, 'lolly-document.icns'));
+        console.log('✓ macOS .lolly document icon (icon-primary.svg, no page mockup)');
+      } catch (e) {
+        console.log(`⚠ macOS .lolly document icon failed (${(e as Error).message.split('\n')[0]})`);
+      } finally {
+        rmSync(generated, { recursive: true, force: true });
+      }
+    } else {
+      console.log('ℹ macOS .lolly document ICNS skipped - desktop Tauri CLI is not installed');
     }
   }
   rmSync(masterFile, { force: true });

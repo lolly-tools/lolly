@@ -1,0 +1,53 @@
+# CLI package publish - produces the publishable @lolly-tools/cli artifacts
+# (see scripts/pack-cli.ts): the staged package, its tarball and a manifest with the
+# content hash. The package is CONTENT-FREE (plans/131): no tools, no catalog.
+#
+# Trigger: push a tag `cli-v<semver>` (matching shells/cli/package.json), or run
+# manually. It attaches dist/cli-pack/ to a GitHub Release.
+#
+# An npm-registry publish is intentionally NOT wired here, for the same reason as
+# publish-engine.yml: pushing a name to a public registry is a deliberate act, done
+# once by a person holding the token, not a side effect of a tag. The pack script
+# prints the exact `npm publish` command it produced.
+name: publish-cli
+
+on:
+  push:
+    tags: ['cli-v*']
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+      # The smoke consumer renders a real tool, so it needs a catalog to point
+      # LOLLY_ROOT at: `npm install` builds this checkout's profile views (the public
+      # clone has no brands/suse, so it falls back to lolly-start).
+      - name: Install workspace
+        run: npm ci
+      # Bundles both entries, packs the tarball, then installs it into a temp
+      # directory and runs it: --version, list --json, a real SVG render, the
+      # no-content refusal (exit 3) and the TUI entry. Any failure fails the job.
+      - name: Pack and smoke the CLI package
+        run: node scripts/pack-cli.ts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: cli-pack
+          path: dist/cli-pack/
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        with:
+          files: |
+            dist/cli-pack/*.tgz
+            dist/cli-pack/manifest.json

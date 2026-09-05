@@ -100,5 +100,18 @@ export type {
   ExportFileResult,
 } from './define-tool.ts';
 
+// chart-v1 - the renderer-neutral chart document carried by the Chart tool,
+// document API, CLI and automation surfaces. Libraries are adapters, never part
+// of this saved/public shape.
+export { CHART_SPEC_VERSION } from './chart-v1.ts';
+export type {
+  ChartValue, ChartFieldType, ChartDimension, ChartExportFidelity, ChartMark,
+  ChartChannel, ChartFieldV1, ChartDatasetV1, ChartEncodingV1, ChartSeriesV1,
+  ChartScaleV1, ChartAxisV1, ChartLegendV1, ChartFormatterV1, ChartThemeV1,
+  ChartMotionV1, ChartAccessibilityV1, ChartPresentationV1, ChartSpecV1,
+  ChartFindingSeverity, ChartFindingV1, ChartValidationResultV1,
+  ResolvedChartReportV1,
+} from './chart-v1.ts';
+
 /** The `HostV1` contract version this SDK targets (matches `HostV1.version`). */
 export const CONTRACT_VERSION = '1';

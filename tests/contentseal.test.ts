@@ -18,6 +18,7 @@ import assert from 'node:assert/strict';
 import {
   contentSealConsensus,
   CONTENTSEAL_MESSAGE_BITS,
+  CONTENTSEAL_REQUIRED_VIEWS,
   CONTENTSEAL_DEFAULT_TAU,
 } from '../engine/src/contentseal.ts';
 
@@ -45,6 +46,7 @@ function viewsWithUnanimity(k: number, V = 4, len = N): number[][] {
 
 test('CONTENTSEAL_MESSAGE_BITS is 256 (nbits from the Pixel Seal / Video Seal model cards)', () => {
   assert.equal(CONTENTSEAL_MESSAGE_BITS, 256);
+  assert.equal(CONTENTSEAL_REQUIRED_VIEWS, 4);
 });
 
 test('identical messages across all views ⇒ PRESENT, fully unanimous, message round-trips', () => {
@@ -115,9 +117,13 @@ test('minPairAgreement flags a single rogue view even when overall unanimity is 
 });
 
 test('malformed input is a safe non-answer, never a throw or a false positive', () => {
-  // Fewer than 2 views → cannot measure agreement.
+  // Anything other than the calibrated four views → cannot measure agreement.
   assert.equal(contentSealConsensus([]).present, false);
   assert.equal(contentSealConsensus([[1, 0, 1]]).present, false);
+  assert.equal(contentSealConsensus([randomBits(lcg(1)), randomBits(lcg(2))]).present, false);
+  assert.equal(contentSealConsensus(Array.from({ length: 100 }, () => randomBits(lcg(3)))).present, false);
+  // The model contract is exactly 256 bits, even when all four views agree.
+  assert.equal(contentSealConsensus(viewsWithUnanimity(100, 4, 100)).present, false);
   // Ragged lengths → cannot compare position-by-position.
   const ragged = contentSealConsensus([[1, 1, 1, 1], [1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]]);
   assert.equal(ragged.present, false);

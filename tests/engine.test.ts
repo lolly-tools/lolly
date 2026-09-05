@@ -151,7 +151,7 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
   const documented = [
     'format', 'export', 'copy', 'full', 'options', 'slot', 'output', 'filename',
     '_v', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'profile', 'password',
-    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx',
+    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'ds', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx',
     'fps', 'seconds', 'wait', 'codec', 'vq',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
@@ -204,6 +204,29 @@ test('url-mode: designv is the design-system version override, read-only', () =>
   // design system they don't have would resolve to something else on their device
   // anyway; worse, it would silently freeze their own system out of their render.
   assert.equal(new URLSearchParams(serializeUrlState([], {})).has('designv'), false);
+});
+
+test('url-mode: ds is the design-system override, read-only (plans/186)', () => {
+  // The sibling of designv, one rung up: designv names a version, ds names the
+  // system that version belongs to. Validated against the id grammar here, because
+  // an id that could not name a namespace can never name a system either; whether
+  // the device HOLDS that system is the caller's question, so a valid unknown id
+  // is carried through and falls back to the active one there.
+  const s = parseUrlState('heading=Hi&ds=acme', SAMPLE_MANIFEST);
+  assert.equal(s.designSystem, 'acme');
+  assert.equal(s.values.ds, undefined);              // reserved - never a tool input
+  assert.equal(parseUrlState('ds=acme-2026', SAMPLE_MANIFEST).designSystem, 'acme-2026');
+
+  // Absent, empty and junk all read as null, which is "no override" - so a link
+  // written before design systems could be told apart resolves exactly as before.
+  assert.equal(parseUrlState('heading=Hi', SAMPLE_MANIFEST).designSystem, null);
+  assert.equal(parseUrlState('ds=', SAMPLE_MANIFEST).designSystem, null);
+  assert.equal(parseUrlState('ds=Acme%202026', SAMPLE_MANIFEST).designSystem, null);
+  assert.equal(parseUrlState('ds=user%2Fds%2Facme', SAMPLE_MANIFEST).designSystem, null);
+
+  // NEVER serialised, the designv rule verbatim: a link must not pin its recipient
+  // to a design system that isn't theirs.
+  assert.equal(new URLSearchParams(serializeUrlState([], {})).has('ds'), false);
 });
 
 test('url-mode: s is the deck state address, carried verbatim (plan 112)', () => {

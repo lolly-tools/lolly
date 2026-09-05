@@ -19,9 +19,9 @@
  * in a second and it is therefore never stale by more than one command - the only
  * kind of index that works for an ignored directory.
  *
- * Sorted newest-first by mtime, which is the "current vs historical" signal the
- * audit actually wanted; the title comes from each file's first `# ` heading.
- * No CI check, deliberately: CI never sees this directory.
+ * Top-level plans follow their numbered reading order. The updated date remains
+ * visible as a staleness signal; the title comes from each file's first `# `
+ * heading. No CI check, deliberately: CI never sees this directory.
  */
 
 import { readFileSync, readdirSync, writeFileSync, statSync, existsSync } from 'node:fs';
@@ -38,6 +38,8 @@ const RECENT_DAYS = 21;
 interface Plan {
   name: string;
   title: string;
+  status: string;
+  bucket: 'active' | 'followup' | 'closed' | 'reference';
   mtime: Date;
   bytes: number;
 }
@@ -53,6 +55,52 @@ function titleOf(path: string, name: string): string {
   return name.replace(/\.md$/, '');
 }
 
+function statusOf(path: string): Pick<Plan, 'status' | 'bucket'> {
+  try {
+    const lines = readFileSync(path, 'utf8').split('\n', 80);
+    const cleanLine = (line: string): string => line.trim().replace(/^>\s*/, '');
+    const start = lines.findIndex(line => /^(?:\*\*)?Status:/i.test(cleanLine(line)));
+    if (start < 0) return { status: 'Unstated', bucket: 'reference' };
+    let end = start + 1;
+    while (end < lines.length && cleanLine(lines[end]!).length > 0) {
+      const continuation = cleanLine(lines[end]!);
+      // Wrapped prose belongs to the status paragraph. A new labelled metadata
+      // field (`**Owner:**`, `Companion:`, and so on) does not.
+      if (/^(?:\*\*)?[A-Z][A-Za-z /-]{1,30}:(?:\*\*)?(?:\s|$)/.test(continuation)) break;
+      end += 1;
+    }
+    const paragraph = lines.slice(start, end).map(cleanLine).join(' ');
+    // Historical plans use all three forms: `**Status:** value`,
+    // `**Status: value**`, and `Status: **value**`.
+    const raw = paragraph
+      .replace(/^\*\*Status:\*\*\s*/i, '')
+      .replace(/^\*\*Status:\s*/i, '')
+      .replace(/^Status:\s*/i, '')
+      .replace(/\*\*/g, '')
+      .trim();
+    if (!raw) return { status: 'Unstated', bucket: 'reference' };
+    const status = raw.length > 240 ? `${raw.slice(0, 237).trimEnd()}…` : raw;
+    if (/^REFERENCE\b/i.test(raw)) return { status, bucket: 'reference' };
+    // A closed tracker can explain which formerly open list replaced it. Do not let
+    // that historical wording pull an explicitly CLOSED document back into follow-up.
+    if (/^CLOSED\b/i.test(raw)) return { status, bucket: 'closed' };
+    // Do not turn "nothing is built" into a completion signal merely because it
+    // contains the word "built". Keep the original text for display and for the
+    // open-state scan; remove only these explicit negations before classifying done.
+    const positive = raw.replace(
+      /\bNOTHING\b[^.;]{0,80}\b(?:BUILT|SHIPPED|EXECUTED|IMPLEMENTED|DONE)\b|\bNOT\s+(?:IS\s+)?(?:BUILT|SHIPPED|EXECUTED|IMPLEMENTED|DONE)\b/gi,
+      '',
+    );
+    const done = /\b(COMPLETE|COMPLETED|DONE|IMPLEMENTED|EXECUTED|DECIDED|BUILT|SHIPPED|SHIPPING|LANDED)\b/i.test(positive);
+    const actionable = raw.replace(/\b(?:NO|NOTHING)\s+(?:IS\s+)?(?:OPEN|PENDING|REMAINING)\b/gi, '');
+    const open = /\b(IN EXECUTION|IN PROGRESS|PROPOSED|PLANNED|PLAN(?!['’]S)|OPEN|PENDING|PARTIAL|PARTLY|EXPANDED|NOT STARTED|NOT YET|GREENLIT|OWED|NEXT|FOLLOW-?UPS?|REMAINING|REMAINS|EXCEPT)\b/i.test(actionable);
+    const bucket = done && open ? 'followup' : done ? 'closed' : open ? 'active' : 'reference';
+    return { status, bucket };
+  } catch {
+    return { status: 'Unreadable', bucket: 'reference' };
+  }
+}
+
 const iso = (d: Date): string => d.toISOString().slice(0, 10);
 const kb = (n: number): string => `${Math.max(1, Math.round(n / 1024))}k`;
 
@@ -62,16 +110,16 @@ function collect(dir: string): Plan[] {
     .map((name) => {
       const p = join(dir, name);
       const st = statSync(p);
-      return { name, title: titleOf(p, name), mtime: st.mtime, bytes: st.size };
+      return { name, title: titleOf(p, name), ...statusOf(p), mtime: st.mtime, bytes: st.size };
     })
     .sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
 }
 
 function table(plans: Plan[], base = ''): string {
   return [
-    '| Updated | Plan | Title | Size |',
-    '|---|---|---|---|',
-    ...plans.map((p) => `| ${iso(p.mtime)} | [\`${p.name}\`](${base}${p.name}) | ${p.title} | ${kb(p.bytes)} |`),
+    '| Updated | Plan | Status | Title | Size |',
+    '|---|---|---|---|---|',
+    ...plans.map((p) => `| ${iso(p.mtime)} | [\`${p.name}\`](${base}${p.name}) | ${p.status.replace(/\|/g, '\\|')} | ${p.title} | ${kb(p.bytes)} |`),
   ].join('\n');
 }
 
@@ -107,16 +155,26 @@ export function buildIndex(now: Date): string {
     'shells → enterprise). The Updated column is the staleness signal - a plan can be',
     `finished and still recently touched, or dormant and still true. Read the file.`,
     '',
-    `## Active - ${plans.length} (${recentCount} touched in the last ${RECENT_DAYS} days)`,
-    '',
-    plans.length ? table(plans) : '_none_',
+    'A status in the file, not its directory or modification date, decides which table it appears in.',
+    '“Implemented with follow-ups” means the code wave is done but named acceptance, owner or release work remains.',
   ];
+
+  const sections: Array<[Plan['bucket'], string]> = [
+    ['active', 'Active / planned'],
+    ['followup', 'Implemented with follow-ups'],
+    ['closed', 'Closed'],
+    ['reference', 'Reference or status unstated'],
+  ];
+  for (const [bucket, label] of sections) {
+    const rows = plans.filter(plan => plan.bucket === bucket);
+    out.push('', `## ${label} - ${rows.length}`, '', rows.length ? table(rows) : '_none_');
+  }
 
   if (archived.length) {
     out.push('', `## \`archive/\` - ${archived.length}`, '', table(archived, 'archive/'));
   }
 
-  out.push('', `_${plans.length + archived.length} plan(s) indexed._`, '');
+  out.push('', `_Top level: ${plans.length} plan(s), ${recentCount} touched in the last ${RECENT_DAYS} days. Total with archive: ${plans.length + archived.length}._`, '');
   return out.join('\n');
 }
 

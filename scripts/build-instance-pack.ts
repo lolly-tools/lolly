@@ -36,10 +36,12 @@
  * What may leave the building is the BRAND's decision: brands/<name>/pack.json
  * declares include/exclude asset families (id prefixes), and every id in the
  * brand's asset index must match exactly one list - an unclassified family
- * fails the build rather than being guessed at. Two guards are not delegated to
- * that recipe: AUDIO in an included family is refused outright (the PremiumBeat
- * licence rule is absolute), and the pack refuses to grow past PACK_BUDGET
- * (a pack is a bootstrap, not a media library).
+ * fails the build rather than being guessed at. A recipe may also name
+ * tool-local assets already supplied by the community instance; the builder
+ * omits one only after proving the community and brand copies are byte-identical.
+ * Two guards are not delegated to that recipe: AUDIO in an included family is
+ * refused outright (the PremiumBeat licence rule is absolute), and the pack
+ * refuses to grow past PACK_BUDGET (a pack is a bootstrap, not a media library).
  */
 
 import { createHash, webcrypto } from 'node:crypto';
@@ -94,6 +96,8 @@ interface PackRecipe {
   logos: Record<string, string>;
   includeAssetFamilies: string[];
   excludeAssetFamilies: string[];
+  /** `<tool-id>/assets/<path>` files supplied by the configured community instance. */
+  reuseCommunityToolAssets?: string[];
 }
 
 interface AssetFormat { format: string; url: string; checksum?: string; size?: number }
@@ -301,16 +305,38 @@ async function main(): Promise<void> {
     throw new Error(`tool dir(s) with no index entry: ${missingFromIndex.join(', ')} - run npm run build:catalog for the brand first`);
   }
   const toolFiles: Record<string, string[]> = {};
+  const reuseCommunity = new Set(recipe.reuseCommunityToolAssets ?? []);
+  const reusedCommunity = new Set<string>();
+  if (reuseCommunity.size && !recipe.instance) {
+    throw new Error('reuseCommunityToolAssets needs an instance base that supplies the community files');
+  }
   const excludedIds = new Set(assetIndex.assets
     .filter(a => recipe.excludeAssetFamilies.some(p => a.id.startsWith(p)))
     .map(a => a.id));
   const danglingRefs: string[] = [];
   for (const id of toolIds) {
     const files = walkFiles(join(toolsDir, id)).sort();
-    toolFiles[id] = files;
+    toolFiles[id] = [];
     for (const f of files) {
       if (AUDIO_EXT.test(f)) throw new Error(`audio may never ship in a pack: tools/${id}/${f}`);
       const bytes = readFileSync(join(toolsDir, id, f));
+      const reuseKey = `${id}/${f}`;
+      if (reuseCommunity.has(reuseKey)) {
+        if (!f.startsWith('assets/')) {
+          throw new Error(`community reuse is limited to tool-local assets: ${reuseKey}`);
+        }
+        const communityFile = join(ROOT, 'community', id, f);
+        if (!existsSync(communityFile) || !statSync(communityFile).isFile()) {
+          throw new Error(`community reuse source is missing: community/${reuseKey}`);
+        }
+        const communityBytes = readFileSync(communityFile);
+        if (!bytes.equals(communityBytes)) {
+          throw new Error(`community reuse source differs from the brand copy: ${reuseKey}`);
+        }
+        reusedCommunity.add(reuseKey);
+        continue;
+      }
+      toolFiles[id].push(f);
       put(`tools/${id}/${f}`, new Uint8Array(bytes));
       // A tool default naming an excluded asset will 404 for pack users until
       // id.suse.com exists - surface it at build time, don't let it surprise.
@@ -319,6 +345,10 @@ async function main(): Promise<void> {
         for (const ex of excludedIds) if (raw.includes(`"${ex}"`)) danglingRefs.push(`${id} → ${ex}`);
       }
     }
+  }
+  const missingReuse = [...reuseCommunity].filter(path => !reusedCommunity.has(path));
+  if (missingReuse.length) {
+    throw new Error(`community reuse path(s) not found in the brand tools: ${missingReuse.join(', ')}`);
   }
   entries['tools.json'] = strToU8(JSON.stringify({ tools: packToolEntries, files: toolFiles }, null, 2));
 
@@ -362,8 +392,6 @@ async function main(): Promise<void> {
     integrity,
   };
   const manifestBytes = strToU8(JSON.stringify(manifest, null, 2));
-  entries['manifest.json'] = manifestBytes;
-
   const signer = await loadSigningKey(args.keyfile);
   if (signer) {
     const signature = await subtle.sign(
@@ -378,7 +406,7 @@ async function main(): Promise<void> {
   }
 
   const filename = `${args.brand}-brand-${recipe.version}.lolly`;
-  entries['lolly.txt'] = strToU8([
+  const readmeBytes = strToU8([
     BUNDLE_HEADER,
     '-'.repeat(56),
     '',
@@ -403,7 +431,13 @@ async function main(): Promise<void> {
     'load those from the brand portal yourself.',
   ].join('\n') + '\n');
 
-  const zipped = zipSync(entries as Parameters<typeof zipSync>[0]);
+  // Keep manifest.json first so the app's streaming preflight never has to
+  // scan through the full catalog/tool payload merely to identify the pack.
+  const zipped = zipSync({
+    'manifest.json': manifestBytes,
+    'lolly.txt': readmeBytes,
+    ...entries,
+  } as Parameters<typeof zipSync>[0]);
   if (zipped.length > PACK_BUDGET) {
     throw new Error(`pack is ${(zipped.length / 1048576).toFixed(1)} MB - over the ${PACK_BUDGET / 1048576} MB budget; something heavy slipped an include list`);
   }

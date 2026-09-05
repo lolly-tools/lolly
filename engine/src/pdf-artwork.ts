@@ -89,8 +89,8 @@ const BAR_SPAN = 0.8;
 /** Longer:shorter beyond this is a bar, not a mark. */
 const MAX_ASPECT = 12;
 /** Guard against a pathological page turning into thousands of candidates. */
-const MAX_NODES = 4000;
-const MAX_CANDIDATES = 60;
+export const PDF_ARTWORK_MAX_NODES = 4_000;
+export const PDF_ARTWORK_MAX_CANDIDATES = 60;
 
 export interface ArtworkRect { x: number; y: number; w: number; h: number }
 
@@ -276,7 +276,9 @@ export function findVectorArtwork(nodes: PdfNode[], opts: ArtworkOptions = {}): 
   const pageLong = Math.max(opts.width ?? 0, opts.height ?? 0);
 
   const items: Array<{ i: number; rect: ArtworkRect; group: string; plain: boolean }> = [];
-  for (let i = 0; i < nodes.length && items.length < MAX_NODES; i++) {
+  // Bound INPUT visits, not merely accepted vector items: a page of millions of
+  // non-vector nodes must not make the detector walk the whole hostile array.
+  for (let i = 0; i < nodes.length && i < PDF_ARTWORK_MAX_NODES; i++) {
     const n = nodes[i]!;
     if (!isVectorPaint(n)) continue;
     const e = pdfNodeExtent(n);
@@ -293,7 +295,7 @@ export function findVectorArtwork(nodes: PdfNode[], opts: ArtworkOptions = {}): 
   if (items.length < MIN_SHAPES) return out;
 
   for (const c of cluster(items)) {
-    if (out.length >= MAX_CANDIDATES) break;
+    if (out.length >= PDF_ARTWORK_MAX_CANDIDATES) break;
     const members = c.idx.map((i) => nodes[i]!);
     const { rect } = c;
 

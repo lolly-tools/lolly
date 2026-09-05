@@ -17,7 +17,7 @@
  * Stage the models with: node scripts/fetch-kokoro-models.ts (and fetch-whisper-models.ts),
  * or `lolly models fetch kokoro` / `lolly models fetch whisper`.
  */
-import { test } from 'node:test';
+import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir, homedir } from 'node:os';
@@ -33,6 +33,11 @@ import { KOKORO_MODEL_BYTES, packWav, parseWav } from '@lolly/engine';
 const REPO = join(fileURLToPath(import.meta.url), '..', '..', '..', '..');
 const EMPTY = mkdtempSync(join(tmpdir(), 'lolly-speech-empty-'));
 process.on('exit', () => rmSync(EMPTY, { recursive: true, force: true }));
+
+// The inference runtime this file loads (transformers.js over onnxruntime-node)
+// has aborted at process exit under a full-suite run on macOS (see ml.test.ts).
+// Give its native side a moment to finish before node tears the process down.
+after(async () => { await new Promise((resolve) => setTimeout(resolve, 300)); });
 
 /** A resolver that pretends one package is not installed. */
 function resolverWithout(missing: string): (spec: string) => string {

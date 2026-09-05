@@ -679,7 +679,7 @@ test('LOLLY_STATE_DIR is the name; LOLLY_TUI_DIR still works and says it is depr
   const push = (m: string): number => notes.push(m);
   assert.deepEqual(
     resolveStateDir({ LOLLY_STATE_DIR: '/tmp/state' } as NodeJS.ProcessEnv, push),
-    { dir: '/tmp/state', explicit: true, deprecated: false },
+    { dir: '/tmp/state', explicit: true, deprecated: false, source: 'env', shared: false },
   );
   assert.deepEqual(notes, [], 'the current name must not print a deprecation note');
 
@@ -693,6 +693,10 @@ test('LOLLY_STATE_DIR is the name; LOLLY_TUI_DIR still works and says it is depr
 
   const fresh = resolveStateDir({ LOLLY_STATE_DIR: '/a', LOLLY_TUI_DIR: '/b' } as NodeJS.ProcessEnv, push);
   assert.equal(fresh.dir, '/a', 'the new name wins when both are set');
+  // Neither remaining rung is "explicit": with no variable set the resolver falls to the
+  // desktop app's data directory when the app is installed here, else ~/.lolly. The full
+  // rung order is pinned in packages/node-shell/test/state-dir.test.ts, against an
+  // injected exists probe so it never depends on what this machine has installed.
   assert.equal(resolveStateDir({} as NodeJS.ProcessEnv, () => {}).explicit, false);
   resetStateDirWarning();
 });
@@ -705,20 +709,27 @@ test('host.state persists to LOLLY_STATE_DIR when one is named, and stays in mem
   try {
     const host = await createCliBridge({ dom: dom.window as never, profile: {} } as never);
     await host.state.save('slot-a', { hello: 'world' });
-    assert.equal(existsSync(join(dir, 'state', 'slot-a.json')), true);
+    // The record layout is the desktop app's (plans/202 WP3.1), so the three local shells
+    // read and write one set of files: saved-state/<token>.json.
+    assert.equal(existsSync(join(dir, 'saved-state', 'slot-a.json')), true);
     // A SECOND process (a second bridge) sees it - which is the whole point: a tool that
     // saves state used to be unscriptable, because every run started empty.
     const host2 = await createCliBridge({ dom: dom.window as never, profile: {} } as never);
     assert.deepEqual(await host2.state.load('slot-a'), { hello: 'world' });
     assert.deepEqual((await host2.state.list()).map(e => e.slot), ['slot-a']);
     await host2.state.delete('slot-a');
-    assert.equal(existsSync(join(dir, 'state', 'slot-a.json')), false);
+    assert.equal(existsSync(join(dir, 'saved-state', 'slot-a.json')), false);
   } finally {
     delete process.env.LOLLY_STATE_DIR;
   }
+  // No directory named ⇒ the save stays in this run's memory map. Reads still consult the
+  // machine's shared home (the desktop app's, or ~/.lolly), so a session saved elsewhere
+  // loads by slot; writes never go there, because a headless render must not leave files
+  // nobody asked for (non-goal section 8.7).
   const ephemeral = await createCliBridge({ dom: dom.window as never, profile: {} } as never);
   await ephemeral.state.save('slot-b', { x: 1 });
   assert.equal(existsSync(join(root, 'state')), false, 'no state dir named ⇒ nothing on disk');
+  assert.equal(existsSync(join(root, 'saved-state')), false, 'and nothing in the shared layout either');
 });
 
 // ── B8: validate exit codes ──────────────────────────────────────────────────
@@ -923,10 +934,10 @@ test('section 12 O2: the manifest opts a tool out on every surface at once', asy
   assert.equal(isImprintFormat('svg'), false, 'the Imprint lives in pixels; svg has none');
 });
 
-test('section 12 O3: `validate` keeps its name - no `inspect` verb exists or is reserved', () => {
+test('section 12 O3: `validate` keeps its name beside the document `inspect` verb', () => {
   assert.ok(RESERVED_SUBCOMMANDS.includes('validate'));
-  assert.equal(RESERVED_SUBCOMMANDS.includes('inspect' as never), false,
-    'the rename was declined; reserving the word would imply it is still coming');
+  assert.ok(RESERVED_SUBCOMMANDS.includes('inspect'),
+    'document inspection is a separate verb; it does not rename file validation');
 });
 
 test('section 12 O2: a default PNG carries a REAL Lolly Imprint, embedded without a browser', async () => {

@@ -35,13 +35,16 @@
  * the contract defines - strictly better than an API present that throws on
  * every call. Same stance as images.ts and sharp.
  *
- * The two pure imports below come from `shells/web/src/lib/` rather than the
- * engine. Both are DOM-free by construction (lib/speech-whisper.ts is the pure
- * half its own header describes; lib/tts-blend.ts sits outside the engine only
- * because it consumes the 510x256 voice matrices a shell fetches), so importing
- * them keeps ONE implementation of the numbers, which is the rule that matters.
+ * The two pure sibling modules below (./speech-whisper.ts, ./tts-blend.ts) used
+ * to live in `shells/web/src/lib/` and be imported across the submodule
+ * boundary; plans/202 WP1.1 moved them here, and the web files re-export them.
+ * Neither belongs in the engine - whisper's chunk planning is a shell concern,
+ * and the blend maths consumes the 510x256 voice matrices a shell fetches - but
+ * one implementation of the numbers is the rule that matters, so a clip made in
+ * the terminal still says the same words at the same times as one from a tab.
  */
 
+import { transformersSessionOptions } from './ml/session.ts';
 import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -62,12 +65,12 @@ import type {
   SpeechSynthesizeOpts, SpeechTranscribeOpts, SpeechTranscript, SpeechVoiceInfo,
   SpeechWordTiming,
 } from '@lolly-tools/core/host-v1';
-import { blendStyleRow, phonemesForWord } from '../../../shells/web/src/lib/tts-blend.ts';
+import { blendStyleRow, phonemesForWord } from './tts-blend.ts';
 import {
   WHISPER_MODEL_BYTES, WHISPER_MODEL_ID, WHISPER_SAMPLE_RATE,
   cleanWordTimings, isSilentPcm, joinChunkTexts, planChunks, stitchChunks, whisperLang,
-} from '../../../shells/web/src/lib/speech-whisper.ts';
-import type { RawWord } from '../../../shells/web/src/lib/speech-whisper.ts';
+} from './speech-whisper.ts';
+import type { RawWord } from './speech-whisper.ts';
 import { missingPinnedFiles, pinnedBytes, resolveModelsDir } from './models-dir.ts';
 import type { ModelFilePin, ModelsDirOptions } from './models-dir.ts';
 import { repoRoot } from './repo-root.ts';
@@ -309,7 +312,7 @@ function loadKokoro(modelsDir: string, onProgress?: ProgressCb): Promise<KokoroR
       // No `device` here on purpose: in Node transformers.js resolves to the
       // onnxruntime-node CPU backend, which is the point of this port. The web
       // worker asks for 'wasm' because that is all a browser has.
-      StyleTextToSpeech2Model.from_pretrained(KOKORO_MODEL_ID, { dtype: 'q8', progress_callback }),
+      StyleTextToSpeech2Model.from_pretrained(KOKORO_MODEL_ID, { dtype: 'q8', progress_callback, ...transformersSessionOptions() }),
       AutoTokenizer.from_pretrained(KOKORO_MODEL_ID, { progress_callback }),
     ]);
     const { phonemize } = await import('phonemizer');
@@ -332,7 +335,7 @@ function loadWhisper(modelsDir: string, onProgress?: ProgressCb): Promise<AsrPip
     pointAtLocal(env, modelsDir);
     const progress_callback = downloadMeter(WHISPER_MODEL_BYTES, onProgress);
     const asr = await pipeline('automatic-speech-recognition', WHISPER_MODEL_ID, {
-      dtype: 'q8', progress_callback,
+      dtype: 'q8', progress_callback, ...transformersSessionOptions(),
     });
     return asr as unknown as AsrPipeline;
   })().catch((e: unknown) => { whisperRuntimes.delete(modelsDir); throw e; });

@@ -146,34 +146,53 @@ const TERMINATORS = ['/>', '?>', '/&gt;'];
 
 // Only scan the first and last 64 KB of files larger than 128 KB (SEAL-js does
 // the same): the record lives near a container boundary, never buried in pixels.
-const SCAN_EDGE = 64 * 1024;
-const SCAN_WHOLE_MAX = 128 * 1024;
+export const SEAL_SCAN_EDGE_BYTES = 64 * 1024;
+export const SEAL_SCAN_WHOLE_MAX_BYTES = 128 * 1024;
+export const SEAL_MAX_RECORD_CHARS = 64 * 1024;
+export const SEAL_MAX_RECORDS = 64;
+export const SEAL_MAX_FIELDS = 128;
+export const SEAL_MAX_FIELD_CHARS = 16 * 1024;
+export const SEAL_MAX_RANGE_SPEC_CHARS = 4 * 1024;
+export const SEAL_MAX_RANGES = 64;
+export const SEAL_MAX_ASSEMBLED_BYTES = 256 * 1024 * 1024;
 
-// Locate every candidate record's [start, end) byte span in `bin` (a
-// byte-transparent string of the whole file). `end` is just past the terminator.
-function locateRecords(bin: string, length: number): Array<{ start: number; end: number }> {
-  const spans: Array<{ start: number; end: number }> = [];
-  const windows: Array<[number, number]> = length > SCAN_WHOLE_MAX
-    ? [[0, SCAN_EDGE], [length - SCAN_EDGE, length]]
-    : [[0, length]];
+interface LocatedSealRecord { start: number; end: number; raw: string }
+
+// Locate every candidate record without materialising the entire image/video as
+// a second latin1 string. Large files expose only the first/last 64 KB as valid
+// record-start regions; each decoded window extends by one maximum record length
+// so a record beginning at the edge boundary can still close.
+function locateRecords(bytes: Uint8Array): LocatedSealRecord[] | null {
+  const length = bytes.length;
+  const spans: LocatedSealRecord[] = [];
+  const windows = length > SEAL_SCAN_WHOLE_MAX_BYTES
+    ? [
+        { scanStart: 0, scanEnd: SEAL_SCAN_EDGE_BYTES, textStart: 0, textEnd: Math.min(length, SEAL_SCAN_EDGE_BYTES + SEAL_MAX_RECORD_CHARS) },
+        { scanStart: length - SEAL_SCAN_EDGE_BYTES, scanEnd: length, textStart: Math.max(0, length - SEAL_SCAN_EDGE_BYTES - SEAL_MAX_RECORD_CHARS), textEnd: length },
+      ]
+    : [{ scanStart: 0, scanEnd: length, textStart: 0, textEnd: length }];
   const seen = new Set<number>();
-  for (const [wStart, wEnd] of windows) {
+  for (const scanWindow of windows) {
+    const bin = bytesToBin(bytes.subarray(scanWindow.textStart, scanWindow.textEnd));
+    const localScanStart = scanWindow.scanStart - scanWindow.textStart;
+    const localScanEnd = scanWindow.scanEnd - scanWindow.textStart;
     for (const needle of START_NEEDLES) {
-      let from = wStart;
+      let from = localScanStart;
       for (;;) {
         const at = bin.indexOf(needle, from);
-        if (at < 0 || at >= wEnd) break;
+        if (at < 0 || at >= localScanEnd) break;
         from = at + 1;
         // The char right after the needle's `seal` must be a space or `=`
         // (attribute form) - reject `<sealed>` and similar false hits.
         const after = bin[at + needle.length];
         if (after !== ' ' && after !== '=' && after !== ':') continue;
-        if (seen.has(at)) continue;
+        const absoluteAt = scanWindow.textStart + at;
+        if (seen.has(absoluteAt)) continue;
         // Find the nearest terminator after the start (but before the next `<`,
         // so a start with no terminator can't swallow the rest of the file).
         let end = -1;
         const nextTag = bin.indexOf('<', at + needle.length);
-        const limit = Math.min(at + 64 * 1024, length);
+        const limit = Math.min(at + SEAL_MAX_RECORD_CHARS, bin.length);
         for (const term of TERMINATORS) {
           const t = bin.indexOf(term, at + needle.length);
           if (t < 0 || t >= limit) continue;
@@ -183,8 +202,9 @@ function locateRecords(bin: string, length: number): Array<{ start: number; end:
           if (end < 0 || e < end) end = e;
         }
         if (end < 0) continue;
-        seen.add(at);
-        spans.push({ start: at, end });
+        if (spans.length >= SEAL_MAX_RECORDS) return null;
+        seen.add(absoluteAt);
+        spans.push({ start: absoluteAt, end: scanWindow.textStart + end, raw: bin.slice(at, end) });
       }
     }
   }
@@ -201,12 +221,13 @@ function entityDecode(s: string): string {
 // Pull `key="value"` (and DNS-tolerant `key=token`) pairs out of the record's
 // interior. The caller has already entity-decoded `interior`, so quoted values
 // use literal `"`. Order preserved.
-function extractPairs(interior: string): Array<[string, string]> {
+function extractPairs(interior: string): Array<[string, string]> | null {
   const pairs: Array<[string, string]> = [];
   const re = /([A-Za-z][A-Za-z0-9._+-]*)\s*=\s*(?:"([^"]*)"|([^\s"]+))/g;
   for (let m: RegExpExecArray | null; (m = re.exec(interior)); ) {
     const key = m[1]!;
     const val = m[2] !== undefined ? m[2] : (m[3] ?? '');
+    if (pairs.length >= SEAL_MAX_FIELDS || key.length > SEAL_MAX_FIELD_CHARS || val.length > SEAL_MAX_FIELD_CHARS) return null;
     pairs.push([key, val]);
   }
   return pairs;
@@ -254,11 +275,10 @@ function findSigValueSpan(rec: string): { valStart: number; valEnd: number } | n
  */
 export function parseSealRecords(bytes: Uint8Array): SealRecord[] {
   if (!(bytes instanceof Uint8Array) || bytes.length < 8) return [];
-  let bin: string;
-  try { bin = bytesToBin(bytes); } catch { return []; }
   const out: SealRecord[] = [];
-  let spans: Array<{ start: number; end: number }>;
-  try { spans = locateRecords(bin, bytes.length); } catch { return []; }
+  let spans: LocatedSealRecord[] | null;
+  try { spans = locateRecords(bytes); } catch { return []; }
+  if (!spans) return [];
 
   // Track previous signature-value spans so `P`/`p` markers in append chains at
   // least resolve to a definite offset (verification of chains is out of v1
@@ -268,7 +288,7 @@ export function parseSealRecords(bytes: Uint8Array): SealRecord[] {
 
   for (const span of spans) {
     try {
-      const rec = bin.slice(span.start, span.end);
+      const rec = span.raw;
       const sigSpan = findSigValueSpan(rec);
       if (!sigSpan) continue; // no locatable signature value - not a usable record
 
@@ -288,6 +308,7 @@ export function parseSealRecords(bytes: Uint8Array): SealRecord[] {
       // pairs, so quoted values are recognised. Offsets were already taken from
       // the RAW record above, so this never affects S/s.
       const pairs = extractPairs(entityDecode(interior));
+      if (!pairs) continue;
       const get = (k: string): string | undefined => {
         for (const [key, val] of pairs) if (key === k) return val;
         return undefined;
@@ -323,7 +344,7 @@ export function parseSealRecords(bytes: Uint8Array): SealRecord[] {
 
       // The signature value AS BYTES from the file (offset-exact, pre-decode).
       // NB: sigValueStart/End are ABSOLUTE file offsets, not record-relative.
-      const rawValue = bin.slice(sigValueStart, sigValueEnd);
+      const rawValue = rec.slice(sigSpan.valStart, sigSpan.valEnd);
 
       // Split off a leading TIMESTAMP: prefix for date sf, then decode the rest.
       let timestamp: string | null = null;
@@ -462,10 +483,13 @@ function resolveToken(tok: string, ctx: Record<string, number>, isStart: boolean
 /** Resolve a `b=` spec (`start~stop,start~stop,…`) to concrete file ranges.
  *  Throws on unresolved markers or out-of-bounds / non-monotonic ranges. */
 export function resolveRanges(spec: string, ctx: Record<string, number>): SealRange[] {
+  if (typeof spec !== 'string' || spec.length === 0 || spec.length > SEAL_MAX_RANGE_SPEC_CHARS) {
+    throw new Error('byte range spec is empty or too large');
+  }
   const len = ctx.f ?? 0;
   const ranges: SealRange[] = [];
   const parts = spec.split(',');
-  if (!parts.length) throw new Error('empty byte range');
+  if (!parts.length || parts.length > SEAL_MAX_RANGES) throw new Error('too many byte ranges');
   for (const part of parts) {
     const tilde = part.indexOf('~');
     if (tilde < 0) throw new Error(`range '${part}' has no '~'`);
@@ -481,9 +505,13 @@ export function resolveRanges(spec: string, ctx: Record<string, number>): SealRa
 /** Assemble the exact bytes the digest/signature operate on, by concatenating
  *  each range in order (SEAL-js MediaAsset.assembleBuffer). */
 export function assembleSealMessage(bytes: Uint8Array, ranges: SealRange[]): Uint8Array {
+  if (!Array.isArray(ranges) || ranges.length > SEAL_MAX_RANGES) throw new Error('seal: too many byte ranges');
   const parts: Uint8Array[] = [];
+  let total = 0;
   for (const r of ranges) {
     if (r.start < 0 || r.stop > bytes.length || r.stop < r.start) throw new Error('seal: range out of bounds');
+    total += r.stop - r.start;
+    if (!Number.isSafeInteger(total) || total > SEAL_MAX_ASSEMBLED_BYTES) throw new Error('seal: assembled message is too large');
     parts.push(bytes.subarray(r.start, r.stop));
   }
   return concatBytes(parts);

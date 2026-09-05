@@ -205,17 +205,48 @@ export function executionProviders(env: NodeJS.ProcessEnv = process.env): string
   return ['cpu'];
 }
 
+/**
+ * How many threads one session may use. Unset means onnxruntime's own default
+ * (every core). `LOLLY_ORT_THREADS=1` runs each graph on the calling thread with
+ * no pool at all: slower, but the cost is predictable on a shared box, and on
+ * macOS it avoids an exit-time abort in onnxruntime-node 1.29 where a pool thread
+ * outlives the runtime's logging mutex (`recursive_mutex lock failed`). The test
+ * suite sets it for exactly that reason. Anything that is not a whole number from
+ * 1 to 256 is ignored, so a typo falls back to the default rather than to zero.
+ */
+export function sessionThreads(env: NodeJS.ProcessEnv = process.env): number | undefined {
+  const raw = env.LOLLY_ORT_THREADS?.trim();
+  if (!raw) return undefined;
+  const n = Number(raw);
+  return Number.isInteger(n) && n >= 1 && n <= 256 ? n : undefined;
+}
+
+/**
+ * The same thread cap, in the shape transformers.js takes on `from_pretrained` and
+ * `pipeline` (`session_options` goes straight to onnxruntime). Empty when the knob
+ * is unset, so a spread leaves the call as it was.
+ */
+export function transformersSessionOptions(env: NodeJS.ProcessEnv = process.env): {
+  session_options?: { intraOpNumThreads: number; interOpNumThreads: number };
+} {
+  const threads = sessionThreads(env);
+  return threads ? { session_options: { intraOpNumThreads: threads, interOpNumThreads: threads } } : {};
+}
+
 const sessions = new Map<string, Promise<OrtSessionLike>>();
 
 /** Load one ONNX file into a memoised session. The path is the cache key, so two
  *  callers of the same model share one resident graph. */
 export function createSession(path: string, env: NodeJS.ProcessEnv = process.env): Promise<OrtSessionLike> {
-  const key = `${path}\u0000${executionProviders(env).join(',')}`;
+  const threads = sessionThreads(env);
+  const key = `${path}\u0000${executionProviders(env).join(',')}|${threads ?? ''}`;
   let entry = sessions.get(key);
   if (entry) return entry;
   entry = (async (): Promise<OrtSessionLike> => {
     const ort = await loadOrt();
-    return ort.InferenceSession.create(path, { executionProviders: executionProviders(env) });
+    const opts: Record<string, unknown> = { executionProviders: executionProviders(env) };
+    if (threads) { opts.intraOpNumThreads = threads; opts.interOpNumThreads = threads; }
+    return ort.InferenceSession.create(path, opts);
   })();
   sessions.set(key, entry);
   void entry.catch(() => { sessions.delete(key); });

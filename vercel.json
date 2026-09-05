@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "git": { "deploymentEnabled": true },
-  "buildCommand": "npm run build:web && npm run build:mcp-fn && npm run build:ca-fn && npm run build:penpot-fn",
+  "buildCommand": "npm run build:web:release && npm run build:mcp-fn && npm run build:ca-fn && npm run build:penpot-fn",
   "outputDirectory": "shells/web/dist",
   "functions": {
     "api/mcp/**": {
@@ -126,6 +126,11 @@
     { "source": "/docs/:lang(ar|bg|bn|cs|de|es|fr|hi|id|it|ja|ko|ms|nl|no|pl|pt|ro|sv|tl|tr|uk|ur|vi|zh|zh-hant)/:door(start|create|build|operate|trust)/:slug([a-z0-9-]+)", "destination": "/info/:lang/:door/:slug.html" },
     { "source": "/docs/:slug([a-z0-9-]+)", "destination": "/info/:slug.html" },
     { "source": "/docs/:lang(ar|bg|bn|cs|de|es|fr|hi|id|it|ja|ko|ms|nl|no|pl|pt|ro|sv|tl|tr|uk|ur|vi|zh|zh-hant)/:slug([a-z0-9-]+)", "destination": "/info/:lang/:slug.html" },
+    { "source": "/agents.md", "destination": "/info/agents.md" },
+    { "source": "/llms.txt", "destination": "/info/llms.txt" },
+    { "source": "/llms-full.txt", "destination": "/info/llms-full.txt" },
+    { "source": "/openapi.json", "destination": "/info/openapi.json" },
+    { "source": "/.well-known/lolly.json", "destination": "/info/well-known-lolly.json" },
     { "source": "/tool/:file([a-z0-9-]+\\.[a-z0-9-]+)", "destination": "/api/mcp/[...path]" },
     { "source": "/api/ca/:path*", "destination": "/api/ca/[...path]" },
     { "source": "/api/penpot/:path*", "destination": "/api/penpot/[...path]" },

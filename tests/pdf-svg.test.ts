@@ -14,7 +14,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { pdfNodesToSvg, windowPdfSvg } from '../engine/src/pdf-svg.ts';
+import {
+  pdfNodesToSvg, windowPdfSvg, cullPdfNodes,
+  PDF_SVG_MAX_NODES, PDF_SVG_MAX_PATH_D, PDF_SVG_MAX_TEXT_LINES,
+} from '../engine/src/pdf-svg.ts';
 import { interpretPdfPage } from '../engine/src/pdf-map.ts';
 import type { PdfNode } from '../engine/src/pdf-map.ts';
 
@@ -432,4 +435,22 @@ test('dedupePaths: translucent ink is never hoisted', () => {
   if (svg.includes('opacity=')) {
     assert.ok(!svg.includes('<use'), 'translucent duplicates must both stay inline');
   }
+});
+
+test('direct structured callers cannot bypass SVG serializer budgets', () => {
+  const box: PdfNode = { kind: 'box', x: 0, y: 0, w: 1, h: 1, rot: 0, fill: '#000' };
+  assert.throws(
+    () => pdfNodesToSvg(Array.from({ length: PDF_SVG_MAX_NODES + 1 }, () => box), OPTS),
+    /more than .* nodes/,
+  );
+  assert.throws(
+    () => pdfNodesToSvg([{ ...box, kind: 'image', _vectorPath: `M0 0${' '.repeat(PDF_SVG_MAX_PATH_D)}` }], OPTS),
+    /vector path exceeds/,
+  );
+  assert.throws(
+    () => pdfNodesToSvg([{ ...box, kind: 'text', text: 'x\n'.repeat(PDF_SVG_MAX_TEXT_LINES) }], OPTS),
+    /text lines/,
+  );
+  const tooMany = Array.from({ length: PDF_SVG_MAX_NODES + 1 }, () => box);
+  assert.equal(cullPdfNodes(tooMany, { x: 0, y: 0, width: 1, height: 1 }).nodes, tooMany, 'oversize culls fail open without a walk');
 });

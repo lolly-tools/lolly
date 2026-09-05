@@ -53,10 +53,11 @@ const EXCLUDE = new Set<string>([
 ]);
 
 
-// Upper bound on regex matches scanned per call (both passes share it), so a
-// pathological input can't spin. This mirrors the guard-counter convention in
-// media-sniff.ts, whose GIF/PNG walk loops bail at a fixed count.
-const MATCH_CAP = 100_000;
+// Public parser budgets. Four megabytes matches the other raw-SVG readers; the
+// shared match cap prevents a tiny declaration storm from allocating without
+// bound even below that byte ceiling.
+export const SVG_COLORS_MAX_CHARS = 4_000_000;
+export const SVG_COLORS_MAX_MATCHES = 100_000;
 
 /**
  * Extract the distinct colours an SVG paints with, as a deduplicated array in
@@ -65,7 +66,7 @@ const MATCH_CAP = 100_000;
  */
 export function extractSvgColors(svgText: string): string[] {
   const out: string[] = [];
-  if (typeof svgText !== 'string' || svgText.length === 0) return out;
+  if (typeof svgText !== 'string' || svgText.length === 0 || svgText.length > SVG_COLORS_MAX_CHARS) return out;
 
   const seen = new Set<string>();
 
@@ -99,17 +100,25 @@ export function extractSvgColors(svgText: string): string[] {
   // (a) presentation attributes: name="value" | name='value'. The (?<![-\w]) guard
   // stops `data-color=` / `fill-opacity`-style names, and hyphen-prefixed props like
   // `background-color`, from matching the bare `color` alternative.
+  // Match only through the opening quote, then find its close with indexOf. A
+  // single regex containing `[^quote]*` can repeatedly rescan a malformed tail
+  // containing many unterminated `fill="` prefixes.
   const attrRe =
-    /(?<![-\w])(?:fill|stroke|stop-color|flood-color|lighting-color|color)\s*=\s*(?:"([^"]*)"|'([^']*)')/gi;
-  while ((m = attrRe.exec(svgText)) && guard++ < MATCH_CAP) {
-    consider(m[1] ?? m[2]);
+    /(?<![-\w])(?:fill|stroke|stop-color|flood-color|lighting-color|color)\s*=\s*(["'])/gi;
+  while ((m = attrRe.exec(svgText)) && guard++ < SVG_COLORS_MAX_MATCHES) {
+    const quote = m[1]!;
+    const valueStart = attrRe.lastIndex;
+    const valueEnd = svgText.indexOf(quote, valueStart);
+    if (valueEnd < 0) break;
+    consider(svgText.slice(valueStart, valueEnd));
+    attrRe.lastIndex = valueEnd + 1;
   }
 
   // (b) CSS declarations: name: value (terminated by ; } or a quote). Covers both a
   // style="..." attribute value and a <style>...</style> block, since both are plain CSS text.
   const declRe =
     /(?<![-\w])(?:fill|stroke|stop-color|flood-color|lighting-color|color)\s*:\s*([^;}"']+)/gi;
-  while ((m = declRe.exec(svgText)) && guard++ < MATCH_CAP) {
+  while ((m = declRe.exec(svgText)) && guard++ < SVG_COLORS_MAX_MATCHES) {
     consider(m[1]);
   }
 

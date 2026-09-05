@@ -59,6 +59,9 @@
  *  view. */
 export const CONTENTSEAL_MESSAGE_BITS = 256;
 
+/** The threshold below is calibrated for exactly these four augmentations. */
+export const CONTENTSEAL_REQUIRED_VIEWS = 4;
+
 /** Default unanimity threshold for the FOUR-view test (original + JPEG q85 +
  *  JPEG q60 + 5% crop). ~1e-13 idealized false-positive rate (see the header);
  *  deliberately conservative because the binomial null is only an approximation
@@ -67,7 +70,7 @@ export const CONTENTSEAL_MESSAGE_BITS = 256;
 export const CONTENTSEAL_DEFAULT_TAU = 72;
 
 export interface ContentSealConsensus {
-  /** True if `unanimous >= tau` with at least 2 equal-length views: a single
+  /** True if `unanimous >= tau` with exactly four 256-bit views: a single
    *  consistent message survived all the augmentations. The ONLY field the UI
    *  turns into a positive verdict. */
   present: boolean;
@@ -123,9 +126,9 @@ export function contentSealConsensus(
   const V = views.length;
   const bits = V > 0 ? views[0]!.length : 0;
 
-  // Not enough views, or ragged/empty input → cannot measure agreement. Return
+  // Wrong view count/bit width, or ragged input → cannot measure agreement. Return
   // the safe non-answer rather than guessing (and never a false "present").
-  if (V < 2 || bits === 0 || views.some((v) => v.length !== bits)) {
+  if (V !== CONTENTSEAL_REQUIRED_VIEWS || bits !== CONTENTSEAL_MESSAGE_BITS || views.some((v) => v.length !== bits)) {
     return { present: false, unanimous: 0, bits, tau, views: V, minPairAgreement: 0, messageHex: '' };
   }
 

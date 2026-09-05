@@ -6,7 +6,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { parseSvgPath, parseSvgPathArgs, svgArcToBeziers } from '../engine/src/svg-path.ts';
+import {
+  parseSvgPath, parseSvgPathArgs, svgArcToBeziers,
+  SVG_PATH_MAX_ARGS, SVG_PATH_MAX_CHARS, SVG_PATH_MAX_SUBPATHS,
+} from '../engine/src/svg-path.ts';
 
 test('parseSvgPathArgs: tolerant number scan', () => {
   assert.deepEqual(parseSvgPathArgs('10 0 -5.5,3e1'), [10, 0, -5.5, 30]);
@@ -75,6 +78,17 @@ test('svgArcToBeziers: degenerate (same point) → empty', () => {
 test('empty / lone-move subpaths are dropped', () => {
   assert.deepEqual(parseSvgPath('M5 5'), []);   // a move with no geometry contributes nothing
   assert.deepEqual(parseSvgPath(''), []);
+});
+
+test('path input, numeric arguments and subpaths have fail-closed allocation budgets', () => {
+  assert.deepEqual(parseSvgPath(`M0 0L1 1${' '.repeat(SVG_PATH_MAX_CHARS)}`), []);
+  assert.deepEqual(parseSvgPathArgs(`0 `.repeat(SVG_PATH_MAX_ARGS + 1)), []);
+
+  const subpathStorm = Array.from(
+    { length: SVG_PATH_MAX_SUBPATHS + 1 },
+    (_unused, i) => `M${i} 0L${i} 1`,
+  ).join('');
+  assert.deepEqual(parseSvgPath(subpathStorm), []);
 });
 
 // ── Elliptical-arc flag tokenizing (regression, ex svg-path-arc.test.ts) ─────

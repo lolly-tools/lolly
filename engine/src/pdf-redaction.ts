@@ -56,7 +56,13 @@ const FULLY_HIDDEN = 0.95;
  * UNDER-reporting. That is the safe direction for a cap: a missed finding is a
  * gap, but an invented one would poison the whole check.
  */
-const MAX_COVERS = 64;
+export const PDF_REDACTION_MAX_COVERS = 64;
+/** Matches the interpreter's per-page output budget and bounds direct callers. */
+export const PDF_REDACTION_MAX_NODES = 4_000;
+/** A document-level convenience call cannot fan out over an unbounded page list. */
+export const PDF_REDACTION_MAX_PAGES = 10_000;
+/** A single text run this large is corrupt; bound normalization/report output. */
+export const PDF_REDACTION_MAX_TEXT_CHARS = 1_000_000;
 
 export interface Rect { x: number; y: number; w: number; h: number }
 
@@ -143,7 +149,7 @@ function coverFill(n: PdfNode): string | null {
 
 /** A text run's box. Note `w` is pdf-map's ESTIMATE, never a measurement. */
 function textRect(n: PdfNode): Rect | null {
-  if (n.kind !== 'text' || !n.text || !n.text.trim()) return null;
+  if (n.kind !== 'text' || !n.text || !n.text.slice(0, PDF_REDACTION_MAX_TEXT_CHARS).trim()) return null;
   if (!isFinite(n.x) || !isFinite(n.y) || !(n.w > 0) || !(n.h > 0)) return null;
   return { x: n.x, y: n.y, w: n.w, h: n.h };
 }
@@ -165,7 +171,8 @@ export function findHiddenText(nodes: PdfNode[], opts: RedactionOptions = {}): H
 
   // Index every opaque paint once, keeping its position in the paint order.
   const covers: Array<{ i: number; rect: Rect; fill: string }> = [];
-  for (let i = 0; i < nodes.length; i++) {
+  const nodeCount = Math.min(Array.isArray(nodes) ? nodes.length : 0, PDF_REDACTION_MAX_NODES);
+  for (let i = 0; i < nodeCount; i++) {
     const n = nodes[i]!;
     const fill = coverFill(n);
     if (!fill || !isFinite(n.x) || !isFinite(n.y) || !(n.w > 0) || !(n.h > 0)) continue;
@@ -173,7 +180,7 @@ export function findHiddenText(nodes: PdfNode[], opts: RedactionOptions = {}): H
   }
   if (!covers.length) return out;
 
-  for (let i = 0; i < nodes.length; i++) {
+  for (let i = 0; i < nodeCount; i++) {
     const tr = textRect(nodes[i]!);
     if (!tr) continue;
     const area = tr.w * tr.h;
@@ -191,12 +198,12 @@ export function findHiddenText(nodes: PdfNode[], opts: RedactionOptions = {}): H
 
     // Largest overlaps first, so the cap keeps the shapes that actually matter.
     hits.sort((a, b) => (b.rect.w * b.rect.h) - (a.rect.w * a.rect.h));
-    const kept = hits.slice(0, MAX_COVERS);
+    const kept = hits.slice(0, PDF_REDACTION_MAX_COVERS);
     const coverage = Math.min(1, unionArea(kept.map((h) => h.rect)) / area);
     if (coverage < minCoverage) continue;
 
     out.push({
-      text: nodes[i]!.text!.replace(/\s+/g, ' ').trim(),
+      text: nodes[i]!.text!.slice(0, PDF_REDACTION_MAX_TEXT_CHARS).replace(/\s+/g, ' ').trim(),
       rect: tr,
       coverage,
       fullyHidden: coverage >= FULLY_HIDDEN,
@@ -208,7 +215,7 @@ export function findHiddenText(nodes: PdfNode[], opts: RedactionOptions = {}): H
 
 /** Run the page pass across a document, tagging each finding with its page. */
 export function findHiddenTextInPages(pages: PdfNode[][], opts: RedactionOptions = {}): HiddenTextFinding[] {
-  return pages.flatMap((nodes, page) =>
+  return pages.slice(0, PDF_REDACTION_MAX_PAGES).flatMap((nodes, page) =>
     findHiddenText(nodes, opts).map((f) => ({ ...f, page })));
 }
 

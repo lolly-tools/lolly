@@ -16,13 +16,14 @@
 #   api-bundles     - regenerate the committed api/ function bundles and fail
 #                     on drift (they are generated esbuild output, like
 #                     catalog/tools/index.json).
-#   audit           - npm audit (blocks on HIGH/CRITICAL; moderate/low surfaced,
-#                     non-blocking) + SBOM freshness (regenerate sbom.cdx.json, fail
+#   audit           - every npm/Cargo lock is inventoried; npm audit and RustSec
+#                     block known vulnerabilities. Also checks SBOM freshness
+#                     (regenerate sbom.cdx.json, fail
 #                     on drift) + third-party notices (build:licenses exits 1 on a
 #                     coverage gap; drift in the generated files fails the diff) +
-#                     cargo license-map coverage (cargo-licenses.json needs a Rust
-#                     toolchain to regenerate, which CI lacks, so it is checked for
-#                     coverage of every Cargo.lock crate instead of by diff).
+#                     cargo license-map coverage for every Cargo.lock crate.
+#   secrets         - Gitleaks scans all parent-repository history with redacted
+#                     output and narrow, commit-scoped fixture exceptions.
 #                     Ongoing supply-chain watch for the security audit;
 #                     false alarms pinned via package.json overrides.
 # All gates (test / typecheck / validate / smoke / build+budget / api-bundles / audit)
@@ -53,15 +54,68 @@ env:
   ONNXRUNTIME_NODE_INSTALL_CUDA: skip
 
 jobs:
-  test:
-    name: test
+  secrets:
+    name: secret history scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      # Pinned to the last verified release: 8.30.1 has a confirmed silent
+      # detection regression (gitleaks/gitleaks#2170). Verify the release asset
+      # before executing it; upgrades must keep the scanner self-test below.
+      - name: Install pinned Gitleaks
+        env:
+          GITLEAKS_VERSION: '8.29.1'
+          GITLEAKS_LINUX_X64_SHA256: 'e4eb209d04e20339d77122a3bdf9cd41351255cfb27ebcb75e85325e04f88924'
+        run: |
+          archive="$RUNNER_TEMP/gitleaks.tar.gz"
+          bindir="$RUNNER_TEMP/gitleaks-bin"
+          curl --fail --silent --show-error --location \
+            --output "$archive" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "$GITLEAKS_LINUX_X64_SHA256  $archive" | sha256sum --check
+          mkdir -p "$bindir"
+          tar -xzf "$archive" -C "$bindir" gitleaks
+          echo "GITLEAKS_BIN=$bindir/gitleaks" >> "$GITHUB_ENV"
+
+      - name: Verify scanner contract
+        run: node --test tests/scan-secrets-runner.test.ts
+
+      - name: Verify workflow supply-chain pins
+        run: npm run check:workflow-pins
+
+      - name: Scan tracked Git history (redacted output)
+        run: npm run secrets:scan
+
+  test:
+    name: test (${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { shard: 'unit:engine', artifact: 'unit-engine' }
+          - { shard: 'unit:web', artifact: 'unit-web' }
+          - { shard: 'contracts', artifact: 'contracts' }
+          - { shard: 'security', artifact: 'security' }
+          - { shard: 'tools', artifact: 'tools' }
+          - { shard: 'browser', artifact: 'browser' }
+          - { shard: 'tauri', artifact: 'tauri' }
+          - { shard: 'conformance', artifact: 'conformance' }
+          - { shard: 'fuzz:regression', artifact: 'fuzz-regression' }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive   # tools/catalog/shells/services/docs are submodules; workspaces need every package.json
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
           cache: npm
@@ -69,148 +123,88 @@ jobs:
       - name: Install (workspaces)
         run: npm ci
 
+      - name: Install Rust toolchain (Tauri shard)
+        if: matrix.shard == 'tauri'
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
+
+      - name: Install Tauri system libraries
+        if: matrix.shard == 'tauri'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev \
+            libayatana-appindicator3-dev libssl-dev
+
       # Conformance binaries - the C2PA/PDF conformance tests (tests/c2pa-c2patool-
       # conformance.test.ts + gated cases in c2pa.test.ts / c2pa-formats.test.ts)
       # skip silently when qpdf/c2patool aren't on PATH. Install both so they run.
       - name: Install qpdf (PDF conformance checks)
+        if: matrix.shard == 'conformance'
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends qpdf
 
       - name: Cache c2patool
+        if: matrix.shard == 'conformance'
         id: c2patool-cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.cache/c2patool
-          key: c2patool-v0.26.70-x86_64-unknown-linux-gnu
+          key: c2patool-v0.26.70-x86_64-unknown-linux-gnu-7ad4d0958ca9f930b8048cc36f937f4203ba5335b1e726b0982a6e7f604942aa
 
       - name: Install c2patool (C2PA conformance checks)
-        if: steps.c2patool-cache.outputs.cache-hit != 'true'
+        if: matrix.shard == 'conformance' && steps.c2patool-cache.outputs.cache-hit != 'true'
+        env:
+          C2PATOOL_LINUX_X64_SHA256: '7ad4d0958ca9f930b8048cc36f937f4203ba5335b1e726b0982a6e7f604942aa'
         run: |
           curl -fsSL -o /tmp/c2patool.tar.gz \
             "https://github.com/contentauth/c2pa-rs/releases/download/c2patool-v0.26.70/c2patool-v0.26.70-x86_64-unknown-linux-gnu.tar.gz"
+          echo "$C2PATOOL_LINUX_X64_SHA256  /tmp/c2patool.tar.gz" | sha256sum --check
           tar -xzf /tmp/c2patool.tar.gz -C /tmp
           mkdir -p ~/.cache/c2patool
           install -m 0755 /tmp/c2patool/c2patool ~/.cache/c2patool/c2patool
 
       - name: Put c2patool on PATH
+        if: matrix.shard == 'conformance'
         run: |
           echo "$HOME/.cache/c2patool" >> "$GITHUB_PATH"
           "$HOME/.cache/c2patool/c2patool" --version
 
-      - name: Full test suite
-        # tee so the skip-gate step below can read the summary; pipefail
-        # keeps the suite's exit code authoritative through the pipe.
+      - name: Run required test shard
+        env:
+          LOLLY_SKIP_REPORT: artifacts/test-skips.json
         run: |
           set -o pipefail
-          npm test 2>&1 | tee test-output.log
+          mkdir -p artifacts
+          npm run "test:${{ matrix.shard }}" 2>&1 | tee test-output.log
 
-      # Skipped tests GATE (ratchet). On this runner the skip set is a KNOWN,
-      # environment-determined quantity - qpdf and c2patool are installed above,
-      # so the C2PA/PDF conformance tests all RUN here (zero conformance skips,
-      # including the dynamic "this c2patool build cannot read PDFs" case). A
-      # skip count above the baseline therefore means something that used to run
-      # is silently skipping again - e.g. a conformance-binary install step broke
-      # - and that must FAIL, not scroll past in the log.
-      #
-      # EXPECTED_SKIPS is a RATCHET BASELINE, not a hand-derived invariant: the
-      # per-test conditions (fixture presence, loops, dynamic t.skip) make the
-      # exact number impractical to derive statically, so it is pinned to the
-      # count observed on main (run 30541115113, 2026-07-30; +16 browser-gated
-      # golden/emission tests added 2026-07-31; 426->430 on run 33186818905,
-      # 2026-08-28 - the ship-tree push added pack/browser-gated tests without
-      # raising the pin in the same push). What legitimately skips on
-      # this runner, by reason (informational; these lines sum to 217 - one
-      # bucket has overcounted by 1 since the 2026-07-30 baseline run, which
-      # observed 200 against lines then summing to 201. Reconcile against the
-      # next CI run's per-reason output; the baseline number is the observed
-      # count, so the GATE is right even while the breakdown is off by one):
-      #  122  no browser - Playwright Chromium not installed
-      #   31  SUSE brand pack not mounted - brands/suse is `update = none` in CI
-      #   31  macOS ColorSync stock profiles absent on ubuntu (icc.test.ts)
-      #   28  UXDays keynote .penpot fixture (dev-machine only)
-      #   17  SUSE static fonts not in the lolly-start fallback profile
-      #   19  real ICC profile fixtures not committed (licensing: see that file)
-      #    8  no built /info on disk (docs-site tests)
-      #    6  ffprobe/ffmpeg not on PATH (independent EXR/Radiance checks)
-      #    5  SUSE variable font absent
-      #    4  SUSE-Regular.ttf absent (fallback-chain goldens)
-      #    3  ImageMagick not installed (optional external check)
-      #    2  perf/timing tests gated behind BENCH=1
-      #    2  LOLLY_ICC_TARG / misc fixtures not set
-      # Re-counted 2026-08-10 against the collab-era main (308 observed after the
-      # variable-font golden repoint made 4 fvar cases run everywhere): the growth
-      # since 292 (2026-08-04) is accumulated environment-gated tests that never
-      # raised the baseline in their own PRs - the 'SUSE brand pack not mounted'
-      # bucket 31->44, 'suse is not mounted' x3, suse tokens brand.json x2,
-      # 'skera not installed' x2, the LOLLY_BROWSER_DRILLS private-collab drill
-      # gate x1, penpot-start example materials x1.
-      # Prior note (2026-08-04, kept for the trail): re-counted against 54c3bdd
-      # (292 observed). The growth
-      # since the 216 baseline is new environment-gated tests from the upscale,
-      # matte, PSD/XCF and docs-site work, not tests that stopped running.
-      # Re-counted 2026-08-28 against run 33142057510 (423 observed): the growth
-      # since 308 is three weeks of environment-gated additions that never raised
-      # the baseline in their own pushes - the 08-26/27 browser-golden waves
-      # (AudioBufferSink waveforms, sequence-editor E2E, mesh-gradient looks: the
-      # 'no browser - Playwright Chromium' bucket), and the 08-28 pack moves
-      # (deck-builder/battlecards/pricing-table gated on the SUSE pack, which CI
-      # never mounts: ~60 in the 'SUSE brand pack not mounted' bucket). +3 on top
-      # of the observed count: the ask chunks.test drift guard and the two
-      # docs-landing-fragment built-site reads now skip (with a reason) instead
-      # of failing where public/info was never built.
-      # Re-counted 2026-09-03 against run 33759336348 (448 observed): +16 are the
-      # plan-183 CLI-parity tests, every one gated with its reason in the skip
-      # message - 3 browser-tier renders (mp4, pptx, the --tier-b-debug failure
-      # path) need shells/web/dist, which the test job never builds; 3 speech
-      # runs need Kokoro/Whisper staged; 5 model-pins staged-size checks and 5
-      # real-model ML runs (upscale, matte, ocr, ai-detect, reword) need weights.
-      # Models are fetched by consent only (`lolly models fetch`), so CI never
-      # has them by design; the pure halves of each module run everywhere.
-      # If a PR legitimately adds environment-gated tests, raise the baseline in
-      # that same PR; when skips are removed (e.g. browsers installed in CI, or
-      # fixtures committed), LOWER it so the ratchet keeps its teeth. Local runs
-      # are unaffected - this gate only runs in CI, where the toolchain is known.
-      - name: Skipped tests must not exceed the CI baseline
+      # Every skip is reviewed by file, full parent-chain name, reason,
+      # capability and owner. A replacement skip fails even when the count stays
+      # unchanged, and a stale expected skip fails so the manifest ratchets down.
+      - name: Skipped tests must match exact CI identities
         if: always()
-        env:
-          EXPECTED_SKIPS: 449   # +1 on 2026-09-03 (night): the --seconds/--fps browser-tier video case skips without Chromium on CI; +1 earlier that day: the inline-block/backdrop walker cases
         run: |
-          # node:test prints a run summary - "ℹ skipped N" (spec reporter) or
-          # "# skipped N" (tap, the non-TTY default on some Node lines). Strip
-          # ANSI colour codes first, then surface the counts in the job log.
-          sed $'s/\x1b\[[0-9;]*m//g' test-output.log \
-            | grep -E '^(#|ℹ) (tests|pass|fail|skipped|todo) [0-9]+' || true
-          # Name the failures here at the END of the log: the full TAP stream
-          # runs to ~45k lines and the scattered "not ok" lines fall outside
-          # what the Actions UI / log APIs surface, which makes a red run
-          # undiagnosable from the summary alone. Capped so a catastrophic run
-          # can't flood the log.
           echo "--- failing tests (first 50) ---"
           sed $'s/\x1b\[[0-9;]*m//g' test-output.log \
             | grep -E '^(not ok|✖|✗)' | head -50 || true
-          skipped=$(sed $'s/\x1b\[[0-9;]*m//g' test-output.log \
-            | grep -E '^(#|ℹ) skipped [0-9]+' | tail -1 | grep -oE '[0-9]+' | tail -1 || true)
-          if [ -z "$skipped" ]; then
-            echo "::error::no node:test skip summary found in test-output.log - cannot verify the skip baseline"
-            exit 1
-          fi
-          echo "skipped: $skipped (baseline: $EXPECTED_SKIPS)"
-          if [ "$skipped" -gt "$EXPECTED_SKIPS" ]; then
-            echo "::error::$skipped tests skipped, exceeding the expected CI baseline of $EXPECTED_SKIPS. Something that used to run is skipping again (check the qpdf/c2patool install steps and any new '# SKIP' reasons in the log). If new environment-gated tests were added on purpose, raise EXPECTED_SKIPS in ci.yml in this same PR."
-            exit 1
-          fi
-          if [ "$skipped" -lt "$EXPECTED_SKIPS" ]; then
-            echo "note: $skipped < $EXPECTED_SKIPS - skips were removed; lower EXPECTED_SKIPS in ci.yml to ratchet the baseline down."
-          fi
+          test -f artifacts/test-skips.json
+          npm run check:skip-identities -- --report=artifacts/test-skips.json --shard="${{ matrix.shard }}"
+
+      - name: Upload exact skip report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: test-skips-${{ matrix.artifact }}-${{ github.run_attempt }}
+          path: artifacts/test-skips.json
+          if-no-files-found: error
 
   typecheck:
     name: typecheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
           cache: npm
@@ -264,15 +258,32 @@ jobs:
       - name: Web shell code-map stats drift (stale? rerun build:web-src-readme)
         run: npm run check:web-src-readme
 
+      # The browser shell legitimately owns far more code than CLI. This gate is
+      # about concentration inside individual modules, not cross-shell parity.
+      - name: Web shell maintainability no-growth ratchet
+        run: npm run check:maintainability
+
+      - name: No new first-party Biome diagnostics
+        run: npm run lint:changed -- --all
+
+      - name: Repository and release inventory closure
+        run: npm run check:release-checklist && npm run check:host-v1-api
+
+      - name: Locale innerHTML markup allowlist
+        run: npm run check:locale-markup
+
+      - name: Parser inventory fuzz coverage and waiver expiry
+        run: npm run check:parser-inventory && npm run check:parser-assurance
+
   validate-catalog:
     name: validate catalog
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
           cache: npm
@@ -293,11 +304,11 @@ jobs:
     name: smoke (render every tool)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
           cache: npm
@@ -312,11 +323,11 @@ jobs:
     name: build + bundle budget
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
           cache: npm
@@ -341,11 +352,11 @@ jobs:
     name: api bundle drift
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
           cache: npm
@@ -370,14 +381,17 @@ jobs:
     steps:
       # No submodules: this job only needs action/ itself - the action performs
       # its own pinned lolly checkout into a work dir.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Action input boundary tests
+        run: node --test action/test/*.test.mjs
 
       - name: Render qr-code via the composite action (svg, no browser)
         id: render
         uses: ./action
         with:
           tool: qr-code
-          args: --url=https://lolly.tools
+          args-json: '["--url=https://lolly.tools"]'
           format: svg
           lolly-ref: ${{ github.sha }}
 
@@ -416,11 +430,11 @@ jobs:
     name: npm audit (high+critical)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
           cache: npm
@@ -428,12 +442,15 @@ jobs:
       - name: Install (workspaces)
         run: npm ci
 
-      - name: Audit - block on high/critical
-        run: npm audit --audit-level=high
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked --version 0.22.2
 
-      - name: Full advisory report (non-blocking, for the log)
+      - name: Audit every npm and Cargo dependency root
+        run: npm run audit:all
+
+      - name: Dependency lock inventory stays complete
         if: always()
-        run: npm audit || true
+        run: npm run audit:all -- --check
 
       # The committed CycloneDX SBOM (sbom.cdx.json) is generated from package-lock.json
       # (scripts/build-sbom.ts, deterministic). Regenerate + fail on drift so it can't go
@@ -492,7 +509,7 @@ jobs:
     # they work on either event; only the upstream diff step needs one, and it
     # takes the pushed range on a push.
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
           # Full history so --baseline-commit can reach the merge base.
@@ -504,10 +521,12 @@ jobs:
       - name: Install Opengrep
         env:
           OPENGREP_VERSION: '1.26.0'
+          OPENGREP_MANYLINUX_X86_SHA256: '40c21299eeddabf743b856daa843d24f9d4a027130671cd45b3b21776fd9ab26'
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download "v$OPENGREP_VERSION" --repo opengrep/opengrep \
             --pattern opengrep_manylinux_x86 --output /usr/local/bin/opengrep
+          echo "$OPENGREP_MANYLINUX_X86_SHA256  /usr/local/bin/opengrep" | sha256sum --check
           chmod +x /usr/local/bin/opengrep
           opengrep --version
 

@@ -15,6 +15,10 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import {
+  BRAND_IMPORT_MAX_DEPTH,
+  BRAND_IMPORT_MAX_PART_CHARS,
+  BRAND_IMPORT_MAX_SET_FILES,
+  BRAND_IMPORT_MAX_TOKEN_DOCS,
   coerceTokensDoc,
   assembleTokenSetFiles,
   extractPenpotProject,
@@ -63,6 +67,20 @@ test('coerceTokensDoc: non-object input → doc null + a typed warning', () => {
     assert.equal(r.warnings.length, 1);
     assert.ok(r.warnings[0]!.includes(expectedType), `expected warning to mention ${expectedType}, got: ${r.warnings[0]}`);
   }
+});
+
+test('coerceTokensDoc: excessive nesting and cyclic direct-JS inputs fail closed without throwing', () => {
+  let deep: Record<string, unknown> = { $value: '#fff', $type: 'color' };
+  for (let i = 0; i <= BRAND_IMPORT_MAX_DEPTH; i++) deep = { child: deep };
+  const tooDeep = coerceTokensDoc(deep);
+  assert.equal(tooDeep.doc, null);
+  assert.ok(tooDeep.warnings.some((warning) => warning.includes('levels')));
+
+  const cyclic: Record<string, unknown> = {};
+  cyclic.self = cyclic;
+  const cycle = coerceTokensDoc(cyclic);
+  assert.equal(cycle.doc, null);
+  assert.ok(cycle.warnings.some((warning) => warning.includes('cycle')));
 });
 
 // ── assembleTokenSetFiles ────────────────────────────────────────────────────
@@ -115,6 +133,14 @@ test('assembleTokenSetFiles: a non-object set body is skipped with a warning', (
   assert.ok(r.doc);
   assert.equal('Bad' in r.doc!, false);
   assert.ok(r.warnings.some(w => w.includes('Bad.json')));
+});
+
+test('assembleTokenSetFiles: an excessive loose-file fan-out refuses the whole import', () => {
+  const files: Record<string, unknown> = Object.create(null);
+  for (let i = 0; i <= BRAND_IMPORT_MAX_SET_FILES; i++) files[`set-${i}.json`] = {};
+  const r = assembleTokenSetFiles(files);
+  assert.equal(r.doc, null);
+  assert.ok(r.warnings.some((warning) => warning.includes('files')));
 });
 
 // ── extractPenpotProject ─────────────────────────────────────────────────────
@@ -209,6 +235,24 @@ test('extractPenpotProject: zero tokens.json anywhere → doc null + warning', (
   const r = extractPenpotProject(entries);
   assert.equal(r.doc, null);
   assert.ok(r.warnings.some(w => w.includes('no tokens.json found')));
+});
+
+test('extractPenpotProject: token-document fan-out and oversized parts fail closed', () => {
+  const files = Array.from({ length: BRAND_IMPORT_MAX_TOKEN_DOCS + 1 }, (_, i) => ({ id: `f${i}` }));
+  const entries: Record<string, Uint8Array | string> = {
+    'manifest.json': jsonBytes({ type: 'penpot/export-files', files }),
+  };
+  for (const file of files) entries[`files/${file.id}/tokens.json`] = '{}';
+  const fanOut = extractPenpotProject(entries);
+  assert.equal(fanOut.doc, null);
+  assert.ok(fanOut.warnings.some((warning) => warning.includes('token documents')));
+
+  const oversized = extractPenpotProject({
+    'manifest.json': jsonBytes({ type: 'penpot/export-files', files: [{ id: 'huge' }] }),
+    'files/huge/tokens.json': ' '.repeat(BRAND_IMPORT_MAX_PART_CHARS + 1),
+  });
+  assert.equal(oversized.doc, null);
+  assert.ok(oversized.warnings.some((warning) => warning.includes('JSON part exceeds')));
 });
 
 // ── summarizeTokensDoc ───────────────────────────────────────────────────────

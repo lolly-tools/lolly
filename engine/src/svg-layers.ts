@@ -1390,7 +1390,7 @@ function rootAttributes(attrs: string, crop?: SvgLayerBox | null): string {
  * gives, from the same reader.
  */
 export function svgRootViewBox(markup: string): SvgLayerBox | null {
-  if (typeof markup !== 'string' || !markup) return null;
+  if (typeof markup !== 'string' || !markup || markup.length > SVG_LAYERS_MAX_CHARS) return null;
   const m = /<svg\b([^>]*)>/i.exec(markup);
   return m ? viewBoxOf(m[1]!) : null;
 }

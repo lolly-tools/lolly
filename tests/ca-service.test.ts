@@ -24,6 +24,11 @@ import {
   routeHealth as _routeHealth,
   routeRootPem as _routeRootPem,
 } from '../services/ca/handler.mjs';
+import {
+  createRateLimiter as _createRateLimiter,
+  MemoryRateLimiter as _MemoryRateLimiter,
+  RedisRestRateLimiter as _RedisRestRateLimiter,
+} from '../services/ca/lib/rate-limit.mjs';
 import { generateCaRoot, derToPem, pemToDer } from '../engine/src/x509.ts';
 import { parseCertificate } from '../engine/src/c2pa-verify.ts';
 
@@ -41,6 +46,9 @@ const routeAuth: any = _routeAuth;
 const routeEmailStart: any = _routeEmailStart;
 const routeHealth: any = _routeHealth;
 const routeRootPem: any = _routeRootPem;
+const createRateLimiter: any = _createRateLimiter;
+const MemoryRateLimiter: any = _MemoryRateLimiter;
+const RedisRestRateLimiter: any = _RedisRestRateLimiter;
 
 const SECRET = 'test-secret';
 const DAY = 24 * 3600 * 1000;
@@ -211,6 +219,36 @@ test('routeEmailStart: origin gate, syntax check, 501 without Resend config', as
   assert.equal((await routeEmailStart(env, { email: 'a@b.co', origin: 'https://evil.example' })).status, 403);
   assert.equal((await routeEmailStart(env, { email: 'not-an-email', origin: 'https://lolly.tools' })).status, 400);
   assert.equal((await routeEmailStart(env, { email: 'a@b.co', origin: 'https://lolly.tools' })).status, 501);
+});
+
+test('CA durable limiter hashes subjects, uses atomic REST admission and is mandatory when hosted', async () => {
+  let requestBody = '';
+  const limiter = new RedisRestRateLimiter({
+    url: 'https://limit.example.test',
+    token: 'test-token',
+    fetchImpl: async (_url: string, init: RequestInit) => {
+      requestBody = String(init.body);
+      return new Response(JSON.stringify({ result: [2, 15_000] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    },
+  });
+  const denied = await limiter.consume('email-address', 'private@example.test', 1, 60_000);
+  assert.equal(denied.ok, false);
+  assert.equal(denied.retryAfter, 15);
+  assert.match(requestBody, /"EVAL"/);
+  assert.doesNotMatch(requestBody, /private@example\.test/);
+
+  assert.throws(() => createRateLimiter({ VERCEL: '1' }), /durable CA rate limiter/i);
+  assert.doesNotThrow(() => createRateLimiter({ VERCEL: '1', CA_ALLOW_IN_MEMORY_RATE_LIMIT: '1' }));
+
+  let now = 0;
+  const memory = new MemoryRateLimiter(() => now);
+  assert.equal((await memory.consume('enroll', 'a', 1, 1_000)).ok, true);
+  assert.equal((await memory.consume('enroll', 'a', 1, 1_000)).ok, false);
+  now = 1_001;
+  assert.equal((await memory.consume('enroll', 'a', 1, 1_000)).ok, true);
 });
 
 // ─── dev provider ─────────────────────────────────────────────────────────────

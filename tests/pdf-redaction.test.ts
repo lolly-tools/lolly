@@ -13,7 +13,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { findHiddenText, findHiddenTextInPages, describeHiddenText } from '../engine/src/pdf-redaction.ts';
+import {
+  findHiddenText, findHiddenTextInPages, describeHiddenText, PDF_REDACTION_MAX_NODES,
+} from '../engine/src/pdf-redaction.ts';
 import { interpretPdfPage } from '../engine/src/pdf-map.ts';
 import type { PdfNode } from '../engine/src/pdf-map.ts';
 
@@ -268,4 +270,10 @@ test('a real content stream that paints a bar over text is caught end to end', (
   const found = findHiddenText(nodes, { minCoverage: 0.5 });
   assert.equal(found.length, 1, 'the covered run should be found');
   assert.equal(found[0]!.text, 'classified');
+});
+
+test('the direct-call node cap bounds paint-order scans', () => {
+  const nodes: PdfNode[] = Array.from({ length: PDF_REDACTION_MAX_NODES }, (_, i) => box(i, 0, 1, 1));
+  nodes.push(text('outside budget', 60, 100), box(55, 96, 110, 22));
+  assert.deepEqual(findHiddenText(nodes), []);
 });

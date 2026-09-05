@@ -207,5 +207,12 @@
   "Imported": "আমদানি হয়েছে",
   "Copyright": "কপিরাইট",
   "Captured": "তোলা হয়েছে",
-  "Keywords": "কীওয়ার্ড"
+  "Keywords": "কীওয়ার্ড",
+  "Check for updates": "আপডেট খুঁজুন",
+  "Up to date": "সবকিছু হালনাগাদ",
+  "Update available: {version}": "আপডেট রয়েছে: {version}",
+  "Install and restart": "ইনস্টল করে চালু করুন",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "ডিভাইসে থাকা মডেলটি রপ্তানি করা পিক্সেলে একটি অদৃশ্য ক্রেডেনশিয়াল লুকিয়ে রাখে। এখনই ডাউনলোড করুন (~{size}), তাহলে প্রথম টেকসই ক্রেডেনশিয়াল রপ্তানি কোনো অপেক্ষা ছাড়াই শুরু হবে।",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "ডিভাইসে থাকা মডেলটি রপ্তানি করা পিক্সেলে টেকসই ক্রেডেনশিয়াল লুকিয়ে রাখে। এটি সরালে জায়গা খালি হবে; পরেরবার ব্যবহারের সময় আপনার সম্মতিতে আবার ডাউনলোড হবে।",
+  "Removed the durable-credential model": "টেকসই ক্রেডেনশিয়াল মডেল সরানো হয়েছে"
 }

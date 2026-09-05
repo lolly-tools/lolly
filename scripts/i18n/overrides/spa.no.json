@@ -207,5 +207,12 @@
   "Imported": "Importert",
   "Copyright": "Opphavsrett",
   "Captured": "Tatt",
-  "Keywords": "Nøkkelord"
+  "Keywords": "Nøkkelord",
+  "Check for updates": "Se etter oppdateringer",
+  "Up to date": "Oppdatert",
+  "Update available: {version}": "Oppdatering tilgjengelig: {version}",
+  "Install and restart": "Installer og start på nytt",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "Modellen på enheten som skjuler en usynlig legitimasjon i eksporterte piksler. Last den ned nå (~{size}), så starter den første eksporten med varig legitimasjon med én gang, uten ventetid.",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "Modellen på enheten som skjuler den varige legitimasjonen i eksporterte piksler. Hvis du fjerner den, frigjøres plass; den lastes ned igjen med ditt samtykke neste gang den brukes.",
+  "Removed the durable-credential model": "Modellen for varig legitimasjon ble fjernet"
 }

@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.128.0', () => {
+test('ENGINE_VERSION is 1.180.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -421,7 +421,16 @@ test('ENGINE_VERSION is 1.128.0', () => {
   // 1.172.0: video export controls in URL mode - fps/seconds/wait/codec/vq reserved,
   //          parseVideoParams/VIDEO_CODEC_STRINGS exported, UrlState.video (the CLI/MCP
   //          parity fix for clips; plans/183 follow-up).
-  assert.equal(ENGINE_VERSION, '1.172.0');
+  // 1.173.0: design-system identity (plans/186) - the pure design-system.ts module,
+  //          `ds` reserved (parse-only), TokensAPI.list()/active() optional reads,
+  //          session record layout 2 (the designSystem stamp) - additive, no capture change.
+  // 1.174.0-1.178.0: document/provider APIs, declarative charts, canonical
+  // document diffs, and package/parser hardening - additive, no capture change.
+  // 1.179.0 (2026-09-05): ChartMotionV1 gains the renderer-neutral `stagger` preset -
+  //          additive, no capture change.
+  // 1.180.0 (2026-09-05): ChartSpecV1 gains the `line3d`/`ribbon3d` marks and the
+  //          `data-flight` motion preset - additive, no capture change.
+  assert.equal(ENGINE_VERSION, '1.180.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

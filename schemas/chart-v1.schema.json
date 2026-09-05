@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schema/chart-v1.schema.json",
+  "title": "Lolly ChartSpecV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "datasets", "series", "theme", "presentation", "accessibility"],
+  "properties": {
+    "version": { "const": 1 },
+    "datasets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "fields", "rows"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "fields": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "label", "type"],
+              "properties": {
+                "id": { "$ref": "#/$defs/id" },
+                "label": { "type": "string", "maxLength": 256 },
+                "type": { "$ref": "#/$defs/fieldType" }
+              }
+            }
+          },
+          "rows": {
+            "type": "array",
+            "maxItems": 100000,
+            "items": { "type": "object", "additionalProperties": { "$ref": "#/$defs/value" } }
+          },
+          "note": { "type": "string", "maxLength": 2000 },
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "checksum": { "type": "string" },
+              "label": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "series": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "dataset", "mark", "channels"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "name": { "type": "string", "maxLength": 256 },
+          "dataset": { "$ref": "#/$defs/id" },
+          "mark": {
+            "enum": [
+              "bar",
+              "line",
+              "area",
+              "point",
+              "arc",
+              "radial-bar",
+              "radar",
+              "treemap",
+              "pack",
+              "heatmap",
+              "histogram",
+              "box",
+              "violin",
+              "beeswarm",
+              "lollipop",
+              "dumbbell",
+              "slope",
+              "bump",
+              "stream",
+              "waterfall",
+              "marimekko",
+              "parallel",
+              "polar",
+              "funnel",
+              "gauge",
+              "waffle",
+              "sunburst",
+              "icicle",
+              "chord",
+              "wordcloud",
+              "rule",
+              "density",
+              "hexbin",
+              "regression",
+              "candlestick",
+              "bar3d",
+              "line3d",
+              "ribbon3d",
+              "scatter3d",
+              "surface3d",
+              "mesh3d",
+              "volume3d"
+            ]
+          },
+          "channels": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "x": { "$ref": "#/$defs/encoding" },
+              "y": { "$ref": "#/$defs/encoding" },
+              "z": { "$ref": "#/$defs/encoding" },
+              "size": { "$ref": "#/$defs/encoding" },
+              "colour": { "$ref": "#/$defs/encoding" },
+              "label": { "$ref": "#/$defs/encoding" },
+              "detail": { "$ref": "#/$defs/encoding" },
+              "frame": { "$ref": "#/$defs/encoding" },
+              "low": { "$ref": "#/$defs/encoding" },
+              "high": { "$ref": "#/$defs/encoding" },
+              "open": { "$ref": "#/$defs/encoding" },
+              "close": { "$ref": "#/$defs/encoding" },
+              "facetX": { "$ref": "#/$defs/encoding" },
+              "facetY": { "$ref": "#/$defs/encoding" },
+              "source": { "$ref": "#/$defs/encoding" },
+              "target": { "$ref": "#/$defs/encoding" }
+            }
+          },
+          "stack": { "enum": ["none", "stacked", "normalised"] }
+        }
+      }
+    },
+    "scales": { "type": "array", "items": { "$ref": "#/$defs/scale" } },
+    "axes": { "type": "array", "items": { "$ref": "#/$defs/axis" } },
+    "legends": { "type": "array", "items": { "$ref": "#/$defs/legend" } },
+    "formatting": { "type": "object", "additionalProperties": { "$ref": "#/$defs/formatter" } },
+    "theme": { "$ref": "#/$defs/theme" },
+    "motion": { "$ref": "#/$defs/motion" },
+    "presentation": { "$ref": "#/$defs/presentation" },
+    "accessibility": { "$ref": "#/$defs/accessibility" }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9._-]{0,127}$" },
+    "value": { "type": ["string", "number", "boolean", "null"] },
+    "fieldType": { "enum": ["string", "number", "date", "datetime", "boolean"] },
+    "encoding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field"],
+      "properties": {
+        "field": { "$ref": "#/$defs/id" },
+        "type": { "$ref": "#/$defs/fieldType" },
+        "title": { "type": "string" },
+        "scale": { "$ref": "#/$defs/id" },
+        "formatter": { "$ref": "#/$defs/id" }
+      }
+    },
+    "scale": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "enum": ["linear", "log", "sqrt", "time", "band", "ordinal", "symlog"] },
+        "domain": { "type": "array", "items": { "$ref": "#/$defs/value" } },
+        "zero": { "type": "boolean" },
+        "nice": { "type": "boolean" },
+        "clamp": { "type": "boolean" }
+      }
+    },
+    "axis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "scale", "side"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "scale": { "$ref": "#/$defs/id" },
+        "side": { "enum": ["top", "right", "bottom", "left", "z"] },
+        "title": { "type": "string" },
+        "formatter": { "$ref": "#/$defs/id" },
+        "grid": { "type": "boolean" },
+        "ticks": { "type": "number", "minimum": 0 }
+      }
+    },
+    "legend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "series", "position"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "series": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "position": { "type": "string" },
+        "title": { "type": "string" }
+      }
+    },
+    "formatter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "enum": ["auto", "number", "percent", "currency", "date", "datetime", "duration"]
+        },
+        "locale": { "type": "string" },
+        "currency": { "type": "string" },
+        "maximumFractionDigits": { "type": "integer", "minimum": 0, "maximum": 20 },
+        "notation": { "enum": ["standard", "compact", "scientific"] }
+      }
+    },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source", "font", "colours", "marks", "scene", "motion"],
+      "properties": {
+        "id": { "type": "string" },
+        "source": { "enum": ["brand-profile", "brand-derived", "lolly-fallback"] },
+        "sourceId": { "type": "string" },
+        "sourceLabel": { "type": "string" },
+        "sourceChecksum": { "type": "string" },
+        "locked": { "type": "boolean" },
+        "font": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "brand": { "type": "string" },
+            "display": { "type": "string" },
+            "mono": { "type": "string" }
+          }
+        },
+        "colours": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "surface",
+            "ink",
+            "muted",
+            "edge",
+            "primary",
+            "secondary",
+            "categorical",
+            "sequential",
+            "diverging"
+          ],
+          "properties": {
+            "surface": { "type": "string" },
+            "ink": { "type": "string" },
+            "muted": { "type": "string" },
+            "edge": { "type": "string" },
+            "primary": { "type": "string" },
+            "secondary": { "type": "string" },
+            "categorical": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+            "sequential": { "type": "array", "minItems": 2, "items": { "type": "string" } },
+            "diverging": { "type": "array", "minItems": 2, "items": { "type": "string" } }
+          }
+        },
+        "marks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lineWidth", "cornerRadius", "pointShape", "patterns"],
+          "properties": {
+            "lineWidth": { "type": "number", "minimum": 0 },
+            "cornerRadius": { "type": "number", "minimum": 0 },
+            "pointShape": { "enum": ["circle", "square", "diamond"] },
+            "patterns": { "type": "boolean" }
+          }
+        },
+        "scene": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["material", "roughness", "metalness", "shadows"],
+          "properties": {
+            "material": { "enum": ["accurate", "matte", "gloss", "glass"] },
+            "roughness": { "type": "number", "minimum": 0, "maximum": 1 },
+            "metalness": { "type": "number", "minimum": 0, "maximum": 1 },
+            "shadows": { "type": "boolean" }
+          }
+        },
+        "motion": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["easing", "durationMs", "staggerMs"],
+          "properties": {
+            "easing": { "enum": ["linear", "smooth"] },
+            "durationMs": { "type": "number", "minimum": 0 },
+            "staggerMs": { "type": "number", "minimum": 0 }
+          }
+        },
+        "provenance": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    },
+    "motion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "preset", "duration", "loop", "easing", "poster"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "preset": { "enum": ["none", "reveal", "stagger", "by-frame-field", "race", "orbit", "reveal-orbit", "data-flight"] },
+        "duration": { "type": "number", "minimum": 0 },
+        "loop": { "enum": ["once", "loop", "bounce"] },
+        "easing": { "enum": ["linear", "smooth", "steps"] },
+        "poster": { "type": "number", "minimum": 0, "maximum": 1 },
+        "frameField": { "$ref": "#/$defs/id" }
+      }
+    },
+    "presentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "style",
+        "dimension",
+        "rendererFamily",
+        "exportFidelity",
+        "width",
+        "height",
+        "transparent"
+      ],
+      "properties": {
+        "style": { "$ref": "#/$defs/id" },
+        "dimension": { "enum": [2, 3] },
+        "rendererFamily": { "enum": ["svg", "scene-3d", "scientific", "high-volume"] },
+        "exportFidelity": { "enum": ["vector", "hybrid", "raster"] },
+        "width": { "type": "number", "minimum": 1, "maximum": 32768 },
+        "height": { "type": "number", "minimum": 1, "maximum": 32768 },
+        "transparent": { "type": "boolean" },
+        "camera": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["projection", "azimuth", "elevation"],
+          "properties": {
+            "projection": { "enum": ["orthographic", "perspective"] },
+            "azimuth": { "type": "number" },
+            "elevation": { "type": "number" }
+          }
+        }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "description", "readingOrder", "table", "colourOnly", "patterns"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "readingOrder": { "type": "array", "items": { "type": "string" } },
+        "table": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["columns", "rows"],
+          "properties": {
+            "columns": { "type": "array", "items": { "type": "string" } },
+            "rows": {
+              "type": "array",
+              "items": { "type": "array", "items": { "$ref": "#/$defs/value" } }
+            }
+          }
+        },
+        "colourOnly": { "type": "boolean" },
+        "patterns": { "type": "boolean" },
+        "motionDescription": { "type": "string" }
+      }
+    }
+  }
+}

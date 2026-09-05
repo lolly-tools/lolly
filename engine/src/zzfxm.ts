@@ -33,6 +33,24 @@ export const zzfxR = 44100;
 /** ZzFX global volume scale, read inside `zzfxG`. Matches upstream default. */
 export const zzfxV = 0.3;
 
+// Public allocation/work budgets for hostile or hand-built song objects. The
+// renderer mixes through ordinary JS number arrays before producing Float32
+// output, so its practical heap cost is several times the final PCM byte size.
+export const ZZFXM_MAX_INSTRUMENTS = 128;
+export const ZZFXM_MAX_INSTRUMENT_PARAMS = 21;
+export const ZZFXM_MAX_PATTERNS = 1_024;
+export const ZZFXM_MAX_SEQUENCE = 4_096;
+export const ZZFXM_MAX_CHANNELS = 32;
+export const ZZFXM_MAX_STEPS_PER_PATTERN = 32_768;
+export const ZZFXM_MAX_OUTPUT_SAMPLES = zzfxR * 300; // five minutes per stereo channel
+export const ZZFXM_MAX_MIX_SAMPLE_OPS = 50_000_000;
+export const ZZFXM_MAX_SYNTH_SAMPLES = zzfxR * 30;
+export const ZZFXM_MAX_CACHE_SAMPLES = zzfxR * 120;
+export const ZZFXM_MIN_BPM = 20;
+export const ZZFXM_MAX_BPM = 400;
+export const ZZFXM_MAX_NOTE = 128;
+export const ZZFXM_MAX_NUMERIC_MAGNITUDE = 1_000_000;
+
 /** One ZzFX instrument: the (mostly optional) parameter list passed to `zzfxG`. */
 export type ZzfxInstrument = number[];
 
@@ -67,11 +85,132 @@ export interface RenderedPcm {
   sampleRate: number;
 }
 
+function budgetError(message: string): never {
+  throw new RangeError(`zzfxm: ${message}`);
+}
+
+function instrumentSampleCount(params: readonly unknown[], label: string): number {
+  if (params.length > ZZFXM_MAX_INSTRUMENT_PARAMS) budgetError(`${label} has too many parameters`);
+  for (let i = 0; i < params.length; i++) {
+    const value = params[i];
+    // Sparse arrays use the upstream defaults, just like omitted positional args.
+    if (value === undefined) continue;
+    if (typeof value !== 'number' || !Number.isFinite(value) || Math.abs(value) > ZZFXM_MAX_NUMERIC_MAGNITUDE) {
+      budgetError(`${label} has an invalid parameter`);
+    }
+  }
+  const duration = (index: number, fallback = 0): number => {
+    const value = params[index] ?? fallback;
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+      budgetError(`${label} has an invalid envelope duration`);
+    }
+    return value;
+  };
+  const seconds = duration(3) + duration(18) + duration(4) + duration(5, 0.1) + duration(16);
+  const samples = Math.ceil(seconds * zzfxR);
+  if (!Number.isSafeInteger(samples) || samples > ZZFXM_MAX_SYNTH_SAMPLES) {
+    budgetError(`${label} exceeds the ${ZZFXM_MAX_SYNTH_SAMPLES}-sample synth limit`);
+  }
+  return samples;
+}
+
+/** Validate all allocation-driving ZzFXM dimensions before the vendored mixer runs. */
+export function assertZzfxmBudgets(
+  instruments: unknown,
+  patterns: unknown,
+  sequence: unknown,
+  bpm: unknown = 125,
+): asserts instruments is ZzfxInstrument[] {
+  if (!Array.isArray(instruments) || instruments.length === 0 || instruments.length > ZZFXM_MAX_INSTRUMENTS) {
+    budgetError(`instrument count must be 1..${ZZFXM_MAX_INSTRUMENTS}`);
+  }
+  const synthSamples = instruments.map((params, i) => {
+    if (!Array.isArray(params)) budgetError(`instrument ${i} is not an array`);
+    return instrumentSampleCount(params, `instrument ${i}`);
+  });
+  if (!Array.isArray(patterns) || patterns.length === 0 || patterns.length > ZZFXM_MAX_PATTERNS) {
+    budgetError(`pattern count must be 1..${ZZFXM_MAX_PATTERNS}`);
+  }
+  if (!Array.isArray(sequence) || sequence.length === 0 || sequence.length > ZZFXM_MAX_SEQUENCE) {
+    budgetError(`sequence count must be 1..${ZZFXM_MAX_SEQUENCE}`);
+  }
+  if (typeof bpm !== 'number' || !Number.isFinite(bpm) || bpm < ZZFXM_MIN_BPM || bpm > ZZFXM_MAX_BPM) {
+    budgetError(`BPM must be ${ZZFXM_MIN_BPM}..${ZZFXM_MAX_BPM}`);
+  }
+
+  const patternSteps: number[] = new Array(patterns.length);
+  const patternChannels: number[] = new Array(patterns.length);
+  for (let pi = 0; pi < patterns.length; pi++) {
+    const pattern = patterns[pi];
+    if (!Array.isArray(pattern) || pattern.length === 0 || pattern.length > ZZFXM_MAX_CHANNELS) {
+      budgetError(`pattern ${pi} channel count must be 1..${ZZFXM_MAX_CHANNELS}`);
+    }
+    let rowLength = -1;
+    for (let ci = 0; ci < pattern.length; ci++) {
+      const row = pattern[ci];
+      if (!Array.isArray(row) || row.length < 3 || row.length - 2 > ZZFXM_MAX_STEPS_PER_PATTERN) {
+        budgetError(`pattern ${pi} channel ${ci} has an invalid step count`);
+      }
+      if (rowLength < 0) rowLength = row.length;
+      else if (row.length !== rowLength) budgetError(`pattern ${pi} has ragged channel rows`);
+      const instrument = row[0];
+      if (!Number.isSafeInteger(instrument) || instrument < 0 || instrument >= instruments.length) {
+        budgetError(`pattern ${pi} channel ${ci} has an invalid instrument index`);
+      }
+      const pan = row[1];
+      if (typeof pan !== 'number' || !Number.isFinite(pan) || pan < -1 || pan > 1) {
+        budgetError(`pattern ${pi} channel ${ci} has invalid panning`);
+      }
+      for (let ni = 2; ni < row.length; ni++) {
+        const note = row[ni];
+        if (typeof note !== 'number' || !Number.isFinite(note) || Math.abs(note) > ZZFXM_MAX_NOTE) {
+          budgetError(`pattern ${pi} channel ${ci} has an invalid note`);
+        }
+      }
+    }
+    patternSteps[pi] = rowLength - 2;
+    patternChannels[pi] = pattern.length;
+  }
+
+  let steps = 0;
+  let channels = 0;
+  const sounds = new Set<string>();
+  let cacheSamples = 0;
+  for (let si = 0; si < sequence.length; si++) {
+    const patternIndex = sequence[si];
+    if (!Number.isSafeInteger(patternIndex) || patternIndex < 0 || patternIndex >= patterns.length) {
+      budgetError(`sequence item ${si} has an invalid pattern index`);
+    }
+    steps += patternSteps[patternIndex]!;
+    channels = Math.max(channels, patternChannels[patternIndex]!);
+    if (!Number.isSafeInteger(steps)) budgetError('step total is not a safe integer');
+    const pattern = patterns[patternIndex] as unknown[][];
+    for (const row of pattern) {
+      const instrument = row[0] as number;
+      for (let ni = 2; ni < row.length; ni++) {
+        const note = (row[ni] as number) | 0;
+        if (note <= 0) continue;
+        const key = `${instrument},${note}`;
+        if (sounds.has(key)) continue;
+        sounds.add(key);
+        cacheSamples += synthSamples[instrument]!;
+        if (cacheSamples > ZZFXM_MAX_CACHE_SAMPLES) budgetError('synth sample cache budget exceeded');
+      }
+    }
+  }
+  const beatLength = ((zzfxR / bpm) * 60) >> 2;
+  const outputSamples = (steps + 1) * beatLength;
+  if (!Number.isSafeInteger(outputSamples) || outputSamples > ZZFXM_MAX_OUTPUT_SAMPLES) {
+    budgetError('rendered duration budget exceeded');
+  }
+  if (outputSamples * channels > ZZFXM_MAX_MIX_SAMPLE_OPS) budgetError('mix work budget exceeded');
+}
+
 /* ------------------------------------------------------------------------- *
  *  Vendored: ZzFX Micro synth (generator).  MIT © 2019 Frank Force.
  *  Do not refactor. Keep faithful to upstream.
  * ------------------------------------------------------------------------- */
-export function zzfxG(
+function zzfxGUnchecked(
   volume = 1,
   randomness = 0.05,
   frequency = 220,
@@ -213,11 +352,17 @@ export function zzfxG(
   return b;
 }
 
+/** Guarded public wrapper around the unchanged upstream mono synthesiser. */
+export function zzfxG(...args: number[]): number[] {
+  instrumentSampleCount(args, 'instrument');
+  return zzfxGUnchecked(...args);
+}
+
 /* ------------------------------------------------------------------------- *
  *  Vendored: ZzFXM song renderer.  MIT © Keith Clark & Frank Force.
  *  Do not refactor. Keep faithful to upstream.
  * ------------------------------------------------------------------------- */
-export function zzfxM(
+function zzfxMUnchecked(
   instruments: ZzfxInstrument[],
   patterns: ZzfxPattern[],
   sequence: number[],
@@ -248,7 +393,7 @@ export function zzfxM(
   const beatLength = ((zzfxR / BPM) * 60) >> 2;
   // `zzfxG` has a fixed param list; the renderer applies a variable-length
   // instrument array to it, so view it through a rest signature for the spread.
-  const genG = zzfxG as (...args: number[]) => number[];
+  const genG = zzfxGUnchecked as (...args: number[]) => number[];
 
   // for each channel in order until there are no more
   for (; hasMore; channelIndex++) {
@@ -318,6 +463,17 @@ export function zzfxM(
   }
 
   return [leftChannelBuffer, rightChannelBuffer];
+}
+
+/** Guarded public wrapper around the unchanged upstream song mixer. */
+export function zzfxM(
+  instruments: ZzfxInstrument[],
+  patterns: ZzfxPattern[],
+  sequence: number[],
+  BPM = 125,
+): [number[], number[]] {
+  assertZzfxmBudgets(instruments, patterns, sequence, BPM);
+  return zzfxMUnchecked(instruments, patterns, sequence, BPM);
 }
 
 /**

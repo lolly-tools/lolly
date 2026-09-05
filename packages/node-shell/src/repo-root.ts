@@ -18,8 +18,10 @@ import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-/** A directory is the repo root when it carries a built catalog profile view. */
-function hasMarker(root: string): boolean {
+/** A directory is the repo root when it carries a built catalog profile view.
+ *  Exported as `hasCatalogMarker` so a shell can ASK whether it has content at all
+ *  (shells/cli/src/content-root.ts) rather than keeping a second copy of this rule. */
+export function hasCatalogMarker(root: string): boolean {
   return existsSync(join(root, 'catalog', 'tools', 'index.json'))
     || existsSync(join(root, 'catalog', 'assets', 'index.json'));
 }
@@ -33,15 +35,15 @@ export function repoRoot(): string {
 }
 
 function resolve(): string {
-  if (process.env.LOLLY_ROOT && hasMarker(process.env.LOLLY_ROOT)) return process.env.LOLLY_ROOT;
+  if (process.env.LOLLY_ROOT && hasCatalogMarker(process.env.LOLLY_ROOT)) return process.env.LOLLY_ROOT;
   let dir = dirname(fileURLToPath(import.meta.url));
   for (;;) {
-    if (hasMarker(dir)) return dir;
+    if (hasCatalogMarker(dir)) return dir;
     const parent = dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
-  if (hasMarker(process.cwd())) return process.cwd();
+  if (hasCatalogMarker(process.cwd())) return process.cwd();
   // Last resort (e.g. a checkout whose profile views were never built): the
   // monorepo-relative guess.
   return join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');

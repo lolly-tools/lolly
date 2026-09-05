@@ -98,16 +98,16 @@ const MIN_LEVEL = 1e-32;
 const MIN_RUN = 4;
 /** New-style RLE is only legal for these widths (freadcolrs' signature test). */
 const RLE_MIN_WIDTH = 8;
-const RLE_MAX_WIDTH = 0x7fff;
+export const RADIANCE_RLE_MAX_WIDTH = 0x7fff;
 
 /** Refuse to parse a header longer than this (hostile input guard). */
-const MAX_HEADER_BYTES = 64 * 1024;
+export const RADIANCE_MAX_HEADER_BYTES = 64 * 1024;
 /**
  * Refuse to allocate for an image larger than this (hostile input guard).
  * 32 Mpx covers an 8192x4096 environment map, the largest thing anyone
  * routinely ships as `.hdr`, and caps the decode at ~512 MB of Float32.
  */
-const MAX_PIXELS = 32 * 1024 * 1024;
+export const RADIANCE_MAX_PIXELS = 32 * 1024 * 1024;
 
 // ─── float <-> RGBE ──────────────────────────────────────────────────────────
 
@@ -264,7 +264,7 @@ export function parseRadianceHeader(bytes: Uint8Array): RadianceHeader | null {
   if (!(bytes instanceof Uint8Array) || bytes.length < 12) return null;
   // Magic: "#?RADIANCE" (some writers emit "#?RGBE"); the line ends at \n.
   let p = 0;
-  const limit = Math.min(bytes.length, MAX_HEADER_BYTES);
+  const limit = Math.min(bytes.length, RADIANCE_MAX_HEADER_BYTES);
   const readLine = (): string | null => {
     if (p >= limit) return null;
     let end = p;
@@ -322,7 +322,7 @@ export function parseRadianceHeader(bytes: Uint8Array): RadianceHeader | null {
   const height = Number(m[2]);
   const width = Number(m[4]);
   if (!(width > 0) || !(height > 0)) return null;
-  if (width > 0xffff || height > 0xffff || width * height > MAX_PIXELS) return null;
+  if (width > 0xffff || height > 0xffff || width * height > RADIANCE_MAX_PIXELS) return null;
   // +X means left-to-right (the universal case); -X would mirror each row.
   if (m[3] !== '+') return null;
   // -Y means top-down, the universal case. A +Y (bottom-up) file is legal
@@ -399,8 +399,8 @@ export function packRadiance(frame: DeepFrame, opts: PackRadianceOptions = {}): 
   }
   // Keep the writer inside what readRadiance (and the format's own scanline
   // fields) can express, so we never emit a file we cannot read back.
-  if (width > 0xffff || height > 0xffff || width * height > MAX_PIXELS) {
-    throw new Error(`packRadiance: ${width}x${height} exceeds the Radiance limits (65535 per axis, ${MAX_PIXELS} pixels)`);
+  if (width > 0xffff || height > 0xffff || width * height > RADIANCE_MAX_PIXELS) {
+    throw new Error(`packRadiance: ${width}x${height} exceeds the Radiance limits (65535 per axis, ${RADIANCE_MAX_PIXELS} pixels)`);
   }
   if (space === 'lab' || space === 'xyz-d50') {
     throw new Error(`packRadiance: ${space} frames must be converted to an RGB space first`);
@@ -443,7 +443,7 @@ export function packRadiance(frame: DeepFrame, opts: PackRadianceOptions = {}): 
     floatToRgbe(data[i]! * exposure, data[i + 1]! * exposure, data[i + 2]! * exposure, rgbe, o);
   }
 
-  const useRle = (opts.rle ?? true) && width >= RLE_MIN_WIDTH && width <= RLE_MAX_WIDTH;
+  const useRle = (opts.rle ?? true) && width >= RLE_MIN_WIDTH && width <= RADIANCE_RLE_MAX_WIDTH;
   const body = useRle ? encodeRle(rgbe, width, height) : rgbe;
 
   const out = new Uint8Array(header.length + body.length);
@@ -564,7 +564,7 @@ export function readRadiance(bytes: Uint8Array): DeepFrame | null {
     if (p + 4 > bytes.length) return null;
     const rowStart = px;
     const isNewRle = bytes[p] === 2 && bytes[p + 1] === 2 && ((bytes[p + 2]! << 8) | bytes[p + 3]!) === width
-      && width >= RLE_MIN_WIDTH && width <= RLE_MAX_WIDTH;
+      && width >= RLE_MIN_WIDTH && width <= RADIANCE_RLE_MAX_WIDTH;
 
     if (isNewRle) {
       p += 4;

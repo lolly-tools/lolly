@@ -62,8 +62,10 @@ A formal release across every platform: web, macOS, Linux (deb, rpm, Flatpak, Ar
   a launch page and captions. Expressive speech marks in the script: `[pause N]`, `[slow]`,
   `[fast]`, a pronunciation override per word and voice blends. Parentheses no longer break word
   timings.
-- **Deep links and automation.** `lolly://` opens a tool with its inputs filled from another app,
-  a shortcut or a QR code, registered on desktop, Android and iOS. Editor-state links (`_sel`,
+- **Documents, deep links and automation.** `.lolly` files belong to Lolly on macOS, Windows,
+  Linux, iOS and Android, open in the app from the system file manager, and carry dedicated
+  document artwork on macOS and Linux. The Share dialog can now write a `lolly://` app link with
+  every input and behaviour flag intact for a shortcut or QR code. Editor-state links (`_sel`,
   `_t`, `_panel`) pose the editor from a URL, and `window.lolly.ui` plus a postMessage channel
   drive it at runtime.
 - **Reliability.** The service worker heals runtime cache entries stored before the isolation

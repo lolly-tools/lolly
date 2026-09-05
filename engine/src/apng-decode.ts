@@ -52,6 +52,14 @@ export interface DemuxApngResult {
 
 const PNG_SIG = Uint8Array.of(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
 
+export const APNG_DEMUX_MAX_INPUT_BYTES = 256 * 1024 * 1024;
+export const APNG_DEMUX_MAX_CHUNKS = 100_000;
+export const APNG_DEMUX_MAX_FRAMES = 4_096;
+export const APNG_DEMUX_MAX_DIM = 32_768;
+export const APNG_DEMUX_MAX_PIXELS = 128 * 1024 * 1024;
+/** Aggregate standalone PNG bytes emitted across all frames. */
+export const APNG_DEMUX_MAX_OUTPUT_BYTES = 512 * 1024 * 1024;
+
 /**
  * Ancillary chunks that describe how EVERY frame's samples are interpreted, so
  * they must ride onto each standalone still. PLTE/tRNS are mandatory for indexed
@@ -94,6 +102,9 @@ function chunk(type: string, data: Uint8Array): Uint8Array {
 
 /** Split an encoded PNG into { type, data } chunks. Throws on a bad signature or truncation. */
 function parseChunks(bytes: Uint8Array): PngChunk[] {
+  if (bytes.length > APNG_DEMUX_MAX_INPUT_BYTES) {
+    throw new Error(`demuxApng: input exceeds ${APNG_DEMUX_MAX_INPUT_BYTES} byte limit`);
+  }
   for (let i = 0; i < 8; i++) {
     if (bytes[i] !== PNG_SIG[i]) throw new Error('demuxApng: bad PNG signature');
   }
@@ -104,6 +115,9 @@ function parseChunks(bytes: Uint8Array): PngChunk[] {
     const type = String.fromCharCode(bytes[off + 4]!, bytes[off + 5]!, bytes[off + 6]!, bytes[off + 7]!);
     const end = off + 12 + len;
     if (end > bytes.length) throw new Error(`demuxApng: truncated inside a ${type} chunk`);
+    if (chunks.length >= APNG_DEMUX_MAX_CHUNKS) {
+      throw new Error(`demuxApng: more than ${APNG_DEMUX_MAX_CHUNKS} PNG chunks`);
+    }
     chunks.push({ type, data: bytes.subarray(off + 8, off + 8 + len) });
     off = end;
     if (type === 'IEND') break;
@@ -156,6 +170,7 @@ export function demuxApng(bytes: Uint8Array): DemuxApngResult {
   const ihdr = chunks[0]!.data;                 // 13 bytes; bytes 8..12 = depth/colour/comp/filter/interlace
   const canvasWidth = readU32(ihdr, 0);
   const canvasHeight = readU32(ihdr, 4);
+  validateGeometry(canvasWidth, canvasHeight, 'canvas');
 
   // Shared header carried onto every still: a fresh IHDR (resized per frame) plus
   // the colour/palette ancillary chunks that appear before any image data.
@@ -168,7 +183,13 @@ export function demuxApng(bytes: Uint8Array): DemuxApngResult {
   let sawIdat = false; // any IDAT seen - distinguishes a default frame from a hidden default image
 
   const flush = (): void => {
-    if (current) { frames.push(current); current = null; }
+    if (current) {
+      if (frames.length >= APNG_DEMUX_MAX_FRAMES) {
+        throw new Error(`demuxApng: more than ${APNG_DEMUX_MAX_FRAMES} frames`);
+      }
+      frames.push(current);
+      current = null;
+    }
   };
 
   for (const c of chunks) {
@@ -178,7 +199,13 @@ export function demuxApng(bytes: Uint8Array): DemuxApngResult {
         break;
       case 'acTL': {
         sawActl = true;
-        if (c.data.length >= 8) loops = readU32(c.data, 4);
+        if (c.data.length >= 8) {
+          const declaredFrames = readU32(c.data, 0);
+          if (declaredFrames > APNG_DEMUX_MAX_FRAMES) {
+            throw new Error(`demuxApng: acTL declares ${declaredFrames} frames (max ${APNG_DEMUX_MAX_FRAMES})`);
+          }
+          loops = readU32(c.data, 4);
+        }
         break;
       }
       case 'fcTL': {
@@ -186,11 +213,19 @@ export function demuxApng(bytes: Uint8Array): DemuxApngResult {
         flush();
         const d = c.data;
         if (d.length < 26) throw new Error('demuxApng: fcTL chunk is too short');
+        const width = readU32(d, 4);
+        const height = readU32(d, 8);
+        const x = readU32(d, 12);
+        const y = readU32(d, 16);
+        validateGeometry(width, height, 'frame');
+        if (x + width > canvasWidth || y + height > canvasHeight) {
+          throw new Error(`demuxApng: frame region ${width}x${height}+${x}+${y} escapes ${canvasWidth}x${canvasHeight} canvas`);
+        }
         current = {
-          width: readU32(d, 4),
-          height: readU32(d, 8),
-          x: readU32(d, 12),
-          y: readU32(d, 16),
+          width,
+          height,
+          x,
+          y,
           delayMs: delayToMs(readU16(d, 20), readU16(d, 22)),
           dispose: d[24]!,
           blend: d[25]!,
@@ -231,8 +266,17 @@ export function demuxApng(bytes: Uint8Array): DemuxApngResult {
   if (!sawActl) throw new Error('demuxApng: not an APNG (no acTL chunk)');
   if (frames.length === 0) throw new Error('demuxApng: no fcTL frames found');
 
-  const out: ApngFrame[] = frames.map((f, i) => {
+  const out: ApngFrame[] = [];
+  let outputBytes = 0;
+  for (const [i, f] of frames.entries()) {
     if (f.data.length === 0) throw new Error(`demuxApng: frame ${i} has no image data`);
+    const imageBytes = f.data.reduce((sum, part) => sum + part.length, 0);
+    const stillBytes = 8 + 25 + shared.reduce((sum, part) => sum + 12 + part.data.length, 0)
+      + 12 + imageBytes + 12;
+    outputBytes += stillBytes;
+    if (!Number.isSafeInteger(outputBytes) || outputBytes > APNG_DEMUX_MAX_OUTPUT_BYTES) {
+      throw new Error(`demuxApng: standalone frames exceed ${APNG_DEMUX_MAX_OUTPUT_BYTES} byte output limit`);
+    }
     // Fresh IHDR: copy the default one, override width/height with the frame region.
     const fih = new Uint8Array(13);
     fih.set(ihdr);
@@ -244,15 +288,24 @@ export function demuxApng(bytes: Uint8Array): DemuxApngResult {
     parts.push(chunk('IDAT', f.data.length === 1 ? f.data[0]! : concat(f.data)));
     parts.push(chunk('IEND', new Uint8Array(0)));
 
-    return {
+    out.push({
       still: concat(parts),
       delayMs: f.delayMs,
       x: f.x,
       y: f.y,
       dispose: f.dispose,
       blend: f.blend,
-    };
-  });
+    });
+  }
 
   return { width: canvasWidth, height: canvasHeight, loops, frames: out };
+}
+
+function validateGeometry(width: number, height: number, label: string): void {
+  if (width < 1 || height < 1 || width > APNG_DEMUX_MAX_DIM || height > APNG_DEMUX_MAX_DIM
+    || width * height > APNG_DEMUX_MAX_PIXELS) {
+    throw new Error(
+      `demuxApng: ${label} ${width}x${height} exceeds ${APNG_DEMUX_MAX_DIM} per side / ${APNG_DEMUX_MAX_PIXELS} pixels`,
+    );
+  }
 }

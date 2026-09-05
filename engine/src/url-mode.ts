@@ -136,6 +136,14 @@
  *                  lever ("check against `latest`, fix, then publish"), which is why
  *                  serializeUrlState never writes it: a share link must not pin its
  *                  recipient to a version of a system that isn't theirs.
+ *   - `ds` - the DESIGN SYSTEM this render resolves against: the id of one of
+ *                  the systems held on the device (plans/186 section 3.8). Validated
+ *                  against the id grammar on parse (engine/src/design-system.ts) and
+ *                  null when it is junk; an id naming a system this device does not
+ *                  hold falls through to the active one with a warning, rather than
+ *                  failing the render. Parse-only, on exactly the `designv` rule
+ *                  above: serializeUrlState never writes it, because a link must not
+ *                  pin its recipient to a design system that isn't theirs.
  *   - `present` - presence flag (web shell only): open a frame document's frames as
  *                  a fullscreen click-advanced DECK (design presentation mode,
  *                  plan 112). A frame doc opens the presenter; a non-frame TIMED doc
@@ -200,6 +208,7 @@ import type { Unit } from './units.ts';
 import { isTokenValue, isAlias } from './tokens.ts';
 import { isToolUrl } from './tool-url.ts';
 import { assetIdForUrl, blocksForUrl } from './bake.ts';
+import { isDesignSystemId } from './design-system.ts';
 import { normalizeLang } from './lang.ts';
 import type { Lang } from './lang.ts';
 import { normalizeTableValue, syntheticInputs } from './inputs.ts';
@@ -353,6 +362,11 @@ export interface UrlState {
    *  ladder in engine/src/design-version.ts decides what it resolves to, since only
    *  the caller knows which versions this device holds. See the header. */
   designVersion: string | null;
+  /** Design-system override (the `ds` param): the id of a design system on the device,
+   *  or null when absent or when the value fails the id grammar. Which systems this
+   *  device holds is not something url-mode can know, so an unknown id is the caller's
+   *  fall-through to the active one. See the header. */
+  designSystem: string | null;
   /** The `s` STATE ADDRESS of a multi-frame document (plan 112): `2` (1-based position in
    *  presentation order), a frame id (`slide1`, a ULID), or either with an `.N` build-step
    *  suffix. Carried VERBATIM - what it resolves to is a question about the pages a render
@@ -429,7 +443,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'full', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'ds', 'full', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq']);
 // NOTE on the presentation-mode kiosk flag: it was the unreserved `loop` until
 // 2026-08-28 (plan 171 executed the rename inside the id-break window). `loop` is a
 // live *input* id in several tools (deck-builder, 3d, flythrough, digi-ad,
@@ -443,6 +457,11 @@ export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', '
 // refuse `_`-prefixed input ids and urlKeys, and future reserved params must be
 // minted from that namespace (`_v` is the founding member) so they can never
 // collide with a shipped tool's input the way `loop` did.
+//
+// The `pkg.` PREFIX is a second reserved namespace (plan 197): Linux-package
+// metadata for the `format=rpm|srpm|tar.gz` export path (pkg.name, pkg.version,
+// pkg.dest, pkg.type, …). parseUrlState skips it before input matching, and no
+// tool input id/urlKey may start with `pkg.`.
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -599,6 +618,10 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     // there in a future engine must read as an unknown control on an old one, never
     // as a tool input - and no input may claim such a name (validator-enforced).
     if (key.startsWith('_')) continue;
+    // The `pkg.` prefix is a reserved namespace too (plan 197): Linux-package
+    // metadata (pkg.name, pkg.version, pkg.dest, …) read by the export bridge when
+    // format=rpm|srpm|tar.gz, never as a tool input. No input may claim such a name.
+    if (key.startsWith('pkg.')) continue;
     const vec = vectorFieldByKey[key];
     if (vec) {
       const n = Number(raw);
@@ -665,6 +688,10 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     // Design-system version override (see header). Verbatim, never validated here:
     // whether a slug names a real version is a question about the device's ledger.
     designVersion: params.get('designv') || null,
+    // Design-system override (see header). Validated against the id grammar, not the
+    // device: a junk value reads as absent, and an id for a system the device lacks is
+    // the caller's fall-through.
+    designSystem: isDesignSystemId(params.get('ds')) ? params.get('ds') : null,
     // The deck state address (see header). Verbatim: frame-address.ts resolves it against
     // the pages a render produced, which is the only place that knows what exists.
     slide: params.get('s') || null,

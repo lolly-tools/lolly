@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { decodeIco, isIco, IcoDecodeError } from '../engine/src/ico-decode.ts';
+import { decodeIco, isIco, IcoDecodeError, ICO_MAX_DIM } from '../engine/src/ico-decode.ts';
 
 // ─── ICO builders ────────────────────────────────────────────────────────────
 
@@ -144,6 +144,11 @@ test('PNG entry wins over a smaller BMP entry by area', () => {
   ]);
   const img = decodeIco(ico);
   assert.equal(img.png, true);
+});
+
+test('a tiny PNG payload cannot hand an excessive IHDR allocation to the host', () => {
+  const ico = buildIco([{ w: 0, h: 0, payload: pngPayload(ICO_MAX_DIM, ICO_MAX_DIM) }]);
+  assert.throws(() => decodeIco(ico), (e) => e instanceof IcoDecodeError && e.code === 'png-dims');
 });
 
 test('crafted oversized count throws', () => {

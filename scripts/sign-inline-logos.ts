@@ -36,18 +36,18 @@
  * that reads "present" only when it is redundant.
  *
  * Usage:
- *   node --env-file=services/ca/.env scripts/sign-inline-logos.ts            # CA identity
+ *   npm run sign:signature-logos                                             # CA identity
  *   node scripts/sign-inline-logos.ts --self                                 # on-device key
- *   node --env-file=services/ca/.env scripts/sign-inline-logos.ts --force --from /tmp/originals
+ *   node scripts/run-private-ca.ts sign-logos --force --from /tmp/originals
  *
  * After running: `npm run build:catalog && npm run validate:catalog`.
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { join, resolve, dirname, basename } from 'node:path';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { embedC2pa, extractC2paStore, ENGINE_VERSION } from '../engine/src/index.ts';
+import { ENGINE_VERSION, embedC2pa, extractC2paStore } from '../engine/src/index.ts';
 import { issueLeafCert, pemToDer } from '../engine/src/x509.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -57,14 +57,18 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const TARGET = {
   hooks: 'brands/suse/tools/email-signature/hooks.js',
   logos: [
-    { file: 'suse.png',      varName: 'LOGO_STANDARD', title: 'SUSE wordmark' },
-    { file: 'suse-grey.png', varName: 'LOGO_GREY',     title: 'SUSE wordmark (grey)' },
+    { file: 'suse.png', varName: 'LOGO_STANDARD', title: 'SUSE wordmark' },
+    { file: 'suse-grey.png', varName: 'LOGO_GREY', title: 'SUSE wordmark (grey)' },
   ],
 };
 
 const AUTHOR = 'SUSE';
-const CA_IDENTITY = { email: 'credentials@lolly.tools', commonName: 'Lolly Content Credentials', organization: 'Lolly' };
-const CA_LEAF_DAYS = 800;      // long enough that a shipped signature never reads "expired"
+const CA_IDENTITY = {
+  email: 'credentials@lolly.tools',
+  commonName: 'Lolly Content Credentials',
+  organization: 'Lolly',
+};
+const CA_LEAF_DAYS = 800; // long enough that a shipped signature never reads "expired"
 const SELF_SIGNED_DAYS = 3650; // on-device fallback window
 const DAY = 24 * 3600 * 1000;
 
@@ -94,27 +98,45 @@ function pinnedRootDer(): Uint8Array {
 async function buildSigner(): Promise<SignerBundle> {
   const now = Date.now();
   const notBefore = new Date(now - 60_000);
-  if (USE_SELF) return { dates: { signedAt: notBefore, notBefore, notAfter: new Date(now + SELF_SIGNED_DAYS * DAY) } };
+  if (USE_SELF)
+    return {
+      dates: { signedAt: notBefore, notBefore, notAfter: new Date(now + SELF_SIGNED_DAYS * DAY) },
+    };
 
   const certPem = process.env.CA_ROOT_CERT_PEM;
   const keyPem = process.env.CA_ROOT_KEY_PEM;
   if (!certPem || !keyPem) {
-    throw new Error('CA signing needs CA_ROOT_CERT_PEM and CA_ROOT_KEY_PEM in the environment.\n'
-      + '  Run: node --env-file=services/ca/.env scripts/sign-inline-logos.ts\n'
-      + '  (or pass --self for the untrusted on-device key)');
+    throw new Error(
+      'CA signing needs CA_ROOT_CERT_PEM and CA_ROOT_KEY_PEM in the environment.\n' +
+        '  Run: npm run sign:signature-logos\n' +
+        '  (or pass --self for the untrusted on-device key)'
+    );
   }
   const caCertDer = pemToDer(certPem);
   if (fingerprint(caCertDer) !== fingerprint(pinnedRootDer())) {
-    throw new Error('CA_ROOT_CERT_PEM does NOT match the root pinned in shells/web/src/ca-root.ts.\n'
-      + '  Signing with it would produce credentials that fail identity verification in the app. Aborting.');
+    throw new Error(
+      'CA_ROOT_CERT_PEM does NOT match the root pinned in shells/web/src/ca-root.ts.\n' +
+        '  Signing with it would produce credentials that fail identity verification in the app. Aborting.'
+    );
   }
-  const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']) as CryptoKeyPair;
+  const pair = (await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, [
+    'sign',
+    'verify',
+  ])) as CryptoKeyPair;
   const spkiDer = new Uint8Array(await crypto.subtle.exportKey('spki', pair.publicKey));
   const leafDer = await issueLeafCert({
-    caCertDer, caPrivateKey: pemToDer(keyPem), spkiDer, ...CA_IDENTITY,
-    notBefore, notAfter: new Date(now + CA_LEAF_DAYS * DAY),
+    caCertDer,
+    caPrivateKey: pemToDer(keyPem),
+    spkiDer,
+    ...CA_IDENTITY,
+    notBefore,
+    notAfter: new Date(now + CA_LEAF_DAYS * DAY),
   });
-  return { dates: { signedAt: notBefore }, signer: { privateKey: pair.privateKey, chain: [leafDer] }, identity: CA_IDENTITY.email };
+  return {
+    dates: { signedAt: notBefore },
+    signer: { privateKey: pair.privateKey, chain: [leafDer] },
+    identity: CA_IDENTITY.email,
+  };
 }
 
 const toBase64 = (b: Uint8Array): string => Buffer.from(b).toString('base64');
@@ -122,25 +144,33 @@ const toBase64 = (b: Uint8Array): string => Buffer.from(b).toString('base64');
 /** Rewrite `var <NAME> = 'data:image/png;base64,…'` in place, preserving layout. */
 function patchHooks(src: string, varName: string, b64: string): string {
   const re = new RegExp(`(var\\s+${varName}\\s*=\\s*)'data:image/png;base64,[A-Za-z0-9+/=]+'`);
-  if (!re.test(src)) throw new Error(`hooks.js has no \`var ${varName} = 'data:image/png;base64,…'\` to patch.`);
+  if (!re.test(src))
+    throw new Error(`hooks.js has no \`var ${varName} = 'data:image/png;base64,…'\` to patch.`);
   return src.replace(re, (_m, lead: string) => `${lead}'data:image/png;base64,${b64}'`);
 }
 
 async function main(): Promise<void> {
   const sb = await buildSigner();
-  console.log(sb.signer
-    ? `Signing tier: CA identity - leaf for ${sb.identity}, ${CA_LEAF_DAYS}d, chains to the pinned Lolly CA root`
-    : 'Signing tier: on-device self-signed key (NOT identity-verified - pass no --self for the CA tier)');
-  console.log(`Claim: author "${AUTHOR}", authorship "delivered", generator Lolly ${ENGINE_VERSION}\n`);
+  console.log(
+    sb.signer
+      ? `Signing tier: CA identity - leaf for ${sb.identity}, ${CA_LEAF_DAYS}d, chains to the pinned Lolly CA root`
+      : 'Signing tier: on-device self-signed key (NOT identity-verified - pass no --self for the CA tier)'
+  );
+  console.log(
+    `Claim: author "${AUTHOR}", authorship "delivered", generator Lolly ${ENGINE_VERSION}\n`
+  );
 
   const hooksPath = join(ROOT, TARGET.hooks);
   if (!existsSync(hooksPath)) {
-    throw new Error(`${TARGET.hooks} is missing - mount the private brand pack first:\n`
-      + '  git submodule update --init --checkout brands/suse');
+    throw new Error(
+      `${TARGET.hooks} is missing - mount the private brand pack first:\n` +
+        '  git submodule update --init --checkout brands/suse'
+    );
   }
   const toolDir = dirname(hooksPath);
   let hooks = readFileSync(hooksPath, 'utf8');
-  let signed = 0, skipped = 0;
+  let signed = 0,
+    skipped = 0;
 
   for (const logo of TARGET.logos) {
     const masterPath = join(toolDir, logo.file);
@@ -155,8 +185,10 @@ async function main(): Promise<void> {
         skipped++;
         continue;
       }
-      throw new Error(`${source} already carries a credential; --force needs --from <dir> of UNSIGNED originals `
-        + '(re-signing a signed file would nest a second manifest).');
+      throw new Error(
+        `${source} already carries a credential; --force needs --from <dir> of UNSIGNED originals ` +
+          '(re-signing a signed file would nest a second manifest).'
+      );
     }
 
     const signedBytes = await embedC2pa(bytes, 'png', {
@@ -167,7 +199,12 @@ async function main(): Promise<void> {
       generatorInfo: { name: 'Lolly', version: ENGINE_VERSION },
       author: { name: AUTHOR },
       authorship: 'delivered',
-      environment: { tool: 'email-signature', format: 'png', surface: 'lolly.tools/tools/email-signature', engine: `Lolly ${ENGINE_VERSION}` },
+      environment: {
+        tool: 'email-signature',
+        format: 'png',
+        surface: 'lolly.tools/tools/email-signature',
+        engine: `Lolly ${ENGINE_VERSION}`,
+      },
       dates: sb.dates,
       ...(sb.signer ? { signer: sb.signer } : {}),
     });
@@ -175,7 +212,9 @@ async function main(): Promise<void> {
     hooks = patchHooks(hooks, logo.varName, toBase64(signedBytes));
     signed++;
     const b64 = Math.ceil(signedBytes.length / 3) * 4;
-    console.log(`  ${logo.file}: signed - ${bytes.length} → ${signedBytes.length} B  (inlined base64 ${b64} B)`);
+    console.log(
+      `  ${logo.file}: signed - ${bytes.length} → ${signedBytes.length} B  (inlined base64 ${b64} B)`
+    );
   }
 
   writeFileSync(hooksPath, hooks);

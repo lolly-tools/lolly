@@ -26,7 +26,7 @@ link carries, so anything you can render in the browser you can regenerate in CI
   id: render
   with:
     tool: qr-code
-    args: --url=https://example.com
+    args-json: '["--url=https://example.com"]'
     format: svg
 - run: ls "${{ steps.render.outputs.out-dir }}"
 ```
@@ -36,7 +36,8 @@ link carries, so anything you can render in the browser you can regenerate in CI
 | Input | Default | Meaning |
 |---|---|---|
 | `tool` | - | Tool id for a single render (e.g. `qr-code`). Ignored when `rows` is set. |
-| `args` | `''` | One shell-quoted string of `--key=value` flags. Keys are the tool's input ids (same names as its URL params); reserved params (`width`, `height`, `unit`, `dpi`, `bleed`, `marks`, `c2pa`, …) work too. Quote values with spaces: `--text="Hello world"`. |
+| `args-json` | `''` | **Preferred.** A JSON array of complete `--key=value` argv strings. They are passed literally without a shell, so spaces and metacharacters remain data: `'["--text=Hello world", "--size=120"]'`. |
+| `args` | `''` | Deprecated compatibility form: one quoted string of flags. It is parsed without a shell; expansion (`$`, backticks), control operators, redirects, and newlines are refused. Use `args-json` for arbitrary literal values. |
 | `rows` | - | Workspace-relative path of a batch CSV/TSV: header names a `toolId` column + one column per input (starter grid: `lolly batch --template=<tool>`). When set, `tool`/`args`/`format` are ignored. |
 | `format` | `svg` | Export format for the single render. Batch rows carry their own `format` column. |
 | `out-dir` | `./lolly-out` | Workspace-relative output directory (created if missing). |
@@ -76,7 +77,7 @@ jobs:
         id: render
         with:
           tool: design
-          args: --width=1200 --height=630
+          args-json: '["--width=1200", "--height=630"]'
           format: png
           out-dir: ./og
 
@@ -86,9 +87,9 @@ jobs:
         run: gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber "${{ steps.render.outputs.out-dir }}/design.png"
 ```
 
-Any input the tool declares is overridable through `args` - copy the query string out of
-a lolly.tools share link and paste it in as `--key=value` flags to reproduce that exact
-design.
+Any input the tool declares is overridable through `args-json` - translate the query
+string from a lolly.tools share link into complete `--key=value` array entries to
+reproduce that exact design. The action passes each entry as one argv value.
 
 ## Example 2 - nightly countdown regeneration (cron)
 
@@ -121,7 +122,8 @@ jobs:
         id: render
         with:
           tool: wordmark
-          args: --text="${{ steps.days.outputs.left }} days to launch" --size=120
+          args-json: >-
+            ["--text=${{ steps.days.outputs.left }} days to launch", "--size=120"]
           format: svg
           out-dir: ./assets
 
@@ -208,7 +210,7 @@ carrying `tools/` and `catalog/` with a built `catalog/tools/index.json` - the m
       - uses: lolly-tools/lolly/action@main
         with:
           tool: qr-code
-          args: --url=https://example.com
+          args-json: '["--url=https://example.com"]'
           profile-root: ./brand-pack
 ```
 

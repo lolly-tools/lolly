@@ -35,10 +35,31 @@ export interface SubPath {
 /** One cubic bezier from an arc decomposition: [cp1x, cp1y, cp2x, cp2y, endX, endY]. */
 export type ArcBezier = [number, number, number, number, number, number];
 
+// Public parser budgets. A path can arrive from an uploaded SVG or a hand-edited
+// URL, and every parsed number/segment becomes a JS heap object downstream.
+// These ceilings are deliberately above the largest shipping artwork while
+// keeping a single hostile `d` attribute in the tens-of-megabytes heap range.
+export const SVG_PATH_MAX_CHARS = 400_000;
+export const SVG_PATH_MAX_ARGS = 100_000;
+export const SVG_PATH_MAX_SEGMENTS = 100_000;
+export const SVG_PATH_MAX_SUBPATHS = 10_000;
+
+function scanSvgPathArgs(str: string): number[] | null {
+  if (str.length > SVG_PATH_MAX_CHARS) return null;
+  const re = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g;
+  const out: number[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(str)) !== null) {
+    if (out.length >= SVG_PATH_MAX_ARGS) return null;
+    out.push(Number(m[0]));
+  }
+  return out;
+}
+
 /** Extract the numeric arguments from one command's argument string. */
 export function parseSvgPathArgs(str: string): number[] {
-  const m = str.match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
-  return m ? m.map(Number) : [];
+  if (typeof str !== 'string') return [];
+  return scanSvgPathArgs(str) ?? [];
 }
 
 /**
@@ -50,7 +71,8 @@ export function parseSvgPathArgs(str: string): number[] {
  * mis-reads compact, SVGO-optimized flags (for example "0110" as one number 110),
  * so arcs need this dedicated pass.
  */
-function parseArcArgs(str: string): number[] {
+function parseArcArgs(str: string): number[] | null {
+  if (str.length > SVG_PATH_MAX_CHARS) return null;
   const numRe  = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;
   const flagRe = /[01]/y;
   const sepRe  = /[\s,]*/y;
@@ -73,6 +95,7 @@ function parseArcArgs(str: string): number[] {
     const swf  = grab(flagRe); if (swf  === null) break;
     const x    = grab(numRe);  if (x    === null) break;
     const y    = grab(numRe);  if (y    === null) break;
+    if (out.length + 7 > SVG_PATH_MAX_ARGS) return null;
     out.push(Number(rx), Number(ry), Number(xrot), Number(laf), Number(swf), Number(x), Number(y));
   }
   return out;
@@ -88,6 +111,7 @@ function parseArcArgs(str: string): number[] {
  * Memory `svg-to-pdf-path-parser` for why those matter (mono-white wordmark).
  */
 export function parseSvgPath(d: string): SubPath[] {
+  if (typeof d !== 'string' || d.length === 0 || d.length > SVG_PATH_MAX_CHARS) return [];
   const cmdRe = /([MLHVCSQTAZmlhvcsqtaz])([^MLHVCSQTAZmlhvcsqtaz]*)/g;
   const subpaths: SubPath[] = [];
   let cur: SubPath | null = null; // current subpath being built
@@ -95,18 +119,33 @@ export function parseSvgPath(d: string): SubPath[] {
   let sx = 0, sy = 0;           // current subpath start
   let lastCmd = '';
   let lastCpx = 0, lastCpy = 0;
+  let segmentCount = 0;
+  let overflow = false;
   let m: RegExpExecArray | null;
 
   // Returns the new subpath so the caller assigns `cur` directly (the compiler
   // can't track an assignment made inside the closure).
-  const open = (x: number, y: number): SubPath => {
+  const open = (x: number, y: number): SubPath | null => {
+    if (subpaths.length >= SVG_PATH_MAX_SUBPATHS || segmentCount >= SVG_PATH_MAX_SEGMENTS) {
+      overflow = true;
+      return null;
+    }
     const sub: SubPath = { segments: [{ op: 'M', x, y }], closed: false };
     subpaths.push(sub);
+    segmentCount++;
     return sub;
   };
-  const line = (x: number, y: number): void => { if (cur) cur.segments.push({ op: 'L', x, y }); };
+  const line = (x: number, y: number): void => {
+    if (!cur || overflow) return;
+    if (segmentCount >= SVG_PATH_MAX_SEGMENTS) { overflow = true; return; }
+    cur.segments.push({ op: 'L', x, y });
+    segmentCount++;
+  };
   const cubic = (x1: number, y1: number, x2: number, y2: number, x: number, y: number): void => {
-    if (cur) cur.segments.push({ op: 'C', x1, y1, x2, y2, x, y });
+    if (!cur || overflow) return;
+    if (segmentCount >= SVG_PATH_MAX_SEGMENTS) { overflow = true; return; }
+    cur.segments.push({ op: 'C', x1, y1, x2, y2, x, y });
+    segmentCount++;
   };
 
   while ((m = cmdRe.exec(d)) !== null) {
@@ -115,7 +154,8 @@ export function parseSvgPath(d: string): SubPath[] {
     const C    = cmd.toUpperCase();
     // Arc flags can be packed against the next number ("0110" = laf 0, swf 1, x 10),
     // so arcs get a grammar-aware tokenizer; every other command uses the numeric one.
-    const nums = C === 'A' ? parseArcArgs(m[2] ?? '') : parseSvgPathArgs(m[2] ?? '');
+    const nums = C === 'A' ? parseArcArgs(m[2] ?? '') : scanSvgPathArgs(m[2] ?? '');
+    if (nums === null) { overflow = true; break; }
     // In-bounds by each case's loop condition; ?? 0 only satisfies the compiler.
     const at   = (i: number): number => nums[i] ?? 0;
     const ax   = (i: number): number => abs ? at(i) : cx + at(i);
@@ -123,33 +163,37 @@ export function parseSvgPath(d: string): SubPath[] {
 
     switch (C) {
       case 'M':
-        for (let i = 0; i + 1 < nums.length; i += 2) {
+        for (let i = 0; i + 1 < nums.length && !overflow; i += 2) {
           const x = ax(i), y = ay(i + 1);
-          if (i === 0) { cur = open(x, y); sx = x; sy = y; }   // new subpath
+          if (i === 0) {
+            const next = open(x, y);
+            if (!next) break;
+            cur = next; sx = x; sy = y;
+          }   // new subpath
           else line(x, y);                                // subsequent pairs are L
           cx = x; cy = y;
         }
         break;
       case 'L':
-        for (let i = 0; i + 1 < nums.length; i += 2) {
+        for (let i = 0; i + 1 < nums.length && !overflow; i += 2) {
           const x = ax(i), y = ay(i + 1);
           line(x, y); cx = x; cy = y;
         }
         break;
       case 'H':
-        for (let i = 0; i < nums.length; i++) {
+        for (let i = 0; i < nums.length && !overflow; i++) {
           cx = abs ? at(i) : cx + at(i);
           line(cx, cy);
         }
         break;
       case 'V':
-        for (let i = 0; i < nums.length; i++) {
+        for (let i = 0; i < nums.length && !overflow; i++) {
           cy = abs ? at(i) : cy + at(i);
           line(cx, cy);
         }
         break;
       case 'C':
-        for (let i = 0; i + 5 < nums.length; i += 6) {
+        for (let i = 0; i + 5 < nums.length && !overflow; i += 6) {
           const x1 = ax(i),     y1 = ay(i + 1);
           const x2 = ax(i + 2), y2 = ay(i + 3);
           const x  = ax(i + 4), y  = ay(i + 5);
@@ -158,7 +202,7 @@ export function parseSvgPath(d: string): SubPath[] {
         }
         break;
       case 'S':
-        for (let i = 0; i + 3 < nums.length; i += 4) {
+        for (let i = 0; i + 3 < nums.length && !overflow; i += 4) {
           const r1x = (lastCmd === 'C' || lastCmd === 'S') ? 2 * cx - lastCpx : cx;
           const r1y = (lastCmd === 'C' || lastCmd === 'S') ? 2 * cy - lastCpy : cy;
           const x2  = ax(i),     y2 = ay(i + 1);
@@ -168,7 +212,7 @@ export function parseSvgPath(d: string): SubPath[] {
         }
         break;
       case 'Q':
-        for (let i = 0; i + 3 < nums.length; i += 4) {
+        for (let i = 0; i + 3 < nums.length && !overflow; i += 4) {
           const qx1 = ax(i), qy1 = ay(i + 1);
           const x   = ax(i + 2), y = ay(i + 3);
           const x1  = cx + 2 / 3 * (qx1 - cx), y1 = cy + 2 / 3 * (qy1 - cy);
@@ -178,7 +222,7 @@ export function parseSvgPath(d: string): SubPath[] {
         }
         break;
       case 'T':
-        for (let i = 0; i + 1 < nums.length; i += 2) {
+        for (let i = 0; i + 1 < nums.length && !overflow; i += 2) {
           const qx1 = (lastCmd === 'Q' || lastCmd === 'T') ? 2 * cx - lastCpx : cx;
           const qy1 = (lastCmd === 'Q' || lastCmd === 'T') ? 2 * cy - lastCpy : cy;
           const x   = ax(i), y = ay(i + 1);
@@ -189,7 +233,7 @@ export function parseSvgPath(d: string): SubPath[] {
         }
         break;
       case 'A':
-        for (let i = 0; i + 6 < nums.length; i += 7) {
+        for (let i = 0; i + 6 < nums.length && !overflow; i += 7) {
           const rx = Math.abs(at(i));
           const ry = Math.abs(at(i + 1));
           const xRot = at(i + 2) * Math.PI / 180;
@@ -201,6 +245,7 @@ export function parseSvgPath(d: string): SubPath[] {
           } else {
             for (const [bx1, by1, bx2, by2, bx, by] of svgArcToBeziers(cx, cy, rx, ry, xRot, la, sw, x, y)) {
               cubic(bx1, by1, bx2, by2, bx, by);
+              if (overflow) break;
             }
           }
           cx = x; cy = y;
@@ -215,6 +260,8 @@ export function parseSvgPath(d: string): SubPath[] {
         break;
     }
 
+    if (overflow) break;
+
     lastCmd = C;
     // Preserve the stored control point after curve commands so the next smooth
     // command can reflect it; everything else collapses it to the current point.
@@ -223,6 +270,7 @@ export function parseSvgPath(d: string): SubPath[] {
 
   // Drop subpaths with no actual geometry (a lone M contributes nothing to a
   // fill or stroke).
+  if (overflow) return [];
   return subpaths.filter(s => s.segments.some(seg => seg.op === 'L' || seg.op === 'C'));
 }
 

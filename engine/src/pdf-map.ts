@@ -417,15 +417,36 @@ type Tok =
 const WS = new Set([0x00, 0x09, 0x0a, 0x0c, 0x0d, 0x20]);
 const DELIM = new Set('()<>[]{}/%'.split('').map((c) => c.charCodeAt(0)));
 
+// ── Hostile-content budgets ──────────────────────────────────────────────────────────────────
+// These include the long-standing interpreter ceilings that were previously
+// anonymous locals. Naming/exporting them makes the parser contract testable
+// and keeps downstream consumers from inventing a second set of numbers.
+export const PDF_MAP_MAX_ARRAY_DEPTH = 16;
+export const PDF_MAP_MAX_BF_RANGE = 0x10000;
+export const PDF_MAP_MAX_RUN_DEPTH = 12;
+export const PDF_MAP_MAX_PAGE_NODES = 4_000;
+export const PDF_MAP_MAX_PATTERN_NODES = 256;
+export const PDF_MAP_MAX_PATTERN_EVALS = 512;
+export const PDF_MAP_MAX_MASK_NODES = 64;
+export const PDF_MAP_MAX_MASK_TOTAL_NODES = 4_000;
+export const PDF_MAP_MAX_MASK_EVALS = 256;
+export const PDF_MAP_MAX_TOKENS = 4_000_000;
+/** One decoded stream; prevents one enormous literal token bypassing the token count. */
+export const PDF_MAP_MAX_CONTENT_CHARS = 16 * 1024 * 1024;
+/** Page-wide, including repeated form, Type3, pattern and soft-mask executions. */
+export const PDF_MAP_MAX_TOTAL_CONTENT_CHARS = 32 * 1024 * 1024;
+
 /**
  * Tokenize a content stream. Operates on Latin-1 char codes so binary string bytes
  * survive. Inline images (BI … ID … EI) are skipped wholesale - their binary payload
  * isn't token-structured and we don't import them.
  */
-function tokenize(src: string): Tok[] {
+function tokenize(src: string, maxTokens: number): { tokens: Tok[]; count: number; exhausted: boolean } {
   const n = src.length;
   const out: Tok[] = [];
   let i = 0;
+  let count = 0;
+  let exhausted = false;
   const code = (k: number): number => src.charCodeAt(k);
 
   const readString = (): number[] => {
@@ -551,7 +572,6 @@ function tokenize(src: string): Tok[] {
   // recurse the readArray ↔ readOne pair into a stack overflow. Past the cap
   // the array body is consumed iteratively (strings/dicts skipped whole so a
   // bracket inside them can't unbalance the count) and dropped.
-  const MAX_ARRAY_DEPTH = 16;
   let arrayDepth = 0;
 
   const skipArrayBody = (): void => {
@@ -568,7 +588,7 @@ function tokenize(src: string): Tok[] {
 
   const readArray = (): Tok[] => {
     i++; // skip '['
-    if (arrayDepth >= MAX_ARRAY_DEPTH) { skipArrayBody(); return []; }
+    if (arrayDepth >= PDF_MAP_MAX_ARRAY_DEPTH) { skipArrayBody(); return []; }
     arrayDepth++;
     const items: Tok[] = [];
     while (i < n) {
@@ -583,6 +603,12 @@ function tokenize(src: string): Tok[] {
   };
 
   function readOne(): Tok | null {
+    if (count >= maxTokens) {
+      exhausted = true;
+      i = n;
+      return null;
+    }
+    count++;
     const c = code(i);
     if (c === 0x2f) return { t: 'name', v: readName() };
     if (c === 0x28) return { t: 'str', v: readString() };
@@ -612,7 +638,7 @@ function tokenize(src: string): Tok[] {
     }
     if (i === before) i++; // never stall
   }
-  return out;
+  return { tokens: out, count, exhausted };
 }
 
 // ── graphics state ──────────────────────────────────────────────────────────
@@ -785,9 +811,8 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
   const nodes: PdfNode[] = [];
   const flip: Mat = { a: 1, b: 0, c: 0, d: -1, e: -(page.originX || 0), f: (page.originY || 0) + (page.height || 0) };
   let gseq = 0;   // unique id generator for q…Q + form-XObject group frames (shared across runs)
-  const MAX = 4000;
   const onWarn = page.onWarn ?? ((): void => {});
-  const pageSink: Sink = { nodes, count: 0, max: MAX };
+  const pageSink: Sink = { nodes, count: 0, max: PDF_MAP_MAX_PAGE_NODES };
 
   // Tiling-pattern collapse budgets. A page can name the same pattern dozens of
   // times (Chromium emits one per element), so results are memoised per
@@ -795,8 +820,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
   // re-entries so a hostile PDF can't multiply work, and `inFlight` breaks a
   // self-referential pattern (P1's tile paints with /P1) that the memo alone
   // wouldn't catch, since the cache entry isn't written until the run returns.
-  const COLLAPSE_MAX_NODES = 256;
-  let collapseBudget = 512;
+  let collapseBudget = PDF_MAP_MAX_PATTERN_EVALS;
   const collapseCache = new Map<string, PdfNode[]>();
   /**
    * Bumped every time a paint happened while a soft mask was in force that we could
@@ -830,17 +854,16 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
   // masks or a few large ones without a fixed count deciding for it. Exhaustion is
   // announced ONCE with its own code, so the census shows the cliff was reached
   // instead of it hiding among generic per-group refusals.
-  const MASK_MAX_NODES = 64;
-  const MASK_TOTAL_NODES = 4000;
   // Node ceilings do not bound WORK: a content stream that paints nothing still has
   // to be tokenised, and `q Q` repeated 200k times Flate-compresses to a few KB. A
   // mask group named under N distinct CTMs is N full tokenisations of it, so the eval
   // counter alone let a small crafted PDF block the main thread for ~11 s. Bound the
   // tokens actually consumed, page-wide, across every nested run.
-  const TOKEN_BUDGET = 4_000_000;
   let tokensSpent = 0;
+  let contentCharsSpent = 0;
   let tokenBudgetAnnounced = false;
-  let maskBudget = 256;
+  let contentBudgetAnnounced = false;
+  let maskBudget = PDF_MAP_MAX_MASK_EVALS;
   let maskNodesSpent = 0;
   let maskBudgetAnnounced = false;
   const maskExhausted = (): void => {
@@ -850,17 +873,36 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
   const maskCache = new Map<string, MaskEval | null>();
   const maskInFlight = new Set<string>();
 
+  const tokenExhausted = (): void => {
+    if (!tokenBudgetAnnounced) { tokenBudgetAnnounced = true; onWarn('content.budget.exhausted', 'tokens'); }
+  };
+  const contentExhausted = (): void => {
+    if (!contentBudgetAnnounced) { contentBudgetAnnounced = true; onWarn('content.budget.exhausted', 'characters'); }
+  };
+
   const run = (content: string, res: PdfResources, baseCtm: Mat, depth: number, parentGroups: string[], baseClips: ClipPath[] = [], baseFill = '', sink: Sink = pageSink, inherit: InheritedGState | null = null, glyphRun = false): void => {
-    if (depth > 12) return;
+    if (depth > PDF_MAP_MAX_RUN_DEPTH) return;
     // Untrusted input: this runs on a PDF a user uploaded. Charge every nested run
     // against one page-wide token budget so recursion, re-evaluation under many CTMs
     // and pathological fanout are all bounded by the same ceiling.
-    if (tokensSpent >= TOKEN_BUDGET) {
-      if (!tokenBudgetAnnounced) { tokenBudgetAnnounced = true; onWarn('content.budget.exhausted', ''); }
+    if (tokensSpent >= PDF_MAP_MAX_TOKENS) {
+      tokenExhausted();
       return;
     }
-    const toks = tokenize(content || '');
-    tokensSpent += toks.length;
+    const source = content || '';
+    if (source.length > PDF_MAP_MAX_CONTENT_CHARS
+      || contentCharsSpent + source.length > PDF_MAP_MAX_TOTAL_CONTENT_CHARS) {
+      contentExhausted();
+      return;
+    }
+    contentCharsSpent += source.length;
+    const tokenized = tokenize(source, PDF_MAP_MAX_TOKENS - tokensSpent);
+    tokensSpent += tokenized.count;
+    if (tokenized.exhausted) {
+      tokensSpent = PDF_MAP_MAX_TOKENS;
+      tokenExhausted();
+    }
+    const toks = tokenized.tokens;
     // `inherit` = a form XObject / Type3 glyph procedure, which section 8.10.1 (and section 9.6.5
     // for Type3) executes with the CURRENT graphics state. `baseFill` still wins over
     // the inherited fill when non-empty: it is the uncoloured-pattern (PaintType 2)
@@ -1311,14 +1353,14 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       const key = `${name}|${[base.a, base.b, base.c, base.d, base.e, base.f].map((v) => Math.round(v * 1e4)).join(',')}|${paintTint}`;
       let out = collapseCache.get(key);
       if (!out) {
-        if (depth >= 12 || collapseBudget <= 0 || inFlight.has(key)) {
+        if (depth >= PDF_MAP_MAX_RUN_DEPTH || collapseBudget <= 0 || inFlight.has(key)) {
           s.fill = safeColor(pat.flat, ''); s.fillGradient = null; s.fillMask = null; s.fillScale = 1; s.fillTileNodes = null;
           onWarn('pattern.tiling.averaged', name);
           return;
         }
         collapseBudget--;
         inFlight.add(key);
-        const sub: Sink = { nodes: [], count: 0, max: COLLAPSE_MAX_NODES };
+        const sub: Sink = { nodes: [], count: 0, max: PDF_MAP_MAX_PATTERN_NODES };
         const unresolvedBefore = softMaskUnresolved;
         try { run(tl.content, tl.resources, base, depth + 1, [], [], paintTint, sub); }
         finally { inFlight.delete(key); }
@@ -1647,7 +1689,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
             // costs k^12, and a form that paints nothing never trips the node ceiling -
             // measured 9.6 s at fanout 4 from a ~40-byte stream. Stop descending once
             // the sink is full or the token budget is gone.
-            if (sink.count < sink.max && tokensSpent < TOKEN_BUDGET) {
+            if (sink.count < sink.max && tokensSpent < PDF_MAP_MAX_TOKENS) {
               run(xo.content || '', xo.resources || {}, fm, depth + 1, [...gpath(), 'g' + (++gseq)], s.clips, '', sink, s, glyphRun);
             }
           }
@@ -1706,7 +1748,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     // The group's content installs the very ExtGState that names it. The memo cannot
     // catch this (the entry is not written until the run returns), so track in-flight.
     if (maskInFlight.has(key)) { onWarn('smask.group.unevaluated', 'recursive'); return null; }
-    if (maskBudget <= 0 || maskNodesSpent >= MASK_TOTAL_NODES) {
+    if (maskBudget <= 0 || maskNodesSpent >= PDF_MAP_MAX_MASK_TOTAL_NODES) {
       maskExhausted();
       onWarn('smask.group.unevaluated', 'budget');
       return null;
@@ -1717,7 +1759,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     maskBudget--;
     maskInFlight.add(key);
     maskDepth++;
-    const sub: Sink = { nodes: [], count: 0, max: MASK_MAX_NODES };
+    const sub: Sink = { nodes: [], count: 0, max: PDF_MAP_MAX_MASK_NODES };
     // baseClips = the TRUE transformed bbox quad, not the AABB: under a rotation the
     // AABB is larger than the group's real extent, and `run` threads baseClips for
     // free, so the group's content is clipped exactly where the spec says it stops.
@@ -1726,7 +1768,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     finally { maskInFlight.delete(key); maskDepth--; maskNodesSpent += sub.count; }
 
     let out: MaskEval;
-    if (sub.count >= MASK_MAX_NODES) {
+    if (sub.count >= PDF_MAP_MAX_MASK_NODES) {
       // A mask group is a raster or a small shape. Something that paints 64+ nodes is
       // not a mask we understand, and half a mask is worse than none.
       onWarn('smask.group.unevaluated', 'nodes');
@@ -1967,8 +2009,6 @@ function hexToUtf16(hex: string): string {
 // (`<00000000> <ffffffff> <0041>`) would otherwise drive an ~4-billion-iteration
 // loop that OOM-crashes the process - never trust the declared span. Ranges
 // wider than this cap are clamped (the leading, plausibly-real codes still map).
-const MAX_BF_RANGE = 0x10000;
-
 export function parseToUnicode(cmap: string): Map<number, string> {
   const map = new Map<number, string>();
   if (!cmap) return map;
@@ -2007,7 +2047,7 @@ export function parseToUnicode(cmap: string): Map<number, string> {
       const lo = parseInt(rm[1]!, 16), hi = parseInt(rm[2]!, 16);
       const baseHex = rm[3]!;
       const base = parseInt(baseHex, 16);
-      const span = Math.min(hi - lo, MAX_BF_RANGE - 1); // never trust the declared span
+      const span = Math.min(hi - lo, PDF_MAP_MAX_BF_RANGE - 1); // never trust the declared span
       for (let k = 0; k <= span; k++) {
         map.set(lo + k, String.fromCharCode((base + k) & 0xffff));
       }

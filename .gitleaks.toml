@@ -1,0 +1,47 @@
+title = "Lolly secret scanning"
+minVersion = "v8.29.1"
+
+[extend]
+useDefault = true
+
+# Keep generated/dependency trees out of an explicit whole-checkout scan. The
+# ignored plans/ tree is intentionally NOT excluded: --checkout is the opt-in
+# mode for auditing ignored and untracked personal files as well.
+[[allowlists]]
+description = "Build outputs and dependency caches contain third-party material, not source"
+paths = [
+  '''(^|/)(node_modules|target|dist|vendor|\.git|\.claude/worktrees)(/|$)''',
+  '''^shells/web/public/info/''',
+]
+
+# These are exact historical false positives, constrained by rule + path +
+# commit. A new occurrence in the same file is not suppressed.
+[[allowlists]]
+description = "Generated translation cache contains historical API-key prose"
+condition = "AND"
+targetRules = ["generic-api-key", "sumologic-access-token"]
+paths = ['''^scripts/i18n/cache\.json$''']
+commits = [
+  "35f1d5cc40c8fd3e9bdae7f6b7a7af90669243eb",
+  "4ec0a18ddceaf2ec3e647c82aa97b0d4e2cd6d75",
+]
+
+[[allowlists]]
+description = "Security-scanner tests deliberately contain inert token-shaped fixtures"
+condition = "AND"
+targetRules = ["generic-api-key", "stripe-access-token"]
+paths = ['''^tests/scan-code-safety\.test\.ts$''']
+commits = [
+  "4deabaef1d7e93cc6685a770cc0f7f66d3d1aabb",
+  "e3dedb65139c420db8de17be0009c6a584650331",
+]
+
+[[allowlists]]
+description = "PDF cryptography test uses a deterministic, non-operational password fixture"
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^tests/pdf-crypto-r6\.test\.ts$''']
+commits = [
+  "38ab780fe71905e5de3fb9484cb4bfcc8166b8b5",
+  "a2cffcc3cb0eb00d1ff9ceb0bdca31cd0c5aa32b",
+]

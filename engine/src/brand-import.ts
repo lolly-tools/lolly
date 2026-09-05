@@ -43,6 +43,96 @@ type UnknownRecord = Record<string, unknown>;
 const isRecord = (v: unknown): v is UnknownRecord =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
 
+// ── Hostile-container budgets ────────────────────────────────────────────────────────────────
+// These are deliberately above the web source router's ordinary 10 MB token
+// document / 200 set-file policy. The engine still needs its own last line of
+// defence because CLI, scripts and future shells can call these helpers
+// directly, and a Penpot project contains many JSON parts rather than one.
+
+/** Maximum bytes in one already-inflated Penpot JSON part. */
+export const BRAND_IMPORT_MAX_PART_BYTES = 16 * 1024 * 1024;
+/** Maximum UTF-16 code units when a caller supplies an already-decoded part. */
+export const BRAND_IMPORT_MAX_PART_CHARS = 16 * 1024 * 1024;
+/** Maximum aggregate bytes/code units parsed during one project census. */
+export const BRAND_IMPORT_MAX_JSON_UNITS = 64 * 1024 * 1024;
+/** Maximum archive members considered, including media members we ignore. */
+export const BRAND_IMPORT_MAX_ENTRIES = 50_000;
+/** Maximum page-shape JSON parts walked by either usage census. */
+export const BRAND_IMPORT_MAX_PAGE_PARTS = 25_000;
+/** Maximum token documents merged out of one Penpot project. */
+export const BRAND_IMPORT_MAX_TOKEN_DOCS = 512;
+/** Maximum loose set files, far above the web importer's ordinary 200. */
+export const BRAND_IMPORT_MAX_SET_FILES = 2_048;
+/** Maximum distinct top-level token sets in any assembled document. */
+export const BRAND_IMPORT_MAX_TOKEN_SETS = 4_096;
+/** Maximum values visited across the parsed JSON used by one operation. */
+export const BRAND_IMPORT_MAX_NODES = 1_000_000;
+/** Maximum array/object nesting. Token documents are normally under 10 deep. */
+export const BRAND_IMPORT_MAX_DEPTH = 64;
+
+interface StructureBudget { nodes: number }
+interface ParseBudget {
+  units: number;
+  structure: StructureBudget;
+  /** A limit violation refuses the whole operation; malformed JSON only skips one part. */
+  refused: boolean;
+}
+
+const newParseBudget = (): ParseBudget => ({ units: 0, structure: { nodes: 0 }, refused: false });
+
+/**
+ * Iterative, cycle-aware preflight before any recursive consumer sees parsed
+ * JSON. Shared references are counted each time (matching the work a serializer
+ * would do); only a reference encountered again on its active ancestor chain is
+ * a cycle. The try/catch keeps the public never-throw contract even when a
+ * direct JS caller supplies getters/proxies rather than JSON.parse output.
+ */
+function structureIssue(value: unknown, budget: StructureBudget): string | null {
+  type Frame = { value: unknown; depth: number; leave?: object };
+  const active = new WeakSet<object>();
+  const stack: Frame[] = [{ value, depth: 0 }];
+  try {
+    while (stack.length) {
+      const frame = stack.pop()!;
+      if (frame.leave) {
+        active.delete(frame.leave);
+        continue;
+      }
+      budget.nodes++;
+      if (budget.nodes > BRAND_IMPORT_MAX_NODES) {
+        return `JSON structure exceeds ${BRAND_IMPORT_MAX_NODES.toLocaleString('en')} values`;
+      }
+      if (frame.depth > BRAND_IMPORT_MAX_DEPTH) {
+        return `JSON structure exceeds ${BRAND_IMPORT_MAX_DEPTH} levels`;
+      }
+      if (typeof frame.value !== 'object' || frame.value === null) continue;
+      if (active.has(frame.value)) return 'JSON structure contains a cycle';
+      active.add(frame.value);
+      stack.push({ value: undefined, depth: frame.depth, leave: frame.value });
+      const children = Array.isArray(frame.value)
+        ? frame.value
+        : Object.keys(frame.value).map((key) => (frame.value as UnknownRecord)[key]);
+      for (let i = children.length - 1; i >= 0; i--) {
+        stack.push({ value: children[i], depth: frame.depth + 1 });
+      }
+    }
+    return null;
+  } catch {
+    return 'JSON structure could not be inspected safely';
+  }
+}
+
+function topLevelSetIssue(doc: UnknownRecord): string | null {
+  try {
+    const count = Object.keys(doc).filter((key) => key !== '$themes' && key !== '$metadata').length;
+    return count > BRAND_IMPORT_MAX_TOKEN_SETS
+      ? `token document carries more than ${BRAND_IMPORT_MAX_TOKEN_SETS.toLocaleString('en')} top-level sets`
+      : null;
+  } catch {
+    return 'token document keys could not be inspected safely';
+  }
+}
+
 /** The result of pulling a token document out of one of the three containers. */
 export interface TokensExtraction {
   /** Reassembled Tokens-Studio/DTCG document, or null when nothing usable was found. */
@@ -80,6 +170,8 @@ export function coerceTokensDoc(json: unknown): TokensExtraction {
     };
   }
   const studio = '$themes' in json || '$metadata' in json;
+  const issue = topLevelSetIssue(json) ?? structureIssue(json, { nodes: 0 });
+  if (issue) return { doc: null, warnings: [issue], source: studio ? 'tokens-studio' : 'dtcg' };
   return { doc: json, warnings: [], source: studio ? 'tokens-studio' : 'dtcg' };
 }
 
@@ -96,18 +188,47 @@ export function coerceTokensDoc(json: unknown): TokensExtraction {
  */
 export function assembleTokenSetFiles(files: Record<string, unknown>): TokensExtraction {
   const warnings: string[] = [];
+  let paths: string[];
+  try {
+    paths = Object.keys(files);
+  } catch {
+    return { doc: null, warnings: ['token set file list could not be inspected safely'], source: 'token-set-files' };
+  }
+  if (paths.length > BRAND_IMPORT_MAX_SET_FILES) {
+    return {
+      doc: null,
+      warnings: [`token export carries more than ${BRAND_IMPORT_MAX_SET_FILES.toLocaleString('en')} files`],
+      source: 'token-set-files',
+    };
+  }
   // Null-prototype accumulator: a set legitimately named "__proto__" (its file
   // is attacker-/user-controlled) must become an own key, not a prototype swap.
   const doc: UnknownRecord = Object.create(null);
+  const structure = { nodes: 0 };
   let setCount = 0;
-  for (const [path, body] of Object.entries(files)) {
+  for (const path of paths) {
+    let body: unknown;
+    try {
+      body = files[path];
+    } catch {
+      warnings.push(`${path}: body could not be read safely - ignored`);
+      continue;
+    }
     if (path === '$metadata.json') {
-      if (isRecord(body)) doc.$metadata = body;
+      if (isRecord(body)) {
+        const issue = structureIssue(body, structure);
+        if (issue) return { doc: null, warnings: [...warnings, `${path}: ${issue}`], source: 'token-set-files' };
+        doc.$metadata = body;
+      }
       else warnings.push(`$metadata.json is not an object - ignored`);
       continue;
     }
     if (path === '$themes.json') {
-      if (Array.isArray(body)) doc.$themes = body;
+      if (Array.isArray(body)) {
+        const issue = structureIssue(body, structure);
+        if (issue) return { doc: null, warnings: [...warnings, `${path}: ${issue}`], source: 'token-set-files' };
+        doc.$themes = body;
+      }
       else warnings.push(`$themes.json is not an array - ignored`);
       continue;
     }
@@ -118,6 +239,15 @@ export function assembleTokenSetFiles(files: Record<string, unknown>): TokensExt
     if (!isRecord(body)) {
       warnings.push(`${path}: set body is not an object - ignored`);
       continue;
+    }
+    const issue = structureIssue(body, structure);
+    if (issue) return { doc: null, warnings: [...warnings, `${path}: ${issue}`], source: 'token-set-files' };
+    if (setCount >= BRAND_IMPORT_MAX_TOKEN_SETS) {
+      return {
+        doc: null,
+        warnings: [...warnings, `token export carries more than ${BRAND_IMPORT_MAX_TOKEN_SETS.toLocaleString('en')} sets`],
+        source: 'token-set-files',
+      };
     }
     doc[path.slice(0, -'.json'.length)] = body;
     setCount++;
@@ -133,14 +263,54 @@ export function assembleTokenSetFiles(files: Record<string, unknown>): TokensExt
 const decoder = /* lazily shared; TextDecoder is a web+node global */ new TextDecoder();
 const asText = (v: Uint8Array | string): string => (typeof v === 'string' ? v : decoder.decode(v));
 
-function parseEntry(entries: Record<string, Uint8Array | string>, path: string, warnings: string[]): unknown {
+function parseEntry(
+  entries: Record<string, Uint8Array | string>, path: string, warnings: string[], budget: ParseBudget,
+): unknown {
   const raw = entries[path];
   if (raw === undefined) return undefined;
+  const units = raw.length;
+  const partLimit = typeof raw === 'string' ? BRAND_IMPORT_MAX_PART_CHARS : BRAND_IMPORT_MAX_PART_BYTES;
+  if (units > partLimit) {
+    warnings.push(`${path}: JSON part exceeds ${partLimit.toLocaleString('en')} ${typeof raw === 'string' ? 'characters' : 'bytes'}`);
+    budget.refused = true;
+    return undefined;
+  }
+  if (budget.units + units > BRAND_IMPORT_MAX_JSON_UNITS) {
+    warnings.push(`${path}: project JSON exceeds the ${BRAND_IMPORT_MAX_JSON_UNITS.toLocaleString('en')} unit aggregate limit`);
+    budget.refused = true;
+    return undefined;
+  }
+  budget.units += units;
   try {
-    return JSON.parse(asText(raw));
+    const parsed: unknown = JSON.parse(asText(raw));
+    const issue = structureIssue(parsed, budget.structure);
+    if (issue) {
+      warnings.push(`${path}: ${issue}`);
+      budget.refused = true;
+      return undefined;
+    }
+    return parsed;
   } catch (e) {
     warnings.push(`${path}: ${e instanceof Error ? e.message : 'unparseable JSON'}`);
     return undefined;
+  }
+}
+
+function penpotEntryPaths(
+  entries: Record<string, Uint8Array | string>, warnings: string[], budget: ParseBudget,
+): string[] {
+  try {
+    const paths = Object.keys(entries);
+    if (paths.length > BRAND_IMPORT_MAX_ENTRIES) {
+      warnings.push(`project carries more than ${BRAND_IMPORT_MAX_ENTRIES.toLocaleString('en')} archive entries`);
+      budget.refused = true;
+      return [];
+    }
+    return paths;
+  } catch {
+    warnings.push('project entry list could not be inspected safely');
+    budget.refused = true;
+    return [];
   }
 }
 
@@ -168,17 +338,27 @@ function parseEntry(entries: Record<string, Uint8Array | string>, path: string, 
  */
 export function extractPenpotProject(entries: Record<string, Uint8Array | string>): TokensExtraction {
   const warnings: string[] = [];
+  const budget = newParseBudget();
+  const entryPaths = penpotEntryPaths(entries, warnings, budget);
+  if (budget.refused) return { doc: null, warnings, source: 'penpot-project' };
 
   // Resolve the ordered list of per-file token doc paths.
   let tokenPaths: string[] = [];
-  const manifest = parseEntry(entries, 'manifest.json', warnings);
+  const manifest = parseEntry(entries, 'manifest.json', warnings, budget);
+  if (budget.refused) return { doc: null, warnings, source: 'penpot-project' };
   const manifestFiles = isRecord(manifest) && Array.isArray(manifest.files) ? manifest.files : null;
   if (manifestFiles) {
+    if (manifestFiles.length > BRAND_IMPORT_MAX_ENTRIES) {
+      warnings.push(`manifest carries more than ${BRAND_IMPORT_MAX_ENTRIES.toLocaleString('en')} file records`);
+      return { doc: null, warnings, source: 'penpot-project' };
+    }
+    const seen = new Set<string>();
     for (const f of manifestFiles) {
       if (!isRecord(f) || typeof f.id !== 'string') continue;
       const p = `files/${f.id}/tokens.json`;
-      if (p in entries) {
+      if (p in entries && !seen.has(p)) {
         tokenPaths.push(p);
+        seen.add(p);
       } else if (Array.isArray(f.features) && f.features.includes('design-tokens/v1')) {
         // Only noisy when the manifest *promised* tokens; files without the
         // feature routinely have no tokens.json and that is not a defect.
@@ -191,26 +371,29 @@ export function extractPenpotProject(entries: Record<string, Uint8Array | string
         ? 'manifest.json missing or unparseable - scanning for files/*/tokens.json'
         : 'manifest.json is not a penpot/export-files manifest - scanning for files/*/tokens.json',
     );
-    tokenPaths = Object.keys(entries)
+    tokenPaths = entryPaths
       .filter(p => /^files\/[^/]+\/tokens\.json$/.test(p))
       .sort();
+  }
+  if (tokenPaths.length > BRAND_IMPORT_MAX_TOKEN_DOCS) {
+    warnings.push(`project carries more than ${BRAND_IMPORT_MAX_TOKEN_DOCS.toLocaleString('en')} token documents`);
+    return { doc: null, warnings, source: 'penpot-project' };
   }
 
   // Merge the docs in order. Sets: last writer wins. $themes/$metadata: first wins.
   let doc: UnknownRecord | null = null;
+  const setNames = new Set<string>();
   for (const path of tokenPaths) {
-    const parsed = parseEntry(entries, path, warnings);
+    const parsed = parseEntry(entries, path, warnings, budget);
+    if (budget.refused) return { doc: null, warnings, source: 'penpot-project' };
     if (parsed === undefined) continue;
     if (!isRecord(parsed)) {
       warnings.push(`${path}: token document is not an object - ignored`);
       continue;
     }
-    if (!doc) {
-      // Null-prototype (see assembleTokenSetFiles): a "__proto__" set key from
-      // a later file must merge as an own key, never mutate the prototype.
-      doc = Object.assign(Object.create(null) as UnknownRecord, parsed);
-      continue;
-    }
+    // Null-prototype (see assembleTokenSetFiles): a "__proto__" set key must
+    // merge as an own key, never mutate the prototype.
+    if (!doc) doc = Object.create(null) as UnknownRecord;
     for (const [key, value] of Object.entries(parsed)) {
       if (key === '$themes' || key === '$metadata') {
         // First MEANINGFUL block wins - an empty `$themes: []` / `$metadata: {}`
@@ -222,6 +405,13 @@ export function extractPenpotProject(entries: Record<string, Uint8Array | string
           warnings.push(`${path}: ${key} differs from an earlier file's - keeping the first`);
         }
         continue;
+      }
+      if (!setNames.has(key)) {
+        if (setNames.size >= BRAND_IMPORT_MAX_TOKEN_SETS) {
+          warnings.push(`project carries more than ${BRAND_IMPORT_MAX_TOKEN_SETS.toLocaleString('en')} distinct token sets`);
+          return { doc: null, warnings, source: 'penpot-project' };
+        }
+        setNames.add(key);
       }
       if (Object.hasOwn(doc, key) && stableStringify(doc[key]) !== stableStringify(value)) {
         warnings.push(`${path}: set "${key}" collides with an earlier file's - later file wins`);
@@ -334,31 +524,51 @@ function pv(o: unknown, camel: string): unknown {
  * Shared by every page walker so two censuses of the same archive can never
  * disagree about which shapes exist.
  */
-function penpotPagePaths(entries: Record<string, Uint8Array | string>): string[] {
-  const warnings: string[] = []; // parseEntry's sink - a census has no warning channel
-  const pageShapeRe = /^[^/]+\/[^/]+\.json$/;
-  const manifest = parseEntry(entries, 'manifest.json', warnings);
+function penpotPagePaths(
+  entries: Record<string, Uint8Array | string>, warnings: string[], budget: ParseBudget,
+): string[] {
+  const entryPaths = penpotEntryPaths(entries, warnings, budget);
+  if (budget.refused) return [];
+  const manifest = parseEntry(entries, 'manifest.json', warnings, budget);
+  if (budget.refused) return [];
   const manifestFiles = isRecord(manifest) && Array.isArray(manifest.files) ? manifest.files : null;
-  if (!manifestFiles) {
-    return Object.keys(entries)
-      .filter(p => /^files\/[^/]+\/pages\/[^/]+\/[^/]+\.json$/.test(p))
-      .sort();
-  }
-  const pagePaths: string[] = [];
-  const sortedKeys = Object.keys(entries).sort();
-  for (const f of manifestFiles) {
-    if (!isRecord(f) || typeof f.id !== 'string') continue;
-    const prefix = `files/${f.id}/pages/`;
-    for (const p of sortedKeys) {
-      if (p.startsWith(prefix) && pageShapeRe.test(p.slice(prefix.length))) pagePaths.push(p);
+  const pagePathRe = /^files\/([^/]+)\/pages\/[^/]+\/[^/]+\.json$/;
+  const candidates: Array<{ path: string; fileId: string }> = [];
+  for (const path of entryPaths) {
+    const match = pagePathRe.exec(path);
+    if (!match) continue;
+    if (candidates.length >= BRAND_IMPORT_MAX_PAGE_PARTS) {
+      warnings.push(`project carries more than ${BRAND_IMPORT_MAX_PAGE_PARTS.toLocaleString('en')} page-shape parts`);
+      budget.refused = true;
+      return [];
     }
+    candidates.push({ path, fileId: match[1]! });
   }
-  return pagePaths;
+  if (!manifestFiles) {
+    return candidates.map((entry) => entry.path).sort();
+  }
+  if (manifestFiles.length > BRAND_IMPORT_MAX_ENTRIES) {
+    warnings.push(`manifest carries more than ${BRAND_IMPORT_MAX_ENTRIES.toLocaleString('en')} file records`);
+    budget.refused = true;
+    return [];
+  }
+  // Preserve manifest file order and lexical path order without the previous
+  // O(manifest files × archive entries) nested scan.
+  const fileOrder = new Map<string, number>();
+  for (const [index, file] of manifestFiles.entries()) {
+    if (isRecord(file) && typeof file.id === 'string' && !fileOrder.has(file.id)) fileOrder.set(file.id, index);
+  }
+  return candidates
+    .filter((entry) => fileOrder.has(entry.fileId))
+    .sort((a, b) => (fileOrder.get(a.fileId)! - fileOrder.get(b.fileId)!) || a.path.localeCompare(b.path))
+    .map((entry) => entry.path);
 }
 
 export function scanPenpotUsage(entries: Record<string, Uint8Array | string>): PenpotUsage {
   const warnings: string[] = []; // parseEntry's sink - a census has no warning channel
-  const pagePaths = penpotPagePaths(entries);
+  const budget = newParseBudget();
+  const pagePaths = penpotPagePaths(entries, warnings, budget);
+  if (budget.refused) return { colors: [], gradients: [], fonts: [] };
 
   interface Tally { fills: number; strokes: number; textRuns: number; gradientStops: number }
   const colors = new Map<string, Tally>();
@@ -427,7 +637,8 @@ export function scanPenpotUsage(entries: Record<string, Uint8Array | string>): P
   };
 
   for (const path of pagePaths) {
-    const shape = parseEntry(entries, path, warnings);
+    const shape = parseEntry(entries, path, warnings, budget);
+    if (budget.refused) return { colors: [], gradients: [], fonts: [] };
     if (!isRecord(shape)) continue;
     seePaints(pv(shape, 'fills'), 'fillColor', 'fillColorGradient', 'fills');
     seePaints(pv(shape, 'strokes'), 'strokeColor', 'strokeColorGradient', 'strokes');
@@ -538,6 +749,7 @@ function camelOf(k: string): string {
  */
 export function scanPenpotAppliedTokens(entries: Record<string, Uint8Array | string>): PenpotAppliedToken[] {
   const warnings: string[] = [];
+  const budget = newParseBudget();
   const rows = new Map<string, Omit<PenpotAppliedToken, 'name' | 'total'>>();
 
   const bump = (name: string, cls: AppliedClass): void => {
@@ -546,8 +758,9 @@ export function scanPenpotAppliedTokens(entries: Record<string, Uint8Array | str
     r[cls]++;
   };
 
-  for (const path of penpotPagePaths(entries)) {
-    const shape = parseEntry(entries, path, warnings);
+  for (const path of penpotPagePaths(entries, warnings, budget)) {
+    const shape = parseEntry(entries, path, warnings, budget);
+    if (budget.refused) return [];
     if (!isRecord(shape)) continue;
     const applied = pv(shape, 'appliedTokens');
     if (!isRecord(applied)) continue;

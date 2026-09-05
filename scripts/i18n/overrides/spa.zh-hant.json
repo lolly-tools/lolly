@@ -207,5 +207,12 @@
   "Imported": "匯入日期",
   "Copyright": "版權",
   "Captured": "拍攝日期",
-  "Keywords": "關鍵字"
+  "Keywords": "關鍵字",
+  "Check for updates": "檢查更新",
+  "Up to date": "已是最新",
+  "Update available: {version}": "有可用更新：{version}",
+  "Install and restart": "安裝並重新啟動",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "在匯出像素中隱藏不可見憑證的裝置端模型。立即下載（約 {size}），第一次耐久憑證匯出即可直接開始，無需等待。",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "在匯出像素中隱藏耐久憑證的裝置端模型。移除後可釋放空間；下次使用時會在您同意後重新下載。",
+  "Removed the durable-credential model": "已移除耐久憑證模型"
 }

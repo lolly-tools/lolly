@@ -34,11 +34,11 @@ jobs:
     name: Build .deb (aarch64)
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'          # the tree runs .ts directly; engines require >= 22.18
           cache: npm
@@ -46,7 +46,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
 
       - name: Cache cargo build
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
             ~/.cargo/registry
@@ -82,10 +82,10 @@ jobs:
       - name: Build desktop .deb
         env:
           LOLLY_EMBED_CATALOG: profile
+          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+          VITE_CATALOG_PUBLIC_KEY_JWK: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
         working-directory: shells/tauri-desktop
-        run: |
-          npm run build:frontend
-          npm run tauri -- build --bundles deb
+        run: npm run tauri -- build --bundles deb
 
       # The binary must carry the embedded frontend. Without
       # --features tauri/custom-protocol a Tauri build is a DEV build that tries to
@@ -108,7 +108,7 @@ jobs:
           mkdir -p out && cp "$deb" out/
           ls -la out/
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: lolly-linux-arm64
           path: out/*

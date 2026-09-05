@@ -28,12 +28,15 @@
 
 import { ENGINE_VERSION } from './version.ts';
 
-/** The record LAYOUT this build writes. Bump on any change to the record shape. */
-export const SESSION_FORMAT_VERSION = 1;
+/** The record LAYOUT this build writes. Bump on any change to the record shape.
+ *  v2 (engine 1.173, plans/186): the optional `designSystem: { id, label }` stamp,
+ *  which design system the session was made with. Additive - a v1 reader ignores
+ *  it and a v2 reader treats its absence as "unknown". */
+export const SESSION_FORMAT_VERSION = 2;
 
 /** The newest record layout this build knows how to read. A record is readable
  *  when its `formatVersion` is ≤ this; a higher one is from a newer app. */
-export const SESSION_READER_VERSION = 1;
+export const SESSION_READER_VERSION = 2;
 
 export interface SessionVersionStamp {
   formatVersion: number;
@@ -91,9 +94,10 @@ export function migrateSessionRecord(
     return data as object;
   }
 
-  // fromVersion ≤ current: migrate forward, step by step. Only the v0→v1
-  // (add-stamps) step exists today and it is a no-op on the data, so there is
-  // nothing to transform yet. Future breaking steps slot in here, e.g.:
-  //   if (fromVersion < 2) { /* v1 → v2: reshape data */ }
+  // fromVersion ≤ current: migrate forward, step by step. The v0→v1 (add-stamps)
+  // and v1→v2 (add the design-system stamp) steps are both additive and no-ops
+  // on the data, so there is nothing to transform yet. Future breaking steps
+  // slot in here, e.g.:
+  //   if (fromVersion < 3) { /* v2 → v3: reshape data */ }
   return data as object;
 }

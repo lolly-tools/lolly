@@ -33,9 +33,9 @@ import type { ZzfxSong, ZzfxInstrument } from './zzfxm.ts';
 const PIANO: ZzfxInstrument = [0.4, 0, 261.63, 0.002, 0.06, 0.55, 3, 1];
 
 /** Bounds that keep a hostile/corrupt file from hanging or exhausting memory. */
-const MAX_NOTES = 200_000;      // a real focus loop has hundreds; this is a hard backstop
-const MAX_STEPS = 1 << 15;      // 32768 grid steps: caps per-voice array allocation
-const MAX_VOICES = 8;           // simultaneous ZzFXM channels; excess overlaps are dropped
+export const MIDI_MAX_NOTES = 200_000;      // a real focus loop has hundreds; this is a hard backstop
+export const MIDI_MAX_STEPS = 1 << 15;      // 32768 grid steps: caps per-voice array allocation
+export const MIDI_MAX_VOICES = 8;           // simultaneous ZzFXM channels; excess overlaps are dropped
 
 interface NoteEv { start: number; end: number; midi: number }
 
@@ -63,7 +63,7 @@ export function parseMidi(bytes: Uint8Array): ParsedMidi {
   const notes: NoteEv[] = [];
   let usPerQuarter = 500000; // 120 BPM default
 
-  for (let t = 0; t < ntracks && notes.length < MAX_NOTES; t++) {
+  for (let t = 0; t < ntracks && notes.length < MIDI_MAX_NOTES; t++) {
     if (pos + 8 > bytes.length || tag(bytes, pos) !== 'MTrk') break;
     const len = dv.getUint32(pos + 4);
     let p = pos + 8;
@@ -72,7 +72,7 @@ export function parseMidi(bytes: Uint8Array): ParsedMidi {
     let status = 0;
     const active = new Map<number, number[]>(); // (channel<<8|note) → stack of start ticks
 
-    while (p < end && notes.length < MAX_NOTES) {
+    while (p < end && notes.length < MIDI_MAX_NOTES) {
       let delta = 0, b: number;
       do { b = bytes[p++] ?? 0; delta = (delta << 7) | (b & 0x7f); } while (b & 0x80 && p < end);
       tick += delta;
@@ -131,10 +131,10 @@ export function midiToSong(parsed: ParsedMidi, opts: MidiToSongOptions = {}): Zz
 
   const events = notes
     .map((n) => ({ s: quant(n.start), e: Math.max(quant(n.start) + 1, quant(n.end)), z: n.midi - K }))
-    .filter((ev) => ev.s < MAX_STEPS)       // drop notes past the step cap (hostile/huge file)
+    .filter((ev) => ev.s < MIDI_MAX_STEPS)       // drop notes past the step cap (hostile/huge file)
     .sort((a, b) => a.s - b.s || b.z - a.z);
   if (!events.length) throw new Error('no notes in MIDI');
-  const totalSteps = Math.min(events.reduce((m, e) => Math.max(m, e.e), 1), MAX_STEPS);
+  const totalSteps = Math.min(events.reduce((m, e) => Math.max(m, e.e), 1), MIDI_MAX_STEPS);
 
   // Greedy voice allocation: one note per voice-channel per step; overlaps → more voices.
   const voiceEnd: number[] = [];
@@ -143,7 +143,7 @@ export function midiToSong(parsed: ParsedMidi, opts: MidiToSongOptions = {}): Zz
     if (ev.s >= totalSteps) continue;
     let v = voiceEnd.findIndex((endStep) => endStep <= ev.s);
     if (v < 0) {
-      if (voices.length >= MAX_VOICES) continue; // drop excess simultaneous notes
+      if (voices.length >= MIDI_MAX_VOICES) continue; // drop excess simultaneous notes
       v = voices.length;
       voices.push(new Array<number>(totalSteps).fill(0));
       voiceEnd.push(0);

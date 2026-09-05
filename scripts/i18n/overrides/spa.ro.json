@@ -200,5 +200,12 @@
   "Imported": "Importat",
   "Copyright": "Drepturi de autor",
   "Captured": "Realizată",
-  "Keywords": "Cuvinte-cheie"
+  "Keywords": "Cuvinte-cheie",
+  "Check for updates": "Caută actualizări",
+  "Up to date": "La zi",
+  "Update available: {version}": "Actualizare disponibilă: {version}",
+  "Install and restart": "Instalează și repornește",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "Modelul de pe dispozitiv care ascunde o acreditare invizibilă în pixelii exportați. Descărcați-l acum (~{size}), iar primul export cu acreditare durabilă va începe imediat, fără așteptare.",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "Modelul de pe dispozitiv care ascunde acreditarea durabilă în pixelii exportați. Eliminarea lui eliberează spațiu; va fi descărcat din nou cu acordul dvs. la următoarea utilizare.",
+  "Removed the durable-credential model": "Modelul de acreditare durabilă a fost eliminat"
 }

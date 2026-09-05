@@ -27,14 +27,18 @@ export interface LsbAnalysis {
 
 // Below this many pixels the chi-square has too few samples per bin to mean
 // anything, report unsuspicious rather than guess.
-const MIN_PIXELS = 64 * 64;
+export const LSB_MIN_PIXELS = 64 * 64;
+// Statistical confidence is already overwhelming far below this point. Capping
+// the sample prevents a giant decoded canvas from turning a heuristic into a
+// main-thread CPU denial of service.
+export const LSB_MAX_PIXELS = 4_000_000;
 // Embedding probability a prefix must reach, on every colour channel, before
 // the image is flagged. 0.95 is the classic operating point for this test.
-const P_THRESHOLD = 0.95;
+export const LSB_P_THRESHOLD = 0.95;
 // Sequential embedding fills the image from the start, so a partially-filled
 // carrier looks natural over the whole image but saturated over its head.
 // Scan nested prefixes and keep the worst (highest-probability) result.
-const PREFIXES = [0.25, 0.5, 1];
+export const LSB_PREFIXES = [0.25, 0.5, 1] as const;
 
 // Regularized upper incomplete gamma Q(a, x): the chi-square survival function
 // (p-value machinery). Series for x < a+1, Lentz continued fraction otherwise;
@@ -107,20 +111,26 @@ function channelP(rgba: Uint8Array | Uint8ClampedArray, channel: number, n: numb
  * too-small image reports unsuspicious.
  */
 export function analyzeLsb(rgba: Uint8Array | Uint8ClampedArray, opts: { width: number; height: number }): LsbAnalysis {
-  const total = Math.min(opts.width * opts.height, Math.floor(rgba.length / 4));
-  if (total < MIN_PIXELS) return { suspicious: false, score: 0, pixels: total };
+  const { width, height } = opts;
+  if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0) {
+    return { suspicious: false, score: 0, pixels: 0 };
+  }
+  const declared = width * height;
+  if (!Number.isSafeInteger(declared)) return { suspicious: false, score: 0, pixels: 0 };
+  const total = Math.min(declared, Math.floor(rgba.length / 4), LSB_MAX_PIXELS);
+  if (total < LSB_MIN_PIXELS) return { suspicious: false, score: 0, pixels: total };
   try {
     let best = 0;
-    for (const f of PREFIXES) {
+    for (const f of LSB_PREFIXES) {
       const n = Math.floor(total * f);
-      if (n < MIN_PIXELS) continue;
+      if (n < LSB_MIN_PIXELS) continue;
       // ALL of R, G, B must read embedded; the min across channels is the
       // prefix's probability. (Grey images have identical channels; colour
       // stego payloads touch all three.)
       const p = Math.min(channelP(rgba, 0, n), channelP(rgba, 1, n), channelP(rgba, 2, n));
       if (p > best) best = p;
     }
-    return { suspicious: best >= P_THRESHOLD, score: best, pixels: total };
+    return { suspicious: best >= LSB_P_THRESHOLD, score: best, pixels: total };
   } catch {
     return { suspicious: false, score: 0, pixels: total };
   }

@@ -266,6 +266,7 @@ function loadCommunityTool(id: string, textExts: string[]): LoadedTool {
   const textTemplates: Record<string, string | null> = {};
   for (const ext of textExts) textTemplates[ext] = read(`template.${ext}`);
   return {
+    trustClass: 'builtin-verified',
     manifest: JSON.parse(read('tool.json')),
     template: read('template.html'),
     styles: null, // csv hydration never reads styles
@@ -334,6 +335,7 @@ test('data: model-derived JSON payload golden', async () => {
 // with hand-written sibling templates instead of forcing a CI skip.
 function dataToolDouble(): LoadedTool {
   return {
+    trustClass: 'builtin-verified',
     manifest: {
       id: 'golden-data-double', name: 'Golden data double', version: '1.0.0',
       engineVersion: '^1.0.0', status: 'official',

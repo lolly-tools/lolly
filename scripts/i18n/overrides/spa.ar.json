@@ -212,5 +212,12 @@
   "Imported": "تاريخ الاستيراد",
   "Copyright": "حقوق النشر",
   "Captured": "تاريخ الالتقاط",
-  "Keywords": "كلمات مفتاحية"
+  "Keywords": "كلمات مفتاحية",
+  "Check for updates": "البحث عن تحديثات",
+  "Up to date": "محدَّث",
+  "Update available: {version}": "يتوفر تحديث: {version}",
+  "Install and restart": "التثبيت وإعادة التشغيل",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "النموذج الموجود على الجهاز الذي يخفي بيانات اعتماد غير مرئية في وحدات البكسل المصدّرة. نزّله الآن (حوالي {size}) ليبدأ أول تصدير ببيانات اعتماد دائمة فورًا من دون انتظار.",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "النموذج الموجود على الجهاز الذي يخفي بيانات الاعتماد الدائمة في وحدات البكسل المصدّرة. تؤدي إزالته إلى إخلاء مساحة؛ وسيُنزّل مجددًا بموافقتك عند استخدامه لاحقًا.",
+  "Removed the durable-credential model": "تمت إزالة نموذج بيانات الاعتماد الدائمة"
 }

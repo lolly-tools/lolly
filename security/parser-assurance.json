@@ -1,0 +1,574 @@
+{
+  "version": 1,
+  "inventory": "docs/parser-inventory.md",
+  "parsers": {
+    "engine/src/pdf-map.ts": {
+      "fuzzTargets": [
+        "pdf-map"
+      ],
+      "details": {
+        "inputSource": "PDF or Illustrator `.ai` content stream, decoded by the shell's pdf-lib pass; plus each font's `/ToUnicode` CMap text",
+        "bounds": "`PDF_MAP_MAX_ARRAY_DEPTH = 16`, `PDF_MAP_MAX_BF_RANGE = 0x10000`, `PDF_MAP_MAX_RUN_DEPTH = 12`, `PDF_MAP_MAX_PAGE_NODES = 4,000`, `PDF_MAP_MAX_TOKENS = 4 M`, `PDF_MAP_MAX_CONTENT_CHARS = 16 M`, `PDF_MAP_MAX_TOTAL_CONTENT_CHARS = 32 M`, plus named pattern/mask evaluation and node ceilings",
+        "directTests": "`tests/pdf-map.test.ts`",
+        "fuzzCoverage": "`pdf-map` (`interpretPdfPage` + `parseToUnicode`)",
+        "notes": "Two of the eight saved regressions are this module: `pdf-map-deep-array-nesting.bin` and `pdf-map-tounicode-range-oom.bin`. The CMap cap blocks a four-billion-iteration range; tokenizer accounting includes nested array members, and decoded characters, tokens and emitted nodes are charged page-wide across nested form, glyph, pattern and mask runs."
+      }
+    },
+    "engine/src/pdf-svg.ts": {
+      "fuzzTargets": [
+        "pdf-derived"
+      ],
+      "details": {
+        "inputSource": "the `PdfNode`s `pdf-map.ts` produced for one page",
+        "bounds": "4,000 nodes; 64 clips/mask children; 4,096 gradient stops; 20,000 text/outline lines; 32 M aggregate source chars; 64 K clip, 400 K path/outline and 1e9 coordinate limits",
+        "directTests": "`tests/pdf-svg.test.ts`",
+        "fuzzCoverage": "`pdf-derived` (serializer, extent and culler over generated hostile nodes)",
+        "notes": "A preflight charges allocation-driving strings/collections before serialization. Oversized serializer input throws; the total culler fails open without walking an over-budget list."
+      }
+    },
+    "engine/src/pdf-text.ts": {
+      "fuzzTargets": [
+        "pdf-derived"
+      ],
+      "details": {
+        "inputSource": "the same interpreted text nodes, reassembled into reading order",
+        "bounds": "4,000 nodes; 20,000 line items/tagged elements; 16 M chars; 4,000 MCIDs per element and 100,000 aggregate tagged references; 10,000 joined pages",
+        "directTests": "`tests/pdf-text.test.ts`",
+        "fuzzCoverage": "`pdf-derived` (`extractPageText` + `joinPageText`)",
+        "notes": "Newline splitting is a forward scan capped before allocation; structure-tree fan-out and public direct callers cannot bypass the interpreter-sized page budget."
+      }
+    },
+    "engine/src/pdf-artwork.ts": {
+      "fuzzTargets": [
+        "pdf-derived"
+      ],
+      "details": {
+        "inputSource": "interpreted PDF nodes, clustered into candidate logos",
+        "bounds": "`PDF_ARTWORK_MAX_NODES = 4,000`, `PDF_ARTWORK_MAX_CANDIDATES = 60`, plus the shape heuristics `MAX_CLUSTER_GAP = 48`, `MAX_PAGE_FRACTION = 0.55`, `MAX_ASPECT = 12`",
+        "directTests": "`tests/pdf-artwork.test.ts`",
+        "fuzzCoverage": "`pdf-derived` (`findVectorArtwork`)",
+        "notes": "The input-visit cap applies to all nodes, not only accepted vector items; a hostile all-text list cannot force an unbounded scan before clustering."
+      }
+    },
+    "engine/src/pdf-redaction.ts": {
+      "fuzzTargets": [
+        "pdf-derived"
+      ],
+      "details": {
+        "inputSource": "interpreted PDF nodes, looking for text under filled bars",
+        "bounds": "4,000 nodes/page, 64 covering shapes/run, 1 M chars/run and 10,000 pages/document",
+        "directTests": "`tests/pdf-redaction.test.ts`",
+        "fuzzCoverage": "`pdf-derived` (page/document detection and summary)",
+        "notes": "Detection only, no byte surgery. Paint-order and cover scans share the interpreter-sized prefix budget."
+      }
+    },
+    "engine/src/pptx-read.ts": {
+      "fuzzTargets": [
+        "pptx-read"
+      ],
+      "details": {
+        "inputSource": "an unzipped `.pptx` part map (`Record<path, Uint8Array | string>`) plus an injected XML parser",
+        "bounds": "`MAX_PART_BYTES = 24 MB`, `MAX_PART_CHARS = 16 M`, `MAX_SLIDES = 2000`, `MAX_NODES_PER_SLIDE = 8000`, `MAX_GROUP_DEPTH = 16`, `MAX_PARAS = 4000`, `MAX_RUNS_PER_PARA = 4000`, `MAX_TABLE_ROWS = 2000`, `MAX_TABLE_COLS = 512`, `MAX_TEXT_LEN = 200_000`, `MAX_DFS_VISITS = 200_000`, `MAX_COORD = 1e11`",
+        "directTests": "`tests/pptx-read.test.ts`",
+        "fuzzCoverage": "`pptx-read` (`readPptx` + `isPptx`)",
+        "notes": "The exemplar. See \"The standard to follow\". Entity expansion is explicitly delegated to the injected parser, and the module compensates with a visited-node counter."
+      }
+    },
+    "engine/src/pptx-patch.ts": {
+      "fuzzTargets": [
+        "pptx-patch"
+      ],
+      "details": {
+        "inputSource": "the same hostile part map, rewritten in place for a rebrand",
+        "bounds": "`MAX_PART_CHARS = 32 M`",
+        "directTests": "`tests/pptx-patch.test.ts`",
+        "fuzzCoverage": "`pptx-patch` (`rebrandPptxParts`)",
+        "notes": "Every rewrite is a delimited string or regex edit with linear regexes only, never a DOM parse, so no catastrophic backtracking. A part over the cap passes through verbatim rather than being rewritten."
+      }
+    },
+    "engine/src/docx-read.ts": {
+      "fuzzTargets": [
+        "docx-read"
+      ],
+      "details": {
+        "inputSource": "an unzipped `.docx` part map plus an injected XML parser - the document twin of `pptx-read.ts` (the web shell's `lib/office-text.ts` inflates the zip first)",
+        "bounds": "`MAX_PART_BYTES = 24 MB`, `MAX_PART_CHARS = 16 M`, `MAX_PARAGRAPHS = 20_000`, `MAX_BLOCKS = 20_000`, `MAX_RUNS_PER_PARA = 4_000`, `MAX_INLINES_PER_PARA = 8_000`, `MAX_TABLE_ROWS = 2_000`, `MAX_TABLE_COLS = 512`, `MAX_TABLE_CELLS = 100_000`, `MAX_TABLE_DEPTH = 8`, `MAX_INLINE_DEPTH = 16`, `MAX_LIST_LEVEL = 8`",
+        "directTests": "`tests/docx-read.test.ts`",
+        "fuzzCoverage": "`docx-read` (`readDocx` plus both `doc-md` serialisers)",
+        "notes": "By contract it never throws on content - only a `vbaProject.bin` part is refused - so the fuzz sweep's only possible findings are a hang, an allocation blow-up or stack depth."
+      }
+    },
+    "engine/src/icc.ts": {
+      "fuzzTargets": [
+        "icc"
+      ],
+      "details": {
+        "inputSource": "an ICC profile lifted out of a user-supplied JPEG, PNG, PDF or TIFF",
+        "bounds": "`MAX_TAGS = 512`, `MAX_CHANNELS = 15`, `MAX_TABLE_ENTRIES = 4096`, `MAX_CURVE_ENTRIES = 65536`, `MAX_CLUT_VALUES = 1 << 22`, `MAX_PARA_PARAMS = 7`, `MAX_CURVE_INVERT_STEPS = 40`",
+        "directTests": "`tests/icc.test.ts`, `tests/icc-real-profiles.test.ts`",
+        "fuzzCoverage": "`icc` (`parseIccProfile` + evaluate)",
+        "notes": "The clearest statement of the house reader contract in the codebase: never throws, malformed input yields `null`, nothing the file declares is trusted and every cap comment names the largest value seen across the forty-odd real profiles. Apple's over-reporting `gamt` tag is handled by name."
+      }
+    },
+    "engine/src/file-metadata.ts": {
+      "fuzzTargets": [
+        "file-metadata"
+      ],
+      "details": {
+        "inputSource": "raw bytes of any uploaded raster, vector or MP4 or QuickTime video",
+        "bounds": "`MAX_FIELDS = 64`, `MAX_VALUE_CHARS = 2048`, `MAX_TEXT_SCAN = 16 MB`, `MAX_GIF_BLOCKS = 1_000_000`, `MAX_MPF_IMAGES = 16`, `MAX_GAINMAP_SNIFF = 8192`",
+        "directTests": "`tests/file-metadata.test.ts`",
+        "fuzzCoverage": "`file-metadata` (`extractFileMetadata`)",
+        "notes": "Best-effort throughout: a malformed block yields fewer fields, never an exception. PDF is deliberately out of scope here and goes through `host.pdf.analyze`. Second parse path, added 2026-07-31: `readMpfIndex` reads a JPEG's CIPA DC-007 multi-picture index (both byte orders) over the `jpeg-segments.ts` walker, so a declared second image - an HDR gain map, an MPO - is NAMED in the reveal instead of being sniffed as an unexplained appended payload and flagged `sensitive`. Nothing the index claims is trusted: an image is reported only once its declared range lies inside the buffer and starts on an SOI."
+      }
+    },
+    "engine/src/strip-metadata.ts": {
+      "fuzzTargets": [
+        "strip-metadata"
+      ],
+      "details": {
+        "inputSource": "the same uploaded bytes, for the clean-copy path",
+        "bounds": "no numeric caps; the invariants are structural (`STRIPPABLE`, `PNG_STRIP`, `DROP_EL_PREFIX`, `DROP_EL_NAME`, `SPACE_SENSITIVE`, `DROP_XMLNS`)",
+        "directTests": "`tests/strip-metadata.test.ts`",
+        "fuzzCoverage": "`strip-metadata` (`stripMetadata`)",
+        "notes": "Deliberately the inverse contract to its read-side sibling. Consumes `file-metadata.ts`'s `readMpfIndex` for one documented exception to \"image content is preserved\": a multi-picture JPEG loses every image after the primary along with the MPF index that declared them, because an orphaned second image behind a deleted index is worse than either alternative (module header states the choice). Files with no MPF index - motion photos included - are byte-for-byte unaffected. This is a privacy control, so it must **fail closed**: if the surgery throws or leaves removable metadata behind, `stripMetadata()` throws rather than return an original a caller would present as clean (`hasResidualMetadata`)."
+      }
+    },
+    "engine/src/jpeg-segments.ts": {
+      "fuzzTargets": [
+        "jpeg-structure"
+      ],
+      "details": {
+        "inputSource": "the marker structure of any JPEG - one a user uploaded, and one our own export pipeline is about to stamp",
+        "bounds": "`JPEG_MAX_SEGMENTS = 4096`, `JPEG_MAX_APP_ID = 64`; every length field is checked against the buffer before it is acted on, and entropy data is walked (`FF 00` stuffing, `FF D0`–`FF D7` restarts) rather than searched",
+        "directTests": "`tests/jpeg-segments.test.ts`",
+        "fuzzCoverage": "`jpeg-structure` (scan/find/body/splice over minimal, MPF and mutated files)",
+        "notes": "The one shared JPEG marker walker/writer, replacing three ad-hoc \"skip the leading APP0\" insertion points now that segment ORDER carries meaning (an MPF index stores absolute offsets, so it must precede ICC). Split contract by side, on purpose: the reader follows the house rule - never throws, `null` when the bytes are not a JPEG, a short scan flagged `truncated` when they are malformed - while `insertJpegSegments` follows the splicer convention it replaces and returns the input bytes untouched, all or nothing, on any problem. The structural invariant \"no reported segment ends past the buffer\" is asserted on every scan in the tests, including a few hundred seeded mutations of a real `sharp`-encoded file."
+      }
+    },
+    "engine/src/radiance.ts": {
+      "fuzzTargets": [
+        "radiance"
+      ],
+      "details": {
+        "inputSource": "the bytes of an uploaded or piped Radiance `.hdr` (RGBE) file",
+        "bounds": "`RADIANCE_MAX_HEADER_BYTES = 64 KB`, `RADIANCE_MAX_PIXELS = 32 Mpx` and `RADIANCE_RLE_MAX_WIDTH = 32767`; every scanline's declared run/literal length is checked against the remaining buffer before it is acted on",
+        "directTests": "`tests/radiance.test.ts`",
+        "fuzzCoverage": "`radiance` (header plus reader, seeded from both writer encodings)",
+        "notes": "Reader half of the writer (`readRadiance`). Follows the house reader rule: never throws, `null` on anything it cannot fully verify. Two decode shapes it deliberately REFUSES rather than mis-render: `-X` (mirrored rows) and `+Y` (bottom-up), because rows are returned in file order and accepting either would silently hand back a flipped picture."
+      }
+    },
+    "engine/src/gainmap-jpeg.ts": {
+      "fuzzTargets": [
+        "jpeg-structure"
+      ],
+      "details": {
+        "inputSource": "the MP Index IFD of any JPEG being C2PA-stamped - ours, or one a user uploaded",
+        "bounds": "every IFD/entry offset is bounded to the **MPF segment** before any read or write (not merely to the file), the entry count must match the images actually present and both byte orders are read",
+        "directTests": "`tests/gainmap-jpeg.test.ts`, `tests/c2pa-gainmap.test.ts`",
+        "fuzzCoverage": "`jpeg-structure` (`repairMpfOffsets` and `assembleGainMapJpeg` over valid MPF plus forged mutations)",
+        "notes": "Write side as well as read: `repairMpfOffsets` runs from `c2pa-containers.ts#placeJpeg`, because inserting an APP11 store into the primary grows it and leaves `MPEntry[0].size` under-reporting - a malformed index per DC-007 on a file we then sign. Bounding the writes to the segment is what keeps a forged offset from steering 16 bytes per image into arbitrary image data (regression pinned in `tests/c2pa-gainmap.test.ts`). Returns the input untouched on anything it cannot fully verify."
+      }
+    },
+    "engine/src/media-sniff.ts": {
+      "fuzzTargets": [
+        "media-sniff"
+      ],
+      "details": {
+        "inputSource": "header prefix of any uploaded raster or video",
+        "bounds": "none named; every read is an explicit `offset + len > bytes.length` check and the GIF/PNG walks bail at fixed counts",
+        "directTests": "`tests/media-sniff.test.ts`",
+        "fuzzCoverage": "`media-sniff` (`sniffAnimatedRaster` + `sniffVideoContainer`)",
+        "notes": "Returns `string | null`, allocates nothing beyond a short scan. The \"GIF lesson\" the DER and CBOR walkers cite as their invariant originated here. `sniffLayeredRaster` (2026-08-04) is prefix-only PSD/XCF classification for the drop router; full validation is the two rows below."
+      }
+    },
+    "engine/src/psd.ts": {
+      "fuzzTargets": [
+        "psd"
+      ],
+      "details": {
+        "inputSource": "a user's whole Photoshop PSD/PSB, on the layered-import path",
+        "bounds": "`MAX_DIM_PSD = 30_000`, `MAX_DIM_PSB = 300_000`, `MAX_LAYERS = 1_024`, `MAX_CHANNELS_PER_LAYER = 8`, `MAX_EXTRA_BLOCKS = 256`, `MAX_RESOURCE_BLOCKS = 1_024`, `MAX_CMYK_CACHE = 1 << 20` and a decode-output budget (`maxDecodedBytes`, default 256 MiB) reserved **before** every allocation",
+        "directTests": "`tests/psd.test.ts`",
+        "fuzzCoverage": "`psd` (`readPsd`, seeds from `writePsd` - our own writer)",
+        "notes": "Split failure contract: not-a-PSD / refused class (Lab/Indexed, 1/32-bit) is a typed `PsdUnsupportedError` (a controlled throw); damage inside a layer/resource is `onWarn` + skip that piece, never the document. ZIP channels inflate through an injected `InflateFn` whose `maxOut` the module re-checks. CMYK converts through the embedded ICC profile via `icc.ts`'s bounded evaluator."
+      }
+    },
+    "engine/src/xcf.ts": {
+      "fuzzTargets": [
+        "xcf"
+      ],
+      "details": {
+        "inputSource": "a user's whole GIMP XCF, same path",
+        "bounds": "`MAX_DIM = 300_000`, `MAX_LAYERS = 1_024`, `MAX_PROPS = 512`, `MAX_NAME = 4_096`, the same `maxDecodedBytes` budget; every pointer validated `14 < p < bytes.length` before deref, tile byte length bounded by the gap to the next tile pointer (worst-case-capped for the last)",
+        "directTests": "`tests/xcf.test.ts`",
+        "fuzzCoverage": "`xcf` (`readXcf`, seeds from `tests/helpers/xcf-fixture.ts`'s builder)",
+        "notes": "Same split contract (`XcfUnsupportedError` vs warn+degrade: a bad tile becomes a transparent tile, a bad layer a geometry-only row). GIMP's tile RLE is its own scheme (not PackBits) with per-opcode bounds; zlib tiles go through the injected `InflateFn`. Linear/float precisions are refused by class rather than mis-folded. There is deliberately no XCF writer (see psd-write.ts's header)."
+      }
+    },
+    "engine/src/bmp.ts": {
+      "fuzzTargets": [
+        "raster-decode"
+      ],
+      "details": {
+        "inputSource": "a dropped or pasted Windows `.bmp`",
+        "bounds": "`BMP_MAX_DIM = 0x7fff`, `BMP_MAX_PIXELS = 64 Mpx`; the 54-byte header, pixel offset and `pixelOffset + stride * height` are range-validated before allocation/deref",
+        "directTests": "`tests/bmp.test.ts`",
+        "fuzzCoverage": "`raster-decode`",
+        "notes": "Decoder half of an encoder/decoder pair. A typed `BmpUnsupportedError` names the refused class rather than mis-decoding compressed, paletted or 1/16-bit data. The pixel cap prevents the individually legal width/height maxima multiplying into a multi-gigabyte RGBA allocation."
+      }
+    },
+    "engine/src/ico-decode.ts": {
+      "fuzzTargets": [
+        "raster-decode"
+      ],
+      "details": {
+        "inputSource": "a dropped Windows `.ico`/`.cur`, on the icon-import path",
+        "bounds": "`ICO_MAX_ENTRIES = 4,096`, `ICO_MAX_DIM = 8,192`, `ICO_MAX_PIXELS = 32 Mpx`, `ICO_MAX_INPUT_BYTES = 256 MB`; every directory count/size/offset is range-validated",
+        "directTests": "`tests/ico-decode.test.ts`",
+        "fuzzCoverage": "`raster-decode`",
+        "notes": "Picks the largest entry. Headerless DIB output is allocation-bounded; a PNG payload is returned for native decoding only after its IHDR geometry passes the same host hand-off ceiling, so a tiny ICO cannot ask the browser to allocate an enormous canvas."
+      }
+    },
+    "engine/src/apng-decode.ts": {
+      "fuzzTargets": [
+        "raster-decode"
+      ],
+      "details": {
+        "inputSource": "an animated PNG a user dropped, split to per-frame stills",
+        "bounds": "`APNG_DEMUX_MAX_INPUT_BYTES = 256 MB`, `MAX_CHUNKS = 100,000`, `MAX_FRAMES = 4,096`, `MAX_DIM = 32,768`, `MAX_PIXELS = 128 Mpx`, `MAX_OUTPUT_BYTES = 512 MB`; every chunk/region is range-validated",
+        "directTests": "`tests/apng-decode.test.ts`",
+        "fuzzCoverage": "`raster-decode`",
+        "notes": "Chunk-level surgery only. Frame count, geometry and aggregate standalone-PNG amplification are refused before materialisation; every frame must fit the declared canvas before the host receives it."
+      }
+    },
+    "engine/src/webp-anim-decode.ts": {
+      "fuzzTargets": [
+        "raster-decode"
+      ],
+      "details": {
+        "inputSource": "an animated WebP a user dropped, same path",
+        "bounds": "`WEBP_DEMUX_MAX_INPUT_BYTES = 256 MB`, `MAX_CHUNKS = 100,000`, `MAX_FRAMES = 4,096`, `MAX_DIM = 32,768`, `MAX_PIXELS = 128 Mpx`, `MAX_OUTPUT_BYTES = 512 MB`; RIFF and `ANMF` boundaries are enforced",
+        "directTests": "`tests/webp-anim-decode.test.ts`",
+        "fuzzCoverage": "`raster-decode`",
+        "notes": "Same demux contract as APNG. Parsing stops at the RIFF-declared end; short control chunks, excessive host-decode geometry, frame regions outside the canvas and aggregate still-output amplification are refused."
+      }
+    },
+    "shells/web/src/lib/image-sample.ts (depthHint)": {
+      "fuzzTargets": [
+        "depth-hint"
+      ],
+      "details": {
+        "inputSource": "header prefix (plus, for TIFF, two tiny targeted slices) of any uploaded raster, on the ingest path",
+        "bounds": "`MAX_SNIFF_READ = 64 KB` per read, `MAX_IFD_ENTRIES = 512`, `MAX_JPEG_SEGMENTS = 512`; every read is an explicit bounds-checked slice",
+        "directTests": "`shells/web/src/lib/image-sample.test.ts`",
+        "fuzzCoverage": "`depth-hint` (`depthHint`)",
+        "notes": "Shell-side sibling of `media-sniff.ts` (listed here because its input is the same untrusted upload bytes): reports a file's declared bits per channel - PNG IHDR byte 24, TIFF tag 258 via a bounded first-IFD walk, JPEG SOFn precision - without decoding a pixel, so the ingest path can say \"16-bit source, edited at 8-bit\" instead of crushing silently. Never throws; malformed input answers nulls."
+      }
+    },
+    "community/darkroom/hooks.js (parseCube, parse3dl)": {
+      "fuzzTargets": [
+        "lut-parse"
+      ],
+      "details": {
+        "inputSource": "a `.cube` or `.3dl` colour LUT the user picked in Darkroom",
+        "bounds": "`CUBE_MAX_N = 129`, `TDL_MAX_N = 65` (grid size), declared in the hooks beside the parsers",
+        "directTests": "none of its own; the fuzz target is the coverage",
+        "fuzzCoverage": "`lut-parse` (both parsers, over the real hook source)",
+        "notes": "The one **tool-data** parser that reads untrusted bytes, listed here because the input source is the same as every row above. Hooks ship as plain script rather than a module, so the target lifts the two functions out with `new Function` exactly the way the engine runtime compiles them. A controlled \"not a … LUT\" / \"too large\" throw is the desired outcome; hangs and allocation blow-ups are the findings."
+      }
+    },
+    "engine/src/video-meta.ts": {
+      "fuzzTargets": [
+        "video-meta"
+      ],
+      "details": {
+        "inputSource": "a finished MP4 or WebM from MediaRecorder, or a user's video on the ingredient path",
+        "bounds": "none named",
+        "directTests": "`tests/video-meta.test.ts`",
+        "fuzzCoverage": "`video-meta` (`embedMp4Meta` + `embedWebmMeta`)",
+        "notes": "Mixed writer and walker. It writes tags, but to do so it must walk attacker-supplied container structure, and its `readId`/`readVint`/`walkBoxes`/`scanSegmentChildren` primitives are imported by both `c2pa-extract.ts` and `c2pa-containers.ts`, so this is the shared read path for BMFF and Matroska. `video-meta-stco-forged-count.bin` is a saved regression. Unrecognised structure returns the original bytes untouched."
+      }
+    },
+    "engine/src/c2pa-extract.ts": {
+      "fuzzTargets": [
+        "c2pa-extract",
+        "c2pa-verify",
+        "cbor"
+      ],
+      "details": {
+        "inputSource": "the JUMBF manifest store inside any user file, and the CBOR claims inside it",
+        "bounds": "`MAX_CBOR_DEPTH = 64`",
+        "directTests": "`tests/c2pa-extract.test.ts`, plus coverage through `tests/c2pa-verify.test.ts`, `tests/c2pa-formats.test.ts`, `tests/c2pa-foreign-fixture.test.ts`, `tests/c2pa-jpeg-segments.test.ts`",
+        "fuzzCoverage": "`c2pa-extract` (`collectActionChain` + `prepareC2paIngredientFromStore` + `sniffFormat` + `parseC2paStore`), `cbor` (`decodeCbor`, hit directly) and `c2pa-verify` (end to end)",
+        "notes": "Split out of `c2pa-verify.ts` precisely so the parsing is reviewable apart from the cryptography; nothing in this file does or checks crypto. Four of the eight saved regressions are its CBOR decoder. The decoder deliberately accepts indefinite lengths and half/single/double floats because foreign manifests use them. The target deliberately runs the never-throw pair first, because `parseC2paStore`'s controlled throw would otherwise skip them."
+      }
+    },
+    "engine/src/c2pa-containers.ts": {
+      "fuzzTargets": [
+        "c2pa-containers"
+      ],
+      "details": {
+        "inputSource": "the container a manifest is being spliced into - ordinarily Lolly's own render output, but on the ingest and re-attach paths a file a stranger sent",
+        "bounds": "none named; the bounds are per-grammar and structural (each PNG chunk, JPEG segment, GIF block, RIFF/TIFF IFD, BMFF box, EBML element and PDF xref offset is validated against the buffer before it is acted on)",
+        "directTests": "`tests/c2pa-containers.test.ts`, plus `tests/c2pa-formats.test.ts` and `tests/c2pa.test.ts` in aggregate",
+        "fuzzCoverage": "`c2pa-containers` (`sniffFormat` → `attachC2paStore`, or `embedC2paInPdf` for PDF)",
+        "notes": "Placement, not extraction - but placing means walking the host container's grammar, so it belongs here rather than under \"Writers\". Contract: it **throws** on a container it refuses to modify, so only a hang, a stack overflow or an allocation blow-up counts as a finding. `c2pa-containers-tiff-forged-ifd-pointer.bin` is a saved regression: a hostile TIFF IFD pointer. The target's format→placer map is a `Record<Exclude<SniffFormat, …>>` on purpose, so adding a placeable format without adding its placer row is a compile error rather than a silent forever-fuzzed-as-PNG."
+      }
+    },
+    "engine/src/c2pa-verify.ts": {
+      "fuzzTargets": [
+        "c2pa-verify"
+      ],
+      "details": {
+        "inputSource": "a whole user file, plus the COSE signature and X.509 chain inside its manifest",
+        "bounds": "`MAX_CHAIN_INTERMEDIATES = 8`",
+        "directTests": "`tests/c2pa-verify.test.ts`, `tests/c2pa-trust.test.ts`, `tests/c2pa-verdict.test.ts`, `tests/c2pa-c2patool-conformance.test.ts`",
+        "fuzzCoverage": "`c2pa-verify` (`verifyC2pa`)",
+        "notes": "Reports failures as named checks rather than throwing, so a malformed manifest is a failed check and never an escaped exception. Chain walking consumes each intermediate at most once, so no A→B→A loop, and hostile chains are bounded to a trivial O(cap²)."
+      }
+    },
+    "engine/src/der-read.ts": {
+      "fuzzTargets": [
+        "der-read",
+        "x509",
+        "c2pa-verify"
+      ],
+      "details": {
+        "inputSource": "DER/ASN.1 straight out of attacker-controlled files, shared by `c2pa-verify.ts`, `x509.ts` and `seal.ts`",
+        "bounds": "none named; the invariant is that every multi-byte length head is bounds-checked *before* its bytes are read",
+        "directTests": "`tests/der-read.test.ts`",
+        "fuzzCoverage": "`der-read` (`walkDer` + `ecdsaDerToRaw`), and indirectly through the `x509` and `c2pa-verify` targets",
+        "notes": "The opposite contract to the readers above, and correctly so: it **throws promptly** on truncation or an overrunning length. The module comment explains why silence would be worse, an out-of-range `Uint8Array` read yields `undefined`, which NaN-poisons the computed length and defeats the `j + len > b.length` guard. Not exported from `index.ts`. The target seeds from real certificates (`generateSigner`, `generateCaRoot`) plus real ECDSA-Sig-Values, and walks the whole tree before attempting conversion - the other order would throw on every certificate seed before the walker saw it."
+      }
+    },
+    "engine/src/x509.ts": {
+      "fuzzTargets": [
+        "x509"
+      ],
+      "details": {
+        "inputSource": "certificate DER from a manifest's `x5chain`, or from the CA service",
+        "bounds": "none named beyond the DER walker's own checks",
+        "directTests": "`tests/x509.test.ts`",
+        "fuzzCoverage": "`x509` (`parseCertificate`)",
+        "notes": "Both a writer (`generateSigner`, `generateCaRoot`, `issueLeafCert`) and a reader. The read side is the exposed half."
+      }
+    },
+    "engine/src/seal.ts": {
+      "fuzzTargets": [
+        "seal"
+      ],
+      "details": {
+        "inputSource": "raw bytes of any file, scanned for an embedded SEAL record",
+        "bounds": "64 KB edge/record windows, 64 records, 128 fields, 16 KB/field, 4 KB range grammar, 64 ranges and 256 MB assembled message, all public named constants",
+        "directTests": "`tests/seal.test.ts`",
+        "fuzzCoverage": "`seal` (record parse and message assembly)",
+        "notes": "Verification only, and network-free: DNS key lookup is an injected `resolveKey`. Large files are no longer copied wholesale into a latin1 string: only bounded edge windows are materialised. Excess records/fields fail closed; a malformed or hostile file yields `[]`."
+      }
+    },
+    "engine/src/data-import.ts": {
+      "fuzzTargets": [
+        "data-import"
+      ],
+      "details": {
+        "inputSource": "a user's CSV or JSON file, read to text by the shell",
+        "bounds": "`MAX_IMPORT_CHARS = 8 M`, `DEFAULT_ROW_LIMIT = 1000` (both exported)",
+        "directTests": "`tests/data-import.test.ts`",
+        "fuzzCoverage": "`data-import` (`parseDataRows`)",
+        "notes": "The `MAX_IMPORT_CHARS` comment states the reason the engine enforces it rather than trusting the shell: a missing shell gate must not let a gigabyte \"CSV\" of nothing but commas balloon into cell allocations."
+      }
+    },
+    "engine/src/brand-import.ts": {
+      "fuzzTargets": [
+        "brand-import"
+      ],
+      "details": {
+        "inputSource": "a Tokens Studio or DTCG token document, a per-set file tree or a `.penpot` project zip",
+        "bounds": "`BRAND_IMPORT_MAX_PART_BYTES/CHARS = 16 MB/M chars`, `BRAND_IMPORT_MAX_JSON_UNITS = 64 M`, `BRAND_IMPORT_MAX_ENTRIES = 50,000`, `BRAND_IMPORT_MAX_PAGE_PARTS = 25,000`, `BRAND_IMPORT_MAX_TOKEN_DOCS = 512`, `BRAND_IMPORT_MAX_SET_FILES = 2,048`, `BRAND_IMPORT_MAX_TOKEN_SETS = 4,096`, `BRAND_IMPORT_MAX_NODES = 1,000,000`, `BRAND_IMPORT_MAX_DEPTH = 64`",
+        "directTests": "`tests/brand-import.test.ts`",
+        "fuzzCoverage": "`brand-import` (all three token containers plus both Penpot page censuses)",
+        "notes": "Takes already-parsed JSON and already-unzipped path→bytes entries, so the engine applies structural and aggregate budgets independently of the caller's inflation guard. Extraction never throws; a limit violation fails the whole operation closed instead of returning a partial token document or census. Page discovery is one bounded collection plus sort, not manifest-files × archive-entries work."
+      }
+    },
+    "engine/src/tar-read.ts": {
+      "fuzzTargets": [
+        "tar-read"
+      ],
+      "details": {
+        "inputSource": "a `.tar` (or, gunzipped, `.tar.gz`) a user handed to an import path",
+        "bounds": "USTAR field maximum `SIZE_MAX = 0o77777777777`; `TAR_MAX_MEMBERS = 10,000`, `TAR_MAX_PAYLOAD_BYTES = 256 MB`, `TAR_MAX_ARCHIVE_BYTES = 320 MB`; `gunzip` refuses trailer-declared output above its caller/default ceiling before inflation",
+        "directTests": "`tests/tar-read.test.ts`, `tests/gzip-tar.test.ts`",
+        "fuzzCoverage": "`tar-read` (`readTar` + `readTarGz`, seeded from `packTar`)",
+        "notes": "A single forward scan with checksum and range validation. Member/payload/archive budgets apply before copying returned entries, including skipped directory/link/PAX payloads. Padding uses arithmetic rather than int32 bitwise rounding, so a large declared skipped member cannot move the cursor backwards. The web shell lowers the member cap to its own 200-file policy at the parser call, not after materialisation."
+      }
+    },
+    "engine/src/epub-read.ts": {
+      "fuzzTargets": [
+        "epub-read"
+      ],
+      "details": {
+        "inputSource": "an `.epub` of approved body copy, on the brand-boilerplate ingest path",
+        "bounds": "shared `readZip` ceilings plus stricter public EPUB bounds: 64 MB input/aggregate output, 4,096 parts/spine items/nav labels, 16 MB per part, 10,000 manifest items and 4,096 chars per title; duplicate parts and manifest ids are refused",
+        "directTests": "`tests/epub-read.test.ts`, `tests/ingest-epub.test.ts`",
+        "fuzzCoverage": "`epub-read` (real writer-produced OCF seeds plus malformed tag storms)",
+        "notes": "The engine stays DOM-free: one forward-only tag scanner extracts OPF/XHTML text without XML entity expansion or paired-tag regex backtracking. Structural absence and invalid OCF identity throw; malformed prose remains best-effort within explicit output budgets."
+      }
+    },
+    "engine/src/url-pack.ts": {
+      "fuzzTargets": [
+        "url-pack"
+      ],
+      "details": {
+        "inputSource": "the `z` and `zx` params of any shared link",
+        "bounds": "`MAX_TOKEN = 64 KB`, `MAX_UNPACKED = 256 KB`; `PBKDF2_ITERATIONS = 210_000`, `ENC_SALT_BYTES = 16`, `ENC_IV_BYTES = 12` on the encrypted variant",
+        "directTests": "`tests/url-pack.test.ts`",
+        "fuzzCoverage": "`url-pack` (`unpackToken` + `hasPackedState`, over both the token text and its decoded bytes)",
+        "notes": "The one module whose entire input is a URL param. Both caps exist because raw DEFLATE expands roughly 1000×, so a decompression bomb must not hang the tab."
+      }
+    },
+    "engine/src/keyframes.ts": {
+      "fuzzTargets": [
+        "keyframes"
+      ],
+      "details": {
+        "inputSource": "a box's `kf` field - free text, settable from a hand-edited share URL",
+        "bounds": "`256` keyframes per track (the defining cap - parse work is bounded by it); a char cap **derived from the key cap** (`KF_MAX_CHARS`, 48 KB, not a flat 8 KB - a full-pose 256-key track serialises to about 15.8 KB, so a flat 8 KB would be unsatisfiable by the format's own round-trip law; the derivation is re-run by the test, and adding the `w`/`h` channels moved it from 40 KB to 48 KB); `t` clamped to `MAX_TIME_S * 1000`; each channel value clamped to its own stated range",
+        "directTests": "`tests/keyframes.test.ts`",
+        "fuzzCoverage": "`keyframes` (parse, canonical serialise, reparse, evaluate and channel census)",
+        "notes": "Junk-tolerant by design: a token matching no channel or ease form is skipped, never thrown. Hooks consuming this module never emit the raw field - they parse and re-serialise, so only charset-clean tokens ever reach a rendered attribute, closing an attribute-injection path a hand-edited `kf` value would otherwise open."
+      }
+    },
+    "engine/src/svg-colors.ts": {
+      "fuzzTargets": [
+        "svg-readers"
+      ],
+      "details": {
+        "inputSource": "raw SVG source text from an uploaded or fetched asset",
+        "bounds": "`SVG_COLORS_MAX_CHARS = 4_000_000`, `SVG_COLORS_MAX_MATCHES = 100_000`, shared by both passes",
+        "directTests": "`tests/svg-colors.test.ts`",
+        "fuzzCoverage": "`svg-readers` (attributes and CSS declarations)",
+        "notes": "String and regex work only, no DOMParser. Quoted attributes use a forward-only delimiter scan so malformed quote storms cannot repeatedly rescan the tail. Candidates pass the same `SAFE_CSS_COLOR` shape gate the web colour field uses, and a bare identifier must additionally be a real CSS3 named colour so a class name or font family cannot be misread as a colour. Never throws."
+      }
+    },
+    "engine/src/svg-layers.ts": {
+      "fuzzTargets": [
+        "svg-readers"
+      ],
+      "details": {
+        "inputSource": "a user's uploaded SVG, on the \"Lift layers\" path (DOMPurify-sanitised by the shell first, but this module assumes nothing about that)",
+        "bounds": "`SVG_LAYERS_MAX_CHARS = 4_000_000`, `SVG_LAYERS_MAX_TAGS = 40_000`, `SVG_LAYERS_MAX = 64` layers, `SVG_LAYERS_MAX_CANDIDATES = 4000` root children considered (spatial clustering is a pairwise union-find, so its cost is QUADRATIC - measured before the cap: 10 000 leaves 0.7 s, 20 000 leaves 4.3 s, 39 000 leaves 16 s), `SVG_LAYERS_MAX_DEPTH = 64`, `SVG_LAYERS_MAX_DESCENT = 8`, `SVG_LAYERS_MAX_REFS = 64`, `SVG_LAYERS_HEAVY_BYTES = 8_000_000` (a warning threshold on the DERIVED total, not a refusal - the whole `<defs>` rides into every layer, so one embedded raster multiplies by the layer count: an ordinary 1.0 MB file derived 24.0 MB) - all exported, so a consumer states the same numbers rather than guessing them",
+        "directTests": "`tests/svg-layers.test.ts`, plus the rendered half in `tests/svg-lift-identity.browser.test.ts`",
+        "fuzzCoverage": "`svg-readers` (enumeration plus root viewBox scan)",
+        "notes": "Its own bounded tag scanner (no DOM, no XML library), and every emitted fragment is a VERBATIM SLICE of the input - nothing is re-serialised, so nothing can be corrupted on the way through. Never throws: junk yields fewer layers and more warnings, and the top-level try/catch is defence in depth rather than the contract. Work is linear in the input length with ONE deliberate exception, the quadratic clustering the candidate cap bounds - id resolution is a byte-span query against a single id index, not a regex per (layer x reference), which is what made a 3.7 MB document inside every cap take 10.7 s in 1.119.0. The layer cap MERGES THE TAIL instead of truncating, because a cap that dropped artwork would silently produce a lift that no longer looks like the original. Bounds are analytic (geometry attributes + path control points via `svg-path.ts`), and anything unmeasurable stays `null` rather than becoming a wrong number - which is what makes the paint-order safety check refuse rather than reorder."
+      }
+    },
+    "engine/src/svg-custgeom.ts": {
+      "fuzzTargets": [
+        "svg-readers"
+      ],
+      "details": {
+        "inputSource": "a flat SVG the user supplied, lowered to PowerPoint custom geometry",
+        "bounds": "`SVG_CUSTGEOM_MAX_CHARS = 4_000_000`, `MAX_TAGS = 40_000`, `MAX_SHAPES = 4_000`, plus 512 K attributes, 64 K style/transform and 400 K points strings",
+        "directTests": "`tests/svg-custgeom.test.ts`",
+        "fuzzCoverage": "`svg-readers` (geometry-only and text-aware lowering)",
+        "notes": "Its own tag-stream scan, no DOM, with a group `transform` stack. Per-attribute budgets apply before split/map helpers allocate."
+      }
+    },
+    "engine/src/svg-path.ts": {
+      "fuzzTargets": [
+        "svg-readers"
+      ],
+      "details": {
+        "inputSource": "an SVG path `d` string, from artwork, a template or a URL param",
+        "bounds": "`SVG_PATH_MAX_CHARS = 400_000`, `SVG_PATH_MAX_ARGS = 100_000`, `SVG_PATH_MAX_SEGMENTS = 100_000`, `SVG_PATH_MAX_SUBPATHS = 10_000`",
+        "directTests": "`tests/svg-path.test.ts`",
+        "fuzzCoverage": "`svg-readers` (number and path normalisation)",
+        "notes": "A linear single-pass tokenizer with no recursion; allocation ceilings are enforced while scanning numbers and before appending each emitted subpath/segment. Any budget breach rejects the whole path rather than returning partial geometry."
+      }
+    },
+    "engine/src/midi.ts": {
+      "fuzzTargets": [
+        "midi"
+      ],
+      "details": {
+        "inputSource": "a `.mid` a user uploaded, or fed to `scripts/ingest-midi.ts`",
+        "bounds": "`MIDI_MAX_NOTES = 200_000`, `MIDI_MAX_STEPS = 1 << 15`, `MIDI_MAX_VOICES = 8`",
+        "directTests": "`tests/midi.test.ts`",
+        "fuzzCoverage": "`midi` (event parse plus note-to-song mapping)",
+        "notes": "Header states the hardening explicitly: every offset bounds-checked, malformed track lengths clamped to the buffer, note count and step span capped."
+      }
+    },
+    "engine/src/wav.ts": {
+      "fuzzTargets": [
+        "wav"
+      ],
+      "details": {
+        "inputSource": "a `.wav` a user handed to `host.audio` on a headless shell",
+        "bounds": "`MAX_CHANNELS = 32`",
+        "directTests": "`tests/wav.test.ts`",
+        "fuzzCoverage": "`wav` (`parseWav`)",
+        "notes": "Chunk walking cannot run backwards or off the end regardless of declared sizes. Unknown encodings (µ-law, ADPCM, a compressed payload in a RIFF skin) are refused by name rather than misread as PCM, because misreading them yields full-scale noise that would look like a plausibly loud track."
+      }
+    },
+    "engine/src/zzfxm.ts": {
+      "fuzzTargets": [
+        "zzfxm"
+      ],
+      "details": {
+        "inputSource": "a `ZzfxSong`, which on the MIDI and MOD paths derives from a user file or fetched JSON",
+        "bounds": "128 instruments × 21 params, 1,024 patterns, 4,096 sequence items, 32 channels, 32,768 steps/pattern, five-minute stereo output, 50 M mix-sample operations, 30-second individual synths and 120-second aggregate sample cache; BPM/note/numeric ranges are named public constants",
+        "directTests": "`tests/zzfxm.test.ts`, `tests/zzfxm-seed-parity.test.ts`",
+        "fuzzCoverage": "`zzfxm` (JSON and byte-derived song objects through the real guarded renderer)",
+        "notes": "The two vendored MIT functions remain unchanged behind guarded public wrappers. Validation rejects ragged rows, invalid references and allocation-driving totals before either the upstream synth or mixer allocates. Direct `zzfxG`, `zzfxM`, and `renderZzfxm` calls all pass the same budgets."
+      }
+    },
+    "engine/src/png-unfilter.ts": {
+      "fuzzTargets": [
+        "png-unfilter"
+      ],
+      "details": {
+        "inputSource": "an inflated PNG IDAT or PDF `/Predictor >= 10` stream",
+        "bounds": "`PNG_UNFILTER_MAX_OUTPUT_BYTES = 256 MB`; safe-integer dimension arithmetic and input-length checks precede allocation",
+        "directTests": "`tests/png-unfilter.test.ts`",
+        "fuzzCoverage": "`png-unfilter` (filter bytes and byte-derived dimensions)",
+        "notes": "The module the house reader contract is named after: never throws, a truncated buffer or unknown filter tag or non-positive/excessive dimension returns `null`. Only 8-bit-per-component images; sub-byte depths are the caller's to reject."
+      }
+    },
+    "engine/src/steganalysis.ts": {
+      "fuzzTargets": [
+        "watermark-analysis"
+      ],
+      "details": {
+        "inputSource": "RGBA pixels decoded from a user image",
+        "bounds": "`LSB_MIN_PIXELS = 64 * 64`, `LSB_MAX_PIXELS = 4,000,000`, `LSB_P_THRESHOLD = 0.95`, three fixed prefixes; safe positive integer dimensions/product required",
+        "directTests": "`tests/steganalysis.test.ts`",
+        "fuzzCoverage": "`watermark-analysis`",
+        "notes": "Numeric input of known length, sampled to a public work ceiling so a huge decoded canvas cannot turn an amber heuristic into main-thread CPU denial of service."
+      }
+    },
+    "engine/src/trustmark.ts": {
+      "fuzzTargets": [
+        "watermark-analysis"
+      ],
+      "details": {
+        "inputSource": "100 booleans recovered by the shell's ONNX decoder from a user image",
+        "bounds": "`TRUSTMARK_PAYLOAD_BITS = ECC_REGION_BITS + VERSION_FIELD_BITS` (96 + 4), `LOLLY_MAGIC_BITS = 16`, `LOLLY_SCHEME_BITS = 4`, `BCH_POLYNOMIAL = 137`",
+        "directTests": "`tests/trustmark.test.ts`",
+        "fuzzCoverage": "`watermark-analysis`",
+        "notes": "Fixed-width bit input, so there is no length field and no allocation to bomb. The target mutates the exact-length gate and bit values; a caller feeding untrusted/garbled bits never throws."
+      }
+    },
+    "engine/src/contentseal.ts": {
+      "fuzzTargets": [
+        "watermark-analysis"
+      ],
+      "details": {
+        "inputSource": "four 256-bit vectors the shell's ONNX extractor produced from a user image",
+        "bounds": "`CONTENTSEAL_REQUIRED_VIEWS = 4`, `CONTENTSEAL_MESSAGE_BITS = 256`, `CONTENTSEAL_DEFAULT_TAU = 72`",
+        "directTests": "`tests/contentseal.test.ts`",
+        "fuzzCoverage": "`watermark-analysis`",
+        "notes": "The view count and bit width are enforced before pairwise allocation; this is also a correctness boundary because the threshold is calibrated only for 4x256. Wrong/ragged shapes return the safe negative result."
+      }
+    }
+  }
+}

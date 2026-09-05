@@ -9,7 +9,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { extractSvgColors } from '../engine/src/svg-colors.ts';
+import { extractSvgColors, SVG_COLORS_MAX_CHARS } from '../engine/src/svg-colors.ts';
 
 // ── presentation attributes ──────────────────────────────────────────────────
 
@@ -167,4 +167,12 @@ test('malformed / incomplete / non-SVG input does not throw', () => {
 
 test('an unclosed but well-formed-enough tag still yields its colour', () => {
   assert.deepEqual(extractSvgColors('<svg><rect fill="#0a0b0c"'), ['#0a0b0c']);
+});
+
+test('oversized input and an unterminated attribute storm fail closed', () => {
+  assert.deepEqual(extractSvgColors(' '.repeat(SVG_COLORS_MAX_CHARS + 1)), []);
+  const storm = '<rect fill="'.repeat(20_000);
+  const started = performance.now();
+  assert.deepEqual(extractSvgColors(storm), []);
+  assert.ok(performance.now() - started < 1_000, 'malformed quotes are scanned forward, not quadratically');
 });

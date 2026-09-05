@@ -156,3 +156,19 @@ test('throws on a corrupt header checksum', () => {
 test('empty archive (two zero blocks) reads as no files', () => {
   assert.deepEqual(readTar(new Uint8Array(2 * BLOCK)), []);
 });
+
+test('member, payload and whole-archive budgets are enforced before copying output', () => {
+  const archive = packTar([
+    { name: 'a', data: enc('alpha') },
+    { name: 'b', data: enc('beta') },
+  ]);
+  assert.throws(() => readTar(archive, { maxMembers: 1 }), /more than 1 members/);
+  assert.throws(() => readTar(archive, { maxPayloadBytes: 8 }), /payloads exceed 8/);
+  assert.throws(() => readTar(archive, { maxArchiveBytes: archive.length - 1 }), /archive size .* exceeds/);
+  assert.throws(() => readTar(archive, { maxMembers: -1 }), /non-negative safe integer/);
+});
+
+test('readTarGz applies the uncompressed archive budget before allocating the tar result', () => {
+  const archive = packTar([{ name: 'a', data: enc('alpha') }]);
+  assert.throws(() => readTarGz(gzip(archive), { maxArchiveBytes: archive.length - 1 }), /declared output .* exceeds/);
+});

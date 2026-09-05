@@ -14,7 +14,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { interpretPdfPage, parseToUnicode, toUnicodeDecoder } from '../engine/src/pdf-map.ts';
+import {
+  interpretPdfPage,
+  parseToUnicode,
+  PDF_MAP_MAX_CONTENT_CHARS,
+  PDF_MAP_MAX_PAGE_NODES,
+  toUnicodeDecoder,
+} from '../engine/src/pdf-map.ts';
 import type { PdfPageInput } from '../engine/src/pdf-map.ts';
 import { finalizeBoxes } from '../engine/src/design-map.ts';
 
@@ -653,6 +659,15 @@ test('empty and garbage content produce no nodes without throwing', () => {
   assert.deepEqual(page('   \n  '), []);
   assert.doesNotThrow(() => page('q q q 1 2 cm ( unterminated'));
   assert.doesNotThrow(() => page('BT /F1 10 Tf'));   // BT with no ET
+});
+
+test('page-node and decoded-stream budgets bound hostile aggregate content', () => {
+  const paints = `0 0 0 rg ${'0 0 1 1 re f '.repeat(PDF_MAP_MAX_PAGE_NODES + 1)}`;
+  assert.equal(page(paints).length, PDF_MAP_MAX_PAGE_NODES);
+
+  const oversized = pageW(' '.repeat(PDF_MAP_MAX_CONTENT_CHARS + 1));
+  assert.deepEqual(oversized.nodes, []);
+  assert.deepEqual(oversized.warns, ['content.budget.exhausted|characters']);
 });
 
 // ── ExtGState: alpha unchanged, and the four-state /SMask field ────────────────

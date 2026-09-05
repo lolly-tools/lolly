@@ -1,0 +1,56 @@
+# Scheduled parser discovery. The short deterministic regression sweep remains
+# in normal CI; this job spends a larger budget and preserves exact reproducers.
+name: Parser fuzz soak
+
+on:
+  schedule:
+    - cron: '17 3 * * 2'
+  workflow_dispatch:
+    inputs:
+      iterations:
+        description: Mutations per target
+        required: false
+        default: '5000'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: parser-fuzz-soak
+  cancel-in-progress: false
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Deterministic long parser sweep
+        env:
+          FUZZ_ITERS: ${{ inputs.iterations || '5000' }}
+          FUZZ_SCRATCH: ${{ runner.temp }}/lolly-fuzz
+          FUZZ_KEEP: '1'
+        run: |
+          mkdir -p "$FUZZ_SCRATCH"
+          npm run test:fuzz:soak
+
+      - name: Preserve crash breadcrumbs and minimized candidates
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: parser-fuzz-reproducers-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            ${{ runner.temp }}/lolly-fuzz/current-*.bin
+            tests/fuzz/regressions/*-[0-9]*.bin

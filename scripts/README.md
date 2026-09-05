@@ -74,7 +74,8 @@ These drive tools in a real browser and export through the app's own render path
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
-| `sign-credentialed-assets.ts` | `sign:credentials:catalog` | Stamps every stampable catalog asset in place as "Delivered by Lolly" (c2pa.published + true author, under the CA identity), and strips any lingering retired `suse/credentials/*` demo entry from the index. Runs under `--env-file=services/ca/.env`. (The old `suse/credentials/*` "Made with Lolly" demo set it used to mint was retired 2026-08-16.) | DESTRUCTIVE, submodule, API key |
+| `sign-credentialed-assets.ts` | `sign:credentials:catalog` | Stamps every stampable catalog asset in place as "Delivered by Lolly" (c2pa.published + true author, under the CA identity), and strips any lingering retired `suse/credentials/*` demo entry from the index. The npm command loads the owner-private environment through `run-private-ca.ts`. (The old `suse/credentials/*` "Made with Lolly" demo set it used to mint was retired 2026-08-16.) | DESTRUCTIVE, submodule, API key |
+| `run-private-ca.ts` | `ca:dev`, CA signing commands | Validates the device-private directory/file ownership and modes, rejects symlinks, loads `ca.env`, and launches only a reviewed CA task without a shell. See `security/local-credential-storage.md`. | LOCAL, secret-bearing environment |
 | `sign-inline-logos.ts` | `sign:signature-logos` | Bakes Content Credentials into the brand logos a tool inlines as `data:` URIs, then syncs the base64 back into that tool's `hooks.js`. Never hand-paste the base64. | DESTRUCTIVE, submodule, API key |
 | `lib/durable-node.ts` | none | The build-time Node path for TrustMark durable-credential embedding, the onnxruntime-node counterpart to the browser embed. | |
 | `lib/stamp-media.ts` | none | Shared build-time provenance stamping, so every generator (OG cards, previews, thumbnails) credentials its output identically. | |

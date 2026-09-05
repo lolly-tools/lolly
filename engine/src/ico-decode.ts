@@ -70,11 +70,15 @@ export class IcoDecodeError extends Error {
 
 // A directory count over this can only be a hostile or corrupt file: 16 bytes
 // per entry means even the entry table would run past any plausible icon file.
-const MAX_ENTRIES = 4096;
+export const ICO_MAX_ENTRIES = 4096;
 // Guard the decoded pixel buffer the same way psd.ts guards its dimensions:
 // 256 is the real ICO ceiling, but PNG entries can legitimately be larger; keep
 // a generous cap so a crafted BMP header can't ask for a gigabyte allocation.
-const MAX_DIM = 8192;
+export const ICO_MAX_DIM = 8192;
+/** Decoder/host hand-off ceiling: 128 MiB at four RGBA bytes per pixel. */
+export const ICO_MAX_PIXELS = 32 * 1024 * 1024;
+/** Prevent a PNG payload copy from duplicating an arbitrarily large ICO. */
+export const ICO_MAX_INPUT_BYTES = 256 * 1024 * 1024;
 
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
@@ -96,6 +100,9 @@ export function isIco(input: Uint8Array | ArrayBuffer): boolean {
  */
 export function decodeIco(input: Uint8Array | ArrayBuffer): IcoImage {
   const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
+  if (bytes.length > ICO_MAX_INPUT_BYTES) {
+    throw new IcoDecodeError('size', `ICO file ${bytes.length} bytes exceeds ${ICO_MAX_INPUT_BYTES} byte limit`);
+  }
   if (bytes.length < 6) throw new IcoDecodeError('short', 'file shorter than an ICONDIR header (6 bytes)');
   if (bytes[0] !== 0 || bytes[1] !== 0) throw new IcoDecodeError('magic', 'not an ICO/CUR file (reserved bytes non-zero)');
 
@@ -104,7 +111,7 @@ export function decodeIco(input: Uint8Array | ArrayBuffer): IcoImage {
 
   const count = bytes[4]! | (bytes[5]! << 8);
   if (count < 1) throw new IcoDecodeError('empty', 'ICONDIR declares zero images');
-  if (count > MAX_ENTRIES) throw new IcoDecodeError('count', `ICONDIR count ${count} exceeds sane maximum ${MAX_ENTRIES}`);
+  if (count > ICO_MAX_ENTRIES) throw new IcoDecodeError('count', `ICONDIR count ${count} exceeds sane maximum ${ICO_MAX_ENTRIES}`);
 
   // The entry table must fit: 6-byte header + count * 16-byte ICONDIRENTRY.
   const tableEnd = 6 + count * 16;
@@ -136,12 +143,15 @@ export function decodeIco(input: Uint8Array | ArrayBuffer): IcoImage {
 
   if (isPngPayload(payload)) {
     const dims = pngDimensions(payload);
+    const width = dims?.width ?? best.width;
+    const height = dims?.height ?? best.height;
+    validateDimensions(width, height, 'PNG');
     return {
       png: true,
       // Copy out so the returned bytes don't pin the whole ICO buffer alive.
       bytes: payload.slice(),
-      width: dims?.width ?? best.width,
-      height: dims?.height ?? best.height,
+      width,
+      height,
     };
   }
 
@@ -185,7 +195,7 @@ function decodeDib(dib: Uint8Array, dirW: number, dirH: number): IcoRgbaImage {
   const bpp = dib[14]! | (dib[15]! << 8);
 
   if (width < 1 || height < 1) throw new IcoDecodeError('dib-dims', `DIB image dimensions ${width}x${height} (from doubled height ${dibHeight})`);
-  if (width > MAX_DIM || height > MAX_DIM) throw new IcoDecodeError('dib-dims', `DIB image ${width}x${height} exceeds max ${MAX_DIM}`);
+  validateDimensions(width, height, 'DIB');
   // Sanity vs the directory record: warn-free but reject a wild mismatch that
   // could only be corruption (the directory said tiny, the DIB claims huge).
   void dirW; void dirH;
@@ -253,6 +263,16 @@ function decodeDib(dib: Uint8Array, dirW: number, dirH: number): IcoRgbaImage {
   }
 
   return { rgba, width, height };
+}
+
+function validateDimensions(width: number, height: number, kind: 'PNG' | 'DIB'): void {
+  if (width < 1 || height < 1 || width > ICO_MAX_DIM || height > ICO_MAX_DIM
+    || width * height > ICO_MAX_PIXELS) {
+    throw new IcoDecodeError(
+      kind === 'DIB' ? 'dib-dims' : 'png-dims',
+      `${kind} image ${width}x${height} exceeds max ${ICO_MAX_DIM} per side / ${ICO_MAX_PIXELS} pixels`,
+    );
+  }
 }
 
 // ─── little/big-endian reads, each bounds-checked before deref ───────────────

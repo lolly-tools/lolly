@@ -12,6 +12,9 @@
 // Pure + DOM-free (engine contract): no DOM, no deps, defensive on every input.
 // Spec: PNG (RFC 2083 section 6) / PDF 32000-1 section 7.4.4.4 (LZW/Flate predictors).
 
+/** Direct-call allocation ceiling; PDF and web ingest callers apply tighter budgets upstream. */
+export const PNG_UNFILTER_MAX_OUTPUT_BYTES = 256 * 1024 * 1024;
+
 /**
  * Reverse PNG row filters over an already-inflated scanline buffer.
  *
@@ -45,6 +48,7 @@ export function unfilterPng(
   const stride = rowBytes + 1; // filter tag + scanline
   // Guard against overflow / an absurd allocation before touching memory.
   if (!Number.isSafeInteger(rowBytes) || !Number.isSafeInteger(stride * h)) return null;
+  if (rowBytes * h > PNG_UNFILTER_MAX_OUTPUT_BYTES) return null;
   if (inflated.length < stride * h) return null; // truncated stream
 
   const out = new Uint8Array(rowBytes * h);

@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 
 import { packPng } from '../engine/src/png.ts';
 import { packApng } from '../engine/src/apng.ts';
-import { demuxApng } from '../engine/src/apng-decode.ts';
+import { APNG_DEMUX_MAX_FRAMES, demuxApng } from '../engine/src/apng-decode.ts';
 import { zlibCompress } from '../engine/src/deflate.ts';
 import { crc32 } from '../engine/src/zip-crypto.ts';
 
@@ -159,6 +159,21 @@ test('demuxApng handles delay_den 0 as 100', () => {
 test('demuxApng rejects a plain still PNG (no acTL)', () => {
   const still = solidPng(3, 3, 1, 2, 3);
   assert.throws(() => demuxApng(still), /not an APNG/);
+});
+
+test('demuxApng refuses hostile declared frame fan-out before materialising stills', () => {
+  const apng = packApng([solidPng(1, 1, 1, 2, 3)], { delayMs: 10 });
+  let off = 8;
+  while (off + 20 <= apng.length) {
+    const len = readU32(apng, off);
+    const type = String.fromCharCode(apng[off + 4]!, apng[off + 5]!, apng[off + 6]!, apng[off + 7]!);
+    if (type === 'acTL') {
+      writeU32(apng, off + 8, APNG_DEMUX_MAX_FRAMES + 1);
+      break;
+    }
+    off += 12 + len;
+  }
+  assert.throws(() => demuxApng(apng), /acTL declares/);
 });
 
 test('demuxApng carries a palette that follows frame-0 fcTL onto an indexed still', () => {

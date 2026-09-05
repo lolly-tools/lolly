@@ -125,6 +125,14 @@ async function bundleFor(entry: string): Promise<string> {
     // The harness re-exports the modules under test; a failed tree-shake or a
     // mis-resolved workspace alias must fail the build here, not silently in-page.
     logLevel: 'silent',
+    // Vite serves a `import '../styles/parts/x.css'` side-effect import as a real
+    // stylesheet; esbuild with no output path refuses it outright. The harness
+    // never paints app chrome, so the sheets are dropped rather than emitted.
+    // This graph reaches one: bridge/format-support.ts's durable probe lazily
+    // imports lib/model-prefetch.ts, and esbuild inlines dynamic imports into
+    // the single output file, so components/instance-sheet.ts and its sheet come
+    // along even though nothing here ever evaluates them.
+    loader: { '.css': 'empty' },
     define: { 'process.env.NODE_ENV': '"test"' },
   });
   return out.outputFiles[0]?.text ?? '';

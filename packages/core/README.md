@@ -22,6 +22,8 @@ it:
 | `createMockHost(opts)` | An in-memory `HostV1` to unit-test your hooks headlessly (no DOM, FS, or network). |
 | `defineTool()` / `defineHooks()` | Identity helpers for editor autocomplete + type-checking while you author. |
 | `@lolly-tools/core/schema/tool.schema.json` | The manifest schema, bundled for offline validation. |
+| `ChartSpecV1` / `CHART_SPEC_VERSION` | Renderer-neutral chart documents: typed data, series/channels, scales, themes, motion and accessibility. |
+| `@lolly-tools/core/schema/chart-v1.schema.json` | Closed portable-chart schema; renderer option objects and callback code are deliberately outside the contract. |
 
 It depends only on [`ajv`](https://ajv.js.org/) - no DOM library, framework, or
 platform code. It knows nothing about storage or networking; all of that is
@@ -114,6 +116,11 @@ The bridge follows the rule in `HostV1`: methods may be **added** in a minor
 version, never removed or signature-changed without a major bump. Your manifest's
 `engineVersion` is the minimum contract minor your tool needs; a shell refuses to
 load a tool that asks for more than it implements.
+
+The published `host-v1.ts` path remains the stable barrel. Its declarations are
+split by capability under `src/host-v1/` for reviewability, and the root
+`security/host-v1-api.json` snapshot makes a signature move explicit rather than
+letting a source reorganisation silently change the public contract.
 
 **Compatibility:** `HostV1` contract version `1` (`CONTRACT_VERSION`), built
 against Lolly engine 1.157.0 and shipped alongside Lolly 1.0.1. This package

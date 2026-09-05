@@ -22,6 +22,9 @@
 #   ASC_KEY_P8              base64 of the App Store Connect API key .p8
 #   ASC_KEY_ID             App Store Connect API key id (6WNY433QKD)
 #   ASC_ISSUER_ID          App Store Connect issuer id (e529261d-…)
+#   LOLLY_CATALOG_SIGNING_KEY  P-256 private signing JWK/PKCS8 PEM
+# Required repo variable:
+#   VITE_CATALOG_PUBLIC_KEY_JWK matching public P-256 JWK pinned in the app
 
 name: iOS App Store release
 
@@ -42,7 +45,7 @@ jobs:
     runs-on: macos-15   # released (non-beta) macOS — the whole point
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive   # brands/suse is `update = none` → skipped; falls back to lolly-start
 
@@ -60,7 +63,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
 
@@ -118,6 +121,8 @@ jobs:
         run: npm run tauri -- ios build --export-method app-store-connect --ci --verbose
         env:
           ONNXRUNTIME_NODE_INSTALL_CUDA: skip
+          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+          VITE_CATALOG_PUBLIC_KEY_JWK: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
           # The docs (build:info, 27 locales) + vite build blow past Node's default
           # heap on the 7 GB runner. Give V8 more room (exit 134 = V8 OOM, not OS OOM).
           NODE_OPTIONS: --max-old-space-size=6144
@@ -142,7 +147,7 @@ jobs:
           fi
 
       - name: Upload the ipa as a workflow artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: Lolly-ios-ipa
           path: ${{ steps.ipa.outputs.ipa }}

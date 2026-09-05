@@ -199,5 +199,12 @@
   "Imported": "Importerad",
   "Copyright": "Upphovsrätt",
   "Captured": "Tagen",
-  "Keywords": "Nyckelord"
+  "Keywords": "Nyckelord",
+  "Check for updates": "Sök efter uppdateringar",
+  "Up to date": "Uppdaterad",
+  "Update available: {version}": "Uppdatering tillgänglig: {version}",
+  "Install and restart": "Installera och starta om",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "Modellen på enheten som döljer en osynlig uppgift i exporterade pixlar. Hämta den nu (~{size}), så startar den första beständiga exporten direkt utan väntetid.",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "Modellen på enheten som döljer den beständiga uppgiften i exporterade pixlar. Om du tar bort den frigörs utrymme; den hämtas igen med ditt samtycke nästa gång den används.",
+  "Removed the durable-credential model": "Modellen för beständiga uppgifter togs bort"
 }

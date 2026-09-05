@@ -7,7 +7,17 @@
  */
 
 export { loadTool, ToolLoadError, applyManifestI18n } from './loader.ts';
-export type { LoadedTool, ToolManifest, ToolFetchFile, LoadToolOpts, ToolIntegrityOpts, ToolI18nOverlay } from './loader.ts';
+export type { LoadedTool, ToolManifest, ToolFetchFile, LoadToolOpts, ToolIntegrityOpts, ToolI18nOverlay, ToolTrustClass } from './loader.ts';
+export { resolveChartTheme, validateChartSpec, inspectChartSpec } from './chart-spec.ts';
+export type { ChartBrandThemeInput, ChartThemeOverrides } from './chart-spec.ts';
+export { CHART_SPEC_VERSION } from '@lolly-tools/core';
+export type {
+  ChartValue, ChartFieldType, ChartDimension, ChartExportFidelity, ChartMark,
+  ChartChannel, ChartFieldV1, ChartDatasetV1, ChartEncodingV1, ChartSeriesV1,
+  ChartScaleV1, ChartAxisV1, ChartLegendV1, ChartFormatterV1, ChartThemeV1,
+  ChartMotionV1, ChartAccessibilityV1, ChartPresentationV1, ChartSpecV1,
+  ChartFindingSeverity, ChartFindingV1, ChartValidationResultV1, ResolvedChartReportV1,
+} from '@lolly-tools/core';
 export {
   canonicalJson, sha256Hex, jwkThumbprint, importSpkiOrJwkPublicKey,
   signCatalogEnvelope, verifyEnvelopeSignature, verifyCatalogEnvelope, verifyToolFile,
@@ -17,6 +27,10 @@ export type {
   CatalogSignatureEnvelope, UnsignedCatalogEnvelope, IntegrityResult,
 } from './catalog-integrity.ts';
 export { validateManifest, validateRateCard } from './validate.ts';
+export { parseProviderRef, isProviderRef, ASSET_PROVIDER_REF_RE } from './asset-provider.ts';
+export type { AssetProviderRef } from './asset-provider.ts';
+export { DOCUMENT_API_VERSION, compileDocument, validateDocument, documentSchema, inspectDocument, diffDocuments, measureDocument, optimizeDocument, packageDocument, renderDocument, compile, validate, inspect, diff, measure, optimize, package, render } from './document-api.ts';
+export type { CompiledDocument, CompileResult, ValidationTarget, DocumentValidationResult, DocumentInspection, BytesInspection, DocumentDiff, DocumentMeasurement, OptimizeStage } from './document-api.ts';
 export { createRuntime, HOOK_BUDGET_MS, inRealmHookExecutor } from './runtime.ts';
 export type { HookExecutor, Hooks } from './runtime.ts';
 export { hydrate, annotateTemplate } from './template.ts';
@@ -78,14 +92,17 @@ export {
 export type { EmbedOptions, DetectResult, WatermarkGeometry } from './pixel-watermark.ts';
 export { detectWatermarkSearch, bilinearResampleRgba, SEARCH_DETECT_FLOOR } from './watermark-search.ts';
 export type { SearchResult } from './watermark-search.ts';
-export { unfilterPng } from './png-unfilter.ts';
-export { analyzeLsb } from './steganalysis.ts';
+export { unfilterPng, PNG_UNFILTER_MAX_OUTPUT_BYTES } from './png-unfilter.ts';
+export { analyzeLsb, LSB_MIN_PIXELS, LSB_MAX_PIXELS, LSB_P_THRESHOLD, LSB_PREFIXES } from './steganalysis.ts';
 export type { LsbAnalysis } from './steganalysis.ts';
 export { decodeTrustmarkPayload, encodeTrustmarkPayload, TRUSTMARK_PAYLOAD_BITS, buildLollyDurablePayload, readLollyDurable, LOLLY_DURABLE_SCHEMA_VERSION } from './trustmark.ts';
 export { embedDurableIntoRgba, packNchwSigned, sampleBilinear, TRUSTMARK_MODEL_RESOLUTION, TRUSTMARK_Q_WM_STRENGTH, TRUSTMARK_MIN_SIDE } from './trustmark.ts';
 export type { TrustmarkDecodeResult, TrustmarkSchemaName, LollyDurable } from './trustmark.ts';
 export type { DurableEmbedHooks, DurableEmbedMathOptions, CoverResizer, DurableEncoderRun } from './trustmark.ts';
-export { contentSealConsensus, CONTENTSEAL_MESSAGE_BITS, CONTENTSEAL_DEFAULT_TAU } from './contentseal.ts';
+export {
+  contentSealConsensus, CONTENTSEAL_MESSAGE_BITS, CONTENTSEAL_REQUIRED_VIEWS,
+  CONTENTSEAL_DEFAULT_TAU,
+} from './contentseal.ts';
 export type { ContentSealConsensus } from './contentseal.ts';
 export {
   UNITS, CSS_DPI, isUnit, parseDimension,
@@ -163,8 +180,11 @@ export type {
   CostWorking, CostRow, CostAdjustment, CostUncostedLine, CostUncostedReason,
   CostInput, CostBreakApplied, CostRowQuantityKind,
 } from './rate-card.ts';
-export { parseSvgPath, parseSvgPathArgs, svgArcToBeziers } from './svg-path.ts';
-export { extractSvgColors } from './svg-colors.ts';
+export {
+  parseSvgPath, parseSvgPathArgs, svgArcToBeziers,
+  SVG_PATH_MAX_CHARS, SVG_PATH_MAX_ARGS, SVG_PATH_MAX_SEGMENTS, SVG_PATH_MAX_SUBPATHS,
+} from './svg-path.ts';
+export { extractSvgColors, SVG_COLORS_MAX_CHARS, SVG_COLORS_MAX_MATCHES } from './svg-colors.ts';
 // Lift layers (1.119, plans/104 section 7): an SVG's own layers enumerated into one
 // standalone document each, so a flat drawing becomes a stack of boxes with real
 // depth. DOM-free, so the CLI lifts the same way the editor does.
@@ -182,7 +202,14 @@ export {
   SVG_LAYERS_HERO_BUDGET, SVG_LAYERS_HERO_GAP_SCALES, SVG_LAYERS_PEER_AREA_RATIO,
 } from './svg-layers.ts';
 export type { SvgLayer, SvgLayerBox, SvgLayersResult, SvgLayerOptions } from './svg-layers.ts';
-export { renderZzfxm, zzfxG, zzfxM, zzfxR, zzfxV } from './zzfxm.ts';
+export {
+  renderZzfxm, zzfxG, zzfxM, zzfxR, zzfxV, assertZzfxmBudgets,
+  ZZFXM_MAX_INSTRUMENTS, ZZFXM_MAX_INSTRUMENT_PARAMS, ZZFXM_MAX_PATTERNS,
+  ZZFXM_MAX_SEQUENCE, ZZFXM_MAX_CHANNELS, ZZFXM_MAX_STEPS_PER_PATTERN,
+  ZZFXM_MAX_OUTPUT_SAMPLES, ZZFXM_MAX_MIX_SAMPLE_OPS, ZZFXM_MAX_SYNTH_SAMPLES,
+  ZZFXM_MAX_CACHE_SAMPLES, ZZFXM_MIN_BPM, ZZFXM_MAX_BPM, ZZFXM_MAX_NOTE,
+  ZZFXM_MAX_NUMERIC_MAGNITUDE,
+} from './zzfxm.ts';
 export type {
   ZzfxSong, ZzfxInstrument, ZzfxChannel, ZzfxPattern, RenderedPcm,
 } from './zzfxm.ts';
@@ -269,7 +296,10 @@ export type {
 // codec (the Node shells). Byte parsing, so it lives beside tiff.ts/apng.ts.
 export { parseWav, packWav } from './wav.ts';
 export type { WavAudio, PackWavOptions, WavSampleFormat } from './wav.ts';
-export { parseMidi, midiToSong, midiToZzfxm } from './midi.ts';
+export {
+  parseMidi, midiToSong, midiToZzfxm,
+  MIDI_MAX_NOTES, MIDI_MAX_STEPS, MIDI_MAX_VOICES,
+} from './midi.ts';
 export type { ParsedMidi, MidiToSongOptions } from './midi.ts';
 export { composeSong, PRESETS, SCALES, mulberry32, patternSeconds } from './zzfx-compose.ts';
 // The seed → spec draw behind `zzfxm:<seed>`. Engine-side so every shell composes
@@ -294,6 +324,16 @@ export {
   diffTokenDocs, collectAssetTokens, collectFontFamilies, applyPinnedAssets,
 } from './design-version.ts';
 export type { PinnedAsset, VersionEntry, VersionIndex } from './design-version.ts';
+// Design-system identity (plans/186 section 6) - the same argument one level up: which
+// system an asset id belongs to, and what a design system is called, must read
+// IDENTICALLY in the web bridge, the CLI and the MCP server, or a share opens under
+// a system its author never used.
+export {
+  DESIGN_SYSTEM_ID_RE, DESIGN_SYSTEM_ID_MAX, DEFAULT_DESIGN_SYSTEM_ID, SHIPPED_DESIGN_SYSTEM_ID,
+  isDesignSystemId, slugifyDesignSystemId, designSystemNamespace, designSystemHeadId,
+  designMaterialOf, readDesignSystemIdentity, withDesignSystemIdentity,
+} from './design-system.ts';
+export type { DesignMaterial, DesignMaterialKind, DesignSystemIdentity } from './design-system.ts';
 export {
   parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow, parseTextShadow, gaussianShadowBands, gaussianShadowRings,
   parseCssMatrix, isNonAffineTransform, multiplyMat, matAboutPivot, isAxisAlignedMat, matToSvg, IDENTITY_2D,
@@ -405,7 +445,12 @@ export type {
   PptxTable, PptxTableCell, PptxLine, PptxTheme, PptxPath, PptxLayout, PptxPlaceholder, PptxPhType,
   PptxSlideTransition, PptxAudio,
 } from './pptx.ts';
-export { svgToCustGeomPaths, svgToNativePptx } from './svg-custgeom.ts';
+export {
+  svgToCustGeomPaths, svgToNativePptx,
+  SVG_CUSTGEOM_MAX_CHARS, SVG_CUSTGEOM_MAX_TAGS, SVG_CUSTGEOM_MAX_SHAPES,
+  SVG_CUSTGEOM_MAX_ATTR_CHARS, SVG_CUSTGEOM_MAX_STYLE_CHARS,
+  SVG_CUSTGEOM_MAX_TRANSFORM_CHARS, SVG_CUSTGEOM_MAX_POINTS_CHARS,
+} from './svg-custgeom.ts';
 export type { SvgNativePptx } from './svg-custgeom.ts';
 export { rebrandPptxParts } from './pptx-patch.ts';
 export type { RebrandPlan, RebrandTheme, RebrandReport, PartMap } from './pptx-patch.ts';
@@ -454,30 +499,59 @@ export type { ProvenanceManifest } from './provenance-defaults.ts';
 export {
   verifySeal, parseSealRecord, parseSealRecords, computeSealDigest, assembleSealMessage,
   resolveRanges, verifySealSignature, importSealKey,
+  SEAL_SCAN_EDGE_BYTES, SEAL_SCAN_WHOLE_MAX_BYTES, SEAL_MAX_RECORD_CHARS,
+  SEAL_MAX_RECORDS, SEAL_MAX_FIELDS, SEAL_MAX_FIELD_CHARS,
+  SEAL_MAX_RANGE_SPEC_CHARS, SEAL_MAX_RANGES, SEAL_MAX_ASSEMBLED_BYTES,
 } from './seal.ts';
 export type { SealRecord, SealRange, SealVerifyResult, SealPublicKeyResolver } from './seal.ts';
 export { pemToDer, derToPem, generateCaRoot, issueLeafCert } from './x509.ts';
 export { packApng } from './apng.ts';
-export { demuxApng } from './apng-decode.ts';
+export {
+  demuxApng, APNG_DEMUX_MAX_INPUT_BYTES, APNG_DEMUX_MAX_CHUNKS,
+  APNG_DEMUX_MAX_FRAMES, APNG_DEMUX_MAX_DIM, APNG_DEMUX_MAX_PIXELS,
+  APNG_DEMUX_MAX_OUTPUT_BYTES,
+} from './apng-decode.ts';
 export type { ApngFrame, DemuxApngResult } from './apng-decode.ts';
 export { packWebpAnim } from './webp-anim.ts';
-export { demuxWebpAnim } from './webp-anim-decode.ts';
+export {
+  demuxWebpAnim, WEBP_DEMUX_MAX_INPUT_BYTES, WEBP_DEMUX_MAX_CHUNKS,
+  WEBP_DEMUX_MAX_FRAMES, WEBP_DEMUX_MAX_DIM, WEBP_DEMUX_MAX_PIXELS,
+  WEBP_DEMUX_MAX_OUTPUT_BYTES,
+} from './webp-anim-decode.ts';
 export type { WebpAnimFrame, DemuxedWebpAnim } from './webp-anim-decode.ts';
 export { packTiff } from './tiff.ts';
 export { packPng } from './png.ts';
 export type { PackPngOptions, PngCicp, PngTextEntry, PngSamples } from './png.ts';
-export { encodeBmp, decodeBmp, isBmp, BmpUnsupportedError } from './bmp.ts';
+export { encodeBmp, decodeBmp, isBmp, BmpUnsupportedError, BMP_MAX_DIM, BMP_MAX_PIXELS } from './bmp.ts';
 export type { EncodeBmpOptions, DecodedBmp } from './bmp.ts';
-export { decodeIco, isIco, IcoDecodeError } from './ico-decode.ts';
+export {
+  decodeIco, isIco, IcoDecodeError, ICO_MAX_ENTRIES, ICO_MAX_DIM,
+  ICO_MAX_PIXELS, ICO_MAX_INPUT_BYTES,
+} from './ico-decode.ts';
 export type { IcoImage, IcoRgbaImage, IcoPngImage } from './ico-decode.ts';
 export { deflateRaw, zlibCompress, adler32 } from './deflate.ts';
 export type { DeflateOptions } from './deflate.ts';
-export { gzip, gunzip, inflateRaw } from './gzip.ts';
-export { readZip, storeZip } from './zip.ts';
-export type { ZipEntry, ZipStoreEntry, StoreZipOptions } from './zip.ts';
+export { gzip, gunzip, inflateRaw, GUNZIP_MAX_OUTPUT_BYTES } from './gzip.ts';
+export type { GunzipOptions } from './gzip.ts';
+export {
+  readZip, storeZip, ZIP_READ_MAX_INPUT_BYTES, ZIP_READ_MAX_ENTRIES,
+  ZIP_READ_MAX_ENTRY_BYTES, ZIP_READ_MAX_TOTAL_BYTES,
+} from './zip.ts';
+export type { ZipEntry, ZipStoreEntry, StoreZipOptions, ReadZipOptions } from './zip.ts';
 export { packTar } from './tar.ts';
-export { readTar, readTarGz } from './tar-read.ts';
+export { readTar, readTarGz, TAR_MAX_ARCHIVE_BYTES, TAR_MAX_MEMBERS, TAR_MAX_PAYLOAD_BYTES } from './tar-read.ts';
+export type { TarReadOptions } from './tar-read.ts';
 export type { TarFile } from './tar.ts';
+export { packCpio } from './cpio.ts';
+export type { CpioFile } from './cpio.ts';
+export { buildRpm } from './rpm.ts';
+export type { RpmSpec, RpmMeta, RpmFileEntry, RpmDep, RpmChangelogEntry } from './rpm.ts';
+export { planIconSet } from './icon-set.ts';
+export type { IconSource, IconFile, IconSetPlan } from './icon-set.ts';
+export { buildLinuxPack, buildHomeTarball, packageRender } from './linux-pack.ts';
+export type { LinuxPackSpec, PackType, FontFile, DesktopEntry } from './linux-pack.ts';
+export { fontMetainfo, desktopEntry, metainfoPath } from './appstream.ts';
+export type { FontMetainfoOpts, DesktopEntryOpts } from './appstream.ts';
 export { sfntKind, sfntToWoff, woffToSfnt } from './font-convert.ts';
 export type { SfntKind } from './font-convert.ts';
 export { videoProvenanceTags, embedMp4Meta, embedWebmMeta } from './video-meta.ts';
@@ -491,7 +565,13 @@ export { writeXlsx, colLetters } from './xlsx-write.ts';
 export type { XlsxSheet, XlsxCell } from './xlsx-write.ts';
 export { writeEpub } from './epub.ts';
 export type { EpubDoc, EpubChapter } from './epub.ts';
-export { readEpub } from './epub-read.ts';
+export {
+  readEpub, EPUB_READ_MAX_INPUT_BYTES, EPUB_READ_MAX_PARTS,
+  EPUB_READ_MAX_PART_BYTES, EPUB_READ_MAX_TOTAL_BYTES,
+  EPUB_READ_MAX_MANIFEST_ITEMS, EPUB_READ_MAX_SPINE_ITEMS,
+  EPUB_READ_MAX_NAV_LABELS, EPUB_READ_MAX_TITLE_CHARS,
+  EPUB_READ_MAX_OUTPUT_CHARS,
+} from './epub-read.ts';
 export type { EpubReadDoc, EpubReadChapter } from './epub-read.ts';
 export { writeOdt } from './odt.ts';
 export type { OdtDoc, OdtBlock } from './odt.ts';
@@ -510,20 +590,41 @@ export type {
   PenpotShapesByPage, PenpotComponent, PenpotComponentVariant, PenpotComponentSlot,
   PenpotComponentCollection, PenpotExternalCensus, PenpotExternalComponent,
 } from './design-components.ts';
-export { interpretPdfPage, parseToUnicode, toUnicodeDecoder } from './pdf-map.ts';
+export {
+  interpretPdfPage, parseToUnicode, toUnicodeDecoder,
+  PDF_MAP_MAX_ARRAY_DEPTH, PDF_MAP_MAX_BF_RANGE, PDF_MAP_MAX_RUN_DEPTH,
+  PDF_MAP_MAX_PAGE_NODES, PDF_MAP_MAX_PATTERN_NODES, PDF_MAP_MAX_PATTERN_EVALS,
+  PDF_MAP_MAX_MASK_NODES, PDF_MAP_MAX_MASK_TOTAL_NODES, PDF_MAP_MAX_MASK_EVALS,
+  PDF_MAP_MAX_TOKENS, PDF_MAP_MAX_CONTENT_CHARS, PDF_MAP_MAX_TOTAL_CONTENT_CHARS,
+} from './pdf-map.ts';
 export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, FontDecoder, PdfShading, PdfPattern, PdfGradient, PdfGradientStop, PdfSoftMask, PdfSoftMaskDef } from './pdf-map.ts';
 export { isShadowPlate, maskRegion, relativeLuminance, constantMask } from './pdf-smask.ts';
 export type { MaskRegion } from './pdf-smask.ts';
-export { pdfNodesToSvg, windowPdfSvg, cullPdfNodes, pdfNodeExtent, pdfNodeElementKind, CULL_PAD_PT } from './pdf-svg.ts';
+export {
+  pdfNodesToSvg, windowPdfSvg, cullPdfNodes, pdfNodeExtent, pdfNodeElementKind, CULL_PAD_PT,
+  PDF_SVG_MAX_NODES, PDF_SVG_MAX_MASK_NODES, PDF_SVG_MAX_GRADIENT_STOPS,
+  PDF_SVG_MAX_OUTLINE_LINES, PDF_SVG_MAX_TEXT_LINES, PDF_SVG_MAX_SOURCE_CHARS,
+  PDF_SVG_MAX_CLIPS, PDF_SVG_MAX_CLIP_D, PDF_SVG_MAX_PATH_D,
+  PDF_SVG_MAX_OUTLINE_D, PDF_SVG_MAX_COORD,
+} from './pdf-svg.ts';
 export type { PdfSvgOptions, SvgWindow, CullWindow, CullResult, PdfExtent, PdfElementKind } from './pdf-svg.ts';
 
-export { findVectorArtwork } from './pdf-artwork.ts';
+export { findVectorArtwork, PDF_ARTWORK_MAX_NODES, PDF_ARTWORK_MAX_CANDIDATES } from './pdf-artwork.ts';
 export type { VectorArtwork, ArtworkOptions, ArtworkRect } from './pdf-artwork.ts';
 
-export { findHiddenText, findHiddenTextInPages, describeHiddenText } from './pdf-redaction.ts';
+export {
+  findHiddenText, findHiddenTextInPages, describeHiddenText,
+  PDF_REDACTION_MAX_COVERS, PDF_REDACTION_MAX_NODES,
+  PDF_REDACTION_MAX_PAGES, PDF_REDACTION_MAX_TEXT_CHARS,
+} from './pdf-redaction.ts';
 export type { HiddenTextFinding, RedactionOptions, Rect as PdfRect } from './pdf-redaction.ts';
 
-export { extractPageText, joinPageText } from './pdf-text.ts';
+export {
+  extractPageText, joinPageText, PDF_TEXT_MAX_NODES, PDF_TEXT_MAX_ITEMS,
+  PDF_TEXT_MAX_CHARS, PDF_TEXT_MAX_TAGGED_ELEMENTS,
+  PDF_TEXT_MAX_MCIDS_PER_ELEMENT, PDF_TEXT_MAX_TAGGED_REFERENCES,
+  PDF_TEXT_MAX_JOIN_PAGES,
+} from './pdf-text.ts';
 export type { PageText, TextBlock, TextLine, TextItem, BlockKind, PdfTextOptions, TaggedElement } from './pdf-text.ts';
 export {
   createTokenSet, resolveColorValue, colorToHex,
@@ -645,6 +746,11 @@ export {
   parsePenpotColor, gradSpecToPenpot, designTextRuns, penpotUuid, seededPenpotUuid,
   PENPOT_MIME, PENPOT_ROOT_ID, PENPOT_FILE_VERSION, PENPOT_FEATURES, PENPOT_MIGRATIONS, PENPOT_IMAGE_MTYPES,
 } from './penpot-file.ts';
+export { appSurfaceBoxes, appSurfaceExportReport, appSurfaceToPenpotDoc } from './app-surface.ts';
+export type {
+  AppSurface, AppSurfaceNode, AppSurfaceFrame, AppSurfaceRect, AppSurfaceText,
+  AppSurfaceRole, AppSurfaceDataPolicy, AppSurfaceComponent, AppSurfaceExportReport,
+} from './app-surface.ts';
 export type {
   PenpotDoc, PenpotIrPage, PenpotIrShape, PenpotIrBoard, PenpotIrGroup, PenpotIrRect, PenpotIrCircle, PenpotIrPath,
   PenpotIrText, PenpotIrImage, PenpotIrFill, PenpotIrGradient, PenpotIrGradientStop, PenpotIrStroke, PenpotIrShadow,

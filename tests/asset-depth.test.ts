@@ -149,7 +149,7 @@ function schemaEnum(rel: string): string[] {
 }
 
 function assetQueryTypes(): string[] {
-  const src = readFileSync(join(ROOT, 'packages/core/src/host-v1.ts'), 'utf8');
+  const src = readFileSync(join(ROOT, 'packages/core/src/host-v1/assets.ts'), 'utf8');
   const m = /interface AssetQuery \{\s*type\?:\s*([^;]+);/.exec(src);
   assert.ok(m, 'could not find AssetQuery.type union');
   return [...m![1]!.matchAll(/'([a-z]+)'/g)].map((x) => x[1]!);

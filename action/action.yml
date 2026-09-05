@@ -22,11 +22,16 @@ inputs:
     default: ''
   args:
     description: >-
-      Flags for the tool as one shell-quoted string of --key=value pairs
-      (e.g. --url=https://example.com --padding=2). Keys are the tool's input ids -
-      the same names as its URL params; reserved params (width, height, unit, dpi,
-      bleed, marks, c2pa, …) work too. Quote values that contain spaces:
-      --text="Hello world".
+      Deprecated compatibility input: flags as one quoted string of --key=value
+      pairs. Parsed without a shell; expansion and control operators are refused.
+      Prefer args-json, especially for values containing shell metacharacters.
+    required: false
+    default: ''
+  args-json:
+    description: >-
+      Preferred tool flags as a JSON array of complete argv strings, for example
+      ["--url=https://example.com", "--padding=2"]. Values are passed literally
+      to the CLI without shell evaluation.
     required: false
     default: ''
   rows:
@@ -96,7 +101,7 @@ runs:
     # checkout gets the community tools only and the npm postinstall builds the
     # lolly-start fallback profile - exactly what the parent repo's own CI renders.
     - name: 'Checkout lolly (${{ inputs.lolly-ref }})'
-      uses: actions/checkout@v7
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with:
         repository: lolly-tools/lolly
         ref: ${{ inputs.lolly-ref }}
@@ -106,7 +111,7 @@ runs:
         persist-credentials: false
 
     - name: 'Set up Node 22'
-      uses: actions/setup-node@v7
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
       with:
         node-version: '22'
         cache: 'npm'
@@ -129,44 +134,17 @@ runs:
       id: render
       shell: bash
       working-directory: .lolly-render-action
-      # Inputs ride in as env - never interpolated into the script - except `args`,
-      # which is shell-parsed by design so quoted values survive word splitting.
+      # Inputs ride in as env and the Node runner launches the CLI with shell:false.
       env:
         IN_TOOL: ${{ inputs.tool }}
         IN_ARGS: ${{ inputs.args }}
+        IN_ARGS_JSON: ${{ inputs.args-json }}
         IN_ROWS: ${{ inputs.rows }}
         IN_FORMAT: ${{ inputs.format }}
         IN_OUT_DIR: ${{ inputs.out-dir }}
         IN_BROWSER: ${{ inputs.browser }}
         IN_PROFILE_ROOT: ${{ inputs.profile-root }}
+        LOLLY_ACTION_RUNNER: ${{ github.action_path }}/run.mjs
       run: |
         set -euo pipefail
-        abspath() { case "$1" in /*) printf '%s\n' "$1";; *) printf '%s\n' "$GITHUB_WORKSPACE/${1#./}";; esac; }
-        out_dir="$(abspath "$IN_OUT_DIR")"
-        mkdir -p "$out_dir"
-        if [ -n "$IN_PROFILE_ROOT" ]; then
-          LOLLY_ROOT="$(abspath "$IN_PROFILE_ROOT")"
-          export LOLLY_ROOT
-        fi
-        # LOLLY_ROOT redirects repo-root resolution wholesale - keep the Tier-B web
-        # dist pointing at THIS checkout, not the brand pack.
-        if [ "$IN_BROWSER" = "true" ]; then
-          export LOLLY_WEB_DIST="${LOLLY_WEB_DIST:-$PWD/shells/web/dist}"
-        fi
-        if [ -n "$IN_ROWS" ]; then
-          node shells/cli/bin/lolly.ts batch "$(abspath "$IN_ROWS")" --out-dir="$out_dir"
-        else
-          if [ -z "$IN_TOOL" ]; then
-            echo "::error::Set either 'tool' (single render) or 'rows' (batch CSV)."
-            exit 1
-          fi
-          # `args` is one shell-quoted string → argv (quotes inside it survive).
-          eval "set -- $IN_ARGS"
-          node shells/cli/bin/lolly.ts "$IN_TOOL" "$@" --export="$IN_FORMAT" --output="$out_dir/$IN_TOOL.$IN_FORMAT"
-        fi
-        {
-          echo "out-dir=$out_dir"
-          echo 'files<<LOLLY_FILES_EOF'
-          (cd "$out_dir" && find . -type f ! -name '.*' | sed 's|^\./||' | LC_ALL=C sort)
-          echo 'LOLLY_FILES_EOF'
-        } >> "$GITHUB_OUTPUT"
+        node "$LOLLY_ACTION_RUNNER"

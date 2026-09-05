@@ -35,7 +35,7 @@ parser with its enforced bounds is listed in docs/parser-inventory.md.
 
 - [ ] This change does **not** touch a trust boundary listed in `docs/threat-model.md`
 - [ ] …or it does, and the PR says which one and what still enforces it
-- [ ] Touched a parser that reads untrusted bytes, or a crypto module? Added or extended a fuzz target in `tests/fuzz/targets.ts`, and declared any new bound as a named constant
+- [ ] Touched a parser that reads untrusted bytes, or a crypto module? Added or extended a fuzz target in `tests/fuzz/targets.ts`, declared new bounds as named constants, updated `security/parser-assurance.json`, and ran `npm run build:parser-inventory`
 - [ ] No secret, token or personal data is logged, committed, or added to an error message
 
 ## Notes for the reviewer

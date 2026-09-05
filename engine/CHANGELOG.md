@@ -6,6 +6,102 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.180.0 - Adds renderer-neutral `line3d` and `ribbon3d` marks plus the
+`data-flight` motion preset to `ChartSpecV1`. These describe cinematic charts
+whose camera follows a genuine x/y/z data path; Three.js remains an adapter
+detail and static vector export remains an explicit projected poster.
+
+1.179.0 - Extends `ChartMotionV1` with the renderer-neutral `stagger` preset.
+Chart's statistical SVG adapter uses it for deterministic mark-by-mark reveals;
+preview and exported motion still follow the same normalised Lolly frame clock.
+
+1.178.0 - Adds `HostV1.export.pack(spec)` (optional): a tool's `exportFile` hook
+seals fonts/icons/wallpapers it holds into a Linux package (`.rpm` or `.tar.gz`)
+and returns the bytes, via the engine's package writers (`buildLinuxPack`,
+`buildHomeTarball`) - the tool never touches the RPM/cpio format. Like `file()`
+it never watermarks or stamps provenance. Plan 197 (M5). Also adds the `pkg.`
+reserved URL namespace for the `format=rpm|srpm|tar.gz` export path.
+Also hardens the PDF/AI content interpreter with named public page-node,
+token, decoded-stream, nesting, pattern and soft-mask budgets. Token accounting
+now includes nested array members before allocating the full token tree, and
+repeated form/pattern/mask execution shares one decoded-character budget.
+The gzip/TAR read path now refuses oversized recovered gzip members before
+inflation, caps TAR member fan-out and aggregate payload/archive bytes before
+copying entries, and uses non-int32 padding arithmetic for large USTAR sizes.
+BMP/ICO/APNG/animated-WebP readers now expose and enforce decoded-pixel,
+container fan-out and aggregate output ceilings before allocating or handing a
+declared canvas to the host; APNG/WebP frame regions are also canvas-validated.
+Plain ZIP extraction now has public compressed-input, entry, per-member and
+aggregate expansion ceilings, rejects multi-disk/malformed directory layouts,
+and accepts stricter caller budgets. EPUB prose ingest applies a 64 MiB profile,
+caps OPF/nav/spine cardinality and output, and replaces paired-tag regexes with a
+forward-only scanner; its writer-produced and malformed seeds join the fuzz soak.
+The four second-order PDF consumers now enforce public direct-call budgets for
+node, line, text, clip/mask, gradient, structure-reference and page fan-out.
+Artwork bounds input visits rather than accepted shapes, oversized culls fail
+open without a walk, and one structured `pdf-derived` target exercises SVG,
+text reconstruction, artwork detection and hidden-text detection together.
+The shared JPEG segment/MPF surface is promoted into the scheduled mutation
+suite with real assembled gain-map seeds; its segment and identifier ceilings
+are now public named constants for downstream readers.
+The SVG colour/layer/custom-geometry/path readers and URL keyframe grammar now
+have shared mutation targets. SVG path output, geometry attributes and colour
+scans have public allocation ceilings; malformed quoted colour attributes use a
+forward-only scan rather than repeatedly searching an unterminated tail.
+MIDI joins the mutation corpus and exposes its cardinality ceilings. Public
+ZzFXM synth/song entry points now validate structure, references, numeric ranges,
+duration, mixer work, and sample-cache amplification before the unchanged
+vendored renderers allocate; hostile direct song objects can no longer bypass
+the MIDI converter's limits.
+Radiance, SEAL, PNG unfiltering and the three watermark analyzers complete direct
+mutation coverage for every registered parser surface. SEAL now scans bounded
+edge strings instead of duplicating whole media files and caps records, fields,
+ranges and assembled messages. Content Seal enforces its calibrated 4x256 input
+shape; LSB analysis has a fixed work sample; PNG reversal has a direct output cap.
+
+1.177.0 - Extends the renderer-neutral `ChartSpecV1` vocabulary for curated
+statistical and editorial compilation: rule, density, hexbin, regression and
+candlestick marks plus open, close and facet channels. The chart document stays
+portable and contains no Observable Plot, D3 or other renderer configuration.
+
+1.176.0 - Semantic document diffs now compare recursively canonicalised values,
+so object member insertion order cannot produce a false input/token change.
+
+1.175.0 - Declarative charts and the renderer-neutral brand seam (plan 193). Adds
+the portable `ChartSpecV1` document family to `@lolly-tools/core` (datasets, typed
+fields, series/channels including genuine z, scales, axes, legends, formatting,
+resolved themes, motion, presentation and required accessibility metadata), its
+published JSON Schema, and the pure engine helpers `resolveChartTheme`,
+`validateChartSpec` and `inspectChartSpec`. Theme resolution keeps the active
+brand's authored colour order, derives missing categorical/sequential/diverging
+roles perceptually, records provenance and design-system identity/read-only state,
+and contains no renderer defaults. This is an additive document/compiler surface;
+HostV1 methods are unchanged.
+
+1.174.0 - Document API and asset-provider scheme (plan 189). Adds the versioned,
+transport-neutral compiler verbs (`compileDocument`, `validateDocument`,
+`documentSchema`, `inspectDocument`, `diffDocuments`, `measureDocument`,
+`optimizeDocument`, `packageDocument`, and the shell-owned `renderDocument`) and
+the pure `provider://scope/path` parser. `AssetsAPI.resolveProvider` is an optional,
+additive host rung; the runtime invokes it before ordinary catalog lookup.
+
+1.173.0 - Design-system identity, the pure half (plans/186 section 6). New module
+`design-system.ts`: `DESIGN_SYSTEM_ID_RE` / `DESIGN_SYSTEM_ID_MAX` / `isDesignSystemId` and
+`slugifyDesignSystemId` (a label to an addressable id, never null - "design-system" is the
+fallback), `designSystemNamespace` / `designSystemHeadId` (the migrated `default` keeps the
+legacy `user/` prefix forever, every other system mints under `user/ds/<id>/`, and `shipped`
+has no user namespace at all so both throw for it), `designMaterialOf` (which system an asset
+id belongs to and what kind of material it is, read structurally from the id with exact segment
+counts, so a personal upload and `user/tokens/brandx` are both nothing), and
+`readDesignSystemIdentity` / `withDesignSystemIdentity` over
+`$extensions[TOKEN_EXT].designSystem`, so a file, a share or a pack carries its own name with
+no sidecar. Un-identified docs store nothing, the withVersionIndex rule. `ds` joins RESERVED as
+`UrlState.designSystem`, validated against the id grammar and PARSE-ONLY on exactly the
+`designv` rule: serializeUrlState never writes it, because a link must not pin its recipient to
+a design system that isn't theirs. `TokensAPI` gains two OPTIONAL reads, `list()` and
+`active()`, returning the new `DesignSystemSummary`; switching stays a host concern. No v1
+method changed. Saved sessions gain an optional `designSystem: { id, label }` stamp (`SESSION_FORMAT_VERSION` 2, reader 2; additive, no data transform), so a session can say which design system it was made with.
+
 1.172.0 - Video export controls in URL mode. Five reserved params for the motion formats
 (`mp4`/`webm`/`gif`/`apng`/`webp-anim`): `fps` (integer 1..120), `seconds` (clip length
 0.5..3600, carried as a DELIBERATE length - `durationUserSet` - so a tool hook that runs a clip
@@ -3400,4 +3496,3 @@ manifest store as a GEOB frame in the leading ID3v2 tag (existing frames kept,
 re-stamp replaces, the whole tag excluded from the hard binding), with sniff +
 extraction so verify reads it back. No signature changed and existing manifests
 hash identically.
-

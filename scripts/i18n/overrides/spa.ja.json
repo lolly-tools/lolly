@@ -207,5 +207,12 @@
   "Imported": "インポート日",
   "Copyright": "著作権",
   "Captured": "撮影日",
-  "Keywords": "キーワード"
+  "Keywords": "キーワード",
+  "Check for updates": "アップデートを確認",
+  "Up to date": "最新です",
+  "Update available: {version}": "アップデートがあります: {version}",
+  "Install and restart": "インストールして再起動",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "書き出したピクセルに不可視の資格情報を埋め込むデバイス上のモデルです。今すぐダウンロード（約 {size}）すると、最初の耐久資格情報付き書き出しを待たずに開始できます。",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "書き出したピクセルに耐久資格情報を埋め込むデバイス上のモデルです。削除すると空き容量が増え、次回使用時に同意を得て再度ダウンロードされます。",
+  "Removed the durable-credential model": "耐久資格情報モデルを削除しました"
 }

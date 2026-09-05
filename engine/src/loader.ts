@@ -71,8 +71,18 @@ export interface ToolManifest extends Omit<ToolManifestBase, 'inputs' | 'hooks'>
  */
 export type ToolFetchFile = (path: string) => Promise<string>;
 
+/** Trust is assigned by the receiving shell from verified provenance. It is
+ * never read from tool.json, so a manifest cannot promote itself. */
+export type ToolTrustClass =
+  | 'builtin-verified'
+  | 'sideloaded-consented'
+  | 'remote-untrusted'
+  | 'development-unsigned';
+
 /** A normalised, loaded tool: everything the runtime needs to mount it. */
 export interface LoadedTool {
+  /** Host-assigned execution class; always populated by {@link loadTool}. */
+  trustClass: ToolTrustClass;
   manifest: ToolManifest;
   /** template.html source (required). */
   template: string;
@@ -114,6 +124,10 @@ export interface LoadToolOpts {
   resolveModuleUrl?: (path: string) => string;
   /** Verify every fetched tool file against a signed catalog envelope. */
   integrity?: ToolIntegrityOpts;
+  /** Host-selected provenance for a source outside the signed catalog. Passing
+   * `builtin-verified` without `integrity` is rejected. With integrity, callers
+   * may only retain or downgrade the verified result. */
+  trustClass?: ToolTrustClass;
   /**
    * UI/content language for this tool's manifest strings (see
    * plans/38-localize.md section 7). When set and not 'en', loadTool best-effort fetches
@@ -274,6 +288,12 @@ function warnUnsignedCatalogOnce(): void {
 
 export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: LoadToolOpts = {}): Promise<LoadedTool> {
   const integrity = opts.integrity ?? null;
+  if (!integrity && opts.trustClass === 'builtin-verified') {
+    throw new ToolLoadError('catalog integrity: builtin-verified trust requires a verified envelope', []);
+  }
+  const trustClass: ToolTrustClass = integrity
+    ? (opts.trustClass ?? 'builtin-verified')
+    : (opts.trustClass ?? 'development-unsigned');
   if (integrity) {
     await assertEnvelopeTrusted(integrity);
   } else {
@@ -431,6 +451,7 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
   }
 
   return {
+    trustClass,
     manifest,
     template,
     styles,

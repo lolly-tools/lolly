@@ -16,7 +16,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { unfilterPng } from '../engine/src/png-unfilter.ts';
+import { unfilterPng, PNG_UNFILTER_MAX_OUTPUT_BYTES } from '../engine/src/png-unfilter.ts';
 
 const u8 = (...xs: number[]): Uint8Array => Uint8Array.from(xs);
 
@@ -135,4 +135,8 @@ test('non-positive dimensions → null', () => {
 
 test('empty input → null (no throw)', () => {
   assert.equal(unfilterPng(new Uint8Array(0), 2, 2, 1), null);
+});
+
+test('declared output beyond the direct-call budget is refused before allocation', () => {
+  assert.equal(unfilterPng(new Uint8Array(1), PNG_UNFILTER_MAX_OUTPUT_BYTES + 1, 1, 1), null);
 });

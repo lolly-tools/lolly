@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderZzfxm, zzfxG, zzfxM, zzfxR, type ZzfxSong } from '../engine/src/zzfxm.ts';
+import {
+  renderZzfxm, zzfxG, zzfxM, zzfxR,
+  ZZFXM_MAX_CHANNELS, ZZFXM_MAX_SEQUENCE,
+  type ZzfxSong,
+} from '../engine/src/zzfxm.ts';
 
 // A tiny, self-contained song: one soft sine instrument, one pattern of four
 // ascending notes, played once. Enough to exercise the whole render path.
@@ -51,4 +55,25 @@ test('renderZzfxm defaults bpm to 125 when omitted', () => {
   void bpm;
   const pcm = renderZzfxm(noBpm);
   assert.ok(pcm.left.length > 0);
+});
+
+test('direct synth/song entry points reject allocation-driving hostile values before rendering', () => {
+  assert.throws(() => zzfxG(1, 0, 220, 31), /synth limit/);
+  assert.throws(
+    () => zzfxM(SONG.instruments, SONG.patterns, new Array(ZZFXM_MAX_SEQUENCE + 1).fill(0), 120),
+    /sequence count/,
+  );
+  assert.throws(
+    () => zzfxM(SONG.instruments, [new Array(ZZFXM_MAX_CHANNELS + 1).fill([0, 0, 12])], [0], 120),
+    /channel count/,
+  );
+  assert.throws(
+    () => renderZzfxm({ ...SONG, patterns: [[[0, 0, 12], [0, 0, 12, 14]]] }),
+    /ragged channel rows/,
+  );
+  assert.throws(() => renderZzfxm({ ...SONG, bpm: 0 }), /BPM/);
+  assert.throws(
+    () => zzfxM(SONG.instruments, [[[0, 0, 12]]], new Array(ZZFXM_MAX_SEQUENCE).fill(0), 20),
+    /duration budget/,
+  );
 });

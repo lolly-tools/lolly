@@ -207,5 +207,12 @@
   "Imported": "Đã nhập",
   "Copyright": "Bản quyền",
   "Captured": "Chụp lúc",
-  "Keywords": "Từ khóa"
+  "Keywords": "Từ khóa",
+  "Check for updates": "Kiểm tra bản cập nhật",
+  "Up to date": "Đã cập nhật",
+  "Update available: {version}": "Có bản cập nhật: {version}",
+  "Install and restart": "Cài đặt và khởi động lại",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "Mô hình trên thiết bị ẩn thông tin xác thực vô hình trong các pixel xuất ra. Tải xuống ngay (~{size}) để lần xuất có thông tin xác thực bền vững đầu tiên bắt đầu ngay, không phải chờ.",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "Mô hình trên thiết bị ẩn thông tin xác thực bền vững trong các pixel xuất ra. Xóa mô hình sẽ giải phóng dung lượng; mô hình sẽ được tải lại với sự đồng ý của bạn khi dùng lần tới.",
+  "Removed the durable-credential model": "Đã xóa mô hình thông tin xác thực bền vững"
 }

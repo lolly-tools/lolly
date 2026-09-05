@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "roots": [
+    {
+      "id": "root-npm",
+      "ecosystem": "npm",
+      "directory": ".",
+      "lockfile": "package-lock.json",
+      "exposure": "runtime-and-development",
+      "owner": "parent"
+    },
+    {
+      "id": "tauri-desktop-npm",
+      "ecosystem": "npm",
+      "directory": "shells/tauri-desktop",
+      "lockfile": "shells/tauri-desktop/package-lock.json",
+      "exposure": "build-toolchain",
+      "owner": "shells/tauri-desktop"
+    },
+    {
+      "id": "tauri-mobile-npm",
+      "ecosystem": "npm",
+      "directory": "shells/tauri-mobile",
+      "lockfile": "shells/tauri-mobile/package-lock.json",
+      "exposure": "build-toolchain",
+      "owner": "shells/tauri-mobile"
+    },
+    {
+      "id": "tauri-desktop-cargo",
+      "ecosystem": "cargo",
+      "directory": "shells/tauri-desktop/src-tauri",
+      "lockfile": "shells/tauri-desktop/src-tauri/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "shells/tauri-desktop"
+    },
+    {
+      "id": "tauri-mobile-cargo",
+      "ecosystem": "cargo",
+      "directory": "shells/tauri-mobile/src-tauri",
+      "lockfile": "shells/tauri-mobile/src-tauri/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "shells/tauri-mobile"
+    }
+  ]
+}
+

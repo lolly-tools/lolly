@@ -207,5 +207,12 @@
   "Imported": "가져온 날짜",
   "Copyright": "저작권",
   "Captured": "촬영 날짜",
-  "Keywords": "키워드"
+  "Keywords": "키워드",
+  "Check for updates": "업데이트 확인",
+  "Up to date": "최신 상태",
+  "Update available: {version}": "업데이트 있음: {version}",
+  "Install and restart": "설치 후 다시 시작",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "내보낸 픽셀에 보이지 않는 자격 증명을 숨기는 기기 내 모델입니다. 지금 다운로드하면(약 {size}) 첫 번째 지속 자격 증명 내보내기를 기다리지 않고 바로 시작할 수 있습니다.",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "내보낸 픽셀에 지속 자격 증명을 숨기는 기기 내 모델입니다. 제거하면 공간이 확보되며 다음 사용 시 동의를 받은 후 다시 다운로드됩니다.",
+  "Removed the durable-credential model": "지속 자격 증명 모델을 제거했습니다"
 }

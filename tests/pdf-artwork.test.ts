@@ -11,7 +11,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { findVectorArtwork } from '../engine/src/pdf-artwork.ts';
+import { findVectorArtwork, PDF_ARTWORK_MAX_NODES } from '../engine/src/pdf-artwork.ts';
 import type { PdfNode } from '../engine/src/pdf-map.ts';
 
 const PAGE = { width: 595, height: 842 };
@@ -271,4 +271,12 @@ test('degenerate geometry yields nothing rather than throwing', () => {
 test('an empty page yields nothing', () => {
   assert.deepEqual(findVectorArtwork([], PAGE), []);
   assert.deepEqual(findVectorArtwork([], {}), []);
+});
+
+test('the direct-call cap bounds input visits, including non-vector nodes', () => {
+  const nodes: PdfNode[] = Array.from({ length: PDF_ARTWORK_MAX_NODES }, (_, i) => ({
+    kind: 'text', x: 0, y: i, w: 1, h: 1, rot: 0, text: 'x',
+  }));
+  nodes.push(ellipse(60, 60, 40, 40), path(70, 70, 20, 20, '#fff'));
+  assert.deepEqual(findVectorArtwork(nodes, PAGE), [], 'nodes beyond the interpreter-sized prefix are not visited');
 });

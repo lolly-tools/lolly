@@ -10,7 +10,7 @@
  *
  * What is held:
  *  1. IPC drift, both directions - every TS `invoke('desktop_*')` names a Rust
- *     `#[tauri::command]`, the plan's six contract commands all exist Rust-side,
+ *     `#[tauri::command]`, the plan's remaining contract commands all exist Rust-side,
  *     and each desktop_ command is reachable (listed in a generate_handler!).
  *  2. shared-mime-info XML - well-formed (parsed here, no xmllint dependency),
  *     declares the canonical MIME + `*.lolly` glob, and the MIME string cannot
@@ -53,13 +53,17 @@ const FLATPAK_DIR = path.join(DESKTOP_SHELL, 'flatpak');
 const WEB_SRC = path.join(ROOT, 'shells/web/src');
 const BRIDGE_OVERRIDES = path.join(DESKTOP_SHELL, 'bridge-overrides');
 
-// The plan's six IPC contract commands, verbatim ("The IPC contract" section).
+// The plan's IPC contract commands, verbatim ("The IPC contract" section), less
+// the one plan 202 retired.
 const CONTRACT_COMMANDS = [
   'desktop_pick_color',
   'desktop_set_wallpaper',
   'desktop_read_accent',
   'desktop_hotfolder_set',
-  'desktop_clipboard_read',
+  // desktop_clipboard_read was the sixth. Plan 202 WP4.1 removed its
+  // #[tauri::command] and its lib.rs registration: no JS ever invoked it, and the
+  // tray calls the plain Rust function directly. The function is still there, so
+  // the behaviour plans/174 wanted is intact - only the IPC door is gone.
   'desktop_poll_events',
 ] as const;
 
@@ -322,7 +326,7 @@ test('ipc: extractors still see the live tree (canary)', () => {
   assert.ok(all.has('capture_page'), 'TS invoke extractor found no capture_page call - the invoke() regex no longer matches bridge-overrides/capture.ts');
 });
 
-test('ipc: the plan\'s six desktop_ contract commands exist Rust-side', (t) => {
+test('ipc: the plan\'s five remaining desktop_ contract commands exist Rust-side', (t) => {
   const rust = rustCommands();
   const desktop = [...rust].filter((n) => n.startsWith('desktop_'));
   if (desktop.length === 0) {

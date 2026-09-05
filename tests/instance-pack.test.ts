@@ -35,6 +35,9 @@ test('the suse pack builds clean: exclusions hold, fonts/tools/envelope complete
     execFileSync('node', ['scripts/build-instance-pack.ts', '--out', out], { cwd: ROOT, stdio: 'pipe' });
     const packPath = join(out, 'suse-brand-1.0.0.lolly');
     const bytes = readFileSync(packPath);
+    const firstNameLength = bytes[26]! | (bytes[27]! << 8);
+    assert.equal(bytes.subarray(30, 30 + firstNameLength).toString(), 'manifest.json',
+      'streaming preflight can identify the pack immediately');
     const files = unzipSync(new Uint8Array(bytes));
     const names = Object.keys(files);
 
@@ -72,6 +75,13 @@ test('the suse pack builds clean: exclusions hold, fonts/tools/envelope complete
     assert.ok(toolsPart.tools.length >= 15, `expected ≥15 suse tools, got ${toolsPart.tools.length}`);
     for (const t of toolsPart.tools) {
       assert.ok(files[`tools/${t.id}/tool.json`], `tool ${t.id} shipped without its manifest`);
+    }
+    // The SUSE 3D variant offers the OSS sample models, but the configured
+    // community instance already serves the exact same bytes. Do not pay for
+    // duplicate copies in the portable brand pack.
+    for (const rel of ['assets/cat.glb', 'assets/duck.glb']) {
+      assert.ok(!names.includes(`tools/3d/${rel}`), `duplicated community model leaked: ${rel}`);
+      assert.ok(!toolsPart.files['3d']?.includes(rel), `tools.json lists omitted community model: ${rel}`);
     }
 
     // Tokens + the brand's own asset entries.

@@ -207,5 +207,12 @@
   "Imported": "Importé",
   "Copyright": "Copyright",
   "Captured": "Prise le",
-  "Keywords": "Mots-clés"
+  "Keywords": "Mots-clés",
+  "Check for updates": "Rechercher des mises à jour",
+  "Up to date": "À jour",
+  "Update available: {version}": "Mise à jour disponible : {version}",
+  "Install and restart": "Installer et redémarrer",
+  "The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.": "Le modèle embarqué qui dissimule un identifiant invisible dans les pixels exportés. Téléchargez-le maintenant (~{size}) pour que le premier export durable démarre immédiatement, sans attente.",
+  "The on-device model that hides the durable credential in exported pixels. Removing it frees the space; it downloads again with your consent when next used.": "Le modèle embarqué qui dissimule l’identifiant durable dans les pixels exportés. Le supprimer libère de l’espace ; il sera téléchargé de nouveau avec votre consentement lors de la prochaine utilisation.",
+  "Removed the durable-credential model": "Modèle d’identifiant durable supprimé"
 }

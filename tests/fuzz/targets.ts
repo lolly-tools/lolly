@@ -12,11 +12,25 @@
  *   - cbor          : decodeCbor(bytes) - the claim decoder, hit directly
  *   - media-sniff   : sniffAnimatedRaster + sniffVideoContainer
  *   - pdf-map       : interpretPdfPage(page) + parseToUnicode(str)
+ *   - pdf-derived   : SVG/text/artwork/redaction consumers over hostile PdfNode structure
  *   - x509          : parseCertificate(der) - the DER/X.509 cert parser
  *   - file-metadata : extractFileMetadata(bytes) - the /verify metadata reveal
  *   - strip-metadata: stripMetadata(bytes, fmt) - the clean-copy byte surgery
  *   - video-meta    : embedMp4Meta / embedWebmMeta - container walkers (shared with the c2pa read side)
  *   - data-import   : parseDataRows(text) - CSV/JSON → blocks rows
+ *   - brand-import  : token JSON/set files/Penpot token + page-part walkers
+ *   - tar-read      : readTar/readTarGz over USTAR and gzip framing
+ *   - raster-decode : BMP, ICO/CUR, APNG and animated-WebP container readers
+ *   - epub-read     : bounded ZIP + OCF/OPF/XHTML prose extraction
+ *   - jpeg-structure: shared marker walker/splicer plus MPF gain-map offset repair
+ *   - svg-readers   : colour/layer/custom-geometry/path readers over one hostile SVG string
+ *   - keyframes     : parse/normalise/evaluate the URL-mode `kf` wire grammar
+ *   - midi          : Standard MIDI event walker plus note-to-pattern mapping
+ *   - zzfxm         : guarded procedural-song object validation and PCM rendering
+ *   - radiance      : RGBE header/scanline reader over writer-produced HDR files
+ *   - seal          : edge record/range parser and bounded message assembly
+ *   - png-unfilter  : PNG/PDF predictor reversal with byte-derived dimensions
+ *   - watermark-analysis: fixed-shape LSB, TrustMark and Content Seal analysis
  *   - pptx-read     : readPptx(parts, parseXml) + isPptx - the .pptx part-map reader
  *   - pptx-patch    : rebrandPptxParts(parts, plan) - the surgical .pptx rebrand
  *   - icc           : parseIccProfile(bytes) + evaluate - the ICC profile reader
@@ -49,12 +63,38 @@ import type { InflateFn } from '../../engine/src/raster-layers.ts';
 import { buildXcf } from '../helpers/xcf-fixture.ts';
 import { deflateRawSync, inflateSync } from 'node:zlib';
 import { sniffAnimatedRaster, sniffVideoContainer } from '../../engine/src/media-sniff.ts';
-import { interpretPdfPage, parseToUnicode } from '../../engine/src/pdf-map.ts';
+import { interpretPdfPage, parseToUnicode, type PdfNode } from '../../engine/src/pdf-map.ts';
+import { pdfNodesToSvg, cullPdfNodes, pdfNodeExtent } from '../../engine/src/pdf-svg.ts';
+import { extractPageText, joinPageText } from '../../engine/src/pdf-text.ts';
+import { findVectorArtwork } from '../../engine/src/pdf-artwork.ts';
+import { findHiddenText, findHiddenTextInPages, describeHiddenText } from '../../engine/src/pdf-redaction.ts';
 import { extractFileMetadata } from '../../engine/src/file-metadata.ts';
 import { stripMetadata, type StripFormat } from '../../engine/src/strip-metadata.ts';
 import { embedMp4Meta, embedWebmMeta, videoProvenanceTags } from '../../engine/src/video-meta.ts';
 import { parseDataRows } from '../../engine/src/data-import.ts';
+import {
+  assembleTokenSetFiles, coerceTokensDoc, extractPenpotProject,
+  scanPenpotAppliedTokens, scanPenpotUsage,
+} from '../../engine/src/brand-import.ts';
 import { packTiff } from '../../engine/src/tiff.ts';
+import { packTar } from '../../engine/src/tar.ts';
+import { readTar, readTarGz } from '../../engine/src/tar-read.ts';
+import { gzip } from '../../engine/src/gzip.ts';
+import { encodeBmp, decodeBmp } from '../../engine/src/bmp.ts';
+import { decodeIco } from '../../engine/src/ico-decode.ts';
+import { packPng } from '../../engine/src/png.ts';
+import { packApng } from '../../engine/src/apng.ts';
+import { demuxApng } from '../../engine/src/apng-decode.ts';
+import { packWebpAnim } from '../../engine/src/webp-anim.ts';
+import { demuxWebpAnim } from '../../engine/src/webp-anim-decode.ts';
+import { writeEpub } from '../../engine/src/epub.ts';
+import { readEpub } from '../../engine/src/epub-read.ts';
+import {
+  buildJpegSegment, findJpegSegment, findJpegSegments, insertJpegSegments,
+  jpegSegmentBody, scanJpegSegments, JPEG_APP_IDS,
+} from '../../engine/src/jpeg-segments.ts';
+import { assembleGainMapJpeg, repairMpfOffsets } from '../../engine/src/gainmap-jpeg.ts';
+import type { GainMapMeta } from '../../engine/src/gainmap.ts';
 import { parseIccProfile, iccGamutSource } from '../../engine/src/icc.ts';
 import { isPptx, readPptx, type PptxParts } from '../../engine/src/pptx-read.ts';
 import { isDocx, readDocx, type DocxParts } from '../../engine/src/docx-read.ts';
@@ -62,6 +102,19 @@ import { mdFromBlocks, htmlFromBlocks } from '../../engine/src/doc-md.ts';
 import { rebrandPptxParts, type PartMap, type RebrandPlan } from '../../engine/src/pptx-patch.ts';
 import { createPptxAPI, looksLikePptxFile } from '../../shells/web/src/bridge/pptx.ts';
 import { depthHint } from '../../shells/web/src/lib/image-sample.ts';
+import { extractSvgColors } from '../../engine/src/svg-colors.ts';
+import { enumerateSvgLayers, svgRootViewBox } from '../../engine/src/svg-layers.ts';
+import { svgToCustGeomPaths, svgToNativePptx } from '../../engine/src/svg-custgeom.ts';
+import { parseSvgPath, parseSvgPathArgs } from '../../engine/src/svg-path.ts';
+import { evaluateKf, kfChannelsUsed, parseKf, serialiseKf } from '../../engine/src/keyframes.ts';
+import { midiToSong, parseMidi } from '../../engine/src/midi.ts';
+import { renderZzfxm, type ZzfxSong } from '../../engine/src/zzfxm.ts';
+import { packRadiance, parseRadianceHeader, readRadiance } from '../../engine/src/radiance.ts';
+import { assembleSealMessage, parseSealRecords } from '../../engine/src/seal.ts';
+import { unfilterPng } from '../../engine/src/png-unfilter.ts';
+import { analyzeLsb } from '../../engine/src/steganalysis.ts';
+import { decodeTrustmarkPayload } from '../../engine/src/trustmark.ts';
+import { contentSealConsensus, CONTENTSEAL_MESSAGE_BITS } from '../../engine/src/contentseal.ts';
 import { zipSync } from 'fflate';
 import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exists)
 
@@ -403,6 +456,225 @@ export const dataImportTarget: FuzzTarget = {
     // The shell reads the file to text; junk bytes arrive as replacement chars.
     // "No usable rows" & friends are controlled throws - fine by the runner.
     parseDataRows(new TextDecoder('utf-8').decode(bytes), { fields: DATA_IMPORT_FIELDS });
+  },
+};
+
+const BRAND_TOKEN_SEED = JSON.stringify({
+  global: { color: { primary: { $value: '#4f84ba', $type: 'color' } } },
+  $themes: [{ name: 'Default', selectedTokenSets: { global: 'enabled' } }],
+  $metadata: { tokenSetOrder: ['global'] },
+});
+const BRAND_MANIFEST_SEED = JSON.stringify({
+  type: 'penpot/export-files', files: [{ id: 'seed', features: ['design-tokens/v1'] }],
+});
+const BRAND_PAGE_SEED = JSON.stringify({
+  type: 'text', fills: [{ fillColor: '#4f84ba' }],
+  appliedTokens: { fill: 'global.color.primary' },
+  content: { children: [{ text: 'Lolly', fills: [{ fillColor: '#ffffff' }], fontId: 'Inter' }] },
+});
+
+export const brandImportTarget: FuzzTarget = {
+  name: 'brand-import',
+  async seeds() {
+    const enc = new TextEncoder();
+    return [BRAND_TOKEN_SEED, BRAND_MANIFEST_SEED, BRAND_PAGE_SEED].map((seed) => enc.encode(seed));
+  },
+  async invoke(bytes) {
+    const enc = new TextEncoder();
+    const fixedManifest = enc.encode(BRAND_MANIFEST_SEED);
+    const fixedToken = enc.encode(BRAND_TOKEN_SEED);
+
+    // Reach malformed token JSON and malformed manifest JSON independently.
+    extractPenpotProject({ 'manifest.json': fixedManifest, 'files/seed/tokens.json': bytes });
+    extractPenpotProject({ 'manifest.json': bytes, 'files/seed/tokens.json': fixedToken });
+
+    // The same part shape feeds both Penpot page censuses.
+    const pages = { 'manifest.json': fixedManifest, 'files/seed/pages/p1/s1.json': bytes };
+    scanPenpotUsage(pages);
+    scanPenpotAppliedTokens(pages);
+
+    // For valid JSON mutations, also hit the already-parsed container shapes.
+    let parsed: unknown;
+    try { parsed = JSON.parse(new TextDecoder().decode(bytes)); }
+    catch { return; } // JSON.parse is the transport decoder, not the target.
+    coerceTokensDoc(parsed);
+    assembleTokenSetFiles({ 'mutated.json': parsed });
+  },
+};
+
+export const tarReadTarget: FuzzTarget = {
+  name: 'tar-read',
+  async seeds() {
+    const enc = new TextEncoder();
+    const tar = packTar([
+      { name: 'tokens.json', data: enc.encode(BRAND_TOKEN_SEED) },
+      { name: 'assets/logo.svg', data: enc.encode('<svg viewBox="0 0 1 1"/>') },
+    ]);
+    return [tar, gzip(tar)];
+  },
+  async invoke(bytes) {
+    if (bytes[0] === 0x1f && bytes[1] === 0x8b) readTarGz(bytes);
+    else readTar(bytes);
+  },
+};
+
+export const epubReadTarget: FuzzTarget = {
+  name: 'epub-read',
+  async seeds() {
+    return [
+      writeEpub({
+        title: 'Brand handbook',
+        chapters: [{ title: 'Voice', xhtml: '<h1>Voice</h1><p>Warm, clear and <strong>exact</strong>.</p>' }],
+      }),
+      writeEpub({
+        title: 'Malformed prose',
+        chapters: [{ title: 'Tags', xhtml: '<strong>'.repeat(8_000) }],
+      }),
+    ];
+  },
+  async invoke(bytes) {
+    readEpub(bytes);
+  },
+};
+
+const FUZZ_MINIMAL_JPEG = Uint8Array.of(0xff, 0xd8, 0xff, 0xd9);
+const FUZZ_GAIN_META: GainMapMeta = {
+  channels: 1,
+  gainMapMin: 0,
+  gainMapMax: 2,
+  gamma: 1,
+  offsetSdr: 0,
+  offsetHdr: 0,
+  hdrCapacityMin: 0,
+  hdrCapacityMax: 2,
+  baseRendition: 'sdr',
+  useBaseColorSpace: true,
+};
+
+export const jpegStructureTarget: FuzzTarget = {
+  name: 'jpeg-structure',
+  async seeds() {
+    return [
+      FUZZ_MINIMAL_JPEG,
+      assembleGainMapJpeg(FUZZ_MINIMAL_JPEG, FUZZ_MINIMAL_JPEG, FUZZ_GAIN_META),
+    ];
+  },
+  async invoke(bytes) {
+    const scan = scanJpegSegments(bytes);
+    for (const segment of scan?.segments ?? []) jpegSegmentBody(bytes, segment);
+    findJpegSegment(bytes, 0xe2, JPEG_APP_IDS.MPF);
+    findJpegSegments(bytes, 0xe1);
+    const app = buildJpegSegment(0xe1, bytes.subarray(0, Math.min(bytes.length, 256)));
+    if (app) insertJpegSegments(bytes, [app], { replace: true });
+    repairMpfOffsets(bytes);
+    assembleGainMapJpeg(bytes, FUZZ_MINIMAL_JPEG, FUZZ_GAIN_META);
+  },
+};
+
+function fuzzIcoFromPng(png: Uint8Array, width: number, height: number): Uint8Array {
+  const out = new Uint8Array(22 + png.length);
+  const dv = new DataView(out.buffer);
+  dv.setUint16(2, 1, true);
+  dv.setUint16(4, 1, true);
+  out[6] = width === 256 ? 0 : width;
+  out[7] = height === 256 ? 0 : height;
+  dv.setUint16(10, 1, true);
+  dv.setUint16(12, 32, true);
+  dv.setUint32(14, png.length, true);
+  dv.setUint32(18, 22, true);
+  out.set(png, 22);
+  return out;
+}
+
+function fuzzStillWebp(width: number, height: number): Uint8Array {
+  const bits = ((width - 1) & 0x3fff) | (((height - 1) & 0x3fff) << 14);
+  const payload = Uint8Array.of(0x2f, bits & 0xff, (bits >>> 8) & 0xff, (bits >>> 16) & 0xff, (bits >>> 24) & 0xff, 0xde, 0xad);
+  const out = new Uint8Array(20 + payload.length + (payload.length & 1));
+  out.set(bytesOf('RIFF'), 0);
+  new DataView(out.buffer).setUint32(4, out.length - 8, true);
+  out.set(bytesOf('WEBPVP8 '), 8);
+  new DataView(out.buffer).setUint32(16, payload.length, true);
+  out.set(payload, 20);
+  return out;
+}
+
+export const rasterDecodeTarget: FuzzTarget = {
+  name: 'raster-decode',
+  async seeds() {
+    const rgba = Uint8Array.of(
+      255, 0, 0, 255, 0, 255, 0, 255,
+      0, 0, 255, 255, 255, 255, 255, 128,
+    );
+    const png = packPng(rgba, { width: 2, height: 2, channels: 4, depth: 8 });
+    const webp = fuzzStillWebp(2, 2);
+    return [
+      encodeBmp(rgba, 2, 2),
+      fuzzIcoFromPng(png, 2, 2),
+      packApng([png, png], { delayMs: [40, 80] }),
+      packWebpAnim([webp, webp], { delayMs: [40, 80], width: 2, height: 2 }),
+    ];
+  },
+  async invoke(bytes) {
+    if (bytes[0] === 0x42) decodeBmp(bytes);
+    else if (bytes[0] === 0x00) decodeIco(bytes);
+    else if (bytes[0] === 0x89) demuxApng(bytes);
+    else demuxWebpAnim(bytes);
+  },
+};
+
+function derivedPdfNodes(bytes: Uint8Array): PdfNode[] {
+  const nodes: PdfNode[] = [];
+  const count = Math.min(64, Math.ceil(bytes.length / 8));
+  for (let i = 0; i < count; i++) {
+    const at = i * 8;
+    const pick = (offset: number): number => bytes[(at + offset) % Math.max(1, bytes.length)] ?? 0;
+    const x = pick(1) - 128;
+    const y = pick(2) - 128;
+    const w = Math.max(1, pick(3));
+    const h = Math.max(1, pick(4));
+    const variant = pick(0) % 4;
+    if (variant === 0) {
+      nodes.push({
+        kind: 'text', x, y, w, h, rot: (pick(5) % 21) - 10,
+        fontSize: Math.max(1, pick(6) % 48), text: `run ${i} ${pick(7)}`,
+        mcid: pick(7) % 8,
+      });
+    } else if (variant === 1) {
+      nodes.push({ kind: 'box', x, y, w, h, rot: pick(5) % 45, shape: pick(6) & 1 ? 'ellipse' : 'rect', fill: `#${pick(7).toString(16).padStart(2, '0')}4466` });
+    } else if (variant === 2) {
+      nodes.push({
+        kind: 'image', x, y, w, h, rot: 0,
+        _vectorPath: `M${x} ${y}L${x + w} ${y}C${x + w} ${y + h} ${x} ${y + h} ${x} ${y}Z`,
+        _vectorFill: '#336699',
+        ...(pick(5) & 1 ? { _clips: [{ d: `M${x} ${y}L${x + w} ${y}L${x + w} ${y + h}Z`, evenOdd: false }] } : {}),
+      });
+    } else {
+      nodes.push({ kind: 'image', x, y, w, h, rot: 0, _imageXObject: `im${pick(7) % 4}` });
+    }
+  }
+  return nodes;
+}
+
+export const pdfDerivedTarget: FuzzTarget = {
+  name: 'pdf-derived',
+  async seeds() {
+    return [bytesOf('positioned text, vector paths, clips, images and covers')];
+  },
+  async invoke(bytes) {
+    const nodes = derivedPdfNodes(bytes);
+    pdfNodesToSvg(nodes, { width: 400, height: 300 });
+    cullPdfNodes(nodes, { x: 0, y: 0, width: 200, height: 150 });
+    for (const node of nodes) pdfNodeExtent(node);
+    const page = extractPageText(nodes, {
+      width: 400,
+      height: 300,
+      tagged: [{ type: 'P', mcids: [0, 1, 2, 3] }],
+    });
+    joinPageText([page]);
+    findVectorArtwork(nodes, { width: 400, height: 300 });
+    const hidden = findHiddenText(nodes);
+    findHiddenTextInPages([nodes]);
+    describeHiddenText(hidden);
   },
 };
 
@@ -1083,11 +1355,167 @@ export const docxReadTarget: FuzzTarget = {
   },
 };
 
+// The raw-SVG readers share the same hostile source text but exercise separate
+// parsers: presentation colours, layer/tag reconstruction, native-PPTX lowering,
+// and path-number normalisation. Each entry point owns an explicit input and/or
+// cardinality budget; valid seeds cover attributes, CSS, transforms, primitives,
+// nested layers, compact arc flags, and text lowering.
+export const svgReadersTarget: FuzzTarget = {
+  name: 'svg-readers',
+  async seeds() {
+    return [
+      bytesOf('<svg viewBox="0 0 100 100"><style>.ink{stroke:#123456}</style><g id="back" transform="translate(2 3)"><rect width="40" height="20" fill="#30ba78"/></g><g id="front"><path class="ink" d="M0 0A5 5 0 0110 0L20 20Z" fill="none"/></g></svg>'),
+      bytesOf('<svg viewBox="0 0 20 20"><text x="2" y="10" font-size="8" fill="navy">Seed</text><polygon points="0,0 20,0 10,20" fill="rgb(255,0,0)"/></svg>'),
+      bytesOf('M0 0A5 5 0 0110 0L20 20Z'),
+    ];
+  },
+  async invoke(bytes) {
+    const text = new TextDecoder('utf-8').decode(bytes);
+    extractSvgColors(text);
+    enumerateSvgLayers(text);
+    svgRootViewBox(text);
+    svgToCustGeomPaths(text, 1_000_000, 1_000_000);
+    svgToNativePptx(text, 1_000_000, 1_000_000);
+    parseSvgPath(text);
+    parseSvgPathArgs(text);
+  },
+};
+
+export const keyframesTarget: FuzzTarget = {
+  name: 'keyframes',
+  async seeds() {
+    return [
+      bytesOf('t0_x0_y0_s1_eli*t500_x10_y-4_o0.5_eb(0.32)(0)(0.67)(1)*t1000_x20_y0_s2'),
+      bytesOf('t0_z0_p1200_f0_a0*t3600000_z-12000_p50_f3000_a1_eh'),
+    ];
+  },
+  async invoke(bytes) {
+    const track = parseKf(new TextDecoder('utf-8').decode(bytes));
+    const wire = serialiseKf(track);
+    const reparsed = parseKf(wire);
+    evaluateKf(reparsed, 1234.5);
+    kfChannelsUsed(reparsed);
+  },
+};
+
+export const midiTarget: FuzzTarget = {
+  name: 'midi',
+  async seeds() {
+    // Type-0, one track, one quarter-note C4 and end-of-track.
+    return [Uint8Array.of(
+      0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 0, 0, 1, 0, 96,
+      0x4d, 0x54, 0x72, 0x6b, 0, 0, 0, 12,
+      0, 0x90, 60, 100, 96, 0x80, 60, 0, 0, 0xff, 0x2f, 0,
+    )];
+  },
+  async invoke(bytes) {
+    const parsed = parseMidi(bytes);
+    midiToSong(parsed);
+  },
+};
+
+export const zzfxmTarget: FuzzTarget = {
+  name: 'zzfxm',
+  async seeds() {
+    return [bytesOf(JSON.stringify({
+      instruments: [[0.2, 0, 220, 0, 0, 0.005]],
+      patterns: [[[0, 0, 12, 0]]], sequence: [0], bpm: 120,
+    }))];
+  },
+  async invoke(bytes) {
+    const text = new TextDecoder('utf-8').decode(bytes);
+    let song: unknown;
+    try {
+      song = JSON.parse(text);
+    } catch {
+      // Keep every mutation reaching the guarded mixer, not only mutations that
+      // happen to remain valid JSON. Byte-derived values stay intentionally tiny.
+      const note = ((bytes[0] ?? 12) % 48) + 1;
+      song = {
+        instruments: [[0.2, 0, 220 + (bytes[1] ?? 0), 0, 0, 0.001]],
+        patterns: [[[0, 0, note]]], sequence: [0], bpm: 60 + ((bytes[2] ?? 60) % 180),
+      };
+    }
+    renderZzfxm(song as ZzfxSong);
+  },
+};
+
+export const radianceTarget: FuzzTarget = {
+  name: 'radiance',
+  async seeds() {
+    const width = 16, height = 4;
+    const data = new Float32Array(width * height * 4);
+    for (let i = 0; i < width * height; i++) {
+      data[i * 4] = (i % width) / width;
+      data[i * 4 + 1] = Math.floor(i / width) / height;
+      data[i * 4 + 2] = 0.5;
+      data[i * 4 + 3] = 1;
+    }
+    const frame = { width, height, data, space: 'srgb-linear' as const };
+    return [packRadiance(frame, { rle: true }), packRadiance(frame, { rle: false })];
+  },
+  async invoke(bytes) {
+    parseRadianceHeader(bytes);
+    readRadiance(bytes);
+  },
+};
+
+export const sealTarget: FuzzTarget = {
+  name: 'seal',
+  async seeds() {
+    return [bytesOf('prefix<seal seal="1" ka="ec" da="sha256" d="example.com" b="F~S,s~f" s="QUJDRA=="/>suffix')];
+  },
+  async invoke(bytes) {
+    for (const record of parseSealRecords(bytes)) {
+      if (record.ranges) assembleSealMessage(bytes, record.ranges);
+    }
+  },
+};
+
+export const pngUnfilterTarget: FuzzTarget = {
+  name: 'png-unfilter',
+  async seeds() {
+    // width=2, height=2, bpp=1 followed by two None-filtered rows.
+    return [Uint8Array.of(2, 2, 1, 0, 10, 20, 0, 30, 40)];
+  },
+  async invoke(bytes) {
+    const width = ((bytes[0] ?? 0) % 64) + 1;
+    const height = ((bytes[1] ?? 0) % 64) + 1;
+    const bpp = ((bytes[2] ?? 0) % 4) + 1;
+    unfilterPng(bytes.subarray(3), width, height, bpp);
+  },
+};
+
+export const watermarkAnalysisTarget: FuzzTarget = {
+  name: 'watermark-analysis',
+  async seeds() {
+    const bytes = new Uint8Array(64 * 64 * 4);
+    for (let i = 0; i < bytes.length; i++) bytes[i] = (i * 73 + 19) & 0xff;
+    return [bytes];
+  },
+  async invoke(bytes) {
+    const pixels = Math.floor(bytes.length / 4);
+    const side = Math.max(1, Math.floor(Math.sqrt(pixels)));
+    analyzeLsb(bytes, { width: side, height: side });
+    decodeTrustmarkPayload(Array.from(bytes.subarray(0, 100), (value) => value & 1));
+    const views = Array.from({ length: 4 }, (_unused, view) =>
+      Array.from(
+        bytes.subarray(view * CONTENTSEAL_MESSAGE_BITS, (view + 1) * CONTENTSEAL_MESSAGE_BITS),
+        (value) => value & 1,
+      ));
+    contentSealConsensus(views);
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
-  c2paVerifyTarget, cborTarget, mediaSniffTarget, pdfMapTarget, x509Target,
-  fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget,
+  c2paVerifyTarget, cborTarget, mediaSniffTarget, pdfMapTarget, pdfDerivedTarget, x509Target,
+  fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget, brandImportTarget, tarReadTarget,
+  epubReadTarget, jpegStructureTarget,
+  rasterDecodeTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
   derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget,
   depthHintTarget, lutParseTarget, psdTarget, xcfTarget, docxReadTarget,
+  svgReadersTarget, keyframesTarget, midiTarget, zzfxmTarget,
+  radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

@@ -36,6 +36,17 @@
 
 import { readZip } from './zip.ts';
 
+/** EPUB ingest is for prose corpora, so it intentionally uses tighter ZIP budgets. */
+export const EPUB_READ_MAX_INPUT_BYTES = 64 * 1024 * 1024;
+export const EPUB_READ_MAX_PARTS = 4_096;
+export const EPUB_READ_MAX_PART_BYTES = 16 * 1024 * 1024;
+export const EPUB_READ_MAX_TOTAL_BYTES = 64 * 1024 * 1024;
+export const EPUB_READ_MAX_MANIFEST_ITEMS = 10_000;
+export const EPUB_READ_MAX_SPINE_ITEMS = 4_096;
+export const EPUB_READ_MAX_NAV_LABELS = 4_096;
+export const EPUB_READ_MAX_TITLE_CHARS = 4_096;
+export const EPUB_READ_MAX_OUTPUT_CHARS = 64 * 1024 * 1024;
+
 /** One recovered chapter: a title plus its body as markdown. */
 export interface EpubReadChapter {
   /** First heading in the chapter, else its nav/TOC label, else a fallback. */
@@ -62,30 +73,44 @@ const decoder = new TextDecoder('utf-8');
  */
 export function readEpub(bytes: Uint8Array): EpubReadDoc {
   const parts = new Map<string, Uint8Array>();
-  for (const e of readZip(bytes)) parts.set(e.name, e.bytes);
+  for (const e of readZip(bytes, {
+    maxInputBytes: EPUB_READ_MAX_INPUT_BYTES,
+    maxEntries: EPUB_READ_MAX_PARTS,
+    maxEntryBytes: EPUB_READ_MAX_PART_BYTES,
+    maxTotalBytes: EPUB_READ_MAX_TOTAL_BYTES,
+  })) {
+    if (parts.has(e.name)) throw new Error(`readEpub: duplicate part "${e.name}"`);
+    parts.set(e.name, e.bytes);
+  }
+
+  const mimetype = textOf(parts, 'mimetype');
+  if (mimetype !== undefined && mimetype.trim() !== 'application/epub+zip') {
+    throw new Error('readEpub: invalid OCF mimetype (not an EPUB)');
+  }
 
   const containerXml = textOf(parts, 'META-INF/container.xml');
   if (containerXml === undefined) {
     throw new Error('readEpub: META-INF/container.xml not found (not an EPUB)');
   }
-  const opfPath = attr(matchTag(containerXml, 'rootfile') ?? '', 'full-path');
+  const opfPath = attr(firstStartTag(containerXml, 'rootfile') ?? '', 'full-path');
   if (!opfPath) throw new Error('readEpub: no rootfile in container.xml');
 
   const opf = textOf(parts, opfPath);
   if (opf === undefined) throw new Error(`readEpub: OPF package "${opfPath}" not found`);
   const opfDir = dirOf(opfPath);
 
-  const bookTitle = firstText(opf, /<(?:\w+:)?title\b[^>]*>([\s\S]*?)<\/(?:\w+:)?title>/i);
+  const bookTitle = boundedTitle(firstElementText(opf, 'title'), 'book title');
 
   // manifest: id → { href (resolved), mediaType, properties }
   const manifest = new Map<string, { href: string; mediaType: string; properties: string }>();
   let navPath = '';
-  for (const tag of matchTags(opf, 'item')) {
+  for (const tag of matchTags(opf, 'item', EPUB_READ_MAX_MANIFEST_ITEMS, 'manifest items')) {
     const id = attr(tag, 'id');
     const href = attr(tag, 'href');
     if (!id || !href) continue;
     const resolved = resolvePath(opfDir, href);
     const properties = attr(tag, 'properties');
+    if (manifest.has(id)) throw new Error(`readEpub: duplicate manifest id "${id}"`);
     manifest.set(id, { href: resolved, mediaType: attr(tag, 'media-type'), properties });
     if (/\bnav\b/.test(properties)) navPath = resolved;
   }
@@ -98,7 +123,8 @@ export function readEpub(bytes: Uint8Array): EpubReadDoc {
   }
 
   const chapters: EpubReadChapter[] = [];
-  for (const itemref of matchTags(opf, 'itemref')) {
+  let outputChars = bookTitle.length;
+  for (const itemref of matchTags(opf, 'itemref', EPUB_READ_MAX_SPINE_ITEMS, 'spine items')) {
     const idref = attr(itemref, 'idref');
     if (!idref) continue;
     const item = manifest.get(idref);
@@ -109,11 +135,17 @@ export function readEpub(bytes: Uint8Array): EpubReadDoc {
 
     const body = extractBody(xhtml);
     const markdown = htmlToMarkdown(body);
-    const title =
+    const title = boundedTitle(
       firstHeadingText(body) ||
       navLabels.get(item.href) ||
-      firstText(xhtml, /<title\b[^>]*>([\s\S]*?)<\/title>/i) ||
-      `Chapter ${chapters.length + 1}`;
+      firstElementText(xhtml, 'title') ||
+      `Chapter ${chapters.length + 1}`,
+      'chapter title',
+    );
+    outputChars += title.length + markdown.length;
+    if (!Number.isSafeInteger(outputChars) || outputChars > EPUB_READ_MAX_OUTPUT_CHARS) {
+      throw new Error(`readEpub: recovered text exceeds ${EPUB_READ_MAX_OUTPUT_CHARS} characters`);
+    }
     chapters.push({ title, markdown });
   }
 
@@ -124,25 +156,38 @@ export function readEpub(bytes: Uint8Array): EpubReadDoc {
 
 /** Convert a `<body>` inner-HTML fragment to markdown, discarding non-text structure. */
 function htmlToMarkdown(html: string): string {
-  let s = html;
-  // Drop script/style wholesale - never prose.
-  s = s.replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, '');
-  // Inline emphasis → markdown markers, BEFORE block extraction so they survive inside.
-  s = s.replace(/<(strong|b)\b[^>]*>([\s\S]*?)<\/\1>/gi, (_m, _t, inner) => `**${inner}**`);
-  s = s.replace(/<(em|i)\b[^>]*>([\s\S]*?)<\/\1>/gi, (_m, _t, inner) => `_${inner}_`);
-  // Headings h1–h6 → `#…` blocks.
-  s = s.replace(
-    /<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/gi,
-    (_m, lvl, inner) => `\n\n${'#'.repeat(Number(lvl))} ${inlineText(inner)}\n\n`,
-  );
-  // List items → `- ` (one per line); the surrounding ul/ol tags fall to the strip below.
-  s = s.replace(/<li\b[^>]*>([\s\S]*?)<\/li>/gi, (_m, inner) => `\n- ${inlineText(inner)}`);
-  // Paragraphs → blank-line-separated blocks.
-  s = s.replace(/<p\b[^>]*>([\s\S]*?)<\/p>/gi, (_m, inner) => `\n\n${inlineText(inner)}\n\n`);
-  // Explicit line breaks.
-  s = s.replace(/<br\s*\/?>/gi, '\n');
-  // Strip every remaining tag.
-  s = s.replace(/<[^>]+>/g, '');
+  const out: string[] = [];
+  let cursor = 0;
+  let suppressed: 'script' | 'style' | undefined;
+  for (;;) {
+    const tag = nextHtmlTag(html, cursor);
+    if (!tag) {
+      if (!suppressed) out.push(html.slice(cursor));
+      break;
+    }
+    if (!suppressed) out.push(html.slice(cursor, tag.start));
+    const name = localName(tag.name);
+    if (suppressed) {
+      if (tag.closing && name === suppressed) suppressed = undefined;
+      cursor = tag.end;
+      continue;
+    }
+    if (!tag.closing && (name === 'script' || name === 'style')) {
+      suppressed = name;
+      cursor = tag.end;
+      continue;
+    }
+    if (name === 'strong' || name === 'b') out.push('**');
+    else if (name === 'em' || name === 'i') out.push('_');
+    else if (/^h[1-6]$/.test(name)) {
+      out.push(tag.closing ? '\n\n' : `\n\n${'#'.repeat(Number(name[1]))} `);
+    } else if (name === 'li' && !tag.closing) out.push('\n- ');
+    else if (name === 'p') out.push('\n\n');
+    else if (name === 'br' && !tag.closing) out.push('\n');
+    cursor = tag.end;
+  }
+
+  let s = out.join('');
   // Decode entities, then tidy whitespace.
   s = decodeEntities(s);
   s = s
@@ -152,27 +197,38 @@ function htmlToMarkdown(html: string): string {
   return s.trim();
 }
 
-/** Collapse inline content (leftover tags stripped later) to a single spaced line. */
-function inlineText(html: string): string {
-  return html.replace(/\s+/g, ' ').trim();
-}
-
 /** The text of the first heading in a fragment, tags stripped and entities decoded. */
 function firstHeadingText(body: string): string {
-  const m = body.match(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/i);
-  if (!m) return '';
-  return decodeEntities(m[1]!.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+  const inner = firstElementInner(body, (name) => /^h[1-6]$/.test(localName(name)));
+  return inner === undefined ? '' : plainText(inner);
 }
 
 /** Extract a nav document's anchor labels, keyed by resolved content path. */
 function collectNavLabels(navHtml: string, navDir: string, out: Map<string, string>): void {
-  const re = /<a\b[^>]*\bhref\s*=\s*(?:"([^"]*)"|'([^']*)')[^>]*>([\s\S]*?)<\/a>/gi;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(navHtml)) !== null) {
-    const href = m[1] ?? m[2] ?? '';
-    const label = decodeEntities(m[3]!.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
-    const resolved = resolvePath(navDir, href);
-    if (resolved && label && !out.has(resolved)) out.set(resolved, label);
+  let cursor = 0;
+  let anchors = 0;
+  let active: { href: string; labelStart: number } | undefined;
+  for (;;) {
+    const tag = nextHtmlTag(navHtml, cursor);
+    if (!tag) return;
+    if (localName(tag.name) === 'a') {
+      if (!tag.closing) {
+        anchors++;
+        if (anchors > EPUB_READ_MAX_NAV_LABELS) {
+          throw new Error(`readEpub: navigation has more than ${EPUB_READ_MAX_NAV_LABELS} labels`);
+        }
+        active = { href: attr(navHtml.slice(tag.start, tag.end), 'href'), labelStart: tag.end };
+      } else if (active) {
+        const label = plainText(navHtml.slice(active.labelStart, tag.start));
+        const resolved = resolvePath(navDir, active.href);
+        if (label.length > EPUB_READ_MAX_TITLE_CHARS) {
+          throw new Error(`readEpub: navigation label exceeds ${EPUB_READ_MAX_TITLE_CHARS} characters`);
+        }
+        if (resolved && label && !out.has(resolved)) out.set(resolved, label);
+        active = undefined;
+      }
+    }
+    cursor = tag.end;
   }
 }
 
@@ -186,27 +242,111 @@ function textOf(parts: Map<string, Uint8Array>, name: string): string | undefine
 
 /** The `<body>…</body>` inner HTML, or the whole document if there is no body. */
 function extractBody(xhtml: string): string {
-  const m = xhtml.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i);
-  return m ? m[1]! : xhtml;
+  return firstElementInner(xhtml, (name) => localName(name) === 'body') ?? xhtml;
 }
 
-/** First captured group of `re` against `s`, tag-stripped and entity-decoded; `''` if none. */
-function firstText(s: string, re: RegExp): string {
-  const m = s.match(re);
-  if (!m) return '';
-  return decodeEntities(m[1]!.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+/** Text of the first element with this local name, or `''`. */
+function firstElementText(s: string, name: string): string {
+  const inner = firstElementInner(s, (candidate) => localName(candidate) === name);
+  return inner === undefined ? '' : plainText(inner);
 }
 
 /** The first whole `<name …>` (or `<name …/>`) start-tag in `s`, or `undefined`. */
-function matchTag(s: string, name: string): string | undefined {
-  const m = s.match(new RegExp(`<${name}\\b[^>]*>`, 'i'));
-  return m ? m[0] : undefined;
+function firstStartTag(s: string, name: string): string | undefined {
+  let cursor = 0;
+  for (;;) {
+    const tag = nextHtmlTag(s, cursor);
+    if (!tag) return undefined;
+    if (!tag.closing && localName(tag.name) === name) return s.slice(tag.start, tag.end);
+    cursor = tag.end;
+  }
 }
 
 /** Every `<name …>` start-tag in `s`, in document order. */
-function matchTags(s: string, name: string): string[] {
-  const re = new RegExp(`<${name}\\b[^>]*>`, 'gi');
-  return s.match(re) ?? [];
+function matchTags(s: string, name: string, max: number, label: string): string[] {
+  const out: string[] = [];
+  let cursor = 0;
+  for (;;) {
+    const tag = nextHtmlTag(s, cursor);
+    if (!tag) return out;
+    if (!tag.closing && localName(tag.name) === name) {
+      out.push(s.slice(tag.start, tag.end));
+      if (out.length > max) throw new Error(`readEpub: more than ${max} ${label}`);
+    }
+    cursor = tag.end;
+  }
+}
+
+interface HtmlTag {
+  start: number;
+  end: number;
+  name: string;
+  closing: boolean;
+}
+
+/** Find the next complete tag with a bounded, forward-only scan. */
+function nextHtmlTag(s: string, from: number): HtmlTag | undefined {
+  let cursor = from;
+  while (cursor < s.length) {
+    const start = s.indexOf('<', cursor);
+    if (start < 0) return undefined;
+    const close = s.indexOf('>', start + 1);
+    if (close < 0) return undefined;
+    let i = start + 1;
+    while (i < close && /\s/.test(s[i]!)) i++;
+    const closing = s[i] === '/';
+    if (closing) {
+      i++;
+      while (i < close && /\s/.test(s[i]!)) i++;
+    }
+    const nameStart = i;
+    while (i < close && /[A-Za-z0-9:_-]/.test(s[i]!)) i++;
+    if (i > nameStart) {
+      return { start, end: close + 1, name: s.slice(nameStart, i).toLowerCase(), closing };
+    }
+    cursor = close + 1;
+  }
+  return undefined;
+}
+
+/** Extract the first matched element body without backtracking regular expressions. */
+function firstElementInner(s: string, wanted: (name: string) => boolean): string | undefined {
+  let cursor = 0;
+  let open: { name: string; contentStart: number } | undefined;
+  for (;;) {
+    const tag = nextHtmlTag(s, cursor);
+    if (!tag) return undefined;
+    if (!open && !tag.closing && wanted(tag.name)) open = { name: tag.name, contentStart: tag.end };
+    else if (open && tag.closing && tag.name === open.name) return s.slice(open.contentStart, tag.start);
+    cursor = tag.end;
+  }
+}
+
+/** Strip complete tags and normalize the remaining text in one forward pass. */
+function plainText(s: string): string {
+  const out: string[] = [];
+  let cursor = 0;
+  for (;;) {
+    const tag = nextHtmlTag(s, cursor);
+    if (!tag) {
+      out.push(s.slice(cursor));
+      break;
+    }
+    out.push(s.slice(cursor, tag.start));
+    cursor = tag.end;
+  }
+  return decodeEntities(out.join('')).replace(/\s+/g, ' ').trim();
+}
+
+function localName(name: string): string {
+  return name.slice(name.lastIndexOf(':') + 1);
+}
+
+function boundedTitle(title: string, label: string): string {
+  if (title.length > EPUB_READ_MAX_TITLE_CHARS) {
+    throw new Error(`readEpub: ${label} exceeds ${EPUB_READ_MAX_TITLE_CHARS} characters`);
+  }
+  return title;
 }
 
 /** Read an attribute value (double- or single-quoted) from a start-tag; `''` if absent. */

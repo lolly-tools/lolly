@@ -64,6 +64,10 @@ export interface EncodeBmpOptions {
 const FILE_HEADER = 14;
 const INFO_HEADER = 40;
 const PIXELS_OFFSET = FILE_HEADER + INFO_HEADER; // 54
+/** DIB dimensions are signed int32; this narrower ceiling bounds row arithmetic. */
+export const BMP_MAX_DIM = 0x7fff;
+/** 256 MiB of RGBA output, checked before allocating the decoded buffer. */
+export const BMP_MAX_PIXELS = 64 * 1024 * 1024;
 
 /** True iff any pixel is non-opaque, so we must keep an alpha channel. */
 function hasAlpha(rgba: Uint8Array, pixelCount: number): boolean {
@@ -195,8 +199,11 @@ export function decodeBmp(bytes: Uint8Array): DecodedBmp {
     throw new BmpUnsupportedError('dimensions', `invalid BMP dimensions ${width}x${rawHeight}`);
   }
   // Guard the multiply before it is used to size an allocation.
-  if (width > 0x7fff || height > 0x7fff) {
-    throw new BmpUnsupportedError('dimensions', `BMP too large to decode (${width}x${height})`);
+  if (width > BMP_MAX_DIM || height > BMP_MAX_DIM || width * height > BMP_MAX_PIXELS) {
+    throw new BmpUnsupportedError(
+      'dimensions',
+      `BMP too large to decode (${width}x${height}; max ${BMP_MAX_DIM} per side / ${BMP_MAX_PIXELS} pixels)`,
+    );
   }
 
   const bytesPerPixel = bitCount === 32 ? 4 : 3;

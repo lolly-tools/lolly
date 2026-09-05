@@ -1,27 +1,51 @@
 # Tests
 
-Contract + integration tests for the engine and cross-cutting behaviour (node:test, no framework). `npm test` runs this directory together with the other co-located suites - the script in the root `package.json` is:
+Contract + integration tests for the engine and cross-cutting behaviour (node:test, no framework). `npm test` discovers this directory together with every co-located suite through `scripts/run-test-suite.ts`. Discovery is deterministic, and `tests/test-shards.test.ts` proves every test file belongs to exactly one non-empty shard.
 
 ```bash
-node --test "tests/**/*.test.js" "tests/**/*.test.ts" \
-  "packages/core/test/**/*.test.ts" \
-  "shells/web/src/**/*.test.js" "shells/web/src/**/*.test.ts" \
-  "shells/tui/src/**/*.test.ts" \
-  "services/mcp/test/**/*.test.ts"
+npm test
+npm run test:shards       # inventory and file counts
+npm run test:unit:engine
+npm run test:unit:web
+npm run test:contracts
+npm run test:security
+npm run test:tools
+npm run test:browser
+npm run test:tauri
+npm run test:conformance
+npm run test:fuzz:regression
 ```
 
-Use quoted globs - on current Node, `node --test tests/` tries to load the directory as a module instead of discovering test files. The repo root owns the run: tests import engine modules across the workspace boundary via `../engine/src/*.ts` (native type-stripping, explicit `.ts` extensions).
+Do not replace the runner with `node --test tests/`: on current Node the bare directory is loaded as a module rather than discovered recursively. The repo root owns the run, including package, web, TUI and MCP tests. The CI matrix runs all nine shards in parallel; target-specific browser and Tauri concerns stay in their own shards rather than being forced onto CLI.
 
-The seven globs collect **307 test files** today: 164 in `tests/`, 132 co-located under `shells/web/src/`, 5 co-located under `shells/tui/src/`, 4 in `services/mcp/test/` and 2 in `packages/core/test/`. The two `*.test.js` globs match nothing - the suite is entirely TypeScript - and are kept so a stray `.js` test can never be silently skipped.
+CI also sets `LOLLY_SKIP_REPORT` so the custom reporter writes each skipped test's file, full parent-chain name, reason, capability and owner. `tests/expected-skips.json` is the exact reviewed Ubuntu baseline. Any new/replacement skip fails, and any expected skip that starts running also fails until its stale entry is removed. To refresh after a reviewed environment change, download all `test-skips-*` artifacts and pass every JSON file as a repeated argument: `npm run check:skip-identities -- --report=<one> --report=<two> … --write`.
+
+## Experience scorecard
+
+The codebase has many correctness gates; these are the small set that protect the
+product promises most likely to regress while features are added. Run them together
+when changing first-use, Design, export, or sequencing behaviour:
+
+| Promise | Gate |
+|---|---|
+| A constrained mobile visitor gets a usable first render | `npm run check:first-load -- <preview-url>` (Lighthouse mobile smoke; run on a deploy, not every local test) |
+| A first export completes and keeps its export options truthful | `node --import ./tests/css-stub.mjs --test shells/web/src/views/tool-actions.test.ts` |
+| A saved/downloaded creation can be reopened exactly | `shells/web/src/views/tool-actions.test.ts` and `shells/web/src/lib/export-history.ts` (Dashboard’s Latest exports links carry the serialized URL state) |
+| Design physical sizes survive the editor/export boundary | `node --import ./tests/css-stub.mjs --test shells/web/src/views/design-units-contract.test.ts` |
+| A deck presents and exports as the same ordered sequence | `node --import ./tests/css-stub.mjs --test shells/web/src/lib/deck-as-sequence.test.ts tests/design-pptx.test.ts shells/web/src/views/design-topbar.test.ts` |
+
+These are deliberately stable outcome checks, not a wall-clock test suite. The
+Lighthouse gate owns real first-load timing; the local contracts own deterministic
+state, units, and export parity.
 
 ## Layout
 
-- `tests/*.test.ts` - the bulk of the suite (164 files, all at the top level). Mostly one file per engine module (`units`, `tokens`, `c2pa*`, `pdf-*`, `svg-*`, `tiff`, `zip-crypto`, …), plus runtime/hook semantics (`runtime-hooks`, `runtime-provenance`) and tool-level contract tests that load a real tool through the engine with a stub host (`color-block`, `connector-geometry`, `compress-pdf`, …). The original `validate`/`url-mode`/`inputs`/`template` suites were consolidated into `engine.test.ts`; the gradient/spline suites were consolidated into `color-ramp.test.ts` (rampOklab - gradient TOKENS stay in `gradient-round-trip.test.ts`).
+- `tests/*.test.ts` - the bulk of the suite. Mostly one file per engine module (`units`, `tokens`, `c2pa*`, `pdf-*`, `svg-*`, `tiff`, `zip-crypto`, …), plus runtime/hook semantics (`runtime-hooks`, `runtime-provenance`) and tool-level contract tests that load a real tool through the engine with a stub host (`color-block`, `connector-geometry`, `compress-pdf`, …).
 - `tests/helpers/` - shared non-test helpers (`photo-like.ts`, the calibrated pixel-watermark content generator; `host.ts`, the minimal stub host for tool-contract suites). The glob only collects `*.test.ts`, so these are never run as tests; `tests/tsconfig.json`'s `./**/*` include still typechecks them.
 - `tests/fuzz/` - the untrusted-input fuzz harness (`prng.ts`, `mutate.ts`, `targets.ts`, saved inputs in `regressions/`). `fuzz-regression.test.ts` runs in the normal suite: it replays every saved regression input plus a short seeded sweep. The long discovery soak is standalone: `FUZZ_ITERS=50000 node tests/fuzz/run.ts`.
 - `shells/web/src/**/*.test.ts` - co-located tests for pure (DOM-free at import) web-shell modules, e.g. `bridge/text-svg.test.ts`, `bridge/font-registry.test.ts`, `lib/*.test.ts`.
 - `shells/tui/src/**/*.test.ts` - co-located tests for the TUI shell's pure, Ink-free modules (`lib/block-tree.ts`, `lib/table-edit.ts`, `folders.ts`, `trust-anchors.ts`, `batch-export.ts`'s `planFolderRefs`). The run uses Node's native type-stripping, which does NOT transform JSX, so these suites must never import a `.tsx` view; anything a view needs tested lives in a `.ts` module beside it.
-- `packages/core/test/`, `services/mcp/test/` - tool-author SDK and MCP service suites.
+- `packages/core/test/`, `packages/node-shell/test/`, `packages/docs-render/test/`, `services/mcp/test/` - SDK/shared-shell/docs-render and MCP service suites.
 
 ## Gated / conditional tests
 
@@ -42,7 +66,7 @@ The seven globs collect **307 test files** today: 164 in `tests/`, 132 co-locate
 
 Two documents map this suite onto the things it is meant to prove:
 
-- **[`docs/parser-inventory.md`](../docs/parser-inventory.md)** - every untrusted-input parser with its bound constants, its tests, and whether it has a fuzz target. Read it before adding a parser, and to find which of `tests/fuzz/targets.ts` covers what.
+- **[`docs/parser-inventory.md`](../docs/parser-inventory.md)** - the generated view of every untrusted-input parser with its bound constants, tests, and fuzz target. Edit `security/parser-assurance.json`, then run `npm run build:parser-inventory`; CI checks both the generated view and the live `ALL_TARGETS` mapping.
 - **[`docs/threat-model.md`](../docs/threat-model.md)** - the trust-boundary table and residual-risk register, with the specific tests that hold each boundary (and the "what is not a boundary" list, so nothing here is read as proving more than it does). Its "Verify these claims yourself" section is the copy-pasteable command set.
 
 ## Conventions

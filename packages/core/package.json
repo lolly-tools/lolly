@@ -15,10 +15,12 @@
     "./canvas-op-v1": "./src/canvas-op-v1.ts",
     "./canvas-op-testkit": "./src/canvas-op-testkit.ts",
     "./preflight": "./src/preflight.ts",
+    "./chart-v1": "./src/chart-v1.ts",
     "./schema/tool.schema.json": "./schema/tool.schema.json",
     "./schema/asset.schema.json": "./schema/asset.schema.json",
     "./schema/asset-ref.schema.json": "./schema/asset-ref.schema.json",
-    "./schema/canvas-op.schema.json": "./schema/canvas-op.schema.json"
+    "./schema/canvas-op.schema.json": "./schema/canvas-op.schema.json",
+    "./schema/chart-v1.schema.json": "./schema/chart-v1.schema.json"
   },
   "files": [
     "src",

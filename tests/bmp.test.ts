@@ -10,7 +10,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { encodeBmp, decodeBmp, isBmp, BmpUnsupportedError } from '../engine/src/bmp.ts';
+import { BMP_MAX_DIM, encodeBmp, decodeBmp, isBmp, BmpUnsupportedError } from '../engine/src/bmp.ts';
 
 // Build a deterministic RGBA buffer.
 function makeRgba(w: number, h: number, alpha: (x: number, y: number) => number): Uint8Array {
@@ -196,4 +196,15 @@ test('decode works on a subarray view (nonzero byteOffset)', () => {
   const view = framed.subarray(7);
   const dec = decodeBmp(view);
   assert.deepEqual(Array.from(dec.rgba), Array.from(src));
+});
+
+test('a plausible header cannot allocate an excessive decoded pixel buffer', () => {
+  const bmp = encodeBmp(makeRgba(1, 1, () => 255), 1, 1);
+  const dv = new DataView(bmp.buffer);
+  dv.setInt32(18, BMP_MAX_DIM, true);
+  dv.setInt32(22, BMP_MAX_DIM, true);
+  assert.throws(
+    () => decodeBmp(bmp),
+    (e: unknown) => e instanceof BmpUnsupportedError && e.code === 'dimensions',
+  );
 });
