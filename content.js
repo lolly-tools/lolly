@@ -23,11 +23,12 @@ window.addEventListener('message', (event) => {
   if (!msg || msg.source !== 'lolly-capture/page') return;
 
   if (msg.type === 'ping') {
-    window.postMessage({ source: 'lolly-capture/ext', type: 'pong' }, '*');
+    window.postMessage({ source: 'lolly-capture/ext', type: 'pong' }, event.origin);
     return;
   }
 
   if (msg.type === 'capture') {
+    const origin = event.origin;
     chrome.runtime.sendMessage({ type: 'lolly-capture', spec: msg.spec }, (resp) => {
       const err = chrome.runtime.lastError?.message;
       window.postMessage({
@@ -37,7 +38,7 @@ window.addEventListener('message', (event) => {
         ok: !err && !!resp?.ok,
         dataUrl: resp?.dataUrl,
         error: err || resp?.error,
-      }, '*');
+      }, origin);
     });
     return;
   }
