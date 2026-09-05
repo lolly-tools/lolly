@@ -1,6 +1,6 @@
 [package]
 name = "lolly-mobile"
-version = "1.0.1"
+version = "1.0.7"
 edition = "2021"
 
 [lib]

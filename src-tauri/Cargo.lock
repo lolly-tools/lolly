@@ -1746,7 +1746,7 @@ checksum = "0ceec5bc11778974d1bcb055b18002eba7f4b3518b6a0081b3af5f21666da9ad"
 
 [[package]]
 name = "lolly-mobile"
-version = "1.0.1"
+version = "1.0.7"
 dependencies = [
  "objc2-foundation",
  "reqwest 0.12.28",
