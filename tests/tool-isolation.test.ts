@@ -48,7 +48,7 @@ test('every realm-bound name is a bare identifier check, so host.<name> never ma
 test('rewriteIsolate places the flag beside hooks and is idempotent both ways', () => {
   const raw = '{\n  "id": "x",\n  "hooks": { "onInit": true },\n  "status": "official"\n}\n';
   const on = rewriteIsolate(raw, true);
-  assert.match(on, /\n  "isolate": true,\n  "hooks": \{/);
+  assert.match(on, /\n {2}"isolate": true,\n {2}"hooks": \{/);
   assert.deepEqual(JSON.parse(on), { id: 'x', isolate: true, hooks: { onInit: true }, status: 'official' });
   assert.equal(rewriteIsolate(on, true), on);
   assert.equal(rewriteIsolate(on, false), raw);

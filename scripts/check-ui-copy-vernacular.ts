@@ -37,8 +37,7 @@ function findingsIn(text: string): string[] {
 export function uiLiterals(src: string): string[] {
   const out: string[] = [];
   const re = /\bt(?:Raw)?\(\s*(?:'((?:\\.|[^'\\\n])*)'|"((?:\\.|[^"\\\n])*)")/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(src))) out.push((m[1] ?? m[2] ?? '').replace(/\\(.)/g, '$1'));
+  for (const m of src.matchAll(re)) out.push((m[1] ?? m[2] ?? '').replace(/\\(.)/g, '$1'));
   return out;
 }
 
