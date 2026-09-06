@@ -4,8 +4,7 @@
   "description": "Paste a link, get a branded social card - title, description, site chip and a thumbnail, at Open Graph, square or summary size.",
   "a11yLabel": "Link card for {{siteLabel}}: {{headingLabel}}",
   "version": "1.0.1",
-  "engineVersion": "^1.2.0",
-  "requires": ["compose"],
+  "engineVersion": "^1.0.0",
   "status": "community",
   "category": "everyone",
   "tags": [

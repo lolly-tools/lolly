@@ -5,7 +5,6 @@
   "a11yLabel": "Voice recorder - level {{default dbText \"idle\"}}",
   "version": "1.1.1",
   "engineVersion": "^1.17.0",
-  "requires": ["recorder"],
   "status": "experimental",
   "category": "everyone",
   "tags": ["audio", "voice", "record", "recording", "microphone", "voiceover", "podcast", "mp3", "meter", "levels"],

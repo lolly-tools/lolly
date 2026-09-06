@@ -3,7 +3,6 @@
   "name": "Synth",
   "version": "0.2.1",
   "engineVersion": "^1.152.0",
-  "requires": ["text", "audio"],
   "status": "experimental",
   "singleInstance": true,
   "category": "designer",

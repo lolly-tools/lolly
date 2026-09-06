@@ -3,8 +3,7 @@
   "name": "Contrast",
   "description": "Check a text and background pair, or every pairing in your brand palette, against WCAG 2.1 and APCA, and see how it reads to colour-blind viewers.",
   "version": "1.2.0",
-  "engineVersion": "^1.91.0",
-  "requires": ["tokens"],
+  "engineVersion": "^1.0.0",
   "status": "community",
   "category": "utility",
   "tags": [
