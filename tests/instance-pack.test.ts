@@ -77,7 +77,9 @@ test('the suse pack builds clean: exclusions hold, fonts/tools/envelope complete
     // A FLOOR, not a pin: the pack's own tool set shrinks whenever a SUSE tool
     // graduates into the brand-agnostic community pack, and that is a good move,
     // not a regression. What must never happen is the pack shipping a handful.
-    assert.ok(toolsPart.tools.length >= 15, `expected ≥15 suse tools, got ${toolsPart.tools.length}`);
+    // 13 since 2026-09-06: battlecards, pricing-table, meeting-planner, org-chart and
+    // work-avatar left for the community pack (they carry no SUSE-only content).
+    assert.ok(toolsPart.tools.length >= 13, `expected ≥13 suse tools, got ${toolsPart.tools.length}`);
     for (const t of toolsPart.tools) {
       assert.ok(files[`tools/${t.id}/tool.json`], `tool ${t.id} shipped without its manifest`);
     }
@@ -125,8 +127,17 @@ test('builder format constants match the brand-transfer reader (drift guard)', (
     assert.ok(m, `${name} not found`);
     return m![1]!.trim();
   };
-  for (const name of ['BRAND_FORMAT', 'BRAND_FORMAT_VERSION', 'BRAND_READER_VERSION']) {
+  for (const name of ['BRAND_FORMAT', 'BRAND_FORMAT_VERSION']) {
     assert.equal(grab(script, `const ${name}`), grab(reader, `export const ${name}`),
       `${name} drifted between scripts/build-instance-pack.ts and brand-transfer.ts`);
   }
+  // The builder's BRAND_READER_VERSION is the MIN reader a pack it writes requires;
+  // the app's is the newest format it can read. They part ways whenever the reader
+  // learns a format the pack builder does not emit (reader 2 imports format-4
+  // collections; instance packs stay readable by reader 1), so the guard is that a
+  // pack never demands a reader newer than the app ships.
+  const needs = Number(grab(script, 'const BRAND_READER_VERSION'));
+  const reads = Number(grab(reader, 'export const BRAND_READER_VERSION'));
+  assert.ok(Number.isInteger(needs) && Number.isInteger(reads), 'reader versions are integers');
+  assert.ok(needs <= reads, `a pack would demand reader ${needs} but the app reads up to ${reads}`);
 });

@@ -2713,6 +2713,27 @@
       "sparse": false
     },
     {
+      "file": "meeting-planner.svg",
+      "bytes": 6189,
+      "sha": "dd4cd0f523b7ac4e",
+      "stddev": 11.463,
+      "inkRatio": 0.00979,
+      "ground": "white",
+      "grounds": {
+        "white": {
+          "stddev": 11.463,
+          "inkRatio": 0.00979
+        },
+        "black": {
+          "stddev": 11.463,
+          "inkRatio": 0.00979
+        }
+      },
+      "blank": false,
+      "sparse": true,
+      "reason": "near-empty: only 0.98% of pixels differ from the background"
+    },
+    {
       "file": "multi-page-pdf.svg",
       "bytes": 29620,
       "sha": "1234a682c580c244",
@@ -2727,6 +2748,26 @@
         "black": {
           "stddev": 24.125,
           "inkRatio": 0.03224
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
+      "file": "org-chart.svg",
+      "bytes": 37301,
+      "sha": "8d9d5c9e45c94a33",
+      "stddev": 70.418,
+      "inkRatio": 0.13696,
+      "ground": "black",
+      "grounds": {
+        "white": {
+          "stddev": 39.488,
+          "inkRatio": 0.06089
+        },
+        "black": {
+          "stddev": 70.418,
+          "inkRatio": 0.13696
         }
       },
       "blank": false,

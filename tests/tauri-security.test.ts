@@ -10,24 +10,32 @@ function json(path: string): Record<string, unknown> {
   return JSON.parse(readFileSync(new URL(path, ROOT), 'utf8')) as Record<string, unknown>;
 }
 
-test('packaged Tauri shells enforce a non-null CSP with IPC and deny-by-default directives', () => {
+test('packaged Tauri shells enforce a non-null CSP with IPC and deny-by-default directives', async () => {
+  // The policy is a <meta> tag written into the built index.html by
+  // shells/tauri-shared/vite-csp.mjs, NOT tauri.conf.json's app.security.csp: with
+  // that key set, Tauri's codegen re-serialises every .html asset - the signed tool
+  // templates included - and no tool loads under a release build's verified-only
+  // trust mode (tests/tauri-csp.test.ts pins the config side). frame-ancestors is
+  // absent on purpose: a <meta> policy cannot carry it and a WebView has no ancestor.
+  const { TAURI_CSP } = await import('../shells/tauri-shared/vite-csp.mjs') as { TAURI_CSP: string };
+  assert.equal(typeof TAURI_CSP, 'string', 'the shells share one packaged CSP');
+  for (const source of [
+    "default-src 'self'",
+    'connect-src',
+    'ipc:',
+    'http://ipc.localhost',
+    "object-src 'none'",
+    "base-uri 'none'",
+    "form-action 'none'",
+  ]) {
+    assert.ok(TAURI_CSP.includes(source), `packaged CSP contains ${source}`);
+  }
+  assert.doesNotMatch(TAURI_CSP, /\shttp:(?:\s|;)/, 'packaged CSP does not allow arbitrary cleartext HTTP');
   for (const shell of shells) {
     const conf = json(`shells/${shell}/src-tauri/tauri.conf.json`);
-    const security = (conf.app as { security: { csp: string; devCsp: string } }).security;
-    assert.equal(typeof security.csp, 'string', `${shell} has a packaged CSP`);
-    for (const source of [
-      "default-src 'self'",
-      'connect-src',
-      'ipc:',
-      'http://ipc.localhost',
-      "object-src 'none'",
-      "base-uri 'none'",
-      "frame-ancestors 'none'",
-    ]) {
-      assert.ok(security.csp.includes(source), `${shell} CSP contains ${source}`);
-    }
-    assert.doesNotMatch(security.csp, /\shttp:(?:\s|;)/, `${shell} packaged CSP does not allow arbitrary cleartext HTTP`);
-    assert.equal(typeof security.devCsp, 'string', `${shell} declares its broader development CSP explicitly`);
+    const security = (conf.app as { security: { csp: unknown; devCsp: unknown } }).security;
+    assert.equal(security.csp ?? null, null, `${shell} leaves app.security.csp null so codegen serves every asset byte-exact`);
+    assert.equal(security.devCsp ?? null, null, `${shell} leaves app.security.devCsp null for the same reason`);
   }
 });
 

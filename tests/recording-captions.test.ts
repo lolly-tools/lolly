@@ -305,9 +305,9 @@ test('every wired tool still mounts and renders - defaults and each example', {
 // wire the declaration in the same edit.
 
 test('voice-recorder has no asset input for its take, so it declares no transcribe', {
-  skip: HAS_SUSE ? false : 'suse pack not mounted',
+  skip: HAS_COMMUNITY ? false : 'community pack not mounted',
 }, async () => {
-  const tool = await load('voice-recorder', SUSE, suseFile);
+  const tool = await load('voice-recorder', COMMUNITY, communityFile);
   assert.equal(tool.manifest.render.transcribe, undefined);
   const assets = (tool.manifest.inputs ?? []).filter((i) => i.type === 'asset');
   assert.deepEqual(assets, [],

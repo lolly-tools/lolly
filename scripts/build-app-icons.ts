@@ -170,6 +170,8 @@ async function main(): Promise<void> {
   // ── Serve the signed SVG itself - a byte copy, so its C2PA + RDF provenance travels. ──
   copyFileSync(SOURCE, resolve(ROOT, 'shells/web/public/icon.svg'));
   console.log('✓ shells/web/public/icon.svg (signed source, verbatim copy)');
+  // The component library uses the primary mark as its profile-independent artwork.
+  if (existsSync(PRIMARY)) copyFileSync(PRIMARY, resolve(ROOT, 'shells/web/public/icon-primary.svg'));
 
   // ── Web PWA icons + apple-touch. ──
   const webIcons = resolve(ROOT, 'shells/web/public/icons');

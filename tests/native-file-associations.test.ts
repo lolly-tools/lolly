@@ -312,7 +312,12 @@ test('Android VIEW documents and iOS opened files reach the universal importer i
   assert.match(iosPlist, /<key>CFBundleTypeRole<\/key>\s*<string>Editor<\/string>/);
   assert.match(iosPlist, /<key>LSHandlerRank<\/key>\s*<string>Owner<\/string>/);
   assert.match(iosPlist, /<string>tools\.lolly\.pack<\/string>/);
-  assert.match(iosPlist, /<string>Document Lolly can open<\/string>[\s\S]*?<string>Alternate<\/string>/);
+  // `tauri ios build` regenerates this plist from tauri.conf.json's fileAssociations:
+  // one CFBundleDocumentTypes entry per format, each an Alternate-rank handler, with
+  // the Lolly bundle alone as Owner. The old hand-kept "Document Lolly can open"
+  // umbrella entry only survives in project.yml, checked below.
+  assert.match(iosPlist, /<string>Penpot project<\/string>[\s\S]*?<string>Alternate<\/string>/);
+  assert.equal((iosPlist.match(/<string>Owner<\/string>/g) ?? []).length, 1, 'exactly one Owner-rank type: the Lolly bundle');
 
   const appleProject = readFileSync(path.join(MOBILE, 'src-tauri/gen/apple/project.yml'), 'utf8');
   assert.match(appleProject, /CFBundleTypeExtensions: \[lolly\]/);
