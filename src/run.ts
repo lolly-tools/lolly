@@ -48,7 +48,7 @@ import { usageError, unavailableHere, refused, authError } from './exit-codes.ts
  * LOLLY_HOOK_WORKER=1 runs every tool's hooks.js in a `worker_threads` Worker
  * (the same protocol as the web shell's hook Worker) instead of this process's
  * realm. Off by default while the catalog is being field-verified; the
- * `isolate` manifest flag is the per-tool switch that lands in data
+ * `isolate` manifest flag is the per-tool switch, written into the manifest
  * (scripts/tool-isolation.ts) once a tool renders identically both ways.
  */
 let nodeHookExecutor: ReturnType<typeof createNodeHookExecutor> | null = null;
