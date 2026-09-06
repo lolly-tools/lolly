@@ -32,6 +32,9 @@ const FORBIDDEN: { name: string; test: (spec: string) => boolean }[] = [
   { name: 'handlebars', test: (s) => s === 'handlebars' || s.startsWith('handlebars/') },
   { name: 'ajv', test: (s) => s === 'ajv' || s.startsWith('ajv/') },
   { name: 'html2canvas', test: (s) => s === 'html2canvas' },
+  // The core ROOT barrel instantiates ajv (contract.ts) at module load, so it cannot be tree-shaken
+  // off boot; the host-v1 barrel and the leaf subpaths are the boot-safe routes.
+  { name: 'the @lolly-tools/core root barrel (import a subpath such as @lolly-tools/core/host-v1)', test: (s) => s === '@lolly-tools/core' },
   { name: 'the C2PA read side', test: (s) => /engine\/src\/c2pa-(verify|extract|containers)\.(ts|js)$/.test(s) },
   { name: 'the render/export codecs', test: (s) => /engine\/src\/(pdf-map|design-map|pptx|emf|eps|dxf|psd-write)\.(ts|js)$/.test(s) },
 ];

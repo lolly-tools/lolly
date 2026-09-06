@@ -18,7 +18,7 @@
  */
 
 import { escape } from '../utils.ts';
-import { presentApis } from '@lolly-tools/core';
+import { presentApis } from '@lolly-tools/core/host-v1';
 import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
