@@ -70,7 +70,7 @@ import { escape, safeHref } from '../utils.ts';
 
 export interface AuthConfig {
   mode: 'open' | 'gated' | 'per-tool';
-  provider: 'oidc' | 'dev' | null;
+  provider: 'oidc' | 'dev' | 'proxy' | null;
   loginPath: string | null;
 }
 

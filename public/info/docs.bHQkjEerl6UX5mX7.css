@@ -128,6 +128,8 @@
   --ui-color-selection-border: hsl(var(--primary));
   --ui-color-border-default: hsl(var(--border));
   --ui-color-focus-ring: hsl(var(--ring));
+  --ui-size-target: 44px;
+  --ui-space-section: 64px;
   --ui-space-control-inline: var(--sp-4);
   --ui-space-control-block: var(--sp-3);
   --ui-space-panel: var(--sp-7);
@@ -150,6 +152,10 @@
   --ui-effect-bevel: var(--bevel);
   --ui-effect-focus-halo: var(--ring-focus);
   --ui-effect-selected: inset 0 0 0 1px hsl(var(--primary) / .20);
+  --ui-type-display: calc(64px * var(--a11y-fs));
+  --ui-type-heading: calc(28px * var(--a11y-fs));
+  --ui-type-lead: calc(18px * var(--a11y-fs));
+  --ui-type-caption: calc(12px * var(--a11y-fs));
   --ui-type-body: var(--fs-md);
   --ui-type-label: var(--fs-sm);
   --ui-type-title: var(--fs-lg);
