@@ -1,0 +1,10 @@
+#:schema https://raw.githubusercontent.com/YunoHost/apps/main/schemas/tests.v1.schema.json
+
+test_format = 1.0
+
+[default]
+
+    # The app takes a whole domain (manifest: install.domain.full_domain = true),
+    # so the sub-path install test does not apply. Everything else is deduced from
+    # the manifest: root install, backup/restore, upgrade, change_url.
+    exclude = ["install.subdir"]

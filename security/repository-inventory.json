@@ -31,7 +31,8 @@
     { "id": "desktop", "build": "npm run build:desktop:frontend:release", "tests": ["test:tauri", "test:security"], "signing": true },
     { "id": "mobile", "build": "npm run build:mobile:frontend:release", "tests": ["test:tauri", "test:security"], "signing": true },
     { "id": "cli-tui", "build": "npm run typecheck", "tests": ["test:contracts", "test:tools"], "signing": false },
-    { "id": "core-engine", "build": "npm run pack:core && npm run pack:engine", "tests": ["test:unit:engine", "test:contracts", "test:conformance"], "signing": false }
+    { "id": "core-engine", "build": "npm run pack:core && npm run pack:engine", "tests": ["test:unit:engine", "test:contracts", "test:conformance"], "signing": false },
+    { "id": "yunohost", "build": "npm run release:yunohost -- --build", "tests": ["test:security", "test:contracts"], "signing": true }
   ],
   "platformMatrix": {
     "linux": ["test:contracts", "test:security", "test:browser", "test:conformance", "test:tauri"],

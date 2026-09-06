@@ -37,6 +37,7 @@
     "build:web:release": "node scripts/build-release-web.ts web",
     "build:desktop:frontend:release": "node scripts/build-release-web.ts tauri-desktop",
     "build:mobile:frontend:release": "node scripts/build-release-web.ts tauri-mobile",
+    "release:yunohost": "node scripts/yunohost-release.ts",
     "build:info": "node docs/build.ts",
     "test": "node scripts/run-test-suite.ts all",
     "test:unit:engine": "node scripts/run-test-suite.ts unit:engine",

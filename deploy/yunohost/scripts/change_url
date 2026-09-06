@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# The app takes a whole domain (full_domain), so only the domain can change here;
+# $path stays "/". New values are in $domain, old ones in $old_domain.
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# MODIFY URL IN NGINX CONF
+#=================================================
+ynh_script_progression "Updating NGINX web server configuration..."
+
+# The header include is per domain: write the new one first (the regenerated
+# nginx config refers to it), then let the helper move the location file, then
+# drop the include that belonged to the old domain.
+lolly_add_headers_inc
+ynh_config_change_url_nginx
+if [ "$old_domain" != "$domain" ]; then
+    ynh_safe_rm "/etc/nginx/conf.d/$old_domain.d/$app.headers.inc"
+fi
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression "Change of URL completed for $app"

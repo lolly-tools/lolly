@@ -49,6 +49,7 @@ This is the repository-closure checklist. Commands are authoritative; tick boxes
 | mobile | `npm run build:mobile:frontend:release` | `npm run test:tauri`<br>`npm run test:security` | required |
 | cli-tui | `npm run typecheck` | `npm run test:contracts`<br>`npm run test:tools` | not applicable |
 | core-engine | `npm run pack:core && npm run pack:engine` | `npm run test:unit:engine`<br>`npm run test:contracts`<br>`npm run test:conformance` | not applicable |
+| yunohost | `npm run release:yunohost -- --build` | `npm run test:security`<br>`npm run test:contracts` | required |
 
 For signed targets, provide `LOLLY_CATALOG_SIGNING_PRIVATE_JWK` and `LOLLY_CATALOG_SIGNING_PUBLIC_JWK`; the release wrapper verifies that they match without printing either value.
 
