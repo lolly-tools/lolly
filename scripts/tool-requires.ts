@@ -47,8 +47,21 @@ export interface RequiresAnalysis {
 const escapeRe = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /** Static read of one hooks.js: which optional host APIs it uses, and which it guards. */
+/**
+ * Comments are prose, not calls. A hooks.js header that explains "host.text.toPath
+ * emits absolute segments" must not count as a reach into host.text - it is exactly
+ * how the first pass of this analyser over-listed nine tools (2026-09-06). Block
+ * comments go first; a line comment is one that starts a line or follows code, so a
+ * `//` inside a URL string (`'https://…'`) is left alone.
+ */
+export function stripComments(src: string): string {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:'"`\\])\/\/[^\n]*/g, '$1');
+}
+
 export function analyseRequires(hooksSource: string | null | undefined): RequiresAnalysis {
-  const src = hooksSource ?? '';
+  const src = stripComments(hooksSource ?? '');
   const used: HostApiName[] = [];
   const guarded: HostApiName[] = [];
   for (const api of HOST_V1_OPTIONAL_APIS) {
@@ -57,17 +70,23 @@ export function analyseRequires(hooksSource: string | null | undefined): Require
     const use = new RegExp(`\\bhost\\.${a}\\s*(\\?\\.|[.(\\[])`);
     if (!use.test(src)) continue;
     used.push(api);
+    // A guard is any place the bare API (no member access behind it) is read as a
+    // value: tested, compared, typeof'd, optional-chained, or assigned to a local
+    // that the hooks then check. `host && host.tokens ? host.tokens : null` and
+    // `if (typeof host !== 'undefined' && host && host.tokens) {` are the two
+    // shapes the shipped tools actually use.
+    const bare = `\\bhost\\.${a}\\b(?!\\s*[.(\\[])`;
     const guards = [
       `\\bhost\\.${a}\\s*\\?\\.`,                 // host.text?.toPath
       `\\btypeof\\s+host\\.${a}\\b`,              // typeof host.text
       `\\bif\\s*\\(\\s*!?\\s*host\\.${a}\\s*[)&|]`, // if (host.text) / if (!host.text) / if (host.text && …)
-      `\\bhost\\.${a}\\s*(&&|\\|\\||\\?\\?|\\?[^.])`, // host.text && … / host.text ?? … / host.text ? …
-      `!\\s*host\\.${a}\\b(?!\\s*[.(\\[])`,        // !host.text
+      `${bare}\\s*(&&|\\|\\||\\?\\?|\\?|\\)|:|,|;|$)`, // host.text && … / host.text ? … / … && host.text) …
+      `!\\s*${bare}`,                                // !host.text
       `['"]${a}['"]\\s+in\\s+host\\b`,            // 'text' in host
       `\\bhost\\.${a}\\s*(===|!==|==|!=)`,        // host.text === undefined
-      `=\\s*host\\.${a}\\s*;`,                    // const text = host.text; (then presumably checked)
+      `=\\s*${bare}`,                                // const text = host.text (then checked)
     ];
-    if (guards.some((g) => new RegExp(g).test(src))) guarded.push(api);
+    if (guards.some((g) => new RegExp(g, 'm').test(src))) guarded.push(api);
   }
   return { used, guarded, required: used.filter((u) => !guarded.includes(u)) };
 }

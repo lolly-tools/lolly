@@ -52,6 +52,10 @@ const STALE_ALLOWED: Record<string, string> = {
   // committed launch page fresh against its source. An entry here is a debt with
   // a face: add one only with a reason and a date when a page is knowingly left
   // stale, and delete it the moment the page is re-rendered.
+  'en/about': '2026-09-06: the review pass reworded the positioning copy (what Lolly is not, the '
+    + 'C2PA and offline qualifications); narration re-render deferred by the owner - re-render, then delete this line.',
+  'en/privacy': '2026-09-06: the review pass corrected the send-target inventory (six rows; Bluesky '
+    + 'and Discord are desktop-only); narration re-render deferred by the owner - re-render, then delete this line.',
 };
 
 interface Committed { key: string; lang: string; slug: string; meta: AudioMeta }

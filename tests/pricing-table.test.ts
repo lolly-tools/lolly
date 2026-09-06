@@ -38,7 +38,6 @@ import { baseHost } from './helpers/host.ts';
 const SUSE_TOOLS = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(SUSE_TOOLS, path), 'utf8');
 
-const PACK_MOUNTED = true;
 const SKIP = false as const;
 assert.ok(existsSync(join(SUSE_TOOLS, 'pricing-table', 'tool.json')),
   'community/pricing-table/tool.json is missing - the tool was renamed or deleted');

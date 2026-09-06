@@ -84,11 +84,21 @@ var init_tool_schema = __esm({
         },
         category: {
           type: "string",
+          enum: ["everyone", "designer", "utility", "event"],
           description: "Free-form, used for gallery grouping. Examples: 'everyone', 'event', 'product', 'designer'."
         },
         new: {
           type: "boolean",
           description: "Force the gallery's 'New' badge on this tool regardless of catalog position. Newness is otherwise inferred from catalog order (the most-recently-appended tools wear the badge and it self-expires as more ship); set this to keep a tool flagged new even after later tools push it out of that trailing window."
+        },
+        deprecated: {
+          type: "boolean",
+          default: false,
+          description: "Soft-deprecate a tool before removal: its id stays a permanent contract (saved URLs and sessions still open it), but it must be `listed: false` so the gallery stops offering it, and it should name its successor in `replacedBy`. The validator refuses a deprecated tool that is still listed."
+        },
+        replacedBy: {
+          type: "string",
+          description: "If deprecated, the tool id that supersedes this one. Must exist in the same profile; the validator checks it."
         },
         listed: {
           type: "boolean",
@@ -547,6 +557,42 @@ var init_tool_schema = __esm({
             ]
           },
           description: "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera'/'screen' recording tool is unavailable in the headless CLI). 'screen' (v1.54) is DISPLAY capture via host.recorder - the user picks a screen/window/tab in browser-native UI; distinct from 'capture', which rasterises a URL the tool itself names."
+        },
+        requires: {
+          type: "array",
+          uniqueItems: true,
+          items: {
+            type: "string",
+            enum: [
+              "net",
+              "tokens",
+              "text",
+              "pdf",
+              "pptx",
+              "capture",
+              "compose",
+              "media",
+              "scan",
+              "lift",
+              "keyframes",
+              "recorder",
+              "audio",
+              "codec",
+              "layers",
+              "upscale",
+              "matte",
+              "ocr",
+              "speech",
+              "viz",
+              "color",
+              "images",
+              "raster",
+              "geom",
+              "connectors",
+              "c2pa"
+            ]
+          },
+          description: "Optional HostV1 APIs (`host.text`, `host.pdf`, \u2026) this tool calls WITHOUT feature-detecting them. The runtime refuses to mount the tool on a shell that lacks one, before any hook runs, and the gallery greys it out there. An API the hooks guard (`if (host.text)`, `host.text?.`) is NOT required and must not be listed. `scripts/tool-requires.ts` computes this from hooks.js and can rewrite it (`--write`); `validate:catalog` warns when the two disagree. Distinct from `capabilities`, which names device abilities (camera, microphone, screen, \u2026) rather than bridge APIs."
         },
         network: {
           type: "object",
@@ -2876,7 +2922,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.181.0";
+    ENGINE_VERSION = "1.183.0";
   }
 });
 
@@ -6784,6 +6830,51 @@ var init_file_operation_v1 = __esm({
   }
 });
 
+// packages/core/src/host-v1/apis.ts
+function presentApis(host) {
+  if (!host) return [];
+  return HOST_V1_OPTIONAL_APIS.filter((name) => host[name] !== void 0 && host[name] !== null);
+}
+function missingRequires(requires, host) {
+  if (!requires?.length) return [];
+  const present = new Set(presentApis(host));
+  return requires.filter((name) => !present.has(name));
+}
+var HOST_V1_OPTIONAL_APIS;
+var init_apis = __esm({
+  "packages/core/src/host-v1/apis.ts"() {
+    "use strict";
+    HOST_V1_OPTIONAL_APIS = [
+      "net",
+      "tokens",
+      "text",
+      "pdf",
+      "pptx",
+      "capture",
+      "compose",
+      "media",
+      "scan",
+      "lift",
+      "keyframes",
+      "recorder",
+      "audio",
+      "codec",
+      "layers",
+      "upscale",
+      "matte",
+      "ocr",
+      "speech",
+      "viz",
+      "color",
+      "images",
+      "raster",
+      "geom",
+      "connectors",
+      "c2pa"
+    ];
+  }
+});
+
 // packages/core/src/host-v1/asset-ref.ts
 var init_asset_ref = __esm({
   "packages/core/src/host-v1/asset-ref.ts"() {
@@ -7030,6 +7121,7 @@ var init_viz = __esm({
 var init_host_v1 = __esm({
   "packages/core/src/host-v1.ts"() {
     "use strict";
+    init_apis();
     init_asset_ref();
     init_assets();
     init_audio();
@@ -7401,6 +7493,7 @@ var init_src = __esm({
     "use strict";
     init_file_operation_v1();
     init_host_v1();
+    init_apis();
     init_preflight();
     init_money();
     init_chart_v1();
@@ -8166,6 +8259,776 @@ var init_inputs = __esm({
       "datetime-local"
     ]);
     TEXT_VALUE_CAP = 4e3;
+  }
+});
+
+// engine/src/framing.ts
+function normalizeFraming(f) {
+  const o = f ?? {};
+  return {
+    zoom: Math.max(1, num(o.zoom, 100)),
+    x: num(o.x, 50),
+    y: num(o.y, 50),
+    rotate: num(o.rotate, 0),
+    pitch: num(o.pitch, 0),
+    yaw: num(o.yaw, 0)
+  };
+}
+function isTilted(framing) {
+  const f = normalizeFraming(framing);
+  return f.pitch !== 0 || f.yaw !== 0;
+}
+function frameRect(iw, ih, W, H, framing, fit = "cover") {
+  const f = normalizeFraming(framing);
+  if (!(iw > 0) || !(ih > 0) || !(W > 0) || !(H > 0)) {
+    return { sx: 0, sy: 0, sw: Math.max(1, iw), sh: Math.max(1, ih), dx: 0, dy: 0, dw: W, dh: H, rotate: f.rotate, originX: W / 2, originY: H / 2 };
+  }
+  const base = fit === "contain" ? Math.min(W / iw, H / ih) : Math.max(W / iw, H / ih);
+  const s = base * (f.zoom / 100);
+  const dw = iw * s, dh = ih * s;
+  const px = f.x / 100, py = f.y / 100;
+  return {
+    sx: 0,
+    sy: 0,
+    sw: iw,
+    sh: ih,
+    dx: (W - dw) * px,
+    dy: (H - dh) * py,
+    dw,
+    dh,
+    rotate: f.rotate,
+    originX: W * px,
+    originY: H * py
+  };
+}
+function framingStyle(framing, fit = "cover", perspective = FRAMING_PERSPECTIVE) {
+  const f = normalizeFraming(framing);
+  const pos = `${css(f.x)}% ${css(f.y)}%`;
+  const parts = [`object-fit:${fit === "contain" ? "contain" : "cover"}`, `object-position:${pos}`];
+  const t = [];
+  if (f.pitch || f.yaw) t.push(`perspective(${css(perspective)}px)`);
+  if (f.pitch) t.push(`rotateX(${css(f.pitch)}deg)`);
+  if (f.yaw) t.push(`rotateY(${css(f.yaw)}deg)`);
+  if (f.rotate) t.push(`rotate(${css(f.rotate)}deg)`);
+  if (f.zoom !== 100) t.push(`scale(${css(f.zoom / 100)})`);
+  if (t.length) {
+    parts.push(`transform:${t.join(" ")}`);
+    parts.push(`transform-origin:${pos}`);
+    if (f.pitch || f.yaw) parts.push("transform-style:preserve-3d");
+  }
+  return parts.join(";");
+}
+function isNeutralFraming(framing) {
+  const f = normalizeFraming(framing);
+  return f.zoom === 100 && f.x === 50 && f.y === 50 && f.rotate === 0 && f.pitch === 0 && f.yaw === 0;
+}
+function projectFramingPoint(px, py, originX, originY, f, perspective = FRAMING_PERSPECTIVE) {
+  let X = px - originX, Y = py - originY, Z = 0;
+  const rad = (d) => d * Math.PI / 180;
+  if (f.rotate) {
+    const c = Math.cos(rad(f.rotate)), s = Math.sin(rad(f.rotate));
+    const nx = X * c - Y * s, ny = X * s + Y * c;
+    X = nx;
+    Y = ny;
+  }
+  if (f.yaw) {
+    const c = Math.cos(rad(f.yaw)), s = Math.sin(rad(f.yaw));
+    const nx = X * c + Z * s, nz = -X * s + Z * c;
+    X = nx;
+    Z = nz;
+  }
+  if (f.pitch) {
+    const c = Math.cos(rad(f.pitch)), s = Math.sin(rad(f.pitch));
+    const ny = Y * c - Z * s, nz = Y * s + Z * c;
+    Y = ny;
+    Z = nz;
+  }
+  const w = perspective > 0 ? 1 - Z / perspective : 1;
+  const k = 1 / (w > 1e-3 ? w : 1e-3);
+  return { x: originX + X * k, y: originY + Y * k };
+}
+function framingQuad(iw, ih, W, H, framing, fit = "cover", perspective = FRAMING_PERSPECTIVE) {
+  const f = normalizeFraming(framing);
+  const r3 = frameRect(iw, ih, W, H, framing, fit);
+  const pt = (x, y) => projectFramingPoint(x, y, r3.originX, r3.originY, f, perspective);
+  return [
+    pt(r3.dx, r3.dy),
+    pt(r3.dx + r3.dw, r3.dy),
+    pt(r3.dx + r3.dw, r3.dy + r3.dh),
+    pt(r3.dx, r3.dy + r3.dh)
+  ];
+}
+function insideQuad(q, x, y) {
+  let sign = 0;
+  for (let i = 0; i < 4; i++) {
+    const a = q[i], b = q[(i + 1) % 4];
+    const cross = (b.x - a.x) * (y - a.y) - (b.y - a.y) * (x - a.x);
+    if (Math.abs(cross) < 1e-9) continue;
+    const s = cross > 0 ? 1 : -1;
+    if (sign === 0) sign = s;
+    else if (s !== sign) return false;
+  }
+  return true;
+}
+function minZoomForCover(iw, ih, W, H, framing, fit = "cover", perspective = FRAMING_PERSPECTIVE, max = 400) {
+  const f = normalizeFraming(framing);
+  if (fit !== "cover" || !(iw > 0) || !(ih > 0) || !(W > 0) || !(H > 0)) return f.zoom;
+  const covers = (zoom) => {
+    const q = framingQuad(iw, ih, W, H, { ...f, zoom }, fit, perspective);
+    return insideQuad(q, 0, 0) && insideQuad(q, W, 0) && insideQuad(q, W, H) && insideQuad(q, 0, H);
+  };
+  if (covers(f.zoom)) return f.zoom;
+  if (!covers(max)) return max;
+  let lo = f.zoom, hi = max;
+  for (let i = 0; i < 24; i++) {
+    const mid3 = (lo + hi) / 2;
+    if (covers(mid3)) hi = mid3;
+    else lo = mid3;
+  }
+  return Math.ceil(hi * 10) / 10;
+}
+var num, FRAMING_PERSPECTIVE, css;
+var init_framing = __esm({
+  "engine/src/framing.ts"() {
+    "use strict";
+    num = (v, dflt) => {
+      const n2 = Number(v);
+      return Number.isFinite(n2) ? n2 : dflt;
+    };
+    FRAMING_PERSPECTIVE = 1200;
+    css = (n2) => {
+      const s = n2.toFixed(3).replace(/\.?0+$/, "");
+      return s === "-0" ? "0" : s;
+    };
+  }
+});
+
+// engine/src/template.ts
+import Handlebars from "handlebars";
+function mdUrl(raw, allowed) {
+  const s = raw.trim();
+  if (!s) return "";
+  const probe = s.replace(/&amp;/g, "&").replace(/[\u0000-\u0020]+/g, "");
+  const ok3 = /^(\/\/|\/|\.|#|\?)/.test(probe) || !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(probe) ? true : allowed.test(probe);
+  return ok3 ? s.replace(/"/g, "&quot;") : "";
+}
+function readFit(v) {
+  const s = String(v ?? "").toLowerCase();
+  return FIT_VALUES.has(s) ? s : "cover";
+}
+function mediaBool(v, dflt) {
+  if (v === void 0 || v === null || v === "") return dflt;
+  if (typeof v === "boolean") return v;
+  const s = String(v).toLowerCase();
+  return s === "true" || s === "1" || s === "yes" || s === "on";
+}
+function annotateTemplate(source, inputIds) {
+  if (!inputIds.length) return source;
+  const idAlt = inputIds.map((id) => id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  const triple = new RegExp(`\\{\\{\\{[^}]*\\b(${idAlt})\\b[^}]*\\}\\}\\}`, "g");
+  const double = new RegExp(`(?<!\\{)\\{\\{(?![{#/!>^])[^}]*\\b(${idAlt})\\b[^}]*\\}\\}(?!\\})`, "g");
+  const tripleAttr = new RegExp(`\\{\\{\\{[^}]*\\b(${idAlt})\\b[^}]*\\}\\}\\}`);
+  const doubleAttr = new RegExp(`(?<!\\{)\\{\\{(?![{#/!>^])[^}]*\\b(${idAlt})\\b[^}]*\\}\\}(?!\\})`);
+  function annotateContent(text3) {
+    text3 = text3.replace(triple, (m2, id) => `<!-- ci:${id} -->${m2}<!-- /ci:${id} -->`);
+    text3 = text3.replace(double, (m2, id) => `<!-- ci:${id} -->${m2}<!-- /ci:${id} -->`);
+    return text3;
+  }
+  function annotateTagAttrs(tag2) {
+    if (tag2.startsWith("</") || tag2.startsWith("<!")) return tag2;
+    if (/\sdata-canvas-input=/.test(tag2)) return tag2;
+    const m2 = tripleAttr.exec(tag2) || doubleAttr.exec(tag2);
+    if (!m2) return tag2;
+    const id = m2[1];
+    const selfClose = /\/\s*>$/.exec(tag2);
+    const insertAt = selfClose ? tag2.length - selfClose[0].length : tag2.length - 1;
+    const before = tag2.slice(0, insertAt).replace(/\s+$/, "");
+    return `${before} data-canvas-input="${id}"${selfClose ? " />" : ">"}`;
+  }
+  const result = [];
+  let i = 0;
+  let contentStart = 0;
+  while (i < source.length) {
+    if (source[i] !== "<") {
+      i++;
+      continue;
+    }
+    result.push(annotateContent(source.slice(contentStart, i)));
+    const tagStart = i++;
+    let quoteChar = "";
+    while (i < source.length) {
+      const ch = source[i++];
+      if (quoteChar) {
+        if (ch === quoteChar) quoteChar = "";
+      } else if (ch === '"' || ch === "'") {
+        quoteChar = ch;
+      } else if (ch === ">") {
+        break;
+      }
+    }
+    const tag2 = annotateTagAttrs(source.slice(tagStart, i));
+    result.push(tag2);
+    contentStart = i;
+    const raw = /^<(script|style)(?:\s|>)/i.exec(tag2);
+    if (raw && !tag2.endsWith("/>")) {
+      const close = new RegExp(`</${raw[1]}\\s*>`, "i").exec(source.slice(i));
+      if (close) {
+        const rawEnd = i + close.index;
+        result.push(source.slice(i, rawEnd));
+        i = rawEnd;
+        contentStart = rawEnd;
+      }
+    }
+  }
+  result.push(annotateContent(source.slice(contentStart)));
+  return result.join("");
+}
+function hydrate(templateSource, values, { raw = false } = {}) {
+  const key = raw ? " raw " + templateSource : templateSource;
+  let compiled = compileCache.get(key);
+  if (compiled) {
+    compileCache.delete(key);
+    compileCache.set(key, compiled);
+  } else {
+    compiled = Handlebars.compile(templateSource, { noEscape: raw });
+    compileCache.set(key, compiled);
+    if (compileCache.size > COMPILE_CACHE_MAX) {
+      const oldest = compileCache.keys().next().value;
+      if (oldest !== void 0) compileCache.delete(oldest);
+    }
+  }
+  return compiled(values);
+}
+var ARROW_GLYPHS, ARROW_CLASSES, LEADING_ARROW, MD_ESCAPE, MD_BULLET, MD_ORDERED, MD_HEADING, MD_IMAGE, MD_LINK, MD_LINK_SCHEMES, MD_IMAGE_SCHEMES, FIT_VALUES, COMPILE_CACHE_MAX, compileCache;
+var init_template = __esm({
+  "engine/src/template.ts"() {
+    "use strict";
+    init_framing();
+    Handlebars.registerHelper("default", (val, fallback) => val ?? fallback);
+    Handlebars.registerHelper("upper", (s) => typeof s === "string" ? s.toUpperCase() : s);
+    Handlebars.registerHelper("lower", (s) => typeof s === "string" ? s.toLowerCase() : s);
+    Handlebars.registerHelper("eq", (a, b) => a === b);
+    Handlebars.registerHelper("icsStamp", (value) => {
+      const s = String(value ?? "").trim();
+      if (!s) return "";
+      const digits = s.replace(/[-:]/g, "");
+      const [d = "", t] = digits.split("T");
+      if (t === void 0) return d;
+      return `${d}T${(t + "0000").slice(0, 6)}`;
+    });
+    Handlebars.registerHelper("rfcText", (value) => String(value ?? "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n"));
+    Handlebars.registerHelper("csvCell", (value) => {
+      const s = String(value ?? "");
+      return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    });
+    ARROW_GLYPHS = { ">": "\u2192", "<": "\u2190", "^": "\u2191", "v": "\u2193" };
+    ARROW_CLASSES = { ">": "md-arrow", "<": "md-arrow-left", "^": "md-arrow-up", "v": "md-arrow-down" };
+    LEADING_ARROW = /^\s*([<>^v])\s+/;
+    Handlebars.registerHelper("arrow", (text3) => text3 == null ? "" : String(text3).replace(LEADING_ARROW, (_, m2) => (ARROW_GLYPHS[m2] ?? m2) + " "));
+    MD_ESCAPE = { "&": "&amp;", "<": "&lt;", ">": "&gt;" };
+    MD_BULLET = /^\s*([-*<>^v])\s+/;
+    MD_ORDERED = /^\s*\d+[.)]\s+/;
+    MD_HEADING = /^\s*(#{1,6})\s+(\S.*)$/;
+    MD_IMAGE = /!\[([^\]]*)\]\(([^)\s]+)\)/g;
+    MD_LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
+    MD_LINK_SCHEMES = /^(https?|mailto|tel):/i;
+    MD_IMAGE_SCHEMES = /^(https?|data|blob):/i;
+    Handlebars.registerHelper("markdown", (text3) => {
+      if (text3 == null || text3 === "") return new Handlebars.SafeString("");
+      const inline = (raw) => {
+        const urls = [];
+        const park = (u) => `\0${urls.push(u) - 1}\0`;
+        return raw.replace(/\u0000/g, "").replace(/[&<>]/g, (c) => MD_ESCAPE[c] ?? c).replace(MD_IMAGE, (whole, alt, url) => {
+          const safe = mdUrl(url, MD_IMAGE_SCHEMES);
+          if (!safe) return alt || whole;
+          return `<img class="md-image" src="${park(safe)}" alt="${alt.replace(/"/g, "&quot;")}">`;
+        }).replace(MD_LINK, (_, label, url) => {
+          const safe = mdUrl(url, MD_LINK_SCHEMES);
+          return safe ? `<a href="${park(safe)}">${label}</a>` : label;
+        }).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/~~(.+?)~~/g, "<del>$1</del>").replace(/\*([^*\n]+?)\*/g, "<em>$1</em>").replace(/\u0000(\d+)\u0000/g, (_, i) => urls[Number(i)] ?? "");
+      };
+      const renderRun = (lines) => {
+        if (lines.every((l) => MD_BULLET.test(l))) {
+          const items = lines.map((l) => {
+            const arrowClass = ARROW_CLASSES[l.match(MD_BULLET)?.[1] ?? ""];
+            const cls = arrowClass ? ` class="${arrowClass}"` : "";
+            return `<li${cls}>${inline(l.replace(MD_BULLET, ""))}</li>`;
+          }).join("");
+          return `<ul>${items}</ul>`;
+        }
+        if (lines.every((l) => MD_ORDERED.test(l))) {
+          const items = lines.map((l, i) => `<li><span class="md-index">${i + 1}.</span> ${inline(l.replace(MD_ORDERED, ""))}</li>`).join("");
+          return `<ol style="list-style:none">${items}</ol>`;
+        }
+        return `<p>${lines.map((l) => inline(l)).join("<br>")}</p>`;
+      };
+      const html = String(text3).split(/\n{2,}/).filter((b) => b.trim()).map((block) => {
+        const lines = block.split("\n").filter((l) => l.trim() !== "");
+        const out = [];
+        let run = [];
+        const flushRun = () => {
+          if (run.length) {
+            out.push(renderRun(run));
+            run = [];
+          }
+        };
+        for (const line of lines) {
+          const h = line.match(MD_HEADING);
+          if (h) {
+            flushRun();
+            const level = h[1].length;
+            out.push(`<h${level}>${inline(h[2])}</h${level}>`);
+          } else {
+            run.push(line);
+          }
+        }
+        flushRun();
+        return out.join("");
+      }).join("");
+      return new Handlebars.SafeString(html);
+    });
+    Handlebars.registerHelper("asset", (ref, field) => {
+      if (!ref || typeof ref !== "object") return "";
+      if (typeof field === "string") {
+        const v = Reflect.get(ref, field);
+        return v ?? "";
+      }
+      const url = Reflect.get(ref, "url");
+      return url ?? "";
+    });
+    FIT_VALUES = /* @__PURE__ */ new Set(["cover", "contain"]);
+    Handlebars.registerHelper("framing", function(idArg, options2) {
+      const esc9 = Handlebars.escapeExpression;
+      const id = String(idArg ?? "").trim();
+      if (!id) return new Handlebars.SafeString("");
+      const hash = options2?.hash ?? {};
+      const root = options2?.data?.root ?? {};
+      const blockId = hash.block != null ? String(hash.block) : "";
+      let framing;
+      let fitRaw;
+      let marker;
+      if (blockId) {
+        const row = this && typeof this === "object" ? this : {};
+        framing = {
+          zoom: Number(row[`${id}Zoom`]),
+          x: Number(row[`${id}X`]),
+          y: Number(row[`${id}Y`]),
+          rotate: Number(row[`${id}Rotate`]),
+          pitch: Number(row[`${id}Pitch`]),
+          yaw: Number(row[`${id}Yaw`])
+        };
+        fitRaw = hash.fit != null ? root[String(hash.fit)] ?? hash.fit : row[`${id}Fit`] ?? root[`${id}Fit`];
+        const idx = Number(hash.index);
+        marker = `${blockId}:${Number.isFinite(idx) ? idx : 0}:${id}`;
+      } else {
+        const v = root[id];
+        framing = v && typeof v === "object" ? v : {};
+        const fitId = hash.fit != null ? String(hash.fit) : id.replace(/Framing$/, "") + "Fit";
+        fitRaw = root[fitId] ?? (hash.fit != null ? hash.fit : void 0);
+        marker = id;
+      }
+      const perspRaw = Number(hash.persp);
+      const style = framingStyle(framing, readFit(fitRaw), Number.isFinite(perspRaw) && perspRaw > 0 ? perspRaw : void 0);
+      const extra = hash.style != null ? `;${String(hash.style)}` : "";
+      return new Handlebars.SafeString(`style="${esc9(style + extra)}" data-framing="${esc9(marker)}"`);
+    });
+    Handlebars.registerHelper("media", (ref, options2) => {
+      const empty2 = new Handlebars.SafeString("");
+      if (!ref || typeof ref !== "object") return empty2;
+      const esc9 = Handlebars.escapeExpression;
+      const get3 = (k) => Reflect.get(ref, k);
+      const url = get3("url");
+      if (typeof url !== "string" || !url) return empty2;
+      const type = String(get3("type") ?? "");
+      const meta = get3("meta") && typeof get3("meta") === "object" ? get3("meta") : {};
+      const hash = options2?.hash ?? {};
+      const cls = hash.class != null ? ` class="${esc9(String(hash.class))}"` : "";
+      const root = options2?.data?.root ?? {};
+      const framingId = hash.framing != null ? String(hash.framing) : "";
+      const framingCss = framingId ? framingStyle(
+        root[framingId] && typeof root[framingId] === "object" ? root[framingId] : {},
+        readFit(root[hash.fit != null ? String(hash.fit) : framingId.replace(/Framing$/, "") + "Fit"] ?? hash.fit)
+      ) : "";
+      const styleText = [framingCss, hash.style != null ? String(hash.style) : ""].filter(Boolean).join(";");
+      const marker = framingId ? ` data-framing="${esc9(framingId)}"` : "";
+      const style = styleText ? ` style="${esc9(styleText)}"${marker}` : marker;
+      if (type === "lottie" || /\.json($|\?|#)/i.test(url)) {
+        const loop = mediaBool(hash.loop, true) ? "1" : "0";
+        const autoplay = mediaBool(hash.autoplay, true) ? "1" : "0";
+        const fit = hash.fit === "cover" ? "cover" : "contain";
+        return new Handlebars.SafeString(
+          `<div${cls} data-lottie-src="${esc9(url)}" data-lottie-loop="${loop}" data-lottie-autoplay="${autoplay}" data-lottie-fit="${fit}"${style}></div>`
+        );
+      }
+      if (type === "video" || /\.(mp4|m4v|mov|webm)($|\?|#)/i.test(url)) {
+        const poster = typeof meta.posterUrl === "string" && meta.posterUrl ? ` poster="${esc9(meta.posterUrl)}"` : "";
+        const keyRaw = hash.key != null ? String(hash.key) : typeof get3("id") === "string" ? String(get3("id")) : url;
+        const flags = [
+          mediaBool(hash.autoplay, true) ? "autoplay" : "",
+          mediaBool(hash.loop, true) ? "loop" : "",
+          mediaBool(hash.muted, true) ? "muted" : "",
+          mediaBool(hash.controls, false) ? "controls" : "",
+          "playsinline"
+        ].filter(Boolean).join(" ");
+        return new Handlebars.SafeString(`<video${cls} src="${esc9(url)}" data-video-key="${esc9(keyRaw)}"${poster} ${flags}${style}></video>`);
+      }
+      const alt = esc9(String(hash.alt ?? meta.name ?? ""));
+      return new Handlebars.SafeString(`<img${cls} src="${esc9(url)}" alt="${alt}"${style}>`);
+    });
+    COMPILE_CACHE_MAX = 50;
+    compileCache = /* @__PURE__ */ new Map();
+  }
+});
+
+// engine/src/metadata.ts
+async function buildExportMeta(host, manifest, profile, inputs) {
+  let p = {};
+  if (profile == null) {
+    try {
+      p = await host?.profile?.get() ?? {};
+    } catch {
+      p = {};
+    }
+  } else {
+    p = profile;
+  }
+  const clean2 = (s) => s == null ? "" : String(s).trim();
+  const optedIn = p.useDetails === true;
+  const author = optedIn ? [clean2(p.firstname), clean2(p.lastname)].filter(Boolean).join(" ") : "";
+  const contact = optedIn ? [clean2(p.email), clean2(p.phone)].filter(Boolean).join(" \xB7 ") : "";
+  const tool = clean2(manifest?.name) || clean2(manifest?.id);
+  const toolId = clean2(manifest?.id);
+  const toolVersion = clean2(manifest?.version);
+  const description = ["Made with https://lolly.tools", tool && `: ${tool}`, author && `by ${author}`].filter(Boolean).join(" ");
+  const meta = {
+    software: "Lolly",
+    // The tool's own page in the canonical share form (/t/<id>, engine/src/tool-url.ts)
+    // when the id is known, else the site root. An identifier only - no inputs ride here.
+    source: toolId ? `https://lolly.tools/t/${toolId}` : "https://lolly.tools",
+    tool,
+    ...toolId ? { toolId } : {},
+    ...toolVersion ? { toolVersion } : {},
+    author,
+    // '' if not opted in
+    contact,
+    // '' if none
+    description
+  };
+  if (inputs) {
+    for (const i of inputs) {
+      const field = i.bindToMeta;
+      if (!field) continue;
+      const v = clean2(i.value == null ? "" : String(i.value));
+      if (v) meta[field] = v;
+    }
+  }
+  return meta;
+}
+var init_metadata = __esm({
+  "engine/src/metadata.ts"() {
+    "use strict";
+  }
+});
+
+// engine/src/compose.ts
+async function resolveNestedRenders(tool, model2, extras, host, composeStack = [], memo = /* @__PURE__ */ new Map()) {
+  const specs = tool?.manifest?.composes;
+  if (!host?.compose || !Array.isArray(specs) || specs.length === 0) return {};
+  const compose = host.compose;
+  const ctx = { ...modelToValues(model2), ...extras };
+  const out = {};
+  for (const spec of specs) {
+    if (!spec || typeof spec.id !== "string" || typeof spec.tool !== "string") continue;
+    const inputs = {};
+    for (const [k, v] of Object.entries(spec.inputs ?? {})) {
+      inputs[k] = typeof v === "string" ? hydrate(v, ctx, { raw: true }) : v;
+    }
+    const key = composeKey(spec.tool, inputs, spec.format, spec.width, spec.height);
+    const cached2 = memo.get(spec.id);
+    if (cached2 && cached2.key === key) {
+      out[spec.id] = cached2.ref;
+      ctx[spec.id] = cached2.ref;
+      continue;
+    }
+    try {
+      const ref = await withTimeout(compose.render({
+        toolId: spec.tool,
+        inputs,
+        format: spec.format,
+        width: spec.width,
+        height: spec.height,
+        _stack: [...composeStack, tool.manifest.id]
+      }), COMPOSE_TIMEOUT_MS, spec.tool);
+      if (ref && typeof ref.url === "string") {
+        out[spec.id] = ref;
+        ctx[spec.id] = ref;
+        memo.set(spec.id, { key, ref });
+      } else {
+        out[spec.id] = null;
+        memo.delete(spec.id);
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      host.log?.("warn", `compose "${spec.tool}": ${message}`, { toolId: tool.manifest.id });
+      out[spec.id] = null;
+      memo.delete(spec.id);
+    }
+  }
+  return out;
+}
+function withTimeout(promise, ms, toolId) {
+  return new Promise((resolve3, reject) => {
+    const t = setTimeout(() => reject(new Error(`timed out after ${ms}ms (${toolId})`)), ms);
+    Promise.resolve(promise).then(
+      (v) => {
+        clearTimeout(t);
+        resolve3(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      }
+    );
+  });
+}
+function composeKey(toolId, inputs, format, width, height) {
+  return `${toolId}|${stableStringify(inputs)}|${format ?? ""}|${width ?? ""}x${height ?? ""}`;
+}
+function stableStringify(value) {
+  if (!isObjectLike(value)) return JSON.stringify(value) ?? "null";
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${stableStringify(value[k])}`).join(",")}}`;
+}
+var COMPOSE_TIMEOUT_MS, isObjectLike;
+var init_compose2 = __esm({
+  "engine/src/compose.ts"() {
+    "use strict";
+    init_template();
+    init_inputs();
+    COMPOSE_TIMEOUT_MS = 1e4;
+    isObjectLike = (v) => typeof v === "object" && v !== null;
+  }
+});
+
+// engine/src/embed.ts
+function parseEmbedUrl(src) {
+  if (typeof src !== "string" || src.length > 4096) return null;
+  let u;
+  try {
+    u = new URL(src);
+  } catch {
+    return null;
+  }
+  const host = u.hostname.replace(/\.$/, "");
+  if (u.protocol !== "https:" || host !== EMBED_HOST) return null;
+  const m2 = /^\/tool\/([a-z0-9-]+)\.([A-Za-z0-9]+)$/.exec(u.pathname);
+  if (!m2) return null;
+  const toolId = m2[1];
+  const ext = m2[2]?.toLowerCase();
+  if (toolId === void 0 || ext === void 0) return null;
+  const format = EXT_FORMAT[ext];
+  if (!format || !ID_RE.test(toolId)) return null;
+  return { toolId, ext, format, query: u.search.replace(/^\?/, "") };
+}
+var EMBED_HOST, EXT_FORMAT, ID_RE;
+var init_embed = __esm({
+  "engine/src/embed.ts"() {
+    "use strict";
+    EMBED_HOST = "lolly.tools";
+    EXT_FORMAT = { png: "png", jpg: "jpg", jpeg: "jpeg", webp: "webp", svg: "svg", pdf: "pdf", webm: "webm", mp4: "mp4", gif: "gif", apng: "apng" };
+    ID_RE = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
+  }
+});
+
+// engine/src/tool-url.ts
+function lollySchemeToHttps(src) {
+  if (!LOLLY_SCHEME_RE.test(src)) return src;
+  const rest = src.replace(LOLLY_SCHEME_RE, "").replace(LOLLY_HOST_RE, "");
+  return `https://lolly.tools/${rest}`;
+}
+function parseToolUrl(src) {
+  if (typeof src !== "string") return null;
+  const s = lollySchemeToHttps(src.trim());
+  if (!s || s.length > MAX_URL) return null;
+  const embed = parseEmbedUrl(s);
+  if (embed) return { toolId: embed.toolId, format: embed.format, query: embed.query };
+  let u;
+  try {
+    u = new URL(s);
+  } catch {
+    return null;
+  }
+  if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+  if (u.hash) {
+    const hash = u.hash.replace(/^#\/?/, "");
+    const qi = hash.indexOf("?");
+    const hPath = qi === -1 ? hash : hash.slice(0, qi);
+    const hQuery = qi === -1 ? "" : hash.slice(qi + 1);
+    const m2 = /^tool\/([a-z0-9-]+)$/.exec(hPath);
+    const hId = m2?.[1];
+    if (hId !== void 0 && ID_RE2.test(hId)) return { toolId: hId, format: null, query: hQuery };
+  }
+  const segs = u.pathname.split("/").filter(Boolean);
+  const cand = segs.length === 2 && (segs[0] === "tool" || segs[0] === "t") ? segs[1] : segs.length === 1 ? segs[0] : null;
+  if (cand && ID_RE2.test(cand) && !APP_PATH_WORDS.has(cand)) {
+    return { toolId: cand, format: null, query: u.search.replace(/^\?/, "") };
+  }
+  return null;
+}
+function isToolUrl(src) {
+  return parseToolUrl(src) !== null;
+}
+function buildEmbedUrl({ toolId, format, query = "" } = {}) {
+  if (typeof toolId !== "string" || !ID_RE2.test(toolId)) return null;
+  const ext = FORMAT_EXT[String(format || "").toLowerCase()] || "svg";
+  const q = String(query || "").replace(/^\?/, "");
+  const url = q ? `https://lolly.tools/tool/${toolId}.${ext}?${q}` : `https://lolly.tools/tool/${toolId}.${ext}`;
+  return url.length > MAX_URL ? null : url;
+}
+var ID_RE2, FORMAT_EXT, APP_PATH_WORDS, MAX_URL, LOLLY_SCHEME_RE, LOLLY_HOST_RE;
+var init_tool_url = __esm({
+  "engine/src/tool-url.ts"() {
+    "use strict";
+    init_embed();
+    ID_RE2 = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
+    FORMAT_EXT = { png: "png", jpg: "jpg", jpeg: "jpg", webp: "webp", svg: "svg", pdf: "pdf", webm: "webm", mp4: "mp4", gif: "gif", apng: "apng" };
+    APP_PATH_WORDS = /* @__PURE__ */ new Set([
+      "tool",
+      "t",
+      "tools",
+      "batch",
+      "pro",
+      "start",
+      "verify",
+      "valid",
+      "v",
+      "c",
+      "catalog",
+      "u",
+      "utilities",
+      "p",
+      "projects",
+      "d",
+      "dashboard",
+      "b",
+      "brand",
+      "lab",
+      "unpack",
+      "pdf",
+      "docs",
+      "components",
+      "ask",
+      "multi",
+      "convert",
+      "data",
+      "script",
+      "join",
+      "join-reply",
+      "profile",
+      "gallery",
+      "platform",
+      "capabilities",
+      "info",
+      "og",
+      "api",
+      "assets",
+      "fonts",
+      "ort",
+      "ort-hf",
+      "models",
+      "icons",
+      "l",
+      "a"
+    ]);
+    MAX_URL = 4096;
+    LOLLY_SCHEME_RE = /^lolly:\/\/+/i;
+    LOLLY_HOST_RE = /^(?:www\.)?lolly\.(?:tools|art)(?=[/?#]|$)\/?/i;
+  }
+});
+
+// engine/src/bake.ts
+function assertComposeStack(stack, toolId, maxDepth = MAX_COMPOSE_DEPTH) {
+  const path = [...stack, toolId];
+  if (stack.includes(toolId)) {
+    throw new ComposeGuardError("cycle", path, `cycle ${path.join(" \u2192 ")}`);
+  }
+  if (stack.length >= maxDepth) {
+    throw new ComposeGuardError("depth", path, `max depth ${maxDepth} (${path.join(" \u2192 ")})`);
+  }
+}
+function isBakedRef(v) {
+  if (!v || typeof v !== "object") return false;
+  const meta = v.meta;
+  return !!meta && typeof meta === "object" && meta.baked === true;
+}
+function bakeError(code, message) {
+  const err = new Error(message);
+  err.code = code;
+  throw err;
+}
+function bakeAssetRef(ref, opts = {}) {
+  if (typeof ref?.url !== "string" || !ref.url.startsWith("data:")) {
+    bakeError("BAKE_NOT_SELF_CONTAINED", `bake: asset url must be a data: URL (got ${String(ref?.url).slice(0, 32)}\u2026)`);
+  }
+  if (ref.url.length > MAX_BAKED_URL_CHARS) {
+    bakeError("BAKE_TOO_LARGE", `bake: data: URL is ${ref.url.length} chars (max ${MAX_BAKED_URL_CHARS})`);
+  }
+  const now2 = opts.now ?? Date.now();
+  const source = ref.meta ?? {};
+  const bakedFrom = typeof source.toolUrl === "string" ? source.toolUrl : isToolUrl(ref.id) ? ref.id : void 0;
+  const meta = {};
+  for (const [k, v] of Object.entries(source)) {
+    if (k === "toolUrl") continue;
+    if (typeof v === "string" && v.startsWith("blob:")) continue;
+    meta[k] = v;
+  }
+  meta.baked = true;
+  meta.bakedAt = now2;
+  if (bakedFrom !== void 0) meta.bakedFrom = bakedFrom;
+  return { ...ref, source: "remote", id: `baked/${now2.toString(36)}`, meta };
+}
+function assetIdForUrl(ref) {
+  if (isBakedRef(ref) && typeof ref.meta?.bakedFrom === "string") return ref.meta.bakedFrom;
+  return ref.id;
+}
+function blocksForUrl(rows) {
+  if (!Array.isArray(rows)) return rows;
+  let changed = false;
+  const out = rows.map((row) => {
+    if (!row || typeof row !== "object") return row;
+    const rec2 = row;
+    let next = null;
+    for (const [k, v] of Object.entries(rec2)) {
+      if (!isBakedRef(v)) continue;
+      const id = assetIdForUrl(v);
+      (next ??= { ...rec2 })[k] = { source: isToolUrl(id) ? "remote" : "library", id, _unresolved: true };
+    }
+    if (next) {
+      changed = true;
+      return next;
+    }
+    return row;
+  });
+  return changed ? out : rows;
+}
+var MAX_COMPOSE_DEPTH, MAX_BAKED_URL_CHARS, ComposeGuardError;
+var init_bake = __esm({
+  "engine/src/bake.ts"() {
+    "use strict";
+    init_tool_url();
+    MAX_COMPOSE_DEPTH = 3;
+    MAX_BAKED_URL_CHARS = 12e6;
+    ComposeGuardError = class extends Error {
+      code;
+      /** The offending compose path, ancestors first, the rejected tool last. */
+      path;
+      constructor(code, path, message) {
+        super(message);
+        this.name = "ComposeGuardError";
+        this.code = code;
+        this.path = path;
+      }
+    };
   }
 });
 
@@ -10106,6 +10969,37 @@ var init_c2pa_containers = __esm({
 });
 
 // engine/src/c2pa.ts
+var c2pa_exports = {};
+__export(c2pa_exports, {
+  AI_DISCLOSURE_ASSERTION: () => AI_DISCLOSURE_ASSERTION,
+  AI_MODEL_TYPES: () => AI_MODEL_TYPES,
+  AI_MODEL_TYPE_GENERIC: () => AI_MODEL_TYPE_GENERIC,
+  BMFF_HASH_LABEL: () => BMFF_HASH_LABEL2,
+  C2PA_ATTACHMENT_MIME: () => C2PA_ATTACHMENT_MIME,
+  C2PA_BMFF_UUID: () => C2PA_BMFF_UUID,
+  C2PA_FORMATS: () => C2PA_FORMATS,
+  C2PA_SPEC_VERSION: () => C2PA_SPEC_VERSION,
+  CAPTURE_SOURCE_TYPE: () => CAPTURE_SOURCE_TYPE,
+  COMPOSITE_SOURCE_TYPE: () => COMPOSITE_SOURCE_TYPE,
+  CREATIVE_WORK_ASSERTION: () => CREATIVE_WORK_ASSERTION,
+  CborTag: () => CborTag,
+  DIGITAL_SOURCE_TYPE: () => DIGITAL_SOURCE_TYPE,
+  GENERATED_SOURCE_TYPE: () => GENERATED_SOURCE_TYPE,
+  HUMAN_OVERSIGHT_LEVELS: () => HUMAN_OVERSIGHT_LEVELS,
+  LOLLY_EXPORT_ASSERTION: () => LOLLY_EXPORT_ASSERTION,
+  METADATA_ASSERTION: () => METADATA_ASSERTION,
+  SCREEN_SOURCE_TYPE: () => SCREEN_SOURCE_TYPE,
+  attachC2paStore: () => attachC2paStore,
+  buildC2paManifest: () => buildC2paManifest,
+  buildExternalC2paStore: () => buildExternalC2paStore,
+  collectAiIngredientDeclarations: () => collectAiIngredientDeclarations,
+  embedC2pa: () => embedC2pa,
+  embedC2paInPdf: () => embedC2paInPdf,
+  encodeCbor: () => encodeCbor,
+  exportActionSteps: () => exportActionSteps,
+  generateSigner: () => generateSigner,
+  urnUuid: () => urnUuid
+});
 function cborHead(major, n2) {
   const m2 = major << 5;
   if (n2 < 24) return Uint8Array.of(m2 | n2);
@@ -10471,6 +11365,17 @@ async function buildC2paManifest({
   const ingredientManifestBoxes = ingList.flatMap((ing) => ing.manifestBoxes);
   return jumbfSuperbox(UUID_C2PA_STORE, "c2pa", ...ingredientManifestBoxes, manifest);
 }
+async function buildExternalC2paStore(bytes, opts = {}) {
+  if (!(bytes instanceof Uint8Array)) throw new Error("c2pa: buildExternalC2paStore needs the asset bytes as a Uint8Array");
+  const { hashName, ...rest } = opts;
+  return buildC2paManifest({
+    ...rest,
+    // No exclusions: the whole asset is inside the hash, because the manifest is
+    // outside the asset. buildC2paManifest omits the CDDL-empty `exclusions` key
+    // entirely for this case rather than writing a non-conformant `[]`.
+    assetHash: { exclusions: [], name: hashName || "whole document", hash: await sha256(bytes) }
+  });
+}
 var te5, subtle3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, BMFF_HASH_LABEL2, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
 var init_c2pa2 = __esm({
   "engine/src/c2pa.ts"() {
@@ -10478,6 +11383,7 @@ var init_c2pa2 = __esm({
     init_x509();
     init_bytes();
     init_c2pa_containers();
+    init_x509();
     init_c2pa_containers();
     te5 = new TextEncoder();
     subtle3 = globalThis.crypto.subtle;
@@ -10566,776 +11472,6 @@ var init_c2pa2 = __esm({
     SCIENTIFIC_DOMAIN_RE = /^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
     SEMVER_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
     C2PA_SPEC_VERSION = "2.4.0";
-  }
-});
-
-// engine/src/framing.ts
-function normalizeFraming(f) {
-  const o = f ?? {};
-  return {
-    zoom: Math.max(1, num(o.zoom, 100)),
-    x: num(o.x, 50),
-    y: num(o.y, 50),
-    rotate: num(o.rotate, 0),
-    pitch: num(o.pitch, 0),
-    yaw: num(o.yaw, 0)
-  };
-}
-function isTilted(framing) {
-  const f = normalizeFraming(framing);
-  return f.pitch !== 0 || f.yaw !== 0;
-}
-function frameRect(iw, ih, W, H, framing, fit = "cover") {
-  const f = normalizeFraming(framing);
-  if (!(iw > 0) || !(ih > 0) || !(W > 0) || !(H > 0)) {
-    return { sx: 0, sy: 0, sw: Math.max(1, iw), sh: Math.max(1, ih), dx: 0, dy: 0, dw: W, dh: H, rotate: f.rotate, originX: W / 2, originY: H / 2 };
-  }
-  const base = fit === "contain" ? Math.min(W / iw, H / ih) : Math.max(W / iw, H / ih);
-  const s = base * (f.zoom / 100);
-  const dw = iw * s, dh = ih * s;
-  const px = f.x / 100, py = f.y / 100;
-  return {
-    sx: 0,
-    sy: 0,
-    sw: iw,
-    sh: ih,
-    dx: (W - dw) * px,
-    dy: (H - dh) * py,
-    dw,
-    dh,
-    rotate: f.rotate,
-    originX: W * px,
-    originY: H * py
-  };
-}
-function framingStyle(framing, fit = "cover", perspective = FRAMING_PERSPECTIVE) {
-  const f = normalizeFraming(framing);
-  const pos = `${css(f.x)}% ${css(f.y)}%`;
-  const parts = [`object-fit:${fit === "contain" ? "contain" : "cover"}`, `object-position:${pos}`];
-  const t = [];
-  if (f.pitch || f.yaw) t.push(`perspective(${css(perspective)}px)`);
-  if (f.pitch) t.push(`rotateX(${css(f.pitch)}deg)`);
-  if (f.yaw) t.push(`rotateY(${css(f.yaw)}deg)`);
-  if (f.rotate) t.push(`rotate(${css(f.rotate)}deg)`);
-  if (f.zoom !== 100) t.push(`scale(${css(f.zoom / 100)})`);
-  if (t.length) {
-    parts.push(`transform:${t.join(" ")}`);
-    parts.push(`transform-origin:${pos}`);
-    if (f.pitch || f.yaw) parts.push("transform-style:preserve-3d");
-  }
-  return parts.join(";");
-}
-function isNeutralFraming(framing) {
-  const f = normalizeFraming(framing);
-  return f.zoom === 100 && f.x === 50 && f.y === 50 && f.rotate === 0 && f.pitch === 0 && f.yaw === 0;
-}
-function projectFramingPoint(px, py, originX, originY, f, perspective = FRAMING_PERSPECTIVE) {
-  let X = px - originX, Y = py - originY, Z = 0;
-  const rad = (d) => d * Math.PI / 180;
-  if (f.rotate) {
-    const c = Math.cos(rad(f.rotate)), s = Math.sin(rad(f.rotate));
-    const nx = X * c - Y * s, ny = X * s + Y * c;
-    X = nx;
-    Y = ny;
-  }
-  if (f.yaw) {
-    const c = Math.cos(rad(f.yaw)), s = Math.sin(rad(f.yaw));
-    const nx = X * c + Z * s, nz = -X * s + Z * c;
-    X = nx;
-    Z = nz;
-  }
-  if (f.pitch) {
-    const c = Math.cos(rad(f.pitch)), s = Math.sin(rad(f.pitch));
-    const ny = Y * c - Z * s, nz = Y * s + Z * c;
-    Y = ny;
-    Z = nz;
-  }
-  const w = perspective > 0 ? 1 - Z / perspective : 1;
-  const k = 1 / (w > 1e-3 ? w : 1e-3);
-  return { x: originX + X * k, y: originY + Y * k };
-}
-function framingQuad(iw, ih, W, H, framing, fit = "cover", perspective = FRAMING_PERSPECTIVE) {
-  const f = normalizeFraming(framing);
-  const r3 = frameRect(iw, ih, W, H, framing, fit);
-  const pt = (x, y) => projectFramingPoint(x, y, r3.originX, r3.originY, f, perspective);
-  return [
-    pt(r3.dx, r3.dy),
-    pt(r3.dx + r3.dw, r3.dy),
-    pt(r3.dx + r3.dw, r3.dy + r3.dh),
-    pt(r3.dx, r3.dy + r3.dh)
-  ];
-}
-function insideQuad(q, x, y) {
-  let sign = 0;
-  for (let i = 0; i < 4; i++) {
-    const a = q[i], b = q[(i + 1) % 4];
-    const cross = (b.x - a.x) * (y - a.y) - (b.y - a.y) * (x - a.x);
-    if (Math.abs(cross) < 1e-9) continue;
-    const s = cross > 0 ? 1 : -1;
-    if (sign === 0) sign = s;
-    else if (s !== sign) return false;
-  }
-  return true;
-}
-function minZoomForCover(iw, ih, W, H, framing, fit = "cover", perspective = FRAMING_PERSPECTIVE, max = 400) {
-  const f = normalizeFraming(framing);
-  if (fit !== "cover" || !(iw > 0) || !(ih > 0) || !(W > 0) || !(H > 0)) return f.zoom;
-  const covers = (zoom) => {
-    const q = framingQuad(iw, ih, W, H, { ...f, zoom }, fit, perspective);
-    return insideQuad(q, 0, 0) && insideQuad(q, W, 0) && insideQuad(q, W, H) && insideQuad(q, 0, H);
-  };
-  if (covers(f.zoom)) return f.zoom;
-  if (!covers(max)) return max;
-  let lo = f.zoom, hi = max;
-  for (let i = 0; i < 24; i++) {
-    const mid3 = (lo + hi) / 2;
-    if (covers(mid3)) hi = mid3;
-    else lo = mid3;
-  }
-  return Math.ceil(hi * 10) / 10;
-}
-var num, FRAMING_PERSPECTIVE, css;
-var init_framing = __esm({
-  "engine/src/framing.ts"() {
-    "use strict";
-    num = (v, dflt) => {
-      const n2 = Number(v);
-      return Number.isFinite(n2) ? n2 : dflt;
-    };
-    FRAMING_PERSPECTIVE = 1200;
-    css = (n2) => {
-      const s = n2.toFixed(3).replace(/\.?0+$/, "");
-      return s === "-0" ? "0" : s;
-    };
-  }
-});
-
-// engine/src/template.ts
-import Handlebars from "handlebars";
-function mdUrl(raw, allowed) {
-  const s = raw.trim();
-  if (!s) return "";
-  const probe = s.replace(/&amp;/g, "&").replace(/[\u0000-\u0020]+/g, "");
-  const ok3 = /^(\/\/|\/|\.|#|\?)/.test(probe) || !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(probe) ? true : allowed.test(probe);
-  return ok3 ? s.replace(/"/g, "&quot;") : "";
-}
-function readFit(v) {
-  const s = String(v ?? "").toLowerCase();
-  return FIT_VALUES.has(s) ? s : "cover";
-}
-function mediaBool(v, dflt) {
-  if (v === void 0 || v === null || v === "") return dflt;
-  if (typeof v === "boolean") return v;
-  const s = String(v).toLowerCase();
-  return s === "true" || s === "1" || s === "yes" || s === "on";
-}
-function annotateTemplate(source, inputIds) {
-  if (!inputIds.length) return source;
-  const idAlt = inputIds.map((id) => id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
-  const triple = new RegExp(`\\{\\{\\{[^}]*\\b(${idAlt})\\b[^}]*\\}\\}\\}`, "g");
-  const double = new RegExp(`(?<!\\{)\\{\\{(?![{#/!>^])[^}]*\\b(${idAlt})\\b[^}]*\\}\\}(?!\\})`, "g");
-  const tripleAttr = new RegExp(`\\{\\{\\{[^}]*\\b(${idAlt})\\b[^}]*\\}\\}\\}`);
-  const doubleAttr = new RegExp(`(?<!\\{)\\{\\{(?![{#/!>^])[^}]*\\b(${idAlt})\\b[^}]*\\}\\}(?!\\})`);
-  function annotateContent(text3) {
-    text3 = text3.replace(triple, (m2, id) => `<!-- ci:${id} -->${m2}<!-- /ci:${id} -->`);
-    text3 = text3.replace(double, (m2, id) => `<!-- ci:${id} -->${m2}<!-- /ci:${id} -->`);
-    return text3;
-  }
-  function annotateTagAttrs(tag2) {
-    if (tag2.startsWith("</") || tag2.startsWith("<!")) return tag2;
-    if (/\sdata-canvas-input=/.test(tag2)) return tag2;
-    const m2 = tripleAttr.exec(tag2) || doubleAttr.exec(tag2);
-    if (!m2) return tag2;
-    const id = m2[1];
-    const selfClose = /\/\s*>$/.exec(tag2);
-    const insertAt = selfClose ? tag2.length - selfClose[0].length : tag2.length - 1;
-    const before = tag2.slice(0, insertAt).replace(/\s+$/, "");
-    return `${before} data-canvas-input="${id}"${selfClose ? " />" : ">"}`;
-  }
-  const result = [];
-  let i = 0;
-  let contentStart = 0;
-  while (i < source.length) {
-    if (source[i] !== "<") {
-      i++;
-      continue;
-    }
-    result.push(annotateContent(source.slice(contentStart, i)));
-    const tagStart = i++;
-    let quoteChar = "";
-    while (i < source.length) {
-      const ch = source[i++];
-      if (quoteChar) {
-        if (ch === quoteChar) quoteChar = "";
-      } else if (ch === '"' || ch === "'") {
-        quoteChar = ch;
-      } else if (ch === ">") {
-        break;
-      }
-    }
-    const tag2 = annotateTagAttrs(source.slice(tagStart, i));
-    result.push(tag2);
-    contentStart = i;
-    const raw = /^<(script|style)(?:\s|>)/i.exec(tag2);
-    if (raw && !tag2.endsWith("/>")) {
-      const close = new RegExp(`</${raw[1]}\\s*>`, "i").exec(source.slice(i));
-      if (close) {
-        const rawEnd = i + close.index;
-        result.push(source.slice(i, rawEnd));
-        i = rawEnd;
-        contentStart = rawEnd;
-      }
-    }
-  }
-  result.push(annotateContent(source.slice(contentStart)));
-  return result.join("");
-}
-function hydrate(templateSource, values, { raw = false } = {}) {
-  const key = raw ? " raw " + templateSource : templateSource;
-  let compiled = compileCache.get(key);
-  if (compiled) {
-    compileCache.delete(key);
-    compileCache.set(key, compiled);
-  } else {
-    compiled = Handlebars.compile(templateSource, { noEscape: raw });
-    compileCache.set(key, compiled);
-    if (compileCache.size > COMPILE_CACHE_MAX) {
-      const oldest = compileCache.keys().next().value;
-      if (oldest !== void 0) compileCache.delete(oldest);
-    }
-  }
-  return compiled(values);
-}
-var ARROW_GLYPHS, ARROW_CLASSES, LEADING_ARROW, MD_ESCAPE, MD_BULLET, MD_ORDERED, MD_HEADING, MD_IMAGE, MD_LINK, MD_LINK_SCHEMES, MD_IMAGE_SCHEMES, FIT_VALUES, COMPILE_CACHE_MAX, compileCache;
-var init_template = __esm({
-  "engine/src/template.ts"() {
-    "use strict";
-    init_framing();
-    Handlebars.registerHelper("default", (val, fallback) => val ?? fallback);
-    Handlebars.registerHelper("upper", (s) => typeof s === "string" ? s.toUpperCase() : s);
-    Handlebars.registerHelper("lower", (s) => typeof s === "string" ? s.toLowerCase() : s);
-    Handlebars.registerHelper("eq", (a, b) => a === b);
-    Handlebars.registerHelper("icsStamp", (value) => {
-      const s = String(value ?? "").trim();
-      if (!s) return "";
-      const digits = s.replace(/[-:]/g, "");
-      const [d = "", t] = digits.split("T");
-      if (t === void 0) return d;
-      return `${d}T${(t + "0000").slice(0, 6)}`;
-    });
-    Handlebars.registerHelper("rfcText", (value) => String(value ?? "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n"));
-    Handlebars.registerHelper("csvCell", (value) => {
-      const s = String(value ?? "");
-      return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    });
-    ARROW_GLYPHS = { ">": "\u2192", "<": "\u2190", "^": "\u2191", "v": "\u2193" };
-    ARROW_CLASSES = { ">": "md-arrow", "<": "md-arrow-left", "^": "md-arrow-up", "v": "md-arrow-down" };
-    LEADING_ARROW = /^\s*([<>^v])\s+/;
-    Handlebars.registerHelper("arrow", (text3) => text3 == null ? "" : String(text3).replace(LEADING_ARROW, (_, m2) => (ARROW_GLYPHS[m2] ?? m2) + " "));
-    MD_ESCAPE = { "&": "&amp;", "<": "&lt;", ">": "&gt;" };
-    MD_BULLET = /^\s*([-*<>^v])\s+/;
-    MD_ORDERED = /^\s*\d+[.)]\s+/;
-    MD_HEADING = /^\s*(#{1,6})\s+(\S.*)$/;
-    MD_IMAGE = /!\[([^\]]*)\]\(([^)\s]+)\)/g;
-    MD_LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
-    MD_LINK_SCHEMES = /^(https?|mailto|tel):/i;
-    MD_IMAGE_SCHEMES = /^(https?|data|blob):/i;
-    Handlebars.registerHelper("markdown", (text3) => {
-      if (text3 == null || text3 === "") return new Handlebars.SafeString("");
-      const inline = (raw) => {
-        const urls = [];
-        const park = (u) => `\0${urls.push(u) - 1}\0`;
-        return raw.replace(/\u0000/g, "").replace(/[&<>]/g, (c) => MD_ESCAPE[c] ?? c).replace(MD_IMAGE, (whole, alt, url) => {
-          const safe = mdUrl(url, MD_IMAGE_SCHEMES);
-          if (!safe) return alt || whole;
-          return `<img class="md-image" src="${park(safe)}" alt="${alt.replace(/"/g, "&quot;")}">`;
-        }).replace(MD_LINK, (_, label, url) => {
-          const safe = mdUrl(url, MD_LINK_SCHEMES);
-          return safe ? `<a href="${park(safe)}">${label}</a>` : label;
-        }).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/~~(.+?)~~/g, "<del>$1</del>").replace(/\*([^*\n]+?)\*/g, "<em>$1</em>").replace(/\u0000(\d+)\u0000/g, (_, i) => urls[Number(i)] ?? "");
-      };
-      const renderRun = (lines) => {
-        if (lines.every((l) => MD_BULLET.test(l))) {
-          const items = lines.map((l) => {
-            const arrowClass = ARROW_CLASSES[l.match(MD_BULLET)?.[1] ?? ""];
-            const cls = arrowClass ? ` class="${arrowClass}"` : "";
-            return `<li${cls}>${inline(l.replace(MD_BULLET, ""))}</li>`;
-          }).join("");
-          return `<ul>${items}</ul>`;
-        }
-        if (lines.every((l) => MD_ORDERED.test(l))) {
-          const items = lines.map((l, i) => `<li><span class="md-index">${i + 1}.</span> ${inline(l.replace(MD_ORDERED, ""))}</li>`).join("");
-          return `<ol style="list-style:none">${items}</ol>`;
-        }
-        return `<p>${lines.map((l) => inline(l)).join("<br>")}</p>`;
-      };
-      const html = String(text3).split(/\n{2,}/).filter((b) => b.trim()).map((block) => {
-        const lines = block.split("\n").filter((l) => l.trim() !== "");
-        const out = [];
-        let run = [];
-        const flushRun = () => {
-          if (run.length) {
-            out.push(renderRun(run));
-            run = [];
-          }
-        };
-        for (const line of lines) {
-          const h = line.match(MD_HEADING);
-          if (h) {
-            flushRun();
-            const level = h[1].length;
-            out.push(`<h${level}>${inline(h[2])}</h${level}>`);
-          } else {
-            run.push(line);
-          }
-        }
-        flushRun();
-        return out.join("");
-      }).join("");
-      return new Handlebars.SafeString(html);
-    });
-    Handlebars.registerHelper("asset", (ref, field) => {
-      if (!ref || typeof ref !== "object") return "";
-      if (typeof field === "string") {
-        const v = Reflect.get(ref, field);
-        return v ?? "";
-      }
-      const url = Reflect.get(ref, "url");
-      return url ?? "";
-    });
-    FIT_VALUES = /* @__PURE__ */ new Set(["cover", "contain"]);
-    Handlebars.registerHelper("framing", function(idArg, options2) {
-      const esc9 = Handlebars.escapeExpression;
-      const id = String(idArg ?? "").trim();
-      if (!id) return new Handlebars.SafeString("");
-      const hash = options2?.hash ?? {};
-      const root = options2?.data?.root ?? {};
-      const blockId = hash.block != null ? String(hash.block) : "";
-      let framing;
-      let fitRaw;
-      let marker;
-      if (blockId) {
-        const row = this && typeof this === "object" ? this : {};
-        framing = {
-          zoom: Number(row[`${id}Zoom`]),
-          x: Number(row[`${id}X`]),
-          y: Number(row[`${id}Y`]),
-          rotate: Number(row[`${id}Rotate`]),
-          pitch: Number(row[`${id}Pitch`]),
-          yaw: Number(row[`${id}Yaw`])
-        };
-        fitRaw = hash.fit != null ? root[String(hash.fit)] ?? hash.fit : row[`${id}Fit`] ?? root[`${id}Fit`];
-        const idx = Number(hash.index);
-        marker = `${blockId}:${Number.isFinite(idx) ? idx : 0}:${id}`;
-      } else {
-        const v = root[id];
-        framing = v && typeof v === "object" ? v : {};
-        const fitId = hash.fit != null ? String(hash.fit) : id.replace(/Framing$/, "") + "Fit";
-        fitRaw = root[fitId] ?? (hash.fit != null ? hash.fit : void 0);
-        marker = id;
-      }
-      const perspRaw = Number(hash.persp);
-      const style = framingStyle(framing, readFit(fitRaw), Number.isFinite(perspRaw) && perspRaw > 0 ? perspRaw : void 0);
-      const extra = hash.style != null ? `;${String(hash.style)}` : "";
-      return new Handlebars.SafeString(`style="${esc9(style + extra)}" data-framing="${esc9(marker)}"`);
-    });
-    Handlebars.registerHelper("media", (ref, options2) => {
-      const empty2 = new Handlebars.SafeString("");
-      if (!ref || typeof ref !== "object") return empty2;
-      const esc9 = Handlebars.escapeExpression;
-      const get3 = (k) => Reflect.get(ref, k);
-      const url = get3("url");
-      if (typeof url !== "string" || !url) return empty2;
-      const type = String(get3("type") ?? "");
-      const meta = get3("meta") && typeof get3("meta") === "object" ? get3("meta") : {};
-      const hash = options2?.hash ?? {};
-      const cls = hash.class != null ? ` class="${esc9(String(hash.class))}"` : "";
-      const root = options2?.data?.root ?? {};
-      const framingId = hash.framing != null ? String(hash.framing) : "";
-      const framingCss = framingId ? framingStyle(
-        root[framingId] && typeof root[framingId] === "object" ? root[framingId] : {},
-        readFit(root[hash.fit != null ? String(hash.fit) : framingId.replace(/Framing$/, "") + "Fit"] ?? hash.fit)
-      ) : "";
-      const styleText = [framingCss, hash.style != null ? String(hash.style) : ""].filter(Boolean).join(";");
-      const marker = framingId ? ` data-framing="${esc9(framingId)}"` : "";
-      const style = styleText ? ` style="${esc9(styleText)}"${marker}` : marker;
-      if (type === "lottie" || /\.json($|\?|#)/i.test(url)) {
-        const loop = mediaBool(hash.loop, true) ? "1" : "0";
-        const autoplay = mediaBool(hash.autoplay, true) ? "1" : "0";
-        const fit = hash.fit === "cover" ? "cover" : "contain";
-        return new Handlebars.SafeString(
-          `<div${cls} data-lottie-src="${esc9(url)}" data-lottie-loop="${loop}" data-lottie-autoplay="${autoplay}" data-lottie-fit="${fit}"${style}></div>`
-        );
-      }
-      if (type === "video" || /\.(mp4|m4v|mov|webm)($|\?|#)/i.test(url)) {
-        const poster = typeof meta.posterUrl === "string" && meta.posterUrl ? ` poster="${esc9(meta.posterUrl)}"` : "";
-        const keyRaw = hash.key != null ? String(hash.key) : typeof get3("id") === "string" ? String(get3("id")) : url;
-        const flags = [
-          mediaBool(hash.autoplay, true) ? "autoplay" : "",
-          mediaBool(hash.loop, true) ? "loop" : "",
-          mediaBool(hash.muted, true) ? "muted" : "",
-          mediaBool(hash.controls, false) ? "controls" : "",
-          "playsinline"
-        ].filter(Boolean).join(" ");
-        return new Handlebars.SafeString(`<video${cls} src="${esc9(url)}" data-video-key="${esc9(keyRaw)}"${poster} ${flags}${style}></video>`);
-      }
-      const alt = esc9(String(hash.alt ?? meta.name ?? ""));
-      return new Handlebars.SafeString(`<img${cls} src="${esc9(url)}" alt="${alt}"${style}>`);
-    });
-    COMPILE_CACHE_MAX = 50;
-    compileCache = /* @__PURE__ */ new Map();
-  }
-});
-
-// engine/src/metadata.ts
-async function buildExportMeta(host, manifest, profile, inputs) {
-  let p = {};
-  if (profile == null) {
-    try {
-      p = await host?.profile?.get() ?? {};
-    } catch {
-      p = {};
-    }
-  } else {
-    p = profile;
-  }
-  const clean2 = (s) => s == null ? "" : String(s).trim();
-  const optedIn = p.useDetails === true;
-  const author = optedIn ? [clean2(p.firstname), clean2(p.lastname)].filter(Boolean).join(" ") : "";
-  const contact = optedIn ? [clean2(p.email), clean2(p.phone)].filter(Boolean).join(" \xB7 ") : "";
-  const tool = clean2(manifest?.name) || clean2(manifest?.id);
-  const toolId = clean2(manifest?.id);
-  const toolVersion = clean2(manifest?.version);
-  const description = ["Made with https://lolly.tools", tool && `: ${tool}`, author && `by ${author}`].filter(Boolean).join(" ");
-  const meta = {
-    software: "Lolly",
-    // The tool's own page in the canonical share form (/t/<id>, engine/src/tool-url.ts)
-    // when the id is known, else the site root. An identifier only - no inputs ride here.
-    source: toolId ? `https://lolly.tools/t/${toolId}` : "https://lolly.tools",
-    tool,
-    ...toolId ? { toolId } : {},
-    ...toolVersion ? { toolVersion } : {},
-    author,
-    // '' if not opted in
-    contact,
-    // '' if none
-    description
-  };
-  if (inputs) {
-    for (const i of inputs) {
-      const field = i.bindToMeta;
-      if (!field) continue;
-      const v = clean2(i.value == null ? "" : String(i.value));
-      if (v) meta[field] = v;
-    }
-  }
-  return meta;
-}
-var init_metadata = __esm({
-  "engine/src/metadata.ts"() {
-    "use strict";
-  }
-});
-
-// engine/src/compose.ts
-async function resolveNestedRenders(tool, model2, extras, host, composeStack = [], memo = /* @__PURE__ */ new Map()) {
-  const specs = tool?.manifest?.composes;
-  if (!host?.compose || !Array.isArray(specs) || specs.length === 0) return {};
-  const compose = host.compose;
-  const ctx = { ...modelToValues(model2), ...extras };
-  const out = {};
-  for (const spec of specs) {
-    if (!spec || typeof spec.id !== "string" || typeof spec.tool !== "string") continue;
-    const inputs = {};
-    for (const [k, v] of Object.entries(spec.inputs ?? {})) {
-      inputs[k] = typeof v === "string" ? hydrate(v, ctx, { raw: true }) : v;
-    }
-    const key = composeKey(spec.tool, inputs, spec.format, spec.width, spec.height);
-    const cached2 = memo.get(spec.id);
-    if (cached2 && cached2.key === key) {
-      out[spec.id] = cached2.ref;
-      ctx[spec.id] = cached2.ref;
-      continue;
-    }
-    try {
-      const ref = await withTimeout(compose.render({
-        toolId: spec.tool,
-        inputs,
-        format: spec.format,
-        width: spec.width,
-        height: spec.height,
-        _stack: [...composeStack, tool.manifest.id]
-      }), COMPOSE_TIMEOUT_MS, spec.tool);
-      if (ref && typeof ref.url === "string") {
-        out[spec.id] = ref;
-        ctx[spec.id] = ref;
-        memo.set(spec.id, { key, ref });
-      } else {
-        out[spec.id] = null;
-        memo.delete(spec.id);
-      }
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      host.log?.("warn", `compose "${spec.tool}": ${message}`, { toolId: tool.manifest.id });
-      out[spec.id] = null;
-      memo.delete(spec.id);
-    }
-  }
-  return out;
-}
-function withTimeout(promise, ms, toolId) {
-  return new Promise((resolve3, reject) => {
-    const t = setTimeout(() => reject(new Error(`timed out after ${ms}ms (${toolId})`)), ms);
-    Promise.resolve(promise).then(
-      (v) => {
-        clearTimeout(t);
-        resolve3(v);
-      },
-      (e) => {
-        clearTimeout(t);
-        reject(e);
-      }
-    );
-  });
-}
-function composeKey(toolId, inputs, format, width, height) {
-  return `${toolId}|${stableStringify(inputs)}|${format ?? ""}|${width ?? ""}x${height ?? ""}`;
-}
-function stableStringify(value) {
-  if (!isObjectLike(value)) return JSON.stringify(value) ?? "null";
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
-  return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${stableStringify(value[k])}`).join(",")}}`;
-}
-var COMPOSE_TIMEOUT_MS, isObjectLike;
-var init_compose2 = __esm({
-  "engine/src/compose.ts"() {
-    "use strict";
-    init_template();
-    init_inputs();
-    COMPOSE_TIMEOUT_MS = 1e4;
-    isObjectLike = (v) => typeof v === "object" && v !== null;
-  }
-});
-
-// engine/src/embed.ts
-function parseEmbedUrl(src) {
-  if (typeof src !== "string" || src.length > 4096) return null;
-  let u;
-  try {
-    u = new URL(src);
-  } catch {
-    return null;
-  }
-  const host = u.hostname.replace(/\.$/, "");
-  if (u.protocol !== "https:" || host !== EMBED_HOST) return null;
-  const m2 = /^\/tool\/([a-z0-9-]+)\.([A-Za-z0-9]+)$/.exec(u.pathname);
-  if (!m2) return null;
-  const toolId = m2[1];
-  const ext = m2[2]?.toLowerCase();
-  if (toolId === void 0 || ext === void 0) return null;
-  const format = EXT_FORMAT[ext];
-  if (!format || !ID_RE.test(toolId)) return null;
-  return { toolId, ext, format, query: u.search.replace(/^\?/, "") };
-}
-var EMBED_HOST, EXT_FORMAT, ID_RE;
-var init_embed = __esm({
-  "engine/src/embed.ts"() {
-    "use strict";
-    EMBED_HOST = "lolly.tools";
-    EXT_FORMAT = { png: "png", jpg: "jpg", jpeg: "jpeg", webp: "webp", svg: "svg", pdf: "pdf", webm: "webm", mp4: "mp4", gif: "gif", apng: "apng" };
-    ID_RE = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
-  }
-});
-
-// engine/src/tool-url.ts
-function lollySchemeToHttps(src) {
-  if (!LOLLY_SCHEME_RE.test(src)) return src;
-  const rest = src.replace(LOLLY_SCHEME_RE, "").replace(LOLLY_HOST_RE, "");
-  return `https://lolly.tools/${rest}`;
-}
-function parseToolUrl(src) {
-  if (typeof src !== "string") return null;
-  const s = lollySchemeToHttps(src.trim());
-  if (!s || s.length > MAX_URL) return null;
-  const embed = parseEmbedUrl(s);
-  if (embed) return { toolId: embed.toolId, format: embed.format, query: embed.query };
-  let u;
-  try {
-    u = new URL(s);
-  } catch {
-    return null;
-  }
-  if (u.protocol !== "http:" && u.protocol !== "https:") return null;
-  if (u.hash) {
-    const hash = u.hash.replace(/^#\/?/, "");
-    const qi = hash.indexOf("?");
-    const hPath = qi === -1 ? hash : hash.slice(0, qi);
-    const hQuery = qi === -1 ? "" : hash.slice(qi + 1);
-    const m2 = /^tool\/([a-z0-9-]+)$/.exec(hPath);
-    const hId = m2?.[1];
-    if (hId !== void 0 && ID_RE2.test(hId)) return { toolId: hId, format: null, query: hQuery };
-  }
-  const segs = u.pathname.split("/").filter(Boolean);
-  const cand = segs.length === 2 && (segs[0] === "tool" || segs[0] === "t") ? segs[1] : segs.length === 1 ? segs[0] : null;
-  if (cand && ID_RE2.test(cand) && !APP_PATH_WORDS.has(cand)) {
-    return { toolId: cand, format: null, query: u.search.replace(/^\?/, "") };
-  }
-  return null;
-}
-function isToolUrl(src) {
-  return parseToolUrl(src) !== null;
-}
-function buildEmbedUrl({ toolId, format, query = "" } = {}) {
-  if (typeof toolId !== "string" || !ID_RE2.test(toolId)) return null;
-  const ext = FORMAT_EXT[String(format || "").toLowerCase()] || "svg";
-  const q = String(query || "").replace(/^\?/, "");
-  const url = q ? `https://lolly.tools/tool/${toolId}.${ext}?${q}` : `https://lolly.tools/tool/${toolId}.${ext}`;
-  return url.length > MAX_URL ? null : url;
-}
-var ID_RE2, FORMAT_EXT, APP_PATH_WORDS, MAX_URL, LOLLY_SCHEME_RE, LOLLY_HOST_RE;
-var init_tool_url = __esm({
-  "engine/src/tool-url.ts"() {
-    "use strict";
-    init_embed();
-    ID_RE2 = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
-    FORMAT_EXT = { png: "png", jpg: "jpg", jpeg: "jpg", webp: "webp", svg: "svg", pdf: "pdf", webm: "webm", mp4: "mp4", gif: "gif", apng: "apng" };
-    APP_PATH_WORDS = /* @__PURE__ */ new Set([
-      "tool",
-      "t",
-      "tools",
-      "batch",
-      "pro",
-      "start",
-      "verify",
-      "valid",
-      "v",
-      "c",
-      "catalog",
-      "u",
-      "utilities",
-      "p",
-      "projects",
-      "d",
-      "dashboard",
-      "b",
-      "brand",
-      "lab",
-      "unpack",
-      "pdf",
-      "docs",
-      "components",
-      "ask",
-      "multi",
-      "convert",
-      "data",
-      "script",
-      "join",
-      "join-reply",
-      "profile",
-      "gallery",
-      "platform",
-      "capabilities",
-      "info",
-      "og",
-      "api",
-      "assets",
-      "fonts",
-      "ort",
-      "ort-hf",
-      "models",
-      "icons",
-      "l",
-      "a"
-    ]);
-    MAX_URL = 4096;
-    LOLLY_SCHEME_RE = /^lolly:\/\/+/i;
-    LOLLY_HOST_RE = /^(?:www\.)?lolly\.(?:tools|art)(?=[/?#]|$)\/?/i;
-  }
-});
-
-// engine/src/bake.ts
-function assertComposeStack(stack, toolId, maxDepth = MAX_COMPOSE_DEPTH) {
-  const path = [...stack, toolId];
-  if (stack.includes(toolId)) {
-    throw new ComposeGuardError("cycle", path, `cycle ${path.join(" \u2192 ")}`);
-  }
-  if (stack.length >= maxDepth) {
-    throw new ComposeGuardError("depth", path, `max depth ${maxDepth} (${path.join(" \u2192 ")})`);
-  }
-}
-function isBakedRef(v) {
-  if (!v || typeof v !== "object") return false;
-  const meta = v.meta;
-  return !!meta && typeof meta === "object" && meta.baked === true;
-}
-function bakeError(code, message) {
-  const err = new Error(message);
-  err.code = code;
-  throw err;
-}
-function bakeAssetRef(ref, opts = {}) {
-  if (typeof ref?.url !== "string" || !ref.url.startsWith("data:")) {
-    bakeError("BAKE_NOT_SELF_CONTAINED", `bake: asset url must be a data: URL (got ${String(ref?.url).slice(0, 32)}\u2026)`);
-  }
-  if (ref.url.length > MAX_BAKED_URL_CHARS) {
-    bakeError("BAKE_TOO_LARGE", `bake: data: URL is ${ref.url.length} chars (max ${MAX_BAKED_URL_CHARS})`);
-  }
-  const now2 = opts.now ?? Date.now();
-  const source = ref.meta ?? {};
-  const bakedFrom = typeof source.toolUrl === "string" ? source.toolUrl : isToolUrl(ref.id) ? ref.id : void 0;
-  const meta = {};
-  for (const [k, v] of Object.entries(source)) {
-    if (k === "toolUrl") continue;
-    if (typeof v === "string" && v.startsWith("blob:")) continue;
-    meta[k] = v;
-  }
-  meta.baked = true;
-  meta.bakedAt = now2;
-  if (bakedFrom !== void 0) meta.bakedFrom = bakedFrom;
-  return { ...ref, source: "remote", id: `baked/${now2.toString(36)}`, meta };
-}
-function assetIdForUrl(ref) {
-  if (isBakedRef(ref) && typeof ref.meta?.bakedFrom === "string") return ref.meta.bakedFrom;
-  return ref.id;
-}
-function blocksForUrl(rows) {
-  if (!Array.isArray(rows)) return rows;
-  let changed = false;
-  const out = rows.map((row) => {
-    if (!row || typeof row !== "object") return row;
-    const rec2 = row;
-    let next = null;
-    for (const [k, v] of Object.entries(rec2)) {
-      if (!isBakedRef(v)) continue;
-      const id = assetIdForUrl(v);
-      (next ??= { ...rec2 })[k] = { source: isToolUrl(id) ? "remote" : "library", id, _unresolved: true };
-    }
-    if (next) {
-      changed = true;
-      return next;
-    }
-    return row;
-  });
-  return changed ? out : rows;
-}
-var MAX_COMPOSE_DEPTH, MAX_BAKED_URL_CHARS, ComposeGuardError;
-var init_bake = __esm({
-  "engine/src/bake.ts"() {
-    "use strict";
-    init_tool_url();
-    MAX_COMPOSE_DEPTH = 3;
-    MAX_BAKED_URL_CHARS = 12e6;
-    ComposeGuardError = class extends Error {
-      code;
-      /** The offending compose path, ancestors first, the rejected tool last. */
-      path;
-      constructor(code, path, message) {
-        super(message);
-        this.name = "ComposeGuardError";
-        this.code = code;
-        this.path = path;
-      }
-    };
   }
 });
 
@@ -12880,6 +13016,19 @@ var init_c2pa_verdict = __esm({
   }
 });
 
+// engine/src/ai-kind.ts
+var AI_SOURCE_TYPES, aiKind;
+var init_ai_kind = __esm({
+  "engine/src/ai-kind.ts"() {
+    "use strict";
+    AI_SOURCE_TYPES = {
+      trainedAlgorithmicMedia: "generated",
+      compositeWithTrainedAlgorithmicMedia: "composite"
+    };
+    aiKind = (sourceType) => AI_SOURCE_TYPES[(typeof sourceType === "string" ? sourceType : "").split("/").pop() ?? ""];
+  }
+});
+
 // engine/src/c2pa-extract.ts
 function decodeItem(b, i, depth = 0) {
   if (i >= b.length) throw new Error("cbor: truncated");
@@ -13949,11 +14098,12 @@ function prepareC2paIngredientFromStore(store, format) {
   }
   return { manifestBoxes, activeLabel, title, format, digitalSourceType };
 }
-var td, te6, CBOR_BREAK, MAX_CBOR_DEPTH, contentOf, ascii, SNIFF_HEAD_BYTES, SNIFF_TAIL_BYTES, MAX_FULL_SCAN_BYTES, MAX_TEXT_BYTES, HTML_MARKER, ARMOR_BEGIN2, ARMOR_END2, HTML_C2PA_SCRIPT, HTML_C2PA_LINK, hasHtmlC2paCarrier, TEXT_WRAPPER_SIGNATURE, u32At, isC2paBmffBox, MKV_ATTACHMENTS, MKV_ATTACHEDFILE, MKV_FILEMIMETYPE, MKV_FILEDATA, C2PA_TEXT_STATUS, tooLarge, BASE64_ONLY, MAX_HTML_REFS, MAX_HTML_ATTRS2, SPACE, BOM_CP, VS_LOW_START, VS_LOW_END, VS_HIGH_START, VS_HIGH_END, WRAPPER_MAGIC, MAX_TEXT_WRAPPERS, variationSelectorToByte, utf8Len, TEXT_READERS, asExtractor, EXTRACTORS, AI_SOURCE_TYPES, aiKind;
+var td, te6, CBOR_BREAK, MAX_CBOR_DEPTH, contentOf, ascii, SNIFF_HEAD_BYTES, SNIFF_TAIL_BYTES, MAX_FULL_SCAN_BYTES, MAX_TEXT_BYTES, HTML_MARKER, ARMOR_BEGIN2, ARMOR_END2, HTML_C2PA_SCRIPT, HTML_C2PA_LINK, hasHtmlC2paCarrier, TEXT_WRAPPER_SIGNATURE, u32At, isC2paBmffBox, MKV_ATTACHMENTS, MKV_ATTACHEDFILE, MKV_FILEMIMETYPE, MKV_FILEDATA, C2PA_TEXT_STATUS, tooLarge, BASE64_ONLY, MAX_HTML_REFS, MAX_HTML_ATTRS2, SPACE, BOM_CP, VS_LOW_START, VS_LOW_END, VS_HIGH_START, VS_HIGH_END, WRAPPER_MAGIC, MAX_TEXT_WRAPPERS, variationSelectorToByte, utf8Len, TEXT_READERS, asExtractor, EXTRACTORS;
 var init_c2pa_extract = __esm({
   "engine/src/c2pa-extract.ts"() {
     "use strict";
     init_c2pa2();
+    init_ai_kind();
     init_video_meta();
     init_bytes();
     init_ogg();
@@ -14061,15 +14211,26 @@ var init_c2pa_extract = __esm({
       code: asExtractor(readArmor),
       text: asExtractor(readTextVs)
     };
-    AI_SOURCE_TYPES = {
-      trainedAlgorithmicMedia: "generated",
-      compositeWithTrainedAlgorithmicMedia: "composite"
-    };
-    aiKind = (sourceType) => AI_SOURCE_TYPES[(typeof sourceType === "string" ? sourceType : "").split("/").pop() ?? ""];
   }
 });
 
 // engine/src/c2pa-verify.ts
+var c2pa_verify_exports = {};
+__export(c2pa_verify_exports, {
+  aiKind: () => aiKind,
+  collectIngredients: () => collectIngredients,
+  decodeCbor: () => decodeCbor,
+  extractC2paFromPdf: () => extractC2paFromPdf,
+  extractC2paStore: () => extractC2paStore,
+  parseC2paStore: () => parseC2paStore,
+  parseCertificate: () => parseCertificate,
+  prepareC2paIngredient: () => prepareC2paIngredient,
+  prepareC2paIngredientFromStore: () => prepareC2paIngredientFromStore,
+  signedBy: () => signedBy,
+  sniffFormat: () => sniffFormat,
+  verifyC2pa: () => verifyC2pa,
+  verifyC2paPdf: () => verifyC2paPdf
+});
 function decodeOid(b, tlv) {
   const bytes = b.slice(tlv.contentStart, tlv.end);
   const parts = [Math.floor(bytes[0] / 40), bytes[0] % 40];
@@ -14916,6 +15077,12 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   if (host.version !== "1") {
     throw new Error(`Tool requires host bridge v1, got v${host.version}`);
   }
+  const unmetApis = missingRequires(tool.manifest.requires, host);
+  if (unmetApis.length) {
+    throw new Error(
+      `"${tool.manifest.id}" requires host.${unmetApis.join(", host.")} and this ${host.shell} shell does not provide ${unmetApis.length === 1 ? "it" : "them"}`
+    );
+  }
   const composeStack = opts.composeStack ?? [];
   const composeMemo = /* @__PURE__ */ new Map();
   let setInputSeq = 0;
@@ -15477,7 +15644,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         for (const id of ids2) {
           try {
             const cred = await host.assets.credential(id);
-            const ing = cred?.store ? prepareC2paIngredientFromStore(cred.store, cred.format) : null;
+            const ing = cred?.store ? (await Promise.resolve().then(() => (init_c2pa_verify(), c2pa_verify_exports))).prepareC2paIngredientFromStore(cred.store, cred.format) : null;
             if (ing) prepared2.push(ing);
           } catch {
           }
@@ -15524,7 +15691,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           if (c2paAiUpscale) break;
         }
       }
-      const c2paAiIngredients = stampProvenance ? collectAiIngredientDeclarations(model2) : [];
+      const c2paAiIngredients = stampProvenance ? (await Promise.resolve().then(() => (init_c2pa2(), c2pa_exports))).collectAiIngredientDeclarations(model2) : [];
       let blob;
       try {
         blob = await host.export.render(renderedNode, format, {
@@ -15759,7 +15926,7 @@ var HOOK_BUDGET_MS, ALPHA_EXPORT_FORMATS, DATA_FORMATS, hookFactoryCache, inReal
 var init_runtime = __esm({
   "engine/src/runtime.ts"() {
     "use strict";
-    init_c2pa2();
+    init_src();
     init_inputs();
     init_template();
     init_metadata();
@@ -15767,7 +15934,6 @@ var init_runtime = __esm({
     init_compose2();
     init_tool_url();
     init_bake();
-    init_c2pa_verify();
     init_asset_provider();
     HOOK_BUDGET_MS = {
       onInit: 5e3,
@@ -19157,7 +19323,7 @@ var META_GROUP_ORDER, META_GROUP_LABEL, MAX_FIELDS, MAX_VALUE_CHARS, MAX_TEXT_SC
 var init_file_metadata = __esm({
   "engine/src/file-metadata.ts"() {
     "use strict";
-    init_c2pa_verify();
+    init_ai_kind();
     init_jpeg_segments();
     META_GROUP_ORDER = [
       "location",
@@ -19826,6 +19992,5198 @@ var init_document_api = __esm({
   }
 });
 
+// engine/src/geom/bezier.ts
+function lineToCubic(x0, y0, x1, y1) {
+  return [x0, y0, x0 + (x1 - x0) / 3, y0 + (y1 - y0) / 3, x0 + 2 * (x1 - x0) / 3, y0 + 2 * (y1 - y0) / 3, x1, y1];
+}
+function evalCubic(c, t) {
+  const mt = 1 - t;
+  const a = mt * mt * mt, b = 3 * mt * mt * t, d = 3 * mt * t * t, e = t * t * t;
+  return {
+    x: a * c[0] + b * c[2] + d * c[4] + e * c[6],
+    y: a * c[1] + b * c[3] + d * c[5] + e * c[7]
+  };
+}
+function tangentAt(c, t) {
+  const mt = 1 - t;
+  const a = 3 * mt * mt, b = 6 * mt * t, d = 3 * t * t;
+  return {
+    x: a * (c[2] - c[0]) + b * (c[4] - c[2]) + d * (c[6] - c[4]),
+    y: a * (c[3] - c[1]) + b * (c[5] - c[3]) + d * (c[7] - c[5])
+  };
+}
+function splitCubic(c, t) {
+  const [x0, y0, x1, y1, x2, y2, x3, y3] = c;
+  const ax = x0 + (x1 - x0) * t, ay = y0 + (y1 - y0) * t;
+  const bx = x1 + (x2 - x1) * t, by = y1 + (y2 - y1) * t;
+  const cx = x2 + (x3 - x2) * t, cy = y2 + (y3 - y2) * t;
+  const dx = ax + (bx - ax) * t, dy = ay + (by - ay) * t;
+  const ex = bx + (cx - bx) * t, ey = by + (cy - by) * t;
+  const fx = dx + (ex - dx) * t, fy = dy + (ey - dy) * t;
+  return [
+    [x0, y0, ax, ay, dx, dy, fx, fy],
+    [fx, fy, ex, ey, cx, cy, x3, y3]
+  ];
+}
+function subCubic(c, t0, t1) {
+  if (t0 === 0 && t1 === 1) return [...c];
+  if (t0 > t1) return subCubic(c, t1, t0);
+  const right = t0 > 0 ? splitCubic(c, t0)[1] : c;
+  if (t1 >= 1) return [...right];
+  const t = t0 > 0 ? (t1 - t0) / (1 - t0) : t1;
+  return splitCubic(right, t)[0];
+}
+function quadRoots01(a, b, c) {
+  const out = [];
+  if (Math.abs(a) < 1e-12) {
+    if (Math.abs(b) > 1e-12) {
+      const t = -c / b;
+      if (t > 0 && t < 1) out.push(t);
+    }
+    return out;
+  }
+  const disc = b * b - 4 * a * c;
+  if (disc < 0) return out;
+  const s = Math.sqrt(disc);
+  for (const t of [(-b + s) / (2 * a), (-b - s) / (2 * a)]) if (t > 0 && t < 1) out.push(t);
+  return out;
+}
+function extremaCubic(c) {
+  const ts = [];
+  for (const off of [0, 1]) {
+    const p0 = c[off], p1 = c[2 + off], p2 = c[4 + off], p3 = c[6 + off];
+    ts.push(...quadRoots01(
+      3 * (-p0 + 3 * p1 - 3 * p2 + p3),
+      6 * (p0 - 2 * p1 + p2),
+      3 * (p1 - p0)
+    ));
+  }
+  return ts.sort((a, b) => a - b);
+}
+function boundsCubic(c) {
+  let x0 = Math.min(c[0], c[6]), x1 = Math.max(c[0], c[6]);
+  let y0 = Math.min(c[1], c[7]), y1 = Math.max(c[1], c[7]);
+  for (const t of extremaCubic(c)) {
+    const p = evalCubic(c, t);
+    if (p.x < x0) x0 = p.x;
+    if (p.x > x1) x1 = p.x;
+    if (p.y < y0) y0 = p.y;
+    if (p.y > y1) y1 = p.y;
+  }
+  return { x0, y0, x1, y1 };
+}
+function hullBounds(c) {
+  return {
+    x0: Math.min(c[0], c[2], c[4], c[6]),
+    x1: Math.max(c[0], c[2], c[4], c[6]),
+    y0: Math.min(c[1], c[3], c[5], c[7]),
+    y1: Math.max(c[1], c[3], c[5], c[7])
+  };
+}
+function boxesOverlap(a, b, eps = 0) {
+  return a.x0 - eps <= b.x1 && b.x0 - eps <= a.x1 && a.y0 - eps <= b.y1 && b.y0 - eps <= a.y1;
+}
+function flatnessCubic(c) {
+  const dx = c[6] - c[0], dy = c[7] - c[1];
+  const len2 = Math.hypot(dx, dy);
+  if (len2 < 1e-12) {
+    return Math.max(Math.hypot(c[2] - c[0], c[3] - c[1]), Math.hypot(c[4] - c[0], c[5] - c[1]));
+  }
+  const d1 = Math.abs((c[2] - c[0]) * dy - (c[3] - c[1]) * dx) / len2;
+  const d2 = Math.abs((c[4] - c[0]) * dy - (c[5] - c[1]) * dx) / len2;
+  return Math.max(d1, d2);
+}
+function lengthCubic(c, tol = 0.01, depth = 0) {
+  if (depth > 20 || flatnessCubic(c) <= tol) return Math.hypot(c[6] - c[0], c[7] - c[1]);
+  const [a, b] = splitCubic(c, 0.5);
+  return lengthCubic(a, tol, depth + 1) + lengthCubic(b, tol, depth + 1);
+}
+function flattenCubic(c, tol = 0.1) {
+  const out = [{ x: c[0], y: c[1] }];
+  const rec2 = (q, depth) => {
+    if (depth > 24 || flatnessCubic(q) <= tol) {
+      out.push({ x: q[6], y: q[7] });
+      return;
+    }
+    const [a, b] = splitCubic(q, 0.5);
+    rec2(a, depth + 1);
+    rec2(b, depth + 1);
+  };
+  rec2(c, 0);
+  return out;
+}
+function isLineCubic(c, tol = 1e-9) {
+  return flatnessCubic(c) <= tol;
+}
+function polyEval(co, n2, t) {
+  let v = 0;
+  for (let i = n2; i >= 0; i--) v = v * t + co[i];
+  return v;
+}
+function polyEvalD(co, n2, t) {
+  let v = co[n2], dv = 0;
+  for (let i = n2 - 1; i >= 0; i--) {
+    dv = dv * t + v;
+    v = v * t + co[i];
+  }
+  EV_SLOPE = dv;
+  return v;
+}
+function rootInBracket(co, n2, lo, hi, flo, fhi, fTol) {
+  let a = lo, b = hi, fa = flo, fb = fhi;
+  let t = a + (b - a) * fa / (fa - fb);
+  if (!(t > a && t < b)) t = (a + b) / 2;
+  for (let i = 0; i < 80; i++) {
+    const f = polyEvalD(co, n2, t);
+    if (f === 0 || Math.abs(f) <= fTol) return t;
+    if (f < 0 === fa < 0) {
+      a = t;
+      fa = f;
+    } else {
+      b = t;
+      fb = f;
+    }
+    if (b - a <= 4e-16) break;
+    const df = EV_SLOPE;
+    let next = df !== 0 ? t - f / df : Number.NaN;
+    if (!(next > a && next < b)) next = a + (b - a) * fa / (fa - fb);
+    if (i >= 8 && (i & 1) === 0 || !(next > a && next < b)) next = (a + b) / 2;
+    if (next === t) break;
+    t = next;
+  }
+  return t < 0 ? 0 : t > 1 ? 1 : t;
+}
+function rootsIn01(co, len2, depth, out, withCritical = false, minimaOnly = false) {
+  let scale = 0;
+  for (let i = 0; i < len2; i++) {
+    const a = Math.abs(co[i]);
+    if (a > scale) scale = a;
+  }
+  if (!(scale > 0) || !Number.isFinite(scale)) return 0;
+  let n2 = len2 - 1;
+  while (n2 > 0 && Math.abs(co[n2]) <= scale * 1e-14) n2--;
+  if (n2 < 1) return 0;
+  const fTol = scale * 8e-16;
+  if (n2 === 1) {
+    const t = -co[0] / co[1];
+    if (t >= 0 && t <= 1) {
+      out[0] = t;
+      return 1;
+    }
+    return 0;
+  }
+  if (n2 === 2) {
+    const cc = co[0], bb = co[1], aa = co[2];
+    const disc = bb * bb - 4 * aa * cc;
+    if (disc < 0) return 0;
+    const s = Math.sqrt(disc);
+    const r1 = (-bb - (bb < 0 ? -s : s)) / 2;
+    const t1 = r1 / aa;
+    const t2 = r1 !== 0 ? cc / r1 : t1;
+    const lo = Math.min(t1, t2), hi = Math.max(t1, t2);
+    let count3 = 0;
+    if (lo >= 0 && lo <= 1) out[count3++] = lo;
+    if (hi > lo && hi >= 0 && hi <= 1) out[count3++] = hi;
+    return count3;
+  }
+  const dc = CO_BUF[depth + 1];
+  for (let i = 1; i <= n2; i++) dc[i - 1] = co[i] * i;
+  const knots = KN_BUF[depth];
+  const nk = rootsIn01(dc, n2, depth + 1, knots);
+  let count2 = 0;
+  let pt = 0, pf = polyEval(co, n2, 0);
+  if (pf === 0) out[count2++] = 0;
+  for (let i = 0; i <= nk; i++) {
+    const k = i < nk ? knots[i] : 1;
+    if (k <= pt) {
+      pt = k;
+      continue;
+    }
+    const f = polyEval(co, n2, k);
+    if (f === 0) out[count2++] = k;
+    else if (pf < 0 && f > 0) out[count2++] = rootInBracket(co, n2, pt, k, pf, f, fTol);
+    else if (pf > 0 && f < 0 && !minimaOnly) out[count2++] = rootInBracket(co, n2, pt, k, pf, f, fTol);
+    pt = k;
+    pf = f;
+  }
+  if (withCritical) for (let i = 0; i < nk; i++) out[count2++] = knots[i];
+  return count2;
+}
+function nearestOnCubic(c, px, py, _samples) {
+  const ax = -c[0] + 3 * c[2] - 3 * c[4] + c[6], ay = -c[1] + 3 * c[3] - 3 * c[5] + c[7];
+  const bx = 3 * c[0] - 6 * c[2] + 3 * c[4], by = 3 * c[1] - 6 * c[3] + 3 * c[5];
+  const dx = -3 * c[0] + 3 * c[2], dy = -3 * c[1] + 3 * c[3];
+  const fx = c[0] - px, fy = c[1] - py;
+  const AA = ax * ax + ay * ay, AB = ax * bx + ay * by, AD = ax * dx + ay * dy, AF = ax * fx + ay * fy;
+  const BB = bx * bx + by * by, BD = bx * dx + by * dy, BF = bx * fx + by * fy;
+  const DD = dx * dx + dy * dy, DF = dx * fx + dy * fy;
+  const q = CO_BUF[0];
+  q[0] = DF;
+  q[1] = DD + 2 * BF;
+  q[2] = 3 * (BD + AF);
+  q[3] = 4 * AD + 2 * BB;
+  q[4] = 5 * AB;
+  q[5] = 3 * AA;
+  const cand = NEAREST_OUT;
+  const n2 = rootsIn01(q, 6, 0, cand, true, true);
+  cand[n2] = 0;
+  cand[n2 + 1] = 1;
+  let bestT = 0, bestD2 = Infinity, bestP = { x: c[0], y: c[1] };
+  for (let i = 0; i <= n2 + 1; i++) {
+    let t = cand[i];
+    if (!(t >= 0)) t = 0;
+    else if (t > 1) t = 1;
+    const p = evalCubic(c, t);
+    const d2 = (p.x - px) ** 2 + (p.y - py) ** 2;
+    if (d2 < bestD2) {
+      bestD2 = d2;
+      bestT = t;
+      bestP = p;
+    }
+  }
+  return { t: bestT, point: bestP, distance: Math.sqrt(bestD2) };
+}
+function signedAreaCubic(c) {
+  const [x0, y0, x1, y1, x2, y2, x3, y3] = c;
+  return (x0 * (-2 * y1 - y2 + 3 * y3) + x1 * (2 * y0 - y2 - y3) + x2 * (y0 + y1 - 2 * y3) + x3 * (-3 * y0 + y1 + 2 * y2)) * 0.15;
+}
+var CO_BUF, KN_BUF, NEAREST_OUT, EV_SLOPE;
+var init_bezier = __esm({
+  "engine/src/geom/bezier.ts"() {
+    "use strict";
+    CO_BUF = [];
+    KN_BUF = [];
+    for (let i = 0; i <= 6; i++) {
+      CO_BUF.push(new Float64Array(6));
+      KN_BUF.push(new Float64Array(16));
+    }
+    NEAREST_OUT = new Float64Array(16);
+    EV_SLOPE = 0;
+  }
+});
+
+// engine/src/geom/path.ts
+function contourStart(c) {
+  const f = c.curves[0];
+  return f ? { x: f[0], y: f[1] } : null;
+}
+function contourEnd(c) {
+  const l = c.curves[c.curves.length - 1];
+  return l ? { x: l[6], y: l[7] } : null;
+}
+function closeContour(c) {
+  const s = contourStart(c), e = contourEnd(c);
+  if (!s || !e) return { curves: [...c.curves], closed: true };
+  const gap = Math.hypot(e.x - s.x, e.y - s.y);
+  if (gap <= JOIN_EPS) return { curves: [...c.curves], closed: true };
+  return { curves: [...c.curves, lineToCubic(e.x, e.y, s.x, s.y)], closed: true };
+}
+function contourArea(c) {
+  let a = 0;
+  for (const k of c.curves) {
+    a += (k[0] * (6 * k[3] + 3 * k[5] + k[7]) + k[2] * (-6 * k[1] + 3 * k[5] + 3 * k[7]) + k[4] * (-3 * k[1] - 3 * k[3] + 6 * k[7]) + k[6] * (-k[1] - 3 * k[3] - 6 * k[5])) / 20;
+  }
+  const s = contourStart(c), e = contourEnd(c);
+  if (s && e) a += (e.x * s.y - s.x * e.y) / 2;
+  return a;
+}
+function reverseContour(c) {
+  const curves = c.curves.map((k) => [k[6], k[7], k[4], k[5], k[2], k[3], k[0], k[1]]).reverse();
+  return { curves, closed: c.closed };
+}
+function orientContour(c, counterClockwise) {
+  const ccw = contourArea(c) > 0;
+  return ccw === counterClockwise ? c : reverseContour(c);
+}
+function pathBounds(p) {
+  let box2 = null;
+  for (const c of p) {
+    for (const k of c.curves) {
+      const b = boundsCubic(k);
+      box2 = box2 ? {
+        x0: Math.min(box2.x0, b.x0),
+        y0: Math.min(box2.y0, b.y0),
+        x1: Math.max(box2.x1, b.x1),
+        y1: Math.max(box2.y1, b.y1)
+      } : b;
+    }
+  }
+  return box2;
+}
+function compactPath(p) {
+  return p.filter((c) => c.curves.some((k) => {
+    const b = boundsCubic(k);
+    return b.x1 - b.x0 > JOIN_EPS || b.y1 - b.y0 > JOIN_EPS;
+  }));
+}
+function pathFromSubPaths(subs) {
+  const out = [];
+  for (const sub of subs) {
+    const curves = [];
+    let cx = 0, cy = 0, started = false;
+    for (const seg of sub.segments) {
+      if (seg.op === "M") {
+        cx = seg.x;
+        cy = seg.y;
+        started = true;
+        continue;
+      }
+      if (!started) {
+        cx = 0;
+        cy = 0;
+        started = true;
+      }
+      if (seg.op === "L") {
+        curves.push(lineToCubic(cx, cy, seg.x, seg.y));
+      } else {
+        curves.push([cx, cy, seg.x1, seg.y1, seg.x2, seg.y2, seg.x, seg.y]);
+      }
+      cx = seg.x;
+      cy = seg.y;
+    }
+    if (curves.length) out.push({ curves, closed: sub.closed });
+  }
+  return out;
+}
+function subPathsFromPath(p) {
+  return p.map((c) => {
+    const segments = [];
+    const first = c.curves[0];
+    if (!first) return { segments, closed: c.closed };
+    segments.push({ op: "M", x: first[0], y: first[1] });
+    for (const k of c.curves) {
+      segments.push({ op: "C", x1: k[2], y1: k[3], x2: k[4], y2: k[5], x: k[6], y: k[7] });
+    }
+    return { segments, closed: c.closed };
+  });
+}
+function num2(v, dp) {
+  const s = v.toFixed(dp);
+  return s.replace(/\.?0+$/, "") || "0";
+}
+function toSvgPathData(p, dp = 4) {
+  const parts = [];
+  for (const c of p) {
+    const first = c.curves[0];
+    if (!first) continue;
+    parts.push(`M${num2(first[0], dp)} ${num2(first[1], dp)}`);
+    for (const k of c.curves) {
+      if (isStraight(k)) {
+        parts.push(`L${num2(k[6], dp)} ${num2(k[7], dp)}`);
+      } else {
+        parts.push(`C${num2(k[2], dp)} ${num2(k[3], dp)} ${num2(k[4], dp)} ${num2(k[5], dp)} ${num2(k[6], dp)} ${num2(k[7], dp)}`);
+      }
+    }
+    if (c.closed) parts.push("Z");
+  }
+  return parts.join("");
+}
+function isStraight(k, tol = 1e-9) {
+  const dx = k[6] - k[0], dy = k[7] - k[1];
+  const len2 = Math.hypot(dx, dy);
+  if (len2 < tol) return false;
+  for (const [px, py, want] of [[k[2], k[3], 1 / 3], [k[4], k[5], 2 / 3]]) {
+    const p = { x: k[0] + dx * want, y: k[1] + dy * want };
+    if (Math.hypot(px - p.x, py - p.y) > tol * Math.max(1, len2)) return false;
+  }
+  return true;
+}
+function contourPoint(c, index, t) {
+  const k = c.curves[Math.min(c.curves.length - 1, Math.max(0, index))];
+  return evalCubic(k, t);
+}
+var JOIN_EPS;
+var init_path = __esm({
+  "engine/src/geom/path.ts"() {
+    "use strict";
+    init_bezier();
+    JOIN_EPS = 1e-7;
+  }
+});
+
+// engine/src/geom/intersect.ts
+function intersectSegments(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1) {
+  const rx = ax1 - ax0, ry = ay1 - ay0;
+  const sx = bx1 - bx0, sy = by1 - by0;
+  const denom = rx * sy - ry * sx;
+  if (Math.abs(denom) < 1e-14) return null;
+  const qpx = bx0 - ax0, qpy = by0 - ay0;
+  const t = (qpx * sy - qpy * sx) / denom;
+  const u = (qpx * ry - qpy * rx) / denom;
+  if (t < -T_EPS || t > 1 + T_EPS || u < -T_EPS || u > 1 + T_EPS) return null;
+  const tc = Math.min(1, Math.max(0, t)), uc = Math.min(1, Math.max(0, u));
+  return { t1: tc, t2: uc, x: ax0 + rx * tc, y: ay0 + ry * tc };
+}
+function cubicRoots01(a, b, c, d) {
+  const out = [];
+  const push = (t) => {
+    if (t >= -T_EPS && t <= 1 + T_EPS) out.push(Math.min(1, Math.max(0, t)));
+  };
+  if (Math.abs(a) < 1e-12) {
+    if (Math.abs(b) < 1e-12) {
+      if (Math.abs(c) > 1e-12) push(-d / c);
+      return dedupeRoots(out);
+    }
+    const disc2 = c * c - 4 * b * d;
+    if (disc2 < 0) return [];
+    const s = Math.sqrt(disc2);
+    push((-c + s) / (2 * b));
+    push((-c - s) / (2 * b));
+    return dedupeRoots(out);
+  }
+  const b1 = b / a, c1 = c / a, d1 = d / a;
+  const p = c1 - b1 * b1 / 3;
+  const q = 2 * b1 * b1 * b1 / 27 - b1 * c1 / 3 + d1;
+  const shift = -b1 / 3;
+  const disc = q * q / 4 + p * p * p / 27;
+  if (disc > 1e-18) {
+    const s = Math.sqrt(disc);
+    push(Math.cbrt(-q / 2 + s) + Math.cbrt(-q / 2 - s) + shift);
+  } else if (disc > -1e-18) {
+    const u = Math.cbrt(-q / 2);
+    push(2 * u + shift);
+    push(-u + shift);
+  } else {
+    const r3 = Math.sqrt(-(p * p * p) / 27);
+    const phi = Math.acos(Math.min(1, Math.max(-1, -q / (2 * r3))));
+    const m2 = 2 * Math.cbrt(r3);
+    for (let k = 0; k < 3; k++) push(m2 * Math.cos((phi + 2 * Math.PI * k) / 3) + shift);
+  }
+  const polished = out.map((t0) => {
+    let t = t0;
+    for (let i = 0; i < 2; i++) {
+      const f = ((a * t + b) * t + c) * t + d;
+      const df = (3 * a * t + 2 * b) * t + c;
+      if (Math.abs(df) < 1e-14) break;
+      const next = t - f / df;
+      if (next < -T_EPS || next > 1 + T_EPS) break;
+      t = next;
+    }
+    return Math.min(1, Math.max(0, t));
+  });
+  return dedupeRoots(polished);
+}
+function dedupeRoots(ts) {
+  const s = ts.slice().sort((x, y) => x - y);
+  const out = [];
+  for (const t of s) if (!out.length || t - out[out.length - 1] > 1e-9) out.push(t);
+  return out;
+}
+function intersectLineCubic(x0, y0, x1, y1, c, tol = EPS2) {
+  const dx = x1 - x0, dy = y1 - y0;
+  const len2 = Math.hypot(dx, dy);
+  if (len2 < 1e-12) return [];
+  const nx = -dy / len2, ny = dx / len2;
+  const dist2 = (px, py) => nx * (px - x0) + ny * (py - y0);
+  const d0 = dist2(c[0], c[1]), d1 = dist2(c[2], c[3]), d2 = dist2(c[4], c[5]), d3 = dist2(c[6], c[7]);
+  const A = -d0 + 3 * d1 - 3 * d2 + d3;
+  const B = 3 * d0 - 6 * d1 + 3 * d2;
+  const C = -3 * d0 + 3 * d1;
+  const D = d0;
+  const out = [];
+  for (const t of cubicRoots01(A, B, C, D)) {
+    const p = evalCubic(c, t);
+    const u = ((p.x - x0) * dx + (p.y - y0) * dy) / (len2 * len2);
+    if (u < -tol / len2 || u > 1 + tol / len2) continue;
+    out.push({ t1: Math.min(1, Math.max(0, u)), t2: t, x: p.x, y: p.y });
+  }
+  return out;
+}
+function fatLine(c) {
+  let dx = c[6] - c[0], dy = c[7] - c[1];
+  if (Math.hypot(dx, dy) < 1e-12) {
+    dx = c[4] - c[0];
+    dy = c[5] - c[1];
+    if (Math.hypot(dx, dy) < 1e-12) return null;
+  }
+  const len2 = Math.hypot(dx, dy);
+  const nx = -dy / len2, ny = dx / len2;
+  const c0 = nx * c[0] + ny * c[1];
+  const d1 = nx * c[2] + ny * c[3] - c0;
+  const d2 = nx * c[4] + ny * c[5] - c0;
+  const k = d1 * d2 > 0 ? 3 / 4 : 4 / 9;
+  const dMin = k * Math.min(0, d1, d2);
+  const dMax = k * Math.max(0, d1, d2);
+  return { nx, ny, c0, dMin, dMax };
+}
+function clipToFatLine(c, fat) {
+  const d = [
+    fat.nx * c[0] + fat.ny * c[1] - fat.c0,
+    fat.nx * c[2] + fat.ny * c[3] - fat.c0,
+    fat.nx * c[4] + fat.ny * c[5] - fat.c0,
+    fat.nx * c[6] + fat.ny * c[7] - fat.c0
+  ];
+  const pts = d.map((v, i) => ({ x: i / 3, y: v }));
+  const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+  const chain2 = (sign) => {
+    const h = [];
+    for (const p of pts) {
+      while (h.length >= 2 && sign * cross(h[h.length - 2], h[h.length - 1], p) <= 0) h.pop();
+      h.push(p);
+    }
+    return h;
+  };
+  const upper = chain2(-1), lower3 = chain2(1);
+  const crossings = (h, level) => {
+    const ts2 = [];
+    for (let i = 1; i < h.length; i++) {
+      const a = h[i - 1], b = h[i];
+      if ((a.y - level) * (b.y - level) <= 0 && Math.abs(b.y - a.y) > 1e-18) {
+        ts2.push(a.x + (level - a.y) * (b.x - a.x) / (b.y - a.y));
+      }
+    }
+    return ts2;
+  };
+  const inBand = (v) => v >= fat.dMin - 1e-12 && v <= fat.dMax + 1e-12;
+  const ts = [];
+  for (const h of [upper, lower3]) {
+    ts.push(...crossings(h, fat.dMin), ...crossings(h, fat.dMax));
+  }
+  if (inBand(d[0])) ts.push(0);
+  if (inBand(d[3])) ts.push(1);
+  if (!ts.length) return null;
+  const lo = Math.max(0, Math.min(...ts)), hi = Math.min(1, Math.max(...ts));
+  return hi < lo ? null : [lo, hi];
+}
+function clipIntersect(c1, c2, t1lo, t1hi, t2lo, t2hi, tol, depth, out, swap = false) {
+  const emit = (t1, t2, x, y) => out.push(swap ? { t1: t2, t2: t1, x, y } : { t1, t2, x, y });
+  if (out.length > 128 || depth > 60) return;
+  if (!boxesOverlap(hullBounds(c1), hullBounds(c2), tol)) return;
+  const s1 = Math.hypot(c1[6] - c1[0], c1[7] - c1[1]) + flatnessCubic(c1);
+  const s2 = Math.hypot(c2[6] - c2[0], c2[7] - c2[1]) + flatnessCubic(c2);
+  if (s1 <= tol && s2 <= tol) {
+    const p = evalCubic(c1, 0.5);
+    emit((t1lo + t1hi) / 2, (t2lo + t2hi) / 2, p.x, p.y);
+    return;
+  }
+  const fat = fatLine(c2);
+  const clipped = fat ? clipToFatLine(c1, fat) : [0, 1];
+  if (!clipped) return;
+  const [lo, hi] = clipped;
+  const shrink = hi - lo;
+  if (shrink > 0.8) {
+    if (s1 >= s2) {
+      const [a, b] = splitCubic(c1, 0.5);
+      const mid3 = (t1lo + t1hi) / 2;
+      clipIntersect(a, c2, t1lo, mid3, t2lo, t2hi, tol, depth + 1, out, swap);
+      clipIntersect(b, c2, mid3, t1hi, t2lo, t2hi, tol, depth + 1, out, swap);
+    } else {
+      const [a, b] = splitCubic(c2, 0.5);
+      const mid3 = (t2lo + t2hi) / 2;
+      clipIntersect(c1, a, t1lo, t1hi, t2lo, mid3, tol, depth + 1, out, swap);
+      clipIntersect(c1, b, t1lo, t1hi, mid3, t2hi, tol, depth + 1, out, swap);
+    }
+    return;
+  }
+  const nc1 = subCubic(c1, lo, hi);
+  const nt1lo = t1lo + (t1hi - t1lo) * lo;
+  const nt1hi = t1lo + (t1hi - t1lo) * hi;
+  clipIntersect(c2, nc1, t2lo, t2hi, nt1lo, nt1hi, tol, depth + 1, out, !swap);
+}
+function dedupe(list2, tol) {
+  const out = [];
+  for (const i of list2) {
+    if (!out.some((o) => Math.hypot(o.x - i.x, o.y - i.y) <= tol * 8 && Math.abs(o.t1 - i.t1) <= 1e-6 + tol && Math.abs(o.t2 - i.t2) <= 1e-6 + tol)) out.push(i);
+  }
+  return out.sort((a, b) => a.t1 - b.t1);
+}
+function chordFractionToParam(c, u) {
+  const dx = c[6] - c[0], dy = c[7] - c[1];
+  const l2 = dx * dx + dy * dy;
+  if (l2 < 1e-24) return u;
+  const g2 = [
+    0,
+    ((c[2] - c[0]) * dx + (c[3] - c[1]) * dy) / l2,
+    ((c[4] - c[0]) * dx + (c[5] - c[1]) * dy) / l2,
+    1
+  ];
+  if (Math.abs(g2[1] - 1 / 3) < 1e-12 && Math.abs(g2[2] - 2 / 3) < 1e-12) return u;
+  const A = -g2[0] + 3 * g2[1] - 3 * g2[2] + g2[3];
+  const B = 3 * g2[0] - 6 * g2[1] + 3 * g2[2];
+  const C = -3 * g2[0] + 3 * g2[1];
+  const D = g2[0] - u;
+  const roots = cubicRoots01(A, B, C, D);
+  if (!roots.length) return u;
+  let best = roots[0], bestErr = Infinity;
+  for (const t of roots) {
+    const mt = 1 - t;
+    const val = mt * mt * mt * g2[0] + 3 * mt * mt * t * g2[1] + 3 * mt * t * t * g2[2] + t * t * t * g2[3];
+    const err = Math.abs(val - u);
+    if (err < bestErr) {
+      bestErr = err;
+      best = t;
+    }
+  }
+  return best;
+}
+function intersectCubics(c1, c2, tol = EPS2) {
+  if (!boxesOverlap(boundsCubic(c1), boundsCubic(c2), tol)) return [];
+  const l1 = isLineCubic(c1, tol), l2 = isLineCubic(c2, tol);
+  if (l1 && l2) {
+    const hit = intersectSegments(c1[0], c1[1], c1[6], c1[7], c2[0], c2[1], c2[6], c2[7]);
+    if (!hit) return [];
+    return [{
+      ...hit,
+      t1: chordFractionToParam(c1, hit.t1),
+      t2: chordFractionToParam(c2, hit.t2)
+    }];
+  }
+  if (l1) {
+    return dedupe(intersectLineCubic(c1[0], c1[1], c1[6], c1[7], c2, tol).map((i) => ({ ...i, t1: chordFractionToParam(c1, i.t1) })), tol);
+  }
+  if (l2) {
+    return dedupe(intersectLineCubic(c2[0], c2[1], c2[6], c2[7], c1, tol).map((i) => ({ t1: i.t2, t2: chordFractionToParam(c2, i.t1), x: i.x, y: i.y })), tol);
+  }
+  const out = [];
+  clipIntersect(c1, c2, 0, 1, 0, 1, tol, 0, out);
+  return dedupe(out, tol);
+}
+var EPS2, T_EPS;
+var init_intersect = __esm({
+  "engine/src/geom/intersect.ts"() {
+    "use strict";
+    init_bezier();
+    EPS2 = 1e-9;
+    T_EPS = 1e-9;
+  }
+});
+
+// engine/src/geom/boolean.ts
+function newBudget() {
+  return { splits: MAX_SPLITS, pairs: MAX_PAIRS, work: MAX_WORK };
+}
+function usableTol(tol) {
+  return typeof tol === "number" && Number.isFinite(tol) && tol > 0 ? tol : EPS2;
+}
+function booleanPath(a, b, op, opts = {}) {
+  const tol = usableTol(opts.tol);
+  const A = selfUnion(a, opts);
+  const B = selfUnion(b, opts);
+  if (!A.length || !B.length) return withEmptyOperand(A, B, op);
+  const boxA = pathBounds(A), boxB = pathBounds(B);
+  if (!boxA || !boxB) return withEmptyOperand(A, B, op);
+  const span = Math.max(boxA.x1 - boxA.x0, boxA.y1 - boxA.y0, boxB.x1 - boxB.x0, boxB.y1 - boxB.y0, 1);
+  const weld = Math.max(tol, JOIN_EPS) * span;
+  const near = weld * 0.01;
+  if (boxA.x1 + weld < boxB.x0 || boxB.x1 + weld < boxA.x0 || boxA.y1 + weld < boxB.y0 || boxB.y1 + weld < boxA.y0) return disjointResult(A, B, op);
+  const idxA = buildIndex(A), idxB = buildIndex(B);
+  if (idxA.curves.length > MAX_CURVES || idxB.curves.length > MAX_CURVES) {
+    return abandon(A, B, op, `${idxA.curves.length}+${idxB.curves.length} curves over the ${MAX_CURVES} ceiling`);
+  }
+  const budget = newBudget();
+  const splitsA = idxA.curves.map(() => []);
+  const splitsB = idxB.curves.map(() => []);
+  crossSplits(idxA.curves, idxB.curves, splitsA, splitsB, tol, weld, budget);
+  const edges = [
+    ...splitIntoEdges(idxA.curves, splitsA, weld),
+    ...splitIntoEdges(idxB.curves, splitsB, weld)
+  ];
+  const kept = [];
+  for (const e of edges) {
+    const m2 = evalCubic(e, 0.5);
+    const ref = midTangent(e);
+    const wa = sideWindings(idxA, m2.x, m2.y, ref.x, ref.y, near, budget);
+    const wb = sideWindings(idxB, m2.x, m2.y, ref.x, ref.y, near, budget);
+    const left = combine(wa.left !== 0, wb.left !== 0, op);
+    const right = combine(wa.right !== 0, wb.right !== 0, op);
+    if (left === right) continue;
+    kept.push(left ? e : reverseCubic(e));
+  }
+  if (budget.work <= 0) return abandon(A, B, op, "the work budget ran out mid-classification");
+  return compactPath(walkLoops(dedupeEdges(kept, weld), weld));
+}
+function unionPath(a, b, opts) {
+  return booleanPath(a, b, "union", opts);
+}
+function intersectPath(a, b, opts) {
+  return booleanPath(a, b, "intersection", opts);
+}
+function differencePath(a, b, opts) {
+  return booleanPath(a, b, "difference", opts);
+}
+function xorPath(a, b, opts) {
+  return booleanPath(a, b, "xor", opts);
+}
+function selfUnion(p, opts = {}) {
+  const tol = usableTol(opts.tol);
+  const rule = opts.fillRule ?? "nonzero";
+  const path = normalise(p);
+  if (!path.length) return [];
+  const idx = buildIndex(path);
+  const box2 = idx.box;
+  if (!box2 || !idx.curves.length) return [];
+  const span = Math.max(box2.x1 - box2.x0, box2.y1 - box2.y0, 1);
+  const weld = Math.max(tol, JOIN_EPS) * span;
+  const near = weld * 0.01;
+  if (idx.curves.length > MAX_CURVES) return path;
+  const budget = newBudget();
+  const splits = idx.curves.map(() => []);
+  selfSplits(idx.curves, splits, tol, weld, budget);
+  if (path.length === 1 && !splits.some((s) => s.length) && !selfTouching(path[0], weld)) {
+    const only = path[0];
+    const probe = only.curves[0];
+    const m2 = evalCubic(probe, 0.5);
+    const ref = midTangent(probe);
+    const w = sideWindings(idx, m2.x, m2.y, ref.x, ref.y, near, budget);
+    return [filled(w.left, rule) ? only : reverseContour(only)];
+  }
+  const kept = [];
+  for (const c of splitIntoEdges(idx.curves, splits, weld)) {
+    const m2 = evalCubic(c, 0.5);
+    const ref = midTangent(c);
+    const w = sideWindings(idx, m2.x, m2.y, ref.x, ref.y, near, budget);
+    const left = filled(w.left, rule), right = filled(w.right, rule);
+    if (left === right) continue;
+    kept.push(left ? c : reverseCubic(c));
+  }
+  if (budget.work <= 0) return path;
+  return compactPath(walkLoops(dedupeEdges(kept, weld), weld));
+}
+function windingNumber(p, x, y) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return 0;
+  const idx = buildIndex(normalise(p));
+  const box2 = idx.box;
+  if (!box2 || !idx.curves.length) return 0;
+  const span = Math.max(box2.x1 - box2.x0, box2.y1 - box2.y0, 1);
+  const near = Math.max(EPS2, JOIN_EPS) * span * 0.01;
+  const budget = newBudget();
+  let last = 0;
+  for (const d2 of RAY_DIRS) {
+    const cast2 = castRay(idx, x, y, d2[0], d2[1], null, near, budget);
+    if (cast2.ok) return cast2.far;
+    last = cast2.far;
+    if (budget.work <= 0) return last;
+  }
+  const d = RAY_DIRS[0];
+  const cast = castRay(idx, x, y, d[0], d[1], null, near, budget, true);
+  return cast.ok || budget.work > 0 ? cast.far : last;
+}
+function pointInPath(p, x, y, rule = "nonzero") {
+  return filled(windingNumber(p, x, y), rule);
+}
+function filled(w, rule) {
+  return rule === "evenodd" ? (Math.abs(w) & 1) === 1 : w !== 0;
+}
+function combine(a, b, op) {
+  switch (op) {
+    case "union":
+      return a || b;
+    case "intersection":
+      return a && b;
+    case "difference":
+      return a && !b;
+    default:
+      return a !== b;
+  }
+}
+function withEmptyOperand(a, b, op) {
+  if (!a.length && !b.length) return [];
+  if (!a.length) return op === "union" || op === "xor" ? b : [];
+  return op === "intersection" ? [] : a;
+}
+function disjointResult(a, b, op) {
+  switch (op) {
+    case "union":
+    case "xor":
+      return [...a, ...b];
+    case "intersection":
+      return [];
+    default:
+      return a;
+  }
+}
+function abandon(a, b, op, detail) {
+  if (op === "union") return [...a, ...b];
+  throw new GeomLimitError(op, detail);
+}
+function isFiniteCubic(c) {
+  for (let i = 0; i < 8; i++) if (!Number.isFinite(c[i])) return false;
+  return true;
+}
+function extent(c) {
+  return Math.max(
+    Math.hypot(c[2] - c[0], c[3] - c[1]),
+    Math.hypot(c[4] - c[0], c[5] - c[1]),
+    Math.hypot(c[6] - c[0], c[7] - c[1])
+  );
+}
+function normalise(p) {
+  const out = [];
+  for (const contour of p) {
+    const curves = contour.curves.filter((c) => isFiniteCubic(c) && extent(c) > 1e-12);
+    if (!curves.length) continue;
+    const closed = closeContour({ curves, closed: true });
+    if (closed.curves.length) out.push(closed);
+  }
+  return out;
+}
+function selfTouching(c, weld) {
+  const cell = Math.max(weld * 4, 1e-12);
+  const seen = /* @__PURE__ */ new Map();
+  for (const k of c.curves) {
+    const cx = Math.round(k[0] / cell), cy = Math.round(k[1] / cell);
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oy = -1; oy <= 1; oy++) {
+        for (const p of seen.get(`${cx + ox},${cy + oy}`) ?? []) {
+          if (Math.hypot(p.x - k[0], p.y - k[1]) <= weld) return true;
+        }
+      }
+    }
+    const key = `${cx},${cy}`;
+    const bucket = seen.get(key);
+    if (bucket) bucket.push({ x: k[0], y: k[1] });
+    else seen.set(key, [{ x: k[0], y: k[1] }]);
+  }
+  return false;
+}
+function buildIndex(p) {
+  const curves = [];
+  let box2 = null;
+  for (const contour of p) {
+    for (const c of contour.curves) {
+      const b = boundsCubic(c);
+      curves.push({ c, box: b });
+      box2 = box2 ? {
+        x0: Math.min(box2.x0, b.x0),
+        y0: Math.min(box2.y0, b.y0),
+        x1: Math.max(box2.x1, b.x1),
+        y1: Math.max(box2.y1, b.y1)
+      } : b;
+    }
+  }
+  return { curves, box: box2 };
+}
+function midTangent(c) {
+  const t = tangentAt(c, 0.5);
+  if (Math.hypot(t.x, t.y) > 1e-12) return t;
+  const dx = c[6] - c[0], dy = c[7] - c[1];
+  if (Math.hypot(dx, dy) > 1e-12) return { x: dx, y: dy };
+  return { x: 1, y: 0 };
+}
+function sweepPairs(a, b, self, budget, visit) {
+  const byStart = (list2) => list2.map((_, i) => i).sort((p, q) => list2[p].box.x0 - list2[q].box.x0);
+  const prune = (active, list2, x) => {
+    let w = 0;
+    for (let r3 = 0; r3 < active.length; r3++) {
+      const i = active[r3];
+      if (list2[i].box.x1 >= x) active[w++] = i;
+    }
+    active.length = w;
+  };
+  const yHit = (p, q) => p.y1 >= q.y0 && q.y1 >= p.y0;
+  if (self) {
+    const order = byStart(a);
+    const active = [];
+    for (const i of order) {
+      const box2 = a[i].box;
+      prune(active, a, box2.x0);
+      for (const j of active) {
+        if (budget.pairs-- <= 0) return;
+        if (yHit(box2, a[j].box)) visit(Math.min(i, j), Math.max(i, j));
+        if (budget.splits <= 0) return;
+      }
+      active.push(i);
+    }
+    return;
+  }
+  const ao = byStart(a), bo = byStart(b);
+  const activeA = [], activeB = [];
+  let ai = 0, bi = 0;
+  while (ai < ao.length || bi < bo.length) {
+    const ax = ai < ao.length ? a[ao[ai]].box.x0 : Infinity;
+    const bx = bi < bo.length ? b[bo[bi]].box.x0 : Infinity;
+    if (ax <= bx) {
+      const i = ao[ai++];
+      const box2 = a[i].box;
+      prune(activeB, b, box2.x0);
+      for (const j of activeB) {
+        if (budget.pairs-- <= 0) return;
+        if (yHit(box2, b[j].box)) visit(i, j);
+        if (budget.splits <= 0) return;
+      }
+      activeA.push(i);
+    } else {
+      const j = bo[bi++];
+      const box2 = b[j].box;
+      prune(activeA, a, box2.x0);
+      for (const i of activeA) {
+        if (budget.pairs-- <= 0) return;
+        if (yHit(a[i].box, box2)) visit(i, j);
+        if (budget.splits <= 0) return;
+      }
+      activeB.push(j);
+    }
+  }
+}
+function addSplit(splits, index, t, budget) {
+  if (!(t > 1e-9 && t < 1 - 1e-9)) return;
+  if (budget.splits-- <= 0) return;
+  splits[index].push(t);
+}
+function collinearSplits(a, b, weld, budget) {
+  const dx = a[6] - a[0], dy = a[7] - a[1];
+  const len2 = Math.hypot(dx, dy);
+  if (len2 < weld) return null;
+  const nx = -dy / len2, ny = dx / len2;
+  for (let i = 0; i < 8; i += 2) {
+    if (Math.abs(nx * (b[i] - a[0]) + ny * (b[i + 1] - a[1])) > weld) return null;
+  }
+  const proj = (x, y) => ((x - a[0]) * dx + (y - a[1]) * dy) / (len2 * len2);
+  const u0 = proj(b[0], b[1]), u1 = proj(b[6], b[7]);
+  const lo = Math.max(0, Math.min(u0, u1)), hi = Math.min(1, Math.max(u0, u1));
+  if (hi - lo < weld / len2) return null;
+  const ta = [], tb = [];
+  for (const u of [lo, hi]) {
+    const px = a[0] + dx * u, py = a[1] + dy * u;
+    budget.work -= 64;
+    ta.push(nearestOnCubic(a, px, py).t);
+    tb.push(nearestOnCubic(b, px, py).t);
+  }
+  return { ta, tb };
+}
+function selfIntersectCubic(c) {
+  const ax = -c[0] + 3 * c[2] - 3 * c[4] + c[6];
+  const bx = 3 * c[0] - 6 * c[2] + 3 * c[4];
+  const cx = -3 * c[0] + 3 * c[2];
+  const ay = -c[1] + 3 * c[3] - 3 * c[5] + c[7];
+  const by = 3 * c[1] - 6 * c[3] + 3 * c[5];
+  const cy = -3 * c[1] + 3 * c[3];
+  const det = ax * by - ay * bx;
+  if (Math.abs(det) < 1e-12) return null;
+  const m2 = (bx * cy - cx * by) / det;
+  const s = (ay * cx - ax * cy) / det;
+  const q = s * s - m2;
+  const disc = s * s - 4 * q;
+  if (disc <= 0) return null;
+  const r3 = Math.sqrt(disc);
+  const t1 = (s - r3) / 2, t2 = (s + r3) / 2;
+  if (!(t1 > 1e-9 && t2 < 1 - 1e-9 && t2 - t1 > 1e-9)) return null;
+  return [t1, t2];
+}
+function pairSplits(ci, cj, tol, weld, budget) {
+  budget.work -= 4;
+  if (coincidence(ci, cj, weld) !== 0) return null;
+  const run = overlapRun(ci, cj, weld, budget);
+  if (run) return run;
+  const hits2 = intersectCubics(ci, cj, tol);
+  if (!hits2.length) {
+    if (isLineCubic(ci, weld) && isLineCubic(cj, weld)) {
+      const co = collinearSplits(ci, cj, weld, budget);
+      if (co) return { a: co.ta, b: co.tb };
+    }
+    return contactSplits(ci, cj, weld, budget);
+  }
+  if (hits2.length >= 2) {
+    let a0 = 1, a1 = 0, b0 = 1, b1 = 0;
+    for (const h of hits2) {
+      a0 = Math.min(a0, h.t1);
+      a1 = Math.max(a1, h.t1);
+      b0 = Math.min(b0, h.t2);
+      b1 = Math.max(b1, h.t2);
+    }
+    if (hits2.length > 9 || continuesAsSameCurve(ci, a0, a1, cj, b0, b1, weld) !== 0) {
+      return overlapSplits(ci, cj, weld, budget);
+    }
+  }
+  return { a: hits2.map((h) => h.t1), b: hits2.map((h) => h.t2) };
+}
+function overlapRun(ci, cj, weld, budget) {
+  const ends = [];
+  const hi = hullBounds(ci), hj = hullBounds(cj);
+  for (const t of [0, 1]) {
+    const p = evalCubic(ci, t);
+    if (!inflated(hj, p.x, p.y, weld)) continue;
+    budget.work -= 32;
+    const n2 = nearestOnCubic(cj, p.x, p.y);
+    if (n2.distance <= weld) ends.push([t, n2.t]);
+  }
+  for (const t of [0, 1]) {
+    const p = evalCubic(cj, t);
+    if (!inflated(hi, p.x, p.y, weld)) continue;
+    budget.work -= 32;
+    const n2 = nearestOnCubic(ci, p.x, p.y);
+    if (n2.distance <= weld) ends.push([n2.t, t]);
+  }
+  if (ends.length < 2) return null;
+  let a0 = 1, a1 = 0, b0 = 1, b1 = 0;
+  for (const [s, t] of ends) {
+    a0 = Math.min(a0, s);
+    a1 = Math.max(a1, s);
+    b0 = Math.min(b0, t);
+    b1 = Math.max(b1, t);
+  }
+  const sa = subCubic(ci, a0, a1), sb = subCubic(cj, b0, b1);
+  if (extent(sa) <= weld || extent(sb) <= weld) return null;
+  if (coincidence(sa, sb, weld) === 0) return null;
+  return { a: [a0, a1], b: [b0, b1] };
+}
+function inflated(b, x, y, pad) {
+  return x >= b.x0 - pad && x <= b.x1 + pad && y >= b.y0 - pad && y <= b.y1 + pad;
+}
+function contactSplits(ci, cj, weld, budget) {
+  const leaves = [];
+  let nodes = MAX_CONTACT_NODES;
+  const rec2 = (p, s0, s1, q, t0, t1) => {
+    if (nodes-- <= 0 || leaves.length >= MAX_CONTACT_LEAVES || budget.work <= 0) return;
+    budget.work -= 1;
+    const bp = boundsCubic(p), bq = boundsCubic(q);
+    const dx = Math.max(bp.x0 - bq.x1, bq.x0 - bp.x1, 0);
+    const dy = Math.max(bp.y0 - bq.y1, bq.y0 - bp.y1, 0);
+    if (Math.hypot(dx, dy) > weld) return;
+    if (s1 - s0 <= CONTACT_SEED && t1 - t0 <= CONTACT_SEED) {
+      leaves.push([s0, s1]);
+      return;
+    }
+    if (s1 - s0 >= t1 - t0) {
+      const [lo, hi] = splitCubic(p, 0.5), m2 = (s0 + s1) / 2;
+      rec2(lo, s0, m2, q, t0, t1);
+      rec2(hi, m2, s1, q, t0, t1);
+    } else {
+      const [lo, hi] = splitCubic(q, 0.5), m2 = (t0 + t1) / 2;
+      rec2(p, s0, s1, lo, t0, m2);
+      rec2(p, s0, s1, hi, m2, t1);
+    }
+  };
+  rec2(ci, 0, 1, cj, 0, 1);
+  if (!leaves.length) return null;
+  const a = [], b = [];
+  for (const [s0, s1] of leaves) {
+    const pin = pinContact(ci, cj, s0, s1, weld, budget);
+    if (!pin) continue;
+    a.push(pin[0]);
+    b.push(pin[1]);
+  }
+  return a.length ? { a, b } : null;
+}
+function pinContact(ci, cj, s0, s1, weld, budget) {
+  const gap = (s) => {
+    const p = evalCubic(ci, s);
+    const n2 = nearestOnCubic(cj, p.x, p.y);
+    return { d: n2.distance, t: n2.t };
+  };
+  const R2 = 0.6180339887498949;
+  let lo = s0, hi = s1;
+  let c = hi - R2 * (hi - lo), d = lo + R2 * (hi - lo);
+  let fc = gap(c), fd = gap(d);
+  let best = fc.d <= fd.d ? { s: c, ...fc } : { s: d, ...fd };
+  for (const s of [s0, s1]) {
+    const g2 = gap(s);
+    if (g2.d < best.d) best = { s, ...g2 };
+  }
+  for (let i = 0; i < 90 && hi - lo > 1e-12; i++) {
+    if (budget.work <= 0) break;
+    budget.work -= 32;
+    if (fc.d <= fd.d) {
+      hi = d;
+      d = c;
+      fd = fc;
+      c = hi - R2 * (hi - lo);
+      fc = gap(c);
+    } else {
+      lo = c;
+      c = d;
+      fc = fd;
+      d = lo + R2 * (hi - lo);
+      fd = gap(d);
+    }
+    const near = fc.d <= fd.d ? { s: c, ...fc } : { s: d, ...fd };
+    if (near.d < best.d) best = near;
+  }
+  return best.d <= weld ? [best.s, best.t] : null;
+}
+function overlapSplits(ci, cj, weld, budget) {
+  const a = [], b = [];
+  budget.work -= 256;
+  for (const t of [0, 1]) {
+    const p = evalCubic(ci, t);
+    const n2 = nearestOnCubic(cj, p.x, p.y);
+    if (n2.distance <= weld) b.push(n2.t);
+  }
+  for (const t of [0, 1]) {
+    const p = evalCubic(cj, t);
+    const n2 = nearestOnCubic(ci, p.x, p.y);
+    if (n2.distance <= weld) a.push(n2.t);
+  }
+  return { a, b };
+}
+function selfSplits(curves, splits, tol, weld, budget) {
+  for (let i = 0; i < curves.length; i++) {
+    const loop = selfIntersectCubic(curves[i].c);
+    if (loop) {
+      addSplit(splits, i, loop[0], budget);
+      addSplit(splits, i, loop[1], budget);
+    }
+  }
+  sweepPairs(curves, curves, true, budget, (i, j) => {
+    const found = pairSplits(curves[i].c, curves[j].c, tol, weld, budget);
+    if (!found) return;
+    for (const t of found.a) addSplit(splits, i, t, budget);
+    for (const t of found.b) addSplit(splits, j, t, budget);
+  });
+}
+function crossSplits(a, b, splitsA, splitsB, tol, weld, budget) {
+  sweepPairs(a, b, false, budget, (i, j) => {
+    const found = pairSplits(a[i].c, b[j].c, tol, weld, budget);
+    if (!found) return;
+    for (const t of found.a) addSplit(splitsA, i, t, budget);
+    for (const t of found.b) addSplit(splitsB, j, t, budget);
+  });
+}
+function splitIntoEdges(curves, splits, weld) {
+  const out = [];
+  for (let i = 0; i < curves.length; i++) {
+    const ts = splits[i];
+    const c = curves[i].c;
+    if (!ts.length) {
+      if (extent(c) > weld) out.push(c);
+      continue;
+    }
+    const cuts = [0];
+    for (const t of ts.slice().sort((p, q) => p - q)) {
+      const prev2 = cuts[cuts.length - 1];
+      if (t - prev2 <= 1e-9) continue;
+      if (extent(subCubic(c, prev2, t)) <= weld) continue;
+      cuts.push(t);
+    }
+    const prev = cuts[cuts.length - 1];
+    if (cuts.length === 1 || 1 - prev > 1e-9 && extent(subCubic(c, prev, 1)) > weld) cuts.push(1);
+    else cuts[cuts.length - 1] = 1;
+    for (let k = 1; k < cuts.length; k++) {
+      const piece = subCubic(c, cuts[k - 1], cuts[k]);
+      if (extent(piece) > weld) out.push(piece);
+    }
+  }
+  return out;
+}
+function buildRayDirs() {
+  const out = [[1, 0], [0, 1]];
+  for (let k = 1; k <= 10; k++) {
+    const a = k * 2.399963229728653;
+    out.push([Math.cos(a), Math.sin(a)]);
+  }
+  return out;
+}
+function rayDirections(rx, ry) {
+  const mag = Math.hypot(rx, ry);
+  if (mag < 1e-12) return RAY_DIRS.slice();
+  const out = RAY_DIRS.filter((d) => Math.abs(d[0] * ry - d[1] * rx) >= 0.25 * mag);
+  return out.length ? out : RAY_DIRS.slice();
+}
+function reachFrom(idx, px, py) {
+  const b = idx.box;
+  if (!b) return 1;
+  const diag = Math.hypot(b.x1 - b.x0, b.y1 - b.y0);
+  const dx = Math.max(b.x0 - px, px - b.x1, 0), dy = Math.max(b.y0 - py, py - b.y1, 0);
+  return 2 * (diag + Math.hypot(dx, dy)) + 1;
+}
+function castRay(idx, px, py, ux, uy, ref, near, budget, complete = false) {
+  const reach = reachFrom(idx, px, py);
+  const qx = px + ux * reach, qy = py + uy * reach;
+  const rx0 = Math.min(px, qx) - near, rx1 = Math.max(px, qx) + near;
+  const ry0 = Math.min(py, qy) - near, ry1 = Math.max(py, qy) + near;
+  const nx = -uy, ny = ux;
+  const hitTol = Math.max(
+    near,
+    64 * Number.EPSILON * Math.max(Math.abs(px), Math.abs(py), Math.abs(qx), Math.abs(qy), 1)
+  );
+  let far = 0, net = 0, ok3 = true;
+  for (const ic of idx.curves) {
+    if (budget.work <= 0) return { far, net, ok: false };
+    budget.work -= 1;
+    const b = ic.box;
+    if (b.x1 < rx0 || b.x0 > rx1 || b.y1 < ry0 || b.y0 > ry1) continue;
+    const c = ic.c;
+    if (Math.abs(nx * (c[0] - px) + ny * (c[1] - py)) < near && Math.abs(nx * (c[2] - px) + ny * (c[3] - py)) < near && Math.abs(nx * (c[4] - px) + ny * (c[5] - py)) < near && Math.abs(nx * (c[6] - px) + ny * (c[7] - py)) < near) {
+      ok3 = false;
+      if (!complete) return { far, net, ok: ok3 };
+      continue;
+    }
+    budget.work -= 8;
+    for (const hit of intersectLineCubic(px, py, qx, qy, c, hitTol)) {
+      const t = hit.t2;
+      const s = hit.t1 * reach;
+      const tg = tangentAt(c, t);
+      if (s <= near && ref) {
+        net += Math.sign(tg.x * ref.x + tg.y * ref.y);
+        continue;
+      }
+      const mag = Math.hypot(tg.x, tg.y);
+      const cr = ux * tg.y - uy * tg.x;
+      const sideless = mag < 1e-12 || Math.abs(cr) < 1e-6 * mag;
+      if (sideless || t < T_GUARD || t > 1 - T_GUARD || ref !== null && s <= near * 32) {
+        ok3 = false;
+        if (!complete) return { far, net, ok: ok3 };
+        if (sideless || t > 1 - T_GUARD) continue;
+      }
+      far += cr > 0 ? 1 : -1;
+    }
+  }
+  return { far, net, ok: ok3 };
+}
+function sideWindings(idx, px, py, rx, ry, near, budget) {
+  const dirs = rayDirections(rx, ry);
+  const sidesOf = (d2, cast2) => {
+    const g2 = d2[0] * ry - d2[1] * rx;
+    return g2 > 0 ? { left: cast2.far + cast2.net, right: cast2.far } : { left: cast2.far, right: cast2.far - cast2.net };
+  };
+  let last = null;
+  for (const d2 of dirs) {
+    const cast2 = castRay(idx, px, py, d2[0], d2[1], { x: rx, y: ry }, near, budget);
+    if (cast2.ok) return sidesOf(d2, cast2);
+    last = sidesOf(d2, cast2);
+    if (budget.work <= 0) return last;
+  }
+  const d = dirs[0];
+  const cast = castRay(idx, px, py, d[0], d[1], { x: rx, y: ry }, near, budget, true);
+  return cast.ok || budget.work > 0 ? sidesOf(d, cast) : last ?? { left: 0, right: 0 };
+}
+function coincidence(a, b, weld) {
+  let fwd = true, rev = true;
+  for (const t of [0, 1 / 3, 2 / 3, 1]) {
+    const p = evalCubic(a, t);
+    if (fwd) {
+      const q = evalCubic(b, t);
+      if (Math.abs(p.x - q.x) > weld || Math.abs(p.y - q.y) > weld) fwd = false;
+    }
+    if (rev) {
+      const q = evalCubic(b, 1 - t);
+      if (Math.abs(p.x - q.x) > weld || Math.abs(p.y - q.y) > weld) rev = false;
+    }
+    if (!fwd && !rev) return 0;
+  }
+  return fwd ? 1 : -1;
+}
+function continuesAsSameCurve(ci, a0, a1, cj, b0, b1, weld) {
+  const da = a1 - a0, db = b1 - b0;
+  if (!(da > 0) || !(db > 0)) return 0;
+  for (const dir of [1, -1]) {
+    let same = true;
+    for (const t of [0, 1 / 3, 2 / 3, 1]) {
+      const f = (t - a0) / da;
+      const u = dir === 1 ? b0 + f * db : b1 - f * db;
+      const p = evalCubic(ci, t), q = evalCubic(cj, u);
+      if (!Number.isFinite(q.x) || !Number.isFinite(q.y) || Math.abs(p.x - q.x) > weld || Math.abs(p.y - q.y) > weld) {
+        same = false;
+        break;
+      }
+    }
+    if (same) return dir;
+  }
+  return 0;
+}
+function dedupeEdges(edges, weld) {
+  const cell = Math.max(weld * 4, 1e-12);
+  const buckets = /* @__PURE__ */ new Map();
+  const mids = edges.map((e) => evalCubic(e, 0.5));
+  const spans = edges.map(extent);
+  const dead = new Uint8Array(edges.length);
+  for (let i = 0; i < edges.length; i++) {
+    const m2 = mids[i];
+    const key = `${Math.round(m2.x / cell)},${Math.round(m2.y / cell)}`;
+    const bucket = buckets.get(key);
+    if (bucket) bucket.push(i);
+    else buckets.set(key, [i]);
+  }
+  for (let i = 0; i < edges.length; i++) {
+    if (dead[i]) continue;
+    const m2 = mids[i];
+    const cx = Math.round(m2.x / cell), cy = Math.round(m2.y / cell);
+    for (let ox = -1; ox <= 1 && !dead[i]; ox++) {
+      for (let oy = -1; oy <= 1 && !dead[i]; oy++) {
+        for (const j of buckets.get(`${cx + ox},${cy + oy}`) ?? []) {
+          if (j <= i || dead[j]) continue;
+          if (spans[i] <= 2 * weld || spans[j] <= 2 * weld) continue;
+          const rel = coincidence(edges[i], edges[j], weld);
+          if (rel === 0) continue;
+          dead[j] = 1;
+          if (rel === -1) {
+            dead[i] = 1;
+            break;
+          }
+        }
+      }
+    }
+  }
+  return edges.filter((_, i) => !dead[i]);
+}
+function walkLoops(edges, weld) {
+  if (!edges.length) return [];
+  const cell = Math.max(weld * 4, 1e-12);
+  const key = (x, y) => `${Math.round(x / cell)},${Math.round(y / cell)}`;
+  const buckets = /* @__PURE__ */ new Map();
+  edges.forEach((e, i) => {
+    const k = key(e[0], e[1]);
+    const bucket = buckets.get(k);
+    if (bucket) bucket.push(i);
+    else buckets.set(k, [i]);
+  });
+  const used = new Uint8Array(edges.length);
+  const out = [];
+  const candidatesAt = (x, y) => {
+    const cx = Math.round(x / cell), cy = Math.round(y / cell);
+    const found = [];
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oy = -1; oy <= 1; oy++) {
+        for (const i of buckets.get(`${cx + ox},${cy + oy}`) ?? []) {
+          if (used[i]) continue;
+          const e = edges[i];
+          if (Math.hypot(e[0] - x, e[1] - y) <= weld) found.push(i);
+        }
+      }
+    }
+    return found;
+  };
+  for (let seed = 0; seed < edges.length; seed++) {
+    if (used[seed]) continue;
+    const curves = [];
+    const start = edges[seed];
+    const sx = start[0], sy = start[1];
+    let cur = seed;
+    let joined = false;
+    for (let guard2 = 0; guard2 <= edges.length; guard2++) {
+      used[cur] = 1;
+      const e = edges[cur];
+      curves.push(e);
+      const ex = e[6], ey = e[7];
+      if (Math.hypot(ex - sx, ey - sy) <= weld) {
+        joined = true;
+        break;
+      }
+      const options2 = candidatesAt(ex, ey);
+      if (!options2.length) break;
+      cur = options2.length === 1 ? options2[0] : pickTurn(edges, e, options2);
+    }
+    if (!curves.length) continue;
+    if (!joined && Math.abs(contourArea({ curves, closed: true })) <= weld * chainSpan(curves)) continue;
+    out.push({ curves, closed: true });
+  }
+  return out;
+}
+function chainSpan(curves) {
+  let s = 0;
+  for (const k of curves) s += extent(k);
+  return s;
+}
+function pickTurn(edges, incoming, options2) {
+  const din = endTangent(incoming);
+  const back = Math.atan2(-din.y, -din.x);
+  let best = options2[0], bestDelta = Infinity;
+  for (const i of options2) {
+    const d = startTangent(edges[i]);
+    let delta = back - Math.atan2(d.y, d.x);
+    delta -= Math.floor(delta / (Math.PI * 2)) * (Math.PI * 2);
+    if (delta <= 1e-12) delta = Math.PI * 2;
+    if (delta < bestDelta) {
+      bestDelta = delta;
+      best = i;
+    }
+  }
+  return best;
+}
+function startTangent(c) {
+  const t = tangentAt(c, 0);
+  if (Math.hypot(t.x, t.y) > 1e-12) return t;
+  return { x: c[6] - c[0], y: c[7] - c[1] };
+}
+function endTangent(c) {
+  const t = tangentAt(c, 1);
+  if (Math.hypot(t.x, t.y) > 1e-12) return t;
+  return { x: c[6] - c[0], y: c[7] - c[1] };
+}
+var GeomLimitError, MAX_CURVES, MAX_SPLITS, MAX_PAIRS, MAX_WORK, MAX_CONTACT_NODES, CONTACT_SEED, MAX_CONTACT_LEAVES, T_GUARD, reverseCubic, RAY_DIRS;
+var init_boolean = __esm({
+  "engine/src/geom/boolean.ts"() {
+    "use strict";
+    init_bezier();
+    init_intersect();
+    init_path();
+    GeomLimitError = class extends Error {
+      op;
+      constructor(op, detail) {
+        super(`geom: ${op} exceeds bounded work (${detail})`);
+        this.name = "GeomLimitError";
+        this.op = op;
+      }
+    };
+    MAX_CURVES = 8e3;
+    MAX_SPLITS = 12e4;
+    MAX_PAIRS = 4e6;
+    MAX_WORK = 2e8;
+    MAX_CONTACT_NODES = 300;
+    CONTACT_SEED = 1 / 64;
+    MAX_CONTACT_LEAVES = 24;
+    T_GUARD = 1e-7;
+    reverseCubic = (k) => [k[6], k[7], k[4], k[5], k[2], k[3], k[0], k[1]];
+    RAY_DIRS = buildRayDirs();
+  }
+});
+
+// engine/src/geom/fit.ts
+function chordFrameMoments(raw, x0, y0, dx, dy) {
+  let { a: area, x, y } = raw;
+  area -= dx * (y0 + 0.5 * dy);
+  const dy3 = dy / 3;
+  x -= dx * (x0 * y0 + 0.5 * (x0 * dy + y0 * dx) + dy3 * dx);
+  y -= dx * (y0 * y0 + y0 * dy + dy3 * dy);
+  x -= x0 * area;
+  y = 0.5 * y - y0 * area;
+  const chord = Math.hypot(dx, dy);
+  return { area, moment: chord > 0 ? (dx * x + dy * y) / chord : 0 };
+}
+function quadratureMoments(sample, t0, t1) {
+  const mid3 = 0.5 * (t0 + t1), half = 0.5 * (t1 - t0);
+  let a = 0, x = 0, y = 0;
+  for (const [w, xi] of GL16) {
+    const s = sample(mid3 + xi * half);
+    const wa = w * s.dx * s.y;
+    a += wa;
+    x += s.x * wa;
+    y += s.y * wa;
+  }
+  const s0 = sample(t0), s1 = sample(t1);
+  return chordFrameMoments({ a: a * half, x: x * half, y: y * half }, s0.x, s0.y, s1.x - s0.x, s1.y - s0.y);
+}
+function rawMomentsCubic(c) {
+  const x0 = c[0], y0 = c[1];
+  const x1 = c[2] - x0, y1 = c[3] - y0;
+  const x2 = c[4] - x0, y2 = c[5] - y0;
+  const x3 = c[6] - x0, y3 = c[7] - y0;
+  const r0 = 3 * x1, r1 = 3 * y1;
+  const r23 = x2 * y3, r3 = x3 * y2, r42 = x3 * y3;
+  const r5 = 27 * y1, r6 = x1 * x2, r7 = 27 * y2, r8 = 45 * r23, r9 = 18 * x3;
+  const r10 = x1 * y1, r11 = 30 * x1, r12 = 45 * x3, r13 = x2 * y1, r14 = 45 * r3;
+  const r15 = x1 * x1, r16 = 18 * y3, r17 = x2 * x2, r18 = 45 * y3, r19 = x3 * x3;
+  const r20 = 30 * y1, r21 = y2 * y2, r222 = y3 * y3, r232 = y1 * y1;
+  const a = -r0 * y2 - r0 * y3 + r1 * x2 + r1 * x3 - 6 * r23 + 6 * r3 + 10 * r42;
+  const lift = x3 * y0;
+  const area = a * 0.05 + lift;
+  const x = r10 * r9 - r11 * r42 + r12 * r13 + r14 * x2 - r15 * r16 - r15 * r7 - r17 * r18 + r17 * r5 + r19 * r20 + 105 * r19 * y2 + 280 * r19 * y3 - 105 * r23 * x3 + r5 * r6 - r6 * r7 - r8 * x1;
+  const y = -r10 * r16 - r10 * r7 - r11 * r222 + r12 * r21 + r13 * r7 + r14 * y1 - r18 * x1 * y2 + r20 * r42 - 27 * r21 * x1 - 105 * r222 * x2 + 140 * r222 * x3 + r232 * r9 + 27 * r232 * x2 + 105 * r3 * y3 - r8 * y2;
+  return {
+    a: area,
+    x: x * (1 / 840) + x0 * area + 0.5 * x3 * lift,
+    y: y * (1 / 420) + y0 * a * 0.1 + y0 * lift
+  };
+}
+function cubicAsSource(c) {
+  return {
+    sample(t) {
+      const p = evalCubic(c, t), d = tangentAt(c, t);
+      return { x: p.x, y: p.y, dx: d.x, dy: d.y };
+    },
+    momentIntegrals(t0, t1) {
+      const piece = subCubic(c, t0, t1);
+      return chordFrameMoments(rawMomentsCubic(piece), piece[0], piece[1], piece[6] - piece[0], piece[7] - piece[1]);
+    }
+  };
+}
+function copysign(mag, sign) {
+  const m2 = Math.abs(mag);
+  return sign < 0 || Object.is(sign, -0) ? -m2 : m2;
+}
+function solveQuadratic(c0, c1, c2) {
+  const sc0 = c0 / c2, sc1 = c1 / c2;
+  if (!Number.isFinite(sc0) || !Number.isFinite(sc1)) {
+    const root = -c0 / c1;
+    if (Number.isFinite(root)) return [root];
+    return c0 === 0 && c1 === 0 ? [0] : [];
+  }
+  const arg = sc1 * sc1 - 4 * sc0;
+  let root1;
+  if (!Number.isFinite(arg)) {
+    root1 = -sc1;
+  } else if (arg < 0) {
+    return [];
+  } else if (arg === 0) {
+    return [-0.5 * sc1];
+  } else {
+    root1 = -0.5 * (sc1 + copysign(Math.sqrt(arg), sc1));
+  }
+  const root2 = sc0 / root1;
+  if (!Number.isFinite(root2)) return [root1];
+  return root2 > root1 ? [root1, root2] : [root2, root1];
+}
+function solveCubic(c0, c1, c2, c3) {
+  const recip = 1 / c3, third = 1 / 3;
+  const s2 = c2 * (third * recip), s1 = c1 * (third * recip), s0 = c0 * recip;
+  if (!(Number.isFinite(s0) && Number.isFinite(s1) && Number.isFinite(s2))) {
+    return solveQuadratic(c0, c1, c2);
+  }
+  const d0 = -s2 * s2 + s1;
+  const d1 = -s1 * s2 + s0;
+  const d2 = s2 * s0 - s1 * s1;
+  const disc = 4 * d0 * d2 - d1 * d1;
+  const de = -2 * s2 * d0 + d1;
+  if (disc < 0) {
+    const sq = Math.sqrt(-0.25 * disc), r3 = -0.5 * de;
+    return [Math.cbrt(r3 + sq) + Math.cbrt(r3 - sq) - s2];
+  }
+  if (disc === 0) {
+    const t1 = copysign(Math.sqrt(-d0), de);
+    return [t1 - s2, -2 * t1 - s2];
+  }
+  const th = Math.atan2(Math.sqrt(disc), -de) * third;
+  const thc = Math.cos(th), ss3 = Math.sin(th) * Math.sqrt(3);
+  const t = 2 * Math.sqrt(-d0);
+  return [t * thc - s2, t * 0.5 * (-thc + ss3) - s2, t * 0.5 * (-thc - ss3) - s2];
+}
+function depressedCubicDominant(g2, h) {
+  const q = -1 / 3 * g2, r3 = 0.5 * h;
+  let x;
+  if (r3 === 0) {
+    x = g2 > 0 ? 0 : Math.sqrt(-g2);
+  } else if (r3 * r3 < q * q * q) {
+    const t = r3 / Math.sqrt(q * q * q);
+    x = -2 * Math.sqrt(q) * copysign(Math.cos(Math.acos(Math.abs(t)) * (1 / 3)), t);
+  } else {
+    const a = Math.cbrt(-r3 - copysign(Math.sqrt(r3 * r3 - q * q * q), r3));
+    x = a === 0 ? 0 : a + q / a;
+  }
+  let f = (x * x + g2) * x + h;
+  const scale = Math.max(Math.abs(x * x * x), Math.abs(g2 * x), Math.abs(h));
+  if (Math.abs(f) < 222045e-21 * scale) return x;
+  for (let i = 0; i < 8; i++) {
+    const df = 3 * x * x + g2;
+    if (df === 0) break;
+    const nx = x - f / df;
+    const nf = (nx * nx + g2) * nx + h;
+    if (nf === 0) return nx;
+    if (Math.abs(nf) >= Math.abs(f)) break;
+    x = nx;
+    f = nf;
+  }
+  return x;
+}
+function factorQuartic(a, b, c, d) {
+  const epsRel = (raw, ref) => ref === 0 ? Math.abs(raw) : Math.abs((raw - ref) / ref);
+  const epsQ = (a12, b12, a22, b22) => epsRel(a12 + a22, a) + epsRel(b12 + a12 * a22 + b22, b) + epsRel(b12 * a22 + a12 * b22, c);
+  const epsT = (a12, b12, a22, b22) => epsQ(a12, b12, a22, b22) + epsRel(b12 * b22, d);
+  const disc = 9 * a * a - 24 * b;
+  const s = disc >= 0 ? -2 * b / (3 * a + copysign(Math.sqrt(disc), a)) : -0.25 * a;
+  const ap = a + 4 * s;
+  const bp = b + 3 * s * (a + 2 * s);
+  const cp = c + s * (2 * b + s * (3 * a + 4 * s));
+  const dp = d + s * (c + s * (b + s * (a + s)));
+  const gp = ap * cp - 4 * dp - 1 / 3 * bp * bp;
+  const hp = (ap * cp + 8 * dp - 2 / 9 * bp * bp) * (1 / 3) * bp - cp * cp - ap * ap * dp;
+  if (!Number.isFinite(gp) || !Number.isFinite(hp)) return null;
+  const phi = depressedCubicDominant(gp, hp);
+  if (!Number.isFinite(phi)) return null;
+  const l1 = a * 0.5;
+  const l3 = 1 / 6 * b + 0.5 * phi;
+  const delt2 = c - a * l3;
+  const d2c1 = 2 / 3 * b - phi - l1 * l1;
+  const l2c1 = 0.5 * delt2 / d2c1;
+  const l2c2 = 2 * (d - l3 * l3) / delt2;
+  const d2c2 = 0.5 * delt2 / l2c2;
+  let d2 = 0, l2 = 0, bestEps = 0;
+  const cands = [[d2c1, l2c1], [d2c2, l2c2], [d2c1, l2c2]];
+  for (let i = 0; i < cands.length; i++) {
+    const [cd, cl] = cands[i];
+    const e = epsRel(cd + l1 * l1 + 2 * l3, b) + epsRel(2 * (cd * cl + l1 * l3), c) + epsRel(cd * cl * cl + l3 * l3, d);
+    if (i === 0 || e < bestEps) {
+      d2 = cd;
+      l2 = cl;
+      bestEps = e;
+    }
+  }
+  let a1, b1, a2, b2;
+  if (d2 < 0) {
+    const sq = Math.sqrt(-d2);
+    a1 = l1 + sq;
+    b1 = l3 + sq * l2;
+    a2 = l1 - sq;
+    b2 = l3 - sq * l2;
+    if (Math.abs(b2) < Math.abs(b1)) b2 = d / b1;
+    else if (Math.abs(b2) > Math.abs(b1)) b1 = d / b2;
+    if (Math.abs(a1) !== Math.abs(a2)) {
+      const o1 = a1, o2 = a2;
+      const alts = Math.abs(o1) < Math.abs(o2) ? [[a - o2, o2], [(c - b1 * o2) / b2, o2], [(b - b2 - b1) / o2, o2]] : [[o1, a - o1], [o1, (c - o1 * b2) / b1], [o1, (b - b2 - b1) / o1]];
+      let bestQ = 0, has3 = false;
+      for (const [t1, t2] of alts) {
+        if (!Number.isFinite(t1) || !Number.isFinite(t2)) continue;
+        const e = epsQ(t1, b1, t2, b2);
+        if (!has3 || e < bestQ) {
+          a1 = t1;
+          a2 = t2;
+          bestQ = e;
+          has3 = true;
+        }
+      }
+    }
+  } else if (d2 === 0) {
+    const d3 = d - l3 * l3;
+    const sq = Math.sqrt(-d3);
+    a1 = l1;
+    b1 = l3 + sq;
+    a2 = l1;
+    b2 = l3 - sq;
+    if (Math.abs(b1) > Math.abs(b2)) b2 = d / b1;
+    else if (Math.abs(b2) > Math.abs(b1)) b1 = d / b2;
+  } else {
+    return null;
+  }
+  let eps = epsT(a1, b1, a2, b2);
+  for (let i = 0; i < 8 && eps !== 0; i++) {
+    const f0 = b1 * b2 - d;
+    const f1 = b1 * a2 + a1 * b2 - c;
+    const f2 = b1 + a1 * a2 + b2 - b;
+    const f3 = a1 + a2 - a;
+    const k1 = a1 - a2;
+    const det = b1 * b1 - b1 * (a2 * k1 + 2 * b2) + b2 * (a1 * k1 + b2);
+    if (det === 0) break;
+    const inv = 1 / det;
+    const k2 = b2 - b1;
+    const k3 = b1 * a2 - a1 * b2;
+    const na1 = a1 - inv * (k1 * f0 + k2 * f1 + k3 * f2 - (b1 * k2 + a1 * k3) * f3);
+    const nb1 = b1 - inv * ((a1 * k1 + k2) * f0 - b1 * k1 * f1 - b1 * k2 * f2 - b1 * k3 * f3);
+    const na2 = a2 - inv * (-k1 * f0 - k2 * f1 - k3 * f2 + (a2 * k3 + b2 * k2) * f3);
+    const nb2 = b2 - inv * (-(a2 * k1 + k2) * f0 + b2 * k1 * f1 + b2 * k2 * f2 + b2 * k3 * f3);
+    const ne = epsT(na1, nb1, na2, nb2);
+    if (!(ne < eps)) break;
+    a1 = na1;
+    b1 = nb1;
+    a2 = na2;
+    b2 = nb2;
+    eps = ne;
+  }
+  return [[a1, b1], [a2, b2]];
+}
+function mod2pi(th) {
+  const s = th * (0.5 / Math.PI);
+  return 2 * Math.PI * (s - Math.round(s));
+}
+function endpointSample(src, t, dir, span) {
+  const s = src.sample(t);
+  let tx = s.dx, ty = s.dy;
+  const len2 = Math.hypot(tx, ty);
+  let step = span * 1e-7;
+  if (len2 > 1e-12) {
+    const probe = src.sample(clamp014(t + dir * step));
+    const pl = Math.hypot(probe.dx, probe.dy);
+    if (pl > 1e-12) {
+      const sin = Math.abs(tx * probe.dy - ty * probe.dx) / (len2 * pl);
+      const cos = (tx * probe.dx + ty * probe.dy) / (len2 * pl);
+      if (cos < 0 || sin > 0.02) {
+        tx = probe.dx;
+        ty = probe.dy;
+      }
+    }
+    return { x: s.x, y: s.y, tx, ty };
+  }
+  for (let i = 0; i < 6 && Math.hypot(tx, ty) < 1e-12; i++) {
+    const probe = src.sample(clamp014(t + dir * step));
+    tx = probe.dx;
+    ty = probe.dy;
+    if (Math.hypot(tx, ty) < 1e-12) {
+      tx = probe.x - s.x;
+      ty = probe.y - s.y;
+    }
+    step *= 8;
+  }
+  return { x: s.x, y: s.y, tx, ty };
+}
+function clamp014(t) {
+  return t < 0 ? 0 : t > 1 ? 1 : t;
+}
+function frameFor(src, t0, t1) {
+  const span = Math.abs(t1 - t0);
+  const start = endpointSample(src, t0, 1, span);
+  const end = endpointSample(src, t1, -1, span);
+  const dx = end.x - start.x, dy = end.y - start.y;
+  const chord2 = dx * dx + dy * dy;
+  if (!(chord2 > 0) || !Number.isFinite(chord2)) return null;
+  const chord = Math.sqrt(chord2);
+  const th = Math.atan2(dy, dx);
+  const th0 = mod2pi(Math.atan2(start.ty, start.tx) - th);
+  const th1 = mod2pi(th - Math.atan2(end.ty, end.tx));
+  const { area, moment } = src.momentIntegrals(t0, t1);
+  if (!Number.isFinite(area) || !Number.isFinite(moment)) return null;
+  return {
+    sx: start.x,
+    sy: start.y,
+    ex: end.x,
+    ey: end.y,
+    th,
+    th0,
+    th1,
+    chord,
+    chord2,
+    unitArea: area / chord2,
+    mx: moment / (chord2 * chord)
+  };
+}
+function candidates(f) {
+  const s0 = Math.sin(f.th0), c0 = Math.cos(f.th0);
+  const s1 = Math.sin(f.th1), c1 = Math.cos(f.th1);
+  const area = f.unitArea, mx = f.mx;
+  const a4 = -9 * c0 * (((2 * s1 * c1 * c0 + s0 * (2 * c1 * c1 - 1)) * c0 - 2 * s1 * c1) * c0 - c1 * c1 * s0);
+  const a3 = 12 * ((((c1 * (30 * area * c1 - s1) - 15 * area) * c0 + 2 * s0 - c1 * s0 * (c1 + 30 * area * s1)) * c0 + c1 * (s1 - 15 * area * c1)) * c0 - s0 * c1 * c1);
+  const a2 = 12 * ((((70 * mx + 15 * area) * s1 * s1 + c1 * (9 * s1 - 70 * c1 * mx - 5 * c1 * area)) * c0 - 5 * s0 * s1 * (3 * s1 - 4 * c1 * (7 * mx + area))) * c0 - c1 * (9 * s1 - 70 * c1 * mx - 5 * c1 * area));
+  const a1 = 16 * (((12 * s0 - 5 * c0 * (42 * mx - 17 * area)) * s1 - 70 * c1 * (3 * mx - area) * s0 - 75 * c0 * c1 * area * area) * s1 - 75 * c1 * c1 * area * area * s0);
+  const a0 = 80 * s1 * (42 * s1 * mx - 25 * area * (s1 - c1 * area));
+  const roots = [];
+  const EPS4 = 1e-12;
+  if (Math.abs(a4) > EPS4) {
+    const quads = factorQuartic(a3 / a4, a2 / a4, a1 / a4, a0 / a4);
+    if (quads) {
+      for (const [qc1, qc0] of quads) {
+        const qr = solveQuadratic(qc0, qc1, 1);
+        if (qr.length === 0) roots.push(-0.5 * qc1);
+        else roots.push(...qr);
+      }
+    }
+  } else if (Math.abs(a3) > EPS4) {
+    roots.push(...solveCubic(a0, a1, a2, a3));
+  } else if (Math.abs(a2) > EPS4 || Math.abs(a1) > EPS4 || Math.abs(a0) > EPS4) {
+    roots.push(...solveQuadratic(a0, a1, a2));
+  } else {
+    return [mapCandidate(f, 1 / 3, 1 / 3)];
+  }
+  const s01 = s0 * c1 + s1 * c0;
+  const out = [];
+  for (const root of roots) {
+    if (!Number.isFinite(root)) continue;
+    let d0, d1;
+    if (root > 0) {
+      d0 = root;
+      d1 = (root * s0 - area * (10 / 3)) / (0.5 * root * s01 - s1);
+      if (!(d1 > 0)) {
+        d0 = s1 / s01;
+        d1 = 0;
+      }
+    } else {
+      d0 = 0;
+      d1 = s0 / s01;
+    }
+    if (!(d0 >= 0) || !(d1 >= 0) || !Number.isFinite(d0) || !Number.isFinite(d1)) continue;
+    out.push(mapCandidate(f, d0, d1));
+  }
+  return out;
+}
+function mapCandidate(f, d0, d1) {
+  const cs = Math.cos(f.th) * f.chord, sn = Math.sin(f.th) * f.chord;
+  const place = (ux, uy) => [f.sx + cs * ux - sn * uy, f.sy + sn * ux + cs * uy];
+  const [p1x, p1y] = place(d0 * Math.cos(f.th0), d0 * Math.sin(f.th0));
+  const [p2x, p2y] = place(1 - d1 * Math.cos(f.th1), d1 * Math.sin(f.th1));
+  return { c: [f.sx, f.sy, p1x, p1y, p2x, p2y, f.ex, f.ey], d0, d1 };
+}
+function armPenalty(d) {
+  return 1 + Math.max(0, d - D_PENALTY_ELBOW) * D_PENALTY_SLOPE;
+}
+function curveDist(src, t0, t1) {
+  const step = (t1 - t0) / (N_SAMPLE + 1);
+  const samples = [];
+  const ts = [];
+  let spicy = false;
+  let lx = 0, ly = 0, have = false;
+  for (let i = 0; i < N_SAMPLE + 2; i++) {
+    const t = t0 + i * step;
+    const s = src.sample(t);
+    if (have) {
+      const cross = s.dx * ly - s.dy * lx;
+      const dot = s.dx * lx + s.dy * ly;
+      if (Math.abs(cross) > SPICY_THRESH * Math.abs(dot)) spicy = true;
+    }
+    lx = s.dx;
+    ly = s.dy;
+    have = true;
+    if (i > 0 && i < N_SAMPLE + 1) {
+      samples.push({ x: s.x, y: s.y, tx: s.dx, ty: s.dy });
+      ts.push(t);
+    }
+  }
+  return { src, samples, ts, arc: null, spicy, t0, t1, step };
+}
+function refineLobe(f, a, b, acc2) {
+  let lo = a, hi = b;
+  let x1 = hi - INV_PHI * (hi - lo), x2 = lo + INV_PHI * (hi - lo);
+  let f1 = f(x1), f2 = f(x2);
+  let best = f1 > f2 ? f1 : f2;
+  for (let i = 0; i < REFINE_ITERS; i++) {
+    if (!(best <= acc2)) return best;
+    if (f1 > f2) {
+      hi = x2;
+      x2 = x1;
+      f2 = f1;
+      x1 = hi - INV_PHI * (hi - lo);
+      f1 = f(x1);
+      if (f1 > best) best = f1;
+    } else {
+      lo = x1;
+      x1 = x2;
+      f1 = f2;
+      x2 = lo + INV_PHI * (hi - lo);
+      f2 = f(x2);
+      if (f2 > best) best = f2;
+    }
+  }
+  return best;
+}
+function maxOverLobes(d, errs, base, acc2, f) {
+  let best = base;
+  for (let i = 0; i < errs.length; i++) {
+    const e = errs[i];
+    if (i > 0 && errs[i - 1] > e) continue;
+    if (i + 1 < errs.length && errs[i + 1] > e) continue;
+    const v = refineLobe(f, i > 0 ? d.ts[i - 1] : d.t0, i + 1 < errs.length ? d.ts[i + 1] : d.t1, acc2);
+    if (v > best) best = v;
+    if (!(best <= acc2)) return Infinity;
+  }
+  return best;
+}
+function powerBasis(c) {
+  return {
+    p1x: 3 * (c[2] - c[0]),
+    p1y: 3 * (c[3] - c[1]),
+    p2x: 3 * c[4] - 6 * c[2] + 3 * c[0],
+    p2y: 3 * c[5] - 6 * c[3] + 3 * c[1],
+    p3x: c[6] - c[0] - 3 * (c[4] - c[2]),
+    p3y: c[7] - c[1] - 3 * (c[5] - c[3])
+  };
+}
+function rayErr2(c, q, s, miss) {
+  const k0 = (c[0] - s.x) * s.tx + (c[1] - s.y) * s.ty;
+  const k1 = q.p1x * s.tx + q.p1y * s.ty;
+  const k2 = q.p2x * s.tx + q.p2y * s.ty;
+  const k3 = q.p3x * s.tx + q.p3y * s.ty;
+  let best = miss;
+  for (const t of cubicRoots01(k3, k2, k1, k0)) {
+    const p = evalCubic(c, t);
+    const e = (p.x - s.x) ** 2 + (p.y - s.y) ** 2;
+    if (e < best) best = e;
+  }
+  return best;
+}
+function evalRay(d, c, acc2) {
+  const q = powerBasis(c);
+  const miss = acc2 + 1;
+  const errs = [];
+  let maxErr2 = 0;
+  for (const s of d.samples) {
+    const e = rayErr2(c, q, s, miss);
+    errs.push(e);
+    if (e > maxErr2) maxErr2 = e;
+    if (maxErr2 > acc2) return Infinity;
+  }
+  return maxOverLobes(d, errs, maxErr2, acc2, (t) => {
+    const s = d.src.sample(t);
+    return rayErr2(c, q, { x: s.x, y: s.y, tx: s.dx, ty: s.dy }, miss);
+  });
+}
+function arcSpan(c, a, b) {
+  const mid3 = 0.5 * (a + b), half = 0.5 * (b - a);
+  let sum = 0;
+  for (const [w, xi] of GL16) {
+    const d = tangentAt(c, mid3 + xi * half);
+    sum += w * Math.hypot(d.x, d.y);
+  }
+  return sum * half;
+}
+function arcTable(c) {
+  const cum = [0];
+  let acc = 0;
+  for (let i = 0; i < ARC_SPANS; i++) {
+    acc += arcSpan(c, i / ARC_SPANS, (i + 1) / ARC_SPANS);
+    cum.push(acc);
+  }
+  return { cum, total: acc };
+}
+function srcArcSpan(src, a, b) {
+  const mid3 = 0.5 * (a + b), half = 0.5 * (b - a);
+  let sum = 0;
+  for (const [w, xi] of GL16) {
+    const s = src.sample(mid3 + xi * half);
+    sum += w * Math.hypot(s.dx, s.dy);
+  }
+  return sum * half;
+}
+function srcArcTable(d) {
+  const cum = [0];
+  let acc = 0;
+  for (let i = 0; i < ARC_SPANS; i++) {
+    acc += srcArcSpan(d.src, d.t0 + i * d.step, d.t0 + (i + 1) * d.step);
+    cum.push(acc);
+  }
+  return { cum, total: acc };
+}
+function arcInvert(c, tab, target) {
+  if (!(tab.total > 0)) return 0;
+  const s = Math.min(Math.max(target, 0), tab.total);
+  let lo = 0, hi = ARC_SPANS;
+  while (hi - lo > 1) {
+    const m2 = lo + hi >> 1;
+    if (tab.cum[m2] <= s) lo = m2;
+    else hi = m2;
+  }
+  const h = 1 / ARC_SPANS, tLo = lo * h, tHi = tLo + h;
+  const spanLen = tab.cum[lo + 1] - tab.cum[lo];
+  let t = spanLen > 0 ? tLo + h * ((s - tab.cum[lo]) / spanLen) : tLo;
+  for (let i = 0; i < 3; i++) {
+    const f = tab.cum[lo] + arcSpan(c, tLo, t) - s;
+    const d = tangentAt(c, t);
+    const speed = Math.hypot(d.x, d.y);
+    if (speed < 1e-12) break;
+    const next = Math.min(tHi, Math.max(tLo, t - f / speed));
+    if (Math.abs(next - t) < 1e-13) {
+      t = next;
+      break;
+    }
+    t = next;
+  }
+  return Math.min(1, Math.max(0, t));
+}
+function evalArc(d, c, acc2) {
+  if (!d.arc) d.arc = srcArcTable(d);
+  const srcTab = d.arc;
+  const tab = arcTable(c);
+  const at = (s, frac) => {
+    const p = evalCubic(c, arcInvert(c, tab, tab.total * frac));
+    return (p.x - s.x) ** 2 + (p.y - s.y) ** 2;
+  };
+  let maxErr2 = 0;
+  for (let i = 0; i < d.samples.length; i++) {
+    const e = at(d.samples[i], srcTab.cum[i + 1] / (srcTab.total || 1));
+    if (e > maxErr2) maxErr2 = e;
+    if (maxErr2 > acc2) return Infinity;
+  }
+  return maxErr2;
+}
+function evalDist(d, c, acc2) {
+  const ray = evalRay(d, c, acc2);
+  if (!Number.isFinite(ray)) return Infinity;
+  if (!d.spicy) return ray;
+  const arc = evalArc(d, c, acc2);
+  return arc > ray ? arc : ray;
+}
+function fitError(src, c, t0, t1) {
+  const d = curveDist(src, t0, t1);
+  return Math.sqrt(evalDist(d, c, Infinity));
+}
+function chordCubic(sx, sy, ex, ey) {
+  return lineToCubic(sx, sy, ex, ey);
+}
+function tryFitLine(src, t0, t1, tol, sx, sy, ex, ey) {
+  const acc2 = tol * tol;
+  const SHORT_N = 7;
+  const dt = (t1 - t0) / (SHORT_N + 1);
+  const dx = ex - sx, dy = ey - sy;
+  const len2 = dx * dx + dy * dy;
+  let maxErr2 = 0;
+  for (let i = 0; i < SHORT_N; i++) {
+    const p = src.sample(t0 + (i + 1) * dt);
+    const u = len2 > 0 ? Math.min(1, Math.max(0, ((p.x - sx) * dx + (p.y - sy) * dy) / len2)) : 0;
+    const e = (sx + dx * u - p.x) ** 2 + (sy + dy * u - p.y) ** 2;
+    if (e > acc2) return null;
+    if (e > maxErr2) maxErr2 = e;
+  }
+  return { c: chordCubic(sx, sy, ex, ey), err: Math.sqrt(maxErr2) };
+}
+function fitOne(src, t0, t1, tol) {
+  const f = frameFor(src, t0, t1);
+  if (!f) return null;
+  const acc2 = tol * tol;
+  if (f.chord2 <= acc2) return tryFitLine(src, t0, t1, tol, f.sx, f.sy, f.ex, f.ey);
+  const d = curveDist(src, t0, t1);
+  let best = null;
+  let bestErr2 = Infinity;
+  for (const cand of candidates(f)) {
+    const err2 = evalDist(d, cand.c, acc2);
+    if (!Number.isFinite(err2)) continue;
+    const scale = Math.max(armPenalty(cand.d0), armPenalty(cand.d1)) ** 2;
+    const pen = err2 * scale;
+    if (pen < acc2 && pen < bestErr2) {
+      best = cand.c;
+      bestErr2 = pen;
+    }
+  }
+  return best ? { c: best, err: Math.sqrt(bestErr2) } : null;
+}
+function fitCubicMoment(src, t0, t1) {
+  const f = frameFor(src, t0, t1);
+  if (!f) return null;
+  const cands = candidates(f);
+  if (!cands.length) return null;
+  const d = curveDist(src, t0, t1);
+  let best = null;
+  let bestErr = Infinity;
+  for (const cand of cands) {
+    const err2 = evalDist(d, cand.c, Infinity);
+    if (!Number.isFinite(err2)) continue;
+    const err = Math.sqrt(err2) * Math.max(armPenalty(cand.d0), armPenalty(cand.d1));
+    if (err < bestErr) {
+      best = cand;
+      bestErr = err;
+    }
+  }
+  if (!best) return null;
+  return best.d0 > MAX_ARM_RATIO || best.d1 > MAX_ARM_RATIO ? null : best.c;
+}
+function collectBreaks(src) {
+  if (!src.breaks) return [];
+  const raw = src.breaks();
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const t of raw.slice(0, 256).sort((a, b) => a - b)) {
+    if (!Number.isFinite(t) || t <= 1e-9 || t >= 1 - 1e-9) continue;
+    if (out.length && t - out[out.length - 1] < 1e-9) continue;
+    out.push(t);
+  }
+  return out;
+}
+function fitAdaptive(src, t0, t1, tol, b) {
+  const pending = [{ a: t0, z: t1, depth: 0 }];
+  while (pending.length) {
+    const { a, z, depth } = pending.pop();
+    const span = Math.abs(z - a);
+    const start = endpointSample(src, a, 1, span);
+    const end = endpointSample(src, z, -1, span);
+    if ((end.x - start.x) ** 2 + (end.y - start.y) ** 2 <= tol * tol) {
+      const line = tryFitLine(src, a, z, tol, start.x, start.y, end.x, end.y);
+      if (line) {
+        b.out.push(line.c);
+        continue;
+      }
+    }
+    const fit = fitOne(src, a, z, tol);
+    if (fit) {
+      b.out.push(fit.c);
+      continue;
+    }
+    const mid3 = 0.5 * (a + z);
+    if (depth >= MAX_DEPTH || b.out.length + pending.length + 2 > b.max || !(mid3 > a && mid3 < z)) {
+      b.out.push(chordCubic(start.x, start.y, end.x, end.y));
+      continue;
+    }
+    pending.push({ a: mid3, z, depth: depth + 1 });
+    pending.push({ a, z: mid3, depth: depth + 1 });
+  }
+}
+function solveItp(f, a, b, eps, n0, k1, ya, yb) {
+  const n12 = Math.max(0, Math.ceil(Math.log2((b - a) / eps)) - 1);
+  let scaledEps = eps * 2 ** (n0 + n12);
+  let lo = a, hi = b, ylo = ya, yhi = yb;
+  let guard2 = 0;
+  while (hi - lo > 2 * eps && guard2++ < 128) {
+    const half = 0.5 * (lo + hi);
+    const r3 = scaledEps - 0.5 * (hi - lo);
+    const xf = (yhi * lo - ylo * hi) / (yhi - ylo);
+    const sigma = half - xf;
+    const delta = k1 * (hi - lo) ** 2;
+    const xt = delta <= Math.abs(sigma) ? xf + copysign(delta, sigma) : half;
+    const x = Math.abs(xt - half) <= r3 ? xt : half - copysign(r3, sigma);
+    const y = f(x);
+    if (y > 0) {
+      hi = x;
+      yhi = y;
+    } else if (y < 0) {
+      lo = x;
+      ylo = y;
+    } else return x;
+    scaledEps *= 0.5;
+  }
+  return 0.5 * (lo + hi);
+}
+function fitGreedy(src, t0, t1, tol, b) {
+  let t = t0;
+  let guard2 = 0;
+  while (t < t1 && b.out.length < b.max && guard2++ < b.max) {
+    const whole = fitOne(src, t, t1, tol);
+    if (whole) {
+      b.out.push(whole.c);
+      return;
+    }
+    const start = t;
+    const f = (x2) => {
+      const r3 = fitOne(src, start, x2, tol);
+      return r3 ? r3.err - tol : tol;
+    };
+    const x = solveItp(f, start, t1, 1e-6, 1, 2 / (t1 - start), -tol, tol);
+    const seg = fitOne(src, start, x, tol);
+    if (!seg || !(x > start) || !(x < t1)) {
+      fitAdaptive(src, start, t1, tol, b);
+      return;
+    }
+    b.out.push(seg.c);
+    t = x;
+  }
+}
+function fitToCubics(src, opts = {}) {
+  const tol = opts.tol && opts.tol > 0 ? opts.tol : DEFAULT_TOL;
+  const max = opts.maxSegments && opts.maxSegments > 0 ? Math.floor(opts.maxSegments) : DEFAULT_MAX_SEGMENTS;
+  const b = { out: [], max };
+  const cuts = [0, ...collectBreaks(src), 1];
+  for (let i = 0; i + 1 < cuts.length && b.out.length < max; i++) {
+    const t0 = cuts[i], t1 = cuts[i + 1];
+    if (!(t1 > t0)) continue;
+    if (opts.optimise) {
+      const greedy = { out: [], max: max - b.out.length };
+      fitGreedy(src, t0, t1, tol, greedy);
+      const plain = { out: [], max: max - b.out.length };
+      fitAdaptive(src, t0, t1, tol, plain);
+      b.out.push(...greedy.out.length && greedy.out.length <= plain.out.length ? greedy.out : plain.out);
+    } else {
+      fitAdaptive(src, t0, t1, tol, b);
+    }
+  }
+  return b.out;
+}
+function polyCubicSource(curves) {
+  const n2 = curves.length;
+  const at = (t) => {
+    const scaled = Math.min(Math.max(t, 0), 1) * n2;
+    let i = Math.floor(scaled);
+    if (i >= n2) i = n2 - 1;
+    return { i, u: scaled - i };
+  };
+  return {
+    sample(t) {
+      const { i, u } = at(t);
+      const c = curves[i];
+      const p = evalCubic(c, u), d = tangentAt(c, u);
+      return { x: p.x, y: p.y, dx: d.x * n2, dy: d.y * n2 };
+    },
+    momentIntegrals(t0, t1) {
+      const a = at(t0), z = at(t1);
+      const raw = { a: 0, x: 0, y: 0 };
+      const add = (c, u0, u1) => {
+        if (u1 <= u0) return;
+        const m2 = rawMomentsCubic(subCubic(c, u0, u1));
+        raw.a += m2.a;
+        raw.x += m2.x;
+        raw.y += m2.y;
+      };
+      if (a.i === z.i) {
+        add(curves[a.i], a.u, z.u);
+      } else {
+        add(curves[a.i], a.u, 1);
+        for (let i = a.i + 1; i < z.i; i++) add(curves[i], 0, 1);
+        add(curves[z.i], 0, z.u);
+      }
+      const s = evalCubic(curves[a.i], a.u), e = evalCubic(curves[z.i], z.u);
+      return chordFrameMoments(raw, s.x, s.y, e.x - s.x, e.y - s.y);
+    },
+    breaks() {
+      const out = [];
+      for (let i = 1; i < n2; i++) {
+        const a = tangentAt(curves[i - 1], 1), b2 = tangentAt(curves[i], 0);
+        const la = Math.hypot(a.x, a.y), lb = Math.hypot(b2.x, b2.y);
+        if (la < 1e-12 || lb < 1e-12) {
+          out.push(i / n2);
+          continue;
+        }
+        const cos = (a.x * b2.x + a.y * b2.y) / (la * lb);
+        const sin = Math.abs(a.x * b2.y - a.y * b2.x) / (la * lb);
+        if (cos < 0.9998 || sin > 0.02) out.push(i / n2);
+      }
+      return out;
+    }
+  };
+}
+function simplifyCubics(curves, tol = DEFAULT_TOL) {
+  if (curves.length < 2) return curves.slice();
+  const fitted = fitToCubics(polyCubicSource(curves), { tol, maxSegments: curves.length });
+  if (!fitted.length || fitted.length >= curves.length) return curves.slice();
+  return fitted;
+}
+var D_PENALTY_ELBOW, D_PENALTY_SLOPE, MAX_ARM_RATIO, N_SAMPLE, SPICY_THRESH, DEFAULT_TOL, DEFAULT_MAX_SEGMENTS, MAX_DEPTH, GL16, REFINE_ITERS, INV_PHI, ARC_SPANS;
+var init_fit = __esm({
+  "engine/src/geom/fit.ts"() {
+    "use strict";
+    init_bezier();
+    init_intersect();
+    D_PENALTY_ELBOW = 0.65;
+    D_PENALTY_SLOPE = 2;
+    MAX_ARM_RATIO = 4;
+    N_SAMPLE = 20;
+    SPICY_THRESH = 0.2;
+    DEFAULT_TOL = 0.1;
+    DEFAULT_MAX_SEGMENTS = 512;
+    MAX_DEPTH = 20;
+    GL16 = [
+      [0.1894506104550685, -0.0950125098376374],
+      [0.1894506104550685, 0.0950125098376374],
+      [0.1826034150449236, -0.2816035507792589],
+      [0.1826034150449236, 0.2816035507792589],
+      [0.1691565193950025, -0.4580167776572274],
+      [0.1691565193950025, 0.4580167776572274],
+      [0.1495959888165767, -0.6178762444026438],
+      [0.1495959888165767, 0.6178762444026438],
+      [0.1246289712555339, -0.755404408355003],
+      [0.1246289712555339, 0.755404408355003],
+      [0.0951585116824928, -0.8656312023878318],
+      [0.0951585116824928, 0.8656312023878318],
+      [0.0622535239386479, -0.9445750230732326],
+      [0.0622535239386479, 0.9445750230732326],
+      [0.0271524594117541, -0.9894009349916499],
+      [0.0271524594117541, 0.9894009349916499]
+    ];
+    REFINE_ITERS = 12;
+    INV_PHI = 0.6180339887498949;
+    ARC_SPANS = N_SAMPLE + 1;
+  }
+});
+
+// engine/src/geom/offset.ts
+function offsetCubic(c, distance, tol = DEFAULT_TOL2) {
+  return offsetPieces(c, distance, tol).map((p) => p.curve);
+}
+function offsetPieces(c, distance, tol) {
+  if (!isFiniteCubic2(c)) return [];
+  if (!Number.isFinite(distance) || Math.abs(distance) < 1e-12) {
+    return [{ curve: [...c], dirStart: unitTangent(c, 0), dirEnd: unitTangent(c, 1) }];
+  }
+  const limit = Math.max(tol, 1e-9);
+  const out = [];
+  for (const [t0, t1] of featureSpans(c)) {
+    offsetSpan(subCubic(c, t0, t1), distance, limit, 0, out);
+  }
+  return out;
+}
+function pushRun(src, fitted, out) {
+  for (let i = 0; i < fitted.length; i++) {
+    out.push({
+      curve: fitted[i],
+      dirStart: i === 0 ? unitTangent(src, 0) : null,
+      dirEnd: i === fitted.length - 1 ? unitTangent(src, 1) : null
+    });
+  }
+}
+function offsetSpan(src, d, tol, depth, out) {
+  if (!unitTangent(src, 0) || !unitTangent(src, 1)) return;
+  const straight = isLineCubic(src) ? translateCubic(src, d) : null;
+  if (straight && offsetError(src, [straight], d, tol).error <= tol) {
+    pushRun(src, [straight], out);
+    return;
+  }
+  const fitted = fitToCubics(offsetSource(src, d), { tol, maxSegments: MAX_FIT_SEGMENTS });
+  if (!fitted.length) return;
+  if (depth >= MAX_OFFSET_DEPTH) {
+    pushRun(src, fitted, out);
+    return;
+  }
+  const worst = offsetError(src, fitted, d, tol);
+  if (worst.error <= tol) {
+    pushRun(src, fitted, out);
+    return;
+  }
+  const t = worst.t > MIN_SPAN && worst.t < 1 - MIN_SPAN ? worst.t : 0.5;
+  const [a, b] = splitCubic(src, t);
+  offsetSpan(a, d, tol, depth + 1, out);
+  offsetSpan(b, d, tol, depth + 1, out);
+}
+function offsetSource(c, d) {
+  const sample = (t) => {
+    const p = evalCubic(c, t);
+    const d1 = tangentAt(c, t);
+    const s = Math.hypot(d1.x, d1.y);
+    if (s > 1e-12) {
+      const d2 = secondDeriv(c, t);
+      const k = 1 - d * (d1.x * d2.y - d1.y * d2.x) / (s * s * s);
+      return { x: p.x - d * d1.y / s, y: p.y + d * d1.x / s, dx: k * d1.x, dy: k * d1.y };
+    }
+    const tan = unitTangent(c, t);
+    if (!tan) return { x: p.x, y: p.y, dx: 0, dy: 0 };
+    return { x: p.x - d * tan.y, y: p.y + d * tan.x, dx: 0, dy: 0 };
+  };
+  return {
+    sample,
+    // No closed form exists for an offset's area or moment - the curve is algebraic of
+    // degree 10 - so this is the case `quadratureMoments` is documented for. Gauss-Legendre
+    // over a smooth integrand, not a polyline of the shape.
+    momentIntegrals: (t0, t1) => quadratureMoments(sample, t0, t1),
+    breaks: () => offsetBreaks(c, d)
+  };
+}
+function translateCubic(c, d) {
+  const dx = c[6] - c[0], dy = c[7] - c[1];
+  const len2 = Math.hypot(dx, dy);
+  if (!(len2 > 1e-12)) return null;
+  const nx = -d * dy / len2, ny = d * dx / len2;
+  return [c[0] + nx, c[1] + ny, c[2] + nx, c[3] + ny, c[4] + nx, c[5] + ny, c[6] + nx, c[7] + ny];
+}
+function offsetBreaks(c, d) {
+  const out = featureCuts(c);
+  for (const t of offsetCuspParams(c, d)) out.push(t);
+  return out.sort((a, b) => a - b);
+}
+function offsetError(src, approx, d, tol) {
+  const worst = { error: 0, t: 0.5 };
+  let budget = ERROR_BUDGET;
+  const measure = (u) => {
+    const want = offsetPoint(src, u, d);
+    if (!want) return null;
+    if (u > 0 && u < 1) {
+      const e = nearestOnChain(approx, want);
+      if (e > worst.error) {
+        worst.error = e;
+        worst.t = u;
+      }
+    }
+    return want;
+  };
+  const refine = (u0, u1, w0, w1, depth) => {
+    if (budget <= 0 || depth >= MAX_ERROR_DEPTH) return;
+    budget--;
+    const um = (u0 + u1) / 2;
+    const wm = measure(um);
+    if (!w0 || !w1 || !wm || sagitta(w0, wm, w1) <= tol) return;
+    refine(u0, um, w0, wm, depth + 1);
+    refine(um, u1, wm, w1, depth + 1);
+  };
+  let prev = measure(0);
+  for (let i = 1; i <= ERROR_SAMPLES; i++) {
+    const u = i / ERROR_SAMPLES;
+    const here = measure(u);
+    refine(u - 1 / ERROR_SAMPLES, u, prev, here, 0);
+    prev = here;
+  }
+  return worst;
+}
+function nearestOnChain(chain2, p) {
+  let best = Infinity;
+  for (const k of chain2) {
+    const b = boundsCubic(k);
+    const dx = Math.max(b.x0 - p.x, 0, p.x - b.x1), dy = Math.max(b.y0 - p.y, 0, p.y - b.y1);
+    if (Math.hypot(dx, dy) >= best) continue;
+    const e = nearestOnCubic(k, p.x, p.y).distance;
+    if (e < best) best = e;
+  }
+  return best;
+}
+function sagitta(a, m2, b) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len2 = Math.hypot(dx, dy);
+  if (len2 < 1e-12) return Math.hypot(m2.x - a.x, m2.y - a.y);
+  return Math.abs((m2.x - a.x) * dy - (m2.y - a.y) * dx) / len2;
+}
+function isFiniteCubic2(c) {
+  for (let i = 0; i < 8; i++) if (!Number.isFinite(c[i])) return false;
+  return true;
+}
+function offsetPoint(c, t, d) {
+  const tan = unitTangent(c, t);
+  if (!tan) return null;
+  const p = evalCubic(c, t);
+  return { x: p.x - d * tan.y, y: p.y + d * tan.x };
+}
+function unitTangent(c, t) {
+  const d = tangentAt(c, t);
+  const len2 = Math.hypot(d.x, d.y);
+  if (len2 > 1e-12) return { x: d.x / len2, y: d.y / len2 };
+  const legs = t < 0.5 ? [[c[4] - c[0], c[5] - c[1]], [c[6] - c[0], c[7] - c[1]]] : [[c[6] - c[2], c[7] - c[3]], [c[6] - c[0], c[7] - c[1]]];
+  for (const [dx, dy] of legs) {
+    const l = Math.hypot(dx, dy);
+    if (l > 1e-12) return { x: dx / l, y: dy / l };
+  }
+  return null;
+}
+function featureSpans(c) {
+  const spans = [];
+  let prev = 0;
+  for (const t of featureCuts(c)) {
+    spans.push([prev, t]);
+    prev = t;
+  }
+  spans.push([prev, 1]);
+  return spans;
+}
+function featureCuts(c) {
+  const feats = featureParams(c).filter((f) => f.t > MIN_SPAN && f.t < 1 - MIN_SPAN).sort((a, b) => a.t - b.t);
+  const cuts = [];
+  for (let i = 0; i < feats.length; ) {
+    let j = i;
+    while (j + 1 < feats.length && feats[j + 1].t - feats[i].t <= MIN_SPAN) j++;
+    const cluster2 = feats.slice(i, j + 1);
+    const at = (cluster2.find((f) => f.exact) ?? cluster2[0]).t;
+    if (!cuts.length || at - cuts[cuts.length - 1] > MIN_SPAN / 2) cuts.push(at);
+    i = j + 1;
+  }
+  return cuts;
+}
+function offsetCuspParams(c, d) {
+  if (isLineCubic(c) || !Number.isFinite(d) || d === 0) return [];
+  const px2 = 3 * (-c[0] + 3 * c[2] - 3 * c[4] + c[6]);
+  const px1 = 2 * (3 * c[0] - 6 * c[2] + 3 * c[4]);
+  const px0 = -3 * c[0] + 3 * c[2];
+  const py2 = 3 * (-c[1] + 3 * c[3] - 3 * c[5] + c[7]);
+  const py1 = 2 * (3 * c[1] - 6 * c[3] + 3 * c[5]);
+  const py0 = -3 * c[1] + 3 * c[3];
+  const a = [px0 * py1 - px1 * py0, 2 * (px0 * py2 - px2 * py0), px1 * py2 - px2 * py1];
+  const dPoly = [
+    px0 * px0 + py0 * py0,
+    2 * (px1 * px0 + py1 * py0),
+    px1 * px1 + 2 * px2 * px0 + py1 * py1 + 2 * py2 * py0,
+    2 * (px2 * px1 + py2 * py1),
+    px2 * px2 + py2 * py2
+  ];
+  const cuspPoly = polySub(polyMul(polyMul(dPoly, dPoly), dPoly), polyScale(polyMul(a, a), d * d));
+  const out = [];
+  for (const t of rootsInUnit(cuspPoly)) {
+    if (!(t > MIN_SPAN) || !(t < 1 - MIN_SPAN)) continue;
+    const speed2 = (((dPoly[4] * t + dPoly[3]) * t + dPoly[2]) * t + dPoly[1]) * t + dPoly[0];
+    if (!(speed2 > 0)) continue;
+    const num7 = (a[2] * t + a[1]) * t + a[0];
+    if (Math.abs(1 - d * num7 / (speed2 * Math.sqrt(speed2))) < 0.5) out.push(t);
+  }
+  return out;
+}
+function featureParams(c) {
+  if (isLineCubic(c)) return [];
+  const px2 = 3 * (-c[0] + 3 * c[2] - 3 * c[4] + c[6]);
+  const px1 = 2 * (3 * c[0] - 6 * c[2] + 3 * c[4]);
+  const px0 = -3 * c[0] + 3 * c[2];
+  const py2 = 3 * (-c[1] + 3 * c[3] - 3 * c[5] + c[7]);
+  const py1 = 2 * (3 * c[1] - 6 * c[3] + 3 * c[5]);
+  const py0 = -3 * c[1] + 3 * c[3];
+  const a2 = px1 * py2 - px2 * py1;
+  const a1 = 2 * (px0 * py2 - px2 * py0);
+  const a0 = px0 * py1 - px1 * py0;
+  const d4 = px2 * px2 + py2 * py2;
+  const d3 = 2 * (px2 * px1 + py2 * py1);
+  const d2 = px1 * px1 + 2 * px2 * px0 + py1 * py1 + 2 * py2 * py0;
+  const d1 = 2 * (px1 * px0 + py1 * py0);
+  const d0 = px0 * px0 + py0 * py0;
+  const ts = [];
+  for (const t of cubicRoots01(0, a2, a1, a0)) ts.push({ t, exact: true });
+  for (const t of rootsInUnit(polySub(
+    polyScale(polyMul([a1, 2 * a2], [d0, d1, d2, d3, d4]), 2),
+    polyScale(polyMul([a0, a1, a2], [d1, 2 * d2, 3 * d3, 4 * d4]), 3)
+  ))) ts.push({ t, exact: false });
+  const speedScale = 3 * Math.max(
+    Math.hypot(c[2] - c[0], c[3] - c[1]),
+    Math.hypot(c[4] - c[2], c[5] - c[3]),
+    Math.hypot(c[6] - c[4], c[7] - c[5]),
+    1e-12
+  );
+  for (const t of cubicRoots01(4 * d4, 3 * d3, 2 * d2, d1)) {
+    const speed = Math.sqrt(Math.max(0, (((d4 * t + d3) * t + d2) * t + d1) * t + d0));
+    if (speed < 1e-6 * speedScale) ts.push({ t, exact: true });
+  }
+  return ts;
+}
+function polyMul(a, b) {
+  const out = new Array(a.length + b.length - 1).fill(0);
+  for (let i = 0; i < a.length; i++) for (let j = 0; j < b.length; j++) out[i + j] += a[i] * b[j];
+  return out;
+}
+function polyScale(a, k) {
+  return a.map((v) => v * k);
+}
+function polySub(a, b) {
+  const out = [];
+  for (let i = 0; i < Math.max(a.length, b.length); i++) out.push((a[i] ?? 0) - (b[i] ?? 0));
+  return out;
+}
+function rootsInUnit(poly) {
+  let scale = 0;
+  for (const v of poly) scale = Math.max(scale, Math.abs(v));
+  if (!(scale > 0) || !Number.isFinite(scale)) return [];
+  const a = poly.map((v) => v / scale);
+  let deg2 = a.length - 1;
+  while (deg2 > 0 && Math.abs(a[deg2]) < 1e-12) deg2--;
+  if (deg2 === 0) return [];
+  const out = [];
+  isolateRoots(bernsteinFromPower(a.slice(0, deg2 + 1)), 0, 1, 0, out);
+  return out;
+}
+function bernsteinFromPower(a) {
+  const n2 = a.length - 1;
+  const rows = [];
+  for (let i = 0; i <= n2; i++) {
+    const row = [1];
+    for (let k = 1; k <= i; k++) row.push(row[k - 1] * (i - k + 1) / k);
+    rows.push(row);
+  }
+  const out = [];
+  for (let k = 0; k <= n2; k++) {
+    let s = 0;
+    for (let i = 0; i <= k; i++) s += rows[k][i] / rows[n2][i] * a[i];
+    out.push(s);
+  }
+  return out;
+}
+function isolateRoots(b, t0, t1, depth, out) {
+  let changes = 0, prev = 0;
+  for (const v of b) {
+    if (v === 0) continue;
+    const s = v > 0 ? 1 : -1;
+    if (prev !== 0 && s !== prev) changes++;
+    prev = s;
+  }
+  if (changes === 0) return;
+  if (depth >= 40 || changes === 1 && t1 - t0 < 1e-7) {
+    out.push((t0 + t1) / 2);
+    return;
+  }
+  const [lo, hi] = splitBernstein(b);
+  const mid3 = (t0 + t1) / 2;
+  isolateRoots(lo, t0, mid3, depth + 1, out);
+  isolateRoots(hi, mid3, t1, depth + 1, out);
+}
+function splitBernstein(b) {
+  const rows = [b.slice()];
+  for (let lvl = 1; lvl < b.length; lvl++) {
+    const prev = rows[lvl - 1];
+    const row = [];
+    for (let i = 0; i + 1 < prev.length; i++) row.push((prev[i] + prev[i + 1]) / 2);
+    rows.push(row);
+  }
+  return [rows.map((r3) => r3[0]), rows.map((r3) => r3[r3.length - 1]).reverse()];
+}
+function offsetContour(c, distance, opts = {}) {
+  const src = finiteContour(c);
+  if (!src) return [];
+  if (!Number.isFinite(distance) || Math.abs(distance) < 1e-12) return [src];
+  if (!src.closed) {
+    const curves2 = buildOffset(src, distance, opts);
+    return curves2.length ? [{ curves: curves2, closed: false }] : [];
+  }
+  const cc = closeContour(src);
+  const area = contourArea(cc);
+  const curves = buildOffset(cc, distance * outwardSign(area), opts);
+  if (!curves.length) return [];
+  return resolveLoops([{ curves, closed: true }], [cc], distance, area > 0);
+}
+function offsetPath(p, distance, opts = {}) {
+  const src = p.map(finiteContour).filter((c) => c !== null);
+  if (!src.length) return [];
+  if (!Number.isFinite(distance) || Math.abs(distance) < 1e-12) return src;
+  const closed = src.filter((c) => c.closed).map(closeContour);
+  const open2 = src.filter((c) => !c.closed);
+  const out = [];
+  if (closed.length) {
+    let ref = 0, biggest = 0;
+    for (const c of closed) {
+      const a = contourArea(c);
+      if (Math.abs(a) > biggest) {
+        biggest = Math.abs(a);
+        ref = a;
+      }
+    }
+    const signed = distance * outwardSign(ref);
+    const loops = [];
+    for (const c of closed) {
+      const curves = buildOffset(c, signed, opts);
+      if (curves.length) loops.push({ curves, closed: true });
+    }
+    if (loops.length) out.push(...resolveLoops(loops, closed, distance, ref > 0));
+  }
+  for (const c of open2) {
+    const curves = buildOffset(c, distance, opts);
+    if (curves.length) out.push({ curves, closed: false });
+  }
+  return out;
+}
+function offsetSweep(c, distance, opts = {}) {
+  const src = finiteContour(c);
+  if (!src || !Number.isFinite(distance)) return null;
+  if (Math.abs(distance) < 1e-12) return src;
+  const cc = src.closed ? closeContour(src) : src;
+  const curves = buildOffset(cc, distance, opts);
+  return curves.length ? { curves, closed: cc.closed } : null;
+}
+function outwardSign(area) {
+  return area > 0 ? -1 : 1;
+}
+function resolveLoops(raw, src, distance, wantCcw) {
+  const resolved2 = compactPath(selfUnion(raw));
+  const probes = regionProber(resolved2);
+  const kept = resolved2.filter((c) => probes(c).some(
+    (p) => isOffsetMaterial(src, p.left, distance)
+  ));
+  return matchOrientation(kept, wantCcw);
+}
+function isOffsetMaterial(src, p, distance) {
+  const slack = Math.max(Math.abs(distance), 1) * 1e-9;
+  const want = Math.abs(distance);
+  const inside = () => windingNumber(src, p.x, p.y) !== 0;
+  const near = () => distanceToPath(src, p.x, p.y);
+  return distance > 0 ? inside() || near() <= want + slack : inside() && near() >= want - slack;
+}
+function distanceToPath(p, x, y) {
+  let best = Infinity;
+  for (const c of p) {
+    for (const k of c.curves) {
+      const b = boundsCubic(k);
+      const dx = Math.max(b.x0 - x, 0, x - b.x1), dy = Math.max(b.y0 - y, 0, y - b.y1);
+      if (Math.hypot(dx, dy) >= best) continue;
+      const d = nearestOnCubic(k, x, y).distance;
+      if (d < best) best = d;
+    }
+  }
+  return best;
+}
+function regionProber(region) {
+  const box2 = pathBounds(region);
+  const curves = region.flatMap((c) => c.curves).map((k) => ({ k, box: boundsCubic(k) }));
+  const reach = box2 ? Math.hypot(box2.x1 - box2.x0, box2.y1 - box2.y0) : 0;
+  const skip = reach * 1e-9;
+  const firstCrossing = (m2, dx, dy) => {
+    const x1 = m2.x + dx * reach, y1 = m2.y + dy * reach;
+    const lo = { x: Math.min(m2.x, x1), y: Math.min(m2.y, y1) };
+    const hi = { x: Math.max(m2.x, x1), y: Math.max(m2.y, y1) };
+    let best = null;
+    for (const { k, box: b } of curves) {
+      if (b.x1 < lo.x || b.x0 > hi.x || b.y1 < lo.y || b.y0 > hi.y) continue;
+      for (const hit of intersectLineCubic(m2.x, m2.y, x1, y1, k)) {
+        const at = hit.t1 * reach;
+        if (at <= skip) continue;
+        if (best === null || at < best) best = at;
+      }
+    }
+    return best;
+  };
+  return (c, limit = PROBE_CURVES) => {
+    if (!(reach > 0)) return [];
+    const order = [...c.curves].map((k, i) => ({ k, i, span: Math.hypot(k[6] - k[0], k[7] - k[1]) })).sort((a, b) => b.span - a.span || a.i - b.i).slice(0, limit);
+    const out = [];
+    for (const { k } of order) {
+      const tan = unitTangent(k, 0.5);
+      if (!tan) continue;
+      const m2 = evalCubic(k, 0.5);
+      const nx = -tan.y, ny = tan.x;
+      const hl = firstCrossing(m2, nx, ny);
+      const hr = firstCrossing(m2, -nx, -ny);
+      const room = hl === null ? hr : hr === null ? Math.min(hl, reach) : Math.min(hl, hr);
+      if (room === null || !(room > 0)) continue;
+      const s = room / 2;
+      out.push({
+        left: { x: m2.x + nx * s, y: m2.y + ny * s },
+        right: { x: m2.x - nx * s, y: m2.y - ny * s }
+      });
+    }
+    return out;
+  };
+}
+function finiteContour(c) {
+  const curves = c.curves.filter(isFiniteCubic2).map((k) => [...k]);
+  return curves.length ? { curves, closed: c.closed } : null;
+}
+function buildOffset(c, d, opts) {
+  const tol = opts.tol ?? DEFAULT_TOL2;
+  const join18 = opts.join ?? "miter";
+  const miterLimit = opts.miterLimit ?? DEFAULT_MITER_LIMIT;
+  const seq = [];
+  const corners = [];
+  for (const k of c.curves) {
+    const pieces = offsetPieces(k, d, tol);
+    for (let i = 0; i < pieces.length; i++) {
+      seq.push(pieces[i]);
+      corners.push(i === pieces.length - 1 ? { x: k[6], y: k[7] } : null);
+    }
+  }
+  if (!seq.length) return [];
+  const out = [];
+  for (let i = 0; i < seq.length; i++) {
+    const cur = seq[i];
+    out.push(cur.curve);
+    const last = i === seq.length - 1;
+    if (last && !c.closed) break;
+    const next = seq[last ? 0 : i + 1];
+    const a = { x: cur.curve[6], y: cur.curve[7] };
+    const b = { x: next.curve[0], y: next.curve[1] };
+    if (Math.hypot(b.x - a.x, b.y - a.y) <= JOIN_EPS) {
+      next.curve[0] = a.x;
+      next.curve[1] = a.y;
+      continue;
+    }
+    const pivot = corners[i] ?? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    const t0 = cur.dirEnd ?? endTangent2(cur.curve);
+    const t1 = next.dirStart ?? startTangent2(next.curve);
+    out.push(...joinPieces(a, b, pivot, t0, t1, d, join18, miterLimit));
+  }
+  return out;
+}
+function joinPieces(a, b, pivot, t0, t1, d, style, miterLimit) {
+  const bevel = () => [lineToCubic(a.x, a.y, b.x, b.y)];
+  const viaPivot = () => [lineToCubic(a.x, a.y, pivot.x, pivot.y), lineToCubic(pivot.x, pivot.y, b.x, b.y)];
+  if (!t0 || !t1) return bevel();
+  const cross = t0.x * t1.y - t0.y * t1.x;
+  const reversal = Math.abs(cross) < 1e-9 && t0.x * t1.x + t0.y * t1.y < 0;
+  if (!reversal) {
+    if (Math.abs(cross) < 1e-12) return bevel();
+    if (d * cross >= 0) return viaPivot();
+  }
+  if (style === "bevel") return bevel();
+  if (style === "round") return arcJoin(a, b, pivot, t0);
+  if (reversal) return bevel();
+  const s = ((b.x - a.x) * t1.y - (b.y - a.y) * t1.x) / cross;
+  if (!(s > 0) || !Number.isFinite(s)) return bevel();
+  const m2 = { x: a.x + t0.x * s, y: a.y + t0.y * s };
+  if (Math.hypot(m2.x - pivot.x, m2.y - pivot.y) > miterLimit * Math.abs(d)) return bevel();
+  return [lineToCubic(a.x, a.y, m2.x, m2.y), lineToCubic(m2.x, m2.y, b.x, b.y)];
+}
+function arcJoin(a, b, pivot, heading) {
+  const r0 = Math.hypot(a.x - pivot.x, a.y - pivot.y);
+  const r1 = Math.hypot(b.x - pivot.x, b.y - pivot.y);
+  const r3 = (r0 + r1) / 2;
+  if (r3 < 1e-12) return [lineToCubic(a.x, a.y, b.x, b.y)];
+  const from = Math.atan2(a.y - pivot.y, a.x - pivot.x);
+  let sweep = Math.atan2(b.y - pivot.y, b.x - pivot.x) - from;
+  while (sweep <= -Math.PI) sweep += 2 * Math.PI;
+  while (sweep > Math.PI) sweep -= 2 * Math.PI;
+  if (heading && Math.abs(sweep) > Math.PI - 1e-6) {
+    const turn = (a.x - pivot.x) * heading.y - (a.y - pivot.y) * heading.x;
+    if (turn !== 0) sweep = turn > 0 ? Math.abs(sweep) : -Math.abs(sweep);
+  }
+  const n2 = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 2)));
+  const step = sweep / n2;
+  const k = 4 / 3 * Math.tan(step / 4);
+  const out = [];
+  for (let i = 0; i < n2; i++) {
+    const s = from + step * i, e = s + step;
+    const sx = pivot.x + r3 * Math.cos(s), sy = pivot.y + r3 * Math.sin(s);
+    const ex = pivot.x + r3 * Math.cos(e), ey = pivot.y + r3 * Math.sin(e);
+    out.push([
+      sx,
+      sy,
+      sx - k * r3 * Math.sin(s),
+      sy + k * r3 * Math.cos(s),
+      ex + k * r3 * Math.sin(e),
+      ey - k * r3 * Math.cos(e),
+      ex,
+      ey
+    ]);
+  }
+  const first = out[0], last = out[out.length - 1];
+  first[0] = a.x;
+  first[1] = a.y;
+  last[6] = b.x;
+  last[7] = b.y;
+  return out;
+}
+function endTangent2(c) {
+  return unitTangent(c, 1);
+}
+function startTangent2(c) {
+  return unitTangent(c, 0);
+}
+function matchOrientation(p, wantCcw) {
+  let area = 0, biggest = 0;
+  for (const c of p) {
+    const a = contourArea(c);
+    if (Math.abs(a) > biggest) {
+      biggest = Math.abs(a);
+      area = a;
+    }
+  }
+  if (biggest === 0 || area > 0 === wantCcw) return p;
+  return p.map(reverseContour);
+}
+function fitCubic(points, tangents, tol = DEFAULT_TOL2) {
+  const pts = dedupePoints(points);
+  if (pts.length < 2) return [];
+  const first = normalise2(tangents.start) ?? direction(pts[0], pts[1]);
+  const back = normalise2({ x: -tangents.end.x, y: -tangents.end.y }) ?? direction(pts[pts.length - 1], pts[pts.length - 2]);
+  if (!first || !back) return [];
+  return fitRecursive(pts, first, back, Math.max(tol, 1e-9), 0);
+}
+function fitRecursive(pts, t0, t1, tol, depth) {
+  if (pts.length === 2) {
+    const a = pts[0], b = pts[1];
+    const l = Math.hypot(b.x - a.x, b.y - a.y) / 3;
+    return [[a.x, a.y, a.x + t0.x * l, a.y + t0.y * l, b.x + t1.x * l, b.y + t1.y * l, b.x, b.y]];
+  }
+  let u = chordParams(pts);
+  let curve = bezierWithTangents(pts, u, t0, t1);
+  let worst = fitError2(pts, u, curve);
+  for (let i = 0; i < MAX_FIT_ITERATIONS && worst.error > tol; i++) {
+    const nu = reparameterise(pts, u, curve);
+    const nc = bezierWithTangents(pts, nu, t0, t1);
+    const ne = fitError2(pts, nu, nc);
+    if (!(ne.error < worst.error)) break;
+    u = nu;
+    curve = nc;
+    worst = ne;
+  }
+  if (worst.error <= tol) return [curve];
+  if (depth >= MAX_FIT_DEPTH) return [curve];
+  const at = Math.min(pts.length - 2, Math.max(1, worst.index));
+  const centre = centreTangent(pts, at);
+  if (!centre) return [curve];
+  return [
+    ...fitRecursive(pts.slice(0, at + 1), t0, centre, tol, depth + 1),
+    ...fitRecursive(pts.slice(at), { x: -centre.x, y: -centre.y }, t1, tol, depth + 1)
+  ];
+}
+function bezierWithTangents(pts, u, t0, t1) {
+  const n2 = pts.length;
+  const first = pts[0], last = pts[n2 - 1];
+  let c00 = 0, c01 = 0, c11 = 0, x0 = 0, x1 = 0;
+  for (let i = 0; i < n2; i++) {
+    const t = u[i], mt = 1 - t;
+    const b0 = mt * mt * mt, b1 = 3 * mt * mt * t, b2 = 3 * mt * t * t, b3 = t * t * t;
+    const a0x = t0.x * b1, a0y = t0.y * b1;
+    const a1x = t1.x * b2, a1y = t1.y * b2;
+    c00 += a0x * a0x + a0y * a0y;
+    c01 += a0x * a1x + a0y * a1y;
+    c11 += a1x * a1x + a1y * a1y;
+    const rx = pts[i].x - (first.x * (b0 + b1) + last.x * (b2 + b3));
+    const ry = pts[i].y - (first.y * (b0 + b1) + last.y * (b2 + b3));
+    x0 += a0x * rx + a0y * ry;
+    x1 += a1x * rx + a1y * ry;
+  }
+  const det = c00 * c11 - c01 * c01;
+  const chord = Math.hypot(last.x - first.x, last.y - first.y);
+  let l0 = 0, l1 = 0;
+  if (Math.abs(det) > 1e-18) {
+    l0 = (c11 * x0 - c01 * x1) / det;
+    l1 = (c00 * x1 - c01 * x0) / det;
+  }
+  const floor = 1e-6 * Math.max(chord, 1e-9);
+  if (!(l0 > floor) || !(l1 > floor)) {
+    l0 = chord / 3;
+    l1 = chord / 3;
+  }
+  return [
+    first.x,
+    first.y,
+    first.x + t0.x * l0,
+    first.y + t0.y * l0,
+    last.x + t1.x * l1,
+    last.y + t1.y * l1,
+    last.x,
+    last.y
+  ];
+}
+function fitError2(pts, u, curve) {
+  let error = 0, index = Math.floor(pts.length / 2);
+  for (let i = 1; i < pts.length - 1; i++) {
+    const p = evalCubic(curve, u[i]);
+    const d = Math.hypot(p.x - pts[i].x, p.y - pts[i].y);
+    if (d > error) {
+      error = d;
+      index = i;
+    }
+  }
+  return { error, index };
+}
+function reparameterise(pts, u, curve) {
+  return u.map((t, i) => {
+    const p = evalCubic(curve, t), d1 = tangentAt(curve, t), d2 = secondDeriv(curve, t);
+    const dx = p.x - pts[i].x, dy = p.y - pts[i].y;
+    const num7 = dx * d1.x + dy * d1.y;
+    const den = d1.x * d1.x + d1.y * d1.y + dx * d2.x + dy * d2.y;
+    if (Math.abs(den) < 1e-14) return t;
+    return Math.min(1, Math.max(0, t - num7 / den));
+  });
+}
+function secondDeriv(c, t) {
+  const mt = 1 - t;
+  return {
+    x: 6 * mt * (c[4] - 2 * c[2] + c[0]) + 6 * t * (c[6] - 2 * c[4] + c[2]),
+    y: 6 * mt * (c[5] - 2 * c[3] + c[1]) + 6 * t * (c[7] - 2 * c[5] + c[3])
+  };
+}
+function centreTangent(pts, i) {
+  const prev = pts[i - 1], at = pts[i], next = pts[i + 1];
+  return normalise2({
+    x: (prev.x - at.x + at.x - next.x) / 2,
+    y: (prev.y - at.y + at.y - next.y) / 2
+  }) ?? direction(at, prev);
+}
+function chordParams(pts) {
+  const u = [0];
+  for (let i = 1; i < pts.length; i++) {
+    u.push(u[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+  }
+  const total = u[u.length - 1];
+  if (!(total > 0)) return pts.map((_, i) => i / Math.max(1, pts.length - 1));
+  return u.map((v) => v / total);
+}
+function dedupePoints(pts) {
+  const out = [];
+  for (const p of pts) {
+    const last = out[out.length - 1];
+    if (!last || Math.hypot(p.x - last.x, p.y - last.y) > 1e-12) out.push({ x: p.x, y: p.y });
+  }
+  return out;
+}
+function normalise2(v) {
+  const l = Math.hypot(v.x, v.y);
+  return l > 1e-12 ? { x: v.x / l, y: v.y / l } : null;
+}
+function direction(from, to) {
+  return normalise2({ x: to.x - from.x, y: to.y - from.y });
+}
+var DEFAULT_TOL2, DEFAULT_MITER_LIMIT, MAX_OFFSET_DEPTH, MAX_FIT_DEPTH, MAX_FIT_ITERATIONS, MAX_FIT_SEGMENTS, ERROR_SAMPLES, MAX_ERROR_DEPTH, ERROR_BUDGET, PROBE_CURVES, MIN_SPAN;
+var init_offset = __esm({
+  "engine/src/geom/offset.ts"() {
+    "use strict";
+    init_bezier();
+    init_intersect();
+    init_path();
+    init_boolean();
+    init_fit();
+    DEFAULT_TOL2 = 0.01;
+    DEFAULT_MITER_LIMIT = 4;
+    MAX_OFFSET_DEPTH = 8;
+    MAX_FIT_DEPTH = 16;
+    MAX_FIT_ITERATIONS = 8;
+    MAX_FIT_SEGMENTS = 32;
+    ERROR_SAMPLES = 12;
+    MAX_ERROR_DEPTH = 20;
+    ERROR_BUDGET = 512;
+    PROBE_CURVES = 6;
+    MIN_SPAN = 1e-4;
+  }
+});
+
+// engine/src/geom/stroke.ts
+function strokeToPath(p, width, opts = {}) {
+  if (!(width > 0)) return [];
+  const r3 = width / 2;
+  const cap = opts.cap ?? "butt";
+  const off = { join: opts.join ?? "miter", miterLimit: opts.miterLimit ?? 4, tol: opts.tol };
+  const raw = [];
+  for (const c of p) {
+    if (!c.curves.length) continue;
+    if (isPoint(c)) {
+      const dot = dotContour(c, r3, cap);
+      if (dot) raw.push(dot);
+      continue;
+    }
+    if (c.closed) raw.push(...ring(c, r3, off));
+    else {
+      const outline = openOutline(c, r3, cap, off);
+      if (outline) raw.push(outline);
+    }
+  }
+  if (!raw.length) return [];
+  return keptContours(selfUnion(raw, { fillRule: "nonzero" }), p, r3);
+}
+function keptContours(resolved2, centreline, r3) {
+  if (resolved2.length < 2) return resolved2;
+  const src = centreline.filter((c) => c.curves.length).map((c) => c.closed ? closeContour(c) : c);
+  if (!src.length) return resolved2;
+  const paint = (p) => distanceToPath(src, p.x, p.y) <= r3 * (1 + 1e-9);
+  const probes = regionProber(resolved2);
+  return resolved2.filter((c) => {
+    for (const probe of probes(c)) {
+      const left = paint(probe.left), right = paint(probe.right);
+      if (left !== right) return true;
+      if (left && right) return false;
+    }
+    return true;
+  });
+}
+function ring(c, r3, off) {
+  const cc = closeContour(c);
+  const out = [];
+  for (const side of [cc, reverseContour(cc)]) {
+    const sweep = offsetSweep(side, r3, off);
+    if (sweep) out.push(sweep);
+  }
+  return out;
+}
+function openOutline(c, r3, cap, off) {
+  const fwd = offsetSide(c, r3, off);
+  const back = offsetSide(reverseContour(c), r3, off);
+  if (!fwd.length || !back.length) return null;
+  const ahead = endDirection(c);
+  const behind = startDirection(c);
+  if (!ahead || !behind) return null;
+  const curves = [
+    ...fwd,
+    ...capCurves(endPoint(fwd), startPoint(back), ahead, cap),
+    ...back,
+    // Arriving back at the start, the direction of travel is against the contour.
+    ...capCurves(endPoint(back), startPoint(fwd), { x: -behind.x, y: -behind.y }, cap)
+  ];
+  return { curves, closed: true };
+}
+function offsetSide(c, distance, off) {
+  const out = [];
+  for (const part of offsetContour(c, distance, off)) out.push(...part.curves);
+  return out;
+}
+function capCurves(from, to, dir, cap) {
+  if (cap === "round") return halfCircle(from, to, dir);
+  if (cap === "square") {
+    const r3 = Math.hypot(to.x - from.x, to.y - from.y) / 2;
+    const ex = dir.x * r3, ey = dir.y * r3;
+    const a = { x: from.x + ex, y: from.y + ey };
+    const b = { x: to.x + ex, y: to.y + ey };
+    return [
+      lineToCubic(from.x, from.y, a.x, a.y),
+      lineToCubic(a.x, a.y, b.x, b.y),
+      lineToCubic(b.x, b.y, to.x, to.y)
+    ];
+  }
+  return [lineToCubic(from.x, from.y, to.x, to.y)];
+}
+function halfCircle(from, to, dir) {
+  const cx = (from.x + to.x) / 2, cy = (from.y + to.y) / 2;
+  const ux = from.x - cx, uy = from.y - cy;
+  const r3 = Math.hypot(ux, uy);
+  if (r3 < JOIN_EPS) return [lineToCubic(from.x, from.y, to.x, to.y)];
+  const ax = ux / r3, ay = uy / r3;
+  let mx = ay, my = -ax;
+  if (mx * dir.x + my * dir.y < 0) {
+    mx = -mx;
+    my = -my;
+  }
+  const arcs = [
+    quarterArc(cx, cy, r3, ax, ay, mx, my),
+    quarterArc(cx, cy, r3, mx, my, -ax, -ay)
+  ];
+  const last = arcs[arcs.length - 1];
+  last[6] = to.x;
+  last[7] = to.y;
+  return arcs;
+}
+function quarterArc(cx, cy, r3, ax, ay, bx, by) {
+  const p0x = cx + r3 * ax, p0y = cy + r3 * ay;
+  const p3x = cx + r3 * bx, p3y = cy + r3 * by;
+  return [
+    p0x,
+    p0y,
+    p0x + KAPPA * r3 * bx,
+    p0y + KAPPA * r3 * by,
+    p3x + KAPPA * r3 * ax,
+    p3y + KAPPA * r3 * ay,
+    p3x,
+    p3y
+  ];
+}
+function isPoint(c) {
+  const b = pathBounds([c]);
+  return !b || b.x1 - b.x0 <= JOIN_EPS && b.y1 - b.y0 <= JOIN_EPS;
+}
+function dotContour(c, r3, cap) {
+  if (cap === "butt") return null;
+  const k = c.curves[0];
+  if (!k) return null;
+  const x = k[0], y = k[1];
+  if (cap === "square") {
+    return {
+      curves: [
+        lineToCubic(x - r3, y - r3, x + r3, y - r3),
+        lineToCubic(x + r3, y - r3, x + r3, y + r3),
+        lineToCubic(x + r3, y + r3, x - r3, y + r3),
+        lineToCubic(x - r3, y + r3, x - r3, y - r3)
+      ],
+      closed: true
+    };
+  }
+  return {
+    curves: [
+      quarterArc(x, y, r3, 1, 0, 0, 1),
+      quarterArc(x, y, r3, 0, 1, -1, 0),
+      quarterArc(x, y, r3, -1, 0, 0, -1),
+      quarterArc(x, y, r3, 0, -1, 1, 0)
+    ],
+    closed: true
+  };
+}
+function unit(x, y) {
+  const l = Math.hypot(x, y);
+  return l < 1e-12 ? null : { x: x / l, y: y / l };
+}
+function endDirection(c) {
+  for (let i = c.curves.length - 1; i >= 0; i--) {
+    const k = c.curves[i];
+    const d = unit(k[6] - k[4], k[7] - k[5]) ?? unit(k[6] - k[2], k[7] - k[3]) ?? unit(k[6] - k[0], k[7] - k[1]);
+    if (d) return d;
+  }
+  return null;
+}
+function startDirection(c) {
+  for (const k of c.curves) {
+    const d = unit(k[2] - k[0], k[3] - k[1]) ?? unit(k[4] - k[0], k[5] - k[1]) ?? unit(k[6] - k[0], k[7] - k[1]);
+    if (d) return d;
+  }
+  return null;
+}
+function startPoint(curves) {
+  const k = curves[0];
+  return { x: k[0], y: k[1] };
+}
+function endPoint(curves) {
+  const k = curves[curves.length - 1];
+  return { x: k[6], y: k[7] };
+}
+var KAPPA;
+var init_stroke = __esm({
+  "engine/src/geom/stroke.ts"() {
+    "use strict";
+    init_bezier();
+    init_path();
+    init_offset();
+    init_boolean();
+    KAPPA = 0.5522847498307936;
+  }
+});
+
+// engine/src/geom/spiro.ts
+function mod2pi2(th) {
+  const f = th * (0.5 / Math.PI);
+  return 2 * Math.PI * (f - Math.round(f));
+}
+function intCosSin(a, b, c, u0, u1) {
+  const mid3 = 0.5 * (u0 + u1);
+  const half = 0.5 * (u1 - u0);
+  let x = 0, y = 0;
+  for (let i = 0; i < GL_X.length; i++) {
+    const u = mid3 + 2 * half * GL_X[i];
+    const t = theta(a, b, c, u);
+    x += GL_W[i] * Math.cos(t);
+    y += GL_W[i] * Math.sin(t);
+  }
+  const len2 = u1 - u0;
+  return { x: x * len2, y: y * len2 };
+}
+function solveClosing(alpha, beta) {
+  let c = 0;
+  for (let it = 0; it < 24; it++) {
+    const b = beta - alpha - c;
+    let f = 0, df = 0;
+    for (let i = 0; i < GL_X.length; i++) {
+      const u = 0.5 + GL_X[i];
+      const t = theta(alpha, b, c, u);
+      f += GL_W[i] * Math.sin(t);
+      df += GL_W[i] * Math.cos(t) * (u * u - u);
+    }
+    if (Math.abs(f) < 1e-12) break;
+    if (Math.abs(df) < 1e-12) break;
+    const step = f / df;
+    c -= Math.max(-Math.PI, Math.min(Math.PI, step));
+  }
+  return { b: beta - alpha - c, c };
+}
+function segClothoid(ax, ay, bx, by, psiA, psiB) {
+  const chord = Math.hypot(bx - ax, by - ay);
+  const phi = Math.atan2(by - ay, bx - ax);
+  const alpha = mod2pi2(psiA - phi);
+  const beta = mod2pi2(psiB - phi);
+  const { b, c } = solveClosing(alpha, beta);
+  const span = intCosSin(alpha, b, c, 0, 1);
+  const scale = chord / (Math.hypot(span.x, span.y) || 1e-12);
+  return { alpha, b, c, scale, kEntry: b / scale, kExit: (b + 2 * c) / scale };
+}
+function partition(nodes, closed) {
+  const n2 = nodes.length;
+  const wrap = closed && n2 > 2;
+  const runs = [];
+  if (wrap) {
+    const corners = [];
+    for (let i = 0; i < n2; i++) if (isCorner(nodes[i])) corners.push(i);
+    if (corners.length === 0) {
+      runs.push({ idx: nodes.map((_, i) => i), wrap: true });
+      return runs;
+    }
+    const s = corners[0];
+    let cur = [s];
+    for (let k = 1; k <= n2; k++) {
+      const i = (s + k) % n2;
+      cur.push(i);
+      if (k < n2 && isCorner(nodes[i])) {
+        runs.push({ idx: cur, wrap: false });
+        cur = [i];
+      }
+    }
+    runs.push({ idx: cur, wrap: false });
+  } else {
+    let cur = [0];
+    for (let i = 1; i < n2; i++) {
+      cur.push(i);
+      if (i < n2 - 1 && isCorner(nodes[i])) {
+        runs.push({ idx: cur, wrap: false });
+        cur = [i];
+      }
+    }
+    runs.push({ idx: cur, wrap: false });
+  }
+  return runs;
+}
+function solveRun(pts, wrap) {
+  const m2 = pts.length;
+  const nSeg = wrap ? m2 : m2 - 1;
+  const rawPhi = new Array(nSeg);
+  const len2 = new Array(nSeg);
+  for (let i = 0; i < nSeg; i++) {
+    const a = pts[i], b = pts[(i + 1) % m2];
+    const dx = b.x - a.x, dy = b.y - a.y;
+    rawPhi[i] = Math.atan2(dy, dx);
+    len2[i] = Math.max(1e-9, Math.hypot(dx, dy));
+  }
+  const bend = new Array(m2).fill(0);
+  if (wrap) for (let j = 0; j < m2; j++) bend[j] = mod2pi2(rawPhi[j % nSeg] - rawPhi[(j - 1 + nSeg) % nSeg]);
+  else for (let j = 1; j < m2; j++) bend[j] = mod2pi2(rawPhi[j] - rawPhi[j - 1]);
+  const A = Array.from({ length: m2 }, () => new Array(m2).fill(0));
+  const r3 = new Array(m2).fill(0);
+  const add = (row, col, v) => {
+    A[row][(col % m2 + m2) % m2] += v;
+  };
+  const g2 = (j) => {
+    const lL = len2[((j - 1) % nSeg + nSeg) % nSeg], lR = len2[j % nSeg];
+    add(j, j - 1, 1 / lL);
+    add(j, j, 3 / lL + 3 / lR);
+    add(j, j + 1, 1 / lR);
+    r3[j] = -bend[((j - 1) % m2 + m2) % m2] / lL - 3 * bend[j % m2] / lR;
+  };
+  if (wrap) {
+    for (let j = 0; j < m2; j++) g2(j);
+  } else {
+    add(0, 0, 3);
+    add(0, 1, 1);
+    r3[0] = 0;
+    for (let j = 1; j < m2 - 1; j++) g2(j);
+    add(m2 - 1, m2 - 2, 1);
+    add(m2 - 1, m2 - 1, 3);
+    r3[m2 - 1] = -bend[m2 - 2];
+  }
+  const thetaSol = solveDense(A, r3);
+  const psi = new Array(m2);
+  for (let j = 0; j < m2; j++) {
+    const prev = wrap ? (j - 1 + nSeg) % nSeg : j === 0 ? 0 : j - 1;
+    psi[j] = rawPhi[prev] - thetaSol[j];
+  }
+  const residual = (p) => {
+    const seg = [];
+    for (let i = 0; i < nSeg; i++) seg.push(segClothoid(pts[i].x, pts[i].y, pts[(i + 1) % m2].x, pts[(i + 1) % m2].y, p[i], p[(i + 1) % m2]));
+    const res = new Array(m2).fill(0);
+    if (wrap) {
+      for (let j = 0; j < m2; j++) res[j] = seg[(j - 1 + nSeg) % nSeg].kExit - seg[j % nSeg].kEntry;
+    } else {
+      res[0] = seg[0].kEntry;
+      for (let j = 1; j < m2 - 1; j++) res[j] = seg[j - 1].kExit - seg[j].kEntry;
+      res[m2 - 1] = seg[m2 - 2].kExit;
+    }
+    return res;
+  };
+  const norm2 = (v) => Math.max(...v.map(Math.abs));
+  const EPS4 = 1e-6;
+  for (let it = 0; it < 8; it++) {
+    const r0 = residual(psi);
+    if (norm2(r0) < 1e-9) break;
+    const J = Array.from({ length: m2 }, () => new Array(m2).fill(0));
+    for (let k = 0; k < m2; k++) {
+      const save = psi[k];
+      psi[k] = save + EPS4;
+      const rk = residual(psi);
+      psi[k] = save;
+      for (let i = 0; i < m2; i++) J[i][k] = (rk[i] - r0[i]) / EPS4;
+    }
+    const rhs = r0.map((v) => -v);
+    const dpsi = solveDense(J, rhs);
+    let damp = 1;
+    for (const d of dpsi) if (Math.abs(d) > 0.6) damp = Math.min(damp, 0.6 / Math.abs(d));
+    let moved = false;
+    for (let k = 0; k < m2; k++) {
+      const d = damp * dpsi[k];
+      if (Number.isFinite(d)) {
+        psi[k] += d;
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+  return psi;
+}
+function solveDense(A, b) {
+  const n2 = b.length;
+  const M2 = A.map((row, i) => [...row, b[i]]);
+  for (let col = 0; col < n2; col++) {
+    let piv = col;
+    for (let row = col + 1; row < n2; row++) if (Math.abs(M2[row][col]) > Math.abs(M2[piv][col])) piv = row;
+    if (piv !== col) {
+      const t = M2[piv];
+      M2[piv] = M2[col];
+      M2[col] = t;
+    }
+    const d = M2[col][col];
+    if (Math.abs(d) < 1e-12) continue;
+    for (let row = 0; row < n2; row++) {
+      if (row === col) continue;
+      const f = M2[row][col] / d;
+      if (f === 0) continue;
+      for (let k = col; k <= n2; k++) M2[row][k] -= f * M2[col][k];
+    }
+  }
+  return M2.map((row, i) => Math.abs(M2[i][i]) < 1e-12 ? 0 : row[n2] / M2[i][i]);
+}
+function segToCubics(ax, ay, bx, by, psiA, psiB) {
+  const dx = bx - ax, dy = by - ay;
+  const chord = Math.hypot(dx, dy);
+  if (chord < 1e-12) return [];
+  const phi = Math.atan2(dy, dx);
+  const alpha = mod2pi2(psiA - phi);
+  const beta = mod2pi2(psiB - phi);
+  const { b, c } = solveClosing(alpha, beta);
+  const cosP = Math.cos(phi), sinP = Math.sin(phi);
+  const span = intCosSin(alpha, b, c, 0, 1);
+  const scale = chord / (Math.hypot(span.x, span.y) || 1e-12);
+  const pos = (u) => {
+    const d = intCosSin(alpha, b, c, 0, u);
+    const sx = scale * d.x, sy = scale * d.y;
+    return { x: ax + sx * cosP - sy * sinP, y: ay + sx * sinP + sy * cosP };
+  };
+  const tan = (u) => phi + theta(alpha, b, c, u);
+  const out = [];
+  const emit = (u0, u1, p0, p1, depth) => {
+    const dTurn = theta(alpha, b, c, u1) - theta(alpha, b, c, u0);
+    if (Math.abs(dTurn) > ARC_TOL && depth < 10) {
+      const um = 0.5 * (u0 + u1);
+      const pm = pos(um);
+      emit(u0, um, p0, pm, depth + 1);
+      emit(um, u1, pm, p1, depth + 1);
+      return;
+    }
+    const t0 = tan(u0), t1 = tan(u1);
+    const arm = Math.hypot(p1.x - p0.x, p1.y - p0.y) / 3;
+    out.push([
+      p0.x,
+      p0.y,
+      p0.x + arm * Math.cos(t0),
+      p0.y + arm * Math.sin(t0),
+      p1.x - arm * Math.cos(t1),
+      p1.y - arm * Math.sin(t1),
+      p1.x,
+      p1.y
+    ]);
+  };
+  emit(0, 1, { x: ax, y: ay }, { x: bx, y: by }, 0);
+  return out;
+}
+function solveTangents(nodes, closed) {
+  const n2 = nodes.length;
+  const psiOut = new Array(n2).fill(0);
+  const psiIn = new Array(n2).fill(0);
+  for (const run of partition(nodes, closed)) {
+    const m2 = run.idx.length;
+    if (m2 < 2) continue;
+    const pts = run.idx.map((i) => ({ x: nodes[i].x, y: nodes[i].y }));
+    const sol = solveRun(pts, run.wrap);
+    for (let j = 0; j < m2; j++) {
+      const i = run.idx[j];
+      if (run.wrap || j < m2 - 1) psiOut[i] = sol[j];
+      if (run.wrap || j > 0) psiIn[i] = sol[j];
+    }
+  }
+  return { psiOut, psiIn };
+}
+function spiroCubics(nodes, closed) {
+  const n2 = nodes.length;
+  if (n2 < 2) return [];
+  const wrap = closed && n2 > 2;
+  const nSeg = wrap ? n2 : n2 - 1;
+  const { psiOut, psiIn } = solveTangents(nodes, closed);
+  const out = [];
+  for (let i = 0; i < nSeg; i++) {
+    const a = nodes[i], b = nodes[(i + 1) % n2];
+    out.push(...segToCubics(a.x, a.y, b.x, b.y, psiOut[i], psiIn[(i + 1) % n2]));
+  }
+  return out;
+}
+var GL_X, GL_W, theta, isCorner, ARC_TOL;
+var init_spiro = __esm({
+  "engine/src/geom/spiro.ts"() {
+    "use strict";
+    GL_X = [
+      -0.4830766568773831,
+      -0.4183605950159868,
+      -0.3115468316959411,
+      -0.1738056351822426,
+      0.1738056351822426,
+      0.3115468316959411,
+      0.4183605950159868,
+      0.4830766568773831
+    ];
+    GL_W = [
+      0.05061426814518821,
+      0.11119051722668724,
+      0.15685332293894366,
+      0.18134189168918102,
+      0.18134189168918102,
+      0.15685332293894366,
+      0.11119051722668724,
+      0.05061426814518821
+    ];
+    theta = (a, b, c, u) => a + b * u + c * u * u;
+    isCorner = (n2) => (n2.continuity ?? "corner") === "corner";
+    ARC_TOL = 0.25;
+  }
+});
+
+// engine/src/geom/spline.ts
+function toCubics(path, warm) {
+  const n2 = path.nodes;
+  if (n2.length < 2) return [];
+  switch (path.kind) {
+    case "line":
+      return lineSegments(n2, path.closed);
+    case "cubic":
+      return cubicSegments(n2, path.closed);
+    case "catmull-rom":
+      return catmullRom(n2, path.closed, path.tension ?? 0.5);
+    case "bspline":
+      return bspline(n2, path.closed);
+    case "hyperbezier":
+      return hyperbezierCubics(n2, path.closed, solveHyperbezier(n2, path.closed, warm));
+    case "spiro":
+      return spiroCubics(n2, path.closed);
+    default:
+      throw new Error(`unknown spline kind: ${String(path.kind)}`);
+  }
+}
+function pairs(items, closed) {
+  const out = [];
+  for (let i = 0; i + 1 < items.length; i++) out.push([items[i], items[i + 1]]);
+  if (closed && items.length > 2) out.push([items[items.length - 1], items[0]]);
+  return out;
+}
+function lineSegments(n2, closed) {
+  return pairs(n2, closed).map(([a, b]) => lineToCubic(a.x, a.y, b.x, b.y));
+}
+function cubicSegments(n2, closed) {
+  return pairs(n2, closed).map(([a, b]) => {
+    const c1x = a.x + (a.hOutX ?? 0), c1y = a.y + (a.hOutY ?? 0);
+    const c2x = b.x + (b.hInX ?? 0), c2y = b.y + (b.hInY ?? 0);
+    return [a.x, a.y, c1x, c1y, c2x, c2y, b.x, b.y];
+  });
+}
+function catmullRom(n2, closed, alpha) {
+  const at = (i) => {
+    if (closed) return n2[(i % n2.length + n2.length) % n2.length];
+    return n2[Math.min(n2.length - 1, Math.max(0, i))];
+  };
+  const out = [];
+  const last = closed ? n2.length : n2.length - 1;
+  for (let i = 0; i < last; i++) {
+    const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+    const d = (a, b) => Math.max(1e-9, Math.hypot(b.x - a.x, b.y - a.y) ** alpha);
+    const d1 = d(p0, p1), d2 = d(p1, p2), d3 = d(p2, p3);
+    const b1x = (d1 * d1 * p2.x - d2 * d2 * p0.x + (2 * d1 * d1 + 3 * d1 * d2 + d2 * d2) * p1.x) / (3 * d1 * (d1 + d2));
+    const b1y = (d1 * d1 * p2.y - d2 * d2 * p0.y + (2 * d1 * d1 + 3 * d1 * d2 + d2 * d2) * p1.y) / (3 * d1 * (d1 + d2));
+    const b2x = (d3 * d3 * p1.x - d2 * d2 * p3.x + (2 * d3 * d3 + 3 * d3 * d2 + d2 * d2) * p2.x) / (3 * d3 * (d3 + d2));
+    const b2y = (d3 * d3 * p1.y - d2 * d2 * p3.y + (2 * d3 * d3 + 3 * d3 * d2 + d2 * d2) * p2.y) / (3 * d3 * (d3 + d2));
+    out.push([p1.x, p1.y, b1x, b1y, b2x, b2y, p2.x, p2.y]);
+  }
+  return out;
+}
+function bspline(n2, closed) {
+  const at = (i) => {
+    if (closed) return n2[(i % n2.length + n2.length) % n2.length];
+    return n2[Math.min(n2.length - 1, Math.max(0, i))];
+  };
+  const out = [];
+  const last = closed ? n2.length : n2.length - 3;
+  for (let i = 0; i < last; i++) {
+    const p0 = at(i), p1 = at(i + 1), p2 = at(i + 2), p3 = at(i + 3);
+    const s = 1 / 6;
+    out.push([
+      s * (p0.x + 4 * p1.x + p2.x),
+      s * (p0.y + 4 * p1.y + p2.y),
+      s * (4 * p1.x + 2 * p2.x),
+      s * (4 * p1.y + 2 * p2.y),
+      s * (2 * p1.x + 4 * p2.x),
+      s * (2 * p1.y + 4 * p2.y),
+      s * (p1.x + 4 * p2.x + p3.x),
+      s * (p1.y + 4 * p2.y + p3.y)
+    ]);
+  }
+  return out;
+}
+function mod2pi3(th) {
+  const f = th * (0.5 / Math.PI);
+  return 2 * Math.PI * (f - Math.round(f));
+}
+function hbArm(tha, thb) {
+  const w = 2 * thb;
+  const c = Math.cos(tha - 0.3 * Math.sin(w - 0.4 * Math.sin(w)));
+  return c * (2 - c * c) / 3;
+}
+function hbCurve(th0, th1) {
+  const a0 = hbArm(th0, th1), a1 = hbArm(th1, th0);
+  const c0 = Math.cos(th0), s0 = Math.sin(th0);
+  const c1 = Math.cos(th1), s1 = Math.sin(th1);
+  const p1x = a0 * c0, p1y = a0 * s0;
+  const p2x = 1 - a1 * c1, p2y = a1 * s1;
+  const q0x = p2x - 2 * p1x, q0y = p2y - 2 * p1y;
+  const q1x = 1 - 2 * p2x + p1x, q1y = p1y - 2 * p2y;
+  const dot0 = 3 * a0, dot1 = 3 * a1;
+  const cross0 = 6 * (q0y * c0 - q0x * s0);
+  const cross1 = 6 * (q1y * c1 + q1x * s1);
+  return {
+    a0,
+    a1,
+    ak0: Math.atan2(cross0, dot0 * Math.abs(dot0)),
+    ak1: Math.atan2(cross1, dot1 * Math.abs(dot1)),
+    k0u: Math.abs(dot0) > 1e-9 ? cross0 / (dot0 * dot0) : 0,
+    k1u: Math.abs(dot1) > 1e-9 ? cross1 / (dot1 * dot1) : 0
+  };
+}
+function hbEndTangent(th) {
+  return 0.5 * Math.sin(2 * th);
+}
+function hbEndTangentD(th) {
+  return Math.cos(2 * th);
+}
+function hbSegState(ax, ay, bx, by, thA, thB) {
+  const dx = bx - ax, dy = by - ay;
+  const len2 = Math.hypot(dx, dy);
+  const chth = len2 > HB_MIN_CHORD ? Math.atan2(dy, dx) : 0;
+  const th0 = mod2pi3(thA - chth), th1 = mod2pi3(chth - thB);
+  const base = hbCurve(th0, th1);
+  const e = 1e-6, s = 0.5 / e;
+  const p0 = hbCurve(th0 + e, th1), m0 = hbCurve(th0 - e, th1);
+  const p1 = hbCurve(th0, th1 + e), m1 = hbCurve(th0, th1 - e);
+  return {
+    th0,
+    th1,
+    chord: Math.max(len2, HB_MIN_CHORD),
+    ak0: base.ak0,
+    ak1: base.ak1,
+    k0u: base.k0u,
+    k1u: base.k1u,
+    a0: base.a0,
+    a1: base.a1,
+    d00: s * (p0.ak0 - m0.ak0),
+    d10: s * (p0.ak1 - m0.ak1),
+    d01: s * (p1.ak0 - m1.ak0),
+    d11: s * (p1.ak1 - m1.ak1)
+  };
+}
+function hbJoin(prev, next) {
+  const p = Math.sqrt(prev.chord), q = Math.sqrt(next.chord);
+  const A = prev.ak1, B = next.ak0;
+  const sA = Math.sin(A), cA = Math.cos(A), sB = Math.sin(B), cB = Math.cos(B);
+  const r3 = Math.atan2(sA * q, cA * p) - Math.atan2(sB * p, cB * q);
+  const denA = q * q * sA * sA + p * p * cA * cA;
+  const denB = p * p * sB * sB + q * q * cB * cB;
+  const pq = p * q;
+  return {
+    r: mod2pi3(r3),
+    dA: denA > 0 ? pq / denA : 0,
+    dB: denB > 0 ? -pq / denB : 0
+  };
+}
+function hbSystem(pts, wrap, startTh, endTh, ths) {
+  const m2 = pts.length;
+  const nSeg = wrap ? m2 : m2 - 1;
+  const segs = [];
+  for (let i = 0; i < nSeg; i++) {
+    const p = pts[i], q = pts[(i + 1) % m2];
+    segs.push(hbSegState(p.x, p.y, q.x, q.y, ths[i], ths[(i + 1) % m2]));
+  }
+  const r3 = new Array(m2).fill(0);
+  const a = new Array(m2).fill(0);
+  const b = new Array(m2).fill(1);
+  const c = new Array(m2).fill(0);
+  const join18 = (k, prevIx, nextIx) => {
+    const prev = segs[prevIx], next = segs[nextIx];
+    const j = hbJoin(prev, next);
+    r3[k] = j.r;
+    a[k] = j.dA * prev.d10;
+    b[k] = j.dA * -prev.d11 + j.dB * next.d00;
+    c[k] = j.dB * -next.d01;
+  };
+  if (wrap) {
+    for (let k = 0; k < m2; k++) join18(k, (k - 1 + m2) % m2, k);
+    return { r: r3, a, b, c, segs };
+  }
+  for (let k = 1; k < m2 - 1; k++) join18(k, k - 1, k);
+  const first = segs[0];
+  if (startTh !== null) {
+    r3[0] = mod2pi3(ths[0] - startTh);
+    b[0] = 1;
+  } else {
+    r3[0] = mod2pi3(first.th0 - hbEndTangent(first.th1));
+    b[0] = 1;
+    c[0] = hbEndTangentD(first.th1);
+  }
+  const last = segs[nSeg - 1];
+  if (endTh !== null) {
+    r3[m2 - 1] = mod2pi3(ths[m2 - 1] - endTh);
+    b[m2 - 1] = 1;
+  } else {
+    r3[m2 - 1] = mod2pi3(last.th1 - hbEndTangent(last.th0));
+    b[m2 - 1] = -1;
+    a[m2 - 1] = -hbEndTangentD(last.th0);
+  }
+  return { r: r3, a, b, c, segs };
+}
+function hbThomas(a, b, c, d) {
+  const n2 = b.length;
+  const bb = b.slice(), dd = d.slice();
+  for (let i = 1; i < n2; i++) {
+    if (Math.abs(bb[i - 1]) < 1e-300) return null;
+    const w = a[i] / bb[i - 1];
+    bb[i] = bb[i] - w * c[i - 1];
+    dd[i] = dd[i] - w * dd[i - 1];
+  }
+  if (Math.abs(bb[n2 - 1]) < 1e-300) return null;
+  const x = new Array(n2).fill(0);
+  x[n2 - 1] = dd[n2 - 1] / bb[n2 - 1];
+  for (let i = n2 - 2; i >= 0; i--) x[i] = (dd[i] - c[i] * x[i + 1]) / bb[i];
+  for (const v of x) if (!Number.isFinite(v)) return null;
+  return x;
+}
+function hbCyclic(a, b, c, d) {
+  const n2 = b.length;
+  if (n2 < 3) return null;
+  const alpha = a[0], beta = c[n2 - 1];
+  const gamma = -b[0] || 1;
+  const bb = b.slice();
+  bb[0] = b[0] - gamma;
+  bb[n2 - 1] = b[n2 - 1] - alpha * beta / gamma;
+  const u = new Array(n2).fill(0);
+  u[0] = gamma;
+  u[n2 - 1] = beta;
+  const y = hbThomas(a, bb, c, d);
+  if (!y) return null;
+  const z = hbThomas(a, bb, c, u);
+  if (!z) return null;
+  const vy = y[0] + alpha / gamma * y[n2 - 1];
+  const vz = z[0] + alpha / gamma * z[n2 - 1];
+  const denom = 1 + vz;
+  if (!(Math.abs(denom) > 1e-300)) return null;
+  const f = vy / denom;
+  const x = new Array(n2).fill(0);
+  for (let i = 0; i < n2; i++) {
+    x[i] = y[i] - f * z[i];
+    if (!Number.isFinite(x[i])) return null;
+  }
+  return x;
+}
+function hbMaxAbs(v) {
+  let m2 = 0;
+  for (const x of v) {
+    const a = Math.abs(x);
+    if (!(a === a)) return Number.POSITIVE_INFINITY;
+    if (a > m2) m2 = a;
+  }
+  return m2;
+}
+function hbNorm2(v) {
+  let s = 0;
+  for (const x of v) s += x * x;
+  return Number.isFinite(s) ? Math.sqrt(s) : Number.POSITIVE_INFINITY;
+}
+function hbInitialThs(pts, wrap, startTh, endTh) {
+  const m2 = pts.length;
+  const ths = new Array(m2).fill(0);
+  const chordTh = (i) => {
+    const p = pts[i], q = pts[(i + 1) % m2];
+    return Math.atan2(q.y - p.y, q.x - p.x);
+  };
+  const at = (i) => {
+    const h = pts[(i - 1 + m2) % m2], p = pts[i], q = pts[(i + 1) % m2];
+    const l0 = Math.hypot(p.x - h.x, p.y - h.y);
+    const l1 = Math.hypot(q.x - p.x, q.y - p.y);
+    const t0 = Math.atan2(p.y - h.y, p.x - h.x);
+    const t1 = Math.atan2(q.y - p.y, q.x - p.x);
+    if (!(l0 + l1 > 0)) return t1;
+    return mod2pi3(t0 + mod2pi3(t1 - t0) * (l0 / (l0 + l1)));
+  };
+  if (wrap) {
+    for (let i = 0; i < m2; i++) ths[i] = at(i);
+  } else {
+    ths[0] = chordTh(0);
+    ths[m2 - 1] = chordTh(m2 - 2);
+    for (let i = 1; i < m2 - 1; i++) ths[i] = at(i);
+  }
+  if (startTh !== null) ths[0] = startTh;
+  if (endTh !== null) ths[m2 - 1] = endTh;
+  return ths;
+}
+function hbSolveRun(pts, wrap, startTh, endTh, warm) {
+  const m2 = pts.length;
+  const chordTh0 = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
+  if (!wrap && m2 === 2 && startTh === null && endTh === null) {
+    return { ths: [chordTh0, chordTh0], converged: true, residual: 0, iterations: 0 };
+  }
+  let ths;
+  if (warm && warm.length === m2 && warm.every((v) => Number.isFinite(v))) {
+    ths = warm.slice();
+    if (startTh !== null) ths[0] = startTh;
+    if (endTh !== null) ths[m2 - 1] = endTh;
+  } else {
+    ths = hbInitialThs(pts, wrap, startTh, endTh);
+  }
+  let sys = hbSystem(pts, wrap, startTh, endTh, ths);
+  let worst = hbMaxAbs(sys.r);
+  let merit = hbNorm2(sys.r);
+  let iter = 0;
+  for (; iter < HB_MAX_ITER && worst > HB_TOL; iter++) {
+    const d = sys.r.map((v) => -v);
+    const newton = wrap ? hbCyclic(sys.a, sys.b, sys.c, d) : hbThomas(sys.a, sys.b, sys.c, d);
+    const diagonal2 = () => sys.b.map((bk, k) => Math.abs(bk) > 1e-12 ? 0.5 * (d[k] / bk) : 0);
+    let took = false;
+    for (const step of newton ? [newton, diagonal2()] : [diagonal2()]) {
+      if (!step.every((v) => Number.isFinite(v))) continue;
+      for (let k = 0; k < m2; k++) {
+        const v = step[k];
+        step[k] = v > HB_MAX_STEP ? HB_MAX_STEP : v < -HB_MAX_STEP ? -HB_MAX_STEP : v;
+      }
+      let f = 1;
+      for (let t = 0; t < HB_BACKTRACK; t++) {
+        const cand = ths.map((v, k) => v + f * step[k]);
+        const cs = hbSystem(pts, wrap, startTh, endTh, cand);
+        const cm = hbNorm2(cs.r);
+        if (cm < merit) {
+          ths = cand;
+          sys = cs;
+          merit = cm;
+          worst = hbMaxAbs(cs.r);
+          took = true;
+          break;
+        }
+        f *= 0.5;
+      }
+      if (took) break;
+    }
+    if (!took) break;
+  }
+  return { ths, converged: worst <= HB_TOL, residual: worst, iterations: iter };
+}
+function hbPin(node) {
+  const corner = (node.continuity ?? "smooth") === "corner";
+  const hix = node.hInX ?? 0, hiy = node.hInY ?? 0;
+  const hox = node.hOutX ?? 0, hoy = node.hOutY ?? 0;
+  let pin = Math.hypot(hix, hiy) > 1e-12 ? mod2pi3(Math.atan2(-hiy, -hix)) : null;
+  let pout = Math.hypot(hox, hoy) > 1e-12 ? mod2pi3(Math.atan2(hoy, hox)) : null;
+  if (!corner) {
+    if (pin === null) pin = pout;
+    if (pout === null) pout = pin;
+  }
+  return { in: pin, out: pout, corner };
+}
+function hbIsBreak(p) {
+  return p.corner || p.in !== null || p.out !== null;
+}
+function solveHyperbezier(nodes, closed, warm) {
+  const n2 = nodes.length;
+  const rth = new Array(n2).fill(0);
+  const lth = new Array(n2).fill(0);
+  const kBlend = new Array(n2).fill(null);
+  const empty2 = { rth, lth, kBlend, converged: true, residual: 0, iterations: 0, reversals: 0 };
+  if (n2 < 2) return empty2;
+  const wrap = closed && n2 > 2;
+  const nSeg = wrap ? n2 : n2 - 1;
+  const pins = nodes.map(hbPin);
+  const breaks = [];
+  for (let i = 0; i < n2; i++) if (hbIsBreak(pins[i])) breaks.push(i);
+  const runs = [];
+  if (wrap && breaks.length === 0) {
+    runs.push({ idx: nodes.map((_, i) => i), wrap: true });
+  } else if (wrap) {
+    const s = breaks[0];
+    let cur = [s];
+    for (let k = 1; k <= n2; k++) {
+      const i = (s + k) % n2;
+      cur.push(i);
+      if (k < n2 && hbIsBreak(pins[i])) {
+        runs.push({ idx: cur, wrap: false });
+        cur = [i];
+      }
+    }
+    runs.push({ idx: cur, wrap: false });
+  } else {
+    let cur = [0];
+    for (let i = 1; i < n2; i++) {
+      cur.push(i);
+      if (i < n2 - 1 && hbIsBreak(pins[i])) {
+        runs.push({ idx: cur, wrap: false });
+        cur = [i];
+      }
+    }
+    runs.push({ idx: cur, wrap: false });
+  }
+  let converged = true;
+  let residual = 0;
+  let iterations = 0;
+  for (const run of runs) {
+    const idx = run.idx;
+    const m2 = idx.length;
+    if (m2 < 2) continue;
+    const pts = idx.map((i) => ({ x: nodes[i].x, y: nodes[i].y }));
+    const startTh = run.wrap ? null : pins[idx[0]].out;
+    const endTh = run.wrap ? null : pins[idx[m2 - 1]].in;
+    let warmRun = null;
+    if (warm && warm.rth.length === n2 && warm.lth.length === n2) {
+      warmRun = idx.map((i, j) => run.wrap || j < m2 - 1 ? warm.rth[i] : warm.lth[i]);
+    }
+    const res = hbSolveRun(pts, run.wrap, startTh, endTh, warmRun);
+    if (!res.converged) converged = false;
+    if (res.residual > residual) residual = res.residual;
+    iterations += res.iterations;
+    for (let j = 0; j < m2; j++) {
+      const i = idx[j];
+      if (run.wrap || j < m2 - 1) rth[i] = res.ths[j];
+      if (run.wrap || j > 0) lth[i] = res.ths[j];
+    }
+  }
+  if (!wrap) {
+    lth[0] = pins[0].in ?? rth[0];
+    rth[n2 - 1] = pins[n2 - 1].out ?? lth[n2 - 1];
+  }
+  const segs = [];
+  let reversals = 0;
+  for (let i = 0; i < nSeg; i++) {
+    const a = nodes[i], b = nodes[(i + 1) % n2];
+    const st = hbSegState(a.x, a.y, b.x, b.y, rth[i], lth[(i + 1) % n2]);
+    if (st.a0 < 0) reversals++;
+    if (st.a1 < 0) reversals++;
+    segs.push(st);
+  }
+  for (let i = 0; i < n2; i++) {
+    const p = pins[i];
+    if (p.corner || !hbIsBreak(p)) continue;
+    const prev = wrap ? segs[(i - 1 + n2) % n2] : i > 0 ? segs[i - 1] : void 0;
+    const next = wrap ? segs[i] : i < n2 - 1 ? segs[i] : void 0;
+    if (!prev || !next) continue;
+    const rK = next.k0u / next.chord;
+    const lK = prev.k1u / prev.chord;
+    if (!Number.isFinite(rK) || !Number.isFinite(lK)) continue;
+    if (Math.sign(rK) !== Math.sign(lK)) {
+      kBlend[i] = 0;
+      continue;
+    }
+    const h = 2 / (1 / rK + 1 / lK);
+    kBlend[i] = Number.isFinite(h) ? h : 0;
+  }
+  return { rth, lth, kBlend, converged, residual, iterations, reversals };
+}
+function hbBlendArm(arm, oldK, kTarget) {
+  let k = oldK;
+  if (!Number.isFinite(k) || Math.abs(k) < 1e-6) k = 1e-6;
+  const ratio = kTarget / k;
+  if (!Number.isFinite(ratio)) return arm;
+  const raw = 1 / (2 + ratio);
+  const scale = raw > 2 / 3 ? 2 / 3 : raw < 1 / 12 ? 1 / 12 : raw;
+  return 3 * arm * scale;
+}
+function hyperbezierCubics(nodes, closed, solution) {
+  const n2 = nodes.length;
+  if (n2 < 2) return [];
+  const wrap = closed && n2 > 2;
+  const nSeg = wrap ? n2 : n2 - 1;
+  const out = [];
+  for (let i = 0; i < nSeg; i++) {
+    const a = nodes[i], b = nodes[(i + 1) % n2];
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const chord = Math.hypot(dx, dy);
+    if (!(chord > HB_MIN_CHORD)) {
+      out.push([a.x, a.y, a.x, a.y, b.x, b.y, b.x, b.y]);
+      continue;
+    }
+    const chth = Math.atan2(dy, dx);
+    const th0 = mod2pi3((solution.rth[i] ?? chth) - chth);
+    const th1 = mod2pi3(chth - (solution.lth[(i + 1) % n2] ?? chth));
+    const cur = hbCurve(th0, th1);
+    let arm0 = cur.a0, arm1 = cur.a1;
+    const kb0 = solution.kBlend[i] ?? null;
+    const kb1 = solution.kBlend[(i + 1) % n2] ?? null;
+    if (kb0 !== null) arm0 = hbBlendArm(cur.a0, cur.k0u, kb0 * chord);
+    if (kb1 !== null) arm1 = hbBlendArm(cur.a1, cur.k1u, kb1 * chord);
+    const ux1 = arm0 * Math.cos(th0), uy1 = arm0 * Math.sin(th0);
+    const ux2 = 1 - arm1 * Math.cos(th1), uy2 = arm1 * Math.sin(th1);
+    out.push([
+      a.x,
+      a.y,
+      a.x + dx * ux1 - dy * uy1,
+      a.y + dy * ux1 + dx * uy1,
+      a.x + dx * ux2 - dy * uy2,
+      a.y + dy * ux2 + dx * uy2,
+      b.x,
+      b.y
+    ]);
+  }
+  return out;
+}
+function enforceContinuity(node, moved) {
+  const c = node.continuity ?? "corner";
+  if (c === "corner") return node;
+  const [mx, my] = moved === "in" ? [node.hInX ?? 0, node.hInY ?? 0] : [node.hOutX ?? 0, node.hOutY ?? 0];
+  const len2 = Math.hypot(mx, my);
+  if (len2 < 1e-12) return node;
+  const otherLen = moved === "in" ? Math.hypot(node.hOutX ?? 0, node.hOutY ?? 0) : Math.hypot(node.hInX ?? 0, node.hInY ?? 0);
+  const k = (c === "symmetric" ? len2 : otherLen) / len2;
+  const ox = -mx * k, oy = -my * k;
+  return moved === "in" ? { ...node, hOutX: ox, hOutY: oy } : { ...node, hInX: ox, hInY: oy };
+}
+var HB_MIN_CHORD, HB_TOL, HB_MAX_ITER, HB_MAX_STEP, HB_BACKTRACK;
+var init_spline = __esm({
+  "engine/src/geom/spline.ts"() {
+    "use strict";
+    init_bezier();
+    init_spiro();
+    HB_MIN_CHORD = 1e-12;
+    HB_TOL = 1e-10;
+    HB_MAX_ITER = 24;
+    HB_MAX_STEP = 1;
+    HB_BACKTRACK = 6;
+  }
+});
+
+// engine/src/geom/authored-url.ts
+function numOut(v) {
+  const r3 = Number(v.toFixed(DECIMALS));
+  let s = Object.is(r3, -0) ? "0" : String(r3);
+  if (s.includes("e") || s.includes("E")) s = r3.toFixed(DECIMALS);
+  if (s.startsWith("0.")) return s.slice(1);
+  if (s.startsWith("-0.")) return `-${s.slice(2)}`;
+  return s;
+}
+function handleOut(v) {
+  if (typeof v !== "number" || !Number.isFinite(v)) return "";
+  const r3 = Number(v.toFixed(DECIMALS));
+  return r3 === 0 ? "" : numOut(r3);
+}
+function numIn(s) {
+  if (s === void 0 || s === "") return void 0;
+  if (!/^-?(\d+(\.\d+)?|\.\d+)$/.test(s)) return null;
+  const v = Number(s);
+  return Number.isFinite(v) ? v : null;
+}
+function encodeAuthoredPath(path) {
+  if (!path || typeof path !== "object") throw new Error("authored-url: expected an authored path");
+  const kind = String(path.kind ?? "");
+  if (!KIND_RE.test(kind)) throw new Error(`authored-url: unusable spline kind "${kind}"`);
+  const nodes = Array.isArray(path.nodes) ? path.nodes : [];
+  if (nodes.length > MAX_NODES) throw new Error(`authored-url: ${nodes.length} nodes (limit ${MAX_NODES})`);
+  const header = [VERSION, kind, path.closed ? "1" : "0"];
+  if (typeof path.tension === "number" && Number.isFinite(path.tension)) header.push(numOut(path.tension));
+  const recs = [header.join(FLD)];
+  for (const n2 of nodes) {
+    for (const v of [n2.x, n2.y]) {
+      if (typeof v !== "number" || !Number.isFinite(v)) {
+        throw new Error("authored-url: node coordinates must be finite numbers");
+      }
+    }
+    const fields = [numOut(n2.x), numOut(n2.y)];
+    const hs = [n2.hInX, n2.hInY, n2.hOutX, n2.hOutY].map(handleOut);
+    const cont = n2.continuity ? CONT_OUT[n2.continuity] : "";
+    if (hs.some((s) => s !== "") || cont) fields.push(...hs);
+    if (cont) fields.push(cont);
+    while (fields.length > 2 && fields[fields.length - 1] === "") fields.pop();
+    recs.push(fields.join(FLD));
+  }
+  return recs.join(REC);
+}
+function encodeAuthoredPaths(paths) {
+  if (!Array.isArray(paths) || !paths.length) {
+    throw new Error("authored-url: expected at least one authored path");
+  }
+  let total = 0;
+  for (const p of paths) total += Array.isArray(p?.nodes) ? p.nodes.length : 0;
+  if (total > MAX_NODES) throw new Error(`authored-url: ${total} nodes across the value (limit ${MAX_NODES})`);
+  return paths.map(encodeAuthoredPath).join(PTH);
+}
+function decodeAuthoredPathsResult(value) {
+  if (typeof value !== "string") return "malformed";
+  const s = value.trim();
+  if (!s) return "malformed";
+  if (s.length > MAX_CHARS) return "too-complex";
+  const out = [];
+  let total = 0;
+  for (const part of s.split(PTH)) {
+    const one = decodeOne(part);
+    if (typeof one === "string") return one;
+    total += one.nodes.length;
+    if (total > MAX_NODES) return "too-complex";
+    out.push(one);
+  }
+  return out;
+}
+function decodeAuthoredPaths(value) {
+  const r3 = decodeAuthoredPathsResult(value);
+  return typeof r3 === "string" ? null : r3;
+}
+function decodeAuthoredPath(value) {
+  const r3 = decodeAuthoredPaths(value);
+  return r3 && r3.length === 1 ? r3[0] : null;
+}
+function decodeOne(value) {
+  const s = value;
+  if (!s) return "malformed";
+  const recs = s.split(REC);
+  const header = recs[0].split(FLD);
+  if (header[0] !== VERSION) return "malformed";
+  const kind = header[1] ?? "";
+  if (!KIND_RE.test(kind)) return "malformed";
+  const closed = header[2] === "1";
+  let tension;
+  if (header.length > 3) {
+    const t = numIn(header[3]);
+    if (t === null) return "malformed";
+    tension = t;
+  }
+  if (recs.length - 1 > MAX_NODES) return "too-complex";
+  const nodes = [];
+  for (let i = 1; i < recs.length; i++) {
+    const f = recs[i].split(FLD);
+    const x = numIn(f[0]);
+    const y = numIn(f[1]);
+    if (x === null || y === null || x === void 0 || y === void 0) return "malformed";
+    const node = { x, y };
+    const keys = ["hInX", "hInY", "hOutX", "hOutY"];
+    for (let k = 0; k < keys.length; k++) {
+      const v = numIn(f[2 + k]);
+      if (v === null) return "malformed";
+      if (v !== void 0) node[keys[k]] = v;
+    }
+    const c = f[6];
+    if (c !== void 0 && c !== "") {
+      const cont = CONT_IN[c];
+      if (!cont) return "malformed";
+      node.continuity = cont;
+    }
+    if (f.length > 7) return "malformed";
+    nodes.push(node);
+  }
+  if (!nodes.length) return "malformed";
+  return { kind, nodes, closed, ...tension !== void 0 ? { tension } : {} };
+}
+var REC, FLD, PTH, VERSION, DECIMALS, MAX_CHARS, MAX_NODES, KIND_RE, CONT_OUT, CONT_IN;
+var init_authored_url = __esm({
+  "engine/src/geom/authored-url.ts"() {
+    "use strict";
+    REC = "_";
+    FLD = "!";
+    PTH = "*";
+    VERSION = "1";
+    DECIMALS = 6;
+    MAX_CHARS = 4e5;
+    MAX_NODES = 2e4;
+    KIND_RE = /^[a-z][a-z0-9-]*$/;
+    CONT_OUT = { corner: "c", smooth: "s", symmetric: "y" };
+    CONT_IN = { c: "corner", s: "smooth", y: "symmetric" };
+  }
+});
+
+// engine/src/svg-path.ts
+function scanSvgPathArgs(str7) {
+  if (str7.length > SVG_PATH_MAX_CHARS) return null;
+  const re = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g;
+  const out = [];
+  let m2;
+  while ((m2 = re.exec(str7)) !== null) {
+    if (out.length >= SVG_PATH_MAX_ARGS) return null;
+    out.push(Number(m2[0]));
+  }
+  return out;
+}
+function parseSvgPathArgs(str7) {
+  if (typeof str7 !== "string") return [];
+  return scanSvgPathArgs(str7) ?? [];
+}
+function parseArcArgs(str7) {
+  if (str7.length > SVG_PATH_MAX_CHARS) return null;
+  const numRe = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;
+  const flagRe = /[01]/y;
+  const sepRe = /[\s,]*/y;
+  const out = [];
+  let i = 0;
+  const skipSep = () => {
+    sepRe.lastIndex = i;
+    sepRe.exec(str7);
+    i = sepRe.lastIndex;
+  };
+  const grab = (re) => {
+    skipSep();
+    re.lastIndex = i;
+    const mm = re.exec(str7);
+    if (!mm) return null;
+    i = re.lastIndex;
+    return mm[0];
+  };
+  while (i < str7.length) {
+    const rx = grab(numRe);
+    if (rx === null) break;
+    const ry = grab(numRe);
+    if (ry === null) break;
+    const xrot = grab(numRe);
+    if (xrot === null) break;
+    const laf = grab(flagRe);
+    if (laf === null) break;
+    const swf = grab(flagRe);
+    if (swf === null) break;
+    const x = grab(numRe);
+    if (x === null) break;
+    const y = grab(numRe);
+    if (y === null) break;
+    if (out.length + 7 > SVG_PATH_MAX_ARGS) return null;
+    out.push(Number(rx), Number(ry), Number(xrot), Number(laf), Number(swf), Number(x), Number(y));
+  }
+  return out;
+}
+function parseSvgPath(d) {
+  if (typeof d !== "string" || d.length === 0 || d.length > SVG_PATH_MAX_CHARS) return [];
+  const cmdRe = /([MLHVCSQTAZmlhvcsqtaz])([^MLHVCSQTAZmlhvcsqtaz]*)/g;
+  const subpaths = [];
+  let cur = null;
+  let cx = 0, cy = 0;
+  let sx = 0, sy = 0;
+  let lastCmd = "";
+  let lastCpx = 0, lastCpy = 0;
+  let segmentCount = 0;
+  let overflow = false;
+  let m2;
+  const open2 = (x, y) => {
+    if (subpaths.length >= SVG_PATH_MAX_SUBPATHS || segmentCount >= SVG_PATH_MAX_SEGMENTS) {
+      overflow = true;
+      return null;
+    }
+    const sub = { segments: [{ op: "M", x, y }], closed: false };
+    subpaths.push(sub);
+    segmentCount++;
+    return sub;
+  };
+  const line = (x, y) => {
+    if (!cur || overflow) return;
+    if (segmentCount >= SVG_PATH_MAX_SEGMENTS) {
+      overflow = true;
+      return;
+    }
+    cur.segments.push({ op: "L", x, y });
+    segmentCount++;
+  };
+  const cubic = (x1, y1, x2, y2, x, y) => {
+    if (!cur || overflow) return;
+    if (segmentCount >= SVG_PATH_MAX_SEGMENTS) {
+      overflow = true;
+      return;
+    }
+    cur.segments.push({ op: "C", x1, y1, x2, y2, x, y });
+    segmentCount++;
+  };
+  while ((m2 = cmdRe.exec(d)) !== null) {
+    const cmd = m2[1] ?? "";
+    const abs = cmd === cmd.toUpperCase();
+    const C = cmd.toUpperCase();
+    const nums = C === "A" ? parseArcArgs(m2[2] ?? "") : scanSvgPathArgs(m2[2] ?? "");
+    if (nums === null) {
+      overflow = true;
+      break;
+    }
+    const at = (i) => nums[i] ?? 0;
+    const ax = (i) => abs ? at(i) : cx + at(i);
+    const ay = (i) => abs ? at(i) : cy + at(i);
+    switch (C) {
+      case "M":
+        for (let i = 0; i + 1 < nums.length && !overflow; i += 2) {
+          const x = ax(i), y = ay(i + 1);
+          if (i === 0) {
+            const next = open2(x, y);
+            if (!next) break;
+            cur = next;
+            sx = x;
+            sy = y;
+          } else line(x, y);
+          cx = x;
+          cy = y;
+        }
+        break;
+      case "L":
+        for (let i = 0; i + 1 < nums.length && !overflow; i += 2) {
+          const x = ax(i), y = ay(i + 1);
+          line(x, y);
+          cx = x;
+          cy = y;
+        }
+        break;
+      case "H":
+        for (let i = 0; i < nums.length && !overflow; i++) {
+          cx = abs ? at(i) : cx + at(i);
+          line(cx, cy);
+        }
+        break;
+      case "V":
+        for (let i = 0; i < nums.length && !overflow; i++) {
+          cy = abs ? at(i) : cy + at(i);
+          line(cx, cy);
+        }
+        break;
+      case "C":
+        for (let i = 0; i + 5 < nums.length && !overflow; i += 6) {
+          const x1 = ax(i), y1 = ay(i + 1);
+          const x2 = ax(i + 2), y2 = ay(i + 3);
+          const x = ax(i + 4), y = ay(i + 5);
+          cubic(x1, y1, x2, y2, x, y);
+          lastCpx = x2;
+          lastCpy = y2;
+          cx = x;
+          cy = y;
+        }
+        break;
+      case "S":
+        for (let i = 0; i + 3 < nums.length && !overflow; i += 4) {
+          const r1x = lastCmd === "C" || lastCmd === "S" ? 2 * cx - lastCpx : cx;
+          const r1y = lastCmd === "C" || lastCmd === "S" ? 2 * cy - lastCpy : cy;
+          const x2 = ax(i), y2 = ay(i + 1);
+          const x = ax(i + 2), y = ay(i + 3);
+          cubic(r1x, r1y, x2, y2, x, y);
+          lastCpx = x2;
+          lastCpy = y2;
+          cx = x;
+          cy = y;
+        }
+        break;
+      case "Q":
+        for (let i = 0; i + 3 < nums.length && !overflow; i += 4) {
+          const qx1 = ax(i), qy1 = ay(i + 1);
+          const x = ax(i + 2), y = ay(i + 3);
+          const x1 = cx + 2 / 3 * (qx1 - cx), y1 = cy + 2 / 3 * (qy1 - cy);
+          const x2 = x + 2 / 3 * (qx1 - x), y2 = y + 2 / 3 * (qy1 - y);
+          cubic(x1, y1, x2, y2, x, y);
+          lastCpx = qx1;
+          lastCpy = qy1;
+          cx = x;
+          cy = y;
+        }
+        break;
+      case "T":
+        for (let i = 0; i + 1 < nums.length && !overflow; i += 2) {
+          const qx1 = lastCmd === "Q" || lastCmd === "T" ? 2 * cx - lastCpx : cx;
+          const qy1 = lastCmd === "Q" || lastCmd === "T" ? 2 * cy - lastCpy : cy;
+          const x = ax(i), y = ay(i + 1);
+          const x1 = cx + 2 / 3 * (qx1 - cx), y1 = cy + 2 / 3 * (qy1 - cy);
+          const x2 = x + 2 / 3 * (qx1 - x), y2 = y + 2 / 3 * (qy1 - y);
+          cubic(x1, y1, x2, y2, x, y);
+          lastCpx = qx1;
+          lastCpy = qy1;
+          cx = x;
+          cy = y;
+        }
+        break;
+      case "A":
+        for (let i = 0; i + 6 < nums.length && !overflow; i += 7) {
+          const rx = Math.abs(at(i));
+          const ry = Math.abs(at(i + 1));
+          const xRot = at(i + 2) * Math.PI / 180;
+          const la = at(i + 3) ? 1 : 0;
+          const sw = at(i + 4) ? 1 : 0;
+          const x = ax(i + 5), y = ay(i + 6);
+          if (rx < 1e-6 || ry < 1e-6) {
+            line(x, y);
+          } else {
+            for (const [bx1, by1, bx2, by2, bx, by] of svgArcToBeziers(cx, cy, rx, ry, xRot, la, sw, x, y)) {
+              cubic(bx1, by1, bx2, by2, bx, by);
+              if (overflow) break;
+            }
+          }
+          cx = x;
+          cy = y;
+          lastCpx = cx;
+          lastCpy = cy;
+        }
+        break;
+      case "Z":
+        if (cur) cur.closed = true;
+        cx = sx;
+        cy = sy;
+        break;
+    }
+    if (overflow) break;
+    lastCmd = C;
+    if (C !== "C" && C !== "S" && C !== "Q" && C !== "T") {
+      lastCpx = cx;
+      lastCpy = cy;
+    }
+  }
+  if (overflow) return [];
+  return subpaths.filter((s) => s.segments.some((seg) => seg.op === "L" || seg.op === "C"));
+}
+function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
+  if (x1 === x2 && y1 === y2) return [];
+  const cosP = Math.cos(phi);
+  const sinP = Math.sin(phi);
+  const dx = (x1 - x2) / 2;
+  const dy = (y1 - y2) / 2;
+  const x1p = cosP * dx + sinP * dy;
+  const y1p = -sinP * dx + cosP * dy;
+  let rx2 = rx * rx, ry2 = ry * ry;
+  const x1p2 = x1p * x1p, y1p2 = y1p * y1p;
+  const lam = x1p2 / rx2 + y1p2 / ry2;
+  if (lam > 1) {
+    const sl = Math.sqrt(lam);
+    rx *= sl;
+    ry *= sl;
+    rx2 = rx * rx;
+    ry2 = ry * ry;
+  }
+  const num7 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
+  const den = rx2 * y1p2 + ry2 * x1p2;
+  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num7 / den);
+  const cxp = coef * rx * y1p / ry;
+  const cyp = -coef * ry * x1p / rx;
+  const cx = cosP * cxp - sinP * cyp + (x1 + x2) / 2;
+  const cy = sinP * cxp + cosP * cyp + (y1 + y2) / 2;
+  const angV = (ux, uy, vx, vy) => {
+    const sign = ux * vy - uy * vx < 0 ? -1 : 1;
+    const dot = ux * vx + uy * vy;
+    const len2 = Math.sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
+    return sign * Math.acos(Math.max(-1, Math.min(1, dot / len2)));
+  };
+  const theta1 = angV(1, 0, (x1p - cxp) / rx, (y1p - cyp) / ry);
+  let dtheta = angV((x1p - cxp) / rx, (y1p - cyp) / ry, (-x1p - cxp) / rx, (-y1p - cyp) / ry);
+  if (!fs && dtheta > 0) dtheta -= 2 * Math.PI;
+  if (fs && dtheta < 0) dtheta += 2 * Math.PI;
+  const n2 = Math.max(1, Math.ceil(Math.abs(dtheta) / (Math.PI / 2)));
+  const dt = dtheta / n2;
+  const results = [];
+  for (let i = 0; i < n2; i++) {
+    const t1 = theta1 + i * dt;
+    const t2 = theta1 + (i + 1) * dt;
+    const alpha = 4 / 3 * Math.tan(dt / 4);
+    const cos1 = Math.cos(t1), sin1 = Math.sin(t1);
+    const cos2 = Math.cos(t2), sin2 = Math.sin(t2);
+    const ep1x = cosP * (rx * cos1) - sinP * (ry * sin1) + cx;
+    const ep1y = sinP * (rx * cos1) + cosP * (ry * sin1) + cy;
+    const dp1x = cosP * (-rx * sin1) - sinP * (ry * cos1);
+    const dp1y = sinP * (-rx * sin1) + cosP * (ry * cos1);
+    const ep2x = cosP * (rx * cos2) - sinP * (ry * sin2) + cx;
+    const ep2y = sinP * (rx * cos2) + cosP * (ry * sin2) + cy;
+    const dp2x = cosP * (-rx * sin2) - sinP * (ry * cos2);
+    const dp2y = sinP * (-rx * sin2) + cosP * (ry * cos2);
+    results.push([
+      ep1x + alpha * dp1x,
+      ep1y + alpha * dp1y,
+      ep2x - alpha * dp2x,
+      ep2y - alpha * dp2y,
+      ep2x,
+      ep2y
+    ]);
+  }
+  return results;
+}
+var SVG_PATH_MAX_CHARS, SVG_PATH_MAX_ARGS, SVG_PATH_MAX_SEGMENTS, SVG_PATH_MAX_SUBPATHS;
+var init_svg_path = __esm({
+  "engine/src/svg-path.ts"() {
+    "use strict";
+    SVG_PATH_MAX_CHARS = 4e5;
+    SVG_PATH_MAX_ARGS = 1e5;
+    SVG_PATH_MAX_SEGMENTS = 1e5;
+    SVG_PATH_MAX_SUBPATHS = 1e4;
+  }
+});
+
+// engine/src/geom-api.ts
+function fail2(code, message) {
+  return { ok: false, code, message };
+}
+function isFail(v) {
+  return typeof v === "object" && v !== null && v.ok === false;
+}
+function ok2(value) {
+  return { ok: true, value };
+}
+function pathOut(p, decimals) {
+  const dp = usableDecimals(decimals);
+  let curves = 0;
+  for (const c of p) curves += c.curves.length;
+  for (const c of p) {
+    for (const k of c.curves) {
+      for (const v of k) {
+        if (!Number.isFinite(v)) return fail2("internal", "geom: operation produced a non-finite coordinate");
+      }
+    }
+  }
+  return { ok: true, d: toSvgPathData(p, dp), contours: p.length, curves };
+}
+function usableDecimals(dp) {
+  if (typeof dp !== "number" || !Number.isFinite(dp)) return 4;
+  return Math.max(0, Math.min(12, Math.round(dp)));
+}
+function attempt(run) {
+  try {
+    return run();
+  } catch (e) {
+    if (e instanceof GeomLimitError) return fail2("limit", e.message);
+    const msg2 = e instanceof Error ? e.message : String(e);
+    if (/unknown spline kind/i.test(msg2)) return fail2("invalid-argument", `geom: ${msg2}`);
+    if (/not implemented/i.test(msg2)) return fail2("unsupported", `geom: ${msg2}`);
+    return fail2("internal", `geom: ${msg2}`);
+  }
+}
+function validatePathData(d) {
+  if (d.length > MAX_CHARS2) {
+    return fail2("too-large", `geom: path data is ${d.length} chars (limit ${MAX_CHARS2})`);
+  }
+  let i = 0;
+  let commands = 0;
+  let curves = 0;
+  const skipSep = () => {
+    SEP_RE.lastIndex = i;
+    SEP_RE.exec(d);
+    i = SEP_RE.lastIndex;
+  };
+  const number = () => {
+    skipSep();
+    NUM_RE.lastIndex = i;
+    const m2 = NUM_RE.exec(d);
+    if (!m2) return null;
+    const v = Number(m2[0]);
+    if (!Number.isFinite(v)) return fail2("invalid-path", `geom: non-finite number "${m2[0]}" at offset ${i}`);
+    if (Math.abs(v) > MAX_COORD) {
+      return fail2("invalid-path", `geom: coordinate ${m2[0]} exceeds \xB1${MAX_COORD} at offset ${i}`);
+    }
+    i = NUM_RE.lastIndex;
+    return v;
+  };
+  const flag = () => {
+    skipSep();
+    FLAG_RE.lastIndex = i;
+    const m2 = FLAG_RE.exec(d);
+    if (!m2) return null;
+    i = FLAG_RE.lastIndex;
+    return Number(m2[0]);
+  };
+  skipSep();
+  if (i >= d.length) return { commands: 0 };
+  if (d[i] !== "M" && d[i] !== "m") {
+    return fail2("invalid-path", "geom: path data must begin with a moveto (M or m)");
+  }
+  while (i < d.length) {
+    const letter = d[i];
+    const C = letter.toUpperCase();
+    const arity = ARITY[C];
+    if (arity === void 0) {
+      return fail2("invalid-path", `geom: unknown path command "${letter}" at offset ${i}`);
+    }
+    i++;
+    commands++;
+    if (commands > MAX_COMMANDS) {
+      return fail2("too-large", `geom: over ${MAX_COMMANDS} path commands`);
+    }
+    if (C === "Z") {
+      skipSep();
+      continue;
+    }
+    let groups = 0;
+    for (; ; ) {
+      skipSep();
+      if (i >= d.length) break;
+      if (!NUM_START.test(d[i])) break;
+      for (let a = 0; a < arity; a++) {
+        const isFlag = C === "A" && (a === 3 || a === 4);
+        const v = isFlag ? flag() : number();
+        if (isFail(v)) return v;
+        if (v === null) {
+          return fail2("invalid-path", `geom: "${letter}" has an incomplete argument group at offset ${i}`);
+        }
+      }
+      groups++;
+      curves += CURVES_PER_GROUP[C] ?? 1;
+      if (curves > MAX_CURVES2) {
+        return fail2("too-large", `geom: over ${MAX_CURVES2} curves after normalisation`);
+      }
+    }
+    if (groups === 0) {
+      return fail2("invalid-path", `geom: "${letter}" has no arguments at offset ${i}`);
+    }
+    skipSep();
+  }
+  return { commands };
+}
+function parsePath(d) {
+  if (typeof d !== "string") return fail2("invalid-argument", "geom: path data must be a string");
+  const v = validatePathData(d);
+  if (isFail(v)) return v;
+  if (v.commands === 0) return [];
+  const path = pathFromSubPaths(parseSvgPath(d));
+  let curves = 0;
+  for (const c of path) curves += c.curves.length;
+  if (curves > MAX_CURVES2) {
+    return fail2("too-large", `geom: ${curves} curves after normalisation (limit ${MAX_CURVES2})`);
+  }
+  for (const c of path) {
+    for (const k of c.curves) {
+      for (const n2 of k) {
+        if (!Number.isFinite(n2)) return fail2("invalid-path", "geom: path data yields a non-finite coordinate");
+      }
+    }
+  }
+  return path;
+}
+function parsePaths(ds) {
+  if (!Array.isArray(ds)) return fail2("invalid-argument", "geom: expected an array of path-data strings");
+  if (ds.length === 0) return fail2("invalid-argument", "geom: no paths given");
+  if (ds.length > MAX_PATHS) {
+    return fail2("too-large", `geom: ${ds.length} operands (limit ${MAX_PATHS})`);
+  }
+  const out = [];
+  for (const d of ds) {
+    const p = parsePath(d);
+    if (isFail(p)) return p;
+    out.push(p);
+  }
+  return out;
+}
+function booleanOpts(o) {
+  const out = {};
+  if (typeof o?.tolerance === "number") out.tol = o.tolerance;
+  if (o?.fillRule) out.fillRule = o.fillRule;
+  return out;
+}
+function offsetOpts(o) {
+  const out = {};
+  if (o?.join) out.join = o.join;
+  if (typeof o?.miterLimit === "number") out.miterLimit = o.miterLimit;
+  if (typeof o?.tolerance === "number") out.tol = o.tolerance;
+  return out;
+}
+function checkEnums(o) {
+  if (o?.join && !["miter", "round", "bevel"].includes(o.join)) {
+    return fail2("invalid-argument", `geom: unknown join style "${String(o.join)}"`);
+  }
+  if (o?.cap && !["butt", "round", "square"].includes(o.cap)) {
+    return fail2("invalid-argument", `geom: unknown cap style "${String(o.cap)}"`);
+  }
+  if (o?.fillRule && o.fillRule !== "nonzero" && o.fillRule !== "evenodd") {
+    return fail2("invalid-argument", `geom: unknown fill rule "${String(o.fillRule)}"`);
+  }
+  for (const [k, v] of [["tolerance", o?.tolerance], ["miterLimit", o?.miterLimit]]) {
+    if (v !== void 0 && (typeof v !== "number" || !Number.isFinite(v) || v <= 0)) {
+      return fail2("invalid-argument", `geom: ${k} must be a finite positive number`);
+    }
+  }
+  return null;
+}
+function fold(paths, op, o) {
+  let acc = selfUnion(paths[0], o);
+  for (let i = 1; i < paths.length; i++) acc = op(acc, paths[i], o);
+  return acc;
+}
+function contoursOut(p) {
+  return p.map((c) => ({ curves: c.curves.map((k) => [...k]), closed: c.closed }));
+}
+function contoursIn(input) {
+  if (!Array.isArray(input)) return fail2("invalid-argument", "geom: expected an array of contours");
+  const out = [];
+  let total = 0;
+  for (const c of input) {
+    const curves = c?.curves;
+    if (!Array.isArray(curves)) return fail2("invalid-argument", "geom: each contour needs a `curves` array");
+    total += curves.length;
+    if (total > MAX_CURVES2) return fail2("too-large", `geom: over ${MAX_CURVES2} curves`);
+    const built = [];
+    for (const k of curves) {
+      if (!Array.isArray(k) || k.length !== 8) {
+        return fail2("invalid-argument", "geom: each curve must be 8 numbers [x0,y0,x1,y1,x2,y2,x3,y3]");
+      }
+      for (const n2 of k) {
+        if (typeof n2 !== "number" || !Number.isFinite(n2) || Math.abs(n2) > MAX_COORD) {
+          return fail2("invalid-argument", `geom: curve coordinate ${String(n2)} is not a usable number`);
+        }
+      }
+      built.push([...k]);
+    }
+    out.push({ curves: built, closed: c.closed === true });
+  }
+  return out;
+}
+function nodeIn(n2) {
+  const o = n2;
+  if (!o || typeof o !== "object") return fail2("invalid-argument", "geom: node must be an object");
+  for (const key of ["x", "y", "hInX", "hInY", "hOutX", "hOutY"]) {
+    const v = o[key];
+    if (v === void 0) {
+      if (key === "x" || key === "y") return fail2("invalid-argument", `geom: node.${key} is required`);
+      continue;
+    }
+    if (typeof v !== "number" || !Number.isFinite(v) || Math.abs(v) > MAX_COORD) {
+      return fail2("invalid-argument", `geom: node.${key} is not a usable number`);
+    }
+  }
+  if (o.continuity !== void 0 && !CONTINUITIES.includes(o.continuity)) {
+    return fail2("invalid-argument", `geom: unknown continuity "${String(o.continuity)}"`);
+  }
+  return o;
+}
+function makeGeomApi() {
+  const boolOp = (ds, op, opts) => {
+    const bad = checkEnums(opts);
+    if (bad) return bad;
+    const paths = parsePaths(ds);
+    if (isFail(paths)) return paths;
+    return attempt(() => pathOut(fold(paths, op, booleanOpts(opts)), opts?.decimals));
+  };
+  return {
+    union: (paths, opts) => boolOp(paths, (a, b, o) => unionPath(a, b, o), opts),
+    intersect: (paths, opts) => boolOp(paths, (a, b, o) => intersectPath(a, b, o), opts),
+    difference: (paths, opts) => boolOp(paths, (a, b, o) => differencePath(a, b, o), opts),
+    xor: (paths, opts) => boolOp(paths, (a, b, o) => xorPath(a, b, o), opts),
+    selfUnion: (d, opts) => {
+      const bad = checkEnums(opts);
+      if (bad) return bad;
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      return attempt(() => pathOut(selfUnion(p, booleanOpts(opts)), opts?.decimals));
+    },
+    offset: (d, distance, opts) => {
+      const bad = checkEnums(opts);
+      if (bad) return bad;
+      if (typeof distance !== "number" || !Number.isFinite(distance)) {
+        return fail2("invalid-argument", "geom: offset distance must be a finite number");
+      }
+      if (Math.abs(distance) > MAX_COORD) {
+        return fail2("invalid-argument", `geom: offset distance exceeds \xB1${MAX_COORD}`);
+      }
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      return attempt(() => pathOut(offsetPath(p, distance, offsetOpts(opts)), opts?.decimals));
+    },
+    stroke: (d, width, opts) => {
+      const bad = checkEnums(opts);
+      if (bad) return bad;
+      if (typeof width !== "number" || !Number.isFinite(width) || width <= 0) {
+        return fail2("invalid-argument", "geom: stroke width must be a finite positive number");
+      }
+      if (width > MAX_COORD) return fail2("invalid-argument", `geom: stroke width exceeds ${MAX_COORD}`);
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      return attempt(() => pathOut(strokeToPath(p, width, {
+        ...offsetOpts(opts),
+        ...opts?.cap ? { cap: opts.cap } : {}
+      }), opts?.decimals));
+    },
+    simplify: (d, opts) => {
+      const tol = opts?.tolerance;
+      if (tol !== void 0 && (typeof tol !== "number" || !Number.isFinite(tol) || tol <= 0)) {
+        return fail2("invalid-argument", "geom: tolerance must be a finite positive number");
+      }
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      return attempt(() => pathOut(
+        p.map((c) => ({ curves: simplifyCubics(c.curves, tol), closed: c.closed }))
+      ));
+    },
+    fromNodes: (path) => {
+      const src = path;
+      if (!src || typeof src !== "object") return fail2("invalid-argument", "geom: expected an authored path");
+      if (typeof src.kind !== "string" || !src.kind) {
+        return fail2("invalid-argument", "geom: authored path needs a `kind` string");
+      }
+      if (!Array.isArray(src.nodes)) return fail2("invalid-argument", "geom: authored path needs a `nodes` array");
+      if (src.nodes.length > MAX_NODES2) {
+        return fail2("too-large", `geom: ${src.nodes.length} nodes (limit ${MAX_NODES2})`);
+      }
+      if (src.tension !== void 0 && (typeof src.tension !== "number" || !Number.isFinite(src.tension))) {
+        return fail2("invalid-argument", "geom: tension must be a finite number");
+      }
+      const nodes = [];
+      for (const n2 of src.nodes) {
+        const v = nodeIn(n2);
+        if (isFail(v)) return v;
+        nodes.push(v);
+      }
+      const authored = {
+        kind: src.kind,
+        nodes,
+        closed: src.closed === true,
+        ...src.tension !== void 0 ? { tension: src.tension } : {}
+      };
+      return attempt(() => {
+        const curves = toCubics(authored);
+        return pathOut(curves.length ? [{ curves, closed: authored.closed }] : [], src.decimals);
+      });
+    },
+    encodeAuthored: (path) => {
+      const list2 = Array.isArray(path) ? path : [path];
+      if (!list2.length) return fail2("invalid-argument", "geom: expected at least one authored path");
+      const built = [];
+      let total = 0;
+      for (const entry of list2) {
+        const src = entry;
+        if (!src || typeof src !== "object") return fail2("invalid-argument", "geom: expected an authored path");
+        if (!Array.isArray(src.nodes) || !src.nodes.length) {
+          return fail2("invalid-argument", "geom: authored path needs at least one node");
+        }
+        total += src.nodes.length;
+        if (total > MAX_NODES2) return fail2("too-large", `geom: ${total} nodes (limit ${MAX_NODES2})`);
+        const nodes = [];
+        for (const n2 of src.nodes) {
+          const v = nodeIn(n2);
+          if (isFail(v)) return v;
+          nodes.push(v);
+        }
+        built.push({
+          kind: String(src.kind ?? ""),
+          nodes,
+          closed: src.closed === true,
+          ...src.tension !== void 0 ? { tension: src.tension } : {}
+        });
+      }
+      try {
+        return ok2(encodeAuthoredPaths(built));
+      } catch (e) {
+        return fail2("invalid-argument", `geom: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    },
+    decodeAuthored: (value) => {
+      if (typeof value !== "string") return fail2("invalid-argument", "geom: expected an encoded authored path");
+      const r3 = decodeAuthoredPathsResult(value);
+      if (r3 === "too-complex") return fail2("too-large", `geom: encoded path is past the ${MAX_NODES2}-node ceiling`);
+      if (r3 === "malformed") return fail2("invalid-argument", "geom: not a usable encoded authored path");
+      return ok2(r3);
+    },
+    continuity: (node, moved) => {
+      if (moved !== "in" && moved !== "out") {
+        return fail2("invalid-argument", "geom: `moved` must be 'in' or 'out'");
+      }
+      const n2 = nodeIn(node);
+      if (isFail(n2)) return n2;
+      try {
+        return ok2(enforceContinuity(n2, moved));
+      } catch (e) {
+        return fail2("internal", `geom: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    },
+    bounds: (d) => {
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      return ok2(pathBounds(p));
+    },
+    area: (d) => {
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      let a = 0;
+      for (const c of p) a += contourArea(c);
+      return Number.isFinite(a) ? ok2(a) : fail2("internal", "geom: area is not finite");
+    },
+    contains: (d, x, y, opts) => {
+      const pt = point(x, y);
+      if (isFail(pt)) return pt;
+      const rule = opts?.fillRule ?? "nonzero";
+      if (rule !== "nonzero" && rule !== "evenodd") {
+        return fail2("invalid-argument", `geom: unknown fill rule "${String(rule)}"`);
+      }
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      try {
+        return ok2(pointInPath(p, x, y, rule));
+      } catch (e) {
+        return fail2("internal", `geom: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    },
+    winding: (d, x, y) => {
+      const pt = point(x, y);
+      if (isFail(pt)) return pt;
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      try {
+        const w = windingNumber(p, x, y);
+        return Number.isFinite(w) ? ok2(w) : fail2("internal", "geom: winding number is not finite");
+      } catch (e) {
+        return fail2("internal", `geom: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    },
+    /**
+     * Nearest point, by projecting onto every curve and keeping the closest - the
+     * kernel's own `nearestOnCubic` (bracket then Newton on the squared-distance
+     * derivative), so the answer is computed FROM the curve rather than sampled near
+     * it, and the `t` it reports is the parameter to split at to insert a node.
+     * `distanceToPath` would give the distance alone and the address is the half a
+     * pen tool actually needs.
+     */
+    nearest: (d, x, y) => {
+      const pt = point(x, y);
+      if (isFail(pt)) return pt;
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      let best = null;
+      for (let ci = 0; ci < p.length; ci++) {
+        const curves = p[ci].curves;
+        for (let ki = 0; ki < curves.length; ki++) {
+          const r3 = nearestOnCubic(curves[ki], x, y);
+          if (!Number.isFinite(r3.distance)) continue;
+          if (!best || r3.distance < best.distance) {
+            best = { x: r3.point.x, y: r3.point.y, distance: r3.distance, contour: ci, curve: ki, t: r3.t };
+          }
+        }
+      }
+      if (!best) return fail2("invalid-path", "geom: path has no curves to measure against");
+      return ok2(best);
+    },
+    parse: (d) => {
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      return ok2(contoursOut(p));
+    },
+    toPathData: (contours, opts) => {
+      const p = contoursIn(contours);
+      if (isFail(p)) return p;
+      return pathOut(p, opts?.decimals);
+    },
+    limits: () => ({ ...LIMITS })
+  };
+}
+function point(x, y) {
+  for (const [k, v] of [["x", x], ["y", y]]) {
+    if (typeof v !== "number" || !Number.isFinite(v) || Math.abs(v) > MAX_COORD) {
+      return fail2("invalid-argument", `geom: ${k} must be a finite coordinate`);
+    }
+  }
+  return true;
+}
+var MAX_CHARS2, MAX_COMMANDS, MAX_CURVES2, MAX_PATHS, MAX_NODES2, MAX_COORD, LIMITS, ARITY, CURVES_PER_GROUP, NUM_RE, FLAG_RE, SEP_RE, NUM_START, CONTINUITIES;
+var init_geom_api = __esm({
+  "engine/src/geom-api.ts"() {
+    "use strict";
+    init_bezier();
+    init_path();
+    init_boolean();
+    init_offset();
+    init_stroke();
+    init_spline();
+    init_authored_url();
+    init_fit();
+    init_svg_path();
+    MAX_CHARS2 = 512e3;
+    MAX_COMMANDS = 2e4;
+    MAX_CURVES2 = 16e3;
+    MAX_PATHS = 64;
+    MAX_NODES2 = 2e4;
+    MAX_COORD = 1e9;
+    LIMITS = {
+      maxChars: MAX_CHARS2,
+      maxCommands: MAX_COMMANDS,
+      maxCurves: MAX_CURVES2,
+      maxCoordinate: MAX_COORD,
+      maxPaths: MAX_PATHS,
+      maxNodes: MAX_NODES2
+    };
+    ARITY = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7, Z: 0 };
+    CURVES_PER_GROUP = { M: 1, L: 1, H: 1, V: 1, C: 1, S: 1, Q: 1, T: 1, A: 4, Z: 0 };
+    NUM_RE = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;
+    FLAG_RE = /[01]/y;
+    SEP_RE = /[\s,]*/y;
+    NUM_START = /[0-9.+-]/;
+    CONTINUITIES = ["corner", "smooth", "symmetric"];
+  }
+});
+
+// engine/src/hook-worker-core.ts
+function lockDownAmbientCapabilities(scope, extra = []) {
+  const names = [...STRICT_AMBIENT_GLOBALS, ...extra];
+  for (const name of names) {
+    try {
+      Object.defineProperty(scope, name, {
+        value: void 0,
+        writable: false,
+        configurable: false
+      });
+    } catch {
+    }
+  }
+  const navigator = scope.navigator;
+  if (navigator && typeof navigator === "object") {
+    for (const name of STRICT_NAVIGATOR_PROPERTIES) {
+      try {
+        Object.defineProperty(navigator, name, {
+          value: void 0,
+          writable: false,
+          configurable: false
+        });
+      } catch {
+      }
+    }
+  }
+  const live = names.filter((name) => typeof scope[name] !== "undefined");
+  const liveNavigator = navigator && typeof navigator === "object" ? STRICT_NAVIGATOR_PROPERTIES.filter((name) => typeof navigator[name] !== "undefined") : [];
+  if (live.length || liveNavigator.length) {
+    throw new Error(`strict hook worker could not disable ambient capabilities: ${[
+      ...live,
+      ...liveNavigator.map((name) => `navigator.${name}`)
+    ].join(", ")}`);
+  }
+}
+function workerRpcMethods(shape) {
+  const out = /* @__PURE__ */ new Set();
+  for (const [ns, methods] of Object.entries(shape)) {
+    for (const method of methods) {
+      const full = `${ns}.${method}`;
+      if (COLOCATED_NS.has(ns) || OMIT_METHODS.has(full) || SEED_METHODS.has(full)) continue;
+      out.add(full);
+    }
+  }
+  return out;
+}
+function introspectHost(host) {
+  const shape = {};
+  for (const [ns, val] of Object.entries(host)) {
+    if (val && typeof val === "object") {
+      const methods = Object.keys(val).filter((k) => !k.startsWith("_") && typeof val[k] === "function");
+      if (methods.length) shape[ns] = methods;
+    }
+  }
+  return shape;
+}
+function gatherHostSeeds(host) {
+  const h = host;
+  const call = (ns, method, ...args) => {
+    try {
+      const o = h[ns];
+      return o && typeof o[method] === "function" ? o[method](...args) : void 0;
+    } catch {
+      return void 0;
+    }
+  };
+  return {
+    "media.isAvailable": call("media", "isAvailable"),
+    "recorder.isAvailable": { audio: call("recorder", "isAvailable", "audio"), video: call("recorder", "isAvailable", "video"), screen: call("recorder", "isAvailable", "screen") },
+    "audio.isAvailable": call("audio", "isAvailable"),
+    "viz.isAvailable": call("viz", "isAvailable"),
+    "speech.isAvailable": call("speech", "isAvailable"),
+    "speech.transcribeAvailable": call("speech", "transcribeAvailable"),
+    "upscale.isAvailable": call("upscale", "isAvailable"),
+    "matte.isAvailable": call("matte", "isAvailable")
+  };
+}
+function makeColocatedApis() {
+  return { color: makeColorApi(), geom: makeGeomApi() };
+}
+function createHookWorkerCore(port, opts = {}) {
+  const runs = /* @__PURE__ */ new Map();
+  const apis = makeColocatedApis();
+  let hostCallCounter = 0;
+  const nextHostCallId = opts.hostCallSeq ?? (() => ++hostCallCounter);
+  const canRaster = opts.canRaster ?? (() => false);
+  function scheduleFlush(runId, run) {
+    if (run.flushTimer != null) return;
+    run.flushTimer = setTimeout(() => {
+      run.flushTimer = null;
+      if (run.logBuf.length) {
+        port.post({ t: "log", runId, entries: run.logBuf.splice(0) });
+      }
+    }, 250);
+  }
+  function makeTokens(doc, excluded) {
+    const byTheme = /* @__PURE__ */ new Map();
+    const excl = new Set(excluded);
+    const ensure = (theme) => {
+      const key = theme ?? "";
+      let set = byTheme.get(key);
+      if (!set) {
+        set = createTokenSet(doc, { theme });
+        byTheme.set(key, set);
+      }
+      return set;
+    };
+    return {
+      get: async (o = {}) => ensure(o.theme),
+      resolve: async (ref, o = {}) => ensure(o.theme).resolve(ref),
+      themes: async () => ensure().themes(),
+      colors: async (o = {}) => {
+        const list2 = ensure(o.theme).colors();
+        if (!excl.size) return list2;
+        return list2.filter((c) => {
+          const p = aliasPath(c.ref) ?? c.ref;
+          return !excl.has(p) && !excl.has(p.startsWith("color.") ? p : `color.${p}`);
+        });
+      }
+    };
+  }
+  function buildHost(runId, msg2) {
+    const run = () => runs.get(runId);
+    const host = {
+      version: "1",
+      shell: msg2.shell,
+      capabilities: msg2.capabilities,
+      log: (level, m2, ctx) => {
+        const r3 = run();
+        r3.logBuf.push({ level, msg: m2, ctx });
+        scheduleFlush(runId, r3);
+      },
+      color: apis.color,
+      geom: apis.geom
+    };
+    if (msg2.tokenDoc != null) host.tokens = makeTokens(msg2.tokenDoc, msg2.tokenExcluded);
+    for (const [ns, methods] of Object.entries(msg2.hostShape)) {
+      if (COLOCATED_NS.has(ns) && ns !== "raster") continue;
+      const nsObj = host[ns] ?? {};
+      for (const method of methods) {
+        const full = `${ns}.${method}`;
+        if (OMIT_METHODS.has(full)) continue;
+        if (ns === "raster" && method === "canRaster") {
+          nsObj[method] = () => canRaster();
+          continue;
+        }
+        if (SEED_METHODS.has(full)) {
+          const seeded = msg2.seeds[full];
+          if (full === "recorder.isAvailable") {
+            const map = seeded ?? {};
+            nsObj[method] = (kind = "audio") => Boolean(map[kind]);
+          } else {
+            nsObj[method] = () => seeded;
+          }
+          continue;
+        }
+        nsObj[method] = (...args) => rpcHostCall(runId, full, args);
+      }
+      if (Object.keys(nsObj).length) host[ns] = nsObj;
+    }
+    return host;
+  }
+  function rpcHostCall(runId, method, args) {
+    const r3 = runs.get(runId);
+    if (!r3) return Promise.reject(new Error(`host-call after dispose (${method})`));
+    const hostCallId = nextHostCallId();
+    return new Promise((resolve3, reject) => {
+      r3.waiters.set(hostCallId, { resolve: resolve3, reject });
+      port.post({ t: "host-call", runId, hostCallId, method, args });
+    });
+  }
+  function compile(host, source) {
+    const factory = new Function(
+      "host",
+      `${source}; return {` + [...WORKER_HOOK_NAMES, ...IN_REALM_ONLY_HOOK_NAMES].map((n2) => `${n2}: typeof ${n2} !== 'undefined' ? ${n2} : null`).join(",") + `};`
+    );
+    const raw = factory(host);
+    const mod = {};
+    for (const n2 of WORKER_HOOK_NAMES) {
+      if (typeof raw[n2] === "function") mod[n2] = raw[n2];
+    }
+    return {
+      mod,
+      inRealmOnlyDeclared: IN_REALM_ONLY_HOOK_NAMES.filter((n2) => typeof raw[n2] === "function")
+    };
+  }
+  function handle(msg2) {
+    if (msg2.t === "init") {
+      const run = { host: null, mod: {}, waiters: /* @__PURE__ */ new Map(), logBuf: [], flushTimer: null };
+      runs.set(msg2.runId, run);
+      let declared = [];
+      let inRealmOnlyDeclared = [];
+      let compileError;
+      try {
+        run.host = buildHost(msg2.runId, msg2);
+        const compiled = compile(run.host, msg2.hooksSource);
+        run.mod = compiled.mod;
+        inRealmOnlyDeclared = compiled.inRealmOnlyDeclared;
+        declared = WORKER_HOOK_NAMES.filter((n2) => run.mod[n2] != null);
+      } catch (e) {
+        compileError = e.message;
+        runs.delete(msg2.runId);
+      }
+      port.post({ t: "init-done", runId: msg2.runId, declared, inRealmOnlyDeclared, compileError });
+      return;
+    }
+    if (msg2.t === "invoke") {
+      const run = runs.get(msg2.runId);
+      const fn = run?.mod[msg2.name];
+      if (!run || !fn) {
+        port.post({ t: "invoke-done", runId: msg2.runId, callId: msg2.callId, ok: false, error: `no hook '${msg2.name}'` });
+        return;
+      }
+      const ctx = {
+        ...msg2.ctx,
+        host: run.host,
+        ...msg2.name === "onInit" || msg2.name === "onInput" ? {
+          report: (patch) => port.post({ t: "report", runId: msg2.runId, callId: msg2.callId, patch })
+        } : {}
+      };
+      Promise.resolve().then(() => fn(ctx)).then(
+        (patch) => port.post({ t: "invoke-done", runId: msg2.runId, callId: msg2.callId, ok: true, patch }),
+        (err) => port.post({ t: "invoke-done", runId: msg2.runId, callId: msg2.callId, ok: false, error: err instanceof Error ? err.message : String(err) })
+      );
+      return;
+    }
+    if (msg2.t === "host-reply") {
+      const w = runs.get(msg2.runId)?.waiters;
+      const waiter = w?.get(msg2.hostCallId);
+      if (waiter) {
+        w.delete(msg2.hostCallId);
+        if (msg2.ok) waiter.resolve(msg2.value);
+        else waiter.reject(new Error(msg2.error ?? "host call failed"));
+      }
+      return;
+    }
+    if (msg2.t === "dispose") {
+      const run = runs.get(msg2.runId);
+      if (run) {
+        if (run.flushTimer != null) clearTimeout(run.flushTimer);
+        for (const wtr of run.waiters.values()) wtr.reject(new Error("mount disposed"));
+        runs.delete(msg2.runId);
+      }
+      return;
+    }
+  }
+  return { handle, _runs: runs };
+}
+var WORKER_HOOK_NAMES, IN_REALM_ONLY_HOOK_NAMES, STRICT_AMBIENT_GLOBALS, STRICT_NAVIGATOR_PROPERTIES, COLOCATED_NS, SEED_METHODS, OMIT_METHODS;
+var init_hook_worker_core = __esm({
+  "engine/src/hook-worker-core.ts"() {
+    "use strict";
+    init_color_tools();
+    init_geom_api();
+    init_tokens2();
+    WORKER_HOOK_NAMES = ["onInit", "onInput", "onFrame", "onLevel", "exportFile"];
+    IN_REALM_ONLY_HOOK_NAMES = ["beforeExport", "afterExport", "exportStill"];
+    STRICT_AMBIENT_GLOBALS = [
+      "fetch",
+      "WebSocket",
+      "WebSocketStream",
+      "WebTransport",
+      "EventSource",
+      "XMLHttpRequest",
+      "indexedDB",
+      "caches",
+      "BroadcastChannel",
+      "Worker",
+      "SharedWorker",
+      "RTCPeerConnection",
+      "localStorage",
+      "sessionStorage",
+      "cookieStore",
+      "importScripts",
+      // Tauri injects these into its main webview. They are absent in a normal
+      // Worker, but locking them makes the native-boundary invariant explicit.
+      "__TAURI__",
+      "__TAURI_INTERNALS__"
+    ];
+    STRICT_NAVIGATOR_PROPERTIES = [
+      "storage",
+      "locks",
+      "credentials",
+      "mediaDevices",
+      "clipboard",
+      "usb",
+      "serial",
+      "bluetooth"
+    ];
+    COLOCATED_NS = /* @__PURE__ */ new Set(["color", "geom", "tokens", "raster"]);
+    SEED_METHODS = /* @__PURE__ */ new Set([
+      "media.isAvailable",
+      "recorder.isAvailable",
+      "audio.isAvailable",
+      "viz.isAvailable",
+      "speech.isAvailable",
+      "speech.transcribeAvailable",
+      "upscale.isAvailable",
+      "matte.isAvailable"
+    ]);
+    OMIT_METHODS = /* @__PURE__ */ new Set([
+      "media.start",
+      "media.stop",
+      "media.subscribe",
+      "recorder.meter",
+      "profile.subscribe",
+      "export.render",
+      // Sync feature-detects that are NOT the isAvailable family and are NOT yet
+      // seeded: omit them so they can't be mis-proxied as a truthy Promise a hook
+      // branches on synchronously. A tool that actually reads these must not opt
+      // into isolation until they seed.
+      "upscale.backend",
+      "upscale.models",
+      "upscale.modelBytes",
+      "matte.backend",
+      "matte.models",
+      "matte.modelBytes",
+      "speech.modelBytes",
+      "speech.transcribeModelBytes",
+      // The token doc snapshot travels in the init message; the raw accessor is an
+      // owner-side seam, never a hook-facing call.
+      "tokens.raw"
+    ]);
+  }
+});
+
 // engine/src/media-sniff.ts
 function asBytes(input) {
   return input instanceof Uint8Array ? input : new Uint8Array(input);
@@ -20079,10 +25437,10 @@ function toU8Srgb(frame) {
   const src = f.data;
   const out = new Uint8ClampedArray(src.length);
   for (let i = 0; i < src.length; i += 4) {
-    out[i] = Math.round(linearToSrgb3(clamp014(src[i])) * 255);
-    out[i + 1] = Math.round(linearToSrgb3(clamp014(src[i + 1])) * 255);
-    out[i + 2] = Math.round(linearToSrgb3(clamp014(src[i + 2])) * 255);
-    out[i + 3] = Math.round(clamp014(src[i + 3]) * 255);
+    out[i] = Math.round(linearToSrgb3(clamp015(src[i])) * 255);
+    out[i + 1] = Math.round(linearToSrgb3(clamp015(src[i + 1])) * 255);
+    out[i + 2] = Math.round(linearToSrgb3(clamp015(src[i + 2])) * 255);
+    out[i + 3] = Math.round(clamp015(src[i + 3]) * 255);
   }
   return out;
 }
@@ -20098,7 +25456,7 @@ function toU16(frame) {
   if (frame.space === "lab") throw new Error("toU16: lab channels are not 0..1; convertSpace first");
   const src = frame.data;
   const out = new Uint16Array(src.length);
-  for (let i = 0; i < src.length; i++) out[i] = Math.round(clamp014(src[i]) * 65535);
+  for (let i = 0; i < src.length; i++) out[i] = Math.round(clamp015(src[i]) * 65535);
   return out;
 }
 function roundTiesToEven(x) {
@@ -20240,7 +25598,7 @@ function convertSpace(frame, target) {
   }
   return { width: frame.width, height: frame.height, data: out, space: target };
 }
-var PIXEL_SPACES, srgbToLinear3, linearToSrgb3, LINEAR_LUT, clamp014, F16, mul3, SRGB_TO_XYZ_D65, XYZ_D65_TO_SRGB, P3_TO_XYZ_D65, XYZ_D65_TO_P3, REC2020_TO_XYZ_D65, XYZ_D65_TO_REC2020, XYZ_D65_TO_D50, XYZ_D50_TO_D65, TO_XYZ_D65, FROM_XYZ_D65, D50_WHITE3, LAB_K2, LAB_E2;
+var PIXEL_SPACES, srgbToLinear3, linearToSrgb3, LINEAR_LUT, clamp015, F16, mul3, SRGB_TO_XYZ_D65, XYZ_D65_TO_SRGB, P3_TO_XYZ_D65, XYZ_D65_TO_P3, REC2020_TO_XYZ_D65, XYZ_D65_TO_REC2020, XYZ_D65_TO_D50, XYZ_D50_TO_D65, TO_XYZ_D65, FROM_XYZ_D65, D50_WHITE3, LAB_K2, LAB_E2;
 var init_pixels = __esm({
   "engine/src/pixels.ts"() {
     "use strict";
@@ -20255,7 +25613,7 @@ var init_pixels = __esm({
     linearToSrgb3 = (c) => c <= 31308e-7 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055;
     LINEAR_LUT = new Float64Array(256);
     for (let i = 0; i < 256; i++) LINEAR_LUT[i] = srgbToLinear3(i / 255);
-    clamp014 = (v) => v <= 0 ? 0 : v >= 1 ? 1 : v;
+    clamp015 = (v) => v <= 0 ? 0 : v >= 1 ? 1 : v;
     F16 = globalThis.Float16Array;
     mul3 = (a, b) => [
       a[0] * b[0] + a[1] * b[3] + a[2] * b[6],
@@ -25392,7 +30750,7 @@ function dpiIntent(trim2) {
   const hard = intent === "offset" ? OFFSET_HARD_DPI : 50;
   return { intent, floor, hard, longEdgeIn, longEdge };
 }
-var PRINT_MARK_FORMATS, SEPARATING_FORMATS, SPOT_PLATE_FORMATS, HDR_FORMATS, DURABLE_FORMATS, CUTS_FORMATS, MOTION_FORMATS, RASTER_FORMATS, DEPTH_FORMATS, PAGED_FORMATS, STILL_IMAGE_FORMATS, KNOWN_FINISHES, lower, isFiniteNum, clamp3, num2, labelOf, isDim, PT_TO_M, pt2ToM2, guard, spotSwatches, finishSpots, hexRgb01, swatchTac, tacLimitFor, checkFinishSeparatesAsInk, checkFinishFlattened, checkFinishUnknownKind, checkFormatOffered, bleedIsSet, marksAreSet, checkPrintMarksOnNonPrintFormat, checkPressProfileOnNonSeparatingFormat, checkHdrFormat, checkDurableFormat, checkAspectGuard, model, isBlank, checkRequiredBlank, checkNumberRange, checkTextMaxLength, checkSelectValue, checkVectorClamped, checkNoBleed, checkBleedUnknown, physicalTrim, LARGE_FORMAT_LONG_EDGE_IN, OFFSET_MIN_DPI, OFFSET_HARD_DPI, LARGE_FORMAT_MIN_DPI, round0, checkEffectiveDpi, checkImageEffectiveDpi, checkImageDpiNeedsStage, checkTrimPartial, checkTrimNotPhysical, checkPrintGeometry, checkPagesPaginate, checkPagesPages, checkPagesFromStage, checkArtboardFanOut, checkPagesUnknown, checkSequenceDuration, checkRasterPixels, checkVideoDurationDeclared, checkProcessPlates, checkSpotCeiling, checkFinishCeiling, checkNoSpotsDeclared, checkInkCoverage, checkRichBlack, checkPaletteUnresolved, cutsOf, checkCutsNeedsStage, checkCutsInert, checkCutsApplies, checkExperimentalWatermark, refusal, checkRefusals, CHECKS;
+var PRINT_MARK_FORMATS, SEPARATING_FORMATS, SPOT_PLATE_FORMATS, HDR_FORMATS, DURABLE_FORMATS, CUTS_FORMATS, MOTION_FORMATS, RASTER_FORMATS, DEPTH_FORMATS, PAGED_FORMATS, STILL_IMAGE_FORMATS, KNOWN_FINISHES, lower, isFiniteNum, clamp3, num3, labelOf, isDim, PT_TO_M, pt2ToM2, guard, spotSwatches, finishSpots, hexRgb01, swatchTac, tacLimitFor, checkFinishSeparatesAsInk, checkFinishFlattened, checkFinishUnknownKind, checkFormatOffered, bleedIsSet, marksAreSet, checkPrintMarksOnNonPrintFormat, checkPressProfileOnNonSeparatingFormat, checkHdrFormat, checkDurableFormat, checkAspectGuard, model, isBlank, checkRequiredBlank, checkNumberRange, checkTextMaxLength, checkSelectValue, checkVectorClamped, checkNoBleed, checkBleedUnknown, physicalTrim, LARGE_FORMAT_LONG_EDGE_IN, OFFSET_MIN_DPI, OFFSET_HARD_DPI, LARGE_FORMAT_MIN_DPI, round0, checkEffectiveDpi, checkImageEffectiveDpi, checkImageDpiNeedsStage, checkTrimPartial, checkTrimNotPhysical, checkPrintGeometry, checkPagesPaginate, checkPagesPages, checkPagesFromStage, checkArtboardFanOut, checkPagesUnknown, checkSequenceDuration, checkRasterPixels, checkVideoDurationDeclared, checkProcessPlates, checkSpotCeiling, checkFinishCeiling, checkNoSpotsDeclared, checkInkCoverage, checkRichBlack, checkPaletteUnresolved, cutsOf, checkCutsNeedsStage, checkCutsInert, checkCutsApplies, checkExperimentalWatermark, refusal, checkRefusals, CHECKS;
 var init_preflight2 = __esm({
   "engine/src/preflight.ts"() {
     "use strict";
@@ -25429,7 +30787,7 @@ var init_preflight2 = __esm({
     lower = (v) => typeof v === "string" ? v.toLowerCase() : "";
     isFiniteNum = (v) => typeof v === "number" && Number.isFinite(v);
     clamp3 = (n2, lo, hi) => n2 < lo ? lo : n2 > hi ? hi : n2;
-    num2 = (n2) => {
+    num3 = (n2) => {
       if (!Number.isFinite(n2)) return "?";
       const r3 = Math.round(n2 * 100) / 100;
       return Number.isInteger(r3) ? String(r3) : String(r3);
@@ -25631,7 +30989,7 @@ var init_preflight2 = __esm({
         c.add({
           id: "input.number-out-of-range",
           severity: "warn",
-          message: `${labelOf(i)} is ${num2(i.value)}, outside its declared range ${hasMin ? num2(lo) : "any"} to ${hasMax ? num2(hi) : "any"}. The control will snap it to ${num2(clamped)} the moment it is touched, so this render cannot be reproduced from the interface.`,
+          message: `${labelOf(i)} is ${num3(i.value)}, outside its declared range ${hasMin ? num3(lo) : "any"} to ${hasMax ? num3(hi) : "any"}. The control will snap it to ${num3(clamped)} the moment it is touched, so this render cannot be reproduced from the interface.`,
           inputId: i.id,
           evidence: {
             inputId: i.id,
@@ -25694,7 +31052,7 @@ var init_preflight2 = __esm({
           c.add({
             id: "input.vector-clamped",
             severity: "warn",
-            message: `${labelOf(i)}.${f.id} was given as ${num2(rawV)} and was silently clamped to ${num2(clamped)}.`,
+            message: `${labelOf(i)}.${f.id} was given as ${num3(rawV)} and was silently clamped to ${num3(clamped)}.`,
             inputId: i.id,
             evidence: { inputId: i.id, field: f.id, raw: rawV, clamped }
           });
@@ -25748,7 +31106,7 @@ var init_preflight2 = __esm({
       if (!isFiniteNum(dpi) || dpi <= 0) return;
       const { intent, floor, hard, longEdge } = dpiIntent(trim2);
       if (dpi >= floor) return;
-      const L = num2(longEdge.value), U = longEdge.unit;
+      const L = num3(longEdge.value), U = longEdge.unit;
       const message = intent === "offset" ? dpi < hard ? `This page is ${dpi} DPI at ${L} ${U}, below the 150 DPI floor for offset. It will look visibly soft.` : `This page is ${dpi} DPI at ${L} ${U}. Offset presses want 250 to 300 DPI, so this will look soft.` : `This page is ${dpi} DPI at ${L} ${U}. Large-format print tolerates 72 to 150 DPI at viewing distance; below 72 it softens even at distance.`;
       c.add({
         id: "print.effective-dpi",
@@ -25811,7 +31169,7 @@ var init_preflight2 = __esm({
         id: "print.trim-partially-declared",
         severity: "info",
         needs: "not-set",
-        message: `Only the ${wOk ? "width" : "height"} was set (${num2(set.value)} ${set.unit}). The other follows the artwork's aspect, which Lolly cannot read without the artwork on screen, so no trim size and no print area are being reported.`,
+        message: `Only the ${wOk ? "width" : "height"} was set (${num3(set.value)} ${set.unit}). The other follows the artwork's aspect, which Lolly cannot read without the artwork on screen, so no trim size and no print area are being reported.`,
         evidence: { declared: wOk ? "width" : "height", value: set.value, unit: set.unit, format: c.fmt }
       });
     };
@@ -25846,9 +31204,9 @@ var init_preflight2 = __esm({
         marks: m2.value ?? {}
       });
       const unit2 = trim2.w.unit === trim2.h.unit ? trim2.w.unit : "pt";
-      const wLbl = unit2 === trim2.w.unit ? num2(trim2.w.value) : num2(toPoints(trim2.w));
-      const hLbl = unit2 === trim2.h.unit ? num2(trim2.h.value) : num2(toPoints(trim2.h));
-      const bleedLbl = isDim(b.value) ? `${num2(b.value.value)} ${b.value.unit}` : "none";
+      const wLbl = unit2 === trim2.w.unit ? num3(trim2.w.value) : num3(toPoints(trim2.w));
+      const hLbl = unit2 === trim2.h.unit ? num3(trim2.h.value) : num3(toPoints(trim2.h));
+      const bleedLbl = isDim(b.value) ? `${num3(b.value.value)} ${b.value.unit}` : "none";
       const area = (box2, w, h) => ({
         kind: "area",
         value: pt2ToM2(w, h),
@@ -25860,7 +31218,7 @@ var init_preflight2 = __esm({
       c.add({
         id: "print.geometry",
         severity: "info",
-        message: `Trim ${wLbl} x ${hLbl} ${unit2}. Bleed ${bleedLbl}. Media box ${num2(geo.page.w)} x ${num2(geo.page.h)} points.`,
+        message: `Trim ${wLbl} x ${hLbl} ${unit2}. Bleed ${bleedLbl}. Media box ${num3(geo.page.w)} x ${num3(geo.page.h)} points.`,
         evidence: {
           trimWpt: Math.round(geo.boxes.trim.w * 100) / 100,
           trimHpt: Math.round(geo.boxes.trim.h * 100) / 100,
@@ -25873,13 +31231,13 @@ var init_preflight2 = __esm({
       c.add({
         id: "print.geometry",
         severity: "info",
-        message: `Bleed box ${num2(geo.boxes.bleed.w)} x ${num2(geo.boxes.bleed.h)} points.`,
+        message: `Bleed box ${num3(geo.boxes.bleed.w)} x ${num3(geo.boxes.bleed.h)} points.`,
         count: area("bleed", geo.boxes.bleed.w, geo.boxes.bleed.h)
       });
       c.add({
         id: "print.geometry",
         severity: "info",
-        message: `Media box ${num2(geo.boxes.media.w)} x ${num2(geo.boxes.media.h)} points, the whole sheet through the press.`,
+        message: `Media box ${num3(geo.boxes.media.w)} x ${num3(geo.boxes.media.h)} points, the whole sheet through the press.`,
         count: area("media", geo.boxes.media.w, geo.boxes.media.h)
       });
     };
@@ -25970,7 +31328,7 @@ var init_preflight2 = __esm({
       c.add({
         id: "count.sequence-duration",
         severity: "info",
-        message: `The timeline on screen is ${num2(s)} seconds long.`,
+        message: `The timeline on screen is ${num3(s)} seconds long.`,
         evidence: { durationMs: Math.round(ms), format: c.fmt },
         count: { kind: "seconds", value: s, unit: "s", bound: "exact", basis: "stage.durationMs" }
       });
@@ -25986,7 +31344,7 @@ var init_preflight2 = __esm({
       c.add({
         id: "count.raster-pixels",
         severity: "info",
-        message: px ? `${w} x ${h} pixels.` : `${w} x ${h} pixels at ${num2(dpi)} DPI.`,
+        message: px ? `${w} x ${h} pixels.` : `${w} x ${h} pixels at ${num3(dpi)} DPI.`,
         evidence: { width: w, height: h, dpi: px ? null : dpi },
         count: { kind: "pixels", value: w * h, unit: "px", bound: "exact", basis: "units.toPixels" }
       });
@@ -25998,7 +31356,7 @@ var init_preflight2 = __esm({
       c.add({
         id: "count.video-duration-declared",
         severity: "info",
-        message: `The tool declares a ${num2(d)} second clip. The clip Lolly actually captures is measured after it runs.`,
+        message: `The tool declares a ${num3(d)} second clip. The clip Lolly actually captures is measured after it runs.`,
         evidence: { declaredSeconds: d, format: c.fmt },
         count: { kind: "seconds", value: d, unit: "s", bound: "ceiling", basis: "manifest.render.video" }
       });
@@ -26576,313 +31934,6 @@ var init_rate_card = __esm({
   }
 });
 
-// engine/src/svg-path.ts
-function scanSvgPathArgs(str7) {
-  if (str7.length > SVG_PATH_MAX_CHARS) return null;
-  const re = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g;
-  const out = [];
-  let m2;
-  while ((m2 = re.exec(str7)) !== null) {
-    if (out.length >= SVG_PATH_MAX_ARGS) return null;
-    out.push(Number(m2[0]));
-  }
-  return out;
-}
-function parseSvgPathArgs(str7) {
-  if (typeof str7 !== "string") return [];
-  return scanSvgPathArgs(str7) ?? [];
-}
-function parseArcArgs(str7) {
-  if (str7.length > SVG_PATH_MAX_CHARS) return null;
-  const numRe = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;
-  const flagRe = /[01]/y;
-  const sepRe = /[\s,]*/y;
-  const out = [];
-  let i = 0;
-  const skipSep = () => {
-    sepRe.lastIndex = i;
-    sepRe.exec(str7);
-    i = sepRe.lastIndex;
-  };
-  const grab = (re) => {
-    skipSep();
-    re.lastIndex = i;
-    const mm = re.exec(str7);
-    if (!mm) return null;
-    i = re.lastIndex;
-    return mm[0];
-  };
-  while (i < str7.length) {
-    const rx = grab(numRe);
-    if (rx === null) break;
-    const ry = grab(numRe);
-    if (ry === null) break;
-    const xrot = grab(numRe);
-    if (xrot === null) break;
-    const laf = grab(flagRe);
-    if (laf === null) break;
-    const swf = grab(flagRe);
-    if (swf === null) break;
-    const x = grab(numRe);
-    if (x === null) break;
-    const y = grab(numRe);
-    if (y === null) break;
-    if (out.length + 7 > SVG_PATH_MAX_ARGS) return null;
-    out.push(Number(rx), Number(ry), Number(xrot), Number(laf), Number(swf), Number(x), Number(y));
-  }
-  return out;
-}
-function parseSvgPath(d) {
-  if (typeof d !== "string" || d.length === 0 || d.length > SVG_PATH_MAX_CHARS) return [];
-  const cmdRe = /([MLHVCSQTAZmlhvcsqtaz])([^MLHVCSQTAZmlhvcsqtaz]*)/g;
-  const subpaths = [];
-  let cur = null;
-  let cx = 0, cy = 0;
-  let sx = 0, sy = 0;
-  let lastCmd = "";
-  let lastCpx = 0, lastCpy = 0;
-  let segmentCount = 0;
-  let overflow = false;
-  let m2;
-  const open2 = (x, y) => {
-    if (subpaths.length >= SVG_PATH_MAX_SUBPATHS || segmentCount >= SVG_PATH_MAX_SEGMENTS) {
-      overflow = true;
-      return null;
-    }
-    const sub = { segments: [{ op: "M", x, y }], closed: false };
-    subpaths.push(sub);
-    segmentCount++;
-    return sub;
-  };
-  const line = (x, y) => {
-    if (!cur || overflow) return;
-    if (segmentCount >= SVG_PATH_MAX_SEGMENTS) {
-      overflow = true;
-      return;
-    }
-    cur.segments.push({ op: "L", x, y });
-    segmentCount++;
-  };
-  const cubic = (x1, y1, x2, y2, x, y) => {
-    if (!cur || overflow) return;
-    if (segmentCount >= SVG_PATH_MAX_SEGMENTS) {
-      overflow = true;
-      return;
-    }
-    cur.segments.push({ op: "C", x1, y1, x2, y2, x, y });
-    segmentCount++;
-  };
-  while ((m2 = cmdRe.exec(d)) !== null) {
-    const cmd = m2[1] ?? "";
-    const abs = cmd === cmd.toUpperCase();
-    const C = cmd.toUpperCase();
-    const nums = C === "A" ? parseArcArgs(m2[2] ?? "") : scanSvgPathArgs(m2[2] ?? "");
-    if (nums === null) {
-      overflow = true;
-      break;
-    }
-    const at = (i) => nums[i] ?? 0;
-    const ax = (i) => abs ? at(i) : cx + at(i);
-    const ay = (i) => abs ? at(i) : cy + at(i);
-    switch (C) {
-      case "M":
-        for (let i = 0; i + 1 < nums.length && !overflow; i += 2) {
-          const x = ax(i), y = ay(i + 1);
-          if (i === 0) {
-            const next = open2(x, y);
-            if (!next) break;
-            cur = next;
-            sx = x;
-            sy = y;
-          } else line(x, y);
-          cx = x;
-          cy = y;
-        }
-        break;
-      case "L":
-        for (let i = 0; i + 1 < nums.length && !overflow; i += 2) {
-          const x = ax(i), y = ay(i + 1);
-          line(x, y);
-          cx = x;
-          cy = y;
-        }
-        break;
-      case "H":
-        for (let i = 0; i < nums.length && !overflow; i++) {
-          cx = abs ? at(i) : cx + at(i);
-          line(cx, cy);
-        }
-        break;
-      case "V":
-        for (let i = 0; i < nums.length && !overflow; i++) {
-          cy = abs ? at(i) : cy + at(i);
-          line(cx, cy);
-        }
-        break;
-      case "C":
-        for (let i = 0; i + 5 < nums.length && !overflow; i += 6) {
-          const x1 = ax(i), y1 = ay(i + 1);
-          const x2 = ax(i + 2), y2 = ay(i + 3);
-          const x = ax(i + 4), y = ay(i + 5);
-          cubic(x1, y1, x2, y2, x, y);
-          lastCpx = x2;
-          lastCpy = y2;
-          cx = x;
-          cy = y;
-        }
-        break;
-      case "S":
-        for (let i = 0; i + 3 < nums.length && !overflow; i += 4) {
-          const r1x = lastCmd === "C" || lastCmd === "S" ? 2 * cx - lastCpx : cx;
-          const r1y = lastCmd === "C" || lastCmd === "S" ? 2 * cy - lastCpy : cy;
-          const x2 = ax(i), y2 = ay(i + 1);
-          const x = ax(i + 2), y = ay(i + 3);
-          cubic(r1x, r1y, x2, y2, x, y);
-          lastCpx = x2;
-          lastCpy = y2;
-          cx = x;
-          cy = y;
-        }
-        break;
-      case "Q":
-        for (let i = 0; i + 3 < nums.length && !overflow; i += 4) {
-          const qx1 = ax(i), qy1 = ay(i + 1);
-          const x = ax(i + 2), y = ay(i + 3);
-          const x1 = cx + 2 / 3 * (qx1 - cx), y1 = cy + 2 / 3 * (qy1 - cy);
-          const x2 = x + 2 / 3 * (qx1 - x), y2 = y + 2 / 3 * (qy1 - y);
-          cubic(x1, y1, x2, y2, x, y);
-          lastCpx = qx1;
-          lastCpy = qy1;
-          cx = x;
-          cy = y;
-        }
-        break;
-      case "T":
-        for (let i = 0; i + 1 < nums.length && !overflow; i += 2) {
-          const qx1 = lastCmd === "Q" || lastCmd === "T" ? 2 * cx - lastCpx : cx;
-          const qy1 = lastCmd === "Q" || lastCmd === "T" ? 2 * cy - lastCpy : cy;
-          const x = ax(i), y = ay(i + 1);
-          const x1 = cx + 2 / 3 * (qx1 - cx), y1 = cy + 2 / 3 * (qy1 - cy);
-          const x2 = x + 2 / 3 * (qx1 - x), y2 = y + 2 / 3 * (qy1 - y);
-          cubic(x1, y1, x2, y2, x, y);
-          lastCpx = qx1;
-          lastCpy = qy1;
-          cx = x;
-          cy = y;
-        }
-        break;
-      case "A":
-        for (let i = 0; i + 6 < nums.length && !overflow; i += 7) {
-          const rx = Math.abs(at(i));
-          const ry = Math.abs(at(i + 1));
-          const xRot = at(i + 2) * Math.PI / 180;
-          const la = at(i + 3) ? 1 : 0;
-          const sw = at(i + 4) ? 1 : 0;
-          const x = ax(i + 5), y = ay(i + 6);
-          if (rx < 1e-6 || ry < 1e-6) {
-            line(x, y);
-          } else {
-            for (const [bx1, by1, bx2, by2, bx, by] of svgArcToBeziers(cx, cy, rx, ry, xRot, la, sw, x, y)) {
-              cubic(bx1, by1, bx2, by2, bx, by);
-              if (overflow) break;
-            }
-          }
-          cx = x;
-          cy = y;
-          lastCpx = cx;
-          lastCpy = cy;
-        }
-        break;
-      case "Z":
-        if (cur) cur.closed = true;
-        cx = sx;
-        cy = sy;
-        break;
-    }
-    if (overflow) break;
-    lastCmd = C;
-    if (C !== "C" && C !== "S" && C !== "Q" && C !== "T") {
-      lastCpx = cx;
-      lastCpy = cy;
-    }
-  }
-  if (overflow) return [];
-  return subpaths.filter((s) => s.segments.some((seg) => seg.op === "L" || seg.op === "C"));
-}
-function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
-  if (x1 === x2 && y1 === y2) return [];
-  const cosP = Math.cos(phi);
-  const sinP = Math.sin(phi);
-  const dx = (x1 - x2) / 2;
-  const dy = (y1 - y2) / 2;
-  const x1p = cosP * dx + sinP * dy;
-  const y1p = -sinP * dx + cosP * dy;
-  let rx2 = rx * rx, ry2 = ry * ry;
-  const x1p2 = x1p * x1p, y1p2 = y1p * y1p;
-  const lam = x1p2 / rx2 + y1p2 / ry2;
-  if (lam > 1) {
-    const sl = Math.sqrt(lam);
-    rx *= sl;
-    ry *= sl;
-    rx2 = rx * rx;
-    ry2 = ry * ry;
-  }
-  const num7 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
-  const den = rx2 * y1p2 + ry2 * x1p2;
-  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num7 / den);
-  const cxp = coef * rx * y1p / ry;
-  const cyp = -coef * ry * x1p / rx;
-  const cx = cosP * cxp - sinP * cyp + (x1 + x2) / 2;
-  const cy = sinP * cxp + cosP * cyp + (y1 + y2) / 2;
-  const angV = (ux, uy, vx, vy) => {
-    const sign = ux * vy - uy * vx < 0 ? -1 : 1;
-    const dot = ux * vx + uy * vy;
-    const len2 = Math.sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
-    return sign * Math.acos(Math.max(-1, Math.min(1, dot / len2)));
-  };
-  const theta1 = angV(1, 0, (x1p - cxp) / rx, (y1p - cyp) / ry);
-  let dtheta = angV((x1p - cxp) / rx, (y1p - cyp) / ry, (-x1p - cxp) / rx, (-y1p - cyp) / ry);
-  if (!fs && dtheta > 0) dtheta -= 2 * Math.PI;
-  if (fs && dtheta < 0) dtheta += 2 * Math.PI;
-  const n2 = Math.max(1, Math.ceil(Math.abs(dtheta) / (Math.PI / 2)));
-  const dt = dtheta / n2;
-  const results = [];
-  for (let i = 0; i < n2; i++) {
-    const t1 = theta1 + i * dt;
-    const t2 = theta1 + (i + 1) * dt;
-    const alpha = 4 / 3 * Math.tan(dt / 4);
-    const cos1 = Math.cos(t1), sin1 = Math.sin(t1);
-    const cos2 = Math.cos(t2), sin2 = Math.sin(t2);
-    const ep1x = cosP * (rx * cos1) - sinP * (ry * sin1) + cx;
-    const ep1y = sinP * (rx * cos1) + cosP * (ry * sin1) + cy;
-    const dp1x = cosP * (-rx * sin1) - sinP * (ry * cos1);
-    const dp1y = sinP * (-rx * sin1) + cosP * (ry * cos1);
-    const ep2x = cosP * (rx * cos2) - sinP * (ry * sin2) + cx;
-    const ep2y = sinP * (rx * cos2) + cosP * (ry * sin2) + cy;
-    const dp2x = cosP * (-rx * sin2) - sinP * (ry * cos2);
-    const dp2y = sinP * (-rx * sin2) + cosP * (ry * cos2);
-    results.push([
-      ep1x + alpha * dp1x,
-      ep1y + alpha * dp1y,
-      ep2x - alpha * dp2x,
-      ep2y - alpha * dp2y,
-      ep2x,
-      ep2y
-    ]);
-  }
-  return results;
-}
-var SVG_PATH_MAX_CHARS, SVG_PATH_MAX_ARGS, SVG_PATH_MAX_SEGMENTS, SVG_PATH_MAX_SUBPATHS;
-var init_svg_path = __esm({
-  "engine/src/svg-path.ts"() {
-    "use strict";
-    SVG_PATH_MAX_CHARS = 4e5;
-    SVG_PATH_MAX_ARGS = 1e5;
-    SVG_PATH_MAX_SEGMENTS = 1e5;
-    SVG_PATH_MAX_SUBPATHS = 1e4;
-  }
-});
-
 // engine/src/svg-colors.ts
 function extractSvgColors(svgText) {
   const out = [];
@@ -27244,7 +32295,7 @@ function clusterLeaves(idx, boxes, gapScale = 1, sizeRatio = Infinity) {
         const [lo, hi] = area(ba) < area(bb) ? [area(ba), area(bb)] : [area(bb), area(ba)];
         if (hi > lo * sizeRatio) continue;
       }
-      if (boxesOverlap(grown, bb)) join18(a, b);
+      if (boxesOverlap2(grown, bb)) join18(a, b);
     }
   }
   const byRoot = /* @__PURE__ */ new Map();
@@ -27271,7 +32322,7 @@ function splitUnsafeClusters(clusters, boxes, count2) {
     for (let i = sorted[0] + 1; i < sorted[sorted.length - 1] && i < count2; i++) {
       if (member.has(i)) continue;
       const ob = boxes[i];
-      if (!ob || !bb || boxesOverlap(ob, bb)) {
+      if (!ob || !bb || boxesOverlap2(ob, bb)) {
         unsafe = true;
         break;
       }
@@ -27805,7 +32856,7 @@ function borrowedDefs(wanted, resolvable, first, tags, markup, drops, warnings, 
 function escapeRe(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
-var SVG_LAYERS_MAX_CHARS, SVG_LAYERS_MAX_TAGS, SVG_LAYERS_MAX, SVG_LAYERS_MAX_CANDIDATES, SVG_LAYERS_MAX_DEPTH, SVG_LAYERS_MAX_DESCENT, SVG_LAYERS_MAX_REFS, SVG_LAYERS_HEAVY_BYTES, SVG_LAYERS_HERO_SHARE, SVG_LAYERS_HERO_ROUNDS, SVG_LAYERS_HERO_MIN_INK, SVG_LAYERS_HERO_BUDGET, SVG_LAYERS_HERO_GAP_SCALES, SVG_LAYERS_PEER_AREA_RATIO, CLUSTER_GAP, GAP_FACTOR, MAX_CLUSTER_GAP, DROP_TAGS, CARRY_TAGS, CONTAINER_TAGS, UNIT_PROPS, PAINT_TAGS, VIEWPORT_PCT_RE, VIEWPORT_PCT_STYLE_RE, MARKER_RE, STROKE_W_RE, STROKE_MITER_LIMIT, CROP_PAD, CROP_MIN_GAIN, ID_ATTR_RE, numAttr, IDENTITY, rectPts, expandBox, boxesOverlap;
+var SVG_LAYERS_MAX_CHARS, SVG_LAYERS_MAX_TAGS, SVG_LAYERS_MAX, SVG_LAYERS_MAX_CANDIDATES, SVG_LAYERS_MAX_DEPTH, SVG_LAYERS_MAX_DESCENT, SVG_LAYERS_MAX_REFS, SVG_LAYERS_HEAVY_BYTES, SVG_LAYERS_HERO_SHARE, SVG_LAYERS_HERO_ROUNDS, SVG_LAYERS_HERO_MIN_INK, SVG_LAYERS_HERO_BUDGET, SVG_LAYERS_HERO_GAP_SCALES, SVG_LAYERS_PEER_AREA_RATIO, CLUSTER_GAP, GAP_FACTOR, MAX_CLUSTER_GAP, DROP_TAGS, CARRY_TAGS, CONTAINER_TAGS, UNIT_PROPS, PAINT_TAGS, VIEWPORT_PCT_RE, VIEWPORT_PCT_STYLE_RE, MARKER_RE, STROKE_W_RE, STROKE_MITER_LIMIT, CROP_PAD, CROP_MIN_GAIN, ID_ATTR_RE, numAttr, IDENTITY, rectPts, expandBox, boxesOverlap2;
 var init_svg_layers = __esm({
   "engine/src/svg-layers.ts"() {
     "use strict";
@@ -27878,7 +32929,7 @@ var init_svg_layers = __esm({
     IDENTITY = [1, 0, 0, 1, 0, 0];
     rectPts = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
     expandBox = (r3, by) => ({ x: r3.x - by, y: r3.y - by, w: r3.w + by * 2, h: r3.h + by * 2 });
-    boxesOverlap = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+    boxesOverlap2 = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
   }
 });
 
@@ -28268,9 +33319,9 @@ function analysePcm(channels, sampleRate, opts = {}) {
       }
     }
   }
-  normalise(frames.rms);
+  normalise3(frames.rms);
   normaliseDb([frames.bass, frames.mid, frames.treb]);
-  normalise(frames.flux);
+  normalise3(frames.flux);
   normaliseDb([frames.magnitude]);
   const peaks = overviewPeaks(mono, buckets);
   const { bpm, beats } = detectBeats(frames.flux, fps);
@@ -28379,7 +33430,7 @@ function toByte(v) {
   const b = Math.round(v * 128 + 128);
   return b < 0 ? 0 : b > 255 ? 255 : b;
 }
-function normalise(a) {
+function normalise3(a) {
   normaliseTogether([a]);
 }
 function normaliseDb(tracks) {
@@ -32474,4565 +37525,6 @@ var init_css_paint = __esm({
   "engine/src/css-paint.ts"() {
     "use strict";
     init_css_color();
-  }
-});
-
-// engine/src/geom/bezier.ts
-function lineToCubic(x0, y0, x1, y1) {
-  return [x0, y0, x0 + (x1 - x0) / 3, y0 + (y1 - y0) / 3, x0 + 2 * (x1 - x0) / 3, y0 + 2 * (y1 - y0) / 3, x1, y1];
-}
-function evalCubic(c, t) {
-  const mt = 1 - t;
-  const a = mt * mt * mt, b = 3 * mt * mt * t, d = 3 * mt * t * t, e = t * t * t;
-  return {
-    x: a * c[0] + b * c[2] + d * c[4] + e * c[6],
-    y: a * c[1] + b * c[3] + d * c[5] + e * c[7]
-  };
-}
-function tangentAt(c, t) {
-  const mt = 1 - t;
-  const a = 3 * mt * mt, b = 6 * mt * t, d = 3 * t * t;
-  return {
-    x: a * (c[2] - c[0]) + b * (c[4] - c[2]) + d * (c[6] - c[4]),
-    y: a * (c[3] - c[1]) + b * (c[5] - c[3]) + d * (c[7] - c[5])
-  };
-}
-function splitCubic(c, t) {
-  const [x0, y0, x1, y1, x2, y2, x3, y3] = c;
-  const ax = x0 + (x1 - x0) * t, ay = y0 + (y1 - y0) * t;
-  const bx = x1 + (x2 - x1) * t, by = y1 + (y2 - y1) * t;
-  const cx = x2 + (x3 - x2) * t, cy = y2 + (y3 - y2) * t;
-  const dx = ax + (bx - ax) * t, dy = ay + (by - ay) * t;
-  const ex = bx + (cx - bx) * t, ey = by + (cy - by) * t;
-  const fx = dx + (ex - dx) * t, fy = dy + (ey - dy) * t;
-  return [
-    [x0, y0, ax, ay, dx, dy, fx, fy],
-    [fx, fy, ex, ey, cx, cy, x3, y3]
-  ];
-}
-function subCubic(c, t0, t1) {
-  if (t0 === 0 && t1 === 1) return [...c];
-  if (t0 > t1) return subCubic(c, t1, t0);
-  const right = t0 > 0 ? splitCubic(c, t0)[1] : c;
-  if (t1 >= 1) return [...right];
-  const t = t0 > 0 ? (t1 - t0) / (1 - t0) : t1;
-  return splitCubic(right, t)[0];
-}
-function quadRoots01(a, b, c) {
-  const out = [];
-  if (Math.abs(a) < 1e-12) {
-    if (Math.abs(b) > 1e-12) {
-      const t = -c / b;
-      if (t > 0 && t < 1) out.push(t);
-    }
-    return out;
-  }
-  const disc = b * b - 4 * a * c;
-  if (disc < 0) return out;
-  const s = Math.sqrt(disc);
-  for (const t of [(-b + s) / (2 * a), (-b - s) / (2 * a)]) if (t > 0 && t < 1) out.push(t);
-  return out;
-}
-function extremaCubic(c) {
-  const ts = [];
-  for (const off of [0, 1]) {
-    const p0 = c[off], p1 = c[2 + off], p2 = c[4 + off], p3 = c[6 + off];
-    ts.push(...quadRoots01(
-      3 * (-p0 + 3 * p1 - 3 * p2 + p3),
-      6 * (p0 - 2 * p1 + p2),
-      3 * (p1 - p0)
-    ));
-  }
-  return ts.sort((a, b) => a - b);
-}
-function boundsCubic(c) {
-  let x0 = Math.min(c[0], c[6]), x1 = Math.max(c[0], c[6]);
-  let y0 = Math.min(c[1], c[7]), y1 = Math.max(c[1], c[7]);
-  for (const t of extremaCubic(c)) {
-    const p = evalCubic(c, t);
-    if (p.x < x0) x0 = p.x;
-    if (p.x > x1) x1 = p.x;
-    if (p.y < y0) y0 = p.y;
-    if (p.y > y1) y1 = p.y;
-  }
-  return { x0, y0, x1, y1 };
-}
-function hullBounds(c) {
-  return {
-    x0: Math.min(c[0], c[2], c[4], c[6]),
-    x1: Math.max(c[0], c[2], c[4], c[6]),
-    y0: Math.min(c[1], c[3], c[5], c[7]),
-    y1: Math.max(c[1], c[3], c[5], c[7])
-  };
-}
-function boxesOverlap2(a, b, eps = 0) {
-  return a.x0 - eps <= b.x1 && b.x0 - eps <= a.x1 && a.y0 - eps <= b.y1 && b.y0 - eps <= a.y1;
-}
-function flatnessCubic(c) {
-  const dx = c[6] - c[0], dy = c[7] - c[1];
-  const len2 = Math.hypot(dx, dy);
-  if (len2 < 1e-12) {
-    return Math.max(Math.hypot(c[2] - c[0], c[3] - c[1]), Math.hypot(c[4] - c[0], c[5] - c[1]));
-  }
-  const d1 = Math.abs((c[2] - c[0]) * dy - (c[3] - c[1]) * dx) / len2;
-  const d2 = Math.abs((c[4] - c[0]) * dy - (c[5] - c[1]) * dx) / len2;
-  return Math.max(d1, d2);
-}
-function lengthCubic(c, tol = 0.01, depth = 0) {
-  if (depth > 20 || flatnessCubic(c) <= tol) return Math.hypot(c[6] - c[0], c[7] - c[1]);
-  const [a, b] = splitCubic(c, 0.5);
-  return lengthCubic(a, tol, depth + 1) + lengthCubic(b, tol, depth + 1);
-}
-function flattenCubic(c, tol = 0.1) {
-  const out = [{ x: c[0], y: c[1] }];
-  const rec2 = (q, depth) => {
-    if (depth > 24 || flatnessCubic(q) <= tol) {
-      out.push({ x: q[6], y: q[7] });
-      return;
-    }
-    const [a, b] = splitCubic(q, 0.5);
-    rec2(a, depth + 1);
-    rec2(b, depth + 1);
-  };
-  rec2(c, 0);
-  return out;
-}
-function isLineCubic(c, tol = 1e-9) {
-  return flatnessCubic(c) <= tol;
-}
-function polyEval(co, n2, t) {
-  let v = 0;
-  for (let i = n2; i >= 0; i--) v = v * t + co[i];
-  return v;
-}
-function polyEvalD(co, n2, t) {
-  let v = co[n2], dv = 0;
-  for (let i = n2 - 1; i >= 0; i--) {
-    dv = dv * t + v;
-    v = v * t + co[i];
-  }
-  EV_SLOPE = dv;
-  return v;
-}
-function rootInBracket(co, n2, lo, hi, flo, fhi, fTol) {
-  let a = lo, b = hi, fa = flo, fb = fhi;
-  let t = a + (b - a) * fa / (fa - fb);
-  if (!(t > a && t < b)) t = (a + b) / 2;
-  for (let i = 0; i < 80; i++) {
-    const f = polyEvalD(co, n2, t);
-    if (f === 0 || Math.abs(f) <= fTol) return t;
-    if (f < 0 === fa < 0) {
-      a = t;
-      fa = f;
-    } else {
-      b = t;
-      fb = f;
-    }
-    if (b - a <= 4e-16) break;
-    const df = EV_SLOPE;
-    let next = df !== 0 ? t - f / df : Number.NaN;
-    if (!(next > a && next < b)) next = a + (b - a) * fa / (fa - fb);
-    if (i >= 8 && (i & 1) === 0 || !(next > a && next < b)) next = (a + b) / 2;
-    if (next === t) break;
-    t = next;
-  }
-  return t < 0 ? 0 : t > 1 ? 1 : t;
-}
-function rootsIn01(co, len2, depth, out, withCritical = false, minimaOnly = false) {
-  let scale = 0;
-  for (let i = 0; i < len2; i++) {
-    const a = Math.abs(co[i]);
-    if (a > scale) scale = a;
-  }
-  if (!(scale > 0) || !Number.isFinite(scale)) return 0;
-  let n2 = len2 - 1;
-  while (n2 > 0 && Math.abs(co[n2]) <= scale * 1e-14) n2--;
-  if (n2 < 1) return 0;
-  const fTol = scale * 8e-16;
-  if (n2 === 1) {
-    const t = -co[0] / co[1];
-    if (t >= 0 && t <= 1) {
-      out[0] = t;
-      return 1;
-    }
-    return 0;
-  }
-  if (n2 === 2) {
-    const cc = co[0], bb = co[1], aa = co[2];
-    const disc = bb * bb - 4 * aa * cc;
-    if (disc < 0) return 0;
-    const s = Math.sqrt(disc);
-    const r1 = (-bb - (bb < 0 ? -s : s)) / 2;
-    const t1 = r1 / aa;
-    const t2 = r1 !== 0 ? cc / r1 : t1;
-    const lo = Math.min(t1, t2), hi = Math.max(t1, t2);
-    let count3 = 0;
-    if (lo >= 0 && lo <= 1) out[count3++] = lo;
-    if (hi > lo && hi >= 0 && hi <= 1) out[count3++] = hi;
-    return count3;
-  }
-  const dc = CO_BUF[depth + 1];
-  for (let i = 1; i <= n2; i++) dc[i - 1] = co[i] * i;
-  const knots = KN_BUF[depth];
-  const nk = rootsIn01(dc, n2, depth + 1, knots);
-  let count2 = 0;
-  let pt = 0, pf = polyEval(co, n2, 0);
-  if (pf === 0) out[count2++] = 0;
-  for (let i = 0; i <= nk; i++) {
-    const k = i < nk ? knots[i] : 1;
-    if (k <= pt) {
-      pt = k;
-      continue;
-    }
-    const f = polyEval(co, n2, k);
-    if (f === 0) out[count2++] = k;
-    else if (pf < 0 && f > 0) out[count2++] = rootInBracket(co, n2, pt, k, pf, f, fTol);
-    else if (pf > 0 && f < 0 && !minimaOnly) out[count2++] = rootInBracket(co, n2, pt, k, pf, f, fTol);
-    pt = k;
-    pf = f;
-  }
-  if (withCritical) for (let i = 0; i < nk; i++) out[count2++] = knots[i];
-  return count2;
-}
-function nearestOnCubic(c, px, py, _samples) {
-  const ax = -c[0] + 3 * c[2] - 3 * c[4] + c[6], ay = -c[1] + 3 * c[3] - 3 * c[5] + c[7];
-  const bx = 3 * c[0] - 6 * c[2] + 3 * c[4], by = 3 * c[1] - 6 * c[3] + 3 * c[5];
-  const dx = -3 * c[0] + 3 * c[2], dy = -3 * c[1] + 3 * c[3];
-  const fx = c[0] - px, fy = c[1] - py;
-  const AA = ax * ax + ay * ay, AB = ax * bx + ay * by, AD = ax * dx + ay * dy, AF = ax * fx + ay * fy;
-  const BB = bx * bx + by * by, BD = bx * dx + by * dy, BF = bx * fx + by * fy;
-  const DD = dx * dx + dy * dy, DF = dx * fx + dy * fy;
-  const q = CO_BUF[0];
-  q[0] = DF;
-  q[1] = DD + 2 * BF;
-  q[2] = 3 * (BD + AF);
-  q[3] = 4 * AD + 2 * BB;
-  q[4] = 5 * AB;
-  q[5] = 3 * AA;
-  const cand = NEAREST_OUT;
-  const n2 = rootsIn01(q, 6, 0, cand, true, true);
-  cand[n2] = 0;
-  cand[n2 + 1] = 1;
-  let bestT = 0, bestD2 = Infinity, bestP = { x: c[0], y: c[1] };
-  for (let i = 0; i <= n2 + 1; i++) {
-    let t = cand[i];
-    if (!(t >= 0)) t = 0;
-    else if (t > 1) t = 1;
-    const p = evalCubic(c, t);
-    const d2 = (p.x - px) ** 2 + (p.y - py) ** 2;
-    if (d2 < bestD2) {
-      bestD2 = d2;
-      bestT = t;
-      bestP = p;
-    }
-  }
-  return { t: bestT, point: bestP, distance: Math.sqrt(bestD2) };
-}
-function signedAreaCubic(c) {
-  const [x0, y0, x1, y1, x2, y2, x3, y3] = c;
-  return (x0 * (-2 * y1 - y2 + 3 * y3) + x1 * (2 * y0 - y2 - y3) + x2 * (y0 + y1 - 2 * y3) + x3 * (-3 * y0 + y1 + 2 * y2)) * 0.15;
-}
-var CO_BUF, KN_BUF, NEAREST_OUT, EV_SLOPE;
-var init_bezier = __esm({
-  "engine/src/geom/bezier.ts"() {
-    "use strict";
-    CO_BUF = [];
-    KN_BUF = [];
-    for (let i = 0; i <= 6; i++) {
-      CO_BUF.push(new Float64Array(6));
-      KN_BUF.push(new Float64Array(16));
-    }
-    NEAREST_OUT = new Float64Array(16);
-    EV_SLOPE = 0;
-  }
-});
-
-// engine/src/geom/intersect.ts
-function intersectSegments(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1) {
-  const rx = ax1 - ax0, ry = ay1 - ay0;
-  const sx = bx1 - bx0, sy = by1 - by0;
-  const denom = rx * sy - ry * sx;
-  if (Math.abs(denom) < 1e-14) return null;
-  const qpx = bx0 - ax0, qpy = by0 - ay0;
-  const t = (qpx * sy - qpy * sx) / denom;
-  const u = (qpx * ry - qpy * rx) / denom;
-  if (t < -T_EPS || t > 1 + T_EPS || u < -T_EPS || u > 1 + T_EPS) return null;
-  const tc = Math.min(1, Math.max(0, t)), uc = Math.min(1, Math.max(0, u));
-  return { t1: tc, t2: uc, x: ax0 + rx * tc, y: ay0 + ry * tc };
-}
-function cubicRoots01(a, b, c, d) {
-  const out = [];
-  const push = (t) => {
-    if (t >= -T_EPS && t <= 1 + T_EPS) out.push(Math.min(1, Math.max(0, t)));
-  };
-  if (Math.abs(a) < 1e-12) {
-    if (Math.abs(b) < 1e-12) {
-      if (Math.abs(c) > 1e-12) push(-d / c);
-      return dedupeRoots(out);
-    }
-    const disc2 = c * c - 4 * b * d;
-    if (disc2 < 0) return [];
-    const s = Math.sqrt(disc2);
-    push((-c + s) / (2 * b));
-    push((-c - s) / (2 * b));
-    return dedupeRoots(out);
-  }
-  const b1 = b / a, c1 = c / a, d1 = d / a;
-  const p = c1 - b1 * b1 / 3;
-  const q = 2 * b1 * b1 * b1 / 27 - b1 * c1 / 3 + d1;
-  const shift = -b1 / 3;
-  const disc = q * q / 4 + p * p * p / 27;
-  if (disc > 1e-18) {
-    const s = Math.sqrt(disc);
-    push(Math.cbrt(-q / 2 + s) + Math.cbrt(-q / 2 - s) + shift);
-  } else if (disc > -1e-18) {
-    const u = Math.cbrt(-q / 2);
-    push(2 * u + shift);
-    push(-u + shift);
-  } else {
-    const r3 = Math.sqrt(-(p * p * p) / 27);
-    const phi = Math.acos(Math.min(1, Math.max(-1, -q / (2 * r3))));
-    const m2 = 2 * Math.cbrt(r3);
-    for (let k = 0; k < 3; k++) push(m2 * Math.cos((phi + 2 * Math.PI * k) / 3) + shift);
-  }
-  const polished = out.map((t0) => {
-    let t = t0;
-    for (let i = 0; i < 2; i++) {
-      const f = ((a * t + b) * t + c) * t + d;
-      const df = (3 * a * t + 2 * b) * t + c;
-      if (Math.abs(df) < 1e-14) break;
-      const next = t - f / df;
-      if (next < -T_EPS || next > 1 + T_EPS) break;
-      t = next;
-    }
-    return Math.min(1, Math.max(0, t));
-  });
-  return dedupeRoots(polished);
-}
-function dedupeRoots(ts) {
-  const s = ts.slice().sort((x, y) => x - y);
-  const out = [];
-  for (const t of s) if (!out.length || t - out[out.length - 1] > 1e-9) out.push(t);
-  return out;
-}
-function intersectLineCubic(x0, y0, x1, y1, c, tol = EPS2) {
-  const dx = x1 - x0, dy = y1 - y0;
-  const len2 = Math.hypot(dx, dy);
-  if (len2 < 1e-12) return [];
-  const nx = -dy / len2, ny = dx / len2;
-  const dist2 = (px, py) => nx * (px - x0) + ny * (py - y0);
-  const d0 = dist2(c[0], c[1]), d1 = dist2(c[2], c[3]), d2 = dist2(c[4], c[5]), d3 = dist2(c[6], c[7]);
-  const A = -d0 + 3 * d1 - 3 * d2 + d3;
-  const B = 3 * d0 - 6 * d1 + 3 * d2;
-  const C = -3 * d0 + 3 * d1;
-  const D = d0;
-  const out = [];
-  for (const t of cubicRoots01(A, B, C, D)) {
-    const p = evalCubic(c, t);
-    const u = ((p.x - x0) * dx + (p.y - y0) * dy) / (len2 * len2);
-    if (u < -tol / len2 || u > 1 + tol / len2) continue;
-    out.push({ t1: Math.min(1, Math.max(0, u)), t2: t, x: p.x, y: p.y });
-  }
-  return out;
-}
-function fatLine(c) {
-  let dx = c[6] - c[0], dy = c[7] - c[1];
-  if (Math.hypot(dx, dy) < 1e-12) {
-    dx = c[4] - c[0];
-    dy = c[5] - c[1];
-    if (Math.hypot(dx, dy) < 1e-12) return null;
-  }
-  const len2 = Math.hypot(dx, dy);
-  const nx = -dy / len2, ny = dx / len2;
-  const c0 = nx * c[0] + ny * c[1];
-  const d1 = nx * c[2] + ny * c[3] - c0;
-  const d2 = nx * c[4] + ny * c[5] - c0;
-  const k = d1 * d2 > 0 ? 3 / 4 : 4 / 9;
-  const dMin = k * Math.min(0, d1, d2);
-  const dMax = k * Math.max(0, d1, d2);
-  return { nx, ny, c0, dMin, dMax };
-}
-function clipToFatLine(c, fat) {
-  const d = [
-    fat.nx * c[0] + fat.ny * c[1] - fat.c0,
-    fat.nx * c[2] + fat.ny * c[3] - fat.c0,
-    fat.nx * c[4] + fat.ny * c[5] - fat.c0,
-    fat.nx * c[6] + fat.ny * c[7] - fat.c0
-  ];
-  const pts = d.map((v, i) => ({ x: i / 3, y: v }));
-  const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
-  const chain2 = (sign) => {
-    const h = [];
-    for (const p of pts) {
-      while (h.length >= 2 && sign * cross(h[h.length - 2], h[h.length - 1], p) <= 0) h.pop();
-      h.push(p);
-    }
-    return h;
-  };
-  const upper = chain2(-1), lower3 = chain2(1);
-  const crossings = (h, level) => {
-    const ts2 = [];
-    for (let i = 1; i < h.length; i++) {
-      const a = h[i - 1], b = h[i];
-      if ((a.y - level) * (b.y - level) <= 0 && Math.abs(b.y - a.y) > 1e-18) {
-        ts2.push(a.x + (level - a.y) * (b.x - a.x) / (b.y - a.y));
-      }
-    }
-    return ts2;
-  };
-  const inBand = (v) => v >= fat.dMin - 1e-12 && v <= fat.dMax + 1e-12;
-  const ts = [];
-  for (const h of [upper, lower3]) {
-    ts.push(...crossings(h, fat.dMin), ...crossings(h, fat.dMax));
-  }
-  if (inBand(d[0])) ts.push(0);
-  if (inBand(d[3])) ts.push(1);
-  if (!ts.length) return null;
-  const lo = Math.max(0, Math.min(...ts)), hi = Math.min(1, Math.max(...ts));
-  return hi < lo ? null : [lo, hi];
-}
-function clipIntersect(c1, c2, t1lo, t1hi, t2lo, t2hi, tol, depth, out, swap = false) {
-  const emit = (t1, t2, x, y) => out.push(swap ? { t1: t2, t2: t1, x, y } : { t1, t2, x, y });
-  if (out.length > 128 || depth > 60) return;
-  if (!boxesOverlap2(hullBounds(c1), hullBounds(c2), tol)) return;
-  const s1 = Math.hypot(c1[6] - c1[0], c1[7] - c1[1]) + flatnessCubic(c1);
-  const s2 = Math.hypot(c2[6] - c2[0], c2[7] - c2[1]) + flatnessCubic(c2);
-  if (s1 <= tol && s2 <= tol) {
-    const p = evalCubic(c1, 0.5);
-    emit((t1lo + t1hi) / 2, (t2lo + t2hi) / 2, p.x, p.y);
-    return;
-  }
-  const fat = fatLine(c2);
-  const clipped = fat ? clipToFatLine(c1, fat) : [0, 1];
-  if (!clipped) return;
-  const [lo, hi] = clipped;
-  const shrink = hi - lo;
-  if (shrink > 0.8) {
-    if (s1 >= s2) {
-      const [a, b] = splitCubic(c1, 0.5);
-      const mid3 = (t1lo + t1hi) / 2;
-      clipIntersect(a, c2, t1lo, mid3, t2lo, t2hi, tol, depth + 1, out, swap);
-      clipIntersect(b, c2, mid3, t1hi, t2lo, t2hi, tol, depth + 1, out, swap);
-    } else {
-      const [a, b] = splitCubic(c2, 0.5);
-      const mid3 = (t2lo + t2hi) / 2;
-      clipIntersect(c1, a, t1lo, t1hi, t2lo, mid3, tol, depth + 1, out, swap);
-      clipIntersect(c1, b, t1lo, t1hi, mid3, t2hi, tol, depth + 1, out, swap);
-    }
-    return;
-  }
-  const nc1 = subCubic(c1, lo, hi);
-  const nt1lo = t1lo + (t1hi - t1lo) * lo;
-  const nt1hi = t1lo + (t1hi - t1lo) * hi;
-  clipIntersect(c2, nc1, t2lo, t2hi, nt1lo, nt1hi, tol, depth + 1, out, !swap);
-}
-function dedupe(list2, tol) {
-  const out = [];
-  for (const i of list2) {
-    if (!out.some((o) => Math.hypot(o.x - i.x, o.y - i.y) <= tol * 8 && Math.abs(o.t1 - i.t1) <= 1e-6 + tol && Math.abs(o.t2 - i.t2) <= 1e-6 + tol)) out.push(i);
-  }
-  return out.sort((a, b) => a.t1 - b.t1);
-}
-function chordFractionToParam(c, u) {
-  const dx = c[6] - c[0], dy = c[7] - c[1];
-  const l2 = dx * dx + dy * dy;
-  if (l2 < 1e-24) return u;
-  const g2 = [
-    0,
-    ((c[2] - c[0]) * dx + (c[3] - c[1]) * dy) / l2,
-    ((c[4] - c[0]) * dx + (c[5] - c[1]) * dy) / l2,
-    1
-  ];
-  if (Math.abs(g2[1] - 1 / 3) < 1e-12 && Math.abs(g2[2] - 2 / 3) < 1e-12) return u;
-  const A = -g2[0] + 3 * g2[1] - 3 * g2[2] + g2[3];
-  const B = 3 * g2[0] - 6 * g2[1] + 3 * g2[2];
-  const C = -3 * g2[0] + 3 * g2[1];
-  const D = g2[0] - u;
-  const roots = cubicRoots01(A, B, C, D);
-  if (!roots.length) return u;
-  let best = roots[0], bestErr = Infinity;
-  for (const t of roots) {
-    const mt = 1 - t;
-    const val = mt * mt * mt * g2[0] + 3 * mt * mt * t * g2[1] + 3 * mt * t * t * g2[2] + t * t * t * g2[3];
-    const err = Math.abs(val - u);
-    if (err < bestErr) {
-      bestErr = err;
-      best = t;
-    }
-  }
-  return best;
-}
-function intersectCubics(c1, c2, tol = EPS2) {
-  if (!boxesOverlap2(boundsCubic(c1), boundsCubic(c2), tol)) return [];
-  const l1 = isLineCubic(c1, tol), l2 = isLineCubic(c2, tol);
-  if (l1 && l2) {
-    const hit = intersectSegments(c1[0], c1[1], c1[6], c1[7], c2[0], c2[1], c2[6], c2[7]);
-    if (!hit) return [];
-    return [{
-      ...hit,
-      t1: chordFractionToParam(c1, hit.t1),
-      t2: chordFractionToParam(c2, hit.t2)
-    }];
-  }
-  if (l1) {
-    return dedupe(intersectLineCubic(c1[0], c1[1], c1[6], c1[7], c2, tol).map((i) => ({ ...i, t1: chordFractionToParam(c1, i.t1) })), tol);
-  }
-  if (l2) {
-    return dedupe(intersectLineCubic(c2[0], c2[1], c2[6], c2[7], c1, tol).map((i) => ({ t1: i.t2, t2: chordFractionToParam(c2, i.t1), x: i.x, y: i.y })), tol);
-  }
-  const out = [];
-  clipIntersect(c1, c2, 0, 1, 0, 1, tol, 0, out);
-  return dedupe(out, tol);
-}
-var EPS2, T_EPS;
-var init_intersect = __esm({
-  "engine/src/geom/intersect.ts"() {
-    "use strict";
-    init_bezier();
-    EPS2 = 1e-9;
-    T_EPS = 1e-9;
-  }
-});
-
-// engine/src/geom/path.ts
-function contourStart(c) {
-  const f = c.curves[0];
-  return f ? { x: f[0], y: f[1] } : null;
-}
-function contourEnd(c) {
-  const l = c.curves[c.curves.length - 1];
-  return l ? { x: l[6], y: l[7] } : null;
-}
-function closeContour(c) {
-  const s = contourStart(c), e = contourEnd(c);
-  if (!s || !e) return { curves: [...c.curves], closed: true };
-  const gap = Math.hypot(e.x - s.x, e.y - s.y);
-  if (gap <= JOIN_EPS) return { curves: [...c.curves], closed: true };
-  return { curves: [...c.curves, lineToCubic(e.x, e.y, s.x, s.y)], closed: true };
-}
-function contourArea(c) {
-  let a = 0;
-  for (const k of c.curves) {
-    a += (k[0] * (6 * k[3] + 3 * k[5] + k[7]) + k[2] * (-6 * k[1] + 3 * k[5] + 3 * k[7]) + k[4] * (-3 * k[1] - 3 * k[3] + 6 * k[7]) + k[6] * (-k[1] - 3 * k[3] - 6 * k[5])) / 20;
-  }
-  const s = contourStart(c), e = contourEnd(c);
-  if (s && e) a += (e.x * s.y - s.x * e.y) / 2;
-  return a;
-}
-function reverseContour(c) {
-  const curves = c.curves.map((k) => [k[6], k[7], k[4], k[5], k[2], k[3], k[0], k[1]]).reverse();
-  return { curves, closed: c.closed };
-}
-function orientContour(c, counterClockwise) {
-  const ccw = contourArea(c) > 0;
-  return ccw === counterClockwise ? c : reverseContour(c);
-}
-function pathBounds(p) {
-  let box2 = null;
-  for (const c of p) {
-    for (const k of c.curves) {
-      const b = boundsCubic(k);
-      box2 = box2 ? {
-        x0: Math.min(box2.x0, b.x0),
-        y0: Math.min(box2.y0, b.y0),
-        x1: Math.max(box2.x1, b.x1),
-        y1: Math.max(box2.y1, b.y1)
-      } : b;
-    }
-  }
-  return box2;
-}
-function compactPath(p) {
-  return p.filter((c) => c.curves.some((k) => {
-    const b = boundsCubic(k);
-    return b.x1 - b.x0 > JOIN_EPS || b.y1 - b.y0 > JOIN_EPS;
-  }));
-}
-function pathFromSubPaths(subs) {
-  const out = [];
-  for (const sub of subs) {
-    const curves = [];
-    let cx = 0, cy = 0, started = false;
-    for (const seg of sub.segments) {
-      if (seg.op === "M") {
-        cx = seg.x;
-        cy = seg.y;
-        started = true;
-        continue;
-      }
-      if (!started) {
-        cx = 0;
-        cy = 0;
-        started = true;
-      }
-      if (seg.op === "L") {
-        curves.push(lineToCubic(cx, cy, seg.x, seg.y));
-      } else {
-        curves.push([cx, cy, seg.x1, seg.y1, seg.x2, seg.y2, seg.x, seg.y]);
-      }
-      cx = seg.x;
-      cy = seg.y;
-    }
-    if (curves.length) out.push({ curves, closed: sub.closed });
-  }
-  return out;
-}
-function subPathsFromPath(p) {
-  return p.map((c) => {
-    const segments = [];
-    const first = c.curves[0];
-    if (!first) return { segments, closed: c.closed };
-    segments.push({ op: "M", x: first[0], y: first[1] });
-    for (const k of c.curves) {
-      segments.push({ op: "C", x1: k[2], y1: k[3], x2: k[4], y2: k[5], x: k[6], y: k[7] });
-    }
-    return { segments, closed: c.closed };
-  });
-}
-function num3(v, dp) {
-  const s = v.toFixed(dp);
-  return s.replace(/\.?0+$/, "") || "0";
-}
-function toSvgPathData(p, dp = 4) {
-  const parts = [];
-  for (const c of p) {
-    const first = c.curves[0];
-    if (!first) continue;
-    parts.push(`M${num3(first[0], dp)} ${num3(first[1], dp)}`);
-    for (const k of c.curves) {
-      if (isStraight(k)) {
-        parts.push(`L${num3(k[6], dp)} ${num3(k[7], dp)}`);
-      } else {
-        parts.push(`C${num3(k[2], dp)} ${num3(k[3], dp)} ${num3(k[4], dp)} ${num3(k[5], dp)} ${num3(k[6], dp)} ${num3(k[7], dp)}`);
-      }
-    }
-    if (c.closed) parts.push("Z");
-  }
-  return parts.join("");
-}
-function isStraight(k, tol = 1e-9) {
-  const dx = k[6] - k[0], dy = k[7] - k[1];
-  const len2 = Math.hypot(dx, dy);
-  if (len2 < tol) return false;
-  for (const [px, py, want] of [[k[2], k[3], 1 / 3], [k[4], k[5], 2 / 3]]) {
-    const p = { x: k[0] + dx * want, y: k[1] + dy * want };
-    if (Math.hypot(px - p.x, py - p.y) > tol * Math.max(1, len2)) return false;
-  }
-  return true;
-}
-function contourPoint(c, index, t) {
-  const k = c.curves[Math.min(c.curves.length - 1, Math.max(0, index))];
-  return evalCubic(k, t);
-}
-var JOIN_EPS;
-var init_path = __esm({
-  "engine/src/geom/path.ts"() {
-    "use strict";
-    init_bezier();
-    JOIN_EPS = 1e-7;
-  }
-});
-
-// engine/src/geom/boolean.ts
-function newBudget() {
-  return { splits: MAX_SPLITS, pairs: MAX_PAIRS, work: MAX_WORK };
-}
-function usableTol(tol) {
-  return typeof tol === "number" && Number.isFinite(tol) && tol > 0 ? tol : EPS2;
-}
-function booleanPath(a, b, op, opts = {}) {
-  const tol = usableTol(opts.tol);
-  const A = selfUnion(a, opts);
-  const B = selfUnion(b, opts);
-  if (!A.length || !B.length) return withEmptyOperand(A, B, op);
-  const boxA = pathBounds(A), boxB = pathBounds(B);
-  if (!boxA || !boxB) return withEmptyOperand(A, B, op);
-  const span = Math.max(boxA.x1 - boxA.x0, boxA.y1 - boxA.y0, boxB.x1 - boxB.x0, boxB.y1 - boxB.y0, 1);
-  const weld = Math.max(tol, JOIN_EPS) * span;
-  const near = weld * 0.01;
-  if (boxA.x1 + weld < boxB.x0 || boxB.x1 + weld < boxA.x0 || boxA.y1 + weld < boxB.y0 || boxB.y1 + weld < boxA.y0) return disjointResult(A, B, op);
-  const idxA = buildIndex(A), idxB = buildIndex(B);
-  if (idxA.curves.length > MAX_CURVES || idxB.curves.length > MAX_CURVES) {
-    return abandon(A, B, op, `${idxA.curves.length}+${idxB.curves.length} curves over the ${MAX_CURVES} ceiling`);
-  }
-  const budget = newBudget();
-  const splitsA = idxA.curves.map(() => []);
-  const splitsB = idxB.curves.map(() => []);
-  crossSplits(idxA.curves, idxB.curves, splitsA, splitsB, tol, weld, budget);
-  const edges = [
-    ...splitIntoEdges(idxA.curves, splitsA, weld),
-    ...splitIntoEdges(idxB.curves, splitsB, weld)
-  ];
-  const kept = [];
-  for (const e of edges) {
-    const m2 = evalCubic(e, 0.5);
-    const ref = midTangent(e);
-    const wa = sideWindings(idxA, m2.x, m2.y, ref.x, ref.y, near, budget);
-    const wb = sideWindings(idxB, m2.x, m2.y, ref.x, ref.y, near, budget);
-    const left = combine(wa.left !== 0, wb.left !== 0, op);
-    const right = combine(wa.right !== 0, wb.right !== 0, op);
-    if (left === right) continue;
-    kept.push(left ? e : reverseCubic(e));
-  }
-  if (budget.work <= 0) return abandon(A, B, op, "the work budget ran out mid-classification");
-  return compactPath(walkLoops(dedupeEdges(kept, weld), weld));
-}
-function unionPath(a, b, opts) {
-  return booleanPath(a, b, "union", opts);
-}
-function intersectPath(a, b, opts) {
-  return booleanPath(a, b, "intersection", opts);
-}
-function differencePath(a, b, opts) {
-  return booleanPath(a, b, "difference", opts);
-}
-function xorPath(a, b, opts) {
-  return booleanPath(a, b, "xor", opts);
-}
-function selfUnion(p, opts = {}) {
-  const tol = usableTol(opts.tol);
-  const rule = opts.fillRule ?? "nonzero";
-  const path = normalise2(p);
-  if (!path.length) return [];
-  const idx = buildIndex(path);
-  const box2 = idx.box;
-  if (!box2 || !idx.curves.length) return [];
-  const span = Math.max(box2.x1 - box2.x0, box2.y1 - box2.y0, 1);
-  const weld = Math.max(tol, JOIN_EPS) * span;
-  const near = weld * 0.01;
-  if (idx.curves.length > MAX_CURVES) return path;
-  const budget = newBudget();
-  const splits = idx.curves.map(() => []);
-  selfSplits(idx.curves, splits, tol, weld, budget);
-  if (path.length === 1 && !splits.some((s) => s.length) && !selfTouching(path[0], weld)) {
-    const only = path[0];
-    const probe = only.curves[0];
-    const m2 = evalCubic(probe, 0.5);
-    const ref = midTangent(probe);
-    const w = sideWindings(idx, m2.x, m2.y, ref.x, ref.y, near, budget);
-    return [filled(w.left, rule) ? only : reverseContour(only)];
-  }
-  const kept = [];
-  for (const c of splitIntoEdges(idx.curves, splits, weld)) {
-    const m2 = evalCubic(c, 0.5);
-    const ref = midTangent(c);
-    const w = sideWindings(idx, m2.x, m2.y, ref.x, ref.y, near, budget);
-    const left = filled(w.left, rule), right = filled(w.right, rule);
-    if (left === right) continue;
-    kept.push(left ? c : reverseCubic(c));
-  }
-  if (budget.work <= 0) return path;
-  return compactPath(walkLoops(dedupeEdges(kept, weld), weld));
-}
-function windingNumber(p, x, y) {
-  if (!Number.isFinite(x) || !Number.isFinite(y)) return 0;
-  const idx = buildIndex(normalise2(p));
-  const box2 = idx.box;
-  if (!box2 || !idx.curves.length) return 0;
-  const span = Math.max(box2.x1 - box2.x0, box2.y1 - box2.y0, 1);
-  const near = Math.max(EPS2, JOIN_EPS) * span * 0.01;
-  const budget = newBudget();
-  let last = 0;
-  for (const d2 of RAY_DIRS) {
-    const cast2 = castRay(idx, x, y, d2[0], d2[1], null, near, budget);
-    if (cast2.ok) return cast2.far;
-    last = cast2.far;
-    if (budget.work <= 0) return last;
-  }
-  const d = RAY_DIRS[0];
-  const cast = castRay(idx, x, y, d[0], d[1], null, near, budget, true);
-  return cast.ok || budget.work > 0 ? cast.far : last;
-}
-function pointInPath(p, x, y, rule = "nonzero") {
-  return filled(windingNumber(p, x, y), rule);
-}
-function filled(w, rule) {
-  return rule === "evenodd" ? (Math.abs(w) & 1) === 1 : w !== 0;
-}
-function combine(a, b, op) {
-  switch (op) {
-    case "union":
-      return a || b;
-    case "intersection":
-      return a && b;
-    case "difference":
-      return a && !b;
-    default:
-      return a !== b;
-  }
-}
-function withEmptyOperand(a, b, op) {
-  if (!a.length && !b.length) return [];
-  if (!a.length) return op === "union" || op === "xor" ? b : [];
-  return op === "intersection" ? [] : a;
-}
-function disjointResult(a, b, op) {
-  switch (op) {
-    case "union":
-    case "xor":
-      return [...a, ...b];
-    case "intersection":
-      return [];
-    default:
-      return a;
-  }
-}
-function abandon(a, b, op, detail) {
-  if (op === "union") return [...a, ...b];
-  throw new GeomLimitError(op, detail);
-}
-function isFiniteCubic(c) {
-  for (let i = 0; i < 8; i++) if (!Number.isFinite(c[i])) return false;
-  return true;
-}
-function extent(c) {
-  return Math.max(
-    Math.hypot(c[2] - c[0], c[3] - c[1]),
-    Math.hypot(c[4] - c[0], c[5] - c[1]),
-    Math.hypot(c[6] - c[0], c[7] - c[1])
-  );
-}
-function normalise2(p) {
-  const out = [];
-  for (const contour of p) {
-    const curves = contour.curves.filter((c) => isFiniteCubic(c) && extent(c) > 1e-12);
-    if (!curves.length) continue;
-    const closed = closeContour({ curves, closed: true });
-    if (closed.curves.length) out.push(closed);
-  }
-  return out;
-}
-function selfTouching(c, weld) {
-  const cell = Math.max(weld * 4, 1e-12);
-  const seen = /* @__PURE__ */ new Map();
-  for (const k of c.curves) {
-    const cx = Math.round(k[0] / cell), cy = Math.round(k[1] / cell);
-    for (let ox = -1; ox <= 1; ox++) {
-      for (let oy = -1; oy <= 1; oy++) {
-        for (const p of seen.get(`${cx + ox},${cy + oy}`) ?? []) {
-          if (Math.hypot(p.x - k[0], p.y - k[1]) <= weld) return true;
-        }
-      }
-    }
-    const key = `${cx},${cy}`;
-    const bucket = seen.get(key);
-    if (bucket) bucket.push({ x: k[0], y: k[1] });
-    else seen.set(key, [{ x: k[0], y: k[1] }]);
-  }
-  return false;
-}
-function buildIndex(p) {
-  const curves = [];
-  let box2 = null;
-  for (const contour of p) {
-    for (const c of contour.curves) {
-      const b = boundsCubic(c);
-      curves.push({ c, box: b });
-      box2 = box2 ? {
-        x0: Math.min(box2.x0, b.x0),
-        y0: Math.min(box2.y0, b.y0),
-        x1: Math.max(box2.x1, b.x1),
-        y1: Math.max(box2.y1, b.y1)
-      } : b;
-    }
-  }
-  return { curves, box: box2 };
-}
-function midTangent(c) {
-  const t = tangentAt(c, 0.5);
-  if (Math.hypot(t.x, t.y) > 1e-12) return t;
-  const dx = c[6] - c[0], dy = c[7] - c[1];
-  if (Math.hypot(dx, dy) > 1e-12) return { x: dx, y: dy };
-  return { x: 1, y: 0 };
-}
-function sweepPairs(a, b, self, budget, visit) {
-  const byStart = (list2) => list2.map((_, i) => i).sort((p, q) => list2[p].box.x0 - list2[q].box.x0);
-  const prune = (active, list2, x) => {
-    let w = 0;
-    for (let r3 = 0; r3 < active.length; r3++) {
-      const i = active[r3];
-      if (list2[i].box.x1 >= x) active[w++] = i;
-    }
-    active.length = w;
-  };
-  const yHit = (p, q) => p.y1 >= q.y0 && q.y1 >= p.y0;
-  if (self) {
-    const order = byStart(a);
-    const active = [];
-    for (const i of order) {
-      const box2 = a[i].box;
-      prune(active, a, box2.x0);
-      for (const j of active) {
-        if (budget.pairs-- <= 0) return;
-        if (yHit(box2, a[j].box)) visit(Math.min(i, j), Math.max(i, j));
-        if (budget.splits <= 0) return;
-      }
-      active.push(i);
-    }
-    return;
-  }
-  const ao = byStart(a), bo = byStart(b);
-  const activeA = [], activeB = [];
-  let ai = 0, bi = 0;
-  while (ai < ao.length || bi < bo.length) {
-    const ax = ai < ao.length ? a[ao[ai]].box.x0 : Infinity;
-    const bx = bi < bo.length ? b[bo[bi]].box.x0 : Infinity;
-    if (ax <= bx) {
-      const i = ao[ai++];
-      const box2 = a[i].box;
-      prune(activeB, b, box2.x0);
-      for (const j of activeB) {
-        if (budget.pairs-- <= 0) return;
-        if (yHit(box2, b[j].box)) visit(i, j);
-        if (budget.splits <= 0) return;
-      }
-      activeA.push(i);
-    } else {
-      const j = bo[bi++];
-      const box2 = b[j].box;
-      prune(activeA, a, box2.x0);
-      for (const i of activeA) {
-        if (budget.pairs-- <= 0) return;
-        if (yHit(a[i].box, box2)) visit(i, j);
-        if (budget.splits <= 0) return;
-      }
-      activeB.push(j);
-    }
-  }
-}
-function addSplit(splits, index, t, budget) {
-  if (!(t > 1e-9 && t < 1 - 1e-9)) return;
-  if (budget.splits-- <= 0) return;
-  splits[index].push(t);
-}
-function collinearSplits(a, b, weld, budget) {
-  const dx = a[6] - a[0], dy = a[7] - a[1];
-  const len2 = Math.hypot(dx, dy);
-  if (len2 < weld) return null;
-  const nx = -dy / len2, ny = dx / len2;
-  for (let i = 0; i < 8; i += 2) {
-    if (Math.abs(nx * (b[i] - a[0]) + ny * (b[i + 1] - a[1])) > weld) return null;
-  }
-  const proj = (x, y) => ((x - a[0]) * dx + (y - a[1]) * dy) / (len2 * len2);
-  const u0 = proj(b[0], b[1]), u1 = proj(b[6], b[7]);
-  const lo = Math.max(0, Math.min(u0, u1)), hi = Math.min(1, Math.max(u0, u1));
-  if (hi - lo < weld / len2) return null;
-  const ta = [], tb = [];
-  for (const u of [lo, hi]) {
-    const px = a[0] + dx * u, py = a[1] + dy * u;
-    budget.work -= 64;
-    ta.push(nearestOnCubic(a, px, py).t);
-    tb.push(nearestOnCubic(b, px, py).t);
-  }
-  return { ta, tb };
-}
-function selfIntersectCubic(c) {
-  const ax = -c[0] + 3 * c[2] - 3 * c[4] + c[6];
-  const bx = 3 * c[0] - 6 * c[2] + 3 * c[4];
-  const cx = -3 * c[0] + 3 * c[2];
-  const ay = -c[1] + 3 * c[3] - 3 * c[5] + c[7];
-  const by = 3 * c[1] - 6 * c[3] + 3 * c[5];
-  const cy = -3 * c[1] + 3 * c[3];
-  const det = ax * by - ay * bx;
-  if (Math.abs(det) < 1e-12) return null;
-  const m2 = (bx * cy - cx * by) / det;
-  const s = (ay * cx - ax * cy) / det;
-  const q = s * s - m2;
-  const disc = s * s - 4 * q;
-  if (disc <= 0) return null;
-  const r3 = Math.sqrt(disc);
-  const t1 = (s - r3) / 2, t2 = (s + r3) / 2;
-  if (!(t1 > 1e-9 && t2 < 1 - 1e-9 && t2 - t1 > 1e-9)) return null;
-  return [t1, t2];
-}
-function pairSplits(ci, cj, tol, weld, budget) {
-  budget.work -= 4;
-  if (coincidence(ci, cj, weld) !== 0) return null;
-  const run = overlapRun(ci, cj, weld, budget);
-  if (run) return run;
-  const hits2 = intersectCubics(ci, cj, tol);
-  if (!hits2.length) {
-    if (isLineCubic(ci, weld) && isLineCubic(cj, weld)) {
-      const co = collinearSplits(ci, cj, weld, budget);
-      if (co) return { a: co.ta, b: co.tb };
-    }
-    return contactSplits(ci, cj, weld, budget);
-  }
-  if (hits2.length >= 2) {
-    let a0 = 1, a1 = 0, b0 = 1, b1 = 0;
-    for (const h of hits2) {
-      a0 = Math.min(a0, h.t1);
-      a1 = Math.max(a1, h.t1);
-      b0 = Math.min(b0, h.t2);
-      b1 = Math.max(b1, h.t2);
-    }
-    if (hits2.length > 9 || continuesAsSameCurve(ci, a0, a1, cj, b0, b1, weld) !== 0) {
-      return overlapSplits(ci, cj, weld, budget);
-    }
-  }
-  return { a: hits2.map((h) => h.t1), b: hits2.map((h) => h.t2) };
-}
-function overlapRun(ci, cj, weld, budget) {
-  const ends = [];
-  const hi = hullBounds(ci), hj = hullBounds(cj);
-  for (const t of [0, 1]) {
-    const p = evalCubic(ci, t);
-    if (!inflated(hj, p.x, p.y, weld)) continue;
-    budget.work -= 32;
-    const n2 = nearestOnCubic(cj, p.x, p.y);
-    if (n2.distance <= weld) ends.push([t, n2.t]);
-  }
-  for (const t of [0, 1]) {
-    const p = evalCubic(cj, t);
-    if (!inflated(hi, p.x, p.y, weld)) continue;
-    budget.work -= 32;
-    const n2 = nearestOnCubic(ci, p.x, p.y);
-    if (n2.distance <= weld) ends.push([n2.t, t]);
-  }
-  if (ends.length < 2) return null;
-  let a0 = 1, a1 = 0, b0 = 1, b1 = 0;
-  for (const [s, t] of ends) {
-    a0 = Math.min(a0, s);
-    a1 = Math.max(a1, s);
-    b0 = Math.min(b0, t);
-    b1 = Math.max(b1, t);
-  }
-  const sa = subCubic(ci, a0, a1), sb = subCubic(cj, b0, b1);
-  if (extent(sa) <= weld || extent(sb) <= weld) return null;
-  if (coincidence(sa, sb, weld) === 0) return null;
-  return { a: [a0, a1], b: [b0, b1] };
-}
-function inflated(b, x, y, pad) {
-  return x >= b.x0 - pad && x <= b.x1 + pad && y >= b.y0 - pad && y <= b.y1 + pad;
-}
-function contactSplits(ci, cj, weld, budget) {
-  const leaves = [];
-  let nodes = MAX_CONTACT_NODES;
-  const rec2 = (p, s0, s1, q, t0, t1) => {
-    if (nodes-- <= 0 || leaves.length >= MAX_CONTACT_LEAVES || budget.work <= 0) return;
-    budget.work -= 1;
-    const bp = boundsCubic(p), bq = boundsCubic(q);
-    const dx = Math.max(bp.x0 - bq.x1, bq.x0 - bp.x1, 0);
-    const dy = Math.max(bp.y0 - bq.y1, bq.y0 - bp.y1, 0);
-    if (Math.hypot(dx, dy) > weld) return;
-    if (s1 - s0 <= CONTACT_SEED && t1 - t0 <= CONTACT_SEED) {
-      leaves.push([s0, s1]);
-      return;
-    }
-    if (s1 - s0 >= t1 - t0) {
-      const [lo, hi] = splitCubic(p, 0.5), m2 = (s0 + s1) / 2;
-      rec2(lo, s0, m2, q, t0, t1);
-      rec2(hi, m2, s1, q, t0, t1);
-    } else {
-      const [lo, hi] = splitCubic(q, 0.5), m2 = (t0 + t1) / 2;
-      rec2(p, s0, s1, lo, t0, m2);
-      rec2(p, s0, s1, hi, m2, t1);
-    }
-  };
-  rec2(ci, 0, 1, cj, 0, 1);
-  if (!leaves.length) return null;
-  const a = [], b = [];
-  for (const [s0, s1] of leaves) {
-    const pin = pinContact(ci, cj, s0, s1, weld, budget);
-    if (!pin) continue;
-    a.push(pin[0]);
-    b.push(pin[1]);
-  }
-  return a.length ? { a, b } : null;
-}
-function pinContact(ci, cj, s0, s1, weld, budget) {
-  const gap = (s) => {
-    const p = evalCubic(ci, s);
-    const n2 = nearestOnCubic(cj, p.x, p.y);
-    return { d: n2.distance, t: n2.t };
-  };
-  const R2 = 0.6180339887498949;
-  let lo = s0, hi = s1;
-  let c = hi - R2 * (hi - lo), d = lo + R2 * (hi - lo);
-  let fc = gap(c), fd = gap(d);
-  let best = fc.d <= fd.d ? { s: c, ...fc } : { s: d, ...fd };
-  for (const s of [s0, s1]) {
-    const g2 = gap(s);
-    if (g2.d < best.d) best = { s, ...g2 };
-  }
-  for (let i = 0; i < 90 && hi - lo > 1e-12; i++) {
-    if (budget.work <= 0) break;
-    budget.work -= 32;
-    if (fc.d <= fd.d) {
-      hi = d;
-      d = c;
-      fd = fc;
-      c = hi - R2 * (hi - lo);
-      fc = gap(c);
-    } else {
-      lo = c;
-      c = d;
-      fc = fd;
-      d = lo + R2 * (hi - lo);
-      fd = gap(d);
-    }
-    const near = fc.d <= fd.d ? { s: c, ...fc } : { s: d, ...fd };
-    if (near.d < best.d) best = near;
-  }
-  return best.d <= weld ? [best.s, best.t] : null;
-}
-function overlapSplits(ci, cj, weld, budget) {
-  const a = [], b = [];
-  budget.work -= 256;
-  for (const t of [0, 1]) {
-    const p = evalCubic(ci, t);
-    const n2 = nearestOnCubic(cj, p.x, p.y);
-    if (n2.distance <= weld) b.push(n2.t);
-  }
-  for (const t of [0, 1]) {
-    const p = evalCubic(cj, t);
-    const n2 = nearestOnCubic(ci, p.x, p.y);
-    if (n2.distance <= weld) a.push(n2.t);
-  }
-  return { a, b };
-}
-function selfSplits(curves, splits, tol, weld, budget) {
-  for (let i = 0; i < curves.length; i++) {
-    const loop = selfIntersectCubic(curves[i].c);
-    if (loop) {
-      addSplit(splits, i, loop[0], budget);
-      addSplit(splits, i, loop[1], budget);
-    }
-  }
-  sweepPairs(curves, curves, true, budget, (i, j) => {
-    const found = pairSplits(curves[i].c, curves[j].c, tol, weld, budget);
-    if (!found) return;
-    for (const t of found.a) addSplit(splits, i, t, budget);
-    for (const t of found.b) addSplit(splits, j, t, budget);
-  });
-}
-function crossSplits(a, b, splitsA, splitsB, tol, weld, budget) {
-  sweepPairs(a, b, false, budget, (i, j) => {
-    const found = pairSplits(a[i].c, b[j].c, tol, weld, budget);
-    if (!found) return;
-    for (const t of found.a) addSplit(splitsA, i, t, budget);
-    for (const t of found.b) addSplit(splitsB, j, t, budget);
-  });
-}
-function splitIntoEdges(curves, splits, weld) {
-  const out = [];
-  for (let i = 0; i < curves.length; i++) {
-    const ts = splits[i];
-    const c = curves[i].c;
-    if (!ts.length) {
-      if (extent(c) > weld) out.push(c);
-      continue;
-    }
-    const cuts = [0];
-    for (const t of ts.slice().sort((p, q) => p - q)) {
-      const prev2 = cuts[cuts.length - 1];
-      if (t - prev2 <= 1e-9) continue;
-      if (extent(subCubic(c, prev2, t)) <= weld) continue;
-      cuts.push(t);
-    }
-    const prev = cuts[cuts.length - 1];
-    if (cuts.length === 1 || 1 - prev > 1e-9 && extent(subCubic(c, prev, 1)) > weld) cuts.push(1);
-    else cuts[cuts.length - 1] = 1;
-    for (let k = 1; k < cuts.length; k++) {
-      const piece = subCubic(c, cuts[k - 1], cuts[k]);
-      if (extent(piece) > weld) out.push(piece);
-    }
-  }
-  return out;
-}
-function buildRayDirs() {
-  const out = [[1, 0], [0, 1]];
-  for (let k = 1; k <= 10; k++) {
-    const a = k * 2.399963229728653;
-    out.push([Math.cos(a), Math.sin(a)]);
-  }
-  return out;
-}
-function rayDirections(rx, ry) {
-  const mag = Math.hypot(rx, ry);
-  if (mag < 1e-12) return RAY_DIRS.slice();
-  const out = RAY_DIRS.filter((d) => Math.abs(d[0] * ry - d[1] * rx) >= 0.25 * mag);
-  return out.length ? out : RAY_DIRS.slice();
-}
-function reachFrom(idx, px, py) {
-  const b = idx.box;
-  if (!b) return 1;
-  const diag = Math.hypot(b.x1 - b.x0, b.y1 - b.y0);
-  const dx = Math.max(b.x0 - px, px - b.x1, 0), dy = Math.max(b.y0 - py, py - b.y1, 0);
-  return 2 * (diag + Math.hypot(dx, dy)) + 1;
-}
-function castRay(idx, px, py, ux, uy, ref, near, budget, complete = false) {
-  const reach = reachFrom(idx, px, py);
-  const qx = px + ux * reach, qy = py + uy * reach;
-  const rx0 = Math.min(px, qx) - near, rx1 = Math.max(px, qx) + near;
-  const ry0 = Math.min(py, qy) - near, ry1 = Math.max(py, qy) + near;
-  const nx = -uy, ny = ux;
-  const hitTol = Math.max(
-    near,
-    64 * Number.EPSILON * Math.max(Math.abs(px), Math.abs(py), Math.abs(qx), Math.abs(qy), 1)
-  );
-  let far = 0, net = 0, ok3 = true;
-  for (const ic of idx.curves) {
-    if (budget.work <= 0) return { far, net, ok: false };
-    budget.work -= 1;
-    const b = ic.box;
-    if (b.x1 < rx0 || b.x0 > rx1 || b.y1 < ry0 || b.y0 > ry1) continue;
-    const c = ic.c;
-    if (Math.abs(nx * (c[0] - px) + ny * (c[1] - py)) < near && Math.abs(nx * (c[2] - px) + ny * (c[3] - py)) < near && Math.abs(nx * (c[4] - px) + ny * (c[5] - py)) < near && Math.abs(nx * (c[6] - px) + ny * (c[7] - py)) < near) {
-      ok3 = false;
-      if (!complete) return { far, net, ok: ok3 };
-      continue;
-    }
-    budget.work -= 8;
-    for (const hit of intersectLineCubic(px, py, qx, qy, c, hitTol)) {
-      const t = hit.t2;
-      const s = hit.t1 * reach;
-      const tg = tangentAt(c, t);
-      if (s <= near && ref) {
-        net += Math.sign(tg.x * ref.x + tg.y * ref.y);
-        continue;
-      }
-      const mag = Math.hypot(tg.x, tg.y);
-      const cr = ux * tg.y - uy * tg.x;
-      const sideless = mag < 1e-12 || Math.abs(cr) < 1e-6 * mag;
-      if (sideless || t < T_GUARD || t > 1 - T_GUARD || ref !== null && s <= near * 32) {
-        ok3 = false;
-        if (!complete) return { far, net, ok: ok3 };
-        if (sideless || t > 1 - T_GUARD) continue;
-      }
-      far += cr > 0 ? 1 : -1;
-    }
-  }
-  return { far, net, ok: ok3 };
-}
-function sideWindings(idx, px, py, rx, ry, near, budget) {
-  const dirs = rayDirections(rx, ry);
-  const sidesOf = (d2, cast2) => {
-    const g2 = d2[0] * ry - d2[1] * rx;
-    return g2 > 0 ? { left: cast2.far + cast2.net, right: cast2.far } : { left: cast2.far, right: cast2.far - cast2.net };
-  };
-  let last = null;
-  for (const d2 of dirs) {
-    const cast2 = castRay(idx, px, py, d2[0], d2[1], { x: rx, y: ry }, near, budget);
-    if (cast2.ok) return sidesOf(d2, cast2);
-    last = sidesOf(d2, cast2);
-    if (budget.work <= 0) return last;
-  }
-  const d = dirs[0];
-  const cast = castRay(idx, px, py, d[0], d[1], { x: rx, y: ry }, near, budget, true);
-  return cast.ok || budget.work > 0 ? sidesOf(d, cast) : last ?? { left: 0, right: 0 };
-}
-function coincidence(a, b, weld) {
-  let fwd = true, rev = true;
-  for (const t of [0, 1 / 3, 2 / 3, 1]) {
-    const p = evalCubic(a, t);
-    if (fwd) {
-      const q = evalCubic(b, t);
-      if (Math.abs(p.x - q.x) > weld || Math.abs(p.y - q.y) > weld) fwd = false;
-    }
-    if (rev) {
-      const q = evalCubic(b, 1 - t);
-      if (Math.abs(p.x - q.x) > weld || Math.abs(p.y - q.y) > weld) rev = false;
-    }
-    if (!fwd && !rev) return 0;
-  }
-  return fwd ? 1 : -1;
-}
-function continuesAsSameCurve(ci, a0, a1, cj, b0, b1, weld) {
-  const da = a1 - a0, db = b1 - b0;
-  if (!(da > 0) || !(db > 0)) return 0;
-  for (const dir of [1, -1]) {
-    let same = true;
-    for (const t of [0, 1 / 3, 2 / 3, 1]) {
-      const f = (t - a0) / da;
-      const u = dir === 1 ? b0 + f * db : b1 - f * db;
-      const p = evalCubic(ci, t), q = evalCubic(cj, u);
-      if (!Number.isFinite(q.x) || !Number.isFinite(q.y) || Math.abs(p.x - q.x) > weld || Math.abs(p.y - q.y) > weld) {
-        same = false;
-        break;
-      }
-    }
-    if (same) return dir;
-  }
-  return 0;
-}
-function dedupeEdges(edges, weld) {
-  const cell = Math.max(weld * 4, 1e-12);
-  const buckets = /* @__PURE__ */ new Map();
-  const mids = edges.map((e) => evalCubic(e, 0.5));
-  const spans = edges.map(extent);
-  const dead = new Uint8Array(edges.length);
-  for (let i = 0; i < edges.length; i++) {
-    const m2 = mids[i];
-    const key = `${Math.round(m2.x / cell)},${Math.round(m2.y / cell)}`;
-    const bucket = buckets.get(key);
-    if (bucket) bucket.push(i);
-    else buckets.set(key, [i]);
-  }
-  for (let i = 0; i < edges.length; i++) {
-    if (dead[i]) continue;
-    const m2 = mids[i];
-    const cx = Math.round(m2.x / cell), cy = Math.round(m2.y / cell);
-    for (let ox = -1; ox <= 1 && !dead[i]; ox++) {
-      for (let oy = -1; oy <= 1 && !dead[i]; oy++) {
-        for (const j of buckets.get(`${cx + ox},${cy + oy}`) ?? []) {
-          if (j <= i || dead[j]) continue;
-          if (spans[i] <= 2 * weld || spans[j] <= 2 * weld) continue;
-          const rel = coincidence(edges[i], edges[j], weld);
-          if (rel === 0) continue;
-          dead[j] = 1;
-          if (rel === -1) {
-            dead[i] = 1;
-            break;
-          }
-        }
-      }
-    }
-  }
-  return edges.filter((_, i) => !dead[i]);
-}
-function walkLoops(edges, weld) {
-  if (!edges.length) return [];
-  const cell = Math.max(weld * 4, 1e-12);
-  const key = (x, y) => `${Math.round(x / cell)},${Math.round(y / cell)}`;
-  const buckets = /* @__PURE__ */ new Map();
-  edges.forEach((e, i) => {
-    const k = key(e[0], e[1]);
-    const bucket = buckets.get(k);
-    if (bucket) bucket.push(i);
-    else buckets.set(k, [i]);
-  });
-  const used = new Uint8Array(edges.length);
-  const out = [];
-  const candidatesAt = (x, y) => {
-    const cx = Math.round(x / cell), cy = Math.round(y / cell);
-    const found = [];
-    for (let ox = -1; ox <= 1; ox++) {
-      for (let oy = -1; oy <= 1; oy++) {
-        for (const i of buckets.get(`${cx + ox},${cy + oy}`) ?? []) {
-          if (used[i]) continue;
-          const e = edges[i];
-          if (Math.hypot(e[0] - x, e[1] - y) <= weld) found.push(i);
-        }
-      }
-    }
-    return found;
-  };
-  for (let seed = 0; seed < edges.length; seed++) {
-    if (used[seed]) continue;
-    const curves = [];
-    const start = edges[seed];
-    const sx = start[0], sy = start[1];
-    let cur = seed;
-    let joined = false;
-    for (let guard2 = 0; guard2 <= edges.length; guard2++) {
-      used[cur] = 1;
-      const e = edges[cur];
-      curves.push(e);
-      const ex = e[6], ey = e[7];
-      if (Math.hypot(ex - sx, ey - sy) <= weld) {
-        joined = true;
-        break;
-      }
-      const options2 = candidatesAt(ex, ey);
-      if (!options2.length) break;
-      cur = options2.length === 1 ? options2[0] : pickTurn(edges, e, options2);
-    }
-    if (!curves.length) continue;
-    if (!joined && Math.abs(contourArea({ curves, closed: true })) <= weld * chainSpan(curves)) continue;
-    out.push({ curves, closed: true });
-  }
-  return out;
-}
-function chainSpan(curves) {
-  let s = 0;
-  for (const k of curves) s += extent(k);
-  return s;
-}
-function pickTurn(edges, incoming, options2) {
-  const din = endTangent(incoming);
-  const back = Math.atan2(-din.y, -din.x);
-  let best = options2[0], bestDelta = Infinity;
-  for (const i of options2) {
-    const d = startTangent(edges[i]);
-    let delta = back - Math.atan2(d.y, d.x);
-    delta -= Math.floor(delta / (Math.PI * 2)) * (Math.PI * 2);
-    if (delta <= 1e-12) delta = Math.PI * 2;
-    if (delta < bestDelta) {
-      bestDelta = delta;
-      best = i;
-    }
-  }
-  return best;
-}
-function startTangent(c) {
-  const t = tangentAt(c, 0);
-  if (Math.hypot(t.x, t.y) > 1e-12) return t;
-  return { x: c[6] - c[0], y: c[7] - c[1] };
-}
-function endTangent(c) {
-  const t = tangentAt(c, 1);
-  if (Math.hypot(t.x, t.y) > 1e-12) return t;
-  return { x: c[6] - c[0], y: c[7] - c[1] };
-}
-var GeomLimitError, MAX_CURVES, MAX_SPLITS, MAX_PAIRS, MAX_WORK, MAX_CONTACT_NODES, CONTACT_SEED, MAX_CONTACT_LEAVES, T_GUARD, reverseCubic, RAY_DIRS;
-var init_boolean = __esm({
-  "engine/src/geom/boolean.ts"() {
-    "use strict";
-    init_bezier();
-    init_intersect();
-    init_path();
-    GeomLimitError = class extends Error {
-      op;
-      constructor(op, detail) {
-        super(`geom: ${op} exceeds bounded work (${detail})`);
-        this.name = "GeomLimitError";
-        this.op = op;
-      }
-    };
-    MAX_CURVES = 8e3;
-    MAX_SPLITS = 12e4;
-    MAX_PAIRS = 4e6;
-    MAX_WORK = 2e8;
-    MAX_CONTACT_NODES = 300;
-    CONTACT_SEED = 1 / 64;
-    MAX_CONTACT_LEAVES = 24;
-    T_GUARD = 1e-7;
-    reverseCubic = (k) => [k[6], k[7], k[4], k[5], k[2], k[3], k[0], k[1]];
-    RAY_DIRS = buildRayDirs();
-  }
-});
-
-// engine/src/geom/fit.ts
-function chordFrameMoments(raw, x0, y0, dx, dy) {
-  let { a: area, x, y } = raw;
-  area -= dx * (y0 + 0.5 * dy);
-  const dy3 = dy / 3;
-  x -= dx * (x0 * y0 + 0.5 * (x0 * dy + y0 * dx) + dy3 * dx);
-  y -= dx * (y0 * y0 + y0 * dy + dy3 * dy);
-  x -= x0 * area;
-  y = 0.5 * y - y0 * area;
-  const chord = Math.hypot(dx, dy);
-  return { area, moment: chord > 0 ? (dx * x + dy * y) / chord : 0 };
-}
-function quadratureMoments(sample, t0, t1) {
-  const mid3 = 0.5 * (t0 + t1), half = 0.5 * (t1 - t0);
-  let a = 0, x = 0, y = 0;
-  for (const [w, xi] of GL16) {
-    const s = sample(mid3 + xi * half);
-    const wa = w * s.dx * s.y;
-    a += wa;
-    x += s.x * wa;
-    y += s.y * wa;
-  }
-  const s0 = sample(t0), s1 = sample(t1);
-  return chordFrameMoments({ a: a * half, x: x * half, y: y * half }, s0.x, s0.y, s1.x - s0.x, s1.y - s0.y);
-}
-function rawMomentsCubic(c) {
-  const x0 = c[0], y0 = c[1];
-  const x1 = c[2] - x0, y1 = c[3] - y0;
-  const x2 = c[4] - x0, y2 = c[5] - y0;
-  const x3 = c[6] - x0, y3 = c[7] - y0;
-  const r0 = 3 * x1, r1 = 3 * y1;
-  const r23 = x2 * y3, r3 = x3 * y2, r42 = x3 * y3;
-  const r5 = 27 * y1, r6 = x1 * x2, r7 = 27 * y2, r8 = 45 * r23, r9 = 18 * x3;
-  const r10 = x1 * y1, r11 = 30 * x1, r12 = 45 * x3, r13 = x2 * y1, r14 = 45 * r3;
-  const r15 = x1 * x1, r16 = 18 * y3, r17 = x2 * x2, r18 = 45 * y3, r19 = x3 * x3;
-  const r20 = 30 * y1, r21 = y2 * y2, r222 = y3 * y3, r232 = y1 * y1;
-  const a = -r0 * y2 - r0 * y3 + r1 * x2 + r1 * x3 - 6 * r23 + 6 * r3 + 10 * r42;
-  const lift = x3 * y0;
-  const area = a * 0.05 + lift;
-  const x = r10 * r9 - r11 * r42 + r12 * r13 + r14 * x2 - r15 * r16 - r15 * r7 - r17 * r18 + r17 * r5 + r19 * r20 + 105 * r19 * y2 + 280 * r19 * y3 - 105 * r23 * x3 + r5 * r6 - r6 * r7 - r8 * x1;
-  const y = -r10 * r16 - r10 * r7 - r11 * r222 + r12 * r21 + r13 * r7 + r14 * y1 - r18 * x1 * y2 + r20 * r42 - 27 * r21 * x1 - 105 * r222 * x2 + 140 * r222 * x3 + r232 * r9 + 27 * r232 * x2 + 105 * r3 * y3 - r8 * y2;
-  return {
-    a: area,
-    x: x * (1 / 840) + x0 * area + 0.5 * x3 * lift,
-    y: y * (1 / 420) + y0 * a * 0.1 + y0 * lift
-  };
-}
-function cubicAsSource(c) {
-  return {
-    sample(t) {
-      const p = evalCubic(c, t), d = tangentAt(c, t);
-      return { x: p.x, y: p.y, dx: d.x, dy: d.y };
-    },
-    momentIntegrals(t0, t1) {
-      const piece = subCubic(c, t0, t1);
-      return chordFrameMoments(rawMomentsCubic(piece), piece[0], piece[1], piece[6] - piece[0], piece[7] - piece[1]);
-    }
-  };
-}
-function copysign(mag, sign) {
-  const m2 = Math.abs(mag);
-  return sign < 0 || Object.is(sign, -0) ? -m2 : m2;
-}
-function solveQuadratic(c0, c1, c2) {
-  const sc0 = c0 / c2, sc1 = c1 / c2;
-  if (!Number.isFinite(sc0) || !Number.isFinite(sc1)) {
-    const root = -c0 / c1;
-    if (Number.isFinite(root)) return [root];
-    return c0 === 0 && c1 === 0 ? [0] : [];
-  }
-  const arg = sc1 * sc1 - 4 * sc0;
-  let root1;
-  if (!Number.isFinite(arg)) {
-    root1 = -sc1;
-  } else if (arg < 0) {
-    return [];
-  } else if (arg === 0) {
-    return [-0.5 * sc1];
-  } else {
-    root1 = -0.5 * (sc1 + copysign(Math.sqrt(arg), sc1));
-  }
-  const root2 = sc0 / root1;
-  if (!Number.isFinite(root2)) return [root1];
-  return root2 > root1 ? [root1, root2] : [root2, root1];
-}
-function solveCubic(c0, c1, c2, c3) {
-  const recip = 1 / c3, third = 1 / 3;
-  const s2 = c2 * (third * recip), s1 = c1 * (third * recip), s0 = c0 * recip;
-  if (!(Number.isFinite(s0) && Number.isFinite(s1) && Number.isFinite(s2))) {
-    return solveQuadratic(c0, c1, c2);
-  }
-  const d0 = -s2 * s2 + s1;
-  const d1 = -s1 * s2 + s0;
-  const d2 = s2 * s0 - s1 * s1;
-  const disc = 4 * d0 * d2 - d1 * d1;
-  const de = -2 * s2 * d0 + d1;
-  if (disc < 0) {
-    const sq = Math.sqrt(-0.25 * disc), r3 = -0.5 * de;
-    return [Math.cbrt(r3 + sq) + Math.cbrt(r3 - sq) - s2];
-  }
-  if (disc === 0) {
-    const t1 = copysign(Math.sqrt(-d0), de);
-    return [t1 - s2, -2 * t1 - s2];
-  }
-  const th = Math.atan2(Math.sqrt(disc), -de) * third;
-  const thc = Math.cos(th), ss3 = Math.sin(th) * Math.sqrt(3);
-  const t = 2 * Math.sqrt(-d0);
-  return [t * thc - s2, t * 0.5 * (-thc + ss3) - s2, t * 0.5 * (-thc - ss3) - s2];
-}
-function depressedCubicDominant(g2, h) {
-  const q = -1 / 3 * g2, r3 = 0.5 * h;
-  let x;
-  if (r3 === 0) {
-    x = g2 > 0 ? 0 : Math.sqrt(-g2);
-  } else if (r3 * r3 < q * q * q) {
-    const t = r3 / Math.sqrt(q * q * q);
-    x = -2 * Math.sqrt(q) * copysign(Math.cos(Math.acos(Math.abs(t)) * (1 / 3)), t);
-  } else {
-    const a = Math.cbrt(-r3 - copysign(Math.sqrt(r3 * r3 - q * q * q), r3));
-    x = a === 0 ? 0 : a + q / a;
-  }
-  let f = (x * x + g2) * x + h;
-  const scale = Math.max(Math.abs(x * x * x), Math.abs(g2 * x), Math.abs(h));
-  if (Math.abs(f) < 222045e-21 * scale) return x;
-  for (let i = 0; i < 8; i++) {
-    const df = 3 * x * x + g2;
-    if (df === 0) break;
-    const nx = x - f / df;
-    const nf = (nx * nx + g2) * nx + h;
-    if (nf === 0) return nx;
-    if (Math.abs(nf) >= Math.abs(f)) break;
-    x = nx;
-    f = nf;
-  }
-  return x;
-}
-function factorQuartic(a, b, c, d) {
-  const epsRel = (raw, ref) => ref === 0 ? Math.abs(raw) : Math.abs((raw - ref) / ref);
-  const epsQ = (a12, b12, a22, b22) => epsRel(a12 + a22, a) + epsRel(b12 + a12 * a22 + b22, b) + epsRel(b12 * a22 + a12 * b22, c);
-  const epsT = (a12, b12, a22, b22) => epsQ(a12, b12, a22, b22) + epsRel(b12 * b22, d);
-  const disc = 9 * a * a - 24 * b;
-  const s = disc >= 0 ? -2 * b / (3 * a + copysign(Math.sqrt(disc), a)) : -0.25 * a;
-  const ap = a + 4 * s;
-  const bp = b + 3 * s * (a + 2 * s);
-  const cp = c + s * (2 * b + s * (3 * a + 4 * s));
-  const dp = d + s * (c + s * (b + s * (a + s)));
-  const gp = ap * cp - 4 * dp - 1 / 3 * bp * bp;
-  const hp = (ap * cp + 8 * dp - 2 / 9 * bp * bp) * (1 / 3) * bp - cp * cp - ap * ap * dp;
-  if (!Number.isFinite(gp) || !Number.isFinite(hp)) return null;
-  const phi = depressedCubicDominant(gp, hp);
-  if (!Number.isFinite(phi)) return null;
-  const l1 = a * 0.5;
-  const l3 = 1 / 6 * b + 0.5 * phi;
-  const delt2 = c - a * l3;
-  const d2c1 = 2 / 3 * b - phi - l1 * l1;
-  const l2c1 = 0.5 * delt2 / d2c1;
-  const l2c2 = 2 * (d - l3 * l3) / delt2;
-  const d2c2 = 0.5 * delt2 / l2c2;
-  let d2 = 0, l2 = 0, bestEps = 0;
-  const cands = [[d2c1, l2c1], [d2c2, l2c2], [d2c1, l2c2]];
-  for (let i = 0; i < cands.length; i++) {
-    const [cd, cl] = cands[i];
-    const e = epsRel(cd + l1 * l1 + 2 * l3, b) + epsRel(2 * (cd * cl + l1 * l3), c) + epsRel(cd * cl * cl + l3 * l3, d);
-    if (i === 0 || e < bestEps) {
-      d2 = cd;
-      l2 = cl;
-      bestEps = e;
-    }
-  }
-  let a1, b1, a2, b2;
-  if (d2 < 0) {
-    const sq = Math.sqrt(-d2);
-    a1 = l1 + sq;
-    b1 = l3 + sq * l2;
-    a2 = l1 - sq;
-    b2 = l3 - sq * l2;
-    if (Math.abs(b2) < Math.abs(b1)) b2 = d / b1;
-    else if (Math.abs(b2) > Math.abs(b1)) b1 = d / b2;
-    if (Math.abs(a1) !== Math.abs(a2)) {
-      const o1 = a1, o2 = a2;
-      const alts = Math.abs(o1) < Math.abs(o2) ? [[a - o2, o2], [(c - b1 * o2) / b2, o2], [(b - b2 - b1) / o2, o2]] : [[o1, a - o1], [o1, (c - o1 * b2) / b1], [o1, (b - b2 - b1) / o1]];
-      let bestQ = 0, has3 = false;
-      for (const [t1, t2] of alts) {
-        if (!Number.isFinite(t1) || !Number.isFinite(t2)) continue;
-        const e = epsQ(t1, b1, t2, b2);
-        if (!has3 || e < bestQ) {
-          a1 = t1;
-          a2 = t2;
-          bestQ = e;
-          has3 = true;
-        }
-      }
-    }
-  } else if (d2 === 0) {
-    const d3 = d - l3 * l3;
-    const sq = Math.sqrt(-d3);
-    a1 = l1;
-    b1 = l3 + sq;
-    a2 = l1;
-    b2 = l3 - sq;
-    if (Math.abs(b1) > Math.abs(b2)) b2 = d / b1;
-    else if (Math.abs(b2) > Math.abs(b1)) b1 = d / b2;
-  } else {
-    return null;
-  }
-  let eps = epsT(a1, b1, a2, b2);
-  for (let i = 0; i < 8 && eps !== 0; i++) {
-    const f0 = b1 * b2 - d;
-    const f1 = b1 * a2 + a1 * b2 - c;
-    const f2 = b1 + a1 * a2 + b2 - b;
-    const f3 = a1 + a2 - a;
-    const k1 = a1 - a2;
-    const det = b1 * b1 - b1 * (a2 * k1 + 2 * b2) + b2 * (a1 * k1 + b2);
-    if (det === 0) break;
-    const inv = 1 / det;
-    const k2 = b2 - b1;
-    const k3 = b1 * a2 - a1 * b2;
-    const na1 = a1 - inv * (k1 * f0 + k2 * f1 + k3 * f2 - (b1 * k2 + a1 * k3) * f3);
-    const nb1 = b1 - inv * ((a1 * k1 + k2) * f0 - b1 * k1 * f1 - b1 * k2 * f2 - b1 * k3 * f3);
-    const na2 = a2 - inv * (-k1 * f0 - k2 * f1 - k3 * f2 + (a2 * k3 + b2 * k2) * f3);
-    const nb2 = b2 - inv * (-(a2 * k1 + k2) * f0 + b2 * k1 * f1 + b2 * k2 * f2 + b2 * k3 * f3);
-    const ne = epsT(na1, nb1, na2, nb2);
-    if (!(ne < eps)) break;
-    a1 = na1;
-    b1 = nb1;
-    a2 = na2;
-    b2 = nb2;
-    eps = ne;
-  }
-  return [[a1, b1], [a2, b2]];
-}
-function mod2pi(th) {
-  const s = th * (0.5 / Math.PI);
-  return 2 * Math.PI * (s - Math.round(s));
-}
-function endpointSample(src, t, dir, span) {
-  const s = src.sample(t);
-  let tx = s.dx, ty = s.dy;
-  const len2 = Math.hypot(tx, ty);
-  let step = span * 1e-7;
-  if (len2 > 1e-12) {
-    const probe = src.sample(clamp015(t + dir * step));
-    const pl = Math.hypot(probe.dx, probe.dy);
-    if (pl > 1e-12) {
-      const sin = Math.abs(tx * probe.dy - ty * probe.dx) / (len2 * pl);
-      const cos = (tx * probe.dx + ty * probe.dy) / (len2 * pl);
-      if (cos < 0 || sin > 0.02) {
-        tx = probe.dx;
-        ty = probe.dy;
-      }
-    }
-    return { x: s.x, y: s.y, tx, ty };
-  }
-  for (let i = 0; i < 6 && Math.hypot(tx, ty) < 1e-12; i++) {
-    const probe = src.sample(clamp015(t + dir * step));
-    tx = probe.dx;
-    ty = probe.dy;
-    if (Math.hypot(tx, ty) < 1e-12) {
-      tx = probe.x - s.x;
-      ty = probe.y - s.y;
-    }
-    step *= 8;
-  }
-  return { x: s.x, y: s.y, tx, ty };
-}
-function clamp015(t) {
-  return t < 0 ? 0 : t > 1 ? 1 : t;
-}
-function frameFor(src, t0, t1) {
-  const span = Math.abs(t1 - t0);
-  const start = endpointSample(src, t0, 1, span);
-  const end = endpointSample(src, t1, -1, span);
-  const dx = end.x - start.x, dy = end.y - start.y;
-  const chord2 = dx * dx + dy * dy;
-  if (!(chord2 > 0) || !Number.isFinite(chord2)) return null;
-  const chord = Math.sqrt(chord2);
-  const th = Math.atan2(dy, dx);
-  const th0 = mod2pi(Math.atan2(start.ty, start.tx) - th);
-  const th1 = mod2pi(th - Math.atan2(end.ty, end.tx));
-  const { area, moment } = src.momentIntegrals(t0, t1);
-  if (!Number.isFinite(area) || !Number.isFinite(moment)) return null;
-  return {
-    sx: start.x,
-    sy: start.y,
-    ex: end.x,
-    ey: end.y,
-    th,
-    th0,
-    th1,
-    chord,
-    chord2,
-    unitArea: area / chord2,
-    mx: moment / (chord2 * chord)
-  };
-}
-function candidates(f) {
-  const s0 = Math.sin(f.th0), c0 = Math.cos(f.th0);
-  const s1 = Math.sin(f.th1), c1 = Math.cos(f.th1);
-  const area = f.unitArea, mx = f.mx;
-  const a4 = -9 * c0 * (((2 * s1 * c1 * c0 + s0 * (2 * c1 * c1 - 1)) * c0 - 2 * s1 * c1) * c0 - c1 * c1 * s0);
-  const a3 = 12 * ((((c1 * (30 * area * c1 - s1) - 15 * area) * c0 + 2 * s0 - c1 * s0 * (c1 + 30 * area * s1)) * c0 + c1 * (s1 - 15 * area * c1)) * c0 - s0 * c1 * c1);
-  const a2 = 12 * ((((70 * mx + 15 * area) * s1 * s1 + c1 * (9 * s1 - 70 * c1 * mx - 5 * c1 * area)) * c0 - 5 * s0 * s1 * (3 * s1 - 4 * c1 * (7 * mx + area))) * c0 - c1 * (9 * s1 - 70 * c1 * mx - 5 * c1 * area));
-  const a1 = 16 * (((12 * s0 - 5 * c0 * (42 * mx - 17 * area)) * s1 - 70 * c1 * (3 * mx - area) * s0 - 75 * c0 * c1 * area * area) * s1 - 75 * c1 * c1 * area * area * s0);
-  const a0 = 80 * s1 * (42 * s1 * mx - 25 * area * (s1 - c1 * area));
-  const roots = [];
-  const EPS4 = 1e-12;
-  if (Math.abs(a4) > EPS4) {
-    const quads = factorQuartic(a3 / a4, a2 / a4, a1 / a4, a0 / a4);
-    if (quads) {
-      for (const [qc1, qc0] of quads) {
-        const qr = solveQuadratic(qc0, qc1, 1);
-        if (qr.length === 0) roots.push(-0.5 * qc1);
-        else roots.push(...qr);
-      }
-    }
-  } else if (Math.abs(a3) > EPS4) {
-    roots.push(...solveCubic(a0, a1, a2, a3));
-  } else if (Math.abs(a2) > EPS4 || Math.abs(a1) > EPS4 || Math.abs(a0) > EPS4) {
-    roots.push(...solveQuadratic(a0, a1, a2));
-  } else {
-    return [mapCandidate(f, 1 / 3, 1 / 3)];
-  }
-  const s01 = s0 * c1 + s1 * c0;
-  const out = [];
-  for (const root of roots) {
-    if (!Number.isFinite(root)) continue;
-    let d0, d1;
-    if (root > 0) {
-      d0 = root;
-      d1 = (root * s0 - area * (10 / 3)) / (0.5 * root * s01 - s1);
-      if (!(d1 > 0)) {
-        d0 = s1 / s01;
-        d1 = 0;
-      }
-    } else {
-      d0 = 0;
-      d1 = s0 / s01;
-    }
-    if (!(d0 >= 0) || !(d1 >= 0) || !Number.isFinite(d0) || !Number.isFinite(d1)) continue;
-    out.push(mapCandidate(f, d0, d1));
-  }
-  return out;
-}
-function mapCandidate(f, d0, d1) {
-  const cs = Math.cos(f.th) * f.chord, sn = Math.sin(f.th) * f.chord;
-  const place = (ux, uy) => [f.sx + cs * ux - sn * uy, f.sy + sn * ux + cs * uy];
-  const [p1x, p1y] = place(d0 * Math.cos(f.th0), d0 * Math.sin(f.th0));
-  const [p2x, p2y] = place(1 - d1 * Math.cos(f.th1), d1 * Math.sin(f.th1));
-  return { c: [f.sx, f.sy, p1x, p1y, p2x, p2y, f.ex, f.ey], d0, d1 };
-}
-function armPenalty(d) {
-  return 1 + Math.max(0, d - D_PENALTY_ELBOW) * D_PENALTY_SLOPE;
-}
-function curveDist(src, t0, t1) {
-  const step = (t1 - t0) / (N_SAMPLE + 1);
-  const samples = [];
-  const ts = [];
-  let spicy = false;
-  let lx = 0, ly = 0, have = false;
-  for (let i = 0; i < N_SAMPLE + 2; i++) {
-    const t = t0 + i * step;
-    const s = src.sample(t);
-    if (have) {
-      const cross = s.dx * ly - s.dy * lx;
-      const dot = s.dx * lx + s.dy * ly;
-      if (Math.abs(cross) > SPICY_THRESH * Math.abs(dot)) spicy = true;
-    }
-    lx = s.dx;
-    ly = s.dy;
-    have = true;
-    if (i > 0 && i < N_SAMPLE + 1) {
-      samples.push({ x: s.x, y: s.y, tx: s.dx, ty: s.dy });
-      ts.push(t);
-    }
-  }
-  return { src, samples, ts, arc: null, spicy, t0, t1, step };
-}
-function refineLobe(f, a, b, acc2) {
-  let lo = a, hi = b;
-  let x1 = hi - INV_PHI * (hi - lo), x2 = lo + INV_PHI * (hi - lo);
-  let f1 = f(x1), f2 = f(x2);
-  let best = f1 > f2 ? f1 : f2;
-  for (let i = 0; i < REFINE_ITERS; i++) {
-    if (!(best <= acc2)) return best;
-    if (f1 > f2) {
-      hi = x2;
-      x2 = x1;
-      f2 = f1;
-      x1 = hi - INV_PHI * (hi - lo);
-      f1 = f(x1);
-      if (f1 > best) best = f1;
-    } else {
-      lo = x1;
-      x1 = x2;
-      f1 = f2;
-      x2 = lo + INV_PHI * (hi - lo);
-      f2 = f(x2);
-      if (f2 > best) best = f2;
-    }
-  }
-  return best;
-}
-function maxOverLobes(d, errs, base, acc2, f) {
-  let best = base;
-  for (let i = 0; i < errs.length; i++) {
-    const e = errs[i];
-    if (i > 0 && errs[i - 1] > e) continue;
-    if (i + 1 < errs.length && errs[i + 1] > e) continue;
-    const v = refineLobe(f, i > 0 ? d.ts[i - 1] : d.t0, i + 1 < errs.length ? d.ts[i + 1] : d.t1, acc2);
-    if (v > best) best = v;
-    if (!(best <= acc2)) return Infinity;
-  }
-  return best;
-}
-function powerBasis(c) {
-  return {
-    p1x: 3 * (c[2] - c[0]),
-    p1y: 3 * (c[3] - c[1]),
-    p2x: 3 * c[4] - 6 * c[2] + 3 * c[0],
-    p2y: 3 * c[5] - 6 * c[3] + 3 * c[1],
-    p3x: c[6] - c[0] - 3 * (c[4] - c[2]),
-    p3y: c[7] - c[1] - 3 * (c[5] - c[3])
-  };
-}
-function rayErr2(c, q, s, miss) {
-  const k0 = (c[0] - s.x) * s.tx + (c[1] - s.y) * s.ty;
-  const k1 = q.p1x * s.tx + q.p1y * s.ty;
-  const k2 = q.p2x * s.tx + q.p2y * s.ty;
-  const k3 = q.p3x * s.tx + q.p3y * s.ty;
-  let best = miss;
-  for (const t of cubicRoots01(k3, k2, k1, k0)) {
-    const p = evalCubic(c, t);
-    const e = (p.x - s.x) ** 2 + (p.y - s.y) ** 2;
-    if (e < best) best = e;
-  }
-  return best;
-}
-function evalRay(d, c, acc2) {
-  const q = powerBasis(c);
-  const miss = acc2 + 1;
-  const errs = [];
-  let maxErr2 = 0;
-  for (const s of d.samples) {
-    const e = rayErr2(c, q, s, miss);
-    errs.push(e);
-    if (e > maxErr2) maxErr2 = e;
-    if (maxErr2 > acc2) return Infinity;
-  }
-  return maxOverLobes(d, errs, maxErr2, acc2, (t) => {
-    const s = d.src.sample(t);
-    return rayErr2(c, q, { x: s.x, y: s.y, tx: s.dx, ty: s.dy }, miss);
-  });
-}
-function arcSpan(c, a, b) {
-  const mid3 = 0.5 * (a + b), half = 0.5 * (b - a);
-  let sum = 0;
-  for (const [w, xi] of GL16) {
-    const d = tangentAt(c, mid3 + xi * half);
-    sum += w * Math.hypot(d.x, d.y);
-  }
-  return sum * half;
-}
-function arcTable(c) {
-  const cum = [0];
-  let acc = 0;
-  for (let i = 0; i < ARC_SPANS; i++) {
-    acc += arcSpan(c, i / ARC_SPANS, (i + 1) / ARC_SPANS);
-    cum.push(acc);
-  }
-  return { cum, total: acc };
-}
-function srcArcSpan(src, a, b) {
-  const mid3 = 0.5 * (a + b), half = 0.5 * (b - a);
-  let sum = 0;
-  for (const [w, xi] of GL16) {
-    const s = src.sample(mid3 + xi * half);
-    sum += w * Math.hypot(s.dx, s.dy);
-  }
-  return sum * half;
-}
-function srcArcTable(d) {
-  const cum = [0];
-  let acc = 0;
-  for (let i = 0; i < ARC_SPANS; i++) {
-    acc += srcArcSpan(d.src, d.t0 + i * d.step, d.t0 + (i + 1) * d.step);
-    cum.push(acc);
-  }
-  return { cum, total: acc };
-}
-function arcInvert(c, tab, target) {
-  if (!(tab.total > 0)) return 0;
-  const s = Math.min(Math.max(target, 0), tab.total);
-  let lo = 0, hi = ARC_SPANS;
-  while (hi - lo > 1) {
-    const m2 = lo + hi >> 1;
-    if (tab.cum[m2] <= s) lo = m2;
-    else hi = m2;
-  }
-  const h = 1 / ARC_SPANS, tLo = lo * h, tHi = tLo + h;
-  const spanLen = tab.cum[lo + 1] - tab.cum[lo];
-  let t = spanLen > 0 ? tLo + h * ((s - tab.cum[lo]) / spanLen) : tLo;
-  for (let i = 0; i < 3; i++) {
-    const f = tab.cum[lo] + arcSpan(c, tLo, t) - s;
-    const d = tangentAt(c, t);
-    const speed = Math.hypot(d.x, d.y);
-    if (speed < 1e-12) break;
-    const next = Math.min(tHi, Math.max(tLo, t - f / speed));
-    if (Math.abs(next - t) < 1e-13) {
-      t = next;
-      break;
-    }
-    t = next;
-  }
-  return Math.min(1, Math.max(0, t));
-}
-function evalArc(d, c, acc2) {
-  if (!d.arc) d.arc = srcArcTable(d);
-  const srcTab = d.arc;
-  const tab = arcTable(c);
-  const at = (s, frac) => {
-    const p = evalCubic(c, arcInvert(c, tab, tab.total * frac));
-    return (p.x - s.x) ** 2 + (p.y - s.y) ** 2;
-  };
-  let maxErr2 = 0;
-  for (let i = 0; i < d.samples.length; i++) {
-    const e = at(d.samples[i], srcTab.cum[i + 1] / (srcTab.total || 1));
-    if (e > maxErr2) maxErr2 = e;
-    if (maxErr2 > acc2) return Infinity;
-  }
-  return maxErr2;
-}
-function evalDist(d, c, acc2) {
-  const ray = evalRay(d, c, acc2);
-  if (!Number.isFinite(ray)) return Infinity;
-  if (!d.spicy) return ray;
-  const arc = evalArc(d, c, acc2);
-  return arc > ray ? arc : ray;
-}
-function fitError(src, c, t0, t1) {
-  const d = curveDist(src, t0, t1);
-  return Math.sqrt(evalDist(d, c, Infinity));
-}
-function chordCubic(sx, sy, ex, ey) {
-  return lineToCubic(sx, sy, ex, ey);
-}
-function tryFitLine(src, t0, t1, tol, sx, sy, ex, ey) {
-  const acc2 = tol * tol;
-  const SHORT_N = 7;
-  const dt = (t1 - t0) / (SHORT_N + 1);
-  const dx = ex - sx, dy = ey - sy;
-  const len2 = dx * dx + dy * dy;
-  let maxErr2 = 0;
-  for (let i = 0; i < SHORT_N; i++) {
-    const p = src.sample(t0 + (i + 1) * dt);
-    const u = len2 > 0 ? Math.min(1, Math.max(0, ((p.x - sx) * dx + (p.y - sy) * dy) / len2)) : 0;
-    const e = (sx + dx * u - p.x) ** 2 + (sy + dy * u - p.y) ** 2;
-    if (e > acc2) return null;
-    if (e > maxErr2) maxErr2 = e;
-  }
-  return { c: chordCubic(sx, sy, ex, ey), err: Math.sqrt(maxErr2) };
-}
-function fitOne(src, t0, t1, tol) {
-  const f = frameFor(src, t0, t1);
-  if (!f) return null;
-  const acc2 = tol * tol;
-  if (f.chord2 <= acc2) return tryFitLine(src, t0, t1, tol, f.sx, f.sy, f.ex, f.ey);
-  const d = curveDist(src, t0, t1);
-  let best = null;
-  let bestErr2 = Infinity;
-  for (const cand of candidates(f)) {
-    const err2 = evalDist(d, cand.c, acc2);
-    if (!Number.isFinite(err2)) continue;
-    const scale = Math.max(armPenalty(cand.d0), armPenalty(cand.d1)) ** 2;
-    const pen = err2 * scale;
-    if (pen < acc2 && pen < bestErr2) {
-      best = cand.c;
-      bestErr2 = pen;
-    }
-  }
-  return best ? { c: best, err: Math.sqrt(bestErr2) } : null;
-}
-function fitCubicMoment(src, t0, t1) {
-  const f = frameFor(src, t0, t1);
-  if (!f) return null;
-  const cands = candidates(f);
-  if (!cands.length) return null;
-  const d = curveDist(src, t0, t1);
-  let best = null;
-  let bestErr = Infinity;
-  for (const cand of cands) {
-    const err2 = evalDist(d, cand.c, Infinity);
-    if (!Number.isFinite(err2)) continue;
-    const err = Math.sqrt(err2) * Math.max(armPenalty(cand.d0), armPenalty(cand.d1));
-    if (err < bestErr) {
-      best = cand;
-      bestErr = err;
-    }
-  }
-  if (!best) return null;
-  return best.d0 > MAX_ARM_RATIO || best.d1 > MAX_ARM_RATIO ? null : best.c;
-}
-function collectBreaks(src) {
-  if (!src.breaks) return [];
-  const raw = src.breaks();
-  if (!Array.isArray(raw)) return [];
-  const out = [];
-  for (const t of raw.slice(0, 256).sort((a, b) => a - b)) {
-    if (!Number.isFinite(t) || t <= 1e-9 || t >= 1 - 1e-9) continue;
-    if (out.length && t - out[out.length - 1] < 1e-9) continue;
-    out.push(t);
-  }
-  return out;
-}
-function fitAdaptive(src, t0, t1, tol, b) {
-  const pending = [{ a: t0, z: t1, depth: 0 }];
-  while (pending.length) {
-    const { a, z, depth } = pending.pop();
-    const span = Math.abs(z - a);
-    const start = endpointSample(src, a, 1, span);
-    const end = endpointSample(src, z, -1, span);
-    if ((end.x - start.x) ** 2 + (end.y - start.y) ** 2 <= tol * tol) {
-      const line = tryFitLine(src, a, z, tol, start.x, start.y, end.x, end.y);
-      if (line) {
-        b.out.push(line.c);
-        continue;
-      }
-    }
-    const fit = fitOne(src, a, z, tol);
-    if (fit) {
-      b.out.push(fit.c);
-      continue;
-    }
-    const mid3 = 0.5 * (a + z);
-    if (depth >= MAX_DEPTH || b.out.length + pending.length + 2 > b.max || !(mid3 > a && mid3 < z)) {
-      b.out.push(chordCubic(start.x, start.y, end.x, end.y));
-      continue;
-    }
-    pending.push({ a: mid3, z, depth: depth + 1 });
-    pending.push({ a, z: mid3, depth: depth + 1 });
-  }
-}
-function solveItp(f, a, b, eps, n0, k1, ya, yb) {
-  const n12 = Math.max(0, Math.ceil(Math.log2((b - a) / eps)) - 1);
-  let scaledEps = eps * 2 ** (n0 + n12);
-  let lo = a, hi = b, ylo = ya, yhi = yb;
-  let guard2 = 0;
-  while (hi - lo > 2 * eps && guard2++ < 128) {
-    const half = 0.5 * (lo + hi);
-    const r3 = scaledEps - 0.5 * (hi - lo);
-    const xf = (yhi * lo - ylo * hi) / (yhi - ylo);
-    const sigma = half - xf;
-    const delta = k1 * (hi - lo) ** 2;
-    const xt = delta <= Math.abs(sigma) ? xf + copysign(delta, sigma) : half;
-    const x = Math.abs(xt - half) <= r3 ? xt : half - copysign(r3, sigma);
-    const y = f(x);
-    if (y > 0) {
-      hi = x;
-      yhi = y;
-    } else if (y < 0) {
-      lo = x;
-      ylo = y;
-    } else return x;
-    scaledEps *= 0.5;
-  }
-  return 0.5 * (lo + hi);
-}
-function fitGreedy(src, t0, t1, tol, b) {
-  let t = t0;
-  let guard2 = 0;
-  while (t < t1 && b.out.length < b.max && guard2++ < b.max) {
-    const whole = fitOne(src, t, t1, tol);
-    if (whole) {
-      b.out.push(whole.c);
-      return;
-    }
-    const start = t;
-    const f = (x2) => {
-      const r3 = fitOne(src, start, x2, tol);
-      return r3 ? r3.err - tol : tol;
-    };
-    const x = solveItp(f, start, t1, 1e-6, 1, 2 / (t1 - start), -tol, tol);
-    const seg = fitOne(src, start, x, tol);
-    if (!seg || !(x > start) || !(x < t1)) {
-      fitAdaptive(src, start, t1, tol, b);
-      return;
-    }
-    b.out.push(seg.c);
-    t = x;
-  }
-}
-function fitToCubics(src, opts = {}) {
-  const tol = opts.tol && opts.tol > 0 ? opts.tol : DEFAULT_TOL;
-  const max = opts.maxSegments && opts.maxSegments > 0 ? Math.floor(opts.maxSegments) : DEFAULT_MAX_SEGMENTS;
-  const b = { out: [], max };
-  const cuts = [0, ...collectBreaks(src), 1];
-  for (let i = 0; i + 1 < cuts.length && b.out.length < max; i++) {
-    const t0 = cuts[i], t1 = cuts[i + 1];
-    if (!(t1 > t0)) continue;
-    if (opts.optimise) {
-      const greedy = { out: [], max: max - b.out.length };
-      fitGreedy(src, t0, t1, tol, greedy);
-      const plain = { out: [], max: max - b.out.length };
-      fitAdaptive(src, t0, t1, tol, plain);
-      b.out.push(...greedy.out.length && greedy.out.length <= plain.out.length ? greedy.out : plain.out);
-    } else {
-      fitAdaptive(src, t0, t1, tol, b);
-    }
-  }
-  return b.out;
-}
-function polyCubicSource(curves) {
-  const n2 = curves.length;
-  const at = (t) => {
-    const scaled = Math.min(Math.max(t, 0), 1) * n2;
-    let i = Math.floor(scaled);
-    if (i >= n2) i = n2 - 1;
-    return { i, u: scaled - i };
-  };
-  return {
-    sample(t) {
-      const { i, u } = at(t);
-      const c = curves[i];
-      const p = evalCubic(c, u), d = tangentAt(c, u);
-      return { x: p.x, y: p.y, dx: d.x * n2, dy: d.y * n2 };
-    },
-    momentIntegrals(t0, t1) {
-      const a = at(t0), z = at(t1);
-      const raw = { a: 0, x: 0, y: 0 };
-      const add = (c, u0, u1) => {
-        if (u1 <= u0) return;
-        const m2 = rawMomentsCubic(subCubic(c, u0, u1));
-        raw.a += m2.a;
-        raw.x += m2.x;
-        raw.y += m2.y;
-      };
-      if (a.i === z.i) {
-        add(curves[a.i], a.u, z.u);
-      } else {
-        add(curves[a.i], a.u, 1);
-        for (let i = a.i + 1; i < z.i; i++) add(curves[i], 0, 1);
-        add(curves[z.i], 0, z.u);
-      }
-      const s = evalCubic(curves[a.i], a.u), e = evalCubic(curves[z.i], z.u);
-      return chordFrameMoments(raw, s.x, s.y, e.x - s.x, e.y - s.y);
-    },
-    breaks() {
-      const out = [];
-      for (let i = 1; i < n2; i++) {
-        const a = tangentAt(curves[i - 1], 1), b2 = tangentAt(curves[i], 0);
-        const la = Math.hypot(a.x, a.y), lb = Math.hypot(b2.x, b2.y);
-        if (la < 1e-12 || lb < 1e-12) {
-          out.push(i / n2);
-          continue;
-        }
-        const cos = (a.x * b2.x + a.y * b2.y) / (la * lb);
-        const sin = Math.abs(a.x * b2.y - a.y * b2.x) / (la * lb);
-        if (cos < 0.9998 || sin > 0.02) out.push(i / n2);
-      }
-      return out;
-    }
-  };
-}
-function simplifyCubics(curves, tol = DEFAULT_TOL) {
-  if (curves.length < 2) return curves.slice();
-  const fitted = fitToCubics(polyCubicSource(curves), { tol, maxSegments: curves.length });
-  if (!fitted.length || fitted.length >= curves.length) return curves.slice();
-  return fitted;
-}
-var D_PENALTY_ELBOW, D_PENALTY_SLOPE, MAX_ARM_RATIO, N_SAMPLE, SPICY_THRESH, DEFAULT_TOL, DEFAULT_MAX_SEGMENTS, MAX_DEPTH, GL16, REFINE_ITERS, INV_PHI, ARC_SPANS;
-var init_fit = __esm({
-  "engine/src/geom/fit.ts"() {
-    "use strict";
-    init_bezier();
-    init_intersect();
-    D_PENALTY_ELBOW = 0.65;
-    D_PENALTY_SLOPE = 2;
-    MAX_ARM_RATIO = 4;
-    N_SAMPLE = 20;
-    SPICY_THRESH = 0.2;
-    DEFAULT_TOL = 0.1;
-    DEFAULT_MAX_SEGMENTS = 512;
-    MAX_DEPTH = 20;
-    GL16 = [
-      [0.1894506104550685, -0.0950125098376374],
-      [0.1894506104550685, 0.0950125098376374],
-      [0.1826034150449236, -0.2816035507792589],
-      [0.1826034150449236, 0.2816035507792589],
-      [0.1691565193950025, -0.4580167776572274],
-      [0.1691565193950025, 0.4580167776572274],
-      [0.1495959888165767, -0.6178762444026438],
-      [0.1495959888165767, 0.6178762444026438],
-      [0.1246289712555339, -0.755404408355003],
-      [0.1246289712555339, 0.755404408355003],
-      [0.0951585116824928, -0.8656312023878318],
-      [0.0951585116824928, 0.8656312023878318],
-      [0.0622535239386479, -0.9445750230732326],
-      [0.0622535239386479, 0.9445750230732326],
-      [0.0271524594117541, -0.9894009349916499],
-      [0.0271524594117541, 0.9894009349916499]
-    ];
-    REFINE_ITERS = 12;
-    INV_PHI = 0.6180339887498949;
-    ARC_SPANS = N_SAMPLE + 1;
-  }
-});
-
-// engine/src/geom/offset.ts
-function offsetCubic(c, distance, tol = DEFAULT_TOL2) {
-  return offsetPieces(c, distance, tol).map((p) => p.curve);
-}
-function offsetPieces(c, distance, tol) {
-  if (!isFiniteCubic2(c)) return [];
-  if (!Number.isFinite(distance) || Math.abs(distance) < 1e-12) {
-    return [{ curve: [...c], dirStart: unitTangent(c, 0), dirEnd: unitTangent(c, 1) }];
-  }
-  const limit = Math.max(tol, 1e-9);
-  const out = [];
-  for (const [t0, t1] of featureSpans(c)) {
-    offsetSpan(subCubic(c, t0, t1), distance, limit, 0, out);
-  }
-  return out;
-}
-function pushRun(src, fitted, out) {
-  for (let i = 0; i < fitted.length; i++) {
-    out.push({
-      curve: fitted[i],
-      dirStart: i === 0 ? unitTangent(src, 0) : null,
-      dirEnd: i === fitted.length - 1 ? unitTangent(src, 1) : null
-    });
-  }
-}
-function offsetSpan(src, d, tol, depth, out) {
-  if (!unitTangent(src, 0) || !unitTangent(src, 1)) return;
-  const straight = isLineCubic(src) ? translateCubic(src, d) : null;
-  if (straight && offsetError(src, [straight], d, tol).error <= tol) {
-    pushRun(src, [straight], out);
-    return;
-  }
-  const fitted = fitToCubics(offsetSource(src, d), { tol, maxSegments: MAX_FIT_SEGMENTS });
-  if (!fitted.length) return;
-  if (depth >= MAX_OFFSET_DEPTH) {
-    pushRun(src, fitted, out);
-    return;
-  }
-  const worst = offsetError(src, fitted, d, tol);
-  if (worst.error <= tol) {
-    pushRun(src, fitted, out);
-    return;
-  }
-  const t = worst.t > MIN_SPAN && worst.t < 1 - MIN_SPAN ? worst.t : 0.5;
-  const [a, b] = splitCubic(src, t);
-  offsetSpan(a, d, tol, depth + 1, out);
-  offsetSpan(b, d, tol, depth + 1, out);
-}
-function offsetSource(c, d) {
-  const sample = (t) => {
-    const p = evalCubic(c, t);
-    const d1 = tangentAt(c, t);
-    const s = Math.hypot(d1.x, d1.y);
-    if (s > 1e-12) {
-      const d2 = secondDeriv(c, t);
-      const k = 1 - d * (d1.x * d2.y - d1.y * d2.x) / (s * s * s);
-      return { x: p.x - d * d1.y / s, y: p.y + d * d1.x / s, dx: k * d1.x, dy: k * d1.y };
-    }
-    const tan = unitTangent(c, t);
-    if (!tan) return { x: p.x, y: p.y, dx: 0, dy: 0 };
-    return { x: p.x - d * tan.y, y: p.y + d * tan.x, dx: 0, dy: 0 };
-  };
-  return {
-    sample,
-    // No closed form exists for an offset's area or moment - the curve is algebraic of
-    // degree 10 - so this is the case `quadratureMoments` is documented for. Gauss-Legendre
-    // over a smooth integrand, not a polyline of the shape.
-    momentIntegrals: (t0, t1) => quadratureMoments(sample, t0, t1),
-    breaks: () => offsetBreaks(c, d)
-  };
-}
-function translateCubic(c, d) {
-  const dx = c[6] - c[0], dy = c[7] - c[1];
-  const len2 = Math.hypot(dx, dy);
-  if (!(len2 > 1e-12)) return null;
-  const nx = -d * dy / len2, ny = d * dx / len2;
-  return [c[0] + nx, c[1] + ny, c[2] + nx, c[3] + ny, c[4] + nx, c[5] + ny, c[6] + nx, c[7] + ny];
-}
-function offsetBreaks(c, d) {
-  const out = featureCuts(c);
-  for (const t of offsetCuspParams(c, d)) out.push(t);
-  return out.sort((a, b) => a - b);
-}
-function offsetError(src, approx, d, tol) {
-  const worst = { error: 0, t: 0.5 };
-  let budget = ERROR_BUDGET;
-  const measure = (u) => {
-    const want = offsetPoint(src, u, d);
-    if (!want) return null;
-    if (u > 0 && u < 1) {
-      const e = nearestOnChain(approx, want);
-      if (e > worst.error) {
-        worst.error = e;
-        worst.t = u;
-      }
-    }
-    return want;
-  };
-  const refine = (u0, u1, w0, w1, depth) => {
-    if (budget <= 0 || depth >= MAX_ERROR_DEPTH) return;
-    budget--;
-    const um = (u0 + u1) / 2;
-    const wm = measure(um);
-    if (!w0 || !w1 || !wm || sagitta(w0, wm, w1) <= tol) return;
-    refine(u0, um, w0, wm, depth + 1);
-    refine(um, u1, wm, w1, depth + 1);
-  };
-  let prev = measure(0);
-  for (let i = 1; i <= ERROR_SAMPLES; i++) {
-    const u = i / ERROR_SAMPLES;
-    const here = measure(u);
-    refine(u - 1 / ERROR_SAMPLES, u, prev, here, 0);
-    prev = here;
-  }
-  return worst;
-}
-function nearestOnChain(chain2, p) {
-  let best = Infinity;
-  for (const k of chain2) {
-    const b = boundsCubic(k);
-    const dx = Math.max(b.x0 - p.x, 0, p.x - b.x1), dy = Math.max(b.y0 - p.y, 0, p.y - b.y1);
-    if (Math.hypot(dx, dy) >= best) continue;
-    const e = nearestOnCubic(k, p.x, p.y).distance;
-    if (e < best) best = e;
-  }
-  return best;
-}
-function sagitta(a, m2, b) {
-  const dx = b.x - a.x, dy = b.y - a.y;
-  const len2 = Math.hypot(dx, dy);
-  if (len2 < 1e-12) return Math.hypot(m2.x - a.x, m2.y - a.y);
-  return Math.abs((m2.x - a.x) * dy - (m2.y - a.y) * dx) / len2;
-}
-function isFiniteCubic2(c) {
-  for (let i = 0; i < 8; i++) if (!Number.isFinite(c[i])) return false;
-  return true;
-}
-function offsetPoint(c, t, d) {
-  const tan = unitTangent(c, t);
-  if (!tan) return null;
-  const p = evalCubic(c, t);
-  return { x: p.x - d * tan.y, y: p.y + d * tan.x };
-}
-function unitTangent(c, t) {
-  const d = tangentAt(c, t);
-  const len2 = Math.hypot(d.x, d.y);
-  if (len2 > 1e-12) return { x: d.x / len2, y: d.y / len2 };
-  const legs = t < 0.5 ? [[c[4] - c[0], c[5] - c[1]], [c[6] - c[0], c[7] - c[1]]] : [[c[6] - c[2], c[7] - c[3]], [c[6] - c[0], c[7] - c[1]]];
-  for (const [dx, dy] of legs) {
-    const l = Math.hypot(dx, dy);
-    if (l > 1e-12) return { x: dx / l, y: dy / l };
-  }
-  return null;
-}
-function featureSpans(c) {
-  const spans = [];
-  let prev = 0;
-  for (const t of featureCuts(c)) {
-    spans.push([prev, t]);
-    prev = t;
-  }
-  spans.push([prev, 1]);
-  return spans;
-}
-function featureCuts(c) {
-  const feats = featureParams(c).filter((f) => f.t > MIN_SPAN && f.t < 1 - MIN_SPAN).sort((a, b) => a.t - b.t);
-  const cuts = [];
-  for (let i = 0; i < feats.length; ) {
-    let j = i;
-    while (j + 1 < feats.length && feats[j + 1].t - feats[i].t <= MIN_SPAN) j++;
-    const cluster2 = feats.slice(i, j + 1);
-    const at = (cluster2.find((f) => f.exact) ?? cluster2[0]).t;
-    if (!cuts.length || at - cuts[cuts.length - 1] > MIN_SPAN / 2) cuts.push(at);
-    i = j + 1;
-  }
-  return cuts;
-}
-function offsetCuspParams(c, d) {
-  if (isLineCubic(c) || !Number.isFinite(d) || d === 0) return [];
-  const px2 = 3 * (-c[0] + 3 * c[2] - 3 * c[4] + c[6]);
-  const px1 = 2 * (3 * c[0] - 6 * c[2] + 3 * c[4]);
-  const px0 = -3 * c[0] + 3 * c[2];
-  const py2 = 3 * (-c[1] + 3 * c[3] - 3 * c[5] + c[7]);
-  const py1 = 2 * (3 * c[1] - 6 * c[3] + 3 * c[5]);
-  const py0 = -3 * c[1] + 3 * c[3];
-  const a = [px0 * py1 - px1 * py0, 2 * (px0 * py2 - px2 * py0), px1 * py2 - px2 * py1];
-  const dPoly = [
-    px0 * px0 + py0 * py0,
-    2 * (px1 * px0 + py1 * py0),
-    px1 * px1 + 2 * px2 * px0 + py1 * py1 + 2 * py2 * py0,
-    2 * (px2 * px1 + py2 * py1),
-    px2 * px2 + py2 * py2
-  ];
-  const cuspPoly = polySub(polyMul(polyMul(dPoly, dPoly), dPoly), polyScale(polyMul(a, a), d * d));
-  const out = [];
-  for (const t of rootsInUnit(cuspPoly)) {
-    if (!(t > MIN_SPAN) || !(t < 1 - MIN_SPAN)) continue;
-    const speed2 = (((dPoly[4] * t + dPoly[3]) * t + dPoly[2]) * t + dPoly[1]) * t + dPoly[0];
-    if (!(speed2 > 0)) continue;
-    const num7 = (a[2] * t + a[1]) * t + a[0];
-    if (Math.abs(1 - d * num7 / (speed2 * Math.sqrt(speed2))) < 0.5) out.push(t);
-  }
-  return out;
-}
-function featureParams(c) {
-  if (isLineCubic(c)) return [];
-  const px2 = 3 * (-c[0] + 3 * c[2] - 3 * c[4] + c[6]);
-  const px1 = 2 * (3 * c[0] - 6 * c[2] + 3 * c[4]);
-  const px0 = -3 * c[0] + 3 * c[2];
-  const py2 = 3 * (-c[1] + 3 * c[3] - 3 * c[5] + c[7]);
-  const py1 = 2 * (3 * c[1] - 6 * c[3] + 3 * c[5]);
-  const py0 = -3 * c[1] + 3 * c[3];
-  const a2 = px1 * py2 - px2 * py1;
-  const a1 = 2 * (px0 * py2 - px2 * py0);
-  const a0 = px0 * py1 - px1 * py0;
-  const d4 = px2 * px2 + py2 * py2;
-  const d3 = 2 * (px2 * px1 + py2 * py1);
-  const d2 = px1 * px1 + 2 * px2 * px0 + py1 * py1 + 2 * py2 * py0;
-  const d1 = 2 * (px1 * px0 + py1 * py0);
-  const d0 = px0 * px0 + py0 * py0;
-  const ts = [];
-  for (const t of cubicRoots01(0, a2, a1, a0)) ts.push({ t, exact: true });
-  for (const t of rootsInUnit(polySub(
-    polyScale(polyMul([a1, 2 * a2], [d0, d1, d2, d3, d4]), 2),
-    polyScale(polyMul([a0, a1, a2], [d1, 2 * d2, 3 * d3, 4 * d4]), 3)
-  ))) ts.push({ t, exact: false });
-  const speedScale = 3 * Math.max(
-    Math.hypot(c[2] - c[0], c[3] - c[1]),
-    Math.hypot(c[4] - c[2], c[5] - c[3]),
-    Math.hypot(c[6] - c[4], c[7] - c[5]),
-    1e-12
-  );
-  for (const t of cubicRoots01(4 * d4, 3 * d3, 2 * d2, d1)) {
-    const speed = Math.sqrt(Math.max(0, (((d4 * t + d3) * t + d2) * t + d1) * t + d0));
-    if (speed < 1e-6 * speedScale) ts.push({ t, exact: true });
-  }
-  return ts;
-}
-function polyMul(a, b) {
-  const out = new Array(a.length + b.length - 1).fill(0);
-  for (let i = 0; i < a.length; i++) for (let j = 0; j < b.length; j++) out[i + j] += a[i] * b[j];
-  return out;
-}
-function polyScale(a, k) {
-  return a.map((v) => v * k);
-}
-function polySub(a, b) {
-  const out = [];
-  for (let i = 0; i < Math.max(a.length, b.length); i++) out.push((a[i] ?? 0) - (b[i] ?? 0));
-  return out;
-}
-function rootsInUnit(poly) {
-  let scale = 0;
-  for (const v of poly) scale = Math.max(scale, Math.abs(v));
-  if (!(scale > 0) || !Number.isFinite(scale)) return [];
-  const a = poly.map((v) => v / scale);
-  let deg2 = a.length - 1;
-  while (deg2 > 0 && Math.abs(a[deg2]) < 1e-12) deg2--;
-  if (deg2 === 0) return [];
-  const out = [];
-  isolateRoots(bernsteinFromPower(a.slice(0, deg2 + 1)), 0, 1, 0, out);
-  return out;
-}
-function bernsteinFromPower(a) {
-  const n2 = a.length - 1;
-  const rows = [];
-  for (let i = 0; i <= n2; i++) {
-    const row = [1];
-    for (let k = 1; k <= i; k++) row.push(row[k - 1] * (i - k + 1) / k);
-    rows.push(row);
-  }
-  const out = [];
-  for (let k = 0; k <= n2; k++) {
-    let s = 0;
-    for (let i = 0; i <= k; i++) s += rows[k][i] / rows[n2][i] * a[i];
-    out.push(s);
-  }
-  return out;
-}
-function isolateRoots(b, t0, t1, depth, out) {
-  let changes = 0, prev = 0;
-  for (const v of b) {
-    if (v === 0) continue;
-    const s = v > 0 ? 1 : -1;
-    if (prev !== 0 && s !== prev) changes++;
-    prev = s;
-  }
-  if (changes === 0) return;
-  if (depth >= 40 || changes === 1 && t1 - t0 < 1e-7) {
-    out.push((t0 + t1) / 2);
-    return;
-  }
-  const [lo, hi] = splitBernstein(b);
-  const mid3 = (t0 + t1) / 2;
-  isolateRoots(lo, t0, mid3, depth + 1, out);
-  isolateRoots(hi, mid3, t1, depth + 1, out);
-}
-function splitBernstein(b) {
-  const rows = [b.slice()];
-  for (let lvl = 1; lvl < b.length; lvl++) {
-    const prev = rows[lvl - 1];
-    const row = [];
-    for (let i = 0; i + 1 < prev.length; i++) row.push((prev[i] + prev[i + 1]) / 2);
-    rows.push(row);
-  }
-  return [rows.map((r3) => r3[0]), rows.map((r3) => r3[r3.length - 1]).reverse()];
-}
-function offsetContour(c, distance, opts = {}) {
-  const src = finiteContour(c);
-  if (!src) return [];
-  if (!Number.isFinite(distance) || Math.abs(distance) < 1e-12) return [src];
-  if (!src.closed) {
-    const curves2 = buildOffset(src, distance, opts);
-    return curves2.length ? [{ curves: curves2, closed: false }] : [];
-  }
-  const cc = closeContour(src);
-  const area = contourArea(cc);
-  const curves = buildOffset(cc, distance * outwardSign(area), opts);
-  if (!curves.length) return [];
-  return resolveLoops([{ curves, closed: true }], [cc], distance, area > 0);
-}
-function offsetPath(p, distance, opts = {}) {
-  const src = p.map(finiteContour).filter((c) => c !== null);
-  if (!src.length) return [];
-  if (!Number.isFinite(distance) || Math.abs(distance) < 1e-12) return src;
-  const closed = src.filter((c) => c.closed).map(closeContour);
-  const open2 = src.filter((c) => !c.closed);
-  const out = [];
-  if (closed.length) {
-    let ref = 0, biggest = 0;
-    for (const c of closed) {
-      const a = contourArea(c);
-      if (Math.abs(a) > biggest) {
-        biggest = Math.abs(a);
-        ref = a;
-      }
-    }
-    const signed = distance * outwardSign(ref);
-    const loops = [];
-    for (const c of closed) {
-      const curves = buildOffset(c, signed, opts);
-      if (curves.length) loops.push({ curves, closed: true });
-    }
-    if (loops.length) out.push(...resolveLoops(loops, closed, distance, ref > 0));
-  }
-  for (const c of open2) {
-    const curves = buildOffset(c, distance, opts);
-    if (curves.length) out.push({ curves, closed: false });
-  }
-  return out;
-}
-function offsetSweep(c, distance, opts = {}) {
-  const src = finiteContour(c);
-  if (!src || !Number.isFinite(distance)) return null;
-  if (Math.abs(distance) < 1e-12) return src;
-  const cc = src.closed ? closeContour(src) : src;
-  const curves = buildOffset(cc, distance, opts);
-  return curves.length ? { curves, closed: cc.closed } : null;
-}
-function outwardSign(area) {
-  return area > 0 ? -1 : 1;
-}
-function resolveLoops(raw, src, distance, wantCcw) {
-  const resolved2 = compactPath(selfUnion(raw));
-  const probes = regionProber(resolved2);
-  const kept = resolved2.filter((c) => probes(c).some(
-    (p) => isOffsetMaterial(src, p.left, distance)
-  ));
-  return matchOrientation(kept, wantCcw);
-}
-function isOffsetMaterial(src, p, distance) {
-  const slack = Math.max(Math.abs(distance), 1) * 1e-9;
-  const want = Math.abs(distance);
-  const inside = () => windingNumber(src, p.x, p.y) !== 0;
-  const near = () => distanceToPath(src, p.x, p.y);
-  return distance > 0 ? inside() || near() <= want + slack : inside() && near() >= want - slack;
-}
-function distanceToPath(p, x, y) {
-  let best = Infinity;
-  for (const c of p) {
-    for (const k of c.curves) {
-      const b = boundsCubic(k);
-      const dx = Math.max(b.x0 - x, 0, x - b.x1), dy = Math.max(b.y0 - y, 0, y - b.y1);
-      if (Math.hypot(dx, dy) >= best) continue;
-      const d = nearestOnCubic(k, x, y).distance;
-      if (d < best) best = d;
-    }
-  }
-  return best;
-}
-function regionProber(region) {
-  const box2 = pathBounds(region);
-  const curves = region.flatMap((c) => c.curves).map((k) => ({ k, box: boundsCubic(k) }));
-  const reach = box2 ? Math.hypot(box2.x1 - box2.x0, box2.y1 - box2.y0) : 0;
-  const skip = reach * 1e-9;
-  const firstCrossing = (m2, dx, dy) => {
-    const x1 = m2.x + dx * reach, y1 = m2.y + dy * reach;
-    const lo = { x: Math.min(m2.x, x1), y: Math.min(m2.y, y1) };
-    const hi = { x: Math.max(m2.x, x1), y: Math.max(m2.y, y1) };
-    let best = null;
-    for (const { k, box: b } of curves) {
-      if (b.x1 < lo.x || b.x0 > hi.x || b.y1 < lo.y || b.y0 > hi.y) continue;
-      for (const hit of intersectLineCubic(m2.x, m2.y, x1, y1, k)) {
-        const at = hit.t1 * reach;
-        if (at <= skip) continue;
-        if (best === null || at < best) best = at;
-      }
-    }
-    return best;
-  };
-  return (c, limit = PROBE_CURVES) => {
-    if (!(reach > 0)) return [];
-    const order = [...c.curves].map((k, i) => ({ k, i, span: Math.hypot(k[6] - k[0], k[7] - k[1]) })).sort((a, b) => b.span - a.span || a.i - b.i).slice(0, limit);
-    const out = [];
-    for (const { k } of order) {
-      const tan = unitTangent(k, 0.5);
-      if (!tan) continue;
-      const m2 = evalCubic(k, 0.5);
-      const nx = -tan.y, ny = tan.x;
-      const hl = firstCrossing(m2, nx, ny);
-      const hr = firstCrossing(m2, -nx, -ny);
-      const room = hl === null ? hr : hr === null ? Math.min(hl, reach) : Math.min(hl, hr);
-      if (room === null || !(room > 0)) continue;
-      const s = room / 2;
-      out.push({
-        left: { x: m2.x + nx * s, y: m2.y + ny * s },
-        right: { x: m2.x - nx * s, y: m2.y - ny * s }
-      });
-    }
-    return out;
-  };
-}
-function finiteContour(c) {
-  const curves = c.curves.filter(isFiniteCubic2).map((k) => [...k]);
-  return curves.length ? { curves, closed: c.closed } : null;
-}
-function buildOffset(c, d, opts) {
-  const tol = opts.tol ?? DEFAULT_TOL2;
-  const join18 = opts.join ?? "miter";
-  const miterLimit = opts.miterLimit ?? DEFAULT_MITER_LIMIT;
-  const seq = [];
-  const corners = [];
-  for (const k of c.curves) {
-    const pieces = offsetPieces(k, d, tol);
-    for (let i = 0; i < pieces.length; i++) {
-      seq.push(pieces[i]);
-      corners.push(i === pieces.length - 1 ? { x: k[6], y: k[7] } : null);
-    }
-  }
-  if (!seq.length) return [];
-  const out = [];
-  for (let i = 0; i < seq.length; i++) {
-    const cur = seq[i];
-    out.push(cur.curve);
-    const last = i === seq.length - 1;
-    if (last && !c.closed) break;
-    const next = seq[last ? 0 : i + 1];
-    const a = { x: cur.curve[6], y: cur.curve[7] };
-    const b = { x: next.curve[0], y: next.curve[1] };
-    if (Math.hypot(b.x - a.x, b.y - a.y) <= JOIN_EPS) {
-      next.curve[0] = a.x;
-      next.curve[1] = a.y;
-      continue;
-    }
-    const pivot = corners[i] ?? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-    const t0 = cur.dirEnd ?? endTangent2(cur.curve);
-    const t1 = next.dirStart ?? startTangent2(next.curve);
-    out.push(...joinPieces(a, b, pivot, t0, t1, d, join18, miterLimit));
-  }
-  return out;
-}
-function joinPieces(a, b, pivot, t0, t1, d, style, miterLimit) {
-  const bevel = () => [lineToCubic(a.x, a.y, b.x, b.y)];
-  const viaPivot = () => [lineToCubic(a.x, a.y, pivot.x, pivot.y), lineToCubic(pivot.x, pivot.y, b.x, b.y)];
-  if (!t0 || !t1) return bevel();
-  const cross = t0.x * t1.y - t0.y * t1.x;
-  const reversal = Math.abs(cross) < 1e-9 && t0.x * t1.x + t0.y * t1.y < 0;
-  if (!reversal) {
-    if (Math.abs(cross) < 1e-12) return bevel();
-    if (d * cross >= 0) return viaPivot();
-  }
-  if (style === "bevel") return bevel();
-  if (style === "round") return arcJoin(a, b, pivot, t0);
-  if (reversal) return bevel();
-  const s = ((b.x - a.x) * t1.y - (b.y - a.y) * t1.x) / cross;
-  if (!(s > 0) || !Number.isFinite(s)) return bevel();
-  const m2 = { x: a.x + t0.x * s, y: a.y + t0.y * s };
-  if (Math.hypot(m2.x - pivot.x, m2.y - pivot.y) > miterLimit * Math.abs(d)) return bevel();
-  return [lineToCubic(a.x, a.y, m2.x, m2.y), lineToCubic(m2.x, m2.y, b.x, b.y)];
-}
-function arcJoin(a, b, pivot, heading) {
-  const r0 = Math.hypot(a.x - pivot.x, a.y - pivot.y);
-  const r1 = Math.hypot(b.x - pivot.x, b.y - pivot.y);
-  const r3 = (r0 + r1) / 2;
-  if (r3 < 1e-12) return [lineToCubic(a.x, a.y, b.x, b.y)];
-  const from = Math.atan2(a.y - pivot.y, a.x - pivot.x);
-  let sweep = Math.atan2(b.y - pivot.y, b.x - pivot.x) - from;
-  while (sweep <= -Math.PI) sweep += 2 * Math.PI;
-  while (sweep > Math.PI) sweep -= 2 * Math.PI;
-  if (heading && Math.abs(sweep) > Math.PI - 1e-6) {
-    const turn = (a.x - pivot.x) * heading.y - (a.y - pivot.y) * heading.x;
-    if (turn !== 0) sweep = turn > 0 ? Math.abs(sweep) : -Math.abs(sweep);
-  }
-  const n2 = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 2)));
-  const step = sweep / n2;
-  const k = 4 / 3 * Math.tan(step / 4);
-  const out = [];
-  for (let i = 0; i < n2; i++) {
-    const s = from + step * i, e = s + step;
-    const sx = pivot.x + r3 * Math.cos(s), sy = pivot.y + r3 * Math.sin(s);
-    const ex = pivot.x + r3 * Math.cos(e), ey = pivot.y + r3 * Math.sin(e);
-    out.push([
-      sx,
-      sy,
-      sx - k * r3 * Math.sin(s),
-      sy + k * r3 * Math.cos(s),
-      ex + k * r3 * Math.sin(e),
-      ey - k * r3 * Math.cos(e),
-      ex,
-      ey
-    ]);
-  }
-  const first = out[0], last = out[out.length - 1];
-  first[0] = a.x;
-  first[1] = a.y;
-  last[6] = b.x;
-  last[7] = b.y;
-  return out;
-}
-function endTangent2(c) {
-  return unitTangent(c, 1);
-}
-function startTangent2(c) {
-  return unitTangent(c, 0);
-}
-function matchOrientation(p, wantCcw) {
-  let area = 0, biggest = 0;
-  for (const c of p) {
-    const a = contourArea(c);
-    if (Math.abs(a) > biggest) {
-      biggest = Math.abs(a);
-      area = a;
-    }
-  }
-  if (biggest === 0 || area > 0 === wantCcw) return p;
-  return p.map(reverseContour);
-}
-function fitCubic(points, tangents, tol = DEFAULT_TOL2) {
-  const pts = dedupePoints(points);
-  if (pts.length < 2) return [];
-  const first = normalise3(tangents.start) ?? direction(pts[0], pts[1]);
-  const back = normalise3({ x: -tangents.end.x, y: -tangents.end.y }) ?? direction(pts[pts.length - 1], pts[pts.length - 2]);
-  if (!first || !back) return [];
-  return fitRecursive(pts, first, back, Math.max(tol, 1e-9), 0);
-}
-function fitRecursive(pts, t0, t1, tol, depth) {
-  if (pts.length === 2) {
-    const a = pts[0], b = pts[1];
-    const l = Math.hypot(b.x - a.x, b.y - a.y) / 3;
-    return [[a.x, a.y, a.x + t0.x * l, a.y + t0.y * l, b.x + t1.x * l, b.y + t1.y * l, b.x, b.y]];
-  }
-  let u = chordParams(pts);
-  let curve = bezierWithTangents(pts, u, t0, t1);
-  let worst = fitError2(pts, u, curve);
-  for (let i = 0; i < MAX_FIT_ITERATIONS && worst.error > tol; i++) {
-    const nu = reparameterise(pts, u, curve);
-    const nc = bezierWithTangents(pts, nu, t0, t1);
-    const ne = fitError2(pts, nu, nc);
-    if (!(ne.error < worst.error)) break;
-    u = nu;
-    curve = nc;
-    worst = ne;
-  }
-  if (worst.error <= tol) return [curve];
-  if (depth >= MAX_FIT_DEPTH) return [curve];
-  const at = Math.min(pts.length - 2, Math.max(1, worst.index));
-  const centre = centreTangent(pts, at);
-  if (!centre) return [curve];
-  return [
-    ...fitRecursive(pts.slice(0, at + 1), t0, centre, tol, depth + 1),
-    ...fitRecursive(pts.slice(at), { x: -centre.x, y: -centre.y }, t1, tol, depth + 1)
-  ];
-}
-function bezierWithTangents(pts, u, t0, t1) {
-  const n2 = pts.length;
-  const first = pts[0], last = pts[n2 - 1];
-  let c00 = 0, c01 = 0, c11 = 0, x0 = 0, x1 = 0;
-  for (let i = 0; i < n2; i++) {
-    const t = u[i], mt = 1 - t;
-    const b0 = mt * mt * mt, b1 = 3 * mt * mt * t, b2 = 3 * mt * t * t, b3 = t * t * t;
-    const a0x = t0.x * b1, a0y = t0.y * b1;
-    const a1x = t1.x * b2, a1y = t1.y * b2;
-    c00 += a0x * a0x + a0y * a0y;
-    c01 += a0x * a1x + a0y * a1y;
-    c11 += a1x * a1x + a1y * a1y;
-    const rx = pts[i].x - (first.x * (b0 + b1) + last.x * (b2 + b3));
-    const ry = pts[i].y - (first.y * (b0 + b1) + last.y * (b2 + b3));
-    x0 += a0x * rx + a0y * ry;
-    x1 += a1x * rx + a1y * ry;
-  }
-  const det = c00 * c11 - c01 * c01;
-  const chord = Math.hypot(last.x - first.x, last.y - first.y);
-  let l0 = 0, l1 = 0;
-  if (Math.abs(det) > 1e-18) {
-    l0 = (c11 * x0 - c01 * x1) / det;
-    l1 = (c00 * x1 - c01 * x0) / det;
-  }
-  const floor = 1e-6 * Math.max(chord, 1e-9);
-  if (!(l0 > floor) || !(l1 > floor)) {
-    l0 = chord / 3;
-    l1 = chord / 3;
-  }
-  return [
-    first.x,
-    first.y,
-    first.x + t0.x * l0,
-    first.y + t0.y * l0,
-    last.x + t1.x * l1,
-    last.y + t1.y * l1,
-    last.x,
-    last.y
-  ];
-}
-function fitError2(pts, u, curve) {
-  let error = 0, index = Math.floor(pts.length / 2);
-  for (let i = 1; i < pts.length - 1; i++) {
-    const p = evalCubic(curve, u[i]);
-    const d = Math.hypot(p.x - pts[i].x, p.y - pts[i].y);
-    if (d > error) {
-      error = d;
-      index = i;
-    }
-  }
-  return { error, index };
-}
-function reparameterise(pts, u, curve) {
-  return u.map((t, i) => {
-    const p = evalCubic(curve, t), d1 = tangentAt(curve, t), d2 = secondDeriv(curve, t);
-    const dx = p.x - pts[i].x, dy = p.y - pts[i].y;
-    const num7 = dx * d1.x + dy * d1.y;
-    const den = d1.x * d1.x + d1.y * d1.y + dx * d2.x + dy * d2.y;
-    if (Math.abs(den) < 1e-14) return t;
-    return Math.min(1, Math.max(0, t - num7 / den));
-  });
-}
-function secondDeriv(c, t) {
-  const mt = 1 - t;
-  return {
-    x: 6 * mt * (c[4] - 2 * c[2] + c[0]) + 6 * t * (c[6] - 2 * c[4] + c[2]),
-    y: 6 * mt * (c[5] - 2 * c[3] + c[1]) + 6 * t * (c[7] - 2 * c[5] + c[3])
-  };
-}
-function centreTangent(pts, i) {
-  const prev = pts[i - 1], at = pts[i], next = pts[i + 1];
-  return normalise3({
-    x: (prev.x - at.x + at.x - next.x) / 2,
-    y: (prev.y - at.y + at.y - next.y) / 2
-  }) ?? direction(at, prev);
-}
-function chordParams(pts) {
-  const u = [0];
-  for (let i = 1; i < pts.length; i++) {
-    u.push(u[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
-  }
-  const total = u[u.length - 1];
-  if (!(total > 0)) return pts.map((_, i) => i / Math.max(1, pts.length - 1));
-  return u.map((v) => v / total);
-}
-function dedupePoints(pts) {
-  const out = [];
-  for (const p of pts) {
-    const last = out[out.length - 1];
-    if (!last || Math.hypot(p.x - last.x, p.y - last.y) > 1e-12) out.push({ x: p.x, y: p.y });
-  }
-  return out;
-}
-function normalise3(v) {
-  const l = Math.hypot(v.x, v.y);
-  return l > 1e-12 ? { x: v.x / l, y: v.y / l } : null;
-}
-function direction(from, to) {
-  return normalise3({ x: to.x - from.x, y: to.y - from.y });
-}
-var DEFAULT_TOL2, DEFAULT_MITER_LIMIT, MAX_OFFSET_DEPTH, MAX_FIT_DEPTH, MAX_FIT_ITERATIONS, MAX_FIT_SEGMENTS, ERROR_SAMPLES, MAX_ERROR_DEPTH, ERROR_BUDGET, PROBE_CURVES, MIN_SPAN;
-var init_offset = __esm({
-  "engine/src/geom/offset.ts"() {
-    "use strict";
-    init_bezier();
-    init_intersect();
-    init_path();
-    init_boolean();
-    init_fit();
-    DEFAULT_TOL2 = 0.01;
-    DEFAULT_MITER_LIMIT = 4;
-    MAX_OFFSET_DEPTH = 8;
-    MAX_FIT_DEPTH = 16;
-    MAX_FIT_ITERATIONS = 8;
-    MAX_FIT_SEGMENTS = 32;
-    ERROR_SAMPLES = 12;
-    MAX_ERROR_DEPTH = 20;
-    ERROR_BUDGET = 512;
-    PROBE_CURVES = 6;
-    MIN_SPAN = 1e-4;
-  }
-});
-
-// engine/src/geom/stroke.ts
-function strokeToPath(p, width, opts = {}) {
-  if (!(width > 0)) return [];
-  const r3 = width / 2;
-  const cap = opts.cap ?? "butt";
-  const off = { join: opts.join ?? "miter", miterLimit: opts.miterLimit ?? 4, tol: opts.tol };
-  const raw = [];
-  for (const c of p) {
-    if (!c.curves.length) continue;
-    if (isPoint(c)) {
-      const dot = dotContour(c, r3, cap);
-      if (dot) raw.push(dot);
-      continue;
-    }
-    if (c.closed) raw.push(...ring(c, r3, off));
-    else {
-      const outline = openOutline(c, r3, cap, off);
-      if (outline) raw.push(outline);
-    }
-  }
-  if (!raw.length) return [];
-  return keptContours(selfUnion(raw, { fillRule: "nonzero" }), p, r3);
-}
-function keptContours(resolved2, centreline, r3) {
-  if (resolved2.length < 2) return resolved2;
-  const src = centreline.filter((c) => c.curves.length).map((c) => c.closed ? closeContour(c) : c);
-  if (!src.length) return resolved2;
-  const paint = (p) => distanceToPath(src, p.x, p.y) <= r3 * (1 + 1e-9);
-  const probes = regionProber(resolved2);
-  return resolved2.filter((c) => {
-    for (const probe of probes(c)) {
-      const left = paint(probe.left), right = paint(probe.right);
-      if (left !== right) return true;
-      if (left && right) return false;
-    }
-    return true;
-  });
-}
-function ring(c, r3, off) {
-  const cc = closeContour(c);
-  const out = [];
-  for (const side of [cc, reverseContour(cc)]) {
-    const sweep = offsetSweep(side, r3, off);
-    if (sweep) out.push(sweep);
-  }
-  return out;
-}
-function openOutline(c, r3, cap, off) {
-  const fwd = offsetSide(c, r3, off);
-  const back = offsetSide(reverseContour(c), r3, off);
-  if (!fwd.length || !back.length) return null;
-  const ahead = endDirection(c);
-  const behind = startDirection(c);
-  if (!ahead || !behind) return null;
-  const curves = [
-    ...fwd,
-    ...capCurves(endPoint(fwd), startPoint(back), ahead, cap),
-    ...back,
-    // Arriving back at the start, the direction of travel is against the contour.
-    ...capCurves(endPoint(back), startPoint(fwd), { x: -behind.x, y: -behind.y }, cap)
-  ];
-  return { curves, closed: true };
-}
-function offsetSide(c, distance, off) {
-  const out = [];
-  for (const part of offsetContour(c, distance, off)) out.push(...part.curves);
-  return out;
-}
-function capCurves(from, to, dir, cap) {
-  if (cap === "round") return halfCircle(from, to, dir);
-  if (cap === "square") {
-    const r3 = Math.hypot(to.x - from.x, to.y - from.y) / 2;
-    const ex = dir.x * r3, ey = dir.y * r3;
-    const a = { x: from.x + ex, y: from.y + ey };
-    const b = { x: to.x + ex, y: to.y + ey };
-    return [
-      lineToCubic(from.x, from.y, a.x, a.y),
-      lineToCubic(a.x, a.y, b.x, b.y),
-      lineToCubic(b.x, b.y, to.x, to.y)
-    ];
-  }
-  return [lineToCubic(from.x, from.y, to.x, to.y)];
-}
-function halfCircle(from, to, dir) {
-  const cx = (from.x + to.x) / 2, cy = (from.y + to.y) / 2;
-  const ux = from.x - cx, uy = from.y - cy;
-  const r3 = Math.hypot(ux, uy);
-  if (r3 < JOIN_EPS) return [lineToCubic(from.x, from.y, to.x, to.y)];
-  const ax = ux / r3, ay = uy / r3;
-  let mx = ay, my = -ax;
-  if (mx * dir.x + my * dir.y < 0) {
-    mx = -mx;
-    my = -my;
-  }
-  const arcs = [
-    quarterArc(cx, cy, r3, ax, ay, mx, my),
-    quarterArc(cx, cy, r3, mx, my, -ax, -ay)
-  ];
-  const last = arcs[arcs.length - 1];
-  last[6] = to.x;
-  last[7] = to.y;
-  return arcs;
-}
-function quarterArc(cx, cy, r3, ax, ay, bx, by) {
-  const p0x = cx + r3 * ax, p0y = cy + r3 * ay;
-  const p3x = cx + r3 * bx, p3y = cy + r3 * by;
-  return [
-    p0x,
-    p0y,
-    p0x + KAPPA * r3 * bx,
-    p0y + KAPPA * r3 * by,
-    p3x + KAPPA * r3 * ax,
-    p3y + KAPPA * r3 * ay,
-    p3x,
-    p3y
-  ];
-}
-function isPoint(c) {
-  const b = pathBounds([c]);
-  return !b || b.x1 - b.x0 <= JOIN_EPS && b.y1 - b.y0 <= JOIN_EPS;
-}
-function dotContour(c, r3, cap) {
-  if (cap === "butt") return null;
-  const k = c.curves[0];
-  if (!k) return null;
-  const x = k[0], y = k[1];
-  if (cap === "square") {
-    return {
-      curves: [
-        lineToCubic(x - r3, y - r3, x + r3, y - r3),
-        lineToCubic(x + r3, y - r3, x + r3, y + r3),
-        lineToCubic(x + r3, y + r3, x - r3, y + r3),
-        lineToCubic(x - r3, y + r3, x - r3, y - r3)
-      ],
-      closed: true
-    };
-  }
-  return {
-    curves: [
-      quarterArc(x, y, r3, 1, 0, 0, 1),
-      quarterArc(x, y, r3, 0, 1, -1, 0),
-      quarterArc(x, y, r3, -1, 0, 0, -1),
-      quarterArc(x, y, r3, 0, -1, 1, 0)
-    ],
-    closed: true
-  };
-}
-function unit(x, y) {
-  const l = Math.hypot(x, y);
-  return l < 1e-12 ? null : { x: x / l, y: y / l };
-}
-function endDirection(c) {
-  for (let i = c.curves.length - 1; i >= 0; i--) {
-    const k = c.curves[i];
-    const d = unit(k[6] - k[4], k[7] - k[5]) ?? unit(k[6] - k[2], k[7] - k[3]) ?? unit(k[6] - k[0], k[7] - k[1]);
-    if (d) return d;
-  }
-  return null;
-}
-function startDirection(c) {
-  for (const k of c.curves) {
-    const d = unit(k[2] - k[0], k[3] - k[1]) ?? unit(k[4] - k[0], k[5] - k[1]) ?? unit(k[6] - k[0], k[7] - k[1]);
-    if (d) return d;
-  }
-  return null;
-}
-function startPoint(curves) {
-  const k = curves[0];
-  return { x: k[0], y: k[1] };
-}
-function endPoint(curves) {
-  const k = curves[curves.length - 1];
-  return { x: k[6], y: k[7] };
-}
-var KAPPA;
-var init_stroke = __esm({
-  "engine/src/geom/stroke.ts"() {
-    "use strict";
-    init_bezier();
-    init_path();
-    init_offset();
-    init_boolean();
-    KAPPA = 0.5522847498307936;
-  }
-});
-
-// engine/src/geom/spiro.ts
-function mod2pi2(th) {
-  const f = th * (0.5 / Math.PI);
-  return 2 * Math.PI * (f - Math.round(f));
-}
-function intCosSin(a, b, c, u0, u1) {
-  const mid3 = 0.5 * (u0 + u1);
-  const half = 0.5 * (u1 - u0);
-  let x = 0, y = 0;
-  for (let i = 0; i < GL_X.length; i++) {
-    const u = mid3 + 2 * half * GL_X[i];
-    const t = theta(a, b, c, u);
-    x += GL_W[i] * Math.cos(t);
-    y += GL_W[i] * Math.sin(t);
-  }
-  const len2 = u1 - u0;
-  return { x: x * len2, y: y * len2 };
-}
-function solveClosing(alpha, beta) {
-  let c = 0;
-  for (let it = 0; it < 24; it++) {
-    const b = beta - alpha - c;
-    let f = 0, df = 0;
-    for (let i = 0; i < GL_X.length; i++) {
-      const u = 0.5 + GL_X[i];
-      const t = theta(alpha, b, c, u);
-      f += GL_W[i] * Math.sin(t);
-      df += GL_W[i] * Math.cos(t) * (u * u - u);
-    }
-    if (Math.abs(f) < 1e-12) break;
-    if (Math.abs(df) < 1e-12) break;
-    const step = f / df;
-    c -= Math.max(-Math.PI, Math.min(Math.PI, step));
-  }
-  return { b: beta - alpha - c, c };
-}
-function segClothoid(ax, ay, bx, by, psiA, psiB) {
-  const chord = Math.hypot(bx - ax, by - ay);
-  const phi = Math.atan2(by - ay, bx - ax);
-  const alpha = mod2pi2(psiA - phi);
-  const beta = mod2pi2(psiB - phi);
-  const { b, c } = solveClosing(alpha, beta);
-  const span = intCosSin(alpha, b, c, 0, 1);
-  const scale = chord / (Math.hypot(span.x, span.y) || 1e-12);
-  return { alpha, b, c, scale, kEntry: b / scale, kExit: (b + 2 * c) / scale };
-}
-function partition(nodes, closed) {
-  const n2 = nodes.length;
-  const wrap = closed && n2 > 2;
-  const runs = [];
-  if (wrap) {
-    const corners = [];
-    for (let i = 0; i < n2; i++) if (isCorner(nodes[i])) corners.push(i);
-    if (corners.length === 0) {
-      runs.push({ idx: nodes.map((_, i) => i), wrap: true });
-      return runs;
-    }
-    const s = corners[0];
-    let cur = [s];
-    for (let k = 1; k <= n2; k++) {
-      const i = (s + k) % n2;
-      cur.push(i);
-      if (k < n2 && isCorner(nodes[i])) {
-        runs.push({ idx: cur, wrap: false });
-        cur = [i];
-      }
-    }
-    runs.push({ idx: cur, wrap: false });
-  } else {
-    let cur = [0];
-    for (let i = 1; i < n2; i++) {
-      cur.push(i);
-      if (i < n2 - 1 && isCorner(nodes[i])) {
-        runs.push({ idx: cur, wrap: false });
-        cur = [i];
-      }
-    }
-    runs.push({ idx: cur, wrap: false });
-  }
-  return runs;
-}
-function solveRun(pts, wrap) {
-  const m2 = pts.length;
-  const nSeg = wrap ? m2 : m2 - 1;
-  const rawPhi = new Array(nSeg);
-  const len2 = new Array(nSeg);
-  for (let i = 0; i < nSeg; i++) {
-    const a = pts[i], b = pts[(i + 1) % m2];
-    const dx = b.x - a.x, dy = b.y - a.y;
-    rawPhi[i] = Math.atan2(dy, dx);
-    len2[i] = Math.max(1e-9, Math.hypot(dx, dy));
-  }
-  const bend = new Array(m2).fill(0);
-  if (wrap) for (let j = 0; j < m2; j++) bend[j] = mod2pi2(rawPhi[j % nSeg] - rawPhi[(j - 1 + nSeg) % nSeg]);
-  else for (let j = 1; j < m2; j++) bend[j] = mod2pi2(rawPhi[j] - rawPhi[j - 1]);
-  const A = Array.from({ length: m2 }, () => new Array(m2).fill(0));
-  const r3 = new Array(m2).fill(0);
-  const add = (row, col, v) => {
-    A[row][(col % m2 + m2) % m2] += v;
-  };
-  const g2 = (j) => {
-    const lL = len2[((j - 1) % nSeg + nSeg) % nSeg], lR = len2[j % nSeg];
-    add(j, j - 1, 1 / lL);
-    add(j, j, 3 / lL + 3 / lR);
-    add(j, j + 1, 1 / lR);
-    r3[j] = -bend[((j - 1) % m2 + m2) % m2] / lL - 3 * bend[j % m2] / lR;
-  };
-  if (wrap) {
-    for (let j = 0; j < m2; j++) g2(j);
-  } else {
-    add(0, 0, 3);
-    add(0, 1, 1);
-    r3[0] = 0;
-    for (let j = 1; j < m2 - 1; j++) g2(j);
-    add(m2 - 1, m2 - 2, 1);
-    add(m2 - 1, m2 - 1, 3);
-    r3[m2 - 1] = -bend[m2 - 2];
-  }
-  const thetaSol = solveDense(A, r3);
-  const psi = new Array(m2);
-  for (let j = 0; j < m2; j++) {
-    const prev = wrap ? (j - 1 + nSeg) % nSeg : j === 0 ? 0 : j - 1;
-    psi[j] = rawPhi[prev] - thetaSol[j];
-  }
-  const residual = (p) => {
-    const seg = [];
-    for (let i = 0; i < nSeg; i++) seg.push(segClothoid(pts[i].x, pts[i].y, pts[(i + 1) % m2].x, pts[(i + 1) % m2].y, p[i], p[(i + 1) % m2]));
-    const res = new Array(m2).fill(0);
-    if (wrap) {
-      for (let j = 0; j < m2; j++) res[j] = seg[(j - 1 + nSeg) % nSeg].kExit - seg[j % nSeg].kEntry;
-    } else {
-      res[0] = seg[0].kEntry;
-      for (let j = 1; j < m2 - 1; j++) res[j] = seg[j - 1].kExit - seg[j].kEntry;
-      res[m2 - 1] = seg[m2 - 2].kExit;
-    }
-    return res;
-  };
-  const norm2 = (v) => Math.max(...v.map(Math.abs));
-  const EPS4 = 1e-6;
-  for (let it = 0; it < 8; it++) {
-    const r0 = residual(psi);
-    if (norm2(r0) < 1e-9) break;
-    const J = Array.from({ length: m2 }, () => new Array(m2).fill(0));
-    for (let k = 0; k < m2; k++) {
-      const save = psi[k];
-      psi[k] = save + EPS4;
-      const rk = residual(psi);
-      psi[k] = save;
-      for (let i = 0; i < m2; i++) J[i][k] = (rk[i] - r0[i]) / EPS4;
-    }
-    const rhs = r0.map((v) => -v);
-    const dpsi = solveDense(J, rhs);
-    let damp = 1;
-    for (const d of dpsi) if (Math.abs(d) > 0.6) damp = Math.min(damp, 0.6 / Math.abs(d));
-    let moved = false;
-    for (let k = 0; k < m2; k++) {
-      const d = damp * dpsi[k];
-      if (Number.isFinite(d)) {
-        psi[k] += d;
-        moved = true;
-      }
-    }
-    if (!moved) break;
-  }
-  return psi;
-}
-function solveDense(A, b) {
-  const n2 = b.length;
-  const M2 = A.map((row, i) => [...row, b[i]]);
-  for (let col = 0; col < n2; col++) {
-    let piv = col;
-    for (let row = col + 1; row < n2; row++) if (Math.abs(M2[row][col]) > Math.abs(M2[piv][col])) piv = row;
-    if (piv !== col) {
-      const t = M2[piv];
-      M2[piv] = M2[col];
-      M2[col] = t;
-    }
-    const d = M2[col][col];
-    if (Math.abs(d) < 1e-12) continue;
-    for (let row = 0; row < n2; row++) {
-      if (row === col) continue;
-      const f = M2[row][col] / d;
-      if (f === 0) continue;
-      for (let k = col; k <= n2; k++) M2[row][k] -= f * M2[col][k];
-    }
-  }
-  return M2.map((row, i) => Math.abs(M2[i][i]) < 1e-12 ? 0 : row[n2] / M2[i][i]);
-}
-function segToCubics(ax, ay, bx, by, psiA, psiB) {
-  const dx = bx - ax, dy = by - ay;
-  const chord = Math.hypot(dx, dy);
-  if (chord < 1e-12) return [];
-  const phi = Math.atan2(dy, dx);
-  const alpha = mod2pi2(psiA - phi);
-  const beta = mod2pi2(psiB - phi);
-  const { b, c } = solveClosing(alpha, beta);
-  const cosP = Math.cos(phi), sinP = Math.sin(phi);
-  const span = intCosSin(alpha, b, c, 0, 1);
-  const scale = chord / (Math.hypot(span.x, span.y) || 1e-12);
-  const pos = (u) => {
-    const d = intCosSin(alpha, b, c, 0, u);
-    const sx = scale * d.x, sy = scale * d.y;
-    return { x: ax + sx * cosP - sy * sinP, y: ay + sx * sinP + sy * cosP };
-  };
-  const tan = (u) => phi + theta(alpha, b, c, u);
-  const out = [];
-  const emit = (u0, u1, p0, p1, depth) => {
-    const dTurn = theta(alpha, b, c, u1) - theta(alpha, b, c, u0);
-    if (Math.abs(dTurn) > ARC_TOL && depth < 10) {
-      const um = 0.5 * (u0 + u1);
-      const pm = pos(um);
-      emit(u0, um, p0, pm, depth + 1);
-      emit(um, u1, pm, p1, depth + 1);
-      return;
-    }
-    const t0 = tan(u0), t1 = tan(u1);
-    const arm = Math.hypot(p1.x - p0.x, p1.y - p0.y) / 3;
-    out.push([
-      p0.x,
-      p0.y,
-      p0.x + arm * Math.cos(t0),
-      p0.y + arm * Math.sin(t0),
-      p1.x - arm * Math.cos(t1),
-      p1.y - arm * Math.sin(t1),
-      p1.x,
-      p1.y
-    ]);
-  };
-  emit(0, 1, { x: ax, y: ay }, { x: bx, y: by }, 0);
-  return out;
-}
-function solveTangents(nodes, closed) {
-  const n2 = nodes.length;
-  const psiOut = new Array(n2).fill(0);
-  const psiIn = new Array(n2).fill(0);
-  for (const run of partition(nodes, closed)) {
-    const m2 = run.idx.length;
-    if (m2 < 2) continue;
-    const pts = run.idx.map((i) => ({ x: nodes[i].x, y: nodes[i].y }));
-    const sol = solveRun(pts, run.wrap);
-    for (let j = 0; j < m2; j++) {
-      const i = run.idx[j];
-      if (run.wrap || j < m2 - 1) psiOut[i] = sol[j];
-      if (run.wrap || j > 0) psiIn[i] = sol[j];
-    }
-  }
-  return { psiOut, psiIn };
-}
-function spiroCubics(nodes, closed) {
-  const n2 = nodes.length;
-  if (n2 < 2) return [];
-  const wrap = closed && n2 > 2;
-  const nSeg = wrap ? n2 : n2 - 1;
-  const { psiOut, psiIn } = solveTangents(nodes, closed);
-  const out = [];
-  for (let i = 0; i < nSeg; i++) {
-    const a = nodes[i], b = nodes[(i + 1) % n2];
-    out.push(...segToCubics(a.x, a.y, b.x, b.y, psiOut[i], psiIn[(i + 1) % n2]));
-  }
-  return out;
-}
-var GL_X, GL_W, theta, isCorner, ARC_TOL;
-var init_spiro = __esm({
-  "engine/src/geom/spiro.ts"() {
-    "use strict";
-    GL_X = [
-      -0.4830766568773831,
-      -0.4183605950159868,
-      -0.3115468316959411,
-      -0.1738056351822426,
-      0.1738056351822426,
-      0.3115468316959411,
-      0.4183605950159868,
-      0.4830766568773831
-    ];
-    GL_W = [
-      0.05061426814518821,
-      0.11119051722668724,
-      0.15685332293894366,
-      0.18134189168918102,
-      0.18134189168918102,
-      0.15685332293894366,
-      0.11119051722668724,
-      0.05061426814518821
-    ];
-    theta = (a, b, c, u) => a + b * u + c * u * u;
-    isCorner = (n2) => (n2.continuity ?? "corner") === "corner";
-    ARC_TOL = 0.25;
-  }
-});
-
-// engine/src/geom/spline.ts
-function toCubics(path, warm) {
-  const n2 = path.nodes;
-  if (n2.length < 2) return [];
-  switch (path.kind) {
-    case "line":
-      return lineSegments(n2, path.closed);
-    case "cubic":
-      return cubicSegments(n2, path.closed);
-    case "catmull-rom":
-      return catmullRom(n2, path.closed, path.tension ?? 0.5);
-    case "bspline":
-      return bspline(n2, path.closed);
-    case "hyperbezier":
-      return hyperbezierCubics(n2, path.closed, solveHyperbezier(n2, path.closed, warm));
-    case "spiro":
-      return spiroCubics(n2, path.closed);
-    default:
-      throw new Error(`unknown spline kind: ${String(path.kind)}`);
-  }
-}
-function pairs(items, closed) {
-  const out = [];
-  for (let i = 0; i + 1 < items.length; i++) out.push([items[i], items[i + 1]]);
-  if (closed && items.length > 2) out.push([items[items.length - 1], items[0]]);
-  return out;
-}
-function lineSegments(n2, closed) {
-  return pairs(n2, closed).map(([a, b]) => lineToCubic(a.x, a.y, b.x, b.y));
-}
-function cubicSegments(n2, closed) {
-  return pairs(n2, closed).map(([a, b]) => {
-    const c1x = a.x + (a.hOutX ?? 0), c1y = a.y + (a.hOutY ?? 0);
-    const c2x = b.x + (b.hInX ?? 0), c2y = b.y + (b.hInY ?? 0);
-    return [a.x, a.y, c1x, c1y, c2x, c2y, b.x, b.y];
-  });
-}
-function catmullRom(n2, closed, alpha) {
-  const at = (i) => {
-    if (closed) return n2[(i % n2.length + n2.length) % n2.length];
-    return n2[Math.min(n2.length - 1, Math.max(0, i))];
-  };
-  const out = [];
-  const last = closed ? n2.length : n2.length - 1;
-  for (let i = 0; i < last; i++) {
-    const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
-    const d = (a, b) => Math.max(1e-9, Math.hypot(b.x - a.x, b.y - a.y) ** alpha);
-    const d1 = d(p0, p1), d2 = d(p1, p2), d3 = d(p2, p3);
-    const b1x = (d1 * d1 * p2.x - d2 * d2 * p0.x + (2 * d1 * d1 + 3 * d1 * d2 + d2 * d2) * p1.x) / (3 * d1 * (d1 + d2));
-    const b1y = (d1 * d1 * p2.y - d2 * d2 * p0.y + (2 * d1 * d1 + 3 * d1 * d2 + d2 * d2) * p1.y) / (3 * d1 * (d1 + d2));
-    const b2x = (d3 * d3 * p1.x - d2 * d2 * p3.x + (2 * d3 * d3 + 3 * d3 * d2 + d2 * d2) * p2.x) / (3 * d3 * (d3 + d2));
-    const b2y = (d3 * d3 * p1.y - d2 * d2 * p3.y + (2 * d3 * d3 + 3 * d3 * d2 + d2 * d2) * p2.y) / (3 * d3 * (d3 + d2));
-    out.push([p1.x, p1.y, b1x, b1y, b2x, b2y, p2.x, p2.y]);
-  }
-  return out;
-}
-function bspline(n2, closed) {
-  const at = (i) => {
-    if (closed) return n2[(i % n2.length + n2.length) % n2.length];
-    return n2[Math.min(n2.length - 1, Math.max(0, i))];
-  };
-  const out = [];
-  const last = closed ? n2.length : n2.length - 3;
-  for (let i = 0; i < last; i++) {
-    const p0 = at(i), p1 = at(i + 1), p2 = at(i + 2), p3 = at(i + 3);
-    const s = 1 / 6;
-    out.push([
-      s * (p0.x + 4 * p1.x + p2.x),
-      s * (p0.y + 4 * p1.y + p2.y),
-      s * (4 * p1.x + 2 * p2.x),
-      s * (4 * p1.y + 2 * p2.y),
-      s * (2 * p1.x + 4 * p2.x),
-      s * (2 * p1.y + 4 * p2.y),
-      s * (p1.x + 4 * p2.x + p3.x),
-      s * (p1.y + 4 * p2.y + p3.y)
-    ]);
-  }
-  return out;
-}
-function mod2pi3(th) {
-  const f = th * (0.5 / Math.PI);
-  return 2 * Math.PI * (f - Math.round(f));
-}
-function hbArm(tha, thb) {
-  const w = 2 * thb;
-  const c = Math.cos(tha - 0.3 * Math.sin(w - 0.4 * Math.sin(w)));
-  return c * (2 - c * c) / 3;
-}
-function hbCurve(th0, th1) {
-  const a0 = hbArm(th0, th1), a1 = hbArm(th1, th0);
-  const c0 = Math.cos(th0), s0 = Math.sin(th0);
-  const c1 = Math.cos(th1), s1 = Math.sin(th1);
-  const p1x = a0 * c0, p1y = a0 * s0;
-  const p2x = 1 - a1 * c1, p2y = a1 * s1;
-  const q0x = p2x - 2 * p1x, q0y = p2y - 2 * p1y;
-  const q1x = 1 - 2 * p2x + p1x, q1y = p1y - 2 * p2y;
-  const dot0 = 3 * a0, dot1 = 3 * a1;
-  const cross0 = 6 * (q0y * c0 - q0x * s0);
-  const cross1 = 6 * (q1y * c1 + q1x * s1);
-  return {
-    a0,
-    a1,
-    ak0: Math.atan2(cross0, dot0 * Math.abs(dot0)),
-    ak1: Math.atan2(cross1, dot1 * Math.abs(dot1)),
-    k0u: Math.abs(dot0) > 1e-9 ? cross0 / (dot0 * dot0) : 0,
-    k1u: Math.abs(dot1) > 1e-9 ? cross1 / (dot1 * dot1) : 0
-  };
-}
-function hbEndTangent(th) {
-  return 0.5 * Math.sin(2 * th);
-}
-function hbEndTangentD(th) {
-  return Math.cos(2 * th);
-}
-function hbSegState(ax, ay, bx, by, thA, thB) {
-  const dx = bx - ax, dy = by - ay;
-  const len2 = Math.hypot(dx, dy);
-  const chth = len2 > HB_MIN_CHORD ? Math.atan2(dy, dx) : 0;
-  const th0 = mod2pi3(thA - chth), th1 = mod2pi3(chth - thB);
-  const base = hbCurve(th0, th1);
-  const e = 1e-6, s = 0.5 / e;
-  const p0 = hbCurve(th0 + e, th1), m0 = hbCurve(th0 - e, th1);
-  const p1 = hbCurve(th0, th1 + e), m1 = hbCurve(th0, th1 - e);
-  return {
-    th0,
-    th1,
-    chord: Math.max(len2, HB_MIN_CHORD),
-    ak0: base.ak0,
-    ak1: base.ak1,
-    k0u: base.k0u,
-    k1u: base.k1u,
-    a0: base.a0,
-    a1: base.a1,
-    d00: s * (p0.ak0 - m0.ak0),
-    d10: s * (p0.ak1 - m0.ak1),
-    d01: s * (p1.ak0 - m1.ak0),
-    d11: s * (p1.ak1 - m1.ak1)
-  };
-}
-function hbJoin(prev, next) {
-  const p = Math.sqrt(prev.chord), q = Math.sqrt(next.chord);
-  const A = prev.ak1, B = next.ak0;
-  const sA = Math.sin(A), cA = Math.cos(A), sB = Math.sin(B), cB = Math.cos(B);
-  const r3 = Math.atan2(sA * q, cA * p) - Math.atan2(sB * p, cB * q);
-  const denA = q * q * sA * sA + p * p * cA * cA;
-  const denB = p * p * sB * sB + q * q * cB * cB;
-  const pq = p * q;
-  return {
-    r: mod2pi3(r3),
-    dA: denA > 0 ? pq / denA : 0,
-    dB: denB > 0 ? -pq / denB : 0
-  };
-}
-function hbSystem(pts, wrap, startTh, endTh, ths) {
-  const m2 = pts.length;
-  const nSeg = wrap ? m2 : m2 - 1;
-  const segs = [];
-  for (let i = 0; i < nSeg; i++) {
-    const p = pts[i], q = pts[(i + 1) % m2];
-    segs.push(hbSegState(p.x, p.y, q.x, q.y, ths[i], ths[(i + 1) % m2]));
-  }
-  const r3 = new Array(m2).fill(0);
-  const a = new Array(m2).fill(0);
-  const b = new Array(m2).fill(1);
-  const c = new Array(m2).fill(0);
-  const join18 = (k, prevIx, nextIx) => {
-    const prev = segs[prevIx], next = segs[nextIx];
-    const j = hbJoin(prev, next);
-    r3[k] = j.r;
-    a[k] = j.dA * prev.d10;
-    b[k] = j.dA * -prev.d11 + j.dB * next.d00;
-    c[k] = j.dB * -next.d01;
-  };
-  if (wrap) {
-    for (let k = 0; k < m2; k++) join18(k, (k - 1 + m2) % m2, k);
-    return { r: r3, a, b, c, segs };
-  }
-  for (let k = 1; k < m2 - 1; k++) join18(k, k - 1, k);
-  const first = segs[0];
-  if (startTh !== null) {
-    r3[0] = mod2pi3(ths[0] - startTh);
-    b[0] = 1;
-  } else {
-    r3[0] = mod2pi3(first.th0 - hbEndTangent(first.th1));
-    b[0] = 1;
-    c[0] = hbEndTangentD(first.th1);
-  }
-  const last = segs[nSeg - 1];
-  if (endTh !== null) {
-    r3[m2 - 1] = mod2pi3(ths[m2 - 1] - endTh);
-    b[m2 - 1] = 1;
-  } else {
-    r3[m2 - 1] = mod2pi3(last.th1 - hbEndTangent(last.th0));
-    b[m2 - 1] = -1;
-    a[m2 - 1] = -hbEndTangentD(last.th0);
-  }
-  return { r: r3, a, b, c, segs };
-}
-function hbThomas(a, b, c, d) {
-  const n2 = b.length;
-  const bb = b.slice(), dd = d.slice();
-  for (let i = 1; i < n2; i++) {
-    if (Math.abs(bb[i - 1]) < 1e-300) return null;
-    const w = a[i] / bb[i - 1];
-    bb[i] = bb[i] - w * c[i - 1];
-    dd[i] = dd[i] - w * dd[i - 1];
-  }
-  if (Math.abs(bb[n2 - 1]) < 1e-300) return null;
-  const x = new Array(n2).fill(0);
-  x[n2 - 1] = dd[n2 - 1] / bb[n2 - 1];
-  for (let i = n2 - 2; i >= 0; i--) x[i] = (dd[i] - c[i] * x[i + 1]) / bb[i];
-  for (const v of x) if (!Number.isFinite(v)) return null;
-  return x;
-}
-function hbCyclic(a, b, c, d) {
-  const n2 = b.length;
-  if (n2 < 3) return null;
-  const alpha = a[0], beta = c[n2 - 1];
-  const gamma = -b[0] || 1;
-  const bb = b.slice();
-  bb[0] = b[0] - gamma;
-  bb[n2 - 1] = b[n2 - 1] - alpha * beta / gamma;
-  const u = new Array(n2).fill(0);
-  u[0] = gamma;
-  u[n2 - 1] = beta;
-  const y = hbThomas(a, bb, c, d);
-  if (!y) return null;
-  const z = hbThomas(a, bb, c, u);
-  if (!z) return null;
-  const vy = y[0] + alpha / gamma * y[n2 - 1];
-  const vz = z[0] + alpha / gamma * z[n2 - 1];
-  const denom = 1 + vz;
-  if (!(Math.abs(denom) > 1e-300)) return null;
-  const f = vy / denom;
-  const x = new Array(n2).fill(0);
-  for (let i = 0; i < n2; i++) {
-    x[i] = y[i] - f * z[i];
-    if (!Number.isFinite(x[i])) return null;
-  }
-  return x;
-}
-function hbMaxAbs(v) {
-  let m2 = 0;
-  for (const x of v) {
-    const a = Math.abs(x);
-    if (!(a === a)) return Number.POSITIVE_INFINITY;
-    if (a > m2) m2 = a;
-  }
-  return m2;
-}
-function hbNorm2(v) {
-  let s = 0;
-  for (const x of v) s += x * x;
-  return Number.isFinite(s) ? Math.sqrt(s) : Number.POSITIVE_INFINITY;
-}
-function hbInitialThs(pts, wrap, startTh, endTh) {
-  const m2 = pts.length;
-  const ths = new Array(m2).fill(0);
-  const chordTh = (i) => {
-    const p = pts[i], q = pts[(i + 1) % m2];
-    return Math.atan2(q.y - p.y, q.x - p.x);
-  };
-  const at = (i) => {
-    const h = pts[(i - 1 + m2) % m2], p = pts[i], q = pts[(i + 1) % m2];
-    const l0 = Math.hypot(p.x - h.x, p.y - h.y);
-    const l1 = Math.hypot(q.x - p.x, q.y - p.y);
-    const t0 = Math.atan2(p.y - h.y, p.x - h.x);
-    const t1 = Math.atan2(q.y - p.y, q.x - p.x);
-    if (!(l0 + l1 > 0)) return t1;
-    return mod2pi3(t0 + mod2pi3(t1 - t0) * (l0 / (l0 + l1)));
-  };
-  if (wrap) {
-    for (let i = 0; i < m2; i++) ths[i] = at(i);
-  } else {
-    ths[0] = chordTh(0);
-    ths[m2 - 1] = chordTh(m2 - 2);
-    for (let i = 1; i < m2 - 1; i++) ths[i] = at(i);
-  }
-  if (startTh !== null) ths[0] = startTh;
-  if (endTh !== null) ths[m2 - 1] = endTh;
-  return ths;
-}
-function hbSolveRun(pts, wrap, startTh, endTh, warm) {
-  const m2 = pts.length;
-  const chordTh0 = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
-  if (!wrap && m2 === 2 && startTh === null && endTh === null) {
-    return { ths: [chordTh0, chordTh0], converged: true, residual: 0, iterations: 0 };
-  }
-  let ths;
-  if (warm && warm.length === m2 && warm.every((v) => Number.isFinite(v))) {
-    ths = warm.slice();
-    if (startTh !== null) ths[0] = startTh;
-    if (endTh !== null) ths[m2 - 1] = endTh;
-  } else {
-    ths = hbInitialThs(pts, wrap, startTh, endTh);
-  }
-  let sys = hbSystem(pts, wrap, startTh, endTh, ths);
-  let worst = hbMaxAbs(sys.r);
-  let merit = hbNorm2(sys.r);
-  let iter = 0;
-  for (; iter < HB_MAX_ITER && worst > HB_TOL; iter++) {
-    const d = sys.r.map((v) => -v);
-    const newton = wrap ? hbCyclic(sys.a, sys.b, sys.c, d) : hbThomas(sys.a, sys.b, sys.c, d);
-    const diagonal2 = () => sys.b.map((bk, k) => Math.abs(bk) > 1e-12 ? 0.5 * (d[k] / bk) : 0);
-    let took = false;
-    for (const step of newton ? [newton, diagonal2()] : [diagonal2()]) {
-      if (!step.every((v) => Number.isFinite(v))) continue;
-      for (let k = 0; k < m2; k++) {
-        const v = step[k];
-        step[k] = v > HB_MAX_STEP ? HB_MAX_STEP : v < -HB_MAX_STEP ? -HB_MAX_STEP : v;
-      }
-      let f = 1;
-      for (let t = 0; t < HB_BACKTRACK; t++) {
-        const cand = ths.map((v, k) => v + f * step[k]);
-        const cs = hbSystem(pts, wrap, startTh, endTh, cand);
-        const cm = hbNorm2(cs.r);
-        if (cm < merit) {
-          ths = cand;
-          sys = cs;
-          merit = cm;
-          worst = hbMaxAbs(cs.r);
-          took = true;
-          break;
-        }
-        f *= 0.5;
-      }
-      if (took) break;
-    }
-    if (!took) break;
-  }
-  return { ths, converged: worst <= HB_TOL, residual: worst, iterations: iter };
-}
-function hbPin(node) {
-  const corner = (node.continuity ?? "smooth") === "corner";
-  const hix = node.hInX ?? 0, hiy = node.hInY ?? 0;
-  const hox = node.hOutX ?? 0, hoy = node.hOutY ?? 0;
-  let pin = Math.hypot(hix, hiy) > 1e-12 ? mod2pi3(Math.atan2(-hiy, -hix)) : null;
-  let pout = Math.hypot(hox, hoy) > 1e-12 ? mod2pi3(Math.atan2(hoy, hox)) : null;
-  if (!corner) {
-    if (pin === null) pin = pout;
-    if (pout === null) pout = pin;
-  }
-  return { in: pin, out: pout, corner };
-}
-function hbIsBreak(p) {
-  return p.corner || p.in !== null || p.out !== null;
-}
-function solveHyperbezier(nodes, closed, warm) {
-  const n2 = nodes.length;
-  const rth = new Array(n2).fill(0);
-  const lth = new Array(n2).fill(0);
-  const kBlend = new Array(n2).fill(null);
-  const empty2 = { rth, lth, kBlend, converged: true, residual: 0, iterations: 0, reversals: 0 };
-  if (n2 < 2) return empty2;
-  const wrap = closed && n2 > 2;
-  const nSeg = wrap ? n2 : n2 - 1;
-  const pins = nodes.map(hbPin);
-  const breaks = [];
-  for (let i = 0; i < n2; i++) if (hbIsBreak(pins[i])) breaks.push(i);
-  const runs = [];
-  if (wrap && breaks.length === 0) {
-    runs.push({ idx: nodes.map((_, i) => i), wrap: true });
-  } else if (wrap) {
-    const s = breaks[0];
-    let cur = [s];
-    for (let k = 1; k <= n2; k++) {
-      const i = (s + k) % n2;
-      cur.push(i);
-      if (k < n2 && hbIsBreak(pins[i])) {
-        runs.push({ idx: cur, wrap: false });
-        cur = [i];
-      }
-    }
-    runs.push({ idx: cur, wrap: false });
-  } else {
-    let cur = [0];
-    for (let i = 1; i < n2; i++) {
-      cur.push(i);
-      if (i < n2 - 1 && hbIsBreak(pins[i])) {
-        runs.push({ idx: cur, wrap: false });
-        cur = [i];
-      }
-    }
-    runs.push({ idx: cur, wrap: false });
-  }
-  let converged = true;
-  let residual = 0;
-  let iterations = 0;
-  for (const run of runs) {
-    const idx = run.idx;
-    const m2 = idx.length;
-    if (m2 < 2) continue;
-    const pts = idx.map((i) => ({ x: nodes[i].x, y: nodes[i].y }));
-    const startTh = run.wrap ? null : pins[idx[0]].out;
-    const endTh = run.wrap ? null : pins[idx[m2 - 1]].in;
-    let warmRun = null;
-    if (warm && warm.rth.length === n2 && warm.lth.length === n2) {
-      warmRun = idx.map((i, j) => run.wrap || j < m2 - 1 ? warm.rth[i] : warm.lth[i]);
-    }
-    const res = hbSolveRun(pts, run.wrap, startTh, endTh, warmRun);
-    if (!res.converged) converged = false;
-    if (res.residual > residual) residual = res.residual;
-    iterations += res.iterations;
-    for (let j = 0; j < m2; j++) {
-      const i = idx[j];
-      if (run.wrap || j < m2 - 1) rth[i] = res.ths[j];
-      if (run.wrap || j > 0) lth[i] = res.ths[j];
-    }
-  }
-  if (!wrap) {
-    lth[0] = pins[0].in ?? rth[0];
-    rth[n2 - 1] = pins[n2 - 1].out ?? lth[n2 - 1];
-  }
-  const segs = [];
-  let reversals = 0;
-  for (let i = 0; i < nSeg; i++) {
-    const a = nodes[i], b = nodes[(i + 1) % n2];
-    const st = hbSegState(a.x, a.y, b.x, b.y, rth[i], lth[(i + 1) % n2]);
-    if (st.a0 < 0) reversals++;
-    if (st.a1 < 0) reversals++;
-    segs.push(st);
-  }
-  for (let i = 0; i < n2; i++) {
-    const p = pins[i];
-    if (p.corner || !hbIsBreak(p)) continue;
-    const prev = wrap ? segs[(i - 1 + n2) % n2] : i > 0 ? segs[i - 1] : void 0;
-    const next = wrap ? segs[i] : i < n2 - 1 ? segs[i] : void 0;
-    if (!prev || !next) continue;
-    const rK = next.k0u / next.chord;
-    const lK = prev.k1u / prev.chord;
-    if (!Number.isFinite(rK) || !Number.isFinite(lK)) continue;
-    if (Math.sign(rK) !== Math.sign(lK)) {
-      kBlend[i] = 0;
-      continue;
-    }
-    const h = 2 / (1 / rK + 1 / lK);
-    kBlend[i] = Number.isFinite(h) ? h : 0;
-  }
-  return { rth, lth, kBlend, converged, residual, iterations, reversals };
-}
-function hbBlendArm(arm, oldK, kTarget) {
-  let k = oldK;
-  if (!Number.isFinite(k) || Math.abs(k) < 1e-6) k = 1e-6;
-  const ratio = kTarget / k;
-  if (!Number.isFinite(ratio)) return arm;
-  const raw = 1 / (2 + ratio);
-  const scale = raw > 2 / 3 ? 2 / 3 : raw < 1 / 12 ? 1 / 12 : raw;
-  return 3 * arm * scale;
-}
-function hyperbezierCubics(nodes, closed, solution) {
-  const n2 = nodes.length;
-  if (n2 < 2) return [];
-  const wrap = closed && n2 > 2;
-  const nSeg = wrap ? n2 : n2 - 1;
-  const out = [];
-  for (let i = 0; i < nSeg; i++) {
-    const a = nodes[i], b = nodes[(i + 1) % n2];
-    const dx = b.x - a.x, dy = b.y - a.y;
-    const chord = Math.hypot(dx, dy);
-    if (!(chord > HB_MIN_CHORD)) {
-      out.push([a.x, a.y, a.x, a.y, b.x, b.y, b.x, b.y]);
-      continue;
-    }
-    const chth = Math.atan2(dy, dx);
-    const th0 = mod2pi3((solution.rth[i] ?? chth) - chth);
-    const th1 = mod2pi3(chth - (solution.lth[(i + 1) % n2] ?? chth));
-    const cur = hbCurve(th0, th1);
-    let arm0 = cur.a0, arm1 = cur.a1;
-    const kb0 = solution.kBlend[i] ?? null;
-    const kb1 = solution.kBlend[(i + 1) % n2] ?? null;
-    if (kb0 !== null) arm0 = hbBlendArm(cur.a0, cur.k0u, kb0 * chord);
-    if (kb1 !== null) arm1 = hbBlendArm(cur.a1, cur.k1u, kb1 * chord);
-    const ux1 = arm0 * Math.cos(th0), uy1 = arm0 * Math.sin(th0);
-    const ux2 = 1 - arm1 * Math.cos(th1), uy2 = arm1 * Math.sin(th1);
-    out.push([
-      a.x,
-      a.y,
-      a.x + dx * ux1 - dy * uy1,
-      a.y + dy * ux1 + dx * uy1,
-      a.x + dx * ux2 - dy * uy2,
-      a.y + dy * ux2 + dx * uy2,
-      b.x,
-      b.y
-    ]);
-  }
-  return out;
-}
-function enforceContinuity(node, moved) {
-  const c = node.continuity ?? "corner";
-  if (c === "corner") return node;
-  const [mx, my] = moved === "in" ? [node.hInX ?? 0, node.hInY ?? 0] : [node.hOutX ?? 0, node.hOutY ?? 0];
-  const len2 = Math.hypot(mx, my);
-  if (len2 < 1e-12) return node;
-  const otherLen = moved === "in" ? Math.hypot(node.hOutX ?? 0, node.hOutY ?? 0) : Math.hypot(node.hInX ?? 0, node.hInY ?? 0);
-  const k = (c === "symmetric" ? len2 : otherLen) / len2;
-  const ox = -mx * k, oy = -my * k;
-  return moved === "in" ? { ...node, hOutX: ox, hOutY: oy } : { ...node, hInX: ox, hInY: oy };
-}
-var HB_MIN_CHORD, HB_TOL, HB_MAX_ITER, HB_MAX_STEP, HB_BACKTRACK;
-var init_spline = __esm({
-  "engine/src/geom/spline.ts"() {
-    "use strict";
-    init_bezier();
-    init_spiro();
-    HB_MIN_CHORD = 1e-12;
-    HB_TOL = 1e-10;
-    HB_MAX_ITER = 24;
-    HB_MAX_STEP = 1;
-    HB_BACKTRACK = 6;
-  }
-});
-
-// engine/src/geom/authored-url.ts
-function numOut(v) {
-  const r3 = Number(v.toFixed(DECIMALS));
-  let s = Object.is(r3, -0) ? "0" : String(r3);
-  if (s.includes("e") || s.includes("E")) s = r3.toFixed(DECIMALS);
-  if (s.startsWith("0.")) return s.slice(1);
-  if (s.startsWith("-0.")) return `-${s.slice(2)}`;
-  return s;
-}
-function handleOut(v) {
-  if (typeof v !== "number" || !Number.isFinite(v)) return "";
-  const r3 = Number(v.toFixed(DECIMALS));
-  return r3 === 0 ? "" : numOut(r3);
-}
-function numIn(s) {
-  if (s === void 0 || s === "") return void 0;
-  if (!/^-?(\d+(\.\d+)?|\.\d+)$/.test(s)) return null;
-  const v = Number(s);
-  return Number.isFinite(v) ? v : null;
-}
-function encodeAuthoredPath(path) {
-  if (!path || typeof path !== "object") throw new Error("authored-url: expected an authored path");
-  const kind = String(path.kind ?? "");
-  if (!KIND_RE.test(kind)) throw new Error(`authored-url: unusable spline kind "${kind}"`);
-  const nodes = Array.isArray(path.nodes) ? path.nodes : [];
-  if (nodes.length > MAX_NODES) throw new Error(`authored-url: ${nodes.length} nodes (limit ${MAX_NODES})`);
-  const header = [VERSION, kind, path.closed ? "1" : "0"];
-  if (typeof path.tension === "number" && Number.isFinite(path.tension)) header.push(numOut(path.tension));
-  const recs = [header.join(FLD)];
-  for (const n2 of nodes) {
-    for (const v of [n2.x, n2.y]) {
-      if (typeof v !== "number" || !Number.isFinite(v)) {
-        throw new Error("authored-url: node coordinates must be finite numbers");
-      }
-    }
-    const fields = [numOut(n2.x), numOut(n2.y)];
-    const hs = [n2.hInX, n2.hInY, n2.hOutX, n2.hOutY].map(handleOut);
-    const cont = n2.continuity ? CONT_OUT[n2.continuity] : "";
-    if (hs.some((s) => s !== "") || cont) fields.push(...hs);
-    if (cont) fields.push(cont);
-    while (fields.length > 2 && fields[fields.length - 1] === "") fields.pop();
-    recs.push(fields.join(FLD));
-  }
-  return recs.join(REC);
-}
-function encodeAuthoredPaths(paths) {
-  if (!Array.isArray(paths) || !paths.length) {
-    throw new Error("authored-url: expected at least one authored path");
-  }
-  let total = 0;
-  for (const p of paths) total += Array.isArray(p?.nodes) ? p.nodes.length : 0;
-  if (total > MAX_NODES) throw new Error(`authored-url: ${total} nodes across the value (limit ${MAX_NODES})`);
-  return paths.map(encodeAuthoredPath).join(PTH);
-}
-function decodeAuthoredPathsResult(value) {
-  if (typeof value !== "string") return "malformed";
-  const s = value.trim();
-  if (!s) return "malformed";
-  if (s.length > MAX_CHARS) return "too-complex";
-  const out = [];
-  let total = 0;
-  for (const part of s.split(PTH)) {
-    const one = decodeOne(part);
-    if (typeof one === "string") return one;
-    total += one.nodes.length;
-    if (total > MAX_NODES) return "too-complex";
-    out.push(one);
-  }
-  return out;
-}
-function decodeAuthoredPaths(value) {
-  const r3 = decodeAuthoredPathsResult(value);
-  return typeof r3 === "string" ? null : r3;
-}
-function decodeAuthoredPath(value) {
-  const r3 = decodeAuthoredPaths(value);
-  return r3 && r3.length === 1 ? r3[0] : null;
-}
-function decodeOne(value) {
-  const s = value;
-  if (!s) return "malformed";
-  const recs = s.split(REC);
-  const header = recs[0].split(FLD);
-  if (header[0] !== VERSION) return "malformed";
-  const kind = header[1] ?? "";
-  if (!KIND_RE.test(kind)) return "malformed";
-  const closed = header[2] === "1";
-  let tension;
-  if (header.length > 3) {
-    const t = numIn(header[3]);
-    if (t === null) return "malformed";
-    tension = t;
-  }
-  if (recs.length - 1 > MAX_NODES) return "too-complex";
-  const nodes = [];
-  for (let i = 1; i < recs.length; i++) {
-    const f = recs[i].split(FLD);
-    const x = numIn(f[0]);
-    const y = numIn(f[1]);
-    if (x === null || y === null || x === void 0 || y === void 0) return "malformed";
-    const node = { x, y };
-    const keys = ["hInX", "hInY", "hOutX", "hOutY"];
-    for (let k = 0; k < keys.length; k++) {
-      const v = numIn(f[2 + k]);
-      if (v === null) return "malformed";
-      if (v !== void 0) node[keys[k]] = v;
-    }
-    const c = f[6];
-    if (c !== void 0 && c !== "") {
-      const cont = CONT_IN[c];
-      if (!cont) return "malformed";
-      node.continuity = cont;
-    }
-    if (f.length > 7) return "malformed";
-    nodes.push(node);
-  }
-  if (!nodes.length) return "malformed";
-  return { kind, nodes, closed, ...tension !== void 0 ? { tension } : {} };
-}
-var REC, FLD, PTH, VERSION, DECIMALS, MAX_CHARS, MAX_NODES, KIND_RE, CONT_OUT, CONT_IN;
-var init_authored_url = __esm({
-  "engine/src/geom/authored-url.ts"() {
-    "use strict";
-    REC = "_";
-    FLD = "!";
-    PTH = "*";
-    VERSION = "1";
-    DECIMALS = 6;
-    MAX_CHARS = 4e5;
-    MAX_NODES = 2e4;
-    KIND_RE = /^[a-z][a-z0-9-]*$/;
-    CONT_OUT = { corner: "c", smooth: "s", symmetric: "y" };
-    CONT_IN = { c: "corner", s: "smooth", y: "symmetric" };
-  }
-});
-
-// engine/src/geom-api.ts
-function fail2(code, message) {
-  return { ok: false, code, message };
-}
-function isFail(v) {
-  return typeof v === "object" && v !== null && v.ok === false;
-}
-function ok2(value) {
-  return { ok: true, value };
-}
-function pathOut(p, decimals) {
-  const dp = usableDecimals(decimals);
-  let curves = 0;
-  for (const c of p) curves += c.curves.length;
-  for (const c of p) {
-    for (const k of c.curves) {
-      for (const v of k) {
-        if (!Number.isFinite(v)) return fail2("internal", "geom: operation produced a non-finite coordinate");
-      }
-    }
-  }
-  return { ok: true, d: toSvgPathData(p, dp), contours: p.length, curves };
-}
-function usableDecimals(dp) {
-  if (typeof dp !== "number" || !Number.isFinite(dp)) return 4;
-  return Math.max(0, Math.min(12, Math.round(dp)));
-}
-function attempt(run) {
-  try {
-    return run();
-  } catch (e) {
-    if (e instanceof GeomLimitError) return fail2("limit", e.message);
-    const msg2 = e instanceof Error ? e.message : String(e);
-    if (/unknown spline kind/i.test(msg2)) return fail2("invalid-argument", `geom: ${msg2}`);
-    if (/not implemented/i.test(msg2)) return fail2("unsupported", `geom: ${msg2}`);
-    return fail2("internal", `geom: ${msg2}`);
-  }
-}
-function validatePathData(d) {
-  if (d.length > MAX_CHARS2) {
-    return fail2("too-large", `geom: path data is ${d.length} chars (limit ${MAX_CHARS2})`);
-  }
-  let i = 0;
-  let commands = 0;
-  let curves = 0;
-  const skipSep = () => {
-    SEP_RE.lastIndex = i;
-    SEP_RE.exec(d);
-    i = SEP_RE.lastIndex;
-  };
-  const number = () => {
-    skipSep();
-    NUM_RE.lastIndex = i;
-    const m2 = NUM_RE.exec(d);
-    if (!m2) return null;
-    const v = Number(m2[0]);
-    if (!Number.isFinite(v)) return fail2("invalid-path", `geom: non-finite number "${m2[0]}" at offset ${i}`);
-    if (Math.abs(v) > MAX_COORD) {
-      return fail2("invalid-path", `geom: coordinate ${m2[0]} exceeds \xB1${MAX_COORD} at offset ${i}`);
-    }
-    i = NUM_RE.lastIndex;
-    return v;
-  };
-  const flag = () => {
-    skipSep();
-    FLAG_RE.lastIndex = i;
-    const m2 = FLAG_RE.exec(d);
-    if (!m2) return null;
-    i = FLAG_RE.lastIndex;
-    return Number(m2[0]);
-  };
-  skipSep();
-  if (i >= d.length) return { commands: 0 };
-  if (d[i] !== "M" && d[i] !== "m") {
-    return fail2("invalid-path", "geom: path data must begin with a moveto (M or m)");
-  }
-  while (i < d.length) {
-    const letter = d[i];
-    const C = letter.toUpperCase();
-    const arity = ARITY[C];
-    if (arity === void 0) {
-      return fail2("invalid-path", `geom: unknown path command "${letter}" at offset ${i}`);
-    }
-    i++;
-    commands++;
-    if (commands > MAX_COMMANDS) {
-      return fail2("too-large", `geom: over ${MAX_COMMANDS} path commands`);
-    }
-    if (C === "Z") {
-      skipSep();
-      continue;
-    }
-    let groups = 0;
-    for (; ; ) {
-      skipSep();
-      if (i >= d.length) break;
-      if (!NUM_START.test(d[i])) break;
-      for (let a = 0; a < arity; a++) {
-        const isFlag = C === "A" && (a === 3 || a === 4);
-        const v = isFlag ? flag() : number();
-        if (isFail(v)) return v;
-        if (v === null) {
-          return fail2("invalid-path", `geom: "${letter}" has an incomplete argument group at offset ${i}`);
-        }
-      }
-      groups++;
-      curves += CURVES_PER_GROUP[C] ?? 1;
-      if (curves > MAX_CURVES2) {
-        return fail2("too-large", `geom: over ${MAX_CURVES2} curves after normalisation`);
-      }
-    }
-    if (groups === 0) {
-      return fail2("invalid-path", `geom: "${letter}" has no arguments at offset ${i}`);
-    }
-    skipSep();
-  }
-  return { commands };
-}
-function parsePath(d) {
-  if (typeof d !== "string") return fail2("invalid-argument", "geom: path data must be a string");
-  const v = validatePathData(d);
-  if (isFail(v)) return v;
-  if (v.commands === 0) return [];
-  const path = pathFromSubPaths(parseSvgPath(d));
-  let curves = 0;
-  for (const c of path) curves += c.curves.length;
-  if (curves > MAX_CURVES2) {
-    return fail2("too-large", `geom: ${curves} curves after normalisation (limit ${MAX_CURVES2})`);
-  }
-  for (const c of path) {
-    for (const k of c.curves) {
-      for (const n2 of k) {
-        if (!Number.isFinite(n2)) return fail2("invalid-path", "geom: path data yields a non-finite coordinate");
-      }
-    }
-  }
-  return path;
-}
-function parsePaths(ds) {
-  if (!Array.isArray(ds)) return fail2("invalid-argument", "geom: expected an array of path-data strings");
-  if (ds.length === 0) return fail2("invalid-argument", "geom: no paths given");
-  if (ds.length > MAX_PATHS) {
-    return fail2("too-large", `geom: ${ds.length} operands (limit ${MAX_PATHS})`);
-  }
-  const out = [];
-  for (const d of ds) {
-    const p = parsePath(d);
-    if (isFail(p)) return p;
-    out.push(p);
-  }
-  return out;
-}
-function booleanOpts(o) {
-  const out = {};
-  if (typeof o?.tolerance === "number") out.tol = o.tolerance;
-  if (o?.fillRule) out.fillRule = o.fillRule;
-  return out;
-}
-function offsetOpts(o) {
-  const out = {};
-  if (o?.join) out.join = o.join;
-  if (typeof o?.miterLimit === "number") out.miterLimit = o.miterLimit;
-  if (typeof o?.tolerance === "number") out.tol = o.tolerance;
-  return out;
-}
-function checkEnums(o) {
-  if (o?.join && !["miter", "round", "bevel"].includes(o.join)) {
-    return fail2("invalid-argument", `geom: unknown join style "${String(o.join)}"`);
-  }
-  if (o?.cap && !["butt", "round", "square"].includes(o.cap)) {
-    return fail2("invalid-argument", `geom: unknown cap style "${String(o.cap)}"`);
-  }
-  if (o?.fillRule && o.fillRule !== "nonzero" && o.fillRule !== "evenodd") {
-    return fail2("invalid-argument", `geom: unknown fill rule "${String(o.fillRule)}"`);
-  }
-  for (const [k, v] of [["tolerance", o?.tolerance], ["miterLimit", o?.miterLimit]]) {
-    if (v !== void 0 && (typeof v !== "number" || !Number.isFinite(v) || v <= 0)) {
-      return fail2("invalid-argument", `geom: ${k} must be a finite positive number`);
-    }
-  }
-  return null;
-}
-function fold(paths, op, o) {
-  let acc = selfUnion(paths[0], o);
-  for (let i = 1; i < paths.length; i++) acc = op(acc, paths[i], o);
-  return acc;
-}
-function contoursOut(p) {
-  return p.map((c) => ({ curves: c.curves.map((k) => [...k]), closed: c.closed }));
-}
-function contoursIn(input) {
-  if (!Array.isArray(input)) return fail2("invalid-argument", "geom: expected an array of contours");
-  const out = [];
-  let total = 0;
-  for (const c of input) {
-    const curves = c?.curves;
-    if (!Array.isArray(curves)) return fail2("invalid-argument", "geom: each contour needs a `curves` array");
-    total += curves.length;
-    if (total > MAX_CURVES2) return fail2("too-large", `geom: over ${MAX_CURVES2} curves`);
-    const built = [];
-    for (const k of curves) {
-      if (!Array.isArray(k) || k.length !== 8) {
-        return fail2("invalid-argument", "geom: each curve must be 8 numbers [x0,y0,x1,y1,x2,y2,x3,y3]");
-      }
-      for (const n2 of k) {
-        if (typeof n2 !== "number" || !Number.isFinite(n2) || Math.abs(n2) > MAX_COORD) {
-          return fail2("invalid-argument", `geom: curve coordinate ${String(n2)} is not a usable number`);
-        }
-      }
-      built.push([...k]);
-    }
-    out.push({ curves: built, closed: c.closed === true });
-  }
-  return out;
-}
-function nodeIn(n2) {
-  const o = n2;
-  if (!o || typeof o !== "object") return fail2("invalid-argument", "geom: node must be an object");
-  for (const key of ["x", "y", "hInX", "hInY", "hOutX", "hOutY"]) {
-    const v = o[key];
-    if (v === void 0) {
-      if (key === "x" || key === "y") return fail2("invalid-argument", `geom: node.${key} is required`);
-      continue;
-    }
-    if (typeof v !== "number" || !Number.isFinite(v) || Math.abs(v) > MAX_COORD) {
-      return fail2("invalid-argument", `geom: node.${key} is not a usable number`);
-    }
-  }
-  if (o.continuity !== void 0 && !CONTINUITIES.includes(o.continuity)) {
-    return fail2("invalid-argument", `geom: unknown continuity "${String(o.continuity)}"`);
-  }
-  return o;
-}
-function makeGeomApi() {
-  const boolOp = (ds, op, opts) => {
-    const bad = checkEnums(opts);
-    if (bad) return bad;
-    const paths = parsePaths(ds);
-    if (isFail(paths)) return paths;
-    return attempt(() => pathOut(fold(paths, op, booleanOpts(opts)), opts?.decimals));
-  };
-  return {
-    union: (paths, opts) => boolOp(paths, (a, b, o) => unionPath(a, b, o), opts),
-    intersect: (paths, opts) => boolOp(paths, (a, b, o) => intersectPath(a, b, o), opts),
-    difference: (paths, opts) => boolOp(paths, (a, b, o) => differencePath(a, b, o), opts),
-    xor: (paths, opts) => boolOp(paths, (a, b, o) => xorPath(a, b, o), opts),
-    selfUnion: (d, opts) => {
-      const bad = checkEnums(opts);
-      if (bad) return bad;
-      const p = parsePath(d);
-      if (isFail(p)) return p;
-      return attempt(() => pathOut(selfUnion(p, booleanOpts(opts)), opts?.decimals));
-    },
-    offset: (d, distance, opts) => {
-      const bad = checkEnums(opts);
-      if (bad) return bad;
-      if (typeof distance !== "number" || !Number.isFinite(distance)) {
-        return fail2("invalid-argument", "geom: offset distance must be a finite number");
-      }
-      if (Math.abs(distance) > MAX_COORD) {
-        return fail2("invalid-argument", `geom: offset distance exceeds \xB1${MAX_COORD}`);
-      }
-      const p = parsePath(d);
-      if (isFail(p)) return p;
-      return attempt(() => pathOut(offsetPath(p, distance, offsetOpts(opts)), opts?.decimals));
-    },
-    stroke: (d, width, opts) => {
-      const bad = checkEnums(opts);
-      if (bad) return bad;
-      if (typeof width !== "number" || !Number.isFinite(width) || width <= 0) {
-        return fail2("invalid-argument", "geom: stroke width must be a finite positive number");
-      }
-      if (width > MAX_COORD) return fail2("invalid-argument", `geom: stroke width exceeds ${MAX_COORD}`);
-      const p = parsePath(d);
-      if (isFail(p)) return p;
-      return attempt(() => pathOut(strokeToPath(p, width, {
-        ...offsetOpts(opts),
-        ...opts?.cap ? { cap: opts.cap } : {}
-      }), opts?.decimals));
-    },
-    simplify: (d, opts) => {
-      const tol = opts?.tolerance;
-      if (tol !== void 0 && (typeof tol !== "number" || !Number.isFinite(tol) || tol <= 0)) {
-        return fail2("invalid-argument", "geom: tolerance must be a finite positive number");
-      }
-      const p = parsePath(d);
-      if (isFail(p)) return p;
-      return attempt(() => pathOut(
-        p.map((c) => ({ curves: simplifyCubics(c.curves, tol), closed: c.closed }))
-      ));
-    },
-    fromNodes: (path) => {
-      const src = path;
-      if (!src || typeof src !== "object") return fail2("invalid-argument", "geom: expected an authored path");
-      if (typeof src.kind !== "string" || !src.kind) {
-        return fail2("invalid-argument", "geom: authored path needs a `kind` string");
-      }
-      if (!Array.isArray(src.nodes)) return fail2("invalid-argument", "geom: authored path needs a `nodes` array");
-      if (src.nodes.length > MAX_NODES2) {
-        return fail2("too-large", `geom: ${src.nodes.length} nodes (limit ${MAX_NODES2})`);
-      }
-      if (src.tension !== void 0 && (typeof src.tension !== "number" || !Number.isFinite(src.tension))) {
-        return fail2("invalid-argument", "geom: tension must be a finite number");
-      }
-      const nodes = [];
-      for (const n2 of src.nodes) {
-        const v = nodeIn(n2);
-        if (isFail(v)) return v;
-        nodes.push(v);
-      }
-      const authored = {
-        kind: src.kind,
-        nodes,
-        closed: src.closed === true,
-        ...src.tension !== void 0 ? { tension: src.tension } : {}
-      };
-      return attempt(() => {
-        const curves = toCubics(authored);
-        return pathOut(curves.length ? [{ curves, closed: authored.closed }] : [], src.decimals);
-      });
-    },
-    encodeAuthored: (path) => {
-      const list2 = Array.isArray(path) ? path : [path];
-      if (!list2.length) return fail2("invalid-argument", "geom: expected at least one authored path");
-      const built = [];
-      let total = 0;
-      for (const entry of list2) {
-        const src = entry;
-        if (!src || typeof src !== "object") return fail2("invalid-argument", "geom: expected an authored path");
-        if (!Array.isArray(src.nodes) || !src.nodes.length) {
-          return fail2("invalid-argument", "geom: authored path needs at least one node");
-        }
-        total += src.nodes.length;
-        if (total > MAX_NODES2) return fail2("too-large", `geom: ${total} nodes (limit ${MAX_NODES2})`);
-        const nodes = [];
-        for (const n2 of src.nodes) {
-          const v = nodeIn(n2);
-          if (isFail(v)) return v;
-          nodes.push(v);
-        }
-        built.push({
-          kind: String(src.kind ?? ""),
-          nodes,
-          closed: src.closed === true,
-          ...src.tension !== void 0 ? { tension: src.tension } : {}
-        });
-      }
-      try {
-        return ok2(encodeAuthoredPaths(built));
-      } catch (e) {
-        return fail2("invalid-argument", `geom: ${e instanceof Error ? e.message : String(e)}`);
-      }
-    },
-    decodeAuthored: (value) => {
-      if (typeof value !== "string") return fail2("invalid-argument", "geom: expected an encoded authored path");
-      const r3 = decodeAuthoredPathsResult(value);
-      if (r3 === "too-complex") return fail2("too-large", `geom: encoded path is past the ${MAX_NODES2}-node ceiling`);
-      if (r3 === "malformed") return fail2("invalid-argument", "geom: not a usable encoded authored path");
-      return ok2(r3);
-    },
-    continuity: (node, moved) => {
-      if (moved !== "in" && moved !== "out") {
-        return fail2("invalid-argument", "geom: `moved` must be 'in' or 'out'");
-      }
-      const n2 = nodeIn(node);
-      if (isFail(n2)) return n2;
-      try {
-        return ok2(enforceContinuity(n2, moved));
-      } catch (e) {
-        return fail2("internal", `geom: ${e instanceof Error ? e.message : String(e)}`);
-      }
-    },
-    bounds: (d) => {
-      const p = parsePath(d);
-      if (isFail(p)) return p;
-      return ok2(pathBounds(p));
-    },
-    area: (d) => {
-      const p = parsePath(d);
-      if (isFail(p)) return p;
-      let a = 0;
-      for (const c of p) a += contourArea(c);
-      return Number.isFinite(a) ? ok2(a) : fail2("internal", "geom: area is not finite");
-    },
-    contains: (d, x, y, opts) => {
-      const pt = point(x, y);
-      if (isFail(pt)) return pt;
-      const rule = opts?.fillRule ?? "nonzero";
-      if (rule !== "nonzero" && rule !== "evenodd") {
-        return fail2("invalid-argument", `geom: unknown fill rule "${String(rule)}"`);
-      }
-      const p = parsePath(d);
-      if (isFail(p)) return p;
-      try {
-        return ok2(pointInPath(p, x, y, rule));
-      } catch (e) {
-        return fail2("internal", `geom: ${e instanceof Error ? e.message : String(e)}`);
-      }
-    },
-    winding: (d, x, y) => {
-      const pt = point(x, y);
-      if (isFail(pt)) return pt;
-      const p = parsePath(d);
-      if (isFail(p)) return p;
-      try {
-        const w = windingNumber(p, x, y);
-        return Number.isFinite(w) ? ok2(w) : fail2("internal", "geom: winding number is not finite");
-      } catch (e) {
-        return fail2("internal", `geom: ${e instanceof Error ? e.message : String(e)}`);
-      }
-    },
-    /**
-     * Nearest point, by projecting onto every curve and keeping the closest - the
-     * kernel's own `nearestOnCubic` (bracket then Newton on the squared-distance
-     * derivative), so the answer is computed FROM the curve rather than sampled near
-     * it, and the `t` it reports is the parameter to split at to insert a node.
-     * `distanceToPath` would give the distance alone and the address is the half a
-     * pen tool actually needs.
-     */
-    nearest: (d, x, y) => {
-      const pt = point(x, y);
-      if (isFail(pt)) return pt;
-      const p = parsePath(d);
-      if (isFail(p)) return p;
-      let best = null;
-      for (let ci = 0; ci < p.length; ci++) {
-        const curves = p[ci].curves;
-        for (let ki = 0; ki < curves.length; ki++) {
-          const r3 = nearestOnCubic(curves[ki], x, y);
-          if (!Number.isFinite(r3.distance)) continue;
-          if (!best || r3.distance < best.distance) {
-            best = { x: r3.point.x, y: r3.point.y, distance: r3.distance, contour: ci, curve: ki, t: r3.t };
-          }
-        }
-      }
-      if (!best) return fail2("invalid-path", "geom: path has no curves to measure against");
-      return ok2(best);
-    },
-    parse: (d) => {
-      const p = parsePath(d);
-      if (isFail(p)) return p;
-      return ok2(contoursOut(p));
-    },
-    toPathData: (contours, opts) => {
-      const p = contoursIn(contours);
-      if (isFail(p)) return p;
-      return pathOut(p, opts?.decimals);
-    },
-    limits: () => ({ ...LIMITS })
-  };
-}
-function point(x, y) {
-  for (const [k, v] of [["x", x], ["y", y]]) {
-    if (typeof v !== "number" || !Number.isFinite(v) || Math.abs(v) > MAX_COORD) {
-      return fail2("invalid-argument", `geom: ${k} must be a finite coordinate`);
-    }
-  }
-  return true;
-}
-var MAX_CHARS2, MAX_COMMANDS, MAX_CURVES2, MAX_PATHS, MAX_NODES2, MAX_COORD, LIMITS, ARITY, CURVES_PER_GROUP, NUM_RE, FLAG_RE, SEP_RE, NUM_START, CONTINUITIES;
-var init_geom_api = __esm({
-  "engine/src/geom-api.ts"() {
-    "use strict";
-    init_bezier();
-    init_path();
-    init_boolean();
-    init_offset();
-    init_stroke();
-    init_spline();
-    init_authored_url();
-    init_fit();
-    init_svg_path();
-    MAX_CHARS2 = 512e3;
-    MAX_COMMANDS = 2e4;
-    MAX_CURVES2 = 16e3;
-    MAX_PATHS = 64;
-    MAX_NODES2 = 2e4;
-    MAX_COORD = 1e9;
-    LIMITS = {
-      maxChars: MAX_CHARS2,
-      maxCommands: MAX_COMMANDS,
-      maxCurves: MAX_CURVES2,
-      maxCoordinate: MAX_COORD,
-      maxPaths: MAX_PATHS,
-      maxNodes: MAX_NODES2
-    };
-    ARITY = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7, Z: 0 };
-    CURVES_PER_GROUP = { M: 1, L: 1, H: 1, V: 1, C: 1, S: 1, Q: 1, T: 1, A: 4, Z: 0 };
-    NUM_RE = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;
-    FLAG_RE = /[01]/y;
-    SEP_RE = /[\s,]*/y;
-    NUM_START = /[0-9.+-]/;
-    CONTINUITIES = ["corner", "smooth", "symmetric"];
   }
 });
 
@@ -57265,6 +57757,7 @@ __export(src_exports, {
   IDENTITY_2D: () => IDENTITY_2D,
   IMPRINT_CONTAINER_FORMATS: () => IMPRINT_CONTAINER_FORMATS,
   IMPRINT_FORMATS: () => IMPRINT_FORMATS,
+  IN_REALM_ONLY_HOOK_NAMES: () => IN_REALM_ONLY_HOOK_NAMES,
   IcoDecodeError: () => IcoDecodeError,
   JOIN_EPS: () => JOIN_EPS,
   KF_BEZIER_QUANTUM: () => KF_BEZIER_QUANTUM,
@@ -57413,6 +57906,8 @@ __export(src_exports, {
   SLOW_SPEED: () => SLOW_SPEED,
   SPOT_PLATE_FORMATS: () => SPOT_PLATE_FORMATS,
   SRGB_SOURCE: () => SRGB_SOURCE,
+  STRICT_AMBIENT_GLOBALS: () => STRICT_AMBIENT_GLOBALS,
+  STRICT_NAVIGATOR_PROPERTIES: () => STRICT_NAVIGATOR_PROPERTIES,
   SVG_COLORS_MAX_CHARS: () => SVG_COLORS_MAX_CHARS,
   SVG_COLORS_MAX_MATCHES: () => SVG_COLORS_MAX_MATCHES,
   SVG_CUSTGEOM_MAX_ATTR_CHARS: () => SVG_CUSTGEOM_MAX_ATTR_CHARS,
@@ -57461,6 +57956,7 @@ __export(src_exports, {
   WEBP_DEMUX_MAX_INPUT_BYTES: () => WEBP_DEMUX_MAX_INPUT_BYTES,
   WEBP_DEMUX_MAX_OUTPUT_BYTES: () => WEBP_DEMUX_MAX_OUTPUT_BYTES,
   WEBP_DEMUX_MAX_PIXELS: () => WEBP_DEMUX_MAX_PIXELS,
+  WORKER_HOOK_NAMES: () => WORKER_HOOK_NAMES,
   XCF_MODE_TO_CSS: () => XCF_MODE_TO_CSS,
   XcfUnsupportedError: () => XcfUnsupportedError,
   ZIP_READ_MAX_ENTRIES: () => ZIP_READ_MAX_ENTRIES,
@@ -57524,7 +58020,7 @@ __export(src_exports, {
   booleanPath: () => booleanPath,
   boundsCubic: () => boundsCubic,
   boxGeomFromBBox: () => boxGeomFromBBox,
-  boxesOverlap: () => boxesOverlap2,
+  boxesOverlap: () => boxesOverlap,
   boxesToPenpotDoc: () => boxesToPenpotDoc,
   buildC2paManifest: () => buildC2paManifest,
   buildCarryExifTiff: () => buildCarryExifTiff,
@@ -57606,6 +58102,7 @@ __export(src_exports, {
   cornerRadii: () => cornerRadii,
   crc32: () => crc322,
   createDeepFrame: () => createDeepFrame,
+  createHookWorkerCore: () => createHookWorkerCore,
   createLoudnessMeter: () => createLoudnessMeter,
   createRuntime: () => createRuntime,
   createTokenSet: () => createTokenSet,
@@ -57756,6 +58253,7 @@ __export(src_exports, {
   gamutTier: () => gamutTier,
   gamutTierProbe: () => gamutTierProbe,
   gamutWithin: () => gamutWithin,
+  gatherHostSeeds: () => gatherHostSeeds,
   gaussianShadowBands: () => gaussianShadowBands,
   gaussianShadowRings: () => gaussianShadowRings,
   generateAnalogous: () => generateAnalogous,
@@ -57830,6 +58328,7 @@ __export(src_exports, {
   intersectLineCubic: () => intersectLineCubic,
   intersectPath: () => intersectPath,
   intersectSegments: () => intersectSegments,
+  introspectHost: () => introspectHost,
   invisibleCharName: () => invisibleCharName,
   isAlias: () => isAlias,
   isAxisAlignedMat: () => isAxisAlignedMat,
@@ -57887,6 +58386,7 @@ __export(src_exports, {
   linearToSrgb: () => linearToSrgb3,
   listXlsxSheets: () => listXlsxSheets,
   loadTool: () => loadTool,
+  lockDownAmbientCapabilities: () => lockDownAmbientCapabilities,
   lollySchemeToHttps: () => lollySchemeToHttps,
   looksLikeTable: () => looksLikeTable,
   makeColorApi: () => makeColorApi,
@@ -58237,6 +58737,7 @@ __export(src_exports, {
   withVersionIndex: () => withVersionIndex,
   woffToSfnt: () => woffToSfnt,
   wordTimingsFromDurations: () => wordTimingsFromDurations,
+  workerRpcMethods: () => workerRpcMethods,
   wrapRasterWithTreatment: () => wrapRasterWithTreatment,
   writeDocx: () => writeDocx,
   writeEpub: () => writeEpub,
@@ -58265,6 +58766,7 @@ var init_src2 = __esm({
     init_asset_provider();
     init_document_api();
     init_runtime();
+    init_hook_worker_core();
     init_template();
     init_media_sniff();
     init_psd();
@@ -60578,6 +61080,7 @@ import { readFile as readFile12, stat as stat2 } from "node:fs/promises";
 // shells/cli/src/bridge.ts
 init_src2();
 import { readFile as readFile10 } from "node:fs/promises";
+import { assetBytes } from "@lolly-tools/node-shell/asset-bytes";
 import { join as join14 } from "node:path";
 import { zipSync as zipSync2 } from "fflate";
 
@@ -65340,7 +65843,11 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     get: (opts = {}) => tokenSet(opts.theme),
     colors: async (opts = {}) => (await tokenSet(opts.theme)).colors(),
     resolve: async (ref, opts = {}) => (await tokenSet(opts.theme)).resolve(ref),
-    themes: async () => (await tokenSet()).themes()
+    themes: async () => (await tokenSet()).themes(),
+    // Owner-side seam for the worker_threads hook executor: the raw DTCG doc it
+    // snapshots into the worker so hooks resolve tokens without an RPC. Never a
+    // hook-facing call (the worker core omits it from the proxy).
+    raw: () => resolvedDoc()
   };
   host.color = makeColorApi();
   host.geom = makeGeomApi();
@@ -65360,6 +65867,10 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   host.scan = createNodeScanAPI();
   host.net = createNetAPI({ allowlist: networkAllowlist });
   host.assets = {
+    // v1.183: bytes behind a ref. This bridge inlines catalog files as data:
+    // urls, so most reads never touch the disk; http(s) rides the tool's own
+    // allowlist through host.net, never an open fetch.
+    bytes: (target) => assetBytes(target, { netFetch: (url) => host.net ? host.net.fetch(url) : Promise.reject(new Error("no host.net")) }),
     async resolveProvider(ref) {
       if (ref.provider === "catalog" || ref.provider === "library") {
         try {

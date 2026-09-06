@@ -2,6 +2,51 @@
   "schemaVersion": 1,
   "barrel": "packages/core/src/host-v1.ts",
   "entries": {
+    "HOST_V1_OPTIONAL_APIS": {
+      "module": "apis.ts",
+      "kind": "FirstStatement",
+      "sha256": "0107bff60840d685d7389145f04cad08585ce6477fe1d8297007766e9e4b118c"
+    },
+    "HostApiName": {
+      "module": "apis.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "7e4ece09a7d9f4abc3d218c25be89052b6151e5ff229132ea8467ed8f2bdf116"
+    },
+    "OptionalKeys": {
+      "module": "apis.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "4393489bf457f32c8ea3bf0bbc7ee974894969b6f308e1fa9550610b26589752"
+    },
+    "ApiKeys": {
+      "module": "apis.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "bc60bf96246d17a2301bbf0401608702ab57963aa08c3752ac57c738e3f73518"
+    },
+    "_ListedAreOptional": {
+      "module": "apis.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "f5eb90125d4bd3aa359abb96752278a3040c16676d4fc7327b22e5c5b0de249b"
+    },
+    "_OptionalAreListed": {
+      "module": "apis.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "1a18444b7ead3ced93996f08a72ee41a0a563c75fa13c8dbaac9a7035f3eb95d"
+    },
+    "_check": {
+      "module": "apis.ts",
+      "kind": "FirstStatement",
+      "sha256": "1cc3bf447049aff07ac7dd1ee0f6a96854a45afd17500bd026a17cadd47c641b"
+    },
+    "presentApis": {
+      "module": "apis.ts",
+      "kind": "FunctionDeclaration",
+      "sha256": "baca6e5b2d07b51cb00faf5fe552b7c0af3a324f72dfd955a7c1d78a9e8f113a"
+    },
+    "missingRequires": {
+      "module": "apis.ts",
+      "kind": "FunctionDeclaration",
+      "sha256": "0733659789e36da25a4dc2d83d574a7104a80900cdfadb4273408aa13c1d4ad9"
+    },
     "AssetRef": {
       "module": "asset-ref.ts",
       "kind": "InterfaceDeclaration",
@@ -10,7 +55,7 @@
     "AssetsAPI": {
       "module": "assets.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "446dee053c047fccc8352b6b9577fbdec071c2d3c739dc7929a50e91302fa031"
+      "sha256": "40cc3a1f176f30ea512e34991972c00ff80a90249749847cac3afe5cd6819058"
     },
     "IngredientCredential": {
       "module": "assets.ts",

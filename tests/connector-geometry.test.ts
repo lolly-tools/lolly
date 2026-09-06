@@ -38,7 +38,6 @@ import { cornerFitDashArray } from '../engine/src/dash-fit.ts';
 // present in every full checkout and this suite never skips.
 const SUSE_PACK = new URL('../community/', import.meta.url);
 const HOOK_URL = new URL('org-chart/hooks.js', SUSE_PACK);
-const PACK_MOUNTED = true;
 const SKIP_SUSE = false as const;
 assert.ok(existsSync(HOOK_URL),
   'community/org-chart/hooks.js is missing - the tool was renamed or deleted');
