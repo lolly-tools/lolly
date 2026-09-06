@@ -4523,7 +4523,7 @@ function buildNav(lang: Lang, slug: string, activeHref: string, isLanding: boole
   // language picker. Docs pages only - there is no index behind the landing page,
   // and a box that returns nothing is worse than no box.
   return `<nav${navClass}><a href="${localeHref(lang, 'index')}" class="brand">Lolly</a>${draft}${groups}<div class="gap"></div>${isLanding ? '' : searchBox(lang)}${langPickerHtml(lang, slug)}${THEME_TOGGLE}${GITHUB_LINK}${HAM_BTN}<a href="${launchHref}" class="nav-launch">${launch}</a></nav>
-<div class="nav-mobile-menu" id="navMobileMenu">${mobileLinks}${pageNav}<a href="${launchHref}" class="nav-launch">${launch}</a></div>`;
+<div class="nav-mobile-menu" id="navMobileMenu">${mobileLinks}${pageNav}<a href="${launchHref}" class="nav-launch">${launch}</a></div> `;
 }
 
 /**
