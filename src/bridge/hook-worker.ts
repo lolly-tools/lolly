@@ -25,7 +25,7 @@ import type { HookExecutor, Hooks } from '@lolly/engine';
 import type { HostV1, TokensAPI } from '@lolly-tools/core/host-v1';
 import { getExcludedSwatches } from '../lib/brand-exclusions.ts';
 import type {
-  HostShape, HostSeeds, HookWorkerOut, WorkerHookName,
+  HostShape, HookWorkerOut, WorkerHookName,
   HookHostCallMsg, HookInvokeDoneMsg, HookInitDoneMsg, HookLogMsg,
 } from './hook-worker.worker.ts';
 import { workerRpcMethods, introspectHost, gatherHostSeeds } from './hook-worker.worker.ts';
