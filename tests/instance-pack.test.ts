@@ -33,7 +33,12 @@ test('the suse pack builds clean: exclusions hold, fonts/tools/envelope complete
   const out = mkdtempSync(join(tmpdir(), 'lolly-pack-'));
   try {
     execFileSync('node', ['scripts/build-instance-pack.ts', '--out', out], { cwd: ROOT, stdio: 'pipe' });
-    const packPath = join(out, 'suse-brand-1.0.0.lolly');
+    // The filename carries the recipe's version (`<brand>-brand-<version>.lolly`),
+    // and the version tracks the Lolly release it ships with - read it from the
+    // recipe rather than pinning a literal that every release bump would break.
+    const { version } = JSON.parse(readFileSync(join(ROOT, 'brands/suse/pack.json'), 'utf8')) as { version: string };
+    assert.match(version, /^\d+\.\d+\.\d+$/, 'pack.json version is a plain semver');
+    const packPath = join(out, `suse-brand-${version}.lolly`);
     const bytes = readFileSync(packPath);
     const firstNameLength = bytes[26]! | (bytes[27]! << 8);
     assert.equal(bytes.subarray(30, 30 + firstNameLength).toString(), 'manifest.json',
