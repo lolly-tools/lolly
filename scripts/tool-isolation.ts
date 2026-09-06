@@ -73,8 +73,7 @@ export function analyseIsolation(hooksSource: string | null | undefined): Isolat
       // the same name is also used unguarded elsewhere.
       const again = new RegExp(`(?<![\\w$.])${name}(?![\\w$])`, 'g');
       let unguarded = false;
-      let mm: RegExpExecArray | null;
-      while ((mm = again.exec(src))) {
+      for (const mm of src.matchAll(again)) {
         if (!/typeof\s+$/.test(src.slice(Math.max(0, mm.index - 12), mm.index))) { unguarded = true; break; }
       }
       if (!unguarded) continue;

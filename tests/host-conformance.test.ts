@@ -73,9 +73,9 @@ test('the mock host conforms; with optional stubs every optional API is present 
   assert.deepEqual([...report.present].sort(), [...HOST_V1_OPTIONAL_APIS].sort());
   assert.deepEqual(presentApis(full as never).length, HOST_V1_OPTIONAL_APIS.length);
   assert.deepEqual(missingRequires(['text', 'pdf'], full as never), []);
-  assert.equal(await (full as { pdf: { analyze: () => unknown } }).pdf.analyze === undefined, false);
-  assert.equal(await (full as { audio: { isAvailable: () => Promise<boolean> } }).audio.isAvailable(), false, 'probes answer false');
-  assert.throws(() => (full as { text: { toPath: () => unknown } }).text.toPath(), /is a stub/);
+  assert.equal(await (full as unknown as { pdf: { analyze: () => unknown } }).pdf.analyze === undefined, false);
+  assert.equal(await (full as unknown as { audio: { isAvailable: () => Promise<boolean> } }).audio.isAvailable(), false, 'probes answer false');
+  assert.throws(() => (full as unknown as { text: { toPath: () => unknown } }).text.toPath(), /is a stub/);
 });
 
 test('a broken host fails with the member named, and an optional API present but incomplete is an error', async () => {

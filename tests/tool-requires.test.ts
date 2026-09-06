@@ -41,6 +41,47 @@ test('analyser: merely naming an API (a comment, a string) is not a use', () => 
   assert.deepEqual(a.required, []);
 });
 
+test('analyser: a comment that explains an API is prose, not a reach into it', () => {
+  const a = analyseRequires(`
+    /** host.text.toPath emits absolute M/L/C/Q/Z only, so the subdivision below
+     *  never sees an arc. host.audio.analyse turns the clip into a track. */
+    // brand-driven palettes (host.color/host.tokens, engine >= 1.40): host.color.ramp()
+    function onInit() { return { url: 'https://example.test/x' }; }
+  `);
+  assert.deepEqual(a.used, []);
+  assert.deepEqual(a.required, []);
+  const real = analyseRequires(`// host.text is documented above\nasync function onInit({ host }) { return { p: await host.text.toPath({ text: 'a' }) }; }`);
+  assert.deepEqual(real.required, ['text'], 'the call after the comment still counts');
+});
+
+test('analyser: reading the bare API as a value is a guard, wherever it sits in the expression', () => {
+  const ternary = analyseRequires(`
+    async function onInit() {
+      var t = (typeof host !== 'undefined' && host && host.tokens) ? host.tokens : null;
+      return { n: t ? (await t.colors()).length : 0 };
+    }
+  `);
+  assert.deepEqual(ternary.required, [], JSON.stringify(ternary));
+  const lastOperand = analyseRequires(`
+    async function onInit() {
+      if (typeof host !== 'undefined' && host && host.compose) {
+        return { img: await host.compose.renderUrl('https://lolly.tools/tool/x.svg') };
+      }
+      return {};
+    }
+  `);
+  assert.deepEqual(lastOperand.required, [], JSON.stringify(lastOperand));
+  const assigned = analyseRequires(`
+    async function onInit() {
+      const c = typeof host !== 'undefined' && host && host.color;
+      return { hex: c ? c.mix('#000', '#fff', 0.5) : '#888', x: host.color.mix('#000', '#fff', 0) };
+    }
+  `);
+  assert.deepEqual(assigned.required, [], JSON.stringify(assigned));
+  const unguarded = analyseRequires(`async function onInit({ host }) { return { ok: await host.c2pa.sign(new Uint8Array(0)) }; }`);
+  assert.deepEqual(unguarded.required, ['c2pa']);
+});
+
 test('changelog: every API that has shipped has a recorded introduction, and floors only rise', () => {
   const intro = apiIntroductions(readFileSync(join(ROOT, 'engine/CHANGELOG.md'), 'utf8'));
   for (const api of ['tokens', 'text', 'pdf', 'audio', 'recorder', 'media', 'compose', 'c2pa', 'color'] as const) {

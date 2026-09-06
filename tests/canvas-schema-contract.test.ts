@@ -201,7 +201,6 @@ test('canvas.connect field references resolve against the EDGES input, not the b
 // org-chart moved from the SUSE pack to community/ (2026-09-06): it carries no
 // brand asset, so every profile lists it. Always present in a full checkout.
 const SUSE_PACK = join(ROOT, 'community');
-const PACK_MOUNTED = true;
 const SKIP_SUSE = false as const;
 assert.ok(existsSync(join(SUSE_PACK, 'org-chart/tool.json')),
   'community/org-chart/tool.json is missing - the tool was renamed or deleted');
