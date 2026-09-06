@@ -35,7 +35,7 @@ Then mirror this directory to the app repository and tag it:
 ```bash
 git clone git@github.com:lolly-tools/lolly_ynh.git /tmp/lolly_ynh
 rsync -a --delete --exclude .git deploy/yunohost/ /tmp/lolly_ynh/
-cd /tmp/lolly_ynh && git add -A && git commit -m "Lolly <ver>~ynh1" && git tag v<ver>~ynh1 && git push --follow-tags
+cd /tmp/lolly_ynh && git add -A && git commit -m "Lolly <ver>~ynh1" && git tag v<ver>-ynh1 && git push --follow-tags
 ```
 
 YunoHost's catalog CI (`package_check`) runs against that repository. It needs the tarball live on lolli.li first, since the manifest's checksum is verified at install.
