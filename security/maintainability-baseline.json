@@ -77,7 +77,7 @@
       "typeEscapes": 142
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 2020,
+      "lines": 2021,
       "largestFunctionLines": 2035,
       "importFanIn": 1,
       "importFanOut": 51,
@@ -91,7 +91,7 @@
       "typeEscapes": 38
     },
     "shells/web/src/views/profile.ts": {
-      "lines": 2437,
+      "lines": 2438,
       "largestFunctionLines": 2966,
       "importFanIn": 2,
       "importFanOut": 60,
@@ -119,8 +119,8 @@
       "typeEscapes": 34
     },
     "shells/web/src/views/tool-actions.ts": {
-      "lines": 3817,
-      "largestFunctionLines": 5079,
+      "lines": 3818,
+      "largestFunctionLines": 5080,
       "importFanIn": 1,
       "importFanOut": 56,
       "typeEscapes": 44
@@ -133,7 +133,7 @@
       "typeEscapes": 21
     },
     "shells/web/src/views/tool.ts": {
-      "lines": 4802,
+      "lines": 4803,
       "largestFunctionLines": 5818,
       "importFanIn": 1,
       "importFanOut": 103,
