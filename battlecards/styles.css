@@ -1,0 +1,272 @@
+/* Battlecards - one card per table row (engine render.paginate).
+   The card is the page box: a locked page size the paged canvas/PDF read
+   ([data-pdf-page] pages export at their own CSS box), and the ONE query
+   container every cq unit + @container rule below resolves against. Layout
+   adapts to the box's actual aspect (landscape grid / portrait stack) via
+   container queries, so the same markup serves both orientations. */
+
+.bc-card {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  position: relative;
+  container-type: size;
+  background: var(--bc-bg, #ffffff);
+  color: var(--bc-ink, #111827);
+  font-family: var(--font-brand, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.bc-card.is-portrait {
+  aspect-ratio: 3 / 4;
+}
+
+.bc-card * { box-sizing: border-box; margin: 0; }
+
+.bc-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 5cqmin 5.5cqmin;
+  gap: 2.4cqmin;
+  border-top: 2.2cqmin solid var(--bc-accent, #4f46e5);
+}
+
+.bc-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2cqmin;
+}
+.bc-deck {
+  font-size: 2.6cqmin;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bc-accent, #4f46e5);
+}
+.bc-pageno {
+  font-size: 2.4cqmin;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.55;
+}
+
+/* The title font rides a unitless --fit ratio (default 1 = inert). The fit-pass
+   script at the foot of template.html bounds a long title into its own box
+   (capped by max-height, clipped by overflow) and writes a <1 --fit so a heavy
+   title shrinks to fit rather than clipping. overflow:hidden also drops the box's
+   min-content contribution to 0, so a long title can never push the fields down. */
+.bc-title {
+  font-size: calc(7.5cqmin * var(--fit, 1));
+  line-height: 1.04;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  max-width: 86%;
+  max-height: 24cqmin;
+  overflow: hidden;
+  overflow-wrap: break-word;
+}
+.bc-title--empty { opacity: 0.35; font-weight: 500; }
+
+/* The field panels fill the whole card body: rows are sized by their content,
+   then align-content: stretch hands every panel a share of the leftover
+   height, so a four-field card reads as a designed 2×2 spread rather than a
+   list floating over whitespace. Cell copy is often a full paragraph - the
+   values are body text (comfortable line-height, pre-line so authored line
+   breaks survive), not labels. Layout switches on the orientation class, NOT
+   a container query: the class is deterministic across every export walker. */
+.bc-fields {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: stretch;
+  gap: 2cqmin;
+}
+.is-portrait .bc-fields { grid-template-columns: 1fr; }
+/* An odd last field spans the row so the grid never ends on a hole. */
+.bc-field:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.is-portrait .bc-field:last-child:nth-child(odd) { grid-column: auto; }
+
+.bc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1cqmin;
+  padding: 2.2cqmin 2.6cqmin;
+  border-radius: 1.6cqmin;
+  background: color-mix(in oklab, var(--bc-accent, #4f46e5) 6%, transparent);
+  overflow: hidden;
+  /* Let the grid size each panel from its share of the card, NOT from its copy:
+     with min-height:0 (and the value below a 0-min-content scroll box) every row's
+     base track is just the label, so align-content:stretch hands the panels an
+     even split of the body height - a stable box for the value to be fitted into. */
+  min-height: 0;
+}
+.bc-field-label {
+  font-size: 1.9cqmin;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--bc-accent, #4f46e5) 70%, var(--bc-ink, #111827));
+}
+/* The value is the biggest text-volume slot - a full paragraph of pasted copy.
+   It fills the space the label leaves (flex:1) and clips it (overflow:hidden), so
+   its box height is fixed by the panel, not by the copy; the fit-pass script then
+   measures the copy's natural height against that box and writes a <1 --fit that
+   shrinks the type to fit. Sizes ride var(--fit, 1), inert until the script runs. */
+.bc-field-value {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  font-size: calc(2.6cqmin * var(--fit, 1));
+  line-height: 1.42;
+  font-weight: 480;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+.bc-field-value--empty { opacity: 0.4; }
+
+/* ── Markdown inside a cell ──────────────────────────────────────────────────
+   The value is rendered by the engine's {{markdown}} helper, so a cell can carry
+   headings, lists, emphasis, links and images. Everything here is sized in cqmin
+   against the card, like the rest of the layout, so a card scales as one piece at
+   any export size. Block margins are collapsed away and re-added as a single gap
+   between siblings - a cell is a small panel, not a document, and a leading or
+   trailing margin would push the copy off its own baseline. */
+.bc-field-value > * + * { margin-top: 0.9em; }
+.bc-field-value h1,
+.bc-field-value h2,
+.bc-field-value h3,
+.bc-field-value h4,
+.bc-field-value h5,
+.bc-field-value h6 {
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.bc-field-value h1 { font-size: 1.5em; }
+.bc-field-value h2 { font-size: 1.28em; }
+.bc-field-value h3 { font-size: 1.12em; }
+.bc-field-value h4,
+.bc-field-value h5,
+.bc-field-value h6 { font-size: 1em; }
+/* A heading immediately above its own body text belongs to it - tighten that pair. */
+.bc-field-value :is(h1, h2, h3, h4, h5, h6) + * { margin-top: 0.35em; }
+
+.bc-field-value ul,
+.bc-field-value ol {
+  padding-left: 1.35em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+}
+/* The engine bakes ordered-list numbers as real .md-index nodes with
+   list-style:none (native markers and CSS counters are both dropped by the vector
+   export path), so the number is positioned by hand into the same hanging indent
+   the bullets use. */
+.bc-field-value ol { list-style: none; padding-left: 1.6em; }
+.bc-field-value li { margin: 0; }
+.bc-field-value ol > li { position: relative; }
+.bc-field-value .md-index {
+  position: absolute;
+  right: 100%;
+  padding-right: 0.4em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.bc-field-value strong { font-weight: 700; }
+.bc-field-value em { font-style: italic; }
+.bc-field-value a {
+  color: var(--bc-accent, #4f46e5);
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+  overflow-wrap: anywhere;              /* a bare URL must not widen the panel */
+}
+/* An image is block-level and capped by the panel it sits in: a cell can carry a
+   logo or a screenshot without any one row of the grid blowing out. */
+.bc-field-value .md-image {
+  display: block;
+  max-width: 100%;
+  max-height: 22cqmin;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: left center;
+  border-radius: 0.8cqmin;
+}
+.is-portrait .bc-field-value .md-image { max-height: 16cqmin; }
+
+.is-portrait .bc-title { font-size: calc(7cqmin * var(--fit, 1)); }
+
+.bc-foot {
+  font-size: 2.1cqmin;
+  letter-spacing: 0.04em;
+  opacity: 0.5;
+}
+
+/* ── Per-card icon ───────────────────────────────────────────────────────────
+   The "Icon" column renders here, absolutely positioned in the free zone right
+   of the title (.bc-title reserves 86% width), so the slot NEVER participates
+   in flow: an empty slot cannot move a pixel of exported geometry. */
+.bc-icon {
+  position: absolute;
+  top: 8.4cqmin;
+  right: 5.5cqmin;
+  width: 9cqmin;
+  height: 9cqmin;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bc-icon:empty { display: none; }
+.bc-icon p { width: 100%; height: 100%; }
+.bc-icon .md-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 0;
+}
+
+/* ── On-canvas editing affordances ───────────────────────────────────────────
+   Everything below keys off attributes only the web shell's cell editor sets
+   ([contenteditable], [data-pick-armed]) - offscreen/CLI renders never mount it,
+   so these rules are inert in every export path. Outlines, not borders/insets:
+   zero layout impact. */
+.bc-card [data-cell][contenteditable] {
+  caret-color: var(--bc-accent, #4f46e5);
+  border-radius: 0.8cqmin;
+}
+.bc-card [data-cell][contenteditable]:hover {
+  outline: 0.35cqmin solid color-mix(in oklab, var(--bc-accent, #4f46e5) 30%, transparent);
+  outline-offset: 0.5cqmin;
+}
+.bc-card [data-cell][contenteditable]:focus {
+  outline: 0.35cqmin solid color-mix(in oklab, var(--bc-accent, #4f46e5) 60%, transparent);
+  outline-offset: 0.5cqmin;
+}
+
+/* An EMPTY armed icon slot: a quiet "+" that only exists while editing is live,
+   revealed on card hover / its own focus. Opacity-only - no flow, no export. */
+.bc-icon[data-pick-armed] { cursor: pointer; }
+.bc-icon[data-pick-armed]:empty {
+  display: flex;
+  opacity: 0;
+  border-radius: 1.2cqmin;
+  background: color-mix(in oklab, var(--bc-accent, #4f46e5) 8%, transparent);
+  color: var(--bc-accent, #4f46e5);
+  font-size: 4.5cqmin;
+  font-weight: 500;
+  line-height: 1;
+  transition: opacity 120ms ease;
+}
+.bc-icon[data-pick-armed]:empty::after { content: '+'; }
+.bc-card:hover .bc-icon[data-pick-armed]:empty { opacity: 0.55; }
+.bc-icon[data-pick-armed]:empty:hover,
+.bc-icon[data-pick-armed]:empty:focus-visible { opacity: 1; }
+.bc-icon[data-pick-armed]:focus-visible {
+  outline: 0.35cqmin solid color-mix(in oklab, var(--bc-accent, #4f46e5) 60%, transparent);
+  outline-offset: 0.5cqmin;
+}

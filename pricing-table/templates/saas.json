@@ -1,0 +1,74 @@
+{
+  "id": "saas",
+  "name": "SaaS plans",
+  "category": "Marketing",
+  "description": "Three tiers, one recommended, a button under each.",
+  "values": {
+    "heading": "Simple, transparent pricing",
+    "subheading": "Every plan includes the whole toolkit. Pay for the seats and support you need.",
+    "cta": "Get started",
+    "highlight": 2,
+    "highlightLabel": "Most popular",
+    "layout": "cards",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}",
+    "data": {
+      "columns": ["Feature", "Starter", "Team", "Enterprise"],
+      "rows": [
+        ["Price", "$9 / month", "$29 / month", "Talk to us"],
+        ["Tagline", "For solo work", "For growing teams", "For the whole org"],
+        ["Projects", "3", "Unlimited", "Unlimited"],
+        ["Team members", "1", "Up to 20", "Unlimited"],
+        ["Shared brand kit", "no", "yes", "yes"],
+        ["PDF and SVG export", "yes", "yes", "yes"],
+        ["Single sign-on", "no", "no", "yes"],
+        ["Support", "Community", "Email, next day", "> Named contact"]
+      ]
+    }
+  },
+  "presets": [
+    {
+      "id": "yearly",
+      "name": "Billed yearly",
+      "description": "Two months free, with the discount in each price.",
+      "values": {
+        "subheading": "Billed yearly. Two months free on every paid plan.",
+        "data": {
+          "columns": ["Feature", "Starter", "Team", "Enterprise"],
+          "rows": [
+            ["Price", "$90 / year", "$290 / year", "Talk to us"],
+            ["Tagline", "For solo work", "For growing teams", "For the whole org"],
+            ["Projects", "3", "Unlimited", "Unlimited"],
+            ["Team members", "1", "Up to 20", "Unlimited"],
+            ["Shared brand kit", "no", "yes", "yes"],
+            ["PDF and SVG export", "yes", "yes", "yes"],
+            ["Single sign-on", "no", "no", "yes"],
+            ["Support", "Community", "Email, next day", "> Named contact"]
+          ]
+        }
+      }
+    },
+    {
+      "id": "free-first",
+      "name": "Free tier first",
+      "description": "Opens with a free plan and features the middle tier.",
+      "values": {
+        "heading": "Start free, grow when you need to",
+        "highlight": 2,
+        "data": {
+          "columns": ["Feature", "Free", "Pro", "Business"],
+          "rows": [
+            ["Price", "$0", "$19 / month", "$59 / month"],
+            ["Tagline", "Kick the tyres", "For the day job", "For the department"],
+            ["Projects", "1", "Unlimited", "Unlimited"],
+            ["Team members", "1", "5", "Unlimited"],
+            ["Shared brand kit", "no", "yes", "yes"],
+            ["PDF and SVG export", "yes", "yes", "yes"],
+            ["Single sign-on", "no", "no", "yes"],
+            ["Support", "Community", "Email", "> Named contact"]
+          ]
+        }
+      }
+    }
+  ]
+}

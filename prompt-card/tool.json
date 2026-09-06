@@ -66,6 +66,7 @@
     "transparentBg": false,
     "units": false
   },
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true

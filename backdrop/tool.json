@@ -184,6 +184,7 @@
       "help": "Scrub through the animation to choose the exact frame a still export captures - and where playback starts. Defaults past the start because several effects are still gathering themselves at moment 0."
     }
   ],
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true

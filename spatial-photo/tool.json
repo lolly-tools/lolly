@@ -18,6 +18,7 @@
     "c2pa": true,
     "video": { "wait": 2, "duration": 6 }
   },
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true,

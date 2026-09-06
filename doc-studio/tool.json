@@ -38,6 +38,7 @@
       "message": "A document flows in portrait pages. A landscape or wider size breaks the page flow - keep height the longer side."
     }
   },
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true

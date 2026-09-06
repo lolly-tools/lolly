@@ -17,6 +17,7 @@
     "video",
     "audio"
   ],
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true

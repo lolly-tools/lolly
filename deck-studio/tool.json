@@ -69,6 +69,7 @@
     "paged": true,
     "dims": false
   },
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true

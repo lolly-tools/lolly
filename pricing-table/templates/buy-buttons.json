@@ -1,0 +1,54 @@
+{
+  "id": "buy-buttons",
+  "name": "Buy buttons",
+  "category": "Marketing",
+  "description": "Each plan's button carries its own price and its own link.",
+  "values": {
+    "heading": "Choose a licence",
+    "subheading": "Buy once, use forever. Every licence is a one-off payment.",
+    "cta": "Buy",
+    "highlight": 2,
+    "highlightLabel": "Most bought",
+    "layout": "cards",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}",
+    "data": {
+      "columns": ["Feature", "Personal", "Studio", "Enterprise"],
+      "rows": [
+        ["Price", "$29", "$99", "$399"],
+        ["Tagline", "One seat", "Up to ten seats", "Your whole company"],
+        ["Button", "Buy for $29", "Buy for $99", "Talk to sales"],
+        ["Link", "https://example.com/buy/personal", "https://example.com/buy/studio", "mailto:sales@example.com"],
+        ["Seats", "1", "10", "Unlimited"],
+        ["Commercial use", "yes", "yes", "yes"],
+        ["Priority updates", "no", "yes", "yes"],
+        ["Onboarding call", "no", "no", "yes"]
+      ]
+    }
+  },
+  "presets": [
+    {
+      "id": "donation",
+      "name": "Pick an amount",
+      "description": "Three donation tiers, each button a real link.",
+      "values": {
+        "heading": "Support the work",
+        "subheading": "Any amount keeps it free for everyone.",
+        "highlight": 0,
+        "highlightLabel": "",
+        "data": {
+          "columns": ["Feature", "Coffee", "Lunch", "Patron"],
+          "rows": [
+            ["Price", "$5", "$15", "$50 / month"],
+            ["Tagline", "A one-off thanks", "A bigger one-off", "Every month"],
+            ["Button", "Give $5", "Give $15", "Become a patron"],
+            ["Link", "https://example.com/give/5", "https://example.com/give/15", "https://example.com/patron"],
+            ["Name in credits", "no", "yes", "yes"],
+            ["Sticker pack", "no", "yes", "yes"],
+            ["Early builds", "no", "no", "yes"]
+          ]
+        }
+      }
+    }
+  ]
+}

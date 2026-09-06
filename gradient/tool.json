@@ -4,7 +4,8 @@
   "description": "Five ways to build a gradient from your brand swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points, and the animated Flow waves. Drag everything right on the canvas; export stills or join-free video loops.",
   "a11yLabel": "Mesh gradient blending {{count}} colours",
   "version": "1.2.1",
-  "engineVersion": "^1.0.0",
+  "engineVersion": "^1.91.0",
+  "requires": ["tokens"],
   "status": "official",
   "category": "everyone",
   "tags": [
@@ -828,6 +829,7 @@
       "help": "Deterministic variation - the same seed always makes the same waves. The shuffle button picks a new one."
     }
   ],
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true,

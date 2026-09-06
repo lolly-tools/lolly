@@ -221,6 +221,7 @@
       "help": "Show the icon at its real 16 and 32 px favicon sizes on the canvas so you can judge legibility. An editor aid only - never included in exports."
     }
   ],
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true,

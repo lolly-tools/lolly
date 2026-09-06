@@ -119,6 +119,9 @@ async function svgAspect(url) {
     if (url.indexOf('data:') === 0) {
       var comma = url.indexOf(','), meta = url.slice(5, comma), data = url.slice(comma + 1);
       svg = /base64/i.test(meta) ? (typeof atob !== 'undefined' ? atob(data) : '') : decodeURIComponent(data);
+    } else if (host.assets && host.assets.bytes) {
+      // Portable read (v1.183): the same call answers in a page, a Worker and a headless shell.
+      svg = new TextDecoder().decode(await host.assets.bytes(url));
     } else if (typeof fetch !== 'undefined') {
       svg = await (await fetch(url)).text();
     }

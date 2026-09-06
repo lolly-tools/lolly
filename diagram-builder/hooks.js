@@ -348,8 +348,11 @@ function resolveImage(url) {
   var p = (async function () {
     var dataUrl = url, aspect = 0;
     try {
-      if (typeof fetch !== 'undefined' && String(url).indexOf('data:') !== 0) {
-        var blob = await (await fetch(url)).blob();
+      if (String(url).indexOf('data:') !== 0 && (typeof fetch !== 'undefined' || (host.assets && host.assets.bytes))) {
+        // Portable read (v1.183) first; the page's fetch is the fallback.
+        var blob = (host.assets && host.assets.bytes)
+          ? new Blob([await host.assets.bytes(url)])
+          : await (await fetch(url)).blob();
         dataUrl = await new Promise(function (res, rej) {
           var fr = new FileReader();
           fr.onload = function () { res(fr.result); };

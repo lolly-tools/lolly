@@ -4,7 +4,8 @@
   "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} sessions, {{trackCount}} tracks",
   "version": "1.1.0",
-  "engineVersion": "^1.0.0",
+  "engineVersion": "^1.91.0",
+  "requires": ["tokens"],
   "status": "community",
   "category": "event",
   "tags": ["agenda", "programme", "schedule", "timetable", "conference", "sessions", "tracks", "rooms", "ics"],
@@ -25,6 +26,7 @@
     "actions": ["download", "copy", "save"],
     "filenameFrom": ["title"]
   },
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true

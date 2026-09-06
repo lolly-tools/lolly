@@ -1945,11 +1945,11 @@
     },
     {
       "id": "showLogo",
-      "label": "SUSE logo overlay",
+      "label": "Brand logo overlay",
       "section": "Overlay",
       "type": "boolean",
       "default": false,
-      "help": "Overlay the SUSE logo on the result. Off by default."
+      "help": "Overlay the brand logo on the result. Off by default."
     },
     {
       "id": "logoPosition",
@@ -2055,7 +2055,7 @@
       "options": [
         {
           "value": "bar",
-          "label": "SUSE brand bar"
+          "label": "Brand bar"
         },
         {
           "value": "minimal",
