@@ -4,7 +4,6 @@
   "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
   "version": "1.25.0",
   "engineVersion": "^1.181.0",
-  "requires": ["color"],
   "status": "official",
   "category": "designer",
   "a11yLabel": "{{_effectiveChartType}} chart{{#if heading}} — {{heading}}{{/if}}",

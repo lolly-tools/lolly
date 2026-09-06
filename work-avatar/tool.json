@@ -5,7 +5,6 @@
   "a11yLabel": "Round profile photo in a ring reading {{default text \"nothing\"}}",
   "version": "1.2.0",
   "engineVersion": "^1.159.0",
-  "requires": ["text", "color"],
   "status": "community",
   "category": "everyone",
   "tags": [
