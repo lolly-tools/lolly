@@ -14,7 +14,7 @@
 // View-scoped stylesheets - Vite emits these as async CSS chunks loaded WITH this
 // lazy view, instead of render-blocking the gallery/catalog landing (see app.css).
 import '../styles/parts/tool.css';
-import { presentApis } from '@lolly-tools/core';
+import { presentApis } from '@lolly-tools/core/host-v1';
 import '../styles/parts/editor.css';
 // The Design editor's three chrome columns (plan 179 M1-M3). Their modules import no CSS
 // of their own - so they stay mountable in a node test - and ride this lazy tool chunk.

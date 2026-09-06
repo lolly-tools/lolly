@@ -754,6 +754,21 @@ export default defineConfig({
             { name: 'engine-c2pa', test: /engine\/src\/(c2pa|c2pa-verify)\.ts$/, minSize: 0, minShareCount: 1 },
             // The engine's render + manifest-validate source (runtime/template →
             // Handlebars, loader/validate → Ajv). Only the lazy views import these.
+            // Vite's dynamic-import preload helper (the virtual `vite/preload-helper`
+            // module every chunk with an `import()` pulls in). Rolldown seats it beside
+            // the FIRST module that lazy-loads something; when engine/src/runtime.ts
+            // gained its lazy C2PA imports (engine 1.183) that became the engine-render
+            // group, and the entry chunk then statically imported engine-render -
+            // handlebars + ajv on boot - for a 40-line helper. Its own group, ahead of
+            // everything else, so the seat can never move again.
+            { name: 'vite-preload', test: /vite\/preload-helper/, minSize: 0, minShareCount: 1 },
+            // The HostV1 optional-API list (packages/core host-v1/apis.ts: presentApis /
+            // missingRequires, ~300 B). Both the boot path (gallery's tool-support
+            // check) and the engine runtime (the `requires` mount refusal) import it;
+            // its own group keeps rolldown from ever co-locating it into engine-render
+            // (the same trap the engine-bytes note above records). Must precede
+            // engine-render: the first matching group wins.
+            { name: 'core-apis', test: /packages\/core\/src\/host-v1\/apis\.ts$/, minSize: 0, minShareCount: 1 },
             { name: 'engine-render', test: /engine\/src\/(runtime|template|loader|validate)\.ts$/, minSize: 0, minShareCount: 1 },
           ],
         },

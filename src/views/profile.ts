@@ -16,7 +16,7 @@
  */
 
 import '../styles/parts/profile.css';   // async CSS chunk (lazy view - not on the landing)
-import { presentApis } from '@lolly-tools/core';
+import { presentApis } from '@lolly-tools/core/host-v1';
 import '../styles/parts/tool.css';      // .help-tip-btn/-pop/-host styles - shared chunk with the
                                          // tool view, same reuse the .tool-inputs sheet already gets
                                          // from multi-edit.ts (component audit rec 13)
