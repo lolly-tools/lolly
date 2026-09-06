@@ -505,9 +505,11 @@ function parseSvg(text) {
 
 function getSvgText(url) {
   if (_svgTextCache[url]) return _svgTextCache[url];
-  var promise = (typeof fetch === 'function'
-    ? fetch(url).then(function (r) { return r.text(); })
-    : Promise.reject(new Error('no fetch')));
+  var promise = (host.assets && host.assets.bytes)
+    ? host.assets.bytes(url).then(function (b) { return new TextDecoder().decode(b); }) // portable read (v1.183)
+    : (typeof fetch === 'function'
+      ? fetch(url).then(function (r) { return r.text(); })
+      : Promise.reject(new Error('no fetch')));
   _svgTextCache[url] = promise;
   promise.catch(function () { if (_svgTextCache[url] === promise) delete _svgTextCache[url]; });
   return promise;

@@ -5,6 +5,7 @@
   "a11yLabel": "Embed credentials into your files",
   "version": "2.0.0",
   "engineVersion": "^1.104.0",
+  "requires": ["c2pa"],
   "status": "official",
   "category": "utility",
   "tags": [

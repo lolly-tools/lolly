@@ -1,0 +1,391 @@
+{
+  "id": "org-chart",
+  "name": "Flow Chart",
+  "description": "Build flow charts on an open canvas - drag cards, connect them, and the lines route and stick to the boxes.",
+  "version": "1.1.1",
+  "engineVersion": "^1.12.0",
+  "status": "community",
+  "category": "everyone",
+  "tags": ["flow chart", "flowchart", "flow", "diagram", "org chart", "org-chart", "orgchart", "hierarchy", "team", "people", "connectors", "canvas", "editor", "process", "structure", "nodes", "wysiwyg"],
+  "featured": {
+    "order": 11,
+    "blurb": "Cards + connectors that stick to the boxes"
+  },
+  "render": {
+    "width": 1600,
+    "height": 1000,
+    "formats": ["png", "svg", "penpot", "pdf", "jpg", "webp", "avif", "tiff", "emf", "pdf-cmyk", "pptx"],
+    "actions": ["copy", "download", "save", "share"],
+    "layout": "editor",
+    "transparentBg": true,
+    "printMarks": false
+  },
+  "hooks": { "onInit": true, "onInput": true },
+  "inputs": [
+    {
+      "id": "background",
+      "type": "color",
+      "label": "Canvas background",
+      "default": "#f4f7f6"
+    },
+    {
+      "id": "boxes",
+      "urlKey": "bx",
+      "type": "blocks",
+      "label": "Cards",
+      "labelledFields": true,
+      "addMenu": { "field": "kind", "label": "Add card" },
+      "canvas": {
+        "idField": "id",
+        "xField": "x",
+        "yField": "y",
+        "wField": "w",
+        "hField": "h",
+        "rotationField": "rot",
+        "shapeField": "shape",
+        "radiusField": "radius",
+        "fillField": "bg",
+        "opacityField": "opacity",
+        "imageField": "image",
+        "imgPosField": "imgpos",
+        "textField": "text",
+        "textColorField": "fg",
+        "fontSizeField": "fontSize",
+        "alignField": "align",
+        "valignField": "valign",
+        "weightField": "weight",
+        "fontField": "font",
+        "lineHeightField": "lineHeight",
+        "trackingField": "tracking",
+        "ligaturesField": "ligatures",
+        "alternatesField": "alternates",
+        "padField": "pad",
+        "blendField": "blend",
+        "groupField": "group",
+        "clipField": "clip",
+        "shadowField": "shadow",
+        "shadowColorField": "shadowColor",
+        "shadowXField": "shadowX",
+        "shadowYField": "shadowY",
+        "shadowBlurField": "shadowBlur",
+        "minSize": 8,
+        "fixedCanvas": true,
+        "grid": { "size": 20, "default": true },
+        "pathField": "path",
+        "strokeField": "stroke",
+        "strokeWField": "strokeW",
+        "fillRuleField": "fillRule",
+        "strokeDashField": "strokeDash",
+        "strokeCapField": "strokeCap",
+        "strokeJoinField": "strokeJoin",
+        "headStartField": "headStart",
+        "headEndField": "headEnd",
+        "bindStartField": "bindStart",
+        "bindEndField": "bindEnd",
+        "routeField": "route",
+        "pathLayerClass": "oc-connectors",
+        "addKinds": [
+          { "id": "card", "label": "Person", "seed": { "kind": "card", "layout": "row", "shape": "rounded", "radius": 18, "bg": "#ffffff", "accent": "#30ba78", "fit": "cover", "text": "New person\n{w200|Job title}", "fg": "#0c322c", "fontSize": 30, "align": "left", "valign": "middle", "weight": "500", "font": "SUSE", "lineHeight": 1.15, "pad": 16 } },
+          { "id": "role", "label": "Role", "seed": { "kind": "card", "layout": "icon", "shape": "rounded", "radius": 14, "bg": "#ffffff", "accent": "#30ba78", "text": "Team\n{w200|What they do}", "fg": "#0c322c", "fontSize": 24, "align": "left", "valign": "middle", "weight": "500", "font": "SUSE", "lineHeight": 1.14, "pad": 14 } },
+          { "id": "photo", "label": "Photo card", "seed": { "kind": "card", "layout": "stacked", "shape": "rounded", "radius": 18, "bg": "#ffffff", "accent": "#30ba78", "fit": "cover", "text": "Name\n{w200|Title}", "fg": "#0c322c", "fontSize": 26, "align": "center", "valign": "top", "weight": "500", "font": "SUSE", "lineHeight": 1.15, "pad": 16 } },
+          { "id": "text", "label": "Text", "seed": { "kind": "text", "layout": "plain", "bg": "", "shape": "rect", "text": "Heading", "fg": "#0c322c", "fontSize": 44, "valign": "top", "weight": "700", "font": "SUSE", "lineHeight": 1.12, "pad": 8 } },
+          { "id": "box", "label": "Box", "seed": { "kind": "box", "layout": "plain", "bg": "#30BA78", "shape": "rounded", "radius": 16, "text": "" } },
+          { "id": "image", "label": "Image", "seed": { "kind": "image", "layout": "plain", "bg": "#eef1f0", "shape": "rounded", "fit": "contain", "text": "" } }
+        ]
+      },
+      "fields": [
+        { "id": "id", "type": "text" },
+        {
+          "id": "kind",
+          "type": "select",
+          "label": "Kind",
+          "default": "card",
+          "options": [
+            { "value": "card", "label": "Person / card", "repeatable": true },
+            { "value": "text", "label": "Text", "repeatable": true },
+            { "value": "box", "label": "Box", "repeatable": true },
+            { "value": "image", "label": "Image", "repeatable": true },
+            { "value": "path", "label": "Line / path", "repeatable": true }
+          ]
+        },
+        {
+          "id": "layout",
+          "type": "select",
+          "label": "Card layout",
+          "default": "row",
+          "help": "How a card arranges its photo/icon and text. Headshot-left and icon-left put the image beside the text; Photo-on-top stacks them; Plain is a bare box (image fills it, text overlays).",
+          "options": [
+            { "value": "row", "label": "Headshot left" },
+            { "value": "icon", "label": "Icon left" },
+            { "value": "stacked", "label": "Photo on top" },
+            { "value": "plain", "label": "Plain box" }
+          ]
+        },
+        { "id": "x", "type": "number", "label": "X", "default": 640 },
+        { "id": "y", "type": "number", "label": "Y", "default": 440 },
+        { "id": "w", "type": "number", "label": "Width", "default": 300, "min": 1 },
+        { "id": "h", "type": "number", "label": "Height", "default": 116, "min": 1 },
+        { "id": "rot", "type": "number", "label": "Rotation", "default": 0, "min": -180, "max": 180 },
+        {
+          "id": "shape",
+          "type": "select",
+          "label": "Shape",
+          "default": "rounded",
+          "options": [
+            { "value": "rect", "label": "Rectangle" },
+            { "value": "rounded", "label": "Rounded" },
+            { "value": "pill", "label": "Pill" },
+            { "value": "ellipse", "label": "Ellipse" }
+          ]
+        },
+        { "id": "radius", "type": "number", "label": "Corner radius", "default": 16, "min": 0, "showIf": { "shape": "rounded" } },
+        { "id": "bg", "type": "color", "label": "Card fill", "default": "{color.semantic.surface}" },
+        { "id": "accent", "type": "color", "label": "Accent", "default": "{color.semantic.secondary}", "help": "The avatar ring / icon chip / initials colour on a card." },
+        { "id": "opacity", "type": "number", "label": "Opacity", "default": 100, "min": 0, "max": 100, "display": "slider" },
+        { "id": "image", "type": "asset", "label": "Photo or icon", "assetType": "any", "allowUpload": true, "help": "A headshot, logo or icon. On a card it sits in the avatar; without one, the card shows the person's initials." },
+        {
+          "id": "fit",
+          "type": "select",
+          "label": "Image fit",
+          "default": "cover",
+          "options": [
+            { "value": "contain", "label": "Contain (fit inside)" },
+            { "value": "cover", "label": "Cover (crop to fill)" },
+            { "value": "fill", "label": "Stretch" }
+          ]
+        },
+        {
+          "id": "blend",
+          "type": "select",
+          "label": "Blend mode",
+          "default": "normal",
+          "options": [
+            { "value": "normal", "label": "Normal" },
+            { "value": "multiply", "label": "Multiply" },
+            { "value": "screen", "label": "Screen" },
+            { "value": "overlay", "label": "Overlay" },
+            { "value": "darken", "label": "Darken" },
+            { "value": "lighten", "label": "Lighten" }
+          ]
+        },
+        { "id": "text", "type": "text", "label": "Text", "default": "", "multilineFor": ["card", "box", "text", "image"], "rows": 3, "help": "First line is the name (make it **bold**); following lines are the title/detail. Rich text: **bold**, *italic*, and lines starting with - become bullets." },
+        { "id": "fg", "type": "color", "label": "Text colour", "default": "{color.semantic.text}" },
+        { "id": "fontSize", "type": "number", "label": "Text size", "default": 30, "min": 4 },
+        {
+          "id": "align",
+          "type": "select",
+          "label": "Align",
+          "default": "left",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Centre" },
+            { "value": "right", "label": "Right" }
+          ]
+        },
+        {
+          "id": "valign",
+          "type": "select",
+          "label": "Vertical",
+          "default": "middle",
+          "options": [
+            { "value": "top", "label": "Top" },
+            { "value": "middle", "label": "Middle" },
+            { "value": "bottom", "label": "Bottom" }
+          ]
+        },
+        {
+          "id": "weight",
+          "type": "select",
+          "label": "Weight",
+          "default": "500",
+          "options": [
+            { "value": "200", "label": "Extra light" },
+            { "value": "300", "label": "Light" },
+            { "value": "400", "label": "Regular" },
+            { "value": "500", "label": "Medium" },
+            { "value": "600", "label": "Semibold" },
+            { "value": "700", "label": "Bold" },
+            { "value": "800", "label": "Extrabold" }
+          ]
+        },
+        {
+          "id": "font",
+          "type": "select",
+          "label": "Font",
+          "default": "SUSE",
+          "options": [
+            { "value": "SUSE", "label": "SUSE Sans" },
+            { "value": "SUSE Mono", "label": "SUSE Mono" }
+          ]
+        },
+        { "id": "lineHeight", "type": "number", "label": "Line height", "default": 1.15, "min": 0.7, "max": 3, "step": 0.05 },
+        { "id": "tracking", "type": "number", "label": "Kerning", "default": 0, "min": -100, "max": 400, "step": 0.5 },
+        { "id": "ligatures", "type": "boolean", "label": "Ligatures", "default": true },
+        { "id": "alternates", "type": "boolean", "label": "Stylistic alternates", "default": false },
+        { "id": "group", "type": "text", "label": "Group", "default": "" },
+        { "id": "clip", "type": "text", "label": "Clip to", "default": "" },
+        { "id": "pad", "type": "number", "label": "Padding", "default": 16, "min": 0 },
+        {
+          "id": "shadow",
+          "type": "select",
+          "label": "Shadow",
+          "default": "none",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "box", "label": "Box" },
+            { "value": "text", "label": "Text" },
+            { "value": "content", "label": "Content" }
+          ]
+        },
+        { "id": "shadowColor", "type": "color", "label": "Shadow colour", "default": "#0c322c33" },
+        { "id": "shadowX", "type": "number", "label": "Shadow X", "default": 0, "min": -300, "max": 300 },
+        { "id": "shadowY", "type": "number", "label": "Shadow Y", "default": 6, "min": -300, "max": 300 },
+        { "id": "shadowBlur", "type": "number", "label": "Shadow blur", "default": 18, "min": 0, "max": 300 },
+        {
+          "id": "imgpos",
+          "type": "select",
+          "label": "Image position",
+          "default": "center",
+          "options": [
+            { "value": "left top", "label": "Top left" },
+            { "value": "center top", "label": "Top" },
+            { "value": "right top", "label": "Top right" },
+            { "value": "left center", "label": "Left" },
+            { "value": "center", "label": "Centre" },
+            { "value": "right center", "label": "Right" },
+            { "value": "left bottom", "label": "Bottom left" },
+            { "value": "center bottom", "label": "Bottom" },
+            { "value": "right bottom", "label": "Bottom right" }
+          ]
+        },
+        {
+          "id": "path",
+          "type": "text",
+          "default": "",
+          "showFor": [],
+          "help": "A line or path box's authored path (nodes and spline kind), encoded by host.geom.encodeAuthored. Written by the line and pen tools and read by the hook; showFor:[] keeps it out of the sidebar because it is machine-written, never typed. Coordinates are fractions of the box frame."
+        },
+        { "id": "stroke", "type": "color", "label": "Line colour", "default": "{color.semantic.secondary}", "showFor": ["path", "box", "image"] },
+        { "id": "strokeW", "type": "number", "label": "Line width", "default": 3.5, "min": 0, "max": 400, "showFor": ["path", "box", "image"] },
+        {
+          "id": "fillRule",
+          "type": "select",
+          "label": "Fill rule",
+          "default": "nonzero",
+          "showFor": ["path"],
+          "options": [
+            { "value": "nonzero", "label": "Non-zero" },
+            { "value": "evenodd", "label": "Even-odd" }
+          ]
+        },
+        {
+          "id": "strokeDash",
+          "type": "select",
+          "label": "Stroke style",
+          "default": "",
+          "showFor": ["path", "box", "image"],
+          "options": [
+            { "value": "", "label": "Solid" },
+            { "value": "dashed", "label": "Dashed" },
+            { "value": "dotted", "label": "Dotted" }
+          ]
+        },
+        {
+          "id": "strokeCap",
+          "type": "select",
+          "label": "Line ends",
+          "default": "round",
+          "showFor": ["path"],
+          "options": [
+            { "value": "round", "label": "Round" },
+            { "value": "butt", "label": "Flat" },
+            { "value": "square", "label": "Square" }
+          ]
+        },
+        {
+          "id": "strokeJoin",
+          "type": "select",
+          "label": "Corners",
+          "default": "round",
+          "showFor": ["path"],
+          "options": [
+            { "value": "round", "label": "Round" },
+            { "value": "miter", "label": "Sharp" },
+            { "value": "bevel", "label": "Bevelled" }
+          ]
+        },
+        {
+          "id": "headStart",
+          "type": "select",
+          "label": "Path start",
+          "default": "none",
+          "showFor": ["path"],
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "triangle", "label": "Arrow" },
+            { "value": "open", "label": "Open arrow" },
+            { "value": "circle", "label": "Circle" },
+            { "value": "diamond", "label": "Diamond" },
+            { "value": "bar", "label": "Bar" }
+          ],
+          "help": "An arrowhead at the line's FIRST point. A spline, a line and a connector are one shape here, so they all take the same six heads."
+        },
+        {
+          "id": "headEnd",
+          "type": "select",
+          "label": "Path end",
+          "default": "none",
+          "showFor": ["path"],
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "triangle", "label": "Arrow" },
+            { "value": "open", "label": "Open arrow" },
+            { "value": "circle", "label": "Circle" },
+            { "value": "diamond", "label": "Diamond" },
+            { "value": "bar", "label": "Bar" }
+          ],
+          "help": "An arrowhead at the line's LAST point. The line tool sets this to Arrow."
+        },
+        { "id": "bindStart", "type": "text", "label": "Start attached to", "default": "", "showFor": [], "help": "The id of the card this line's first point is attached to, empty for a free point. Written by the editor, never typed: a line with an attached end is a connector, routed to that card's border and re-routed when it moves." },
+        { "id": "bindEnd", "type": "text", "label": "End attached to", "default": "", "showFor": [], "help": "The id of the card this line's last point is attached to, empty for a free point. Written by the editor, never typed." },
+        {
+          "id": "route",
+          "type": "select",
+          "label": "Route",
+          "default": "",
+          "showFor": ["path"],
+          "options": [
+            { "value": "", "label": "Auto, from the spline type" },
+            { "value": "straight", "label": "Straight" },
+            { "value": "elbow", "label": "Elbow, auto" },
+            { "value": "elbow-v", "label": "Elbow, vertical" },
+            { "value": "elbow-h", "label": "Elbow, horizontal" },
+            { "value": "elbow-src", "label": "Elbow, bend at the start" },
+            { "value": "elbow-tgt", "label": "Elbow, bend at the end" },
+            { "value": "curved", "label": "Curved, auto S" },
+            { "value": "curved-v", "label": "Curved, vertical S" },
+            { "value": "curved-h", "label": "Curved, horizontal S" },
+            { "value": "arc", "label": "Arc, bow" },
+            { "value": "arc-wide", "label": "Arc, wide bow" },
+            { "value": "arc-flip", "label": "Arc, reverse bow" },
+            { "value": "arc-flip-wide", "label": "Arc, wide reverse bow" }
+          ],
+          "help": "How a line with an attached end is routed between the cards. Auto reads it off the spline type: straight lines route straight, a polyline of three or more points routes as an elbow, spiro bows, and every other spline type routes as a smooth S. Pick one here for the bends auto cannot name. Ignored while both ends are free."
+        }
+      ],
+      "default": [
+        { "id": "ceo", "kind": "card", "layout": "row", "x": 650, "y": 90, "w": 300, "h": 116, "rot": 0, "shape": "rounded", "radius": 18, "bg": "#0c322c", "accent": "#30ba78", "fit": "cover", "text": "Alex Rivera\n{w200|Chief Executive}", "fg": "#ffffff", "fontSize": 30, "align": "left", "valign": "middle", "weight": "500", "font": "SUSE", "lineHeight": 1.15, "pad": 16 },
+        { "id": "cto", "kind": "card", "layout": "row", "x": 360, "y": 430, "w": 300, "h": 116, "rot": 0, "shape": "rounded", "radius": 18, "bg": "#ffffff", "accent": "#30ba78", "fit": "cover", "text": "Priya Nair\n{w200|CTO}", "fg": "#0c322c", "fontSize": 30, "align": "left", "valign": "middle", "weight": "500", "font": "SUSE", "lineHeight": 1.15, "pad": 16 },
+        { "id": "coo", "kind": "card", "layout": "row", "x": 650, "y": 430, "w": 300, "h": 116, "rot": 0, "shape": "rounded", "radius": 18, "bg": "#ffffff", "accent": "#30ba78", "fit": "cover", "text": "Sam Osei\n{w200|COO}", "fg": "#0c322c", "fontSize": 30, "align": "left", "valign": "middle", "weight": "500", "font": "SUSE", "lineHeight": 1.15, "pad": 16 },
+        { "id": "cfo", "kind": "card", "layout": "row", "x": 940, "y": 430, "w": 300, "h": 116, "rot": 0, "shape": "rounded", "radius": 18, "bg": "#ffffff", "accent": "#30ba78", "fit": "cover", "text": "Mia Chen\n{w200|CFO}", "fg": "#0c322c", "fontSize": 30, "align": "left", "valign": "middle", "weight": "500", "font": "SUSE", "lineHeight": 1.15, "pad": 16 },
+        { "id": "eng1", "kind": "card", "layout": "icon", "x": 210, "y": 740, "w": 280, "h": 92, "rot": 0, "shape": "rounded", "radius": 14, "bg": "#ffffff", "accent": "#30ba78", "text": "Platform\n{w200|Infrastructure team}", "fg": "#0c322c", "fontSize": 24, "align": "left", "valign": "middle", "weight": "500", "font": "SUSE", "lineHeight": 1.14, "pad": 14 },
+        { "id": "eng2", "kind": "card", "layout": "icon", "x": 520, "y": 740, "w": 280, "h": 92, "rot": 0, "shape": "rounded", "radius": 14, "bg": "#ffffff", "accent": "#fe7c3f", "text": "Product\n{w200|Application team}", "fg": "#0c322c", "fontSize": 24, "align": "left", "valign": "middle", "weight": "500", "font": "SUSE", "lineHeight": 1.14, "pad": 14 },
+        { "id": "ln1", "kind": "path", "layout": "plain", "shape": "rect", "x": 510, "y": 148, "w": 290, "h": 340, "rot": 0, "bg": "", "path": "1!line!0_1!0_0!1", "stroke": "#30ba78", "strokeW": 3.5, "strokeCap": "round", "strokeJoin": "round", "strokeDash": "", "headStart": "none", "headEnd": "open", "bindStart": "ceo", "bindEnd": "cto", "route": "elbow" },
+        { "id": "ln2", "kind": "path", "layout": "plain", "shape": "rect", "x": 800, "y": 148, "w": 1, "h": 340, "rot": 0, "bg": "", "path": "1!line!0_0!0_0!1", "stroke": "#30ba78", "strokeW": 3.5, "strokeCap": "round", "strokeJoin": "round", "strokeDash": "", "headStart": "none", "headEnd": "open", "bindStart": "ceo", "bindEnd": "coo", "route": "elbow" },
+        { "id": "ln3", "kind": "path", "layout": "plain", "shape": "rect", "x": 800, "y": 148, "w": 290, "h": 340, "rot": 0, "bg": "", "path": "1!line!0_0!0_1!1", "stroke": "#30ba78", "strokeW": 3.5, "strokeCap": "round", "strokeJoin": "round", "strokeDash": "", "headStart": "none", "headEnd": "open", "bindStart": "ceo", "bindEnd": "cfo", "route": "elbow" },
+        { "id": "ln4", "kind": "path", "layout": "plain", "shape": "rect", "x": 350, "y": 488, "w": 160, "h": 298, "rot": 0, "bg": "", "path": "1!line!0_1!0_0!1", "stroke": "#30ba78", "strokeW": 3.5, "strokeCap": "round", "strokeJoin": "round", "strokeDash": "", "headStart": "none", "headEnd": "open", "bindStart": "cto", "bindEnd": "eng1", "route": "elbow" },
+        { "id": "ln5", "kind": "path", "layout": "plain", "shape": "rect", "x": 510, "y": 488, "w": 150, "h": 298, "rot": 0, "bg": "", "path": "1!line!0_0!0_1!1", "stroke": "#30ba78", "strokeW": 3.5, "strokeCap": "round", "strokeJoin": "round", "strokeDash": "", "headStart": "none", "headEnd": "open", "bindStart": "cto", "bindEnd": "eng2", "route": "elbow" }
+      ]
+    }
+  ]
+}

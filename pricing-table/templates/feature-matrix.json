@@ -1,0 +1,54 @@
+{
+  "id": "feature-matrix",
+  "name": "Feature matrix",
+  "category": "Reference",
+  "description": "A flat grid of many plans, for a docs page or a one-pager.",
+  "values": {
+    "heading": "What is in each plan",
+    "subheading": "The full list, no asterisks.",
+    "cta": "",
+    "highlight": 0,
+    "highlightLabel": "",
+    "layout": "grid",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}",
+    "data": {
+      "columns": ["Feature", "Solo", "Duo", "Squad", "Studio", "Agency"],
+      "rows": [
+        ["Price", "$0", "$12", "$40", "$120", "$400"],
+        ["Tagline", "1 seat", "2 seats", "10 seats", "40 seats", "Unlimited"],
+        ["Shared brand kit", "no", "yes", "yes", "yes", "yes"],
+        ["Batch renders", "-", "100", "2,000", "20,000", "Unlimited"],
+        ["Saved templates", "3", "10", "50", "Unlimited", "Unlimited"],
+        ["Single sign-on", "no", "no", "no", "yes", "yes"],
+        ["Audit log", "no", "no", "yes", "yes", "yes"],
+        ["Support", "Community", "Email", "Email", "> Priority", "> Named contact"]
+      ]
+    }
+  },
+  "presets": [
+    {
+      "id": "two-plan",
+      "name": "Two plans",
+      "description": "The short version, with the paid plan featured.",
+      "values": {
+        "heading": "Free or paid",
+        "highlight": 2,
+        "highlightLabel": "Recommended",
+        "cta": "Upgrade",
+        "data": {
+          "columns": ["Feature", "Free", "Paid"],
+          "rows": [
+            ["Price", "$0", "$12 / month"],
+            ["Tagline", "Everything on device", "Everything, plus the team"],
+            ["Shared brand kit", "no", "yes"],
+            ["Batch renders", "-", "Unlimited"],
+            ["Saved templates", "3", "Unlimited"],
+            ["Single sign-on", "no", "yes"],
+            ["Support", "Community", "> Email, next day"]
+          ]
+        }
+      }
+    }
+  ]
+}

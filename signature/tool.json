@@ -34,6 +34,7 @@
     "transparentBg": true,
     "convertPaths": false
   },
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true,

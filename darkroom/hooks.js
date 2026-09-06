@@ -646,6 +646,8 @@ function parseLutFile(file) {
 // ── preset LUTs (shipped, open/CC0) ──────────────────────────────────────────
 
 function fetchText(url) {
+  // Portable read (v1.183): the same call answers in a page, a Worker and a headless shell.
+  if (host.assets && host.assets.bytes) return host.assets.bytes(url).then(function (b) { return new TextDecoder().decode(b); });
   if (typeof fetch !== 'function') return Promise.reject(new Error('no fetch in this shell'));
   return fetch(url).then(function (r) {
     if (!r.ok) throw new Error('HTTP ' + r.status);

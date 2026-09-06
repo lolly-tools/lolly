@@ -481,6 +481,7 @@
       "help": "The call-to-action wording."
     }
   ],
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true,

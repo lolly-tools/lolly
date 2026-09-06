@@ -1,0 +1,74 @@
+{
+  "id": "battlecards",
+  "name": "Battlecards",
+  "description": "Turn any table into a deck of cards - one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat.",
+  "a11yLabel": "Battlecards: {{default title \"Battlecards\"}} - one card per table row",
+  "version": "1.3.2",
+  "engineVersion": "^1.82.0",
+  "status": "community",
+  "category": "everyone",
+  "tags": ["battlecard", "sales", "competitive", "table", "cards", "pdf", "pages", "batch"],
+  "render": {
+    "width": 1200,
+    "height": 900,
+    "formats": ["pdf", "svg", "penpot", "pdf-cmyk", "emf", "png", "webp", "avif", "jpeg", "tiff", "cmyk-tiff"],
+    "actions": ["copy", "download", "save"],
+    "paged": true,
+    "filmstrip": "bottom",
+    "paginate": { "source": "data" },
+    "transparentBg": false
+  },
+  "inputs": [
+    {
+      "id": "data",
+      "label": "Table",
+      "type": "table",
+      "urlKey": "t",
+      "help": "One card per row. The first column is each card's title; the other column headings become its field labels. Cells take markdown - **bold**, *italic*, # headings, - bullet and 1. numbered lists, [links](url) and ![images](url). Paste a table copied from a spreadsheet, Notion, Slack, or Markdown - or click any text on the card to edit it in place (it bakes back to markdown here). An optional Icon column puts a small image on each card: click the top-right corner of a card to pick one from the catalog. The Copy button hands the finished table back to your spreadsheet."
+    },
+    {
+      "id": "title",
+      "label": "Deck title",
+      "type": "text",
+      "default": "Battlecards",
+      "maxLength": 80
+    },
+    {
+      "id": "orientation",
+      "label": "Orientation",
+      "type": "select",
+      "default": "landscape",
+      "options": [
+        { "value": "landscape", "label": "Landscape", "width": 1200, "height": 900 },
+        { "value": "portrait", "label": "Portrait", "width": 900, "height": 1200 }
+      ],
+      "help": "The card layout adapts: fields flow as a grid in landscape and stack in portrait."
+    },
+    {
+      "id": "accent",
+      "label": "Accent",
+      "type": "color",
+      "default": "{color.semantic.primary}"
+    },
+    {
+      "id": "bg",
+      "label": "Background",
+      "type": "color",
+      "default": "{color.semantic.surface}"
+    },
+    {
+      "id": "ink",
+      "label": "Text",
+      "type": "color",
+      "default": "{color.semantic.text}"
+    },
+    {
+      "id": "footer",
+      "label": "Footer note",
+      "type": "text",
+      "default": "",
+      "placeholder": "Internal use only · Q3 2026",
+      "maxLength": 120
+    }
+  ]
+}

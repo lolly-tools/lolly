@@ -308,6 +308,7 @@ async function refBytes(ref) {
   var url = ref && ref.url;
   if (!url) throw new Error('A kit image failed to render.');
   try {
+    if (host.assets && host.assets.bytes) return await host.assets.bytes(url); // portable read (v1.183)
     var res = await fetch(url);
     return new Uint8Array(await res.arrayBuffer());
   } finally {

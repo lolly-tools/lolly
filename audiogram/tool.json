@@ -20,6 +20,7 @@
     "quote",
     "visualizer"
   ],
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true,

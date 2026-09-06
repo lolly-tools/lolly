@@ -16,6 +16,7 @@
     "video": { "wait": 0, "duration": 6 },
     "transparentBg": false
   },
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true,

@@ -22,6 +22,7 @@
     "actions": ["copy", "download", "save"],
     "transparentBg": false
   },
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true

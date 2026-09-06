@@ -24,6 +24,7 @@
       "message": "This document is built for portrait pages. A landscape or wider size breaks the two-column layout - keep height the longer side."
     }
   },
+  "isolate": true,
   "hooks": {
     "onInit": true,
     "onInput": true
