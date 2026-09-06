@@ -18,6 +18,7 @@
  */
 
 import { escape } from '../utils.ts';
+import { presentApis } from '@lolly-tools/core';
 import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
@@ -611,7 +612,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   const isViewRef = (ref: string): boolean => ref.startsWith('view:');
   const viewByRef = (ref: string): UtilityView | undefined => utilityViews(speechOk).find(v => viewFavKey(v.id) === ref);
   // Desktop-only tools: selectable (favourite/hide still apply) but never pinnable.
-  const unavailableIds = new Set(index.tools.filter(t => toolSupport(t, host.capabilities).status === 'unavailable').map(t => t.id));
+  const unavailableIds = new Set(index.tools.filter(t => toolSupport(t, host.capabilities, presentApis(host)).status === 'unavailable').map(t => t.id));
   const selectedToolIds = (): string[] => [...selected].filter(r => !isViewRef(r));
   const pinnableIds = (): string[] => selectedToolIds().filter(id => !unavailableIds.has(id));
   const allSelectedPinned = (): boolean => { const ids = pinnableIds(); return ids.length > 0 && ids.every(id => pinnedTools.has(id)); };
@@ -2473,7 +2474,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       canPersonalize(t) &&
       !latestByTool(t.id) &&                  // no saved session - only placeholders
       !personalizedByTool.has(t.id) &&        // not already fresh in cache
-      toolSupport(t, host.capabilities).status !== 'unavailable',
+      toolSupport(t, host.capabilities, presentApis(host)).status !== 'unavailable',
     );
     if (toRegenerate.length) {
       const cancel = regeneratePreviews({

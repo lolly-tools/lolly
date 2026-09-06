@@ -11,7 +11,7 @@ import { t } from '../i18n.ts';
 
 export function renderFileBatchHistory(root: HTMLElement, batches: LocalFileBatch[], store: FileOperationStore, host: HostV1, refresh: () => Promise<void>): void {
   root.hidden = !batches.length;
-  root.innerHTML = `<h3>${t('Batches — every selected file')}</h3><p class="convert-retention">${t('Includes cancelled files and files that never started. Retrying creates a new batch; the original report is kept.')}</p><div data-batch-list></div><p role="status" data-batch-status></p>`;
+  root.innerHTML = `<h3>${t('Batches - every selected file')}</h3><p class="convert-retention">${t('Includes cancelled files and files that never started. Retrying creates a new batch; the original report is kept.')}</p><div data-batch-list></div><p role="status" data-batch-status></p>`;
   const list = root.querySelector<HTMLElement>('[data-batch-list]')!;
   const status = root.querySelector<HTMLElement>('[data-batch-status]')!;
   const announce = (error: unknown): void => { status.textContent = error instanceof Error ? error.message : String(error); };
@@ -32,7 +32,7 @@ export function renderFileBatchHistory(root: HTMLElement, batches: LocalFileBatc
     for (const member of batch.members) {
       const result = member.report;
       const interrupted = result?.findings.some(f => f.code === 'operation-interrupted');
-      const state = interrupted ? t('Interrupted — choose the original to retry') : result?.state === 'succeeded' ? t('Copy completed') : result?.state === 'failed' ? t('Failed') : result?.state === 'cancelled' ? t('Cancelled') : t('Queued or running');
+      const state = interrupted ? t('Interrupted - choose the original to retry') : result?.state === 'succeeded' ? t('Copy completed') : result?.state === 'failed' ? t('Failed') : result?.state === 'cancelled' ? t('Cancelled') : t('Queued or running');
       const row = document.createElement('article'); row.className = 'convert-history-row'; row.dataset.batchMember = member.operationId;
       row.innerHTML = `<div><h4>${escapeHtml(member.source.facts.name)}</h4><p>${state}</p>${result?.findings.map(f => `<p class="${f.severity === 'error' ? 'convert-error' : 'convert-retention'}">${escapeHtml(f.message)}</p>`).join('') ?? ''}${result?.state === 'succeeded' ? `<p class="convert-retention">${t('The batch keeps the receipt. Download availability depends on keeping the individual saved result.')}</p>` : ''}</div><div class="convert-actions">${result?.state === 'succeeded' ? `<button class="btn" data-batch-result>${t('Download copy')}</button>` : ''}${result ? `<button class="btn" data-batch-retry>${t('Retry with original…')}</button><input type="file" hidden data-batch-retry-file>` : ''}</div>`;
       row.querySelector('[data-batch-result]')?.addEventListener('click', async () => {

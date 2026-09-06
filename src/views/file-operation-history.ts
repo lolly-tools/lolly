@@ -12,7 +12,7 @@ import { renderFileBatchHistory } from './file-batch-history.ts';
 import { attachFileResultActions } from './file-result-actions.ts';
 
 const stateLabel = (state: LocalFileOperation['state']): string => ({
-  running: t('Running'), succeeded: t('Ready to download'), failed: t('Failed'), cancelled: t('Cancelled'), interrupted: t('Interrupted — choose the original to retry'),
+  running: t('Running'), succeeded: t('Ready to download'), failed: t('Failed'), cancelled: t('Cancelled'), interrupted: t('Interrupted - choose the original to retry'),
 })[state];
 
 export async function renderFileOperationHistory(root: HTMLElement, host: HostV1): Promise<void> {

@@ -223,7 +223,7 @@ function hideWarnTip(delay = 140): void {
 // all when the catalog ships such audio. Every group starts folded (it still
 // expands on click, and while searching).
 const CATEGORY_META: Record<string, { label: string; icon: string; warn?: string }> = {
-  catalog: { label: 'Catalog', icon: '🗂️' },
+  catalog: { label: 'Catalogue', icon: '🗂️' },
   uploads: { label: 'Uploads', icon: '📤' },
   lolly: { label: 'Lolly Sings', icon: '🍭' },
   ambient: { label: 'Ambient', icon: '🌊' },

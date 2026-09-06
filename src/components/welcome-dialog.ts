@@ -57,6 +57,7 @@ import '../styles/parts/welcome.css';
 import { currentLang, docsAppHref, langOptions, setActiveLang, t, LANG_ICON_SVG, flagEmoji } from '../i18n.ts';
 import type { Lang } from '../i18n.ts';
 import { escape, NAV_EVENTS } from '../utils.ts';
+import { createScope } from '../lib/dispose.ts';
 import { icon } from '../lib/icons.ts';
 import type { WebProfileAPI } from '../bridge/profile.ts';
 import type { PickerHost } from '../views/picker.ts';
@@ -326,6 +327,7 @@ export function mountBrandTips(anchorEl: HTMLElement | null): void {
   strip.setAttribute('role', 'note');
   strip.setAttribute('aria-label', 'How Lolly works');
   strip.innerHTML = `
+    <a class="brand-tips-import" href="#/start?import=1">Bring your brand: import DTCG, Tokens Studio or Penpot tokens</a>
     <p class="brand-tips-text">Every tool is a URL <span class="brand-tips-dot" aria-hidden="true">&middot;</span> works offline <span class="brand-tips-dot" aria-hidden="true">&middot;</span> nothing leaves this device</p>
     <button type="button" class="brand-tips-dismiss" aria-label="Dismiss tips">&#x2715;</button>`;
   strip.querySelector<HTMLButtonElement>('.brand-tips-dismiss')?.addEventListener('click', () => {
@@ -369,6 +371,9 @@ export async function mountBrandedIntro(
   strip.innerHTML = `
     <p class="brand-tips-text">Your brand is loaded <span class="brand-tips-dot" aria-hidden="true">&middot;</span> pick a template, make it yours, export on brand <span class="brand-tips-dot" aria-hidden="true">&middot;</span> <a href="${docsAppHref('start/quickstart')}">Quickstart</a></p>
     <button type="button" class="brand-tips-dismiss" aria-label="Dismiss">&#x2715;</button>`;
+  // One scope owns the strip's listeners: dispose releases them all, so a
+  // teardown path can never forget one (lib/dispose.ts).
+  const scope = createScope();
   const onNav = (): void => {
     // Opening a tool is the strip's own advice taken - settle without requiring the ✕.
     if (location.pathname.startsWith('/t/') || location.hash.startsWith('#/tool')) {
@@ -378,10 +383,10 @@ export async function mountBrandedIntro(
     if (!strip.isConnected) teardown(); // the gallery unmounted - stop listening either way
   };
   const teardown = (): void => {
-    NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNav));
+    scope.dispose();
     strip.remove();
   };
-  NAV_EVENTS.forEach(ev => window.addEventListener(ev, onNav));
+  NAV_EVENTS.forEach(ev => scope.listen(window, ev, onNav));
   strip.querySelector<HTMLButtonElement>('.brand-tips-dismiss')?.addEventListener('click', () => { settle(); teardown(); });
   anchorEl.before(strip);
   return true;

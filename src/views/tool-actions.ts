@@ -1848,6 +1848,7 @@ function renderActions(
   el.innerHTML = `
     <div class="export-actions-dock">
       <p class="export-outcome-summary" data-export-outcome${initialExperience.summary ? '' : ' hidden'}>${escape(initialExperience.summary ?? '')}</p>
+      ${manifest.status === 'experimental' ? `<p class="export-experimental-note" role="note">${escape(t('This tool is experimental, so every export carries a watermark.'))}</p>` : ''}
       ${secondaryRow}
       ${downloadRow}
       ${actions.includes('download') ? `<p class="export-degraded-note" data-export-degraded role="status" hidden style="margin:.2rem 0 0;color:hsl(var(--muted-foreground));font-size:12px;text-align:center"></p>` : ''}

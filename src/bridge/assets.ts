@@ -1075,6 +1075,20 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       return { blobs: staleBlobs.length, meta: staleMeta.length };
     },
 
+    // v1.183: the bytes behind a ref - blob:, data: and same-origin urls all
+    // answer to the page's fetch; a foreign origin is refused so this is never
+    // a way around host.net's allowlist.
+    async bytes(target: AssetRef | string): Promise<Uint8Array> {
+      const url = typeof target === 'string' ? target : target.url;
+      if (!url) throw new Error('asset has no url');
+      const ok = url.startsWith('blob:') || url.startsWith('data:') || url.startsWith('/')
+        || (typeof location !== 'undefined' && url.startsWith(location.origin + '/'));
+      if (!ok) throw new Error(`host.assets.bytes: ${url.slice(0, 40)} is not an asset url of this origin - use host.net.fetch with an allowlist`);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`host.assets.bytes: HTTP ${res.status}`);
+      return new Uint8Array(await res.arrayBuffer());
+    },
+
     async isAvailable(id: string): Promise<boolean> {
       if (id.startsWith('user/')) {
         return Boolean(await db.get('user-assets', id));

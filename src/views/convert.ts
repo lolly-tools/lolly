@@ -199,7 +199,7 @@ export async function mountConvert(viewEl: HTMLElement, host: HostV1, _params = 
     <div class="platform-layout convert-view">
       <header class="plat-header">
         <h1 class="plat-title">${t('Convert')}</h1>
-        <p class="plat-sub">${t('A better fit for wherever your file goes next. Convert, resize and check your copy — all on your device.')}</p>
+        <p class="plat-sub">${t('A better fit for wherever your file goes next. Convert, resize and check your copy - all on your device.')}</p>
       </header>
       <div class="convert-drop" data-drop tabindex="0" role="button" aria-label="${t('Drop a file to convert')}">
         <p>${t('Drop a file to get started, or a batch of images.')}</p>

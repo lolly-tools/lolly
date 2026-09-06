@@ -523,8 +523,8 @@ async function render(
   const isTreatableRef = (ref: AssetRef | undefined): ref is AssetRef => ref?.type === 'raster';
 
   // Which sources get a tab. The Catalog is always present; the rest are conditional.
-  // ("library" stays the internal id/data-pane - the visible label is "Catalog".)
-  const tabs: Tab[] = [{ id: 'library', label: 'Catalog' }];
+  // ("library" stays the internal id/data-pane - the visible label is "Catalogue".)
+  const tabs: Tab[] = [{ id: 'library', label: 'Catalogue' }];
   // The user's own uploads live on their own tab - private to them until shared.
   if (showUserAssets) tabs.push({ id: 'uploads', label: 'Private assets' });
   if (allowToolUrl) tabs.push({ id: 'sessions', label: 'Saved creations' });

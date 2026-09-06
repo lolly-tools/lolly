@@ -14,6 +14,7 @@
 // View-scoped stylesheets - Vite emits these as async CSS chunks loaded WITH this
 // lazy view, instead of render-blocking the gallery/catalog landing (see app.css).
 import '../styles/parts/tool.css';
+import { presentApis } from '@lolly-tools/core';
 import '../styles/parts/editor.css';
 // The Design editor's three chrome columns (plan 179 M1-M3). Their modules import no CSS
 // of their own - so they stay mountable in a node test - and ride this lazy tool chunk.
@@ -760,7 +761,7 @@ export async function mountTool(
   // show the right panel instead of mounting it into a broken state - on a
   // Chromium browser a capture tool offers the extension ('install'); otherwise
   // "desktop only" ('unavailable').
-  const sup = toolSupport(tool.manifest, host.capabilities);
+  const sup = toolSupport(tool.manifest, host.capabilities, presentApis(host));
   // A capture tool on a Chromium browser without the extension: MOUNT it anyway.
   // url-shot's visual composer + recipe output need no capture - only EXPORT does -
   // so a full-screen gate would hide a core authoring surface. Mount the tool and
