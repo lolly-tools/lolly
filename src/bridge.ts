@@ -11,6 +11,7 @@
  */
 
 import { readFile } from 'node:fs/promises';
+import { assetBytes } from '@lolly-tools/node-shell/asset-bytes';
 import { join } from 'node:path';
 // The .penpot archive's zip step (plans/178). fflate is already this shell's zip codec
 // (the pptx read path uses it); the engine hands back entries and the caller zips them,
@@ -442,7 +443,11 @@ export async function createCliBridge(
     colors: async (opts = {}) => (await tokenSet(opts.theme)).colors(),
     resolve: async (ref, opts = {}) => (await tokenSet(opts.theme)).resolve(ref),
     themes: async () => (await tokenSet()).themes(),
-  };
+    // Owner-side seam for the worker_threads hook executor: the raw DTCG doc it
+    // snapshots into the worker so hooks resolve tokens without an RPC. Never a
+    // hook-facing call (the worker core omits it from the proxy).
+    raw: () => resolvedDoc(),
+  } as typeof host.tokens;
 
   // Perceptual colour tools (v1.40) - pure engine math, attached verbatim
   // (same object the web bridge attaches, so shells can never drift).
@@ -524,6 +529,10 @@ export async function createCliBridge(
   host.net = createNetAPI({ allowlist: networkAllowlist });
 
   host.assets = {
+    // v1.183: bytes behind a ref. This bridge inlines catalog files as data:
+    // urls, so most reads never touch the disk; http(s) rides the tool's own
+    // allowlist through host.net, never an open fetch.
+    bytes: (target) => assetBytes(target, { netFetch: (url) => (host.net ? host.net.fetch(url) : Promise.reject(new Error('no host.net'))) }),
     async resolveProvider(ref) {
       if (ref.provider === 'catalog' || ref.provider === 'library') {
         try { return await host.assets.get([ref.scope, ref.path].filter(Boolean).join('/')); } catch { return null; }

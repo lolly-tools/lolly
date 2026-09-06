@@ -11,6 +11,7 @@
 import { readFile, writeFile, stat } from 'node:fs/promises';
 import { join, resolve, basename, extname } from 'node:path';
 
+import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
 import { loadTool, createRuntime, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
 import type { Lang } from '@lolly/engine';
@@ -42,6 +43,20 @@ import { isOn } from './args.ts';
 import type { Profile, ExportOpts } from '@lolly-tools/core/host-v1';
 import { note, warn, writeOut, isStrict } from './output.ts';
 import { usageError, unavailableHere, refused, authError } from './exit-codes.ts';
+
+/**
+ * LOLLY_HOOK_WORKER=1 runs every tool's hooks.js in a `worker_threads` Worker
+ * (the same protocol as the web shell's hook Worker) instead of this process's
+ * realm. Off by default while the catalog is being field-verified; the
+ * `isolate` manifest flag is the per-tool switch that lands in data
+ * (scripts/tool-isolation.ts) once a tool renders identically both ways.
+ */
+let nodeHookExecutor: ReturnType<typeof createNodeHookExecutor> | null = null;
+function hookExecutorOpts(): { hookExecutor?: ReturnType<typeof createNodeHookExecutor> } | undefined {
+  if (process.env.LOLLY_HOOK_WORKER !== '1') return undefined;
+  nodeHookExecutor ??= createNodeHookExecutor();
+  return { hookExecutor: nodeHookExecutor };
+}
 
 const REPO_ROOT = repoRoot();
 
@@ -490,7 +505,7 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
   // without hand-reconstructing a URL. (A `file`-typed input has no shareable form, so it
   // is simply absent from the link - same as the web.)
   if (share) {
-    const runtime = await createRuntime(tool, host, values);
+    const runtime = await createRuntime(tool, host, values, hookExecutorOpts());
     const q = serializeUrlState(runtime.getModel());
     await writeOut(`https://lolly.tools/#/tool/${tool.manifest.id}${q ? '?' + q : ''}\n`);
     return;
@@ -521,7 +536,7 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
         'UNSUPPORTED_FLAG',
       );
     }
-    const runtime = await createRuntime(tool, host, values);
+    const runtime = await createRuntime(tool, host, values, hookExecutorOpts());
     const fileIn = (tool.manifest.inputs ?? []).find(i => i.type === 'file');
     let tier = 'node';
     let bytes: Uint8Array;
@@ -636,7 +651,7 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
 
   // The runtime resolves asset refs (catalog ids → AssetRefs with a `format`), which
   // the matchExportFormat default below reads - so it's created before format resolution.
-  const runtime = await createRuntime(tool, host, values);
+  const runtime = await createRuntime(tool, host, values, hookExecutorOpts());
 
   // Format resolution mirrors URL mode: an explicit flag wins (--export= arrives
   // as `format`, --format= as `paramFormat`); otherwise infer it from the
