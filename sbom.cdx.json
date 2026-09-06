@@ -4,7 +4,7 @@
   "serialNumber": "urn:uuid:819f5164-9c75-4aab-8ecd-cd0c900231ac",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-06T10:52:14.602Z",
+    "timestamp": "2026-09-06T12:01:33.157Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -130,6 +130,34 @@
           "name": "@lolly/tui",
           "version": "0.1.0",
           "purl": "pkg:npm/%40lolly/tui@0.1.0",
+          "licenses": [
+            {
+              "license": {
+                "id": "MPL-2.0"
+              }
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "bom-ref": "pkg:npm/%40lolly/ca-service@0.1.0",
+          "name": "@lolly/ca-service",
+          "version": "0.1.0",
+          "purl": "pkg:npm/%40lolly/ca-service@0.1.0",
+          "licenses": [
+            {
+              "license": {
+                "id": "MPL-2.0"
+              }
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "bom-ref": "pkg:npm/%40lolly/mcp-server@0.1.0",
+          "name": "@lolly/mcp-server",
+          "version": "0.1.0",
+          "purl": "pkg:npm/%40lolly/mcp-server@0.1.0",
           "licenses": [
             {
               "license": {
@@ -36587,6 +36615,14 @@
       "version": "0.6.2",
       "purl": "pkg:npm/rechoir@0.6.2",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "url": "https://github.com/tkellen/node-rechoir/blob/master/LICENSE"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",

@@ -208,7 +208,10 @@ export function drift(current = scanCode(), baseline = loadBaseline()): CodeVern
     else if (now < was) under.push({ file, was, now });
   }
   for (const [file, was] of Object.entries(baseline)) {
-    if (current[file] === undefined) under.push({ file, was, now: 0 }); // cleared: lock it
+    // Cleared: lock it - but only when the file is still on disk. A baseline file
+    // that is absent (a shell submodule this clone did not mount) was not scanned,
+    // and must not read as an improvement.
+    if (current[file] === undefined && existsSync(join(ROOT, file))) under.push({ file, was, now: 0 });
   }
   return { over, fresh, under };
 }

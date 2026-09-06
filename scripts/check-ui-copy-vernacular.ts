@@ -107,7 +107,12 @@ export function drift(): { over: { file: string; was: number; now: number }[]; f
     else if (n > was) over.push({ file, was, now: n });
     else if (n < was) under.push({ file, was, now: n });
   }
-  for (const [file, was] of Object.entries(baseline)) if (!(file in now) && was > 0) under.push({ file, was, now: 0 });
+  // A baseline file that is not on disk was not scanned, so it is not an
+  // improvement: brands/suse is a private submodule a public clone and CI never
+  // mount, and its two entries must not read as "better" there.
+  for (const [file, was] of Object.entries(baseline)) {
+    if (!(file in now) && was > 0 && existsSync(join(ROOT, file))) under.push({ file, was, now: 0 });
+  }
   return { over, fresh, under };
 }
 
