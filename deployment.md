@@ -63,6 +63,14 @@ helm install lolly deploy/helm --set web.image.repository=<registry>/lolly-web
 
 The [Build Guide](/info/build-guide.html) covers building and pushing the images, the SUSE Application Collection base-image option and how to adapt the chart.
 
+### YunoHost
+
+For a self-hosting box rather than a cluster, Lolly ships as a [YunoHost](https://yunohost.org) app: `sudo yunohost app install https://github.com/lolly-tools/lolly_ynh`. The package is the `deploy/yunohost/` directory of this repo, mirrored to that app repository at each release, so the two never differ.
+
+It is the static delivery model above, done for you: the package downloads a prebuilt web build from the release host, unpacks it into the app directory and serves it with the domain's nginx, with the same security headers as lolly.tools. There is no service and no database, nothing is stored on the server, and access is the ordinary YunoHost permission on the app - public by default, or limited to a group. Two things follow from the build it installs. It takes a **whole domain**, because the web build resolves its assets, service worker and clean routes from the domain root. And the on-device ML models are fetched on first use from `lolli.li`, the project's release host, rather than bundled, the same way the desktop app does it; without that the download would be over two gigabytes, and a YunoHost host is often a small machine.
+
+The governed, multi-user deployment with YunoHost sign-in is the separate **Lolly Work** package, which serves this same web build behind its control plane.
+
 ## Desktop & mobile apps
 
 The Tauri shells wrap the same engine and web assets in a native binary.
