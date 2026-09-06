@@ -1948,4 +1948,4 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 
 /* Experimental tools stamp every export; say so beside the button, not only in
    preflight and the gallery badge. */
-.export-experimental-note { margin: .2rem 0 0; font-size: calc(12px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.export-experimental-note { margin: .2rem 0 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
