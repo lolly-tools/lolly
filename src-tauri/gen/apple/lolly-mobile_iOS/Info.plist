@@ -11,46 +11,215 @@
 			<array>
 				<string>lolly</string>
 			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>tools.lolly.pack</string>
+			</array>
 			<key>CFBundleTypeName</key>
 			<string>Lolly bundle</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>tools.lolly.pack</string>
-			</array>
 		</dict>
 		<dict>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>penpot</string>
-				<string>fig</string>
-				<string>idml</string>
-				<string>ai</string>
-				<string>svg</string>
-				<string>pdf</string>
-				<string>xlsx</string>
-				<string>csv</string>
-				<string>tsv</string>
-				<string>pptx</string>
-				<string>docx</string>
-				<string>psd</string>
-				<string>psb</string>
-				<string>xcf</string>
 			</array>
 			<key>CFBundleTypeName</key>
-			<string>Document Lolly can open</string>
+			<string>Penpot project</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>fig</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Figma design file</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>idml</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>InDesign Markup document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>ai</string>
+			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.adobe.illustrator.ai-image</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Adobe Illustrator document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>svg</string>
+			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.svg-image</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>SVG document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>pdf</string>
+			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.adobe.pdf</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>PDF document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>xlsx</string>
+			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.openxmlformats.spreadsheetml.sheet</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Excel spreadsheet</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>csv</string>
+			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.comma-separated-values-text</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>CSV table</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>tsv</string>
+			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.tab-separated-values-text</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Tab-separated table</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>pptx</string>
+			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.openxmlformats.presentationml.presentation</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>PowerPoint presentation</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>docx</string>
+			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.openxmlformats.wordprocessingml.document</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Word document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>psd</string>
+				<string>psb</string>
+			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.image</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Photoshop document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>xcf</string>
+			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.image</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>GIMP image</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>
 			<string>Alternate</string>
 		</dict>
 	</array>
-	<!-- lolly:// deep links (plans/174): the app's own routes under a scheme, so a
-	     Shortcut, another app or a QR code can open a tool with its inputs filled.
-	     Delivered to Rust as RunEvent::Opened (src/lib.rs) and polled by the web shell. -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -149,15 +318,15 @@
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>tools.lolly.pack</string>
+			<key>UTTypeDescription</key>
+			<string>Lolly bundle (session share or brand pack)</string>
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.data</string>
 				<string>public.archive</string>
 			</array>
-			<key>UTTypeDescription</key>
-			<string>Lolly bundle (session share or brand pack)</string>
-			<key>UTTypeIdentifier</key>
-			<string>tools.lolly.pack</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -165,9 +334,7 @@
 					<string>lolly</string>
 				</array>
 				<key>public.mime-type</key>
-				<array>
-					<string>application/vnd.lolly+zip</string>
-				</array>
+				<string>application/vnd.lolly+zip</string>
 			</dict>
 		</dict>
 	</array>
