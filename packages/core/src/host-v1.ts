@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Stable public barrel for the capability-split HostV1 contract. */
 
+export * from './host-v1/apis.ts';
 export * from './host-v1/asset-ref.ts';
 export * from './host-v1/assets.ts';
 export * from './host-v1/audio.ts';

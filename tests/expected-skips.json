@@ -1320,13 +1320,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/canvas-schema-contract.test.ts",
-      "fullName": "the real org-chart manifest passes the schema AND the reference check",
-      "reason": "SUSE brand pack not mounted (see profiles.json)",
-      "capability": "brand:suse",
-      "owner": "tests"
-    },
-    {
       "file": "tests/cli-deep-export.test.ts",
       "fullName": "depth=16 and depth=8 do NOT become EXR sample types - half is kept",
       "reason": "ffprobe/ffmpeg not on PATH - the independent EXR/Radiance decoder is the whole point of these cases",
