@@ -284,7 +284,7 @@
 .jp-cinema .jp-heading {
   font-size: clamp(46px, 11.5cqw, 178px);
   line-height: 0.94;
-  letter-spacing: -0.035em;
+
   text-wrap: balance;
   max-width: 14ch;
 }

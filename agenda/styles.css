@@ -51,7 +51,7 @@
   font-size: calc(48 * var(--ag-u));
   font-weight: 700;
   line-height: 1.08;
-  letter-spacing: -0.035em;
+
   overflow-wrap: anywhere;
 }
 
