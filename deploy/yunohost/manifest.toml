@@ -1,0 +1,81 @@
+#:schema https://raw.githubusercontent.com/YunoHost/apps/main/schemas/manifest.v2.schema.json
+# YunoHost package for the Lolly web app. This directory IS the `lolly_ynh` app
+# repository as YunoHost's catalog and CI expect it (manifest.toml at the root,
+# scripts/, conf/, doc/, tests.toml). It is developed here beside the Docker and
+# Helm recipes and mirrored to github.com/lolly-tools/lolly_ynh at release time.
+#
+# The three fields below that change per release (version, sources.main.url,
+# sources.main.sha256) are written by `npm run release:yunohost`, which builds the
+# web tarball this manifest points at. Do not hand-edit them.
+
+packaging_format = 2
+
+id = "lolly"
+name = "Lolly"
+description.en = "Make on-brand images, PDFs, video, audio and documents on your own device, from your own brand"
+description.fr = "Créez des visuels, PDF, vidéos, sons et documents à votre marque, sur votre appareil"
+
+version = "1.0.7~ynh1"
+
+maintainers = ["Andy Fitzsimon"]
+
+[upstream]
+license = "MPL-2.0"
+website = "https://lolly.tools"
+demo = "https://lolly.tools"
+admindoc = "https://lolly.tools/info/deployment/"
+userdoc = "https://lolly.tools/info/"
+code = "https://github.com/lolly-tools/lolly"
+
+[integration]
+yunohost = ">= 12.0.9"
+helpers_version = "2.1"
+architectures = "all"
+multi_instance = false
+# The app is a static web application that runs entirely in the browser. It keeps
+# every user's work on their own device (IndexedDB), so there is no account to log
+# into and nothing for the SSO to sign the user into.
+ldap = "not_relevant"
+sso = "not_relevant"
+disk = "600M"
+ram.build = "50M"
+ram.runtime = "50M"
+
+[install]
+    [install.domain]
+    type = "domain"
+    # The web build resolves its assets, its service worker scope and its clean
+    # routes (/d, /t/<id>, /info/...) from the domain root. A sub-path would need a
+    # different build, so the app takes a whole domain.
+    full_domain = true
+
+    [install.init_main_permission]
+    help.en = "Who may open Lolly on this domain. The app itself has no accounts: everyone who can reach it works on their own device."
+    help.fr = "Qui peut ouvrir Lolly sur ce domaine. L'application n'a pas de comptes : chacun travaille sur son propre appareil."
+    type = "group"
+    default = "visitors"
+
+[resources]
+    [resources.sources]
+
+    [resources.sources.main]
+    # A built web shell (shells/web/dist) with the neutral lolly-start brand, English
+    # docs, and the on-device ML models served from lolli.li rather than bundled -
+    # the same shape the desktop app ships. Built and published by
+    # scripts/yunohost-release.ts; see deploy/yunohost/README.md.
+    url = "https://lolli.li/lolly-web-1.0.7.tar.gz"
+    sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
+    format = "tar.gz"
+    in_subdir = false
+
+    [resources.system_user]
+
+    [resources.install_dir]
+    # Static files served by nginx: the default resource group is www-data because
+    # conf/nginx.conf carries a `root` directive.
+
+    [resources.permissions]
+    main.url = "/"
+    # Nothing server-side reads an identity, so SSOwat should not spend time
+    # attaching one to every static file request.
+    main.auth_header = false

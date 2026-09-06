@@ -291,3 +291,7 @@ deploy/models-host/models/
 
 # per-shard skip reports written by CI (tests/expected-skips.json is the committed truth)
 artifacts/
+
+# Codex session scratch and its bytecode
+.codex-*
+__pycache__/
