@@ -64,7 +64,7 @@ ram.runtime = "50M"
     # the same shape the desktop app ships. Built and published by
     # scripts/yunohost-release.ts; see deploy/yunohost/README.md.
     url = "https://lolli.li/lolly-web-1.0.7.tar.gz"
-    sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
+    sha256 = "df33c333e19d944391798c5d8ac678727bfe543aa1fa7c3a34c9086092658d13"
     format = "tar.gz"
     in_subdir = false
 

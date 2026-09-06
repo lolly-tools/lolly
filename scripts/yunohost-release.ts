@@ -123,7 +123,10 @@ export function packDist(dist: string, outFile: string, excludes: string[]): voi
   if (!existsSync(join(dist, 'precache.json'))) throw new Error(`${dist} has no precache.json - the "Available offline" list would read empty`);
   if (!existsSync(join(dist, 'info', 'index.html'))) throw new Error(`${dist} has no info/index.html - in-app docs would 404`);
   const gnu = isGnuTar();
-  const args = ['-czf', outFile];
+  // Dereference symlinks: the tools/ and catalog/ views the build copies into dist
+  // are symlink farms on a developer checkout (scripts/use-profile.ts), and a
+  // tarball of links points at nothing on the host that unpacks it.
+  const args = ['-czhf', outFile];
   for (const e of excludes) args.push('--exclude', e);
   // Owner-free entries either way; macOS bsdtar also stores provenance xattrs as
   // pax headers unless told not to, which tar on the YunoHost side then warns about.
