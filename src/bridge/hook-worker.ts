@@ -28,7 +28,7 @@ import type {
   HostShape, HostSeeds, HookWorkerOut, WorkerHookName,
   HookHostCallMsg, HookInvokeDoneMsg, HookInitDoneMsg, HookLogMsg,
 } from './hook-worker.worker.ts';
-import { workerRpcMethods } from './hook-worker.worker.ts';
+import { workerRpcMethods, introspectHost, gatherHostSeeds } from './hook-worker.worker.ts';
 
 /** Backstop for Worker startup. Strict mounts fail closed; compatibility mounts
  * may use the explicitly enabled in-realm fallback. */
@@ -146,22 +146,7 @@ function forwardLogs(m: HookLogMsg): void {
   for (const e of m.entries) mount.host.log(e.level as 'debug' | 'info' | 'warn' | 'error', e.msg, e.ctx as object | undefined);
 }
 
-/** The live host's shape: namespace → its own function-valued method names. An
- *  absent optional method is simply not listed, so the worker never builds a
- *  stub for it and a hook's `host.x?.y` feature-detect keeps working. */
-function introspect(host: HostV1): HostShape {
-  const shape: HostShape = {};
-  for (const [ns, val] of Object.entries(host as unknown as Record<string, unknown>)) {
-    if (val && typeof val === 'object') {
-      // Leading-underscore methods are shell internals used by catalog sync and
-      // cache maintenance, never part of HostV1's tool-facing contract.
-      const methods = Object.keys(val).filter(k =>
-        !k.startsWith('_') && typeof (val as Record<string, unknown>)[k] === 'function');
-      if (methods.length) shape[ns] = methods;
-    }
-  }
-  return shape;
-}
+const introspect = introspectHost;
 
 const STRICT_NAMESPACE_CAPABILITY: Readonly<Record<string, string | readonly string[]>> = {
   ['net']: 'network',
@@ -199,24 +184,7 @@ export function strictHostShape(shape: HostShape, capabilities: readonly string[
   return out;
 }
 
-/** Compute the sync feature-detect answers the worker can't (worker-absent globals). */
-function gatherSeeds(host: HostV1): HostSeeds {
-  const h = host as unknown as Record<string, Record<string, (...a: unknown[]) => unknown>>;
-  const call = (ns: string, method: string, ...args: unknown[]): unknown => {
-    try { const o = h[ns]; return o && typeof o[method] === 'function' ? o[method](...args) : undefined; }
-    catch { return undefined; }
-  };
-  return {
-    'media.isAvailable': call('media', 'isAvailable'),
-    'recorder.isAvailable': { audio: call('recorder', 'isAvailable', 'audio'), video: call('recorder', 'isAvailable', 'video'), screen: call('recorder', 'isAvailable', 'screen') },
-    'audio.isAvailable': call('audio', 'isAvailable'),
-    'viz.isAvailable': call('viz', 'isAvailable'),
-    'speech.isAvailable': call('speech', 'isAvailable'),
-    'speech.transcribeAvailable': call('speech', 'transcribeAvailable'),
-    'upscale.isAvailable': call('upscale', 'isAvailable'),
-    'matte.isAvailable': call('matte', 'isAvailable'),
-  };
-}
+const gatherSeeds = gatherHostSeeds;
 
 /** The raw brand token doc + its exclusion list, snapshotted once per mount so
  *  the worker rebuilds a local TokenSet (sync get/colors/resolve without RPC). */

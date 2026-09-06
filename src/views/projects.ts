@@ -669,7 +669,7 @@ export async function mountProjects(
     const clearBtn = `<button type="button" class="projects-linkbtn" data-tools-clear>${t('Show all projects')}</button>`;
     if (!ms.length) {
       return `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('No saved sessions yet for {names}', { names: escape(label) })} · ${clearBtn}</p>
-        <p class="projects-empty">${t('Save a session from one of these tools and it will land here.')}</p>`;
+        <p class="projects-empty">${t('Save a session from one of these tools and it will appear here.')}</p>`;
     }
     const countText = ms.length === 1 ? t('1 saved session') : t('{n} saved sessions', { n: ms.length });
     const status = `<p class="projects-search-status" role="status" aria-live="polite">${tRaw('{count} for {names}', { count: countText, names: escape(label) })} · ${clearBtn}</p>`;
@@ -724,7 +724,7 @@ export async function mountProjects(
       <div class="projects-blank">
         <span class="projects-blank-icon" aria-hidden="true">${isUncat ? FILE_PLUS_ICON : FOLDER_ICON}</span>
         <p class="projects-blank-title">${isUncat ? t('Nothing is uncategorised') : t('This folder is empty')}</p>
-        <p class="projects-blank-sub">${isUncat ? t('Sessions you save without filing them will land here.') : t('Add your first creation, or group work in a sub-folder.')}</p>
+        <p class="projects-blank-sub">${isUncat ? t('Sessions you save without filing them are kept here.') : t('Add your first creation, or group work in a sub-folder.')}</p>
         <div class="projects-blank-actions">
           <button type="button" class="btn projects-render projects-create-btn" data-create-btn="tool">${FILE_PLUS_ICON}<span>${t('New asset')}</span></button>
           ${isUncat ? '' : `<button type="button" class="btn projects-create-btn" data-create-btn="folder">${FOLDER_PLUS_ICON}<span>${t('New folder')}</span></button>`}

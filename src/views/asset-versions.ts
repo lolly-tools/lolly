@@ -65,7 +65,7 @@ export async function openAssetHistoryLibrary(host: HostV1, onChanged: () => Pro
     const show = (): void => {
       const query = input.value.normalize('NFKC').toLowerCase();
       const items = [...groups].filter(([id, g]) => `${id} ${g.name}`.normalize('NFKC').toLowerCase().includes(query));
-      modal.el.querySelector('[data-version-library]')!.innerHTML = items.map(([id, g], i) => `<article class="convert-history-row"><h3>${escapeHtml(g.name)}</h3><p>${g.count} ${t('saved versions')} · ${fmtBytes(g.bytes)}${current.has(id) ? '' : ` · ${t('Current asset deleted — earlier copies recoverable')}`}</p><div class="convert-actions"><button class="btn" data-open-asset-history="${i}">${t('Review versions…')}</button></div></article>`).join('') || `<p>${t('No matching saved versions.')}</p>`;
+      modal.el.querySelector('[data-version-library]')!.innerHTML = items.map(([id, g], i) => `<article class="convert-history-row"><h3>${escapeHtml(g.name)}</h3><p>${g.count} ${t('saved versions')} · ${fmtBytes(g.bytes)}${current.has(id) ? '' : ` · ${t('Current asset deleted - earlier copies recoverable')}`}</p><div class="convert-actions"><button class="btn" data-open-asset-history="${i}">${t('Review versions…')}</button></div></article>`).join('') || `<p>${t('No matching saved versions.')}</p>`;
       modal.el.querySelectorAll<HTMLButtonElement>('[data-open-asset-history]').forEach(button => { button.addEventListener('click', () => {
         void openAssetVersions(items[Number(button.dataset.openAssetHistory)]![0], host, async () => { await onChanged(); await render(); }).catch(error => { status.textContent = String(error); });
       }); });

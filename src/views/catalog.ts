@@ -1660,7 +1660,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     const name = String(ref.meta?.name ?? ref.id);
     const fmt = ref.type === 'lottie' ? 'LOTTIE' : (ref.format ? String(ref.format).toUpperCase() : '');
     const isUser = ref.source === 'user';
-    const sourceLabel = isUser ? t('Yours') : t('Catalog');
+    const sourceLabel = isUser ? t('Yours') : t('Catalogue');
     // Generative-AI disclosure - authored on a catalog entry OR auto-detected from an
     // upload's C2PA credential. Shows a violet GEN AI pill in the caption; collapses to a
     // sparkle circle on narrow tiles (see catalog.css).

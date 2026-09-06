@@ -116,10 +116,19 @@ export function siteIngestSupport(hasTransport: boolean): SiteIngestSupport {
  *                   Firefox/Safari, or any other capability) → desktop-only.
  */
 export function toolSupport(
-  tool: { capabilities?: readonly string[] } | null | undefined,
+  tool: { capabilities?: readonly string[]; requires?: readonly string[] } | null | undefined,
   shellCapabilities: readonly string[] | undefined,
+  hostApis?: readonly string[],
 ): ToolSupport {
   const unmet = unmetCapabilities(tool?.capabilities, shellCapabilities);
+  // Manifest `requires` (optional host.* APIs the tool calls unguarded): when
+  // the caller says what this host provides, a missing one makes the tool
+  // unavailable here, the same way a missing device capability does. Absent
+  // ⇒ not gated, like shellCapabilities.
+  if (hostApis && tool?.requires?.length) {
+    const present = new Set(hostApis);
+    for (const api of tool.requires) if (!present.has(api)) unmet.push(`host.${api}`);
+  }
   if (unmet.length === 0) return { status: 'ok', unmet };
   if (unmet.length === 1 && unmet[0] === 'capture' && isChromium()) {
     return { status: 'install', unmet };

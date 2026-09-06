@@ -16,6 +16,7 @@
  */
 
 import '../styles/parts/profile.css';   // async CSS chunk (lazy view - not on the landing)
+import { presentApis } from '@lolly-tools/core';
 import '../styles/parts/tool.css';      // .help-tip-btn/-pop/-host styles - shared chunk with the
                                          // tool view, same reuse the .tool-inputs sheet already gets
                                          // from multi-edit.ts (component audit rec 13)
@@ -2312,7 +2313,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
     const tools = ((window.__toolIndex?.tools ?? []) as OfflineTool[])
       // Unlisted tools (context-invoked, e.g. asset-export) and tools this shell
       // can't run are not offered - a download the device can't use is dead weight.
-      .filter(tl => tl.listed !== false && toolSupport(tl, host.capabilities).status !== 'unavailable')
+      .filter(tl => tl.listed !== false && toolSupport(tl, host.capabilities, presentApis(host)).status !== 'unavailable')
       .sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
     let pins: Record<string, PinRecord> = {};
     try { pins = await pinRecords(); } catch { /* IDB unavailable - render all as not downloaded */ }
