@@ -33,6 +33,15 @@ export type { AssetProviderRef } from './asset-provider.ts';
 export { DOCUMENT_API_VERSION, compileDocument, validateDocument, documentSchema, inspectDocument, diffDocuments, measureDocument, optimizeDocument, packageDocument, renderDocument, compile, validate, inspect, diff, measure, optimize, package, render } from './document-api.ts';
 export type { CompiledDocument, CompileResult, ValidationTarget, DocumentValidationResult, DocumentInspection, BytesInspection, DocumentDiff, DocumentMeasurement, OptimizeStage } from './document-api.ts';
 export { createRuntime, HOOK_BUDGET_MS, inRealmHookExecutor } from './runtime.ts';
+export {
+  createHookWorkerCore, lockDownAmbientCapabilities, workerRpcMethods, introspectHost, gatherHostSeeds,
+  STRICT_AMBIENT_GLOBALS, STRICT_NAVIGATOR_PROPERTIES, WORKER_HOOK_NAMES, IN_REALM_ONLY_HOOK_NAMES,
+} from './hook-worker-core.ts';
+export type {
+  HostShape, HostSeeds, HookInitMsg, HookInvokeMsg, HookHostReplyMsg, HookDisposeMsg, HookWorkerIn, WorkerHookName,
+  InRealmOnlyHookName, HookInitDoneMsg, HookInvokeDoneMsg, HookReportMsg, HookHostCallMsg, HookLogMsg, HookWorkerOut,
+  HookWorkerPort, HookWorkerCoreOpts,
+} from './hook-worker-core.ts';
 export type { HookExecutor, Hooks } from './runtime.ts';
 export { hydrate, annotateTemplate } from './template.ts';
 export { sniffAnimatedRaster, sniffVideoContainer, sniffLayeredRaster, sniffContainer } from './media-sniff.ts';

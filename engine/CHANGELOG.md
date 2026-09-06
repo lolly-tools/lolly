@@ -6,6 +6,34 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.183.0 - `host.assets.bytes(ref | url)` (optional): the bytes behind an
+AssetRef, so a hook no longer reaches for the global `fetch(ref.url)` - which
+works in a page, is refused by a strict Worker and does not exist headless. The
+web bridge answers blob:/data:/same-origin urls, the Node shells data:/file:
+(http(s) only through the tool's `host.net` allowlist), the lolly-work render
+host data:. The shipped tools that fetched asset urls directly (deck-studio,
+icon, logo-wall, diagram-builder, darkroom, SUSE deck-builder) now prefer it
+and keep `fetch` as the fallback. The hook Worker's transport-agnostic core
+(protocol, host-proxy buckets, strict lockdown) moved from the web shell into
+`hook-worker-core.ts` so the new Node `worker_threads` executor in
+`@lolly-tools/node-shell` shares it; `introspectHost` and `gatherHostSeeds` are
+exported alongside. No bridge signature change.
+
+1.182.0 - Manifest `requires`: a tool may declare the optional host.* APIs its
+hooks call without feature-detecting them (`requires: ["text", "tokens"]`), and
+`createRuntime` refuses to mount when the host lacks one - before any hook runs,
+with the API named - instead of the first hook throwing inside its time box.
+`@lolly-tools/core` gains `HOST_V1_OPTIONAL_APIS` (the enumerable optional
+surface, type-checked against `HostV1` so a new member cannot be forgotten),
+`presentApis(host)` and `missingRequires(requires, host)`; the web gallery's
+`toolSupport` greys a tool out on a shell missing one. `scripts/tool-requires.ts`
+derives the list from hooks.js and raises `engineVersion` to the minor that
+introduced the newest required API; `validate:catalog` warns on drift. The
+provenance read side (`c2pa.ts`, `c2pa-verify.ts`) is now imported lazily by the
+runtime's export path and `aiKind` moved to `ai-kind.ts`, so a mount no longer
+loads the C2PA parsers (runtime import ~600 ms → ~370 ms in Node). No bridge
+signature change.
+
 1.181.0 - Extends renderer-neutral chart fields with optional semantic role,
 display-format and nullability metadata, and the resolved chart report with a
 portable data profile plus an explained recommendation. Renderers still receive

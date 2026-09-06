@@ -64,11 +64,21 @@
     },
     "category": {
       "type": "string",
+      "enum": ["everyone", "designer", "utility", "event"],
       "description": "Free-form, used for gallery grouping. Examples: 'everyone', 'event', 'product', 'designer'."
     },
     "new": {
       "type": "boolean",
       "description": "Force the gallery's 'New' badge on this tool regardless of catalog position. Newness is otherwise inferred from catalog order (the most-recently-appended tools wear the badge and it self-expires as more ship); set this to keep a tool flagged new even after later tools push it out of that trailing window."
+    },
+    "deprecated": {
+      "type": "boolean",
+      "default": false,
+      "description": "Soft-deprecate a tool before removal: its id stays a permanent contract (saved URLs and sessions still open it), but it must be `listed: false` so the gallery stops offering it, and it should name its successor in `replacedBy`. The validator refuses a deprecated tool that is still listed."
+    },
+    "replacedBy": {
+      "type": "string",
+      "description": "If deprecated, the tool id that supersedes this one. Must exist in the same profile; the validator checks it."
     },
     "listed": {
       "type": "boolean",
@@ -527,6 +537,19 @@
         ]
       },
       "description": "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera'/'screen' recording tool is unavailable in the headless CLI). 'screen' (v1.54) is DISPLAY capture via host.recorder - the user picks a screen/window/tab in browser-native UI; distinct from 'capture', which rasterises a URL the tool itself names."
+    },
+    "requires": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "net", "tokens", "text", "pdf", "pptx", "capture", "compose", "media", "scan", "lift",
+          "keyframes", "recorder", "audio", "codec", "layers", "upscale", "matte", "ocr", "speech",
+          "viz", "color", "images", "raster", "geom", "connectors", "c2pa"
+        ]
+      },
+      "description": "Optional HostV1 APIs (`host.text`, `host.pdf`, …) this tool calls WITHOUT feature-detecting them. The runtime refuses to mount the tool on a shell that lacks one, before any hook runs, and the gallery greys it out there. An API the hooks guard (`if (host.text)`, `host.text?.`) is NOT required and must not be listed. `scripts/tool-requires.ts` computes this from hooks.js and can rewrite it (`--write`); `validate:catalog` warns when the two disagree. Distinct from `capabilities`, which names device abilities (camera, microphone, screen, …) rather than bridge APIs."
     },
     "network": {
       "type": "object",

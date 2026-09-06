@@ -12,6 +12,7 @@
  */
 
 import { C2PA_BMFF_UUID, C2PA_ATTACHMENT_MIME } from './c2pa.ts';
+import { aiKind } from './ai-kind.ts';
 import { EBML_ID, SEGMENT_ID, readId, readVint, idAt } from './video-meta.ts';
 import { concatBytes, bytesToHex as hexOf, bytesToBin, base64ToBytes } from './bytes.ts';
 import { locateOpusComment, parseOpusTags, commentKey, commentValue, OGG_C2PA_KEY } from './ogg.ts';
@@ -1704,17 +1705,10 @@ export const EXTRACTORS: Record<SniffFormat, (bytes: Uint8Array) => { manifest: 
 };
 
 
-// IPTC DigitalSourceType slugs that denote AI/ML-generated pixels. A file is
-// flagged AI-generated when any recorded action carries one of these - full-AI
-// ("generated") outranks the mixed-in ("composite") case if both appear.
-const AI_SOURCE_TYPES: Record<string, 'generated' | 'composite'> = {
-  trainedAlgorithmicMedia: 'generated',
-  compositeWithTrainedAlgorithmicMedia: 'composite',
-};
-// Exported so read-side callers (e.g. the web shell's catalog/picker badge) can map a
-// captured ingredient's digitalSourceType to the AI kind without re-deriving the slug set.
-export const aiKind = (sourceType: unknown): 'generated' | 'composite' | undefined =>
-  AI_SOURCE_TYPES[(typeof sourceType === 'string' ? sourceType : '').split('/').pop() ?? ''];
+// The AI DigitalSourceType lookup lives in ai-kind.ts (file-metadata.ts needs it
+// without the rest of this module); re-exported here so every existing
+// `from './c2pa-extract.ts'` / `from './c2pa-verify.ts'` import keeps working.
+export { aiKind };
 
 // Walk EVERY manifest in the store (active + all ingredient/parent manifests)
 // and flatten their recorded actions in store order (oldest parent → active).

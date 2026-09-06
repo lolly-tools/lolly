@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-05T20:15:42.625Z",
+  "generatedAt": "2026-09-06T10:49:24.384Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1451,11 +1451,14 @@
       "id": "voice-recorder",
       "name": "Voice Recorder",
       "description": "Record a voice note with a live level meter and gentle coaching, then save it as MP3.",
-      "version": "1.0.2",
+      "version": "1.1.1",
       "status": "experimental",
       "category": "everyone",
       "capabilities": [
         "microphone"
+      ],
+      "requires": [
+        "recorder"
       ],
       "tags": [
         "audio",
@@ -1473,6 +1476,7 @@
       "formats": [
         "png",
         "svg",
+        "penpot",
         "mp3",
         "wav",
         "m4a",
@@ -5418,6 +5422,9 @@
       "version": "1.2.0",
       "status": "community",
       "category": "utility",
+      "requires": [
+        "tokens"
+      ],
       "tags": [
         "contrast",
         "accessibility",
@@ -6076,6 +6083,9 @@
       "version": "2.0.1",
       "status": "community",
       "category": "everyone",
+      "requires": [
+        "compose"
+      ],
       "tags": [
         "print",
         "imposition",
@@ -7133,6 +7143,9 @@
       "version": "1.0.1",
       "status": "community",
       "category": "everyone",
+      "requires": [
+        "compose"
+      ],
       "tags": [
         "open graph",
         "og image",
@@ -7528,6 +7541,9 @@
       "version": "1.1.1",
       "status": "community",
       "category": "designer",
+      "requires": [
+        "text"
+      ],
       "tags": [
         "generative",
         "art",
@@ -7723,6 +7739,10 @@
       "version": "0.2.1",
       "status": "experimental",
       "category": "designer",
+      "requires": [
+        "text",
+        "audio"
+      ],
       "tags": [
         "motion",
         "generative",
@@ -8210,6 +8230,9 @@
       "version": "1.25.0",
       "status": "official",
       "category": "designer",
+      "requires": [
+        "color"
+      ],
       "tags": [
         "chart",
         "d3",
@@ -8907,6 +8930,9 @@
       "version": "2.0.0",
       "status": "official",
       "category": "utility",
+      "requires": [
+        "c2pa"
+      ],
       "tags": [
         "provenance",
         "copyright",
@@ -9331,6 +9357,9 @@
       "version": "1.2.1",
       "status": "official",
       "category": "everyone",
+      "requires": [
+        "tokens"
+      ],
       "tags": [
         "gradient",
         "mesh",
@@ -11311,6 +11340,10 @@
       "version": "1.2.0",
       "status": "community",
       "category": "everyone",
+      "requires": [
+        "text",
+        "color"
+      ],
       "tags": [
         "avatar",
         "linkedin",
@@ -11490,6 +11523,9 @@
       "version": "1.1.0",
       "status": "community",
       "category": "event",
+      "requires": [
+        "tokens"
+      ],
       "tags": [
         "agenda",
         "programme",
@@ -12238,6 +12274,937 @@
         "zh": {
           "name": "Trim",
           "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device."
+        }
+      }
+    },
+    {
+      "id": "battlecards",
+      "name": "Battlecards",
+      "description": "Turn any table into a deck of cards - one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat.",
+      "version": "1.3.2",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "battlecard",
+        "sales",
+        "competitive",
+        "table",
+        "cards",
+        "pdf",
+        "pages",
+        "batch"
+      ],
+      "added": "2026-08-28",
+      "formats": [
+        "pdf",
+        "svg",
+        "penpot",
+        "pdf-cmyk",
+        "emf",
+        "png",
+        "webp",
+        "avif",
+        "jpeg",
+        "tiff",
+        "cmyk-tiff"
+      ],
+      "width": 1200,
+      "height": 900,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"14.5 17.5 3 6 3 3 6 3 17.5 14.5\"/><line x1=\"13\" y1=\"19\" x2=\"19\" y2=\"13\"/><line x1=\"16\" y1=\"16\" x2=\"20\" y2=\"20\"/><line x1=\"19\" y1=\"21\" x2=\"21\" y2=\"19\"/></svg>",
+      "preview": "/catalog/previews/battlecards.svg",
+      "paged": true,
+      "i18n": {
+        "ar": {
+          "name": "بطاقات المعركة",
+          "description": "حوّل أي جدول إلى مجموعة بطاقات - بطاقة لكل صف، جاهزة كملف PDF متعدد الصفحات. الصق مباشرة من جدول بياناتك أو مستندك أو محادثتك."
+        },
+        "bg": {
+          "name": "Боен картон",
+          "description": "Превърни всяка таблица в тесте карти - по една карта на ред, готово като многостраничен PDF. Постави директно от таблицата, документа или чата си."
+        },
+        "bn": {
+          "name": "ব্যাটলকার্ড",
+          "description": "যেকোনো টেবিলকে কার্ডের ডেকে পরিণত করুন - প্রতি সারিতে একটি কার্ড, বহু-পৃষ্ঠার PDF হিসেবে প্রস্তুত। আপনার স্প্রেডশিট, ডক বা চ্যাট থেকে সরাসরি পেস্ট করুন।"
+        },
+        "cs": {
+          "name": "Bitevní karty",
+          "description": "Proměň libovolnou tabulku v balíček karet - jedna karta na řádek, připravená jako vícestránkové PDF. Vlož přímo z tabulky, dokumentu nebo chatu."
+        },
+        "de": {
+          "name": "Battlecards",
+          "description": "Verwandelt jede Tabelle in einen Kartenstapel - eine Karte pro Zeile, fertig als mehrseitiges PDF. Direkt aus Ihrer Tabellenkalkulation, Ihrem Dokument oder Chat eingefügt."
+        },
+        "es": {
+          "name": "Battlecards",
+          "description": "Convierte cualquier tabla en un mazo de tarjetas - una tarjeta por fila, listas como PDF de varias páginas. Pega directo desde tu hoja de cálculo, documento o chat."
+        },
+        "fr": {
+          "name": "Battlecards",
+          "description": "Transformez n'importe quel tableau en jeu de cartes - une carte par ligne, prête en PDF multi-pages. Collez directement depuis votre tableur, document ou chat."
+        },
+        "hi": {
+          "name": "बैटलकार्ड्स",
+          "description": "किसी भी टेबल को कार्ड्स के डेक में बदलें - हर पंक्ति का एक कार्ड, मल्टी-पेज PDF के रूप में तैयार। अपनी स्प्रेडशीट, डॉक या चैट से सीधे पेस्ट करें।"
+        },
+        "id": {
+          "name": "Battlecards",
+          "description": "Ubah tabel apa pun menjadi setumpuk kartu - satu kartu per baris, siap sebagai PDF multihalaman. Tempel langsung dari spreadsheet, dokumen, atau chat Anda."
+        },
+        "it": {
+          "name": "Battlecard",
+          "description": "Trasforma qualsiasi tabella in un mazzo di carte - una carta per riga, pronta come PDF multipagina. Incolla direttamente dal tuo foglio di calcolo, documento o chat."
+        },
+        "ja": {
+          "name": "バトルカード",
+          "description": "どんな表もカードの束に変換 - 各行が1枚のカードとなり、複数ページのPDFとして仕上がります。スプレッドシート、ドキュメント、チャットからそのまま貼り付け可能。"
+        },
+        "ko": {
+          "name": "배틀카드",
+          "description": "어떤 표든 카드 뭉치로 변환하세요 - 행마다 카드 하나, 여러 페이지 PDF로 완성됩니다. 스프레드시트, 문서, 채팅에서 바로 붙여넣으세요."
+        },
+        "ms": {
+          "name": "Battlecards",
+          "description": "Ubah mana-mana jadual menjadi set kad - satu kad setiap baris, sedia sebagai PDF pelbagai halaman. Tampal terus daripada hamparan, dokumen atau sembang anda."
+        },
+        "nl": {
+          "name": "Battlecards",
+          "description": "Maak van elke tabel een stapel kaarten - één kaart per rij, klaar als meerpagina-PDF. Plak rechtstreeks vanuit je spreadsheet, document of chat."
+        },
+        "no": {
+          "name": "Battlecards",
+          "description": "Gjør en hvilken som helst tabell om til en kortstokk - ett kort per rad, klart som en flersides PDF. Lim rett inn fra regnearket, dokumentet eller chatten din."
+        },
+        "pl": {
+          "name": "Karty bitewne",
+          "description": "Zamień dowolną tabelę w talię kart - jedna karta na wiersz, gotowa jako wielostronicowy PDF. Wklej wprost z arkusza kalkulacyjnego, dokumentu lub czatu."
+        },
+        "pt": {
+          "name": "Battlecards",
+          "description": "Transforme qualquer tabela num baralho de cartões - um cartão por linha, pronto como PDF multipágina. Cole diretamente da sua planilha, documento ou chat."
+        },
+        "ro": {
+          "name": "Battlecards",
+          "description": "Transformă orice tabel într-un set de carduri - un card per rând, gata ca PDF cu mai multe pagini. Lipește direct din foaia de calcul, document sau chat."
+        },
+        "sv": {
+          "name": "Battlecards",
+          "description": "Gör om vilken tabell som helst till en kortlek - ett kort per rad, klart som en flersidig PDF. Klistra in direkt från ditt kalkylblad, dokument eller chatt."
+        },
+        "tl": {
+          "name": "Mga Battlecard",
+          "description": "Gawing deck ng mga card ang anumang table - isang card kada row, handa bilang multi-page na PDF. I-paste diretso mula sa iyong spreadsheet, doc, o chat."
+        },
+        "tr": {
+          "name": "Savaş Kartları",
+          "description": "Herhangi bir tabloyu bir kart destesine dönüştürün - her satır için bir kart, çok sayfalı bir PDF olarak hazır. Doğrudan hesap tablonuzdan, belgenizden veya sohbetinizden yapıştırın."
+        },
+        "uk": {
+          "name": "Бойові картки",
+          "description": "Перетворіть будь-яку таблицю на колоду карток - одна картка на рядок, готова як багатосторінковий PDF. Вставляйте прямо з таблиці, документа чи чату."
+        },
+        "ur": {
+          "name": "بیٹل کارڈز",
+          "description": "کسی بھی ٹیبل کو کارڈز کے ڈیک میں بدلیں - ہر قطار کا ایک کارڈ، ملٹی پیج PDF کے طور پر تیار۔ اپنی اسپریڈشیٹ، دستاویز یا چیٹ سے براہ راست پیسٹ کریں۔"
+        },
+        "vi": {
+          "name": "Battlecard",
+          "description": "Biến bất kỳ bảng nào thành bộ thẻ - mỗi hàng một thẻ, sẵn sàng thành PDF nhiều trang. Dán trực tiếp từ bảng tính, tài liệu hoặc trò chuyện của bạn."
+        },
+        "zh-hant": {
+          "name": "戰卡",
+          "description": "把任何表格變成一疊卡片 - 每列一張卡，可輸出為多頁 PDF。可直接從試算表、文件或聊天中貼上。"
+        },
+        "zh": {
+          "name": "作战卡",
+          "description": "将任意表格变成一叠卡片 - 每行一张卡,生成多页 PDF。可直接从电子表格、文档或聊天粘贴。"
+        }
+      }
+    },
+    {
+      "id": "meeting-planner",
+      "name": "Meeting Planner",
+      "description": "Plan a global meeting and see the time for every teammate's timezone.",
+      "version": "1.2.1",
+      "status": "official",
+      "category": "event",
+      "tags": [
+        "map",
+        "team",
+        "timezone",
+        "world",
+        "time",
+        "meeting",
+        "schedule",
+        "planner",
+        "clock",
+        "widget",
+        "d3"
+      ],
+      "added": "2026-07-08",
+      "formats": [
+        "png",
+        "jpeg",
+        "svg",
+        "penpot",
+        "ics",
+        "json",
+        "pdf",
+        "webp",
+        "csv"
+      ],
+      "width": 800,
+      "height": 600,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20\" /><path d=\"M2 12h20\" /></svg>",
+      "preview": "/catalog/previews/meeting-planner.svg",
+      "i18n": {
+        "ar": {
+          "name": "مخطط الاجتماعات",
+          "description": "خطط لاجتماع عالمي واطلع على التوقيت في المنطقة الزمنية لكل زميل."
+        },
+        "bg": {
+          "name": "Планер за срещи",
+          "description": "Планирай глобална среща и виж часа в часовата зона на всеки колега."
+        },
+        "bn": {
+          "name": "মিটিং প্ল্যানার",
+          "description": "একটি গ্লোবাল মিটিং প্ল্যান করুন এবং প্রতিটি সহকর্মীর টাইমজোনের সময় দেখুন।"
+        },
+        "cs": {
+          "name": "Plánovač schůzek",
+          "description": "Naplánuj globální schůzku a podívej se na čas v časovém pásmu každého člena týmu."
+        },
+        "de": {
+          "name": "Besprechungsplaner",
+          "description": "Planen Sie eine globale Besprechung und sehen Sie die Uhrzeit in der Zeitzone jedes Teammitglieds."
+        },
+        "es": {
+          "name": "Planificador de reuniones",
+          "description": "Planifica una reunión global y mira la hora de cada miembro del equipo en su zona horaria."
+        },
+        "fr": {
+          "name": "Planificateur de réunions",
+          "description": "Planifie une réunion mondiale et vois l'heure de chaque coéquipier dans son fuseau horaire."
+        },
+        "hi": {
+          "name": "मीटिंग प्लानर",
+          "description": "ग्लोबल मीटिंग प्लान करें और हर टीम साथी के टाइमज़ोन का समय देखें।"
+        },
+        "id": {
+          "name": "Perencana Rapat",
+          "description": "Rencanakan rapat global dan lihat waktu di zona waktu setiap anggota tim."
+        },
+        "it": {
+          "name": "Pianificatore riunioni",
+          "description": "Pianifica una riunione globale e vedi l'orario nel fuso di ogni membro del team."
+        },
+        "ja": {
+          "name": "ミーティングプランナー",
+          "description": "グローバルミーティングを計画し、各チームメンバーのタイムゾーンの時刻を確認できます。"
+        },
+        "ko": {
+          "name": "회의 플래너",
+          "description": "글로벌 회의를 계획하고 팀원 각자의 시간대에 맞는 시각을 확인해요."
+        },
+        "ms": {
+          "name": "Perancang Mesyuarat",
+          "description": "Rancang mesyuarat global dan lihat waktu di setiap zon waktu ahli pasukan."
+        },
+        "nl": {
+          "name": "Vergaderplanner",
+          "description": "Plan een wereldwijde vergadering en bekijk de tijd in de tijdzone van elk teamlid."
+        },
+        "no": {
+          "name": "Møteplanlegger",
+          "description": "Planlegg et globalt møte og se klokkeslettet i tidssonen til hvert teammedlem."
+        },
+        "pl": {
+          "name": "Planer spotkań",
+          "description": "Zaplanuj globalne spotkanie i sprawdź czas w strefie czasowej każdego członka zespołu."
+        },
+        "pt": {
+          "name": "Planejador de Reuniões",
+          "description": "Planeje uma reunião global e veja o horário no fuso horário de cada membro da equipe."
+        },
+        "ro": {
+          "name": "Planificator de întâlniri",
+          "description": "Planifică o întâlnire globală și vezi ora din fusul orar al fiecărui coleg."
+        },
+        "sv": {
+          "name": "Mötesplanerare",
+          "description": "Planera ett globalt möte och se tiden i varje teammedlems tidszon."
+        },
+        "tl": {
+          "name": "Planner ng Meeting",
+          "description": "Mag-plano ng global na meeting at tingnan ang oras sa time zone ng bawat miyembro ng team."
+        },
+        "tr": {
+          "name": "Toplantı Planlayıcı",
+          "description": "Küresel bir toplantı planla ve her ekip arkadaşının saat dilimindeki saati gör."
+        },
+        "uk": {
+          "name": "Планувальник зустрічей",
+          "description": "Плануйте глобальну зустріч і бачте час для часового поясу кожного учасника команди."
+        },
+        "ur": {
+          "name": "میٹنگ پلانر",
+          "description": "عالمی میٹنگ کی منصوبہ بندی کریں اور ہر ٹیم ممبر کے ٹائم زون کا وقت دیکھیں۔"
+        },
+        "vi": {
+          "name": "Lập lịch họp",
+          "description": "Lên kế hoạch cho một cuộc họp toàn cầu và xem giờ theo múi giờ của từng thành viên trong nhóm."
+        },
+        "zh-hant": {
+          "name": "會議規劃工具",
+          "description": "規劃全球會議，查看每位團隊成員所在時區的時間。"
+        },
+        "zh": {
+          "name": "会议规划器",
+          "description": "规划全球会议，查看每位团队成员所在时区的时间。"
+        }
+      }
+    },
+    {
+      "id": "org-chart",
+      "name": "Flow Chart",
+      "description": "Build flow charts on an open canvas - drag cards, connect them, and the lines route and stick to the boxes.",
+      "version": "1.1.1",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "flow chart",
+        "flowchart",
+        "flow",
+        "diagram",
+        "org chart",
+        "org-chart",
+        "orgchart",
+        "hierarchy",
+        "team",
+        "people",
+        "connectors",
+        "canvas",
+        "editor",
+        "process",
+        "structure",
+        "nodes",
+        "wysiwyg"
+      ],
+      "added": "2026-07-08",
+      "formats": [
+        "png",
+        "svg",
+        "penpot",
+        "pdf",
+        "jpg",
+        "webp",
+        "avif",
+        "tiff",
+        "emf",
+        "pdf-cmyk",
+        "pptx"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"9\" y=\"2\" width=\"6\" height=\"6\" rx=\"1\"/><rect x=\"2\" y=\"16\" width=\"6\" height=\"6\" rx=\"1\"/><rect x=\"16\" y=\"16\" width=\"6\" height=\"6\" rx=\"1\"/><path d=\"M12 8v4\"/><path d=\"M5 16v-2a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2\"/></svg>",
+      "preview": "/catalog/previews/org-chart.svg",
+      "featured": {
+        "order": 11,
+        "blurb": "Cards + connectors that stick to the boxes"
+      },
+      "i18n": {
+        "ar": {
+          "name": "مخطط انسيابي",
+          "description": "ابنِ مخططات انسيابية على لوحة مفتوحة - اسحب البطاقات وصلها، وتوجَّه الخطوط وتلتصق بالمربعات.",
+          "blurb": "بطاقات وموصلات تلتصق بالمربعات"
+        },
+        "bg": {
+          "name": "Блок-схема",
+          "description": "Изгради блок-схеми на отворено платно - влачи карти, свързвай ги, а линиите се насочват и лепят към кутиите.",
+          "blurb": "Карти + връзки, които залепват за кутиите"
+        },
+        "bn": {
+          "name": "ফ্লোচার্ট",
+          "description": "একটি খোলা ক্যানভাসে ফ্লো চার্ট তৈরি করুন - কার্ড ড্র্যাগ করুন, সেগুলো সংযুক্ত করুন, এবং লাইনগুলো রুট হয়ে বক্সের সাথে লেগে থাকে।",
+          "blurb": "কার্ড + কানেক্টর যা বক্সের সাথে লেগে থাকে"
+        },
+        "cs": {
+          "name": "Vývojový diagram",
+          "description": "Sestav vývojové diagramy na otevřeném plátně - přetáhni karty, propoj je a čáry se samy vedou a drží na krabicích.",
+          "blurb": "Karty a spojnice, které drží na krabicích"
+        },
+        "de": {
+          "name": "Flussdiagramm",
+          "description": "Erstellt Flussdiagramme auf einer offenen Fläche - Karten ziehen, verbinden, und die Linien routen und haften an den Boxen.",
+          "blurb": "Karten und Verbindungslinien, die an den Boxen haften"
+        },
+        "es": {
+          "name": "Diagrama de flujo",
+          "description": "Crea diagramas de flujo en un lienzo abierto - arrastra tarjetas, conéctalas, y las líneas se enrutan y se pegan a las cajas.",
+          "blurb": "Tarjetas y conectores que se pegan a los recuadros"
+        },
+        "fr": {
+          "name": "Diagramme de flux",
+          "description": "Construisez des logigrammes sur un canevas ouvert - glissez des cartes, connectez-les, et les lignes s'acheminent et restent attachées aux boîtes.",
+          "blurb": "Cartes et connecteurs qui restent fixés aux blocs"
+        },
+        "hi": {
+          "name": "फ़्लो चार्ट",
+          "description": "खुले कैनवास पर फ़्लो चार्ट बनाएँ - कार्ड्स खींचें, उन्हें जोड़ें, और लाइनें रूट होकर बॉक्स से चिपक जाती हैं।",
+          "blurb": "कार्ड + कनेक्टर जो बॉक्स से चिपके रहते हैं"
+        },
+        "id": {
+          "name": "Diagram Alur",
+          "description": "Buat flow chart di kanvas terbuka - seret kartu, hubungkan, dan garis otomatis mengarah dan menempel ke kotak.",
+          "blurb": "Kartu + konektor yang menempel pada kotak"
+        },
+        "it": {
+          "name": "Diagramma di flusso",
+          "description": "Crea diagrammi di flusso su un canvas aperto - trascina le schede, collegale, e le linee si instradano e si agganciano ai riquadri.",
+          "blurb": "Schede e linee di collegamento ancorate ai riquadri"
+        },
+        "ja": {
+          "name": "フローチャート",
+          "description": "オープンキャンバスでフローチャートを作成 - カードをドラッグして接続すると、線が自動でルーティングされ、ボックスに沿います。",
+          "blurb": "ボックスに固定されるカードと接続線"
+        },
+        "ko": {
+          "name": "플로우 차트",
+          "description": "열린 캔버스에서 순서도를 만드세요 - 카드를 드래그하고 연결하면 선이 알아서 경로를 잡고 박스에 붙습니다.",
+          "blurb": "박스에 붙는 카드와 연결선"
+        },
+        "ms": {
+          "name": "Carta Alir",
+          "description": "Bina carta alir pada kanvas terbuka - seret kad, sambungkannya, dan garisan menghala serta melekat pada kotak.",
+          "blurb": "Kad + penyambung yang melekat pada kotak"
+        },
+        "nl": {
+          "name": "Stroomdiagram",
+          "description": "Bouw stroomdiagrammen op een open canvas - sleep kaarten, verbind ze, en de lijnen routeren zich en blijven vastzitten aan de vakken.",
+          "blurb": "Kaarten + verbindingslijnen die vastzitten aan de vakken"
+        },
+        "no": {
+          "name": "Flytskjema",
+          "description": "Bygg flytskjemaer på et åpent lerret - dra kort, koble dem sammen, og linjene ruter seg og holder seg festet til boksene.",
+          "blurb": "Kort og forbindelseslinjer som fester seg til boksene"
+        },
+        "pl": {
+          "name": "Schemat blokowy",
+          "description": "Buduj diagramy przepływu na otwartym płótnie - przeciągaj karty, łącz je, a linie same się prowadzą i trzymają boksów.",
+          "blurb": "Karty i łączniki przylegające do pól"
+        },
+        "pt": {
+          "name": "Fluxograma",
+          "description": "Construa fluxogramas num canvas aberto - arraste cartões, conecte-os, e as linhas se traçam e ficam fixas às caixas.",
+          "blurb": "Cartões + conectores que ficam presos às caixas"
+        },
+        "ro": {
+          "name": "Diagramă de flux",
+          "description": "Construiește diagrame de flux pe un canvas deschis - trage carduri, conectează-le, iar liniile se traseează și rămân lipite de căsuțe.",
+          "blurb": "Carduri + conectori care rămân lipiți de casete"
+        },
+        "sv": {
+          "name": "Flödesschema",
+          "description": "Bygg flödesscheman på en öppen canvas - dra kort, koppla samman dem, så dras linjerna och fäster vid rutorna.",
+          "blurb": "Kort och kopplingslinjer som fastnar på rutorna"
+        },
+        "tl": {
+          "name": "Flow Chart",
+          "description": "Bumuo ng flow charts sa isang bukas na canvas - i-drag ang mga card, ikonekta ang mga ito, at kusang ruruta at didikit ang mga linya sa mga box.",
+          "blurb": "Mga card + connector na dumidikit sa mga box"
+        },
+        "tr": {
+          "name": "Akış Şeması",
+          "description": "Açık bir tuvalde akış şemaları oluşturun - kartları sürükleyin, bağlayın; çizgiler yönlenir ve kutulara yapışır.",
+          "blurb": "Kutulara yapışan kartlar + bağlayıcılar"
+        },
+        "uk": {
+          "name": "Блок-схема",
+          "description": "Створюйте блок-схеми на відкритому полотні - перетягуйте картки, з'єднуйте їх, і лінії прокладаються та прилипають до блоків.",
+          "blurb": "Картки та з'єднувачі, що прилипають до блоків"
+        },
+        "ur": {
+          "name": "فلو چارٹ",
+          "description": "ایک کھلے کینوس پر فلو چارٹس بنائیں - کارڈز گھسیٹیں، انہیں جوڑیں، اور لائنیں خود راستہ بناتی اور باکسز سے چپکتی ہیں۔",
+          "blurb": "کارڈز + کنیکٹرز جو باکسز سے جڑے رہتے ہیں"
+        },
+        "vi": {
+          "name": "Sơ đồ luồng",
+          "description": "Xây dựng lưu đồ trên canvas mở - kéo thẻ, nối chúng lại, và các đường sẽ tự định tuyến và bám theo các ô.",
+          "blurb": "Thẻ + đường nối dính chặt vào khung"
+        },
+        "zh-hant": {
+          "name": "流程圖",
+          "description": "在開放式畫布上建立流程圖 - 拖曳卡片、連接彼此，線條會自動繞行並貼齊方塊。",
+          "blurb": "卡片 + 連接線,緊貼方框"
+        },
+        "zh": {
+          "name": "流程图",
+          "description": "在开放画布上制作流程图 - 拖动卡片、连接它们,连线会自动路由并吸附到方框上。",
+          "blurb": "卡片 + 连接线,紧贴方框"
+        }
+      }
+    },
+    {
+      "id": "pricing-table",
+      "name": "Pricing",
+      "description": "Plans as columns, features as rows, ticks and crosses, and one plan picked out as the recommended one.",
+      "version": "1.1.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "pricing",
+        "comparison",
+        "table",
+        "features",
+        "plans",
+        "marketing"
+      ],
+      "added": "2026-08-28",
+      "formats": [
+        "png",
+        "svg",
+        "penpot",
+        "pdf",
+        "csv",
+        "json",
+        "jpg",
+        "webp",
+        "avif"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" /><path d=\"M3 8.5h18\" /><path d=\"M9 8.5V21\" /><path d=\"M12 14.2l1.7 1.7 3.3-3.6\" /></svg>",
+      "preview": "/catalog/previews/pricing-table.svg",
+      "examples": [
+        {
+          "label": "SaaS three tiers",
+          "values": {
+            "heading": "Simple, transparent pricing",
+            "subheading": "Every plan includes the whole toolkit. Pay for the seats and support you need.",
+            "highlight": 2,
+            "background": "{color.semantic.surface}",
+            "accent": "{color.semantic.primary}",
+            "data": {
+              "columns": [
+                "Feature",
+                "Starter",
+                "Team",
+                "Enterprise"
+              ],
+              "rows": [
+                [
+                  "Price",
+                  "$9 / month",
+                  "$29 / month",
+                  "Talk to us"
+                ],
+                [
+                  "Tagline",
+                  "For solo work",
+                  "For growing teams",
+                  "For the whole org"
+                ],
+                [
+                  "Button",
+                  "Start Starter",
+                  "Start Team",
+                  "Contact sales"
+                ],
+                [
+                  "Link",
+                  "https://example.com/starter",
+                  "https://example.com/team",
+                  "mailto:sales@example.com"
+                ],
+                [
+                  "Projects",
+                  "3",
+                  "Unlimited",
+                  "Unlimited"
+                ],
+                [
+                  "Team members",
+                  "1",
+                  "Up to 20",
+                  "Unlimited"
+                ],
+                [
+                  "Shared brand kit",
+                  "no",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Single sign-on",
+                  "no",
+                  "no",
+                  "yes"
+                ],
+                [
+                  "Support",
+                  "Community",
+                  "Email, next day",
+                  "> Named contact"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "label": "Two-product comparison",
+          "values": {
+            "heading": "How we compare",
+            "subheading": "The same job, side by side.",
+            "cta": "Switch today",
+            "highlight": 1,
+            "highlightLabel": "Our pick",
+            "layout": "cards",
+            "background": "{color.semantic.surface}",
+            "accent": "{color.semantic.primary}",
+            "data": {
+              "columns": [
+                "Feature",
+                "Lolly",
+                "The usual tool"
+              ],
+              "rows": [
+                [
+                  "Price",
+                  "Free",
+                  "$18 / month"
+                ],
+                [
+                  "Tagline",
+                  "Runs on your device",
+                  "Runs on their servers"
+                ],
+                [
+                  "Works offline",
+                  "yes",
+                  "no"
+                ],
+                [
+                  "Files stay on your machine",
+                  "yes",
+                  "no"
+                ],
+                [
+                  "Brand tokens built in",
+                  "yes",
+                  "no"
+                ],
+                [
+                  "Print-ready PDF",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Command line",
+                  "yes",
+                  "no"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "label": "Five-tier grid",
+          "values": {
+            "heading": "Pick your seat count",
+            "subheading": "Volume pricing, billed yearly.",
+            "layout": "grid",
+            "highlight": 0,
+            "cta": "",
+            "background": "{color.semantic.surface}",
+            "accent": "{color.semantic.primary}",
+            "data": {
+              "columns": [
+                "Feature",
+                "Solo",
+                "Duo",
+                "Squad",
+                "Studio",
+                "Agency"
+              ],
+              "rows": [
+                [
+                  "Price",
+                  "$0",
+                  "$12",
+                  "$40",
+                  "$120",
+                  "$400"
+                ],
+                [
+                  "Tagline",
+                  "1 seat",
+                  "2 seats",
+                  "10 seats",
+                  "40 seats",
+                  "Unlimited"
+                ],
+                [
+                  "Shared brand kit",
+                  "no",
+                  "yes",
+                  "yes",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Batch renders",
+                  "-",
+                  "100",
+                  "2,000",
+                  "20,000",
+                  "Unlimited"
+                ],
+                [
+                  "Single sign-on",
+                  "no",
+                  "no",
+                  "no",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Support",
+                  "Community",
+                  "Email",
+                  "Email",
+                  "> Priority",
+                  "> Named contact"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "label": "Membership",
+          "values": {
+            "heading": "Membership",
+            "subheading": "One workshop a month, or all of them.",
+            "cta": "Join",
+            "highlight": 3,
+            "highlightLabel": "Best value",
+            "background": "{color.semantic.surface}",
+            "accent": "{color.semantic.primary}",
+            "data": {
+              "columns": [
+                "Feature",
+                "Visitor",
+                "Member",
+                "Patron"
+              ],
+              "rows": [
+                [
+                  "Price",
+                  "$0",
+                  "$15 / month",
+                  "$40 / month"
+                ],
+                [
+                  "Tagline",
+                  "Drop in",
+                  "Every month",
+                  "Everything, plus"
+                ],
+                [
+                  "Workshop seats",
+                  "1 a year",
+                  "1 a month",
+                  "Unlimited"
+                ],
+                [
+                  "Recordings",
+                  "no",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Studio access",
+                  "no",
+                  "no",
+                  "yes"
+                ],
+                [
+                  "Guest pass",
+                  "no",
+                  "1 a year",
+                  "4 a year"
+                ]
+              ]
+            }
+          }
+        }
+      ],
+      "templates": [
+        {
+          "id": "buy-buttons",
+          "name": "Buy buttons",
+          "category": "Marketing",
+          "description": "Each plan's button carries its own price and its own link.",
+          "presets": [
+            {
+              "id": "donation",
+              "name": "Pick an amount",
+              "description": "Three donation tiers, each button a real link."
+            }
+          ]
+        },
+        {
+          "id": "comparison",
+          "name": "Us and them",
+          "category": "Marketing",
+          "description": "Two columns side by side, yours picked out.",
+          "presets": [
+            {
+              "id": "before-after",
+              "name": "Before and after",
+              "description": "The old way against the new one, with the new way featured."
+            }
+          ]
+        },
+        {
+          "id": "feature-matrix",
+          "name": "Feature matrix",
+          "category": "Reference",
+          "description": "A flat grid of many plans, for a docs page or a one-pager.",
+          "presets": [
+            {
+              "id": "two-plan",
+              "name": "Two plans",
+              "description": "The short version, with the paid plan featured."
+            }
+          ]
+        },
+        {
+          "id": "saas",
+          "name": "SaaS plans",
+          "category": "Marketing",
+          "description": "Three tiers, one recommended, a button under each.",
+          "presets": [
+            {
+              "id": "yearly",
+              "name": "Billed yearly",
+              "description": "Two months free, with the discount in each price."
+            },
+            {
+              "id": "free-first",
+              "name": "Free tier first",
+              "description": "Opens with a free plan and features the middle tier."
+            }
+          ]
+        }
+      ],
+      "i18n": {
+        "ar": {
+          "name": "التسعير",
+          "description": "الخطط في أعمدة، والميزات في صفوف، مع علامات صح وخطأ، وخطة واحدة مميّزة بوصفها الموصى بها."
+        },
+        "bg": {
+          "name": "Цени",
+          "description": "Планове като колони, функции като редове, отметки и кръстчета, и един план, откроен като препоръчания."
+        },
+        "bn": {
+          "name": "মূল্য",
+          "description": "প্ল্যান কলামে, ফিচার সারিতে, টিক ও ক্রস চিহ্ন সহ, এবং একটি প্ল্যান প্রস্তাবিত হিসেবে হাইলাইট করা।"
+        },
+        "cs": {
+          "name": "Ceník",
+          "description": "Tarify jako sloupce, funkce jako řádky, zatržítka a křížky, a jeden tarif zvýrazněný jako doporučený."
+        },
+        "de": {
+          "name": "Preise",
+          "description": "Pläne als Spalten, Funktionen als Zeilen, Häkchen und Kreuze, und ein Plan als Empfehlung hervorgehoben."
+        },
+        "es": {
+          "name": "Precios",
+          "description": "Planes en columnas, funciones en filas, marcas de verificación y cruces, y un plan destacado como el recomendado."
+        },
+        "fr": {
+          "name": "Tarifs",
+          "description": "Les formules en colonnes, les fonctionnalités en lignes, des coches et des croix. Une formule est mise en avant comme recommandée."
+        },
+        "hi": {
+          "name": "प्राइसिंग",
+          "description": "प्लान कॉलम में, फ़ीचर पंक्तियों में, टिक और क्रॉस चिह्न के साथ, और एक प्लान को अनुशंसित के तौर पर हाइलाइट किया गया।"
+        },
+        "id": {
+          "name": "Harga",
+          "description": "Paket sebagai kolom, fitur sebagai baris, tanda centang dan silang, dan satu paket ditandai sebagai yang disarankan."
+        },
+        "it": {
+          "name": "Prezzi",
+          "description": "Piani in colonna, funzionalità in riga, segni di spunta e crocette, e un piano evidenziato come consigliato."
+        },
+        "ja": {
+          "name": "料金表",
+          "description": "プランを列、機能を行として並べ、チェックマークとバツ印で対応状況を示します。おすすめのプランは1つだけ強調表示できます。"
+        },
+        "ko": {
+          "name": "가격",
+          "description": "요금제는 열로, 기능은 행으로 정리하고, 체크와 엑스 표시를 넣어요. 추천 요금제 하나는 따로 강조할 수 있어요."
+        },
+        "ms": {
+          "name": "Harga",
+          "description": "Pelan sebagai lajur, ciri sebagai baris, tanda betul dan tanda silang, serta satu pelan ditonjolkan sebagai pilihan disyorkan."
+        },
+        "nl": {
+          "name": "Prijzen",
+          "description": "Abonnementen als kolommen, functies als rijen, vinkjes en kruisjes, en één abonnement uitgelicht als aanbevolen."
+        },
+        "no": {
+          "name": "Prising",
+          "description": "Planer som kolonner, funksjoner som rader, haker og kryss, og én plan fremhevet som den anbefalte."
+        },
+        "pl": {
+          "name": "Cennik",
+          "description": "Plany jako kolumny, funkcje jako wiersze, ptaszki i krzyżyki, i jeden plan wyróżniony jako polecany."
+        },
+        "pt": {
+          "name": "Preços",
+          "description": "Planos em colunas, recursos em linhas e marcas de certo e de errado, com um plano destacado como o recomendado."
+        },
+        "ro": {
+          "name": "Prețuri",
+          "description": "Planuri pe coloane, funcții pe rânduri, bife și X-uri, iar un plan este scos în evidență ca recomandat."
+        },
+        "sv": {
+          "name": "Prissättning",
+          "description": "Planer som kolumner, funktioner som rader, bockar och kryss, och en plan som markeras som den rekommenderade."
+        },
+        "tl": {
+          "name": "Presyo",
+          "description": "Mga plano bilang column, mga feature bilang row, mga tsek at ekis, at isang plano na naka-highlight bilang ang rekomendado."
+        },
+        "tr": {
+          "name": "Fiyatlandırma",
+          "description": "Planlar sütun, özellikler satır olur; onay ve çarpı işaretleri kullanılır, bir plan da önerilen olarak öne çıkar."
+        },
+        "uk": {
+          "name": "Тарифи",
+          "description": "Плани як колонки, функції як рядки, галочки та хрестики, і один план виділений як рекомендований."
+        },
+        "ur": {
+          "name": "قیمتیں",
+          "description": "پلانز کالمز کی صورت میں، خصوصیات قطاروں کی صورت میں، ٹِک اور کراس نشانات، اور ایک پلان کو تجویز کردہ کے طور پر نمایاں کیا گیا ہے۔"
+        },
+        "vi": {
+          "name": "Bảng Giá",
+          "description": "Xếp các gói dịch vụ theo cột, tính năng theo hàng, đánh dấu tích và dấu X, rồi làm nổi bật một gói được đề xuất."
+        },
+        "zh-hant": {
+          "name": "定價",
+          "description": "方案排成欄，功能排成列，搭配打勾與打叉符號，並將其中一個方案標為建議方案。"
+        },
+        "zh": {
+          "name": "定价",
+          "description": "以列显示套餐、以行显示功能，用勾号和叉号标示，并突出显示一个推荐套餐。"
         }
       }
     }

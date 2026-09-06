@@ -32,26 +32,17 @@ import { existsSync, readFileSync } from 'node:fs';
 
 const core = readFileSync(new URL('../shells/web/src/lib/audio-coach-core.ts', import.meta.url), 'utf8');
 
-// voice-recorder ships in BOTH brand packs. Gate on the SOURCE packs, not the
-// gitignored tools/ profile view (which silently vanishes if the tool is
-// renamed): brands/lolly-start is parent-owned and always present, so its copy
-// is asserted unconditionally; the private brands/suse copy is compared too
-// whenever that pack is mounted - and with the pack mounted, a missing hook
-// FAILS, it never skips.
-const startHookUrl = new URL('../brands/lolly-start/tools/voice-recorder/hooks.js', import.meta.url);
-assert.ok(existsSync(startHookUrl),
-  'brands/lolly-start/tools/voice-recorder/hooks.js is missing - the tool was renamed or deleted');
-const susePackUrl = new URL('../brands/suse/tools/', import.meta.url);
-const suseHookUrl = new URL('voice-recorder/hooks.js', susePackUrl);
-if (existsSync(susePackUrl)) {
-  assert.ok(existsSync(suseHookUrl),
-    'brands/suse/tools/voice-recorder/hooks.js is missing - pack is mounted, so the tool was renamed or deleted');
-}
+// voice-recorder ships ONCE, in community/ (it was a copy in both brand packs
+// until 2026-09-06; the two had already drifted by a version and a font weight).
+// Gate on the SOURCE dir, not the gitignored tools/ profile view (which silently
+// vanishes if the tool is renamed): a missing hook FAILS, it never skips.
+const hookUrl = new URL('../community/voice-recorder/hooks.js', import.meta.url);
+assert.ok(existsSync(hookUrl),
+  'community/voice-recorder/hooks.js is missing - the tool was renamed or deleted');
 
-// Every mounted copy of the hook must mirror the core constants.
+// The hook must mirror the core constants.
 const HOOKS: Array<[string, string]> = [
-  ['brands/lolly-start', readFileSync(startHookUrl, 'utf8')],
-  ...(existsSync(susePackUrl) ? [['brands/suse', readFileSync(suseHookUrl, 'utf8')] as [string, string]] : []),
+  ['community', readFileSync(hookUrl, 'utf8')],
 ];
 
 // Read a named `NAME = <number>` literal from the core module (source of truth).

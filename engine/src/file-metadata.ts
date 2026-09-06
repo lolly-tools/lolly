@@ -16,7 +16,7 @@
 // expose via host.pdf.analyze); this covers the raster + vector formats, plus
 // the XMP packet in MP4/QuickTime video (the AI-declaration carrier there).
 
-import { aiKind } from './c2pa-verify.ts';
+import { aiKind } from './ai-kind.ts';
 import { JPEG_APP_IDS, scanJpegSegments } from './jpeg-segments.ts';
 
 export type MetaGroup =

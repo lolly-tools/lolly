@@ -38,6 +38,19 @@ export interface AssetsAPI {
   isAvailable(id: string): Promise<boolean>;
 
   /**
+   * The bytes behind an AssetRef, or behind a url a previous `get`/`pick`/
+   * `compose.render` handed back (v1.183). This is the portable replacement
+   * for a hook calling the global `fetch(ref.url)`: that works in a page, is
+   * refused by a strict Worker, and does not exist in a headless shell - so
+   * the same tool rendered three different ways. Shells resolve their own url
+   * shapes (`blob:` and same-origin in a browser, `data:` and `file:` in
+   * Node); an http(s) url goes through the tool's `host.net` allowlist, never
+   * an open fetch. Optional and additive: a hook feature-detects it and may
+   * keep `fetch` as its fallback.
+   */
+  bytes?(target: AssetRef | string): Promise<Uint8Array>;
+
+  /**
    * The stored Content Credentials of a user-uploaded asset, if it carried any
    * at ingest - kept as the raw C2PA manifest store (no pixels/EXIF, so nothing
    * the upload pipeline strips is re-hoarded). Used to preserve a placed asset's

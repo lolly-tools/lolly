@@ -25,7 +25,7 @@
  *   being declared as user-facing inputs in the manifest.
  */
 
-import { collectAiIngredientDeclarations } from './c2pa.ts';
+import { missingRequires, type HostApiName } from '@lolly-tools/core';
 import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputs, normalizeTableValue } from './inputs.ts';
 import { hydrate } from './template.ts';
 import { buildExportMeta } from './metadata.ts';
@@ -40,7 +40,6 @@ import type {
   HostV1, AssetRef, ExportFormat, ExportOpts, MediaFrame, TokenSet,
   AudioLevel, RecordOpts, RecordSession, IngredientCredential,
 } from './bridge/host-v1.ts';
-import { prepareC2paIngredientFromStore } from './c2pa-verify.ts';
 import { parseProviderRef } from './asset-provider.ts';
 
 /** One state emission: the current model plus the hydrated template. */
@@ -329,6 +328,16 @@ export async function createRuntime(
 ): Promise<Runtime> {
   if (host.version !== '1') {
     throw new Error(`Tool requires host bridge v1, got v${host.version}`);
+  }
+  // Manifest `requires`: the optional host.* APIs the tool calls unguarded.
+  // Refuse here, before any hook runs, instead of letting the first hook throw
+  // inside its time box on a shell that lacks the API.
+  const unmetApis = missingRequires(tool.manifest.requires, host as Partial<Record<HostApiName, unknown>>);
+  if (unmetApis.length) {
+    throw new Error(
+      `"${tool.manifest.id}" requires host.${unmetApis.join(', host.')} and this ${host.shell} shell does not provide ` +
+      `${unmetApis.length === 1 ? 'it' : 'them'}`,
+    );
   }
   const composeStack = opts.composeStack ?? [];
   // Per-runtime memo so resolveNestedRenders skips re-rendering a child whose
@@ -1152,7 +1161,9 @@ export async function createRuntime(
         for (const id of ids) {
           try {
             const cred = await host.assets.credential(id);
-            const ing = cred?.store ? prepareC2paIngredientFromStore(cred.store, cred.format) : null;
+            // Lazy: the C2PA read side (c2pa-verify → c2pa-extract → containers)
+            // is ~7K lines that only an export with placed credentials needs.
+            const ing = cred?.store ? (await import('./c2pa-verify.ts')).prepareC2paIngredientFromStore(cred.store, cred.format) : null;
             if (ing) prepared.push(ing);
           } catch { /* unreadable credential - skip, don't fail the export */ }
         }
@@ -1235,7 +1246,7 @@ export async function createRuntime(
       // into the export's FRESH credential - a composite created step, a
       // c2pa.placed step naming each piece, and a section 18.28 ai-disclosure. The
       // shared collector walks the same asset descent as the aiUpscale scan.
-      const c2paAiIngredients = stampProvenance ? collectAiIngredientDeclarations(model) : [];
+      const c2paAiIngredients = stampProvenance ? (await import('./c2pa.ts')).collectAiIngredientDeclarations(model) : [];
       let blob;
       try {
         blob = await host.export.render(renderedNode as Element, format as ExportFormat, {

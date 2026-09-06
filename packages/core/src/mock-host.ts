@@ -6,10 +6,14 @@
  * tool did via `host.inspect`.
  *
  * It implements the REQUIRED bridge surface (profile, assets, state, clipboard,
- * export, log). The optional capabilities (net, tokens, text, pdf, capture,
- * compose, media, recorder) are left undefined by default. A hook that
- * feature-detects one sees it as absent unless you supply your own on the returned
- * object.
+ * export, log). Every optional API (`HOST_V1_OPTIONAL_APIS`: net, tokens, text,
+ * pdf, … 26 of them) is left undefined by default, so a hook that
+ * feature-detects one sees it as absent. To test a tool that DECLARES
+ * `requires`, or a hook's behaviour when an API is present but unhelpful, wrap
+ * the mock in {@link withOptionalStubs}: every method of every optional API is
+ * then a function that throws a clear "stub" error (`isAvailable`-style probes
+ * answer false), which is enough for `missingRequires` and the conformance
+ * kit's shape check to pass, and for a hook's own error path to be exercised.
  */
 import type {
   HostV1,
@@ -189,5 +193,35 @@ export function createMockHost(opts: CreateMockHostOpts = {}): MockHost {
     },
   };
 
+  return host;
+}
+
+import { HOST_V1_OPTIONAL_APIS, type HostApiName } from './host-v1/apis.ts';
+import { HOST_V1_METHODS } from './host-conformance.ts';
+
+/** Methods that are presence/availability probes: a stub answers `false` for
+ *  these instead of throwing, so a tool that asks before acting takes its
+ *  graceful path. */
+const PROBE_METHODS = new Set(['isAvailable', 'cached', 'canRun', 'canShare', 'transcribeAvailable', 'transcribeCached', 'canRaster']);
+
+/**
+ * Install stub implementations of optional host APIs on a host (the mock, or
+ * any partial host in a test). Each stub method throws
+ * `host.<api>.<method> is a stub` unless it is an availability probe, which
+ * resolves false. Existing real implementations are left alone.
+ */
+export function withOptionalStubs<T extends object>(host: T, apis: readonly HostApiName[] = HOST_V1_OPTIONAL_APIS): T {
+  const rec = host as Record<string, unknown>;
+  for (const api of apis) {
+    if (rec[api] !== undefined && rec[api] !== null) continue;
+    const stub: Record<string, unknown> = {};
+    const { required, optional } = HOST_V1_METHODS[api];
+    for (const m of [...required, ...optional]) {
+      stub[m] = PROBE_METHODS.has(m)
+        ? async () => false
+        : () => { throw new Error(`mock host: host.${api}.${m} is a stub - supply a real implementation for this test`); };
+    }
+    rec[api] = stub;
+  }
   return host;
 }

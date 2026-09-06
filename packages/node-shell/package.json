@@ -9,6 +9,8 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
+    "./asset-bytes": "./src/asset-bytes.ts",
+    "./hook-worker": "./src/hook-worker.ts",
     ".": "./src/index.ts",
     "./file-operations": "./src/file-operations.ts",
     "./repo-root": "./src/repo-root.ts",

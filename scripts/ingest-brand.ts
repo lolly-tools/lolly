@@ -51,8 +51,7 @@
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import {
-  existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync,
-} from 'node:fs';
+  existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync, copyFileSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { unzipSync } from 'fflate';
@@ -548,6 +547,31 @@ function emitPack(
         size: f.bytes.length,
       }],
     });
+  }
+
+  // Neutral starter assets: the LUTs and 3D models the blank brand ships, so a
+  // freshly ingested pack renders darkroom and 3d on day one instead of empty.
+  // Copied byte for byte with their index rows (checksums included), skipping
+  // anything brand-named. Audio loops are deliberately not carried over: they
+  // are the blank brand's own music beds, not a starter kit.
+  const starterIndexPath = resolve(ROOT, 'brands/lolly-start/catalog/assets/index.json');
+  if (existsSync(starterIndexPath)) {
+    const starter = JSON.parse(readFileSync(starterIndexPath, 'utf8')) as { assets?: Record<string, unknown>[] };
+    for (const a of starter.assets ?? []) {
+      const type = a.type as string;
+      const id = a.id as string;
+      if (!['lut', 'model'].includes(type) || /suse/i.test(id)) continue;
+      const formats = (a.formats as { url: string }[]) ?? [];
+      let copied = true;
+      for (const f of formats) {
+        const src = resolve(ROOT, 'brands/lolly-start', f.url.replace(/^\//, ''));
+        if (!existsSync(src)) { copied = false; break; }
+        const dst = join(out, f.url.replace(/^\//, ''));
+        mkdirSync(dirname(dst), { recursive: true });
+        copyFileSync(src, dst);
+      }
+      if (copied) assets.push({ ...a, tags: [...((a.tags as string[]) ?? []), 'starter'] });
+    }
   }
 
   // Derived palette docs (engine brand-treatments.ts): photo treatments always

@@ -25,6 +25,11 @@ export { validateTool, validateCanvasOp } from './validate.ts';
 export type { ValidationIssue, ValidationResult } from './validate.ts';
 
 export { createMockHost } from './mock-host.ts';
+export { HOST_V1_OPTIONAL_APIS, presentApis, missingRequires } from './host-v1/apis.ts';
+export { runHostConformance, formatConformance, HOST_V1_METHODS, HOST_V1_REQUIRED_APIS } from './host-conformance.ts';
+export type { ConformanceReport, ConformanceIssue, ConformanceOpts, HostApi, HostRequiredApi, ApiMethods } from './host-conformance.ts';
+export { withOptionalStubs } from './mock-host.ts';
+export type { HostApiName } from './host-v1/apis.ts';
 export type {
   MockHost,
   MockHostInspection,

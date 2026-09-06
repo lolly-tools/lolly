@@ -11,18 +11,21 @@ marketing line. Each claim points at the code that backs it; verify them.
 - **Compute is local.** Tools render on the user's device. The engine has no
   server it reports to and no cloud render path - see the three-layer separation
   in [CLAUDE.md](CLAUDE.md) and [`engine/package.json`](engine/package.json)
-  (runtime deps are `handlebars` + `ajv`, nothing networked).
+  (runtime deps are `handlebars`, `ajv`, `fflate` and the workspace SDK `@lolly-tools/core`, nothing networked).
 
 - **No telemetry, no cookies, no analytics.** Usage counters are local-only by
   construction ([`shells/web/src/metrics.ts`](shells/web/src/metrics.ts)); the
   privacy posture is spelled out in [`docs/privacy.md`](docs/privacy.md).
 
-- **Network is deny-by-default.** A tool receives a `net` bridge *only* if its
-  manifest declares the `network` capability; the bridge is optional in the
-  contract ([`engine/src/bridge/host-v1.ts`](engine/src/bridge/host-v1.ts), the
-  `net?: NetAPI` member) and allowlist-enforced by the shell
-  ([`shells/web/src/bridge/net.ts`](shells/web/src/bridge/net.ts)). Tools that
-  don't declare it cannot reach the network at all.
+- **`host.net` is deny-by-default.** The bridge is optional in the contract
+  ([`engine/src/bridge/host-v1.ts`](engine/src/bridge/host-v1.ts), the
+  `net?: NetAPI` member); the shell hands every tool a `net` whose allowlist is
+  empty unless the manifest's `network.allowlist` names hosts, and enforces that
+  list per request ([`shells/web/src/bridge/net.ts`](shells/web/src/bridge/net.ts)).
+  That bounds the supported path, not the realm: hooks run in the page, so the
+  global `fetch` is reachable and only the deployment's Content-Security-Policy
+  stops it (see the boundary below). A first-party catalog is reviewed for exactly
+  that; an untrusted one is what Worker isolation is for.
 
 - **Storage is first-party and on-device.** Tool state and profile go through
   `host.state` - IndexedDB on web, filesystem on Tauri, memory on CLI - never a
@@ -48,21 +51,27 @@ Honesty about the edges is part of the claim. These are real and intentional.
   [`docs/faq.md`](docs/faq.md)). Sovereignty here is a user choice at export
   time, not an absolute property of the system. Users have privacy & control.
 
-- **The catalog origin is a trust anchor, and tool code is not yet verified at
-  runtime.** Tools are *data, not code*, but that data includes `hooks.js`,
-  which the engine executes via `new Function` **in the page realm - not a
-  sandbox**: hook code has the same reach as the app itself (async results are
-  time-boxed, but that bounds waiting, not capability), so untrusted tool code
-  is not safe to run until Worker isolation ships. The loader fetches and runs
-  whatever the origin returns with no integrity check
-  ([`engine/src/loader.ts`](engine/src/loader.ts)), and asset checksums are
-  computed at **build time only** - there is deliberately no runtime
-  verification on the fetch path
-  ([`scripts/checksum-assets.ts`](scripts/checksum-assets.ts)). So a user who
-  trusts a catalog origin trusts it to ship honest tool code. **Closing this
-  gap** - per-file integrity digests in the tool index plus a signature over the
-  catalog, verified client-side before `hooks.js` runs - is designed but not yet
-  implemented. Until then, host the catalog yourself or trust whoever does.
+- **Tool code runs in the page realm by default.** Tools are *data, not
+  code*, but that data includes `hooks.js`, which the engine executes via
+  `new Function` **in the page - not a sandbox** - unless the shell hands it a
+  Worker executor: hook code has the same reach as the app itself (async results
+  are time-boxed, but that bounds waiting, not capability). Worker isolation
+  exists in the web shell ([`shells/web/src/lib/hook-worker.ts`](shells/web/src/lib/hook-worker.ts))
+  and is mandatory for sideloaded and remote tools, but first-party catalog
+  tools still run in-realm because some of them draw on a canvas the Worker
+  cannot reach.
+- **The catalog origin is a trust anchor, now with a signed integrity check.**
+  A release build signs the tool index (ECDSA P-256, per-file SHA-256;
+  [`engine/src/catalog-integrity.ts`](engine/src/catalog-integrity.ts)), the
+  loader verifies each tool file against it before `hooks.js` runs
+  ([`engine/src/loader.ts`](engine/src/loader.ts), `verifyToolFile`), and the
+  web shell's catalog sync refuses an index whose signature does not match the
+  pinned key and re-checks asset checksums on fetch
+  ([`shells/web/src/catalog/sync.ts`](shells/web/src/catalog/sync.ts)). A dev
+  or self-built catalog is unsigned and says so in the console. What remains is
+  the anchor itself: whoever holds the signing key and the origin can still
+  ship whatever they sign, so a user who trusts a catalog origin trusts its
+  operator. Host the catalog yourself or trust whoever does.
 - **The shipped content layer is private and unsigned.** The actual SUSE
   `tools/` and `catalog/assets/` intended to live outside the open repo and are not 
   signed, so this document attests that the architecture is *sovereignty-capable*, 
@@ -131,7 +140,8 @@ inventory of the components the build distributes - npm, Tauri npm, Rust crates,
 vendored libraries, and fonts (see the scope notes above) - regenerable offline
 and diffable in review. It does **not** by itself authenticate the *catalog* a client syncs
 from - substituting tool code at a malicious or compromised catalog origin is a
-separate threat that requires catalog signing + runtime integrity verification
-(the deferred work noted under Boundaries). Treat this document as the current,
+separate threat, answered by the catalog signature and runtime integrity check
+described under Boundaries, which bind a client to the origin's key rather than
+to the origin's DNS name. Treat this document as the current,
 honest state - strong local-first design, transparent dependencies, and the
 remaining caveats named above with a known path to closing them.

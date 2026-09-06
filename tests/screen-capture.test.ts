@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.181.0', () => {
+test('ENGINE_VERSION is 1.183.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -433,7 +433,14 @@ test('ENGINE_VERSION is 1.181.0', () => {
   // 1.181.0 (2026-09-05): chart fields gain semantic role/format/nullability and
   //          resolved reports can carry data profiles/recommendations - additive,
   //          no capture change.
-  assert.equal(ENGINE_VERSION, '1.181.0');
+  // 1.182.0 (2026-09-06): manifest `requires` (optional host.* APIs a tool calls
+  //          unguarded) is enforced by createRuntime and enumerable via
+  //          HOST_V1_OPTIONAL_APIS - additive, no capture change.
+  // 1.183.0 (2026-09-06): host.assets.bytes (optional) - the portable read of an
+  //          asset's bytes, replacing hooks' global fetch(ref.url); the hook
+  //          Worker core moved into the engine (hook-worker-core.ts) and a Node
+  //          worker_threads executor shares it - additive, no capture change.
+  assert.equal(ENGINE_VERSION, '1.183.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
