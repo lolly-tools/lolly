@@ -45,8 +45,7 @@ export function staticImports(source: string): string[] {
   // Strip comments so a commented-out import is not a use.
   const code = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/[^\n]*$/gm, '');
   const re = /^\s*(import|export)\s+(type\s+)?([^;'"]*?\s+from\s+)?['"]([^'"]+)['"]/gm;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(code))) {
+  for (const m of code.matchAll(re)) {
     if (m[2]) continue; // import type / export type
     const clause = m[3] ?? '';
     // `import { type A, type B } from` is type-only in effect; a mixed clause is a value import.
@@ -82,7 +81,7 @@ export function walkBootPath(entry = ENTRY): { modules: string[]; offenders: { f
       const hit = FORBIDDEN.find((f) => f.test(spec));
       if (hit) offenders.push({ file: file.slice(SRC.length + 1), spec, why: hit.name });
       const next = resolveRelative(file, spec);
-      if (next && next.startsWith(SRC)) queue.push(next);
+      if (next?.startsWith(SRC)) queue.push(next);
     }
   }
   return { modules: [...seen].map((f) => f.slice(SRC.length + 1)).sort(), offenders };
