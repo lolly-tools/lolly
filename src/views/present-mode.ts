@@ -434,11 +434,12 @@ function openSlideMotion(
   let endMs = 0;
   let timer: ReturnType<typeof setTimeout> | null = null;
   const elapsed = (): number => (started ? Math.max(0, Math.round((paused ? pausedAt : now()) - t0)) : 0);
-  const applyNow = (): void => {
+  const applyAt = (t: number): void => {
     // One bad frame never stops the deck: a throwing applier must not take the whole
     // presentation down with it, and the next tick will very likely be fine.
-    try { session.apply(elapsed()); } catch { /* keep presenting */ }
+    try { session.apply(t); } catch { /* keep presenting */ }
   };
+  const applyNow = (): void => { applyAt(elapsed()); };
   const schedule = (): void => {
     if (timer == null && started && !paused && !done) timer = setTimeout(tick, MOTION_STEP_MS);
   };
@@ -459,9 +460,13 @@ function openSlideMotion(
     begin() {
       if (started || done) return;
       started = true;
-      t0 = now();
       endMs = motionEndMs(clone);
-      applyNow();
+      // Take t0 last and pose at exactly 0, not at `elapsed()`: the DOM query above and a
+      // second `now()` read cost a few ms on a loaded machine, and a slide that is paused
+      // straight after `begin()` (armSlideMotion behind the overview) would otherwise
+      // freeze a few ms INTO its entrance instead of at the start of it.
+      t0 = now();
+      applyAt(0);
       schedule();
     },
     wake() {
