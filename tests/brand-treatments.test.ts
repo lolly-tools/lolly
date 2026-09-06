@@ -154,6 +154,15 @@ function runIngest(t: { after: (fn: () => void) => void }, tokens: unknown, name
   return out;
 }
 
+/** The brand-neutral LUTs and 3D models every ingested pack inherits from
+ *  brands/lolly-start (scripts/ingest-brand.ts copies them, 2026-09-06), in the
+ *  order the lolly-start index lists them. They sit between the tokens document
+ *  and the derived palette docs. */
+const NEUTRAL_COPIED = [
+  'lolly/3d/duck', 'lolly/3d/cat',
+  'lolly/luts/slide-standard', 'lolly/luts/slide-vivid', 'lolly/luts/chrome-muted', 'lolly/luts/mono-fine',
+];
+
 test('ingest-brand emits derived palette docs with SRI-checksummed index entries', (t) => {
   const out = runIngest(t, {
     color: {
@@ -166,7 +175,7 @@ test('ingest-brand emits derived palette docs with SRI-checksummed index entries
   const index = JSON.parse(readFileSync(join(out, 'catalog/assets/index.json'), 'utf8'));
   assert.deepEqual(
     index.assets.map((a: { id: string }) => a.id),
-    ['treatbrand/tokens/brand', 'treatbrand/palette/photo-treatments', 'treatbrand/palette/icon-themes'],
+    ['treatbrand/tokens/brand', ...NEUTRAL_COPIED, 'treatbrand/palette/photo-treatments', 'treatbrand/palette/icon-themes'],
   );
   for (const slug of ['photo-treatments', 'icon-themes']) {
     const bytes = readFileSync(join(out, `catalog/assets/treatbrand/palette/${slug}.json`));
@@ -195,7 +204,7 @@ test('ingest-brand skips the icon-themes asset for an accent-free palette', (t) 
   const index = JSON.parse(readFileSync(join(out, 'catalog/assets/index.json'), 'utf8'));
   assert.deepEqual(
     index.assets.map((a: { id: string }) => a.id),
-    ['greybrand/tokens/brand', 'greybrand/palette/photo-treatments'],
+    ['greybrand/tokens/brand', ...NEUTRAL_COPIED, 'greybrand/palette/photo-treatments'],
     'no accent ⇒ no icon-themes asset (the validator rejects an empty themes[] doc)',
   );
   assert.ok(!existsSync(join(out, 'catalog/assets/greybrand/palette/icon-themes.json')));

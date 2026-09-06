@@ -102,7 +102,6 @@
   "shells/cli/src/output.ts": 1,
   "shells/cli/src/run.ts": 1,
   "shells/cli/src/smoke.ts": 1,
-  "shells/tauri-mobile/bridge-overrides/export.ts": 1,
   "shells/tui/src/ascii-mockup.ts": 1,
   "shells/tui/src/batch-export.ts": 1,
   "shells/tui/src/folders.ts": 1,
