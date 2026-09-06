@@ -29,7 +29,7 @@ test('Tauri shells use the stable native icon-and-label switcher', () => {
 
   assert.equal(jellyNavSupportedInCurrentShell(), false);
   const html = viewToggle('tools');
-  for (const label of ['Tools', 'Utilities', 'Catalog', 'Projects']) {
+  for (const label of ['Tools', 'Utilities', 'Catalogue', 'Projects']) {
     assert.match(html, new RegExp(`<span class="view-toggle-label">${label}</span>`));
   }
   assert.match(html, /aria-current="page"/);
