@@ -14,6 +14,7 @@
  * validates them.
  */
 import type { Capability, ExportFormat } from './host-v1.ts';
+import type { HostApiName } from './host-v1/apis.ts';
 
 /** The kinds of input a tool can declare. Mirrors the schema's `inputs[].type` enum. */
 export type InputType =
@@ -295,6 +296,13 @@ export interface ToolManifest {
    *  manifest `default` composition still renders on URL-mode/CLI/deep-link opens. */
   templates?: unknown[];
   capabilities?: Capability[];
+  /**
+   * Optional HostV1 APIs this tool calls without feature-detecting them
+   * (`host.text`, `host.pdf`, …). The runtime refuses to mount on a shell that
+   * lacks one, before any hook runs, and a gallery can grey the tool out there.
+   * Names are the optional members of `HostV1` (`HOST_V1_OPTIONAL_APIS`).
+   */
+  requires?: HostApiName[];
   /** `'network'`-capability config: the https URL allowlist the host builds `host.net`
    *  from. A trailing `*` on an entry is a prefix wildcard; otherwise it permits that
    *  exact URL. Absent ⇒ every `host.net` fetch rejects. */

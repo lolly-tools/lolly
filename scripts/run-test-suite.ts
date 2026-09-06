@@ -9,6 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 export const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEST_ROOTS = [
   'tests',
+  'engine/src',
   'packages/core/test',
   'packages/node-shell/test',
   'packages/docs-render/test',

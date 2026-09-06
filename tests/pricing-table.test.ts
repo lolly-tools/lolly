@@ -34,15 +34,14 @@ import { baseHost } from './helpers/host.ts';
 // skip only when the pack itself is not mounted (public CI / lolly-start
 // checkouts); with it mounted, a missing tool dir means a rename or delete and
 // must fail loudly, never silently skip.
-const SUSE_TOOLS = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'suse', 'tools');
+// pricing-table moved to community/ on 2026-09-06 (no brand asset inside).
+const SUSE_TOOLS = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(SUSE_TOOLS, path), 'utf8');
 
-const PACK_MOUNTED = existsSync(SUSE_TOOLS);
-const SKIP = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
-if (PACK_MOUNTED) {
-  assert.ok(existsSync(join(SUSE_TOOLS, 'pricing-table', 'tool.json')),
-    'brands/suse/tools/pricing-table/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
-}
+const PACK_MOUNTED = true;
+const SKIP = false as const;
+assert.ok(existsSync(join(SUSE_TOOLS, 'pricing-table', 'tool.json')),
+  'community/pricing-table/tool.json is missing - the tool was renamed or deleted');
 
 const tool: any = SKIP ? null : await loadTool('pricing-table', fetchFile);
 

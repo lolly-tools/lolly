@@ -1,0 +1,39 @@
+{
+  "_README": "Input ids that are aliases of a canonical id (schemas/canonical-inputs.json). validate:catalog errors on a NEW alias use; the entries in `allow` shipped before the check and only warn. Renaming an input id breaks every saved URL that carries it, so an allowlisted alias is retired only with a urlKey bridge, never by a bare rename.",
+  "aliases": {
+    "title": "heading",
+    "text": "body",
+    "bg": "background",
+    "bgColor": "background",
+    "photo": "headshot",
+    "subtitle": "subheading"
+  },
+  "allow": [
+    "agenda.subtitle",
+    "agenda.title",
+    "audiogram.bg",
+    "audiogram.subtitle",
+    "audiogram.title",
+    "battlecards.bg",
+    "battlecards.title",
+    "claim.title",
+    "color-palette.bg",
+    "diagram-builder.title",
+    "filter.title",
+    "finish-preview.bgColor",
+    "frame.title",
+    "growth.text",
+    "icon.text",
+    "pose-geeko.bg",
+    "prompt-card.text",
+    "qr-code.text",
+    "screencap.title",
+    "spatial-photo.photo",
+    "synth.text",
+    "voice-recorder.title",
+    "wordmark.text",
+    "work-avatar.bgColor",
+    "work-avatar.photo",
+    "work-avatar.text"
+  ]
+}

@@ -44,6 +44,7 @@
  */
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { analyseRequires } from './tool-requires.ts';
 import { createHash } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -123,6 +124,7 @@ const WIRE_ORDER: Record<string, string[]> = JSON.parse(
 // ─── Load schemas ───────────────────────────────────────────────────────────
 
 const toolSchema = readJson('schemas/tool.schema.json');
+const CANONICAL_ALIASES = JSON.parse(readFileSync(join(ROOT, 'schemas/canonical-aliases.json'), 'utf8')) as { aliases: Record<string, string>; allow: string[] };
 const assetSchema = readJson('schemas/asset.schema.json');
 const tokensSchema = readJson('schemas/tokens.schema.json');
 const rateCardSchema = readJson('schemas/ratecard.schema.json');
@@ -210,6 +212,40 @@ for (const dir of toolDirs) {
   // Required files present?
   if (!existsSync(join(ROOT, `tools/${dir}/template.html`))) {
     errors.push(`[${dir}] missing template.html`);
+  }
+  // Manifest `requires` vs what hooks.js actually reaches for unguarded
+  // (scripts/tool-requires.ts is the single rule). A warning, not an error:
+  // the static read is conservative and a maintainer may know better, but the
+  // two disagreeing is exactly the drift the field exists to prevent.
+  {
+    const hooksPath = join(ROOT, `tools/${dir}/hooks.js`);
+    const { required } = analyseRequires(existsSync(hooksPath) ? readFileSync(hooksPath, 'utf8') : '');
+    const declared: string[] = Array.isArray(manifest.requires) ? manifest.requires : [];
+    if (declared.join(',') !== required.join(',')) {
+      warnings.push(`[${dir}] requires drift: manifest says [${declared.join(', ')}], hooks.js reaches unguarded for [${required.join(', ')}] - run \`node scripts/tool-requires.ts --write\``);
+    }
+  }
+  // Soft-deprecation: a deprecated tool keeps its id (permanent contract) but
+  // must leave the gallery, and its successor must be a real tool (checked in
+  // the replacedBy pass below, once every manifest is read).
+  if (manifest.deprecated === true && manifest.listed !== false) {
+    errors.push(`[${dir}] deprecated tools must set "listed": false - the id stays resolvable, the gallery stops offering it`);
+  }
+  if (manifest.replacedBy && manifest.deprecated !== true) {
+    warnings.push(`[${dir}] replacedBy "${manifest.replacedBy}" without "deprecated": true - set both, or neither`);
+  }
+  // Canonical input ids (schemas/canonical-inputs.json): a tool that names the
+  // heading `title`, the body `text` or the background `bg` fragments the /pro
+  // bulk columns. The divergences that shipped before this check are listed in
+  // schemas/canonical-aliases.json and warn; a NEW one is an error.
+  for (const input of manifest.inputs ?? []) {
+    const canonical = CANONICAL_ALIASES.aliases[input.id];
+    if (!canonical) continue;
+    const key = `${manifest.id}.${input.id}`;
+    const msg = `[${dir}] input "${input.id}" is an alias of canonical "${canonical}" - use the canonical id so /pro bulk columns and cross-tool presets line up`;
+    // An allowlisted alias is recorded, not repeated on every run; the ratchet
+    // is that a new one cannot ship.
+    if (!CANONICAL_ALIASES.allow.includes(key)) errors.push(msg);
   }
   if (manifest.hooks && !existsSync(join(ROOT, `tools/${dir}/hooks.js`))) {
     errors.push(`[${dir}] manifest declares hooks but hooks.js is missing`);
@@ -472,6 +508,14 @@ for (const entry of toolsIndex.tools) {
   }
 }
 // Every tool with a manifest must appear in the index.
+for (const [depId, depManifest] of toolManifests) {
+  if (depManifest.replacedBy && !toolManifests.has(depManifest.replacedBy)) {
+    errors.push(`[${depId}] replacedBy "${depManifest.replacedBy}" is not a tool in this profile`);
+  }
+  if (depManifest.replacedBy && toolManifests.get(depManifest.replacedBy)?.deprecated === true) {
+    errors.push(`[${depId}] replacedBy "${depManifest.replacedBy}" is itself deprecated - point at the live successor`);
+  }
+}
 for (const id of toolManifests.keys()) {
   if (!indexedIds.has(id)) {
     errors.push(`tools/index.json is missing tool "${id}" - run \`npm run build:catalog\``);

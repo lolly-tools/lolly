@@ -34,14 +34,14 @@ import { cornerFitDashArray } from '../engine/src/dash-fit.ts';
 // tests can only run when the pack is mounted (see profiles.json). Gate on the
 // SOURCE pack, not the gitignored tools/ profile view: with the pack mounted, a
 // missing hooks.js means the tool was renamed or deleted - FAIL, don't skip.
-const SUSE_PACK = new URL('../brands/suse/tools/', import.meta.url);
+// org-chart moved to community/ on 2026-09-06 (no brand asset inside), so it is
+// present in every full checkout and this suite never skips.
+const SUSE_PACK = new URL('../community/', import.meta.url);
 const HOOK_URL = new URL('org-chart/hooks.js', SUSE_PACK);
-const PACK_MOUNTED = existsSync(SUSE_PACK);
-const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
-if (PACK_MOUNTED) {
-  assert.ok(existsSync(HOOK_URL),
-    'brands/suse/tools/org-chart/hooks.js is missing - pack is mounted, so the tool was renamed or deleted');
-}
+const PACK_MOUNTED = true;
+const SKIP_SUSE = false as const;
+assert.ok(existsSync(HOOK_URL),
+  'community/org-chart/hooks.js is missing - the tool was renamed or deleted');
 
 // A stacked pair (a above b) and a diagonal pair (a up-left of b), in native px.
 const aTop = { x: 0, y: 0, w: 100, h: 50 };

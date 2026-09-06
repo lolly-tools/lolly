@@ -198,13 +198,13 @@ test('canvas.connect field references resolve against the EDGES input, not the b
 // would have failed a shipped tool in CI. It lives in the PRIVATE SUSE pack, so
 // gate on the pack (never skip silently when it IS mounted).
 
-const SUSE_PACK = join(ROOT, 'brands/suse/tools');
-const PACK_MOUNTED = existsSync(SUSE_PACK);
-const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
-if (PACK_MOUNTED) {
-  assert.ok(existsSync(join(SUSE_PACK, 'org-chart/tool.json')),
-    'brands/suse/tools/org-chart/tool.json is missing - pack is mounted, so the tool was renamed or deleted');
-}
+// org-chart moved from the SUSE pack to community/ (2026-09-06): it carries no
+// brand asset, so every profile lists it. Always present in a full checkout.
+const SUSE_PACK = join(ROOT, 'community');
+const PACK_MOUNTED = true;
+const SKIP_SUSE = false as const;
+assert.ok(existsSync(join(SUSE_PACK, 'org-chart/tool.json')),
+  'community/org-chart/tool.json is missing - the tool was renamed or deleted');
 
 test('the real org-chart manifest passes the schema AND the reference check', { skip: SKIP_SUSE }, () => {
   const m = JSON.parse(readFileSync(join(SUSE_PACK, 'org-chart/tool.json'), 'utf8'));

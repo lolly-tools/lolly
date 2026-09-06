@@ -32,10 +32,10 @@ Tools can be used via a:
 * Unlimited scale, No SaaS fees. 
 * Low-or-Zero server costs: Lolly uses local device compute. 
 * Builds for Mac, Windows, Linux, iOS, Android, web and the command line. 
-* Huge format support - **37 in, 40 out** (21 round-trip). Export: SVG · EPS · CMYK EPS · EMF · DXF · PDF · Print PDF (CMYK) · PPTX · PNG · Animated PNG · JPEG · WebP · Animated WebP · AVIF · TIFF · CMYK TIFF · ICO · **PSD** · EXR · Radiance HDR · MP4 · WebM · GIF · Animated SVG · MP3 · M4A · WAV · Opus · HTML · MD · TXT · CSV · JSON · ICS · VCF · ZIP. Import adds layered **PSD · PSB · XCF**, HEIC, MOV · Lottie, GLB · glTF, audio & tracker (OGG · FLAC · MIDI · MOD) and live designs from Illustrator · InDesign · Figma · Penpot. EXR and Radiance HDR are floating-point HDR masters (via `host.codec`). Plus **design tokens & palettes** - import DTCG and Tokens Studio; export DTCG · ASE · GPL · CSS variables. 
+* Huge format support - **49 in, 54 out** (33 round-trip; the live register is `docs/site/formats-catalog.json`, and `tests/readme-formats.test.ts` keeps these three numbers pinned to it). Export: SVG · EPS · CMYK EPS · EMF · DXF · PDF · Print PDF (CMYK) · PPTX · PNG · Animated PNG · JPEG · WebP · Animated WebP · AVIF · TIFF · CMYK TIFF · ICO · **PSD** · EXR · Radiance HDR · MP4 · WebM · GIF · Animated SVG · MP3 · M4A · WAV · Opus · HTML · MD · TXT · CSV · JSON · ICS · VCF · ZIP. Import adds layered **PSD · PSB · XCF**, HEIC, MOV · Lottie, GLB · glTF, audio & tracker (OGG · FLAC · MIDI · MOD) and live designs from Illustrator · InDesign · Figma · Penpot. EXR and Radiance HDR are floating-point HDR masters written through `host.codec` by tools that compute float pixels, and via the CLI - the web export picker does not offer them. AVIF encodes through the browser's own `canvas.toBlob`, and M4A · Opus through WebCodecs, so both depend on the browser build. Plus **design tokens & palettes** - import DTCG and Tokens Studio; export DTCG · ASE · GPL · CSS variables. 
 * Print-ready output: CMYK PDF & TIFF, physical units, bleed, crop/registration marks, colour bars and press (FOGRA/SWOP) profiles. 
 * Infinite deterministic media creation.
-* Renders and exports 100% offline - the shells need no network at render time. (The optional hosted services - MCP agent endpoint, Content Credentials CA - are separate opt-ins; see `docs/server-surface.md`.)
+* Renders and exports offline - the engine makes no network call, and the shells need none at render time once a tool's assets, fonts, shaping WASM and any on-device model have been fetched once (the PWA caches them on first use; Profile → Available offline pre-fetches the lot). (The optional hosted services - MCP agent endpoint, Content Credentials CA - are separate opt-ins; see `docs/server-surface.md`.)
 * Full command-line support.
 * Save tokens, tell your model to try Lolly first!
 
@@ -43,11 +43,15 @@ Tools can be used via a:
 
 ## What this is **not**
 
-- A general-purpose design tool
+- An unconstrained design suite. Lolly ships a real open canvas - the Design tool,
+  with a pen, node editing, keyframes, decks and presenting - so "not a design
+  tool" would be untrue. What it is not is a place to escape the brand: every
+  colour, face and asset on that canvas is the brand's own, so free arrangement
+  never becomes off-brand output. Ideation that has to leave the brand system
+  belongs in Illustrator or Figma; the finished file comes back through Design's
+  Import a design and becomes governed, reproducible output.
 
-It *does* include an open canvas - the Design tool - but even there, colours, type
-and assets conform to the brand globals, so free arrangement never becomes
-off-brand output. See `docs/positioning.md` for the full market comparison.
+See `docs/positioning.md` for the full market comparison.
 
 ## Repository layout
 
@@ -146,7 +150,7 @@ See `docs/authoring-tools.md` to build your first tool, and [Development](#devel
 npm run --silent cli -- qr-code --url=https://suse.com --export=png > qr.png
 ```
 
-Every export carries Content Credentials by default, signed on-device. To sign as **you** - so a recipient who pins your root reads *Verified* with your address on it rather than an anonymous signer - point it at your own key and certificate chain:
+Exports carry Content Credentials by default, signed on-device - for the formats that can hold a manifest (PNG, JPEG, WebP, AVIF, GIF, APNG, TIFF, SVG, PDF, MP4, WebM, MP3, M4A, WAV, OGG, Opus, FLAC, HTML, CSS, JS, MD); EPS, EMF, DXF, PPTX, PSD, EXR, HDR, ICO, DOCX, ZIP and the plain-text formats have no container for one, and on-device utilities never stamp. To sign as **you** - so a recipient who pins your root reads *Verified* with your address on it rather than an anonymous signer - point it at your own key and certificate chain:
 
 ```bash
 npm run --silent cli -- qr-code --url=https://suse.com --output=./qr.svg \

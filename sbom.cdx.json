@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:1a1cc24e-de82-4492-8bc7-00e17d8f9768",
+  "serialNumber": "urn:uuid:819f5164-9c75-4aab-8ecd-cd0c900231ac",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-05T20:31:58.499Z",
+    "timestamp": "2026-09-06T10:52:14.602Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -84,10 +84,10 @@
         },
         {
           "type": "library",
-          "bom-ref": "pkg:npm/%40lolly/engine@1.181.0",
+          "bom-ref": "pkg:npm/%40lolly/engine@1.183.0",
           "name": "@lolly/engine",
-          "version": "1.181.0",
-          "purl": "pkg:npm/%40lolly/engine@1.181.0",
+          "version": "1.183.0",
+          "purl": "pkg:npm/%40lolly/engine@1.183.0",
           "licenses": [
             {
               "license": {
@@ -130,34 +130,6 @@
           "name": "@lolly/tui",
           "version": "0.1.0",
           "purl": "pkg:npm/%40lolly/tui@0.1.0",
-          "licenses": [
-            {
-              "license": {
-                "id": "MPL-2.0"
-              }
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "bom-ref": "pkg:npm/%40lolly/ca-service@0.1.0",
-          "name": "@lolly/ca-service",
-          "version": "0.1.0",
-          "purl": "pkg:npm/%40lolly/ca-service@0.1.0",
-          "licenses": [
-            {
-              "license": {
-                "id": "MPL-2.0"
-              }
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "bom-ref": "pkg:npm/%40lolly/mcp-server@0.1.0",
-          "name": "@lolly/mcp-server",
-          "version": "0.1.0",
-          "purl": "pkg:npm/%40lolly/mcp-server@0.1.0",
           "licenses": [
             {
               "license": {
@@ -36615,14 +36587,6 @@
       "version": "0.6.2",
       "purl": "pkg:npm/rechoir@0.6.2",
       "scope": "excluded",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT",
-            "url": "https://github.com/tkellen/node-rechoir/blob/master/LICENSE"
-          }
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -38608,6 +38572,33 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/topojson-client@3.1.0",
+      "name": "topojson-client",
+      "version": "3.1.0",
+      "purl": "pkg:npm/topojson-client@3.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "17a2d16f2c3565d104d8b7f0f095cf7aab0f925e2097765d8f17d0f9303d0b026e65307e3790c035bd2a42d10d922f97dc83005499d1b1cdcd4e0047df3728ac"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "community/meeting-planner/lib/topojson.min.js"
         }
       ]
     },
