@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs';
 import {
   embedContentPlugins, injectModelsBase, resolveEmbedMode,
 } from '../tauri-shared/vite-embed.mjs';
+import { tauriCspMeta } from '../tauri-shared/vite-csp.mjs';
 // Borrowed from the web shell's config, which owns the format. See the plugin list.
 import { precacheManifest } from '../web/vite.config.js';
 
@@ -83,6 +84,11 @@ export default defineConfig({
   root: webShell,
   publicDir: resolve(webShell, 'public'),
   plugins: [
+    // The app's Content Security Policy rides in as a <meta> tag: with a CSP in
+    // tauri.conf.json, Tauri's codegen re-serialises every .html asset - the tool
+    // templates included - and the signed digests no longer match.
+    // Policy + rationale: ../tauri-shared/vite-csp.mjs.
+    tauriCspMeta(),
     injectModelsBase(MODELS_HOST),
     jsToTsFallback(),
     overrideBridgeModules({
