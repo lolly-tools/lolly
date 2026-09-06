@@ -23,6 +23,9 @@
 }
 
 .color-trigger {
+  position: relative;
+  min-width: 0;
+  min-height: calc(18px + var(--sp-4) * 2);
   display: flex;
   align-items: center;
   gap: var(--sp-4);
@@ -89,27 +92,20 @@
    last letter. Reserve the label's side of the row so both stay clear of it.
    45% measured with headroom - the English labels here end at 34-38% of the trigger,
    and the reserve has to survive translation (German runs longer).
-   The empty-name case needs the reserve too: its lone swatch centres via auto
-   margins, and centring across the WHOLE trigger put the circle on top of any
-   label longer than ~45% ("Role colour override" ends at 58%). With the reserve
-   the auto margins centre it in the remainder - clear of the label, and still
-   not stranded flush right where it reads as a toggle. */
+   Named colours use the reserved region; compact dots centre independently. */
 .input-row .color-trigger { padding-inline-start: 45%; }
 
-/* When the field is squeezed in next to other controls, drop the name and collapse to
-   just the swatch circle - centred in whatever box the trigger keeps (auto margins beat
-   justify-content:end, so the lone circle isn't stranded against the right edge with a
-   lopsided gap on the left). */
+/* Narrow inputs hide the name and centre their dot in the button itself. Absolute
+   centring is independent of padding: a dot must not overflow the left edge when
+   a toolbar gives the button less room than its normal horizontal padding. */
 @container colortrig (max-width: 120px) {
   .color-trigger-name { display: none; }
-  .color-trigger-preview { margin-inline: auto; }
+  .color-trigger-preview { position: absolute; inset-inline-start: 50%; margin: 0; transform: translateX(-50%); }
 }
-/* The same case arrives from the other direction: a CUSTOM colour has no friendly
-   name, so the label collapses at ANY width and `justify-content: end` stranded a
-   lone 18px circle against the right edge of a 192px button - which reads as a
-   toggle switch in the "on" position, not as a colour you can change. Centre it,
-   exactly as the squeezed case above already does. */
-.color-trigger:has(.color-trigger-name:empty) .color-trigger-preview { margin-inline: auto; }
+/* Unnamed colours use the same centred presentation at any width. */
+.color-trigger:has(.color-trigger-name:empty) .color-trigger-preview {
+  position: absolute; inset-inline-start: 50%; margin: 0; transform: translateX(-50%);
+}
 
 .color-popover {
   position: absolute;
@@ -125,7 +121,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
+.color-popover > *, .color-fine > * { flex-shrink: 0; }
 
 /* The Fine-tune fold. `display: contents` keeps the section's children laid out
    as direct popover flex items - the expanded popover is pixel-identical to the
@@ -152,14 +152,14 @@
 
 /* Inline mode - the picker as a spacious, always-open panel (no trigger, no
    floating): the popover flows in place and sheds its own card chrome (the host
-   panel already is one). It carries no swatch palette (see colorFieldHtml: every
-   inline host is the brand editor, where the swatches ARE the palette being
-   edited), so it's a single column top-to-bottom - value field, dials + sliders,
+   panel already is one). The palette is opt-in; otherwise the editor is a
+   single column top-to-bottom - value field, dials + sliders,
    alpha - and the dials get the host panel's whole width to spread across.
    `inline` no longer IMPLIES dials: colorFieldHtml has its own `dials` option, so
    the sizing below keys off the dials row being present, and `--inline` only says
    how generous it gets. */
 .color-field--inline .color-popover {
+  overflow: visible;
   position: static;
   z-index: auto;
   padding: 0;
@@ -419,7 +419,7 @@
 }
 /* Screen eyedropper - sits inside the field's left edge, coloured by the same
    contrast-flipped --color-input-fg as the value text so it reads on any paint.
-   Removed at wire time where the EyeDropper API doesn't exist. */
+   Becomes the system-picker action where the EyeDropper API is unavailable. */
 .color-eyedropper {
   position: absolute;
   left: 8px; top: 50%; transform: translateY(-50%);
@@ -853,15 +853,20 @@
 }
 
 .color-swatches {
-  display: flex;
-  flex-flow:wrap;
-
-  gap: var(--sp-1);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(max(28px, 2em), 1fr));
+  justify-items: center;
+  align-content: start;
+  gap: var(--sp-2);
+  min-height: 0;
   max-height: 240px;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: hsl(var(--border));
-  padding:var(--sp-3); 
+  scrollbar-color: hsl(var(--muted-foreground) / .5) transparent;
+  padding: var(--sp-3);
 }
 
 /* The result disc's swatch context menu (inline pickers) - a floating card of the
@@ -942,3 +947,12 @@
   .color-mode-slider::-moz-range-thumb,
   .color-alpha-slider::-moz-range-thumb { width: 22px; height: 22px; }
 }
+
+/* The everyday picker offers two equal choices; full registry editors retain
+   their grouped tabs above. */
+.color-modes--simple .color-mode-tabs { flex-direction: row; }
+.color-modes--simple .color-mode-tab { flex: 1; min-height: 32px; font-size: var(--fs-sm); }
+.color-modes--simple .color-mode-tab-sub { display: none; }
+.color-swatches:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
+.color-field--palette .color-popover { padding: var(--sp-5); border: 1px solid hsl(var(--border)); }
+.color-field--palette .color-fine-toggle { min-height: var(--ui-size-target); }

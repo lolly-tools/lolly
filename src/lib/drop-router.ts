@@ -659,6 +659,7 @@ async function importBrandLollyDrop(
     }
     // Brand intake finishes at the switcher: it shows that the previous systems
     // remain and gives a stable place to open/edit the one that just arrived.
+    if (summary.contentSessions || summary.contentAssets || summary.contentToolsSkipped) announce(tRaw('Brand imported: {sessions} sessions, {assets} files. {skipped} tools were not installed.', { sessions: summary.contentSessions ?? 0, assets: summary.contentAssets ?? 0, skipped: summary.contentToolsSkipped ?? 0 }));
     const hash = '#/profile?focus=design-systems-section';
     routeToConsumer(hash, window.location.hash === hash);
   } catch (err) {
@@ -697,6 +698,9 @@ function previewFacts(preview: LollyPreview): string {
     preview.tokens ? t('tokens') : null,
     preview.fontFiles ? (preview.fontFiles === 1 ? t('1 font file') : t('{n} font files', { n: preview.fontFiles })) : null,
     preview.logos ? (preview.logos === 1 ? t('1 logo') : t('{n} logos', { n: preview.logos })) : null,
+    preview.localSessions ? t('{n} saved sessions', { n: preview.localSessions }) : null,
+    preview.localAssets ? t('{n} selected files', { n: preview.localAssets }) : null,
+    preview.localTools ? t('{n} included tools (asked before installing)', { n: preview.localTools }) : null,
     preview.versions ? (preview.versions === 1 ? t('1 published version') : t('{n} published versions', { n: preview.versions })) : null,
   ].filter(Boolean).join(' · ') || t('design-system material');
   if (preview.kind === 'instance') {
@@ -834,7 +838,7 @@ const importLollyDrop = openLollyFile;
  *   - carried + not here → a "do you trust the author?" confirm (its code runs unsandboxed);
  *     Trust ⇒ install + surface it (true); Decline / unsupported (module hooks) ⇒ false.
  */
-async function provisionLollyTool(parsed: LollyFileContents, lp: typeof import('./lolly-pack.ts')): Promise<boolean> {
+export async function provisionLollyTool(parsed: LollyFileContents, lp: typeof import('./lolly-pack.ts')): Promise<boolean> {
   const tool = lp.extractBundledTool(parsed);
   if (!tool) return true;   // travels by reference - same as before Wave 7
 

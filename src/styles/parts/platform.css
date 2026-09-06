@@ -127,7 +127,7 @@
    so it stays its own full recipe rather than joining that merge. */
 .plat-chip-flag { font-family:"SUSE Mono";
   position: absolute; top: .25rem; right: .5rem;
-  font-size: calc(.55rem * var(--a11y-fs)); font-weight: 700; letter-spacing: -.04em; line-height: 1;
+  font-size: calc(.55rem * var(--a11y-fs)); font-weight: 700; line-height: 1;
   padding: .2rem .32rem; border-radius: calc(var(--radius)*.6);
   background: hsl(0 0% 100% / .88); color: hsl(0 0% 10%);
 }

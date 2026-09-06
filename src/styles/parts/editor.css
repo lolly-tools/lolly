@@ -1412,7 +1412,7 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
    left:0/right:0 on the field, so a 30px field also made a 30px (unusable) picker;
    filling the row's flex cell gives the swatch and its popover proper room. */
 .fc-more-panel .fc-row .color-picker-field { width: 100%; height: auto; display: block; }
-.fc-more-panel .fc-row .color-trigger { justify-content: flex-start; padding: 5px 10px; border-radius: var(--radius); }
+.fc-more-panel .fc-row .color-trigger { justify-content: flex-end; padding: 5px 10px; border-radius: var(--radius); }
 .fc-more-panel .fc-row .color-trigger-name { display: inline; }
 
 /* Artboards navigator (plan 112) - a bottom-docked filmstrip of the document's frames

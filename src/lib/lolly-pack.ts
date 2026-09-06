@@ -701,7 +701,7 @@ function mintLollySlot(toolId: string, taken: ReadonlySet<string>): string {
 export async function ingestLollyFile(
   source: ArrayBuffer | Uint8Array | LollyFileContents,
   host: BeamPackHost,
-  opts: { sanitizeSvg?: BeamSvgSanitiser; onProgress?: (progress: LollyIngestProgress) => void } = {},
+  opts: { sanitizeSvg?: BeamSvgSanitiser; onProgress?: (progress: LollyIngestProgress) => void; saveSession?: boolean } = {},
 ): Promise<LollyIngestResult> {
   // The universal intake has already parsed + integrity-verified the bundle in
   // order to describe it before committing. Accept that result directly so an
@@ -753,6 +753,9 @@ export async function ingestLollyFile(
       if (r.kind === 'asset') { if (r.deduped) deduped++; else imported++; }
     }
     const rewritten = applyLollyRekey(session, ctx.rekey);
+    // A brand collection reuses the asset transaction, then saves its real
+    // sessions individually. It must never mint a synthetic wrapper Project.
+    if (opts.saveSession === false) return { slot: '', toolId: manifest.tool.id, imported, deduped, session: rewritten };
     const taken = new Set((await host.state.list()).map(r => r.slot));
     const slot = mintLollySlot(manifest.tool.id, taken);
     const thumb = typeof manifest.thumb === 'string' ? manifest.thumb : null;

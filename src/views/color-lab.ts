@@ -2162,6 +2162,7 @@ export async function mountColorLab(view: HTMLElement, host: ColorLabHost, param
       value: describeColor(other)?.srgbHex ?? '#e0b64d',
       inline: true,
       modes: true,
+      initialMode: 'oklch',
       onChange: (value) => { other = value; renderBlend(); },
     });
   }
@@ -2276,6 +2277,7 @@ export async function mountColorLab(view: HTMLElement, host: ColorLabHost, param
       value: desc.input,
       inline: true,   // the always-open editor form: rings + sliders shown
       modes: true,    // the tabbed multi-space picker
+      initialMode: 'oklch', // the Lab reads in the perceptual space, whatever the everyday default
       // The cast bridges to the additive second onChange parameter; it can go once
       // ColorChangeDetail is part of MountColorFieldOpts' declared signature.
       onChange: onPickerChange as MountColorFieldOpts['onChange'],
@@ -2552,6 +2554,7 @@ export async function mountColorLab(view: HTMLElement, host: ColorLabHost, param
       value: ink,
       float: true,
       modes: true,
+      initialMode: 'oklch',
       onChange: (value) => {
         if (!describeColor(value)) return;
         ink = value;

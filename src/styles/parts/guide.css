@@ -39,13 +39,15 @@
    WORD, and the strip carries a screen-reader summary sentence. */
 .lampstrip {
   display: flex;
+  text-align:center;
   flex-wrap: wrap;
-  gap: 6px;
-  margin: 10px 0 2px;
+  gap: var(--sp-5);
+  margin: var(--sp-8) 0 var(--sp-3);
   position: sticky;
+  border-radius: var(--radius);
   top: 0;
   z-index: 5;
-  padding: 6px 0;
+  padding: var(--sp-4);
   background: hsl(var(--background) / 0.92);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
@@ -54,10 +56,10 @@
 .lamp {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-3);
   border-radius: 99px;
-  border: 1px solid hsl(var(--border));
+  border: 0;
   background: hsl(var(--muted) / 0.35);
   font: inherit;
   font-size: calc(11.5px * var(--a11y-fs));

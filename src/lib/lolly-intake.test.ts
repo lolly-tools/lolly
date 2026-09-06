@@ -71,6 +71,13 @@ test('distinguishes an instance pack from a plain design-system pack', () => {
   assert.equal(instance.instance, 'https://studio.example');
 });
 
+test('brand collection preview names its local content without calling it an instance pack', () => {
+  const preview = classifyLollyManifest({ format: 'lolly-brand', label: 'Acme', contents: { sessions: 2, assets: 3, tools: 1 } }, 'acme.lolly', 1000);
+  assert.equal(preview.kind, 'brand');
+  if (preview.kind !== 'brand') return;
+  assert.equal(preview.localSessions, 2); assert.equal(preview.localAssets, 3); assert.equal(preview.localTools, 1);
+});
+
 test('streams just manifest.json from a real .lolly zip', async () => {
   const zipped = zipSync({
     'large.bin': new Uint8Array(2 * 1024 * 1024),

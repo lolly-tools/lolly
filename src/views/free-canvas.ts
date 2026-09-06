@@ -2958,6 +2958,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
           runtime.setInput('guides', value);
         },
         initiallyVisible: readGuideVisibility(),
+        onSelect: () => { selection.clear(); renderChrome(); },
+        onInspect: () => inspectorPort?.reveal('guide'),
       })
     : null;
   const setGuidesVisible = (visible: boolean): void => {
@@ -6193,7 +6195,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
    */
   let inspectorPort: {
     reveal(
-      section: 'document' | 'artboard' | 'object' | 'text' | 'image' | 'motion' | 'present'
+      section: 'document' | 'artboard' | 'object' | 'text' | 'image' | 'motion' | 'present' | 'guide'
     ): void;
   } | null = null;
   function setInspector(h: typeof inspectorPort): void {
@@ -13709,8 +13711,11 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
         mdx = dxN + snap.dx;
         mdy = dyN + snap.dy;
         if (gridOn) {
-          const xAligned = snap.guides.some((g) => g.x1 === g.x2); // a vertical guide → x is aligned
-          const yAligned = snap.guides.some((g) => g.y1 === g.y2); // a horizontal guide → y is aligned
+          // An angled guide constrains both coordinates; grid rounding either
+          // coordinate afterwards would pull the object back off the line.
+          const diagonal = snap.guides.some((g) => g.x1 !== g.x2 && g.y1 !== g.y2);
+          const xAligned = diagonal || snap.guides.some((g) => g.x1 === g.x2);
+          const yAligned = diagonal || snap.guides.some((g) => g.y1 === g.y2);
           if (!xAligned) mdx = gridRound(gesture.selAABB.minX + dxN) - gesture.selAABB.minX;
           if (!yAligned) mdy = gridRound(gesture.selAABB.minY + dyN) - gesture.selAABB.minY;
         }
@@ -15088,6 +15093,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
 
   function renderChrome(): void {
     const boxes = getBoxes();
+    if (selection.size) authoringGuides?.select(null);
     authoringGuides?.sync();
     paintChrome(boxes, null);
     // Keep the selected connector's highlight + inspector tracking any box move,
@@ -16948,6 +16954,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
 
   const designPorts: DesignCanvasPorts = {
     selection: selectionPort,
+    guides: authoringGuides ?? undefined,
     artboard: artboardPort,
     thumb: (frameBox, maxW, maxH) => frameThumb(canvasEl, frameBox, cfg, { maxW, maxH }),
     model: modelPort,

@@ -57,6 +57,9 @@ export interface LollyBrandPreview {
   resources: number;
   tools: number;
   catalogAssets: number;
+  localSessions?: number;
+  localAssets?: number;
+  localTools?: number;
   publisher: string | null;
   instance: string | null;
   manifest: Record<string, unknown>;
@@ -158,6 +161,9 @@ export function classifyLollyManifest(
       resources: count(counts?.resources),
       tools,
       catalogAssets,
+      localSessions: count(record(manifest.contents)?.sessions),
+      localAssets: count(record(manifest.contents)?.assets),
+      localTools: count(record(manifest.contents)?.tools),
       publisher: text(pack?.publisher),
       instance,
       manifest,

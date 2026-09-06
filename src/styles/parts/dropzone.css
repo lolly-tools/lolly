@@ -42,8 +42,8 @@
 /* Supported formats as subtle, glanceable chips (exact formats in each chip's title). */
 .updz-hint { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
 .updz-chip {
-  padding: 2px 9px; border-radius: var(--radius-pill);
-  border: 1px solid hsl(var(--border));
+  padding: var(--sp-3) var(--sp-5); border-radius: var(--radius-pill);
+  border: 0;
   background: hsl(var(--muted) / .4);
   color: hsl(var(--muted-foreground));
   font-size: calc(.72rem * var(--a11y-fs)); line-height: 1.6; white-space: nowrap;

@@ -5,22 +5,22 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `npm run build:web-src-readme`, checked in CI by `npm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 499,000 lines of TypeScript, tests included, and 45,000 lines of CSS.
+Roughly 502,000 lines of TypeScript, tests included, and 45,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 131 files, 134,487 lines | 123 files, 49,895 lines | none |
-| `lib/` | 413 files, 105,821 lines | 261 files, 55,688 lines | 7 files, 1,098 lines |
+| `views/` | 133 files, 135,160 lines | 124 files, 50,186 lines | none |
+| `lib/` | 418 files, 106,566 lines | 266 files, 56,101 lines | 7 files, 1,098 lines |
 | `bridge/` | 100 files, 42,285 lines | 78 files, 19,344 lines | none |
-| `components/` | 45 files, 20,385 lines | 27 files, 8,994 lines | 2 files, 221 lines |
+| `components/` | 45 files, 20,450 lines | 28 files, 9,305 lines | 2 files, 221 lines |
 | `collab/` | 18 files, 12,959 lines | 20 files, 13,683 lines | none |
 | `pro/` | 20 files, 7,906 lines | 10 files, 1,666 lines | 2 files, 1,210 lines |
 | `org/` | 17 files, 5,811 lines | 13 files, 3,828 lines | none |
 | `catalog/` | 2 files, 836 lines | 1 file, 86 lines | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 4 files, 837 lines | 81 files, 42,279 lines |
+| `styles/` | none | 4 files, 837 lines | 81 files, 42,390 lines |
 
-Plus 43 `.ts`/`.js` files at the top level of `src/`, 14,761 lines all told, of which 18 are tests and 3 are ambient declarations. `main.ts` is 2,028 of that.
+Plus 43 `.ts`/`.js` files at the top level of `src/`, 14,802 lines all told, of which 18 are tests and 3 are ambient declarations. `main.ts` is 2,028 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -58,10 +58,10 @@ Do not be ambushed by these. The largest source files, by line count:
 <!-- web-src-largest:start -->
 | Lines | File | Direct test coverage |
 |---|---|---|
-| 17,105 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
+| 17,112 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
 | 11,281 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
 | 10,838 | `views/timeline-panel.ts` | yes |
-| 7,207 | `views/tool.ts` | partial - the undo/redo model (coalescing, the byte-carrying filter, the cap, the redo chain) is extracted to `tool-history.ts` and covered by `tool-history.test.ts`; the rest of `mountTool` is not. |
+| 7,142 | `views/tool.ts` | partial - the undo/redo model (coalescing, the byte-carrying filter, the cap, the redo chain) is extracted to `tool-history.ts` and covered by `tool-history.test.ts`; the rest of `mountTool` is not. |
 | 7,112 | `views/catalog.ts` | partial - the selection model (visibility, filetype filter, search, favourites dedupe, selectable ids, prune) is extracted to `catalog-filter.ts` and covered by `catalog-filter.test.ts`; the 3,000-line `mountCatalog` body around it is not. |
 | 6,423 | `lib/brand-editor.ts` | none |
 | 5,509 | `views/tool-actions.ts` | yes |
@@ -69,14 +69,14 @@ Do not be ambushed by these. The largest source files, by line count:
 | 4,145 | `views/valid.ts` | `valid-verdict.test.ts` only |
 | 4,043 | `views/tool-inputs.ts` | none |
 | 3,830 | `views/start.ts` | yes |
-| 3,656 | `views/color-lab.ts` | yes |
+| 3,659 | `views/color-lab.ts` | yes |
 | 3,362 | `views/profile.ts` | none |
 | 3,286 | `views/projects.ts` | none |
 | 3,285 | `views/gallery.ts` | none |
 | 3,146 | `bridge/sequence-render.ts` | yes |
 | 2,675 | `views/deck-editor.ts` | yes |
 | 2,502 | `views/design-import.ts` | **none** |
-| 2,330 | `views/free-canvas-math.ts` | yes |
+| 2,363 | `views/free-canvas-math.ts` | yes |
 | 2,276 | `views/timeline-math.ts` | yes |
 <!-- web-src-largest:end -->
 

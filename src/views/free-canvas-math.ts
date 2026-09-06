@@ -1305,6 +1305,30 @@ interface SnapTarget {
 export interface SnapLines {
   x?: readonly number[];
   y?: readonly number[];
+  angled?: readonly { x: number; y: number; rotation: number }[];
+}
+
+/** Nearest perpendicular projection onto an authored, non-axis-aligned guide. */
+function snapAngled(points: Point[], lines: SnapLines, threshold: number, canvas: Canvas): SnapMoveResult | null {
+  let best: SnapMoveResult | null = null;
+  let distance = threshold;
+  for (const line of lines.angled ?? []) {
+    if (![line.x, line.y, line.rotation].every(Number.isFinite)) continue;
+    const angle = line.rotation * Math.PI / 180;
+    const vx = Math.cos(angle), vy = Math.sin(angle);
+    const nx = -vy, ny = vx;
+    for (const point of points) {
+      const d = (line.x - point.x) * nx + (line.y - point.y) * ny;
+      if (Math.abs(d) > distance) continue;
+      distance = Math.abs(d);
+      const length = Math.hypot(canvas.w, canvas.h, line.x, line.y);
+      best = { dx: d * nx, dy: d * ny, guides: [{
+        x1: line.x - vx * length, y1: line.y - vy * length,
+        x2: line.x + vx * length, y2: line.y + vy * length,
+      }] };
+    }
+  }
+  return best;
 }
 
 interface SnapPick {
@@ -1348,6 +1372,11 @@ export function snapMove(active: AABB, others: AABB[], canvas: Canvas, threshold
   for (const y of lines.y ?? []) if (Number.isFinite(y)) yTargets.push({ v: y, span: [0, canvas.w] });
   const bx = pickSnap([active.minX, acx, active.maxX], xTargets, threshold);
   const by = pickSnap([active.minY, acy, active.maxY], yTargets, threshold);
+  const diagonal = snapAngled(
+    [active.minX, acx, active.maxX].flatMap(x => [active.minY, acy, active.maxY].map(y => ({ x, y }))),
+    lines, threshold, canvas
+  );
+  if (diagonal && (!bx && !by || Math.hypot(diagonal.dx, diagonal.dy) < Math.hypot(bx?.d ?? 0, by?.d ?? 0))) return diagonal;
   const guides: Guide[] = [];
   if (bx) guides.push({ x1: bx.line, y1: bx.span![0], x2: bx.line, y2: bx.span![1] });
   if (by) guides.push({ x1: by.span![0], y1: by.line, x2: by.span![1], y2: by.line });
@@ -1371,6 +1400,10 @@ export function snapPoint(px: number, py: number, others: AABB[], canvas: Canvas
   for (const y of lines.y ?? []) if (Number.isFinite(y)) yTargets.push({ v: y });
   const bx = pickSnap([px], xTargets, threshold);
   const by = pickSnap([py], yTargets, threshold);
+  const diagonal = snapAngled([{ x: px, y: py }], lines, threshold, canvas);
+  if (diagonal && (!bx && !by || Math.hypot(diagonal.dx, diagonal.dy) < Math.hypot(bx?.d ?? 0, by?.d ?? 0))) {
+    return { x: px + diagonal.dx, y: py + diagonal.dy, guides: diagonal.guides };
+  }
   const guides: Guide[] = [];
   if (bx) guides.push({ x1: bx.line, y1: 0, x2: bx.line, y2: canvas.h });
   if (by) guides.push({ x1: 0, y1: by.line, x2: canvas.w, y2: by.line });

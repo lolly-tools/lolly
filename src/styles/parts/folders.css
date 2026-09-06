@@ -74,9 +74,9 @@
 }
 
 .folder-tile {
-  position: relative; border: 1px solid var(--ui-color-border-default);
+  position: relative; border: 0;
   border-radius: var(--ui-radius-card); background: var(--ui-color-surface-raised);
-  overflow: hidden; transition: border-color var(--ui-motion-feedback), box-shadow var(--ui-motion-feedback);
+  overflow: hidden; box-shadow: var(--shadow-1);
 }
 .folder-tile:hover { border-color: color-mix(in srgb, var(--ui-color-action-primary) 60%, transparent); box-shadow: var(--ui-elevation-control); }
 .tile-primary {
@@ -162,7 +162,7 @@
   background: var(--ui-color-action-primary); border-color: var(--ui-color-action-primary); opacity: 1;
 }
 .tile-check[aria-pressed="true"] svg { opacity: 1; }
-.folder-tile.is-selected { border-color: var(--ui-color-selection-border); box-shadow: var(--ui-effect-selected); }
+.folder-tile.is-selected { border-color: 0; box-shadow: var(--shadow-2), var(--ui-effect-selected); }
 /* Touch devices have no hover - keep the toggle visible so selection is discoverable. */
 @media (pointer: coarse) {
   .tile-check { opacity: 1; }

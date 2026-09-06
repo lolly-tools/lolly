@@ -60,7 +60,7 @@ import {
   readVersionIndex, stripVersionIndex, versionAssetId, withVersionIndex,
 } from './lib/design-system/versions.ts';
 import type { PinnedAsset, VersionEntry, VersionIndex } from './lib/design-system/versions.ts';
-import { TOKEN_EXT, designMaterialOf, withDesignSystemIdentity } from '@lolly/engine';
+import { TOKEN_EXT, designMaterialOf, withDesignSystemIdentity, collectAssetTokens, sha256Hex } from '@lolly/engine';
 import type { DesignMaterialKind } from '@lolly/engine';
 import type { UserFontsHost } from './user-fonts.ts';
 import type { DesignSystemRecord, DesignSystemRegistry } from './lib/design-system/registry.ts';
@@ -74,7 +74,9 @@ export const BRAND_FORMAT = 'lolly-brand';
  *  predates them loads the pack and counts them as skipped rather than refusing
  *  a file it can mostly use. */
 export const BRAND_FORMAT_VERSION = 3;
-export const BRAND_READER_VERSION = 1;
+/** Reader 2 also imports format-4 collections from brand-package.ts. Their
+ * minReader is 2 so earlier apps cannot silently discard selected local work. */
+export const BRAND_READER_VERSION = 2;
 
 // The brand-adjacent localStorage keys that travel. Deliberately tiny: the
 // theme is part of how a brand feels; everything else in prefs is personal.
@@ -82,7 +84,7 @@ const BRAND_PREF_KEYS = ['theme'];
 
 const KNOWN_PARTS = new Set([
   'manifest.json', 'tokens.json', 'fonts.json', 'logos.json', 'prefs.json',
-  'versions.json', 'frozen.json',
+  'versions.json', 'frozen.json', 'content.json',
   // Instance-pack parts (plans/131) - read by lib/pack-store.ts.
   'instance.json', 'tools.json', 'catalog.json', 'pack.sig',
 ]);
@@ -90,7 +92,7 @@ const isKnownPart = (path: string): boolean =>
   KNOWN_PARTS.has(path) || path === README_NAME
   || path.startsWith('fonts/') || path.startsWith('logos/')
   || path.startsWith('versions/') || path.startsWith('frozen/')
-  || path.startsWith('tools/') || path.startsWith('catalog/');
+  || path.startsWith('tools/') || path.startsWith('catalog/') || path.startsWith('content/');
 
 /** The host slice a brand pack travels through - the same seams user-fonts
  *  drives, plus profile.get for the export filename. */
@@ -232,6 +234,10 @@ export interface BrandImportSummary extends BrandPackSummary {
    *  Kept as they were: a published version is permanent, and two systems' "v2"
    *  are not the same thing. */
   versionsSkipped: number;
+  /** Selected local collection, when present. */
+  contentSessions?: number;
+  contentAssets?: number;
+  contentToolsSkipped?: number;
   /** Instance-pack results (plans/131) - zero/absent for a plain brand pack. */
   packTools: number;
   packAssets: number;
@@ -393,11 +399,28 @@ export async function exportBrandPack(
   // (frozen bytes, catalog ids) is already portable.
   // Skipped rather than run as an identity rename when no system was named, so
   // an ordinary export writes the bytes it always wrote.
-  const toLegacy: Rekey | null = record ? (id => legacyId(ns, id)) : null;
+  const portableLogos = new Map<string, string>();
+  const toLegacy: Rekey | null = record ? (id => portableLogos.get(id) ?? legacyId(ns, id)) : null;
   const head = record
     ? { doc: await readTokensBlob(host, record.headId), headId: record.headId }
     : await activeTokensDoc(host);
   const doc = head?.doc ?? null;
+  const records: Awaited<ReturnType<BrandTransferHost['assets']['_exportUserAssets']>> = await host.assets._exportUserAssets().catch(() => []);
+  // A brand can point at a shipped logo without owning an uploaded copy. Carry
+  // those bytes too, and normalise its token references, so another device does
+  // not need the sender's catalogue. This is a read-only export projection.
+  if (record && doc) for (const { path, id } of collectAssetTokens(doc)) {
+    if (!/(^|\.)asset\.logo\./.test(path) || portableLogos.has(id)) continue;
+    const material = designMaterialOf(id);
+    if (material?.systemId === record.id && material.kind === 'logo') continue;
+    const blob = await host.assets._getBlob(id).catch(() => null);
+    if (!blob) throw new Error(`The brand logo “${id}” could not be read. Try again when it is available.`);
+    const format = blob.type.includes('svg') ? 'svg' : blob.type.includes('jpeg') ? 'jpg' : blob.type.includes('webp') ? 'webp' : 'png';
+    const variant = `imported-${(await sha256Hex(new TextEncoder().encode(id))).slice(0, 12)}`;
+    portableLogos.set(id, `${USER_LOGO_PREFIX}${variant}`);
+    const owned = records.find(row => row.id === id);
+    if (!owned) records.push({ id, type: format === 'svg' ? 'vector' : 'raster', blob, meta: { format, variant, identity: LOGO_DEFAULT_IDENTITY, kind: 'logo' } });
+  }
   if (doc) {
     entries['tokens.json'] = strToU8(
       JSON.stringify(toLegacy ? rewriteAssetRefs(doc, toLegacy) : doc, null, 2));
@@ -411,6 +434,7 @@ export async function exportBrandPack(
    * (`designMaterialOf`), normalised back to the legacy shape.
    */
   const packId = (id: string, kind: DesignMaterialKind): string | null => {
+    if (kind === 'logo' && portableLogos.has(id)) return portableLogos.get(id)!;
     if (!record) {
       const prefix = kind === 'font' ? USER_FONT_PREFIX : USER_LOGO_PREFIX;
       return id.startsWith(prefix) ? id : null;
@@ -420,7 +444,6 @@ export async function exportBrandPack(
   };
 
   // Every stored font face, bytes + full record (sans blob) for a faithful rebuild.
-  const records = await host.assets._exportUserAssets().catch(() => []);
   const fontRows: FontRow[] = [];
   const families = new Set<string>();
   for (const r of records) {
@@ -540,7 +563,7 @@ export async function exportBrandPack(
   const manifest: Record<string, unknown> = {
     format: BRAND_FORMAT,
     formatVersion: BRAND_FORMAT_VERSION,
-    minReader: BRAND_READER_VERSION,
+    minReader: 1,
     app: 'lolly',
     exportedAt: new Date().toISOString(),
     label,
@@ -667,6 +690,9 @@ export async function importBrandPack(
     throw new Error('This brand file needs a newer version of the app. Update first, then load it.');
   }
   await verifyIntegrity(files, manifest.integrity, 'This brand file');
+  const contentModule = files['content.json'] ? await import('./lib/design-system/brand-package.ts') : null;
+  const content = contentModule ? await contentModule.readBrandContent(files) : null;
+  if (content && !(host as unknown as { state?: unknown }).state) throw new Error('This shell cannot import saved content. Open this file in the Lolly web or desktop app.');
 
   const summary: BrandImportSummary = {
     tokens: false, fontFamilies: 0, fontFiles: 0, logos: 0, prefs: 0,
@@ -896,6 +922,14 @@ export async function importBrandPack(
     if (result.instance) summary.packInstance = result.instance;
   }
 
-  summary.skipped = Object.keys(files).filter(p => !isKnownPart(p)).length;
+  if (content && contentModule) {
+    const result = await contentModule.importBrandContent(content, host as unknown as import('./lib/beam-pack.ts').BeamPackHost);
+    summary.contentSessions = result.sessions;
+    summary.contentAssets = result.assets;
+    summary.contentToolsSkipped = result.skippedTools;
+    summary.packTools += result.tools;
+    summary.packAssets += result.assets;
+  }
+  summary.skipped = Object.keys(files).filter(p => !isKnownPart(p)).length + (summary.contentToolsSkipped ?? 0);
   return summary;
 }

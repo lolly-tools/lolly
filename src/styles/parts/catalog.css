@@ -21,7 +21,8 @@
   position: sticky;
   /* Pin BELOW the fixed top chrome - the centred view toggle (Tools|Projects|Catalog) and
      the profile cluster both live in the top ~48px band; sitting there would overlap them. */
-  top: 52px;
+  top: calc(var(--sp-8) *2.06);
+  
   z-index: 50;
   display: flex; align-items: center; gap: var(--sp-5);
   width: fit-content;
@@ -29,13 +30,14 @@
   margin: 1rem auto 1rem;
   padding: 7px 9px;
   border-radius: calc(var(--radius)*2);
-  background: hsl(var(--background) / .82);
+  background: hsl(var(--background) / .62);
   -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 3px 14px #0000001f;
+  backdrop-filter: blur(6px);
+  border: 0;
+
+      box-shadow: inset 0 1px hsl(var(--primary) / 0.22), var(--shadow-2);
 }
-.cat-count { font-size: var(--fs-lg); color: hsl(var(--muted-foreground)); font-weight: 600; padding: 0 2px; white-space: nowrap; text-align: center; font-variant-numeric: tabular-nums; }
+.cat-count { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); font-weight: 500; padding: 0 2px; white-space: nowrap; text-align: center; font-variant-numeric: tabular-nums; }
 /* Segmented filetype filter (image / vector / motion / all) - a pill-in-pill toggle. */
 .cat-typefilter { display: inline-flex; gap: var(--sp-1); padding: var(--sp-1); border-radius: var(--radius); background: hsl(var(--muted) / .6); }
 .cat-typefilter-opt {
@@ -51,10 +53,10 @@
 .cat-typefilter-opt.is-on { background: hsl(var(--background)); color: hsl(var(--foreground)); box-shadow: 0 1px 3px #0000001a; }
 .cat-showhidden {
   display: inline-flex; align-items: center; gap: var(--sp-3);
-  font: inherit; font-size: var(--fs-md); font-weight: 600;
-  color: hsl(var(--foreground));
+  font: inherit; font-size: var(--fs-xs); font-weight: 500;
+  color: hsl(var(--foreground) / .6);
   background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
+  border: 0;
   border-radius: var(--radius);
   padding: 6px 9px; cursor: pointer;
   transition: background var(--dur-1), border-color var(--dur-1);
@@ -101,11 +103,15 @@
 .catalog .cat-group { margin-bottom: 1.6rem; }
 .catalog .cat-group-head {
   display: flex; align-items: center; gap: var(--sp-4); width: 100%;
-  padding: var(--sp-3) var(--sp-1); margin-bottom: .6rem;
+  padding: var(--sp-5) var(--sp-6);
+   margin-bottom: var(--sp-6);
   font: inherit; text-align: left; cursor: pointer;
-  background: none; border: none; border-bottom: 1px solid hsl(var(--border));
+  background: none; border: none; ;
+  border-radius: var(--radius);
   color: hsl(var(--foreground));
 }
+.catalog .cat-group-head[aria-expanded="false"]{background-color:color-mix(in srgb, var(--ui-color-surface-muted) 65%, transparent) !important}
+
 .catalog .cat-group-chevron { display: inline-flex; transition: transform var(--dur-2) ease; color: hsl(var(--muted-foreground)); }
 /* Per-category glyph (lib/category-icons.ts) - sits between the chevron and title. */
 .catalog .cat-group-icon { display: inline-flex; flex-shrink: 0; color: hsl(var(--muted-foreground)); }
@@ -728,7 +734,7 @@ button.cat-download { font: inherit; cursor: pointer; }
    above the asset name - one glance, whole trust state. */
 .cat-passport { margin: 0 0 6px; }
 .cat-passport .lampstrip { margin: 0; }
-.cat-passport .lamp { font-size: var(--fs-xs); padding: 3px 8px; cursor: default; }
+.cat-passport .lamp { font-size: var(--fs-xs); cursor: default; }
 .cat-passport-chips { margin-top: 5px; display: flex; gap: var(--sp-3); flex-wrap: wrap; }
 
 /* The text AI-likelihood panel: a calm note in the metadata column, never a verdict. */
@@ -1016,7 +1022,7 @@ button.cat-download { font: inherit; cursor: pointer; }
 .cat-details-meta dt { color: hsl(var(--muted-foreground)); font-weight: 600; }
 .cat-details-meta dd { margin: 0; word-break: break-word; }
 .cat-details-meta dd.cat-details-ai { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; }
-.cat-details-meta code { font-family: var(--font-mono); font-size: var(--fs-md); }
+.cat-details-meta code { font-family: var(--font-mono); font-size: var(--fs-sm); }
 /* Technical-metadata panel (lib/asset-metadata.ts) - reuses .cat-details-meta's
    dl grid, under a quiet subheading. Chrome-only; type rides the a11y multiplier. */
 .cat-details-tech { margin: 0 0 16px; }
@@ -1064,7 +1070,7 @@ button.cat-download { font: inherit; cursor: pointer; }
 /* fill (background/color) is aliased in parts/buttons.css's .btn--primary list */
 .cat-act-fav.is-fav { border-color: hsl(var(--primary)); }
 .cat-act-fav.is-fav svg { fill: currentColor; }
-.cat-act-danger { background-color: hsl(var(--destructive, 0 70% 50%)); }
+.cat-act-danger { background-color: hsl(var(--destructive, 0 70% 50%));color:hsl(var(--primary-foreground)) }
 .cat-act-share.is-copied { color: hsl(var(--primary)); }
 
 /* ── Content Credentials (details) ── the checker for any inspectable asset, plus the

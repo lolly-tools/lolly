@@ -13,6 +13,25 @@
  */
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
 
+/** An authoring line through a document-space point, rotated clockwise from horizontal. */
+export interface DesignGuide {
+  id: string;
+  x: number;
+  y: number;
+  rotation: number;
+  /** Empty uses the editor's guide colour. */
+  color: string;
+  snap: boolean;
+}
+
+export interface DesignGuidePort {
+  selected(): DesignGuide | null;
+  select(id: string | null): void;
+  update(id: string, patch: Partial<Omit<DesignGuide, 'id'>>): void;
+  remove(id: string): void;
+  onChange(cb: () => void): () => void;
+}
+
 /** Selection as the overlay sees it: ids of the selected `boxes` rows. */
 export interface SelectionPort {
   get(): string[];
@@ -153,6 +172,7 @@ export interface CanvasRect { x: number; y: number; w: number; h: number }
  */
 export interface DesignCanvasPorts {
   selection: SelectionPort;
+  guides?: DesignGuidePort;
   artboard: ArtboardPort;
   thumb: FrameThumb;
   /** Model access bound to the overlay's own `getBoxes`/`commit`/`setField` (one undo step per call). */
@@ -187,7 +207,7 @@ export interface DesignCanvasPorts {
    * Register the mounted inspector so the object bar's Text / More / Dims / Stroke buttons
    * reveal its sections instead of opening the one-slot panels; null restores the panels.
    */
-  setInspector(inspector: { reveal(section: 'document' | 'artboard' | 'object' | 'text' | 'image' | 'motion' | 'present'): void } | null): void;
+  setInspector(inspector: { reveal(section: 'document' | 'artboard' | 'object' | 'text' | 'image' | 'motion' | 'present' | 'guide'): void } | null): void;
 }
 
 /** Chrome the tool view already owns and lends to the overlay's mark menu (theme, sounds, profile). */

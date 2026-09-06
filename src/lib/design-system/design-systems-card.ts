@@ -16,7 +16,7 @@ import { escape } from '../../utils.ts';
 import { icon } from '../icons.ts';
 import { confirmDialog, promptDialog } from '../../components/confirm-dialog.ts';
 import { createTokenSet } from '@lolly/engine';
-import { brandFontStack, tokenValueToHex } from '../../brand-vars.ts';
+import { brandFontStack, tokenValueToHex, contrastText } from '../../brand-vars.ts';
 import type { DesignSystemRecord } from './registry.ts';
 import { createDesignSystem, removeDesignSystem, type ManageHost } from './manage.ts';
 import { switchDesignSystem, type SwitchHost } from './switch.ts';
@@ -86,12 +86,12 @@ function bytesLabel(n: number | undefined): string {
   return `${(n / (1024 * 1024)).toFixed(n < 10 * 1024 * 1024 ? 1 : 0)} MB`;
 }
 
-interface BrandPreview { font: string; colors: string[] }
+export interface BrandPreview { font: string; colors: string[]; colorCount?: number; logoUrl?: string }
 
 /** A tiny, safe specimen from a system's own head document. It deliberately
  * loads only JSON already on-device; font files remain owned by the registry
  * and the browser simply falls back if a face has not been registered yet. */
-async function previewOf(host: CardHost, record: DesignSystemRecord): Promise<BrandPreview> {
+export async function previewOf(host: CardHost, record: DesignSystemRecord): Promise<BrandPreview> {
   const fallback = "'SUSE', ui-sans-serif, system-ui, sans-serif";
   // A shipped record has no user head to inspect. Still give it a tiny honest
   // specimen of the app's neutral starting palette rather than leaving the
@@ -104,38 +104,55 @@ async function previewOf(host: CardHost, record: DesignSystemRecord): Promise<Br
     const colors = tokens.colors()
       .map(token => tokenValueToHex(token.value))
       .filter((value): value is string => !!value)
-      .filter((value, i, all) => all.indexOf(value) === i)
-      .slice(0, 5);
+      .filter((value, i, all) => all.indexOf(value) === i);
     const font = brandFontStack(tokens.resolve('font.brand'), fallback) ?? fallback;
-    return { font, colors };
+    const dark = contrastText(colors[0] ?? '#172b29') === '#ffffff';
+    const variants = dark ? ['vertical-primary-reverse', 'vertical-primary'] : ['vertical-primary', 'vertical-primary-reverse'];
+    let logoUrl: string | undefined;
+    for (const variant of variants) {
+      const id = tokens.resolve(`asset.logo.${variant}`);
+      if (typeof id !== 'string' || !id || id.startsWith('{')) continue;
+      try {
+        const asset = await host.assets.get(id);
+        if (asset.url) { logoUrl = asset.url; break; }
+      } catch { /* No usable logo: retain the geometric specimen. */ }
+    }
+    return { font, colors: colors.slice(0, 6), colorCount: colors.length, logoUrl };
   } catch { return { font: fallback, colors: [] }; }
 }
 
-function rowHtml(r: DesignSystemRecord, activeId: string, bytes: number | undefined, preview: BrandPreview): string {
+export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, bytes: number | undefined, preview: BrandPreview): string {
   const active = r.id === activeId;
   const removable = r.source.kind !== 'shipped';
   const size = bytesLabel(bytes);
+  const colors = preview.colors.length ? preview.colors : ['#172b29', '#a5edda', '#f5f8f7'];
+  const background = colors[0]!;
+  const foreground = contrastText(background);
+  const accent = colors[1] ?? foreground;
   return `
-    <div class="ds-row${active ? ' is-active' : ' is-switchable'}" data-ds-row="${escape(r.id)}">
+    <article class="ds-row${active ? ' is-active' : ' is-switchable'}" data-ds-row="${escape(r.id)}" aria-label="${escape(r.label)}">
       ${active ? '' : `<button type="button" class="ds-row-hit" data-ds-act="switch" aria-label="${escape(tRaw('Switch to {name}', { name: r.label }))}"></button>`}
+      <div class="ds-row-preview" style="--ds-preview-bg:${escape(background)};--ds-preview-fg:${escape(foreground)};--ds-preview-accent:${escape(accent)};font-family:${escape(preview.font)}" aria-label="${escape(tRaw('Preview of {name}', { name: r.label }))}">
+        <div class="ds-preview-top"><span>${escape(t('DESIGN SYSTEM'))}</span><span class="ds-row-active">${active ? `${icon('check', { size: 12 })} ${t('Active')}` : t('Use theme') + ' ↗'}</span></div>
+        <div class="ds-preview-composition"><span class="ds-row-preview-type">Aa<span>Bb</span></span><span class="ds-preview-mark" aria-hidden="true">${preview.logoUrl ? `<img src="${escape(preview.logoUrl)}" alt="" class="ds-preview-logo">` : ''}<i></i><i></i></span></div>
+        <span class="ds-preview-caption">${escape(r.label)}</span>
+        <div class="ds-row-preview-swatches" aria-hidden="true">${colors.map(color => `<i style="--ds-swatch:${escape(color)}"></i>`).join('')}</div>
+      </div>
       <div class="ds-row-main">
-        <span class="ds-row-label">${escape(r.label)}${r.locked ? ` <span class="ds-row-lock" title="${escape(t('Read-only'))}">${icon('lock', { size: 12 })}</span>` : ''}</span>
-        <span class="ds-row-source">${escape(sourceLine(r))}${size ? ` · ${escape(size)}` : ''}</span>
-        <span class="ds-row-preview" aria-label="${escape(tRaw('Preview of {name}', { name: r.label }))}">
-          <span class="ds-row-preview-type" style="font-family:${escape(preview.font)}">Aa</span>
-          <span class="ds-row-preview-swatches" aria-hidden="true">${preview.colors.map(color => `<i style="--ds-swatch:${escape(color)}"></i>`).join('')}</span>
-        </span>
+        <h3 class="ds-row-label">${escape(r.label)}${r.locked ? `<span class="ds-row-lock" title="${escape(t('Read-only'))}">${icon('lock', { size: 14 })}</span>` : ''}</h3>
+        <span class="ds-row-source">${escape(sourceLine(r))}</span>
+        <span class="ds-row-facts">${t('{n} colours', { n: preview.colorCount ?? preview.colors.length })}${size ? ` <span>·</span> ${escape(size)}` : ''}</span>
       </div>
       <div class="ds-row-actions">
-        ${active
-          ? `<span class="ds-row-active">${icon('check', { size: 14 })} ${t('Active')}</span>`
-          : `<span class="ds-row-switch">${t('Switch')}</span>`}
         <button type="button" class="btn ds-row-btn" data-ds-act="studio">${t('Open')}</button>
-        ${r.source.kind === 'hosted' ? `<button type="button" class="btn ds-row-btn" data-ds-act="refresh">${icon('refresh', { size: 16 })}<span>${t('Check for updates')}</span></button>` : ''}
-        ${r.locked ? `<button type="button" class="btn ds-row-btn" data-ds-act="fork">${icon('duplicate', { size: 16 })}<span>${t('Make an editable copy')}</span></button>` : ''}
-        ${removable ? `<button type="button" class="btn-link-danger ds-row-btn" data-ds-act="remove">${t('Remove')}</button>` : ''}
+        <button type="button" class="btn ds-row-btn ds-row-download" data-ds-act="download" aria-label="${escape(tRaw('Download {name} as .lolly', { name: r.label }))}">${icon('download', { size: 16 })}<span>${t('Download')}</span></button>
+        ${removable || r.locked ? `<details class="ds-row-more"><summary aria-label="${escape(tRaw('More actions for {name}', { name: r.label }))}">${icon('menu', { size: 16 })}</summary><div class="ds-row-menu">
+          ${r.source.kind === 'hosted' ? `<button type="button" data-ds-act="refresh">${icon('refresh', { size: 16 })}${t('Check for updates')}</button>` : ''}
+          ${r.locked ? `<button type="button" data-ds-act="fork">${icon('duplicate', { size: 16 })}${t('Make an editable copy')}</button>` : ''}
+          ${removable ? `<button type="button" class="ds-row-remove" data-ds-act="remove">${icon('trash', { size: 16 })}${t('Remove')}</button>` : ''}
+        </div></details>` : '<span class="ds-row-more-placeholder" aria-hidden="true"></span>'}
       </div>
-    </div>`;
+    </article>`;
 }
 
 export async function renderDesignSystemsCard(body: HTMLElement, host: CardHost): Promise<void> {
@@ -148,12 +165,15 @@ export async function renderDesignSystemsCard(body: HTMLElement, host: CardHost)
   const previews = await Promise.all(records.map(record => previewOf(host, record)));
   body.innerHTML = `
     <p class="profile-appearance-sub">${t('The design systems on this device. The active one is what every tool renders with.')}</p>
-    <div class="ds-rows">${records.map((r, i) => rowHtml(r, activeId, sizes[r.id], previews[i]!)).join('')}</div>
+    <div class="ds-rows">${records.map((r, i) => designSystemCardHtml(r, activeId, sizes[r.id], previews[i]!)).join('')}</div>
     <div class="ds-add">
       <button type="button" class="btn" data-ds-act="new">${icon('plus', { size: 14 })} ${t('Make a new one')}</button>
       <button type="button" class="btn" data-ds-act="file">${icon('upload', { size: 14 })} ${t('Open or import a file')}</button>
       <button type="button" class="btn" data-ds-act="instance">${icon('globe', { size: 14 })} ${t('From an instance')}</button>
     </div>`;
+  body.querySelectorAll<HTMLImageElement>('.ds-preview-logo').forEach(img => {
+    img.addEventListener('error', () => img.remove(), { once: true });
+  });
 }
 
 /** A one-line status under the rows, replacing the last one. Plain text: the
@@ -174,6 +194,11 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
     const act = btn.dataset.dsAct;
     const id = btn.closest<HTMLElement>('[data-ds-row]')?.dataset.dsRow;
     try {
+      if (act === 'download' && id) {
+        const { openBrandDownload } = await import('./brand-download.ts');
+        await openBrandDownload(host as unknown as Parameters<typeof openBrandDownload>[0], id);
+        return;
+      }
       if (act === 'switch' && id) {
         await switchDesignSystem(host, id, { route: 'profile' });
         return; // the remount re-renders this card

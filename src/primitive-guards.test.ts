@@ -728,7 +728,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // `var(--brand-primary, …)` fallbacks - a design-token colour, not free text.
   'bridge/media.ts': 1,
   'bridge/embed.ts': 1,
-  'components/color-field.ts': 5,
+  'components/color-field.ts': 6, // System-picker fallback uses the constant, escaped icon('palette') renderer.
   'components/custom-slider.ts': 1,
   // The virtual data grid (spreadsheet view). Reviewed 2026-08-07: the 3 sinks are the
   // static viewport scaffold (no interpolation), the header cells (esc()d column names +
@@ -1038,7 +1038,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // whose only interpolations are escape()d hexes/names/title/band plus a Number Lc.)
   'views/color-lab.ts': 21,
   'views/components-data.ts': 1,
-  'views/components.ts': 7,
+  'views/components.ts': 8, // +1 2026-09-06: the reference block's fill (components-reference.ts output, every value escape()d)
   // The cost card's body replace. Reviewed - costBodyHtml (views/cost-panel.ts)
   // escape()s every interpolated value: line/calc/amount cells, the source and
   // disclaimer sentences, and the total/headline strings. Rule 6/9's honesty
@@ -1421,6 +1421,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // escape(), the source line is escape()d as a whole, and the rest is t() copy and
   // icon() markup. Nothing a record carries reaches the sink raw.
   'lib/design-system/design-systems-card.ts': 2,
+  // Local-content checklist: every device-owned name/detail is escape()d;
+  // keys are numeric indices and the three group names are constants.
+  'lib/design-system/brand-download.ts': 1,
   // 10 as of 2026-09-04: the Tokens room adds one complete Lolly UI starter-role
   // preview. Token paths, current values and controls all reach it through escape();
   // its actual brand write stays in the delegated submit handler below the sink.
@@ -1628,7 +1631,9 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 349 → 323 on 2026-09-04: semantic `--ui-*` elevation roles now power
     // buttons, fields, shared surfaces, topbar popovers, and the repeated
     // content-pattern tiles/rows rather than leaking compatibility shadows.
-    pin: 323,
+    // 323 → 322: the component library now consumes the shared floating elevation.
+    // 322 → 321: the workspace-chrome specimens took theirs from the part sheets too.
+    pin: 321,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,
@@ -1640,7 +1645,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // repeated tile, row, badge, dashboard-stat, and design-workspace shapes.
     // 102 → 101 on 2026-09-05: the convert workbench/history sheets use the
     // derived --radius-sm/--radius-md roles instead of new 8px/12px literals.
-    pin: 101,
+    // 101 → 100: the library uses semantic radii throughout.
+    pin: 100,
     count: (t) => (t.match(/border-radius:\s*\d+(?:\.\d+)?px\s*[;}!]/g) ?? []).length,
     fix: 'use var(--radius-xs|sm|md|lg) (derived from --radius) or var(--radius) for the base panel size',
   },
@@ -1655,7 +1661,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // the 1.6rem literal that drew a "+" glyph has nothing left to size.
     // 443 → 442 on 2026-09-05: the convert workbench, template chooser, profile,
     // gallery, editor and inspector sheets moved onto var(--fs-2xs..xl).
-    pin: 442,
+    // 442 → 426: the component library uses the semantic type hierarchy.
+    pin: 426,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },

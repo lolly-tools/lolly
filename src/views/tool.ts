@@ -181,11 +181,11 @@ import {
   LOLLY_MIME,
   LOLLY_EXT,
   type LollyLibraryAsset,
-  type LollyToolBundle,
   type LollyToolTrust,
 } from '../lib/lolly-pack.ts';
 import type { BeamAssetRecord } from '../lib/beam-pack.ts';
-import { ENGINE_VERSION, sha256Hex } from '@lolly/engine';
+import { ENGINE_VERSION } from '@lolly/engine';
+import { resolveToolBundle } from '../lib/tool-bundle.ts';
 import '../styles/vendor-flatpickr.css'; // flatpickr base CSS in the `vendor` cascade layer (see that file)
 
 // Type-only imports (erased at build). The `@lolly/engine` barrel re-exports
@@ -4834,6 +4834,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
               selection: design.selection,
               artboard: design.artboard,
               actions: design.inspectorActions,
+              guides: design.guides,
               // The Narrate button under the Speaker notes, and the document's own narration
               // settings. Absent means neither is drawn (plans/180 section 8).
               narration: design.narrationActions,
@@ -6731,7 +6732,6 @@ function isProprietaryLicense(license: unknown): boolean {
  * and assembles the creator block from the profile (identity gated on `useDetails`).
  */
 // Tool files fetched as TEXT (the loader-critical set + svg); everything else as bytes.
-const TOOL_TEXT_FILE = /\.(html|css|js|json|ics|vcf|csv|md|txt|svg)$/i;
 
 /**
  * A cheap trust class for the "include the tool" default, without fetching every file:
@@ -6744,71 +6744,6 @@ async function coarseToolTrust(toolId: string): Promise<LollyToolTrust> {
   return signed && Object.hasOwn(signed, `${toolId}/tool.json`) ? 'signed-catalog' : 'custom';
 }
 
-/**
- * Resolve a tool's files for embedding in a `.lolly` and stamp a precise trust class.
- * The file list is the loader-critical set (tool.json/template/styles/hooks/i18n/text
- * templates + icon) UNIONED with every `<toolId>/*` path the signed catalog lists (which
- * adds thumb + tool-local assets for a catalog tool). Each file is fetched, and - when the
- * catalog signed this tool - hashed against the signed digest: `signed-catalog` only when
- * every covered file matched with no tamper, else `custom`. Returns null when the two files
- * a tool cannot open without (tool.json + template.html) can't be fetched.
- */
-async function resolveToolBundle(
-  toolId: string,
-  manifest: ToolManifest
-): Promise<LollyToolBundle | null> {
-  const integ = await getToolIntegrity().catch(() => null);
-  const signed = integ?.envelope?.files ?? null;
-
-  const rels = new Set<string>(['tool.json', 'template.html', 'styles.css', 'icon.svg']);
-  const hooks = manifest.hooks as { module?: boolean } | undefined;
-  if (hooks && hooks.module !== true) rels.add('hooks.js');
-  for (const ext of ['ics', 'vcf', 'csv', 'md'])
-    if ((manifest.render?.formats ?? []).includes(ext)) rels.add(`template.${ext}`);
-  const lang = currentLang();
-  if (lang && lang !== 'en') rels.add(`i18n/${lang}.json`);
-  if (signed)
-    for (const key of Object.keys(signed))
-      if (key.startsWith(`${toolId}/`)) rels.add(key.slice(toolId.length + 1));
-
-  const fetchText = makeFetchFile(toolId);
-  const files: Record<string, Uint8Array> = {};
-  let covered = 0; // carried files the signed catalog also lists
-  let matched = 0; // …of those, how many hashed identically
-  for (const rel of rels) {
-    let bytes: Uint8Array | null = null;
-    try {
-      if (TOOL_TEXT_FILE.test(rel)) {
-        bytes = new TextEncoder().encode(await fetchText(`${toolId}/${rel}`));
-      } else {
-        const resp = await instanceFetch(instancePath(`/tools/${toolId}/${rel}`));
-        const ct = resp.headers.get('content-type') ?? '';
-        if (resp.ok && !ct.includes('text/html')) bytes = new Uint8Array(await resp.arrayBuffer());
-      }
-    } catch {
-      bytes = null;
-    } // an optional file that isn't there
-    if (!bytes) continue;
-    files[rel] = bytes;
-    const digest = signed?.[`${toolId}/${rel}`];
-    if (digest) {
-      covered++;
-      if ((await sha256Hex(bytes)) === digest) matched++;
-    }
-  }
-  if (!files['tool.json'] || !files['template.html']) return null;
-
-  const trust: LollyToolTrust =
-    signed && Object.hasOwn(signed, `${toolId}/tool.json`) && covered > 0 && matched === covered
-      ? 'signed-catalog'
-      : 'custom';
-  return {
-    id: toolId,
-    ...(manifest.version != null ? { version: String(manifest.version) } : {}),
-    trust,
-    files,
-  };
-}
 
 function makeLollyVehicle(
   host: WebToolHost,

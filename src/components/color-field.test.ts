@@ -202,17 +202,16 @@ test('one flat tablist, grouped into three labelled families, wired to its panel
 
 test('a popover field folds every fine control behind Fine-tune, sliders visible inside', () => {
   const { field } = mount('#30ba78', { float: true });
-  assert.equal(field.querySelectorAll('[role="tablist"]').length, 0);
-  // The whole fine section - value input, OKLCH panel, alpha - is one gated
-  // wrapper; the panel itself is no longer individually hidden (the fold is the
-  // one reveal, and measuredFullHeight measures the wrapper).
+  assert.equal(field.querySelectorAll('[role="tablist"]').length, 1);
+  // One fold holds the value, HSL / OKLCH tabs, channel panel and alpha.
   const fine = field.querySelector<HTMLElement>('[data-color-fine]')!;
   assert.ok(fine);
   assert.equal(fine.hidden, true, 'the fold starts closed');
-  const panel = fine.querySelector<HTMLElement>('.color-lch')!;
-  assert.ok(panel, 'the OKLCH panel lives inside the fold');
+  const panel = fine.querySelector<HTMLElement>('[data-space-group="hsl"]')!;
+  assert.ok(panel, 'the default HSL panel lives inside the fold');
   assert.equal(panel.hidden, false, 'no second gate on the panel itself');
-  assert.equal(panel.getAttribute('role'), null, 'a lone panel is not a tabpanel');
+  assert.equal(panel.getAttribute('role'), 'tabpanel');
+  assert.equal(fine.querySelector<HTMLElement>('[data-space-group="oklch"]')!.hidden, true);
   assert.ok(fine.contains(valueInput(field)), 'the value field is folded too');
   // The palette leads: swatches come before the fold in the popover.
   const popover = field.querySelector<HTMLElement>('.color-popover')!;
@@ -265,6 +264,7 @@ test('dials follow their own option, defaulting to inline', () => {
 
 test('the value field accepts any CSS colour, not just the active space format', () => {
   const { field, seen } = mount('#30ba78', { inline: true, modes: true });
+  selectSpace(field, 'oklch');
   // A hex typed while OKLCH is active. This used to be silently held.
   type(field, '#c0392b');
   assert.equal(seen.at(-1)!.value, '#c0392b');
@@ -406,7 +406,7 @@ test('typing an explicitly opaque colour restores opacity; an alpha-less one inh
 
 // ── A field with no space tabs speaks hex, and is not capped at 9 characters ──
 
-test('a modes-less field shows a hex and still accepts any CSS colour', () => {
+test('a compact field keeps a hex value while advanced editors use the active notation', () => {
   const { field, seen } = mount('#30ba78', { float: true });
   const input = valueInput(field);
   assert.equal(input.getAttribute('maxlength'), null,
@@ -427,7 +427,7 @@ test('a modes-less field shows a hex and still accepts any CSS colour', () => {
     'and it comes back stated as the (gamut-mapped) hex the box is sized for, alpha kept');
   // A field WITH tabs is the other half of the contract: it speaks its space.
   const { field: tabbed } = mount('#30ba78', { inline: true, modes: true });
-  assert.match(valueInput(tabbed).value, /^oklch\(/);
+  assert.match(valueInput(tabbed).value, /^hsl\(/);
 });
 
 // ── The dial can never disagree with the slider beneath it ────────────────────
@@ -603,6 +603,7 @@ test('the caution line names the space just switched to, on the leading edge', (
 
 test('a superseded caution never lands on top of the colour that contradicts it', async () => {
   const { field } = mount('#30ba78', { inline: true, modes: true });
+  selectSpace(field, 'oklch');
   drag(field, 'oklch', 'c', 0.39);                 // far outside sRGB
   await wait(400);
   assert.equal(noteText(field), 'Outside sRGB');
@@ -1120,4 +1121,93 @@ test('the name a host passes wins over the computed one, and the hex still rides
   // Without the override the field names the colour itself.
   host.innerHTML = colorFieldHtml('cf-tok', '#ff8fbe', { float: true });
   assert.notEqual(host.querySelector('.color-trigger-name')!.textContent, 'Primary');
+});
+
+
+test('the everyday picker defaults to HSL; switching to OKLCH preserves colour and alpha', () => {
+  const { field, seen } = mount('color(display-p3 1 0 0 / 0.4)');
+  const canonical = field.dataset.colorCanon;
+  const modes = field.querySelector<HTMLElement>('[data-color-modes]')!;
+  assert.deepEqual([...modes.querySelectorAll('[role="tab"]')].map(t => t.getAttribute('data-mode')), ['hsl', 'oklch']);
+  assert.equal(modes.dataset.activeMode, 'hsl');
+  selectSpace(field, 'oklch');
+  assert.equal(modes.dataset.activeMode, 'oklch');
+  assert.equal(field.dataset.colorCanon, canonical);
+  assert.equal(seen.length, 0);
+  drag(field, 'oklch', 'l', 65);
+  assert.equal(seen.at(-1)!.detail.mode, 'oklch');
+  assert.equal(seen.at(-1)!.detail.color.alpha, 0.4);
+});
+
+test('palette scrolling stays open without focus entering it; outside scrolling dismisses', async () => {
+  const { field } = mount('#30ba78');
+  const trigger = field.querySelector<HTMLButtonElement>('.color-trigger')!;
+  trigger.click();
+  trigger.focus();
+  await wait(1); // Outside listeners arm after the opening click.
+  const popover = field.querySelector<HTMLElement>('.color-popover')!;
+  field.querySelector('.color-swatches')!.dispatchEvent(new dom.window.Event('scroll'));
+  assert.equal(popover.hidden, false);
+  popover.dispatchEvent(new dom.window.Event('scroll'));
+  assert.equal(popover.hidden, false, 'the viewport-bounded panel can scroll too');
+  window.dispatchEvent(new dom.window.Event('scroll'));
+  assert.equal(popover.hidden, true);
+  assert.equal(trigger.getAttribute('aria-expanded'), 'false');
+});
+
+test('a compact trigger opens a usable viewport-bounded picker', () => {
+  const { field } = mount('#2453ff', { float: true });
+  const trigger = field.querySelector<HTMLButtonElement>('.color-trigger')!;
+  trigger.getBoundingClientRect = () => new dom.window.DOMRect(1000, 740, 34, 34);
+  trigger.click();
+  const popover = field.querySelector<HTMLElement>('.color-popover')!;
+  assert.ok(parseFloat(popover.style.width) >= 264);
+  assert.ok(parseFloat(popover.style.left) + parseFloat(popover.style.width) <= window.innerWidth - 8);
+  assert.ok(parseFloat(popover.style.top) + parseFloat(popover.style.maxHeight) <= window.innerHeight - 8);
+  field.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+});
+
+test('inline palette is populated and fine-tuning is optional; names precede trigger swatches', () => {
+  const { field, seen } = mount('#30ba78', { inline: true, palette: true });
+  assert.ok(field.querySelectorAll('.color-swatches button').length > 0);
+  assert.equal(field.querySelector<HTMLElement>('[data-color-fine]')!.hidden, true);
+  assert.equal(field.querySelector('.color-swatch-menu'), null);
+  field.querySelector<HTMLButtonElement>('[data-color-fine-toggle]')!.click();
+  assert.equal(field.querySelector<HTMLElement>('[data-color-fine]')!.hidden, false);
+  assert.equal(seen.length, 0);
+  const { field: named } = mount('#fe7c3f', { name: 'Persimmon' });
+  assert.deepEqual([...named.querySelector('.color-trigger')!.children].map(el => el.className), ['color-trigger-name', 'color-trigger-preview']);
+});
+
+test('unsupported screen sampling keeps a functional system picker action', () => {
+  const { field, seen } = mount('#30ba7880');
+  const action = field.querySelector<HTMLButtonElement>('[data-color-eyedropper]')!;
+  assert.equal(action.dataset.colorPickerFallback, 'native');
+  assert.equal(action.getAttribute('aria-label'), 'Open system colour picker');
+  const native = field.querySelector<HTMLInputElement>('.color-popover-native')!;
+  let opened = 0;
+  native.addEventListener('click', () => opened++);
+  action.click();
+  assert.equal(opened, 1);
+  native.value = '#fe7c3f';
+  fire(native);
+  assert.equal(seen.at(-1)!.value, '#fe7c3f80');
+});
+
+test('screen eyedropper preserves alpha and treats cancellation as no edit', async () => {
+  const win = window as typeof window & { EyeDropper?: new () => { open(): Promise<{ sRGBHex: string }> } };
+  let cancelled = false;
+  win.EyeDropper = class { async open() { if (cancelled) throw new Error('cancelled'); return { sRGBHex: '#2453ff' }; } };
+  try {
+    const { field, seen } = mount('#30ba7880');
+    const action = field.querySelector<HTMLButtonElement>('[data-color-eyedropper]')!;
+    assert.equal(action.dataset.colorPickerFallback, undefined);
+    action.click();
+    await wait(1);
+    assert.equal(seen.at(-1)!.value, '#2453ff80');
+    cancelled = true;
+    action.click();
+    await wait(1);
+    assert.equal(seen.length, 1);
+  } finally { delete win.EyeDropper; }
 });

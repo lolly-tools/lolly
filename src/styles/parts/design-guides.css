@@ -89,54 +89,47 @@
 .fc-author-guide {
   position: absolute;
   box-sizing: border-box;
-  margin: 0;
+  height: 11px;
+  margin: -5px 0 0;
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--ui-color-action-primary);
   pointer-events: auto;
   touch-action: none;
+  transform-origin: 0 5px;
+  cursor: move;
 }
-.fc-author-guide-x {
-  width: 9px;
-  margin-left: -4px;
-  cursor: col-resize;
-}
-.fc-author-guide-y {
-  height: 9px;
-  margin-top: -4px;
-  cursor: row-resize;
-}
+.fc-author-guide-x { cursor: col-resize; }
+.fc-author-guide-y { cursor: row-resize; }
 .fc-author-guide::before {
   content: "";
   position: absolute;
-  background: currentColor;
-  opacity: 0.86;
-}
-.fc-author-guide-x::before {
-  top: 0;
-  bottom: 0;
-  left: 4px;
-  width: 1px;
-}
-.fc-author-guide-y::before {
+  top: 5px;
   left: 0;
   right: 0;
-  top: 4px;
   height: 1px;
+  background: currentColor;
+  /* Both light and dark edges keep the guide legible on artwork of any colour. */
+  box-shadow: 0 -1px 0 #fff, 0 1px 0 #0008;
 }
 .fc-author-guide:hover::before,
 .fc-author-guide:focus-visible::before,
+.fc-author-guide.is-selected::before,
 .fc-author-guide.is-dragging::before {
-  width: 2px;
   height: 2px;
-  opacity: 1;
 }
-.fc-author-guide:focus-visible {
-  outline: none;
-}
+.fc-author-guide:focus-visible { outline: none; }
 .fc-authoring-guides.is-guide-dragging {
   cursor: grabbing;
+}
+
+@media (min-width: 641px) {
+  /* When the navigator collapses, the floating tools sit beside its rail. Keep
+     their usual 10px gap beyond the ruler; docked columns are already reserved. */
+  .tool-stage:not(.has-tl-reserve):has(> .fc-authoring-guides:not([hidden])) > .fc-toolbar-dock:not(.is-detached) {
+    padding-left: calc(22px + 10px + var(--vv-left, 0px));
+  }
 }
 
 @media (max-width: 640px) {

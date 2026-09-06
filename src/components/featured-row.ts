@@ -140,7 +140,7 @@ function byFeaturedOrder(a: FeaturedEntry, b: FeaturedEntry): number {
 }
 
 function tileMarkup(entry: FeaturedEntry, eager = false, menu = false): string {
-  const label = `Open ${entry.name}${entry.featured.blurb ? ` - ${entry.featured.blurb}` : ''}`;
+  const label = `Open ${entry.name}`;
   // The committed preview is the instant first frame; rendered variants are appended
   // as layers as they arrive. A tool whose preview is missing (dev, before
   // `npm run previews`) simply starts on the themed backdrop until its first variant.
@@ -183,7 +183,6 @@ function tileMarkup(entry: FeaturedEntry, eager = false, menu = false): string {
         </span>
         <span class="ftile-meta">
           <span class="ftile-name">${escape(entry.name)}</span>
-          ${entry.featured.blurb ? `<span class="ftile-blurb">${escape(entry.featured.blurb)}</span>` : ''}
         </span>
         <span class="ftile-dots" aria-hidden="true"></span>
       </a>
@@ -405,13 +404,18 @@ export function mountFeaturedRow(
   let looping = false;
   let halfWidth = 0;
   let velocity = 0;   // px/s, for flick / wheel inertia
-  let snapTarget: number | null = null;   // coverflow: scrollLeft to ease toward (a chosen cover)
+  let snap: { from: number; to: number; start: number; duration: number } | null = null;
+  let cfWheelUntil = 0;
 
   // Drag state - mouse/pen "grab and shift" (horizontal carousel pan).
   let dragging = false;
   let dragMoved = false;
   let dragPointerId = -1;
   let dragStartX = 0;   // where the press began - the click-vs-drag slop is measured from here
+  let dragStartY = 0;
+  let dragAxis: 'pending' | 'horizontal' | 'vertical' = 'horizontal';
+  let dragPosition = 0; // retain fractional pixels rather than round every pointer delta
+  let dragSamples: Array<{ x: number; ts: number }> = [];
   let lastPointerX = 0;
   let lastMoveTs = 0;
   let pressLink: HTMLAnchorElement | null = null; // the tile link a mouse/pen press landed on
@@ -479,10 +483,15 @@ export function mountFeaturedRow(
   // through it (see coverAtClientX). Written by layoutCoverflow, which computes the tuck
   // anyway; undefined until the first fan layout.
   let cfGeom: Array<{ el: HTMLElement; center: number; w: number; vc?: number }> = [];
+  let cfViewportWidth = 0;
+  let cfPaintedPosition = NaN;
 
   function layoutCoverflow(): void {
     if (!coverflow) return;
-    const focus = viewport.scrollLeft + viewport.clientWidth / 2;
+    const position = viewport.scrollLeft;
+    if (position === cfPaintedPosition) return;
+    cfPaintedPosition = position;
+    const focus = position + cfViewportWidth / 2;
     let bestI = -1, bestAbs = Infinity, i = 0;             // which cover is centred, for the flick
     for (const g of cfGeom) {
       const d = (g.center - focus) / g.w;                 // signed offset in cover-widths
@@ -539,15 +548,45 @@ export function mountFeaturedRow(
     return best;
   }
 
-  function nearestCoverScrollLeft(): number {
-    const half = viewport.clientWidth / 2;
+  function nearestCoverScrollLeft(position = viewport.scrollLeft): number {
+    const half = cfViewportWidth / 2;
     let best = viewport.scrollLeft, bestD = Infinity;
     for (const g of cfGeom) {                              // cached geometry (see layoutCoverflow)
       const target = g.center - half;
-      const dist = Math.abs(target - viewport.scrollLeft);
+      const dist = Math.abs(target - position);
       if (dist < bestD) { bestD = dist; best = target; }
     }
     return best;
+  }
+
+  // Choose the landing cover at release, then travel there in ONE deceleration.
+  // Coasting to a stop before choosing a snap caused a pause and sometimes a
+  // backwards correction. A short flick must advance; a long swipe can cross
+  // several covers. Velocity comes from recent event timestamps, not delivery
+  // intervals (which bunch up when the mobile main thread is busy).
+  function settleCoverflow(releaseVelocity = 0): void {
+    const from = viewport.scrollLeft;
+    let to = nearestCoverScrollLeft(from + releaseVelocity * 0.18);
+    if (Math.abs(releaseVelocity) >= 250 && (to - from) * releaseVelocity <= 0) {
+      const targets = cfGeom.map(g => g.center - cfViewportWidth / 2);
+      to = releaseVelocity > 0
+        ? (targets.find(target => target > from + 1) ?? to)
+        : (targets.findLast(target => target < from - 1) ?? to);
+    }
+    snapToCover(to, releaseVelocity);
+  }
+
+  function snapToCover(to: number, releaseVelocity = 0): void {
+    const from = viewport.scrollLeft;
+    velocity = 0;
+    if (reduced || Math.abs(to - from) < 0.5) {
+      viewport.scrollLeft = to;
+      snap = null;
+      layoutCoverflow();
+      return;
+    }
+    const duration = Math.max(180, Math.min(480, 3000 * Math.abs(to - from) / Math.max(1000, Math.abs(releaseVelocity))));
+    snap = { from, to, start: performance.now(), duration };
   }
 
   function clearCoverflow(): void {
@@ -567,18 +606,12 @@ export function mountFeaturedRow(
     if (dragging) { if (coverflow) layoutCoverflow(); return; }   // (1) pointer owns scrollLeft
 
     if (coverflow) {
-      if (Math.abs(velocity) > INERTIA_MIN_V) {    // coast from a flick/wheel
-        viewport.scrollLeft += (velocity * dt) / 1000;
-        velocity = clampV(velocity * INERTIA_FRICTION ** (dt / 16.67));
-        if (Math.abs(velocity) < INERTIA_MIN_V) velocity = 0;
-        layoutCoverflow();
-        return;
+      if (!snap && ts >= cfWheelUntil && Math.abs(nearestCoverScrollLeft() - viewport.scrollLeft) > 0.5) settleCoverflow();
+      if (snap) {
+        const progress = Math.min(1, Math.max(0, (ts - snap.start) / snap.duration));
+        viewport.scrollLeft = snap.from + (snap.to - snap.from) * (1 - (1 - progress) ** 3);
+        if (progress === 1) snap = null;
       }
-      // Settle onto a cover: ease toward the chosen (or nearest) one.
-      const target = snapTarget ?? nearestCoverScrollLeft();
-      const diff = target - viewport.scrollLeft;
-      if (Math.abs(diff) < 0.5) { viewport.scrollLeft = target; snapTarget = null; }
-      else viewport.scrollLeft += diff * Math.min(1, (dt / 1000) * 12); // time-based ease
       layoutCoverflow();
       return;
     }
@@ -611,7 +644,13 @@ export function mountFeaturedRow(
       // Snapshot geometry AFTER padding lands (it shifts every offsetLeft) so the per-frame
       // layout can read from cfGeom instead of the DOM. Tile width/left are otherwise stable
       // here (fixed cover width; no clones in this mode; decoding only changes height).
-      cfGeom = tiles.map((el) => ({ el, center: el.offsetLeft + el.offsetWidth / 2, w: el.offsetWidth || 1 }));
+      const nextGeom = tiles.map((el) => ({ el, center: el.offsetLeft + el.offsetWidth / 2, w: el.offsetWidth || 1 }));
+      const changed = cfViewportWidth !== viewport.clientWidth || nextGeom.length !== cfGeom.length
+        || nextGeom.some((g, i) => g.center !== cfGeom[i]?.center || g.w !== cfGeom[i]?.w);
+      cfGeom = nextGeom;
+      cfViewportWidth = viewport.clientWidth;
+      cfPaintedPosition = NaN;
+      if (changed) snap = null; // an image decode with unchanged geometry must not interrupt a fling
       layoutCoverflow();
       return;
     }
@@ -643,9 +682,11 @@ export function mountFeaturedRow(
   section.addEventListener('focusin', () => { focusWithin = true; }, { signal });
   section.addEventListener('focusout', () => { focusWithin = false; }, { signal });
   viewport.addEventListener('touchstart', () => { touching = true; velocity = 0; }, { signal, passive: true });
-  viewport.addEventListener('touchend', () => { touching = false; manualUntil = performance.now() + RESUME_DELAY_MS; }, { signal, passive: true });
+  const endTouch = (): void => { touching = false; manualUntil = performance.now() + RESUME_DELAY_MS; };
+  viewport.addEventListener('touchend', endTouch, { signal, passive: true });
+  viewport.addEventListener('touchcancel', endTouch, { signal, passive: true });
   viewport.addEventListener('scroll', () => {
-    if (coverflow) { layoutCoverflow(); return; }
+    if (coverflow) return; // the animation frame paints the fan once, after its scroll write
     normalizeWrap();
     // Flick as each tile passes centre - but only while the user is driving it (a drag or a
     // flick-coast), never during the calm ambient drift. `flickIndex` tracks position even while
@@ -687,7 +728,14 @@ export function mountFeaturedRow(
     if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;    // vertical → page scroll
     manualUntil = performance.now() + RESUME_DELAY_MS;
     e.preventDefault();
-    snapTarget = null;                                       // a spin overrides a pending Cover Flow snap
+    if (coverflow) {
+      // Trackpads already supply momentum deltas. Follow them directly, then
+      // settle after their stream ends instead of multiplying their inertia.
+      viewport.scrollLeft += e.deltaX;
+      snap = null;
+      cfWheelUntil = performance.now() + 100;
+      return;
+    }
     velocity = clampV(velocity + e.deltaX * WHEEL_TO_VELOCITY);
   }, { signal });
 
@@ -696,6 +744,8 @@ export function mountFeaturedRow(
   // strip's native scroller, vertical scrolls the page - never captured). Either
   // way the grab lights up the backdrop (see .is-grabbing). ──
   viewport.addEventListener('pointerdown', (e) => {
+    if (dragging || !e.isPrimary) return;
+    if (e.pointerType !== 'touch' && e.button !== 0 && e.button !== 1) return;
     // A press on the ⋯ menu button or an example dot is neither a pan nor a tile open - 
     // leave it to its own click handling (the consumer's actions menu / the dot branch of
     // the capture click handler below), whatever the view mode / device. Skipping here
@@ -708,24 +758,27 @@ export function mountFeaturedRow(
     // DnD, so it keeps its native scroll gestures.)
     if (tileDragOut && e.pointerType !== 'touch' && e.button === 0 && (e.target as Element | null)?.closest?.('.ftile-link')) return;
     velocity = 0;                                            // a grab cancels any coast
-    snapTarget = null;
+    snap = null;
     dragMoved = false;                                       // fresh press - never inherit a prior drag's "moved"
     suppressNextClick = false;                               // fresh press - never inherit a stale suppress flag
     dragStartX = e.clientX;                                  // anchor for the click-vs-drag slop test
+    dragStartY = e.clientY;
+    dragAxis = e.pointerType === 'touch' ? 'pending' : 'horizontal';
+    dragPosition = viewport.scrollLeft;
+    dragSamples = [{ x: e.clientX, ts: e.timeStamp }];
     pressLink = (e.target as Element | null)?.closest?.<HTMLAnchorElement>('.ftile-link') ?? null;
     section.classList.add('is-grabbing');
     // Gallery touch: no JS gesture - the native scroller owns both axes. (Cover Flow
     // touch keeps the JS horizontal drag; its pan-y touch-action leaves vertical to
     // the page.)
     if (e.pointerType === 'touch' && !coverflow) return;
-    if (e.pointerType !== 'touch' && e.button !== 0 && e.button !== 1) return; // left- or middle-drag pans (mouse/pen), like the canvas
     dragging = true;
     dragPointerId = e.pointerId;
     lastPointerX = e.clientX;
     lastMoveTs = performance.now();
     try { viewport.setPointerCapture(e.pointerId); } catch { /* capture is best-effort */ }
     // Stop the browser turning the drag into a text selection / native image-drag.
-    e.preventDefault();
+    if (e.pointerType !== 'touch') e.preventDefault();
   }, { signal });
 
   // A middle-button press must pan (like the canvas), not engage the browser's middle-click
@@ -737,13 +790,25 @@ export function mountFeaturedRow(
     // Gallery touch never drags via JS (native scroller owns it), so `dragging` is
     // false and this returns. Mouse/pen (and Cover Flow touch): horizontal drag.
     if (!dragging || e.pointerId !== dragPointerId) return;
+    if (dragAxis === 'pending') {
+      const x = Math.abs(e.clientX - dragStartX), y = Math.abs(e.clientY - dragStartY);
+      if (Math.max(x, y) <= DRAG_SLOP) return;
+      dragAxis = x >= y ? 'horizontal' : 'vertical';
+    }
+    if (dragAxis === 'vertical') return; // native pan-y owns this gesture until pointercancel
     const now = performance.now();
     const dx = e.clientX - lastPointerX;
     // Click-vs-drag: it's a drag (which cancels the tile's click) only once the press has
     // travelled past the slop from where it began. A pixel or three of hand-jitter during
     // a plain click must still open the tool. Panning tracks every move regardless.
     if (Math.abs(e.clientX - dragStartX) > DRAG_SLOP) dragMoved = true;
-    viewport.scrollLeft -= dx;                               // content follows the pointer
+    if (coverflow) {
+      const max = Math.max(0, (cfGeom.at(-1)?.center ?? 0) - cfViewportWidth / 2);
+      dragPosition = Math.max(0, Math.min(max, dragPosition - dx));
+      viewport.scrollLeft = dragPosition;
+      dragSamples.push({ x: e.clientX, ts: e.timeStamp });
+      while (dragSamples.length > 2 && dragSamples[0]!.ts < e.timeStamp - 100) dragSamples.shift();
+    } else viewport.scrollLeft -= dx;                        // content follows the pointer
     normalizeWrap();
     const dtm = now - lastMoveTs;
     if (dtm > 0) {
@@ -768,10 +833,15 @@ export function mountFeaturedRow(
     dragPointerId = -1;
     section.classList.remove('is-grabbing');
     manualUntil = performance.now() + RESUME_DELAY_MS;       // let the coast finish before drift
-    // No inertia under reduced motion; and a slow release (pointer already at rest for
-    // a beat) should just stop rather than drift on a stale sample. Cover Flow always
-    // coasts + snaps, so keep the fling velocity there.
-    if (!coverflow && (reduced || performance.now() - lastMoveTs > 80)) velocity = 0;
+    const cancelled = e.type !== 'pointerup';
+    if (coverflow) {
+      const first = dragSamples[0]!, last = dragSamples.at(-1)!;
+      const elapsed = last.ts - first.ts;
+      const releaseVelocity = !cancelled && dragMoved && !reduced && elapsed > 0 && e.timeStamp - last.ts <= 80
+        ? clampV((first.x - last.x) * 1000 / elapsed) : 0;
+      settleCoverflow(releaseVelocity);
+    } else if (cancelled || reduced || performance.now() - lastMoveTs > 80) velocity = 0;
+    if (cancelled) { pressLink = null; suppressNextClick = true; return; }
     // Deterministic open: a clean left tap/click (no drag, no modifier keys) opens the
     // pressed tile right here on release, rather than depending on the native <a> click
     // (which the drifting carousel drops when the press and release land on different
@@ -788,6 +858,7 @@ export function mountFeaturedRow(
   };
   viewport.addEventListener('pointerup', endDrag, { signal });
   viewport.addEventListener('pointercancel', endDrag, { signal });
+  viewport.addEventListener('lostpointercapture', endDrag, { signal });
   viewport.addEventListener('click', (e) => {
     // Let a ⋯ menu-button click through untouched - it must reach the consumer's delegated
     // handler, and (in Cover Flow) must NOT be treated as a "centre this side cover" click.
@@ -827,7 +898,7 @@ export function mountFeaturedRow(
       const tile = (e.target as Element | null)?.closest?.<HTMLElement>('.ftile') ?? coverAtClientX(e.clientX);
       if (tile && !tile.classList.contains('is-centred')) {
         e.preventDefault(); e.stopPropagation();
-        snapTarget = coverScrollLeft(tile);
+        snapToCover(coverScrollLeft(tile));
       }
     }
   }, { signal, capture: true });
@@ -1039,7 +1110,7 @@ export function mountFeaturedRow(
       if (next === coverflow) return;
       coverflow = next;
       velocity = 0;
-      snapTarget = null;
+      snap = null;
       flickIndex = -1;   // the two modes index differently - don't flick on the switchover
       section.classList.toggle('featured--coverflow', coverflow);
       if (!coverflow) clearCoverflow();      // shed inline transforms + padding before re-cloning

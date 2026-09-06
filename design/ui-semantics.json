@@ -24,7 +24,9 @@
         "border": { "default": { "$type": "color", "$value": "#cfd8e3", "$extensions": { "tools.lolly": { "css": "hsl(var(--border))" } } } },
         "focus": { "ring": { "$type": "color", "$value": "#0c322c", "$extensions": { "tools.lolly": { "css": "hsl(var(--ring))" } } } }
       },
+      "size": { "target": { "$type": "sizing", "$value": "44px", "$description": "Minimum comfortable library action target.", "$extensions": { "tools.lolly": { "css": "44px" } } } },
       "space": {
+        "section": { "$type": "spacing", "$value": "64px", "$description": "Space between library sections.", "$extensions": { "tools.lolly": { "css": "64px" } } },
         "control-inline": { "$type": "spacing", "$value": "{lolly.foundation.space.4}" },
         "control-block": { "$type": "spacing", "$value": "{lolly.foundation.space.3}" },
         "panel": { "$type": "spacing", "$value": "{lolly.foundation.space.7}" },
@@ -57,6 +59,10 @@
         "selected": { "$type": "shadow", "$value": { "color": "#0c322c33", "offsetX": "0px", "offsetY": "0px", "blur": "0px", "spread": "1px" }, "$extensions": { "tools.lolly": { "css": "inset 0 0 0 1px hsl(var(--primary) / .20)" } } }
       },
       "type": {
+        "display": { "$type": "fontSize", "$value": "64px", "$description": "Editorial page title; scale down fluidly on narrow screens.", "$extensions": { "tools.lolly": { "css": "calc(64px * var(--a11y-fs))" } } },
+        "heading": { "$type": "fontSize", "$value": "28px", "$description": "Section heading.", "$extensions": { "tools.lolly": { "css": "calc(28px * var(--a11y-fs))" } } },
+        "lead": { "$type": "fontSize", "$value": "18px", "$description": "Introductory copy and component names.", "$extensions": { "tools.lolly": { "css": "calc(18px * var(--a11y-fs))" } } },
+        "caption": { "$type": "fontSize", "$value": "12px", "$description": "Supporting metadata; never the only accessible label.", "$extensions": { "tools.lolly": { "css": "calc(12px * var(--a11y-fs))" } } },
         "body": { "$type": "fontSize", "$value": "{lolly.foundation.type.size.md}" },
         "label": { "$type": "fontSize", "$value": "{lolly.foundation.type.size.sm}" },
         "title": { "$type": "fontSize", "$value": "{lolly.foundation.type.size.lg}" },

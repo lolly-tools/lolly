@@ -4,7 +4,7 @@
    how prefers-reduced-motion strips it back to a plain scrollable row of links). */
 
 .featured {
-
+  --featured-top-space: 0px;
   position: relative;   /* anchor for the optional pull label */
 }
 
@@ -132,7 +132,8 @@
    on coarse pointers: a hard-coded value would slide back under the nav on a notched
    phone. Lands on 100px at these defaults. */
 @media (max-width: 640px) {
-  .featured-track { padding-top: calc(var(--chrome-top) + var(--chrome-h) + 2.25rem); }
+  .featured { --featured-top-space: calc(var(--chrome-top) + var(--chrome-h) + 2.25rem); }
+  .featured-track { padding-top: var(--featured-top-space); }
 }
 
 .ftile {
@@ -164,7 +165,7 @@
 
 /* A studio "product shot" per tile: a soft cyclorama sweep (a touch of light up top
    fading to a touch of shade at the floor), the preview floating with its own shadow,
-   and the centered title/description resting just below. A vertical flex column stacks
+   and the centered title resting just below. A vertical flex column stacks
    art → caption, so the caption always sits directly under the floating art + shadow. */
 .ftile-link {
   position: relative;
@@ -333,8 +334,8 @@
   text-wrap: balance;
   overflow-wrap: anywhere;      /* a single unbreakable word still stays inside the pill */
 }
-/* The pill IS the title on these tiles - the caption below keeps only the blurb. */
-.ftile--icon .ftile-name { display: none; }
+/* The pill IS the title on these tiles, so no second caption is needed below. */
+.ftile--icon .ftile-meta { display: none; }
 
 /* Cover Flow: the covers are a third the size of the Gallery hero tiles, so the
    lockup scales down with them (same two knobs). The pill stays visible on every
@@ -382,15 +383,6 @@
   line-height: 1.15;
   color: hsl(var(--foreground));
 }
-.ftile-blurb {
-  font-size: clamp(11px, 1.05vw, 13px);
-  line-height: 1.35;
-  color: hsl(var(--muted-foreground));
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
 
 /* (.ftile-badge - the featured tile's "New" pill - is retired with the recency
    badge, Andy 2026-08-28; the info dialog's "Added" line carries recency now.) */
@@ -429,6 +421,10 @@
   .featured:not(.featured--coverflow) .ftile-open { opacity: 1; transform: translate(-50%, 0); }
 }
 .ftile-open svg { display: block; }
+/* Icon tiles put their title inside the art. Reserve the otherwise empty dots
+   row for Open, so the mobile affordance cannot cover that title. */
+.featured:not(.featured--coverflow) .ftile--icon .ftile-dots { min-height: 44px; padding: 0; }
+.featured:not(.featured--coverflow) .ftile--icon .ftile-open { top: calc(100% + 4px); bottom: auto; }
 
 /* Optional per-tile ⋯ actions button (Projects' Uncategorised ribbon) - a real, tappable
    handle in the top-right corner, ABOVE the link, so it works on touch and in Cover Flow where
@@ -614,9 +610,10 @@
      (.featured-track's align-items), so measuring up from the section's bottom edge:
      half the band + half the grip that sits below it (0 on desktop, where the grip is
      display:none) − half a cover = the cover's own bottom edge, then 4px of air.
-     --cf-cover-h is the single source of the cover height, shared with .ftile-link
-     below so the two can't drift; --cf-grip-h must track .featured-grip's height. */
-  bottom: calc(50% + var(--cf-grip-h) / 2 - var(--cf-cover-h) / 2 + 4px);
+     The mobile track's top padding shifts the cover centre down by half that
+     padding; include it so Open stays below the title. --cf-grip-h must track
+     .featured-grip's height. */
+  bottom: calc(50% + var(--cf-grip-h) / 2 - var(--cf-cover-h) / 2 - var(--featured-top-space) / 2 + 4px);
   z-index: 5;
   display: inline-flex;
   align-items: center;

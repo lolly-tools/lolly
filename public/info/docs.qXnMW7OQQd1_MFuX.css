@@ -1669,13 +1669,13 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 /* ── beat 3: what / why ─────────────────────────────────────────────────── */
 .whatwhy-section{padding:4rem 1.5rem 2.5rem}
 .whatwhy-inner{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2.5rem 3.5rem}
-.whatwhy-eyebrow{font-size:.6875rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700}
+.whatwhy-eyebrow{font-size:.6875rem;text-transform:uppercase;letter-spacing:.12em;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text));font-weight:700}
 .whatwhy-big{font-size:1.6rem;letter-spacing:0;text-transform:none;font-weight:800;margin:.5rem 0 .75rem;text-wrap:balance}
 .whatwhy-body{color:var(--muted);max-width:52ch;margin:0 0 1rem}
 .whatwhy-maxim{margin:0 0 1rem;max-width:52ch}
-.whatwhy-stats{display:flex;gap:1.6rem;flex-wrap:wrap;margin:.5rem 0 1rem}
-.whatwhy-stat{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit}
-.whatwhy-stat b{font-family:'SUSE Mono','SF Mono',monospace;font-size:1.7rem;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;color:var(--text)}
+.whatwhy-stats{display:flex;gap:1.6rem;flex-wrap:wrap;margin:.5rem 0 1rem;  }
+.whatwhy-stat{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit; text-align:center;}
+.whatwhy-stat b{font-family:'SUSE Mono','SF Mono',monospace;font-size:1.7rem;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text));}
 .whatwhy-stat span{font-size:.6875rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
 .whatwhy-stat:hover b{color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text))}
 .whatwhy-receipts{font-size:.875rem;margin-bottom:1rem}
@@ -1687,7 +1687,7 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 /* ── beat 4: the persona device (CSS-only: radios + nth-matched pairing) ── */
 .persona-section{padding:1.5rem 1.5rem 4rem}
 .persona-inner{max-width:1120px;margin:0 auto;position:relative}
-.persona-title{margin-bottom:1.25rem;text-align:center;}
+.persona-title{margin-bottom:1.25rem;text-align:center; color:color-mix(in oklab,var(--green) 30%,var(--page)) }
 .persona-radio,.lane-radio{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
 .persona-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .persona-tab{display:flex;flex-direction:column;gap:4px;padding:1rem 1.15rem;border:1px solid var(--border);border-radius:12px;background:var(--page);cursor:pointer;position:relative;transition:border-color .2s ease,transform .2s ease;padding-right:4.4rem}

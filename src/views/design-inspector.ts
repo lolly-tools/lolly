@@ -104,7 +104,7 @@ import {
 import type { ChoiceField } from './free-canvas-fields.ts';
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
 import type {
-  ArtboardPort, FramePort, InspectorActions, ModelPort, NarrationActions, NarrationStatus, SelectionPort,
+  ArtboardPort, DesignGuide, DesignGuidePort, FramePort, InspectorActions, ModelPort, NarrationActions, NarrationStatus, SelectionPort,
 } from './design-ports.ts';
 import { isDocked, onDockChange } from '../lib/edge-dock.ts';
 import {
@@ -135,7 +135,7 @@ const DOCK_ID = 'inspector';
  */
 export type InspectorSection =
   | 'document' | 'artboard' | 'object' | 'text' | 'image' | 'motion' | 'present'
-  | 'fill' | 'appearance' | 'shadow' | 'tilt' | 'arrange';
+  | 'fill' | 'appearance' | 'shadow' | 'tilt' | 'arrange' | 'guide';
 
 /**
  * The arrange verbs the Object section offers, in the overlay's OWN op names
@@ -170,6 +170,7 @@ export interface DesignInspectorOpts {
   canvasEl: HTMLElement;
   model: ModelPort;
   selection: SelectionPort;
+  guides?: DesignGuidePort;
   artboard: ArtboardPort;
   actions: InspectorActions;
   /**
@@ -248,6 +249,7 @@ const APPEAR_SEG = 'lolly-appear';
  * first box's number as if it spoke for them all (see `agree`).
  */
 type Gate =
+  | { kind: 'guide'; ids: string[]; box: null; rows: Box[]; secs: InspectorSection[]; guide: DesignGuide }
   | { kind: 'empty'; ids: string[]; box: null; rows: Box[]; secs: InspectorSection[] }
   | { kind: 'frame' | 'object' | 'multi'; ids: string[]; box: Box; rows: Box[]; secs: InspectorSection[] };
 
@@ -287,6 +289,7 @@ interface FlagFields { trans?: string; hidden?: string; locked?: string }
 /** Which fields each section reads. The repaint memo hashes exactly these. */
 const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string | undefined>> = {
   document: () => [],
+  guide: () => [],
   artboard: (c, m) => [c.labelField, c.wField, c.hField, c.fillField, c.gradField, c.strokeField, c.strokeWField, c.clipChildrenField, c.orderField, m.trans],
   object: (c, m) => [c.xField, c.yField, c.wField, c.hField, c.rotationField, 'cls', m.hidden, m.locked],
   fill: (c) => [c.fillField, c.gradField, c.strokeField, c.strokeWField],
@@ -315,6 +318,7 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
  */
 const SECTION_META: Record<InspectorSection, { title: () => string; glyph: IconName }> = {
   document: { title: () => t('Document'), glyph: 'document' },
+  guide: { title: () => t('Guide'), glyph: 'grid' },
   artboard: { title: () => t('Artboard'), glyph: 'crop' },
   object: { title: () => t('Object'), glyph: 'shapes' },
   fill: { title: () => t('Fill & Stroke'), glyph: 'palette' },
@@ -342,7 +346,7 @@ export const SECTIONS_KEY = 'lolly-design-inspector-sections';
  * already showing.
  */
 const DEFAULT_OPEN: Record<InspectorSection, boolean> = {
-  document: true, artboard: true, object: true, fill: true, appearance: true,
+  document: true, guide: true, artboard: true, object: true, fill: true, appearance: true,
   shadow: false, tilt: false, arrange: false,
   text: true, image: true, motion: false, present: false,
 };
@@ -492,6 +496,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * across a selection change, and a commit at blur must land where the user typed.
    */
   let renderedIds: string[] = [];
+  let renderedGuideId: string | null = null;
 
   // ── model reads ─────────────────────────────────────────────────────────────
 
@@ -520,6 +525,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   /** What the selection IS, and therefore which sections may show. */
   function gate(): Gate {
+    const guide = opts.guides?.selected();
+    if (guide) return { kind: 'guide', ids: [], box: null, rows: [], secs: ['guide'], guide };
     const ids = selection.get().filter((s) => s != null && s !== '');
     if (!ids.length) return { kind: 'empty', ids: [], box: null, rows: [], secs: ['document'] };
     const rows = boxesById(ids);
@@ -1356,8 +1363,27 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     return t('Not narrated yet.');
   }
 
+  function guideBody(guide: DesignGuide): string {
+    const id = guide.id;
+    const scale = CSS_PX_PER_UNIT[documentUnit()];
+    const position = (axis: 'x' | 'y', label: string): string =>
+      `<div class="fc-row"><span>${label}</span>${dimCell('', `guide-${axis}`, guide[axis], {
+        name: label, onCommit: value => opts.guides?.update(id, { [axis]: value * scale }),
+      })}</div>`;
+    return position('x', t('X position')) + position('y', t('Y position'))
+      + numRow(t('Rotation'), 'guide-rotation', guide.rotation, {
+        name: t('Guide rotation'), unit: '°', step: 1, precision: 2,
+        onCommit: value => opts.guides?.update(id, { rotation: value }),
+      })
+      + colorRow(t('Colour'), 'fc-insp-guide', guide.color || 'var(--ui-color-action-primary)')
+      + toggleRow(t('Snap objects to guide'), 'guide-snap', guide.snap)
+      + `<p class="fc-insp-hint">${t('Rotation is clockwise around X / Y. Hold Shift while dragging for 10 px steps. Hold Alt while moving objects to bypass snapping.')}</p>`
+      + doorBtn(t('Delete guide'), 'delete-guide', 'trash');
+  }
+
   function bodyFor(sec: InspectorSection, g: Gate): string {
     if (sec === 'document') return documentBody();
+    if (sec === 'guide' && g.kind === 'guide') return guideBody(g.guide);
     const b = (g.box ?? {}) as Box;
     // The paint groups are the only ones a multi-selection shows, so they are the only
     // ones handed every row: the rest answer for one box by construction (see `gate`).
@@ -1403,6 +1429,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   function render(g: Gate): void {
     const keep = focusKey(typeof document !== 'undefined' ? document.activeElement : null);
     renderedIds = [...g.ids];
+    renderedGuideId = g.kind === 'guide' ? g.guide.id : null;
     // The number cells go with the markup that held them: their listeners are on nodes
     // this write is about to throw away, and a pending arrow-key commit must not fire
     // from inside the rebuild that replaced its field.
@@ -1462,6 +1489,10 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * labelled as a box edit.
    */
   function write(field: string | undefined, value: unknown): void {
+    if (renderedGuideId && field === 'guide-snap') {
+      opts.guides?.update(renderedGuideId, { snap: Boolean(value) });
+      return;
+    }
     if (!field || !renderedIds.length) return;
     // A hand-set Enter or Exit on an ARTBOARD is the author overriding the deck, and it
     // has to say so in the same commit - exactly as the timeline's copy of these two
@@ -1508,6 +1539,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     wireColorField(scroll, {
       onChange: (id, val) => {
         const colour = unwrapColor(val);
+        if (id === 'fc-insp-guide' && renderedGuideId) { opts.guides?.update(renderedGuideId, { color: colour }); return; }
         if (id === 'fc-insp-bg') { model.setInput('background', colour); return; }
         write(colorTarget(id), colour);
       },
@@ -1590,6 +1622,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         // row built for one selection must not open on another.
         const ids = [...renderedIds];
         switch (btn.dataset.act) {
+          case 'delete-guide': if (renderedGuideId) opts.guides?.remove(renderedGuideId); break;
           case 'gradient': actions.openGradient(ids); break;
           case 'pickimage': actions.pickImage(ids); break;
           case 'timeline': actions.openTimeline('animate', ids[0] ?? ''); break;
@@ -1649,7 +1682,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * the control shows a stale value until the next selection change.
    */
   function signature(g: Gate): string {
-    const watched: unknown[] = [];
+    const watched: unknown[] = [g.kind === 'guide' ? g.guide : null, model.getInput('documentUnit')];
     for (const sec of g.secs) {
       // EVERY selected row, not just the first. A paint group's cells read them all to
       // decide whether to show a number or "Mixed", so a change to the second box's
@@ -1869,6 +1902,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     sync();
   });
   const unsubSel = selection.onChange(() => sync());
+  const unsubGuides = opts.guides?.onChange(() => sync());
   const unsubArt = artboard.onChange(() => sync());
   // Document's "Canvas size" is measured, not read from the model, so no model write
   // announces a resize and the readout used to sit on the old dimensions until some
@@ -1952,6 +1986,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       ro?.disconnect();
       unsubModel();
       unsubSel();
+      unsubGuides?.();
       unsubArt();
       el.remove();
       opts.onWidthChange?.(0);

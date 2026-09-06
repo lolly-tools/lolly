@@ -7,7 +7,7 @@
  * and the /pro batch grid use this, so there is a single implementation to
  * maintain (no per-view variations).
  *
- * Markup styling lives in styles/parts/components.css (`.color-picker-field`,
+ * Markup styling lives in styles/parts/color-field.css (`.color-picker-field`,
  * `.color-popover`, `.color-swatch`, `.color-trigger`, …) - global, so it applies
  * wherever this markup is mounted.
  *
@@ -16,8 +16,8 @@
  *
  * `float` makes the popover position itself (fixed) anchored to the trigger and
  * close on outside-click - for hosts where the field sits inside a clipping /
- * scrolling container (the /pro grid). Regular sidebar fields use plain CSS
- * positioning; block-colour fields keep their sidebar-spanning behaviour.
+ * scrolling container (the /pro grid). Every popover is viewport-bounded;
+ * block-colour fields keep their sidebar-spanning width.
  *
  * ── ONE CssColor per field ───────────────────────────────────────────────────
  * A field's truth is a single `CssColor` in `STATE`, in the space it was authored
@@ -50,6 +50,15 @@ import { escape } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { nameColor } from '../lib/color-namer.ts';
+
+// The attribute selectors below quote a channel or mode id. Browsers expose
+// CSS.escape for that; jsdom (the test host for every view that mounts a colour
+// field) has no CSS global at all, and the wire-time panel seed reaches these
+// lines on every mount - so the fallback escapes the same way for identifiers.
+const cssEscape = (value: string): string =>
+  (typeof CSS !== 'undefined' && typeof CSS.escape === 'function')
+    ? CSS.escape(value)
+    : value.replace(/[^\w-]/g, ch => `\\${ch}`);
 import { wireTabs } from '../lib/tabs.ts';
 import {
   colorSpaces, getColorSpace, composeColor, decomposeColor, channelRuns, pinValue,
@@ -658,7 +667,7 @@ function dialsHtml(dials: readonly DialSpec[], outHex: string, slots: number): s
 /** Repaint a panel's dials + output disc. */
 function paintDials(panel: HTMLElement, dials: readonly DialSpec[], outHex: string): void {
   for (const d of dials) {
-    const dial = panel.querySelector<HTMLElement>(`.color-dial[data-dial-ch="${CSS.escape(d.ch)}"]`);
+    const dial = panel.querySelector<HTMLElement>(`.color-dial[data-dial-ch="${cssEscape(d.ch)}"]`);
     if (!dial) continue;
     if (d.runs) {
       dial.style.background = dialFromRuns(d.runs);
@@ -848,9 +857,9 @@ function modeTabHtml(eid: string, spec: SpaceSpec, active: boolean): string {
  * ("OKLCH, perceptual"), because a `role="presentation"` wrapper cannot
  * contribute a group name to a flat tablist.
  */
-function colorModesHtml(eid: string, seed: CssColor, lastHue: number, active: ColorMode, dials: boolean): string {
-  const specs = colorSpaces();
-  const families = (['perceptual', 'device', 'output'] as const).map(family => {
+function colorModesHtml(eid: string, seed: CssColor, lastHue: number, active: ColorMode, dials: boolean, allSpaces: boolean): string {
+  const specs = allSpaces ? colorSpaces() : [getColorSpace('hsl')!, getColorSpace('oklch')!];
+  const families = !allSpaces ? specs.map(s => modeTabHtml(eid, s, s.mode === active)).join('') : (['perceptual', 'device', 'output'] as const).map(family => {
     const rows = specs.filter(s => s.family === family);
     if (!rows.length) return '';
     const wide = family === 'output' && rows.some(s => String(s.mode).startsWith('icc:'));
@@ -863,7 +872,7 @@ function colorModesHtml(eid: string, seed: CssColor, lastHue: number, active: Co
   const panels = specs
     .map(s => spacePanelHtml(eid, s, seed, lastHue, { hidden: s.mode !== active, dials, tabbed: true, rows: widest }))
     .join('');
-  return `<div class="color-modes" data-color-modes="${eid}" data-active-mode="${escape(active)}">
+  return `<div class="color-modes${allSpaces ? '' : ' color-modes--simple'}" data-color-modes="${eid}" data-active-mode="${escape(active)}">
       <div class="color-mode-tabs" role="tablist" aria-label="Colour space">${families}</div>
       ${panels}
       ${noteHtml(eid)}
@@ -901,7 +910,7 @@ function triggerAria(label: string, name: string, hex: string): string {
   return label ? `${label}: ${value}` : `Colour: ${value}`;
 }
 
-export function colorFieldHtml(id: string, value: unknown, { float = false, swatchesOnly = false, block = false, inline = false, modes = false, dials, progressive = false, name: nameOverride, label = '' }: { float?: boolean; swatchesOnly?: boolean; block?: boolean; inline?: boolean; modes?: boolean; dials?: boolean; progressive?: boolean; name?: string; label?: string } = {}): string {
+export function colorFieldHtml(id: string, value: unknown, { float = false, swatchesOnly = false, block = false, inline = false, modes = false, palette = false, dials, progressive = false, name: nameOverride, label = '', initialMode }: { float?: boolean; swatchesOnly?: boolean; block?: boolean; inline?: boolean; modes?: boolean; palette?: boolean; dials?: boolean; progressive?: boolean; name?: string; label?: string; initialMode?: ColorMode } = {}): string {
   const rawVal = toHex(value) ?? '';
   const isTransparent = String(rawVal).trim().toLowerCase() === 'transparent';
   // Seeding is strictly WIDENED: anything the engine's parseColor accepts (hex,
@@ -914,7 +923,10 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
   const st: FieldColorState = {
     kind: isTransparent ? 'transparent' : 'color',
     color,
-    mode: modes ? DEFAULT_COLOR_MODE : 'oklch',
+    // The space the field opens in. The default is the familiar one (HSL); a
+    // surface whose job is colour itself - the Colour Lab - opens in OKLCH so a
+    // wide-gamut seed is described unclamped and its report reads in that space.
+    mode: initialMode && getColorSpace(initialMode) ? initialMode : DEFAULT_COLOR_MODE,
     lastHue: hueOf(color) ?? SEED.components[2],
     ref: null,
   };
@@ -946,7 +958,7 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
   // the override stops applying (updateTrigger computes the name again from the value),
   // which is right: the value is no longer that token's.
   const name = nameOverride || swatchName(value);
-  const wantDials = dials ?? inline;
+  const wantDials = dials ?? (inline && !palette);
 
   // Swatches are NOT rendered here - they're the heaviest part (the whole
   // palette per field) and are built lazily on first popover open (see
@@ -967,10 +979,8 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
   // brand editor's Primary colour and swatch editor). CSS (.color-field--inline)
   // turns the popover static and gives the dials the full width.
   //
-  // It carries NO swatch palette: every inline host is the brand editor, where
-  // the swatches would be the very palette being edited - offering the brand's
-  // own colours as presets for a brand colour is circular. Omitted rather than
-  // hidden: the grid is the heaviest part of the popover's DOM.
+  // Inline editors omit the always-open palette by default. `palette: true`
+  // exposes the same swatch grid above Fine-tune for an embedded picker.
   //
   // `data-color-canon` is the server-render → wire handoff: the canonical colour
   // as a CSS Color 4 string (or 'transparent', or empty for "no colour yet").
@@ -983,6 +993,7 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
   // ordinary inline editor remains byte-for-byte expanded unless its caller
   // explicitly opts into this progressive pose.
   const progressiveInline = inline && progressive;
+  const folded = !inline || progressiveInline || palette;
   const inputRow = `<div class="color-input-wrap"${painted ? ` style="${Object.entries(colorInputPaint(shown)).map(([k, v]) => `${k}:${v}`).join(';')}"` : ''}>
       ${/* NO maxlength: this field takes any CSS colour ('rebeccapurple',
             'color(display-p3 1 0 0)'), and the 9-character hex cap silently
@@ -995,32 +1006,26 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
       ${progressiveInline ? `<button type="button" class="color-native-button" data-color-native-button="${eid}" aria-label="Open colour picker" title="Open colour picker">${icon('palette', { size: 16 })}</button>` : ''}
       </div>`;
   const fineToggle = `<button type="button" class="color-fine-toggle" data-color-fine-toggle="${eid}" aria-expanded="false">${icon('sliders', { size: 13 })}<span>${escape(t('Fine-tune'))}</span>${icon('chevronDown', { className: 'color-fine-chev', size: 14 })}</button>`;
-  const cls = `color-picker-field${float ? ' color-field--float' : ''}${block ? ' block-color-field' : ''}${inline ? ' color-field--inline' : ''}${progressiveInline ? ' color-field--progressive' : ''}`;
-  return `<div class="${cls}" data-color-field="${eid}" data-color-canon="${escape(canon)}"${label ? ` data-color-label="${escape(label)}"` : ''}>
+  const cls = `color-picker-field${float ? ' color-field--float' : ''}${block ? ' block-color-field' : ''}${inline ? ' color-field--inline' : ''}${progressiveInline ? ' color-field--progressive' : ''}${palette ? ' color-field--palette' : ''}`;
+  return `<div class="${cls}" data-color-field="${eid}" data-color-canon="${escape(canon)}" data-color-notation="${modes ? 'space' : 'hex'}"${label ? ` data-color-label="${escape(label)}"` : ''}>
     ${inline ? '' : `<button type="button" class="color-trigger" data-color-trigger="${eid}" aria-haspopup="true" aria-expanded="false" aria-label="${escape(triggerAria(label, name, hex))}">
-      <span class="${previewClass}" ${previewBg} aria-hidden="true"></span>
       <span class="color-trigger-name">${escape(name)}</span>
+      <span class="${previewClass}" ${previewBg} aria-hidden="true"></span>
     </button>`}
     <div class="color-popover" role="group" aria-label="Colour options"${inline ? '' : ' hidden'}>
-      ${inline
+      ${inline && !palette
         // Inline has no always-open palette (the brand editor's own tiles ARE the
         // palette). The swatch grid instead lives in a menu the result disc's edit
         // action opens - "the swatch context menu" - so presets stay one click away.
-        ? '<div class="color-swatch-menu" data-swatch-menu hidden><div class="color-swatches"></div></div>'
+        ? '<div class="color-swatch-menu" data-swatch-menu hidden><div class="color-swatches" role="group" aria-label="Brand colour swatches" tabindex="0"></div></div>'
         // In a click-to-open popover the PALETTE leads: most picks are a brand
         // swatch, so the grid is the whole first screen and the fine controls
         // (value/eyedropper/sliders/alpha) wait behind the Fine-tune fold below.
-        : '<div class="color-swatches"></div>'}
-      ${swatchesOnly ? '' : `${progressiveInline ? inputRow : ''}${(!inline || progressiveInline) ? fineToggle : ''}
-      <div class="color-fine"${(!inline || progressiveInline) ? ' data-color-fine hidden' : ''}>
+        : '<div class="color-swatches" role="group" aria-label="Brand colour swatches" tabindex="0"></div>'}
+      ${swatchesOnly ? '' : `${progressiveInline ? inputRow : ''}${folded ? fineToggle : ''}
+      <div class="color-fine"${folded ? ' data-color-fine hidden' : ''}>
       ${progressiveInline ? '' : inputRow}
-      ${modes
-        ? colorModesHtml(eid, seed, st.lastHue, st.mode, wantDials)
-        // The whole fine section is gated by the Fine-tune fold in a popover, so
-        // the sliders inside it render VISIBLE - expanding the fold is the one
-        // reveal. The inline panel (brand editor) is a dedicated always-open
-        // editor and shows everything with no fold at all.
-        : spacePanelHtml(eid, getColorSpace('oklch')!, seed, st.lastHue, { hidden: false, dials: wantDials, tabbed: false }) + noteHtml(eid)}
+      ${colorModesHtml(eid, seed, st.lastHue, st.mode, wantDials, modes)}
       <div class="color-alpha-row">
         <span class="color-alpha-label" aria-hidden="true">A</span>
         ${/* The gradient ends are emitted HERE as well as repainted from JS: nothing
@@ -1194,7 +1199,7 @@ function paintTracks(panel: HTMLElement, { spec, alpha, dials, skip }: PaintJob)
   spec.channels.forEach((ch, i) => {
     const r = runs[i];
     if (!r) return;
-    const slider = panel.querySelector<HTMLInputElement>(`[data-mode-ch="${CSS.escape(ch.ch)}"]`);
+    const slider = panel.querySelector<HTMLInputElement>(`[data-mode-ch="${cssEscape(ch.ch)}"]`);
     if (slider) slider.style.background = trackFromRuns(r);
   });
   if (!dials) return;
@@ -1219,7 +1224,7 @@ function paintReadouts(panel: HTMLElement, spec: SpaceSpec, vals: Record<string,
     const raw = vals[ch.ch] ?? ch.min;
     const { pinned } = pinValue(ch, raw);
     anyPinned = anyPinned || pinned;
-    const out = panel.querySelector<HTMLElement>(`[data-mode-val="${CSS.escape(ch.ch)}"]`);
+    const out = panel.querySelector<HTMLElement>(`[data-mode-val="${cssEscape(ch.ch)}"]`);
     if (!out) continue;
     out.textContent = ch.fmt(raw);
     out.classList.toggle('is-clamped', pinned);
@@ -1246,14 +1251,14 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
   /** The space the field is currently editing in. */
   const activeSpec = (field: HTMLElement): SpaceSpec => {
     const st = STATE.get(field);
-    return getColorSpace(st?.mode ?? 'oklch') ?? getColorSpace('oklch')!;
+    return getColorSpace(st?.mode ?? DEFAULT_COLOR_MODE) ?? getColorSpace('oklch')!;
   };
 
   /** The panel for the field's active mode - NOT `:not([hidden])`: a popover whose
    *  sliders have not been expanded yet still has to be kept in step, or opening
    *  them later shows a stale colour. */
   const activePanel = (field: HTMLElement, spec: SpaceSpec): HTMLElement | null =>
-    field.querySelector<HTMLElement>(`[data-space-group="${CSS.escape(spec.mode)}"]`);
+    field.querySelector<HTMLElement>(`[data-space-group="${cssEscape(spec.mode)}"]`);
 
   const wantsDials = (panel: HTMLElement): boolean => Boolean(panel.querySelector('.color-dials'));
 
@@ -1273,7 +1278,7 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
     const vals = decomposeColor(spec, color, lastHue);
     PANEL_VALS.set(panel, vals);
     for (const ch of spec.channels) {
-      const slider = panel.querySelector<HTMLInputElement>(`[data-mode-ch="${CSS.escape(ch.ch)}"]`);
+      const slider = panel.querySelector<HTMLInputElement>(`[data-mode-ch="${cssEscape(ch.ch)}"]`);
       if (slider) slider.value = num(pinValue(ch, vals[ch.ch] ?? ch.min).at);
     }
     paintReadouts(panel, spec, vals);
@@ -1351,8 +1356,8 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
   /**
    * The text the value field shows.
    *
-   * With a tab strip, the ACTIVE space's notation - that is the point of the strip.
-   * Without one, a hex: those hosts (the sidebar, the /pro grid, free-canvas) render
+   * Advanced editors use the ACTIVE space's notation.
+   * Compact pickers retain a hex: those hosts (the sidebar, the /pro grid, free-canvas) render
    * a ~150px field whose placeholder is `#rrggbbaa`, and writing `oklch(70.085%
    * 0.15123 157.2 / 0.7843)` into it left the user unable to re-enter the string the
    * component itself had just written.
@@ -1363,7 +1368,7 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
    */
   const valueText = (field: HTMLElement, st: FieldColorState): string => {
     if (st.kind === 'transparent') return 'transparent';
-    if (!field.querySelector('.color-modes')) return bakedHex(st);
+    if (field.dataset.colorNotation !== 'space') return bakedHex(st);
     const spec = activeSpec(field);
     const panel = activePanel(field, spec);
     const vals = panel ? PANEL_VALS.get(panel) : undefined;
@@ -1612,8 +1617,11 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
   });
 
   // Inline fields have no trigger, so the on-open hooks below never fire - seed
-  // their nearest-brand hint up front. (They carry no swatch grid to build.)
-  scope.querySelectorAll<HTMLElement>('.color-field--inline[data-color-field]').forEach(f => seedNearest(f));
+  // their nearest-brand hint and any explicitly requested palette up front.
+  scope.querySelectorAll<HTMLElement>('.color-field--inline[data-color-field]').forEach(f => {
+    seedNearest(f);
+    if (f.classList.contains('color-field--palette')) buildSwatches(f);
+  });
 
   // ── The Fine-tune fold ───────────────────────────────────────────────────────
   // The popover leads with the palette; value/eyedropper/sliders/alpha wait
@@ -1654,7 +1662,7 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
       const popover = field?.querySelector<HTMLElement>('.color-popover');
       if (!popover) return;
       scope.querySelectorAll<HTMLElement>('.color-popover:not([hidden])').forEach(p => {
-        if (p !== popover) {
+        if (p !== popover && !p.closest('.color-field--inline')) {
           p.hidden = true; p.style.cssText = '';
           p.closest('[data-color-field]')?.querySelector('.color-trigger')?.setAttribute('aria-expanded', 'false');
         }
@@ -1711,61 +1719,28 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
     // is actually laid out against (the sidebar's backdrop-filter traps it - see
     // fixedContainingBlockOrigin). `cb` is {0,0} when `fixed` is truly viewport-relative.
     const cb = fixedContainingBlockOrigin(popover);
-    if (field.classList.contains('block-color-field')) {
-      // Block colour fields span the sidebar (escape its overflow clipping).
-      const sidebar = scope.closest('.sidebar-body') || scope.closest('.sidebar');
-      if (sidebar) {
-        const sb = sidebar.getBoundingClientRect();
-        const t = trigger.getBoundingClientRect();
-        popover.style.cssText = `position:fixed;top:${t.bottom + 4 - cb.y}px;left:${sb.left + 14 - cb.x}px;width:${sb.width - 28}px;right:auto;z-index:10001;`;
-      }
-      // Same close-on-outside/scroll as the other fixed branches - without it the
-      // popover survives a click on another block's field and strands on scroll.
-      armOutside(field, popover);
-    } else if (field.classList.contains('color-field--float')) {
-      // Float: dock to the CELL frame's top-left (not the trigger's - the field's
-      // padding would otherwise leave the popover a few px low), escaping any
-      // scroll container; close on outside. Match the cell width when it's wider
-      // than the minimum (the field is fluid at 100%), squaring the docked corner.
-      const t = (trigger.closest('td') || trigger).getBoundingClientRect();
-      const W = Math.max(224, Math.round(t.width));
-      const left = Math.max(8, Math.min(t.left, window.innerWidth - W - 8));
-      // Measure the EXPANDED height (sliders reserved), then clamp vertically so the popover
-      // never spills off the bottom (or top) of the viewport - even after the sliders expand.
-      const ph = measuredFullHeight(popover, W);
-      let top = t.top;
-      if (top + ph > window.innerHeight - 8) top = window.innerHeight - ph - 8;
-      top = Math.max(8, top);
-      // Only square the top-left corner when the popover is still docked flush to the cell.
-      const docked = Math.abs(top - t.top) < 1;
-      popover.style.cssText = `position:fixed;top:${Math.round(top - cb.y)}px;left:${Math.round(left - cb.x)}px;width:${W}px;right:auto;z-index:10001;${docked ? 'border-top-left-radius:0;' : ''}`;
-      armOutside(field, popover);
-    } else {
-      // Regular sidebar field: portal to position:fixed anchored to the field (like the
-      // block/float branches). An absolute popover was trapped whenever an ancestor
-      // formed a stacking context - the focus-spotlight dim on non-focused
-      // sections, or the section's own clip - and a later section painted over it (the
-      // "picker renders below" bug). Fixed escapes every ancestor stacking context and
-      // overflow clip, so it's always on top. Flip above when it would overflow the
-      // sidebar's bottom; close on any outside interaction.
-      const sb = scope.closest('.sidebar-body') || scope.closest('.sidebar');
-      const f = field.getBoundingClientRect();
-      // Decide the open direction on the EXPANDED height (sliders reserved), so a later reveal
-      // never has to flip the popover (the "swatch jumps" bug). Below is the common case and
-      // has no gap; when it must open UP (field near the viewport bottom) the collapsed popover
-      // sits at the reserved top and grows down to the field on reveal.
-      const ph = measuredFullHeight(popover, Math.round(f.width));
-      const bottomLimit = sb ? sb.getBoundingClientRect().bottom : window.innerHeight;
-      const openUp = (bottomLimit - f.bottom) < ph + 10;
-      const top = openUp ? Math.max(8, Math.round(f.top - 4 - ph)) : Math.round(f.bottom + 4);
-      popover.style.cssText = `position:fixed;top:${top - cb.y}px;left:${Math.round(f.left) - cb.x}px;width:${Math.round(f.width)}px;right:auto;z-index:10001;`;
-      armOutside(field, popover);
-    }
+    const sidebar = scope.closest('.sidebar-body') || scope.closest('.sidebar');
+    const isFloat = field.classList.contains('color-field--float');
+    const isBlock = field.classList.contains('block-color-field');
+    const anchor = (isFloat ? trigger.closest('td') || trigger : field).getBoundingClientRect();
+    const side = isBlock ? sidebar?.getBoundingClientRect() : null;
+    // Even a dot-only toolbar button opens a usable picker. All three hosts share
+    // viewport bounds; the full panel can scroll on a short screen.
+    const width = Math.min(Math.max(264, side ? side.width - 28 : Math.round(anchor.width)), Math.max(1, window.innerWidth - 16));
+    const left = Math.max(8, Math.min(side ? side.left + 14 : anchor.left, window.innerWidth - width - 8));
+    const height = Math.min(measuredFullHeight(popover, width), window.innerHeight - 16);
+    const bottomLimit = Math.min(window.innerHeight, sidebar?.getBoundingClientRect().bottom ?? window.innerHeight);
+    const openUp = bottomLimit - anchor.bottom < height + 10;
+    const proposedTop = isFloat ? anchor.top : openUp ? anchor.top - 4 - height : anchor.bottom + 4;
+    const top = Math.max(8, Math.min(proposedTop, window.innerHeight - height - 8));
+    const docked = isFloat && Math.abs(top - anchor.top) < 1;
+    popover.style.cssText = `position:fixed;top:${Math.round(top - cb.y)}px;left:${Math.round(left - cb.x)}px;width:${width}px;max-height:${Math.max(1, window.innerHeight - top - 8)}px;right:auto;z-index:10001;${docked ? 'border-top-left-radius:0;' : ''}`;
+    armOutside(field, popover);
   }
 
   // Outside-click / scroll close (float + regular sidebar fields, both position:fixed).
   let outside: ((e: PointerEvent) => void) | null = null;
-  let onScroll: (() => void) | null = null;
+  let onScroll: ((e: Event) => void) | null = null;
   let onDocKey: ((e: KeyboardEvent) => void) | null = null;
   function armOutside(field: HTMLElement, popover: HTMLElement): void {
     disarmOutside();
@@ -1777,7 +1752,13 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
     // input) can trigger a browser scroll-into-view, and closing on THAT dropped the picker
     // out from under a slider drag ("clicking the sliders just closes it"). Focus inside the
     // popover ⇒ the scroll is the interaction's own, not a dismiss.
-    onScroll = () => { if (popover.contains(document.activeElement)) return; close(); };
+    onScroll = (e) => {
+      // Wheel/touch scrolling does not necessarily focus a swatch. Test the scroll
+      // source itself so the palette never dismisses its own popover.
+      if (e.target instanceof Node && popover.contains(e.target)) return;
+      if (popover.contains(document.activeElement)) return;
+      close();
+    };
     // Escape closes even when focus never entered the field - the canvas-anchored
     // popover opens from a control-point tap that leaves focus on the canvas, so
     // the field-level Escape handler above cannot see the key. Bubble phase, so
@@ -1847,7 +1828,7 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
 
     row.querySelectorAll<HTMLElement>('.color-dial').forEach(dial => {
       const ch = dial.dataset.dialCh!;
-      const slider = panel?.querySelector<HTMLInputElement>(`[data-mode-ch="${CSS.escape(ch)}"]`);
+      const slider = panel?.querySelector<HTMLInputElement>(`[data-mode-ch="${cssEscape(ch)}"]`);
       if (!slider) return;
       const min = parseFloat(slider.min || '0');
       const max = parseFloat(slider.max || '1');
@@ -1966,8 +1947,7 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
   // ── Screen eyedropper ────────────────────────────────────────────────────────
   // The EyeDropper API's overlay samples ANYWHERE on screen - other windows and
   // the desktop included, not just this page (Chromium; secure contexts). Where
-  // it doesn't exist (Firefox/Safari, the Tauri WebViews) the button is removed,
-  // never a dead control. The picked colour applies exactly like a swatch: current
+  // it doesn't exist the action opens the system colour picker instead. The picked colour applies exactly like a swatch: current
   // alpha kept, sliders re-seeded, trigger + host notified. The OS overlay swallows
   // pointer events, so the popover's close-on-outside never fires mid-pick;
   // interact() still brackets it like a slider drag so hosts hold their
@@ -1975,9 +1955,18 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
   scope.querySelectorAll<HTMLButtonElement>('.color-eyedropper[data-color-eyedropper]').forEach(btn => {
     type EyeDropperCtor = new () => { open(): Promise<{ sRGBHex: string }> };
     const EyeDropper = (window as { EyeDropper?: EyeDropperCtor }).EyeDropper;
-    if (!EyeDropper) { btn.remove(); return; }
     const field = btn.closest<HTMLElement>('[data-color-field]');
     if (!field) return;
+    if (!EyeDropper) {
+      // Keep a useful picking action in Safari/WebViews instead of making the
+      // affordance disappear. The native panel owns any OS sampling capability.
+      btn.dataset.colorPickerFallback = 'native';
+      btn.setAttribute('aria-label', 'Open system colour picker');
+      btn.title = 'Open system colour picker — screen eyedropper unavailable in this browser';
+      btn.innerHTML = icon('palette', { size: 16 });
+      btn.addEventListener('click', () => field.querySelector<HTMLInputElement>('input.color-popover-native')?.click());
+      return;
+    }
     btn.addEventListener('click', async () => {
       interact(true);
       try {
@@ -2075,7 +2064,12 @@ export interface MountColorFieldOpts {
   float?: boolean;
   swatchesOnly?: boolean;
   inline?: boolean;
+  /** Show the full colour-space registry; otherwise HSL and OKLCH. */
   modes?: boolean;
+  /** Show the palette above Fine-tune in an always-open inline panel. */
+  palette?: boolean;
+  /** The colour space the picker opens in (default: the familiar DEFAULT_COLOR_MODE). */
+  initialMode?: ColorMode;
   /** Show the conic dials. Defaults to `inline` - a float popover can opt in. */
   dials?: boolean;
   /** Keep an inline first-contact field compact until Fine-tune is opened. */
@@ -2086,8 +2080,8 @@ export interface MountColorFieldOpts {
 
 /**
  * Mount our colour picker into `container`, in place of a native
- * `<input type=color>` - the shell never opens the OS colour picker, so every
- * colour surface routes through this one component. Fills the container with a
+ * `<input type=color>` - every colour surface routes through this component,
+ * with a system picker fallback when screen sampling is unavailable. Fills the container with a
  * single field and wires it; `onChange` gets the canonical value string
  * (#rrggbb / #rrggbbaa / 'transparent'). Returns the field element so callers
  * can find its trigger for styling. Safe to call again on the same container to
@@ -2096,7 +2090,7 @@ export interface MountColorFieldOpts {
 export function mountColorField(container: HTMLElement, id: string, opts: MountColorFieldOpts): HTMLElement {
   container.innerHTML = colorFieldHtml(id, opts.value ?? '', {
     float: opts.float, swatchesOnly: opts.swatchesOnly, inline: opts.inline, modes: opts.modes, dials: opts.dials,
-    progressive: opts.progressive,
+    progressive: opts.progressive, palette: opts.palette, initialMode: opts.initialMode,
   });
   wireColorField(container, {
     // A token-backed swatch emits a token value OBJECT ({ ref, value }) so the sidebar can keep

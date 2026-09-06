@@ -203,6 +203,7 @@
   border-radius: var(--radius);
   border: 1px solid hsl(var(--vf-pass) / 0.3);
   background: hsl(var(--vf-pass) / 0.09);
+  box-shadow: var(--shadow-2);
   color: hsl(var(--foreground));
   font-size: var(--fs-lg); font-weight: 600;
 }
@@ -222,7 +223,8 @@
 /* The signer-identity footnote - same small/muted/SUSE-Mono treatment used for
    every other engraved value on this page (facts, metadata, checks). */
 .valid-hero-signedby {
-  margin: 0.15rem 0 0;
+  margin: var(--sp-4) 0;
+  text-align: center;
   font-family: var(--font-mono);
   font-size: calc(0.74rem * var(--a11y-fs)); color: hsl(var(--muted-foreground));
 }
@@ -535,9 +537,9 @@
    give that prose room to breathe. */
 .valid-meta-group--desc {
   grid-column: span 2;
-  box-shadow: inset 0 .1em .9em #0001, inset 0 0 0 1px #00000005;
-  padding: 1.5rem;
-  border-radius: 1em;
+
+   
+
 }
 .valid-meta-row { display: contents; }
 .valid-meta-row dt {
@@ -551,7 +553,7 @@
 }
 /* Personally identifying - GPS, serials, author names. The exposed VALUE is
    tinted persimmon; the eye lands on the datum, not on decoration. */
-.valid-meta-row.is-sensitive dd { color: hsl(var(--vf-fail)); }
+.valid-meta-row.is-sensitive dd { color: hsl(var(--vf-warn-1)); }
 
 /* Location - a full-width offline world plot with the fix pinned. */
 .valid-meta-location { grid-column: 1 / -1; }
@@ -1350,7 +1352,7 @@ box-shadow: inset 0 -.13em .5em currentcolor, 0 .2rem .5rem -.2rem #0002, 0 0 0 
   .valid-meta-count { margin-left: auto; }
   .valid-meta-body { margin-top: 0.75rem; }
   .valid-meta-grid { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
-  .valid-meta-group--desc { grid-column: auto; padding: 1rem; }
+  .valid-meta-group--desc {  margin-bottom:var(--sp-4)}
   .valid-meta-location { grid-column: auto; }
   .valid-meta-loc-read { align-items: flex-start; flex-direction: column; gap: 0.45rem; }
 

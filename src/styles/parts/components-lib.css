@@ -1,164 +1,199 @@
 /* SPDX-License-Identifier: MPL-2.0 */
-/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
-   (order declared once in styles/app.css). Wrapping it means its rules keep a
-   fixed priority - above chrome/primitives/base, below overrides/a11y - no
-   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+/* Library chrome consumes the same semantic tokens exported to Penpot.
+   Specimens retain their production part styles; scaffolding stays scoped. */
 @layer views {
-/* The browsable component library (#/components - views/components.ts). Its own
-   chrome only; every SAMPLE inside is styled by the real part sheets, which this
-   view imports so the specimens look exactly as they do in the app. */
-
-.cl-view { max-width: 1180px; margin: 0 auto; padding: 1rem 1.1rem 5rem; }
-
-/* Header - the back affordance is the app's shared fixed corner pill
-   (.tools-home.home-full, as on /profile, /pro and /valid); title + sub share one
-   baseline row (same layout as the brand studio's Colour-tab header), jump-nav on
-   its own row. The top margin clears the fixed pill on narrow viewports. */
-.cl-head {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  margin: 2.6rem 0 1.6rem;
-}
+.cl-view { margin: 0 auto;  color: var(--ui-color-text-default); }
+.cl-view [hidden] { display: none !important; }
+.cl-view a, .cl-view button, .cl-view input, .cl-view select { -webkit-tap-highlight-color: transparent; }
+.cl-view :is(a, button, input, select, summary):focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 4px; }
 .cl-back { border: 0; }
-.cl-title { margin: 0; font-size: clamp(1.7rem, 3.4vw, 2.3rem); font-weight: 700; letter-spacing: -.02em; }
-.cl-sub { margin: 0 0 1rem; color: hsl(var(--muted-foreground)); max-width: 62ch; line-height: 1.5; }
-.cl-head .cl-sub { margin: 0; }
-.cl-jump { display: flex; flex-wrap: wrap; gap: .4rem; }
-.cl-head .cl-jump { flex-basis: 100%; }
-.cl-jump a {
-  font-size: calc(.72rem * var(--a11y-fs)); padding: .28rem .6rem; border-radius: var(--radius-pill); text-decoration: none;
-  border: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); background: hsl(var(--card));
-}
-.cl-jump a:hover { border-color: hsl(var(--ring) / .6); color: hsl(var(--foreground)); }
-
-/* "Still open" panel - the audit is executed; this is the short list of what
-   remains (full per-recommendation history: plans/76-component-audit.md). */
-.cl-recs {
-  margin: 0 0 2.4rem; padding: 1.1rem 1.2rem; border-radius: var(--radius);
-  border: 1px solid hsl(var(--border)); background: hsl(var(--muted) / .35);
-}
-.cl-recs > h2 { margin: 0 0 .3rem; font-size: calc(1.05rem * var(--a11y-fs)); }
-.cl-recs-lede { margin: 0 0 .7rem; font-size: calc(.82rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
-.cl-open { margin: 0; padding-inline-start: 1.1rem; display: flex; flex-direction: column; gap: .35rem; }
-.cl-open li { font-size: calc(.8rem * var(--a11y-fs)); line-height: 1.5; }
-.cl-open code {
-  font-family: var(--font-mono, ui-monospace, monospace); font-size: calc(.72rem * var(--a11y-fs));
-  background: hsl(var(--muted) / .6); padding: .05rem .3rem; border-radius: 4px;
-}
-
-/* Section = one primitive family or one view. */
-.cl-section { margin: 0 0 2.6rem; scroll-margin-top: 1rem; }
-.cl-section-head { display: flex; align-items: baseline; gap: .6rem; margin: 0 0 1rem; padding-bottom: .4rem; border-bottom: 2px solid hsl(var(--border)); }
-.cl-section-head h2 { margin: 0; font-size: calc(1.25rem * var(--a11y-fs)); letter-spacing: -.01em; }
-.cl-section-kind { font-size: calc(.66rem * var(--a11y-fs)); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
-
-/* The specimen grid - cards auto-fit, wide ones can opt to span. */
-.cl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
-.cl-card {
-  display: flex; flex-direction: column; min-width: 0;
-  border: 1px solid hsl(var(--border)); border-radius: var(--radius); overflow: clip; background: hsl(var(--card));
-}
+.cl-head { display: grid; grid-template-columns: 1.3fr 1fr; align-items: center; gap: 64px; padding: 24px 0 56px; }
+.cl-eyebrow { margin: 0 0 18px; font: 600 var(--ui-type-caption)/1.4 var(--font-mono); letter-spacing: .09em; text-transform: uppercase; color: var(--ui-color-text-muted); }
+.cl-title { margin: 0; font-size: clamp(calc(var(--ui-type-display) * .625), 5.1vw, var(--ui-type-display)); font-weight: 650;  line-height: 1.03; }
+.cl-title span { color: var(--ui-color-action-primary); }
+.cl-sub { max-width: 47ch; margin: 24px 0 28px; font-size: var(--ui-type-lead); line-height: 1.65; color: var(--ui-color-text-muted); }
+.cl-head-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.cl-head-actions .btn { display: inline-flex; align-items: center; justify-content: center; gap: 16px; min-height: var(--ui-size-target); padding: 10px 18px; font-size: var(--ui-type-body); border-radius: var(--ui-radius-control); }
+.cl-cover { aspect-ratio: 1.3; display: flex; flex-direction: column; justify-content: space-between; padding: 28px; border-radius: var(--ui-radius-card); background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); overflow: hidden; }
+.cl-cover-top, .cl-cover-bottom { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.cl-cover-top { font: 500 var(--ui-type-caption)/1.5 var(--font-mono); letter-spacing: .04em; }
+.cl-cover-type { display: flex; align-items: baseline; gap: 24px; font-size: calc(var(--ui-type-display) * 1.75); font-weight: 500;  line-height: 1.2; }
+.cl-cover-type > span { font-size: var(--ui-type-heading); font-weight: 450;  line-height: 1.1; }
+.cl-cover-chip { border: 1px solid currentColor; padding: 9px 14px; border-radius: var(--ui-radius-pill); font-size: var(--ui-type-caption); }
+.cl-cover-swatches { display: flex; padding-inline-end: 5px; }
+.cl-cover-swatches i { width: 32px; height: 32px; border-radius: var(--ui-radius-pill); background: var(--ui-color-action-on-primary); margin-inline-end: -5px; border: 2px solid var(--ui-color-action-primary); }
+.cl-cover-swatches i:nth-child(2) { background: var(--ui-color-surface-muted); }
+.cl-cover-swatches i:nth-child(3) { background: var(--ui-color-text-muted); }
+.cl-stats { display: grid; grid-template-columns: repeat(4, 1fr); padding: 24px 0; border-block: 1px solid var(--ui-color-border-default); margin-bottom: 48px; }
+.cl-stats > div { display: flex; gap: 14px; align-items: baseline; padding: 0 24px; border-inline-end: 1px solid var(--ui-color-border-default); }
+.cl-stats > div:first-child { padding-inline-start: 0; }.cl-stats > div:last-child { border: 0; }
+.cl-stats strong { font-size: var(--ui-type-heading); font-weight: 550; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
+.cl-stats span { font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); }
+.cl-layout { display: grid; grid-template-columns: 208px minmax(0, 1fr); gap: 48px; align-items: start; }
+.cl-sidebar { position: sticky; top: 64px; max-height: calc(100dvh - 48px); overflow-y: auto; scrollbar-width: thin; padding: 8px 12px 12px 0; }
+.cl-sidebar .cl-eyebrow { margin-bottom: 12px; }
+.cl-sidebar nav { display: flex; flex-direction: column; gap: 2px; }
+.cl-sidebar nav a { min-height: var(--ui-size-target); display: flex; align-items: center; justify-content: space-between; gap: 12px; text-decoration: none; color: var(--ui-color-text-muted); border-radius: var(--ui-radius-control); padding: 8px 10px; font-size: var(--ui-type-caption); line-height: 1.4; }
+.cl-sidebar nav a > span:last-child { font-variant-numeric: tabular-nums; }
+.cl-sidebar nav a:hover, .cl-sidebar nav a[aria-current] { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.cl-nav-divider { height: 1px; margin: 14px 0; background: var(--ui-color-border-default); }
+.cl-sidebar-note { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--ui-color-border-default); font-size: var(--ui-type-caption); line-height: 1.6; }
+.cl-sidebar-note strong { font-weight: 600; }.cl-sidebar-note p { color: var(--ui-color-text-muted); }
+.cl-library { min-width: 0; }
+.cl-section { margin: 0 0 var(--ui-space-section); scroll-margin-top: 24px; }
+.cl-section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; margin-bottom: 20px; }
+.cl-section-head .cl-eyebrow { margin-bottom: 10px; }
+.cl-section-head h2 { margin: 0; font-size: var(--ui-type-heading); font-weight: 600; line-height: 1.2;  }
+.cl-section-intro { max-width: 65ch; margin: -4px 0 24px; color: var(--ui-color-text-muted); line-height: 1.65; font-size: var(--ui-type-body); }
+.cl-text-link { color: var(--ui-color-action-primary); text-decoration-thickness: 1px; text-underline-offset: 4px; font-size: var(--ui-type-caption); white-space: nowrap; padding-block: 12px; }
+.cl-foundation-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.cl-foundation { display: flex; flex-direction: column; justify-content: space-between; padding: 24px; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel); background: var(--ui-color-surface-raised); min-width: 0; }
+.cl-foundation:last-child { grid-column: 1 / -1; }
+.cl-foundation > .cl-eyebrow { font-size: var(--ui-type-caption); }
+.cl-foundation > p { margin: 20px 0 0; font-size: var(--ui-type-caption); line-height: 1.6; color: var(--ui-color-text-muted); max-width: 65ch; }
+.cl-colors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }.cl-colors > div { min-width: 0; }
+.cl-colors div > span { display: block; height: 68px; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); margin-bottom: 10px; }
+.cl-colors strong { display: block; font-size: var(--ui-type-caption); font-weight: 600; }
+.cl-colors code { display: block; font-size: var(--ui-type-caption); overflow-wrap: anywhere; color: var(--ui-color-text-muted); margin-top: 4px; }
+.cl-type-specimen { display: flex; align-items: center; gap: 24px; font-size: var(--ui-type-display); line-height: 1; }
+.cl-type-specimen > span { font-size: var(--ui-type-heading);  line-height: 1.12; }
+.cl-type-scale { display: flex; flex-wrap: wrap; gap: 8px 12px; font: var(--ui-type-caption)/1.5 var(--font-mono); margin-top: 24px; }
+.cl-rhythm { display: flex; align-items: end; gap: 24px; min-height: 64px; }
+.cl-rhythm > div { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.cl-rhythm div > span { width: 32px; background: var(--ui-color-action-primary); border-radius: var(--ui-radius-choice); }
+.cl-rhythm code { font: var(--ui-type-caption)/1 var(--font-mono); color: var(--ui-color-text-muted); }
+.cl-radius-demo { display: grid; place-items: center; margin-inline-start: auto; width: 72px; height: 72px; font-size: var(--ui-type-heading); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-card); background: var(--ui-color-surface-muted); }
+.cl-inventory { scroll-margin-top: 24px; }
+.cl-toolbar { display: flex; gap: 12px; padding: 16px 0; border-top: 1px solid var(--ui-color-border-default); }
+.cl-search { display: flex; align-items: center; gap: 10px; min-height: var(--ui-size-target); padding: 0 14px; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); background: var(--ui-color-surface-raised); flex: 1; color: var(--ui-color-text-muted); min-width: 0; }
+.cl-search:focus-within { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.cl-search input { width: 100%; min-width: 0; padding: 12px 0; border: 0; background: transparent; outline: none !important; box-shadow: none; font: inherit; font-size: var(--ui-type-body); color: var(--ui-color-text-default); }
+.cl-search > svg { flex-shrink: 0; width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.cl-download > svg, .cl-head-actions svg { width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
+.cl-filter-label { display: flex; align-items: center; gap: 10px; color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); }
+.cl-mode-filter { min-height: var(--ui-size-target); padding: 10px 32px 10px 12px; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); background: var(--ui-color-surface-raised); color: var(--ui-color-text-default); font-size: var(--ui-type-body); }
+.cl-result-count { margin: 0 0 32px; font: var(--ui-type-caption)/1.5 var(--font-mono); color: var(--ui-color-text-muted); }
+.cl-empty { text-align: center; border: 1px dashed var(--ui-color-border-default); border-radius: var(--ui-radius-panel); padding: 40px 16px; margin-bottom: 40px; }
+.cl-empty p { color: var(--ui-color-text-muted); }
+.cl-component-section .cl-section-head { padding-bottom: 16px; border-bottom: 1px solid var(--ui-color-border-default); flex-wrap: wrap; }
+.cl-component-section .cl-section-head h2 { font-size: var(--ui-type-heading); }
+.cl-section-number { display: inline-block; margin-inline-end: 14px; color: var(--ui-color-text-muted); font: var(--ui-type-caption)/1 var(--font-mono); letter-spacing: 0; }
+.cl-section-kind { color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); }
+.cl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.cl-card { display: flex; flex-direction: column; min-width: 0; overflow: clip; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel); background: var(--ui-color-surface-raised); }
 .cl-card--wide { grid-column: 1 / -1; }
-.cl-card--tall { grid-row: span 2; }
-
-/* Specimen stage - a neutral, subtly-checkered field so translucency reads, with
-   the live sample centred. It is NOT the app background; it's a viewing surface. */
-/* The footerNav SPECIMEN renders in-flow inside its stage (like the back pill's
-   in-flow form) - .gallery-footer is position:fixed for the real shell bar, which
-   would pin the demo copy over the viewport bottom (plans/99 M1). */
-.cl-view .gallery-footer { position: static; }
-
-.cl-stage {
-  position: relative; flex: 1 1 auto; display: flex; align-items: center; justify-content: center;
-  gap: .6rem; flex-wrap: wrap; min-height: 108px; padding: 1.1rem;
-  background:
-    repeating-conic-gradient(hsl(var(--muted) / .5) 0% 25%, transparent 0% 50%) 50% / 16px 16px;
-  /* Several specimens are overlays/toasts/sheets that use `position: fixed` - inside
-     the app they cover the viewport. `contain` makes each stage the containing block
-     for its fixed descendants (and clips them), so an overlay renders as a contained
-     mini-preview in its own card instead of escaping over the whole page. Same
-     fixed-escape fix used by the offscreen renderer. */
-  contain: layout paint;
-}
+.cl-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 18px; background: var(--ui-color-surface-muted); }
+.cl-object-id { font: var(--ui-type-caption)/1 var(--font-mono); color: var(--ui-color-text-muted); }
+.cl-kind { font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); display: inline-flex; align-items: center; gap: 6px; }
+.cl-kind--live::before { content: ''; width: 5px; height: 5px; border-radius: var(--ui-radius-pill); background: var(--ui-color-action-primary); }
+.cl-stage { position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; min-height: 180px; padding: 28px 20px; background: var(--ui-color-surface-muted); contain: layout paint; overflow: auto; }
 .cl-stage > * { max-width: 100%; }
-/* A neutralized <dialog> (see neutralizeMarkup) lays out in flow rather than the
-   top layer, so its chrome previews inside the card. */
+.cl-stage .cl-example-cover { object-fit: cover; }
+.cl-stage .cat-zoom-stage { min-height: 240px; }
 .cl-stage [data-cl-dialog] { display: block; position: static; max-width: 100%; margin: 0; }
-/* A few samples want a plain surface, not the checker (e.g. cards on cards). */
-.cl-stage--plain { background: hsl(var(--muted) / .25); }
-/* Samples that lay out in a column rather than centred inline. */
+.cl-stage .gallery-footer { position: static; }
 .cl-stage--stack { flex-direction: column; align-items: stretch; }
-
-/* A host-bound component can't render without the bridge - show its call instead. */
-.cl-code {
-  display: block; max-width: 100%; overflow-x: auto; white-space: pre-wrap; word-break: break-word;
-  font-family: var(--font-mono, ui-monospace, monospace); font-size: calc(.68rem * var(--a11y-fs)); line-height: 1.5;
-  color: hsl(var(--muted-foreground));
+.cl-stage .tools-home { position: static; }
+.cl-meta { padding: 20px 20px 16px; }
+.cl-name { margin: 0 0 10px; font-size: var(--ui-type-lead); font-weight: 600; letter-spacing: -.025em; line-height: 1.3; }
+.cl-desc { margin: 0; color: var(--ui-color-text-muted); font-size: var(--ui-type-body); line-height: 1.6; }
+.cl-eg { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.cl-eg span { padding: 4px 8px; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); font-size: var(--ui-type-caption); line-height: 1.4; color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
+.cl-details { margin-top: 18px; font-size: var(--ui-type-caption); line-height: 1.7; color: var(--ui-color-text-muted); }
+/* The reference block: import / classes / markup / tokens, filled on first open. */
+.cl-ref-body { margin-top: 12px; display: flex; flex-direction: column; gap: 14px; }
+.cl-ref-sec pre { margin: 6px 0 0; padding: 10px 12px; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); font: var(--ui-type-caption)/1.55 var(--font-mono); overflow: auto; max-height: 320px; white-space: pre; tab-size: 2; }
+.cl-ref-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cl-ref-head .cl-eyebrow { margin: 0; }
+.cl-copy { min-height: 28px; padding-block: 2px; gap: 4px; }
+.cl-ref-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.cl-ref-chips code, .cl-token-chip code { display: inline-block; padding: 2px 8px; border-radius: var(--ui-radius-pill); border: 1px solid var(--ui-color-border-default); background: var(--ui-color-surface-raised); color: var(--ui-color-text-default); font: var(--ui-type-caption)/1.6 var(--font-mono); }
+.cl-token-chip { padding: 0; border: 0; background: none; cursor: pointer; }
+.cl-token-chip:hover code { border-color: var(--ui-color-action-primary); }
+.cl-ref-sheet { margin: 6px 0 0; }
+.cl-ref-note { margin: 8px 0 0; }
+.cl-ref-status:empty { display: none; }
+.cl-ref-status { margin: 8px 0 0; color: var(--ui-color-action-primary); }
+.cl-details summary { cursor: pointer; padding: 10px 0; color: var(--ui-color-text-default); }
+.cl-details code, .cl-details pre, .cl-src, .cl-code { font: var(--ui-type-caption)/1.6 var(--font-mono); overflow-wrap: anywhere; white-space: pre-wrap; }
+.cl-details pre { padding: 12px; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); }
+.cl-card-footer { padding: 14px 20px; border-top: 1px solid var(--ui-color-border-default); margin-top: auto; }
+.cl-download { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: var(--ui-size-target); box-shadow: none; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); background: var(--ui-color-surface-raised); font-size: var(--ui-type-body); font-weight: 550; }
+.cl-download:hover { background: var(--ui-color-surface-muted); border-color: var(--ui-color-action-primary); }
+.cl-download-hint { display: block; text-align: center; margin-top: 8px; color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); }
+.cl-download-status, .cl-export-status, .cl-token-status { font-size: var(--ui-type-caption); line-height: 1.6; overflow-wrap: anywhere; }
+.cl-download-status:empty, .cl-export-status:empty, .cl-token-status:empty { display: none; }
+.cl-token-browser { border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel); overflow: clip; }
+.cl-token-browser > summary { padding: 20px; font-size: var(--ui-type-body); cursor: pointer; }
+.cl-token-browser > summary > span { float: inline-end; color: var(--ui-color-text-muted); }
+.cl-token-search { margin: 0 20px 16px; }.cl-token-table { overflow: auto; }
+.cl-token-table table { width: 100%; border-collapse: collapse; text-align: start; font-size: var(--ui-type-caption); }
+.cl-token-table th, .cl-token-table td { text-align: start; padding: 14px 20px; border-top: 1px solid var(--ui-color-border-default); vertical-align: top; }
+.cl-token-table thead { background: var(--ui-color-surface-muted); }.cl-token-table th { font-weight: 500; }
+.cl-token-table code { overflow-wrap: anywhere; }.cl-token-table small { display: block; margin-top: 4px; color: var(--ui-color-text-muted); font: inherit; }
+.cl-token-export { min-height: var(--ui-size-target); }.cl-token-empty { padding: 20px; }
+.cl-audit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.cl-audit-grid article { padding: 24px; background: var(--ui-color-surface-muted); border-radius: var(--ui-radius-panel); }
+.cl-audit-grid h3 { font-size: var(--ui-type-lead); font-weight: 600; letter-spacing: -.02em; margin: 16px 0 10px; }
+.cl-audit-grid p { font-size: var(--ui-type-body); line-height: 1.7; color: var(--ui-color-text-muted); margin: 0; }
+.cl-audit-state { display: inline-block; color: var(--ui-color-action-primary); font-size: var(--ui-type-caption); font-weight: 600; }
+.cl-audit-state--open { color: var(--ui-color-text-default); }
+.cl-audit-followup { padding: 8px 20px; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); }.cl-audit-followup li { margin-bottom: 12px; }
+.cl-page-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--ui-color-border-default); padding: 24px 0; font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); }
+.cl-page-footer strong { color: var(--ui-color-text-default); font-weight: 550; }
+.cl-icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; width: 100%; }
+.cl-icon-cell { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 6px; }
+.cl-icon-cell span { font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); text-align: center; overflow-wrap: anywhere; }
+.cl-zoomhud-demo { position: relative; width: 100%; max-width: 260px; height: 64px; }.cl-zoomhud-demo .stage-nav { opacity: 1; }
+.cl-popover-demo { position: fixed; z-index: 100000; min-width: 160px; padding: 6px; display: flex; flex-direction: column; gap: 2px; background: var(--ui-color-surface-overlay); border-radius: var(--ui-radius-panel); box-shadow: var(--ui-elevation-overlay); }
+.cl-popover-demo-item { padding: 10px; border-radius: var(--ui-radius-control); font-size: var(--ui-type-body); cursor: pointer; }.cl-popover-demo-item:hover { background: var(--ui-color-surface-muted); }
+.cl-broken { font: var(--ui-type-caption)/1.6 var(--font-mono); color: hsl(var(--destructive)); }
+/* Explicit demo scaffolding for host-dependent design states. */
+.cl-fixture-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; }
+.cl-fixture-panel { width: 100%; padding: 22px; border-radius: var(--ui-radius-panel); background: var(--ui-color-surface-raised); box-shadow: var(--ui-elevation-panel); }
+.cl-fixture-panel h4 { margin: 0 0 12px; font-size: var(--ui-type-lead); font-weight: 600; }.cl-fixture-panel p { color: var(--ui-color-text-muted); font-size: var(--ui-type-body); line-height: 1.65; }
+.cl-fixture-tile { width: 84px; display: flex; flex-direction: column; gap: 8px; font-size: var(--ui-type-caption); line-height: 1.3; }.cl-fixture-art { display: grid; place-items: center; width: 84px; height: 72px; border-radius: var(--ui-radius-control); background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); font-size: var(--ui-type-heading); }
+.cl-fixture-tile.is-selected .cl-fixture-art { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
+.cl-fixture-menu { display: flex; flex-direction: column; gap: 5px; padding: 8px; background: var(--ui-color-surface-overlay); border-radius: var(--ui-radius-panel); box-shadow: var(--ui-elevation-floating); }.cl-fixture-menu .btn { text-align: start; background: transparent; box-shadow: none; }
+.cl-fixture-label { display: flex; flex-direction: column; gap: 8px; font-size: var(--ui-type-caption); margin: 14px 0; }
+.cl-fixture-readout { padding: 8px 14px; border-radius: var(--ui-radius-control); background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); font: var(--ui-type-body)/1.5 var(--font-mono); }
+.cl-fixture-swatch { width: 100%; height: 40px; background: var(--ui-color-action-primary); border-radius: var(--ui-radius-control); }
+.cl-fixture-wave { color: var(--ui-color-action-primary); font-size: var(--ui-type-heading); margin: 24px 0; text-align: center; }
+.cl-fixture-page { display: grid; place-items: center; width: 64px; height: 80px; border: 1px solid var(--ui-color-border-default); background: var(--ui-color-surface-raised); border-radius: var(--ui-radius-control); }
+.cl-fixture-drop { width: 100%; padding: 24px; border: 1px dashed var(--ui-color-border-default); border-radius: var(--ui-radius-panel); text-align: center; font-size: var(--ui-type-body); }.cl-fixture-drop p { color: var(--ui-color-text-muted); }
+.cl-fixture-confetti { display: flex; gap: 16px; align-items: center; color: var(--ui-color-action-primary); font-size: var(--ui-type-heading); }.cl-fixture-confetti strong { font-size: var(--ui-type-lead); }
+.cl-fixture-type { font-size: calc(var(--ui-type-display) * .625); letter-spacing: -.045em; line-height: 1.1; }
+.cl-fixture-colour { width: 62px; height: 90px; border-radius: var(--ui-radius-control); display: flex; align-items: end; }.cl-fixture-colour span { padding: 4px; font: var(--ui-type-caption)/1.5 var(--font-mono); background: var(--ui-color-surface-raised); color: var(--ui-color-text-default); }
+.cl-fixture-avatar { display: grid; place-items: center; width: 112px; height: 112px; border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted); font-size: var(--ui-type-heading); margin: 20px auto; }
+.cl-fixture-kv { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: var(--ui-type-caption); }.cl-fixture-kv dd { margin: 0; }.cl-fixture-kv dt { color: var(--ui-color-text-muted); }
+.cl-fixture-checks { font-size: var(--ui-type-caption); color: var(--ui-color-action-primary); }
+.cl-fixture-grip { width: 40px; height: 4px; border-radius: var(--ui-radius-pill); background: var(--ui-color-border-default); margin: 0 auto 16px; }
+@media (min-width: 1600px) { .cl-view { padding-inline: 56px; } }
+@media (max-width: 1100px) {
+  .cl-view { padding-inline: 28px; }.cl-layout { grid-template-columns: 170px minmax(0, 1fr); gap: 28px; }
+  .cl-head { gap: 32px; }.cl-cover { padding: 22px; }.cl-cover-type { font-size: calc(var(--ui-type-display) * 1.3125); gap: 16px; }.cl-cover-type > span { font-size: var(--ui-type-lead); }
+  .cl-stats > div { flex-direction: column; gap: 2px; }.cl-foundation-grid { grid-template-columns: 1fr; }.cl-foundation:last-child { grid-column: auto; }
+  .cl-grid { grid-template-columns: 1fr; }.cl-card--wide { grid-column: auto; }
+}
+@media (max-width: 760px) {
+  .cl-view { padding: 80px 20px 24px; }.cl-head { grid-template-columns: 1fr; gap: 28px; padding: 12px 0 28px; }
+  .cl-cover { display: none; }.cl-title { font-size: clamp(calc(var(--ui-type-display) * .625), 9vw, var(--ui-type-display)); }.cl-sub { font-size: var(--ui-type-body); }
+  .cl-layout { grid-template-columns: minmax(0, 1fr); }.cl-sidebar { position: static; max-height: none; padding: 0; }.cl-sidebar nav { flex-direction: row; overflow-x: auto; padding-bottom: 8px; }.cl-sidebar nav a { flex-shrink: 0; min-height: var(--ui-size-target); border: 1px solid var(--ui-color-border-default); max-width: 240px; }.cl-sidebar-note, .cl-nav-divider, .cl-sidebar > .cl-eyebrow { display: none; }
+  .cl-stats { gap: 20px 0; grid-template-columns: repeat(2, 1fr); margin-bottom: 28px; }.cl-stats > div { padding-inline: 16px; }.cl-stats > div:nth-child(odd) { padding-inline-start: 0; }.cl-stats > div:nth-child(even) { border: 0; }
+  .cl-section { margin-bottom: 44px; }.cl-section-head { flex-wrap: wrap; gap: 12px; }.cl-section-head h2 { font-size: var(--ui-type-heading); }
+  .cl-toolbar { flex-direction: column; }.cl-filter-label { justify-content: space-between; }.cl-mode-filter { flex: 1; }.cl-audit-grid { grid-template-columns: 1fr; }
+  .cl-stage { padding: 24px 16px; }.cl-rhythm { gap: 16px; }.cl-rhythm div > span { width: 24px; }.cl-radius-demo { width: 52px; height: 52px; }
+  .cl-foundation { padding: 20px; }.cl-token-browser > summary > span { float: none; display: block; margin-top: 8px; }
+}
+@media (forced-colors: active) { .cl-card, .cl-foundation, .cl-download { border-color: CanvasText; }.cl-kind--live::before { background: Highlight; } }
 }
 
-/* Caption strip under each specimen. */
-.cl-meta { padding: .6rem .75rem; border-top: 1px solid hsl(var(--border)); }
-.cl-name { font-weight: 650; font-size: calc(.82rem * var(--a11y-fs)); display: flex; align-items: center; gap: .4rem; }
-/* Render-kind tag: live (green) / CSS-only (neutral) / host-bound (amber). */
-.cl-kind { flex: 0 0 auto; font-size: calc(.58rem * var(--a11y-fs)); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: .08rem .34rem; border-radius: var(--radius-pill); }
-.cl-kind--live { background: hsl(150 60% 45% / .16); color: hsl(158 64% 32%); }
-.cl-kind--css { background: hsl(var(--muted) / .8); color: hsl(var(--muted-foreground)); }
-.cl-kind--host { background: hsl(38 92% 50% / .18); color: hsl(32 80% 40%); }
-.cl-desc { margin: .15rem 0 0; font-size: calc(.72rem * var(--a11y-fs)); line-height: 1.45; color: hsl(var(--muted-foreground)); }
-.cl-src { margin: .35rem 0 0; font-family: var(--font-mono, ui-monospace, monospace); font-size: calc(.64rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); word-break: break-all; }
-.cl-eg { margin: .3rem 0 0; display: flex; flex-wrap: wrap; gap: .3rem; }
-.cl-eg span {
-  font-size: calc(.62rem * var(--a11y-fs)); padding: .08rem .38rem; border-radius: var(--radius-pill);
-  background: hsl(var(--muted) / .7); color: hsl(var(--muted-foreground));
-}
-/* Flag a sample whose render threw, rather than showing a silent empty stage. */
-.cl-broken { font-size: calc(.72rem * var(--a11y-fs)); color: hsl(var(--destructive)); font-family: var(--font-mono, monospace); }
+.cl-color-panel { width: 320px; max-width: 100%; }
+.cl-color-triggers { display: grid; gap: var(--ui-space-panel); width: 320px; max-width: 100%; }
+.cl-color-triggers .color-picker-field + .color-picker-field { margin-top: var(--ui-space-control-inline); }
+.cl-color-compact { display: flex; gap: var(--ui-space-control-inline); }
+.cl-color-compact .color-picker-field { width: var(--ui-size-target); }
+.cl-color-compact .color-trigger { height: var(--ui-size-target); }
+.cl-color-compact .color-picker-field + .color-picker-field { margin-top: 0; }
 
-/* ── Primitives-section live-specimen scaffolding - the app CSS these borrow
-   (lib/icons.ts glyphs, .stage-nav, mountBodyPopover content) has no opinion on
-   how a DEMO grid/anchor should lay out, so that little bit is local to the
-   library itself. */
-
-/* Icon registry grid (lib/icons.ts) - every registered glyph + its name. */
-.cl-icon-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: .3rem;
-  width: 100%;
-}
-.cl-icon-cell {
-  display: flex; flex-direction: column; align-items: center; gap: .3rem;
-  padding: .6rem .3rem; border-radius: var(--radius); color: hsl(var(--foreground));
-}
-.cl-icon-cell:hover { background: hsl(var(--muted) / .6); }
-.cl-icon-cell svg { color: hsl(var(--muted-foreground)); }
-.cl-icon-cell span { font-size: calc(.6rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); text-align: center; word-break: break-word; }
-
-/* Zoom HUD live demo - .stage-nav positions itself absolute bottom/right, so
-   the specimen needs a sized, positioned host to dock into (normally the tool
-   canvas stage). */
-.cl-zoomhud-demo {
-  position: relative; width: 100%; max-width: 260px; height: 64px;
-  border-radius: calc(var(--radius) * 1.2); background: hsl(var(--muted) / .35);
-}
-.cl-zoomhud-demo .stage-nav { opacity: 1; }
-
-/* Body-popover live demo - mountBodyPopover only owns lifecycle, not a look;
-   this is a minimal stand-in for a caller's real menu chrome (contrast
-   lang-menu.css's fuller .lang-menu, the real thing this primitive backs). */
-.cl-popover-demo {
-  position: fixed; z-index: 100000; min-width: 160px; padding: 6px;
-  display: flex; flex-direction: column; gap: 2px;
-  background: hsl(var(--card)); color: hsl(var(--card-foreground));
-  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * 1.2);
-  box-shadow: 0 12px 32px hsl(0 0% 0% / .24);
-}
-.cl-popover-demo-item {
-  padding: 7px 10px; border-radius: var(--radius); font-size: calc(.78rem * var(--a11y-fs)); cursor: pointer;
-}
-.cl-popover-demo-item:hover, .cl-popover-demo-item:focus-visible { background: hsl(var(--accent)); outline: none; }
-
-@media (max-width: 640px) {
-  .cl-grid { grid-template-columns: 1fr; }
-}
-}
+.cl-ds-preview { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: var(--ui-space-panel); width: 100%; }

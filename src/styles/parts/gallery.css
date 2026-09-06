@@ -348,8 +348,8 @@
   display: inline-flex;
   align-items: center;
   gap: var(--sp-3);
-  background: hsl(151 57% 42%);
-  color: #fff;
+  background: hsl(var(--primary) / 1);
+  color: hsl(var(--primary-foreground) / 1);
   border-color: transparent;
   font-weight: 600;
 }
@@ -812,7 +812,7 @@ stroke-width:.81;
 }
 @media (max-width: 1180px) { .tool-masonry { --cols: 3; } }
 @media (max-width: 820px)  { .tool-masonry { --cols: 2; } }
-@media (max-width: 520px)  { .tool-masonry { --cols: 1; } }
+@media (max-width: 410px)  { .tool-masonry { --cols: 1; } }
 /* Tighter side gutters + a little more top room for the cluster on phones. The
    top pad tracks the safe-area inset so content clears the fixed bar (which is now
    offset by var(--safe-top)) on notched standalone PWAs. */
@@ -1479,13 +1479,19 @@ a.gtile-name:focus-visible::after {
   font-weight: 700;
   line-height: 1;
   color: hsl(var(--primary));
-  border: 1px solid hsl(var(--primary) / 0.5);
+    background: hsl(var(--primary) /.68);
+  color: hsl(var(--primary-foreground) / 1);
+
+  border: 0;
+  box-shadow: var(--shadow-1);
   border-radius: var(--radius-pill);
-  padding: 4px 9px;
+  padding: var(--sp-6);
   text-decoration: none;
   transition: background var(--dur-1);
 }
-.gtile-new:hover { background: hsl(var(--primary) / 0.12); }
+.gtile-new:hover { 
+ color: hsl(var(--primary-foreground) / 1);
+    background: hsl(var(--primary) /1); }
 
 /* (The "New" recency badge is retired - Andy 2026-08-28: it collided with the
    ".gtile-new" "+ New" start-blank action. Recency lives in the info dialog's
@@ -1500,7 +1506,7 @@ a.gtile-name:focus-visible::after {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-4);
-  margin: 2px 14px 12px;
+  margin: var(--sp-7) var(--sp-7) 0;
 }
 .yours-shelf-label {
   font-size: var(--fs-xs);
@@ -1508,14 +1514,15 @@ a.gtile-name:focus-visible::after {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: hsl(var(--muted-foreground));
-  margin-right: 2px;
+  margin-right: var(--sp-4);
 }
 .yours-chip {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   padding: var(--sp-3) var(--sp-6);
-  border: 1px solid hsl(var(--border));
+  border:0;
+  box-shadow: var(--shadow-1);
   border-radius: var(--radius-pill);
   background: hsl(var(--card));
   color: hsl(var(--foreground));

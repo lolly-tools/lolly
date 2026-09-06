@@ -434,8 +434,8 @@ export function getColorSpace(mode: string): SpaceSpec | undefined {
   return SPACES.get(mode as ColorMode);
 }
 
-/** The default space - OKLCH, the one worth picking in. */
-export const DEFAULT_COLOR_MODE: ColorMode = 'oklch';
+/** Familiar HSL controls first; perceptual OKLCH is one tab away. */
+export const DEFAULT_COLOR_MODE: ColorMode = 'hsl';
 
 /**
  * A mode id as an HTML id fragment. Profile ids contain colons, which are legal

@@ -168,7 +168,7 @@ async function pinFile(cache: Cache, url: string, required: boolean): Promise<nu
  *  only worked offline if the runtime /tools/ cache happened to hold the lib
  *  from an online open. Computed paths (e.g. 3d's '…/assets/' + model + '.glb')
  *  can't be enumerated from the client, so those tools stay partially pinned. */
-function localAssetPaths(toolId: string, sources: Array<string | null>): string[] {
+export function localAssetPaths(toolId: string, sources: Array<string | null>): string[] {
   const re = new RegExp(`/tools/${toolId}/(?:assets|lib)/[\\w./-]+`, 'g');
   const found = new Set<string>();
   for (const src of sources) {

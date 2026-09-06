@@ -280,7 +280,7 @@
 .brand-tips-text { margin: 0; line-height: 1.4; }
 /* The unbranded strip's one call to action: the import path for a person's own
    tokens, which used to sit one select deep in the brand editor. */
-.brand-tips-import { display: inline-block; margin: 0 .6em .2em 0; font-weight: 600; text-decoration: underline; text-underline-offset: .15em; }
+.brand-tips-import { display: inline-block; margin: 0 .6em .2em 0; font-weight: 600;    color: hsl(var(--primary)); text-underline-offset: .15em; }
 .brand-tips-dot { opacity: 0.55; }
 .brand-tips-dismiss {
   flex: none;

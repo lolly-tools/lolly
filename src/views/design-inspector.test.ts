@@ -25,7 +25,7 @@ import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { initDesignInspector, ARRANGE_OPS, SECTIONS_KEY } from './design-inspector.ts';
 import type { DesignInspectorHandle, InspectorSection } from './design-inspector.ts';
-import type { ArtboardPort, ModelPort, NarrationStatus, SelectionPort } from './design-ports.ts';
+import type { ArtboardPort, DesignGuide, DesignGuidePort, ModelPort, NarrationStatus, SelectionPort } from './design-ports.ts';
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
 
 // ── jsdom bootstrap ───────────────────────────────────────────────────────────
@@ -1443,5 +1443,66 @@ test('the dock slot IS the open state - the sidebar and the panel cannot disagre
   ED.releaseDock('inspector');
   assert.equal(h.handle.isOpen(), false, 'and out of the sidebar it closes itself');
   assert.equal(h.el.parentElement, null, 'detached again, for the host to place');
+  h.handle.destroy();
+});
+
+
+function inspectorGuides() {
+  const rows: DesignGuide[] = [
+    { id: 'a', x: 120, y: 80, rotation: 90, color: '#ff00cc', snap: true },
+    { id: 'b', x: 20, y: 40, rotation: 0, color: '#00aaff', snap: true },
+  ];
+  let selectedId: string | null = 'a';
+  const listeners = new Set<() => void>();
+  const writes: Array<{ id: string; patch: Partial<DesignGuide> }> = [];
+  const emit = (): void => { for (const cb of [...listeners]) cb(); };
+  const port: DesignGuidePort = {
+    selected: () => rows.find(g => g.id === selectedId) ?? null,
+    select: id => { selectedId = id; emit(); },
+    update: (id, patch) => {
+      writes.push({ id, patch });
+      const row = rows.find(g => g.id === id);
+      if (row) Object.assign(row, patch);
+      emit();
+    },
+    remove: id => { const i = rows.findIndex(g => g.id === id); if (i >= 0) rows.splice(i, 1); emit(); },
+    onChange: cb => { listeners.add(cb); return () => { listeners.delete(cb); }; },
+  };
+  return { port, rows, writes, listeners };
+}
+
+test('a selected guide offers position, rotation, colour, snapping and deletion without editing artwork', () => {
+  const guides = inspectorGuides();
+  const h = mount(BOXES, { guides: guides.port });
+  assert.deepEqual(secs(h), ['guide']);
+  assert.equal(num(h, 'guide-x').value, '120');
+  typeNum(h, 'guide-x', '240');
+  typeNum(h, 'guide-y', '360');
+  typeNum(h, 'guide-rotation', '45');
+  const snap = row(h, 'input[data-fld="guide-snap"]') as HTMLInputElement;
+  snap.checked = false; fire(snap, 'change');
+  const colour = row(h, '[data-color-field="fc-insp-guide"] input[aria-label="Colour value"]') as HTMLInputElement;
+  colour.value = '#123456'; fire(colour, 'input');
+  assert.deepEqual(guides.rows[0], { id: 'a', x: 240, y: 360, rotation: 45, color: '#123456', snap: false });
+  assert.equal(h.commits.length, 0, 'no box field writes');
+  assert.equal(h.arrays.length, 0, 'no artwork replacement');
+  click(row(h, '[data-act="delete-guide"]'));
+  assert.deepEqual(guides.rows.map(g => g.id), ['b']);
+  h.handle.destroy();
+  assert.equal(guides.listeners.size, 0);
+});
+
+test('an in-progress inspector edit remains bound to the guide it started on', async () => {
+  const guides = inspectorGuides();
+  const h = mount(BOXES, { guides: guides.port });
+  const x = num(h, 'guide-x');
+  x.focus(); x.value = '350'; fire(x, 'input');
+  guides.port.select('b');
+  x.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+  assert.equal(guides.rows[0]!.x, 350);
+  assert.equal(guides.rows[1]!.x, 20, 'the newly selected guide is untouched');
+  x.blur();
+  await new Promise(resolve => setTimeout(resolve, 20));
+  assert.equal(num(h, 'guide-x').value, '20', 'the inspector catches up after editing');
   h.handle.destroy();
 });
