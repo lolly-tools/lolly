@@ -134,7 +134,7 @@ jobs:
           ar t shells/tauri-desktop/flatpak/lolly.deb | grep -q '^data\.tar' || { echo "::error::lolly.deb has no data.tar member"; exit 1; }
 
       - name: Build Flatpak bundle
-        uses: flatpak/flatpak-github-actions/flatpak-builder@401fe28a8384095fc1531b9d320b292f0ee45adb # v6.7
+        uses: flatpak/flatpak-github-actions/flatpak-builder@79327416609af08178ad73b352877e51450790b3 # v6.8
         with:
           bundle: Lolly.flatpak
           manifest-path: shells/tauri-desktop/flatpak/tools.lolly.Desktop.yml
