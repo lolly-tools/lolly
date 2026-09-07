@@ -109,7 +109,7 @@ function tag(icon: string, count: number, name: string): string {
  * placeholder until hydrateCatalogAssets() fills it. The caller wraps this in its
  * own section chrome (a Platform <details> panel / a Profile card).
  */
-export function catalogSummaryBody(tools: readonly CatalogTool[]): string {
+export function catalogSummaryBody(tools: readonly CatalogTool[], assets?: readonly { type?: string }[]): string {
   const byCategory = countBy(tools, (t) => t.category ?? 'other');
   const byStatus = countBy(tools, (t) => t.status ?? 'official');
   return `
@@ -123,8 +123,8 @@ export function catalogSummaryBody(tools: readonly CatalogTool[]): string {
       </section>
 
       <section class="cat-group" data-asset-block>
-        <h3 class="cat-group-title">Brand assets <span class="cat-group-count" data-asset-count hidden></span></h3>
-        <div class="cat-grid" data-asset-grid><p class="cat-empty">reading…</p></div>
+        <h3 class="cat-group-title">Brand assets <span class="cat-group-count" data-asset-count${assets ? '' : ' hidden'}>${assets ? assets.length : ''}</span></h3>
+        <div class="cat-grid" data-asset-grid>${assets ? countBy(assets, a => a.type ?? 'other').map(([k, n]) => tile(assetIcon(k), n, label(k))).join('') || '<p class="cat-empty">No assets yet</p>' : '<p class="cat-empty">reading…</p>'}</div>
       </section>
     </div>`;
 }

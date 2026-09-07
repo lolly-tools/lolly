@@ -8,7 +8,7 @@ import type { PenpotDoc, PenpotIrShape, PenpotIrText, PenpotMedia } from '../../
 import { bakeTextStyles } from '../bridge/export-pptx.ts';
 import { buildComponentArchive, componentTokenDocument } from './component-penpot.ts';
 import { listLollyUiTokens } from './lolly-ui-tokens.ts';
-import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { componentBackground } from './component-background.ts';
 
 const px = (v: string): number => Number.parseFloat(v) || 0;
 const colour = (css: string): string | undefined => {
@@ -41,10 +41,11 @@ export async function captureComponents(items: ComponentCapture[]): Promise<{ do
   await document.fonts.ready;
   const notes = new Set<string>();
   const media: PenpotMedia[] = [];
+  const tokenValues = readComponentTokenValues(items[0]!.node);
   const doc: PenpotDoc = {
     name: items.length === 1 ? `Lolly · ${items[0]!.name}` : 'Lolly component library',
     pages: [], media, googleFamilies: ['SUSE', 'Inter', 'Outfit'],
-    tokens: componentTokenDocument(readComponentTokenValues(items[0]!.node)),
+    tokens: componentTokenDocument(tokenValues),
   };
   for (const { name, node } of items) {
     if (!node.isConnected) throw new Error('This component is no longer mounted.');
@@ -73,7 +74,7 @@ export async function captureComponents(items: ComponentCapture[]): Promise<{ do
       if (el.tagName.toLowerCase() === 'svg') {
         const clone = el.cloneNode(true) as SVGElement;
         bakeTextStyles(el, clone);
-        clone.querySelectorAll('style, script').forEach(n => n.remove());
+        clone.querySelectorAll('style, script').forEach(n => { n.remove(); });
         clone.setAttribute('x', String(b.x)); clone.setAttribute('y', String(b.y));
         clone.setAttribute('width', String(b.w)); clone.setAttribute('height', String(b.h));
         const xml = `<svg xmlns="http://www.w3.org/2000/svg" width="${bounds.width}" height="${bounds.height}">${new XMLSerializer().serializeToString(clone)}</svg>`;
@@ -100,8 +101,9 @@ export async function captureComponents(items: ComponentCapture[]): Promise<{ do
       const uniformBorder = borders.every(w => w === bw) && borderColors.every(c => c === stroke);
       const shadows = parseBoxShadow(style.boxShadow).map(s => ({ style: s.inset ? 'inner-shadow' as const : 'drop-shadow' as const,
         x: s.x, y: s.y, blur: s.blur, spread: s.spread, color: colour(s.color) || '#000000' }));
+      const backgroundBlur = px(/blur\(([^)]+)\)/.exec(style.backdropFilter || '')?.[1] || '') || undefined;
       if (fill || bw || shadows.length) shapes.push({ type: 'rect', name: `${label} surface`, ...b, radius,
-        fills: fill ? [{ color: fill }] : [], strokes: uniformBorder && bw && stroke ? [{ color: stroke, width: bw, alignment: 'inner' }] : [], shadows });
+        fills: fill ? [{ color: fill }] : [], strokes: uniformBorder && bw && stroke ? [{ color: stroke, width: bw, alignment: 'inner' }] : [], shadows, backgroundBlur });
       if (!uniformBorder) borders.forEach((width, i) => {
         const paint = borderColors[i];
         if (!width || !paint) return;
@@ -109,7 +111,16 @@ export async function captureComponents(items: ComponentCapture[]): Promise<{ do
           x: b.x + (i === 1 ? b.w - width : 0), y: b.y + (i === 2 ? b.h - width : 0),
           w: i % 2 ? width : b.w, h: i % 2 ? b.h : width, fills: [{ color: paint }] });
       });
-      if (style.backgroundImage !== 'none' && style.backgroundImage && el !== node) notes.add('CSS background textures are simplified to native surfaces.');
+      if (style.backgroundImage !== 'none' && style.backgroundImage) {
+        const size = style.backgroundSize;
+        const tiled = size?.split(',').some(s => s.trim() !== 'auto' && s.trim() !== 'auto auto');
+        const paints = !tiled && componentBackground(style.backgroundImage, b, radius);
+        if (paints) {
+          shapes.push(...paints);
+          if (uniformBorder && bw && stroke) shapes.push({ type: 'rect', name: `${label} border`, ...b, radius,
+            strokes: [{ color: stroke, width: bw, alignment: 'inner' }] });
+        } else notes.add('Tiled or unsupported CSS backgrounds are simplified; other gradients stay editable.');
+      }
       if (style.transform && style.transform !== 'none') notes.add('Transformed elements use their visible bounding boxes.');
       if (el instanceof HTMLImageElement && el.currentSrc) {
         const response = await fetch(el.currentSrc);
@@ -122,9 +133,14 @@ export async function captureComponents(items: ComponentCapture[]): Promise<{ do
       } else if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) {
         let value = el instanceof HTMLSelectElement ? el.selectedOptions[0]?.text || '' : el.value || el.placeholder;
         if (el instanceof HTMLInputElement && ['checkbox', 'radio'].includes(el.type)) {
-          if (el.checked) shapes.push({ type: el.type === 'radio' ? 'circle' : 'rect', name: 'Selected',
-            x: b.x + b.w * .25, y: b.y + b.h * .25, w: b.w * .5, h: b.h * .5,
-            fills: [{ color: colour(style.accentColor) || colour(style.color) || '#000000' }] });
+          if (el.checked) {
+            const paint = (el.matches('.field-check, .field-radio') ? colour(tokenValues['lolly.ui.color.action.on-primary'] || '') : undefined) || colour(style.color) || colour(style.accentColor) || '#000000';
+            if (el.type === 'radio') shapes.push({ type: 'circle', name: 'Selected',
+              x: b.x + b.w * .25, y: b.y + b.h * .25, w: b.w * .5, h: b.h * .5, fills: [{ color: paint }] });
+            else shapes.push({ type: 'path', name: 'Selected', ...b,
+              d: `M${b.x + b.w * .23} ${b.y + b.h * .5} L${b.x + b.w * .43} ${b.y + b.h * .7} L${b.x + b.w * .78} ${b.y + b.h * .3}`,
+              strokes: [{ color: paint, width: Math.max(1.5, b.w * .12) }] });
+          }
           value = '';
         }
         if (el instanceof HTMLInputElement && ['range', 'color', 'file', 'hidden'].includes(el.type)) value = '';
@@ -140,7 +156,10 @@ export async function captureComponents(items: ComponentCapture[]): Promise<{ do
         if (value) {
           const left = px(style.paddingLeft) + bw;
           const textRect = new DOMRect(rect.x + left, rect.y + Math.max(px(style.paddingTop), (rect.height - px(style.fontSize) * 1.2) / 2), Math.max(1, rect.width - left - px(style.paddingRight)), px(style.fontSize) * 1.3);
-          shapes.push(textShape(value, style, textRect));
+          const shape = textShape(value, style, textRect);
+          const align = style.textAlign;
+          shape.paragraphs[0]!.align = align === 'center' ? 'center' : align === 'right' || align === 'end' ? 'right' : 'left';
+          shapes.push(shape);
         }
       } else {
         for (const child of el.shadowRoot?.childNodes ?? el.childNodes) {
@@ -166,7 +185,9 @@ export async function captureComponents(items: ComponentCapture[]): Promise<{ do
       }
       if (el.tagName.toLowerCase() === 'canvas') notes.add('Canvas animation is not captured as editable geometry.');
       if (!shapes.length) return [];
-      return [{ type: 'group', name: label, ...b, opacity: Number(style.opacity) || 1, children: shapes }];
+      const clips = [style.overflow, style.overflowX, style.overflowY].some(v => ['hidden', 'clip', 'scroll', 'auto'].includes(v));
+      return [{ type: 'group', name: label, ...b, opacity: Number(style.opacity) || 1, masked: clips || undefined,
+        children: clips ? [{ type: 'rect', name: `${label} clip`, ...b, radius, fills: [{ color: '#ffffff' }] }, ...shapes] : shapes }];
     };
     const children = await walk(node);
     if (!children.length) throw new Error(`No visible objects were found in ${name}.`);
@@ -176,13 +197,12 @@ export async function captureComponents(items: ComponentCapture[]): Promise<{ do
   return { doc, notes: [...notes] };
 }
 
-export async function downloadComponents(host: HostV1, items: ComponentCapture[], filename: string): Promise<string[]> {
+export async function buildComponentDownload(items: ComponentCapture[], filename: string): Promise<{ blob: Blob; filename: string; notes: string[] }> {
   const { doc, notes } = await captureComponents(items);
   const build = buildComponentArchive(doc);
   if (build.warnings.length) throw new Error(build.warnings.join(' '));
   const { zipAsync } = await import('./zip.ts');
   const enc = new TextEncoder();
   const entries = Object.fromEntries(Object.entries(build.entries).map(([path, value]) => [path, typeof value === 'string' ? enc.encode(value) : value]));
-  await host.export.download(new Blob([await zipAsync(entries)], { type: PENPOT_MIME }), `${filename}.penpot`);
-  return notes;
+  return { blob: new Blob([await zipAsync(entries)], { type: PENPOT_MIME }), filename: `${filename}.penpot`, notes };
 }

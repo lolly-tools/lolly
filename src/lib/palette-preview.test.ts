@@ -9,6 +9,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { contrastRatio } from '@lolly/engine';
 import { palettePreviewSvgs } from './palette-preview.ts';
 
 const SUSE = ['#30ba78', '#0c322c', '#efefef', '#fe7c3f', '#2453ff'];
@@ -91,4 +92,40 @@ test('non-array / junk input is tolerated', () => {
   // deliberately abusive inputs the type system would reject at the call site
   assert.doesNotThrow(() => palettePreviewSvgs(undefined as unknown as string[]));
   assert.doesNotThrow(() => palettePreviewSvgs([null, 42, {}, 'transparent'] as unknown as string[]));
+});
+
+test('real scene text stays readable on saturated and middle-lightness backgrounds', () => {
+  for (const background of ['#4f9ab1', '#777777', '#29fe4d', '#7c3aed', '#ffeaff']) {
+    const poster = palettePreviewSvgs([background])[0]!.svg;
+    const fills = [...poster.matchAll(/<text[^>]+fill="(#[a-f0-9]+)"/g)].map(match => match[1]!);
+    assert.ok(fills.length > 3, 'real text replaces the old placeholder stripes');
+    assert.ok(fills.every(fill => contrastRatio(background, fill) >= 4.5), background);
+  }
+});
+
+test('scene typography follows loaded brand and display font roles', () => {
+  const all = palettePreviewSvgs(SUSE).map(p => p.svg).join('');
+  assert.doesNotMatch(all, /Arial|Helvetica/);
+  assert.match(all, /font-family="var\(--font-display, var\(--font-brand, sans-serif\)\)"/);
+  assert.match(all, /font-family="var\(--font-brand, sans-serif\)"/);
+});
+
+test('assigned brand roles paint the actual surfaces and text without invented tints', () => {
+  const roles = { primary: '#713184', secondary: '#ff9138', surface: '#faf1e4', text: '#251b34', onPrimary: '#faf1e4' };
+  const scenes = palettePreviewSvgs(SUSE, { roles });
+  assert.match(scenes[0]!.svg, /<rect width="480" height="360" fill="#713184"/);
+  for (const scene of scenes.slice(1)) {
+    assert.match(scene.svg, /<rect width="480" height="360" fill="#faf1e4"/);
+    assert.match(scene.svg, /<text[^>]+fill="#251b34"/);
+  }
+  const allowed = new Set([...SUSE, ...Object.values(roles), '#ffffff', '#000000']);
+  for (const scene of scenes) {
+    for (const [, colour] of scene.svg.matchAll(/(?:fill|stroke)="(#[a-f0-9]+)"/g)) assert.ok(allowed.has(colour!), colour!);
+  }
+});
+
+test('brand role values have the same attribute safety as palette values', () => {
+  const bad = '#000"/><script>alert(1)</script>';
+  const all = palettePreviewSvgs(SUSE, { roles: { primary: bad, secondary: bad, surface: bad, text: bad, onPrimary: bad } }).map(p => p.svg).join('');
+  assert.doesNotMatch(all, /<script|alert\(1\)/);
 });

@@ -75,6 +75,9 @@ import { parseProfileLimit, profileFor, mountedSources } from './color-profiles.
 import type { BrandDeriveOptions, SchemeKind, Oklch, ColorCurve } from '@lolly/engine';
 import { nameColor } from './color-namer.ts';
 import { palettePreviewSvgs } from './palette-preview.ts';
+import { addDraftShades, draftShades } from './design-system/palette-draft.ts';
+import { paletteHtml, mountPaletteGroupControls } from './design-system/palette-view.ts';
+import { paletteGroups, addPaletteGroup, carryPaletteGroups, groupName } from './design-system/palette-groups.ts';
 import type { HostV1, TokenSet } from '@lolly-tools/core/host-v1';
 import type { WebTokensAPI } from '../bridge/tokens.ts';
 import { installUserTokens } from '../bridge/tokens.ts';
@@ -93,7 +96,7 @@ import type { CurveEditorHandle } from './curve-editor.ts';
 import { exportSwatches, type SwatchExportFormat } from './swatch-export.ts';
 import type { SpotColor, FinishKind } from '@lolly-tools/core/host-v1';
 import { applyChromeBrandVars, tokenValueToHex, brandRadiusValue, brandSpaceValue } from '../brand-vars.ts';
-import { colorFieldHtml, wireColorField, setSwatches, refreshSwatches } from '../components/color-field.ts';
+import { colorFieldHtml, wireColorField, setSwatches, refreshSwatches, contrastText } from '../components/color-field.ts';
 import { STORAGE_FORMATS, formatColor, serializeColor, storageFormatOf } from './color-formats.ts';
 import type { StorageFormat } from './color-formats.ts';
 import {
@@ -134,7 +137,6 @@ import { googleMatch, parseFaceName } from './design-system/font-resolve.ts';
 import { censusFromSvgColors, censusHex } from './design-system/census.ts';
 import { icon } from './icons.ts';
 import { mountTokensPanel, mountGradientsPanel, mountCataloguePanel, panelHead } from './brand-studio-tabs.ts';
-import { mountStudioSplit } from './studio-split.ts';
 import { STUDIO_GROUPS, gradientAliasRefCount, materializeGradientAliases } from './token-studio.ts';
 import { POPULAR_FAMILIES, PINNED_FAMILIES } from './google-fonts.ts';
 import { exportBrandPack, importBrandPack } from '../brand-transfer.ts';
@@ -451,13 +453,23 @@ function specCard(name: string, set: TokenSet): string {
 function deriveSafe(opts: BrandDeriveOptions): Record<string, unknown> | null {
   try { return deriveBrandTokens(opts) as Record<string, unknown>; } catch { return null; }
 }
-function previewHtml(doc: Record<string, unknown>, sel: { neutral: number; secondary: number; steps: number; curves?: CurveMarks }): string {
+function previewHtml(doc: Record<string, unknown>, sel: { neutral: number; secondary: number; steps: number; curves?: CurveMarks; palette?: string[] }): string {
   const light = createTokenSet(doc, { theme: 'light' });
   const dark = createTokenSet(doc, { theme: 'dark' });
-  const cm = sel.curves ?? {};
-  return `
-    <div class="be-ramps">${rampRow(light, 'primary', t('Primary'), sel.steps, { curve: cm.primary })}${rampRow(light, 'neutral', t('Neutral'), sel.steps, { selected: sel.neutral, curve: cm.neutral })}${rampRow(light, 'secondary', t('Secondary'), sel.steps, { selected: sel.secondary, curve: cm.secondary })}${blendRow(light, sel.steps)}</div>
-    <div class="be-specs">${specCard(t('Light'), light)}${specCard(t('Dark'), dark)}</div>`;
+  const present = new Set(sel.palette?.map(hex => hex.toLowerCase()));
+  const choices = RAMP_IDS.map(ramp => {
+    const shades = draftShades(doc, ramp);
+    const remaining = shades.filter(shade => !present.has(shade.hex.toLowerCase())).length;
+    const label = RAMP_LABEL[ramp];
+    return `<section class="be-draft-ramp"><div class="be-draft-head"><h3>${escape(label)}</h3><button type="button" class="be-btn be-btn--sm" data-be-add-ramp="${ramp}"${remaining ? '' : ' disabled'}>${remaining ? remaining === 1 ? t('Add 1 shade') : tRaw('Add {n} shades', { n: remaining }) : t('Already in palette')}</button></div><div class="be-draft-shades">${shades.map(shade => {
+      const added = present.has(shade.hex.toLowerCase());
+      return `<button type="button" class="be-draft-shade" data-be-add-shade="${shade.key}" style="background:${escape(shade.hex)};color:${contrastText(shade.hex)}" aria-label="${escape(added ? tRaw('{label} shade {step} is in your palette', { label, step: shade.step }) : tRaw('Add {label} shade {step}, {hex}', { label, step: shade.step, hex: shade.hex }))}" title="${escape(shade.hex)}"${added ? ' disabled' : ''}>${added ? icon('check', { size: 14 }) : '<span aria-hidden="true">+</span>'}</button>`;
+    }).join('')}</div></section>`;
+  }).join('');
+  return `${choices}
+    <details class="be-draft-themes"><summary>${t('Theme preview')}</summary><p class="be-gen-note">${t('Examples using these shades. Adding shades keeps your current theme roles.')}</p>
+    <div class="be-ramps">${rampRow(light, 'primary', t('Primary'), sel.steps, {})}${rampRow(light, 'neutral', t('Neutral'), sel.steps, { selected: sel.neutral })}${rampRow(light, 'secondary', t('Secondary'), sel.steps, { selected: sel.secondary })}${blendRow(light, sel.steps)}</div>
+    <div class="be-specs">${specCard(t('Light'), light)}${specCard(t('Dark'), dark)}</div></details>`;
 }
 
 // `segHtml` moved to lib/seg.ts (component audit rec 1 - the one `.view-seg`
@@ -874,130 +886,7 @@ const ROLE_GLYPH: Partial<Record<RoleId, string>> = { primary: 'P', secondary: '
  *  this alias is only so the call sites below read as they always did. */
 const starterId = colorIdentity;
 
-/**
- * The palette grid.
- *
- * `starter` holds one {@link starterId} per colour of the SHIPPED starter
- * document (see readStarterDoc): a group every one of whose swatches is still in
- * there is a hand-me-down, not a decision, and says so on its heading. Empty for
- * every brand that ships no starter, which renders the grid exactly as before.
- *
- * ROLES ARE NOT TILES (plan 182 C5). A `color.semantic.*` leaf is an alias that
- * re-points at a swatch; it is material nowhere. Rendered as a tile it put the
- * starter's seven roles in the grid on a blank profile, and - worse - drew a
- * SECOND tile of a person's own colour the moment they gave it a role, so one
- * add read as two colours. The Roles strip is the one place roles are listed;
- * here they are filtered out of the groups and out of the count.
- *
- * INHERITED COLOURS ARE NOT LISTED EITHER (plan 182 section 4.2). A starter
- * palette is scaffolding, and a pane that opens on a wall of colours nobody
- * chose cannot answer "which of this is mine?". So the groups and the headline
- * count are the OWN colours; the starter's neutrals live in the Tokens room,
- * which routes back here with `opts.starterGroup` when somebody asks to see
- * them - and that one folded group is the only place a starter tile is drawn.
- */
-interface PaletteOpts {
-  /** Swatch key → the corner mark its role wears. Empty at beat 0/1 with no
-   *  roles assigned; never contains a `color.semantic.*` key (those are the
-   *  aliases doing the pointing, not the material pointed at). */
-  roles: ReadonlyMap<string, string>;
-  /** The inherited group to reveal, folded and tagged, at the foot of the pane
-   *  (`?area=color&group=neutral`). Null - the ordinary case - draws no starter
-   *  material at all. Matched case-insensitively against the group heading, and
-   *  against its theme-less stem, so `neutral` finds "Neutral · Light" too. */
-  starterGroup: string | null;
-}
 
-function paletteHtml(swatches: BrandSwatch[], starter: Set<string>, opts: PaletteOpts): string {
-  // Indices address the FULL list - `data-be-tile="<i>"` is read straight back
-  // as `swatches[i]` by the popover, the bulk selection and the mobile mirror -
-  // so the filter happens after the map, never before it.
-  const idxOf = new Map(swatches.map((s, i) => [s, i]));
-  const material = swatches.filter(s => s.kind !== 'semantic');
-  const isStarterSwatch = (s: BrandSwatch): boolean => starter.size > 0 && starter.has(starterId(s.key, s.raw));
-  const tiles = material.filter(s => !isStarterSwatch(s));
-  // Group in a stable, meaningful order: ramps first (Primary, Neutral, then the
-  // rest alphabetically), Spectrum, Custom, then the theme roles.
-  const groups = new Map<string, BrandSwatch[]>();
-  tiles.forEach(s => { (groups.get(s.group) ?? groups.set(s.group, []).get(s.group)!).push(s); });
-  const rank = (g: string): number =>
-    /^primary$/i.test(g) ? 0 : /^neutral$/i.test(g) ? 1 : /^secondary$/i.test(g) ? 2 :
-    /spectrum/i.test(g) ? 6 : /custom/i.test(g) ? 7 : /roles/i.test(g) ? 9 : 4;
-  const order = [...groups.keys()].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
-  // A palette-level Add always shows - a brand with no `custom` group yet has no
-  // Custom section to hang a per-group Add off, so the first swatch needs this.
-  const countLabel = tiles.length === 1
-    ? t('{n} colour', { n: tiles.length })
-    : t('{n} colours', { n: tiles.length });
-  const top = `
-    <div class="be-pal-top">
-      <span class="be-pal-count">${countLabel}</span>
-      ${/* The "Select" mode button is gone (plan 182 section 5.5): selection is a
-             gesture now - drag on empty space, Shift/Cmd-click, a group's Select
-             all, or the arrow keys - and the bulk bar arrives with the first
-             selected tile rather than with a mode. */''}
-      <span class="be-pal-topbtns">
-        <button type="button" class="be-add" data-be-add="custom">${t('+ Add swatch')}</button>
-      </span>
-    </div>`;
-  // Every section is collapsible (<details>, open by default - no persistence)
-  // and carries its own "+ Add": Spectrum grows in place, Custom adds a custom
-  // swatch, and a derived section (Primary/Neutral/Roles…) adds a custom swatch
-  // TAGGED to render under that heading (addSwatch's displayGroup). Tiles stay
-  // in the DOM either way, so the delegated click/scroll wiring keeps working.
-  const body = order.map(g => {
-    const items = groups.get(g)!;
-    // The displayGroup tag PERSISTS on the token, so store the theme-less base
-    // name ("Roles", not the "Roles · Light" heading) - walkSwatches files a
-    // "Roles" tag under whichever theme's Roles section is currently showing,
-    // so a theme switch never strands the swatch under a stale heading.
-    const addAttrs = /spectrum/i.test(g) ? 'data-be-add="spectrum"'
-      : /^custom$/i.test(g) ? 'data-be-add="custom"'
-      : `data-be-add="custom" data-be-add-group="${escape(g.replace(/\s*·.*$/, ''))}"`;
-    return `
-      <details class="be-pal-group" data-be-group="${escape(g)}" open>
-        <summary class="be-pal-group-head">
-          <span class="be-pal-group-label">${escape(g)}<span class="be-pal-group-n">${items.length}</span></span>
-          ${/* Selecting a whole section without a drag - the phone's main door
-                into a selection, where there is no marquee (plan 182 section
-                5.5). It ADDS to the selection, so two sections can be collected
-                in two presses. */''}
-          <button type="button" class="be-pal-group-all" data-be-pal-all="${escape(g)}">${t('Select all')}</button>
-          <button type="button" class="be-add be-add--sm" ${addAttrs}>${t('+ Add')}</button>
-        </summary>
-        <div class="be-pal-grid">${items.map(s => tileHtml(s, idxOf.get(s)!, opts.roles.get(s.key))).join('')}</div>
-      </details>`;
-  }).join('');
-  return top + body + starterGroupHtml(material.filter(isStarterSwatch), idxOf, opts.starterGroup);
-}
-
-/**
- * The one folded group where a starter colour is ever drawn (plan 182 section
- * 12) - the Tokens room's "Neutrals · starter" Open, landing here.
- *
- * Folded, tagged, and at the foot of the pane, because it is scaffolding rather
- * than a decision. Never dashed (dashed is a drop target in this app), and never
- * present at all unless somebody asked for it by name.
- */
-function starterGroupHtml(
-  inherited: BrandSwatch[], idxOf: Map<BrandSwatch, number>, want: string | null,
-): string {
-  if (!want) return '';
-  const stem = (g: string): string => g.replace(/\s*·.*$/, '').trim().toLowerCase();
-  const target = stem(want);
-  const items = inherited.filter(s => stem(s.group) === target);
-  if (!items.length) return '';
-  const heading = items[0]!.group;
-  return `
-    <details class="be-pal-group be-pal-group--starter" data-be-group="${escape(heading)}">
-      <summary class="be-pal-group-head">
-        <span class="be-pal-group-label">${escape(heading)}<span class="be-pal-group-n">${items.length}</span></span>
-        <span class="be-pal-starter">${t('Starter')}</span>
-      </summary>
-      <p class="be-pal-group-note">${t("Lolly's ink and paper. Tools use them until the design system has colours of its own.")}</p>
-      <div class="be-pal-grid">${items.map(s => tileHtml(s, idxOf.get(s)!)).join('')}</div>
-    </details>`;
-}
 
 /**
  * One group of logo slots.
@@ -1241,7 +1130,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   // Parametric-analogous params - only read when harmonyKind === 'analogous'.
   let analogCount = 3;   // number of accents (2–5)
   let analogAngle = 30;  // hue step in degrees between consecutive accents (10–45)
-  const currentTheme = document.documentElement.dataset.theme || 'light';
+  let currentTheme = document.documentElement.dataset.theme || 'light';
 
   // ── Per-ramp tonal curves - the editable master behind each ramp's steps ─────
   // Loaded from the installed doc's ramp-group $extensions; ABSENT on a curve-less
@@ -1306,8 +1195,6 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   );
 
   const initialDraft = deriveSafe({ primary, scheme, surface, contrast, steps, foreground });
-  // Reflect any stored curves in the very first paint (a no-op when curve-less).
-  if (initialDraft) overlayRampCurves(initialDraft, curves, steps);
 
   // The Logos room's lead was six lines of taxonomy before anyone had added a
   // single mark (plan 137 C4). The whole of it is still here, one tap away in
@@ -1340,23 +1227,23 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       </div>
 
       <div class="be-tab be-tab--split" data-be-tab-panel="color">
-      <div class="be-split-main">
-      ${/* ── Level 0: the one control. Adding a colour writes exactly one token
-             (plan 97 section 7.1) - nothing is derived, suggested-into, or demanded. */''}
-      <div class="be-panel be-addcolor">
+      <aside class="be-split-side" data-be-split-side aria-label="${escape(t('Palette'))}">
+      <!-- Inner scroller: the panels scroll in here (≥1100px, the pane's height
+           viewport-anchored by the host - see brand-studio.css) while the
+           download dock below stays OUTSIDE it, keeping its seat at the pane's
+           bottom edge however far the palette scrolls. -->
+      <div class="be-split-scroll" data-be-split-scroll>
+      <div class="be-panel be-palette">
+        <div class="be-palette-heading"><h2>${t('Your colours')}</h2><span class="be-save-state" data-be-save-state role="status" hidden></span></div>
+        <div class="be-pal" data-be-pal></div>
+        <button type="button" class="be-pal-restore" data-be-undo hidden>${t('Undo')}</button>
+      <details class="be-addcolor"><summary>${t("Paste colours or use an image")}</summary>
         ${/* Beat 0's whole room (plan 182 section 3a): a title, a line, the pick
               row, and one quiet sentence saying what arrives later and where a
               file goes instead. It replaces the panel head rather than joining
               it - two headings over one control is the wall this beat removes. */''}
-        <div class="be-beat0-head">
-          <h2 class="be-beat0-title">${t('Start with one colour')}</h2>
-          <p class="be-beat0-sub">${t('Tap the chip to pick it, paste it in any notation, take it from the screen, or pull it from an image.')}</p>
-        </div>
-        ${panelHead(t('Add a colour'), t('Paste or pick any colour, in any notation. One colour adds one token, nothing else. Paste a list and every colour in it becomes a chip you can add.'))}
         <div data-be-addcolor></div>
-        <p class="be-beat0-foot">${tRaw('Roles, shades and print settings appear as the system grows. Or {link} - design tokens, a Penpot project, a PDF or an SVG.', {
-          link: `<button type="button" class="be-beat0-file" data-be-beat0-file>${t('bring a file')}</button>`,
-        })}</p>
+
         ${/* The answer to one add (plan 137 C1): the colour, its name, and the two
               things worth doing next. Static markup filled in place (textContent
               and one custom property) so a swatch name never reaches a markup
@@ -1372,51 +1259,73 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
           <button type="button" class="be-suggest-dismiss" data-be-added-dismiss aria-label="${escape(t('Dismiss'))}">&#x2715;</button>
         </div>
         <div class="be-suggest" data-be-suggest hidden></div>
+      </details>
+
+        <!-- The colour charts, demoted to a folded card - repainted on open,
+             since a hidden mount measures 0×0 (see the toggle wiring below).
+             Two views of the SAME swatches: the wheel reads a palette's spread
+             at a glance, the gamut chart shows where the displayable range
+             actually ends. Wheel stays the default so the ?wheel deep-link and
+             everyone's muscle memory land where they always did. -->
+        <details class="be-subst-details be-chart-details" data-be-chart>
+          <summary><span class="be-subst-details-label">${t('Colour chart')}</span></summary>
+          ${segHtml('chartview', [
+            { id: 'wheel', label: t('Wheel') },
+            { id: 'slices', label: t('Gamut') },
+          ], 'wheel', t('Chart view'), { attr: 'data-be-chartview', extraClass: 'be-chartview' })}
+          <div class="be-pal-wheel" data-be-wheel-mount></div>
+          <div class="be-pal-slice" data-be-slice-mount hidden></div>
+        </details>
+        <p class="be-err" data-be-pal-err hidden></p>
       </div>
 
-      ${/* The generate offer as a PANEL, not a link (plan 182 section 3a, beat
-            1). The old handover was a link on the post-add chip, which is a
-            transient thing that a dismiss takes away with it - so the one offer
-            worth making after a first colour lived on the most temporary
-            surface in the room. It is a panel now: it says which colour it will
-            build from, and its press opens the Generate wing primed with it. */''}
-      <div class="be-panel be-generate-cta" data-be-generate-cta hidden>
-        <div class="be-generate-cta-copy">
-          <span class="be-generate-cta-title" data-be-generate-cta-title></span>
-          <span class="be-generate-cta-sub">${t('Shades, a neutral to match, and every role, worked out in OKLCH. You see it before anything changes.')}</span>
-        </div>
-        <button type="button" class="be-cta be-generate-cta-go" data-be-generate-cta-go>${t('Generate')}</button>
+      <div class="be-panel be-gradients" data-be-grads-mount></div>
       </div>
+
+      <!-- Download-all - a floating pill (the catalog toolbar's clothes) at the
+           pane's anchored bottom edge, so exporting the palette never scrolls
+           away. Lives OUTSIDE .be-split-scroll - see above. -->
+      <div class="be-pal-dock" data-be-pal-dock>
+        <select class="field-select field-select--auto field-select--sm be-pal-fmt-sel" data-be-pal-fmt aria-label="${escape(t('Download the palette as'))}">
+          <option value="tokens-json">${t('Design tokens (JSON)')} &middot; Penpot / Tokens Studio</option>
+          <option value="css-vars">${t('CSS variables')}</option>
+          <option value="css-classes">${t('CSS classes')}</option>
+          <option value="scss">${t('SCSS variables')}</option>
+          <option value="gpl">${t('GIMP palette (.gpl)')}</option>
+          <option value="ase">${t('Adobe Swatch Exchange (.ase)')}</option>
+        </select>
+        <button type="button" class="be-btn be-btn--sm" data-be-pal-download data-sfx="whoosh">${t('Download')}</button>
+      </div>
+      </aside>
+      <div class="be-split-main">
+      ${/* ── Level 0: the one control. Adding a colour writes exactly one token
+             (plan 97 section 7.1) - nothing is derived, suggested-into, or demanded. */''}
+      <section class="be-context" aria-label="${escape(t('Palette previews'))}">
+        <div class="be-context-head"><h2>${t('In context')}</h2><span data-be-preview-source>${t('Your palette')}</span></div>
+        <div class="be-previews" data-be-previews></div>
+        ${segHtml('preview-scene', [{ id: '0', label: t('Poster') }, { id: '1', label: t('Chart') }, { id: '2', label: t('UI card') }], '0', t('Preview scene'), { attr: 'data-scene', groupAttr: 'data-be-scenes' })}
+      </section>
 
       ${/* Roles are an assignment layer over the swatches that already exist -
             a design system of three loose colours with no roles is valid. */''}
-      <div class="be-panel be-roles">
-        ${panelHead(t('Roles · what tools read'), t("Which colour plays each part in every tool and export. Until a colour of the design system's own takes a role, the starter's stands in. Contrast is measured against the surface, APCA first."))}
+      <details class="be-wing be-roles"><summary class="be-wing-head"><span class="be-wing-title">${t("Colour roles")}</span><span class="be-wing-sub">${t("Choose what tools use")}</span></summary><div class="be-wing-body">
         <div data-be-roles></div>
-      </div>
+      </div></details>
 
       ${/* ── Level 2: the expert wings. Folded by default, no persistence - the
              same discipline the palette's own sections keep. */''}
       <details class="be-wing" data-be-wing="generate">
         <summary class="be-wing-head">
-          <span class="be-wing-title">${t('Generate a starter palette')}</span>
-          <span class="be-wing-sub">${t('Build a full set of shades from one colour. Nothing changes until you replace the palette.')}</span>
+          <span class="be-wing-title">${t('Explore shades & harmonies')}</span>
+          <span class="be-wing-sub">${t('Add the colours you like')}</span>
         </summary>
         <div class="be-wing-body">
       <div class="be-colour">
-        ${panelHead(t('Start from one colour'), t('Pick a colour and Lolly works out the ramps, both themes and every role. Click a step in the Neutral or Secondary ramp to anchor that shade. This is a preview until you replace the palette.'))}
-        ${/* The proposal already exists from the seed. Put the review decision
-              before the long visual workbench so a phone user can act within
-              one viewport; the button still opens the mandatory review card
-              and writes nothing by itself. */''}
-        <div class="be-gen-actions">
-          <button type="button" class="be-cta" data-be-replace-palette>${t('Replace palette')}</button>
-          <span class="be-gen-note">${t('Adds nothing on its own. You see exactly what changes first.')}</span>
-        </div>
-        <div class="be-review" data-be-review hidden></div>
+        ${panelHead(t('Find a few more colours'), t('Choose a starting colour, then add individual shades or a shade group. Your existing colours and roles stay as they are.'))}
+        <p class="be-draft-status" data-be-draft-status role="status" aria-live="polite"></p>
         <div class="be-derive">
           <div class="be-colorpick">
-            <span class="be-field-label">${t('Primary colour')}</span>
+            <span class="be-field-label">${t('Starting colour')}</span>
             <div data-be-primary-field>${colorFieldHtml('be-primary', primary, { inline: true, modes: true, progressive: true })}</div>
           </div>
           <div class="be-derive-controls">
@@ -1434,14 +1343,14 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
               </div>
             </details>
           </div>
-          <div class="be-preview" data-be-preview>${initialDraft ? previewHtml(initialDraft, { neutral: neutralStep, secondary: secondaryStep, steps, curves: curveMarks() }) : ''}</div>
+          <div class="be-preview" data-be-preview>${initialDraft ? previewHtml(initialDraft, { neutral: neutralStep, secondary: secondaryStep, steps, curves: curveMarks(), palette: walkSwatches(doc, currentTheme).filter(s => s.kind !== 'semantic').flatMap(s => s.hex ? [s.hex] : []) }) : ''}</div>
         </div>
       </div>
 
       <details class="be-generate-detail">
-        <summary>${t('Build the palette')}</summary>
+        <summary>${t('Find matching colours')}</summary>
       <div class="be-generate">
-        ${panelHead(t('Build the palette'), t('Generate matching colours from the primary - pick a harmony, then <strong>+ Add</strong> the ones you want. Each comes pre-named; rename any of them later. See the whole palette on real graphics below.'))}
+        ${panelHead(t('Find matching colours'), t('Choose a harmony and add the colours you like. Each added colour can be renamed in your palette.'))}
         <div class="be-field">
           <span class="be-field-label">${t('Harmony')}</span>
           ${/* The shared segmented-control primitive (lib/seg.ts). The free-N kinds
@@ -1473,13 +1382,16 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
           </div>
         </div>
         <div class="be-candidates" data-be-candidates aria-live="polite"></div>
-        <div class="be-previews-wrap">
-          <span class="be-field-label">${t('The palette, applied')}</span>
-          <div class="be-previews" data-be-previews></div>
-        </div>
+
       </div>
       </details>
 
+      <details class="be-generate-detail be-rebuild" data-be-rebuild>
+        <summary>${t('Rebuild the whole palette…')}</summary>
+        <p class="be-gen-note">${t('Replace generated ramps and update theme roles from these settings. Review the result before applying; Undo restores the previous palette.')}</p>
+        <button type="button" class="be-btn" data-be-replace-palette>${t('Preview full rebuild')}</button>
+        <div class="be-review" data-be-review hidden></div>
+      </details>
         </div>
       </details>
 
@@ -1489,7 +1401,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       <details class="be-wing be-wing--advanced" data-be-wing="curves">
         <summary class="be-wing-head">
           <span class="be-wing-title">${t('Shade curves')}</span>
-          <span class="be-wing-sub">${t('Reshape a ramp point by point. Lightness, chroma and hue each have their own curve.')}</span>
+          <span class="be-wing-sub">${t('Fine-tune a colour ramp')}</span>
         </summary>
         <div class="be-wing-body">
           <label class="be-field"><span class="be-field-label">${t('Ramp')}</span>${rampPickHtml()}</label>
@@ -1512,7 +1424,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       <details class="be-wing be-wing--advanced" data-be-wing="contrast">
         <summary class="be-wing-head">
           <span class="be-wing-title">${t('Contrast')}</span>
-          <span class="be-wing-sub">${t('Retone a ramp to APCA targets, or turn it around the hue wheel.')}</span>
+          <span class="be-wing-sub">${t('Check and adjust readability')}</span>
         </summary>
         <div class="be-wing-body">
           <label class="be-field"><span class="be-field-label">${t('Ramp')}</span>${rampPickHtml()}</label>
@@ -1569,7 +1481,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       <details class="be-wing be-wing--advanced" data-be-wing="print">
         <summary class="be-wing-head">
           <span class="be-wing-title">${t('Print')}</span>
-          <span class="be-wing-sub">${t('What the primary becomes on press: a pinned CMYK build or a named spot ink.')}</span>
+          <span class="be-wing-sub">${t('CMYK and spot inks')}</span>
           <span class="be-subst-chips" data-be-print-chips></span>
         </summary>
         <div class="be-wing-body">
@@ -1594,58 +1506,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       </details>
       </div>
 
-      <div class="be-split-divider" data-be-split-divider role="separator" aria-orientation="vertical" tabindex="0"
-        aria-label="${escape(t('Resize the palette pane'))}" title="${escape(t('Drag to resize · Enter collapses'))}"></div>
 
-      <aside class="be-split-side" data-be-split-side aria-label="${escape(t('Palette'))}">
-      <!-- Inner scroller: the panels scroll in here (≥1100px, the pane's height
-           viewport-anchored by the host - see brand-studio.css) while the
-           download dock below stays OUTSIDE it, keeping its seat at the pane's
-           bottom edge however far the palette scrolls. -->
-      <div class="be-split-scroll" data-be-split-scroll>
-      <div class="be-panel be-palette">
-        ${panelHead(t('Colours'), t('Every colour the design system carries. Click a swatch to recolour, rename or remove it; each section folds and grows with its own <strong>+ Add</strong>. The <strong>Colour chart</strong> below plots the same swatches by hue and chroma. Changes flow to every picker, tool and export.'))}
-        <div class="be-pal" data-be-pal></div>
-        ${/* Beat 1 only (the CSS hides it at 0 and 2): what the pane is holding
-              back, said once, so the missing chart/gradients/dock read as "not
-              yet" rather than "gone". */''}
-        <p class="be-pal-later">${t('Shades, the colour chart, gradients and bulk editing appear once the palette grows.')}</p>
-        <!-- The colour charts, demoted to a folded card - repainted on open,
-             since a hidden mount measures 0×0 (see the toggle wiring below).
-             Two views of the SAME swatches: the wheel reads a palette's spread
-             at a glance, the gamut chart shows where the displayable range
-             actually ends. Wheel stays the default so the ?wheel deep-link and
-             everyone's muscle memory land where they always did. -->
-        <details class="be-subst-details be-chart-details" data-be-chart>
-          <summary><span class="be-subst-details-label">${t('Colour chart')}</span></summary>
-          ${segHtml('chartview', [
-            { id: 'wheel', label: t('Wheel') },
-            { id: 'slices', label: t('Gamut') },
-          ], 'wheel', t('Chart view'), { attr: 'data-be-chartview', extraClass: 'be-chartview' })}
-          <div class="be-pal-wheel" data-be-wheel-mount></div>
-          <div class="be-pal-slice" data-be-slice-mount hidden></div>
-        </details>
-        <p class="be-err" data-be-pal-err hidden></p>
-      </div>
-
-      <div class="be-panel be-gradients" data-be-grads-mount></div>
-      </div>
-
-      <!-- Download-all - a floating pill (the catalog toolbar's clothes) at the
-           pane's anchored bottom edge, so exporting the palette never scrolls
-           away. Lives OUTSIDE .be-split-scroll - see above. -->
-      <div class="be-pal-dock" data-be-pal-dock>
-        <select class="field-select field-select--auto field-select--sm be-pal-fmt-sel" data-be-pal-fmt aria-label="${escape(t('Download the palette as'))}">
-          <option value="tokens-json">${t('Design tokens (JSON)')} &middot; Penpot / Tokens Studio</option>
-          <option value="css-vars">${t('CSS variables')}</option>
-          <option value="css-classes">${t('CSS classes')}</option>
-          <option value="scss">${t('SCSS variables')}</option>
-          <option value="gpl">${t('GIMP palette (.gpl)')}</option>
-          <option value="ase">${t('Adobe Swatch Exchange (.ase)')}</option>
-        </select>
-        <button type="button" class="be-btn be-btn--sm" data-be-pal-download data-sfx="whoosh">${t('Download')}</button>
-      </div>
-      </aside>
       </div>
 
       ${/* The room has two beats (plan 182 section 3a), written on the panel by
@@ -1774,6 +1635,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
              the other two are fixed lists and are written here. */''}
       <div class="be-bulkbar" data-be-bulkbar role="region" aria-label="${escape(t('Selection actions'))}" hidden>
         <span class="be-bulkbar-n" data-be-bulk-n aria-live="polite"></span>
+        <button type="button" class="be-bulkbar-btn be-bulk-preview" data-be-bulk-preview>${t('Preview')}</button>
         <span class="be-bulkbar-sep" aria-hidden="true"></span>
         <span class="be-bulkbar-wrap" data-be-bulk-wrap="move">
           <button type="button" class="be-bulkbar-btn" data-be-bulk-menu="move" aria-haspopup="true" aria-expanded="false">${t('Move to')} <span aria-hidden="true">▾</span></button>
@@ -1805,6 +1667,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
               <span class="be-swatch-lock be-editor-lockbadge" data-be-editor-lockbadge hidden>${t('LOCK')}</span>
             </div>
             <div class="be-editor-field"><div data-be-editor-color></div></div>
+            <label class="be-editor-group">${t('Group')}<select class="field-select" data-be-editor-group></select></label>
             <div class="be-editor-field be-stored" data-be-stored-row>
               <span class="be-stored-label" id="be-stored-label">${t('Stored as')}</span>
               ${/* Built from the shared segmented-control primitive (lib/seg.ts) - 
@@ -1932,13 +1795,6 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
    *  is decided on (plan 182 sections 3a, 4.2). Roles are skipped for the reason
    *  paletteHtml skips them: an alias is not a colour somebody added. */
   const ownColorCount = (): number => swatches.filter(s => s.kind !== 'semantic' && !isStarterSwatch(s)).length;
-  /**
-   * The inherited group the pane is showing, or null.
-   *
-   * Set once from `?area=color&group=<name>` (the Tokens room's "Open" for the
-   * starter neutrals) and never by anything the room itself does - the pane's
-   * ordinary state carries no starter material at all.
-   */
   let revealedStarterGroup: string | null = null;
   /** Which swatch wears which role mark, read off the doc's own aliases so the
    *  glyph and the Roles strip can never disagree. */
@@ -1981,6 +1837,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       );
       palMount.innerHTML = paletteHtml(swatches, starterSwatches, {
         roles: roleGlyphsNow(), starterGroup: revealedStarterGroup,
+        groups: paletteGroups(doc), hidden: excluded.size,
       });
       if (closed.size) {
         palMount.querySelectorAll<HTMLDetailsElement>('.be-pal-group').forEach(d => {
@@ -1996,18 +1853,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     notifyPaletteObservers();
   };
 
-  // ── Beats: the room grows with the system (plan 182 section 3a) ─────────────
-  // Three beats, decided by how much of this palette is the person's own, and
-  // stamped as `data-be-beat` on the room's panel. Nothing below the current
-  // beat is on screen: at beat 0 the room is one centred pick control, at beat 1
-  // it is the split with the roles and the generate offer, at beat 2 it is
-  // everything. The decision itself is lib/design-system/beats.ts, pure and
-  // unit-tested, because this file has no DOM harness.
-  //
-  // `beat` starts at 2 and the attribute starts ABSENT, which renders the room
-  // exactly as it always did - so a brand with no readable starter (a pack of
-  // its own, an unreachable catalog) is never held back by a count it cannot
-  // compute.
+  // Ownership still informs Overview and mobile affordances; it never hides palette editing.
   let beat: Beat = 2;
   /** A beat the room owes but has not applied - see applyBeat. */
   let beatPending = false;
@@ -2036,7 +1882,6 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     beat = next;
     colorPanel.dataset.beBeat = String(next);
     syncAddPlaceholder();
-    syncGenerateCta();
     // The roles strip widens to all seven slots at beat 2 (plan 182 section 5.7),
     // and the palette hooks above have already run with the OLD beat - so the
     // strip is re-rendered here, on the change itself. Its own render is a no-op
@@ -2088,20 +1933,14 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     if (!isRec(doc)) return;
     undoStack.push({ doc: structuredClone(doc) as Record<string, unknown>, label });
     if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    const undo = $<HTMLButtonElement>('[data-be-undo]');
+    if (undo) { undo.hidden = false; undo.textContent = tRaw('Undo: {action}', { action: label }); }
   };
   /** Take a durable checkpoint through the host, best-effort. A rejection is a
    *  missing safety net, never a failed edit - the local stack still has it. */
   const ctxCheckpoint = (label: string): void => {
     try { void opts.checkpoint?.(label)?.catch?.(() => {}); } catch { /* host's problem */ }
   };
-
-  // "Replace palette" lights up glossy (see .be-cta.is-active) the moment any
-  // derive input changes - colour, scheme, surface, contrast, shades, a ramp step
-  // - signalling there's a fresh proposal waiting. Cleared once it's applied (or
-  // anything persists), so a resting button never nags. Every live change funnels
-  // through renderPreview(), so that's the one place we flag it.
-  const replaceBtn = $('[data-be-replace-palette]') as HTMLButtonElement | null;
-  const setReplaceActive = (v: boolean): void => { replaceBtn?.classList.toggle('is-active', v); };
 
   /** Tell the host view a brand edit just landed on `tab` (Save-&-continue
    *  appearance + next-tab nudge). Best-effort - a throwing listener must never
@@ -2115,14 +1954,21 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
    * surface (palette tiles, wheel, locks, generator, the add row), so this is
    * also the one place that flags colour-tab activity to the host.
    */
+  let saveQueue = Promise.resolve();
+  let saveRevision = 0;
   const persist = (immediate = false): void => {
+    const revision = ++saveRevision;
     clearTimeout(saveTimer);
+    const status = $<HTMLElement>('[data-be-save-state]');
+    if (status) { status.hidden = false; status.textContent = t('Saving…'); status.classList.remove('is-error'); }
     notify('color');
-    setReplaceActive(false); // installed - nothing pending to apply
     notifyPaletteObservers(); // the doc is already mutated - mirrors repaint now, not post-debounce
-    const run = async (): Promise<void> => {
+    const run = (): void => {
+      const snapshot = structuredClone(doc);
+      saveQueue = saveQueue.then(async () => {
       try {
-        await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], doc, { label: 'My brand' });
+        await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], snapshot, { label: 'My brand' });
+        if (status && revision === saveRevision) { status.textContent = t('Saved'); }
         void applyChromeBrandVars(host);
         // Reflect the new palette in every picker without a tool remount.
         try {
@@ -2130,10 +1976,12 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
           setSwatches(cols.map(c => ({ value: c.value, label: c.name, group: c.group, ref: c.ref })));
         } catch { /* pickers refresh on next tool mount regardless */ }
       } catch (err) {
+        if (status && revision === saveRevision) { status.classList.add('is-error'); status.textContent = tRaw("Couldn't save: {error}", { error: String((err as { message?: unknown })?.message ?? err) }); }
         if (root.isConnected) announce(tRaw("Couldn't save the brand: {error}", { error: String((err as { message?: unknown })?.message ?? err) }), { assertive: true });
       }
+      });
     };
-    if (immediate) void run(); else saveTimer = setTimeout(run, 300);
+    if (immediate) run(); else saveTimer = setTimeout(run, 300);
   };
 
   /**
@@ -2165,18 +2013,22 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   let dropPendingReplacement: () => void = () => {};
 
   // ── Derive controls (the Generate wing) ─────────────────────────────────────
-  // Nothing here writes. renderPreview paints ONLY the wing's own preview - the
-  // ramps + specimen cards - which is a proposal, not the system: the app's
-  // chrome, the palette and the install all keep showing what is actually
-  // installed until Replace palette is confirmed (plan 97 section 3 principle 1).
+  // Exploring does not write. Only adding shades or applying a reviewed full
+  // rebuild changes the palette; specimens outside this wing stay committed.
   const renderPreview = (): void => {
     const next = deriveSafe({ primary, scheme, surface, contrast, steps, foreground });
     if (!next) return; // a half-typed hex mid-edit - keep the last good preview
-    // The tonal curves are AUTHORITATIVE in the editor: overlay them onto the
-    // pure derive (a byte-identical no-op for any ramp without a curve).
-    overlayRampCurves(next, curves, steps);
-    if (preview) preview.innerHTML = previewHtml(next, { neutral: neutralStep, secondary: secondaryStep, steps, curves: curveMarks() });
-    setReplaceActive(true); // a derive input changed → invite the user to review it
+    // Exploration starts from the chosen colour. Saved curves belong to the
+    // existing palette and the optional full rebuild, not to these new shades.
+    if (preview) {
+      const themesOpen = preview.querySelector<HTMLDetailsElement>('.be-draft-themes')?.open;
+      const focusedStep = document.activeElement instanceof HTMLElement && preview.contains(document.activeElement)
+        ? { ramp: document.activeElement.dataset.beRamp, step: document.activeElement.dataset.beStep } : null;
+      preview.innerHTML = previewHtml(next, { neutral: neutralStep, secondary: secondaryStep, steps, curves: curveMarks(), palette: walkSwatches(doc, currentTheme).filter(s => s.kind !== 'semantic').flatMap(s => s.hex ? [s.hex] : []) });
+      const themes = preview.querySelector<HTMLDetailsElement>('.be-draft-themes');
+      if (themes && themesOpen) themes.open = true;
+      if (focusedStep?.ramp && focusedStep.step) preview.querySelector<HTMLElement>(`[data-be-ramp="${focusedStep.ramp}"][data-be-step="${focusedStep.step}"]`)?.focus({ preventScroll: true });
+    }
     dropPendingReplacement(); // the parked proposal is now stale - see its comment
     // Deliberately NO notify(): a preview-only change has landed nowhere, so
     // telling the host an edit happened would be a lie.
@@ -2557,12 +2409,23 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   const candidatesEl = $('[data-be-candidates]') as HTMLElement | null;
   const previewsEl = $('[data-be-previews]') as HTMLElement | null;
   /** The brand's live palette as hexes (primary first), deduped - feeds the previews. */
+  let previewSelection: string[] = [];
+  let previewScene = 0;
   const paletteHexes = (): string[] => {
     const out: string[] = [];
     const seen = new Set<string>();
     const add = (h: string | undefined): void => { const k = (h || '').toLowerCase(); if (h && /^#[0-9a-fA-F]{6}/.test(h) && !seen.has(k)) { seen.add(k); out.push(h.slice(0, 7)); } };
-    add(primaryHex());
-    for (const s of swatches) if (s.hex && s.kind !== 'semantic') add(s.hex);
+    if (previewSelection.length) swatches.filter(s => previewSelection.includes(s.key)).forEach(s => { add(s.hex); });
+    else {
+      const material = swatches.filter(s => s.kind !== 'semantic');
+      const chosen = material.filter(s => !isStarterSwatch(s) || paletteGroups(doc).includes(groupName(s.group)));
+      const pool = chosen.length ? chosen : material;
+      const primaryRole = readRoles(doc, currentTheme === 'dark' ? 'dark' : 'light').primary.ref;
+      const lead = pool.find(s => s.key === primaryRole);
+      if (lead) add(lead.hex);
+      for (const s of pool.filter(s => s.kind === 'custom' || s.kind === 'spectrum')) add(s.hex);
+      for (const s of pool) add(s.hex);
+    }
     return out;
   };
   const isInPalette = (hex: string): boolean => {
@@ -2589,7 +2452,16 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   };
   const renderPreviews = (): void => {
     if (!previewsEl) return;
-    const scenes = palettePreviewSvgs(paletteHexes(), { steps });
+    const colors = paletteHexes();
+    if (!colors.length) {
+      const empty = document.createElement('p'); empty.className = 'be-preview-empty';
+      empty.textContent = t('Add a colour to see it in context.'); previewsEl.replaceChildren(empty); return;
+    }
+    const set = createTokenSet(doc, { theme: currentTheme === 'dark' ? 'dark' : 'light' });
+    const role = (name: string): string | undefined => colorToHex(set.resolve(`color.semantic.${name}`)) ?? undefined;
+    const scenes = palettePreviewSvgs(colors, { roles: previewSelection.length ? undefined : {
+      primary: role('primary'), secondary: role('secondary'), surface: role('surface'), text: role('text'), onPrimary: role('on-primary'),
+    } });
     // `s.svg` is interpolated RAW, deliberately - it is markup, so escaping it
     // would render the tags as text. It is safe because lib/palette-preview.ts
     // BUILDS these scenes from developer-authored templates and passes every
@@ -2598,8 +2470,16 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     // <script>, href or url(), and palette-preview.test.ts pins all of that
     // against hostile colour strings. `s.label` is ours but escaped anyway,
     // since it is text rather than markup.
-    previewsEl.innerHTML = scenes.map(s => `<figure class="be-pv"><div class="be-pv-art">${s.svg}</div><figcaption class="be-pv-cap">${escape(s.label)}</figcaption></figure>`).join('');
+    previewsEl.innerHTML = scenes.map((s, i) => `<figure class="be-pv"${i === previewScene ? '' : ' hidden'}><div class="be-pv-art">${s.svg}</div><figcaption class="be-pv-cap">${escape(s.label)}</figcaption></figure>`).join('');
   };
+  $('[data-be-scenes]')?.addEventListener('click', (e) => {
+    const button = (e.target as HTMLElement).closest<HTMLElement>('[data-scene]');
+    if (!button) return;
+    previewScene = Number(button.dataset.scene);
+    $('[data-be-scenes]')?.querySelectorAll('[data-scene]').forEach(b => { b.setAttribute('aria-pressed', String(b === button)); });
+    renderPreviews();
+  });
+  paletteObservers.add(renderPreviews);
   const renderGenerator = (): void => { renderCandidates(); renderPreviews(); };
   // The parametric-analogous count/angle controls, shown only in that mode.
   const analogWrap = $('[data-be-analogous]') as HTMLElement | null;
@@ -2628,14 +2508,39 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-add-hex]'); if (!btn || btn.disabled) return;
     const hex = btn.dataset.addHex!, name = btn.dataset.addName || nameColor(hex);
     if (isInPalette(hex)) return;
+    pushUndo(t('Add matching colour'));
     addSwatch(doc, 'spectrum', name, serializeColor(hex, 'lch')); // LCH - the storage default
     repaintPalette();       // refreshes swatches + picker + wheel + (via hook) the generator
     persist(true);          // officiate: the accent is now part of the brand
     playSfx('click');
     announce(tRaw('{name} added to the palette', { name }));
   });
-  paletteHooks.push(renderGenerator); // keep candidates + previews in sync with the palette
+  paletteHooks.push(() => { renderGenerator(); renderPreview(); }); // keep candidates + previews in sync with the palette
   renderGenerator();                  // initial paint
+
+  preview?.addEventListener('click', e => {
+    const button = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-be-add-ramp], [data-be-add-shade]');
+    if (!button || button.disabled) return;
+    const ramp = button.dataset.beAddRamp ?? button.dataset.beAddShade?.split('.')[2];
+    if (!ramp || !RAMP_IDS.includes(ramp as RampId)) return;
+    const draft = deriveSafe({ primary, scheme, surface, contrast, steps, foreground });
+    if (!draft) return;
+    const shades = draftShades(draft, ramp).filter(shade => !button.dataset.beAddShade || shade.key === button.dataset.beAddShade);
+    const label = tRaw('{label} shades', { label: RAMP_LABEL[ramp as RampId] });
+    pushUndo(t('Add shades'));
+    const added = addDraftShades(doc, shades, label);
+    if (!added) return;
+    repaintPalette();
+    persist(true);
+    const status = $<HTMLElement>('[data-be-draft-status]');
+    if (status) status.textContent = added === 1 ? t('1 shade added. Undo is available above your palette.') : tRaw('{n} shades added. Undo is available above your palette.', { n: added });
+    // Repainting replaces the trigger. Keep focus in the workbench even when
+    // every shade has been added and the ramp's buttons are now disabled.
+    const nextButton = preview?.querySelector<HTMLButtonElement>(`[data-be-add-ramp="${ramp}"]:not(:disabled)`);
+    if (nextButton) nextButton.focus();
+    else if (status) { status.tabIndex = -1; status.focus(); }
+    announce(added === 1 ? t('1 shade added to your palette') : tRaw('{n} shades added to your palette', { n: added }));
+  });
 
   // ── Screen readout - the primary's on-screen (sRGB) form. ───────────────────
   const screenEl = $('[data-be-screen]') as HTMLElement | null;
@@ -2762,15 +2667,12 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       wrap.innerHTML = colorFieldHtml('be-primary', primary, { inline: true, modes: true, progressive: true });
       wireColorField(wrap, { onChange: onPrimaryFieldChange });
     }
-    // Overlay the re-loaded curves so the preview matches the doc's (curve-baked)
-    // ramp literals rather than a pure derive of the new primary.
+    // New shade suggestions follow the current starting colour.
     const fresh = deriveSafe({ primary, scheme, surface, contrast, steps, foreground });
-    if (fresh) overlayRampCurves(fresh, curves, steps);
-    if (preview && fresh) preview.innerHTML = previewHtml(fresh, { neutral: neutralStep, secondary: secondaryStep, steps, curves: curveMarks() });
+    if (preview && fresh) preview.innerHTML = previewHtml(fresh, { neutral: neutralStep, secondary: secondaryStep, steps, curves: curveMarks(), palette: walkSwatches(doc, currentTheme).filter(s => s.kind !== 'semantic').flatMap(s => s.hex ? [s.hex] : []) });
     renderScreen();
     primaryLock?.render();
     renderGenerator();
-    setReplaceActive(false);
     dropPendingReplacement(); // the doc was swapped wholesale - any parked proposal is stale
   };
 
@@ -2787,8 +2689,11 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     persist(true);
     playSfx('click');
     announce(tRaw('Undone: {action}', { action: prev.label }));
+    const undo = $<HTMLButtonElement>('[data-be-undo]');
+    if (undo) { undo.hidden = undoStack.length === 0; undo.textContent = tRaw('Undo: {action}', { action: undoStack.at(-1)?.label ?? '' }); }
     return true;
   };
+  $('[data-be-undo]')?.addEventListener('click', () => { undoLast(); });
 
   // ── Replace palette: build a proposal, review it, then swap ─────────────────
   // The old flow derived straight into the doc behind a confirm dialog. Now the
@@ -2896,6 +2801,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     // shade count drops its stale ramp-step exclusions, per the delete contract.
     // Runs AFTER the colour + role carries, so a carried swatch keeps its
     // exclusion rather than losing it to a key that wasn't there yet.
+    carryPaletteGroups(doc, next);
     let excluded = 0;
     {
       const wasExcluded = getExcludedSwatches(doc);
@@ -2961,10 +2867,11 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     if (plan.excluded) bits.push(li(plan.excluded === 1 ? t('1 hidden shade stays hidden') : tRaw('{n} hidden shades stay hidden', { n: plan.excluded })));
     if (plan.pinnedStops) bits.push(li(plan.pinnedStops === 1 ? t('1 gradient stop keeps its colour') : tRaw('{n} gradient stops keep their colour', { n: plan.pinnedStops })));
     reviewEl.innerHTML = `
-      <p class="be-review-title">${t('Replace the palette?')}</p>
+      <p class="be-review-title">${t('Rebuild the palette?')}</p>
+      <div class="be-specs">${specCard(t('Current'), createTokenSet(doc, { theme: 'light' }))}${pendingReplacement ? specCard(t('Proposed'), createTokenSet(pendingReplacement, { theme: 'light' })) : ''}</div>
       <ul class="be-review-list">${bits.join('')}</ul>
       <div class="be-review-actions">
-        <button type="button" class="be-cta" data-be-review-go>${t('Replace palette')}</button>
+        <button type="button" class="be-cta" data-be-review-go>${t('Apply rebuilt palette')}</button>
         <button type="button" class="be-btn" data-be-review-cancel>${t('Cancel')}</button>
       </div>`;
     reviewEl.hidden = false;
@@ -2973,7 +2880,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   const renderReviewDone = (): void => {
     if (!reviewEl) return;
     reviewEl.innerHTML = `
-      <p class="be-review-title">${t('Palette replaced.')}</p>
+      <p class="be-review-title">${t('Palette rebuilt.')}</p>
       <div class="be-review-actions">
         <button type="button" class="be-btn" data-be-review-undo>${t('Undo')}</button>
       </div>`;
@@ -2986,17 +2893,16 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   };
 
   const commitReplacement = (next: Record<string, unknown>): void => {
-    pushUndo(t('Replace palette'));                        // snapshot BEFORE the swap
+    pushUndo(t('Rebuild palette'));                        // snapshot BEFORE the swap
     ctxCheckpoint(t('Before replacing the palette'));       // durable, best-effort
     doc = next;
     curveAnchorPrimary = primary;
     repaintPalette();
     persist(true);
-    setReplaceActive(false);
     pendingReplacement = null;
     renderReviewDone();
     playSfx('click');
-    announce(t('Palette replaced. Undo is available.'));
+    announce(t('Palette rebuilt. Undo is available.'));
   };
 
   $('[data-be-replace-palette]')?.addEventListener('click', () => {
@@ -3049,6 +2955,11 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     const label = tileLabel(s.name, s.hex, !!s.lock);
     tile.title = label;
     tile.setAttribute('aria-label', label);
+    const card = tile.closest('.be-pal-card');
+    const name = card?.querySelector('.be-pal-name');
+    const hex = card?.querySelector('.be-pal-hex');
+    if (name) name.textContent = s.name;
+    if (hex) hex.textContent = s.hex || 'transparent';
   };
 
   /** Refresh a swatch's tile in place (lock badge + colour), without a full repaint - 
@@ -3240,12 +3151,19 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   };
   const closeEditor = (): void => {
     if (editorEl) { editorEl.hidden = true; }
+    const focusBack = editorAnchor;
     selected = -1; editorAnchor = null;
+    if (focusBack?.isConnected) focusBack.focus();
     leavePickMode();
     root.querySelectorAll('.be-swatch.is-selected').forEach(t => t.classList.remove('is-selected'));
     // A beat that fell due while this card was open is owed now (see applyBeat).
     if (beatPending) { applyBeat(); notifyPaletteObservers(); }
   };
+  const { renderEditorGroup } = mountPaletteGroupControls(palMount, editorEl, {
+    doc: () => doc, swatches: () => swatches, current: () => swatches[selected],
+    before: pushUndo, commit: () => { repaintPalette(); persist(true); },
+    close: closeEditor, open: path => openSwatchAt(path),
+  });
   const openEditor = (idx: number, tile: HTMLElement): void => {
     const s = swatches[idx]; if (!s || !editorEl) return;
     selected = idx;
@@ -3258,7 +3176,9 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     nameInput.value = s.name;
     // Everything is deletable: real removal for the user's own swatches, an
     // exclusion (hide) for derived ramp steps + roles - see the Delete handler.
-    delBtn.hidden = !(s.deletable || s.kind === 'ramp' || s.kind === 'semantic');
+    delBtn.hidden = false;
+    delBtn.textContent = s.deletable && s.kind !== 'ramp' && !isStarterSwatch(s) ? t('Delete') : t('Hide colour');
+    renderEditorGroup(s);
     if (editorLockBadge) editorLockBadge.hidden = !s.lock;
     // Storage notation: respect what the doc already holds (an older hex edit
     // stays hex); the app default for everything else - aliases included, which
@@ -3294,6 +3214,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   const editorDelBtn = editorEl?.querySelector<HTMLButtonElement>('[data-be-editor-del]') ?? null;
   /** The colour the pick card is holding, or null when it is not open. */
   let pickHex: string | null = null;
+  let pickGroup: string | undefined;
   /** True while the card is docked to the phone's bottom edge rather than
    *  anchored to the chip - the pose has no anchor, so nothing may reposition
    *  it and no anchor scroll may close it. */
@@ -3304,6 +3225,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   const leavePickMode = (): void => {
     if (pickHex === null) return;
     pickHex = null;
+    pickGroup = undefined;
     pickSheet = false;
     editorEl?.classList.remove('is-pick', 'is-picksheet');
     if (editorAddBtn) editorAddBtn.hidden = true;
@@ -3378,10 +3300,11 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     if (!hex) return;
     const name = editorEl?.querySelector<HTMLInputElement>('[data-be-editor-name]')?.value ?? '';
     const value = serializeColor(hex, storedFmt);
+    const group = pickGroup;
     closeEditor();
     const field = addField();
     if (field) { field.value = ''; field.dispatchEvent(new Event('input', { bubbles: true })); }
-    addColorEntries([{ value, hex: colorToHex(hex) ?? hex, name }], true);
+    addColorEntries([{ value, hex: colorToHex(hex) ?? hex, name }], true, group);
   };
 
   /**
@@ -3413,27 +3336,11 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     cleanups.push(() => ro.disconnect());
   }
 
-  // ── Palette selection: a gesture, not a mode (plan 182 section 5.5) ─────────
-  // Drag on the pane's empty space to sweep a rectangle across groups, Shift-
-  // click for a range in reading order, Cmd/Ctrl-click to toggle one, a group
-  // header's "Select all", or the arrow keys. The bar arrives with the first
-  // selected tile and leaves with the last, so there is no mode to be in and no
-  // "Select" button to find. Keys are JSON paths, so a selection survives a
-  // repaint; the rules themselves are lib/design-system/palette-select.ts, pure
-  // and unit-tested, because this file has no DOM harness.
-  //
-  // EVERY OWN TILE COLLECTS, including the ones Delete cannot remove. The bar
-  // does five things now, and refusing to collect a swatch because ONE of them
-  // cannot act on it would take Move to, roles, Download and Copy away from it
-  // too; Delete reports what it held back instead.
+  // Palette selection supports checkboxes, touch, marquee and keyboard gestures.
   const swKey = (s: BrandSwatch): string => s.path.join('␟');
   const bulkbar = $('[data-be-bulkbar]') as HTMLElement | null;
-  /** The own tiles the pane is showing, in reading order. Read off the DOM
-   *  rather than off `swatches` so the model can never disagree with what is on
-   *  screen - and so the one folded starter group is out of reach of Select all
-   *  by construction rather than by a filter somebody has to remember. */
   const ownTileEls = (groupSel = ''): HTMLElement[] => palMount
-    ? [...palMount.querySelectorAll<HTMLElement>(`.be-pal-group:not(.be-pal-group--starter)${groupSel} [data-be-tile]`)]
+    ? [...palMount.querySelectorAll<HTMLElement>(`.be-pal-group${groupSel} [data-be-tile]`)]
     : [];
   const keyOfTile = (el: HTMLElement): string | null => {
     const s = swatches[Number(el.dataset.beTile)];
@@ -3463,6 +3370,10 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   const syncPalSelect = (): void => {
     palSel.prune();
     const n = palSel.size();
+    previewSelection = selectedSwatches().map(s => s.key);
+    const source = $('[data-be-preview-source]');
+    if (source) source.textContent = n ? tRaw('{n} selected', { n }) : t('Your palette');
+    renderPreviews();
     const order = ownOrder();
     if (palFocusKey && !order.includes(palFocusKey)) palFocusKey = null;
     const roving = palFocusKey ?? order[0] ?? null;
@@ -3471,6 +3382,8 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       if (!k) continue;
       const on = palSel.has(k);
       el.classList.toggle('is-multi', on);
+      const check = el.closest('.be-pal-card')?.querySelector<HTMLInputElement>('[data-be-select]');
+      if (check) check.checked = on;
       if (on) el.setAttribute('aria-pressed', 'true');
       else el.removeAttribute('aria-pressed');
       // One tab stop for the whole grid: Tab crosses it in a press and the
@@ -3482,12 +3395,9 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       if (n === 0) closeBulkMenu();
       const nEl = bulkbar.querySelector<HTMLElement>('[data-be-bulk-n]');
       if (nEl) nEl.textContent = n === 1 ? t('1 selected') : tRaw('{n} selected', { n });
-      // Move to and Give a role are beat-2 doors: at beat 1 the pane holds a
-      // handful of tiles, with no sections to sort them into and the Roles strip
-      // one glance to the left.
       for (const id of ['move', 'role']) {
         const wrap = bulkbar.querySelector<HTMLElement>(`[data-be-bulk-wrap="${id}"]`);
-        if (wrap) wrap.hidden = beat < 2;
+        if (wrap) wrap.hidden = false;
       }
     }
     if (n) root.setAttribute('data-pal-selecting', '1');
@@ -3543,6 +3453,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   };
   paletteHooks.push(syncPalSelect);
   bulkbar?.querySelector<HTMLElement>('[data-be-bulk-cancel]')?.addEventListener('click', exitPalSelect);
+  $('[data-be-bulk-preview]')?.addEventListener('click', () => { $('.be-context')?.scrollIntoView({ block: 'start', behavior: prefersReducedMotion() ? 'auto' : 'smooth' }); });
 
   // ── What the bar does ──────────────────────────────────────────────────────
   // Every bulk write is ONE undo entry and one durable checkpoint: forty
@@ -3561,6 +3472,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     const name = group.replace(/\s*·.*$/, '').trim();
     if (!items.length || !name) return;
     bulkWrite(tRaw('Move {n} swatches', { n: items.length }), t('Before moving swatches'), () => {
+      addPaletteGroup(doc, name);
       for (const s of items) setSwatchGroup(doc, s.path, name);
     });
     announce(`${tRaw('{n} moved to {group}.', { n: items.length, group: name })} ${t('Undo with Control Z.')}`);
@@ -3616,7 +3528,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
    *  names are the person's own group headings. */
   const fillMoveMenu = (panel: HTMLElement): void => {
     panel.textContent = '';
-    const stems: string[] = [];
+    const stems: string[] = [...paletteGroups(doc)];
     for (const el of ownTileEls()) {
       const stem = (el.closest<HTMLElement>('.be-pal-group')?.dataset.beGroup ?? '').replace(/\s*·.*$/, '').trim();
       if (stem && !stems.includes(stem)) stems.push(stem);
@@ -3707,7 +3619,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     ctxCheckpoint(t('Before removing swatches'));
     let removed = 0;
     for (const s of items) {
-      if (s.kind === 'ramp' || s.kind === 'semantic') { setSwatchExcluded(doc, s.key, true); removed++; continue; }
+      if (!s.deletable || isStarterSwatch(s) || s.kind === 'ramp' || s.kind === 'semantic') { setSwatchExcluded(doc, s.key, true); removed++; continue; }
       if (!s.deletable) continue;
       if (gradientAliasRefCount(doc, s.key)) materializeGradientAliases(doc, ref => aliasPath(ref) === s.key, () => s.hex || null);
       deleteSwatch(doc, s.path); removed++;
@@ -3778,7 +3690,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     const el = e.target as HTMLElement;
     const tile = el.closest<HTMLElement>('[data-be-tile]');
     if (tile) {
-      if (e.pointerType !== 'touch' || palSel.size() || tile.closest('.be-pal-group--starter')) return;
+      if (e.pointerType !== 'touch' || palSel.size()) return;
       const k = keyOfTile(tile);
       if (!k) return;
       longPressFrom = { x: e.clientX, y: e.clientY };
@@ -3795,7 +3707,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     if (e.button !== 0 || e.pointerType === 'touch' || !palMount) return;
     // The pane's own empty space only - a group head, a disclosure or a button
     // is a control, not canvas.
-    if (el.closest('button, a, input, select, summary, .be-pal-group-note')) return;
+    if (el.closest('button, a, input, select, label, summary, .be-pal-group-note')) return;
     e.preventDefault(); // no text selection dragging along behind the rectangle
     marqueeBase = (e.shiftKey || e.metaKey || e.ctrlKey) ? palSel.keys() : [];
     const pr = palMount.getBoundingClientRect();
@@ -3849,7 +3761,25 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   palMount?.addEventListener('pointerup', finishPalPointer);
   palMount?.addEventListener('pointercancel', finishPalPointer);
 
+  palMount?.addEventListener('change', e => {
+    const checkbox = (e.target as HTMLElement).closest<HTMLInputElement>('[data-be-select]');
+    if (!checkbox) return;
+    const s = swatches[Number(checkbox.dataset.beSelect)];
+    if (s) { palSel.toggle(swKey(s)); syncPalSelect(); }
+  });
   palMount?.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('.be-pal-check')) return;
+    if (target.closest('[data-be-hide-starter]')) {
+      e.preventDefault(); pushUndo(t('Hide starter colours'));
+      for (const swatch of swatches.filter(s => s.kind !== 'semantic' && isStarterSwatch(s) && !paletteGroups(doc).includes(groupName(s.group)))) setSwatchExcluded(doc, swatch.key, true);
+      repaintPalette(); persist(true); return;
+    }
+    if (target.closest('[data-be-restore]')) {
+      pushUndo(t('Restore hidden colours'));
+      for (const key of getExcludedSwatches(doc)) setSwatchExcluded(doc, key, false);
+      repaintPalette(); persist(true); return;
+    }
     if (swallowTileClick) { swallowTileClick = false; e.preventDefault(); return; }
     const all = (e.target as HTMLElement).closest<HTMLElement>('[data-be-pal-all]');
     if (all) {
@@ -3872,13 +3802,9 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       // Group Adds live inside a <summary> - swallow the default toggle so
       // adding a swatch never folds the section it lands in.
       e.preventDefault();
-      const group = add.dataset.beAdd === 'spectrum' ? 'spectrum' : 'custom';
-      // A derived section's Add files the new custom swatch under ITS heading.
-      const displayGroup = add.dataset.beAddGroup;
-      // A neutral new swatch the user immediately recolours - stored LCH, the default.
-      const path = addSwatch(doc, group, group === 'spectrum' ? t('New hue') : t('New swatch'), serializeColor('#888888', 'lch'), displayGroup ? { displayGroup } : {});
-      repaintPalette(); persist(true);
-      openSwatchAt(path);
+      openPickCard(add, null);
+      pickGroup = add.dataset.beAddGroup;
+
       return;
     }
     const tileEl = (e.target as HTMLElement).closest<HTMLElement>('[data-be-tile]');
@@ -3886,9 +3812,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     const tIdx = Number(tileEl.dataset.beTile);
     const s = swatches[tIdx];
     const k = s ? swKey(s) : null;
-    // A starter tile in the one revealed group is material to look at, not to
-    // collect - it never joins a selection, whichever modifier is held.
-    const own = !!k && !tileEl.closest('.be-pal-group--starter');
+    const own = !!k;
     if (own && k) {
       palFocusKey = k;
       if (e.metaKey || e.ctrlKey) { palSel.toggle(k); syncPalSelect(); return; }
@@ -3941,7 +3865,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
    */
   const paletteSelectKey = (e: KeyboardEvent, tile: HTMLElement): boolean => {
     const k = keyOfTile(tile);
-    if (!k || e.key === 'Escape' || tile.closest('.be-pal-group--starter')) return false;
+    if (!k || e.key === 'Escape') return false;
     palFocusKey = k;
     if ((e.key === 'Delete' || e.key === 'Backspace') && palSel.size()) {
       e.preventDefault();
@@ -4027,7 +3951,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     // an excluded step never dangle - no materialisation needed), while the
     // tile vanishes from the grid + picker swatches. A re-derive clears entries
     // whose step no longer exists (see the derive flow above).
-    if (cur.kind === 'ramp' || cur.kind === 'semantic') {
+    if (!cur.deletable || isStarterSwatch(cur) || cur.kind === 'ramp' || cur.kind === 'semantic') {
       setSwatchExcluded(doc, cur.key, true);
       closeEditor(); repaintPalette(); persist(true);
       announce(`${tRaw('{name} removed', { name: cur.name })} ${t('Undo with Control Z.')}`);
@@ -4049,6 +3973,13 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   // the wheel/tiles), so this flushes the debounce, confirms audibly, and closes.
   editorEl?.querySelector('[data-be-editor-done]')?.addEventListener('click', () => {
     persist(true); playSfx('saveProfile'); closeEditor();
+  });
+  editorEl?.querySelector('[data-be-editor-name]')?.addEventListener('keydown', (event) => {
+    const e = event as KeyboardEvent;
+    if (e.key !== 'Enter' || e.isComposing) return;
+    e.preventDefault();
+    if (pickHex !== null) commitPickCard();
+    else { persist(true); closeEditor(); }
   });
   // The pick card's footer. Cancel is a real cancel - nothing was written, so
   // there is nothing to undo and the add row keeps whatever it had.
@@ -4107,9 +4038,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   document.addEventListener('keydown', onKey);
   cleanups.push(() => { document.removeEventListener('pointerdown', onDocPointer, true); document.removeEventListener('keydown', onKey); });
 
-  // ── Desktop split pane (Colour tab): draggable divider + sticky side pane ───
-  const splitTab = $('[data-be-tab-panel="color"]') as HTMLElement | null;
-  if (splitTab) cleanups.push(mountStudioSplit(splitTab));
+
   // The popover positions in `.be` space, but its anchors live inside the side
   // pane's own scrollport (and below 1100px the page itself still scrolls) - 
   // either scroll drifts an open popover off its tile. Capture-phase scroll
@@ -4516,7 +4445,8 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
    * from the panel the press happened in, and must not put a chip in the Add
    * hero for a colour that was added somewhere else.
    */
-  const addColorEntries = (entries: ColorEntry[], reveal = false): number => {
+  const addColorEntries = (entries: ColorEntry[], reveal = false, group?: string): number => {
+    if (entries.length) pushUndo(t('Add colours'));
     // Was this room empty of the person's own colour before the add? That is
     // what makes the next line the FIRST colour, and the first colour becomes
     // the primary (plan 182 section 5.2) - it is what nine people in ten mean
@@ -4527,7 +4457,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       // The picker card names the colour it committed; a scan of pasted text
       // has no name to report, so the room's own namer answers for those.
       const name = e.name?.trim() || nameColor(e.hex);
-      const path = addSwatch(doc, 'custom', name, serializeColor(e.hex, storageFormatOf(e.value)));
+      const path = addSwatch(doc, 'custom', name, serializeColor(e.hex, storageFormatOf(e.value)), group ? { displayGroup: group } : {});
       if (path) added.push({ path, name, hex: e.hex });
     }
     if (!added.length) return 0;
@@ -4588,40 +4518,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   // source picker (the same one the rail's "Add from…" opens).
   root.querySelector('[data-be-beat0-file]')?.addEventListener('click', () => { opts.openImport?.(); });
 
-  // ── The generate offer as a panel (plan 182 section 3a, beat 1) ─────────────
-  const genCta = $('[data-be-generate-cta]') as HTMLElement | null;
-  const genCtaTitle = $('[data-be-generate-cta-title]') as HTMLElement | null;
-  /** The colour the offer is about: the swatch holding the primary role, else
-   *  the first colour of the person's own. Null when there is neither, which is
-   *  the only state the offer stays away for. */
-  const generateSeed = (): { name: string; hex: string } | null => {
-    const ref = readRoles(doc, roleTheme()).primary?.ref ?? null;
-    const own = swatches.filter(s => s.hex && s.kind !== 'semantic' && !isStarterSwatch(s));
-    const hit = (ref ? own.find(s => s.key === ref) : undefined) ?? own[0];
-    return hit ? { name: hit.name, hex: hit.hex } : null;
-  };
-  /** Re-title the offer after whatever the palette is now leading with. Runs on
-   *  every repaint, so an add, a rename or a re-pointed role all land. */
-  function syncGenerateCta(): void {
-    if (!genCta) return;
-    const seed = generateSeed();
-    genCta.hidden = !seed;
-    if (seed && genCtaTitle) genCtaTitle.textContent = tRaw('Generate a palette from {name}', { name: seed.name });
-  }
-  paletteHooks.push(syncGenerateCta);
-  // A Replace palette creates the primary ramp the Print wing needs; a re-derive
-  // or an undo can take it away again. Both land here.
   paletteHooks.push(syncPrintWing);
-  $('[data-be-generate-cta-go]')?.addEventListener('click', () => {
-    // Prime the wing with the colour the offer names BEFORE it opens, so the
-    // ramps on screen are built from that colour rather than from whatever the
-    // derive controls were last left holding (the same order the `?seed=`
-    // deep link uses).
-    const seed = generateSeed();
-    if (seed?.hex) setPrimaryTo(seed.hex);
-    openWing('generate');
-    playSfx('click');
-  });
 
   // ── Roles as an assignment layer ────────────────────────────────────────────
   // The strip reads the doc and writes through assignRole/clearRole; every
@@ -6291,6 +6188,15 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   // Token/gradient groups ride the same doc the palette walks, so a re-derive
   // or pack import must repaint them too.
   paletteHooks.push(() => { tokensPanel?.render(); gradsPanel?.render(); });
+  const themeObserver = new MutationObserver(() => {
+    const theme = document.documentElement.dataset.theme || 'light';
+    if (theme === currentTheme) return;
+    currentTheme = theme;
+    closeEditor();
+    repaintPalette();
+  });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  cleanups.push(() => themeObserver.disconnect());
 
   // ── Share (brand pack in/out) - exposed on the handle; the host view owns
   //    the buttons' placement (its persistent Import/Export action row).
@@ -6405,14 +6311,10 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     },
     setGeneratePrimary: (hex) => {
       setPrimaryTo(hex);
-      // The deep-linked promise is "one colour in, palette offered" (audit 167
-      // A13): once the caller opens the wing, bring the PROPOSAL into view -
-      // the ramp previews with Replace palette right under them - so the
-      // confirm is the first thing on screen, not the instrument. rAF because
-      // the wing opens in the same tick as this call; scrollIntoView guarded
-      // for jsdom, motion follows the shared reduced-motion read.
+      // A colour deep link opens its suggested shades and Add actions. The
+      // wing opens in the same tick, so wait one frame before positioning it.
       requestAnimationFrame(() => {
-        const previews = $('[data-be-previews]') as HTMLElement | null;
+        const previews = $('[data-be-preview]') as HTMLElement | null;
         previews?.scrollIntoView?.({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
       });
     },

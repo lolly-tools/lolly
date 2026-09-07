@@ -6,30 +6,39 @@
  * the user sees how the colours actually behave together, and how the picture
  * fills out as they add more colours.
  *
- * Every scene is a self-contained, viewBox'd SVG string (no <script>, no
+ * Every scene is a viewBox'd SVG string (no <script>, no
  * external <image>/href, no url() refs) meant to be dropped into the DOM via
  * innerHTML. Because the palette comes from user input, EVERY colour is passed
  * through `col()` before it touches an SVG attribute - only `#rgb…#rrggbbaa`
- * hex (per /^#[0-9a-f]{3,8}$/i) or the literal 'transparent' survives; anything
+ * hex (per /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i) or the literal 'transparent' survives; anything
  * else (`'#000;url(x)'`, `'red"/>'`, …) is replaced with a safe fallback, so a
  * hostile string can never break out of the attribute it lands in.
  *
- * Pure + deterministic: the same palette always yields the same three SVGs.
+ * Typography follows the loaded --font-brand/--font-display roles; export
+ * capture bakes their computed styles. The same palette and roles yield the
+ * same markup, with no random colours or generated tints.
  */
 
-import { contrastText } from '../brand-vars.ts';
+import { contrastRatio } from '@lolly/engine';
+import { escape as escapeHtml } from '../utils.ts';
+
+export interface PalettePreviewOptions {
+  steps?: number;
+  /** Resolved colours from the active design system. Omit for a swatch selection. */
+  roles?: { primary?: string; secondary?: string; surface?: string; text?: string; onPrimary?: string };
+}
 
 export interface PalettePreview {
   /** Human name for the scene ("Poster", "Chart", "UI card"). */
   label: string;
-  /** A complete, self-contained SVG document string. */
+  /** SVG artwork; font roles inherit from the mounted design system. */
   svg: string;
 }
 
 // ── Colour sanitisation ───────────────────────────────────────────────────────
 
 /** The only shapes allowed straight into an SVG attribute (plus 'transparent'). */
-const HEX_RE = /^#[0-9a-f]{3,8}$/i;
+const HEX_RE = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 /** Neutral stand-in when a colour is missing/invalid, or the palette is empty. */
 const FALLBACK = '#8a8f98';
 /** A pleasant default palette when the caller passes nothing usable at all. */
@@ -41,37 +50,12 @@ function col(c: unknown, fallback: string = FALLBACK): string {
   return typeof c === 'string' && HEX_RE.test(c) ? c : fallback;
 }
 
-/** #rgb/#rgba/#rrggbb/#rrggbbaa → [r,g,b] 0-255, or null when unparseable. */
-function toRgb(hex: string): [number, number, number] | null {
-  let h = hex.replace(/^#/, '');
-  if (h.length === 3 || h.length === 4) h = h.split('').map((ch) => ch + ch).join('');
-  if (h.length < 6) return null;
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return [r, g, b].some(Number.isNaN) ? null : [r, g, b];
-}
-
-/** A readable ink colour (near-black or white) for text/marks sitting on `bg` - 
- *  the app-wide inversion rule (contrastText, brand-vars.ts), with its black
- *  softened to this preview's near-black. It briefly ran a WCAG-ratio winner
- *  here instead, which flips far darker than the shared rule and left these
- *  marks disagreeing with every swatch beside them. */
+/** Choose readable text from the engine's WCAG contrast calculation. The scenes
+ * use real small type now, so the old brightness threshold is insufficient. */
 function ink(bg: string): string {
   const hex = col(bg);
-  if (hex === 'transparent') return '#141414';
-  return contrastText(hex) === '#ffffff' ? '#ffffff' : '#141414';
-}
-
-/** Mix a colour toward black (amt<0) or white (amt>0); returns valid #rrggbb. */
-function shade(hex: string, amt: number): string {
-  const rgb = toRgb(hex);
-  if (!rgb) return col(hex);
-  const target = amt < 0 ? 0 : 255;
-  const p = Math.min(1, Math.abs(amt));
-  return '#' + rgb
-    .map((v) => Math.round(v + (target - v) * p).toString(16).padStart(2, '0'))
-    .join('');
+  if (hex === 'transparent') return '#000000';
+  return contrastRatio(hex, '#ffffff') > contrastRatio(hex, '#000000') ? '#ffffff' : '#000000';
 }
 
 // ── Palette prep ──────────────────────────────────────────────────────────────
@@ -85,21 +69,13 @@ function normalizePalette(colors: unknown): string[] {
   return clean.length ? clean : [...FALLBACK_PALETTE];
 }
 
-/**
- * Pad a short palette up to `min` entries with tints/shades of its own colours,
- * so a 1–2 colour palette still fills a scene with distinguishable fields. The
- * user's real colours stay at the front (index order preserved).
- */
-function expand(pal: string[], min: number): string[] {
-  const out = [...pal];
-  let k = 0;
-  while (out.length < min) {
-    const base = pal[k % pal.length]!; // pal is non-empty (normalizePalette)
-    const amt = (Math.floor(k / pal.length) + 1) * 0.16 * (k % 2 ? -1 : 1);
-    out.push(shade(base, amt));
-    k++;
-  }
-  return out;
+/** Use the actual palette for supporting surfaces and text. Only use a neutral
+ * fallback when none of its colours can provide readable small text. */
+function readableInk(background: string, palette: string[]): string {
+  return palette.find(value => contrastRatio(background, value) >= 4.5) ?? ink(background);
+}
+function paperColour(palette: string[]): string {
+  return palette.reduce((lightest, value) => contrastRatio(value, '#000000') > contrastRatio(lightest, '#000000') ? value : lightest);
 }
 
 /** Cycle: colour at index `i`, wrapping the palette. */
@@ -114,92 +90,78 @@ function open(w: number, h: number, label: string): string {
     + `aria-label="${label}" style="width:100%;height:auto;display:block">`;
 }
 
-// ── Scene 1: Poster ───────────────────────────────────────────────────────────
+/** Actual typography and colour proportions, shared by the studio and component gallery.
+ * Text follows the loaded brand font roles; export capture bakes their computed styles. */
+function text(x: number, y: number, size: number, value: string, fill: string, weight = 400): string {
+  const family = size >= 24 ? 'var(--font-display, var(--font-brand, sans-serif))' : 'var(--font-brand, sans-serif)';
+  return `<text x="${x}" y="${y}" font-family="${family}" font-size="${size}" font-weight="${weight}" fill="${col(fill)}">${escapeHtml(value)}</text>`;
+}
 
-function poster(ex: string[]): string {
-  const bg = at(ex, 0);
-  const orb = at(ex, 2);
-  const wedge = at(ex, 1);
-  const footer = at(ex, 3);
-  const head = ink(bg);
-  return open(300, 380, 'Poster mockup using your palette')
-    + `<rect width="300" height="380" fill="${bg}"/>`
-    // big accent orb, bleeding off the top-right corner
-    + `<circle cx="278" cy="46" r="120" fill="${orb}"/>`
-    // a brand "dot" mark, top-left
-    + `<circle cx="42" cy="52" r="15" fill="${wedge}"/>`
-    // heading text block (contrast-picked bars)
-    + `<rect x="32" y="150" width="150" height="26" rx="5" fill="${head}"/>`
-    + `<rect x="32" y="186" width="112" height="26" rx="5" fill="${head}"/>`
-    + `<rect x="32" y="224" width="82" height="12" rx="6" fill="${wedge}"/>`
-    // footer bar with a logo dot + baseline
-    + `<rect x="0" y="300" width="300" height="80" fill="${footer}"/>`
-    + `<circle cx="42" cy="340" r="16" fill="${ink(footer)}"/>`
-    + `<rect x="70" y="334" width="120" height="12" rx="6" fill="${ink(footer)}"/>`
+function poster(ex: string[], roles: PalettePreviewOptions['roles']): string {
+  const bg = col(roles?.primary, at(ex, 0)), accent = col(roles?.secondary, at(ex, 1)), third = at(ex, 2);
+  const foreground = col(roles?.onPrimary, readableInk(bg, ex));
+  return open(480, 360, 'Colour festival poster using your palette')
+    + `<rect width="480" height="360" fill="${bg}"/>`
+    + text(28, 34, 11, 'FORM / COLOUR / POSSIBILITY', foreground, 700)
+    + text(420, 34, 11, '01—03', foreground)
+    + `<path d="M260 64H448V252H260Z" fill="${accent}"/>`
+    + `<circle cx="354" cy="158" r="94" fill="${third}"/>`
+    + `<path d="M260 158A94 94 0 0 1 354 64V158Z" fill="${bg}"/>`
+    + `<path d="M354 158H448A94 94 0 0 1 354 252Z" fill="${at(ex, 3)}"/>`
+    + text(25, 119, 58, 'Made', foreground, 700)
+    + text(25, 178, 58, 'of', foreground, 700)
+    + text(25, 237, 58, 'colour.', foreground, 700)
+    + `<rect x="28" y="279" width="424" height="1" fill="${foreground}" opacity=".24"/>`
+    + text(28, 308, 12, 'A festival for curious minds.', foreground)
+    + text(28, 330, 11, 'Design. Play. Make something new.', foreground)
+    + text(367, 330, 11, 'SEP 18—20', foreground, 700)
     + '</svg>';
 }
 
-// ── Scene 2: Chart ────────────────────────────────────────────────────────────
-
-function chart(ex: string[], bars: number): string {
-  const padL = 22, padR = 18, top = 58, base = 188, w = 320;
-  const usable = w - padL - padR;
-  const gap = 10;
-  const bw = (usable - gap * (bars - 1)) / bars;
-  let rects = '';
+function chart(ex: string[], bars: number, roles: PalettePreviewOptions['roles']): string {
+  const paper = col(roles?.surface, paperColour(ex)), foreground = col(roles?.text, readableInk(paper, ex));
+  let columns = '';
+  const gap = 8, width = (408 - gap * (bars - 1)) / bars;
   for (let i = 0; i < bars; i++) {
-    // deterministic, varied heights so it reads as data even in one colour
-    const hn = 0.35 + 0.6 * (0.5 + 0.5 * Math.sin(i * 1.25 + 0.7));
-    const bh = Math.round((base - top) * hn);
-    const x = r1(padL + i * (bw + gap));
-    const y = base - bh;
-    rects += `<rect x="${x}" y="${y}" width="${r1(bw)}" height="${bh}" rx="3" fill="${at(ex, i)}"/>`;
+    const height = Math.round(52 + 110 * (0.5 + 0.5 * Math.sin(i * 1.25 + .7)));
+    columns += `<rect x="${r1(36 + i * (width + gap))}" y="${286 - height}" width="${r1(width)}" height="${height}" rx="4" fill="${at(ex, i)}"/>`;
   }
-  return open(w, 220, 'Bar chart using your palette')
-    + `<rect width="${w}" height="220" rx="16" fill="#ffffff" stroke="#eceef2"/>`
-    // title + subtitle lines
-    + `<rect x="22" y="20" width="112" height="12" rx="4" fill="#2b2f36"/>`
-    + `<rect x="22" y="38" width="70" height="8" rx="4" fill="#cbced4"/>`
-    // faint gridlines + baseline
-    + `<line x1="22" y1="150" x2="302" y2="150" stroke="#eef0f3" stroke-width="1"/>`
-    + `<line x1="22" y1="112" x2="302" y2="112" stroke="#eef0f3" stroke-width="1"/>`
-    + `<line x1="22" y1="${base}" x2="302" y2="${base}" stroke="#e4e6ea" stroke-width="1.5"/>`
-    + rects
+  return open(480, 360, 'Analytics dashboard using your palette')
+    + `<rect width="480" height="360" fill="${paper}"/>`
+    + text(32, 34, 11, 'STUDIO / OVERVIEW', foreground, 700)
+    + text(32, 77, 24, 'A little more every day.', foreground, 700)
+    + text(32, 108, 12, 'Your creative output, this month', foreground)
+    + `<path d="M32 286H448M32 230H448M32 174H448" stroke="${foreground}" opacity=".09"/>`
+    + columns
+    + text(36, 308, 10, 'WEEK 01', foreground)
+    + text(391, 308, 10, 'WEEK 04', foreground)
+    + `<circle cx="38" cy="336" r="4" fill="${at(ex, 0)}"/>`
+    + text(50, 340, 11, 'Made this month', foreground)
+    + text(356, 340, 11, '+24% growth', foreground, 700)
     + '</svg>';
 }
 
-// ── Scene 3: UI card ──────────────────────────────────────────────────────────
-
-function uiCard(ex: string[]): string {
-  const primary = at(ex, 0);
-  const btn = at(ex, 1);
-  const w = 320, h = 220;
-  // chips cycle the accents after the primary
-  let chips = '';
-  for (let i = 0; i < 4; i++) {
-    const x = 24 + i * 52;
-    chips += `<rect x="${x}" y="130" width="42" height="20" rx="10" fill="${at(ex, i + 1)}"/>`;
-  }
-  return open(w, h, 'App UI card using your palette')
-    // card body (full border - not a one-sided stripe)
-    + `<rect x="0.5" y="0.5" width="${w - 1}" height="${h - 1}" rx="16" fill="#ffffff" stroke="#e7e9ee"/>`
-    // header bar with top corners rounded to match the card
-    + `<path d="M0 16 A16 16 0 0 1 16 0 L304 0 A16 16 0 0 1 320 16 L320 46 L0 46 Z" fill="${primary}"/>`
-    + `<circle cx="24" cy="23" r="4.5" fill="${at(ex, 1)}"/>`
-    + `<circle cx="42" cy="23" r="4.5" fill="${at(ex, 2)}"/>`
-    + `<circle cx="60" cy="23" r="4.5" fill="${at(ex, 3)}"/>`
-    + `<circle cx="296" cy="23" r="11" fill="${at(ex, 2)}"/>`
-    // title + body copy
-    + `<rect x="24" y="64" width="120" height="15" rx="4" fill="#2b2f36"/>`
-    + `<rect x="24" y="90" width="252" height="9" rx="4" fill="#dfe2e7"/>`
-    + `<rect x="24" y="106" width="196" height="9" rx="4" fill="#dfe2e7"/>`
-    // accent chips
-    + chips
-    // primary + secondary buttons
-    + `<rect x="24" y="170" width="110" height="32" rx="9" fill="${btn}"/>`
-    + `<rect x="54" y="183" width="50" height="6" rx="3" fill="${ink(btn)}"/>`
-    + `<rect x="146" y="170" width="110" height="32" rx="9" fill="transparent" stroke="${at(ex, 2)}" stroke-width="2"/>`
-    + `<rect x="176" y="183" width="50" height="6" rx="3" fill="${at(ex, 2)}"/>`
+function uiCard(ex: string[], roles: PalettePreviewOptions['roles']): string {
+  const primary = col(roles?.primary, at(ex, 0)), paper = col(roles?.surface, paperColour(ex));
+  const foreground = col(roles?.text, readableInk(paper, ex));
+  const accent = col(roles?.secondary, at(ex, 1)), third = at(ex, 2);
+  return open(480, 360, 'Product card using your palette')
+    + `<rect width="480" height="360" fill="${paper}"/>`
+    + text(28, 33, 13, 'objects.', foreground, 700)
+    + text(348, 33, 10, 'SHOP   /   BAG (0)', foreground)
+    + `<rect x="24" y="53" width="432" height="177" rx="8" fill="${accent}"/>`
+    // A sculptural desk lamp: a useful object, no photographic dependencies.
+    + `<ellipse cx="245" cy="212" rx="90" ry="8" fill="${ink(accent)}" opacity=".1"/>`
+    + `<path d="M239 118H251V202H239Z" fill="${primary}"/>`
+    + `<path d="M204 202H286L296 212H194Z" fill="${third}"/>`
+    + `<path d="M168 136Q178 68 245 68Q312 68 322 136Z" fill="${primary}"/>`
+    + `<ellipse cx="245" cy="136" rx="77" ry="8" fill="${third}"/>`
+    + text(28, 264, 24, 'Everyday light', foreground, 700)
+    + text(400, 262, 15, '$89', foreground, 700)
+    + text(28, 286, 11, 'A bright idea for your favourite corner.', foreground)
+    + [primary, accent, third, at(ex, 3)].map((colour, i) => `<circle cx="${36 + i * 25}" cy="321" r="8" fill="${colour}"/>`).join('')
+    + `<rect x="299" y="303" width="153" height="36" rx="18" fill="${primary}"/>`
+    + text(331, 326, 12, 'Add to bag  +', col(roles?.onPrimary, readableInk(primary, ex)), 700)
     + '</svg>';
 }
 
@@ -209,18 +171,18 @@ function uiCard(ex: string[]): string {
  * Three illustrative SVG scenes painted from `colors` (the brand palette, in
  * order - `colors[0]` is treated as primary). Bar count in the chart reflects
  * the palette size, or `opts.steps` when given. Pure + deterministic; each SVG
- * is self-contained and safe to inject via innerHTML.
+ * uses loaded brand font roles and is safe to inject via innerHTML.
  */
-export function palettePreviewSvgs(colors: string[], opts?: { steps?: number }): PalettePreview[] {
+export function palettePreviewSvgs(colors: string[], opts?: PalettePreviewOptions): PalettePreview[] {
   const pal = normalizePalette(colors);
   const bars = opts?.steps != null && Number.isFinite(opts.steps)
     ? clamp(Math.round(opts.steps), 2, 12)
     : clamp(pal.length, 5, 8);
-  // Enough distinct fields for every scene, even from a 1-colour palette.
-  const ex = expand(pal, Math.max(6, bars));
+  // Cycle the real colours; previews must not invent extra palette shades.
+  const ex = pal;
   return [
-    { label: 'Poster', svg: poster(ex) },
-    { label: 'Chart', svg: chart(ex, bars) },
-    { label: 'UI card', svg: uiCard(ex) },
+    { label: 'Poster', svg: poster(ex, opts?.roles) },
+    { label: 'Chart', svg: chart(ex, bars, opts?.roles) },
+    { label: 'UI card', svg: uiCard(ex, opts?.roles) },
   ];
 }

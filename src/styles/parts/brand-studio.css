@@ -41,13 +41,8 @@
 .be-cta:hover { background: hsl(var(--primary) / .88); }
 .be-btn:disabled, .be-cta:disabled { opacity: .55; cursor: default; }
 
-/* "Use this colour" lights up glossy the moment any derive input changes, so a
-   fresh palette is waiting to apply - a raised, glowing version of the button. It
-   is struck in the BRAND'S OWN colour (--primary, set from the brand via
-   applyChromeBrandVars), not a fixed green: a glossy top-lit gradient (a touch
-   lighter at the top, darker at the foot, both mixed off --primary) with a glow
-   in the same hue. Rests again once applied. This is the house "glowing CTA" look;
-   the import button (start.css) reuses it. */
+/* Shared active CTA treatment. Draft exploration does not apply this state;
+   it is reserved for explicit actions such as the studio import button. */
 .be-cta.is-active {
   color: hsl(var(--primary-foreground));
   border-color: hsl(0 0% 100% / .3);
@@ -107,7 +102,7 @@
 
 /* Derive: the Primary picker leads full-width, then controls + live preview. */
 .be-derive { display: grid; gap: 1.1rem; }
-@media (min-width: 900px) { .be-derive { grid-template-columns: minmax(240px, 320px) 1fr; align-items: start; } }
+.be-derive { grid-template-columns: minmax(0, 1fr); align-items: start; }
 /* The inline colour picker gets its own roomy row spanning both columns -
    sliders + swatch palette side by side, given the whole panel width to breathe
    (it used to be a cramped popover trapped in the narrow controls column). */
@@ -179,6 +174,18 @@
 .be-steps-slider { width: 100%; cursor: pointer; }
 
 .be-preview { display: grid; gap: .9rem; align-content: start; }
+.be-draft-ramp { display: grid; gap: .5rem; min-width: 0; }
+.be-draft-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; }
+.be-draft-head h3 { margin: 0; font: 600 var(--fs-sm) var(--font-brand); }
+.be-draft-shades { display: grid; grid-template-columns: repeat(auto-fit, minmax(36px, 1fr)); gap: 4px; }
+.be-draft-shade { min-width: 0; min-height: 44px; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .4); display: grid; place-items: center; cursor: pointer; font: 500 var(--fs-lg) var(--font-brand); }
+.be-draft-shade:disabled { cursor: default; opacity: 1; }
+.be-draft-status { margin: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.be-draft-status:empty { display: none; }
+.be-draft-themes { min-width: 0; font-size: var(--fs-sm); }
+.be-draft-themes > summary, .be-rebuild > summary { cursor: pointer; color: hsl(var(--muted-foreground)); padding-block: .6rem; }
+.be-draft-themes .be-ramps { margin-block: .75rem; }
+.be-rebuild { border-top: 1px solid hsl(var(--border)); padding-top: .5rem; }
 .be-ramps { display: grid; gap: .5rem; }
 .be-ramp-row { display: grid; grid-template-columns: 5.2rem 1fr auto; align-items: center; gap: .6rem; }
 .be-ramp-label { font-size: var(--fs-xs); font-weight: 600; color: hsl(var(--muted-foreground)); }
@@ -194,7 +201,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; }
 .be-spec { border: 1px solid; border-radius: calc(var(--radius) * .7); padding: .8rem .85rem; display: grid; gap: .35rem; }
 .be-spec-name { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-.be-spec-h { margin: 0; font-size: calc(.95rem * var(--a11y-fs)); font-weight: 700; letter-spacing: -.01em; }
+.be-spec-h { margin: 0; font-family: var(--font-display, var(--font-brand)); font-size: calc(.95rem * var(--a11y-fs)); font-weight: 700; letter-spacing: -.01em; }
 .be-spec-b { margin: 0; font-size: calc(.74rem * var(--a11y-fs)); line-height: 1.5; }
 .be-spec-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .2rem; }
 .be-spec-btn { border-radius: var(--radius); padding: .28rem .7rem; font-size: var(--fs-xs); font-weight: 600; }
@@ -231,9 +238,10 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-cand-add:disabled { border-color: hsl(var(--border)); background: transparent; color: hsl(var(--muted-foreground)); cursor: default; }
 
 .be-previews-wrap { display: grid; gap: .5rem; }
-.be-previews { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.be-previews { display: grid; min-width: 0; }
+.be-pv[hidden] { display: none; }
 .be-pv { margin: 0; display: grid; gap: .35rem; }
-.be-pv-art { border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .6); overflow: hidden; background: hsl(var(--background)); }
+.be-pv-art { border: 0; border-radius: var(--radius); overflow: hidden; background: hsl(var(--background)); }
 .be-pv-art svg { display: block; width: 100%; height: auto; }
 .be-pv-cap { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
 
@@ -276,7 +284,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-pal-top { display: flex; align-items: center; justify-content: space-between; gap: .8rem; margin-bottom: .9rem; }
 .be-pal-count { font-size: calc(.74rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
 /* Each group is a <details open>; the summary row is the group's header. */
-.be-pal-group + .be-pal-group { margin-top: 1rem; }
+.be-pal-group + .be-pal-group { margin-top: 1.5rem; }
 .be-pal-group-head {
   display: flex; align-items: center; gap: .6rem; margin-bottom: .45rem;
   cursor: pointer; list-style: none;
@@ -285,16 +293,16 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-pal-group-head::after { content: '▸'; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); transition: rotate var(--dur-1); }
 .be-pal-group[open] > .be-pal-group-head::after { rotate: 90deg; }
 @media (prefers-reduced-motion: reduce) { .be-pal-group-head::after { transition: none; } }
-.be-pal-group-head .be-add { margin-inline-start: auto; }
-.be-pal-group-label { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.be-pal-group-head .be-add { margin-inline-start: 0; }
+.be-pal-group-label { font-size: var(--fs-sm); font-weight: 600; color: hsl(var(--foreground)); margin-inline-end: auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .be-pal-group-n { margin-inline-start: .4rem; font-weight: 500; opacity: .7; }
 /* "Select all" - a quiet text button, not a third pill competing with + Add.
    It takes the free space so + Add keeps its seat at the end of the row (plan
    182 section 5.5). */
 .be-pal-group-all {
-  margin-inline-start: auto;
+  margin-inline-start: 0;
   border: 0; background: transparent; cursor: pointer;
-  padding: .1rem .2rem; border-radius: var(--radius-sm);
+  padding: .4rem .2rem; border-radius: var(--radius-sm);
   font: inherit; font-size: var(--fs-xs); color: hsl(var(--muted-foreground));
 }
 .be-pal-group-all:hover { color: hsl(var(--foreground)); text-decoration: underline; }
@@ -323,7 +331,29 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 }
 /* Dense grid of pure swatches; corner rounding rides the brand radius token -
    a full-radius brand rounds these into circles, and that's the intent. */
-.be-pal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: .45rem; }
+.be-pal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: .9rem .6rem; }
+.be-pal-card { position: relative; display: grid; align-content: start; gap: .2rem; min-width: 0; }
+.be-pal-card .be-swatch { aspect-ratio: 1.12; border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px hsl(var(--foreground) / .07); }
+.be-pal-name { font-size: var(--fs-xs); font-weight: 550; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-top: .25rem; }
+.be-pal-hex { font-family: var(--font-mono); font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.be-pal-check { position: absolute; inset-block-start: .15rem; inset-inline-end: .15rem; width: 30px; height: 30px; display: grid; place-items: center; cursor: pointer; }
+.be-pal-check input { width: 18px; height: 18px; margin: 0; accent-color: hsl(var(--foreground)); cursor: pointer; }
+.be-pal-card:has(.is-multi) .be-pal-name { font-weight: 750; }
+.be-pal-empty { display: block; width: 100%; min-height: 88px; border: 0; border-radius: var(--radius-sm); background: hsl(var(--muted) / .55); color: hsl(var(--muted-foreground)); font: inherit; font-size: var(--fs-sm); cursor: pointer; }
+.be-pal-empty:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.be-pal-restore { border: 0; padding: .6rem 0; margin-top: .75rem; background: none; color: hsl(var(--muted-foreground)); font: inherit; font-size: var(--fs-xs); text-decoration: underline; cursor: pointer; }
+.be-pal-topbtns { display: flex; flex-wrap: wrap; gap: .4rem; }
+.be-save-state { margin: 0; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.be-save-state[hidden] { display: none; }
+.be-save-state.is-error { color: hsl(var(--destructive)); }
+
+.be-pal .be-add { border: 0; background: hsl(var(--muted) / .7); box-shadow: none; }
+.be-pal .be-add:hover { background: hsl(var(--muted)); }
+.be-pal .be-add--sm { min-width: 32px; min-height: 32px; background: transparent; }
+.be-pal-restore[hidden] { display: none; }
+.be-gradients > .be-panel-head { display: none; }
+
+
 
 .be-swatch {
   position: relative; display: block; width: 100%; aspect-ratio: 1;
@@ -366,8 +396,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
    the pane's viewport-anchored bottom, outside the pane's scroller; below
    that the pane is in page flow and the sticky bottom floats the pill. */
 .be-pal-dock {
-  position: sticky;
-  bottom: 8px;
+  position: static;
   z-index: 10; /* over the panels it floats past; well under the popovers (30) */
   display: flex; align-items: center; gap: var(--sp-5);
   width: fit-content;
@@ -749,7 +778,7 @@ background-image:
 
 @media (max-width: 560px) {
   .be-panel { padding: .9rem; }
-  .be-pal-grid { grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); }
+  .be-pal-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
   .be-editor { width: min(300px, calc(100vw - 3rem)); }
 }
 
@@ -999,158 +1028,53 @@ background-image:
       display:none and the side content simply follows the main column in flow.
       (This block sits AFTER the .be-tab rules above - the column-gap override
       relies on source order at equal specificity.) */
-/* Below the split the two panes simply stack, which put SHADE CURVES, CONTRAST
-   and PRINT between Roles and the palette a person is building (plans/163 F7).
-   The order wanted there is: Add a colour, Roles, Generate, Palette, Gradients,
-   then the advanced wings - but the main column's panels and the side pane sit
-   in different parents, so the main column gives up its own box and its panels
-   become items of the tab's grid, where `order` can interleave them with the
-   side pane. It gets the box back at >=1100px below, where the two panes are
-   real columns that scroll internally. The `order` values ride along up there
-   harmlessly: they leave main / divider / side in exactly source order. */
-.be-split-main { display: contents; }
-.be-wing--advanced { order: 2; }
-/* The panels live in .be-split-scroll (the pane's internal scroller ≥1100px);
-   the download dock sits OUTSIDE it, so however far the palette scrolls the
-   dock keeps its seat at the pane's anchored bottom edge. Panel spacing is
-   margins, not gap - block flow below 1100px, and the ≥1100px flex column
-   reserves its gap-free layout for the scroller/dock split. */
-.be-split-side { display: block; min-width: 0; order: 1; }
-.be-split-scroll { min-width: 0; }
-.be-split-scroll > * + * { margin-top: 1.1rem; }
-.be-split-side > .be-pal-dock { margin-top: .75rem; }
-.be-split-divider { display: none; }
+/* Colour workspace: the palette leads; previews and optional tools support it.
+   Available groups and starter colours never depend on the ownership beat. */
+.be-tab--split { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+.be-split-side, .be-split-main, .be-split-scroll { min-width: 0; }
+.be-split-main { display: grid; gap: 1rem; align-content: start; }
+.be-split-scroll > * + * { margin-top: 1.5rem; }
+.be-split-side > .be-pal-dock { margin-top: 1rem; }
+.be-split-divider, .be-generate-cta, .be-pal-later { display: none; }
+[data-be-tab-panel="color"] .be-panel { border: 0; padding: 0; }
+[data-be-tab-panel="color"] .be-wing { border: 0; background: hsl(var(--muted) / .45); }
+[data-be-tab-panel="color"] .be-wing-body { padding: 1rem; }
+[data-be-tab-panel="color"] .be-wing-head { padding: .85rem 1rem; }
+[data-be-tab-panel="color"] .be-wing-sub { font-size: var(--fs-xs); }
+.be-palette-heading, .be-context-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; justify-content: space-between; margin-bottom: 1rem; }
+.be-palette-heading h2, .be-context-head h2 { font-size: var(--fs-lg); margin: 0; font-weight: 650; }
+.be-palette-heading > span, .be-context-head > span { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.be-context { display: grid; gap: .75rem; }
+.be-bulk-preview { display: none; }
+@media (max-width: 1099px) {
+  .be-bulk-preview { display: inline-flex; }
+  .be-context { scroll-margin-block-start: calc(var(--chrome-h) * 2 + var(--sp-4)); }
+}
+.be-preview-empty { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: var(--radius); margin: 0; padding: 1rem; background: hsl(var(--muted) / .5); color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); text-align: center; }
+.be-context .be-context-head { margin-bottom: 0; }
+.be-context > .view-seg { width: 100%; }
+.be-context .be-pv-cap { display: none; }
+.be-addcolor { margin-top: 1.5rem; }
+.be-addcolor > summary { color: hsl(var(--muted-foreground)); cursor: pointer; font-size: var(--fs-sm); padding-block: .6rem; }
+.be-addcolor[open] > summary { margin-bottom: .5rem; }
+.be-group-form { display: flex; flex-wrap: wrap; gap: .5rem; padding-block: .5rem 1rem; }
+.be-group-form .field-input { flex: 1 1 10rem; min-width: 0; width: auto; }
+.be-editor-group { display: flex; align-items: center; gap: .75rem; padding: .5rem 1rem; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.be-editor-group select { flex: 1; min-width: 0; }
+.be-editor.is-pick .be-editor-group { display: none; }
 @media (min-width: 1100px) {
-  .be-tab--split {
-    /* Default = OPEN at half the studio's width (the 50% fallback carries it -
-       studio-split.ts only writes a px --be-side-w once the user drags/keys a
-       size, and only ever adds .is-collapsed on the user's own snap/Enter). */
-    grid-template-columns: minmax(0, 1fr) 16px minmax(280px, var(--be-side-w, 50%));
-    grid-template-rows: minmax(0, 1fr); /* clamp the row to the host-given height */
-    column-gap: 0; /* the divider's 16px track IS the gutter */
-    align-items: stretch; /* both panes run the full height - bottoms anchored */
-  }
-  .be-tab--split.is-collapsed { grid-template-columns: minmax(0, 1fr) 16px 0; }
-  .be-tab--split.is-collapsed .be-split-side { overflow: hidden; }
-  .be-split-main {
-    display: grid;
-    gap: 1.1rem;
-    align-content: start;
-    min-width: 0;
-    overflow-y: auto;
-    min-height: 0;
-    overscroll-behavior: contain;
-  }
-  /* The side is a flex column: the scroller takes whatever the dock leaves. */
-  .be-split-side {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-  .be-split-scroll {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-  .be-split-divider {
-    display: block;
-    position: relative;
-    align-self: stretch;
-    cursor: col-resize;
-    touch-action: none;
-  }
-  /* The visible grabber: a slim full-perimeter pill centred in the 16px track
-     (never a single-edge border). Quiet until hovered/focused/dragged. */
-  .be-split-divider::after {
-    content: "";
-    position: absolute;
-    inset: 0 6px;
-    border-radius: var(--radius-pill);
-    background: hsl(var(--border) / .5);
-    transition: background var(--dur-1);
-  }
-  .be-split-divider:hover::after,
-  .be-split-divider:focus-visible::after,
-  .be-split-divider.is-dragging::after { background: hsl(var(--primary) / .45); }
+  .be-tab--split { grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); grid-template-rows: minmax(0, 1fr); gap: 2rem; align-items: stretch; }
+  .be-split-main { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-inline-end: .25rem; }
+  .be-split-side { display: flex; flex-direction: column; min-height: 0; }
+  .be-split-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-inline-end: .5rem; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .be-split-divider::after { transition: none; }
-}
-
-/* ── Beats: the Colours room grows with the system (plan 182 section 3a) ──────
-      lib/brand-editor.ts stamps `data-be-beat="0|1|2"` on the room's panel from
-      the ownership report. Everything below is subtraction: with no attribute
-      (a locked build, a brand whose starter cannot be read) not one selector
-      matches and the room is byte-identical to what it always was.
-
-        0  nothing of its own - one centred column: the hero, the pick row, one
-           quiet line. No roles, no offer, no wings, no pane, no dock.
-        1  the first colour - the split returns with the add row, the generate
-           offer and Roles on the left, and the own tiles on the right.
-        2  a palette - everything.
-
-      WHY :not([open]) ON THE WINGS. A wing hidden outright cannot be deep-linked
-      into (`?focus=print`) or opened by the generate offer, because opening it
-      would change nothing visible. Hiding only the CLOSED ones keeps every
-      opener working: the press sets `open`, and the wing appears. */
-.be-beat0-head, .be-beat0-foot, .be-pal-later { display: none; }
-
-[data-be-beat="0"] .be-panel-head,
-[data-be-beat="0"] .be-roles,
-[data-be-beat="0"] .be-generate-cta,
-[data-be-beat="0"] .be-wing:not([open]),
-[data-be-beat="0"] .be-chart-details,
-[data-be-beat="0"] .be-gradients,
-[data-be-beat="0"] .be-pal-dock,
-[data-be-beat="0"]:not(.is-starter-shown) .be-split-side,
-[data-be-beat="0"]:not(.is-starter-shown) .be-split-divider { display: none; }
-/* …unless the pane was asked for by name. `?area=color&group=neutral` (the
-   Tokens room's "Open" beside the starter neutrals) is the one thing that draws
-   a starter tile, and on a fresh design system that IS beat 0 - so the pane
-   comes back for it, holding only that one folded group. */
-[data-be-beat="0"].is-starter-shown .be-palette .be-panel-head { display: block; }
-[data-be-beat="0"] .be-beat0-head,
-[data-be-beat="0"] .be-beat0-foot { display: block; }
-/* One centred column, the width of a sentence, sitting a little off the top so
-   the room does not read as a form that starts at the ceiling. */
-[data-be-beat="0"] .be-addcolor {
-  width: min(40rem, 100%); margin-inline: auto; margin-block-start: clamp(1rem, 6vh, 5rem);
-  border: 0; background: none; padding-inline: 0;
-  /* The hero is a DISPLAY size, above the chrome scale's 16px ceiling, so it
-     declares its own - with the largeText multiplier INSIDE the declaration,
-     which is the sanctioned home for it (see tokens.css's --fs-* note). One
-     declaration, two sizes: the phone steps it down near the foot of this file. */
-  --be-hero-fs: calc(26px * var(--a11y-fs));
-}
-[data-be-beat="0"] .be-beat0-title { margin: 0 0 .5rem; font-size: var(--be-hero-fs); font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
-[data-be-beat="0"] .be-beat0-sub { margin: 0 0 1.1rem; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
-[data-be-beat="0"] .be-beat0-foot { margin: .9rem 0 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
-/* The chip is the subject of beat 0, so it is the size of one. */
-[data-be-beat="0"] .ds-addc-pick { width: 72px; height: 72px; }
-[data-be-beat="0"] .ds-addc-add { min-height: 44px; padding-inline: 1.25rem; }
-
-[data-be-beat="1"] .be-wing:not([open]),
-[data-be-beat="1"] .be-chart-details,
-[data-be-beat="1"] .be-gradients,
-[data-be-beat="1"] .be-pal-dock { display: none; }
-[data-be-beat="1"] .be-pal-later { display: block; }
-/* The offer and the wing are the same offer. Whichever is open owns it - and at
-   beat 2 the wing is on screen unfolded, so the panel has nothing left to say. */
-[data-be-beat="1"] .be-split-main:has(> .be-wing[data-be-wing="generate"][open]) .be-generate-cta,
-[data-be-beat="2"] .be-generate-cta { display: none; }
-
-/* A one-column room at beat 0: the pane and the divider are gone, so the main
-   column takes the whole width. Written at (0,3,0) so it beats
-   `.be-tab--split.is-collapsed`, whose own template the divider may have set. */
-.be-tab--split[data-be-tab-panel="color"][data-be-beat="0"]:not(.is-starter-shown) { grid-template-columns: minmax(0, 1fr); }
 
 /* ── The generate offer (plan 182 section 3a, beat 1). A panel, not a link on a
       chip that a dismiss takes away: it is the one thing worth doing after a
       first colour, and it says which colour it will build from. Full-perimeter
       tint in the brand's own colour - never a single accent edge. */
 .be-generate-cta {
-  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  display: none; align-items: center; gap: 1rem; flex-wrap: wrap;
   border-color: hsl(var(--primary) / .5); background: hsl(var(--primary) / .06);
 }
 .be-generate-cta[hidden] { display: none; }
@@ -1184,7 +1108,7 @@ background-image:
 /* ── The one folded group where a starter colour is drawn: the Tokens room's
       "Open" for the neutrals (`?area=color&group=neutral`). Recedes, because it
       is scaffolding - and never dashed. */
-.be-pal-group--starter { opacity: .82; }
+.be-pal-group--starter { margin-top: 1.5rem; }
 
 /* ── Colour-from-logo suggestion (Colour tab, fed by the Logos tab). */
 .be-suggest { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin: -.3rem 0 .8rem; }
@@ -1696,21 +1620,13 @@ background-image:
 
   /* The download pill sticks to the viewport bottom here (no pane scroller
      below 1100px) - lifted clear of the palette sheet's peek strip. */
-  .be-pal-dock { bottom: calc(var(--stu-peek-h, 64px) + var(--safe-bottom) + 12px); }
+  .be-pal-dock { margin-block: 1rem; }
 
   /* ── Beat 0 on a phone (plan 182 section 7, ColoursPhone.dc.html). Chip and
         field on one line, then the three doors with Add filled and taking the
         rest of the row, so the whole beat fits under the header and the room
         chips on a 390×844 screen. The hero steps down to 22px, which is the
         one line of copy that gives way - the room chips never do. */
-  [data-be-beat="0"] .be-addcolor { --be-hero-fs: calc(22px * var(--a11y-fs)); margin-block-start: 1.25rem; }
-  [data-be-beat="0"] .ds-addc-row { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: .5rem; }
-  [data-be-beat="0"] .ds-addc-pick { width: 64px; height: 64px; grid-row: 1; }
-  [data-be-beat="0"] .ds-addc-input { grid-column: 2; grid-row: 1; min-width: 0; }
-  [data-be-beat="0"] .ds-addc-drop,
-  [data-be-beat="0"] .ds-addc-add { grid-row: 2; min-height: 44px; }
-  [data-be-beat="0"] .ds-addc-drop { width: 44px; }
-  [data-be-beat="0"] .ds-addc-add { grid-column: -2 / -1; justify-self: stretch; }
 
   /* The pick card as the phone's bottom sheet (plan 182 section 5.3). It is the
      same card - not reparented into lib/mobile-sheet.ts's driver, which owns
@@ -1749,6 +1665,10 @@ background-image:
     transition: bottom .34s var(--ease-out);
   }
   .start.is-stu-sheet-dragging .be-bulkbar { transition: none; }
+  .start[data-palette-visible] > .stu-sheet,
+  .start[data-palette-visible] > .stu-sheet-grip { display: none; }
+  .start[data-palette-visible] .be-bulkbar { bottom: calc(12px + var(--safe-bottom)); }
+
 
   .start > .stu-sheet {
     display: flex;
@@ -2288,7 +2208,6 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
       free edge the way the grip does (see the mobile block above), so it is
       never behind it in the first place. It also stops fighting the download
       dock, which stands down while selecting ([data-pal-selecting] below). */
-.be-pal-topbtns { display: flex; gap: .4rem; }
 /* The selection ring: a 2px gap then a 2px accent ring, drawn OUTSIDE the tile
    (plan 182 section 5.5's mockup). Outside is what makes it read on a white
    swatch as well as a black one - the ring never has to contrast with the

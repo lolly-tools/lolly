@@ -5096,7 +5096,7 @@ function makeSvgRect(NS: string, x: number, y: number, w: number, h: number, rx:
 // Builds a <linearGradient> SVG element from a CSS linear-gradient() value.
 // Uses gradientUnits="userSpaceOnUse" so coordinates match the canvas space.
 // Returns null if the value is not a parseable linear gradient.
-function buildLinearGradientEl(NS: string, bgImage: string, elX: number, elY: number, elW: number, elH: number, uid: number): Element | null {
+export function buildLinearGradientEl(NS: string, bgImage: string, elX: number, elY: number, elW: number, elH: number, uid: number): Element | null {
   // ONE layer only. `.+` is greedy, so a two-layer `linear-gradient(…), linear-gradient(…)`
   // otherwise matches as a single gradient and both stop lists are concatenated into one
   // element - offsets restart mid-list and SVG clamps them, so the second layer's colours
@@ -5178,7 +5178,7 @@ function buildLinearGradientEl(NS: string, bgImage: string, elX: number, elY: nu
  * o'clock. The −90° here is that difference, and dropping it rotates every gradient
  * on the page by a quarter turn.
  */
-function conicFanEl(NS: string, cg: ConicGradient, x: number, y: number, w: number, h: number, gid: number): Element | null {
+export function conicFanEl(NS: string, cg: ConicGradient, x: number, y: number, w: number, h: number, gid: number): Element | null {
   const cx = x + cg.cx, cy = y + cg.cy;
   const R = Math.max(
     Math.hypot(cg.cx, cg.cy), Math.hypot(w - cg.cx, cg.cy),
@@ -5304,7 +5304,7 @@ function conicFanEl(NS: string, cg: ConicGradient, x: number, y: number, w: numb
   return g;
 }
 
-function buildRadialGradientEl(NS: string, bgImage: string, elX: number, elY: number, elW: number, elH: number, uid: number): Element | null {
+export function buildRadialGradientEl(NS: string, bgImage: string, elX: number, elY: number, elW: number, elH: number, uid: number): Element | null {
   if (splitCssArgs(bgImage).length > 1) return null;   // one LAYER per element - see buildLinearGradientEl
   const g = parseRadialGradient(bgImage, elW, elH);
   if (!g) return null;

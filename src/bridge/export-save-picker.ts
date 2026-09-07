@@ -36,31 +36,30 @@ export function requestSaveAsNext(): void { saveAsNext = saveFilePickerSupported
 export function cancelSaveAsNext(): void { saveAsNext = false; }
 
 /**
- * Write `blob` through the browser's save dialog. Returns whether the delivery is
- * settled: a written file and a cancelled dialog both are (a cancel is an answer,
- * and quietly dropping the file into Downloads afterwards would contradict it).
- * False means the API refused the call - most often because a long render used up
- * the click's transient activation - and the caller should deliver the ordinary
- * way rather than leave the user with no file at all.
+ * Call directly from a user gesture with an already-prepared file. A successful
+ * result confirms the write closed; cancelling the picker is a separate outcome.
+ * API refusal and write failures propagate so callers cannot report a false save.
  */
-async function saveWithPicker(blob: Blob, filename: string): Promise<boolean> {
+export async function saveFileWithPicker(blob: Blob, filename: string): Promise<'saved' | 'cancelled'> {
   const picker = (window as Window & { showSaveFilePicker?: SaveFilePicker }).showSaveFilePicker;
-  if (typeof picker !== 'function') return false;
+  if (typeof picker !== 'function') throw new Error('This browser does not support a save dialog.');
   const ext = /\.[a-z0-9]+$/i.exec(filename)?.[0];
+  let handle: Awaited<ReturnType<SaveFilePicker>>;
   try {
-    const handle = await picker({
+    handle = await picker.call(window, {
       suggestedName: filename,
       ...(ext && blob.type
         ? { types: [{ description: `${ext.slice(1).toUpperCase()} file`, accept: { [blob.type]: [ext] } }] }
         : {}),
     });
-    const writable = await handle.createWritable();
-    await writable.write(blob);
-    await writable.close();
-    return true;
   } catch (err) {
-    return (err as { name?: string })?.name === 'AbortError';
+    if ((err as { name?: string })?.name === 'AbortError') return 'cancelled';
+    throw err;
   }
+  const writable = await handle.createWritable();
+  await writable.write(blob);
+  await writable.close();
+  return 'saved';
 }
 
 /**
@@ -72,5 +71,10 @@ async function saveWithPicker(blob: Blob, filename: string): Promise<boolean> {
 export async function consumeSaveAsNext(blob: Blob, filename: string): Promise<boolean> {
   if (!saveAsNext) return false;
   saveAsNext = false;
-  return saveWithPicker(blob, filename);
+  try {
+    await saveFileWithPicker(blob, filename);
+    return true;
+  } catch {
+    return false;
+  }
 }

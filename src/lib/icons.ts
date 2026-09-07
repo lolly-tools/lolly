@@ -128,6 +128,13 @@ const PATHS = {
   // also now used for valid.ts's c2pa.placed/c2pa.published action glyph (was a near-identical rounding variant)
   package: PACKAGE_BOX,
 
+  // ---- Component families (Lucide-style, 24px grid) ----
+  // A horizontal capsule matches the shell's pill buttons.
+  pill: '<rect x="3" y="7" width="18" height="10" rx="5"/>',
+  messageCircle: '<path d="M7.9 20.1A9 9 0 1 0 3.9 16.1L2 22Z"/>',
+  panelTop: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>',
+  toggleRight: '<rect x="2" y="6" width="20" height="12" rx="6"/><circle cx="16" cy="12" r="2"/>',
+
   // ---- Catalog category glyphs (category-icons.ts, catalog-summary.ts) ----
   // merged: category-icons.ts "credentials" - a rounded shield badge (distinct from the plain `shield`/`shieldCheck` pair above)
   credentialShield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>' + CHECK_TICK,
@@ -345,6 +352,39 @@ const PATHS = {
 } as const;
 
 export type IconName = keyof typeof PATHS;
+
+/** Shared visual metaphors. Consumers choose a stable concept; the glyph choice
+ *  stays here alongside its paths, independent of section titles and copy.
+ *  Use `icon(ICON_METAPHORS.colour, opts)` anywhere that concept appears. */
+export const ICON_METAPHORS = {
+  colour: 'droplet',
+  design: 'penTool',
+  primitives: 'shapes',
+  buttons: 'pill',
+  tabs: 'panelTop',
+  badges: 'tag',
+  surfaces: 'layersStack',
+  inputs: 'sliders',
+  dialogs: 'duplicate',
+  toggles: 'toggleRight',
+  callouts: 'messageCircle',
+  navigation: 'dock',
+  gallery: 'image',
+  catalog: 'grid',
+  brandStudio: 'palette',
+  toolInputs: 'filterLines',
+  export: 'download',
+  batch: 'table',
+  multiEdit: 'layers',
+  projects: 'folder',
+  profile: 'user',
+  verify: 'shieldCheck',
+  foundations: 'building',
+  tokens: 'tokens',
+  audit: 'checklist',
+} as const satisfies Record<string, IconName>;
+
+export type IconMetaphor = keyof typeof ICON_METAPHORS;
 
 /** Every registered glyph name, derived from `PATHS` so callers (e.g. the
  *  #/components specimen gallery) never hand-sync a duplicate list. */

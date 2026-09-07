@@ -520,8 +520,6 @@ test('R8: form controls in components-data specimens are styled, not raw UA chro
   const ANCESTOR_STYLED: Record<string, number> = {
     // `.input-row input` - parts/tool.css, imported by views/components.ts
     'input type="text" data-input-id="headline" value="Hello"': 1,
-    // `.export-dims input[type="number"]` - parts/tool-chrome.css, ditto
-    'input type="number" data-action="export-width" data-scrub value="800"': 1,
   };
 
   const actual = new Map<string, number[]>();
@@ -861,6 +859,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // admits no `<`, `>`, quote or backslash in a reported value at all, which
   // add-color.test.ts pins directly.
   'lib/design-system/add-color.ts': 2,
+  'lib/design-system/palette-sheet.ts': 3, // 2026-09-07: swatch/group cards + move-to picker, values escape()d
   // The Design-system studio's Overview room (plan 97 section 5). Its one sink is
   // paint()'s whole-room re-render from overviewHtml(). Reviewed 2026-08-08:
   // every interpolated value is a t() literal, an icon() constant, or escape()d
@@ -1038,6 +1037,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // whose only interpolations are escape()d hexes/names/title/band plus a Number Lc.)
   'views/color-lab.ts': 21,
   'views/components-data.ts': 1,
+  'views/components-examples.ts': 1, // 2026-09-07: the live design-workspace specimen fill, escape()d
   'views/components.ts': 8, // +1 2026-09-06: the reference block's fill (components-reference.ts output, every value escape()d)
   // The cost card's body replace. Reviewed - costBodyHtml (views/cost-panel.ts)
   // escape()s every interpolated value: line/calc/amount cells, the source and
@@ -1262,7 +1262,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // +2 on 2026-09-04 (plans/186): the "Editing <label>" line under the studio header and
   // the read-only page for a locked design system - the label is escape()d in both, the
   // rest is t() copy and fixed links.
-  'views/start.ts': 11,
+  'views/start.ts': 8, // ratcheted 11->8 2026-09-07: colour-studio rework moved sinks into escape()d renderers
   // 1 as of 2026-08-09 (new template-chooser overlay, Design frame primitive). The
   // one innerHTML sink is the dialog scaffold: escapeHtml()'d toolName, static t()
   // markup, and the blankTile/groupsHtml composed-markup helpers; no raw input.

@@ -51,11 +51,14 @@ import '../styles/parts/editor.css'; // .stage-nav (the tool canvas's zoom HUD) 
 import '../styles/parts/design-navigator.css';
 import '../styles/parts/design-inspector.css';
 import '../styles/parts/timeline.css';
+import '../pro/pro.css';
 
 import { t } from '../i18n.ts';
 import { escape } from '../utils.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import { AUDIT_SECTIONS, COMPONENT_ARTWORK, type Specimen } from './components-data.ts';
+import { COMPONENT_SECTIONS as AUDIT_SECTIONS, COMPONENT_ARTWORK, type Specimen } from './components-data.ts';
+import { audioDockExample, contextMenuExample, editableWheelExample, exportFieldsExample, projectTilesExample, selectionBarExample } from './components-examples.ts';
+import { SVG as canvasIcons, icon as canvasIcon } from './free-canvas-icons.ts';
 
 import { designSystemCardHtml } from '../lib/design-system/design-systems-card.ts';
 import { colorFieldHtml, wireColorField } from '../components/color-field.ts';
@@ -79,7 +82,7 @@ import { controlHtml } from '../pro/controls.ts';
 import { stepsHtml, inputsDigestHtml } from './valid.ts';
 import type { PaletteEntry } from '../palette.ts';
 import { segHtml } from '../lib/seg.ts';
-import { icon, iconNames } from '../lib/icons.ts';
+import { icon, iconNames, ICON_METAPHORS, type IconMetaphor } from '../lib/icons.ts';
 import { mountZoomHud } from '../components/zoom-hud.ts';
 import { viewTopbarHtml } from '../components/view-topbar.ts';
 import { mountBodyPopover, type BodyPopoverHandle } from '../components/body-popover.ts';
@@ -88,6 +91,7 @@ import { mountHomeFab } from '../components/home-fab.ts';
 import { customSliderHtml, mountCustomSlider } from '../components/custom-slider.ts';
 import { mountThemeFab } from '../components/theme-toggle.ts';
 import { listLollyUiTokens } from '../lib/lolly-ui-tokens.ts';
+import { offerDownloadRecovery } from '../lib/download-recovery.ts';
 import { componentFixture } from './components-fixtures.ts';
 import { copyText, importInfo, markupOf, tokensUsedBy } from './components-reference.ts';
 
@@ -104,7 +108,7 @@ const DEMO: PaletteEntry[] = [
 // A live-openable dialog trigger - the honest sample for an imperative component.
 function triggerButton(label: string, onClick: () => void): HTMLElement {
   const b = document.createElement('button');
-  b.type = 'button'; b.className = 'be-cta'; b.textContent = label;
+  b.type = 'button'; b.className = 'btn btn--primary'; b.textContent = label;
   b.addEventListener('click', onClick);
   return b;
 }
@@ -116,18 +120,31 @@ function triggerButton(label: string, onClick: () => void): HTMLElement {
 const previewPopovers = new Set<BodyPopoverHandle>();
 
 const LIVE: Record<string, { render: () => string | HTMLElement; wire?: (stage: HTMLElement) => void }> = {
+  projectTiles: { render: projectTilesExample },
+  contextMenu: { render: contextMenuExample },
+  selectionBar: { render: selectionBarExample },
+  editableWheel: { render: editableWheelExample },
+  audioDock: { render: audioDockExample },
+  exportFields: { render: exportFieldsExample },
   designSystems: { render: () => `<div class="cl-ds-preview">${[
     { id: 'forest', label: 'Forest studio', colors: ['#0c322c', '#30ba78', '#90ebcd', '#fe7c3f', '#202174'] },
     { id: 'orchid', label: 'Orchid', colors: ['#31072f', '#ad24ba', '#f7dcf2', '#a2afff', '#161319'] },
   ].map(r => designSystemCardHtml({ id: r.id, label: r.label, ns: `user/ds/${r.id}/`, headId: `user/ds/${r.id}/tokens/brand`, source: { kind: 'local' }, locked: false, createdAt: 0, lastUsedAt: 0 }, 'forest', 6400, { font: 'var(--font-brand)', colors: r.colors })).join('')}</div>` },
   colorField: { render: () => `<div class="cl-color-panel">${colorFieldHtml('cl-color', '#30ba78', { inline: true, palette: true })}</div>`, wire: s => wireColorField(s) },
   colorFine: { render: () => `<div class="cl-color-panel">${colorFieldHtml('cl-color-fine', '#fe7c3f', { inline: true, dials: false })}</div>`, wire: s => wireColorField(s) },
-  colorAdvanced: { render: () => colorFieldHtml('cl-color-advanced', '#30ba78', { inline: true, modes: true }), wire: s => wireColorField(s) },
+  colorValue: { render: () => `<div class="cl-color-panel">${colorFieldHtml('cl-color-value', '#2453ff', { inline: true, dials: false })}</div>`, wire: s => wireColorField(s) },
+  colorAdvanced: { render: () => `<div class="cl-color-advanced">${colorFieldHtml('cl-color-advanced', '#30ba78', { inline: true, modes: true })}</div>`, wire: s => wireColorField(s) },
   colorTriggers: { render: () => `<div class="cl-color-triggers"><div><p class="cl-eyebrow">Named colours</p>${colorFieldHtml('cl-named-1', '#93290b', { name: 'Persimmon 2' })}${colorFieldHtml('cl-named-2', '#fe7c3f', { name: 'Persimmon' })}</div><div><p class="cl-eyebrow">Compact controls</p><div class="cl-color-compact">${colorFieldHtml('cl-compact-1', '#2453ff', { label: 'Fill' })}${colorFieldHtml('cl-compact-2', '#000000', { label: 'Stroke' })}</div></div></div>`, wire: s => wireColorField(s) },
   wheel: { render: () => `<div style="width:320px;max-width:100%">${renderPaletteWheel(DEMO.map(p => ({ hex: p.hex, label: p.label })))}</div>`, wire: (s) => wirePaletteWheel(s) },
   seal: { render: () => renderBrandSeal(sealColors(DEMO), 128) },
   swatchCard: { render: () => `<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;width:100%">${swatch(DEMO[0]!)}${swatch({ ...DEMO[1]!, spot: { name: 'PANTONE 5535 C' } })}</div>` },
-  palettePreview: { render: () => `<div style="width:340px;max-width:100%">${palettePreviewSvgs(['#2453ff', '#30ba78', '#fe7c3f', '#e11d48'])[0]?.svg ?? ''}</div>` },
+  palettePreview: {
+    render: () => `<div class="cl-scenes">${palettePreviewSvgs(['#2453ff', '#30ba78', '#fe7c3f', '#e11d48']).map((scene, i) => `<div data-cl-scene="${i}"${i ? ' hidden' : ''}>${scene.svg}</div>`).join('')}${segHtml('cl-scene', [{ id: '0', label: 'Poster' }, { id: '1', label: 'Chart' }, { id: '2', label: 'UI card' }], '0', 'Palette preview')}</div>`,
+    wire: stage => stage.querySelectorAll<HTMLButtonElement>('.view-seg-btn').forEach((button, index) => { button.addEventListener('click', () => {
+      stage.querySelectorAll<HTMLElement>('[data-cl-scene]').forEach((scene, i) => { scene.hidden = i !== index; });
+      stage.querySelectorAll('.view-seg-btn').forEach((other, i) => { other.setAttribute('aria-pressed', String(i === index)); });
+    }); }),
+  },
   genai: { render: () => `${genAiPill('full')} ${genAiPill('partial')} ${genAiPill('full', true)}` },
   lollyBadge: { render: () => `${lollyBadge('sm')} ${lollyBadge('lg')}` },
   viewToggle: { render: () => viewToggle('tools') },
@@ -142,7 +159,7 @@ const LIVE: Record<string, { render: () => string | HTMLElement; wire?: (stage: 
     { id: 'qr-code', category: 'utility', status: 'official' },
     { id: 'brand-lockup', category: 'designer', status: 'experimental' },
     { id: 'icon', category: 'utility', status: 'official' },
-  ] as never) },
+  ], [{ type: 'vector' }, { type: 'vector' }, { type: 'palette' }, { type: 'tokens' }]) },
   tileBadges: { render: () => `<span class="tile-badges">${fmtBadge('svg')}${dimBadge(512, 512, 'px')}${rowCountBadge(8)}</span>` },
   dialogTriggers: {
     render: () => {
@@ -169,7 +186,11 @@ const LIVE: Record<string, { render: () => string | HTMLElement; wire?: (stage: 
   validInputs: { render: () => inputsDigestHtml({ Background: '#1a1a2e', Headline: 'Ship it', Size: '1080×1080' }) },
 
   // ── Primitives-section live renderers (component audit recs 1/5/6/8/11/12) ──
-  seg: { render: () => segHtml('cl-stored', [{ id: 'lch', label: 'LCH' }, { id: 'hex', label: 'Hex' }, { id: 'rgb', label: 'RGB' }], 'hex', t('Stored as')) },
+  seg: { render: () => segHtml('cl-stored', [{ id: 'lch', label: 'LCH' }, { id: 'hex', label: 'Hex' }, { id: 'rgb', label: 'RGB' }], 'hex', t('Stored as')), wire: stage => {
+    stage.querySelectorAll<HTMLButtonElement>('.view-seg-btn').forEach(button => { button.addEventListener('click', () => {
+      stage.querySelectorAll('.view-seg-btn').forEach(other => { other.setAttribute('aria-pressed', String(other === button)); });
+    }); });
+  } },
   icons: {
     render: () => `<div class="cl-icon-grid">${iconNames.map(name => `<div class="cl-icon-cell">${icon(name, { size: 20 })}<span>${escape(name)}</span></div>`).join('')}</div>`,
   },
@@ -194,7 +215,7 @@ const LIVE: Record<string, { render: () => string | HTMLElement; wire?: (stage: 
   },
   sessionRow: {
     render: () => {
-      const entry: SessionEntry = { slot: 'qr-code:171', toolId: 'qr-code', label: t('Launch QR'), thumb: null, updatedAt: '2026-07-09T10:00:00Z' };
+      const entry: SessionEntry = { slot: 'qr-code:171', toolId: 'qr-code', label: t('Launch QR'), thumb: COMPONENT_ARTWORK.gradient, updatedAt: '2026-07-09T10:00:00Z' };
       const galleryRow = sessionRow(entry, {
         rowClass: 'saved-row', thumbClass: 'saved-thumb', metaClass: 'saved-label',
         titleTag: 'h4', title: entry.label ?? '', subtitle: t('3 Jul 14:20'),
@@ -233,9 +254,9 @@ const LIVE: Record<string, { render: () => string | HTMLElement; wire?: (stage: 
   // stage rules in components-lib.css instead of pinned to a stage edge.
   designToolbar: {
     render: () => `<div class="fc-toolbar" role="toolbar" aria-label="${escape(t('Design tools'))}">
-      <button type="button" class="fc-btn is-armed" aria-label="${escape(t('Select'))}" aria-pressed="true">${icon('move', { size: 18 })}</button>
+      <button type="button" class="fc-btn is-armed" aria-label="${escape(t('Select'))}" aria-pressed="true">${canvasIcon(canvasIcons.pointer)}</button>
       <button type="button" class="fc-btn" aria-label="${escape(t('Pen'))}">${icon('penTool', { size: 18 })}</button>
-      <button type="button" class="fc-btn" aria-label="${escape(t('Text'))}">${icon('pen', { size: 18 })}</button>
+      <button type="button" class="fc-btn" aria-label="${escape(t('Add a box'))}">${canvasIcon(canvasIcons.add)}</button>
       <button type="button" class="fc-btn" aria-label="${escape(t('Image'))}">${icon('image', { size: 18 })}</button>
       <span class="fc-sep" aria-hidden="true"></span>
       <button type="button" class="fc-btn" aria-label="${escape(t('Layers'))}">${icon('layersStack', { size: 18 })}</button>
@@ -268,18 +289,19 @@ const LIVE: Record<string, { render: () => string | HTMLElement; wire?: (stage: 
       </div>
       <div class="tl-group"><button type="button" class="tl-group-head" aria-expanded="true"><span class="tl-group-icon" aria-hidden="true">${icon('clock', { size: 14 })}</span><span class="tl-group-label">${t('Animate')}</span><i class="tl-group-caret" aria-hidden="true"></i></button>
         <div class="tl-group-body"><div class="tl-group-chips"><span class="tl-group-chip">${t('Fade in')}</span><span class="tl-group-chip">${t('Rise')}</span></div></div></div>
+      <div class="tl-tracks"><div class="tl-tracks-inner"><div class="tl-lanes"><div class="tl-lane tl-lane-seq"><span class="tl-lane-label">Artboards</span><div class="tl-clip tl-clip-seq is-selected" data-kind="image" style="left:8%;width:38%"><span class="tl-clip-label">Cover · 4s</span></div><div class="tl-clip tl-clip-seq" data-kind="image" style="left:48%;width:44%"><span class="tl-clip-label">Agenda · 5s</span></div></div></div></div></div>
     </section>`,
   },
   exportSheet: {
     render: () => `<div class="export-popup" role="group" aria-label="${escape(t('Export'))}">
       <div class="export-popup-head"><span class="export-popup-title">${t('Export')}</span><button type="button" class="export-popup-close" aria-label="${escape(t('Close'))}">&#x2715;</button></div>
-      <div class="export-popup-body"><div class="cl-export-row"><label class="cl-fixture-label">${t('Filename')}<input class="field-input" value="agenda" aria-label="${escape(t('Filename'))}"></label>${segHtml('cl-export-format', [{ id: 'png', label: 'PNG' }, { id: 'svg', label: 'SVG' }, { id: 'pdf', label: 'PDF' }], 'svg', t('Format'))}</div><div class="cl-export-row"><button type="button" class="btn btn--primary">${icon('download', { size: 16 })}<span>${t('Download')}</span></button></div></div>
+      <div class="export-popup-body"><div class="tool-actions"><div class="export-actions-dock"><div class="export-action-buttons"><button type="button" class="btn">${t('Copy')}</button><button type="button" class="btn">${t('Save')}</button><button type="button" class="btn">${t('Share')}</button></div><div class="export-action-buttons"><button type="button" class="btn btn--primary" data-action="download">${t('Download')}</button></div></div>${exportFieldsExample()}</div></div>
     </div>`,
   },
   bodyPopover: {
     render: () => {
       const b = document.createElement('button');
-      b.type = 'button'; b.className = 'be-cta'; b.textContent = t('Open menu…');
+      b.type = 'button'; b.className = 'btn btn--primary'; b.textContent = t('Open menu…');
       let popover: BodyPopoverHandle | null = null;
       b.addEventListener('click', () => {
         popover ??= mountBodyPopover(b, (el) => {
@@ -300,7 +322,7 @@ const LIVE: Record<string, { render: () => string | HTMLElement; wire?: (stage: 
 // Interactive specimens have safe local wiring; host-only states are fixtures.
 type Mode = 'live' | 'sample' | 'fixture' | 'source';
 function renderMode(s: Specimen): Mode {
-  if (s.live && LIVE[s.live]) return ['colorField', 'colorFine', 'colorAdvanced', 'colorTriggers', 'wheel', 'zoomHud', 'dialogTriggers', 'shareTrigger', 'bodyPopover', 'customSlider'].includes(s.live) ? 'live' : 'sample';
+  if (s.live && LIVE[s.live]) return LIVE[s.live]!.wire || ['zoomHud', 'dialogTriggers', 'shareTrigger', 'bodyPopover'].includes(s.live) ? 'live' : 'sample';
   if (s.markup) return 'sample';
   if (componentFixture(s)) return 'fixture';
   return 'source';
@@ -322,17 +344,31 @@ export function displayName(s: Specimen): string {
 }
 const slug = (text: string): string => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
+const USE_CASES: Record<string, [string, string]> = {
+  'Colour tools': ['#/start?area=color', 'Colour studio'],
+  'Design workspace': ['#/design', 'Design workspace'],
+  'Dashboard & Brand studio': ['#/start', 'Brand studio'],
+  'Profile': ['#/profile', 'Profile'],
+  'Gallery': ['#/', 'Tool gallery'],
+  'Catalog': ['#/c', 'Catalogue'],
+  'Projects / folders': ['#/p', 'Projects'],
+  'Export panel': ['#/design', 'Design workspace'],
+};
+function useCaseLink(title: string): string {
+  const reference = USE_CASES[title];
+  return reference ? `<a class="cl-text-link" href="${reference[0]}" target="_blank" rel="noopener">Open ${reference[1]} ↗</a>` : '';
+}
+
 function specimenShell(s: Specimen, idx: number): string {
   const mode = renderMode(s);
-  const wide = ['designSystems', 'colorAdvanced', 'footerNav', 'icons', 'viewTopbar', 'sessionRow'].includes(s.live || '');
+  const wide = ['designSystems', 'colorAdvanced', 'designColumns', 'timelineBar', 'footerNav', 'icons', 'viewTopbar', 'sessionRow'].includes(s.live || '');
   const summary = s.description?.split(/(?<=\.)\s/)[0] || 'A shared part of the Lolly interface.';
   return `<article class="cl-card${wide ? ' cl-card--wide' : ''}" data-cl-card="${idx}" aria-labelledby="cl-name-${idx}">
-    <div class="cl-card-top"><span class="cl-object-id">${String(idx + 1).padStart(3, '0')}</span><span class="cl-kind cl-kind--${mode}">${MODE_LABEL[mode]}</span></div>
-    <div class="cl-stage cl-stage--plain" data-cl-stage="${idx}"></div>
+    <div class="cl-card-top"><h3 class="cl-name" id="cl-name-${idx}">${escape(displayName(s))}</h3><span class="cl-kind cl-kind--${mode}">${MODE_LABEL[mode]}</span></div>
+    <div class="cl-stage" data-cl-stage="${idx}" data-cl-preview="${escape(s.live || 'markup')}"></div>
     <div class="cl-meta">
-      <h3 class="cl-name" id="cl-name-${idx}">${escape(displayName(s))}</h3>
       <p class="cl-desc">${escape(summary)}</p>
-      ${s.eg?.length ? `<div class="cl-eg">${s.eg.map(e => `<span>${escape(e)}</span>`).join('')}</div>` : ''}
+      ${s.eg?.length ? `<div class="cl-eg">${s.eg.slice(0, 3).map(e => `<span>${escape(e)}</span>`).join('')}</div>` : ''}
       <details class="cl-details cl-ref" data-cl-ref="${idx}"><summary>Use this component</summary>
         <p>${escape(s.description || '')}</p>
         ${mode === 'fixture' ? '<p class="cl-ref-note">A design fixture: drawn for this library to show the shape. The real part needs the app around it, so the markup below is the fixture, not the production component.</p>' : ''}
@@ -343,7 +379,6 @@ function specimenShell(s: Specimen, idx: number): string {
     </div>
     <footer class="cl-card-footer" data-export-hide>
       <button type="button" class="btn cl-download" data-cl-download="${idx}" aria-label="Download ${escape(displayName(s))} as .penpot">${icon('download', { size: 16 })}<span>Download as .penpot</span></button>
-      <span class="cl-download-hint">Editable layers + tokens</span>
       <p class="cl-download-status" role="status" aria-live="polite"></p>
     </footer>
   </article>`;
@@ -363,19 +398,19 @@ function foundationsHtml(): string {
 }
 
 function auditHtml(): string {
-  return `<section class="cl-section cl-audit" id="cl-audit"><div class="cl-section-head"><div><p class="cl-eyebrow">03 / UI & UX audit</p><h2>Clarity, at every scale.</h2></div><span class="cl-section-kind">6 September 2026</span></div>
+  return `<section class="cl-section cl-audit" id="cl-audit"><div class="cl-section-head"><div><p class="cl-eyebrow">03 / UI & UX audit</p><h2>Clarity, at every scale.</h2></div><span class="cl-section-kind">7 September 2026</span></div>
     <p class="cl-section-intro">A review of this library’s structure, component coverage and design handoff. Implementation findings are separated from checks that still need a browser.</p>
     <div class="cl-audit-grid">
-      <article><span class="cl-audit-state">Updated</span><h3>Hierarchy & density</h3><p>Long implementation notes competed with the component itself. Larger previews, clear component names and expandable usage notes now establish a consistent reading order.</p></article>
+      <article><span class="cl-audit-state">Updated</span><h3>Hierarchy & density</h3><p>Long implementation notes competed with the component itself. Colour tools and the Design workspace lead the collection, with names above previews and usage notes available on demand.</p></article>
       <article><span class="cl-audit-state">Updated</span><h3>Findability & wayfinding</h3><p>A long inventory needs more than jump pills. Search spans names, descriptions and CSS hooks; category navigation, preview filters and a visible result count narrow the collection.</p></article>
       <article><span class="cl-audit-state">Updated</span><h3>Tokens & handoff</h3><p>The semantic token tree now includes an editorial type hierarchy, section spacing and a 44px action target. Each download contains a reusable component, native text and shapes, and applied colour, type and radius tokens.</p></article>
-      <article><span class="cl-audit-state cl-audit-state--open">Needs visual verification</span><h3>Interaction & accessibility</h3><p>Library actions have visible focus, labelled controls, keyboard navigation and announced download results. Interactive samples and static fixtures are labelled separately. Browser contrast, mobile layout and Penpot import still need visual verification.</p></article>
+      <article><span class="cl-audit-state cl-audit-state--open">Browser checked</span><h3>Interaction & accessibility</h3><p>Library actions have visible focus, labelled controls, keyboard navigation and announced download results. Interactive samples and static fixtures are labelled separately. Desktop and phone layouts have been visually checked in light, dark and brand themes. Native Penpot structure is tested; live Penpot import remains a separate check.</p></article>
     </div>
     <div class="cl-audit-grid">
       <article><span class="cl-audit-state">Unified</span><h3>One colour control, four views</h3><p>Named rows, centred compact swatches, a scrollable palette and fine-tuning now share the colour field. HSL is the default; OKLCH is one tab away. The advanced editor keeps the full colour-space registry.</p></article>
       <article><span class="cl-audit-state cl-audit-state--open">Next to consolidate</span><h3>Triggers, tabs & popovers</h3><p>Move the remaining legacy buttons to the shared button primitive, share segment styling while preserving tab and radio semantics, and bring Projects view-options onto the shared popover lifecycle. Swatch cards and editable tiles should share colour data but retain their distinct jobs.</p></article>
     </div>
-    <details class="cl-details cl-audit-followup"><summary>Remaining product work & export boundaries</summary><ul><li>Legacy button class families remain in production. Continue migration when their owning view is rewritten; the shared button primitive remains canonical.</li><li>The Projects view-options popover still has a separate implementation.</li><li>Static fixtures show a design state, not the host-dependent workflow. Motion, focus traps, camera and storage need integration testing in their real views.</li><li>Penpot downloads preserve editable text, surfaces and token bindings. Layout is captured at the current preview size; CSS behaviour is not a Penpot prototype. Complex SVG artwork may remain embedded and CSS background textures may be simplified. Any simplifications are reported beneath the download.</li><li>Font families remain editable; custom fonts must also be available in Penpot.</li></ul></details>
+    <details class="cl-details cl-audit-followup"><summary>Remaining product work & export boundaries</summary><ul><li>Legacy button class families remain in production. Continue migration when their owning view is rewritten; the shared button primitive remains canonical.</li><li>The Projects view-options popover still has a separate implementation.</li><li>Static fixtures show a design state, not the host-dependent workflow. Motion, focus traps, camera and storage need integration testing in their real views.</li><li>Penpot downloads preserve editable text, surfaces and token bindings. Layout is captured at the current preview size; CSS behaviour is not a Penpot prototype. Linear and radial gradients stay editable; conic gradients become colour paths and clipped surfaces become masks. Tiled backgrounds and complex SVG effects may be simplified. Any simplifications are reported beneath the download.</li><li>Font families remain editable; custom fonts must also be available in Penpot.</li></ul></details>
   </section>`;
 }
 
@@ -392,19 +427,32 @@ function tokenExplorerHtml(): string {
 
 const sectionId = (title: string): string => 'cl-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
+function sectionLink(id: string, label: string, metaphor: IconMetaphor, count?: number): string {
+  return `<a href="#/components?section=${id}" data-cl-jump="${id}">${icon(ICON_METAPHORS[metaphor], { size: 18, className: 'cl-nav-icon' })}<span class="cl-nav-label">${escape(label)}</span><span class="cl-nav-meta"${count == null ? ' aria-hidden="true"' : ''}>${count ?? '↗'}</span></a>`;
+}
+
 // A `<dialog>` renders in the browser's top layer, which escapes the stage's
 // `contain` - a markup sample with a bare <dialog> would cover the whole page.
 // Reduce it to an in-flow element (its own classes still style the chrome) so it
 // previews as a contained card. Overlays that merely use `position: fixed` are
 // already trapped by the stage's containment and need no help.
 function neutralizeMarkup(html: string): string {
-  return html.replace(/<dialog\b/gi, '<div data-cl-dialog').replace(/<\/dialog>/gi, '</div>');
+  const contained = html.replace(/<dialog\b/gi, '<div data-cl-dialog').replace(/<\/dialog>/gi, '</div>');
+  return /^\s*<th\b/i.test(contained) ? `<table class="pro-grid"><thead><tr>${contained}</tr></thead></table>` : contained;
 }
 
 export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params?: string): Promise<void> {
   document.title = 'Components - Lolly';
+  let active = true;
+  let clearDownloadRecovery = (): void => {};
+  const resetDownloadRecovery = (): void => {
+    clearDownloadRecovery();
+    clearDownloadRecovery = () => {};
+  };
   (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => {
-    previewPopovers.forEach(popover => popover.close());
+    active = false;
+    resetDownloadRecovery();
+    previewPopovers.forEach(popover => { popover.close(); });
     previewPopovers.clear();
   };
   viewEl.classList.add('cl-view', 'components-view');
@@ -413,29 +461,28 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
   // stage-fill loop can address each by index without re-walking the tree.
   const flat: Specimen[] = AUDIT_SECTIONS.flatMap(sec => sec.items);
   let n = 0;
-  const jump = AUDIT_SECTIONS.map(sec => `<a href="#/components?section=${sectionId(sec.title)}" data-cl-jump="${sectionId(sec.title)}"><span>${escape(sec.title)}</span><span>${sec.items.length}</span></a>`).join('');
+  const jump = AUDIT_SECTIONS.map(sec => sectionLink(sectionId(sec.title), sec.title, sec.metaphor, sec.items.length)).join('');
   const interactive = flat.filter(s => renderMode(s) === 'live').length;
   viewEl.innerHTML = `
     ${backHomeHtml({ class: 'home-full cl-back' })}<div class="gallery-topright"></div>
     <header class="cl-head">
       <div class="cl-head-copy"><p class="cl-eyebrow">Lolly / Design system</p><h1 class="cl-title">Small parts.<br><span>Distinctly Lolly.</span></h1>
-      <p class="cl-sub">The building blocks of a creative platform. Explore the interface, understand its rules, and make it your own in Penpot.</p>
+      <p class="cl-sub">Colour instruments, tactile controls and creative workspaces. Try the parts, inspect their tokens, and take them into Penpot.</p>
       <div class="cl-head-actions"><a class="btn btn--primary" href="#/components?section=cl-inventory" data-cl-jump="cl-inventory">Explore components ${icon('arrowRight', { size: 16 })}</a><button type="button" class="btn cl-export-penpot" data-export-hide>Download visible collection</button></div>
       <p class="cl-export-status" role="status" aria-live="polite"></p></div>
-      <div class="cl-cover" aria-hidden="true"><div class="cl-cover-top"><span>THE LOLLY LANGUAGE</span><span>01—∞</span></div><div class="cl-cover-type">Aa<span>Form meets<br>feeling.</span></div><div class="cl-cover-bottom"><span class="cl-cover-chip">Made to make.</span><div class="cl-cover-swatches"><i></i><i></i><i></i></div></div></div>
+      <a class="cl-cover" href="#/components?section=cl-colour-tools" data-cl-jump="cl-colour-tools" aria-label="Explore colour tools"><div class="cl-cover-top"><span>COLOUR IS A GOOD PLACE TO START</span>${icon('arrowRight', { size: 18 })}</div><div class="cl-cover-art" aria-hidden="true">${palettePreviewSvgs(DEMO.map(p => p.hex))[0]?.svg ?? ''}</div><div class="cl-cover-bottom"><span>One palette. Many possibilities.</span><span>Explore ↗</span></div></a>
     </header>
     <div class="cl-stats"><div><strong>${flat.length}</strong><span>Component specimens</span></div><div><strong>${AUDIT_SECTIONS.length}</strong><span>Component families</span></div><div><strong>${listLollyUiTokens().length}</strong><span>Semantic tokens</span></div><div><strong>${interactive}</strong><span>Interactive previews</span></div></div>
     <div class="cl-layout">
-      <aside class="cl-sidebar"><p class="cl-eyebrow">In this library</p><nav aria-label="Library sections"><a href="#/components?section=cl-foundations" data-cl-jump="cl-foundations">Foundations <span>↗</span></a><a href="#/components?section=cl-tokens" data-cl-jump="cl-tokens">Design tokens <span>↗</span></a><a href="#/components?section=cl-audit" data-cl-jump="cl-audit">UI & UX audit <span>↗</span></a><div class="cl-nav-divider"></div>${jump}</nav><div class="cl-sidebar-note"><strong>Take a part. Make it yours.</strong><p>Import any .penpot download from your Penpot dashboard. Open Assets for the component and Tokens for its values.</p></div></aside>
+      <aside class="cl-sidebar"><p class="cl-eyebrow">In this library</p><nav aria-label="Library sections">${jump}<div class="cl-nav-divider"></div>${sectionLink('cl-foundations', 'Foundations', 'foundations')}${sectionLink('cl-tokens', 'Design tokens', 'tokens')}${sectionLink('cl-audit', 'UI & UX audit', 'audit')}</nav><div class="cl-sidebar-note"><strong>Take a part. Make it yours.</strong><p>Import any .penpot download from your Penpot dashboard. Open Assets for the component and Tokens for its values.</p></div></aside>
       <main class="cl-library" data-lolly-ui-library>
-        ${foundationsHtml()}
-        <section class="cl-inventory" id="cl-inventory"><div class="cl-section-head"><div><p class="cl-eyebrow">The collection</p><h2>Built to work together.</h2></div></div>
+        <section class="cl-inventory" id="cl-inventory"><div class="cl-section-head"><div><p class="cl-eyebrow">The collection</p><h2>Made for making.</h2></div></div>
           <div class="cl-toolbar"><label class="cl-search">${icon('search', { size: 18 })}<input type="search" class="cl-search-input" placeholder="Find a component, pattern or CSS hook…" aria-label="Search components"></label><label class="cl-filter-label"><span>Preview</span><select class="cl-mode-filter" aria-label="Filter by preview type"><option value="all">All previews</option><option value="live">Interactive</option><option value="sample">Static samples</option><option value="fixture">Design fixtures</option></select></label></div>
           <p class="cl-result-count" role="status" aria-live="polite">Showing ${flat.length} components</p>
           <div class="cl-empty" hidden><h3>No components found.</h3><p>Try another name, CSS hook or preview type.</p><button class="btn cl-reset" type="button">Clear filters</button></div>
-          ${AUDIT_SECTIONS.map((sec, i) => `<section class="cl-section cl-component-section" id="${sectionId(sec.title)}"><div class="cl-section-head"><h2><span class="cl-section-number">${String(i + 1).padStart(2, '0')}</span>${escape(sec.title)}</h2><span class="cl-section-kind">${sec.items.length} specimens · ${sec.group === 'common' ? 'Shared' : 'In context'}</span></div><div class="cl-grid">${sec.items.map(item => specimenShell(item, n++)).join('')}</div></section>`).join('')}
+          ${AUDIT_SECTIONS.map((sec, i) => `<section class="cl-section cl-component-section" id="${sectionId(sec.title)}"><div class="cl-section-head"><h2><span class="cl-section-number">${String(i + 1).padStart(2, '0')}</span>${escape(sec.title)}</h2><span class="cl-section-kind">${sec.items.length} specimens · ${sec.group === 'common' ? 'Shared' : 'In context'}</span>${useCaseLink(sec.title)}</div>${sec.blurb && sec.title === 'Colour tools' ? `<p class="cl-section-intro">${escape(sec.blurb)}</p>` : ''}<div class="cl-grid">${sec.items.map(item => specimenShell(item, n++)).join('')}</div></section>`).join('')}
         </section>
-        ${tokenExplorerHtml()}${auditHtml()}
+        ${foundationsHtml()}${tokenExplorerHtml()}<details class="cl-audit-disclosure"><summary>About the library & export fidelity</summary>${auditHtml()}</details>
         <footer class="cl-page-footer"><strong>Lolly, by design.</strong><span>One system. Room for expression.</span></footer>
       </main>
     </div>`;
@@ -463,6 +510,12 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
       } else {
         stage.innerHTML = `<span class="cl-broken">no sample</span>`;
       }
+      if (item.defined?.includes('profile.ts') || item.defined?.includes('storage')) {
+        const context = document.createElement('div');
+        context.className = 'cl-preview-context profile-view';
+        context.append(...stage.childNodes);
+        stage.append(context);
+      }
       // A custom profile may omit the gradient preview. Keep demo imagery local
       // and useful in that case, without retrying a failed fallback indefinitely.
       // A specimen's own headings (a fixture's <h4>, a topbar's <h1>) read to a
@@ -471,7 +524,7 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
       // (the part sheets select on them); only the heading role goes.
       stage.setAttribute('role', 'group');
       stage.setAttribute('aria-label', `Preview: ${displayName(item)}`);
-      stage.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(h => h.setAttribute('role', 'presentation'));
+      stage.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(h => { h.setAttribute('role', 'presentation'); });
       stage.querySelectorAll<HTMLImageElement>('img').forEach(img => {
         const fallback = (): void => {
           if (img.getAttribute('src') === COMPONENT_ARTWORK.icon) return;
@@ -568,16 +621,17 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
   };
   search.addEventListener('input', filter); mode.addEventListener('change', filter);
   viewEl.querySelector('.cl-reset')?.addEventListener('click', () => { search.value = ''; mode.value = 'all'; filter(); search.focus(); });
-  viewEl.querySelectorAll<HTMLElement>('[data-cl-jump]').forEach(link => link.addEventListener('click', event => {
+  viewEl.querySelectorAll<HTMLElement>('[data-cl-jump]').forEach(link => { link.addEventListener('click', event => {
     event.preventDefault();
     const target = viewEl.querySelector<HTMLElement>(`#${link.dataset.clJump}`);
     if (!target) return;
+    target.closest<HTMLDetailsElement>('.cl-audit-disclosure')?.setAttribute('open', '');
     if (target.hidden) { search.value = ''; mode.value = 'all'; filter(); }
     target.scrollIntoView({ block: 'start' });
     target.tabIndex = -1; target.focus({ preventScroll: true });
-    viewEl.querySelectorAll('[data-cl-jump]').forEach(a => a.removeAttribute('aria-current'));
+    viewEl.querySelectorAll('[data-cl-jump]').forEach(a => { a.removeAttribute('aria-current'); });
     link.setAttribute('aria-current', 'location');
-  }));
+  }); });
   // A specimen's links and submit controls must not navigate away from the
   // library or mutate app state. Live renderers own their explicit local wiring.
   viewEl.querySelectorAll<HTMLElement>('.cl-stage').forEach(stage => {
@@ -589,23 +643,30 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
     if (exporting) return;
     if (!indexes.length) { status.textContent = 'Choose at least one visible component.'; return; }
     exporting = true;
-    const buttons = [...viewEl.querySelectorAll<HTMLButtonElement>('[data-cl-download], .cl-export-penpot')];
+    resetDownloadRecovery();
+    const buttons = [...viewEl.querySelectorAll<HTMLButtonElement>('[data-cl-download], .cl-export-penpot, .cl-token-export')];
     buttons.forEach(b => { b.disabled = true; });
     button.setAttribute('aria-busy', 'true');
     status.textContent = `Building ${indexes.length === 1 ? 'editable component' : indexes.length + ' editable components'}…`;
     try {
-      const { downloadComponents } = await import('../lib/component-capture.ts');
-      const notes = await downloadComponents(host, indexes.map(i => ({ name: displayName(flat[i]!), node: viewEl.querySelector<HTMLElement>(`[data-cl-stage="${i}"]`)! })), indexes.length === 1 ? `lolly-${String(indexes[0]! + 1).padStart(3, '0')}-${slug(displayName(flat[indexes[0]!]!))}` : 'lolly-component-library');
-      status.textContent = 'Downloaded. Import the file in Penpot to edit its component and tokens.' + (notes.length ? ' ' + notes.join(' ') : '');
+      const { buildComponentDownload } = await import('../lib/component-capture.ts');
+      const { blob, filename, notes } = await buildComponentDownload(indexes.map(i => ({ name: displayName(flat[i]!), node: viewEl.querySelector<HTMLElement>(`[data-cl-stage="${i}"]`)! })), indexes.length === 1 ? `lolly-${String(indexes[0]! + 1).padStart(3, '0')}-${slug(displayName(flat[indexes[0]!]!))}` : 'lolly-component-library');
+      if (!active) return;
+      const savedMessage = 'Saved. Import the file in Penpot to edit its component and tokens.' + (notes.length ? ' ' + notes.join(' ') : '');
+      status.textContent = 'File ready. Check your browser’s downloads, then import the file in Penpot.' + (notes.length ? ' ' + notes.join(' ') : '');
+      clearDownloadRecovery = offerDownloadRecovery(status, blob, filename, savedMessage);
+      await host.export.download(blob, filename);
     } catch (error) {
-      status.textContent = `Download failed. ${error instanceof Error ? error.message : String(error)} Please try again.`;
+      const failure = `Download failed. ${error instanceof Error ? error.message : String(error)} Please try again. `;
+      if (status.querySelector('.cl-download-recovery')) status.prepend(failure);
+      else status.textContent = failure;
     } finally {
       exporting = false; buttons.forEach(b => { b.disabled = false; }); button.removeAttribute('aria-busy');
     }
   };
-  viewEl.querySelectorAll<HTMLButtonElement>('[data-cl-download]').forEach(button => button.addEventListener('click', () => {
+  viewEl.querySelectorAll<HTMLButtonElement>('[data-cl-download]').forEach(button => { button.addEventListener('click', () => {
     void runDownload(button, [Number(button.dataset.clDownload)], button.closest('.cl-card-footer')!.querySelector<HTMLElement>('.cl-download-status')!);
-  }));
+  }); });
   const exportButton = viewEl.querySelector<HTMLButtonElement>('.cl-export-penpot')!;
   exportButton.addEventListener('click', () => { void runDownload(exportButton, cards.flatMap((card, i) => card.hidden ? [] : [i]), viewEl.querySelector<HTMLElement>('.cl-export-status')!); });
   tokenSearch.addEventListener('input', event => {
@@ -615,16 +676,30 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
     viewEl.querySelector<HTMLElement>('.cl-token-empty')!.hidden = count > 0;
   });
   viewEl.querySelector<HTMLButtonElement>('.cl-token-export')!.addEventListener('click', async event => {
+    if (exporting) return;
+    exporting = true;
     const button = event.currentTarget as HTMLButtonElement;
     const status = viewEl.querySelector<HTMLElement>('.cl-token-status')!;
-    button.disabled = true;
+    const buttons = [...viewEl.querySelectorAll<HTMLButtonElement>('[data-cl-download], .cl-export-penpot, .cl-token-export')];
+    buttons.forEach(b => { b.disabled = true; });
+    button.setAttribute('aria-busy', 'true');
+    resetDownloadRecovery();
+    status.textContent = 'Building tokens…';
     try {
       const [{ readComponentTokenValues }, { componentTokenDocument }] = await Promise.all([import('../lib/component-capture.ts'), import('../lib/component-penpot.ts')]);
       const tokens = componentTokenDocument(readComponentTokenValues(viewEl));
-      await host.export.download(new Blob([JSON.stringify(tokens, null, 2)], { type: 'application/json' }), 'lolly-ui.tokens.json');
-      status.textContent = 'Tokens downloaded with the current theme’s semantic colours.';
-    } catch (error) { status.textContent = `Token download failed: ${String(error)}`; }
-    finally { button.disabled = false; }
+      if (!active) return;
+      const blob = new Blob([JSON.stringify(tokens, null, 2)], { type: 'application/json' });
+      const filename = 'lolly-ui.tokens.json';
+      status.textContent = 'Tokens ready with the current theme’s semantic colours. Check your browser’s downloads.';
+      clearDownloadRecovery = offerDownloadRecovery(status, blob, filename, 'Tokens saved.');
+      await host.export.download(blob, filename);
+    } catch (error) {
+      const failure = `Token download failed: ${String(error)} `;
+      if (status.querySelector('.cl-download-recovery')) status.prepend(failure);
+      else status.textContent = failure;
+    }
+    finally { exporting = false; buttons.forEach(b => { b.disabled = false; }); button.removeAttribute('aria-busy'); }
   });
   const initialSection = new URLSearchParams(_params || '').get('section');
   if (initialSection && /^cl-[a-z0-9-]+$/.test(initialSection)) viewEl.querySelector(`#${initialSection}`)?.scrollIntoView();

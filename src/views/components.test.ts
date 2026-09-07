@@ -15,16 +15,17 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
     Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
   };
   for (const key of ['window', 'document', 'HTMLElement', 'HTMLInputElement', 'HTMLImageElement', 'HTMLTextAreaElement', 'HTMLSelectElement', 'HTMLCanvasElement', 'Element', 'Node', 'getComputedStyle', 'location', 'localStorage', 'sessionStorage', 'CustomEvent', 'MutationObserver', 'Event', 'MouseEvent', 'navigator', 'history', 'requestAnimationFrame', 'cancelAnimationFrame', 'DOMRect', 'XMLSerializer']) setGlobal(key, (dom.window as any)[key]);
-  setGlobal('matchMedia', dom.window.matchMedia = (() => ({ matches: false, addEventListener() {}, removeEventListener() {} })) as any);
+  dom.window.matchMedia = (() => ({ matches: false, addEventListener() {}, removeEventListener() {} })) as any;
+  setGlobal('matchMedia', dom.window.matchMedia);
   setGlobal('ResizeObserver', class { observe() {} disconnect() {} });
   setGlobal('CSS', { escape: (s: string) => s.replace(/[^a-zA-Z0-9_-]/g, c => `\\${c}`), supports: () => false });
   (dom.window as any).CSS = globalThis.CSS;
   Object.defineProperty(dom.window.document, 'fonts', { value: { ready: Promise.resolve() } });
-  dom.window.HTMLElement.prototype.scrollIntoView = function () {};
+  dom.window.HTMLElement.prototype.scrollIntoView = () => {};
   // Geometry is supplied only to exercise the download flow. Browser layout and
   // visual fidelity are outside jsdom's capabilities.
-  dom.window.Element.prototype.getBoundingClientRect = function () { return new dom.window.DOMRect(0, 0, 480, 220); };
-  dom.window.Range.prototype.getBoundingClientRect = function () { return new dom.window.DOMRect(20, 20, 100, 20); };
+  dom.window.Element.prototype.getBoundingClientRect = () => new dom.window.DOMRect(0, 0, 480, 220);
+  dom.window.Range.prototype.getBoundingClientRect = () => new dom.window.DOMRect(20, 20, 100, 20);
   let downloaded: { blob: Blob; filename: string } | undefined;
   let resolveDownload!: () => void;
   const complete = new Promise<void>(resolve => { resolveDownload = resolve; });
@@ -35,12 +36,19 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
   const view = document.querySelector<HTMLElement>('#view')!;
   try {
     const { mountComponents } = await import('./components.ts');
-    const { AUDIT_SECTIONS, COMPONENT_ARTWORK } = await import('./components-data.ts');
+    const { COMPONENT_SECTIONS: AUDIT_SECTIONS, COMPONENT_ARTWORK } = await import('./components-data.ts');
     const total = AUDIT_SECTIONS.flatMap(s => s.items).length;
     await mountComponents(view, host);
     assert.equal(view.querySelectorAll('[data-cl-card]').length, total);
     assert.equal(view.querySelectorAll('[data-cl-download]').length, total);
     assert.deepEqual([...view.querySelectorAll('.cl-broken')].map(n => n.textContent), []);
+    assert.equal(view.querySelector('.cl-component-section')?.id, 'cl-colour-tools');
+    assert.equal(view.querySelector('.cl-stage')?.getAttribute('data-cl-preview'), 'wheel');
+    assert.equal(view.querySelectorAll('[data-cl-preview="audioDock"] .audio-dock').length, 1, 'use the production player shell');
+    assert.equal(view.querySelector('[data-cl-preview="catSummary"]')?.textContent?.includes('reading…'), false);
+    assert.ok(view.querySelector('[data-cl-preview="projectTiles"] .folder-mosaic'));
+    assert.ok(view.querySelector('[data-cl-preview="selectionBar"] .projects-bulkbar:not([hidden])'));
+    assert.ok(view.querySelector('[data-cl-preview="editableWheel"] [data-be-wheel]'));
     const palette = view.querySelector<HTMLElement>('[data-color-field="cl-color"]')!;
     assert.ok(palette.querySelectorAll('.color-swatches button').length > 0, 'the missing palette must be visible without opening another menu');
     assert.equal(palette.querySelector<HTMLElement>('.color-popover')!.hidden, false);
@@ -53,7 +61,7 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
     assert.ok(exampleImages.length > 0);
     for (const img of exampleImages) {
       assert.ok(Object.values(COMPONENT_ARTWORK).some(src => src === img.getAttribute('src')), `invalid example image: ${img.outerHTML}`);
-      assert.ok(img.alt, 'example imagery needs a description');
+      assert.ok(img.hasAttribute('alt'), 'images have text alternatives; redundant tile thumbnails may be decorative');
     }
     assert.deepEqual(readFileSync(new URL('../../public/icon-primary.svg', import.meta.url)), readFileSync(new URL('../../../../icon-primary.svg', import.meta.url)), 'the shell must ship the real primary icon');
     const heroImage = view.querySelector<HTMLImageElement>('.gtile-hero-img')!;
@@ -68,7 +76,8 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
     assert.equal(view.querySelectorAll('.cl-card:not([hidden])').length, total);
     search.value = 'btn primary'; search.dispatchEvent(new dom.window.Event('input'));
     assert.ok(view.querySelectorAll('.cl-card:not([hidden])').length < total);
-    assert.equal(view.querySelector<HTMLElement>('[data-cl-card="0"]')!.hidden, false);
+    const buttonIndex = AUDIT_SECTIONS.flatMap(s => s.items).findIndex(s => s.name.startsWith('Button system'));
+    assert.equal(view.querySelector<HTMLElement>(`[data-cl-card="${buttonIndex}"]`)!.hidden, false);
     const hash = location.hash;
     view.querySelector<HTMLAnchorElement>('[data-cl-jump="cl-tokens"]')!.click();
     assert.equal(location.hash, hash, 'category jumps must not route away');
@@ -76,13 +85,13 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
     const tokenSearch = view.querySelector<HTMLInputElement>('.cl-token-search input')!;
     tokenSearch.value = 'type.display'; tokenSearch.dispatchEvent(new dom.window.Event('input'));
     assert.equal(view.querySelectorAll('[data-cl-token]:not([hidden])').length, 1);
-    const button = view.querySelector<HTMLButtonElement>('[data-cl-download="0"]')!;
+    const button = view.querySelector<HTMLButtonElement>(`[data-cl-download="${buttonIndex}"]`)!;
     button.click();
     assert.equal(button.disabled, true);
     let timer: ReturnType<typeof setTimeout> | undefined;
     await Promise.race([complete, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(view.querySelector('.cl-download-status')!.textContent || 'Download timed out')), 5000); })]).finally(() => clearTimeout(timer));
     assert.ok(downloaded);
-    assert.match(downloaded.filename, /^lolly-001-button-system\.penpot$/);
+    assert.match(downloaded.filename, /^lolly-\d+-button-system\.penpot$/);
     const archive = unzipSync(new Uint8Array(await downloaded.blob.arrayBuffer()));
     assert.ok(Object.keys(archive).some(path => path.includes('/components/')));
     const entries = Object.values(archive).map(bytes => JSON.parse(strFromU8(bytes)));
@@ -90,7 +99,8 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
     assert.ok(entries.some(entry => entry.mainInstance === true));
     await new Promise(resolve => setTimeout(resolve, 0));
     assert.equal(button.disabled, false);
-    assert.match(button.closest('.cl-card-footer')!.textContent!, /Downloaded/);
+    assert.match(button.closest('.cl-card-footer')!.textContent!, /File ready/);
+    assert.doesNotMatch(button.closest('.cl-card-footer')!.textContent!, /Downloaded\./);
   } finally {
     (view as HTMLElement & { _cleanup?: () => void })._cleanup?.();
     dom.window.close();

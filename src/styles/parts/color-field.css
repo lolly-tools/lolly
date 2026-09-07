@@ -50,14 +50,11 @@
 }
 
 .color-trigger-preview {
-  width: 18px;
-  height: 18px;
-  border-radius: var(--radius-round);
-  /* A ring from the border token, inset so the circle keeps its size: a near-black
-     fill on the dark inspector had no edge at all and the swatch vanished (plans/184
-     section 6, S2). The drop shadow alone only ever read against a light panel. */
-  box-shadow: 0 .1rem .2rem -.05rem #0004, inset 0 0 0 1px hsl(var(--border) / .9);
 
+  border-radius: var(--radius-round);
+    width: var(--sp-8);
+    height: var(--sp-8);
+    box-shadow: var(--shadow-1), inset 0 0 1.5px #fff1;
   flex-shrink: 0;
 }
 

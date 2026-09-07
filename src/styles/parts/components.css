@@ -1,3 +1,13 @@
+/* Authored logo shading: primary on light surfaces, reverse on dark/brand themes.
+   Both variants keep their SVG gradients; only the coloured spiral is tintable. */
+.lolly-mark { isolation: isolate; }
+.lolly-mark__primary { display: inline; }
+.lolly-mark__reverse { display: none; }
+[data-theme="dark"] .lolly-mark__primary,
+[data-theme="brand"] .lolly-mark__primary { display: none; }
+[data-theme="dark"] .lolly-mark__reverse,
+[data-theme="brand"] .lolly-mark__reverse { display: inline; }
+
 /* ─── State messages ────────────────────────────────────────────────────── */
 
 .loading,
