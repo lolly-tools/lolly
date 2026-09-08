@@ -42,6 +42,9 @@ registerHooks({
 } as Parameters<typeof registerHooks>[0]);
 
 const dom = new JSDOM('<!DOCTYPE html><body></body>', { pretendToBeVisual: true, url: 'https://lolly.test/' });
+// jsdom implements neither; the picker opens through mountModal (showModal). Same shim as picker-initial-tab.test.ts.
+dom.window.HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
+dom.window.HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) { this.removeAttribute('open'); };
 const W = dom.window as unknown as typeof globalThis & { MouseEvent: typeof MouseEvent };
 for (const k of [
   'window', 'document', 'HTMLElement', 'HTMLInputElement', 'HTMLButtonElement', 'HTMLImageElement', 'HTMLVideoElement',

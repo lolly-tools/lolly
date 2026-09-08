@@ -113,11 +113,6 @@
 .dtb-btn[aria-pressed="true"] { background: color-mix(in srgb, var(--ui-color-action-primary) 14%, transparent); color: var(--ui-color-action-primary); }
 .dtb-btn[aria-expanded="true"] { background: var(--ui-color-surface-muted); }
 
-/* The Lolly mark keeps its own artwork (a full-colour SVG, not a stroked glyph),
-   so it gets a round, slightly larger box and no currentColor treatment. */
-.dtb-mark { padding: var(--sp-2); border-radius: var(--ui-radius-choice-round); }
-.dtb-mark .dtb-ic svg { width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs)); }
-
 .dtb-zoom-level { min-width: calc(52px * var(--a11y-fs)); font-variant-numeric: tabular-nums; }
 
 /* Export is the primary call to action; Present is its quieter neighbour, outlined

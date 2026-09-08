@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { moveSessionSlot } from './tool-revision-history.ts';
 /**
  * Projects view (route /p and /p/<folderId>).
  *
@@ -2588,20 +2589,7 @@ export async function mountProjects(
   // own delete has its own soft path.
 
   /** Move one session's state record between slots (thumb preserved). */
-  async function moveSlot(from: string, to: string): Promise<boolean> {
-    try {
-      const h = host as ProjectsHost;
-      const data = await h.state.load(from);
-      if (!data) return false;
-      const thumb = (await h.state.list().catch(() => [] as Entry[])).find(r => r.slot === from)?.thumb ?? undefined;
-      await h.state.save(to, data, thumb);
-      await host.state.delete(from).catch(() => {});
-      return true;
-    } catch (e) {
-      host.log?.('warn', 'projects: trash slot move failed', { from, to, error: String(e) });
-      return false;
-    }
-  }
+  const moveSlot = (from: string, to: string) => moveSessionSlot(host, from, to);
 
   /** Trash a set of loose/foldered sessions with ONE undo toast. */
   async function trashSessions(slots: readonly string[]): Promise<void> {

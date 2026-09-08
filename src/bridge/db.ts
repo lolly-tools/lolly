@@ -34,7 +34,7 @@ import { openDB as idbOpen, deleteDB as idbDelete } from 'idb';
 import type { IDBPDatabase } from 'idb';
 
 const DB_NAME = 'lolly';
-const DB_VERSION = 19;
+const DB_VERSION = 22;
 
 // How long to wait for the DB to open before giving up. A healthy open is
 // near-instant; this only trips when the connection is genuinely wedged.
@@ -58,7 +58,7 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
   // instead of a dead end - the open succeeds the moment that connection closes.
   let wasBlocked = false;
   const opening = idbOpen(DB_NAME, DB_VERSION, {
-    upgrade(db, oldVersion) {
+    upgrade(db, oldVersion, _newVersion, tx) {
       if (oldVersion < 1) {
         db.createObjectStore('profile');
         const stateStore = db.createObjectStore('state', { keyPath: 'slot' });
@@ -243,6 +243,30 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
         // Complete batch membership, including files never started. Additive;
         // absence must never trigger the destructive REQUIRED_STORES recovery.
         db.createObjectStore('file-batches', { keyPath: 'id' });
+      }
+      if (oldVersion < 20) {
+        // Plan 221: additive history stores. Never add these to REQUIRED_STORES.
+        db.createObjectStore('revision-documents', { keyPath: 'slot' });
+        const revisions = db.createObjectStore('revisions', { keyPath: 'id' });
+        revisions.createIndex('documentId', 'documentId');
+        revisions.createIndex('documentTime', ['documentId', 'at', 'id']);
+        revisions.createIndex('documentReason', ['documentId', 'reason', 'at', 'id']);
+        revisions.createIndex('time', ['at', 'id']);
+        db.createObjectStore('revision-payloads');
+        db.createObjectStore('revision-previews');
+        db.createObjectStore('revision-usage');
+      }
+      if (oldVersion < 21) {
+        // Also upgrade an initial history preview opened during development.
+        const revisions = tx.objectStore('revisions');
+        if (!revisions.indexNames.contains('documentReason')) revisions.createIndex('documentReason', ['documentId', 'reason', 'at', 'id']);
+      }
+      if (oldVersion < 22) {
+        const recovery = db.createObjectStore('revision-recovery', { keyPath: 'id' });
+        recovery.createIndex('slot', 'slot');
+        recovery.createIndex('slotTime', ['slot', 'at', 'id']);
+        recovery.createIndex('time', ['at', 'id']);
+        db.createObjectStore('revision-recovery-payloads');
       }
     },
     blocking() {

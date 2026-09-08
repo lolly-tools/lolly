@@ -71,7 +71,7 @@ export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[
           </div>
         </details>` : ''}
         <div class="convert-notes" data-notes></div>
-        <div class="convert-actions"><button class="btn btn-primary" type="button" data-convert>${sources.length > 1 ? t('Convert files') : t('Create copy')}</button><button class="btn" type="button" data-stop hidden>${t('Cancel operation')}</button></div>
+        <div class="convert-actions"><button class="btn btn--primary" type="button" data-convert>${sources.length > 1 ? t('Convert files') : t('Create copy')}</button><button class="btn" type="button" data-stop hidden>${t('Cancel operation')}</button></div>
         <p class="convert-status" role="status" aria-live="polite" data-status>${t('On this device. Your original files are never overwritten.')}</p>
       </section>
     </div>
@@ -126,7 +126,7 @@ export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[
     const preview = /^image\/(png|jpeg|webp|avif|svg\+xml)$/.test(item.blob.type) && facts.format !== 'svgz';
     card.innerHTML = `${preview ? `<div class="convert-output-preview"><img src="${urlFor(item.blob)}" alt="${t('Converted file preview')}"></div>` : ''}
       <div class="convert-output-info"><h3>${escapeHtml(item.name)}</h3><p>${fmtBytes(item.blob.size)}${facts.width ? ` · ${facts.width} × ${facts.height} px` : ''} · ${delta >= 0 ? `${delta}% ${t('smaller')}` : `${-delta}% ${t('larger')}`}</p>
-      <div class="convert-actions"><button class="btn btn-primary" type="button" data-download>${t('Download')}</button>${saveFilePickerSupported() ? `<button class="btn" type="button" data-save>${t('Save as…')}</button>` : ''}<button class="btn" type="button" data-report>${t('Download report')}</button><button class="btn" type="button" data-share hidden>${t('Share…')}</button></div>
+      <div class="convert-actions"><button class="btn btn--primary" type="button" data-download>${t('Download')}</button>${saveFilePickerSupported() ? `<button class="btn" type="button" data-save>${t('Save as…')}</button>` : ''}<button class="btn" type="button" data-report>${t('Download report')}</button><button class="btn" type="button" data-share hidden>${t('Share…')}</button></div>
       <details class="convert-receipt"><summary>${t('What changed?')}</summary><ul>${item.report.changes.map(change => `<li>${escapeHtml(change)}</li>`).join('')}</ul><p>${t('Source and output SHA-256 hashes are included in the JSON report.')}</p><code>${escapeHtml(facts.sha256 ?? '')}</code></details></div>`;
     const deliver = async (saveAs = false): Promise<void> => {
       try { if (saveAs) requestSaveAsNext(); await host.export.download(item.blob, item.name); setStatus(t('File handed to your device’s save/download flow.')); }

@@ -434,7 +434,9 @@ export function _setExportNoticeSink(fn: ((msg: string) => void) | null): void {
  * (PDF/SVG) ignore the DPI; they convert exactly.
  */
 function exportDims(node: Element, opts: ExportOpts): ExportDims {
-  const r = node.getBoundingClientRect();
+  // Background history previews keep the editor zoom in place. Their source
+  // box must use layout pixels, or a zoomed-out artboard becomes a cropped tile.
+  const r = opts.thumbnail && node instanceof HTMLElement ? { width: node.offsetWidth, height: node.offsetHeight } : node.getBoundingClientRect();
   const node_ = { w: r.width || 1, h: r.height || 1 };
   const w = parseDimension(opts.width) ?? { value: node_.w, unit: 'px' as const };
   const h = parseDimension(opts.height) ?? { value: node_.h, unit: 'px' as const };
@@ -456,6 +458,40 @@ async function getDomToImage(): Promise<DomToImage> {
 // bundling the real library. Mirrors the `HOOK_BUDGET_MS`-style test hooks elsewhere;
 // never called by shipping code.
 export function __setDomToImageForTest(d: unknown): void { domToImageMore = (d as DomToImage | null) ?? null; }
+
+/**
+ * The one place a Blob becomes a browser download: a transient object-URL anchor.
+ *
+ * It lives HERE, in bridge/, on purpose. A raw `<a download>` is dropped outright
+ * by a WebView with no download handler (wry cancels it), so on the Tauri shells
+ * this whole verb is REPLACED by a native filesystem save (bridge-overrides/
+ * export.ts). Any module outside bridge/ that clicks its own anchor bypasses that
+ * override and silently no-ops on mobile - the exact defect plan 216 item 1 fixes.
+ * So the rule is: nothing outside bridge/ assigns `.download` on a created anchor;
+ * it calls host.export.download (overridable) and, only when no host exists yet,
+ * this shared fallback. tests/no-raw-anchor-download guard enforces it.
+ */
+export function anchorSave(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  anchorSaveUrl(url, filename);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/**
+ * Click a download anchor at an ALREADY-RESOLVED url (a same-origin path or a
+ * data: URI the caller owns) - the sibling of anchorSave for callers that hold a
+ * url, not a Blob. Same bridge/-only rule: it exists so a fallback that must
+ * anchor a raw url doesn't grow a second `<a download>` outside bridge/. Does not
+ * revoke `url` - it is not this helper's to own.
+ */
+export function anchorSaveUrl(url: string, filename: string): void {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
 
 export function createExportAPI(host: WebHost) {
   _host = host;
@@ -532,14 +568,7 @@ export function createExportAPI(host: WebHost) {
       // ever for one delivery. Falls through to the anchor path when the dialog
       // could not open, so a refused picker still saves the file.
       if (await consumeSaveAsNext(blob, filename)) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      anchorSave(blob, filename);
     },
 
     // Transform-path delivery: a blob the tool produced itself (a transformed

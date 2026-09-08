@@ -35,11 +35,11 @@ import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { privacyNoticeMarkup, mountPrivacyNotice } from './privacy-notice.ts';
 import { personalizeNudgeMarkup, mountPersonalizeNudge } from './personalize-nudge.ts';
 import { offlineNudgeMarkup, mountOfflineNudge } from './offline-nudge.ts';
-import { profileSignature, canPersonalize, regeneratePreviews } from '../personalize-previews.ts';
 import { viewTopbarHtml, mountViewTopbar } from '../components/view-topbar.ts';
 import { mountFeaturedRow, resolveExamples } from '../components/featured-row.ts';
-import { previewMedia, isHtmlPreview, armMotionPreviews, playMotionIn, stopMotionIn } from '../lib/preview-media.ts';
-import { bundledLook } from '../lib/preview-bundle.ts';
+import { armMotionPreviews, playMotionIn, stopMotionIn } from '../lib/preview-media.ts';
+import { galleryPreviewLooks, galleryLookHref, renderGalleryLook } from '../lib/gallery-preview.ts';
+import { createPreviewQueue } from '../lib/preview-queue.ts';
 import { renderFeaturedVariant, renderFeaturedPages, displayFormatOf } from '../lib/featured-render.ts';
 import { currentTheme } from '../theme.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
@@ -60,12 +60,11 @@ import { playSfx, playGalleryAah, cancelArrivalAah } from '../lib/sfx.ts';
 import { sessionRow, CHECK_ICON } from '../folder-tiles.ts';
 
 import type { HostV1, StateEntry } from '@lolly-tools/core/host-v1';
-import { toolSeedHref } from '../lib/seed-url.ts';
 import type { WebStateAPI } from '../bridge/state.ts';
 import type { WebProfileAPI } from '../bridge/profile.ts';
 import type { createAssetsAPI } from '../bridge/assets.ts';
 import type { WebTokensAPI } from '../bridge/tokens.ts';
-import type { PreviewsAPI, PreviewRecord } from '../bridge/previews.ts';
+import type { PreviewsAPI } from '../bridge/previews.ts';
 import { activeDesignSystemSource } from '../lib/design-system/active.ts';
 
 /**
@@ -118,6 +117,7 @@ interface GalleryTool {
    *  a preset deep-links as ?template=<tid>&preset=<pid>. */
   templates?: Array<{
     id: string; name: string; category?: string; description?: string; thumb?: string;
+    motion?: import('../lib/template-motion.ts').TemplateMotion;
     presets?: Array<{ id: string; name: string; description?: string }>;
   }>;
 }
@@ -267,7 +267,7 @@ function dimText(tool: GalleryTool | undefined): string {
 
 // Shared, /pro-free batch-slot helpers (finding #13) - the gallery still takes
 // zero dependency on the removable /pro folder.
-import { BATCH_SLOT_PREFIX, isBatchSlot } from '../lib/batch-slots.ts';
+import { isBatchSlot } from '../lib/batch-slots.ts';
 import { yoursShelfTools, yoursShelfHtml } from './yours-shelf.ts';
 import { captureNeutralPinned, settleForCapture } from '../lib/capture-neutral.ts';
 
@@ -507,7 +507,14 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // Drop them once, here, so every downstream membership set (grid, search, favourites,
   // featured + utility strips, pill counts) excludes them with no per-site guard. They
   // still load via #/tool/<id>, URL mode and the CLI - this only hides them from the listing.
-  const index: { tools: GalleryTool[] } = { tools: rawIndex.tools.filter(t => t.listed !== false) };
+  const index: { tools: GalleryTool[] } = { tools: rawIndex.tools.filter(t => t.listed !== false).map(tool => ({
+    ...tool,
+    // Discovery artwork is rendered with this device's active tokens. Static
+    // posters, motion cards and historic session thumbnails may belong to another brand.
+    preview: undefined,
+    anim: undefined,
+    examples: galleryPreviewLooks(tool),
+  })) };
   const [savedEntriesRaw, profile, sessionSizes, pinnedTools] = await Promise.all([
     host.state.list(),
     host.profile.get(),
@@ -518,24 +525,6 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   ]);
   // Trashed sessions (projects Trash, `__trash__:` slots) never list here.
   const savedEntries = savedEntriesRaw.filter(e => !isHiddenSlot(e.slot));
-
-  // Profile-personalized previews (see ../personalize-previews.js). `sig` is empty
-  // unless the user opted in ("use my details"); only cache entries matching the
-  // current sig are fresh - a stale one is ignored and re-rendered below. Held in a
-  // Map so re-renders (search/filter) keep the personalized image, not just the
-  // committed placeholder.
-  const previewSig = profileSignature(profile);
-  // Only deserialise the generated-previews store when personalization is on (the
-  // default is off): it grows unboundedly with every rendered variant, so scanning it
-  // on every gallery mount adds IDB read + deserialise latency before first paint for
-  // nothing. The empty-sig path below already ignores cachedPreviews.
-  const cachedPreviews = previewSig ? (await host.previews?.list().catch(() => []) ?? []) : [];
-  const personalizedByTool = new Map<string, string>();
-  if (previewSig) {
-    for (const rec of cachedPreviews) {
-      if (rec?.sig === previewSig && rec.thumb) personalizedByTool.set(rec.toolId, rec.thumb);
-    }
-  }
 
   // Per-tool saved sessions (newest first), batch sessions excluded - they have
   // no toolId and resume into #/pro, so they're not a tool's history.
@@ -552,16 +541,6 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   }
   const latestByTool = (id: string): SavedEntry | undefined => entriesByTool.get(id)?.[0];
   const countByTool = (id: string): number => entriesByTool.get(id)?.length ?? 0;
-  // Recent session previews (newest first) that a tool's tile can cross-fade through - 
-  // capped so a tool with dozens of saved works keeps its tile DOM bounded. Sessions
-  // whose preview failed to capture (thumb === null) are skipped.
-  const HERO_ROTATE_MAX = 5;
-  const thumbsByTool = (id: string): string[] =>
-    (entriesByTool.get(id) ?? [])
-      .map(e => e.thumb)
-      .filter((t): t is string => !!t)
-      .slice(0, HERO_ROTATE_MAX);
-
   const toolById = new Map(index.tools.map(t => [t.id, t]));
 
   // Catalog order = authoring order with new tools appended, so a tool's position is
@@ -704,7 +683,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     const iconHero = t.category === 'utility';
     const featured = t.featured ?? { blurb: t.description };
     return {
-      id: t.id, name: t.name, preview: iconHero ? undefined : t.preview, icon: t.icon,
+      id: t.id, name: t.name, icon: t.icon, version: t.version, galleryPreview: !iconHero,
       formats: t.formats, status: t.status,
       examples: iconHero ? undefined : t.examples,
       // `featured.variants` is the pre-`examples` alias resolveExamples() still
@@ -956,9 +935,11 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   const masonry    = viewEl.querySelector<HTMLElement>('.tool-masonry');
 
   // Cleanup registry - main.js's navigate() calls viewEl._cleanup on unmount. Both
-  // the featured row (timers + drift loop) and the personalized-preview queue below
+  // the featured row (timers + drift loop) and the preview queue below
   // register their teardown here so neither keeps running after the user moves on.
   const cleanups: Array<() => void> = [];
+  const previewQueue = createPreviewQueue();
+  cleanups.push(() => previewQueue.destroy());
   (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => {
     for (const fn of cleanups.splice(0)) { try { fn(); } catch { /* best-effort teardown */ } }
   };
@@ -1071,7 +1052,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       // The 'gallery' favourites strip is STATIC now (Andy 2026-08-10): no marquee drift,
       // no example/preset cross-fade - a favourite is the tool's single template, swipe/drag
       // only. Cover Flow keeps its own motion, so only opt the gallery mode into staticStrip.
-      ? mountFeaturedRow(featuredMount, entries, host, { viewMode: featuredView, staticStrip: featuredView === 'gallery' })
+      ? mountFeaturedRow(featuredMount, entries, host, { viewMode: featuredView, staticStrip: featuredView === 'gallery', previewQueue })
       : null;
     viewEl.querySelector('.gallery')?.classList.toggle('has-featured', entries.length > 0);
   }
@@ -1246,64 +1227,15 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   let revealObserver: IntersectionObserver | null = null;
   cleanups.push(() => revealObserver?.disconnect());   // render() replaces it; unmount drops the last one
 
-  // Ambient cross-fade for tiles with several saved sessions - the tile cycles
-  // through that tool's recent session previews (the same dissolve the featured
-  // strip uses). ONE timer scans the DOM each tick, so it survives the masonry
-  // re-renders that search / filter / favourite toggles trigger without any
-  // per-render re-wiring. Work is staggered across phases (tiles don't all flip
-  // at once), and skips tiles that are off-screen or hovered (leave the one the
-  // user is aiming at still). Paused wholesale while the tab is hidden; disabled
-  // outright under reduced motion (OS or the app's own pref). Torn down via the
-  // cleanup registry.
-  const HERO_ROTATE_MS = 2100;
-  const HERO_ROTATE_PHASES = 3;
-  if (!prefersReduced) {
-    let heroTick = 0;
-    const heroTimer = setInterval(() => {
-      if (document.hidden || !masonry) return;
-      heroTick++;
-      const vh = window.innerHeight || document.documentElement.clientHeight;
-      // Read every hero's rect in ONE pass up front, then act - measuring inside the
-      // loop would interleave layout reads with the class writes below and thrash.
-      const heroes = [...masonry.querySelectorAll<HTMLElement>('.gtile-hero--rotate')];
-      const heroRects = heroes.map(h => h.getBoundingClientRect());
-      heroes.forEach((hero, i) => {
-        if (i % HERO_ROTATE_PHASES !== heroTick % HERO_ROTATE_PHASES) return; // stagger
-        const r = heroRects[i]!;
-        if (!r.width) return;                      // filtered-out (display:none) tile
-        if (r.bottom < 0 || r.top > vh) return;   // off-screen - don't animate
-        if (hero.matches(':hover')) return;        // let the user look while aiming
-        const frames = [...hero.querySelectorAll<HTMLImageElement>('.gtile-hero-frame')];
-        // Only cross-fade to a DECODED frame - a not-yet-decoded one would fade in
-        // blank. Until ≥2 have decoded the tile just holds its first frame.
-        const ready = frames.filter(f => f.complete && f.naturalWidth > 0);
-        if (ready.length < 2) return;
-        const cur = ready.findIndex(f => f.classList.contains('is-active'));
-        const next = (cur + 1 + ready.length) % ready.length;
-        frames.forEach(f => f.classList.remove('is-active'));
-        ready[next]!.classList.add('is-active');
-      });
-    }, HERO_ROTATE_MS);
-    cleanups.push(() => clearInterval(heroTimer));
+  // Register every cover up front. Visible covers run first, then off-screen
+  // covers, then additional templates near the viewport. Filters park their jobs.
+  function previewPriority(gcar: HTMLElement, cover: boolean): number | null {
+    // Measure the tile: content-visibility may skip its off-screen descendants.
+    const rect = (gcar.closest('.gtile') ?? gcar).getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    const near = rect.bottom >= -250 && rect.top <= window.innerHeight + 250;
+    return cover ? (near ? 0 : 1) : (near || captureNeutralPinned() || typeof IntersectionObserver === 'undefined' ? 2 : null);
   }
-
-  // ── Example preview strips (carousels) ──────────────────────────────────────
-  // A tile with manifest `examples` is a horizontally-scrollable strip: the newest saved
-  // session (if any) then a few live-rendered example states. Each example <img> is empty
-  // in the markup and rendered lazily - serial, on idle, cached in host.previews under the
-  // same `featured:<id>:<i>` key the hero row uses - only once its tile nears the viewport,
-  // so a gallery full of example-bearing tools never fires hundreds of off-screen renders.
-  const ricIdle = (cb: () => void): number =>
-    (typeof requestIdleCallback === 'function' ? requestIdleCallback(cb, { timeout: 3000 }) : setTimeout(cb, 60)) as unknown as number;
-  const exJobs: Array<() => Promise<void>> = [];
-  let exRunning = false;
-  const pumpEx = (): void => {
-    if (exRunning) return;
-    const job = exJobs.shift();
-    if (!job) return;
-    exRunning = true;
-    ricIdle(() => { void job().finally(() => { exRunning = false; pumpEx(); }); });
-  };
   // A paged tool (multi-page-pdf): render each page and rebuild the strip's slides +
   // dots from them (page count is unknown until rendered). The track element persists,
   // so its listeners survive; nav/dots are delegated off .gcar (see wireCarousel).
@@ -1355,7 +1287,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     gcar.querySelectorAll('.gcar-nav, .gcar-dots').forEach(el => el.remove());
   }
 
-  async function hydrateCarousel(gcar: HTMLElement): Promise<void> {
+  function queueCarousel(gcar: HTMLElement): void {
     const toolId = gcar.dataset.tool;
     const tool = toolId ? toolById.get(toolId) : undefined;
     if (!tool) return;
@@ -1365,120 +1297,57 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     // rasterise on the main thread) - settle the tile on its static icon instead. Adding has-art
     // stops the waiting tracer so it reads as done, not stuck. Off by default ⇒ byte-identical.
     if (perfUiOn()) { gcar.classList.add('has-art'); return; }
-    if (gcar.dataset.paged === '1') { await hydratePaged(gcar, toolId!, tool); return; }
     const looks = resolveExamples(tool);
     const slides = [...gcar.querySelectorAll<HTMLElement>('.gcar-slide--ex')];
-    // The one place a look's src is set, so every path shares the same load bookkeeping -
-    // and an `error` path. That matters now the bundle is a MANIFEST: a bundled look is a
-    // URL, and a URL can 404 (a look file deleted from the catalog, a half-copied deploy,
-    // a manifest that ran ahead of the previews). An inlined data-URL never could, so the
-    // old code only listened for `load` - and a missing file left the tile's waiting tracer
-    // spinning forever on an <img> that would never fire it. Callers that have a fallback
-    // pass onError and get the SAME degradation a stale sig already takes: live render.
-    const paint = (
-      slide: HTMLElement,
-      img: HTMLImageElement,
-      src: string,
-      placeholder = false,
-      onError?: () => void,
-    ): void => {
-      if (placeholder) img.dataset.ph = '1'; else delete img.dataset.ph;
-      img.addEventListener('load', () => {
-        slide.classList.add('is-loaded');
-        gcar.classList.add('has-art');   // first rendered look → stop the waiting tracer
-      }, { once: true });
-      if (onError) img.addEventListener('error', onError, { once: true });
-      img.src = src;
-    };
-
-    // The live engine render: the fallback for a look with no bundle entry, one whose sig is
-    // stale, and one whose FILE is missing (paint's onError above). That last case must ask
-    // for the render under its own cache namespace, because renderFeaturedVariant consults
-    // the look manifest itself for the 'featured' namespace (lib/featured-render.ts) - asked
-    // the ordinary way it would hand straight back the URL that just 404'd, and the tile would
-    // settle on a broken <img> instead of the render this fallback exists to produce. The
-    // separate key is honest as well as necessary: it holds the look the bundle could NOT
-    // serve, so the next visit (which 404s again) reuses the render instead of repeating it.
-    type LiveJob = { slide: HTMLElement; img: HTMLImageElement; i: number; values: Record<string, unknown> };
-    const renderLive = async ({ slide, img, i, values }: LiveJob, fileMissing = false): Promise<void> => {
-      if (!gcar.isConnected) return;                         // tile replaced by a re-render
+    const renderSlide = async (slide: HTMLElement): Promise<void> => {
+      const img = slide.querySelector<HTMLImageElement>('.gcar-img');
+      const i = Number(slide.dataset.exIndex);
+      const look = looks[i];
+      if (!gcar.isConnected || !img || img.getAttribute('src') || !look) return;
       try {
-        const thumb = await renderFeaturedVariant(host, toolId!, tool.formats, i, values, fileMissing ? 'featured-missing' : 'featured');
+        const [thumb, href] = await Promise.all([
+          renderGalleryLook(host, tool, i, look), galleryLookHref(tool.id, look),
+        ]);
         if (!gcar.isConnected) return;
-        paint(slide, img, thumb);
+        img.addEventListener('load', () => {
+          slide.classList.add('is-loaded');
+          gcar.classList.add('has-art');
+        }, { once: true });
+        img.src = thumb;
+        slide.querySelector('a')?.setAttribute('href', href);
+        await img.decode();
       } catch (e) {
-        host.log?.('warn', `Gallery example failed for ${toolId}`, { error: String((e as { message?: unknown })?.message ?? e) });
+        // Keep the brand-coloured icon when the tool cannot render a preview.
+        gcar.classList.add('has-art');
+        host.log?.('warn', `Gallery preview failed for ${toolId}`, { error: String(e) });
       }
     };
-
-    // The tool's own committed preview goes in FIRST, before any await: it is a static file
-    // the tile can show while the look manifest is still in flight, so the strip is never an
-    // empty box waiting on the network (or on the tiles queued ahead of it in exJobs). The
-    // real look replaces it below. data-ph marks it as a placeholder so neither the swap nor
-    // a re-hydration mistakes it for a rendered look. Only the leading slide gets one - the
-    // rest are off-view until the strip is scrolled, and a lead slide (session thumb or
-    // authored card) already shows real art, so there is nothing to stand in for. Skipped
-    // during a docs capture: a placeholder that never got swapped would be a difference the
-    // vector baselines compare exactly (see captureNeutralPinned in armCarousels).
-    if (!captureNeutralPinned() && tool.preview && !isHtmlPreview(tool.preview) && !gcar.querySelector('.gcar-slide--lead')) {
-      const first = slides[0]?.querySelector<HTMLImageElement>('.gcar-img');
-      if (first && !first.getAttribute('src')) paint(slides[0]!, first, tool.preview, true);
-    }
-
-    // Bundled looks all resolve off ONE memoised manifest fetch, so every slide asks at
-    // once and paints the moment its entry resolves. Only a look with NO bundle entry falls
-    // through to the live engine render, and those stay strictly serial - each is a ~350 ms
-    // off-screen render plus a main-thread rasterise. The old loop awaited the whole chain
-    // in order, which put the cheap manifest lookups behind the expensive renders (and, when
-    // the bundle still inlined every look, put all of a tile's art behind a 2.6 MB download).
-    const live: LiveJob[] = [];
-    await Promise.all(slides.map(async (slide) => {
-      const img = slide.querySelector<HTMLImageElement>('.gcar-img');
-      if (!img || (img.getAttribute('src') && !img.dataset.ph)) return;   // already rendered
-      const i = Number(slide.dataset.exIndex);
-      const v = looks[i];
-      if (!v) return;
-      const values = v.values as Record<string, unknown>;
-      const src = await bundledLook(toolId!, i, JSON.stringify(values)).catch(() => null);
-      if (!gcar.isConnected) return;                       // tile replaced by a re-render
-      // A 404 repairs itself as soon as the browser reports it, rather than joining the
-      // serial queue below: the queue exists to keep the COMMON case of live renders off
-      // the main thread, and a missing look file is exceptional (one tile, one render).
-      if (src) { paint(slide, img, src, false, () => { void renderLive({ slide, img, i, values }, true); }); return; }
-      live.push({ slide, img, i, values });
+    slides.forEach((slide, i) => previewQueue.add({
+      priority: () => previewPriority(gcar, i === 0),
+      stale: () => !gcar.isConnected,
+      run: () => renderSlide(slide),
     }));
-    for (const job of live) {
-      if (!gcar.isConnected) return;
-      await renderLive(job);
-    }
+    // A paged document also gets its single cover before we export the full deck.
+    if (gcar.dataset.paged === '1') previewQueue.add({
+      priority: () => previewPriority(gcar, false),
+      stale: () => !gcar.isConnected,
+      run: () => hydratePaged(gcar, toolId!, tool),
+    });
   }
+
   let carouselObserver: IntersectionObserver | null = null;
   function armCarousels(): void {
     carouselObserver?.disconnect();
     carouselObserver = null;
     if (!masonry) return;
     const cars = [...masonry.querySelectorAll<HTMLElement>('.gcar')];
-    if (!cars.length) return;
-    // Legacy (no IntersectionObserver) hydrates every strip; a capture run takes the
-    // same path deliberately. Observer-driven hydration is a race against the capture:
-    // which strips had fired depended on timing, so the same page serialised a strip
-    // more or fewer between runs (±26% and ±3% swings). Hydrating the whole set makes
-    // the CONTENT fixed, and settleForCapture then waits for it - off-frame strips are
-    // dropped by the shot pipeline's own cull, so this costs bytes in neither direction.
-    if (typeof IntersectionObserver === 'undefined' || captureNeutralPinned()) {
-      cars.forEach(g => exJobs.push(() => hydrateCarousel(g)));
-      pumpEx();
-      return;
+    cars.forEach(queueCarousel);
+    // Covers are already queued, even below the fold. The observer wakes parked
+    // extra templates when their card approaches the viewport.
+    if (typeof IntersectionObserver !== 'undefined') {
+      carouselObserver = new IntersectionObserver(() => previewQueue.wake(), { rootMargin: '250px 0px' });
+      cars.forEach(g => carouselObserver!.observe(g));
     }
-    carouselObserver = new IntersectionObserver((entries, obs) => {
-      for (const e of entries) {
-        if (!e.isIntersecting) continue;
-        obs.unobserve(e.target);
-        exJobs.push(() => hydrateCarousel(e.target as HTMLElement));
-        pumpEx();
-      }
-    }, { rootMargin: '250px 0px' });
-    cars.forEach(g => carouselObserver!.observe(g));
   }
   cleanups.push(() => carouselObserver?.disconnect());
 
@@ -1487,11 +1356,25 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // on a device with no hover, the centered-tile observer. Re-armed on each full paint
   // because innerHTML replaced the elements the previous observer held.
   let motionPreviews: { destroy(): void } | null = null;
+  let templateMotionCleanup: (() => void) | undefined;
+  let templateMotionEpoch = 0;
   function armMotion(): void {
+    templateMotionCleanup?.();
+    const epoch = ++templateMotionEpoch;
+    if (masonry?.querySelector('[data-motion-template]')) {
+      const root = masonry;
+      void Promise.all([import('../lib/template-motion-preview.ts'), import('./template-chooser.ts')]).then(([{ armTemplateMotion }, { fetchTemplateFile }]) => {
+        if (!root.isConnected || epoch !== templateMotionEpoch) return;
+        templateMotionCleanup = armTemplateMotion(root, { host, toolId: 'design', card: '[data-motion-template]', media: '.gcar-open',
+          id: card => card.dataset.motionTemplate,
+          async load(id) { const file = await fetchTemplateFile('design', id); return file?.motion ? { values: file.values, motion: file.motion } : null; },
+        });
+      });
+    }
     motionPreviews?.destroy();
     motionPreviews = masonry ? armMotionPreviews(masonry, { hover: false }) : null;
   }
-  cleanups.push(() => motionPreviews?.destroy());
+  cleanups.push(() => { motionPreviews?.destroy(); templateMotionEpoch++; templateMotionCleanup?.(); });
 
   // Move to a given slide (by index) and by ±1 (with wrap for the auto-advance loop),
   // then reflect it in the dots. Uses smooth native scroll so touch, trackpad and this
@@ -1513,7 +1396,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // src from the start) or an example/page slide whose art has decoded (.is-loaded).
   // Auto-advance and prev/next cycle ONLY these, so a strip with several previews still
   // pending never rotates onto a not-yet-loaded slide's flat skeleton; the set grows as
-  // each preview decodes and hydrateCarousel adds .is-loaded.
+  // each preview decodes and the preview job adds .is-loaded.
   function readyCarIndices(track: HTMLElement): number[] {
     const out: number[] = [];
     const kids = track.children;
@@ -1575,8 +1458,8 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   async function openExample(toolId: string, exIndex: number, tile?: HTMLElement | null): Promise<void> {
     tile?.classList.add('is-navigating');
     const tool = toolById.get(toolId);
-    const values = tool ? resolveExamples(tool)[exIndex]?.values : undefined;
-    window.location.hash = await toolSeedHref(toolId, values);
+    const look = tool ? resolveExamples(tool)[exIndex] : undefined;
+    window.location.hash = await galleryLookHref(toolId, look);
   }
 
   // No auto-advance: the example strips move only when the USER moves them
@@ -1730,7 +1613,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
         .slice(0, featuredHandle ? EAGER_TILES_WITH_HERO : EAGER_TILES).map(t => t.id),
     );
     masonry.innerHTML = viewCards + allTools
-      .map(t => cardMarkup(t, latestByTool(t.id), host.capabilities, personalizedByTool.get(t.id), thumbsByTool(t.id), darkTheme, opts.only === 'utility', eagerIds.has(t.id)))
+      .map(t => cardMarkup(t, latestByTool(t.id), host.capabilities, darkTheme, opts.only === 'utility', eagerIds.has(t.id)))
       .join('');
     masonry.append(noResults);
     masonry.append(hiddenBox);
@@ -1755,7 +1638,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     // still stamps .is-ready, which is what stops the shimmer - it is not gated on the
     // armed class).
     armPreviewReveal(masonry, animateReveal && !paintedFromSlim);
-    armCarousels();   // lazily hydrate example preview strips as their tiles near the viewport
+    armCarousels();   // covers first across the entire grid; extra templates remain lazy
     armMotion();      // motion previews: hover/focus on a mouse, the centered tile on touch
     firstPaint = false;
     // Hand THIS grid to the mount that will upgrade it, if it is a slim paint (see
@@ -1828,6 +1711,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     // Re-apply the selection highlight - render() rebuilds tiles unselected, and a
     // filter pass may have moved tiles under a live selection.
     paintSelection();
+    previewQueue.wake();
     if (shown === 0) {
       noResults.innerHTML = query
         ? tRaw('No tools match "<strong>{query}</strong>" - {button}', { query: escape(query.trim()), button: `<button type="button" class="gallery-retry" data-search-clear>${t('clear search')}</button>` })
@@ -2461,42 +2345,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     welcome.mountBrandTips(viewEl.querySelector<HTMLElement>('.tool-masonry'));
   })();
 
-  // Profile-personalized previews: once the user has opted in to "use my details",
-  // re-render the few profile-bound tools that have no saved session - off the
-  // critical path (idle, serial) - and lazily swap the personalized image into its
-  // card. Feature-detected (host.previews) and scoped via canPersonalize(), so it's
-  // a no-op for shells without the cache and for the ~24 tools whose output doesn't
-  // change with the profile. The committed preview shows until the swap lands; cache
-  // hits were already applied at mount above. See ../personalize-previews.js.
-  if (previewSig && host.previews) {
-    const cssEscape = (s: string) => (window.CSS && CSS.escape ? CSS.escape(s) : s);
-    const toRegenerate = index.tools.filter(t =>
-      canPersonalize(t) &&
-      !latestByTool(t.id) &&                  // no saved session - only placeholders
-      !personalizedByTool.has(t.id) &&        // not already fresh in cache
-      toolSupport(t, host.capabilities, presentApis(host)).status !== 'unavailable',
-    );
-    if (toRegenerate.length) {
-      const cancel = regeneratePreviews({
-        host,
-        tools: toRegenerate,
-        sig: previewSig,
-        onThumb: (toolId, dataUrl) => {
-          personalizedByTool.set(toolId, dataUrl);   // so later re-renders keep it
-          if (!masonry?.isConnected) return;         // navigated away mid-render
-          const img = masonry.querySelector<HTMLImageElement>(
-            `.gtile-hero--preview[data-new-tool="${cssEscape(toolId)}"] .gtile-hero-img`,
-          );
-          if (img) img.src = dataUrl;
-        },
-      });
-      // Stop the idle render queue when the gallery is torn down or re-mounted
-      // (navigate() in main.js calls view._cleanup), so it can't keep rendering
-      // off-screen - or double up - after the user has moved on. Registered
-      // alongside the featured row's teardown (both run from the one _cleanup).
-      cleanups.push(cancel);
-    }
-  }
+
 }
 
 // ── Card markup ───────────────────────────────────────────────────────────
@@ -2633,8 +2482,6 @@ function cardMarkup(
   tool: GalleryTool,
   latest: SavedEntry | undefined,
   shellCaps: readonly string[] | undefined,
-  personalizedThumb: string | undefined,
-  sessionThumbs: string[] = [],
   darkTheme = false,
   utilityLayout = false,
   eager = false,
@@ -2681,31 +2528,13 @@ function cardMarkup(
     `;
   }
   const hasSession = !!latest && !unavailable;          // resumable, with or without a preview
-  const hasThumbHero = hasSession && !!latest!.thumb;    // resumable AND has a preview image
-  const hasPreview = !unavailable && !hasSession && !!tool.preview; // committed demo preview, no session yet
-  // A committed AUTHORED card (tools/<id>/card.svg|png - e.g. pose-geeko's animated-Geeko
-  // SVG, which animates natively in an <img>) is served from /tools/, unlike a generated
-  // preview (/catalog/previews/…). When a tool ALSO has examples, we lead its carousel
-  // with this card so the tile opens on the tool's real, often-animated hero and then
-  // swipes to the example looks - the best of "show the motion" + "show the range".
-  const animCard = (!unavailable && tool.preview && tool.preview.startsWith('/tools/')) ? tool.preview : null;
-  // Paged tool (render.paged, e.g. multi-page-pdf): the tile shows the pages as a stacked
-  // DECK (hydratePaged) rather than input-variant looks. Needs a displayable (svg/raster)
-  // format. A paged tool that ships its OWN authored card (carousel-maker's hand-tuned
-  // stacked-deck card.svg - animCard) is EXCLUDED so it shows that card directly, identical
-  // to the featured hero, instead of a live-rendered deck that would drift from it.
-  const paged = !unavailable && !!tool.paged && !!displayFormatOf(tool.formats) && !animCard;
-  // Example looks (manifest.examples) turn the tile into a horizontally-scrollable
-  // preview strip - leading with the newest saved session when there is one, then a
-  // handful of live-rendered example states. Supersedes the committed demo preview and
-  // the multi-session cross-fade (both are the no-examples fallback below).
+  // A gallery cover shows what a new template/default produces in the active brand.
+  // Saved-session images are still available through the tool's history controls.
+  const paged = !unavailable && !!tool.paged && !!displayFormatOf(tool.formats) && !tool.templates?.length;
   const exampleLooks = (unavailable || paged) ? [] : galleryExampleLooks(tool, darkTheme);
   const hasExamples = exampleLooks.length > 0;
-  const hasImageHero = hasThumbHero || hasPreview || hasExamples || paged; // the card leads with a real preview image
+  const hasImageHero = hasExamples || paged;
 
-  // Visual: hero preview to resume the latest session; a compact resume tile when
-  // the session has no captured preview; a committed demo preview (starts a NEW
-  // session) when there's no session at all; else an "open to start" tile.
   let visual;
   if (unavailable) {
     visual = `<span class="gtile-tile gtile-tile--static"><span class="gtile-tile-txt">${t('Desktop&nbsp;app only')}</span></span>`;
@@ -2718,46 +2547,20 @@ function cardMarkup(
     visual = `
       <div class="gcar" data-tool="${escape(tool.id)}" data-paged="1">
         ${iconBackdrop(tool.icon)}
-        <ol class="gcar-track"><li class="gcar-slide gcar-slide--ex"><span class="gcar-img" aria-hidden="true"></span></li></ol>
+        <ol class="gcar-track"><li class="gcar-slide gcar-slide--ex" data-ex-index="0"><a class="gcar-open" href="${openHref}" data-new-tool="${escape(tool.id)}" tabindex="-1" aria-hidden="true"><img class="gcar-img" alt="" aria-hidden="true" decoding="async"></a></li></ol>
         ${statusBadge}
       </div>`;
   } else if (hasExamples) {
-    // Horizontally-scrollable preview strip. Slide 0 is the newest saved session (a
-    // data-URL - instant, resumes on click) when one exists; the rest are example
-    // states, each an EMPTY <img> hydrated lazily by mountGallery (renderFeaturedVariant,
-    // cached under featured:<id>:<i>) as the tile nears the viewport. The box is a FIXED
-    // SQUARE (gallery.css) so masonry packs it with no reflow ever, and every slide is
-    // object-fit:contain (differently-shaped looks fit within, never cropped). Decorative:
-    // the real navigation is the card's name link + info/history buttons, so slides are aria-hidden.
-    // Lead slide: a saved-session thumb (resume) wins; else the committed authored card
-    // (pose-geeko's animated Geeko) leads with the tool's real hero. Only one lead.
-    const leadSlide = hasThumbHero
-      ? `<li class="gcar-slide gcar-slide--lead">
-           <button class="gcar-open" type="button" data-resume="${escape(latest!.toolId)}" data-slot="${escape(latest!.slot)}" aria-label="${escape(tRaw('Continue {name}', { name: latest!.filename || tool.name }))}">
-             <img class="gcar-img" src="${escape(latest!.thumb!)}" alt="" aria-hidden="true" decoding="async">
-             <span class="gtile-stamp">${escape(relativeTime(latest!.updatedAt))}</span>
-             <span class="gtile-continue">${t('Continue')}</span>
-           </button>
-         </li>`
-      : animCard
-        ? `<li class="gcar-slide gcar-slide--lead gcar-slide--card">
-             <a class="gcar-open" href="${openHref}" data-new-tool="${escape(tool.id)}" tabindex="-1" aria-hidden="true">
-               ${previewMedia(animCard, 'gcar-img', undefined, eager, tool.anim)}
-             </a>
-           </li>`
-        : '';
-    const hasLead = hasThumbHero || !!animCard;
-    // These <img>s have no src in the markup - hydrateCarousel fills them - so the hint has
-    // to be on the element up front, ready for the src it is about to be given. Only the
-    // strip's FIRST visible slide gets it: the rest sit off-view until the strip is scrolled,
-    // and six high-priority requests per tile would just crowd out the tile next to it.
+    // One slide per template, or the tool's default state. Images arrive from
+    // the active-brand render cache as the tile approaches the viewport.
     const exSlides = exampleLooks.map(({ i }, k) =>
-      `<li class="gcar-slide gcar-slide--ex" data-ex-index="${i}">
+      `<li class="gcar-slide gcar-slide--ex" data-ex-index="${i}"${tool.templates?.[i]?.motion ? ` data-motion-template="${escape(tool.templates[i]!.id)}"` : ''}>
          <a class="gcar-open" href="${openHref}" data-new-tool="${escape(tool.id)}" tabindex="-1" aria-hidden="true">
-           <img class="gcar-img" alt="" aria-hidden="true"${eager && k === 0 && !hasLead ? ' fetchpriority="high"' : ''} decoding="async">
+           <img class="gcar-img" alt="" aria-hidden="true"${eager && k === 0 ? ' fetchpriority="high"' : ''} decoding="async">
          </a>
+         ${tool.templates?.[i]?.motion ? `<button type="button" class="btn btn--sm gcar-motion-play" data-motion-play aria-pressed="false">${escape(t('Preview animation'))}</button><span class="gcar-motion-label">${escape(tool.templates[i]!.name)}</span>` : ''}
        </li>`).join('');
-    const slideCount = (hasLead ? 1 : 0) + exampleLooks.length;
+    const slideCount = exampleLooks.length;
     const dots = slideCount >= 2
       ? `<div class="gcar-dots" aria-hidden="true">${Array.from({ length: slideCount }, (_, k) =>
           `<button class="gcar-dot${k === 0 ? ' is-active' : ''}" type="button" data-i="${k}" tabindex="-1" aria-hidden="true"></button>`).join('')}</div>`
@@ -2767,58 +2570,17 @@ function cardMarkup(
          <button class="gcar-nav gcar-next" type="button" tabindex="-1" aria-hidden="true" title="${escape(t('Next example'))}">${CHEVRON_RIGHT}</button>`
       : '';
     visual = `
-      <div class="gcar${hasThumbHero ? ' has-art' : ''}" data-tool="${escape(tool.id)}">
+      <div class="gcar" data-tool="${escape(tool.id)}">
         ${iconBackdrop(tool.icon)}
-        <ol class="gcar-track">${leadSlide}${exSlides}</ol>
+        <ol class="gcar-track">${exSlides}</ol>
         ${nav}
         ${dots}
         ${statusBadge}
       </div>`;
-  } else if (hasThumbHero) {
-    // One saved session → a single preview. Several → the recent previews cross-fade
-    // (an ambient "you have a few saved works here"). The first frame is the newest
-    // and sits in normal flow so it sets the tile's natural height; the rest are
-    // absolutely stacked over it and only .is-active is opaque (the fade is CSS, the
-    // ticker in mountGallery advances .is-active). The rotation is decorative - 
-    // clicking always resumes the newest, the Continue target.
-    const frames = sessionThumbs.length >= 2 ? sessionThumbs : [latest!.thumb!];
-    const rotate = frames.length >= 2;
-    // Not loading="lazy": the thumbs are data URLs already inlined in this markup
-    // (nothing to defer over the network), and a lazy + opacity:0 frame is never
-    // considered "intersecting", so it would never decode and the fade would stall.
-    const heroImgs = frames.map((thumb, i) =>
-      `<img class="gtile-hero-img gtile-hero-frame${i === 0 ? ' is-active' : ' gtile-hero-frame--over'}" src="${escape(thumb)}" alt="" aria-hidden="true" decoding="async">`
-    ).join('');
-    visual = `
-      <button class="gtile-hero${rotate ? ' gtile-hero--rotate' : ''}" data-resume="${escape(latest!.toolId)}" data-slot="${escape(latest!.slot)}"
-              aria-label="${escape(tRaw('Continue {name}', { name: latest!.filename || tool.name }))}">
-        ${heroImgs}
-        <span class="gtile-stamp">${escape(relativeTime(latest!.updatedAt))}</span>
-        <span class="gtile-continue">${t('Continue')}</span>
-        ${statusBadge}
-      </button>`;
   } else if (hasSession) {
     // Session exists but its preview failed to capture - still resumable from the card.
     visual = `<button class="gtile-tile gtile-tile--resume" data-resume="${escape(latest!.toolId)}" data-slot="${escape(latest!.slot)}"
               aria-label="${escape(tRaw('Continue {name}', { name: latest!.filename || tool.name }))}"><span class="gtile-tile-txt">${t('Continue · {time}', { time: relativeTime(latest!.updatedAt) })}</span></button>`;
-  } else if (hasPreview) {
-    // No saved session, but a committed demo preview exists (npm run thumbs) - show
-    // it as a hero that starts a NEW session. Decorative duplicate of the name link
-    // (tabindex/aria-hidden so AT hears one link), matching the empty-tile pattern.
-    // When the user has opted in to their profile, a personalized re-render replaces
-    // the committed placeholder (in cache at mount, or lazily swapped in when ready).
-    visual = `
-      <a class="gtile-hero gtile-hero--preview" href="${openHref}" data-new-tool="${escape(tool.id)}" tabindex="-1" aria-hidden="true">
-        ${iconBackdrop(tool.icon)}
-        ${personalizedThumb
-          // A personalized re-render is always a raster data URL - a plain <img>.
-          ? `<img class="gtile-hero-img" src="${escape(personalizedThumb)}" alt="" aria-hidden="true" loading="lazy" decoding="async">`
-          // Fixed-square hero (gallery.css): the img/iframe fills it and contains within,
-          // so no per-tool aspect is threaded through - every preview box is the same size.
-          : previewMedia(tool.preview!, 'gtile-hero-img', undefined, eager, tool.anim)}
-        <span class="gtile-continue">${t('Open')}</span>
-        ${statusBadge}
-      </a>`;
   } else {
     // No session, no preview, no examples - still lead with the tool's icon (never
     // a network fetch, so never broken) so the tile is a real, on-brand card rather
@@ -2911,11 +2673,6 @@ function showInfoDialog(tool: GalleryTool | undefined, host: GalleryHost, darkTh
   // any tool that declares no render size.
   const dims = tool.exportable === false ? '' : dimText(tool);
 
-  // The same preview the tile shows (previewMedia handles img vs the sandboxed
-  // card.html iframe), sized by the tool's declared aspect when it has one.
-  const previewAspect = typeof tool.width === 'number' && typeof tool.height === 'number'
-    ? ` style="aspect-ratio:${tool.width}/${tool.height}"` : '';
-
   // Templates and presets share ONE tile shape (.meta-look: media slot + name +
   // optional description) so the two starting-point kinds read as the same idea,
   // and both echo the in-tool Start chooser's tile.
@@ -2938,11 +2695,7 @@ function showInfoDialog(tool: GalleryTool | undefined, host: GalleryHost, darkTh
         <h3 class="meta-sec-title">${t('Templates')}</h3>
         <ul class="meta-look-list">
           ${templates.map(tp => `<li><a class="meta-look" data-tpl="${escape(tp.id)}" href="#/tool/${escape(tool.id)}?template=${escape(encodeURIComponent(tp.id))}">
-            <span class="meta-look-thumb">${tp.thumb
-              ? `<img class="meta-look-img" src="${escape(tp.thumb)}" alt="" loading="lazy" decoding="async">`
-              // Glyph placeholder + an empty img the live render fills in
-              // (hydrateInfoTemplates - same [src]-reveal CSS the examples use).
-              : `<span class="meta-look-glyph" aria-hidden="true">${tplGlyph(tp)}</span><img class="meta-look-img" alt="" decoding="async">`}</span>
+            <span class="meta-look-thumb"><span class="meta-look-glyph" aria-hidden="true">${tplGlyph(tp)}</span><img class="meta-look-img" alt="" decoding="async"></span>
             <span class="meta-look-name">${escape(tp.name)}</span>
             ${tp.description ? `<span class="meta-look-desc">${escape(tp.description)}</span>` : ''}
           </a>
@@ -2954,7 +2707,7 @@ function showInfoDialog(tool: GalleryTool | undefined, host: GalleryHost, darkTh
   // shows, uncapped here. Thumbs live-render lazily through the shared
   // featured:<id>:<i> cache (hydrateInfoPresets), so anything the grid already
   // rendered resolves instantly; a click opens the tool seeded with that look.
-  const looks = galleryExampleLooks(tool, darkTheme, Infinity);
+  const looks = templates.length ? [] : galleryExampleLooks(tool, darkTheme, Infinity);
   // "Examples", not "Presets" (plans/142): a preset now means a template's curated
   // variant; these are the manifest example looks the card strip shows.
   const exHtml = looks.length ? `
@@ -2982,7 +2735,6 @@ function showInfoDialog(tool: GalleryTool | undefined, host: GalleryHost, darkTh
       </header>
       <div class="meta-dialog-cols">
         <div class="meta-dialog-main">
-          ${tool.preview ? `<div class="meta-dialog-preview"${previewAspect}>${previewMedia(tool.preview, 'meta-dialog-preview-img')}</div>` : ''}
           <p class="meta-dialog-desc">${escape(tool.description ?? '')}</p>
           <dl class="meta-dialog-facts">
             <div${hasFmtChips ? ' class="meta-fmts-row"' : ''}><dt>${t('Exports')}</dt><dd>${exportsDd}</dd></div>
@@ -3021,7 +2773,7 @@ function showInfoDialog(tool: GalleryTool | undefined, host: GalleryHost, darkTh
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
       const hit = looks.find(l => l.i === Number(a.dataset.ex));
-      void toolSeedHref(tool.id, hit?.v.values).then(href => { modal.close(); window.location.hash = href; });
+      void galleryLookHref(tool.id, hit?.v).then(href => { modal.close(); window.location.hash = href; });
     });
   });
   void fillDefaultsList(modal.el, tool.id);
@@ -3034,7 +2786,7 @@ function showInfoDialog(tool: GalleryTool | undefined, host: GalleryHost, darkTh
  *  chooser already rendered resolves instantly, and vice versa. Values are fetched
  *  per template (the index is metadata-only); a failure leaves the glyph. */
 async function hydrateInfoTemplates(dialog: HTMLElement, host: GalleryHost, tool: GalleryTool): Promise<void> {
-  const metas = (tool.templates ?? []).filter(tp => !tp.thumb);
+  const metas = tool.templates ?? [];
   if (!metas.length) return;
   const esc = (s: string): string => (typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(s) : s);
   const { fetchTemplateValues } = await import('./template-chooser.ts');
@@ -3045,7 +2797,7 @@ async function hydrateInfoTemplates(dialog: HTMLElement, host: GalleryHost, tool
     try {
       const values = await fetchTemplateValues(tool.id, tp.id);
       if (!values || !dialog.isConnected) continue;
-      const thumb = await renderFeaturedVariant(host, tool.id, tool.formats, tp.id, values as Record<string, unknown>, 'template');
+      const thumb = await renderFeaturedVariant(host, tool.id, tool.formats, tp.id, values as Record<string, unknown>, 'template', tp.motion?.posterMs);
       if (!dialog.isConnected || !thumb) continue;
       img.src = thumb;   // the [src] CSS reveals it; the glyph sits behind
     } catch { /* leave the glyph */ }
@@ -3062,7 +2814,7 @@ async function hydrateInfoPresets(dialog: HTMLElement, host: GalleryHost, tool: 
     const img = dialog.querySelector<HTMLImageElement>(`.meta-look[data-ex="${i}"] .meta-look-img`);
     if (!img || img.getAttribute('src')) continue;
     try {
-      const thumb = await renderFeaturedVariant(host, tool.id, tool.formats, i, v.values as Record<string, unknown>);
+      const thumb = await renderGalleryLook(host, tool, i, v);
       if (!dialog.isConnected || !thumb) continue;
       img.src = thumb;   // the [src] CSS reveals it once set
     } catch { /* leave the placeholder */ }

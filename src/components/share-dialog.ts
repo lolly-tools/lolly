@@ -183,7 +183,27 @@ export interface ShareDialogOpts {
  * @param {string} [o.currentFormat] the export format the link should imply (for copy-on-visit)
  * @param {string} [o.title]       dialog heading
  */
-export function openShareDialog({ toolId, baseParts = [], manifest = {}, currentFormat = '', title = 'Share this tool', fidelity, lolly }: ShareDialogOpts): HTMLDialogElement {
+export function openShareDialog(opts: ShareDialogOpts): HTMLDialogElement {
+  return renderShareSurface(opts, content => mountModal<void>(content, { className: 'share-dialog' }), true) as HTMLDialogElement;
+}
+
+/** The same controls in the export panel, without a second modal or focus theft. */
+export function mountSharePanel(container: HTMLElement, opts: ShareDialogOpts): () => void {
+  const surface = renderShareSurface(opts, content => {
+    const el = document.createElement('div');
+    el.className = 'export-share-surface';
+    el.innerHTML = content;
+    container.replaceChildren(el);
+    return { el, close: () => el.remove() };
+  }, false);
+  return () => surface.remove();
+}
+
+function renderShareSurface(
+  { toolId, baseParts = [], manifest = {}, currentFormat = '', title = 'Share this tool', fidelity, lolly }: ShareDialogOpts,
+  mount: (content: string) => { el: HTMLElement; close(): void },
+  autofocus: boolean,
+): HTMLElement {
   // The readable query we'd pack (tool state + export settings) - WITHOUT the on-visit
   // flags, which stay readable outside the pack and merge on load.
   const baseQuery = baseParts.join('&');
@@ -321,7 +341,7 @@ export function openShareDialog({ toolId, baseParts = [], manifest = {}, current
       </div>
     </div>
   `;
-  const modal = mountModal<void>(content, { className: 'share-dialog' });
+  const modal = mount(content);
   const dialog = modal.el;
 
   const field       = dialog.querySelector<HTMLInputElement>('.share-link-field')!;
@@ -561,8 +581,8 @@ export function openShareDialog({ toolId, baseParts = [], manifest = {}, current
 
   syncFullWins();
   refresh();
-  field.focus();
-  field.select();
+  if (autofocus) { field.focus(); field.select(); }
+  else dialog.querySelector<HTMLElement>('.share-dialog-actions')!.hidden = true;
 
   // Extra sections from the generic registry (empty by default → nothing mounts,
   // so the dialog is byte-identical without a registrant). A deployment's optional

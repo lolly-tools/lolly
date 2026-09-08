@@ -1,3 +1,12 @@
+/* Native top-layer shell for sheets that own their panel and backdrop layout. */
+.modal-overlay {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%; max-width: none; max-height: none;
+  margin: 0; padding: 0; border: 0;
+  background: transparent; overflow: visible;
+}
+.modal-overlay::backdrop { background: transparent; }
+
 /* ─── Modal primitive (components/modal.ts) ─────────────────────────────────
    The shared chrome for confirm/choice/notice/prompt (confirm-dialog.ts) plus
    any other mountModal() caller reusing the plain chrome (e.g. the New-folder

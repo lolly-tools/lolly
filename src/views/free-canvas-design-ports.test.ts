@@ -742,6 +742,16 @@ test('toggleFramesPanel opens and closes the Artboards filmstrip', () => {
   } finally { f.destroy(); }
 });
 
+test('the Artboards filmstrip opens on the artboard whose content is selected', () => {
+  const f = mount([frameBox('f1', 0, 0), frameBox('f2', 600, 1), childBox('text', 'f2', 620)]);
+  try {
+    f.design.selection.set(['text']);
+    f.design.toggleFramesPanel();
+    const cells = [...f.stageEl.querySelectorAll('.fc-frame-cell')];
+    assert.deepEqual(cells.map(cell => cell.classList.contains('is-active')), [false, true]);
+  } finally { f.destroy(); }
+});
+
 test('a mark OUTSIDE the stage (the docked HUD) opens its menu in the viewport, above the dock', () => {
   // The right column is a fixed sibling of the stage stacked above it, so a popover
   // appended to the stage opened behind the column and the button looked dead.

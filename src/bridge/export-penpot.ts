@@ -33,10 +33,13 @@
  */
 import {
   ENGINE_VERSION, PENPOT_IMAGE_MTYPES, PENPOT_MIME, boxesToPenpotDoc, buildPenpotEntries,
-  decodeDataUrl, imageDimensions, imageToPenpotDoc, penpotUuid, svgToPenpotDoc,
+  decodeDataUrl, imageDimensions, imageToPenpotDoc, markToolComponents, penpotUuid, svgToPenpotDoc,
 } from "@lolly/engine";
 import type { PenpotDoc, PenpotMedia } from "../../../../engine/src/penpot-file.ts";
 import { brandForPenpot } from "../lib/penpot-brand.ts";
+import { brandVarTokenPath } from "../brand-vars.ts";
+import { domToPenpotDoc } from "../lib/dom-penpot.ts";
+import { stampSvgBindings } from "../lib/svg-bindings.ts";
 import { bakeTextStyles } from "./export-pptx.ts";
 import { renderSvgFromHtml, type ExportOpts } from "./export.ts";
 
@@ -220,6 +223,35 @@ function makeColorResolver(node: Element): { resolve: (css: string) => string | 
   return { resolve, dispose: () => { probe?.remove(); probe = null; } };
 }
 
+/**
+ * The brand token a Design box's source names (plans/222). A `var(--brand-*)` maps
+ * through the SAME table the shell paints from (brand-vars.ts), so a box painted
+ * `var(--brand-primary)` binds to `color.semantic.primary`; a bare `sans`/`mono`
+ * font role maps to its font token. A bare `{alias}` is handled by the engine
+ * itself, so this only sees the brand-specific forms. Returns null for a literal,
+ * and the writer re-validates every path against the file's own tokens.
+ */
+function brandBindToken(css: string, kind: 'color' | 'font'): string | null {
+  const s = css.trim();
+  const varM = /^var\(\s*(--[\w-]+)/.exec(s);
+  if (varM) return brandVarTokenPath(varM[1]!);
+  if (kind === 'font') {
+    if (s === '' || s === 'sans') return 'font.brand';
+    if (s === 'mono') return 'font.mono';
+  }
+  return null;
+}
+
+/** The token PATH a paint source names: a bare `{alias}` directly, else the brand
+ *  map. Mirrors the engine's own `boxesToPenpotDoc` resolution so SVG, Design and
+ *  HTML producers all bind by the same rule. */
+function paintTokenPath(css: string, kind: 'color' | 'font'): string | null {
+  const s = css.trim();
+  const alias = /^\{([A-Za-z0-9_.-]+)\}$/.exec(s);
+  if (alias) return alias[1]!;
+  return brandBindToken(s, kind);
+}
+
 /** A picture box whose asset is really a sound, a clip or a Lottie paints nothing
  *  on the artboard, so it must not be fetched as an image either. */
 function isPictureBox(box: Record<string, unknown>): boolean {
@@ -289,6 +321,11 @@ async function svgTextFor(node: Element, opts: ExportOpts): Promise<string> {
   if (root) {
     const clone = root.cloneNode(true) as Element;
     if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    // Capture a var(--brand-*)/{alias} paint into a data-lolly-bind attribute BEFORE
+    // bakeTextStyles resolves it to a hex, so the lowered shape stays token-linked
+    // (plans/222). The engine's svgToPenpotDoc reads the attribute and the writer
+    // re-validates the paths.
+    stampSvgBindings(clone, (css) => paintTokenPath(css, 'color'));
     bakeTextStyles(root, clone);
     clone.querySelectorAll('style, script').forEach((n) => n.remove());
     return new XMLSerializer().serializeToString(clone);
@@ -327,11 +364,28 @@ export async function renderPenpot(node: Element, opts: ExportOpts): Promise<Blo
         fonts: brand.fonts,
         mediaFor: (box) => media.get(String(box.id ?? '')) ?? null,
         resolveColor: colors.resolve,
+        bindToken: brandBindToken,
       });
     } finally { colors.dispose(); }
   }
 
-  // 2. Every other tool: the vector render, lowered - or kept whole as a picture.
+  // 2. An HTML-layout tool (no Design doc, no single root <svg>): the editable-text
+  //    DOM producer, so labels stay text and inherited colours stay token-linked.
+  //    It is conservative and returns null on anything it cannot carry faithfully,
+  //    so the faithful outline/picture path below still catches those - the export
+  //    can only match or improve on today's, never regress (plans/222 work pkg E).
+  if (!doc && !rootSvgOf(node)) {
+    try {
+      const dom = await domToPenpotDoc(node, { name, background: opts.background, bindToken: brandBindToken });
+      if (dom?.doc.pages[0]?.shapes.length) {
+        doc = Object.assign(dom.doc, shared);
+        if (dom.report.notes.length) notes.push(...dom.report.notes);
+        if (dom.report.fonts.length) notes.push(`fonts used: ${dom.report.fonts.join(', ')} - install them in Penpot to paint the text`);
+      }
+    } catch (e) { warn(`the editable-text producer bailed (${e instanceof Error ? e.message : 'error'}); using the picture fallback`); }
+  }
+
+  // 3. Every other tool: the vector render, lowered - or kept whole as a picture.
   if (!doc) {
     const svg = await svgTextFor(node, opts);
     const lowered = svgToPenpotDoc(svg, { ...shared, background: opts.background });
@@ -352,6 +406,12 @@ export async function renderPenpot(node: Element, opts: ExportOpts): Promise<Blo
       );
     }
   }
+
+  // Carry the render's active theme selection so the file opens on the theme the
+  // canvas was rendered with, not whichever theme is listed first (plans/222 gap #3).
+  if (brand.themeSelection) doc.themeSelection = brand.themeSelection;
+  // Each top-level board becomes a reusable component under Lolly / Tools / <tool>.
+  markToolComponents(doc, name);
 
   const build = buildPenpotEntries(doc);
   if (notes.length) warn(notes.join('; '));

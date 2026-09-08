@@ -43,7 +43,7 @@ interface Mounted {
   dockBtn: HTMLElement;
 }
 
-function mount(o: { freeLayout?: boolean; editorLayout?: boolean } = {}): Mounted {
+function mount(o: { freeLayout?: boolean; editorLayout?: boolean; preferEdge?: boolean } = {}): Mounted {
   const overlay = document.createElement('div');
   overlay.id = 'export-overlay';
   const popup = document.createElement('div');
@@ -59,7 +59,7 @@ function mount(o: { freeLayout?: boolean; editorLayout?: boolean } = {}): Mounte
   const hooks = new Set<() => void>();
   const off = wireExportPanelFloat({
     overlay, popup, head, isMobile: () => false,
-    freeLayout: !!o.freeLayout, editorLayout: !!o.editorLayout,
+    freeLayout: !!o.freeLayout, editorLayout: !!o.editorLayout, preferEdge: !!o.preferEdge,
     onOpen: (cb) => { hooks.add(cb); return () => { hooks.delete(cb); }; },
   });
   return {
@@ -272,6 +272,23 @@ test('every other free layout still opens floated - only the editor defaults to 
     h.open();
     assert.equal(ED.isDocked('export'), false, 'a canvas tool keeps the floated box it always had');
     assert.ok(h.popup.classList.contains('is-floating'));
+  } finally {
+    h.off();
+    document.getElementById('export-overlay')?.remove();
+    forget();
+  }
+});
+
+test('preferEdge: an ordinary canvas tool WITH a sidebar opens the sheet in the one right column too', () => {
+  // Timezone / Darkroom keep a sidebar (freeLayout:false) but consolidate the right side
+  // into the edge-dock column like the editor (Andy, 2026-09-07): first open docks there.
+  forget();
+  const h = mount({ freeLayout: false, preferEdge: true });
+  try {
+    assert.equal(ED.isDocked('export'), false, 'mounting does not surface a sheet nobody opened');
+    h.open();
+    assert.equal(ED.isDocked('export'), true, 'the first open puts it in the one right sidebar');
+    assert.ok(h.popup.closest('.edge-dock-slot'));
   } finally {
     h.off();
     document.getElementById('export-overlay')?.remove();

@@ -51,7 +51,7 @@ function mount(opts: Opts, profileEl?: HTMLElement) {
 }
 
 test('editor layout publishes the docked pill as the avatar\'s address', () => {
-  const h = mount({ editorLayout: true, hud: false, onMarkMenu: () => { /* the mark is built, unused here */ } });
+  const h = mount({ editorLayout: true, hud: false });
   try {
     const home = h.nav.profileHome();
     assert.ok(home, 'editor layout builds the pill even with hud:false - it IS the docked bar');

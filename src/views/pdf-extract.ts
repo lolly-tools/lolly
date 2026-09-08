@@ -35,6 +35,7 @@ import type { PageText, HiddenTextFinding } from '@lolly/engine';
 import { escape } from '../utils.ts';
 import { icon } from '../lib/icons.ts';
 import type { IconName } from '../lib/icons.ts';
+import { wireTabs } from '../lib/tabs.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { announce } from '../a11y.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -524,9 +525,9 @@ function resultMarkup(x: Extracted): string {
       ${x.truncated ? `<p class="pdfx-note">${t('Only the first {n} pages were read. The rest of this document is too long to take apart here.', { n: x.pages.length })}</p>` : ''}
       ${allScans ? `<p class="pdfx-note pdfx-note--warn">${t('Every page in this document is a scanned image. There is no text layer to extract, and reading it would need OCR, which does not run on-device.')}</p>` : ''}
 
-      <div class="pdfx-tabs" role="tablist">
+      <div class="pdfx-tabs" role="tablist" aria-label="${t('Extracted content')}">
         ${tabs.length > 1 ? `<span class="pdfx-tabs-lead" aria-hidden="true">${t('In this file')}</span>` : ''}
-        ${tabs.map((tb, i) => `<button type="button" class="pdfx-tab${i ? '' : ' is-active'}${tb.n ? ' pdfx-tab--asset' : ''}" role="tab" aria-selected="${i ? 'false' : 'true'}" data-tab="${tb.id}">
+        ${tabs.map((tb, i) => `<button type="button" class="btn pdfx-tab${i ? '' : ' is-active'}${tb.n ? ' pdfx-tab--asset' : ''}" role="tab" aria-selected="${i ? 'false' : 'true'}" data-tab="${tb.id}">
           <span class="pdfx-tab-ico" aria-hidden="true">${icon(tb.icon, { size: 18 })}</span>
           <span class="pdfx-tab-label">${escape(tb.label)}</span>
           ${tb.n ? `<span class="pdfx-tab-n">${tb.n}</span>` : ''}
@@ -583,8 +584,13 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
   let current: Extracted | null = null;
   /** The open document - kept for the lazy per-page SVG renders. */
   let curHandle: UnpackHandle | null = null;
-  /** Set by the busy line's Cancel - the in-flight read drops its result. */
-  let readCancelled = false;
+  // Each new file, cancellation and unmount invalidates every older read.
+  let readGeneration = 0;
+  let active = true;
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => {
+    active = false;
+    reset();
+  };
   /** Memoised page → object-URL renders, so page art and its thumb share one. */
   let artPromises = new Map<number, Promise<string | null>>();
   let observers: Array<{ disconnect(): void }> = [];
@@ -766,16 +772,18 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
   }
 
   async function open(file: File): Promise<void> {
+    if (!active) return;
+    const generation = ++readGeneration;
+    const stale = (): boolean => !active || generation !== readGeneration;
     if (file.size > MAX_BYTES) {
       fail(t('That file is too large to take apart here (over {n} MB).', { n: Math.round(MAX_BYTES / 1024 / 1024) }));
       return;
     }
     // A 400-page / 120 MB read is minutes of work, so the busy line carries a page
-    // count and a way out. The flag is checked after every await and at each 8-page
+    // count and a way out. The generation is checked after awaits and at each 8-page
     // yield; the reads themselves have no abort, so a cancelled parse finishes in the
     // background and its result is dropped. Deliberately view-scoped (not a job): the
     // report only exists on this view, so there is nothing to hand back after a leave.
-    readCancelled = false;
     out.hidden = false;
     out.innerHTML = `<p class="pdfx-busy">`
       + `<span>${t('Reading {name}…', { name: file.name })}</span> `
@@ -783,7 +791,6 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
       + `<button type="button" class="btn btn--ghost" data-busy-cancel>${t('Cancel')}</button></p>`;
     const busyCount = out.querySelector<HTMLElement>('[data-busy-count]');
     out.querySelector<HTMLElement>('[data-busy-cancel]')?.addEventListener('click', () => {
-      readCancelled = true;
       reset();
       announce(t('Import cancelled'));
     });
@@ -795,8 +802,9 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
     let openDesignFile: (typeof import('./unpack-open.ts'))['openDesignFile'];
     try {
       ({ openDesignFile } = await import('./unpack-open.ts'));
-      if (readCancelled) return;
+      if (stale()) return;
     } catch (err) {
+      if (stale()) return;
       host.log('warn', 'pdf-extract: reader module failed to load', { error: (err as Error)?.message });
       fail(t('The reader failed to load. Your file is fine; reload the page and try again.'));
       return;
@@ -809,8 +817,9 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
     let handle: UnpackHandle;
     try {
       handle = await openDesignFile(file);
-      if (readCancelled) return;
+      if (stale()) return;
     } catch (err) {
+      if (stale()) return;
       host.log('warn', 'pdf-extract: open failed', { error: (err as Error)?.message, cause: ((err as Error)?.cause as Error)?.message });
       fail((err as Error)?.message || t('That file could not be opened.'));
       return;
@@ -837,7 +846,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
       if (i % 8 === 7) {
         if (busyCount) busyCount.textContent = t('{done} of {total}', { done: i + 1, total: count });
         await new Promise((r) => setTimeout(r, 0));
-        if (readCancelled) return;
+        if (stale()) return;
       }
     }
 
@@ -878,7 +887,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
     try { palette = handle.listPalette?.() ?? []; }
     catch (err) { host.log('warn', 'pdf-extract: palette scan failed', { error: (err as Error)?.message }); }
 
-    if (readCancelled) return;
+    if (stale()) return;
     releasePreviews();
     unwire();
     current = {
@@ -891,10 +900,22 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
     drop.hidden = true;
     out.innerHTML = resultMarkup(current);
     wirePages();
+    const tablist = out.querySelector<HTMLElement>('[role="tablist"]')!;
+    for (const panel of out.querySelectorAll<HTMLElement>('.pdfx-panel')) {
+      panel.id = `pdfx-panel-${panel.dataset.panel}`;
+      panel.setAttribute('role', 'tabpanel');
+      panel.setAttribute('aria-labelledby', `pdfx-tab-${panel.dataset.panel}`);
+    }
+    for (const tab of tablist.querySelectorAll<HTMLElement>('[data-tab]')) {
+      tab.id = `pdfx-tab-${tab.dataset.tab}`;
+      tab.setAttribute('aria-controls', `pdfx-panel-${tab.dataset.tab}`);
+    }
+    wireTabs(tablist, { key: 'tab', onSelect: showPanel })('text');
     playSfx('land');
   }
 
   function reset(): void {
+    readGeneration++;
     releasePreviews();
     unwire();
     current = null;
@@ -1167,6 +1188,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
   });
   input.addEventListener('change', () => {
     const f = input.files?.[0];
+    input.value = '';
     if (f) void open(f);
   });
 
@@ -1205,9 +1227,6 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
   out.addEventListener('click', (e) => {
     const el = e.target as HTMLElement;
     if (!current) return;
-
-    const tab = el.closest<HTMLElement>('[data-tab]');
-    if (tab?.dataset.tab) { showPanel(tab.dataset.tab); return; }
 
     const goto = el.closest<HTMLElement>('[data-goto]');
     if (goto) {

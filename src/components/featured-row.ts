@@ -25,12 +25,14 @@
  * link to its tool, so the whole feature degrades to "a scrollable row of links".
  */
 
+import type { PreviewQueue } from '../lib/preview-queue.ts';
 import { escape } from '../utils.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { perfUiOn } from '../feature-flags.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import { renderFeaturedVariant, renderMissingLook, isManifestLook, displayFormatOf } from '../lib/featured-render.ts';
 import { toolSeedHref } from '../lib/seed-url.ts';
+import { galleryLookHref, renderGalleryLook } from '../lib/gallery-preview.ts';
 import { playSfx } from '../lib/sfx.ts';
 import { currentTheme } from '../theme.ts';
 import { icon } from '../lib/icons.ts';
@@ -38,6 +40,9 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { PreviewsAPI } from '../bridge/previews.ts';
 
 export interface FeaturedVariant {
+  motion?: import('../lib/template-motion.ts').TemplateMotion;
+  /** An external starting template; opens through the same template route. */
+  templateId?: string;
   label?: string;
   /**
    * Which UI theme this look suits - set on looks that render ink on a TRANSPARENT
@@ -56,6 +61,9 @@ export interface FeaturedManifest {
 }
 /** The slice of a catalog index entry the featured row reads. */
 export interface FeaturedEntry {
+  /** Tool discovery renders in the active brand; saved-work ribbons keep their own art. */
+  galleryPreview?: boolean;
+  version?: string;
   id: string;
   name: string;
   preview?: string;
@@ -95,6 +103,8 @@ interface VariantJob {
   formats: readonly string[] | undefined;
   index: number;
   values: Record<string, unknown>;
+  look?: FeaturedVariant;
+  tool?: FeaturedEntry;
 }
 
 export interface FeaturedRowHandle {
@@ -200,7 +210,7 @@ export function mountFeaturedRow(
   mount: HTMLElement,
   entriesIn: FeaturedEntry[],
   host: FeaturedHost,
-  opts: { viewMode?: FeaturedViewMode; staticStrip?: boolean; label?: string; ariaLabel?: string; tileDragOut?: boolean; tileMenu?: boolean; labelHref?: string; labelHelp?: string; onActivate?: (id: string) => void } = {},
+  opts: { previewQueue?: PreviewQueue; viewMode?: FeaturedViewMode; staticStrip?: boolean; label?: string; ariaLabel?: string; tileDragOut?: boolean; tileMenu?: boolean; labelHref?: string; labelHelp?: string; onActivate?: (id: string) => void } = {},
 ): FeaturedRowHandle {
   const entries = [...entriesIn].sort(byFeaturedOrder);
   // An automated screenshot run is treated as reduced motion. Every motion this
@@ -1002,16 +1012,17 @@ export function mountFeaturedRow(
     vizObserver.observe(section);
   }
 
-  // ── Progressive variant rendering (skipped under reduced motion) ──────────────
+  // ── Progressive previews (one still cover for discovery under reduced motion) ──
   // Round-robin across tools so every tile gets its first extra look before any gets
   // its second - the row enriches evenly. Serial, on idle, cached; a failure just
   // leaves that tile with fewer looks.
   let ricId = 0;
-  if (!reduced) {
+  if (!perfUiOn() && (!reduced || entries.some(e => e.galleryPreview))) {
     const jobs: VariantJob[] = [];
     const perTool = entries.map((e) => {
       const fmt = displayFormatOf(e.formats);
-      return { id: e.id, formats: e.formats, canRender: !!fmt, variants: fmt ? resolveExamples(e) : [] };
+      const looks = fmt ? resolveExamples(e) : [];
+      return { entry: e, id: e.id, formats: e.formats, canRender: !!fmt, variants: reduced ? (e.galleryPreview ? looks.slice(0, 1) : []) : looks };
     });
     const maxV = perTool.reduce((m, t) => Math.max(m, t.variants.length), 0);
     for (let i = 0; i < maxV; i++) {
@@ -1023,16 +1034,16 @@ export function mountFeaturedRow(
         // `index: i` keeps the ORIGINAL manifest position so the render cache key is
         // stable whichever looks the theme filters in/out.
         if (v.theme && (v.theme === 'dark') !== darkTheme) continue;
-        jobs.push({ id: t.id, formats: t.formats, index: i, values: v.values });
+        jobs.push({ id: t.id, formats: t.formats, index: i, values: v.values, look: v, tool: t.entry });
       }
     }
 
-    const addVariantImage = (job: VariantJob, src: string): void => {
+    const addVariantImage = async (job: VariantJob, src: string): Promise<void> => {
       // Append to the original tile AND its clone, so both stay in sync as they drift.
       const added: HTMLImageElement[] = [];
       track.querySelectorAll<HTMLElement>(`.ftile[data-tool="${CSS.escape(job.id)}"] .ftile-stage`).forEach((stage) => {
         const img = document.createElement('img');
-        img.className = 'ftile-img';
+        img.className = stage.querySelector('.ftile-img.is-active') ? 'ftile-img' : 'ftile-img is-active';
         img.alt = '';
         img.setAttribute('aria-hidden', 'true');
         img.draggable = false;
@@ -1050,12 +1061,13 @@ export function mountFeaturedRow(
       // matching the gallery carousels. advanceStage points the tile's <a> at whichever look
       // is active; if this one is already showing when its URL resolves, refresh it now. A
       // failed build just leaves the default route (toolSeedHref falls back to it).
-      void toolSeedHref(job.id, job.values).then((href) => {
+      void (job.tool?.galleryPreview ? galleryLookHref(job.id, job.look) : toolSeedHref(job.id, job.values)).then((href) => {
         for (const img of added) {
           img.dataset.seedhref = href;
           if (img.classList.contains('is-active')) refreshLinkHref(img.closest('.ftile-link'));
         }
       });
+      await Promise.all(added.map(img => img.decode().catch(() => {})));
     };
 
     // A look whose manifest file 404'd: render it live and re-append it. Once per look,
@@ -1069,38 +1081,57 @@ export function mountFeaturedRow(
       if (destroyed || retried.has(key)) return;
       retried.add(key);
       void renderMissingLook(host, job.id, job.formats, job.index, job.values)
-        .then((thumb) => { if (!destroyed) addVariantImage(job, thumb); })
+        .then(async (thumb) => { if (!destroyed) await addVariantImage(job, thumb); })
         .catch((e) => host.log?.('warn', `Featured look missing and re-render failed for ${job.id}`, { error: String((e as { message?: unknown })?.message ?? e) }));
     };
 
-    // These variants are progressive "extra looks" cross-faded in later - NEVER the LCP
-    // element (that's the committed `data-base` preview, already in the DOM). Rendering
-    // them eagerly at boot stole CPU + network from the critical first paint: each pulls
-    // its example photos through a main-thread canvas, and with all 10 featured tools
-    // queued up front that measured gallery LCP 8.3s / TBT 730ms. So the queue is now
-    // (a) held until the page's critical load has settled, and (b) parked whenever the
-    // row is scrolled off-screen - the vizObserver above resumes it on re-entry.
-    let queueArmed = false;
-    const pumpQueue = (): void => {
-      if (destroyed || !onScreen) return;      // off-screen → park; vizObserver re-pumps on re-entry
-      const job = jobs.shift();
-      if (!job) return;
-      renderFeaturedVariant(host, job.id, job.formats, job.index, job.values)
-        .then((thumb) => { if (!destroyed) addVariantImage(job, thumb); })
-        .catch((e) => host.log?.('warn', `Featured variant failed for ${job.id}`, { error: String((e as { message?: unknown })?.message ?? e) }))
-        .finally(() => { if (!destroyed && onScreen && jobs.length) ricId = ric(pumpQueue); });
+    const renderJob = async (job: VariantJob): Promise<void> => {
+      if (destroyed) return;
+      try {
+        const thumb = await (job.tool?.galleryPreview && job.look
+          ? renderGalleryLook(host, job.tool, job.index, job.look)
+          : renderFeaturedVariant(host, job.id, job.formats, job.index, job.values));
+        if (!destroyed) await addVariantImage(job, thumb);
+      } catch (e) {
+        host.log?.('warn', `Featured variant failed for ${job.id}`, { error: String(e) });
+      }
     };
-    resumeQueue = (): void => { if (queueArmed && !destroyed && onScreen && jobs.length) ricId = ric(pumpQueue); };
-    const armQueue = (): void => { if (queueArmed || destroyed || !jobs.length) return; queueArmed = true; ricId = ric(pumpQueue); };
-    // Kick off only after the critical load has finished (on a hard load), then on the
-    // next idle. Client-side nav back to `/` is already `complete`, so arm on idle directly.
-    if (document.readyState === 'complete') ricId = ric(armQueue);
-    else window.addEventListener('load', () => ric(armQueue), { once: true, signal });
+    if (opts.previewQueue) {
+      // Register the whole strip now so its extra templates cannot jump ahead
+      // of covers in the grid (or another strip). Hidden rows park their work.
+      const firstByTool = new Set<string>();
+      for (const job of jobs) {
+        const cover = !firstByTool.has(job.id);
+        firstByTool.add(job.id);
+        opts.previewQueue.add({
+          priority: () => !visible ? null : cover ? (onScreen ? 0 : 1) : onScreen ? 2 : null,
+          stale: () => destroyed,
+          run: () => renderJob(job),
+        });
+      }
+      resumeQueue = () => opts.previewQueue?.wake();
+    } else {
+      // Other consumers keep their own queue, paused while their row is off-screen.
+      let queueArmed = false;
+      const pumpQueue = (): void => {
+        if (destroyed || !onScreen) return;
+        const job = jobs.shift();
+        if (!job) return;
+        void renderJob(job).finally(() => {
+          if (!destroyed && onScreen && jobs.length) ricId = ric(pumpQueue);
+        });
+      };
+      resumeQueue = (): void => { if (queueArmed && !destroyed && onScreen && jobs.length) ricId = ric(pumpQueue); };
+      const armQueue = (): void => { if (queueArmed || destroyed || !jobs.length) return; queueArmed = true; ricId = ric(pumpQueue); };
+      if (document.readyState === 'complete') ricId = ric(armQueue);
+      else window.addEventListener('load', () => ric(armQueue), { once: true, signal });
+    }
   }
 
   return {
     setVisible(v: boolean) {
       visible = v;
+      opts.previewQueue?.wake();
       // Re-measure when re-shown: the row may have been laid out (or the window
       // resized) while hidden, so the loop's overflow decision can be stale.
       if (v) setupLoop();

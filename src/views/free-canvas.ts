@@ -277,6 +277,8 @@ import { takePendingDesignImport } from '../lib/drop-router.ts';
 // whole Google-font fetcher into this view chunk - see user-fonts.ts:73-80).
 import { brandFontFamilies } from '../lib/register-user-fonts.ts';
 import { LOLLY_MARK_SVG } from '../lib/lolly-mark.ts';
+import { positionEditorPopover } from './free-canvas-popover.ts';
+export { placePopover } from './free-canvas-popover.ts';
 import { ensureRowIds, ulid } from '../lib/row-id.ts';
 import { mountCssEditor } from '../lib/css-code-editor.ts';
 import { announce } from '../a11y.ts';
@@ -1084,41 +1086,6 @@ export function clampRailPos(
   };
 }
 
-/**
- * Where a rail/anchor popover goes, in stage-relative px. It prefers the anchor's
- * right (the docked rail's long-standing behaviour, unchanged while the rail sits on
- * the left edge) and FLIPS to its left when that would overflow the stage.
- *
- * The flip only started mattering when the rail became draggable: a rail parked in the
- * right half of a `overflow:hidden` stage (carousel-maker and record are `.is-paged`)
- * used to open its menu straight out through the clipped edge. Vertically the popover
- * is pulled up to keep its foot inside rather than being pinned to the anchor's top.
- *
- * Pure numbers, so the geometry is testable without a browser.
- */
-export function placePopover(
-  anchor: { left: number; right: number; top: number },
-  pop: { w: number; h: number },
-  stage: { w: number; h: number },
-  gap = 8,
-  pad = 6
-): { left: number; top: number } {
-  const rightSide = anchor.right + gap;
-  const leftSide = anchor.left - gap - pop.w;
-  // No measurable stage (detached / display:none / jsdom, which has no layout at all):
-  // there is nothing to clamp against, so keep the plain anchored placement rather than
-  // inventing a position from zeroes.
-  if (!(stage.w > 0) || !(stage.h > 0)) return { left: rightSide, top: Math.max(pad, anchor.top) };
-  // Flip only if the left side is genuinely better: on a stage too narrow for either,
-  // stay on the preferred side and let the clamp do what it can.
-  const left = rightSide + pop.w > stage.w - pad && leftSide >= pad ? leftSide : rightSide;
-  const maxTop = Math.max(pad, stage.h - pop.h - pad);
-  return {
-    left: Math.round(Math.max(pad, Math.min(left, Math.max(pad, stage.w - pop.w - pad)))),
-    top: Math.round(Math.min(Math.max(anchor.top, pad), maxTop)),
-  };
-}
-
 // ── the contextual bar's position ─────────────────────────────────────────────
 
 /** A stage-relative box, in stage px. */
@@ -1323,56 +1290,8 @@ const ROUTE_CHOICES: Array<[string, string]> = [
  * tests/choreograph.test.ts and the co-located UI test pin the two id lists and these six
  * lengths equal, so the copy cannot drift.
  */
-export const CHOREO_SHOWCASES: ReadonlyArray<{
-  id: ShowcaseId;
-  label: string;
-  sub: string;
-  ms: number;
-  icon: string;
-}> = [
-  {
-    id: 'buildup',
-    label: t('Buildup'),
-    sub: t('Assemble from nothing'),
-    ms: 3000,
-    icon: SVG.front,
-  },
-  {
-    id: 'deconstruct',
-    label: t('Deconstruct'),
-    sub: t('Fly apart at the end'),
-    ms: 2500,
-    icon: SVG.ungroup,
-  },
-  {
-    id: 'loop',
-    label: t('The Loop'),
-    sub: t('Assemble, hold, fly apart - cycles as a GIF'),
-    ms: 6000,
-    icon: SVG.rotate,
-  },
-  {
-    id: 'hero',
-    label: t('Hero arc'),
-    sub: t('Explode, fly through, come home'),
-    ms: 6000,
-    icon: SVG.choreo,
-  },
-  {
-    id: 'trench',
-    label: t('Trench run'),
-    sub: t('A small lift, the camera flies between'),
-    ms: 5000,
-    icon: SVG.camera,
-  },
-  {
-    id: 'scan',
-    label: t('Map-scan'),
-    sub: t('Hardly raised, the camera scans the page'),
-    ms: 8000,
-    icon: SVG.move,
-  },
-];
+export { CHOREO_SHOWCASES } from './choreograph-options.ts';
+import { CHOREO_SHOWCASES, reflectChoreographChoice } from './choreograph-options.ts';
 
 /**
  * The per-box tilt CONTROL range, degrees (plans/104 P2.1) - what the More panel's
@@ -4815,29 +4734,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     fillPopover(popover, items);
     popover.addEventListener('pointerdown', (e) => e.stopPropagation());
     popover.addEventListener('keydown', onPopoverKey);
-    // A trigger OUTSIDE the stage - the docked HUD's mark sits in the right column, a
-    // fixed sibling stacked above the stage - cannot use a stage-positioned menu: it
-    // opened behind the column and looked like a dead button (Andy, 2026-09-03). Such a
-    // menu goes on the body in viewport coordinates, above the column (editor.css).
-    const detached = !stageEl.contains(anchor);
-    if (detached) {
-      popover.classList.add('fc-popover--viewport');
-      document.body.appendChild(popover);
-    } else stageEl.appendChild(popover);
+    positionEditorPopover(popover, anchor, stageEl);
     popoverAnchor = anchor;
     if (anchor.hasAttribute('aria-haspopup')) anchor.setAttribute('aria-expanded', 'true');
-    const ar = anchor.getBoundingClientRect();
-    const sr = detached
-      ? { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
-      : stageEl.getBoundingClientRect();
-    const pr = popover.getBoundingClientRect(); // after append: it is laid out
-    const pos = placePopover(
-      { left: ar.left - sr.left, right: ar.right - sr.left, top: ar.top - sr.top },
-      { w: pr.width, h: pr.height },
-      { w: sr.width, h: sr.height }
-    );
-    popover.style.left = pos.left + 'px';
-    popover.style.top = pos.top + 'px';
     popoverItems()[0]?.focus();
   }
 
@@ -7566,9 +7465,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
    * canvas layout the hook reads (order asc, x asc), which the user changes by moving frames
    * on the canvas - a list-drag that only wrote `order` fought that and confused people.
    *
-   * Docks ABOVE the sequence timeline when it is open: a rAF loop keeps its `bottom`
-   * tracking the timeline's height (write-guarded, so it only touches the DOM when the height
-   * actually changes), so opening/closing/resizing the timeline never overlaps the strip.
+   * CSS follows the stage's reserved bands, keeping the strip above the timeline
+   * and between the side columns as they open, close or resize.
    * Gated on frameCfg?.orderField (no orderField → no frames → no rail button). Reuses the
    * `morePanel` slot so the shared outside-click / rebuild dismissal takes it down.
    */
@@ -7582,7 +7480,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       THUMB_MAX_H = 90; // letterbox any aspect (landscape slide → portrait poster)
     const p = document.createElement('div');
     p.className = 'fc-panel fc-frames-panel';
-    let active = 0;
+    let active = -1;
 
     // Frames in the SAME page order the hook uses: order asc, x asc tie-break.
     const framesInOrder = (): Box[] =>
@@ -7646,6 +7544,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
         });
         return;
       }
+      if (active < 0) active = frames.findIndex(b => String(b[cfg.idField]) === activeArtboardId());
       active = Math.max(0, Math.min(active, frames.length - 1));
       p.innerHTML =
         `<div class="fc-frames-head">` +
@@ -7681,22 +7580,6 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     stageEl.appendChild(p);
     morePanel = p;
 
-    // Keep the strip docked above the timeline for as long as it lives (the timeline can
-    // open/close/resize independently). Cheap: one rect read per frame, and it only writes
-    // `bottom` when the value actually changes.
-    let lastBottom = -1;
-    const reposition = (): void => {
-      if (morePanel !== p) return; // closed → let the loop die
-      const tl = stageEl.querySelector<HTMLElement>('.tl-panel');
-      const tlOpen = !!tl && getComputedStyle(tl).display !== 'none';
-      const bottom = (tlOpen ? tl!.getBoundingClientRect().height : 0) + 12;
-      if (bottom !== lastBottom) {
-        lastBottom = bottom;
-        p.style.bottom = `${bottom}px`;
-      }
-      requestAnimationFrame(reposition);
-    };
-    reposition();
   }
 
   /** Is the Artboards filmstrip the panel currently in the one-slot `morePanel`? */
@@ -8630,17 +8513,14 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
           `<span class="fc-choreo-sub">${escape(s.sub)}</span></button>`
       ).join('') +
       '</div>' +
+      `<div class="fc-choreo-quick" role="group" aria-label="${escape(t('Apply a Launch recipe'))}">${CHOREO_SHOWCASES.filter(s => s.quick).map(s => `<button type="button" class="btn btn--sm" data-choreo-quick="${s.id}">${escape(t('Apply'))} ${escape(s.label)}</button>`).join('')}</div>` +
       '<div class="fc-num-row">' +
-      // `step="any"`, the size panel's own choice for a fractional field above: the step
-      // base is `min`, so a `step="0.5"` measured from 0.8 makes 3, 2.5, 6, 5 and 8 - the
-      // six authored lengths this field is prefilled with - each a step MISMATCH, and the
-      // spinner walks 3 to 3.3 rather than to 3.5. `min` is CHOREO_MIN_MS in seconds.
+      // step=any accepts every authored length against the 0.8-second floor.
       `<label class="field-label fc-choreo-lab" for="fc-choreo-sec">${escape(t('Length in seconds'))}</label>` +
       `<input type="number" class="field-input fc-choreo-num" id="fc-choreo-sec" data-choreo-sec min="0.8" step="any" value="${secOf(showcase)}">` +
       '</div>' +
       '<div class="fc-num-row">' +
-      // 90 ms is the generator's own DEFAULT_STAGGER_MS, restated here for the same
-      // reason the six lengths are: the chunk must not be fetched to draw the picker.
+      // Match DEFAULT_STAGGER_MS without loading the generator to draw the picker.
       `<label class="field-label fc-choreo-lab" for="fc-choreo-stagger">${escape(t('Stagger ms'))}</label>` +
       '<input type="number" class="field-input fc-choreo-num" id="fc-choreo-stagger" data-choreo-stagger min="0" step="10" value="90">' +
       '</div>' +
@@ -8693,11 +8573,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
 
     const pick = (id: ShowcaseId): void => {
       showcase = id;
-      for (const c of cards) {
-        const on = c.dataset.choreo === id;
-        c.setAttribute('aria-checked', on ? 'true' : 'false');
-        c.tabIndex = on ? 0 : -1;
-      }
+      reflectChoreographChoice(p, id);
       if (!secDirty) secIn.value = secOf(id);
     };
     for (const c of cards) {
@@ -8705,6 +8581,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
         e.stopPropagation();
         pick(c.dataset.choreo as ShowcaseId);
       });
+    }
+    for (const quick of p.querySelectorAll<HTMLButtonElement>('[data-choreo-quick]')) {
+      quick.addEventListener('click', () => { pick(quick.dataset.choreoQuick as ShowcaseId); camIn.checked = false; void run(); });
     }
     // Arrows walk the group, which is what calling it a radiogroup owes its keyboard users.
     p.querySelector('.fc-choreo-grid')?.addEventListener('keydown', (ev) => {
@@ -12907,9 +12786,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     // Character styles - bold / italic / bulleted + numbered lists.
     section();
     refs.b = mk(t('Bold (⌘B)'), '<b>B</b>', () => toggleInline('b'));
-    refs.i = mk(t('Italic (⌘I)'), '<i style="font-family:serif">I</i>', () => toggleInline('i'));
+    refs.i = mk(t('Italic (⌘I)'), '<i class="fc-fmt-serif">I</i>', () => toggleInline('i'));
     refs.bullet = mk(t('Bulleted list'), icon(SVG.bulletList), () => toggleBullet());
-    refs.numbers = mk(t('Numbered list'), '<b style="font-size:11px">1.</b>', () => toggleNumber());
+    refs.numbers = mk(t('Numbered list'), '<b class="fc-fmt-number-glyph">1.</b>', () => toggleNumber());
     // How the copy sits in its box: horizontal alignment, then vertical - each its
     // own group so the two icon-runs read apart.
     if (cfg.alignField) {
@@ -12944,11 +12823,11 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     if (cfg.ligaturesField || cfg.alternatesField) {
       section();
       if (cfg.ligaturesField)
-        refs.lig = mk(t('Ligatures'), '<span style="font-size:13px">fi</span>', () =>
+        refs.lig = mk(t('Ligatures'), '<span class="fc-fmt-type-glyph">fi</span>', () =>
           toggleBoxBool(cfg.ligaturesField, true)
         );
       if (cfg.alternatesField)
-        refs.alt = mk(t('Stylistic alternates'), '<span style="font-size:13px">a͎</span>', () =>
+        refs.alt = mk(t('Stylistic alternates'), '<span class="fc-fmt-type-glyph">a͎</span>', () =>
           toggleBoxBool(cfg.alternatesField, false)
         );
       // Geeko 💚 Tux - drops the brand emoji trio at the caret and forces ligatures
@@ -16008,7 +15887,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     return off(deepActiveElement() as HTMLElement | null);
   }
   function onKey(e: KeyboardEvent): void {
-    if (disposed) return;
+    if (disposed || document.querySelector('dialog[open]')) return;
     // The timeline panel binds its keys on its OWN root and owns them while focus is
     // inside it (deck-editor's `.deck-strip, .deck-bar…` bail). Without this, Delete /
     // arrows / ⌘A / Enter typed at a clip would also hit the canvas selection.
@@ -16465,7 +16344,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     }
   };
   function onPreviewKey(e: KeyboardEvent): void {
-    if (e.defaultPrevented) return;
+    if (e.defaultPrevented || document.querySelector('dialog[open]')) return;
     const l = chromeRoot();
     if (!l) return;
     if (

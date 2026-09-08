@@ -64,7 +64,7 @@ import {
   resolveDesignVersion, versionAssetId,
 } from '../../../../engine/src/design-version.ts';
 import { instanceFetch, instancePath } from '../lib/instance.ts';
-import type { DesignSystemSummary, TokensAPI, TokenSet } from '@lolly-tools/core/host-v1';
+import type { DesignSystemSummary, TokensAPI, TokensSnapshot, TokenSet } from '@lolly-tools/core/host-v1';
 // The design systems this device holds and which one is active (plans/186). A
 // type-only import: the registry is handed in through the host slice, so a test's
 // narrow stub (no registry) keeps the legacy discovery below byte for byte.
@@ -166,6 +166,10 @@ export interface WebTokensAPI extends TokensAPI {
   list(): Promise<DesignSystemSummary[]>;
   /** The active design system (plans/186); null only before anything resolves. */
   active(): Promise<DesignSystemSummary | null>;
+  /** One immutable snapshot of the render context - render document, active system,
+   *  resolved version, theme selection (plans/222). What the `.penpot` exporter
+   *  carries so the file matches the render. Always present on the web shell. */
+  snapshot(): Promise<TokensSnapshot>;
   /** The active record itself - the web shell's full shape, for the studio and the
    *  switcher. Null without a registry. */
   activeRecord(): Promise<DesignSystemRecord | null>;
@@ -539,6 +543,24 @@ function legacySummary(headId: string | null): DesignSystemSummary {
   };
 }
 
+/** The active theme selection a render document declares of itself: its
+ *  `$metadata.activeThemes`/`activeSets`. This IS the selection that produced the
+ *  canvas (the render surface resolves against the doc's own active theme), so an
+ *  exporter carries it verbatim rather than reading the chrome light/dark toggle,
+ *  which is a different thing (plans/222). Empty when the doc names none. */
+function readActiveSelection(doc: unknown): { activeThemes?: string[]; activeSets?: string[] } {
+  const meta = doc && typeof doc === 'object' && !Array.isArray(doc)
+    ? (doc as { $metadata?: unknown }).$metadata : null;
+  if (!meta || typeof meta !== 'object') return {};
+  const m = meta as { activeThemes?: unknown; activeSets?: unknown };
+  const strs = (v: unknown): string[] | undefined =>
+    Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : undefined;
+  const out: { activeThemes?: string[]; activeSets?: string[] } = {};
+  const themes = strs(m.activeThemes); if (themes?.length) out.activeThemes = themes;
+  const sets = strs(m.activeSets); if (sets?.length) out.activeSets = sets;
+  return out;
+}
+
 export function createTokensAPI(host: TokensHost): WebTokensAPI {
   let catalogMetaPromise: Promise<TokensAssetMeta | null> | null = null;
 
@@ -716,6 +738,16 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
     render.bust();
   }
 
+  /** The active design system summary, shared by `active()` and `snapshot()`. */
+  async function activeSummary(): Promise<DesignSystemSummary | null> {
+    const reg = host.designSystems;
+    if (reg) {
+      const record = await reg.active().catch(() => null);
+      return record ? reg.summary(record, record.id) : null;
+    }
+    return legacySummary((await headAsset())?.id ?? null);
+  }
+
   const api: WebTokensAPI = {
     // The DEFAULT reads are the render surface, not the head - see the module
     // header. Written out rather than spread so the split is visible here.
@@ -751,13 +783,19 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
       return [legacySummary(id)];
     },
     /** The active design system (see WebTokensAPI.active). */
-    async active() {
-      const reg = host.designSystems;
-      if (reg) {
-        const record = await reg.active().catch(() => null);
-        return record ? reg.summary(record, record.id) : null;
-      }
-      return legacySummary((await headAsset())?.id ?? null);
+    async active() { return activeSummary(); },
+    /**
+     * One immutable snapshot of the effective render context (plans/222): the raw
+     * RENDER-version document (not the edit head - so gap #2's head/version mix
+     * cannot happen), the active design system, the version the ladder resolved,
+     * and the theme selection the doc declares of itself. What the `.penpot`
+     * exporter carries so the file opens on the theme the canvas was rendered with.
+     */
+    async snapshot(): Promise<TokensSnapshot> {
+      syncOverride();
+      const [document, system] = await Promise.all([render.raw(), activeSummary()]);
+      const version = ladder(await head.raw().catch(() => null));
+      return { document: document ?? null, system, version, selection: readActiveSelection(document) };
     },
     async activeRecord() {
       return host.designSystems ? (await host.designSystems.active().catch(() => null)) : null;

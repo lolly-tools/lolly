@@ -14,11 +14,19 @@ type PreviewCb = (stream: MediaStream | null) => void;
 
 const subs = new Set<PreviewCb>();
 let current: MediaStream | null = null;
+let latestClaim = 0;
+let currentOwner: number | null = null;
 
-/** Recorder bridge → publish the live capture video stream (or null when it ends). */
-export function publishRecordPreview(stream: MediaStream | null): void {
-  current = stream;
-  for (const cb of [...subs]) { try { cb(stream); } catch { /* a bad subscriber must not break capture */ } }
+/** Reserve before asking for permission. A late older acquisition cannot replace a
+ * newer preview, and releasing an older session cannot end the newer session's UI. */
+export function claimRecordPreview(): (stream: MediaStream | null) => void {
+  const owner = ++latestClaim;
+  return (stream) => {
+    if (stream ? owner !== latestClaim : owner !== currentOwner) return;
+    currentOwner = stream ? owner : null;
+    current = stream;
+    for (const cb of [...subs]) { try { cb(stream); } catch { /* a bad subscriber must not break capture */ } }
+  };
 }
 
 /** Tool view → observe the current record preview stream. Fires immediately with the

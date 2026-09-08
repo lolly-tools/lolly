@@ -54,7 +54,7 @@ export interface SyncOpts {
 export async function pushSnapshot(
   deps: BackupDeps, remote: SyncRemote, opts: SyncOpts = {},
 ): Promise<{ meta: SnapshotMeta; state: SyncState }> {
-  const { blob } = await exportBackup(deps);
+  const { blob } = await exportBackup(deps, { mode: 'sync' });
   let bytes: Uint8Array = new Uint8Array(await blob.arrayBuffer());
   if (opts.passphrase) bytes = await encryptSnapshot(bytes, opts.passphrase);
   const meta = await remote.put(bytes);
@@ -96,7 +96,7 @@ export async function pullAndApply(
     // it may be an older unencrypted push, but the mismatch is worth surfacing.
     throw new Error('This snapshot is not encrypted, but a passphrase was set. Check your sync settings.');
   }
-  const summary = await importBackup(deps, bytes);
+  const summary = await importBackup(deps, bytes, { mode: 'sync' });
   // A partial restore is not a synced revision. Leave the previous revision in
   // place, so a storage/conflict failure remains visible and retryable.
   if (summary.failedAssets || summary.failedHistory || summary.skipped) throw new Error('The snapshot was only partly restored. Keep the cloud backup and retry after freeing space, resolving conflicting versions, or updating Lolly.');

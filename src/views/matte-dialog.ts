@@ -32,10 +32,9 @@
  */
 
 import '../styles/matte.css';
-import { trapFocus, type FocusTrap } from '../lib/focus-trap.ts';
+import { mountModal } from '../components/modal.ts';
 import { fmtBytes } from '../lib/format.ts';
 import { escapeHtml } from '../lib/html.ts';
-import { NAV_EVENTS } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { MATTE_DEFAULT_MODEL } from '../lib/matte-models.ts';
 import {
@@ -120,7 +119,6 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
   const modelAvailable = models.length > 0;
 
   return new Promise((resolve) => {
-    let trap: FocusTrap | undefined;
     let srcFrame: MatteFrame | null = null;
     let srcBytes: Uint8Array | null = null;
     let srcName = '';
@@ -143,7 +141,7 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
     overlay.className = 'matte-overlay';
     overlay.innerHTML = `
       <div class="matte-backdrop" aria-hidden="true"></div>
-      <div class="matte-panel" role="dialog" aria-modal="true" aria-label="${escapeHtml(t('Remove background'))}">
+      <div class="matte-panel">
         <header class="matte-head">
           <span>${t('Remove background')}</span>
           <button type="button" class="matte-close" aria-label="${escapeHtml(t('Close'))}">&times;</button>
@@ -192,7 +190,10 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
           <button type="button" class="matte-run" data-run disabled>${t('Remove background')}</button>
         </footer>
       </div>`;
-    document.body.appendChild(overlay);
+    const modal = mountModal('', {
+      className: 'modal-overlay asset-workflow-dialog', ariaLabel: t('Remove background'), onClose: () => done(),
+    });
+    modal.el.appendChild(overlay);
 
     const chooseEl   = overlay.querySelector<HTMLElement>('[data-choose]')!;
     const fileInput  = overlay.querySelector<HTMLInputElement>('[data-file]')!;
@@ -209,28 +210,20 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
     const feasEl     = overlay.querySelector<HTMLElement>('[data-feasibility]')!;
     const statusEl   = overlay.querySelector<HTMLElement>('[data-status]')!;
     const runBtn     = overlay.querySelector<HTMLButtonElement>('[data-run]')!;
-    const opener     = document.activeElement;
 
     modelSel.value = defaultModel;
 
     // Closing tears down the DIALOG only. It deliberately aborts nothing: an
     // enqueued run belongs to the job registry now, and its ✕ lives in the toast.
     const cleanup = (): void => {
-      trap?.release();
-      document.removeEventListener('keydown', onKey);
-      NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNav));
-      overlay.remove();
-      if (opener instanceof HTMLElement) opener.focus();
+      modal.close();
     };
-    const done = (): void => { cleanup(); resolve(); };
-    const onKey = (e: KeyboardEvent): void => { if (e.key === 'Escape') { e.preventDefault(); done(); } };
-    document.addEventListener('keydown', onKey);
-    const onNav = (): void => done();
-    NAV_EVENTS.forEach(ev => window.addEventListener(ev, onNav));
+    let settled = false;
+    const done = (): void => { if (settled) return; settled = true; cleanup(); resolve(); };
     overlay.querySelector('.matte-backdrop')?.addEventListener('click', () => done());
     overlay.querySelector('.matte-close')?.addEventListener('click', () => done());
     overlay.querySelector('.matte-cancel')?.addEventListener('click', () => done());
-    trap = trapFocus(overlay);
+    overlay.querySelector<HTMLElement>('.matte-cancel')?.focus();
 
     const showStatus = (msg: string, isError = false): void => {
       statusEl.hidden = false;

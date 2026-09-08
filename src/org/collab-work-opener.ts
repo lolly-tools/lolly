@@ -95,6 +95,7 @@ import { announce } from '../a11y.ts';
 import { currentLang, loadNamespace, tRaw } from '../i18n.ts';
 import type { WorkCollabHandle } from './collab-provider.ts';
 import type { CollabSessionHandle } from '../lib/collab-session.ts';
+import { createWorkCollabHistory } from './collab-history.ts';
 
 // ── Copy ──────────────────────────────────────────────────────────────────────
 //
@@ -291,8 +292,8 @@ async function loadWiring(): Promise<WorkCollabWiring> {
     makeProvider(sessionId: string): WorkCollabHandle {
       const registered = provider.getWorkCollabFactory();
       return registered
-        ? registered(sessionId)
-        : provider.createWorkCollabProvider(sessionId, { principal: memberPrincipal() });
+        ? registered(sessionId, { history: createWorkCollabHistory(sessionId) })
+        : provider.createWorkCollabProvider(sessionId, { principal: memberPrincipal(), history: createWorkCollabHistory(sessionId) });
     },
     makeHandle: (p) => adapter.createWorkCollabHandle(p),
     crossOriginReason: provider.CROSS_ORIGIN_REASON,

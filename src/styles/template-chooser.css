@@ -146,6 +146,22 @@
   display: block;
   width: 100%;
 }
+.tmpl-chooser-tile[data-motion-template] .tmpl-chooser-tile-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--brand-surface, hsl(var(--muted)));
+}
+.tmpl-chooser-tile[data-motion-template] .tmpl-chooser-tile-thumb {
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+}
+.tmpl-chooser-grid:has([data-motion-template]:not([hidden])) { grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+.tmpl-chooser-grid:has([data-motion-template]:not([hidden])) [data-template-id="__blank__"] { grid-column: 1 / -1; flex-direction: row; align-items: center; flex-wrap: wrap; }
+.tmpl-motion-beats { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); line-height: 1.5; }
+.tmpl-motion-actions { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; font-size: var(--fs-sm); }
+.tmpl-motion-actions .btn { min-height: 44px; }
 .tmpl-chooser-tile[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
 
 .tmpl-chooser-tile-icon {

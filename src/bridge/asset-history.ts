@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Immutable byte snapshots beside the stable user asset id. No silent eviction. */
 import type { AssetRef } from '@lolly-tools/core/host-v1';
+import { designMaterialOf } from '../../../../engine/src/design-system.ts';
 import { FROZEN_PREFIX } from './version-assets.ts';
 
 /** Lowercase hex SHA-256, the same digest core's image-operation contract uses.
@@ -105,7 +106,13 @@ export async function writeVersionedUserAsset(db: HistoryDb, incoming: Versioned
       mintVersion = true;
     }
   }
-  if (previous?.blob && digest) {
+  // A design-system head is a continuously saved document. Its explicit
+  // checkpoints/published versions live in the design-system history; treating
+  // every colour drag as a file replacement locked editing after 20 saves.
+  // Keep legacy snapshots intact, but do not add automatic file snapshots for
+  // head edits. Imports and published version assets retain the strict policy.
+  const continuousHead = mode === 'replace' && incoming.type === 'tokens' && designMaterialOf(incoming.id)?.kind === 'tokens';
+  if (previous?.blob && digest && !continuousHead) {
     const version = previous.version || `legacy-${digest}`;
     if (!await history.get([incoming.id, version])) {
       const all = await history.getAll() as UserAssetVersion[];

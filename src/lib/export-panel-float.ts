@@ -51,6 +51,11 @@ export interface ExportFloatOpts {
   /** The Design editor. No sidebar berth AND a right-hand column that is already the
    *  app's one right sidebar, so the sheet belongs in it from the first open. */
   editorLayout?: boolean;
+  /** An ordinary canvas tool (Timezone, Darkroom, …). It HAS a sidebar berth, but the
+   *  right side is being consolidated into the one edge-dock column like the Design editor
+   *  (Andy, 2026-09-07), so the sheet defaults into that column on its first open too. A
+   *  remembered placement still wins. */
+  preferEdge?: boolean;
   /** The host's "the sheet just opened" signal; returns the unsubscribe. The remembered
    *  side is honoured HERE rather than at mount: this wiring runs while the sheet is
    *  still closed, and docking then would put a panel on screen nobody asked for. */
@@ -60,6 +65,7 @@ export interface ExportFloatOpts {
 export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
   const { popup, head, isMobile, freeLayout } = opts;
   const editorLayout = !!opts.editorLayout;
+  const preferEdge = !!opts.preferEdge;
   let mode: Mode = 'docked';
   let box: Box | null = null;        // current floating box (viewport px)
   let restoreBox: Box | null = null; // box to return to when un-maximising
@@ -363,6 +369,11 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
     // The box above stands as where it goes if the user ever pulls it back out.
     if (editorLayout) edgePref = true;
   }
+  // An ordinary canvas tool WITH a sidebar (Timezone, Darkroom, …) neither restores a saved
+  // box nor starts floated, so it fell through to the sidebar berth. Consolidating the right
+  // side (Andy, 2026-09-07): default it into the one right column on first open too, unless a
+  // remembered placement (handled by `if (saved)` above) already spoke for the user.
+  if (preferEdge && !saved) edgePref = true;
   const offOpen = opts.onOpen?.(restoreEdge) ?? null;
 
   return () => {

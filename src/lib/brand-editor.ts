@@ -3501,7 +3501,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     try {
       const fonts = format === 'tokens-json' ? await exportFonts() : undefined;
       const { blob, filename } = exportSwatches(items, format, undefined, fonts?.length ? { fonts } : undefined);
-      saveBlob(blob, filename);
+      await saveBlob(blob, filename);
       announce(tRaw('{n} colours downloaded as {filename}', { n: items.length, filename }));
     } catch (err) {
       if (palErr) { palErr.textContent = String((err as { message?: unknown })?.message ?? err); palErr.hidden = false; }
@@ -6066,7 +6066,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       const format = (palFmtSel?.value ?? 'tokens-json') as SwatchExportFormat;
       const fonts = format === 'tokens-json' ? await exportFonts() : undefined;
       const { blob, filename } = exportSwatches(swatches, format, undefined, fonts?.length ? { fonts } : undefined);
-      saveBlob(blob, filename);
+      await saveBlob(blob, filename);
       announce(tRaw('Palette downloaded as {filename}', { filename }));
     } catch (err) {
       if (palErr) { palErr.textContent = String((err as { message?: unknown })?.message ?? err); palErr.hidden = false; }
@@ -6202,7 +6202,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   //    the buttons' placement (its persistent Import/Export action row).
   const exportPack = async (): Promise<{ filename: string }> => {
     const { blob, filename, summary } = await exportBrandPack(transferHost);
-    saveBlob(blob, filename);
+    await saveBlob(blob, filename);
     announce(summary.fontFamilies === 1
       ? tRaw('Brand exported - {n} font family', { n: summary.fontFamilies })
       : tRaw('Brand exported - {n} font families', { n: summary.fontFamilies }));

@@ -1667,7 +1667,7 @@ background-image:
   .start.is-stu-sheet-dragging .be-bulkbar { transition: none; }
   .start[data-palette-visible] > .stu-sheet,
   .start[data-palette-visible] > .stu-sheet-grip { display: none; }
-  .start[data-palette-visible] .be-bulkbar { bottom: calc(12px + var(--safe-bottom)); }
+  .start[data-palette-visible] .be-bulkbar { bottom: calc(12px + var(--safe-bottom) + var(--vv-bottom, 0px)); }
 
 
   .start > .stu-sheet {

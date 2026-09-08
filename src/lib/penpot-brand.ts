@@ -11,13 +11,19 @@
  * without tokens (or a locked brand with none reachable yet) yields an empty
  * brand and the archive simply carries no tokens - never a failure.
  */
-import type { PenpotIrTypography, PenpotPaletteColor } from '../../../../engine/src/penpot-file.ts';
+import type { PenpotIrTypography, PenpotPaletteColor, PenpotThemeSelection } from '../../../../engine/src/penpot-file.ts';
+import type { TokensSnapshot } from '@lolly-tools/core/host-v1';
 import { familyFromTokenValue, fontGroupOf } from '../user-fonts.ts';
 import { getHostRef } from './host-ref.ts';
 import { withLollyUiTokens } from './lolly-ui-tokens.ts';
 
 export interface PenpotBrand {
-  /** The effective DTCG / Tokens-Studio document, unresolved (host.tokens.raw()). */
+  /**
+   * The effective DTCG / Tokens-Studio document, unresolved. Taken from the render
+   * context (host.tokens.snapshot().document - the RENDER version, plans/222 gap
+   * #2), falling back to host.tokens.raw() (the edit head) for a host without
+   * snapshot.
+   */
   tokens: unknown;
   palette: PenpotPaletteColor[];
   typographies: PenpotIrTypography[];
@@ -25,10 +31,14 @@ export interface PenpotBrand {
   fonts: { sans?: string; mono?: string };
   /** Families known to come from Google Fonts (Penpot's `gfont-` ids). */
   googleFamilies: string[];
+  /** The theme selection that produced the render, so the file opens on the same
+   *  theme (plans/222 gap #3). Absent when the snapshot names none. */
+  themeSelection?: PenpotThemeSelection;
 }
 
 interface TokensSurfaceLike {
   raw?: () => Promise<unknown>;
+  snapshot?: () => Promise<TokensSnapshot>;
   colors?: (opts?: { theme?: string }) => Promise<Array<{ path: string; name: string; group: string | null; value: string; description: string | null }>>;
 }
 /** The slice of the assets API the Google-font read needs: the font assets with their meta. */
@@ -70,8 +80,22 @@ const FONT_ROLES: ReadonlyArray<{ key: string; name: string; weight: number; ita
 export async function brandFromTokens(surface: TokensSurfaceLike | null | undefined, assets?: FontAssetsLike | null): Promise<PenpotBrand> {
   const googleFamilies = await googleFamiliesFrom(assets);
   if (!surface) return { ...EMPTY, googleFamilies };
+  // The RENDER context, not the edit head: snapshot() follows the same version
+  // ladder as colors() below, so tokens/palette/fonts describe one render (gap #2).
+  // A host without snapshot (older shell, a test surface) keeps the raw() head read.
   let tokens: unknown = null;
-  try { tokens = surface.raw ? await surface.raw() : null; } catch { tokens = null; }
+  let themeSelection: PenpotThemeSelection | undefined;
+  try {
+    if (surface.snapshot) {
+      const snap = await surface.snapshot();
+      tokens = snap.document;
+      if (snap.selection && (snap.selection.activeThemes?.length || snap.selection.activeSets?.length)) {
+        themeSelection = snap.selection;
+      }
+    } else {
+      tokens = surface.raw ? await surface.raw() : null;
+    }
+  } catch { tokens = null; }
   let palette: PenpotPaletteColor[] = [];
   try {
     const swatches = surface.colors ? await surface.colors() : [];
@@ -93,7 +117,7 @@ export async function brandFromTokens(surface: TokensSurfaceLike | null | undefi
       typographies.push({ name: role.name, path: 'Brand', fontFamily: family, fontWeight: role.weight, italic: role.italic, fontSize: 16, lineHeight: 1.2 });
     }
   }
-  return { tokens, palette, typographies, fonts, googleFamilies };
+  return { tokens, palette, typographies, fonts, googleFamilies, themeSelection };
 }
 
 /**

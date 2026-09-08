@@ -3413,8 +3413,8 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
     const file = activeFiles[i];
     if (!file) return;
     const res = await verifyFile(file);
-    const banner = `<div class="valid-claim-done" role="status"><span class="valid-claim-done-ic" aria-hidden="true">✓</span> ${t('Your credentials were added and the file downloaded. Its credential chain now includes your claim.')}</div>`;
-    repaintCard(i, file, res, banner, `${banner}<p class="valid-busy">${t('Signed and downloaded, but the re-check could not run: {message}', { message: res.error ?? '' })}</p>`);
+    const banner = `<div class="valid-claim-done" role="status"><span class="valid-claim-done-ic" aria-hidden="true">✓</span> ${t('Your credentials were added and a download was requested. The prepared file’s credential chain includes your claim.')}</div>`;
+    repaintCard(i, file, res, banner, `${banner}<p class="valid-busy">${t('Signed and prepared for download, but the re-check could not run: {message}', { message: res.error ?? '' })}</p>`);
   }
 
   /** Swap one file's rendered report for a freshly-verified one, led by a banner.

@@ -3,6 +3,7 @@
  * ClipboardAPI - text and image clipboard ops with graceful fallback.
  */
 import type { ClipboardAPI } from '@lolly-tools/core/host-v1';
+import { getHostRef } from '../lib/host-ref.ts';
 
 // Download extension for an image MIME. A bare `type.split('/')[1]` yields
 // "svg+xml" for SVG (→ a broken "image.svg+xml" name); map the common types and
@@ -82,16 +83,26 @@ export function createClipboardAPI(): WebClipboardAPI {
           // Fall through to download.
         }
       }
-      // Fallback: trigger a download instead. Tools that ask for clipboard
+      // Fallback: deliver the image as a file instead. Tools that ask for clipboard
       // get a guaranteed outcome - the user gets the image one way or another.
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `image.${imageExt(blob.type)}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      // Route through host.export.download when the bridge is up, so the Tauri
+      // shells' native-save override catches it (a raw anchor is dropped by wry's
+      // WebView on mobile - plan 216 item 1); fall back to the bridge's own anchor
+      // only when no host exists yet.
+      const filename = `image.${imageExt(blob.type)}`;
+      const host = getHostRef();
+      if (host?.export?.download) {
+        await host.export.download(blob, filename);
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
       return { method: 'download' };
     },
   };

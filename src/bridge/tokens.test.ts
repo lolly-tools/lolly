@@ -114,6 +114,20 @@ test('bust() drops the memoised document and per-theme sets', async () => {
   assert.equal(await api.resolve('color.brand.jungle'), '#123456'); // re-discovered + reloaded
 });
 
+test('snapshot() returns the render document, its declared theme selection and the active version (plans/222)', async () => {
+  stubFetch({});
+  const RENDER = { ...DOC, $metadata: { activeThemes: ['dark'], activeSets: ['base'] } };
+  const api = createTokensAPI({ assets: {
+    _findMetaByType: async (type: string) => (type === 'tokens' ? { id: 'acme/tokens/brand', formats: [] } : null),
+    _getBlob: async (id: string) => (id === 'acme/tokens/brand' ? docBlob(RENDER) : null),
+  } });
+  const snap = await api.snapshot();
+  assert.deepEqual(snap.document, RENDER, 'the render document itself, not a resolved set');
+  assert.deepEqual(snap.selection, { activeThemes: ['dark'], activeSets: ['base'] });
+  assert.equal(snap.version, 'latest', 'nothing published ⇒ the head/latest');
+  assert.ok(snap.system, 'the active design system is named');
+});
+
 // ── User tokens (the runtime brand) - real assets bridge over an in-memory db ──
 
 /** Minimal in-memory stand-in for the idb slice bridge/assets.ts consumes - 

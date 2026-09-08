@@ -731,7 +731,7 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    receiving child of the otherwise pointer-transparent overlay (its buttons are its whole
    point). Same frosted chip as the off-playhead reconciliation, above the frame scrim. */
 .fc-frameseq {
-  position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 24;
+  position: absolute; left: 50%; top:calc(var(--sp-6) * 4.4); z-index: 24;
   pointer-events: auto; display: flex; align-items: center; gap: var(--sp-5);
   max-width: min(460px, 92%);
   padding: 8px 10px 8px 14px; border-radius: var(--radius-pill);
@@ -908,6 +908,7 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    short window and further again under `largeText`, which put the Choreograph button below
    the cut and out of reach. The cap keeps the whole dialog inside the stage; the card grid
    below is what gives way, exactly as `.fc-lift-list` does in the dialog above. */
+.fc-choreo-quick { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block: var(--space-2); }
 .fc-choreo-panel { min-width: 300px; max-width: 360px; max-height: calc(100% - 12px); }
 /* Pinned for exactly the reason .fc-lift-panel pins it above: `aria-busy` here is a STATE
    for assistive tech while the chunk loads and the commit runs, and parts/multi-edit.css
@@ -1120,17 +1121,17 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
 /* "More" panel: shape / radius / opacity / image fit / blend. */
 .fc-panel {
   position: absolute; z-index: 24; min-width: 238px;
-  display: flex; flex-direction: column; gap: 9px;
-  padding: 11px 12px; border-radius: 12px;
-  background: hsl(var(--card) / 0.72); color: hsl(var(--foreground));
+  display: flex; flex-direction: column; gap: var(--ui-space-control-inline);
+  padding: var(--ui-space-panel); border-radius: var(--ui-radius-panel);
+  background: color-mix(in srgb, var(--ui-color-surface-raised) 92%, transparent); color: var(--ui-color-text-default);
   isolation: isolate;   /* contain the frosted ::before (see .fc-frosted note) */
-  border: 1px solid hsl(var(--border)); box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--ui-color-border-default); box-shadow: var(--ui-elevation-floating);
 }
-.fc-row { display: flex; align-items: center; gap: 9px; font-size: var(--fs-md); }
+.fc-row { display: flex; align-items: center; gap: var(--ui-space-control-inline); font-size: var(--ui-type-body); }
 /* The label column and the numeric readout are rigid flex bases holding TEXT, so
    they have to follow the type: at a fixed 86px/32px a 1.2× label or a "100%"
    readout paints past its own cell and into the control beside it. */
-.fc-row > span { flex: 0 0 auto; flex-basis: calc(86px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.fc-row > span { flex: 0 0 auto; flex-basis: calc(86px * var(--a11y-fs)); color: var(--ui-color-text-muted); }
 /* The box itself is `.field-select` / `.field-range` (fields.css). All a panel row
    adds is how the control shares the row: fill the cell, never push it wider than
    its label. Restating padding/border/background here would silently beat the
@@ -1209,11 +1210,11 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
 
 /* Inline text editing - the box's own text element becomes contentEditable. */
 .lolly-box-text.fc-editing {
-  outline: 2px solid #2d7ff9; outline-offset: 3px;
+  outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px;
   /* Square the focus ring - an outline follows the element's own radius, so a
      rounded box would otherwise round the blue ring while editing. */
   border-radius: 0 !important;
-  cursor: text; min-height: 1em; min-width: 8px; caret-color: #2d7ff9;
+  cursor: text; min-height: 1em; min-width: 8px; caret-color: var(--ui-color-focus-ring);
 }
 /* While editing, let the caret/text spill past the box so nothing types "into the
    void"; the box re-clips (and grows to fit) on commit. Rounding and clip masks
@@ -1417,19 +1418,20 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
 
 /* Artboards navigator (plan 112) - a bottom-docked filmstrip of the document's frames
    in page order, each a LIVE scaled thumbnail. Clicking one (or the ‹ › steppers) frames
-   that artboard in the viewport. NO reorder - the sequence IS the canvas layout. `bottom`
-   is set inline by the view so the strip rides ABOVE the sequence timeline when it's open;
-   left/top/transform re-anchor it from the base `.fc-panel` absolute-at-(left,top) to a
-   bottom-centred bar. */
+   that artboard in the viewport. Stage reserves keep the strip above the timeline and
+   centred in the usable space between side columns, including while they resize. */
 .fc-frames-panel {
-  left: 50%; right: auto; top: auto; transform: translateX(-50%);
-  max-width: min(92%, 880px);
-  gap: var(--sp-4); padding: 10px 12px 12px;
+  --frames-space: calc(100% - var(--stage-reserve-left, 0px) - var(--stage-reserve-right, 0px));
+  left: calc(var(--stage-reserve-left, 0px) + var(--frames-space) / 2);
+  right: auto; top: auto; transform: translateX(-50%);
+  bottom: calc(var(--stage-reserve-bottom, 0px) + var(--ui-space-panel));
+  min-width: 0; max-width: min(calc(var(--frames-space) - 2 * var(--ui-space-panel)), 880px);
+  gap: var(--ui-space-control-inline); padding: var(--ui-space-panel);
 }
 .fc-frames-head { display: flex; align-items: center; gap: var(--sp-3); }
 .fc-frames-title {
   flex: 1 1 auto; font-weight: 700; font-size: var(--fs-xs);
-  text-transform: uppercase; letter-spacing: 0.06em; color: hsl(var(--muted-foreground));
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--ui-color-text-muted);
 }
 .fc-frames-step { min-width: 28px; }
 .fc-frames-strip {
@@ -1438,21 +1440,24 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
 }
 .fc-frame-cell {
   flex: none; display: flex; flex-direction: column; align-items: center; gap: var(--sp-2);
-  padding: var(--sp-2); border-radius: 9px; border: 1px solid transparent;
-  background: none; cursor: pointer; color: hsl(var(--muted-foreground));
-  transition: background var(--dur-1), border-color var(--dur-1), color var(--dur-1);
+  padding: var(--sp-2); border-radius: var(--ui-radius-control); border: 1px solid transparent;
+  background: none; cursor: pointer; color: var(--ui-color-text-muted);
+  transition: background var(--ui-motion-feedback), border-color var(--ui-motion-feedback), color var(--ui-motion-feedback);
 }
-.fc-frame-cell:hover { background: hsl(var(--muted) / 0.6); }
-.fc-frame-cell.is-active { border-color: hsl(var(--primary)); color: hsl(var(--foreground)); }
-.fc-frame-cell:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.fc-frame-cell:hover { background: var(--ui-color-surface-muted); }
+.fc-frame-cell.is-active { border-color: var(--ui-color-selection-border); color: var(--ui-color-text-default); }
+.fc-frame-cell:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .fc-frame-cell-slot {
-  display: block; width: fit-content; border-radius: var(--radius-sm); overflow: hidden;
-  border: 1px solid hsl(var(--border)); background: hsl(var(--background));
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  display: block; width: fit-content; border-radius: var(--ui-radius-choice); overflow: hidden;
+  border: 1px solid var(--ui-color-border-default); background: var(--ui-color-surface-canvas);
+  box-shadow: var(--ui-elevation-control);
 }
-.fc-frame-cell.is-active .fc-frame-cell-slot { border-color: hsl(var(--primary)); }
+.fc-frame-cell.is-active .fc-frame-cell-slot { border-color: var(--ui-color-selection-border); }
 .fc-frame-thumb { position: relative; overflow: hidden; display: block; }
 .fc-frame-cell-n { font-size: var(--fs-xs); font-weight: 600; font-variant-numeric: tabular-nums; }
+.fc-fmt-serif { font-family: serif; }
+.fc-fmt-number-glyph { font-size: var(--fs-xs); }
+.fc-fmt-type-glyph { font-size: var(--ui-type-label); }
 .fc-frames-empty {
   display: flex; align-items: center; gap: var(--sp-5); flex-wrap: wrap;
   color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); padding: var(--sp-2) var(--sp-1);
@@ -1669,17 +1674,8 @@ button.fc-readout:empty { display: none; }
    for that: parts/a11y.css's `[hidden] { display: none !important }` sits in the top
    layer and already beats this sheet's `display: flex`.
 
-   The brand mark leads the docked bar in that layout, and the profile avatar closes it:
-   the avatar is one node the top bar hands over while the column is open (design-topbar
-   `profileDock`). Same identity glyph as the rail's mark and the top bar's, at the pill's
-   own button size, brand-tinted through --lolly-swirl (lolly-mark.ts) - pointed at the
-   shared primary token, so every brand and both themes follow. */
-.stage-nav-mark {
-  --lolly-swirl: var(--lolly-mark, hsl(var(--primary)));
-  display: inline-flex; align-items: center; justify-content: center; flex: none;
-  padding: 0;
-}
-.stage-nav-mark svg { width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs)); }
+   The profile avatar is one node the top bar hands over while the column is open
+   (design-topbar's profileDock). The File menu stays beside the filename. */
 
 /* Theme cycle + sound toggles docked at the end of the HUD (createThemeToggle /
    createSoundToggle) - icon-only .stage-nav-btn, set off from the zoom controls by a

@@ -632,7 +632,7 @@ export async function runBatchWithProgress<F = unknown>(host: HostV1, rows: Batc
             const { encryptPdfStrong } = await import('../bridge/export.ts');
             pdf = await encryptPdfStrong(pdf, strongPassword);
           }
-          saveBlob(pdf, `${zipBaseName}.pdf`);
+          await saveBlob(pdf, `${zipBaseName}.pdf`);
           delivered = true;
           zipName = `${zipBaseName}.pdf`;
           appendLog(`<li class="pro-log-skip">Combined document: per-file Content Credentials ride the zip delivery, not a merged PDF.</li>`);
@@ -648,7 +648,7 @@ export async function runBatchWithProgress<F = unknown>(host: HostV1, rows: Batc
 
     if (!delivered) try {
       const zip = await buildZip(files, { zipName: `${zipBaseName}.zip`, author, csv, zipLock, password: strongPassword, unmade, noted, runNotes, retryOf, preflight });
-      saveBlob(zip, `${zipBaseName}.zip`);
+      await saveBlob(zip, `${zipBaseName}.zip`);
       delivered = true;
       zipName = `${zipBaseName}.zip`;
       draw(`<strong>Done - ${files.length} file${files.length === 1 ? '' : 's'} in one zip${tail}.</strong>`);

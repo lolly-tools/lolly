@@ -39,6 +39,7 @@
  */
 
 import { strToU8 } from 'fflate';
+import { packBackupSessions, restoreBackupSessions, type BackupState, type BackupHistoryMode } from './lib/backup-sessions.ts';
 import { zipAsync } from './lib/zip.ts';
 import {
   BUNDLE_HEADER, README_NAME, buildIntegrity, readJson, unzipBundle, verifyIntegrity,
@@ -46,16 +47,6 @@ import {
 } from './lib/bundle.ts';
 
 export const BACKUP_FORMAT = 'lolly-backup';
-
-/** One saved-session row as the state bridge lists it (metadata + thumbnail). */
-interface BackupSessionEntry {
-  slot: string;
-  toolId?: unknown;
-  toolVersion?: unknown;
-  label?: unknown;
-  thumb?: string | null;
-  updatedAt?: string | null;
-}
 
 /** One uploaded-image record as the assets bridge exports it. */
 interface BackupAssetRecord {
@@ -71,11 +62,7 @@ interface BackupHost {
     get(): Promise<Record<string, unknown>>;
     set(profile: object): Promise<unknown>;
   };
-  state: {
-    list(): Promise<readonly BackupSessionEntry[]>;
-    load(slot: string): Promise<unknown>;
-    save(slot: string, data: unknown, thumb?: string | null): Promise<unknown>;
-  };
+  state: BackupState;
   assets: {
     _exportUserAssets(): Promise<readonly BackupAssetRecord[]>;
     _importUserAsset(record: Record<string, unknown>): Promise<unknown>;
@@ -94,6 +81,8 @@ interface BackupSummary {
   sessions: number;
   userAssets: number;
   prefs: number;
+  revisions?: number;
+  recoveryDrafts?: number;
   assetVersions?: number;
   fileOperations?: number;
   fileBatches?: number;
@@ -142,7 +131,7 @@ export const MAX_RESTORE_TOTAL_BYTES = 2 * 1024 * 1024 * 1024;
 // like a future `tokens.json`) keeps `minReader` low, so an older app still imports
 // every part it recognises and simply skips the rest. Only a *breaking* change
 // raises `minReader`. See docs/data-transfer.md for the full version policy.
-export const BACKUP_FORMAT_VERSION = 2;
+export const BACKUP_FORMAT_VERSION = 3;
 
 // The newest bundle this build knows how to read. A bundle is importable when its
 // `minReader` is ≤ this number.
@@ -159,9 +148,10 @@ const PREF_KEYS = ['theme', 'sidebarWidth', 'ct-metrics'];
 // the round-trip is honest about what it didn't restore rather than silently
 // dropping it. `assets/blobs/*` is the open-ended image payload.
 const KNOWN_PARTS = new Set(['manifest.json', 'profile.json', 'sessions.json', 'assets.json', 'prefs.json', 'design-systems.json']);
-function isKnownPart(path: string, historySupported: boolean): boolean {
+function isKnownPart(path: string, historySupported: boolean, revisionsSupported: boolean): boolean {
   return KNOWN_PARTS.has(path) || path === README_NAME || path.startsWith('assets/blobs/')
-    || historySupported && (path === 'file-history.json' || path.startsWith('file-history/'));
+    || historySupported && (path === 'file-history.json' || path.startsWith('file-history/'))
+    || revisionsSupported && path === 'revision-history.json';
 }
 
 // The human-readable `lolly.txt` dropped into every backup zip: the branding header, a
@@ -198,6 +188,8 @@ function backupReadme(
     `🗂  Saved sessions    ${summary.sessions}`,
     `🖼  Images, fonts & brand   ${summary.userAssets}`,
     `⚙  Preferences        ${summary.prefs}`,
+    `↶  Creation checkpoints  ${summary.revisions ?? 0}`,
+    `↶  Protected drafts      ${summary.recoveryDrafts ?? 0}`,
     `↶  Saved asset versions  ${summary.assetVersions ?? 0}`,
     `✓  File operation records ${summary.fileOperations ?? 0} (completed copies included)`,
     `☷  File batch manifests  ${summary.fileBatches ?? 0} (all selected members)`,
@@ -210,6 +202,8 @@ function backupReadme(
     'sessions.json   your saved tool sessions (thumbnails included)',
     'assets.json     details of your uploaded images, brand tokens & fonts',
     'assets/blobs/   the image and font files themselves',
+    'revision-history.json  creation checkpoints, previews and recovery drafts (when supported)',
+    'Historical designs use the assets available on the destination device.',
     'file-history.json  saved versions and file-operation reports (when supported)',
     'file-history/   exact snapshot/result bytes and extracted Content Credentials',
     'Originals selected for conversion are NOT retained or included.',
@@ -271,8 +265,10 @@ function backupFilename(profile: Record<string, unknown>, storage: BackupStorage
  */
 export async function exportBackup(
   { host, storage }: { host: BackupHost; storage: BackupStorage },
+  options: BackupHistoryMode = {},
 ): Promise<{ blob: Blob; filename: string; summary: BackupSummary }> {
   const entries: Record<string, BundleEntry> = {};
+  const sessionSummary = await packBackupSessions(host.state, entries, options);
   // Read/history-budget first: a large result library must fail before we copy
   // hundreds of unrelated asset blobs into the ZIP's in-memory entry map.
   const history = host.fileHistory ? await host.fileHistory.export() : null;
@@ -285,25 +281,6 @@ export async function exportBackup(
   const profile = await host.profile.get();
   const hasProfile = !!profile && Object.keys(profile).length > 0;
   if (hasProfile) entries['profile.json'] = strToU8(JSON.stringify(profile, null, 2));
-
-  // Saved sessions - list (metadata + thumbnail) then load each one's full data.
-  // host.state is the per-shell seam: IndexedDB on web, filesystem on Tauri.
-  const sessionList = await host.state.list();
-  const sessions = [];
-  for (const entry of sessionList) {
-    const data = await host.state.load(entry.slot);
-    if (!data) continue;
-    sessions.push({
-      slot: entry.slot,
-      toolId: entry.toolId,
-      toolVersion: entry.toolVersion,
-      label: entry.label ?? null,
-      thumb: entry.thumb ?? null,
-      updatedAt: entry.updatedAt ?? null,
-      data,
-    });
-  }
-  entries['sessions.json'] = strToU8(JSON.stringify(sessions, null, 2));
 
   // The design-system records (plans/186 section 3.9): the material itself
   // travels as user assets below; the records are what names it and says which
@@ -337,7 +314,7 @@ export async function exportBackup(
 
   const summary: BackupSummary = {
     profile: hasProfile,
-    sessions: sessions.length,
+    ...sessionSummary,
     userAssets: userAssets.length,
     prefs: Object.keys(prefs).length,
     ...(history ? { assetVersions: history.assetVersions.length, fileOperations: history.operations.length, ...(history.batches ? { fileBatches: history.batches.length } : {}) } : {}),
@@ -397,6 +374,7 @@ export async function exportBackup(
 export async function importBackup(
   { host, storage }: { host: BackupHost; storage: BackupStorage },
   bytes: ArrayBuffer | Uint8Array,
+  options: BackupHistoryMode = {},
 ): Promise<ImportSummary> {
   const files = await unzipBundle(bytes, {
     maxEntryBytes: MAX_RESTORE_ENTRY_BYTES,
@@ -434,20 +412,14 @@ export async function importBackup(
   const assetRecords = assetMeta.map(meta => unpackBackupAsset(meta, files, 'assets/blobs/'));
   const history = host.fileHistory ? await (await import('./lib/file-history-backup.ts')).unpackFileHistory(files) : null;
 
-  const summary: ImportSummary = { profile: false, sessions: 0, userAssets: 0, prefs: 0, skipped: 0, failedAssets: 0 };
+  const sessionSummary = await restoreBackupSessions(host.state, files, options);
+  const summary: ImportSummary = { profile: false, userAssets: 0, prefs: 0, skipped: 0, failedAssets: 0, ...sessionSummary };
 
   // Profile.
   const profile = readJson(files, 'profile.json');
   if (profile && typeof profile === 'object') {
     await host.profile.set(profile);
     summary.profile = true;
-  }
-
-  // Sessions - save() re-derives toolId/version/label from data.__* and re-stamps
-  // updatedAt (the bridge owns that), so an imported session lands as freshly saved.
-  const sessions = readJson(files, 'sessions.json') ?? [];
-  for (const s of sessions) {
-    if (s && s.slot && s.data) { await host.state.save(s.slot, s.data, s.thumb ?? null); summary.sessions++; }
   }
 
   // Design-system records (plans/186 section 3.9), before the assets so a record's
@@ -503,7 +475,7 @@ export async function importBackup(
 
   // Parts from a newer, forward-compatible writer that this build doesn't know how
   // to restore. Reported (not hidden) so the UI can be honest: "imported X, skipped Y".
-  summary.skipped = Object.keys(files).filter(p => !isKnownPart(p, Boolean(host.fileHistory))).length;
+  summary.skipped = Object.keys(files).filter(p => !isKnownPart(p, Boolean(host.fileHistory), options.mode !== 'sync' && Boolean(host.state.history))).length;
 
   return summary;
 }

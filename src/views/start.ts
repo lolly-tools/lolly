@@ -1152,7 +1152,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
         await refreshHead();
         if (!headDoc) showNote(t('There are no tokens to export yet.'), true);
         else {
-          saveBlob(
+          await saveBlob(
             new Blob([JSON.stringify(headDoc, null, 2)], { type: 'application/json' }),
             'tokens.json'
           );
@@ -1258,7 +1258,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
           fonts,
         };
         const bytes = await exp.pack(spec);
-        saveBlob(
+        await saveBlob(
           new Blob([bytes as BlobPart], { type: 'application/x-rpm' }),
           `${spec.meta.name}-${spec.meta.version}-${spec.meta.release}.noarch.rpm`
         );

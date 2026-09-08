@@ -10,6 +10,7 @@
 import { deflateSync, strToU8, type Zippable } from 'fflate';
 import { buildEncryptedZip, crc32, type ZipTier, type ZipEntryInput } from '@lolly/engine';
 import { zipAsync } from '../lib/zip.ts';
+import { getHostRef } from '../lib/host-ref.ts';
 import { preflightJson, type PreflightReport, type UnmadeRow } from './manifest.ts';
 
 /** A rendered output described in the manifest (`lolly.txt`). */
@@ -327,16 +328,28 @@ export async function combinePdfs(files: { blob: Blob }[]): Promise<Blob> {
   return new Blob([await out.save() as BlobPart], { type: 'application/pdf' });
 }
 
-/** Save a single Blob via a transient object-URL anchor. */
-export function saveBlob(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+/**
+ * Deliver a single Blob to the device.
+ *
+ * Routes through `host.export.download`, which is the delivery verb the Tauri
+ * shells OVERRIDE with a native filesystem save (bridge-overrides/export.ts). A
+ * raw `<a download>` here would be dropped outright by wry's WebView (no download
+ * handler), so every batch ZIP, CSV and brand export that funnels through here
+ * silently vanished on iOS/Android - the defect plan 216 item 1 fixes. The whole
+ * `/pro` batch surface, multi-edit "Download all", Projects "Render selection" and
+ * the catalogue image ZIP all reach delivery through this one function, so this
+ * single change carries all of them onto the overridable path at once.
+ *
+ * `getHostRef()` is null only before the bridge is built (unit tests, a very early
+ * boot); there we fall back to the bridge's own anchor helper - kept in bridge/ so
+ * the guard test's "no raw anchor outside bridge/" rule holds. Async because the
+ * native save is; callers that don't await still get the file, they just don't
+ * observe completion.
+ */
+export async function saveBlob(blob: Blob, filename: string): Promise<void> {
+  const host = getHostRef();
+  if (host?.export?.download) { await host.export.download(blob, filename); return; }
+  (await import('../bridge/export.ts')).anchorSave(blob, filename);
 }
 
 /**
@@ -348,7 +361,7 @@ export async function saveSequential(
   { delayMs = 600, onSaved }: { delayMs?: number; onSaved?: (done: number, total: number) => void } = {},
 ): Promise<void> {
   for (let i = 0; i < files.length; i++) {
-    saveBlob(files[i]!.blob, files[i]!.name);
+    await saveBlob(files[i]!.blob, files[i]!.name);
     onSaved?.(i + 1, files.length);
     if (i < files.length - 1) {
       await new Promise(r => setTimeout(r, delayMs));

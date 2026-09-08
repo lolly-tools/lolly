@@ -80,6 +80,8 @@
 import type { CeremonyRole } from '../collab/ceremony.ts';
 import type { CollabSessionHandle } from './collab-session.ts';
 import type { CollabLaunchContext } from './collab-launch.ts';
+import type { HistoryRange, HistoryWireEntry } from '../collab/history-exchange.ts';
+import type { SavedStateData } from '../bridge/state.ts';
 
 /**
  * Which participant this device is.
@@ -148,6 +150,20 @@ export interface CollabConnection {
    * joiner gets the full state from the peer).
    */
   readonly seedLater?: Promise<CollabSeed | undefined>;
+  /**
+   * Ask the peer for the revisions it will share, over the negotiated `history-v1`
+   * capability (plan 221 section 9). Present only on a transport that carries the exchange
+   * (Track A today); it resolves empty or rejects `unavailable` when the peer did not
+   * agree the capability, and returns metadata only - payloads are a separate transfer.
+   */
+  readonly requestPeerHistory?: (range?: HistoryRange) => Promise<readonly HistoryWireEntry[]>;
+  /**
+   * Fetch one peer revision's full payload over the negotiated capability - chunked and
+   * hash-verified (plan 221 section 9). Present alongside {@link requestPeerHistory}; rejects if
+   * the peer withholds the revision or the bytes fail their checksum. The result is used
+   * only to open a NEW local copy, never to overwrite the live shared document.
+   */
+  readonly requestPeerRevision?: (revisionId: string) => Promise<SavedStateData>;
 }
 
 /** What a registrant provides: take a live pair and make it a session. */

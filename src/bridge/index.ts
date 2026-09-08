@@ -15,6 +15,8 @@ import type { HostV1, AssetRef, AssetPickerOpts, RecorderAPI } from '@lolly-tool
 // (Handlebars) + loadTool/validate (Ajv) + c2pa onto first paint. See
 // scripts/check-bundle-budget.ts.
 import { createStateAPI } from './state.ts';
+import { createRevisionStore } from './revision-history.ts';
+import { REVISION_STORES } from './revision-records.ts';
 import { createProfileAPI } from './profile.ts';
 import { createPreviewsAPI } from './previews.ts';
 import { createAssetsAPI } from './assets.ts';
@@ -112,7 +114,7 @@ export async function createBridge(): Promise<WebHost> {
   } as WebHost;
 
   // Order matters: assets depends on db; export depends on host for watermark style.
-  host.state = createStateAPI(db);
+  host.state = createStateAPI(db, REVISION_STORES.every(name => db.objectStoreNames.contains(name)) ? createRevisionStore(db) : undefined);
   host.profile = createProfileAPI(db);
   // Shell-internal like previews (not part of HostV1): Content Credentials device
   // identity + CA cert. A lazy facade - all five methods are async, and its only
@@ -432,8 +434,8 @@ export async function createBridge(): Promise<WebHost> {
   // the sequence providers, none of which belongs in the boot chunk. `isAvailable`
   // is contractually SYNCHRONOUS, so it is answered here from feature detection
   // rather than behind the import - the same two things audio.ts itself checks.
-  let audioImpl: NonNullable<WebHost['audio']> | null = null;
-  const loadAudio = async (): Promise<NonNullable<WebHost['audio']>> => {
+  let audioImpl: Required<NonNullable<WebHost['audio']>> | null = null;
+  const loadAudio = async (): Promise<Required<NonNullable<WebHost['audio']>>> => {
     if (!audioImpl) { const { createAudioAPI } = await import('./audio.ts'); audioImpl = createAudioAPI(); }
     return audioImpl;
   };
@@ -442,7 +444,8 @@ export async function createBridge(): Promise<WebHost> {
       && (typeof window.OfflineAudioContext === 'function'
         || typeof (window as { webkitOfflineAudioContext?: unknown }).webkitOfflineAudioContext === 'function'),
     analyse: async (src, opts) => (await loadAudio()).analyse(src, opts),
-  };
+    clean: async (src, opts) => (await loadAudio()).clean(src, opts),
+  } satisfies Required<NonNullable<WebHost['audio']>>;
 
   // Lazy speech facade (v1.96; transcription v1.99) - on-device Kokoro TTS and
   // Whisper STT. Lazy for the same reason as audio: bridge/speech.ts owns

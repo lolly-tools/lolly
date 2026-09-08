@@ -28,6 +28,8 @@ import type { PresenceFrame } from '../lib/collab-presence.ts';
 import type { CollabConnectionState } from '../lib/collab-session.ts';
 import type { CeremonyTimerHandle, CeremonyTimers } from './ceremony.ts';
 import { createRtcCollabHandle, registerKeys } from './rtc-handle.ts';
+import { isCapturableCollabHistory, HISTORY_PROTOCOL_VERSION } from '../lib/collab-history.ts';
+import { CANVAS_OP_VERSION } from '@lolly-tools/core/canvas-op-v1';
 import type { RtcCollabHandle, RtcHandleTransport, RtcTransportSatisfiesHandleTransport } from './rtc-handle.ts';
 import type {
   RtcConnectionState,
@@ -175,8 +177,8 @@ class FakeTransport implements RtcHandleTransport {
 
   /** The peer's in-band op-version declaration (rtc-transport sends it the moment the
    *  ops lane opens; here it is a call, so a test can choose when it lands). */
-  hello(clientId: string, opVersion: string): void {
-    this.deliver({ lane: 'ops', kind: 'hello', clientId, opVersion });
+  hello(clientId: string, opVersion: string, history?: string): void {
+    this.deliver({ lane: 'ops', kind: 'hello', clientId, opVersion, ...(history === undefined ? {} : { history }) });
   }
 
   deliver(message: RtcInboundMessage): void {
@@ -350,6 +352,53 @@ test('a real transport still satisfies the subset a session asks for', () => {
   // alias alone proves nothing - nothing consumes it in the module.
   const proof: RtcTransportSatisfiesHandleTransport = true;
   assert.equal(proof, true);
+});
+
+test('the hello negotiates the shared-history capability; an older peer leaves it off', () => {
+  const pair = makePair();
+  // Before the peer's hello arrives, sharing is unavailable - never assumed.
+  assert.equal(pair.a.handle.peerHistoryProtocol(), undefined);
+  assert.equal(pair.a.handle.historySharingAvailable(), false);
+
+  // A peer that announces the same capability: both sides agree, and the exchange
+  // protocol may open behind this gate.
+  pair.a.transport.hello('BBB', CANVAS_OP_VERSION, HISTORY_PROTOCOL_VERSION);
+  assert.equal(pair.a.handle.peerHistoryProtocol(), HISTORY_PROTOCOL_VERSION);
+  assert.equal(pair.a.handle.historySharingAvailable(), true);
+
+  // An older peer omits it: recorded as absent, sharing stays off, and ordinary
+  // editing is unaffected (the memory-only session history keeps working).
+  const older = makePair();
+  older.a.transport.hello('BBB', CANVAS_OP_VERSION);
+  assert.equal(older.a.handle.peerHistoryProtocol(), undefined);
+  assert.equal(older.a.handle.historySharingAvailable(), false);
+  older.a.set('title', 'still editable');
+  older.flush();
+  assert.equal(older.b.params().title, 'still editable', 'editing survives a peer with no history capability');
+
+  // An unrecognised future capability is not mistaken for agreement.
+  const future = makePair();
+  future.a.transport.hello('BBB', CANVAS_OP_VERSION, 'history-v2');
+  assert.equal(future.a.handle.peerHistoryProtocol(), 'history-v2');
+  assert.equal(future.a.handle.historySharingAvailable(), false);
+});
+
+test('each side exposes an ephemeral session history the leave disposes', async () => {
+  const pair = makePair();
+  const host = pair.a.handle.history; // 'AAA' is the inviter
+  const invitee = pair.b.handle.history; // 'BBB' is the acceptor
+  assert.ok(host && invitee, 'both sides expose a transport history');
+  assert.equal(host?.scope, 'shared', 'the inviter shares its session');
+  assert.equal(invitee?.scope, 'memory', 'an invitee stays memory-scoped');
+  assert.equal(invitee?.durability, 'session');
+  assert.equal(invitee?.canRestore, false, 'shared P2P restore is deferred to the barrier protocol');
+  assert.ok(isCapturableCollabHistory(invitee), 'the P2P history fills itself');
+  if (isCapturableCollabHistory(invitee)) {
+    invitee.capture({ documentId: 'd', toolId: 'design', actorId: 'BBB', data: { title: 'shared' } });
+    assert.equal((await invitee.list()).entries.length, 1);
+    pair.b.handle.close();
+    assert.equal((await invitee.list()).entries.length, 0, 'leaving drops every retained checkpoint');
+  }
 });
 
 test('two handles converge on interleaved ops', () => {

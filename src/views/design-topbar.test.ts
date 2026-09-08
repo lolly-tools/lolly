@@ -122,7 +122,7 @@ function fixture(over: Partial<DesignTopbarOpts> = {}) {
     exportSheet: (o) => { calls.export++; calls.exportFormat = o?.format; },
     model: { getInput: id => model.get(id), setInput: (id, v) => { model.set(id, v); calls.inputs.push([id, v]); } },
     loop: { get: () => loopOn, set: v => { loopOn = v; calls.loop.push(v); } },
-    onMarkMenu: () => { calls.markMenu++; },
+    onFileMenu: () => { calls.markMenu++; },
     hasFrames: () => true,
     activeFrameId: () => 'frame-2',
     ...over,
@@ -159,7 +159,7 @@ test('renders every documented control, in order, with the export/live contracts
   const f = fixture();
   const ids = Array.from(f.bar.el.querySelectorAll('[data-topbar]')).map(el => el.getAttribute('data-topbar'));
   assert.deepEqual(ids, [
-    'mark', 'name',
+    'file', 'name',
     'undo', 'redo', 'fit-all', 'fit-artboard', 'zoom-level', 'zoom-out', 'zoom-in', 'timeline', 'navigator', 'inspector',
     // The hamburger (hidden at full width) sits ahead of Share: it is where the centre
     // cluster, then Share and the Present rows, fold as the bar narrows (syncDensity).
@@ -185,16 +185,16 @@ test('every control is keyboard reachable and names itself', () => {
     assert.equal(el.getAttribute('tabindex'), null, 'nothing is taken out of the tab order');
   }
   // The three menu triggers advertise themselves as such.
-  for (const id of ['mark', 'zoom-level', 'present-menu']) {
+  for (const id of ['file', 'zoom-level', 'present-menu']) {
     assert.equal(f.at(id).getAttribute('aria-haspopup'), 'menu', `${id} must advertise its menu`);
   }
   assert.equal(f.at('timeline').getAttribute('aria-pressed'), 'false');
   assert.equal(f.at('navigator').getAttribute('aria-pressed'), 'false');
   assert.equal(f.at('inspector').getAttribute('aria-pressed'), 'false');
-  // The mark's menu belongs to the overlay (`onMarkMenu` hands the anchor over), so the
+  // The File menu belongs to the overlay (`onFileMenu` hands the anchor over), so the
   // attribute is written by free-canvas's popover - but it has to EXIST for that code to
   // find, or the state is never reported and the trigger never restores focus.
-  assert.equal(f.at('mark').getAttribute('aria-expanded'), 'false');
+  assert.equal(f.at('file').getAttribute('aria-expanded'), 'false');
   f.bar.destroy();
 });
 
@@ -392,6 +392,22 @@ test('the zoom cluster steps aside while the compact zoom bar holds the dock', (
   assert.equal(dock.subs, 0, 'destroy unsubscribes - a listener on a removed bar is a leak');
 });
 
+test('File menu stays immediately before the filename when the zoom bar is docked', () => {
+  const dock = fakeDock();
+  const f = fixture({ dock: dock.port });
+  try {
+    const file = f.at('file');
+    assert.equal(file.nextElementSibling, f.at('name'));
+    assert.equal(file.getAttribute('aria-label'), 'File menu');
+    for (const docked of [true, false]) {
+      dock.set(docked);
+      assert.equal(file.hidden, false);
+      file.click();
+    }
+    assert.equal(f.calls.markMenu, 2);
+  } finally { f.bar.destroy(); }
+});
+
 test('a dock that is ALREADY holding the zoom bar is read at mount, not only on a change', () => {
   // The bar is mounted mid-session (a remount, a navigation back into the editor) with the
   // column already open, and no change event is coming to tell it so.
@@ -571,7 +587,7 @@ test('Share, Export and the mark reach their injected verb', () => {
   const f = fixture();
   click(f.at('share'));
   click(f.at('export'));
-  click(f.at('mark'));
+  click(f.at('file'));
   assert.equal(f.calls.share, 1);
   assert.equal(f.calls.export, 1);
   assert.equal(f.calls.markMenu, 1);

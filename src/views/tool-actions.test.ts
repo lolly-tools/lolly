@@ -191,6 +191,7 @@ function mount({
   model = [],
   toolId = 'sequence-studio',
   exportDefaults = {},
+  portable = false,
 }: {
   seqMs: number | null /** A bed's own length stamped as data-clip-ms (the audiogram). */;
   clipMs?: number | null;
@@ -204,6 +205,7 @@ function mount({
   /** The runtime's input model - only the tests that read it pass one. */
   model?: Array<Record<string, unknown>>;
   toolId?: string;
+  portable?: boolean;
 }): Harness {
   const doc = dom.window.document;
   doc.body.innerHTML = '';
@@ -300,7 +302,7 @@ function mount({
         unscaledCalls.push({ ...o, formats: seen.slice(before).map((e) => e.format) });
       }
     }) as never,
-    exportDefaults as never
+    exportDefaults as never, null, () => {}, null, '/', null, false, { portable }
   );
 
   return {
@@ -341,6 +343,31 @@ function mount({
 
 /** Let the MutationObserver callback (a microtask) run. */
 const settle = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+
+test('the portable mount offers .lolly for a single-format tool and never sends that choice to the renderer', async () => {
+  const h = mount({ seqMs: null, formats: ['png'], portable: true });
+  assert.ok(h.panel.querySelector('option[value="lolly"]'));
+  h.setFormat('lolly'); h.download(); await settle();
+  assert.equal(h.renders().length, 0);
+  h.setFormat('png'); h.download(); await settle();
+  assert.equal(h.downloads()[0]?.format, 'png');
+  h.dispose();
+});
+
+test('portable exports honour withheld downloads and a format allowlist', async () => {
+  const { setExportPolicy } = await import('../lib/export-policy.ts');
+  try {
+    for (const policy of [
+      { canDownload: false, canRequestApproval: false },
+      { canDownload: true, canRequestApproval: false, formats: { 'sequence-studio': ['png'] } },
+    ]) {
+      setExportPolicy(policy);
+      const h = mount({ seqMs: null, formats: ['png'], portable: true });
+      assert.equal(h.panel.querySelector('option[value="lolly"]'), null);
+      h.dispose();
+    }
+  } finally { setExportPolicy(undefined); }
+});
 
 test('Design runs mounted assurance only while Export is open', async () => {
   const h = mount({

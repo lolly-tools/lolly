@@ -70,7 +70,7 @@ import { attachCollabPlumbing } from '../lib/collab-plumbing.ts';
 // transport never fetches that chunk: a collab is lazy chrome that must cost a
 // single-player build nothing (collab-pill.ts's own rule; the neuro-dock/
 // music-player pattern).
-import { acquireCollabSession } from '../lib/collab-session-source.ts';
+import { acquireCollabSession, getCollabSessionSource } from '../lib/collab-session-source.ts';
 // The three one-shot hand-offs a live collab arms BEFORE this view is entered
 // (lib/collab-live-mount.ts, plan 100 section 6.2a/section 11.17). Statically imported, and that
 // costs a single-player build NOTHING extra: `main.ts` already imports this module on
@@ -90,7 +90,8 @@ import {
 import { consumeTeamSessionOrigin, releaseTeamSessionOrigin } from '../org/team-session-origin.ts';
 import type { ToolCollab } from './tool-collab.ts';
 import { migrateBlockRowIds, stripHiddenRowIds } from '../lib/row-id.ts';
-import { parseEditorState, coerceUiState } from '../lib/editor-state.ts';
+import { parseEditorState, type EditorState } from '../lib/editor-state.ts';
+import { attachCanvasEditorApi } from '../lib/canvas-editor-api.ts';
 import { installDocumentSurface } from '../lib/document-surface.ts';
 import { MountLifecycle } from '../lib/mount-lifecycle.ts';
 import {
@@ -139,7 +140,7 @@ import { applyBrandVars } from '../brand-vars.ts';
 import { createThemeToggle } from '../components/theme-toggle.ts';
 import { createSoundToggle } from '../components/sound-toggle.ts';
 import { createProfileControl } from '../components/profile-menu.ts';
-import { scopeCss, scopeTemplateStyles } from '../lib/scope-css.ts';
+import { mountScopedStyle, scopeTemplateStyles } from '../lib/scope-css.ts';
 import { setupMobileSheet, flickDirection } from '../lib/mobile-sheet.ts';
 import { wireExportPanelFloat } from '../lib/export-panel-float.ts';
 import { loadExportPrefs, mergeExportPrefs } from '../lib/export-prefs.ts';
@@ -175,17 +176,11 @@ import {
 } from '../lib/url-budget.ts';
 import { createUrlGauge, type UrlGauge } from '../lib/url-budget-gauge.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
-import {
-  buildLollyFile,
-  creatorFromProfile,
-  LOLLY_MIME,
-  LOLLY_EXT,
-  type LollyLibraryAsset,
-  type LollyToolTrust,
-} from '../lib/lolly-pack.ts';
-import type { BeamAssetRecord } from '../lib/beam-pack.ts';
-import { ENGINE_VERSION } from '@lolly/engine';
-import { resolveToolBundle } from '../lib/tool-bundle.ts';
+import { makeLollyVehicle } from './tool-lolly-vehicle.ts';
+import { wireToolRevisionHistory, localHistorySlot } from './tool-revision-history.ts';
+import { mountUndoControls } from './tool-history-controls.ts';
+import { isCapturableCollabHistory } from '../lib/collab-history.ts';
+import { createCollabHistoryCapture } from '../lib/collab-history-capture.ts';
 import '../styles/vendor-flatpickr.css'; // flatpickr base CSS in the `vendor` cascade layer (see that file)
 
 // Type-only imports (erased at build). The `@lolly/engine` barrel re-exports
@@ -219,7 +214,8 @@ import {
   type FastPathCfg,
 } from './canvas-scene.ts';
 import type { Box } from './free-canvas-math.ts';
-import { migrateCarouselToFrames } from './free-canvas-math.ts';
+import { openToolSession } from './tool-session-open.ts';
+import { sessionName } from './tool-session-name.ts';
 import { encodeBlocksCompact } from '../lib/blocks-url.ts';
 import { setupStageNav, type StageNav } from './tool-stage-nav.ts';
 import { isTextEditingTarget } from '../lib/typing-target.ts';
@@ -448,6 +444,7 @@ export interface ActionsApi {
    *  the one the first save minted, or null before any save. Read by the Save
    *  dialog to preselect the project the session is ALREADY filed in (plans/142 W1). */
   getSlot?: () => string | null;
+  history?: import('./automatic-history.ts').AutomaticHistory;
   /** Tear down the cost-authoring slot: unsubscribe the registry-change listener
    *  and run the hydrated extension's disposer. Called from mountTool's cleanup. */
   dispose?: () => void;
@@ -464,6 +461,10 @@ export interface ExportExperience {
 export interface ActionsExperience {
   current?: () => ExportExperience;
   sessionMeta?: () => Record<string, unknown>;
+  /** This mount provides the portable .lolly vehicle and inline Share controls. */
+  portable?: boolean;
+  localHistory?: boolean;
+  historyBase?: import('../bridge/revision-records.ts').RevisionCursor;
 }
 
 /** A shared monotonic bar-write guard (a holder object so shrinkUrl can share it). */
@@ -743,11 +744,29 @@ export async function mountTool(
       (offline || /fetch|network|load|failed to fetch/i.test(String(err.message || '')))
     ) {
       // Offline-first PWA: a network load failure should be recoverable, not a raw dead-end.
+      // DIAGNOSTIC (temporary, 2026-09-07): surface the raw error + probe each of the
+      // tool's files so a native shell shows exactly which file fails and how (404 vs
+      // bad MIME vs a thrown fetch). Remove after the native tool-load bug is fixed.
+      const diagFiles = ['tool.json', 'template.html', 'styles.css', 'hooks.js', 'template.md', 'template.ics', 'template.csv', 'template.json', 'template.vcf'];
       viewEl.innerHTML =
         `<div class="error"><strong>${offline ? t('You’re offline') : t('Couldn’t load this tool')}</strong>` +
         `<p>${offline ? t('Reconnect, then try again.') : t('Check your connection, then retry.')}</p>` +
+        `<pre data-diag style="text-align:left;font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-word;max-height:52vh;overflow:auto;background:rgba(0,0,0,.25);padding:10px;border-radius:8px;margin:8px auto;max-width:640px">err: ${escape(String(err.message || err))}\nprobing ${escape(toolId)}…</pre>` +
         `<div class="error-actions" style="margin-top:12px;display:flex;gap:8px;justify-content:center">` +
         `<button class="btn" data-retry>${t('Retry')}</button><a class="btn" href="/#/">${t('Browse all tools')}</a></div></div>`;
+      void (async () => {
+        const lines = [`err: ${String(err.message || err)}`];
+        for (const f of diagFiles) {
+          try {
+            const r = await fetch(`/tools/${toolId}/${f}`);
+            lines.push(`${f} → ${r.status} ct=${r.headers.get('content-type') || '?'}`);
+          } catch (pe) {
+            lines.push(`${f} → THREW ${String((pe as Error)?.message || pe)}`);
+          }
+        }
+        const pre = viewEl.querySelector('[data-diag]');
+        if (pre) pre.textContent = lines.join('\n');
+      })();
       viewEl.querySelector('[data-retry]')?.addEventListener('click', () => location.reload());
       releaseTeamSessionOrigin();
       return;
@@ -850,6 +869,8 @@ export async function mountTool(
   // A no-op for ordinary readable links. Done once so every consumer below agrees.
   urlParams = await expandQuery(urlParams ?? '');
 
+  const carriedMount = takeCarriedMountState(toolId);
+  const openedSession = await openToolSession(host.state, toolId, parseUrlState(urlParams, tool.manifest), carriedMount?.slot);
   const {
     values,
     format: urlFormat,
@@ -873,7 +894,7 @@ export async function mountTool(
     depth: urlDepth,
     video: urlVideo,
     designSystem: urlDesignSystem,
-  } = parseUrlState(urlParams, tool.manifest);
+  } = openedSession.url;
   const automationPassword = await takeAutomationExportPassword(Boolean(autoExport), urlPassword);
   // Starting a collab force-remounts this tool, and the route it remounts through is a
   // LOSSY encoder twice over: `buildShareParams` skips `user/` asset ids and anything
@@ -884,12 +905,11 @@ export async function mountTool(
   // survive because nothing was serialised. Null for every mount that is not that
   // remount. The values are applied below, ON TOP of the route: they are the same
   // model the route was encoded from, only complete.
-  const carriedMount = takeCarriedMountState(toolId);
   // The bar drops `slot` on the first edit, so the route alone would open the collab as
   // a FRESH session and the inviter's first Save would mint a duplicate beside the one
   // they were collaborating on (section 6.2a pins a private collab to the session it started
   // from). The route still wins when it names one.
-  const slot = routeSlot ?? carriedMount?.slot ?? undefined;
+  const slot = routeSlot ?? carriedMount?.slot ?? localHistorySlot(host.state, toolId);
   const urlFlags = new URLSearchParams(urlParams || '');
   const isFull = urlFlags.has('full');
   // `?template=<id>` launches straight into a template starting point, SKIPPING the "New
@@ -927,20 +947,7 @@ export async function mountTool(
   // flag the next openPresenter() reads is the one the author just chose (plan 179 M1).
   let presentLoop = urlFlags.has('kiosk');
 
-  let initialValues: Record<string, InputValue> = values;
-  if (slot) {
-    let saved = await host.state.load(slot);
-    // A retired carousel-maker session redirects into Design (`?template=carousel&slot=`):
-    // reshape its flat page-strip model into `kind:"frame"` artboards so per-artboard
-    // image-sequence export survives the fold. A pure no-op for a native Design session
-    // (no pages/pageW/pageH) or an already-framed doc, and SCOPED to Design so it never
-    // rewrites carousel-maker's own resume while that tool still exists.
-    // (migrateCarouselToFrames - free-canvas-math.ts)
-    if (saved && toolId === 'design') {
-      saved = migrateCarouselToFrames(saved as Record<string, unknown>) as typeof saved;
-    }
-    if (saved) initialValues = { ...saved, ...values };
-  }
+  let initialValues: Record<string, InputValue> = openedSession.values;
   // The carried model wins outright, and only here. It is not a competing source of
   // truth - it is the SAME model the route and the slot were both encoded from, one
   // step later and with nothing dropped, so anything it disagrees with is a value one
@@ -1043,7 +1050,12 @@ export async function mountTool(
       : undefined;
   const hasTemplates = Array.isArray(templateMeta) && templateMeta.length > 0;
   /** The chooser's pick, resolved off the mount path (see the else-branch below). */
+  // A template is authored content. Keep its fields in subsequent share URLs,
+  // even when the first edit is only an export dimension or camera move.
+  const templateSeededIds = new Set<string>();
   let templatePick: Promise<Record<string, InputValue>> | null = null;
+  let templatePose: EditorState = {};
+  let poseTemplate = (): void => {};
   // Navigate-away guard for the un-awaited chooser above: latched true by _cleanup, so
   // the pick handler below can tell a resolution apart from a torn-down mount, and - the
   // chooser having started but not yet opened when the view is torn down - from a modal
@@ -1059,11 +1071,15 @@ export async function mountTool(
   // scene and export renders re-parse the URL in a context with no index and no
   // inline manifest fallback) would silently drop the seed and render empty.
   if (templateParam && !slot && !seededDirect && Object.keys(values).length === 0) {
-    const { fetchTemplateSeed, templateValuesById } = await import('./template-chooser.ts');
+    const { fetchTemplateSeed, templateValuesById, templateEditorPose } = await import('./template-chooser.ts');
     let seed = await fetchTemplateSeed(toolId, templateParam, presetParam);
     if (!seed && Array.isArray(templateMeta))
       seed = templateValuesById(templateMeta, templateParam, presetParam);
-    if (seed) initialValues = { ...seed, ...initialValues };
+    if (seed) {
+      templatePose = templateEditorPose(seed);
+      initialValues = { ...seed, ...initialValues };
+      for (const id of Object.keys(seed)) templateSeededIds.add(id);
+    }
   } else if (
     !slot &&
     !seededDirect &&
@@ -1124,7 +1140,7 @@ export async function mountTool(
       // chooser means anyway. That is why the whole thing, the lazy import included, is
       // wrapped in one promise that resolves `{}` instead of rejecting.
       templatePick = (async () => {
-        const { openTemplateChooser, parseTemplates } = await import('./template-chooser.ts');
+        const { openTemplateChooser, parseTemplates, blankTemplateSeed } = await import('./template-chooser.ts');
         // A navigate-away while the chunk above was loading - the modal never got to
         // open, so there is nothing for `onOpen` below to arm a close over. Resolve
         // blank without opening it, exactly like a torn-down mount that arrives later.
@@ -1157,23 +1173,7 @@ export async function mountTool(
           formats: tool.manifest.render?.formats,
           // "Blank canvas" on a frame-based tool is the default document's artboards with
           // nothing on them, not the composed cover the default opens with (plan 179).
-          blankSeed: () => {
-            type FrameInput = {
-              id: string;
-              type?: string;
-              default?: unknown;
-              canvas?: { frameKind?: string; kindField?: string };
-            };
-            const inp = (tool.manifest.inputs as FrameInput[]).find(
-              (i) => i.type === 'blocks' && !!i.canvas?.frameKind
-            );
-            const rows = Array.isArray(inp?.default)
-              ? (inp!.default as Array<Record<string, unknown>>)
-              : [];
-            const kindField = inp?.canvas?.kindField ?? 'kind';
-            const frames = rows.filter((r) => r && String(r[kindField]) === inp!.canvas!.frameKind);
-            return frames.length ? { [inp!.id]: frames as unknown as InputValue } : {};
-          },
+          blankSeed: () => blankTemplateSeed(tool.manifest.inputs),
           onPick: ({ templateId, category }) =>
             setDesignIntent(inferDesignIntent({ templateId, templateCategory: category }), true),
           // Arms the navigate-away close. If teardown landed in the same tick as the
@@ -1286,6 +1286,7 @@ export async function mountTool(
   // chain) live in ./tool-history.ts - pure and unit-tested. This view keeps the
   // wiring: the runtime, the toast and the button sync.
   const inputHistory = createHistory();
+  let revisionChanged = (): void => {};
   let applyingHistory = false;
   let historyControls: HistoryControls | null = null; // ↶/↷ buttons - header pair, or the editor's toolbar pair (set on mount)
   let historyToastEl: HTMLElement | null = null;
@@ -1363,7 +1364,9 @@ export async function mountTool(
         refreshHistoryUI();
       }
     }
-    return baseSetInput(id, value);
+    const result = baseSetInput(id, value);
+    revisionChanged();
+    return result;
   };
 
   const applyHistory = (id: string, value: InputValue) => {
@@ -1433,6 +1436,8 @@ export async function mountTool(
         const seed: Record<string, InputValue> = {};
         for (const [k, v] of Object.entries(chosen ?? {})) if (!(k in initialValues)) seed[k] = v;
         if (!Object.keys(seed).length) return; // Blank canvas / Escape / close
+        for (const id of Object.keys(seed)) templateSeededIds.add(id);
+        templatePose = (await import('./template-chooser.ts')).templateEditorPose(chosen);
         await runtime.applyPatch(seed);
         if (templatePickTornDown) return; // torn down while applyPatch was in flight
         await migrateBlockRowIds(runtime);
@@ -1442,6 +1447,7 @@ export async function mountTool(
         // colours + a placeholder where its own preview showed the real render.
         if (templatePickTornDown) return;
         await runtime.resolveRefs();
+        poseTemplate();
       })
       .catch((e) => host.log?.('warn', 'template seed failed - staying blank: ' + String(e)));
   }
@@ -1525,7 +1531,7 @@ export async function mountTool(
     if (!undo && !redo) return;
     // Free-text fields keep their own per-character undo; sliders, selects,
     // colours and checkboxes have no useful native undo, so we own those.
-    if (isTextEditing()) return;
+    if (isTextEditing() || document.querySelector('dialog[open]')) return;
     e.preventDefault();
     redo ? redoHistory() : undoHistory();
   };
@@ -1745,8 +1751,9 @@ export async function mountTool(
       </div>`
     : '';
 
-  // The canvas is the visual OUTPUT (the editable interface is the sidebar), so
-  // it's exposed to screen readers as a single role="img" with a text summary.
+  // Output previews are a single image; file utilities render their actual
+  // interface here, so preserve their buttons and fields in the accessibility tree.
+  const canvasRole = runtime.hasExportFile ? 'group' : 'img';
   // Authors can declare a live Handlebars summary (manifest.a11yLabel); otherwise
   // it's "<name> preview". Kept current in the render subscriber below.
   const canvasLabel = (): string => {
@@ -1915,7 +1922,7 @@ export async function mountTool(
         }
         ${
           hideSidebar
-            ? `<div id="tool-content" role="img" aria-label="${escape(canvasLabel())}"></div>`
+            ? `<div id="tool-content" role="${canvasRole}" aria-label="${escape(canvasLabel())}"></div>`
             : `
         <div class="tool-canvas-outer" id="tool-canvas-outer">
           ${
@@ -1926,7 +1933,7 @@ export async function mountTool(
           <div class="tool-canvas" id="tool-canvas"${
             visitorPage
               ? ' style="width: 100%;"'
-              : ` role="img" aria-label="${escape(canvasLabel())}"
+              : ` role="${canvasRole}" aria-label="${escape(canvasLabel())}"
                style="width: ${nativeW}px; height: ${nativeH}px;"`
           }></div>
         </div>`
@@ -1986,19 +1993,11 @@ export async function mountTool(
 
   const canvasScope = hideSidebar ? '#tool-content' : '#tool-canvas';
 
-  const styleEl = document.createElement('style');
-  {
-    const toolCss = tool.styles ? scopeCss(tool.styles, canvasScope) : '';
-    // The chromeless editors own their own on-canvas affordances (free-canvas.js /
-    // doc-editor.js), so skip the generic click-to-focus hover outline.
-    const focusHint = chromeless
-      ? ''
-      : `
-${canvasScope} [data-canvas-input] { cursor: pointer; }
-${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,0.35); outline-offset: 3px; border-radius: 2px; }`;
-    styleEl.textContent = `${toolCss}${focusHint}`;
-    document.head.appendChild(styleEl);
-  }
+  // Chromeless editors own their on-canvas affordances; ordinary tools get a focus hint.
+  const focusHint = chromeless ? '' : `
+[data-canvas-input] { cursor: pointer; }
+[data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,0.35); outline-offset: 3px; border-radius: 2px; }`;
+  const styleEl = mountScopedStyle(`${tool.styles ?? ''}${focusHint}`, canvasScope);
 
   const layout = viewEl.querySelector<HTMLElement>('#tool-layout')!;
   const inputsEl = viewEl.querySelector<PanelEl>('#tool-inputs');
@@ -2051,48 +2050,11 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // as non-null - mirrors mountTool's unguarded uses (ro.observe, fitCanvas, …).
   const stageEl = viewEl.querySelector<HTMLElement>('#tool-stage')!;
 
-  // Undo / redo buttons in the header - the tappable counterpart to Cmd+Z/Cmd+Y,
-  // and the primary way to trigger history on touch (no keyboard). Sit at the
-  // right of the back-row, opposite the Tools pill. Each button stays
-  // disabled while its stack is empty (refreshHistoryUI), and clicks route through
-  // the same undoHistory/redoHistory the keyboard uses (so they show the toast too).
-  // Only sidebar tools get the header pair. Editor-layout tools have no back-row -
-  // their buttons live in the free-canvas toolbar rail instead (see the history
-  // option passed to initFreeCanvas below). Plain hideSidebar tools (file
-  // utilities with minimal inputs) stay keyboard-only.
+  // Sidebar tools use the shared header controls; Design supplies its top bar.
   const backRow = viewEl.querySelector<HTMLElement>('.sidebar-back-row');
   if (backRow) {
-    const group = document.createElement('div');
-    group.className = 'history-controls';
-    const mkBtn = (label: string, icon: string, onClick: () => void): HTMLButtonElement => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'history-btn';
-      b.setAttribute('aria-label', label);
-      b.title = label;
-      b.innerHTML = icon;
-      b.addEventListener('click', onClick);
-      group.appendChild(b);
-      return b;
-    };
-    const undoBtn = mkBtn(t('Undo'), ICON_UNDO, undoHistory);
-    const redoBtn = mkBtn(t('Redo'), ICON_REDO, redoHistory);
-    // (The sidebar language picker that used to sit here is gone: the canvas HUD's
-    // profile avatar now opens the consolidated menu, which carries the Language row.)
-    historyControls = {
-      sync: (canUndo: boolean, canRedo: boolean) => {
-        // If the button that ran the action is about to disable itself (e.g. the
-        // last undo via keyboard), hand focus to its now-enabled sibling so a
-        // disabled button doesn't drop focus to <body>.
-        const active = document.activeElement;
-        if (active === undoBtn && !canUndo && canRedo) redoBtn.focus();
-        else if (active === redoBtn && !canRedo && canUndo) undoBtn.focus();
-        undoBtn.disabled = !canUndo;
-        redoBtn.disabled = !canRedo;
-      },
-    };
-    backRow.appendChild(group);
-    refreshHistoryUI(); // start disabled (empty history)
+    historyControls = mountUndoControls(backRow, undoHistory, redoHistory);
+    refreshHistoryUI();
   }
 
   // Theme cycle toggle now lives in the canvas zoom HUD (setupStageNav below), not
@@ -2286,7 +2248,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     const parts: string[] = [];
     for (const [k, v] of sp.entries()) parts.push(v ? `${k}=${encodeURIComponent(v)}` : k);
     const q = parts.join('&');
-    history.replaceState(null, '', q ? `${TOOL_URL_BASE}?${q}` : TOOL_URL_BASE);
+    history.replaceState(history.state, '', q ? `${TOOL_URL_BASE}?${q}` : TOOL_URL_BASE);
   }
 
   // Canvas pan/zoom handle for the stage, assigned once the canvas is wired
@@ -2295,7 +2257,6 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   let stageZoom: StageNav | null = null;
   // The Design mark menu lives on the free-canvas handle, which mounts after the stage
   // nav; the docked HUD's swirl reaches it through this late-bound slot.
-  let openDesignMarkMenu: ((anchor: HTMLElement) => void) | null = null;
   let onFocusRect: ((e: Event) => void) | null = null;
 
   if (showAside) {
@@ -2544,10 +2505,18 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   fitCanvas();
   if (canvasEl) canvasEl.addEventListener('canvas-resize', refitStage);
 
+  // A tool with a live canvas stage (its own preview, a sidebar, not a paged document or
+  // the visitor page). These are the tools that consolidate their right-hand chrome into
+  // the one edge-dock column - the HUD follows the sidebar and the export sheet opens in it
+  // - so the right side reads like the Design editor's (Andy, 2026-09-07). Computed once
+  // because the stage-nav mount (below) and the export-panel wiring (further down, outside
+  // this block) both need it.
+  const canvasStage = !!(stageEl && !hideSidebar && !visitorPage && outerEl && canvasEl && !pagedDoc);
+
   // Canvas navigation - one module for both pointer types. Touch gets pinch-zoom +
   // drag-pan; desktop gets trackpad-native zoom/pan (Cmd/Ctrl-wheel & pinch zoom
   // about the cursor, Space/middle-drag pan, 0/1/+/- keys) plus a Fit/% HUD.
-  if (stageEl && !hideSidebar && !visitorPage && outerEl && canvasEl && !pagedDoc) {
+  if (canvasStage) {
     // The other direction of the `fc-focus-rect` seam (plan 179 C5): the stage ASKS the
     // overlay for a rect worth framing - the union of the document's artboards for Fit,
     // the selection's AABB for Shift+2. The dispatch is synchronous, so the answer is on
@@ -2579,12 +2548,11 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     // the `chrome` option on initFreeCanvas below - so nothing is lost, only re-homed.
     // Every gesture (pinch, wheel, space-pan, 0/1/+/-) is unchanged either way.
     // In the Design editor the HUD is built hidden and docks itself into the right
-    // sidebar's compact bar (mark menu, zoom, theme, sound, profile) whenever that
+    // sidebar's compact bar (zoom, theme, sound, profile) whenever that
     // column holds a panel; the top bar carries the zoom cluster and the avatar only
     // while nothing is docked (Andy, 2026-09-03: "the zoom / theme / profile menu are
     // meant to be part of the right dock if it is opened, we don't need to recreate
-    // those things in the top panel"). The mark menu opener is late-bound: the
-    // free-canvas handle that owns the menu is created further down.
+    // those things in the top panel"). The File menu stays in the top bar.
     stageZoom = setupStageNav(
       stageEl,
       outerEl,
@@ -2600,11 +2568,10 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
         selectionRect: askRect('selection'),
         hud: !designChrome,
         editorLayout: !!designChrome,
-        onMarkMenu: designChrome
-          ? (anchor: HTMLElement) => {
-              openDesignMarkMenu?.(anchor);
-            }
-          : undefined,
+        // Every OTHER canvas tool (Timezone, Darkroom, …) consolidates the HUD into the
+        // one right column too - the pill stays visible when undocked, but rides into the
+        // column as the compact bar whenever a full panel is docked there. Andy 2026-09-07.
+        autoDockHud: !designChrome,
       }
     );
     // The Artboards navigator (free-canvas) asks the stage to frame one artboard by
@@ -2970,6 +2937,10 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
           isMobile: () => mqMobile.matches,
           freeLayout: chromeless || !sidebarEl,
           editorLayout,
+          // Ordinary canvas tools open the export sheet in the one right column too, so the
+          // right side matches the Design editor (Andy, 2026-09-07). editorLayout already
+          // does this for Design, so only the non-editor canvas tools need the extra nudge.
+          preferEdge: canvasStage && !editorLayout,
           onOpen: (cb) => {
             exportOpenHooks.add(cb);
             return () => {
@@ -3330,7 +3301,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     // and a refresh would skip the password prompt. After the first edit the new state
     // can't be the original token, so we fall through to the normal (cleartext) write.
     if (encLinkQuery && !userHasMadeChanges) {
-      history.replaceState(null, '', `${TOOL_URL_BASE}?${encLinkQuery}`);
+      history.replaceState(history.state, '', `${TOOL_URL_BASE}?${encLinkQuery}`);
       return;
     }
 
@@ -3338,7 +3309,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
 
     for (const entry of runtime.getModel()) {
       const { id, type, value } = entry;
-      if (!dirtyParams.has(id)) continue;
+      if (!dirtyParams.has(id) && !templateSeededIds.has(id)) continue;
       // The address bar writes each input under its short urlKey alias when it declares one
       // (e.g. design `boxes`→`bx`), same as the share link (encodeModelParam) - so a
       // copy-pasted bar is as small as a copied Share link. Dirty tracking stays keyed by the
@@ -3552,7 +3523,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     // earlier large state - otherwise that stale pack could resolve afterward and
     // overwrite this bar with the old state.
     const seq = ++barSeq.v;
-    history.replaceState(null, '', qs ? `${TOOL_URL_BASE}?${qs}` : TOOL_URL_BASE);
+    history.replaceState(history.state, '', qs ? `${TOOL_URL_BASE}?${qs}` : TOOL_URL_BASE);
 
     // Auto-switch to the packed form once the readable query gets long enough to
     // risk the ~2000-char URL ceiling. The readable write above already landed, so
@@ -3565,7 +3536,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
           if (token == null || seq !== barSeq.v) return; // unavailable, or superseded
           const packed = `${PACK_PARAM}=${token}`;
           if (packed.length >= qs.length) return; // packing didn't help - keep readable
-          history.replaceState(null, '', `${TOOL_URL_BASE}?${packed}`);
+          history.replaceState(history.state, '', `${TOOL_URL_BASE}?${packed}`);
         })
         .catch(() => {
           /* keep the readable URL already written */
@@ -3596,13 +3567,41 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     returnTo,
     slot,
     reachedViaLink,
-    toolId === 'design'
-      ? {
-          current: () => currentDesignOutcome(),
-          sessionMeta: () => ({ __workspace_intent: designIntent }),
-        }
-      : {}
+    {
+      portable: true, historyBase: openedSession.cursor,
+      current: toolId === 'design' ? () => currentDesignOutcome() : undefined,
+      sessionMeta: toolId === 'design' ? () => ({ __workspace_intent: designIntent }) : undefined,
+      localHistory: toolId === 'design' && !collabHandle && !ephemeralState && !getCollabSessionSource(),
+    }
   );
+  revisionChanged = () => actionsApi?.history?.changed();
+  // A memory-only collab history (the P2P track) fills itself from this client's
+  // converged snapshots at the same cadence solo history uses; Work history is
+  // server-driven and exposes no capture, so the guard leaves it untouched. The
+  // transport disposes the history on leave - this only stops the capture timer.
+  const collabHistory = collabHandle?.history;
+  if (collabHandle && actionsApi?.sessionState && isCapturableCollabHistory(collabHistory)) {
+    const capture = createCollabHistoryCapture({
+      history: collabHistory, snapshot: actionsApi.sessionState,
+      documentId: actionsApi.getSlot?.() ?? `collab:${toolId}`, toolId,
+      actorId: collabHandle.self.clientId,
+      ...(collabHandle.self.name ? { actorLabel: collabHandle.self.name } : {}),
+    });
+    const priorChanged = revisionChanged;
+    revisionChanged = (): void => { priorChanged(); capture.changed(); };
+    mountLifecycle.add('collab history capture', () => { capture.flush(); capture.dispose(); });
+  }
+  // "Load from peer" appears only when the transport negotiated the shared-history
+  // capability (plan 221 section 9); the handle carries the request/fetch the mount wired.
+  const peerHistory = collabHandle?.requestPeerHistory && collabHandle.requestPeerRevision
+    ? { list: () => collabHandle.requestPeerHistory!(), fetch: (id: string) => collabHandle.requestPeerRevision!(id) }
+    : undefined;
+  const revisionPanel = wireToolRevisionHistory({ state: host.state as import('../bridge/state.ts').WebStateAPI,
+    slot: () => actionsApi?.getSlot?.() ?? null, controller: actionsApi?.history,
+    collab: collabHandle?.history, connected: () => viewEl.isConnected,
+    ...(peerHistory ? { peer: peerHistory } : {}) });
+  const openRevisions = () => revisionPanel.open();
+  mountLifecycle.add('revision history panel', revisionPanel.dispose);
   if (toolId === 'design') {
     refreshDesignExperience = (pickDefault = false): void => {
       const outcome = currentDesignOutcome();
@@ -3855,6 +3854,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       contentEl
     );
     wireUpCopyUrl(actionsEl, runtime, actionsEl, tool.manifest, lolly);
+    const { mountExportShare } = await import('./export-share.ts');
+    mountLifecycle.add('export share controls', mountExportShare(actionsEl, () =>
+      shareDialogOptions(runtime, actionsEl, tool.manifest, lolly)));
   }
 
   // The render pill's Save half: an in-place quick-save. It reuses the exact same
@@ -4157,7 +4159,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       mutate(sp);
       barSeq.v++;
       const q = sp.toString();
-      history.replaceState(null, '', q ? `${TOOL_URL_BASE}?${q}` : TOOL_URL_BASE);
+      history.replaceState(history.state, '', q ? `${TOOL_URL_BASE}?${q}` : TOOL_URL_BASE);
     };
     const flushPresentAddress = (): void => {
       if (sPending == null) return;
@@ -4311,7 +4313,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
           onOpen: (close) => { if (templatePickTornDown) close(); else templatePickClose = close; },
         });
         const chosen = await pick;
+        templatePose = (await import('./template-chooser.ts')).templateEditorPose(chosen);
         if (templatePickTornDown || !viewEl.isConnected) return;
+        for (const id of Object.keys(chosen ?? {})) templateSeededIds.add(id);
         for (const [k, v] of Object.entries(chosen ?? {})) await runtime.setInput(k, v);
         if (Object.keys(chosen ?? {}).length) {
           await migrateBlockRowIds(runtime);
@@ -4320,6 +4324,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
           // once, mirroring the fresh-open seed path above.
           if (!templatePickTornDown && viewEl.isConnected) await runtime.resolveRefs();
           refreshDesignExperience(true);
+          poseTemplate();
         }
       } catch (e) {
         host.log?.('warn', 'template chooser failed: ' + String(e));
@@ -4332,15 +4337,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     // surfaces read and write it (the Document-info panel, the top bar, the save snapshot's
     // `__label`). Hoisted out of the `info` literal below so the bar shares the exact same
     // pair rather than a second copy of the selector.
-    const getFilename = (): string =>
-      viewEl.querySelector<HTMLInputElement>('[data-action="filename"]')?.value || '';
-    const setFilename = (v: string): void => {
-      const fn = viewEl.querySelector<HTMLInputElement>('[data-action="filename"]');
-      if (fn) {
-        fn.value = v;
-        fn.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-    };
+    const { get: getFilename, set: setFilename, placeholder: getFilenamePlaceholder } = sessionName(actionsEl);
 
     // History is a SINGLE-SLOT contract (`historyControls`), and this layout now has two
     // registrants: the overlay's rail pair and the top bar's. Fanning out here keeps the
@@ -4438,7 +4435,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
           // conflict. All in the `_` namespace the engine reserves outright (parseUrlState
           // skips it), so none can ever shadow a tool input; syncUrl drops them on the
           // first edit.
-          deepLink: parseEditorState(urlFlags),
+          deepLink: { ...templatePose, ...parseEditorState(urlFlags) },
           // Document-info panel: read/write the export/save name, plus at-a-glance
           // details. Name binds to the export bar's filename field (the canonical
           // save name); last-edited reads the resumed session's timestamp if any.
@@ -4571,7 +4568,6 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
           .then(([{ mountDesignTopbar }, { initDesignNavigator }, { initDesignInspector }, { wireDesignInspectorFloat }]) => {
             if (!viewEl.isConnected) return;
             const design = fc.design;
-            openDesignMarkMenu = (anchor: HTMLElement) => design.openLollyMenu(anchor);
 
             // The navigator is the only writer of a stage side reserve, and it writes through
             // the overlay's arbiter - which also owns the docked rail's share of the left
@@ -4615,15 +4611,14 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
               // (see the render gate above), so the bar emits it and we wire it here.
               backPillHtml: backHomeHtml(backPillOpts),
               history: { undo: undoHistory, redo: redoHistory, register: registerHistory },
+              revisions: actionsApi?.history ? { open: () => { void openRevisions(); } } : undefined,
               name: {
                 get: getFilename,
                 set: setFilename,
                 // The export field's own placeholder IS the auto-filename (tool-actions keeps
                 // it fresh on every `lolly:export-open`), so reading it here needs no second
                 // implementation of the naming rules.
-                placeholder: () =>
-                  viewEl.querySelector<HTMLInputElement>('[data-action="filename"]')?.placeholder ||
-                  '',
+                placeholder: getFilenamePlaceholder,
               },
               intent: {
                 get: () => designIntent,
@@ -4726,7 +4721,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
                   });
                 },
               },
-              onMarkMenu: (anchor) => design.openLollyMenu(anchor),
+              onFileMenu: (anchor) => design.openLollyMenu(anchor),
               // The avatar is ADOPTED (moved), so exactly one surface holds it at a time. The
               // bar is its home while the right column is closed; when the compact zoom bar
               // takes the column the bar hands the avatar to that bar instead (profileDock
@@ -4927,30 +4922,12 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
           })
           .catch((err: unknown) => console.error('[design] chrome failed to load:', err));
 
-        // The runtime half of the editor-state API (plans/176 v1): the same wire object
-        // a link's `_ui` carries, readable and writable while a canvas editor is mounted.
-        // `apply` routes through the exact DeepLinkState routine the mount-time deep link
-        // runs, and the message listener gives /embed pages the same door with zero new
-        // semantics. Editor state only - selection, playhead, an open panel - so an
-        // unvetted sender can wiggle the view but never touch the document.
-        const ui = {
-          getState: () => ({ v: 1 as const, ...fc.uiState() }),
-          apply: (state: unknown) => {
-            const s = coerceUiState(state);
-            if (s) fc.applyUi(s);
-          },
-        };
-        const w = window as unknown as { lolly?: { ui?: typeof ui } };
-        w.lolly = { ...w.lolly, ui };
-        const onUiMessage = (e: MessageEvent): void => {
-          const d = e.data as { type?: unknown; state?: unknown } | null;
-          if (d && d.type === 'lolly:ui') ui.apply(d.state);
-        };
-        window.addEventListener('message', onUiMessage);
+        poseTemplate = () => fc.applyUi(templatePose);
+        const detachEditorApi = attachCanvasEditorApi(fc);
         const prevCleanup = viewEl._cleanup;
         viewEl._cleanup = () => {
-          window.removeEventListener('message', onUiMessage);
-          if (w.lolly?.ui === ui) delete w.lolly.ui;
+          detachEditorApi();
+          poseTemplate = () => {};
           try {
             fc.destroy();
           } catch (e) {
@@ -6396,6 +6373,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   if (clearBtn && utils) {
     const resetToDefaults = async () => {
       dirtyParams.clear();
+      templateSeededIds.clear();
       markSessionDirty(); // clearing is an edit - flag unsaved + flash the Save pill
       for (const input of runtime.getModel()) {
         // Revoke a picked file's preview URL before clearing it (avoid a leak).
@@ -6682,11 +6660,11 @@ async function shrinkUrl(
     if (barSeq && seq !== barSeq.v) return; // a newer bar write happened mid-pack
     const packed = token && `${PACK_PARAM}=${token}`;
     if (packed && packed.length < newQs.length) {
-      history.replaceState(null, '', `${base}?${packed}`);
+      history.replaceState(history.state, '', `${base}?${packed}`);
       return;
     }
   }
-  history.replaceState(null, '', newQs ? `${base}?${newQs}` : base);
+  history.replaceState(history.state, '', newQs ? `${base}?${newQs}` : base);
 }
 
 // encodeBlocksCompact moved to lib/blocks-url.ts (imported above) so the wire
@@ -6711,162 +6689,6 @@ function wireUpCopyUrl(
 /** The internal assets-bridge methods the `.lolly` builder needs, described by shape -
  *  they are web-only (not on the public HostV1.AssetsAPI), the same reason
  *  data-transfer.ts declares its own `BackupHost`. */
-interface LollyAssetsSlice {
-  get(id: string): Promise<AssetRef>;
-  _getBlob(id: string, opts?: { format?: string; version?: string }): Promise<Blob | null>;
-  _exportUserAssets(): Promise<readonly BeamAssetRecord[]>;
-}
-
-/** A catalog license that must NOT travel by default - proprietary / brand content
- *  (SUSE `LicenseRef-…-Proprietary`, PremiumBeat music). Open or unmarked catalog art
- *  carries freely; brand-locked tokens are caught separately via `meta.brandLock`. */
-function isProprietaryLicense(license: unknown): boolean {
-  const l = String(license ?? '').toLowerCase();
-  return !!l && /proprietary|all-rights-reserved|licenseref|premiumbeat/.test(l);
-}
-
-/**
- * Build the `.lolly` download vehicle for the Share dialog, or undefined when the tool
- * has no saveable session (a pure render-only utility). Reuses the catalog + user-asset
- * bridge to resolve the session's closure, gates proprietary/brand-locked catalog bytes,
- * and assembles the creator block from the profile (identity gated on `useDetails`).
- */
-// Tool files fetched as TEXT (the loader-critical set + svg); everything else as bytes.
-
-/**
- * A cheap trust class for the "include the tool" default, without fetching every file:
- * a tool the deployment's signed catalog lists is `signed-catalog`; anything else
- * (unsigned build, a tool absent from the envelope, a sideloaded tool) is `custom`.
- */
-async function coarseToolTrust(toolId: string): Promise<LollyToolTrust> {
-  const integ = await getToolIntegrity().catch(() => null);
-  const signed = integ?.envelope?.files;
-  return signed && Object.hasOwn(signed, `${toolId}/tool.json`) ? 'signed-catalog' : 'custom';
-}
-
-
-function makeLollyVehicle(
-  host: WebToolHost,
-  toolId: string,
-  manifest: ToolManifest,
-  sessionState: (() => unknown) | undefined,
-  canvasEl?: Element | null
-): ShareDialogLolly | undefined {
-  if (typeof sessionState !== 'function') return undefined;
-  const assets = host.assets as unknown as LollyAssetsSlice;
-  const appVersion = `Lolly ${ENGINE_VERSION}`;
-
-  const resolveLibrary = async (id: string): Promise<LollyLibraryAsset | null> => {
-    try {
-      const blob = await assets._getBlob(id);
-      if (!blob) return null;
-      const ref = await assets.get(id).catch(() => null);
-      const meta = (ref?.meta ?? {}) as Record<string, unknown>;
-      const licensed = meta.brandLock === true || isProprietaryLicense(meta.license);
-      return {
-        bytes: new Uint8Array(await blob.arrayBuffer()),
-        mime: blob.type || '',
-        type: ref?.type ?? 'raster',
-        format: ref?.format ?? '',
-        label: typeof meta.name === 'string' ? meta.name : id,
-        licensed,
-      };
-    } catch {
-      return null;
-    }
-  };
-
-  const build = async ({
-    includeLicensed = false,
-    includeTool = false,
-  }: {
-    includeLicensed?: boolean;
-    includeTool?: boolean;
-  } = {}) => {
-    const session = sessionState() ?? null;
-    const profile = await host.profile.get().catch(() => null);
-    const userAssets = await assets._exportUserAssets();
-    const creator = creatorFromProfile(profile, { appVersion });
-    // Carry the tool's own files only on request - resolving them fetches every file.
-    // A resolve failure (missing core files) degrades to a tool-less .lolly, never an error.
-    const tool = includeTool ? await resolveToolBundle(toolId, manifest).catch(() => null) : null;
-    // A raster thumbnail rides in the manifest so an importer - and the desktop
-    // file managers' thumbnailer (plans/174 #3) - has a tile without rendering.
-    // This closure has no canvas access, so the tile is the newest SAVED slot's
-    // thumb for this tool (the same dataURL projects.ts ships) - best-effort,
-    // and an unsaved-only session simply ships thumb-less, exactly as before.
-    const thumb = session
-      ? await host.state
-          .list()
-          .then((rows) => {
-            const mine = (
-              rows as unknown as { toolId: string; thumb: string | null; updatedAt?: string }[]
-            )
-              .filter((r) => r.toolId === toolId && typeof r.thumb === 'string')
-              .sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')));
-            return mine[0]?.thumb ?? null;
-          })
-          .catch(() => null)
-      : null;
-    // Which font faces this render depended on, by identity (lib/session-fonts.ts) - the
-    // font half of the reproducibility receipt. Strictly best-effort: no font bytes travel,
-    // and a walk that fails costs the receipt its font list, never the share.
-    const fonts = await import('../lib/session-fonts.ts')
-      .then((m) => m.collectSessionFonts(canvasEl))
-      .catch(() => []);
-    // The design system this session wore, so the receiving studio's "Add from a
-    // file" can install the same look (bridge/tokens.ts readUserDesignSystem).
-    const designSystem = await import('../bridge/tokens.ts')
-      .then((m) =>
-        m.readUserDesignSystem(host as unknown as Parameters<typeof m.readUserDesignSystem>[0])
-      )
-      .catch(() => null);
-    const { blob, filename, summary } = await buildLollyFile({
-      session,
-      toolId,
-      ...(designSystem ? { designSystem } : {}),
-      ...(fonts.length ? { fonts } : {}),
-      ...(typeof thumb === 'string' && thumb.startsWith('data:image/') ? { thumb } : {}),
-      toolVersion: manifest.version != null ? String(manifest.version) : undefined,
-      name: String((manifest as { name?: unknown }).name ?? toolId),
-      userAssets,
-      resolveLibrary,
-      includeLicensed,
-      creator,
-      ...(tool ? { tool } : {}),
-      appVersion,
-      engineVersion: ENGINE_VERSION,
-    });
-    return { blob, filename, summary };
-  };
-
-  // The "include the tool" offer: resolved lazily by the dialog after it opens (a coarse
-  // trust read, no file fetches), so a `custom` tool - one the deployment can't vouch for,
-  // e.g. a fork or a private-brand tool a recipient likely lacks - defaults the toggle ON.
-  const toolOffer = async () => {
-    const trust = await coarseToolTrust(toolId).catch(() => 'custom' as LollyToolTrust);
-    return { trust, suggested: trust === 'custom' };
-  };
-
-  // "Send to…" is offered ONLY where a real OS share will happen - host.export.canShare
-  // probes the shell (web: navigator.canShare for the .lolly type, which Chromium's fixed
-  // safelist rejects → hidden there; Tauri mobile: the native ACTION_SEND bridge present).
-  // So the button never silently degrades to a download while claiming a share.
-  const canOsShare =
-    typeof host.export.canShare === 'function' &&
-    host.export.canShare({ mime: LOLLY_MIME, filename: `share${LOLLY_EXT}` });
-  const share = canOsShare
-    ? (blob: Blob, filename: string) =>
-        host.export.share!(blob, { filename, mime: LOLLY_MIME, title: filename })
-    : undefined;
-  return {
-    build,
-    toolOffer,
-    save: (blob: Blob, filename: string) => host.export.file(blob, { filename }),
-    share,
-  };
-}
-
 // Reads the export-panel controls (format, dimensions, colour profile, password, print
 // marks, the provenance toggles) into the share-link's export parts. Extracted from
 // buildShareParams so ONE DOM read feeds both the copied link AND the URL-budget gauge
@@ -7021,6 +6843,15 @@ function showShareDialog(
   manifest: ToolManifest,
   lolly?: ShareDialogLolly
 ): void {
+  openShareDialog(shareDialogOptions(runtime, exportScope, manifest, lolly));
+}
+
+function shareDialogOptions(
+  runtime: Runtime,
+  exportScope: HTMLElement | null,
+  manifest: ToolManifest,
+  lolly?: ShareDialogLolly,
+): import('../components/share-dialog.ts').ShareDialogOpts {
   // Resolve the tool id from the address bar (path or hash form) so the link is the
   // crawler-visible /t/<id> shape. The dialog itself lives in components/share-dialog.js,
   // shared with the Projects view's per-session "Share link". buildShareParams stays here
@@ -7031,7 +6862,8 @@ function showShareDialog(
   const currentFormat =
     exportScope?.querySelector<HTMLSelectElement>('[data-action="format"]')?.value || '';
   const { parts, fidelity } = buildShareParams(runtime, exportScope);
-  openShareDialog({ toolId, baseParts: parts, manifest, currentFormat, fidelity, lolly });
+  return { toolId, baseParts: parts.filter(part => part !== 'format=lolly'), manifest,
+    currentFormat: currentFormat === 'lolly' ? '' : currentFormat, fidelity, lolly };
 }
 
 // Re-create <script> elements so the browser executes them.

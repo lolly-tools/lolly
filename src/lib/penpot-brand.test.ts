@@ -45,6 +45,26 @@ test('no surface, or a surface that throws, yields an empty brand', async () => 
   assert.deepEqual(brand.fonts, {});
 });
 
+test('the render snapshot is preferred: tokens come from the version document, the theme selection is carried (plans/222)', async () => {
+  const RENDER_DOC = { ...DOC, $metadata: { tokenSetOrder: ['base'], activeThemes: ['dark'], activeSets: ['base'] } };
+  const surface = {
+    raw: async () => ({ marker: 'EDIT HEAD - must not be used when a snapshot exists' }),
+    snapshot: async () => ({ document: RENDER_DOC, system: null, version: 'v2', selection: { activeThemes: ['dark'], activeSets: ['base'] } }),
+    colors: async () => SWATCHES,
+  };
+  const brand = await brandFromTokens(surface);
+  assert.equal(brand.tokens, RENDER_DOC, 'the render document is used, not the edit head');
+  assert.deepEqual(brand.themeSelection, { activeThemes: ['dark'], activeSets: ['base'] });
+  // The fonts/palette still resolve off the same (render) document.
+  assert.deepEqual(brand.fonts, { sans: 'SUSE', mono: 'SUSE Mono' });
+});
+
+test('a host without snapshot falls back to the raw() head, and carries no theme selection', async () => {
+  const brand = await brandFromTokens({ raw: async () => DOC, colors: async () => SWATCHES });
+  assert.equal(brand.tokens, DOC);
+  assert.equal(brand.themeSelection, undefined);
+});
+
 test('Google-sourced user font families are listed for gfont- ids; uploads and a missing surface are not', async () => {
   const assets = { list: async () => [
     { meta: { source: 'google-fonts', family: 'Work Sans' } },

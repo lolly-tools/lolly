@@ -32,6 +32,7 @@
  * the template i18n sidecar ships.
  */
 
+import { parseTemplateMotion, type TemplateMotion } from '../lib/template-motion.ts';
 import '../styles/template-chooser.css'; // async CSS chunk (lazy view - not on the landing)
 import { t, tRaw } from '../i18n.ts';
 import { escapeHtml } from '../lib/html.ts';
@@ -64,6 +65,7 @@ export interface TemplateVariant {
   description?: string;
   category?: string;
   thumb?: string;
+  motion?: TemplateMotion;
   values: Record<string, InputValue>;
   presets?: TemplatePreset[];
 }
@@ -112,15 +114,15 @@ export async function fetchTemplateValues(toolId: string, tid: string): Promise<
  * a throw. The chooser's select path and the `?template=&preset=` launcher both
  * need the presets, so the file is read once and shared.
  */
-export async function fetchTemplateFile(toolId: string, tid: string): Promise<{ values: Record<string, InputValue>; presets: TemplatePreset[] } | null> {
+export async function fetchTemplateFile(toolId: string, tid: string): Promise<{ values: Record<string, InputValue>; presets: TemplatePreset[]; motion?: TemplateMotion } | null> {
   try {
     const { instanceFetch, instancePath } = await import('../lib/instance.ts');
     const resp = await instanceFetch(instancePath(`/tools/${encodeURIComponent(toolId)}/templates/${encodeURIComponent(tid)}.json`));
     if (!resp.ok) return null;
-    const data = await resp.json() as { values?: unknown; presets?: unknown };
+    const data = await resp.json() as { values?: unknown; presets?: unknown; motion?: unknown };
     const v = data?.values;
     if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
-    return { values: v as Record<string, InputValue>, presets: parsePresets(data?.presets) };
+    return { values: v as Record<string, InputValue>, presets: parsePresets(data?.presets), ...(parseTemplateMotion(data.motion) ? { motion: parseTemplateMotion(data.motion) } : {}) };
   } catch {
     return null;
   }
@@ -129,11 +131,33 @@ export async function fetchTemplateFile(toolId: string, tid: string): Promise<{ 
 /** The seed for `?template=<tid>[&preset=<pid>]`: the template base merged with the
  *  named preset's overlay (shallow, preset wins). An unknown preset id applies the
  *  base alone - a stale link still opens something sensible. */
+/** A blank template keeps declared artboards, with no composed cover content. */
+export function blankTemplateSeed(inputs: Array<{ id: string; type?: string; default?: unknown; canvas?: { frameKind?: string; kindField?: string } }>): Record<string, InputValue> {
+  const input = inputs.find(i => i.type === 'blocks' && !!i.canvas?.frameKind);
+  const rows = Array.isArray(input?.default) ? input.default as Array<Record<string, unknown>> : [];
+  const frames = rows.filter(row => row && String(row[input?.canvas?.kindField ?? 'kind']) === input?.canvas?.frameKind);
+  return frames.length && input ? { [input.id]: frames as InputValue } : {};
+}
+
+const seedPosters = new WeakMap<object, number>();
+export const templateEditorPose = (values: object): { playhead?: number } => {
+  const ms = seedPosters.get(values);
+  return ms === undefined ? {} : { playhead: ms / 1000 };
+};
+function rememberPoster(values: Record<string, InputValue>, motion?: TemplateMotion) {
+  if (motion) {
+    const rows = Array.isArray(values.boxes) ? values.boxes as Array<Record<string, unknown>> : [];
+    const duration = Math.max(0, ...rows.map(b => (Number(b.start) || 0) + (Number(b.dur) || 0))) * 1000;
+    seedPosters.set(values, motion.posterMs * (duration || motion.durationMs) / motion.durationMs);
+  }
+  return values;
+}
+
 export async function fetchTemplateSeed(toolId: string, tid: string, presetId?: string | null): Promise<Record<string, InputValue> | null> {
   const f = await fetchTemplateFile(toolId, tid);
   if (!f) return null;
   const overlay = presetId ? f.presets.find(p => p.id === presetId)?.values : undefined;
-  return overlay && Object.keys(overlay).length ? { ...f.values, ...overlay } : f.values;
+  return rememberPoster(overlay && Object.keys(overlay).length ? { ...f.values, ...overlay } : f.values, f.motion);
 }
 
 /**
@@ -165,6 +189,7 @@ export function parseTemplates(raw: unknown): TemplateVariant[] {
       thumb: typeof t.thumb === 'string' && t.thumb ? t.thumb : undefined,
       values,
       ...(presets.length ? { presets } : {}),
+      ...(parseTemplateMotion(t.motion) ? { motion: parseTemplateMotion(t.motion) } : {}),
     });
   }
   return out;
@@ -312,6 +337,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
   return new Promise(resolve => {
     const root = document.createElement('div');
     root.className = 'tmpl-chooser-modal';
+    let motionCleanup: (() => void) | undefined;
     document.body.appendChild(root);
     let disposeOpenObservers = (): void => {};
     // The documented contract is "never rejects (close = {})" - make it structurally
@@ -321,6 +347,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
     // Trade the whole chooser for a blank open instead.
     const settleBlank = (e: unknown): void => {
       disposeOpenObservers();
+      motionCleanup?.();
       try { root.remove(); } catch { /* already gone */ }
       console.warn('template chooser failed - resolving blank', e);
       resolve({});
@@ -398,12 +425,13 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
         : '';
       // A tile WITH chips renders as a div[role=button] (a <button> cannot contain
       // buttons); a chipless tile stays a real <button> for free keyboard semantics.
-      const tag = chips ? 'div' : 'button';
-      const btnAttrs = chips ? ' role="button" tabindex="0"' : ' type="button"';
-      return `<${tag} class="tmpl-chooser-tile" data-template-id="${escapeHtml(v.id)}" data-category="${escapeHtml(v.category ?? '')}" data-search="${escapeHtml(search)}"${btnAttrs}>
+      const tag = chips || v.motion ? 'div' : 'button';
+      const btnAttrs = chips || v.motion ? ' role="button" tabindex="0"' : ' type="button"';
+      return `<${tag} class="tmpl-chooser-tile" data-template-id="${escapeHtml(v.id)}"${v.motion ? ' data-motion-template="true"' : ''} data-category="${escapeHtml(v.category ?? '')}" data-search="${escapeHtml(search)}"${btnAttrs}>
         <span class="tmpl-chooser-tile-media">${media}</span>
         <span class="tmpl-chooser-tile-name">${escapeHtml(v.name)}</span>
         ${v.description ? `<span class="tmpl-chooser-tile-desc">${escapeHtml(v.description)}</span>` : ''}
+        ${v.motion ? `<span class="tmpl-motion-beats">${escapeHtml(v.motion.beats.join(' → '))}</span><span class="tmpl-motion-actions"><button type="button" class="btn btn--sm" data-motion-play aria-pressed="false"${opts.host && opts.toolId === 'design' ? '' : ' disabled'}>${escapeHtml(t('Preview animation'))}</button><button type="button" class="btn btn--primary btn--sm">${escapeHtml(t('Use this'))} ↗</button></span>` : ''}
         ${chips}
       </${tag}>`;
     };
@@ -447,10 +475,12 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
     const opener = document.activeElement;
     let trap: FocusTrap | undefined;
     let settled = false;
+
     const finish = (values: Record<string, InputValue>): void => {
       if (settled) return;
       settled = true;
       disposeOpenObservers();
+      motionCleanup?.();
       trap?.release();
       root.remove();
       if (opener instanceof HTMLElement) opener.focus();
@@ -492,11 +522,12 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
       void getFile(id).then(f => {
         if (!f) { finish({}); return; }
         const overlay = presetId ? f.presets.find(p => p.id === presetId)?.values : undefined;
-        opts.onPick?.({ templateId: id, category: byId.get(id)?.category });
-        finish(overlay && Object.keys(overlay).length ? { ...f.values, ...overlay } : f.values);
+        opts.onPick?.({ templateId: id, category: byId.get(id)?.motion ? 'Video' : byId.get(id)?.category });
+        finish(rememberPoster(overlay && Object.keys(overlay).length ? { ...f.values, ...overlay } : f.values, byId.get(id)?.motion));
       });
     };
     root.querySelector('.tmpl-chooser-body')?.addEventListener('click', e => {
+      if ((e.target as HTMLElement).closest('[data-motion-play]')) return;
       const tile = (e.target as HTMLElement).closest<HTMLElement>('[data-template-id]');
       if (!tile) return;
       const chip = (e.target as HTMLElement).closest<HTMLElement>('[data-preset-id]');
@@ -513,6 +544,17 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
       e.preventDefault();
       pickTile(el);
     });
+
+    if (opts.host && opts.templates.some(v => v.motion)) {
+      void import('../lib/template-motion-preview.ts').then(({ armTemplateMotion }) => {
+        if (settled) return;
+        motionCleanup = armTemplateMotion(root, {
+          host: opts.host!, toolId: opts.toolId, card: '[data-motion-template]', media: '.tmpl-chooser-tile-media',
+          id: card => card.dataset.templateId,
+          async load(id) { const values = await getValues(id); const motion = byId.get(id)?.motion; return values && motion ? { values, motion } : null; },
+        });
+      });
+    }
 
     // Live filter: the search term AND the active tag chip, over the one grid. Blank always
     // shows; an empty-state note appears only when a real query leaves nothing but Blank.
@@ -594,7 +636,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
             try {
               const src = await renderFeaturedVariant(
                 host as Parameters<typeof renderFeaturedVariant>[0],
-                opts.toolId, formats, id, values as Record<string, unknown>, previewNs,
+                opts.toolId, formats, id, values as Record<string, unknown>, previewNs, byId.get(id)?.motion?.posterMs,
               );
               refreshBrand();
               if (settled || !src || renderedBrandTag !== brandTagApplied) continue;
@@ -606,7 +648,8 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
                 img.className = 'tmpl-chooser-tile-thumb';
                 img.alt = '';
                 img.src = src;
-                media.replaceChildren(img);
+                media.querySelectorAll('.tmpl-chooser-tile-thumb, .tmpl-chooser-tile-icon').forEach(el => { el.remove(); });
+                media.prepend(img);
               }
             } catch { /* leave the glyph placeholder for this tile */ }
             // …and between renders, so a tile click (or the mount) can land in the gap

@@ -172,6 +172,7 @@ import type {
 import { ABUSE_REASONS } from '../collab/op-guard.ts';
 import type { OpGuard } from '../collab/op-guard.ts';
 import { getCollabClientId, initCollabClientId } from '../lib/collab-plumbing.ts';
+import type { CollabHistoryCapability } from '../lib/collab-history.ts';
 import {
   COLLAB_CLOSE,
   COLLAB_OP_VERSION,
@@ -271,6 +272,8 @@ export interface CollabOutboxStore {
 }
 
 export interface WorkCollabOptions {
+  /** Optional authoritative revision capability supplied by the Work opener. */
+  history?: CollabHistoryCapability;
   /** This device's collab client id (plan 100 section 5). Defaults to the persisted ULID. */
   clientId?: string;
   /**
@@ -385,6 +388,7 @@ function floorFilter(ops: readonly CanvasOp[]): CanvasOp[] {
 
 export interface WorkCollabHandle {
   readonly sessionId: string;
+  readonly history?: CollabHistoryCapability;
   /** Register this into `lib/canvas-sync-provider.ts`. */
   readonly adapter: CanvasSyncAdapter;
   /** Open the socket (loading the persisted outbox first). Resolves once the socket
@@ -1156,6 +1160,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
 
   return {
     sessionId,
+    history: opts.history,
     adapter,
     connect(): Promise<void> {
       if (ended) return Promise.resolve();

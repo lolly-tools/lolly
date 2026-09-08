@@ -54,6 +54,8 @@ registerHooks({
 } as Parameters<typeof registerHooks>[0]);
 
 const dom = new JSDOM('<!DOCTYPE html><body></body>', { pretendToBeVisual: true, url: 'https://lolly.test/' });
+dom.window.HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
+dom.window.HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
 const W = dom.window as unknown as typeof globalThis & { MouseEvent: typeof MouseEvent; KeyboardEvent: typeof KeyboardEvent };
 for (const k of [
   'window', 'document', 'HTMLElement', 'HTMLInputElement', 'HTMLButtonElement', 'HTMLSelectElement',
@@ -201,7 +203,7 @@ test('Escape closes the dialog and starts nothing', async () => {
   const closed = openMatteDialog(makeHost() as never, { source: source(), sourceName: 'a.png' });
   await settle();
   assert.ok(overlay());
-  dom.window.document.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  overlay()!.closest('dialog')!.dispatchEvent(new dom.window.Event('cancel', { cancelable: true }));
   await closed;
   assert.equal(overlay(), null);
   assert.equal(jobs().length, 0);

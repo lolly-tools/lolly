@@ -55,6 +55,7 @@
  */
 
 import { createRtcCollabHandle } from './rtc-handle.ts';
+import { bindHistoryExchange } from './history-exchange.ts';
 import { seedFromQuery } from '../lib/collab-live-mount.ts';
 import type { CollabBeamCapable } from './beam-ui.ts';
 import type { CeremonyRole, CeremonyTimerHandle } from './ceremony.ts';
@@ -174,6 +175,21 @@ export function rtcCollabConnection(input: RtcConnectionInput): CollabConnection
     },
   });
 
+  // Bind the negotiated shared-history exchange to the reliable beam-json control path
+  // (plan 221 section 9): the responder answers a peer's request from this side's memory
+  // history, gated on the handshake (`historySharingAvailable`) and on disclosure
+  // (earlier revisions are not shared). It coexists with beam transfers on the lane -
+  // each frame kind ignores the other - and is torn down when the connection closes.
+  const historyBinding = handle.history
+    ? bindHistoryExchange({
+        documentId: `collab:${ceremony.toolId ?? 'design'}`,
+        sharing: () => handle.historySharingAvailable(),
+        history: handle.history,
+        sendJson: frame => { transport.beam.json(frame); },
+        onJson: fn => transport.on('message', message => { if (message.lane === 'beam' && message.kind === 'json') fn(message.json); }),
+      })
+    : undefined;
+
   const waitMs = input.seedWaitMs ?? SEED_WAIT_MS;
   // Only the side that is RECEIVING a seed waits for one. The inviter already holds its
   // own model, and an inviter waiting on its peer's hello would delay its own remount by
@@ -188,7 +204,8 @@ export function rtcCollabConnection(input: RtcConnectionInput): CollabConnection
     // `handle.close()` closes the transport under it (rtc-handle's own teardown does),
     // so this is one call and not two - a second `transport.close()` would be a no-op,
     // but stating the ownership once is what keeps it true if either side changes.
-    close: () => { handle.close(); },
+    close: () => { historyBinding?.dispose(); handle.close(); },
+    ...(historyBinding ? { requestPeerHistory: historyBinding.requestList, requestPeerRevision: historyBinding.requestPayload } : {}),
     toolId: ceremony.toolId,
     launch: input.launch,
     // section 6.2a: the inviter owns the saved session, so the acceptor's copy never lands in a

@@ -197,22 +197,43 @@ test('a panel in the right sidebar takes the zoom bar with it, and an empty side
   }
 });
 
-test('the docked bar carries the mark, the zoom verbs, theme/sound and the avatar', () => {
+test('autoDockHud: an ordinary canvas tool follows the sidebar too, but keeps its floating pill visible', () => {
+  // Timezone / Darkroom and every other canvas tool consolidate the HUD into the one right
+  // column (Andy, 2026-09-07) - but unlike the Design editor they have no top bar to carry
+  // the zoom verbs, so the floating pill must STAY VISIBLE while nothing is docked.
+  const h = mount({ hud: true, autoDockHud: true });
+  const panel = document.createElement('div');
+  document.body.appendChild(panel);
+  try {
+    const el = h.stage.querySelector<HTMLElement>('.stage-nav')!;
+    assert.ok(el, 'the pill exists');
+    assert.equal(el.classList.contains('stage-nav--editor'), false, 'and it is a plain canvas pill, not the editor bar');
+    assert.equal(el.hidden, false, 'visible over the stage while the sidebar is empty (no top bar owns zoom here)');
+
+    ED.requestDock('export', panel, { label: 'Export' });
+    assert.equal(ED.isDocked('zoom'), true, 'the HUD followed the docked panel into the column');
+    assert.ok(el.closest('.edge-dock-slot--compact'), 'riding in it as the compact bar');
+    assert.equal(el.hidden, false, 'and visible in there');
+
+    ED.releaseDock('export');
+    assert.equal(ED.isDocked('zoom'), false, 'it leaves when the panel does');
+    assert.equal(h.stage.querySelector<HTMLElement>('.stage-nav')!.hidden, false, 'and the pill is visible again over the stage, never hidden');
+  } finally {
+    ED.releaseDock('export');
+    panel.remove();
+    h.teardown();
+  }
+});
+
+test('the docked bar carries zoom, theme/sound and the avatar without a duplicate app mark', () => {
   const theme = document.createElement('button');
   const sound = document.createElement('button');
   const profile = document.createElement('a');
   profile.className = 'profile-link';
-  const marks: HTMLElement[] = [];
-  const h = mount({ hud: false, editorLayout: true, onMarkMenu: (a) => marks.push(a) }, { theme, sound, profile });
+  const h = mount({ hud: false, editorLayout: true }, { theme, sound, profile });
   try {
     const el = h.stage.querySelector<HTMLElement>('.stage-nav')!;
-    const mark = el.querySelector<HTMLElement>('.stage-nav-mark')!;
-    assert.ok(mark, 'the Lolly mark is on the bar');
-    assert.equal(mark.getAttribute('aria-haspopup'), 'menu');
-    const kids = [...el.children];
-    assert.ok(kids.indexOf(mark) < kids.indexOf(el.querySelector('[data-nav="out"]')!), 'and it leads the zoom controls');
-    mark.click();
-    assert.deepEqual(marks, [mark], 'a tap opens the same menu the top bar opens, anchored to itself');
+    assert.equal(el.querySelector('.stage-nav-mark'), null, 'File menu belongs beside the document name');
     for (const nav of ['out', 'fit', 'in']) {
       assert.ok(el.querySelector(`[data-nav="${nav}"]`), `the bar still carries ${nav}`);
     }

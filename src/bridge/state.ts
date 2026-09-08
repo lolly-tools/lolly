@@ -11,6 +11,7 @@
 import { stripAssetModifiers } from '../../../../engine/src/photo-treatment.ts';
 import { sessionVersionStamp, migrateSessionRecord } from '../../../../engine/src/session-record.ts';
 import type { StateAPI, StateEntry } from '@lolly-tools/core/host-v1';
+import type { RevisionHistoryAPI, RevisionStore } from './revision-history.ts';
 
 /** The saved payload: input values plus the runtime's `__`-prefixed markers. */
 export interface SavedStateData {
@@ -22,7 +23,7 @@ export interface SavedStateData {
   [inputId: string]: unknown;
 }
 
-interface StateRecord {
+export interface StateRecord {
   slot: string;
   toolId: string | undefined;
   toolVersion: string | undefined;
@@ -35,6 +36,7 @@ interface StateRecord {
    *  before it existed have none; readers fall back to the slot's minted
    *  timestamp (`<toolId>:<Date.now()>`) and then updatedAt. */
   createdAt?: string;
+  documentId?: string;
   /** Record-layout version + the engine that wrote it (see engine/session-record.ts).
    *  Optional so records written before versioning still type-check on read. */
   formatVersion?: number;
@@ -63,6 +65,9 @@ export interface StateDb {
 
 /** The web shell's state surface: HostV1's StateAPI plus shell extensions. */
 export interface WebStateAPI extends StateAPI {
+  /** Device-local history. Absent for ephemeral guests and native drivers until
+   * they implement an atomic revision transaction. Never inferred from shell type. */
+  history?: RevisionHistoryAPI;
   save(slot: string, data: SavedStateData, thumb?: string | null): Promise<void>;
   load(slot: string): Promise<SavedStateData | null>;
   list(): Promise<(StateEntry & { filename: string | null; thumb: string | null; createdAt?: string })[]>;
@@ -89,27 +94,24 @@ async function activeDesignSystemStamp(db: StateDb): Promise<{ designSystem?: { 
   } catch { return {}; }
 }
 
-export function createStateAPI(db: StateDb): WebStateAPI {
+export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebStateAPI {
+  const makeRecord = async (slot: string, data: SavedStateData, thumb: string | null): Promise<StateRecord> => {
+    const prior = await db.get('state', slot).catch(() => undefined);
+    const now = new Date().toISOString();
+    return { slot, toolId: data.__toolId, toolVersion: data.__toolVersion, label: data.__label,
+      data, thumb, updatedAt: now, createdAt: prior?.createdAt ?? now,
+      ...sessionVersionStamp(), ...(await activeDesignSystemStamp(db)) };
+  };
   return {
+    ...(revisions ? { history: {
+      ...revisions,
+      recovery: { ...revisions.recovery, save: async (slot, data, options) => revisions.recovery.write(await makeRecord(slot, data, null), options) },
+      checkpoint: async (slot, data, options) => revisions.commit(await makeRecord(slot, data, null), options),
+    } satisfies RevisionHistoryAPI } : {}),
     async save(slot, data, thumb = null) {
-      // Re-saves reuse the slot, so the original creation time only survives by
-      // carrying it forward off the existing record (one extra read per save - 
-      // saves are user actions, never a hot path).
-      const prior = await db.get('state', slot).catch(() => undefined);
-      const now = new Date().toISOString();
-      const record: StateRecord = {
-        slot,
-        toolId: data.__toolId,
-        toolVersion: data.__toolVersion,
-        label: data.__label,
-        data,
-        thumb,
-        updatedAt: now,
-        createdAt: prior?.createdAt ?? now,
-        ...sessionVersionStamp(),
-        ...(await activeDesignSystemStamp(db)),
-      };
-      await db.put('state', record);
+      const record = await makeRecord(slot, data, thumb);
+      if (revisions) await revisions.replace(record);
+      else await db.put('state', record);
     },
 
     async load(slot) {
@@ -137,7 +139,8 @@ export function createStateAPI(db: StateDb): WebStateAPI {
     },
 
     async delete(slot) {
-      await db.delete('state', slot);
+      if (revisions) await revisions.delete(slot);
+      else await db.delete('state', slot);
     },
 
     async sizes() {
@@ -155,12 +158,13 @@ export function createStateAPI(db: StateDb): WebStateAPI {
       const all = await db.getAll('state');
       const refs = new Set<string>();
       for (const record of all) collectAssetRefs(record.data, refs);
+      if (revisions) for (const ref of await revisions.assetRefs()) refs.add(ref);
       return refs;
     },
   };
 }
 
-function collectAssetRefs(value: unknown, refs: Set<string>): void {
+export function collectAssetRefs(value: unknown, refs: Set<string>): void {
   if (!value || typeof value !== 'object') return;
   if (Array.isArray(value)) {
     for (const item of value) collectAssetRefs(item, refs);

@@ -2093,7 +2093,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
         // host carries the web-only bridge methods exportBackup needs; its exact
         // BackupHost type isn't exported from data-transfer.
         const { blob, filename, summary } = await exportBackup({ host: host as unknown as Parameters<typeof exportBackup>[0]['host'], storage: localStorage });
-        saveBlob(blob, filename);
+        await saveBlob(blob, filename);
         announce(tRaw('Exported {sessions} and {images}', {
           sessions: summary.sessions === 1 ? t('1 session') : t('{n} sessions', { n: summary.sessions }),
           images: summary.userAssets === 1 ? t('1 image') : t('{n} images', { n: summary.userAssets }),
@@ -2197,7 +2197,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
         job.progress(0, 0, t('Saving your data backup…'));
         try {
           const { blob, filename, summary } = await exportBackup({ host: host as unknown as Parameters<typeof exportBackup>[0]['host'], storage: localStorage });
-          saveBlob(blob, filename);
+          await saveBlob(blob, filename);
           announce(tRaw('Data backup saved: {sessions}, {images}', {
             sessions: summary.sessions === 1 ? t('1 session') : t('{n} sessions', { n: summary.sessions }),
             images: summary.userAssets === 1 ? t('1 image') : t('{n} images', { n: summary.userAssets }),

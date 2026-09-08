@@ -16,6 +16,7 @@ import {
   segHtml, posGridHtml, wireSegs, POS9, FIELD_GLYPH, TILT_RANGE,
   shapeChoicesFrom, shadowChoicesFrom, frameThumb, dimOf, svgIcon,
 } from './free-canvas-fields.ts';
+import { mountScopedStyle } from '../lib/scope-css.ts';
 import type { BoxFieldConfig } from './free-canvas-math.ts';
 
 // ── jsdom bootstrap (the builders touch `document` only at call time) ─────────
@@ -221,6 +222,47 @@ test('frameThumb: a portrait frame letterboxes on height, not width', () => {
   const thumb = frameThumb(canvasEl, { id: 'f2', x: 0, y: 0, w: 900, h: 1600 }, CFG, { maxW: 132, maxH: 90 });
   assert.equal(thumb.style.height, '90px');
   assert.equal(thumb.style.width, '51px');
+});
+
+test('frameThumb: text and shapes keep canvas-scoped layout outside the canvas', (ctx) => {
+  const base = mountScopedStyle('.lolly-box { position: absolute; display: flex; }', '#tool-canvas');
+  ctx.after(() => base.remove());
+  document.body.innerHTML = `<div id="tool-canvas"><style data-lolly-scope="#tool-canvas">
+    #tool-canvas .lolly-box-text { font-size: 64px; color: rgb(255, 255, 255); }
+    #tool-canvas .shape { border-radius: 50%; background: rgb(0, 128, 0); }
+  </style><div class="lolly-frame-page" data-frame-id="f1">
+    <div class="lolly-box"><p class="lolly-box-text">Make it yours</p></div>
+    <div class="lolly-box shape"></div>
+  </div></div>`;
+  const canvas = document.getElementById('tool-canvas')!;
+  const thumb = frameThumb(canvas, { id: 'f1', w: 1920, h: 1080 }, CFG, { maxW: 132, maxH: 90 });
+  document.body.appendChild(thumb);
+  assert.equal(getComputedStyle(thumb.querySelector('.lolly-box')!).position, 'absolute');
+  assert.equal(getComputedStyle(thumb.querySelector('.lolly-box-text')!).fontSize, '64px');
+  assert.equal(getComputedStyle(thumb.querySelector('.shape')!).borderRadius, '50%');
+  const outside = document.createElement('p');
+  outside.className = 'lolly-box-text';
+  document.body.appendChild(outside);
+  assert.notEqual(getComputedStyle(outside).fontSize, '64px', 'thumbnail CSS cannot leak onto editor chrome');
+  assert.equal(canvas.querySelector('.lolly-box-text')!.textContent, 'Make it yours');
+  canvas.querySelector('style')!.textContent = '#tool-canvas .lolly-box-text { font-size: 72px; }';
+  const updated = frameThumb(canvas, { id: 'f1', w: 1920, h: 1080 }, CFG, { maxW: 132, maxH: 90 });
+  document.body.insertBefore(updated, thumb);
+  assert.equal(getComputedStyle(updated.querySelector('.lolly-box-text')!).fontSize, '72px', 'custom CSS edits invalidate the cached styling, even with an older preview later in the DOM');
+});
+
+test('frameThumb: playhead visibility and editor-only nodes do not blank the preview', () => {
+  document.body.innerHTML = `<div id="tool-canvas"><div class="lolly-frame-page" data-frame-id="f1">
+    <div class="lolly-box seq-off">Later slide text</div>
+    <div class="lolly-box" style="display:none">Authored hidden</div>
+    <button data-export-hide>Editor handle</button>
+  </div></div>`;
+  const canvas = document.getElementById('tool-canvas')!;
+  const thumb = frameThumb(canvas, { id: 'f1', w: 800, h: 600 }, CFG, { maxW: 132, maxH: 90 });
+  assert.equal(thumb.querySelector('.seq-off'), null);
+  assert.equal(thumb.querySelector('[data-export-hide]'), null);
+  assert.equal(thumb.querySelectorAll<HTMLElement>('.lolly-box')[1]!.style.display, 'none');
+  assert.ok(canvas.querySelector('.seq-off'), 'the live scene stays at its current playhead');
 });
 
 test('frameThumb: video in the clone is muted, paused and stripped of autoplay', () => {

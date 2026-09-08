@@ -49,7 +49,9 @@ import { num, type Box } from './free-canvas-math.ts';
 import type { TimeCfg } from './timeline-math.ts';
 import { boxTiming, deriveDuration, indexOfId, kfTrackAfter, moveOverlay, setDuration, setKfTrack } from './timeline-math.ts';
 
-export type ShowcaseId = 'buildup' | 'deconstruct' | 'loop' | 'hero' | 'trench' | 'scan';
+import { launchChoreograph, LAUNCH_RECIPES, type LaunchRecipe } from './launch-choreograph.ts';
+
+export type ShowcaseId = LaunchRecipe | 'buildup' | 'deconstruct' | 'loop' | 'hero' | 'trench' | 'scan';
 export type ChoreoArc = 'intro' | 'feature' | 'outro' | 'loop';
 /** The stagger order - the text split order's vocabulary, plus the stack's own depth. */
 export type ChoreoOrder = '' | 'reverse' | 'center' | 'random' | 'depth';
@@ -92,13 +94,15 @@ export interface ChoreoPlan {
   camera: KfKeyInput[] | null;
 }
 
-export const SHOWCASE_IDS: readonly ShowcaseId[] = Object.freeze(['buildup', 'deconstruct', 'loop', 'hero', 'trench', 'scan']);
+export const SHOWCASE_IDS: readonly ShowcaseId[] = Object.freeze(['buildup', 'deconstruct', 'loop', 'hero', 'trench', 'scan', ...LAUNCH_RECIPES]);
 export const SHOWCASE_ARC: Readonly<Record<ShowcaseId, ChoreoArc>> = Object.freeze({
   buildup: 'intro', deconstruct: 'outro', loop: 'loop', hero: 'feature', trench: 'feature', scan: 'intro',
+  'editorial-reveal': 'intro', 'type-snap': 'intro', 'feature-cascade': 'intro', 'assemble-loop': 'loop',
 });
 /** Authored lengths, ms - what a fresh (untimed) stack is given. */
 export const SHOWCASE_MS: Readonly<Record<ShowcaseId, number>> = Object.freeze({
   buildup: 3000, deconstruct: 2500, loop: 6000, hero: 6000, trench: 5000, scan: 8000,
+  'editorial-reveal': 6000, 'type-snap': 6000, 'feature-cascade': 6000, 'assemble-loop': 6000,
 });
 export const DEFAULT_STAGGER_MS = 90;
 /** The floor under any arc - below this a stagger strobes rather than reads. */
@@ -358,6 +362,7 @@ export function choreograph(stack: readonly ChoreoBox[], stage: ChoreoStage, opt
   const stagger = fin(opts.staggerMs, DEFAULT_STAGGER_MS);
   const rnd = mulberry32(fin(opts.seed, seedFor(boxes.map((b) => b.id))));
   const ranks = rankStack(boxes, opts.order ?? '', rnd);
+  if (LAUNCH_RECIPES.includes(id as LaunchRecipe)) return launchChoreograph(boxes, ranks, id as LaunchRecipe, T, stagger, opts.camera !== false);
   // Drawn AFTER the ranks so a 'random' order and the nudges come from one stream.
   const nudge = boxes.map(() => (float ? rnd() * 2 - 1 : 0));
   const breath = boxes.map(() => (float ? r3(0.015 + rnd() * 0.015) : 0));

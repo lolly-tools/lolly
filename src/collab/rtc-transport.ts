@@ -218,6 +218,7 @@
  */
 
 import { CANVAS_OP_VERSION } from '@lolly-tools/core/canvas-op-v1';
+import { HISTORY_PROTOCOL_VERSION } from '../lib/collab-history.ts';
 import type { CeremonyEffects, CeremonyEvent, CeremonyIceState, CeremonyRole, CeremonyTimers } from './ceremony.ts';
 import type { CollabAnswer, CollabInvite } from './ceremony.ts';
 import type { PlateMaterial } from './plate.ts';
@@ -463,6 +464,8 @@ export type RtcInboundMessage =
       readonly kind: 'hello';
       readonly clientId?: string;
       readonly opVersion?: string;
+      /** The peer's announced shared-history capability, or absent for an older peer. */
+      readonly history?: string;
       /** The inviter's packed session seed (section 6.1) - see {@link RtcTransportOptions.seed}. */
       readonly seed?: string;
     }
@@ -599,6 +602,10 @@ export interface RtcTransportOptions {
   readonly tool?: RtcToolRef;
   /** This device's `CANVAS_OP_VERSION`; defaults to the pinned one. */
   readonly opVersion?: string;
+  /** This device's shared-history capability, announced on the hello beside the op
+   *  version; defaults to `HISTORY_PROTOCOL_VERSION`. A peer that reads a value it does
+   *  not recognise simply leaves shared history disabled (plan 221 section 9). */
+  readonly historyProtocol?: string;
   /**
    * Packed `z`-param session seed, or absent for "you'll receive it on connect" (section 6.1).
    *
@@ -770,6 +777,7 @@ export function createRtcTransport(opts: RtcTransportOptions): RtcTransport {
   const ctor = opts.rtc === undefined ? defaultPeerConnectionCtor() : opts.rtc;
   const timers = opts.timers ?? REAL_TIMERS;
   const opVersion = opts.opVersion ?? CANVAS_OP_VERSION;
+  const historyProtocol = opts.historyProtocol ?? HISTORY_PROTOCOL_VERSION;
   const skin: TokenSkin = opts.skin ?? 'link';
   const gatherTimeoutMs = opts.gatherTimeoutMs ?? GATHER_TIMEOUT_MS;
   const beamLowThreshold = opts.beamLowThreshold ?? BEAM_LOW_THRESHOLD;
@@ -1387,13 +1395,15 @@ export function createRtcTransport(opts: RtcTransportOptions): RtcTransport {
   function sendHello(): void {
     const seed = opts.seed;
     if (seed === undefined) {
-      writeJson('ops', { t: 'hello', c: clientId, v: opVersion });
+      writeJson('ops', { t: 'hello', c: clientId, v: opVersion, h: historyProtocol });
       return;
     }
-    const result = writeJson('ops', { t: 'hello', c: clientId, v: opVersion, s: seed });
+    const result = writeJson('ops', { t: 'hello', c: clientId, v: opVersion, h: historyProtocol, s: seed });
     if (result !== 'too-large' && result !== 'unserializable') return;
     log('rtc-transport: session seed did not fit the hello frame', seed.length);
-    writeJson('ops', { t: 'hello', c: clientId, v: opVersion });
+    // The seed is what is dropped, never the op-version or history declarations: an
+    // acceptor with no seed asks for state on connect, but one with no hello learns neither.
+    writeJson('ops', { t: 'hello', c: clientId, v: opVersion, h: historyProtocol });
   }
 
   function receive(lane: RtcLane, data: unknown): void {
@@ -1443,10 +1453,11 @@ export function createRtcTransport(opts: RtcTransportOptions): RtcTransport {
     if (parsed.t === 'hello') {
       const peerId = typeof parsed.c === 'string' ? parsed.c : undefined;
       const peerOpVersion = typeof parsed.v === 'string' ? parsed.v : undefined;
+      const peerHistory = typeof parsed.h === 'string' && parsed.h.length > 0 ? parsed.h : undefined;
       // The seed is a packed URL fragment from a stranger (section 11.21): typed here, and
       // validated where it is applied - the same rule any shared lolly link follows.
       const peerSeed = typeof parsed.s === 'string' && parsed.s.length > 0 ? parsed.s : undefined;
-      emit('message', { lane: 'ops', kind: 'hello', clientId: peerId, opVersion: peerOpVersion, seed: peerSeed });
+      emit('message', { lane: 'ops', kind: 'hello', clientId: peerId, opVersion: peerOpVersion, history: peerHistory, seed: peerSeed });
       if (peerOpVersion) emitCeremony({ type: 'peer-op-version', opVersion: peerOpVersion });
       return;
     }

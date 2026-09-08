@@ -224,17 +224,15 @@ export function openRateCardsPanel(opts: RateCardsPanelOpts): Promise<void> {
       await refresh();
     }
 
-    /** Download the empty scaffold for the user to fill in and drop back. */
-    function newCard(): void {
+    /** Download the empty scaffold for the user to fill in and drop back. Delivery
+     *  goes through saveBlob → host.export.download, the verb the Tauri shells
+     *  override with a native save, so the scaffold reaches a phone's Files app
+     *  instead of being dropped by the WebView (plan 216 item 1). */
+    async function newCard(): Promise<void> {
       const blob = new Blob([EMPTY_RATECARD_TEMPLATE], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'ratecard-template.json';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      // Lazy import: pro/zip.ts pulls the engine zip barrel, which must not ride a
+      // static edge into this modal component (bundle-budget/boot-path guard).
+      await (await import('../pro/zip.ts')).saveBlob(blob, 'ratecard-template.json');
       say(t('Downloaded a blank rate card. Type your printer’s own numbers into it, then drop it back here.'));
     }
 
@@ -253,7 +251,7 @@ export function openRateCardsPanel(opts: RateCardsPanelOpts): Promise<void> {
     el.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
       if (target.closest('[data-rcm-close]')) { modal.close(); return; }
-      if (target.closest('[data-rcm-new]')) { newCard(); return; }
+      if (target.closest('[data-rcm-new]')) { void newCard(); return; }
       const row = target.closest<HTMLElement>('[data-rcm-digest]');
       const digest = row?.dataset.rcmDigest;
       if (digest && target.closest('[data-rcm-remove]')) {

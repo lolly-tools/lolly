@@ -207,6 +207,22 @@ const FONT_SLOTS = [
   ['italic', '--font-italic', 'var(--font-brand)'],
 ] as const;
 
+/**
+ * The brand token PATH a semantic CSS custom property names, or null for one that
+ * is not a brand token (plans/222). The inverse of the SLOTS / FONT_SLOTS tables
+ * above, so the `.penpot` export binds a box painted `var(--brand-primary)` to
+ * `color.semantic.primary` off the SAME table `applyBrandVars` paints from -
+ * never a second, drifting copy. Accepts the bare property name (`--brand-primary`).
+ */
+export function brandVarTokenPath(cssVar: string): string | null {
+  const name = cssVar.trim();
+  for (const [slot, v] of SLOTS) if (v === name) return `color.semantic.${slot}`;
+  for (const [role, v] of FONT_SLOTS) if (v === name) return `font.${role}`;
+  if (name === '--radius') return 'shape.radius';
+  if (name === '--space') return 'space.base';
+  return null;
+}
+
 const FONT_CACHE_KEY = 'brand-fonts';
 
 // Family names come from an untrusted imported tokens doc and land in a style

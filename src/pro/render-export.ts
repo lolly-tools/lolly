@@ -99,6 +99,10 @@ interface RenderRowOpts {
   watermark?: boolean;
   embedMeta?: boolean;
   thumbnail?: boolean;
+  /** Frame a preview around the first page/artboard when the tool supplies one. */
+  previewPage?: boolean;
+  /** Exact poster time for a curated motion template, through the shared clock. */
+  previewTimeMs?: number;
   /**
    * Resolve raster catalog assets to their small `thumb` derivative instead of the
    * full-res original. ONLY for gallery/preview thumbnails (featured row, personalized
@@ -289,7 +293,7 @@ type ExportStage = HTMLDivElement & { _lottieCleanup?: () => void };
  *        in `unit` (px/mm/cm/in/pt); blank falls back to the tool's native size.
  *        `dpi` sets raster resolution for physical units.
  */
-export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', dpi, composeStack, watermark, embedMeta, thumbnail, thumbAssets, strongPassword, c2pa, imprint, settleMs }: RenderRowOpts = {}): Promise<RenderRowResult> {
+export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', dpi, composeStack, watermark, embedMeta, thumbnail, previewPage, previewTimeMs, thumbAssets, strongPassword, c2pa, imprint, settleMs }: RenderRowOpts = {}): Promise<RenderRowResult> {
   const tool = await getTool(row.toolId);
   if (!isExportable(tool.manifest)) {
     throw new Error(`"${tool.manifest.name}" is render-only and cannot be exported.`);
@@ -324,9 +328,15 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
   const outW = dim(width);
   const outH = dim(height);
 
-  const { stage, canvas } = await mountToolCanvas(tool.styles, runtime.getHydrated(), { layoutW, fixedHeight: layoutH, composeStack, host, settleMs, getModel: () => runtime.getModel() });
-
+  let stage: ExportStage | undefined;
+  let posterClock: ReturnType<typeof import('../bridge/sequence-dom.ts').createSequenceTime> | null = null;
   try {
+    const mounted = await mountToolCanvas(tool.styles, runtime.getHydrated(), { layoutW, fixedHeight: layoutH, composeStack, host, settleMs, getModel: () => runtime.getModel() });
+    stage = mounted.stage;
+    const canvas = mounted.canvas;
+    posterClock = previewTimeMs !== undefined && Number.isFinite(previewTimeMs)
+      ? (await import('../bridge/sequence-dom.ts')).createSequenceTime(canvas) : null;
+    posterClock?.apply(Math.max(0, previewTimeMs ?? 0));
     const fmt = chooseFormat(tool.manifest, format);
     // A "reopen in Lolly" link: this tool's short URL carrying the exact inputs +
     // export settings used for THIS render, so a zip recipient can return to
@@ -373,23 +383,55 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
       exportOpts.provenance = rowMarks.provenance;
     }
     // Motion format → capture a short clip. Its settle time + length come from the
-    // tool's own render.video declaration (the same values the single-tool export bar
-    // uses), with the length clamped so a composed/embedded render stays bounded. The
+    // authored sequence (or render.video for an untimed tool). Only composed child
+    // renders are capped; a batch export must preserve the full document. The
     // exporter (renderVideo / renderGif) reads wait/duration/fps; still formats ignore them.
     if (MOTION_EXPORT_FORMATS.has(fmt)) {
       const vid = (tool.manifest.render as { video?: { wait?: number; duration?: number; fps?: number } }).video ?? {};
       exportOpts.wait = vid.wait ?? 1;
-      exportOpts.duration = Math.min(vid.duration ?? 5, EMBED_MAX_DURATION);
+      const { sequenceDurationMs } = await import('../bridge/sequence-dom.ts');
+      const seconds = sequenceDurationMs(canvas) / 1000 || vid.duration || 5;
+      exportOpts.duration = composeStack ? Math.min(seconds, EMBED_MAX_DURATION) : seconds;
       if (vid.fps) exportOpts.fps = vid.fps;
     }
     // Strong-lock PDF outputs only; the export bridge ignores it for non-pdf formats.
     if (strongPassword && (fmt === 'pdf' || fmt === 'pdf-cmyk')) exportOpts.strongPassword = strongPassword;
-    const blob = await runtime.export(canvas, fmt, exportOpts);
+    const target = previewPage ? canvas.querySelector<HTMLElement>('[data-pdf-page]') ?? canvas : canvas;
+    if (target !== canvas) {
+      const rect = target.getBoundingClientRect();
+      exportOpts.width = rect.width;
+      exportOpts.height = rect.height;
+    }
+    const blob = await runtime.export(target, fmt, exportOpts);
     return { blob, format: fmt, url };
   } finally {
-    stage._lottieCleanup?.(); // destroyed players unregister from animationManager
-    stage.remove();
+    posterClock?.restore();
+    stage?._lottieCleanup?.(); // destroyed players unregister from animationManager
+    stage?.remove();
+    runtime.destroy();
   }
+}
+
+/** A preview uses the same hydration, brand scope and clock as the editor/export.
+ * Only Design is admitted: arbitrary tools may own live resources or globals. */
+export async function mountTemplateMotion(host: HostV1, toolId: string, values: Record<string, InputValue>) {
+  if (toolId !== 'design') throw new Error('Live template motion is available for Design.');
+  const tool = await getTool(toolId);
+  const runtime = await createRuntime(tool, withToolNet(host, tool.manifest), values);
+  let ownedStage: ExportStage | undefined;
+  try {
+    const { stage, canvas } = await mountToolCanvas(tool.styles, runtime.getHydrated(), {
+      layoutW: tool.manifest.render.width, fixedHeight: tool.manifest.render.height,
+      host, getModel: () => runtime.getModel(),
+    });
+    ownedStage = stage;
+    const clock = (await import('../bridge/sequence-dom.ts')).createSequenceTime(canvas);
+    return {
+      stage, canvas, width: tool.manifest.render.width, height: tool.manifest.render.height,
+      seek: (ms: number) => clock.apply(ms),
+      destroy() { clock.restore(); stage._lottieCleanup?.(); stage.remove(); runtime.destroy(); },
+    };
+  } catch (error) { ownedStage?._lottieCleanup?.(); ownedStage?.remove(); runtime.destroy(); throw error; }
 }
 
 /**

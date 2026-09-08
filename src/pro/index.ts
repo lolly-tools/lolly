@@ -1632,7 +1632,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     const usable = state.rows.filter(r => r.toolId && r.manifest);
     if (!usable.length) { showProgress(`<p class="pro-progress-msg">Pick at least one template before exporting.</p>`); return; }
     const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-    saveBlob(new Blob([batchToCsv(state.rows, { unit: state.unit, dpi: state.dpi })], { type: 'text/csv' }), `lolly-batch-${stamp}.csv`);
+    void saveBlob(new Blob([batchToCsv(state.rows, { unit: state.unit, dpi: state.dpi })], { type: 'text/csv' }), `lolly-batch-${stamp}.csv`);
   }
 
   async function importCsvFile(file: File | undefined) {

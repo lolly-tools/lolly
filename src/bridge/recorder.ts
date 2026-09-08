@@ -26,7 +26,7 @@ import type {
 // rasteriser) would drag it into the preload bundle. video-mime.ts is dependency-free.
 import { videoMimeCandidates, audioMimeCandidates, videoBitrate, LIVE_BITS_PER_PIXEL } from './video-mime.ts';
 // Tiny dependency-free shell side channel - safe to import on the boot path.
-import { publishRecordPreview } from '../lib/record-preview.ts';
+import { claimRecordPreview } from '../lib/record-preview.ts';
 import { recorderAvailable } from './capture-support.ts';
 
 /** Best supported recorder mime for a video capture (audio+video), or null. Local
@@ -549,6 +549,7 @@ async function openSession(opts: RecordOpts): Promise<RecordSession> {
   const wantAudio = opts.audio !== false;
   // A screen take always has a video track; a device take only when asked.
   const wantVideo = isScreen || opts.video === true;
+  const publishPreview = wantVideo ? claimRecordPreview() : () => {};
   const source = isScreen ? await openDisplaySource(opts) : await openDeviceSource(opts);
   const { stream } = source;
   // A screen recording's audio is opportunistic - the picker's system-audio checkbox
@@ -561,17 +562,20 @@ async function openSession(opts: RecordOpts): Promise<RecordSession> {
   // the live capture stream to the shell for a self-view during the take (the framing
   // viewfinder is torn down once we open this). Shell-internal side channel; the DOM-free
   // engine stays out of it.
-  if (wantVideo) publishRecordPreview(stream);
+  publishPreview(stream);
   const subscribers = new Set<LevelCallback>();
   const stopAnalyse = haveAudio
     ? analyseStream(stream, (l) => { for (const cb of [...subscribers]) { try { cb(l); } catch { /* ignore */ } } })
     : () => {};
 
   let maxTimer = 0;
+  let released = false;
   const releaseDevices = (): void => {
+    if (released) return;
+    released = true;
     if (maxTimer) { clearTimeout(maxTimer); maxTimer = 0; }
     stopAnalyse();
-    if (wantVideo) publishRecordPreview(null);
+    publishPreview(null);
     source.release();
   };
 

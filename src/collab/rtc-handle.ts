@@ -140,6 +140,8 @@ import type {
   CollabSessionHandle,
   CollabStream,
 } from '../lib/collab-session.ts';
+import { createP2PCollabHistory } from './rtc-history.ts';
+import { historySharingAgreed } from '../lib/collab-history.ts';
 
 // ── Tunables ───────────────────────────────────────────────────────────────────────
 
@@ -271,6 +273,14 @@ export interface RtcCollabHandle extends CollabSessionHandle {
   peerClientId(): string | undefined;
   /** The peer's declared `CANVAS_OP_VERSION`, once its hello has landed. */
   peerOpVersion(): string | undefined;
+  /** The peer's announced shared-history capability, or `undefined` until its hello
+   *  arrives (or forever, for an older peer that announces none). */
+  peerHistoryProtocol(): string | undefined;
+  /** Whether both sides agreed the same shared-history capability - the gate the
+   *  future revision/preview exchange and shared restore open behind (plan 221 section 9).
+   *  False until the peer's hello arrives, and permanently false against an older peer;
+   *  each side's own memory-only session history does not depend on it. */
+  historySharingAvailable(): boolean;
   /** Why this side degraded or ended the session, when this module decided it
    *  ('op-version', an op-guard reason, …). Undefined for a healthy session. */
   reason(): string | undefined;
@@ -404,6 +414,10 @@ export function createRtcCollabHandle(opts: RtcCollabHandleOptions): RtcCollabHa
   let closed = false;
   /** Both peers in a pair are writers; only section 11.19's version skew demotes us. */
   let role: CollabRole = 'writer';
+  /** The transport's memory-only revision history (`rtc-history.ts`). The inviter owns
+   *  the durable document, so it shares its session; an invitee stays memory-scoped.
+   *  Ephemeral by construction and dropped in `close()` - nothing survives the leave. */
+  const history = createP2PCollabHistory({ host: opts.role === 'inviter', role });
   let connection: CollabConnectionState = transport.state().connection;
   /** Local ops emitted since the last completed state exchange (section 6.2's "only when
    *  dirty"). Set by an emission, cleared only by an exchange that fully landed AND
@@ -428,6 +442,7 @@ export function createRtcCollabHandle(opts: RtcCollabHandleOptions): RtcCollabHa
   let reason: string | undefined;
   let peerId: string | undefined;
   let peerVersion: string | undefined;
+  let peerHistory: string | undefined;
   const knownPeers = new Set<string>();
 
   /** Outbound ops awaiting this microtask's flush (one gesture, one frame). */
@@ -791,6 +806,9 @@ export function createRtcCollabHandle(opts: RtcCollabHandleOptions): RtcCollabHa
       peerVersion = version;
       if (!isCompatibleOpVersion(version)) downgrade('op-version');
     }
+    // Additive: an older peer omits it, and shared history simply stays unavailable
+    // (plan 221 section 9). Recorded, never acted on here - the exchange protocol reads it.
+    if (typeof message.history === 'string' && message.history.length > 0) peerHistory = message.history;
     // `message.seed` is deliberately ignored here: a packed session seed is the
     // ceremony's business (and untrusted URL text - section 11.21), and a caller that wants
     // it subscribes to `transport.on('message')` itself.
@@ -913,6 +931,7 @@ export function createRtcCollabHandle(opts: RtcCollabHandleOptions): RtcCollabHa
     roleIn.clear();
     presenceIn.clear();
     opsIn.clear();
+    history.dispose();
   }
 
   // A transport that was already live when the handle was built never emits a state
@@ -928,6 +947,7 @@ export function createRtcCollabHandle(opts: RtcCollabHandleOptions): RtcCollabHa
     get role(): CollabRole {
       return role;
     },
+    history,
     self,
     presenceIn: presenceIn.stream,
     sendPresence,
@@ -945,6 +965,8 @@ export function createRtcCollabHandle(opts: RtcCollabHandleOptions): RtcCollabHa
     roleIn: roleIn.stream,
     peerClientId: () => peerId,
     peerOpVersion: () => peerVersion,
+    peerHistoryProtocol: () => peerHistory,
+    historySharingAvailable: () => historySharingAgreed(peerHistory),
     reason: () => reason,
     exchangeState,
     docState: () => doc.state(),

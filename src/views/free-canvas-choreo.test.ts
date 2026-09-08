@@ -311,7 +311,7 @@ function openPicker(f: Fixture): HTMLElement {
   return p!;
 }
 
-test('the picker offers the six showcases, checks the first, and states the count', () => {
+test('the picker offers the showcases, checks the first, and states the count', () => {
   const f = mount(STACK());
   try {
     const p = openPicker(f);
@@ -320,7 +320,7 @@ test('the picker offers the six showcases, checks the first, and states the coun
     assert.deepEqual(cards.map((c) => c.dataset.choreo), [...SHOWCASE_IDS],
       'in the generator\'s own order, so the picker and the plan tell one story');
     assert.deepEqual(cards.map((c) => c.getAttribute('aria-checked')),
-      ['true', 'false', 'false', 'false', 'false', 'false'], 'Buildup is the default');
+      SHOWCASE_IDS.map((_, i) => i === 0 ? 'true' : 'false'), 'Buildup is the default');
     assert.equal(p.querySelector<HTMLInputElement>('[data-choreo-sec]')!.value, '3',
       'prefilled with Buildup\'s own authored length, in seconds');
     // The third number the picker restates rather than imports, and the one the drift test
@@ -337,7 +337,7 @@ test('the picker offers the six showcases, checks the first, and states the coun
     assert.equal(p.getAttribute('aria-describedby'), hint?.id);
     assert.match(hint!.textContent || '', /^2 boxes\./, 'it says what it is about to act on');
     // A roving tabindex: the checked card is the group's one Tab stop.
-    assert.deepEqual(cards.map((c) => c.tabIndex), [0, -1, -1, -1, -1, -1]);
+    assert.deepEqual(cards.map((c) => c.tabIndex), SHOWCASE_IDS.map((_, i) => i === 0 ? 0 : -1));
     assert.equal(f.writes(), 0, 'nothing is written until the user confirms');
   } finally { f.destroy(); }
 });
@@ -358,6 +358,13 @@ test('the length follows the chosen showcase - until the user types one', () => 
     click(card('scan'));
     assert.equal(sec.value, '4',
       'once the length is theirs, switching cards must not quietly overwrite it');
+    click(card('type-snap'));
+    for (const key of ['float', 'tumble']) {
+      const input = p.querySelector<HTMLInputElement>(`[data-choreo-${key}]`)!;
+      assert.equal(input.disabled, true); assert.equal(input.checked, false);
+    }
+    click(card('buildup'));
+    assert.equal(p.querySelector<HTMLInputElement>('[data-choreo-float]')!.disabled, false);
   } finally { f.destroy(); }
 });
 
@@ -467,3 +474,18 @@ test('_t opens the timeline and parks the playhead there', async () => {
     assert.equal(f.writes(), 0, 'parking the playhead is not an edit');
   } finally { f.destroy(); }
 });
+
+for (const recipe of ['editorial-reveal', 'type-snap', 'feature-cascade', 'assemble-loop']) {
+  test(`quick ${recipe} applies editable tracks in one undo step`, async () => {
+    const f = mount(STACK());
+    try {
+      const p = openPicker(f);
+      click(p.querySelector(`[data-choreo-quick="${recipe}"]`)!);
+      await settle();
+      assert.equal(f.writes(), 1);
+      assert.equal(f.boxes().length, 2, 'quick recipes keep the authored camera');
+      for (const box of f.boxes()) assert.ok(parseKf(box.kf).length >= 4);
+      assert.equal(f.stageEl.querySelector('.fc-choreo-panel'), null);
+    } finally { f.destroy(); }
+  });
+}

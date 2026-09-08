@@ -3,7 +3,7 @@
  * The Design editor's TOP BAR - plan 179 M1, slice A.
  *
  * One horizontal band docked to the top of `.tool-stage` carrying the document
- * identity (Lolly mark, the Home pill, the document name) on the left, the view
+ * identity (the Home pill, File menu, and document name) on the left, the view
  * verbs (undo/redo, the zoom cluster, the Timeline / Navigator / Inspector toggles)
  * in the centre, and the output verbs (Share, the Present split button, Export) plus
  * the profile avatar on the right.
@@ -33,8 +33,7 @@
  * and the compact zoom bar can take a slot in it, beside the export sheet and the
  * Inspector. Two copies of Fit / NN% / ± on one screen is the duplication this bar was
  * built to retire, so while that compact bar is docked the bar hides its own zoom
- * cluster, and puts it back the moment the column gives the bar up. The Lolly mark goes
- * with it, and the profile avatar MOVES: there is one avatar node in this editor, so the
+ * cluster, and puts it back the moment the column gives the bar up. The File menu stays beside the name, and the profile avatar MOVES: there is one avatar node in this editor, so the
  * bar hands it to `profileDock()` while the column is open and takes it back on the way
  * out - hiding it here instead would leave the page with no profile menu at all. Which
  * panels are docked is the host's business, so it arrives as an injected `dock` port -
@@ -49,7 +48,6 @@
 import { t } from '../i18n.ts';
 import { isTypingTarget } from '../lib/typing-target.ts';
 import { icon, type IconName } from '../lib/icons.ts';
-import { LOLLY_MARK_SVG } from '../lib/lolly-mark.ts';
 import type { NarrationActions } from './design-ports.ts';
 
 /**
@@ -72,6 +70,7 @@ export interface DesignTopbarOpts {
     redo(): void;
     register(sync: (canUndo: boolean, canRedo: boolean) => void): void;
   };
+  revisions?: { open(): void };
   /** The document name: the export filename and the saved-session title. */
   name: {
     get(): string;
@@ -143,8 +142,8 @@ export interface DesignTopbarOpts {
   model: { getInput(id: string): unknown; setInput(id: string, v: unknown): void };
   /** The kiosk `?loop` flag, which lives on the URL rather than in the model. */
   loop: { get(): boolean; set(v: boolean): void };
-  /** Open the trimmed document menu under the Lolly mark (the overlay owns its items). */
-  onMarkMenu(anchor: HTMLElement): void;
+  /** Open the document menu beside the filename (the overlay owns its items). */
+  onFileMenu(anchor: HTMLElement): void;
   /** The profile avatar, docked at the bar's right end. Adopted, not cloned. */
   profileEl?: HTMLElement;
   /**
@@ -249,17 +248,6 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
   // root that carries focusable controls over the canvas, rather than a class list.
   root.setAttribute('data-canvas-keys', 'off');
 
-  // ── left: mark, the Home pill island, the name ──────────────────────────────
-  const markBtn = mkBtn('mark', t('More actions'), LOLLY_MARK_SVG, { cls: 'dtb-mark' });
-  markBtn.setAttribute('aria-haspopup', 'menu');
-  // The mark's menu is the OVERLAY's popover, not one of ours (`onMarkMenu` hands the
-  // anchor over and free-canvas spawns it), so the state is written by whoever owns the
-  // menu - free-canvas's spawnPopover/closePopover flip this attribute on the trigger it
-  // was given. It has to exist for them to find, which is why it is stamped here.
-  markBtn.setAttribute('aria-expanded', 'false');
-  markBtn.addEventListener('click', () => { closeMenu(); opts.onMarkMenu(markBtn); });
-  root.appendChild(markBtn);
-
   // Inserted VERBATIM - backHomeHtml() emits its own `.chrome-topleft` island and
   // mountBackPill() (called later, over the whole view) finds `[data-back-pill]`
   // wherever it sits, so the unsaved-changes intercept keeps working. The island's
@@ -269,6 +257,17 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
     holder.innerHTML = opts.backPillHtml;
     while (holder.firstChild) root.appendChild(holder.firstChild);
   }
+
+  // ── left: Home, File menu, document name ──────────────────────────────
+  const fileBtn = mkBtn('file', t('File menu'), icon('menu'));
+  fileBtn.setAttribute('aria-haspopup', 'menu');
+  // The File menu is the OVERLAY's popover, not one of ours (`onFileMenu` hands the
+  // anchor over and free-canvas spawns it), so the state is written by whoever owns the
+  // menu - free-canvas's spawnPopover/closePopover flip this attribute on the trigger it
+  // was given. It has to exist for them to find, which is why it is stamped here.
+  fileBtn.setAttribute('aria-expanded', 'false');
+  fileBtn.addEventListener('click', () => { closeMenu(); opts.onFileMenu(fileBtn); });
+  root.appendChild(fileBtn);
 
   const nameInput = doc.createElement('input');
   nameInput.type = 'text';
@@ -311,6 +310,11 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
   undoBtn.addEventListener('click', () => opts.history.undo());
   redoBtn.addEventListener('click', () => opts.history.redo());
   centre.append(undoBtn, redoBtn, sep());
+  if (opts.revisions) {
+    const revisionsBtn = mkBtn('history', t('History'), icon('history'));
+    revisionsBtn.addEventListener('click', () => opts.revisions?.open());
+    centre.append(revisionsBtn);
+  }
 
   const fitAllBtn = mkBtn('fit-all', t('Fit all'), GLYPH.fitAll, { text: t('Fit all') });
   const fitArtBtn = mkBtn('fit-artboard', t('Fit artboard'), GLYPH.fitArtboard, { text: t('Fit artboard') });
@@ -751,9 +755,6 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
       if (profileEl.parentElement !== target) target.appendChild(profileEl);
       profileSlot.hidden = !!home;
     }
-    // ...and the mark: the docked HUD carries the same swirl and the same menu, so a
-    // second one in the bar is one too many (Andy's screenshot, 2026-09-03).
-    markBtn.hidden = hide;
     measure();
   }
   const unsubDock = opts.dock?.subscribe(() => syncDock()) ?? null;
@@ -800,6 +801,7 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
       { label: t('Undo'), glyph: GLYPH.undo, disabled: undoBtn.disabled, run: () => opts.history.undo() },
       { label: t('Redo'), glyph: GLYPH.redo, disabled: redoBtn.disabled, run: () => opts.history.redo() },
     ];
+    if (opts.revisions) rows.push({ label: t('History'), glyph: icon('history'), run: () => opts.revisions?.open() });
     if (!zoomGroup.hidden) {
       rows.push(
         { label: t('Fit all'), glyph: GLYPH.fitAll, run: () => opts.zoom.fitAll() },

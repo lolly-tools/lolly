@@ -87,7 +87,7 @@ test('docking builds the column, sets --dock-w (persisted width) and the attribu
 test('dock navigation uses the Lolly UI semantic surface, selection and focus roles', () => {
   reset();
   ED.requestDock('neuro', panel('pn'));
-  const css = [...document.querySelectorAll('style')].map((s) => s.textContent ?? '').join('\n');
+  const css = readFileSync(new URL('./edge-dock.css', import.meta.url), 'utf8');
   for (const role of [
     '--ui-color-surface-canvas', '--ui-color-surface-muted', '--ui-color-surface-raised',
     '--ui-color-selection-surface', '--ui-color-selection-border', '--ui-color-focus-ring',
@@ -568,7 +568,7 @@ test('every panel names itself through t() - the tab strip shows that label as b
 test('the column runs from the top edge down to the timeline band - never below the top bar', () => {
   reset();
   ED.requestDock('inspector', panel('pa'));
-  const css = [...document.querySelectorAll('style')].map((s) => s.textContent ?? '').join('\n');
+  const css = readFileSync(new URL('./edge-dock.css', import.meta.url), 'utf8');
   // Andy, 2026-09-03: a column starting under the Design top bar left a blank band above
   // itself, because the bar ends where the column begins.
   assert.match(css, /\.edge-dock \{[^}]*inset-block: 0 var\(--design-timeline-h, 0px\)/, 'the column starts at 0');

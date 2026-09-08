@@ -130,6 +130,9 @@ import type { CollabPlumbing, CollabRuntime } from './collab-plumbing.ts';
 import { createPresenceEngine } from './collab-presence.ts';
 import type { PresenceEngine, PresenceFrame, PresencePeer, PresenceState } from './collab-presence.ts';
 import { rowIdField } from './row-id.ts';
+import type { CollabHistoryCapability } from './collab-history.ts';
+import type { HistoryRange, HistoryWireEntry } from '../collab/history-exchange.ts';
+import type { SavedStateData } from '../bridge/state.ts';
 
 // ── The handle: what a transport owes a session ────────────────────────────────
 
@@ -174,6 +177,15 @@ export interface CollabSessionHandle {
   readonly adapter: CanvasSyncAdapter;
   /** This client's own role. */
   readonly role: CollabRole;
+  /** Optional shared or memory-only revision history supplied by the transport. */
+  readonly history?: CollabHistoryCapability;
+  /** Ask the peer for the revisions it will share, over the negotiated `history-v1`
+   *  capability (plan 221 section 9). Present only when a transport carries the exchange and
+   *  the peer agreed it; metadata only. Populated by the mount from the connection. */
+  requestPeerHistory?(range?: HistoryRange): Promise<readonly HistoryWireEntry[]>;
+  /** Fetch one peer revision's full payload, hash-verified - for opening a new local
+   *  copy, never for overwriting the live shared document. */
+  requestPeerRevision?(revisionId: string): Promise<SavedStateData>;
   readonly self: CollabSelf;
   /** Inbound presence frames, exactly as they came off the lane - unordered and
    *  possibly stale. The engine's per-sender `seq` rule sorts that out (section 11.5). */

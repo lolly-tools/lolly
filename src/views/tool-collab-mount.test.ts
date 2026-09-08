@@ -121,6 +121,13 @@ test('nothing but the seam is statically imported from the collab stack', () => 
       // composition (`./tool-collab.ts`), and the two tests around this one still pin
       // that to a single dynamic import.
       '../lib/collab-live-mount.ts',
+      // Added 2026-09-08 with the memory-only P2P history track (plan 221 section 9). Both
+      // modules import ONLY `../bridge/state.ts` - already in the single-player build - so
+      // like the entries above they cost it nothing: no pill, no rings, no cursors, no
+      // session, no presence engine. The capture itself is armed only inside the runtime
+      // `if (collabHandle && ...)` guard, so a solo mount runs a null-check and stops.
+      '../lib/collab-history.ts',
+      '../lib/collab-history-capture.ts',
     ],
     'the op plumbing (already there), the registry, and the mount hand-offs (already on '
     + 'the boot path) - the pill, rings, cursors and session must stay behind the '
@@ -130,7 +137,9 @@ test('nothing but the seam is statically imported from the collab stack', () => 
 
 test('the ONLY collab identifiers reaching single-player code are the two null holders', () => {
   const mentions = [...SINGLE_PLAYER.matchAll(/\bcollab[A-Za-z]*\b/g)].map(m => m[0]);
-  const allowed = new Set(['collabReanchor', 'collabTeardown', 'collabHandle', 'collab']);
+  // `collabHistory` is `collabHandle?.history` - a null-safe read that is null in single-player
+  // (the capture around it is behind the runtime collabHandle guard); plan 221 section 9.
+  const allowed = new Set(['collabReanchor', 'collabTeardown', 'collabHandle', 'collab', 'collabHistory']);
   assert.deepEqual([...new Set(mentions)].filter(n => !allowed.has(n)), [],
     'a new collab-aware statement outside the guard is a cost every single-player mount pays');
   assert.match(CODE, /let collabReanchor: \(\(\) => void\) \| null = null;/);

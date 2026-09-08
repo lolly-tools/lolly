@@ -259,7 +259,10 @@ export async function captureThumbnail(
         { shutter }
       );
       const svg = await blob.text();
-      if (svg && svg.length <= SVG_THUMB_MAX_BYTES) {
+      // The preview generator downsamples embedded map/photo rasters and applies
+      // its own size budget next. Preserve the vector text until that pass; a
+      // large retina canvas alone must not flatten the entire gallery card.
+      if (svg && (forceVector || svg.length <= SVG_THUMB_MAX_BYTES)) {
         return `data:image/svg+xml,${encodeURIComponent(svg)}`;
       }
     } catch {

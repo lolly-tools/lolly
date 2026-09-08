@@ -33,6 +33,8 @@ registerHooks({
 } as Parameters<typeof registerHooks>[0]);
 
 const dom = new JSDOM('<!DOCTYPE html><body></body>', { pretendToBeVisual: true, url: 'https://lolly.test/' });
+dom.window.HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
+dom.window.HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
 const W = dom.window as unknown as typeof globalThis & { MouseEvent: typeof MouseEvent; KeyboardEvent: typeof KeyboardEvent };
 for (const k of [
   'window', 'document', 'HTMLElement', 'HTMLInputElement', 'HTMLButtonElement', 'HTMLImageElement',
@@ -135,6 +137,40 @@ async function open(
     },
   };
 }
+
+test('native dismissal removes the picker and allows a fresh picker to open', async () => {
+  const done = openPicker(makeHost([]) as never);
+  await settle();
+  const dialog = document.querySelector<HTMLDialogElement>('.asset-picker-dialog')!;
+  assert.ok(dialog.open);
+  assert.ok(dialog.querySelector('.asset-picker-panel'));
+  dialog.dispatchEvent(new W.Event('cancel', { cancelable: true }));
+  assert.equal(await done, null);
+  assert.equal(document.querySelector('.asset-picker-modal'), null);
+  assert.equal(document.querySelector('.asset-picker-dialog'), null);
+  const next = await open({});
+  await next.close();
+});
+
+test('cancelling a nested camera keeps the picker open and stops a late camera stream', async (ctx) => {
+  const { openWebcamCapture } = await import('./picker-webcam.ts');
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  let permit!: (stream: MediaStream) => void;
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: {
+    mediaDevices: { getUserMedia: () => new Promise<MediaStream>(resolve => { permit = resolve; }) },
+  } });
+  ctx.after(() => { if (previous) Object.defineProperty(globalThis, 'navigator', previous); });
+  const picker = await open({});
+  const camera = openWebcamCapture(async () => { throw new Error('no capture expected'); }, () => {});
+  document.querySelector('.webcam-capture-dialog')!.dispatchEvent(new W.Event('cancel', { cancelable: true }));
+  assert.equal(await camera, null);
+  assert.ok(document.querySelector<HTMLDialogElement>('.asset-picker-dialog')!.open);
+  let stops = 0;
+  permit({ getTracks: () => [{ stop() { stops++; } }] } as unknown as MediaStream);
+  await settle();
+  assert.equal(stops, 1, 'a camera granted after dismissal is immediately released');
+  await picker.close();
+});
 
 // ── the requested tab opens ───────────────────────────────────────────────────
 
@@ -248,6 +284,28 @@ test('an untyped pick tiles only the user assets that HAVE a picture', async () 
   await p.close();
 });
 
+
+// ── a 3-D model tile is never a blank <img> at its .glb (plan 216 item 9) ─────
+
+test('a 3-D model with no baked still tiles as a glyph, not a broken <img> of its .glb', async () => {
+  setToolIndex(TOOLS);
+  const model = { id: 'Lolly/02-3d', type: 'model', url: 'blob:model.glb', meta: { name: '3D scene', tags: ['3d'] } } as unknown as AssetRef;
+  const p = await open({ allowUpload: true, type: 'model' }, [model]);
+  const cardHtml = p.panel.querySelector('.asset-picker-library [data-asset-id="Lolly/02-3d"]')!.outerHTML;
+  assert.doesNotMatch(cardHtml, /<img[^>]+blob:model\.glb/, 'no <img> pointed at the raw .glb (that is the blank tile)');
+  assert.ok(p.panel.querySelector('.asset-picker-library [data-asset-id="Lolly/02-3d"] .asset-picker-thumb-stub svg'), 'a box glyph stands in for the missing preview');
+  await p.close();
+});
+
+test('a 3-D model WITH a baked still paints that still', async () => {
+  setToolIndex(TOOLS);
+  const model = { id: 'Lolly/03-3d', type: 'model', url: 'blob:model.glb', meta: { name: 'Posed scene', tags: ['3d'], posterUrl: 'blob:baked-still.png' } } as unknown as AssetRef;
+  const p = await open({ allowUpload: true, type: 'model' }, [model]);
+  const cardHtml = p.panel.querySelector('.asset-picker-library [data-asset-id="Lolly/03-3d"]')!.outerHTML;
+  assert.match(cardHtml, /<img[^>]+blob:baked-still\.png/, 'the baked still is the thumbnail');
+  assert.doesNotMatch(cardHtml, /blob:model\.glb/, 'and never the raw model url');
+  await p.close();
+});
 
 // ── uploads live on their own "Private assets" tab, not inside the Catalog ─────
 

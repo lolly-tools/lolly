@@ -21,7 +21,6 @@ import { mountZoomHud } from '../components/zoom-hud.ts';
 import type { ZoomHud } from '../components/zoom-hud.ts';
 import { isTypingTarget } from '../lib/typing-target.ts';
 import { icon } from '../lib/icons.ts';
-import { LOLLY_MARK_SVG } from '../lib/lolly-mark.ts';
 import { t } from '../i18n.ts';
 import {
   requestDock, releaseDock, isDocked, dockedFullCount, onDockChange,
@@ -30,7 +29,7 @@ import {
 
 /**
  * This module's ONE raw-markup sink. Every caller passes a trusted constant - `icon()`
- * output from lib/icons.ts or the static LOLLY_MARK_SVG - with nothing interpolated.
+ * output from lib/icons.ts - with nothing interpolated.
  */
 function setGlyph(el: HTMLElement, markup: string): void { el.innerHTML = markup; }
 
@@ -65,7 +64,7 @@ export interface StageNavOpts {
   /**
    * EDITOR LAYOUT (the Design editor). The app has one right sidebar - the dock column
    * in lib/edge-dock.ts - and in this layout the zoom HUD belongs IN it: while a panel
-   * is docked there the HUD rides along as the column's compact bar (the Lolly mark,
+   * is docked there the HUD rides along as the column's compact bar (zoom,
    * zoom out / Fit / zoom in, theme and sound), and while the sidebar holds nothing the
    * HUD is hidden and the top bar owns zoom. Andy, 2026-09-02: "if the right sidebar is
    * open the lolly zoom controls theme switcher menu element etc go there too".
@@ -77,11 +76,19 @@ export interface StageNavOpts {
    */
   editorLayout?: boolean;
   /**
-   * Open the Lolly mark menu, anchored to the element handed back (the HUD's own mark
-   * button). The SAME menu the top bar's mark and the tool rail's mark open - the
-   * overlay owns it, this is the `openLollyMenu` port. Absent, no mark is built.
+   * AUTO-DOCK THE HUD for an ordinary canvas tool (Timezone, Darkroom, every stage tool
+   * that is NOT the Design editor). Andy, 2026-09-07: "the right sidebar tabs we have in
+   * the design tool are not reflected in other tools like the timezone or darkroom" - so
+   * these tools consolidate their right side into the same one column too. Like
+   * `editorLayout` the zoom controls FOLLOW the sidebar: while a full panel is docked the
+   * HUD rides in it as the compact bar, and it leaves with the panel.
+   *
+   * Unlike `editorLayout` the floating pill is NOT hidden while undocked: an ordinary tool
+   * has no top bar carrying the zoom verbs, so the stage pill stays its everyday control
+   * (see paintHudVisible, which is editor-only on purpose). Mutually exclusive with
+   * `editorLayout` in practice - the Design editor uses that path, everyone else this one.
    */
-  onMarkMenu?(anchor: HTMLElement): void;
+  autoDockHud?: boolean;
 }
 /** The canvas pan/zoom handle setupStageNav returns. */
 export interface StageNav {
@@ -577,10 +584,14 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   // Editor layout still BUILDS the HUD - it is the dock column's compact bar there -
   // so it overrides `hud: false`; what changes is where it lives (see paintHudVisible).
   const editorLayout = !!opts?.editorLayout;
+  // Ordinary canvas tools that consolidate the HUD into the one right column too (but keep
+  // the floating pill visible when undocked - they have no top bar to carry zoom). The two
+  // flags share the autoDock/onDockChange wiring; only paintHudVisible stays editor-only.
+  const followSidebar = editorLayout || !!opts?.autoDockHud;
   const hudEl = (opts?.hud === false && !editorLayout) ? null : document.createElement('div');
   if (hudEl) {
     // The editor's pill is the dock column's compact bar, not a floating canvas pill: it
-    // leads with the brand mark and it takes the avatar on loan from the top bar, so the
+    // takes the avatar on loan from the top bar, so the
     // fold-anchor dressing (the enlarged avatar, ordered first) must not apply to it.
     // The modifier is what editor.css keys those two exceptions on.
     hudEl.className = editorLayout ? 'stage-nav stage-nav--editor' : 'stage-nav';
@@ -633,24 +644,6 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
       fitContent: icon('resize'),
       extras,
     });
-    // The brand mark leads the bar in editor layout, where there is no avatar to be the
-    // anchor. Short tap opens the SAME menu the top bar's mark and the rail's mark open
-    // (the overlay's own popover, which flips `aria-expanded` on whatever trigger it is
-    // given - hence the attribute being stamped here). Prepended after mountZoomHud,
-    // which clears the container as it builds.
-    if (editorLayout && opts?.onMarkMenu) {
-      const onMark = opts.onMarkMenu;
-      const mark = document.createElement('button');
-      mark.type = 'button';
-      mark.className = 'stage-nav-btn stage-nav-mark';
-      mark.setAttribute('aria-haspopup', 'menu');
-      mark.setAttribute('aria-expanded', 'false');
-      mark.setAttribute('aria-label', t('More actions'));
-      mark.title = t('More actions');
-      setGlyph(mark, LOLLY_MARK_SVG);
-      mark.addEventListener('click', () => onMark(mark));
-      hudEl.prepend(mark);
-    }
   }
 
   // #3: fold the zoom/theme/sound controls behind the lolly swirl so a cluttered tool
@@ -806,11 +799,12 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     };
     grip.addEventListener('pointerdown', onDown);
 
-    // Restore last session's placement. In editor layout the column decides instead
-    // (autoDock below): docking the bar there while the sidebar holds no panel would
-    // reserve a slice of the canvas for a row of zoom buttons and nothing else.
+    // Restore last session's placement. When the HUD follows the sidebar (editor layout,
+    // or an ordinary canvas tool with autoDockHud) the column decides instead (autoDock
+    // below): docking the bar there while the sidebar holds no panel would reserve a slice
+    // of the canvas for a row of zoom buttons and nothing else.
     const saved = loadHudState();
-    if (saved.mode === 'edge' && edgeDockAvailable() && !editorLayout) dockEdge();
+    if (saved.mode === 'edge' && edgeDockAvailable() && !followSidebar) dockEdge();
     else if (typeof saved.left === 'number' && typeof saved.top === 'number') applyFloat(saved.left, saved.top);
 
     return () => {
@@ -841,13 +835,13 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
    * (hudUserUndocked) is left alone for the rest of the session.
    */
   function autoDock(): void {
-    if (!hudEl || !editorLayout) return;
+    if (!hudEl || !followSidebar) return;
     const wanted = dockedFullCount() > 0;
     if (wanted && !isDocked('zoom') && !hudUserUndocked) hudDockEdge?.();
     else if (!wanted && isDocked('zoom')) releaseDock('zoom');
     paintHudVisible();
   }
-  const offDockChange = editorLayout ? onDockChange(() => autoDock()) : null;
+  const offDockChange = followSidebar ? onDockChange(() => autoDock()) : null;
 
   if (!isTouch) {
     if (hudEl) hudDragCleanup = setupHudDrag(hudEl);

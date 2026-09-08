@@ -38,6 +38,7 @@
  * Design top bar, the stage zoom HUD) can follow what is docked without polling.
  */
 import { t } from '../i18n.ts';
+import './edge-dock.css';
 
 const STORE_KEY = 'lolly:edge-dock';
 const MOBILE_MQ = '(max-width: 640px)';   // the shell's canonical breakpoint (mobile-sheet.ts etc.)
@@ -63,8 +64,8 @@ const WIDTH_STEP = 24;        // px per arrow key on the width grip
 // the Design inspector, the export panel, the transcript. Everything but the zoom bar is
 // a full panel: one or two of them share the resizable split, three or more become tabs.
 // The zoom bar is fixed-height and sits above all of it, out of the split and the strip.
-type PanelId = 'zoom' | 'neuro' | 'inspector' | 'export' | 'transcript';
-const ORDER: readonly PanelId[] = ['zoom', 'neuro', 'inspector', 'export', 'transcript'];
+type PanelId = 'zoom' | 'neuro' | 'inspector' | 'history' | 'export' | 'transcript';
+const ORDER: readonly PanelId[] = ['zoom', 'neuro', 'inspector', 'history', 'export', 'transcript'];
 
 /**
  * Why a panel left the column. `user` is a gesture that means "put this away" - the drag
@@ -143,139 +144,6 @@ function isRTL(): boolean {
     && window.getComputedStyle(document.documentElement).direction === 'rtl';
 }
 
-const STYLE_ID = 'edge-dock-css';
-function injectCss(): void {
-  if (document.getElementById(STYLE_ID)) return;
-  const s = document.createElement('style');
-  s.id = STYLE_ID;
-  // Column is viewport-fixed at the inline-end edge, full height, its own scroll.
-  // The slot override forces a floating panel to FLOW inside its slot (it beats the
-  // panel's own position:fixed) but deliberately leaves `transform` alone, so the
-  // wobble impulse still reads on a docked panel.
-  s.textContent = `
-.edge-dock {
-  /* From the top of the viewport down to the timeline band: the editor publishes the
-     band's height on <html> (--design-timeline-h), so the column stops ABOVE the
-     timeline instead of covering it (Andy, 2026-09-03: the sequence editor gets the
-     full width). It starts at the top edge, not below the Design top bar: the bar ends
-     where the column begins, so a column starting under it left a blank band above
-     itself (Andy, later the same day: "fix the dead space"). Resolves to 0 for every
-     other view, where the column keeps its full height. */
-  position: fixed; inset-block: 0 var(--design-timeline-h, 0px); inset-inline-end: 0; z-index: 9400;
-  width: var(--dock-w, ${DEFAULT_W}px);
-  display: flex; flex-direction: column;
-  background: var(--ui-color-surface-canvas);
-  box-shadow: var(--ui-elevation-sheet);
-}
-/* Inset padding so each docked occupant reads as a distinct card/pane (the column
-   background shows around it), not an edge-to-edge slab. */
-.edge-dock-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: var(--ui-space-control-block); box-sizing: border-box; }
-.edge-dock-slot { min-height: 0; overflow: auto; position: relative; }
-.edge-dock-slot--fill { flex: 1 1 auto; }
-/* A tabbed column mounts every panel and shows one. Stated so the slot's own display
-   rules can never beat the hidden attribute. */
-.edge-dock-slot[hidden] { display: none; }
-/* ── the tab strip (three or more full panels) ─────────────────────────────────
-   Two panels split the column; three would each get a third of it, so past two the
-   column shows one at a time and names the rest. Icon + label, because an icon-only
-   strip of four is a guessing game. */
-.edge-dock-tabs {
-  flex: 0 0 auto; display: flex; gap: 2px; margin-block-end: 8px;
-  padding: 2px; border-radius: var(--ui-radius-control); background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent);
-  overflow-x: auto; scrollbar-width: none;
-}
-.edge-dock-tab {
-  flex: 1 1 0; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-  padding: 4px 6px; border: 0; border-radius: var(--ui-radius-choice); cursor: pointer;
-  background: transparent; color: var(--ui-color-text-muted);
-  font: inherit; font-size: calc(11px * var(--a11y-fs)); line-height: 1.2;
-}
-.edge-dock-tab:hover { color: var(--ui-color-text-default); }
-.edge-dock-tab[aria-selected="true"] {
-  background: var(--ui-color-surface-raised); color: var(--ui-color-text-default);
-  box-shadow: var(--ui-elevation-control);
-}
-.edge-dock-tab:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
-.edge-dock-tab-ic { flex: none; display: inline-flex; }
-.edge-dock-tab-ic svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
-.edge-dock-tab-lb { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* A docked occupant is a pane now, not a floating pill/rounded card: drop its large
-   outer radius to a small pane corner. Overrides the panel's own (pill or big) radius. */
-.edge-dock-slot > * { border-radius: var(--ui-radius-choice) !important; }
-/* The compact bar (zoom HUD): fixed height, sits at the top, centred, and does NOT
-   stretch its child to fill (that override lives below, scoped away from it). */
-.edge-dock-slot--compact { flex: 0 0 auto; overflow: visible; display: flex; justify-content: center; padding: 0; }
-/* A gap (the column background) separates the compact bar from a panel below it - it
-   has no resize divider, and the gap reads as "two panes". */
-.edge-dock-slot--compact:not(:last-child) { margin-block-end: var(--ui-space-control-block); }
-.edge-dock-slot--compact > * {
-  position: static !important; inset: auto !important; margin: 0 !important;
-  height: auto !important; width: auto !important; max-width: 100% !important;
-  visibility: visible !important; opacity: 1 !important; pointer-events: auto !important;
-}
-.edge-dock-slot:not(.edge-dock-slot--compact) > * {
-  position: static !important; inset: auto !important; margin: 0 !important;
-  width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important;
-  /* The dock owns visibility here: the export panel's reveal is scoped to its #tool-layout
-     ancestor (tool.css), which stops matching once it is re-parented into this body-level
-     slot. transform is deliberately NOT reset, so the wobble impulse still reads. */
-  visibility: visible !important; opacity: 1 !important; pointer-events: auto !important;
-}
-.edge-dock-grip {
-  /* Wide hit strip straddling the dock's inner edge; the glowing pill comes from the
-     shared .resize-grip component (tool.css) - the SAME grip the inputs sidebar uses. */
-  position: absolute; inset-block: 0; inset-inline-start: -8px; width: 16px;
-  cursor: col-resize; touch-action: none; z-index: 2;
-}
-/* The grip takes the keyboard too (arrows resize, Enter puts the column away), so it
-   has to paint a ring when focused. */
-.edge-dock-grip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
-.edge-dock-divider {
-  flex: 0 0 auto; height: 8px; cursor: row-resize; touch-action: none;
-  background:
-    linear-gradient(var(--ui-color-border-default), var(--ui-color-border-default)) center / 28px 2px no-repeat;
-}
-.edge-dock-collapse {
-  flex: 0 0 auto; height: 28px; border: 0; background: var(--ui-color-surface-muted);
-  color: var(--ui-color-text-muted); cursor: pointer; font: inherit;
-}
-.edge-dock.is-collapsed .edge-dock-body { display: none; }
-.edge-dock-rail { display: none; flex-direction: column; align-items: center; gap: 6px; padding: 6px 0; }
-.edge-dock.is-collapsed .edge-dock-rail { display: flex; }
-.edge-dock-rail-btn {
-  width: 34px; height: 34px; border: 0; border-radius: var(--ui-radius-control); cursor: pointer;
-  background: transparent; color: var(--ui-color-text-default);
-  display: inline-flex; align-items: center; justify-content: center;
-}
-.edge-dock-rail-btn:hover { background: var(--ui-color-surface-muted); }
-.edge-dock-rail-btn svg { width: 18px; height: 18px; }
-.edge-dock-drop {
-  position: fixed; inset-block: 0 var(--design-timeline-h, 0px); inset-inline-end: 0; width: var(--dock-w, ${DEFAULT_W}px);
-  z-index: 9399; pointer-events: none;
-  background: var(--ui-color-selection-surface);
-  outline: 2px dashed var(--ui-color-selection-border); outline-offset: -6px;
-}
-/* A dock panel is an overflow boundary. Tooltips belong above it, not inside
-   its scrollport, otherwise the leftmost Arrange button can show only the tail
-   of “Distribute horizontally”. The delegated body-level tooltip below uses
-   this same app vocabulary, while this selector suppresses the clipped
-   pseudo-element for the one active dock trigger. */
-.edge-dock [data-tip][data-dock-tip-managed]::before,
-.edge-dock [data-tip][data-dock-tip-managed]::after { display: none; }
-.edge-dock-tooltip {
-  position: fixed; z-index: 9501; pointer-events: none;
-  padding: 4px 8px; border-radius: var(--ui-radius-control);
-  background: var(--ui-color-text-default); color: var(--ui-color-surface-canvas);
-  box-shadow: var(--ui-elevation-floating);
-  font: 600 var(--ui-type-label) / 1 var(--ui-type-ui-family);
-  max-width: calc(100vw - 16px); white-space: normal; overflow-wrap: anywhere;
-  text-align: center;
-}
-@media (prefers-reduced-motion: no-preference) {
-  html[data-edge-dock]:not([data-a11y-motion="reduce"]) #view { transition: margin-inline-end var(--ui-motion-navigation) var(--ui-motion-standard); }
-}`;
-  document.head.appendChild(s);
-}
 
 function hideDockTooltip(): void {
   if (dockTooltipTarget) delete dockTooltipTarget.dataset.dockTipManaged;
@@ -345,7 +213,6 @@ function wireDockTooltips(root: HTMLElement): void {
 
 function ensureColumn(): void {
   if (col) return;
-  injectCss();
   col = document.createElement('aside');
   col.className = 'edge-dock';
   col.setAttribute('aria-label', t('Docked panels'));
@@ -429,7 +296,7 @@ function relayout(): void {
   // needs room for its format/options form. Keep the established split for other pairs
   // (for example the player and transcript), but name this pair with the same tabs a
   // crowded dock already uses.
-  const tabbed = fulls.length > 2 || (fulls.includes('inspector') && fulls.includes('export'));
+  const tabbed = fulls.length > 2 || (fulls.includes('history') && fulls.length > 1) || (fulls.includes('inspector') && fulls.includes('export'));
 
   body.textContent = '';
   const slots = new Map<PanelId, HTMLElement>();
@@ -795,7 +662,6 @@ export function edgeDockPreview(on: boolean): void {
   if (on) {
     if (!edgeDockAvailable()) return;
     if (!preview) {
-      injectCss();
       preview = document.createElement('div');
       preview.className = 'edge-dock-drop';
       document.body.appendChild(preview);

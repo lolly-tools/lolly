@@ -61,7 +61,7 @@
 }
 .view-toggle-opt {
   display: inline-flex; align-items: center;
-  padding: var(--sp-3) var(--sp-6); border-radius: var(--ui-radius-control); font-size: var(--ui-type-body); font-weight: 600; line-height: 1.4;
+  padding: var(--sp-3) var(--sp-6); border-radius: calc(var(--ui-radius-control)*1.5); font-size: var(--ui-type-body); font-weight: 600; line-height: 1.4;
   color: var(--ui-color-text-default); text-decoration: none; transition: background var(--ui-motion-feedback), color var(--ui-motion-feedback);
 }
 /* Each tab holds an icon + a label. BOTH show on desktop (Andy, 2026-08-20 -

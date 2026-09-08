@@ -20,6 +20,7 @@
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { num } from './free-canvas-math.ts';
+import { scopeCss, unscopeCss } from '../lib/scope-css.ts';
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
 
 /**
@@ -224,6 +225,33 @@ const THUMB_SCOPE_VAR = /^--(?:brand|lolly|font)-/;
  */
 const THUMB_PAINT = ['background-color', 'background-image', 'color', 'font-family'] as const;
 
+let nextThumbScope = 0;
+const thumbStyles = new WeakMap<HTMLElement, { id: string; source: string; css: string }>();
+
+/** Carry the tool's structural and custom CSS into previews outside its canvas.
+ * Cache the re-scoping per canvas/render; each thumbnail remains self-contained. */
+function frameThumbStyles(canvas: HTMLElement, media: HTMLElement): HTMLStyleElement | null {
+  // Base tool CSS lives in <head>; template/custom CSS lives inside the canvas.
+  const sheets = [
+    ...canvas.ownerDocument.head.querySelectorAll<HTMLStyleElement>('style[data-lolly-scope]'),
+    ...canvas.querySelectorAll<HTMLStyleElement>('style[data-lolly-scope]'),
+  ].filter(sheet => canvas.matches(sheet.dataset.lollyScope!));
+  if (!sheets.length) return null;
+  const source = JSON.stringify(sheets.map(sheet => [sheet.dataset.lollyScope, sheet.textContent]));
+  let cached = thumbStyles.get(canvas);
+  if (!cached || cached.source !== source) {
+    const id = String(++nextThumbScope);
+    const scope = `[data-frame-thumb-scope="${id}"]`;
+    const css = sheets.map(sheet => scopeCss(unscopeCss(sheet.textContent ?? '', sheet.dataset.lollyScope || '#tool-canvas'), scope)).join('\n');
+    cached = { id, source, css };
+    thumbStyles.set(canvas, cached);
+  }
+  media.dataset.frameThumbScope = cached.id;
+  const style = document.createElement('style');
+  style.textContent = cached.css;
+  return style;
+}
+
 /**
  * Repaint a cloned page so it shows what the canvas shows.
  *
@@ -302,6 +330,12 @@ export function frameThumb(
   const page = fid ? canvasEl.querySelector<HTMLElement>(`.lolly-frame-page[data-frame-id="${cssEscape(fid)}"]`) : null;
   const src = page ?? canvasEl;
   const clone = src.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll('style[data-lolly-scope], script, [data-export-hide]').forEach(node => { node.remove(); });
+  // The playhead hides clips outside its current time. A board thumbnail shows
+  // its contents at rest, while authored display:none / hidden flags stay intact.
+  for (const node of [clone, ...clone.querySelectorAll<HTMLElement>('.seq-off, .tl-shot')]) {
+    node.classList.remove('seq-off', 'tl-shot');
+  }
   clone.removeAttribute('id');
   clone.style.position = 'absolute';
   clone.style.left = '0';
@@ -321,6 +355,8 @@ export function frameThumb(
     try { v.pause(); } catch { /* not-ready - ignore */ }
   }
   media.appendChild(clone);
+  const style = frameThumbStyles(canvasEl, media);
+  if (style) media.appendChild(style);
   return media;
 }
 

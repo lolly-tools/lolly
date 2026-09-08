@@ -43,13 +43,14 @@ import {
 import { fmtBytes } from '../lib/format.ts';
 import { fold, tokenize, scoreHaystack, SEARCH_DEBOUNCE_MS } from '../lib/search/match.ts';
 import { getTool } from '../bridge/tool-loader.ts';
-import { trapFocus, type FocusTrap } from '../lib/focus-trap.ts';
 import { wireTabs } from '../lib/tabs.ts';
 import { downscaleRaster, computeResize, MAX_LONGEST_EDGE, readVideoDimensions } from '../bridge/image-resize.ts';
 import { depthHint } from '../lib/image-sample.ts';
 import { createFolderStore, childFolders, folderPath } from '../folders.ts';
 import { announce } from '../a11y.ts';
 import { choiceDialog, confirmDialog } from '../components/confirm-dialog.ts';
+import { openWebcamCapture } from './picker-webcam.ts';
+import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { maybeNudgeAssetMilestone } from '../lib/asset-milestone.ts';
 import { invalidateNeurospicyTracks } from '../lib/neurospicy.ts';
 import { onIdle } from '../lib/clip-thumbs.ts';
@@ -81,7 +82,6 @@ import { typeMatches } from '../bridge/assets.ts';
 import { autoplayLottieThumbs } from './lottie-mount.ts';
 import { previewMedia, motionVideoThumb, armMotionPreviews } from '../lib/preview-media.ts';
 import { escapeHtml } from '../lib/html.ts';
-import { NAV_EVENTS } from '../utils.ts';
 import { t, tRaw, docsAppHref } from '../i18n.ts';
 import { genAiPill, assetAiKind, aiSignalsChip } from '../lib/genai-pill.ts';
 import { isFlagOn, STRIP_UPLOAD_META_FLAG } from '../feature-flags.ts';
@@ -339,6 +339,14 @@ export function openPicker(host: PickerHost, opts: PickerOpts = {}): Promise<Ass
   });
 }
 
+function mountPicker(root: HTMLElement, opts: PickerOpts, onClose: () => void): ModalHandle<AssetRef | null> {
+  const modal = mountModal<AssetRef | null>('', {
+    className: 'modal-overlay asset-picker-dialog', ariaLabel: opts.title ?? t('Choose an asset'), onClose,
+  });
+  modal.el.appendChild(root);
+  return modal;
+}
+
 async function render(
   root: HTMLElement,
   host: PickerHost,
@@ -567,7 +575,7 @@ async function render(
 
   root.innerHTML = `
     <div class="asset-picker-backdrop" aria-hidden="true"></div>
-    <div class="asset-picker-panel" role="dialog" aria-modal="true" aria-labelledby="asset-picker-title">
+    <div class="asset-picker-panel">
       <header class="asset-picker-header">
         <h2 id="asset-picker-title">${escapeHtml(opts.title ?? (collect ? tRaw('Add to {name}', { name: collect.folderName }) : t('Choose an asset')))}</h2>
         <input type="search" class="asset-picker-search" placeholder="${escapeHtml(placeholderFor('library'))}" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(t('Search assets'))}">
@@ -580,9 +588,11 @@ async function render(
       </div>` : ''}
       <div class="asset-picker-body">
         <section class="asset-picker-pane"${paneAria('library')} data-pane="library">
-          ${visualSlot ? `<div class="asset-picker-fitbar"><button type="button" class="asset-picker-fit-toggle" data-fit-toggle aria-pressed="false">${escapeHtml(t('Hide items this slot can’t use'))}</button></div>` : ''}
-          <div class="asset-picker-typebar" role="group" aria-label="${escapeHtml(t('Filter by type'))}" hidden></div>
-          <div class="asset-picker-catbar" role="group" aria-label="${escapeHtml(t('Filter by category'))}" hidden></div>
+          <div class="asset-picker-filters">
+            ${visualSlot ? `<div class="asset-picker-fitbar"><button type="button" class="asset-picker-fit-toggle" data-fit-toggle aria-pressed="false">${escapeHtml(t('Hide items this slot can’t use'))}</button></div>` : ''}
+            <div class="asset-picker-typebar" role="group" aria-label="${escapeHtml(t('Filter by type'))}" hidden></div>
+            <div class="asset-picker-catbar" role="group" aria-label="${escapeHtml(t('Filter by category'))}" hidden></div>
+          </div>
           <section class="asset-picker-recents" hidden></section>
           <section class="asset-picker-favourites" hidden></section>
           <section class="asset-picker-library">
@@ -623,6 +633,10 @@ async function render(
       counts.set('library', typeFiltered(libraryCandidates).filter(c => searchMatches(q, String(c.meta?.name ?? c.id), c.id)).length);
       if (showUserAssets) counts.set('uploads', userAssets.filter(a => searchMatches(q, String(a.meta?.name ?? a.id), a.id)).length);
       if (sessions) counts.set('sessions', sessions.filter(s2 => searchMatches(q, s2.toolName, s2.label, s2.toolId)).length);
+      // Projects was the one tab with no search badge (plan 216 item 5): count the
+      // folders whose name matches, once they've loaded. Cheap - the same in-memory
+      // list renderProjects filters from.
+      if (showProjects && foldersLoaded) counts.set('projects', folders.filter(f => searchMatches(q, f.name)).length);
       counts.set('tools', embedTools.filter(t2 => searchMatches(q, t2.name, t2.description ?? '', t2.id)).length);
     }
     for (const btn of root.querySelectorAll<HTMLElement>('.asset-picker-tab')) {
@@ -662,11 +676,12 @@ async function render(
   // Answers an open trim-to-content card on the user's behalf (keeping the original
   // margins) if the dialog goes away while it is still asking - see offerTrim below.
   let pendingTrim: (() => void) | null = null;
-  let trap: FocusTrap | undefined;
+  let modal: ModalHandle<AssetRef | null> | undefined;
+  let closed = false;
   const close = (value: AssetRef | null): void => {
+    if (closed) return;
+    closed = true;
     stopAudition();
-    NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNav));
-    trap?.release();
     lottieThumbs?.destroy();
     audioThumbs?.destroy();
     textThumbs?.destroy();
@@ -674,16 +689,15 @@ async function render(
     // Before the wipe: the card's teardown revokes its preview URLs, and the upload
     // it is blocking still has to reach storeUserUpload with an answer.
     pendingTrim?.();
+    modal?.close(value);
     root.innerHTML = '';
+    root.remove();
+    if (modalEl === root) modalEl = null;
     if (opener instanceof HTMLElement) opener.focus();
     resolve(value);
   };
-  // A route change under the open dialog (browser Back, an in-app link elsewhere)
-  // closes it: the picker is body-mounted, so it would otherwise keep covering - 
-  // and, via trapFocus's inert background, keep unusable - the freshly-mounted
-  // view, with the openPicker promise never settling (NAV_EVENTS contract, utils.ts).
-  const onNav = (): void => close(null);
-  NAV_EVENTS.forEach(ev => window.addEventListener(ev, onNav));
+  // Native modal lifecycle owns Escape, Back, route teardown and the top layer.
+  // A dock's stacking number can never paint over this picker or eat its clicks.
 
   root.querySelector('.asset-picker-close')?.addEventListener('click', () => close(null));
   root.querySelector('.asset-picker-backdrop')?.addEventListener('click', () => close(null));
@@ -753,9 +767,8 @@ async function render(
   const typebarEl    = root.querySelector<HTMLElement>('.asset-picker-typebar');
   const userEl       = root.querySelector<HTMLElement>('.asset-picker-userassets');
   const searchInput  = root.querySelector<HTMLInputElement>('.asset-picker-search')!;
-  // Contain keyboard focus within the modal (inert the page behind + wrap Tab) and
-  // land focus in the search field. Escape/arrow-roving are handled below already.
-  trap = trapFocus(root, { initialFocus: searchInput });
+  modal = mountPicker(root, opts, () => close(null));
+  searchInput.focus();
   const toolcardHost = root.querySelector<HTMLElement>('.asset-picker-toolcard-host')!;
   const footerEl     = root.querySelector<HTMLElement>('.asset-picker-footer');
   const sessionsPane = root.querySelector<HTMLElement>('.asset-picker-pane[data-pane="sessions"]');
@@ -857,7 +870,6 @@ async function render(
     dt.effectAllowed = 'copy';
   });
   root.querySelector<HTMLElement>('.asset-picker-panel')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { e.preventDefault(); close(null); return; }
     if (e.target === searchInput) {
       // Enter commits a ready tool-render card (paste link → ↵ → use).
       if (e.key === 'Enter') {
@@ -1450,7 +1462,7 @@ async function render(
   // ordinary raster user asset (same path + AssetRef as an upload). Camera teardown is
   // handled inside openWebcamCapture so no track outlives the dialog.
   root.querySelector('.asset-picker-webcam')?.addEventListener('click', async () => {
-    const ref = await openWebcamCapture(host);
+    const ref = await openWebcamCapture(file => storeUserUpload(host, file), host.log);
     if (!ref) return;
     if (collect) { collectToast(await collect.onAsset(ref)); return; }
     close(ref);
@@ -2478,7 +2490,7 @@ async function render(
     renderFavourites();
 
     // Bring the current asset into view - but NEVER steal the caret (2026-08-20
-    // audit): the search field starts focused (trapFocus's initialFocus) and
+    // audit): the search field starts focused and
     // ArrowDown already drops into the grid, so yanking focus onto a card here
     // lost mid-type keystrokes. Only land focus on a card when the user isn't in
     // the search field. Library pane only - collect mode landed focus on Tools.
@@ -2851,6 +2863,17 @@ function recordTabMemory(kind: string, tab: string): void {
   } catch { /* storage off */ }
 }
 
+// A 3-D model or LUT thumbnail: an <img> at a .glb / .cube is the broken-image
+// icon, so paint the baked still the catalog ships beside it (host.assets.query
+// surfaces it as meta.posterUrl for model/lut) or, when there is none, a 3-D box
+// glyph - the honest "this is a model" marker, never a blank tile (plan 216 item 9).
+function modelThumb(ref: AssetRef): string {
+  const poster = typeof ref.meta?.posterUrl === 'string' ? ref.meta.posterUrl : '';
+  return poster
+    ? `<img class="asset-picker-thumb" src="${escapeHtml(poster)}" alt="" loading="lazy" decoding="async">`
+    : `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">${icon('box', { size: 30 })}</span>`;
+}
+
 function card(ref: AssetRef): string {
   const isPlaceholder = ref.meta?._placeholder;
   const name = ref.meta?.name ?? ref.id;
@@ -2867,7 +2890,12 @@ function card(ref: AssetRef): string {
         ? videoThumb(ref.url, 'asset-picker-thumb')
         : ref.type === 'audio'
           ? audioThumb(ref, 'asset-picker-thumb')
-          : `<img class="asset-picker-thumb" src="${escapeHtml(ref.url)}" alt="" loading="lazy" decoding="async">`;
+          // A 3-D model / LUT's `url` is the .glb / .cube binary, which an <img> can't
+          // paint (the blank `Lolly/02-3d` tile, plan 216 item 9). Use the baked
+          // still (posterUrl) when the asset ships one, else a 3-D box glyph.
+          : (ref.type === 'model' || ref.type === 'lut')
+            ? modelThumb(ref)
+            : `<img class="asset-picker-thumb" src="${escapeHtml(ref.url)}" alt="" loading="lazy" decoding="async">`;
   const upBtn = upscaleButton(ref, String(name));
   const cutBtn = matteButton(ref, String(name));
   const vidBtn = vidMatteButton(ref, String(name));
@@ -3020,7 +3048,9 @@ function userCard(ref: AssetRef): string {
           ? (ref.type === 'text'
             ? `<span class="asset-picker-thumb asset-picker-thumb-stub" data-text-thumb="${escapeHtml(ref.id)}" aria-hidden="true">¶</span>`
             : `<span class="asset-picker-thumb asset-picker-thumb-stub" aria-hidden="true">▦</span>`)
-          : `<img class="asset-picker-thumb" src="${escapeHtml(ref.url)}" alt="" loading="lazy" decoding="async">`;
+          : (ref.type === 'model' || ref.type === 'lut')
+            ? modelThumb(ref)
+            : `<img class="asset-picker-thumb" src="${escapeHtml(ref.url)}" alt="" loading="lazy" decoding="async">`;
   return `
     <div class="asset-picker-card asset-picker-card-user">
       <button type="button" class="asset-picker-card-pick" data-asset-id="${escapeHtml(ref.id)}" draggable="true">
@@ -3118,115 +3148,6 @@ async function sanitizeSvgFile(file: Blob): Promise<{ blob: Blob; width?: number
     return { blob: new Blob([svg], { type: SVG_MIME }), width, height };
   }
   return { blob: file }; // genuinely not an SVG - hand back the bytes untouched
-}
-
-/**
- * Webcam capture → Promise<AssetRef | null>.
- *
- * A live <video> preview of the user's camera with a Capture button; the captured
- * frame becomes a raster user asset via the SAME storeUserUpload path as an upload
- * (downscale + on-device store), so the rest of the app treats it identically. This
- * is a pure shell affordance - no engine/bridge/runtime involvement - which is why
- * "webcam as a still image" needs no architectural change. The camera stream is torn
- * down on every exit path (capture, cancel, Escape, backdrop, error) so no track
- * outlives the dialog. Pixels never leave the device.
- */
-function openWebcamCapture(host: PickerHost): Promise<AssetRef | null> {
-  return new Promise((resolve) => {
-    let stream: MediaStream | null = null;
-    let trap: FocusTrap | undefined;
-    const overlay = document.createElement('div');
-    overlay.className = 'webcam-capture-overlay';
-    overlay.innerHTML = `
-      <div class="webcam-capture-backdrop" aria-hidden="true"></div>
-      <div class="webcam-capture-panel" role="dialog" aria-modal="true" aria-label="${escapeHtml(t('Take a photo'))}">
-        <header class="webcam-capture-head">
-          <span>${t('Take a photo')}</span>
-          <button type="button" class="webcam-capture-close" aria-label="${escapeHtml(t('Close'))}">&times;</button>
-        </header>
-        <div class="webcam-capture-stage">
-          <video class="webcam-capture-video" autoplay playsinline muted></video>
-          <div class="webcam-capture-status">${t('Starting camera…')}</div>
-        </div>
-        <footer class="webcam-capture-actions">
-          <button type="button" class="webcam-capture-cancel">${t('Cancel')}</button>
-          <button type="button" class="webcam-capture-shoot" disabled>${t('Capture')}</button>
-        </footer>
-      </div>`;
-    document.body.appendChild(overlay);
-
-    const videoEl  = overlay.querySelector<HTMLVideoElement>('.webcam-capture-video')!;
-    const statusEl = overlay.querySelector<HTMLElement>('.webcam-capture-status')!;
-    const shootBtn = overlay.querySelector<HTMLButtonElement>('.webcam-capture-shoot')!;
-    const opener   = document.activeElement;
-
-    const cleanup = (): void => {
-      trap?.release();
-      if (stream) stream.getTracks().forEach(t => { try { t.stop(); } catch { /* already stopped */ } });
-      stream = null;
-      document.removeEventListener('keydown', onKey);
-      NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNav));
-      overlay.remove();
-      if (opener instanceof HTMLElement) opener.focus();
-    };
-    const done = (val: AssetRef | null): void => { cleanup(); resolve(val); };
-    const onKey = (e: KeyboardEvent): void => { if (e.key === 'Escape') { e.preventDefault(); done(null); } };
-    document.addEventListener('keydown', onKey);
-    // A route change cancels the sheet like Escape/backdrop - camera torn down, the
-    // trap's inert released (the picker beneath nav-closes on the same events).
-    const onNav = (): void => done(null);
-    NAV_EVENTS.forEach(ev => window.addEventListener(ev, onNav));
-    overlay.querySelector('.webcam-capture-backdrop')?.addEventListener('click', () => done(null));
-    overlay.querySelector('.webcam-capture-close')?.addEventListener('click', () => done(null));
-    overlay.querySelector('.webcam-capture-cancel')?.addEventListener('click', () => done(null));
-    // Contain focus over the (already-modal) picker; Escape is handled above. Nested
-    // traps stack - this inerts the picker beneath while the camera sheet is open.
-    trap = trapFocus(overlay, { initialFocus: overlay.querySelector<HTMLElement>('.webcam-capture-cancel') });
-
-    const showError = (msg: string): void => {
-      statusEl.hidden = false;
-      statusEl.textContent = msg;
-      statusEl.classList.add('webcam-capture-error');
-    };
-
-    shootBtn.addEventListener('click', async () => {
-      const w = videoEl.videoWidth, h = videoEl.videoHeight;
-      if (!w || !h) return;
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d')!.drawImage(videoEl, 0, 0, w, h);
-      const blob = await new Promise<Blob | null>(r => canvas.toBlob(r, 'image/png'));
-      if (!blob) { showError(t('Couldn’t capture the frame.')); return; }
-      const file = new File([blob], `webcam-${Date.now()}.png`, { type: 'image/png' });
-      try {
-        const ref = await storeUserUpload(host, file);
-        done(ref);
-      } catch (e) {
-        host.log?.('error', 'Webcam capture store failed', { error: String(e) });
-        showError(t('Couldn’t save the photo.'));
-      }
-    });
-
-    // Kick off the camera; leave the dialog open on failure showing why.
-    (async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: false,
-        });
-        videoEl.srcObject = stream;
-        await videoEl.play().catch(() => {});
-        statusEl.hidden = true;
-        shootBtn.disabled = false;
-        shootBtn.focus();
-      } catch (e) {
-        host.log?.('warn', 'Webcam start failed', { error: String(e) });
-        showError((e as Error | null)?.name === 'NotAllowedError'
-          ? t('Camera permission was declined. Allow camera access, then try again.')
-          : t('Couldn’t start the camera on this device.'));
-      }
-    })();
-  });
 }
 
 // A .lottie is a ZIP (dotLottie): manifest.json + animations/<id>.json (+ optional

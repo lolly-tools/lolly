@@ -40,7 +40,7 @@ const CATEGORY_OF: Record<string, FormatCategory> = {
   png: 'image', jpg: 'image', jpeg: 'image', webp: 'image', avif: 'image',
   svg: 'image', svgz: 'image', bmp: 'image', tiff: 'image', ico: 'image',
   pdf: 'document', 'pdf-cmyk': 'document', 'cmyk-tiff': 'document',
-  pptx: 'document', penpot: 'document', docx: 'document', odt: 'document', html: 'document',
+  pptx: 'document', penpot: 'document', lolly: 'document', docx: 'document', odt: 'document', html: 'document',
   md: 'document', txt: 'document', csv: 'document', json: 'document',
   ics: 'document', vcf: 'document', srt: 'document', vtt: 'document',
   mp4: 'motion', webm: 'motion', gif: 'motion', apng: 'motion',
@@ -65,7 +65,7 @@ const FORMAT_ICON: Record<string, IconName> = {
   srt: 'speech', vtt: 'speech',
   gif: 'animate', apng: 'animate', 'webp-anim': 'animate', 'svg-anim': 'animate',
   exr: 'sunburst', hdr: 'sunburst',                                 // high dynamic range
-  zip: 'package',
+  zip: 'package', lolly: 'package',
   rpm: 'package', 'tar.gz': 'package',                              // Linux packages (plan 197)
 };
 const CATEGORY_ICON: Record<FormatCategory, IconName> = {

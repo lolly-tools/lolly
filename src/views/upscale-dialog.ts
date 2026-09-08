@@ -5,7 +5,7 @@
  * asset.
  *
  * A host-owned modal like the Script-audio sheet: opened lazily from the asset
- * picker's footer, stacks above the picker panel (nested focus trap), and
+ * picker's footer, stacks above the picker in the native top layer, and
  * Escape/backdrop/nav closes. Everything runs locally - the model downloads once
  * (consent line up front, sized from modelBytes()), and the pixels never leave
  * the device. The heavy run is driven from THIS explicit, cancellable affordance,
@@ -27,13 +27,12 @@
  */
 
 import '../styles/upscale.css';   // async CSS chunk (lazy dialog - not on the landing)
-import { trapFocus, type FocusTrap } from '../lib/focus-trap.ts';
+import { mountModal } from '../components/modal.ts';
 import { fmtBytes } from '../lib/format.ts';
 import { escapeHtml } from '../lib/html.ts';
 import { icon } from '../lib/icons.ts';
 import { UPSCALE_DENOISE_STAGED } from '../lib/upscale-models.ts';
 import { startUpscaleJob, type UpscaleJobHost, type UpscaleJobRequest } from '../lib/upscale-job.ts';
-import { NAV_EVENTS } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import type { AssetRef, UpscaleFrame, UpscaleModelId } from '@lolly-tools/core/host-v1';
 
@@ -127,7 +126,6 @@ export function openUpscaleDialog(host: UpscaleHost, opts: UpscaleDialogOpts = {
   if (models.length === 0) return Promise.resolve();
 
   return new Promise((resolve) => {
-    let trap: FocusTrap | undefined;
     let settled = false;
     // The decoded source frame + its name, once a source is loaded. srcBytes is the
     // source's original file bytes, kept for the Content Credential scan at save.
@@ -167,7 +165,7 @@ export function openUpscaleDialog(host: UpscaleHost, opts: UpscaleDialogOpts = {
     overlay.className = 'upscale-overlay';
     overlay.innerHTML = `
       <div class="upscale-backdrop" aria-hidden="true"></div>
-      <div class="upscale-panel" role="dialog" aria-modal="true" aria-label="${escapeHtml(t('Upscale image'))}">
+      <div class="upscale-panel">
         <header class="upscale-head">
           <span>${t('Upscale image')}</span>
           <button type="button" class="upscale-close" aria-label="${escapeHtml(t('Close'))}">&times;</button>
@@ -215,7 +213,10 @@ export function openUpscaleDialog(host: UpscaleHost, opts: UpscaleDialogOpts = {
           <button type="button" class="upscale-run" data-run disabled>${t('Upscale')}</button>
         </footer>
       </div>`;
-    document.body.appendChild(overlay);
+    const modal = mountModal('', {
+      className: 'modal-overlay asset-workflow-dialog', ariaLabel: t('Upscale'), onClose: () => done(),
+    });
+    modal.el.appendChild(overlay);
 
     const chooseEl   = overlay.querySelector<HTMLElement>('[data-choose]')!;
     const fileInput  = overlay.querySelector<HTMLInputElement>('[data-file]')!;
@@ -237,7 +238,6 @@ export function openUpscaleDialog(host: UpscaleHost, opts: UpscaleDialogOpts = {
     const feasEl     = overlay.querySelector<HTMLElement>('[data-feasibility]')!;
     const statusEl   = overlay.querySelector<HTMLElement>('[data-status]')!;
     const runBtn     = overlay.querySelector<HTMLButtonElement>('[data-run]')!;
-    const opener     = document.activeElement;
 
     intentSel.value = defaultIntent;
 
@@ -247,25 +247,14 @@ export function openUpscaleDialog(host: UpscaleHost, opts: UpscaleDialogOpts = {
     const done = (): void => {
       if (settled) return;
       settled = true;
-      trap?.release();
-      document.removeEventListener('keydown', onKey);
       document.removeEventListener('paste', onPaste);
-      NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNav));
-      overlay.remove();
-      if (opener instanceof HTMLElement) opener.focus();
+      modal.close();
       resolve();
     };
-    const onKey = (e: KeyboardEvent): void => { if (e.key === 'Escape') { e.preventDefault(); done(); } };
-    document.addEventListener('keydown', onKey);
-    // A route change closes the sheet like Escape/backdrop.
-    const onNav = (): void => done();
-    NAV_EVENTS.forEach(ev => window.addEventListener(ev, onNav));
     overlay.querySelector('.upscale-backdrop')?.addEventListener('click', () => done());
     overlay.querySelector('.upscale-close')?.addEventListener('click', () => done());
     overlay.querySelector('.upscale-cancel')?.addEventListener('click', () => done());
-    // Contain focus over whatever opened this (the picker is itself modal; nested
-    // traps stack - this inerts the surface beneath while the sheet is open).
-    trap = trapFocus(overlay);
+    overlay.querySelector<HTMLElement>('.upscale-cancel')?.focus();
 
     const showStatus = (msg: string, isError = false): void => {
       statusEl.hidden = false;

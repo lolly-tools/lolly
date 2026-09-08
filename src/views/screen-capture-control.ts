@@ -36,6 +36,7 @@ export function setupScreenCaptureControl({
   actionsApi?: { setDims?: (d?: { width?: number; height?: number; unit?: string }) => void };
   sizeExplicit?: boolean;
 }): void {
+  let disposed = false;
   const bar = document.createElement('div');
   bar.className = 'canvas-screen-bar';
   bar.setAttribute('data-export-hide', '');   // never let the control land in the capture
@@ -74,6 +75,7 @@ export function setupScreenCaptureControl({
   };
 
   const render = (): void => {
+    if (disposed) return;
     recBtn.dataset.state = state;
     recBtn.setAttribute('aria-pressed', String(state === 'recording'));
     stageEl.classList.toggle('is-recording', state === 'recording');
@@ -88,7 +90,7 @@ export function setupScreenCaptureControl({
       timerEl.hidden = true;
       shotBtn.disabled = busy;
     }
-    recBtn.disabled = busy && state !== 'recording';
+    recBtn.disabled = busy;
     refreshCrop();
   };
   render();
@@ -96,6 +98,7 @@ export function setupScreenCaptureControl({
   // A denial is the normal, expected answer to a screen-share prompt - the user changed
   // their mind at the picker. Say so plainly and leave the tool exactly as it was.
   const reportFailure = (e: unknown, what: string): void => {
+    if (disposed) return;
     const name = (e as { name?: string })?.name;
     announce(
       name === 'NotAllowedError' ? 'Screen sharing was cancelled.'
@@ -113,6 +116,7 @@ export function setupScreenCaptureControl({
   const previewHost = (): HTMLElement =>
     (stageEl.querySelector('[data-screen-preview]') as HTMLElement | null) ?? stageEl;
   const previewUnsub = subscribeRecordPreview((stream) => {
+    if (disposed) return;
     if (stream) {
       if (!previewVideo) {
         previewVideo = document.createElement('video');
@@ -319,17 +323,20 @@ export function setupScreenCaptureControl({
 
   // ── Screenshot ──────────────────────────────────────────────────────────────
   shotBtn.addEventListener('click', async () => {
-    if (busy || state === 'recording') return;
+    if (disposed || busy || state === 'recording') return;
     busy = true; render();
     announce('Choose what to capture.');
     try {
       const blob = await host.recorder!.still({ source: 'screen', type: 'image/png' });
+      if (disposed) return;
       const prev = runtime.getModel().find(i => i.id === 'shot')?.value as { id?: string; url?: string } | undefined;
       // Sign the still at capture time as an on-device screen capture, so the file
       // self-asserts what it is and chains as a credentialed ingredient once placed.
       // Never throws - a stamping hiccup returns the original bytes.
       const { stampCaptureClip } = await import('../bridge/export.ts');
+      if (disposed) return;
       const { blob: png, credential } = await stampCaptureClip(host, blob, 'png', { screen: true });
+      if (disposed) return;
       // Persist as a durable user asset: a blob: URL dies on navigation, so a saved
       // session would otherwise reopen with an empty canvas.
       let ref: AssetRef;
@@ -338,12 +345,16 @@ export function setupScreenCaptureControl({
           host as unknown as Parameters<typeof storeRecordingAsset>[0], png, 'png', prev?.id, credential ?? undefined,
         );
       } catch (e) {
+        if (disposed) return;
         host.log('warn', 'screencap: could not persist the shot - using an in-memory image', { error: String(e) });
         ref = { source: 'user', id: 'screenshot.png', type: 'raster', format: 'png', url: URL.createObjectURL(png), meta: { bytes: png.size } };
       }
+      if (disposed) return;
       if (prev?.url?.startsWith('blob:') && String(prev.id).startsWith('screenshot.')) URL.revokeObjectURL(prev.url);
       await runtime.setInput('shot', ref);
+      if (disposed) return;
       await runtime.setInput('crop', { ...FULL });   // a new shot invalidates the old crop region
+      if (disposed) return;
       markSessionDirty();
       // getDisplayMedia may hand back a DPR-scaled or tab-capped surface - report
       // what actually arrived, never a guess.
@@ -359,6 +370,7 @@ export function setupScreenCaptureControl({
   // ── Recording ───────────────────────────────────────────────────────────────
   let cappedWarned = false;
   const tick = (): void => {
+    if (disposed || state !== 'recording') return;
     const el = performance.now() - startTs;
     const remaining = MAX_MS - el;
     timerEl.textContent = fmt(el);
@@ -384,6 +396,8 @@ export function setupScreenCaptureControl({
         maxMs: MAX_MS,
       };
       const res = await runtime.startRecording(opts);
+      if (disposed) return;
+      if (!res.started) { busy = false; render(); return; }
       state = 'recording'; startTs = performance.now();
       busy = false; render();
       timerRaf = requestAnimationFrame(tick);
@@ -395,24 +409,30 @@ export function setupScreenCaptureControl({
         announce('Screen recording started.');
       }
     } catch (e) {
+      if (disposed) return;
       reportFailure(e, 'start recording');
       state = 'idle'; busy = false; render();
     }
   }
 
   async function stop(): Promise<void> {
-    if (state !== 'recording') return;
+    if (disposed || busy || state !== 'recording') return;
     if (timerRaf) cancelAnimationFrame(timerRaf);
     busy = true; render();
     let res: { blob: Blob; mimeType: string; micActive?: boolean } | null = null;
     try { res = await runtime.stopRecording(); }
     catch (e) { host.log('warn', 'screencap: stopRecording failed', { error: String(e) }); }
-    state = 'idle'; busy = false; render();
-    if (res && res.blob.size > 0) await offerClip(res.blob, res.mimeType, res.micActive);
-    else if (res) announce('That recording was too short to save - try again.', { assertive: true });
+    if (disposed) return;
+    state = 'idle'; render();
+    try {
+      if (res && res.blob.size > 0) await offerClip(res.blob, res.mimeType, res.micActive);
+      else if (res) announce('That recording was too short to save - try again.', { assertive: true });
+    } catch (e) { reportFailure(e, 'finish the recording'); }
+    finally { busy = false; render(); }
   }
 
   recBtn.addEventListener('click', () => {
+    if (disposed || busy) return;
     if (state === 'recording') { void stop(); return; }
     if (!busy) void begin();
   });
@@ -431,7 +451,9 @@ export function setupScreenCaptureControl({
     // back to the checkbox.
     const micGot = micActive ?? boolInput('micNarration', false);
     const { stampCaptureClip } = await import('../bridge/export.ts');
+    if (disposed) return;
     const { blob: clip } = await stampCaptureClip(host, blob, ext, { screen: true, microphone: micGot });
+    if (disposed) return;
 
     dlBar?.remove();
     if (dlUrl) { URL.revokeObjectURL(dlUrl); dlUrl = null; }
@@ -467,6 +489,9 @@ export function setupScreenCaptureControl({
   }
 
   (stageEl as HTMLElement & { _recordCleanup?: () => void })._recordCleanup = () => {
+    if (disposed) return;
+    disposed = true;
+    runtime.cancelRecording();
     if (timerRaf) cancelAnimationFrame(timerRaf);
     observer.disconnect();
     unsubModel();
@@ -474,7 +499,7 @@ export function setupScreenCaptureControl({
     if (activePointer !== -1) { try { cropLayer.releasePointerCapture(activePointer); } catch { /* gone */ } }
     cropLayer.remove();
     previewUnsub();
-    previewVideo?.remove(); previewVideo = null;
+    if (previewVideo) { previewVideo.srcObject = null; previewVideo.remove(); previewVideo = null; }
     dlBar?.remove();
     if (dlUrl) { URL.revokeObjectURL(dlUrl); dlUrl = null; }
     const shot = runtime.getModel().find(i => i.id === 'shot')?.value as { id?: string; url?: string } | undefined;

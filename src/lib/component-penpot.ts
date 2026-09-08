@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Native component archives. No DOM dependencies: also exercised by archive tests. */
-import { buildPenpotEntries, penpotUuid, parsePenpotColor, PENPOT_ROOT_ID } from '../../../../engine/src/penpot-file.ts';
-import type { PenpotBuild, PenpotDoc, PenpotIrShape, PenpotBuildOptions } from '../../../../engine/src/penpot-file.ts';
+import { buildPenpotEntries, parsePenpotColor } from '../../../../engine/src/penpot-file.ts';
+import type { PenpotBuild, PenpotDoc, PenpotIrShape, PenpotBuildOptions, PenpotComponentSpec } from '../../../../engine/src/penpot-file.ts';
 import { createTokenSet } from '../../../../engine/src/tokens.ts';
 import { lollyUiTokenDocument } from './lolly-ui-tokens.ts';
 
@@ -13,6 +13,12 @@ export const componentSlug = (name: string): string => name.toLowerCase().replac
  * https://help.penpot.app/technical-guide/developer/data-model/penpot-file-format/
  * Canonical aliases stay intact. Component-specific values live in a separate
  * namespace, so a measured radius never rewrites a global semantic role.
+ *
+ * The bindings and the component declaration ride the engine's IR
+ * (`shape.appliedTokens`, `board.component`), so the ENGINE owns the applied-token
+ * validation and the component/main-instance ids - this shell only measures the
+ * local token values and declares the roles. (plans/222 D: one writer, no
+ * post-processing by layer name.)
  */
 export function buildComponentArchive(doc: PenpotDoc, options: PenpotBuildOptions = {}): PenpotBuild {
   const tokens = structuredClone(doc.tokens ?? lollyUiTokenDocument()) as Rec;
@@ -20,7 +26,6 @@ export function buildComponentArchive(doc: PenpotDoc, options: PenpotBuildOption
   tokens.lolly.component ??= {};
   const semantic = createTokenSet(tokens);
   const roles = semantic.query().filter(t => t.path.startsWith('lolly.ui.'));
-  const bindings = new Map<string, Record<string, string>>();
   const collect = (shape: PenpotIrShape, prefix: string, index: { value: number }): void => {
     const name = `${String(++index.value).padStart(3, '0')} · ${shape.name || shape.type}`;
     shape.name = name;
@@ -62,31 +67,23 @@ export function buildComponentArchive(doc: PenpotDoc, options: PenpotBuildOption
     if (Object.keys(group).length) {
       tokens.lolly.component[prefix] ??= {};
       tokens.lolly.component[prefix][key] = group;
-      bindings.set(name, linked);
+      shape.appliedTokens = linked;
     }
-    if ('children' in shape) shape.children.forEach(child => collect(child, prefix, index));
+    if ('children' in shape) shape.children.forEach(child => { collect(child, prefix, index); });
   };
-  // Clone the authored geometry: building an archive must be repeatable.
+  // Clone the authored geometry: building an archive must be repeatable and must
+  // not rename or bind the caller's own document.
   const pages = structuredClone(doc.pages);
-  pages.forEach((page, i) => page.shapes.forEach(s => collect(s, `${componentSlug(page.name)}-${i + 1}`, { value: i * 100000 })));
-  const build = buildPenpotEntries({ ...doc, pages, tokens }, options);
-  const uuid = options.uuid ?? penpotUuid;
-  for (const [path, entry] of Object.entries(build.entries)) {
-    if (!/^files\/[^/]+\/pages\/[^/]+\/[^/]+\.json$/.test(path) || typeof entry !== 'string') continue;
-    const shape = JSON.parse(entry) as Rec;
-    const applied = bindings.get(shape.name);
-    if (applied) shape.appliedTokens = applied;
-    if (shape.parentId === PENPOT_ROOT_ID && shape.id !== PENPOT_ROOT_ID && shape.type === 'frame') {
-      const id = uuid();
-      Object.assign(shape, { componentId: id, componentFile: build.fileId, componentRoot: true, mainInstance: true });
-      build.entries[`files/${build.fileId}/components/${id}.json`] = JSON.stringify({
-        id, name: shape.name.replace(/^\d+ · /, ''), path: 'Lolly / Components',
-        mainInstanceId: shape.id, mainInstancePage: shape.pageId,
-      });
+  pages.forEach((page, i) => {
+    page.shapes.forEach(s => { collect(s, `${componentSlug(page.name)}-${i + 1}`, { value: i * 100000 }); });
+    // Each top-level board becomes a reusable main component; the engine assigns its id.
+    for (const s of page.shapes) {
+      if (s.type !== 'board') continue;
+      const component: PenpotComponentSpec = { name: String(s.name ?? '').replace(/^\d+ · /, ''), path: 'Lolly / Components' };
+      s.component = component;
     }
-    build.entries[path] = JSON.stringify(shape);
-  }
-  return build;
+  });
+  return buildPenpotEntries({ ...doc, pages, tokens }, options);
 }
 
 /** Plain DTCG document with current semantic colours and dimensions resolved by

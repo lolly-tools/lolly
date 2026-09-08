@@ -460,6 +460,16 @@ export async function mountLiveCollab(conn: CollabConnection): Promise<void> {
     return;
   }
 
+  // Carry the connection's negotiated shared-history requests onto the handle the tool
+  // will mount, so the History panel can offer "Load from peer" (plan 221 section 9). Assigned
+  // in place so the handle's live getters (role, hostClientId) are preserved.
+  if (conn.requestPeerHistory) {
+    Object.assign(conn.handle, {
+      requestPeerHistory: conn.requestPeerHistory,
+      ...(conn.requestPeerRevision ? { requestPeerRevision: conn.requestPeerRevision } : {}),
+    });
+  }
+
   const plan: MountPlan = {
     toolId,
     handle: conn.handle,

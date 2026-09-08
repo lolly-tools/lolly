@@ -24,6 +24,8 @@ import { SEED_WAIT_MS, rtcCollabConnection } from './rtc-connection.ts';
 import type { RtcConnectionTimers } from './rtc-connection.ts';
 import type { CeremonyConnectedHandle } from '../components/collab-ceremony.ts';
 import type { RtcInboundMessage, RtcTransport } from './rtc-transport.ts';
+import { HISTORY_PROTOCOL_VERSION, isCapturableCollabHistory } from '../lib/collab-history.ts';
+import { CANVAS_OP_VERSION } from '@lolly-tools/core/canvas-op-v1';
 
 /** The five members `createRtcCollabHandle` asks of a transport, plus a message pump. */
 function transport(): RtcTransport & { deliver(message: RtcInboundMessage): void; closed(): number } {
@@ -50,6 +52,89 @@ function transport(): RtcTransport & { deliver(message: RtcInboundMessage): void
     closed: () => closes,
   } as unknown as RtcTransport & { deliver(message: RtcInboundMessage): void; closed(): number };
 }
+
+/** Two transports whose beam-json frames cross to each other, for a real over-the-wire
+ *  history exchange. Ops/hellos are delivered by hand so the handshake can be posed. */
+function beamPair() {
+  const mk = (clientId: string) => {
+    const listeners = new Map<string, Set<(value: unknown) => void>>();
+    let peer: { deliver(m: RtcInboundMessage): void } | null = null;
+    const t = {
+      role: 'acceptor', clientId, effects: {} as RtcTransport['effects'],
+      state: () => ({ connection: 'live' }) as ReturnType<RtcTransport['state']>,
+      sendOp: () => 'sent', sendPresence: () => 'sent', sendBeam: () => 'sent',
+      beam: { json: (m: unknown) => peer?.deliver({ lane: 'beam', kind: 'json', json: m }) } as unknown as RtcTransport['beam'],
+      on(type: string, fn: (value: never) => void) {
+        const set = listeners.get(type) ?? new Set(); listeners.set(type, set); set.add(fn as (value: unknown) => void);
+        return () => { set.delete(fn as (value: unknown) => void); };
+      },
+      onCeremonyEvent: () => () => {}, close() {},
+      deliver(message: RtcInboundMessage) { for (const fn of [...(listeners.get('message') ?? [])]) fn(message); },
+      link(other: { deliver(m: RtcInboundMessage): void }) { peer = other; },
+    } as unknown as RtcTransport & { deliver(m: RtcInboundMessage): void; link(o: { deliver(m: RtcInboundMessage): void }): void };
+    return t;
+  };
+  const a = mk('AAA'); const b = mk('BBB');
+  a.link(b); b.link(a);
+  return { a, b };
+}
+
+test('a peer requests the other side history over the beam lane once the handshake agrees', async () => {
+  const { a, b } = beamPair();
+  const host = rtcCollabConnection({ role: 'inviter', ceremony: ceremony({ toolId: 'design' }), transport: b, timers: timers() });
+  const guest = rtcCollabConnection({ role: 'acceptor', ceremony: ceremony({ toolId: 'design' }), transport: a, timers: timers() });
+
+  // Both sides announce the capability on the hello: the exchange is now enabled.
+  a.deliver({ lane: 'ops', kind: 'hello', clientId: 'BBB', opVersion: CANVAS_OP_VERSION, history: HISTORY_PROTOCOL_VERSION });
+  b.deliver({ lane: 'ops', kind: 'hello', clientId: 'AAA', opVersion: CANVAS_OP_VERSION, history: HISTORY_PROTOCOL_VERSION });
+
+  // The host captures a shared-session revision into its memory history.
+  assert.ok(isCapturableCollabHistory(host.handle.history));
+  if (isCapturableCollabHistory(host.handle.history)) {
+    host.handle.history.capture({ documentId: 'doc', toolId: 'design', label: 'Poster', actorId: 'BBB', data: { title: 'shared' } });
+  }
+
+  // The guest asks over the wire and receives the host disclosure-filtered metadata.
+  assert.equal(typeof guest.requestPeerHistory, 'function');
+  const list = await guest.requestPeerHistory!('session');
+  assert.equal(list.length, 1);
+  assert.equal(list[0]?.label, 'Poster');
+  assert.equal((list[0] as { preview?: unknown }).preview, undefined, 'metadata only: no payload or preview crosses');
+
+  guest.close(); host.close();
+});
+
+test('a peer fetches a shared revision payload over the beam lane, hash-verified', async () => {
+  const { a, b } = beamPair();
+  const host = rtcCollabConnection({ role: 'inviter', ceremony: ceremony({ toolId: 'design' }), transport: b, timers: timers() });
+  const guest = rtcCollabConnection({ role: 'acceptor', ceremony: ceremony({ toolId: 'design' }), transport: a, timers: timers() });
+  a.deliver({ lane: 'ops', kind: 'hello', clientId: 'BBB', opVersion: CANVAS_OP_VERSION, history: HISTORY_PROTOCOL_VERSION });
+  b.deliver({ lane: 'ops', kind: 'hello', clientId: 'AAA', opVersion: CANVAS_OP_VERSION, history: HISTORY_PROTOCOL_VERSION });
+
+  assert.ok(isCapturableCollabHistory(host.handle.history));
+  let revisionId = '';
+  if (isCapturableCollabHistory(host.handle.history)) {
+    revisionId = host.handle.history.capture({ documentId: 'doc', toolId: 'design', actorId: 'BBB', data: { title: 'the shared draft', count: 7 } }).id;
+  }
+
+  // The guest lists, then fetches the one revision's full payload as a new local copy.
+  const list = await guest.requestPeerHistory!('session');
+  assert.equal(list[0]?.id, revisionId);
+  const payload = await guest.requestPeerRevision!(revisionId);
+  assert.deepEqual(payload, { title: 'the shared draft', count: 7 });
+
+  guest.close(); host.close();
+});
+
+test('shared history is refused over the wire when the peer never announced the capability', async () => {
+  const { a, b } = beamPair();
+  const host = rtcCollabConnection({ role: 'inviter', ceremony: ceremony({ toolId: 'design' }), transport: b, timers: timers() });
+  const guest = rtcCollabConnection({ role: 'acceptor', ceremony: ceremony({ toolId: 'design' }), transport: a, timers: timers() });
+  // Only an op-version hello, no history capability: the guest must not assume sharing.
+  a.deliver({ lane: 'ops', kind: 'hello', clientId: 'BBB', opVersion: CANVAS_OP_VERSION });
+  await assert.rejects(guest.requestPeerHistory!('session'), /not available/);
+  guest.close(); host.close();
+});
 
 const ceremony = (over: Partial<CeremonyConnectedHandle> = {}): CeremonyConnectedHandle => ({
   role: 'acceptor',

@@ -191,7 +191,7 @@ async function composeProceduralSong(id: string): Promise<ZzfxSong> {
 }
 
 
-export function createAudioAPI(): AudioAPI {
+export function createAudioAPI(): Required<AudioAPI> {
   return {
     isAvailable(): boolean {
       return typeof Worker === 'function'

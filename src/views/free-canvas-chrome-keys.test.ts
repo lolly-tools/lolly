@@ -193,6 +193,26 @@ test('Delete pressed inside a data-canvas-keys="off" root leaves the selection i
   f.destroy();
 });
 
+test('a modal owns Escape and editing keys without changing the canvas behind it', () => {
+  const f = mount([plainBox('a', 700, 700)]);
+  selectAt(f, 760, 760);
+  const dialog = document.createElement('dialog');
+  const button = document.createElement('button');
+  dialog.appendChild(button);
+  document.body.appendChild(dialog);
+  dialog.showModal();
+  button.focus();
+  try {
+    const before = f.commits();
+    for (const key of ['Escape', 'Delete', 'ArrowRight', '/']) {
+      const event = new W.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+      assert.equal(button.dispatchEvent(event), true, `${key} is left to the dialog`);
+    }
+    assert.equal(f.commits(), before);
+    assert.equal(selectionCount(f), 1);
+  } finally { dialog.close(); dialog.remove(); f.destroy(); }
+});
+
 test('the same Delete from an UNMARKED chrome root does delete - the guard is the attribute', () => {
   const f = mount([plainBox('a', 700, 700)]);
   selectAt(f, 760, 760);

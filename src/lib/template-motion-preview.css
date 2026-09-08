@@ -1,0 +1,5 @@
+@layer views {
+  .gcar-slide[data-motion-template] .gcar-open { position: relative; }
+  .gcar-motion-play { position: absolute; left: var(--space-2); bottom: var(--space-2); z-index: 2; min-height: 44px; }
+  .gcar-motion-label { position: absolute; left: var(--space-2); top: var(--space-2); padding: var(--space-1) var(--space-2); border-radius: var(--radius); background: hsl(var(--background)); color: hsl(var(--foreground)); font-size: var(--fs-sm); pointer-events: none; }
+}

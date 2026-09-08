@@ -28,6 +28,7 @@ import type { ToolRuntime, WebToolHost } from './tool.ts';
 export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDirty }: {
   stageEl: HTMLElement; runtime: ToolRuntime; host: WebToolHost; mode: 'audio' | 'video' | 'av'; markSessionDirty: () => void;
 }): void {
+  let disposed = false;
   const isAudio = mode === 'audio';
   const wantAudio = mode !== 'video'; // 'audio' + 'av' capture the mic; 'video' is camera-only
   const wantVideo = mode !== 'audio';
@@ -70,6 +71,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   if (canFlip) {
     stageEl.appendChild(flipBtn);
     flipBtn.addEventListener('click', () => {
+      if (disposed || btn.disabled) return;
       facingMode = facingMode === 'user' ? 'environment' : 'user';
       if (viewfinder) { stopViewfinder(); void startViewfinder(); }   // re-frame with the new camera
       announce(facingMode === 'environment' ? 'Rear camera' : 'Front camera');
@@ -89,14 +91,16 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   if (wantAudio && host.recorder) {
     stageEl.appendChild(micBtn);
     micBtn.addEventListener('click', async () => {
+      if (disposed || btn.disabled) return;
       const { openDevicePicker } = await import('../components/device-picker.ts');
+      if (disposed) return;
       const pick = await openDevicePicker({ kind: 'audioinput', currentMicId: micDeviceId ?? undefined, title: 'Choose a microphone' });
-      if (!pick) return;
+      if (!pick || disposed) return;
       micDeviceId = pick.deviceId;
       // If a sound-check meter is already running, restart it on the new mic so the
       // levels match what the take will record.
       if (state === 'armed') { try { runtime.stopMeter(); await runtime.startMeter({ deviceId: micDeviceId }); } catch { /* ignore */ } }
-      announce('Microphone changed');
+      if (!disposed) announce('Microphone changed');
     });
   }
 
@@ -150,6 +154,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   const warmLabel = isAudio ? 'Warm the mic' : (wantAudio ? 'Warm the camera and mic' : 'Warm the camera');
   const willArm = (): boolean => (isAudio ? runtime.hasLevelHook : !!host.media?.isAvailable?.());
   const render = (): void => {
+    if (disposed) return;
     btn.dataset.state = state;
     btn.setAttribute('aria-pressed', String(state === 'recording'));
     stageEl.classList.toggle('is-recording', state === 'recording');
@@ -187,16 +192,26 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   // ── Video framing viewfinder (shell-drawn from host.media; no onFrame hook) ──
   let viewfinder: HTMLCanvasElement | null = null;
   let vfUnsub: (() => void) | null = null;
+  let vfGeneration = 0, vfStarting = false;
   async function startViewfinder(): Promise<void> {
-    if (isAudio || !host.media?.isAvailable?.() || vfUnsub) return;
-    try { await host.media.start({ facingMode }); } catch { return; /* denied - record still works, just no live view */ }
+    const media = host.media;
+    if (disposed || isAudio || !media?.isAvailable?.() || vfUnsub || vfStarting) return;
+    const generation = ++vfGeneration;
+    vfStarting = true;
+    try { await media.start({ facingMode }); }
+    catch { return; /* denied - record still works, just no live view */ }
+    finally { if (generation === vfGeneration) vfStarting = false; }
+    if (disposed || generation !== vfGeneration) {
+      try { media.stop(); } catch { /* release this late acquisition */ }
+      return;
+    }
     viewfinder = document.createElement('canvas');
     viewfinder.className = 'canvas-record-viewfinder';
     viewfinder.setAttribute('data-export-hide', '');
     cameraHost().appendChild(viewfinder);
     const vctx = viewfinder.getContext('2d');
-    vfUnsub = host.media.subscribe((frame) => {
-      if (!viewfinder || !vctx) return;
+    vfUnsub = media.subscribe((frame) => {
+      if (disposed || generation !== vfGeneration || !viewfinder || !vctx) return;
       if (viewfinder.width !== frame.width) viewfinder.width = frame.width;
       if (viewfinder.height !== frame.height) viewfinder.height = frame.height;
       vctx.putImageData(new ImageData(frame.data.slice(), frame.width, frame.height), 0, 0);
@@ -205,6 +220,8 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     }, { maxEdge: 640 });
   }
   function stopViewfinder(): void {
+    ++vfGeneration;
+    vfStarting = false;
     if (vfUnsub) { vfUnsub(); vfUnsub = null; try { host.media?.stop(); } catch { /* ignore */ } }
     viewfinder?.remove(); viewfinder = null;
     // Framing has ended (flip / begin) - clear any lingering exposure warning; the take's
@@ -220,6 +237,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   // into a <video> so the user keeps seeing themselves. Cleared when the take ends.
   let previewVideo: HTMLVideoElement | null = null;
   const previewUnsub = subscribeRecordPreview((stream) => {
+    if (disposed) return;
     if (stream && !isAudio) {
       if (!previewVideo) {
         previewVideo = document.createElement('video');
@@ -310,18 +328,28 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   }
   function stopExposureSampler(): void { if (sampRaf) { cancelAnimationFrame(sampRaf); sampRaf = 0; } sampAt = 0; }
 
+  let coachGeneration = 0, coachStarting = false;
   async function startCoach(): Promise<void> {
-    if (!wantCoach || coachMeterOn) return;
+    if (disposed || !wantCoach || coachMeterOn || coachStarting) return;
+    const generation = ++coachGeneration;
+    coachStarting = true;
     try {
       await host.recorder!.meter.start(); // raw sound-check stream (kept open through the take)
+      if (disposed || generation !== coachGeneration) {
+        try { host.recorder!.meter.stop(); } catch { /* release this late acquisition */ }
+        return;
+      }
       coachMeterOn = true;
       ensureCoachHud();
       coachUnsub = host.recorder!.meter.subscribe((level) => {
         coachHud?.updateAudio(level, { target: coachTarget, phase: coachPhase });
       });
     } catch { /* mic denied - the take can still proceed, just without coaching */ }
+    finally { if (generation === coachGeneration) coachStarting = false; }
   }
   function stopCoach(): void {
+    ++coachGeneration;
+    coachStarting = false;
     if (coachUnsub) { coachUnsub(); coachUnsub = null; }
     stopExposureSampler();
     exposureFlasher.reset();
@@ -332,6 +360,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
 
   let cappedWarned = false;
   const tick = (): void => {
+    if (disposed || state !== 'recording') return;
     const el = performance.now() - startTs;
     const remaining = MAX_MS - el;
     timerEl.textContent = fmt(el);
@@ -357,13 +386,17 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
         ...(wantVideo ? { maxEdge: 1280, facingMode } : {}),
         ...(wantAudio && micDeviceId ? { audioDeviceId: micDeviceId } : {}),
       };
-      await runtime.startRecording(opts);
+      const result = await runtime.startRecording(opts);
+      if (disposed) return;
+      if (!result.started) { stopCoach(); state = 'idle'; render(); return; }
       coachPhase = 'record';     // switch the HUD from room-check to level coaching
       if (wantCoach) await startCoach(); // in case recording began without an arm (framing) step
+      if (disposed) return;
       state = 'recording'; startTs = performance.now(); render();
       timerRaf = requestAnimationFrame(tick);
       announce(isAudio ? 'Recording started' : 'Video recording started');
     } catch (e) {
+      if (disposed) return;
       const name = (e as { name?: string })?.name;
       const dev = isAudio ? 'microphone' : (wantAudio ? 'camera or microphone' : 'camera');
       announce(
@@ -374,26 +407,34 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       host.log('warn', 'startRecording failed', { error: String(e) });
       stopCoach();   // release the sound-check mic + HUD so a failed take never leaves them live
       state = 'idle'; render();
-    } finally { btn.disabled = false; }
+    } finally { if (!disposed) btn.disabled = false; }
   }
 
   async function stop(): Promise<void> {
-    if (state !== 'recording') return;
+    if (disposed || state !== 'recording' || btn.disabled) return;
     if (timerRaf) cancelAnimationFrame(timerRaf);
     // Measured take length - the one reliable duration source. A fresh MediaRecorder blob
     // often reports duration=Infinity/0, so we hand this to the compositor as a fallback.
     const takeMs = startTs ? performance.now() - startTs : 0;
     btn.disabled = true;
-    let res: { blob: Blob; mimeType: string } | null = null;
+    let res: { blob: Blob; mimeType: string; micActive?: boolean } | null = null;
     try { res = await runtime.stopRecording(); }
     catch (e) { host.log('warn', 'stopRecording failed', { error: String(e) }); }
+    if (disposed) return;
     stopCoach();   // release the sound-check mic + drop the HUD when the take ends
-    state = 'idle'; render(); btn.disabled = false;
-    if (res && res.blob.size > 0) await handleClip(res.blob, res.mimeType, takeMs);
-    else if (res) announce('That recording was too short to save - try again.', { assertive: true });
-    // Audio resumes the live meter for the next take; video returns to idle so the
-    // freshly-captured clip is shown (tap Record again to re-frame and re-record).
-    if (isAudio && runtime.hasLevelHook) { try { coachPhase = 'check'; await runtime.startMeter(micDeviceId ? { deviceId: micDeviceId } : undefined); state = 'armed'; render(); } catch { /* ignore */ } }
+    state = 'idle'; render();
+    try {
+      if (res && res.blob.size > 0) await handleClip(res.blob, res.mimeType, takeMs, res.micActive);
+      else if (res) announce('That recording was too short to save - try again.', { assertive: true });
+      // Rearm only while this control still owns the tool, after processing the take.
+      if (!disposed && isAudio && runtime.hasLevelHook) {
+        coachPhase = 'check';
+        const started = await runtime.startMeter(micDeviceId ? { deviceId: micDeviceId } : undefined);
+        if (!disposed && started) { state = 'armed'; render(); }
+      }
+    } catch (e) {
+      if (!disposed) { host.log('warn', 'record: finish failed', { error: String(e) }); announce('Couldn’t finish the recording.', { assertive: true }); }
+    } finally { if (!disposed) btn.disabled = false; }
   }
 
   // First tap ARMS (audio: mic sound-check; video: camera framing) - so the camera /
@@ -404,17 +445,22 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     try {
       if (isAudio) {
         coachPhase = 'check';   // arming an audio take is a sound check (room cues valid)
-        await runtime.startMeter(micDeviceId ? { deviceId: micDeviceId } : undefined);
+        const started = await runtime.startMeter(micDeviceId ? { deviceId: micDeviceId } : undefined);
+        if (disposed) return;
+        if (!started) { render(); return; }
         announce('Microphone live - check your levels, then tap Record');
       } else {
         await startViewfinder(); // no-op if the camera is denied; recording still works
+        if (disposed) return;
         coachPhase = 'check';
         await startCoach();      // raw mic sound-check → level + background-noise HUD
+        if (disposed) return;
         announce(wantCoach ? 'Camera framing + mic check - tap Record when you’re ready'
           : 'Camera framing - tap Record when you’re ready');
       }
       state = 'armed'; render();
     } catch (e) {
+      if (disposed) return;
       const name = (e as { name?: string })?.name;
       const dev = isAudio ? 'microphone' : 'camera';
       announce(
@@ -424,17 +470,18 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
         : (isAudio ? 'Couldn’t access the microphone.' : 'Couldn’t access the camera.'), { assertive: true });
       host.log('warn', 'arm failed', { error: String(e) });
       render();   // restore the idle label after the transient "Starting…" (state stays 'idle')
-    } finally { btn.disabled = false; }
+    } finally { if (!disposed) btn.disabled = false; }
   }
 
   btn.addEventListener('click', () => {
+    if (disposed || btn.disabled) return;
     if (state === 'recording') { void stop(); return; }
     // Audio arms only when the tool has a coaching hook; video always arms (framing).
     if (state === 'idle' && (isAudio ? runtime.hasLevelHook : host.media?.isAvailable?.())) { void arm(); return; }
     void begin();
   });
 
-  async function handleClip(blob: Blob, mimeType: string, takeMs = 0): Promise<void> {
+  async function handleClip(blob: Blob, mimeType: string, takeMs = 0, micActive?: boolean): Promise<void> {
     if (!isAudio) {
       // Video: the footage becomes the compositor's body clip (see export.renderRecord).
       const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
@@ -444,7 +491,9 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       // chains as a credentialed ingredient. Never throws - a stamping hiccup returns the
       // original bytes + a null credential, so a take is never lost.
       const { stampCaptureClip } = await import('../bridge/export.ts');
-      const { blob: clip, credential } = await stampCaptureClip(host, blob, ext, { camera: true, microphone: true });
+      if (disposed) return;
+      const { blob: clip, credential } = await stampCaptureClip(host, blob, ext, { camera: true, microphone: micActive ?? wantAudio });
+      if (disposed) return;
       // Persist the take as a DURABLE user asset so a SAVED session restores its footage
       // after a reload - a blob: URL dies on navigation and a bare `recording.mp4` id
       // can't be re-resolved, so before this the clip vanished from any reopened session.
@@ -457,9 +506,11 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
           host as unknown as Parameters<typeof storeRecordingAsset>[0], clip, ext, prevClip?.id, credential ?? undefined,
         );
       } catch (e) {
+        if (disposed) return;
         host.log('warn', 'record: could not persist clip - using an in-memory clip', { error: String(e) });
         ref = { source: 'user', id: `recording.${ext}`, type: 'video', format: ext, url: URL.createObjectURL(clip), meta: { bytes: clip.size } };
       }
+      if (disposed) return;
       // Free the prior take's object URL only if it's OUR in-memory fallback (id
       // `recording.<ext>`, minted just above). Every other clip URL - a persisted
       // user/recording|upload/* or a library asset - is bridge-owned + cached, so
@@ -467,6 +518,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       // own eviction on delete.
       if (prevClip?.url?.startsWith('blob:') && String(prevClip.id).startsWith('recording.')) URL.revokeObjectURL(prevClip.url);
       await runtime.setInput('clip', ref);
+      if (disposed) return;
       markSessionDirty();
       // An editable record stage ([data-record-camera] middle frame) auto-processes the
       // export the moment you stop - the tab is foreground and the clip is fresh, so the
@@ -485,10 +537,12 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     // container key; null (an encoder we don't recognise) saves unsigned + logs, rather
     // than mislabelling the bytes.
     const { stampCaptureClip, captureContainer } = await import('../bridge/export.ts');
+    if (disposed) return;
     const container = captureContainer(mimeType);
     let clip = blob;
     if (container) clip = (await stampCaptureClip(host, blob, container, { microphone: true })).blob;
     else host.log('warn', 'record: take saved without Content Credentials - no embedder for this container', { mimeType });
+    if (disposed) return;
     // Publish the take so the export sheet's "Your recording" card offers the
     // same saves (lib/audio-take.ts) - the sheet otherwise only exports the card.
     setAudioTake({ blob: clip, mimeType, container: container ?? null });
@@ -499,6 +553,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   // let the template re-render with the clip + decode a frame, then run the record
   // compositor (renderRecord via runtime.export) and hand back the finished MP4.
   async function autoProcessRecording(ext: string, takeMs = 0): Promise<void> {
+    if (disposed) return;
     if (!stageEl.querySelector('[data-record-stage]')) { announce('Clip captured - export to save your video.'); return; }
     const curtain = showProcessing();
     try {
@@ -512,6 +567,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       let clipVid: HTMLVideoElement | null = null;
       for (let i = 0; i < 20 && !clipVid; i++) {
         await new Promise<void>((r) => requestAnimationFrame(() => r()));
+        if (disposed) return;
         recStage = stageEl.querySelector('[data-record-stage]') as HTMLElement | null;
         clipVid = (recStage?.querySelector('[data-record-clip]') as HTMLVideoElement | null) ?? null;
       }
@@ -543,6 +599,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       const rendering = runtime.export(recStage, ext === 'webm' ? 'webm' : 'mp4', { signal: abort.signal })
         .catch((err: unknown) => { renderErr = err; return null; });
       const blob = await Promise.race([rendering, curtain.whenCancelled.then(() => null)]);
+      if (disposed) return;
       if (curtain.cancelled()) {
         announce('Kept your recording - use the Export button when you are ready.');
         return;
@@ -552,10 +609,12 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       // clue. Surface it instead so the user can retry / use the manual Export button.
       if (!blob || blob.size < 1024) throw new Error(`empty render (${blob?.size ?? 0} bytes)`);
       await host.export.download(blob, `${filename}.${ext}`);
+      if (disposed) return;
       markSessionDirty();
       announce(`Your video is ready - ${fmtBytes(blob.size)}.`);
       curtain.succeed(`${fmtBytes(blob.size)} · ready`);   // self-closes after a beat
     } catch (e) {
+      if (disposed) return;
       host.log('warn', 'record auto-export failed', { error: String(e) });
       announce('Couldn’t process the video automatically - use the Export button to try again.', { assertive: true });
       curtain.close();
@@ -569,7 +628,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   // composite), so the sub line carries ELAPSED time - honest about "still working"
   // without inventing a percentage - and a Cancel that aborts the composite (via the
   // export's abort signal) and hands the stage back with the recorded take on it.
-  let liveCurtain: { close: () => void } | null = null;   // so teardown stops its clock
+  let liveCurtain: { cancel: () => void } | null = null; // teardown also aborts the compositor
   function showProcessing(): { close: () => void; succeed: (sub: string) => void; cancelled: () => boolean; whenCancelled: Promise<void> } {
     const ov = document.createElement('div');
     ov.className = 'canvas-processing';
@@ -601,12 +660,13 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     let resolveCancel!: () => void;
     const whenCancelled = new Promise<void>((res) => { resolveCancel = res; });
     const close = (): void => { clearInterval(timer); liveCurtain = null; ov.remove(); };
-    cancelBtn.addEventListener('click', () => {
+    const cancel = (): void => {
       if (didCancel) return;
       didCancel = true;
       close();
       resolveCancel();
-    });
+    };
+    cancelBtn.addEventListener('click', cancel);
     // Swap to a "ready + size" confirmation, then dismiss - so the user sees what was
     // produced (and how big) rather than the curtain just vanishing.
     const succeed = (sub: string): void => {
@@ -620,7 +680,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       if (subEl) subEl.textContent = sub;
       setTimeout(close, 1600);
     };
-    liveCurtain = { close };
+    liveCurtain = { cancel };
     return { close, succeed, cancelled: () => didCancel, whenCancelled };
   }
 
@@ -686,14 +746,19 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   // Teardown when the stage is removed (the mountTool cleanup calls this plus the
   // runtime's stopMeter/cancelRecording).
   (stageEl as HTMLElement & { _recordCleanup?: () => void })._recordCleanup = () => {
+    if (disposed) return;
+    disposed = true;
+    runtime.stopMeter();
+    runtime.cancelRecording();
     if (timerRaf) cancelAnimationFrame(timerRaf);
     flashUnsub?.();
     cameraObserver.disconnect();
     help.destroy();
     stopViewfinder();
-    previewUnsub(); previewVideo?.remove(); previewVideo = null;
+    previewUnsub();
+    if (previewVideo) { previewVideo.srcObject = null; previewVideo.remove(); previewVideo = null; }
     stopCoach();
-    liveCurtain?.close();
+    liveCurtain?.cancel();
     dlBar?.remove();
     if (dlUrl) { URL.revokeObjectURL(dlUrl); dlUrl = null; }
     setAudioTake(null);   // the take must not outlive its tool view

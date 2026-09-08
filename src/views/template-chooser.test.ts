@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
+import { previewContextSignature } from '../lib/preview-context.ts';
+const previewSig = async (values: unknown) => JSON.stringify([values, await previewContextSignature({} as Parameters<typeof previewContextSignature>[0])]);
 import { openTemplateChooser, parseTemplates, templateValuesById } from './template-chooser.ts';
 
 test('template chooser modal layers above the portalled edge dock', () => {
@@ -166,7 +168,7 @@ test('openTemplateChooser: eagerly renders a preview for every non-blank templat
         getKeys.push(key);
         const id = key.match(/^template:design:(.+):svg$/)?.[1];
         const values = id ? inline[id] : undefined;
-        return values ? { sig: JSON.stringify(values), thumb: THUMB } : null;
+        return values ? { sig: await previewSig(values), thumb: THUMB } : null;
       },
       put: async () => {},
     },
@@ -215,7 +217,7 @@ test('openTemplateChooser: refreshes previews when the mounted brand scope arriv
           brandRoot.style.setProperty('--brand-primary', '#d40000');
         }
         return {
-          sig: JSON.stringify(values),
+          sig: await previewSig(values),
           thumb: key.startsWith('template@') ? brandThumb : THUMB,
         };
       },
@@ -261,7 +263,7 @@ test('openTemplateChooser: yields to idle before the render chunk and between re
           getKeys.push(key);
           const id = key.match(/^template:t:(.+):svg$/)?.[1];
           const values = id ? inline[id] : undefined;
-          return values ? { sig: JSON.stringify(values), thumb: THUMB } : null;
+          return values ? { sig: await previewSig(values), thumb: THUMB } : null;
         },
         put: async () => {},
       },
@@ -299,7 +301,7 @@ test('openTemplateChooser: settling cancels the rest of the preview queue', asyn
         if (getKeys.length === 1) document.querySelector<HTMLElement>('.tmpl-chooser-close')!.click();
         const id = key.match(/^template:t2:(.+):svg$/)?.[1];
         const values = id ? inline[id] : undefined;
-        return values ? { sig: JSON.stringify(values), thumb: THUMB } : null;
+        return values ? { sig: await previewSig(values), thumb: THUMB } : null;
       },
       put: async () => {},
     },

@@ -520,6 +520,7 @@ test('R8: form controls in components-data specimens are styled, not raw UA chro
   const ANCESTOR_STYLED: Record<string, number> = {
     // `.input-row input` - parts/tool.css, imported by views/components.ts
     'input type="text" data-input-id="headline" value="Hello"': 1,
+    // `.export-dims input[type="number"]` - parts/tool-chrome.css, ditto
   };
 
   const actual = new Map<string, number[]>();
@@ -695,7 +696,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // (escape()d LIMITS_HTML + escape()d truncated note), the sheet tabs (escape()d sheet
   // names + numeric/boolean attrs), and the read-error banner (escape()d message) - all
   // user-data interpolations go through escape() (utils.ts).
-  'views/data.ts': 4,
+  'views/data.ts': 3,
   // The in-app docs reader (#/docs, M2 Phase 1). All four sinks are safe: the view
   // scaffold (shellHtml - t() labels + lib/icons markup, no free text), the error banner
   // (escape()d message + an escape(url)'d open-the-docs link), the language switcher's
@@ -767,7 +768,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // warning + two buttons whose only interpolations are a NUMBER (the licensed-asset
   // count, Math.max-clamped) and fixed literal fragments ('it'/'them', 'asset'/'assets')
   // chosen by ternaries on that number - no user text reaches the sink.
-  'components/share-dialog.ts': 1,
+  'components/share-dialog.ts': 2, // +1 2026-09-08: the export-panel share surface (mountSharePanel) fills with the same shell-composed markup as the modal path
   // The row list's innerHTML replace, modelled on profiles-manager.ts. Reviewed - 
   // every interpolated value (digest, name, fact line, reported-speech claim,
   // priced-summary) goes through escape() in rowHtml.
@@ -859,7 +860,6 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // admits no `<`, `>`, quote or backslash in a reported value at all, which
   // add-color.test.ts pins directly.
   'lib/design-system/add-color.ts': 2,
-  'lib/design-system/palette-sheet.ts': 3, // 2026-09-07: swatch/group cards + move-to picker, values escape()d
   // The Design-system studio's Overview room (plan 97 section 5). Its one sink is
   // paint()'s whole-room re-render from overviewHtml(). Reviewed 2026-08-08:
   // every interpolated value is a t() literal, an icon() constant, or escape()d
@@ -1037,8 +1037,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // whose only interpolations are escape()d hexes/names/title/band plus a Number Lc.)
   'views/color-lab.ts': 21,
   'views/components-data.ts': 1,
-  'views/components-examples.ts': 1, // 2026-09-07: the live design-workspace specimen fill, escape()d
   'views/components.ts': 8, // +1 2026-09-06: the reference block's fill (components-reference.ts output, every value escape()d)
+  'views/components-examples.ts': 1, // shared bulkBarHtml renderer with literal demo actions; all labels escaped by the renderer
   // The cost card's body replace. Reviewed - costBodyHtml (views/cost-panel.ts)
   // escape()s every interpolated value: line/calc/amount cells, the source and
   // disclaimer sentences, and the total/headline strings. Rule 6/9's honesty
@@ -1182,7 +1182,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // folder-grouped grid. Reviewed: the grid's only dynamic values are the folder name
   // (escapeHtml()d), the t('Ungrouped') heading, and userCard() output, the same card
   // builder the flat list already used.
-  'views/picker.ts': 30,
+  // Camera markup moved unchanged to picker-webcam; labels are translated literals.
+  'views/picker.ts': 29,
+  'views/picker-webcam.ts': 1,
   // Personal send targets (plans/129): the connections section body. One sink; every
   // dynamic value (labels, provider kind, account names, scopes notes, field values)
   // goes through escape() in oauthRowHtml/credentialRowsHtml, the rest is t() output.
@@ -1262,7 +1264,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // +2 on 2026-09-04 (plans/186): the "Editing <label>" line under the studio header and
   // the read-only page for a locked design system - the label is escape()d in both, the
   // rest is t() copy and fixed links.
-  'views/start.ts': 8, // ratcheted 11->8 2026-09-07: colour-studio rework moved sinks into escape()d renderers
+  'views/start.ts': 8,
+  // Moved from start.ts: static sheet shell and escaped swatchTile()/group labels.
+  'lib/design-system/palette-sheet.ts': 3,
   // 1 as of 2026-08-09 (new template-chooser overlay, Design frame primitive). The
   // one innerHTML sink is the dialog scaffold: escapeHtml()'d toolName, static t()
   // markup, and the blankTile/groupsHtml composed-markup helpers; no raw input.
@@ -1332,7 +1336,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // +1 on 2026-09-04 (plans/186): the "Switched to <name>" notice inserted on a
   // design-system switch (the "Made with" one rides the existing sidebar markup). The
   // name is the record's label through escape(); the rest is t() copy and fixed ids.
-  'views/tool.ts': 16,
+  'views/tool.ts': 15, // ratcheted 16->15 2026-09-08: an interpolated sink moved into an escaped renderer
+  'views/tool-history-controls.ts': 1, // 2026-09-08: el.innerHTML = icon(glyph), glyph a 'undo'|'redo' literal (icon-registry markup, no user data)
   // 21 as of 2026-07-31: +2 deep-scan watermark notes (trustmarkNoteHtml,
   // contentSealNoteHtml). Reviewed - every attacker-controlled value on this
   // page (decoded payload/message hex, schema, filenames, hex dumps of file
@@ -1633,7 +1638,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // content-pattern tiles/rows rather than leaking compatibility shadows.
     // 323 → 322: the component library now consumes the shared floating elevation.
     // 322 → 321: the workspace-chrome specimens took theirs from the part sheets too.
-    pin: 321,
+    // 321 → 319: Design panel/thumbnail shadows use semantic elevations.
+    pin: 319,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,
@@ -1646,7 +1652,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 102 → 101 on 2026-09-05: the convert workbench/history sheets use the
     // derived --radius-sm/--radius-md roles instead of new 8px/12px literals.
     // 101 → 100: the library uses semantic radii throughout.
-    pin: 100,
+    // 100 → 98: Design panel and thumbnail-cell radii use semantic tokens.
+    pin: 96,
     count: (t) => (t.match(/border-radius:\s*\d+(?:\.\d+)?px\s*[;}!]/g) ?? []).length,
     fix: 'use var(--radius-xs|sm|md|lg) (derived from --radius) or var(--radius) for the base panel size',
   },
@@ -1692,11 +1699,11 @@ test('R12 (plans/188): app navigation reads semantic Lolly UI roles', () => {
     '--ui-motion-feedback', '--ui-motion-navigation',
   ]) assert.ok(projects.includes(role), `projects.css: view toggle must read ${role}`);
 
-  const dock = TS.find(f => f.rel === 'lib/edge-dock.ts')?.text ?? '';
+  const dock = CSS.find(f => f.rel === 'lib/edge-dock.css')?.text ?? '';
   for (const role of [
     '--ui-color-surface-canvas', '--ui-color-selection-border', '--ui-color-focus-ring',
     '--ui-radius-choice', '--ui-elevation-sheet', '--ui-motion-standard',
-  ]) assert.ok(dock.includes(role), `edge-dock.ts: dock navigation must read ${role}`);
+  ]) assert.ok(dock.includes(role), `edge-dock.css: dock navigation must read ${role}`);
 });
 
 test('R13 (plans/188): reusable content patterns read semantic Lolly UI roles', () => {

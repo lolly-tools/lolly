@@ -29,6 +29,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { CANVAS_OP_VERSION } from '@lolly-tools/core/canvas-op-v1';
+import { HISTORY_PROTOCOL_VERSION } from '../lib/collab-history.ts';
 import { createCeremony } from './ceremony.ts';
 import type {
   CeremonyEffects,
@@ -970,6 +971,19 @@ test('the ops lane opens with a hello carrying this op-contract version', async 
   assert.equal(first?.t, 'hello');
   assert.equal(first?.c, '01HOST');
   assert.equal(first?.v, CANVAS_OP_VERSION);
+  assert.equal(first?.h, HISTORY_PROTOCOL_VERSION, 'the hello also announces the shared-history capability');
+});
+
+test('an inbound hello carries the peer shared-history capability through to the message', async () => {
+  const r = rig('inviter');
+  await connect(r);
+  r.rtc.pc().channel('ops').deliver(JSON.stringify({ t: 'hello', c: '01GUEST', v: CANVAS_OP_VERSION, h: HISTORY_PROTOCOL_VERSION }));
+  const hello = r.messages.find((m) => m.kind === 'hello');
+  assert.equal(hello?.kind === 'hello' ? hello.history : undefined, HISTORY_PROTOCOL_VERSION);
+  // An older peer's hello (no `h`) parses to an absent capability, not a crash.
+  r.rtc.pc().channel('ops').deliver(JSON.stringify({ t: 'hello', c: '01GUEST', v: CANVAS_OP_VERSION }));
+  const older = r.messages.filter((m) => m.kind === 'hello').at(-1);
+  assert.equal(older?.kind === 'hello' ? older.history : 'set', undefined);
 });
 
 test('an inbound hello becomes the ceremony peer-op-version event', async () => {

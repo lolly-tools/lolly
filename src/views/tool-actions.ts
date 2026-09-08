@@ -138,6 +138,10 @@ import {
 import { aspectWarning } from './export-size.js';
 import { transcriptWordsOf, ttsWordsOf } from './timeline-captions.ts';
 import { MAX_TIME_S } from './timeline-math.ts';
+import { canExportLolly } from './export-share.ts';
+import type { AutomaticHistory } from './automatic-history.ts';
+import { mountActionHistory } from './tool-revision-history.ts';
+import { snapshotSession } from './tool-session-snapshot.ts';
 
 import type {
   ActionsApi,
@@ -384,7 +388,7 @@ const keepFormat = (f: string, deepExportOk = false): boolean =>
               ? proFormatSupport() || deepExportOk
               : true;
 
-const fmtLabel = (f: string): string => FMT_LABEL[f] ?? f.toUpperCase();
+const fmtLabel = (f: string): string => f === 'lolly' ? '.lolly' : FMT_LABEL[f] ?? f.toUpperCase();
 
 // Download extension follows the produced Blob - a deep-linked video request may
 // fall back to the other container, so trust the Blob's MIME over the format id.
@@ -438,6 +442,7 @@ function renderActions(
   // this, re-saving after an edit orphaned a fresh copy in Uncategorised and left the
   // original folder card frozen at its first-save state.
   let activeSlot = initialSlot;
+  let automaticHistory: AutomaticHistory | undefined;
   // Monotonic save counter - lets the background thumbnail patch in performSave
   // detect that a newer save superseded it (see the generation check there).
   let saveGen = 0;
@@ -487,41 +492,7 @@ function renderActions(
   // The exact payload a save persists - live input values plus the `__` markers
   // (tool identity + export settings). Shared by performSave and the "Make
   // variants" action so a variant is byte-for-byte a normal saved session.
-  function sessionSnapshot(): Record<string, unknown> & { __export_format: string } {
-    const values: Record<string, InputValue> = Object.fromEntries(
-      runtime.getModel().map((i) => [i.id, i.value])
-    );
-    // The effective export format (user-selected, or the tool's default). Drives
-    // a vector (SVG) thumbnail for vector tools - see captureThumbnail.
-    const fmt = el?.querySelector<HTMLSelectElement>('[data-action="format"]')?.value ?? '';
-    const filename =
-      el?.querySelector<HTMLInputElement>('[data-action="filename"]')?.value.trim() ?? '';
-    return {
-      ...values,
-      ...(experience.sessionMeta?.() ?? {}),
-      __toolId: manifest.id,
-      __toolVersion: manifest.version,
-      // The saved record's TITLE, which is the document name the author typed - the same
-      // field the export sheet and the Design top bar both write (plan 179 M1). bridge/
-      // state.ts maps `__label` onto the session record's label, which is what the
-      // Projects tiles and the session list show; `undefined` (never '') leaves the
-      // existing auto-label alone, so an unnamed document keeps the title it always had.
-      __label: filename || undefined,
-      __export_filename: filename,
-      __export_format: fmt,
-      __export_width:
-        el?.querySelector<HTMLInputElement>('[data-action="export-width"]')?.value ?? '',
-      __export_height:
-        el?.querySelector<HTMLInputElement>('[data-action="export-height"]')?.value ?? '',
-      __export_unit:
-        el?.querySelector<HTMLSelectElement>('[data-action="export-unit"]')?.value ?? 'px',
-      __export_dpi: el?.querySelector<HTMLInputElement>('[data-action="export-dpi"]')?.value ?? '',
-      __export_profile:
-        el?.querySelector<HTMLSelectElement>('[data-action="cmyk-profile"]')?.value ?? '',
-      __export_bleed: readBleed(el),
-      __export_marks: readMarks(el),
-    };
-  }
+  const sessionSnapshot = () => snapshotSession(el, manifest, runtime, experience, readBleed, readMarks);
 
   // Shared, awaitable save routine - used by the Save button AND the
   // unsaved-changes dialog's "Save & leave". Returns true on success. Always
@@ -556,13 +527,14 @@ function renderActions(
       // lost the save silently after its success UI had already played (audit 167
       // F-A3's root cause). Now the record is written in milliseconds; the
       // thumbnail patches it below, whenever it arrives.
-      await host.state.save(slot, data, null);
+      if (automaticHistory) await automaticHistory.save(slot, data);
+      else await host.state.save(slot, data, null);
       markSyncDirty(); // device sync (plans/138): a saved session is a change to push (no-op if sync is off)
       // Background thumbnail patch. captureThumbnail swallows its own errors, and
       // the race caps a render that never quiesces. The generation check keeps a
       // slow capture from clobbering a NEWER re-save's data with this older data.
       const gen = ++saveGen;
-      void Promise.race([
+      if (!automaticHistory) void Promise.race([
         captureThumbnail(manifest, canvasEl, runtime, exportUnscaled, data.__export_format),
         new Promise<null>((resolve) => setTimeout(() => resolve(null), THUMB_CAPTURE_TIMEOUT_MS)),
       ])
@@ -720,7 +692,9 @@ function renderActions(
   // mp4-only tool is untouched. WebM stays for transparency (WP-G) and Firefox.
   const baseFormats = mp4BeforeWebm(orgNarrowed.length ? orgNarrowed : capFormats);
   const packageChoice = packageFormatChoice(baseFormats);
-  const { formats, innerFormat: pkgInner, enabled: canPackage } = packageChoice;
+  const { innerFormat: pkgInner, enabled: canPackage } = packageChoice;
+  const formats = experience.portable && canExportLolly(manifest.id)
+    ? [...packageChoice.formats, 'lolly'] : packageChoice.formats;
   const hasAnimated = formats.some(isAnimatedFmt);
   // matchExportFormat: default the export to a dropped file's OWN format (a JPEG →
   // jpg) until the user picks one. Reads AssetRef.format off the flagged input.
@@ -3468,6 +3442,8 @@ function renderActions(
   // Unsubscribed, and the hydrated extension torn down, in `disposeActions`.
   const costSlotUnsub = onExtensionsChanged(() => tryMountCostSlot());
   function disposeActions(): void {
+    void automaticHistory?.flush();
+    automaticHistory?.dispose();
     if (isDesignTool) {
       designAuditOpen = false;
       designAuditGeneration++;
@@ -3867,7 +3843,7 @@ function renderActions(
   function setFormats(allowed: string[]): void {
     if (!formatEl) return;
     const allow = new Set(allowed.map((f) => (f === 'jpeg' ? 'jpg' : f)));
-    let narrowed = formats.filter((f) => allow.has(f));
+    let narrowed = formats.filter((f) => allow.has(f) || f === 'lolly' && canExportLolly(manifest.id));
     if (!narrowed.length) narrowed = formats; // never render an empty selector
     const cur = formatEl.value;
     const next = narrowed.includes(cur) ? cur : narrowed[0]!;
@@ -3962,6 +3938,7 @@ function renderActions(
   // the `?copy` URL action. `fmtOverride` honours `?format=<format>&copy`.
   async function performCopy(fmtOverride?: string): Promise<{ method: string } | void> {
     const fmt = fmtOverride || formatEl?.value || (formats.includes('png') ? 'png' : formats[0]!);
+    if (fmt === 'lolly') { announce(t('Download the editable .lolly file from Share.')); return; }
 
     // Universal copy, by format:
     //   • txt / md   → plain text
@@ -4106,6 +4083,14 @@ function renderActions(
       btn.setAttribute('aria-busy', 'true');
 
       const fmt = formatEl?.value ?? formats[0]!;
+      if (fmt === 'lolly') {
+        // Portable delivery owns its packaging/options; never ask the render
+        // engine to rasterise a .lolly document, including programmatic clicks.
+        btn.toggleAttribute('disabled', false);
+        btn.removeAttribute('aria-busy');
+        el.querySelector<HTMLElement>('[data-lolly-download]')?.click();
+        return;
+      }
       // Carousel / paged tool: a STILL-image download becomes one image PER PAGE, zipped.
       // (PDF already fans out to a multi-page document via renderMultiPagePdf; animated /
       // html / zip formats keep their own paths.) Each [data-pdf-page] frame is exported
@@ -5480,6 +5465,12 @@ function renderActions(
   // popup-close + tool-teardown paths silence an in-progress audio audition.
   // `sessionState` is the SAME snapshot a save writes, read (never written) by the beam
   // for its `__export_*` markers - the one place they exist outside this panel's DOM.
+  automaticHistory = mountActionHistory({
+    enabled: experience.localHistory, host, toolId: manifest.id, el, canvas: canvasEl,
+    getSlot: () => activeSlot, setSlot: slot => { activeSlot = slot; },
+    takeFolder: () => { const folder = fileIntoFolder; fileIntoFolder = null; return folder; },
+    snapshot: sessionSnapshot, initial: experience.historyBase,
+  });
   return {
     copy: performCopy,
     preview,
@@ -5491,6 +5482,7 @@ function renderActions(
     stopAudioPreview,
     sessionState: sessionSnapshot,
     getSlot: () => activeSlot,
+    history: automaticHistory,
     dispose: disposeActions,
   };
 }

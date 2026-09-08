@@ -235,6 +235,15 @@ function transformCss(css: string, scope: string, mapSelectors: (selectors: stri
   return out + buf;
 }
 
+/** Mount a tool stylesheet and record its scope so detached previews can reuse it. */
+export function mountScopedStyle(css: string, scope: string): HTMLStyleElement {
+  const style = document.createElement('style');
+  style.setAttribute(SCOPE_ATTR, scope);
+  style.textContent = scopeCss(css, scope);
+  document.head.appendChild(style);
+  return style;
+}
+
 /**
  * Scope every `<style>` a tool's TEMPLATE injected into `container`.
  *

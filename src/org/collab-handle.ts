@@ -518,6 +518,7 @@ export function createWorkCollabHandle(
 
   return {
     adapter: provider.adapter,
+    history: provider.history,
     self,
 
     get role(): CollabRole {

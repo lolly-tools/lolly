@@ -2,42 +2,32 @@
    .plat-header chrome; adds the drop zone, sheet tabs, honest-limits banner and the
    download-as bar. The grid itself is styled by parts/data-grid.css. */
 .data-drop {
-  border: 2px dashed hsl(var(--border));
-  border-radius: 12px;
+  border: 2px dashed var(--ui-color-border-default);
+  border-radius: var(--ui-radius-panel);
   padding: 2rem;
   text-align: center;
   cursor: pointer;
-  transition: border-color .15s, background .15s;
+  transition: border-color var(--ui-motion-feedback), background var(--ui-motion-feedback);
 }
-.data-drop.is-over { border-color: hsl(var(--ring)); background: color-mix(in srgb, hsl(var(--muted)) 40%, transparent); }
-.data-drop p { margin: 0 0 .75rem; color: hsl(var(--muted-foreground)); }
+.data-drop.is-over { border-color: var(--ui-color-focus-ring); background: color-mix(in srgb, var(--ui-color-surface-muted) 40%, transparent); }
+.data-drop p { margin: 0 0 .75rem; color: var(--ui-color-text-muted); }
 
 .data-workspace { margin-top: 1rem; display: flex; flex-direction: column; gap: .75rem; }
 
 .data-tabs { display: flex; gap: .25rem; flex-wrap: wrap; }
-.data-tab {
-  padding: .3rem .7rem;
-  border: 1px solid hsl(var(--border));
-  border-bottom: none;
-  border-radius: 6px 6px 0 0;
-  background: hsl(var(--muted));
-  color: hsl(var(--muted-foreground));
-  font-size: .8125rem;
-  cursor: pointer;
-}
-.data-tab.is-active { background: hsl(var(--background)); color: hsl(var(--foreground)); font-weight: 600; }
+.data-tab.is-active { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
 
 /* Honest-limits banner - a calm note, NOT an accent-bordered card. */
 .data-limits {
   margin: 0;
   padding: .6rem .8rem;
-  border-radius: 8px;
-  background: color-mix(in srgb, hsl(var(--muted)) 55%, transparent);
-  color: hsl(var(--muted-foreground));
-  font-size: .8125rem;
+  border-radius: var(--ui-radius-control);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 55%, transparent);
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-type-caption);
   line-height: 1.45;
 }
-.data-limits b { color: hsl(var(--foreground)); }
+.data-limits b { color: var(--ui-color-text-default); }
 
 .data-grid-host { min-height: 320px; }
 /* Let the grid use the available height in this view. */
@@ -45,6 +35,9 @@
 
 .data-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
 .data-actions-label {
-  font-size: .75rem; text-transform: uppercase; letter-spacing: .06em;
-  color: hsl(var(--muted-foreground)); margin-right: .25rem;
+  font-size: var(--ui-type-caption); text-transform: uppercase; letter-spacing: .06em;
+  color: var(--ui-color-text-muted); margin-right: .25rem;
 }
+
+.data-drop:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
+.data-status { color: var(--ui-color-text-default); font-size: var(--ui-type-body); margin: 0; }

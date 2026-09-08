@@ -17,17 +17,12 @@ import { icon } from '../lib/icons.ts';
 import { isSfxMuted, setSfxMuted, playSfx } from '../lib/sfx.ts';
 import { getNeurospicy, setNeurospicyEnabled, applyNeurospicy } from '../lib/neurospicy.ts';
 import { applyAtmosphere } from '../lib/atmosphere.ts';
-import { isNeuroDockCollapsed } from '../lib/neuro-dock-pref.ts';
 // The dock itself (and, through it, components/music-player.ts) is dynamic-imported:
 // every use below is inside a click handler or a post-render sync, and the module
 // would otherwise sit on the boot path for every visitor - including the majority
-// who have never turned Neurospicy on. `isNeuroDockCollapsed` is the one read that
-// happens synchronously while building markup, so it lives in its own leaf module.
+// who have never turned Neurospicy on.
 const neuroDock = () => import('./neuro-dock.ts');
 import { flagEnabledSync } from '../feature-flags.ts';
-
-/** Phone-width viewport - the collapsed dock is hidden here and reopened from this menu. */
-const isMobileViewport = (): boolean => typeof matchMedia !== 'undefined' && matchMedia('(max-width: 520px)').matches;
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 
 /** The slice of the host this control needs - the profile record it spreads + persists. */
@@ -175,7 +170,6 @@ function neurospicyHtml(): string {
           <span class="sound-switch-knob"></span>
         </button>
       </div>
-      ${on && isMobileViewport() && isNeuroDockCollapsed() ? `<button type="button" class="neuro-show-btn" data-neuro-show>${t('Show player')}</button>` : ''}
     </div>`;
 }
 
@@ -238,12 +232,6 @@ function wireNeurospicy(root: ParentNode, host: NeuroHost): void {
     paintNeurospicy(root);
   };
   document.addEventListener('lolly:neuro-enabled', onEnabledChange);
-  // Mobile "Show player" - reopen the dock that was collapsed (hidden on phones).
-  wrap.querySelector<HTMLButtonElement>('[data-neuro-show]')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    void neuroDock().then(m => m.reopenNeuroDock(host));
-    (e.currentTarget as HTMLElement).remove(); // dock is visible now - drop the button
-  });
   sw?.addEventListener('click', async (e) => {
     e.stopPropagation();
     if (isSfxMuted()) return;   // sound is the master switch - turn it on first (also .is-muted blocks this)

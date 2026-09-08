@@ -5649,7 +5649,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
       job.fail(err);
       throw err;
     }
-    saveBlob(zip, 'lolly-images.zip');
+    await saveBlob(zip, 'lolly-images.zip');
     job.finish();
     announce(files.length === 1
       ? t('1 image zipped · {c} with Content Credentials', { c: credentialed })
@@ -5671,10 +5671,11 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
       if (!r.ok) throw new Error(String(r.status));
       await host.export.download(await r.blob(), filename);
     } catch {
-      // Fallback for same-origin / data URLs when fetch is blocked.
-      const a = document.createElement('a');
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click(); a.remove();
+      // Fallback for same-origin / data URLs when fetch is blocked. anchorSaveUrl
+      // keeps the only raw `<a download>` in bridge/ (the guard test's rule); on the
+      // Tauri shells host.export.download above is the native save, so this fallback
+      // only runs on the web where the anchor works.
+      (await import('../bridge/export.ts')).anchorSaveUrl(url, filename);
     }
   }
 

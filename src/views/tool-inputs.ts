@@ -30,7 +30,7 @@ import {
 import type { TableValue } from '@lolly/engine';
 import { tableBodyCellHtml, tableColumnEditor, wantsGhostRow } from './table-cells.ts';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
-import { escape, NAV_EVENTS } from '../utils.js';
+import { escape } from '../utils.js';
 import { t } from '../i18n.ts';
 import { mountModal } from '../components/modal.ts';
 import { announce } from '../a11y.js';
@@ -43,7 +43,6 @@ import {
 } from '../components/custom-slider.ts';
 import { canSkipInputsRebuild } from './inputs-sync.js';
 import { jellyActive, jellyEnabled } from '../lib/jelly.ts';
-import { trapFocus, type FocusTrap } from '../lib/focus-trap.ts';
 import { installTablePaste, htmlTableToTsv } from '../lib/table-paste.ts';
 import { splitMarkdownIntoBlocks } from '../lib/markdown.ts';
 import { playSliderTick, playScrubTick } from '../lib/sfx.ts';
@@ -3727,7 +3726,7 @@ async function openEmbedEditor(
     const applyLabel = mode === 'insert' ? 'Insert' : 'Re-apply to slot';
     overlay.innerHTML = `
       <div class="embed-editor-backdrop" aria-hidden="true"></div>
-      <div class="embed-editor-panel" role="dialog" aria-modal="true" aria-label="Edit ${titleSlot}">
+      <div class="embed-editor-panel">
         <header class="embed-editor-head">
           <span class="embed-editor-spark" aria-hidden="true">&#10022;</span>
           <h2 class="embed-editor-title">${titleVerb} ${titleSlot} <span class="embed-editor-from">from ${escape(desc!.name)}</span></h2>
@@ -3755,7 +3754,12 @@ async function openEmbedEditor(
     // matches the picker / export-panel convention so keyboard + AT users keep their
     // place rather than being dropped on <body> behind the (now-removed) scrim.
     const opener = document.activeElement;
-    document.body.appendChild(overlay);
+    const modal = mountModal('', {
+      className: 'modal-overlay embed-editor-dialog',
+      ariaLabel: `${titleVerb} ${slotLabel ?? 'image'}`,
+      onClose: () => close(null),
+    });
+    modal.el.appendChild(overlay);
 
     const inputsEl = overlay.querySelector<PanelEl>('.ee-inputs')!;
     const fmtSel = overlay.querySelector<HTMLSelectElement>('.ee-format')!;
@@ -3763,10 +3767,7 @@ async function openEmbedEditor(
     const hEl = overlay.querySelector<HTMLInputElement>('.ee-h')!;
     const previewEl = overlay.querySelector<HTMLElement>('.ee-preview')!;
     const applyBtn = overlay.querySelector<HTMLButtonElement>('.ee-apply')!;
-    // Move focus into the dialog so it's not stranded on the obscured Edit trigger,
-    // and contain Tab within it (inert the page behind; backdrop stays clickable).
     overlay.querySelector<HTMLElement>('.embed-editor-close')?.focus();
-    const trap: FocusTrap = trapFocus(overlay);
 
     let pending: AssetRef | null = null; // the AssetRef "Re-apply" will commit
     let renderSeq = 0; // drop a stale render when controls change again
@@ -3821,33 +3822,21 @@ async function openEmbedEditor(
       schedulePreview();
     });
 
+    let closed = false;
     const close = (value: AssetRef | null): void => {
-      trap.release();
+      if (closed) return;
+      closed = true;
       clearTimeout(debounce);
       renderSeq++; // invalidate any in-flight preview render so it can't write to the detached overlay
-      document.removeEventListener('keydown', onKey);
-      NAV_EVENTS.forEach((ev) => window.removeEventListener(ev, onNav));
       // Everything renderInputs parked outside the panel's subtree - the document-
       // level capture dismissers + the child flatpickrs' body-level calendars -
       // in one aggregate call (mirrors mountTool's _cleanup).
       inputsEl._inputsDispose?.();
+      modal.close();
       overlay.remove();
       if (opener instanceof HTMLElement) opener.focus();
       resolve(value);
     };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        close(null);
-      }
-    };
-    document.addEventListener('keydown', onKey);
-    // A route change under the open editor (browser Back, an in-app link) cancels it -
-    // the body-mounted overlay must never outlive the view that spawned it, and the
-    // trap's inert background must be released (NAV_EVENTS contract, utils.ts).
-    const onNav = (): void => close(null);
-    NAV_EVENTS.forEach((ev) => window.addEventListener(ev, onNav));
-
     overlay.querySelector('.embed-editor-backdrop')!.addEventListener('click', () => close(null));
     overlay.querySelector('.embed-editor-close')!.addEventListener('click', () => close(null));
     overlay.querySelector('.ee-cancel')!.addEventListener('click', () => close(null));

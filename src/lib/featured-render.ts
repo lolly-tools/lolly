@@ -1,24 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Featured-tile variant renderer.
- *
- * The gallery's cinematic hero row (components/featured-row.ts) cross-fades each
- * featured tool through a handful of example input value-sets (manifest.featured
- * .variants). Each look is a REAL render - produced by the same off-screen engine
- * path a normal export takes (renderRowToBlob) - so the row is a live demonstration
- * of "one tool, many on-brand outputs", not a set of static screenshots.
- *
- * Renders are expensive, so each result is memoised in host.previews (the same
- * regenerable cache the profile-personalized previews use) under a synthetic key - 
- * `featured:<toolId>:<index>` - with a `sig` of the variant values. Re-visiting the
- * gallery reuses the cached data-URL; editing a variant's values invalidates it.
- * The synthetic key can't collide with a real toolId, so it never disturbs the
- * personalized-preview records keyed by tool id.
- *
- * The BUILD's pre-rendered look (lib/preview-bundle.ts) comes first and skips the engine
- * entirely - a look the previews pipeline already rendered offline. Since that manifest
- * stopped inlining looks it hands back a URL, so a returned src is now one of two kinds
- * and only one of them can fail late: see isManifestLook / renderMissingLook below.
+ * Render gallery, featured and template previews through the real export path.
+ * Cache identity includes input values, resolved tokens, visible palette swatches,
+ * theme and opted-in profile details. Build-time artwork cannot identify the user's
+ * active palette, so it is never substituted for a render.
  */
 
 // render-export (→ createRuntime → Handlebars + tool loader → Ajv) is imported LAZILY
@@ -26,7 +11,7 @@
 // a static import would pull the whole render engine onto the render-blocking boot chunk.
 // The variant thumbnails render post-paint (the cross-fade builds up), so it loads then.
 import { rasterToThumbnailDataUrl } from './raster-thumb.ts';
-import { bundledLook } from './preview-bundle.ts';
+import { previewContextSignature } from './preview-context.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { PreviewsAPI } from '../bridge/previews.ts';
 
@@ -66,11 +51,11 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 }
 
 /** Render one look at an exact format, cached by (tool, index, format). */
-// In-flight renders, keyed by cacheKey. The featured hero row and the gallery
+// In-flight renders, keyed by cache key and effective render signature. The featured hero row and the gallery
 // carousel both call renderVariantAt for the same look during the post-load window;
 // without this, each ~350ms offscreen render (+ main-thread raster) runs twice
 // concurrently. Both callers share one promise; evicted on settle so failures retry.
-const inflight = new Map<string, Promise<string>>();
+const inflightByHost = new WeakMap<FeaturedHost, Map<string, Promise<string>>>();
 
 async function renderVariantAt(
   host: FeaturedHost,
@@ -79,6 +64,7 @@ async function renderVariantAt(
   variantIndex: number | string,
   values: Record<string, unknown>,
   keyPrefix = 'featured',
+  previewTimeMs?: number,
 ): Promise<string> {
   // Format is part of the key: a tool that once cached a raster look and now renders
   // vector (svg) must not return the stale raster thumbnail on a matching `sig`. The
@@ -86,11 +72,14 @@ async function renderVariantAt(
   // 'template' for "New from template" previews (string template id) - the two can never
   // collide, so a template preview never disturbs a featured-variant record.
   const cacheKey = `${keyPrefix}:${toolId}:${variantIndex}:${format}`;
-  const sig = JSON.stringify(values);
+  const sig = JSON.stringify(previewTimeMs === undefined ? [values, await previewContextSignature(host)] : [values, await previewContextSignature(host), previewTimeMs]);
   const cached = await host.previews?.get(cacheKey).catch(() => null);
   if (cached && cached.sig === sig && cached.thumb) return cached.thumb;
 
-  const hit = inflight.get(cacheKey);
+  let inflight = inflightByHost.get(host);
+  if (!inflight) { inflight = new Map(); inflightByHost.set(host, inflight); }
+  const flightKey = `${cacheKey}:${sig}`;
+  const hit = inflight.get(flightKey);
   if (hit) return hit;
 
   const p = (async () => {
@@ -107,16 +96,17 @@ async function renderVariantAt(
       // InputValue - the runtime coerces per the input's declared type, so cast the row.
       { toolId, values } as Parameters<typeof renderRowToBlob>[0],
       host,
-      { format, watermark: false, embedMeta: false, thumbnail: true, thumbAssets: true, ...dims },
+      { format, watermark: false, embedMeta: false, thumbnail: true, previewPage: true, thumbAssets: true, previewTimeMs, ...dims },
     );
     // SVG is already display-ready and resolution-independent - embed it verbatim as a
     // data-URL. A raster blob is downscaled to a gallery-weight PNG thumbnail.
     const thumb = format === 'svg' ? await blobToDataUrl(blob) : await rasterToThumbnailDataUrl(blob);
+    if (sig !== JSON.stringify(previewTimeMs === undefined ? [values, await previewContextSignature(host)] : [values, await previewContextSignature(host), previewTimeMs])) throw new Error('Preview brand changed during rendering');
     await host.previews?.put(cacheKey, { thumb, sig }).catch(() => { /* cache is best-effort */ });
     return thumb;
   })();
-  inflight.set(cacheKey, p);
-  try { return await p; } finally { inflight.delete(cacheKey); }
+  inflight.set(flightKey, p);
+  try { return await p; } finally { inflight.delete(flightKey); }
 }
 
 /**
@@ -136,26 +126,18 @@ export async function renderFeaturedVariant(
   variantIndex: number | string,
   values: Record<string, unknown>,
   keyPrefix = 'featured',
+  previewTimeMs?: number,
 ): Promise<string> {
-  // Pre-rendered look from the build bundle (npm run previews → build:catalog) - an instant
-  // ready <img> src with no engine load and no per-look asset fetch, shared by the featured
-  // hero and every example carousel (both funnel through here). Falls through to the live
-  // render below when the look isn't bundled (not yet generated / profile-personalised) or
-  // the bundle is stale (sig mismatch), so this only ever speeds up, never changes output.
-  // Templates (keyPrefix 'template') have no build bundle, so skip the lookup for them.
-  if (keyPrefix === 'featured') {
-    const bundled = await bundledLook(toolId, variantIndex as number, JSON.stringify(values));
-    if (bundled) return bundled;
-  }
-
+  // Build-time previews do not identify the user's effective tokens. Only a
+  // render cached against the active brand can stand in for this render.
   const primary = displayFormatOf(formats);
   if (!primary) throw new Error(`no displayable export format for ${toolId}`);
   try {
-    return await renderVariantAt(host, toolId, primary, variantIndex, values, keyPrefix);
+    return await renderVariantAt(host, toolId, primary, variantIndex, values, keyPrefix, previewTimeMs);
   } catch (e) {
     const raster = rasterFormatOf(formats);
     if (primary === 'svg' && raster && raster !== primary) {
-      return await renderVariantAt(host, toolId, raster, variantIndex, values, keyPrefix);
+      return await renderVariantAt(host, toolId, raster, variantIndex, values, keyPrefix, previewTimeMs);
     }
     throw e;
   }
@@ -172,20 +154,7 @@ export function isManifestLook(src: string): boolean {
   return !src.startsWith('data:');
 }
 
-/**
- * Re-render a look LIVE because its manifest file was MISSING - an <img> painted from
- * the manifest fired `error` (a look deleted from the catalog, a half-copied deploy, a
- * manifest that ran ahead of the previews). The ONE fallback idiom for that failure;
- * every surface that paints a bundled look (hero row, gallery carousel, info dialog)
- * calls this, so a missing file degrades exactly the way a stale `sig` already does.
- *
- * It has to ask under its own cache namespace: asked the ordinary way,
- * renderFeaturedVariant consults the manifest FIRST and would hand straight back the URL
- * that just 404'd, settling the tile on a broken <img> instead of the render this exists
- * to produce. The separate key is honest as well as necessary - it holds the look the
- * bundle could NOT serve, so the next visit (which 404s again) reuses the render instead
- * of repeating it.
- */
+/** Compatibility entry point for callers recovering an older manifest image. */
 export function renderMissingLook(
   host: FeaturedHost,
   toolId: string,
@@ -199,8 +168,9 @@ export function renderMissingLook(
 /** Render one page set at an exact format, cached as a JSON array of data-URLs. */
 async function renderPagesAt(host: FeaturedHost, toolId: string, format: string): Promise<string[]> {
   const cacheKey = `featured:${toolId}:pages:${format}`;
+  const sig = await previewContextSignature(host);
   const cached = await host.previews?.get(cacheKey).catch(() => null);
-  if (cached?.thumb) {
+  if (cached?.thumb && cached.sig === sig) {
     try { const arr = JSON.parse(cached.thumb); if (Array.isArray(arr) && arr.length) return arr; } catch { /* re-render */ }
   }
   const { renderToolPages } = await import('../pro/render-export.ts');
@@ -211,8 +181,9 @@ async function renderPagesAt(host: FeaturedHost, toolId: string, format: string)
   );
   const urls: string[] = [];
   for (const blob of pages) urls.push(format === 'svg' ? await blobToDataUrl(blob) : await rasterToThumbnailDataUrl(blob));
+  if (sig !== await previewContextSignature(host)) throw new Error('Preview brand changed during rendering');
   // Stash the whole array under one synthetic key (distinct from the per-variant keys).
-  await host.previews?.put(cacheKey, { thumb: JSON.stringify(urls), sig: 'pages' }).catch(() => { /* best-effort */ });
+  await host.previews?.put(cacheKey, { thumb: JSON.stringify(urls), sig }).catch(() => { /* best-effort */ });
   return urls;
 }
 

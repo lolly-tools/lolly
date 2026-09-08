@@ -250,6 +250,11 @@ test('placePopover pulls a tall menu up so its foot stays on the stage', () => {
   assert.ok(pos.top + 300 <= 540 - 6, 'foot inside the padded stage');
 });
 
+test('placePopover opens a top-bar menu below its trigger and keeps it inside the right edge', () => {
+  assert.deepEqual(placePopover({ left: 100, right: 136, top: 8, bottom: 44 }, { w: 200, h: 260 }, { w: 960, h: 540 }), { left: 100, top: 52 });
+  assert.deepEqual(placePopover({ left: 850, right: 886, top: 8, bottom: 44 }, { w: 200, h: 260 }, { w: 960, h: 540 }), { left: 754, top: 52 });
+});
+
 test('placePopover keeps the anchored placement when the stage cannot be measured', () => {
   // jsdom has no layout, and a display:none stage measures zero in a real browser too - 
   // clamping against zeroes would slam every menu into the corner.

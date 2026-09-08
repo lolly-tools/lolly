@@ -68,7 +68,15 @@ html[data-a11y-motion="reduce"] .audio-dock.neuro-managed.is-entering { animatio
      desktop placement), which lands controls off a phone's viewport. The phone
      placement is full-width by policy, so it must beat the inline geometry. */
   .audio-dock.neuro-managed { right: 8px !important; left: 8px !important; width: auto !important; max-width: none; }
-  .audio-dock.neuro-managed[data-collapse="mini"] { display: none; }
+  /* The header ▾ now collapses the window to this mini pill on touch too (the two-finger
+     tap owns the visualiser menu, packages/audio-dock), so the pill IS the small player on
+     phones - show it, pinned as a compact bottom-inset pill hugging the inline-end rather
+     than a full-width bar. !important beats any dragged inline left/top/bottom geometry. */
+  .audio-dock.neuro-managed[data-collapse="mini"] {
+    left: auto !important; right: 8px !important;
+    top: auto !important; bottom: calc(6rem + var(--safe-bottom)) !important;
+    width: auto !important; max-width: calc(100vw - 16px);
+  }
 }`;
 
 function ensureStyles(): void {

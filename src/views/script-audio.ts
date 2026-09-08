@@ -32,12 +32,11 @@ import {
   scriptLinesOf, deriveSegmentsFromWords, MIN_SEAM_GAP_S, type TtsSegment,
 } from '../lib/speech-kokoro.ts';
 import { invalidateNeurospicyTracks } from '../lib/neurospicy.ts';
-import { trapFocus, type FocusTrap } from '../lib/focus-trap.ts';
+import { mountModal } from '../components/modal.ts';
 import { startJob, jobsSnapshot } from '../lib/jobs.ts';
 import { fmtBytes } from '../lib/format.ts';
 import { escapeHtml } from '../lib/html.ts';
 import { announce } from '../a11y.ts';
-import { NAV_EVENTS } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import type { AssetRef, HostV1, SpeechProgress, SpeechResult } from '@lolly-tools/core/host-v1';
 
@@ -486,7 +485,6 @@ export function openScriptAudioDialog(host: ScriptAudioHost): Promise<AssetRef |
   if (!speech?.isAvailable()) return Promise.resolve(null);
 
   return new Promise((resolve) => {
-    let trap: FocusTrap | undefined;
     let transport: AudioTransport | null = null;
     let previewUrl: string | null = null;
     // The last generated clip + the exact inputs that produced it (Save stores
@@ -501,7 +499,7 @@ export function openScriptAudioDialog(host: ScriptAudioHost): Promise<AssetRef |
     overlay.className = 'script-audio-overlay';
     overlay.innerHTML = `
       <div class="script-audio-backdrop" aria-hidden="true"></div>
-      <div class="script-audio-panel" role="dialog" aria-modal="true" aria-label="${escapeHtml(t('Script audio'))}">
+      <div class="script-audio-panel">
         <header class="script-audio-head">
           <span>${t('Script audio')}</span>
           <button type="button" class="script-audio-close" aria-label="${escapeHtml(t('Close'))}">&times;</button>
@@ -541,7 +539,10 @@ export function openScriptAudioDialog(host: ScriptAudioHost): Promise<AssetRef |
           <button type="button" class="script-audio-save" data-save hidden>${t('Save to your uploads')}</button>
         </footer>
       </div>`;
-    document.body.appendChild(overlay);
+    const modal = mountModal('', {
+      className: 'modal-overlay asset-workflow-dialog', ariaLabel: t('Script audio'), onClose: () => done(null),
+    });
+    modal.el.appendChild(overlay);
 
     const textarea    = overlay.querySelector<HTMLTextAreaElement>('.script-audio-text')!;
     const countEl     = overlay.querySelector<HTMLElement>('[data-count]')!;
@@ -554,7 +555,6 @@ export function openScriptAudioDialog(host: ScriptAudioHost): Promise<AssetRef |
     const previewEl   = overlay.querySelector<HTMLElement>('[data-preview]')!;
     const generateBtn = overlay.querySelector<HTMLButtonElement>('[data-generate]')!;
     const saveBtn     = overlay.querySelector<HTMLButtonElement>('[data-save]')!;
-    const opener      = document.activeElement;
 
     const cleanup = (): void => {
       // Deliberately does NOT abort an in-flight generation: it is a background
@@ -564,26 +564,14 @@ export function openScriptAudioDialog(host: ScriptAudioHost): Promise<AssetRef |
       transport?.destroy();
       transport = null;
       if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
-      trap?.release();
-      document.removeEventListener('keydown', onKey);
-      NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNav));
-      overlay.remove();
-      if (opener instanceof HTMLElement) opener.focus();
+      modal.close();
     };
-    const done = (val: AssetRef | null): void => { cleanup(); resolve(val); };
-    const onKey = (e: KeyboardEvent): void => { if (e.key === 'Escape') { e.preventDefault(); done(null); } };
-    document.addEventListener('keydown', onKey);
-    // A route change closes the sheet like Escape/backdrop (the surface beneath
-    // nav-closes on the same events). An in-flight synthesis keeps running as a
-    // background job and saves itself.
-    const onNav = (): void => done(null);
-    NAV_EVENTS.forEach(ev => window.addEventListener(ev, onNav));
+    let settled = false;
+    const done = (val: AssetRef | null): void => { if (settled) return; settled = true; cleanup(); resolve(val); };
     overlay.querySelector('.script-audio-backdrop')?.addEventListener('click', () => done(null));
     overlay.querySelector('.script-audio-close')?.addEventListener('click', () => done(null));
     overlay.querySelector('.script-audio-cancel')?.addEventListener('click', () => done(null));
-    // Contain focus over whatever opened this (the picker is itself modal; nested
-    // traps stack - this inerts the surface beneath while the sheet is open).
-    trap = trapFocus(overlay, { initialFocus: textarea });
+    textarea.focus();
 
     const showStatus = (msg: string, isError = false): void => {
       statusEl.hidden = false;

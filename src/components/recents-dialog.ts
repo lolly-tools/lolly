@@ -18,6 +18,13 @@ import { mountModal } from './modal.ts';
 export interface RecentsSession { slot: string; toolId: string; name: string; thumb?: string | null; updatedAt?: string }
 
 export async function openRecentsDialog(opts: { savedCount?: number; sessions?: RecentsSession[] } = {}): Promise<void> {
+  const { getHostRef } = await import('../lib/host-ref.ts');
+  const state = getHostRef()?.state as import('../bridge/state.ts').WebStateAPI | undefined;
+  if (state?.history) {
+    const { openHistoryPanel } = await import('./history-panel.ts');
+    openHistoryPanel({ state });
+    return;
+  }
   let rail = '';
   try {
     const { listExports, exportReopenHref } = await import('../lib/export-history.ts');
