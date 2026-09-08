@@ -17,7 +17,7 @@ import { join } from 'node:path';
 // (the pptx read path uses it); the engine hands back entries and the caller zips them,
 // exactly the split the web shell's lib/zip.ts sits on.
 import { zipSync } from 'fflate';
-import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId } from '@lolly/engine';
+import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId } from '@lolly/engine';
 import type {
   HostV1, Profile, AssetsAPI, AssetRef, AssetQuery, ExportOpts, ExportMeta,
   StateEntry, ComposeSpec, ComposeUrlOpts, ExportFormat, TokenSet, C2paSignOpts,
@@ -783,6 +783,19 @@ function rootSvgOf(node: Element | null): Element | null {
       if (opts.dataText !== undefined) {
         return new Blob([opts.dataText], { type: opts.dataMime ?? 'text/plain' });
       }
+      // Strip the markers annotateTemplate leaves (plans/222) so every deliverable is
+      // clean: data-canvas-input is web-edit-only, data-lolly-paint an intermediate,
+      // and a data-lolly-bind is meaningful ONLY to the penpot export - kept there so
+      // an inherited colour binds, removed everywhere else. One-shot node, safe to mutate.
+      if (typeof node?.querySelectorAll === 'function') {
+        const strip = (attr: string): void => {
+          if (node.hasAttribute?.(attr)) node.removeAttribute(attr);
+          node.querySelectorAll(`[${attr}]`).forEach((el) => { el.removeAttribute(attr); });
+        };
+        strip('data-canvas-input');
+        strip('data-lolly-paint');
+        if (format !== 'penpot') strip('data-lolly-bind');
+      }
       if (format === 'html') {
         // Strip any template <script> (editor-runtime helpers - e.g. a canvas
         // auto-resize hook) before serialising: the exported markup is static, and
@@ -898,6 +911,9 @@ function rootSvgOf(node: Element | null): Element | null {
             { ...shared, background: opts.background },
           );
         }
+        // Each top-level board becomes a reusable component (plans/222), so the
+        // browser-free native-SVG export matches the Tier-B web-shell one.
+        markToolComponents(doc, name);
         const build = buildPenpotEntries(doc);
         for (const note of lowered?.notes ?? []) host.log('warn', `penpot: ${note}`);
         for (const wmsg of build.warnings) host.log('warn', `penpot: ${wmsg}`);

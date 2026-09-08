@@ -12,7 +12,7 @@ import { readFile, writeFile, stat } from 'node:fs/promises';
 import { join, resolve, basename, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
-import { loadTool, createRuntime, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
+import { loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
 import type { Lang } from '@lolly/engine';
 import type { InputValue } from '../../../engine/src/inputs.ts';
@@ -226,6 +226,15 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
   // directly rather than through parseUrlState (which treats it as reserved
   // and never surfaces it in `values`).
   const tool = await loadToolOrThrow(toolId, fetchFile, { lang: normalizeLang(params.lang) ?? undefined });
+  // Annotate the template as the web shell does (plans/222): the paint markers it
+  // adds let a colour input bound to a brand token bind the exported shape to that
+  // token even on this DOM-free path. Harmless otherwise - the data attributes have
+  // no visual effect and every other shell already annotates. The content markers
+  // (`<!-- ci:id -->…<!-- /ci:id -->`) are only for the web shell's DOM-to-control
+  // mapping; its export walker drops comment nodes, so on this string-serialised path
+  // we strip them here rather than let them reach the exported file.
+  tool.template = annotateTemplate(tool.template, tool.manifest.inputs.map((i) => i.id))
+    .replace(/<!-- \/?ci:[^ ]+ -->/g, '');
 
   // Refuse before rendering anything: a tool that needs a camera/mic/screen/clipboard
   // has no honest headless render, and the placeholder it used to emit looked like a
