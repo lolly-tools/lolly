@@ -131,10 +131,18 @@ PowerPoint is also a way **in**. Drop a `.pptx` on any upload surface and pick t
 
 Any tool that can export SVG can also export a **Penpot file** (`.penpot`) - the document, ready to keep editing in Penpot rather than just to look at.
 
-- <!--i:layout--> From **Design**, each frame becomes a Penpot **board**, and every box on it carries over as its own editable shape - rectangle, ellipse, text, image or path - not a locked picture.
+- <!--i:layout--> From **Design**, each frame becomes a Penpot **board**, every box on it carries over as its own editable shape - rectangle, ellipse, text, image or path - and the result arrives as a reusable **component** in the Assets panel, ready to drag out again.
 - <!--i:pentool--> From a tool whose render is **plain geometry** - the vector tools such as QR Code, Street Map, Wordmark and Palette Lab - every path, rectangle, text run and gradient carries over the same way, as its own editable shape.
-- <!--i:layers--> A tool that lays its render out in **HTML** usually comes across as **one picture** instead. One clip path, filter, pattern, mask, `<use>` or inline `<style>` anywhere in the render puts the whole thing on the board as a single image, and an HTML layout reaches for those readily: a rounded box that clips its content, a cropped photo, a blurred text shadow. The picture is the full render at full fidelity, so nothing is dropped. It is simply not separable into shapes in Penpot.
-- <!--i:palette--> The brand's colours and typographies land in the file's **Assets** panel, and the brand's design tokens land in its **Tokens** panel - the same DTCG token set Lolly's own palette uses. Penpot keeps its own copy from there: an edit made in its Tokens panel comes back into the brand through [Brand Studio's import](/info/design-import.html), not on its own.
+- <!--i:font--> From a tool that lays its render out in **HTML**, the **text stays text** - one editable Penpot text object per line, not an outline and not a flat picture. A piece of artwork Penpot has no construct for - a complex illustration, a live canvas - rides along on its own as an image, so it never flattens the text and boxes around it. A whole layout Penpot cannot separate faithfully can still come across as one picture at full fidelity, so nothing is ever dropped.
+- <!--i:palette--> A colour or font a shape **inherits from a brand token** stays **linked** to that token in the file: change the token in Penpot's Tokens panel and every shape that inherits it re-paints together, while a one-off literal colour stays exactly where it is. The brand's colours and typographies also land in the **Assets** panel and its full design-token set in the **Tokens** panel - the same DTCG token set Lolly's own palette uses. Penpot keeps its own copy from there: an edit made in its Tokens panel comes back into the brand through [Brand Studio's import](/info/design-import.html), not on its own.
+
+| What you made | In Penpot |
+|---|---|
+| Text | Editable text objects - fix a typo or restyle |
+| Shapes, paths, gradients, images | Their own editable vector shapes |
+| A colour or font from a brand token | A live token link - edit the token, every shape that inherits it follows |
+| The whole design | A reusable component in the Assets panel |
+| A complex illustration or live canvas | Embedded on its own as an image, the editable content around it untouched |
 
 ![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 

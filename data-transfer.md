@@ -10,7 +10,7 @@ This page is the format spec. For the end-user walkthrough see [Using Lolly → 
 
 ## Goals
 
-- <!--i:box--> **One format, every shell.** The same bytes are produced and consumed by the web PWA, the Tauri desktop/mobile apps and any future shell. The bundle is the contract. Each shell's capability bridge is the per-platform adapter behind it.
+- <!--i:box--> **One format, every shell.** The web PWA, Tauri desktop/mobile apps and future shells share the same envelope and supported part schemas. Optional parts depend on each shell's capabilities; unsupported parts are reported. Each capability bridge supplies its storage adapter.
 - <!--i:shieldcheck--> **Survives the trip.** A bundle mangled or truncated in transit fails loudly on import, never half-restores.
 - <!--i:clock--> **Outlives this version.** An older app can still import a newer bundle's recognised parts. A genuinely breaking format is refused cleanly.
 - <!--i:check--> **Safe to merge.** Importing onto an install that is already in use never wipes anything that was not in the bundle.
@@ -28,6 +28,7 @@ A bundle is a plain `.zip`. The download is named for the person it belongs to -
 | `assets/blobs/<n>.<ext>` | per asset | The raw asset bytes (image and font files). Stored uncompressed (already-compressed formats). The extension is cosmetic. The MIME in `assets.json` is authoritative. |
 | `assets/blobs/<n>.c2pa` | when present | Extracted Content Credentials as exact binary bytes, referenced by `_credentialFile` in the asset record. These are not device signing keys. |
 | `file-history.json` | optional | Versioned asset snapshots, terminal file-operation reports and complete batch manifests. The history part has its own version; provided by the shell's internal `fileHistory` backup adapter. |
+| `revision-history.json` | optional, manual backups | Stable creation IDs, retained checkpoints, thumbnails and rolling recovery drafts. Provided by `host.state.history.backup` where supported. |
 | `file-history/versions/` | per snapshot | Previous asset bytes and extracted credentials, independent of whether the current asset still exists. |
 | `file-history/results/` | per completed operation | Exact output bytes. No original selected-for-conversion file is retained or included. |
 | `prefs.json` | yes | User-owned local preferences: `theme`, `sidebarWidth` and the `ct-metrics` activity tally. |
@@ -44,7 +45,7 @@ The bundle is a plain zip on purpose: it survives any transport intact, and any 
 ```json
 {
   "format": "lolly-backup",
-  "formatVersion": 2,
+  "formatVersion": 3,
   "minReader": 1,
   "app": "lolly",
   "exportedAt": "2026-06-22T09:30:00.000Z",
@@ -98,6 +99,7 @@ Import is **merge-overwrite**, never replace-all:
 - Existing data on the target is left in place.
 - Any key that collides - the profile, a session slot, an uploaded image id - is replaced by the imported copy.
 - Historical asset versions and operation IDs are immutable exceptions: a repeat import is idempotent, and an ID already naming different bytes/history is refused, not overwritten. Re-importing an identical current asset preserves its version. A changed current asset must carry a different version.
+- Creation history is also an exception: a conflicting current document or revision identity aborts its restore before profile, asset or preference changes. An identical repeat import adds no storage. Restore a conflicting archive on a separate install to inspect and copy its creations.
 - Nothing that was not in the bundle is touched. A session the target had but the bundle did not survives the import.
 
 Saved sessions re-link to their images automatically: asset references are kept by id, and the bridge re-resolves them after the uploaded images are restored (it must anyway, because `blob:` URLs do not survive a reload).
@@ -105,6 +107,18 @@ Saved sessions re-link to their images automatically: asset references are kept 
 The import summary reports `{ profile, sessions, userAssets, prefs, skipped, failedAssets }`. `failedAssets` counts uploaded assets that could not be restored (device storage full, say). It is distinct from `skipped`, which counts parts from a forward-compatible newer writer that this build did not recognise. The UI surfaces `skipped` ("… · N newer items skipped"), so the restore is honest about what it left behind.
 
 When file history is present, the summary also carries `assetVersions`, `fileOperations` and `failedHistory`. Storage exhaustion or immutable-ID conflicts can cause a partial restore; the UI tells the user to retain the source backup. Cloud sync does **not** advance its applied revision after a partial or unsupported restore, so the snapshot remains available for retry. Restore is not a single transaction across all profile/session/asset/history stores.
+
+## Creation history (v3)
+
+Manual backups from a history-capable web host include `revision-history.json` with its own `{ version: 1, documents, revisions, recoveries }` schema. It carries the retained IDs, canonical input snapshots, version stamps, raster previews and separate writer drafts. The history adapter captures current sessions and their heads in one read transaction; `sessions.json` uses those same current snapshots for older readers.
+
+Restore checks payload SHA-256 and byte counts, unique identities, document/head relationships, ancestry, timestamps, preview types and limits before committing the archive in one transaction. Compacted parent references may be absent. Existing current work must match the imported document; conflicts are refused rather than silently replacing it. The archive's 384 MiB transfer limit is checked explicitly, and storage limits are enforced without truncating retained checkpoints. The overall backup still uses an in-memory ZIP implementation and is not a streaming archive.
+
+The summary adds `revisions` and `recoveryDrafts`. A shell without this capability restores ordinary sessions and reports the history part as skipped. Native filesystem history remains unsupported until its adapter supplies durable history transactions. P2P guest state has no durable history or recovery archive.
+
+Personal snapshot sync explicitly excludes creation history. Applying a snapshot to a history-bearing local document preserves its previous working state as a separate recovery draft and invalidates any open editor's write token. Its immutable checkpoints remain on the device. This protects local history during snapshot replacement; it does not merge concurrent device histories.
+
+Historical asset references are retained, while rendering still resolves assets through the destination's existing library. This archive does not yet guarantee exact old asset bytes or old tool renders. Asset-version and file-result bytes continue to travel through their existing separate backup part.
 
 ## Saved versions and file results (v2)
 
@@ -138,7 +152,7 @@ The storage meter itemises the same split. Saved sessions, My images and File re
 
 ## Cross-shell guarantee
 
-`data-transfer.ts` reads and writes exclusively through the capability bridge (`host.profile`, `host.state`, `host.assets`) and the shared `localStorage` prefs. Because the bridge is the only seam, the *same* module produces a byte-identical bundle on every shell even though the storage beneath differs - IndexedDB on web, the filesystem on Tauri. The Tauri shells reuse this module unchanged. Only their `host.state` implementation differs. The headless test exercises the full round-trip against an in-memory bridge, which is why it stands in for all of them.
+`data-transfer.ts` reads and writes exclusively through the capability bridge (`host.profile`, `host.state`, `host.assets`) and the shared `localStorage` prefs. The same module reads and writes the common envelope on web and Tauri, over IndexedDB or filesystem storage. Optional history parts appear only where the corresponding adapter is available; an unsupported part is reported as skipped on import. The headless suite exercises the common parts against an in-memory bridge, while history transactions also have real-browser tests.
 
 Two shells sit outside that guarantee, for different reasons:
 

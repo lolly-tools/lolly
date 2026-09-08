@@ -51,19 +51,42 @@ The route's parameters, refusals and headers are described in OpenAPI 3.1 at [`/
 
 Every tool input and every export control an agent can set is a URL query parameter, and the one table that defines them is [URL mode](/info/url-mode.html): inputs by id (or `urlKey`), and the reserved export names - `format`, `width`/`height`/`unit`/`dpi`, `profile`, `password`, `bleed`/`marks`, `c2pa`/`imprint`/`durable`/`meta`, `hdr`/`depth`, `cuts`, `s`, `lang`, and for the motion formats `fps`, `seconds`, `wait`, `codec` and `vq`. The MCP `query` argument, a share link, the CLI's `--flag=value` pairs and the hot-linkable render URL are that one contract under four transports, so an agent that has learnt the table has learnt all four; `lolly_list_tools` and `lolly_describe_tool` return each tool's inputs in the same vocabulary. Nothing here is a second API to memorise.
 
-## The seven tools
+## The thirteen tools
+
+**Discover and describe:**
 
 | Tool | Does |
 |---|---|
 | `lolly_list_tools` | List / search the catalogue (by text, status, category, format, capability). |
 | `lolly_describe_tool` | One tool's full input JSON Schema, supported formats, canvas size and examples. |
+
+**Validate and inspect a document before you spend a render:**
+
+| Tool | Does |
+|---|---|
+| `lolly_validate` | Validate tool inputs (and Design structure) before compile or render - path-specific errors and warnings, no drawing. |
+| `lolly_compile` | Compile a hydrated document without rasterising it. |
+| `lolly_inspect` | Inspect a document (or a file you supply) without rasterising: its semantic read model. |
+| `lolly_measure` | Measure a document without rasterising - sizes, counts, duration. |
+| `lolly_diff` | Semantically diff two compiled documents or recipe query strings. |
+| `lolly_package` | Package a compiled document into portable `.lolly` bytes. |
+
+**Build a link or render:**
+
+| Tool | Does |
+|---|---|
 | `lolly_build_url` | Build a shareable, editable link + raw render URL - **without** rendering. |
 | `lolly_render` | Render a tool to a file - returns the bytes plus the editable link. |
+
+**On-device file utilities (bytes in, bytes out):**
+
+| Tool | Does |
+|---|---|
 | `lolly_transform` | Run an on-device file utility (`strip-data`, `compress-pdf`) on a file you supply. |
 | `lolly_redact` | Destroy regions of an image, SVG or PDF you supply. Takes the same instruction string a share link carries (`bars=1,40,60,200,24~…`), so one string can be applied to every file of an identical layout. The tool rebuilds the file and re-checks its own output; a failed check returns an error with no file attached. |
 | `lolly_verify` | Verify a file's Content Credentials (C2PA): was it genuinely made with Lolly, who signed it and has it changed since export. Returns the verdict, signer identity, edit history and embedded metadata (including any AI-generated declaration and appended-data flags) - the same C2PA verifier as the CLI's `lolly validate`. (The web verify page's pixel-level reads - the Lolly Imprint, SEAL, the opt-in deep scan - are interactive, web-only.) The file is checked in-process and never stored. |
 
-The intended flow is `lolly_list_tools` → `lolly_describe_tool` (read the exact input schema) → `lolly_render`; `lolly_verify` closes the loop when an agent needs to prove a file it holds is an untouched Lolly export.
+The intended flow is `lolly_list_tools` → `lolly_describe_tool` (read the exact input schema) → `lolly_validate` (correct every error) → `lolly_render`, which is exactly what the server's own prompts walk you through; `lolly_verify` closes the loop when an agent needs to prove a file it holds is an untouched Lolly export. On an authenticated connection with a file scope, five more `files_*` tools appear for importing a private file once and operating on its handle: `files_import`, `files_list`, `files_convert`, `files_report` and `files_delete`.
 
 ### One vocabulary across both machine surfaces
 
@@ -138,7 +161,7 @@ The endpoint also accepts the raw token directly, so scripted clients skip the O
 }
 ```
 
-A quick check with `curl` (expect a JSON list of the seven tools; no token returns `401`):
+A quick check with `curl` (expect a JSON list of the thirteen tools, plus the `files_*` tools when the connection is scoped; no token returns `401`):
 
 ```bash
 curl -s -X POST https://mcp.lolly.tools/mcp \

@@ -618,6 +618,36 @@ A tool's curated starting points live as one file per template in `tools/<id>/te
 People also save their own templates in the app (see Publishing) - those join the same
 chooser under "Your templates", no files involved.
 
+### Curated Design motion
+
+Design templates can carry optional `motion` metadata beside `values`:
+
+```json
+"motion": {
+  "collection": "Launch",
+  "recipe": "assemble-loop",
+  "durationMs": 6000,
+  "posterMs": 3300,
+  "beats": ["Assemble", "Settle", "Hold", "Unwind"]
+}
+```
+
+The catalog carries this small description; the animation itself stays in the
+ordinary `boxes` keyframes and clips. The gallery and template chooser render the
+poster at `posterMs` and offer a live preview using the same sequence clock as
+export. Reduced-motion users see the poster until they explicitly play it. Picking
+an example opens an editable document at its readable poster; pace presets scale
+that opening position with their duration. An explicit `_t=` link still wins.
+
+Use semantic brand colours and font roles, allow enough reading time after the
+last entrance, and keep every part of a compound card aligned throughout its move.
+The four Launch templates include 6-second base, 7.5-second Calm and 4.2-second
+Brisk treatments. Their Choreograph recipes expand to ordinary editable tracks.
+Motion metadata currently enables live discovery previews for Design. Durations
+must be 800–30000 ms, with a poster inside that interval and one to eight short
+beat descriptions. Run `build:catalog:all` and `validate:catalog:all` after changing
+a community template so every mounted brand receives the new metadata.
+
 ## Data formats (`json` / `csv` / `ics` / `vcf`)
 
 Some tools export *data* alongside the rendered image - a calendar invite, a contact card, the underlying numbers. These come from the **input model**, not the pixels, so they work in every shell (including the CLI) and don't need a browser.
