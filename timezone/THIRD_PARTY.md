@@ -1,0 +1,10 @@
+# Sources and licences
+
+- **Three.js 0.185.1**, copyright Three.js authors; MIT, [licence](licenses/THREE-MIT.txt). Bundled into the browser renderer from the parent's pinned dev dependency.
+- **D3 Geo 3.1.1** and **D3 Array**, copyright Mike Bostock; ISC, [Geo licence](licenses/D3-ISC.txt), [Array licence](licenses/D3-array-ISC.txt). Bundled into the hooks and renderer.
+- **World Atlas 2.0.2 / Natural Earth 1:50m and 1:110m countries**, [source](https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json). Natural Earth geography is [public domain](https://www.naturalearthdata.com/about/terms-of-use/). Stored verbatim in `data/countries-50m.json` and `data/countries-110m.json`.
+- **Timezone Boundary Builder 2026c**, derived from OpenStreetMap; © OpenStreetMap contributors, Open Data Commons Open Database Licence 1.0, [licence](licenses/TZ-ODbL.txt), [upstream source](https://github.com/evansiroky/timezone-boundary-builder/releases/tag/2026c). `data/timezones.json` is a derived database: simplified at 0.025 degrees, rounded to four decimal places, with small collapsed rings removed. It remains under ODbL; source data and the transformation are available with the tool. Use appropriate OpenStreetMap attribution when publicly distributing maps using these regions.
+- **IANA tzdb zone.tab**, [source](https://data.iana.org/time-zones/tzdb/zone.tab), public domain as stated in the file. `data/places.json` contains the extracted representative coordinates. This is a location index; clock rules come from the runtime's ICU data.
+- **city-timezones**, Kevin Roberts; MIT as declared in [package.json](https://github.com/kevinroberts/city-timezones/blob/3b4979521a38d71e0141d7a36f097af9967f0dd8/package.json). `data/cities.json` is a reduced representation of `data/cityMap.json` at commit `3b4979521a38d71e0141d7a36f097af9967f0dd8`, retaining city, ASCII name, country code, province, timezone, coordinates and population for disambiguation.
+
+The Lolly-authored sources and build scripts are MPL-2.0. The reference artwork in Bobby Roe's Vertex Earth was researched but neither its code nor its image textures are included.

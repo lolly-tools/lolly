@@ -2,9 +2,9 @@
 /**
  * Backdrop hooks.
  *
- * The tool is a thin, curated harness over vendored Paper Shaders fragment
- * shaders (lib/paper-shaders.min.js, Apache-2.0 - see lib/LICENSE): fifteen
- * generative GPU fields driven by the design system's swatches. Hooks only
+ * The tool combines curated Paper Shaders fragments (lib/paper-shaders.min.js,
+ * Apache-2.0 - see lib/LICENSE) and three original MilkDrop-inspired fields:
+ * sixteen generative GPU fields driven by the design system's swatches. Hooks only
  * validate/normalise the inputs and emit the host element + its config as a
  * data attribute; the template script owns the WebGL2 mount, the live loop
  * and the deterministic export frame clock (__lollyFrameRender). The host
@@ -14,7 +14,7 @@
  */
 
 var EFFECTS = ['metaballs', 'smoke-ring', 'voronoi', 'neuro-noise', 'perlin-noise', 'dithering',
-  'warp', 'spiral', 'swirl', 'waves', 'dot-orbit', 'dot-grid', 'god-rays', 'color-panels', 'pulsing-border'];
+  'warp', 'spiral', 'swirl', 'silk-flow', 'prism-bloom', 'liquid-contours', 'dot-orbit', 'god-rays', 'color-panels', 'pulsing-border'];
 
 // Brand-agnostic fallbacks for unresolved token aliases ('' after flattening).
 var FALLBACK = ['#6d5bd8', '#e0679f', '#2fb6a3', '#f2a65a', '#5b8def', '#e0679f'];
@@ -45,6 +45,7 @@ function compute(model) {
     effect: effect,
     colors: colors,
     background: background,
+    brandInfluence: ['off', 'subtle', 'strong', 'full'].indexOf(a.brandInfluence) >= 0 ? a.brandInfluence : 'strong',
     intensity: _clamp(_num(a.intensity, 50), 0, 100),
     density: _clamp(_num(a.density, 50), 0, 100),
     scale: _clamp(_num(a.scale, 100), 25, 400),

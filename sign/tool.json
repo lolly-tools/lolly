@@ -2,7 +2,7 @@
   "id": "sign",
   "name": "Sign",
   "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "utility",

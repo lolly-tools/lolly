@@ -33,7 +33,7 @@ function fmtBytes(n){if(!(n>=0))return'';if(n<1024)return n+' B';var u=['KB','MB
 function fmtTime(n){n=Math.max(0,Number(n)||0);var m=Math.floor(n/60),s=n-m*60;return m?m+':'+s.toFixed(1).padStart(4,'0'):s.toFixed(1)+'s';}
 function fmtLufs(n){return n==null||!isFinite(n)?'No measurable programme':Number(n).toFixed(1)+' LUFS';}
 function base(name){return String(name||'recording').replace(/\.[^.]+$/,'');}
-function cleanOpts(v){return{denoise:v.denoise||'off',normalize:v.normalize==='off'?'off':Number(v.normalize),trimSilence:Boolean(v.trimSilence),output:v.audioFormat||'wav',sourceName:v.source&&v.source.name,sourceMime:v.source&&v.source.type};}
+function cleanOpts(v){return{denoise:v.denoise||'off',normalize:v.normalize==='off'?'off':Number(v.normalize),trimSilence:Boolean(v.trimSilence),output:v.audioFormat||'wav',sourceName:v.source&&v.source.name,sourceMime:v.source&&(v.source.mime||v.source.type)};}
 function jobKey(v){var f=v.source;return[f&&f.url,f&&f.size,v.denoise,v.normalize,v.trimSilence,v.audioFormat].join('|');}
 function job(host,v){const k=jobKey(v);if(k===_cleanJobKey&&_cleanJob)return _cleanJob;_cleanJobKey=k;_cleanJob=host.audio.clean(v.source.bytes,cleanOpts(v));_cleanJob.catch(function(){if(_cleanJobKey===k){_cleanJobKey='';_cleanJob=null;}});return _cleanJob;}
 function budget(p,ms){return new Promise(function(resolve){var done=false,t=setTimeout(function(){if(!done){done=true;resolve(null);}},ms);p.then(function(v){if(!done){done=true;clearTimeout(t);resolve(v);}},function(){if(!done){done=true;clearTimeout(t);resolve(null);}});});}

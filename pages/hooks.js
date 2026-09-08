@@ -30,7 +30,7 @@ function basename(name) { return String(name || 'document').replace(/\.pdf$/i, '
 function selected(expr, page, total) {
   var parts = String(expr || '').split(',');
   for (var i = 0; i < parts.length; i++) {
-    var m = /^\s*(\d+)(?:-(\d*)?)?\s*$/.exec(parts[i]);
+    var m = /^\s*(\d+)(?:-(\d*))?\s*$/.exec(parts[i]);
     if (!m) continue;
     var a = Number(m[1]), b = m[2] === undefined ? a : (m[2] ? Number(m[2]) : total);
     if (page >= Math.min(a, b) && page <= Math.max(a, b)) return true;
@@ -42,7 +42,7 @@ function pageOrder(expr, total) {
   if (!text) return Array.from({ length: total }, function (_, i) { return i + 1; });
   var out = [];
   text.split(',').forEach(function (part) {
-    var m = /^\s*(\d+)(?:-(\d*)?)?\s*$/.exec(part);
+    var m = /^\s*(\d+)(?:-(\d*))?\s*$/.exec(part);
     if (!m) return;
     var from = Number(m[1]), to = m[2] === undefined ? from : (m[2] ? Number(m[2]) : total);
     if (from < 1 || from > total || to < 1 || to > total) return;

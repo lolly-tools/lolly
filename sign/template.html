@@ -1,7 +1,7 @@
 <main class="utility"><div class="sign-root">
-  {{#unless hasFile}}<section class="empty"><div class="mark">✍</div><h1>Sign a PDF</h1><p>Draw your signature here or choose an existing signature image, then place it on any page.</p><button type="button" data-file-pick>Choose a PDF…</button><small>Your document stays on this device.</small></section>{{/unless}}
+  {{#unless hasFile}}<section class="empty"><div class="mark">✍</div><h1>Sign a PDF</h1><p>Draw your signature here or choose an existing signature image, then place it on any page.</p><button class="btn btn--primary" type="button" data-file-pick>Choose a PDF…</button><small>Your document stays on this device.</small></section>{{/unless}}
   {{#if hasFile}}<section class="card">
-    <header><strong>{{fileName}}</strong><span>{{fileSize}}</span><button type="button" class="quiet" data-file-pick>Replace PDF</button></header>
+    <header><strong>{{fileName}}</strong><span>{{fileSize}}</span><button type="button" class="btn btn--ghost quiet" data-file-pick>Replace PDF</button></header>
     {{#if error}}<div class="notice bad"><strong>Check the signing choices</strong><span>{{error}}</span></div>{{/if}}
     {{#if available}}<div class="workspace">
       <aside class="sign-controls" aria-label="Signature controls">
@@ -11,20 +11,20 @@
             <path class="guide" d="M28 145H572" />
             {{#each inkPaths}}<path class="ink-stroke" d="{{d}}" />{{/each}}
           </svg>
-          <div class="ink-actions"><button type="button" class="small quiet" data-ink-action="undo">Undo</button><button type="button" class="small quiet" data-ink-action="clear">Clear</button></div>
+          <div class="ink-actions"><button type="button" class="btn btn--ghost btn--sm small quiet" data-ink-action="undo">Undo</button><button type="button" class="btn btn--ghost btn--sm small quiet" data-ink-action="clear">Clear</button></div>
         </section>
         <div class="or"><span>or</span></div>
-        <button type="button" class="asset-button" data-input-action="pick" data-input-id="signature" data-clear-input="signatureInk">Choose signature image…</button>
-        {{#if signatureUrl}}<button type="button" class="small quiet" data-remove-image="signature">Remove signature image</button>{{/if}}
-        <button type="button" class="small quiet initials-button" data-input-action="pick" data-input-id="initials">{{#if initialsUrl}}Replace initials image…{{else}}Add initials image…{{/if}}</button>
-        {{#if initialsUrl}}<button type="button" class="small quiet" data-remove-image="initials">Remove initials</button>{{/if}}
+        <button type="button" class="btn btn--primary asset-button" data-input-action="pick" data-input-id="signature" data-clear-input="signatureInk">Choose signature image…</button>
+        {{#if signatureUrl}}<button type="button" class="btn btn--ghost btn--sm small quiet" data-remove-image="signature">Remove signature image</button>{{/if}}
+        <button type="button" class="btn btn--ghost btn--sm small quiet initials-button" data-input-action="pick" data-input-id="initials">{{#if initialsUrl}}Replace initials image…{{else}}Add initials image…{{/if}}</button>
+        {{#if initialsUrl}}<button type="button" class="btn btn--ghost btn--sm small quiet" data-remove-image="initials">Remove initials</button>{{/if}}
         <div class="placement-controls">
-          <label><span>Page</span><input type="number" min="1" max="{{totalPages}}" step="1" value="{{pageNo}}" data-input-id="page"></label>
-          <label><span>Width (pt)</span><input type="number" min="0.1" max="{{pageW}}" step="1" value="{{positionWidth}}" data-sign-width></label>
+          <label><span>Page</span><input class="field-input field-input--sm" type="number" min="1" max="{{totalPages}}" step="1" value="{{pageNo}}" data-input-id="page"></label>
+          <label><span>Width (pt)</span><input class="field-input field-input--sm" type="number" min="0.1" max="{{pageW}}" step="1" value="{{positionWidth}}" data-sign-width></label>
         </div>
-        <label class="check"><input type="checkbox" data-input-id="date" {{#if date}}checked{{/if}}><span>Add today’s date</span></label>
-        <label class="check"><input type="checkbox" data-input-id="seal" {{#if seal}}checked{{/if}}><span>Add Content Credential</span></label>
-        <label class="check"><input type="checkbox" data-input-id="lock" {{#if lock}}checked{{/if}}><span>Lock with password</span></label>
+        <label class="check"><input class="field-check" type="checkbox" data-input-id="date" {{#if date}}checked{{/if}}><span>Add today’s date</span></label>
+        <label class="check"><input class="field-check" type="checkbox" data-input-id="seal" {{#if seal}}checked{{/if}}><span>Add Content Credential</span></label>
+        <label class="check"><input class="field-check" type="checkbox" data-input-id="lock" {{#if lock}}checked{{/if}}><span>Lock with password</span></label>
       </aside>
 
       <div class="page-stage"><div class="page" data-page-w="{{pageW}}" data-page-h="{{pageH}}" data-position='{{posJson}}' data-group-width="{{groupWidth}}" data-group-height="{{groupHeight}}" style="width:{{pageDisplayW}}px;aspect-ratio:{{pageW}}/{{pageH}}">
@@ -39,7 +39,7 @@
     </div>
     {{#if pending}}<div class="notice" role="status">Preparing accurate placement…</div>{{/if}}
     <div class="result"><strong>Page {{pageNo}} · {{signer}}</strong><span>{{positionText}}</span><span>{{sealText}} · {{lockText}}</span></div>
-    <div class="footer">{{#if lock}}<button type="button" class="download" data-export-file data-export-password="true" data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{else}}<button type="button" class="download" data-export-file data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{/if}}<p class="muted">The page keeps its original size. This is a visible signature, not a regulated identity-verification service.</p></div>
+    <div class="footer">{{#if lock}}<button type="button" class="btn btn--primary download" data-export-file data-export-password="true" data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{else}}<button type="button" class="btn btn--primary download" data-export-file data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{/if}}<p class="muted">The page keeps its original size. This is a visible signature, not a regulated identity-verification service.</p></div>
     {{/if}}
   </section>{{/if}}
 </div></main>

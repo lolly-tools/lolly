@@ -1,0 +1,34 @@
+<div id="tz-root" class="tz-root">
+  <div class="tz-art">{{{_artwork}}}</div>
+  <canvas class="tz-globe" aria-label="WebGL world map" hidden></canvas>
+  <svg class="tz-pins" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+  <div class="tz-interaction" tabindex="0" role="application" aria-label="Rotate world map. Arrow keys rotate, plus and minus zoom, Home resets." data-export-hide></div>
+  <div class="tz-controls" data-export-hide>
+    <button type="button" data-action="zoom-out" aria-label="Zoom out">−</button>
+    <button type="button" data-action="zoom-in" aria-label="Zoom in">+</button>
+    <button type="button" data-action="reset">Reset view</button>
+    <button type="button" data-action="play" aria-pressed="false">Play animation</button>
+    <span class="tz-status" role="status">Loading atlas…</span>
+  </div>
+  <script type="application/json" class="tz-state">{{{_state}}}</script>
+  <script>
+  (function () {
+    var root = document.getElementById('tz-root');
+    if (!root) return;
+    if (root.__timezone) { root.__timezone.resize(); return; }
+    window.__toolHasReadySignal = true;
+    var state = JSON.parse(root.querySelector('.tz-state').textContent);
+    function boot() { if (root.isConnected) window.LollyTimezone.mount(root, state); }
+    if (window.LollyTimezone) return boot();
+    var script = document.createElement('script');
+    script.src = '/tools/timezone/lib/renderer.min.js';
+    script.onload = boot;
+    script.onerror = function () {
+      root.querySelector('.tz-status').textContent = 'Interactive map unavailable · vector artwork ready';
+      root.dataset.ready = 'true';
+      document.dispatchEvent(new CustomEvent('tool:ready'));
+    };
+    document.head.appendChild(script);
+  }());
+  </script>
+</div>

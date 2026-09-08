@@ -1,26 +1,26 @@
 <main class="utility"><div class="trim-root" data-start="{{start}}" data-end="{{end}}" data-duration="{{duration}}">
- {{#unless hasFile}}<section class="empty"><div class="mark">✂</div><h1>Trim a clip</h1><p>Set precise in and out points, then keep, convert, mute or extract the audio.</p><button type="button" data-file-pick>Choose audio or video…</button><small>Local codecs only. Nothing is uploaded.</small></section>{{/unless}}
- {{#if hasFile}}<section class="card"><header><strong>{{fileName}}</strong><span>{{fileSize}}</span><button type="button" class="quiet" data-file-pick>Replace</button></header>
+ {{#unless hasFile}}<section class="empty"><div class="mark">✂</div><h1>Trim a clip</h1><p>Set precise in and out points, then keep, convert, mute or extract the audio.</p><button class="btn btn--primary" type="button" data-file-pick>Choose audio or video…</button><small>Local codecs only. Nothing is uploaded.</small></section>{{/unless}}
+ {{#if hasFile}}<section class="card"><header><strong>{{fileName}}</strong><span>{{fileSize}}</span><button type="button" class="btn btn--ghost quiet" data-file-pick>Replace</button></header>
   {{#if available}}<div class="media">{{#if isVideo}}<video controls muted preload="metadata" src="{{sourceUrl}}"></video>{{else}}<audio controls preload="metadata" src="{{sourceUrl}}"></audio>{{/if}}</div>
    <div class="timeline" aria-label="Clip range">
-    <div class="range-handles"><label>In <input type="range" min="0" step="0.01" data-range="start" aria-label="In point" disabled></label><label>Out <input type="range" min="0" step="0.01" data-range="end" aria-label="Out point" disabled></label></div>
+    <div class="range-handles"><label>In <input class="field-range" type="range" min="0" step="0.01" data-range="start" aria-label="In point" disabled></label><label>Out <input class="field-range" type="range" min="0" step="0.01" data-range="end" aria-label="Out point" disabled></label></div>
     <div><strong>{{rangeText}}</strong><span>{{modeText}}</span></div>
    </div>
    <section class="controls" aria-label="Trim settings">
-    <label>Start (seconds)<input type="number" min="0" step="0.01" data-input-id="start" value="{{start}}"></label>
-    <label>End (0 = end of file)<input type="number" min="0" step="0.01" data-input-id="end" value="{{end}}"></label>
-    <label>Container<select data-input-id="container" {{#unless (eq audioOnly "off")}}disabled{{/unless}}>
+    <label>Start (seconds)<input class="field-input field-input--sm" type="number" min="0" step="0.01" data-input-id="start" value="{{start}}"></label>
+    <label>End (0 = end of file)<input class="field-input field-input--sm" type="number" min="0" step="0.01" data-input-id="end" value="{{end}}"></label>
+    <label>Container<select class="field-select field-select--sm" data-input-id="container" {{#unless (eq audioOnly "off")}}disabled{{/unless}}>
      <option value="keep" {{#if (eq container "keep")}}selected{{/if}}>Keep source container</option><option value="mp4" {{#if (eq container "mp4")}}selected{{/if}}>MP4</option><option value="webm" {{#if (eq container "webm")}}selected{{/if}}>WebM</option><option value="gif" {{#if (eq container "gif")}}selected{{/if}}>GIF · up to 15 seconds</option>
     </select></label>
-    <label>Extract audio<select data-input-id="audioOnly"><option value="off" {{#if (eq audioOnly "off")}}selected{{/if}}>No</option><option value="m4a" {{#if (eq audioOnly "m4a")}}selected{{/if}}>M4A</option><option value="opus" {{#if (eq audioOnly "opus")}}selected{{/if}}>Opus</option><option value="wav" {{#if (eq audioOnly "wav")}}selected{{/if}}>WAV</option></select></label>
-    <label class="check"><input type="checkbox" data-input-id="mute" {{#if mute}}checked{{/if}} {{#unless (eq audioOnly "off")}}disabled{{/unless}}> Remove audio</label>
-    <button type="button" class="quiet" data-play-range>Play selected range</button>
+    <label>Extract audio<select class="field-select field-select--sm" data-input-id="audioOnly"><option value="off" {{#if (eq audioOnly "off")}}selected{{/if}}>No</option><option value="m4a" {{#if (eq audioOnly "m4a")}}selected{{/if}}>M4A</option><option value="opus" {{#if (eq audioOnly "opus")}}selected{{/if}}>Opus</option><option value="wav" {{#if (eq audioOnly "wav")}}selected{{/if}}>WAV</option></select></label>
+    <label class="check"><input class="field-check" type="checkbox" data-input-id="mute" {{#if mute}}checked{{/if}} {{#unless (eq audioOnly "off")}}disabled{{/unless}}> Remove audio</label>
+    <button type="button" class="btn btn--ghost quiet" data-play-range>Play selected range</button>
    </section>
   {{/if}}
   {{#if error}}<div class="notice bad" role="alert"><strong>Cannot trim</strong><span>{{error}}</span></div>{{/if}}
   {{#if pending}}<div class="notice" role="status"><strong>Preparing your clip…</strong><span>You can adjust the range while local processing finishes.</span></div>{{/if}}
   {{#if done}}<div class="result" role="status"><strong>{{durationText}}</strong><span>{{containerText}} · {{cutText}}</span><span>{{sizeAfter}}</span></div>{{/if}}
-  {{#if available}}<button type="button" class="download" data-export-file data-busy-label="Trimming…" {{#unless done}}disabled{{/unless}}>Download trimmed clip</button><p class="muted">Exact boundaries may require re-encoding. No watermark, metadata credit or credential is added.</p>{{/if}}
+  {{#if available}}<button type="button" class="btn btn--primary download" data-export-file data-busy-label="Trimming…" {{#unless done}}disabled{{/unless}}>Download trimmed clip</button><p class="muted">Exact boundaries may require re-encoding. No watermark, metadata credit or credential is added.</p>{{/if}}
  </section>{{/if}}
 </div></main>
 <script>(function(){

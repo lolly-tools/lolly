@@ -1,0 +1,63 @@
+{
+  "id": "infrastructure-atlas",
+  "name": "Infrastructure atlas",
+  "category": "Timezone",
+  "description": "A clean vector atlas of your infrastructure regions.",
+  "values": {
+    "heading": "Always connected.",
+    "eyebrow": "GLOBAL INFRASTRUCTURE",
+    "annotation": "Follow the sun. Know every region.",
+    "footer": "",
+    "timeMode": "now",
+    "eventTime": "",
+    "referenceZone": "",
+    "ambiguity": "earlier",
+    "eventMinutes": 60,
+    "clockStyle": "24",
+    "locations": [
+      {
+        "label": "London \u00b7 Primary",
+        "place": "Europe/London",
+        "annotation": "EMEA infrastructure",
+        "spread": true
+      },
+      {
+        "label": "Virginia \u00b7 East",
+        "place": "America/New_York",
+        "annotation": "Americas infrastructure",
+        "spread": true
+      },
+      {
+        "label": "Singapore \u00b7 Edge",
+        "place": "Asia/Singapore",
+        "annotation": "APAC infrastructure",
+        "spread": true
+      }
+    ],
+    "renderer": "vector",
+    "projection": "equalEarth",
+    "unfold": 1,
+    "view": "15,22,0,1",
+    "fov": 40,
+    "tilt": 0,
+    "showGrid": true,
+    "showBorders": true,
+    "showNight": false,
+    "showLabels": true,
+    "showConnections": true,
+    "regionOpacity": 0.45,
+    "theme": "paper",
+    "accent": "{color.semantic.primary}",
+    "background": "",
+    "ink": "",
+    "titleSize": 68,
+    "titleWeight": 500,
+    "labelSize": 15,
+    "mapScale": 1,
+    "motion": "still",
+    "duration": 12,
+    "tourHold": 0.35,
+    "composition": "artwork",
+    "mapFit": "width"
+  }
+}

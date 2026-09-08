@@ -2,7 +2,7 @@
   "id": "trim",
   "name": "Trim",
   "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "utility",
