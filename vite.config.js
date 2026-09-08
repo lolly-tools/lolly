@@ -52,8 +52,9 @@ const EMBED_CATALOG = resolveEmbedMode(process.env.LOLLY_EMBED_CATALOG, 'neutral
 // (`vite build`) and the root-relative URL importer the dev server passes
 // (`/src/bridge/index.js`).
 //
-// Mobile overrides three modules: state.js (filesystem state via
-// tauri-plugin-fs), capabilities-provided.js (adds 'filesystem') and export.js.
+// Mobile overrides four modules: state.js (filesystem state via
+// tauri-plugin-fs), capabilities-provided.js (adds 'filesystem'), export.js, and
+// assets.js (durable filesystem mirror for user uploads).
 // It does NOT override capture.js. A mobile capture override was staged for
 // url-shot-on-iOS and deleted 2026-09-05: the native command it invoked was
 // never built (objc2-web-kit's WKWebView is macOS-only; see
@@ -97,6 +98,9 @@ export default defineConfig({
       'state': resolve(__dirname, 'bridge-overrides/state.ts'),
       'capabilities-provided': resolve(__dirname, 'bridge-overrides/capabilities-provided.ts'),
       'export': resolve(__dirname, 'bridge-overrides/export.ts'),
+      // Durable user-asset storage: mirrors uploaded bytes + metadata + versions to
+      // $APPDATA so a WKWebView storage purge can't lose them (plan 216 item 2).
+      'assets': resolve(__dirname, 'bridge-overrides/assets.ts'),
       // There used to be a 'site-fetch' entry here, for a
       // shells/web/src/bridge/site-fetch.ts that was never added. Removed
       // 2026-09-05 (dead: the map key matched no web module, so it never fired).

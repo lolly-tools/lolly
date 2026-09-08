@@ -19,6 +19,8 @@
         { "path": "$APPDATA/saved-state/**" },
         { "path": "$APPDATA/pack-store" },
         { "path": "$APPDATA/pack-store/**" },
+        { "path": "$APPDATA/user-assets" },
+        { "path": "$APPDATA/user-assets/**" },
         { "path": "$DOWNLOAD/Lolly" },
         { "path": "$DOWNLOAD/Lolly/**" },
         { "path": "$DOCUMENT/Lolly" },
