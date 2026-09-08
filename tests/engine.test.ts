@@ -14,8 +14,8 @@ import { validateManifest } from '../engine/src/validate.ts';
 import { parseUrlState, serializeUrlState, serializeHdr, RESERVED, CUTS_MAX, cutTime, parseVideoParams, hasVideoParams, VIDEO_CODEC_STRINGS } from '../engine/src/url-mode.ts';
 import type { DepthSetting } from '../engine/src/url-mode.ts';
 import { parseFrameAddress, selectFramePage } from '../engine/src/frame-address.ts';
-import { buildInputModel, updateInput, modelToValues } from '../engine/src/inputs.ts';
-import { hydrate, annotateTemplate } from '../engine/src/template.ts';
+import { buildInputModel, updateInput, modelToValues, tokenBindingsOf } from '../engine/src/inputs.ts';
+import { hydrate, annotateTemplate, resolvePaintBindings } from '../engine/src/template.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { LANGS, LANG_META, sortedLangs } from '../engine/src/lang.ts';
 
@@ -1038,15 +1038,44 @@ test('annotateTemplate: attribute refs - self-closing tags, first-id-wins, autho
     '</div>',
   ].join('\n');
   const out = annotateTemplate(src, ['color', 'name', 'a', 'b']);
-  assert.ok(out.includes('<div style="background:{{color}}" data-canvas-input="color"></div>'));
-  // Self-closing: the attribute lands before the "/>", not after it.
+  // A paint attribute also gets a data-lolly-paint marker (plans/222): the token an
+  // input inherits is resolved onto it later so it survives into a .penpot export.
+  assert.ok(out.includes('<div style="background:{{color}}" data-canvas-input="color" data-lolly-paint="fill:color"></div>'));
+  // Self-closing: the attribute lands before the "/>", not after it. `value` is not
+  // a paint property, so no data-lolly-paint.
   assert.ok(out.includes('<input value="{{name}}" data-canvas-input="name" />'));
-  // Two ids in one tag's attributes - only the first (positionally) wins.
-  assert.ok(out.includes('<span style="color:{{a}}; border-color:{{b}}" data-canvas-input="a"></span>'));
-  // A tag that already hand-authors its own data-canvas-input is left alone.
-  assert.ok(out.includes('<div data-canvas-input="rows:0" style="background:{{color}}"></div>'));
+  // data-canvas-input tracks the FIRST id; data-lolly-paint carries BOTH paints, each
+  // keyed by its Penpot property (CSS `color` is a text colour, `border-color` a stroke).
+  assert.ok(out.includes('<span style="color:{{a}}; border-color:{{b}}" data-canvas-input="a" data-lolly-paint="textFill:a;strokeColor:b"></span>'));
+  // A tag that already hand-authors its own data-canvas-input keeps it, and still
+  // gets the paint marker.
+  assert.ok(out.includes('<div data-canvas-input="rows:0" style="background:{{color}}" data-lolly-paint="fill:color"></div>'));
   // A closing tag never gets one, however it's spelled.
   assert.ok(!out.includes('</div data-canvas-input'));
+});
+
+test('tokenBindingsOf: maps token-linked colour inputs to their dotted token path, ignoring literals', () => {
+  const model = [
+    { id: 'bg', type: 'color', value: { ref: '{color.semantic.primary}', value: '#30ba78' } },
+    { id: 'edge', type: 'color', value: { ref: 'color.semantic.edge', value: '#cccccc' } },
+    { id: 'title', type: 'text', value: 'Hello' },
+    { id: 'red', type: 'color', value: '#ff0000' },
+  ] as unknown as Parameters<typeof tokenBindingsOf>[0];
+  assert.deepEqual(tokenBindingsOf(model), { bg: 'color.semantic.primary', edge: 'color.semantic.edge' });
+});
+
+test('resolvePaintBindings: a data-lolly-paint marker becomes a token binding for a linked input, dropped for a literal', () => {
+  const html = '<div style="background:#30ba78;color:#111" data-lolly-paint="fill:bg;textFill:fg"></div>'
+    + '<rect fill="#ccc" data-lolly-paint="fill:plain"></rect>';
+  // `bg` is token-linked, `fg` and `plain` are literals (no entry).
+  const out = resolvePaintBindings(html, { bg: 'color.semantic.primary' });
+  assert.ok(out.includes('data-lolly-bind="fill:color.semantic.primary"'), 'the linked input resolves to its token');
+  assert.ok(!out.includes('data-lolly-paint'), 'every marker is consumed');
+  assert.ok(!out.includes('textFill:fg'), 'a literal input binds nothing');
+  // The rect whose only marker was a literal loses the attribute entirely.
+  assert.ok(out.includes('<rect fill="#ccc"></rect>'));
+  // No markers at all is a cheap no-op.
+  assert.equal(resolvePaintBindings('<div fill="#000"></div>', { bg: 'x' }), '<div fill="#000"></div>');
 });
 
 test('template: asset helper field access', () => {

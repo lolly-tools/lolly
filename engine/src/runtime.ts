@@ -26,8 +26,8 @@
  */
 
 import { missingRequires, type HostApiName } from '@lolly-tools/core';
-import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputs, normalizeTableValue } from './inputs.ts';
-import { hydrate } from './template.ts';
+import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputs, normalizeTableValue, tokenBindingsOf } from './inputs.ts';
+import { hydrate, resolvePaintBindings } from './template.ts';
 import { buildExportMeta } from './metadata.ts';
 import { isTokenValue, isAlias, colorToHex } from './tokens.ts';
 import { resolveNestedRenders } from './compose.ts';
@@ -488,6 +488,9 @@ export async function createRuntime(
   // are DROPPED (a new frame is processed only once the previous onFrame settled),
   // so a slow per-frame trace self-throttles instead of piling up.
   let liveUnsub: (() => void) | null = null;
+  let liveGeneration = 0;
+  let liveStarting = false;
+  let destroyed = false;
   // Re-applies the live working-frame resolution while the camera is running, when the
   // input named by `render.liveMaxEdgeInput` changes (a user resolution slider). Set in
   // startLive, cleared in stopLive; null when not live.
@@ -499,6 +502,18 @@ export async function createRuntime(
   // the export is capturing. isLive() stays true throughout - this is a pause, not a stop.
   let livePaused = false;
   const isLive = () => liveUnsub != null;
+  function stopLive(): void {
+    // A permission/device request can settle after navigation. Invalidate it even
+    // before there is a subscription; its continuation releases its own reference.
+    liveGeneration++;
+    liveStarting = false;
+    const unsubscribe = liveUnsub;
+    liveUnsub = null;
+    liveResubscribe = null;
+    if (!unsubscribe) return;
+    try { unsubscribe(); }
+    finally { try { host.media?.stop(); } catch { /* already torn down */ } }
+  }
 
   // Working long-edge (px) for live-camera frames. A tool can expose it as a normal
   // input via `render.liveMaxEdgeInput` so the user scrubs resolution live; otherwise
@@ -547,7 +562,11 @@ export async function createRuntime(
   // onLevel still records; driveLevels just becomes a no-op subscription.
   let meterUnsub: (() => void) | null = null;      // active onLevel subscription (either source)
   let stopMeterSource: (() => void) | null = null; // release the mic ref (meter.stop) - meter path only
-  let levelPending = false;
+  let meterGeneration = 0;
+  let meterStarting = false;
+  let levelGeneration = 0;
+  let recordGeneration = 0;
+  let recordStarting = false;
   let recordSession: RecordSession | null = null;
   const isMetering = () => meterUnsub != null && recordSession == null;
   const isRecording = () => recordSession != null;
@@ -556,19 +575,21 @@ export async function createRuntime(
   // live RecordSession - with the same drop-overlap throttle as onFrame. Returns the
   // unsubscribe. A no-op subscription when the tool declares no onLevel.
   function driveLevels(source: { subscribe(cb: (l: AudioLevel) => void): () => void }): () => void {
+    const generation = ++levelGeneration;
+    let pending = false;
     const onLevel = hooks?.onLevel;
     if (!onLevel) return () => {};
     return source.subscribe((level) => {
-      if (levelPending) return; // still running the previous onLevel → drop this sample
-      levelPending = true;
+      if (pending || generation !== levelGeneration || destroyed) return;
+      pending = true;
       Promise.resolve(onLevel({ level, model: modelForHooks(model), host }))
         .then((patch) => {
-          // Guard meterUnsub so a sample in flight when metering/recording stopped
-          // can't repaint after teardown.
-          if (patch && meterUnsub) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); emit(); }
+          if (patch && meterUnsub && generation === levelGeneration && !destroyed) {
+            ({ model, extras } = mergePatch(model, extras, patch, inputIds)); emit();
+          }
         })
         .catch((e: unknown) => host.log('warn', `onLevel ${(e as Error).message}`, { toolId: tool.manifest.id }))
-        .finally(() => { levelPending = false; });
+        .finally(() => { pending = false; });
     });
   }
 
@@ -576,11 +597,29 @@ export async function createRuntime(
   // uses its own session teardown (see stopRecording/cancelRecording), so this only
   // calls meter.stop() when the meter path opened the mic.
   function stopMeterLoop() {
-    if (!meterUnsub) return;
-    meterUnsub();
-    meterUnsub = null;
-    try { stopMeterSource?.(); } catch { /* already torn down */ }
+    ++meterGeneration;
+    meterStarting = false;
+    stopLevels();
+    const stop = stopMeterSource;
     stopMeterSource = null;
+    try { stop?.(); } catch { /* already torn down */ }
+  }
+
+  function stopLevels() {
+    ++levelGeneration;
+    const unsubscribe = meterUnsub;
+    meterUnsub = null;
+    try { unsubscribe?.(); } catch { /* already torn down */ }
+  }
+
+  function cancelRecording() {
+    ++recordGeneration;
+    recordStarting = false;
+    const session = recordSession;
+    recordSession = null;
+    if (!session) return;
+    stopLevels();
+    try { session.cancel(); } catch { /* already torn down */ }
   }
 
   // The template context (flattened input values + hook extras) is rebuilt only
@@ -604,10 +643,18 @@ export async function createRuntime(
     return ctxCache!;
   }
 
+  // Resolve the `data-lolly-paint` markers annotateTemplate left into
+  // `data-lolly-bind` token bindings using the model's still-linked colour inputs
+  // (plans/222), so an inherited colour survives the flatten-to-hex into the DOM
+  // the export reads. A single indexOf no-ops the common (no markers) case.
+  function bindPaint(html: string): string {
+    return resolvePaintBindings(html, tokenBindingsOf(model));
+  }
+
   function getHydrated(): string {
     const pag = tool.manifest.render?.paginate;
     if (pag?.source) return hydratePaginated(pag.source);
-    return hydrate(tool.template, templateContext());
+    return bindPaint(hydrate(tool.template, templateContext()));
   }
 
   // Engine-driven pagination (render.paginate): hydrate the template once per
@@ -644,7 +691,7 @@ export async function createRuntime(
         index, number: index + 1, count,
         first: row[0] ?? '', cells, fields: cells.slice(1), byColumn,
       };
-      const body = hydrate(tool.template, { ...base, page });
+      const body = bindPaint(hydrate(tool.template, { ...base, page }));
       return `<section data-pdf-page class="lolly-page" data-page-index="${index}">${body}</section>`;
     }).join('');
   }
@@ -864,7 +911,9 @@ export async function createRuntime(
       // its narrowed (non-null) types; `hooks` is a mutable closure variable.
       const onFrame = hooks?.onFrame;
       const media = host.media;
-      if (liveUnsub || !onFrame || !media) return false;
+      if (liveUnsub || liveStarting || destroyed || !onFrame || !media) return false;
+      const generation = ++liveGeneration;
+      liveStarting = true;
       // Provenance: only a real sensor feed may mark renders as a live camera
       // capture. A shell replaying an ANIMATED ASSET through the same frame loop
       // passes source:'asset' so the export never over-claims digitalCapture.
@@ -875,7 +924,17 @@ export async function createRuntime(
       // a flip is stop() then start()).
       const facingMode = opts?.facingMode
         ?? (tool.manifest.render as { liveFacing?: 'user' | 'environment' } | undefined)?.liveFacing;
-      await media.start(facingMode ? { facingMode } : undefined); // may reject (permission/no camera) - the shell catches
+      try {
+        await media.start(facingMode ? { facingMode } : undefined);
+      } finally {
+        if (generation === liveGeneration) liveStarting = false;
+      }
+      if (generation !== liveGeneration || destroyed) {
+        // Balance only this successful start. Another runtime or a newer attempt
+        // may already own the same refcounted source.
+        try { media.stop(); } catch { /* already torn down */ }
+        return false;
+      }
       // A raster-output tool can ask for higher-resolution frames than the shell's
       // default vector-trace working size (render.liveMaxEdge, or a live slider via
       // render.liveMaxEdgeInput - see liveEdge()); the shell clamps it to the native
@@ -888,7 +947,7 @@ export async function createRuntime(
             // Guard liveUnsub so a frame in flight when stopLive() ran can't repaint.
             // A SENSOR frame drove the render → its essence is now a live camera
             // capture; an animated-asset frame is decoded file content and is not.
-            if (patch && liveUnsub) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); if (sensorSource) liveCameraShown = true; emit(); }
+            if (patch && liveUnsub && generation === liveGeneration) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); if (sensorSource) liveCameraShown = true; emit(); }
           })
           .catch((e: unknown) => host.log('warn', `onFrame ${(e as Error).message}`, { toolId: tool.manifest.id }))
           .finally(() => { framePending = false; });
@@ -905,13 +964,7 @@ export async function createRuntime(
      * Stop the camera-driven loop (idempotent). The shell calls this on toggle-off
      * AND on unmount, so no camera track ever outlives the tool.
      */
-    stopLive() {
-      if (!liveUnsub) return;
-      liveUnsub();
-      liveUnsub = null;
-      liveResubscribe = null;
-      try { host.media?.stop(); } catch { /* already torn down */ }
-    },
+    stopLive,
 
     // True when this tool declares an `onLevel` hook - i.e. it CAN react to live
     // audio levels. The shell still gates the actual meter/record affordance on
@@ -928,13 +981,26 @@ export async function createRuntime(
     async startMeter(opts) {
       const onLevel = hooks?.onLevel;
       const recorder = host.recorder;
-      if (meterUnsub || !onLevel || !recorder) return false;
+      if (meterUnsub || meterStarting || recordStarting || recordSession || destroyed || !onLevel || !recorder) return false;
+      const generation = ++meterGeneration;
+      meterStarting = true;
       // The sound-check MUST open the same mic the take will (opts.deviceId ===
       // the startRecording opts.audioDeviceId), or its levels describe a different
       // device. The caller (record-control) passes the chosen mic to both.
-      await recorder.meter.start(opts?.deviceId ? { deviceId: opts.deviceId } : undefined); // may reject - the shell catches
+      try {
+        await recorder.meter.start(opts?.deviceId ? { deviceId: opts.deviceId } : undefined);
+      } finally {
+        if (generation === meterGeneration) meterStarting = false;
+      }
+      // Permission may finish after stop/destroy or after a new take has started.
+      // Release only this successful acquisition; it never owned a subscription.
+      if (generation !== meterGeneration || destroyed) {
+        try { recorder.meter.stop(); } catch { /* already torn down */ }
+        return false;
+      }
       stopMeterSource = () => recorder.meter.stop();
-      meterUnsub = driveLevels(recorder.meter);
+      try { meterUnsub = driveLevels(recorder.meter); }
+      catch (error) { stopMeterLoop(); throw error; }
       return true;
     },
 
@@ -949,17 +1015,26 @@ export async function createRuntime(
      */
     async startRecording(opts = {}) {
       const recorder = host.recorder;
-      if (recordSession || !recorder) return { started: false };
+      if (recordSession || recordStarting || destroyed || !recorder) return { started: false };
+      const generation = ++recordGeneration;
+      recordStarting = true;
       // Share the single mic: drop any pre-record sound-check meter first.
       stopMeterLoop();
-      const session = await recorder.record(opts); // may reject - the shell catches
+      let session: RecordSession;
+      try { session = await recorder.record(opts); }
+      finally { if (generation === recordGeneration) recordStarting = false; }
+      if (generation !== recordGeneration || destroyed) {
+        try { session.cancel(); } catch { /* already torn down */ }
+        return { started: false };
+      }
       recordSession = session;
       // Remember what this take IS, so stopRecording/export stamp the right origin and the
       // shell can warn at once if a requested mic was actually denied.
       recordSource = opts.source === 'screen' ? 'screen' : 'device';
       recordMicActive = session.micActive;
       // Drive onLevel from the live session so coaching keeps updating during the take.
-      meterUnsub = driveLevels(session);
+      try { meterUnsub = driveLevels(session); }
+      catch (error) { cancelRecording(); throw error; }
       return { started: true, micActive: session.micActive };
     },
 
@@ -969,10 +1044,16 @@ export async function createRuntime(
      */
     async stopRecording() {
       const session = recordSession;
-      if (!session) return null;
-      if (meterUnsub) { meterUnsub(); meterUnsub = null; }
+      if (!session) {
+        if (recordStarting) cancelRecording();
+        return null;
+      }
+      const generation = recordGeneration;
+      const source = recordSource, micActive = recordMicActive;
+      stopLevels();
       recordSession = null;
       const blob = await session.stop();
+      if (destroyed || generation !== recordGeneration) return null;
       // Mark the capture for export provenance. Sticky - the take IS the content,
       // re-composited across later edits. A video take from the DISPLAY is a screen
       // capture (screenCapture), NOT a camera one - so a still exported afterwards
@@ -981,23 +1062,17 @@ export async function createRuntime(
       // capability: a screen take whose mic was denied is silent, and the credential
       // must not claim narration. Fall back to the declared capability only when the
       // session didn't report (older shells / undefined).
-      const micGot = recordMicActive ?? toolCaps.has('microphone');
+      const micGot = micActive ?? toolCaps.has('microphone');
       if (/^video\//i.test(blob.type)) {
-        if (recordSource === 'screen') { recordedScreen = true; if (micGot) recordedMic = true; }
+        if (source === 'screen') { recordedScreen = true; if (micGot) recordedMic = true; }
         else { recordedCamera = true; if (micGot) recordedMic = true; }
       } else if (/^audio\//i.test(blob.type)) {
         recordedMic = true;
       }
-      return { blob, mimeType: blob.type, micActive: recordMicActive };
+      return { blob, mimeType: blob.type, micActive };
     },
 
-    cancelRecording() {
-      const session = recordSession;
-      if (!session) return;
-      if (meterUnsub) { meterUnsub(); meterUnsub = null; }
-      recordSession = null;
-      try { session.cancel(); } catch { /* already torn down */ }
-    },
+    cancelRecording,
 
     // Whether this tool produces output via the transform path (a user file in →
     // transformed file out) rather than the DOM-render path. Shells use it to wire
@@ -1287,6 +1362,11 @@ export async function createRuntime(
     // (`hooks?.dispose` is undefined); the Worker executor drops its run. Guarded
     // so a shell that never wired destroy - or calls it twice - is harmless.
     destroy() {
+      if (destroyed) return;
+      destroyed = true;
+      try { stopLive(); } catch (e) { host.log('warn', `live dispose ${(e as Error).message}`, { toolId: tool.manifest.id }); }
+      stopMeterLoop();
+      cancelRecording();
       ++hookRunSeq; // Ignore late reports/results from a tool that is no longer mounted.
       try { hooks?.dispose?.(); } catch (e) { host.log('warn', `hook dispose ${(e as Error).message}`, { toolId: tool.manifest.id }); }
     },

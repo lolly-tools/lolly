@@ -48,11 +48,11 @@ function grid(): ChoreoBox[] {
   return out;
 }
 
-const BOX_REST: Record<string, number> = { x: 0, y: 0, s: 1, o: 1, b: 0 };
+const BOX_REST: Record<string, number> = { x: 0, y: 0, r: 0, s: 1, o: 1, b: 0 };
 const CAM_REST: Record<string, number> = { x: 0, y: 0, z: 0, rx: 0, ry: 0, f: 0, a: 0 };
 /** Every channel a BOX track may key. An allow-list, so a channel that turns up here
  *  without a rest value of its own fails loudly instead of being read as neutral. */
-const BOX_CHANNELS: readonly string[] = ['x', 'y', 'z', 's', 'o', 'b', 'rx', 'ry'];
+const BOX_CHANNELS: readonly string[] = ['x', 'y', 'z', 's', 'o', 'b', 'rx', 'ry', 'r'];
 
 /**
  * A box's rest value for one channel. Three of them are the box's OWN authored field

@@ -35,11 +35,11 @@
       "typeEscapes": 33
     },
     "shells/web/src/lib/brand-editor.ts": {
-      "lines": 4331,
-      "largestFunctionLines": 5267,
+      "lines": 4304,
+      "largestFunctionLines": 5258,
       "importFanIn": 1,
       "importFanOut": 51,
-      "typeEscapes": 41
+      "typeEscapes": 38
     },
     "shells/web/src/views/catalog.ts": {
       "lines": 5144,
@@ -70,21 +70,21 @@
       "typeEscapes": 89
     },
     "shells/web/src/views/free-canvas.ts": {
-      "lines": 12246,
-      "largestFunctionLines": 15680,
+      "lines": 12160,
+      "largestFunctionLines": 15647,
       "importFanIn": 2,
-      "importFanOut": 37,
+      "importFanOut": 39,
       "typeEscapes": 142
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 2021,
-      "largestFunctionLines": 2035,
+      "lines": 1897,
+      "largestFunctionLines": 1884,
       "importFanIn": 1,
-      "importFanOut": 51,
-      "typeEscapes": 38
+      "importFanOut": 52,
+      "typeEscapes": 34
     },
     "shells/web/src/views/picker.ts": {
-      "lines": 2749,
+      "lines": 2673,
       "largestFunctionLines": 2202,
       "importFanIn": 20,
       "importFanOut": 48,
@@ -98,17 +98,17 @@
       "typeEscapes": 36
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2369,
-      "largestFunctionLines": 3078,
+      "lines": 2357,
+      "largestFunctionLines": 3065,
       "importFanIn": 1,
-      "importFanOut": 42,
+      "importFanOut": 43,
       "typeEscapes": 28
     },
     "shells/web/src/views/start.ts": {
-      "lines": 2631,
-      "largestFunctionLines": 3303,
+      "lines": 2515,
+      "largestFunctionLines": 3302,
       "importFanIn": 1,
-      "importFanOut": 44,
+      "importFanOut": 43,
       "typeEscapes": 33
     },
     "shells/web/src/views/timeline-panel.ts": {
@@ -119,25 +119,25 @@
       "typeEscapes": 34
     },
     "shells/web/src/views/tool-actions.ts": {
-      "lines": 3818,
-      "largestFunctionLines": 5080,
+      "lines": 3815,
+      "largestFunctionLines": 5068,
       "importFanIn": 1,
-      "importFanOut": 56,
+      "importFanOut": 59,
       "typeEscapes": 44
     },
     "shells/web/src/views/tool-inputs.ts": {
-      "lines": 2983,
+      "lines": 2978,
       "largestFunctionLines": 2078,
       "importFanIn": 2,
-      "importFanOut": 24,
+      "importFanOut": 23,
       "typeEscapes": 21
     },
     "shells/web/src/views/tool.ts": {
-      "lines": 4803,
-      "largestFunctionLines": 5818,
+      "lines": 4623,
+      "largestFunctionLines": 5790,
       "importFanIn": 1,
-      "importFanOut": 103,
-      "typeEscapes": 60
+      "importFanOut": 111,
+      "typeEscapes": 55
     },
     "shells/web/src/views/valid.ts": {
       "lines": 2862,

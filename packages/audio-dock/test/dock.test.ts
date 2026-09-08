@@ -660,6 +660,34 @@ test('onCollapse fires on change and collapseSizes controls the step-down', () =
   dock.destroy();
 });
 
+test('the ▾ collapses on a COARSE pointer too (touch reaches the viz menu via two-finger tap)', () => {
+  // jsdom has no matchMedia; stub a coarse pointer for this test, then restore. This locks
+  // in the fix where the header chevron no longer doubles as the viz-menu opener on touch -
+  // it steps the window down to the mini pill, on phones as on desktop. plans/147, Andy.
+  const win = dom.window as unknown as { matchMedia?: (q: string) => { matches: boolean } };
+  const hadMM = 'matchMedia' in win;
+  win.matchMedia = (q: string) => ({ matches: /pointer:\s*coarse/.test(q) });
+  try {
+    const richViz = {
+      supported: () => true, getAnalyser: () => null, enabled: () => true, setEnabled: () => {},
+      mount: () => {}, unmount: () => {}, resize: () => {},
+      presets: () => [{ id: 'a', name: 'Aurora' }], currentPreset: () => 'a', selectPreset: () => {},
+      themes: () => [{ id: 't1', name: 'Jungle' }], currentTheme: () => 't1', selectTheme: () => {},
+    };
+    const host = makeHost({ viz: richViz }, true);
+    const dock = createAudioDock({
+      host, capabilities: { music: true, viz: true }, mount: document.body, collapseSizes: ['full', 'mini'],
+    });
+    const menu = dock.el.querySelector<HTMLElement>('[data-vizmenu]')!;
+    dock.el.querySelector<HTMLButtonElement>('[data-collapse-btn]')!.click();
+    assert.equal(dock.getCollapse(), 'mini', 'the caret collapses to the mini pill on touch');
+    assert.equal(menu.hidden, true, 'the caret does NOT open the viz menu (two-finger tap owns that)');
+    dock.destroy();
+  } finally {
+    if (hadMM) { /* keep the original */ } else { delete win.matchMedia; }
+  }
+});
+
 test('destroy() unmounts and unsubscribes', () => {
   const host = makeHost();
   const mount = document.createElement('div');

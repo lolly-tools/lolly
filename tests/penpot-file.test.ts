@@ -56,6 +56,9 @@ import {
 import { extractPenpotProject } from '../engine/src/brand-import.ts';
 import { createTokenSet } from '../engine/src/tokens.ts';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
+import {
+  PENPOT_BINDABLE, buildTokenTypeIndex, sanitizeAppliedTokens, isSafeTokenPath, penpotTokenClosure,
+} from '../engine/src/penpot-bindings.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -1452,6 +1455,7 @@ import {
   penpotUuid as _pUuid, seededPenpotUuid as _seeded, buildPenpotEntries as _build, svgToPenpotDoc as _svgDoc,
   boxesToPenpotDoc as _boxesDoc, designTextRuns as _runs, parsePenpotColor as _color,
 } from '../engine/src/penpot-file.ts';
+import { markToolComponents } from '../engine/src/penpot-file.ts';
 
 const _shapesOf = (entries: Record<string, Uint8Array | string>) =>
   Object.entries(entries).filter(([k]) => /pages\/[^/]+\/[^/]+\.json$/.test(k)).map(([, v]) => JSON.parse(String(v)) as Record<string, any>);
@@ -1578,4 +1582,301 @@ test('review #9: tokenSetOrder and set names cannot reach the prototype chain', 
   assert.deepEqual((out.$metadata as any).tokenSetOrder, ['base']);
   assert.deepEqual(Object.keys(out).filter((k) => !k.startsWith('$')), ['base']);
   assert.deepEqual((out.$themes as any)[0].selectedTokenSets, { base: 'enabled' });
+});
+
+// ── 222: applied-token bindings, native components, effective theme ───────────
+
+/** A tool result whose surface and label are inherited from real tokens - the
+ *  editable-theme contract: editing the token in Penpot re-paints the shape. */
+const boundDoc = (): PenpotDoc => ({
+  name: 'Bound',
+  tokens: {
+    color: { $type: 'color', semantic: { primary: { $value: '#30ba78' } } },
+    radius: { $type: 'borderRadius', control: { $value: '8px' } },
+    type: { size: { $value: '18px', $type: 'fontSize' }, family: { $value: 'SUSE', $type: 'fontFamilies' } },
+  },
+  pages: [{ name: 'Page 1', shapes: [
+    { type: 'board', name: 'Card', x: 0, y: 0, w: 200, h: 120, component: { name: 'Card', path: 'Lolly / Tools / Demo' }, children: [
+      { type: 'rect', name: 'Surface', x: 10, y: 10, w: 180, h: 60, radius: 8, fills: [{ color: '#30ba78' }],
+        appliedTokens: { fill: 'color.semantic.primary', r1: 'radius.control', r2: 'radius.control', r3: 'radius.control', r4: 'radius.control' } },
+      { type: 'text', name: 'Label', x: 20, y: 82, w: 160, h: 24,
+        paragraphs: [{ runs: [{ text: 'Make something', fontSize: 18, fontFamily: 'SUSE', color: '#111111' }] }],
+        appliedTokens: { fontSize: 'type.size', fontFamily: 'type.family' } },
+    ] },
+  ] }],
+});
+
+test('buildPenpotEntries: applied-token bindings ride the shapes and resolve; a top-level board is a main component', () => {
+  const build = buildPenpotEntries(boundDoc(), buildOpts(41));
+  const summary = validatePenpotEntries(build.entries);
+  assert.deepEqual(build.warnings, [], `no valid binding should warn: ${build.warnings.join(' | ')}`);
+
+  const surface = summary.byName.get('Surface')!;
+  assert.deepEqual(surface.appliedTokens, {
+    fill: 'color.semantic.primary', r1: 'radius.control', r2: 'radius.control', r3: 'radius.control', r4: 'radius.control',
+  });
+  const label = summary.byName.get('Label')!;
+  assert.deepEqual(label.appliedTokens, { fontSize: 'type.size', fontFamily: 'type.family' });
+
+  // The board became a reusable main component, owned by id (not layer name).
+  const board = summary.byName.get('Card')!;
+  assert.equal(board.type, 'frame');
+  assert.equal(board.componentRoot, true);
+  assert.equal(board.mainInstance, true);
+  assert.equal(board.componentFile, build.fileId);
+  const compPath = `files/${build.fileId}/components/${String(board.componentId)}.json`;
+  const comp = JSON.parse(build.entries[compPath] as string);
+  assert.equal(comp.id, board.componentId);
+  assert.equal(comp.name, 'Card');
+  assert.equal(comp.path, 'Lolly / Tools / Demo');
+  assert.equal(comp.mainInstanceId, board.id);
+  assert.equal(comp.mainInstancePage, board.pageId);
+
+  // Every bound path resolves through the archive's own tokens.json.
+  const extracted = extractPenpotProject(build.entries);
+  const set = createTokenSet(extracted.doc);
+  for (const path of [...Object.values(surface.appliedTokens as Record<string, string>), ...Object.values(label.appliedTokens as Record<string, string>)]) {
+    assert.ok(set.has(path), `tokens.json is missing bound token ${path}`);
+  }
+  assert.equal(set.resolve('color.semantic.primary'), '#30ba78');
+  assert.equal(set.resolve('radius.control'), '8px');
+});
+
+test('buildPenpotEntries: an unusable binding is dropped with a warning, never emitted onto the shape', () => {
+  const doc: PenpotDoc = {
+    name: 'Bad bindings',
+    tokens: { color: { $type: 'color', primary: { $value: '#30ba78' } }, radius: { $type: 'borderRadius', ctl: { $value: '8px' } } },
+    pages: [{ name: 'Page 1', shapes: [
+      { type: 'rect', name: 'R', x: 0, y: 0, w: 100, h: 40, fills: [{ color: '#30ba78' }], appliedTokens: {
+        fill: 'radius.ctl',        // type mismatch: borderRadius is not a colour
+        strokeColor: 'color.gone',  // names a token that does not exist
+        fontSize: 'radius.ctl',     // fontSize does not apply to a rect
+        bogus: 'color.primary',     // not a bindable Penpot property
+        r1: 'color.primary',        // type mismatch: colour is not a radius
+      } },
+    ] }],
+  };
+  const build = buildPenpotEntries(doc, buildOpts(42));
+  const summary = validatePenpotEntries(build.entries);
+  const r = summary.byName.get('R')!;
+  assert.equal(r.appliedTokens, undefined, 'every binding was unusable, so the field is omitted');
+  assert.ok(build.warnings.some(w => /not a bindable property/.test(w)), 'unknown property warned');
+  assert.ok(build.warnings.some(w => /does not apply to a rect/.test(w)), 'wrong-shape property warned');
+  assert.ok(build.warnings.some(w => /no surviving token/.test(w)), 'dangling token warned');
+  assert.ok(build.warnings.some(w => /not one .* can carry/.test(w)), 'type mismatch warned');
+});
+
+test('buildPenpotEntries: a component marker on a NESTED board is ignored with a warning', () => {
+  const doc: PenpotDoc = {
+    name: 'Nested',
+    pages: [{ name: 'Page 1', shapes: [
+      { type: 'board', name: 'Outer', x: 0, y: 0, w: 300, h: 200, children: [
+        { type: 'board', name: 'Inner', x: 10, y: 10, w: 100, h: 80, component: { name: 'Inner' }, children: [
+          { type: 'rect', name: 'Fill', x: 0, y: 0, w: 100, h: 80, fills: [{ color: '#30ba78' }] },
+        ] },
+      ] },
+    ] }],
+  };
+  const build = buildPenpotEntries(doc, buildOpts(43));
+  validatePenpotEntries(build.entries);
+  assert.ok(!Object.keys(build.entries).some(p => /\/components\//.test(p)), 'no component was registered for a nested board');
+  assert.ok(build.warnings.some(w => /non-top-level board/.test(w)), 'the ignored marker is reported');
+});
+
+const twoThemeDoc = () => ({
+  $metadata: { tokenSetOrder: ['base', 'light', 'dark'] },
+  $themes: [
+    { name: 'light', selectedTokenSets: { base: 'enabled', light: 'enabled', dark: 'disabled' } },
+    { name: 'dark', selectedTokenSets: { base: 'enabled', light: 'disabled', dark: 'enabled' } },
+  ],
+  base: { color: { $type: 'color', ink: { $value: '#000000' } } },
+  light: { color: { $type: 'color', bg: { $value: '#ffffff' } } },
+  dark: { color: { $type: 'color', bg: { $value: '#101010' } } },
+});
+
+test('penpotTokensJson: the active theme selection wins, so dark stays active when it is not listed first (gap #3)', () => {
+  const doc = twoThemeDoc();
+
+  // No selection: honour the first theme, but say so explicitly.
+  const def = penpotTokensJson(doc)!;
+  assert.deepEqual((def.$metadata as any).activeThemes, ['light']);
+  assert.deepEqual((def.$metadata as any).activeSets, ['base', 'light']);
+
+  // Selecting dark (second in the list) must produce dark's sets, not light's.
+  const dark = penpotTokensJson(doc, { activeThemes: ['dark'] })!;
+  assert.deepEqual((dark.$metadata as any).activeThemes, ['dark']);
+  assert.deepEqual((dark.$metadata as any).activeSets, ['base', 'dark']);
+
+  // Sets given directly: use them verbatim, name no theme.
+  const bySets = penpotTokensJson(doc, { activeSets: ['base', 'dark'] })!;
+  assert.deepEqual((bySets.$metadata as any).activeSets, ['base', 'dark']);
+  assert.ok(!('activeThemes' in (bySets.$metadata as any)), 'no theme handle was given, so none is invented');
+
+  // The source doc's own activeThemes is honoured before the first-theme fallback.
+  const src = penpotTokensJson({ ...doc, $metadata: { ...doc.$metadata, activeThemes: ['dark'] } })!;
+  assert.deepEqual((src.$metadata as any).activeThemes, ['dark']);
+  assert.deepEqual((src.$metadata as any).activeSets, ['base', 'dark']);
+});
+
+test('penpotTokensJson: two theme axes compose their enabled sets together, in tokenSetOrder', () => {
+  const doc = {
+    $metadata: { tokenSetOrder: ['base', 'light', 'dark', 'brandA', 'brandB'] },
+    $themes: [
+      { name: 'light', group: 'mode', selectedTokenSets: { base: 'enabled', light: 'enabled' } },
+      { name: 'dark', group: 'mode', selectedTokenSets: { base: 'enabled', dark: 'enabled' } },
+      { name: 'a', group: 'brand', selectedTokenSets: { brandA: 'enabled' } },
+      { name: 'b', group: 'brand', selectedTokenSets: { brandB: 'enabled' } },
+    ],
+    base: { color: { $type: 'color', ink: { $value: '#000000' } } },
+    light: { color: { $type: 'color', bg: { $value: '#ffffff' } } },
+    dark: { color: { $type: 'color', bg: { $value: '#101010' } } },
+    brandA: { color: { $type: 'color', accent: { $value: '#30ba78' } } },
+    brandB: { color: { $type: 'color', accent: { $value: '#0c6bff' } } },
+  };
+  const out = penpotTokensJson(doc, { activeThemes: ['dark', 'b'] })!;
+  assert.deepEqual((out.$metadata as any).activeSets, ['base', 'dark', 'brandB']);
+  assert.deepEqual((out.$metadata as any).activeThemes, ['dark', 'b']);
+
+  // group/name spelling reaches the same themes.
+  const grouped = penpotTokensJson(doc, { activeThemes: ['mode/dark', 'brand/b'] })!;
+  assert.deepEqual((grouped.$metadata as any).activeSets, ['base', 'dark', 'brandB']);
+});
+
+test('buildPenpotEntries: themeSelection flows into the written tokens.json', () => {
+  const build = buildPenpotEntries({ name: 'Themed', pages: [], tokens: twoThemeDoc(), themeSelection: { activeThemes: ['dark'] } }, buildOpts(44));
+  validatePenpotEntries(build.entries);
+  const tokens = JSON.parse(build.entries[`files/${build.fileId}/tokens.json`] as string);
+  assert.deepEqual(tokens.$metadata.activeThemes, ['dark']);
+  assert.deepEqual(tokens.$metadata.activeSets, ['base', 'dark']);
+});
+
+test('penpot-bindings: the type index, safe-path guard and sanitiser drop exactly the unusable bindings', () => {
+  const filtered = penpotTokensJson(boundDoc().tokens)!;
+  const index = buildTokenTypeIndex(filtered);
+  assert.deepEqual([...(index.get('color.semantic.primary') ?? [])], ['color']);
+  assert.deepEqual([...(index.get('radius.control') ?? [])], ['borderRadius']);
+  assert.deepEqual([...(index.get('type.size') ?? [])], ['fontSizes']);
+
+  assert.equal(isSafeTokenPath('a.b.c'), true);
+  assert.equal(isSafeTokenPath('a.{x}.c'), false);
+  assert.equal(isSafeTokenPath('a..c'), false);
+  assert.equal(isSafeTokenPath('a.__proto__.c'), false);
+  assert.equal(isSafeTokenPath('a b'), false);
+  assert.equal(isSafeTokenPath(42 as any), false);
+
+  const warn: string[] = [];
+  const record = (m: string): void => { warn.push(m); };
+  const ok = sanitizeAppliedTokens('rect', { fill: 'color.semantic.primary', r1: 'radius.control' }, index, record);
+  assert.deepEqual(ok, { fill: 'color.semantic.primary', r1: 'radius.control' });
+  assert.deepEqual(warn, []);
+
+  const dropped = sanitizeAppliedTokens('rect', { fontSize: 'type.size', fill: 'radius.control' }, index, record);
+  assert.equal(dropped, undefined, 'fontSize is text-only and radius is not a colour, so nothing survives');
+  assert.equal(warn.length, 2);
+
+  // Property vocabulary is real: fill is a colour on paintable shapes but never on a group.
+  const fill = PENPOT_BINDABLE.fill!;
+  assert.ok(fill.types.has('color'));
+  assert.ok(fill.shapes.has('rect') && fill.shapes.has('text'));
+  assert.ok(!fill.shapes.has('group'));
+});
+
+test('markToolComponents: each top-level board becomes a component under Lolly / Tools / <tool>; nested boards do not', () => {
+  const doc: PenpotDoc = { name: 'T', pages: [{ name: 'P', shapes: [
+    { type: 'board', name: 'Cover', x: 0, y: 0, w: 100, h: 100, children: [
+      { type: 'board', name: 'Inner', x: 10, y: 10, w: 50, h: 50, children: [{ type: 'rect', name: 'r', x: 0, y: 0, w: 10, h: 10, fills: [{ color: '#000000' }] }] },
+    ] },
+    { type: 'board', name: 'Second', x: 200, y: 0, w: 100, h: 100, component: { name: 'Kept', path: 'Custom' }, children: [{ type: 'rect', name: 'r2', x: 0, y: 0, w: 10, h: 10, fills: [{ color: '#ffffff' }] }] },
+  ] }] };
+  markToolComponents(doc, 'QR code');
+  const build = buildPenpotEntries(doc, buildOpts(81));
+  const summary = validatePenpotEntries(build.entries);
+  const comps = Object.entries(build.entries).filter(([p]) => /\/components\//.test(p)).map(([, v]) => JSON.parse(v as string));
+  assert.equal(comps.length, 2, 'two top-level boards → two components (the nested one is not)');
+  const cover = comps.find(c => c.mainInstanceId === summary.byName.get('Cover')!.id)!;
+  assert.equal(cover.name, 'Cover');
+  assert.equal(cover.path, 'Lolly / Tools / QR code');
+  // A board that already declared a component keeps its own name/path.
+  const second = comps.find(c => c.mainInstanceId === summary.byName.get('Second')!.id)!;
+  assert.equal(second.name, 'Kept');
+  assert.equal(second.path, 'Custom');
+  assert.equal(summary.byName.get('Inner')!.componentRoot, undefined, 'a nested board is not a component');
+  assert.equal(summary.byName.get('Cover')!.componentRoot, true);
+});
+
+test('svgToPenpotDoc: a data-lolly-bind attribute becomes a validated applied-token binding; unusable ones drop', () => {
+  const brandTokens = { color: { $type: 'color', semantic: { primary: { $value: '#30ba78' }, edge: { $value: '#cccccc' } } } };
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+    '<rect id="surface" x="10" y="10" width="80" height="70" fill="#30ba78" stroke="#cccccc" stroke-width="2" data-lolly-bind="fill:color.semantic.primary;strokeColor:color.semantic.edge" />' +
+    '<rect id="tiny" x="10" y="85" width="10" height="10" fill="#000000" data-lolly-bind="fill:color.gone;bogus:color.semantic.primary" />' +
+    '</svg>';
+  const lowered = svgToPenpotDoc(svg, { name: 'Bound SVG', tokens: brandTokens });
+  assert.ok(lowered, 'the svg lowered rather than falling back to a picture');
+  const build = buildPenpotEntries(lowered!.doc, buildOpts(61));
+  const summary = validatePenpotEntries(build.entries);
+
+  assert.deepEqual(summary.byName.get('surface')!.appliedTokens, { fill: 'color.semantic.primary', strokeColor: 'color.semantic.edge' });
+  assert.equal(summary.byName.get('tiny')!.appliedTokens, undefined, 'a missing token and an unknown property both drop');
+  assert.ok(build.warnings.some(w => /no surviving token|not a bindable/.test(w)), `warnings: ${build.warnings.join(' | ')}`);
+});
+
+test('boxesToPenpotDoc: a box inheriting a brand token binds to it; a literal stays local; a per-run colour keeps text local', () => {
+  const brandTokens = {
+    color: { $type: 'color', semantic: {
+      surface: { $value: '#ffffff' }, primary: { $value: '#30ba78' }, edge: { $value: '#cccccc' },
+    } },
+    font: { brand: { $value: 'SUSE', $type: 'fontFamilies' }, mono: { $value: 'SUSE Mono', $type: 'fontFamilies' } },
+  };
+  // The shell's map: only the brand-specific `var(--brand-*)` / role-key forms.
+  // A bare `{alias}` is the engine's own job, so this never sees one.
+  const bindToken = (css: string, kind: 'color' | 'font'): string | null => {
+    const varM = /^var\(\s*(--[\w-]+)/.exec(css);
+    if (varM) return ({ '--brand-surface': 'color.semantic.surface', '--brand-primary': 'color.semantic.primary', '--brand-edge': 'color.semantic.edge' } as Record<string, string>)[varM[1]!] ?? null;
+    if (kind === 'font') { if (css === '' || css === 'sans') return 'font.brand'; if (css === 'mono') return 'font.mono'; }
+    return null;
+  };
+  const boxes = [
+    { id: 'f1', kind: 'frame', name: 'Card', x: 0, y: 0, w: 400, h: 300, bg: 'var(--brand-surface, #ffffff)' },
+    { id: 't1', kind: 'text', frame: 'f1', name: 'Heading', x: 20, y: 20, w: 300, h: 40, text: 'Make something', fg: '{color.semantic.primary}', font: 'sans', fontSize: 24 },
+    { id: 'r1', kind: 'box', frame: 'f1', name: 'Surface', x: 20, y: 80, w: 120, h: 60, bg: 'var(--brand-primary, #1e293b)', stroke: 'var(--brand-edge, #cccccc)', strokeW: 2 },
+    { id: 'r2', kind: 'box', frame: 'f1', name: 'Logo', x: 160, y: 80, w: 120, h: 60, bg: '#ff0000' },
+    { id: 't2', kind: 'text', frame: 'f1', name: 'Mixed', x: 20, y: 160, w: 300, h: 40, text: 'Plain {#ff0000|red}', fg: 'var(--brand-primary, #30ba78)', font: 'mono', fontSize: 18 },
+  ];
+  const doc = boxesToPenpotDoc(boxes, { name: 'Design', canvas: { w: 400, h: 300 }, tokens: brandTokens, bindToken });
+  const build = buildPenpotEntries(doc, buildOpts(51));
+  const summary = validatePenpotEntries(build.entries);
+  assert.deepEqual(build.warnings, [], `valid design bindings should not warn: ${build.warnings.join(' | ')}`);
+
+  assert.deepEqual(summary.byName.get('Card')!.appliedTokens, { fill: 'color.semantic.surface' });
+  assert.deepEqual(summary.byName.get('Heading')!.appliedTokens, { fill: 'color.semantic.primary', fontFamily: 'font.brand' });
+  assert.deepEqual(summary.byName.get('Surface')!.appliedTokens, { fill: 'color.semantic.primary', strokeColor: 'color.semantic.edge' });
+  assert.equal(summary.byName.get('Logo')!.appliedTokens, undefined, 'a literal red logo is not bound to any token');
+  // A text box with a per-run colour keeps its fill local, but its font still binds.
+  assert.deepEqual(summary.byName.get('Mixed')!.appliedTokens, { fontFamily: 'font.mono' });
+
+  const set = createTokenSet(extractPenpotProject(build.entries).doc);
+  for (const name of ['Card', 'Heading', 'Surface', 'Mixed']) {
+    for (const path of Object.values(summary.byName.get(name)!.appliedTokens as Record<string, string>)) {
+      assert.ok(set.has(path), `tokens.json is missing ${path} bound by ${name}`);
+    }
+  }
+  assert.equal(set.resolve('color.semantic.primary'), '#30ba78');
+});
+
+test('penpotTokenClosure: names dangling references and alias cycles, and is silent on a closed doc', () => {
+  const broken = {
+    global: {
+      loop: { $type: 'color', x: { $value: '{loop.y}' }, y: { $value: '{loop.x}' } },
+      hole: { $type: 'color', p: { $value: '{missing.leaf}' } },
+      fine: { $type: 'color', v: { $value: '#123456' } },
+    },
+    $metadata: { tokenSetOrder: ['global'], activeSets: ['global'] },
+  };
+  const report = penpotTokenClosure(broken);
+  assert.ok(report.dangling.some(d => d.includes('missing.leaf')), `dangling: ${report.dangling.join(', ')}`);
+  assert.ok(report.cycles.length >= 1, `cycles: ${report.cycles.join(', ')}`);
+
+  const clean = penpotTokensJson({ color: { $type: 'color', a: { $value: '#000000' }, b: { $value: '{color.a}' } } })!;
+  assert.deepEqual(penpotTokenClosure(clean), { dangling: [], cycles: [] });
+  assert.deepEqual(penpotTokenClosure(null), { dangling: [], cycles: [] });
 });

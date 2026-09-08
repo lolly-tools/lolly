@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Backdrop - the vendored Paper Shaders harness (plans/164 section 2b).
+ * Backdrop - curated Paper Shaders and original palette-driven fields.
  *
  * Run with: node --test tests/backdrop.test.ts
  *
@@ -12,13 +12,12 @@
  *   - sanitisation: colour values land in an inline style attribute and a
  *     JSON data attribute, so only strict hex survives; junk takes the
  *     brand-agnostic fallbacks and an unknown effect falls back to metaballs.
- *   - manifest: all fifteen effect options carry a family badge and a formats
- *     subset of render.formats; the two STILL effects (waves, dot-grid) offer
- *     no video; the density/speed gates exclude exactly the effects whose
- *     config maps no such knob; the Moment default sits past the start.
+ *   - manifest: all sixteen effect options carry a family badge and a formats
+ *     subset of render.formats; every effect offers video; the knob gates exclude
+ *     exactly the effects with no such knob; the Moment default sits past the start.
  *   - the template's EFFECTS table covers exactly the manifest's options.
- *   - the vendored lib ships beside its Apache-2.0 LICENSE and exposes every
- *     fragment shader the table mounts.
+ *   - the vendored lib ships beside its Apache-2.0 LICENSE; every fragment in
+ *     the table is either vendored or authored in the template.
  */
 
 import { test } from 'node:test';
@@ -61,7 +60,7 @@ function model(values: Record<string, unknown>): Array<{ id: string; value: unkn
   return Object.entries(base).map(([id, value]) => ({ id, value }));
 }
 
-const STILL_EFFECTS = ['waves', 'dot-grid'];
+const FLUX_EFFECTS = ['silk-flow', 'prism-bloom', 'liquid-contours'];
 
 test('hooks render byte-identical across independent loads, with no Math.random call', () => {
   assert.ok(!/Math\.random\s*\(/.test(hooksSource), 'no Math.random() in hooks.js');
@@ -84,17 +83,17 @@ test('markup: host + config attribute + fallback wash, with strict-hex sanitisat
   assert.equal(JSON.parse(/data-bd='([^']+)'/.exec(unknown.svgContent)![1]!).effect, 'metaballs');
 });
 
-test('manifest: fifteen badged effect options, formats subsets, stills offer no video', () => {
+test('manifest: sixteen badged animated effects replace the static patterns', () => {
   const effectInput = manifest.inputs.find((i: { id: string }) => i.id === 'effect');
-  assert.equal(effectInput.options.length, 15);
+  assert.equal(effectInput.options.length, 16);
   const union = new Set<string>(manifest.render.formats);
   for (const o of effectInput.options) {
     assert.ok(o.badge, `${o.value} carries a family badge`);
     assert.ok(Array.isArray(o.formats) && o.formats.length, `${o.value} declares formats`);
     for (const f of o.formats) assert.ok(union.has(f), `${o.value} format ${f} within render.formats`);
     const hasVideo = o.formats.some((f: string) => ['webm', 'mp4', 'gif'].includes(f));
-    assert.equal(hasVideo, !STILL_EFFECTS.includes(o.value),
-      `${o.value} ${STILL_EFFECTS.includes(o.value) ? 'is a still pattern - no video' : 'animates - offers video'}`);
+    assert.ok(hasVideo, `${o.value} animates and offers video`);
+    assert.ok(!['waves', 'dot-grid'].includes(o.value), 'static patterns have been retired');
   }
 });
 
@@ -105,8 +104,8 @@ test('manifest: knob gates and the Moment default', () => {
   assert.deepEqual(effects.filter(e => !densityGate.includes(e)), ['dithering'],
     'density hides exactly for dithering (its config maps no second knob)');
   const speedGate = (byId.get('speed') as { showIf: { effect: string[] } }).showIf.effect;
-  assert.deepEqual(effects.filter(e => !speedGate.includes(e)).sort(), STILL_EFFECTS.sort(),
-    'speed hides exactly for the still patterns');
+  assert.deepEqual(effects.filter(e => !speedGate.includes(e)), [],
+    'every effect has a speed control');
   assert.equal((byId.get('phase') as { default: number }).default, 35,
     'the Moment default sits past the start - several effects are still gathering themselves at 0');
 });
@@ -125,8 +124,24 @@ test('the vendored lib ships with its licence and every mounted fragment', () =>
   const lib = readFileSync(libPath, 'utf8');
   assert.ok(lib.startsWith('/*! Paper Shaders'), 'attribution banner survives minification');
   for (const frag of [...templateSource.matchAll(/frag: '(\w+)'/g)].map(m => m[1]!)) {
-    assert.ok(lib.includes(frag), `bundle exposes ${frag}`);
+    assert.ok(lib.includes(frag) || templateSource.includes(`${frag}: FLUX_HEADER`),
+      `${frag} is vendored or authored in the template`);
   }
   assert.ok(lib.includes('ShaderMount') && lib.includes('getShaderNoiseTexture'),
     'bundle exposes the mount and the noise texture helper');
+});
+
+test('brand influence is bounded and only offered on the three original fields', () => {
+  const input = manifest.inputs.find((i: { id: string }) => i.id === 'brandInfluence');
+  assert.deepEqual(input.showIf.effect, FLUX_EFFECTS);
+  const hooks = loadHooks();
+  for (const effect of FLUX_EFFECTS) {
+    for (const influence of ['off', 'subtle', 'strong', 'full', '<script>', undefined]) {
+      const out = hooks.onInput!({ model: model({ effect, brandInfluence: influence, count: 6 }) });
+      const cfg = JSON.parse(/data-bd='([^']+)'/.exec(out.svgContent)![1]!);
+      assert.equal(cfg.effect, effect);
+      assert.equal(cfg.colors.length, 6);
+      assert.equal(cfg.brandInfluence, ['off', 'subtle', 'strong', 'full'].includes(influence!) ? influence : 'strong');
+    }
+  }
 });

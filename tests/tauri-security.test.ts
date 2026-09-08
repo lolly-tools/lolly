@@ -54,13 +54,17 @@ test('Tauri filesystem ACLs contain only used verbs and exact application-owned 
     assert.ok(paths.includes('$APPDATA/saved-state/**'), `${shell} retains saved state only`);
     assert.ok(paths.includes('$APPDATA/pack-store/**'), `${shell} retains installed packs only`);
     assert.ok(paths.includes('$DOWNLOAD/Lolly/**'), `${shell} writes only its Downloads subfolder`);
-    assert.ok(paths.every(value => /\/(?:saved-state|pack-store|Lolly)(?:\/\*\*)?$/.test(value)),
+    // user-assets is the durable mirror for private uploads (plan 216 item 2), an
+    // app-owned Application Support subtree exactly like saved-state and pack-store -
+    // NOT the user-visible Documents/Files area (that stays exports-only, $DOCUMENT/Lolly).
+    assert.ok(paths.every(value => /\/(?:saved-state|pack-store|user-assets|Lolly)(?:\/\*\*)?$/.test(value)),
       `${shell} scopes contain only known application-owned paths`);
   }
   const mobile = json('shells/tauri-mobile/src-tauri/capabilities/default.json');
   const mobileScope = (mobile.permissions as Array<string | { identifier?: string; allow?: Array<{ path: string }> }>)
     .find(p => typeof p === 'object' && p.identifier === 'fs:scope') as { allow: Array<{ path: string }> };
   assert.ok(mobileScope.allow.some(entry => entry.path === '$DOCUMENT/Lolly/**'), 'mobile retains only its iOS Files subfolder');
+  assert.ok(mobileScope.allow.some(entry => entry.path === '$APPDATA/user-assets/**'), 'mobile persists user uploads durably under app data');
 });
 
 test('desktop OAuth uses a narrow native command, not generic shell-open permission', () => {

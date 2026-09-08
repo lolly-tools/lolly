@@ -27,6 +27,55 @@ export interface TokensAPI {
    * legible so a tool can say which system it drew with.
    */
   active?(): Promise<DesignSystemSummary | null>;
+
+  /**
+   * One immutable snapshot of the effective render context (v1.184, plans/222):
+   * the RAW effective DTCG document, the active design system, the resolved design
+   * VERSION it describes, and the theme selection that produced the canvas.
+   *
+   * A READ, for an exporter that has to preserve inheritance - the `.penpot` writer
+   * carries this document's tokens/themes AND binds shapes to them, so the file
+   * opens on the same theme the canvas was rendered with. Unlike the web bridge's
+   * `raw()` (deliberately the editable HEAD), this follows the SAME resolver and
+   * version ladder as `get()`/`colors()`/`resolve()`, so the tokens, palette and
+   * canvas all describe one render and an unpublished head edit never leaks into
+   * the file.
+   *
+   * Optional/additive: a third-party or older host without it still exports
+   * geometry, with an honest report that token definitions were unavailable.
+   */
+  snapshot?(): Promise<TokensSnapshot>;
+}
+
+/**
+ * The effective render context an exporter captures once (v1.184). Take it after
+ * the export's normal settling, together with the document state it describes: a
+ * design-system switch or input edit mid-export must not mix two snapshots.
+ */
+export interface TokensSnapshot {
+  /**
+   * The raw effective DTCG document for the RESOLVED render version - the same
+   * document `get()`/`resolve()` read, not the editable head. Tokens-Studio shaped
+   * (sets + `$themes` + `$metadata`) or a plain single-set DTCG doc. `null` when
+   * the host holds no token definitions (geometry still exports).
+   */
+  document: unknown;
+  /** The active design system, or null where the host names none. Mirrors `active()`. */
+  system: DesignSystemSummary | null;
+  /**
+   * The resolved design version this snapshot describes - a published version's id
+   * or label, `latest`/`head` for the working head, or null for a host that does
+   * not version its tokens. Never a version the render did not actually use.
+   */
+  version: string | null;
+  /**
+   * The theme selection that produced the canvas. `activeThemes` names the theme(s)
+   * that were on (by name, id, or `group/name`), spanning independent groups;
+   * `activeSets` names sets directly when there is no theme handle; `theme` is the
+   * single name a URL/`get({theme})` pinned, when one was. An exporter passes this
+   * straight to the writer so the file's active selection matches the render.
+   */
+  selection: { activeThemes?: string[]; activeSets?: string[]; theme?: string | null };
 }
 
 /**

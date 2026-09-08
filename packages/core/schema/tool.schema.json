@@ -2056,6 +2056,45 @@
           "type": "string",
           "description": "Optional thumbnail: a tool-relative asset path or data URI. Absent → the chooser draws a glyph tile."
         },
+        "motion": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "collection",
+            "recipe",
+            "durationMs",
+            "posterMs",
+            "beats"
+          ],
+          "properties": {
+            "collection": {
+              "type": "string",
+              "minLength": 1
+            },
+            "recipe": {
+              "type": "string",
+              "minLength": 1
+            },
+            "durationMs": {
+              "type": "number",
+              "minimum": 800,
+              "maximum": 30000
+            },
+            "posterMs": {
+              "type": "number",
+              "minimum": 0
+            },
+            "beats": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "items": {
+                "type": "string",
+                "maxLength": 160
+              }
+            }
+          }
+        },
         "values": {
           "type": "object",
           "description": "Map of input id -> value read directly into the fresh session - the same shape URL params resolve to, and the same shape a `default` composition uses. Authored in the EXTERNAL per-template file tools/<id>/templates/<tid>.json (not the synced index, which carries metadata only). Any size (a free-canvas `boxes` array can be many KB), because it is fetched on demand and seeded in-process, never serialised into a URL."

@@ -86,7 +86,13 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 // lib/jelly.ts and components/view-toggle.ts, and two lazy asset-menu entries in
 // views/catalog.ts. Ceiling moved 135 -> 136 for exactly that; next growth needs
 // its own argument, not this note.
-const MAX_PRELOAD_JS_GZ = 136 * 1024;
+// Moved 136 -> 146 on 2026-09-08: legitimate landing/gallery feature weight, not a
+// leak (Rule 1 still passes - no engine/handlebars/ajv on boot). The 8 KB is diffuse
+// across the boot-path modules the history/collab wave grew: the featured-row
+// carousel + featured-render (~9 KB), the consolidated icon registry, the lolly-mark
+// specimen, and the gallery-preview/preview-context glue. None is lazy-able without
+// deferring the landing strip itself. Next growth needs its own argument, not this note.
+const MAX_PRELOAD_JS_GZ = 146 * 1024;
 // -----------------------------------------------------------------------------
 
 function fail(msg: string): never {

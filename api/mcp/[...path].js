@@ -2099,6 +2099,45 @@ var init_tool_schema = __esm({
               type: "string",
               description: "Optional thumbnail: a tool-relative asset path or data URI. Absent \u2192 the chooser draws a glyph tile."
             },
+            motion: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "collection",
+                "recipe",
+                "durationMs",
+                "posterMs",
+                "beats"
+              ],
+              properties: {
+                collection: {
+                  type: "string",
+                  minLength: 1
+                },
+                recipe: {
+                  type: "string",
+                  minLength: 1
+                },
+                durationMs: {
+                  type: "number",
+                  minimum: 800,
+                  maximum: 3e4
+                },
+                posterMs: {
+                  type: "number",
+                  minimum: 0
+                },
+                beats: {
+                  type: "array",
+                  minItems: 1,
+                  maxItems: 8,
+                  items: {
+                    type: "string",
+                    maxLength: 160
+                  }
+                }
+              }
+            },
             values: {
               type: "object",
               description: "Map of input id -> value read directly into the fresh session - the same shape URL params resolve to, and the same shape a `default` composition uses. Authored in the EXTERNAL per-template file tools/<id>/templates/<tid>.json (not the synced index, which carries metadata only). Any size (a free-canvas `boxes` array can be many KB), because it is fetched on demand and seeded in-process, never serialised into a URL."
@@ -2922,7 +2961,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.183.0";
+    ENGINE_VERSION = "1.184.0";
   }
 });
 
@@ -8220,6 +8259,16 @@ function flattenValue(v) {
   if (!isTokenValue(v)) return v;
   return typeof v.value === "string" ? v.value : "";
 }
+function tokenBindingsOf(model2) {
+  const out = {};
+  for (const input of model2) {
+    const v = input.value;
+    if (!isTokenValue(v)) continue;
+    const path = aliasPath(v.ref) ?? v.ref.replace(/^\{|\}$/g, "");
+    if (path) out[input.id] = path;
+  }
+  return out;
+}
 function deriveExportFilename(manifest, values) {
   const ids2 = manifest.render?.filenameFrom;
   if (!Array.isArray(ids2) || ids2.length === 0) return null;
@@ -8434,16 +8483,55 @@ function annotateTemplate(source, inputIds) {
     text3 = text3.replace(double, (m2, id) => `<!-- ci:${id} -->${m2}<!-- /ci:${id} -->`);
     return text3;
   }
+  const idInValue = new RegExp(`\\{\\{[^}]*\\b(${idAlt})\\b`);
+  const attrRe = /([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+  const cssDeclRe = /([\w-]+)\s*:\s*([^;]*)/g;
+  function paintMarker(tag2) {
+    const pairs2 = [];
+    const seen = /* @__PURE__ */ new Set();
+    const add = (prop3, id) => {
+      if (!seen.has(prop3)) {
+        seen.add(prop3);
+        pairs2.push(`${prop3}:${id}`);
+      }
+    };
+    attrRe.lastIndex = 0;
+    let am = attrRe.exec(tag2);
+    while (am) {
+      const name = am[1].toLowerCase();
+      const value = am[2] ?? am[3] ?? "";
+      if (name === "style") {
+        cssDeclRe.lastIndex = 0;
+        let dm = cssDeclRe.exec(value);
+        while (dm) {
+          const prop3 = PAINT_CSS[dm[1].toLowerCase()];
+          const idm = prop3 ? idInValue.exec(dm[2] ?? "") : null;
+          if (prop3 && idm) add(prop3, idm[1]);
+          dm = cssDeclRe.exec(value);
+        }
+      } else {
+        const prop3 = PAINT_ATTR[name];
+        if (prop3) {
+          const idm = idInValue.exec(value);
+          if (idm) add(prop3, idm[1]);
+        }
+      }
+      am = attrRe.exec(tag2);
+    }
+    return pairs2.join(";");
+  }
   function annotateTagAttrs(tag2) {
     if (tag2.startsWith("</") || tag2.startsWith("<!")) return tag2;
-    if (/\sdata-canvas-input=/.test(tag2)) return tag2;
     const m2 = tripleAttr.exec(tag2) || doubleAttr.exec(tag2);
     if (!m2) return tag2;
-    const id = m2[1];
+    const canvasAttr = /\sdata-canvas-input=/.test(tag2) ? "" : ` data-canvas-input="${m2[1]}"`;
+    const paint = /\sdata-lolly-paint=/.test(tag2) ? "" : paintMarker(tag2);
+    const paintAttr = paint ? ` data-lolly-paint="${paint}"` : "";
+    if (!canvasAttr && !paintAttr) return tag2;
     const selfClose = /\/\s*>$/.exec(tag2);
     const insertAt = selfClose ? tag2.length - selfClose[0].length : tag2.length - 1;
     const before = tag2.slice(0, insertAt).replace(/\s+$/, "");
-    return `${before} data-canvas-input="${id}"${selfClose ? " />" : ">"}`;
+    return `${before}${canvasAttr}${paintAttr}${selfClose ? " />" : ">"}`;
   }
   const result = [];
   let i = 0;
@@ -8483,6 +8571,21 @@ function annotateTemplate(source, inputIds) {
   result.push(annotateContent(source.slice(contentStart)));
   return result.join("");
 }
+function resolvePaintBindings(html, bindings) {
+  if (html.indexOf("data-lolly-paint") < 0) return html;
+  return html.replace(/\sdata-lolly-paint="([^"]*)"/g, (_all, spec) => {
+    const out = [];
+    for (const pair of spec.split(";")) {
+      const i = pair.indexOf(":");
+      if (i < 0) continue;
+      const prop3 = pair.slice(0, i).trim();
+      const id = pair.slice(i + 1).trim();
+      const path = bindings[id];
+      if (prop3 && path) out.push(`${prop3}:${path}`);
+    }
+    return out.length ? ` data-lolly-bind="${out.join(";")}"` : "";
+  });
+}
 function hydrate(templateSource, values, { raw = false } = {}) {
   const key = raw ? " raw " + templateSource : templateSource;
   let compiled = compileCache.get(key);
@@ -8499,7 +8602,7 @@ function hydrate(templateSource, values, { raw = false } = {}) {
   }
   return compiled(values);
 }
-var ARROW_GLYPHS, ARROW_CLASSES, LEADING_ARROW, MD_ESCAPE, MD_BULLET, MD_ORDERED, MD_HEADING, MD_IMAGE, MD_LINK, MD_LINK_SCHEMES, MD_IMAGE_SCHEMES, FIT_VALUES, COMPILE_CACHE_MAX, compileCache;
+var ARROW_GLYPHS, ARROW_CLASSES, LEADING_ARROW, MD_ESCAPE, MD_BULLET, MD_ORDERED, MD_HEADING, MD_IMAGE, MD_LINK, MD_LINK_SCHEMES, MD_IMAGE_SCHEMES, FIT_VALUES, PAINT_ATTR, PAINT_CSS, COMPILE_CACHE_MAX, compileCache;
 var init_template = __esm({
   "engine/src/template.ts"() {
     "use strict";
@@ -8675,6 +8778,26 @@ var init_template = __esm({
       const alt = esc9(String(hash.alt ?? meta.name ?? ""));
       return new Handlebars.SafeString(`<img${cls} src="${esc9(url)}" alt="${alt}"${style}>`);
     });
+    PAINT_ATTR = {
+      fill: "fill",
+      stroke: "strokeColor",
+      "stop-color": "fill",
+      "flood-color": "fill",
+      "lighting-color": "fill"
+    };
+    PAINT_CSS = {
+      color: "textFill",
+      background: "fill",
+      "background-color": "fill",
+      fill: "fill",
+      stroke: "strokeColor",
+      "border-color": "strokeColor",
+      "border-top-color": "strokeColor",
+      "border-right-color": "strokeColor",
+      "border-bottom-color": "strokeColor",
+      "border-left-color": "strokeColor",
+      "outline-color": "strokeColor"
+    };
     COMPILE_CACHE_MAX = 50;
     compileCache = /* @__PURE__ */ new Map();
   }
@@ -15155,10 +15278,29 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   }
   extras = { ...extras, ...await resolveNestedRenders(tool, model2, extras, host, composeStack, composeMemo) };
   let liveUnsub = null;
+  let liveGeneration = 0;
+  let liveStarting = false;
+  let destroyed = false;
   let liveResubscribe = null;
   let framePending = false;
   let livePaused = false;
   const isLive = () => liveUnsub != null;
+  function stopLive() {
+    liveGeneration++;
+    liveStarting = false;
+    const unsubscribe = liveUnsub;
+    liveUnsub = null;
+    liveResubscribe = null;
+    if (!unsubscribe) return;
+    try {
+      unsubscribe();
+    } finally {
+      try {
+        host.media?.stop();
+      } catch {
+      }
+    }
+  }
   const liveEdge = () => {
     const inputId = tool.manifest.render?.liveMaxEdgeInput;
     if (inputId) {
@@ -15176,36 +15318,64 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   const toolCaps = new Set(tool.manifest.capabilities ?? []);
   let meterUnsub = null;
   let stopMeterSource = null;
-  let levelPending = false;
+  let meterGeneration = 0;
+  let meterStarting = false;
+  let levelGeneration = 0;
+  let recordGeneration = 0;
+  let recordStarting = false;
   let recordSession = null;
   const isMetering = () => meterUnsub != null && recordSession == null;
   const isRecording = () => recordSession != null;
   function driveLevels(source) {
+    const generation = ++levelGeneration;
+    let pending = false;
     const onLevel = hooks?.onLevel;
     if (!onLevel) return () => {
     };
     return source.subscribe((level) => {
-      if (levelPending) return;
-      levelPending = true;
+      if (pending || generation !== levelGeneration || destroyed) return;
+      pending = true;
       Promise.resolve(onLevel({ level, model: modelForHooks(model2), host })).then((patch) => {
-        if (patch && meterUnsub) {
+        if (patch && meterUnsub && generation === levelGeneration && !destroyed) {
           ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
           emit();
         }
       }).catch((e) => host.log("warn", `onLevel ${e.message}`, { toolId: tool.manifest.id })).finally(() => {
-        levelPending = false;
+        pending = false;
       });
     });
   }
   function stopMeterLoop() {
-    if (!meterUnsub) return;
-    meterUnsub();
-    meterUnsub = null;
+    ++meterGeneration;
+    meterStarting = false;
+    stopLevels();
+    const stop = stopMeterSource;
+    stopMeterSource = null;
     try {
-      stopMeterSource?.();
+      stop?.();
     } catch {
     }
-    stopMeterSource = null;
+  }
+  function stopLevels() {
+    ++levelGeneration;
+    const unsubscribe = meterUnsub;
+    meterUnsub = null;
+    try {
+      unsubscribe?.();
+    } catch {
+    }
+  }
+  function cancelRecording() {
+    ++recordGeneration;
+    recordStarting = false;
+    const session = recordSession;
+    recordSession = null;
+    if (!session) return;
+    stopLevels();
+    try {
+      session.cancel();
+    } catch {
+    }
   }
   let ctxCache = null;
   let ctxModel = null;
@@ -15218,10 +15388,13 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     }
     return ctxCache;
   }
+  function bindPaint(html) {
+    return resolvePaintBindings(html, tokenBindingsOf(model2));
+  }
   function getHydrated() {
     const pag = tool.manifest.render?.paginate;
     if (pag?.source) return hydratePaginated(pag.source);
-    return hydrate(tool.template, templateContext());
+    return bindPaint(hydrate(tool.template, templateContext()));
   }
   function hydratePaginated(sourceId) {
     const base = templateContext();
@@ -15245,7 +15418,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         fields: cells.slice(1),
         byColumn
       };
-      const body = hydrate(tool.template, { ...base, page: page2 });
+      const body = bindPaint(hydrate(tool.template, { ...base, page: page2 }));
       return `<section data-pdf-page class="lolly-page" data-page-index="${index}">${body}</section>`;
     }).join("");
   }
@@ -15425,15 +15598,28 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     async startLive(opts2) {
       const onFrame = hooks?.onFrame;
       const media = host.media;
-      if (liveUnsub || !onFrame || !media) return false;
+      if (liveUnsub || liveStarting || destroyed || !onFrame || !media) return false;
+      const generation = ++liveGeneration;
+      liveStarting = true;
       const sensorSource = opts2?.source !== "asset";
       const facingMode = opts2?.facingMode ?? tool.manifest.render?.liveFacing;
-      await media.start(facingMode ? { facingMode } : void 0);
+      try {
+        await media.start(facingMode ? { facingMode } : void 0);
+      } finally {
+        if (generation === liveGeneration) liveStarting = false;
+      }
+      if (generation !== liveGeneration || destroyed) {
+        try {
+          media.stop();
+        } catch {
+        }
+        return false;
+      }
       const subscribeLive = () => media.subscribe((frame) => {
         if (framePending || livePaused) return;
         framePending = true;
         Promise.resolve(onFrame({ frame, model: modelForHooks(model2), host })).then((patch) => {
-          if (patch && liveUnsub) {
+          if (patch && liveUnsub && generation === liveGeneration) {
             ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
             if (sensorSource) liveCameraShown = true;
             emit();
@@ -15455,16 +15641,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
      * Stop the camera-driven loop (idempotent). The shell calls this on toggle-off
      * AND on unmount, so no camera track ever outlives the tool.
      */
-    stopLive() {
-      if (!liveUnsub) return;
-      liveUnsub();
-      liveUnsub = null;
-      liveResubscribe = null;
-      try {
-        host.media?.stop();
-      } catch {
-      }
-    },
+    stopLive,
     // True when this tool declares an `onLevel` hook - i.e. it CAN react to live
     // audio levels. The shell still gates the actual meter/record affordance on
     // host.recorder being present.
@@ -15478,10 +15655,28 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     async startMeter(opts2) {
       const onLevel = hooks?.onLevel;
       const recorder = host.recorder;
-      if (meterUnsub || !onLevel || !recorder) return false;
-      await recorder.meter.start(opts2?.deviceId ? { deviceId: opts2.deviceId } : void 0);
+      if (meterUnsub || meterStarting || recordStarting || recordSession || destroyed || !onLevel || !recorder) return false;
+      const generation = ++meterGeneration;
+      meterStarting = true;
+      try {
+        await recorder.meter.start(opts2?.deviceId ? { deviceId: opts2.deviceId } : void 0);
+      } finally {
+        if (generation === meterGeneration) meterStarting = false;
+      }
+      if (generation !== meterGeneration || destroyed) {
+        try {
+          recorder.meter.stop();
+        } catch {
+        }
+        return false;
+      }
       stopMeterSource = () => recorder.meter.stop();
-      meterUnsub = driveLevels(recorder.meter);
+      try {
+        meterUnsub = driveLevels(recorder.meter);
+      } catch (error) {
+        stopMeterLoop();
+        throw error;
+      }
       return true;
     },
     stopMeter: stopMeterLoop,
@@ -15493,13 +15688,32 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
      */
     async startRecording(opts2 = {}) {
       const recorder = host.recorder;
-      if (recordSession || !recorder) return { started: false };
+      if (recordSession || recordStarting || destroyed || !recorder) return { started: false };
+      const generation = ++recordGeneration;
+      recordStarting = true;
       stopMeterLoop();
-      const session = await recorder.record(opts2);
+      let session;
+      try {
+        session = await recorder.record(opts2);
+      } finally {
+        if (generation === recordGeneration) recordStarting = false;
+      }
+      if (generation !== recordGeneration || destroyed) {
+        try {
+          session.cancel();
+        } catch {
+        }
+        return { started: false };
+      }
       recordSession = session;
       recordSource = opts2.source === "screen" ? "screen" : "device";
       recordMicActive = session.micActive;
-      meterUnsub = driveLevels(session);
+      try {
+        meterUnsub = driveLevels(session);
+      } catch (error) {
+        cancelRecording();
+        throw error;
+      }
       return { started: true, micActive: session.micActive };
     },
     /**
@@ -15508,16 +15722,19 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
      */
     async stopRecording() {
       const session = recordSession;
-      if (!session) return null;
-      if (meterUnsub) {
-        meterUnsub();
-        meterUnsub = null;
+      if (!session) {
+        if (recordStarting) cancelRecording();
+        return null;
       }
+      const generation = recordGeneration;
+      const source = recordSource, micActive = recordMicActive;
+      stopLevels();
       recordSession = null;
       const blob = await session.stop();
-      const micGot = recordMicActive ?? toolCaps.has("microphone");
+      if (destroyed || generation !== recordGeneration) return null;
+      const micGot = micActive ?? toolCaps.has("microphone");
       if (/^video\//i.test(blob.type)) {
-        if (recordSource === "screen") {
+        if (source === "screen") {
           recordedScreen = true;
           if (micGot) recordedMic = true;
         } else {
@@ -15527,21 +15744,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       } else if (/^audio\//i.test(blob.type)) {
         recordedMic = true;
       }
-      return { blob, mimeType: blob.type, micActive: recordMicActive };
+      return { blob, mimeType: blob.type, micActive };
     },
-    cancelRecording() {
-      const session = recordSession;
-      if (!session) return;
-      if (meterUnsub) {
-        meterUnsub();
-        meterUnsub = null;
-      }
-      recordSession = null;
-      try {
-        session.cancel();
-      } catch {
-      }
-    },
+    cancelRecording,
     // Whether this tool produces output via the transform path (a user file in →
     // transformed file out) rather than the DOM-render path. Shells use it to wire
     // a "download the result" action to runtime.exportFile instead of export().
@@ -15725,6 +15930,15 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     // (`hooks?.dispose` is undefined); the Worker executor drops its run. Guarded
     // so a shell that never wired destroy - or calls it twice - is harmless.
     destroy() {
+      if (destroyed) return;
+      destroyed = true;
+      try {
+        stopLive();
+      } catch (e) {
+        host.log("warn", `live dispose ${e.message}`, { toolId: tool.manifest.id });
+      }
+      stopMeterLoop();
+      cancelRecording();
       ++hookRunSeq;
       try {
         hooks?.dispose?.();
@@ -29888,13 +30102,13 @@ function sampleBilinear(plane, s, fx, fy) {
 }
 async function embedDurableIntoRgba(rgba, width, height, hooks, opts = {}) {
   if (width < TRUSTMARK_MIN_SIDE || height < TRUSTMARK_MIN_SIDE) return null;
-  const S = TRUSTMARK_MODEL_RESOLUTION, plane = S * S;
+  const S2 = TRUSTMARK_MODEL_RESOLUTION, plane = S2 * S2;
   const strength = opts.strength ?? TRUSTMARK_Q_WM_STRENGTH;
-  const cover256 = await hooks.resizeCover(rgba, width, height, S);
+  const cover256 = await hooks.resizeCover(rgba, width, height, S2);
   if (!cover256 || cover256.length !== plane * 4) return null;
   const bits = buildLollyDurablePayload(opts.reservedId ?? 0);
   if (bits.length !== TRUSTMARK_PAYLOAD_BITS) return null;
-  const coverNchw = packNchwSigned(cover256, S);
+  const coverNchw = packNchwSigned(cover256, S2);
   const stegoData = await hooks.runEncoder(coverNchw, bits);
   if (!stegoData || stegoData.length !== 3 * plane) return null;
   const residual = [];
@@ -29913,17 +30127,17 @@ async function embedDurableIntoRgba(rgba, width, height, hooks, opts = {}) {
   }
   const out = new Uint8ClampedArray(rgba.length);
   out.set(rgba);
-  return mergeResidual(out, rgba, residual, width, height, S, strength);
+  return mergeResidual(out, rgba, residual, width, height, S2, strength);
 }
-function mergeResidual(out, rgba, residual, width, height, S, strength) {
-  const sx = S / width, sy = S / height;
+function mergeResidual(out, rgba, residual, width, height, S2, strength) {
+  const sx = S2 / width, sy = S2 / height;
   for (let y = 0; y < height; y++) {
     const fy = (y + 0.5) * sy - 0.5;
     for (let x = 0; x < width; x++) {
       const fx = (x + 0.5) * sx - 0.5;
       const o = (y * width + x) * 4;
       for (let c = 0; c < 3; c++) {
-        const res = sampleBilinear(residual[c], S, fx, fy);
+        const res = sampleBilinear(residual[c], S2, fx, fy);
         const base = rgba[o + c] / 127.5 - 1;
         const merged = Math.min(Math.max(res * strength + base, -1), 1);
         out[o + c] = Math.round((merged + 1) * 127.5);
@@ -54154,6 +54368,165 @@ var init_brand_import = __esm({
   }
 });
 
+// engine/src/penpot-bindings.ts
+function buildTokenTypeIndex(filtered) {
+  const index = /* @__PURE__ */ new Map();
+  if (!isRec5(filtered)) return index;
+  const walk2 = (node, path) => {
+    for (const [k, v] of Object.entries(node)) {
+      if (k.startsWith("$") || !isRec5(v)) continue;
+      const p = path ? `${path}.${k}` : k;
+      if ("$value" in v) {
+        const t = typeof v.$type === "string" ? v.$type : "";
+        if (!t) continue;
+        let set = index.get(p);
+        if (!set) {
+          set = /* @__PURE__ */ new Set();
+          index.set(p, set);
+        }
+        set.add(t);
+      } else {
+        walk2(v, p);
+      }
+    }
+  };
+  for (const [setName, set] of Object.entries(filtered)) {
+    if (setName.startsWith("$") || !isRec5(set)) continue;
+    walk2(set, "");
+  }
+  return index;
+}
+function isSafeTokenPath(p) {
+  if (typeof p !== "string" || !p || p.length > 512) return false;
+  const segs = p.split(".");
+  for (const s of segs) {
+    if (!s || s.length > 128) return false;
+    if (/[${}\s]/.test(s)) return false;
+    if (s === "__proto__" || s === "prototype" || s === "constructor") return false;
+  }
+  return true;
+}
+function sanitizeAppliedTokens(penpotShapeType, applied, index, warn) {
+  if (!isRec5(applied)) return void 0;
+  const out = {};
+  let kept = 0;
+  for (const [prop3, val] of Object.entries(applied)) {
+    const spec = PENPOT_BINDABLE[prop3];
+    if (!spec) {
+      warn?.(`applied token '${prop3}' is not a bindable property; dropped`);
+      continue;
+    }
+    if (!spec.shapes.has(penpotShapeType)) {
+      warn?.(`applied token '${prop3}' does not apply to a ${penpotShapeType}; dropped`);
+      continue;
+    }
+    if (!isSafeTokenPath(val)) {
+      warn?.(`applied token '${prop3}' names an unusable token path; dropped`);
+      continue;
+    }
+    const types = index.get(val);
+    if (!types?.size) {
+      warn?.(`applied token '${prop3}' \u2192 {${val}} resolves to no surviving token; dropped`);
+      continue;
+    }
+    let compat = false;
+    for (const t of types) if (spec.types.has(t)) {
+      compat = true;
+      break;
+    }
+    if (!compat) {
+      warn?.(`applied token '${prop3}' \u2192 {${val}} is ${[...types].join("/")}, not one ${prop3} can carry; dropped`);
+      continue;
+    }
+    out[prop3] = val;
+    kept++;
+  }
+  return kept ? out : void 0;
+}
+function penpotTokenClosure(filtered) {
+  const dangling = [];
+  const cycles = [];
+  if (!isRec5(filtered)) return { dangling, cycles };
+  const value = /* @__PURE__ */ new Map();
+  const walk2 = (node, path) => {
+    for (const [k, v] of Object.entries(node)) {
+      if (k.startsWith("$") || !isRec5(v)) continue;
+      const p = path ? `${path}.${k}` : k;
+      if ("$value" in v) {
+        if (!value.has(p)) value.set(p, v.$value);
+      } else walk2(v, p);
+    }
+  };
+  for (const [setName, set] of Object.entries(filtered)) {
+    if (setName.startsWith("$") || !isRec5(set)) continue;
+    walk2(set, "");
+  }
+  const refsOf = (v) => {
+    if (typeof v !== "string") return [];
+    const out = [];
+    const re = /\{([^{}]+)\}/g;
+    let m2 = re.exec(v);
+    while (m2) {
+      out.push(m2[1].trim());
+      m2 = re.exec(v);
+    }
+    return out;
+  };
+  for (const [p, v] of value) for (const ref of refsOf(v)) if (!value.has(ref)) dangling.push(`${p} \u2192 {${ref}}`);
+  const WHITE2 = 0, GREY2 = 1, BLACK2 = 2;
+  const color = /* @__PURE__ */ new Map();
+  const stack = [];
+  const visit = (p) => {
+    color.set(p, GREY2);
+    stack.push(p);
+    for (const ref of refsOf(value.get(p))) {
+      if (!value.has(ref)) continue;
+      const c = color.get(ref) ?? WHITE2;
+      if (c === GREY2) {
+        const from = stack.indexOf(ref);
+        cycles.push([...stack.slice(from), ref].join(" \u2192 "));
+      } else if (c === WHITE2) visit(ref);
+    }
+    stack.pop();
+    color.set(p, BLACK2);
+  };
+  for (const p of value.keys()) if ((color.get(p) ?? WHITE2) === WHITE2) visit(p);
+  return {
+    dangling: [...new Set(dangling)].slice(0, 200),
+    cycles: [...new Set(cycles)].slice(0, 200)
+  };
+}
+var isRec5, S, PAINTABLE, ALL, TEXT, CORNERED, PENPOT_BINDABLE, PENPOT_BINDABLE_PROPS;
+var init_penpot_bindings = __esm({
+  "engine/src/penpot-bindings.ts"() {
+    "use strict";
+    isRec5 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    S = (...v) => new Set(v);
+    PAINTABLE = S("frame", "rect", "circle", "path", "text");
+    ALL = S("frame", "rect", "circle", "path", "text", "group");
+    TEXT = S("text");
+    CORNERED = S("frame", "rect");
+    PENPOT_BINDABLE = Object.freeze({
+      // ── baseline: proven through the /components/ import ──
+      fill: { types: S("color"), shapes: PAINTABLE },
+      strokeColor: { types: S("color"), shapes: PAINTABLE },
+      r1: { types: S("borderRadius", "dimension", "number"), shapes: CORNERED },
+      r2: { types: S("borderRadius", "dimension", "number"), shapes: CORNERED },
+      r3: { types: S("borderRadius", "dimension", "number"), shapes: CORNERED },
+      r4: { types: S("borderRadius", "dimension", "number"), shapes: CORNERED },
+      fontSize: { types: S("fontSizes", "dimension", "number"), shapes: TEXT },
+      fontFamily: { types: S("fontFamilies"), shapes: TEXT },
+      // ── additive: supported DTCG type + Penpot attribute, pending live proof ──
+      strokeWidth: { types: S("borderWidth", "dimension", "sizing", "number"), shapes: PAINTABLE },
+      rotation: { types: S("rotation", "number"), shapes: ALL },
+      opacity: { types: S("opacity", "number"), shapes: ALL },
+      fontWeight: { types: S("fontWeights", "number"), shapes: TEXT },
+      letterSpacing: { types: S("letterSpacing", "dimension", "number"), shapes: TEXT }
+    });
+    PENPOT_BINDABLE_PROPS = Object.freeze(Object.keys(PENPOT_BINDABLE));
+  }
+});
+
 // engine/src/penpot-file.ts
 function fallbackUuid() {
   const b = new Uint8Array(16);
@@ -54487,6 +54860,8 @@ function buildPenpotEntries(doc, opts = {}) {
   const fileId = uuid();
   const fileName = doc.name && doc.name.trim() || "From Lolly";
   const stamp2 = now2();
+  const filteredTokens = doc.tokens == null ? null : penpotTokensJson(doc.tokens, doc.themeSelection);
+  const tokenIndex = buildTokenTypeIndex(filteredTokens);
   const media = /* @__PURE__ */ new Map();
   for (const m2 of doc.media ?? []) {
     if (!m2 || !m2.id || !(m2.bytes instanceof Uint8Array) || !m2.bytes.length) {
@@ -54623,6 +54998,29 @@ function buildPenpotEntries(doc, opts = {}) {
         default:
           return null;
       }
+      if (sh.appliedTokens) {
+        const at = sanitizeAppliedTokens(String(rec2.type), sh.appliedTokens, tokenIndex, warn);
+        if (at) rec2.appliedTokens = at;
+      }
+      if (sh.type === "board" && sh.component) {
+        if (parentId === PENPOT_ROOT_ID) {
+          const comp2 = sh.component;
+          const compId = uuid();
+          rec2.componentId = compId;
+          rec2.componentFile = fileId;
+          rec2.componentRoot = true;
+          rec2.mainInstance = true;
+          put(`files/${fileId}/components/${compId}.json`, {
+            id: compId,
+            name: comp2.name?.trim() || String(rec2.name),
+            path: comp2.path?.trim() || "Lolly / Components",
+            mainInstanceId: id,
+            mainInstancePage: pageId
+          });
+        } else {
+          warn("component marker on a non-top-level board ignored (Penpot main instances are page-root frames)");
+        }
+      }
       put(`files/${fileId}/pages/${pageId}/${id}.json`, rec2);
       return id;
     };
@@ -54681,8 +55079,7 @@ function buildPenpotEntries(doc, opts = {}) {
     if (t.path) rec2.path = t.path;
     put(`files/${fileId}/typographies/${id}.json`, rec2);
   }
-  const tokens = doc.tokens == null ? null : penpotTokensJson(doc.tokens);
-  if (tokens) put(`files/${fileId}/tokens.json`, tokens);
+  if (filteredTokens) put(`files/${fileId}/tokens.json`, filteredTokens);
   else if (doc.tokens != null) warn("token document carried nothing Penpot can read; tokens.json omitted");
   put(`files/${fileId}.json`, {
     id: fileId,
@@ -54708,9 +55105,9 @@ function buildPenpotEntries(doc, opts = {}) {
   });
   return { entries, fileId, pageIds, shapeCount, mediaCount: media.size, warnings };
 }
-function penpotTokensJson(doc) {
-  if (!isRec5(doc)) return null;
-  const isTokenLeaf = (v) => isRec5(v) && ("$value" in v || "value" in v);
+function penpotTokensJson(doc, selection) {
+  if (!isRec6(doc)) return null;
+  const isTokenLeaf = (v) => isRec6(v) && ("$value" in v || "value" in v);
   const sets = /* @__PURE__ */ Object.create(null);
   const reserved = /* @__PURE__ */ new Set(["$themes", "$metadata", "$description", "$extensions", "$type", "$schema"]);
   const convert = (node, inherited) => {
@@ -54727,7 +55124,7 @@ function penpotTokensJson(doc) {
         if (typeof desc === "string" && desc) leaf.$description = desc;
         out2[k] = leaf;
         kept++;
-      } else if (isRec5(v)) {
+      } else if (isRec6(v)) {
         const groupType = typeof v.$type === "string" ? v.$type : inherited;
         const sub = convert(v, groupType);
         if (sub) {
@@ -54741,7 +55138,7 @@ function penpotTokensJson(doc) {
   const hasSets = "$themes" in doc || "$metadata" in doc;
   if (hasSets) {
     for (const [name, v] of Object.entries(doc)) {
-      if (reserved.has(name) || !isRec5(v)) continue;
+      if (reserved.has(name) || !isRec6(v)) continue;
       const set = convert(v, typeof v.$type === "string" ? v.$type : null);
       if (set) sets[name] = set;
     }
@@ -54751,14 +55148,14 @@ function penpotTokensJson(doc) {
   }
   const setNames = Object.keys(sets);
   if (!setNames.length) return null;
-  const metaIn = isRec5(doc.$metadata) ? doc.$metadata : {};
+  const metaIn = isRec6(doc.$metadata) ? doc.$metadata : {};
   const order = (Array.isArray(metaIn.tokenSetOrder) ? metaIn.tokenSetOrder : []).map(String).filter((n2) => n2 in sets);
   for (const n2 of setNames) if (!order.includes(n2)) order.push(n2);
   const themes = [];
   for (const raw of Array.isArray(doc.$themes) ? doc.$themes : []) {
-    if (!isRec5(raw) || typeof raw.name !== "string" || !raw.name) continue;
+    if (!isRec6(raw) || typeof raw.name !== "string" || !raw.name) continue;
     const sel = {};
-    const srcSel = isRec5(raw.selectedTokenSets) ? raw.selectedTokenSets : {};
+    const srcSel = isRec6(raw.selectedTokenSets) ? raw.selectedTokenSets : {};
     for (const [set, state] of Object.entries(srcSel)) {
       if (!(set in sets)) continue;
       sel[set] = state === "disabled" ? "disabled" : "enabled";
@@ -54773,12 +55170,52 @@ function penpotTokensJson(doc) {
     if (typeof raw.group === "string" && raw.group) theme.group = raw.group;
     themes.push(theme);
   }
-  const first = themes[0];
-  const active = first ? Object.entries(first.selectedTokenSets).filter(([, s]) => s === "enabled").map(([n2]) => n2) : order.slice();
+  const byName = /* @__PURE__ */ new Map();
+  for (const t of themes) {
+    const nm = typeof t.name === "string" ? t.name : "";
+    const grp = typeof t.group === "string" ? t.group : "";
+    if (nm) byName.set(nm, t);
+    if (grp && nm) byName.set(`${grp}/${nm}`, t);
+    if (typeof t.id === "string" && t.id) byName.set(t.id, t);
+  }
+  const dedupe2 = (xs) => [...new Set(xs)];
+  const srcActive = (Array.isArray(metaIn.activeThemes) ? metaIn.activeThemes : []).filter((x) => typeof x === "string");
+  const setsGivenDirectly = !!selection?.activeSets?.length;
+  let chosenNames = [];
+  if (selection?.activeThemes?.length) {
+    chosenNames = selection.activeThemes.filter((n2) => byName.has(n2));
+  }
+  if (!chosenNames.length && !setsGivenDirectly) chosenNames = srcActive.filter((n2) => byName.has(n2));
+  if (!chosenNames.length && !setsGivenDirectly && themes.length) {
+    const fn = typeof themes[0].name === "string" ? themes[0].name : "";
+    if (fn) chosenNames = [fn];
+  }
+  chosenNames = dedupe2(chosenNames);
+  let active;
+  if (setsGivenDirectly) {
+    const want = new Set(selection.activeSets);
+    active = order.filter((n2) => want.has(n2));
+    if (!active.length) active = order.slice();
+  } else if (chosenNames.length) {
+    const enabled = /* @__PURE__ */ new Set();
+    for (const n2 of chosenNames) {
+      const t = byName.get(n2);
+      if (!t) continue;
+      for (const [name, st] of Object.entries(t.selectedTokenSets)) {
+        if (st === "enabled") enabled.add(name);
+      }
+    }
+    active = order.filter((n2) => enabled.has(n2));
+    if (!active.length) active = order.slice();
+  } else {
+    active = order.slice();
+  }
   const out = /* @__PURE__ */ Object.create(null);
   for (const n2 of order) out[n2] = sets[n2];
   if (themes.length) out.$themes = themes;
-  out.$metadata = { tokenSetOrder: order, activeSets: active.length ? active : order.slice() };
+  const meta = { tokenSetOrder: order, activeSets: active.length ? active : order.slice() };
+  if (chosenNames.length) meta.activeThemes = chosenNames;
+  out.$metadata = meta;
   return out;
 }
 function gradSpecToPenpot(spec, w, h) {
@@ -54848,8 +55285,19 @@ function designTextRuns(line) {
   }
   return out;
 }
+function markToolComponents(doc, toolName) {
+  const name = toolName.trim() || "Lolly";
+  const path = `Lolly / Tools / ${name}`;
+  for (const page2 of doc.pages) {
+    for (const sh of page2.shapes) {
+      if (sh.type === "board" && !sh.component) {
+        sh.component = { name: sh.name?.trim() || name, path };
+      }
+    }
+  }
+}
 function boxesToPenpotDoc(boxesIn, o) {
-  const boxes = (Array.isArray(boxesIn) ? boxesIn : []).filter(isRec5);
+  const boxes = (Array.isArray(boxesIn) ? boxesIn : []).filter(isRec6);
   const geomApi = o.geom ?? makeGeomApi();
   const media = [];
   const byId = /* @__PURE__ */ new Map();
@@ -54871,6 +55319,13 @@ function boxesToPenpotDoc(boxesIn, o) {
     if (p) return hexOf2(p);
     const r3 = o.resolveColor?.(s) ?? null;
     return r3 && parsePenpotColor(r3) ? r3 : null;
+  };
+  const tokenPathOf = (v, kind) => {
+    const s = str6(v).trim();
+    if (!s) return kind === "font" ? o.bindToken?.("", kind) ?? null : null;
+    const alias = /^\{([A-Za-z0-9_.-]+)\}$/.exec(s);
+    if (alias) return alias[1];
+    return o.bindToken?.(s, kind) ?? null;
   };
   const familyOf = (key) => {
     const k = str6(key).trim();
@@ -54945,6 +55400,7 @@ function boxesToPenpotDoc(boxesIn, o) {
     const base = { name: nameOf3(b, kind), x, y, w, h };
     effects(b, base);
     let shape = null;
+    let textHasRunColor = false;
     if (kind === "text") {
       const text3 = str6(b.text);
       if (!text3.trim()) return null;
@@ -54963,6 +55419,7 @@ function boxesToPenpotDoc(boxesIn, o) {
         if (mb2) ln = `${mb2[1]}\u2022  ${mb2[2]}`;
         else if (mo) ln = `${mo[1]}${mo[2]}.  ${mo[3]}`;
         const runs = designTextRuns(ln).map((r3) => {
+          if (r3.color) textHasRunColor = true;
           const rc = r3.color ? color(r3.color) ?? fg : fg;
           const rp = parsePenpotColor(rc) ?? { hex: "#000000", alpha: 1 };
           return {
@@ -55039,6 +55496,26 @@ function boxesToPenpotDoc(boxesIn, o) {
       if (shapeKind === "ellipse" || shapeKind === "circle") shape = { ...base, type: "circle", fills, strokes };
       else shape = { ...base, type: "rect", fills, strokes, radius: shapeKind === "rounded" ? fin2(b.radius) : shapeKind === "pill" ? Math.min(w, h) / 2 : 0 };
     }
+    if (shape) {
+      const applied = {};
+      const solidFill = shape.type !== "image" && !gradSpecToPenpot(b.grad, w, h);
+      if (kind === "text") {
+        if (!textHasRunColor) {
+          const p = tokenPathOf(b.fg, "color");
+          if (p) applied.fill = p;
+        }
+        const fp = tokenPathOf(b.font, "font");
+        if (fp) applied.fontFamily = fp;
+      } else if (solidFill && color(b.bg)) {
+        const p = tokenPathOf(b.bg, "color");
+        if (p) applied.fill = p;
+      }
+      if (strokeOf(b).length) {
+        const sp = tokenPathOf(b.stroke, "color");
+        if (sp) applied.strokeColor = sp;
+      }
+      if (Object.keys(applied).length) shape.appliedTokens = { ...shape.appliedTokens, ...applied };
+    }
     const clipId = str6(b.clip);
     const mask = clipId && clipId !== str6(b.id) ? byId.get(clipId) : void 0;
     if (shape && mask) {
@@ -55079,6 +55556,14 @@ function boxesToPenpotDoc(boxesIn, o) {
         showContent: fb.clipChildren === false
       };
       effects(fb, board);
+      const boardApplied = {};
+      const bfp = tokenPathOf(fb.bg, "color");
+      if (bfp) boardApplied.fill = bfp;
+      if (strokeOf(fb).length) {
+        const bsp = tokenPathOf(fb.stroke, "color");
+        if (bsp) boardApplied.strokeColor = bsp;
+      }
+      if (Object.keys(boardApplied).length) board.appliedTokens = boardApplied;
       shapes.push(board);
     }
     for (const cb of boxes) {
@@ -55544,6 +56029,19 @@ function svgToPenpotDoc(svgText, o) {
     if (f.blend !== "normal") sh.blend = f.blend;
     const id = t.attrs.id ?? t.attrs["data-name"] ?? t.attrs["aria-label"];
     if (id && !sh.name) sh.name = id;
+    const bind = t.attrs["data-lolly-bind"];
+    if (typeof bind === "string" && bind) {
+      const applied = {};
+      for (const pair of bind.split(";")) {
+        const i = pair.indexOf(":");
+        if (i < 0) continue;
+        const raw = pair.slice(0, i).trim();
+        const prop3 = raw === "textFill" ? "fill" : raw;
+        const path = pair.slice(i + 1).trim();
+        if (prop3 && isSafeTokenPath(path)) applied[prop3] = path;
+      }
+      if (Object.keys(applied).length) sh.appliedTokens = { ...sh.appliedTokens, ...applied };
+    }
     return sh;
   };
   const pathShape = (subs, f, t, name) => {
@@ -55897,11 +56395,11 @@ function parsePenpotImportStream(text3) {
         if (/^[0-9a-f-]{36}$/i.test(s)) out.fileIds.push(s);
       }
     } else if (event === "error") {
-      const rec2 = isRec5(data) ? data : {};
+      const rec2 = isRec6(data) ? data : {};
       const hint = rec2["~:hint"] ?? rec2.hint ?? rec2["~:code"] ?? rec2.code ?? rec2["~:type"] ?? body;
       out.error = strip(hint) || "Penpot refused the import";
     } else if (event === "progress") {
-      const rec2 = isRec5(data) ? data : {};
+      const rec2 = isRec6(data) ? data : {};
       const sec = strip(rec2["~:section"] ?? rec2.section);
       if (sec) out.sections.push(sec);
     }
@@ -55914,7 +56412,7 @@ function penpotWorkspaceUrl(teamId, fileId, pageId, origin = "https://design.pen
   if (pageId) q.set("page-id", pageId);
   return `${origin}/#/workspace?${q.toString()}`;
 }
-var PENPOT_MIME, PENPOT_ROOT_ID, PENPOT_FILE_VERSION, PENPOT_FEATURES, PENPOT_MIGRATIONS, MTYPE_EXT, PENPOT_IMAGE_MTYPES, BLEND_MODES, STROKE_CAPS, TOKEN_TYPE_MAP, BG_BLUR_SIGMA_A2, BG_BLUR_SIGMA_B2, MAX_SVG_LEN, MAX_SVG_TAGS, MAX_SHAPES, MAX_TEXT_PARAGRAPHS, isRec5, fin2, clamp11, r4, NAMED, IDENT, mul2, apply2, meanScale, isAxisAligned, K, TEXT_DEFAULTS, str6, H_ALIGN, MARKER_CAP, BAIL_TAGS2, SKIP_TAGS;
+var PENPOT_MIME, PENPOT_ROOT_ID, PENPOT_FILE_VERSION, PENPOT_FEATURES, PENPOT_MIGRATIONS, MTYPE_EXT, PENPOT_IMAGE_MTYPES, BLEND_MODES, STROKE_CAPS, TOKEN_TYPE_MAP, BG_BLUR_SIGMA_A2, BG_BLUR_SIGMA_B2, MAX_SVG_LEN, MAX_SVG_TAGS, MAX_SHAPES, MAX_TEXT_PARAGRAPHS, isRec6, fin2, clamp11, r4, NAMED, IDENT, mul2, apply2, meanScale, isAxisAligned, K, TEXT_DEFAULTS, str6, H_ALIGN, MARKER_CAP, BAIL_TAGS2, SKIP_TAGS;
 var init_penpot_file = __esm({
   "engine/src/penpot-file.ts"() {
     "use strict";
@@ -55922,6 +56420,7 @@ var init_penpot_file = __esm({
     init_tokens2();
     init_geom_api();
     init_path();
+    init_penpot_bindings();
     PENPOT_MIME = "application/x-penpot";
     PENPOT_ROOT_ID = "00000000-0000-0000-0000-000000000000";
     PENPOT_FILE_VERSION = 67;
@@ -56076,7 +56575,7 @@ var init_penpot_file = __esm({
     MAX_SVG_TAGS = 6e4;
     MAX_SHAPES = 6e3;
     MAX_TEXT_PARAGRAPHS = 400;
-    isRec5 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    isRec6 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     fin2 = (v, d = 0) => {
       const n2 = typeof v === "number" ? v : parseFloat(String(v));
       return Number.isFinite(n2) ? n2 : d;
@@ -57865,6 +58364,8 @@ __export(src_exports, {
   PDF_TEXT_MAX_NODES: () => PDF_TEXT_MAX_NODES,
   PDF_TEXT_MAX_TAGGED_ELEMENTS: () => PDF_TEXT_MAX_TAGGED_ELEMENTS,
   PDF_TEXT_MAX_TAGGED_REFERENCES: () => PDF_TEXT_MAX_TAGGED_REFERENCES,
+  PENPOT_BINDABLE: () => PENPOT_BINDABLE,
+  PENPOT_BINDABLE_PROPS: () => PENPOT_BINDABLE_PROPS,
   PENPOT_FEATURES: () => PENPOT_FEATURES,
   PENPOT_FILE_VERSION: () => PENPOT_FILE_VERSION,
   PENPOT_IMAGE_MTYPES: () => PENPOT_IMAGE_MTYPES,
@@ -58042,6 +58543,7 @@ __export(src_exports, {
   buildRewordMessages: () => buildRewordMessages,
   buildRpm: () => buildRpm,
   buildThemedAssetId: () => buildThemedAssetId,
+  buildTokenTypeIndex: () => buildTokenTypeIndex,
   buildTreatedAssetId: () => buildTreatedAssetId,
   c2paDefaultOn: () => c2paDefaultOn,
   c2paTrustAnchors: () => c2paTrustAnchors,
@@ -58357,6 +58859,7 @@ __export(src_exports, {
   isProviderRef: () => isProviderRef,
   isPsd: () => isPsd,
   isRateCardError: () => isRateCardError,
+  isSafeTokenPath: () => isSafeTokenPath,
   isShadowPlate: () => isShadowPlate,
   isStrippableFormat: () => isStrippableFormat,
   isThemableIconSvg: () => isThemableIconSvg,
@@ -58399,6 +58902,7 @@ __export(src_exports, {
   mapPaletteToBrand: () => mapPaletteToBrand,
   mapScanlines: () => mapScanlines,
   mapWeight: () => mapWeight,
+  markToolComponents: () => markToolComponents,
   maskRegion: () => maskRegion,
   matAboutPivot: () => matAboutPivot,
   matToSvg: () => matToSvg,
@@ -58538,6 +59042,7 @@ __export(src_exports, {
   penpotGroupToSvg: () => penpotGroupToSvg,
   penpotPathContentToD: () => penpotPathContentToD,
   penpotShapeToNode: () => penpotShapeToNode,
+  penpotTokenClosure: () => penpotTokenClosure,
   penpotTokensJson: () => penpotTokensJson,
   penpotUuid: () => penpotUuid,
   penpotWorkspaceUrl: () => penpotWorkspaceUrl,
@@ -58598,6 +59103,7 @@ __export(src_exports, {
   resolveColorValue: () => resolveColorValue,
   resolveDesignVersion: () => resolveDesignVersion,
   resolveGamutSource: () => resolveGamutSource,
+  resolvePaintBindings: () => resolvePaintBindings,
   resolveRanges: () => resolveRanges,
   resolveVerdict: () => resolveVerdict,
   restyleIconTheme: () => restyleIconTheme,
@@ -58616,6 +59122,7 @@ __export(src_exports, {
   sampleBilinear: () => sampleBilinear,
   sampleCurve: () => sampleCurve,
   sampleLut: () => sampleLut,
+  sanitizeAppliedTokens: () => sanitizeAppliedTokens,
   satisfiesRange: () => satisfiesRange,
   scanPenpotAppliedTokens: () => scanPenpotAppliedTokens,
   scanPenpotUsage: () => scanPenpotUsage,
@@ -58923,6 +59430,7 @@ var init_src2 = __esm({
     init_brand_import();
     init_penpot_file();
     init_app_surface();
+    init_penpot_bindings();
     init_icon_theme();
     init_photo_treatment();
     init_brand_treatments();
@@ -63252,9 +63760,9 @@ async function runGfpgan(frame, model2, opts) {
     const size = Math.min(w, h);
     return { x: Math.floor((w - size) / 2), y: Math.floor((h - size) / 2), size };
   })();
-  const S = GFPGAN_FACE_SIZE;
-  const faceRgba = (await cropResizeRgba(src, box2.x, box2.y, box2.size, box2.size, S, S)).data;
-  const page2 = S * S;
+  const S2 = GFPGAN_FACE_SIZE;
+  const faceRgba = (await cropResizeRgba(src, box2.x, box2.y, box2.size, box2.size, S2, S2)).data;
+  const page2 = S2 * S2;
   const inTensor = new Float32Array(page2 * 3);
   for (let i = 0; i < page2; i++) {
     const p = i * 4;
@@ -63267,9 +63775,9 @@ async function runGfpgan(frame, model2, opts) {
   const ort = await loadOrt();
   const inName = faceSession.inputNames[0];
   if (!inName) throw new Error("GFPGAN model has no input tensor");
-  const results = await faceSession.run({ [inName]: new ort.Tensor("float32", inTensor, [1, 3, S, S]) });
+  const results = await faceSession.run({ [inName]: new ort.Tensor("float32", inTensor, [1, 3, S2, S2]) });
   const raw = tensorFloats(firstOutput(results, faceSession.outputNames[0]));
-  const restored = { width: S, height: S, data: new Uint8ClampedArray(page2 * 4) };
+  const restored = { width: S2, height: S2, data: new Uint8ClampedArray(page2 * 4) };
   for (let i = 0; i < page2; i++) {
     const o = i * 4;
     restored.data[o] = clamp2552((raw[i] + 1) * 127.5);
@@ -66064,6 +66572,17 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       if (opts.dataText !== void 0) {
         return new Blob([opts.dataText], { type: opts.dataMime ?? "text/plain" });
       }
+      if (typeof node?.querySelectorAll === "function") {
+        const strip = (attr4) => {
+          if (node.hasAttribute?.(attr4)) node.removeAttribute(attr4);
+          node.querySelectorAll(`[${attr4}]`).forEach((el) => {
+            el.removeAttribute(attr4);
+          });
+        };
+        strip("data-canvas-input");
+        strip("data-lolly-paint");
+        if (format !== "penpot") strip("data-lolly-bind");
+      }
       if (format === "html") {
         const clone3 = node.cloneNode(true);
         clone3.querySelectorAll("script").forEach((el) => el.remove());
@@ -66132,6 +66651,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
             { ...shared, background: opts.background }
           );
         }
+        markToolComponents(doc, name);
         const build2 = buildPenpotEntries(doc);
         for (const note of lowered?.notes ?? []) host.log("warn", `penpot: ${note}`);
         for (const wmsg of build2.warnings) host.log("warn", `penpot: ${wmsg}`);

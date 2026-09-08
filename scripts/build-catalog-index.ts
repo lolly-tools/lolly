@@ -225,7 +225,7 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
       if (typeof t.name !== 'string' || !t.name) continue;
       const meta: Record<string, unknown> = {};
       // METADATA ONLY - `values` is deliberately excluded so the index stays lean.
-      for (const k of ['id', 'name', 'category', 'description', 'thumb']) {
+      for (const k of ['id', 'name', 'category', 'description', 'thumb', 'motion']) {
         if (t[k] !== undefined) meta[k] = t[k];
       }
       // Presets (plans/142): a template's curated variants - each a values OVERLAY

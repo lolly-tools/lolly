@@ -36,6 +36,7 @@ import { parseSvgPath, type SubPath, type PathSegment } from './svg-path.ts';
 import { colorToHex } from './tokens.ts';
 import { makeGeomApi } from './geom-api.ts';
 import { pathBounds, pathFromSubPaths } from './geom/path.ts';
+import { sanitizeAppliedTokens, buildTokenTypeIndex, isSafeTokenPath } from './penpot-bindings.ts';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -180,6 +181,16 @@ interface PenpotIrShapeBase {
   flipX?: boolean; flipY?: boolean;
   /** Radii clockwise from top-left; a number sets all four. */
   radius?: number | [number, number, number, number];
+  /**
+   * Penpot applied-token bindings: a native property key → the dotted token NAME
+   * that paints it, so editing that token in Penpot re-paints this shape
+   * (plans/222). The writer validates each entry against {@link PENPOT_BINDABLE}
+   * and the archive's own token set and DROPS anything unsupported, so a stale or
+   * mistyped binding degrades to the plain painted value rather than a refused
+   * import. Never invent one from value equality - only a proven source reference
+   * belongs here.
+   */
+  appliedTokens?: Record<string, string>;
 }
 export interface PenpotIrRect extends PenpotIrShapeBase { type: 'rect' }
 export interface PenpotIrCircle extends PenpotIrShapeBase { type: 'circle' }
@@ -199,11 +210,22 @@ export interface PenpotIrGroup extends PenpotIrShapeBase {
   /** The first child clips the rest (a Penpot masked group). */
   masked?: boolean;
 }
+/** Declares a top-level board as a reusable Penpot main component (plans/222). The
+ *  engine owns the component's id and its main-instance references, so ownership is
+ *  by id, never by layer name. Honoured only on a top-level board. */
+export interface PenpotComponentSpec {
+  /** Component display name in Assets; defaults to the board's own name. */
+  name?: string;
+  /** Assets path, `/`-separated, e.g. `Lolly / Tools / QR code`. Defaults to `Lolly / Components`. */
+  path?: string;
+}
 /** A board (Penpot "frame"): clips its children unless `showContent`. */
 export interface PenpotIrBoard extends PenpotIrShapeBase {
   type: 'board';
   children: PenpotIrShape[];
   showContent?: boolean;
+  /** When set on a TOP-LEVEL board, the writer registers it as a main component. */
+  component?: PenpotComponentSpec;
 }
 export type PenpotIrShape = PenpotIrRect | PenpotIrCircle | PenpotIrPath | PenpotIrText | PenpotIrImage | PenpotIrGroup | PenpotIrBoard;
 
@@ -235,12 +257,29 @@ export interface PenpotIrTypography {
   letterSpacing?: number;
   textTransform?: string;
 }
+/**
+ * The theme selection that produced a render (plans/222). `activeThemes` names the
+ * theme(s) that were on - by `name`, `id`, or `group/name` for a grouped axis;
+ * multiple independent groups may each contribute one. `activeSets` names sets
+ * directly when the caller has no theme handle. Given neither, the writer honours
+ * the source doc's own `$metadata.activeThemes`, then falls back to the first
+ * theme (made explicit), matching the reader in `tokens.ts`.
+ */
+export interface PenpotThemeSelection {
+  activeThemes?: string[];
+  activeSets?: string[];
+}
 export interface PenpotDoc {
   name: string;
   pages: PenpotIrPage[];
   media?: PenpotMedia[];
   /** The brand's Tokens-Studio / DTCG document (host.tokens.raw()); filtered on write. */
   tokens?: unknown;
+  /** The effective theme selection that produced this render (plans/222 gap #3): the
+   *  active theme name(s), or explicit active sets. Drives `tokens.json`'s
+   *  `$metadata.activeThemes`/`activeSets` so the file opens on the SAME theme the
+   *  canvas was rendered with, not whichever theme happens to be listed first. */
+  themeSelection?: PenpotThemeSelection;
   /** Library colours for the Assets tab. */
   palette?: PenpotPaletteColor[];
   typographies?: PenpotIrTypography[];
@@ -639,6 +678,12 @@ export function buildPenpotEntries(doc: PenpotDoc, opts: PenpotBuildOptions = {}
   const fileName = (doc.name && doc.name.trim()) || 'From Lolly';
   const stamp = now();
 
+  // Filter the brand tokens once, up front: shapes need the surviving token set to
+  // validate their applied-token bindings (a binding onto a token Penpot's reader
+  // drops would dangle), and the file writes the same filtered doc as tokens.json.
+  const filteredTokens = doc.tokens == null ? null : penpotTokensJson(doc.tokens, doc.themeSelection);
+  const tokenIndex = buildTokenTypeIndex(filteredTokens);
+
   // Media: every picture the shapes reference, once, with its storage object.
   const media = new Map<string, PenpotMedia>();
   for (const m of doc.media ?? []) {
@@ -745,6 +790,30 @@ export function buildPenpotEntries(doc: PenpotDoc, opts: PenpotBuildOptions = {}
         default:
           return null;
       }
+      // Applied-token bindings: validated against the archive's own token set, so a
+      // stale/mistyped/dropped-token binding never reaches the file.
+      if (sh.appliedTokens) {
+        const at = sanitizeAppliedTokens(String(rec.type), sh.appliedTokens, tokenIndex, warn);
+        if (at) rec.appliedTokens = at;
+      }
+      // A top-level board may declare itself a reusable main component. The engine
+      // owns the component id and its main-instance references (by id, never by
+      // layer name), and points them at THIS board on THIS page.
+      if (sh.type === 'board' && (sh as PenpotIrBoard).component) {
+        if (parentId === PENPOT_ROOT_ID) {
+          const comp = (sh as PenpotIrBoard).component!;
+          const compId = uuid();
+          rec.componentId = compId; rec.componentFile = fileId; rec.componentRoot = true; rec.mainInstance = true;
+          put(`files/${fileId}/components/${compId}.json`, {
+            id: compId,
+            name: comp.name?.trim() || String(rec.name),
+            path: comp.path?.trim() || 'Lolly / Components',
+            mainInstanceId: id, mainInstancePage: pageId,
+          });
+        } else {
+          warn('component marker on a non-top-level board ignored (Penpot main instances are page-root frames)');
+        }
+      }
       put(`files/${fileId}/pages/${pageId}/${id}.json`, rec);
       return id;
     };
@@ -786,9 +855,8 @@ export function buildPenpotEntries(doc: PenpotDoc, opts: PenpotBuildOptions = {}
     put(`files/${fileId}/typographies/${id}.json`, rec);
   }
 
-  // Brand tokens.
-  const tokens = doc.tokens == null ? null : penpotTokensJson(doc.tokens);
-  if (tokens) put(`files/${fileId}/tokens.json`, tokens);
+  // Brand tokens (already filtered up front, so shapes could bind against them).
+  if (filteredTokens) put(`files/${fileId}/tokens.json`, filteredTokens);
   else if (doc.tokens != null) warn('token document carried nothing Penpot can read; tokens.json omitted');
 
   put(`files/${fileId}.json`, {
@@ -821,7 +889,7 @@ export function buildPenpotEntries(doc: PenpotDoc, opts: PenpotBuildOptions = {}
  * an ordinary key rather than a prototype write, and `k in sets` must answer for the
  * sets that exist rather than for `toString` / `valueOf` / `constructor`.
  */
-export function penpotTokensJson(doc: unknown): Record<string, unknown> | null {
+export function penpotTokensJson(doc: unknown, selection?: PenpotThemeSelection): Record<string, unknown> | null {
   if (!isRec(doc)) return null;
   const isTokenLeaf = (v: unknown): v is Rec => isRec(v) && ('$value' in v || 'value' in v);
   const sets: Record<string, unknown> = Object.create(null);
@@ -886,16 +954,61 @@ export function penpotTokensJson(doc: unknown): Record<string, unknown> | null {
     if (typeof raw.group === 'string' && raw.group) theme.group = raw.group;
     themes.push(theme);
   }
-  // Active sets: what the first theme enables, else every set - so tokens resolve
-  // the moment the file opens, without naming a theme path Penpot has to parse.
-  const first = themes[0];
-  const active = first
-    ? Object.entries(first.selectedTokenSets as Record<string, string>).filter(([, s]) => s === 'enabled').map(([n]) => n)
-    : order.slice();
+  // Effective active selection (plans/222 gap #3). The file must open on the theme
+  // the canvas was rendered with, not whichever theme is listed first - so the
+  // render context's selection wins, then the source doc's own $metadata.activeThemes,
+  // then the first theme (made explicit). activeSets is the UNION of the chosen
+  // themes' enabled sets, ordered by tokenSetOrder, matching the reader in
+  // tokens.ts (activeSets/chosenThemes) so writer and reader agree on open.
+  const byName = new Map<string, Rec>();
+  for (const t of themes) {
+    const nm = typeof t.name === 'string' ? t.name : '';
+    const grp = typeof t.group === 'string' ? t.group : '';
+    if (nm) byName.set(nm, t);
+    if (grp && nm) byName.set(`${grp}/${nm}`, t);
+    if (typeof t.id === 'string' && t.id) byName.set(t.id, t);
+  }
+  const dedupe = (xs: string[]): string[] => [...new Set(xs)];
+  const srcActive = (Array.isArray(metaIn.activeThemes) ? metaIn.activeThemes : [])
+    .filter((x): x is string => typeof x === 'string');
+  const setsGivenDirectly = !!selection?.activeSets?.length;
+  let chosenNames: string[] = [];
+  if (selection?.activeThemes?.length) {
+    chosenNames = selection.activeThemes.filter((n) => byName.has(n));
+  }
+  if (!chosenNames.length && !setsGivenDirectly) chosenNames = srcActive.filter((n) => byName.has(n));
+  if (!chosenNames.length && !setsGivenDirectly && themes.length) {
+    const fn = typeof themes[0]!.name === 'string' ? (themes[0]!.name as string) : '';
+    if (fn) chosenNames = [fn];
+  }
+  chosenNames = dedupe(chosenNames);
+
+  let active: string[];
+  if (setsGivenDirectly) {
+    const want = new Set(selection!.activeSets);
+    active = order.filter((n) => want.has(n));
+    if (!active.length) active = order.slice();
+  } else if (chosenNames.length) {
+    const enabled = new Set<string>();
+    for (const n of chosenNames) {
+      const t = byName.get(n);
+      if (!t) continue;
+      for (const [name, st] of Object.entries(t.selectedTokenSets as Record<string, string>)) {
+        if (st === 'enabled') enabled.add(name);
+      }
+    }
+    active = order.filter((n) => enabled.has(n));
+    if (!active.length) active = order.slice();
+  } else {
+    active = order.slice();
+  }
+
   const out: Record<string, unknown> = Object.create(null);
   for (const n of order) out[n] = sets[n];
   if (themes.length) out.$themes = themes;
-  out.$metadata = { tokenSetOrder: order, activeSets: active.length ? active : order.slice() };
+  const meta: Rec = { tokenSetOrder: order, activeSets: active.length ? active : order.slice() };
+  if (chosenNames.length) meta.activeThemes = chosenNames;
+  out.$metadata = meta;
   return out;
 }
 
@@ -918,6 +1031,17 @@ export interface BoxesToPenpotOptions {
    *  last resort for anything else the parser cannot read. A caller with no live cascade
    *  (CLI, jsdom) supplies none and the literal fallback stands. */
   resolveColor?: (css: string) => string | null;
+  /**
+   * The brand token a box field's SOURCE names, for applied-token bindings
+   * (plans/222). Given a box's raw `bg`/`fg`/`stroke`/`font` string and its kind,
+   * return the dotted token PATH it inherits from, or null for a literal. The
+   * engine already recognises a bare `{alias}` itself; this is for the brand-
+   * specific forms only the shell can map (a `var(--brand-primary)` → the
+   * semantic slot's path, a `sans`/`mono` font role → the font token). Never a
+   * value-equality guess - only a real source reference. A caller without a brand
+   * cascade (CLI, jsdom) omits it and boxes export unbound, exactly as before.
+   */
+  bindToken?: (css: string, kind: 'color' | 'font') => string | null;
   tokens?: unknown;
   palette?: PenpotPaletteColor[];
   typographies?: PenpotIrTypography[];
@@ -1017,6 +1141,25 @@ export function designTextRuns(line: string): MdRun[] {
 }
 
 /**
+ * Mark every TOP-LEVEL board in a rendered tool document as a reusable Penpot main
+ * component under `Lolly / Tools / <tool>` (plans/222). A shell calls this on the
+ * doc its producer built, so a tool's result can be dragged out of the Assets panel
+ * again; the writer assigns the component ids. Only top-level boards - never a child
+ * group - and a board that already declares a component keeps it. Idempotent.
+ */
+export function markToolComponents(doc: PenpotDoc, toolName: string): void {
+  const name = toolName.trim() || 'Lolly';
+  const path = `Lolly / Tools / ${name}`;
+  for (const page of doc.pages) {
+    for (const sh of page.shapes) {
+      if (sh.type === 'board' && !sh.component) {
+        sh.component = { name: sh.name?.trim() || name, path };
+      }
+    }
+  }
+}
+
+/**
  * The Design tool's raw box rows → a {@link PenpotDoc}. Frames become boards with
  * their member boxes (world coordinates are Penpot's page coordinates already);
  * with no frames, one board the size of the canvas holds every box. Scratch boxes
@@ -1047,6 +1190,21 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
     if (p) return hexOf(p);
     const r = o.resolveColor?.(s) ?? null;
     return r && parsePenpotColor(r) ? r : null;
+  };
+  /**
+   * The brand token PATH a box field's source names, or null for a literal
+   * (plans/222). A bare `{color.semantic.primary}` alias resolves here directly
+   * (the path IS brand-free); anything else (`var(--brand-primary)`, a `sans`
+   * role) is the shell's `bindToken` to map. The writer validates the returned
+   * path against the file's own tokens and drops it if it does not survive, so a
+   * stale binding degrades to the painted colour rather than a broken import.
+   */
+  const tokenPathOf = (v: unknown, kind: 'color' | 'font'): string | null => {
+    const s = str(v).trim();
+    if (!s) return kind === 'font' ? (o.bindToken?.('', kind) ?? null) : null;
+    const alias = /^\{([A-Za-z0-9_.-]+)\}$/.exec(s);
+    if (alias) return alias[1]!;
+    return o.bindToken?.(s, kind) ?? null;
   };
   const familyOf = (key: unknown): string => {
     const k = str(key).trim();
@@ -1120,6 +1278,7 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
     const base: PenpotIrShapeBase = { name: nameOf(b, kind), x, y, w, h };
     effects(b, base);
     let shape: PenpotIrShape | null = null;
+    let textHasRunColor = false;
     if (kind === 'text') {
       const text = str(b.text);
       if (!text.trim()) return null;
@@ -1137,6 +1296,7 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
         const mo = /^(\s*)(\d{1,3})\.\s+(.*)$/.exec(ln);
         if (mb) ln = `${mb[1]}•  ${mb[2]}`; else if (mo) ln = `${mo[1]}${mo[2]}.  ${mo[3]}`;
         const runs = designTextRuns(ln).map((r): PenpotIrTextRun => {
+          if (r.color) textHasRunColor = true;
           const rc = r.color ? (color(r.color) ?? fg) : fg;
           const rp = parsePenpotColor(rc) ?? { hex: '#000000', alpha: 1 };
           return {
@@ -1204,6 +1364,26 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
       if (shapeKind === 'ellipse' || shapeKind === 'circle') shape = { ...base, type: 'circle', fills, strokes };
       else shape = { ...base, type: 'rect', fills, strokes, radius: shapeKind === 'rounded' ? fin(b.radius) : shapeKind === 'pill' ? Math.min(w, h) / 2 : 0 };
     }
+    // Applied-token bindings from the box's OWN source refs (plans/222): a fill/
+    // text colour, a stroke colour and a font that name a brand token bind to it,
+    // so editing that token in Penpot re-paints this box. Only a solid fill can
+    // carry a colour token (a gradient/image is not one colour), and a text box
+    // with a per-run colour keeps its colours local rather than letting one token
+    // overwrite them. The writer re-validates every path and drops what it cannot
+    // resolve, so a stale ref never breaks the import.
+    if (shape) {
+      const applied: Record<string, string> = {};
+      const solidFill = shape.type !== 'image' && !gradSpecToPenpot(b.grad, w, h);
+      if (kind === 'text') {
+        if (!textHasRunColor) { const p = tokenPathOf(b.fg, 'color'); if (p) applied.fill = p; }
+        const fp = tokenPathOf(b.font, 'font'); if (fp) applied.fontFamily = fp;
+      } else if (solidFill && color(b.bg)) {
+        const p = tokenPathOf(b.bg, 'color'); if (p) applied.fill = p;
+      }
+      if (strokeOf(b).length) { const sp = tokenPathOf(b.stroke, 'color'); if (sp) applied.strokeColor = sp; }
+      if (Object.keys(applied).length) shape.appliedTokens = { ...shape.appliedTokens, ...applied };
+    }
+
     // A box clipped by another box (`clip`) → a masked group: the mask's outline first, then the box.
     const clipId = str(b.clip);
     const mask = clipId && clipId !== str(b.id) ? byId.get(clipId) : undefined;
@@ -1245,6 +1425,10 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
         children, showContent: fb.clipChildren === false,
       };
       effects(fb, board);
+      const boardApplied: Record<string, string> = {};
+      const bfp = tokenPathOf(fb.bg, 'color'); if (bfp) boardApplied.fill = bfp;
+      if (strokeOf(fb).length) { const bsp = tokenPathOf(fb.stroke, 'color'); if (bsp) boardApplied.strokeColor = bsp; }
+      if (Object.keys(boardApplied).length) board.appliedTokens = boardApplied;
       shapes.push(board);
     }
     for (const cb of boxes) {
@@ -1695,6 +1879,28 @@ export function svgToPenpotDoc(svgText: string, o: SvgToPenpotOptions): SvgToPen
     if (f.blend !== 'normal') sh.blend = f.blend;
     const id = t.attrs.id ?? t.attrs['data-name'] ?? t.attrs['aria-label'];
     if (id && !sh.name) sh.name = id;
+    // Applied-token bindings a producer stamped on the element (plans/222): the
+    // shared `data-lolly-bind="fill:color.semantic.primary;strokeColor:…"` attribute.
+    // A shell captures a `var(--brand-*)` paint into it BEFORE baking it to a hex
+    // (bridge/export-penpot.ts), so a lowered SVG shape stays token-linked. Kept
+    // permissive here - the writer's `sanitizeAppliedTokens` re-validates each
+    // property and path against the file's own tokens and drops what it cannot use.
+    const bind = t.attrs['data-lolly-bind'];
+    if (typeof bind === 'string' && bind) {
+      const applied: Record<string, string> = {};
+      for (const pair of bind.split(';')) {
+        const i = pair.indexOf(':');
+        if (i < 0) continue;
+        const raw = pair.slice(0, i).trim();
+        // `textFill` is the marker for a text COLOUR; Penpot paints that as a text
+        // shape's `fill` (a `<text>`/`<tspan>` element's fill IS its colour), so
+        // normalise it here - the writer's vocabulary only knows the native `fill`.
+        const prop = raw === 'textFill' ? 'fill' : raw;
+        const path = pair.slice(i + 1).trim();
+        if (prop && isSafeTokenPath(path)) applied[prop] = path;
+      }
+      if (Object.keys(applied).length) sh.appliedTokens = { ...sh.appliedTokens, ...applied };
+    }
     return sh;
   };
   const pathShape = (subs: SubPath[], f: Frame, t: SvgTag, name: string): PenpotIrShape | null | 'bail' => {

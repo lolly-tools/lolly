@@ -6,6 +6,22 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.184.0 - `.penpot` writer carries applied-token bindings, native components and
+the effective theme (plans/222). `PenpotIrShapeBase.appliedTokens` binds a native
+Penpot property (`fill`, `strokeColor`, `r1`-`r4`, `fontSize`, `fontFamily`, plus
+additive `strokeWidth`/`rotation`/`opacity`/`fontWeight`/`letterSpacing`) to a
+token NAME, so editing that token in Penpot re-paints the shape; a top-level board
+may declare `component` to become a reusable main component (the engine owns the
+component id and main-instance references, by id, never by layer name).
+`penpotTokensJson(doc, selection?)` and `PenpotDoc.themeSelection` preserve the
+render's active theme selection - `$metadata.activeThemes`/`activeSets` now follow
+the theme the canvas was rendered with, not whichever theme is listed first (gap
+\#3). New `engine/src/penpot-bindings.ts` (`PENPOT_BINDABLE`, `buildTokenTypeIndex`,
+`sanitizeAppliedTokens`, `penpotTokenClosure`) drops any binding onto a token
+Penpot's DTCG reader discards, so a stale/mistyped binding degrades to the painted
+value rather than a refused import. Additive; the SDK gains an optional
+`tokens.snapshot?()` read for the effective render context. No bridge signature change.
+
 1.183.0 - `host.assets.bytes(ref | url)` (optional): the bytes behind an
 AssetRef, so a hook no longer reaches for the global `fetch(ref.url)` - which
 works in a page, is refused by a strict Worker and does not exist headless. The

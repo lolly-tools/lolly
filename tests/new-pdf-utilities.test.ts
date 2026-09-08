@@ -93,6 +93,33 @@ test('Pages exposes a multi-PDF draggable workspace and exports the complete fil
   assert.equal(organized.opts.pages, '3,1-2');
 });
 
+test('Pages previews every page in an open-ended range and selects that same range', async () => {
+  const tool = await communityTool('pages');
+  const host = {
+    version: '1', log() {}, profile: { get: async () => ({}) },
+    pdf: {
+      pages: async () => ({ pages: [1, 2, 3].map(page => ({ page, widthPt: 400, heightPt: 500, svg: '<svg/>' })), totalPages: 3 }),
+      organize: async () => ({ bytes: new Uint8Array([1]), beforePages: 3, afterPages: 3, beforeBytes: 10, afterBytes: 1, pageOrder: [1, 2, 3], operations: [] }),
+    },
+  } as unknown as Parameters<typeof createRuntime>[1];
+  const runtime = await createRuntime(tool, host, { source: [file('three.pdf', 1)] } as never);
+  try {
+    const html = runtime.getHydrated();
+    assert.match(html, /data-pages="1-"/);
+    assert.equal((html.match(/data-page-card /g) || []).length, 3, 'the default open range shows all pages');
+    const edits: Array<[string, unknown]> = [];
+    const dom = wireTemplate(html, (id, value) => edits.push([id, value]));
+    dom.window.document.querySelector<HTMLButtonElement>('[data-page="3"] [data-page-move="-1"]')!.click();
+    assert.deepEqual(edits.at(-1), ['pages', '1,3,2'], 'moving a default-range page preserves every other page');
+    dom.window.close();
+    await runtime.setInput('pages', '2-');
+    assert.equal((runtime.getHydrated().match(/data-page-card /g) || []).length, 2);
+    await runtime.setInput('operation', 'extract');
+    const chosen = [...runtime.getHydrated().matchAll(/data-page-card[^>]*data-page="(\d+)"[^>]*data-chosen="true"/g)].map(m => m[1]);
+    assert.deepEqual(chosen, ['2', '3'], 'open ranges select through the final page');
+  } finally { runtime.destroy(); }
+});
+
 test('Sign renders direct drawing and asset controls on a mixed-size-aware page and exports drawn ink', async () => {
   const tool = await communityTool('sign');
   const checked = validateManifest(tool.manifest);

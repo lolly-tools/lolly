@@ -431,8 +431,8 @@
     },
     {
       "file": "backdrop.look0.svg",
-      "bytes": 11390,
-      "sha": "8d503952ae128a88",
+      "bytes": 11246,
+      "sha": "a68faab0afbfa691",
       "stddev": 90.821,
       "inkRatio": 0.72458,
       "ground": "white",
@@ -450,40 +450,40 @@
       "sparse": false
     },
     {
-      "file": "backdrop.look1.webp",
-      "bytes": 17138,
-      "sha": "f779ffe835ae585c",
-      "stddev": 26.354,
-      "inkRatio": 0.90896,
+      "file": "backdrop.look1.svg",
+      "bytes": 28742,
+      "sha": "d7a557abb57361f5",
+      "stddev": 90.821,
+      "inkRatio": 0.72458,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 26.354,
-          "inkRatio": 0.90896
+          "stddev": 90.821,
+          "inkRatio": 0.72458
         },
         "black": {
-          "stddev": 26.354,
-          "inkRatio": 0.90896
+          "stddev": 90.821,
+          "inkRatio": 0.72458
         }
       },
       "blank": false,
       "sparse": false
     },
     {
-      "file": "backdrop.look2.webp",
-      "bytes": 8400,
-      "sha": "0088e2edbd6b4e6d",
-      "stddev": 21.585,
-      "inkRatio": 0.65506,
+      "file": "backdrop.look2.svg",
+      "bytes": 21850,
+      "sha": "bddb5ddee32c3b54",
+      "stddev": 90.821,
+      "inkRatio": 0.72458,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 21.585,
-          "inkRatio": 0.65506
+          "stddev": 90.821,
+          "inkRatio": 0.72458
         },
         "black": {
-          "stddev": 21.585,
-          "inkRatio": 0.65506
+          "stddev": 90.821,
+          "inkRatio": 0.72458
         }
       },
       "blank": false,
@@ -491,8 +491,8 @@
     },
     {
       "file": "backdrop.look3.svg",
-      "bytes": 16608,
-      "sha": "b606f4eb37e3792a",
+      "bytes": 16660,
+      "sha": "047c6f279de7b96b",
       "stddev": 83.148,
       "inkRatio": 0.63818,
       "ground": "white",
@@ -510,20 +510,20 @@
       "sparse": false
     },
     {
-      "file": "backdrop.look4.webp",
-      "bytes": 29866,
-      "sha": "85d6bb92b0af9808",
-      "stddev": 59.231,
-      "inkRatio": 0.91905,
+      "file": "backdrop.look4.svg",
+      "bytes": 21238,
+      "sha": "3f8b6fe06a127729",
+      "stddev": 90.821,
+      "inkRatio": 0.72458,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 59.231,
-          "inkRatio": 0.91905
+          "stddev": 90.821,
+          "inkRatio": 0.72458
         },
         "black": {
-          "stddev": 59.231,
-          "inkRatio": 0.91905
+          "stddev": 90.821,
+          "inkRatio": 0.72458
         }
       },
       "blank": false,
@@ -531,28 +531,8 @@
     },
     {
       "file": "backdrop.look5.svg",
-      "bytes": 57243,
-      "sha": "e88154d72fbdfe05",
-      "stddev": 86.118,
-      "inkRatio": 0.70928,
-      "ground": "white",
-      "grounds": {
-        "white": {
-          "stddev": 86.118,
-          "inkRatio": 0.70928
-        },
-        "black": {
-          "stddev": 86.118,
-          "inkRatio": 0.70928
-        }
-      },
-      "blank": false,
-      "sparse": false
-    },
-    {
-      "file": "backdrop.look6.svg",
-      "bytes": 90625,
-      "sha": "7b4b00d29b807344",
+      "bytes": 29829,
+      "sha": "bf31567bc1206468",
       "stddev": 88.915,
       "inkRatio": 0.67996,
       "ground": "white",
@@ -570,20 +550,40 @@
       "sparse": false
     },
     {
-      "file": "backdrop.look7.svg",
-      "bytes": 13710,
-      "sha": "bd44b29ea0022ece",
-      "stddev": 73.401,
-      "inkRatio": 0.69678,
+      "file": "backdrop.look6.svg",
+      "bytes": 35938,
+      "sha": "5db88eb921947b8c",
+      "stddev": 90.821,
+      "inkRatio": 0.72458,
       "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 73.401,
-          "inkRatio": 0.69678
+          "stddev": 90.821,
+          "inkRatio": 0.72458
         },
         "black": {
-          "stddev": 73.401,
-          "inkRatio": 0.69678
+          "stddev": 90.821,
+          "inkRatio": 0.72458
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
+      "file": "backdrop.look7.svg",
+      "bytes": 28653,
+      "sha": "2be9d215a8f8c879",
+      "stddev": 88.915,
+      "inkRatio": 0.67996,
+      "ground": "white",
+      "grounds": {
+        "white": {
+          "stddev": 88.915,
+          "inkRatio": 0.67996
+        },
+        "black": {
+          "stddev": 88.915,
+          "inkRatio": 0.67996
         }
       },
       "blank": false,
@@ -591,8 +591,8 @@
     },
     {
       "file": "backdrop.svg",
-      "bytes": 11550,
-      "sha": "91c95ff11db696d2",
+      "bytes": 11570,
+      "sha": "2fbdee907d575611",
       "stddev": 90.821,
       "inkRatio": 0.72458,
       "ground": "white",
@@ -3872,6 +3872,106 @@
         "black": {
           "stddev": 16.312,
           "inkRatio": 0.03516
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
+      "file": "timezone.look0.svg",
+      "bytes": 16974,
+      "sha": "55603b8eaeb527e5",
+      "stddev": 27.112,
+      "inkRatio": 0.44977,
+      "ground": "white",
+      "grounds": {
+        "white": {
+          "stddev": 27.112,
+          "inkRatio": 0.44977
+        },
+        "black": {
+          "stddev": 27.112,
+          "inkRatio": 0.44977
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
+      "file": "timezone.look1.svg",
+      "bytes": 140465,
+      "sha": "db01531821a119b0",
+      "stddev": 28.015,
+      "inkRatio": 0.53611,
+      "ground": "white",
+      "grounds": {
+        "white": {
+          "stddev": 28.015,
+          "inkRatio": 0.53611
+        },
+        "black": {
+          "stddev": 28.015,
+          "inkRatio": 0.53611
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
+      "file": "timezone.look2.svg",
+      "bytes": 22436,
+      "sha": "c37fbc9f46e9a8c7",
+      "stddev": 24.699,
+      "inkRatio": 0.66366,
+      "ground": "white",
+      "grounds": {
+        "white": {
+          "stddev": 24.699,
+          "inkRatio": 0.66366
+        },
+        "black": {
+          "stddev": 24.699,
+          "inkRatio": 0.66366
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
+      "file": "timezone.look3.svg",
+      "bytes": 13694,
+      "sha": "5f5f8cc25efac0f6",
+      "stddev": 18.489,
+      "inkRatio": 0.44586,
+      "ground": "white",
+      "grounds": {
+        "white": {
+          "stddev": 18.489,
+          "inkRatio": 0.44586
+        },
+        "black": {
+          "stddev": 18.489,
+          "inkRatio": 0.44586
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
+      "file": "timezone.svg",
+      "bytes": 90999,
+      "sha": "9817790f86b6f343",
+      "stddev": 19.793,
+      "inkRatio": 0.58327,
+      "ground": "white",
+      "grounds": {
+        "white": {
+          "stddev": 19.793,
+          "inkRatio": 0.58327
+        },
+        "black": {
+          "stddev": 19.793,
+          "inkRatio": 0.58327
         }
       },
       "blank": false,

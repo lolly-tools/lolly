@@ -447,9 +447,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     root.setAttribute('data-collapse', collapse);
     const btn = q<HTMLButtonElement>('[data-collapse-btn]');
     if (btn) {
-      btn.setAttribute('aria-label',
-        isCoarsePointer() && hasRichViz() ? 'Visualiser settings'
-          : collapse === 'mini' ? 'Minimize player' : 'Collapse player');
+      btn.setAttribute('aria-label', collapse === 'mini' ? 'Minimize player' : 'Collapse player');
     }
     applyWindowSize();
     root.toggleAttribute('data-resizable', resizable());
@@ -1273,15 +1271,12 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   q<HTMLButtonElement>('[data-play-mini]')?.addEventListener('click', (e) => { e.stopPropagation(); void primaryPlayer().togglePlay(); refresh(); });
   q<HTMLButtonElement>('[data-prev]')?.addEventListener('click', () => { void host.prev?.(); refresh(); });
   q<HTMLButtonElement>('[data-next]')?.addEventListener('click', () => { void host.next?.(); refresh(); });
-  q<HTMLButtonElement>('[data-collapse-btn]')?.addEventListener('click', (e) => {
-    // Touch has no right-click, so the ▾ opens the visualiser settings (theme / preset /
-    // timing) for the music player instead of collapsing - collapse-to-mini is hidden on
-    // phones anyway (audio-dock-singleton), and the menu is otherwise unreachable. plans/147.
-    if (isCoarsePointer() && hasRichViz()) {
-      const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      openVizMenu(r.left, r.bottom + 4);
-      return;
-    }
+  q<HTMLButtonElement>('[data-collapse-btn]')?.addEventListener('click', () => {
+    // The ▾ always steps the window down to the mini pill, on touch as on desktop. Touch
+    // reaches the visualiser settings (theme / preset / timing) through the two-finger tap
+    // on the viz surface instead - and fine pointers via right-click - so the header chevron
+    // is free to mean "put the window away" everywhere, and the mini pill is now shown on
+    // phones too (audio-dock-singleton). plans/147.
     stepDownCollapse();
   });
   q<HTMLButtonElement>('[data-mini-expand]')?.addEventListener('click', () => setCollapse('full'));

@@ -375,6 +375,20 @@ Handlebars.registerHelper('media', (
  * helpers ({{#…}}/{{/…}}), comments ({{!…}}), and partials ({{>…}}) are
  * skipped regardless of position.
  */
+/** SVG presentation paint attributes → the Penpot shape property they set (plans/222). */
+const PAINT_ATTR: Record<string, 'fill' | 'strokeColor'> = {
+  fill: 'fill', stroke: 'strokeColor', 'stop-color': 'fill', 'flood-color': 'fill', 'lighting-color': 'fill',
+};
+/** CSS paint properties → the Penpot property. `color` is a shape's TEXT colour,
+ *  kept distinct from `fill` (a surface/background) so a producer binds the right
+ *  shape; `border`-shorthand is excluded on purpose (its value is width+style+colour,
+ *  so the referenced input may not be the colour). */
+const PAINT_CSS: Record<string, 'fill' | 'strokeColor' | 'textFill'> = {
+  color: 'textFill', background: 'fill', 'background-color': 'fill', fill: 'fill', stroke: 'strokeColor',
+  'border-color': 'strokeColor', 'border-top-color': 'strokeColor', 'border-right-color': 'strokeColor',
+  'border-bottom-color': 'strokeColor', 'border-left-color': 'strokeColor', 'outline-color': 'strokeColor',
+};
+
 export function annotateTemplate(source: string, inputIds: string[]): string {
   if (!inputIds.length) return source;
 
@@ -408,16 +422,53 @@ export function annotateTemplate(source: string, inputIds: string[]): string {
   // attribute text mentions gets baked in as a literal data-canvas-input
   // attribute, inserted just before the tag's closing `>` (or, for a
   // self-closing tag, just before the `/>`).
+  // Which paint properties an element sets FROM an input, for applied-token
+  // bindings (plans/222): "<penpotProp>:<inputId>" pairs, e.g. "fill:bg;textFill:fg".
+  // The runtime later resolves each input id to the token it inherits (getHydrated →
+  // resolvePaintBindings) and rewrites this to `data-lolly-bind`; a literal input
+  // resolves to nothing and is dropped. First occurrence of each property wins.
+  const idInValue = new RegExp(`\\{\\{[^}]*\\b(${idAlt})\\b`);
+  const attrRe = /([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+  const cssDeclRe = /([\w-]+)\s*:\s*([^;]*)/g;
+  function paintMarker(tag: string): string {
+    const pairs: string[] = [];
+    const seen = new Set<string>();
+    const add = (prop: string, id: string): void => { if (!seen.has(prop)) { seen.add(prop); pairs.push(`${prop}:${id}`); } };
+    attrRe.lastIndex = 0;
+    let am = attrRe.exec(tag);
+    while (am) {
+      const name = am[1]!.toLowerCase();
+      const value = am[2] ?? am[3] ?? '';
+      if (name === 'style') {
+        cssDeclRe.lastIndex = 0;
+        let dm = cssDeclRe.exec(value);
+        while (dm) {
+          const prop = PAINT_CSS[dm[1]!.toLowerCase()];
+          const idm = prop ? idInValue.exec(dm[2] ?? '') : null;
+          if (prop && idm) add(prop, idm[1]!);
+          dm = cssDeclRe.exec(value);
+        }
+      } else {
+        const prop = PAINT_ATTR[name];
+        if (prop) { const idm = idInValue.exec(value); if (idm) add(prop, idm[1]!); }
+      }
+      am = attrRe.exec(tag);
+    }
+    return pairs.join(';');
+  }
+
   function annotateTagAttrs(tag: string): string {
     if (tag.startsWith('</') || tag.startsWith('<!')) return tag;
-    if (/\sdata-canvas-input=/.test(tag)) return tag; // author already mapped this element
     const m = tripleAttr.exec(tag) || doubleAttr.exec(tag);
     if (!m) return tag;
-    const id = m[1]!;
+    const canvasAttr = /\sdata-canvas-input=/.test(tag) ? '' : ` data-canvas-input="${m[1]!}"`;
+    const paint = /\sdata-lolly-paint=/.test(tag) ? '' : paintMarker(tag);
+    const paintAttr = paint ? ` data-lolly-paint="${paint}"` : '';
+    if (!canvasAttr && !paintAttr) return tag;
     const selfClose = /\/\s*>$/.exec(tag);
     const insertAt = selfClose ? tag.length - selfClose[0].length : tag.length - 1;
     const before = tag.slice(0, insertAt).replace(/\s+$/, '');
-    return `${before} data-canvas-input="${id}"${selfClose ? ' />' : '>'}`;
+    return `${before}${canvasAttr}${paintAttr}${selfClose ? ' />' : '>'}`;
   }
 
   // Walk the source splitting into content and tag segments. Tag ATTRIBUTE text
@@ -468,6 +519,33 @@ export function annotateTemplate(source: string, inputIds: string[]): string {
 
   result.push(annotateContent(source.slice(contentStart)));
   return result.join('');
+}
+
+/**
+ * Resolve the `data-lolly-paint="<prop>:<inputId>"` markers `annotateTemplate` left
+ * into `data-lolly-bind="<prop>:<tokenPath>"`, using `bindings` (input id → the
+ * dotted token it inherits, from the runtime's resolved model) (plans/222). A
+ * property whose input is a plain literal has no entry and is dropped; a marker
+ * that resolves to nothing is removed entirely. The `.penpot` producers read the
+ * resulting `data-lolly-bind`, so an input-driven tool's inherited colour survives
+ * the flatten-to-hex that erases it everywhere else. A no-op (single `indexOf`)
+ * when the render carries no markers, which is every tool with no token-linked
+ * colour input.
+ */
+export function resolvePaintBindings(html: string, bindings: Record<string, string>): string {
+  if (html.indexOf('data-lolly-paint') < 0) return html;
+  return html.replace(/\sdata-lolly-paint="([^"]*)"/g, (_all, spec: string) => {
+    const out: string[] = [];
+    for (const pair of spec.split(';')) {
+      const i = pair.indexOf(':');
+      if (i < 0) continue;
+      const prop = pair.slice(0, i).trim();
+      const id = pair.slice(i + 1).trim();
+      const path = bindings[id];
+      if (prop && path) out.push(`${prop}:${path}`);
+    }
+    return out.length ? ` data-lolly-bind="${out.join(';')}"` : '';
+  });
 }
 
 // Bounded LRU of compiled templates. The key is the (multi-KB) template source,

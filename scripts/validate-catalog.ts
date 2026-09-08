@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { parseTemplateMotion } from '../shells/web/src/lib/template-motion.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Catalog validator.
@@ -273,6 +274,7 @@ for (const dir of toolDirs) {
       if (!t.values || typeof t.values !== 'object' || Array.isArray(t.values)) {
         errors.push(`[${dir}] template ${file}: "values" must be a plain object (the input-id → value seed)`);
       }
+      if (t.motion !== undefined && !parseTemplateMotion(t.motion)) errors.push(`[${dir}] template ${file}: invalid motion recipe metadata`);
       const base = file.replace(/\.json$/, '');
       if (t.id !== base) errors.push(`[${dir}] template ${file}: id "${t.id}" must match the file basename "${base}" (${rel})`);
       if (seenTemplateIds.has(t.id)) errors.push(`[${dir}] template ${file}: duplicate template id "${t.id}"`);
@@ -815,13 +817,13 @@ const RASTER_PREVIEWS: Record<string, string> = {
   // what the capture pipeline chose per file.
   'backdrop.svg': 'Default metaballs - GPU per-pixel field, one embedded <image>.',
   'backdrop.look0.svg': 'Lava lamp (metaballs) - GPU per-pixel field, one embedded <image>.',
-  'backdrop.look1.webp': 'Cathedral rays (god-rays) - GPU per-pixel field.',
-  'backdrop.look2.webp': 'Neural drift (neuro-noise) - GPU per-pixel field.',
+  'backdrop.look1.svg': 'Cathedral rays (god-rays) - GPU per-pixel field, one embedded <image>.',
+  'backdrop.look2.svg': 'Neural drift (neuro-noise) - GPU per-pixel field, one embedded <image>.',
   'backdrop.look3.svg': 'Smoke halo (smoke-ring) - GPU per-pixel field, one embedded <image>.',
-  'backdrop.look4.webp': 'Velvet warp (warp) - GPU per-pixel field.',
-  'backdrop.look5.svg': 'Ember orbit (dot-orbit) - GPU per-pixel field, one embedded <image>.',
-  'backdrop.look6.svg': 'Stained cells (voronoi) - GPU per-pixel field, one embedded <image>.',
-  'backdrop.look7.svg': 'Light panels (color-panels) - GPU per-pixel field, one embedded <image>.',
+  'backdrop.look4.svg': 'Velvet warp (warp) - GPU per-pixel field, one embedded <image>.',
+  'backdrop.look5.svg': 'Liquid silk (silk-flow) - animated GLSL filaments, one embedded <image>.',
+  'backdrop.look6.svg': 'Prismatic bloom (prism-bloom) - animated GLSL facets, one embedded <image>.',
+  'backdrop.look7.svg': 'Mercury contours (liquid-contours) - animated GLSL relief, one embedded <image>.',
   'frame.look2.svg':
     'Laptop - synth headline swarm inside: the framed screen content is Synth\'s WebGL2 dye field (the synth.look1 class), so the capture is the frame geometry around one embedded <image> of GPU pixels.',
   'gradient.look2.svg':

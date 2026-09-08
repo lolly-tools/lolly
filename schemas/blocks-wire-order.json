@@ -414,6 +414,16 @@
       "bindStart",
       "bindEnd",
       "route"
+    ],
+    "timezone:locations": [
+      "label",
+      "place",
+      "timezone",
+      "annotation",
+      "color",
+      "spread",
+      "longitude",
+      "latitude"
     ]
   }
 }

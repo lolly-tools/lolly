@@ -11,7 +11,7 @@
  * we keep behaviour consistent across web/Tauri/CLI.
  */
 
-import { isTokenValue } from './tokens.ts';
+import { isTokenValue, aliasPath } from './tokens.ts';
 import type { TokenValue } from './tokens.ts';
 import type { AssetRef, InputFile } from './bridge/host-v1.ts';
 
@@ -745,6 +745,25 @@ export function flattenValue(v: InputValue): InputValue {
   // The cached value is a resolved colour string; anything else (or a missing
   // cache) flattens to '' - the same fallback the `?? ''` gave.
   return typeof v.value === 'string' ? v.value : '';
+}
+
+/**
+ * Input id → the dotted token path it inherits, for every input still carrying a
+ * `{ref, value}` after `resolveTokenRefs` (a token-linked colour) (plans/222). The
+ * source that `flattenValue`/`modelToValues` erase on the way to the template - the
+ * runtime feeds this to `resolvePaintBindings` so an inherited colour survives into
+ * the `.penpot` export as an applied-token binding. Empty when no input is
+ * token-linked, which is most renders.
+ */
+export function tokenBindingsOf(model: InputModelItem[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const input of model) {
+    const v = input.value;
+    if (!isTokenValue(v)) continue;
+    const path = aliasPath(v.ref) ?? v.ref.replace(/^\{|\}$/g, '');
+    if (path) out[input.id] = path;
+  }
+  return out;
 }
 
 /**

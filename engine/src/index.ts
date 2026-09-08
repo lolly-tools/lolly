@@ -43,7 +43,7 @@ export type {
   HookWorkerPort, HookWorkerCoreOpts,
 } from './hook-worker-core.ts';
 export type { HookExecutor, Hooks } from './runtime.ts';
-export { hydrate, annotateTemplate } from './template.ts';
+export { hydrate, annotateTemplate, resolvePaintBindings } from './template.ts';
 export { sniffAnimatedRaster, sniffVideoContainer, sniffLayeredRaster, sniffContainer } from './media-sniff.ts';
 export type { AnimatedRasterKind, VideoContainer, LayeredRasterKind, SniffedContainer } from './media-sniff.ts';
 // Layered bitmap import/export (1.102): PSD/PSB + XCF readers, PSD writer.
@@ -756,7 +756,7 @@ export type { TokensExtraction, PenpotUsage, PenpotUsageColor, PenpotUsageGradie
 export {
   buildPenpotEntries, boxesToPenpotDoc, svgToPenpotDoc, imageToPenpotDoc, penpotTokensJson,
   parsePenpotImportStream, penpotWorkspaceUrl, imageDimensions, decodeDataUrl, decodeBase64,
-  parsePenpotColor, gradSpecToPenpot, designTextRuns, penpotUuid, seededPenpotUuid,
+  parsePenpotColor, gradSpecToPenpot, designTextRuns, penpotUuid, seededPenpotUuid, markToolComponents,
   PENPOT_MIME, PENPOT_ROOT_ID, PENPOT_FILE_VERSION, PENPOT_FEATURES, PENPOT_MIGRATIONS, PENPOT_IMAGE_MTYPES,
 } from './penpot-file.ts';
 export { appSurfaceBoxes, appSurfaceExportReport, appSurfaceToPenpotDoc } from './app-surface.ts';
@@ -769,8 +769,14 @@ export type {
   PenpotIrText, PenpotIrImage, PenpotIrFill, PenpotIrGradient, PenpotIrGradientStop, PenpotIrStroke, PenpotIrShadow,
   PenpotIrTextRun, PenpotIrParagraph, PenpotIrTypography, PenpotPaletteColor, PenpotMedia, PenpotBuild,
   PenpotBuildOptions, BoxesToPenpotOptions, SvgToPenpotOptions, SvgToPenpotResult, PenpotPendingImage,
-  PenpotImportResult, PenpotColor, PenpotMatrix,
+  PenpotImportResult, PenpotColor, PenpotMatrix, PenpotComponentSpec, PenpotThemeSelection,
 } from './penpot-file.ts';
+// Applied-token bindings + component validation for the .penpot writer (plans/222).
+export {
+  PENPOT_BINDABLE, PENPOT_BINDABLE_PROPS, buildTokenTypeIndex, sanitizeAppliedTokens,
+  isSafeTokenPath, penpotTokenClosure,
+} from './penpot-bindings.ts';
+export type { PenpotBindableProp, TokenTypeIndex, PenpotTokenClosure } from './penpot-bindings.ts';
 export {
   parseThemedAssetId, buildThemedAssetId, isThemableIconSvg, isValidThemeId,
   applyIconTheme, restyleIconTheme, parseIconThemesDoc,

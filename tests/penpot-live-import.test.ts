@@ -36,7 +36,9 @@ const TOKENS = {
 const BOXES = [
   { id: 'f1', kind: 'frame', name: 'Cover', x: 0, y: 0, w: 800, h: 450, bg: '#123456', order: 0, clipChildren: true },
   { id: 'f2', kind: 'frame', name: 'Second', x: 900, y: 0, w: 400, h: 400, bg: 'var(--brand-surface, #ffffff)', order: 1 },
-  { id: 'b1', kind: 'box', frame: 'f1', x: 40, y: 40, w: 200, h: 120, shape: 'rounded', radius: 24, bg: '#30ba78', stroke: '#0c322c', strokeW: 4, strokeDash: 'dashed', strokeDashLen: 12, strokeGapLen: 6, shadow: 'box', shadowColor: '#00000055', shadowX: 4, shadowY: 8, shadowBlur: 12 },
+  // `Primary card` inherits its fill from a brand token (plans/222) - the source ref
+  // rides the box, the literal is only the headless fallback, and the export binds it.
+  { id: 'b1', kind: 'box', frame: 'f1', name: 'Primary card', x: 40, y: 40, w: 200, h: 120, shape: 'rounded', radius: 24, bg: 'var(--brand-primary, #30ba78)', stroke: '#0c322c', strokeW: 4, strokeDash: 'dashed', strokeDashLen: 12, strokeGapLen: 6, shadow: 'box', shadowColor: '#00000055', shadowX: 4, shadowY: 8, shadowBlur: 12 },
   { id: 'b2', kind: 'box', frame: 'f1', x: 300, y: 40, w: 160, h: 160, shape: 'ellipse', grad: 'lin.srgb_90_ff0000-0_0000ff-100', rot: 30, opacity: 80, blend: 'multiply', blur: 2 },
   { id: 't1', kind: 'text', frame: 'f1', x: 40, y: 220, w: 500, h: 120, text: 'Hello **Penpot**\n- {#ff8800 w700|orange} item', fg: '#ffffff', fontSize: 40, font: 'sans', weight: 600, align: 'left', valign: 'top', lineHeight: 1.2 },
   { id: 'i1', kind: 'image', frame: 'f1', x: 600, y: 40, w: 150, h: 150, image: { type: 'raster', url: 'dot.png' }, fit: 'cover', shape: 'rounded', radius: 12 },
@@ -59,9 +61,15 @@ test('live: Penpot imports a Design-boxes archive with its tokens, colours and t
     name: 'Lolly live-import test', canvas: { w: 1920, h: 1080 }, fonts: { sans: 'SUSE', mono: 'SUSE Mono' },
     mediaFor: (b) => (b.id === 'i1' ? { id: penpotUuid(), name: 'dot', mtype: 'image/png', width: 2, height: 2, bytes: PNG_1PX } : null),
     tokens: TOKENS,
+    // The shell's brand-var map (plans/222); a bare {alias} the engine binds itself.
+    bindToken: (css) => (/^var\(\s*--brand-primary/.test(css) ? 'color.semantic.primary' : null),
     palette: [{ name: 'Jungle', path: 'Brand', color: '#30ba78' }, { name: 'Pine', path: 'Brand', color: '#0c322c' }],
     typographies: [{ name: 'Brand', path: 'Brand', fontFamily: 'SUSE', fontWeight: 400, fontSize: 16, lineHeight: 1.2 }],
   });
+  // Make the first board a reusable main component, so the import must accept a
+  // component record + its main-instance references (plans/222).
+  const cover = doc.pages[0]!.shapes.find((s) => s.type === 'board');
+  if (cover && cover.type === 'board') cover.component = { name: 'Cover', path: 'Lolly / Tools / Live' };
   const build = buildPenpotEntries(doc);
   assert.deepEqual(build.warnings, []);
   const files: Record<string, Uint8Array> = {};
@@ -82,7 +90,7 @@ test('live: Penpot imports a Design-boxes archive with its tokens, colours and t
   const fileId = parsed.fileIds[0]!;
 
   try {
-    const file = await rpc('get-file', { id: fileId }) as { data?: { pagesIndex?: Record<string, { objects?: Record<string, { type: string; name: string }> }>; colors?: Record<string, unknown>; typographies?: Record<string, unknown>; tokensLib?: unknown } };
+    const file = await rpc('get-file', { id: fileId }) as { data?: { pagesIndex?: Record<string, { objects?: Record<string, { type: string; name: string; appliedTokens?: Record<string, string> }> }>; colors?: Record<string, unknown>; typographies?: Record<string, unknown>; tokensLib?: unknown; components?: Record<string, unknown> } };
     const data = file.data ?? {};
     const pages = Object.values(data.pagesIndex ?? {});
     assert.equal(pages.length, 1);
@@ -94,6 +102,15 @@ test('live: Penpot imports a Design-boxes archive with its tokens, colours and t
     assert.equal(Object.keys(data.colors ?? {}).length, 2);
     assert.equal(Object.keys(data.typographies ?? {}).length, 1);
     assert.ok(data.tokensLib, 'the file carries a tokens lib');
+
+    // plans/222: Penpot ACCEPTED the applied-token binding and the component - the
+    // real proof that the archive's editable-theme structures are well-formed. (That
+    // editing the token then re-paints the shape, and the component instances, is a
+    // MANUAL check in the Penpot UI - an RPC count cannot prove propagation.)
+    const card = objs.find((o) => o.name === 'Primary card');
+    assert.ok(card, 'the bound box arrived');
+    assert.equal(card!.appliedTokens?.fill, 'color.semantic.primary', 'the fill binding survived import');
+    assert.equal(Object.keys(data.components ?? {}).length, 1, 'the main component arrived in the library');
   } finally {
     await rpc('delete-file', { id: fileId });
   }

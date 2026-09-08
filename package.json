@@ -2,7 +2,7 @@
   "name": "lolly",
   "version": "0.1.0",
   "private": true,
-  "description": "Constraint-first, template-driven asset generation. Brand packs are swappable profiles (SUSE, lolly-start, …).",
+  "description": "Constraint-first, template-driven asset generation. Brand packs are swappable profiles (SUSE, lolly-start, \u2026).",
   "license": "MPL-2.0",
   "type": "module",
   "engines": {
@@ -52,7 +52,7 @@
     "check:skip-identities": "node scripts/check-skip-identities.ts",
     "test:fuzz:regression": "node scripts/run-test-suite.ts fuzz:regression",
     "test:fuzz:soak": "node tests/fuzz/run.ts",
-    "typecheck": "tsc -p packages/core && tsc -p packages/node-shell && tsc -p engine && tsc -p shells/web && tsc -p shells/web/tsconfig.tests.json && tsc -p shells/cli && tsc -p shells/tui && tsc -p shells/tauri-shared && tsc -p tests && tsc -p scripts && tsc -p services/mcp && npm run typecheck:tauri",
+    "typecheck": "tsc -p packages/core && tsc -p packages/node-shell && tsc -p engine && tsc -p shells/web && tsc -p shells/web/tsconfig.tests.json && tsc -p shells/cli && tsc -p shells/tui && tsc -p shells/tauri-shared && tsc -p tests && tsc -p scripts && tsc -p services/mcp && npm run typecheck:timezone && npm run typecheck:tauri",
     "typecheck:tauri": "node scripts/typecheck-tauri.ts",
     "lint": "biome lint",
     "lint:fix": "biome lint --write",
@@ -64,6 +64,7 @@
     "pack:cli": "node scripts/pack-cli.ts",
     "build:cli-sidecar": "node scripts/build-cli-sidecar.ts",
     "gen:chrome-tokens": "node scripts/gen-chrome-tokens.ts",
+    "gen:agent-skill": "node scripts/gen-agent-skill.ts",
     "build:catalog": "node scripts/build-catalog-index.ts && node scripts/checksum-assets.ts && node scripts/build-preview-bundle.ts",
     "build:pack": "node scripts/build-instance-pack.ts",
     "build:catalog:all": "node scripts/build-catalog-all.ts",
@@ -145,17 +146,22 @@
     "dev:android": "cd shells/tauri-mobile && npm run dev:android",
     "dev:ios": "cd shells/tauri-mobile && npm run dev:ios",
     "build:android": "cd shells/tauri-mobile && npm run build:android",
-    "build:ios": "cd shells/tauri-mobile && npm run build:ios"
+    "build:ios": "cd shells/tauri-mobile && npm run build:ios",
+    "build:timezone": "node scripts/build-timezone.ts",
+    "typecheck:timezone": "tsc -p community/timezone"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
     "playwright-core": "^1.62.1"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.123.0",
-    "@biomejs/biome": "^2.5.12",
+    "@anthropic-ai/sdk": "^0.122.0",
+    "@biomejs/biome": "^2.5.11",
     "@observablehq/plot": "0.6.17",
-    "@types/node": "^26.4.1",
+    "@types/d3-geo": "^3.1.0",
+    "@types/node": "^26.4.0",
+    "@types/three": "^0.185.0",
+    "d3-geo": "^3.1.1",
     "esbuild": "^0.28.2",
     "onnxruntime-node": "^1.29.0",
     "playwright": "^1.62.1",

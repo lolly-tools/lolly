@@ -40,7 +40,7 @@ export const HOST_V1_METHODS: Record<HostApi, ApiMethods> = {
   clipboard: { required: ['writeText', 'writeImage'], optional: [] },
   export: { required: ['render', 'download', 'file', 'imprint'], optional: ['pack', 'share', 'canShare'] },
   net: { required: ['fetch'], optional: [] },
-  tokens: { required: ['get', 'colors', 'resolve', 'themes'], optional: ['list', 'active'] },
+  tokens: { required: ['get', 'colors', 'resolve', 'themes'], optional: ['list', 'active', 'snapshot'] },
   text: { required: ['toPath', 'preload'], optional: ['axisDefaults', 'fontUrl'] },
   pdf: { required: ['analyze', 'strip', 'compress'], optional: ['redact', 'pages', 'organize', 'stamp', 'lock'] },
   pptx: { required: ['inspect', 'rebrand'], optional: [] },

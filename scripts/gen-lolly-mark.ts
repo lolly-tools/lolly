@@ -1,67 +1,59 @@
 // SPDX-License-Identifier: MPL-2.0
-/**
- * Generate shells/web/src/lib/lolly-mark.ts from the source-of-truth brand logo
- * at the repo root (icon.svg), so the app's inline Lolly mark is always THE
- * current logo rather than a hand-copied stale one.
- *
- * The raw icon.svg ships a C2PA manifest and paints its coloured spiral as a flat
- * `#008657` with mix-blend-mode:multiply over grey candy gradients, with its three
- * nested layers already grouped as .lolly-outer / .lolly-mid / .lolly-inner. This
- * script strips the manifest and rewires it for UI use, exactly the treatment the
- * export shutter's mark gets (lib/shutter-mark.ts):
- *   - drop <metadata> (the C2PA blob) and the c2pa namespace + wrapper class;
- *   - the spiral fill `#008657` → `var(--lolly-swirl, #008657)` so a surface can
- *     brand-tint it (falls back to the logo green);
- *   - the three layers → .lolly-mark__spin-{1,2,3} so a surface can spin them
- *     (transform-box: fill-box) without colliding with anything.
- *
- * Run:  node scripts/gen-lolly-mark.ts      (re-run whenever icon.svg changes)
+/** Generate the inline UI mark from the authored primary/reverse artwork.
+ * Keep gradients, highlights and blend modes; strip editor metadata and animation.
+ * Run: node scripts/gen-lolly-mark.ts [--check]
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { JSDOM } from 'jsdom';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
-const SRC = `${ROOT}icon.svg`;
 const OUT = `${ROOT}shells/web/src/lib/lolly-mark.ts`;
+const NS = 'http://www.w3.org/2000/svg';
+const SPIN: Record<string, string> = {
+  'lolly-outer': 'lolly-mark__spin-1',
+  'lolly-mid': 'lolly-mark__spin-2',
+  'lolly-inner': 'lolly-mark__spin-3',
+};
 
-let svg = readFileSync(SRC, 'utf-8');
-
-// 1. Drop the C2PA manifest block AND the inline <style> - icon.svg animates its
-//    own layers always-on (animation: … infinite), but the app drives a hover-only
-//    spin from its own stylesheet (styles/parts/ask.css). Strip both.
-svg = svg.replace(/<metadata>[\s\S]*?<\/metadata>/g, '');
-svg = svg.replace(/<style>[\s\S]*?<\/style>/g, '');
-// 2. Clean the root <svg>: no c2pa namespace, no wrapper class (viewBox + xmlns stay).
-svg = svg.replace(/\s+xmlns:c2pa="[^"]*"/g, '').replace(/\s+class="lolly-icon"/g, '');
-// 3. Brand-tint the spiral (three layers share the one flat green).
-svg = svg.replace(/fill="#008657"/g, 'fill="var(--lolly-swirl, #008657)"');
-// 4. Rename the spin layers to neutral, collision-free names.
-svg = svg
-  .replace(/class="lolly-outer"/g, 'class="lolly-mark__spin-1"')
-  .replace(/class="lolly-mid"/g, 'class="lolly-mark__spin-2"')
-  .replace(/class="lolly-inner"/g, 'class="lolly-mark__spin-3"');
-// Tidy: collapse the inter-tag whitespace the defs block carries, trim.
-svg = svg.replace(/>\s+</g, '><').trim();
-
-if (svg.includes('c2pa') || svg.includes('#008657"') || /lolly-(outer|mid|inner)/.test(svg)) {
-  throw new Error('gen-lolly-mark: a transform did not apply - check icon.svg structure');
+function variant(name: 'primary' | 'reverse'): string {
+  const source = `${ROOT}icon-${name}.svg`;
+  const root = new JSDOM(readFileSync(source, 'utf8'), { contentType: 'image/svg+xml' }).window.document.documentElement;
+  if (root.getAttribute('viewBox') !== '0 0 285.75 285.75') throw new Error(`${source}: unexpected viewBox`);
+  // Parse XML instead of matching <style> pairs: a self-closing style previously
+  // swallowed the following artwork when the generated string was parsed as HTML.
+  for (const el of [...root.querySelectorAll('*')]) {
+    if (el.namespaceURI !== NS || ['metadata', 'style'].includes(el.localName)) el.remove();
+  }
+  const ids = new Map([...root.querySelectorAll('[id]')].map(el => [el.id, `lolly-${name}-${el.id}`]));
+  for (const el of root.querySelectorAll('*')) {
+    for (const attr of [...el.attributes]) {
+      if (attr.namespaceURI || attr.name === 'version') { el.removeAttributeNode(attr); continue; }
+      let value = attr.value;
+      if (attr.name === 'id') value = ids.get(value)!;
+      if (attr.name === 'href' && value.startsWith('#')) value = `#${ids.get(value.slice(1)) ?? value.slice(1)}`;
+      if (attr.name === 'class') value = SPIN[value] ?? value;
+      if (attr.name === 'fill' && value === '#008657') value = 'var(--lolly-swirl, #008657)';
+      value = value.replace(/url\(#([^)]+)\)/g, (_, id: string) => `url(#${ids.get(id) ?? id})`);
+      el.setAttribute(attr.name, value);
+    }
+  }
+  const markup = [...root.children].map(el => el.outerHTML).join('').replace(/>\s+</g, '><');
+  if (root.querySelectorAll('[class^="lolly-mark__spin-"]').length !== 3) throw new Error(`${source}: missing spin layers`);
+  return `<g class="lolly-mark__${name}">${markup}</g>`;
 }
-if (svg.includes('`') || svg.includes('${')) {
-  throw new Error('gen-lolly-mark: icon.svg contains a backtick or ${ - would break the template literal');
-}
 
+const svg = `<svg xmlns="${NS}" viewBox="0 0 285.75 285.75" class="lolly-mark" aria-hidden="true">${variant('primary')}${variant('reverse')}</svg>`;
 const out = `// SPDX-License-Identifier: MPL-2.0
-// GENERATED by scripts/gen-lolly-mark.ts from the root icon.svg - do not edit by hand.
-/**
- * The Lolly swirl mark for inline UI use - THE current brand logo (root icon.svg),
- * cleaned for the app: the C2PA manifest is stripped, its coloured spiral inherits
- * \`--lolly-swirl\` (falls back to the logo green), and its three layers are named
- * \`lolly-mark__spin-{1,2,3}\` so a surface can spin them (transform-box: fill-box)
- * about their own centres. Set \`--lolly-swirl\` on any ancestor to brand-tint it.
- * Re-run scripts/gen-lolly-mark.ts whenever icon.svg changes.
- */
-export const LOLLY_MARK_SVG = ${'`'}${svg}${'`'};
+// GENERATED by scripts/gen-lolly-mark.ts from icon-primary.svg and icon-reverse.svg.
+/** Full-colour UI artwork. Theme CSS selects primary/reverse shading; --lolly-swirl
+ * tints the coloured spiral. The three spin classes support interaction-only motion. */
+export const LOLLY_MARK_SVG = ${JSON.stringify(svg)};
 `;
-
-writeFileSync(OUT, out, 'utf-8');
-console.log(`gen-lolly-mark: wrote ${OUT} (${svg.length} bytes of SVG)`);
+if (process.argv.includes('--check')) {
+  if (readFileSync(OUT, 'utf8') !== out) throw new Error('Lolly UI mark is stale; run node scripts/gen-lolly-mark.ts');
+  console.log('Lolly UI mark matches the primary/reverse artwork.');
+} else {
+  writeFileSync(OUT, out, 'utf8');
+  console.log(`Generated Lolly primary/reverse mark (${svg.length} bytes).`);
+}

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-06T11:46:15.825Z",
+  "generatedAt": "2026-09-07T15:00:33.338Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3748,7 +3748,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
-      "version": "1.25.0",
+      "version": "1.26.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -3948,6 +3948,66 @@
           "description": "A five-beat feature tour: a title, three timed highlights, and a sign-off."
         },
         {
+          "id": "launch-cascade",
+          "name": "Launch · Feature stack",
+          "category": "Launch",
+          "description": "An editorial title opens the scene; three feature cards arrive as complete, coordinated units.",
+          "motion": {
+            "collection": "Launch",
+            "recipe": "feature-cascade",
+            "durationMs": 6000,
+            "posterMs": 3300,
+            "beats": [
+              "Title announces the launch",
+              "First feature arrives",
+              "Cards cascade as units",
+              "All three stay readable"
+            ]
+          },
+          "presets": [
+            {
+              "id": "calm",
+              "name": "Calm",
+              "description": "A longer settle and reading hold."
+            },
+            {
+              "id": "brisk",
+              "name": "Brisk",
+              "description": "A crisp four-second delivery."
+            }
+          ]
+        },
+        {
+          "id": "launch-editorial",
+          "name": "Launch · Editorial",
+          "category": "Launch",
+          "description": "Oversized type rises in sequence; a geometric mark unfolds beside it. A quiet, confident introduction.",
+          "motion": {
+            "collection": "Launch",
+            "recipe": "editorial-reveal",
+            "durationMs": 6000,
+            "posterMs": 3300,
+            "beats": [
+              "Rule establishes the stage",
+              "Headline lifts and settles",
+              "Mark unfolds",
+              "Message holds"
+            ]
+          },
+          "presets": [
+            {
+              "id": "calm",
+              "name": "Calm",
+              "description": "A longer settle and reading hold."
+            },
+            {
+              "id": "brisk",
+              "name": "Brisk",
+              "description": "A crisp four-second delivery."
+            }
+          ]
+        },
+        {
           "id": "launch-kit",
           "name": "Launch kit",
           "category": "Marketing",
@@ -3962,6 +4022,66 @@
               "id": "light",
               "name": "Light",
               "description": "Plain ground, a hairline instead of the colour panel."
+            }
+          ]
+        },
+        {
+          "id": "launch-loop",
+          "name": "Launch · Assemble loop",
+          "category": "Launch",
+          "description": "A repeating brand composition: staggered type and ribbon shapes assemble, hold, then unwind cleanly.",
+          "motion": {
+            "collection": "Launch",
+            "recipe": "assemble-loop",
+            "durationMs": 6000,
+            "posterMs": 3300,
+            "beats": [
+              "Assemble in order",
+              "Settle at the authored layout",
+              "Hold the message",
+              "Unwind into the same first frame"
+            ]
+          },
+          "presets": [
+            {
+              "id": "calm",
+              "name": "Calm",
+              "description": "A longer settle and reading hold."
+            },
+            {
+              "id": "brisk",
+              "name": "Brisk",
+              "description": "A crisp four-second delivery."
+            }
+          ]
+        },
+        {
+          "id": "launch-snap",
+          "name": "Launch · Type snap",
+          "category": "Launch",
+          "description": "Three bold type beats snap into place with a small overshoot, followed by a crisp call to action.",
+          "motion": {
+            "collection": "Launch",
+            "recipe": "type-snap",
+            "durationMs": 6000,
+            "posterMs": 3300,
+            "beats": [
+              "Small anticipation",
+              "Three decisive type beats",
+              "Accents answer the type",
+              "CTA lands and holds"
+            ]
+          },
+          "presets": [
+            {
+              "id": "calm",
+              "name": "Calm",
+              "description": "A longer settle and reading hold."
+            },
+            {
+              "id": "brisk",
+              "name": "Brisk",
+              "description": "A crisp four-second delivery."
             }
           ]
         },
@@ -10271,8 +10391,8 @@
     {
       "id": "backdrop",
       "name": "Backdrop",
-      "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds.",
-      "version": "1.0.2",
+      "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds.",
+      "version": "1.1.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -10349,30 +10469,32 @@
           }
         },
         {
-          "label": "Ember orbit",
+          "label": "Liquid silk",
           "values": {
-            "effect": "dot-orbit",
-            "count": 5,
-            "intensity": 50,
-            "density": 50
-          }
-        },
-        {
-          "label": "Stained cells",
-          "values": {
-            "effect": "voronoi",
+            "effect": "silk-flow",
             "count": 3,
-            "intensity": 50,
-            "density": 40
+            "intensity": 60,
+            "density": 45,
+            "speed": 70
           }
         },
         {
-          "label": "Light panels",
+          "label": "Prismatic bloom",
           "values": {
-            "effect": "color-panels",
-            "count": 6,
-            "intensity": 50,
-            "density": 45,
+            "effect": "prism-bloom",
+            "count": 4,
+            "intensity": 60,
+            "density": 55,
+            "speed": 65
+          }
+        },
+        {
+          "label": "Mercury contours",
+          "values": {
+            "effect": "liquid-contours",
+            "count": 3,
+            "intensity": 65,
+            "density": 40,
             "speed": 70
           }
         }
@@ -10380,107 +10502,107 @@
       "i18n": {
         "ar": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "bg": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "bn": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "cs": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "de": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "es": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "fr": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "hi": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "id": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "it": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "ja": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "ko": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "ms": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "nl": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "no": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "pl": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "pt": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "ro": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "sv": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "tl": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "tr": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "uk": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "ur": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "vi": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "zh-hant": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         },
         "zh": {
           "name": "Backdrop",
-          "description": "Living backdrops from your design system's colours: fifteen GPU effects - metaballs, god rays, neuro noise, warped fields, orbiting dots and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
+          "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds."
         }
       }
     },
@@ -11692,7 +11814,7 @@
       "id": "pages",
       "name": "Pages",
       "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -11828,7 +11950,7 @@
       "id": "clean",
       "name": "Clean",
       "description": "Clean a voice recording, trim edge silence and set its loudness on your device.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -11972,7 +12094,7 @@
       "id": "sign",
       "name": "Sign",
       "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -12107,7 +12229,7 @@
       "id": "trim",
       "name": "Trim",
       "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -13175,6 +13297,329 @@
           "description": "以列显示套餐、以行显示功能，用勾号和叉号标示，并突出显示一个推荐套餐。"
         }
       }
+    },
+    {
+      "id": "timezone",
+      "name": "Timezone",
+      "description": "Turn places and timezones into brand-led artwork. Rotate a vector atlas or a detailed WebGL globe, unfold projections, label your people and places, then export artwork, a camera tour or structured schedules.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "event",
+      "tags": [
+        "timezone",
+        "globe",
+        "world",
+        "map",
+        "webinar",
+        "event",
+        "datacentre",
+        "clock",
+        "tour",
+        "video",
+        "brand"
+      ],
+      "formats": [
+        "svg",
+        "png",
+        "pdf",
+        "webp",
+        "jpeg",
+        "webm",
+        "mp4",
+        "gif",
+        "json",
+        "csv",
+        "md",
+        "ics"
+      ],
+      "width": 1440,
+      "height": 1080,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><ellipse cx=\"12\" cy=\"12\" rx=\"4\" ry=\"9\"/><path d=\"M3 12h18M5 6.5h14M5 17.5h14\"/><circle cx=\"17.5\" cy=\"8\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/></svg>",
+      "preview": "/catalog/previews/timezone.svg",
+      "examples": [
+        {
+          "label": "Global webinar",
+          "values": {
+            "heading": "Ideas without borders.",
+            "eyebrow": "THE GLOBAL WEBINAR",
+            "annotation": "A conversation that travels with you.",
+            "footer": "Save your place →",
+            "timeMode": "now",
+            "eventTime": "",
+            "referenceZone": "Europe/London",
+            "ambiguity": "earlier",
+            "eventMinutes": 60,
+            "clockStyle": "24",
+            "locations": [
+              {
+                "label": "London",
+                "place": "Europe/London",
+                "annotation": "EMEA · Studio",
+                "color": "",
+                "spread": true
+              },
+              {
+                "label": "New York",
+                "place": "America/New_York",
+                "annotation": "Americas · Live",
+                "color": "",
+                "spread": true
+              },
+              {
+                "label": "Singapore",
+                "place": "Asia/Singapore",
+                "annotation": "APAC · Connect",
+                "color": "",
+                "spread": true
+              }
+            ],
+            "renderer": "webgl",
+            "projection": "globe",
+            "unfold": 1,
+            "view": "15,22,0,1",
+            "fov": 40,
+            "tilt": 0,
+            "showGrid": true,
+            "showBorders": true,
+            "showNight": true,
+            "showLabels": true,
+            "showConnections": true,
+            "regionOpacity": 0.45,
+            "theme": "midnight",
+            "accent": "{color.semantic.primary}",
+            "background": "",
+            "ink": "",
+            "titleSize": 68,
+            "titleWeight": 500,
+            "labelSize": 15,
+            "mapScale": 1,
+            "motion": "still",
+            "duration": 12,
+            "tourHold": 0.35,
+            "composition": "artwork",
+            "mapFit": "width"
+          }
+        },
+        {
+          "label": "Infrastructure atlas",
+          "values": {
+            "heading": "Always connected.",
+            "eyebrow": "GLOBAL INFRASTRUCTURE",
+            "annotation": "Follow the sun. Know every region.",
+            "footer": "",
+            "timeMode": "now",
+            "eventTime": "",
+            "referenceZone": "",
+            "ambiguity": "earlier",
+            "eventMinutes": 60,
+            "clockStyle": "24",
+            "locations": [
+              {
+                "label": "London · Primary",
+                "place": "Europe/London",
+                "annotation": "EMEA infrastructure",
+                "spread": true
+              },
+              {
+                "label": "Virginia · East",
+                "place": "America/New_York",
+                "annotation": "Americas infrastructure",
+                "spread": true
+              },
+              {
+                "label": "Singapore · Edge",
+                "place": "Asia/Singapore",
+                "annotation": "APAC infrastructure",
+                "spread": true
+              }
+            ],
+            "renderer": "vector",
+            "projection": "equalEarth",
+            "unfold": 1,
+            "view": "15,22,0,1",
+            "fov": 40,
+            "tilt": 0,
+            "showGrid": true,
+            "showBorders": true,
+            "showNight": false,
+            "showLabels": true,
+            "showConnections": true,
+            "regionOpacity": 0.45,
+            "theme": "paper",
+            "accent": "{color.semantic.primary}",
+            "background": "",
+            "ink": "",
+            "titleSize": 68,
+            "titleWeight": 500,
+            "labelSize": 15,
+            "mapScale": 1,
+            "motion": "still",
+            "duration": 12,
+            "tourHold": 0.35,
+            "composition": "artwork",
+            "mapFit": "width"
+          }
+        },
+        {
+          "label": "Around the world",
+          "values": {
+            "heading": "See you around.",
+            "eyebrow": "",
+            "annotation": "",
+            "footer": "",
+            "timeMode": "now",
+            "eventTime": "",
+            "referenceZone": "",
+            "ambiguity": "earlier",
+            "eventMinutes": 60,
+            "clockStyle": "24",
+            "locations": [
+              {
+                "label": "London",
+                "place": "Europe/London",
+                "annotation": "EMEA · Studio",
+                "color": "",
+                "spread": true
+              },
+              {
+                "label": "New York",
+                "place": "America/New_York",
+                "annotation": "Americas · Live",
+                "color": "",
+                "spread": true
+              },
+              {
+                "label": "Singapore",
+                "place": "Asia/Singapore",
+                "annotation": "APAC · Connect",
+                "color": "",
+                "spread": true
+              }
+            ],
+            "renderer": "webgl",
+            "projection": "globe",
+            "unfold": 1,
+            "view": "15,22,0,1",
+            "fov": 40,
+            "tilt": 0,
+            "showGrid": true,
+            "showBorders": true,
+            "showNight": true,
+            "showLabels": true,
+            "showConnections": true,
+            "regionOpacity": 0.45,
+            "theme": "midnight",
+            "accent": "{color.semantic.primary}",
+            "background": "",
+            "ink": "",
+            "titleSize": 68,
+            "titleWeight": 500,
+            "labelSize": 15,
+            "mapScale": 1,
+            "motion": "tour",
+            "duration": 12,
+            "tourHold": 0.35,
+            "composition": "artwork",
+            "mapFit": "width"
+          }
+        },
+        {
+          "label": "Unfold the world",
+          "values": {
+            "heading": "One world. Many perspectives.",
+            "eyebrow": "",
+            "annotation": "",
+            "footer": "",
+            "timeMode": "now",
+            "eventTime": "",
+            "referenceZone": "",
+            "ambiguity": "earlier",
+            "eventMinutes": 60,
+            "clockStyle": "24",
+            "locations": [
+              {
+                "label": "London",
+                "place": "Europe/London",
+                "annotation": "EMEA · Studio",
+                "color": "",
+                "spread": true
+              },
+              {
+                "label": "New York",
+                "place": "America/New_York",
+                "annotation": "Americas · Live",
+                "color": "",
+                "spread": true
+              },
+              {
+                "label": "Singapore",
+                "place": "Asia/Singapore",
+                "annotation": "APAC · Connect",
+                "color": "",
+                "spread": true
+              }
+            ],
+            "renderer": "webgl",
+            "projection": "equalEarth",
+            "unfold": 1,
+            "view": "15,22,0,1",
+            "fov": 40,
+            "tilt": 0,
+            "showGrid": true,
+            "showBorders": true,
+            "showNight": true,
+            "showLabels": true,
+            "showConnections": true,
+            "regionOpacity": 0.45,
+            "theme": "brand",
+            "accent": "{color.semantic.primary}",
+            "background": "",
+            "ink": "",
+            "titleSize": 68,
+            "titleWeight": 500,
+            "labelSize": 15,
+            "mapScale": 1,
+            "motion": "unfold",
+            "duration": 12,
+            "tourHold": 0.35,
+            "composition": "artwork",
+            "mapFit": "width"
+          }
+        }
+      ],
+      "templates": [
+        {
+          "id": "around-the-world",
+          "name": "Around the world",
+          "category": "Timezone",
+          "description": "A camera tour between labelled locations."
+        },
+        {
+          "id": "global-webinar",
+          "name": "Global webinar",
+          "category": "Timezone",
+          "description": "An invitation with local times for a global audience."
+        },
+        {
+          "id": "infrastructure-atlas",
+          "name": "Infrastructure atlas",
+          "category": "Timezone",
+          "description": "A clean vector atlas of your infrastructure regions."
+        },
+        {
+          "id": "map-animation",
+          "name": "Map animation",
+          "category": "Timezone",
+          "description": "A full-width rotating globe, ready to export as a clean background animation."
+        },
+        {
+          "id": "unfold-the-world",
+          "name": "Unfold the world",
+          "category": "Timezone",
+          "description": "Animate a globe into an Equal Earth map."
+        }
+      ]
     }
   ]
 }
