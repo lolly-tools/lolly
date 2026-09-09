@@ -12,7 +12,7 @@
     },
     {
       "file": "packages/node-shell/test/ml.test.ts",
-      "fullName": "matte: the real U²-Net graph returns the source RGB with a computed alpha",
+      "fullName": "matte: the real U\u00b2-Net graph returns the source RGB with a computed alpha",
       "reason": "the matte model family is not on this machine",
       "capability": "model",
       "owner": "packages/node-shell"
@@ -75,13 +75,6 @@
     },
     {
       "file": "packages/node-shell/test/speech.test.ts",
-      "fullName": "a staged family reports complete, and its files are the size the pins claim",
-      "reason": "the kokoro model is not staged under /home/runner/.cache/lolly/models - run: lolly models fetch kokoro",
-      "capability": "model",
-      "owner": "packages/node-shell"
-    },
-    {
-      "file": "packages/node-shell/test/speech.test.ts",
       "fullName": "Kokoro speaks a sentence and times its words",
       "reason": "the kokoro model is not staged under /home/runner/.cache/lolly/models - run: lolly models fetch kokoro",
       "capability": "model",
@@ -93,6 +86,104 @@
       "reason": "the whisper model is not staged under /home/runner/.cache/lolly/models - run: lolly models fetch whisper",
       "capability": "model",
       "owner": "packages/node-shell"
+    },
+    {
+      "file": "packages/node-shell/test/speech.test.ts",
+      "fullName": "a staged family reports complete, and its files are the size the pins claim",
+      "reason": "the kokoro model is not staged under /home/runner/.cache/lolly/models - run: lolly models fetch kokoro",
+      "capability": "model",
+      "owner": "packages/node-shell"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: CONTROL: no-shadow box",
+      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "capability": "external-tool",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: CONTROL: plain text",
+      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "capability": "external-tool",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: drop-shadow",
+      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "capability": "external-tool",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: hard outer shadow",
+      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "capability": "external-tool",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: inset shadow",
+      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "capability": "external-tool",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: layer blur",
+      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "capability": "external-tool",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: layer blur + drop-shadow",
+      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "capability": "external-tool",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: layer blur over a box-shadow",
+      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "capability": "external-tool",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: outer shadow under a translucent background",
+      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "capability": "external-tool",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: shadow with spread",
+      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "capability": "external-tool",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: soft outer shadow",
+      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "capability": "external-tool",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: text-shadow, blurred",
+      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "capability": "external-tool",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: text-shadow, hard offset",
+      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "capability": "external-tool",
+      "owner": "shells/web"
     },
     {
       "file": "shells/web/src/bridge/export-stroke-paint.test.ts",
@@ -173,6 +264,13 @@
     },
     {
       "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: CJK run SUSE cannot cover (tofu/.notdef), Regular 48px",
+      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
       "fullName": "golden: basic Latin run, SUSE Regular 48px",
       "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
       "capability": "brand:suse",
@@ -181,13 +279,6 @@
     {
       "file": "shells/web/src/bridge/text-outline-golden.test.ts",
       "fullName": "golden: blank/whitespace-only run",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "golden: CJK run SUSE cannot cover (tofu/.notdef), Regular 48px",
       "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
       "capability": "brand:suse",
       "owner": "shells/web"
@@ -285,7 +376,7 @@
     },
     {
       "file": "shells/web/src/lib/collab-colors.test.ts",
-      "fullName": "suse: every collaborator colour clears the floor in both themes and is 50° from the rest",
+      "fullName": "suse: every collaborator colour clears the floor in both themes and is 50\u00b0 from the rest",
       "reason": "suse is not mounted",
       "capability": "brand:suse",
       "owner": "shells/web"
@@ -320,6 +411,13 @@
     },
     {
       "file": "tests/app-history.browser.test.ts",
+      "fullName": "History route supports project filters, milestones, right-panel versions, Back and mobile",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/app-history.browser.test.ts",
       "fullName": "app History merges providers without skips and lists saved work without reading document values",
       "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
       "capability": "environment",
@@ -328,13 +426,6 @@
     {
       "file": "tests/app-history.browser.test.ts",
       "fullName": "file History hands off to the exact batch and its retained report and download",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/app-history.browser.test.ts",
-      "fullName": "History route supports project filters, milestones, right-panel versions, Back and mobile",
       "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
       "capability": "environment",
       "owner": "tests"
@@ -355,7 +446,7 @@
     },
     {
       "file": "tests/asset-version.browser.test.ts",
-      "fullName": "an uncached old catalog version never fetches today’s URL or poisons the old cache key",
+      "fullName": "an uncached old catalog version never fetches today\u2019s URL or poisons the old cache key",
       "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
       "capability": "environment",
       "owner": "tests"
@@ -425,14 +516,14 @@
     },
     {
       "file": "tests/cli-tierb-video.test.ts",
-      "fullName": "a deck exports a real pptx through the browser tier",
+      "fullName": "a Tier-B failure fails, and fails PROMPTLY, with the debug log it was asked for",
       "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `npm run build:web`",
       "capability": "browser",
       "owner": "tests"
     },
     {
       "file": "tests/cli-tierb-video.test.ts",
-      "fullName": "a Tier-B failure fails, and fails PROMPTLY, with the debug log it was asked for",
+      "fullName": "a deck exports a real pptx through the browser tier",
       "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `npm run build:web`",
       "capability": "browser",
       "owner": "tests"
@@ -474,7 +565,7 @@
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: a composition survives a URL serialize → parse round-trip",
+      "fullName": "color-block: a composition survives a URL serialize \u2192 parse round-trip",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -509,28 +600,28 @@
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo horizontal/green on #0c322c → hor-neg-green",
+      "fullName": "color-block: logo horizontal/green on #0c322c \u2192 hor-neg-green",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo horizontal/green on #ffffff → hor-pos-green",
+      "fullName": "color-block: logo horizontal/green on #ffffff \u2192 hor-pos-green",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo horizontal/mono on #0c322c → hor-neg-white",
+      "fullName": "color-block: logo horizontal/mono on #0c322c \u2192 hor-neg-white",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo horizontal/mono on #ffffff → hor-pos-black",
+      "fullName": "color-block: logo horizontal/mono on #ffffff \u2192 hor-pos-black",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -544,28 +635,28 @@
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo stacked/green on #0c322c → vert-neg-green",
+      "fullName": "color-block: logo stacked/green on #0c322c \u2192 vert-neg-green",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo stacked/green on #ffffff → vert-pos-green",
+      "fullName": "color-block: logo stacked/green on #ffffff \u2192 vert-pos-green",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo stacked/mono on #0c322c → vert-neg-white",
+      "fullName": "color-block: logo stacked/mono on #0c322c \u2192 vert-neg-white",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo stacked/mono on #ffffff → vert-pos-black",
+      "fullName": "color-block: logo stacked/mono on #ffffff \u2192 vert-pos-black",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -642,14 +733,7 @@
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "accent scheme forces the MONO logo (accent bg ≈ the brand logomark colour)",
-      "reason": "SUSE brand pack not mounted (see profiles.json)",
-      "capability": "brand:suse",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "animation is opt-in: choosing a transition (and no focus) lets an unfocused deck play",
+      "fullName": "accent scheme forces the MONO logo (accent bg \u2248 the brand logomark colour)",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -657,6 +741,13 @@
     {
       "file": "tests/deck-builder-freeform.test.ts",
       "fullName": "animation OFF by default: an unset transition rests STILL (sl-frozen on slide 0), never auto-plays",
+      "reason": "SUSE brand pack not mounted (see profiles.json)",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-freeform.test.ts",
+      "fullName": "animation is opt-in: choosing a transition (and no focus) lets an unfocused deck play",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -691,7 +782,7 @@
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "freeform box geometry: px on the 1920 canvas → % of the slide",
+      "fullName": "freeform box geometry: px on the 1920 canvas \u2192 % of the slide",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -754,21 +845,21 @@
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "shape box: filled rounded card → .sl-box-shape with fill + cqw radius + cqw border",
+      "fullName": "shape box: filled rounded card \u2192 .sl-box-shape with fill + cqw radius + cqw border",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "shape box: geometry reuses the same px→% mapping as text/image boxes",
+      "fullName": "shape box: geometry reuses the same px\u2192% mapping as text/image boxes",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "shape box: per-corner radius → four cqw corners in CSS order",
+      "fullName": "shape box: per-corner radius \u2192 four cqw corners in CSS order",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -782,7 +873,7 @@
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "shape variants: pill → 9999px, ellipse → 50%, rect/absent → 0",
+      "fullName": "shape variants: pill \u2192 9999px, ellipse \u2192 50%, rect/absent \u2192 0",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -796,7 +887,7 @@
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "table cells honour backslash-escaped pipes (\\| → literal |)",
+      "fullName": "table cells honour backslash-escaped pipes (\\| \u2192 literal |)",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -831,6 +922,20 @@
     },
     {
       "file": "tests/deck-builder-markdown.test.ts",
+      "fullName": "SECURITY: a javascript: link produces NO href (text only)",
+      "reason": "SUSE brand pack not mounted (see profiles.json)",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-markdown.test.ts",
+      "fullName": "SECURITY: an <img onerror> in a cell is escaped, never a live tag",
+      "reason": "SUSE brand pack not mounted (see profiles.json)",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-markdown.test.ts",
       "fullName": "a line of dashes is not treated as a table separator",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
@@ -859,7 +964,7 @@
     },
     {
       "file": "tests/deck-builder-markdown.test.ts",
-      "fullName": "layout body: ordered list → <ol class=\"sl-ol\">",
+      "fullName": "layout body: ordered list \u2192 <ol class=\"sl-ol\">",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -879,22 +984,29 @@
       "owner": "tests"
     },
     {
-      "file": "tests/deck-builder-markdown.test.ts",
-      "fullName": "SECURITY: a javascript: link produces NO href (text only)",
-      "reason": "SUSE brand pack not mounted (see profiles.json)",
-      "capability": "brand:suse",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deck-builder-markdown.test.ts",
-      "fullName": "SECURITY: an <img onerror> in a cell is escaped, never a live tag",
-      "reason": "SUSE brand pack not mounted (see profiles.json)",
-      "capability": "brand:suse",
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "SECURITY: a hostile font name is stripped of style-breakout characters",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
-      "fullName": "a brand font → a quoted --ds-*-family with a sensible fallback baked in",
+      "fullName": "SECURITY: custom CSS cannot close the <style> element or @import",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "SECURITY: html inside a fenced code block is escaped, never a live tag",
+      "reason": "deck-builder tool view not built (run npm run profile)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "a brand font \u2192 a quoted --ds-*-family with a sensible fallback baked in",
       "reason": "deck-builder tool view not built (run npm run profile)",
       "capability": "fixture",
       "owner": "tests"
@@ -929,7 +1041,7 @@
     },
     {
       "file": "tests/deck-builder-style.test.ts",
-      "fullName": "custom CSS is wrapped in .slides { … } and emitted as a <style>",
+      "fullName": "custom CSS is wrapped in .slides { \u2026 } and emitted as a <style>",
       "reason": "deck-builder tool view not built (run npm run profile)",
       "capability": "fixture",
       "owner": "tests"
@@ -943,35 +1055,14 @@
     },
     {
       "file": "tests/deck-builder-style.test.ts",
-      "fullName": "layout body: blockquote → <blockquote class=\"sl-quote\"> with inline md",
+      "fullName": "layout body: blockquote \u2192 <blockquote class=\"sl-quote\"> with inline md",
       "reason": "deck-builder tool view not built (run npm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
-      "fullName": "layout body: fenced code block → <pre class=\"sl-pre\"><code>, content literal",
-      "reason": "deck-builder tool view not built (run npm run profile)",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deck-builder-style.test.ts",
-      "fullName": "SECURITY: a hostile font name is stripped of style-breakout characters",
-      "reason": "deck-builder tool view not built (run npm run profile)",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deck-builder-style.test.ts",
-      "fullName": "SECURITY: custom CSS cannot close the <style> element or @import",
-      "reason": "deck-builder tool view not built (run npm run profile)",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deck-builder-style.test.ts",
-      "fullName": "SECURITY: html inside a fenced code block is escaped, never a live tag",
+      "fullName": "layout body: fenced code block \u2192 <pre class=\"sl-pre\"><code>, content literal",
       "reason": "deck-builder tool view not built (run npm run profile)",
       "capability": "fixture",
       "owner": "tests"
@@ -985,14 +1076,14 @@
     },
     {
       "file": "tests/deck-builder-style.test.ts",
-      "fullName": "size is clamped to 25–300%; a bogus weight is ignored",
+      "fullName": "size is clamped to 25\u2013300%; a bogus weight is ignored",
       "reason": "deck-builder tool view not built (run npm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
-      "fullName": "the full 100–900 weight scale is accepted (Thin … Black)",
+      "fullName": "the full 100\u2013900 weight scale is accepted (Thin \u2026 Black)",
       "reason": "deck-builder tool view not built (run npm run profile)",
       "capability": "fixture",
       "owner": "tests"
@@ -1293,6 +1384,20 @@
     },
     {
       "file": "tests/email-signature-inline-logo.test.ts",
+      "fullName": "email-signature: LOGO_GREY's credential verifies as SUSE, delivered by Lolly",
+      "reason": "SUSE brand pack not mounted (see profiles.json)",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/email-signature-inline-logo.test.ts",
+      "fullName": "email-signature: LOGO_STANDARD's credential verifies as SUSE, delivered by Lolly",
+      "reason": "SUSE brand pack not mounted (see profiles.json)",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/email-signature-inline-logo.test.ts",
       "fullName": "email-signature: inlined LOGO_GREY carries Content Credentials",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
@@ -1315,20 +1420,6 @@
     {
       "file": "tests/email-signature-inline-logo.test.ts",
       "fullName": "email-signature: inlined LOGO_STANDARD is byte-identical to its signed master",
-      "reason": "SUSE brand pack not mounted (see profiles.json)",
-      "capability": "brand:suse",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/email-signature-inline-logo.test.ts",
-      "fullName": "email-signature: LOGO_GREY's credential verifies as SUSE, delivered by Lolly",
-      "reason": "SUSE brand pack not mounted (see profiles.json)",
-      "capability": "brand:suse",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/email-signature-inline-logo.test.ts",
-      "fullName": "email-signature: LOGO_STANDARD's credential verifies as SUSE, delivered by Lolly",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -1399,14 +1490,14 @@
     {
       "file": "tests/font-outline-subset-parity.test.ts",
       "fullName": "skera subset shapes identically through the current outline pipeline",
-      "reason": "skera not installed (cargo install skera --features cli, or SKERA_BIN=…)",
+      "reason": "skera not installed (cargo install skera --features cli, or SKERA_BIN=\u2026)",
       "capability": "external-tool",
       "owner": "tests"
     },
     {
       "file": "tests/font-outline-subset-parity.test.ts",
       "fullName": "skera subset still reports uncovered characters as notdef",
-      "reason": "skera not installed (cargo install skera --features cli, or SKERA_BIN=…)",
+      "reason": "skera not installed (cargo install skera --features cli, or SKERA_BIN=\u2026)",
       "capability": "external-tool",
       "owner": "tests"
     },
@@ -1454,21 +1545,21 @@
     },
     {
       "file": "tests/gamut-icc-integration.test.ts",
-      "fullName": "grid-based slice membership agrees with the profile’s own contains",
+      "fullName": "grid-based slice membership agrees with the profile\u2019s own contains",
       "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/gamut-icc-integration.test.ts",
-      "fullName": "host.color.iccProfile → the three profile queries",
+      "fullName": "host.color.iccProfile \u2192 the three profile queries",
       "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/gamut-icc-integration.test.ts",
-      "fullName": "iccRoundTripDecides tells apart the profiles the ΔE actually decides",
+      "fullName": "iccRoundTripDecides tells apart the profiles the \u0394E actually decides",
       "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
       "capability": "fixture",
       "owner": "tests"
@@ -1510,6 +1601,13 @@
     },
     {
       "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "Snippet history retains an uploaded icon version after replacement and mobile history stays reachable",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
       "fullName": "chart: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
       "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
       "capability": "environment",
@@ -1539,13 +1637,6 @@
     {
       "file": "tests/history-adapters.browser.test.ts",
       "fullName": "qr-code: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "Snippet history retains an uploaded icon version after replacement and mobile history stays reachable",
       "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
       "capability": "environment",
       "owner": "tests"
@@ -1636,20 +1727,6 @@
     },
     {
       "file": "tests/icc-real-profiles.test.ts",
-      "fullName": "icc real: every one of these is additive, so ink coverage is null",
-      "reason": "real-profile fixtures not on this machine: /home/runner/Desktop/profiles",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/icc-real-profiles.test.ts",
-      "fullName": "icc real: gamut membership cannot detect the swap, which is why we ask the transform",
-      "reason": "real-profile fixtures not on this machine: /home/runner/Desktop/profiles/sRGB-v2-2014.icc + /home/runner/Desktop/profiles/swapped-v2.icc",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/icc-real-profiles.test.ts",
       "fullName": "icc real: LargeRGB-elle-V2-g18.icc parses and reports its header",
       "reason": "real-profile fixture not on this machine: /home/runner/Desktop/profiles/LargeRGB-elle-V2-g18.icc",
       "capability": "fixture",
@@ -1664,6 +1741,20 @@
     },
     {
       "file": "tests/icc-real-profiles.test.ts",
+      "fullName": "icc real: every one of these is additive, so ink coverage is null",
+      "reason": "real-profile fixtures not on this machine: /home/runner/Desktop/profiles",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc-real-profiles.test.ts",
+      "fullName": "icc real: gamut membership cannot detect the swap, which is why we ask the transform",
+      "reason": "real-profile fixtures not on this machine: /home/runner/Desktop/profiles/sRGB-v2-2014.icc + /home/runner/Desktop/profiles/swapped-v2.icc",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc-real-profiles.test.ts",
       "fullName": "icc real: matrix/TRC display profiles are decided by the cube, not the round trip",
       "reason": "real-profile fixtures not on this machine: /home/runner/Desktop/profiles",
       "capability": "fixture",
@@ -1673,13 +1764,6 @@
       "file": "tests/icc-real-profiles.test.ts",
       "fullName": "icc real: none of these carry a characterization target",
       "reason": "real-profile fixtures not on this machine: /home/runner/Desktop/profiles",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/icc-real-profiles.test.ts",
-      "fullName": "icc real: spac is accepted as a gamut today (documented finding, see note above)",
-      "reason": "real-profile fixture not on this machine: /home/runner/Desktop/profiles/sRGB-v4-ICC_preference.icc",
       "capability": "fixture",
       "owner": "tests"
     },
@@ -1701,6 +1785,13 @@
       "file": "tests/icc-real-profiles.test.ts",
       "fullName": "icc real: sRGB2014 refuses a colour whose round trip barely moves",
       "reason": "real-profile fixture not on this machine: /home/runner/Desktop/profiles/sRGB-v2-2014.icc",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc-real-profiles.test.ts",
+      "fullName": "icc real: spac is accepted as a gamut today (documented finding, see note above)",
+      "reason": "real-profile fixture not on this machine: /home/runner/Desktop/profiles/sRGB-v4-ICC_preference.icc",
       "capability": "fixture",
       "owner": "tests"
     },
@@ -1741,27 +1832,6 @@
     },
     {
       "file": "tests/icc.test.ts",
-      "fullName": "absolute intent differs from relative by the media white rescale",
-      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/icc.test.ts",
-      "fullName": "an unknown intent string cannot reach a transform",
-      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/icc.test.ts",
-      "fullName": "bit-flipped real profiles never throw and never hang",
-      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/icc.test.ts",
       "fullName": "CLUT index order is last-channel-fastest: only the K axis moves when K does",
       "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
       "capability": "fixture",
@@ -1790,8 +1860,8 @@
     },
     {
       "file": "tests/icc.test.ts",
-      "fullName": "every truncation of a real profile is handled",
-      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
+      "fullName": "GRAY profile neutralises on the PCS axis rather than its unadapted white point",
+      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic Gray Profile.icc",
       "capability": "fixture",
       "owner": "tests"
     },
@@ -1804,8 +1874,36 @@
     },
     {
       "file": "tests/icc.test.ts",
-      "fullName": "GRAY profile neutralises on the PCS axis rather than its unadapted white point",
-      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic Gray Profile.icc",
+      "fullName": "XYZ-PCS LUT decodes u1Fixed15 PCS values into a sane Lab",
+      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic XYZ Profile.icc",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc.test.ts",
+      "fullName": "absolute intent differs from relative by the media white rescale",
+      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc.test.ts",
+      "fullName": "an unknown intent string cannot reach a transform",
+      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc.test.ts",
+      "fullName": "bit-flipped real profiles never throw and never hang",
+      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc.test.ts",
+      "fullName": "every truncation of a real profile is handled",
+      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
       "capability": "fixture",
       "owner": "tests"
     },
@@ -1922,13 +2020,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/icc.test.ts",
-      "fullName": "XYZ-PCS LUT decodes u1Fixed15 PCS values into a sane Lab",
-      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic XYZ Profile.icc",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
       "file": "tests/instance-pack.test.ts",
       "fullName": "the suse pack builds clean: exclusions hold, fonts/tools/envelope complete",
       "reason": "brands/suse not mounted",
@@ -1986,6 +2077,20 @@
     },
     {
       "file": "tests/penpot-keynote-replay.test.ts",
+      "fullName": "keynote: PERSON INTRO\u2019s master hydrates through the real design",
+      "reason": "UXDays keynote .penpot not on this machine",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/penpot-keynote-replay.test.ts",
+      "fullName": "keynote: a Work Sans box hydrates to font-family:'Work Sans' via the real design",
+      "reason": "UXDays keynote .penpot not on this machine",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/penpot-keynote-replay.test.ts",
       "fullName": "keynote: a baked path maps to its content bbox with rot 0; identity paths keep selrect + rot",
       "reason": "UXDays keynote .penpot not on this machine",
       "capability": "fixture",
@@ -2000,13 +2105,6 @@
     },
     {
       "file": "tests/penpot-keynote-replay.test.ts",
-      "fullName": "keynote: a Work Sans box hydrates to font-family:'Work Sans' via the real design",
-      "reason": "UXDays keynote .penpot not on this machine",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/penpot-keynote-replay.test.ts",
       "fullName": "keynote: each master subtree maps to boxes through the real resolvers",
       "reason": "UXDays keynote .penpot not on this machine",
       "capability": "fixture",
@@ -2014,14 +2112,14 @@
     },
     {
       "file": "tests/penpot-keynote-replay.test.ts",
-      "fullName": "keynote: every component preview belongs to an INSTANCE, so a master needs the fallback",
+      "fullName": "keynote: every Mask group holding blurred circles flattens with feGaussianBlur AND clip-path",
       "reason": "UXDays keynote .penpot not on this machine",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/penpot-keynote-replay.test.ts",
-      "fullName": "keynote: every Mask group holding blurred circles flattens with feGaussianBlur AND clip-path",
+      "fullName": "keynote: every component preview belongs to an INSTANCE, so a master needs the fallback",
       "reason": "UXDays keynote .penpot not on this machine",
       "capability": "fixture",
       "owner": "tests"
@@ -2056,13 +2154,6 @@
     },
     {
       "file": "tests/penpot-keynote-replay.test.ts",
-      "fullName": "keynote: PERSON INTRO’s master hydrates through the real design",
-      "reason": "UXDays keynote .penpot not on this machine",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/penpot-keynote-replay.test.ts",
       "fullName": "keynote: scanPenpotUsage census matches the audit scan exactly",
       "reason": "UXDays keynote .penpot not on this machine",
       "capability": "fixture",
@@ -2084,7 +2175,7 @@
     },
     {
       "file": "tests/penpot-keynote-replay.test.ts",
-      "fullName": "keynote: the 4 flipX slide-background frames mirror 117° → 243°",
+      "fullName": "keynote: the 4 flipX slide-background frames mirror 117\u00b0 \u2192 243\u00b0",
       "reason": "UXDays keynote .penpot not on this machine",
       "capability": "fixture",
       "owner": "tests"
@@ -2290,6 +2381,13 @@
       "fullName": "file digests in the payload path round-trip; a reader can list them (if available)",
       "reason": "no bsdtar executable on this runner",
       "capability": "external-tool",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/sequence-render.browser.test.ts",
+      "fullName": "sequence export (browser tier) > WP-B: an explicit HEVC codec + CBR encodes deterministically and decodes (mp4)",
+      "reason": "no HEVC encode in this browser build - set LOLLY_BROWSER_CHANNEL=chrome",
+      "capability": "browser",
       "owner": "tests"
     },
     {
