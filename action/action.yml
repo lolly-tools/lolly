@@ -114,6 +114,7 @@ runs:
       with:
         version: 11.1.2
         run_install: false
+        package_json_file: .lolly-render-action/package.json
 
     - name: 'Set up Node 22'
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7

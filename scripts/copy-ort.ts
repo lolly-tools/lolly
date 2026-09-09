@@ -16,32 +16,22 @@
  *
  * Idempotent: locally the files usually already exist (gitignored working copy),
  * and copying over them is harmless. Resolves the package via `require.resolve`
- * so it works whether npm hoisted onnxruntime-web to the root `node_modules` or
+ * so it works whether pnpm hoisted onnxruntime-web to the root `node_modules` or
  * kept it under `shells/web/node_modules`.
  */
 
-import { readdirSync, copyFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readdirSync, copyFileSync, mkdirSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DEST = join(ROOT, 'shells/web/public/ort');
 
-// The package's `exports` map blocks resolving its package.json, so probe the
-// standard install locations directly - robust to whether npm hoisted the dep to
-// the root node_modules or kept it under the shells/web workspace.
-const CANDIDATES = [
-  join(ROOT, 'node_modules/onnxruntime-web/dist'),
-  join(ROOT, 'shells/web/node_modules/onnxruntime-web/dist'),
-];
-const DIST = CANDIDATES.find(existsSync);
-
-if (!DIST) {
-  console.error(
-    `[copy-ort] onnxruntime-web dist not found in any of:\n  ${CANDIDATES.join('\n  ')}\n  is it installed?`,
-  );
-  process.exit(1);
-}
+// Resolve from the web workspace: another consumer can hoist an incompatible
+// onnxruntime-web version to the root. The exported entry lives in dist/.
+const webRequire = createRequire(join(ROOT, 'shells/web/package.json'));
+const DIST = dirname(webRequire.resolve('onnxruntime-web'));
 
 mkdirSync(DEST, { recursive: true });
 

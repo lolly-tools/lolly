@@ -29,6 +29,15 @@ importers:
       '@biomejs/biome':
         specifier: ^2.5.11
         version: 2.5.12
+      '@lolly-tools/core':
+        specifier: workspace:*
+        version: link:packages/core
+      '@lolly-tools/node-shell':
+        specifier: workspace:*
+        version: link:packages/node-shell
+      '@lolly/engine':
+        specifier: workspace:*
+        version: link:engine
       '@observablehq/plot':
         specifier: 0.6.17
         version: 0.6.17
@@ -150,6 +159,9 @@ importers:
 
   services/mcp:
     dependencies:
+      '@lolly-tools/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@lolly/engine':
         specifier: workspace:*
         version: link:../../engine
@@ -170,6 +182,9 @@ importers:
 
   shells/cli:
     dependencies:
+      '@lolly-tools/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@lolly-tools/node-shell':
         specifier: workspace:*
         version: link:../../packages/node-shell
@@ -197,6 +212,9 @@ importers:
 
   shells/tui:
     dependencies:
+      '@lolly-tools/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@lolly-tools/node-shell':
         specifier: workspace:*
         version: link:../../packages/node-shell
@@ -246,6 +264,12 @@ importers:
       '@huggingface/transformers':
         specifier: ^3.8.1
         version: 3.8.1(@types/node@26.5.0)
+      '@lolly-tools/audio-dock':
+        specifier: workspace:*
+        version: link:../../packages/audio-dock
+      '@lolly-tools/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@lolly/engine':
         specifier: workspace:*
         version: link:../../engine

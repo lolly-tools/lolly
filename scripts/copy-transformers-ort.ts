@@ -7,8 +7,7 @@
  * Run as: pnpm run build:ort  (part of build:web; also runs standalone).
  *
  * transformers.js pins its own onnxruntime-web (a dev build, e.g.
- * 1.22.0-dev.*, npm keeps it un-hoisted under
- * node_modules/@huggingface/transformers/node_modules/) and its wasm binding is
+ * 1.22.0-dev.*) and its wasm binding is
  * NOT interchangeable with the 1.27 runtime already served at /ort/ - loading
  * mismatched .mjs/.wasm pairs fails at session init. So the speech worker
  * (shells/web/src/lib/speech-kokoro-worker.ts) points
@@ -25,7 +24,7 @@
  * same URLs. A version segment makes an upgrade a cache MISS instead.
  *
  * The version the worker must request is emitted as a small generated,
- * COMMITTED constants file: shells/web/src/lib/ort-hf-base.ts (ORT_HF_BASE) - 
+ * COMMITTED constants file: shells/web/src/lib/ort-hf-base.ts (ORT_HF_BASE) -
  * committed so tsc works on a fresh clone, rewritten here only when the
  * content actually changes so a no-op run causes no churn.
  */
@@ -33,28 +32,17 @@
 import { readdirSync, copyFileSync, mkdirSync, existsSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DEST_ROOT = join(ROOT, 'shells/web/public/ort-hf');
 const BASE_TS = join(ROOT, 'shells/web/src/lib/ort-hf-base.ts');
 
-// transformers.js's pinned onnxruntime-web is a dev version, so npm cannot hoist
-// it over the root's stable 1.27 - it stays nested. Probe the nested locations
-// first, then the (unlikely) hoisted fallbacks, and REFUSE the root's own
-// onnxruntime-web if transformers is installed but its nested copy is missing:
-// serving the wrong runtime is worse than failing loudly.
-const CANDIDATES = [
-  join(ROOT, 'node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist'),
-  join(ROOT, 'shells/web/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist'),
-];
-const DIST = CANDIDATES.find(existsSync);
-
-if (!DIST) {
-  console.error(
-    `[copy-transformers-ort] transformers.js's pinned onnxruntime-web dist not found in any of:\n  ${CANDIDATES.join('\n  ')}\n  is @huggingface/transformers installed?`,
-  );
-  process.exit(1);
-}
+// Resolve from transformers itself, following its dependency graph regardless
+// of whether pnpm hoists that runtime or the web workspace's newer runtime.
+const webRequire = createRequire(join(ROOT, 'shells/web/package.json'));
+const transformersRequire = createRequire(webRequire.resolve('@huggingface/transformers'));
+const DIST = dirname(transformersRequire.resolve('onnxruntime-web'));
 
 // The staged package's own version names the served subdir.
 const pkg = JSON.parse(readFileSync(join(DIST, '..', 'package.json'), 'utf8')) as { version?: string };
