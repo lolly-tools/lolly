@@ -17,6 +17,7 @@
  */
 
 import type { SavedStateData } from '../bridge/state.ts';
+import { pinRevisionAssets } from '../bridge/revision-asset-pins.ts';
 import { collabHistoryPolicy } from '../lib/collab-history.ts';
 import type { CapturableCollabHistory, CollabHistoryCheckpoint, CollabHistoryEntry, CollabHistoryPage } from '../lib/collab-history.ts';
 
@@ -31,17 +32,27 @@ export interface P2PHistoryOptions {
   readonly host: boolean;
   /** Upper bound on retained checkpoints. Memory-only, so keep it modest. */
   readonly limit?: number;
+  /** UTF-8 snapshot and metadata budgets, independent of the entry count. */
+  readonly maxBytes?: number;
+  readonly maxEntryBytes?: number;
 }
 
 const DEFAULT_LIMIT = 200;
+const MAX_BYTES = 16 * 1024 * 1024;
+const MAX_ENTRY_BYTES = 4 * 1024 * 1024;
+const bounded = (value: number | undefined, ceiling: number): number =>
+  value !== undefined && Number.isFinite(value) ? Math.max(1, Math.min(ceiling, Math.floor(value))) : ceiling;
 
 export function createP2PCollabHistory(options: P2PHistoryOptions): P2PCollabHistory {
   const policy = collabHistoryPolicy({ track: 'p2p', role: options.role, host: options.host });
-  const limit = Math.max(1, options.limit ?? DEFAULT_LIMIT);
+  const limit = bounded(options.limit, DEFAULT_LIMIT);
+  const maxBytes = bounded(options.maxBytes, MAX_BYTES);
+  const maxEntryBytes = Math.min(maxBytes, bounded(options.maxEntryBytes, MAX_ENTRY_BYTES));
   let disposed = false;
   let seq = 0;
+  let bytes = 0;
   // Newest last; `list()` reverses. Each row carries its own frozen payload.
-  const log: { readonly entry: CollabHistoryEntry; readonly data: SavedStateData }[] = [];
+  const log: { readonly entry: CollabHistoryEntry; readonly json: string; readonly bytes: number }[] = [];
 
   return {
     scope: policy.scope,
@@ -62,28 +73,33 @@ export function createP2PCollabHistory(options: P2PHistoryOptions): P2PCollabHis
         revision,
         preview: checkpoint.preview ?? null,
       };
-      // A disposed session is over; still mint a stable id so a racing caller does not
-      // reuse one, but never retain the payload. Nothing about this session persists.
+      // Serialize once at the ownership boundary. Keeping caller-owned objects or
+      // returning them from read/list lets a later edit rewrite an earlier point.
       if (!disposed) {
-        log.push({ entry, data: checkpoint.data });
-        while (log.length > limit) log.shift();
+        const json = JSON.stringify(pinRevisionAssets(checkpoint.data));
+        const size = new TextEncoder().encode(json).byteLength + new TextEncoder().encode(JSON.stringify(entry)).byteLength;
+        if (size > maxEntryBytes) throw new Error('This checkpoint is too large for session history. Save an editable copy.');
+        log.push({ entry, json, bytes: size });
+        bytes += size;
+        while (log.length > limit || bytes > maxBytes) bytes -= log.shift()!.bytes;
       }
-      return entry;
+      return structuredClone(entry);
     },
 
     async list(query?: { before?: string; limit?: number }): Promise<CollabHistoryPage> {
       let rows = log.slice().reverse();
       if (query?.before) {
-        const cut = rows.findIndex(row => row.entry.id === query.before);
-        if (cut >= 0) rows = rows.slice(cut + 1);
+        const revision = /^p2p:([1-9]\d*)$/.exec(query.before)?.[1];
+        rows = revision ? rows.filter(row => row.entry.revision < Number(revision)) : [];
       }
-      const page = typeof query?.limit === 'number' ? rows.slice(0, Math.max(0, query.limit)) : rows;
+      const page = rows.slice(0, bounded(query?.limit, DEFAULT_LIMIT));
       const before = page.length < rows.length ? page[page.length - 1]?.entry.id : undefined;
-      return { entries: page.map(row => row.entry), before };
+      return { entries: page.map(row => structuredClone(row.entry)), before };
     },
 
     async read(id: string): Promise<SavedStateData | null> {
-      return log.find(row => row.entry.id === id)?.data ?? null;
+      const row = log.find(row => row.entry.id === id);
+      return row ? JSON.parse(row.json) as SavedStateData : null;
     },
 
     async saveCopy(id: string): Promise<SavedStateData | null> {
@@ -93,6 +109,7 @@ export function createP2PCollabHistory(options: P2PHistoryOptions): P2PCollabHis
     dispose(): void {
       disposed = true;
       log.length = 0;
+      bytes = 0;
     },
   };
 }

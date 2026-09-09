@@ -29,8 +29,7 @@ import { chromeFollowsDesignSystem, setChromeFollow } from '../lib/chrome-follow
 import { fold, tokenize, scoreHaystack } from '../lib/search/match.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import type { A11yPrefs } from '../lib/a11y-prefs.ts';
-import { currentLang, switchLang, t, tRaw, docsAppHref } from '../i18n.ts';
-import type { Lang } from '../i18n.ts';
+import { currentLang, t, tRaw, docsAppHref } from '../i18n.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
 import { playSfx } from '../lib/sfx.ts';
 import { staggerReveal } from '../lib/reveal.ts';
@@ -68,7 +67,7 @@ import {
   recordCatalogDownload, partRecords, removePart, storageHeadroom, persistenceState, speechCacheBytes,
   rewordCacheBytes, aiDetectCacheBytes, clearAiDetectCaches,
 } from '../lib/offline-manager.ts';
-import type { OfflinePartId, PrecacheManifest, InfoManifest, DownloadProgress, PartState } from '../lib/offline-manager.ts';
+import type { OfflinePartId, DownloadProgress, PartState } from '../lib/offline-manager.ts';
 import { beginOfflineRun, cancelOfflineRun, offlineRunActive, offlineRunLine, subscribeOfflineRun } from '../lib/offline-run.ts';
 import type { OfflineRunHandle, OfflineRunLine } from '../lib/offline-run.ts';
 import { upscaleCacheBytes, matteCacheBytes, ocrCacheBytes, durableCacheBytes } from '../lib/model-prefetch.ts';

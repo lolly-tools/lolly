@@ -34,7 +34,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { registerHooks } from 'node:module';
 import { JSDOM } from 'jsdom';
 // Type-only, so it costs nothing at runtime and needs no CSS stub.
@@ -68,6 +68,13 @@ const {
   MIN_PPS, MAX_PPS, MIN_PANEL_H, ONE_LANE_H, EDGE_PX, EDGE_PX_COARSE, TAKE_TIMING,
   MAX_NODE_RASTERS_PER_PASS, MAX_THUMB_PASSES, PANEL_SHORTCUTS, playOnce, canPlayOnce,
 } = await import('./timeline-panel.ts');
+
+// Both views are an orchestrator plus feature modules under a directory of the same name
+// (2026-09-09 split), so a source pin reads the whole feature rather than one file.
+const featureSrc = (view: string): string => {
+  const dir = new URL(`./${view}/`, import.meta.url);
+  return [readFileSync(new URL(`./${view}.ts`, import.meta.url), 'utf8'), ...readdirSync(dir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(new URL(n, dir), 'utf8'))].join('\n');
+};
 // The trim readout's formatters, asserted against the badge the panel paints (the
 // numbers themselves are covered in tests/timeline-math.test.ts).
 const { fmtDelta, fmtDur } = await import('./timeline-math.ts');
@@ -5363,10 +5370,10 @@ test('+Keyframe on an UNTIMED box promotes it AND keys it in ONE commit', async 
   // exists while the transport is PLAYING, and then the clip starts after the time its
   // own first pose is written at (a non-zero local ms, or a clamp to the clip edge) and
   // the announcement names a time no keyframe is at.
-  const src = readFileSync(new URL('./timeline-panel.ts', import.meta.url), 'utf8');
+  const src = featureSrc('timeline-panel');
   const action = src.slice(src.indexOf('function addKeyframeAction'), src.indexOf('function syncKfBtn'));
-  assert.ok(/const at = playheadSec\(\)/.test(action), 'the action captures the playhead once');
-  assert.ok(/promoteRows\(next, id, \{ start: at \}\)/.test(action),
+  assert.ok(/const at = (?:tp\.\w+\.)?playheadSec\((?:tp)?\)/.test(action), 'the action captures the playhead once');
+  assert.ok(/promoteRows\((?:tp, )?next, id, \{ start: at \}\)/.test(action),
     'and the promotion is given THAT instant, never left to re-read the clock');
 });
 
@@ -5636,7 +5643,7 @@ test('free-canvas commits the redirection at its ONE pointerup, and never for a 
   // step. What IS assertable here is the structure of the contract on both sides - the
   // seam exists and is pure (tested above), and the caller reaches it exactly where
   // the model-write law says it may.
-  const src = readFileSync(new URL('./free-canvas.ts', import.meta.url), 'utf8');
+  const src = featureSrc('free-canvas');
   const end = src.slice(src.indexOf('function onGestureEnd'));
   const moveBranch = end.slice(end.indexOf("if (g.type === 'move')"), end.indexOf("if (g.type === 'resize'"));
   const sizeBranch = end.slice(end.indexOf("if (g.type === 'resize'"), end.indexOf("if (g.type === 'gscale'"));
@@ -5671,11 +5678,12 @@ test('the KEYBOARD move is redirected exactly like the pointer one, and declines
   // ONLY that pair, though: Alt+↑/↓ is not a chord anyone binds, and declining it as well
   // made it a key that did nothing anywhere (the panel binds on its own root, so it never
   // hears a canvas-focused press at all).
-  const src = readFileSync(new URL('./free-canvas.ts', import.meta.url), 'utf8');
-  const nudge = src.slice(src.indexOf('const nudges: Record<string'), src.indexOf('// ── wiring'));
+  const src = featureSrc('free-canvas');
+  const nudgeStart = src.indexOf('const nudges: Record<string');
+  const nudge = src.slice(nudgeStart, src.indexOf('onStageMove', nudgeStart));
   assert.ok(/altSeek = e\.altKey && \(e\.key === 'ArrowLeft' \|\| e\.key === 'ArrowRight'\)/.test(nudge),
     'the reserved chord is ←/→ with Alt, named as what it is');
-  assert.ok(/nudges\[e\.key\] && selection\.size && !altSeek/.test(nudge),
+  assert.ok(/nudges\[e\.key\] && (?:fc\.)?selection\.size && !altSeek/.test(nudge),
     'the nudge declines exactly that, the way the v/p/n tool letters decline their chords');
   assert.equal(/&& !e\.altKey/.test(nudge), false,
     'and never the bare modifier, which would take ↑/↓ down with it');
@@ -6212,19 +6220,20 @@ test('the camera gesture map: the canvas hands the WHEEL to the view unless a ca
   // Space+drag stays VIEW pan)". The separation is the whole reason camera mode can be
   // a selection rather than a mode, so it is pinned at the source: free-canvas is the
   // only listener that could claim the notch, and it must decline three ways.
-  const src = readFileSync(new URL('./free-canvas.ts', import.meta.url), 'utf8');
-  const wheel = src.slice(src.indexOf('function onCameraWheel'), src.indexOf('// Every box is ONE unified object'));
+  const src = featureSrc('free-canvas');
+  const wheelStart = src.indexOf('function onCameraWheel');
+  const wheel = src.slice(wheelStart, src.indexOf('ctxValueHeld', wheelStart));
   assert.ok(/if \(e\.ctrlKey \|\| e\.metaKey\) return;/.test(wheel), 'Cmd/Ctrl-wheel is the VIEW zoom, untouched');
-  assert.ok(/if \(!camModeId\(\)\) return;/.test(wheel), 'no camera armed: the view keeps its pan');
+  assert.ok(/if \(!camModeId\((?:fc)?\)\) return;/.test(wheel), 'no camera armed: the view keeps its pan');
   assert.ok(wheel.includes('e.preventDefault()') && wheel.includes('e.stopPropagation()'),
     'and when it IS claimed, the stage never sees it');
-  assert.ok(/setTimeout\(flushDolly/.test(wheel), 'the notches coalesce to one commit per pause');
+  assert.ok(/setTimeout\((?:fc\.\w+\.)?flushDolly/.test(wheel), 'the notches coalesce to one commit per pause');
   // Space+drag is stageNav's and free-canvas already yields to it by tracking `spacePan`;
   // the camera must not have taken that back.
-  assert.ok(/if \(e\.pointerType !== 'mouse' \|\| spacePan\) return;/.test(src),
+  assert.ok(/if \(e\.pointerType !== 'mouse' \|\| (?:fc\.)?spacePan\) return;/.test(src),
     'Space+drag stays the view pan');
   // The pan takes the gesture the MARQUEE would have had, on both empty surfaces.
-  assert.equal((src.match(/camModeId\(\)\) \{\n      beginGesture\(e, \{/g) ?? []).length, 2,
+  assert.equal((src.match(/camModeId\((?:fc)?\)\) \{\n\s+(?:fc\.\w+\.)?beginGesture\((?:fc, )?e, \{/g) ?? []).length, 2,
     'the artboard and the backdrop - a camera pan with an invisible boundary is not one');
   // P2 SPENDS THE RESERVED CHORD. Shift-drag was held back at M2.5 ("shift-drag
   // reserved for tilt (P2)") precisely so it could be given one meaning once rather
@@ -6252,12 +6261,12 @@ test('the camera gesture map: the canvas hands the WHEEL to the view unless a ca
   // zoom. Client px written straight into the model moved the shot half as far as the
   // hand at 50 % and twice as far at 200 %.
   const move = src.slice(src.indexOf('function applyGestureMove'));
-  const panBranch = move.slice(move.indexOf("if (gesture.type === 'campan')"), move.indexOf("if (gesture.type === 'camtilt')"));
+  const panBranch = move.slice(move.search(/if \((?:fc\.)?gesture\.type === 'campan'\)/), move.search(/if \((?:fc\.)?gesture\.type === 'camtilt'\)/));
   assert.ok(panBranch.includes('clientToNative('), 'the pan converts through the canvas zoom, like every other drag');
   assert.ok(!/gesture\.dx \+= e\.clientX/.test(panBranch), 'never client px straight into the model');
   // …and the TILT is the deliberate opposite: an angle has no length in stage space, so
   // converting would gear the dial by however far the user happens to be zoomed out.
-  const tiltMove = move.slice(move.indexOf("if (gesture.type === 'camtilt')"), move.indexOf("if (gesture.type === 'pendraw')"));
+  const tiltMove = move.slice(move.search(/if \((?:fc\.)?gesture\.type === 'camtilt'\)/), move.search(/if \((?:fc\.)?gesture\.type === 'pendraw'\)/));
   assert.ok(/gesture\.dx \+= e\.clientX/.test(tiltMove), 'the tilt accumulates CLIENT px');
   assert.ok(!tiltMove.includes('clientToNative('), 'and never converts them');
 });

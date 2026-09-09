@@ -42,7 +42,7 @@
 import { getNeurospicyAnalyser, neurospicySignalState } from './neurospicy.ts';
 import { boostHdrCanvas, hdrCanvasSupported, releaseHdrCanvas } from './hdr-canvas.ts';
 import { displaySupportsHdr } from './display-gamut.ts';
-import { vizSupported, vizPossible } from './viz-support.ts';
+import { vizPossible } from './viz-support.ts';
 import { vizPalette, vizPaletteDiagnostics, type VizPalette, type VizPaletteHost } from './viz-palette.ts';
 import { vizPresetById, type VizPreset } from './viz-presets.ts';
 

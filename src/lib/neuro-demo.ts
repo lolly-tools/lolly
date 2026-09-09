@@ -27,7 +27,7 @@ import type { NeurospicyHost } from './neurospicy.ts';
 // exported here so every existing import site keeps working.
 export { neuroDemoActive, peekNeuroDemo } from './neuro-demo-peek.ts';
 export type { NeuroDemoMode } from './neuro-demo-peek.ts';
-import { peekNeuroDemo, type NeuroDemoMode } from './neuro-demo-peek.ts';
+import { type NeuroDemoMode } from './neuro-demo-peek.ts';
 
 /** How long to wait for the catalog sync before giving up on picking a demo track.
  *  Bounded so an empty catalog still yields a dock (with no selection) rather than

@@ -9,6 +9,7 @@
  * failure to record must never disrupt the download it followed.
  */
 import { openDB } from '../bridge/db.ts';
+import { indexExport } from '../bridge/history-index.ts';
 
 export interface ExportEntry {
   id: string;
@@ -22,6 +23,9 @@ export interface ExportEntry {
   /** Hex SHA-256 of the exact bytes downloaded - lets /verify match a file back to
    *  this record. Optional: absent on pre-hash records and where crypto.subtle is. */
   contentHash?: string;
+  /** Local creation association, absent on older downloads and unsaved tools. */
+  slot?: string;
+  historyKey?: string[];
 }
 
 const STORE = 'exports';
@@ -33,7 +37,7 @@ export async function recordExport(e: Omit<ExportEntry, 'id'>): Promise<void> {
     const db = await openDB();
     if (!db.objectStoreNames.contains(STORE)) return;
     const id = `${e.at}-${Math.random().toString(36).slice(2, 8)}`;
-    await db.put(STORE, { ...e, id });
+    await db.put(STORE, indexExport({ ...e, id }));
     // Prune to the newest CAP so the log (and its thumbnails) stay bounded.
     const all = (await db.getAll(STORE)) as ExportEntry[];
     if (all.length > CAP) {

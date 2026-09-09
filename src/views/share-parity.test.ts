@@ -23,14 +23,15 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { parseUrlState, RESERVED } from '../../../../engine/src/url-mode.ts';
 import type { InputManifest, InputSpec } from '../../../../engine/src/inputs.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const TOOL_TS = readFileSync(join(HERE, 'tool.ts'), 'utf8');
+// tool.ts is an orchestrator plus feature modules under tool/ (2026-09-09 split)
+const TOOL_TS = [readFileSync(join(HERE, 'tool.ts'), 'utf8'), ...readdirSync(join(HERE, 'tool')).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(HERE, 'tool', n), 'utf8'))].join('\n');
 
 /** The source body of a top-level `function <name>(` - from its declaration to the
  *  first column-0 `\n}` (its own closing brace, since every nested closer is indented).

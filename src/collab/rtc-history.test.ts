@@ -63,3 +63,38 @@ test('list honours a limit without dropping stored checkpoints', async () => {
   assert.deepEqual((await history.list({ limit: 2 })).entries.map(e => e.label), ['r3', 'r2']);
   assert.equal((await history.list()).entries.length, 4);
 });
+
+test('later edits and mutations of returned objects cannot rewrite a checkpoint', async () => {
+  const history = createP2PCollabHistory({ role: 'writer', host: true });
+  const data = { blocks: [{ text: 'original' }] };
+  const entry = history.capture({ documentId: 'doc', toolId: 'design', actorId: 'peer', data });
+  data.blocks[0]!.text = 'later edit';
+  (entry.actor as { id: string }).id = 'changed';
+  const read = await history.read(entry.id) as typeof data;
+  read.blocks[0]!.text = 'changed by reader';
+  const page = await history.list();
+  (page.entries[0]!.actor as { id: string }).id = 'changed by list';
+  assert.deepEqual(await history.read(entry.id), { blocks: [{ text: 'original' }] });
+  assert.equal((await history.list()).entries[0]!.actor.id, 'peer');
+});
+
+test('byte limits shed old entries and refuse oversized snapshots without losing prior work', async () => {
+  const history = createP2PCollabHistory({ role: 'writer', host: false, maxBytes: 800, maxEntryBytes: 500 });
+  const capture = (text: string) => history.capture({ documentId: 'doc', toolId: 'design', actorId: 'peer', data: { text } });
+  const first = capture('a'.repeat(100));
+  const second = capture('b'.repeat(100));
+  const third = capture('c'.repeat(100));
+  assert.equal(await history.read(first.id), null);
+  assert.ok(await history.read(second.id));
+  assert.ok(await history.read(third.id));
+  assert.throws(() => capture('too large'.repeat(100)), /too large/);
+  assert.equal((await history.list()).entries.length, 2);
+  assert.deepEqual((await history.list({ before: first.id })).entries, [], 'an evicted cursor never restarts from newest');
+  assert.deepEqual((await history.list({ before: 'invalid' })).entries, []);
+});
+
+test('non-finite limits cannot disable retention bounds', async () => {
+  const history = createP2PCollabHistory({ role: 'writer', host: true, limit: Infinity, maxBytes: NaN });
+  for (let i = 0; i < 205; i++) history.capture({ documentId: 'doc', toolId: 'design', actorId: 'peer', data: { i } });
+  assert.equal((await history.list({ limit: Infinity })).entries.length, 200);
+});

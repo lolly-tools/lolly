@@ -21,6 +21,7 @@
 
 import { contrastRatio } from '@lolly/engine';
 import { escape as escapeHtml } from '../utils.ts';
+import { clamp } from '@lolly/engine';
 
 export interface PalettePreviewOptions {
   steps?: number;
@@ -80,8 +81,6 @@ function paperColour(palette: string[]): string {
 
 /** Cycle: colour at index `i`, wrapping the palette. */
 const at = (pal: string[], i: number): string => col(pal[i % pal.length]);
-
-const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
 const r1 = (n: number): number => Math.round(n * 10) / 10;
 
 /** Opening tag: viewBox'd, responsive (fills width, keeps ratio), labelled. */

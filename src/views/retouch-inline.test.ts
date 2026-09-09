@@ -9,13 +9,14 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const mode = readFileSync(join(here, 'retouch-inline.ts'), 'utf8');
-const catalog = readFileSync(join(here, 'catalog.ts'), 'utf8');
+// catalog.ts is an orchestrator plus feature modules under catalog/ (2026-09-09 split)
+const catalog = [readFileSync(join(here, 'catalog.ts'), 'utf8'), ...readdirSync(join(here, 'catalog')).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(here, 'catalog', n), 'utf8'))].join('\n');
 
 test('provenance: a deterministic edit with the original as ingredient', () => {
   assert.match(mode, /stampDerivedC2pa/, 'the save path stamps a credential');
@@ -44,7 +45,7 @@ test('inline mode, not a window: mounts into the preview, no overlay of its own'
 
 test('the catalog drives it like crop: mode classes, Escape consult, close reap', () => {
   assert.match(catalog, /is-retouching/, 'the preview + dialog carry the mode class');
-  assert.match(catalog, /if \(inlineRetouch\) \{\s*\n\s*if \(e\.key === 'Escape'\)[\s\S]{0,120}busy\(\)/, 'Escape exits the mode only when not busy');
+  assert.match(catalog, /if \((?:dt\.)?inlineRetouch\) \{\s*\n\s*if \(e\.key === 'Escape'\)[\s\S]{0,120}busy\(\)/, 'Escape exits the mode only when not busy');
   assert.match(catalog, /inlineRetouch\?\.exit\(\)/, 'the modal close reaps a live session');
   assert.match(catalog, /enterInlineRetouch/, 'the action enters the inline mode');
 });

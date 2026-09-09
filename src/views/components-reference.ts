@@ -54,7 +54,7 @@ function serialize(node: Node, depth: number, out: string[]): void {
   }
   if (node.nodeType !== 1) return;
   const el = node as Element;
-  if (isScaffold(el)) { el.childNodes.forEach(child => serialize(child, depth, out)); return; }
+  if (isScaffold(el)) { el.childNodes.forEach(child => { serialize(child, depth, out); }); return; }
   const tag = el.tagName.toLowerCase();
   const pad = '  '.repeat(depth);
   if (VOID.has(tag)) { out.push(`${pad}<${tag}${attrText(el)}>`); return; }
@@ -67,7 +67,7 @@ function serialize(node: Node, depth: number, out: string[]): void {
     return;
   }
   out.push(`${pad}<${tag}${attrText(el)}>`);
-  kids.forEach(child => serialize(child, depth + 1, out));
+  kids.forEach(child => { serialize(child, depth + 1, out); });
   out.push(`${pad}</${tag}>`);
 }
 
@@ -75,7 +75,7 @@ function serialize(node: Node, depth: number, out: string[]): void {
  *  `truncated` is set when the cap cut it short. */
 export function markupOf(stage: Element): { html: string; truncated: boolean } {
   const out: string[] = [];
-  stage.childNodes.forEach(child => serialize(child, 0, out));
+  stage.childNodes.forEach(child => { serialize(child, 0, out); });
   const html = out.join('\n');
   return html.length > MARKUP_CAP
     ? { html: html.slice(0, MARKUP_CAP).replace(/\n[^\n]*$/, '') + '\n…', truncated: true }
@@ -116,7 +116,7 @@ export function importInfo(s: Specimen): ImportInfo {
   const classes = (s.css || '').startsWith('(') ? [] : (s.css || '').split(/,\s*/).map(c => c.trim()).filter(c => c.startsWith('.'));
   return {
     line,
-    stylesheet: path && path.endsWith('.css') ? path : null,
+    stylesheet: path?.endsWith('.css') ? path : null,
     classes,
     call: s.code?.trim() || null,
   };

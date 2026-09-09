@@ -53,6 +53,7 @@ import {
   DEFAULT_PERSPECTIVE, KF_CLAMPS, KF_MAX_BLUR, KF_Z_FIELD_CLAMP,
   type KfTrack, type KfPose, type KfCameraClip, type KfCameraView, type KfMatrix3,
 } from '@lolly/engine';
+import { clamp } from '@lolly/engine';
 
 // ── clamps (mirroring the tool hook + timeline-math, so nothing can disagree) ──
 
@@ -84,8 +85,6 @@ export { DEFAULT_TRANSITION_MS };
  * start hiding real truncation, which is the whole thing this guard exists to catch.
  */
 export const TRUNCATION_TOLERANCE_FRAMES = 2;
-
-const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
 
 // ── depth: the `kf` track and the `z` field, read once and shared ───────────
 

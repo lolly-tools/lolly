@@ -224,7 +224,6 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
       shared.push({ id, lead: col.members[0]!, count: col.members.length });
     }
   }
-  const sharedIds = new Set(shared.map(s => s.id));
   const sharedMembersOf = (id: string): Member[] =>
     members.filter(m => (m.tool.manifest.inputs ?? []).some(i => i.id === id));
 

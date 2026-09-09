@@ -17,7 +17,9 @@ async function archive(): Promise<RevisionArchive> {
 }
 
 test('portable validation retains the current working draft, immutable checkpoint, thumbnail and compacted parent reference', async () => {
-  const value = await validateRevisionArchive(await archive());
+  const saved = await archive(); saved.revisions[0]!.entry.milestone = 'Approved launch';
+  const value = await validateRevisionArchive(saved);
+  assert.equal(value.revisions[0]!.entry.milestone, 'Approved launch');
   assert.equal(value.documents[0]!.state.data.text, 'draft');
   assert.equal(value.revisions[0]!.data.text, 'saved');
   assert.equal(value.revisions[0]!.entry.parentId, 'compacted-parent');
@@ -33,6 +35,7 @@ test('archive validation rejects altered hashes, duplicate identities, missing h
     (value: RevisionArchive) => { value.revisions[0]!.entry.parentId = 'revision'; },
     (value: RevisionArchive) => { value.revisions[0]!.preview = 'data:image/svg+xml,<svg onload="alert(1)"/>'; },
     (value: RevisionArchive) => { value.recoveries[0]!.data.text = 'tampered draft'; },
+    (value: RevisionArchive) => { value.revisions[0]!.entry.milestone = 'x'.repeat(121); },
   ]) {
     const value = await archive(); mutate(value);
     await assert.rejects(validateRevisionArchive(value), /Invalid revision history/);

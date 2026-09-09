@@ -19,8 +19,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { JSDOM } from 'jsdom';
 import type { DecodedPcm, ExtractAudioAssetRecordInput } from './extract-audio.ts';
 
@@ -457,7 +458,8 @@ test('Go ENQUEUES a job and CLOSES the dialog - it never waits on the extraction
 // ── contract: the catalog action is video-only ────────────────────────────────
 
 test('catalog "Extract audio" is gated on ref.type === video', () => {
-  const catalog = readFileSync(fileURLToPath(new URL('../views/catalog.ts', import.meta.url)), 'utf8');
+  const catDir = fileURLToPath(new URL('../views/catalog/', import.meta.url));
+  const catalog = [readFileSync(fileURLToPath(new URL('../views/catalog.ts', import.meta.url)), 'utf8'), ...readdirSync(catDir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(catDir, n), 'utf8'))].join('\n');
   // The gate variable exists and requires the video type.
   const gate = catalog.match(/const canExtractAudio = ([^;]*);/s);
   assert.ok(gate, 'canExtractAudio gate is present');

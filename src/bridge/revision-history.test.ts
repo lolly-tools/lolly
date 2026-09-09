@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { revisionSnapshot, expiredAutomatic, type RevisionEntry } from './revision-history.ts';
+import { revisionSnapshot, type RevisionEntry } from './revision-history.ts';
+import { expiredAutomatic } from './revision-commit.ts';
 import { createMemoryStateAPI } from '../lib/ephemeral-state.ts';
 
 test('canonical snapshots deduplicate key order and resolved asset URLs, preserving authored row identity and order', async () => {

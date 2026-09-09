@@ -21,7 +21,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { JSDOM } from 'jsdom';
@@ -42,7 +42,9 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>');
 (globalThis as { DOMParser?: unknown }).DOMParser = dom.window.DOMParser;
 
 const here = dirname(fileURLToPath(import.meta.url));
-const panelSrc = readFileSync(join(here, '..', 'views', 'timeline-panel.ts'), 'utf8');
+// The panel is an orchestrator plus feature modules under views/timeline-panel/ (2026-09-09 split).
+const panelDir = join(here, '..', 'views', 'timeline-panel');
+const panelSrc = [readFileSync(join(here, '..', 'views', 'timeline-panel.ts'), 'utf8'), ...readdirSync(panelDir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(panelDir, n), 'utf8'))].join('\n');
 
 /** Pull the bars back out of a path `d` so they can be compared as numbers. */
 function bars(d: string): Array<{ x: number; y: number; w: number; h: number }> {

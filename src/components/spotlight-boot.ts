@@ -31,13 +31,15 @@ export const spotlightBootSeams = {
 };
 
 export function initSpotlightBoot(host: unknown): void {
-  let loading: Promise<void> | null = null;
   // The query that triggered the load, so it is answered rather than swallowed.
   // Last one in wins - a fast typist's keystrokes all land before the chunk does.
   let pending: string | null = null;
+  // The in-flight load, so a second keystroke joins it instead of loading the chunk twice.
+  let loading: Promise<void> | null = null;
 
   const load = (): void => {
-    loading ??= spotlightBootSeams.load()
+    if (loading) return;
+    loading = spotlightBootSeams.load()
       .then(m => { m.initSpotlight(host, pending); })
       .catch(err => {
         console.warn('[spotlight] overlay failed to load', err);

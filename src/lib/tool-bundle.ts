@@ -5,6 +5,7 @@ import { currentLang } from '../i18n.ts';
 import { getToolIntegrity } from '../catalog/integrity.ts';
 import { instanceFetch, instancePath } from './instance.ts';
 import { INSTALLED_CACHE, isToolInstalled } from './installed-tools.ts';
+import { looksLikeHtmlDocument, looksLikeHtmlDocumentBytes } from '../bridge/tool-file-guard.ts';
 import { localAssetPaths } from './offline-pins.ts';
 import type { LollyToolBundle, LollyToolTrust } from './lolly-pack.ts';
 const TOOL_TEXT_FILE = /\.(html|css|js|json|ics|vcf|csv|md|txt|svg)$/i;
@@ -38,8 +39,13 @@ export async function resolveToolBundle(
 
   const fetchText = async (path: string): Promise<string> => {
     const response = await instanceFetch(instancePath(`/tools/${path}`));
-    if (!response.ok || ((response.headers.get('content-type') ?? '').includes('text/html') && !path.endsWith('.html'))) throw new Error('tool-not-found');
-    return response.text();
+    if (!response.ok) throw new Error('tool-not-found');
+    const text = await response.text();
+    // The SPA shell served for a missing file is told apart by CONTENT, never the
+    // Content-Type header: Tauri labels unknown-extension text (.md/.ics/.vcf sibling
+    // templates) `text/html`, which would drop them from the bundle (tool-file-guard.ts).
+    if (!path.endsWith('.html') && looksLikeHtmlDocument(text)) throw new Error('tool-not-found');
+    return text;
   };
   // Installed packs already own their complete file set. Carry those exact bytes,
   // including media/fonts that are not named in the receiving catalog envelope.
@@ -66,8 +72,11 @@ export async function resolveToolBundle(
         bytes = new TextEncoder().encode(await fetchText(`${toolId}/${rel}`));
       } else {
         const resp = await instanceFetch(instancePath(`/tools/${toolId}/${rel}`));
-        const ct = resp.headers.get('content-type') ?? '';
-        if (resp.ok && !ct.includes('text/html')) bytes = new Uint8Array(await resp.arrayBuffer());
+        if (resp.ok) {
+          const body = new Uint8Array(await resp.arrayBuffer());
+          // Same content-based SPA-shell check as fetchText, on the bytes.
+          if (rel.endsWith('.html') || !looksLikeHtmlDocumentBytes(body)) bytes = body;
+        }
       }
     } catch {
       bytes = null;

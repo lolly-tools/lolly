@@ -16,6 +16,7 @@
  */
 
 import { colorToHex, rgbToCmyk, cmykToRgbApprox, hexToOklch, oklchToHex, formatOklch } from '@lolly/engine';
+import { clamp } from '@lolly/engine';
 
 export type ColorFormat = 'hex' | 'rgb' | 'rgba' | 'hsl' | 'oklch' | 'cmyk';
 
@@ -36,9 +37,7 @@ export const STORAGE_FORMATS: ReadonlyArray<{ id: StorageFormat; label: string }
   { id: 'hsl', label: 'HSL' },
 ];
 
-export interface Rgba { r: number; g: number; b: number; a: number } // r,g,b 0-255; a 0-1
-
-const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
+export interface Rgba { r: number; g: number; b: number; a: number }
 const h2 = (n: number): string => clamp(Math.round(n), 0, 255).toString(16).padStart(2, '0');
 /** All the numbers in a string, in order (tolerant of commas/labels/parens/%). */
 const nums = (s: string): number[] => (s.match(/-?\d*\.?\d+/g) ?? []).map(Number).filter(n => !Number.isNaN(n));

@@ -122,13 +122,7 @@ html[data-a11y-motion="reduce"] :is(.sound-switch-knob, .sound-switch-track, .so
 .neurospicy { display: flex; flex-direction: column; gap: 9px; margin-top: 9px; transition: opacity .18s ease; }
 /* Sound is the master switch: while it's muted, Neurospicy reads as off + dimmed and can't be
    toggled until sound is turned back on. */
-.neurospicy.is-muted { opacity: .45; pointer-events: none; }
-/* Not a primary-fill button (component audit rec 2 named it as one - stale: it
-   fills with --card/--foreground, a quiet secondary treatment, not --primary/
-   --primary-foreground), so it's left off buttons.css's .btn--primary alias list. */
-.neuro-show-btn { align-self: flex-start; margin-left: 31px; padding: 5px 12px; border-radius: var(--radius); border: 1px solid hsl(var(--border)); background: hsl(var(--card)); color: hsl(var(--foreground)); font-size: .82rem; font-weight: 600; cursor: pointer; }
-.neuro-show-btn:hover { background: hsl(var(--muted)); }
-.neuro-show-btn:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }`;
+.neurospicy.is-muted { opacity: .45; pointer-events: none; }`;
 function ensureSoundSwitchStyles(): void {
   if (typeof document === 'undefined' || document.getElementById(SWITCH_STYLE_ID)) return;
   const style = document.createElement('style');

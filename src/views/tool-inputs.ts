@@ -20,15 +20,15 @@ import {
   bakeAssetRef,
   parseColor,
   colorToHexString,
-  normalizeTableValue,
-  looksLikeTable,
-  parseTableText,
   toTsv,
   toHtmlTable,
   readXlsx,
 } from '@lolly/engine';
 import type { TableValue } from '@lolly/engine';
-import { tableBodyCellHtml, tableColumnEditor, wantsGhostRow } from './table-cells.ts';
+import { tableBodyCellHtml, tableColumnEditor } from './table-cells.ts';
+import { tableInputHtml } from './table-input-html.ts';
+import { readTableCells, wireTableEnter, wireTableRowMoves } from './table-input-dom.ts';
+import { inputTableValue, inheritTableSources, tableInputValue, parseInputTable } from './block-table.ts';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 import { escape } from '../utils.js';
 import { t } from '../i18n.ts';
@@ -1509,36 +1509,18 @@ function renderInputs(
     // the same read()/commit() below.
     const vgrid = wrap.querySelector<HTMLElement>('[data-table-vgrid]');
     let gridHandle: import('../components/data-grid.ts').DataGridHandle | null = null;
-    const modelValue = (): TableValue =>
-      normalizeTableValue(runtime.getModel().find((i) => i.id === tid)?.value) ?? {
-        columns: [],
-        rows: [],
-      };
-    const read = (): TableValue =>
+    const tableInput = () => runtime.getModel().find(i => i.id === tid)!;
+    const fixed = tableInput().type === 'blocks';
+    const modelValue = (): TableValue => inputTableValue(tableInput());
+    const read = (): TableValue => inheritTableSources(
       gridHandle
         ? gridHandle.getValue()
         : vgrid
           ? modelValue() // grid not mounted yet - never read the empty DOM
-          : {
-              columns: [...wrap.querySelectorAll<HTMLInputElement>('thead .table-cell')].map(
-                (h) => h.value
-              ),
-              // The placeholder row joins the value the moment any of its cells has
-              // content; until then it is display-only and dropped here.
-              rows: [...wrap.querySelectorAll('tbody tr')]
-                .filter(
-                  (tr) =>
-                    !tr.hasAttribute('data-table-ghost') ||
-                    [...tr.querySelectorAll<HTMLInputElement>('.table-cell')].some(
-                      (c) => c.value.trim() !== ''
-                    )
-                )
-                .map((tr) =>
-                  [...tr.querySelectorAll<HTMLInputElement>('.table-cell')].map((c) => c.value)
-                ),
-            };
+          : readTableCells(wrap), modelValue());
+    const tableValue = (t: TableValue) => tableInputValue(tableInput(), t, () => newBlockRow(tableInput()));
     const commit = (t: TableValue): void => {
-      void runtime.setInput(tid, t);
+      void runtime.setInput(tid, tableValue(t));
       onDirty?.(tid);
     };
 
@@ -1550,7 +1532,11 @@ function renderInputs(
         gridHandle = mountDataGrid(vgrid, {
           value: modelValue(),
           editable: true,
-          onChange: (next) => {
+          fixedColumns: fixed,
+          onChange: (next, change) => {
+            const previous = modelValue();
+            if (change?.deletedRow !== undefined) previous.rows.splice(change.deletedRow, 1);
+            inheritTableSources(next, previous);
             const vp = vgrid.querySelector<HTMLElement>('.dg-viewport');
             if (vp) tableGridScroll.set(tid, vp.scrollTop);
             commit(next);
@@ -1615,6 +1601,7 @@ function renderInputs(
       };
       const wireCells = (root: ParentNode): void => {
         root.querySelectorAll<HTMLInputElement>('.table-cell').forEach((cell) => {
+          if (fixed) wireTableEnter(cell, wrap, tid);
           cell.addEventListener('input', () => {
             maybePromote(cell);
             commit(read());
@@ -1653,7 +1640,7 @@ function renderInputs(
       t.rows.push(t.columns.map(() => ''));
       // Land the caret in the new row's first cell once the rebuilt markup exists.
       void runtime
-        .setInput(tid, t)
+        .setInput(tid, tableValue(t))
         .then(() =>
           requestAnimationFrame(() =>
             el
@@ -1677,6 +1664,7 @@ function renderInputs(
         commit(t);
       })
     );
+    wireTableRowMoves(wrap, read, commit);
     wrap.querySelectorAll<HTMLButtonElement>('[data-table-del-col]').forEach((btn) =>
       btn.addEventListener('click', () => {
         const t = read();
@@ -1695,10 +1683,12 @@ function renderInputs(
     const onTablePaste = (e: ClipboardEvent): void => {
       const tsvFromHtml = htmlTableToTsv(e.clipboardData?.getData('text/html') ?? '');
       const text = tsvFromHtml || e.clipboardData?.getData('text/plain') || '';
-      if (!tsvFromHtml && !looksLikeTable(text)) return;
-      const parsed = parseTableText(text);
+      const parsed = parseInputTable(text, tableInput());
       if (!parsed) return;
       e.preventDefault();
+      // Pasting replaces the grid's shape. End cell editing so the panel can
+      // rebuild now; otherwise the next row action reads the old visible cells.
+      wrap.querySelector<HTMLElement>(':focus')?.blur();
       commit(parsed);
       announce(`Table replaced: ${parsed.rows.length} rows, ${parsed.columns.length} columns`);
     };
@@ -1713,7 +1703,7 @@ function renderInputs(
     wrap.querySelector('[data-table-paste]')?.addEventListener('click', async () => {
       try {
         const text = await navigator.clipboard.readText();
-        const parsed = looksLikeTable(text) ? parseTableText(text) : null;
+        const parsed = parseInputTable(text, tableInput());
         if (parsed) {
           commit(parsed);
           announce(`Table replaced: ${parsed.rows.length} rows, ${parsed.columns.length} columns`);
@@ -1734,6 +1724,8 @@ function renderInputs(
         const inp = panelModel.find((i) => i.id === tid);
         const panel = popOut(wrap, {
           title: inp?.label ?? 'Table',
+          initialSize: { width: Math.min(1100, modelValue().columns.length * 128 + 72),
+            height: Math.min(640, modelValue().rows.length * 32 + 160) },
           // Inside the tool layout, not <body>: the wiring above queries the
           // wrapper through this view's root, and fixed-position still floats
           // here (no transform/filter ancestor between it and the viewport).
@@ -2745,12 +2737,6 @@ function attachedControlHtml(input: InputModelItem): string {
 // survives the sidebar rebuilds that replace its wrapper (see the table wiring).
 const tablePops = new Map<string, import('../lib/float-panel.ts').FloatPanel>();
 
-// Past this row count a `table` input renders the VIRTUALIZED data-grid instead of a
-// full <table> of live cells - the plain-text-cell case the shared grid is built for
-// (plan 89). Below it, the existing <table> is byte-identical (battlecards is 5×4, so
-// every hand-authored table stays on the old path). The threshold is generous: real
-// pasted data crosses it, hand-entered tables don't.
-const TABLE_VIRTUALIZE_ROWS = 50;
 // Scroll offset per virtualized table input, kept across the commit→rebuild→remount
 // cycle so a cell edit doesn't fling the grid back to the top.
 const tableGridScroll = new Map<string, number>();
@@ -3092,94 +3078,7 @@ function controlHtml(
       return `<div class="time-input-wrap"><input type="time" data-input-id="${id}" value="${val}"></div>`;
     case 'datetime-local-input':
       return `<input type="text" class="fp-datetime" data-input-id="${id}" data-fp-value="${val}" placeholder="Live - current time" readonly>`;
-    case 'table': {
-      // A user-defined grid: columns AND rows are data (unlike blocks, whose
-      // fields come from the manifest). Cells carry data-field-id so typing
-      // defers the panel rebuild (isEditingBlockField) and focus survives the
-      // eventual repaint; the ':t:' segment keeps them out of the blocks
-      // field handler, which skips anything inside .table-input.
-      const t = normalizeTableValue(input.value) ?? { columns: [], rows: [] };
-      const cellAttrs = (r: number, c: number): string => `data-field-id="${id}:t:${r}:${c}"`;
-      const head = t.columns
-        .map(
-          (c, ci) => `<th>
-          <input class="table-cell table-cell--head" ${cellAttrs(-1, ci)} value="${escape(c)}" aria-label="Column ${ci + 1} heading">
-          <button type="button" class="table-del-col" data-table-del-col="${ci}" aria-label="Remove column ${escape(c || String(ci + 1))}">&#x2715;</button>
-        </th>`
-        )
-        .join('');
-      // Per-column editors (manifest `columnEditors`, matched to columns by
-      // position). Presentation only: whichever editor writes a cell, the stored
-      // value is the same plain string, so URL mode and the CLI never see this.
-      const body = t.rows
-        .map(
-          (row, ri) =>
-            `<tr>${row
-              .map((cell, ci) =>
-                tableBodyCellHtml(
-                  cell,
-                  ri,
-                  ci,
-                  t.columns,
-                  tableColumnEditor(input.columnEditors, ci),
-                  `${input.id}:t:${ri}:${ci}`
-                )
-              )
-              .join(
-                ''
-              )}<td class="table-rowctl"><button type="button" class="table-del-row" data-table-del-row="${ri}" aria-label="Remove row ${ri + 1}">&#x2715;</button></td></tr>`
-        )
-        .join('');
-      // A blank placeholder row always waits below the filled rows (and IS the
-      // first row of an empty table). It renders past the value at the next row
-      // index, so when typing makes it real the rebuilt cell keeps the same
-      // data-field-id and the caret survives. read() in the wiring pass skips it
-      // while every cell is empty, so an untouched placeholder never reaches the
-      // value or the share link. No delete button - there is nothing to remove.
-      const ghost = wantsGhostRow(t.rows)
-        ? `<tr data-table-ghost>${t.columns
-            .map((_c, ci) =>
-              tableBodyCellHtml(
-                '',
-                t.rows.length,
-                ci,
-                t.columns,
-                tableColumnEditor(input.columnEditors, ci),
-                `${input.id}:t:${t.rows.length}:${ci}`
-              )
-            )
-            .join('')}<td class="table-rowctl"></td></tr>`
-        : '';
-      // Past the threshold, a big table renders the virtualized data-grid (mounted in
-      // the wiring pass below) instead of a full <table> of live cells - same
-      // TableValue contract, so the toolbar/paste/copy/pop all keep working. Small
-      // tables keep the exact existing <table> (per-cell textareas, del-row/col ×).
-      const grid = !t.columns.length
-        ? `<p class="table-empty-hint">Paste a table copied from your spreadsheet, doc, or chat - or start one below.</p>`
-        : t.rows.length > TABLE_VIRTUALIZE_ROWS
-          ? `<div class="table-vgrid" data-table-vgrid></div>`
-          : `<div class="table-scroll"><table class="table-grid">
-            <thead><tr>${head}<th class="table-rowctl"></th></tr></thead><tbody>${body}${ghost}</tbody></table></div>`;
-      // The pop-out sits at the grid's top-right corner, not in the toolbar
-      // below: it acts on the TABLE, and in a sidebar that toolbar can be a long
-      // scroll away from the header you were reading when you decided the grid
-      // was too cramped. Its own bar rather than an overlay on the corner cell -
-      // the last column's remove-× already lives there.
-      return `<div class="table-input" data-table-id="${id}" data-column-editors="${(input.columnEditors ?? []).join(',')}">
-        <div class="table-headbar">
-          <button type="button" class="table-pop" data-table-pop title="Pop out into a floating window" aria-label="Pop out into a floating window">&#x2922;</button>
-        </div>
-        ${grid}
-        <div class="table-toolbar">
-          <button type="button" class="table-btn" data-table-add-row${t.columns.length ? '' : ' disabled'}>+ Row</button>
-          <button type="button" class="table-btn" data-table-add-col>+ Column</button>
-          <span class="table-toolbar-gap"></span>
-          <button type="button" class="table-btn" data-table-paste title="Replace with the table on your clipboard">Paste</button>
-          <button type="button" class="table-btn" data-table-copy${t.rows.length ? '' : ' disabled'} title="Copy as a table for Sheets, Docs, Slack&#8230;">Copy</button>
-        </div>
-        ${t.rows.length ? `<p class="table-count">${t.rows.length} row${t.rows.length === 1 ? '' : 's'} &middot; ${t.columns.length} column${t.columns.length === 1 ? '' : 's'}</p>` : ''}
-      </div>`;
-    }
+    case 'table': return tableInputHtml(input);
     case 'blocks': {
       const items = Array.isArray(input.value) ? input.value : [];
       const fields = input.fields ?? [];

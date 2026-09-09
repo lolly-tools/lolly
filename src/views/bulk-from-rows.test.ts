@@ -22,7 +22,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { canBatchTool } from '../capabilities.ts';
@@ -48,8 +48,9 @@ const read = (rel: string): string => stripComments(readFileSync(join(HERE, rel)
 
 const MAIN = read('../main.ts');
 const PRO = read('../pro/index.ts');
-const TOOL = read('./tool.ts');
-const CANVAS = read('./free-canvas.ts');
+// tool.ts is an orchestrator plus feature modules under tool/ (2026-09-09 split)
+const TOOL = [read('./tool.ts'), ...readdirSync(join(HERE, 'tool')).filter((n) => n.endsWith('.ts')).sort().map((n) => read(`./tool/${n}`))].join('\n');
+const CANVAS = [read('./free-canvas.ts'), ...readdirSync(join(HERE, 'free-canvas')).filter((n) => n.endsWith('.ts')).sort().map((n) => read(`./free-canvas/${n}`))].join('\n');
 
 test('the tool view mints #/batch?tool=<id> and main.ts reads that exact param', () => {
   const minted = TOOL.match(/#\/batch\?(\w+)=\$\{encodeURIComponent\(toolId\)\}/);
@@ -112,13 +113,13 @@ test('the gate matches what /batch will actually admit', () => {
 });
 
 test('every tool layout can reach it: the sidebar header button and the Lolly menu item', () => {
-  assert.match(TOOL, /const canBulk = canBatchTool\(tool\.manifest, host\.capabilities\);/,
+  assert.match(TOOL, /const canBulk = canBatchTool\((?:tview\.)?tool\.manifest, (?:tview\.)?host\.capabilities\);/,
     'the tool view must gate on the shared canBatchTool, not a restated copy');
 
   // Home 1 - the standard sidebar layouts, beside "Make variants".
   assert.match(TOOL, /id="bulk-rows-btn"/, 'the sidebar header must render the Bulk button');
   assert.match(TOOL, /\$\{canBulk \? `<button[^`]*id="bulk-rows-btn"/, 'the button must be gated on canBulk');
-  assert.match(TOOL, /#bulk-rows-btn'\)\?\.addEventListener\('click', openBulk\)/,
+  assert.match(TOOL, /#bulk-rows-btn'\)\?\.addEventListener\('click', (?:tview\.\w+\.)?openBulk\)/,
     'the sidebar button must be wired to openBulk');
   // It reuses the neighbouring control's class, so it needs no stylesheet of its own.
   assert.match(TOOL, /class="multi-edit-btn" id="bulk-rows-btn"/,
@@ -127,7 +128,7 @@ test('every tool layout can reach it: the sidebar header button and the Lolly me
   // Home 2 - the chromeless editors, which have no sidebar header at all. The MENU
   // half is a real behavioural test (free-canvas-rail.test.ts, on the jsdom harness);
   // all that is left to pin here is that the view hands the action over.
-  assert.match(TOOL, /bulk:\s*canBulk\s*\?\s*\(\)\s*=>\s*\{\s*openBulk\(\);\s*\}\s*:\s*undefined/,
+  assert.match(TOOL, /bulk:\s*(?:tview\.)?canBulk\s*\?\s*\(\)\s*=>\s*\{\s*(?:tview\.\w+\.)?openBulk\(\);\s*\}\s*:\s*undefined/,
     'the editor rail must be handed the same action');
   assert.match(CANVAS, /bulk\?\(\): void;/, 'ToolbarActions must declare the optional bulk action');
 });
@@ -138,7 +139,7 @@ test('unsaved single-tool work is offered a save before the batch takes over', (
   // latest edits went out as an export counts as resolved, not unsaved (audit 167
   // F-A2 - exportedSinceEdit), so the guard stands down for it too.
   const fn = TOOL.slice(TOOL.indexOf('const openBulk'), TOOL.indexOf('const openBulk') + 700);
-  assert.match(fn, /if \(!hasInputs \|\| !userHasMadeChanges \|\| exportedSinceEdit\)\s*\{\s*go\(\);\s*return;\s*\}/,
+  assert.match(fn, /if \(!(?:tview\.)?hasInputs \|\| !(?:tview\.)?userHasMadeChanges \|\| (?:tview\.)?exportedSinceEdit\)\s*\{\s*go\(\);\s*return;\s*\}/,
     'a clean or export-resolved session leaves straight away');
   assert.match(fn, /showUnsavedDialog\(/, 'a dirty session gets the shared unsaved dialog');
 });

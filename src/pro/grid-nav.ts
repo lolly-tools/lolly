@@ -1,3 +1,4 @@
+import { clamp } from '@lolly/engine';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Pro / Batch mode - spreadsheet-style keyboard navigation for the grid.
@@ -327,8 +328,6 @@ function isTextLike(c: HTMLElement | null): c is HTMLInputElement | HTMLTextArea
   if (c.tagName === 'INPUT') return ['text', 'number', 'url'].includes((c as HTMLInputElement).type);
   return false;
 }
-
-const clamp = (n: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, n));
 
 // Escape a value for safe use inside an attribute selector.
 const cssAttr = (s: string | null | undefined): string => String(s).replace(/["\\]/g, '\\$&');

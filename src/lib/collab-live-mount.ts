@@ -257,7 +257,7 @@ let unregisterSource: (() => void) | null = null;
  * At most one, dropped whenever the plan it belongs to is (a carry with no remount
  * coming is just a reference to a model nobody will read).
  */
-interface CarriedMountState {
+export interface CarriedMountState {
   readonly toolId: string;
   /** The saved-session slot the outgoing mount was on, or `null`. `syncUrl` never
    *  re-adds `slot` to the bar, so without this a collab started from a resumed

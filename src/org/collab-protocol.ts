@@ -596,19 +596,19 @@ export function docStateToOps(state: WireDocState | null | undefined, origin: Op
  * write the SAME register.
  */
 export function opKeys(op: CanvasOp): string[] {
-  if (op.k === 'param') return [`p ${op.key}`];
-  const box = `${op.col ?? ''} ${op.id}`;
+  if (op.k === 'param') return [`p\u0000${op.key}`];
+  const box = `${op.col ?? ''}\u0000${op.id}`;
   switch (op.k) {
     case 'field':
-      return [`f ${box} ${op.field}`];
+      return [`f\u0000${box}\u0000${op.field}`];
     case 'geom':
-      return Object.keys(op.fields).map((f) => `f ${box} ${f}`);
+      return Object.keys(op.fields).map((f) => `f\u0000${box}\u0000${f}`);
     case 'order':
-      return [`o ${box}`];
+      return [`o\u0000${box}`];
     case 'remove':
-      return [`m ${box}`];
+      return [`m\u0000${box}`];
     default:
-      return [`m ${box}`, `o ${box}`, ...Object.keys(op.row).map((f) => `f ${box} ${f}`)];
+      return [`m\u0000${box}`, `o\u0000${box}`, ...Object.keys(op.row).map((f) => `f\u0000${box}\u0000${f}`)];
   }
 }
 
@@ -640,11 +640,11 @@ export function withoutHeldKeys(op: CanvasOp, held: ReadonlyMap<string, CanvasOp
     case 'remove':
       return first !== undefined && held.has(first) ? null : op;
     case 'geom': {
-      const box = `${op.col ?? ''} ${op.id}`;
+      const box = `${op.col ?? ''}\u0000${op.id}`;
       const fields: Partial<Record<GeometryField, number>> = {};
       let kept = false;
       for (const field of Object.keys(op.fields)) {
-        if (held.has(`f ${box} ${field}`)) continue;
+        if (held.has(`f\u0000${box}\u0000${field}`)) continue;
         const v = op.fields[field as GeometryField];
         if (v === undefined) continue;
         fields[field as GeometryField] = v;
@@ -657,15 +657,15 @@ export function withoutHeldKeys(op: CanvasOp, held: ReadonlyMap<string, CanvasOp
       // whether the row exists at all, so the seed must not restate it. Otherwise
       // the seed keeps membership but yields the paint-order key to a pending
       // order/add of ours, which would otherwise lose to the watermark forever.
-      const box = `${op.col ?? ''} ${op.id}`;
-      if (held.has(`m ${box}`)) return null;
-      const pending = held.get(`o ${box}`);
+      const box = `${op.col ?? ''}\u0000${op.id}`;
+      if (held.has(`m\u0000${box}`)) return null;
+      const pending = held.get(`o\u0000${box}`);
       const orderKey = pending && (pending.k === 'order' || pending.k === 'add')
         ? pending.orderKey
         : op.orderKey;
       const row: BoxRow = {};
       for (const field of Object.keys(op.row)) {
-        if (held.has(`f ${box} ${field}`)) continue;
+        if (held.has(`f\u0000${box}\u0000${field}`)) continue;
         row[field] = op.row[field] as Scalar;
       }
       return { ...op, row, orderKey };
@@ -676,5 +676,5 @@ export function withoutHeldKeys(op: CanvasOp, held: ReadonlyMap<string, CanvasOp
 /** The `(client, clock)` pair the gateway dedups on - one gesture's ops all share it,
  *  so it identifies a BATCH, which is exactly the granularity an ack arrives at. */
 export function originKey(origin: OpOrigin): string {
-  return `${origin.client} ${origin.clock}`;
+  return `${origin.client}\u0000${origin.clock}`;
 }

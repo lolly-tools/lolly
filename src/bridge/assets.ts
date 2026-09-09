@@ -334,10 +334,13 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const { baseId: treatedBase, treatment } = parseTreatedAssetId(id);
       const baseId = theme ? themedBase : treatedBase;
 
-      const meta = await db.get('asset-meta', baseId);
-      if (!meta) throw new Error(`Asset not in catalog: ${id}`);
+      const currentMeta = await db.get('asset-meta', baseId);
+      if (!currentMeta) throw new Error(`Asset not in catalog: ${id}`);
+      const historical = opts.version !== undefined && opts.version !== currentMeta.version;
+      const meta = historical ? { ...currentMeta, version: opts.version!, checksum: undefined } : currentMeta;
 
       const format = pickFormat(meta, opts.format);
+      if (opts.format && format.format !== opts.format) throw new Error(`Asset format unavailable: ${id} (${opts.format})`);
       const version = opts.version ?? meta.version;
       const blobKey = `${baseId}:${format.format}:${version}`;
       // durationMs is authored on the FORMAT entry (beside width/height) but
@@ -363,6 +366,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const loadBlob = async (): Promise<Blob> => {
         let blob = await db.get('asset-blob', blobKey);
         if (!blob) {
+          if (historical) throw new Error(`Asset version unavailable: ${id} (${version})`);
           if (meta.tier === 'on-demand') {
             blob = await fetchAndCache(meta, format, blobKey, db);
           } else {
@@ -634,8 +638,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     /** Internal: one stored user-asset record (type/format/meta/version/blob) by
      *  id, or null. The copy-on-write preserver needs the RECORD, not just the
      *  blob, to write a faithful frozen copy of what it is about to lose. */
-    async _getUserRecord(id: string): Promise<UserAssetRecord | null> {
-      return (await db.get('user-assets', id)) ?? null;
+    async _getUserRecord(id: string, version?: string): Promise<UserAssetRecord | null> {
+      return (await (await assetHistory()).readUserAssetVersion(db, id, version)) as UserAssetRecord | null;
     },
 
     async _listUserAssetVersions(id: string) {
@@ -749,7 +753,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       // Read the record first: the deletion event below carries its type so
       // listeners can react without re-querying a store the record just left.
       const rec = await db.get('user-assets', id).catch(() => undefined) as { type?: string } | undefined;
-      await db.delete('user-assets', id);
+      await (await assetHistory()).deleteUserAsset(db, id);
       // toAssetRef keys user URLs as `user:<id>:<format>:<version>` - evict any.
       evictObjectUrlsByPrefix(`user:${id}:`);
       // The AI-kind memo is keyed by id; the bytes are gone, so its verdict must not linger to
@@ -918,10 +922,11 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const meta = await db.get('asset-meta', id);
       if (!meta) return null;
       const format = pickFormat(meta, opts.format);
+      if (opts.format && format.format !== opts.format) return null;
       const version = opts.version ?? meta.version;
       const blobKey = `${id}:${format.format}:${version}`;
       let blob = await db.get('asset-blob', blobKey);
-      if (!blob && meta.tier === 'on-demand') {
+      if (!blob && version === meta.version && meta.tier === 'on-demand') {
         blob = await fetchAndCache(meta, format, blobKey, db);
       }
       return blob ?? null;

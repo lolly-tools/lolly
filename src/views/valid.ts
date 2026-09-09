@@ -53,8 +53,7 @@ import { mountProfileFab } from '../components/profile-menu.ts';
 // The pure verdict/scorecard model - no DOM, no CSS import, so it's importable (and
 // tested) standalone. See valid-verdict.ts's header for why this lives apart from the
 // rendering below.
-import {
-  isExpiredOnly, isExpectedRow, pipStatusWord, scorecardModel, resolveState, sourceTypeLabel,
+import {isExpectedRow, pipStatusWord, scorecardModel, resolveState, sourceTypeLabel,
   stateTone, STATE_COPY, hashFailed,
 } from './valid-verdict.ts';
 import type { Check, SignerIdentity, Signer, Claim, VerifyReport, Watermark, ScorecardItem } from './valid-verdict.ts';
@@ -3823,7 +3822,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
     if (span) span.textContent = t('Adding…');
     try {
       const { storeUserUpload } = await import('./picker.ts');
-      const ref = await storeUserUpload(host as unknown as Parameters<typeof storeUserUpload>[0], file);
+      await storeUserUpload(host as unknown as Parameters<typeof storeUserUpload>[0], file);
       announce(tRaw('"{name}" is in your catalogue, findings attached.', { name: file.name }));
       if (span) span.textContent = t('Kept - see your catalogue');
     } catch {

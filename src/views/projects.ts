@@ -47,6 +47,7 @@ import { playProjectsAah, cancelArrivalAah } from '../lib/sfx.ts';
 import { mountFeaturedRow } from '../components/featured-row.ts';
 import type { FeaturedEntry, FeaturedRowHandle, FeaturedViewMode } from '../components/featured-row.ts';
 import { viewTopbarHtml, mountViewTopbar } from '../components/view-topbar.ts';
+import { projectsTopRight } from './projects-topbar.ts';
 import { claimSearchBar, clearSearchBar } from '../components/search-bar.ts';
 import {
   RETURN_KEY, armSessionReturn, sessionOpenHref,
@@ -176,7 +177,6 @@ const RENDER_ICON = icon('play');
 // "history" (clock-rewind) - matches the gallery's saved-sessions button.
 // "sliders-horizontal" - the gallery's filter/view-options button, reused here for
 // view mode (preview/list) + sort.
-const FILTER_ICON = icon('filterLines');
 // Context-menu glyphs (lucide house style). None of these existed in the codebase.
 const OPEN_ICON = icon('externalLink', { strokeWidth: 1.9 });
 const EDIT_ICON = icon('pen', { strokeWidth: 1.9 });
@@ -912,17 +912,6 @@ export async function mountProjects(
       </div>`;
   }
 
-  // Projects' own trigger button in the shared top bar's `right` slot: view/sort
-  // options. The rest of the cluster - language FAB and profile pill - is the
-  // shared chrome (components/view-topbar.ts), same as Tools and Catalog. (No
-  // tool filters here - they're meaningless for projects; the old history fab
-  // retired with the folder-overlay mount, plans/133 WP-10.)
-  function topRightSlot(): string {
-    return `
-        <button type="button" class="filter-fab projects-viewopts" aria-label="${escape(t('View and sort options'))}" aria-haspopup="true" title="${escape(t('View & sort'))}">${FILTER_ICON}</button>
-        `;
-  }
-
   /** The "Batch" button that leads to the grid (moved off the shared bottom bar,
    *  Andy 2026-08-26 - a batch is a Projects-scoped action). Rendered in the Projects
    *  content header of BOTH the root and folder views. Carries the current REAL folder
@@ -943,7 +932,7 @@ export async function mountProjects(
       <div class="projects${inFolder ? ' projects--folder' : ''}${query ? ' projects--searching' : ''}">
         ${viewTopbarHtml({
           active,
-          right: topRightSlot(),
+          right: projectsTopRight(folderId && folderId !== UNCAT ? folderId : null),
           // No view-specific class on the cluster: the old `.projects-topright` marker
           // this markup used to carry had no CSS rule and no selector anywhere in the
           // repo, so it went out with the hand-rolled copy.

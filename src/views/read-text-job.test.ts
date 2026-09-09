@@ -25,11 +25,12 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const read = (rel: string): string => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
-const CATALOG = read('./catalog.ts');
+// catalog is an orchestrator plus feature modules under ./catalog/ (2026-09-09 split)
+const CATALOG = [read('./catalog.ts'), ...readdirSync(new URL('./catalog/', import.meta.url)).filter((n) => n.endsWith('.ts')).sort().map((n) => read(`./catalog/${n}`))].join('\n');
 const VALID = read('./valid.ts');
 
 /** The `read-text` action's whole handler body, from its guard to the next action. */
@@ -94,7 +95,7 @@ test('the catalogue read has no finally-block writing to a possibly-detached but
   const cat = catalogReadTextBlock();
   assert.doesNotMatch(cat, /\}\s*finally\s*\{/,
     'the finally that restored a detached (or a NEWLY PAGED) modal\'s button is gone');
-  assert.match(cat, /const alive = \(\): boolean => detailsDialog === dlg;/,
+  assert.match(cat, /const alive = \(\): boolean => (?:cat\.)?detailsDialog === dlg;/,
     'liveness is "is THIS modal still the open one", not "is something open"');
   assert.match(cat, /const restore = \(\): void => \{\s*\n\s*if \(!alive\(\)\) return;/,
     'the button restore returns early when the modal has moved on');
@@ -116,12 +117,12 @@ test('the checker read guards its paints on the result element still being in th
 
 test('the catalogue read persists its AI-signals verdict whether or not the modal is open', () => {
   const cat = catalogReadTextBlock();
-  assert.match(cat, /await persistAiSignals\(ref, panel, 'ocr'\);/, 'the verdict is still written');
+  assert.match(cat, /await (?:cat\.\w+\.)?persistAiSignals\(ref, panel, 'ocr'\);/, 'the verdict is still written');
   // Structural: the persist call is a SIBLING of the `if (alive())` branch, not a
   // child of it. Nested inside, a read whose modal had closed would be thrown away -
   // which is the whole bug this conversion fixes.
   assert.equal(
-    indentOf(cat, "await persistAiSignals(ref, panel, 'ocr');"),
+    indentOf(cat, /await (?:cat\.\w+\.)?persistAiSignals\(ref, panel, 'ocr'\);/.exec(cat)?.[0] ?? ''),
     indentOf(cat, 'if (alive()) {'),
     'persistAiSignals must sit OUTSIDE the alive() branch - it is the durable half of the read',
   );

@@ -769,6 +769,9 @@ export default defineConfig({
             // (the same trap the engine-bytes note above records). Must precede
             // engine-render: the first matching group wins.
             { name: 'core-apis', test: /packages\/core\/src\/host-v1\/apis\.ts$/, minSize: 0, minShareCount: 1 },
+            // The saved-state dependency walk and lazy runtime both use version
+            // pins. Keep this pure identity codec out of the render chunk.
+            { name: 'engine-asset-version', test: /engine\/src\/asset-version\.ts$/, minSize: 0, minShareCount: 1 },
             { name: 'engine-render', test: /engine\/src\/(runtime|template|loader|validate)\.ts$/, minSize: 0, minShareCount: 1 },
           ],
         },

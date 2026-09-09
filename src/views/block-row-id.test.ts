@@ -27,12 +27,14 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const SRC = readFileSync(resolve(import.meta.dirname, 'tool-inputs.ts'), 'utf8');
-const TOOL_SRC = readFileSync(resolve(import.meta.dirname, 'tool.ts'), 'utf8');
-const CANVAS_SRC = readFileSync(resolve(import.meta.dirname, 'free-canvas.ts'), 'utf8');
+// both views are an orchestrator plus feature modules under a dir of the same name (2026-09-09 split)
+const featureSrc = (view: string): string => [readFileSync(resolve(import.meta.dirname, `${view}.ts`), 'utf8'), ...readdirSync(resolve(import.meta.dirname, view)).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(resolve(import.meta.dirname, view, n), 'utf8'))].join('\n');
+const TOOL_SRC = featureSrc('tool');
+const CANVAS_SRC = featureSrc('free-canvas');
 
 test('blockFieldDefault is called only by newBlockRow - no hand-rolled row anywhere', () => {
   const calls = SRC.match(/(?<!function )blockFieldDefault\(/g) ?? [];
@@ -46,7 +48,7 @@ test('blockFieldDefault is called only by newBlockRow - no hand-rolled row anywh
 test('a new row gets its id from the ONE shared rowIdField', () => {
   assert.match(SRC, /row\[rowIdField\(inp\)\] = ulid\(\);/,
     'newBlockRow stamps the id field this input keys on');
-  assert.match(SRC, /import \{[^}]*\browIdField\b[^}]*\} from '\.\.\/lib\/row-id\.ts';/,
+  assert.match(SRC, /import \{[^}]*\browIdField\b[^}]*\} from '(?:\.\.\/)+lib\/row-id\.ts';/,
     'and takes that field name from lib/row-id.ts - a second local copy could drift, '
     + 'and a row minted under one name but addressed under another resolves to nothing');
   assert.equal(/function rowIdField\(/.test(SRC), false, 'no local re-definition');
@@ -57,7 +59,7 @@ test('the legacy migration runs at MOUNT, never from the panel renderer (/multi 
   // writes fanned to every sibling), so a migration there is silent data loss.
   assert.equal(/\b(ensureRowIds|migrateBlockRowIds)\(/.test(SRC), false,
     'tool-inputs.ts must not migrate rows - see this file\'s header');
-  assert.match(TOOL_SRC, /import \{[^}]*\bmigrateBlockRowIds\b[^}]*\} from '\.\.\/lib\/row-id\.ts';/);
+  assert.match(TOOL_SRC, /import \{[^}]*\bmigrateBlockRowIds\b[^}]*\} from '(?:\.\.\/)+lib\/row-id\.ts';/);
   assert.match(TOOL_SRC, /void migrateBlockRowIds\(runtime\);/,
     'mountTool owns the migration for the one session it mounted');
 });
@@ -71,7 +73,7 @@ test('neither migration records an undo step (setInputNoHistory / applyPatch)', 
   // commit - `let next = withIds(loaded)`, then `if (frameCfg) next = assignFrames(...)`,
   // then commits through `quiet` (the setInputNoHistory alias). Bound the block at the
   // trailing renderChrome() so the assertions don't depend on a fixed char window.
-  const mStart = CANVAS_SRC.indexOf('let next = withIds(loaded);');
+  const mStart = CANVAS_SRC.search(/let next = (?:fc\.\w+\.)?withIds\((?:fc, )?loaded\);/);
   const migration = CANVAS_SRC.slice(mStart, CANVAS_SRC.indexOf('renderChrome();', mStart));
   assert.match(migration, /setInputNoHistory/,
     'free-canvas\'s load-time migration uses the history-free setter');

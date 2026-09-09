@@ -2,13 +2,13 @@
 /** Safe, static design fixtures for components whose real mount needs a host,
  * camera, saved project or overlay lifecycle. The library labels these as
  * fixtures; these never claim to run the corresponding application workflow. */
-import { escape } from '../utils.ts';
+import { escape as escapeHtml } from '../utils.ts';
 import { icon } from '../lib/icons.ts';
 import type { Specimen } from './components-data.ts';
 
-const button = (label: string, primary = false): string => `<button type="button" class="btn${primary ? ' btn--primary' : ''}">${escape(label)}</button>`;
+const button = (label: string, primary = false): string => `<button type="button" class="btn${primary ? ' btn--primary' : ''}">${escapeHtml(label)}</button>`;
 const row = (...items: string[]): string => `<div class="cl-fixture-row">${items.join('')}</div>`;
-const panel = (title: string, body: string): string => `<div class="cl-fixture-panel"><h4>${escape(title)}</h4>${body}</div>`;
+const panel = (title: string, body: string): string => `<div class="cl-fixture-panel"><h4>${escapeHtml(title)}</h4>${body}</div>`;
 const tiles = (): string => row(...['Launch kit', 'Social post', 'Presentation'].map((name, i) => `<div class="cl-fixture-tile${i === 0 ? ' is-selected' : ''}"><span class="cl-fixture-art">${['Aa', '↗', '◎'][i]}</span><span>${name}</span></div>`));
 const menu = (): string => `<div class="cl-fixture-menu">${['Open', 'Duplicate', 'Move to folder', 'Delete'].map(x => button(x)).join('')}</div>`;
 

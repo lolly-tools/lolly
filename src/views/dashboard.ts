@@ -660,12 +660,6 @@ async function measureStorage(host: DashHost): Promise<StorageGlance> {
   return { slices, other, total, usage, quota, sessions: sessionList.length };
 }
 
-function fmtPct(usage: number, quota: number | null): string {
-  if (!quota) return '';
-  const p = (usage / quota) * 100;
-  return p < 0.1 ? '<0.1%' : p < 10 ? `${p.toFixed(1)}%` : `${Math.round(p)}%`;
-}
-
 // A rounded-cap stroke-ring: the used fraction of the device budget, drawn as an arc so
 // even a near-empty disk shows a small nub. Used amount + total sit in the hub.
 function storeDonut(usedBytes: number, quotaBytes: number): string {

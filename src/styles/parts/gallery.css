@@ -1478,8 +1478,7 @@ a.gtile-name:focus-visible::after {
   font-size: var(--fs-xs);
   font-weight: 700;
   line-height: 1;
-  color: hsl(var(--primary));
-    background: hsl(var(--primary) /.68);
+  background: hsl(var(--primary) /.68);
   color: hsl(var(--primary-foreground) / 1);
 
   border: 0;

@@ -49,7 +49,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import type { Box } from './free-canvas-math.ts';
 
@@ -460,7 +460,10 @@ test('a CAMERA is never acquired from the canvas - no click, no marquee (plans/1
   // the origin would be caught by any marquee crossing it and dragged about as if it
   // were artwork. The exclusion rides the SAME acquisition gate the seq-hidden rule
   // does, which is what keeps it to one expression instead of five call sites.
-  const src = readFileSync(new URL('./free-canvas.ts', import.meta.url), 'utf8');
+  // Since the 2026-09-09 split the gate lives in free-canvas/select.ts and its callers are spread over
+  // the orchestrator and the feature modules, so read the whole feature.
+  const dir = new URL('./free-canvas/', import.meta.url);
+  const src = [readFileSync(new URL('./free-canvas.ts', import.meta.url), 'utf8'), ...readdirSync(dir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(new URL(n, dir), 'utf8'))].join('\n');
   const gate = src.slice(src.indexOf('function seqHiddenSkip'), src.indexOf('function selectionLive'));
   assert.match(gate, /=== 'camera'/, 'the gate excludes a camera by kind');
   assert.ok(gate.includes('seqHiddenId('), 'and still excludes what the playhead is hiding');

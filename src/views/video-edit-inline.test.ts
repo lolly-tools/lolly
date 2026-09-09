@@ -76,7 +76,8 @@ registerHooks({
           }
           export function applyLutFrame() {}
           export function applyGrainVignette() {}
-          export const GRAIN_REF_LONG_EDGE = 1080;`,
+          export const GRAIN_REF_LONG_EDGE = 1080;
+          export function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }`,
       };
     }
     return next(url, ctx);

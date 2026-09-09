@@ -22,7 +22,7 @@
  */
 import { BAKE_WARMUP } from './audio-cover-bake.ts';
 import { buildVizPalette } from './viz-palette.ts';
-import { vizSupported, vizPossible } from './viz-support.ts';
+import { vizPossible } from './viz-support.ts';
 
 /** Time-domain window length. NOT a free choice: butterchurn's AudioProcessor allocates
  *  `numSamps * 2 = 1024` and `updateAudio` copies in with a bare `.set()`, so a longer

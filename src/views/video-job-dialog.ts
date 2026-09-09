@@ -20,7 +20,6 @@
  */
 import { mountModal } from '../components/modal.ts';
 import { escapeHtml } from '../lib/html.ts';
-import { fmtBytes } from '../lib/format.ts';
 import { t, tRaw } from '../i18n.ts';
 import {
   runVideoJobAsJob, probeVideoJob, extrapolateEstimate, videoJobRefusal, matteOutputFrames,

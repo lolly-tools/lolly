@@ -18,7 +18,7 @@ test('native capture preserves input values, checked state, text, SVG geometry a
   dom.window.Element.prototype.getBoundingClientRect = function () {
     return new dom.window.DOMRect(this.id === 'stage' ? 200 : 220, this.id === 'stage' ? 300 : 320, this.id === 'stage' ? 320 : 120, this.id === 'stage' ? 180 : 32);
   };
-  dom.window.Range.prototype.getBoundingClientRect = function () { return new dom.window.DOMRect(230, 326, 86, 18); };
+  dom.window.Range.prototype.getBoundingClientRect = () => new dom.window.DOMRect(230, 326, 86, 18);
   try {
     const stage = dom.window.document.querySelector<HTMLElement>('#stage')!;
     const { doc } = await captureComponents([{ name: 'Inputs', node: stage }]);

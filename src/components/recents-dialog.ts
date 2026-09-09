@@ -20,9 +20,8 @@ export interface RecentsSession { slot: string; toolId: string; name: string; th
 export async function openRecentsDialog(opts: { savedCount?: number; sessions?: RecentsSession[] } = {}): Promise<void> {
   const { getHostRef } = await import('../lib/host-ref.ts');
   const state = getHostRef()?.state as import('../bridge/state.ts').WebStateAPI | undefined;
-  if (state?.history) {
-    const { openHistoryPanel } = await import('./history-panel.ts');
-    openHistoryPanel({ state });
+  if (state?.history?.activity) {
+    location.hash = '#/history';
     return;
   }
   let rail = '';

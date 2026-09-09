@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Immutable byte snapshots beside the stable user asset id. No silent eviction. */
-import type { AssetRef } from '@lolly-tools/core/host-v1';
+import type { VersionedUserAsset, UserAssetVersion } from './asset-history-types.ts';
+export type { VersionedUserAsset, UserAssetVersion } from './asset-history-types.ts';
 import { designMaterialOf } from '../../../../engine/src/design-system.ts';
 import { FROZEN_PREFIX } from './version-assets.ts';
+import { collectAssetRefs } from './asset-dependencies.ts';
 
 /** Lowercase hex SHA-256, the same digest core's image-operation contract uses.
  *  Local on purpose: importing it from lib/file-conversion.ts re-exports the whole
@@ -12,8 +14,6 @@ async function sha256Bytes(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', bytes as BufferSource);
   return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
-export interface VersionedUserAsset { id: string; type: AssetRef['type']; format: string; version?: string; blob?: Blob; checksum?: string; meta?: Record<string, unknown>; credential?: Uint8Array; credentialFormat?: string }
-export interface UserAssetVersion { assetId: string; version: string; savedAt: number; sha256: string; bytes: number; record: VersionedUserAsset }
 // Same structural seam as AssetsDb: IDB in production, narrow test adapters in
 // unit suites. Old adapters can read/write current assets without inventing history.
 interface HistoryDb {
@@ -138,5 +138,47 @@ export async function readUserAssetVersion(db: HistoryDb, id: string, version?: 
 }
 export async function removeUserAssetVersions(db: HistoryDb, id: string, version?: string): Promise<void> {
   if (!available(db)) return;
-  await db.delete('user-asset-versions', version ? [id, version] : IDBKeyRange.bound([id, ''], [id, '\uffff']));
+  // Serialize deletion with saves/checkpoints. A preflight outside this
+  // transaction lets another tab commit a pin while its bytes are removed.
+  const roots = ['state', 'revisions', 'revision-recovery'].filter(store => db.objectStoreNames?.contains(store));
+  const tx = db.transaction(['user-asset-versions', ...roots], 'readwrite');
+  void tx.done.catch(() => {});
+  try {
+    const refs = await dependencyRoots(tx, roots);
+    const versions = await tx.objectStore('user-asset-versions').getAll(IDBKeyRange.bound([id, ''], [id, '\uffff'])) as UserAssetVersion[];
+    for (const snapshot of versions) {
+      if (version && snapshot.version !== version) continue;
+      if (refs.has(`${id}:${snapshot.record.format}:${snapshot.version}`)) throw new Error('This version is used by a saved creation or retained history. Remove those references before deleting it.');
+      await tx.objectStore('user-asset-versions').delete([id, snapshot.version]);
+    }
+    await tx.done;
+  } catch (error) { try { tx.abort(); } catch {} await tx.done.catch(() => {}); throw error; }
+}
+
+/** Current bytes can also be a retained revision's only copy. */
+export async function deleteUserAsset(db: HistoryDb, id: string): Promise<void> {
+  if (!available(db)) { await db.delete('user-assets', id); return; }
+  const roots = ['state', 'revisions', 'revision-recovery'].filter(store => db.objectStoreNames?.contains(store));
+  const tx = db.transaction(['user-assets', ...roots], 'readwrite'); void tx.done.catch(() => {});
+  try {
+    const record = await tx.objectStore('user-assets').get(id) as VersionedUserAsset | undefined;
+    if (record?.version && (await dependencyRoots(tx, roots)).has(`${id}:${record.format}:${record.version}`)) {
+      throw new Error('This asset is used by a saved creation or retained history. Remove those references before deleting it.');
+    }
+    await tx.objectStore('user-assets').delete(id); await tx.done;
+  } catch (error) { try { tx.abort(); } catch {} await tx.done.catch(() => {}); throw error; }
+}
+
+async function dependencyRoots(tx: any, stores: string[]): Promise<Set<string>> {
+  const refs = new Set<string>();
+  for (const store of stores) {
+    let cursor = await tx.objectStore(store).openCursor();
+    while (cursor) {
+      const row = cursor.value;
+      for (const key of row.assetRefs ?? []) refs.add(key);
+      if (row.data) collectAssetRefs(row.data, refs);
+      cursor = await cursor.continue();
+    }
+  }
+  return refs;
 }

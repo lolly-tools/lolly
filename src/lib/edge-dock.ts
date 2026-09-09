@@ -39,6 +39,7 @@
  */
 import { t } from '../i18n.ts';
 import './edge-dock.css';
+import { clamp } from '@lolly/engine';
 
 const STORE_KEY = 'lolly:edge-dock';
 const MOBILE_MQ = '(max-width: 640px)';   // the shell's canonical breakpoint (mobile-sheet.ts etc.)
@@ -519,10 +520,6 @@ function applyWidth(): void {
 function maxWidth(): number {
   const vw = typeof window !== 'undefined' ? window.innerWidth : 1024;
   return Math.max(MIN_W, Math.min(560, Math.floor(vw * 0.5)));
-}
-
-function clamp(v: number, lo: number, hi: number): number {
-  return v < lo ? lo : v > hi ? hi : v;
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────

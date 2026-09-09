@@ -1768,6 +1768,15 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   }
 }
 .table-rowctl { width: 24px; }
+/* Fixed-schema tables keep city entry roomy and optional details scrollable. */
+.table-input[data-table-fixed] .table-cell { min-width: 112px; }
+.table-input[data-table-fixed] tr > :first-child .table-cell { min-width: 160px; }
+.table-input[data-table-fixed] .table-rowctl {
+  position: sticky; right: 0; white-space: nowrap;
+  background: hsl(var(--background)); min-width: 56px;
+}
+.table-input[data-table-fixed] .table-rowctl button { display: inline-flex; }
+
 /* The blank placeholder row waiting under the filled rows (views/table-cells.ts
    wantsGhostRow) - dimmed until the user engages it, full-strength once typed into
    (the rebuild then renders it as a real row and grows a fresh one beneath). */

@@ -47,6 +47,7 @@ import { t, tRaw } from '../i18n.ts';
 import { applyGrainVignette, applyLutFrame, GRAIN_REF_LONG_EDGE, parseLutText, type GradeLut } from '@lolly/engine';
 import { roundCropRect, VIDEO_JOB_MAX_DURATION_SEC, videoJobRefusal, type CropRect, type LutCredit, type SourceProbe, type VideoJobHost, type VideoJobRequest, type VideoRange } from '../lib/video-jobs.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
+import { clamp } from '@lolly/engine';
 
 export type VideoEditTab = 'crop' | 'grade' | 'trim';
 
@@ -150,10 +151,6 @@ function fmtDelta(sec: number): string {
   const a = Math.abs(v);
   const sign = v < 0 && Math.round(a * 10) > 0 ? '-' : '+';
   return `${sign}${fmtDur(a)}`;
-}
-
-function clamp(n: number, lo: number, hi: number): number {
-  return n < lo ? lo : n > hi ? hi : n;
 }
 
 /** The crop box as fractions of the frame (0..1). Fractions, not pixels, because

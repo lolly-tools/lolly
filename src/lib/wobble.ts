@@ -24,6 +24,7 @@
 import { isFlagOnSync, WOBBLY_FLAG } from '../feature-flags.ts';
 import { prefersReducedMotion } from './a11y-prefs.ts';
 import { startMeshWobble, type MeshSession } from './wobble-mesh.ts';
+import { clamp } from '@lolly/engine';
 
 /**
  * Whether the wobbly-windows flag is on. Opt-in (default OFF), so the default-aware
@@ -210,8 +211,4 @@ export function attachWobble(el: HTMLElement, opts: WobbleOpts = {}): WobbleHand
       clearStyles();
     },
   };
-}
-
-function clamp(v: number, lo: number, hi: number): number {
-  return v < lo ? lo : v > hi ? hi : v;
 }

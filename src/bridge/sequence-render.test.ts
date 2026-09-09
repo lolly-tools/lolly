@@ -88,7 +88,7 @@ test('contract: both mix graphs consume the ONE bed-duck envelope (section 6.1)'
   // boxes (this module). Restating the ramp scheduling in either graph is how the
   // two exports drift apart.
   const seq = strip(read('./sequence-render.ts'));
-  assert.match(seq, /import\s*\{\s*bedDuckEnvelope, scheduleGainEvents[\s\S]{0,40}from '\.\/audio-envelope\.ts'/,
+  assert.match(seq, /import\s*\{\s*bedDuckEnvelope\b[^}]{0,60}\}\s*from '\.\/audio-envelope\.ts'/,
     'the sequence bed takes the envelope from audio-envelope.ts');
   assert.doesNotMatch(seq, /linearRampToValueAtTime/,
     'no hand-scheduled ramps left in the sequence mix');

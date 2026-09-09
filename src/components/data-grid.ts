@@ -40,7 +40,9 @@ export interface DataGridOptions {
   /** Editable (viewer read-only when false). Default true. */
   editable?: boolean;
   /** Debounced-commit callback with the whole updated table. */
-  onChange?: (next: TableValue) => void;
+  onChange?: (next: TableValue, change?: { deletedRow: number }) => void;
+  /** Fixed-schema grids keep their column headings. */
+  fixedColumns?: boolean;
   /** Column indices that are read-only even when the grid is editable (e.g. a
    *  formula column shown as its computed value - the honest-limits marker). */
   readOnlyCols?: number[];
@@ -107,7 +109,7 @@ export function mountDataGrid(container: HTMLElement, opts: DataGridOptions): Da
     // Each header carries a hover-revealed × to delete its column (skipped for a
     // read-only column); a trailing empty corner closes the row-delete gutter.
     header.innerHTML = value.columns
-      .map((c, i) => `<div class="dg-cell dg-head-cell${readOnly.has(i) ? ' dg-ro' : ''}" role="columnheader" style="width:${widths[i]}px" data-col="${i}"><span class="dg-head-label">${esc(c)}</span>${editable && !readOnly.has(i) ? `<button type="button" class="dg-del-col" data-del-col="${i}" title="Delete column" aria-label="Delete column">×</button>` : ''}</div>`)
+      .map((c, i) => `<div class="dg-cell dg-head-cell${readOnly.has(i) ? ' dg-ro' : ''}" role="columnheader" style="width:${widths[i]}px" data-col="${i}"><span class="dg-head-label">${esc(c)}</span>${editable && !opts.fixedColumns && !readOnly.has(i) ? `<button type="button" class="dg-del-col" data-del-col="${i}" title="Delete column" aria-label="Delete column">×</button>` : ''}</div>`)
       .join('')
       + (editable ? `<div class="dg-rowctl dg-rowctl-head" style="width:${actionW}px" aria-hidden="true"></div>` : '');
   }
@@ -147,13 +149,15 @@ export function mountDataGrid(container: HTMLElement, opts: DataGridOptions): Da
   let editor: HTMLInputElement | null = null;
   function commit(): void {
     if (!editor) return;
-    const r = Number(editor.dataset.row), c = Number(editor.dataset.col);
+    const activeEditor = editor;
+    editor = null; // Removing a focused input fires blur; do not re-enter commit.
+    const r = Number(activeEditor.dataset.row), c = Number(activeEditor.dataset.col);
     const next = clone(value);
-    (next.rows[r] ??= [])[c] = editor.value;
+    (next.rows[r] ??= [])[c] = activeEditor.value;
     value = next;
     const cell = rowsEl.querySelector<HTMLElement>(`.dg-cell[data-row="${r}"][data-col="${c}"]`);
-    if (cell) cell.textContent = editor.value;
-    editor.remove(); editor = null;
+    if (cell) cell.textContent = activeEditor.value;
+    activeEditor.remove();
     // Keep focus in the grid when the editor simply vanished (Enter, scroll, or
     // programmatic removal) so the sidebar defers its rebuild (inputs-sync
     // isEditingGrid) - but never STEAL it back if the user clicked a real element
@@ -183,7 +187,7 @@ export function mountDataGrid(container: HTMLElement, opts: DataGridOptions): Da
     editor.addEventListener('blur', commit, { once: true });
     editor.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); commit(); viewport.focus(); }
-      else if (e.key === 'Escape') { e.preventDefault(); editor?.remove(); editor = null; viewport.focus(); }
+      else if (e.key === 'Escape') { e.preventDefault(); const cancelled = editor; editor = null; cancelled?.remove(); viewport.focus(); }
     });
   }
 
@@ -195,10 +199,10 @@ export function mountDataGrid(container: HTMLElement, opts: DataGridOptions): Da
     value.rows.splice(r, 1);
     refreshAria();
     renderRows(true);           // row indices shifted; columns (widths) unchanged
-    opts.onChange?.(clone(value));
+    opts.onChange?.(clone(value), { deletedRow: r });
   }
   function deleteCol(c: number): void {
-    if (!editable || c < 0 || c >= value.columns.length) return;
+    if (!editable || opts.fixedColumns || c < 0 || c >= value.columns.length) return;
     commit();
     value = clone(value);
     value.columns.splice(c, 1);
@@ -243,7 +247,7 @@ export function mountDataGrid(container: HTMLElement, opts: DataGridOptions): Da
       rowsEl.removeEventListener('dblclick', onDblClick);
       container.removeEventListener('click', onClick);
       ro?.disconnect();
-      editor?.remove();
+      const disposedEditor = editor; editor = null; disposedEditor?.remove();
       container.replaceChildren();
       container.classList.remove('data-grid');
       for (const a of ['role', 'aria-rowcount', 'aria-colcount']) container.removeAttribute(a);

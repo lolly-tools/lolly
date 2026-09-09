@@ -30,7 +30,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const dom = new JSDOM('<!DOCTYPE html><body></body>', { pretendToBeVisual: true });
 for (const k of ['window', 'document', 'HTMLElement', 'Element', 'Node', 'Event', 'CustomEvent', 'KeyboardEvent', 'getComputedStyle']) {
@@ -256,7 +256,9 @@ test('the zoom-out floor still clamps a HAND zoom-out at MIN_ABS', () => {
 // re-fits afterwards (the ResizeObserver watches the stage, whose size did not change),
 // so this is invisible to every behavioural test in the suite.
 
-const toolSrc = readFileSync(new URL('./tool.ts', import.meta.url), 'utf8');
+// tool.ts is an orchestrator plus feature modules under tool/ (2026-09-09 split)
+const toolDir = new URL('./tool/', import.meta.url);
+const toolSrc = [readFileSync(new URL('./tool.ts', import.meta.url), 'utf8'), ...readdirSync(toolDir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(new URL(n, toolDir), 'utf8'))].join('\n');
 
 /** The body of a top-level `function <name>()` in tool.ts, braces balanced. */
 function fnBody(src: string, name: string): string {

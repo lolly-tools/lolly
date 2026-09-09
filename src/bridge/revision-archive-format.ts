@@ -67,6 +67,7 @@ export async function validateRevisionArchive(value: unknown): Promise<RevisionA
     const id = string(entry.id); unique(revisionIds, id);
     if (data.data.__toolId && data.data.__toolId !== entry.toolId) invalid();
     if (entry.hash !== data.hash || entry.bytes !== data.bytes || !['automatic', 'save'].includes(String(entry.reason))) invalid();
+    if (entry.milestone !== undefined && (typeof entry.milestone !== 'string' || !entry.milestone.trim() || entry.milestone.length > 120 || entry.reason !== 'save')) invalid();
     const documentId = string(entry.documentId), slot = string(entry.slot);
     if (documentSlots.get(documentId) !== slot) invalid();
     const preview = typeof row.preview === 'string' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]*={0,2}$/.test(row.preview) && row.preview.length <= 256 * 1024 ? row.preview : undefined;
@@ -74,7 +75,8 @@ export async function validateRevisionArchive(value: unknown): Promise<RevisionA
     bytes += preview?.length ?? 0;
     result.revisions.push({ entry: { id, documentId, slot, parentId: nullable(entry.parentId),
       toolId: string(entry.toolId), label: string(entry.label), at: date(entry.at), reason: entry.reason as RevisionEntry['reason'],
-      hash: data.hash, bytes: data.bytes, assetRefs: refs(data.data), ...stamps(entry) }, data: data.data, ...(preview ? { preview } : {}) });
+      hash: data.hash, bytes: data.bytes, assetRefs: refs(data.data), ...stamps(entry),
+      ...(entry.milestone !== undefined ? { milestone: string(entry.milestone) } : {}) }, data: data.data, ...(preview ? { preview } : {}) });
   }
   for (const item of array(input.recoveries)) {
     const row = object(item), data = await snapshot(row.data), id = string(row.id); unique(recoveryIds, id);

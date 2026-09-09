@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 import { MAX_RECOVERY_BYTES } from './revision-limits.ts';
+import { indexSavedWork } from './history-index.ts';
 /** Rolling writer drafts. IndexedDB replaces a generation atomically, leaving
  * the preceding generation intact on failure. No previews or timeline rows. */
 import type { IDBPDatabase } from 'idb';
 import { collectAssetRefs, type SavedStateData, type StateRecord } from './state.ts';
+import { pinRevisionAssets } from './revision-asset-pins.ts';
 import { canonicalRevisionData, revisionSnapshot } from './revision-snapshot.ts';
 import { documentVersion, writeCurrentState, type DocumentHead, type RevisionTransaction } from './revision-records.ts';
 
@@ -44,7 +46,7 @@ async function putRecovery(tx: RevisionTransaction, row: RecoveryRecord): Promis
 export function createRevisionRecovery(db: IDBPDatabase): RecoveryStore {
   return {
     async write(record, options) {
-      const snapshot = await revisionSnapshot(record.data);
+      const snapshot = await revisionSnapshot(pinRevisionAssets(record.data));
       const refs = new Set<string>(); collectAssetRefs(snapshot.data, refs);
       const tx = db.transaction(STORES, 'readwrite'); void tx.done.catch(() => {});
       try {
@@ -78,7 +80,7 @@ export function createRevisionRecovery(db: IDBPDatabase): RecoveryStore {
         if (doc) {
           if (documentVersion(doc) !== documentVersion(before)) throw new Error('This document changed during replacement. Reopen it before trying again.');
           if (snapshot && JSON.stringify(canonicalRevisionData(record.data)) === JSON.stringify(snapshot.data)) {
-            await tx.objectStore('state').put({ ...record, data: snapshot.data, documentId: doc.documentId });
+            await tx.objectStore('state').put(indexSavedWork({ ...record, data: snapshot.data, documentId: doc.documentId }));
             await tx.done; return;
           }
           const prior = await tx.objectStore('state').get(record.slot) as StateRecord | undefined;
@@ -92,7 +94,7 @@ export function createRevisionRecovery(db: IDBPDatabase): RecoveryStore {
           }
           await docs.put({ ...doc, version: crypto.randomUUID(), workingHash: '' });
         }
-        await tx.objectStore('state').put({ ...record, ...(doc ? { documentId: doc.documentId } : {}) });
+        await tx.objectStore('state').put(indexSavedWork({ ...record, ...(doc ? { documentId: doc.documentId } : {}) }));
         await tx.done;
       } catch (error) { try { tx.abort(); } catch { /* already aborted */ } throw error; }
     },

@@ -50,6 +50,7 @@ import type { TimeCfg } from './timeline-math.ts';
 import { boxTiming, deriveDuration, indexOfId, kfTrackAfter, moveOverlay, setDuration, setKfTrack } from './timeline-math.ts';
 
 import { launchChoreograph, LAUNCH_RECIPES, type LaunchRecipe } from './launch-choreograph.ts';
+import { clamp } from '@lolly/engine';
 
 export type ShowcaseId = LaunchRecipe | 'buildup' | 'deconstruct' | 'loop' | 'hero' | 'trench' | 'scan';
 export type ChoreoArc = 'intro' | 'feature' | 'outro' | 'loop';
@@ -126,8 +127,6 @@ const TILT_BOX_MAX = 75;
  *  enough to read as a card catching the light, small enough that a box near the field
  *  ceiling only meets the clamp rather than folding through its own near plane. */
 const TUMBLE_MIN = 3, TUMBLE_MAX = 8;
-
-const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 const fin = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 
 /** mulberry32 - tiny, seeded, and identical everywhere a showcase is generated. */

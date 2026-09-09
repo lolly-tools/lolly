@@ -16,7 +16,7 @@
 import type { AiModelEstimate } from '@lolly/engine';
 import {
   AI_DETECT_MODELS, AI_DETECT_STAGED, AI_DETECT_TEXT_CAP, aiDetectEligible, aiDetectModel,
-  aiDetectCacheUrl, type AiDetectModel,
+  aiDetectCacheUrl, 
 } from './ai-detect-models.ts';
 import type { AiDetectWorkerReply, AiDetectWorkerRequest } from './ai-detect-worker.ts';
 

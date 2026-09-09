@@ -18,7 +18,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { UNITS, toUnit } from '@lolly/engine';
@@ -26,6 +26,9 @@ import { stepFor, decimalsFor, displayIn, convertLength, roundIn } from '../lib/
 
 const here = dirname(fileURLToPath(import.meta.url));
 const src = (rel: string): string => readFileSync(join(here, rel), 'utf8');
+// The free canvas is an orchestrator plus feature modules under free-canvas/ (2026-09-09 split), so
+// a source pin reads all of it rather than guessing which module a line moved to.
+const freeCanvasSrc = (): string => [src('./free-canvas.ts'), ...readdirSync(join(here, 'free-canvas')).filter((n) => n.endsWith('.ts')).sort().map((n) => src(`./free-canvas/${n}`))].join('\n');
 const designManifest = (): Record<string, unknown> => JSON.parse(readFileSync(join(here, '../../../../community/design/tool.json'), 'utf8')) as Record<string, unknown>;
 
 /** Every `['Name', w, h]` triple of one preset table. */
@@ -44,7 +47,7 @@ const PAPER: Record<string, { w: number; h: number; unit: 'mm' | 'in'; tol: numb
 };
 
 test('units: every paper preset is its physical size in 96-dpi CSS px', () => {
-  const fc = src('./free-canvas.ts');
+  const fc = freeCanvasSrc();
   const all = [...presets(fc, 'SIZE_PRESETS'), ...presets(fc, 'PAGE_PRESETS')];
   let papers = 0;
   for (const [name, w, h] of all) {
@@ -105,16 +108,16 @@ test('units: Design persists one document unit and DPI, and mirrors them to expo
   assert.deepEqual(inputs.find(i => i.id === 'documentUnit')?.default, 'px');
   assert.deepEqual(inputs.find(i => i.id === 'documentDpi')?.default, 300);
 
-  const fc = src('./free-canvas.ts');
-  const actions = src('./tool-actions.ts');
+  const fc = freeCanvasSrc();
+  const actions = [src('./tool-actions.ts'), ...readdirSync(join(here, 'tool-actions')).filter((n) => n.endsWith('.ts')).sort().map((n) => src(`./tool-actions/${n}`))].join('\n');
   const dimensionFields = src('./export-dimension-fields.ts');
   const inspector = src('./design-inspector.ts');
   assert.match(fc, /setDocumentSettings\?\(settings:/, 'the canvas has a shell callback for shared unit/DPI state');
   assert.match(fc, /runtime\.setInput\('documentUnit', unit\)/, 'changing the size-panel unit persists in the document');
   assert.match(fc, /runtime\.setInput\('documentDpi', next\)/, 'changing DPI persists in the document');
-  assert.match(fc, /const pxW = toUnitVal\(w, unit, 'px'\)/, 'artboard dimensions retain fractional CSS pixels');
+  assert.match(fc, /const pxW = toUnitVal\((?:fc, )?w, unit, 'px'\)/, 'artboard dimensions retain fractional CSS pixels');
   assert.match(dimensionFields, /export interface ExportDimensionUpdate[\s\S]*dpi\?: number/, 'the dimension seam accepts the document DPI');
-  assert.match(actions, /applyExportDimensionFields\(el!, curUnit, update\)/, 'the export bar applies dimensions through the typed seam');
+  assert.match(actions, /applyExportDimensionFields\(el!?, (?:ta\.)?curUnit, update\)/, 'the export bar applies dimensions through the typed seam');
   assert.match(inspector, /const DOCUMENT_UNITS = \['px', 'mm', 'cm', 'in', 'pt'\]/, 'the Inspector exposes the document unit vocabulary');
   assert.match(inspector, /docSelectRow\(t\('Document unit'\), 'documentUnit'/, 'the Inspector can change the persisted document unit');
   assert.match(inspector, /docNumRow\(t\('Document DPI'\), 'documentDpi'/, 'the Inspector can change the persisted document DPI');

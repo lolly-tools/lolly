@@ -32,9 +32,10 @@
 
 import { openDB as idbOpen, deleteDB as idbDelete } from 'idb';
 import type { IDBPDatabase } from 'idb';
+import { indexSavedWork, indexExport } from './history-index.ts';
 
 const DB_NAME = 'lolly';
-const DB_VERSION = 22;
+const DB_VERSION = 24;
 
 // How long to wait for the DB to open before giving up. A healthy open is
 // near-instant; this only trips when the connection is genuinely wedged.
@@ -57,6 +58,7 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
   // timeout below mark the error as recoverable so boot() can offer a retry
   // instead of a dead end - the open succeeds the moment that connection closes.
   let wasBlocked = false;
+  let migrationProgress = 0;
   const opening = idbOpen(DB_NAME, DB_VERSION, {
     upgrade(db, oldVersion, _newVersion, tx) {
       if (oldVersion < 1) {
@@ -268,6 +270,21 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
         recovery.createIndex('time', ['at', 'id']);
         db.createObjectStore('revision-recovery-payloads');
       }
+      if (oldVersion < 23) tx.objectStore('revisions').createIndex('toolTime', ['toolId', 'at', 'id']);
+      if (oldVersion < 24) {
+        migrationProgress = Date.now();
+        // One cursor at a time during the additive upgrade: never getAll canvas
+        // payloads into memory. These indices remain part of their owning records.
+        tx.objectStore('state').createIndex('history', 'historyKey');
+        if (!db.objectStoreNames.contains('exports')) db.createObjectStore('exports', { keyPath: 'id' });
+        tx.objectStore('exports').createIndex('history', 'historyKey');
+        void (async () => {
+          let saved = await tx.objectStore('state').openCursor();
+          while (saved) { await saved.update(indexSavedWork(saved.value)); migrationProgress = Date.now(); saved = await saved.continue(); }
+          let exported = await tx.objectStore('exports').openCursor();
+          while (exported) { await exported.update(indexExport(exported.value)); migrationProgress = Date.now(); exported = await exported.continue(); }
+        })().catch(() => { try { tx.abort(); } catch { /* already aborted */ } });
+      }
     },
     blocking() {
       // A newer version of the app wants to open the DB; close this connection
@@ -294,7 +311,10 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
   // harmless: the page is reloaded after the user clears the offending tab.
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => {
+    const check = (): void => {
+      // A large, actively progressing migration is not a locked connection.
+      // Still time out if its cursor genuinely stops making progress.
+      if (migrationProgress && Date.now() - migrationProgress < timeoutMs) { timer = setTimeout(check, timeoutMs); return; }
       const err = new Error(
         'Local database is locked - another Lolly tab or window may be open. ' +
         'Close other Lolly/localhost tabs (or fully restart your browser) and reload.'
@@ -304,7 +324,8 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
       // open that a reload may still shake loose.
       (err as Error & { code: string }).code = wasBlocked ? 'DB_BLOCKED' : 'DB_OPEN_TIMEOUT';
       reject(err);
-    }, timeoutMs);
+    };
+    timer = setTimeout(check, timeoutMs);
   });
   return Promise.race([opening, timeout]).finally(() => clearTimeout(timer)).catch((err) => {
     // If the timeout won the race but the real open resolves a moment later, that's an

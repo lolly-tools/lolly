@@ -36,6 +36,8 @@ const KEEP_VISIBLE = 64;
 export interface FloatPanelOpts {
   /** Panel title, shown in the drag bar. */
   title: string;
+  /** Preferred editor size; omitted for aspect-preserving figures. */
+  initialSize?: { width: number; height: number };
   /** Called after any move, resize or fullscreen change - repaint here. */
   onResize?: () => void;
   /** Called when the panel closes and the element is back in place. */
@@ -117,9 +119,9 @@ export function popOut(el: HTMLElement, opts: FloatPanelOpts): FloatPanel | null
   const vw = doc.documentElement.clientWidth;
   const vh = doc.documentElement.clientHeight;
   const margin = vw < 640 ? 16 : 48;
-  const wantW = Math.min(vw - margin * 2, Math.max(box.width * 1.6, 560));
+  const wantW = Math.min(vw - margin * 2, opts.initialSize?.width ?? Math.max(box.width * 1.6, 560));
   const ratio = box.width > 0 && box.height > 0 ? box.height / box.width : 0.625;
-  const wantH = Math.min(vh - margin * 2, Math.max(wantW * ratio, MIN_H));
+  const wantH = Math.min(vh - margin * 2, Math.max(opts.initialSize?.height ?? wantW * ratio, MIN_H));
   apply(root, fit({
     x: (vw - wantW) / 2,
     y: Math.max(margin, (vh - wantH) / 2),
@@ -190,7 +192,12 @@ export function popOut(el: HTMLElement, opts: FloatPanelOpts): FloatPanel | null
   // window). Re-fit rather than leaving it unreachable.
   on(window, 'resize', () => {
     if (doc.fullscreenElement === root) return;
-    apply(root, fit(read(root), doc));
+    const box = fit(read(root), doc);
+    // Rotation/window resizing should bring the whole editor back into view.
+    // Dragging still permits a partially offscreen panel via fit().
+    box.x = Math.max(0, Math.min(box.x, doc.documentElement.clientWidth - box.w));
+    box.y = Math.max(0, Math.min(box.y, doc.documentElement.clientHeight - box.h));
+    apply(root, box);
     notify();
   });
 

@@ -1,3 +1,4 @@
+import { clamp } from '@lolly/engine';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Palette-wheel geometry - the pure OKLCH↔polar mapping the wheel plots and drags
@@ -19,8 +20,6 @@
 export const WHEEL_R = 41;
 export const WHEEL_R_IN = 4;
 export const WHEEL_CMAX = 0.33;
-
-const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
 const DEG = Math.PI / 180;
 
 /** OKLCH → dot position (x,y in % of the box). angle=hue, radius=chroma. */

@@ -274,7 +274,7 @@ const DocTable = Table.extend({
 });
 
 export function initDocEditor(opts: DocEditorOpts): { destroy(): void } {
-  const { viewEl, stageEl, runtime, host, input } = opts;
+  const { stageEl, runtime, host, input } = opts;
   const inputId = input.id;
   const doc = document;
   const cleanups: (() => void)[] = [];

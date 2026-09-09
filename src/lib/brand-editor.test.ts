@@ -49,7 +49,12 @@ test('colour workspace creates empty groups, moves directly, saves on Enter, pre
   const click = (selector: string): void => $<HTMLElement>(selector).click();
   const input = (selector: string, value: string): void => { const el = $<HTMLInputElement>(selector); el.value = value; el.dispatchEvent(new dom.window.Event('input', { bubbles: true })); };
   const enter = (selector: string): void => { $(selector).dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); };
-  const settle = async (): Promise<void> => { await new Promise(resolve => setTimeout(resolve, 20)); };
+  // A fixed 20 ms pause raced the editor's async commit chain on a loaded CI runner (the
+  // colour rename produced 'Ink' instead of 'Evening ink'); `until` polls the outcome instead.
+  const settle = async (until?: () => boolean): Promise<void> => {
+    const deadline = Date.now() + 5000;
+    do { await new Promise(resolve => setTimeout(resolve, 20)); } while (until && !until() && Date.now() < deadline);
+  };
   let editor: Awaited<ReturnType<typeof import('./brand-editor.ts')['mountBrandEditor']>> | undefined;
   try {
     const { mountBrandEditor } = await import('./brand-editor.ts');
@@ -105,7 +110,8 @@ test('colour workspace creates empty groups, moves directly, saves on Enter, pre
     assert.equal(root.querySelectorAll('[data-be-group="Campaign"] [data-be-tile]').length, 0);
     click('[data-be-tile="0"]');
     const group = $<HTMLSelectElement>('[data-be-editor-group]'); group.value = 'Campaign'; group.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
-    input('[data-be-editor-name]', 'Evening ink'); enter('[data-be-editor-name]'); await settle();
+    input('[data-be-editor-name]', 'Evening ink'); enter('[data-be-editor-name]');
+    await settle(() => walkSwatches(installed, 'light')[0]?.name === 'Evening ink');
     assert.equal($<HTMLElement>('[data-be-editor]').hidden, true);
     assert.equal(walkSwatches(installed, 'light')[0]?.name, 'Evening ink');
     assert.ok(root.querySelector('[data-be-group="Campaign"] [data-be-tile]'));
@@ -123,7 +129,8 @@ test('colour workspace creates empty groups, moves directly, saves on Enter, pre
     click('[data-be-add]'); click('[data-be-editor-cancel]'); await settle();
     assert.equal(walkSwatches(installed, 'light').length, before);
     editor.teardown(); root.replaceChildren();
-    editor = await mountBrandEditor(root, host); await settle();
+    editor = await mountBrandEditor(root, host);
+    await settle(() => Boolean(root.querySelector('[data-be-group="Campaign"] [data-be-tile]')));
     assert.ok(root.querySelector('[data-be-group="Campaign"] [data-be-tile]'));
     assert.match($('[data-be-group="Campaign"] .be-pal-name').textContent ?? '', /Evening ink/);
     assert.equal(peakWrites, 1, 'overlapping edit commits are serialized');

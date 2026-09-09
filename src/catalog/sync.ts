@@ -54,7 +54,7 @@ interface AssetMetaRecord {
 }
 
 /** The tool catalog index as fetched from /catalog/tools/index.json. */
-interface ToolIndex {
+export interface ToolIndex {
   version?: string;
   /** Rolls only when the tool set actually changes (build-catalog-index.ts keeps
    *  it stable on idempotent regeneration) - the pin-refresh watermark. */

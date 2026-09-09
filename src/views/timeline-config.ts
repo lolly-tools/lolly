@@ -3,6 +3,8 @@
 import { t } from '../i18n.ts';
 import type { IconName } from '../lib/icons.ts';
 import type { KfChannel } from '../../../../engine/src/keyframes.ts';
+import { clamp } from '@lolly/engine';
+export { clamp };
 
 // ── tunables ──────────────────────────────────────────────────────────────────
 
@@ -15,8 +17,8 @@ export const DEFAULT_PANEL_H = 190;
 /** One ordinary lane plus its gap - the least a tracks area can usefully show. */
 export const ONE_LANE_H = 34;
 
-/** Gap between the reserved band and the fitted canvas (the deck-editor's +6). */
-export const RESERVE_PAD = 6;
+/** Side panels share this reserve, so it must meet the sequence editor without a gap. */
+export const RESERVE_PAD = 0;
 
 /** Zoom floor/ceiling and the per-click step. */
 export const MIN_PPS = 4;
@@ -358,10 +360,6 @@ export const PANEL_SHORTCUTS: PanelShortcut[] = [
   { keys: '?', label: t('Keyboard shortcuts'), events: [{ key: '?' }] },
   { keys: 'Esc', label: t('Step back, then close'), events: [{ key: 'Escape' }] },
 ];
-
-// ── pure helpers (exported: these are what the unit tests reach) ───────────────
-
-export const clamp = (v: number, a: number, b: number): number => (v < a ? a : v > b ? b : v);
 
 export const finite = (v: unknown, fallback: number): number => {
   const n = typeof v === 'number' ? v : parseFloat(String(v ?? ''));

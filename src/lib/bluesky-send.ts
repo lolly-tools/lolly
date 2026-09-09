@@ -23,7 +23,6 @@ import { getConnection, hasConnection, removeConnection, saveConnection } from '
 import type { SendTarget } from './send-target.ts';
 
 const KIND = 'bluesky';
-const DEFAULT_SERVICE = 'https://bsky.social';
 /** atproto's image-blob ceiling (1,000,000 bytes on bsky.social). */
 export const BLUESKY_IMAGE_MAX = 1_000_000;
 

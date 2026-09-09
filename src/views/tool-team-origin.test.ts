@@ -37,7 +37,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -50,7 +50,8 @@ import {
 } from '../org/team-session-origin.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const TOOL_TS = readFileSync(join(HERE, 'tool.ts'), 'utf8');
+// tool.ts is an orchestrator plus feature modules under tool/ (2026-09-09 split)
+const TOOL_TS = [readFileSync(join(HERE, 'tool.ts'), 'utf8'), ...readdirSync(join(HERE, 'tool')).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(HERE, 'tool', n), 'utf8'))].join('\n');
 
 /** Source with comments removed, so "does this path release?" cannot be answered by
  *  prose about it. Line comments are cut at a `//` that is not part of a `://` scheme;
@@ -110,11 +111,15 @@ const CODE = stripComments(TOOL_TS);
  * single, top-level statements, so the slice is brace-balanced.
  */
 function dangerZone(): string {
-  const from = CODE.indexOf('consumeTeamSessionOrigin(toolId);');
+  // the early returns live in the orchestrator (tool.ts); the setup modules that follow it in the
+  // concatenation are not part of this zone
+  const ORCH = stripComments(readFileSync(join(HERE, 'tool.ts'), 'utf8'));
+  const from = ORCH.indexOf('consumeTeamSessionOrigin(toolId);');
   assert.notEqual(from, -1, 'the mount still consumes the stash');
-  const to = CODE.indexOf('viewEl._cleanup = () => {', from);
+  const cleanupAt = ORCH.indexOf('viewEl._cleanup = () => {', from);
+  const to = cleanupAt === -1 ? ORCH.length : cleanupAt;
   assert.notEqual(to, -1, 'the mount still installs a teardown hook');
-  return stripNestedFunctions(CODE.slice(from, to));
+  return stripNestedFunctions(ORCH.slice(from, to));
 }
 
 test('every abandoned mount releases the origin before it returns', () => {
@@ -143,7 +148,7 @@ test('every abandoned mount releases the origin before it returns', () => {
 });
 
 test('the teardown hook still releases, so a mount that DID happen gives it up too', () => {
-  const at = CODE.indexOf('viewEl._cleanup = () => {');
+  const at = CODE.lastIndexOf('viewEl._cleanup = () => {');
   const body = CODE.slice(at, matchBrace(CODE, CODE.indexOf('{', at)) + 1);
   assert.match(body, /releaseTeamSessionOrigin\(\);/,
     'rule 3 is a property of every mount, not only the ones that fail');

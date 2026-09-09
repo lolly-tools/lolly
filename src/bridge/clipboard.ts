@@ -57,7 +57,7 @@ export function createClipboardAPI(): WebClipboardAPI {
             'text/plain': new Blob([tmp.textContent ?? ''], { type: 'text/plain' }),
           })]);
           return;
-        } catch (e) { /* fall through to selection fallback */ }
+        } catch   { /* fall through to selection fallback */ }
       }
       // Fallback: inject a hidden node, select its contents, execCommand.
       const tmp = document.createElement('div');
@@ -79,7 +79,7 @@ export function createClipboardAPI(): WebClipboardAPI {
         try {
           await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
           return { method: 'clipboard' };
-        } catch (e) {
+        } catch   {
           // Fall through to download.
         }
       }

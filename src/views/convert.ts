@@ -191,7 +191,7 @@ async function renderVideo(result: HTMLElement, bytes: Uint8Array, file: File, h
   });
 }
 
-export async function mountConvert(viewEl: HTMLElement, host: HostV1, _params = ''): Promise<void> {
+export async function mountConvert(viewEl: HTMLElement, host: HostV1, params = ''): Promise<void> {
   document.title = 'Convert - Lolly';
   viewEl.innerHTML = `
     ${backHomeHtml()}
@@ -222,7 +222,14 @@ export async function mountConvert(viewEl: HTMLElement, host: HostV1, _params = 
   const fileInput = viewEl.querySelector<HTMLInputElement>('[data-file]')!;
   const result = viewEl.querySelector<HTMLElement>('[data-result]')!;
   const history = viewEl.querySelector<HTMLElement>('[data-history]')!;
-  const refreshHistory = (): void => { void renderFileOperationHistory(history, host); };
+  const refreshHistory = (): void => { void renderFileOperationHistory(history, host).then(() => {
+    const q = new URLSearchParams(params), id = q.get('batch') || q.get('history');
+    if (!id || !viewEl.isConnected) return;
+    const row = history.querySelector<HTMLElement>(`[${q.has('batch') ? 'data-batch-id' : 'data-operation'}="${CSS.escape(id)}"]`);
+    if (!row) return;
+    if (row instanceof HTMLDetailsElement) row.open = true;
+    row.tabIndex = -1; row.focus({ preventScroll: true }); row.scrollIntoView({ block: 'center' });
+  }); };
   window.addEventListener('lolly:file-operations-changed', refreshHistory);
   refreshHistory();
   let generation = 0;
@@ -290,4 +297,3 @@ export async function mountConvert(viewEl: HTMLElement, host: HostV1, _params = 
   const pending = takePendingConvertFile();
   if (pending) await onFiles([pending]);
 }
-

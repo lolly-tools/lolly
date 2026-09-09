@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { IDBPDatabase } from 'idb';
+import { indexSavedWork } from './history-index.ts';
 import type { RevisionEntry } from './revision-history.ts';
 import type { RecoveryEntry } from './revision-recovery.ts';
 import { MAX_RECOVERY_BYTES, MAX_REVISION_BYTES, MAX_REVISION_PREVIEWS, MAX_REVISION_ARCHIVE_BYTES } from './revision-limits.ts';
@@ -76,7 +77,7 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
         for (const row of archive.documents) if (!await tx.objectStore('revision-documents').get(row.document.slot)) {
           await tx.objectStore('revision-documents').add(row.document);
           const preview = row.document.head ? await tx.objectStore('revision-previews').get(row.document.head) : null;
-          await tx.objectStore('state').put({ ...row.state, thumb: row.document.hash === row.document.workingHash ? preview ?? null : null });
+          await tx.objectStore('state').put(indexSavedWork({ ...row.state, thumb: row.document.hash === row.document.workingHash ? preview ?? null : null }));
         }
         await tx.objectStore('revision-usage').put(usage, 'total');
         await tx.objectStore('revision-usage').put(recoveryBytes, 'recovery');

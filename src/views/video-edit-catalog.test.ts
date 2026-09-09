@@ -24,9 +24,11 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
-const catalog = readFileSync(new URL('./catalog.ts', import.meta.url), 'utf8');
+// catalog is an orchestrator plus feature modules under ./catalog/ (2026-09-09 split)
+const catDir = new URL('./catalog/', import.meta.url);
+const catalog = [readFileSync(new URL('./catalog.ts', import.meta.url), 'utf8'), ...readdirSync(catDir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(new URL(n, catDir), 'utf8'))].join('\n');
 const css = readFileSync(new URL('../styles/parts/catalog.css', import.meta.url), 'utf8');
 
 test('the vid-grade / vid-trim / vid-crop dispatch sits above the unconditional closeDetails()', () => {
@@ -70,7 +72,7 @@ test('the video-job dialog has no crop controls left to drift from the inline bo
 });
 
 test('the mode gets its own Escape branch, with preventDefault and a busy() guard', () => {
-  const branch = /if \(inlineVideoEdit\) \{[\s\S]{0,320}?\}/.exec(catalog)?.[0] ?? '';
+  const branch = /if \((?:dt\.)?inlineVideoEdit\) \{[\s\S]{0,320}?\}/.exec(catalog)?.[0] ?? '';
   assert.ok(branch, 'the keydown handler answers the mode');
   assert.match(branch, /e\.preventDefault\(\)/, 'or Escape closes the whole details modal instead of the mode');
   assert.match(branch, /e\.stopPropagation\(\)/);
@@ -82,15 +84,15 @@ test("the modal's onClose reaps the mode, next to the other inline modes", () =>
   assert.ok(reap > 0, 'onClose stands the mode down');
   const retouchReap = catalog.indexOf('inlineRetouch?.exit();');
   assert.ok(retouchReap > 0 && Math.abs(reap - retouchReap) < 400, 'and it sits with the other reaps in onClose');
-  assert.match(catalog, /cropModeActive = false;\s*\/\/ clear the attachZoom pause/, 'the attachZoom pause is still cleared there too');
+  assert.match(catalog, /(?:setCropModeActive\(false\)|cropModeActive = false);\s*\/\/ clear the attachZoom pause/, 'the attachZoom pause is still cleared there too');
 });
 
 test('the entry is guarded against a double-click and a stale dialog', () => {
-  const entry = /async function enterInlineVideoEdit\([\s\S]*?\n    \}\n/.exec(catalog)?.[0] ?? '';
+  const entry = /async function enterInlineVideoEdit\([\s\S]*?\n {2,4}\}\n/.exec(catalog)?.[0] ?? '';
   assert.ok(entry, 'the entry function exists');
-  assert.match(entry, /videoEditEntering = true;/, 'a synchronous in-flight flag spans the awaits');
+  assert.match(entry, /(?:setVideoEditEntering\(true\)|videoEditEntering = true);/, 'a synchronous in-flight flag spans the awaits');
   assert.match(entry, /detailsDialog !== dlg/, 'and a promise resolving after a page/close bails');
-  assert.match(entry, /cropModeActive = true;/, 'attachZoom stands down while the mode owns the stage');
+  assert.match(entry, /(?:setCropModeActive\(true\)|cropModeActive = true);/, 'attachZoom stands down while the mode owns the stage');
 });
 
 test('the action row offers both, and never collides with "Trim margins"', () => {

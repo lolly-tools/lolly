@@ -159,7 +159,7 @@ import {
 // module's public surface (and sequence-render.test.ts) is unchanged.
 export { radiiOf, fitRect };
 import { videoBitrate, bppForQuality, codecAdjustedBitrate, videoMimeCandidates } from './video-mime.ts';
-import { bedDuckEnvelope, scheduleGainEvents, MIX_RAMP_SEC, type DuckSpan } from './audio-envelope.ts';
+import { bedDuckEnvelope, MIX_RAMP_SEC, type DuckSpan } from './audio-envelope.ts';
 // Separate line on purpose: sequence-render.test.ts pins the line above verbatim
 // (the one-envelope contract), and the clip-gain names are a different concern.
 import { clipGainEvents, isTrivialGain } from './audio-envelope.ts';
@@ -420,8 +420,6 @@ const GIF_FPS = 15;
 
 /** CSS pixels per inch - the APNG pHYs default, matching export.ts's exportDims. */
 const CSS_DPI = 96;
-
-const AUDIO_BITRATE = 128_000;
 
 /** Lottie/live-raster requests the worker may have outstanding at once. One is
  *  the whole bound: the executor asks, then blocks, so a slow main thread can

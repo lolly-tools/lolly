@@ -251,7 +251,6 @@ export function planPlateBudget(input: PlateBudgetInput): PlateBudgetPlan {
   // every eff is 1 but a pad is enormous would otherwise pass through unclamped.
   const anyExtraEff = counted.some((c) => c.plates > 0 && c.want > 1);
   const anyPad = counted.some((c) => c.plates > 0 && (c.L.pad ?? 0) > 0);
-  const anyExtra = anyExtraEff || anyPad;
 
   const effOf = new Map<number, number>();
   const padOf = new Map<number, number>();

@@ -13,20 +13,28 @@ import { currentLang } from '../i18n.ts';
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { getToolIntegrity } from '../catalog/integrity.ts';
 import { isToolInstalled, installedFetchFile } from '../lib/installed-tools.ts';
+import { looksLikeHtmlDocument } from './tool-file-guard.ts';
 
 // Loaded tools are cached so selecting the same template across many rows - the
 // primary power-user workflow - loads each template only once.
 const toolCache = new Map<string, Promise<LoadedTool> | LoadedTool>();
 
-function makeFetchFile(toolId: string): (path: string) => Promise<string> {
+/**
+ * The ONE catalog-tool fetchFile. The tool view (views/tool.ts) imports this rather
+ * than keeping its own: a second, byte-identical copy lived there and drifted - it kept
+ * the header-based SPA-shell check after this one was fixed, so chart/timezone still
+ * would not open in the iOS app (2026-09-09). One implementation, one place to be right.
+ */
+export function makeFetchFile(toolId: string): (path: string) => Promise<string> {
   return async (path: string) => {
     const resp = await instanceFetch(instancePath(`/tools/${path}`));
-    if (resp.status === 404) throw new Error('tool-not-found');
-    const ct = resp.headers.get('content-type') ?? '';
-    if (!resp.ok || (ct.includes('text/html') && !path.endsWith('.html'))) {
-      throw new Error('tool-not-found');
-    }
-    return resp.text();
+    if (!resp.ok) throw new Error('tool-not-found');
+    const text = await resp.text();
+    // A missing file comes back as the SPA shell (a 200), not a 404. That is told
+    // apart by CONTENT - see tool-file-guard.ts for why the Content-Type header is
+    // not the signal: Tauri labels every unknown-extension text file `text/html`.
+    if (!path.endsWith('.html') && looksLikeHtmlDocument(text)) throw new Error('tool-not-found');
+    return text;
   };
 }
 

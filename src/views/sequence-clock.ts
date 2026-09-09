@@ -61,7 +61,6 @@
  * `requestAnimationFrame`, and real layout for box sizes.
  */
 
-import { recTransition, isTransitionKind, type TransitionKind } from '../lib/transitions.ts';
 import { clipGainEvents, clipGainValueAt, isTrivialGain, scheduleGainEvents } from '../bridge/audio-envelope.ts';
 // The ref test alone - deliberately a leaf module (see its header) so the composer
 // stays out of this module's eager graph; the composer itself is imported lazily in
@@ -350,7 +349,7 @@ export type {
 } from '../bridge/sequence-dom.ts';
 
 import {
-  readTiming, isActiveAt, endOf, createAuthoredStore, applyTimeToElements, OFF_CLASS,
+  readTiming, endOf, createAuthoredStore, applyTimeToElements, OFF_CLASS,
   releaseShotBorrow, stageNativeSize, sequenceStageOf, registerSequenceWriter,
   sequenceTimeElements,
   type Timing, type SequenceWriter,

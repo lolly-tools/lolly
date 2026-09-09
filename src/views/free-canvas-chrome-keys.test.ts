@@ -23,7 +23,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
@@ -363,6 +363,8 @@ test('bare ? opens the Design shortcut sheet and Done restores its opener', () =
  */
 test('every chrome root over the canvas marks itself', () => {
   const here = dirname(fileURLToPath(import.meta.url));
+  // the views are an orchestrator plus feature modules under a dir of the same name (2026-09-09 split)
+  const featureSrc = (view: string): string => [readFileSync(join(here, `${view}.ts`), 'utf8'), ...readdirSync(join(here, view)).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(here, view, n), 'utf8'))].join('\n');
   const roots: Array<[string, string]> = [
     ['the Design top bar', join(here, 'design-topbar.ts')],
     ['the edge dock column', join(here, '..', 'lib', 'edge-dock.ts')],
@@ -384,12 +386,12 @@ test('every chrome root over the canvas marks itself', () => {
   // re-parents this very element into the column, so the attribute on it covers the sheet
   // docked and floating in one statement.
   assert.ok(
-    /class="export-popup"[^>]*data-canvas-keys="off"/.test(readFileSync(join(here, 'tool.ts'), 'utf8')),
+    /class="export-popup"[^>]*data-canvas-keys="off"/.test(featureSrc('tool')),
     'the export sheet marks itself',
   );
   // …and the ONE opt-back-in: the tool rail is canvas tooling, not chrome over the canvas.
   assert.ok(
-    /toolbar\.setAttribute\('data-canvas-keys', 'on'\)/.test(readFileSync(join(here, 'free-canvas.ts'), 'utf8')),
+    /toolbar\.setAttribute\('data-canvas-keys', 'on'\)/.test(featureSrc('free-canvas')),
     'the tool rail keeps the canvas keys in both of its homes',
   );
 });

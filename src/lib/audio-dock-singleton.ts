@@ -163,7 +163,7 @@ let wobble: WobbleHandle | null = null;
 // Running pointer position through a drag, reconstructed from the grab point + the
 // per-move deltas the package hands us (it never sends absolute coords on move). Used
 // to hit-test the inline-end edge for docking.
-let dragX = 0, dragY = 0;
+let dragX = 0;
 
 /** Kick magnitude toward the docked edge (away on undock). RTL-aware. */
 const edgeKick = (): number => (document.documentElement.dir === 'rtl' ? -1 : 1) * 16;
@@ -205,11 +205,11 @@ function ensureDock(): { composed: ComposedHost; controller: DockController; el:
     dragEffects: {
       grab: (x, y) => {
         if (isDocked('neuro')) releaseDock('neuro');   // grabbing a docked panel drags it out
-        dragX = x; dragY = y;
+        dragX = x;
         wobble?.grab(x, y);
       },
       drag: (dx, dy) => {
-        dragX += dx; dragY += dy;
+        dragX += dx;
         wobble?.drag(dx, dy);
         edgeDockPreview(edgeDockHitTest(dragX));
       },

@@ -235,7 +235,8 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'pro/grid.ts': 5,
   'pro/run-overlay.ts': 1,
   'theme.ts': 3,
-  'views/catalog.ts': 23,   // +2 2026-08-18: INTERP_ICON + FIT_ICON zoom-pill glyphs (inline, like ZOOM_IN/OUT_ICON)
+  'views/catalog.ts': 1,   // +2 2026-08-18: INTERP_ICON + FIT_ICON zoom-pill glyphs (inline, like ZOOM_IN/OUT_ICON)
+  'views/catalog/shared.ts': 22,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts (the zoom-pill and treatment glyph constants)
   'views/dashboard.ts': 5,
   'views/doc-editor.ts': 23,
   // Moved verbatim from free-canvas.ts into its icon registry during the plan
@@ -251,10 +252,14 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'views/personalize-nudge.ts': 1,
   'views/picker.ts': 3,
   'views/record-control.ts': 1,
-  'views/tool-actions.ts': 13,
+  'views/tool-actions/sequence.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool-actions/markup.ts': 9,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool-actions/format-rules.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   // Back to 6, 2026-08-15: the URL-budget gauge ring (briefly a 7th inline SVG)
   // moved out of views/tool.ts the same day it arrived.
-  'views/tool.ts': 6,
+  'views/tool/stage-layout.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool/history.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
 };
 
 test('R3 (rec 5): inline 24×24 Lucide glyphs only shrink - new icons go through lib/icons.ts', () => {
@@ -839,7 +844,17 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // liveness check that already guarded it, so the mark hand-off is no longer
   // drained into a room that went away mid-paint. Nothing new is interpolated,
   // and the shared-tray option carries no markup at all.
-  'lib/brand-editor.ts': 25,
+  'lib/brand-editor.ts': 1,
+  'lib/brand-editor/type.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'lib/brand-editor/swatch-editor.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'lib/brand-editor/state.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'lib/brand-editor/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'lib/brand-editor/replace.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'lib/brand-editor/ramps.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'lib/brand-editor/logos.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'lib/brand-editor/logo-intake.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'lib/brand-editor/grid.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'lib/brand-editor/derive.ts': 6,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   // The tonal-curve editor's one sink is draw()'s full panel re-render. Reviewed
   // 2026-08-08: every interpolated value is either a constant (channel labels,
   // the curve glyph, viewBox numbers, role/tabindex), a NUMBER (aria-valuemin/max/
@@ -1017,7 +1032,15 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // template family), no raw user text reaches markup.
   // +1 2026-08-21 (plans/136 W2a): the [data-passport] fill - lampStripHtml
   // escape()s every value, chips are escape()d licence strings/t() constants.
-  'views/catalog.ts': 22,  // +1 2026-09-02 (plans/129 section 2.3): openSendDialog's per-target status line - the remote url is safeHref()-gated and escape()d, the label escape()d; +1 2026-08-21 (plans/132 WP-M): the mount-time loading skeleton (viewEl.innerHTML) - static markup, the only interpolation is a repeated constant tile string, no user text; +1 2026-08-20 (WP-G): the [data-usage] Used-in fill - labels escape()d, mirrors the [data-tech] sink; +1 2026-08-20: the Download-as toolbar menu (body-popover render `el.innerHTML`) - format values/labels are constants (plus the escape()d source format), no user text; +1 2026-08-18: interpBtn.innerHTML = INTERP_ICON - a trusted inline SVG constant, no interpolation; +2 2026-08-18 (plans/125): the [data-tsig] box (renderTextPanel, catTextWorkHtml escape()s every value) + read-text - the read-text <pre> is filled via textContent, never markup; +1 2026-08-18 (plans/126 markdown reading view): setTextRenderMode's [data-md-rendered] fill - user markdown through lib/markdown mdToHtml then DOMPurify.sanitize, the same pairing doc-editor's paste path uses; 2026-08-19 (inline-edits UX pass): the analyse-text fill folded into renderTextPanel, and the freed slot is openEditCard's card.innerHTML - sugCardHtml/rwCardHtml escape() every interpolated value
+  'views/catalog.ts': 1,  // +1 2026-09-02 (plans/129 section 2.3): openSendDialog's per-target status line - the remote url is safeHref()-gated and escape()d, the label escape()d; +1 2026-08-21 (plans/132 WP-M): the mount-time loading skeleton (viewEl.innerHTML) - static markup, the only interpolation is a repeated constant tile string, no user text; +1 2026-08-20 (WP-G): the [data-usage] Used-in fill - labels escape()d, mirrors the [data-tech] sink; +1 2026-08-20: the Download-as toolbar menu (body-popover render `el.innerHTML`) - format values/labels are constants (plus the escape()d source format), no user text; +1 2026-08-18: interpBtn.innerHTML = INTERP_ICON - a trusted inline SVG constant, no interpolation; +2 2026-08-18 (plans/125): the [data-tsig] box (renderTextPanel, catTextWorkHtml escape()s every value) + read-text - the read-text <pre> is filled via textContent, never markup; +1 2026-08-18 (plans/126 markdown reading view): setTextRenderMode's [data-md-rendered] fill - user markdown through lib/markdown mdToHtml then DOMPurify.sanitize, the same pairing doc-editor's paste path uses; 2026-08-19 (inline-edits UX pass): the analyse-text fill folded into renderTextPanel, and the freed slot is openEditCard's card.innerHTML - sugCardHtml/rwCardHtml escape() every interpolated value
+  'views/catalog/details-sheet.ts': 9,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/catalog/details-shared.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/catalog/details-panels.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/catalog/details-inline-modes.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/catalog/wiring.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/catalog/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/catalog/sections.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/catalog/downloads.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/job-toast.ts': 2,   // +2 2026-08-17 (plan 124 WP-F): the pill + panel innerHTML - title/note/id/count all ESC()d
   'lib/perf-hud.ts': 1,    // +1 2026-08-18 (perf-hud flag): root.innerHTML = scaffold() - only icon() glyphs + tRaw() strings, no interpolated values; the live FPS number is written via textContent, not markup
   'views/video-job-dialog.ts': 1, // +1 2026-08-18 (plan 124 WP-G): the Resolution <select> rebuild (resSel.innerHTML) - resOptionHtml() emits a numeric px value + an escapeHtml()d "{px}p" label, no user text
@@ -1138,7 +1161,18 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // 53 → 54, 2026-09-02 (design-import artboards/scenes): askImportPages, the drop door's
   //   page-mode question. One `p.innerHTML` of escape()d t() strings; the only dynamic
   //   value is the page COUNT, an integer formatted by t(); class strings are constants.
-  'views/free-canvas.ts': 54,   // +1 2026-09-02: openMorphMatchPanel (escapeHtml'd value + t() strings, the fstate/notes panel pattern)
+  'views/free-canvas.ts': 2,   // +1 2026-09-02: openMorphMatchPanel (escapeHtml'd value + t() strings, the fstate/notes panel pattern)
+  'views/free-canvas/toolbox.ts': 5,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/free-canvas/text-edit.ts': 11,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/free-canvas/pen-tool.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/free-canvas/menus.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/free-canvas/gradient.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/free-canvas/field-panels.ts': 10,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/free-canvas/edges.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/free-canvas/document.ts': 5,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/free-canvas/dialogs.ts': 8,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/free-canvas/context-bar.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/free-canvas/connectors.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   // present-mode.ts (plan 112): the presenter's chrome sinks - the pause button, the mute
   //   button and the two nav-button builders - are each `el.innerHTML = icon(name, opts)`, a
   //   static glyph string from lib/icons' PATHS registry with NO interpolated value. Nothing
@@ -1284,7 +1318,6 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // button): `play.innerHTML = icon('play')` - a literal registry name, nothing
   // interpolated. Its visible name is a t() string set through .title and
   // .setAttribute('aria-label'), never through markup.
-  'views/timeline-panel.ts': 9,   // +1 2026-09-02: alab (the compact audio strip's icon labels - registry glyph only, title/aria carry the string)
   // 8 as of 2026-08-07: +1 for the badged/per-option-formats export-picker work
   // (schemas' badge/formats option fields); confirmed safe by the author.
   // 8 → 9 on 2026-08-11: the deterministic live-drive export path paints the exact
@@ -1304,7 +1337,13 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // container extension comes from takeNativeExt (a fixed three-way map), and the
   // size string is locally formatted digits. No user/peer/tool value reaches
   // either sink unescaped.
-  'views/tool-actions.ts': 13,
+  'views/tool-actions.ts': 1,
+  'views/tool-actions/wiring.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool-actions/video.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool-actions/sequence.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool-actions/markup.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool-actions/copying.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool-actions/audio.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   // 9 → 11, 2026-08-27: the table input's ghost-row promotion (a blank placeholder row
   // that gains content becomes real in place, without waiting for the panel rebuild).
   // Two sinks: the row's delete-button cell, whose only interpolations are the numeric
@@ -1336,8 +1375,16 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // +1 on 2026-09-04 (plans/186): the "Switched to <name>" notice inserted on a
   // design-system switch (the "Made with" one rides the existing sidebar markup). The
   // name is the record's label through escape(); the rest is t() copy and fixed ids.
-  'views/tool.ts': 15, // ratcheted 16->15 2026-09-08: an interpolated sink moved into an escaped renderer
-  'views/tool-history-controls.ts': 1, // 2026-09-08: el.innerHTML = icon(glyph), glyph a 'undo'|'redo' literal (icon-registry markup, no user data)
+  'views/tool.ts': 6, // ratcheted 16->15 2026-09-08: an interpolated sink moved into an escaped renderer
+  'views/tool/stage-layout.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool/setup.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool/session.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool/render.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool/popovers.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool/history.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool/design-system.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/tool-history-controls.ts': 1, // 2026-09-08: el.innerHTML = icon(glyph), glyph an undo/redo/history literal (icon-registry markup, no user data)
+  'views/history.ts': 2, // 2026-09-08: shared backHomeHtml() escaped navigation chrome, and icon() with fixed registry names; all history captions use textContent
   // 21 as of 2026-07-31: +2 deep-scan watermark notes (trustmarkNoteHtml,
   // contentSealNoteHtml). Reviewed - every attacker-controlled value on this
   // page (decoded payload/message hex, schema, filenames, hex dumps of file
@@ -1433,6 +1480,11 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // preview. Token paths, current values and controls all reach it through escape();
   // its actual brand write stays in the delegated submit handler below the sink.
   'lib/brand-studio-tabs.ts': 10,
+  'views/timeline-panel/helpers.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/timeline-panel/inspector-pane.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/timeline-panel/menus.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/timeline-panel/playback.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/timeline-panel/rows.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
 };
 
 test('R10: raw-HTML sinks are a pinned inventory, not a growing one', () => {
@@ -1473,7 +1525,7 @@ const ESCAPE_DEF_ALLOWED: Record<string, number> = {
   // A local alias that immediately DELEGATES to the shared escape
   // (`function escapeHtml(s) { return escape(s); }`), kept because the file's
   // 6.8k lines call it by that name. Not an independent implementation.
-  'views/free-canvas.ts': 1,
+  'views/free-canvas/keys.ts': 1,   // free-canvas's escapeHtml wrapper, moved with the keys module (2026-09-09 split)
 };
 
 test('R11: HTML escaping is implemented once (utils.ts escape), never re-forked', () => {
@@ -1525,7 +1577,7 @@ const TRAY_CREATE_ALLOWED: Record<string, number> = {
   'views/pdf-extract.ts': 1,
   // The fallback for a host that supplied none. Unreachable from #/start, which
   // always passes its own - see the short-circuit asserted below.
-  'lib/brand-editor.ts': 1,
+  'lib/brand-editor/logos.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
 };
 
 test('R12: the candidate tray is created once per surface, and the Logos room takes the host\'s', () => {
@@ -1542,7 +1594,8 @@ test('R12: the candidate tray is created once per surface, and the Logos room ta
 
   // The fallback must stay a fallback. Without this line brand-editor builds its
   // own tray even when the host handed one over, which is the two-instance bug.
-  const editor = TS.find(f => f.rel === 'lib/brand-editor.ts')?.text ?? '';
+  // lib/brand-editor.ts is an orchestrator plus feature modules under lib/brand-editor/ (2026-09-09 split)
+  const editor = TS.filter(f => f.rel === 'lib/brand-editor.ts' || f.rel.startsWith('lib/brand-editor/')).map(f => f.text).join('\n');
   assert.match(editor, /if\s*\(opts\.tray\)\s*return opts\.tray;/,
     "lib/brand-editor.ts must prefer the host's tray (opts.tray) before creating one of its own");
 });
@@ -1602,7 +1655,8 @@ test('R14: _updateUserAssetMeta runs neither pin-preserver nor quota check, and 
   const body = assets.slice(start, end);
   assert.doesNotMatch(body, /preservePinned|assertQuotaRoom/,
     '_updateUserAssetMeta must not run the pin-preserver or the quota check: a meta rewrite adds no bytes and must never freeze a pinned duplicate');
-  const catalog = TS.find(f => f.rel === 'views/catalog.ts')?.text ?? '';
+  // views/catalog.ts is an orchestrator plus feature modules under views/catalog/ (2026-09-09 split)
+  const catalog = TS.filter(f => f.rel === 'views/catalog.ts' || f.rel.startsWith('views/catalog/')).map(f => f.text).join('\n');
   assert.ok(hitLines(catalog, /host\.assets\._updateUserAssetMeta\(/).length >= 2,
     'views/catalog.ts: persistAiSignals and declare-ai-origins both annotate via _updateUserAssetMeta, never a whole-record re-upload');
 });

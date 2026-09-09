@@ -25,6 +25,7 @@ import { t } from '../i18n.ts';
 import { cubicBezierAt, easingPoints, easingToWire } from '../lib/transitions.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import '../styles/parts/easing-editor.css';
+import { clamp } from '@lolly/engine';
 
 type Pts = [number, number, number, number];
 
@@ -54,7 +55,6 @@ const svgEl = <K extends keyof SVGElementTagNameMap>(name: K): SVGElementTagName
   document.createElementNS(NS, name);
 
 const round3 = (n: number): number => Math.round(n * 1000) / 1000;
-const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
 
 export interface EasingEditorOptions {
   /** The current authored value, in wire form. Unauthored (empty/unparseable) is fine. */

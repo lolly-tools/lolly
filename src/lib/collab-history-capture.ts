@@ -37,6 +37,7 @@ export function createCollabHistoryCapture(opts: {
   actorLabel?: string;
   /** Optional per-capture label; falls back to the history's own numbering. */
   label?(): string | undefined;
+  failure?(message: string): void;
   now?(): number;
   setTimer?(fn: () => void, ms: number): unknown;
   clearTimer?(handle: unknown): void;
@@ -55,17 +56,24 @@ export function createCollabHistoryCapture(opts: {
   const commit = (): void => {
     timer = undefined;
     if (stopped || dirtySince === undefined) return;
-    dirtySince = undefined;
-    lastCapture = now();
-    opts.history.capture({
+    const at = now();
+    try { opts.history.capture({
       documentId: opts.documentId,
       toolId: opts.toolId,
       actorId: opts.actorId,
       actorLabel: opts.actorLabel,
       label: opts.label?.(),
-      at: new Date(lastCapture).toISOString(),
+      at: new Date(at).toISOString(),
       data: opts.snapshot(),
     });
+      dirtySince = undefined;
+      lastCapture = at;
+    } catch (error) {
+      // Leave the draft dirty for the next edit/explicit flush, without a tight
+      // retry loop or an unhandled error from the timer callback.
+      dirtySince = at; lastCapture = at;
+      opts.failure?.(error instanceof Error ? error.message : 'Could not keep this session checkpoint.');
+    }
   };
 
   return {

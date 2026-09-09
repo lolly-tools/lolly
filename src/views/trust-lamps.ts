@@ -57,7 +57,6 @@ export function lampStripHtml(lamps: readonly TrustLamp[], opts: { flat?: boolea
 export function stripAriaSummary(lamps: readonly TrustLamp[]): string {
   const warns = lamps.filter((l) => l.state === 'warn').length;
   const facts = lamps.filter((l) => l.state === 'fact').length;
-  const hints = lamps.filter((l) => l.state === 'hint').length;
   const head = warns > 0
     ? t('{n} warnings.', { n: warns })
     : facts > 0 ? t('No warnings.') : t('Nothing verified either way.');

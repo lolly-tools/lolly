@@ -33,7 +33,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -74,7 +74,10 @@ function bodyAfter(src: string, head: string): string {
   assert.fail(`unbalanced braces while extracting \`${head}\``);
 }
 
-const CODE = stripComments(readFileSync(join(HERE, 'tool.ts'), 'utf8'));
+// tool.ts is an orchestrator plus feature modules under tool/ (2026-09-09 split)
+// context.ts only declares the shape; the alias and publish lines are the split's plumbing, not code
+const PLUMBING = /^\s*const \{[^}]*\} = tview;\s*$|\btview\.(\w+) = \1(?: as [^;]+)?;/gm;
+const CODE = stripComments([readFileSync(join(HERE, 'tool.ts'), 'utf8'), ...readdirSync(join(HERE, 'tool')).filter((n) => n.endsWith('.ts') && n !== 'context.ts').sort().map((n) => readFileSync(join(HERE, 'tool', n), 'utf8'))].join('\n')).replace(PLUMBING, '');
 // The inspector's dock/float controller (plans/208): the column requests live here now.
 const INSPECTOR_FLOAT = stripComments(readFileSync(join(HERE, 'design-inspector-float.ts'), 'utf8'));
 const CHOOSER = stripComments(readFileSync(join(HERE, 'template-chooser.ts'), 'utf8'));
@@ -87,7 +90,7 @@ test('nothing awaits the template chooser - the mount is never gated on a human 
       'createRuntime behind a human click, which IS the open delay this guards',
   );
   assert.ok(
-    !/\bawait\s+templatePick\b/.test(CODE),
+    !/\bawait\s+(?:tview\.)?templatePick\b/.test(CODE),
     'awaiting the pick promise anywhere in the mount is the same stall by another name',
   );
   assert.ok(
@@ -97,9 +100,9 @@ test('nothing awaits the template chooser - the mount is never gated on a human 
 });
 
 test('the chooser is still STARTED before the mount, and only APPLIED after it', () => {
-  const start = CODE.indexOf('templatePick = (async');
+  const start = CODE.indexOf('tview.templatePick = (async');
   const create = CODE.indexOf('await createRuntime(');
-  const apply = CODE.indexOf('if (templatePick) {');
+  const apply = CODE.indexOf('if (tview.templatePick) {');
   assert.notEqual(start, -1, 'the chooser is started via a `templatePick = (async …)()` handle');
   assert.notEqual(create, -1, 'mountTool still awaits createRuntime');
   assert.notEqual(apply, -1, 'the pick is applied from a `if (templatePick)` block');
@@ -108,7 +111,7 @@ test('the chooser is still STARTED before the mount, and only APPLIED after it',
 });
 
 test('the pick is seeded with applyPatch - no undo step, no collab echo, one render', () => {
-  const block = bodyAfter(CODE, 'if (templatePick) {');
+  const block = bodyAfter(CODE, 'if (tview.templatePick) {');
   assert.match(block, /runtime\.applyPatch\(/, 'the seed goes through the engine atomic apply');
   assert.match(block, /migrateBlockRowIds\(runtime\)/,
     'rows arriving after the mount-time migration still need their stable ids');
@@ -118,7 +121,7 @@ test('the pick is seeded with applyPatch - no undo step, no collab echo, one ren
   );
   // Precedence must match the pre-mount merge it replaced (`{...chosen, ...initialValues}`):
   // a key the URL/profile already supplied wins, so it never reaches the patch.
-  assert.match(block, /!\(k in initialValues\)/,
+  assert.match(block, /!\(k in (?:tview\.)?initialValues\)/,
     'a profile/URL-supplied key must still win over the template, as it did pre-mount');
 });
 
@@ -155,41 +158,41 @@ test('the chooser yields the main thread around every preview render', () => {
 // sides of the one await (`applyPatch`) a navigation can straddle.
 
 test('a navigate-away before the pick lands cannot patch a torn-down runtime', () => {
-  assert.match(CODE, /let templatePickTornDown = false;/,
+  assert.match(CODE, /(?:let |tview\.)templatePickTornDown = false;/,
     'the latch - set once by _cleanup, read by both the open path and the pick handler');
-  assert.match(CODE, /let templatePickClose: \(\(\) => void\) \| null = null;/,
+  assert.match(CODE, /(?:let templatePickClose: \(\(\) => void\) \| null = null;|tview\.templatePickClose = null;)/,
     'the modal-close handle, armed once the chooser actually opens (onOpen, below)');
 
   // Opening: a navigate-away while the chunk was still loading must not open the modal
   // at all (nothing would ever call the close it would hand back); one that lands after
   // the modal exists is closed immediately instead of stored, so it can never point at a
   // reference nobody will call.
-  const openCall = bodyAfter(CODE, 'templatePick = (async () => {');
-  assert.match(openCall, /if \(templatePickTornDown\) return \{\};/,
+  const openCall = bodyAfter(CODE, 'tview.templatePick = (async () => {');
+  assert.match(openCall, /if \((?:tview\.)?templatePickTornDown\) return \{\};/,
     'a navigate-away during the chunk load must skip opening the chooser entirely');
   assert.match(
     openCall,
-    /onOpen:\s*\(close\)\s*=>\s*\{\s*if \(templatePickTornDown\) close\(\);\s*else templatePickClose = close;\s*\}/,
+    /onOpen:\s*\(close\)\s*=>\s*\{\s*if \((?:tview\.)?templatePickTornDown\) close\(\);\s*else (?:tview\.)?templatePickClose = close;\s*\}/,
     'the close handle is armed onto the holder - or fired immediately if teardown already landed',
   );
 
   // Applying: the SAME latch is checked before the patch (skips it outright) and again
   // after (skips the row-id re-stamp) - `applyPatch` is the one await a navigation can
   // land in the middle of.
-  const pickBlock = bodyAfter(CODE, 'if (templatePick) {');
+  const pickBlock = bodyAfter(CODE, 'if (tview.templatePick) {');
   const applyAt = pickBlock.indexOf('runtime.applyPatch(');
   assert.notEqual(applyAt, -1);
-  assert.match(pickBlock.slice(0, applyAt), /if \(templatePickTornDown\) return;/,
+  assert.match(pickBlock.slice(0, applyAt), /if \((?:tview\.)?templatePickTornDown\) return;/,
     'must not seed a patch onto a runtime this mount already tore down');
-  assert.match(pickBlock.slice(applyAt), /if \(templatePickTornDown\) return;/,
+  assert.match(pickBlock.slice(applyAt), /if \((?:tview\.)?templatePickTornDown\) return;/,
     'must not re-stamp row ids if a navigation landed while applyPatch was in flight');
 
   // Tearing down: _cleanup is what makes the latch true and takes the modal, which lives
   // outside viewEl's own subtree (template-chooser.ts appends to document.body), down
   // with the view - nothing else here would otherwise touch it.
-  const cleanup = bodyAfter(CODE, 'viewEl._cleanup = () => {');
-  assert.match(cleanup, /templatePickTornDown = true;/);
-  assert.match(cleanup, /templatePickClose\?\.\(\);\s*templatePickClose = null;/);
+  const cleanup = bodyAfter(CODE.slice(CODE.lastIndexOf('viewEl._cleanup = () => {')), 'viewEl._cleanup = () => {');
+  assert.match(cleanup, /(?:tview\.)?templatePickTornDown = true;/);
+  assert.match(cleanup, /(?:tview\.)?templatePickClose\?\.\(\);\s*(?:tview\.)?templatePickClose = null;/);
 });
 
 // ── Surface 1: the chooser also opens for user-template-only tools ────────────
@@ -201,7 +204,7 @@ test('a navigate-away before the pick lands cannot patch a torn-down runtime', (
 test('the chooser gate opens on built-in OR user templates', () => {
   assert.match(
     CODE,
-    /else if \(\s*!slot\s*&&\s*!seededDirect\s*&&\s*Object\.keys\(values\)\.length === 0\s*&&\s*\(!reachedViaLink \|\| templateParam === ''\)\s*\) \{/,
+    /else if \(\s*!(?:tview\.)?slot\s*&&\s*!(?:tview\.)?seededDirect\s*&&\s*Object\.keys\((?:tview\.)?values\)\.length === 0\s*&&\s*\(!(?:tview\.)?reachedViaLink \|\| (?:tview\.)?templateParam === ''\)\s*\) \{/,
     'the gate condition dropped the hard hasTemplates requirement so a user-template-only tool reaches it'
     + ' (an EMPTY ?template= - the gallery card + New button - is an explicit chooser ask that overrides reachedViaLink)',
   );
@@ -209,7 +212,7 @@ test('the chooser gate opens on built-in OR user templates', () => {
     'the user templates are counted from the store list()');
   assert.match(CODE, /createUserTemplateStore\([\s\S]{0,200}?\)\.list\(toolId\)/,
     'the count comes from the user-template store scoped to this tool id');
-  assert.match(CODE, /if \(\(hasTemplates \|\| hasUserTemplates\) && !hasPendingDesignImport\(\)\) \{/,
+  assert.match(CODE, /if \(\((?:tview\.)?hasTemplates \|\| (?:tview\.)?hasUserTemplates\) && !hasPendingDesignImport\(\)\) \{/,
     'the chooser opens for built-in OR user templates - for neither, this guard leaves templatePick null -'
     + ' and never over a pending design import, whose drop front door owns this mount (2026-09-02)');
 });
@@ -218,12 +221,12 @@ test('the built-in fast path skips the user-template store read before mount', (
   // A tool WITH built-in templates always opens, so it must not pay the async store read on
   // the mount path - the count is guarded behind `if (!hasTemplates)`, and the chooser
   // promise below still fetches the user templates off the mount path as it always did.
-  const head = CODE.match(/else if \(\s*!slot\s*&&\s*!seededDirect\s*&&\s*Object\.keys\(values\)\.length === 0\s*&&\s*\(!reachedViaLink \|\| templateParam === ''\)\s*\)/)?.[0];
+  const head = CODE.match(/else if \(\s*!(?:tview\.)?slot\s*&&\s*!(?:tview\.)?seededDirect\s*&&\s*Object\.keys\((?:tview\.)?values\)\.length === 0\s*&&\s*\(!(?:tview\.)?reachedViaLink \|\| (?:tview\.)?templateParam === ''\)\s*\)/)?.[0];
   assert.ok(head, 'the blank-fresh-open chooser branch exists');
   const branch = bodyAfter(CODE, head!);
   const countAt = branch.indexOf('hasUserTemplates = mine.length > 0;');
   assert.notEqual(countAt, -1, 'the user-template count is inside this branch');
-  assert.match(branch.slice(0, countAt), /if \(!hasTemplates\) \{/,
+  assert.match(branch.slice(0, countAt), /if \(!(?:tview\.)?hasTemplates\) \{/,
     'the store read only runs when there are no built-in templates (Design stays fast)');
 });
 

@@ -774,19 +774,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   const chip = (label: string, value: string): string =>
     `<span class="fc-insp-chip"><i>${label}</i>${escape(value)}</span>`;
 
-  /**
-   * The DOCUMENT's own settings write a top-level input, not a box field, so they carry
-   * `data-doc` rather than `data-fld` and are wired on their own (see `wire`). Two
-   * attributes rather than a flag on one, because `write()` must never be handed a
-   * document setting by accident: it would stamp `narrationVoice` onto whatever rows the
-   * column happens to be showing, which is exactly the class of bug the notes textarea
-   * already taught this column once.
-   */
-  const docTextRow = (label: string, input: string, placeholder = ''): string =>
-    `<label class="fc-row fc-insp-text"><span>${label}</span>`
-    + `<input type="text" class="field-input" data-doc="${escape(input)}" data-kind="str" spellcheck="false"`
-    + ` autocomplete="off" value="${escape(String(model.getInput(input) ?? ''))}" placeholder="${escape(placeholder)}"></label>`;
-
   const docToggleRow = (label: string, input: string): string =>
     `<label class="fc-row fc-row-toggle field-toggle"><span>${label}</span>`
     + `<input type="checkbox" class="field-check" data-doc="${escape(input)}" data-kind="bool"`

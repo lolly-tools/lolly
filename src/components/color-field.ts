@@ -42,7 +42,7 @@
  * colour read "sRGB", and jsdom never fires `input`, so the only guard against
  * reintroducing it is the zero-calls-after-wiring test in color-field.test.ts.
  */
-import { contrastRatio, deltaEOk, parseColor, formatColor, convertColor, colorToHexString, BEYOND_TIER } from '@lolly/engine';
+import { deltaEOk, parseColor, formatColor, convertColor, colorToHexString, BEYOND_TIER } from '@lolly/engine';
 import type { CssColor } from '@lolly/engine';
 import { PALETTE } from '../palette.ts';
 import { contrastText } from '../brand-vars.ts';

@@ -124,7 +124,8 @@
 
 import { extractC2paStore, sniffFormat } from '../../../../engine/src/c2pa-extract.ts';
 import { sniffContainer } from '../../../../engine/src/media-sniff.ts';
-import { stripAssetModifiers } from '../../../../engine/src/photo-treatment.ts';
+import { assetDependency } from '../../../../engine/src/asset-version.ts';
+import { resolveSessionUserAsset, rebaseImportedAssetPins } from './session-asset-versions.ts';
 import {
   MAX_ITEM_BYTES,
   MAX_MESSAGE_CHARS,
@@ -377,7 +378,7 @@ export interface BeamPackHost {
   assets: {
     _exportUserAssets(): Promise<readonly BeamAssetRecord[]>;
     _uploadUserAsset(record: BeamAssetRecord): Promise<unknown>;
-    _getUserRecord?(id: string): Promise<BeamAssetRecord | null>;
+    _getUserRecord?(id: string, version?: string): Promise<BeamAssetRecord | null>;
     /** Ditto - the compensating delete for a row this beam wrote. */
     _deleteUserAsset?(id: string): Promise<unknown>;
   };
@@ -591,12 +592,12 @@ export function collectSessionAssetRefs(data: unknown): SessionAssetRefs {
       if (isBaked(record)) return;
       const kind = refKind(record, id);
       if (kind === 'user') {
-        const base = stripAssetModifiers(id);
+        const base = assetDependency(record as { id: string }).key;
         if (!seenUser.has(base)) { seenUser.add(base); user.push(base); }
         return;
       }
       if (kind === 'library') {
-        const base = stripAssetModifiers(id);
+        const base = assetDependency(record as { id: string }).key;
         if (!seenLibrary.has(base)) { seenLibrary.add(base); library.push(base); }
         return;
       }
@@ -640,14 +641,15 @@ export function rewriteSessionAssetRefs<T>(data: T, rekey: ReadonlyMap<string, s
     const record = value as Record<string, unknown>;
     const id = refIdOf(record);
     if (id !== null && !isBaked(record) && refKind(record, id) === 'user') {
-      const base = stripAssetModifiers(id);
+      const dep = assetDependency(record as { id: string });
+      const base = dep.key;
       const next = rekey.get(base);
       if (next === undefined) {
         if (!seenUnresolved.has(base)) { seenUnresolved.add(base); unresolved.push(base); }
         return record;
       }
       rewritten++;
-      return { ...record, id: next + id.slice(base.length), source: 'user', url: '' };
+      return { ...record, id: next + dep.modifier, ...(dep.pin ? { pin: dep.pin } : {}), source: 'user', url: '' };
     }
     const out: Record<string, unknown> = {};
     for (const [key, v] of Object.entries(record)) out[key] = walk(v, depth + 1);
@@ -899,7 +901,7 @@ export async function buildBeamOffer(source: BeamPackSource): Promise<BuiltBeamO
   } else {
     assets = [];
     for (const id of wantedAssetIds) {
-      const record = byId.get(id);
+      const record = await resolveSessionUserAsset(id, byId, host.assets._getUserRecord?.bind(host.assets));
       if (record?.blob) assets.push(record);
       // A ref pointing at an upload that no longer exists is already broken on THIS
       // device; it stays broken on the other one rather than failing the beam.
@@ -1498,7 +1500,7 @@ export async function ingestBeamItem(
       format: kind.format,
       blob: stored,
       checksum: storedChecksum,
-      ...(entry.version ? { version: safeText(entry.version, 32, '1.0.0') } : {}),
+      version: entry.version ? safeText(entry.version, 256, '1.0.0') : crypto.randomUUID(),
       ...(Number.isFinite(entry.width) ? { width: entry.width } : {}),
       ...(Number.isFinite(entry.height) ? { height: entry.height } : {}),
       ...(provenance ?? {}),
@@ -1554,7 +1556,8 @@ export async function ingestBeamItem(
     throw new BeamPackError('bad-manifest', `${item.id}: session payload is not a saved session`);
   }
 
-  const { data: rewrittenData, rewritten, unresolved } = rewriteSessionAssetRefs(data, ctx.rekey);
+  const { data: mapped, rewritten, unresolved } = rewriteSessionAssetRefs(data, ctx.rekey);
+  const rewrittenData = rebaseImportedAssetPins(mapped, ctx.rekey, await ctx.host.assets._exportUserAssets());
   const toolId = safeText(rewrittenData.__toolId, 128, safeText(entry.toolId, 128, 'session'));
   const sessionLabel = tRaw(STRINGS.receivedSession, { label, name: from });
   // A session thumbnail is a small data-URL (the shell captures ~tens of KB). Anything

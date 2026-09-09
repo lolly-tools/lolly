@@ -127,8 +127,6 @@ export const PLATFORM_FACES: Record<string, RegistryFace[]> = {
   outfit: [{ assetId: '', staticUrl: '/fonts/Outfit[wght].ttf', weight: '100 900', style: 'normal', unicodeRange: '' }],
 };
 
-const USER_FONT_PREFIX = 'user/fonts/';
-
 // ── Pure helpers (exported for tests) ────────────────────────────────────────
 
 /**

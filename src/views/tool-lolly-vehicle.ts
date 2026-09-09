@@ -2,7 +2,7 @@
 /** Shared editable-file vehicle for the Share dialog and export panel. */
 import { buildLollyFile, creatorFromProfile, LOLLY_MIME, LOLLY_EXT, type LollyLibraryAsset, type LollyToolTrust } from '../lib/lolly-pack.ts';
 import type { BeamAssetRecord } from '../lib/beam-pack.ts';
-import { ENGINE_VERSION } from '@lolly/engine';
+import { ENGINE_VERSION, decodeAssetVersion } from '@lolly/engine';
 import { resolveToolBundle } from '../lib/tool-bundle.ts';
 import { getToolIntegrity } from '../catalog/integrity.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
@@ -11,7 +11,8 @@ import type { ShareDialogLolly } from '../components/share-dialog.ts';
 import type { WebToolHost } from './tool.ts';
 
 interface LollyAssetsSlice {
-  get(id: string): Promise<AssetRef>;
+  get(id: string, opts?: { format?: string; version?: string }): Promise<AssetRef>;
+  _getUserRecord?(id: string, version?: string): Promise<BeamAssetRecord | null>;
   _getBlob(id: string, opts?: { format?: string; version?: string }): Promise<Blob | null>;
   _exportUserAssets(): Promise<readonly BeamAssetRecord[]>;
 }
@@ -57,9 +58,10 @@ export function makeLollyVehicle(
 
   const resolveLibrary = async (id: string): Promise<LollyLibraryAsset | null> => {
     try {
-      const blob = await assets._getBlob(id);
+      const dep = decodeAssetVersion(id);
+      const blob = await assets._getBlob(dep.id, dep.pin);
       if (!blob) return null;
-      const ref = await assets.get(id).catch(() => null);
+      const ref = await assets.get(dep.id, dep.pin).catch(() => null);
       const meta = (ref?.meta ?? {}) as Record<string, unknown>;
       const licensed = meta.brandLock === true || isProprietaryLicense(meta.license);
       return {
@@ -129,6 +131,7 @@ export function makeLollyVehicle(
       toolVersion: manifest.version != null ? String(manifest.version) : undefined,
       name: String((manifest as { name?: unknown }).name ?? toolId),
       userAssets,
+      resolveUser: assets._getUserRecord?.bind(assets),
       resolveLibrary,
       includeLicensed,
       creator,
@@ -165,4 +168,3 @@ export function makeLollyVehicle(
     share,
   };
 }
-

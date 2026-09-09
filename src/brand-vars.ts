@@ -28,7 +28,7 @@
 // (Handlebars) + loadTool/validate (Ajv) + c2pa onto first paint. See
 // scripts/check-bundle-budget.ts.
 import { colorToHex, isAlias } from '../../../engine/src/tokens.ts';
-import { parseOklch, oklchToHex, hexToOklch, contrastRatio, parseHex } from '../../../engine/src/brand-derive.ts';
+import { parseOklch, oklchToHex, hexToOklch, parseHex } from '../../../engine/src/brand-derive.ts';
 import { chromeFollowsDesignSystem } from './lib/chrome-follow.ts';
 
 /** The seven semantic slots (token leaf under `color.semantic`) → CSS var. */

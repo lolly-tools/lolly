@@ -31,7 +31,7 @@ const errText = (e: unknown): string => String((e as { message?: unknown } | nul
 const fail = (message: string): void => { announce(message, { assertive: true }); };
 
 export async function mountFontsManager(container: HTMLElement, opts: FontsManagerOptions): Promise<void> {
-  const { host, showBranding = false, onFontInstalled } = opts;
+  const { host, onFontInstalled } = opts;
 
   container.innerHTML = `
     <div class="fonts-manager">

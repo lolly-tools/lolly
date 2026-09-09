@@ -37,7 +37,7 @@ export async function openAssetVersions(id: string, host: HostV1, onChanged: () 
           if (!await confirmDialog({ title: t('Restore this version?'), message: t('The current bytes will also be saved as a version. Designs using the current asset will see the restored copy.'), confirmLabel: t('Restore as current'), danger: false })) return;
           await assets._restoreUserAssetVersion(id, version.version); await onChanged(); await render(); status.textContent = t('Version restored. The previous current copy is saved too.');
         } else {
-          if (!await confirmDialog({ title: t('Remove this saved version?'), message: t('This removes only this historical snapshot, not the current asset. References pinned to this version will stop resolving. Download it first; removal cannot be undone.'), confirmLabel: t('Remove saved version') })) return;
+          if (!await confirmDialog({ title: t('Remove this saved version?'), message: t('Versions used by saved creations or retained history are protected. Download a copy before removing an unused version; removal cannot be undone.'), confirmLabel: t('Remove saved version') })) return;
           await assets._removeUserAssetVersion(id, version.version); await onChanged(); await render();
         }
       } catch (error) { status.textContent = error instanceof Error ? error.message : String(error); }

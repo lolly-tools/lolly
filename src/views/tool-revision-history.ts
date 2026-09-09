@@ -5,14 +5,19 @@ import type { RevisionCursor } from '../bridge/revision-records.ts';
 import { createAutomaticHistory, type AutomaticHistory } from './automatic-history.ts';
 import { flatExportNode } from './tool-action-helpers.ts';
 import { markSyncDirty } from '../lib/sync-service.ts';
-import type { CollabHistoryCapability } from '../lib/collab-history.ts';
+import { isCapturableCollabHistory, type CollabHistoryCapability } from '../lib/collab-history.ts';
+import type { CollabSessionHandle } from '../lib/collab-session.ts';
+import { createCollabHistoryCapture, type CollabHistoryCapture } from '../lib/collab-history-capture.ts';
 import type { HistoryWireEntry } from '../collab/history-exchange.ts';
+import { hasHistoryAdapter } from './tool-history-adapters.ts';
+import { mountRevisionHistoryControl } from './tool-history-controls.ts';
+export { historyParticipation, trackRevisionInput } from './tool-history-adapters.ts';
 
 /** A browser entry remembers its local document without putting a device-local
  * slot in a copied Share URL. The actual document remains in host.state. */
 export function localHistorySlot(state: HostV1['state'], toolId: string): string | undefined {
-  if (toolId !== 'design' || !(state as WebStateAPI).history) return;
   const entry = window.history.state?.lollyHistory;
+  if (!(state as WebStateAPI).history || (!hasHistoryAdapter(toolId) && entry?.explicit !== true)) return;
   return entry?.toolId === toolId && typeof entry.slot === 'string' ? entry.slot : undefined;
 }
 
@@ -77,8 +82,28 @@ export function mountActionHistory(opts: {
   } };
 }
 
+/** Work supplies server revisions; only P2P has a client-owned capture log. */
+export function mountCollabActionHistory(opts: {
+  handle?: CollabSessionHandle | null; snapshot?: () => SavedStateData;
+  toolId: string; slot?: string | null; open(): Promise<void>;
+}): CollabHistoryCapture | undefined {
+  const handle = opts.handle;
+  if (!handle || !opts.snapshot || !isCapturableCollabHistory(handle.history)) return;
+  return createCollabHistoryCapture({
+    history: handle.history, snapshot: opts.snapshot, toolId: opts.toolId,
+    documentId: opts.slot ?? `collab:${opts.toolId}`, actorId: handle.self.clientId,
+    ...(handle.self.name ? { actorLabel: handle.self.name } : {}),
+    failure: message => { void import('../lib/undo-toast.ts').then(({ showUndoToast }) => showUndoToast({
+      message, actionLabel: 'History', undo: opts.open,
+    })); },
+  });
+}
+
 export function wireToolRevisionHistory(opts: {
   state: WebStateAPI; slot(): string | null; controller?: AutomaticHistory; collab?: CollabHistoryCapability; connected(): boolean;
+  root?: HTMLElement;
+  copyState?: WebStateAPI;
+  collaborating?: boolean;
   peer?: { list(): Promise<readonly HistoryWireEntry[]>; fetch(revisionId: string): Promise<SavedStateData> };
 }): { open(): Promise<void>; dispose(): void } {
   let close: (() => void) | undefined;
@@ -86,12 +111,15 @@ export function wireToolRevisionHistory(opts: {
   if (opts.controller) window.addEventListener('pagehide', onPageHide);
   const onHidden = (): void => { if (document.visibilityState === 'hidden') void opts.controller?.flush(); };
   if (opts.controller) document.addEventListener('visibilitychange', onHidden);
+  const open = async (): Promise<void> => {
+    const { openHistoryPanel } = await import('../components/history-panel.ts');
+    if (opts.connected()) close = openHistoryPanel(opts);
+  };
+  const releaseControl = opts.root && (opts.controller || opts.collaborating || opts.collab)
+    ? mountRevisionHistoryControl(opts.root, () => { void open(); }) : undefined;
   return {
-    async open() {
-      const { openHistoryPanel } = await import('../components/history-panel.ts');
-      if (opts.connected()) close = openHistoryPanel(opts);
-    },
-    dispose() { close?.(); document.removeEventListener('visibilitychange', onHidden); window.removeEventListener('pagehide', onPageHide); },
+    open,
+    dispose() { close?.(); releaseControl?.(); document.removeEventListener('visibilitychange', onHidden); window.removeEventListener('pagehide', onPageHide); },
   };
 }
 

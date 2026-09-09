@@ -3,7 +3,7 @@
 import { splitCssArgs, parseConicGradient } from '../../../../engine/src/css-paint.ts';
 import { svgToPenpotDoc } from '../../../../engine/src/penpot-file.ts';
 import type { PenpotIrShape } from '../../../../engine/src/penpot-file.ts';
-import { buildLinearGradientEl, buildRadialGradientEl, conicFanEl } from '../bridge/export.ts';
+import { buildLinearGradientEl, buildRadialGradientEl, conicFanEl } from '../bridge/export-gradients.ts';
 
 export function componentBackground(image: string, box: { x: number; y: number; w: number; h: number }, radius: number | [number, number, number, number]): PenpotIrShape[] | null {
   const ns = 'http://www.w3.org/2000/svg';

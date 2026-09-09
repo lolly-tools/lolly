@@ -115,7 +115,6 @@ const SLOTS_FOR: Record<string, string[]> = {
   cols3: ['media1', 'media2', 'media3'], grid4: ['media1', 'media2', 'media3', 'media4'],
 };
 const LAYOUTS = Object.keys(SLOTS_FOR);
-const DEFAULT_BG = '#141b2d';
 const MAX_SLIDES = 40;   // mirrors the tool hook's cap
 const MAX_BOXES = 120;   // lock-step with MAX_BOXES in community/deck-builder/hooks.js - the tool renders at most this many boxes per freeform slide
 

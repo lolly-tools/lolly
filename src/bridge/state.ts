@@ -8,7 +8,9 @@
  * warn the user.
  */
 
-import { stripAssetModifiers } from '../../../../engine/src/photo-treatment.ts';
+import { collectAssetRefs } from './asset-dependencies.ts';
+import { indexSavedWork } from './history-index.ts';
+export { collectAssetRefs } from './asset-dependencies.ts';
 import { sessionVersionStamp, migrateSessionRecord } from '../../../../engine/src/session-record.ts';
 import type { StateAPI, StateEntry } from '@lolly-tools/core/host-v1';
 import type { RevisionHistoryAPI, RevisionStore } from './revision-history.ts';
@@ -37,6 +39,8 @@ export interface StateRecord {
    *  timestamp (`<toolId>:<Date.now()>`) and then updatedAt. */
   createdAt?: string;
   documentId?: string;
+  openedAt?: string;
+  historyKey?: string[];
   /** Record-layout version + the engine that wrote it (see engine/session-record.ts).
    *  Optional so records written before versioning still type-check on read. */
   formatVersion?: number;
@@ -99,7 +103,7 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
     const prior = await db.get('state', slot).catch(() => undefined);
     const now = new Date().toISOString();
     return { slot, toolId: data.__toolId, toolVersion: data.__toolVersion, label: data.__label,
-      data, thumb, updatedAt: now, createdAt: prior?.createdAt ?? now,
+      data, thumb, updatedAt: now, createdAt: prior?.createdAt ?? now, openedAt: prior?.openedAt,
       ...sessionVersionStamp(), ...(await activeDesignSystemStamp(db)) };
   };
   return {
@@ -111,7 +115,7 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
     async save(slot, data, thumb = null) {
       const record = await makeRecord(slot, data, thumb);
       if (revisions) await revisions.replace(record);
-      else await db.put('state', record);
+      else await db.put('state', indexSavedWork(record));
     },
 
     async load(slot) {
@@ -162,23 +166,4 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
       return refs;
     },
   };
-}
-
-export function collectAssetRefs(value: unknown, refs: Set<string>): void {
-  if (!value || typeof value !== 'object') return;
-  if (Array.isArray(value)) {
-    for (const item of value) collectAssetRefs(item, refs);
-    return;
-  }
-  const record = value as Record<string, unknown>;
-  if (record.source === 'library' && record.id && record.format && record.version != null) {
-    // A derived ref (`<baseId>?theme=<t>` icon, `<baseId>?treatment=<t>` photo) is
-    // backed by the BASE blob - that's the key the cache holds and the one pruning
-    // must protect. Both derived refs record the base format, so this reconstructs
-    // the base blob key exactly.
-    const baseId = stripAssetModifiers(String(record.id));
-    refs.add(`${baseId}:${record.format}:${record.version}`);
-    return;
-  }
-  for (const v of Object.values(record)) collectAssetRefs(v, refs);
 }

@@ -34,10 +34,10 @@ import {
   interpretPdfPage, parseToUnicode, toUnicodeDecoder, finalizeBoxes, safeColor, pdfNodesToSvg,
   unfilterPng, isShadowPlate, cullPdfNodes, extractPageText,
   findHiddenText as engineFindHiddenText, findVectorArtwork, windowPdfSvg,
-  type DesignMapOptions, type PageText, type HiddenTextFinding, type TaggedElement, type VectorArtwork,
+  type DesignMapOptions, type PageText, type HiddenTextFinding, type TaggedElement, 
 } from '@lolly/engine';
 import type { CullWindow } from '../../../../engine/src/pdf-svg.ts';
-import type { PdfNode, PdfFontInfo, PdfXObject, PdfShading, PdfPattern, PdfGradientStop, PdfSoftMaskDef } from '../../../../engine/src/pdf-map.ts';
+import type { PdfNode, PdfFontInfo, PdfXObject, PdfShading, PdfPattern, PdfSoftMaskDef } from '../../../../engine/src/pdf-map.ts';
 import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 import { renderTilePixels, type TileSource } from '../lib/pdf-shading.ts';
 import { readFontEmbedding, type FontEmbeddingInfo } from '../lib/font-utils.ts';

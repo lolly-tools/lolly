@@ -13,7 +13,7 @@
  * static graph stays /pro-free and the overlay loads from the (pro-free) gallery.
  */
 import { escape } from './utils.ts';
-import { t, tRaw } from './i18n.ts';
+import { tRaw } from './i18n.ts';
 import { mountModal } from './components/modal.ts';
 import { confirmDialog } from './components/confirm-dialog.ts';
 import { mountBodyPopover } from './components/body-popover.ts';

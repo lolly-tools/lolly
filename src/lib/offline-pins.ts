@@ -31,6 +31,7 @@
 import { openDB } from '../bridge/db.ts';
 import { currentLang } from '../i18n.ts';
 import { instanceFetch, instancePath } from './instance.ts';
+import { looksLikeHtmlDocumentBytes } from '../bridge/tool-file-guard.ts';
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
 
 /** The Cache Storage bucket pinned tool files live in. Mirrored by sw.js
@@ -151,13 +152,19 @@ async function pinFile(cache: Cache, url: string, required: boolean): Promise<nu
   let resp: Response | null = null;
   try { resp = await instanceFetch(fetchUrl); } catch { /* network failure - treated as missing below */ }
   // SPA-fallback guard (same as the tool loader's fetchFile): an HTML body for a
-  // non-.html path means the server served the app shell for a missing file.
-  const ct = resp?.headers.get('content-type') ?? '';
-  if (!resp || !resp.ok || (ct.includes('text/html') && !url.endsWith('.html'))) {
+  // non-.html path means the server served the app shell for a missing file. It is
+  // decided on CONTENT, never the Content-Type header - Tauri labels unknown-extension
+  // text (.md/.ics/.vcf sibling templates) `text/html`, which would refuse to pin them
+  // (bridge/tool-file-guard.ts).
+  if (!resp || !resp.ok) {
     if (required) throw new Error(`offline pin: failed to fetch ${fetchUrl}`);
     return 0;
   }
   const blob = await resp.blob();
+  if (!url.endsWith('.html') && looksLikeHtmlDocumentBytes(new Uint8Array(await blob.slice(0, 512).arrayBuffer()))) {
+    if (required) throw new Error(`offline pin: failed to fetch ${fetchUrl}`);
+    return 0;
+  }
   await cache.put(fetchUrl, new Response(blob, { status: resp.status, statusText: resp.statusText, headers: resp.headers }));
   return blob.size;
 }

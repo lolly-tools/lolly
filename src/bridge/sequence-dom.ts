@@ -86,6 +86,7 @@ import {
   evaluateKf, kfMatrix3dCss,
   type KfCameraClip, type KfCameraView, type KfMatrix3, type KfTrack,
 } from '@lolly/engine';
+import { clamp } from '@lolly/engine';
 
 export { MIN_SPEED, MAX_SPEED, MIN_TRANSITION_MS, MAX_TRANSITION_MS };
 
@@ -182,8 +183,6 @@ export interface Timing {
    */
   frame: boolean;
 }
-
-const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
 
 function attrNum(el: Element, name: string, fallback: number): number {
   const raw = el.getAttribute(name);

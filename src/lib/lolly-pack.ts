@@ -26,6 +26,8 @@
 
 import { strToU8 } from 'fflate';
 import type { Profile } from '@lolly-tools/core/host-v1';
+import { assetDependency } from '../../../../engine/src/asset-version.ts';
+import { resolveSessionUserAsset, rebaseImportedAssetPins } from './session-asset-versions.ts';
 import { zipAsync } from './zip.ts';
 import {
   type BundleEntry,
@@ -238,6 +240,7 @@ export interface LollyBuildInput {
   thumb?: string | null;
   /** Every user asset record (`host.assets._exportUserAssets()`); the referenced ones travel. */
   userAssets: readonly BeamAssetRecord[];
+  resolveUser?: (id: string, version?: string) => Promise<BeamAssetRecord | null>;
   /** Resolve a catalog id's bytes for embedding, or null → it travels as a ref. */
   resolveLibrary?: (id: string) => Promise<LollyLibraryAsset | null>;
   /** Carry brand-pack / licensed catalog bytes (after the licensed-content confirmation). */
@@ -383,7 +386,7 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
 
   // Device-local (user/*) assets - carried whenever we hold the bytes, always.
   for (const id of refs.user) {
-    const record = byId.get(id);
+    const record = await resolveSessionUserAsset(id, byId, input.resolveUser);
     const blob = record?.blob;
     if (!record || !blob) {
       // Referenced but the bytes aren't here (a stale ref) - record it honestly so
@@ -666,9 +669,9 @@ export function applyLollyRekey<T>(data: T, rekey: ReadonlyMap<string, string>):
     const id = rec.id;
     const baked = !!rec.meta && typeof rec.meta === 'object' && (rec.meta as { baked?: unknown }).baked === true;
     if (typeof id === 'string' && id && rec.source !== undefined && !baked) {
-      const base = id.split('?')[0]!;   // drop a theme/treatment modifier to match the closure id
-      const next = rekey.get(base);
-      if (next !== undefined) return { ...rec, id: next + id.slice(base.length), source: 'user', url: '' };
+      const dep = assetDependency(rec as { id: string });
+      const next = rekey.get(dep.key);
+      if (next !== undefined) return { ...rec, id: next + dep.modifier, ...(dep.pin ? { pin: dep.pin } : {}), source: 'user', url: '' };
     }
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(rec)) out[k] = walk(v, depth + 1);
@@ -752,7 +755,7 @@ export async function ingestLollyFile(
       const r = await ingestBeamItem({ id: it.id, label: it.label, bytes: it.bytes, checksum: it.checksum }, it.blob, ctx);
       if (r.kind === 'asset') { if (r.deduped) deduped++; else imported++; }
     }
-    const rewritten = applyLollyRekey(session, ctx.rekey);
+    const rewritten = rebaseImportedAssetPins(applyLollyRekey(session, ctx.rekey), ctx.rekey, await host.assets._exportUserAssets());
     // A brand collection reuses the asset transaction, then saves its real
     // sessions individually. It must never mint a synthetic wrapper Project.
     if (opts.saveSession === false) return { slot: '', toolId: manifest.tool.id, imported, deduped, session: rewritten };

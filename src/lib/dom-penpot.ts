@@ -27,7 +27,7 @@
 import { parseBoxShadow } from '../../../../engine/src/css-box.ts';
 import { parsePenpotColor, svgToPenpotDoc, penpotUuid, decodeDataUrl } from '../../../../engine/src/penpot-file.ts';
 import type { PenpotDoc, PenpotIrShape, PenpotIrText, PenpotMedia } from '../../../../engine/src/penpot-file.ts';
-import { bakeTextStyles } from '../bridge/export-pptx.ts';
+import { bakeTextStyles } from '../bridge/bake-text-styles.ts';
 import { componentBackground } from './component-background.ts';
 
 const px = (v: string): number => Number.parseFloat(v) || 0;

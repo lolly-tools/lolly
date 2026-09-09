@@ -7,7 +7,6 @@
  */
 import { registerProvider } from '../registry.ts';
 import { createToolsProvider, createUtilitiesProvider } from './tools.ts';
-import { createPlacesProvider } from './places.ts';
 import { createProjectsProvider } from './projects.ts';
 import { createCatalogProvider } from './catalog.ts';
 import { createSettingsProvider } from './settings.ts';

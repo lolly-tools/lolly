@@ -15,6 +15,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { encodeAssetVersion } from '../../../../engine/src/asset-version.ts';
 import type { BeamAssetRecord, BeamPackHost, BeamSessionRow } from './beam-pack.ts';
 import {
   buildLollyFile,
@@ -52,6 +53,28 @@ function memHost() {
 }
 
 const PNG = (tag: number) => new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, tag, 0, 0]);
+
+test('.lolly carries two exact versions of one upload and pins each imported copy', async () => {
+  const id = 'user/upload/versioned';
+  const record = (version: string, tag: number): BeamAssetRecord => ({ id, type: 'raster', format: 'png', version, blob: new Blob([PNG(tag)], { type: 'image/png' }) });
+  const old = record('v1', 1), current = record('v2', 2);
+  const ref = (version: string) => ({ id, source: 'user', type: 'raster', format: 'png', version, pin: { version, format: 'png' }, url: '' });
+  const session = { __toolId: 'design', a: ref('v1'), b: ref('v2') };
+  const built = await buildLollyFile({ session, toolId: 'design', userAssets: [current], resolveUser: async (asked, version) => asked === id && version === 'v1' ? old : null });
+  assert.deepEqual(built.manifest.assets.map(item => item.id), ['v1', 'v2'].map(version => encodeAssetVersion(id, { version, format: 'png' })));
+  const target = memHost();
+  const imported = await ingestLollyFile(await built.blob.arrayBuffer(), target.host);
+  const out = imported.session as typeof session;
+  assert.notEqual(out.a.id, out.b.id);
+  for (const [ref, tag] of [[out.a, 1], [out.b, 2]] as const) {
+    const saved = target.userStore.get(ref.id)!;
+    assert.equal(ref.pin.version, saved.version);
+    assert.deepEqual(new Uint8Array(await saved.blob!.arrayBuffer()), PNG(tag));
+  }
+  const missing = await buildLollyFile({ session, toolId: 'design', userAssets: [current] });
+  assert.equal(missing.manifest.assets[0]!.kind, 'asset-ref', 'missing old bytes never embed the current asset');
+  assert.equal(missing.manifest.assets[1]!.kind, 'asset');
+});
 
 const UPLOAD_ID = 'user/upload/123-logo.png';
 const CATALOG_ID = 'lolly-start/pattern/waves';   // ordinary catalog art

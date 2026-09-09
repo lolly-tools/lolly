@@ -90,7 +90,7 @@ installDepthSeam();
 type WebHost = Awaited<ReturnType<typeof createBridge>>;
 
 /** Route names the shell can be in. */
-type RouteName = 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'catalog' | 'verify' | 'convert' | 'data' | 'start' | 'multi' | 'components' | 'lab' | 'pdf' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply';
+type RouteName = 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'start' | 'multi' | 'components' | 'lab' | 'pdf' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply';
 
 /** A parsed route: a discriminated union on `name`. */
 type Route =
@@ -102,6 +102,7 @@ type Route =
   | { name: 'data'; params?: string }
   | { name: 'pro'; params?: string }
   | { name: 'projects'; folderId: string | null; params?: string }
+  | { name: 'history'; params?: string }
   | { name: 'catalog'; params?: string }
   | { name: 'start'; params?: string }
   | { name: 'multi'; params?: string }
@@ -198,11 +199,12 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   // params mid-session (its only location writes navigate AWAY - see index.ts).
   pro: { label: 'Batch mode', viewClasses: ['pro-view'], sigKey: 'params', footer: 'none' },
   projects: { label: 'Projects', tab: 'projects', viewClasses: ['projects-view'], sigKey: 'folderId', footer: 'search' },
+  history: { label: 'History', viewClasses: ['history-view'], sigKey: 'params', footer: 'none' },
   catalog: { label: 'Catalogue', tab: 'catalog', viewClasses: ['catalog-view'], footer: 'search' },
   // Verify/Convert/PDF/Lab keep their own chrome in v1 - the bar reaches them in
   // plans/99 M3 once proven (decision locked 2026-08-08).
   verify: { label: 'Verify', viewClasses: ['verify-view'], footer: 'none' },
-  convert: { label: 'Convert', viewClasses: ['convert-view'], footer: 'none' },
+  convert: { label: 'Convert', viewClasses: ['convert-view'], sigKey: 'params', footer: 'none' },
   data: { label: 'Spreadsheet', viewClasses: ['data-view'], footer: 'none' },
   // The studio keys on ?tab= for the same reason - "Manage fonts" (#/start?tab=type)
   // clicked while already on #/start must switch steps, not dedupe to a no-op.
@@ -556,6 +558,11 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     // --- Projects: a gallery-style view of folders of saved sessions. Shares the
     // pro-free folder store + folder-export (gated import); safe to keep even if /pro
     // is removed. ---
+    case 'history': {
+      const { mountHistory } = await import('./views/history.ts');
+      await mountHistory(view, host, route.params);
+      break;
+    }
     case 'projects': {
       const { mountProjects } = await import('./views/projects.ts');
       const onBatchRendered = (files: Array<{ name: unknown }>) => {
@@ -1725,6 +1732,7 @@ function parseRoute(): Route {
       return { name: 'tool', toolId: 'design', params: query || '' };
     }
     if (parts[0] === 'profile') return { name: 'profile', params: query || '' };
+    if (parts[0] === 'history') return { name: 'history', params: query || '' };
     if (parts[0] === 'd' || parts[0] === 'dashboard') return { name: 'dashboard', params: query || '' };
     // /b and /brand are shortlinks straight to the Dashboard's Design System tab.
     // Redirect (like /platform → /d) so mountDashboard reads ?tab=brand off the hash.

@@ -38,8 +38,10 @@ function memDb() {
           get: (k: IDBValidKey) => db.get(s, k), put: (v: unknown, k?: IDBValidKey) => db.put(s, v, k),
           delete: (k: IDBValidKey) => db.delete(s, k), getAll: () => db.getAll(s), getAllKeys: () => db.getAllKeys(s),
           clear: () => db.clear(s), count: () => db.count(s),
+          // asset-history's dependencyRoots walks the retained-history stores by cursor before a delete
+          openCursor: async () => { const vals = [...of(s).values()]; let i = 0; const at = (): { value: unknown; continue: () => Promise<unknown> } | null => (i < vals.length ? { value: vals[i++], continue: async () => at() } : null); return at(); },
         }),
-        store: null as unknown, done: Promise.resolve(),
+        store: null as unknown, done: Promise.resolve(), abort() {},
       };
       tx.store = tx.objectStore(list[0]!);
       return tx;

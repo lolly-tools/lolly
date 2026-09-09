@@ -48,7 +48,6 @@ import { wireDisclosure } from '../components/body-popover.ts';
 import type { FeaturedEntry, FeaturedManifest, FeaturedVariant, FeaturedRowHandle, FeaturedViewMode } from '../components/featured-row.ts';
 import { loadFavourites, saveFavourites } from '../lib/favourites.ts';
 import { loadHiddenTools, saveHiddenTools } from '../lib/hidden-tools.ts';
-import { wireTileSelect } from '../lib/tile-select.ts';
 import { startJob } from '../lib/jobs.ts';
 import type { BulkBarConfig } from '../lib/bulk-bar.ts';
 import { mountModal } from '../components/modal.ts';

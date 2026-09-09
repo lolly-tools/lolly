@@ -11,7 +11,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { BLEND_STYLES, HUE_ROUTES, isPolarSpace, cssInterpolation } from './blend-style.ts';
 import { parseGradientSpec, formatGradientSpec, DEFAULT_GRADIENT_SPACE } from '@lolly/engine';
 
@@ -61,8 +61,10 @@ test('the CSS fragment omits the default route and never states one CSS would re
 });
 
 test('the canvas gradient panel still spells its buttons from here', () => {
-  const src = readFileSync(new URL('../views/free-canvas.ts', import.meta.url), 'utf8');
-  assert.match(src, /from '\.\.\/lib\/blend-style\.ts'/, 'imports the vocabulary');
+  // free-canvas is an orchestrator plus feature modules under views/free-canvas/ (2026-09-09 split)
+  const fcDir = new URL('../views/free-canvas/', import.meta.url);
+  const src = [readFileSync(new URL('../views/free-canvas.ts', import.meta.url), 'utf8'), ...readdirSync(fcDir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(new URL(n, fcDir), 'utf8'))].join('\n');
+  assert.match(src, /from '(?:\.\.\/)+lib\/blend-style\.ts'/, 'imports the vocabulary');
   assert.match(src, /BLEND_STYLES\.map/, 'renders the space buttons from it');
   assert.match(src, /HUE_ROUTES\.map/, 'and the hue route buttons');
   // The inline list this replaced, in either surface, is the drift this guards.

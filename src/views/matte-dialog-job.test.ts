@@ -212,7 +212,7 @@ test('Escape closes the dialog and starts nothing', async () => {
 // ── every caller reads the result off onComplete, not off the return ──────────
 
 test('every openMatteDialog call site passes an onComplete hook', async () => {
-  const { readFileSync } = await import('node:fs');
+  const { readFileSync, readdirSync, existsSync } = await import('node:fs');
   const { dirname, join } = await import('node:path');
   const { fileURLToPath } = await import('node:url');
   const here = dirname(fileURLToPath(import.meta.url));
@@ -220,7 +220,9 @@ test('every openMatteDialog call site passes an onComplete hook', async () => {
   // that ignores onComplete silently drops the user's result. tsc can't catch that
   // (the hook is optional), which is why it is pinned here.
   for (const file of ['catalog.ts', 'picker.ts', 'free-canvas.ts']) {
-    const text = readFileSync(join(here, file), 'utf8');
+    // catalog and free-canvas are an orchestrator plus feature modules under a dir of the same name (2026-09-09 split)
+    const dir = join(here, file.replace(/\.ts$/, ''));
+    const text = [readFileSync(join(here, file), 'utf8'), ...(existsSync(dir) ? readdirSync(dir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(dir, n), 'utf8')) : [])].join('\n');
     let from = 0;
     let calls = 0;
     for (;;) {

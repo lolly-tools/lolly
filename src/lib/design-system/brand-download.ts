@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { mountModal } from '../../components/modal.ts';
-import { escape } from '../../utils.ts';
+import { escape as escapeHtml } from '../../utils.ts';
 import { t } from '../../i18n.ts';
 import { icon } from '../icons.ts';
 import { buildBrandPackage, emptyBrandSelection, listBrandContent, type BrandPackageHost, type BrandSelection, type ContentChoice, type ContentKind } from './brand-package.ts';
@@ -75,7 +75,7 @@ export async function openBrandDownload(host: BrandPackageHost, system: string):
         if (!alive) return;
         choices = items;
         // Every label/id comes from on-device data, so interpolate only escaped text.
-        lists.innerHTML = GROUPS.map(group => `<details class="bd-group" open><summary>${t(group.label)} <span data-bd-count="${group.kind}"></span></summary><button type="button" class="bd-select-visible" data-bd-select="${group.kind}">${t('Select visible')}</button><div class="bd-items">${items.map((item, i) => item.kind === group.kind ? `<label class="bd-item" data-bd-item="${i}"><input type="checkbox" data-bd-choice="${i}"><span><strong>${escape(item.name)}</strong><small>${escape(item.detail)}</small></span></label>` : '').join('')}<p class="bd-empty" hidden>${t('No matching items.')}</p></div></details>`).join('');
+        lists.innerHTML = GROUPS.map(group => `<details class="bd-group" open><summary>${t(group.label)} <span data-bd-count="${group.kind}"></span></summary><button type="button" class="bd-select-visible" data-bd-select="${group.kind}">${t('Select visible')}</button><div class="bd-items">${items.map((item, i) => item.kind === group.kind ? `<label class="bd-item" data-bd-item="${i}"><input type="checkbox" data-bd-choice="${i}"><span><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.detail)}</small></span></label>` : '').join('')}<p class="bd-empty" hidden>${t('No matching items.')}</p></div></details>`).join('');
         status.textContent = '';
         updateSummary(); applyFilter();
       }).catch(error => {

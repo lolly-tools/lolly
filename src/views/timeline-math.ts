@@ -38,6 +38,7 @@ import {
 import type {
   KfCameraClip, KfCameraView, KfChannel, KfKey, KfPose, KfTrack,
 } from '../../../../engine/src/keyframes.ts';
+import { clamp } from '@lolly/engine';
 
 export type { Box };
 
@@ -214,11 +215,6 @@ export const MIN_TRIM_BAR_PX = 28;
  */
 export const MIN_SPEED = 0.25;
 export const MAX_SPEED = 4;
-
-// One clamp, shared by the attribute-facing readers and the derived-duration
-// function, so the two can never drift apart (they did once; that is why this is a
-// single exported helper rather than two inline expressions).
-const clamp = (v: number, a: number, b: number): number => (v < a ? a : v > b ? b : v);
 
 /** Round to milliseconds. Time fields are authored in seconds; 3dp is the wire's resolution. */
 const r3 = (v: number): number => Math.round(v * 1000) / 1000;

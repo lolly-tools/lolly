@@ -38,7 +38,7 @@ import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 // Format + embeddability rules - pure and unit-tested in ./picker-formats.test.ts.
 import {
   extFromMime, audioFormatOf, formatsForType, isEmbeddable, imageFormatSeed,
-  relTime as relTimeAt, VIDEO_FMTS, RASTER_MOTION_FMTS, IMG_FORMATS,
+  relTime as relTimeAt, 
 } from './picker-formats.ts';
 import { fmtBytes } from '../lib/format.ts';
 import { fold, tokenize, scoreHaystack, SEARCH_DEBOUNCE_MS } from '../lib/search/match.ts';
@@ -53,8 +53,7 @@ import { openWebcamCapture } from './picker-webcam.ts';
 import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { maybeNudgeAssetMilestone } from '../lib/asset-milestone.ts';
 import { invalidateNeurospicyTracks } from '../lib/neurospicy.ts';
-import { onIdle } from '../lib/clip-thumbs.ts';
-import { audioThumbShape, audioThumbSvg, audioThumbPlaceholder } from '../lib/audio-thumb.ts';
+import { audioThumbSvg, audioThumbPlaceholder } from '../lib/audio-thumb.ts';
 import { audioThumbPool, type ThumbTheme } from '../lib/audio-thumb-colour.ts';
 import { mountTextThumbs } from '../lib/text-thumbs.ts';
 import { loadAudioCovers, resolveAudioLook, type AudioCover } from '../lib/audio-covers.ts';

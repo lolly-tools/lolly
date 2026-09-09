@@ -79,3 +79,21 @@ test('dispose stops capture, and an armed timer never fires afterwards', async (
   h.advance(5000);
   assert.equal((await h.history.list()).entries.length, 0);
 });
+
+test('a failed capture stays dirty and the next boundary can retry', async () => {
+  const history = createP2PCollabHistory({ role: 'writer', host: false, maxEntryBytes: 500 });
+  let text = 'large'.repeat(200);
+  const errors: string[] = [];
+  const capture = createCollabHistoryCapture({ history, documentId: 'doc', toolId: 'design', actorId: 'peer',
+    snapshot: () => ({ text }), failure: message => errors.push(message), setTimer: () => 1, clearTimer: () => {} });
+  capture.changed();
+  assert.doesNotThrow(() => capture.flush());
+  assert.equal(errors.length, 1);
+  assert.equal((await history.list()).entries.length, 0);
+  text = 'fits';
+  capture.flush();
+  assert.equal((await history.list()).entries.length, 1);
+  capture.flush();
+  assert.equal((await history.list()).entries.length, 1);
+  capture.dispose();
+});
