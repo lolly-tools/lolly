@@ -175,6 +175,8 @@ Each declaration becomes a real control, built by the shell from the input model
 | `file`           | a `FileRef` (the user's own file: `name`/`mime`/`size`/`bytes`) | file picker (on-device utilities) |
 | `table`          | `{ columns: string[], rows: string[][] }` - a user-defined grid where the column headings AND rows are data (unlike `blocks`, whose fields you declare) | minimal grid editor with spreadsheet paste (TSV / Markdown / CSV), copy-out and a pop-out floating window |
 
+For existing flat `blocks` inputs, `tableColumns: ["place", "label", "annotation"]` opts into this same editor, with fixed headings in the requested field order (remaining fields follow). Objects, row ids and positional URL encoding stay unchanged. All fields must be scalar; nested or conditional blocks keep their block editor. Timezone is the reference. Paste accepts matching field ids or labels as spreadsheet headers, or a plain city list in the first column.
+
 A `table` input is the batch-creation primitive: paste a table copied from Excel / Google Sheets / Notion / Slack / Markdown and it replaces the whole grid; the Copy button writes TSV *and* a real HTML `<table>` back to the clipboard so the round trip into collaboration tools is lossless. Cells can hold whole paragraphs. Pair it with `render.paginate` (below) and each row becomes a page. In URL mode the entire table is ONE compact param; in the CLI, `--<inputId>-data=table.csv` fills it from a CSV/TSV/Markdown file.
 
 Four declarations of four different types are four different controls. `color-palette` declares exactly that and nothing else: a `color`, a `select`, a `number` and a `boolean`.
