@@ -23,7 +23,8 @@
   "dependencies": {
     "@lolly/engine": "workspace:*",
     "@resvg/resvg-js": "^2.6.2",
-    "jsdom": "^25.0.1"
+    "jsdom": "^25.0.1",
+    "@lolly-tools/core": "workspace:*"
   },
   "optionalDependencies": {
     "playwright-core": "^1.49.0"
