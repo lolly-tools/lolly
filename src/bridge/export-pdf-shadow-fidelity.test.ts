@@ -80,7 +80,7 @@ const browser = await chromiumOrSkip();
 const dir = await mkdtemp(join(tmpdir(), 'lolly-pdf-shadow-'));
 const renderer = typeof browser === 'string' ? null : await pickRenderer(dir);
 const SKIP = typeof browser === 'string' ? browser
-  : !renderer ? 'no PDF rasteriser (needs swiftc or pdftoppm)'
+  : !renderer ? 'no PDF rasteriser binary (needs swiftc or pdftoppm)'
   : false;
 // poppler's own error swamps several rows, so it can check that nothing CRASHED but
 // not that the output is right. Thresholds below are Quartz's.
