@@ -231,7 +231,7 @@ modules:
       # brands/lolly-start pack, and the packages/* workspaces.
       - type: git
         url: https://github.com/lolly-tools/lolly.git
-        commit: dec37680bf1baab627e023e40144fa9c356147da
+        commit: 08895e1b84070e015db2175cd17f41ab762d5e86
         disable-submodules: true
 
       # The submodules this build needs, pinned to what the umbrella commit above
@@ -240,39 +240,39 @@ modules:
       # though the desktop app does not run them.
       - type: git
         url: https://github.com/lolly-tools/lolly-web.git
-        commit: c79dd45f10accf7712d164df7d56aeef2b8a65af
+        commit: cd8116089f3416eb076c8dc31989548eb0470b19
         dest: shells/web
       - type: git
         url: https://github.com/lolly-tools/lolly-cli.git
-        commit: 880feaa2cc23cbe22a1fa44f2e2ef8e00a669fe1
+        commit: 000616d28da1f85c495ae53627b46b4a4fa22095
         dest: shells/cli
       - type: git
         url: https://github.com/lolly-tools/lolly-tui.git
-        commit: db9229d024e219435677f3277fc2c1d852667f93
+        commit: 8fefa886a6f85dfe86b0252d7fff4c839b9a58b3
         dest: shells/tui
       - type: git
         url: https://github.com/lolly-tools/lolly-ca.git
-        commit: 6ea87b830fdd5b09e8b139b851014a159d86b7f2
+        commit: 39c2bf7cece3131831ef8bf9f53499f3e5158397
         dest: services/ca
       - type: git
         url: https://github.com/lolly-tools/lolly-mcp-server.git
-        commit: 1ba78efa15d00b244601759ee41e34c218fa27fb
+        commit: a43135502664e6aa6a3b6b50425a468c43f3289a
         dest: services/mcp
       # Not workspaces, but the build reads them: community/ is the public tool set
       # that scripts/use-profile.ts builds the tools/ view from, and docs/ is what
       # build:info turns into the /info pages the in-app #/docs reader fetches.
       - type: git
         url: https://github.com/lolly-tools/lolly-tools.git
-        commit: c6b266e82d8bbac8d3ced56783157ca5aecb21bc
+        commit: 229edded401b5fc303e6f94e10fbc7b3489daabc
         dest: community
       - type: git
         url: https://github.com/lolly-tools/lolly-docs.git
-        commit: 91f450485f91526dd91b5f89e709fe0e003aef86
+        commit: 62faf8f2e53aec00fb658beb4aad8d1edcc24ddf
         dest: docs
       # The shell being built.
       - type: git
         url: https://github.com/lolly-tools/lolly-desktop.git
-        commit: e93cb6d375a76db4be85ba3b24ed4588365d4969
+        commit: bfacd787d21d19e736f25be762b7fae2378fa227
         dest: shells/tauri-desktop
 
       # ONNX Runtime, byte-identical to what ort-sys would have fetched. Extracts to
