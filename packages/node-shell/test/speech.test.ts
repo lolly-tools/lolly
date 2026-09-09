@@ -17,12 +17,14 @@
  * Stage the models with: node scripts/fetch-kokoro-models.ts (and fetch-whisper-models.ts),
  * or `lolly models fetch kokoro` / `lolly models fetch whisper`.
  */
-import { test, after } from 'node:test';
+import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir, homedir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { serializeOrtTier } from './helpers/ort-serial-lock.ts';
 
 import {
   SPEECH_MODEL_FILES, createNodeSpeechAPI, familyBytes, familyStatus,
@@ -36,7 +38,10 @@ process.on('exit', () => rmSync(EMPTY, { recursive: true, force: true }));
 
 // The inference runtime this file loads (transformers.js over onnxruntime-node)
 // has aborted at process exit under a full-suite run on macOS (see ml.test.ts).
-// Give its native side a moment to finish before node tears the process down.
+// Serialize it against the other native-ORT file so their teardowns never
+// overlap (helpers/ort-serial-lock.ts), and still give its native side a moment
+// to finish before node tears the process down.
+before(async () => { await serializeOrtTier(); });
 after(async () => { await new Promise((resolve) => setTimeout(resolve, 300)); });
 
 /** A resolver that pretends one package is not installed. */

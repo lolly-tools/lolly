@@ -16,11 +16,13 @@
  *
  * Run directly:  node --test packages/node-shell/test/ml.test.ts
  */
-import { test, describe, after } from 'node:test';
+import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
+import { serializeOrtTier } from './helpers/ort-serial-lock.ts';
 
 import {
   createNodeAiDetectAPI, createNodeDepthAPI, createNodeMatteAPI, createNodeOcrAPI,
@@ -43,6 +45,12 @@ import { aiDetectModel } from '../src/ml/ai-detect-models.ts';
 // passed test in the file as failed. With no pool there is nothing to outlive
 // it. Set before the first session is created; the runners read process.env.
 process.env.LOLLY_ORT_THREADS = '1';
+
+// Serialize this file against the other native-ORT file (speech.test.ts): only
+// one onnxruntime-node runtime active at a time, held until process exit so the
+// abort-prone native teardown never overlaps the next file's inference. See
+// helpers/ort-serial-lock.ts. Single-threading alone did not hold under the gate.
+before(async () => { await serializeOrtTier(); });
 
 after(async () => {
   await releaseSessions();
