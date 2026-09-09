@@ -7,7 +7,7 @@
  * browser can't grant: microphone / camera recording.
  *
  * (Chromium itself may not be installed; that surfaces as a clear "run
- * `npm run install:browser`" error at export time, not as a hidden tool.)
+ * `pnpm run install:browser`" error at export time, not as a hidden tool.)
  */
 import type { ToolEntry } from './catalog.ts';
 

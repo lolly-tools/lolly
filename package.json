@@ -11,8 +11,8 @@
     "start": "tsx src/main.tsx"
   },
   "dependencies": {
-    "@lolly-tools/node-shell": "*",
-    "@lolly/engine": "*",
+    "@lolly-tools/node-shell": "workspace:*",
+    "@lolly/engine": "workspace:*",
     "@resvg/resvg-js": "^2.6.2",
     "fflate": "^0.8.3",
     "ink": "^5.0.1",

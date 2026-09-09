@@ -8,7 +8,7 @@ Own repo `lolly-tui`, mounted in the umbrella [`lolly`](https://github.com/lolly
 
 ## Entry point
 
-**`src/main.tsx`**, launched by `npm run tui` (`tsx src/main.tsx`). `bin/lolly-tui.tsx` is a thin launcher for the `lolly-tui` bin that re-execs through the `tsx` loader with a `#!/usr/bin/env -S node --import tsx` shebang, then imports `src/main.tsx`.
+**`src/main.tsx`**, launched by `pnpm run tui` (`tsx src/main.tsx`). `bin/lolly-tui.tsx` is a thin launcher for the `lolly-tui` bin that re-execs through the `tsx` loader with a `#!/usr/bin/env -S node --import tsx` shebang, then imports `src/main.tsx`.
 
 `main.tsx` builds the bridge and loads the catalogue in parallel, refuses to start without a real TTY, switches the terminal to its alternate screen buffer so the app owns the whole screen and the scrollback stays clean, renders `<App>` with Ink and restores the main buffer on any exit path including a crash or a signal. On the way out it also tears down the lazily created Chromium and web-shell singletons, which no-op when the session never rendered a raster.
 
@@ -37,20 +37,20 @@ Everything else is inherited, `host.capture` included: it is real in the shared 
 From the umbrella root:
 
 ```bash
-npm run tui
+pnpm run tui
 ```
 
-That is `npm --workspace shells/tui run start`, which is `tsx src/main.tsx`. It needs an interactive terminal and exits with a clear message when stdout is not a TTY, so it will not work inside a pipe or a CI log.
+That is `pnpm --filter ./shells/tui run start`, which is `tsx src/main.tsx`. It needs an interactive terminal and exits with a clear message when stdout is not a TTY, so it will not work inside a pipe or a CI log.
 
 ## Build it
 
-Nothing to build, but note that unlike every other TypeScript project here this one is run through **`tsx`** rather than Node's native type-stripping, because the sources are `.tsx` and Node does not strip JSX. Typechecking is `tsc -p shells/tui`, part of the umbrella's `npm run typecheck`.
+Nothing to build, but note that unlike every other TypeScript project here this one is run through **`tsx`** rather than Node's native type-stripping, because the sources are `.tsx` and Node does not strip JSX. Typechecking is `tsc -p shells/tui`, part of the umbrella's `pnpm run typecheck`.
 
 ## Surprising things
 
 - **The inline image preview emits no ANSI escapes.** `src/terminal-image.ts` rasterises the tool's SVG with resvg, then returns a grid of half-block cells, each a glyph plus foreground and background hex colours that **Ink** applies through its own `<Text>` props. Injecting raw SGR sequences into a screen Ink owns produces visible garbage. The preview is opt-in, on `p`, because the form matters more.
 - **This shell persists state, unlike the CLI.** `src/store.ts` keeps saved sessions as plain JSON in the directory all three local shells share - `$LOLLY_STATE_DIR`, else the desktop app's data directory when the app is installed here, else `~/.lolly` - in the desktop app's own `saved-state/<slot>.json` record, so a project saved in the app is in Projects here. The profile and project folders stay terminal-only files beside them. No database, no network.
-- **It renders raster, PDF and video by driving the built web shell**, exactly as the CLI does, through `@lolly-tools/node-shell/webshell-render`. So those formats need `npm run build:web` to have run, and the Chromium download from `lolly install-browser`.
+- **It renders raster, PDF and video by driving the built web shell**, exactly as the CLI does, through `@lolly-tools/node-shell/webshell-render`. So those formats need `pnpm run build:web` to have run, and the Chromium download from `lolly install-browser`.
 - The alternate-screen dance means a crash that escapes the handlers can leave your terminal in the alternate buffer. `reset` fixes it.
 
 ## Submodule caveat
@@ -59,7 +59,7 @@ This shell runs **inside the umbrella repo** and nowhere else. It resolves `@lol
 
 ```bash
 git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
-# or, in an existing clone, BEFORE npm install:
+# or, in an existing clone, BEFORE pnpm install:
 git submodule update --init --recursive
 ```
 

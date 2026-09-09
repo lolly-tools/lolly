@@ -77,7 +77,7 @@ export function modelValues(runtime: Runtime): Record<string, unknown> {
 
 export function exportableFormats(manifest: Manifest): string[] {
   // Every declared format is now offerable: engine-native ones render DOM-free, the rest
-  // via the scoped Chromium (a clear "run npm run install:browser / build:web" error
+  // via the scoped Chromium (a clear "run pnpm run install:browser / build:web" error
   // surfaces at export time if it isn't set up). `html` is appended as the universal
   // fallback so even a template with no <svg> and no browser can still write a file.
   const declared = ((manifest as { render?: { formats?: string[] } }).render?.formats ?? [])
