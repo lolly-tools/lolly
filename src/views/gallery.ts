@@ -319,7 +319,7 @@ const CHEVRON_RIGHT = icon('chevronRight', { strokeWidth: 2.4 });
 
 // Always-present backup art for a tile: the tool's own icon. The icon is INLINED into
 // the catalog index (never a network fetch), so unlike a committed preview PNG/SVG - a
-// build artifact that can 404 on a fresh install / before `npm run previews` - it can
+// build artifact that can 404 on a fresh install / before `pnpm run previews` - it can
 // never fail to load. It sits BEHIND every preview image and carousel (z-index:-1, see
 // gallery.css .gtile-iconfill) as an instant, on-brand placeholder while lazy art
 // decodes, and as the permanent fallback if a preview is missing or errors - so a gallery
@@ -1100,7 +1100,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   }
 
   // A demo preview can be absent - it's a build artifact (catalog/previews/) that,
-  // though committed, can be missing on a fresh checkout / before `npm run previews`,
+  // though committed, can be missing on a fresh checkout / before `pnpm run previews`,
   // or drift from the index. The hero img then errors; drop the broken <img> and let
   // the always-present icon backdrop (rendered behind every preview) stand in, so the
   // card shows the tool's own icon rather than a broken image - never a blank or

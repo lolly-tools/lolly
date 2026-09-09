@@ -14,7 +14,7 @@ const repoRoot = resolve(webDir, '..', '..');
 
 // A normal `vite build` remains useful for local preview/testing and produces an
 // explicitly unsigned-development artifact. Deployments must go through
-// `npm run build:web:release`, which sets this flag after signing the active
+// `pnpm run build:web:release`, which sets this flag after signing the active
 // catalog. Keep the assertion in Vite as a second gate so no alternate release
 // wrapper can accidentally emit an unsigned app.
 const catalogTrustMode = process.env.VITE_CATALOG_TRUST_MODE?.trim() || 'unsigned-dev';
@@ -486,7 +486,7 @@ const ORT_WASM_URL_RE = /\bnew\s+URL\(\s*(['"`])(ort-wasm[\w.-]*\.wasm)\1\s*,\s*
 // /ort/ort-wasm-simd-threaded.jsep.wasm and
 // /ort-hf/<version>/ort-wasm-simd-threaded.jsep.wasm - re-uploaded every deploy.
 //
-// Both originals are staged into public/ by `npm run build:ort` (scripts/copy-
+// Both originals are staged into public/ by `pnpm run build:ort` (scripts/copy-
 // ort.ts + copy-transformers-ort.ts) and both are what actually loads: lib/ort.ts
 // owns the shell's ONLY `import('onnxruntime-web')` and sets
 // `ort.env.wasm.wasmPaths = '/ort/'` in the same then() that resolves the module,
@@ -518,7 +518,7 @@ export function ortWasmFromPublic() {
   // fallback pointing at a release that is no longer staged.
   const hfBase = readFileSync(resolve(webDir, 'src', 'lib', 'ort-hf-base.ts'), 'utf8')
     .match(/ORT_HF_BASE\s*=\s*'([^']+)'/)?.[1];
-  if (!hfBase) throw new Error('vite.config: no ORT_HF_BASE in src/lib/ort-hf-base.ts - run npm run build:ort');
+  if (!hfBase) throw new Error('vite.config: no ORT_HF_BASE in src/lib/ort-hf-base.ts - run pnpm run build:ort');
   let isBuild = false;
   return {
     name: 'lolly-ort-wasm-from-public',
@@ -560,7 +560,7 @@ export function ortWasmFromPublic() {
         // build:ort first so it is always present by now; the dev server has no
         // such guarantee, hence build-only.
         if (isBuild && !existsSync(resolve(webDir, 'public', url.slice(1)))) {
-          throw new Error(`vite.config: ${id} loads ${file}, but public${url} is missing - run npm run build:ort`);
+          throw new Error(`vite.config: ${id} loads ${file}, but public${url} is missing - run pnpm run build:ort`);
         }
         hit = true;
         return `new URL(/* @vite-ignore */ ${quote}${url}${quote}, import.meta.url)`;

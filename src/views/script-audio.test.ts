@@ -59,7 +59,7 @@ test('bracket marks are not markdown and pass through untouched', () => {
 });
 
 test('inline code keeps its content, loses the ticks', () => {
-  assert.equal(markdownToSpokenText('Run `npm install` first.'), 'Run npm install first.');
+  assert.equal(markdownToSpokenText('Run `pnpm install` first.'), 'Run pnpm install first.');
 });
 
 test('headings keep their text', () => {

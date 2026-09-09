@@ -79,7 +79,7 @@ test('drift guard: every markdown page fully aligns; the pinned exceptions do no
   // reason, like the SUSE-font and Chromium gates. Local runs and the ship gate
   // (which runs build:info) still enforce the drift.
   if (!existsSync(`${INFO}search-index.json`)) {
-    t.skip('no built docs site at public/info/search-index.json (run npm run build:info) - drift is enforced where the site is built');
+    t.skip('no built docs site at public/info/search-index.json (run pnpm run build:info) - drift is enforced where the site is built');
     return;
   }
   const index = JSON.parse(readFileSync(`${INFO}search-index.json`, 'utf-8')) as Rec[];

@@ -342,8 +342,8 @@ test('richHtmlToMd: nested lists indent two spaces per level instead of flatteni
 
 test('richHtmlToMd: inline code spans and safe links keep their markdown', () => {
   const div = document.createElement('div');
-  div.innerHTML = '<p>run <code>npm test</code>, see <a href="https://example.com/docs">the docs</a></p>';
-  assert.equal(richHtmlToMd(div), 'run `npm test`, see [the docs](https://example.com/docs)');
+  div.innerHTML = '<p>run <code>pnpm test</code>, see <a href="https://example.com/docs">the docs</a></p>';
+  assert.equal(richHtmlToMd(div), 'run `pnpm test`, see [the docs](https://example.com/docs)');
   // an href-less link (the hook renders unsafe schemes text-only) stays plain text
   const bare = document.createElement('div');
   bare.innerHTML = '<p><a>click</a></p>';

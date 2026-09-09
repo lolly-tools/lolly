@@ -2,7 +2,7 @@
 
 This file exists so you can find the code for a feature without reading all of it. For what the shell *is*, how the bridge is composed and how to run it, see [`../README.md`](../README.md).
 
-The counts below are GENERATED - `npm run build:web-src-readme`, checked in CI by `npm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
+The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
 Roughly 515,000 lines of TypeScript, tests included, and 45,000 lines of CSS.
@@ -92,5 +92,5 @@ Largest stylesheets, for the same reason: `styles/parts/tool.css` (2,850), `gall
 
 - Tool and session state goes through `host.state`. `localStorage` is used only by the pre-paint script in `index.html`, for theme, brand fonts, brand radius and language.
 - Every path that mounts a tool goes through `createToolRuntime` in `lib/mount-runtime.ts`, because that is where the synchronous `host.color` and `host.geom` APIs are installed. Do not build a runtime around it.
-- A new top-level `import` in `main.ts`, `bridge/index.ts` or `views/gallery.ts` lands on the boot path and is measured. Run `npm run check:bundle` after a production build if you add one.
+- A new top-level `import` in `main.ts`, `bridge/index.ts` or `views/gallery.ts` lands on the boot path and is measured. Run `pnpm run check:bundle` after a production build if you add one.
 - Any new stylesheet must be imported into a layer. An unlayered sheet outranks everything, including `a11y`.

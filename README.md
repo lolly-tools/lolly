@@ -26,7 +26,7 @@ The `.js` specifier for a `.ts` file is deliberate, and it is the reason the Tau
 
 Eleven more are wired as **lazy facades**: the field on `host` is a small object whose every method does `(await load()).method(...)`, where `load` is a one-shot memoised `import()`. Those eleven are `identity`, `export`, `compose`, `net`, `text`, `pdf`, `pptx`, `capture`, `viz`, `images` and `audio`. `host.assets.pick` follows the same shape and lazily pulls `views/picker.ts`.
 
-This is not a style preference, it is a tested budget. `scripts/check-bundle-budget.ts` re-derives the boot payload from the built `dist/index.html` (the entry script plus every `modulepreload`), asserts that no chunk matching `/(engine-render|engine-c2pa|handlebars|ajv|html2canvas)-/` appears on it, and caps the total gzipped boot JS at `MAX_PRELOAD_JS_GZ = 135 * 1024`. Run it with `npm run check:bundle` after a production build exists. A single careless top-level `import { createRuntime }` in a boot-path module drags Handlebars and Ajv back in, and nothing else would fail. The same reasoning is why `bridge/index.ts` imports deep engine paths rather than the `@lolly/engine` barrel: that barrel is one shared facade whose retained export set is the union over every importer.
+This is not a style preference, it is a tested budget. `scripts/check-bundle-budget.ts` re-derives the boot payload from the built `dist/index.html` (the entry script plus every `modulepreload`), asserts that no chunk matching `/(engine-render|engine-c2pa|handlebars|ajv|html2canvas)-/` appears on it, and caps the total gzipped boot JS at `MAX_PRELOAD_JS_GZ = 135 * 1024`. Run it with `pnpm run check:bundle` after a production build exists. A single careless top-level `import { createRuntime }` in a boot-path module drags Handlebars and Ajv back in, and nothing else would fail. The same reasoning is why `bridge/index.ts` imports deep engine paths rather than the `@lolly/engine` barrel: that barrel is one shared facade whose retained export set is the union over every importer.
 
 Two contractually **synchronous** APIs cannot be lazy facades, so they get their own mechanism. `host.color` (v1.40) and `host.geom` (v1.64) are pure engine maths, and nothing in this shell reads either one, only tool hooks do. `installToolApis(host)` attaches them, and the single enforced chokepoint that awaits it is `createToolRuntime` in `src/lib/mount-runtime.ts`. Failure there is non-fatal by design, because both APIs are optional in the contract and tools feature-detect them.
 
@@ -59,22 +59,22 @@ The switch is wrapped in a `try`, and a mount failure in production that looks l
 From the umbrella root:
 
 ```bash
-npm run dev:web     # this is the one you want
+pnpm run dev:web     # this is the one you want
 ```
 
 `scripts/dev-web.ts` runs three things: `docs/build.ts --watch` so the `/info` site rebuilds on docs changes, the Vite dev server and a background previews pass against the live server that fills in any missing tool preview cards. It reads Vite's chosen port from its output rather than assuming 5173.
 
-`npm run dev` *inside this directory* is plain `vite`. It works, but it does not build `/info` and it does not generate previews, so the gallery cards and the docs links will look wrong.
+`pnpm run dev` *inside this directory* is plain `vite`. It works, but it does not build `/info` and it does not generate previews, so the gallery cards and the docs links will look wrong.
 
 ## Build it
 
 ```bash
-npm run build:web   # from the umbrella root
+pnpm run build:web   # from the umbrella root
 ```
 
 That is `build:ort`, then `build:info`, then the per-tool and per-view OG card generators, then `vite build` in this workspace. Running `vite build` here on its own skips the first four.
 
-Typechecking is `tsc -p shells/web` plus `tsc -p shells/web/tsconfig.tests.json`, both part of the umbrella's `npm run typecheck`. The main project excludes `src/**/*.test.ts`, which is why the tests need their own config.
+Typechecking is `tsc -p shells/web` plus `tsc -p shells/web/tsconfig.tests.json`, both part of the umbrella's `pnpm run typecheck`. The main project excludes `src/**/*.test.ts`, which is why the tests need their own config.
 
 ## Surprising things
 
@@ -92,7 +92,7 @@ This shell builds **inside the umbrella repo** and nowhere else. It resolves `@l
 
 ```bash
 git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
-# or, in an existing clone, BEFORE npm install:
+# or, in an existing clone, BEFORE pnpm install:
 git submodule update --init --recursive
 ```
 

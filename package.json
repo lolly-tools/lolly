@@ -14,7 +14,7 @@
   "dependencies": {
     "@breezystack/lamejs": "^1.2.7",
     "@huggingface/transformers": "^3.8.1",
-    "@lolly/engine": "*",
+    "@lolly/engine": "workspace:*",
     "@mediabunny/flac-encoder": "^1.55.3",
     "@tiptap/core": "^3.30.4",
     "@tiptap/extension-image": "^3.30.4",

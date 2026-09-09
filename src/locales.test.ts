@@ -159,7 +159,7 @@ test('every hand-listed spa key reached every catalog', () => {
     [],
     '\nA key in extra-keys.spa.json that no catalog carries renders English everywhere, and '
     + 'the cross-catalog comparison above cannot see it because all 26 agree. Regenerate '
-    + '(npm run translate -- --corpus spa) or add the English source as the value until a '
+    + '(pnpm run translate --corpus spa) or add the English source as the value until a '
     + `translation exists:\n${problems.join('\n')}\n`,
   );
 });

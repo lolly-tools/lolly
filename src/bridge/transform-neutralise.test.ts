@@ -7,7 +7,7 @@
  * pinned in `export-transform-animation.test.ts`, which drives the real walker in a
  * real Chromium. What is testable without any of that is the decision table: which
  * computed transforms send an element down a wrap-and-recurse branch, and which
- * animations are worth stopping. Both run on a bare `npm test`, so the guard keeps
+ * animations are worth stopping. Both run on a bare `pnpm test`, so the guard keeps
  * some cover on a machine with no browser installed.
  */
 import test from 'node:test';

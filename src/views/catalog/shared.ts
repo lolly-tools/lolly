@@ -160,7 +160,7 @@ export const stripC2paManifest = (svg: string): string =>
     .replace(/<c2pa:manifest>[\s\S]*?<\/c2pa:manifest>/g, '');
 export const isVector = (ref: AssetRef): boolean => ref.type === 'vector';
 // The date a CATALOG asset's file was first added to its brand pack, as the index
-// carries it (`added`, YYYY-MM-DD, stamped by npm run build:catalog). Read at noon
+// carries it (`added`, YYYY-MM-DD, stamped by pnpm run build:catalog). Read at noon
 // UTC so a reader west of UTC is not shown the day before. Empty string when the
 // asset has no date, which is every upload - those carry a millisecond stamp
 // instead and go through assetAddedAt.

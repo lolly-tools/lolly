@@ -37,8 +37,8 @@ async function chromiumOrSkip(): Promise<{ chromium: any } | string> {
   catch { return 'playwright not installed'; }
   try {
     const p = chromium.executablePath();
-    if (!p || !existsSync(p)) return 'no Chromium (npx playwright install chromium)';
-  } catch { return 'no Chromium (npx playwright install chromium)'; }
+    if (!p || !existsSync(p)) return 'no Chromium (pnpm exec playwright install chromium)';
+  } catch { return 'no Chromium (pnpm exec playwright install chromium)'; }
   return { chromium };
 }
 

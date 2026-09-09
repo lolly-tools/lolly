@@ -228,7 +228,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'Same parameters', desc: '<code>--flag=value</code> arguments are the URL params - a web link runs unchanged on the CLI.' },
       ] },
       { icon: ICONS.tui, title: 'Terminal app (TUI)', keywords: 'tui terminal keyboard ssh remote ansi truecolor preview', features: [
-        { name: 'Interactive in the shell', desc: 'Run <code>npm run tui</code> for a full keyboard-driven terminal app - browse the gallery, edit any tool’s inputs and organise saved projects into folders, all without leaving the shell.' },
+        { name: 'Interactive in the shell', desc: 'Run <code>pnpm run tui</code> for a full keyboard-driven terminal app - browse the gallery, edit any tool’s inputs and organise saved projects into folders, all without leaving the shell.' },
         { name: 'Preview inline', desc: 'Press <code>p</code> to render the current design straight into the terminal as a truecolor half-block image - no window, no browser.' },
         { name: 'Same engine, same file', desc: 'It reuses the CLI’s host bridge and the one shared engine, so a tool renders and exports exactly as it does in the browser or on the desktop.' },
       ] },

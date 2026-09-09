@@ -21,7 +21,7 @@
  * stroke-width AND fill - so a jsdom run cannot tell a working resolver from a broken one, and
  * hand-feeding a fake computed style would only test the fake. A real Chromium is the only
  * honest oracle here, so this suite self-skips when one isn't installed, per the gated-test
- * convention in tests/README.md. To exercise it: `npx playwright install chromium`.
+ * convention in tests/README.md. To exercise it: `pnpm exec playwright install chromium`.
  *
  * The helpers are imported by BUNDLING the real module for the browser (esbuild, a devDep) - 
  * node never imports export.ts, which is browser-only at runtime.
@@ -43,15 +43,15 @@ const EXPORT_MODULE = join(HERE, 'export.ts');
 const ART = join(REPO, 'catalog/assets/suse/illustrations/cybersecurity.svg');
 
 /** Resolve a Chromium, or a reason to skip. Mirrors packages/node-shell/src/browsers.ts's
- *  stance: a plain `npm install` pulls no browser, so its absence is normal, not a failure. */
+ *  stance: a plain `pnpm install` pulls no browser, so its absence is normal, not a failure. */
 async function chromiumOrSkip(): Promise<{ chromium: any } | string> {
   let chromium: any;
   try { ({ chromium } = await import('playwright')); }
   catch { return 'playwright not installed'; }
   try {
     const p = chromium.executablePath();
-    if (!p || !existsSync(p)) return 'no Chromium (npx playwright install chromium)';
-  } catch { return 'no Chromium (npx playwright install chromium)'; }
+    if (!p || !existsSync(p)) return 'no Chromium (pnpm exec playwright install chromium)';
+  } catch { return 'no Chromium (pnpm exec playwright install chromium)'; }
   return { chromium };
 }
 

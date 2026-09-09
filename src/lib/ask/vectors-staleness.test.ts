@@ -15,7 +15,7 @@
  * M0 (no vectors, lexical answers) stays green.
  *
  * Fixing a failure is one command:
- *   node scripts/build-ask-vectors.ts     (after npm run build:info)
+ *   node scripts/build-ask-vectors.ts     (after pnpm run build:info)
  *
  * ── The hash definitions ──────────────────────────────────────────────────
  * Documented in full in scripts/build-ask-vectors.ts's header, and repeated here
@@ -67,7 +67,7 @@ const INDEX_PATH = `${INFO}search-index.json`;
 const SKIP = !existsSync(META_PATH)
   ? 'no public/info/ask-vectors.json (M0-only tree) - run node scripts/build-ask-vectors.ts to add it'
   : !existsSync(INDEX_PATH)
-    ? 'no public/info/search-index.json - run npm run build:info first'
+    ? 'no public/info/search-index.json - run pnpm run build:info first'
     : false;
 
 const sha256Hex = (s: string): string => createHash('sha256').update(s, 'utf8').digest('hex');

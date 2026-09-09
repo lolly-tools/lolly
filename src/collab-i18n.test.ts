@@ -121,7 +121,7 @@ test('every string the collab surface can render is a key in all 26 catalogs', (
     missing.slice(0, 20),
     [],
     `${missing.length} collab string(s) have no catalog entry - regenerate with\n`
-    + '  npm run translate -- --corpus collab --export-pending   (then --import)\n'
+    + '  pnpm run translate --corpus collab --export-pending   (then --import)\n'
     + missing.slice(0, 20).join('\n'),
   );
 });

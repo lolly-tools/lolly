@@ -3,7 +3,7 @@
  * The one motion model (plans/179 M4) - lib/motion-model.ts.
  *
  * Run directly: node --import ./tests/css-stub.mjs --test shells/web/src/lib/motion-model.test.ts
- * (also collected by `npm test`). No framework - node:test.
+ * (also collected by `pnpm test`). No framework - node:test.
  *
  * What is actually at risk here, and why each section exists:
  *

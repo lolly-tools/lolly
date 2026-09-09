@@ -1208,7 +1208,7 @@ async function render(
   });
 
   // A tool preview is a build artifact (catalog/previews/) that, though committed, can
-  // be missing on a fresh checkout / before `npm run previews`, or drift from the index
+  // be missing on a fresh checkout / before `pnpm run previews`, or drift from the index
   // - when one 404s, reveal the tool's inline icon instead of a broken image. Error
   // events don't bubble, so listen in the capture phase, scoped to tool previews so
   // library/session thumbs are untouched (mirrors gallery.ts).

@@ -15,7 +15,7 @@
  * makes "and the OTHER pack still works" testable on one checkout. `brands/suse`
  * is a private submodule (`update = none`), so a public clone has no such
  * directory - those tests skip with a reason rather than failing, which is the
- * same stance `npm run validate:catalog:all` takes.
+ * same stance `pnpm run validate:catalog:all` takes.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

@@ -153,7 +153,7 @@ function tileMarkup(entry: FeaturedEntry, eager = false, menu = false): string {
   const label = `Open ${entry.name}`;
   // The committed preview is the instant first frame; rendered variants are appended
   // as layers as they arrive. A tool whose preview is missing (dev, before
-  // `npm run previews`) simply starts on the themed backdrop until its first variant.
+  // `pnpm run previews`) simply starts on the themed backdrop until its first variant.
   // The FIRST tile is the above-the-fold LCP element, so it loads eagerly at high
   // priority - `loading="lazy"` on the hero delays LCP (the browser defers the very
   // image LCP measures). Off-screen tiles (index > 0) keep lazy.

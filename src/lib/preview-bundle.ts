@@ -7,7 +7,7 @@
  * cost - each look loads the engine, runs the tool off-screen, and fetches its own photos/
  * logos on the main thread (the measured LCP 8.3 s / TBT 730 ms - see featured-row.ts).
  *
- * `npm run previews` pre-renders each look to a committed SVGO'd SVG (or a webp/png when the
+ * `pnpm run previews` pre-renders each look to a committed SVGO'd SVG (or a webp/png when the
  * look is raster-heavy) and build:catalog indexes them in ONE catalog/previews/bundle.json.
  * That file is a MANIFEST, not a payload: `<toolId>:<i>` → { src, sig }. We fetch it ONCE
  * (memoised, HTTP + service-worker cached) and hand renderFeaturedVariant the look's src -
