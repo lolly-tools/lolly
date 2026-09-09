@@ -1,5 +1,6 @@
 # Keep Docker build contexts lean and reproducible. The build stages run their
-# OWN `npm ci` and `npm run build:web`, so never ship host build artifacts.
+# OWN `pnpm install --frozen-lockfile` and `pnpm run build:web`, so never ship
+# host build artifacts.
 .git
 node_modules
 **/node_modules

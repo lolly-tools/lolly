@@ -117,6 +117,38 @@ test('the snippet is copied into the image and kept out of auto-included conf.d'
   assert.doesNotMatch(dockerfile, /security-headers\.conf\s+\/etc\/nginx\/conf\.d\//);
 });
 
+test('nginx mirrors every vercel clean-URL rewrite to a /view/*.html page', () => {
+  // The self-hosted container (and the RPM) must resolve the same clean URLs
+  // (/start, /batch, /verify, /tools …) to the same pre-rendered view the hosted
+  // deployment does. On Vercel that is a rewrite; in nginx it is a
+  // `location = /x { try_files /view/x.html =404; }`. Nothing pinned the two
+  // together, so 11 of 16 routes had drifted: a request for /start on any
+  // self-host fell through to the SPA shell instead of /view/start.html. This
+  // asserts the maps are identical in BOTH directions - a new view route added to
+  // vercel.json now fails here until nginx.conf mirrors it, and a stale nginx
+  // alias with no vercel rewrite fails too.
+  interface Rewrite { source: string; destination: string }
+  const cfg = JSON.parse(read('vercel.json')) as { rewrites?: Rewrite[] };
+  const vercelViews = new Map<string, string>();
+  for (const r of cfg.rewrites ?? []) {
+    if (/^\/view\/[^\s]+\.html$/.test(r.destination)) vercelViews.set(r.source, r.destination);
+  }
+  assert.ok(vercelViews.size >= 5, 'expected vercel.json to rewrite several clean URLs to /view/*.html');
+
+  const nginxAliases = new Map<string, string>();
+  for (const m of nginx.matchAll(/location\s+=\s*([^\s{]+)\s*\{([^}]*)\}/g)) {
+    const dest = (m[2] ?? '').match(/try_files\s+(\/view\/[^\s]+\.html)\b/);
+    if (dest) nginxAliases.set(m[1] ?? '', dest[1]!);
+  }
+
+  const sort = (x: Map<string, string>): Record<string, string> =>
+    Object.fromEntries([...x].sort(([a], [b]) => a.localeCompare(b)));
+  assert.deepEqual(
+    sort(nginxAliases), sort(vercelViews),
+    'deploy/docker/nginx.conf clean-URL aliases have drifted from the vercel.json /view/*.html rewrites',
+  );
+});
+
 test('the directives that carry the security value are present', () => {
   const csp = parseCsp(rootHeaders['Content-Security-Policy']!);
 

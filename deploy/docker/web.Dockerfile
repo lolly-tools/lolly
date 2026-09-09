@@ -12,7 +12,10 @@
 # The build bakes ONE brand/profile into the static output (theme-color, PWA
 # chrome, and the copied tools/ + catalog/ content are resolved at build time by
 # scripts/use-profile.ts + the vite brandChrome plugin - see shells/web/vite.config.js).
-# Choose it with --build-arg LOLLY_PROFILE=suse|lolly-start (default: suse). The
+# Choose it with --build-arg LOLLY_PROFILE=lolly-start|suse. The default is the
+# neutral lolly-start brand, so a public image ships NO private (SUSE) tools or
+# assets; pass --build-arg LOLLY_PROFILE=suse to build the SUSE-branded image
+# (that needs the private brands/suse submodule checked out in the context). The
 # resulting image is fully self-contained - nothing is read at serve time, so the
 # Helm chart needs NO runtime pack/brand mount for the web app.
 #
@@ -26,8 +29,9 @@
 FROM node:26-bookworm@sha256:9f94d34c787165dca03b74e5bf9c3bf90e8de79b19aa3d87fe1fa1694bf75c89 AS build
 WORKDIR /src
 
-# Which brand/profile to bake into the static build (see header).
-ARG LOLLY_PROFILE=suse
+# Which brand/profile to bake into the static build (see header). Neutral by
+# default; a public image must not ship the private SUSE pack.
+ARG LOLLY_PROFILE=lolly-start
 ENV LOLLY_PROFILE=${LOLLY_PROFILE}
 ENV NODE_ENV=production
 # Native optional deps (sharp/onnxruntime/resvg/playwright) need dev tooling
@@ -38,10 +42,12 @@ ENV NODE_ENV=production
 # graph, so we copy everything (respecting .dockerignore).
 COPY . .
 
-# Full install (build:web needs devDeps: vite, esbuild, sharp, onnxruntime-node,
-# svgo, resvg). `postinstall` runs scripts/use-profile.ts --auto to materialise
-# the tools/ + catalog/ views for LOLLY_PROFILE. Use for a
-# quiet, reproducible install.
+# Full install (--prod=false): build:web needs devDeps (vite, esbuild, sharp,
+# onnxruntime-node, svgo, resvg) that the runtime-only ca/mcp images omit.
+# pnpm-workspace.yaml's enablePrePostScripts runs the root postinstall
+# (scripts/use-profile.ts --auto), which materialises the tools/ + catalog/ views
+# for LOLLY_PROFILE; its allowBuilds list approves the native build scripts
+# (esbuild, onnxruntime-node, fsevents).
 RUN npm install --global pnpm@11.1.2
 RUN pnpm install --frozen-lockfile --prod=false
 
