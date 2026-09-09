@@ -24,6 +24,7 @@
  * deleting it would orphan profile.headshot).
  */
 
+import '../styles/parts/platform.css';
 import { TYPE_FILTER_TYPES } from './catalog-filter.ts';
 import type { CatSort, TypeFilter } from './catalog-filter.ts';
 import { t, tRaw } from '../i18n.ts';

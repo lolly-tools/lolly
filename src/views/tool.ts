@@ -13,6 +13,16 @@
 
 // View-scoped stylesheets - Vite emits these as async CSS chunks loaded WITH this
 // lazy view, instead of render-blocking the gallery/catalog landing (see app.css).
+import '../styles/parts/tool.css';
+import '../styles/parts/editor.css';
+import '../styles/parts/design-topbar.css';
+import '../styles/parts/design-navigator.css';
+import '../styles/parts/design-inspector.css';
+import '../styles/parts/design-guides.css';
+import '../styles/parts/document.css';
+import '../styles/parts/deck-editor.css';
+import '../styles/parts/tool-chrome.css';
+import '../styles/vendor-flatpickr.css';
 import { presentApis } from '@lolly-tools/core/host-v1';
 import { loadTool } from '@lolly/engine';
 import { consumeTeamSessionOrigin, releaseTeamSessionOrigin } from '../org/team-session-origin.ts';

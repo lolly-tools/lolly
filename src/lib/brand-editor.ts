@@ -60,6 +60,9 @@
  * a detached editor (route changed mid-op) never writes to a dead node.
  */
 
+import '../styles/parts/brand-studio.css';
+import '../styles/parts/tool.css';
+import './oklch-slice.css';
 import type { Unzipped } from 'fflate';
 import { mountPaletteGroupControls } from './design-system/palette-view.ts';
 import type { WebTokensAPI } from '../bridge/tokens.ts';

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import '../styles/parts/timeline.css';
 /**
  * timeline-panel.ts - the docked timeline editor for a `boxes` block that carries the
  * phase-1 time model (plans/53-fable-timeline-phase-2.md section 2).
