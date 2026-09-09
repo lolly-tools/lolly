@@ -15,8 +15,11 @@
 #   docker build -f deploy/docker/mcp.Dockerfile -t <registry>/lolly-mcp:0.1.0 .
 #
 # The tools/ + catalog/ content is baked at build time from LOLLY_PROFILE (as with
-# the web image), so the running container needs no pack mount. Requires the
-# content submodules (community/, brands/*) checked out in the build context.
+# the web image), so the running container needs no pack mount. The default is the
+# neutral lolly-start brand, so a public image ships NO private (SUSE) tools or
+# assets; pass --build-arg LOLLY_PROFILE=suse for the SUSE-branded image (that
+# needs the private brands/suse submodule checked out). Requires the content
+# submodules (community/, brands/*) checked out in the build context.
 #
 # Tier-B (browser/Chromium) render formats are DISABLED unless LOLLY_WEB_BASE is
 # set at runtime; svg/data + resvg-png work without a browser. We deliberately do
@@ -27,7 +30,8 @@
 
 FROM node:26-bookworm-slim@sha256:367679cf9792759492a486e4aa4b421764d71a9546a6dae8aab81a99eb797b3e AS build
 WORKDIR /src
-ARG LOLLY_PROFILE=suse
+# Neutral by default; a public image must not ship the private SUSE pack.
+ARG LOLLY_PROFILE=lolly-start
 ENV LOLLY_PROFILE=${LOLLY_PROFILE}
 ENV NODE_ENV=production
 
