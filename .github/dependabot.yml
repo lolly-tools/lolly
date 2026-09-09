@@ -8,8 +8,8 @@
 # Rust crates live inside the shells/* submodules, not here.
 version: 2
 updates:
-  # ── npm workspaces ───────────────────────────────────────────────────────
-  # The root package-lock spans engine, shells/{web,cli,tui}, packages/*, and
+  # ── pnpm workspaces ───────────────────────────────────────────────────────
+  # The root pnpm-lock.yaml spans engine, shells/{web,cli,tui}, packages/*, and
   # services/*. Grouped weekly to keep PR noise down; security PRs are ungrouped
   # and immediate regardless of this schedule.
   - package-ecosystem: "npm"

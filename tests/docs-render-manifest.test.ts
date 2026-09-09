@@ -24,7 +24,7 @@ const CREDENTIAL_FIELDS = [
 ] as const;
 
 test('the render manifest covers every shot with a size and credential facts', {
-  skip: existsSync(MANIFEST) ? false : 'no built /info on disk - run `npm run build:info`',
+  skip: existsSync(MANIFEST) ? false : 'no built /info on disk - run `pnpm run build:info`',
 }, () => {
   const m = JSON.parse(readFileSync(MANIFEST, 'utf8'));
   assert.ok(Array.isArray(m.shots) && m.shots.length > 100, `the shot list is missing or short (${m.shots?.length})`);
@@ -43,7 +43,7 @@ test('the render manifest covers every shot with a size and credential facts', {
 });
 
 test('the manifest credential facts carry the full DocsRenderContext shape', {
-  skip: existsSync(MANIFEST) ? false : 'no built /info on disk - run `npm run build:info`',
+  skip: existsSync(MANIFEST) ? false : 'no built /info on disk - run `pnpm run build:info`',
 }, () => {
   const m = JSON.parse(readFileSync(MANIFEST, 'utf8'));
   const sample = Object.values(m.credentials)[0] as Record<string, unknown>;

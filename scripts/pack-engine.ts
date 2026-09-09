@@ -75,10 +75,9 @@ function sha256File(path: string): string {
 }
 
 function pack(pkgDir: string): string {
-  // npm pack prints the produced filename on its last stdout line.
-  const out = execFileSync('npm', ['pack', '--pack-destination', OUT], { cwd: pkgDir, encoding: 'utf8' });
-  const file = out.trim().split('\n').pop() as string;
-  return join(OUT, file);
+  // pnpm pack rewrites workspace references and returns the archive path.
+  const out = execFileSync('pnpm', ['pack', '--json', '--pack-destination', OUT], { cwd: pkgDir, encoding: 'utf8' });
+  return (JSON.parse(out) as { filename: string }).filename;
 }
 
 /** Hash the tarball's EXTRACTED content - exactly what a consumer vendors, so

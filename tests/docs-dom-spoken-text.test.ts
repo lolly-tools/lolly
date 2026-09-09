@@ -39,7 +39,7 @@ try { ({ JSDOM } = await import('jsdom')); } catch { /* jsdom not installed */ }
 const skip = !JSDOM
   ? 'jsdom not available'
   : !existsSync(htmlPath) || !existsSync(mdPath)
-    ? 'no built /info on disk - run `npm run build:info`'
+    ? 'no built /info on disk - run `pnpm run build:info`'
     : false;
 
 const headingTexts = (blocks: Array<{ kind: string; text: string }>): string[] =>

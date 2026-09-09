@@ -894,7 +894,7 @@ async function main(): Promise<void> {
   else {
     console.log(`\n✓ ${run.signed.length} signed, ${run.skipped.length} unchanged`
       + `${run.wouldSign.length ? `, ${run.wouldSign.length} would be signed` : ''}`);
-    if (run.signed.length) console.log('  Next: rebuild /info so the served copies match (npm run build:info).');
+    if (run.signed.length) console.log('  Next: rebuild /info so the served copies match (pnpm run build:info).');
   }
 }
 

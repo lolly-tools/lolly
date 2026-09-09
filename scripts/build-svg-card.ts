@@ -19,8 +19,8 @@
  *   • tools/<id>/look<i>.svg - one per manifest example (`looks: true`), the example
  *                                carousel slides; each is picked up as a committed look
  *                                override by build-preview-bundle.ts (which inlines it) and
- *                                skipped by build-previews.ts (so `npm run previews` can't
- *                                clobber it). Run `npm run build:catalog` afterwards.
+ *                                skipped by build-previews.ts (so `pnpm run previews` can't
+ *                                clobber it). Run `pnpm run build:catalog` afterwards.
  *
  * AUTHENTICITY RULE (2026-07-31). A card is the tool's own render or it does not exist.
  * This script therefore stages NOTHING: no input overrides that make the default "a better

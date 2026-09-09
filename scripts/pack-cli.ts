@@ -44,7 +44,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 
@@ -58,7 +58,7 @@ const FIRST_PARTY = [
 ] as const;
 
 /** The published README. Written here rather than copied from shells/cli/README.md,
- *  which documents the CHECKOUT (npm run cli, the profile views); a package reader has
+ *  which documents the CHECKOUT (pnpm run cli, the profile views); a package reader has
  *  none of that and needs the install and the content root first. */
 const README = `# @lolly-tools/cli
 
@@ -83,7 +83,7 @@ package carries none of it. Point it at a root, three ways:
    LOLLY_ROOT=/path/to/lolly lolly list
    \`\`\`
 
-   A Lolly checkout has both once \`npm install\` has built its profile views.
+   A Lolly checkout has both once \`pnpm install\` has built its profile views.
 
 2. **The desktop app.** Lolly for macOS, Windows and Linux carries its own tools,
    catalog and this same command.
@@ -283,7 +283,7 @@ writeFileSync(join(PKG, 'README.md'), README);
 copyFileSync(join(REPO, 'LICENSE'), join(PKG, 'LICENSE'));
 
 // ── 5. pack ───────────────────────────────────────────────────────────────────
-const tgzName = run('npm', ['pack', '--pack-destination', OUT], PKG).trim().split('\n').pop() as string;
+const tgzName = basename((JSON.parse(run('pnpm', ['pack', '--json', '--pack-destination', OUT], PKG)) as { filename: string }).filename);
 const tgz = join(OUT, tgzName);
 
 // The content-free guarantee, checked on the artifact rather than trusted from `files`.

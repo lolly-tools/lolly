@@ -8,7 +8,7 @@
  * in the repo is DERIVED from it by this script, so they can never drift. Re-run whenever
  * icon.svg changes:
  *
- *   npm run icons
+ *   pnpm run icons
  *
  * The source is a vector, so we first rasterise it to a transparent master through our OWN
  * render path (Playwright/Chromium - the SAME engine the OG cards, previews and exports use),
@@ -259,7 +259,7 @@ async function main(): Promise<void> {
     const dir = resolve(ROOT, shell);
     const bin = join(dir, 'node_modules/.bin/tauri');
     if (!existsSync(bin)) {
-      console.log(`ℹ ${shell}: tauri CLI not installed - skipped (run \`npm --prefix ${shell} ci\` to include it)`);
+      console.log(`ℹ ${shell}: tauri CLI not installed - skipped (run \`pnpm -C ${shell} install --frozen-lockfile\` to include it)`);
       continue;
     }
     try {

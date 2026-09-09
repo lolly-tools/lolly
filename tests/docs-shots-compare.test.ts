@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // Docs-screenshot comparison logic (scripts/lib/shot-compare.ts) - the pure rules
-// behind `npm run docs:shots`. Synthetic RGBA buffers only: no Chromium, no sharp.
+// behind `pnpm run docs:shots`. Synthetic RGBA buffers only: no Chromium, no sharp.
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';

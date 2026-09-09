@@ -14,30 +14,32 @@ The package name, repo, and working directory are all `lolly`.
 # This repo is split into submodules - community/ (tools), brands/suse/ (PRIVATE brand pack),
 # services/{mcp,ca}, docs/, and every shells/* live in github.com/lolly-tools/*.
 # Clone with --recurse-submodules, or:
-git submodule update --init --recursive   # REQUIRED before npm install (workspaces need every package.json)
+git submodule update --init --recursive   # REQUIRED before pnpm install (workspaces need every package.json)
                                           # brands/suse is `update = none` (private) - SUSE devs opt in:
 git submodule update --init --checkout brands/suse
 
-npm install                  # install workspace deps; postinstall builds the tools/ + catalog PROFILE VIEWS
+# Install the pinned package manager once (or use Corepack).
+npm install --global pnpm@11.1.2
+pnpm install                  # install workspace deps; postinstall builds the tools/ + catalog PROFILE VIEWS
 
 # Content profiles - tools/ and catalog/ at the repo root are gitignored VIEWS of the
 # active profile (profiles.json), built by scripts/use-profile.ts. NEVER commit them.
-npm run profile              # show active + available profiles
-npm run profile:suse         # community + SUSE tools, SUSE catalog (needs brands/suse mounted)
-npm run profile:start        # blank brand: community tools + a single neutral tokens asset (brands/lolly-start)
-npm run ingest:brand -- <src> --name <brand> [--register|--activate]  # hydrate a brand pack from DTCG/Tokens-Studio/Penpot tokens (scripts/ingest-brand.ts)
+pnpm run profile              # show active + available profiles
+pnpm run profile:suse         # community + SUSE tools, SUSE catalog (needs brands/suse mounted)
+pnpm run profile:start        # blank brand: community tools + a single neutral tokens asset (brands/lolly-start)
+pnpm run ingest:brand <src> --name <brand> [--register|--activate]  # hydrate a brand pack from DTCG/Tokens-Studio/Penpot tokens (scripts/ingest-brand.ts)
 
-npm run dev:web              # run the web shell (Vite) + live-rebuild the /info site on docs changes
-npm run build:web            # production build of the web shell - builds the /info site first
+pnpm run dev:web              # run the web shell (Vite) + live-rebuild the /info site on docs changes
+pnpm run build:web            # production build of the web shell - builds the /info site first
 
 # Run a tool headlessly via the CLI shell (jsdom + same engine path as web)
-npm run cli                                              # list available tools
-npm run cli -- qr-code                                   # show a tool's inputs
-npm run cli -- qr-code --url=https://suse.com --output=./qr.svg
-npm run cli -- qr-code --url=https://suse.com --export=png > qr.png
+pnpm run cli                                              # list available tools
+pnpm run cli qr-code                                   # show a tool's inputs
+pnpm run cli qr-code --url=https://suse.com --output=./qr.svg
+pnpm run cli qr-code --url=https://suse.com --export=png > qr.png
 
-npm run validate:catalog     # validate every tool.json + asset against schemas & invariants
-npm run build:catalog        # regenerate catalog/tools/index.json + asset checksums
+pnpm run validate:catalog     # validate every tool.json + asset against schemas & invariants
+pnpm run build:catalog        # regenerate catalog/tools/index.json + asset checksums
 
 # ...but both of the above only see the ACTIVE profile's view. `catalog/tools/index.json` is
 # generated PER BRAND, so editing a community tool (which every brand's index lists) updates
@@ -45,14 +47,14 @@ npm run build:catalog        # regenerate catalog/tools/index.json + asset check
 # because it validates the active view too. The drift surfaces with no context on a public
 # clone (no brands/suse → falls back to lolly-start) or in CI. After ANY community tool.json
 # edit, use:
-npm run build:catalog:all    # rebuild every mounted profile's catalog, then restore the active one
-npm run validate:catalog:all # validate every mounted profile; exits 1 on drift. CI runs plain validate:catalog on the lolly-start view (public clone), so run this one locally before pushing a community tool.json edit
-npm run build:info           # build the docs/info site once (docs/build.ts → shells/web/public/info/). Add --watch to rebuild on change; dev:web runs it in --watch, build:web runs it once. Plain `npm run dev` in shells/web does NOT build /info.
+pnpm run build:catalog:all    # rebuild every mounted profile's catalog, then restore the active one
+pnpm run validate:catalog:all # validate every mounted profile; exits 1 on drift. CI runs plain validate:catalog on the lolly-start view (public clone), so run this one locally before pushing a community tool.json edit
+pnpm run build:info           # build the docs/info site once (docs/build.ts → shells/web/public/info/). Add --watch to rebuild on change; dev:web runs it in --watch, build:web runs it once. Plain `pnpm run dev` in shells/web does NOT build /info.
 ```
 
 ### Tests
 
-The engine contract test suite lives at the repo root (`tests/`, node:test, no framework); `npm test` runs it together with the co-located suites in `engine/src/**`, `packages/{core,node-shell,docs-render}/test/`, `shells/web/src/**`, `shells/tui/src/**` and `services/mcp/test/` (the roots are `TEST_ROOTS` in `scripts/run-test-suite.ts`; see `tests/README.md` for layout + gated tests). To run just the repo-root suite:
+The engine contract test suite lives at the repo root (`tests/`, node:test, no framework); `pnpm test` runs it together with the co-located suites in `engine/src/**`, `packages/{core,node-shell,docs-render}/test/`, `shells/web/src/**`, `shells/tui/src/**` and `services/mcp/test/` (the roots are `TEST_ROOTS` in `scripts/run-test-suite.ts`; see `tests/README.md` for layout + gated tests). To run just the repo-root suite:
 
 ```bash
 node --test "tests/**/*.test.ts"
@@ -60,9 +62,9 @@ node --test "tests/**/*.test.ts"
 
 Use the quoted glob, not `node --test tests/` - on current Node the bare directory form tries to load `tests` as a module instead of discovering test files. The tests import engine modules across the workspace boundary via `../engine/src`, so the repo root owns the run.
 
-Linting is Biome (`biome.json` at the repo root; `npm run lint` / `npm run lint:fix`). It is a ratcheting CI gate, not a clean one: CI runs `npm run lint:changed -- --all`, which fails any file whose finding count exceeds `security/lint-baseline.json` (`scripts/check-changed-lint.ts`); the baseline carries hundreds of pre-existing findings (705 errors as of 2026-09-06), so never treat a clean `biome lint` as a precondition and don't try to fix the backlog in passing - just never make a file worse (`npm run lint:baseline` rewrites the baseline after a reviewed fix). The codebase is **TypeScript** - engine, the shells, `packages/`, `scripts/`, `docs/build.ts`, and `tests/`; the only `.js` left in the migrated TS projects are tool `hooks.js`, which ship as tool *data* (not compiled); the vite configs, the web service worker (`shells/web/public/sw.js`), the chrome-extension, the generated `api/` bundles and vendored libs (`tools/*/lib/*.min.js`) remain `.js`. The `typecheck` script runs `tsc -p` across every project - `packages/core`, `packages/node-shell`, `engine/`, `shells/web/` (+ its tests tsconfig), `shells/cli/`, `shells/tui/`, `shells/tauri-shared/`, `tests/`, `scripts/`, and `services/mcp` - and then `npm run typecheck:tauri`. Node runs the `.ts` directly via native type-stripping; Vite/esbuild handle the web build.
+Linting is Biome (`biome.json` at the repo root; `pnpm run lint` / `pnpm run lint:fix`). It is a ratcheting CI gate, not a clean one: CI runs `pnpm run lint:changed --all`, which fails any file whose finding count exceeds `security/lint-baseline.json` (`scripts/check-changed-lint.ts`); the baseline carries hundreds of pre-existing findings (705 errors as of 2026-09-06), so never treat a clean `biome lint` as a precondition and don't try to fix the backlog in passing - just never make a file worse (`pnpm run lint:baseline` rewrites the baseline after a reviewed fix). The codebase is **TypeScript** - engine, the shells, `packages/`, `scripts/`, `docs/build.ts`, and `tests/`; the only `.js` left in the migrated TS projects are tool `hooks.js`, which ship as tool *data* (not compiled); the vite configs, the web service worker (`shells/web/public/sw.js`), the chrome-extension, the generated `api/` bundles and vendored libs (`tools/*/lib/*.min.js`) remain `.js`. The `typecheck` script runs `tsc -p` across every project - `packages/core`, `packages/node-shell`, `engine/`, `shells/web/` (+ its tests tsconfig), `shells/cli/`, `shells/tui/`, `shells/tauri-shared/`, `tests/`, `scripts/`, and `services/mcp` - and then `pnpm run typecheck:tauri`. Node runs the `.ts` directly via native type-stripping; Vite/esbuild handle the web build.
 
-The Tauri `bridge-overrides/` are `.ts` as of 2026-07-30 and typechecked, but **not** by a bare `tsc -p` step: they import `@tauri-apps/*` and the two Tauri shells are deliberately not npm workspaces, so a root `npm ci` never creates their `node_modules`. `scripts/typecheck-tauri.ts` (`npm run typecheck:tauri`) therefore skips with a logged reason when those are absent, so a plain clone is not punished; CI installs both shells `--omit=dev` and re-runs it with `--strict`, which fails on a skip so the gate cannot silently become a no-op. Run it locally with `npm --prefix shells/tauri-desktop ci --omit=dev` first. The logic both shells share (`shells/tauri-shared/bridge-overrides/state-fs.ts`) needs no Tauri packages - the dependency is inverted through an `fs` adapter for exactly that reason - so it has its own tsconfig and is checked unconditionally, and its return type is the web bridge's own `WebStateAPI` (type-only import), which is what now enforces the "state API surface must match the web shell" rule that used to be comment-only.
+The Tauri `bridge-overrides/` are `.ts` as of 2026-07-30 and typechecked, but **not** by a bare `tsc -p` step: they import `@tauri-apps/*` and the two Tauri shells are deliberately separate pnpm projects, so a root `pnpm install --frozen-lockfile` never creates their `node_modules`. `scripts/typecheck-tauri.ts` (`pnpm run typecheck:tauri`) therefore skips with a logged reason when those are absent, so a plain clone is not punished; CI installs both shells `--omit=dev` and re-runs it with `--strict`, which fails on a skip so the gate cannot silently become a no-op. Run it locally with `pnpm -C shells/tauri-desktop install --frozen-lockfile --prod` first. The logic both shells share (`shells/tauri-shared/bridge-overrides/state-fs.ts`) needs no Tauri packages - the dependency is inverted through an `fs` adapter for exactly that reason - so it has its own tsconfig and is checked unconditionally, and its return type is the web bridge's own `WebStateAPI` (type-only import), which is what now enforces the "state API surface must match the web shell" rule that used to be comment-only.
 
 ## Architecture
 
@@ -141,7 +143,7 @@ tools/<id>/
 ### Hard invariants (changing these is a major undertaking)
 
 - **Tool `id` and asset `id` are permanent contracts.** `suse/logo/primary` never gets renamed or reused. Version in the manifest, never in the path.
-- After editing any `tool.json` or asset, run `npm run build:catalog` then `npm run validate:catalog`. The manifest is the source of truth; `catalog/tools/index.json` is *generated* and must not drift (the validator fails CI if it does). The validator also checks asset checksums, file existence, `bindToProfile` fields, palette references, and `replacedBy` chains.
+- After editing any `tool.json` or asset, run `pnpm run build:catalog` then `pnpm run validate:catalog`. The manifest is the source of truth; `catalog/tools/index.json` is *generated* and must not drift (the validator fails CI if it does). The validator also checks asset checksums, file existence, `bindToProfile` fields, palette references, and `replacedBy` chains.
 
 ## Repository layout
 
@@ -150,7 +152,7 @@ tools/<id>/
 | `engine/src/` | The engine modules (top-level, plus `geom/` and `bridge/host-v1.ts`) - see `engine/README.md`'s generated table for the live count and map. `engine/README.md` carries the full module map - one row per module with line count, purpose, whether `index.ts` re-exports it, its test file and whether it is fuzzed - generated by `node scripts/gen-engine-modules.ts`, so read it there rather than duplicating a list here. Core: `index.ts` (public surface), `loader.ts`, `runtime.ts`, `inputs.ts`, `template.ts`, `validate.ts`, `url-mode.ts`, `units.ts`. Everything else is a format/feature module. `bridge/host-v1.ts` is a type re-export of `@lolly-tools/core/host-v1` and holds no types of its own |
 | `shells/web/` | Vite PWA. Bridge impls under `src/bridge/`, views under `src/views/`, catalog sync under `src/catalog/` (all `.ts`) |
 | `shells/cli/` | `bin/lolly.ts` (entry), `src/run.ts` (jsdom render), `src/bridge.ts` (CLI bridge) |
-| `shells/tauri-desktop`, `shells/tauri-mobile` | Tauri shells with `bridge-overrides/` (`.ts`, typechecked via `npm run typecheck:tauri`) |
+| `shells/tauri-desktop`, `shells/tauri-mobile` | Tauri shells with `bridge-overrides/` (`.ts`, typechecked via `pnpm run typecheck:tauri`) |
 | `shells/tauri-shared/` | parent-owned `bridge-overrides/state-fs.ts` - the filesystem state logic BOTH Tauri shells call into, over an injected `fs` adapter |
 | `community/` | 60 brand-agnostic tool dirs (design, darkroom, filter, flythrough, qr-code, street-map, strip-data, text-helper, gradient, chart, compress-pdf, countdown-timer, url-shot, the PDF utilities, …) plus `_shared/` - public submodule `lolly-tools` |
 | `brands/suse/` | PRIVATE submodule `suse-lolly`: `tools/` (18 SUSE tool dirs) + `catalog/` (assets incl. `assets/suse/tokens/brand.json`, fonts, previews, og, generated `tools/index.json`) |

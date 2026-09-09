@@ -8,7 +8,7 @@
  * artboard per page at the right stride, and every original box stamped with the SAME page
  * bucket carousel-maker's pageOf() would give it.
  *
- * Run with: npm test
+ * Run with: pnpm test
  */
 
 import { test } from 'node:test';

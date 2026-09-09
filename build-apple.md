@@ -38,13 +38,13 @@ Store, so beta macOS is fine.
 ## Building the .dmg
 
 ```bash
-git pull && git submodule update --init --recursive   # BEFORE npm install
-npm install
-npm run profile:start          # public brand. NEVER ship the `suse` profile.
-npm --prefix shells/tauri-desktop install
+git pull && git submodule update --init --recursive   # BEFORE pnpm install
+pnpm install
+pnpm run profile:start          # public brand. NEVER ship the `suse` profile.
+pnpm -C shells/tauri-desktop install
 
 cd shells/tauri-desktop
-LOLLY_EMBED_CATALOG=profile npm run build            # build + bundle
+LOLLY_EMBED_CATALOG=profile pnpm run build            # build + bundle
 ```
 
 `LOLLY_EMBED_CATALOG` must be set for the **whole** command. `tauri build`

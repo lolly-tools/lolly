@@ -50,7 +50,7 @@ Adding a new shared input means adding it here first, then adopting it in tools.
 
 There are two independent code paths, and every tool passes through both.
 
-**`scripts/validate-catalog.ts`** is the build-time gate, run as `npm run validate:catalog` (and per-profile as `npm run validate:catalog:all`, which is what CI's `validate-catalog` job runs). It reads `schemas/tool.schema.json`, `schemas/asset.schema.json` and `schemas/tokens.schema.json` off disk, compiles them with Ajv's 2020 build, and then goes well beyond schema conformance to check the invariants a schema cannot express: asset checksums against the actual bytes, file existence, `bindToProfile` field names, palette references, `replacedBy` chains, canonical-input divergence, and the shared-hook-region sync. A tokens document is only structurally validated when its asset declares `type: "tokens"` and a `json` format.
+**`scripts/validate-catalog.ts`** is the build-time gate, run as `pnpm run validate:catalog` (and per-profile as `pnpm run validate:catalog:all`, which is what CI's `validate-catalog` job runs). It reads `schemas/tool.schema.json`, `schemas/asset.schema.json` and `schemas/tokens.schema.json` off disk, compiles them with Ajv's 2020 build, and then goes well beyond schema conformance to check the invariants a schema cannot express: asset checksums against the actual bytes, file existence, `bindToProfile` field names, palette references, `replacedBy` chains, canonical-input divergence, and the shared-hook-region sync. A tokens document is only structurally validated when its asset declares `type: "tokens"` and a `json` format.
 
 **`engine/src/validate.ts`** is the runtime path. It imports the same three tool/asset/asset-ref schemas as JSON modules, registers all three with Ajv, compiles a validator against the tool schema, and exports `validateManifest()`. `engine/src/loader.ts` uses that before a tool is mounted, which is why a malformed manifest fails at load rather than halfway through a render.
 
@@ -75,7 +75,7 @@ Copies you will see in `find` output but should ignore: `dist/engine-pack/schema
 
 1. Apply the identical edit to `packages/core/schema/` as well, if the file is one of the three duplicated ones.
 2. Update the prose in [`../docs/authoring-tools.md`](../docs/authoring-tools.md) if you changed anything a tool author would notice.
-3. Run `npm run build:catalog:all` then `npm run validate:catalog:all`, not the singular forms. The catalog index is generated per brand, so a change that only rebuilds the active profile leaves every other brand stale and the singular validator cannot see it.
-4. Run `npm test`, which includes the drift guards, and `npm run typecheck`.
+3. Run `pnpm run build:catalog:all` then `pnpm run validate:catalog:all`, not the singular forms. The catalog index is generated per brand, so a change that only rebuilds the active profile leaves every other brand stale and the singular validator cannot see it.
+4. Run `pnpm test`, which includes the drift guards, and `pnpm run typecheck`.
 
 Removing or narrowing a field is a breaking change for every tool already using it, including tools in the private `brands/suse` pack you may not have mounted. Widening is safe. `id` fields, both tool and asset, are permanent contracts and are never renamed or reused.

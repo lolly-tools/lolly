@@ -28,7 +28,7 @@ blank starter brand) and `profiles.json` stay in the parent.
 **Profile views (2026-07-08 split):** the repo-root `tools/` and `catalog/`
 paths are no longer submodules - they are gitignored VIEWS of the active
 content profile, built by `scripts/use-profile.ts` (symlink farm locally, real
-copies on Vercel). `loldev profile suse|lolly-start` switches; `npm install`'s
+copies on Vercel). `loldev profile suse|lolly-start` switches; `pnpm install`'s
 postinstall picks one automatically (falling back to `lolly-start` when the
 private SUSE pack isn't mounted). The old public `lolly-suse-tools` /
 `lolly-suse-catalog` repos are retired - archive them (and scrub/remove the
@@ -87,7 +87,7 @@ scripts/subrepo/status.sh   # parent + every submodule: branch, dirty, ahead/beh
 ```bash
 git clone --recurse-submodules git@github.com:lolly-tools/lolly.git
 # or, in an existing clone:
-git submodule update --init --recursive     # BEFORE npm install - workspaces need every package.json present
+git submodule update --init --recursive     # BEFORE pnpm install - workspaces need every package.json present
 ```
 
 ## Notes

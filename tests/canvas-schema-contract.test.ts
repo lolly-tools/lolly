@@ -32,7 +32,7 @@
  * this file does not re-compare them; it drives each copy's REAL validator instead
  * (validateManifest reads schemas/, validateTool reads packages/core/schema/).
  *
- * Run with: npm test - or node --test "tests/canvas-schema-contract.test.ts"
+ * Run with: pnpm test - or node --test "tests/canvas-schema-contract.test.ts"
  */
 
 import { test } from 'node:test';

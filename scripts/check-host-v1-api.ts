@@ -57,7 +57,7 @@ export function main(argv = process.argv.slice(2)): number {
     const removed = [...expectedNames].filter((name) => !currentNames.has(name));
     const changed = [...currentNames].filter((name) => expected.entries[name] && expected.entries[name]!.sha256 !== current.entries[name]!.sha256);
     console.error(`HostV1 API drift: added=${added.join(', ') || '-'} removed=${removed.join(', ') || '-'} changed=${changed.join(', ') || '-'}`);
-    console.error('Review compatibility and engine minor version, then run npm run build:host-v1-api.');
+    console.error('Review compatibility and engine minor version, then run pnpm run build:host-v1-api.');
     return 1;
   }
   console.log(`HostV1 API snapshot: ${Object.keys(current.entries).length} declarations match`);

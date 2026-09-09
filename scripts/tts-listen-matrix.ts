@@ -6,7 +6,7 @@
  * ANDY-RUN ONLY, exactly like scripts/build-docs-audio.ts, and for the same
  * reason: it needs the LOCAL Kokoro model staged at
  * shells/web/public/models/kokoro/ (scripts/fetch-kokoro-models.ts). It is
- * never invoked by npm install / postinstall / CI, writes nothing into the
+ * never invoked by pnpm install / postinstall / CI, writes nothing into the
  * repo, and exits 0 with a printed recipe when the model is absent.
  *
  * It renders a fixed matrix - 10 short lines x 10 prosody variants x 8 voice

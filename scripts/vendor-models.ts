@@ -14,7 +14,7 @@
  *   - skip any file already on disk whose hash matches - so re-running only
  *     fetches what's missing.
  *
- * OPT-IN, never automatic: not in npm install / postinstall / CI / the build.
+ * OPT-IN, never automatic: not in pnpm install / postinstall / CI / the build.
  * Fetching ~1.2 GB is a choice, and the build works WITHOUT the files (runtime
  * fetches them from the model host). Run this first only when you want the
  * models bundled into your own dist.

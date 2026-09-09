@@ -91,16 +91,15 @@ without asking anyone to take our word for it. (See the scope notes below for th
 remaining caveats.)
 
 ```bash
-npm run build:sbom        # regenerate sbom.cdx.json (npm locks + Cargo.lock + vendored files + fonts)
+pnpm run build:sbom        # regenerate sbom.cdx.json (npm locks + Cargo.lock + vendored files + fonts)
 ```
 
-- **Source of truth** is the root `package-lock.json` (lockfileVersion 3). The
+- **Source of truth** is the root `pnpm-lock.yaml` (lockfileVersion 9). The
   generator ([`scripts/build-sbom.ts`](scripts/build-sbom.ts)) reads the lock's
-  own `integrity` and `license` fields verbatim, so the SBOM cannot disagree with
-  what npm installed. It is self-contained - no external SBOM tool, no network -
-  because adding an opaque generator dependency would undercut the very thing the
-  SBOM is meant to demonstrate. The same generator additionally folds in the Tauri
-  shells' own `package-lock.json` files, the Rust crates from
+  own `integrity` fields and exact-version licenses from `security/npm-licenses.json`, so the SBOM cannot disagree with
+  what pnpm installed. Generation is offline; `pnpm run update:npm-licenses` refreshes the committed
+  license cache from the registry after dependency changes. The same generator additionally folds in the Tauri
+  shells' own `pnpm-lock.yaml` files, the Rust crates from
   `shells/tauri-desktop/src-tauri/Cargo.lock`, the vendored `*.min.js` libraries
   (hashed on disk), and the OFL fonts - each existence-guarded so the script still
   runs on a partial checkout.
@@ -110,7 +109,7 @@ npm run build:sbom        # regenerate sbom.cdx.json (npm locks + Cargo.lock + v
   three workspace packages appear as subcomponents of the BOM subject.
 - **Deterministic.** Components are sorted by purl, the serial number is derived
   from a content hash, and the timestamp is held stable while the dependency set
-  is unchanged. A clean `git diff` after `npm run build:sbom` means the SBOM is
+  is unchanged. A clean `git diff` after `pnpm run build:sbom` means the SBOM is
   current; a non-empty one means dependencies moved and the SBOM was stale -
   CI can assert "no diff" as a drift guard, the same way `validate:catalog`
   guards the generated catalog index.

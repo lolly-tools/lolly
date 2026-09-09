@@ -2,7 +2,7 @@
 /**
  * Brand-residue guard for the lolly-start starter pack.
  *
- * Run with: npm test  (node --test over the tests/ globs)
+ * Run with: pnpm test  (node --test over the tests/ globs)
  * No test framework - uses node:test built-in. Dependency-free fs walk.
  *
  * Three invariants from plans/archive/brand-token-contract.md section 3/section 6:
@@ -70,7 +70,7 @@ const GENERATED = new Set([
   join(PACK, 'catalog', 'tools', 'index.slim.json'),
 ]);
 
-// catalog/previews/ is a `npm run previews` render cache (screenshots +
+// catalog/previews/ is a `pnpm run previews` render cache (screenshots +
 // build-preview-bundle.ts's rolled-up bundle.json), COMMITTED so a plain
 // git-based deploy ships gallery thumbnails (.gitignore's "Tool preview
 // thumbnails" note) - not pack-authored content, and it reflects whatever

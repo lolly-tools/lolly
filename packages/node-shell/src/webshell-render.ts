@@ -8,7 +8,7 @@
  *
  * It serves the built web dist (`shells/web/dist`) from an ephemeral localhost server
  * and points Chromium at `#/tool/<id>?…&format=<fmt>&export=1`. Needs a build:
- * `npm run build:web` (or set LOLLY_WEB_DIST / LOLLY_WEB_BASE). If absent, a clear
+ * `pnpm run build:web` (or set LOLLY_WEB_DIST / LOLLY_WEB_BASE). If absent, a clear
  * error explains the one build step; svg and data formats render without it.
  */
 import { createServer } from 'node:http';
@@ -57,7 +57,7 @@ function serveDist(): Promise<Served> {
   const dist = process.env.LOLLY_WEB_DIST || join(repoRoot(), 'shells', 'web', 'dist');
   if (!existsSync(join(dist, 'index.html'))) {
     throw new BrowserError(
-      `No built web shell at ${dist}. Run \`npm run build:web\` (or set LOLLY_WEB_DIST to a ` +
+      `No built web shell at ${dist}. Run \`pnpm run build:web\` (or set LOLLY_WEB_DIST to a ` +
       `prebuilt shell / LOLLY_WEB_BASE to a running one). Raster/PDF/video export needs it; ` +
       `svg and data formats render without it.`,
     );
@@ -466,7 +466,7 @@ export async function transformViaWebShell(
     } catch {
       throw new BrowserError(
         `The web shell showed no file picker for "${fileInputId}" on "${toolId}" - the built shell ` +
-        `may predate this tool. Rebuild it with \`npm run build:web\`.`,
+        `may predate this tool. Rebuild it with \`pnpm run build:web\`.`,
       );
     }
     await page.setInputFiles(picker, {
@@ -543,7 +543,7 @@ async function renderViaChromiumShell(
       throw new BrowserError(
         `The durable credential needs the TrustMark encoder model, which isn't in the built ` +
         `web shell (${join(dist, 'models', 'trustmark', 'encoder_Q.onnx')}). Rebuild it with ` +
-        `\`npm run build:web\` (the model ships in shells/web/public), or export without --durable.`,
+        `\`pnpm run build:web\` (the model ships in shells/web/public), or export without --durable.`,
       );
     }
   }

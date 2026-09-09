@@ -3,7 +3,7 @@
 /**
  * `plans/README.md` index generator.
  *
- * Run as: node scripts/index-plans.ts   (npm run index:plans)
+ * Run as: node scripts/index-plans.ts   (pnpm run index:plans)
  *
  * maintainability-2026-07-29.md item 5: "plans/ has 80 files and no index, so a
  * reader cannot tell current from historical."
@@ -146,7 +146,7 @@ export function buildIndex(now: Date): string {
   const out = [
     '# `plans/` index',
     '',
-    '**Generated - do not hand-edit.** Rebuild with `npm run index:plans`',
+    '**Generated - do not hand-edit.** Rebuild with `pnpm run index:plans`',
     '(`scripts/index-plans.ts`). `plans/` is gitignored, so this file is not committed;',
     'the generator is, which is why the index can never be more than one command stale.',
     '',

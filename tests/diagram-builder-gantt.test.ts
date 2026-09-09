@@ -3,7 +3,7 @@
  * diagram-builder, dated roadmap mode: real dates on the axis, swimlanes,
  * milestones and the today-line.
  *
- * Run with: node --test "tests/diagram-builder-gantt.test.ts"  (or npm test)
+ * Run with: node --test "tests/diagram-builder-gantt.test.ts"  (or pnpm test)
  * No test framework - uses node:test built-in.
  *
  * The date maths lives in the tool's hooks.js, which ships as tool DATA and may not

@@ -200,7 +200,7 @@ function main(): void {
   if (process.argv.includes('--check')) {
     if (next !== current) {
       console.error(
-        'shells/web/src/README.md stats are stale. Run `npm run build:web-src-readme` and commit the result.',
+        'shells/web/src/README.md stats are stale. Run `pnpm run build:web-src-readme` and commit the result.',
       );
       process.exit(1);
     }

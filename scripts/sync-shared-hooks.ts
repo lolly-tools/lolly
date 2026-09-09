@@ -3,7 +3,7 @@
 /**
  * Shared-hook-region sync.
  *
- * Run as: npm run sync:shared
+ * Run as: pnpm run sync:shared
  *
  * Tool `hooks.js` files ship as self-contained plain JS (tools are data - no
  * imports), which historically meant byte-identical helper blocks were
@@ -11,14 +11,14 @@
  * `community/_shared/*.js` now holds the canonical source of each shared
  * block as a named region:
  *
- *   // === lolly:shared <name> - canonical source; edit here and run npm run sync:shared ===
+ *   // === lolly:shared <name> - canonical source; edit here and run pnpm run sync:shared ===
  *   ...content...
  *   // === /lolly:shared <name> ===
  *
  * Consumers (`community/<tool>/hooks.js`, `brands/<brand>/tools/<tool>/hooks.js`)
  * mark where each region lives with the same grammar:
  *
- *   // === lolly:shared <name> - generated from community/_shared/<file>; edit there and run npm run sync:shared ===
+ *   // === lolly:shared <name> - generated from community/_shared/<file>; edit there and run pnpm run sync:shared ===
  *   ...content (rewritten by this script)...
  *   // === /lolly:shared <name> ===
  *
@@ -196,7 +196,7 @@ export function verifySharedRegions(): string[] {
         errors.push(`${rel}:${region.beginLine + 1}: region "${region.name}" claims community/_shared/${ref[1]} but its canonical source is community/_shared/${canon.file}`);
       }
       if (region.content !== canon.content) {
-        errors.push(`${rel}:${region.beginLine + 1}: region "${region.name}" drifted from community/_shared/${canon.file} - edit the canonical file and run \`npm run sync:shared\``);
+        errors.push(`${rel}:${region.beginLine + 1}: region "${region.name}" drifted from community/_shared/${canon.file} - edit the canonical file and run \`pnpm run sync:shared\``);
       }
     }
   }

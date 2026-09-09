@@ -13,7 +13,7 @@
  *
  * The fast-skip is opt-in via `?canvasfastpath=1`; this harness always sets it. ANY new tool
  * (or a default-enable) MUST pass this gate first. Usage:
- *   npm run build:web && node scripts/verify-canvas-fastpath.ts
+ *   pnpm run build:web && node scripts/verify-canvas-fastpath.ts
  */
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -26,7 +26,7 @@ const DIST = join(process.cwd(), 'shells/web/dist');
 const MIME: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.wasm': 'application/wasm', '.png': 'image/png' };
 
 function serveDist(): Promise<{ base: string; close: () => Promise<void> }> {
-  if (!existsSync(join(DIST, 'index.html'))) throw new Error('shells/web/dist not built - run `npm run build:web` first');
+  if (!existsSync(join(DIST, 'index.html'))) throw new Error('shells/web/dist not built - run `pnpm run build:web` first');
   const server = createServer(async (req, res) => {
     try {
       const url = new URL(req.url ?? '/', 'http://x');

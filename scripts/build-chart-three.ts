@@ -7,7 +7,7 @@
  * primitives used by community/chart/lib/chart-three.js. Keeping the build
  * separate makes its payload and capability boundary reviewable.
  *
- *   npm run build:chart-three
+ *   pnpm run build:chart-three
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';

@@ -14,7 +14,7 @@
  *     hung terminal, so the wall-time bound below is not decoration: a run that exceeds
  *     it is the bug, whatever exit code it eventually produces.
  *
- * GATED, and it says by name what is missing: a built web shell (`npm run build:web`)
+ * GATED, and it says by name what is missing: a built web shell (`pnpm run build:web`)
  * and a headless browser (`lolly install-browser`). Never silently green.
  *
  * Run with: node --test tests/cli-tierb-video.test.ts
@@ -42,7 +42,7 @@ function browserThere(): boolean {
 
 /** The skip reason, naming the missing half and the command that supplies it. */
 const MISSING = !existsSync(join(DIST, 'index.html'))
-  ? `no built web shell at ${DIST} - run \`npm run build:web\``
+  ? `no built web shell at ${DIST} - run \`pnpm run build:web\``
   : !browserThere()
     ? 'no headless browser - run `lolly install-browser`'
     : null;

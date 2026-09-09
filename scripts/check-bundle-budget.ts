@@ -17,7 +17,7 @@
  *   2. The total GZIPPED size of the boot JS stays under a budget.
  *
  * It is a STANDALONE check - intentionally NOT wired into `build:web`. Run it in
- * CI or by hand (`npm run check:bundle`) AFTER a production build exists.
+ * CI or by hand (`pnpm run check:bundle`) AFTER a production build exists.
  */
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -104,7 +104,7 @@ let html: string;
 try {
   html = readFileSync(indexHtml, 'utf8');
 } catch {
-  fail(`cannot read ${path.relative(root, indexHtml)} - run \`npm run build:web\` first`);
+  fail(`cannot read ${path.relative(root, indexHtml)} - run \`pnpm run build:web\` first`);
 }
 
 // Collect boot JS: the entry <script type="module" src> and every

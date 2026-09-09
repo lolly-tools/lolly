@@ -25,7 +25,7 @@
  *   node scripts/resize-mascots.ts --import=<dir> [--only=a.webp,b.webp]   # PNG cut-outs in
  *   node scripts/resize-mascots.ts --flip=echidna.webp   # mirror one mascot, ONCE, on the record
  *
- * After a run that writes: `npm run build:info` so credentialedMascot() re-bakes
+ * After a run that writes: `pnpm run build:info` so credentialedMascot() re-bakes
  * each <img>'s intrinsic width/height from the new files.
  */
 
@@ -218,7 +218,7 @@ async function main(): Promise<void> {
     console.error(`OVER BUDGET - re-run with a lower --quality (current ${quality})`);
     process.exitCode = 1;
   } else if (!check) {
-    console.log('Next: npm run build:info (re-bakes each <img> width/height)');
+    console.log('Next: pnpm run build:info (re-bakes each <img> width/height)');
   }
 }
 

@@ -8,7 +8,7 @@
  * disabled). Roster + staging gate: shells/web/src/lib/ai-detect-models.ts.
  *
  * ANDY-RUN ONLY. Like the other fetch-*-models scripts, this needs network
- * access and is never invoked by npm install / postinstall / CI - the primary
+ * access and is never invoked by pnpm install / postinstall / CI - the primary
  * model is ~150 MB, and the check UI loads it lazily only after an explicit
  * in-app consent click.
  *
@@ -60,7 +60,7 @@
  *
  * ── ALSO REQUIRED ────────────────────────────────────────────────────────────
  * transformers.js's pinned onnxruntime-web runtime must be staged at
- * /ort-hf/ (`npm run build:ort`) - the reword/speech features share it.
+ * /ort-hf/ (`pnpm run build:ort`) - the reword/speech features share it.
  */
 
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';

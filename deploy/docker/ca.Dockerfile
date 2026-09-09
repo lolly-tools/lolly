@@ -28,7 +28,8 @@ COPY . .
 # CA itself is zero-dependency, but it lives in the workspace and imports the
 # engine sibling, so install the workspace graph (runtime deps only).
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-RUN npm ci --omit=dev --no-audit --no-fund
+RUN npm install --global pnpm@11.1.2
+RUN pnpm install --frozen-lockfile --prod
 
 # ── runtime stage ───────────────────────────────────────────────────────────
 FROM node:26-bookworm-slim@sha256:367679cf9792759492a486e4aa4b421764d71a9546a6dae8aab81a99eb797b3e AS runtime

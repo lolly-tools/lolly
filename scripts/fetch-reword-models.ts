@@ -8,7 +8,7 @@
  * remote models disabled). See plans/127-reword-on-device.md.
  *
  * ANDY-RUN ONLY. Like the other fetch-*-models scripts, this needs network
- * access and is never invoked by `npm install`/`postinstall`/CI - the model is
+ * access and is never invoked by `pnpm install`/`postinstall`/CI - the model is
  * ~370 MB, not something every clone/deploy should pay for, and the reword UI
  * loads it lazily, once, only after an explicit in-app consent.
  *
@@ -32,7 +32,7 @@
  *
  * ── ALSO REQUIRED: transformers.js's pinned onnxruntime-web runtime ───────
  * The model runs on the onnxruntime-web build @huggingface/transformers pins
- * (NOT the 1.27 already at /ort/). After `npm install`, `npm run build:ort`
+ * (NOT the 1.27 already at /ort/). After `pnpm install`, `pnpm run build:ort`
  * (or `node scripts/copy-transformers-ort.ts`) stages it at
  * shells/web/public/ort-hf/<version>/. The speech features share it.
  */
@@ -130,7 +130,7 @@ async function main(): Promise<void> {
   for (const f of MODEL_FILES) await fetchFile(f);
   process.stdout.write(
     '\nDone. These files are gitignored (shells/web/.gitignore) - never commit them.\n' +
-    'Next: `npm run build:ort` if /ort-hf/ is not staged yet, then flip REWORD_STAGED in\n' +
+    'Next: `pnpm run build:ort` if /ort-hf/ is not staged yet, then flip REWORD_STAGED in\n' +
     'shells/web/src/lib/reword-models.ts once the end-to-end check has run (plans/127 WP4).\n',
   );
 }

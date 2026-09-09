@@ -24,8 +24,8 @@
  * A one-shot generator (like ingest-lofi/previews): operates on the COMMITTED
  * .opus files - no source mp3s needed - then re-runnable idempotently (re-stamp
  * replaces the prior credential; the flag/description edits are guarded). Run it,
- * commit, then `npm run build:catalog` (refills checksum + size, since bytes
- * changed) and `npm run validate:catalog`.
+ * commit, then `pnpm run build:catalog` (refills checksum + size, since bytes
+ * changed) and `pnpm run validate:catalog`.
  *
  * Usage:  node scripts/credential-lofi.ts
  */
@@ -98,4 +98,4 @@ for (const entry of loops) {
 
 writeFileSync(INDEX, JSON.stringify(index, null, 2) + '\n');
 console.log(`\nCredentialed ${stamped} lo-fi loops (GenAI / ${GENERATOR} / CC0, signed as ${PROJECT}).`);
-console.log('Next: npm run build:catalog && npm run validate:catalog');
+console.log('Next: pnpm run build:catalog && pnpm run validate:catalog');

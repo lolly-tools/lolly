@@ -18,20 +18,20 @@
  *   - default (on-device) - the engine's self-signed key (integrity + the maker's claim,
  *     no CA identity).
  *   - `--ca` - mints ONE long-lived leaf from the Lolly CA root (CA_ROOT_KEY_PEM /
- *     CA_ROOT_CERT_PEM in env, normally loaded by `npm run sign:credentials:catalog`) and
+ *     CA_ROOT_CERT_PEM in env, normally loaded by `pnpm run sign:credentials:catalog`) and
  *     signs the whole
  *     set with it. Verify then shows "identity verified" against the root pinned in
  *     shells/web/src/ca-root.ts. HARD GUARD: refuses to sign unless the env root == that
  *     pinned root, so an asset can never ship un-verifiable on lolly.tools. The leaf key is
  *     generated in-process and discarded; only the signature + public leaf ship.
  *
- * ONE-SHOT, like `npm run previews`: the signing key is fresh each run, so it signs only
+ * ONE-SHOT, like `pnpm run previews`: the signing key is fresh each run, so it signs only
  * assets that are NOT already signed (a byte-scan for the c2pa marker skips them) and bumps
  * each newly-signed asset's version so client caches invalidate. Commit the signed bytes
- * with the index, then `npm run build:catalog` (refills checksum + size) and
- * `npm run validate:catalog`.
+ * with the index, then `pnpm run build:catalog` (refills checksum + size) and
+ * `pnpm run validate:catalog`.
  *
- * Usage:  npm run sign:credentials:catalog                           # CA identity (shipped)
+ * Usage:  pnpm run sign:credentials:catalog                           # CA identity (shipped)
  *         node scripts/sign-credentialed-assets.ts --catalog        # on-device fallback
  *         node scripts/sign-credentialed-assets.ts                  # index cleanup only (no-op)
  */
@@ -127,7 +127,7 @@ async function buildSigner(): Promise<SignerBundle> {
   if (!certPem || !keyPem) {
     throw new Error(
       '--ca needs CA_ROOT_CERT_PEM and CA_ROOT_KEY_PEM in the environment.\n' +
-        '  Run: npm run sign:credentials:catalog'
+        '  Run: pnpm run sign:credentials:catalog'
     );
   }
   const caCertDer = pemToDer(certPem);
@@ -278,7 +278,7 @@ async function main(): Promise<void> {
 
   await deliverCatalog(index, signer);
   writeFileSync(INDEX_PATH, JSON.stringify(index, null, 2) + '\n');
-  console.log('Next: npm run build:catalog && npm run validate:catalog');
+  console.log('Next: pnpm run build:catalog && pnpm run validate:catalog');
 }
 
 await main();

@@ -5,7 +5,7 @@
  * The signature's `html` output - the one people actually paste - has no
  * container that can hold a C2PA manifest (embedding is container-gated; see
  * engine C2PA_FORMATS). So the inlined wordmark PNG is the ONLY place provenance
- * can live on the pasted path, and it gets there by `npm run sign:signature-logos`
+ * can live on the pasted path, and it gets there by `pnpm run sign:signature-logos`
  * signing the masters in place and syncing their base64 into hooks.js.
  *
  * That arrangement is silently breakable: re-export a logo by hand, paste fresh
@@ -62,7 +62,7 @@ for (const { varName, master } of LOGOS) {
     const inlined = inlinedBytes(varName);
     const onDisk = new Uint8Array(readFileSync(join(TOOL, master)));
     assert.deepEqual(inlined, onDisk,
-      `${varName} has drifted from ${master} - re-run \`npm run sign:signature-logos\` rather than pasting base64 by hand`);
+      `${varName} has drifted from ${master} - re-run \`pnpm run sign:signature-logos\` rather than pasting base64 by hand`);
   });
 
   test(`email-signature: inlined ${varName} carries Content Credentials`, { skip: SKIP_SUSE }, () => {

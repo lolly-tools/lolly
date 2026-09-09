@@ -172,7 +172,7 @@ test('a hook that needs a canvas escalates, and names what the browser tier is m
     (e: Error) => {
       // The failure must name the missing piece - never a silent unredacted file.
       assert.match(e.message, /No built web shell/);
-      assert.match(e.message, /npm run build:web/);
+      assert.match(e.message, /pnpm run build:web/);
       return true;
     },
   );

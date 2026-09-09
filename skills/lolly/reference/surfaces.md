@@ -166,7 +166,7 @@ row's. Print a starter grid with `lolly batch --template=<tool>`.
 
 Browser-tier note: `pptx`, full raster of HTML-layout tools, PDF layout and video
 need the Tier-B browser path. Run `lolly install-browser --with-deps` plus
-`npm run build:web` first, or an exit `3` tells you to render on a runner that has
+`pnpm run build:web` first, or an exit `3` tells you to render on a runner that has
 it. The `TIER_A` formats, the data formats and PNG of SVG-native tools all render
 browser-free.
 

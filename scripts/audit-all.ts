@@ -57,7 +57,7 @@ function walkForLocks(dir: string, out: string[]): void {
       if (!PRUNED.has(entry.name)) walkForLocks(absolute, out);
       continue;
     }
-    if (entry.isFile() && (entry.name === 'package-lock.json' || entry.name === 'Cargo.lock')) {
+    if (entry.isFile() && (entry.name === 'pnpm-lock.yaml' || entry.name === 'Cargo.lock')) {
       out.push(slash(relative(REPO, absolute)));
     }
   }
@@ -90,30 +90,46 @@ function commandAvailable(command: string, args: string[]): boolean {
   return !result.error && result.status === 0;
 }
 
+/** pnpm 11 returns npm registry advisories, without npm CLI's metadata summary. */
+export function auditCounts(report: unknown): { total: number; high: number; critical: number } {
+  if (!report || typeof report !== 'object' || !('advisories' in report)
+    || !report.advisories || typeof report.advisories !== 'object' || Array.isArray(report.advisories)) {
+    throw new Error('pnpm audit returned an invalid advisory report');
+  }
+  const counts = { total: 0, high: 0, critical: 0 };
+  for (const advisory of Object.values(report.advisories)) {
+    if (!advisory || typeof advisory !== 'object' || !('severity' in advisory)
+      || !['info', 'low', 'moderate', 'high', 'critical'].includes(String(advisory.severity))) {
+      throw new Error('pnpm audit returned an invalid advisory severity');
+    }
+    counts.total++;
+    if (advisory.severity === 'high') counts.high++;
+    if (advisory.severity === 'critical') counts.critical++;
+  }
+  return counts;
+}
+
 function auditNpm(root: DependencyRoot): void {
   const cwd = join(REPO, root.directory);
-  const result = spawnSync('npm', ['audit', '--json'], {
+  const result = spawnSync('pnpm', ['audit', '--json'], {
     cwd,
     encoding: 'utf8',
     maxBuffer: 32 * 1024 * 1024,
   });
   if (result.error) throw result.error;
-  let report: { metadata?: { vulnerabilities?: Record<string, number> } };
+  let report: unknown;
   try {
     report = JSON.parse(result.stdout) as typeof report;
   } catch {
-    throw new Error(`${root.id}: npm audit did not return JSON${result.stderr ? ` (${result.stderr.trim()})` : ''}`);
+    throw new Error(`${root.id}: pnpm audit did not return JSON${result.stderr ? ` (${result.stderr.trim()})` : ''}`);
   }
-  const counts = report.metadata?.vulnerabilities ?? {};
-  const high = Number(counts.high ?? 0);
-  const critical = Number(counts.critical ?? 0);
-  const total = Number(counts.total ?? 0);
-  console.log(`${root.id}: npm audit total=${total} high=${high} critical=${critical}`);
+  const { high, critical, total } = auditCounts(report);
+  console.log(`${root.id}: pnpm audit total=${total} high=${high} critical=${critical}`);
   if (high > 0 || critical > 0) {
-    throw new Error(`${root.id}: npm audit found ${high} high and ${critical} critical vulnerabilities`);
+    throw new Error(`${root.id}: pnpm audit found ${high} high and ${critical} critical vulnerabilities`);
   }
   if (result.status !== 0 && total === 0) {
-    throw new Error(`${root.id}: npm audit failed with status ${result.status}`);
+    throw new Error(`${root.id}: pnpm audit failed with status ${result.status}`);
   }
 }
 

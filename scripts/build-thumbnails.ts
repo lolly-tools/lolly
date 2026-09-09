@@ -3,8 +3,8 @@
 /**
  * Raster thumbnail-derivative generator.
  *
- * Run as: npm run optimize:thumbnails
- *   (then: npm run build:catalog && npm run validate:catalog - same chain as optimize:assets)
+ * Run as: pnpm run optimize:thumbnails
+ *   (then: pnpm run build:catalog && pnpm run validate:catalog - same chain as optimize:assets)
  *
  * The landing gallery renders its featured/personalized tile previews through the real
  * engine path (renderRowToBlob → createRuntime), which resolves each example's photo
@@ -141,7 +141,7 @@ async function run(): Promise<void> {
     `✓ Thumbnails: ${made} generated, ${skipped} skipped (already small)` +
     `${removed ? `, ${removed} orphan(s) removed` : ''}. ` +
     `Preview payload for these assets: ${mb(srcBytes)} MB → ${mb(thumbBytes)} MB (−${mb(saved)} MB). ` +
-    `Now run: npm run build:catalog && npm run validate:catalog`,
+    `Now run: pnpm run build:catalog && pnpm run validate:catalog`,
   );
 }
 

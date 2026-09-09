@@ -59,7 +59,7 @@
  *
  * GATING follows the rest of the browser tier (`sequence-render.browser.test.ts`,
  * `canvas-filter-probe.browser.test.ts`): with no browser installed the whole
- * suite skips naming the install command, so `npm test` stays green on a bare
+ * suite skips naming the install command, so `pnpm test` stays green on a bare
  * machine and bites on a real one.
  */
 import { test, describe, before, after } from 'node:test';

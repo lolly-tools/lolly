@@ -11,7 +11,7 @@
  * Chromium build + OS font stack, so hashes are NOT stable across machines. The
  * workflow is deliberately local:
  *
- *   npm run build:web                                  # the harness needs shells/web/dist
+ *   pnpm run build:web                                  # the harness needs shells/web/dist
  *   node scripts/characterize-export.ts --baseline     # BEFORE touching export.ts
  *   …refactor export.ts…
  *   node scripts/characterize-export.ts --check        # AFTER - exits 1 on any drift
@@ -192,7 +192,7 @@ async function main(): Promise<void> {
   const { closeBrowser, browserInstalled } = await import('@lolly-tools/node-shell/browsers') as { closeBrowser: () => Promise<void>; browserInstalled: () => boolean };
 
   if (!browserInstalled()) {
-    console.error('✗ no Chromium for playwright-core. Set LOLLY_BROWSER_CHANNEL=chrome, or run `npm run cli -- install-browser`.');
+    console.error('✗ no Chromium for playwright-core. Set LOLLY_BROWSER_CHANNEL=chrome, or run `pnpm run cli install-browser`.');
     process.exit(2);
   }
 

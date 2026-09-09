@@ -12,15 +12,21 @@ Start with [`README.md`](README.md) for what Lolly is, and [`docs/`](docs/) for 
 git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
 cd lolly
 
-# Already cloned without --recurse-submodules? Run this BEFORE npm install:
+# Already cloned without --recurse-submodules? Run this BEFORE pnpm install:
 git submodule update --init --recursive
 
-npm install
+# Install the pinned package manager once (or use Corepack).
+npm install --global pnpm@11.1.2
+pnpm install
 ```
 
-The submodule step is not optional and it is not a convenience. The root `package.json` declares npm workspaces at `packages/core`, `packages/node-shell`, `engine`, `shells/web`, `shells/cli`, `shells/tui`, `services/ca` and `services/mcp`. Five of those eight are submodule mount points, so in a non-recursive clone they are empty directories with no `package.json` in them. npm resolves the workspace graph before it runs any lifecycle script, so `npm install` fails during resolution and the `postinstall` hook that would otherwise set your content profile never gets a chance to run. Initialise the submodules first and the install is uneventful.
+The root `pnpm-workspace.yaml` lists ten workspaces, including the web, CLI, TUI and service submodules. Initialise the submodules before installing so pnpm can resolve their local packages. The pre-install bootstrap check reports any missing workspace. Tauri desktop and mobile are separate pnpm projects with their own lockfiles; run `pnpm -C shells/tauri-desktop install` or `pnpm -C shells/tauri-mobile install` before building them.
 
-`npm install` runs `node scripts/use-profile.ts --auto` as its postinstall step. That is what creates the repo-root `tools/` and `catalog/` paths.
+Use the pinned pnpm version in `packageManager`. Commit `pnpm-lock.yaml` when dependencies change; CI and deployments use `pnpm install --frozen-lockfile`. The hoisted module layout supports the existing renderer, native sidecar and deployment packaging scripts. Workspace dependencies use `workspace:*` so published packages cannot silently replace local code. Pass script arguments directly, for example `pnpm run profile lolly-start`.
+
+After dependency changes, run `pnpm run update:npm-licenses`, `pnpm run build:sbom` and `pnpm run build:licenses`, and commit the generated license cache and notices. The cache records registry license metadata for exact versions, including optional packages for other operating systems.
+
+`pnpm install` runs `node scripts/use-profile.ts --auto` as its postinstall step. That is what creates the repo-root `tools/` and `catalog/` paths.
 
 ## 2. Content profiles, and why the private brand does not block you
 
@@ -36,9 +42,9 @@ Tool and asset content is mounted as packs, not baked into the tree. [`profiles.
 Switch explicitly at any time:
 
 ```bash
-npm run profile          # show the active profile and what is available
-npm run profile:start    # blank starter brand, community tools only
-npm run profile:suse     # needs: git submodule update --init --checkout brands/suse
+pnpm run profile          # show the active profile and what is available
+pnpm run profile:start    # blank starter brand, community tools only
+pnpm run profile:suse     # needs: git submodule update --init --checkout brands/suse
 ```
 
 ## 3. Read this before you edit anything under `tools/` or `catalog/`
@@ -89,7 +95,7 @@ ln -sf "$PWD/scripts/subrepo/loldev" /usr/local/bin/loldev
 | `loldev ship -m "…"` | `gtg`, then deploy |
 | `loldev pull` (`up`) | pull the umbrella, update all submodules, rebuild the profile views |
 | `loldev profile <name>` | switch content profile |
-| `loldev build` / `validate` | catalog build / `npm run validate:catalog` |
+| `loldev build` / `validate` | catalog build / `pnpm run validate:catalog` |
 | `loldev dev` / `cli -- …` | run the web shell / run a tool headlessly |
 | `loldev help` | every command |
 
@@ -98,11 +104,11 @@ It operates on `~/Build/lolly` by default; override with `LOLLY_ROOT`.
 ## 5. Commands to run before you open a PR
 
 ```bash
-npm test          # the full suite: tests/ plus the co-located suites
-npm run typecheck # tsc -p across every project
+pnpm test          # the full suite: tests/ plus the co-located suites
+pnpm run typecheck # tsc -p across every project
 ```
 
-`npm test` uses quoted globs on purpose. If you want to run a subset by hand, quote them yourself:
+`pnpm test` uses quoted globs on purpose. If you want to run a subset by hand, quote them yourself:
 
 ```bash
 node --test "tests/**/*.test.ts"
@@ -113,13 +119,13 @@ An unquoted directory (`node --test tests/`) makes current Node try to load `tes
 **If you touched any `tool.json` or a catalog asset:**
 
 ```bash
-npm run build:catalog:all
-npm run validate:catalog:all
+pnpm run build:catalog:all
+pnpm run validate:catalog:all
 ```
 
 Not the singular forms. `catalog/tools/index.json` is generated **per brand**, while `build:catalog` and `validate:catalog` only ever see the active profile's view. Editing a community tool's manifest updates the index of whichever brand you happen to be on and silently leaves every other brand a version behind, and `validate:catalog` cannot detect that because it validates the active view too. The drift then surfaces with no context, on a public clone that fell back to `lolly-start`, or in CI. The `:all` variants rebuild or check every mounted profile and always restore the profile you started on, including when a rebuild throws. A profile whose packs are not mounted is skipped rather than failed, so the private `brands/suse` pack being absent is fine.
 
-**Linting is advisory.** `npm run lint` is Biome, and the baseline carries thousands of pre-existing findings. It is not a CI gate, a clean run is not a precondition for merging, and you should not spend your PR fixing the backlog. Keep the files you touched tidy and move on.
+**Linting is advisory.** `pnpm run lint` is Biome, and the baseline carries thousands of pre-existing findings. It is not a CI gate, a clean run is not a precondition for merging, and you should not spend your PR fixing the backlog. Keep the files you touched tidy and move on.
 
 ## 6. Where does this code live
 

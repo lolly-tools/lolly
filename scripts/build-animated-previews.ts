@@ -27,7 +27,7 @@
  * a user who never hovers exactly nothing.
  *
  * It writes COMMITTED authored overrides in the tool dir, which win over any build-generated
- * preview and (unlike catalog/previews/*, which `npm run previews` regenerates) are never
+ * preview and (unlike catalog/previews/*, which `pnpm run previews` regenerates) are never
  * clobbered:
  *   • kind:'looks' → tools/<id>/look<i>.png|.webm  (one clip per manifest example - the
  *                    example carousel tile; build-preview-bundle.ts references it and
@@ -42,7 +42,7 @@
  * Prefer a card-only clip over animating every example unless the tool's whole point is the
  * moving mascot.
  *
- * Needs a running web shell - point --url at `npm run dev:web` (default localhost:5173). The
+ * Needs a running web shell - point --url at `pnpm run dev:web` (default localhost:5173). The
  * generator relies on the app's __lollyCaptureMotion hook (shells/web/src/views/tool.ts).
  *
  * WHICH TOOLS MAY HAVE A JOB HERE (Andy's rule, plans/155 WP-5)
@@ -54,7 +54,7 @@
  * else. A tile is a truthful sample of what the tool makes, so motion in one has to be part
  * of what it makes.
  *
- * That rule is mechanised, not judged by eye: `node scripts/probe-motion.ts` (npm run
+ * That rule is mechanised, not judged by eye: `node scripts/probe-motion.ts` (pnpm run
  * previews:motion-probe) drives every tool, diffs its frames across that window and writes
  * catalog/previews/motion-report.json with a verdict of `still`, `settles` or `animates`.
  * Only `animates` is eligible.
@@ -442,7 +442,7 @@ async function loadPlaywright(): Promise<typeof import('playwright')> {
   try {
     return await import('playwright');
   } catch {
-    throw new Error('playwright is not installed. Run `npm install`, then `npx playwright install chromium`.');
+    throw new Error('playwright is not installed. Run `pnpm install`, then `pnpm exec playwright install chromium`.');
   }
 }
 
@@ -457,5 +457,5 @@ async function waitForServer(baseUrl: string, { tries = 30, delayMs = 1000 } = {
     if (ok) return;
     await new Promise((r) => setTimeout(r as () => void, delayMs));
   }
-  throw new Error(`No web shell reachable at ${baseUrl}. Start one with \`npm run dev:web\` or pass --url=<server>.`);
+  throw new Error(`No web shell reachable at ${baseUrl}. Start one with \`pnpm run dev:web\` or pass --url=<server>.`);
 }

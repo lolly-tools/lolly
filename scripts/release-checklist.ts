@@ -35,7 +35,7 @@ export function validateRepositoryInventory(inventory: Inventory): void {
   const scripts = (JSON.parse(readFileSync(path.join(REPO, 'package.json'), 'utf8')) as { scripts: Record<string, string> }).scripts;
   const referencedScripts = new Set<string>();
   const collect = (command: string): void => {
-    for (const match of command.matchAll(/npm run ([\w:-]+)/g)) referencedScripts.add(match[1]!);
+    for (const match of command.matchAll(/pnpm run ([\w:-]+)/g)) referencedScripts.add(match[1]!);
   };
   for (const artifact of inventory.generatedArtifacts) {
     for (const filename of artifact.paths) if (!existsSync(path.join(REPO, filename))) throw new Error(`${artifact.id}: missing ${filename}`);
@@ -62,8 +62,8 @@ export function renderChecklist(inventory: Inventory): string {
     '',
     '- [ ] `git submodule status --recursive` has no missing (`-`) or conflicted (`U`) checkout.',
     '- [ ] Intended changes are committed in each child repository before its parent gitlink.',
-    '- [ ] `npm run audit:all`, `npm run secrets:scan:checkout`, and `npm run check:workflow-pins` pass.',
-    '- [ ] `npm run typecheck`, `npm run check:maintainability`, and `npm run lint:changed -- --all` pass.',
+    '- [ ] `pnpm run audit:all`, `pnpm run secrets:scan:checkout`, and `pnpm run check:workflow-pins` pass.',
+    '- [ ] `pnpm run typecheck`, `pnpm run check:maintainability`, and `pnpm run lint:changed --all` pass.',
     '',
     '| Repository | Path | Required |',
     '|---|---|---|',
@@ -79,13 +79,13 @@ export function renderChecklist(inventory: Inventory): string {
     '',
     '| Target | Build | Required test shards | Catalogue signature |',
     '|---|---|---|---|',
-    ...inventory.releaseTargets.map((target) => `| ${target.id} | \`${target.build}\` | ${target.tests.map((test) => `\`npm run ${test}\``).join('<br>')} | ${target.signing ? 'required' : 'not applicable'} |`),
+    ...inventory.releaseTargets.map((target) => `| ${target.id} | \`${target.build}\` | ${target.tests.map((test) => `\`pnpm run ${test}\``).join('<br>')} | ${target.signing ? 'required' : 'not applicable'} |`),
     '',
     'For signed targets, provide `LOLLY_CATALOG_SIGNING_PRIVATE_JWK` and `LOLLY_CATALOG_SIGNING_PUBLIC_JWK`; the release wrapper verifies that they match without printing either value.',
     '',
     '## Platform evidence',
     '',
-    ...Object.entries(inventory.platformMatrix).map(([platform, tests]) => `- [ ] **${platform}:** ${tests.map((test) => `\`npm run ${test}\``).join(', ')}`),
+    ...Object.entries(inventory.platformMatrix).map(([platform, tests]) => `- [ ] **${platform}:** ${tests.map((test) => `\`pnpm run ${test}\``).join(', ')}`),
     '',
     '## Publication',
     '',
@@ -108,7 +108,7 @@ export function main(argv = process.argv.slice(2)): number {
     return 0;
   }
   if (!existsSync(OUTPUT) || readFileSync(OUTPUT, 'utf8') !== rendered) {
-    console.error('release checklist drift: run npm run build:release-checklist');
+    console.error('release checklist drift: run pnpm run build:release-checklist');
     return 1;
   }
   console.log(`release inventory: ${inventory.repositories.length} repositories, ${inventory.generatedArtifacts.length} artifact groups, ${inventory.releaseTargets.length} targets`);

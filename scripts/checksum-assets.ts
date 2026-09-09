@@ -3,7 +3,7 @@
 /**
  * Asset checksum generator.
  *
- * Run as: npm run build:catalog  (or directly: node scripts/checksum-assets.ts)
+ * Run as: pnpm run build:catalog  (or directly: node scripts/checksum-assets.ts)
  *
  * Computes an SRI-format SHA-256 (`sha256-<base64>`) for every asset format file
  * referenced in `catalog/assets/index.json`, and writes it (plus the real byte

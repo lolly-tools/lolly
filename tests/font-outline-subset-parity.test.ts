@@ -3,7 +3,7 @@
  * skera ↔ current-method parity (plan 88 - Font Outliner). GATED: every case
  * skips (like the c2patool suites) unless a skera binary is installed - 
  *   cargo install skera --features cli
- * or SKERA_BIN=… - so `npm test` stays green on a machine with nothing extra.
+ * or SKERA_BIN=… - so `pnpm test` stays green on a machine with nothing extra.
  *
  * What it proves when it runs: a font subset by skera (fontations' Rust
  * subsetter - Dave Crossland's steer for Font Outliner, adopt at v1.0.0,

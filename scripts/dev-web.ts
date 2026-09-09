@@ -18,10 +18,10 @@
  *                               deploy artifact a plain build never produces, so the
  *                               gallery shows real cards in dev and the previews are
  *                               ready for a deploy. `--skip-existing` makes repeat starts
- *                               near-instant; run `npm run previews` to force a full
+ *                               near-instant; run `pnpm run previews` to force a full
  *                               regenerate (e.g. after changing a tool's look).
  *   3b. optimize-preview-webp.js - runs the moment step 3 exits cleanly, so a backfilled
- *                               raster ends up a tile-sized stamped .webp. `npm run previews`
+ *                               raster ends up a tile-sized stamped .webp. `pnpm run previews`
  *                               is that same pair; this path must never run only its first
  *                               half (see launchPreviews).
  *
@@ -79,7 +79,7 @@ start('node', ['scripts/build-view-og.ts']);
 
 // 2. vite dev server - pipe stdout so we can discover the port, but forward every
 // byte so vite's own pretty output still shows.
-const vite = spawn('npm', ['--workspace', 'shells/web', 'run', 'dev'], {
+const vite = spawn('pnpm', ['--filter', './shells/web', 'run', 'dev'], {
   cwd: ROOT,
   stdio: ['inherit', 'pipe', 'inherit'],
   shell: process.platform === 'win32',
@@ -96,9 +96,9 @@ function launchPreviews(url: string): void {
   previewsLaunched = true;
   console.log(`\n[dev:web] generating any missing tool previews against ${url} …`);
   const previews = start('node', ['scripts/build-previews.ts', `--url=${url}`, '--skip-existing']);
-  // …then the optimise step, which is NOT optional. `npm run previews` is a two-command
+  // …then the optimise step, which is NOT optional. `pnpm run previews` is a two-command
   // chain (capture, then optimize-preview-webp) and this backfill only ever ran the first
-  // half, so every `npm run dev:web` topped catalog/previews/ up with un-optimised rasters
+  // half, so every `pnpm run dev:web` topped catalog/previews/ up with un-optimised rasters
   // that nothing looked at again - the leak that put ~60 MB of full-resolution PNGs into
   // the repo (plans/155 finding 3). Chained on exit rather than spawned alongside: the
   // converter reads the files the capture is still writing.

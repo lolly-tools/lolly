@@ -3,7 +3,7 @@
 /**
  * Tool preview generator.
  *
- * Run as: npm run previews   (or: node scripts/build-previews.ts [options])
+ * Run as: pnpm run previews   (or: node scripts/build-previews.ts [options])
  *
  * Renders every tool with its defaults in a REAL browser and writes a BUILD preview
  * image per tool into the git-ignored catalog/previews/ dir:
@@ -69,12 +69,12 @@
  *
  * Options:
  *   --url=http://host:port   render against an already-running server (skips the
- *                            build + static server; e.g. point at `npm run dev:web`)
+ *                            build + static server; e.g. point at `pnpm run dev:web`)
  *   --only=id1,id2           limit to these tool ids (comma-separated)
  *   --no-build               reuse the existing shells/web/dist (skip vite build)
  *   --skip-existing          only generate previews that are missing (a tool with an
  *                            existing catalog/previews/<id>.* or a committed card is
- *                            skipped). Makes repeat runs cheap - used by `npm run dev:web`.
+ *                            skipped). Makes repeat runs cheap - used by `pnpm run dev:web`.
  *   --headed                 show the browser (default: headless)
  */
 
@@ -897,7 +897,7 @@ async function toolList(): Promise<Tool[]> {
     // A previously generated preview (catalog/previews/<id>.svg|webp|png). .webp is the
     // form a raster preview actually ships in, and it was missing from this list - so
     // --skip-existing considered every WebP tool uncovered and re-rendered it on EVERY
-    // `npm run dev:web`, each time writing a fresh full-size capture. That is the other
+    // `pnpm run dev:web`, each time writing a fresh full-size capture. That is the other
     // half of the 60 MB leak (plans/155 finding 3): a backfill that never stopped
     // backfilling. .png stays for the pre-WebP files still on disk.
     hasPreview: ['svg', 'webp', 'png'].some((ext) => existsSync(join(PREVIEWS_DIR, `${t.id}.${ext}`))),
@@ -918,7 +918,7 @@ async function toolList(): Promise<Tool[]> {
   tools = tools.filter((t) => !t.capabilities.includes('capture'));
   // --skip-existing: only fill in the gaps. A tool that already has a generated
   // preview (or a committed card) needs no work - drop it so repeat runs, e.g. on
-  // every `npm run dev:web`, are near-instant instead of re-rendering everything.
+  // every `pnpm run dev:web`, are near-instant instead of re-rendering everything.
   if (opts.skipExisting) tools = tools.filter((t) => !t.hasPreview && !t.hasCard);
   return tools;
 }
@@ -956,7 +956,7 @@ async function buildWebShell(): Promise<void> {
   // Build only the web workspace - skips the /info docs build, which the tool
   // render path doesn't need. vite's closeBundle copies catalog/ + tools/ into
   // dist, so the served build is self-contained.
-  await run('npm', ['--workspace', 'shells/web', 'run', 'build'], { cwd: ROOT });
+  await run('pnpm', ['--filter', './shells/web', 'run', 'build'], { cwd: ROOT });
 }
 
 async function serveDist(): Promise<ServeHandle> {
@@ -996,8 +996,8 @@ async function loadPlaywright(): Promise<typeof import('playwright')> {
     return await import('playwright');
   } catch {
     throw new Error(
-      'playwright is not installed. Run `npm install` (it is a devDependency), then ' +
-        '`npx playwright install chromium` to fetch the browser.',
+      'playwright is not installed. Run `pnpm install` (it is a devDependency), then ' +
+        '`pnpm exec playwright install chromium` to fetch the browser.',
     );
   }
 }

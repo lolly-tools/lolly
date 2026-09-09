@@ -8,18 +8,6 @@
   "engines": {
     "node": ">=22.18.0"
   },
-  "workspaces": [
-    "packages/core",
-    "packages/node-shell",
-    "packages/docs-render",
-    "packages/audio-dock",
-    "engine",
-    "shells/web",
-    "shells/cli",
-    "shells/tui",
-    "services/ca",
-    "services/mcp"
-  ],
   "scripts": {
     "preinstall": "node scripts/check-bootstrap.ts",
     "postinstall": "node scripts/use-profile.ts --auto",
@@ -33,7 +21,7 @@
     "translate": "node scripts/translate.ts",
     "dev:web": "node scripts/dev-web.ts",
     "build:ort": "node scripts/copy-ort.ts && node scripts/copy-transformers-ort.ts",
-    "build:web": "npm run build:ort && npm run build:info && node scripts/build-tool-og.ts && node scripts/build-view-og.ts && npm --workspace shells/web run build",
+    "build:web": "pnpm run build:ort && pnpm run build:info && node scripts/build-tool-og.ts && node scripts/build-view-og.ts && pnpm --filter ./shells/web run build",
     "build:web:release": "node scripts/build-release-web.ts web",
     "build:desktop:frontend:release": "node scripts/build-release-web.ts tauri-desktop",
     "build:mobile:frontend:release": "node scripts/build-release-web.ts tauri-mobile",
@@ -52,7 +40,7 @@
     "check:skip-identities": "node scripts/check-skip-identities.ts",
     "test:fuzz:regression": "node scripts/run-test-suite.ts fuzz:regression",
     "test:fuzz:soak": "node tests/fuzz/run.ts",
-    "typecheck": "tsc -p packages/core && tsc -p packages/node-shell && tsc -p engine && tsc -p shells/web && tsc -p shells/web/tsconfig.tests.json && tsc -p shells/cli && tsc -p shells/tui && tsc -p shells/tauri-shared && tsc -p tests && tsc -p scripts && tsc -p services/mcp && npm run typecheck:timezone && npm run typecheck:tauri",
+    "typecheck": "tsc -p packages/core && tsc -p packages/node-shell && tsc -p engine && tsc -p shells/web && tsc -p shells/web/tsconfig.tests.json && tsc -p shells/cli && tsc -p shells/tui && tsc -p shells/tauri-shared && tsc -p tests && tsc -p scripts && tsc -p services/mcp && pnpm run typecheck:timezone && pnpm run typecheck:tauri",
     "typecheck:tauri": "node scripts/typecheck-tauri.ts",
     "lint": "biome lint",
     "lint:fix": "biome lint --write",
@@ -128,7 +116,7 @@
     "cli": "node shells/cli/bin/lolly.ts",
     "install:browser": "node shells/cli/bin/lolly.ts install-browser",
     "smoke": "node shells/cli/bin/lolly.ts smoke",
-    "tui": "npm --workspace shells/tui run start",
+    "tui": "pnpm --filter ./shells/tui run start",
     "mcp": "node services/mcp/bin/lolly-mcp.ts",
     "mcp:http": "node services/mcp/src/http.ts",
     "mcp:test": "node --test \"services/mcp/test/**/*.test.ts\"",
@@ -141,14 +129,16 @@
     "build:chart-plot": "node scripts/build-chart-plot.ts",
     "build:ca-fn": "node scripts/build-ca-fn.ts",
     "build:penpot-fn": "node scripts/build-penpot-fn.ts",
-    "dev:desktop": "cd shells/tauri-desktop && npm run dev",
-    "build:desktop": "cd shells/tauri-desktop && npm run build",
-    "dev:android": "cd shells/tauri-mobile && npm run dev:android",
-    "dev:ios": "cd shells/tauri-mobile && npm run dev:ios",
-    "build:android": "cd shells/tauri-mobile && npm run build:android",
-    "build:ios": "cd shells/tauri-mobile && npm run build:ios",
+    "dev:desktop": "cd shells/tauri-desktop && pnpm run dev",
+    "build:desktop": "cd shells/tauri-desktop && pnpm run build",
+    "dev:android": "cd shells/tauri-mobile && pnpm run dev:android",
+    "dev:ios": "cd shells/tauri-mobile && pnpm run dev:ios",
+    "build:android": "cd shells/tauri-mobile && pnpm run build:android",
+    "build:ios": "cd shells/tauri-mobile && pnpm run build:ios",
     "build:timezone": "node scripts/build-timezone.ts",
-    "typecheck:timezone": "tsc -p community/timezone"
+    "typecheck:timezone": "tsc -p community/timezone",
+    "pnpm:devPreinstall": "node scripts/check-bootstrap.ts",
+    "update:npm-licenses": "node scripts/update-npm-licenses.ts pnpm-lock.yaml shells/tauri-desktop/pnpm-lock.yaml shells/tauri-mobile/pnpm-lock.yaml"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
@@ -167,16 +157,9 @@
     "playwright": "^1.62.1",
     "sharp": "^0.35.4",
     "svgo": "^4.1.0",
-    "three": "0.185.1"
+    "three": "0.185.1",
+    "yaml": "^2.8.3",
+    "typescript": "^5.5.0"
   },
-  "overrides": {
-    "adm-zip": "^0.6.0",
-    "shell-quote": "^1.9.0",
-    "ip-address": "^10.3.1",
-    "nanoid": "^3.3.17",
-    "@huggingface/transformers": {
-      "sharp": "$sharp",
-      "onnxruntime-node": "$onnxruntime-node"
-    }
-  }
+  "packageManager": "pnpm@11.1.2"
 }

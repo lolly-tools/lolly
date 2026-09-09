@@ -1525,7 +1525,7 @@ function summarize(results: ShotResult[]): void {
     process.exit(1);
   }
   if (pending.length) {
-    console.log(`▲  changed vs the committed baselines - review, then promote with:  npm run docs:shots -- --accept`);
+    console.log(`▲  changed vs the committed baselines - review, then promote with:  pnpm run docs:shots --accept`);
     process.exit(2);
   }
   if (failed.length) process.exit(1);
@@ -1602,7 +1602,7 @@ async function ensureBrowserResolvable(): Promise<void> {
 async function buildWebShell(): Promise<void> {
   console.log('Building the web shell (vite build)…');
   await new Promise<void>((ok, fail) => {
-    const p = spawn('npm', ['--workspace', 'shells/web', 'run', 'build'], { cwd: ROOT, stdio: 'inherit' });
+    const p = spawn('pnpm', ['--filter', './shells/web', 'run', 'build'], { cwd: ROOT, stdio: 'inherit' });
     p.on('close', (code) => (code === 0 ? ok() : fail(new Error(`vite build exited ${code}`))));
     p.on('error', fail);
   });

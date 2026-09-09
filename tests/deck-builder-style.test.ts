@@ -2,7 +2,7 @@
 /**
  * deck-builder "Style" section + extended markdown contract tests.
  *
- * Run with: node --test "tests/deck-builder-style.test.ts"  (or via npm test)
+ * Run with: node --test "tests/deck-builder-style.test.ts"  (or via pnpm test)
  * No test framework - node:test built-in.
  *
  * Loads the REAL community tool from disk and drives it through the engine, so these
@@ -29,7 +29,7 @@ const TOOLS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'tools');
 const fetchFile = (path: string) => readFile(join(TOOLS_DIR, path), 'utf8');
 
 const SKIP = !existsSync(join(TOOLS_DIR, 'deck-builder/tool.json'))
-  && 'deck-builder tool view not built (run npm run profile)';
+  && 'deck-builder tool view not built (run pnpm run profile)';
 
 const tool: any = SKIP ? null : await loadTool('deck-builder', fetchFile);
 

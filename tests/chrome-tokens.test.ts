@@ -40,12 +40,12 @@ test('chrome-tokens.json is a structurally valid DTCG document', () => {
 test('tokens.css carries exactly the block the JSON generates (no drift either way)', () => {
   assert.equal(regenerate(css, doc), css,
     'the @generated-chrome-tokens block differs from what chrome-tokens.json generates - ' +
-    'run `npm run gen:chrome-tokens` (JSON edited) or move your hand-edit into the JSON (block edited)');
+    'run `pnpm run gen:chrome-tokens` (JSON edited) or move your hand-edit into the JSON (block edited)');
 });
 
 test('tokens.css carries exactly the semantic alias block (no drift either way)', () => {
   assert.equal(regenerateUiSemantics(css, semantics), css,
-    'the @generated-ui-semantics block differs from ui-semantics.json - run npm run gen:chrome-tokens');
+    'the @generated-ui-semantics block differs from ui-semantics.json - run pnpm run gen:chrome-tokens');
 });
 
 test('the markers exist once each, in order', () => {

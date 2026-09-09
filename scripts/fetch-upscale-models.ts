@@ -9,7 +9,7 @@
  * a byte is written, plus --refresh-pins for a deliberate upgrade.
  *
  * ANDY-RUN ONLY. This script needs network access and is never invoked by
- * `npm install`/`postinstall`/CI - these are tens to hundreds of MB each, not
+ * `pnpm install`/`postinstall`/CI - these are tens to hundreds of MB each, not
  * something every clone/deploy should pay for. Nothing in this repo's
  * automated pipeline calls this file.
  *

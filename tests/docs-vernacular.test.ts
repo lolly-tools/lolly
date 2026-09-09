@@ -34,7 +34,7 @@ test('built pages carry no fingerprint unicode in visible text or spoken attribu
   assert.deepStrictEqual(
     v.map(x => `${x.file} [${x.what}] ${x.excerpt}`),
     [],
-    'A build-time generator introduced a banned character - fix the generator (docs/build.ts or packages/docs-render), then npm run build:info.',
+    'A build-time generator introduced a banned character - fix the generator (docs/build.ts or packages/docs-render), then pnpm run build:info.',
   );
 });
 

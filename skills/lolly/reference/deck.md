@@ -74,7 +74,7 @@ lolly deck-studio --spec="$(cat deck.md)" --export=pptx --output=deck.pptx --no-
 `--spec` fills the `spec` input from the file; the five `---`-separated chunks
 become five slides in the active brand. `--no-provenance` keeps the bytes
 reproducible. `pptx` needs the browser tier, so run `lolly install-browser
---with-deps` and `npm run build:web` first, or render on a runner that has them (an
+--with-deps` and `pnpm run build:web` first, or render on a runner that has them (an
 exit `3` means this install cannot).
 
 For a `pdf` proof with no browser dependency, swap `--export=html` while drafting,

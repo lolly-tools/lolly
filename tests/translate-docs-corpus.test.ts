@@ -2,7 +2,7 @@
 /**
  * The docs translation corpus - segmentation fidelity and structural validation.
  *
- * Run with: npm test
+ * Run with: pnpm test
  *
  * WHY THIS EXISTS. `runDocsCorpus` translates a markdown page block by block and
  * then reassembles it. If `splitDocBlocks` is not perfectly lossless, every
@@ -132,7 +132,7 @@ test('a table that loses a row or a column is rejected', () => {
 
 test('an invented code fence is rejected', () => {
   const src = 'Run the validator before shipping.';
-  assert.match(String(validateDocBlock(src, 'Führen Sie den Validator aus.\n\n```\nnpm test\n```')),
+  assert.match(String(validateDocBlock(src, 'Führen Sie den Validator aus.\n\n```\npnpm test\n```')),
     /introduced a code fence/);
 });
 
@@ -150,7 +150,7 @@ test('--check is read-only: it never writes or deletes a translation file', asyn
   // the CI guard doing its job), so the exit code is deliberately ignored here - 
   // this test is only about whether the run touched the tree.
   try {
-    execFileSync('npm', ['run', 'translate', '--silent', '--', '--corpus', 'docs', '--lang', 'de', '--check'],
+    execFileSync('pnpm', ['--silent', 'run', 'translate', '--corpus', 'docs', '--lang', 'de', '--check'],
       { cwd: ROOT, encoding: 'utf8', stdio: 'pipe' });
   } catch { /* expected: exit 1 on stale/missing */ }
   const after = execFileSync('git', ['status', '--porcelain', 'i18n'],

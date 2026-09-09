@@ -9,7 +9,7 @@
       "!**/.vercel",
       "!**/.browsers",
       "!**/*.min.js",
-      "!package-lock.json",
+      "!pnpm-lock.yaml",
       "!sbom.cdx.json",
       "!tools",
       "!catalog",

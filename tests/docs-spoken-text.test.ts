@@ -30,7 +30,7 @@ same paragraph.
 - From the \`command line\`:
 
 \`\`\`bash
-npm run ingest:brand -- ./tokens.json
+pnpm run ingest:brand ./tokens.json
 \`\`\`
 
 The table of plans:

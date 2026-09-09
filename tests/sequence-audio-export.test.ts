@@ -2,7 +2,7 @@
 /**
  * Sequence Studio - the audio-only export (wav / mp3 / m4a / opus).
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
+ * Run with: pnpm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * An audio export of a sequence is the SOUNDTRACK OF THE VIDEO EXPORT in a file with
  * no picture: the music bed plus every unmuted clip track, ducked the same way. So

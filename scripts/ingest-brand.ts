@@ -5,7 +5,7 @@
  * pack, ready to register as a profile (see profiles.json / use-profile.ts).
  *
  * Run as:
- *   npm run ingest:brand -- <source> --name <brand> [--label "Label"]
+ *   pnpm run ingest:brand <source> --name <brand> [--label "Label"]
  *   node scripts/ingest-brand.ts <source> --name <brand> [--label "Label"]
  *        [--out brands/<brand>] [--register] [--activate] [--force]
  *
@@ -38,7 +38,7 @@
  * brand-treatments.ts) and written under catalog/assets/<name>/palette/, so
  * uploaded photos and themable icons get one-tap on-brand washes/pairings out
  * of the box - the icon-themes doc is skipped when the palette has no accent.
- * catalog/tools/index.json is NOT written here - `npm run build:catalog`
+ * catalog/tools/index.json is NOT written here - `pnpm run build:catalog`
  * generates it once the profile is active.
  *
  * --register  upserts profiles.json: profiles[<name>] = community tools (+ the
@@ -636,18 +636,18 @@ version in \`catalog/assets/index.json\`.
 - **Published versions:** ${published.versions.map(v => v.slug).join(', ')} (${published.frozen.length} preserved file${published.frozen.length === 1 ? '' : 's'}).
   Each is an immutable sibling asset under \`catalog/assets/${args.ns}/tokens/brand/\`.
   Never edit one: a tool pinned to it, or \`?designv=\`, resolves against exactly
-  these bytes, and \`npm run validate:catalog\` reads the checksum the ledger records.` : ''}
+  these bytes, and \`pnpm run validate:catalog\` reads the checksum the ledger records.` : ''}
 
 ## Next steps
 
 1. Register the profile (if you didn't pass \`--register\`): add
    \`profiles.json → profiles.${args.name}\` pointing \`catalog\` here.
 2. Activate and build the generated tool index:
-   \`node scripts/use-profile.ts ${args.name} && npm run build:catalog && npm run validate:catalog\`
+   \`node scripts/use-profile.ts ${args.name} && pnpm run build:catalog && pnpm run validate:catalog\`
    (\`--activate\` does all three).
 3. Grow the pack: brand tools under \`${args.out}/tools/\` (append that path to
    the profile's \`tools\` roots), fonts under \`catalog/fonts/\`, previews via
-   \`npm run previews\`.
+   \`pnpm run previews\`.
 `);
 
   const derived = derivedSlugs.join(' + ') || 'none';
@@ -696,8 +696,8 @@ function registerProfile(args: Args): void {
 function activateProfile(name: string): void {
   const steps: [string, string[]][] = [
     [process.execPath, [join(ROOT, 'scripts/use-profile.ts'), name]],
-    ['npm', ['run', 'build:catalog']],
-    ['npm', ['run', 'validate:catalog']],
+    ['pnpm', ['run', 'build:catalog']],
+    ['pnpm', ['run', 'validate:catalog']],
   ];
   for (const [cmd, cmdArgs] of steps) {
     const r = spawnSync(cmd, cmdArgs, { stdio: 'inherit', cwd: ROOT });

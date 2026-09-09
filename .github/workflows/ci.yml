@@ -3,7 +3,7 @@
 #   test            - full repo suite (engine contract tests + core/web/mcp)
 #   typecheck       - tsc -p across every project, INCLUDING both Tauri shells'
 #                     bridge-overrides (this job installs those two shells,
-#                     which are not npm workspaces, so the gate is real here -
+#                     which are not pnpm workspaces, so the gate is real here -
 #                     the --strict step fails if the install is ever dropped)
 #   validate        - catalog manifests/index drift + asset checksums
 #   smoke           - render every catalog tool at manifest defaults (headless,
@@ -25,7 +25,7 @@
 #   secrets         - Gitleaks scans all parent-repository history with redacted
 #                     output and narrow, commit-scoped fixture exceptions.
 #                     Ongoing supply-chain watch for the security audit;
-#                     false alarms pinned via package.json overrides.
+#                     false alarms pinned via pnpm-workspace.yaml overrides.
 # All gates (test / typecheck / validate / smoke / build+budget / api-bundles / audit)
 # exit non-zero on failure and BLOCK. The bundle-budget step is a hard gate again as of the boot
 # diet (2026-07-08): boot JS is ~66 KB gz vs the 115 KB budget, after the engine
@@ -48,8 +48,7 @@ concurrency:
 
 # onnxruntime-node's postinstall attempts a CUDA EP download on linux runners and
 # dies on an unhandled rejection (macOS never takes that path). No job here needs
-# CUDA; skip it so `npm ci` survives. Node is 24 to match the repo target - and
-# npm 11's audit, which resolves override floors the way the lockfile intends.
+# CUDA; skip it so `pnpm install --frozen-lockfile` survives. Node is 24 to match the repo target.
 env:
   ONNXRUNTIME_NODE_INSTALL_CUDA: skip
 
@@ -61,6 +60,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        with:
+          version: 11.1.2
+          run_install: false
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
@@ -89,10 +93,10 @@ jobs:
         run: node --test tests/scan-secrets-runner.test.ts
 
       - name: Verify workflow supply-chain pins
-        run: npm run check:workflow-pins
+        run: pnpm run check:workflow-pins
 
       - name: Scan tracked Git history (redacted output)
-        run: npm run secrets:scan
+        run: pnpm run secrets:scan
 
   test:
     name: test (${{ matrix.shard }})
@@ -115,13 +119,18 @@ jobs:
         with:
           submodules: recursive   # tools/catalog/shells/services/docs are submodules; workspaces need every package.json
 
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        with:
+          version: 11.1.2
+          run_install: false
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
-          cache: npm
+          cache: pnpm
 
       - name: Install (workspaces)
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       # Until 2026-09-08 this shard ran with no browser installed, so every
       # *.browser.test.ts and Playwright-gated case skipped ("no Chromium") and the
@@ -138,7 +147,7 @@ jobs:
 
       - name: Install Chromium (browser shard)
         if: matrix.shard == 'browser'
-        run: npm run install:browser -- --with-deps
+        run: pnpm run install:browser --with-deps
 
       - name: Install Rust toolchain (Tauri shard)
         if: matrix.shard == 'tauri'
@@ -192,7 +201,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p artifacts
-          npm run "test:${{ matrix.shard }}" 2>&1 | tee test-output.log
+          pnpm run "test:${{ matrix.shard }}" 2>&1 | tee test-output.log
 
       # Every skip is reviewed by file, full parent-chain name, reason,
       # capability and owner. A replacement skip fails even when the count stays
@@ -204,7 +213,7 @@ jobs:
           sed $'s/\x1b\[[0-9;]*m//g' test-output.log \
             | grep -E '^(not ok|✖|✗)' | head -50 || true
           test -f artifacts/test-skips.json
-          npm run check:skip-identities -- --report=artifacts/test-skips.json --shard="${{ matrix.shard }}"
+          pnpm run check:skip-identities --report=artifacts/test-skips.json --shard="${{ matrix.shard }}"
 
       - name: Upload exact skip report
         if: always()
@@ -222,76 +231,81 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        with:
+          version: 11.1.2
+          run_install: false
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
-          cache: npm
+          cache: pnpm
 
       - name: Install (workspaces)
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       # bridge-overrides/ is the whole application-specific surface of both Tauri
-      # shells, and those shells are deliberately NOT npm workspaces, so `npm ci`
+      # shells, and those shells are deliberately NOT pnpm workspaces, so `pnpm install --frozen-lockfile`
       # above does not create their node_modules and the @tauri-apps types their
       # overrides import would not resolve. Install them here - production deps
-      # only, since the types are all the typecheck needs and --omit=dev skips the
+      # only, since the types are all the typecheck needs and --prod skips the
       # Tauri CLI and Vite. Without this, typecheck:tauri SKIPS (by design, so a
       # plain clone is not punished) and the --strict step below fails loudly
       # rather than letting the gate quietly become a no-op.
-      - name: Install (Tauri shells - types only, not npm workspaces)
+      - name: Install (Tauri shells - types only, not pnpm workspaces)
         run: |
-          npm --prefix shells/tauri-desktop ci --omit=dev
-          npm --prefix shells/tauri-mobile ci --omit=dev
+          pnpm -C shells/tauri-desktop install --frozen-lockfile --prod
+          pnpm -C shells/tauri-mobile install --frozen-lockfile --prod
 
       - name: Typecheck (tsc -p, every project)
-        run: npm run typecheck
+        run: pnpm run typecheck
 
       - name: Typecheck must not have skipped the Tauri shells
-        run: npm run typecheck:tauri -- --strict
+        run: pnpm run typecheck:tauri --strict
 
       # engine/README.md's module table is generated from the tree. Regenerating
       # it must be a no-op; drift means a module was added, renamed or had its
       # header comment changed without refreshing the map auditors navigate by.
       - name: Engine module map drift (stale? rerun build:engine-modules)
-        run: npm run check:engine-modules
+        run: pnpm run check:engine-modules
 
       # The engine must stay free of DOM, storage and network access: that is
       # what lets one tool render unchanged in the browser, Tauri and the CLI.
       # engine/tsconfig.json has to include the DOM lib for the fetch-spec
       # globals, so the compiler cannot enforce this. This step does.
       - name: Engine purity (no DOM/storage/network in engine/src)
-        run: npm run check:engine-purity
+        run: pnpm run check:engine-purity
 
       # docs/build.ts's `pages` array is hand-maintained and the /info nav derives
       # from it, so a .md could be written and committed while staying unreachable
       # from the site - docs/ios-build.md was exactly that. Every docs/*.md must now
       # be a registered page or a declared exception (see NOT_PAGES in the script).
       - name: Docs nav completeness (no orphaned docs/*.md)
-        run: npm run check:docs-nav
+        run: pnpm run check:docs-nav
 
       # shells/web/src/README.md opens with per-directory and largest-file stats
       # that a new contributor uses to decide where to look. They were measured by
       # hand and were already drifting; they are generated now, so this fails if
       # the committed tables no longer match the tree.
       - name: Web shell code-map stats drift (stale? rerun build:web-src-readme)
-        run: npm run check:web-src-readme
+        run: pnpm run check:web-src-readme
 
       # The browser shell legitimately owns far more code than CLI. This gate is
       # about concentration inside individual modules, not cross-shell parity.
       - name: Web shell maintainability no-growth ratchet
-        run: npm run check:maintainability
+        run: pnpm run check:maintainability
 
       - name: No new first-party Biome diagnostics
-        run: npm run lint:changed -- --all
+        run: pnpm run lint:changed --all
 
       - name: Repository and release inventory closure
-        run: npm run check:release-checklist && npm run check:host-v1-api
+        run: pnpm run check:release-checklist && pnpm run check:host-v1-api
 
       - name: Locale innerHTML markup allowlist
-        run: npm run check:locale-markup
+        run: pnpm run check:locale-markup
 
       - name: Parser inventory fuzz coverage and waiver expiry
-        run: npm run check:parser-inventory && npm run check:parser-assurance
+        run: pnpm run check:parser-inventory && pnpm run check:parser-assurance
 
   validate-catalog:
     name: validate catalog
@@ -301,16 +315,21 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        with:
+          version: 11.1.2
+          run_install: false
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
-          cache: npm
+          cache: pnpm
 
       - name: Install (workspaces)
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Validate catalog (no manifest/index drift, asset checksums)
-        run: npm run validate:catalog
+        run: pnpm run validate:catalog
 
   # Catalog-wide render gate - `lolly smoke` renders every tool in the active profile
   # at manifest defaults (sequential, browser-free: first Node-native format, html as
@@ -326,16 +345,21 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        with:
+          version: 11.1.2
+          run_install: false
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
-          cache: npm
+          cache: pnpm
 
       - name: Install (workspaces)
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Smoke-render the catalog (headless, no browser)
-        run: npm run smoke
+        run: pnpm run smoke
 
   build:
     name: build + bundle budget
@@ -345,22 +369,27 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        with:
+          version: 11.1.2
+          run_install: false
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
-          cache: npm
+          cache: pnpm
 
       - name: Install (workspaces)
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Production build (info site + OG cards + web shell)
-        run: npm run build:web
+        run: pnpm run build:web
 
       - name: Bundle budget (boot-path JS ≤ 115 KB gz, no heavy chunks preloaded)
-        run: npm run check:bundle
+        run: pnpm run check:bundle
 
       - name: Docs size budget (/info ≤ 160 MB gz - every locale ships, chrome must not multiply)
-        run: npm run check:docs-size
+        run: pnpm run check:docs-size
 
   # The committed api/ function bundles (api/mcp/[...path].js, api/ca/[...path].js)
   # are GENERATED by esbuild (scripts/build-mcp-fn.ts / build-ca-fn.ts) and checked
@@ -374,16 +403,21 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        with:
+          version: 11.1.2
+          run_install: false
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
-          cache: npm
+          cache: pnpm
 
       - name: Install (workspaces)
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Rebuild the api/ function bundles
-        run: npm run build:mcp-fn && npm run build:ca-fn && npm run build:penpot-fn
+        run: pnpm run build:mcp-fn && pnpm run build:ca-fn && pnpm run build:penpot-fn
 
       - name: No drift (stale bundle? rerun build:mcp-fn / build:ca-fn / build:penpot-fn and commit)
         run: git diff --exit-code -- api/
@@ -391,7 +425,7 @@ jobs:
   # Self-test of the in-tree composite action (action/ - ready to split into
   # lolly-tools/render-action, plans/48-fable-new-potential.md section 5.4). Exercises the
   # real consumer path end-to-end: the action checks out lolly at THIS commit,
-  # npm ci builds the lolly-start fallback profile, and qr-code renders to SVG
+  # pnpm install --frozen-lockfile builds the lolly-start fallback profile, and qr-code renders to SVG
   # browser-free (Tier A) - so the action stays green before the split.
   render-action:
     name: render-action self-test
@@ -428,7 +462,7 @@ jobs:
   # low are surfaced but don't block. A false alarm can be pinned via package.json
   # `overrides` (as adm-zip is, forced to ^0.6.0 past onnxruntime-node's ^0.5.16).
   #
-  # Most advisories clear with `npm update --package-lock-only <pkg>`, because the
+  # Most advisories clear with `npm update --pnpm-lock.yaml-only <pkg>`, because the
   # fixed version already satisfies the range its parent declares - no package.json
   # edit, no `npm audit fix --force`, which is never the answer here. An override is
   # for the other case: the parent's declared range EXCLUDES the fix. Two live now,
@@ -452,30 +486,35 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        with:
+          version: 11.1.2
+          run_install: false
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
-          cache: npm
+          cache: pnpm
 
       - name: Install (workspaces)
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install cargo-audit
         run: cargo install cargo-audit --locked --version 0.22.2
 
       - name: Audit every npm and Cargo dependency root
-        run: npm run audit:all
+        run: pnpm run audit:all
 
       - name: Dependency lock inventory stays complete
         if: always()
-        run: npm run audit:all -- --check
+        run: pnpm run audit:all --check
 
-      # The committed CycloneDX SBOM (sbom.cdx.json) is generated from package-lock.json
+      # The committed CycloneDX SBOM (sbom.cdx.json) is generated from pnpm-lock.yaml
       # (scripts/build-sbom.ts, deterministic). Regenerate + fail on drift so it can't go
       # stale vs the installed graph - same discipline as the api-bundles drift gate.
       - name: SBOM up to date (regenerate; fail on drift)
         run: |
-          npm run build:sbom
+          pnpm run build:sbom
           git diff --exit-code -- sbom.cdx.json
 
       # Third-party notices are generated the same way (scripts/build-licenses.ts).
@@ -486,7 +525,7 @@ jobs:
       # check has to run inside that repo - a superproject pathspec can't see it.)
       - name: Third-party notices complete + up to date (fail on gap or drift)
         run: |
-          npm run build:licenses
+          pnpm run build:licenses
           git diff --exit-code -- THIRD-PARTY-NOTICES.md
           git -C shells/web diff --exit-code -- public/THIRD-PARTY-LICENSES.txt
 
@@ -500,7 +539,7 @@ jobs:
       # license-file entries are version-pinned, a version bump on one fails here
       # rather than carrying a stale legal verdict forward.
       - name: Cargo license map covers the crate graph (fail on stale map)
-        run: npm run check:cargo-licenses
+        run: pnpm run check:cargo-licenses
 
   # Static analysis. Added after the SUSE assessment (2026-08, S4), which found
   # the repo had no SAST gate at all. Two deliberate design choices:

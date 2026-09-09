@@ -3,7 +3,7 @@
 /**
  * Raster preview → WebP converter.
  *
- * `npm run previews` rasterises the previews it can't keep as vector - a canvas tool
+ * `pnpm run previews` rasterises the previews it can't keep as vector - a canvas tool
  * (snippet), a dense-synthetic-vector tool the SVG walker would make expensive to
  * paint (filter-halftone, street-map), or a photo-heavy look - to PNG at up to render
  * resolution (snippet.png alone is 1.46 MB). Shown as gallery tiles at ~300–600 CSS px
@@ -13,7 +13,7 @@
  * retina-safe cap and re-encodes as WebP - typically a 5–10× byte cut - then removes the
  * .png so a tool never carries both. build-catalog-index.ts prefers .webp over .png, and
  * build-preview-bundle.ts references look rasters as .webp first, so the switch is picked
- * up with no other change. Runs as the final step of `npm run previews`.
+ * up with no other change. Runs as the final step of `pnpm run previews`.
  *
  * Idempotent: a tool already on .webp (no .png) is left untouched; re-encoding only ever
  * runs on a remaining .png. BUILD-TIME ONLY (sharp / native libvips).
@@ -37,7 +37,7 @@ async function run(): Promise<void> {
   try {
     files = readdirSync(PREVIEWS_DIR).filter((f) => f.toLowerCase().endsWith('.png'));
   } catch {
-    console.log('· No catalog/previews/ dir yet (run `npm run previews` first) - nothing to do.');
+    console.log('· No catalog/previews/ dir yet (run `pnpm run previews` first) - nothing to do.');
     return;
   }
   if (!files.length) { console.log('✓ Preview rasters: none to convert (all vector / already WebP).'); return; }

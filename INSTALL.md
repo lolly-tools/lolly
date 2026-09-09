@@ -2,12 +2,12 @@
 
 Getting a fresh clone to a running state - **macOS** and **openSUSE**. For the day-to-day
 submodule workflow (where each change gets committed), see
-[CONTRIBUTING.md](CONTRIBUTING.md); this file is just "clean machine → `npm run dev:web`".
+[CONTRIBUTING.md](CONTRIBUTING.md); this file is just "clean machine → `pnpm run dev:web`".
 
 Lolly is an **umbrella repo**: the engine, schemas and scripts live here, and every
 shippable unit (each shell, the tool packs, the docs, the services) is a **git submodule**.
-The eight npm workspaces live *inside* those submodules, so the submodules have to be
-checked out **before** `npm install`. The script below does that for you.
+Several of the ten pnpm workspaces live inside submodules, which must be
+checked out **before** `pnpm install`. The script below does that for you.
 
 ## Quick start
 
@@ -26,7 +26,7 @@ SUSE developers (need access to the private brand pack):
 Then:
 
 ```bash
-npm run dev:web           # web shell at http://localhost:5173
+pnpm run dev:web           # web shell at http://localhost:5173
 ```
 
 `./setup.sh` is **idempotent** - safe to re-run any time (after a `git pull`, to repair a
@@ -44,7 +44,7 @@ The script installs these for you when it can; here's what it needs and how to g
 
 **Why Node 22.18+?** The repo's scripts run TypeScript sources directly (`node scripts/foo.ts`),
 which relies on Node's unflagged type-stripping - added in Node **22.18** (the 22 LTS line)
-and **24**. `.nvmrc` pins `22`. Node 20 and early 22.x will fail `npm install`.
+and **24**. `.nvmrc` pins `22`. Node 20 and early 22.x will fail `pnpm install`.
 
 If your distro's packaged Node is older than 22.18, use [**nvm**](https://github.com/nvm-sh/nvm),
 which honours `.nvmrc`:
@@ -63,7 +63,7 @@ nvm install                # reads .nvmrc → installs + selects Node 22
 3. **Initialises the public submodules**: `git submodule update --init --recursive`
    (shells, `community/` tools, `docs/`, `services/*`). The private `brands/suse` pack is
    `update = none`, so it's **skipped automatically** unless you pass `--suse`.
-4. **`npm install`** - installs all eight workspaces. Its `postinstall`
+4. **`pnpm install`** - installs all eight workspaces. Its `postinstall`
    (`scripts/use-profile.ts --auto`) builds the `tools/` + `catalog/` views for a content
    profile: the SUSE pack if it's mounted, otherwise the blank **lolly-start** brand. It
    never fails on a public clone.
@@ -85,18 +85,20 @@ If you'd rather not run the script, or you're on a distro it doesn't cover:
 ```bash
 # 1. prerequisites - git + Node 22.18+ (see the table above)
 
-# 2. submodules (BEFORE npm install - the workspaces need every submodule's package.json)
+# 2. submodules (BEFORE pnpm install - the workspaces need every submodule's package.json)
 git submodule update --init --recursive
 #   SUSE devs also:
 git submodule update --init --checkout brands/suse
 
 # 3. dependencies + profile views (postinstall picks a profile automatically)
-npm install
+# Install the pinned package manager once (or use Corepack).
+npm install --global pnpm@11.1.2
+pnpm install
 
 # 4. optional - pick a content profile explicitly
-npm run profile          # show the active profile + what's available
-npm run profile:suse     # SUSE brand pack (needs brands/suse mounted)
-npm run profile:start    # blank starter brand
+pnpm run profile          # show the active profile + what's available
+pnpm run profile:suse     # SUSE brand pack (needs brands/suse mounted)
+pnpm run profile:start    # blank starter brand
 ```
 
 ## Content profiles
@@ -104,17 +106,17 @@ npm run profile:start    # blank starter brand
 `tools/` and `catalog/` at the repo root are gitignored **views** assembled from the mounted
 packs (`profiles.json`) - never commit them. Without SUSE access you land on **lolly-start**
 (community tools + neutral tokens) and everything builds and runs. Generate a brand pack of
-your own from design tokens with `npm run ingest:brand` (DTCG / Tokens Studio / Penpot). More
+your own from design tokens with `pnpm run ingest:brand` (DTCG / Tokens Studio / Penpot). More
 in [CONTRIBUTING.md](CONTRIBUTING.md) and `docs/authoring-tools.md`.
 
 ## Optional extras
 
-Not needed for `dev:web` / `cli` / `npm test`, so the script skips them:
+Not needed for `dev:web` / `cli` / `pnpm test`, so the script skips them:
 
-- **Headless render + docs screenshots** - `npm run build:web` and the docs-shot pipeline
-  drive a headless browser via Playwright. Fetch the browser once: `npx playwright install chromium`.
+- **Headless render + docs screenshots** - `pnpm run build:web` and the docs-shot pipeline
+  drive a headless browser via Playwright. Fetch the browser once: `pnpm exec playwright install chromium`.
 - **Desktop / mobile apps** - the Tauri shells (`shells/tauri-desktop`, `shells/tauri-mobile`)
-  are submodules but *not* npm workspaces and need the Rust toolchain + Tauri system deps.
+  are submodules with separate pnpm projects and need the Rust toolchain + Tauri system deps.
   They're not initialised by default; see each submodule's README.
 - **`loldev`** - the one-command multi-repo helper (build → commit/push every changed
   submodule → record the umbrella pointer). Put it on your PATH:
@@ -123,18 +125,18 @@ Not needed for `dev:web` / `cli` / `npm test`, so the script skips them:
 ## Verify
 
 ```bash
-npm run cli -- qr-code --url=https://suse.com --output=./qr.svg   # renders a tool headlessly
-npm run validate:catalog                                          # checks the active profile
-npm test                                                          # engine + shell suites
+pnpm run cli qr-code --url=https://suse.com --output=./qr.svg   # renders a tool headlessly
+pnpm run validate:catalog                                          # checks the active profile
+pnpm test                                                          # engine + shell suites
 ```
 
 ## Troubleshooting
 
-- **`npm install` fails with a syntax error in a `.ts` file** → your Node is too old for
+- **`pnpm install` fails with a syntax error in a `.ts` file** → your Node is too old for
   type-stripping. Need ≥ 22.18 or ≥ 24 (`node -v`); use nvm (above).
 - **`Cannot find module '@lolly-tools/…'` / a workspace package.json is missing** → the
-  submodules weren't checked out before `npm install`. Run
-  `git submodule update --init --recursive`, then `npm install` again.
+  submodules weren't checked out before `pnpm install`. Run
+  `git submodule update --init --recursive`, then `pnpm install` again.
 - **`brands/suse` won't clone** → it's private (github.com/lolly-tools/suse-lolly). Without
   access, drop `--suse`; you'll build on lolly-start and everything still works.
 - **Homebrew's `node@22` isn't on PATH** → it's keg-only.

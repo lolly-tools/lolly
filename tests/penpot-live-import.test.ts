@@ -6,7 +6,7 @@
  * box) plus a brand token document, import it through `import-binfile` into a
  * project, read the file back and count what arrived, then trash it.
  *
- * Gated (skip-with-reason) on PENPOT_PAT + PENPOT_PROJECT so `npm test` never
+ * Gated (skip-with-reason) on PENPOT_PAT + PENPOT_PROJECT so `pnpm test` never
  * touches the network; run it by hand before a release:
  *
  *   PENPOT_PAT=<token> PENPOT_PROJECT=<project uuid> node --test tests/penpot-live-import.test.ts

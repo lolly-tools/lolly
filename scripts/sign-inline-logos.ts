@@ -36,11 +36,11 @@
  * that reads "present" only when it is redundant.
  *
  * Usage:
- *   npm run sign:signature-logos                                             # CA identity
+ *   pnpm run sign:signature-logos                                             # CA identity
  *   node scripts/sign-inline-logos.ts --self                                 # on-device key
  *   node scripts/run-private-ca.ts sign-logos --force --from /tmp/originals
  *
- * After running: `npm run build:catalog && npm run validate:catalog`.
+ * After running: `pnpm run build:catalog && pnpm run validate:catalog`.
  */
 
 import { createHash } from 'node:crypto';
@@ -108,7 +108,7 @@ async function buildSigner(): Promise<SignerBundle> {
   if (!certPem || !keyPem) {
     throw new Error(
       'CA signing needs CA_ROOT_CERT_PEM and CA_ROOT_KEY_PEM in the environment.\n' +
-        '  Run: npm run sign:signature-logos\n' +
+        '  Run: pnpm run sign:signature-logos\n' +
         '  (or pass --self for the untrusted on-device key)'
     );
   }
@@ -219,7 +219,7 @@ async function main(): Promise<void> {
 
   writeFileSync(hooksPath, hooks);
   console.log(`\n✓ ${signed} signed, ${skipped} already credentialed - ${TARGET.hooks} resynced`);
-  console.log('  Next: npm run build:catalog && npm run validate:catalog');
+  console.log('  Next: pnpm run build:catalog && pnpm run validate:catalog');
 }
 
 await main();

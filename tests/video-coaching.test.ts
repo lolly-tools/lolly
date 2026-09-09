@@ -2,7 +2,7 @@
 /**
  * video-coach-core contract tests.
  *
- * Run with: npm test  (node --test over the tests/ globs)
+ * Run with: pnpm test  (node --test over the tests/ globs)
  * No test framework - uses node:test built-in.
  *
  * Exercises the PURE exposure-coaching logic that turns a camera frame's RGBA bytes into

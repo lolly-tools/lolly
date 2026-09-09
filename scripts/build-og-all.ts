@@ -5,7 +5,7 @@
  *
  * WHY THIS EXISTS. The per-tool cards (catalog/og/<id>.png) and per-view cards
  * (catalog/og/views/<slug>.png) are COMMITTED into each brand's catalog, but
- * `npm run og` (build-tool-og.ts + build-view-og.ts) only ever renders into the
+ * `pnpm run og` (build-tool-og.ts + build-view-og.ts) only ever renders into the
  * active profile's catalog/ view - the exact per-brand drift problem
  * build-catalog-all.ts fixes for tools/index.json. Editing a community tool's
  * card inputs (name, description, icon, preview) refreshed the active brand's
@@ -32,7 +32,7 @@ const STATE_FILE = join(ROOT, '.lolly-profile');
 interface Profile { label?: string; tools: string[]; catalog: string }
 interface ProfilesFile { default: string; profiles: Record<string, Profile> }
 
-/** The per-profile OG pipeline, exactly what `npm run og` runs. */
+/** The per-profile OG pipeline, exactly what `pnpm run og` runs. */
 const OG = ['build-tool-og.ts', 'build-view-og.ts'];
 
 // --preserve is forwarded to the card scripts (they also honour LOLLY_PRESERVE=1,
@@ -87,7 +87,7 @@ function main(): void {
       console.log(`\n↩ restoring active profile "${original}"`);
       // Best-effort: a restore that throws must not mask the real error from the loop.
       try { run('use-profile.ts', [original]); }
-      catch { console.error(`⚠ could not restore profile "${original}" - run \`npm run profile:${original}\``); }
+      catch { console.error(`⚠ could not restore profile "${original}" - run \`pnpm run profile:${original}\``); }
     }
   }
 

@@ -2,7 +2,7 @@
 /**
  * Design - box `bgBlur` (BACKGROUND blur / frosted glass) contract tests.
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
+ * Run with: pnpm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * The sibling of design-blur.test.ts, and deliberately a separate file: `blur`
  * blurs the box's own paint (CSS `filter`), `bgBlur` blurs what is painted BEHIND it

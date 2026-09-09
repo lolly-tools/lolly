@@ -5,7 +5,7 @@
 // COSE/JUMBF/X.509 encoder (c2pa-rs, via the c2patool CLI), not Lolly's own round-trip.
 // Interop bugs in either encoder's byte-level choices (box ordering, padding, CBOR map key
 // order, …) would only surface against a FOREIGN producer - a self-round-trip can't catch
-// them. Ungated: the fixture is a committed binary, so this runs on every `npm test` with
+// them. Ungated: the fixture is a committed binary, so this runs on every `pnpm test` with
 // no c2patool dependency at test time (unlike the sibling suite, which needs c2patool on
 // PATH to exercise the write→validate direction).
 //

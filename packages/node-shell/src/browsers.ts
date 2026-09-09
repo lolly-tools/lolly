@@ -4,9 +4,9 @@
  * "Tier B" for the formats only a real browser can make: HTML-layout raster, jpg/webp,
  * pdf, video, and live-URL capture.
  *
- * The browser is NOT bundled. `lolly install-browser` (or `npm run install:browser`
+ * The browser is NOT bundled. `lolly install-browser` (or `pnpm run install:browser`
  * in shells/cli) downloads Chromium once via the `playwright-core` the shells already
- * depend on. A plain `npm install` pulls no browser. It is loaded lazily on first use
+ * depend on. A plain `pnpm install` pulls no browser. It is loaded lazily on first use
  * and killed on process exit, never at startup, so an `--export=svg` run stays
  * instant and dependency-light.
  *
@@ -85,7 +85,7 @@ export async function getBrowser(): Promise<import('playwright-core').Browser> {
         if (/executable doesn't exist|Executable doesn't exist|please run|not been downloaded/i.test(msg)) {
           throw new BrowserError(
             'Raster/PDF/video export needs a headless browser. Run `lolly install-browser` ' +
-            '(or `npm run install:browser` in shells/cli - downloads Chromium once, ~150 MB), ' +
+            '(or `pnpm run install:browser` in shells/cli - downloads Chromium once, ~150 MB), ' +
             'or set LOLLY_BROWSER_CHANNEL=chrome to use an already-installed Chrome/Edge with ' +
             'no download. (svg and data formats need no browser.)',
           );

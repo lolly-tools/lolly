@@ -70,7 +70,7 @@ case "$OS" in
       [ "$(id -u)" -eq 0 ] || SUDO="sudo"
     else
       warn "Not openSUSE - this script only auto-installs prerequisites on macOS and openSUSE."
-      warn "It will still init submodules + npm install; install git/Node yourself first."
+      warn "It will still init submodules + pnpm install; install git/Node yourself first."
     fi
     ;;
   *) die "unsupported OS: $OS (macOS or openSUSE)" ;;
@@ -133,10 +133,11 @@ else
     fi
   fi
 fi
-have npm || die "npm not found alongside node - install npm and re-run"
+# npm is used only to bootstrap the project's pinned package manager.
+have pnpm || { have npm && npm install --global pnpm@11.1.2; } || die "Install pnpm 11.1.2 and re-run ./setup.sh"
 
 # ── 3. submodules ─────────────────────────────────────────────────────────────────
-# The 8 npm workspaces live in submodules, so these MUST exist before `npm install`.
+# The ten pnpm workspaces include submodules, so these MUST exist before `pnpm install`.
 # brands/suse is `update = none` (private) → skipped here unless --suse.
 step "Initialising submodules (public)"
 git submodule sync --recursive >/dev/null 2>&1 || true
@@ -157,15 +158,15 @@ fi
 # ── 4. dependencies ───────────────────────────────────────────────────────────────
 # postinstall (scripts/use-profile.ts --auto) picks a profile: SUSE if its pack is
 # mounted, else the blank lolly-start. Never fails on a public clone.
-step "Installing workspace dependencies (npm install)"
-npm install
+step "Installing workspace dependencies (pnpm install)"
+pnpm install
 ok "dependencies installed + content profile built"
 
 # ── 5. content profile (optional override) ───────────────────────────────────────
 if [ -n "$FORCE_PROFILE" ]; then
   step "Selecting content profile: $FORCE_PROFILE"
   # use-profile.ts takes the profile NAME (suse | lolly-start) - the same thing the
-  # `npm run profile:*` scripts wrap. Names, not the npm-script suffixes.
+  # `pnpm run profile:*` scripts wrap. Names, not the package-script suffixes.
   if node scripts/use-profile.ts "$FORCE_PROFILE"; then
     ok "profile → $FORCE_PROFILE"
   else
@@ -180,10 +181,10 @@ node scripts/use-profile.ts 2>/dev/null || true
 cat <<EOF
 
 ${B}Next steps${X}
-  npm run dev:web                 # run the web shell (http://localhost:5173)
-  npm run cli -- qr-code --url=https://suse.com --output=./qr.svg
-  npm test                        # the engine + shell test suites
-  npm run profile                 # show / switch the content profile
+  pnpm run dev:web                 # run the web shell (http://localhost:5173)
+  pnpm run cli qr-code --url=https://suse.com --output=./qr.svg
+  pnpm test                        # the engine + shell test suites
+  pnpm run profile                 # show / switch the content profile
 
 Docs: README.md · CONTRIBUTING.md · INSTALL.md · docs/authoring-tools.md
 EOF

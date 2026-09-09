@@ -2,7 +2,7 @@
 /**
  * Design - authored dash/gap lengths on a path box's stroke.
  *
- * Run with: npm test (node --test over the tests/ globs). No framework.
+ * Run with: pnpm test (node --test over the tests/ globs). No framework.
  *
  * Penpot 2.17 (PR #9765) added two optional numbers to each stroke entry,
  * `strokeDash` and `strokeGap`: absolute px, meaningful only when the stroke

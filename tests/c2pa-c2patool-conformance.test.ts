@@ -7,7 +7,7 @@
 // `signingCredential.untrusted` markers (an ephemeral on-device key is untrusted
 // by design; a CA signer or pinned trust list clears those).
 //
-// SKIPS cleanly when c2patool isn't on PATH - so `npm test` stays green on a
+// SKIPS cleanly when c2patool isn't on PATH - so `pnpm test` stays green on a
 // machine without it. Install locally with `brew install c2patool` (or
 // `cargo install c2patool`) to exercise it.
 import { test } from 'node:test';

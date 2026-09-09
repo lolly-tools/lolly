@@ -6,7 +6,7 @@
  * them from at runtime by exact filename. Twin of scripts/fetch-matte-models.ts;
  * same PINS-table + sha256/byte-length verify + --refresh-pins shape.
  *
- * ANDY-RUN ONLY. Network access; never invoked by npm install / postinstall / CI.
+ * ANDY-RUN ONLY. Network access; never invoked by pnpm install / postinstall / CI.
  *
  * Usage:
  *   node scripts/fetch-ocr-models.ts                 # every file with a real pin

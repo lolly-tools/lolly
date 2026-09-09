@@ -232,7 +232,7 @@ test('every depth in the active catalog matches a re-sniff of the real bytes', a
         if (!existsSync(abs)) continue;
         const sri = sriForFile(abs)!;
         const expected = await depthForFormat(asset.type, sri.bytes);
-        assert.equal(fmt.depth ?? null, expected, `${asset.id} → ${fmt.format} depth drifted (run npm run build:catalog)`);
+        assert.equal(fmt.depth ?? null, expected, `${asset.id} → ${fmt.format} depth drifted (run pnpm run build:catalog)`);
         checked++;
         if (expected != null) labelled++;
         // Counted by EXTENSION, independent of the sniffer, so a sniffer that

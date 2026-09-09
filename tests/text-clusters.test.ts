@@ -4,7 +4,7 @@
  * shaped-glyph letter tier, proven against a real font through the Node-shell text API
  * (the faithful port of the web bridge; the accumulation code is mirrored line for line).
  *
- * Run with: npm test. Skips when the Outfit platform face is not on disk.
+ * Run with: pnpm test. Skips when the Outfit platform face is not on disk.
  *
  * What has to hold:
  *   - Off by default: no `clusters` key, merged `d` unchanged (byte-identity).

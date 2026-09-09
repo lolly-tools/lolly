@@ -9,7 +9,7 @@
     "src",
     "CHANGELOG.md"
   ],
-  "//sideEffects": "The engine is pure - every module only defines/exports; none patch globals or run required top-level effects. Declaring this lets the bundler tree-shake the barrel (src/index.ts) so importing e.g. `parseUrlState` no longer drags createRuntime→Handlebars and loadTool→Ajv onto the web shell's boot chunk. See plans/archive/ui-perf-audit.md.",
+  "//sideEffects": "The engine is pure - every module only defines/exports; none patch globals or run required top-level effects. Declaring this lets the bundler tree-shake the barrel (src/index.ts) so importing e.g. `parseUrlState` no longer drags createRuntime\u2192Handlebars and loadTool\u2192Ajv onto the web shell's boot chunk. See plans/archive/ui-perf-audit.md.",
   "sideEffects": false,
   "main": "./src/index.ts",
   "exports": {
@@ -24,7 +24,7 @@
     "handlebars": "^4.7.8",
     "ajv": "^8.17.1",
     "fflate": "^0.8.3",
-    "@lolly-tools/core": "*"
+    "@lolly-tools/core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.5.0"

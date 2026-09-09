@@ -2,7 +2,7 @@
 /**
  * Pen shapes with a WIDE stroke must not be clipped - in any layout editor.
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
+ * Run with: pnpm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * A path box's frame is the LOWERED curve's tight bbox (`refitFrame` in
  * shells/web/src/views/free-canvas-pen.ts keeps it exactly that, deliberately: fitting

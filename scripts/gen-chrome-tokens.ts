@@ -6,7 +6,7 @@
  * the W3C DTCG document Penpot and Tokens Studio edit.
  *
  * Run: node scripts/gen-chrome-tokens.ts          rewrite the block in place
- *      npm run gen:chrome-tokens                  same
+ *      pnpm run gen:chrome-tokens                  same
  *
  * The JSON is the source of truth for the NON-COLOUR chrome axes; everything
  * in tokens.css outside the @generated-chrome-tokens markers stays

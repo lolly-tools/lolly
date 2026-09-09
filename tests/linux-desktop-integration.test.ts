@@ -32,7 +32,7 @@
  *     release bump loudly demands the AUR ritual.
  *
  * All parsing here is intentionally small and local (INI + XML well-formedness) -
- * the point is zero extra dependencies so `npm test` stays green on a bare machine.
+ * the point is zero extra dependencies so `pnpm test` stays green on a bare machine.
  */
 
 import { test } from 'node:test';

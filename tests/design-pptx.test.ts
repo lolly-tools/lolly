@@ -2,7 +2,7 @@
 /**
  * Design - the native-PPTX deck model emitter (plan 95 route-a).
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
+ * Run with: pnpm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * "Design" is Design. A SLIDE is a FRAME; a slide deck is N frames. When frames
  * exist the hook emits, ALONGSIDE the unchanged [data-pdf-page] HTML render, a

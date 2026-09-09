@@ -2,7 +2,7 @@
 /**
  * Design - gradient-fill contract tests.
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
+ * Run with: pnpm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * Drives the REAL tool through the engine, so these guard the actual render rather than
  * a paraphrase of it. Loaded from community/ (public, present in every

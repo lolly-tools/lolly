@@ -37,7 +37,8 @@ COPY . .
 # views for LOLLY_PROFILE. PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD keeps the optional
 # playwright-core from fetching a browser we don't ship.
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-RUN npm ci --omit=dev --no-audit --no-fund
+RUN npm install --global pnpm@11.1.2
+RUN pnpm install --frozen-lockfile --prod
 
 # ── runtime stage ───────────────────────────────────────────────────────────
 FROM node:26-bookworm-slim@sha256:367679cf9792759492a486e4aa4b421764d71a9546a6dae8aab81a99eb797b3e AS runtime
@@ -54,5 +55,5 @@ COPY --from=build /src /app
 USER node
 EXPOSE 8790
 
-# `npm run mcp:http` → node services/mcp/src/http.ts (startHttpServer()).
+# `pnpm run mcp:http` → node services/mcp/src/http.ts (startHttpServer()).
 CMD ["node", "services/mcp/src/http.ts"]

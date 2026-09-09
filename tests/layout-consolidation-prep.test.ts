@@ -5,7 +5,7 @@
  * has to grow the three capabilities its manifest was missing BEFORE the tool goes away).
  *
  * Run with: node --import ./tests/css-stub.mjs --test "tests/layout-consolidation-prep.test.ts"
- * (also collected by `npm test`). No framework - node:test.
+ * (also collected by `pnpm test`). No framework - node:test.
  *
  * Everything here reads the SHIPPED artefacts off disk, per brand pack, and - for the head
  * gate - drives the real `hooks.js` through the real engine. Nothing is re-implemented.

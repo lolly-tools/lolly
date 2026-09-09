@@ -11,13 +11,13 @@
  * `bridge-overrides/` is the entire application-specific surface of both Tauri
  * shells and was `.js`, outside every tsconfig, until 2026-07-30. Converting it
  * closed that gap - but those files import `@tauri-apps/api` and
- * `@tauri-apps/plugin-fs`, and the Tauri shells are deliberately NOT npm
+ * `@tauri-apps/plugin-fs`, and the Tauri shells are deliberately NOT pnpm
  * workspaces (their Rust/CLI toolchain has no business in the root install), so
- * those packages live only in each shell's own node_modules. A root `npm ci`
+ * those packages live only in each shell's own node_modules. A root `pnpm install --frozen-lockfile`
  * does not create them.
  *
  * So a bare `tsc -p shells/tauri-desktop` in the `typecheck` script would fail
- * on every clone that had not separately run `npm --prefix shells/tauri-desktop
+ * on every clone that had not separately run `pnpm -C shells/tauri-desktop
  * ci` - including CI, until its typecheck job installs them. A gate that fails
  * for a missing optional dependency is a gate people learn to ignore.
  *
@@ -66,7 +66,7 @@ function typecheckShell(shell: string): ShellResult {
     return {
       shell,
       status: 'skipped',
-      reason: `${PROBE} not installed - run \`npm --prefix ${shell} ci\` (the Tauri shells are not npm workspaces)`,
+      reason: `${PROBE} not installed - run \`pnpm -C ${shell} install --frozen-lockfile\` (the Tauri shells are not pnpm workspaces)`,
     };
   }
   const tsc = join(ROOT, 'node_modules/.bin/tsc');
@@ -95,8 +95,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (strict && skipped.length) {
     console.error(
       `\n--strict: ${skipped.length} shell(s) skipped, but this run demanded real coverage.\n` +
-        'Install them first: npm --prefix shells/tauri-desktop ci --omit=dev' +
-        ' && npm --prefix shells/tauri-mobile ci --omit=dev',
+        'Install them first: pnpm -C shells/tauri-desktop install --frozen-lockfile --prod' +
+        ' && pnpm -C shells/tauri-mobile install --frozen-lockfile --prod',
     );
     process.exit(1);
   }

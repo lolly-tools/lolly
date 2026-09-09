@@ -2,7 +2,7 @@
 /**
  * timeline multi-move - marquee-selected batch moves in the timeline strip.
  * `moveOverlays` (delta-shift a set of overlays), `moveSeqClips` (block-move a set of
- * magnetic clips), `groupDropIndex` (the multi-drag insertion index). Run with: npm test.
+ * magnetic clips), `groupDropIndex` (the multi-drag insertion index). Run with: pnpm test.
  */
 
 import { test } from 'node:test';

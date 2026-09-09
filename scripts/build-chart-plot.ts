@@ -7,7 +7,7 @@
  * Plot's grammar, marks, transforms and faceting layer rather than bundling D3 a
  * second time.
  *
- *   npm run build:chart-plot
+ *   pnpm run build:chart-plot
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';

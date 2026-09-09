@@ -22,8 +22,8 @@ The governed, multi-user product is a separate package, **Lolly Work**, which se
 The three release-pinned manifest fields (`version`, `sources.main.url`, `sources.main.sha256`) are written by a script, never by hand:
 
 ```bash
-npm run profile:start                         # the tarball is public: never the suse pack
-npm run release:yunohost -- --build           # release web build, pack, pin the manifest
+pnpm run profile:start                         # the tarball is public: never the suse pack
+pnpm run release:yunohost --build           # release web build, pack, pin the manifest
 # → ~/.cache/lolly-release/artifacts/lolly-web-<ver>.tar.gz
 shells/tauri-desktop/release/lolli.py put ~/.cache/lolly-release/artifacts/lolly-web-<ver>.tar.gz
 ```

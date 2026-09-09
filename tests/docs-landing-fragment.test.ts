@@ -18,7 +18,7 @@
  *     lib/docs-landing.ts ships an override. If the `.reveal` rule ever leaves that file
  *     the override becomes dead weight; while it is there, the override is mandatory.
  *
- * Pure file reads, no build step: this runs in `npm test` against the committed output.
+ * Pure file reads, no build step: this runs in `pnpm test` against the committed output.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -48,7 +48,7 @@ test('every built /info landing wraps its body in the .docs-landing fragment mar
   // that never run build:info (CI) have nothing to check. Skip with a reason -
   // the ship gate and local runs, where the site is built, still enforce this.
   if (!existsSync(join(INFO, 'index.html'))) {
-    t.skip('no built /info on disk (run npm run build:info) - enforced where the site is built');
+    t.skip('no built /info on disk (run pnpm run build:info) - enforced where the site is built');
     return;
   }
   const pages = landingPages();
@@ -116,7 +116,7 @@ test('the persona device is CSS-only: radio pairing in the stylesheet, radios in
   // (CI; the built .html is gitignored). The stylesheet asserts above already ran,
   // so a CSS regression still fails there before this skip is reached.
   if (!existsSync(join(INFO, 'index.html'))) {
-    t.skip('no built /info on disk (run npm run build:info) - markup half enforced where the site is built');
+    t.skip('no built /info on disk (run pnpm run build:info) - markup half enforced where the site is built');
     return;
   }
   const landing = readFileSync(join(INFO, 'index.html'), 'utf8');

@@ -9,7 +9,7 @@
  * Node refuses type-stripping under node_modules.
  *
  * GATED: the script runs `tsc` twice and two `npm install`s (~1 min, network on
- * a cold cache), so a bare `npm test` skips it. Set `CORE_PACK=1` to run.
+ * a cold cache), so a bare `pnpm test` skips it. Set `CORE_PACK=1` to run.
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';

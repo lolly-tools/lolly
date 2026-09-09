@@ -11,7 +11,7 @@
  * dozens of looks across the catalog that dominated first-load CPU + network (measured
  * gallery LCP 8.3 s / TBT 730 ms - see components/featured-row.ts).
  *
- * `npm run previews` now ALSO pre-renders each look to a committed, SVGO-optimised
+ * `pnpm run previews` now ALSO pre-renders each look to a committed, SVGO-optimised
  * catalog/previews/<id>.look<i>.svg (or .webp/.png when the look is raster-heavy). This
  * script writes the MANIFEST over those files: catalog/previews/bundle.json maps
  * `<toolId>:<i>` → { src, sig }, and the gallery fetches it ONCE
@@ -27,10 +27,10 @@
  * service worker's stale-while-revalidate cache. Referencing them makes the same file
  * 29 KB (8 KB gz), and it stays in that range however many looks go vector.
  *
- * Wired into `npm run build:catalog` so it regenerates deterministically after the index.
+ * Wired into `pnpm run build:catalog` so it regenerates deterministically after the index.
  * Idempotent: same look files + manifests → byte-identical bundle. Safe to run with no
  * look files present (an empty/partial bundle just means the client live-renders those
- * looks, exactly as before) - so it never has to wait on `npm run previews`.
+ * looks, exactly as before) - so it never has to wait on `pnpm run previews`.
  *
  *   node scripts/build-preview-bundle.ts
  */
@@ -93,7 +93,7 @@ function build(): void {
       // Committed authored override - an animated APNG (or a hand-made look) that lives in
       // the tool dir at tools/<id>/look<i>.{png,webp,svg}, served at /tools/<id>/…. It's the
       // per-look analogue of the tools/<id>/card.* card override, and WINS over any
-      // build-generated catalog/previews/<id>.look<i>.* - so it survives `npm run previews`
+      // build-generated catalog/previews/<id>.look<i>.* - so it survives `pnpm run previews`
       // (which never writes into tools/). Referenced at its tool-dir path, same as a
       // generated look is referenced at its previews path.
       const ovrDir = join(TOOLS_DIR, m.id);

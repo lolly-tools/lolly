@@ -3,14 +3,14 @@
 /**
  * Runs svgo over every generated preview SVG (catalog/previews/*.svg) in place.
  *
- * `npm run previews` already svgo-optimises each thumbnail as it's captured (see
+ * `pnpm run previews` already svgo-optimises each thumbnail as it's captured (see
  * scripts/optimize-preview-svg.ts → svgoThumb, wired into build-previews.ts). This
  * standalone pass re-optimises the ALREADY-COMMITTED previews without a full
  * Playwright regen - useful after bumping svgo, or as a cheap pre-deploy sweep to
  * make sure nothing slipped through un-minified. Idempotent: only writes when the
  * result is smaller, so re-running is a no-op.
  *
- *   npm run optimize:previews
+ *   pnpm run optimize:previews
  */
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';

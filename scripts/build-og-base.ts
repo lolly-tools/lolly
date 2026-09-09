@@ -12,7 +12,7 @@
  * embeds the signed source SVG), through the same Chromium card path as every other card - 
  * so the default card can never drift from the app icon again.
  *
- *   npm run og:base
+ *   pnpm run og:base
  *
  * Best-effort, exactly like the other OG scripts: on Vercel (no render browser) or when
  * Playwright/fonts are unavailable, it keeps the committed og.png rather than failing the

@@ -3,7 +3,7 @@
  * ingest-epub - turn a brand's `.epub` body copy into managed catalog TEXT assets so
  * boilerplate lives centrally and drops into tools as text/longtext input.
  *
- *   npm run ingest:boilerplate -- <file.epub> --brand <name> --ns <ns> [--label "Title"]
+ *   pnpm run ingest:boilerplate <file.epub> --brand <name> --ns <ns> [--label "Title"]
  *
  * Each EPUB chapter becomes one `type:'text'` / `format:'md'` asset written to
  * `brands/<brand>/catalog/assets/<ns>/boilerplate/<slug>.md` and MERGED into that

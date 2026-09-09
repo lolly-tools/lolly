@@ -16,9 +16,9 @@ The CA variable names and documentation-only examples remain in
 Local commands:
 
 ```bash
-npm run ca:dev
-npm run sign:credentials:catalog
-npm run sign:signature-logos
+pnpm run ca:dev
+pnpm run sign:credentials:catalog
+pnpm run sign:signature-logos
 services/mcp/deploy/deploy.sh
 ```
 
@@ -38,8 +38,8 @@ it does not invalidate copies that may already exist in process history, editors
 Verification:
 
 ```bash
-npm run doctor
-npm run secrets:scan
+pnpm run doctor
+pnpm run secrets:scan
 ```
 
 `doctor` must report no plaintext credential files in the public checkout. The history scan

@@ -2,7 +2,7 @@
 /**
  * deck-builder freeform-mode contract tests.
  *
- * Run with: npm test  (node --test over the tests/ globs)
+ * Run with: pnpm test  (node --test over the tests/ globs)
  * No test framework - node:test built-in.
  *
  * Loads the REAL tool from the SUSE brand pack on disk and drives it through the engine with a

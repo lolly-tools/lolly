@@ -19,7 +19,7 @@
  * of the whole suite's wall time) only runs with WATERMARK_FULL=1, following the
  * BENCH=1 precedent in color-ramp.test.ts. The default run keeps a reduced
  * battery (one photo-like base + one JPEG derivative) so the check still
- * executes on every `npm test`. The recovery tests always run in full.
+ * executes on every `pnpm test`. The recovery tests always run in full.
  *
  * Skips cleanly if sharp can't load. Run:
  *   node --test tests/watermark-search.test.ts
@@ -87,7 +87,7 @@ const search = (i: Img, tier: 1 | 2) => detectWatermarkSearch(i.data, { width: i
 // WATERMARK_FULL=1 runs the full 16-trial battery (~25s: every content type x
 // size crossed with real JPEG/resize/crop derivatives). The default run keeps a
 // reduced battery - one photo-like base + one JPEG derivative - so the check
-// still executes (and the FULL grid still runs per trial) on every `npm test`.
+// still executes (and the FULL grid still runs per trial) on every `pnpm test`.
 const FULL = process.env.WATERMARK_FULL === '1';
 
 test('the full search never false-positives on unmarked content', { skip }, async () => {

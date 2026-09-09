@@ -48,7 +48,7 @@ serviceAccount:
 # IndexedDB), so replicas are freely interchangeable and it scales trivially.
 #
 # The brand/catalog is BAKED INTO THE IMAGE at build time (theme, tools/, and
-# catalog/ are resolved by `npm run build:web` - see deploy/docker/web.Dockerfile
+# catalog/ are resolved by `pnpm run build:web` - see deploy/docker/web.Dockerfile
 # --build-arg LOLLY_PROFILE). The running container reads nothing at serve time,
 # so there is NOTHING to mount here - no pack, no config, no secret.
 web:

@@ -2,7 +2,7 @@
 /**
  * Choreograph (plans/104 P4) - the showcase generator, evaluated through the real engine.
  *
- * Run with: node --import ./tests/css-stub.mjs --test "tests/choreograph.test.ts" (also collected by `npm test`). No framework - node:test.
+ * Run with: node --import ./tests/css-stub.mjs --test "tests/choreograph.test.ts" (also collected by `pnpm test`). No framework - node:test.
  *
  * What has to hold, per ARC TYPE (plans/104 section 9, the arc grammar):
  *   - INTRO and FEATURE end at the REST pose: every box back at its OWN z field (the lift

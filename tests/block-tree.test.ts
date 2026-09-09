@@ -5,7 +5,7 @@
  * and the id derivation that keeps a dropdown's stored value resolvable by a
  * tool's hook - the parts most likely to silently corrupt a diagram.
  *
- * Run with: npm test  (node --test over the tests/ globs)
+ * Run with: pnpm test  (node --test over the tests/ globs)
  */
 
 import { test } from 'node:test';

@@ -19,7 +19,7 @@
  * Usage: node scripts/check-first-load.ts <url> [--json=<path>]
  *
  * LIGHTHOUSE IS DELIBERATELY NOT A REPO DEPENDENCY. It pulls a Chrome-driving toolchain
- * (~50 MB) into every `npm install` for a check that only runs on a deploy, so this script
+ * (~50 MB) into every `pnpm install` for a check that only runs on a deploy, so this script
  * finds whatever copy is already resolvable - a local bin, a global install, or the npx
  * cache - and only fetches one as a last resort. When none of that works it says what to
  * install, rather than dying in a spawn ENOENT stack.
@@ -273,7 +273,7 @@ report(
 );
 
 // The served HTML, not the built dist: a rewrite, an edge transform or a stale deploy can
-// all make what ships differ from what `npm run build:web` produced. Same regex shape as
+// all make what ships differ from what `pnpm run build:web` produced. Same regex shape as
 // check-bundle-budget.ts, which counts the same links against the local build.
 try {
   const res = await fetch(target!.href, { headers: { accept: 'text/html' } });

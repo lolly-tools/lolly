@@ -2,7 +2,7 @@
 /**
  * audio-coach-core contract tests.
  *
- * Run with: npm test  (node --test over the tests/ globs)
+ * Run with: pnpm test  (node --test over the tests/ globs)
  * No test framework - uses node:test built-in.
  *
  * Exercises the PURE coaching logic that turns a live `AudioLevel` into a

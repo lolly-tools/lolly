@@ -11,7 +11,7 @@
 #
 # OPTIONS
 #   -m, --message <msg>  Commit message for the submodule commits (required to push).
-#   --previews           Also run `npm run previews` (heavy - Playwright/Chromium).
+#   --previews           Also run `pnpm run previews` (heavy - Playwright/Chromium).
 #   --no-build           Skip the catalog rebuild (build:catalog + validate:catalog).
 #   --push-parent        Also commit + push the parent pointer bump. Default: only
 #                        STAGE it (you push the parent yourself).
@@ -50,10 +50,10 @@ run() { if [ "$DRY" = 1 ]; then info "would: $*"; else eval "$*"; fi; }
 # --- 1. rebuild generated catalog artifacts --------------------------------
 if [ "$DO_BUILD" = 1 ]; then
   say "Build"
-  run "npm run build:catalog"
-  run "npm run validate:catalog"
+  run "pnpm run build:catalog"
+  run "pnpm run validate:catalog"
   if [ "$RUN_PREVIEWS" = 1 ]; then
-    warn "running previews (Playwright - slow)"; run "npm run previews"
+    warn "running previews (Playwright - slow)"; run "pnpm run previews"
   else
     info "skipping previews (pass --previews to regenerate look thumbnails)"
   fi

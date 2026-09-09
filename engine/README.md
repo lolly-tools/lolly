@@ -48,7 +48,7 @@ never fetches a provider ref itself.
 
 ## The capability bridge
 
-The canonical entry point for the v1 contract is [`packages/core/src/host-v1.ts`](../packages/core/src/host-v1.ts), a stable barrel over capability-sized declarations in `packages/core/src/host-v1/`. It is published as the tool-author SDK `@lolly-tools/core` so a third party can build tools against the exact interface without depending on the engine at all. `security/host-v1-api.json` snapshots every public declaration; `npm run check:host-v1-api` rejects accidental signature drift.
+The canonical entry point for the v1 contract is [`packages/core/src/host-v1.ts`](../packages/core/src/host-v1.ts), a stable barrel over capability-sized declarations in `packages/core/src/host-v1/`. It is published as the tool-author SDK `@lolly-tools/core` so a third party can build tools against the exact interface without depending on the engine at all. `security/host-v1-api.json` snapshots every public declaration; `pnpm run check:host-v1-api` rejects accidental signature drift.
 
 [`src/bridge/host-v1.ts`](src/bridge/host-v1.ts) is 17 lines and holds no types of its own. It is a header comment restating the two rules above, plus a single line:
 

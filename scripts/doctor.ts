@@ -160,9 +160,9 @@ export function inspect(argv = process.argv.slice(2)): Finding[] {
     nodeMajor >= 22 ? 'PASS' : 'FAIL',
     'Node',
     process.version,
-    'install Node >=22.18.0 and run npm ci'
+    'install Node >=22.18.0 and run pnpm install --frozen-lockfile'
   );
-  for (const command of ['npm', 'git', 'cargo']) {
+  for (const command of ['pnpm', 'git', 'cargo']) {
     const version = commandVersion(command);
     add(
       version ? 'PASS' : 'FAIL',
@@ -175,7 +175,7 @@ export function inspect(argv = process.argv.slice(2)): Finding[] {
     existsSync(path.join(REPO, 'node_modules')) ? 'PASS' : 'FAIL',
     'dependencies',
     'root node_modules',
-    'npm ci'
+    'pnpm install --frozen-lockfile'
   );
 
   const profile = activeProfile();
@@ -183,7 +183,7 @@ export function inspect(argv = process.argv.slice(2)): Finding[] {
     profile ? 'PASS' : 'FAIL',
     'profile',
     profile ?? 'catalog view does not match profiles.json',
-    'npm run profile:start'
+    'pnpm run profile:start'
   );
   const submodule = run('git', ['submodule', 'status', '--recursive']);
   const parsed = parseSubmoduleStatus(submodule.output);
@@ -212,7 +212,7 @@ export function inspect(argv = process.argv.slice(2)): Finding[] {
       'FAIL',
       'dependency locks',
       error instanceof Error ? error.message : String(error),
-      'edit security/dependency-roots.json, then npm run audit:all'
+      'edit security/dependency-roots.json, then pnpm run audit:all'
     );
   }
 
@@ -221,25 +221,25 @@ export function inspect(argv = process.argv.slice(2)): Finding[] {
       'release inventory',
       process.execPath,
       ['scripts/release-checklist.ts', '--check'],
-      'npm run build:release-checklist',
+      'pnpm run build:release-checklist',
     ],
     [
       'HostV1 API',
       process.execPath,
       ['scripts/check-host-v1-api.ts', '--check'],
-      'review compatibility and engine minor version, then npm run build:host-v1-api',
+      'review compatibility and engine minor version, then pnpm run build:host-v1-api',
     ],
     [
       'parser inventory',
       process.execPath,
       ['scripts/build-parser-inventory.ts', '--check'],
-      'npm run build:parser-inventory',
+      'pnpm run build:parser-inventory',
     ],
     [
       'maintainability',
       process.execPath,
       ['scripts/check-maintainability-budget.ts'],
-      'review the reported module, then npm run maintainability:baseline only for an approved debt change',
+      'review the reported module, then pnpm run maintainability:baseline only for an approved debt change',
     ],
   ] as const) {
     const result = run(command, [...args]);
@@ -263,13 +263,13 @@ export function inspect(argv = process.argv.slice(2)): Finding[] {
     existsSync(path.join(REPO, 'security/lint-baseline.json')) ? 'PASS' : 'FAIL',
     'lint ratchet',
     'security/lint-baseline.json',
-    'npm run lint:baseline'
+    'pnpm run lint:baseline'
   );
   add(
     existsSync(path.join(REPO, 'tests/expected-skips.json')) ? 'PASS' : 'FAIL',
     'skip identities',
     'tests/expected-skips.json',
-    'download the CI test-skips artifact, then npm run check:skip-identities -- --report=<path> --write'
+    'download the CI test-skips artifact, then pnpm run check:skip-identities --report=<path> --write'
   );
   const shards = shardInventory();
   add('PASS', 'test shards', SHARDS.map((shard) => `${shard}=${shards[shard].length}`).join(', '));

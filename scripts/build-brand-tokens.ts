@@ -21,8 +21,8 @@
  * and Penpot round-trips it untouched). First definition of a path wins, so the
  * duplicate Black/White ramp endpoints collapse into the brand colours.
  *
- * After running, `npm run build:catalog` checksums the new file and
- * `npm run validate:catalog` verifies it.
+ * After running, `pnpm run build:catalog` checksums the new file and
+ * `pnpm run validate:catalog` verifies it.
  */
 
 import { writeFileSync, mkdirSync } from 'node:fs';

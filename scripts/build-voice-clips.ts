@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * build-voice-clips - synthesize a robot voice speaking each UI filter/treatment/theme
- * NAME, at build time. A one-shot generator (like `npm run previews`): run it locally,
+ * NAME, at build time. A one-shot generator (like `pnpm run previews`): run it locally,
  * commit the output. The web shell plays the clip on click (data-voice="<label>", see
  * lib/sfx.ts playVoice). Requires macOS `say` (the Zarvox robot voice) + ffmpeg, so it
  * runs on a Mac, NOT on Vercel - the committed mp3s ship with the static build.

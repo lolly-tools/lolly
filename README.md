@@ -83,7 +83,7 @@ lolly/                              # umbrella: engine + glue (this repo)
     └── chrome-extension/ → lolly-chrome-extension
 ```
 
-**Critical separation:** `engine/` knows nothing about SUSE. Brand-specific content lives in **brand packs** (`brands/suse` - private; `brands/lolly-start` - the blank starter brand), brand-agnostic tools in `community/`; the shells, services, engine and docs are MPL-2.0. The repo-root `tools/` and `catalog/` paths every script and shell consumes are **profile views** built by `scripts/use-profile.ts` from `profiles.json` - switch brands with `npm run profile:suse` / `npm run profile:start`. Keeping each unit in its own repo lets it ship on its own cadence while the umbrella pins a known-good combination.
+**Critical separation:** `engine/` knows nothing about SUSE. Brand-specific content lives in **brand packs** (`brands/suse` - private; `brands/lolly-start` - the blank starter brand), brand-agnostic tools in `community/`; the shells, services, engine and docs are MPL-2.0. The repo-root `tools/` and `catalog/` paths every script and shell consumes are **profile views** built by `scripts/use-profile.ts` from `profiles.json` - switch brands with `pnpm run profile:suse` / `pnpm run profile:start`. Keeping each unit in its own repo lets it ship on its own cadence while the umbrella pins a known-good combination.
 
 ## Architectural commitments
 
@@ -111,23 +111,25 @@ These decisions are settled. Changing any of them is a major undertaking:
 git clone https://github.com/lolly-tools/lolly.git && cd lolly && ./setup.sh
 ```
 
-`./setup.sh` installs the prerequisites (git, Node), checks out the submodules, runs `npm install` and builds a content profile - then tells you what to run next. SUSE devs add `--suse` to mount the private brand pack. Full details, the manual path and troubleshooting are in **[INSTALL.md](INSTALL.md)**.
+`./setup.sh` installs the prerequisites (git, Node), checks out the submodules, runs `pnpm install` and builds a content profile - then tells you what to run next. SUSE devs add `--suse` to mount the private brand pack. Full details, the manual path and troubleshooting are in **[INSTALL.md](INSTALL.md)**.
 
 Prefer to do it by hand? Because the shippable units are submodules, **clone recursively**:
 
 ```bash
-# Prerequisite: Node >=22.18 or >=24 (see .nvmrc). Older Node fails npm install -
+# Prerequisite: Node >=22.18 or >=24 (see .nvmrc). Older Node fails pnpm install -
 # the scripts run TypeScript directly via native type-stripping. INSTALL.md has the table.
 git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
 cd lolly
 # already cloned non-recursively? → git submodule update --init --recursive
 
-npm install                    # workspaces need every submodule's package.json, so init submodules FIRST
+# Install the pinned package manager once (or use Corepack).
+npm install --global pnpm@11.1.2
+pnpm install                    # workspaces need every submodule's package.json, so init submodules FIRST
                                # (postinstall picks a content profile automatically; see below)
 
-npm run dev:web                # run the web shell → then open http://localhost:5173
-npm run cli -- qr-code --url=https://suse.com --output=./qr.svg   # run a tool headlessly
-npm run validate:catalog       # validate the catalog
+pnpm run dev:web                # run the web shell → then open http://localhost:5173
+pnpm run cli qr-code --url=https://suse.com --output=./qr.svg   # run a tool headlessly
+pnpm run validate:catalog       # validate the catalog
 ```
 
 Once it is running, **[docs/make-something.md](docs/make-something.md)** walks a first render in about 60 seconds (no account, nothing to configure), and **[docs/quickstart.md](docs/quickstart.md)** covers making Lolly wear your own brand.
@@ -135,25 +137,25 @@ Once it is running, **[docs/make-something.md](docs/make-something.md)** walks a
 **Content profiles.** `tools/` and `catalog/` are gitignored *views* assembled from the mounted packs (`profiles.json`): the private `brands/suse` pack (skipped automatically on clone if you don't have access - it's `update = none`) plus the public `community/` tools. Without SUSE access you land on the blank **lolly-start** brand and everything still builds and runs. Switch explicitly:
 
 ```bash
-npm run profile          # show the active profile + what's available
-npm run profile:suse     # SUSE brand pack (needs: git submodule update --init --checkout brands/suse)
-npm run profile:start    # blank starter brand: community tools + neutral tokens
+pnpm run profile          # show the active profile + what's available
+pnpm run profile:suse     # SUSE brand pack (needs: git submodule update --init --checkout brands/suse)
+pnpm run profile:start    # blank starter brand: community tools + neutral tokens
 ```
 
-See `docs/authoring-tools.md` to build your first tool, and [Development](#development) below for the submodule workflow. Writing a tool without cloning the platform? `npm i -D @lolly-tools/core` installs the tool-author SDK from npm: the `HostV1` contract types, the manifest validator and a mock host for testing hooks headlessly (see [`packages/core/README.md`](packages/core/README.md)). A new brand pack can be generated from design tokens with `npm run ingest:brand` (DTCG / Tokens Studio / Penpot exports).
+See `docs/authoring-tools.md` to build your first tool, and [Development](#development) below for the submodule workflow. Writing a tool without cloning the platform? `npm i -D @lolly-tools/core` installs the tool-author SDK from npm: the `HostV1` contract types, the manifest validator and a mock host for testing hooks headlessly (see [`packages/core/README.md`](packages/core/README.md)). A new brand pack can be generated from design tokens with `pnpm run ingest:brand` (DTCG / Tokens Studio / Penpot exports).
 
 ## The CLI
 
 `lolly` runs any tool from the terminal through the same engine and the same render path as the web shell - it *is* URL mode under a different transport, so `--url=x` is the value the app reads from `?url=x`. That makes it the build-pipeline, CI and scripting surface: generate an OG card at build time, fan a CSV out into 400 badges, render-check the whole catalog as a gate.
 
 ```bash
-npm run --silent cli -- qr-code --url=https://suse.com --export=png > qr.png
+pnpm --silent run cli qr-code --url=https://suse.com --export=png > qr.png
 ```
 
 Exports carry Content Credentials by default, signed on-device - for the formats that can hold a manifest (PNG, JPEG, WebP, AVIF, GIF, APNG, TIFF, SVG, PDF, MP4, WebM, MP3, M4A, WAV, OGG, Opus, FLAC, HTML, CSS, JS, MD); EPS, EMF, DXF, PPTX, PSD, EXR, HDR, ICO, DOCX, ZIP and the plain-text formats have no container for one, and on-device utilities never stamp. To sign as **you** - so a recipient who pins your root reads *Verified* with your address on it rather than an anonymous signer - point it at your own key and certificate chain:
 
 ```bash
-npm run --silent cli -- qr-code --url=https://suse.com --output=./qr.svg \
+pnpm --silent run cli qr-code --url=https://suse.com --output=./qr.svg \
   --sign-key=~/.config/lolly/signing-key.pem --sign-cert=./signing-chain.pem
 ```
 
@@ -169,7 +171,7 @@ Lolly is an umbrella repo composed of **git submodules** (see [Repository layout
 
 ```bash
 git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
-git submodule update --init --recursive     # in an existing clone, run BEFORE npm install
+git submodule update --init --recursive     # in an existing clone, run BEFORE pnpm install
 ```
 
 Each submodule is checked out on its own `main`, tracking its repo under `github.com/lolly-tools/*`.
@@ -202,7 +204,7 @@ loldev help                              # every command
 ## Current tools
 
 <!-- tools-table:start -->
-The Lolly Start (blank brand) catalog ships **61 tools** today - 60 listed in the gallery, plus one unlisted helper (Asset Export). Generated from `catalog/tools/index.json` by `npm run build:readme-tools`:
+The Lolly Start (blank brand) catalog ships **61 tools** today - 60 listed in the gallery, plus one unlisted helper (Asset Export). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|

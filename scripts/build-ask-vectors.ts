@@ -8,13 +8,13 @@
  * position alone.
  *
  * ANDY-RUN ONLY, and NETWORK-FREE once scripts/fetch-embed-model.ts has staged
- * the model. Nothing in `npm install`, the build chain or CI calls this file:
+ * the model. Nothing in `pnpm install`, the build chain or CI calls this file:
  * the two artifacts it writes are committed, which is the whole point. CI and
  * Vercel never load a model, and Tier 0 (lexical) answers do not need one either.
  *
  * Usage:
  *   node scripts/fetch-embed-model.ts     # once, needs network, ~23 MB
- *   npm run build:info                    # refresh the twins + the search index
+ *   pnpm run build:info                    # refresh the twins + the search index
  *   node scripts/build-ask-vectors.ts     # this script
  *
  * ── Inputs ────────────────────────────────────────────────────────────────
@@ -210,7 +210,7 @@ async function loadExtractor(): Promise<Extractor> {
     return bail([
       `could not load the embedding model from ${MODEL_DIR}: ${(err as Error).message}`,
       '(@huggingface/transformers is declared in shells/web and normally hoists to the',
-      'repo-root node_modules. If it did not, run `npm install` at the root, or run this',
+      'repo-root node_modules. If it did not, run `pnpm install` at the root, or run this',
       'script from shells/web so the dependency resolves there.)',
     ]);
   }
@@ -249,7 +249,7 @@ async function main(): Promise<void> {
   if (!existsSync(INDEX_PATH)) {
     bail([
       `no English search index at ${INDEX_PATH}.`,
-      'Run `npm run build:info` first, which writes the index and the markdown twins.',
+      'Run `pnpm run build:info` first, which writes the index and the markdown twins.',
     ]);
   }
   const index = JSON.parse(readFileSync(INDEX_PATH, 'utf-8')) as DocsRecord[];
@@ -315,7 +315,7 @@ async function main(): Promise<void> {
     `  count ${meta.count}  dim ${meta.dim}  dtype ${meta.dtype}\n` +
     `  corpusHash  ${corpusHash}\n` +
     `  recordsHash ${recordsHash}\n` +
-    '\nCommit both files. Re-run this script after any `npm run build:info` that moves the\n' +
+    '\nCommit both files. Re-run this script after any `pnpm run build:info` that moves the\n' +
     'docs corpus, or vectors-staleness.test.ts fails on the corpusHash.\n',
   );
 }

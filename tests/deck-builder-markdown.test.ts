@@ -2,7 +2,7 @@
 /**
  * deck-builder full-markdown contract tests.
  *
- * Run with: node --test "tests/deck-builder-markdown.test.ts"  (or via npm test)
+ * Run with: node --test "tests/deck-builder-markdown.test.ts"  (or via pnpm test)
  * No test framework - node:test built-in.
  *
  * Loads the REAL tool from the SUSE brand pack on disk and drives it through the engine, so these

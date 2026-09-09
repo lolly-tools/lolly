@@ -183,7 +183,7 @@ The CLI renders in two tiers:
   render headlessly via jsdom + resvg. No browser, fast.
 - **Tier B (`browser: 'true'`):** raster/pdf/video exports of HTML-*layout* tools need a
   real browser. Setting `browser: 'true'` runs `lolly install-browser --with-deps`
-  (scoped Chromium - never a full Playwright install) **and** `npm run build:web` (Tier B
+  (scoped Chromium - never a full Playwright install) **and** `pnpm run build:web` (Tier B
   drives the built web shell), adding several minutes to the job.
 
 Leave `browser` off until a render fails telling you it needs it.

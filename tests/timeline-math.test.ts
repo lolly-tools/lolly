@@ -2,7 +2,7 @@
 /**
  * timeline-math - the pure time math behind the timeline panel (Fable timeline, phase 2).
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
+ * Run with: pnpm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * Spec: plans/53-fable-timeline-phase-2.md section 1. This file is the phase's real safety net:
  * every interaction edge case (trim clamps, split boundaries, magnetic reorder,

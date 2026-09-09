@@ -15,7 +15,7 @@
  * brands/suse/tools/3d/lib/ - the SUSE override ships its own copy of the tool
  * directory, so both must carry the same bytes.
  *
- *   npm run build:three          (node scripts/build-three-bundle.ts)
+ *   pnpm run build:three          (node scripts/build-three-bundle.ts)
  *
  * `three` is a root devDependency pinned to an exact version; bump it there and
  * re-run. The tool's template checks `THREE.WebGPURenderer` on load, so a bundle

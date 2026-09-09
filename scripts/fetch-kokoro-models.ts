@@ -8,7 +8,7 @@
  * transformers.js (`env.localModelPath = '/models/'`, remote models disabled).
  *
  * ANDY-RUN ONLY. Like scripts/fetch-trustmark-models.ts, this needs network
- * access and is never invoked by `npm install`/`postinstall`/CI - the model is
+ * access and is never invoked by `pnpm install`/`postinstall`/CI - the model is
  * ~92 MB, not something every clone/deploy should pay for, and host.speech
  * loads it lazily, once, only when a tool actually asks to speak.
  *
@@ -42,7 +42,7 @@
  * ── ALSO REQUIRED: transformers.js's pinned onnxruntime-web runtime ───────
  * The model runs on the onnxruntime-web build @huggingface/transformers pins
  * (NOT the 1.27 already at /ort/ - the two are not interchangeable). After
- * `npm install`, `npm run build:ort` (or `node scripts/copy-transformers-ort.ts`)
+ * `pnpm install`, `pnpm run build:ort` (or `node scripts/copy-transformers-ort.ts`)
  * stages it at shells/web/public/ort-hf/<version>/.
  */
 
@@ -173,7 +173,7 @@ async function main(): Promise<void> {
   for (const f of files) await fetchFile(f);
   process.stdout.write(
     '\nDone. These files are gitignored (shells/web/.gitignore) - never commit them.\n' +
-    'Next: `npm run build:ort` to stage the pinned onnxruntime-web runtime at /ort-hf/<version>/,\n' +
+    'Next: `pnpm run build:ort` to stage the pinned onnxruntime-web runtime at /ort-hf/<version>/,\n' +
     'then a tool calling host.speech.synthesize() will load the model from /models/kokoro/.\n',
   );
 }

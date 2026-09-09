@@ -3,7 +3,7 @@
  * Parity guard for the audio-coaching thresholds that are hand-mirrored between the
  * tool hook and the shell core.
  *
- * Run with: npm test  (node --test over the tests/ globs)
+ * Run with: pnpm test  (node --test over the tests/ globs)
  * No test framework - uses node:test built-in.
  *
  * The coaching constants live in TWO places on purpose: the shell core

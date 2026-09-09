@@ -6,7 +6,7 @@
  * Run as: node scripts/gen-engine-modules.ts  (no npm alias yet)
  * Check mode: node scripts/gen-engine-modules.ts --check - exits 1 if the table
  * committed in engine/README.md differs from what a fresh scan produces, so this
- * can become a CI guard exactly like `npm run validate:catalog`.
+ * can become a CI guard exactly like `pnpm run validate:catalog`.
  *
  * Scans engine/src/*.ts and engine/src/<dir>/*.ts and rewrites the table between
  * the `<!-- engine-modules:start -->` / `<!-- engine-modules:end -->` markers in

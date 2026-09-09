@@ -29,8 +29,8 @@
  * that AFTER this script (and after re-ingesting), then build:catalog.
  *
  * A one-shot generator (like previews): run locally (needs ffmpeg), commit the output, then
- * node scripts/credential-lofi.ts, then `npm run build:catalog` (fills checksum + size) and
- * `npm run validate:catalog`. Idempotent: strips any prior `lolly/loops/*` from the index
+ * node scripts/credential-lofi.ts, then `pnpm run build:catalog` (fills checksum + size) and
+ * `pnpm run validate:catalog`. Idempotent: strips any prior `lolly/loops/*` from the index
  * before re-adding.
  *
  * Usage:  node scripts/ingest-lofi.ts   (then: node scripts/credential-lofi.ts)
@@ -113,4 +113,4 @@ for (const file of SELECTION) {
 
 index.assets = index.assets.filter((a) => !a.id.startsWith(ID_PREFIX)).concat(entries);
 writeFileSync(INDEX, JSON.stringify(index, null, 2) + '\n');
-console.log(`\nIngested ${entries.length} lo-fi loops → ${OUT_DIR}\nNext: npm run build:catalog && npm run validate:catalog`);
+console.log(`\nIngested ${entries.length} lo-fi loops → ${OUT_DIR}\nNext: pnpm run build:catalog && pnpm run validate:catalog`);

@@ -42,8 +42,8 @@
 #   loldev profile [name] [--copy]     show or switch the content profile (suse / lolly-start):
 #                                      rebuilds the tools/ + catalog/ views from the packs
 #   loldev pull | up                   pull parent + update all submodules + refresh the profile views
-#   loldev dev                         run the web shell (npm run dev:web)
-#   loldev cli -- <args>               run a tool headlessly (npm run cli)
+#   loldev dev                         run the web shell (pnpm run dev:web)
+#   loldev cli -- <args>               run a tool headlessly (pnpm run cli)
 #   loldev help
 
 # $LOLLY_ROOT wins; otherwise prefer the checkout this script itself lives in, so
@@ -94,7 +94,7 @@ GATE_TEST_LOG="${TMPDIR:-/tmp}/loldev-gate-test.log"
 do_build() {
   phase "🔍" "Build gate"
   step "type-checking every project"
-  npm run --silent typecheck || { err "typecheck failed - fix it, or run 'loldev push' to bypass the build gate"; return 1; }
+  pnpm --silent run typecheck || { err "typecheck failed - fix it, or run 'loldev push' to bypass the build gate"; return 1; }
   ok "typecheck passed"
 
   # The full node:test suite - including tests/no-trackers.test.ts, which is
@@ -106,10 +106,10 @@ do_build() {
   # the checkout still looks like the developer's own.
   step "running the test suite"
   # Keep the output. Discarding it meant a failed gate cost a full 46 s re-run of
-  # `npm test` just to read WHICH test failed. PIPESTATUS keeps the suite's exit
+  # `pnpm test` just to read WHICH test failed. PIPESTATUS keeps the suite's exit
   # status authoritative through the tee.
-  npm run --silent test >"$GATE_TEST_LOG" 2>&1
-  [ "${PIPESTATUS[0]:-$?}" -eq 0 ] || { err "tests failed - see $GATE_TEST_LOG (or re-run: npm test)"; return 1; }
+  pnpm --silent run test >"$GATE_TEST_LOG" 2>&1
+  [ "${PIPESTATUS[0]:-$?}" -eq 0 ] || { err "tests failed - see $GATE_TEST_LOG (or re-run: pnpm test)"; return 1; }
   ok "tests passed"
 
   # build:catalog re-rolls catalog/previews/bundle.json (pure filesystem, no browser).
@@ -126,7 +126,7 @@ do_build() {
     step "building the '$profile' catalog ($domain)"
     node scripts/use-profile.ts "$profile" >/dev/null 2>&1 \
       || { err "profile '$profile' isn't mounted here - can't validate $domain before push"; return 1; }
-    npm run --silent build:catalog || { err "build:catalog failed for profile '$profile'"; return 1; }
+    pnpm --silent run build:catalog || { err "build:catalog failed for profile '$profile'"; return 1; }
     ok "'$profile' catalog built"
   done
   # Restore the pre-gate profile. If none was set (fresh checkout / no
@@ -149,12 +149,12 @@ do_build() {
   # them; it switches the view itself and restores the profile we just put back.
   if [ "${#seen[@]}" -gt 1 ]; then
     step "validating every mounted profile's catalog (${#seen[@]}: ${seen[*]})"
-    npm run --silent validate:catalog:all \
+    pnpm --silent run validate:catalog:all \
       || { err "validate:catalog:all failed - a profile's catalog is invalid or has drifted"; return 1; }
     ok "all ${#seen[@]} mounted catalogs validated"
   else
     step "validating the '${seen[0]}' catalog"
-    npm run --silent validate:catalog || { err "validate:catalog failed for profile '${seen[0]}'"; return 1; }
+    pnpm --silent run validate:catalog || { err "validate:catalog failed for profile '${seen[0]}'"; return 1; }
     ok "'${seen[0]}' catalog validated"
   fi
 
@@ -164,19 +164,19 @@ do_build() {
   # docs/shots/ baselines (scripts/build-docs-shots.ts - Chromium + a local vite
   # build, so this only runs on a build machine, never on Vercel). Exit 2 = shots
   # changed: warn but keep going - the committed (still-valid) baselines ship;
-  # promoting new pixels is a deliberate `npm run docs:shots -- --accept`. Any
+  # promoting new pixels is a deliberate `pnpm run docs:shots --accept`. Any
   # other failure blocks the gate.
   #
   # --changed narrows to recipes whose docs page differs from origin/main, so a
   # gate run only re-shoots what a commit could have altered (no changed page =>
   # near-instant, no vite build). The tradeoff: an app/engine change that alters an
   # UNCHANGED recipe's render won't recapture here - that needs a deliberate
-  # `npm run docs:shots -- --rebuild` after a renderer change (as the shots help says).
+  # `pnpm run docs:shots --rebuild` after a renderer change (as the shots help says).
   step "docs screenshots (capture + compare, lolly-start brand)"
-  npm run --silent docs:shots -- --changed
+  pnpm --silent run docs:shots --changed
   local shotrc=$?
   if [ "$shotrc" = 0 ]; then ok "docs screenshots verified"
-  elif [ "$shotrc" = 2 ]; then warn "docs screenshots CHANGED - review, then promote with: npm run docs:shots -- --accept"
+  elif [ "$shotrc" = 2 ]; then warn "docs screenshots CHANGED - review, then promote with: pnpm run docs:shots --accept"
   else err "docs screenshot capture failed"; return 1
   fi
 
@@ -190,15 +190,15 @@ do_build() {
   # (shells/web/dist for boot JS, shells/web/public/info for the docs tree) and build
   # nothing themselves, so each exits non-zero when its artifact is missing. A missing
   # artifact is a FAILED gate, not a skipped one: an unmeasured budget is not a passed
-  # budget. Run `npm run build:web` (it builds /info first) before shipping so the numbers
+  # budget. Run `pnpm run build:web` (it builds /info first) before shipping so the numbers
   # describe what you are about to deploy rather than a dist from last week. Placed last
   # because the docs-shots step above may itself have just rebuilt dist/.
   # Never raise a ceiling to make this pass - the number is only worth having if a
   # regression has to be argued.
   step "byte budgets (boot JS + built /info)"
-  npm run --silent check:bundle \
+  pnpm --silent run check:bundle \
     || { err "boot-JS budget failed (see the number above) - fix the boot path, don't raise the ceiling"; return 1; }
-  npm run --silent check:docs-size \
+  pnpm --silent run check:docs-size \
     || { err "/info size budget failed (see the number above)"; return 1; }
   ok "byte budgets passed"
 }
@@ -446,7 +446,7 @@ vercel_publish() {
     # still ship (they are gitignored but NOT in .vercelignore, and Vercel ignores
     # .gitignore whenever a .vercelignore exists); .git and node_modules stay excluded
     # (Vercel default + .vercelignore). The missing-URL adoption/retry below is unchanged.
-    # NO --force: it makes Vercel skip the BUILD CACHE, so every ship paid a cold `npm ci`
+    # NO --force: it makes Vercel skip the BUILD CACHE, so every ship paid a cold `pnpm install --frozen-lockfile`
     # (31 s) and then ~37 s building a cache the next --force run skipped again - roughly
     # half of a 206 s ship, spent on nothing (measured from the prod build log, plan 155
     # Task 6.3). Without it Vercel may answer an identical tree with the EXISTING
@@ -529,7 +529,7 @@ internal_it_publish() {   # $1=name $2=profile $3=mode
   fi
   step "switching to profile '$profile' + building dist/ locally" >&2
   node scripts/use-profile.ts "$profile" 1>&2 || return 1     # NOTE: mutates the local active profile view
-  ( export LOLLY_PROFILE="$profile"; npm run build:web ) 1>&2 || return 1
+  ( export LOLLY_PROFILE="$profile"; pnpm run build:web ) 1>&2 || return 1
   rid="$(node -e 'process.stdout.write(String(require("./shells/web/dist/precache.json").version||""))' 2>/dev/null)"
   [ -z "$rid" ] && { err "internal_it: no dist/precache.json version - build incomplete"; return 1; }
   dest="$LOLLY_IT_RELEASES/$rid"
@@ -765,8 +765,8 @@ ship() {
 
 # --- slim clone bootstrap (loldev setup) ------------------------------------
 # Most contributors never need the whole recursive clone (the docs history alone
-# is ~270M of screenshot churn). But npm workspaces need EVERY workspace
-# package.json on disk before `npm install` resolves, and the bootstrap guard
+# is ~270M of screenshot churn). But pnpm workspaces need EVERY workspace
+# package.json on disk before `pnpm install` resolves, and the bootstrap guard
 # (scripts/check-bootstrap.ts) also sentinels docs/ + community/ - so no persona
 # can simply omit those. Slimness comes from DEPTH, not absence: full history
 # where the persona actually develops, `--depth 1` where presence is all npm
@@ -852,8 +852,8 @@ setup() {
   else
     phase "📦" "Full history where this persona develops"
     setup_full_history "${deep[@]}" || return 1
-    phase "📦" "Present for npm workspaces (--depth 1)"
-    info "npm install needs every workspace package.json on disk, and the bootstrap"
+    phase "📦" "Present for pnpm workspaces (--depth 1)"
+    info "pnpm install needs every workspace package.json on disk, and the bootstrap"
     info "guard also wants docs/ + community/ - so these are shallow, not absent."
     setup_shallow "${shallow[@]}" || return 1
     phase "⏭️ " "Skipped for this persona"
@@ -865,11 +865,11 @@ setup() {
   if node scripts/use-profile.ts --auto >/dev/null 2>&1; then
     ok "tools/ + catalog/ views ready (lolly-start unless brands/suse is mounted)"
   else
-    warn "profile views not built yet - 'npm install' builds them (postinstall)"
+    warn "profile views not built yet - 'pnpm install' builds them (postinstall)"
   fi
 
   echo
-  ok "setup '$persona' complete - next: npm install, then npm run dev:web (or npm run cli)"
+  ok "setup '$persona' complete - next: pnpm install, then pnpm run dev:web (or pnpm run cli)"
   return 0
 }
 
@@ -880,18 +880,18 @@ case "$cmd" in
   ship)         ship "$@" ;;
   status|st)    bash "$SUB/status.sh" ;;
   build)        do_build ;;
-  validate)     npm run validate:catalog ;;
-  previews)     case " $* " in *" --preserve "*) export LOLLY_PRESERVE=1 ;; esac; npm run previews ;;
-  og)           case " $* " in *" --preserve "*) export LOLLY_PRESERVE=1 ;; esac; npm run og:all ;;
-  shots)        npm run docs:shots -- "$@" ;;
+  validate)     pnpm run validate:catalog ;;
+  previews)     case " $* " in *" --preserve "*) export LOLLY_PRESERVE=1 ;; esac; pnpm run previews ;;
+  og)           case " $* " in *" --preserve "*) export LOLLY_PRESERVE=1 ;; esac; pnpm run og:all ;;
+  shots)        pnpm run docs:shots "$@" ;;
   verify)       bash "$SUB/verify.sh" "$@" ;;
   setup)        setup "$@" ;;
   profile|brand) node scripts/use-profile.ts "$@" ;;
   pull|up)      git pull --ff-only origin main && git submodule update --init --recursive \
                   && node scripts/use-profile.ts --auto \
                   && ok "synced parent + submodules + profile views" ;;
-  dev)          npm run dev:web ;;
-  cli)          npm run cli -- "$@" ;;
+  dev)          pnpm run dev:web ;;
+  cli)          pnpm run cli "$@" ;;
   help|-h|--help) usage ;;
   *)            err "unknown command: $cmd"; echo; usage; exit 2 ;;
 esac

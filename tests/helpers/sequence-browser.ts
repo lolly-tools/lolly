@@ -6,14 +6,14 @@
  * There was no browser-driven test in this repo before phase 3, so this establishes
  * the pattern. It follows the two conventions that already exist:
  *   • the external-dependency gate (`c2pa-c2patool-conformance.test.ts`): skip with a
- *     message naming what is missing, never fail, so `npm test` stays green on a bare
+ *     message naming what is missing, never fail, so `pnpm test` stays green on a bare
  *     machine - here that is `browserInstalled()` from packages/node-shell;
  *   • the page lifecycle of `packages/node-shell/src/webshell-render.ts`: the pooled
  *     `getBrowser()`, a fresh context per run, `closeBrowser()` in teardown.
  *
  * It does NOT serve the built web-shell dist. That machinery exists to drive the real
  * export UI; what is under test here is three bridge modules, so the page is a bare
- * document with the modules bundled into it - no `npm run build:web` prerequisite.
+ * document with the modules bundled into it - no `pnpm run build:web` prerequisite.
  *
  * CODECS. `getBrowser()` defaults to Playwright's BUNDLED Chromium, whose proprietary
  * codec support is NOT guaranteed: an H.264/AAC (mp4) case can fail there on codec
@@ -84,7 +84,7 @@ export interface Harness {
 /** Why the browser tier can't run here, or null when it can. */
 export function browserGate(): string | null {
   if (!browserInstalled()) {
-    return 'no headless browser: run `npm run install:browser` in shells/cli, or set LOLLY_BROWSER_CHANNEL=chrome';
+    return 'no headless browser: run `pnpm run install:browser` in shells/cli, or set LOLLY_BROWSER_CHANNEL=chrome';
   }
   return null;
 }

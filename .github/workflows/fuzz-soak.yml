@@ -28,12 +28,17 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        with:
+          version: 11.1.2
+          run_install: false
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       - name: Deterministic long parser sweep
         env:
@@ -42,7 +47,7 @@ jobs:
           FUZZ_KEEP: '1'
         run: |
           mkdir -p "$FUZZ_SCRATCH"
-          npm run test:fuzz:soak
+          pnpm run test:fuzz:soak
 
       - name: Preserve crash breadcrumbs and minimized candidates
         if: failure()

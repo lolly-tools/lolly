@@ -7,8 +7,8 @@ This is the repository-closure checklist. Commands are authoritative; tick boxes
 
 - [ ] `git submodule status --recursive` has no missing (`-`) or conflicted (`U`) checkout.
 - [ ] Intended changes are committed in each child repository before its parent gitlink.
-- [ ] `npm run audit:all`, `npm run secrets:scan:checkout`, and `npm run check:workflow-pins` pass.
-- [ ] `npm run typecheck`, `npm run check:maintainability`, and `npm run lint:changed -- --all` pass.
+- [ ] `pnpm run audit:all`, `pnpm run secrets:scan:checkout`, and `pnpm run check:workflow-pins` pass.
+- [ ] `pnpm run typecheck`, `pnpm run check:maintainability`, and `pnpm run lint:changed --all` pass.
 
 | Repository | Path | Required |
 |---|---|---|
@@ -44,21 +44,21 @@ This is the repository-closure checklist. Commands are authoritative; tick boxes
 
 | Target | Build | Required test shards | Catalogue signature |
 |---|---|---|---|
-| web | `npm run build:web:release` | `npm run test:security`<br>`npm run test:browser`<br>`npm run test:tools` | required |
-| desktop | `npm run build:desktop:frontend:release` | `npm run test:tauri`<br>`npm run test:security` | required |
-| mobile | `npm run build:mobile:frontend:release` | `npm run test:tauri`<br>`npm run test:security` | required |
-| cli-tui | `npm run typecheck` | `npm run test:contracts`<br>`npm run test:tools` | not applicable |
-| core-engine | `npm run pack:core && npm run pack:engine` | `npm run test:unit:engine`<br>`npm run test:contracts`<br>`npm run test:conformance` | not applicable |
-| yunohost | `npm run release:yunohost -- --build` | `npm run test:security`<br>`npm run test:contracts` | required |
+| web | `npm run build:web:release` | `pnpm run test:security`<br>`pnpm run test:browser`<br>`pnpm run test:tools` | required |
+| desktop | `npm run build:desktop:frontend:release` | `pnpm run test:tauri`<br>`pnpm run test:security` | required |
+| mobile | `npm run build:mobile:frontend:release` | `pnpm run test:tauri`<br>`pnpm run test:security` | required |
+| cli-tui | `npm run typecheck` | `pnpm run test:contracts`<br>`pnpm run test:tools` | not applicable |
+| core-engine | `npm run pack:core && npm run pack:engine` | `pnpm run test:unit:engine`<br>`pnpm run test:contracts`<br>`pnpm run test:conformance` | not applicable |
+| yunohost | `npm run release:yunohost -- --build` | `pnpm run test:security`<br>`pnpm run test:contracts` | required |
 
 For signed targets, provide `LOLLY_CATALOG_SIGNING_PRIVATE_JWK` and `LOLLY_CATALOG_SIGNING_PUBLIC_JWK`; the release wrapper verifies that they match without printing either value.
 
 ## Platform evidence
 
-- [ ] **linux:** `npm run test:contracts`, `npm run test:security`, `npm run test:browser`, `npm run test:conformance`, `npm run test:tauri`
-- [ ] **macos:** `npm run test:browser`, `npm run test:tauri`, `npm run test:conformance`
-- [ ] **windows:** `npm run test:browser`, `npm run test:tauri`, `npm run test:contracts`
-- [ ] **mobile:** `npm run test:tauri`, `npm run test:security`
+- [ ] **linux:** `pnpm run test:contracts`, `pnpm run test:security`, `pnpm run test:browser`, `pnpm run test:conformance`, `pnpm run test:tauri`
+- [ ] **macos:** `pnpm run test:browser`, `pnpm run test:tauri`, `pnpm run test:conformance`
+- [ ] **windows:** `pnpm run test:browser`, `pnpm run test:tauri`, `pnpm run test:contracts`
+- [ ] **mobile:** `pnpm run test:tauri`, `pnpm run test:security`
 
 ## Publication
 

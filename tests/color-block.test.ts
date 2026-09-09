@@ -2,7 +2,7 @@
 /**
  * color-block tool contract tests.
  *
- * Run with: npm test  (node --test over the tests/ globs)
+ * Run with: pnpm test  (node --test over the tests/ globs)
  * No test framework - uses node:test built-in.
  *
  * Loads the REAL tool from disk (manifest + template + hooks) and drives it

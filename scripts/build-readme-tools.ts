@@ -3,12 +3,12 @@
 /**
  * README "Current tools" generator.
  *
- * Run as: npm run build:readme-tools  (or directly: node scripts/build-readme-tools.ts)
+ * Run as: pnpm run build:readme-tools  (or directly: node scripts/build-readme-tools.ts)
  *
  * Regenerates the count sentence + tool table between the
  * `<!-- tools-table:start -->` / `<!-- tools-table:end -->` markers in
  * README.md from `catalog/tools/index.json` - the ACTIVE-profile view, so the
- * table reflects whatever `npm run profile:<name>` last built. The table lists
+ * table reflects whatever `pnpm run profile:<name>` last built. The table lists
  * LISTED tools only (alphabetical); unlisted helpers are called out in the
  * sentence, mirroring how the section was hand-maintained before it was
  * generated. Idempotent: a second run is a byte-identical no-op.
@@ -60,7 +60,7 @@ function activeCatalogLabel(): string {
 if (!existsSync(INDEX_PATH)) {
   fail(
     'catalog/tools/index.json not found - the catalog view is not built. ' +
-      'Run `npm run profile` (postinstall builds it) or `npm run build:catalog` first.',
+      'Run `pnpm run profile` (postinstall builds it) or `pnpm run build:catalog` first.',
   );
 }
 
@@ -76,7 +76,7 @@ const unlistedClause =
   unlisted.length === 0
     ? ', all listed in the gallery'
     : ` - ${listed.length} listed in the gallery, plus ${unlisted.length === 1 ? 'one unlisted helper' : `${unlisted.length} unlisted helpers`} (${unlisted.map(t => t.name ?? t.id).join(', ')})`;
-const sentence = `The ${label} catalog ships **${tools.length} tools** today${unlistedClause}. Generated from \`catalog/tools/index.json\` by \`npm run build:readme-tools\`:`;
+const sentence = `The ${label} catalog ships **${tools.length} tools** today${unlistedClause}. Generated from \`catalog/tools/index.json\` by \`pnpm run build:readme-tools\`:`;
 
 const table = [
   '| Tool | What it makes |',

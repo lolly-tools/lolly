@@ -2,7 +2,7 @@
 
 Build, validation and content-ingest scripts for the umbrella repo. There are 52 top-level TypeScript scripts here plus one shell script and two Python converters, and until now they were discoverable only by reading the `scripts` block of the root `package.json`. This file is the index.
 
-Everything here is owned by the umbrella (`lolly`) repo and runs on Node directly, without a build step, using Node's native type-stripping. `scripts/tsconfig.json` is what `npm run typecheck` uses for this directory.
+Everything here is owned by the umbrella (`lolly`) repo and runs on Node directly, without a build step, using Node's native type-stripping. `scripts/tsconfig.json` is what `pnpm run typecheck` uses for this directory.
 
 Read this alongside [`../CONTRIBUTING.md`](../CONTRIBUTING.md), which explains the submodule layout and which repo owns which file.
 
@@ -43,7 +43,7 @@ The manifest is always the source of truth; `catalog/tools/index.json` and the a
 | `use-profile.ts` | `profile`, `profile:suse`, `profile:start`, `postinstall` (`--auto`) | The profile switcher. Builds the repo-root `tools/` and `catalog/` views. See [Profile resolution](#profile-resolution-and-the-lolly-profile-state-file) below. | DESTRUCTIVE |
 | `ingest-brand.ts` | `ingest:brand` | Hydrates a `brands/<name>/` pack from a DTCG, Tokens Studio or Penpot token export, optionally registering or activating it as a profile. | DESTRUCTIVE, native |
 | `build-brand-tokens.ts` | none | Emits the canonical SUSE colour tokens as a DTCG document at `catalog/assets/suse/tokens/brand.json`, reshaped from the web shell's swatch list in `shells/web/src/palette.ts` (the script's own header still names the pre-migration `palette.js`). Run `build:catalog` afterwards to checksum it. | DESTRUCTIVE, submodule |
-| `check-bootstrap.ts` | `preinstall` | Refuses `npm install` into a half-cloned checkout, where submodule workspace mount points have no `package.json` and npm would fail during workspace resolution with an unhelpful error. | |
+| `check-bootstrap.ts` | `preinstall` | Refuses `pnpm install` into a half-cloned checkout, where submodule workspace mount points have no `package.json` and npm would fail during workspace resolution with an unhelpful error. | |
 
 ## Previews and thumbnails
 
@@ -159,9 +159,9 @@ All four write into `brands/lolly-start/catalog/`, which the umbrella owns, so t
 
 `scripts/use-profile.ts` materialises the repo-root `tools/` and `catalog/` paths as gitignored views of one profile named in [`../profiles.json`](../profiles.json). `catalog` becomes a symlink to the brand's catalog directory, and `tools/` becomes a directory of per-tool symlinks merged from the profile's tool roots, with later roots winning on id collision so a brand pack can override a community tool.
 
-**`.lolly-profile`** is a one-line file at the repo root holding the name of the currently active profile. It is gitignored (`.gitignore` line 249), it is the sticky record of your local choice, and it is what `npm run profile` prints as "Active profile". Other scripts read it too: `build-catalog-all.ts`, `build-og-all.ts` and `build-docs-shots.ts` all snapshot it before switching profiles so they can restore your choice afterwards, `shells/web/vite.config.js` reads it to know which brand it is building, and `subrepo/status.sh` and `subrepo/verify.sh` report it.
+**`.lolly-profile`** is a one-line file at the repo root holding the name of the currently active profile. It is gitignored (`.gitignore` line 249), it is the sticky record of your local choice, and it is what `pnpm run profile` prints as "Active profile". Other scripts read it too: `build-catalog-all.ts`, `build-og-all.ts` and `build-docs-shots.ts` all snapshot it before switching profiles so they can restore your choice afterwards, `shells/web/vite.config.js` reads it to know which brand it is building, and `subrepo/status.sh` and `subrepo/verify.sh` report it.
 
-When the script is given an explicit name (`npm run profile:suse`), that name wins outright. Under `--auto`, which is what `postinstall` runs, the resolution order is:
+When the script is given an explicit name (`pnpm run profile:suse`), that name wins outright. Under `--auto`, which is what `postinstall` runs, the resolution order is:
 
 1. **`LOLLY_PROFILE`** in the environment, trimmed. Explicit, and the mechanism that works on Vercel.
 2. **`.lolly-profile`**, the sticky local choice, but only if it names a known profile whose packs are all present on disk.

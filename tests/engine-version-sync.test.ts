@@ -12,7 +12,7 @@
  * check into the everyday suite so a version bump that touches only one of the two
  * files fails fast, right next to the change.
  *
- * Run with: npm test
+ * Run with: pnpm test
  */
 
 import { test } from 'node:test';

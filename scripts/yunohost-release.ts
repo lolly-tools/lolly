@@ -158,11 +158,11 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   const args = parseArgs(argv);
   const version = args.version ?? upstreamVersion();
   const profile = activeProfile();
-  if (profile === 'suse') throw new Error("active profile is 'suse' (private pack) - run 'npm run profile:start' first; the YunoHost tarball is public");
+  if (profile === 'suse') throw new Error("active profile is 'suse' (private pack) - run 'pnpm run profile:start' first; the YunoHost tarball is public");
 
   if (args.build) {
     console.log(`[yunohost-release] release web build (profile ${profile}, models from ${MODELS_BASE})`);
-    run('npm', ['run', 'build:web:release'], { env: { VITE_MODELS_BASE: MODELS_BASE } });
+    run('pnpm', ['run', 'build:web:release'], { env: { VITE_MODELS_BASE: MODELS_BASE } });
   }
 
   mkdirSync(args.out, { recursive: true });

@@ -154,7 +154,7 @@ test('macOS bundles dedicated Finder artwork for the declared document type', ()
 test('macOS packages real sandboxed Quick Look thumbnail and preview extensions', () => {
   const configPath = path.join(DESKTOP, 'src-tauri/tauri.conf.json');
   const conf = JSON.parse(readFileSync(configPath, 'utf8')) as TauriConfig;
-  assert.match(conf.build?.beforeBuildCommand ?? '', /npm run build:quicklook/,
+  assert.match(conf.build?.beforeBuildCommand ?? '', /pnpm run build:quicklook/,
     'a direct tauri build must compile the extensions before bundling');
   assert.equal(
     conf.bundle?.macOS?.files?.['PlugIns/LollyThumbnail.appex'],

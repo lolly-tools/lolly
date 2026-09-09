@@ -4,9 +4,9 @@
  * Profile switcher - builds the repo-root `tools/` and `catalog/` VIEWS.
  *
  * Run as:
- *   npm run profile                 # show the active profile + what's available
- *   npm run profile:suse            # switch to the SUSE brand pack
- *   npm run profile:start           # switch to the blank lolly-start brand
+ *   pnpm run profile                 # show the active profile + what's available
+ *   pnpm run profile:suse            # switch to the SUSE brand pack
+ *   pnpm run profile:start           # switch to the blank lolly-start brand
  *   node scripts/use-profile.ts <name> [--copy]
  *   node scripts/use-profile.ts --auto        # postinstall: default profile, or
  *                                             # first complete fallback; never fails
@@ -311,7 +311,7 @@ function buildViews(name: string, profile: Profile, copyMode: boolean): void {
 
 function show(cfg: ProfilesFile): void {
   const active = activeProfile();
-  console.log(`Active profile: ${active ?? '(none - run npm run profile:<name>)'}\n`);
+  console.log(`Active profile: ${active ?? '(none - run pnpm run profile:<name>)'}\n`);
   for (const [name, p] of Object.entries(cfg.profiles)) {
     const flags = [
       name === cfg.default ? 'default' : '',

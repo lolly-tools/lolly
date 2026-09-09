@@ -44,7 +44,7 @@ const pageFile = (lang: string, slug: string) => {
 // judge agreement between the two.
 const built = existsSync(resolve(INFO, 'search-index.json')) && existsSync(resolve(INFO, 'index.html'));
 
-describe('docs search index', { skip: built ? false : 'run `npm run build:info` first' }, () => {
+describe('docs search index', { skip: built ? false : 'run `pnpm run build:info` first' }, () => {
   for (const lang of LOCALES) {
     describe(lang, () => {
       test('has records covering many pages', () => {

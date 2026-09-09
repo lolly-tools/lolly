@@ -504,7 +504,7 @@ async function main(): Promise<void> {
     index.assets.push(p.entry!);
   }
   writeFileSync(indexPath, `${JSON.stringify(index, null, 2)}\n`);
-  console.log(`\n✓ wrote ${ok.length} asset(s) into ${catalogRel}. Now run: npm run build:catalog:all && npm run validate:catalog:all`);
+  console.log(`\n✓ wrote ${ok.length} asset(s) into ${catalogRel}. Now run: pnpm run build:catalog:all && pnpm run validate:catalog:all`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -2,7 +2,7 @@
 /**
  * Design - timeline time-model contract tests (Fable timeline, phase 1).
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
+ * Run with: pnpm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * Spec: plans/52-fable-timeline-phase-1.md section 5. Phase 1 is inert data only - nothing
  * reads `data-t-*`/`data-sequence` yet (that's the phase-2 panel) - so these tests

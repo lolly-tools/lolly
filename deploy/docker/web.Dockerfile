@@ -2,7 +2,7 @@
 # ============================================================================
 # Lolly Web PWA - the primary self-hosted product.
 # ============================================================================
-# Multi-stage: a Node build stage runs the real `npm run build:web` and a tiny
+# Multi-stage: a Node build stage runs the real `pnpm run build:web` and a tiny
 # nginx-unprivileged stage serves the resulting static `shells/web/dist`.
 #
 # BUILD CONTEXT MUST BE THE REPO ROOT (not deploy/docker):
@@ -17,7 +17,7 @@
 # Helm chart needs NO runtime pack/brand mount for the web app.
 #
 # REQUIREMENT: the repo's content submodules (community/, brands/*) must be
-# checked out in the build context - `npm run build:web` dereferences the
+# checked out in the build context - `pnpm run build:web` dereferences the
 # tools/ + catalog/ profile views into dist. A bare checkout without submodules
 # will build a shell with an empty catalog.
 # ============================================================================
@@ -40,12 +40,13 @@ COPY . .
 
 # Full install (build:web needs devDeps: vite, esbuild, sharp, onnxruntime-node,
 # svgo, resvg). `postinstall` runs scripts/use-profile.ts --auto to materialise
-# the tools/ + catalog/ views for LOLLY_PROFILE. Use --no-audit --no-fund for a
+# the tools/ + catalog/ views for LOLLY_PROFILE. Use for a
 # quiet, reproducible install.
-RUN npm ci --no-audit --no-fund
+RUN npm install --global pnpm@11.1.2
+RUN pnpm install --frozen-lockfile --prod=false
 
 # Produce shells/web/dist (build:ort → build:info → OG images → vite build).
-RUN npm run build:web
+RUN pnpm run build:web
 
 # ── runtime stage ───────────────────────────────────────────────────────────
 # nginx-unprivileged runs as uid 101 (non-root) and listens on 8080 by default.

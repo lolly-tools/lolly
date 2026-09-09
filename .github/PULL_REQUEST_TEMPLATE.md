@@ -21,10 +21,10 @@ CONTRIBUTING.md section 4 has the path-to-repo table.
 
 ## Checks
 
-- [ ] `npm test` passes
-- [ ] `npm run typecheck` passes
-- [ ] Touched a `tool.json` or a catalog asset? Ran `npm run build:catalog:all` **and** `npm run validate:catalog:all` (not the singular forms: the catalog index is generated per brand, so a community tool edit leaves other brands stale)
-- [ ] Added or updated a module under `engine/src/`? `npm run check:engine-modules` is clean (regenerate with `npm run build:engine-modules`)
+- [ ] `pnpm test` passes
+- [ ] `pnpm run typecheck` passes
+- [ ] Touched a `tool.json` or a catalog asset? Ran `pnpm run build:catalog:all` **and** `pnpm run validate:catalog:all` (not the singular forms: the catalog index is generated per brand, so a community tool edit leaves other brands stale)
+- [ ] Added or updated a module under `engine/src/`? `pnpm run check:engine-modules` is clean (regenerate with `pnpm run build:engine-modules`)
 
 ## Security
 
@@ -35,7 +35,7 @@ parser with its enforced bounds is listed in docs/parser-inventory.md.
 
 - [ ] This change does **not** touch a trust boundary listed in `docs/threat-model.md`
 - [ ] …or it does, and the PR says which one and what still enforces it
-- [ ] Touched a parser that reads untrusted bytes, or a crypto module? Added or extended a fuzz target in `tests/fuzz/targets.ts`, declared new bounds as named constants, updated `security/parser-assurance.json`, and ran `npm run build:parser-inventory`
+- [ ] Touched a parser that reads untrusted bytes, or a crypto module? Added or extended a fuzz target in `tests/fuzz/targets.ts`, declared new bounds as named constants, updated `security/parser-assurance.json`, and ran `pnpm run build:parser-inventory`
 - [ ] No secret, token or personal data is logged, committed, or added to an error message
 
 ## Notes for the reviewer

@@ -5,7 +5,7 @@
  *
  * scripts/check-code-comment-vernacular.ts scans every owned .ts comment for em
  * dashes and the shared claudism ban list, and holds a per-file baseline that can
- * only go DOWN. This test is that ratchet in npm test.
+ * only go DOWN. This test is that ratchet in pnpm test.
  *
  * If this fails:
  *  - "rose"       a comment gained an em dash or a tic. Fix the comment.

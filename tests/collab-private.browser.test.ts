@@ -10,7 +10,7 @@
  * → `#/join-reply`) with two real peer connections in one browser.
  *
  * WHY IT IS GATED, TWICE. It needs a headless browser AND a running dev server, and it
- * takes tens of seconds. `npm test` must stay green and fast on a bare machine
+ * takes tens of seconds. `pnpm test` must stay green and fast on a bare machine
  * (tests/README.md, "Gated / conditional tests"), so:
  *
  *   • `LOLLY_BROWSER_DRILLS=1` - the explicit opt-in. Without it the whole describe
@@ -83,7 +83,7 @@ function drillGate(): string | null {
     return 'set LOLLY_BROWSER_DRILLS=1 to run the private-collab browser drills';
   }
   if (!browserInstalled()) {
-    return 'no headless browser: run `npm run install:browser` in shells/cli, or set LOLLY_BROWSER_CHANNEL=chrome';
+    return 'no headless browser: run `pnpm run install:browser` in shells/cli, or set LOLLY_BROWSER_CHANNEL=chrome';
   }
   return null;
 }
@@ -325,7 +325,7 @@ async function startDevServer(): Promise<string> {
   const existing = process.env.LOLLY_DRILL_BASE;
   if (existing) return existing.replace(/\/$/, '');
   const port = Number(process.env.LOLLY_DRILL_PORT || 5199);
-  const child = spawn('npm', ['run', 'dev', '--', '--port', String(port), '--strictPort'], {
+  const child = spawn('pnpm', ['run', 'dev', '--port', String(port), '--strictPort'], {
     cwd: join(repoRoot(), 'shells', 'web'),
     stdio: ['ignore', 'pipe', 'pipe'],
   });

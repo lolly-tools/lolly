@@ -5,7 +5,7 @@
       "id": "root-npm",
       "ecosystem": "npm",
       "directory": ".",
-      "lockfile": "package-lock.json",
+      "lockfile": "pnpm-lock.yaml",
       "exposure": "runtime-and-development",
       "owner": "parent"
     },
@@ -13,7 +13,7 @@
       "id": "tauri-desktop-npm",
       "ecosystem": "npm",
       "directory": "shells/tauri-desktop",
-      "lockfile": "shells/tauri-desktop/package-lock.json",
+      "lockfile": "shells/tauri-desktop/pnpm-lock.yaml",
       "exposure": "build-toolchain",
       "owner": "shells/tauri-desktop"
     },
@@ -21,7 +21,7 @@
       "id": "tauri-mobile-npm",
       "ecosystem": "npm",
       "directory": "shells/tauri-mobile",
-      "lockfile": "shells/tauri-mobile/package-lock.json",
+      "lockfile": "shells/tauri-mobile/pnpm-lock.yaml",
       "exposure": "build-toolchain",
       "owner": "shells/tauri-mobile"
     },

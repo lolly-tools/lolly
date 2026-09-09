@@ -27,23 +27,23 @@ step "profile views (tools/ + catalog from the active profile)"
 node scripts/use-profile.ts --auto >/dev/null 2>&1
 if [ -d tools ] && [ -e catalog ]; then
   ok "views present (profile: $(cat .lolly-profile 2>/dev/null || echo '?'))"
-else err "profile views missing - run: npm run profile:suse (or profile:start)"; fail=1; fi
+else err "profile views missing - run: pnpm run profile:suse (or profile:start)"; fail=1; fi
 
-step "npm install (workspaces link)"
-npm install >/dev/null 2>&1 && ok "installed" || { err "npm install failed"; fail=1; }
+step "pnpm install (workspaces link)"
+pnpm install >/dev/null 2>&1 && ok "installed" || { err "pnpm install failed"; fail=1; }
 
 step "catalog build + validate"
-if npm run build:catalog >/dev/null 2>&1 && npm run validate:catalog; then ok "catalog OK"; else err "catalog build/validate failed"; fail=1; fi
+if pnpm run build:catalog >/dev/null 2>&1 && pnpm run validate:catalog; then ok "catalog OK"; else err "catalog build/validate failed"; fail=1; fi
 
 step "typecheck"
-npm run typecheck >/dev/null 2>&1 && ok "typecheck passed" || { err "typecheck failed"; fail=1; }
+pnpm run typecheck >/dev/null 2>&1 && ok "typecheck passed" || { err "typecheck failed"; fail=1; }
 
 step "web build"
-npm run build:web >/dev/null 2>&1 && ok "build:web succeeded" || { err "build:web failed"; fail=1; }
+pnpm run build:web >/dev/null 2>&1 && ok "build:web succeeded" || { err "build:web failed"; fail=1; }
 
 step "CLI render"
 out="$STAGE_ROOT/verify-qr.svg"; mkdir -p "$STAGE_ROOT"
-if npm run --silent cli -- qr-code --url=https://suse.com --output="$out" >/dev/null 2>&1 && [ -s "$out" ]; then
+if pnpm --silent run cli qr-code --url=https://suse.com --output="$out" >/dev/null 2>&1 && [ -s "$out" ]; then
   ok "CLI rendered $out"; else err "CLI render failed"; fail=1; fi
 
 step "tauri desktop resolves ../web"
@@ -62,7 +62,7 @@ if [ "$DO_CLONE" = 1 ]; then
   step "fresh --recurse-submodules clone build"
   cl="$STAGE_ROOT/verify-clone"; rm -rf "$cl"
   if git clone --recurse-submodules "file://$REPO_ROOT" "$cl" >/dev/null 2>&1 \
-     && ( cd "$cl" && npm install >/dev/null 2>&1 && npm run build:catalog >/dev/null 2>&1 ); then
+     && ( cd "$cl" && pnpm install >/dev/null 2>&1 && pnpm run build:catalog >/dev/null 2>&1 ); then
     ok "fresh clone builds"; else err "fresh clone build failed"; fail=1; fi
 fi
 

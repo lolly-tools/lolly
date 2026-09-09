@@ -13,7 +13,7 @@
  * CREDITS.txt carrying the upstream licence.
  *
  * ANDY-RUN ONLY. This needs network access and is never invoked by
- * `npm install`/`postinstall`/CI. The set is ~23 MB, the app fetches it once at
+ * `pnpm install`/`postinstall`/CI. The set is ~23 MB, the app fetches it once at
  * runtime behind a consent chip, and the COMMITTED vectors
  * (public/info/ask-vectors.bin) mean neither CI nor Vercel ever needs the model
  * to build or to serve Tier 0 answers.

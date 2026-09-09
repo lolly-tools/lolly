@@ -12,7 +12,7 @@
  *
  * This measures the built /info tree (raw + summed per-file gzip - the honest per-asset
  * transfer/embed cost) and fails if the gzip total crosses a ceiling. Run it in CI
- * AFTER `npm run build:info`, or by hand (`npm run check:docs-size`). Standalone, like
+ * AFTER `pnpm run build:info`, or by hand (`pnpm run check:docs-size`). Standalone, like
  * scripts/check-bundle-budget.ts.
  *
  * WHAT THE CEILING IS, AND ISN'T
@@ -57,7 +57,7 @@ function fail(msg: string): never {
 }
 
 if (!existsSync(infoDir)) {
-  fail(`no built /info at ${path.relative(root, infoDir)} - run \`npm run build:info\` first`);
+  fail(`no built /info at ${path.relative(root, infoDir)} - run \`pnpm run build:info\` first`);
 }
 
 let rawTotal = 0;

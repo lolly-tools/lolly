@@ -11,7 +11,7 @@
  * the LOCAL Kokoro model staged at shells/web/public/models/kokoro/ (the ~92 MB
  * timestamped q8 ONNX + tokenizer + voice matrices scripts/fetch-kokoro-models.ts
  * downloads and sha256-pins), and ffmpeg on PATH - and it is never invoked by
- * `npm install`/`postinstall`/CI. CI's whole involvement is
+ * `pnpm install`/`postinstall`/CI. CI's whole involvement is
  * tests/docs-audio-stale.test.ts, which only verifies COMMITTED artefacts
  * against the current docs source (plan section 10). When any prerequisite is absent
  * this script prints the exact install/run steps and exits 0 without writing a
@@ -460,7 +460,7 @@ async function loadKokoro(): Promise<KokoroRuntime> {
     bail([
       `Could not load the Kokoro model from ${MODEL_DIR}: ${(err as Error).message}`,
       '(@huggingface/transformers and phonemizer resolve from the shells/web',
-      'workspace - run `npm install` at the repo root if node_modules is bare,',
+      'workspace - run `pnpm install` at the repo root if node_modules is bare,',
       'and re-stage the model with `node scripts/fetch-kokoro-models.ts` if its',
       'files are damaged.)',
     ]);

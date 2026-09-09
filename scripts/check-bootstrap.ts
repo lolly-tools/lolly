@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Bootstrap guard - refuse to `npm install` into a half-cloned checkout.
+ * Bootstrap guard - refuse to `pnpm install` into a half-cloned checkout.
  *
- * Run as: npm install (preinstall)  /  node scripts/check-bootstrap.ts
+ * Run as: pnpm install (preinstall)  /  node scripts/check-bootstrap.ts
  *
  * Lolly is an umbrella repo: the shells, services, docs and the community tool
- * pack are git submodules (see .gitmodules). npm workspaces need every
+ * pack are git submodules (see .gitmodules). pnpm workspaces need every
  * workspace's package.json to be on disk before the install resolves, so a
- * clone made without `--recurse-submodules` fails deep inside npm's resolver
+ * clone made without `--recurse-submodules` fails deep inside pnpm's resolver
  * with a message that never mentions submodules. This guard turns that into one
- * clear instruction, printed before npm does any work.
+ * clear instruction, printed before pnpm does any work.
  *
  * It is deliberately zero-dependency and imports nothing from the workspaces it
  * is checking: at preinstall time node_modules may not exist at all. Only
@@ -30,7 +30,7 @@
  *     already owns the Vercel failure modes and fails loudly there.
  *
  * In CI (the CI env var) the check still runs but only WARNS: CI checks out
- * with `submodules: recursive`, and if it ever does not, `npm ci` fails on the
+ * with `submodules: recursive`, and if it ever does not, `pnpm install --frozen-lockfile` fails on the
  * missing workspace package.json a second later anyway. Warning keeps the
  * diagnosis in the log without inventing a new way for CI to go red.
  */
@@ -43,7 +43,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 /**
  * Paths that only exist once submodules are initialised. The workspace
- * package.json files are the ones npm itself trips over; docs/build.ts and the
+ * package.json files are the ones pnpm itself trips over; docs/build.ts and the
  * community tool pack are what every catalog/profile script needs immediately
  * afterwards. Each entry names the submodule so the message can list them.
  */
@@ -97,8 +97,8 @@ function uncoveredWorkspaces(): string[] {
   let workspaces: string[] = [];
   let modulePaths: string[] = [];
   try {
-    const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
-    if (Array.isArray(pkg.workspaces)) workspaces = pkg.workspaces.filter((w: unknown) => typeof w === 'string');
+    const workspace = readFileSync(join(ROOT, 'pnpm-workspace.yaml'), 'utf8').split('\n\n')[0]!;
+    workspaces = [...workspace.matchAll(/^ {2}- ([^\n]+)$/gm)].map(match => match[1]!.trim());
   } catch { return []; }
   try {
     const gitmodules = readFileSync(join(ROOT, '.gitmodules'), 'utf8');
@@ -133,14 +133,14 @@ function main(): void {
   log('');
   log('  Lolly is an umbrella repo: the shells, services, docs and the community');
   log('  tool pack live in their own repositories, mounted here as git submodules.');
-  log('  npm workspaces need every one of those package.json files on disk, so the');
+  log('  pnpm workspaces need every one of those package.json files on disk, so the');
   log('  install cannot succeed until they are checked out.');
   log('');
   log('  Fix it with:');
   log('');
   log('      git submodule update --init --recursive');
   log('');
-  log('  ...then run `npm install` again. Fresh clones should use:');
+  log('  ...then run `pnpm install` again. Fresh clones should use:');
   log('');
   log('      git clone --recurse-submodules https://github.com/lolly-tools/lolly.git');
   log('');

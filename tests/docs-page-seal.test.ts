@@ -47,9 +47,9 @@ const BUILT = join(REPO, 'shells/web/public/info');
 
 /** Skip reason, or false to run. Same shape the other docs suites use. */
 const built = !existsSync(join(BUILT, 'exporting.html'))
-  ? 'no built /info on disk - run `npm run build:info`'
+  ? 'no built /info on disk - run `pnpm run build:info`'
   : !readFileSync(join(BUILT, 'exporting.html'), 'utf-8').includes('rel="c2pa-manifest"')
-    ? 'built /info predates page seals - run `npm run build:info`'
+    ? 'built /info predates page seals - run `pnpm run build:info`'
     : false;
 
 const bytesOf = (p: string): Uint8Array => new Uint8Array(readFileSync(p));

@@ -15,7 +15,7 @@
  * their original dates. A tool with no history yet (brand-new, uncommitted)
  * simply doesn't appear; run this again once it is committed and rebuild the catalog.
  *
- * Usage: node scripts/gen-tool-added-dates.ts   # then npm run build:catalog:all
+ * Usage: node scripts/gen-tool-added-dates.ts   # then pnpm run build:catalog:all
  */
 
 import { readdirSync, realpathSync, writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs';
@@ -89,7 +89,7 @@ async function main(): Promise<void> {
   mkdirSync(dirname(OUT), { recursive: true });
   writeFileSync(OUT, `${JSON.stringify(sorted, null, 2)}\n`);
   console.log(`✓ ${Object.keys(sorted).length} tools dated → ${OUT}`);
-  console.log('  Next: npm run build:catalog:all (mirrors `added` into every brand index)');
+  console.log('  Next: pnpm run build:catalog:all (mirrors `added` into every brand index)');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();

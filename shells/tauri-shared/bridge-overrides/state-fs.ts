@@ -10,7 +10,7 @@
  * the profile page and catalog sync never see which implementation is running, so a
  * missing method (e.g. sizes) crashes boot. That sync used to be comment-only; the
  * return type below is now the web bridge's own `WebStateAPI`, imported type-only,
- * so a method added there and forgotten here fails `npm run typecheck` instead of
+ * so a method added there and forgotten here fails `pnpm run typecheck` instead of
  * crashing at boot on a device. Type-only, so nothing from the web shell is pulled
  * into this module at runtime.
  *

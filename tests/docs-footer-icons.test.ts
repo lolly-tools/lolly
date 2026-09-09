@@ -4,7 +4,7 @@
  *
  * docs/build.ts throws at BUILD time (build:info) if a registered page is missing
  * from FOOTER_SECTIONS (the full-sitemap footer) or from SIDEBAR_ICON (every footer
- * link carries a glyph). Those checks do NOT run in `npm test`, so a page added to
+ * link carries a glyph). Those checks do NOT run in `pnpm test`, so a page added to
  * `pages` without a footer column or an icon passes the gate and only fails the
  * Vercel build. That is exactly how the six /compare pages slipped through once.
  * This runs the same two invariants at test time, by parsing docs/build.ts as text

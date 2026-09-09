@@ -40,7 +40,7 @@
  * have caught a lane that quietly did nothing on the only engine that needs it.
  *
  * GATING follows `canvas-filter-probe.browser.test.ts`: no browser installed -> the
- * whole suite skips naming the install command, so `npm test` stays green on a bare
+ * whole suite skips naming the install command, so `pnpm test` stays green on a bare
  * machine.
  */
 import { test, describe, before, after } from 'node:test';

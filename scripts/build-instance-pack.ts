@@ -302,7 +302,7 @@ async function main(): Promise<void> {
   const packToolEntries = toolIndex.tools.filter(t => toolIds.includes(t.id));
   const missingFromIndex = toolIds.filter(id => !packToolEntries.some(t => t.id === id));
   if (missingFromIndex.length) {
-    throw new Error(`tool dir(s) with no index entry: ${missingFromIndex.join(', ')} - run npm run build:catalog for the brand first`);
+    throw new Error(`tool dir(s) with no index entry: ${missingFromIndex.join(', ')} - run pnpm run build:catalog for the brand first`);
   }
   const toolFiles: Record<string, string[]> = {};
   const reuseCommunity = new Set(recipe.reuseCommunityToolAssets ?? []);

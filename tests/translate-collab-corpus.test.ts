@@ -3,7 +3,7 @@
  * The `collab` translation corpus - the extractor that decides which strings the private
  * collab surface ever gets translated at all.
  *
- * Run with: npm test
+ * Run with: pnpm test
  *
  * WHY THIS EXISTS. The eight modules behind the `private-collab` flag keep their copy in an
  * exported `STRINGS` map and render it as `tRaw(STRINGS.x)`. `extractSpaKeys` only sees a

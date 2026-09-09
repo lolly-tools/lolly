@@ -356,21 +356,21 @@
     {
       "file": "shells/web/src/lib/ask/chunks.test.ts",
       "fullName": "drift guard: every markdown page fully aligns; the pinned exceptions do not",
-      "reason": "no built docs site at public/info/search-index.json (run npm run build:info) - drift is enforced where the site is built",
+      "reason": "no built docs site at public/info/search-index.json (run pnpm run build:info) - drift is enforced where the site is built",
       "capability": "docs-build",
       "owner": "shells/web"
     },
     {
       "file": "shells/web/src/lib/ask/vectors-staleness.test.ts",
       "fullName": "committed ask-vectors match the docs corpus on disk",
-      "reason": "no public/info/search-index.json - run npm run build:info first",
+      "reason": "no public/info/search-index.json - run pnpm run build:info first",
       "capability": "docs-build",
       "owner": "shells/web"
     },
     {
       "file": "shells/web/src/lib/ask/vectors-staleness.test.ts",
       "fullName": "the committed .bin header agrees with ask-vectors.json",
-      "reason": "no public/info/search-index.json - run npm run build:info first",
+      "reason": "no public/info/search-index.json - run pnpm run build:info first",
       "capability": "docs-build",
       "owner": "shells/web"
     },
@@ -510,28 +510,28 @@
     {
       "file": "tests/cli-tierb-video.test.ts",
       "fullName": "--seconds and --fps shape the clip: the URL-mode video params reach the browser tier",
-      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `npm run build:web`",
+      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
       "capability": "browser",
       "owner": "tests"
     },
     {
       "file": "tests/cli-tierb-video.test.ts",
       "fullName": "a Tier-B failure fails, and fails PROMPTLY, with the debug log it was asked for",
-      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `npm run build:web`",
+      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
       "capability": "browser",
       "owner": "tests"
     },
     {
       "file": "tests/cli-tierb-video.test.ts",
       "fullName": "a deck exports a real pptx through the browser tier",
-      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `npm run build:web`",
+      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
       "capability": "browser",
       "owner": "tests"
     },
     {
       "file": "tests/cli-tierb-video.test.ts",
       "fullName": "an animated tool exports a real mp4 through the browser tier",
-      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `npm run build:web`",
+      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
       "capability": "browser",
       "owner": "tests"
     },
@@ -986,280 +986,280 @@
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "SECURITY: a hostile font name is stripped of style-breakout characters",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "SECURITY: custom CSS cannot close the <style> element or @import",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "SECURITY: html inside a fenced code block is escaped, never a live tag",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "a brand font \u2192 a quoted --ds-*-family with a sensible fallback baked in",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "an element is only emitted when its chip (<el>On) is on",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "an empty custom CSS box emits no extra <style>",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "an unterminated code fence still renders (consumes to EOF, no throw)",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "an untouched deck emits NO --ds-* custom properties",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "custom CSS is wrapped in .slides { \u2026 } and emitted as a <style>",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "freeform box: same parser emits bare <pre>/<code> and <blockquote>",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "layout body: blockquote \u2192 <blockquote class=\"sl-quote\"> with inline md",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "layout body: fenced code block \u2192 <pre class=\"sl-pre\"><code>, content literal",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "size % becomes a ratio scale var; weight becomes a weight var",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "size is clamped to 25\u2013300%; a bogus weight is ignored",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "the full 100\u2013900 weight scale is accepted (Thin \u2026 Black)",
-      "reason": "deck-builder tool view not built (run npm run profile)",
+      "reason": "deck-builder tool view not built (run pnpm run profile)",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/docs-dom-spoken-text.test.ts",
       "fullName": "device-voice DOM extraction matches the markdown extractor heading sequence",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-landing-fragment.test.ts",
       "fullName": "every built /info landing wraps its body in the .docs-landing fragment marker",
-      "reason": "no built /info on disk (run npm run build:info) - enforced where the site is built",
+      "reason": "no built /info on disk (run pnpm run build:info) - enforced where the site is built",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-landing-fragment.test.ts",
       "fullName": "the persona device is CSS-only: radio pairing in the stylesheet, radios in the build",
-      "reason": "no built /info on disk (run npm run build:info) - markup half enforced where the site is built",
+      "reason": "no built /info on disk (run pnpm run build:info) - markup half enforced where the site is built",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-logos.test.ts",
       "fullName": "a long page gets the jump nav and a short one does not",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-logos.test.ts",
       "fullName": "no heading in the built docs carries a technology mark",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-logos.test.ts",
       "fullName": "the build guide ships the Kubernetes block, decorative and unannounced",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-logos.test.ts",
       "fullName": "the built build-guide carries the marks it is the flagship for",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-logos.test.ts",
       "fullName": "the built pages render their markers as .doc-logo spans, with none left over",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-logos.test.ts",
       "fullName": "the jump nav is exempted from the rules that own every other <nav>",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-logos.test.ts",
       "fullName": "the jump nav script closes on Escape and returns focus",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-logos.test.ts",
       "fullName": "the jump nav ships on locale pages too",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-logos.test.ts",
       "fullName": "the markdown twin carries no logo markers",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "a banked masthead would replace the canvas, not join it",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "every article page opens with the masthead band, and the landing does not",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "hoisting the h1 into the band does not move its anchor",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "no screenshot is offered a clipboard copy of its pixels",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "the band ships no provenance line - it is shell decoration, not a signed asset",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "the canvas never takes a pointer event, in either instance",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "the chip list is generated from the formats catalog, not hand-written",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "the credential line offers Copy signed source, and says what happened",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "the landing and the masthead draw from the same generated list",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "the locale pages get the band too",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "the masthead burst yields to links, buttons and text selection",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "the masthead script honours reduced motion, off-screen and hidden tabs",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "with nothing mapped, every page still gets the default field - not a blank band",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
@@ -1301,49 +1301,49 @@
     {
       "file": "tests/docs-page-seal.test.ts",
       "fullName": "a built page verifies against its sidecar, and one changed byte breaks it",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-page-seal.test.ts",
       "fullName": "a page read WITHOUT its sidecar says the credential is elsewhere, never \"no credential\"",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-page-seal.test.ts",
       "fullName": "a second build over an unchanged site writes no sidecar (the churn guard)",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-page-seal.test.ts",
       "fullName": "every English page carries exactly one seal link, in <head>, pointing at its own slug",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-page-seal.test.ts",
       "fullName": "locale pages carry no seal link at all",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-page-seal.test.ts",
       "fullName": "no sidecar is left behind by a page that no longer exists",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-page-seal.test.ts",
       "fullName": "the seal names the page's signed components as ingredients",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
@@ -1371,14 +1371,14 @@
     {
       "file": "tests/docs-render-manifest.test.ts",
       "fullName": "the manifest credential facts carry the full DocsRenderContext shape",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-render-manifest.test.ts",
       "fullName": "the render manifest covers every shot with a size and credential facts",
-      "reason": "no built /info on disk - run `npm run build:info`",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },

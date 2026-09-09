@@ -3,7 +3,7 @@
 /**
  * onnxruntime-web runtime copier.
  *
- * Run as: npm run build:ort  (part of build:web; also runs standalone).
+ * Run as: pnpm run build:ort  (part of build:web; also runs standalone).
  *
  * `shells/web/public/ort/` holds onnxruntime-web's WASM + loader files (~93 MB),
  * served same-origin to the browser for the client-side ONNX paths (TrustMark

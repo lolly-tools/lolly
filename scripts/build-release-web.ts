@@ -76,10 +76,10 @@ export function main(): void {
     LOLLY_RELEASE_BUILD: '1',
     VITE_CATALOG_TRUST_MODE: 'verified',
   };
-  const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  const packageManager = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
   if (target === 'web') {
     sign(env);
-    run(npm, ['run', 'build:web'], env);
+    run(packageManager, ['run', 'build:web'], env);
     return;
   }
 
@@ -91,7 +91,7 @@ export function main(): void {
   // still signed again below so the native package is bound to the exact bytes
   // it embeds (including neutral/profile composition).
   sign(env);
-  run(npm, ['--prefix', shellDir, 'run', 'build:frontend'], env);
+  run(packageManager, ['-C', shellDir, 'run', 'build:frontend'], env);
   sign(env, [
     '--tools', `${shellDir}/dist/tools`,
     '--index', `${shellDir}/dist/catalog/tools/index.json`,

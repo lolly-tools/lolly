@@ -2,7 +2,7 @@
 /**
  * host.net allowlist conformance - the fail-closed network invariant, across shells.
  *
- * Run with: npm test  (node --test over the tests/ globs)
+ * Run with: pnpm test  (node --test over the tests/ globs)
  * No test framework - uses node:test built-in. No DOM, no jsdom, no real network.
  *
  * `host.net` is the ONLY way a tool reaches the network, and it is fail-closed:

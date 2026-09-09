@@ -6,7 +6,7 @@
  * and fingerprint unicode kept reappearing in copy, and a list in a memory file
  * only binds whoever reads it. A script binds everyone.
  *
- * Enforced twice: `tests/docs-vernacular.test.ts` (so `npm test` and the
+ * Enforced twice: `tests/docs-vernacular.test.ts` (so `pnpm test` and the
  * `loldev ship` gate fail on a violation) and as a standalone CLI:
  *
  *   node scripts/check-docs-vernacular.ts
@@ -239,7 +239,7 @@ const ALLOW: Record<string, string[]> = {
   // command examples and the verbatim `lolly models ls` output. The prose around
   // them says "speech to text" and "reads a clip back as text" instead.
   'docs/cli.md': ['`speak`, `transcribe`, `mix`',
-    'npm run cli -- transcribe ./clip.wav --lang=en --json',
+    'pnpm run cli transcribe ./clip.wav --lang=en --json',
     '**`lolly transcribe <clip.wav>`** reads a clip back as text',
     '$ lolly transcribe ./interview.m4a',
     'whisper    transcription (lolly transcribe)',

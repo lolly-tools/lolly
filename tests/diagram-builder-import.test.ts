@@ -3,7 +3,7 @@
  * diagram-builder text-format import: Mermaid (flowchart + sequenceDiagram) and
  * DOT / Graphviz.
  *
- * Run with: node --test "tests/diagram-builder-import.test.ts"  (or npm test)
+ * Run with: node --test "tests/diagram-builder-import.test.ts"  (or pnpm test)
  * No test framework - uses node:test built-in.
  *
  * The parsers are plain functions inside the tool's hooks.js, which ships as tool

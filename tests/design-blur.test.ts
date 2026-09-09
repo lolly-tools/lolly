@@ -2,7 +2,7 @@
 /**
  * Design - box `blur` (layer blur) contract tests.
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
+ * Run with: pnpm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * Modeled on design-gradient.test.ts: drives the REAL tool (manifest +
  * hooks) through the engine, so these guard the actual render rather than a

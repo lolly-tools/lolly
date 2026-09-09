@@ -13,7 +13,7 @@
  *
  * Deliberately does NOT run tsc: that needs each shell's own node_modules for the
  * @tauri-apps types (the Tauri shells are not npm workspaces). CI installs them
- * and runs `npm run typecheck:tauri -- --strict`. This file asserts the shape the
+ * and runs `pnpm run typecheck:tauri --strict`. This file asserts the shape the
  * gate depends on, so it stays honest on any clone.
  */
 

@@ -42,7 +42,7 @@ const HEX6 = /^#[0-9a-f]{6}$/i;
 // The two `performance:` tests below assert wall-clock timings (an absolute
 // `< Nms` and a 10K:1K scaling ratio). Best-of-N (see benchmark() below) tames
 // transient jitter but NOT sustained load: a busy CI runner or laptop makes
-// every sample slow, so on a normal `npm test` these flake for reasons that
+// every sample slow, so on a normal `pnpm test` these flake for reasons that
 // have nothing to do with the math under test. They're gated behind BENCH=1 so
 // they still run - and log their numbers - when you actually want to benchmark:
 //   BENCH=1 node --test tests/color-ramp.test.ts

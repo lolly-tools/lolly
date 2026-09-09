@@ -4,7 +4,7 @@
  * Runs svgo over the authored catalog SVG assets (catalog/assets/**\/*.svg) in place.
  *
  * These ship and load in the gallery/pickers, so minifying them cuts transfer +
- * parse cost like the previews (npm run optimize:previews). Brand-safe config - 
+ * parse cost like the previews (pnpm run optimize:previews). Brand-safe config -
  * MUCH more conservative than the thumbnail pass:
  *   - inlineStyles/minifyStyles OFF: the themable two-colour icons carry a
  *     byte-exact <defs><style>.c1{…}.c2{…}</style></defs> that engine/icon-theme.ts
@@ -15,7 +15,7 @@
  * Plus a SAFETY NET: any icon svgo would make un-themable is left untouched.
  *
  * After running, rebuild + validate the catalog (asset bytes changed → checksums):
- *   npm run optimize:assets && npm run build:catalog && npm run validate:catalog
+ *   pnpm run optimize:assets && pnpm run build:catalog && pnpm run validate:catalog
  */
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
@@ -59,4 +59,4 @@ for (const rel of svgs) {
 const pct = totalBefore ? Math.round((totalBefore - totalAfter) * 100 / totalBefore) : 0;
 console.log(`svgo: optimised ${shrunk}/${svgs.length} assets - ${(totalBefore / 1024).toFixed(0)}K → ${(totalAfter / 1024).toFixed(0)}K (${pct}% smaller)`);
 if (skippedTheme) console.log(`  (${skippedTheme} themable icon(s) left untouched - svgo would have broken their theme contract)`);
-console.log('Next: npm run build:catalog && npm run validate:catalog  (asset checksums changed)');
+console.log('Next: pnpm run build:catalog && pnpm run validate:catalog  (asset checksums changed)');

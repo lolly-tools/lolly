@@ -53,7 +53,7 @@ export function renderTargetCensus(targets: string[]): string {
   const listed = names.length > 1
     ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
     : (names[0] ?? 'none');
-  return `Fuzz coverage is the registered target list in \`tests/fuzz/targets.ts\` (\`ALL_TARGETS\`, at the end of the file). There are ${targets.length}: ${listed}. \`tests/fuzz-regression.test.ts\` replays the eight saved regression inputs in \`tests/fuzz/regressions/\` and runs a few hundred seeded mutations per target inside the normal \`npm test\` glob; \`node tests/fuzz/run.ts\` is the standalone soak.`;
+  return `Fuzz coverage is the registered target list in \`tests/fuzz/targets.ts\` (\`ALL_TARGETS\`, at the end of the file). There are ${targets.length}: ${listed}. \`tests/fuzz-regression.test.ts\` replays the eight saved regression inputs in \`tests/fuzz/regressions/\` and runs a few hundred seeded mutations per target inside the normal \`pnpm test\` glob; \`node tests/fuzz/run.ts\` is the standalone soak.`;
 }
 
 export function generateParserInventory(
@@ -79,7 +79,7 @@ function main(): void {
   const generated = generateParserInventory(current, registry, targets);
   if (process.argv.includes('--check')) {
     if (current !== generated) {
-      throw new Error('docs/parser-inventory.md is stale; run npm run build:parser-inventory');
+      throw new Error('docs/parser-inventory.md is stale; run pnpm run build:parser-inventory');
     }
     console.log(`Parser inventory is current (${Object.keys(registry.parsers).length} rows, ${targets.length} fuzz targets).`);
     return;

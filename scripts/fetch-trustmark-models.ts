@@ -8,7 +8,7 @@
  * plans/31-watermark-detectors.md for the plan behind it).
  *
  * ANDY-RUN ONLY. This script needs network access and is never invoked by
- * `npm install`/`postinstall`/CI - the decoder models are ~45 MB each, not
+ * `pnpm install`/`postinstall`/CI - the decoder models are ~45 MB each, not
  * something every clone/deploy should pay for, and the whole point of the
  * feature is that they load lazily, once, only if someone clicks
  * "Deep scan for watermarks". Nothing in this repo's automated pipeline
@@ -51,10 +51,10 @@
  *
  * ── ALSO REQUIRED: onnxruntime-web's own WASM runtime ────────────────────
  * This script only fetches the TrustMark models. onnxruntime-web (in
- * shells/web/package.json's dependencies - run `npm install` first) ships its
+ * shells/web/package.json's dependencies - run `pnpm install` first) ships its
  * own WASM binaries that shells/web/src/lib/trustmark.ts points at via
  * `ort.env.wasm.wasmPaths = '/ort/'` (same-origin, never a CDN - see that
- * file). After `npm install`, copy them into place once:
+ * file). After `pnpm install`, copy them into place once:
  *
  *   mkdir -p shells/web/public/ort
  *   cp node_modules/onnxruntime-web/dist/*.wasm shells/web/public/ort/
@@ -67,8 +67,8 @@
  * needs confirming against whatever actually lands in node_modules.
  *
  * ── Browser verification checklist (still UNVERIFIED - no browser here) ───
- *   1. npm install; run the two /ort/ copy steps above; run this script.
- *   2. npm run dev:web, open /#/valid, drop a real TrustMark-watermarked image
+ *   1. pnpm install; run the two /ort/ copy steps above; run this script.
+ *   2. pnpm run dev:web, open /#/valid, drop a real TrustMark-watermarked image
  *      (github.com/adobe/trustmark's images/ directory has samples) and click
  *      "Deep scan for watermarks". Turn on diagnostics first in DevTools:
  *      `localStorage.setItem('lolly:trustmark:debug','1')` - you'll see the
@@ -141,7 +141,7 @@ async function main(): Promise<void> {
   process.stdout.write(
     '\nDone. These files are gitignored (shells/web/.gitignore) - never commit them.\n' +
     'Next: complete the onnxruntime-web /ort/ copy steps in this script\'s header, then\n' +
-    'npm run dev:web and test /#/valid\'s "Deep scan for watermarks" against a real\n' +
+    'pnpm run dev:web and test /#/valid\'s "Deep scan for watermarks" against a real\n' +
     'TrustMark-watermarked image (enable localStorage lolly:trustmark:debug=1 to trace).\n',
   );
 }

@@ -615,7 +615,7 @@ async function ensureBrowser(): Promise<void> {
 async function buildWebShell(): Promise<void> {
   console.log('Building the web shell (vite build)…');
   await new Promise<void>((ok, fail) => {
-    const p = spawn('npm', ['--workspace', 'shells/web', 'run', 'build'], { cwd: ROOT, stdio: 'inherit' });
+    const p = spawn('pnpm', ['--filter', './shells/web', 'run', 'build'], { cwd: ROOT, stdio: 'inherit' });
     p.on('close', c => (c === 0 ? ok() : fail(new Error(`vite build exited ${c}`))));
     p.on('error', fail);
   });

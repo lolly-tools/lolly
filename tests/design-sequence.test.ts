@@ -3,7 +3,7 @@
  * Design - a timed single-artboard model stamps the [data-sequence] stage marker
  * + per-box data-t-* attrs (M1-a: Design exports video from its timeline).
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
+ * Run with: pnpm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * Loads the REAL tool from disk (public community pack, always present in a
  * public checkout - brands/suse is a private, CI-skipped submodule) and drives it through the

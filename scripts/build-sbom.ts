@@ -3,26 +3,25 @@
 /**
  * Software Bill of Materials (SBOM) generator.
  *
- * Run as: npm run build:sbom  (or directly: node scripts/build-sbom.ts)
+ * Run as: pnpm run build:sbom  (or directly: node scripts/build-sbom.ts)
  *
  * Emits a CycloneDX 1.5 SBOM at `sbom.cdx.json` describing every third-party npm
  * package in the workspace dependency graph, plus the vendored browser libraries
  * (d3, Observable Plot, topojson-client), the SUSE OFL fonts, and - when present - the Tauri shells'
- * own npm installs and their Rust crate graph (Cargo.lock). This is the
+ * own pnpm installs and their Rust crate graph (Cargo.lock). This is the
  * supply-chain-transparency
  * half of the sovereignty story (see SOVEREIGNTY.md): it lets anyone audit exactly
  * what code the build pulls in, with a verifiable SRI hash per component, without
  * trusting our word for it.
  *
  * Design notes:
- *   - Self-contained on purpose. Generating an SBOM with a heavyweight external
- *     tool would itself add an opaque dependency - the opposite of the point. We
- *     read the npm lockfile (the install's own source of truth) and nothing else.
- *     No network, no new dependency.
- *   - Source of truth is the root `package-lock.json` (lockfileVersion 3). Its
- *     per-package `integrity` (SRI) and `license` fields become CycloneDX hashes
- *     and licenses verbatim - we don't re-derive them, so the SBOM can't disagree
- *     with what npm actually installed.
+ *   - Reads pnpm-lock.yaml and the committed exact-version license cache in
+ *     security/npm-licenses.json. Generation is offline and deterministic;
+ *     `pnpm run update:npm-licenses` refreshes registry metadata separately.
+ *   - Source of truth is the root `pnpm-lock.yaml` (lockfileVersion 9). Its
+ *     per-package `integrity` (SRI) and cached registry licenses become CycloneDX
+ *     hashes and licenses verbatim - we don't re-derive them, so the SBOM can't disagree
+ *     with what pnpm actually installed.
  *   - Output is DETERMINISTIC: components sorted by purl, the serialNumber derived
  *     from a content hash, and the timestamp held stable while the dependency set
  *     is unchanged. So `git diff` on sbom.cdx.json is empty unless dependencies
@@ -37,7 +36,7 @@
  *     can't see: vendored `.min.js` bundles (hashed from disk), the OFL fonts, the
  *     Tauri shells' sibling lockfiles, and Cargo.lock crates (pkg:cargo). Cargo.lock
  *     itself carries no license data, so crate licenses come from the committed
- *     `cargo-licenses.json` map (regenerate with `npm run build:cargo-licenses`);
+ *     `cargo-licenses.json` map (regenerate with `pnpm run build:cargo-licenses`);
  *     a crate absent from the map stays `unknown`. Every pass is existence-guarded,
  *     so the generator still runs end-to-end on a checkout that has only the
  *     web/CLI shells, and a component that still ends up with no license is warned
@@ -48,6 +47,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readPnpmLock } from './lib/pnpm-lock.ts';
 
 // ─── CycloneDX component shapes (partial - only the fields this tool emits) ───
 interface Hash {
@@ -84,7 +84,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_PATH = join(ROOT, 'sbom.cdx.json');
 
 const rootPkg = readJson('package.json');
-const lock = readJson('package-lock.json');
+const lock = readPnpmLock(ROOT);
 
 // ─── SRI integrity → CycloneDX hashes ───────────────────────────────────────
 // Lockfile integrity is base64 SRI ("sha512-<base64>"); CycloneDX wants the
@@ -171,7 +171,7 @@ for (const [path, entry] of Object.entries(lock.packages ?? {}) as [string, any]
   byPurl.set(purl, component);
 }
 
-// ─── Vendored libraries (checked into the tree, not via npm install) ─────────
+// ─── Vendored libraries (checked into the tree, not via pnpm install) ─────────
 // d3 / Observable Plot / topojson-client ship as pre-minified bundles under the community pack's
 // */lib and never appear in the lockfile. We pin the version read from each
 // file's banner-comment provenance, the license from the project's license audit
@@ -279,7 +279,7 @@ for (const lib of VENDORED_LIBS) {
   }
 }
 
-// ─── Tauri shells: separate npm installs with their own lockfiles ────────────
+// ─── Tauri shells: separate pnpm installs with their own lockfiles ────────────
 addNpmShellDeps('shells/tauri-desktop');
 addNpmShellDeps('shells/tauri-mobile');
 
@@ -455,7 +455,7 @@ function licensesFromLegacy(list: any[]): LicenseChoice[] | undefined {
 function addNpmShellDeps(shellDir: string): void {
   const pkg = readJsonOptional(join(shellDir, 'package.json'));
   if (!pkg) return;
-  const shellLock = readJsonOptional(join(shellDir, 'package-lock.json'));
+  const shellLock = existsSync(join(ROOT, shellDir, 'pnpm-lock.yaml')) ? readPnpmLock(ROOT, join(shellDir, 'pnpm-lock.yaml')) : null;
   const dev = new Set(Object.keys(pkg.devDependencies ?? {}));
   const declared = { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) };
   for (const [name, range] of Object.entries(declared) as [string, any][]) {
@@ -476,7 +476,7 @@ function addNpmShellDeps(shellDir: string): void {
     };
     const licenses = licensesFromString(locked?.license);
     if (licenses) component.licenses = licenses;
-    const hashes = hashesFromIntegrity(locked?.integrity);
+    const hashes = hashesFromIntegrity(locked?.integrity ?? '');
     if (hashes) component.hashes = hashes;
     if (locked?.resolved) {
       component.externalReferences = [{ type: 'distribution', url: locked.resolved }];

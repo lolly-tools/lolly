@@ -5,7 +5,7 @@
  * Loads the REAL tool from disk and drives it through the engine, so this guards the actual
  * render + the security posture (mirrors tests/deck-builder-style.test.ts).
  *
- * Run with: npm test  (node --test over the tests/ globs).
+ * Run with: pnpm test  (node --test over the tests/ globs).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

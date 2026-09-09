@@ -1175,7 +1175,7 @@ function tokenLeaves(node: unknown, prefix = ''): Array<[string, Record<string, 
 
 test('penpotTokensJson: the shipped brand doc is filtered to what Penpot reads', (t) => {
   if (!existsSync(BRAND_TOKENS)) {
-    t.skip(`no ${BRAND_TOKENS} on disk (the catalog view is per profile - run npm run profile:start)`);
+    t.skip(`no ${BRAND_TOKENS} on disk (the catalog view is per profile - run pnpm run profile:start)`);
     return;
   }
   const brand = JSON.parse(readFileSync(BRAND_TOKENS, 'utf8'));
@@ -1227,7 +1227,7 @@ test('penpotTokensJson: the shipped brand doc is filtered to what Penpot reads',
 
 test('penpotTokensJson: the brand doc survives a write → extractPenpotProject → createTokenSet round trip', (t) => {
   if (!existsSync(BRAND_TOKENS)) {
-    t.skip(`no ${BRAND_TOKENS} on disk (the catalog view is per profile - run npm run profile:start)`);
+    t.skip(`no ${BRAND_TOKENS} on disk (the catalog view is per profile - run pnpm run profile:start)`);
     return;
   }
   const brand = JSON.parse(readFileSync(BRAND_TOKENS, 'utf8'));

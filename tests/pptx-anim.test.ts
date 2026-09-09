@@ -2,7 +2,7 @@
 /**
  * PPTX native animation (plans/175 WP-E) - the `<p:timing>` emitter.
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
+ * Run with: pnpm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * What has to hold:
  *   - A slide with no `anim` emits NO timing element at all - every deck built before

@@ -149,7 +149,7 @@ async function run(args: Args): Promise<void> {
   const keyId = await jwkThumbprint(pubJwk);
 
   if (!existsSync(args.indexPath)) {
-    console.error(`✗ tool index not found: ${args.indexPath} - run npm run build:catalog first`);
+    console.error(`✗ tool index not found: ${args.indexPath} - run pnpm run build:catalog first`);
     process.exit(1);
   }
   const indexBytes = readFileSync(args.indexPath);

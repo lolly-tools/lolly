@@ -1,7 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "pnpm install --frozen-lockfile",
   "git": { "deploymentEnabled": true },
-  "buildCommand": "npm run build:web:release && npm run build:mcp-fn && npm run build:ca-fn && npm run build:penpot-fn",
+  "buildCommand": "pnpm run build:web:release && pnpm run build:mcp-fn && pnpm run build:ca-fn && pnpm run build:penpot-fn",
   "outputDirectory": "shells/web/dist",
   "functions": {
     "api/mcp/**": {

@@ -16,7 +16,7 @@
  *
  * Build-machine only: needs Chromium and a built `shells/web/dist`.
  *
- *   npm --workspace shells/web run build
+ *   pnpm --filter ./shells/web run build
  *   node scripts/probe-tool-paint-order.ts
  *   node scripts/probe-tool-paint-order.ts --baseline=shells/web/src/bridge/old-export.ts
  *   node scripts/probe-tool-paint-order.ts --limit=8 --only=qr-code,wordmark
@@ -50,7 +50,7 @@ for (const a of process.argv.slice(2)) {
 mkdirSync(opts.out, { recursive: true });
 
 if (!existsSync(join(DIST, 'index.html'))) {
-  throw new Error(`No build at shells/web/dist - run: npm --workspace shells/web run build`);
+  throw new Error(`No build at shells/web/dist - run: pnpm --filter ./shells/web run build`);
 }
 if (opts.baseline && dirname(opts.baseline) !== BRIDGE) {
   throw new Error(`--baseline must live in ${BRIDGE} so its relative imports resolve`);
@@ -74,7 +74,7 @@ async function bundleWalker(modulePath: string, name: string): Promise<string> {
 /** Tool ids from the active profile's generated catalog index. */
 function toolIds(): string[] {
   const idx = join(ROOT, 'catalog', 'tools', 'index.json');
-  if (!existsSync(idx)) throw new Error('catalog/tools/index.json missing - run `npm run profile` first');
+  if (!existsSync(idx)) throw new Error('catalog/tools/index.json missing - run `pnpm run profile` first');
   const json = JSON.parse(readFileSync(idx, 'utf8')) as { tools?: { id: string }[] } | { id: string }[];
   const list = Array.isArray(json) ? json : (json.tools ?? []);
   let ids = list.map(t => t.id);

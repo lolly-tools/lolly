@@ -10,7 +10,7 @@
  * KB of CSS (not the ~2 MB an equivalent APNG would weigh), shown in a sandboxed <iframe>
  * that animates natively and pauses off-screen. The catalog index honours it as the
  * preview (build-catalog-index.ts) and the gallery/picker render `.html` previews in an
- * iframe. Run `npm run build:catalog` after.
+ * iframe. Run `pnpm run build:catalog` after.
  *
  * The HTML comes from the tool's REAL `html` export via the CLI shell (jsdom + engine +
  * hooks - deterministic, NO browser), so it's byte-faithful to the tool's own output. The
@@ -19,7 +19,7 @@
  * fonts) + full-bleed sizing so the responsive (container-query) banner fills the frame.
  *
  *   node scripts/build-html-card.ts <toolId> [<toolId> ...]
- *   npm run cards:html digi-ad
+ *   pnpm run cards:html digi-ad
  */
 import { spawnSync } from 'node:child_process';
 import { writeFileSync, existsSync, readFileSync } from 'node:fs';

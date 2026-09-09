@@ -2,7 +2,7 @@
 /**
  * Design - hand-authored frames render as per-frame [data-pdf-page] (plan 93 F1a-part-2).
  *
- * Run with: npm test  (node --test over the tests/ globs). No framework - node:test.
+ * Run with: pnpm test  (node --test over the tests/ globs). No framework - node:test.
  *
  * Loads the REAL tool from disk and drives it through the engine with a stub host, so
  * these guard the tool's actual render. Design ships in two packs - the private

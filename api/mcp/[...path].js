@@ -6793,7 +6793,7 @@ var init_file_v1 = __esm({
 });
 
 // packages/core/src/file-operation-v1.ts
-import Ajv2 from "ajv";
+import { Ajv as Ajv2 } from "ajv";
 function assertFileOperationRequest(value) {
   if (!requestValidator(value)) throw new Error(`Invalid file operation: ${ajv2.errorsText(requestValidator.errors)}`);
 }
@@ -63035,7 +63035,7 @@ async function getBrowser() {
         const msg2 = err.message || "";
         if (/executable doesn't exist|Executable doesn't exist|please run|not been downloaded/i.test(msg2)) {
           throw new BrowserError(
-            "Raster/PDF/video export needs a headless browser. Run `lolly install-browser` (or `npm run install:browser` in shells/cli - downloads Chromium once, ~150 MB), or set LOLLY_BROWSER_CHANNEL=chrome to use an already-installed Chrome/Edge with no download. (svg and data formats need no browser.)"
+            "Raster/PDF/video export needs a headless browser. Run `lolly install-browser` (or `pnpm run install:browser` in shells/cli - downloads Chromium once, ~150 MB), or set LOLLY_BROWSER_CHANNEL=chrome to use an already-installed Chrome/Edge with no download. (svg and data formats need no browser.)"
           );
         }
         throw err;
@@ -67676,7 +67676,7 @@ async function getBrowser2() {
         if (/executable doesn't exist|Executable doesn't exist|please run/i.test(msg2)) {
           const hosted = !!process.env.VERCEL || process.env.LOLLY_MCP_HOSTED === "1";
           throw new RenderError(
-            hosted ? `This format needs the browser render tier, which isn't enabled on this hosted endpoint. What renders here: vector formats (svg, eps, emf), the data formats (html, md, json, csv, ics, vcf), and png for SVG-native tools. Try svg - it works for every tool - or png for a simple vector tool (e.g. qr-code).` : `Chromium is not installed for the Tier-B render path. Run \`npm run install:browser\` (downloads Chromium into services/mcp/.browsers), or point LOLLY_BROWSER_CHANNEL / LOLLY_BROWSER_PATH at an existing browser.`
+            hosted ? `This format needs the browser render tier, which isn't enabled on this hosted endpoint. What renders here: vector formats (svg, eps, emf), the data formats (html, md, json, csv, ics, vcf), and png for SVG-native tools. Try svg - it works for every tool - or png for a simple vector tool (e.g. qr-code).` : `Chromium is not installed for the Tier-B render path. Run \`pnpm run install:browser\` (downloads Chromium into services/mcp/.browsers), or point LOLLY_BROWSER_CHANNEL / LOLLY_BROWSER_PATH at an existing browser.`
           );
         }
         throw err;

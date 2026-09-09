@@ -295,7 +295,7 @@ export function compare(
       metric.largestFunctionLines < previous.largestFunctionLines ||
       metric.typeEscapes < previous.typeEscapes
     ) {
-      errors.push(`${filename}: budget improved; run npm run maintainability:baseline to ratchet it down`);
+      errors.push(`${filename}: budget improved; run pnpm run maintainability:baseline to ratchet it down`);
     }
   }
 
@@ -306,7 +306,7 @@ export function compare(
   // improvement.
   for (const filename of Object.keys(baseline.modules)) {
     if (!current.modules[filename]) {
-      errors.push(`${filename}: budget entry disappeared; run npm run maintainability:baseline to ratchet it down`);
+      errors.push(`${filename}: budget entry disappeared; run pnpm run maintainability:baseline to ratchet it down`);
     }
   }
 
@@ -320,18 +320,18 @@ export function compare(
     if (!knownEdges.has(edge)) errors.push(`new upward import: ${edge} - lib/bridge/components must not import from views/; move the shared piece down`);
   }
   for (const edge of knownEdges) {
-    if (!(current.layerViolations ?? []).includes(edge)) errors.push(`upward import ${edge} is gone; run npm run maintainability:baseline to ratchet it down`);
+    if (!(current.layerViolations ?? []).includes(edge)) errors.push(`upward import ${edge} is gone; run pnpm run maintainability:baseline to ratchet it down`);
   }
   // type escapes, every module: only ever down
   if (baseline.typeEscapes) {
     for (const [filename, count] of Object.entries(current.typeEscapes ?? {})) {
       const previous = baseline.typeEscapes[filename];
-      if (previous === undefined) errors.push(`${filename}: new module carries ${count} type escape(s) (any / as unknown as / ts-ignore); write it clean, or add it deliberately with npm run maintainability:baseline`);
+      if (previous === undefined) errors.push(`${filename}: new module carries ${count} type escape(s) (any / as unknown as / ts-ignore); write it clean, or add it deliberately with pnpm run maintainability:baseline`);
       else if (count > previous) errors.push(`${filename}: type escapes grew ${previous} -> ${count}`);
-      else if (count < previous) errors.push(`${filename}: type escapes fell ${previous} -> ${count}; run npm run maintainability:baseline to ratchet it down`);
+      else if (count < previous) errors.push(`${filename}: type escapes fell ${previous} -> ${count}; run pnpm run maintainability:baseline to ratchet it down`);
     }
     for (const [filename, previous] of Object.entries(baseline.typeEscapes)) {
-      if (!(filename in (current.typeEscapes ?? {}))) errors.push(`${filename}: its ${previous} type escape(s) are gone; run npm run maintainability:baseline to ratchet it down`);
+      if (!(filename in (current.typeEscapes ?? {}))) errors.push(`${filename}: its ${previous} type escape(s) are gone; run pnpm run maintainability:baseline to ratchet it down`);
     }
   }
   return { errors, warnings };

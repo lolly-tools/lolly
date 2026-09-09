@@ -8,7 +8,7 @@
  * --refresh-pins shape.
  *
  * ANDY-RUN ONLY. Network access, tens of MB per file; never invoked
- * by npm install / postinstall / CI.
+ * by pnpm install / postinstall / CI.
  *
  * Usage:
  *   node scripts/fetch-matte-models.ts                 # every file with a real pin

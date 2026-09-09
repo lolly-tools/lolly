@@ -6,7 +6,7 @@
  * that the direct-manipulation overlay commits back to a flat `blocks` array - 
  * the parts most likely to silently drift a layout.
  *
- * Run with: npm test
+ * Run with: pnpm test
  */
 
 import { test } from 'node:test';

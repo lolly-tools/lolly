@@ -10,8 +10,8 @@
  * patterns arranged into a longer sequence; low BPM stretches patterns so length
  * costs almost no data). Composition helpers live in engine/src/zzfx-compose.ts.
  *
- * Run:  node scripts/gen-music.ts   then `npm run build:catalog` (fills
- * checksums/sizes) and `npm run validate:catalog`.
+ * Run:  node scripts/gen-music.ts   then `pnpm run build:catalog` (fills
+ * checksums/sizes) and `pnpm run validate:catalog`.
  *
  * NOTE: rendering here only checks the audio is present, in-range and the right
  * length - it can't judge taste. Audition in the app.
@@ -164,4 +164,4 @@ writeFileSync(INDEX_PATH, JSON.stringify(index, null, 2) + '\n');
 
 console.log(`\n${anyBad ? '⚠ some tracks out of range - check flags above' : '✓'} Generated ${newEntries.length} ZzFXM tracks → ${SONGS_DIR}`);
 console.log('  Checksums/sizes are self-filled; no build:catalog needed for the songs.');
-console.log('  To hear them: npm run profile:start && npm run dev:web (they live in the lolly-start brand).');
+console.log('  To hear them: pnpm run profile:start && pnpm run dev:web (they live in the lolly-start brand).');

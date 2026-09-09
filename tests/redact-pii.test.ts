@@ -6,7 +6,7 @@
  * compiles it (`new Function('host', …)`), so these run the shipped code:
  *
  *   · the personal-data classifiers, which live in community/_shared/pii.js and
- *     are copied into the hook by `npm run sync:shared` - hits, misses, and the
+ *     are copied into the hook by `pnpm run sync:shared` - hits, misses, and the
  *     two false-positive guards that matter on a technical document (a version
  *     string and a bare year are digit runs, not phone numbers);
  *   · the mapping from an OcrResult to proposed regions - the working-size

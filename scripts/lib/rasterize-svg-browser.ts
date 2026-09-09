@@ -73,8 +73,8 @@ export async function createSvgRasterizer(repoRoot: string): Promise<SvgRasteriz
     ({ chromium } = await import('playwright'));
   } catch {
     throw new Error(
-      'playwright is not installed (devDependency). Run `npm install`, then ' +
-        '`npx playwright install chromium` to fetch the browser.',
+      'playwright is not installed (devDependency). Run `pnpm install`, then ' +
+        '`pnpm exec playwright install chromium` to fetch the browser.',
     );
   }
 

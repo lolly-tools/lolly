@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Shared operation boundary. Executors own codecs and storage; this owns receipts. */
-import Ajv from 'ajv';
+import { Ajv } from 'ajv';
 import { FILE_CONTRACT_VERSION, type FileFactsV1, type FileOperationFindingV1, type FileOperationReportV1 } from './file-v1.ts';
 
 export interface FileOperationRequestV1 {

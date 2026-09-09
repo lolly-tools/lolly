@@ -14,7 +14,7 @@
  *     nothing in the source tree looks wrong.
  *
  * So this checks both ends - the markers authors write, and the HTML that
- * actually ships. Failure (2) means: run `npm run build:info` and commit.
+ * actually ships. Failure (2) means: run `pnpm run build:info` and commit.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -62,7 +62,7 @@ test('every provenance marker in docs/*.md closes its brace', () => {
 // ── The shipped artifact ─────────────────────────────────────────────────────
 // shells/web/public/info/ is committed, so these assert what READERS get, not
 // what the source could produce. A failure here means the build output on disk
-// is older than docs/ - rebuild with `npm run build:info`.
+// is older than docs/ - rebuild with `pnpm run build:info`.
 
 // English pages live behind door directories (plans/177 P1); the flat root now
 // holds the landing, the redirect stubs and the generated side-door folders.
@@ -96,7 +96,7 @@ test('no built page ships an unrendered provenance marker', { skip: builtPages.l
     const m = new RegExp(`%(${KINDS.join('|')})\\{`).exec(html);
     if (m) leaked.push(`${f}: ${m[0]}`);
   }
-  assert.deepEqual(leaked, [], 'stale or unrendered markup shipped - run `npm run build:info`');
+  assert.deepEqual(leaked, [], 'stale or unrendered markup shipped - run `pnpm run build:info`');
 });
 
 test('a page whose source uses pills ships them as rendered spans', { skip: builtPages.length ? false : 'no built /info on disk' }, () => {

@@ -13,7 +13,7 @@
  *     fallback / no function) and NOT 500 (crash at import/handler time).
  *   - GET  /api/ca/health → JSON body ({"ok":true...}), NOT HTML (SPA fallback).
  *
- * Usage: `npm run check:mcp` or `node scripts/check-mcp-live.ts --base=<url>`
+ * Usage: `pnpm run check:mcp` or `node scripts/check-mcp-live.ts --base=<url>`
  * to point at a preview deployment instead of production.
  */
 

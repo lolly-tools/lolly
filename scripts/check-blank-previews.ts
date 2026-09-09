@@ -250,7 +250,7 @@ async function run(): Promise<void> {
   try {
     files = readdirSync(PREVIEWS_DIR).filter((f) => /\.(svg|png|webp|jpg|jpeg|avif)$/i.test(f));
   } catch {
-    console.log('· No catalog/previews/ dir yet (run `npm run previews` first) - nothing to measure.');
+    console.log('· No catalog/previews/ dir yet (run `pnpm run previews` first) - nothing to measure.');
     return;
   }
   if (opts.only.length) {

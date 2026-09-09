@@ -5,7 +5,7 @@
 # Helm recipes and mirrored to github.com/lolly-tools/lolly_ynh at release time.
 #
 # The three fields below that change per release (version, sources.main.url,
-# sources.main.sha256) are written by `npm run release:yunohost`, which builds the
+# sources.main.sha256) are written by `pnpm run release:yunohost`, which builds the
 # web tarball this manifest points at. Do not hand-edit them.
 
 packaging_format = 2

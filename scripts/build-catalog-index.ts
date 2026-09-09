@@ -3,7 +3,7 @@
 /**
  * Catalog tool-index generator.
  *
- * Run as: npm run build:catalog  (or directly: node scripts/build-catalog-index.ts)
+ * Run as: pnpm run build:catalog  (or directly: node scripts/build-catalog-index.ts)
  *
  * The tool manifests (`tools/<id>/tool.json`) are the single source of truth.
  * `catalog/tools/index.json` is a denormalised registry the shell fetches at
@@ -126,7 +126,7 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   //      HTML - shown in a sandboxed <iframe>), card.svg (vector), or card.png.
   //   2. Otherwise a BUILD-GENERATED preview at /catalog/previews/<id>.<ext>, where
   //      ext is svg for tools that export vector (svg in formats), else png - the same
-  //      choice captureThumbnail makes. Produced by `npm run previews`
+  //      choice captureThumbnail makes. Produced by `pnpm run previews`
   //      (scripts/build-previews.ts) into the git-ignored catalog/previews/ dir, so it
   //      need not be committed. The path is derived DETERMINISTICALLY here (not from
   //      disk), so regenerating previews never churns the index; the gallery falls back

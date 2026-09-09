@@ -8,7 +8,7 @@
  * the .md and still ship as literal text from an /info built before the renderer
  * existed, and nothing in the source tree looks wrong when that happens. If the
  * built assertions here fail and the source ones pass, the answer is always
- * `npm run build:info` (the built HTML is gitignored in shells/web, so it is only
+ * `pnpm run build:info` (the built HTML is gitignored in shells/web, so it is only
  * ever as fresh as the last build on this machine - hence the skip guard below).
  *
  * A marker is an HTML comment, which means a typo'd key is INVISIBLE rather than
@@ -108,7 +108,7 @@ function bodyOf(html: string): string {
 }
 
 // The built site is gitignored in shells/web, so a fresh clone has none of it until
-// `npm run build:info` runs. Skip rather than fail there - same contract as
+// `pnpm run build:info` runs. Skip rather than fail there - same contract as
 // tests/docs-provenance-pills.test.ts. When the artifact IS present it is asserted in
 // full, which is what catches an /info older than docs/.
 // The shared chrome CSS/JS ship as fingerprinted files linked per page (plan 131 B.1),
@@ -123,10 +123,10 @@ const linked = (html: string, ext: 'css' | 'js'): string => {
 // must be present (a concurrent build can momentarily leave a page pointing at a file
 // its own next write has not laid down yet).
 const built = (() => {
-  if (!existsSync(join(BUILT, 'build-guide.html'))) return 'no built /info on disk - run `npm run build:info`';
+  if (!existsSync(join(BUILT, 'build-guide.html'))) return 'no built /info on disk - run `pnpm run build:info`';
   const g = readFileSync(join(BUILT, 'build-guide.html'), 'utf-8');
   try { linked(g, 'css'); linked(g, 'js'); }
-  catch { return 'built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`'; }
+  catch { return 'built /info is mid-rebuild (linked chrome file absent) - rerun `pnpm run build:info`'; }
   return false;
 })();
 

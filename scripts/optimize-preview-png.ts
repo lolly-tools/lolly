@@ -3,10 +3,10 @@
 /**
  * Preview-PNG downscaler.
  *
- * Run as: npm run optimize:preview-png   (a post-step after `npm run previews`, like
+ * Run as: pnpm run optimize:preview-png   (a post-step after `pnpm run previews`, like
  * optimize:previews does for the SVG previews)
  *
- * `npm run previews` (build-previews.ts) rasterises expensive tool previews to PNG at
+ * `pnpm run previews` (build-previews.ts) rasterises expensive tool previews to PNG at
  * full render resolution - up to 3200×2000, 1.4 MB each. They're shown as gallery tile /
  * featured-row previews at ~300–600 CSS px, so they're 4–8× oversized in each dimension.
  * This downscales them to a retina-safe cap and re-encodes at max PNG compression, in
@@ -39,7 +39,7 @@ async function run(): Promise<void> {
   try {
     files = readdirSync(PREVIEWS_DIR).filter((f) => f.toLowerCase().endsWith('.png'));
   } catch {
-    console.log('· No catalog/previews/ dir yet (run `npm run previews` first) - nothing to do.');
+    console.log('· No catalog/previews/ dir yet (run `pnpm run previews` first) - nothing to do.');
     return;
   }
 

@@ -2,7 +2,7 @@
 /**
  * Deck Studio - the layout-gallery deck model (engine 1.135 layouts).
  *
- * Run with: npm test (node --test over the tests/ globs). No framework - node:test.
+ * Run with: pnpm test (node --test over the tests/ globs). No framework - node:test.
  *
  * Every export carries `layouts` - the 20-entry branded gallery (10 Google-canonical
  * archetypes × light/dark) whose furniture geometry comes from the SUSE brand

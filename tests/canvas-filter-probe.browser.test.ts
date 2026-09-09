@@ -16,7 +16,7 @@
  * claim. The measured matrix is logged either way.
  *
  * GATING follows `sequence-render.browser.test.ts`: no browser installed -> the whole
- * suite skips naming the install command, so `npm test` stays green on a bare machine.
+ * suite skips naming the install command, so `pnpm test` stays green on a bare machine.
  */
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';

@@ -8,7 +8,7 @@
  * transformers.js (`env.localModelPath = '/models/'`, remote models disabled).
  *
  * ANDY-RUN ONLY. Like scripts/fetch-kokoro-models.ts, this needs network
- * access and is never invoked by `npm install`/`postinstall`/CI - the model is
+ * access and is never invoked by `pnpm install`/`postinstall`/CI - the model is
  * ~77 MB, not something every clone/deploy should pay for, and
  * host.speech.transcribe loads it lazily, once, only when someone actually
  * asks for a transcript.
@@ -39,7 +39,7 @@
  * upgrade, run with --refresh-pins and paste the printed lines over PINS.
  *
  * ── ALSO REQUIRED: transformers.js's pinned onnxruntime-web runtime ───────
- * Same as Kokoro: after `npm install`, `npm run build:ort` (or
+ * Same as Kokoro: after `pnpm install`, `pnpm run build:ort` (or
  * `node scripts/copy-transformers-ort.ts`) stages the pinned onnxruntime-web
  * build at shells/web/public/ort-hf/<version>/.
  */
@@ -142,7 +142,7 @@ async function main(): Promise<void> {
   for (const f of MODEL_FILES) await fetchFile(f);
   process.stdout.write(
     '\nDone. These files are gitignored (shells/web/.gitignore) - never commit them.\n' +
-    'Next: `npm run build:ort` to stage the pinned onnxruntime-web runtime at /ort-hf/<version>/,\n' +
+    'Next: `pnpm run build:ort` to stage the pinned onnxruntime-web runtime at /ort-hf/<version>/,\n' +
     'then a tool calling host.speech.transcribe() will load the model from /models/whisper/.\n',
   );
 }

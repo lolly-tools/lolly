@@ -6,7 +6,7 @@
  * The checked-in packages/core/package.json points `exports` at ./src/*.ts,
  * because every in-repo consumer (engine, packages/node-shell, shells/*) imports
  * the SOURCE - Node type-strips it, Vite bundles it, and editing a src file is
- * visible to `npm test` with no build step. That layout cannot be published:
+ * visible to `pnpm test` with no build step. That layout cannot be published:
  * Node refuses type-stripping for anything under node_modules, so a raw-.ts
  * tarball installs but will not run.
  *
@@ -30,7 +30,7 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { copyFileSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -154,7 +154,7 @@ copyFileSync(join(REPO, 'LICENSE'), join(PKG, 'LICENSE'));
 
 // ── 3. pack ──────────────────────────────────────────────────────────────────
 // npm pack prints the produced filename on its last stdout line.
-const tgzName = run('npm', ['pack', '--pack-destination', OUT], PKG).trim().split('\n').pop() as string;
+const tgzName = basename((JSON.parse(run('pnpm', ['pack', '--json', '--pack-destination', OUT], PKG)) as { filename: string }).filename);
 const tgz = join(OUT, tgzName);
 
 writeFileSync(

@@ -43,9 +43,9 @@ const linked = (html: string, ext: 'css' | 'js'): string => {
 // fingerprinted chrome files must be present (a concurrent build can momentarily leave a
 // page pointing at a file its own next write has not laid down yet).
 const built = (() => {
-  if (!existsSync(join(BUILT, 'build-guide.html'))) return 'no built /info on disk - run `npm run build:info`';
+  if (!existsSync(join(BUILT, 'build-guide.html'))) return 'no built /info on disk - run `pnpm run build:info`';
   try { linked(page('build-guide.html'), 'css'); linked(page('build-guide.html'), 'js'); }
-  catch { return 'built /info is mid-rebuild (linked chrome file absent) - rerun `npm run build:info`'; }
+  catch { return 'built /info is mid-rebuild (linked chrome file absent) - rerun `pnpm run build:info`'; }
   return false;
 })();
 

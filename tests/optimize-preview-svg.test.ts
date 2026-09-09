@@ -5,7 +5,7 @@
  *
  * These cover the string half (comment strip + embedded-raster find/replace); the
  * pixel downscaling lives in scripts/build-previews.ts behind a real browser canvas
- * and is exercised by `npm run previews`.
+ * and is exercised by `pnpm run previews`.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

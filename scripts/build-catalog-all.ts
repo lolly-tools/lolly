@@ -37,7 +37,7 @@ const STATE_FILE = join(ROOT, '.lolly-profile');
 interface Profile { label?: string; tools: string[]; catalog: string }
 interface ProfilesFile { default: string; profiles: Record<string, Profile> }
 
-/** The per-profile catalog pipeline, exactly what `npm run build:catalog` runs. */
+/** The per-profile catalog pipeline, exactly what `pnpm run build:catalog` runs. */
 const BUILD = ['build-catalog-index.ts', 'checksum-assets.ts', 'build-preview-bundle.ts'];
 
 function run(script: string, args: string[] = []): string {
@@ -95,7 +95,7 @@ function main(): void {
       console.log(`\n↩ restoring active profile "${original}"`);
       // Best-effort: a restore that throws must not mask the real error from the loop.
       try { run('use-profile.ts', [original]); }
-      catch { console.error(`⚠ could not restore profile "${original}" - run \`npm run profile:${original}\``); }
+      catch { console.error(`⚠ could not restore profile "${original}" - run \`pnpm run profile:${original}\``); }
     }
   }
 

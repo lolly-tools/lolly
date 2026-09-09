@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * transcript-edit - the pure maths behind transcript-driven editing
- * (plans/174-transcript-driven-editing.md). Run with: npm test.
+ * (plans/174-transcript-driven-editing.md). Run with: pnpm test.
  *
  * Every edit here DELEGATES to the real timeline-math primitives (splitBox,
  * removeAndRipple), so these tests double as a contract check that the

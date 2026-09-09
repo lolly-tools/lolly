@@ -18,7 +18,7 @@
  *   7 truncation         a half-file is caught, not silently exported short
  *   8 still contract     a png is the playhead frame, off-playhead boxes absent
  *
- * GATING (the reason this file can be in `npm test` at all):
+ * GATING (the reason this file can be in `pnpm test` at all):
  *   • no browser installed  -> the whole suite skips with the install command in the
  *     message, exactly like the `c2patool` conformance suite does for its binary;
  *   • Playwright's BUNDLED Chromium has no guaranteed proprietary codecs, so every

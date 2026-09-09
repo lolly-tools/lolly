@@ -3,7 +3,7 @@
 /**
  * Motion probe (plans/155 Task 5.1) - which tools have content that GENUINELY animates.
  *
- * Run as: npm run previews:motion-probe -- --url=http://localhost:5199 [--only=id1,id2]
+ * Run as: pnpm run previews:motion-probe --url=http://localhost:5199 [--only=id1,id2]
  * (needs a running web shell, same as the other capture scripts).
  *
  * Scope: the tool's DEFAULT state, which is the state build-previews.ts captures a card
@@ -481,7 +481,7 @@ async function loadPlaywright(): Promise<typeof import('playwright')> {
   try {
     return await import('playwright');
   } catch {
-    throw new Error('playwright is not installed. Run `npm install`, then `npx playwright install chromium`.');
+    throw new Error('playwright is not installed. Run `pnpm install`, then `pnpm exec playwright install chromium`.');
   }
 }
 
@@ -496,5 +496,5 @@ async function waitForServer(baseUrl: string, { tries = 30, delayMs = 1000 } = {
     if (ok) return;
     await new Promise((r) => setTimeout(r as () => void, delayMs));
   }
-  throw new Error(`No web shell reachable at ${baseUrl}. Start one with \`npm run dev:web\` or pass --url=<server>.`);
+  throw new Error(`No web shell reachable at ${baseUrl}. Start one with \`pnpm run dev:web\` or pass --url=<server>.`);
 }
