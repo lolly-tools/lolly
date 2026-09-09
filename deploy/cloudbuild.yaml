@@ -19,7 +19,7 @@ steps:
 images:
   - '${_IMAGE}'
 options:
-  # npm ci + apt system-deps + Chromium download are heavy; give it CPU + headroom.
+  # pnpm install --frozen-lockfile + apt system-deps + Chromium download are heavy; give it CPU + headroom.
   machineType: 'E2_HIGHCPU_8'
   diskSizeGb: 30
 timeout: 1800s

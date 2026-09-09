@@ -32,7 +32,7 @@ export const FONTS_DIR = join(REPO_ROOT, 'catalog', 'fonts');
 
 // Scoped Chromium install for the Tier-B (headless-browser) render path. Anchored
 // to THIS package's root, not the monorepo, so it travels with the repo split
-// (plans/77-mcp-server.md). `npm run install:browser` downloads Chromium here; the
+// (plans/77-mcp-server.md). `pnpm run install:browser` downloads Chromium here; the
 // installer and render.ts point PLAYWRIGHT_BROWSERS_PATH at it. An explicit
 // PLAYWRIGHT_BROWSERS_PATH (container system cache, prebuilt image) always wins.
 export const BROWSERS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '.browsers');

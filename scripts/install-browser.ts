@@ -5,12 +5,12 @@
  * this package splits into its own repo (plans/77-mcp-server.md).
  *
  * It drives the `playwright-core` we already depend on, not the full `playwright`
- * package, so a plain `npm install` never downloads a browser (keeps the web /
+ * package, so a plain `pnpm install` never downloads a browser (keeps the web /
  * Vercel install light). This is the one explicit step that pulls Chromium.
  *
- *   npm run install:browser                    # Chromium → ./.browsers
- *   npm run install:browser -- --with-deps     # + OS system deps (Linux containers)
- *   npm run install:browser -- --force         # reinstall
+ *   pnpm run install:browser                    # Chromium → ./.browsers
+ *   pnpm run install:browser --with-deps     # + OS system deps (Linux containers)
+ *   pnpm run install:browser --force         # reinstall
  *
  * An explicit PLAYWRIGHT_BROWSERS_PATH in the environment is honoured (a container
  * can install into its own system cache instead of the scoped dir).

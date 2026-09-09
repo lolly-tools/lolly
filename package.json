@@ -2,7 +2,7 @@
   "name": "@lolly/mcp-server",
   "version": "0.1.0",
   "private": true,
-  "description": "Lolly MCP server - exposes the on-brand tool catalog + render path to AI agents over the Model Context Protocol. Runtime deps: node:http + jsdom + @resvg/resvg-js + playwright-core (Tier B, Chromium via `npm run install:browser`) + @lolly/engine.",
+  "description": "Lolly MCP server - exposes the on-brand tool catalog + render path to AI agents over the Model Context Protocol. Runtime deps: node:http + jsdom + @resvg/resvg-js + playwright-core (Tier B, Chromium via `pnpm run install:browser`) + @lolly/engine.",
   "license": "MPL-2.0",
   "type": "module",
   "main": "src/index.ts",
@@ -21,7 +21,7 @@
     "test": "node --test \"test/**/*.test.ts\""
   },
   "dependencies": {
-    "@lolly/engine": "*",
+    "@lolly/engine": "workspace:*",
     "@resvg/resvg-js": "^2.6.2",
     "jsdom": "^25.0.1"
   },

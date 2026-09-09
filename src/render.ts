@@ -294,7 +294,7 @@ async function getBrowser(): Promise<import('playwright-core').Browser> {
       const channel = process.env.LOLLY_BROWSER_CHANNEL; // e.g. 'chrome'
       const executablePath = process.env.LOLLY_BROWSER_PATH;
       // Resolve Chromium from this package's scoped install (services/mcp/.browsers,
-      // via `npm run install:browser`) unless the deployment pins its own browser:
+      // via `pnpm run install:browser`) unless the deployment pins its own browser:
       // an installed OS channel, an explicit binary, or a preset browsers path.
       if (!channel && !executablePath) {
         process.env.PLAYWRIGHT_BROWSERS_PATH ??= BROWSERS_DIR;
@@ -327,7 +327,7 @@ async function getBrowser(): Promise<import('playwright-core').Browser> {
                 `(html, md, json, csv, ics, vcf), and png for SVG-native tools. Try svg - it works ` +
                 `for every tool - or png for a simple vector tool (e.g. qr-code).`
               : `Chromium is not installed for the Tier-B render path. Run ` +
-                `\`npm run install:browser\` (downloads Chromium into services/mcp/.browsers), ` +
+                `\`pnpm run install:browser\` (downloads Chromium into services/mcp/.browsers), ` +
                 `or point LOLLY_BROWSER_CHANNEL / LOLLY_BROWSER_PATH at an existing browser.`,
           );
         }

@@ -27,17 +27,17 @@ ENV NODE_ENV=production \
 
 WORKDIR /app
 
-# 1) Manifests for every workspace (root package.json lists them all, so npm ci
+# 1) Manifests for every workspace (root package.json lists them all, so pnpm install --frozen-lockfile
 #    needs each package.json present) + the source the server actually loads.
-COPY package.json package-lock.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY engine               engine
 COPY services/mcp         services/mcp
 # The two workspace packages the server imports - by RELATIVE path
 # (services/mcp/src/paths.ts → packages/node-shell/src/repo-root.ts, the CLI
 # bridge → node-shell pptx/net/text/audio) and as @lolly-tools/core. Before
-# npm ci, so the workspace links resolve to real packages. Deliberately NOT
+# pnpm install --frozen-lockfile, so the workspace links resolve to real packages. Deliberately NOT
 # the whole packages/ dir: a workspace dir that is present but missing from
-# package-lock.json (audio-dock was) fails `npm ci` outright, while an absent
+# pnpm-lock.yaml pnpm-workspace.yaml (audio-dock was) fails `pnpm install --frozen-lockfile` outright, while an absent
 # dir simply doesn't activate the workspaces glob.
 COPY packages/core        packages/core
 COPY packages/node-shell  packages/node-shell
@@ -49,14 +49,15 @@ COPY services/ca/package.json services/ca/package.json
 # 2) Install prod deps only. --ignore-scripts is safe here: resvg-js resolves a
 #    prebuilt optional dep (no gyp), and playwright-core deliberately does NOT
 #    fetch a browser on install (we do that explicitly in step 4).
-RUN npm ci --omit=dev --ignore-scripts
+RUN npm install --global pnpm@11.1.2
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
 # 3) The brand data + source the render path reads/imports at runtime.
 #    - schemas/: engine/src/validate.ts imports the 3 JSON schemas at load time.
 #    - shells/cli: services/mcp/src/host.ts reuses the CLI bridge (createCliBridge).
 #      It no longer imports anything from shells/web - plans/202 WP1.1 moved pdf.ts
 #      and svg-ir.ts into packages/node-shell, copied above. shells/web/src stays
-#      only for src/webshell.ts's in-container `npm --workspace shells/web run build`
+#      only for src/webshell.ts's in-container `pnpm --filter ./shells/web run build`
 #      fallback; drop it the day that fallback goes.
 #    (engine/ + services/mcp/ were copied above; npm deps incl. pdf-lib are installed.)
 COPY catalog       catalog
