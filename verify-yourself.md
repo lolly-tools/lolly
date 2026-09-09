@@ -98,7 +98,7 @@ The three source checks above aren't a one-time audit - they're pinned in the te
 - the CA issuance log comes back - in the source **or** the generated server bundle,
 - the privacy policy loses its legally required statements (named controller, legal basis, right to complain).
 
-Run them yourself in the clone (Node 22.18+; no `npm install` needed for this file):
+Run them yourself in the clone (Node 22.18+; no `pnpm install` needed for this file):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-The full suite (`npm install && npm test`) runs several thousand more, including the adversarial cryptography tests described in [Security & Verification](/info/security.html).
+The full suite (`pnpm install && pnpm test`) runs several thousand more, including the adversarial cryptography tests described in [Security & Verification](/info/security.html).
 
 ## What you can't verify from outside - said plainly
 

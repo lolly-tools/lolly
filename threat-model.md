@@ -129,10 +129,10 @@ These read like gaps and are not. Escalating them is a false positive.
 Nothing here needs to be taken on trust. Everything runs from a clone.
 
 ```bash
-git submodule update --init --recursive   # BEFORE npm install; workspaces need every package.json
-npm install
+git submodule update --init --recursive   # BEFORE pnpm install; workspaces need every package.json
+pnpm install
 
-npm test                       # the whole suite: tests/, packages/core/test/, shells/web/src/**, services/mcp/test/
+pnpm test                       # the whole suite: tests/, packages/core/test/, shells/web/src/**, services/mcp/test/
 node --test "tests/**/*.test.ts"   # just the repo-root engine/contract suite (quote the glob)
 
 # the boundary tests named above, individually
@@ -143,7 +143,7 @@ node --test tests/runtime-hooks.test.ts tests/net-allowlist.test.ts \
 # untrusted-input fuzzing
 node --test tests/fuzz-regression.test.ts     # replays tests/fuzz/regressions/ + a seeded sweep, ~seconds
 FUZZ_ITERS=50000 node tests/fuzz/run.ts       # the standalone discovery soak
-npm run check:parser-assurance                # inventory ↔ fuzz target/owned-waiver contract
+pnpm run check:parser-assurance                # inventory ↔ fuzz target/owned-waiver contract
 ```
 
 The fuzz harness lives in `tests/fuzz/` (`prng.ts`, `mutate.ts`, `targets.ts`,

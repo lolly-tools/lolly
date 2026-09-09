@@ -19,9 +19,9 @@ A **profile** binds a set of tool packs to a brand catalog. `profiles.json` at t
 The repo-root `tools/` and `catalog/` are **gitignored views** of the active profile - never edit or commit them directly. Switch profiles with:
 
 ```bash
-npm run profile            # show the active profile + what's available
-npm run profile:suse       # community + SUSE tools, SUSE catalog
-npm run profile:start      # blank brand: community tools + one neutral tokens asset
+pnpm run profile            # show the active profile + what's available
+pnpm run profile:suse       # community + SUSE tools, SUSE catalog
+pnpm run profile:start      # blank brand: community tools + one neutral tokens asset
 ```
 
 `scripts/use-profile.ts` builds the views: `catalog` becomes a symlink to the brand's catalog, and `tools/` becomes a directory of per-tool symlinks merged from the profile's tool roots - **later roots win on id collisions**, so a brand pack can override a community tool of the same id. The optional `exclude` list drops tool ids from *this* profile's view after that merge - a community tool one brand would rather not ship stays available to every other profile, and an id that isn't there is warned about, not fatal. In a hosted or serverless build, pass `--copy` to materialise the views as real copies instead of symlinks (symlinks don't survive a function bundle). Writes through the views land in the real pack checkouts, so the normal edit → commit workflow is unchanged.
@@ -33,7 +33,7 @@ A brand pack is a directory (`brands/<name>/`) with a `catalog/` and optionally 
 Stand a new pack up from a design-tokens export:
 
 ```bash
-npm run ingest:brand -- <source> --name <brand> [--label "Label"] [--register|--activate]
+pnpm run ingest:brand <source> --name <brand> [--label "Label"] [--register|--activate]
 ```
 
 `<source>` is any container Penpot / Tokens Studio export the same DTCG document in - a monolithic `tokens.json`, a one-file-per-set directory, or a `project.penpot` archive. The extracted document is written to `catalog/assets/<ns>/tokens/brand.json` as the pack's core-tier `tokens` asset, where `<ns>` is `<brand>` with hyphens stripped (an asset id can't carry `-` in its first segment, so `--name acme-co` yields `assets/acmeco/…`). Ingest also *derives* the pack's photo-treatment and icon-theme palette documents under `catalog/assets/<ns>/palette/`, so uploaded photos get on-brand washes and themable icons get colour pairings out of the box (icon themes are skipped when the palette has no accent). `--register` upserts the pack into `profiles.json`; `--activate` also switches to it and rebuilds the catalog; `--out` picks a different destination and `--force` overwrites an existing pack. See [Design Tokens](/info/design-tokens.html) for the token model and [Quickstart](/info/quickstart.html) for the end-user brand flow.
@@ -84,8 +84,8 @@ Promote a tool by changing one field in its manifest. The status is not an inter
 The manifest is the source of truth; `catalog/tools/index.json` is **generated** and must not drift.
 
 ```bash
-npm run build:catalog     # index.json + asset checksums + preview bundle
-npm run validate:catalog  # schema + invariants: checksums, file existence,
+pnpm run build:catalog     # index.json + asset checksums + preview bundle
+pnpm run validate:catalog  # schema + invariants: checksums, file existence,
                           #   bindToProfile fields, palette refs, replacedBy chains
 ```
 

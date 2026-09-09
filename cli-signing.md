@@ -17,8 +17,8 @@ You need **Node 22.18+ or 24+** (the repo runs TypeScript directly via Node's ty
 ```bash
 git clone --recurse-submodules https://github.com/lolly-tools/lolly
 cd lolly
-npm install
-npm run --silent cli -- --version
+pnpm install
+pnpm --silent run cli --version
 ```
 
 ```
@@ -29,15 +29,15 @@ Every captured output block on this page reports the engine version it was
 produced against; yours will read higher, and that is the only difference you
 should see. `engine/src/version.ts` holds the live number.
 
-Use `npm run --silent cli` (not plain `npm run cli`) whenever you redirect or pipe: npm prints a two-line banner on stdout that would land inside your PNG. An installed `lolly` binary has no such wrapper.
+Use `pnpm --silent run cli` (not plain `pnpm run cli`) whenever you redirect or pipe: npm prints a two-line banner on stdout that would land inside your PNG. An installed `lolly` binary has no such wrapper.
 
 **What works with no browser.** Everything on this page. SVG, PDF, EMF, EPS, DXF and the data formats render browser-free, PNG renders browser-free for SVG-native tools and signing, verification and trust anchors are pure Node.
 
 **What needs the browser tier.** Raster and video output from HTML-layout tools, print bleed and crop marks and `validate --deep`. One-time setup:
 
 ```bash
-npm run build:web            # the web shell the browser tier drives
-npm run --silent cli -- install-browser
+pnpm run build:web            # the web shell the browser tier drives
+pnpm --silent run cli install-browser
 ```
 
 See [CLI → What the CLI can render](/info/cli.html#what-the-cli-can-render) for the full tier split. Signing is applied on this side of that split either way - section 6 explains what that means for a render that escalates to the browser. (The browser-tier case is implemented but has not been exercised against a real browser at the time of writing; the browser-free path in every example below has.)
@@ -47,14 +47,14 @@ See [CLI → What the CLI can render](/info/cli.html#what-the-cli-can-render) fo
 ## 2. First run
 
 ```bash
-npm run --silent cli                     # every tool in the active profile
-npm run --silent cli -- describe qr-code # that tool's inputs, defaults, formats
+pnpm --silent run cli                     # every tool in the active profile
+pnpm --silent run cli describe qr-code # that tool's inputs, defaults, formats
 ```
 
 A command is `lolly <tool-id> --<input>=<value> --export=<fmt> --output=<path>`:
 
 ```bash
-npm run --silent cli -- qr-code --url=https://lolly.tools --export=svg --output=./qr.svg
+pnpm --silent run cli qr-code --url=https://lolly.tools --export=svg --output=./qr.svg
 ```
 
 ```
@@ -74,7 +74,7 @@ The profile fills `bindToProfile` inputs (your name, role, contact details) and,
 ```
 
 ```bash
-npm run --silent cli -- qr-code --url=https://lolly.tools --user-profile=./me.json \
+pnpm --silent run cli qr-code --url=https://lolly.tools --user-profile=./me.json \
   --export=svg --output=./qr.svg
 ```
 
@@ -135,7 +135,7 @@ chmod 600 ~/.config/lolly/signing-key.pem
 ### 4.3 Sign
 
 ```bash
-npm run --silent cli -- qr-code --url=https://lolly.tools --export=svg --output=./signed.svg \
+pnpm --silent run cli qr-code --url=https://lolly.tools --export=svg --output=./signed.svg \
   --sign-key=~/.config/lolly/signing-key.pem --sign-cert=./signing-chain.pem
 ```
 
@@ -153,7 +153,7 @@ That line prints on every signed run, to stderr, so a CI log records which ident
 If the key file is passphrase-protected, the passphrase comes from `$LOLLY_SIGN_KEY_PASSWORD`, or from a prompt when you are at a terminal. Nowhere else:
 
 ```bash
-LOLLY_SIGN_KEY_PASSWORD=… npm run --silent cli -- qr-code --url=https://lolly.tools \
+LOLLY_SIGN_KEY_PASSWORD=… pnpm --silent run cli qr-code --url=https://lolly.tools \
   --export=svg --output=./enc.svg --sign-key=./enc-key.pem --sign-cert=./signing-cert.pem
 ```
 
@@ -183,7 +183,7 @@ Never echo them. `set -x` in a shell step will print the whole key.
 The command that proves the file now reads as trusted, against the self-signed certificate as its own root:
 
 ```bash
-npm run --silent cli -- validate ./out.svg --trust-anchor=./signing-cert.pem
+pnpm --silent run cli validate ./out.svg --trust-anchor=./signing-cert.pem
 ```
 
 ```
@@ -249,8 +249,8 @@ Precedence is the CLI's uniform rule: **flag, then environment**. Configuring a 
 **Pin your own root**, repeatably, or through the environment:
 
 ```bash
-npm run --silent cli -- validate ./out.svg --trust-anchor=./corp-root.pem
-LOLLY_TRUST_ANCHOR=/etc/lolly/corp-root.pem:/etc/lolly/partner-root.pem npm run --silent cli -- validate ./out.svg
+pnpm --silent run cli validate ./out.svg --trust-anchor=./corp-root.pem
+LOLLY_TRUST_ANCHOR=/etc/lolly/corp-root.pem:/etc/lolly/partner-root.pem pnpm --silent run cli validate ./out.svg
 ```
 
 `$LOLLY_TRUST_ANCHOR` is a `PATH`-style list (`:` on Unix, `;` on Windows) and a leading `~` expands.
@@ -258,7 +258,7 @@ LOLLY_TRUST_ANCHOR=/etc/lolly/corp-root.pem:/etc/lolly/partner-root.pem npm run 
 **The bare-trust check.** `--no-default-anchors` drops both built-in sets, so only your pins count. With nothing pinned the anchor set is empty and *every* signer reads untrusted by construction - which is how you confirm a green verdict came from a root you chose rather than from a list you inherited:
 
 ```bash
-npm run --silent cli -- validate ./out.svg --no-default-anchors
+pnpm --silent run cli validate ./out.svg --no-default-anchors
 ```
 
 Every verdict prints the anchor set that produced it (`Trust anchors: …`), and `--json` carries the same facts as `result.files[].anchors`. "Verified" without "verified by what" is not an answer.
@@ -298,7 +298,7 @@ Exit 6 is deliberately not 2: a pipeline that can fetch a secret should be able 
 `--json` on `validate` carries `result.files[].resolved.trusted` and `.identity`, which is the assertion a release gate should make:
 
 ```bash
-npm run --silent cli -- validate ./out.png --trust-anchor=./signing-cert.pem --json \
+pnpm --silent run cli validate ./out.png --trust-anchor=./signing-cert.pem --json \
   | jq -e '.result.files[0].resolved.trusted and .result.files[0].resolved.identity.email == "release-bot@example.org"'
 ```
 

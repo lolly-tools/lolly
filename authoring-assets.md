@@ -152,9 +152,9 @@ The web shell loads them via `@font-face` (`shells/web/src/styles/fonts.css`, wi
 1. Drop the file under `catalog/assets/<namespace>/...`.
 2. Add an entry to `catalog/assets/index.json` (the `checksum`/`size` can be left
    as `sha256-PLACEHOLDER`/`0` - the next step fills them in).
-3. Run `npm run build:catalog` - `scripts/checksum-assets.ts` computes the real
+3. Run `pnpm run build:catalog` - `scripts/checksum-assets.ts` computes the real
    SHA-256 (SRI) and byte size for every asset format and writes them into the
-   index. `npm run validate:catalog` then verifies every checksum against the
+   index. `pnpm run validate:catalog` then verifies every checksum against the
    bytes on disk.
 4. PR review. Approval = brand approval.
 5. Merge → build catalog → deploy. Clients pick it up at next sync.

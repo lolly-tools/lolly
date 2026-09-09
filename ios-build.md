@@ -34,7 +34,7 @@ Verified state (2026-06):
 | Mobile `node_modules` + Tauri CLI | yes | Yes - installed (`@tauri-apps/cli`, `plugin-fs`, `plugin-http`) |
 | `src-tauri/gen/apple/` (init output) | yes | No - iOS project not initialized |
 
-`tauri ios init`, `npm run dev:ios` and `npm run build:ios` all require full
+`tauri ios init`, `pnpm run dev:ios` and `pnpm run build:ios` all require full
 Xcode (plus CocoaPods), so each fails here until the prerequisites below are met.
 The Rust targets, JS dependencies and CocoaPods are already in place; the
 remaining blockers are full Xcode and the one-time project init.
@@ -73,7 +73,7 @@ remaining blockers are full Xcode and the one-time project init.
 
    ```bash
    cd shells/tauri-mobile
-   npm install
+   pnpm install
    ```
 
 For an actual device (not just the Simulator) and for any signed build, you also
@@ -91,7 +91,7 @@ Generates the native Xcode project under
 ```bash
 cd shells/tauri-mobile
 export APPLE_DEVELOPMENT_TEAM=XXXXXXXXXX   # your 10-char Team ID; pre-fills the project's signing team
-npm run tauri ios init
+pnpm run tauri ios init
 ```
 
 Notes:
@@ -131,16 +131,16 @@ default of `13.0`.
 
 ```bash
 cd shells/tauri-mobile
-npm run dev:ios            # -> tauri ios dev
+pnpm run dev:ios            # -> tauri ios dev
 ```
 
-`tauri.conf.json` sets `beforeDevCommand: "npm run dev:frontend"`, so the Vite
+`tauri.conf.json` sets `beforeDevCommand: "pnpm run dev:frontend"`, so the Vite
 dev server starts automatically on **port 5174** (the configured `devUrl`); hot
 reload works the same as the web and desktop shells.
 
-- Target a specific simulator: `npm run dev:ios -- "iPhone 15 Pro"`.
+- Target a specific simulator: `pnpm run dev:ios "iPhone 15 Pro"`.
 - Open the project in Xcode instead of running headless:
-  `npm run dev:ios -- --open`.
+  `pnpm run dev:ios --open`.
 - The state bridge uses `bridge-overrides/state.ts` (filesystem via
   `tauri-plugin-fs`, `$APPDATA/Lolly/saved-state/*.json`), not IndexedDB. iOS
   sandboxing forbids absolute paths - keep all writes under AppData; never add
@@ -175,7 +175,7 @@ permission (hence the Info.plist usage strings above). This matches Android.
 
 ```bash
 cd shells/tauri-mobile
-npm run build:ios          # -> vite build, then tauri ios build
+pnpm run build:ios          # -> vite build, then tauri ios build
 ```
 
 Output is an `.ipa` under `src-tauri/gen/apple/build/`. The `vite build` step
@@ -197,12 +197,12 @@ Xcode project.**
 
 ```bash
 export APPLE_DEVELOPMENT_TEAM=XXXXXXXXXX          # your Team ID - placeholder, fill in locally / in CI secrets
-npm run build:ios -- --export-method app-store-connect
+pnpm run build:ios --export-method app-store-connect
 ```
 
 `--export-method` selects how the `.ipa` is packaged: `app-store-connect`,
 `ad-hoc`, `enterprise` or `debugging`. Interactively you can instead open the
-project (`npm run dev:ios -- --open`) and set the team under **Signing &
+project (`pnpm run dev:ios --open`) and set the team under **Signing &
 Capabilities**; the env-var path is what CI uses.
 
 Device builds, IPA export, TestFlight and App Store distribution additionally

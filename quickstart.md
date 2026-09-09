@@ -27,7 +27,7 @@ If your brand is already captured as design tokens - from **Penpot**, **Tokens S
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` accepts all three containers Penpot / Tokens Studio export the same document in - a single `tokens.json`, a directory (`$metadata.json` + per-set files) or a `project.penpot` archive. With `--activate` it registers the brand as a profile, switches to it and rebuilds the catalog. See [Configuration](/info/configuration.html) for how brand packs and profiles fit together.

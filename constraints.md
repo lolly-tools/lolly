@@ -71,7 +71,7 @@ git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
 cd lolly
 cat community/qr-code/tool.json          # the complete input surface of one tool
 
-npm install                              # the contract tests import ajv + handlebars
+pnpm install                              # the contract tests import ajv + handlebars
 node --test tests/engine.test.ts         # the validate / inputs / template contract
 ```
 

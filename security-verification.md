@@ -72,7 +72,7 @@ Lolly's provenance strategy is **read-broad, embed-narrow**: it *reads* many sig
 
 ## How it's assured
 
-An automated test in the repository (`npm test`) backs every cryptographic claim above:
+An automated test in the repository (`pnpm test`) backs every cryptographic claim above:
 
 - **Known-answer tests (KATs).** Byte-for-byte fixed vectors: the CBOR encoder, the PDF R6 encryption vector, the zip CRC/AE-2 output and the canonical-JSON signing form are each pinned to an exact expected byte string, so an accidental change is caught immediately.
 - **Adversarial tests.** Signer-replay, lifted-signature, forged-intermediate and identity-impersonation attempts are all asserted to resolve to *untrusted*. Tampering any covered byte (inside the manifest, the claim, an assertion or the file body) is asserted to break the correct check.

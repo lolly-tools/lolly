@@ -238,7 +238,7 @@ ${u}/#/tool/{id}?{input}={value}&{input}={value}&format={ext}&export
    ${MCP_RESOURCES.map((r) => `\`${r}\``).join(', ')}. The intended flow is list, describe,
    render, and verify when you need to prove a file is an untouched export.
 3. **CLI.** \`lolly {id} --{input}={value} --export={ext} --output={file}\` is the same
-   parameter table with \`--\` in front; in a source checkout, \`npm run cli -- {id} ...\`.
+   parameter table with \`--\` in front; in a source checkout, \`pnpm run cli {id} ...\`.
    Vector and data formats need nothing installed. Raster, PDF and video run in a scoped
    headless browser (\`lolly install-browser\`), one render path with the app.
 

@@ -43,8 +43,8 @@ Return the file URL.
 Don't guess parameters - read them. The tool's manifest (`tools/<id>/tool.json`) lists every input id, type and default, or use the CLI:
 
 ```bash
-npm run cli -- event-name-badge  # prints inputs, defaults, and supported formats
-npm run cli                      # lists every available tool
+pnpm run cli event-name-badge  # prints inputs, defaults, and supported formats
+pnpm run cli                      # lists every available tool
 ```
 
 Feed that schema to the model so it only emits valid inputs.
@@ -81,7 +81,7 @@ So a one-shot, ready-to-download link is just:
 - **Headless / server-side automation:** use the **[CLI](/info/cli.html)** - it's the same parameter surface and writes bytes to a file or stdout:
 
   ```bash
-  npm run cli -- qr-code --url=https://suse.com/kubecon --color=0c322c \
+  pnpm run cli qr-code --url=https://suse.com/kubecon --color=0c322c \
     --export=svg --output=./qr.svg
   ```
 

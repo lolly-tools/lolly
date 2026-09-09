@@ -8,7 +8,7 @@ How to build Lolly for each distribution target: standalone CLI binary, desktop 
 
 ## Prerequisites (all targets)
 
-- <!--l:node-->**Node.js ≥ 22.18** (the 22 LTS line) **or ≥ 24**, and **npm 10+**. The repo's scripts run TypeScript sources directly (`node scripts/foo.ts`), which relies on Node's unflagged type-stripping - added in Node 22.18 and 24. Node 20 and early 22.x fail at `npm install`. `.nvmrc` pins `22`, so nvm users can just run `nvm install` in the repo.
+- <!--l:node-->**Node.js ≥ 22.18** (the 22 LTS line) **or ≥ 24**, and **npm 10+**. The repo's scripts run TypeScript sources directly (`node scripts/foo.ts`), which relies on Node's unflagged type-stripping - added in Node 22.18 and 24. Node 20 and early 22.x fail at `pnpm install`. `.nvmrc` pins `22`, so nvm users can just run `nvm install` in the repo.
 - The repo and its submodules checked out, dependencies installed - see below
 
 ---
@@ -35,13 +35,13 @@ All of those except `brands/suse` are public, so a read-only contributor gets a 
 
 ### The setup script
 
-On macOS and openSUSE, one script takes a fresh clone to a running state - it detects your package manager (<!--l:homebrew-->Homebrew or zypper), installs git and Node if they are missing or too old, initialises every public submodule, runs `npm install` and selects a content profile:
+On macOS and openSUSE, one script takes a fresh clone to a running state - it detects your package manager (<!--l:homebrew-->Homebrew or zypper), installs git and Node if they are missing or too old, initialises every public submodule, runs `pnpm install` and selects a content profile:
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ./setup.sh                # public setup: community tools + the blank "lolly-start" brand
-npm run dev:web           # web shell at http://localhost:5173
+pnpm run dev:web           # web shell at http://localhost:5173
 ```
 
 `./setup.sh` is idempotent - safe to re-run any time: after a `git pull`, or to repair a half-finished checkout. Flags:
@@ -61,7 +61,7 @@ git -c url."git@github.com:".insteadOf=https://github.com/ \
 cd lolly && \
 git config url."git@github.com:".insteadOf https://github.com/ && \
 git submodule foreach 'git checkout main' && \
-npm install
+pnpm install
 ```
 
 What each step is for:
@@ -69,9 +69,9 @@ What each step is for:
 - **`url.insteadOf`** rewrites the HTTPS URLs recorded in `.gitmodules` to SSH. SSH clones work for public repos regardless of write access, so this is safe for everyone - and it means the submodules you *can* push to are already set up to push, with no per-repo remote fiddling later. Repeating it as a `git config` after the clone makes the rewrite stick for future `git submodule update` runs. Drop both lines if you'd rather authenticate over HTTPS.
 - **`--recurse-submodules`** checks out every submodule in the table except `brands/suse`, which is marked `update = none` in `.gitmodules` precisely so that public clones and CI skip the private pack and fall back to the neutral `lolly-start` profile.
 - **`git submodule foreach 'git checkout main'`** puts each submodule on a branch. Submodules clone in detached HEAD, and a commit made there is easy to lose. Every submodule's default branch is `main`. Note this moves each one to the remote tip, which can sit ahead of the commit the parent recorded; `git submodule update` returns them to the recorded commits if a build starts behaving oddly.
-- **`npm install`** must run *after* the submodules exist, because the npm workspaces resolve against a `package.json` in each one. Its `postinstall` runs `scripts/use-profile.ts --auto`, which builds the gitignored `tools/` and `catalog/` profile views - see [Configuration](/info/configuration.html).
+- **`pnpm install`** must run *after* the submodules exist, because the npm workspaces resolve against a `package.json` in each one. Its `postinstall` runs `scripts/use-profile.ts --auto`, which builds the gitignored `tools/` and `catalog/` profile views - see [Configuration](/info/configuration.html).
 
-Verify the result with `npm run profile` (shows the active profile) and `npm run cli` (lists the tools it can see).
+Verify the result with `pnpm run profile` (shows the active profile) and `pnpm run cli` (lists the tools it can see).
 
 ### The private SUSE brand pack
 
@@ -79,15 +79,15 @@ Verify the result with `npm run profile` (shows the active profile) and `npm run
 
 ```bash
 git submodule update --init --checkout brands/suse
-npm run profile:suse
+pnpm run profile:suse
 ```
 
-(`./setup.sh --suse` does both in one go.) Without it, `npm run profile` reports `lolly-start` as active - the blank brand, which is the correct default for anyone not doing SUSE-specific work, and the profile the public site and CI build against.
+(`./setup.sh --suse` does both in one go.) Without it, `pnpm run profile` reports `lolly-start` as active - the blank brand, which is the correct default for anyone not doing SUSE-specific work, and the profile the public site and CI build against.
 
 ### If something fails
 
-- **`npm install` dies with a syntax error in a `.ts` file** - your Node is too old for type-stripping; you need ≥ 22.18 or ≥ 24 (`node -v`). With Homebrew, note `node@22` is keg-only: add `export PATH="$(brew --prefix node@22)/bin:$PATH"` to your shell profile.
-- **`Cannot find module '@lolly-tools/…'` or a workspace `package.json` is missing** - the submodules weren't checked out before `npm install`. Run `git submodule update --init --recursive`, then `npm install` again.
+- **`pnpm install` dies with a syntax error in a `.ts` file** - your Node is too old for type-stripping; you need ≥ 22.18 or ≥ 24 (`node -v`). With Homebrew, note `node@22` is keg-only: add `export PATH="$(brew --prefix node@22)/bin:$PATH"` to your shell profile.
+- **`Cannot find module '@lolly-tools/…'` or a workspace `package.json` is missing** - the submodules weren't checked out before `pnpm install`. Run `git submodule update --init --recursive`, then `pnpm install` again.
 - **`brands/suse` won't clone** - it's private. Drop `--suse`; you land on `lolly-start` and everything still builds and runs.
 - **A tool edit doesn't show up, or ends up in the wrong repo** - `tools/` and `catalog/` at the repo root are gitignored symlink views into the packs, so edits flow through to the pack checkout and commits belong *inside* the owning submodule - see the next section.
 
@@ -95,11 +95,11 @@ npm run profile:suse
 
 A change inside a submodule is always **two commits**: one in the submodule repository, and one in the parent to move the recorded pointer. Push the submodule first, or the parent will point at a commit nobody else can fetch.
 
-One case deserves care. `catalog/tools/index.json` is generated **per brand**, and every brand's index lists the community tools - so editing a community `tool.json` leaves every *other* brand's index stale, and the single-profile `npm run build:catalog` can't see the drift because it only ever looks at the active view. After any community tool change, run the all-profiles variants instead:
+One case deserves care. `catalog/tools/index.json` is generated **per brand**, and every brand's index lists the community tools - so editing a community `tool.json` leaves every *other* brand's index stale, and the single-profile `pnpm run build:catalog` can't see the drift because it only ever looks at the active view. After any community tool change, run the all-profiles variants instead:
 
 ```bash
-npm run build:catalog:all      # rebuild every mounted profile, then restore the active one
-npm run validate:catalog:all   # validate every mounted profile; exits 1 on drift (the CI guard)
+pnpm run build:catalog:all      # rebuild every mounted profile, then restore the active one
+pnpm run validate:catalog:all   # validate every mounted profile; exits 1 on drift (the CI guard)
 ```
 
 Day-to-day submodule workflow - syncing, status across all repos, verification - lives in `scripts/subrepo/README.md` in the parent repo.
@@ -114,16 +114,16 @@ The CLI shell runs directly from the repo with Node.js:
 
 ```bash
 # List available tools
-npm run cli
+pnpm run cli
 
 # Show inputs for a tool
-npm run cli -- qr-code
+pnpm run cli qr-code
 
 # Run a tool and write output
-npm run cli -- qr-code --url=https://suse.com --color=#0c322c --output=./qr.svg
+pnpm run cli qr-code --url=https://suse.com --color=#0c322c --output=./qr.svg
 
 # Explicit format
-npm run cli -- quotes --quote="Open source wins." --name="Andy" --export=png --output=./quote.png
+pnpm run cli quotes --quote="Open source wins." --name="Andy" --export=png --output=./quote.png
 ```
 
 The CLI supports **SVG, EMF, EPS, HTML and the text/data formats** (JSON, CSV, ICS, VCF, MD, TXT) natively - hydrated by the engine with no browser engine needed (SVG/EMF only for tools with an `<svg>`-based template, since the lean CLI has no layout engine). **PNG** from an `<svg>`-based tool is also browser-free: resvg rasterises the engine's own SVG (Tier A). The remaining raster formats - **JPG, WebP, PDF and video (GIF, WebM, MP4)**, plus HTML-layout PNG - render through the CLI's own scoped headless Chromium (Tier B): install it once with `lolly install-browser`, then they export straight from the CLI. (ZIP is the one format the lean CLI leaves out - no zip dependency - so its batch writes a folder instead.)
@@ -136,7 +136,7 @@ To distribute the CLI without requiring Node.js installed:
 
 ```bash
 cd shells/cli
-npx esbuild bin/lolly.ts \
+pnpm exec esbuild bin/lolly.ts \
   --bundle \
   --platform=node \
   --target=node20 \
@@ -170,7 +170,7 @@ Output binaries land in `shells/cli/dist/` - one per platform target.
 The interactive terminal shell runs straight from the repo - it needs a real TTY, so run it in your terminal rather than a captured pipe:
 
 ```bash
-npm run tui
+pnpm run tui
 ```
 
 It's the CLI's engine and render path under an interactive, keyboard-first UI (built on Ink, run through `tsx`). The DOM-free formats - **SVG, EMF, EPS, HTML and the text/data formats** - render with nothing extra. State (saved sessions, project folders, profile) persists on disk in the directory all three local shells share - `$LOLLY_STATE_DIR`, else the desktop app's data directory when the app is installed here, else `~/.lolly`; exports default to `~/Desktop`. See the [TUI guide](/info/tui.html) for the full key map and views.
@@ -180,8 +180,8 @@ It's the CLI's engine and render path under an interactive, keyboard-first UI (b
 Unlike the bare CLI, the TUI can produce browser-bound formats via a scoped headless Chromium - the same one the MCP server uses. Set it up once:
 
 ```bash
-npm run install:browser   # Chromium → services/mcp/.browsers (shared with services/mcp)
-npm run build:web         # a built web shell the TUI drives for pixel-identical raster/pdf/video
+pnpm run install:browser   # Chromium → services/mcp/.browsers (shared with services/mcp)
+pnpm run build:web         # a built web shell the TUI drives for pixel-identical raster/pdf/video
 ```
 
 With those present, raster (PNG/JPG), PDF, video and the `url-shot` live-URL capture all export from the terminal; without them, those formats fail with a clear setup message and the TUI writes HTML instead. The browser is lazy - it launches only on the first such export, never at startup. Override the browser with `LOLLY_BROWSER_CHANNEL` / `LOLLY_BROWSER_PATH`, or point at a running/prebuilt web shell with `LOLLY_WEB_BASE` / `LOLLY_WEB_DIST`.
@@ -205,7 +205,7 @@ rustup update
 
 ```bash
 cd shells/tauri-desktop
-npm install
+pnpm install
 ```
 
 **Platform build tools:**
@@ -235,9 +235,9 @@ This writes all required sizes and formats (`32x32.png`, `128x128.png`, `128x128
 
 ```bash
 cd shells/tauri-desktop
-npm run dev
+pnpm run dev
 # or from repo root:
-npm run dev:desktop
+pnpm run dev:desktop
 ```
 
 Tauri opens a native window. The Vite dev server runs in the background; hot reload works. The state bridge uses the filesystem override (`bridge-overrides/state.ts`) - saved states go to `$APPDATA/Lolly/saved-state/`.
@@ -246,9 +246,9 @@ Tauri opens a native window. The Vite dev server runs in the background; hot rel
 
 ```bash
 cd shells/tauri-desktop
-npm run build
+pnpm run build
 # or from repo root:
-npm run build:desktop
+pnpm run build:desktop
 ```
 
 This runs `vite build` (producing `dist/`) then `tauri build`. Output:
@@ -317,13 +317,13 @@ Run once to generate the native project files (`gen/android/` or `gen/apple/`):
 
 ```bash
 cd shells/tauri-mobile
-npm install
+pnpm install
 
 # Android
-npm run tauri android init
+pnpm run tauri android init
 
 # iOS
-npm run tauri ios init
+pnpm run tauri ios init
 ```
 
 The `gen/` directory contains the generated Gradle / Xcode projects. It is gitignored - regenerate it with the init command on a fresh checkout.
@@ -341,30 +341,30 @@ npx @tauri-apps/cli icon path/to/icon-1024.png
 
 ```bash
 cd shells/tauri-mobile
-npm run dev:android
+pnpm run dev:android
 # or from repo root:
-npm run dev:android
+pnpm run dev:android
 ```
 
 **iOS** (macOS only - requires Simulator or provisioned device):
 
 ```bash
 cd shells/tauri-mobile
-npm run dev:ios
+pnpm run dev:ios
 # or from repo root:
-npm run dev:ios
+pnpm run dev:ios
 ```
 
 ### Production build
 
 ```bash
 # Android - outputs APK + AAB
-npm run build:android
-# or: npm run build:android from repo root
+pnpm run build:android
+# or: pnpm run build:android from repo root
 
 # iOS - outputs .ipa
-npm run build:ios
-# or: npm run build:ios from repo root
+pnpm run build:ios
+# or: pnpm run build:ios from repo root
 ```
 
 **Android signing** - set these env vars before building for release:
@@ -452,10 +452,10 @@ BuildRequires:  rust
 BuildRequires:  cargo
 
 %build
-npm ci --offline
+pnpm install --frozen-lockfile --offline
 # CLI binary: bundle with esbuild, then wrap with @yao-pkg/pkg (see CLI » Standalone binary above).
-# For the desktop app instead, run `npm run build:desktop`.
-npx esbuild shells/cli/bin/lolly.ts --bundle --platform=node \
+# For the desktop app instead, run `pnpm run build:desktop`.
+pnpm exec esbuild shells/cli/bin/lolly.ts --bundle --platform=node \
   --target=node20 --format=cjs --outfile=shells/cli/dist/lolly.cjs
 npx @yao-pkg/pkg shells/cli/dist/lolly.cjs \
   --targets node20-linux-x64 --output shells/cli/dist/lolly
@@ -485,7 +485,7 @@ modules:
   - name: lolly
     buildsystem: simple
     build-commands:
-      - npm ci --offline && npm run build:desktop
+      - pnpm install --frozen-lockfile --offline && pnpm run build:desktop
       - install -Dm0755 src-tauri/target/release/lolly /app/bin/lolly
     sources:
       - type: archive
@@ -500,7 +500,7 @@ For readers wiring this up for real, see the [OBS documentation](https://openbui
 
 ## Web shell on Kubernetes (Helm)
 
-The web shell is a **static site** - `npm run build:web` produces a `dist/` folder of HTML, CSS, JS, the service worker, the HarfBuzz WASM, fonts, the bundled tool catalog and the `/info` site. Anything that can serve static files can host it (which is why the production site runs behind a CDN). To run it **inside your own Kubernetes cluster** - air-gapped, on-prem or alongside the rest of your platform - the artefacts ship in this repo: `deploy/docker/` bakes `dist/` into an <!--l:nginx-->nginx image, and `deploy/helm/` deploys it. This section is what those files do and how to adapt them; [Deployment](/info/deployment.html) is where each piece runs.
+The web shell is a **static site** - `pnpm run build:web` produces a `dist/` folder of HTML, CSS, JS, the service worker, the HarfBuzz WASM, fonts, the bundled tool catalog and the `/info` site. Anything that can serve static files can host it (which is why the production site runs behind a CDN). To run it **inside your own Kubernetes cluster** - air-gapped, on-prem or alongside the rest of your platform - the artefacts ship in this repo: `deploy/docker/` bakes `dist/` into an <!--l:nginx-->nginx image, and `deploy/helm/` deploys it. This section is what those files do and how to adapt them; [Deployment](/info/deployment.html) is where each piece runs.
 
 Nothing in the chart is specific to one cluster: it is plain Kubernetes, so it deploys on any conformant distribution - including SUSE's own RKE2 and <!--l:k3s-->k3s - and on any managed service.
 
@@ -542,7 +542,7 @@ docker push <your-registry>/lolly-web:0.1.0
 
 What the two stages do:
 
-- **build** - `node:26-bookworm`, pinned by digest, runs `npm ci` then the real `npm run build:web`. Deliberately not the slim variant: the optional native dependencies (sharp, onnxruntime, resvg, playwright) need build tooling slim doesn't carry.
+- **build** - `node:26-bookworm`, pinned by digest, runs `pnpm install --frozen-lockfile` then the real `pnpm run build:web`. Deliberately not the slim variant: the optional native dependencies (sharp, onnxruntime, resvg, playwright) need build tooling slim doesn't carry.
 - **runtime** - `nginxinc/nginx-unprivileged`, also digest-pinned, running as uid 101 on port **8080**. `dist/` is copied to `/usr/share/nginx/html`, `deploy/docker/nginx.conf` becomes `conf.d/default.conf` and `deploy/docker/security-headers.conf` is copied beside it.
 
 `--build-arg LOLLY_PROFILE=suse|lolly-start` bakes one brand into the static output - theme colour, PWA chrome and the resolved `tools/` + `catalog/` content. Nothing is read at serve time, which is why the chart needs no pack, config or volume mounted for the web app; changing brand means rebuilding the image and rolling the deployment.

@@ -2,7 +2,7 @@
 
 > **Scope.** This page is *how to get a development checkout sized to what you're here to do*. The [Build Guide](/info/build-guide.html) covers building each artefact once you have a checkout; this page is about which parts of the repo you actually need on disk, and the commands that pull down just those.
 
-Lolly is a parent repo plus a set of git submodules (the full table is in the [Build Guide](/info/build-guide.html)). A complete recursive clone is the simple path and always works, but it downloads roughly 1.2 GB of git history before `npm install` adds a byte. Most contributions touch a fraction of that, so there is a slim path too.
+Lolly is a parent repo plus a set of git submodules (the full table is in the [Build Guide](/info/build-guide.html)). A complete recursive clone is the simple path and always works, but it downloads roughly 1.2 GB of git history before `pnpm install` adds a byte. Most contributions touch a fraction of that, so there is a slim path too.
 
 ---
 
@@ -21,13 +21,13 @@ The tool definitions most contributors come to edit are 12 MB of history in `com
 
 Two things a fresh clone never downloads, whatever path you take: `brands/suse` (the private SUSE brand pack, marked `update = none` - public clones fall back to the neutral `lolly-start` profile and everything still builds) and `shells/web/public/models` (the on-device AI models are untracked local staging; the app fetches them on demand at runtime).
 
-To build with the models bundled into your own `dist` instead of fetched at runtime, vendor them first with `npm run models:vendor` (~1.2 GB, opt-in - never run by install or CI). It downloads every family from its pinned upstream, verifies each file's hash before writing, and skips anything already present, so re-running only fetches what's missing (`--only=kokoro,matte` for a subset, `--list` to see the families). The files stay gitignored; nothing to commit.
+To build with the models bundled into your own `dist` instead of fetched at runtime, vendor them first with `pnpm run models:vendor` (~1.2 GB, opt-in - never run by install or CI). It downloads every family from its pinned upstream, verifies each file's hash before writing, and skips anything already present, so re-running only fetches what's missing (`--only=kokoro,matte` for a subset, `--list` to see the families). The files stay gitignored; nothing to commit.
 
 ---
 
 ## The full clone
 
-The always-works path. On macOS and openSUSE, `./setup.sh` does everything after the clone - initialises every public submodule, installs git and Node if missing or too old, runs `npm install`, selects a content profile - and it is idempotent, so re-run it freely after a `git pull` or to repair a half-finished checkout:
+The always-works path. On macOS and openSUSE, `./setup.sh` does everything after the clone - initialises every public submodule, installs git and Node if missing or too old, runs `pnpm install`, selects a content profile - and it is idempotent, so re-run it freely after a `git pull` or to repair a half-finished checkout:
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git
@@ -35,7 +35,7 @@ cd lolly
 ./setup.sh
 ```
 
-The classic form (`git clone --recurse-submodules … && npm install`) works identically if you'd rather manage the toolchain yourself. See the Build Guide's "Getting the source" for the script's flags (`--suse`, `--profile`, `--skip-node`), the SSH variant and putting each submodule on a branch. Budget about 1.2 GB of download and 2.6 GB on disk once `node_modules` is installed.
+The classic form (`git clone --recurse-submodules … && pnpm install`) works identically if you'd rather manage the toolchain yourself. See the Build Guide's "Getting the source" for the script's flags (`--suse`, `--profile`, `--skip-node`), the SSH variant and putting each submodule on a branch. Budget about 1.2 GB of download and 2.6 GB on disk once `node_modules` is installed.
 
 ---
 
@@ -47,7 +47,7 @@ Two commands replace the recursive clone:
 git clone --filter=blob:none https://github.com/lolly-tools/lolly.git
 cd lolly
 scripts/subrepo/loldev setup tool-author   # or: engine-dev
-npm install
+pnpm install
 ```
 
 `--filter=blob:none` makes the *parent* clone a [partial clone](https://git-scm.com/docs/partial-clone): you get the full commit history but file contents download only as they are needed. That drops the parent from ~490 MB to ~80 MB. The trade-off is that reading *old* file contents (`git log -p` on an old path, checking out an old commit) fetches from the network on demand, so deep history spelunking in the parent needs a connection. Day-to-day work on the current tree does not.
@@ -62,7 +62,7 @@ npm install
 
 Measured on a fresh clone (2026-08, rounded):
 
-| | git objects downloaded | on disk before `npm install` | after `npm install` |
+| | git objects downloaded | on disk before `pnpm install` | after `pnpm install` |
 |---|---|---|---|
 | `tool-author` | ~170 MB | ~490 MB | ~1.6 GB |
 | `engine-dev` | ~480 MB | ~800 MB | ~1.9 GB |
@@ -72,15 +72,15 @@ Measured on a fresh clone (2026-08, rounded):
 
 ### Why shallow instead of skipped
 
-npm workspaces resolve against a `package.json` in every workspace directory, and the repo's preinstall guard (`scripts/check-bootstrap.ts`) refuses to install into a checkout that is missing one - it also checks for `docs/` and `community/`, which the catalog and profile scripts need immediately after install. npm 10 fails outright on a missing workspace directory; npm 11 quietly skips it, which is worse, because `npm test` and `npm run typecheck` then silently lose that workspace's surface. So no persona *omits* a workspace: the ones you are not here to develop are checked out shallow, a full working tree at the recorded commit with one commit of history behind it. Only the two Tauri shells and the Chrome extension, which are neither workspaces nor guard sentinels, are skipped outright.
+pnpm resolves the local packages listed in `pnpm-workspace.yaml`. The repo's bootstrap guard (`scripts/check-bootstrap.ts`) refuses to install into a checkout that is missing a workspace, and also checks for `docs/` and `community/`, which the catalog and profile scripts need after install. Every persona therefore includes every workspace: packages you are not developing are checked out shallow at their recorded commit. The separate Tauri projects and Chrome extension can be skipped. Use pnpm 11.1.2, pinned in `packageManager`; install it with `npm install --global pnpm@11.1.2` if needed.
 
 ### What each persona can and cannot do
 
-**`tool-author`** - you are writing or editing tools ([Authoring Tools](/info/authoring-tools.html)). Everything in the daily loop works: `npm run dev:web`, `npm run cli`, `npm test`, `npm run typecheck`, `npm run build:catalog` and `validate:catalog`, and the `/info` docs site builds (the docs *working tree* is present, only its history is shallow). `community/` has full history, so `git log` and `git blame` on a tool behave normally.
+**`tool-author`** - you are writing or editing tools ([Authoring Tools](/info/authoring-tools.html)). Everything in the daily loop works: `pnpm run dev:web`, `pnpm run cli`, `pnpm test`, `pnpm run typecheck`, `pnpm run build:catalog` and `validate:catalog`, and the `/info` docs site builds (the docs *working tree* is present, only its history is shallow). `community/` has full history, so `git log` and `git blame` on a tool behave normally.
 
 **`engine-dev`** - the same, plus full history in `shells/web` and `shells/cli`, the two shells you will be reading and bisecting when an engine change misbehaves. The engine itself (`engine/`), `packages/`, `schemas/` and `tests/` live in the parent repo, so every persona already has them.
 
-**Neither slim persona** can build the desktop or mobile apps (no Tauri shells - `npm run typecheck:tauri` logs a skip, by design, rather than failing) or work on the Chrome extension. `git log`/`git blame` inside a shallow submodule see one commit until you deepen it (`git -C docs fetch --unshallow`).
+**Neither slim persona** can build the desktop or mobile apps (no Tauri shells - `pnpm run typecheck:tauri` logs a skip, by design, rather than failing) or work on the Chrome extension. `git log`/`git blame` inside a shallow submodule see one commit until you deepen it (`git -C docs fetch --unshallow`).
 
 **Committing from a slim clone** works normally - shallow clones can branch, commit and push. Submodules check out detached at the recorded commit, so put one on a branch before starting work in it (`git -C community checkout main`), exactly as the Build Guide describes for the full clone.
 
@@ -101,7 +101,7 @@ SUSE developers opt in to the private brand pack the same way they always have:
 
 ```bash
 git submodule update --init --checkout brands/suse
-npm run profile:suse
+pnpm run profile:suse
 ```
 
 `loldev` runs in place from any checkout path (`scripts/subrepo/loldev`); set `LOLLY_ROOT` only if you keep multiple checkouts and want to point an installed copy at one of them.

@@ -5,7 +5,7 @@ Frequently asked questions shown in the accordion on the `/info` landing page.
 **How to maintain:** each `##` heading below is a question; everything beneath it
 (up to the next `##`) is the answer. Answers use the same lightweight markdown as
 the rest of the site - separate paragraphs with a blank line. Add, remove or
-reorder questions here and re-run `npm run build:info` (or `npm run dev:web`).
+reorder questions here and re-run `pnpm run build:info` (or `pnpm run dev:web`).
 Everything above the first `##` (this title and these notes) is ignored by the build.
 
 ## What happens when I opt-in on the /profile page?

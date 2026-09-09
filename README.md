@@ -5,7 +5,7 @@ consumed by the [`lolly`](https://github.com/lolly-tools/lolly) monorepo as a gi
 `docs/`. It holds the prose documentation **and** the generator for the `/info` site
 (`docs/build.ts`), which is why it only builds from within the monorepo: it reads sibling paths
 such as `engine/`, `../README.md` and `shells/web/public/info/` that exist only in that layout.
-Run `npm run build:info` from the repo root, never from here.
+Run `pnpm run build:info` from the repo root, never from here.
 
 New contributors should start with [`CONTRIBUTING.md`](../CONTRIBUTING.md) at the repo root, which
 owns the setup steps, the profile workflow and the submodule ownership table.
@@ -139,7 +139,7 @@ Every page above now has both a `pages` entry and a `SIDEBARS` item, so nothing 
 reachable by cross-link alone. `index` is the single declared exception, because the brand wordmark
 links to it from every page and it renders the hub cards rather than sitting inside a sidebar.
 
-Both kinds of gap are mechanically enforced rather than described here. `npm run check:docs-nav`
+Both kinds of gap are mechanically enforced rather than described here. `pnpm run check:docs-nav`
 (`scripts/check-docs-nav.ts`, a CI step in the typecheck job) fails when a `docs/*.md` has no `pages`
 entry, when a `pages` entry has no `SIDEBARS` item, when a `src` no longer exists - and when a
 registered page is named nowhere in this index, so the promise at the top of this file is checked

@@ -1,6 +1,6 @@
 # Authoring Tools
 
-A tool is a folder. Drop it in `tools/`, add a `tool.json` + `template.html`, run `npm run build:catalog` to register it, done. (`catalog/tools/index.json` is **generated** from the manifests - never hand-edited; see Publishing.)
+A tool is a folder. Drop it in `tools/`, add a `tool.json` + `template.html`, run `pnpm run build:catalog` to register it, done. (`catalog/tools/index.json` is **generated** from the manifests - never hand-edited; see Publishing.)
 
 ## Authoring with AI Agents
 
@@ -117,7 +117,7 @@ A tool ships one committed thumbnail, but `examples` lets its gallery tile demon
 - `width` / `height` in `values` are honoured as per-example preview dimensions even when the tool declares no such inputs.
 - An `asset` value must be a **ref object**, never a bare string: `{ "source": "library", "id": "your/asset/id", "_unresolved": true }` (optionally with a `?theme=` suffix on a themable icon id). A `blocks` value is an array of row objects keyed by the block's declared field ids.
 
-`npm run validate:catalog` checks every look: `values` keys must be declared input ids (a urlKey gets a pointed error naming the right id), catalog asset refs must exist (and any `?theme=` suffix must name a real icon theme), blocks-row keys must be declared fields. It also warns when a tool declares looks but no gallery-displayable format (svg/png/jpg/jpeg/webp), and when a strip exceeds 8 looks - each look is a live render, so keep it to a handful of genuinely different ones.
+`pnpm run validate:catalog` checks every look: `values` keys must be declared input ids (a urlKey gets a pointed error naming the right id), catalog asset refs must exist (and any `?theme=` suffix must name a real icon theme), blocks-row keys must be declared fields. It also warns when a tool declares looks but no gallery-displayable format (svg/png/jpg/jpeg/webp), and when a strip exceeds 8 looks - each look is a live render, so keep it to a handful of genuinely different ones.
 
 The pre-`examples` alias `featured.variants` still renders but is deprecated - author `examples`.
 
@@ -464,7 +464,7 @@ To make this the default path, the blessed ids and their constraints live in **`
 
 Conventions: per-element typography numbers are `<element>FontSize` / `<element>FontWeight` (weight `100`–`900` step `100`), e.g. `headingFontSize`, `bodyFontWeight`.
 
-Labels are *advisory* - show whatever label fits your tool; the `/pro` header just uses the first non-empty one, and bulk-write only cares about id + type + constraints. Adding a genuinely new shared input? Add it to `schemas/canonical-inputs.json` first, then adopt it - `npm run validate:catalog` emits a **warning** (never an error) when a tool uses a canonical id with a divergent type or constraints, so drift stays visible.
+Labels are *advisory* - show whatever label fits your tool; the `/pro` header just uses the first non-empty one, and bulk-write only cares about id + type + constraints. Adding a genuinely new shared input? Add it to `schemas/canonical-inputs.json` first, then adopt it - `pnpm run validate:catalog` emits a **warning** (never an error) when a tool uses a canonical id with a divergent type or constraints, so drift stays visible.
 
 ## The template (`template.html`)
 
@@ -607,8 +607,8 @@ A tool's curated starting points live as one file per template in `tools/<id>/te
   preset as `?template=<tid>&preset=<pid>`.
 - The synced catalog index carries **metadata only** (names, categories, descriptions -
   never `values`), so templates cost nothing at rest however large the seed grows; the
-  values file is fetched when picked. Run `npm run build:catalog` after adding or editing
-  one, and `npm run validate:catalog` checks the shape (ids, uniqueness, object values).
+  values file is fetched when picked. Run `pnpm run build:catalog` after adding or editing
+  one, and `pnpm run validate:catalog` checks the shape (ids, uniqueness, object values).
 - With at least one template, a blank fresh open of your tool presents the **Start
   chooser** (search, category chips, live-rendered tiles, preset chips); the tools view
   shows the count on your card, lists every template in the About dialog, and finds the
@@ -735,12 +735,12 @@ Declared hooks must be flagged in the manifest's `hooks` object (`{ "onInit": tr
 hooks.js must stay **self-contained** (no `import`/`require` - tools are data), so helpers that several tools need (the filter overlay block, `canRaster`, `loadImage`, `esc`, `clamp`, `safeColor`) are maintained once in `community/_shared/*.js` and copied byte-for-byte into each consumer between marker comments:
 
 ```js
-// === lolly:shared clamp - generated from community/_shared/math.js; edit there and run npm run sync:shared ===
+// === lolly:shared clamp - generated from community/_shared/math.js; edit there and run pnpm run sync:shared ===
 function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
 // === /lolly:shared clamp ===
 ```
 
-Never hand-edit inside the markers: edit the canonical file, run `npm run sync:shared` and `npm run validate:catalog` fails on any drift. See `community/_shared/README.md`.
+Never hand-edit inside the markers: edit the canonical file, run `pnpm run sync:shared` and `pnpm run validate:catalog` fails on any drift. See `community/_shared/README.md`.
 
 ### Motion-reactive tools (`onFrame`)
 
@@ -951,7 +951,7 @@ and keep **only the files that differ** in the overlay dir. When `scripts/use-pr
 - The `extends` field is **stripped from the composed `tool.json`**, so the engine, shells and catalog scripts always see a plain tool. That one file is materialised (a real file, not a symlink) - edit the pack source, not the view copy; every other composed file keeps normal write-through symlinks in local (symlink) mode, and the Vercel copy mode composes identically.
 - Overlay and base **share the same tool id** (ids are permanent contracts; the view path `tools/<id>/` never changes), so the overlay's `tool.json` doubles as the marker carrier even when it's otherwise identical to the base's.
 
-**Fail-closed:** a declared overlay whose base is missing (`community/<id>/tool.json` doesn't exist), an `extends` value other than `"community"` (the only base pack in v1) or an `extends` declared on a community tool itself fails the profile build loudly - even in `postinstall --auto` - and is also rejected by `npm run validate:catalog`. You never get a silent partial tool. The composed result is validated like any other tool, since the validator runs against the `tools/` view.
+**Fail-closed:** a declared overlay whose base is missing (`community/<id>/tool.json` doesn't exist), an `extends` value other than `"community"` (the only base pack in v1) or an `extends` declared on a community tool itself fails the profile build loudly - even in `postinstall --auto` - and is also rejected by `pnpm run validate:catalog`. You never get a silent partial tool. The composed result is validated like any other tool, since the validator runs against the `tools/` view.
 
 ## Publishing
 
@@ -961,16 +961,16 @@ There are two ways a reusable starting point ships - pick per context:
 - **Into a catalog, for a shared library.** To publish a hand-authored tool into a catalog that many people sync - the model an organisation *can* manage as a Git repo so every change gets review and an audit trail (an option, not a requirement) - add the folder and rebuild the index:
 
 1. Place your folder under `tools/`.
-2. Run `npm run build:catalog` - this regenerates `catalog/tools/index.json` from
+2. Run `pnpm run build:catalog` - this regenerates `catalog/tools/index.json` from
    the manifests (don't hand-edit the index; it's generated) and refreshes asset
    checksums.
-3. Run `npm run validate:catalog` to confirm the catalog is consistent.
+3. Run `pnpm run validate:catalog` to confirm the catalog is consistent.
 4. Build & deploy the catalog. The shell picks it up on next boot.
 
 For development:
 
 ```bash
-npm run dev:web
+pnpm run dev:web
 # open localhost - your tool appears in the gallery
 ```
 

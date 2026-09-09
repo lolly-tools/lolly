@@ -38,8 +38,8 @@ Build it yourself:
 
 ```bash
 git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
-cd lolly && npm install
-npm run build:desktop
+cd lolly && pnpm install
+pnpm run build:desktop
 # → shells/tauri-desktop/src-tauri/target/release/bundle/macos/
 ```
 
@@ -201,7 +201,7 @@ sha256sum lolly-latest.apk
 Compare the result with the line for that filename. If they differ, do not
 install it.
 
-Build it yourself from `shells/tauri-mobile` with `npm run build:android`; the
+Build it yourself from `shells/tauri-mobile` with `pnpm run build:android`; the
 Android SDK and NDK prerequisites are in the
 [Build Guide](/info/build-guide.html).
 
@@ -212,11 +212,11 @@ Android SDK and NDK prerequisites are in the
 | Surface | How you get it | Notes |
 |---|---|---|
 | **Web** | [Open it](/) | Nothing to install. Add it to your home screen or dock and it keeps working with the network unplugged. |
-| **Windows** | `.msi` or an NSIS `.exe` | Built by `npm run build:desktop` on Windows. Not yet published as a signed release. |
+| **Windows** | `.msi` or an NSIS `.exe` | Built by `pnpm run build:desktop` on Windows. Not yet published as a signed release. |
 | **iOS** | `.ipa` | Needs an Apple developer identity to sign with, so there is no download to hand out. See [Building for iOS](/info/ios-build.html). |
 | **Linux, other** | `.AppImage` | Falls out of the same desktop build. For Debian/Ubuntu use the `.deb` above; the Flatpak is the supported cross-distro package. |
-| **Terminal** | `npm i -g @lolly-tools/cli` | The same engine, headless, as `lolly`. It ships no tools and no catalog, so point it at one with `LOLLY_ROOT`, or let the desktop app bring its own. `npm run cli` is the in-repo spelling. See [the CLI guide](/info/cli.html#install). |
-| **Terminal, interactive** | `lolly tui` | A full-screen terminal interface, from the same package (`npm run tui` in a checkout). See [the TUI guide](/info/tui.html). |
+| **Terminal** | `npm i -g @lolly-tools/cli` | The same engine, headless, as `lolly`. It ships no tools and no catalog, so point it at one with `LOLLY_ROOT`, or let the desktop app bring its own. `pnpm run cli` is the in-repo spelling. See [the CLI guide](/info/cli.html#install). |
+| **Terminal, interactive** | `lolly tui` | A full-screen terminal interface, from the same package (`pnpm run tui` in a checkout). See [the TUI guide](/info/tui.html). |
 | **Tool-author SDK** | `npm i -D @lolly-tools/core` | Published on npm. The `HostV1` contract types, the manifest validator and a mock host for testing a tool without the app or a clone of the repository. See [Authoring Tools](/info/authoring-tools.html#try-it-without-the-monorepo). |
 | **Browser extension** | Load unpacked | See [Browser Extension](/info/extension.html). |
 | **Your own server** | Self-host the web shell | A static bundle behind any web server, including an air-gapped one. See [Deployment](/info/deployment.html). |

@@ -23,7 +23,7 @@ Node package.
 **A checkout.** In the repo it's wired as an npm script (note the `--` to pass args through):
 
 ```bash
-npm run cli -- <tool-id> [--input=value ...] [--export=fmt] [--output=file]
+pnpm run cli <tool-id> [--input=value ...] [--export=fmt] [--output=file]
 # or, once installed as a binary:
 lolly <tool-id> [--input=value ...] [--export=fmt] [--output=file]
 ```
@@ -36,24 +36,24 @@ Tools and brand assets are content, not code, and a full set runs well past 100 
 LOLLY_ROOT=/path/to/lolly lolly list
 ```
 
-Any directory holding `tools/` and `catalog/` works; a checkout has both once `npm install` has built its profile views. The desktop app brings its own, so nothing needs pointing there. `lolly system import <pack.lolly>` is the third route, and it is a different thing: it imports **your design system** (colours, fonts, logos), which every render then uses, and it adds no tools, so it wants one of the other two beside it.
+Any directory holding `tools/` and `catalog/` works; a checkout has both once `pnpm install` has built its profile views. The desktop app brings its own, so nothing needs pointing there. `lolly system import <pack.lolly>` is the third route, and it is a different thing: it imports **your design system** (colours, fonts, logos), which every render then uses, and it adds no tools, so it wants one of the other two beside it.
 
 Run a command that needs content without any and the CLI prints those three routes and exits **3** (`UNAVAILABLE_HERE`), the retry-somewhere-else code. It never downloads anything on its own.
 
-> **Redirecting or piping? Use `npm run --silent cli`.** npm prints its own two-line run banner (`> lolly@0.1.0 cli` …) on **stdout**, ahead of anything the CLI writes, so `npm run cli -- qr-code --export=png > qr.png` produces a file whose PNG magic starts 95 bytes in and `file` reports as `data`. The CLI's own rule holds - stdout is the payload - but npm's wrapper breaks it before the CLI runs. `--silent` suppresses the banner; an installed `lolly` binary never has it. Every redirecting example below is written that way.
+> **Redirecting or piping? Use `pnpm --silent run cli`.** npm prints its own two-line run banner (`> lolly@0.1.0 cli` …) on **stdout**, ahead of anything the CLI writes, so `pnpm run cli qr-code --export=png > qr.png` produces a file whose PNG magic starts 95 bytes in and `file` reports as `data`. The CLI's own rule holds - stdout is the payload - but npm's wrapper breaks it before the CLI runs. `--silent` suppresses the banner; an installed `lolly` binary never has it. Every redirecting example below is written that way.
 
 `lolly --help` prints the same surface this page documents - every flag and every exit code - so a script author never has to leave the terminal to find them.
 
 ## Discovering tools & assets
 
 ```bash
-npm run cli                      # list every tool (id, status, description)
-npm run cli -- list              # the same thing, spelled explicitly
-npm run cli -- describe qr-code  # that tool's inputs, defaults, and formats
-npm run cli -- qr-code           # sugar for describe, when no flags follow
-npm run cli -- assets            # list every catalog asset id (logos, icons, photos…)
-npm run cli -- assets logo       # filter by substring
-npm run cli -- assets --type=raster
+pnpm run cli                      # list every tool (id, status, description)
+pnpm run cli list              # the same thing, spelled explicitly
+pnpm run cli describe qr-code  # that tool's inputs, defaults, and formats
+pnpm run cli qr-code           # sugar for describe, when no flags follow
+pnpm run cli assets            # list every catalog asset id (logos, icons, photos…)
+pnpm run cli assets logo       # filter by substring
+pnpm run cli assets --type=raster
 ```
 
 `describe <tool-id>` (and its bare `<tool-id>` sugar) prints the input schema and a usage line - including a `↳` syntax hint for the non-scalar input types (how to express `asset`, `blocks`, `vector`, `file`, `color` values). The fastest way to learn what a tool accepts.
@@ -68,8 +68,8 @@ Error: No catalog asset has type "rastor". This catalog has: audio, lottie, pale
 Any listed **asset id** can be passed to an `asset`-type input (the engine resolves it to the embedded asset), and so can a **`lolly.tools` tool URL** - a whole tool's render becomes the asset. To render a **bare asset** straight to a file, use the `asset-export` tool - note it ships with the **SUSE brand pack**, so it is profile-dependent and absent on a community-only profile (where these commands print `Tool not found: asset-export`):
 
 ```bash
-npm run cli -- asset-export --src=suse/logo/hor-neg-green --export=svg --output=logo.svg
-npm run cli -- asset-export --src='https://lolly.tools/tool/qr-code.svg?url=x' --output=qr.svg
+pnpm run cli asset-export --src=suse/logo/hor-neg-green --export=svg --output=logo.svg
+pnpm run cli asset-export --src='https://lolly.tools/tool/qr-code.svg?url=x' --output=qr.svg
 ```
 
 ### Document/compiler verbs
@@ -119,10 +119,10 @@ A flag that takes a value is refused in its bare form rather than parsed as the 
 
 ```bash
 # Write to a file (extension is yours to choose):
-npm run cli -- qr-code --url=https://suse.com --output=./qr.svg
+pnpm run cli qr-code --url=https://suse.com --output=./qr.svg
 
 # Explicit format, stream to stdout (pipe or redirect):
-npm run --silent cli -- qr-code --url=https://suse.com --export=png > qr.png
+pnpm --silent run cli qr-code --url=https://suse.com --export=png > qr.png
 ```
 
 If `--output` is given, the file is written and a byte count is reported on stderr; otherwise the bytes go to **stdout** so you can pipe them.
@@ -180,12 +180,12 @@ Naming the format explicitly is how you opt out, because then you have said whic
 Everything that isn't a reserved flag is treated as a tool input and validated against the manifest. Example - an A4 page:
 
 ```bash
-npm run cli -- quotes --quote="Ship it." --width=210 --height=297 --unit=mm --export=pdf --output=page.pdf   # `quotes` is a SUSE-pack tool
+pnpm run cli quotes --quote="Ship it." --width=210 --height=297 --unit=mm --export=pdf --output=page.pdf   # `quotes` is a SUSE-pack tool
 ```
 
 ## What the CLI can render
 
-The CLI renders in a headless DOM (jsdom), so **vector and structured** formats - **SVG (and SVGZ), EMF, WMF, EPS (and EPS-CMYK), DXF, BMP, HTML, plus the data formats JSON, CSV, ICS, VCF, MD** (the engine hydrates those payloads) - work natively and reproducibly, no browser needed. The float formats **EXR** and **HDR** join them, over a resvg-rasterised frame, when a render asks for the headroom (`--hdr=1`). EMF, EPS and DXF are emitted straight from the template's vector primitives (no rasteriser), and the CLI carries the **same HarfBuzz text-shaping as the web shell** (`host.text`), so live `<text>` runs are outlined to true vector paths at export - EPS and DXF ship real text as geometry with no fonts needed on the receiving end, EMF keeps plain runs as live, editable text records by default (`--text=outline` forces paths), and font-driven tools (a wordmark lockup built on `host.text`, say) render headlessly too. Shaping resolves sfnt fonts (ttf/otf) under the repo root - catalog and tool-local faces; a browser-only woff2 face is rejected with a clear error rather than silently shaping blanks. **PNG** from an `<svg>`-based tool is also browser-free - resvg rasterises the engine's own SVG (Tier A), and so are the two **HDR stills** over that same frame (`--hdr=1` with `png` or `jpg`): the 16-bit Rec.2100-PQ PNG and the ISO 21496-1 gain-map JPEG are written by the engine's own encoders, which is why a JPEG that would otherwise need the paint tier comes out of a plain install here. **`penpot`** from an `<svg>`-based tool is browser-free the same way, and for the same reason as EMF/EPS/DXF above - it is built straight from the template's vector primitives, with the brand's colours and design tokens packed in alongside. No rasteriser and no browser sit in that path, so it needs neither the resvg tier PNG uses nor a Chromium; type styles come from the app's own font-role read, so a CLI archive carries no library typographies. An HTML-layout tool has no root `<svg>` to build from, so it goes to the full-fidelity tiers below and says so before it does. The remaining raster formats - **JPG, WebP, PDF, PPTX and video (GIF, APNG, WebM, MP4)**, plus HTML-layout PNG - need a real paint engine. `LOLLY_RENDERER=auto` (the default) walks three rungs: a Lolly desktop app that is **already listening** (the app writes its loopback port and a per-launch token to `render.json` in its data directory, and the CLI sends the job there and reads the bytes back on the same connection), then an **installed** app that is not listening yet, started in its hidden `--render-server` mode and given a bounded wait to answer (an app that predates the endpoint is never started, since it would read the flag as a request for a window; `lolly list --json` says so by name), then the CLI's own **scoped headless Chromium**, unchanged. `LOLLY_RENDERER=desktop` or `chromium` pins one of those, and `desktop` reports the app's failure rather than quietly rendering somewhere else; `LOLLY_DESKTOP_BIN` names an app executable in an unusual place and `LOLLY_RENDER_SERVER` points at a `render.json` directly. If Chromium is selected, install it once with `lolly install-browser` (or `npm run install:browser`). `lolly list --json` names the chosen renderer as `result.environment.renderer` (`desktop-running`, `desktop-installed`, `chromium` or `none`) and the resolved order under `result.environment.tiers.desktop`. Those paths are measured rather than assumed - [Video and timelines](#video-and-timelines) has the wall times and the file sizes. **ZIP** is the one format the lean CLI leaves out - no zip dependency - so its batch writes a folder instead. `ico` (favicons) and `txt` are full-fidelity formats like the raster set: `txt` is not a data format the engine hydrates, it is the *rendered* page serialised to plain text, which is why it needs a paint tier and not just jsdom. `jpg` and `jpeg` are one format with two spellings and either flag works on either kind of tool - manifests are split between the two, and `--export=` resolves to whichever the tool declared. (Requesting a format a tool doesn't declare prints a clear error listing what it supports - and so does asking for one via the `--output` extension.)
+The CLI renders in a headless DOM (jsdom), so **vector and structured** formats - **SVG (and SVGZ), EMF, WMF, EPS (and EPS-CMYK), DXF, BMP, HTML, plus the data formats JSON, CSV, ICS, VCF, MD** (the engine hydrates those payloads) - work natively and reproducibly, no browser needed. The float formats **EXR** and **HDR** join them, over a resvg-rasterised frame, when a render asks for the headroom (`--hdr=1`). EMF, EPS and DXF are emitted straight from the template's vector primitives (no rasteriser), and the CLI carries the **same HarfBuzz text-shaping as the web shell** (`host.text`), so live `<text>` runs are outlined to true vector paths at export - EPS and DXF ship real text as geometry with no fonts needed on the receiving end, EMF keeps plain runs as live, editable text records by default (`--text=outline` forces paths), and font-driven tools (a wordmark lockup built on `host.text`, say) render headlessly too. Shaping resolves sfnt fonts (ttf/otf) under the repo root - catalog and tool-local faces; a browser-only woff2 face is rejected with a clear error rather than silently shaping blanks. **PNG** from an `<svg>`-based tool is also browser-free - resvg rasterises the engine's own SVG (Tier A), and so are the two **HDR stills** over that same frame (`--hdr=1` with `png` or `jpg`): the 16-bit Rec.2100-PQ PNG and the ISO 21496-1 gain-map JPEG are written by the engine's own encoders, which is why a JPEG that would otherwise need the paint tier comes out of a plain install here. **`penpot`** from an `<svg>`-based tool is browser-free the same way, and for the same reason as EMF/EPS/DXF above - it is built straight from the template's vector primitives, with the brand's colours and design tokens packed in alongside. No rasteriser and no browser sit in that path, so it needs neither the resvg tier PNG uses nor a Chromium; type styles come from the app's own font-role read, so a CLI archive carries no library typographies. An HTML-layout tool has no root `<svg>` to build from, so it goes to the full-fidelity tiers below and says so before it does. The remaining raster formats - **JPG, WebP, PDF, PPTX and video (GIF, APNG, WebM, MP4)**, plus HTML-layout PNG - need a real paint engine. `LOLLY_RENDERER=auto` (the default) walks three rungs: a Lolly desktop app that is **already listening** (the app writes its loopback port and a per-launch token to `render.json` in its data directory, and the CLI sends the job there and reads the bytes back on the same connection), then an **installed** app that is not listening yet, started in its hidden `--render-server` mode and given a bounded wait to answer (an app that predates the endpoint is never started, since it would read the flag as a request for a window; `lolly list --json` says so by name), then the CLI's own **scoped headless Chromium**, unchanged. `LOLLY_RENDERER=desktop` or `chromium` pins one of those, and `desktop` reports the app's failure rather than quietly rendering somewhere else; `LOLLY_DESKTOP_BIN` names an app executable in an unusual place and `LOLLY_RENDER_SERVER` points at a `render.json` directly. If Chromium is selected, install it once with `lolly install-browser` (or `pnpm run install:browser`). `lolly list --json` names the chosen renderer as `result.environment.renderer` (`desktop-running`, `desktop-installed`, `chromium` or `none`) and the resolved order under `result.environment.tiers.desktop`. Those paths are measured rather than assumed - [Video and timelines](#video-and-timelines) has the wall times and the file sizes. **ZIP** is the one format the lean CLI leaves out - no zip dependency - so its batch writes a folder instead. `ico` (favicons) and `txt` are full-fidelity formats like the raster set: `txt` is not a data format the engine hydrates, it is the *rendered* page serialised to plain text, which is why it needs a paint tier and not just jsdom. `jpg` and `jpeg` are one format with two spellings and either flag works on either kind of tool - manifests are split between the two, and `--export=` resolves to whichever the tool declared. (Requesting a format a tool doesn't declare prints a clear error listing what it supports - and so does asking for one via the `--output` extension.)
 
 Which tier is available here is not a guess: `lolly list --json` reports it per tier, with a reason for each one that is missing. See [Discovery, for an agent](#discovery-for-an-agent).
 
@@ -246,10 +246,10 @@ The frames need a paint engine. The sound does not: a timeline's mix is a closed
 
 ```bash
 # A design state: a share link, a bare query, or a file holding one
-npm run cli -- mix 'https://lolly.tools/#/tool/design?bx=…' --out=mix.wav
+pnpm run cli mix 'https://lolly.tools/#/tool/design?bx=…' --out=mix.wav
 
 # Or a plan JSON: { totalSec, clips: [{ id, src, startMs, durMs, … }], bed }
-npm run cli -- mix ./plan.json --out=mix.wav --normalize=-16
+pnpm run cli mix ./plan.json --out=mix.wav --normalize=-16
 ```
 
 `--normalize=<LKFS>` sets a loudness target (`-14`, `-16`, `-23`); without it the mix is not normalised, and the limiter runs either way because it is not optional on any path. The result is bit-identical to the web shell's, which a test pins by running both over one specification and comparing sample for sample.
@@ -261,7 +261,7 @@ The decoder is the honest limit. Node reads WAV and our procedural ZzFXM songs; 
 Some tools take **your own file** as input (a `file`-typed input) and hand back a transformed copy - the on-device "utility" shape (strip EXIF, crop, convert). On the CLI, pass the file as a path; the runner loads its bytes:
 
 ```bash
-npm run cli -- strip-data --source=./holiday.jpg --output=./holiday-clean.jpg
+pnpm run cli strip-data --source=./holiday.jpg --output=./holiday-clean.jpg
 ```
 
 These tools produce their output via the `exportFile` transform path (bytes in → bytes out), not a DOM render, so there is no render format to choose: the output container follows the file you gave it. `--export=` is therefore **refused**, not ignored - it used to be accepted and dropped, which printed a success line for a file whose contents did not match its name:
@@ -277,7 +277,7 @@ if it offers a conversion.
 A tool that genuinely converts does it through its **own input**, not the export flag. `convert-image` declares an input literally called `format`, which the reserved export param shadows, so it is set with the explicit namespace:
 
 ```bash
-npm run cli -- convert-image --source=./photo.heic --input.format=png --output=./photo.png
+pnpm run cli convert-image --source=./photo.heic --input.format=png --output=./photo.png
 ```
 
 Choosing an `--output` name whose extension disagrees with the bytes a transform produces is a **warning**, not a refusal - the transform cannot change the container to match, and the file is written under the name you asked for with that fact stated on stderr.
@@ -288,7 +288,7 @@ Most utilities run entirely in the headless DOM. A few **rebuild real pixels** -
 
 One gap in the terminal's page render, stated because a redacted page is a picture of the original: text, vector geometry and embedded rasters all come through, but shadings, tiling patterns and graphics-state soft masks do not - their decoders are web-shell modules. A gradient paints the flat back-stop the engine emits for it. Text and geometry, which is what a redaction covers, are complete.
 
-If that canvas is not installed (a lean install), or a tool needs something only a browser engine can do, the CLI re-runs the same export in the scoped Chromium driving the built web shell (the Tier B path above). It says so on stderr when it switches. If the browser or the built shell is missing it stops and names what to install (`lolly install-browser`, `npm run build:web`); it never writes a file that was not actually redacted.
+If that canvas is not installed (a lean install), or a tool needs something only a browser engine can do, the CLI re-runs the same export in the scoped Chromium driving the built web shell (the Tier B path above). It says so on stderr when it switches. If the browser or the built shell is missing it stops and names what to install (`lolly install-browser`, `pnpm run build:web`); it never writes a file that was not actually redacted.
 
 ### Redaction instructions: one string, many files
 
@@ -296,19 +296,19 @@ A redaction is fully described by its bars plus its options, and that descriptio
 
 ```bash
 # Compact rows (tilde-separated), the form a share link uses:
-npm run cli -- redact --source=./contract.pdf --bars='1,40,60,200,24~2,40,100,120,14' \
+pnpm run cli redact --source=./contract.pdf --bars='1,40,60,200,24~2,40,100,120,14' \
   --grayscale --output=./contract-redacted.pdf --verify
 
 # The same instructions as JSON, or from a spreadsheet:
-npm run cli -- redact --source=./scan.png --bars='[{"page":1,"x":40,"y":60,"w":200,"h":24}]' --output=./scan-redacted.png
-npm run cli -- redact --source=./scan.png --bars-data=./bars.csv --output=./scan-redacted.png
+pnpm run cli redact --source=./scan.png --bars='[{"page":1,"x":40,"y":60,"w":200,"h":24}]' --output=./scan-redacted.png
+pnpm run cli redact --source=./scan.png --bars-data=./bars.csv --output=./scan-redacted.png
 ```
 
 Because the instructions are just a link, you can mark up one document in the app, hit **Share** and run that link headlessly over every other copy - forms, certificates, invoices and anything else where the same fields sit in the same place on every page:
 
 ```bash
 for f in ./inbox/*.pdf; do
-  npm run cli -- "$SHARE_LINK" --source="$f" --output="./clean/$(basename "$f")" --verify || echo "FAILED: $f"
+  pnpm run cli "$SHARE_LINK" --source="$f" --output="./clean/$(basename "$f")" --verify || echo "FAILED: $f"
 done
 ```
 
@@ -319,9 +319,9 @@ done
 Two speech commands, both reaching the same `host.speech` a tool's own `hooks.js` reaches. Nothing is uploaded and nothing is called out to: the models run here, on this machine. Because the bridge carries `host.speech` now, a tool that speaks its own text - a narration tool, a caption track, the audiogram's voiceover - renders headlessly with no extra flags.
 
 ```bash
-npm run cli -- speak "Constraint first, on device, from the terminal." --out=./clip.wav
-npm run cli -- speak "…" --voice=af_heart --speed=0.95 --out=./clip.wav --json
-npm run cli -- transcribe ./clip.wav --lang=en --json
+pnpm run cli speak "Constraint first, on device, from the terminal." --out=./clip.wav
+pnpm run cli speak "…" --voice=af_heart --speed=0.95 --out=./clip.wav --json
+pnpm run cli transcribe ./clip.wav --lang=en --json
 ```
 
 **`lolly speak`** writes a 24 kHz mono WAV. `--out=<file>` names it (`--out=-` streams it to stdout, `speech.wav` is the default name), `--speed=<n>` is a rate multiplier where `1` is the natural pace and `--voice=<id>` picks one of the 28 Kokoro voices - 20 en-US and 8 en-GB, `bf_lily` by default because "lolly" is a British word and Lolly's own voice should sound like one. A voice can be a **blend**: `--voice=af_heart+bf_lily:0.3` mixes two with the weights normalised, the same setting the app's voice controls write. Progress goes to stderr, per sentence.
@@ -408,10 +408,10 @@ A batch is **many URL-mode rows under one file** - the same principle as a singl
 
 ```bash
 # Author a starter grid for one or more tools (their input columns + reserved columns):
-npm run --silent cli -- batch --template=qr-code,chart-creator > rows.csv
+pnpm --silent run cli batch --template=qr-code,chart-creator > rows.csv
 
 # Render every row → ./out/NN-<name>.<fmt>
-npm run cli -- batch rows.csv --out-dir=./out [--keep-going]
+pnpm run cli batch rows.csv --out-dir=./out [--keep-going]
 ```
 
 The header row names the columns: a **`toolId`** column is required; **`format` · `width` · `height` · `unit` · `dpi` · `filename`** are per-row output settings; every other column is a **tool input id** whose cell is a value (any URL-mode form - plain text, JSON/tilde blocks, `id.field` vectors). Rows can mix tools freely. Example:
@@ -436,9 +436,9 @@ The header *is* the namespace here - a batch has no `--input.<id>=` escape - so 
 ## Render-check the catalog (`lolly smoke`)
 
 ```bash
-npm run cli -- smoke                              # render EVERY tool at manifest defaults
-npm run cli -- smoke --only=qr-code,chart-creator # just these ids
-npm run cli -- smoke --format=svg                 # force one Node-native format
+pnpm run cli smoke                              # render EVERY tool at manifest defaults
+pnpm run cli smoke --only=qr-code,chart-creator # just these ids
+pnpm run cli smoke --format=svg                 # force one Node-native format
 ```
 
 `lolly smoke` is the catalog-wide render gate: every tool in the active profile renders at its manifest defaults to its first Node-native format - browser-free; a tool whose declared formats are all browser-only falls back to an `html` render, which still exercises load → hydrate → hooks. Every output is checked for blank or empty results, each tool prints a ✓/✗ row and the exit code is non-zero if anything fails - so wired into CI, a `hooks.js` regression can never ship a tool that renders blank. Tools that legitimately can't render headlessly are skipped with a reason, never failed: transform tools (file in → bytes out; nothing to render at defaults) and tools gated on a live capture capability (camera / microphone / screen / capture).
@@ -446,11 +446,11 @@ npm run cli -- smoke --format=svg                 # force one Node-native format
 ## Preflight an export (`lolly preflight`)
 
 ```bash
-npm run --silent cli -- preflight qr-code --export=pdf-cmyk     # count and check, do not render
-npm run --silent cli -- preflight qr-code --export=pdf-cmyk \
+pnpm --silent run cli preflight qr-code --export=pdf-cmyk     # count and check, do not render
+pnpm --silent run cli preflight qr-code --export=pdf-cmyk \
     --width=210 --height=297 --unit=mm --bleed=3mm --marks=crop,reg
-npm run --silent cli -- preflight qr-code --export=svg --json | jq   # the machine artifact
-npm run --silent cli -- preflight 'https://lolly.tools/#/tool/qr-code?url=…&format=pdf-cmyk'
+pnpm --silent run cli preflight qr-code --export=svg --json | jq   # the machine artifact
+pnpm --silent run cli preflight 'https://lolly.tools/#/tool/qr-code?url=…&format=pdf-cmyk'
 ```
 
 `lolly preflight` answers "what am I about to export, and is anything wrong with it" without rendering anything. It takes the SAME render flags a real run takes - `--export`, `--width`/`--height`/`--unit`/`--dpi`, `--bleed`, `--marks`, `--press-profile`, `--cuts`, `--hdr`, `--durable`, `--z`/`--zx` and a pasted share link (https or `lolly://`) - because preflighting settings other than the ones a render would use is worthless. The rules live in the engine (`engine/src/preflight.ts`), so the web export panel and this subcommand report the same findings for the same job.
@@ -483,7 +483,7 @@ The same inputs give the same **render** every time - that is what makes a tool 
 
 ```bash
 # Generate an OG image at build time instead of committing a binary:
-npm run cli -- quotes --quote="Ship it." --export=svg --output=./public/og.svg   # `quotes` is a SUSE-pack tool
+pnpm run cli quotes --quote="Ship it." --export=svg --output=./public/og.svg   # `quotes` is a SUSE-pack tool
 ```
 
 ### What provenance costs
@@ -611,9 +611,9 @@ A pasted `lolly.tools` tool URL can be the **first argument**: the CLI splits it
 Three link shapes are recognised - the Share dialog's hash route, the pretty path and the canonical embed URL:
 
 ```bash
-npm run cli -- 'https://lolly.tools/#/tool/qr-code?url=https://suse.com&color=%230c322c' --export=svg --output=qr.svg
-npm run cli -- 'https://lolly.tools/qr-code?url=https://suse.com&color=%230c322c' --export=svg --output=qr.svg
-npm run cli -- 'https://lolly.tools/tool/qr-code.svg?url=https://suse.com' --output=qr.svg
+pnpm run cli 'https://lolly.tools/#/tool/qr-code?url=https://suse.com&color=%230c322c' --export=svg --output=qr.svg
+pnpm run cli 'https://lolly.tools/qr-code?url=https://suse.com&color=%230c322c' --export=svg --output=qr.svg
+pnpm run cli 'https://lolly.tools/tool/qr-code.svg?url=https://suse.com' --output=qr.svg
 ```
 
 Anything else is a usage error naming the URL, not a render of the tool's defaults.
@@ -621,7 +621,7 @@ Anything else is a usage error naming the URL, not a render of the tool's defaul
 The reverse direction is `--share` (or `--link`), which prints a link for the inputs you passed instead of rendering:
 
 ```bash
-npm run cli -- qr-code --url=https://suse.com --share
+pnpm run cli qr-code --url=https://suse.com --share
 ```
 
 ## Verify a file (`lolly validate`)
@@ -629,11 +629,11 @@ npm run cli -- qr-code --url=https://suse.com --share
 The read side of [Content Credentials](/info/content-credentials-identity.html) - entirely on-device, nothing uploaded:
 
 ```bash
-npm run cli -- validate ./poster.pdf
-npm run cli -- validate ./poster.pdf --json
-npm run cli -- validate ./poster.png --deep
-npm run cli -- validate ./poster.pdf --trust-anchor=./corp-root.pem
-npm run cli -- validate ./poster.svg --no-default-anchors    # trust only what you pinned
+pnpm run cli validate ./poster.pdf
+pnpm run cli validate ./poster.pdf --json
+pnpm run cli validate ./poster.png --deep
+pnpm run cli validate ./poster.pdf --trust-anchor=./corp-root.pem
+pnpm run cli validate ./poster.svg --no-default-anchors    # trust only what you pinned
 ```
 
 ### Which anchors produced the verdict
@@ -675,9 +675,9 @@ The summary headlines whether the file was genuinely made with Lolly and is unch
 - **Text present in the file but not visible on the page** - the classic failed redaction, where a black bar is drawn over words that are still in the content stream. The report says where those words are and quotes them back. It does not say why they are there: a botched redaction and a layering mistake look identical from outside.
 
 ```bash
-npm run cli -- validate ./contract.pdf --metadata
-npm run cli -- validate ./photo.jpg --metadata --require=none    # report only, never a gate
-npm run cli -- validate ./contract.pdf --metadata --json
+pnpm run cli validate ./contract.pdf --metadata
+pnpm run cli validate ./photo.jpg --metadata --require=none    # report only, never a gate
+pnpm run cli validate ./contract.pdf --metadata --json
 ```
 
 Honesty rules this output holds to, because a person decides what to send based on it:
@@ -707,7 +707,7 @@ The tool-id list is a snapshot. Install new tools, then run `lolly completion <s
 The CLI reads tools and the asset catalog from the repo root it finds itself in. Set `LOLLY_ROOT` to render from any directory with the same layout - a `tools/` directory of tool folders and a built `catalog/`:
 
 ```bash
-LOLLY_ROOT=/path/to/brand-pack npm run cli -- qr-code --url=https://example.com --output=qr.svg
+LOLLY_ROOT=/path/to/brand-pack pnpm run cli qr-code --url=https://example.com --output=qr.svg
 ```
 
 The override is **marker-validated**: the directory must hold a generated catalog index (`catalog/tools/index.json` or `catalog/assets/index.json`), and a `LOLLY_ROOT` without one is ignored - resolution falls back to walking up from the CLI itself, then the working directory. That makes the CLI a generic brand-pack renderer: build a pack's `tools/` + `catalog/` and every command here - render, batch, smoke, assets - runs against it, with zero code change.

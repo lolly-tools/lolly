@@ -27,7 +27,7 @@ For a cluster, the repository ships three Dockerfiles and a Helm chart. One bran
 Updates in that model arrive the way any other controlled artefact does, and they split in two:
 
 - **The app** is rebuilt and redistributed on your cadence - a new static bundle to the internal host, or a new binary through your MDM. Nothing self-updates across the gap.
-- **The tools** are data, so shipping one never redeploys the app. Merge the tool directory into the catalogue your instance serves, run `npm run build:catalog` and `npm run validate:catalog`, and clients pick it up on their next sync. Manage that directory as a Git repository if you want review and an audit trail, which is an option rather than a requirement.
+- **The tools** are data, so shipping one never redeploys the app. Merge the tool directory into the catalogue your instance serves, run `pnpm run build:catalog` and `pnpm run validate:catalog`, and clients pick it up on their next sync. Manage that directory as a Git repository if you want review and an audit trail, which is an option rather than a requirement.
 
 ## Signing happens on the device
 

@@ -393,7 +393,7 @@ would 501.
 
    ```bash
    CA_DEV_FAKE_PROVIDER=1 CA_SERVICE_SECRET=dev node services/ca/server.mjs &
-   npm run dev:web        # Vite proxies /api/ca → :8787
+   pnpm run dev:web        # Vite proxies /api/ca → :8787
    ```
 
 ## Threat model (abridged)

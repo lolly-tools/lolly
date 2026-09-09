@@ -271,7 +271,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 The interactive counterpart to the CLI: a full-screen, keyboard-first terminal app (built on Ink) for browsing tools, filling in inputs, saving projects and exporting - all without a GUI. Its host bridge **reuses the CLI's implementation** for the DOM-free formats (SVG/EMF/EPS/HTML + text/data), and adds on-disk state under `~/.lolly` plus an opt-in inline preview. Beyond that it has a **browser render tier**: a scoped headless Chromium (the same one the MCP server installs) that produces raster/PDF/video and live-URL capture on demand - driving a built copy of the web shell so output is identical, and launching only when you first export such a format. So `url-shot` (with crop + recolor + vector PDF/SVG) and every raster/pdf tool run in the terminal too. See the [TUI guide](/info/tui.html).
 
@@ -303,7 +303,7 @@ Tools are also classified by status: `official` (brand approved, no watermark), 
 
 ![The Utilities drawer, where every card is a tool that transforms a file you already have](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> Note: `category` and `status` are denormalised into `catalog/tools/index.json` (the registry the gallery reads) from each `tool.json`. The manifest is the source of truth - the index is **generated** by `npm run build:catalog` and `npm run validate:catalog` fails CI if the committed index drifts from the manifests.
+> Note: `category` and `status` are denormalised into `catalog/tools/index.json` (the registry the gallery reads) from each `tool.json`. The manifest is the source of truth - the index is **generated** by `pnpm run build:catalog` and `pnpm run validate:catalog` fails CI if the committed index drifts from the manifests.
 
 ---
 

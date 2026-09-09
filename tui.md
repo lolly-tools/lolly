@@ -6,7 +6,7 @@ It runs the **same engine and the same render path** as the web shell and the CL
 
 ```bash
 lolly tui        # from the installed CLI (npm i -g @lolly-tools/cli)
-npm run tui      # from a checkout
+pnpm run tui      # from a checkout
 ```
 
 `lolly tui` and `lolly-tui` start the same thing: the CLI hands the terminal straight to it, so one install gives you both doors. See [Install](/info/cli.html#install) for the three ways to get the command.
@@ -77,13 +77,13 @@ Two tiers, picked automatically per format:
 Set the browser tier up once:
 
 ```bash
-npm run install:browser   # downloads Chromium into .browsers at the repo root
+pnpm run install:browser   # downloads Chromium into .browsers at the repo root
                           # (an existing services/mcp/.browsers install, or PLAYWRIGHT_BROWSERS_PATH, is reused instead;
                           #  LOLLY_BROWSER_CHANNEL=chrome uses an installed Chrome and downloads nothing)
-npm run build:web         # a built web shell for full-fidelity raster/pdf/video
+pnpm run build:web         # a built web shell for full-fidelity raster/pdf/video
 ```
 
-If Chromium (or the built shell) isn't present, those formats fail with a one-line "run `npm run install:browser` / `npm run build:web`" message, and the TUI falls back to writing HTML so every tool still exports *something*. SVG and data formats never need either.
+If Chromium (or the built shell) isn't present, those formats fail with a one-line "run `pnpm run install:browser` / `pnpm run build:web`" message, and the TUI falls back to writing HTML so every tool still exports *something*. SVG and data formats never need either.
 
 Exports are written to your desktop (`~/Desktop`) by default, with the folder editable per export.
 
