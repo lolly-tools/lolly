@@ -20,7 +20,7 @@ import { zipSync } from 'fflate';
 import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId } from '@lolly/engine';
 import type {
   HostV1, Profile, AssetsAPI, AssetRef, AssetQuery, ExportOpts, ExportMeta,
-  StateEntry, ComposeSpec, ComposeUrlOpts, ExportFormat, TokenSet, C2paSignOpts,
+  StateEntry, ComposeSpec, ExportFormat, TokenSet, C2paSignOpts,
 } from '@lolly-tools/core/host-v1';
 // Deep image encoders (v1.100 host.codec) - off the @lolly/engine barrel by
 // design, imported deep-relative like node-shell/raster.ts does for packExr.
@@ -546,7 +546,7 @@ export async function createCliBridge(
       }
       return null;
     },
-    async get(id) {
+    async get(id, opts = {}) {
       // A PROCEDURAL asset: `zzfxm:<seed>[:<style>]` names a song that is
       // synthesised on demand, not a file the catalog stores. It resolves to
       // ITSELF - url === id - exactly as the web bridge does, so a headless render
@@ -595,12 +595,14 @@ export async function createCliBridge(
       const baseId = theme ? themedBase : treatedBase;
       const meta = assetById.get(baseId);
       if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
+      if (opts.version && opts.version !== meta.version) throw new Error(`Asset version unavailable: ${baseId} (${opts.version})`);
       // Lottie entries list the animation (json) plus a static poster variant;
       // tools always want the animation regardless of listing order (mirrors the
       // web bridge's pickFormat).
-      const fmt = meta.type === 'lottie'
+      const fmt = opts.format ? meta.formats.find(f => f.format === opts.format) : meta.type === 'lottie'
         ? (meta.formats.find(f => f.format === 'json') ?? meta.formats[0]!)
         : meta.formats[0]!;
+      if (!fmt) throw new Error(`Asset format unavailable: ${baseId} (${opts.format})`);
       const localPath = join(REPO_ROOT, fmt.url.replace(/^\//, ''));
       let buf = await readFile(localPath);
       // For palette JSON, embed swatches in meta for templates to use.
