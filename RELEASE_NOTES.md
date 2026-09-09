@@ -1,6 +1,6 @@
 # Lolly 1.0.7
 
-_Current release: **1.0.7** (2026-09-05). First public release was 1.0.1 (2026-08-30). Free
+_Current release: **1.0.7** (2026-09-09). First public release was 1.0.1 (2026-08-30). Free
 software under the **Mozilla Public License 2.0**; the content below is brand-agnostic and
 reflects the current platform._
 
@@ -36,17 +36,59 @@ Lolly is completely free and open source. It is licensed under the **Mozilla Pub
 
 ### New in 1.0.7
 
+- **On-device PDF and document utilities.** New brand-agnostic tools join the on-device
+  set: split, merge, reorder and rotate pages; trim a file to a range; sign a PDF; clean a
+  document; and redact text and regions. Like the other utilities they run locally - bytes
+  in, bytes out, nothing uploaded. The engine gained shared file-operation and PDF
+  organise/stamp host APIs so every shell drives them the same way.
+
 - **One honest `.lolly` intake.** The manifest now decides whether a file opens as a shared
-  design, adds a separate design system or installs a brand workspace, regardless of whether
-  it arrived through Open, drag and drop, Profile, Brand Studio or the operating system.
-- **Measured before import.** The app reads the small manifest before expanding the bundle,
-  reports its size and contents, warns for large files and low storage, then performs one
-  integrity-checked read after confirmation. New writers put the manifest first.
-- **Safer design-system handling.** Cancelling a picker creates nothing; imports no longer
-  overwrite the active system; a failed import removes its newly-created destination.
-- **Clearer sharing and desktop integration.** The share receipt names embedded files and
-  external references. macOS and Linux display dedicated Lolly document artwork, and supported
-  third-party design/document formats remain alternate openers rather than claimed defaults.
+  design, adds a separate design system or installs a brand workspace, however it arrived -
+  Open, drag and drop, Profile, Brand Studio or the operating system. The app reads the
+  small manifest before expanding the bundle, reports its size and contents, warns for large
+  files and low storage, then performs one integrity-checked read after you confirm.
+  Cancelling a picker creates nothing, an import never overwrites the active system, and a
+  failed import removes the destination it just created. The share receipt names embedded
+  files and external references.
+
+- **Signed tool catalogs now load in the desktop and mobile apps.** A content-security-policy
+  change had made signed tools fail their integrity check inside the packaged apps, so no
+  tool would open; the web app was unaffected. The apps now serve the same
+  signature-verified catalog as the web, and every tool opens.
+
+- **Automatic local history.** A tool can keep an on-device revision history of your work and
+  reopen an earlier version, all stored locally. Asset versions can be pinned, so a shared
+  link reopens the exact version and format it was made with rather than silently taking a
+  newer one; the pin travels in the URL.
+
+- **Design round-trip to Penpot.** An exported `.penpot` file now carries live token
+  bindings, native components and the active theme. Editing a bound token in Penpot repaints
+  the shape, and a mistyped binding degrades to the painted value instead of refusing the
+  import.
+
+- **A components library and a colour studio.** A browsable component reference for
+  developers (`#/components`) shows each block with its import, classes, markup, tokens and
+  copy, alongside live specimens. The colour studio treats the palette as a workspace - add,
+  name, group and bulk-edit swatches with reversible actions - and a colour field opens a
+  perceptual OKLCH Colour Lab (`#/lab`), with everyday HSL still the default.
+
+- **A packaged agent skill.** Lolly ships a first-class agent skill (catalog, render path and
+  worked examples) so an AI agent can be taught the platform directly, alongside the existing
+  MCP server.
+
+- **Self-hosting via YunoHost.** Lolly packages as a YunoHost app, so you can install a
+  ready-to-go instance on your own server.
+
+- **Repeating inputs as a table.** Flat block inputs can present as a compact table editor;
+  the same data still edits as blocks on shells without it, and URL encoding is unchanged.
+
+- **Under the hood.** The six largest web views were restructured into feature modules and
+  the shared engine trimmed, with layering and type-safety checks added. No tool behaviour or
+  export changed - every tool that ran on 1.0.6 runs unchanged.
+
+- **Engine 1.172 to 1.186.** Shared file operations, PDF organise/stamp, `.penpot` token
+  bindings and components, pinned asset versions, table-column inputs, direct asset-byte reads
+  for hooks and declared tool `requires`. All additive.
 
 ### New in 1.0.6
 
