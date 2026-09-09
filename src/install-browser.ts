@@ -3,7 +3,7 @@
  * `lolly install-browser` - download Chromium for the CLI's Tier-B render path
  * (HTML-layout raster, jpg/webp, pdf, video). This is the ONE explicit step that pulls
  * a browser: it drives the `playwright-core` we already depend on - NOT the full
- * `playwright` package - so a plain `npm install` never downloads one.
+ * `playwright` package - so a plain `pnpm install` never downloads one.
  *
  *   lolly install-browser                 # Chromium → <repo>/.browsers
  *   lolly install-browser --with-deps      # + OS system deps (Linux containers)
@@ -33,7 +33,7 @@ export async function installBrowserCli(passthrough: string[] = []): Promise<num
   if ((r.status ?? 1) === 0) {
     process.stderr.write(
       '✓ Chromium installed. Raster/PDF/video export now works ' +
-      '(build the web shell too if you have not: `npm run build:web`).\n',
+      '(build the web shell too if you have not: `pnpm run build:web`).\n',
     );
   }
   return r.status ?? 1;

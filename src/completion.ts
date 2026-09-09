@@ -39,7 +39,7 @@ const PATH_FLAGS = new Set([
 
 /**
  * Tool ids from the active profile's catalog, best-effort. Empty (not thrown) when the
- * profile view has not been built yet - a fresh clone before `npm install`'s postinstall
+ * profile view has not been built yet - a fresh clone before `pnpm install`'s postinstall
  * has no catalog/tools/index.json - so the script still completes verbs and flags.
  */
 export async function catalogToolIds(): Promise<string[]> {

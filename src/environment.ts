@@ -103,7 +103,7 @@ export async function describeEnvironment(): Promise<EnvironmentReport> {
     ? undefined
     : [
         hasBrowser ? null : 'no Chromium (`lolly install-browser`)',
-        webBuilt ? null : 'no built web shell (`npm run build:web`, or set LOLLY_WEB_BASE/LOLLY_WEB_DIST)',
+        webBuilt ? null : 'no built web shell (`pnpm run build:web`, or set LOLLY_WEB_BASE/LOLLY_WEB_DIST)',
       ].filter(Boolean).join('; ');
 
   const env: Record<string, string> = {};

@@ -83,7 +83,7 @@ Subcommands:
                                            C2PA list. With nothing pinned, nothing is
                                            trusted - the bare-trust check
   lolly install-browser [--with-deps]      one-time Chromium download for the full render
-                                           tier (also needs \`npm run build:web\`)
+                                           tier (also needs \`pnpm run build:web\`)
   lolly models ls                          which on-device model files are here
   lolly models fetch <family> [--yes]      download one model family (prints the size
                                            first and asks; --yes answers in advance).

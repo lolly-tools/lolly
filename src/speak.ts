@@ -33,7 +33,7 @@ import { note, writeOut } from './output.ts';
  *  well formed, this installation just cannot serve it. */
 const NO_RUNTIME =
   'On-device speech needs @huggingface/transformers and onnxruntime-node, which are not '
-  + 'installed here. Run `npm install` at the repo root (they ship with the workspace), '
+  + 'installed here. Run `pnpm install` at the repo root (they ship with the workspace), '
   + 'then try again.';
 
 const NO_PHONEMIZER =

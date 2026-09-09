@@ -53,7 +53,7 @@ Three small modules carry the whole contract a script or an agent sees, and ever
 
 A partial submodule checkout that omits `shells/web` now leaves this shell intact. The pieces it needs are in `packages/node-shell`, which lives in the parent repo.
 
-There is a second, looser dependency on the web shell, this time on its *build output*. The raster tier in `src/raster.ts` has two levels. Tier A rasterises an SVG-native tool's PNG with resvg, a few-megabyte Rust module, and needs nothing else. Tier B covers everything else, meaning HTML-layout raster, JPEG, WebP, PDF and video, by driving the **built** web shell in a scoped Chromium so the bytes match a web or desktop download exactly. `packages/node-shell/src/webshell-render.ts` serves `shells/web/dist` from an ephemeral localhost server and errors clearly when there is no `index.html` there, so Tier B needs `npm run build:web` to have run. `--durable=1` additionally needs the TrustMark encoder model inside that dist.
+There is a second, looser dependency on the web shell, this time on its *build output*. The raster tier in `src/raster.ts` has two levels. Tier A rasterises an SVG-native tool's PNG with resvg, a few-megabyte Rust module, and needs nothing else. Tier B covers everything else, meaning HTML-layout raster, JPEG, WebP, PDF and video, by driving the **built** web shell in a scoped Chromium so the bytes match a web or desktop download exactly. `packages/node-shell/src/webshell-render.ts` serves `shells/web/dist` from an ephemeral localhost server and errors clearly when there is no `index.html` there, so Tier B needs `pnpm run build:web` to have run. `--durable=1` additionally needs the TrustMark encoder model inside that dist.
 
 Everything else in the bridge comes from `@lolly/engine` and `@lolly-tools/node-shell`, the latter holding the pieces this shell shares with the TUI: `repo-root`, `raster`, `webshell-render`, `browsers`, `text` (HarfBuzz in Node), `audio`, `url-capture`, `c2pa-opts`, `render-integrity`, plus `net`, `pptx`, `pdf`, `pdf-structure`, `text-svg` and `svg-ir`, which the web shell shares too. Note that `bridge.ts` imports node-shell modules by **relative path** rather than by the `@lolly-tools/node-shell/*` specifier: this file is inlined into the Vercel MCP function by `scripts/build-mcp-fn.ts`, whose esbuild config treats bare package specifiers as external, so a package-specifier import would dangle in that bundle. The TUI, which is never bundled, uses the specifier form.
 
@@ -62,20 +62,20 @@ Everything else in the bridge comes from `@lolly/engine` and `@lolly-tools/node-
 From the umbrella root, no build step:
 
 ```bash
-npm run cli                                              # list available tools
-npm run cli -- qr-code                                   # show a tool's inputs
-npm run cli -- qr-code --url=https://suse.com --output=./qr.svg
-npm run cli -- qr-code --url=https://suse.com --export=png > qr.png
-npm run smoke                                            # render every catalogue tool at defaults
+pnpm run cli                                              # list available tools
+pnpm run cli qr-code                                   # show a tool's inputs
+pnpm run cli qr-code --url=https://suse.com --output=./qr.svg
+pnpm run cli qr-code --url=https://suse.com --export=png > qr.png
+pnpm run smoke                                            # render every catalogue tool at defaults
 ```
 
-`npm run cli` is `node shells/cli/bin/lolly.ts`. The `--` matters, otherwise npm eats the flags.
+`pnpm run cli` is `node shells/cli/bin/lolly.ts`. The `--` matters, otherwise npm eats the flags.
 
-It reads the **active content profile's** views at the repo root, so `npm run profile` tells you which tools it can see. `lolly --help` prints the full flag set and the exit-code taxonomy (0 OK, 1 FAILED, 2 USAGE, 3 UNAVAILABLE_HERE, 4 REFUSED, 5 NOT_FOUND, 6 AUTH, 70 INTERNAL).
+It reads the **active content profile's** views at the repo root, so `pnpm run profile` tells you which tools it can see. `lolly --help` prints the full flag set and the exit-code taxonomy (0 OK, 1 FAILED, 2 USAGE, 3 UNAVAILABLE_HERE, 4 REFUSED, 5 NOT_FOUND, 6 AUTH, 70 INTERNAL).
 
 ## Build it
 
-There is nothing to build. Node runs the TypeScript directly. Typechecking is `tsc -p shells/cli`, part of the umbrella's `npm run typecheck`, and it compiles the two web-shell files listed above alongside this shell's own.
+There is nothing to build. Node runs the TypeScript directly. Typechecking is `tsc -p shells/cli`, part of the umbrella's `pnpm run typecheck`, and it compiles the two web-shell files listed above alongside this shell's own.
 
 ## Surprising things
 
@@ -96,7 +96,7 @@ This shell runs **inside the umbrella repo** and nowhere else. It resolves `@lol
 
 ```bash
 git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
-# or, in an existing clone, BEFORE npm install:
+# or, in an existing clone, BEFORE pnpm install:
 git submodule update --init --recursive
 ```
 

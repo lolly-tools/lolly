@@ -58,7 +58,7 @@ Three ways to get one:
 
   1. A directory holding tools/ and catalog/
        LOLLY_ROOT=/path/to/lolly lolly list
-     A Lolly checkout has both after \`npm install\` builds the profile views.
+     A Lolly checkout has both after \`pnpm install\` builds the profile views.
 
   2. The desktop app
      Lolly for macOS, Windows and Linux carries its own tools and catalog, and

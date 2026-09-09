@@ -1288,7 +1288,7 @@ export async function readStdin(): Promise<Buffer> {
  * Names both halves when there are two (no browser-free path AND the browser tier could
  * not step in), so the reader is not left guessing which piece is missing, and always
  * ends with the concrete way out. The underlying errors already carry the actionable
- * hints - `lolly install-browser` from browsers.ts, `npm run build:web` from
+ * hints - `lolly install-browser` from browsers.ts, `pnpm run build:web` from
  * webshell-render.ts - so they are quoted rather than paraphrased.
  */
 export function exportFailure(format: string, failure: Error, domFreeError: Error | null): Error {

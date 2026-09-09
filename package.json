@@ -11,8 +11,8 @@
     "install:browser": "node bin/lolly.ts install-browser"
   },
   "dependencies": {
-    "@lolly-tools/node-shell": "*",
-    "@lolly/engine": "*",
+    "@lolly-tools/node-shell": "workspace:*",
+    "@lolly/engine": "workspace:*",
     "@resvg/resvg-js": "^2.6.2",
     "fflate": "^0.8.3",
     "jsdom": "^25.0.0",

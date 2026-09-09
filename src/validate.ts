@@ -8,7 +8,7 @@
  * (Adobe TrustMark / Meta Content Seal, incl. Lolly's own ?durable=1 mark)
  * by driving the built dist in the scoped Chromium - the same on-device
  * decode the /valid view runs. Needs the Tier-B setup (`lolly
- * install-browser` + `npm run build:web`); everything else in this file
+ * install-browser` + `pnpm run build:web`); everything else in this file
  * stays DOM-free and browser-free.
  *
  * The same engine verifier that backs the web shell's /valid view

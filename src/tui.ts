@@ -53,7 +53,7 @@ export function resolveTuiLaunch(): TuiLaunch {
   const source = fileIfPresent('../../tui/bin/lolly-tui.tsx');
   if (!source) {
     throw unavailableHere(
-      'The TUI is not installed beside this CLI. Install @lolly-tools/cli (it ships both), or run `npm run tui` from a Lolly checkout.',
+      'The TUI is not installed beside this CLI. Install @lolly-tools/cli (it ships both), or run `pnpm run tui` from a Lolly checkout.',
       'TUI_NOT_INSTALLED',
     );
   }
@@ -65,7 +65,7 @@ export function resolveTuiLaunch(): TuiLaunch {
     loader = createRequire(import.meta.url).resolve('tsx');
   } catch {
     throw unavailableHere(
-      'The TUI source needs the tsx loader (it is .tsx, which Node does not strip). Run `npm install` in the checkout, or install the @lolly-tools/cli package, which ships the TUI compiled.',
+      'The TUI source needs the tsx loader (it is .tsx, which Node does not strip). Run `pnpm install` in the checkout, or install the @lolly-tools/cli package, which ships the TUI compiled.',
       'TSX_MISSING',
     );
   }
