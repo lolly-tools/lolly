@@ -2041,6 +2041,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/lift-flythrough.browser.test.ts",
+      "fullName": "plans/104 P3 - the Lift-layers exit demo > push-in over the lifted stack: two runs are byte-identical, and parallax is ordered by depth",
+      "reason": "byte-identical encode is not stable in the software chromium build on a CI runner - rerun with LOLLY_BROWSER_CHANNEL=chrome",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
       "file": "tests/linux-pack.test.ts",
       "fullName": "app-icons pack lands scalable SVG + desktop entry",
       "reason": "no bsdtar executable on this runner",

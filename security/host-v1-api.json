@@ -50,7 +50,7 @@
     "AssetRef": {
       "module": "asset-ref.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "0d7134ef8a5c37345567f02acdaef34131d5ed7d9bd0d59321362746865ddc86"
+      "sha256": "2657e35dbfbba6723e7049c68d714f9c063181641f1664826bec6e727d52c54a"
     },
     "AssetsAPI": {
       "module": "assets.ts",
@@ -865,7 +865,12 @@
     "TokensAPI": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "09abeb2ac99849f566870fe9db885b7cb0197d27315dab577eb73f4ce7785a60"
+      "sha256": "3a1363c8242ed6cd48ad22c9b9965a2b900a6e383f74eedcc78ee266536f77b0"
+    },
+    "TokensSnapshot": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "9267fa7fa2ee7fe685fc72be28d5f3f34bafd8268fc18b04110cb1e797cad18d"
     },
     "DesignSystemSummary": {
       "module": "tokens.ts",
