@@ -35,6 +35,9 @@ import {
 } from '@tauri-apps/plugin-fs';
 import { createFsStateAPI, type StateFs } from '../../tauri-shared/bridge-overrides/state-fs.ts';
 import type { StateDb, WebStateAPI } from '../../web/src/bridge/state.ts';
+// The revision-history bridge imports collectAssetRefs via ./state.ts, which this shell aliases
+// to this override; re-export the pure helper so the aliased module carries it (web state.ts owns it).
+export { collectAssetRefs } from '../../web/src/bridge/state.ts';
 
 // Paths are relative to $APPDATA/Lolly. readDirNames flattens tauri's entry
 // objects to names, which is all the shared logic reads.
