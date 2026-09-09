@@ -1042,7 +1042,7 @@ test('injection: hostile strokeDash / strokeCap / strokeJoin values are neutrali
     'NaN',
     '1e400',
     '../../etc/passwd',
-    ' ',
+    '\u0000',
   ];
   for (const v of hostile) {
     for (const field of ['strokeDash', 'strokeCap', 'strokeJoin'] as const) {

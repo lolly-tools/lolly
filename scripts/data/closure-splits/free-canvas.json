@@ -1,0 +1,142 @@
+{
+  "file": "shells/web/src/views/free-canvas.ts",
+  "fn": "initFreeCanvas",
+  "tsconfig": "shells/web/tsconfig.json",
+  "outDir": "shells/web/src/views/free-canvas",
+  "ctxName": "fc",
+  "ctxType": "FcCtx",
+  "header": "The design tool (free canvas) view.",
+  "modules": [
+    {
+      "name": "helpers",
+      "start": "canvasWH",
+      "doc": "free-canvas: pure helpers - canvas size, colour unwrapping, font stacks and import hints."
+    },
+    {
+      "name": "select",
+      "start": "notifySelection",
+      "doc": "free-canvas: selection, ids, frames, commit, ground and ink legibility, sequence poses."
+    },
+    {
+      "name": "timeline",
+      "start": "watchPoses",
+      "doc": "free-canvas: the timeline panel - mount, clips, onion skin, motion paths, open/close."
+    },
+    {
+      "name": "stage",
+      "start": "gridRound",
+      "doc": "free-canvas: stage geometry (metrics, native/stage coordinates), guides, camera HUD, flashes and arm hints."
+    },
+    {
+      "name": "narration",
+      "start": "frameSeqCfg",
+      "doc": "free-canvas: sequenced frames and deck narration."
+    },
+    {
+      "name": "rail",
+      "start": "clearPenChrome",
+      "doc": "free-canvas: chrome clearing, the context bar's show/hide, stage reserves and the tool rail's docking."
+    },
+    {
+      "name": "toolbox",
+      "start": "closePopover",
+      "doc": "free-canvas: rail drag, the toolbar and its buttons, the background field and fill popover."
+    },
+    {
+      "name": "menus",
+      "start": "spawnPopover",
+      "doc": "free-canvas: popovers, the import panel, the context menu, add and arrange menus."
+    },
+    {
+      "name": "contextBar",
+      "start": "selectionAllPaths",
+      "doc": "free-canvas: the selection context bar - kinds, colour and keyframe rows, camera wheel, inspector, rebuild."
+    },
+    {
+      "name": "gradient",
+      "start": "gradSpecOf",
+      "doc": "free-canvas: on-canvas gradient editing - stops, direction, the gradient panel."
+    },
+    {
+      "name": "document",
+      "start": "closeMorePanel",
+      "doc": "free-canvas: document settings, artboards, the pages, size, more and frames panels."
+    },
+    {
+      "name": "dialogs",
+      "start": "parseDashText",
+      "doc": "free-canvas: the stroke panel, ask dialogs, page import, layer lift and choreography."
+    },
+    {
+      "name": "fieldPanels",
+      "start": "positionPanelBelow",
+      "doc": "free-canvas: the small field panels - dims, CSS, frame state, box class, notes, morph match, info, shape, text."
+    },
+    {
+      "name": "objects",
+      "start": "pickImage",
+      "doc": "free-canvas: object operations - images, background removal, text outlining, group and clip, z, align, flip."
+    },
+    {
+      "name": "ops",
+      "start": "dupRefFields",
+      "doc": "free-canvas: duplicate, delete and the vector boolean operations."
+    },
+    {
+      "name": "penTool",
+      "start": "penKindLabels",
+      "doc": "free-canvas: the pen tool - drawing, node editing, path arrangement, bindings and pen chrome."
+    },
+    {
+      "name": "modes",
+      "start": "setMode",
+      "doc": "free-canvas: editor modes, auto layout and the copy, cut and paste of objects and styles."
+    },
+    {
+      "name": "textEdit",
+      "start": "sourceFromPastedHtml",
+      "doc": "free-canvas: pasted text sources, in-place text editing and the formatting bar."
+    },
+    {
+      "name": "gestures",
+      "start": "onStageTouchDown",
+      "doc": "free-canvas: pointer and touch gestures - press, drag, resize, rubber band, snapping guides."
+    },
+    {
+      "name": "connectors",
+      "start": "bindOf",
+      "doc": "free-canvas: bound paths and live connectors."
+    },
+    {
+      "name": "edges",
+      "start": "edgeById",
+      "doc": "free-canvas: connector edges - hit testing, hover, selection and the edge panel."
+    },
+    {
+      "name": "chromeSync",
+      "start": "scheduleSync",
+      "doc": "free-canvas: chrome rendering - sync, frame labels, box chrome, handles."
+    },
+    {
+      "name": "keys",
+      "start": "ctxBarBlockers",
+      "doc": "free-canvas: context bar placement, small formatters, keyboard handling and stage pointer moves."
+    },
+    {
+      "name": "editorState",
+      "start": "applyEditorState",
+      "doc": "free-canvas: editor state deep links, field setters, frame selection and arrange."
+    }
+  ],
+  "overrides": {
+    "getEdges": "edges",
+    "commitEdges": "edges",
+    "beginGesture": "gestures",
+    "endGesture": "gestures",
+    "onDblClick": "gestures",
+    "hideSeqPrompt": "narration"
+  },
+  "renameImports": {
+    "escape": "escapeText"
+  }
+}

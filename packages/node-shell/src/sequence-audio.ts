@@ -41,6 +41,7 @@ import {
   createTruePeakLimiter, createLoudnessMeter, normalizeGain, activitySpans,
   parseFxChain, processFxPcm, packWav,
 } from '@lolly/engine';
+import { clamp } from '@lolly/engine';
 
 /** Everything mixes at 48 kHz stereo - the rate both AAC and Opus want, and the one
  *  rate the BS.1770 coefficients are published for. Mirrors MIX_RATE/MIX_CHANNELS in
@@ -729,7 +730,6 @@ const num = (v: string | null, dflt: number): number => {
   const n = v == null || v === '' ? Number.NaN : parseFloat(v);
   return Number.isFinite(n) ? n : dflt;
 };
-const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
 
 /** What `readSeqAudioPlan` found: the plan, the source each clip needs decoding from,
  *  and whatever it had to leave out. */

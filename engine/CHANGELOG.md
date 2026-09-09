@@ -6,6 +6,27 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+(2026-09-09, no version change) The barrel `engine/src/index.ts` dropped 180 names that no
+shell, script, service or test referenced; each stays exported from its own module. The
+exact export list is pinned by `tests/engine-barrel.test.ts`, so the next change to the
+barrel is a deliberate edit of that pin. New modules: `clamp.ts` (the one numeric clamp,
+replacing 27 local copies) and `xml-escape.ts` (the EPUB/ODT/AppStream escaper).
+
+1.186.0 - Flat block inputs can opt into the shared table editor with
+`tableColumns` (field ids in display order). Input objects, row identifiers and
+the existing positional URL encoding remain unchanged; unsupported complex
+block schemas keep the block editor. Shells without this presentation can
+continue editing the same data as blocks. No HostV1 methods changed.
+
+1.185.0 - Explicit asset-version dependencies. `AssetRef.pin` requests an exact
+version/format on reopen, distinct from the existing resolved `version` metadata.
+URL mode carries pins through the reserved `#lolly-version=` asset-value suffix,
+including block fields; legacy ids and the device-local user-id sharing policy
+are unchanged. Runtime resolution rejects a host's latest-version substitution
+and preserves an unavailable pinned ref with an empty URL for later recovery.
+The web bridge reads retained versions without fetching current bytes into an
+old cache key; the CLI refuses unavailable versions. Additive within HostV1.
+
 1.184.0 - `.penpot` writer carries applied-token bindings, native components and
 the effective theme (plans/222). `PenpotIrShapeBase.appliedTokens` binds a native
 Penpot property (`fill`, `strokeColor`, `r1`-`r4`, `fontSize`, `fontFamily`, plus

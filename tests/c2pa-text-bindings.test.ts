@@ -151,7 +151,7 @@ test('sniffFormat: a mid-file carrier is found in a small text file, and not pai
 
   // The same bytes with a NUL early in the file are a binary blob: the whole-file
   // pass is skipped, so an unrecognised upload never pays for a full scan.
-  const binaryHead = utf8(' BINARY ' + midArmor.slice(0, 4096));
+  const binaryHead = utf8('\u0000BINARY\u0000' + midArmor.slice(0, 4096));
   const binary = new Uint8Array(binaryHead.length + utf8(midArmor).length);
   binary.set(binaryHead, 0);
   binary.set(utf8(midArmor), binaryHead.length);

@@ -27,6 +27,7 @@ import type { IconTheme } from './icon-theme.ts';
 import type { BrandSwatch } from './brand-map.ts';
 import { hexToOklch, oklchToHex } from './brand-derive.ts';
 import { colorToHex, createTokenSet } from './tokens.ts';
+import { clamp } from './clamp.ts';
 
 /** The JSON payload written as a palette asset tagged "photo-treatments". */
 export interface DerivedPhotoTreatments {
@@ -65,8 +66,6 @@ const HUE_NAMES = [
   'red', 'ember', 'amber', 'gold', 'green', 'jade',
   'teal', 'sky', 'blue', 'indigo', 'violet', 'rose',
 ] as const;
-
-const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 const hueDist = (a: number, b: number): number => {
   const d = Math.abs(a - b) % 360;
   return d > 180 ? 360 - d : d;

@@ -289,13 +289,6 @@ export function laneForField(
   return geomFields.includes(field) ? 'geometry' : 'content';
 }
 
-// ── The damage ⇄ op mapping (plans/99 section 4.1 / section 4.2, as code) ─────────────────────
-
-/** True when a value is a param binding descriptor rather than a literal. */
-function isParamBinding(v: ParamValue): v is ParamBinding {
-  return typeof v === 'object' && v !== null && 'bind' in v;
-}
-
 /**
  * `onLocalChange` as a pure function (plans/99 section 4.1): diff two box maps into the
  * minimal op list - geometry changes coalesce into one GeomOp per box, each changed

@@ -25,6 +25,7 @@
  */
 
 import { storeZip, type ZipStoreEntry } from './zip.ts';
+import { escapeXml } from './xml-escape.ts';
 
 /** One block of document body content. */
 export interface OdtBlock {
@@ -55,15 +56,6 @@ const NS_MANIFEST = 'urn:oasis:names:tc:opendocument:xmlns:manifest:1.0';
 const NS_META = 'urn:oasis:names:tc:opendocument:xmlns:meta:1.0';
 const NS_DC = 'http://purl.org/dc/elements/1.1/';
 
-/** Escape the five XML metacharacters for text landing in element content or attributes. */
-function esc(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
 
 /** Clamp a heading level into the 1..10 range ODF outlines admit. */
 function clampLevel(level: number | undefined): number {
@@ -79,7 +71,7 @@ function clampLevel(level: number | undefined): number {
  * characters), which is enough for editable heading/paragraph text.
  */
 function bodyBlock(block: OdtBlock): string {
-  const text = esc(block.text);
+  const text = escapeXml(block.text);
   if (block.type === 'heading') {
     const level = clampLevel(block.level);
     return `      <text:h text:style-name="Heading_20_${level}" text:outline-level="${level}">${text}</text:h>`;
@@ -143,7 +135,7 @@ function metaXml(title: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <office:document-meta xmlns:office="${NS_OFFICE}" xmlns:meta="${NS_META}" xmlns:dc="${NS_DC}" office:version="1.2">
   <office:meta>
-    <dc:title>${esc(title)}</dc:title>
+    <dc:title>${escapeXml(title)}</dc:title>
   </office:meta>
 </office:document-meta>
 `;

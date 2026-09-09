@@ -47,7 +47,7 @@
 
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, } from 'node:fs';
 import { readFile, stat } from 'node:fs/promises';
 import { join, resolve, dirname, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';

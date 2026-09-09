@@ -7,9 +7,8 @@
  */
 
 export { loadTool, ToolLoadError, applyManifestI18n } from './loader.ts';
-export type { LoadedTool, ToolManifest, ToolFetchFile, LoadToolOpts, ToolIntegrityOpts, ToolI18nOverlay, ToolTrustClass } from './loader.ts';
+export type { LoadedTool, ToolManifest, LoadToolOpts, ToolIntegrityOpts } from './loader.ts';
 export { resolveChartTheme, validateChartSpec, inspectChartSpec } from './chart-spec.ts';
-export type { ChartBrandThemeInput, ChartThemeOverrides } from './chart-spec.ts';
 export { CHART_SPEC_VERSION } from '@lolly-tools/core';
 export type {
   ChartValue, ChartFieldType, ChartFieldRole, ChartFieldFormat, ChartDimension, ChartExportFidelity, ChartMark,
@@ -28,10 +27,9 @@ export type {
   CatalogSignatureEnvelope, UnsignedCatalogEnvelope, IntegrityResult,
 } from './catalog-integrity.ts';
 export { validateManifest, validateRateCard } from './validate.ts';
-export { parseProviderRef, isProviderRef, ASSET_PROVIDER_REF_RE } from './asset-provider.ts';
-export type { AssetProviderRef } from './asset-provider.ts';
-export { DOCUMENT_API_VERSION, compileDocument, validateDocument, documentSchema, inspectDocument, diffDocuments, measureDocument, optimizeDocument, packageDocument, renderDocument, compile, validate, inspect, diff, measure, optimize, package, render } from './document-api.ts';
-export type { CompiledDocument, CompileResult, ValidationTarget, DocumentValidationResult, DocumentInspection, BytesInspection, DocumentDiff, DocumentMeasurement, OptimizeStage } from './document-api.ts';
+export { parseProviderRef, isProviderRef } from './asset-provider.ts';
+export { DOCUMENT_API_VERSION, compileDocument, validateDocument, documentSchema, inspectDocument, diffDocuments, measureDocument, optimizeDocument, packageDocument, compile, validate, inspect, diff, measure, optimize, package, render } from './document-api.ts';
+export type { CompiledDocument, DocumentInspection, DocumentDiff, DocumentMeasurement } from './document-api.ts';
 export { createRuntime, HOOK_BUDGET_MS, inRealmHookExecutor } from './runtime.ts';
 export {
   createHookWorkerCore, lockDownAmbientCapabilities, workerRpcMethods, introspectHost, gatherHostSeeds,
@@ -45,14 +43,11 @@ export type {
 export type { HookExecutor, Hooks } from './runtime.ts';
 export { hydrate, annotateTemplate, resolvePaintBindings } from './template.ts';
 export { sniffAnimatedRaster, sniffVideoContainer, sniffLayeredRaster, sniffContainer } from './media-sniff.ts';
-export type { AnimatedRasterKind, VideoContainer, LayeredRasterKind, SniffedContainer } from './media-sniff.ts';
 // Layered bitmap import/export (1.102): PSD/PSB + XCF readers, PSD writer.
 export { isPsd, readPsd, PsdUnsupportedError } from './psd.ts';
-export type { PsdReadOptions } from './psd.ts';
 export { writePsd } from './psd-write.ts';
 export type { PsdWriteDoc, PsdWriteLayer } from './psd-write.ts';
 export { isXcf, readXcf, XcfUnsupportedError } from './xcf.ts';
-export type { XcfReadOptions } from './xcf.ts';
 export { packBitsEncode, packBitsDecode } from './packbits.ts';
 export {
   PSD_BLEND_TO_CSS, CSS_TO_PSD_BLEND, XCF_MODE_TO_CSS, psdBlendToCss, xcfModeToCss,
@@ -62,12 +57,11 @@ export { buildInputModel, summarizeInputs, normalizeTableValue, deriveExportFile
 export type { TableValue, TableColumnEditor } from './inputs.ts';
 export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams } from './url-mode.ts';
 // The `s=` state address + the still-export frame filter both shells apply (plan 112).
-export { parseFrameAddress, selectFramePage, frameFilterApplies, FRAME_FILTER_SKIP_FORMATS } from './frame-address.ts';
-export type { FrameAddress, FrameSelection } from './frame-address.ts';
+export { parseFrameAddress, selectFramePage, frameFilterApplies } from './frame-address.ts';
 export { looksLikeTable, parseTableText, toTsv, toMarkdown, toHtmlTable } from './table-text.ts';
-export type { HdrSettings, DepthSetting, VideoUrlSettings, VideoCodecName, VideoQuality } from './url-mode.ts';
-export { LANGS, LANG_META, isLang, normalizeLang, flagEmoji, sortedLangs } from './lang.ts';
-export type { Lang, LangMeta, LangSort } from './lang.ts';
+export type { HdrSettings, DepthSetting, VideoUrlSettings, VideoQuality } from './url-mode.ts';
+export { LANGS, LANG_META, normalizeLang, flagEmoji, sortedLangs } from './lang.ts';
+export type { Lang, LangSort } from './lang.ts';
 export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.ts';
 export { packEncrypted, unpackEncrypted, hasEncryptedState, isEncryptAvailable, ENC_PARAM } from './url-pack.ts';
 export { parseEmbedUrl } from './embed.ts';
@@ -77,11 +71,13 @@ export {
   bakeAssetRef, isBakedRef, MAX_BAKED_URL_CHARS,
   assetIdForUrl, blocksForUrl,
 } from './bake.ts';
-export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplate, batchCsvTemplateWithNotes } from './batch.ts';
-export type { BatchRow, BatchTemplateTool } from './batch.ts';
+export { assetVersionPin, encodeAssetVersion, decodeAssetVersion, assetDependency } from './asset-version.ts';
+export type { AssetVersionPin } from './asset-version.ts';
+export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplateWithNotes } from './batch.ts';
+export type { BatchRow } from './batch.ts';
 export { buildExportMeta } from './metadata.ts';
 export { extractFileMetadata, extractXmpPacket, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
-export type { FileMetadata, MetaField, MetaGroup, JpegMpfIndex, MediaProducer } from './file-metadata.ts';
+export type { FileMetadata, MetaField, MetaGroup } from './file-metadata.ts';
 // Image-metadata byte stampers + the metadata carry (plans/144 Wave 1). The
 // stampers graduated here from the web shell's bridge/export-image-meta.ts
 // (now a thin re-export) so the transform path and the CLI share them.
@@ -92,28 +88,22 @@ export {
   carryImageMetadata, buildCarryExifTiff, insertWebpMeta, insertAvifExif, buildExportXmp,
   insertPngXmp, insertJpegXmp, META_CARRY_FIELDS,
 } from './image-meta.ts';
-export type { CarrySource, CarryOutput, CarryOpts } from './image-meta.ts';
 export { stripMetadata, isStrippableFormat, hasResidualMetadata } from './strip-metadata.ts';
 export type { StripFormat } from './strip-metadata.ts';
 export {
   embedWatermark, detectWatermark, canCarryWatermark, WATERMARK_VERSION, DEFAULT_STRENGTH,
   LOSSLESS_STRENGTH, DETECT_THRESHOLD, MIN_IMPRINT_BLOCKS, detectionThreshold, V2_BAND_SIZE,
 } from './pixel-watermark.ts';
-export type { EmbedOptions, DetectResult, WatermarkGeometry } from './pixel-watermark.ts';
 export { detectWatermarkSearch, bilinearResampleRgba, SEARCH_DETECT_FLOOR } from './watermark-search.ts';
-export type { SearchResult } from './watermark-search.ts';
 export { unfilterPng, PNG_UNFILTER_MAX_OUTPUT_BYTES } from './png-unfilter.ts';
-export { analyzeLsb, LSB_MIN_PIXELS, LSB_MAX_PIXELS, LSB_P_THRESHOLD, LSB_PREFIXES } from './steganalysis.ts';
-export type { LsbAnalysis } from './steganalysis.ts';
-export { decodeTrustmarkPayload, encodeTrustmarkPayload, TRUSTMARK_PAYLOAD_BITS, buildLollyDurablePayload, readLollyDurable, LOLLY_DURABLE_SCHEMA_VERSION } from './trustmark.ts';
-export { embedDurableIntoRgba, packNchwSigned, sampleBilinear, TRUSTMARK_MODEL_RESOLUTION, TRUSTMARK_Q_WM_STRENGTH, TRUSTMARK_MIN_SIDE } from './trustmark.ts';
-export type { TrustmarkDecodeResult, TrustmarkSchemaName, LollyDurable } from './trustmark.ts';
-export type { DurableEmbedHooks, DurableEmbedMathOptions, CoverResizer, DurableEncoderRun } from './trustmark.ts';
+export { analyzeLsb, LSB_MAX_PIXELS } from './steganalysis.ts';
+export { decodeTrustmarkPayload, TRUSTMARK_PAYLOAD_BITS, buildLollyDurablePayload, readLollyDurable } from './trustmark.ts';
+export { embedDurableIntoRgba, packNchwSigned, sampleBilinear, TRUSTMARK_MODEL_RESOLUTION, TRUSTMARK_MIN_SIDE } from './trustmark.ts';
+export type { LollyDurable } from './trustmark.ts';
 export {
   contentSealConsensus, CONTENTSEAL_MESSAGE_BITS, CONTENTSEAL_REQUIRED_VIEWS,
   CONTENTSEAL_DEFAULT_TAU,
 } from './contentseal.ts';
-export type { ContentSealConsensus } from './contentseal.ts';
 export {
   UNITS, CSS_DPI, isUnit, parseDimension,
   toInches, isPhysical, toPixels, toPoints, toCssPx, toCssLength, toUnit,
@@ -122,7 +112,7 @@ export {
   frameRect, framingStyle, normalizeFraming, isNeutralFraming, isTilted,
   framingQuad, projectFramingPoint, minZoomForCover, FRAMING_PERSPECTIVE,
 } from './framing.ts';
-export type { Framing, FramingFit, FrameRect } from './framing.ts';
+export type { Framing, FramingFit } from './framing.ts';
 export {
   srgbIccProfile, pqBt2020IccProfile, iccProfileBytes, COLOR_PROFILES,
   rgbToCmyk, cmykCondition, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION,
@@ -145,7 +135,7 @@ export {
   parseGradientSpec, formatGradientSpec, gradientSpecToCss, gradientSpecStops,
   GRADIENT_KINDS, DEFAULT_GRADIENT_SPACE, MAX_GRADIENT_STOPS,
 } from './gradient-spec.ts';
-export type { GradientSpec, GradientKind, GradientSpecStop } from './gradient-spec.ts';
+export type { GradientSpec } from './gradient-spec.ts';
 // Deep pixel buffers (plans/61-deeprichpixels.md section 5.1) - the Float32Array
 // linear-light working frame whose space travels with the data, plus every
 // converter between it and the byte world. Exported alongside hdr.ts because
@@ -159,7 +149,7 @@ export {
 } from './pixels.ts';
 export type { PixelSpace, DeepFrame } from './pixels.ts';
 export { hdrBoostToPQ, pqEncode, hdrViewTransform, pqEncodeFrame, pqToU16, pqToI420P10, HDR_PQ_CICP } from './hdr.ts';
-export type { HdrBoostOptions, PqImage, I420P10Frame } from './hdr.ts';
+export type { HdrBoostOptions, PqImage } from './hdr.ts';
 export {
   computePrintGeometry, cmykToRgbApprox, PRINT_MARK_DEFAULTS,
 } from './print-marks.ts';
@@ -194,7 +184,7 @@ export {
   parseSvgPath, parseSvgPathArgs, svgArcToBeziers,
   SVG_PATH_MAX_CHARS, SVG_PATH_MAX_ARGS, SVG_PATH_MAX_SEGMENTS, SVG_PATH_MAX_SUBPATHS,
 } from './svg-path.ts';
-export { extractSvgColors, SVG_COLORS_MAX_CHARS, SVG_COLORS_MAX_MATCHES } from './svg-colors.ts';
+export { extractSvgColors, SVG_COLORS_MAX_CHARS } from './svg-colors.ts';
 // Lift layers (1.119, plans/104 section 7): an SVG's own layers enumerated into one
 // standalone document each, so a flat drawing becomes a stack of boxes with real
 // depth. DOM-free, so the CLI lifts the same way the editor does.
@@ -211,7 +201,7 @@ export {
   SVG_LAYERS_HERO_SHARE, SVG_LAYERS_HERO_ROUNDS, SVG_LAYERS_HERO_MIN_INK,
   SVG_LAYERS_HERO_BUDGET, SVG_LAYERS_HERO_GAP_SCALES, SVG_LAYERS_PEER_AREA_RATIO,
 } from './svg-layers.ts';
-export type { SvgLayer, SvgLayerBox, SvgLayersResult, SvgLayerOptions } from './svg-layers.ts';
+export type { SvgLayer, SvgLayerBox } from './svg-layers.ts';
 export {
   renderZzfxm, zzfxG, zzfxM, zzfxR, zzfxV, assertZzfxmBudgets,
   ZZFXM_MAX_INSTRUMENTS, ZZFXM_MAX_INSTRUMENT_PARAMS, ZZFXM_MAX_PATTERNS,
@@ -229,12 +219,11 @@ export type {
 export { analysePcm, fftInPlace } from './audio-analyse.ts';
 export type { AudioAnalysis, AudioAnalyseOpts, AudioFrames } from './audio-analyse.ts';
 export { cleanAudioPcm, resamplePcm, cleanAudioPreview } from './audio-clean.ts';
-export type { CleanPcmOptions, CleanPcmResult } from './audio-clean.ts';
 // Captions (host.speech, v1.96) - spoken-word timings in, subtitle cues out. The
 // grouping and VTT/SRT timestamp maths live here so the browser and a headless
 // export break caption lines at the same words.
 export { groupWordsToCues, cuesForSlide, cuesToVtt, cuesToSrt, cueAt } from './captions.ts';
-export type { CaptionCue, GroupWordsOpts, SlideCueOpts } from './captions.ts';
+export type { CaptionCue, GroupWordsOpts } from './captions.ts';
 // Text AI-likelihood signals (plans/125) - a string in, a tiered SIGNAL (never a
 // verdict) out: byte-level artifact tells on digital text, chatbot-boilerplate
 // phrase evidence, English-gated writing-style heuristics, per-finding heat
@@ -247,7 +236,7 @@ export { analyzeTextSignals, applyModelEstimate, LEXICON_VERSION } from './text-
 // interrogation surface: hidden characters by name, script shares, link
 // hosts, structure and line-ending forensics. Counts, never verdicts.
 export { textFacts, invisibleCharName, hiddenCharSeverity } from './text-facts.ts';
-export type { TextFacts, HiddenCharCount, ScriptShare, LinkHost } from './text-facts.ts';
+export type { TextFacts } from './text-facts.ts';
 export type {
   TextSignalSource, TextSignalBand, TextSignalTier, TextSignalSpan,
   TextSignalFinding, TextStyleGuess, TextSignalReport, AnalyzeTextSignalsOpts,
@@ -258,7 +247,7 @@ export type {
 // noise). No model, so no genAI stamp; the semantic tells stay HIGHLIGHTED for a person to
 // reword. The honest inverse of a detection-evading "humanizer".
 export { humanizeText } from './humanize.ts';
-export type { HumanizeChange, HumanizeResult } from './humanize.ts';
+export type { HumanizeResult } from './humanize.ts';
 // Reword (plans/127) - the SEMANTIC half humanize defers, pure side only: the
 // deterministic suggestion table, the sentence spans worth offering a model,
 // the shared prompt, and the GATE that decides which model candidates a shell
@@ -307,12 +296,11 @@ export type {
 // The dependency-free WAV reader that backs host.audio where there is no platform
 // codec (the Node shells). Byte parsing, so it lives beside tiff.ts/apng.ts.
 export { parseWav, packWav } from './wav.ts';
-export type { WavAudio, PackWavOptions, WavSampleFormat } from './wav.ts';
+export type { WavAudio, WavSampleFormat } from './wav.ts';
 export {
   parseMidi, midiToSong, midiToZzfxm,
   MIDI_MAX_NOTES, MIDI_MAX_STEPS, MIDI_MAX_VOICES,
 } from './midi.ts';
-export type { ParsedMidi, MidiToSongOptions } from './midi.ts';
 export { composeSong, PRESETS, SCALES, mulberry32, patternSeconds } from './zzfx-compose.ts';
 // The seed → spec draw behind `zzfxm:<seed>`. Engine-side so every shell composes
 // the SAME song from one id; the draw order is a frozen contract (see the fn).
@@ -320,8 +308,8 @@ export { generatedSongSpec } from './zzfx-compose.ts';
 // The `zzfxm:<seed>[:<style>]` asset-id scheme - a song NAMED rather than stored.
 // Sits beside tool-url.ts's scheme for the same reason: every shell that resolves
 // an asset id has to recognise it, and they must not each invent the rule.
-export { ZZFXM_SCHEME, ZZFXM_ARCHETYPES, isZzfxmRef, parseZzfxmRef, formatZzfxmRef } from './zzfxm-ref.ts';
-export type { ZzfxmRef, ZzfxmArchetype } from './zzfxm-ref.ts';
+export { ZZFXM_SCHEME, isZzfxmRef, parseZzfxmRef, formatZzfxmRef } from './zzfxm-ref.ts';
+export type { ZzfxmRef } from './zzfxm-ref.ts';
 export type { SongSpec, Archetype, PresetName, ScaleName } from './zzfx-compose.ts';
 // Versioned design systems (plans/97 section 6a) - here for the same reason as the two
 // id schemes above: the head/version asset-id scheme, the discovery-exclusion
@@ -345,7 +333,7 @@ export {
   isDesignSystemId, slugifyDesignSystemId, designSystemNamespace, designSystemHeadId,
   designMaterialOf, readDesignSystemIdentity, withDesignSystemIdentity,
 } from './design-system.ts';
-export type { DesignMaterial, DesignMaterialKind, DesignSystemIdentity } from './design-system.ts';
+export type { DesignMaterial, DesignMaterialKind } from './design-system.ts';
 export {
   parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow, parseTextShadow, gaussianShadowBands, gaussianShadowRings,
   parseCssMatrix, isNonAffineTransform, multiplyMat, matAboutPivot, isAxisAlignedMat, matToSvg, IDENTITY_2D,
@@ -355,7 +343,7 @@ export {
   parseClipShape, parseRadialGradient, parseConicGradient, parseDropShadowFilter,
   splitCssArgs, parseGradientAngle, parseGradientStop, expandGradientStops,
 } from './css-paint.ts';
-export type { ClipShape, GradientStop, RadialGradient, ConicGradient, DropShadow } from './css-paint.ts';
+export type { ClipShape, GradientStop, ConicGradient, DropShadow } from './css-paint.ts';
 
 // Vector geometry kernel (engine/src/geom/) - exact cubic Bezier operations, the
 // substrate for boolean ops, path offsetting and stroke outlining. Nothing here
@@ -394,7 +382,7 @@ export {
   type JoinStyle, type OffsetOptions,
   offsetCubic, offsetContour, offsetPath, offsetSweep, distanceToPath, fitCubic,
 } from './geom/offset.ts';
-export { type CapStyle, type StrokeOptions, strokeToPath } from './geom/stroke.ts';
+export { type CapStyle, strokeToPath } from './geom/stroke.ts';
 // Curve fitting, by area and moment matching (Levien). `ParamCurveFit` is the reason this
 // is separate from offsetting: an exact offset can be SAMPLED for position and derivative
 // analytically but has no Bezier form, and fitting the real curve rather than an
@@ -451,7 +439,7 @@ export { emitEmf } from './emf.ts';
 export { emitEps } from './eps.ts';
 export { emitDxf } from './dxf.ts';
 export { emitWmf } from './wmf.ts';
-export { buildPptxParts, EMU_PER_INCH, EMU_PER_PX } from './pptx.ts';
+export { buildPptxParts, EMU_PER_PX } from './pptx.ts';
 export type {
   PptxSlide, PptxShape, PptxRect, PptxText, PptxPic, PptxRun, PptxPara, PptxFill, PptxMedia, PptxBuildOpts,
   PptxTable, PptxTableCell, PptxLine, PptxTheme, PptxPath, PptxLayout, PptxPlaceholder, PptxPhType,
@@ -463,11 +451,10 @@ export {
   SVG_CUSTGEOM_MAX_ATTR_CHARS, SVG_CUSTGEOM_MAX_STYLE_CHARS,
   SVG_CUSTGEOM_MAX_TRANSFORM_CHARS, SVG_CUSTGEOM_MAX_POINTS_CHARS,
 } from './svg-custgeom.ts';
-export type { SvgNativePptx } from './svg-custgeom.ts';
 export { rebrandPptxParts } from './pptx-patch.ts';
-export type { RebrandPlan, RebrandTheme, RebrandReport, PartMap } from './pptx-patch.ts';
+export type { RebrandPlan, RebrandTheme, PartMap } from './pptx-patch.ts';
 // readingOrder is aliased: design-map.ts already owns the bare name here.
-export { isPptx, readPptx, pptxMediaImages, readingOrder as pptxReadingOrder } from './pptx-read.ts';
+export { isPptx, readPptx, pptxMediaImages } from './pptx-read.ts';
 export type {
   PptxParts, XmlParser, PptxDeckRead, PptxReadSlide, PptxReadNode, PptxReadTheme,
   PptxReadColor, PptxReadRun, PptxReadPara, PptxTextNode, PptxShapeNode, PptxPicNode,
@@ -484,13 +471,12 @@ export type {
   ScormLaunchLabels,
 } from './scorm.ts';
 export { deckToMarkdown } from './deck-md.ts';
-export type { DeckMarkdown, DeckMediaRef } from './deck-md.ts';
-export type { DocBlock, DocInline, DocListItem, DocTableCell, DocMedia } from './doc-model.ts';
+export type { DocBlock, DocInline, DocListItem, DocTableCell } from './doc-model.ts';
 export { mdFromBlocks, htmlFromBlocks } from './doc-md.ts';
 // XmlParser is NOT re-exported from docx-read: pptx-read already owns the name
 // on this surface and the shapes are identical.
 export { isDocx, readDocx } from './docx-read.ts';
-export type { DocxParts, DocxReadResult } from './docx-read.ts';
+export type { DocxParts } from './docx-read.ts';
 export {
   buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec,
   pdfxProfileEligibility, PDFX_VERSION,
@@ -498,16 +484,15 @@ export {
 export type {
   PdfXOutputIntentOptions, PdfXOutputIntentSpec, PdfXProfileFacts, PdfXXmpOptions,
 } from './pdfx.ts';
-export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, collectAiIngredientDeclarations, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE } from './c2pa.ts';
-export type { C2paActionInput, AiIngredientDeclaration } from './c2pa.ts';
-export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, collectIngredients, extractC2paStore, parseCertificate, signedBy } from './c2pa-verify.ts';
-export type { C2paIngredientData, C2paReport, C2paCheck, C2paSignerIdentity, ParsedCertificate } from './c2pa-verify.ts';
+export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, collectAiIngredientDeclarations, C2PA_FORMATS, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE } from './c2pa.ts';
+export type { C2paActionInput } from './c2pa.ts';
+export { verifyC2pa, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, collectIngredients, extractC2paStore, parseCertificate, signedBy } from './c2pa-verify.ts';
+export type { C2paReport, C2paCheck, ParsedCertificate } from './c2pa-verify.ts';
 export type { Signer as C2paSigner } from './c2pa.ts';
 export { C2PA_CHECK, isExpiredOnly, resolveVerdict, defaultTrustAnchors } from './c2pa-verdict.ts';
-export type { C2paCheckCode, C2paVerdict, C2paVerdictInput, C2paVerdictState, C2paVerdictTone } from './c2pa-verdict.ts';
+export type { C2paVerdict, C2paVerdictInput, C2paVerdictState } from './c2pa-verdict.ts';
 export { c2paTrustAnchors, LOLLY_CA_ROOT_PEM } from './c2pa-trust.ts';
-export { c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, isImprintContainerFormat, IMPRINT_CONTAINER_FORMATS } from './provenance-defaults.ts';
-export type { ProvenanceManifest } from './provenance-defaults.ts';
+export { c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS } from './provenance-defaults.ts';
 export {
   verifySeal, parseSealRecord, parseSealRecords, computeSealDigest, assembleSealMessage,
   resolveRanges, verifySealSignature, importSealKey,
@@ -515,7 +500,7 @@ export {
   SEAL_MAX_RECORDS, SEAL_MAX_FIELDS, SEAL_MAX_FIELD_CHARS,
   SEAL_MAX_RANGE_SPEC_CHARS, SEAL_MAX_RANGES, SEAL_MAX_ASSEMBLED_BYTES,
 } from './seal.ts';
-export type { SealRecord, SealRange, SealVerifyResult, SealPublicKeyResolver } from './seal.ts';
+export type { SealRecord, SealVerifyResult } from './seal.ts';
 export { pemToDer, derToPem, generateCaRoot, issueLeafCert } from './x509.ts';
 export { packApng } from './apng.ts';
 export {
@@ -523,61 +508,48 @@ export {
   APNG_DEMUX_MAX_FRAMES, APNG_DEMUX_MAX_DIM, APNG_DEMUX_MAX_PIXELS,
   APNG_DEMUX_MAX_OUTPUT_BYTES,
 } from './apng-decode.ts';
-export type { ApngFrame, DemuxApngResult } from './apng-decode.ts';
 export { packWebpAnim } from './webp-anim.ts';
 export {
   demuxWebpAnim, WEBP_DEMUX_MAX_INPUT_BYTES, WEBP_DEMUX_MAX_CHUNKS,
   WEBP_DEMUX_MAX_FRAMES, WEBP_DEMUX_MAX_DIM, WEBP_DEMUX_MAX_PIXELS,
   WEBP_DEMUX_MAX_OUTPUT_BYTES,
 } from './webp-anim-decode.ts';
-export type { WebpAnimFrame, DemuxedWebpAnim } from './webp-anim-decode.ts';
 export { packTiff } from './tiff.ts';
 export { packPng } from './png.ts';
-export type { PackPngOptions, PngCicp, PngTextEntry, PngSamples } from './png.ts';
-export { encodeBmp, decodeBmp, isBmp, BmpUnsupportedError, BMP_MAX_DIM, BMP_MAX_PIXELS } from './bmp.ts';
-export type { EncodeBmpOptions, DecodedBmp } from './bmp.ts';
+export type { PackPngOptions, PngSamples } from './png.ts';
+export { encodeBmp, decodeBmp, isBmp, BmpUnsupportedError, BMP_MAX_DIM } from './bmp.ts';
 export {
   decodeIco, isIco, IcoDecodeError, ICO_MAX_ENTRIES, ICO_MAX_DIM,
   ICO_MAX_PIXELS, ICO_MAX_INPUT_BYTES,
 } from './ico-decode.ts';
-export type { IcoImage, IcoRgbaImage, IcoPngImage } from './ico-decode.ts';
 export { deflateRaw, zlibCompress, adler32 } from './deflate.ts';
-export type { DeflateOptions } from './deflate.ts';
-export { gzip, gunzip, inflateRaw, GUNZIP_MAX_OUTPUT_BYTES } from './gzip.ts';
-export type { GunzipOptions } from './gzip.ts';
+export { gzip, gunzip, inflateRaw } from './gzip.ts';
 export {
   readZip, storeZip, ZIP_READ_MAX_INPUT_BYTES, ZIP_READ_MAX_ENTRIES,
   ZIP_READ_MAX_ENTRY_BYTES, ZIP_READ_MAX_TOTAL_BYTES,
 } from './zip.ts';
-export type { ZipEntry, ZipStoreEntry, StoreZipOptions, ReadZipOptions } from './zip.ts';
+export type { ZipEntry } from './zip.ts';
 export { packTar } from './tar.ts';
-export { readTar, readTarGz, TAR_MAX_ARCHIVE_BYTES, TAR_MAX_MEMBERS, TAR_MAX_PAYLOAD_BYTES } from './tar-read.ts';
-export type { TarReadOptions } from './tar-read.ts';
+export { readTar, readTarGz } from './tar-read.ts';
 export type { TarFile } from './tar.ts';
 export { packCpio } from './cpio.ts';
 export type { CpioFile } from './cpio.ts';
 export { buildRpm } from './rpm.ts';
-export type { RpmSpec, RpmMeta, RpmFileEntry, RpmDep, RpmChangelogEntry } from './rpm.ts';
+export type { RpmSpec, RpmMeta } from './rpm.ts';
 export { planIconSet } from './icon-set.ts';
-export type { IconSource, IconFile, IconSetPlan } from './icon-set.ts';
+export type { IconSource } from './icon-set.ts';
 export { buildLinuxPack, buildHomeTarball, packageRender } from './linux-pack.ts';
-export type { LinuxPackSpec, PackType, FontFile, DesktopEntry } from './linux-pack.ts';
+export type { FontFile } from './linux-pack.ts';
 export { fontMetainfo, desktopEntry, metainfoPath } from './appstream.ts';
-export type { FontMetainfoOpts, DesktopEntryOpts } from './appstream.ts';
 export { sfntKind, sfntToWoff, woffToSfnt, fontConversionTargets, convertFontContainer } from './font-convert.ts';
 export { sourceToGrid, gridToTarget } from './file-data.ts';
-export type { SfntKind } from './font-convert.ts';
 export { videoProvenanceTags, embedMp4Meta, embedWebmMeta } from './video-meta.ts';
 export { embedWavInfo } from './riff-meta.ts';
-export type { WavInfoTags } from './riff-meta.ts';
 export { parseDataRows, rowsToCsv, DEFAULT_ROW_LIMIT } from './data-import.ts';
 export { expandDerivedFormats } from './derived-formats.ts';
 export { readXlsx, listXlsxSheets, DEFAULT_XLSX_ROW_LIMIT } from './xlsx-import.ts';
-export type { ReadXlsxOpts, ReadXlsxResult, XlsxSheetInfo } from './xlsx-import.ts';
 export { writeXlsx, colLetters } from './xlsx-write.ts';
-export type { XlsxSheet, XlsxCell } from './xlsx-write.ts';
 export { writeEpub } from './epub.ts';
-export type { EpubDoc, EpubChapter } from './epub.ts';
 export {
   readEpub, EPUB_READ_MAX_INPUT_BYTES, EPUB_READ_MAX_PARTS,
   EPUB_READ_MAX_PART_BYTES, EPUB_READ_MAX_TOTAL_BYTES,
@@ -585,9 +557,7 @@ export {
   EPUB_READ_MAX_NAV_LABELS, EPUB_READ_MAX_TITLE_CHARS,
   EPUB_READ_MAX_OUTPUT_CHARS,
 } from './epub-read.ts';
-export type { EpubReadDoc, EpubReadChapter } from './epub-read.ts';
 export { writeOdt } from './odt.ts';
-export type { OdtDoc, OdtBlock } from './odt.ts';
 export { writeDocx } from './docx.ts';
 export type { DocxDoc, DocxBlock, DocxMedia } from './docx.ts';
 export {
@@ -597,7 +567,7 @@ export {
   collectPenpotExportMarks, penpotFlowOrder, penpotAnimationToTransition,
   figmaNodesToNodes, figmaNodesToScenes, readingOrder, colorRunsToText, decodeFigVectorPath,
 } from './design-map.ts';
-export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions, DesignFrameScene, PenpotFontUsage, PenpotExportEntry, PenpotExportMark, PenpotStrokeInfo, PenpotSceneTransition, PenpotFlowOrder } from './design-map.ts';
+export type { DesignMapOptions, DesignFrameScene, PenpotFontUsage } from './design-map.ts';
 export { collectPenpotComponents, penpotComponentSlots } from './design-components.ts';
 export type {
   PenpotShapesByPage, PenpotComponent, PenpotComponentVariant, PenpotComponentSlot,
@@ -610,9 +580,8 @@ export {
   PDF_MAP_MAX_MASK_NODES, PDF_MAP_MAX_MASK_TOTAL_NODES, PDF_MAP_MAX_MASK_EVALS,
   PDF_MAP_MAX_TOKENS, PDF_MAP_MAX_CONTENT_CHARS, PDF_MAP_MAX_TOTAL_CONTENT_CHARS,
 } from './pdf-map.ts';
-export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, FontDecoder, PdfShading, PdfPattern, PdfGradient, PdfGradientStop, PdfSoftMask, PdfSoftMaskDef } from './pdf-map.ts';
+export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, PdfShading, PdfPattern, PdfGradientStop, PdfSoftMaskDef } from './pdf-map.ts';
 export { isShadowPlate, maskRegion, relativeLuminance, constantMask } from './pdf-smask.ts';
-export type { MaskRegion } from './pdf-smask.ts';
 export {
   pdfNodesToSvg, windowPdfSvg, cullPdfNodes, pdfNodeExtent, pdfNodeElementKind, CULL_PAD_PT,
   PDF_SVG_MAX_NODES, PDF_SVG_MAX_MASK_NODES, PDF_SVG_MAX_GRADIENT_STOPS,
@@ -620,17 +589,17 @@ export {
   PDF_SVG_MAX_CLIPS, PDF_SVG_MAX_CLIP_D, PDF_SVG_MAX_PATH_D,
   PDF_SVG_MAX_OUTLINE_D, PDF_SVG_MAX_COORD,
 } from './pdf-svg.ts';
-export type { PdfSvgOptions, SvgWindow, CullWindow, CullResult, PdfExtent, PdfElementKind } from './pdf-svg.ts';
+export type { PdfSvgOptions, CullWindow, PdfExtent } from './pdf-svg.ts';
 
-export { findVectorArtwork, PDF_ARTWORK_MAX_NODES, PDF_ARTWORK_MAX_CANDIDATES } from './pdf-artwork.ts';
-export type { VectorArtwork, ArtworkOptions, ArtworkRect } from './pdf-artwork.ts';
+export { findVectorArtwork, PDF_ARTWORK_MAX_NODES } from './pdf-artwork.ts';
+export type { VectorArtwork } from './pdf-artwork.ts';
 
 export {
   findHiddenText, findHiddenTextInPages, describeHiddenText,
   PDF_REDACTION_MAX_COVERS, PDF_REDACTION_MAX_NODES,
   PDF_REDACTION_MAX_PAGES, PDF_REDACTION_MAX_TEXT_CHARS,
 } from './pdf-redaction.ts';
-export type { HiddenTextFinding, RedactionOptions, Rect as PdfRect } from './pdf-redaction.ts';
+export type { HiddenTextFinding } from './pdf-redaction.ts';
 
 export {
   extractPageText, joinPageText, PDF_TEXT_MAX_NODES, PDF_TEXT_MAX_ITEMS,
@@ -638,7 +607,7 @@ export {
   PDF_TEXT_MAX_MCIDS_PER_ELEMENT, PDF_TEXT_MAX_TAGGED_REFERENCES,
   PDF_TEXT_MAX_JOIN_PAGES,
 } from './pdf-text.ts';
-export type { PageText, TextBlock, TextLine, TextItem, BlockKind, PdfTextOptions, TaggedElement } from './pdf-text.ts';
+export type { PageText, TextBlock, TaggedElement } from './pdf-text.ts';
 export {
   createTokenSet, resolveColorValue, colorToHex,
   isAlias, aliasPath, isTokenValue, typographyFamilies, tokenSetNames, TOKEN_EXT,
@@ -653,17 +622,17 @@ export { gamutSolid, projectGamutSolid, projectSolidPoint, projectSolidPoints, s
 // overrides. The generalisation of PrintLock - the export walkers consult it, so
 // it is engine-side rather than living in the brand editor.
 export { readFaces, writeFace, colorFaces, faceDrift, canonicalValue } from './color-faces.ts';
-export type { ColorFace, StoredFace, FaceTarget, FaceOrigin } from './color-faces.ts';
+export type { StoredFace } from './color-faces.ts';
 // An image's colours as a cloud in the same space the solid is drawn in.
 export { imageColorCloud, UNIQUE_CAP } from './image-cloud.ts';
-export type { ImageCloud, ImageCloudOpts, CloudPoint, CloudSpace } from './image-cloud.ts';
-export type { GamutSolid, SolidQuad, SolidPoint, SolidView, ProjectedQuad, SolidEmbed, GamutSolidSvgOptions } from './gamut-solid.ts';
+export type { ImageCloud, CloudPoint, CloudSpace } from './image-cloud.ts';
+export type { GamutSolid, ProjectedQuad, SolidEmbed } from './gamut-solid.ts';
 export { describeColor, contrastVsExtremes, wcagLevel, NOTATION_SPACES, EXTREMES_CONTRAST_FLOOR } from './color-describe.ts';
-export type { ColorDescription, ColorNotation, ContrastVerdict, WcagLevel } from './color-describe.ts';
+export type { ColorDescription } from './color-describe.ts';
 
 export type { EncodeSpace } from './gamut.ts';
 export { GAMUTS, oklchGamut, inGamut, gamutWithin, maxChroma, clipToGamut, oklchSlice, encodeOklch, sliceGamutEdge, sliceGamutRegion } from './gamut.ts';
-export type { GamutName, SlicePlane, SliceOptions, SliceImage } from './gamut.ts';
+export type { GamutName, SlicePlane } from './gamut.ts';
 export {
   BUILTIN_GAMUT_SOURCES, P3_SOURCE, REC2020_SOURCE, SRGB_SOURCE, NO_GAMUT_SOURCE,
   GAMUT_PROBE_MAX, GAMUT_PROBE_START, gamutSourceId, resolveGamutSource, fastRgbContains,
@@ -690,9 +659,8 @@ export type { IccProfile } from './icc.ts';
 // ICC v4 clause-8 rendering-intent fallback. Sits beside the reader it drives;
 // like the reader it never throws - null on malformed/unusable input.
 export { ICC_DEVICE_SPACE, iccFrameRefusal, iccResolvedIntent, applyIccToFrame, convertViaIcc } from './icc-pixels.ts';
-export type { IccDirection } from './icc-pixels.ts';
 export { SCHEME_KINDS, generateSchemeAccents, rotateHue, generateAnalogous, rotateRampHue } from './brand-schemes.ts';
-export type { SchemeKind, AccentCandidate, AnalogousParams } from './brand-schemes.ts';
+export type { SchemeKind } from './brand-schemes.ts';
 export {
   deltaEOk, apcaContrast, rampOklab, classBreaks, distinctColors, makeColorApi,
   // APCA's band interpretation, alongside WCAG 2's AA/AAA - carried together
@@ -703,16 +671,15 @@ export {
   // background - the generative half of the forward apcaContrast eval.
   solveLightnessForApca,
 } from './color-tools.ts';
-export type { RampOptions, DistinctColorsOptions, ApcaUse, ApcaVerdict, ApcaSolveResult, ApcaSolveOptions } from './color-tools.ts';
+export type { ApcaUse, ApcaSolveResult, ApcaSolveOptions } from './color-tools.ts';
 // Chroma / colour-range keying - remove a flat background by perceptual (OKLab)
 // distance, model-free. The pure math behind the video-matte colour-key method.
 export { chromaKeyAlpha } from './chroma-key.ts';
-export type { ChromaKeyOptions } from './chroma-key.ts';
 // Telea 2004 fast-marching inpainting - the classical content-aware fill behind
 // Retouch (plans/124 WP-E). Ported, not depended on: stock opencv.js omits
 // cv.inpaint. Windows itself to the mask bounding box and returns a new frame.
 export { inpaintTelea } from './inpaint.ts';
-export type { InpaintFrame, InpaintOpts } from './inpaint.ts';
+export type { InpaintFrame } from './inpaint.ts';
 // Colour grading - the .cube/.3dl readers, the tetrahedral sampler, the RGBA
 // frame apply and the film grain + vignette pass, promoted out of the darkroom
 // tool so a shell can grade a whole VIDEO with the maths that graded the still
@@ -746,7 +713,7 @@ export type { CurvePoint, ChannelCurve, ColorCurve, ColorCurveJSON } from './col
 export { simulateCvd, toGrayscale, simulateCvdHex, toGrayscaleHex } from './color-vision.ts';
 export type { CvdType, Rgb } from './color-vision.ts';
 export { nearestBrandColor, mapPaletteToBrand, mapFontsToBrand, suggestRebrandTheme } from './brand-map.ts';
-export type { BrandSwatch, RoleHint, NearestBrandColorOptions, NearestBrandColor, BrandFonts } from './brand-map.ts';
+export type { BrandSwatch, BrandFonts } from './brand-map.ts';
 export {
   coerceTokensDoc, assembleTokenSetFiles, extractPenpotProject, summarizeTokensDoc, scanPenpotUsage,
   scanPenpotAppliedTokens,
@@ -776,27 +743,24 @@ export {
   PENPOT_BINDABLE, PENPOT_BINDABLE_PROPS, buildTokenTypeIndex, sanitizeAppliedTokens,
   isSafeTokenPath, penpotTokenClosure,
 } from './penpot-bindings.ts';
-export type { PenpotBindableProp, TokenTypeIndex, PenpotTokenClosure } from './penpot-bindings.ts';
 export {
   parseThemedAssetId, buildThemedAssetId, isThemableIconSvg, isValidThemeId,
   applyIconTheme, restyleIconTheme, parseIconThemesDoc,
 } from './icon-theme.ts';
-export type { IconTheme, IconThemesDoc, ParsedThemedAssetId } from './icon-theme.ts';
+export type { IconTheme } from './icon-theme.ts';
 export {
   parseTreatedAssetId, buildTreatedAssetId, isValidTreatmentId, stripAssetModifiers,
   parsePhotoTreatmentsDoc, treatmentFilterSvg, wrapRasterWithTreatment,
 } from './photo-treatment.ts';
-export type { PhotoTreatment, PhotoTreatmentsDoc, ParsedTreatedAssetId, RasterTreatmentWrap } from './photo-treatment.ts';
+export type { PhotoTreatment } from './photo-treatment.ts';
 export { derivePhotoTreatmentsDoc, deriveIconThemesDoc } from './brand-treatments.ts';
-export type { DerivedPhotoTreatments, DerivedIconThemes } from './brand-treatments.ts';
 export {
   hashR6, preparePassword, buildEncryptDictValues, encryptObjectBytes,
 } from './pdf-crypto-r6.ts';
-export type { EncryptDictInput, EncryptDictValues } from './pdf-crypto-r6.ts';
 export {
   crc32, zipCryptoEncrypt, deriveAesZipKey, aesZipEncryptEntry, buildEncryptedZip,
 } from './zip-crypto.ts';
-export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
+export type { ZipTier, ZipEntryInput } from './zip-crypto.ts';
 
 // Keyframe tracks + the depth camera (1.114, plans/104): the `kf` wire grammar,
 // per-channel sparse evaluation, the ease adapter, and the affine projection
@@ -826,11 +790,8 @@ export type {
 // minor, moved out of this barrel so prose edits stop conflicting with exports).
 export { ENGINE_VERSION } from './version.ts';
 export { createTruePeakLimiter, activitySpans } from './audio-dynamics.ts';
-export type { TruePeakLimiter, TruePeakLimiterOpts, ActivitySpanOpts } from './audio-dynamics.ts';
 export { createLoudnessMeter, integratedLoudness, normalizeGain, LOUDNESS_RATE } from './audio-loudness.ts';
-export type { LoudnessMeter } from './audio-loudness.ts';
 export { parseFxChain, serializeFxChain, processFxPcm, FX_PRESETS, FX_CHAIN_MAX_CHARS } from './audio-fx.ts';
-export type { FxEntry, ParsedFxChain } from './audio-fx.ts';
 export { satisfiesRange, parseVersion } from './semver-range.ts';
 export { encodeFsToken, decodeFsToken } from './fs-token.ts';
 export {
@@ -839,4 +800,27 @@ export {
   SESSION_FORMAT_VERSION,
   SESSION_READER_VERSION,
 } from './session-record.ts';
-export type { SessionVersionStamp, StoredSessionRecord, SessionLogger } from './session-record.ts';
+
+// Numeric helpers (2026-09-09)
+export { clamp } from './clamp.ts';
+
+// Kept on the barrel for the TUI, the api bundles and the chrome extension (2026-09-09 trim)
+export { ASSET_PROVIDER_REF_RE } from './asset-provider.ts';
+export { renderDocument } from './document-api.ts';
+export { FRAME_FILTER_SKIP_FORMATS } from './frame-address.ts';
+export { isLang } from './lang.ts';
+export { batchCsvTemplate } from './batch.ts';
+export { LSB_MIN_PIXELS, LSB_P_THRESHOLD, LSB_PREFIXES } from './steganalysis.ts';
+export { encodeTrustmarkPayload, LOLLY_DURABLE_SCHEMA_VERSION, TRUSTMARK_Q_WM_STRENGTH } from './trustmark.ts';
+export { SVG_COLORS_MAX_MATCHES } from './svg-colors.ts';
+export { ZZFXM_ARCHETYPES } from './zzfxm-ref.ts';
+export { EMU_PER_INCH } from './pptx.ts';
+export { readingOrder as pptxReadingOrder } from './pptx-read.ts';
+export { LOLLY_EXPORT_ASSERTION } from './c2pa.ts';
+export { verifyC2paPdf } from './c2pa-verify.ts';
+export { isImprintContainerFormat, IMPRINT_CONTAINER_FORMATS } from './provenance-defaults.ts';
+export type { ProvenanceManifest } from './provenance-defaults.ts';
+export { BMP_MAX_PIXELS } from './bmp.ts';
+export { GUNZIP_MAX_OUTPUT_BYTES } from './gzip.ts';
+export { TAR_MAX_ARCHIVE_BYTES, TAR_MAX_MEMBERS, TAR_MAX_PAYLOAD_BYTES } from './tar-read.ts';
+export { PDF_ARTWORK_MAX_CANDIDATES } from './pdf-artwork.ts';

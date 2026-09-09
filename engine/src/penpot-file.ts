@@ -37,6 +37,7 @@ import { colorToHex } from './tokens.ts';
 import { makeGeomApi } from './geom-api.ts';
 import { pathBounds, pathFromSubPaths } from './geom/path.ts';
 import { sanitizeAppliedTokens, buildTokenTypeIndex, isSafeTokenPath } from './penpot-bindings.ts';
+import { clamp } from './clamp.ts';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -311,7 +312,6 @@ export interface PenpotBuild {
 type Rec = Record<string, unknown>;
 const isRec = (v: unknown): v is Rec => !!v && typeof v === 'object' && !Array.isArray(v);
 const fin = (v: unknown, d = 0): number => { const n = typeof v === 'number' ? v : parseFloat(String(v)); return Number.isFinite(n) ? n : d; };
-const clamp = (v: number, a: number, b: number): number => (v < a ? a : v > b ? b : v);
 /** Round to 4 decimals and never let a NaN/Infinity reach a `safe-number` field. */
 const r4 = (v: number): number => { const n = Math.round(v * 10000) / 10000; return Number.isFinite(n) ? (Object.is(n, -0) ? 0 : n) : 0; };
 
@@ -2130,7 +2130,6 @@ export function svgToPenpotDoc(svgText: string, o: SvgToPenpotOptions): SvgToPen
     width, height, pending, notes,
   };
 }
-function isIdentity(m: PenpotMatrix): boolean { return Math.abs(m.a - 1) < 1e-9 && Math.abs(m.d - 1) < 1e-9 && Math.abs(m.b) < 1e-9 && Math.abs(m.c) < 1e-9 && Math.abs(m.e) < 1e-9 && Math.abs(m.f) < 1e-9; }
 
 // ─── producer 3: one picture ──────────────────────────────────────────────────
 

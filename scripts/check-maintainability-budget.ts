@@ -33,7 +33,17 @@ export interface MaintainabilityBaseline {
   exclusions: Array<{ pattern: string; reason: string }>;
   modules: Record<string, ModuleMetric>;
   cycles: string[][];
+  /** Runtime imports that run against the layering (a lib/, bridge/, components/, collab/, org/,
+   *  pro/ or catalog/ module importing from views/). Views may import anything below them; the
+   *  layers below must not reach up. Existing edges are baselined; a new one fails. */
+  layerViolations?: string[];
+  /** Type escapes (`any`, `as unknown as`, ts-ignore, biome-ignore) per production module, every
+   *  module, not only the concentrated ones. A module may only ratchet down; a new module starts
+   *  clean or is added deliberately with --write. */
+  typeEscapes?: Record<string, number>;
 }
+/** Directories that sit below views/ and must never import from it. */
+const LOWER_LAYERS = ['lib/', 'bridge/', 'components/', 'collab/', 'org/', 'pro/', 'catalog/'];
 
 export const EXCLUSIONS = [
   { pattern: '**/*.test.{ts,js}', reason: 'test implementation' },
@@ -188,6 +198,20 @@ export function measure(): MaintainabilityBaseline {
     for (const target of edges) fanIn.set(target, (fanIn.get(target) ?? 0) + 1);
   }
 
+  const layerViolations: string[] = [];
+  const typeEscapes: Record<string, number> = {};
+  for (const filename of files) {
+    const relative = path.relative(WEB_ROOT, filename).replaceAll(path.sep, '/');
+    const escapes = typeEscapeCount(sources.get(filename)!);
+    if (escapes > 0) typeEscapes[path.relative(repoRoot, filename).replaceAll(path.sep, '/')] = escapes;
+    if (!LOWER_LAYERS.some((layer) => relative.startsWith(layer))) continue;
+    for (const target of graph.get(filename) ?? []) {
+      const targetRel = path.relative(WEB_ROOT, target).replaceAll(path.sep, '/');
+      if (targetRel.startsWith('views/')) layerViolations.push(`${relative} -> ${targetRel}`);
+    }
+  }
+  layerViolations.sort();
+
   const modules: Record<string, ModuleMetric> = {};
   for (const filename of files) {
     const source = sources.get(filename)!;
@@ -211,6 +235,8 @@ export function measure(): MaintainabilityBaseline {
     cycles: stronglyConnected(graph).map((cycle) =>
       cycle.map((filename) => path.relative(repoRoot, filename).replaceAll(path.sep, '/')),
     ),
+    layerViolations,
+    typeEscapes,
   };
 }
 
@@ -288,6 +314,26 @@ export function compare(
   for (const cycle of current.cycles) {
     if (!baselineCycles.has(cycle.join('\0'))) errors.push(`new dependency cycle: ${cycle.join(' -> ')}`);
   }
+  // layering: a lower layer reaching up into views/
+  const knownEdges = new Set(baseline.layerViolations ?? []);
+  for (const edge of current.layerViolations ?? []) {
+    if (!knownEdges.has(edge)) errors.push(`new upward import: ${edge} - lib/bridge/components must not import from views/; move the shared piece down`);
+  }
+  for (const edge of knownEdges) {
+    if (!(current.layerViolations ?? []).includes(edge)) errors.push(`upward import ${edge} is gone; run npm run maintainability:baseline to ratchet it down`);
+  }
+  // type escapes, every module: only ever down
+  if (baseline.typeEscapes) {
+    for (const [filename, count] of Object.entries(current.typeEscapes ?? {})) {
+      const previous = baseline.typeEscapes[filename];
+      if (previous === undefined) errors.push(`${filename}: new module carries ${count} type escape(s) (any / as unknown as / ts-ignore); write it clean, or add it deliberately with npm run maintainability:baseline`);
+      else if (count > previous) errors.push(`${filename}: type escapes grew ${previous} -> ${count}`);
+      else if (count < previous) errors.push(`${filename}: type escapes fell ${previous} -> ${count}; run npm run maintainability:baseline to ratchet it down`);
+    }
+    for (const [filename, previous] of Object.entries(baseline.typeEscapes)) {
+      if (!(filename in (current.typeEscapes ?? {}))) errors.push(`${filename}: its ${previous} type escape(s) are gone; run npm run maintainability:baseline to ratchet it down`);
+    }
+  }
   return { errors, warnings };
 }
 
@@ -300,7 +346,7 @@ function main(): void {
   const current = measure();
   if (process.argv.includes('--write')) {
     writeFileSync(baselinePath, `${JSON.stringify(current, null, 2)}\n`);
-    console.log(`Wrote ${path.relative(repoRoot, baselinePath)} (${Object.keys(current.modules).length} modules, ${current.cycles.length} cycles).`);
+    console.log(`Wrote ${path.relative(repoRoot, baselinePath)} (${Object.keys(current.modules).length} modules, ${current.cycles.length} cycles, ${(current.layerViolations ?? []).length} upward imports, ${Object.keys(current.typeEscapes ?? {}).length} modules with type escapes).`);
     return;
   }
   const { errors, warnings } = compare(loadBaseline(), current);
@@ -308,7 +354,7 @@ function main(): void {
   if (errors.length) {
     throw new Error(`Maintainability budget failed:\n- ${errors.join('\n- ')}`);
   }
-  console.log(`Maintainability budget passed (${Object.keys(current.modules).length} concentrated web modules, ${current.cycles.length} baselined cycles).`);
+  console.log(`Maintainability budget passed (${Object.keys(current.modules).length} concentrated web modules, ${current.cycles.length} baselined cycles, ${(current.layerViolations ?? []).length} baselined upward imports, ${Object.keys(current.typeEscapes ?? {}).length} modules with type escapes).`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

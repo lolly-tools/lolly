@@ -17,10 +17,10 @@ import type {
 } from '@lolly-tools/core';
 import { rotateHue } from './brand-schemes.ts';
 import { deltaEOk, rampOklab } from './color-tools.ts';
+import { clamp } from './clamp.ts';
 
 const HEX = /^#[0-9a-f]{6}$/i;
 const ID = /^[a-zA-Z][a-zA-Z0-9._-]{0,127}$/;
-const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
 
 function hex(value: unknown, fallback: string): string {
   const s = String(value ?? '')

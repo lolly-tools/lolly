@@ -6,10 +6,11 @@ import { test } from 'node:test';
 import { chromium } from 'playwright';
 
 const origin = process.env.LOLLY_MOTION_TEST_URL;
+const skip = origin ? false : 'LOLLY_MOTION_TEST_URL not set (serve the web shell and point it here)';
 const output = process.env.LOLLY_MOTION_TEST_OUTPUT ?? '/tmp/lolly-motion-223';
 const ids = ['launch-editorial', 'launch-snap', 'launch-cascade', 'launch-loop'];
 
-test('Launch: branded frame sampling, real previews, mobile controls and video export', { skip: !origin, timeout: 240_000 }, async () => {
+test('Launch: branded frame sampling, real previews, mobile controls and video export', { skip, timeout: 240_000 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
   await mkdir(output, { recursive: true });
   const browser = await chromium.launch({ headless: true });
@@ -161,7 +162,7 @@ test('Launch: branded frame sampling, real previews, mobile controls and video e
   } finally { await browser.close(); }
 });
 
-test('Launch gallery preview opens the composition it demonstrates', { skip: !origin, timeout: 90_000 }, async () => {
+test('Launch gallery preview opens the composition it demonstrates', { skip, timeout: 90_000 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1200, height: 900 }, reducedMotion: 'reduce' });

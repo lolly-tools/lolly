@@ -29,7 +29,7 @@
  * each <img>'s intrinsic width/height from the new files.
  */
 
-import { readFileSync, writeFileSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { embedC2pa } from '../engine/src/c2pa-containers.ts';

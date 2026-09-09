@@ -17,11 +17,13 @@
   "shells/web/src/lib/prosody-chips.ts": 2,
   "shells/web/src/lib/stt-job.ts": 3,
   "shells/web/src/views/color-lab.ts": 2,
-  "shells/web/src/views/free-canvas.ts": 3,
+  "shells/web/src/views/free-canvas/ops.ts": 2,
+  "shells/web/src/views/free-canvas/pen-tool.ts": 1,
   "shells/web/src/views/gallery.ts": 1,
   "shells/web/src/views/projects.ts": 1,
-  "shells/web/src/views/timeline-panel.ts": 5,
-  "shells/web/src/views/tool.ts": 1,
+  "shells/web/src/views/timeline-panel.ts": 1,
+  "shells/web/src/views/timeline-panel/subtitles.ts": 4,
+  "shells/web/src/views/tool/stage-layout.ts": 1,
   "shells/web/src/views/transcribe-control.ts": 2,
   "shells/web/src/views/transcript-panel.ts": 3
 }

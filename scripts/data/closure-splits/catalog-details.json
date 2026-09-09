@@ -1,0 +1,24 @@
+{
+  "file": "shells/web/src/views/catalog/details.ts",
+  "fn": "openDetails",
+  "tsconfig": "shells/web/tsconfig.json",
+  "outDir": "shells/web/src/views/catalog",
+  "prefix": "details-",
+  "ctxName": "dt",
+  "ctxType": "DetailsCtx",
+  "header": "The catalog's details sheet for one asset (a second-level split of views/catalog/details.ts).",
+  "renameImports": { "escape": "escapeText" },
+  "modules": [
+    { "name": "panels", "start": "closeEditCard", "doc": "catalog details: the edit card, the text, origins and passport panels, the work preview." },
+    { "name": "inlineModes", "start": "enterInlineRetouch", "doc": "catalog details: the inline retouch, grade, video-edit, crop and trim modes." },
+    { "name": "sheet", "doc": "catalog details: building the sheet and wiring its events, in mount order." }
+  ],
+  "blocks": [
+    { "name": "readAsset", "module": "sheet", "from": 58, "to": 127, "doc": "The asset's facts the sheet is built from." },
+    { "name": "buildSheet", "module": "sheet", "from": 220, "to": 489, "doc": "The dialog's DOM, zoom state and controls." },
+    { "name": "paintPassport", "module": "sheet", "from": 583, "to": 682 },
+    { "name": "wireTextAsset", "module": "sheet", "from": 785, "to": 822 },
+    { "name": "wireSheetEvents", "module": "sheet", "from": 1319, "to": 2172, "doc": "Keyboard, pointer and action wiring for the open sheet." }
+  ],
+  "overrides": {}
+}

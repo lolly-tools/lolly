@@ -50,11 +50,11 @@ import {
 } from './palette-export.ts';
 import type { GamutSource, GamutLimit } from './gamut-source.ts';
 import type { ColorAPI, ColorProfileGamut, ColorRenderingIntent } from './bridge/host-v1.ts';
+import { clamp } from './clamp.ts';
 
 // ─── Input parsing / OKLab plumbing ───────────────────────────────────────────
 
 const normHue = (h: number): number => ((h % 360) + 360) % 360;
-const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
 
 // Hex or oklch()/lch() string → OKLCH (the stored-token forms), else null.
 function toOklch(input: string): Oklch | null {

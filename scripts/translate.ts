@@ -765,7 +765,7 @@ export function validateDocBlock(source: string, translated: string): string | n
   };
   const srcT = targets(source);
   const outT = targets(translated);
-  if (srcT.join(' ') !== outT.join(' ')) {
+  if (srcT.join('\u0000') !== outT.join('\u0000')) {
     return `markdown link target changed: source has [${srcT.join(' | ')}], output has [${outT.join(' | ')}]`;
   }
   const srcH = MD_HEADING_RE.exec(source)?.[1] ?? '';
@@ -982,7 +982,7 @@ function validate(source: string, translated: string): string | null {
   if (srcTags.join('') !== outTags.join('')) return `HTML tag mismatch: source has [${srcTags.join(' ')}], output has [${outTags.join(' ')}]`;
   const srcCode = codeBag(source);
   const outCode = codeBag(translated);
-  if (srcCode.join(' ') !== outCode.join(' ')) return `<code> content changed: source has [${srcCode.join(' | ')}], output has [${outCode.join(' | ')}]`;
+  if (srcCode.join('\u0000') !== outCode.join('\u0000')) return `<code> content changed: source has [${srcCode.join(' | ')}], output has [${outCode.join(' | ')}]`;
   // Padding guard, with an absolute floor. A ratio alone is wrong for short UI
   // labels: "Unmute" -> "Stummschaltung aufheben" is 3.8x and completely correct,
   // as are "Mute" -> "Disattiva audio" and "Stops" -> "Pontos de parada". Real

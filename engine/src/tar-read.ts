@@ -59,7 +59,6 @@ const SIZE_LEN = 12;
 const OFF_CHKSUM = 148;
 const CHKSUM_LEN = 8;
 const OFF_TYPEFLAG = 156;
-const OFF_MAGIC = 257;
 const OFF_PREFIX = 345;
 const PREFIX_LEN = 155;
 

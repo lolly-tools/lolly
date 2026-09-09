@@ -323,9 +323,9 @@ export function insertJpegSegments(
     }
 
     // `replace`: remove existing segments of the same identity as an incoming one.
-    const wanted = new Set(prepared.map(p => `${p.marker} ${p.appId ?? ''}`));
+    const wanted = new Set(prepared.map(p => `${p.marker}\u0000${p.appId ?? ''}`));
     const removals = opts.replace
-      ? head.filter(s => wanted.has(`${s.marker} ${s.appId ?? ''}`))
+      ? head.filter(s => wanted.has(`${s.marker}\u0000${s.appId ?? ''}`))
       : [];
     const removed = new Set(removals);
     const kept = head.filter(s => !removed.has(s));

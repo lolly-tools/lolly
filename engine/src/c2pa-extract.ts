@@ -1455,8 +1455,6 @@ const VS_HIGH_START = 0xe0100;
 const VS_HIGH_END = 0xe01ef;
 /** section A.8.2.2 `magic = 0x4332504154585400` - "C2PATXT\0". */
 const WRAPPER_MAGIC = [0x43, 0x32, 0x50, 0x41, 0x54, 0x58, 0x54, 0x00];
-/** magic(8) + version(1) + manifestLength(4). */
-const WRAPPER_HEADER_BYTES = 13;
 /** section A.8.4.1 expects one; a hostile paste can hold many. Collect a bounded few -
  *  enough to report `multipleWrappers` honestly, not enough to be a workload. */
 const MAX_TEXT_WRAPPERS = 32;
@@ -1703,7 +1701,6 @@ export const EXTRACTORS: Record<SniffFormat, (bytes: Uint8Array) => { manifest: 
   code: asExtractor(readArmor),
   text: asExtractor(readTextVs),
 };
-
 
 // The AI DigitalSourceType lookup lives in ai-kind.ts (file-metadata.ts needs it
 // without the rest of this module); re-exported here so every existing

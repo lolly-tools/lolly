@@ -8,6 +8,7 @@ import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const origin = process.env.LOLLY_HISTORY_TEST_URL;
+const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)';
 if (origin) assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname));
 const shots = new URL('../plans/221-history-mockups/', import.meta.url);
 const shot = (name: string): string => fileURLToPath(new URL(name, shots));
@@ -24,7 +25,7 @@ async function waitForSavedLabel(page: Page, slot: string, label: string): Promi
   assert.fail(`The protected label did not become ${label}`);
 }
 
-test('revision transactions: concurrent writers, paged metadata, previews, quota rollback, slot moves and deletion', { skip: !origin, timeout: 60_000 }, async () => {
+test('revision transactions: concurrent writers, paged metadata, previews, quota rollback, slot moves and deletion', { skip, timeout: 60_000 }, async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
   try {
@@ -95,7 +96,7 @@ test('revision transactions: concurrent writers, paged metadata, previews, quota
   } finally { await browser.close(); }
 });
 
-test('Design auto checkpoint, right History tab, and editable file export are wired end to end', { skip: !origin, timeout: 90_000 }, async () => {
+test('Design auto checkpoint, right History tab, and editable file export are wired end to end', { skip, timeout: 90_000 }, async () => {
   await mkdir(shots, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
@@ -169,7 +170,7 @@ test('Design auto checkpoint, right History tab, and editable file export are wi
   } finally { await browser.close(); }
 });
 
-test('rolling recovery survives reopen, preserves competing edits and keeps the visible history sparse', { skip: !origin, timeout: 60_000 }, async () => {
+test('rolling recovery survives reopen, preserves competing edits and keeps the visible history sparse', { skip, timeout: 60_000 }, async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
   try {
@@ -235,7 +236,7 @@ test('rolling recovery survives reopen, preserves competing edits and keeps the 
   } finally { await browser.close(); }
 });
 
-test('manual backup round-trips revision IDs, previews and drafts; reimport is idempotent and conflicts roll back', { skip: !origin, timeout: 60_000 }, async () => {
+test('manual backup round-trips revision IDs, previews and drafts; reimport is idempotent and conflicts roll back', { skip, timeout: 60_000 }, async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
   try {
@@ -299,7 +300,7 @@ test('manual backup round-trips revision IDs, previews and drafts; reimport is i
   } finally { await browser.close(); }
 });
 
-test('the recovery schema upgrade preserves a v21 document and adopts its old head token', { skip: !origin, timeout: 30_000 }, async () => {
+test('the recovery schema upgrade preserves a v21 document and adopts its old head token', { skip, timeout: 30_000 }, async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
   try {
@@ -331,7 +332,7 @@ test('the recovery schema upgrade preserves a v21 document and adopts its old he
       const draft = await api.history.recovery.save('legacy', { ...data, text: 'after upgrade' }, { writerId: 'migration', expectedHead: cursor.head, expectedVersion: cursor.version });
       return { version: db.version, cursor, saved, draft, current: await api.load('legacy') };
     });
-    assert.equal(result.version, 22); assert.deepEqual(result.cursor, { head: 'legacy-head', version: 'legacy-head' });
+    assert.equal(result.version, 24); assert.deepEqual(result.cursor, { head: 'legacy-head', version: 'legacy-head' });
     assert.equal(result.saved.text, 'v21 saved work'); assert.equal(result.draft.documentId, 'legacy-document');
     assert.equal(result.draft.diverged, false); assert.equal(result.current.text, 'after upgrade');
   } finally { await browser.close(); }

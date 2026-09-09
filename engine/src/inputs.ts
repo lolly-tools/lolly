@@ -268,6 +268,10 @@ export interface InputSpec {
    *  it - the stored TableValue is the same strings whichever editor wrote them, so
    *  URL mode and the CLI are unaffected. See schema `columnEditors`. */
   columnEditors?: TableColumnEditor[];
+  /** On flat scalar `blocks`: edit rows in the shared table, in this field order.
+   * Unlisted fields follow in declaration order. Stored objects and URL field order
+   * stay unchanged; shells without the presentation can keep their block editor. */
+  tableColumns?: string[];
   // blocks presentation/behaviour
   addMenu?: BlocksAddMenu;
   labelledFields?: boolean;
@@ -540,7 +544,10 @@ function pickControl(input: InputSpec): InputControl {
   if (input.type === 'boolean') return 'checkbox';
   if (input.type === 'time') return 'time-input';
   if (input.type === 'datetime-local') return 'datetime-local-input';
-  if (input.type === 'blocks') return 'blocks';
+  if (input.type === 'blocks') return input.tableColumns?.length &&
+    !input.nesting && !input.addMenu && input.fields?.every(f =>
+      !f.showIf && !f.showFor && ['text', 'url', 'color', 'boolean', 'number', 'select'].includes(f.type ?? 'text')
+    ) ? 'table' : 'blocks';
   if (input.type === 'vector') return 'vector';
   if (input.type === 'file') return 'file-picker';
   if (input.type === 'table') return 'table';

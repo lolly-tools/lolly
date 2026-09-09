@@ -95,20 +95,22 @@ const HF = 'https://huggingface.co';
 const MB_BASE = `${HF}/GeorgeDrayson/modernbert-ai-detection-raid-mage/resolve/main/`;
 const E5_BASE = `${HF}/MayZhou/e5-small-lora-ai-generated-detector/resolve/main/`;
 
-const mbPin = (file: string, note?: string): Pin => ({
-  url: `${MB_BASE}${file}`,
-  sha256: PLACEHOLDER,
-  license: 'Apache-2.0',
-  source: 'GeorgeDrayson/modernbert-ai-detection-raid-mage (ModernBERT-base fine-tune, RAID+MAGE)',
-  copyright: '© George Drayson',
-  ...(note ? { note } : {}),
-});
+// biome-ignore lint/correctness/noUnusedVariables: staged scaffolding - the E5 pins are wired in the change that flips AI_DETECT_STAGED
 const e5Pin = (file: string, note?: string): Pin => ({
   url: `${E5_BASE}${file}`,
   sha256: PLACEHOLDER,
   license: 'MIT',
   source: 'MayZhou/e5-small-lora-ai-generated-detector',
   copyright: '© May Zhou',
+  ...(note ? { note } : {}),
+});
+
+const mbPin = (file: string, note?: string): Pin => ({
+  url: `${MB_BASE}${file}`,
+  sha256: PLACEHOLDER,
+  license: 'Apache-2.0',
+  source: 'GeorgeDrayson/modernbert-ai-detection-raid-mage (ModernBERT-base fine-tune, RAID+MAGE)',
+  copyright: '© George Drayson',
   ...(note ? { note } : {}),
 });
 

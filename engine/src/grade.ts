@@ -1,3 +1,4 @@
+import { clamp } from './clamp.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Colour grading: LUT reading, LUT sampling, and the film grain + vignette pass.
@@ -80,11 +81,7 @@ export const TDL_MAX_N = 65;
 
 const LUM_R = 0.2126;
 const LUM_G = 0.7152;
-const LUM_B = 0.0722; // Rec.709 luma
-
-function clamp(v: number, a: number, b: number): number {
-  return v < a ? a : v > b ? b : v;
-}
+const LUM_B = 0.0722;
 
 function smoothstep(a: number, b: number, x: number): number {
   const t = clamp((x - a) / (b - a), 0, 1);

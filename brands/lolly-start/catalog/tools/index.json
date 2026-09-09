@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-07T15:00:33.338Z",
+  "generatedAt": "2026-09-08T21:26:26.127Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -13302,7 +13302,7 @@
       "id": "timezone",
       "name": "Timezone",
       "description": "Turn places and timezones into brand-led artwork. Rotate a vector atlas or a detailed WebGL globe, unfold projections, label your people and places, then export artwork, a camera tour or structured schedules.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "official",
       "category": "event",
       "tags": [

@@ -166,7 +166,6 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   let vizPresets: DockVizPreset[] = [];
   let vizThemes: DockVizTheme[] = [];
   let vizTransitions: DockVizTransition[] = [];
-  let vizBuilt = false;
   // The narration block collapses from its own header (like Tracks/Atmosphere). Session
   // state, matching the sections (which also don't persist across reloads).
   let narrBlockOpen = opts.openSections?.narration ?? true;
@@ -850,7 +849,6 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   }
   async function rebuildVisualiser(): Promise<void> {
     if (!hasRichViz() || !host.viz) return;
-    vizBuilt = true;
     paintVizToggle();
     if (typeof host.viz.themes === 'function') {
       try { const t = await Promise.resolve(host.viz.themes()); if (!destroyed) vizThemes = t; } catch { /* keep */ }

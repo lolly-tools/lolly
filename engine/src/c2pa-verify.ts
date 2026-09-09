@@ -205,7 +205,6 @@ const HASH_OIDS: Record<string, string> = {
   '608648016503040201': 'SHA-256', '608648016503040202': 'SHA-384',
   '608648016503040203': 'SHA-512', '2b0e03021a': 'SHA-1',
 };
-const HASH_LEN: Record<string, number> = { 'SHA-1': 20, 'SHA-256': 32, 'SHA-384': 48, 'SHA-512': 64 };
 
 // Parse a signatureAlgorithm AlgorithmIdentifier into a verify recipe, or null
 // for anything unrecognised (→ the chain step is a quiet no-match, never a
@@ -872,7 +871,6 @@ function readAiDisclosure(content: Uint8Array): C2paAiDisclosure | undefined {
     return Object.keys(out).length ? out : undefined;
   } catch { return undefined; }
 }
-
 
 /**
  * Verify a file's Content Credentials entirely on-device. Sniffs the

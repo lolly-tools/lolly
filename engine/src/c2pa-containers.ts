@@ -22,7 +22,7 @@ import {
 import { generateSigner } from './x509.ts';
 import { concatBytes, sha256, bytesToBin } from './bytes.ts';
 import { locateOpusComment, parseOpusTags, buildOpusTags, buildOggPage, commentKey, OGG_C2PA_KEY } from './ogg.ts';
-import { buildC2paManifest, urnUuid, BMFF_HASH_LABEL } from './c2pa.ts';
+import { buildC2paManifest, urnUuid, } from './c2pa.ts';
 import type { Signer, Exclusion, EmbedOptions, PlaceResult } from './c2pa.ts';
 // Runtime-light: gainmap-jpeg's only value imports are bytes.ts + jpeg-segments.ts
 // (GainMapMeta is type-only), so this pulls no pixel machinery into the C2PA path.

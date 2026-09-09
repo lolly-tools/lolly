@@ -31,7 +31,7 @@
 import type {
   GeomAPI, GeomAuthoredPath, GeomBooleanOpts, GeomBox, GeomContour, GeomErrorCode,
   GeomFailure, GeomLimits, GeomNearest, GeomNode, GeomOffsetOpts, GeomPathResult,
-  GeomResult, GeomStrokeOpts,
+  GeomResult, 
 } from './bridge/host-v1.ts';
 import { type Cubic, nearestOnCubic } from './geom/bezier.ts';
 import {

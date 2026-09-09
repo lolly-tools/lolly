@@ -21,7 +21,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { existsSync } from 'node:fs';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -150,7 +150,8 @@ const webSrc = (rel: string): string => readFileSync(
 );
 
 test('the doc-level transition reaches the presenter unflattened - the allowed set is the manifest\'s own', () => {
-  const src = webSrc('views/tool.ts');
+  const toolDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'shells', 'web', 'src', 'views', 'tool');
+  const src = [webSrc('views/tool.ts'), ...readdirSync(toolDir).filter((n) => n.endsWith('.ts')).sort().map((n) => webSrc(`views/tool/${n}`))].join('\n');
   // The resolution used to be a literal whitelist, and `flight` was lost from it once. It is
   // now derived from the manifest's `transition` input (plans/184 R6), so what is asserted is
   // the derivation and its use, not a list that has to be kept in step by hand.
@@ -174,10 +175,12 @@ test('the doc-level transition reaches the presenter unflattened - the allowed s
 });
 
 test('the frame transition FIELD NAME is handed to the timeline panel', () => {
-  const src = webSrc('views/free-canvas.ts');
+  // The free canvas is an orchestrator plus feature modules under views/free-canvas/ (2026-09-09).
+  const fcDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'shells', 'web', 'src', 'views', 'free-canvas');
+  const src = [webSrc('views/free-canvas.ts'), ...readdirSync(fcDir).filter((n) => n.endsWith('.ts')).sort().map((n) => webSrc(`views/free-canvas/${n}`))].join('\n');
   assert.match(src, /frameTransitionField: frameCfg\?\.transitionField/,
     'without this the panel never stamps `custom`, so a hand-set slide transition is '
     + 'overwritten by the next "Place in order"');
-  assert.match(webSrc('views/free-canvas.ts'), /transitionField: frameCfg\.transitionField/,
+  assert.match(src, /transitionField: frameCfg\.transitionField/,
     'and the columns read it off the frame port rather than guessing the literal name');
 });

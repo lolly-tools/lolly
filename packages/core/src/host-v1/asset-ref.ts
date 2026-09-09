@@ -28,6 +28,9 @@ export interface AssetRef {
   width?: number;
   height?: number;
   version?: string;
+  /** Explicit immutable dependency. Unlike `version` (the last resolved cache
+   * version), this requests these bytes on every reopen; no latest fallback. */
+  pin?: { version: string; format?: string };
   checksum?: string;
   // Free-form, host-populated. Conventional keys the engine/shells recognise:
   //   name       display label

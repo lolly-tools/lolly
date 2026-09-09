@@ -23,6 +23,7 @@
  */
 import type { ConnectorsAPI } from './bridge/host-v1.ts';
 import { cornerFitDashArray, dashSegments, parseDashArray } from './dash-fit.ts';
+import { clamp } from './clamp.ts';
 
 /** A point in native px. */
 export interface Point { x: number; y: number }
@@ -37,7 +38,6 @@ const ef2 = (v: number): number => Math.round(v * 100) / 100;
 const escAttr = (s: string): string =>
   String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const numOr = (v: unknown, d: number): number => { const n = Number(v); return Number.isFinite(n) ? n : d; };
-const clamp = (v: number, lo: number, hi: number): number => Math.min(Math.max(v, lo), hi);
 
 // ── endpoint model: a box id OR a free point (`@x,y`) ────────────────────────────
 const EDGE_POINT_RE = /^@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;

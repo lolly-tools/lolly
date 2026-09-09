@@ -81,7 +81,6 @@ interface Component {
 }
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const LOCK_PATH = join(ROOT, 'package-lock.json');
 const OUT_PATH = join(ROOT, 'sbom.cdx.json');
 
 const rootPkg = readJson('package.json');

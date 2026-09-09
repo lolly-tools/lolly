@@ -1,0 +1,308 @@
+{
+  "file": "shells/web/src/lib/brand-editor.ts",
+  "fn": "mountBrandEditor",
+  "tsconfig": "shells/web/tsconfig.json",
+  "outDir": "shells/web/src/lib/brand-editor",
+  "ctxName": "bedit",
+  "ctxType": "BrandEditorCtx",
+  "header": "The brand editor (colour, type and logo rooms of /start).",
+  "renameImports": {
+    "escape": "escapeText"
+  },
+  "modules": [
+    {
+      "name": "ramps",
+      "start": "anchorStep",
+      "doc": "brand editor: ramp steps, curve marks, surfaces, the palette repaint and beats."
+    },
+    {
+      "name": "state",
+      "start": "syncPickerSwatches",
+      "doc": "brand editor: document state, undo, persistence and the preview."
+    },
+    {
+      "name": "curveEditor",
+      "start": "openWing",
+      "doc": "brand editor: the tonal-curve editor and its wings."
+    },
+    {
+      "name": "derive",
+      "start": "applyContrastLock",
+      "doc": "brand editor: contrast lock, hue rotate, candidates, previews and the generator."
+    },
+    {
+      "name": "replace",
+      "start": "undoLast",
+      "doc": "brand editor: replace-palette proposals, review and substitution chips."
+    },
+    {
+      "name": "swatchEditor",
+      "start": "afterSwatchLockChange",
+      "doc": "brand editor: the shared swatch editor and the pick card."
+    },
+    {
+      "name": "palSelect",
+      "start": "swKey",
+      "doc": "brand editor: palette multi-select, the bulk bar, groups and marquee."
+    },
+    {
+      "name": "grid",
+      "start": "gridColumns",
+      "doc": "brand editor: the palette grid, keyboard nudging, the wheel and the gamut chart."
+    },
+    {
+      "name": "addColor",
+      "start": "clearAddedChip",
+      "doc": "brand editor: adding colours and the post-add chip."
+    },
+    {
+      "name": "roles",
+      "start": "nameOfKey",
+      "doc": "brand editor: roles as an assignment layer."
+    },
+    {
+      "name": "type",
+      "start": "fontRow",
+      "doc": "brand editor: the Type room - fonts, specimens and role cards."
+    },
+    {
+      "name": "compareStage",
+      "start": "setStageErr",
+      "doc": "brand editor: the compare stage."
+    },
+    {
+      "name": "logos",
+      "start": "showLogoErr",
+      "doc": "brand editor: the Logos room - tiles, stats, classification and the trim offer."
+    },
+    {
+      "name": "logoIntake",
+      "start": "refocus",
+      "doc": "brand editor: multi-file intake, candidate chips and placement."
+    },
+    {
+      "name": "pack",
+      "start": "exportFonts",
+      "doc": "brand editor: palette download, brand pack export and import."
+    }
+  ],
+  "blocks": [
+    {
+      "name": "loadDocument",
+      "module": "state",
+      "from": 1067,
+      "to": 1102
+    },
+    {
+      "name": "seedSteps",
+      "module": "state",
+      "from": 1104,
+      "to": 1113
+    },
+    {
+      "name": "seedHarmony",
+      "module": "state",
+      "from": 1129,
+      "to": 1151
+    },
+    {
+      "name": "seedDraftAndMarkup",
+      "module": "derive",
+      "from": 1197,
+      "to": 1716
+    },
+    {
+      "name": "wirePreview",
+      "module": "state",
+      "from": 1719,
+      "to": 1756
+    },
+    {
+      "name": "wireStepsSlider",
+      "module": "derive",
+      "from": 2038,
+      "to": 2047
+    },
+    {
+      "name": "wireHueRotate",
+      "module": "derive",
+      "from": 2359,
+      "to": 2388
+    },
+    {
+      "name": "wireScenes",
+      "module": "derive",
+      "from": 2475,
+      "to": 2482
+    },
+    {
+      "name": "wireAnalogous",
+      "module": "derive",
+      "from": 2485,
+      "to": 2546
+    },
+    {
+      "name": "paintInitialScreen",
+      "module": "derive",
+      "from": 2551,
+      "to": 2578
+    },
+    {
+      "name": "wirePrimaryLock",
+      "module": "derive",
+      "from": 2602,
+      "to": 2639
+    },
+    {
+      "name": "wireReplacePalette",
+      "module": "replace",
+      "from": 2908,
+      "to": 2935
+    },
+    {
+      "name": "wireSwatchSubstitution",
+      "module": "replace",
+      "from": 2993,
+      "to": 3024
+    },
+    {
+      "name": "wireStoredSegment",
+      "module": "replace",
+      "from": 3036,
+      "to": 3048
+    },
+    {
+      "name": "wireEditorAdd",
+      "module": "swatchEditor",
+      "from": 3211,
+      "to": 3222
+    },
+    {
+      "name": "wireBulkBar",
+      "module": "palSelect",
+      "from": 3591,
+      "to": 3613
+    },
+    {
+      "name": "seedMarquee",
+      "module": "palSelect",
+      "from": 3657,
+      "to": 3669
+    },
+    {
+      "name": "wireMarquee",
+      "module": "palSelect",
+      "from": 3682,
+      "to": 3749
+    },
+    {
+      "name": "wirePalettePointer",
+      "module": "palSelect",
+      "from": 3761,
+      "to": 3828
+    },
+    {
+      "name": "wirePaletteKeys",
+      "module": "grid",
+      "from": 3900,
+      "to": 3990
+    },
+    {
+      "name": "wireWheel",
+      "module": "grid",
+      "from": 4081,
+      "to": 4140
+    },
+    {
+      "name": "wireGamutChart",
+      "module": "grid",
+      "from": 4185,
+      "to": 4315
+    },
+    {
+      "name": "wireChartDetails",
+      "module": "grid",
+      "from": 4317,
+      "to": 4359
+    },
+    {
+      "name": "wireAddedChip",
+      "module": "addColor",
+      "from": 4402,
+      "to": 4426
+    },
+    {
+      "name": "wireAddColorMount",
+      "module": "addColor",
+      "from": 4486,
+      "to": 4502
+    },
+    {
+      "name": "wireRolesStrip",
+      "module": "roles",
+      "from": 4542,
+      "to": 4577
+    },
+    {
+      "name": "wireUseAs",
+      "module": "roles",
+      "from": 4589,
+      "to": 4641
+    },
+    {
+      "name": "seedFonts",
+      "module": "type",
+      "from": 4643,
+      "to": 4664
+    },
+    {
+      "name": "paintTypeRoom",
+      "module": "type",
+      "from": 4854,
+      "to": 4887
+    },
+    {
+      "name": "wireTypeCards",
+      "module": "compareStage",
+      "from": 5119,
+      "to": 5201
+    },
+    {
+      "name": "wireLogoSuggest",
+      "module": "logos",
+      "from": 5407,
+      "to": 5433
+    },
+    {
+      "name": "defineRenderIntake",
+      "module": "logoIntake",
+      "from": 5681,
+      "to": 5713
+    },
+    {
+      "name": "seedIntakeQueue",
+      "module": "logoIntake",
+      "from": 5756,
+      "to": 5771
+    },
+    {
+      "name": "wireIntakeZone",
+      "module": "logoIntake",
+      "from": 5884,
+      "to": 6046
+    },
+    {
+      "name": "wirePaletteDownload",
+      "module": "pack",
+      "from": 6063,
+      "to": 6171
+    },
+    {
+      "name": "wireGradientsPanel",
+      "module": "pack",
+      "from": 6179,
+      "to": 6199
+    }
+  ],
+  "overrides": {}
+}

@@ -940,7 +940,7 @@ export function encodeBlocksCompact(
       // Asset sub-fields hold an AssetRef - share its link-safe id (a baked ref
       // shares as its provenance URL via assetIdForUrl, never its data: bytes).
       if (f.type === 'asset') {
-        const id = raw && typeof raw === 'object' ? assetIdForUrl(raw as AssetRef) : '';
+        const id = raw && typeof raw === 'object' ? assetIdForUrl(raw as AssetRef) : typeof raw === 'string' ? raw : '';
         return cell(id && (opts.keepUserIds || !String(id).startsWith('user/')) ? String(id) : '');
       }
       let v = String(raw ?? '');

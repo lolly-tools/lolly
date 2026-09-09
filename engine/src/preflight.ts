@@ -49,6 +49,7 @@ import type { Dimension } from './units.ts';
 import { isPhysical, toCssPx, toInches, toPixels, toPoints } from './units.ts';
 import { rgbToCmyk, cmykCondition, DEFAULT_CMYK_CONDITION } from './color.ts';
 import { ENGINE_VERSION } from './version.ts';
+import { clamp } from './clamp.ts';
 
 /** Re-exported so a shell can import the whole preflight vocabulary from one
  *  place (`@lolly/engine`) without also depending on the tool-author SDK. */
@@ -323,7 +324,6 @@ export interface PreflightJob {
 
 const lower = (v: unknown): string => (typeof v === 'string' ? v.toLowerCase() : '');
 const isFiniteNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
-const clamp = (n: number, lo: number, hi: number): number => (n < lo ? lo : n > hi ? hi : n);
 
 /** Format a number for a message: no trailing noise, at most 2 decimals. */
 const num = (n: number): string => {

@@ -1,3 +1,4 @@
+import { clamp } from './clamp.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Dash fitting: manual dash entry, and Illustrator-style corner-fit dashes (plan 96).
@@ -73,7 +74,6 @@ const EPS = 1e-9;
 /** 2dp: the same coordinate precision the connector geometry emits. */
 const r2 = (v: number): number => Math.round(v * 100) / 100;
 const numOr = (v: unknown, d: number): number => { const n = Number(v); return Number.isFinite(n) ? n : d; };
-const clamp = (v: number, lo: number, hi: number): number => Math.min(Math.max(v, lo), hi);
 /** Strict decimal: no sign, no exponent, no units, no hex. Anything else is not a length. */
 const DASH_NUM_RE = /^(?:\d+(?:\.\d+)?|\.\d+)$/;
 

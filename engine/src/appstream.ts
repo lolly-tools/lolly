@@ -1,3 +1,4 @@
+import { escapeXml } from './xml-escape.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * appstream.ts - generate AppStream MetaInfo and freedesktop `.desktop` entries.
@@ -18,10 +19,6 @@
 
 const MetaInfoDir = '/usr/share/metainfo';
 
-/** Escape a string for XML text / attribute content. */
-function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-}
 
 /** YYYY-MM-DD (UTC) from an epoch, for a deterministic <release date>. */
 function isoDate(epochSeconds: number): string {
@@ -71,26 +68,26 @@ export function fontMetainfo(opts: FontMetainfoOpts): string {
   const lines: string[] = [];
   lines.push('<?xml version="1.0" encoding="UTF-8"?>');
   lines.push('<component type="font">');
-  lines.push(`  <id>${esc(opts.id)}</id>`);
-  lines.push(`  <metadata_license>${esc(metaLicense)}</metadata_license>`);
-  lines.push(`  <project_license>${esc(opts.projectLicense)}</project_license>`);
-  lines.push(`  <name>${esc(opts.name)}</name>`);
-  lines.push(`  <summary>${esc(opts.summary)}</summary>`);
+  lines.push(`  <id>${escapeXml(opts.id)}</id>`);
+  lines.push(`  <metadata_license>${escapeXml(metaLicense)}</metadata_license>`);
+  lines.push(`  <project_license>${escapeXml(opts.projectLicense)}</project_license>`);
+  lines.push(`  <name>${escapeXml(opts.name)}</name>`);
+  lines.push(`  <summary>${escapeXml(opts.summary)}</summary>`);
   lines.push('  <description>');
-  for (const p of desc) lines.push(`    <p>${esc(p)}</p>`);
+  for (const p of desc) lines.push(`    <p>${escapeXml(p)}</p>`);
   lines.push('  </description>');
   if (opts.developerName) {
-    lines.push(`  <developer id="${esc(opts.id.split('.').slice(0, 2).join('.') || opts.id)}">`);
-    lines.push(`    <name>${esc(opts.developerName)}</name>`);
+    lines.push(`  <developer id="${escapeXml(opts.id.split('.').slice(0, 2).join('.') || opts.id)}">`);
+    lines.push(`    <name>${escapeXml(opts.developerName)}</name>`);
     lines.push('  </developer>');
   }
-  if (opts.url) lines.push(`  <url type="homepage">${esc(opts.url)}</url>`);
+  if (opts.url) lines.push(`  <url type="homepage">${escapeXml(opts.url)}</url>`);
   lines.push('  <provides>');
-  for (const fam of opts.fontFamilies) lines.push(`    <font>${esc(fam)}</font>`);
+  for (const fam of opts.fontFamilies) lines.push(`    <font>${escapeXml(fam)}</font>`);
   lines.push('  </provides>');
   if (opts.version) {
     lines.push('  <releases>');
-    lines.push(`    <release version="${esc(opts.version)}" date="${isoDate(opts.epoch ?? 0)}"/>`);
+    lines.push(`    <release version="${escapeXml(opts.version)}" date="${isoDate(opts.epoch ?? 0)}"/>`);
     lines.push('  </releases>');
   }
   lines.push('</component>');

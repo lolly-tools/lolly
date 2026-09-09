@@ -1,0 +1,22 @@
+{
+  "file": "shells/web/src/views/catalog.ts",
+  "fn": "mountCatalog",
+  "tsconfig": "shells/web/tsconfig.json",
+  "outDir": "shells/web/src/views/catalog",
+  "ctxName": "cat",
+  "ctxType": "CatCtx",
+  "header": "The asset catalog view.",
+  "renameImports": { "escape": "escapeText" },
+  "modules": [
+    { "name": "tiles", "start": "setOverrides", "doc": "catalog: tile and bulk menus, section grouping, the top bar, reload." },
+    { "name": "thumbs", "start": "thumbHtml", "doc": "catalog: thumbnail markup, text signals, OCR frames, AI pills and persisted signals." },
+    { "name": "filters", "start": "visibleAssets", "doc": "catalog: filtering and search, the uploads and assets sections, the swatch strip." },
+    { "name": "sections", "start": "revealSwatches", "doc": "catalog: swatch and font sections, body render, thumb grids, dropzone, details and URL sync." },
+    { "name": "details", "start": "openDetails", "doc": "catalog: the details sheet for one asset, its audio visualiser and cover art." },
+    { "name": "userAssets", "start": "toggleFavourite", "doc": "catalog: favourites, hiding, recategorise, soft delete, rename, tags, replace and trim of user assets." },
+    { "name": "bulk", "start": "selectableIds", "doc": "catalog: multi-select and the bulk bar actions." },
+    { "name": "downloads", "start": "saveUrl", "doc": "catalog: download, send and crop dialogs for every asset kind." },
+    { "name": "wiring", "start": "retheemeGroup", "doc": "catalog: treatment re-theming and the event wiring." }
+  ],
+  "overrides": {}
+}

@@ -123,6 +123,23 @@ jobs:
       - name: Install (workspaces)
         run: npm ci
 
+      # Until 2026-09-08 this shard ran with no browser installed, so every
+      # *.browser.test.ts and Playwright-gated case skipped ("no Chromium") and the
+      # 150-odd browser-tier tests only ever ran on a developer's machine. Install the
+      # scoped Chromium into the same `.browsers` the shells' resolver
+      # (packages/node-shell/src/browsers.ts) and `playwright`'s executablePath()
+      # both read via PLAYWRIGHT_BROWSERS_PATH, so the shard tests what its name says.
+      - name: Cache Chromium (browser shard)
+        if: matrix.shard == 'browser'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: .browsers
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('node_modules/playwright-core/package.json') }}
+
+      - name: Install Chromium (browser shard)
+        if: matrix.shard == 'browser'
+        run: npm run install:browser -- --with-deps
+
       - name: Install Rust toolchain (Tauri shard)
         if: matrix.shard == 'tauri'
         uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
@@ -171,6 +188,7 @@ jobs:
       - name: Run required test shard
         env:
           LOLLY_SKIP_REPORT: artifacts/test-skips.json
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
         run: |
           set -o pipefail
           mkdir -p artifacts

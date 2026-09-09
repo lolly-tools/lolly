@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.184.0', () => {
+test('ENGINE_VERSION is 1.186.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -445,7 +445,14 @@ test('ENGINE_VERSION is 1.184.0', () => {
   //          board's `component`) and the effective theme (penpotTokensJson's
   //          selection + PenpotDoc.themeSelection); new penpot-bindings.ts, plus
   //          an optional tokens.snapshot?() SDK read - additive, no capture change.
-  assert.equal(ENGINE_VERSION, '1.184.0');
+  // 1.185.0 (2026-09-08): explicit asset-version dependencies - `AssetRef.pin`
+  //          requests an exact version/format on reopen, URL mode carries pins via
+  //          the reserved `#lolly-version=` asset-value suffix - additive within
+  //          HostV1, no capture change.
+  // 1.186.0 (2026-09-08): flat block inputs opt into the shared table editor with
+  //          `tableColumns`; input objects, row ids and URL encoding unchanged -
+  //          no HostV1 change, no capture change.
+  assert.equal(ENGINE_VERSION, '1.186.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

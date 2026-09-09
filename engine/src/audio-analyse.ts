@@ -30,6 +30,7 @@
  * drift from it.
  */
 import type { AudioAnalyseOpts, AudioAnalysis, AudioFrames } from './bridge/host-v1.ts';
+import { clamp } from './clamp.ts';
 
 export type { AudioAnalyseOpts, AudioAnalysis, AudioFrames };
 
@@ -522,10 +523,6 @@ export function fftInPlace(re: Float64Array, im: Float64Array): void {
       }
     }
   }
-}
-
-function clamp(v: number, lo: number, hi: number): number {
-  return v < lo ? lo : v > hi ? hi : v;
 }
 
 function clampInt(v: number, lo: number, hi: number): number {

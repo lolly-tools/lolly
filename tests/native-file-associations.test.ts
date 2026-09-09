@@ -2,7 +2,14 @@
 /** Cross-platform ownership and intake contract for the .lolly document type. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+
+/** An orchestrator view plus every module in its feature directory, concatenated (`x.ts` + `x/*.ts`). */
+function readFeature(orchestrator: string): string {
+  const dir = orchestrator.replace(/\.ts$/, '');
+  const modules = existsSync(dir) ? readdirSync(dir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(path.join(dir, n), 'utf8')) : [];
+  return [readFileSync(orchestrator, 'utf8'), ...modules].join('\n');
+}
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -247,7 +254,8 @@ test('Dolphin verbs route the selected file directly to their named utility', ()
 
   const native = readFileSync(path.join(DESKTOP, 'src-tauri/src/desktop_integration.rs'), 'utf8');
   const router = readFileSync(path.join(ROOT, 'shells/web/src/lib/drop-router.ts'), 'utf8');
-  const tool = readFileSync(path.join(ROOT, 'shells/web/src/views/tool.ts'), 'utf8');
+  // tool.ts is an orchestrator plus feature modules under tool/ (2026-09-09 split): read the whole feature
+  const tool = readFeature(path.join(ROOT, 'shells/web/src/views/tool.ts'));
   const convert = readFileSync(path.join(ROOT, 'shells/web/src/views/convert.ts'), 'utf8');
   assert.match(native, /matches!\(target, "strip-data" \| "convert" \| "redact"\)/);
   assert.match(router, /export function openFileInUtility/);
@@ -261,7 +269,8 @@ test('desktop export and window polish use native, bounded platform facilities',
   const native = readFileSync(path.join(DESKTOP, 'src-tauri/src/desktop_integration.rs'), 'utf8');
   const capability = readFileSync(path.join(DESKTOP, 'src-tauri/capabilities/default.json'), 'utf8');
   const bridge = readFileSync(path.join(DESKTOP, 'bridge-overrides/export.ts'), 'utf8');
-  const panel = readFileSync(path.join(ROOT, 'shells/web/src/views/tool-actions.ts'), 'utf8');
+  // tool-actions.ts is an orchestrator plus feature modules under tool-actions/ (2026-09-09 split)
+  const panel = readFeature(path.join(ROOT, 'shells/web/src/views/tool-actions.ts'));
 
   assert.match(cargo, /tauri-plugin-window-state = "2"/);
   assert.match(cargo, /tauri-plugin-dialog = "2"/);

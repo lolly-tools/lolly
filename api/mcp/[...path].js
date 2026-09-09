@@ -851,6 +851,13 @@ var init_tool_schema = __esm({
               type: "string",
               description: "On a `vector` input holding image framing ({ zoom, x, y, rotate? }): the id of the asset input whose content it frames. Declares the input as THE framing control for that image, which is what lets the shell mount its generic on-canvas pan/zoom/rotate overlay, bound zoom against the image's real aspect ratio, and offer 'Use as a new image' (bake the framing into a new library asset). Reuse the canonical `imageFraming` field set (schemas/canonical-inputs.json) so the values stay bulk-writable in /batch. Ignored if the target id does not exist or is not an asset input. See plans/148."
             },
+            tableColumns: {
+              type: "array",
+              minItems: 1,
+              uniqueItems: true,
+              items: { type: "string" },
+              description: "On flat scalar blocks, edit rows using the shared table in this field-id order; unlisted fields follow in declaration order. Stored block objects and URL field order are unchanged. Fixed headings, spreadsheet paste, copy, and pop-out are available. Complex/nested blocks keep the block editor."
+            },
             columnEditors: {
               type: "array",
               description: "On a `table` input: which editor each COLUMN uses, matched to the table columns by position. A column with no entry (or 'text') edits as a plain text cell. 'url' keeps the text cell but asks the device for a URL keyboard and turns autocapitalise, autocorrect and spellcheck off. 'emoji' turns that column's cells into buttons that open the emoji picker, and the chosen emoji becomes the whole cell value. Presentation only: columns and rows are still user data, the stored value is the same TableValue of strings either way, and URL mode plus the CLI are unaffected.",
@@ -2306,7 +2313,17 @@ var init_asset_ref_schema = __esm({
         height: { type: "integer" },
         version: {
           type: "string",
-          description: "For library assets: the version resolved. Stored in saved state so re-opens get the same bytes (with fallback to latest if that version is gone)."
+          description: "The version last resolved. This metadata alone does not change latest-resolution behavior; use pin for an exact dependency."
+        },
+        pin: {
+          type: "object",
+          required: ["version"],
+          additionalProperties: false,
+          properties: {
+            version: { type: "string", minLength: 1, maxLength: 256 },
+            format: { type: "string", minLength: 1, maxLength: 100 }
+          },
+          description: "An explicit immutable version/format request. An unavailable version must not fall back to latest."
         },
         checksum: { type: "string" },
         meta: {
@@ -2961,7 +2978,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.184.0";
+    ENGINE_VERSION = "1.186.0";
   }
 });
 
@@ -6061,6 +6078,16 @@ var init_palette_export = __esm({
   }
 });
 
+// engine/src/clamp.ts
+function clamp(v, lo, hi) {
+  return v < lo ? lo : v > hi ? hi : v;
+}
+var init_clamp = __esm({
+  "engine/src/clamp.ts"() {
+    "use strict";
+  }
+});
+
 // engine/src/color-tools.ts
 function toOklch(input) {
   const s = String(input).trim();
@@ -6431,7 +6458,7 @@ function makeColorApi() {
     paletteExportBytes: (swatches, _format) => paletteAse(swatches)
   };
 }
-var normHue4, clamp, SA98G, APCA_SRGB_ONLY, APCA_BANDS, PROFILE_SOURCES, INTENTS, sourceFor;
+var normHue4, SA98G, APCA_SRGB_ONLY, APCA_BANDS, PROFILE_SOURCES, INTENTS, sourceFor;
 var init_color_tools = __esm({
   "engine/src/color-tools.ts"() {
     "use strict";
@@ -6442,8 +6469,8 @@ var init_color_tools = __esm({
     init_gradient_spec();
     init_icc();
     init_palette_export();
+    init_clamp();
     normHue4 = (h) => (h % 360 + 360) % 360;
-    clamp = (n2, lo, hi) => Math.min(hi, Math.max(lo, n2));
     SA98G = {
       exponents: { mainTRC: 2.4, normBG: 0.56, normTXT: 0.57, revTXT: 0.62, revBG: 0.65 },
       colorSpace: { sRco: 0.2126729, sGco: 0.7151522, sBco: 0.072175 },
@@ -6532,21 +6559,21 @@ function resolveChartTheme(brand = {}, style = "brand-default", overrides = {}) 
       diverging: colours(overrides.colours?.diverging).length ? colours(overrides.colours?.diverging) : diverging
     },
     marks: {
-      lineWidth: clamp2(overrides.marks?.lineWidth ?? styleMarks.lineWidth ?? 3, 0.5, 16),
-      cornerRadius: clamp2(overrides.marks?.cornerRadius ?? styleMarks.cornerRadius ?? 3, 0, 40),
+      lineWidth: clamp(overrides.marks?.lineWidth ?? styleMarks.lineWidth ?? 3, 0.5, 16),
+      cornerRadius: clamp(overrides.marks?.cornerRadius ?? styleMarks.cornerRadius ?? 3, 0, 40),
       pointShape: overrides.marks?.pointShape ?? styleMarks.pointShape ?? "circle",
       patterns: overrides.marks?.patterns ?? (brand.monochrome === true || neutralSeed)
     },
     scene: {
       material: overrides.scene?.material ?? styleScene.material ?? "matte",
-      roughness: clamp2(overrides.scene?.roughness ?? styleScene.roughness ?? 0.58, 0, 1),
-      metalness: clamp2(overrides.scene?.metalness ?? styleScene.metalness ?? 0.04, 0, 1),
+      roughness: clamp(overrides.scene?.roughness ?? styleScene.roughness ?? 0.58, 0, 1),
+      metalness: clamp(overrides.scene?.metalness ?? styleScene.metalness ?? 0.04, 0, 1),
       shadows: overrides.scene?.shadows ?? styleScene.shadows ?? true
     },
     motion: {
       easing: overrides.motion?.easing ?? "smooth",
-      durationMs: clamp2(overrides.motion?.durationMs ?? 1200, 100, 6e4),
-      staggerMs: clamp2(overrides.motion?.staggerMs ?? 45, 0, 5e3)
+      durationMs: clamp(overrides.motion?.durationMs ?? 1200, 100, 6e4),
+      staggerMs: clamp(overrides.motion?.staggerMs ?? 45, 0, 5e3)
     },
     provenance: {
       palette: bc.categorical?.length ? "brand:categorical" : "derived:ordered-brand-colours",
@@ -6730,15 +6757,15 @@ function inspectChartSpec(spec, rendererId) {
     findings: validation.findings
   };
 }
-var HEX, ID, clamp2;
+var HEX, ID;
 var init_chart_spec = __esm({
   "engine/src/chart-spec.ts"() {
     "use strict";
     init_brand_schemes();
     init_color_tools();
+    init_clamp();
     HEX = /^#[0-9a-f]{6}$/i;
     ID = /^[a-zA-Z][a-zA-Z0-9._-]{0,127}$/;
-    clamp2 = (n2, lo, hi) => Math.min(hi, Math.max(lo, n2));
   }
 });
 
@@ -8152,7 +8179,9 @@ function pickControl(input) {
   if (input.type === "boolean") return "checkbox";
   if (input.type === "time") return "time-input";
   if (input.type === "datetime-local") return "datetime-local-input";
-  if (input.type === "blocks") return "blocks";
+  if (input.type === "blocks") return input.tableColumns?.length && !input.nesting && !input.addMenu && input.fields?.every(
+    (f) => !f.showIf && !f.showFor && ["text", "url", "color", "boolean", "number", "select"].includes(f.type ?? "text")
+  ) ? "table" : "blocks";
   if (input.type === "vector") return "vector";
   if (input.type === "file") return "file-picker";
   if (input.type === "table") return "table";
@@ -8701,7 +8730,7 @@ var init_template = __esm({
     });
     FIT_VALUES = /* @__PURE__ */ new Set(["cover", "contain"]);
     Handlebars.registerHelper("framing", function(idArg, options2) {
-      const esc9 = Handlebars.escapeExpression;
+      const esc6 = Handlebars.escapeExpression;
       const id = String(idArg ?? "").trim();
       if (!id) return new Handlebars.SafeString("");
       const hash = options2?.hash ?? {};
@@ -8733,19 +8762,19 @@ var init_template = __esm({
       const perspRaw = Number(hash.persp);
       const style = framingStyle(framing, readFit(fitRaw), Number.isFinite(perspRaw) && perspRaw > 0 ? perspRaw : void 0);
       const extra = hash.style != null ? `;${String(hash.style)}` : "";
-      return new Handlebars.SafeString(`style="${esc9(style + extra)}" data-framing="${esc9(marker)}"`);
+      return new Handlebars.SafeString(`style="${esc6(style + extra)}" data-framing="${esc6(marker)}"`);
     });
     Handlebars.registerHelper("media", (ref, options2) => {
       const empty2 = new Handlebars.SafeString("");
       if (!ref || typeof ref !== "object") return empty2;
-      const esc9 = Handlebars.escapeExpression;
+      const esc6 = Handlebars.escapeExpression;
       const get3 = (k) => Reflect.get(ref, k);
       const url = get3("url");
       if (typeof url !== "string" || !url) return empty2;
       const type = String(get3("type") ?? "");
       const meta = get3("meta") && typeof get3("meta") === "object" ? get3("meta") : {};
       const hash = options2?.hash ?? {};
-      const cls = hash.class != null ? ` class="${esc9(String(hash.class))}"` : "";
+      const cls = hash.class != null ? ` class="${esc6(String(hash.class))}"` : "";
       const root = options2?.data?.root ?? {};
       const framingId = hash.framing != null ? String(hash.framing) : "";
       const framingCss = framingId ? framingStyle(
@@ -8753,18 +8782,18 @@ var init_template = __esm({
         readFit(root[hash.fit != null ? String(hash.fit) : framingId.replace(/Framing$/, "") + "Fit"] ?? hash.fit)
       ) : "";
       const styleText = [framingCss, hash.style != null ? String(hash.style) : ""].filter(Boolean).join(";");
-      const marker = framingId ? ` data-framing="${esc9(framingId)}"` : "";
-      const style = styleText ? ` style="${esc9(styleText)}"${marker}` : marker;
+      const marker = framingId ? ` data-framing="${esc6(framingId)}"` : "";
+      const style = styleText ? ` style="${esc6(styleText)}"${marker}` : marker;
       if (type === "lottie" || /\.json($|\?|#)/i.test(url)) {
         const loop = mediaBool(hash.loop, true) ? "1" : "0";
         const autoplay = mediaBool(hash.autoplay, true) ? "1" : "0";
         const fit = hash.fit === "cover" ? "cover" : "contain";
         return new Handlebars.SafeString(
-          `<div${cls} data-lottie-src="${esc9(url)}" data-lottie-loop="${loop}" data-lottie-autoplay="${autoplay}" data-lottie-fit="${fit}"${style}></div>`
+          `<div${cls} data-lottie-src="${esc6(url)}" data-lottie-loop="${loop}" data-lottie-autoplay="${autoplay}" data-lottie-fit="${fit}"${style}></div>`
         );
       }
       if (type === "video" || /\.(mp4|m4v|mov|webm)($|\?|#)/i.test(url)) {
-        const poster = typeof meta.posterUrl === "string" && meta.posterUrl ? ` poster="${esc9(meta.posterUrl)}"` : "";
+        const poster = typeof meta.posterUrl === "string" && meta.posterUrl ? ` poster="${esc6(meta.posterUrl)}"` : "";
         const keyRaw = hash.key != null ? String(hash.key) : typeof get3("id") === "string" ? String(get3("id")) : url;
         const flags = [
           mediaBool(hash.autoplay, true) ? "autoplay" : "",
@@ -8773,10 +8802,10 @@ var init_template = __esm({
           mediaBool(hash.controls, false) ? "controls" : "",
           "playsinline"
         ].filter(Boolean).join(" ");
-        return new Handlebars.SafeString(`<video${cls} src="${esc9(url)}" data-video-key="${esc9(keyRaw)}"${poster} ${flags}${style}></video>`);
+        return new Handlebars.SafeString(`<video${cls} src="${esc6(url)}" data-video-key="${esc6(keyRaw)}"${poster} ${flags}${style}></video>`);
       }
-      const alt = esc9(String(hash.alt ?? meta.name ?? ""));
-      return new Handlebars.SafeString(`<img${cls} src="${esc9(url)}" alt="${alt}"${style}>`);
+      const alt = esc6(String(hash.alt ?? meta.name ?? ""));
+      return new Handlebars.SafeString(`<img${cls} src="${esc6(url)}" alt="${alt}"${style}>`);
     });
     PAINT_ATTR = {
       fill: "fill",
@@ -9069,6 +9098,132 @@ var init_tool_url = __esm({
   }
 });
 
+// engine/src/photo-treatment.ts
+function parseTreatedAssetId(id) {
+  if (typeof id !== "string" || id.includes("://")) return { baseId: id, treatment: null };
+  const i = id.indexOf(TREATMENT_SUFFIX);
+  if (i <= 0) return { baseId: id, treatment: null };
+  const baseId = id.slice(0, i);
+  const treatment = id.slice(i + TREATMENT_SUFFIX.length);
+  if (baseId.includes("?") || !TREATMENT_ID_RE.test(treatment)) return { baseId: id, treatment: null };
+  return { baseId, treatment };
+}
+function buildTreatedAssetId(baseId, treatmentId) {
+  if (!treatmentId) return baseId;
+  if (!TREATMENT_ID_RE.test(treatmentId)) throw new Error(`Bad photo treatment id: ${treatmentId}`);
+  return `${baseId}${TREATMENT_SUFFIX}${treatmentId}`;
+}
+function isValidTreatmentId(treatmentId) {
+  return typeof treatmentId === "string" && TREATMENT_ID_RE.test(treatmentId);
+}
+function stripAssetModifiers(id) {
+  if (typeof id !== "string" || id.includes("://")) return id;
+  const i = id.indexOf("?");
+  return i > 0 ? id.slice(0, i) : id;
+}
+function parsePhotoTreatmentsDoc(doc) {
+  if (!doc || !Array.isArray(doc.treatments)) return [];
+  return doc.treatments.filter(isPhotoTreatment);
+}
+function isPhotoTreatment(t) {
+  if (!t || !isValidTreatmentId(t.id)) return false;
+  const kind = t.kind;
+  if (kind === "greyscale") return true;
+  if (kind === "duotone") return !!hexToUnitRgb(t.shadow) && !!hexToUnitRgb(t.highlight);
+  return false;
+}
+function treatmentFilterSvg(treatment, filterId) {
+  return `<filter id="${filterId}" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">${treatmentFilterBody(treatment)}</filter>`;
+}
+function treatmentFilterBody(treatment) {
+  if (treatment.kind === "greyscale") {
+    return '<feColorMatrix type="saturate" values="0"/>';
+  }
+  const s = hexToUnitRgb(treatment.shadow) ?? [0, 0, 0];
+  const h = hexToUnitRgb(treatment.highlight) ?? [1, 1, 1];
+  const m2 = hexToUnitRgb(treatment.mid);
+  const table = (i) => m2 ? `${trim(s[i])} ${trim(m2[i])} ${trim(h[i])}` : `${trim(s[i])} ${trim(h[i])}`;
+  return `<feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="${table(0)}"/><feFuncG type="table" tableValues="${table(1)}"/><feFuncB type="table" tableValues="${table(2)}"/></feComponentTransfer>`;
+}
+function wrapRasterWithTreatment({ href, width, height, treatment }) {
+  const fid = "t";
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><defs>${treatmentFilterSvg(treatment, fid)}</defs><image width="${width}" height="${height}" preserveAspectRatio="none" href="${href}" filter="url(#${fid})"/></svg>`;
+}
+function hexToUnitRgb(hex2) {
+  if (typeof hex2 !== "string") return null;
+  const m2 = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(hex2.trim());
+  if (!m2) return null;
+  const h = m2[1].length === 3 ? m2[1].replace(/./g, (c) => c + c) : m2[1];
+  const n2 = parseInt(h, 16);
+  return [(n2 >> 16 & 255) / 255, (n2 >> 8 & 255) / 255, (n2 & 255) / 255];
+}
+function trim(v) {
+  return String(Math.round(v * 1e4) / 1e4);
+}
+var TREATMENT_ID_RE, TREATMENT_SUFFIX;
+var init_photo_treatment = __esm({
+  "engine/src/photo-treatment.ts"() {
+    "use strict";
+    TREATMENT_ID_RE = /^[a-z0-9][a-z0-9-]*$/;
+    TREATMENT_SUFFIX = "?treatment=";
+  }
+});
+
+// engine/src/asset-version.ts
+function assetVersionPin(value) {
+  if (!value || typeof value !== "object" || !("pin" in value) || value.pin === void 0) return;
+  const pin = value.pin;
+  if (!pin || typeof pin !== "object" || !("version" in pin) || typeof pin.version !== "string" || !pin.version || pin.version.length > 256 || "format" in pin && pin.format !== void 0 && (typeof pin.format !== "string" || !pin.format || pin.format.length > 100)) {
+    throw new Error("Invalid pinned asset version.");
+  }
+  return { version: pin.version, ..."format" in pin && typeof pin.format === "string" ? { format: pin.format } : {} };
+}
+function encodeAssetVersion(id, pin) {
+  if (!pin) return id;
+  const valid2 = assetVersionPin({ pin });
+  if (id.includes(MARKER)) throw new Error("An asset cannot carry two version pins.");
+  return `${id}${MARKER}${encodeURIComponent(JSON.stringify([valid2.version, valid2.format ?? null]))}`;
+}
+function decodeAssetVersion(id) {
+  const index = id.indexOf(MARKER);
+  if (index < 0) return { id };
+  try {
+    const data = JSON.parse(decodeURIComponent(id.slice(index + MARKER.length)));
+    if (!index || !Array.isArray(data) || data.length !== 2 || data[1] !== null && typeof data[1] !== "string") throw new Error();
+    const pin = assetVersionPin({ pin: { version: data[0], ...data[1] !== null ? { format: data[1] } : {} } });
+    return { id: id.slice(0, index), pin };
+  } catch {
+    throw new Error("Invalid pinned asset link.");
+  }
+}
+function assetDependency(value) {
+  const decoded = decodeAssetVersion(value.id);
+  const pin = assetVersionPin(value) ?? decoded.pin;
+  const id = stripAssetModifiers(decoded.id);
+  return { id, key: encodeAssetVersion(id, pin), modifier: decoded.id.slice(id.length), pin };
+}
+function unavailablePinnedAsset(id, pin, value) {
+  const prior = value && typeof value === "object" ? value : {};
+  return {
+    ...prior,
+    id,
+    source: id.startsWith("user/") ? "user" : "library",
+    type: prior.type ?? "raster",
+    format: pin.format ?? prior.format ?? "",
+    version: pin.version,
+    pin,
+    url: ""
+  };
+}
+var MARKER;
+var init_asset_version = __esm({
+  "engine/src/asset-version.ts"() {
+    "use strict";
+    init_photo_treatment();
+    MARKER = "#lolly-version=";
+  }
+});
+
 // engine/src/bake.ts
 function assertComposeStack(stack, toolId, maxDepth = MAX_COMPOSE_DEPTH) {
   const path = [...stack, toolId];
@@ -9108,11 +9263,11 @@ function bakeAssetRef(ref, opts = {}) {
   meta.baked = true;
   meta.bakedAt = now2;
   if (bakedFrom !== void 0) meta.bakedFrom = bakedFrom;
-  return { ...ref, source: "remote", id: `baked/${now2.toString(36)}`, meta };
+  return { ...ref, pin: void 0, source: "remote", id: `baked/${now2.toString(36)}`, meta };
 }
 function assetIdForUrl(ref) {
-  if (isBakedRef(ref) && typeof ref.meta?.bakedFrom === "string") return ref.meta.bakedFrom;
-  return ref.id;
+  if (isBakedRef(ref)) return typeof ref.meta?.bakedFrom === "string" ? ref.meta.bakedFrom : ref.id;
+  return encodeAssetVersion(ref.id, assetVersionPin(ref));
 }
 function blocksForUrl(rows) {
   if (!Array.isArray(rows)) return rows;
@@ -9139,6 +9294,7 @@ var init_bake = __esm({
   "engine/src/bake.ts"() {
     "use strict";
     init_tool_url();
+    init_asset_version();
     MAX_COMPOSE_DEPTH = 3;
     MAX_BAKED_URL_CHARS = 12e6;
     ComposeGuardError = class extends Error {
@@ -11097,7 +11253,7 @@ __export(c2pa_exports, {
   AI_DISCLOSURE_ASSERTION: () => AI_DISCLOSURE_ASSERTION,
   AI_MODEL_TYPES: () => AI_MODEL_TYPES,
   AI_MODEL_TYPE_GENERIC: () => AI_MODEL_TYPE_GENERIC,
-  BMFF_HASH_LABEL: () => BMFF_HASH_LABEL2,
+  BMFF_HASH_LABEL: () => BMFF_HASH_LABEL,
   C2PA_ATTACHMENT_MIME: () => C2PA_ATTACHMENT_MIME,
   C2PA_BMFF_UUID: () => C2PA_BMFF_UUID,
   C2PA_FORMATS: () => C2PA_FORMATS,
@@ -11400,7 +11556,7 @@ async function buildC2paManifest({
       when: isoSeconds(signedAt)
     }))
   };
-  const hashLabel = bmff ? BMFF_HASH_LABEL2 : "c2pa.hash.data";
+  const hashLabel = bmff ? BMFF_HASH_LABEL : "c2pa.hash.data";
   const hashData = bmff ? {
     exclusions: bmffHashExclusions(),
     name: assetHash.name || "jumbf manifest",
@@ -11499,7 +11655,7 @@ async function buildExternalC2paStore(bytes, opts = {}) {
     assetHash: { exclusions: [], name: hashName || "whole document", hash: await sha256(bytes) }
   });
 }
-var te5, subtle3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, BMFF_HASH_LABEL2, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
+var te5, subtle3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
 var init_c2pa2 = __esm({
   "engine/src/c2pa.ts"() {
     "use strict";
@@ -11558,7 +11714,7 @@ var init_c2pa2 = __esm({
       avif: "image/avif"
     };
     LOLLY_EXPORT_ASSERTION = "tools.lolly.export";
-    BMFF_HASH_LABEL2 = "c2pa.hash.bmff.v2";
+    BMFF_HASH_LABEL = "c2pa.hash.bmff.v2";
     CREATIVE_WORK_ASSERTION = "stds.schema-org.CreativeWork";
     METADATA_ASSERTION = "cawg.metadata";
     DC_CONTEXT = { dc: "http://purl.org/dc/elements/1.1/" };
@@ -15995,12 +16151,21 @@ function inputNeedsAssetResolve(input) {
 async function resolveAssetRefs(model2, host, dropped = [], composeStack = [], toolId = "") {
   if (!model2.some(inputNeedsAssetResolve)) return model2;
   const resolveOne = async (value, id, inputId, label) => {
+    let pin;
     try {
       if (isBakedRef(value)) {
         const ref = value;
         if (typeof ref.url === "string" && ref.url.startsWith("data:")) return ref;
         dropped.push({ inputId, label, id, reason: "baked-bytes-lost" });
         return null;
+      }
+      const decoded = decodeAssetVersion(id);
+      id = decoded.id;
+      pin = assetVersionPin(value) ?? decoded.pin;
+      if (pin) {
+        const ref = await host.assets.get(id, pin);
+        if (ref.version !== pin.version || pin.format && ref.format !== pin.format) throw new Error("The pinned asset version is unavailable.");
+        return { ...ref, pin };
       }
       if (isToolUrl(id)) {
         const ref = host.compose?.renderUrl ? await withTimeout2(
@@ -16023,6 +16188,7 @@ async function resolveAssetRefs(model2, host, dropped = [], composeStack = [], t
     } catch (e) {
       host.log("warn", `Failed to resolve asset ${id}`, { error: String(e) });
       dropped.push({ inputId, label, id, reason: "not-found" });
+      if (pin) return unavailablePinnedAsset(id, pin, value);
       return null;
     }
   };
@@ -16149,6 +16315,7 @@ var init_runtime = __esm({
     init_tool_url();
     init_bake();
     init_asset_provider();
+    init_asset_version();
     HOOK_BUDGET_MS = {
       onInit: 5e3,
       onInput: 2e3,
@@ -16737,7 +16904,7 @@ function encodeBlocksCompact(items, fields, opts = {}) {
     const vals = fields.map((f) => {
       const raw = row[f.id] !== void 0 ? row[f.id] : f.default;
       if (f.type === "asset") {
-        const id = raw && typeof raw === "object" ? assetIdForUrl(raw) : "";
+        const id = raw && typeof raw === "object" ? assetIdForUrl(raw) : typeof raw === "string" ? raw : "";
         return cell(id && (opts.keepUserIds || !String(id).startsWith("user/")) ? String(id) : "");
       }
       let v = String(raw ?? "");
@@ -27754,8 +27921,8 @@ function toMarkdown(t) {
   return [row(t.columns), `|${t.columns.map(() => " --- |").join("")}`, ...t.rows.map(row)].join("\n");
 }
 function toHtmlTable(t) {
-  const esc9 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const cells = (r3, tag2) => r3.map((c) => `<${tag2}>${esc9(c)}</${tag2}>`).join("");
+  const esc6 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const cells = (r3, tag2) => r3.map((c) => `<${tag2}>${esc6(c)}</${tag2}>`).join("");
   return `<table><thead><tr>${cells(t.columns, "th")}</tr></thead><tbody>${t.rows.map((r3) => `<tr>${cells(r3, "td")}</tr>`).join("")}</tbody></table>`;
 }
 var init_table_text = __esm({
@@ -30964,7 +31131,7 @@ function dpiIntent(trim2) {
   const hard = intent === "offset" ? OFFSET_HARD_DPI : 50;
   return { intent, floor, hard, longEdgeIn, longEdge };
 }
-var PRINT_MARK_FORMATS, SEPARATING_FORMATS, SPOT_PLATE_FORMATS, HDR_FORMATS, DURABLE_FORMATS, CUTS_FORMATS, MOTION_FORMATS, RASTER_FORMATS, DEPTH_FORMATS, PAGED_FORMATS, STILL_IMAGE_FORMATS, KNOWN_FINISHES, lower, isFiniteNum, clamp3, num3, labelOf, isDim, PT_TO_M, pt2ToM2, guard, spotSwatches, finishSpots, hexRgb01, swatchTac, tacLimitFor, checkFinishSeparatesAsInk, checkFinishFlattened, checkFinishUnknownKind, checkFormatOffered, bleedIsSet, marksAreSet, checkPrintMarksOnNonPrintFormat, checkPressProfileOnNonSeparatingFormat, checkHdrFormat, checkDurableFormat, checkAspectGuard, model, isBlank, checkRequiredBlank, checkNumberRange, checkTextMaxLength, checkSelectValue, checkVectorClamped, checkNoBleed, checkBleedUnknown, physicalTrim, LARGE_FORMAT_LONG_EDGE_IN, OFFSET_MIN_DPI, OFFSET_HARD_DPI, LARGE_FORMAT_MIN_DPI, round0, checkEffectiveDpi, checkImageEffectiveDpi, checkImageDpiNeedsStage, checkTrimPartial, checkTrimNotPhysical, checkPrintGeometry, checkPagesPaginate, checkPagesPages, checkPagesFromStage, checkArtboardFanOut, checkPagesUnknown, checkSequenceDuration, checkRasterPixels, checkVideoDurationDeclared, checkProcessPlates, checkSpotCeiling, checkFinishCeiling, checkNoSpotsDeclared, checkInkCoverage, checkRichBlack, checkPaletteUnresolved, cutsOf, checkCutsNeedsStage, checkCutsInert, checkCutsApplies, checkExperimentalWatermark, refusal, checkRefusals, CHECKS;
+var PRINT_MARK_FORMATS, SEPARATING_FORMATS, SPOT_PLATE_FORMATS, HDR_FORMATS, DURABLE_FORMATS, CUTS_FORMATS, MOTION_FORMATS, RASTER_FORMATS, DEPTH_FORMATS, PAGED_FORMATS, STILL_IMAGE_FORMATS, KNOWN_FINISHES, lower, isFiniteNum, num3, labelOf, isDim, PT_TO_M, pt2ToM2, guard, spotSwatches, finishSpots, hexRgb01, swatchTac, tacLimitFor, checkFinishSeparatesAsInk, checkFinishFlattened, checkFinishUnknownKind, checkFormatOffered, bleedIsSet, marksAreSet, checkPrintMarksOnNonPrintFormat, checkPressProfileOnNonSeparatingFormat, checkHdrFormat, checkDurableFormat, checkAspectGuard, model, isBlank, checkRequiredBlank, checkNumberRange, checkTextMaxLength, checkSelectValue, checkVectorClamped, checkNoBleed, checkBleedUnknown, physicalTrim, LARGE_FORMAT_LONG_EDGE_IN, OFFSET_MIN_DPI, OFFSET_HARD_DPI, LARGE_FORMAT_MIN_DPI, round0, checkEffectiveDpi, checkImageEffectiveDpi, checkImageDpiNeedsStage, checkTrimPartial, checkTrimNotPhysical, checkPrintGeometry, checkPagesPaginate, checkPagesPages, checkPagesFromStage, checkArtboardFanOut, checkPagesUnknown, checkSequenceDuration, checkRasterPixels, checkVideoDurationDeclared, checkProcessPlates, checkSpotCeiling, checkFinishCeiling, checkNoSpotsDeclared, checkInkCoverage, checkRichBlack, checkPaletteUnresolved, cutsOf, checkCutsNeedsStage, checkCutsInert, checkCutsApplies, checkExperimentalWatermark, refusal, checkRefusals, CHECKS;
 var init_preflight2 = __esm({
   "engine/src/preflight.ts"() {
     "use strict";
@@ -30974,6 +31141,7 @@ var init_preflight2 = __esm({
     init_units();
     init_color2();
     init_version();
+    init_clamp();
     PRINT_MARK_FORMATS = /* @__PURE__ */ new Set(["pdf", "pdf-cmyk", "cmyk-tiff", "svg", "eps", "eps-cmyk"]);
     SEPARATING_FORMATS = /* @__PURE__ */ new Set(["pdf-cmyk", "cmyk-tiff", "eps-cmyk"]);
     SPOT_PLATE_FORMATS = /* @__PURE__ */ new Set(["pdf-cmyk"]);
@@ -31000,7 +31168,6 @@ var init_preflight2 = __esm({
     KNOWN_FINISHES = new Set(KNOWN_FINISH_KINDS);
     lower = (v) => typeof v === "string" ? v.toLowerCase() : "";
     isFiniteNum = (v) => typeof v === "number" && Number.isFinite(v);
-    clamp3 = (n2, lo, hi) => n2 < lo ? lo : n2 > hi ? hi : n2;
     num3 = (n2) => {
       if (!Number.isFinite(n2)) return "?";
       const r3 = Math.round(n2 * 100) / 100;
@@ -31199,7 +31366,7 @@ var init_preflight2 = __esm({
         const lo = hasMin ? i.min : -Infinity;
         const hi = hasMax ? i.max : Infinity;
         if (i.value >= lo && i.value <= hi) continue;
-        const clamped = clamp3(i.value, lo, hi);
+        const clamped = clamp(i.value, lo, hi);
         c.add({
           id: "input.number-out-of-range",
           severity: "warn",
@@ -31261,7 +31428,7 @@ var init_preflight2 = __esm({
           if (!isFiniteNum(rawV)) continue;
           const hasMin = isFiniteNum(f.min), hasMax = isFiniteNum(f.max);
           if (!hasMin && !hasMax) continue;
-          const clamped = clamp3(rawV, hasMin ? f.min : -Infinity, hasMax ? f.max : Infinity);
+          const clamped = clamp(rawV, hasMin ? f.min : -Infinity, hasMax ? f.max : Infinity);
           if (clamped === rawV) continue;
           c.add({
             id: "input.vector-clamped",
@@ -31480,7 +31647,7 @@ var init_preflight2 = __esm({
       if (!input || !isFiniteNum(input.value)) return;
       const lo = isFiniteNum(pages.min) ? pages.min : 1;
       const hi = isFiniteNum(pages.max) ? pages.max : 6;
-      const n2 = Math.round(clamp3(input.value, lo, hi));
+      const n2 = Math.round(clamp(input.value, lo, hi));
       c.add({
         id: "count.pages.pages",
         severity: "info",
@@ -33435,8 +33602,8 @@ function analysePcm(channels, sampleRate, opts = {}) {
   const bands = clampInt(opts.bands ?? 64, 4, 512);
   const buckets = clampInt(opts.buckets ?? 128, 4, 4096);
   const waveLen = opts.samples ? Math.min(4096, nextPow2(clampInt(opts.samples, 16, 4096))) : 0;
-  const start = clamp4(opts.start ?? 0, 0, duration);
-  const window2 = clamp4(opts.window ?? duration - start, 0, duration - start);
+  const start = clamp(opts.start ?? 0, 0, duration);
+  const window2 = clamp(opts.window ?? duration - start, 0, duration - start);
   const s0 = Math.floor(start * sampleRate);
   const s1 = Math.min(total, Math.max(s0 + 1, Math.floor((start + window2) * sampleRate)));
   const span = s1 - s0;
@@ -33733,11 +33900,8 @@ function fftInPlace(re, im) {
     }
   }
 }
-function clamp4(v, lo, hi) {
-  return v < lo ? lo : v > hi ? hi : v;
-}
 function clampInt(v, lo, hi) {
-  return Math.round(clamp4(Number.isFinite(v) ? v : lo, lo, hi));
+  return Math.round(clamp(Number.isFinite(v) ? v : lo, lo, hi));
 }
 function nextPow2(v) {
   let n2 = 1;
@@ -33748,6 +33912,7 @@ var BASS_HZ, MID_HZ, FFT_SIZE, MIN_BPM, MAX_BPM, OCTAVE_TOLERANCE, SILENCE, DB_R
 var init_audio_analyse = __esm({
   "engine/src/audio-analyse.ts"() {
     "use strict";
+    init_clamp();
     BASS_HZ = 320;
     MID_HZ = 2800;
     FFT_SIZE = 2048;
@@ -37826,8 +37991,8 @@ function fitRuns(spanLengths, pattern, opts) {
   if (!pat) return [r2(total), 0];
   let cycle = 0;
   for (const v of pat) cycle += v;
-  const minScale = clamp5(numOr(opts?.minScale, 0.66), 0.01, 1);
-  const maxScale = clamp5(numOr(opts?.maxScale, 1.5), 1, 16);
+  const minScale = clamp(numOr(opts?.minScale, 0.66), 0.01, 1);
+  const maxScale = clamp(numOr(opts?.maxScale, 1.5), 1, 16);
   const out = [];
   let covered = 0;
   const budget = MAX_RUNS - 2;
@@ -37861,10 +38026,11 @@ function dashSegments(spanLengths, pattern, opts) {
   }
   return out;
 }
-var MAX_ENTRIES, MAX_VALUE, MAX_TEXT, MAX_PATTERN, MAX_RUNS, EPS3, r2, numOr, clamp5, DASH_NUM_RE;
+var MAX_ENTRIES, MAX_VALUE, MAX_TEXT, MAX_PATTERN, MAX_RUNS, EPS3, r2, numOr, DASH_NUM_RE;
 var init_dash_fit = __esm({
   "engine/src/dash-fit.ts"() {
     "use strict";
+    init_clamp();
     MAX_ENTRIES = 16;
     MAX_VALUE = 1e3;
     MAX_TEXT = 200;
@@ -37876,7 +38042,6 @@ var init_dash_fit = __esm({
       const n2 = Number(v);
       return Number.isFinite(n2) ? n2 : d;
     };
-    clamp5 = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
     DASH_NUM_RE = /^(?:\d+(?:\.\d+)?|\.\d+)$/;
   }
 });
@@ -38046,7 +38211,7 @@ function edgeArrowHead(tip, ux, uy, s, fill, kind) {
   return `<path d="M${ef2(tip.x)} ${ef2(tip.y)}L${ef2(B.x + px * hw)} ${ef2(B.y + py * hw)}L${ef2(B.x - px * hw)} ${ef2(B.y - py * hw)}Z" fill="${col}"/>`;
 }
 function pathHeadSize(width) {
-  return Math.max(9, clamp6(numOr2(width, 2.5), 0.5, 20) * 4);
+  return Math.max(9, clamp(numOr2(width, 2.5), 0.5, 20) * 4);
 }
 function pathHeadSvg(o) {
   const kind = String(o?.head ?? "none");
@@ -38119,7 +38284,7 @@ function routedLineSvg(a, b, decor) {
   const n2 = pts.length;
   if (n2 < 2) return "";
   const col = decor.color;
-  const width = clamp6(numOr2(decor.width, 2.5), 0.5, 20);
+  const width = clamp(numOr2(decor.width, 2.5), 0.5, 20);
   const headStart = String(decor.headStart || "none");
   const headEnd = String(decor.headEnd || "none");
   const headSize = pathHeadSize(width);
@@ -38170,7 +38335,7 @@ function rowDashArray(v) {
 function decorFromRow(e, o) {
   const style = String(e[o.styleField] ?? o.defaultStyle);
   const col = escAttr(String(e[o.colorField] ?? o.defaultColor).trim() || o.defaultColor);
-  const width = clamp6(numOr2(e[o.widthField], o.defaultWidth), 0.5, 20);
+  const width = clamp(numOr2(e[o.widthField], o.defaultWidth), 0.5, 20);
   const dash = String(e[o.dashField] ?? "solid");
   const dashArray = o.dashArrayField ? rowDashArray(e[o.dashArrayField]) : null;
   const dashFit = o.dashFitField ? e[o.dashFitField] !== false && String(e[o.dashFitField]) !== "false" : true;
@@ -38247,18 +38412,18 @@ function makeConnectorsApi() {
     routeStyles: CONNECTOR_ROUTE_STYLES.slice()
   };
 }
-var ef2, escAttr, numOr2, clamp6, EDGE_POINT_RE, CONNECTOR_ROUTE_STYLES, ROUTE_SET, ARC_VARIANTS, elbowFrac, dist, along;
+var ef2, escAttr, numOr2, EDGE_POINT_RE, CONNECTOR_ROUTE_STYLES, ROUTE_SET, ARC_VARIANTS, elbowFrac, dist, along;
 var init_connectors2 = __esm({
   "engine/src/connectors.ts"() {
     "use strict";
     init_dash_fit();
+    init_clamp();
     ef2 = (v) => Math.round(v * 100) / 100;
     escAttr = (s) => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     numOr2 = (v, d) => {
       const n2 = Number(v);
       return Number.isFinite(n2) ? n2 : d;
     };
-    clamp6 = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
     EDGE_POINT_RE = /^@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;
     CONNECTOR_ROUTE_STYLES = [
       "straight",
@@ -45586,10 +45751,17 @@ fi`;
   }
 });
 
-// engine/src/appstream.ts
-function esc5(s) {
+// engine/src/xml-escape.ts
+function escapeXml(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 }
+var init_xml_escape = __esm({
+  "engine/src/xml-escape.ts"() {
+    "use strict";
+  }
+});
+
+// engine/src/appstream.ts
 function isoDate(epochSeconds) {
   return new Date(epochSeconds * 1e3).toISOString().slice(0, 10);
 }
@@ -45602,26 +45774,26 @@ function fontMetainfo(opts) {
   const lines = [];
   lines.push('<?xml version="1.0" encoding="UTF-8"?>');
   lines.push('<component type="font">');
-  lines.push(`  <id>${esc5(opts.id)}</id>`);
-  lines.push(`  <metadata_license>${esc5(metaLicense)}</metadata_license>`);
-  lines.push(`  <project_license>${esc5(opts.projectLicense)}</project_license>`);
-  lines.push(`  <name>${esc5(opts.name)}</name>`);
-  lines.push(`  <summary>${esc5(opts.summary)}</summary>`);
+  lines.push(`  <id>${escapeXml(opts.id)}</id>`);
+  lines.push(`  <metadata_license>${escapeXml(metaLicense)}</metadata_license>`);
+  lines.push(`  <project_license>${escapeXml(opts.projectLicense)}</project_license>`);
+  lines.push(`  <name>${escapeXml(opts.name)}</name>`);
+  lines.push(`  <summary>${escapeXml(opts.summary)}</summary>`);
   lines.push("  <description>");
-  for (const p of desc) lines.push(`    <p>${esc5(p)}</p>`);
+  for (const p of desc) lines.push(`    <p>${escapeXml(p)}</p>`);
   lines.push("  </description>");
   if (opts.developerName) {
-    lines.push(`  <developer id="${esc5(opts.id.split(".").slice(0, 2).join(".") || opts.id)}">`);
-    lines.push(`    <name>${esc5(opts.developerName)}</name>`);
+    lines.push(`  <developer id="${escapeXml(opts.id.split(".").slice(0, 2).join(".") || opts.id)}">`);
+    lines.push(`    <name>${escapeXml(opts.developerName)}</name>`);
     lines.push("  </developer>");
   }
-  if (opts.url) lines.push(`  <url type="homepage">${esc5(opts.url)}</url>`);
+  if (opts.url) lines.push(`  <url type="homepage">${escapeXml(opts.url)}</url>`);
   lines.push("  <provides>");
-  for (const fam of opts.fontFamilies) lines.push(`    <font>${esc5(fam)}</font>`);
+  for (const fam of opts.fontFamilies) lines.push(`    <font>${escapeXml(fam)}</font>`);
   lines.push("  </provides>");
   if (opts.version) {
     lines.push("  <releases>");
-    lines.push(`    <release version="${esc5(opts.version)}" date="${isoDate(opts.epoch ?? 0)}"/>`);
+    lines.push(`    <release version="${escapeXml(opts.version)}" date="${isoDate(opts.epoch ?? 0)}"/>`);
     lines.push("  </releases>");
   }
   lines.push("</component>");
@@ -45642,6 +45814,7 @@ var MetaInfoDir;
 var init_appstream = __esm({
   "engine/src/appstream.ts"() {
     "use strict";
+    init_xml_escape();
     MetaInfoDir = "/usr/share/metainfo";
   }
 });
@@ -46699,19 +46872,16 @@ var init_riff_meta = __esm({
 
 // engine/src/epub.ts
 import { zipSync } from "fflate";
-function esc6(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
-}
 function chapterName(i) {
   return `chapter-${String(i + 1).padStart(3, "0")}`;
 }
 function chapterXhtml(chapter, lang) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${esc6(lang)}" lang="${esc6(lang)}">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${escapeXml(lang)}" lang="${escapeXml(lang)}">
   <head>
     <meta charset="utf-8"/>
-    <title>${esc6(chapter.title)}</title>
+    <title>${escapeXml(chapter.title)}</title>
   </head>
   <body>
 ${chapter.xhtml}
@@ -46720,17 +46890,17 @@ ${chapter.xhtml}
 `;
 }
 function navXhtml(doc, lang) {
-  const items = doc.chapters.map((c, i) => `        <li><a href="${chapterName(i)}.xhtml">${esc6(c.title)}</a></li>`).join("\n");
+  const items = doc.chapters.map((c, i) => `        <li><a href="${chapterName(i)}.xhtml">${escapeXml(c.title)}</a></li>`).join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${esc6(lang)}" lang="${esc6(lang)}">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${escapeXml(lang)}" lang="${escapeXml(lang)}">
   <head>
     <meta charset="utf-8"/>
-    <title>${esc6(doc.title)}</title>
+    <title>${escapeXml(doc.title)}</title>
   </head>
   <body>
     <nav epub:type="toc" id="toc">
-      <h1>${esc6(doc.title)}</h1>
+      <h1>${escapeXml(doc.title)}</h1>
       <ol>
 ${items}
       </ol>
@@ -46740,9 +46910,9 @@ ${items}
 `;
 }
 function contentOpf(doc, lang) {
-  const bookId = `urn:lolly:${esc6(doc.title).replace(/\s+/g, "-").toLowerCase() || "untitled"}`;
+  const bookId = `urn:lolly:${escapeXml(doc.title).replace(/\s+/g, "-").toLowerCase() || "untitled"}`;
   const author = doc.author ? `
-    <dc:creator id="author">${esc6(doc.author)}</dc:creator>` : "";
+    <dc:creator id="author">${escapeXml(doc.author)}</dc:creator>` : "";
   const manifestItems = [
     '    <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>',
     ...doc.chapters.map(
@@ -46751,11 +46921,11 @@ function contentOpf(doc, lang) {
   ].join("\n");
   const spineItems = doc.chapters.map((_, i) => `    <itemref idref="${chapterName(i)}"/>`).join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="book-id" xml:lang="${esc6(lang)}">
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="book-id" xml:lang="${escapeXml(lang)}">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:identifier id="book-id">${bookId}</dc:identifier>
-    <dc:title>${esc6(doc.title)}</dc:title>
-    <dc:language>${esc6(lang)}</dc:language>${author}
+    <dc:title>${escapeXml(doc.title)}</dc:title>
+    <dc:language>${escapeXml(lang)}</dc:language>${author}
     <meta property="dcterms:modified">1970-01-01T00:00:00Z</meta>
   </metadata>
   <manifest>
@@ -46785,6 +46955,7 @@ var enc3, EPOCH_1980, CONTAINER_XML;
 var init_epub = __esm({
   "engine/src/epub.ts"() {
     "use strict";
+    init_xml_escape();
     enc3 = new TextEncoder();
     EPOCH_1980 = new Date(Date.UTC(1980, 0, 1, 0, 0, 0));
     CONTAINER_XML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -47024,8 +47195,8 @@ function boundedTitle(title, label) {
   return title;
 }
 function attr2(tag2, name) {
-  const esc9 = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const m2 = tag2.match(new RegExp(`\\b${esc9}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i"));
+  const esc6 = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const m2 = tag2.match(new RegExp(`\\b${esc6}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i"));
   return m2 ? m2[1] ?? m2[2] ?? "" : "";
 }
 function dirOf2(path) {
@@ -47072,16 +47243,13 @@ var init_epub_read = __esm({
 });
 
 // engine/src/odt.ts
-function esc7(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
-}
 function clampLevel(level) {
   const n2 = Math.trunc(level ?? 1);
   if (!Number.isFinite(n2) || n2 < 1) return 1;
   return n2 > 10 ? 10 : n2;
 }
 function bodyBlock(block) {
-  const text3 = esc7(block.text);
+  const text3 = escapeXml(block.text);
   if (block.type === "heading") {
     const level = clampLevel(block.level);
     return `      <text:h text:style-name="Heading_20_${level}" text:outline-level="${level}">${text3}</text:h>`;
@@ -47121,7 +47289,7 @@ function metaXml(title) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <office:document-meta xmlns:office="${NS_OFFICE}" xmlns:meta="${NS_META}" xmlns:dc="${NS_DC}" office:version="1.2">
   <office:meta>
-    <dc:title>${esc7(title)}</dc:title>
+    <dc:title>${escapeXml(title)}</dc:title>
   </office:meta>
 </office:document-meta>
 `;
@@ -47153,6 +47321,7 @@ var init_odt = __esm({
   "engine/src/odt.ts"() {
     "use strict";
     init_zip();
+    init_xml_escape();
     MIMETYPE = "application/vnd.oasis.opendocument.text";
     enc4 = new TextEncoder();
     NS_OFFICE = "urn:oasis:names:tc:opendocument:xmlns:office:1.0";
@@ -47594,9 +47763,6 @@ function num5(v, d) {
   const x = typeof v === "number" ? v : parseFloat(v);
   return isFinite(x) ? x : d;
 }
-function clamp7(v, a, b) {
-  return v < a ? a : v > b ? b : v;
-}
 function round1(v) {
   return Math.round(v * 10) / 10;
 }
@@ -47638,7 +47804,7 @@ function boxGeomFromBBox(bbox, m2) {
   return { x: cx - w / 2, y: cy - h / 2, w, h, rot: dec.rot };
 }
 function mapWeight(weight, font, fonts) {
-  let w = clamp7(Math.round(num5(weight, 700) / 100) * 100, 100, 900);
+  let w = clamp(Math.round(num5(weight, 700) / 100) * 100, 100, 900);
   const monoFamily = (fonts && fonts.monoFamily) ?? DEFAULT_FONTS.monoFamily;
   const monoMax = (fonts && fonts.monoMaxWeight) ?? DEFAULT_FONTS.monoMaxWeight;
   if (String(font) === monoFamily && w > monoMax) w = monoMax;
@@ -47674,10 +47840,10 @@ function colorRunsToText(runs, defaultHex) {
     if (last && last.color === r3.color && last.text !== "\n" && r3.text !== "\n") last.text += r3.text;
     else merged.push({ text: r3.text, color: r3.color });
   }
-  const esc9 = (t) => t.replace(/([*_])/g, "\\$1");
+  const esc6 = (t) => t.replace(/([*_])/g, "\\$1");
   return merged.map((r3) => {
     if (r3.text === "\n") return "\n";
-    const t = esc9(r3.text);
+    const t = esc6(r3.text);
     return r3.color && r3.color !== def ? "{" + r3.color + "|" + t + "}" : t;
   }).join("");
 }
@@ -47697,7 +47863,7 @@ function nodeToBox(node, opts) {
   const w = Math.max(1, Math.round(num5(n2.w, 1)));
   const h = Math.max(1, Math.round(num5(n2.h, 1)));
   const rot = round1(num5(n2.rot, 0));
-  const opacity = clamp7(Math.round(num5(n2.opacity, 100)), 0, 100);
+  const opacity = clamp(Math.round(num5(n2.opacity, 100)), 0, 100);
   const shape = SHAPES[n2.shape] ? n2.shape : num5(n2.radius, 0) > 0 ? "rounded" : "rect";
   const radius = Math.max(0, Math.round(num5(n2.radius, shape === "rounded" ? 16 : 0)));
   const bg = has2(n2, "fill") ? safeColor(n2.fill, "") : seedBg;
@@ -47741,7 +47907,7 @@ function nodeToBox(node, opts) {
     shadowX: Math.round(num5(n2.shadowX, 0)),
     shadowY: Math.round(num5(n2.shadowY, 0)),
     shadowBlur: Math.round(num5(n2.shadowBlur, 10)),
-    blur: clamp7(round1(num5(n2.blur, 0)), 0, 300),
+    blur: clamp(round1(num5(n2.blur, 0)), 0, 300),
     stroke: n2.stroke ? safeColor(n2.stroke, "") : "",
     strokeW: Math.max(0, num5(n2.strokeW, 0) ?? 0),
     strokeDash: n2.strokeDash === "dashed" || n2.strokeDash === "dotted" ? n2.strokeDash : "",
@@ -47754,7 +47920,7 @@ function nodeToBox(node, opts) {
     // Backdrop blur (frosted glass) - CSS backdrop-filter, same 0..300 clamp and
     // 1-decimal rounding as `blur`. 0 is off, so a row without the field renders
     // byte-identically to one from before the field existed.
-    bgBlur: clamp7(round1(num5(n2.bgBlur, 0)), 0, 300)
+    bgBlur: clamp(round1(num5(n2.bgBlur, 0)), 0, 300)
   };
 }
 function finalizeBoxes(nodes, opts) {
@@ -47917,14 +48083,14 @@ function penpotGradientToSpec(g2, w, h, fillOpacity) {
   const dy = (num5(grad.endY, 1) - num5(grad.startY, 0)) * Math.max(1, h);
   const angle = kind === "rad" ? 0 : Math.round((Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360);
   const parts = [];
-  const fo = clamp7(fillOpacity, 0, 1);
+  const fo = clamp(fillOpacity, 0, 1);
   for (const raw of stops.slice(0, MAX_PENPOT_GRADIENT_STOPS)) {
     const st = raw && typeof raw === "object" ? raw : null;
     const hex6 = safeColor(String(st?.color ?? ""), "");
     if (!hex6) return "";
-    const a = Math.round(clamp7(num5(st?.opacity, 1), 0, 1) * fo * 255);
+    const a = Math.round(clamp(num5(st?.opacity, 1), 0, 1) * fo * 255);
     const hex2 = (hex6.replace(/^#/, "") + (a < 255 ? a.toString(16).padStart(2, "0") : "")).toLowerCase();
-    const pos = clamp7(Math.round(num5(st?.offset, 0) * 100), 0, 100);
+    const pos = clamp(Math.round(num5(st?.offset, 0) * 100), 0, 100);
     parts.push(`${hex2}-${pos}`);
   }
   return `${kind}.srgb_${angle}_${parts.join("_")}`;
@@ -48028,7 +48194,7 @@ function topPenpotStroke(sh) {
       const out = {
         color,
         width,
-        opacity: clamp7(num5(get(st, "strokeOpacity"), 1), 0, 1),
+        opacity: clamp(num5(get(st, "strokeOpacity"), 1), 0, 1),
         style
       };
       const d = strokeLen(st, "stroke-dash");
@@ -48064,14 +48230,14 @@ function penpotGradientSvgDef(g2, id, fillOpacity) {
   const grad = g2 && typeof g2 === "object" ? g2 : null;
   const stops = grad && Array.isArray(grad.stops) ? grad.stops : [];
   if (!grad || stops.length < 2) return "";
-  const fo = clamp7(num5(fillOpacity, 1), 0, 1);
+  const fo = clamp(num5(fillOpacity, 1), 0, 1);
   const stopEls = [];
   for (const raw of stops) {
     const st = raw && typeof raw === "object" ? raw : null;
     const c = safeColor(String(st?.color ?? ""), "");
     if (!c) return "";
-    const so = Math.round(clamp7(num5(st?.opacity, 1), 0, 1) * fo * 1e3) / 1e3;
-    const off = clamp7(num5(st?.offset, 0), 0, 1);
+    const so = Math.round(clamp(num5(st?.opacity, 1), 0, 1) * fo * 1e3) / 1e3;
+    const off = clamp(num5(st?.offset, 0), 0, 1);
     stopEls.push(`<stop offset="${off}" stop-color="${c}"${so < 1 ? ` stop-opacity="${so}"` : ""}/>`);
   }
   const sx = num5(grad.startX, 0), sy = num5(grad.startY, 0);
@@ -48118,14 +48284,14 @@ function penpotGroupToSvg(group, lookup2) {
       const c = safeColor(topFill.fillColor, "");
       if (!c) return null;
       fill = c;
-      const fo = clamp7(num5(topFill.fillOpacity, 1), 0, 1);
+      const fo = clamp(num5(topFill.fillOpacity, 1), 0, 1);
       if (fo < 1) fillOp = ` fill-opacity="${fo}"`;
     }
     const st = topPenpotStroke(sh);
     const dashAttr = st ? penpotDashArray(String(st.style || "solid"), st.width, st.dash, st.gap) : "";
     const capAttr = st ? penpotLineCap(st) : "";
     const stroke = st ? ` stroke="${st.color}" stroke-width="${st.width}"` + (st.opacity != null && st.opacity < 1 ? ` stroke-opacity="${st.opacity}"` : "") + (dashAttr ? ` stroke-dasharray="${dashAttr}"` : "") + (capAttr ? ` stroke-linecap="${capAttr}"` : "") : "";
-    const op = clamp7(num5(sh.opacity, 1), 0, 1);
+    const op = clamp(num5(sh.opacity, 1), 0, 1);
     return ` fill="${fill}"${fillOp}${stroke}${op < 1 ? ` opacity="${op}"` : ""}`;
   };
   const rotAttr = (sh, cx, cy) => {
@@ -48193,7 +48359,7 @@ function penpotGroupToSvg(group, lookup2) {
       parts.push(frag);
     }
     if (!parts.length) return isRoot ? null : "";
-    const op = clamp7(num5(sh.opacity, 1), 0, 1);
+    const op = clamp(num5(sh.opacity, 1), 0, 1);
     const opAttr = !isRoot && op < 1 ? ` opacity="${op}"` : "";
     if (masked && clip3) {
       const cid = `pc${seq++}`;
@@ -48231,7 +48397,7 @@ function penpotShapeToNode(shape) {
       rot,
       text: info.text,
       textAlign: info.textAlign,
-      opacity: clamp7(Math.round(shapeOp * 100), 0, 100)
+      opacity: clamp(Math.round(shapeOp * 100), 0, 100)
     };
     if (info.fg) node2.fg = info.fg;
     if (info.fontSize) node2.fontSize = info.fontSize;
@@ -48252,7 +48418,7 @@ function penpotShapeToNode(shape) {
       h,
       rot,
       _fillImageId: String(imgFill.fillImage.id),
-      opacity: clamp7(Math.round(shapeOp * num5(imgFill.fillOpacity, 1) * 100), 0, 100),
+      opacity: clamp(Math.round(shapeOp * num5(imgFill.fillOpacity, 1) * 100), 0, 100),
       fit: imgFill.fillImage.keepAspectRatio === false ? "fill" : "cover"
     };
     const flip = (sh.flipX === true ? "x" : "") + (sh.flipY === true ? "y" : "");
@@ -48291,7 +48457,7 @@ function penpotShapeToNode(shape) {
         _vectorStroke: topPenpotStroke(sh),
         _vectorSize: { w: bw, h: bh, x: bx, y: by },
         // fillOpacity folds into node opacity (uniform over the one fill this branch bakes).
-        opacity: clamp7(Math.round(shapeOp * num5((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100)
+        opacity: clamp(Math.round(shapeOp * num5((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100)
       };
       applyPenpotShadow(sh, node2);
       applyPenpotBlur(sh, node2);
@@ -48306,7 +48472,7 @@ function penpotShapeToNode(shape) {
     h,
     rot,
     fill: topFill && topFill.fillColor != null ? String(topFill.fillColor) : "",
-    opacity: clamp7(Math.round(shapeOp * num5(topFill && topFill.fillOpacity, 1) * 100), 0, 100)
+    opacity: clamp(Math.round(shapeOp * num5(topFill && topFill.fillOpacity, 1) * 100), 0, 100)
   };
   if (gradFill) {
     const spec = penpotGradientToSpec(
@@ -48319,7 +48485,7 @@ function penpotShapeToNode(shape) {
       node.grad = spec;
       const first = gradFill.fillColorGradient.stops[0] ?? null;
       node.fill = safeColor(String(first?.color ?? ""), "") || node.fill;
-      node.opacity = clamp7(Math.round(shapeOp * 100), 0, 100);
+      node.opacity = clamp(Math.round(shapeOp * 100), 0, 100);
     }
   }
   if (type === "circle") node.shape = "ellipse";
@@ -48340,7 +48506,7 @@ function penpotShapeToNode(shape) {
       _vectorGradient: gradFill ? mirrorPenpotGradient(gradFill.fillColorGradient, sh.flipX === true, sh.flipY === true) : null,
       _vectorStroke: topPenpotStroke(sh),
       _vectorSize: { w, h, x, y },
-      opacity: clamp7(Math.round(shapeOp * num5((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100)
+      opacity: clamp(Math.round(shapeOp * num5((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100)
     };
     applyPenpotShadow(sh, vnode);
     applyPenpotBlur(sh, vnode);
@@ -48375,7 +48541,7 @@ function applyPenpotStroke(sh, node) {
   if (!st) return;
   const sw = num5(get(st, "strokeWidth"), 0);
   const col6 = safeColor(String(get(st, "strokeColor") ?? ""), "");
-  const a = Math.round(clamp7(num5(get(st, "strokeOpacity"), 1), 0, 1) * 255);
+  const a = Math.round(clamp(num5(get(st, "strokeOpacity"), 1), 0, 1) * 255);
   const full = hexLong(col6);
   node.stroke = full + (a < 255 && /^#[0-9a-fA-F]{6}$/.test(full) ? a.toString(16).padStart(2, "0") : "");
   node.strokeW = Math.round(sw * 100) / 100;
@@ -48408,7 +48574,7 @@ function applyPenpotShadow(sh, node) {
   const x = Math.round(num5(s.offsetX, 0)), y = Math.round(num5(s.offsetY, 0)), blur = Math.round(num5(s.blur, 0));
   if (!x && !y && !blur) return;
   const hex6 = hexLong(safeColor(String(s.color?.color ?? ""), "#000000"));
-  const a = Math.round(clamp7(num5(s.color?.opacity, 1), 0, 1) * 255);
+  const a = Math.round(clamp(num5(s.color?.opacity, 1), 0, 1) * 255);
   node.shadow = node.kind === "text" ? "text" : node.kind === "image" ? "content" : "box";
   node.shadowColor = hex6 + (a < 255 && /^#[0-9a-fA-F]{6}$/.test(hex6) ? a.toString(16).padStart(2, "0") : "");
   node.shadowX = x;
@@ -48432,7 +48598,7 @@ function penpotBackgroundBlurPx(sh) {
   if (entry === own && String(get(entry, "type") || "background-blur") !== "background-blur") return 0;
   const v = num5(get(entry, "value"), 0);
   if (!(v > 0)) return 0;
-  return clamp7(round1(v * BG_BLUR_SIGMA_A + BG_BLUR_SIGMA_B), 0, 300);
+  return clamp(round1(v * BG_BLUR_SIGMA_A + BG_BLUR_SIGMA_B), 0, 300);
 }
 function applyPenpotBackgroundBlur(sh, node) {
   const px = penpotBackgroundBlurPx(sh);
@@ -48447,7 +48613,7 @@ function normalizePenpotExports(raw) {
     const t = String(get(e, "type") ?? "");
     const type = t === "png" ? "png" : t === "jpeg" ? "jpeg" : t === "svg" ? "svg" : null;
     if (!type) continue;
-    const scale = clamp7(num5(get(e, "scale"), 1), 0.1, 8);
+    const scale = clamp(num5(get(e, "scale"), 1), 0.1, 8);
     const suffixRaw = get(e, "suffix");
     const suffix = suffixRaw == null ? "" : String(suffixRaw);
     const key = `${type}|${scale}|${suffix}`;
@@ -48496,7 +48662,7 @@ function penpotAnimationToTransition(animation) {
   }
   if (enter === "none") return { enter: "none" };
   const ms = num5(get(animation, "duration"), void 0);
-  return ms === void 0 ? { enter } : { enter, enterMs: Math.round(clamp7(ms, FLOW_MIN_MS, FLOW_MAX_MS)) };
+  return ms === void 0 ? { enter } : { enter, enterMs: Math.round(clamp(ms, FLOW_MIN_MS, FLOW_MAX_MS)) };
 }
 function penpotFlowOrder(boardIds, shapesById, page2) {
   const order = boardIds.map((id) => String(id));
@@ -48582,7 +48748,7 @@ function matMul3(P, C) {
   };
 }
 function fig255(v) {
-  return clamp7(Math.round(num5(v, 0) * 255), 0, 255);
+  return clamp(Math.round(num5(v, 0) * 255), 0, 255);
 }
 function figColorHex(c) {
   if (!c) return "";
@@ -48680,7 +48846,7 @@ function figmaNode(node, abs, blobs) {
       fontFamily: node.fontName && node.fontName.family || "",
       textAlign: figAlign(node.textAlignHorizontal),
       lineHeight: figLineHeight(node.lineHeight, num5(node.fontSize, 16)) || void 0,
-      opacity: clamp7(Math.round(nodeOp * 100), 0, 100)
+      opacity: clamp(Math.round(nodeOp * 100), 0, 100)
     };
   }
   if (paint && get(paint, "type") === "IMAGE") {
@@ -48689,7 +48855,7 @@ function figmaNode(node, abs, blobs) {
       ...base,
       _imageHash: figImageHash(paint),
       fit: "cover",
-      opacity: clamp7(Math.round(nodeOp * num5(get(paint, "opacity"), 1) * 100), 0, 100)
+      opacity: clamp(Math.round(nodeOp * num5(get(paint, "opacity"), 1) * 100), 0, 100)
     };
   }
   if (type === "VECTOR" && blobs && Array.isArray(node.fillGeometry) && node.fillGeometry.length) {
@@ -48710,7 +48876,7 @@ function figmaNode(node, abs, blobs) {
         _vectorFill: paint && get(paint, "type") === "SOLID" && get(paint, "color") ? figColorHex(get(paint, "color")) : "none",
         _vectorStroke: sp && sw > 0 ? { color: figColorHex(get(sp, "color")), width: sw } : null,
         _vectorSize: { w: num5(size.x, 0), h: num5(size.y, 0) },
-        opacity: clamp7(Math.round(nodeOp * num5(paint && get(paint, "opacity"), 1) * 100), 0, 100)
+        opacity: clamp(Math.round(nodeOp * num5(paint && get(paint, "opacity"), 1) * 100), 0, 100)
       };
     }
   }
@@ -48718,7 +48884,7 @@ function figmaNode(node, abs, blobs) {
     kind: "box",
     ...base,
     fill: paint && get(paint, "type") === "SOLID" && get(paint, "color") ? figColorHex(get(paint, "color")) : "",
-    opacity: clamp7(Math.round(nodeOp * num5(paint && get(paint, "opacity"), 1) * 100), 0, 100)
+    opacity: clamp(Math.round(nodeOp * num5(paint && get(paint, "opacity"), 1) * 100), 0, 100)
   };
   if (type === "ELLIPSE") dn.shape = "ellipse";
   else if (type === "ROUNDED_RECTANGLE") {
@@ -48863,6 +49029,7 @@ var init_design_map = __esm({
   "engine/src/design-map.ts"() {
     "use strict";
     init_css_box();
+    init_clamp();
     DEFAULT_FONTS = {
       defaultFamily: "sans",
       monoFamily: "mono",
@@ -49150,11 +49317,8 @@ var init_pdf_smask = __esm({
 });
 
 // engine/src/pdf-map.ts
-function clamp9(v, a, b) {
-  return v < a ? a : v > b ? b : v;
-}
 function clamp255(v) {
-  return clamp9(Math.round(v * 255), 0, 255);
+  return clamp(Math.round(v * 255), 0, 255);
 }
 function hx(v) {
   return clamp255(v).toString(16).padStart(2, "0");
@@ -49644,7 +49808,7 @@ function interpretPdfPage(page2) {
         textFill = s.fill;
         textFont = s.font;
         textMcid = mcstack.length ? mcstack[mcstack.length - 1] : -1;
-        textAlpha = clamp9(s.fillAlpha * s.fillScale, 0, 1);
+        textAlpha = clamp(s.fillAlpha * s.fillScale, 0, 1);
         textMask = maskPaint("raw");
         lastLineY = p.y;
         lastLineX = p.x;
@@ -49739,7 +49903,7 @@ function interpretPdfPage(page2) {
           ...lead ? { lineHeight: lead } : {},
           rot: Math.abs(textRot) < 0.5 ? 0 : textRot,
           fg: safeColor(textFill, "#000000") || "#000000",
-          opacity: clamp9(Math.round(textAlpha * 100 * textMask.scale), 0, 100),
+          opacity: clamp(Math.round(textAlpha * 100 * textMask.scale), 0, 100),
           fontSize: size,
           fontFamily: res.fonts && res.fonts[textFont] && res.fonts[textFont].family || "",
           fontWeight: res.fonts && res.fonts[textFont] && res.fonts[textFont].weight || 400,
@@ -49797,7 +49961,7 @@ function interpretPdfPage(page2) {
       const gradExtra = grad ? { _gradient: nodeGradient(grad) } : {};
       const lead = mpFill && (fillCol || grad || !mpStroke) ? mpFill : mpStroke ?? mpFill;
       const maskExtra = lead.extra;
-      const alpha = clamp9(Math.round(
+      const alpha = clamp(Math.round(
         (lead === mpFill ? s.fillAlpha * s.fillScale : s.strokeAlpha) * 100 * lead.scale
       ), 0, 100);
       if (s.fillTileNodes && mode !== "stroke") {
@@ -49957,7 +50121,7 @@ function interpretPdfPage(page2) {
           s.fillTileNodes = out.map((n2) => {
             const c = s.clips.length ? { ...n2, _clips: [...n2._clips ?? [], ...s.clips] } : { ...n2 };
             if (!c._softMask && mp.extra._softMask) c._softMask = mp.extra._softMask;
-            if (mp.scale < 1) c.opacity = clamp9(Math.round((typeof c.opacity === "number" ? c.opacity : 100) * mp.scale), 0, 100);
+            if (mp.scale < 1) c.opacity = clamp(Math.round((typeof c.opacity === "number" ? c.opacity : 100) * mp.scale), 0, 100);
             return c;
           });
           s.fill = "";
@@ -49983,7 +50147,7 @@ function interpretPdfPage(page2) {
         s.fill = nodeFlat(only) || safeColor(pat.flat, "");
         s.fillGradient = only._gradient ? adoptGradient(only._gradient) : null;
         s.fillMask = only._softMask ?? null;
-        s.fillScale = typeof only.opacity === "number" ? clamp9(only.opacity, 0, 100) / 100 : 1;
+        s.fillScale = typeof only.opacity === "number" ? clamp(only.opacity, 0, 100) / 100 : 1;
         onWarn("pattern.tiling.collapsed", name);
         return;
       }
@@ -50215,7 +50379,7 @@ function interpretPdfPage(page2) {
               rot: 0,
               shape: "rect",
               fill: safeColor(sd.flat, ""),
-              opacity: clamp9(Math.round(s.fillAlpha * 100 * mp.scale), 0, 100),
+              opacity: clamp(Math.round(s.fillAlpha * 100 * mp.scale), 0, 100),
               _gradient: nodeGradient({ ...sd, mat: sm }),
               _groupPath: gpath(),
               _clips: s.clips,
@@ -50400,7 +50564,7 @@ function interpretPdfPage(page2) {
               h: geom.h,
               rot: geom.rot,
               fit: "fill",
-              opacity: clamp9(Math.round(s.fillAlpha * 100 * mp.scale), 0, 100),
+              opacity: clamp(Math.round(s.fillAlpha * 100 * mp.scale), 0, 100),
               _imageXObject: xo.imageKey || nameArg,
               _groupPath: gpath(),
               ...s.clips.length ? { _clips: s.clips } : {},
@@ -50546,7 +50710,7 @@ function meanNodeColor(list2) {
   for (const n2 of list2) {
     const c = hexRgb2(nodeFlat(n2));
     if (!c) continue;
-    const a = Math.max(0, n2.w) * Math.max(0, n2.h) * (clamp9(typeof n2.opacity === "number" ? n2.opacity : 100, 0, 100) / 100);
+    const a = Math.max(0, n2.w) * Math.max(0, n2.h) * (clamp(typeof n2.opacity === "number" ? n2.opacity : 100, 0, 100) / 100);
     if (!(a > 0)) continue;
     r3 += c[0] * a;
     g2 += c[1] * a;
@@ -50719,6 +50883,7 @@ var init_pdf_map = __esm({
     "use strict";
     init_design_map();
     init_pdf_smask();
+    init_clamp();
     IDENTITY3 = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
     WS = /* @__PURE__ */ new Set([0, 9, 10, 12, 13, 32]);
     DELIM = new Set("()<>[]{}/%".split("").map((c) => c.charCodeAt(0)));
@@ -50795,7 +50960,7 @@ function imageEl(n2, images) {
   const href = n2._imageXObject ? images[n2._imageXObject] : void 0;
   if (!href || !/^data:image\//i.test(href)) return "";
   if (r(n2.w) <= 0 || r(n2.h) <= 0) return "";
-  return `<image x="${r(n2.x)}" y="${r(n2.y)}" width="${r(n2.w)}" height="${r(n2.h)}" preserveAspectRatio="none" href="${escapeXml(href)}"${opacityAttr(n2)}${rotateAttr(n2)}/>`;
+  return `<image x="${r(n2.x)}" y="${r(n2.y)}" width="${r(n2.w)}" height="${r(n2.h)}" preserveAspectRatio="none" href="${escapeXml2(href)}"${opacityAttr(n2)}${rotateAttr(n2)}/>`;
 }
 function leadOf(n2) {
   const v = +(n2.lineHeight ?? 0);
@@ -50823,10 +50988,10 @@ function textEl(n2) {
   const lineH = leadOf(n2) * size;
   const baseline0 = n2.y + size * 0.8;
   const family = String(n2.fontFamily || "").trim();
-  const familyAttr = family ? ` font-family="${escapeXml(family)}, sans-serif"` : ` font-family="sans-serif"`;
-  const weight = n2.fontWeight != null && n2.fontWeight !== "" ? ` font-weight="${escapeXml(String(n2.fontWeight))}"` : "";
+  const familyAttr = family ? ` font-family="${escapeXml2(family)}, sans-serif"` : ` font-family="sans-serif"`;
+  const weight = n2.fontWeight != null && n2.fontWeight !== "" ? ` font-weight="${escapeXml2(String(n2.fontWeight))}"` : "";
   const rot = n2.rot ? ` transform="rotate(${r(n2.rot)} ${r(n2.x)} ${r(baseline0)})"` : "";
-  const spans = text3.split("\n").map((line, i) => `<tspan x="${r(n2.x)}" y="${r(baseline0 + i * lineH)}">${escapeXml(line)}</tspan>`).join("");
+  const spans = text3.split("\n").map((line, i) => `<tspan x="${r(n2.x)}" y="${r(baseline0 + i * lineH)}">${escapeXml2(line)}</tspan>`).join("");
   return `<text xml:space="preserve" fill="${safeAttrColor(n2.fg, "#000000")}" font-size="${r(size)}"${familyAttr}${weight}${opacityAttr(n2)}${rot}>${spans}</text>`;
 }
 function gradientMarkup(g2, id, images) {
@@ -50843,7 +51008,7 @@ function gradientMarkup(g2, id, images) {
     if (!(tw > 0) || !(th > 0)) return "";
     const [a, b, c2, dd, e, f] = m2;
     const pt = [a, b, c2, dd, a * x0 + c2 * y0 + e, b * x0 + dd * y0 + f];
-    return `<pattern id="${id}" patternUnits="userSpaceOnUse" x="0" y="0" width="${g4(tw)}" height="${g4(th)}" patternTransform="matrix(${pt.map(g6).join(" ")})"><image x="0" y="0" width="${g4(tw)}" height="${g4(th)}" preserveAspectRatio="none" href="${escapeXml(href)}"/></pattern>`;
+    return `<pattern id="${id}" patternUnits="userSpaceOnUse" x="0" y="0" width="${g4(tw)}" height="${g4(th)}" patternTransform="matrix(${pt.map(g6).join(" ")})"><image x="0" y="0" width="${g4(tw)}" height="${g4(th)}" preserveAspectRatio="none" href="${escapeXml2(href)}"/></pattern>`;
   }
   const stops = (g2.stops ?? []).filter((s) => s && isFinite(s.offset));
   if (stops.length < 2) return "";
@@ -50910,7 +51075,7 @@ function pdfNodesToSvg(nodes, opts) {
   const setGroup = (g2) => {
     if (g2 === openGroup) return;
     if (openGroup) body.push("</g>");
-    if (g2) body.push(`<g data-group="${escapeXml(g2)}">`);
+    if (g2) body.push(`<g data-group="${escapeXml2(g2)}">`);
     openGroup = g2;
   };
   const usedGrads = /* @__PURE__ */ new Set();
@@ -50998,7 +51163,7 @@ function pdfNodesToSvg(nodes, opts) {
   }).join("");
   const gradDefsXml = [...gradDefs.values()].filter((e) => usedGrads.has(e.id)).map((e) => e.markup).join("");
   const maskDefsXml = [...maskDefs.values()].map((e) => e.markup).join("");
-  const clipDefsXml = [...clipDefs.entries()].map(([key, id]) => `<clipPath id="${id}"><path d="${escapeXml(key.slice(2))}"${key.startsWith("e|") ? ' clip-rule="evenodd"' : ""}/></clipPath>`).join("");
+  const clipDefsXml = [...clipDefs.entries()].map(([key, id]) => `<clipPath id="${id}"><path d="${escapeXml2(key.slice(2))}"${key.startsWith("e|") ? ' clip-rule="evenodd"' : ""}/></clipPath>`).join("");
   const defs = gradDefsXml || maskDefsXml || clipDefsXml || pathDefsXml ? `<defs>${gradDefsXml}${maskDefsXml}${clipDefsXml}${pathDefsXml}</defs>` : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${defs}${body.join("")}</svg>`;
 }
@@ -51249,7 +51414,7 @@ function cullPdfNodes(nodes, win) {
   }
   return { nodes: out, total, dropped: total - out.length, unbounded };
 }
-var r, escapeXml, safeAttrColor, opacityAttr, rotateAttr, g4, g6, clamp016, CULL_PAD_PT, EMPTY_EXTENT, finite2, PDF_SVG_MAX_NODES, PDF_SVG_MAX_MASK_NODES, PDF_SVG_MAX_GRADIENT_STOPS, PDF_SVG_MAX_OUTLINE_LINES, PDF_SVG_MAX_TEXT_LINES, PDF_SVG_MAX_SOURCE_CHARS, PDF_SVG_MAX_CLIPS, PDF_SVG_MAX_CLIP_D, PDF_SVG_MAX_PATH_D, PDF_SVG_MAX_OUTLINE_D, PDF_SVG_MAX_COORD, PLANE, planeBox, AA_PAD;
+var r, escapeXml2, safeAttrColor, opacityAttr, rotateAttr, g4, g6, clamp016, CULL_PAD_PT, EMPTY_EXTENT, finite2, PDF_SVG_MAX_NODES, PDF_SVG_MAX_MASK_NODES, PDF_SVG_MAX_GRADIENT_STOPS, PDF_SVG_MAX_OUTLINE_LINES, PDF_SVG_MAX_TEXT_LINES, PDF_SVG_MAX_SOURCE_CHARS, PDF_SVG_MAX_CLIPS, PDF_SVG_MAX_CLIP_D, PDF_SVG_MAX_PATH_D, PDF_SVG_MAX_OUTLINE_D, PDF_SVG_MAX_COORD, PLANE, planeBox, AA_PAD;
 var init_pdf_svg = __esm({
   "engine/src/pdf-svg.ts"() {
     "use strict";
@@ -51257,7 +51422,7 @@ var init_pdf_svg = __esm({
       const n2 = Math.round((typeof v === "number" && isFinite(v) ? v : 0) * 100) / 100;
       return isFinite(n2) ? n2 : 0;
     };
-    escapeXml = (s) => String(s).replace(/[&<>"']/g, (c) => c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : "&#39;");
+    escapeXml2 = (s) => String(s).replace(/[&<>"']/g, (c) => c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : "&#39;");
     safeAttrColor = (v, dflt) => {
       const s = String(v ?? "").trim();
       if (s.toLowerCase() === "none") return "none";
@@ -53046,11 +53211,8 @@ var init_inpaint = __esm({
 });
 
 // engine/src/grade.ts
-function clamp10(v, a, b) {
-  return v < a ? a : v > b ? b : v;
-}
 function smoothstep2(a, b, x) {
-  const t = clamp10((x - a) / (b - a), 0, 1);
+  const t = clamp((x - a) / (b - a), 0, 1);
   return t * t * (3 - 2 * t);
 }
 function gradeMulberry32(seed) {
@@ -53178,9 +53340,9 @@ function parseLutText(text3, name) {
 function sampleLut(lut, r3, g2, b) {
   const dm = lut.domainMin;
   const dM = lut.domainMax;
-  const rr = clamp10((r3 - dm[0]) / (dM[0] - dm[0] || 1), 0, 1);
-  const gg = clamp10((g2 - dm[1]) / (dM[1] - dm[1] || 1), 0, 1);
-  const bb = clamp10((b - dm[2]) / (dM[2] - dm[2] || 1), 0, 1);
+  const rr = clamp((r3 - dm[0]) / (dM[0] - dm[0] || 1), 0, 1);
+  const gg = clamp((g2 - dm[1]) / (dM[1] - dm[1] || 1), 0, 1);
+  const bb = clamp((b - dm[2]) / (dM[2] - dm[2] || 1), 0, 1);
   const N2 = lut.size;
   const d = lut.data;
   if (lut.kind === "1d") {
@@ -53432,6 +53594,7 @@ var CUBE_MAX_N, TDL_MAX_N, LUM_R, LUM_G, LUM_B, GRAIN_REF_LONG_EDGE, GRAIN_CELL_
 var init_grade = __esm({
   "engine/src/grade.ts"() {
     "use strict";
+    init_clamp();
     CUBE_MAX_N = 129;
     TDL_MAX_N = 65;
     LUM_R = 0.2126;
@@ -54655,8 +54818,8 @@ function ellipseSubpath(cx, cy, rx, ry) {
   ] };
 }
 function roundedRectSubpath(x, y, w, h, rx, ry) {
-  rx = clamp11(rx, 0, w / 2);
-  ry = clamp11(ry, 0, h / 2);
+  rx = clamp(rx, 0, w / 2);
+  ry = clamp(ry, 0, h / 2);
   if (rx <= 0 || ry <= 0) {
     return { closed: true, segments: [{ op: "M", x, y }, { op: "L", x: x + w, y }, { op: "L", x: x + w, y: y + h }, { op: "L", x, y: y + h }] };
   }
@@ -54679,12 +54842,12 @@ function fontIdFor(family, google) {
   return google.has(family.trim().toLowerCase()) ? `gfont-${slug3}` : slug3;
 }
 function fontVariantId(weight, italic) {
-  const w = clamp11(Math.round(weight / 100) * 100, 100, 900);
+  const w = clamp(Math.round(weight / 100) * 100, 100, 900);
   if (w === 400) return italic ? "italic" : "regular";
   return `${w}${italic ? "italic" : ""}`;
 }
 function fillRecord(f, media, warn) {
-  const op = f.opacity == null ? 1 : clamp11(fin2(f.opacity, 1), 0, 1);
+  const op = f.opacity == null ? 1 : clamp(fin2(f.opacity, 1), 0, 1);
   if (f.media) {
     const m2 = media.get(f.media);
     if (!m2) {
@@ -54701,8 +54864,8 @@ function fillRecord(f, media, warn) {
     const stops = g2.stops.map((s) => {
       const c2 = parsePenpotColor(s.color);
       if (!c2) return null;
-      const a = clamp11(fin2(s.opacity, 1), 0, 1) * c2.alpha;
-      return { color: c2.hex, opacity: r4(a), offset: r4(clamp11(fin2(s.offset), 0, 1)) };
+      const a = clamp(fin2(s.opacity, 1), 0, 1) * c2.alpha;
+      return { color: c2.hex, opacity: r4(a), offset: r4(clamp(fin2(s.offset), 0, 1)) };
     }).filter((s) => !!s);
     if (stops.length < 1) return null;
     return {
@@ -54728,7 +54891,7 @@ function strokeRecord(s) {
   if (!c || !(w > 0)) return null;
   const rec2 = {
     strokeColor: c.hex,
-    strokeOpacity: r4(clamp11(fin2(s.opacity, 1), 0, 1) * c.alpha),
+    strokeOpacity: r4(clamp(fin2(s.opacity, 1), 0, 1) * c.alpha),
     strokeWidth: r4(w),
     strokeAlignment: s.alignment === "inner" || s.alignment === "outer" ? s.alignment : "center",
     strokeStyle: s.style === "dashed" || s.style === "dotted" ? s.style : "solid"
@@ -54750,12 +54913,12 @@ function shadowRecord(sh, uuid) {
     offsetY: r4(fin2(sh.y)),
     blur: r4(Math.max(0, fin2(sh.blur))),
     spread: r4(fin2(sh.spread)),
-    color: { color: c.hex, opacity: r4(clamp11(fin2(sh.opacity, 1), 0, 1) * c.alpha) }
+    color: { color: c.hex, opacity: r4(clamp(fin2(sh.opacity, 1), 0, 1) * c.alpha) }
   };
 }
 function radii(r3, w, h) {
   const cap = Math.max(0, Math.min(w, h) / 2);
-  const one = (v2) => r4(clamp11(fin2(v2), 0, cap));
+  const one = (v2) => r4(clamp(fin2(v2), 0, cap));
   if (Array.isArray(r3)) return [one(r3[0]), one(r3[1]), one(r3[2]), one(r3[3])];
   const v = one(r3);
   return [v, v, v, v];
@@ -54776,7 +54939,7 @@ function baseRecord(id, type, sh, parentId, frameId, pageId, media, uuid, warn, 
     fills: (sh.fills ?? []).map((f) => fillRecord(f, media, warn)).filter((f) => !!f),
     strokes: (sh.strokes ?? []).map(strokeRecord).filter((s) => !!s)
   };
-  if (sh.opacity != null && fin2(sh.opacity, 1) < 1) rec2.opacity = r4(clamp11(fin2(sh.opacity, 1), 0, 1));
+  if (sh.opacity != null && fin2(sh.opacity, 1) < 1) rec2.opacity = r4(clamp(fin2(sh.opacity, 1), 0, 1));
   if (sh.blend && sh.blend !== "normal" && BLEND_MODES.has(sh.blend)) rec2.blendMode = sh.blend;
   if (sh.hidden) rec2.hidden = true;
   const shadows = (sh.shadows ?? []).map((s) => shadowRecord(s, uuid)).filter((s) => !!s);
@@ -54793,7 +54956,7 @@ function textContentRecord(t, google, nextKey) {
     if (!runs.length) return null;
     const spans = runs.map((r3) => {
       const family = r3.fontFamily && r3.fontFamily.trim() || TEXT_DEFAULTS.fontFamily;
-      const weight = clamp11(Math.round(fin2(r3.fontWeight, TEXT_DEFAULTS.fontWeight) / 100) * 100, 100, 900);
+      const weight = clamp(Math.round(fin2(r3.fontWeight, TEXT_DEFAULTS.fontWeight) / 100) * 100, 100, 900);
       const italic = r3.italic === true;
       const c = parsePenpotColor(r3.color ?? "#000000") ?? { hex: "#000000", alpha: 1 };
       const rec2 = {
@@ -54809,7 +54972,7 @@ function textContentRecord(t, google, nextKey) {
         textTransform: r3.transform ?? "none",
         textDecoration: r3.decoration ?? "none",
         textDirection: "ltr",
-        fills: [{ fillColor: c.hex, fillOpacity: r4(clamp11(fin2(r3.opacity, 1), 0, 1) * c.alpha) }]
+        fills: [{ fillColor: c.hex, fillOpacity: r4(clamp(fin2(r3.opacity, 1), 0, 1) * c.alpha) }]
       };
       return rec2;
     });
@@ -55054,14 +55217,14 @@ function buildPenpotEntries(doc, opts = {}) {
     const col = parsePenpotColor(c.color);
     if (!col || !c.name) continue;
     const id = uuid();
-    const rec2 = { id, name: String(c.name), color: col.hex, opacity: r4(clamp11(fin2(c.opacity, 1), 0, 1) * col.alpha), modifiedAt: stamp2 };
+    const rec2 = { id, name: String(c.name), color: col.hex, opacity: r4(clamp(fin2(c.opacity, 1), 0, 1) * col.alpha), modifiedAt: stamp2 };
     if (c.path && String(c.path).trim()) rec2.path = String(c.path).trim();
     put(`files/${fileId}/colors/${id}.json`, rec2);
   }
   for (const t of doc.typographies ?? []) {
     if (!t || !t.name || !t.fontFamily) continue;
     const id = uuid();
-    const weight = clamp11(Math.round(fin2(t.fontWeight, 400) / 100) * 100, 100, 900);
+    const weight = clamp(Math.round(fin2(t.fontWeight, 400) / 100) * 100, 100, 900);
     const rec2 = {
       id,
       name: String(t.name),
@@ -55225,7 +55388,7 @@ function gradSpecToPenpot(spec, w, h) {
   for (const part of m2[3].split("_")) {
     const sm = /^([0-9a-f]{6})([0-9a-f]{2})?-(\d+(?:\.\d+)?)$/i.exec(part);
     if (!sm) return null;
-    stops.push({ color: `#${sm[1].toLowerCase()}`, opacity: sm[2] ? parseInt(sm[2], 16) / 255 : 1, offset: clamp11(fin2(sm[3]) / 100, 0, 1) });
+    stops.push({ color: `#${sm[1].toLowerCase()}`, opacity: sm[2] ? parseInt(sm[2], 16) / 255 : 1, offset: clamp(fin2(sm[3]) / 100, 0, 1) });
   }
   if (stops.length < 2) return null;
   if (m2[1] === "rad") return { type: "radial", startX: 0.5, startY: 0.5, endX: 0.5, endY: 1, width: 1, stops };
@@ -55334,12 +55497,12 @@ function boxesToPenpotDoc(boxesIn, o) {
     return k.replace(/[^\w \-]/g, "").trim() || (o.fonts?.sans || "sans-serif");
   };
   const weightOf = (b) => {
-    let w = clamp11(Math.round(fin2(b.weight, 700) / 100) * 100, 100, 900);
+    let w = clamp(Math.round(fin2(b.weight, 700) / 100) * 100, 100, 900);
     if (/mono/i.test(str6(b.font)) && w > 800) w = 800;
     return w;
   };
   const effects = (b, base) => {
-    const op = clamp11(fin2(b.opacity, 100), 0, 100) / 100;
+    const op = clamp(fin2(b.opacity, 100), 0, 100) / 100;
     if (op < 1) base.opacity = op;
     const blend = str6(b.blend);
     if (blend && blend !== "normal" && BLEND_MODES.has(blend)) base.blend = blend;
@@ -55347,8 +55510,8 @@ function boxesToPenpotDoc(boxesIn, o) {
     if (rot) base.rotation = rot;
     const shadowKind = str6(b.shadow);
     if (shadowKind === "depth") {
-      const dz = clamp11(fin2(b.z), -300, 900);
-      base.shadows = [{ style: "drop-shadow", x: 0, y: dz * 0.15, blur: clamp11(10 + dz * 0.2, 0, 300), spread: 0, color: "#000000", opacity: 85 / 255 }];
+      const dz = clamp(fin2(b.z), -300, 900);
+      base.shadows = [{ style: "drop-shadow", x: 0, y: dz * 0.15, blur: clamp(10 + dz * 0.2, 0, 300), spread: 0, color: "#000000", opacity: 85 / 255 }];
     } else if (shadowKind && shadowKind !== "none") {
       const c = color(b.shadowColor) ?? "#00000055";
       const p = parsePenpotColor(c);
@@ -55409,7 +55572,7 @@ function boxesToPenpotDoc(boxesIn, o) {
       const fg = color(b.fg) ?? "#000000";
       const size = Math.max(1, Math.round(fin2(b.fontSize, 48)));
       const lh = fin2(b.lineHeight, 1.12) || 1.12;
-      const tracking = clamp11(fin2(b.tracking), -100, 400);
+      const tracking = clamp(fin2(b.tracking), -100, 400);
       const align = H_ALIGN.has(str6(b.align)) ? str6(b.align) : "center";
       const valignRaw = str6(b.valign);
       const paragraphs = text3.split("\n").map((line) => {
@@ -55852,7 +56015,7 @@ function svgToPenpotDoc(svgText, o) {
         }
         const so = s.attrs["stop-opacity"] ?? st["stop-opacity"];
         const off = (s.attrs.offset ?? "0").trim();
-        g2.stops.push({ color: col.hex, opacity: clamp11((so == null ? 1 : fin2(so, 1)) * col.alpha, 0, 1), offset: clamp11(off.endsWith("%") ? parseFloat(off) / 100 : fin2(off), 0, 1) });
+        g2.stops.push({ color: col.hex, opacity: clamp((so == null ? 1 : fin2(so, 1)) * col.alpha, 0, 1), offset: clamp(off.endsWith("%") ? parseFloat(off) / 100 : fin2(off), 0, 1) });
       }
     }
     grads.set(id, g2);
@@ -55903,7 +56066,7 @@ function svgToPenpotDoc(svgText, o) {
       }
     }
     const fo = get3("fill-opacity");
-    if (fo != null) f.fillOpacity = clamp11(fin2(fo, 1), 0, 1);
+    if (fo != null) f.fillOpacity = clamp(fin2(fo, 1), 0, 1);
     const stroke = get3("stroke");
     if (stroke != null) {
       const v = stroke.trim();
@@ -55921,20 +56084,20 @@ function svgToPenpotDoc(svgText, o) {
     const sw = get3("stroke-width");
     if (sw != null) f.strokeWidth = Math.max(0, parseLen(sw, 1));
     const so = get3("stroke-opacity");
-    if (so != null) f.strokeOpacity = clamp11(fin2(so, 1), 0, 1);
+    if (so != null) f.strokeOpacity = clamp(fin2(so, 1), 0, 1);
     const sd = get3("stroke-dasharray");
     if (sd != null) f.strokeDash = sd.trim();
     const sc = get3("stroke-linecap");
     if (sc != null) f.strokeCap = sc.trim().toLowerCase();
     const op = get3("opacity");
-    if (op != null) f.opacity = parent.opacity * clamp11(fin2(op, 1), 0, 1);
+    if (op != null) f.opacity = parent.opacity * clamp(fin2(op, 1), 0, 1);
     else f.opacity = parent.opacity;
     const ff = get3("font-family");
     if (ff != null) f.fontFamily = ff.split(",")[0].trim().replace(/^['"]|['"]$/g, "");
     const fs = get3("font-size");
     if (fs != null) f.fontSize = Math.max(1, parseLen(fs, 16));
     const fw = get3("font-weight");
-    if (fw != null) f.fontWeight = /^bold/i.test(fw) ? 700 : /^normal/i.test(fw) ? 400 : clamp11(Math.round(fin2(fw, 400) / 100) * 100, 100, 900);
+    if (fw != null) f.fontWeight = /^bold/i.test(fw) ? 700 : /^normal/i.test(fw) ? 400 : clamp(Math.round(fin2(fw, 400) / 100) * 100, 100, 900);
     const fst = get3("font-style");
     if (fst != null) f.fontStyle = fst.trim().toLowerCase();
     const ta = get3("text-anchor");
@@ -56412,7 +56575,7 @@ function penpotWorkspaceUrl(teamId, fileId, pageId, origin = "https://design.pen
   if (pageId) q.set("page-id", pageId);
   return `${origin}/#/workspace?${q.toString()}`;
 }
-var PENPOT_MIME, PENPOT_ROOT_ID, PENPOT_FILE_VERSION, PENPOT_FEATURES, PENPOT_MIGRATIONS, MTYPE_EXT, PENPOT_IMAGE_MTYPES, BLEND_MODES, STROKE_CAPS, TOKEN_TYPE_MAP, BG_BLUR_SIGMA_A2, BG_BLUR_SIGMA_B2, MAX_SVG_LEN, MAX_SVG_TAGS, MAX_SHAPES, MAX_TEXT_PARAGRAPHS, isRec6, fin2, clamp11, r4, NAMED, IDENT, mul2, apply2, meanScale, isAxisAligned, K, TEXT_DEFAULTS, str6, H_ALIGN, MARKER_CAP, BAIL_TAGS2, SKIP_TAGS;
+var PENPOT_MIME, PENPOT_ROOT_ID, PENPOT_FILE_VERSION, PENPOT_FEATURES, PENPOT_MIGRATIONS, MTYPE_EXT, PENPOT_IMAGE_MTYPES, BLEND_MODES, STROKE_CAPS, TOKEN_TYPE_MAP, BG_BLUR_SIGMA_A2, BG_BLUR_SIGMA_B2, MAX_SVG_LEN, MAX_SVG_TAGS, MAX_SHAPES, MAX_TEXT_PARAGRAPHS, isRec6, fin2, r4, NAMED, IDENT, mul2, apply2, meanScale, isAxisAligned, K, TEXT_DEFAULTS, str6, H_ALIGN, MARKER_CAP, BAIL_TAGS2, SKIP_TAGS;
 var init_penpot_file = __esm({
   "engine/src/penpot-file.ts"() {
     "use strict";
@@ -56421,6 +56584,7 @@ var init_penpot_file = __esm({
     init_geom_api();
     init_path();
     init_penpot_bindings();
+    init_clamp();
     PENPOT_MIME = "application/x-penpot";
     PENPOT_ROOT_ID = "00000000-0000-0000-0000-000000000000";
     PENPOT_FILE_VERSION = 67;
@@ -56580,7 +56744,6 @@ var init_penpot_file = __esm({
       const n2 = typeof v === "number" ? v : parseFloat(String(v));
       return Number.isFinite(n2) ? n2 : d;
     };
-    clamp11 = (v, a, b) => v < a ? a : v > b ? b : v;
     r4 = (v) => {
       const n2 = Math.round(v * 1e4) / 1e4;
       return Number.isFinite(n2) ? Object.is(n2, -0) ? 0 : n2 : 0;
@@ -56863,77 +57026,6 @@ var init_icon_theme = __esm({
   }
 });
 
-// engine/src/photo-treatment.ts
-function parseTreatedAssetId(id) {
-  if (typeof id !== "string" || id.includes("://")) return { baseId: id, treatment: null };
-  const i = id.indexOf(TREATMENT_SUFFIX);
-  if (i <= 0) return { baseId: id, treatment: null };
-  const baseId = id.slice(0, i);
-  const treatment = id.slice(i + TREATMENT_SUFFIX.length);
-  if (baseId.includes("?") || !TREATMENT_ID_RE.test(treatment)) return { baseId: id, treatment: null };
-  return { baseId, treatment };
-}
-function buildTreatedAssetId(baseId, treatmentId) {
-  if (!treatmentId) return baseId;
-  if (!TREATMENT_ID_RE.test(treatmentId)) throw new Error(`Bad photo treatment id: ${treatmentId}`);
-  return `${baseId}${TREATMENT_SUFFIX}${treatmentId}`;
-}
-function isValidTreatmentId(treatmentId) {
-  return typeof treatmentId === "string" && TREATMENT_ID_RE.test(treatmentId);
-}
-function stripAssetModifiers(id) {
-  if (typeof id !== "string" || id.includes("://")) return id;
-  const i = id.indexOf("?");
-  return i > 0 ? id.slice(0, i) : id;
-}
-function parsePhotoTreatmentsDoc(doc) {
-  if (!doc || !Array.isArray(doc.treatments)) return [];
-  return doc.treatments.filter(isPhotoTreatment);
-}
-function isPhotoTreatment(t) {
-  if (!t || !isValidTreatmentId(t.id)) return false;
-  const kind = t.kind;
-  if (kind === "greyscale") return true;
-  if (kind === "duotone") return !!hexToUnitRgb(t.shadow) && !!hexToUnitRgb(t.highlight);
-  return false;
-}
-function treatmentFilterSvg(treatment, filterId) {
-  return `<filter id="${filterId}" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">${treatmentFilterBody(treatment)}</filter>`;
-}
-function treatmentFilterBody(treatment) {
-  if (treatment.kind === "greyscale") {
-    return '<feColorMatrix type="saturate" values="0"/>';
-  }
-  const s = hexToUnitRgb(treatment.shadow) ?? [0, 0, 0];
-  const h = hexToUnitRgb(treatment.highlight) ?? [1, 1, 1];
-  const m2 = hexToUnitRgb(treatment.mid);
-  const table = (i) => m2 ? `${trim(s[i])} ${trim(m2[i])} ${trim(h[i])}` : `${trim(s[i])} ${trim(h[i])}`;
-  return `<feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="${table(0)}"/><feFuncG type="table" tableValues="${table(1)}"/><feFuncB type="table" tableValues="${table(2)}"/></feComponentTransfer>`;
-}
-function wrapRasterWithTreatment({ href, width, height, treatment }) {
-  const fid = "t";
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><defs>${treatmentFilterSvg(treatment, fid)}</defs><image width="${width}" height="${height}" preserveAspectRatio="none" href="${href}" filter="url(#${fid})"/></svg>`;
-}
-function hexToUnitRgb(hex2) {
-  if (typeof hex2 !== "string") return null;
-  const m2 = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(hex2.trim());
-  if (!m2) return null;
-  const h = m2[1].length === 3 ? m2[1].replace(/./g, (c) => c + c) : m2[1];
-  const n2 = parseInt(h, 16);
-  return [(n2 >> 16 & 255) / 255, (n2 >> 8 & 255) / 255, (n2 & 255) / 255];
-}
-function trim(v) {
-  return String(Math.round(v * 1e4) / 1e4);
-}
-var TREATMENT_ID_RE, TREATMENT_SUFFIX;
-var init_photo_treatment = __esm({
-  "engine/src/photo-treatment.ts"() {
-    "use strict";
-    TREATMENT_ID_RE = /^[a-z0-9][a-z0-9-]*$/;
-    TREATMENT_SUFFIX = "?treatment=";
-  }
-});
-
 // engine/src/brand-treatments.ts
 function roleScore(role) {
   if (role.includes("semantic.primary")) return 3;
@@ -56986,7 +57078,7 @@ function pickInk(cands) {
   return dark.sort((a, b) => a.l - b.l || b.c - a.c || a.hex.localeCompare(b.hex))[0];
 }
 function duotoneShadow(a) {
-  return oklchToHex({ l: 0.26, c: clamp12(a.c * 0.5, 0.02, 0.075), h: a.h });
+  return oklchToHex({ l: 0.26, c: clamp(a.c * 0.5, 0.02, 0.075), h: a.h });
 }
 function derivePhotoTreatmentsDoc(source) {
   const accents = pickAccents(toCandidates(source));
@@ -57000,7 +57092,7 @@ function derivePhotoTreatmentsDoc(source) {
       label: i === 0 ? "Brand" : titleCase(id),
       kind: "duotone",
       shadow: duotoneShadow(a),
-      highlight: oklchToHex({ l: 0.93, c: clamp12(a.c * 0.4, 0.015, 0.055), h: a.h })
+      highlight: oklchToHex({ l: 0.93, c: clamp(a.c * 0.4, 0.015, 0.055), h: a.h })
     });
   });
   if (accents.length) {
@@ -57030,13 +57122,13 @@ function deriveIconThemesDoc(source) {
   if (accents.length) {
     const p = accents[0];
     const ink = pickInk(cands);
-    const inkHex = ink && ink.hex !== p.hex && p.l - ink.l >= 0.15 ? ink.hex : oklchToHex({ l: clamp12(p.l - 0.35, 0.14, 0.3), c: clamp12(p.c * 0.5, 0.01, 0.06), h: p.h });
+    const inkHex = ink && ink.hex !== p.hex && p.l - ink.l >= 0.15 ? ink.hex : oklchToHex({ l: clamp(p.l - 0.35, 0.14, 0.3), c: clamp(p.c * 0.5, 0.01, 0.06), h: p.h });
     themes.push({ id: "brand", label: "Brand", c1: p.hex, c2: inkHex });
     if (p.l < 0.78) {
       themes.push({
         id: "tint",
         label: "Tint",
-        c1: oklchToHex({ l: 0.87, c: clamp12(p.c * 0.8, 0.02, 0.1), h: p.h }),
+        c1: oklchToHex({ l: 0.87, c: clamp(p.c * 0.8, 0.02, 0.1), h: p.h }),
         c2: p.hex
       });
     }
@@ -57046,7 +57138,7 @@ function deriveIconThemesDoc(source) {
         id,
         label: titleCase(id),
         c1: a.hex,
-        c2: oklchToHex({ l: clamp12(a.l - 0.35, 0.14, 0.45), c: clamp12(a.c * 0.6, 0.01, 0.075), h: a.h })
+        c2: oklchToHex({ l: clamp(a.l - 0.35, 0.14, 0.45), c: clamp(a.c * 0.6, 0.01, 0.075), h: a.h })
       });
     }
     themes.push({ id: "paper", label: "Paper", c1: "#ffffff", c2: "#f0f0f0", previewBg: inkHex });
@@ -57057,12 +57149,13 @@ function deriveIconThemesDoc(source) {
     themes
   };
 }
-var MAX_SWATCHES2, ACCENT_MIN_CHROMA, HUE_APART_DEG, MAX_ACCENTS, HUE_NAMES, clamp12, hueDist, hueName, titleCase;
+var MAX_SWATCHES2, ACCENT_MIN_CHROMA, HUE_APART_DEG, MAX_ACCENTS, HUE_NAMES, hueDist, hueName, titleCase;
 var init_brand_treatments = __esm({
   "engine/src/brand-treatments.ts"() {
     "use strict";
     init_brand_derive();
     init_tokens2();
+    init_clamp();
     MAX_SWATCHES2 = 1024;
     ACCENT_MIN_CHROMA = 0.06;
     HUE_APART_DEG = 30;
@@ -57081,7 +57174,6 @@ var init_brand_treatments = __esm({
       "violet",
       "rose"
     ];
-    clamp12 = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
     hueDist = (a, b) => {
       const d = Math.abs(a - b) % 360;
       return d > 180 ? 360 - d : d;
@@ -57171,9 +57263,6 @@ function isKfChannel(v) {
 function isKfSafe(s) {
   return typeof s === "string" && KF_CHARSET_RE.test(s);
 }
-function clamp13(v, lo, hi) {
-  return v < lo ? lo : v > hi ? hi : v;
-}
 function quant(v, q) {
   const inv = Math.round(1 / q);
   const n2 = Math.round(v * inv) / inv;
@@ -57217,10 +57306,10 @@ function cubicBezierAt(x1, y1, x2, y2, x) {
 }
 function easeFromPoints(x1, y1, x2, y2) {
   const p = [
-    quant(clamp13(x1, 0, 1), KF_BEZIER_QUANTUM),
-    quant(clamp13(y1, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM),
-    quant(clamp13(x2, 0, 1), KF_BEZIER_QUANTUM),
-    quant(clamp13(y2, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM)
+    quant(clamp(x1, 0, 1), KF_BEZIER_QUANTUM),
+    quant(clamp(y1, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM),
+    quant(clamp(x2, 0, 1), KF_BEZIER_QUANTUM),
+    quant(clamp(y2, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM)
   ];
   for (const tok of KF_EASE_TOKENS) {
     const q = KF_EASE_PRESETS[tok].pts;
@@ -57320,7 +57409,7 @@ function easeParamAtX(x1, x2, x) {
     else hi = t;
     t = (lo + hi) / 2;
   }
-  return clamp13(t, 0, 1);
+  return clamp(t, 0, 1);
 }
 function subdividedEaseToken(x1, y1, x2, y2) {
   if (!Number.isFinite(x1) || !Number.isFinite(y1) || !Number.isFinite(x2) || !Number.isFinite(y2)) return null;
@@ -57350,7 +57439,7 @@ function subdivideKfEase(ease, lambda) {
 function channelValue(ch, raw) {
   if (!Number.isFinite(raw)) return null;
   const [lo, hi] = KF_CLAMPS[ch];
-  return quant(clamp13(raw, lo, hi), KF_QUANTA[ch]);
+  return quant(clamp(raw, lo, hi), KF_QUANTA[ch]);
 }
 function normaliseTrack(keys, onWarn) {
   let src = keys;
@@ -57362,7 +57451,7 @@ function normaliseTrack(keys, onWarn) {
   for (const k of src) {
     if (!k || typeof k !== "object") continue;
     const rawT = typeof k.t === "number" && Number.isFinite(k.t) ? k.t : 0;
-    const t = Math.round(clamp13(rawT, 0, KF_MAX_TIME_MS));
+    const t = Math.round(clamp(rawT, 0, KF_MAX_TIME_MS));
     const v = {};
     const kv = k.v ?? {};
     for (const ch of KF_CHANNELS) {
@@ -57508,7 +57597,7 @@ function evaluateKf(track, tMs, channels) {
 }
 function sanePerspective(p) {
   const [lo, hi] = KF_CLAMPS.p;
-  return typeof p === "number" && Number.isFinite(p) ? clamp13(p, lo, hi) : DEFAULT_PERSPECTIVE;
+  return typeof p === "number" && Number.isFinite(p) ? clamp(p, lo, hi) : DEFAULT_PERSPECTIVE;
 }
 function projectDepth(cam, z) {
   const P = sanePerspective(cam.p);
@@ -57517,7 +57606,7 @@ function projectDepth(cam, z) {
   const dz = zz - camZ;
   const u = dz / P;
   const eff = Math.min(P / (P - Math.min(dz, KF_GUARD_U * P)), KF_EFF_MAX);
-  const alphaGuard = clamp13((KF_GUARD_U - u) / KF_GUARD_BAND, 0, 1);
+  const alphaGuard = clamp((KF_GUARD_U - u) / KF_GUARD_BAND, 0, 1);
   return { u, eff, alphaGuard };
 }
 function depthForEff(eff, cam = DEFAULT_CAMERA) {
@@ -57682,7 +57771,7 @@ function projectLayerTilted(cam, layer, cx, cy, bx, by) {
       }
     }
   }
-  const alphaGuard = clamp13(dMin / (KF_GUARD_BAND * s.P) - 1, 0, 1);
+  const alphaGuard = clamp(dMin / (KF_GUARD_BAND * s.P) - 1, 0, 1);
   const [h0, h1, h2, h3, h4, h5, h6, h7, h8] = s.m;
   const wC = h6 * cx + h7 * cy + h8;
   const ok3 = wC > 0;
@@ -57697,7 +57786,7 @@ function projectLayerTilted(cam, layer, cx, cy, bx, by) {
   };
 }
 function dofBlur(cam, z) {
-  const a = clamp13(typeof cam.a === "number" && Number.isFinite(cam.a) ? cam.a : 0, 0, 1);
+  const a = clamp(typeof cam.a === "number" && Number.isFinite(cam.a) ? cam.a : 0, 0, 1);
   if (!(a > 0)) return 0;
   const P = sanePerspective(cam.p);
   const f = typeof cam.f === "number" && Number.isFinite(cam.f) ? cam.f : 0;
@@ -57707,10 +57796,10 @@ function dofBlur(cam, z) {
     const camZ = typeof cam.z === "number" && Number.isFinite(cam.z) ? cam.z : 0;
     const near = (1 - KF_GUARD_U) * P;
     const effAt = (v) => Math.min(P / Math.max(P - kappa * (v - camZ), near), KF_EFF_MAX);
-    return clamp13(a * DOF_K * Math.abs(zz - f) * effAt(zz) * effAt(f) * Math.abs(kappa) / P, 0, KF_MAX_BLUR);
+    return clamp(a * DOF_K * Math.abs(zz - f) * effAt(zz) * effAt(f) * Math.abs(kappa) / P, 0, KF_MAX_BLUR);
   }
   const blur = a * DOF_K * Math.abs(zz - f) * projectDepth(cam, zz).eff * projectDepth(cam, f).eff / P;
-  return clamp13(blur, 0, KF_MAX_BLUR);
+  return clamp(blur, 0, KF_MAX_BLUR);
 }
 function resolveCamera(cameras, tMs) {
   const t = Number.isFinite(tMs) ? tMs : 0;
@@ -57751,7 +57840,7 @@ function resolveCamera(cameras, tMs) {
     const val = pose[ch];
     if (typeof val !== "number" || !Number.isFinite(val)) continue;
     const [lo, hi] = KF_CLAMPS[ch];
-    pose[ch] = clamp13(val, lo, hi);
+    pose[ch] = clamp(val, lo, hi);
   }
   pose.p = sanePerspective(pose.p);
   return pose;
@@ -57760,6 +57849,7 @@ var KF_CHANNELS, KF_CAMERA_CHANNELS, CHANNEL_SET, CHANNELS_BY_LENGTH, KF_CLAMPS,
 var init_keyframes2 = __esm({
   "engine/src/keyframes.ts"() {
     "use strict";
+    init_clamp();
     KF_CHANNELS = ["x", "y", "z", "s", "r", "rx", "ry", "o", "b", "f", "a", "p", "w", "h", "v"];
     KF_CAMERA_CHANNELS = Object.freeze(
       ["x", "y", "z", "rx", "ry", "f", "a", "p"]
@@ -58509,7 +58599,9 @@ __export(src_exports, {
   assembleTokenSetFiles: () => assembleTokenSetFiles,
   assertComposeStack: () => assertComposeStack,
   assertZzfxmBudgets: () => assertZzfxmBudgets,
+  assetDependency: () => assetDependency,
   assetIdForUrl: () => assetIdForUrl,
+  assetVersionPin: () => assetVersionPin,
   attachC2paStore: () => attachC2paStore,
   bakeAssetRef: () => bakeAssetRef,
   bakeCurve: () => bakeCurve,
@@ -58556,6 +58648,7 @@ __export(src_exports, {
   chromaKeyAlpha: () => chromaKeyAlpha,
   chromaTickStep: () => chromaTickStep,
   chunkByPhonemeLength: () => chunkByPhonemeLength,
+  clamp: () => clamp,
   classBreaks: () => classBreaks,
   cleanAudioPcm: () => cleanAudioPcm,
   cleanAudioPreview: () => cleanAudioPreview,
@@ -58620,6 +58713,7 @@ __export(src_exports, {
   curveFromRamp: () => curveFromRamp,
   dashSegments: () => dashSegments,
   deckToMarkdown: () => deckToMarkdown,
+  decodeAssetVersion: () => decodeAssetVersion,
   decodeAuthoredPath: () => decodeAuthoredPath,
   decodeAuthoredPaths: () => decodeAuthoredPaths,
   decodeAuthoredPathsResult: () => decodeAuthoredPathsResult,
@@ -58687,6 +58781,7 @@ __export(src_exports, {
   emitEmf: () => emitEmf,
   emitEps: () => emitEps,
   emitWmf: () => emitWmf,
+  encodeAssetVersion: () => encodeAssetVersion,
   encodeAuthoredPath: () => encodeAuthoredPath,
   encodeAuthoredPaths: () => encodeAuthoredPaths,
   encodeBlocksCompact: () => encodeBlocksCompact,
@@ -59291,6 +59386,7 @@ var init_src2 = __esm({
     init_embed();
     init_tool_url();
     init_bake();
+    init_asset_version();
     init_batch();
     init_metadata();
     init_file_metadata();
@@ -59444,6 +59540,25 @@ var init_src2 = __esm({
     init_semver_range();
     init_fs_token();
     init_session_record();
+    init_clamp();
+    init_asset_provider();
+    init_document_api();
+    init_frame_address();
+    init_lang();
+    init_batch();
+    init_steganalysis();
+    init_trustmark();
+    init_svg_colors();
+    init_zzfxm_ref();
+    init_pptx2();
+    init_pptx_read();
+    init_c2pa2();
+    init_c2pa_verify();
+    init_provenance_defaults();
+    init_bmp();
+    init_gzip();
+    init_tar_read();
+    init_pdf_artwork();
   }
 });
 
@@ -66400,7 +66515,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       }
       return null;
     },
-    async get(id) {
+    async get(id, opts = {}) {
       if (isZzfxmRef(id)) {
         const ref = parseZzfxmRef(id);
         if (!ref) throw new Error(`Malformed procedural audio ref: ${id}`);
@@ -66434,7 +66549,9 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       const baseId = theme ? themedBase : treatedBase;
       const meta = assetById.get(baseId);
       if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
-      const fmt3 = meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
+      if (opts.version && opts.version !== meta.version) throw new Error(`Asset version unavailable: ${baseId} (${opts.version})`);
+      const fmt3 = opts.format ? meta.formats.find((f) => f.format === opts.format) : meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
+      if (!fmt3) throw new Error(`Asset format unavailable: ${baseId} (${opts.format})`);
       const localPath = join14(REPO_ROOT2, fmt3.url.replace(/^\//, ""));
       let buf = await readFile10(localPath);
       let extraMeta = { name: meta.name, tags: meta.tags };
@@ -69835,11 +69952,11 @@ async function isAuthorized(authorizationHeader, env) {
   const tok = await verifyValue(bearer, signingSecret(env));
   return !!tok && tok.t === "access" && tok.exp >= now();
 }
-var esc8 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+var esc5 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 function page(title, inner) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc8(title)}</title>
+<title>${esc5(title)}</title>
 <style>
   :root { color-scheme: light dark; }
   body { margin:0; min-height:100vh; display:grid; place-items:center;
@@ -69863,7 +69980,7 @@ function page(title, inner) {
 </style></head><body><div class="card">${inner}</div></body></html>`;
 }
 function hidden(params2) {
-  const f = (k) => params2[k] ? `<input type="hidden" name="${k}" value="${esc8(String(params2[k]))}">` : "";
+  const f = (k) => params2[k] ? `<input type="hidden" name="${k}" value="${esc5(String(params2[k]))}">` : "";
   return ["response_type", "client_id", "redirect_uri", "code_challenge", "code_challenge_method", "state", "scope", "resource"].map((k) => f(k)).join("");
 }
 function consentPage(params2, error) {
@@ -69875,17 +69992,17 @@ function consentPage(params2, error) {
   return page("Connect to Lolly", `
     <div class="dot">L</div>
     <h1>Connect to Lolly</h1>
-    <p><strong>${esc8(host)}</strong> wants to use the Lolly tools on your behalf. Paste your Lolly access token to allow it.</p>
+    <p><strong>${esc5(host)}</strong> wants to use the Lolly tools on your behalf. Paste your Lolly access token to allow it.</p>
     <form method="post">
       ${hidden(params2)}
       <label for="pp">Access token</label>
       <input id="pp" name="passphrase" type="password" autocomplete="off" autofocus required placeholder="LOLLY_MCP_TOKEN">
-      ${error ? `<p class="err">${esc8(error)}</p>` : ""}
+      ${error ? `<p class="err">${esc5(error)}</p>` : ""}
       <button type="submit">Allow</button>
     </form>`);
 }
 function errorPage(message) {
-  return page("Cannot connect", `<div class="dot">L</div><h1>Cannot connect</h1><p>${esc8(message)}</p>`);
+  return page("Cannot connect", `<div class="dot">L</div><h1>Cannot connect</h1><p>${esc5(message)}</p>`);
 }
 
 // services/mcp/src/gateway.ts

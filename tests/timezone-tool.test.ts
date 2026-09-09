@@ -23,14 +23,17 @@ async function run(values: Record<string, unknown> = {}, host = baseHost()) {
   return { runtime, data, svg: runtime.getHydratedString('{{{_artwork}}}') };
 }
 describe('Timezone tool', () => {
-  it('starts with empty content and no duplicate dimensions or font controls', async () => {
+  it('starts with six editable city examples and no duplicate dimensions or font controls', async () => {
     const runtime = await createRuntime(tool, baseHost());
     const state = JSON.parse(runtime.getHydratedText('{{{_state}}}'));
     const svg = runtime.getHydratedString('{{{_artwork}}}');
-    assert.equal(state.places.length, 0);
+    assert.deepEqual(state.places.map((p: any) => p.label), ['London', 'Nuremberg', 'Prague', 'Sofia', 'San Francisco', 'Noosa']);
+    assert.deepEqual(state.places.map((p: any) => p.timezone), ['Europe/London', 'Europe/Berlin', 'Europe/Prague', 'Europe/Sofia', 'America/Los_Angeles', 'Australia/Brisbane']);
+    assert.ok(state.places.every((p: any) => !p.error));
+    assert.equal(runtime.getModel().find(i => i.id === 'locations')?.control, 'table');
     for (const key of ['heading', 'eyebrow', 'annotation', 'footer', 'referenceZone'])
       assert.equal(state.inputs[key], '');
-    assert.doesNotMatch(svg, /data-section=|<text|Add a place|ONE WORLD/);
+    assert.doesNotMatch(svg, /data-section="heading"|Add a place|ONE WORLD/);
     assert.match(svg, /class="tz-vector-map"/);
     for (const id of ['width', 'height', 'fontFamily', 'displayFont'])
       assert.equal(
@@ -170,6 +173,18 @@ describe('Timezone tool', () => {
     assert.equal(data.locations[1].longitude, 0);
     assert.match(data.locations[2].error, /Place not found/);
     assert.match(data.locations[3].error, /Coordinates/);
+  });
+  it('resolves example spellings and country names, derives labels and reads legacy region flags', async () => {
+    const { data } = await run({ locations: [
+      { place: 'Noosa, Australia', spread: 'true' },
+      { place: 'Nuremberg, Germany' },
+      { place: 'Prague, CZ', label: 'Studio' },
+    ] });
+    assert.equal(data.locations[0].label, 'Noosa');
+    assert.equal(data.locations[0].timezone, 'Australia/Brisbane');
+    assert.equal(data.locations[0].spread, true);
+    assert.equal(data.locations[1].timezone, 'Europe/Berlin');
+    assert.equal(data.locations[2].label, 'Studio');
   });
   it('keeps every row within the selected artwork size for a long roster', async () => {
     const { data, svg } = await run({

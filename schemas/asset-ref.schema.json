@@ -28,7 +28,17 @@
     "height": { "type": "integer" },
     "version": {
       "type": "string",
-      "description": "For library assets: the version resolved. Stored in saved state so re-opens get the same bytes (with fallback to latest if that version is gone)."
+      "description": "The version last resolved. This metadata alone does not change latest-resolution behavior; use pin for an exact dependency."
+    },
+    "pin": {
+      "type": "object",
+      "required": ["version"],
+      "additionalProperties": false,
+      "properties": {
+        "version": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "format": { "type": "string", "minLength": 1, "maxLength": 100 }
+      },
+      "description": "An explicit immutable version/format request. An unavailable version must not fall back to latest."
     },
     "checksum": { "type": "string" },
     "meta": {

@@ -34,7 +34,7 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, rm, writeFile, readFile } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -116,8 +116,10 @@ test('CLI: --depth= reaches the export opts (8/16/float), junk and auto thread n
 
 // ── web shell threading (source contract) ───────────────────────────────────
 
-const TOOL_VIEW = readFileSync(new URL('../shells/web/src/views/tool.ts', import.meta.url), 'utf8');
-const TOOL_ACTIONS = readFileSync(new URL('../shells/web/src/views/tool-actions.ts', import.meta.url), 'utf8');
+// Both views are an orchestrator plus feature modules under a directory of the same name (2026-09-09 split).
+const webView = (name: string): string => { const dir = new URL(`../shells/web/src/views/${name}/`, import.meta.url); return [readFileSync(new URL(`../shells/web/src/views/${name}.ts`, import.meta.url), 'utf8'), ...readdirSync(dir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(new URL(n, dir), 'utf8'))].join('\n'); };
+const TOOL_VIEW = webView('tool');
+const TOOL_ACTIONS = webView('tool-actions');
 
 test('web: ?depth= is destructured, carried on the view opts, and set on the export opts', () => {
   // Link 1 - parseUrlState's `depth` is actually taken out of the parsed state,

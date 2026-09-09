@@ -6,15 +6,6 @@
       "info/lint/style/useExponentiationOperator": 1,
       "warning/lint/suspicious/noGlobalIsFinite": 4
     },
-    "engine/src/penpot-file.ts": {
-      "info/lint/complexity/noUselessEscapeInRegex": 1,
-      "warning/lint/complexity/useOptionalChain": 8,
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "error/lint/suspicious/noAssignInExpressions": 3
-    },
-    "engine/src/pixel-watermark.ts": {
-      "info/lint/style/useExponentiationOperator": 1
-    },
     "action/test/run.test.mjs": {
       "warning/lint/suspicious/noTemplateCurlyInString": 1
     },
@@ -23,24 +14,18 @@
       "warning/lint/complexity/useOptionalChain": 1,
       "error/lint/suspicious/noAssignInExpressions": 1
     },
-    "engine/src/brand-map.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
-    },
     "engine/src/c2pa-containers.ts": {
-      "warning/lint/correctness/noUnusedImports": 1,
       "warning/lint/complexity/useOptionalChain": 3,
-      "error/lint/suspicious/noAssignInExpressions": 2,
-      "error/lint/suspicious/noImplicitAnyLet": 1
+      "error/lint/suspicious/noImplicitAnyLet": 1,
+      "error/lint/suspicious/noAssignInExpressions": 2
     },
     "engine/src/c2pa-extract.ts": {
       "warning/lint/complexity/useOptionalChain": 2,
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "error/lint/suspicious/noControlCharactersInRegex": 1,
-      "error/lint/suspicious/noAssignInExpressions": 5
+      "error/lint/suspicious/noAssignInExpressions": 5,
+      "error/lint/suspicious/noControlCharactersInRegex": 1
     },
     "engine/src/c2pa-verify.ts": {
-      "warning/lint/complexity/useOptionalChain": 4,
-      "warning/lint/correctness/noUnusedVariables": 1
+      "warning/lint/complexity/useOptionalChain": 4
     },
     "engine/src/c2pa.ts": {
       "warning/lint/complexity/useOptionalChain": 1
@@ -56,8 +41,8 @@
       "warning/lint/complexity/useOptionalChain": 1
     },
     "engine/src/design-map.ts": {
-      "warning/lint/complexity/useOptionalChain": 31,
       "warning/lint/suspicious/noGlobalIsFinite": 4,
+      "warning/lint/complexity/useOptionalChain": 31,
       "error/lint/suspicious/noAssignInExpressions": 2
     },
     "engine/src/emf.ts": {
@@ -76,9 +61,6 @@
     "engine/src/gamut-source.ts": {
       "warning/lint/suspicious/noApproximativeNumericConstant": 4
     },
-    "engine/src/geom-api.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
-    },
     "engine/src/icc-pixels.ts": {
       "warning/lint/complexity/useOptionalChain": 1
     },
@@ -95,8 +77,8 @@
       "warning/lint/suspicious/noGlobalIsFinite": 4
     },
     "engine/src/pdf-smask.ts": {
-      "warning/lint/complexity/useOptionalChain": 2,
-      "warning/lint/suspicious/noGlobalIsFinite": 1
+      "warning/lint/suspicious/noGlobalIsFinite": 1,
+      "warning/lint/complexity/useOptionalChain": 2
     },
     "engine/src/pdf-svg.ts": {
       "warning/lint/suspicious/noGlobalIsFinite": 15,
@@ -105,9 +87,6 @@
     "engine/src/pdf-text.ts": {
       "warning/lint/suspicious/noGlobalIsFinite": 1
     },
-    "engine/src/png.ts": {
-      "warning/lint/complexity/noAdjacentSpacesInRegex": 1
-    },
     "docs/shot-anatomy.ts": {
       "error/lint/suspicious/noAssignInExpressions": 3
     },
@@ -115,8 +94,8 @@
       "error/lint/suspicious/noAssignInExpressions": 1
     },
     "engine/src/brand-derive.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 2,
-      "error/lint/suspicious/noImplicitAnyLet": 1
+      "error/lint/suspicious/noImplicitAnyLet": 1,
+      "error/lint/suspicious/noAssignInExpressions": 2
     },
     "engine/src/color-faces.ts": {
       "error/lint/suspicious/noAssignInExpressions": 1
@@ -134,8 +113,8 @@
       "error/lint/suspicious/noControlCharactersInRegex": 7
     },
     "engine/src/docx.ts": {
-      "error/lint/suspicious/noControlCharactersInRegex": 6,
-      "error/lint/suspicious/useIterableCallbackReturn": 1
+      "error/lint/suspicious/useIterableCallbackReturn": 1,
+      "error/lint/suspicious/noControlCharactersInRegex": 6
     },
     "engine/src/embed.ts": {
       "error/lint/suspicious/noImplicitAnyLet": 1
@@ -149,6 +128,14 @@
     "engine/src/palette-export.ts": {
       "error/lint/suspicious/noAssignInExpressions": 1
     },
+    "engine/src/penpot-file.ts": {
+      "info/lint/complexity/noUselessEscapeInRegex": 1,
+      "warning/lint/complexity/useOptionalChain": 8,
+      "error/lint/suspicious/noAssignInExpressions": 3
+    },
+    "engine/src/pixel-watermark.ts": {
+      "info/lint/style/useExponentiationOperator": 1
+    },
     "engine/src/svg-custgeom.ts": {
       "info/lint/complexity/useLiteralKeys": 5,
       "warning/lint/complexity/useOptionalChain": 1,
@@ -156,14 +143,13 @@
     },
     "engine/src/xlsx-import.ts": {
       "info/lint/complexity/noUselessLabel": 1,
-      "warning/lint/correctness/noUnusedVariables": 1,
       "error/lint/suspicious/noAssignInExpressions": 5
     },
     "packages/docs-render/src/render.ts": {
       "info/lint/complexity/useLiteralKeys": 11
     },
-    "packages/node-shell/src/canvas.ts": {
-      "info/lint/complexity/useLiteralKeys": 12
+    "engine/src/png.ts": {
+      "warning/lint/complexity/noAdjacentSpacesInRegex": 1
     },
     "engine/src/pptx-patch.ts": {
       "warning/lint/complexity/useOptionalChain": 2,
@@ -196,9 +182,6 @@
       "warning/lint/style/useConst": 1,
       "error/lint/suspicious/noAssignInExpressions": 2
     },
-    "engine/src/tar-read.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1
-    },
     "engine/src/text-signals.ts": {
       "warning/lint/correctness/noUnusedFunctionParameters": 1
     },
@@ -214,18 +197,14 @@
     "engine/src/xcf.ts": {
       "warning/lint/correctness/noUnusedFunctionParameters": 1
     },
-    "engine/src/zip-crypto.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1
-    },
     "engine/src/zzfxm.ts": {
       "warning/lint/complexity/noCommaOperator": 1,
       "warning/lint/style/useConst": 1,
       "error/lint/suspicious/noAssignInExpressions": 16
     },
     "packages/audio-dock/src/dock.ts": {
-      "warning/lint/complexity/noCommaOperator": 1,
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "warning/lint/complexity/useOptionalChain": 1
+      "warning/lint/complexity/useOptionalChain": 1,
+      "warning/lint/complexity/noCommaOperator": 1
     },
     "packages/core/examples/hello-badge/hooks.js": {
       "warning/lint/correctness/noUnusedVariables": 2,
@@ -233,7 +212,6 @@
       "error/lint/correctness/noInnerDeclarations": 1
     },
     "packages/core/src/canvas-op-v1.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1,
       "warning/lint/correctness/noUnusedPrivateClassMembers": 1
     },
     "packages/core/src/define-tool.ts": {
@@ -244,6 +222,33 @@
     },
     "packages/core/src/mock-host.ts": {
       "warning/lint/complexity/useOptionalChain": 1
+    },
+    "engine/src/reword.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 2
+    },
+    "engine/src/scorm.ts": {
+      "error/lint/suspicious/noControlCharactersInRegex": 6
+    },
+    "engine/src/speech-text.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 1
+    },
+    "engine/src/strip-metadata.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 1
+    },
+    "engine/src/svg-layers.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 2
+    },
+    "engine/src/svg-path.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 2
+    },
+    "engine/src/template.ts": {
+      "error/lint/suspicious/noControlCharactersInRegex": 4
+    },
+    "engine/src/url-mode.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 2
+    },
+    "packages/node-shell/src/canvas.ts": {
+      "info/lint/complexity/useLiteralKeys": 12
     },
     "packages/node-shell/src/inspect-render.ts": {
       "warning/lint/complexity/useOptionalChain": 1,
@@ -272,55 +277,15 @@
     "packages/node-shell/src/webshell-render.ts": {
       "warning/lint/complexity/useOptionalChain": 1
     },
-    "engine/src/reword.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 2
-    },
-    "engine/src/scorm.ts": {
-      "error/lint/suspicious/noControlCharactersInRegex": 6
-    },
-    "engine/src/speech-text.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 1
-    },
-    "engine/src/strip-metadata.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 1
-    },
-    "engine/src/svg-layers.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 2
-    },
-    "engine/src/svg-path.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 2
-    },
-    "engine/src/template.ts": {
-      "error/lint/suspicious/noControlCharactersInRegex": 4
-    },
-    "engine/src/url-mode.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 2
-    },
-    "packages/node-shell/src/verdict-report.ts": {
-      "error/lint/suspicious/noControlCharactersInRegex": 2
-    },
-    "scripts/translate.ts": {
-      "info/lint/complexity/useLiteralKeys": 2,
-      "warning/lint/correctness/noUnusedFunctionParameters": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 1,
-      "error/lint/suspicious/noAssignInExpressions": 8
-    },
     "packages/node-shell/test/sequence-audio.test.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "warning/lint/style/useImportType": 1
-    },
-    "scripts/audit-vector-render.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
+      "warning/lint/style/useImportType": 1,
+      "warning/lint/correctness/noUnusedVariables": 1
     },
     "scripts/build-docs-shots.ts": {
       "warning/lint/complexity/useOptionalChain": 1
     },
     "scripts/build-html-card.ts": {
       "warning/lint/complexity/useOptionalChain": 1
-    },
-    "scripts/build-sbom.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "error/lint/suspicious/noAssignInExpressions": 3
     },
     "scripts/build-svg-card.ts": {
       "warning/lint/correctness/noUnusedFunctionParameters": 1,
@@ -329,27 +294,14 @@
     "scripts/compose-deck.ts": {
       "warning/lint/complexity/useOptionalChain": 1
     },
-    "scripts/fetch-ai-detect-models.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1
-    },
-    "scripts/fetch-reword-models.ts": {
-      "warning/lint/complexity/useOptionalChain": 1
-    },
-    "scripts/optimize-preview-png.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
-    },
-    "scripts/resize-mascots.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
-    },
-    "scripts/sign-docs-art.ts": {
-      "warning/lint/complexity/useOptionalChain": 1,
-      "error/lint/suspicious/noControlCharactersInRegex": 6
-    },
-    "scripts/vendor-models.ts": {
-      "warning/lint/complexity/useOptionalChain": 1
+    "packages/node-shell/src/verdict-report.ts": {
+      "error/lint/suspicious/noControlCharactersInRegex": 2
     },
     "scripts/build-previews.ts": {
       "error/lint/suspicious/noImplicitAnyLet": 2
+    },
+    "scripts/build-sbom.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 3
     },
     "scripts/check-code-comment-vernacular.ts": {
       "error/lint/suspicious/noImplicitAnyLet": 1
@@ -360,14 +312,11 @@
     "scripts/dev-web.ts": {
       "error/lint/suspicious/noControlCharactersInRegex": 1
     },
-    "scripts/validate-catalog.ts": {
-      "error/lint/suspicious/noImplicitAnyLet": 2
-    },
-    "services/mcp/bin/lolly-mcp.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 1
-    },
-    "services/mcp/src/catalog.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 1
+    "scripts/translate.ts": {
+      "info/lint/complexity/useLiteralKeys": 2,
+      "warning/lint/correctness/noUnusedFunctionParameters": 1,
+      "error/lint/suspicious/noAssignInExpressions": 8,
+      "error/lint/suspicious/useIterableCallbackReturn": 1
     },
     "services/mcp/src/gateway.ts": {
       "info/lint/complexity/useLiteralKeys": 2
@@ -382,11 +331,6 @@
     "services/mcp/src/schema.ts": {
       "info/lint/complexity/useLiteralKeys": 11
     },
-    "services/mcp/src/tools.ts": {
-      "info/lint/complexity/useLiteralKeys": 64,
-      "warning/lint/suspicious/noGlobalIsFinite": 1,
-      "warning/lint/correctness/noUnusedImports": 1
-    },
     "services/mcp/test/agent-surface.test.ts": {
       "info/lint/complexity/useLiteralKeys": 8
     },
@@ -399,28 +343,60 @@
     "services/mcp/test/render-get.test.ts": {
       "info/lint/complexity/useLiteralKeys": 7
     },
-    "shells/tui/src/views/ToolView.tsx": {
-      "info/lint/complexity/noUselessFragments": 2,
-      "warning/lint/complexity/useOptionalChain": 8,
-      "error/lint/suspicious/noAssignInExpressions": 1,
-      "error/lint/suspicious/noArrayIndexKey": 6
+    "scripts/fetch-reword-models.ts": {
+      "warning/lint/complexity/useOptionalChain": 1
     },
-    "services/mcp/src/http.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
+    "scripts/sign-docs-art.ts": {
+      "warning/lint/complexity/useOptionalChain": 1,
+      "error/lint/suspicious/noControlCharactersInRegex": 6
+    },
+    "scripts/vendor-models.ts": {
+      "warning/lint/complexity/useOptionalChain": 1
     },
     "services/mcp/src/oauth.ts": {
-      "warning/lint/correctness/noUnusedImports": 1,
       "warning/lint/complexity/useOptionalChain": 3
     },
-    "shells/cli/src/bridge.ts": {
-      "warning/lint/correctness/noUnusedImports": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 1
+    "services/mcp/src/tools.ts": {
+      "warning/lint/suspicious/noGlobalIsFinite": 1
     },
     "shells/cli/src/document.ts": {
       "warning/lint/complexity/useOptionalChain": 1
     },
     "shells/cli/src/smoke.ts": {
       "warning/lint/suspicious/noCatchAssign": 1
+    },
+    "scripts/validate-catalog.ts": {
+      "error/lint/suspicious/noImplicitAnyLet": 2
+    },
+    "services/mcp/bin/lolly-mcp.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 1
+    },
+    "services/mcp/src/catalog.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 1
+    },
+    "services/mcp/src/render-get.ts": {
+      "error/lint/suspicious/noImplicitAnyLet": 1
+    },
+    "shells/cli/src/args.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 2
+    },
+    "shells/cli/src/bridge.ts": {
+      "error/lint/suspicious/useIterableCallbackReturn": 1
+    },
+    "shells/tui/src/views/ToolView.tsx": {
+      "info/lint/complexity/noUselessFragments": 2,
+      "warning/lint/complexity/useOptionalChain": 8,
+      "error/lint/suspicious/noArrayIndexKey": 6,
+      "error/lint/suspicious/noAssignInExpressions": 1
+    },
+    "shells/web/src/bridge/export-pdfx.ts": {
+      "info/lint/complexity/noUselessEscapeInRegex": 1
+    },
+    "shells/web/src/bridge/export.ts": {
+      "info/lint/correctness/useParseIntRadix": 2,
+      "warning/lint/complexity/useOptionalChain": 3,
+      "error/lint/suspicious/noAssignInExpressions": 7,
+      "error/lint/suspicious/useIterableCallbackReturn": 6
     },
     "shells/tui/src/ascii-mockup.ts": {
       "warning/lint/correctness/noUnusedVariables": 1
@@ -433,8 +409,7 @@
       "warning/lint/complexity/noCommaOperator": 1
     },
     "shells/web/src/brand-vars.ts": {
-      "warning/lint/suspicious/noApproximativeNumericConstant": 1,
-      "warning/lint/correctness/noUnusedImports": 1
+      "warning/lint/suspicious/noApproximativeNumericConstant": 1
     },
     "shells/web/src/bridge/assets.ts": {
       "warning/lint/complexity/useOptionalChain": 1,
@@ -443,14 +418,21 @@
     "shells/web/src/bridge/capture-extension.ts": {
       "warning/lint/complexity/useOptionalChain": 2
     },
-    "shells/web/src/bridge/clipboard.ts": {
-      "warning/lint/correctness/noUnusedVariables": 2
+    "shells/web/src/bridge/export-css.ts": {
+      "warning/lint/suspicious/noGlobalIsFinite": 1
     },
-    "services/mcp/src/render-get.ts": {
-      "error/lint/suspicious/noImplicitAnyLet": 1
+    "shells/web/src/bridge/export-penpot.ts": {
+      "warning/lint/complexity/useOptionalChain": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 1,
+      "error/lint/suspicious/noAssignInExpressions": 1
     },
-    "shells/cli/src/args.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 2
+    "shells/web/src/bridge/export-pptx.ts": {
+      "warning/lint/complexity/noCommaOperator": 3,
+      "warning/lint/correctness/noUnusedFunctionParameters": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 1
+    },
+    "shells/web/src/bridge/export-text-emission.test.ts": {
+      "warning/lint/suspicious/noUselessEscapeInString": 3
     },
     "shells/tui/src/clipboard.ts": {
       "error/lint/suspicious/noImplicitAnyLet": 1
@@ -485,21 +467,14 @@
     "shells/web/src/bridge/dom-frame.ts": {
       "error/lint/suspicious/useIterableCallbackReturn": 1
     },
-    "shells/web/src/bridge/export-pdfx.ts": {
-      "info/lint/complexity/noUselessEscapeInRegex": 1
+    "shells/web/src/bridge/embed.ts": {
+      "error/lint/suspicious/noImplicitAnyLet": 1
     },
-    "shells/web/src/bridge/export.ts": {
-      "info/lint/correctness/useParseIntRadix": 2,
-      "warning/lint/complexity/useOptionalChain": 8,
-      "warning/lint/correctness/noUnusedImports": 2,
-      "warning/lint/correctness/noUnusedFunctionParameters": 2,
-      "warning/lint/suspicious/noGlobalIsFinite": 2,
-      "error/lint/suspicious/noAssignInExpressions": 7,
-      "error/lint/suspicious/useIterableCallbackReturn": 7
+    "shells/web/src/bridge/export-pdf-vector.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 1
     },
     "shells/web/src/bridge/font-registry.ts": {
       "info/lint/correctness/useParseIntRadix": 3,
-      "warning/lint/correctness/noUnusedVariables": 1,
       "error/lint/suspicious/noAssignInExpressions": 1
     },
     "shells/web/src/bridge/hook-worker.test.ts": {
@@ -509,26 +484,6 @@
     "shells/web/src/bridge/hook-worker.ts": {
       "info/lint/complexity/useLiteralKeys": 1
     },
-    "shells/web/src/bridge/text-svg.ts": {
-      "info/lint/correctness/useParseIntRadix": 1,
-      "warning/lint/correctness/noUnusedFunctionParameters": 1
-    },
-    "shells/web/src/bridge/export-css.ts": {
-      "warning/lint/suspicious/noGlobalIsFinite": 1
-    },
-    "shells/web/src/bridge/export-penpot.ts": {
-      "warning/lint/complexity/useOptionalChain": 1,
-      "error/lint/suspicious/noAssignInExpressions": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 1
-    },
-    "shells/web/src/bridge/export-pptx.ts": {
-      "warning/lint/complexity/noCommaOperator": 3,
-      "warning/lint/correctness/noUnusedFunctionParameters": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 1
-    },
-    "shells/web/src/bridge/export-text-emission.test.ts": {
-      "warning/lint/suspicious/noUselessEscapeInString": 3
-    },
     "shells/web/src/bridge/identity.ts": {
       "warning/lint/complexity/useOptionalChain": 1
     },
@@ -536,18 +491,6 @@
       "warning/lint/complexity/useOptionalChain": 1
     },
     "shells/web/src/bridge/pdf-structure.test.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1
-    },
-    "shells/web/src/bridge/pdf-structure.ts": {
-      "warning/lint/suspicious/noGlobalIsFinite": 1,
-      "warning/lint/complexity/useOptionalChain": 1
-    },
-    "shells/web/src/bridge/pdf.ts": {
-      "warning/lint/suspicious/noGlobalIsNan": 1,
-      "warning/lint/complexity/useOptionalChain": 4,
-      "warning/lint/suspicious/noGlobalIsFinite": 1
-    },
-    "shells/web/src/bridge/plate-budget.ts": {
       "warning/lint/correctness/noUnusedVariables": 1
     },
     "shells/web/src/bridge/pptx-deck.ts": {
@@ -565,8 +508,6 @@
       "warning/lint/complexity/useOptionalChain": 2
     },
     "shells/web/src/bridge/sequence-render.ts": {
-      "warning/lint/correctness/noUnusedImports": 1,
-      "warning/lint/correctness/noUnusedVariables": 1,
       "warning/lint/complexity/useOptionalChain": 2,
       "error/lint/suspicious/useIterableCallbackReturn": 7
     },
@@ -579,12 +520,6 @@
     },
     "shells/web/src/bridge/svg-inline-ids.ts": {
       "warning/lint/complexity/useOptionalChain": 1
-    },
-    "shells/web/src/bridge/svg-ir.ts": {
-      "warning/lint/correctness/noUnusedImports": 1,
-      "warning/lint/style/useConst": 1,
-      "warning/lint/complexity/useOptionalChain": 1,
-      "error/lint/suspicious/noAssignInExpressions": 1
     },
     "shells/web/src/bridge/text.ts": {
       "warning/lint/complexity/useOptionalChain": 1
@@ -599,11 +534,8 @@
     "shells/web/src/bridge/tool-loader.ts": {
       "warning/lint/correctness/noUnusedFunctionParameters": 1
     },
-    "shells/web/src/bridge/embed.ts": {
-      "error/lint/suspicious/noImplicitAnyLet": 1
-    },
-    "shells/web/src/bridge/export-pdf-vector.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 1
+    "shells/web/src/collab/join-route.test.ts": {
+      "warning/lint/correctness/noUnusedVariables": 2
     },
     "shells/web/src/bridge/hdr-deep-frame.ts": {
       "error/lint/suspicious/noAssignInExpressions": 3
@@ -617,9 +549,6 @@
     "shells/web/src/lib/ai-detect-worker.ts": {
       "info/lint/style/useShorthandFunctionType": 1,
       "error/lint/suspicious/noGlobalAssign": 1
-    },
-    "shells/web/src/collab/join-route.test.ts": {
-      "warning/lint/correctness/noUnusedVariables": 2
     },
     "shells/web/src/collab/rtc-transport.ts": {
       "warning/lint/complexity/useOptionalChain": 1,
@@ -645,17 +574,13 @@
       "warning/lint/suspicious/noConfusingVoidType": 1
     },
     "shells/web/src/components/color-field.ts": {
-      "warning/lint/correctness/noUnusedImports": 1,
       "warning/lint/complexity/useOptionalChain": 2,
-      "error/lint/suspicious/useIterableCallbackReturn": 2,
+      "error/lint/suspicious/useIterableCallbackReturn": 1,
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
     "shells/web/src/components/device-picker.ts": {
       "warning/lint/complexity/useOptionalChain": 1,
       "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
-    "shells/web/src/components/fonts-manager.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1
     },
     "shells/web/src/components/help-tip.ts": {
       "warning/lint/complexity/useOptionalChain": 1,
@@ -664,9 +589,6 @@
     "shells/web/src/components/scrub-readout.ts": {
       "warning/lint/complexity/useOptionalChain": 1
     },
-    "shells/web/src/components/spotlight-boot.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1
-    },
     "shells/web/src/components/view-topbar.ts": {
       "warning/lint/complexity/useOptionalChain": 1,
       "error/lint/suspicious/noShadowRestrictedNames": 1
@@ -674,20 +596,13 @@
     "shells/web/src/components/welcome-dialog.ts": {
       "warning/lint/complexity/useOptionalChain": 2,
       "error/lint/suspicious/noShadowRestrictedNames": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 4
-    },
-    "shells/web/src/data-transfer.ts": {
-      "warning/lint/complexity/useOptionalChain": 2
-    },
-    "shells/web/src/folder-overlay.ts": {
-      "warning/lint/correctness/noUnusedImports": 1,
-      "error/lint/suspicious/noShadowRestrictedNames": 1
+      "error/lint/suspicious/useIterableCallbackReturn": 3
     },
     "shells/web/src/lib/ai-detect-privacy.test.ts": {
       "warning/lint/suspicious/noTemplateCurlyInString": 2
     },
-    "shells/web/src/lib/ai-detect.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
+    "shells/web/src/lib/ask/chunks.ts": {
+      "warning/lint/complexity/useOptionalChain": 1
     },
     "shells/web/src/components/confirm-dialog.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
@@ -758,6 +673,9 @@
     "shells/web/src/components/viz-overlay.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
+    "shells/web/src/folder-overlay.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
     "shells/web/src/folder-tiles.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
@@ -767,33 +685,12 @@
     "shells/web/src/lib/activity-summary.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
-    "shells/web/src/lib/brand-editor.ts": {
-      "info/lint/complexity/noUselessLoneBlockStatements": 1,
-      "warning/lint/correctness/noUnusedImports": 3,
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "warning/lint/complexity/useOptionalChain": 5,
-      "error/lint/suspicious/noShadowRestrictedNames": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 14,
-      "error/lint/suspicious/noAssignInExpressions": 1
-    },
     "shells/web/src/lib/brand-logos.test.ts": {
       "info/lint/complexity/useLiteralKeys": 4,
       "error/lint/suspicious/useIterableCallbackReturn": 2
     },
-    "shells/web/src/lib/ask/chunks.ts": {
-      "warning/lint/complexity/useOptionalChain": 1
-    },
     "shells/web/src/lib/audio-coach-core.ts": {
       "warning/lint/suspicious/noGlobalIsFinite": 1
-    },
-    "shells/web/src/lib/audio-cover-viz.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
-    },
-    "shells/web/src/lib/audio-dock-singleton.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1
-    },
-    "shells/web/src/lib/bluesky-send.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1
     },
     "shells/web/src/lib/brand-propose.ts": {
       "warning/lint/complexity/useOptionalChain": 1
@@ -802,7 +699,6 @@
       "warning/suppressions/unused": 1
     },
     "shells/web/src/lib/butterchurn-viz.ts": {
-      "warning/lint/correctness/noUnusedImports": 1,
       "warning/lint/complexity/useOptionalChain": 1
     },
     "shells/web/src/lib/clip-thumbs.ts": {
@@ -811,12 +707,6 @@
     },
     "shells/web/src/lib/collab-plumbing.ts": {
       "warning/lint/suspicious/noPrototypeBuiltins": 1
-    },
-    "shells/web/src/lib/collab-session.ts": {
-      "warning/lint/complexity/useOptionalChain": 1
-    },
-    "shells/web/src/lib/color-profiles.ts": {
-      "warning/lint/complexity/useOptionalChain": 1
     },
     "shells/web/src/lib/ask/embed-worker.ts": {
       "error/lint/suspicious/noGlobalAssign": 1
@@ -832,6 +722,12 @@
     },
     "shells/web/src/lib/brand-doc.ts": {
       "error/lint/suspicious/noAssignInExpressions": 15
+    },
+    "shells/web/src/lib/brand-editor/replace.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 1
+    },
+    "shells/web/src/lib/brand-editor/shared.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
     },
     "shells/web/src/lib/brand-logos.ts": {
       "error/lint/suspicious/noAssignInExpressions": 1
@@ -854,21 +750,21 @@
     "shells/web/src/lib/collab-rendezvous-entry.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
-    "shells/web/src/lib/context-menu.ts": {
-      "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
     "shells/web/src/lib/design-system/roles.ts": {
       "info/lint/complexity/noExtraBooleanCast": 1,
-      "error/lint/suspicious/noAssignInExpressions": 3,
-      "error/lint/suspicious/noShadowRestrictedNames": 1
+      "error/lint/suspicious/noShadowRestrictedNames": 1,
+      "error/lint/suspicious/noAssignInExpressions": 3
     },
     "shells/web/src/lib/design-system/type-compare.ts": {
       "info/lint/complexity/useLiteralKeys": 1,
       "warning/lint/complexity/useOptionalChain": 1,
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
-    "shells/web/src/lib/export-panel-float.test.ts": {
-      "info/lint/complexity/noUselessTernary": 1
+    "shells/web/src/lib/collab-session.ts": {
+      "warning/lint/complexity/useOptionalChain": 1
+    },
+    "shells/web/src/lib/color-profiles.ts": {
+      "warning/lint/complexity/useOptionalChain": 1
     },
     "shells/web/src/lib/covers-flow.ts": {
       "warning/lint/correctness/noUnusedFunctionParameters": 1,
@@ -913,23 +809,8 @@
     "shells/web/src/lib/document-surface.ts": {
       "warning/lint/complexity/useOptionalChain": 1
     },
-    "shells/web/src/lib/drop-router.ts": {
-      "warning/lint/suspicious/useIsArray": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 2
-    },
-    "shells/web/src/lib/edge-dock.ts": {
-      "warning/lint/style/useConst": 1,
-      "warning/lint/complexity/useOptionalChain": 1
-    },
-    "shells/web/src/lib/export-panel-float.ts": {
-      "warning/lint/complexity/noCommaOperator": 1
-    },
-    "shells/web/src/lib/float-cluster.ts": {
-      "warning/lint/complexity/useOptionalChain": 1
-    },
-    "shells/web/src/lib/font-asset-handler.ts": {
-      "warning/lint/complexity/useOptionalChain": 3,
-      "warning/lint/correctness/noUnusedFunctionParameters": 1
+    "shells/web/src/lib/context-menu.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
     },
     "shells/web/src/lib/covers-flow.test.ts": {
       "error/lint/suspicious/useIterableCallbackReturn": 1
@@ -962,11 +843,11 @@
     "shells/web/src/lib/device-info.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
-    "shells/web/src/lib/export-lock.ts": {
-      "error/lint/suspicious/noShadowRestrictedNames": 1
+    "shells/web/src/lib/drop-router.ts": {
+      "error/lint/suspicious/useIterableCallbackReturn": 2
     },
-    "shells/web/src/lib/genai-pill.ts": {
-      "error/lint/suspicious/noShadowRestrictedNames": 1
+    "shells/web/src/lib/export-panel-float.test.ts": {
+      "info/lint/complexity/noUselessTernary": 1
     },
     "shells/web/src/lib/lossless-trim-wire.test.ts": {
       "info/lint/complexity/noUselessUndefinedInitialization": 1
@@ -974,14 +855,19 @@
     "shells/web/src/lib/matter.test.ts": {
       "info/lint/complexity/useLiteralKeys": 4
     },
-    "shells/web/src/lib/pdf-objects.ts": {
-      "info/lint/style/useExponentiationOperator": 2
+    "shells/web/src/lib/edge-dock.ts": {
+      "warning/lint/style/useConst": 1,
+      "warning/lint/complexity/useOptionalChain": 1
     },
-    "shells/web/src/lib/pdf-ps-calc.ts": {
-      "info/lint/style/useExponentiationOperator": 1,
-      "warning/lint/suspicious/noGlobalIsFinite": 4,
-      "warning/lint/complexity/useOptionalChain": 1,
-      "error/lint/suspicious/noAssignInExpressions": 1
+    "shells/web/src/lib/export-panel-float.ts": {
+      "warning/lint/complexity/noCommaOperator": 1
+    },
+    "shells/web/src/lib/float-cluster.ts": {
+      "warning/lint/complexity/useOptionalChain": 1
+    },
+    "shells/web/src/lib/font-asset-handler.ts": {
+      "warning/lint/complexity/useOptionalChain": 3,
+      "warning/lint/correctness/noUnusedFunctionParameters": 1
     },
     "shells/web/src/lib/installed-tools.ts": {
       "warning/lint/correctness/noUnusedFunctionParameters": 1
@@ -995,11 +881,46 @@
     "shells/web/src/lib/motion-model.ts": {
       "warning/lint/complexity/useOptionalChain": 1
     },
+    "shells/web/src/lib/export-lock.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
+    "shells/web/src/lib/genai-pill.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
+    "shells/web/src/lib/google-fonts.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 1
+    },
+    "shells/web/src/lib/inpaint-worker.ts": {
+      "error/lint/suspicious/noGlobalAssign": 1
+    },
+    "shells/web/src/lib/invisible-chars.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
+    "shells/web/src/lib/markdown.ts": {
+      "error/lint/suspicious/noControlCharactersInRegex": 1,
+      "error/lint/correctness/noEmptyCharacterClassInRegex": 4
+    },
+    "shells/web/src/lib/mobile-sheet.ts": {
+      "error/lint/suspicious/useIterableCallbackReturn": 1
+    },
+    "shells/web/src/lib/pdf-objects.ts": {
+      "info/lint/style/useExponentiationOperator": 2
+    },
+    "shells/web/src/lib/pdf-ps-calc.ts": {
+      "info/lint/style/useExponentiationOperator": 1,
+      "warning/lint/suspicious/noGlobalIsFinite": 4,
+      "warning/lint/complexity/useOptionalChain": 1,
+      "error/lint/suspicious/noAssignInExpressions": 1
+    },
+    "shells/web/src/lib/pptxgen-import.ts": {
+      "info/lint/complexity/useLiteralKeys": 48,
+      "warning/lint/complexity/noBannedTypes": 1
+    },
     "shells/web/src/lib/narration.ts": {
       "warning/lint/complexity/useOptionalChain": 1
     },
     "shells/web/src/lib/neuro-demo.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
+      "warning/lint/style/useImportType": 1
     },
     "shells/web/src/lib/neurospicy-dock-host.ts": {
       "warning/lint/complexity/useOptionalChain": 1
@@ -1027,47 +948,6 @@
     "shells/web/src/lib/pdf-vector-shot.ts": {
       "warning/lint/suspicious/noGlobalIsFinite": 1
     },
-    "shells/web/src/lib/google-fonts.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 1
-    },
-    "shells/web/src/lib/inpaint-worker.ts": {
-      "error/lint/suspicious/noGlobalAssign": 1
-    },
-    "shells/web/src/lib/invisible-chars.ts": {
-      "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
-    "shells/web/src/lib/markdown.ts": {
-      "error/lint/correctness/noEmptyCharacterClassInRegex": 4,
-      "error/lint/suspicious/noControlCharactersInRegex": 1
-    },
-    "shells/web/src/lib/mobile-sheet.ts": {
-      "error/lint/suspicious/useIterableCallbackReturn": 1
-    },
-    "shells/web/src/lib/neuro-demo-peek.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 1
-    },
-    "shells/web/src/lib/offline-manager.test.ts": {
-      "error/lint/suspicious/useIterableCallbackReturn": 1
-    },
-    "shells/web/src/lib/overlay-back.ts": {
-      "error/lint/suspicious/useIterableCallbackReturn": 3
-    },
-    "shells/web/src/lib/page-filmstrip.ts": {
-      "error/lint/suspicious/useIterableCallbackReturn": 3
-    },
-    "shells/web/src/lib/penpot-send.test.ts": {
-      "error/lint/correctness/noUnsafeOptionalChaining": 3
-    },
-    "shells/web/src/lib/penpot-send.ts": {
-      "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
-    "shells/web/src/lib/pptxgen-import.ts": {
-      "info/lint/complexity/useLiteralKeys": 48,
-      "warning/lint/complexity/noBannedTypes": 1
-    },
-    "shells/web/src/lib/shutter.ts": {
-      "info/lint/style/useExponentiationOperator": 3
-    },
     "shells/web/src/lib/press-profile-embed.ts": {
       "warning/lint/complexity/useOptionalChain": 1
     },
@@ -1093,8 +973,45 @@
     "shells/web/src/lib/scrub.test.ts": {
       "warning/lint/complexity/useArrowFunction": 2
     },
-    "shells/web/src/lib/search/providers/index.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
+    "shells/web/src/lib/neuro-demo-peek.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 1
+    },
+    "shells/web/src/lib/offline-manager.test.ts": {
+      "error/lint/suspicious/useIterableCallbackReturn": 1
+    },
+    "shells/web/src/lib/overlay-back.ts": {
+      "error/lint/suspicious/useIterableCallbackReturn": 3
+    },
+    "shells/web/src/lib/page-filmstrip.ts": {
+      "error/lint/suspicious/useIterableCallbackReturn": 3
+    },
+    "shells/web/src/lib/penpot-send.test.ts": {
+      "error/lint/correctness/noUnsafeOptionalChaining": 3
+    },
+    "shells/web/src/lib/penpot-send.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
+    "shells/web/src/lib/recording-tips.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 1
+    },
+    "shells/web/src/lib/reword-worker.ts": {
+      "error/lint/suspicious/noGlobalAssign": 1
+    },
+    "shells/web/src/lib/save-dialog.test.ts": {
+      "error/lint/suspicious/useIterableCallbackReturn": 1
+    },
+    "shells/web/src/lib/save-dialog.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
+    "shells/web/src/lib/seg.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
+    "shells/web/src/lib/shutter.ts": {
+      "info/lint/style/useExponentiationOperator": 3
+    },
+    "shells/web/src/lib/video-jobs.test.ts": {
+      "info/lint/complexity/noUselessConstructor": 1
     },
     "shells/web/src/lib/speech-kokoro-privacy.test.ts": {
       "warning/lint/suspicious/noTemplateCurlyInString": 2
@@ -1113,20 +1030,14 @@
     "shells/web/src/lib/undo-toast.ts": {
       "warning/lint/complexity/useOptionalChain": 1
     },
-    "shells/web/src/lib/recording-tips.ts": {
-      "error/lint/suspicious/noShadowRestrictedNames": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 1
+    "shells/web/src/lib/vector-paint.ts": {
+      "warning/lint/complexity/useOptionalChain": 1
     },
-    "shells/web/src/lib/reword-worker.ts": {
-      "error/lint/suspicious/noGlobalAssign": 1
+    "shells/web/src/lib/viz-tool-mount.ts": {
+      "warning/lint/complexity/useOptionalChain": 1
     },
-    "shells/web/src/lib/save-dialog.test.ts": {
-      "error/lint/suspicious/useIterableCallbackReturn": 1
-    },
-    "shells/web/src/lib/save-dialog.ts": {
-      "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
-    "shells/web/src/lib/seg.ts": {
+    "shells/web/src/org/banner.ts": {
+      "warning/lint/complexity/useOptionalChain": 1,
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
     "shells/web/src/lib/sfx-voices.ts": {
@@ -1159,8 +1070,20 @@
     "shells/web/src/lib/upload-dropzone.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
-    "shells/web/src/lib/video-jobs.test.ts": {
-      "info/lint/complexity/noUselessConstructor": 1
+    "shells/web/src/lib/vector-paint.test.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 1
+    },
+    "shells/web/src/org/approval-dialog.test.ts": {
+      "error/lint/suspicious/useIterableCallbackReturn": 1
+    },
+    "shells/web/src/org/approval-dialog.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
+    "shells/web/src/org/chrome.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
+    "shells/web/src/org/collab-handle.test.ts": {
+      "error/lint/correctness/noUnsafeOptionalChaining": 1
     },
     "shells/web/src/pro/controls.ts": {
       "info/lint/complexity/noUselessSwitchCase": 1
@@ -1168,16 +1091,6 @@
     "shells/web/src/pro/io.ts": {
       "info/lint/complexity/useIndexOf": 5,
       "error/lint/suspicious/noAssignInExpressions": 1
-    },
-    "shells/web/src/lib/vector-paint.ts": {
-      "warning/lint/complexity/useOptionalChain": 1
-    },
-    "shells/web/src/lib/viz-tool-mount.ts": {
-      "warning/lint/complexity/useOptionalChain": 1
-    },
-    "shells/web/src/org/banner.ts": {
-      "warning/lint/complexity/useOptionalChain": 1,
-      "error/lint/suspicious/noShadowRestrictedNames": 1
     },
     "shells/web/src/org/probe.ts": {
       "warning/lint/complexity/useOptionalChain": 1
@@ -1219,20 +1132,18 @@
       "error/lint/suspicious/noShorthandPropertyOverrides": 3,
       "error/lint/correctness/noInvalidDirectionInLinearGradient": 1
     },
-    "shells/web/src/lib/vector-paint.test.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 1
+    "shells/web/src/sw.test.ts": {
+      "warning/lint/complexity/useArrowFunction": 1
     },
-    "shells/web/src/org/approval-dialog.test.ts": {
-      "error/lint/suspicious/useIterableCallbackReturn": 1
+    "shells/web/src/user-fonts.ts": {
+      "warning/lint/complexity/useOptionalChain": 1
     },
-    "shells/web/src/org/approval-dialog.ts": {
+    "shells/web/src/utils.test.ts": {
+      "warning/lint/suspicious/noTemplateCurlyInString": 1,
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
-    "shells/web/src/org/chrome.ts": {
-      "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
-    "shells/web/src/org/collab-handle.test.ts": {
-      "error/lint/correctness/noUnsafeOptionalChaining": 1
+    "shells/web/src/views/anim-transport.ts": {
+      "warning/lint/complexity/useOptionalChain": 2
     },
     "shells/web/src/org/index.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
@@ -1267,137 +1178,6 @@
     "shells/web/src/styles/parts/docs.css": {
       "error/lint/suspicious/noDuplicateProperties": 1
     },
-    "shells/web/src/views/convert.ts": {
-      "info/lint/style/useExponentiationOperator": 1,
-      "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
-    "shells/web/src/views/deck-editor.ts": {
-      "info/lint/style/useExponentiationOperator": 1,
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 1
-    },
-    "shells/web/src/views/design-import.ts": {
-      "info/lint/complexity/useLiteralKeys": 1,
-      "warning/lint/complexity/useOptionalChain": 32,
-      "warning/lint/correctness/noUnusedFunctionParameters": 1,
-      "warning/lint/suspicious/noGlobalIsFinite": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 1,
-      "error/lint/suspicious/noAssignInExpressions": 2
-    },
-    "shells/web/src/views/design-inspector.ts": {
-      "info/lint/complexity/useLiteralKeys": 10,
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "error/lint/suspicious/noShadowRestrictedNames": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 1
-    },
-    "shells/web/src/views/design-navigator.ts": {
-      "info/lint/complexity/useLiteralKeys": 2
-    },
-    "shells/web/src/views/free-canvas-tools.test.ts": {
-      "info/lint/complexity/useLiteralKeys": 3
-    },
-    "shells/web/src/views/free-canvas-touch-place.test.ts": {
-      "info/lint/complexity/useLiteralKeys": 9
-    },
-    "shells/web/src/views/free-canvas.ts": {
-      "info/lint/complexity/useLiteralKeys": 21,
-      "warning/lint/complexity/useOptionalChain": 21,
-      "warning/lint/suspicious/noConfusingVoidType": 1,
-      "warning/lint/complexity/noCommaOperator": 3,
-      "warning/lint/correctness/noUnusedImports": 1,
-      "warning/lint/correctness/noUnusedVariables": 2,
-      "warning/lint/style/useConst": 1,
-      "warning/lint/correctness/noUnusedFunctionParameters": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 29,
-      "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
-    "shells/web/src/sw.test.ts": {
-      "warning/lint/complexity/useArrowFunction": 1
-    },
-    "shells/web/src/user-fonts.ts": {
-      "warning/lint/complexity/useOptionalChain": 1
-    },
-    "shells/web/src/utils.test.ts": {
-      "warning/lint/suspicious/noTemplateCurlyInString": 1,
-      "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
-    "shells/web/src/views/anim-transport.ts": {
-      "warning/lint/complexity/useOptionalChain": 2
-    },
-    "shells/web/src/views/block-tree.ts": {
-      "warning/lint/complexity/useOptionalChain": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 2
-    },
-    "shells/web/src/views/canvas-scene.ts": {
-      "warning/lint/complexity/useOptionalChain": 2
-    },
-    "shells/web/src/views/catalog.ts": {
-      "warning/lint/correctness/noUnusedImports": 3,
-      "warning/lint/suspicious/noGlobalIsFinite": 1,
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "error/lint/suspicious/noShadowRestrictedNames": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 3
-    },
-    "shells/web/src/views/color-lab.test.ts": {
-      "warning/lint/complexity/useArrowFunction": 3,
-      "warning/lint/correctness/noUnusedImports": 1
-    },
-    "shells/web/src/views/color-lab.ts": {
-      "warning/lint/complexity/useOptionalChain": 1,
-      "error/lint/suspicious/noShadowRestrictedNames": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 4
-    },
-    "shells/web/src/views/cost-panel.test.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
-    },
-    "shells/web/src/views/dashboard.ts": {
-      "warning/lint/complexity/useOptionalChain": 1,
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "error/lint/suspicious/noShadowRestrictedNames": 1,
-      "error/lint/suspicious/noAssignInExpressions": 1
-    },
-    "shells/web/src/views/data.ts": {
-      "warning/lint/correctness/noUnusedImports": 1,
-      "error/lint/suspicious/noShadowRestrictedNames": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 1
-    },
-    "shells/web/src/views/design-inspector.test.ts": {
-      "warning/lint/correctness/noUnusedImports": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 2
-    },
-    "shells/web/src/views/doc-editor.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 1
-    },
-    "shells/web/src/views/export-preflight.ts": {
-      "warning/lint/complexity/useOptionalChain": 1,
-      "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
-    "shells/web/src/views/framing-overlay.ts": {
-      "warning/lint/complexity/useOptionalChain": 1
-    },
-    "shells/web/src/views/free-canvas-choreo.test.ts": {
-      "warning/lint/complexity/useOptionalChain": 1
-    },
-    "shells/web/src/views/free-canvas-chrome-keys.test.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1
-    },
-    "shells/web/src/views/free-canvas-math.ts": {
-      "warning/lint/suspicious/noGlobalIsFinite": 2,
-      "warning/lint/complexity/useOptionalChain": 2,
-      "error/lint/suspicious/useIterableCallbackReturn": 2
-    },
-    "shells/web/src/views/gallery.ts": {
-      "warning/lint/correctness/noUnusedImports": 3,
-      "warning/lint/complexity/useOptionalChain": 2,
-      "error/lint/suspicious/useIterableCallbackReturn": 11,
-      "error/lint/suspicious/noImplicitAnyLet": 1,
-      "error/lint/suspicious/noAssignInExpressions": 1,
-      "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
-    "shells/web/src/views/idml-import.ts": {
-      "warning/lint/suspicious/noGlobalIsFinite": 6
-    },
     "shells/web/src/styles/parts/platform.css": {
       "error/lint/a11y/useGenericFontNames": 1
     },
@@ -1423,14 +1203,98 @@
     "shells/web/src/views/ask.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
+    "shells/web/src/views/deck-editor.ts": {
+      "info/lint/style/useExponentiationOperator": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 1
+    },
+    "shells/web/src/views/design-import.ts": {
+      "info/lint/complexity/useLiteralKeys": 1,
+      "warning/lint/correctness/noUnusedFunctionParameters": 1,
+      "warning/lint/complexity/useOptionalChain": 32,
+      "warning/lint/suspicious/noGlobalIsFinite": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 1,
+      "error/lint/suspicious/noAssignInExpressions": 2
+    },
+    "shells/web/src/views/design-inspector.ts": {
+      "info/lint/complexity/useLiteralKeys": 10,
+      "error/lint/suspicious/noShadowRestrictedNames": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 1
+    },
+    "shells/web/src/views/design-navigator.ts": {
+      "info/lint/complexity/useLiteralKeys": 2
+    },
+    "shells/web/src/views/free-canvas-tools.test.ts": {
+      "info/lint/complexity/useLiteralKeys": 3
+    },
+    "shells/web/src/views/free-canvas-touch-place.test.ts": {
+      "info/lint/complexity/useLiteralKeys": 9
+    },
+    "shells/web/src/views/block-tree.ts": {
+      "warning/lint/complexity/useOptionalChain": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 2
+    },
+    "shells/web/src/views/canvas-scene.ts": {
+      "warning/lint/complexity/useOptionalChain": 2
+    },
+    "shells/web/src/views/color-lab.test.ts": {
+      "warning/lint/complexity/useArrowFunction": 3,
+      "warning/lint/correctness/noUnusedImports": 1
+    },
+    "shells/web/src/views/color-lab.ts": {
+      "warning/lint/complexity/useOptionalChain": 1,
+      "error/lint/suspicious/noShadowRestrictedNames": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 4
+    },
+    "shells/web/src/views/cost-panel.test.ts": {
+      "warning/lint/correctness/noUnusedImports": 1
+    },
+    "shells/web/src/views/dashboard.ts": {
+      "warning/lint/complexity/useOptionalChain": 1,
+      "error/lint/suspicious/noAssignInExpressions": 1,
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
+    "shells/web/src/views/design-inspector.test.ts": {
+      "warning/lint/correctness/noUnusedImports": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 2
+    },
+    "shells/web/src/views/export-preflight.ts": {
+      "warning/lint/complexity/useOptionalChain": 1,
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
+    "shells/web/src/views/framing-overlay.ts": {
+      "warning/lint/complexity/useOptionalChain": 1
+    },
+    "shells/web/src/views/free-canvas-choreo.test.ts": {
+      "warning/lint/complexity/useOptionalChain": 1
+    },
+    "shells/web/src/views/free-canvas-chrome-keys.test.ts": {
+      "warning/lint/correctness/noUnusedVariables": 1
+    },
+    "shells/web/src/views/free-canvas-math.ts": {
+      "warning/lint/complexity/useOptionalChain": 2,
+      "warning/lint/suspicious/noGlobalIsFinite": 2,
+      "error/lint/suspicious/useIterableCallbackReturn": 2
+    },
+    "shells/web/src/views/free-canvas/gestures.ts": {
+      "warning/lint/complexity/noCommaOperator": 1
+    },
     "shells/web/src/views/components.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
+    "shells/web/src/views/convert.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
     "shells/web/src/views/cost-panel.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
+    "shells/web/src/views/data.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
     "shells/web/src/views/deck-editor.test.ts": {
       "error/lint/suspicious/useIterableCallbackReturn": 2
+    },
+    "shells/web/src/views/doc-editor.ts": {
+      "error/lint/suspicious/useIterableCallbackReturn": 1
     },
     "shells/web/src/views/docs.ts": {
       "error/lint/suspicious/useIterableCallbackReturn": 2,
@@ -1442,21 +1306,15 @@
     "shells/web/src/views/export-format-picker.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
-    "shells/web/src/views/export-package-options.ts": {
-      "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
     "shells/web/src/views/free-canvas-fields.ts": {
-      "error/lint/suspicious/noShadowRestrictedNames": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 2
+      "error/lint/suspicious/useIterableCallbackReturn": 2,
+      "error/lint/suspicious/noShadowRestrictedNames": 1
     },
     "shells/web/src/views/free-canvas-pen.test.ts": {
       "error/lint/suspicious/useIterableCallbackReturn": 1
     },
     "shells/web/src/views/free-canvas-pen.ts": {
       "error/lint/suspicious/useIterableCallbackReturn": 1
-    },
-    "shells/web/src/views/input-policy-attribution.test.ts": {
-      "error/lint/suspicious/noShadowRestrictedNames": 2
     },
     "shells/web/src/views/pptx-import.ts": {
       "info/lint/complexity/noUselessLoneBlockStatements": 1,
@@ -1465,26 +1323,31 @@
     "shells/web/src/views/template-chooser.test.ts": {
       "info/lint/complexity/noUselessConstructor": 1
     },
-    "shells/web/src/views/unpack-open.ts": {
-      "info/lint/complexity/useLiteralKeys": 1
+    "shells/web/src/views/free-canvas/select.ts": {
+      "warning/lint/complexity/noCommaOperator": 2
     },
-    "tests/apca-solve.test.ts": {
-      "info/lint/style/useExponentiationOperator": 1
+    "shells/web/src/views/gallery.ts": {
+      "warning/lint/complexity/useOptionalChain": 2,
+      "error/lint/suspicious/useIterableCallbackReturn": 10,
+      "error/lint/suspicious/noImplicitAnyLet": 1,
+      "error/lint/suspicious/noShadowRestrictedNames": 1,
+      "error/lint/suspicious/noAssignInExpressions": 1
+    },
+    "shells/web/src/views/idml-import.ts": {
+      "warning/lint/suspicious/noGlobalIsFinite": 6
     },
     "shells/web/src/views/inputs-sync.ts": {
       "warning/lint/complexity/useOptionalChain": 4
     },
     "shells/web/src/views/multi-edit.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1,
       "warning/lint/complexity/useOptionalChain": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 3,
-      "error/lint/suspicious/noShadowRestrictedNames": 1
+      "error/lint/suspicious/noShadowRestrictedNames": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 3
     },
     "shells/web/src/views/outline-text.ts": {
       "warning/lint/complexity/useOptionalChain": 1
     },
     "shells/web/src/views/pdf-import.ts": {
-      "warning/lint/correctness/noUnusedImports": 2,
       "warning/lint/complexity/useOptionalChain": 3,
       "error/lint/suspicious/useIterableCallbackReturn": 2
     },
@@ -1495,9 +1358,7 @@
       "warning/lint/complexity/useOptionalChain": 1
     },
     "shells/web/src/views/picker.ts": {
-      "warning/lint/correctness/noUnusedImports": 3,
       "warning/lint/complexity/useOptionalChain": 2,
-      "error/lint/suspicious/useIterableCallbackReturn": 4,
       "error/lint/correctness/noVoidTypeReturn": 2
     },
     "shells/web/src/views/present-mode.test.ts": {
@@ -1514,15 +1375,14 @@
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
     "shells/web/src/views/profile.ts": {
-      "warning/lint/correctness/noUnusedImports": 3,
       "warning/lint/complexity/useOptionalChain": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 10,
-      "error/lint/suspicious/noShadowRestrictedNames": 1
+      "error/lint/suspicious/noShadowRestrictedNames": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 10
     },
     "shells/web/src/views/projects.ts": {
       "warning/lint/correctness/noUnusedVariables": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 2,
-      "error/lint/suspicious/noShadowRestrictedNames": 1
+      "error/lint/suspicious/noShadowRestrictedNames": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 2
     },
     "shells/web/src/views/rich-text.ts": {
       "warning/lint/complexity/useOptionalChain": 6,
@@ -1532,7 +1392,6 @@
       "warning/lint/style/useConst": 3
     },
     "shells/web/src/views/sequence-clock.ts": {
-      "warning/lint/correctness/noUnusedImports": 2,
       "warning/lint/correctness/noUnusedFunctionParameters": 1
     },
     "shells/web/src/views/template-chooser.ts": {
@@ -1543,89 +1402,22 @@
       "error/lint/suspicious/useIterableCallbackReturn": 1
     },
     "shells/web/src/views/timeline-panel.test.ts": {
-      "warning/lint/complexity/noAdjacentSpacesInRegex": 1,
       "warning/lint/suspicious/noPrototypeBuiltins": 1,
       "warning/lint/correctness/noUnusedVariables": 1,
       "error/lint/suspicious/noAssignInExpressions": 1
-    },
-    "shells/web/src/views/timeline-panel.ts": {
-      "warning/lint/suspicious/noConfusingVoidType": 1,
-      "warning/lint/complexity/useOptionalChain": 2
     },
     "shells/web/src/views/tool-actions.test.ts": {
       "warning/lint/complexity/noStaticOnlyClass": 1,
       "error/lint/suspicious/useIterableCallbackReturn": 2
     },
-    "shells/web/src/views/tool-actions.ts": {
-      "warning/lint/correctness/noUnusedFunctionParameters": 1,
-      "warning/lint/complexity/useOptionalChain": 1,
-      "warning/lint/suspicious/noGlobalIsFinite": 2,
-      "warning/lint/suspicious/noConfusingVoidType": 1,
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 14,
-      "error/lint/suspicious/noShadowRestrictedNames": 1,
-      "error/lint/suspicious/noAssignInExpressions": 1
-    },
-    "shells/web/src/views/tool-inputs.ts": {
-      "warning/lint/correctness/noUnusedImports": 2,
-      "warning/lint/complexity/useOptionalChain": 2,
-      "warning/lint/style/useConst": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 13,
-      "error/lint/suspicious/noAssignInExpressions": 7,
-      "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
-    "shells/web/src/views/tool.ts": {
-      "warning/lint/suspicious/noConfusingVoidType": 1,
-      "warning/lint/correctness/noUnusedImports": 1,
-      "warning/lint/correctness/noUnusedVariables": 3,
-      "warning/lint/complexity/useOptionalChain": 1,
-      "warning/lint/correctness/noUnusedFunctionParameters": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 4,
-      "error/lint/suspicious/noShadowRestrictedNames": 1,
-      "error/lint/suspicious/noAssignInExpressions": 3
-    },
-    "shells/web/src/views/transcript-panel.ts": {
-      "warning/lint/complexity/useOptionalChain": 2
-    },
-    "shells/web/src/views/trust-lamps.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "error/lint/suspicious/noShadowRestrictedNames": 1
-    },
-    "shells/web/src/views/upscale-dialog.ts": {
-      "warning/lint/complexity/useOptionalChain": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 2,
-      "error/lint/suspicious/noImplicitAnyLet": 1
-    },
-    "shells/web/src/views/valid-text.test.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
-    },
-    "shells/web/src/views/valid.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "warning/lint/correctness/noUnusedImports": 1,
-      "warning/lint/complexity/useOptionalChain": 3,
-      "warning/lint/performance/noAccumulatingSpread": 1,
-      "error/lint/suspicious/noShadowRestrictedNames": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 5
-    },
-    "shells/web/src/views/video-edit-catalog.test.ts": {
-      "warning/lint/complexity/noAdjacentSpacesInRegex": 1
-    },
-    "shells/web/src/views/video-edit-inline.ts": {
-      "warning/lint/complexity/useOptionalChain": 2
-    },
-    "shells/web/src/views/video-job-dialog.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
-    },
-    "tests/annotate.test.ts": {
-      "warning/lint/complexity/noAdjacentSpacesInRegex": 1,
-      "warning/lint/complexity/useOptionalChain": 1
+    "shells/web/src/views/input-policy-attribution.test.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 2
     },
     "shells/web/src/views/lottie-mount.ts": {
       "error/lint/suspicious/useIterableCallbackReturn": 1
     },
     "shells/web/src/views/matte-dialog.ts": {
-      "error/lint/suspicious/noImplicitAnyLet": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 2
+      "error/lint/suspicious/noImplicitAnyLet": 1
     },
     "shells/web/src/views/motion-path.test.ts": {
       "error/lint/suspicious/noAssignInExpressions": 1
@@ -1646,8 +1438,7 @@
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
     "shells/web/src/views/script-audio.ts": {
-      "error/lint/correctness/noEmptyCharacterClassInRegex": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 2
+      "error/lint/correctness/noEmptyCharacterClassInRegex": 1
     },
     "shells/web/src/views/script-studio.ts": {
       "error/lint/suspicious/noImplicitAnyLet": 2,
@@ -1658,8 +1449,8 @@
       "error/lint/suspicious/useIterableCallbackReturn": 1
     },
     "shells/web/src/views/svg-unpack.ts": {
-      "error/lint/suspicious/noAssignInExpressions": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 1
+      "error/lint/suspicious/useIterableCallbackReturn": 1,
+      "error/lint/suspicious/noAssignInExpressions": 1
     },
     "shells/web/src/views/table-cells.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
@@ -1667,8 +1458,79 @@
     "shells/web/src/views/timeline-subtitles-job.test.ts": {
       "error/lint/suspicious/useIterableCallbackReturn": 2
     },
+    "shells/web/src/views/tool-actions/copying.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 1
+    },
+    "shells/web/src/views/unpack-open.ts": {
+      "info/lint/complexity/useLiteralKeys": 1
+    },
+    "tests/apca-solve.test.ts": {
+      "info/lint/style/useExponentiationOperator": 1
+    },
+    "tests/brand-schemes.test.ts": {
+      "info/lint/complexity/useLiteralKeys": 1
+    },
+    "shells/web/src/views/tool-inputs.ts": {
+      "warning/lint/correctness/noUnusedImports": 2,
+      "warning/lint/complexity/useOptionalChain": 2,
+      "warning/lint/style/useConst": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 11,
+      "error/lint/suspicious/noShadowRestrictedNames": 1,
+      "error/lint/suspicious/noAssignInExpressions": 7
+    },
+    "shells/web/src/views/transcript-panel.ts": {
+      "warning/lint/complexity/useOptionalChain": 2
+    },
+    "shells/web/src/views/upscale-dialog.ts": {
+      "warning/lint/complexity/useOptionalChain": 1,
+      "error/lint/suspicious/noImplicitAnyLet": 1
+    },
+    "shells/web/src/views/valid-text.test.ts": {
+      "warning/lint/correctness/noUnusedImports": 1
+    },
+    "shells/web/src/views/valid.ts": {
+      "warning/lint/complexity/useOptionalChain": 3,
+      "warning/lint/performance/noAccumulatingSpread": 1,
+      "error/lint/suspicious/noShadowRestrictedNames": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 5
+    },
+    "shells/web/src/views/video-edit-inline.ts": {
+      "warning/lint/complexity/useOptionalChain": 2
+    },
+    "tests/annotate.test.ts": {
+      "warning/lint/complexity/noAdjacentSpacesInRegex": 1,
+      "warning/lint/complexity/useOptionalChain": 1
+    },
+    "tests/block-tree.test.ts": {
+      "warning/lint/correctness/noUnusedVariables": 1
+    },
+    "tests/brand-import.test.ts": {
+      "warning/lint/correctness/noUnusedVariables": 1
+    },
+    "tests/c2pa-formats.test.ts": {
+      "warning/lint/correctness/noUnusedVariables": 1
+    },
+    "tests/c2pa-verify.test.ts": {
+      "warning/lint/correctness/noUnusedImports": 1,
+      "warning/lint/correctness/noUnusedVariables": 1
+    },
+    "tests/cli-fail-loud.test.ts": {
+      "warning/lint/style/useImportType": 1
+    },
     "shells/web/src/views/tool-history.test.ts": {
       "error/lint/suspicious/useIterableCallbackReturn": 1
+    },
+    "shells/web/src/views/tool.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
+    "shells/web/src/views/tool/render.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 2
+    },
+    "shells/web/src/views/tool/shared.ts": {
+      "error/lint/suspicious/noAssignInExpressions": 1
+    },
+    "shells/web/src/views/trust-lamps.ts": {
+      "error/lint/suspicious/noShadowRestrictedNames": 1
     },
     "shells/web/src/views/tsig-facts.ts": {
       "error/lint/suspicious/noShadowRestrictedNames": 1
@@ -1694,27 +1556,11 @@
     "tests/audio-analyse.test.ts": {
       "error/lint/suspicious/noAssignInExpressions": 1
     },
-    "tests/brand-schemes.test.ts": {
-      "info/lint/complexity/useLiteralKeys": 1
+    "tests/c2pa-trust.test.ts": {
+      "error/lint/suspicious/noImplicitAnyLet": 1
     },
     "tests/compose.test.ts": {
       "info/lint/complexity/useLiteralKeys": 2
-    },
-    "tests/block-tree.test.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1
-    },
-    "tests/brand-import.test.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1
-    },
-    "tests/c2pa-formats.test.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1
-    },
-    "tests/c2pa-verify.test.ts": {
-      "warning/lint/correctness/noUnusedImports": 1,
-      "warning/lint/correctness/noUnusedVariables": 1
-    },
-    "tests/cli-fail-loud.test.ts": {
-      "warning/lint/style/useImportType": 1
     },
     "tests/color-faces.test.ts": {
       "warning/lint/complexity/useOptionalChain": 1
@@ -1738,8 +1584,19 @@
     "tests/design-path.test.ts": {
       "warning/lint/correctness/noUnusedImports": 1
     },
-    "tests/c2pa-trust.test.ts": {
-      "error/lint/suspicious/noImplicitAnyLet": 1
+    "tests/docs-shot-credentials.test.ts": {
+      "warning/lint/suspicious/noTemplateCurlyInString": 2
+    },
+    "tests/filter-dither-ascii-glitch.test.ts": {
+      "warning/lint/correctness/noUnusedVariables": 1,
+      "warning/lint/complexity/useOptionalChain": 2
+    },
+    "tests/font-upload-edge-cases.test.ts": {
+      "warning/lint/correctness/noUnusedImports": 1,
+      "warning/lint/style/useConst": 1
+    },
+    "tests/free-canvas-math.test.ts": {
+      "warning/lint/correctness/noUnusedImports": 1
     },
     "tests/color-ramp.test.ts": {
       "error/lint/suspicious/noImplicitAnyLet": 1,
@@ -1763,23 +1620,9 @@
       "info/lint/complexity/noUselessEscapeInRegex": 3,
       "warning/lint/suspicious/noTemplateCurlyInString": 1
     },
-    "tests/docs-shot-credentials.test.ts": {
-      "warning/lint/suspicious/noTemplateCurlyInString": 2
-    },
-    "tests/filter-dither-ascii-glitch.test.ts": {
-      "warning/lint/correctness/noUnusedVariables": 1,
-      "warning/lint/complexity/useOptionalChain": 2
-    },
-    "tests/font-upload-edge-cases.test.ts": {
-      "warning/lint/correctness/noUnusedImports": 1,
-      "warning/lint/style/useConst": 1
-    },
-    "tests/free-canvas-math.test.ts": {
-      "warning/lint/correctness/noUnusedImports": 1
-    },
     "tests/gamut-source.test.ts": {
-      "warning/lint/suspicious/noApproximativeNumericConstant": 2,
-      "warning/lint/suspicious/noTemplateCurlyInString": 1
+      "warning/lint/suspicious/noTemplateCurlyInString": 1,
+      "warning/lint/suspicious/noApproximativeNumericConstant": 2
     },
     "tests/gradient-motion.test.ts": {
       "warning/lint/suspicious/noPrototypeBuiltins": 1
@@ -1834,6 +1677,9 @@
     "tests/pdfx.test.ts": {
       "error/lint/suspicious/noAssignInExpressions": 1
     },
+    "tests/pptx.test.ts": {
+      "error/lint/suspicious/noControlCharactersInRegex": 6
+    },
     "tests/recording-captions.test.ts": {
       "info/lint/complexity/useLiteralKeys": 1
     },
@@ -1858,9 +1704,6 @@
     },
     "tests/timeline-math.test.ts": {
       "warning/lint/suspicious/noApproximativeNumericConstant": 2
-    },
-    "tests/pptx.test.ts": {
-      "error/lint/suspicious/noControlCharactersInRegex": 6
     },
     "tests/rate-card-parse.test.ts": {
       "error/lint/suspicious/noImplicitAnyLet": 2

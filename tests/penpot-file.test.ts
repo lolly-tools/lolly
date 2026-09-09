@@ -1325,7 +1325,7 @@ test('imageDimensions: reads PNG, GIF, JPEG, the three WebP flavours and SVG', (
 });
 
 test('decodeBase64 / decodeDataUrl: byte-identical to Buffer', () => {
-  for (const s of ['', 'a', 'ab', 'abc', 'hello world', 'Lolly → Penpot', ' ÿ binary-ish']) {
+  for (const s of ['', 'a', 'ab', 'abc', 'hello world', 'Lolly → Penpot', '\u0000ÿ binary-ish']) {
     const b64 = Buffer.from(s, 'utf8').toString('base64');
     assert.deepEqual(Array.from(decodeBase64(b64)), Array.from(Buffer.from(b64, 'base64')), `round trip of ${JSON.stringify(s)}`);
   }

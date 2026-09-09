@@ -27,7 +27,6 @@
 
 import { deltaEOk } from './color-tools.ts';
 import { hexToOklch } from './brand-derive.ts';
-import type { Oklch } from './brand-derive.ts';
 import { colorToHex } from './tokens.ts';
 import type { RebrandTheme } from './pptx-patch.ts';
 

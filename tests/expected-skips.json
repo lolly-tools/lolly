@@ -95,1004 +95,10 @@
       "owner": "packages/node-shell"
     },
     {
-      "file": "shells/web/src/bridge/export-atomic-inline.test.ts",
-      "fullName": "a plain display:inline is still left to the text pass, and paints once",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-atomic-inline.test.ts",
-      "fullName": "an inline <img> is emitted - replaced content defaults to display:inline",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-atomic-inline.test.ts",
-      "fullName": "an inline-block border is painted",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-atomic-inline.test.ts",
-      "fullName": "an inline-block keeps its background",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-atomic-inline.test.ts",
-      "fullName": "an inline-flex keeps its background",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-atomic-inline.test.ts",
-      "fullName": "nested inline-blocks each paint their own box, once",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
-      "fullName": "a backdrop-filter that is more than a plain blur is not faked",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
-      "fullName": "a blurred backdrop is reconstructed: content behind is cloned, clipped and blurred",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
-      "fullName": "a chained backdrop-filter reaches the raster hatch too",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
-      "fullName": "a reconstructed panel does NOT rasterise - the caps stay honest in both directions",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
-      "fullName": "a rotated frosted panel is left alone rather than double-transformed",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
-      "fullName": "a rotated frosted panel reaches the raster hatch instead of silently dropping the frost",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
-      "fullName": "the filter region is scoped to the element box, not the duplicated backdrop",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-bg-layers.test.ts",
-      "fullName": "a single-layer gradient still emits exactly one gradient with its own stops",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-bg-layers.test.ts",
-      "fullName": "each layer takes its OWN background-size, not the first entry in the list",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-bg-layers.test.ts",
-      "fullName": "two stacked linear-gradients emit TWO gradients, not one merged stop list",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-emf-eps-shadow.test.ts",
-      "fullName": "a hard-edged shadow is ONE shape, not a ramp",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-emf-eps-shadow.test.ts",
-      "fullName": "a soft shadow reaches EMF/EPS as a ramp of distinct shapes",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-emf-eps-shadow.test.ts",
-      "fullName": "an inset shadow also survives to these formats",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-emf-eps-shadow.test.ts",
-      "fullName": "no shadow means no extra shapes",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-emf-eps-shadow.test.ts",
-      "fullName": "the rings paint BEFORE the element background, so it covers them",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-form-controls.test.ts",
-      "fullName": "a CSS-styled control is not given a second, UA-shaped widget",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-form-controls.test.ts",
-      "fullName": "a native range paints a track and a thumb positioned by its value",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-form-controls.test.ts",
-      "fullName": "a password field paints bullets, not the password",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-form-controls.test.ts",
-      "fullName": "a placeholder stands in for an empty value, in the placeholder colour",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-form-controls.test.ts",
-      "fullName": "a select paints its chosen option, not its first",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-form-controls.test.ts",
-      "fullName": "a textarea keeps its lines",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-form-controls.test.ts",
-      "fullName": "an input's value reaches the output - the blank-field defect",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-form-controls.test.ts",
-      "fullName": "control text is clipped to the field, so an over-long value cannot escape it",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-form-controls.test.ts",
-      "fullName": "the mirror element used for layout does not survive the export",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "Chromium parses --force-color-profile (counterfactual: display-p3 flips the gamut query)",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "golden: html-card renders byte-exact dxf",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "golden: html-card renders byte-exact emf",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "golden: html-card renders byte-exact eps",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "golden: html-card renders byte-exact svg",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "golden: linear-gradient renders byte-exact dxf",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "golden: linear-gradient renders byte-exact emf",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "golden: linear-gradient renders byte-exact eps",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "golden: linear-gradient renders byte-exact svg",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "golden: svg-native renders byte-exact dxf",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "golden: svg-native renders byte-exact emf",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "golden: svg-native renders byte-exact eps",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "golden: svg-native renders byte-exact svg",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-format-golden.test.ts",
-      "fullName": "negative control: a perturbed fixture produces different bytes in every format",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-layer-ids.test.ts",
-      "fullName": "an element with no id contributes none - ids only where the canvas minted one",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-layer-ids.test.ts",
-      "fullName": "OFF (the default): the emitted bytes are identical with and without the option present",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-layer-ids.test.ts",
-      "fullName": "ON: a rotated box still gets exactly one stamp (the walker re-enters itself there)",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-layer-ids.test.ts",
-      "fullName": "ON: each stamped element's own <g> carries its id, and nothing else changes",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-layer-ids.test.ts",
-      "fullName": "the round trip closes: a stamped walker SVG lifts along the CANVAS's boundaries",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "a <canvas> exports its pixels instead of an empty box",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "a background image at its intrinsic size is not stretched",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "a blank canvas still emits, and a tainted one does not throw",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "a blur filter gets a filter region big enough to hold the spread",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "a CSS filter is emitted as an SVG filter rather than dropped",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "a drop-shadow-only filter adds no SVG filter, since it is drawn as geometry",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "a fixed-size background image keeps its size and position",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "a host's unslotted light children are NOT painted",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "a replaced element inside a plain-inline wrapper is not dropped",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "a tiling background becomes a <pattern>, not a screenshot",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "an inline svg using currentColor keeps the page's inherited color",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "cover still fills the box - the case the old behaviour got right",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "shadow-root content is walked - it used to be invisible entirely",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-m3.test.ts",
-      "fullName": "slotted light content paints exactly once",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-nested-svg.test.ts",
-      "fullName": "a class-styled status ring survives: computed fill/stroke baked inline, vars and classes collapsed",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-nested-svg.test.ts",
-      "fullName": "a stroke=\"var(--series)\" ATTRIBUTE paints standalone - the computed literal is baked over it",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-nested-svg.test.ts",
-      "fullName": "nested-svg <text> carries its inherited font and fill - no more viewer-default serif",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-nested-svg.test.ts",
-      "fullName": "url(#…) paints survive verbatim - a gradient fill is referenced, never clobbered by a literal",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-paint-order.test.ts",
-      "fullName": "a canvas with NO vector twin serialises byte-identically before and after the feature exists",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-paint-order.test.ts",
-      "fullName": "a positioned child paints AFTER its parent's inline text (E.2 step 5 then 8)",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-paint-order.test.ts",
-      "fullName": "a twin producer that re-enters the walker gets NO twins inside it (depth guard)",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-paint-order.test.ts",
-      "fullName": "a unit hoisted out of an overflow-clip group re-applies the clip",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-paint-order.test.ts",
-      "fullName": "a z-index:-1 child paints after its context's own background and before in-flow content",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-paint-order.test.ts",
-      "fullName": "a z-indexed child hoists OUT of a non-stacking-context ancestor",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-paint-order.test.ts",
-      "fullName": "every twin-producer failure mode falls back to the unmodified raster path",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-paint-order.test.ts",
-      "fullName": "flag OFF: emitted order is exactly document order, even on a heavily z-indexed tree",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-paint-order.test.ts",
-      "fullName": "hoisting stops at isolation:isolate",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-paint-order.test.ts",
-      "fullName": "hoisting stops at opacity<1 - a z-index:99 child stays inside the opacity group",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-paint-order.test.ts",
-      "fullName": "KNOWN LIMITATION: floats are painted in tree order, not section E.2 layer 4",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-paint-order.test.ts",
-      "fullName": "position:relative;z-index:2 declared FIRST still paints above a later static sibling",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-paint-order.test.ts",
-      "fullName": "z-index sorts positioned siblings: declared 40,30,20 must PAINT 20,30,40",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-filter.test.ts",
-      "fullName": "a mixed blur + drop-shadow chain is measured for spill, not silently written off",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-filter.test.ts",
-      "fullName": "blur, shadow:content and shadow:depth each reach the PDF as an embedded image",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-filter.test.ts",
-      "fullName": "the same filters stay VECTOR in SVG - the PDF cap must not leak across walkers",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: CONTROL: no-shadow box",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: CONTROL: plain text",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: drop-shadow",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: hard outer shadow",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: inset shadow",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: layer blur",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: layer blur + drop-shadow",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: layer blur over a box-shadow",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: outer shadow under a translucent background",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: shadow with spread",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: soft outer shadow",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: text-shadow, blurred",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: text-shadow, hard offset",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pseudo-position.test.ts",
-      "fullName": "a backdrop-filtered STATIC ancestor is the containing block, not the positioned one",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pseudo-position.test.ts",
-      "fullName": "a pseudo's own translate is applied (top:50% + translateY(-50%) centres it)",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pseudo-position.test.ts",
-      "fullName": "a rotated pseudo emits a transform about its own origin",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
-      "fullName": "shadow fidelity: CONTROL: plain text, no shadow",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
-      "fullName": "shadow fidelity: drop-shadow",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
-      "fullName": "shadow fidelity: drop-shadow, blur larger than the element",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
-      "fullName": "shadow fidelity: drop-shadow, opaque colour",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
-      "fullName": "shadow fidelity: hard outer shadow (no blur, pure geometry)",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
-      "fullName": "shadow fidelity: inset shadow",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
-      "fullName": "shadow fidelity: outer shadow under a TRANSLUCENT background",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
-      "fullName": "shadow fidelity: shadow with spread",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
-      "fullName": "shadow fidelity: soft outer shadow",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
-      "fullName": "shadow fidelity: text-shadow, blurred",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
-      "fullName": "shadow fidelity: text-shadow, hard offset",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
-      "fullName": "shadow fidelity: text-shadow, large blur",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
       "file": "shells/web/src/bridge/export-stroke-paint.test.ts",
       "fullName": "strokeOf: a class-declared stroke on the real catalog artwork resolves (PDF outlines)",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-stroke-paint.test.ts",
-      "fullName": "strokeOf/strokeWidthOf: attribute > inline style > CSS class, and SVG defaults",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "a background-image whose data-URI contains quotes is emitted, not dropped",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "a fully TRANSPARENT band paints nothing at all",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "a HARD-STOPPED conic emits one EXACT sector per band, not a sampled fan",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "a percentage-only gradient is untouched by the px conversion",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "a plain path and an unquoted url() still parse (no regression from the quote fix)",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "a print-dpi export keeps a higher-resolution raster than a screen export",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "a run the font cannot cover (notdef) keeps its <text> instead of emitting tofu",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "a run whose font resolves is emitted as <path> glyph outlines, not <text>",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "a run with no resolvable font file falls back to <text>",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "a TILED conic background becomes one <pattern>, not an element-sized sweep",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "a TILED gradient layer becomes a <pattern>, not an element-sized sweep",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "a variable-font weight reaches the shaper (Outfit is wght 100..900)",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "an <img> with a PATH src is inlined as a data: URI, not left as a fetchable href",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "an absolute px stop position becomes a fraction of the gradient line, not \"Npx\"",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "an oversized bitmap is downscaled to what its display box can show",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "an UNTILED conic with a real RAMP is still emitted as a wedge fan",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "an UNTILED gradient still fills the element directly, with no pattern",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "CHARACTERIZATION: a mixed run (covered Latin + one uncovered CJK char) falls back to <text> as a WHOLE",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "convertPaths:false keeps every run as selectable <text>",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "emission is deterministic - the same markup exports byte-identical SVG",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "font-feature-settings reaches the shaper (frac changes the emitted geometry)",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "letter-spacing reaches the shaper and changes the emitted geometry",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "text inside a SCALED element exports at the size the browser paints it",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-text-emission.test.ts",
-      "fullName": "text-transform is applied BEFORE shaping, not left to the renderer",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-transform-animation.test.ts",
-      "fullName": "a RUNNING transform transition walks once, not once per attempt",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-transform-animation.test.ts",
-      "fullName": "a statically rotated element: one wrapper group, shallow tree (the baseline)",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-transform-animation.test.ts",
-      "fullName": "a transform an author `!important` rule owns falls to the AABB path, bounded",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-transform-animation.test.ts",
-      "fullName": "an element that only DECLARES a transform transition explodes too - and must not",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-transform-animation.test.ts",
-      "fullName": "an INFINITE transform animation terminates, and the page keeps spinning",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-transform-animation.test.ts",
-      "fullName": "no transform animation anywhere: the same DOM exports the same bytes twice",
-      "reason": "no Chromium (npx playwright install chromium)",
-      "capability": "browser",
+      "reason": "SUSE brand pack not mounted (see profiles.json)",
+      "capability": "brand:suse",
       "owner": "shells/web"
     },
     {
@@ -1313,6 +319,55 @@
       "owner": "tests"
     },
     {
+      "file": "tests/app-history.browser.test.ts",
+      "fullName": "app History merges providers without skips and lists saved work without reading document values",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/app-history.browser.test.ts",
+      "fullName": "file History hands off to the exact batch and its retained report and download",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/app-history.browser.test.ts",
+      "fullName": "History route supports project filters, milestones, right-panel versions, Back and mobile",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/app-history.browser.test.ts",
+      "fullName": "same-time sparse searches continue past 500 candidates and metadata browsing scales to 50,000 creations",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/app-history.browser.test.ts",
+      "fullName": "v23 upgrade preserves saved payloads and download settings while adding metadata keys",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/asset-version.browser.test.ts",
+      "fullName": "an uncached old catalog version never fetches today’s URL or poisons the old cache key",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/asset-version.browser.test.ts",
+      "fullName": "history pins exact uploaded bytes through replacement and backup; referenced versions cannot be deleted",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
       "file": "tests/brand-import.test.ts",
       "fullName": "cross-container equivalence: all available real sources agree",
       "reason": "penpot-start example materials not on this machine",
@@ -1387,6 +442,20 @@
       "fullName": "an animated tool exports a real mp4 through the browser tier",
       "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `npm run build:web`",
       "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/collab-history.browser.test.ts",
+      "fullName": "a collaboration without a history capability never reads private local history",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/collab-history.browser.test.ts",
+      "fullName": "a guest opens a durable copy without persisting its temporary history",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
       "owner": "tests"
     },
     {
@@ -2293,6 +1362,41 @@
       "owner": "tests"
     },
     {
+      "file": "tests/file-batch-history.browser.test.ts",
+      "fullName": "durable batches preserve failures, unread cancellations, quota failures and crash windows across reload and backup",
+      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/file-conversion.browser.test.ts",
+      "fullName": "Convert: mobile/desktop, output bytes, receipts, collision-safe batches and failure retention",
+      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/file-history.browser.test.ts",
+      "fullName": "built application backs up and restores a converted copy through the real UI",
+      "reason": "no built web shell origin (set LOLLY_PRODUCTION_TEST_URL, browser-driven)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/file-history.browser.test.ts",
+      "fullName": "portable file history: two-device restore, immutable collisions, orphan recovery and mobile storage UI",
+      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/file-result-reuse.browser.test.ts",
+      "fullName": "real UI reuses exact result bytes in the library, a new design and another conversion",
+      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
       "file": "tests/font-outline-subset-parity.test.ts",
       "fullName": "skera subset shapes identically through the current outline pipeline",
       "reason": "skera not installed (cargo install skera --features cli, or SKERA_BIN=…)",
@@ -2304,6 +1408,20 @@
       "fullName": "skera subset still reports uncovered characters as notdef",
       "reason": "skera not installed (cargo install skera --features cli, or SKERA_BIN=…)",
       "capability": "external-tool",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/gallery-preview.browser.test.ts",
+      "fullName": "every gallery tool gets a cover before extra templates, including tools below the fold",
+      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/gallery-preview.browser.test.ts",
+      "fullName": "gallery renders branded templates, preserves their framing, and invalidates palette caches",
+      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
+      "capability": "environment",
       "owner": "tests"
     },
     {
@@ -2388,6 +1506,104 @@
       "fullName": "the stock abstract profiles do not advertise a gamut to a tool",
       "reason": "stock abstract profile not on this machine: /Library/ColorSync/Profiles/Sepia Tone.icc",
       "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "chart: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "gradient: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "org-chart: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "pricing-table: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "qr-code: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "Snippet history retains an uploaded icon version after replacement and mobile history stays reachable",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "snippet: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "wordmark: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-fidelity.browser.test.ts",
+      "fullName": "asset checks stay local and repair copies revalidate exact compatible upload replacements",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-fidelity.browser.test.ts",
+      "fullName": "asset labels stay text and closing an inspector cancels late results and copy handoffs",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-fidelity.browser.test.ts",
+      "fullName": "revision reads verify payload bytes and hash without rewriting corrupt or missing data",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-fidelity.browser.test.ts",
+      "fullName": "the History panel checks only on request and opens selected repairs as a new creation",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-workflows.browser.test.ts",
+      "fullName": "50,000 metadata rows retain indexed tool/date paging and bounded free-text continuation",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-workflows.browser.test.ts",
+      "fullName": "milestones, comparison, filters and bounded paging work in the History panel",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
       "owner": "tests"
     },
     {
@@ -2720,6 +1936,20 @@
       "owner": "tests"
     },
     {
+      "file": "tests/launch-motion.browser.test.ts",
+      "fullName": "Launch gallery preview opens the composition it demonstrates",
+      "reason": "LOLLY_MOTION_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/launch-motion.browser.test.ts",
+      "fullName": "Launch: branded frame sampling, real previews, mobile controls and video export",
+      "reason": "LOLLY_MOTION_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
       "file": "tests/linux-pack.test.ts",
       "fullName": "app-icons pack lands scalable SVG + desktop entry",
       "reason": "no bsdtar executable on this runner",
@@ -3014,10 +2244,38 @@
       "owner": "tests"
     },
     {
-      "file": "tests/recording-captions.test.ts",
-      "fullName": "voice-recorder has no asset input for its take, so it declares no transcribe",
-      "reason": "suse pack not mounted",
-      "capability": "brand:suse",
+      "file": "tests/revision-history.browser.test.ts",
+      "fullName": "Design auto checkpoint, right History tab, and editable file export are wired end to end",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/revision-history.browser.test.ts",
+      "fullName": "manual backup round-trips revision IDs, previews and drafts; reimport is idempotent and conflicts roll back",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/revision-history.browser.test.ts",
+      "fullName": "revision transactions: concurrent writers, paged metadata, previews, quota rollback, slot moves and deletion",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/revision-history.browser.test.ts",
+      "fullName": "rolling recovery survives reopen, preserves competing edits and keeps the visible history sparse",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/revision-history.browser.test.ts",
+      "fullName": "the recovery schema upgrade preserves a v21 document and adopts its old head token",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
       "owner": "tests"
     },
     {
@@ -3035,45 +2293,31 @@
       "owner": "tests"
     },
     {
+      "file": "tests/sequence-render.browser.test.ts",
+      "fullName": "sequence export (browser tier) > WP-G: mediabunny alpha:keep round-trips a transparent WebM in this browser",
+      "reason": "no alpha VP9/AV1 encode in this browser build - the transparent-WebM option is correctly not offered",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/timezone-table.browser.test.ts",
+      "fullName": "Timezone table: first visit, keyboard entry, list paste, row actions and reload",
+      "reason": "LOLLY_TIMEZONE_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/timezone-table.browser.test.ts",
+      "fullName": "Timezone table: saved object ids, optional fields and large-list deletion survive editing",
+      "reason": "LOLLY_TIMEZONE_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
       "file": "tests/wmf.test.ts",
       "fullName": "ImageMagick cross-check (skipped unless a WMF delegate is present)",
       "reason": "no ImageMagick binary",
       "capability": "external-tool",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/file-batch-history.browser.test.ts",
-      "fullName": "durable batches preserve failures, unread cancellations, quota failures and crash windows across reload and backup",
-      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/file-result-reuse.browser.test.ts",
-      "fullName": "real UI reuses exact result bytes in the library, a new design and another conversion",
-      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/file-history.browser.test.ts",
-      "fullName": "portable file history: two-device restore, immutable collisions, orphan recovery and mobile storage UI",
-      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/file-history.browser.test.ts",
-      "fullName": "built application backs up and restores a converted copy through the real UI",
-      "reason": "no built web shell origin (set LOLLY_PRODUCTION_TEST_URL, browser-driven)",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/file-conversion.browser.test.ts",
-      "fullName": "Convert: mobile/desktop, output bytes, receipts, collision-safe batches and failure retention",
-      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
-      "capability": "browser",
       "owner": "tests"
     }
   ]

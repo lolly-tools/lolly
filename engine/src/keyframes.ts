@@ -1,3 +1,4 @@
+import { clamp } from './clamp.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Keyframe tracks, the `kf` wire grammar, and the depth-camera projection - 
@@ -289,12 +290,6 @@ const EB_RE = /^eb\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)$/;
 const NUM_RE = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/;
 const T_RE = /^t(-?(?:\d+(?:\.\d+)?|\.\d+))$/;
 const CSS_BEZIER_RE = /^\s*cubic-bezier\(([^()]*)\)\s*$/i;
-
-// ─── small numeric helpers ───────────────────────────────────────────────────
-
-function clamp(v: number, lo: number, hi: number): number {
-  return v < lo ? lo : v > hi ? hi : v;
-}
 
 /**
  * Round to a quantum. The inverse is always an exact integer power of ten here,

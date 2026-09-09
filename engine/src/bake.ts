@@ -15,6 +15,7 @@
 
 import { isToolUrl } from './tool-url.ts';
 import type { AssetRef } from './bridge/host-v1.ts';
+import { assetVersionPin, encodeAssetVersion } from './asset-version.ts';
 
 /** Shared default compose nesting budget: one policy for every shell bridge. */
 export const MAX_COMPOSE_DEPTH = 3;
@@ -106,7 +107,7 @@ export function bakeAssetRef(ref: AssetRef, opts: { now?: number } = {}): AssetR
   meta.bakedAt = now;
   if (bakedFrom !== undefined) meta.bakedFrom = bakedFrom;
 
-  return { ...ref, source: 'remote', id: `baked/${now.toString(36)}`, meta };
+  return { ...ref, pin: undefined, source: 'remote', id: `baked/${now.toString(36)}`, meta };
 }
 
 /**
@@ -118,8 +119,8 @@ export function bakeAssetRef(ref: AssetRef, opts: { now?: number } = {}): AssetR
  * Every serializer must route through here so the policy can't drift.
  */
 export function assetIdForUrl(ref: AssetRef): string {
-  if (isBakedRef(ref) && typeof ref.meta?.bakedFrom === 'string') return ref.meta.bakedFrom;
-  return ref.id;
+  if (isBakedRef(ref)) return typeof ref.meta?.bakedFrom === 'string' ? ref.meta.bakedFrom : ref.id;
+  return encodeAssetVersion(ref.id, assetVersionPin(ref));
 }
 
 /**

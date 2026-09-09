@@ -1,0 +1,29 @@
+{
+  "file": "shells/web/src/views/timeline-panel.ts",
+  "fn": "initTimelinePanel",
+  "tsconfig": "shells/web/tsconfig.json",
+  "outDir": "shells/web/src/views/timeline-panel",
+  "ctxName": "tp",
+  "ctxType": "TpCtx",
+  "header": "The timeline panel of the design tool.",
+  "renameImports": { "escape": "escapeText" },
+  "modules": [
+    { "name": "helpers", "start": "compactPanel", "doc": "timeline-panel: small helpers - buttons, box lookups, media durations, row labels." },
+    { "name": "rows", "start": "isAudioRow", "doc": "timeline-panel: the track rows - rebuild, restyle, ruler, playhead, roving focus, promote and demote." },
+    { "name": "menus", "start": "menuPosition", "doc": "timeline-panel: context menus, onion skin and stagger popovers, the ease editor." },
+    { "name": "keyframes", "start": "playheadSec", "doc": "timeline-panel: keyframe actions - add, seek, open, delete, duplicate." },
+    { "name": "camera", "start": "cameraKind", "doc": "timeline-panel: the scene camera rows, poses, tilt preview and presets." },
+    { "name": "kfDock", "start": "buildDepthControl", "doc": "timeline-panel: the keyframe dock - depth control, keyframe list, ease select, latch, group popover." },
+    { "name": "inspectorPane", "start": "inspectorGroup", "doc": "timeline-panel: the inspector groups and the inspector render." },
+    { "name": "thumbs", "start": "scheduleThumbs", "doc": "timeline-panel: clip thumbnail passes." },
+    { "name": "syncing", "start": "scheduleSync", "doc": "timeline-panel: model sync and time/track geometry." },
+    { "name": "gestures", "start": "showSnapline", "doc": "timeline-panel: pointer gestures - snapping, lane drops, trims, marquee, drag." },
+    { "name": "playback", "start": "syncPlayBtn", "doc": "timeline-panel: play, zoom, touch pinch, fit and split." },
+    { "name": "clips", "start": "canExportFrame", "doc": "timeline-panel: clip export, download, matte, detach and join." },
+    { "name": "edit", "start": "mintId", "doc": "timeline-panel: box edits - ids, links, delete, trims, clock helpers." },
+    { "name": "recording", "start": "audioKind", "doc": "timeline-panel: voice, video and screen takes - meters, count-in, start, stop, insert." },
+    { "name": "subtitles", "start": "textKind", "doc": "timeline-panel: subtitles and transcripts - generate, apply, the transcribe sheet." },
+    { "name": "panel", "start": "openJunction", "doc": "timeline-panel: the panel itself - junction, shortcuts, keys, wheel, time emit, open and destroy." }
+  ],
+  "overrides": {}
+}

@@ -228,8 +228,7 @@ export async function aesZipEncryptEntry(pw: Uint8Array, compressed: Uint8Array,
 }
 
 // ── Zip container framing ───────────────────────────────────────────────────
-const DOS_DATE = 0x0021; // 1980-01-01 (fixed → deterministic; time 0)
-const AES_EXTRA_LEN = 11;
+const DOS_DATE = 0x0021;
 
 function encodeName(name: string): Uint8Array { return new TextEncoder().encode(name); }
 

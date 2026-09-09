@@ -24,6 +24,7 @@
  */
 
 import { cornerRadii, roundedRectPath } from './css-box.ts';
+import { clamp } from './clamp.ts';
 
 /** A 2-D affine matrix (SVG/CSS convention: [a c e / b d f]). */
 interface Matrix { a: number; b: number; c: number; d: number; e: number; f: number; }
@@ -201,7 +202,6 @@ function num(v: unknown, d: number | undefined): number | undefined {
   const x = typeof v === 'number' ? v : parseFloat(v as string);
   return isFinite(x) ? x : d;
 }
-function clamp(v: number, a: number, b: number): number { return v < a ? a : (v > b ? b : v); }
 function round1(v: number): number { return Math.round(v * 10) / 10; }
 function round2(v: number): number { return Math.round(v * 100) / 100; }
 

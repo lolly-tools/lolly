@@ -808,6 +808,13 @@
           "type": "string",
           "description": "On a `vector` input holding image framing ({ zoom, x, y, rotate? }): the id of the asset input whose content it frames. Declares the input as THE framing control for that image, which is what lets the shell mount its generic on-canvas pan/zoom/rotate overlay, bound zoom against the image's real aspect ratio, and offer 'Use as a new image' (bake the framing into a new library asset). Reuse the canonical `imageFraming` field set (schemas/canonical-inputs.json) so the values stay bulk-writable in /batch. Ignored if the target id does not exist or is not an asset input. See plans/148."
         },
+        "tableColumns": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string" },
+          "description": "On flat scalar blocks, edit rows using the shared table in this field-id order; unlisted fields follow in declaration order. Stored block objects and URL field order are unchanged. Fixed headings, spreadsheet paste, copy, and pop-out are available. Complex/nested blocks keep the block editor."
+        },
         "columnEditors": {
           "type": "array",
           "description": "On a `table` input: which editor each COLUMN uses, matched to the table columns by position. A column with no entry (or 'text') edits as a plain text cell. 'url' keeps the text cell but asks the device for a URL keyboard and turns autocapitalise, autocorrect and spellcheck off. 'emoji' turns that column's cells into buttons that open the emoji picker, and the chosen emoji becomes the whole cell value. Presentation only: columns and rows are still user data, the stored value is the same TableValue of strings either way, and URL mode plus the CLI are unaffected.",

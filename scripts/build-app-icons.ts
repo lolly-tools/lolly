@@ -136,6 +136,47 @@ function encodeIco(frames: Array<{ size: number; png: Buffer }>): Buffer {
   return Buffer.concat([header, dir, ...frames.map((f) => f.png)]);
 }
 
+/**
+ * Compile a macOS AppIcon asset catalog with a LIGHT (icon-primary) and DARK
+ * (icon-reverse) appearance into `Assets.car`. A plain `.icns` holds one appearance;
+ * the compiled catalog + `CFBundleIconName` is the only way the Dock/Finder icon can
+ * follow the system theme. Both variants are the full-fidelity Chromium masters (every
+ * path + gradient), resized - never a flattened silhouette. Needs Xcode's `actool`;
+ * degrades to keeping the committed `Assets.car` when actool (or a master) is absent.
+ */
+async function buildMacAppIconCatalog(light: Buffer, dark: Buffer, iconsDir: string): Promise<void> {
+  try { execFileSync('xcrun', ['--find', 'actool'], { stdio: 'pipe' }); }
+  catch { console.log('ℹ macOS AppIcon dark/light catalog skipped - actool (Xcode) not found'); return; }
+  const work = mkdtempSync(join(tmpdir(), 'lolly-appicon-'));
+  const setDir = join(work, 'AppIcon.xcassets', 'AppIcon.appiconset');
+  mkdirSync(setDir, { recursive: true });
+  const images: Array<Record<string, unknown>> = [];
+  for (const pt of [16, 32, 128, 256, 512]) {
+    for (const scale of [1, 2]) {
+      const suffix = scale === 2 ? '@2x' : '';
+      const lightName = `icon_${pt}x${pt}${suffix}.png`;
+      const darkName = `icon_${pt}x${pt}${suffix}-dark.png`;
+      writeFileSync(join(setDir, lightName), await iconPng(light, pt * scale, TRANSPARENT));
+      writeFileSync(join(setDir, darkName), await iconPng(dark, pt * scale, TRANSPARENT));
+      images.push({ idiom: 'mac', size: `${pt}x${pt}`, scale: `${scale}x`, filename: lightName });
+      images.push({ idiom: 'mac', size: `${pt}x${pt}`, scale: `${scale}x`, filename: darkName, appearances: [{ appearance: 'luminosity', value: 'dark' }] });
+    }
+  }
+  writeFileSync(join(setDir, 'Contents.json'), JSON.stringify({ images, info: { version: 1, author: 'lolly-icons' } }, null, 2));
+  const out = join(work, 'compiled');
+  mkdirSync(out, { recursive: true });
+  try {
+    execFileSync('xcrun', ['actool', join(work, 'AppIcon.xcassets'), '--compile', out, '--app-icon', 'AppIcon',
+      '--platform', 'macosx', '--minimum-deployment-target', '11.0', '--output-partial-info-plist', join(work, 'partial.plist')], { stdio: 'pipe' });
+    copyFileSync(join(out, 'Assets.car'), join(iconsDir, 'Assets.car'));
+    console.log('✓ macOS AppIcon Assets.car (light icon-primary + dark icon-reverse, all paths + gradients)');
+  } catch (e) {
+    console.log(`⚠ macOS AppIcon catalog failed (${(e as Error).message.split('\n')[0]})`);
+  } finally {
+    rmSync(work, { recursive: true, force: true });
+  }
+}
+
 async function main(): Promise<void> {
   if (!existsSync(SOURCE)) {
     console.error(`✗ ${SOURCE} not found - the icon pipeline needs icon.svg at the repo root.`);
@@ -155,11 +196,19 @@ async function main(): Promise<void> {
   // The docs hero's still cover derives from the RICH 3-D mark (icon-primary.svg),
   // not the flat mark the PWA rasters use - see the hero-still block below.
   const PRIMARY = resolve(ROOT, 'icon-primary.svg');
+  const REVERSE = resolve(ROOT, 'icon-reverse.svg');
   let primaryMaster: Buffer | null = null;
+  // The dark-appearance master for the macOS app icon. Rasterised the SAME way as the
+  // others - through Chromium, so every path and gradient of icon-reverse.svg survives
+  // (resvg/librsvg drop the blends, which is exactly the "flat shape" we must not ship).
+  let reverseMaster: Buffer | null = null;
   try {
     master = await rasterizer.rasterize(staticIconSvg(readFileSync(SOURCE, 'utf8')), { width: MASTER, height: MASTER, background: 'transparent' });
     if (existsSync(PRIMARY)) {
       primaryMaster = await rasterizer.rasterize(staticIconSvg(readFileSync(PRIMARY, 'utf8')), { width: MASTER, height: MASTER, background: 'transparent' });
+    }
+    if (existsSync(REVERSE)) {
+      reverseMaster = await rasterizer.rasterize(staticIconSvg(readFileSync(REVERSE, 'utf8')), { width: MASTER, height: MASTER, background: 'transparent' });
     }
   } finally {
     await rasterizer.close();
@@ -229,6 +278,9 @@ async function main(): Promise<void> {
   if (primaryMaster) {
     const desktopDir = resolve(ROOT, 'shells/tauri-desktop');
     const desktopIcons = resolve(desktopDir, 'src-tauri/icons');
+    // The Dock/Finder app icon: light icon-primary, dark icon-reverse, theme-aware via
+    // a compiled asset catalog Tauri bundles (see tauri.conf.json resources + Info.plist).
+    if (reverseMaster) await buildMacAppIconCatalog(primaryMaster, reverseMaster, desktopIcons);
     const documentPng = join(desktopIcons, 'lolly-document.png');
     writeFileSync(documentPng, await iconPng(primaryMaster, MASTER, TRANSPARENT));
 

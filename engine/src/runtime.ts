@@ -41,6 +41,7 @@ import type {
   AudioLevel, RecordOpts, RecordSession, IngredientCredential,
 } from './bridge/host-v1.ts';
 import { parseProviderRef } from './asset-provider.ts';
+import { assetVersionPin, decodeAssetVersion, unavailablePinnedAsset, type AssetVersionPin } from './asset-version.ts';
 
 /** One state emission: the current model plus the hydrated template. */
 export interface RuntimeState {
@@ -1478,6 +1479,7 @@ async function resolveAssetRefs(
     // _unresolved URL-mode path AND saved-session refs.  Saved sessions store
     // the full resolved object, but blob: URLs are session-scoped and invalid
     // after a page reload, so we always re-fetch a fresh blob URL from the cache.
+    let pin: AssetVersionPin | undefined;
     try {
       // A baked ref is frozen: its bytes ride in a data: URL, so it resolves
       // as-is on every mount - no bridge call, no compose-stack growth, never a
@@ -1489,6 +1491,16 @@ async function resolveAssetRefs(
         if (typeof ref.url === 'string' && ref.url.startsWith('data:')) return ref;
         dropped.push({ inputId, label, id, reason: 'baked-bytes-lost' });
         return null;
+      }
+      const decoded = decodeAssetVersion(id);
+      id = decoded.id;
+      pin = assetVersionPin(value) ?? decoded.pin;
+      if (pin) {
+        // An exact dependency never composes a fresh render or substitutes a
+        // provider's latest result. Hosts lacking the version must fail closed.
+        const ref = await host.assets.get(id, pin);
+        if (ref.version !== pin.version || (pin.format && ref.format !== pin.format)) throw new Error('The pinned asset version is unavailable.');
+        return { ...ref, pin };
       }
       // A Lolly tool URL as an asset id means "render this tool as my image" -
       // an end user pasted a share link into the picker. Re-render it through
@@ -1524,6 +1536,7 @@ async function resolveAssetRefs(
     } catch (e) {
       host.log('warn', `Failed to resolve asset ${id}`, { error: String(e) });
       dropped.push({ inputId, label, id, reason: 'not-found' });
+      if (pin) return unavailablePinnedAsset(id, pin, value);
       return null;
     }
   };

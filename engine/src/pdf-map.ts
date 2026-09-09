@@ -32,6 +32,7 @@
 
 import { boxGeomFromBBox, safeColor } from './design-map.ts';
 import { constantMask, isAchromatic, maskRegion } from './pdf-smask.ts';
+import { clamp } from './clamp.ts';
 
 // ── types ────────────────────────────────────────────────────────────────────
 
@@ -359,10 +360,6 @@ export interface PdfPageInput extends PdfResources {
    */
   onWarn?: (code: string, detail?: string) => void;
 }
-
-// ── small helpers ─────────────────────────────────────────────────────────────
-
-function clamp(v: number, a: number, b: number): number { return v < a ? a : (v > b ? b : v); }
 function clamp255(v: number): number { return clamp(Math.round(v * 255), 0, 255); }
 function hx(v: number): string { return clamp255(v).toString(16).padStart(2, '0'); }
 function rgbHex(r: number, g: number, b: number): string { return '#' + hx(r) + hx(g) + hx(b); }

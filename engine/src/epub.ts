@@ -26,6 +26,7 @@
  */
 
 import { zipSync } from 'fflate';
+import { escapeXml } from './xml-escape.ts';
 
 export interface EpubChapter {
   /** Chapter title - used in the nav TOC and the chapter's <title>. */
@@ -47,15 +48,6 @@ const enc = new TextEncoder();
 /** Fixed timestamp for deterministic output - the earliest date the zip DOS format admits. */
 const EPOCH_1980 = new Date(Date.UTC(1980, 0, 1, 0, 0, 0));
 
-/** Escape the five XML metacharacters for text that lands in element content or attributes. */
-function esc(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
 
 /** Zero-padded chapter file stem, so lexical order matches spine order (chapter-001…). */
 function chapterName(i: number): string {
@@ -73,10 +65,10 @@ const CONTAINER_XML = `<?xml version="1.0" encoding="UTF-8"?>
 function chapterXhtml(chapter: EpubChapter, lang: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${esc(lang)}" lang="${esc(lang)}">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${escapeXml(lang)}" lang="${escapeXml(lang)}">
   <head>
     <meta charset="utf-8"/>
-    <title>${esc(chapter.title)}</title>
+    <title>${escapeXml(chapter.title)}</title>
   </head>
   <body>
 ${chapter.xhtml}
@@ -87,18 +79,18 @@ ${chapter.xhtml}
 
 function navXhtml(doc: EpubDoc, lang: string): string {
   const items = doc.chapters
-    .map((c, i) => `        <li><a href="${chapterName(i)}.xhtml">${esc(c.title)}</a></li>`)
+    .map((c, i) => `        <li><a href="${chapterName(i)}.xhtml">${escapeXml(c.title)}</a></li>`)
     .join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${esc(lang)}" lang="${esc(lang)}">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${escapeXml(lang)}" lang="${escapeXml(lang)}">
   <head>
     <meta charset="utf-8"/>
-    <title>${esc(doc.title)}</title>
+    <title>${escapeXml(doc.title)}</title>
   </head>
   <body>
     <nav epub:type="toc" id="toc">
-      <h1>${esc(doc.title)}</h1>
+      <h1>${escapeXml(doc.title)}</h1>
       <ol>
 ${items}
       </ol>
@@ -111,9 +103,9 @@ ${items}
 function contentOpf(doc: EpubDoc, lang: string): string {
   // Stable per-document identifier derived from the title only (no timestamp/random) so
   // the bytes stay deterministic; a real publishing flow would pass a persistent UUID/ISBN.
-  const bookId = `urn:lolly:${esc(doc.title).replace(/\s+/g, '-').toLowerCase() || 'untitled'}`;
+  const bookId = `urn:lolly:${escapeXml(doc.title).replace(/\s+/g, '-').toLowerCase() || 'untitled'}`;
   const author = doc.author
-    ? `\n    <dc:creator id="author">${esc(doc.author)}</dc:creator>`
+    ? `\n    <dc:creator id="author">${escapeXml(doc.author)}</dc:creator>`
     : '';
 
   const manifestItems = [
@@ -129,11 +121,11 @@ function contentOpf(doc: EpubDoc, lang: string): string {
     .join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="book-id" xml:lang="${esc(lang)}">
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="book-id" xml:lang="${escapeXml(lang)}">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:identifier id="book-id">${bookId}</dc:identifier>
-    <dc:title>${esc(doc.title)}</dc:title>
-    <dc:language>${esc(lang)}</dc:language>${author}
+    <dc:title>${escapeXml(doc.title)}</dc:title>
+    <dc:language>${escapeXml(lang)}</dc:language>${author}
     <meta property="dcterms:modified">1970-01-01T00:00:00Z</meta>
   </metadata>
   <manifest>

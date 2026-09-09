@@ -496,15 +496,6 @@ function colToIndex(letters: string): number {
   return n - 1;
 }
 
-// ─── tiny XML helpers (bounds-safe, no DOM) ──────────────────────────────────
-
-/** The first opening (or self-closing) `<name …>` tag in `xml`, whole match. */
-function firstTag(xml: string, name: string): string | null {
-  const re = new RegExp(`<${name}\\b[^>]*/?>`, 'i');
-  const m = re.exec(xml);
-  return m ? m[0] : null;
-}
-
 /** Inner XML of the first `<name>…</name>` element (empty string for `<name/>`). */
 function firstElem(xml: string, name: string): string | null {
   const re = new RegExp(`<${name}\\b[^>]*>([\\s\\S]*?)<\\/${name}>|<${name}\\b[^>]*/>`, 'i');
