@@ -724,6 +724,13 @@ function importLines(needImports: Set<ts.Symbol>, needShared: Set<string>, fromD
   const lines: string[] = [];
   const seenSpecs = new Set<string>();
   for (const st of importStmts) {
+    // Stylesheets and other side effects belong to the lazy orchestrator even
+    // though they have no symbols for the reference collector to discover.
+    // Keep their source order and attributes; never copy them into feature modules.
+    if (!st.importClause) {
+      if (!fromDirOfOut && !typesOnly) lines.push(st.getText(sf));
+      continue;
+    }
     let spec = (st.moduleSpecifier as ts.StringLiteral).text;
     if (fromDirOfOut && spec.startsWith('.')) spec = rebase(spec);
     if (seenSpecs.has(spec)) continue; seenSpecs.add(spec);
