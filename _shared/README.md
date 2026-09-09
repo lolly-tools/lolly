@@ -9,7 +9,7 @@ This directory is the **authoring-time** fix. Each `.js` file here is the
 canonical source of one or more named regions:
 
 ```
-// === lolly:shared <name> - canonical source; edit here and run npm run sync:shared ===
+// === lolly:shared <name> - canonical source; edit here and run pnpm run sync:shared ===
 ...helper code...
 // === /lolly:shared <name> ===
 ```
@@ -18,7 +18,7 @@ Consuming `hooks.js` files carry a byte-for-byte copy of each region between
 matching markers:
 
 ```
-// === lolly:shared <name> - generated from community/_shared/<file>; edit there and run npm run sync:shared ===
+// === lolly:shared <name> - generated from community/_shared/<file>; edit there and run pnpm run sync:shared ===
 ...same helper code...
 // === /lolly:shared <name> ===
 ```
@@ -26,9 +26,9 @@ matching markers:
 ## Workflow
 
 1. Edit the region in the canonical file here - **never** inside a consumer.
-2. `npm run sync:shared` - rewrites every marked region in `community/*/hooks.js`
+2. `pnpm run sync:shared` - rewrites every marked region in `community/*/hooks.js`
    and `brands/*/tools/*/hooks.js` from the canonical source. Idempotent.
-3. `npm run validate:catalog` - fails CI if any marked region drifts from its
+3. `pnpm run validate:catalog` - fails CI if any marked region drifts from its
    canonical source (same fail-closed style as the index-drift check).
 
 ## Rules

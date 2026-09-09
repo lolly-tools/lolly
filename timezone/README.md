@@ -32,12 +32,12 @@ The same great-circle tour and easing drive vector and GPU views. `canvas.__loll
 From the parent Lolly checkout:
 
 ```sh
-npm run build:timezone
-npm run typecheck:timezone
+pnpm run build:timezone
+pnpm run typecheck:timezone
 node scripts/build-timezone.ts --check
 node --test tests/timezone-tool.test.ts tests/timezone.browser.test.ts
-npm run build:catalog:all
-npm run validate:catalog:all
+pnpm run build:catalog:all
+pnpm run validate:catalog:all
 ```
 
 To regenerate the bundled data from pinned upstream sources, run `node scripts/vendor-timezone-data.ts`, then rebuild. The data and library licences are in [THIRD_PARTY.md](THIRD_PARTY.md) and `licenses/`.

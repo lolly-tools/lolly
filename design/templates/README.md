@@ -32,8 +32,8 @@ explicitly play a preview. Only one discovery preview plays at a time.
 After editing, rebuild and validate **all** mounted catalogs. Parent-repo checks:
 
 ```sh
-npm run build:catalog:all
-npm run validate:catalog:all
+pnpm run build:catalog:all
+pnpm run validate:catalog:all
 node --import ./tests/css-stub.mjs --test tests/launch-motion.test.ts
 LOLLY_MOTION_TEST_URL=http://localhost:5173 LOLLY_MOTION_EXPORT=1 node --test tests/launch-motion.browser.test.ts
 ```
