@@ -37,6 +37,7 @@
     ],
     "resources": {
       "icons/lolly-document.icns": "lolly-document.icns",
+      "icons/Assets.car": "Assets.car",
       "cli-lib": "cli-lib"
     },
     "externalBin": ["bin/lolly-cli"],

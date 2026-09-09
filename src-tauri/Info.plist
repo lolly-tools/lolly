@@ -2,14 +2,54 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Merged into the bundle plist by Tauri. The binary bundles standard-algorithm
-	     crypto beyond the OS's (rustls/ring, snow Noise transport, engine zip AES +
-	     ZipCrypto), so the app USES non-exempt encryption - mass market, self-classified
-	     ECCN 5D992.c. See appstore/encryption-compliance.html in the repo root. -->
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<true/>
-	<!-- The in-app locale catalogs (shells/web/src/locales) - declares the language
-	     list to the Mac App Store so the listing shows every supported language. -->
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>lolly</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>lolly-document.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Lolly bundle</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>tools.lolly.pack</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>penpot</string>
+				<string>fig</string>
+				<string>idml</string>
+				<string>ai</string>
+				<string>svg</string>
+				<string>pdf</string>
+				<string>xlsx</string>
+				<string>csv</string>
+				<string>tsv</string>
+				<string>pptx</string>
+				<string>docx</string>
+				<string>psd</string>
+				<string>psb</string>
+				<string>xcf</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Document Lolly can open</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+	</array>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
@@ -40,84 +80,32 @@
 		<string>zh-Hans</string>
 		<string>zh-Hant</string>
 	</array>
-  <!-- Tauri generates the portable file-association declaration from
-       tauri.conf.json. This macOS merge repeats that one array only because
-       Finder's document artwork keys are not represented in Tauri's config
-       schema. Keep the UTI, extension, role and rank in step with the config. -->
-  <key>CFBundleDocumentTypes</key>
-  <array>
-    <dict>
-      <key>CFBundleTypeExtensions</key>
-      <array>
-        <string>lolly</string>
-      </array>
-      <key>CFBundleTypeIconFile</key>
-      <string>lolly-document.icns</string>
-      <key>CFBundleTypeName</key>
-      <string>Lolly bundle</string>
-      <key>CFBundleTypeRole</key>
-      <string>Editor</string>
-      <key>LSHandlerRank</key>
-      <string>Owner</string>
-      <key>LSItemContentTypes</key>
-      <array>
-        <string>tools.lolly.pack</string>
-      </array>
-    </dict>
-    <!-- These are import/open helpers, not Lolly-owned formats. Alternate rank
-         keeps a specialist app as the preferred opener; omitting our document
-         icon also keeps the system/vendor artwork for these files. Raw .indd is
-         intentionally absent: Lolly's InDesign path requires exported IDML. -->
-    <dict>
-      <key>CFBundleTypeExtensions</key>
-      <array>
-        <string>penpot</string>
-        <string>fig</string>
-        <string>idml</string>
-        <string>ai</string>
-        <string>svg</string>
-        <string>pdf</string>
-        <string>xlsx</string>
-        <string>csv</string>
-        <string>tsv</string>
-        <string>pptx</string>
-        <string>docx</string>
-        <string>psd</string>
-        <string>psb</string>
-        <string>xcf</string>
-      </array>
-      <key>CFBundleTypeName</key>
-      <string>Document Lolly can open</string>
-      <key>CFBundleTypeRole</key>
-      <string>Editor</string>
-      <key>LSHandlerRank</key>
-      <string>Alternate</string>
-    </dict>
-  </array>
-  <key>UTExportedTypeDeclarations</key>
-  <array>
-    <dict>
-      <key>UTTypeConformsTo</key>
-      <array>
-        <string>public.data</string>
-        <string>public.archive</string>
-      </array>
-      <key>UTTypeDescription</key>
-      <string>Lolly bundle (session share or brand pack)</string>
-      <key>UTTypeIconFile</key>
-      <string>lolly-document.icns</string>
-      <key>UTTypeIdentifier</key>
-      <string>tools.lolly.pack</string>
-      <key>UTTypeTagSpecification</key>
-      <dict>
-        <key>public.filename-extension</key>
-        <array>
-          <string>lolly</string>
-        </array>
-        <key>public.mime-type</key>
-        <string>application/vnd.lolly+zip</string>
-      </dict>
-    </dict>
-  </array>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<true/>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+				<string>public.archive</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Lolly bundle (session share or brand pack)</string>
+			<key>UTTypeIconFile</key>
+			<string>lolly-document.icns</string>
+			<key>UTTypeIdentifier</key>
+			<string>tools.lolly.pack</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>lolly</string>
+				</array>
+				<key>public.mime-type</key>
+				<string>application/vnd.lolly+zip</string>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>
