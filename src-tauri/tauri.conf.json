@@ -4,8 +4,8 @@
   "version": "1.0.7",
   "identifier": "tools.lolly.mobile",
   "build": {
-    "beforeDevCommand": "npm run dev:frontend",
-    "beforeBuildCommand": "npm run build:frontend:release",
+    "beforeDevCommand": "pnpm run dev:frontend",
+    "beforeBuildCommand": "pnpm run build:frontend:release",
     "devUrl": "http://localhost:5174",
     "frontendDist": "../dist"
   },

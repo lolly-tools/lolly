@@ -44,7 +44,7 @@ Two details of that hook are hard-won and easy to break:
 
 | Module | Replaced with | Why |
 |---|---|---|
-| `state` | `bridge-overrides/state.ts` | Filesystem state via `tauri-plugin-fs` instead of IndexedDB, at `$APPDATA/Lolly/saved-state/<slot>.json`. The API surface has to match the web original method for method, because nothing downstream knows which implementation is running, so a missing method crashes boot - as of the TS conversion that is enforced: `createFsStateAPI` returns the web module's own `WebStateAPI`, imported type-only, so a method added there and forgotten here fails `npm run typecheck` instead of a device boot. The logic (slot-name codec, legacy-filename migration, record shape, asset-ref collection) lives in `../tauri-shared/bridge-overrides/state-fs.ts`, shared with the desktop shell, because the two copies were byte-identical apart from comments and every fix had to be made twice. What stays here is the `tauri-plugin-fs` adapter passed into it, which is where **mobile-specific divergence** such as iCloud sync or Android scoped storage lands, without touching desktop. It is an adapter rather than a plain import because the Tauri shells are not npm workspaces, so the parent repo cannot resolve `@tauri-apps/plugin-fs`. |
+| `state` | `bridge-overrides/state.ts` | Filesystem state via `tauri-plugin-fs` instead of IndexedDB, at `$APPDATA/Lolly/saved-state/<slot>.json`. The API surface has to match the web original method for method, because nothing downstream knows which implementation is running, so a missing method crashes boot - as of the TS conversion that is enforced: `createFsStateAPI` returns the web module's own `WebStateAPI`, imported type-only, so a method added there and forgotten here fails `pnpm run typecheck` instead of a device boot. The logic (slot-name codec, legacy-filename migration, record shape, asset-ref collection) lives in `../tauri-shared/bridge-overrides/state-fs.ts`, shared with the desktop shell, because the two copies were byte-identical apart from comments and every fix had to be made twice. What stays here is the `tauri-plugin-fs` adapter passed into it, which is where **mobile-specific divergence** such as iCloud sync or Android scoped storage lands, without touching desktop. It is an adapter rather than a plain import because the Tauri shells are separate pnpm projects, so the parent repo cannot resolve `@tauri-apps/plugin-fs`. |
 | `capabilities-provided` | `bridge-overrides/capabilities-provided.ts` | The web list, spread, with `'screen'` filtered out and `'filesystem'` added. It spreads rather than re-lists so a capability added on the web side can never silently go missing here. |
 | `export` | `bridge-overrides/export.ts` | Delivery only. The web `download()` uses `URL.createObjectURL` plus an `<a download>` click, and the Android WebView has no download handler, so the click is silently dropped and every export no-ops. The override replaces `download` and `file` with a real save through `tauri-plugin-fs`, then hands the file to the OS share sheet. `render()` and the rasteriser are inherited unchanged. |
 
@@ -115,9 +115,9 @@ requires an exported IDML package.
 ## Run it
 
 ```bash
-npm run dev:android    # tauri android dev
-npm run dev:ios        # tauri ios dev
-npm run dev:frontend   # just vite, in a desktop browser, with the mobile overrides active
+pnpm run dev:android    # tauri android dev
+pnpm run dev:ios        # tauri ios dev
+pnpm run dev:frontend   # just vite, in a desktop browser, with the mobile overrides active
 ```
 
 `dev:frontend` is the fast loop for anything that is not native: it exercises the override modules with no Android or Xcode toolchain, though `tauri-plugin-fs` calls will fail without an `invoke` host.
@@ -125,18 +125,18 @@ npm run dev:frontend   # just vite, in a desktop browser, with the mobile overri
 ## Build it
 
 ```bash
-npm run build:android   # build:frontend then tauri android build
-npm run build:ios       # build:frontend then tauri ios build
-npm run build:frontend  # frontend only, into ./dist
+pnpm run build:android   # build:frontend then tauri android build
+pnpm run build:ios       # build:frontend then tauri ios build
+pnpm run build:frontend  # frontend only, into ./dist
 ```
 
 Android needs the SDK, NDK and a JDK; iOS needs Xcode and `minimumSystemVersion` 14.3 or later per `tauri.conf.json`.
 
-`tsconfig.json` here typechecks `bridge-overrides/` only - the frontend is covered by `tsc -p shells/web`. It is reached from the umbrella's `npm run typecheck` through `scripts/typecheck-tauri.ts` rather than as a bare `tsc -p` step, because the overrides import `@tauri-apps/api` and `@tauri-apps/plugin-fs` and **this shell is not an npm workspace**, so a root `npm ci` never creates its `node_modules`. That script SKIPS with a logged reason when they are absent, so a plain clone is not punished; CI installs both Tauri shells (`--omit=dev`) and then re-runs it with `--strict`, which fails on a skip, so the gate cannot quietly become a no-op. To run it locally:
+`tsconfig.json` here typechecks `bridge-overrides/` only - the frontend is covered by `tsc -p shells/web`. It is reached from the umbrella's `pnpm run typecheck` through `scripts/typecheck-tauri.ts` rather than as a bare `tsc -p` step, because the overrides import `@tauri-apps/api` and `@tauri-apps/plugin-fs` and **this shell is a separate pnpm project**, so a root `pnpm install --frozen-lockfile` never creates its `node_modules`. That script SKIPS with a logged reason when they are absent, so a plain clone is not punished; CI installs both Tauri shells (`--prod`) and then re-runs it with `--strict`, which fails on a skip, so the gate cannot quietly become a no-op. To run it locally:
 
 ```bash
-npm --prefix shells/tauri-mobile ci --omit=dev   # once
-npm run typecheck:tauri
+pnpm -C shells/tauri-mobile install --frozen-lockfile --prod   # once
+pnpm run typecheck:tauri
 ```
 
 ## Surprising things
@@ -149,11 +149,11 @@ npm run typecheck:tauri
 
 ## Submodule caveat
 
-This shell builds **inside the umbrella repo** and nowhere else. Its Vite root is `../web`, its overrides import `../../web/src/bridge/…`, it resolves `@lolly/engine` and `@tauri-apps/*` through the umbrella's workspaces and its own `package-lock.json`, and it copies the repo-root `tools/` and `catalog/` profile views into `dist/`. A standalone clone of `lolly-mobile` builds nothing at all.
+This shell builds **inside the umbrella repo** and nowhere else. Its Vite root is `../web`, its overrides import `../../web/src/bridge/…`, it resolves `@lolly/engine` and `@tauri-apps/*` through the umbrella's workspaces and its own `pnpm-lock.yaml`, and it copies the repo-root `tools/` and `catalog/` profile views into `dist/`. A standalone clone of `lolly-mobile` builds nothing at all.
 
 ```bash
 git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
-# or, in an existing clone, BEFORE npm install:
+# or, in an existing clone, BEFORE pnpm install:
 git submodule update --init --recursive
 ```
 
