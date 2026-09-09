@@ -43,14 +43,14 @@ The same module exposes `hasSiteCapture()` and `createExtensionSiteTransport()` 
 There is nothing to build and nothing to install:
 
 1. `chrome://extensions`, enable Developer mode, **Load unpacked**, choose this directory.
-2. Start the web shell with `npm run dev:web` from the umbrella root.
+2. Start the web shell with `pnpm run dev:web` from the umbrella root.
 3. The URL Screenshot tool un-greys in the gallery.
 
 `localhost:5173` is in the manifest's match list precisely so that this works. `PUBLISHING.md` reminds you to strip it before zipping for the Web Store.
 
 ## Surprising things
 
-- **The submodule boilerplate that used to be in this file was wrong.** It claimed a dependency on `@lolly/engine` and on monorepo-relative paths. This extension has neither. It is four plain `.js` files with no imports at all, it is not an npm workspace, and it is the one directory under `shells/` that would load standalone. It still lives here because it is versioned and released alongside the web shell whose capability it fills.
+- **The submodule boilerplate that used to be in this file was wrong.** It claimed a dependency on `@lolly/engine` and on monorepo-relative paths. This extension has neither. It is four plain `.js` files with no imports at all, it is a separate pnpm project, and it is the one directory under `shells/` that would load standalone. It still lives here because it is versioned and released alongside the web shell whose capability it fills.
 - **Capturing localhost and private URLs is a feature, not a hole.** The extension runs in the user's own browser, on their own network, at their own request, so `background.js` rejects only non-http(s) schemes. The SSRF concern belongs to a server-side render service, where an attacker could choose the URL, and there is no such service.
 - **It needs the `debugger` permission**, which is why it exists as an extension rather than as a content script trick. `Page.captureScreenshot` is the only way to get an accurate full-page shot at a chosen viewport and device pixel ratio. `PUBLISHING.md` carries the justification copy for each permission.
 - **The site read asks for `scripting` even though `debugger` is already granted.** `Runtime.evaluate` could have collected the same markup and returned it over CDP, at the cost of zero new permissions. It was not worth it: the collector is an async function that fetches a dozen subresources and returns megabytes of structured data, which `chrome.scripting.executeScript` hands back as a real object, and it runs *only* in the tab this extension opened, for the URL the user typed. `scripting` is also the milder of the two permissions to review and to explain.
