@@ -1,8 +1,8 @@
 {
   "id": "timezone",
   "name": "Timezone",
-  "version": "1.0.0",
-  "engineVersion": "^1.183.0",
+  "version": "1.1.0",
+  "engineVersion": "^1.186.0",
   "status": "official",
   "category": "event",
   "singleInstance": true,
@@ -162,13 +162,30 @@
     },
     {
       "id": "locations",
-      "label": "Places & labels",
+      "label": "Places",
       "type": "blocks",
-      "default": [],
+      "default": [
+        {
+          "place": "London, GB"
+        },
+        {
+          "place": "Nuremberg, DE"
+        },
+        {
+          "place": "Prague, CZ"
+        },
+        {
+          "place": "Sofia, BG"
+        },
+        {
+          "place": "San Francisco, US"
+        },
+        {
+          "place": "Noosa, AU"
+        }
+      ],
       "section": "Places",
-      "labelledFields": true,
-      "rowActions": true,
-      "help": "Add or reorder as many places as you need. Use a city, City, country code, or an IANA timezone. Reorder rows to set the tour route. Coordinates and timezone override the lookup.",
+      "help": "Type a city or IANA timezone in the first column; press Enter for the next row. The remaining columns are optional. Paste a list of cities or a spreadsheet with these column headings. Add a country code for ambiguous cities (London, GB). Pop out for more space. Move rows up to set the tour route. Fill region accepts yes or no; coordinates and timezone override the lookup.",
       "fields": [
         {
           "id": "label",
@@ -178,50 +195,60 @@
         },
         {
           "id": "place",
-          "label": "City or IANA timezone",
+          "label": "City",
           "type": "text",
           "default": "",
           "placeholder": "London, GB / Europe/London"
         },
         {
           "id": "timezone",
-          "label": "Timezone override",
+          "label": "Timezone",
           "type": "text",
           "default": "",
           "placeholder": "Europe/London"
         },
         {
           "id": "annotation",
-          "label": "Annotation",
+          "label": "Note",
           "type": "text",
           "default": ""
         },
         {
           "id": "color",
-          "label": "Indicator colour",
+          "label": "Colour",
           "type": "color",
           "default": ""
         },
         {
           "id": "spread",
-          "label": "Fill this timezone region",
+          "label": "Fill region",
           "type": "boolean",
           "default": false
         },
         {
           "id": "longitude",
-          "label": "Longitude override",
+          "label": "Longitude",
           "type": "text",
           "default": "",
           "placeholder": "-0.12"
         },
         {
           "id": "latitude",
-          "label": "Latitude override",
+          "label": "Latitude",
           "type": "text",
           "default": "",
           "placeholder": "51.51"
         }
+      ],
+      "tableColumns": [
+        "place",
+        "label",
+        "annotation",
+        "timezone",
+        "color",
+        "spread",
+        "longitude",
+        "latitude"
       ]
     },
     {
@@ -541,7 +568,7 @@
         "id": "create",
         "label": "Create",
         "steps": [
-          "Add places. Name attendees, datacentres or cities. Use an IANA timezone or a city; add a country code to disambiguate. Colour each place and optionally fill its timezone.",
+          "Edit the Places table. Replace the example cities, press Enter to move down, or paste a city list or spreadsheet. Add a country code to disambiguate. Labels, notes, colours and timezone fills are optional; pop the table out for more room.",
           "Compose the artwork. The map fills the available width; choose Fit whole map to keep the entire globe in frame. Drag to rotate, Shift-drag to roll, and scroll to zoom. Set artwork size in Export.",
           "Share a moment. Leave time on Now for a live clock, or schedule a moment in a reference timezone. Export JSON, CSV, Markdown or a calendar event.",
           "Make it move. Choose Map only for a clean animation, retaining locations for tours and regions. Choose Tour, Orbit or Unfold, then export MP4, WebM or GIF. Match export duration to the animation duration for a complete loop."

@@ -114,6 +114,7 @@ export function wallTime(value: string, zone: string, ambiguity: string): Date {
     );
   return matches[ambiguity === 'later' ? matches.length - 1 : 0];
 }
+const countryNames = new Intl.DisplayNames(['en'], { type: 'region' });
 let cityIndex: Map<string, any[]> | null = null;
 function cities() {
   if (!cityIndex) {
@@ -122,6 +123,13 @@ function cities() {
       for (const k of new Set([norm(c[0]), norm(c[1])]))
         cityIndex.set(k, [...(cityIndex.get(k) || []), c]);
     }
+    // English spelling of the existing offline Nürnberg record.
+    cityIndex.set('nuremberg', cityIndex.get('nurnberg') || []);
+    // Queensland place-names register, population centre 24497 (Noosa Heads).
+    // Kept outside generated cityData so upstream refreshes retain this addition.
+    const noosa = ['Noosa', 'Noosa Heads', 'AU', 'Queensland', 'Australia/Brisbane', 153.09139, -26.38694, 0];
+    cityIndex.set('noosa', [noosa]);
+    cityIndex.set('noosa heads', [noosa]);
   }
   return cityIndex;
 }
@@ -129,12 +137,13 @@ export function resolvePlace(row: Inputs, index: number, colors: string[]): Plac
   const place = String(row.place || '').trim(),
     override = String(row.timezone || '').trim();
   const out: Place = {
-    label: String(row.label || place || row.timezone || `Place ${index + 1}`).trim(),
+    label: String(row.label || place.split(',')[0] || row.timezone || `Place ${index + 1}`).trim(),
     place,
     timezone: override,
     annotation: String(row.annotation || '').trim(),
     color: hex(row.color) || colors[index % colors.length],
-    spread: row.spread === true,
+    // Compact legacy block URLs carry scalar fields as strings.
+    spread: row.spread === true || row.spread === 'true',
     longitude: null,
     latitude: null,
   };
@@ -148,7 +157,8 @@ export function resolvePlace(row: Inputs, index: number, colors: string[]): Plac
       const [name, ...rest] = place.split(',').map(norm);
       let matches = cities().get(name) || [];
       if (rest.length)
-        matches = matches.filter((c) => rest.every((r) => [norm(c[2]), norm(c[3])].includes(r)));
+        matches = matches.filter((c) => rest.every((r) => [norm(c[2]), norm(c[3]),
+          norm(countryNames.of(c[2]))].includes(r)));
       // A zone override is an explicit disambiguator too.
       if (override)
         matches = matches.filter((c) => {
