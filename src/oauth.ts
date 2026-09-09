@@ -29,7 +29,7 @@
  *   POST /api/mcp/token                           → code / refresh → access token
  */
 
-import { randomB64u, safeEqual, sha256B64u, signValue, verifyValue } from './sign.ts';
+import { safeEqual, sha256B64u, signValue, verifyValue } from './sign.ts';
 
 export interface Result {
   status: number;

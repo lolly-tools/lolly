@@ -19,7 +19,7 @@ import type { ToolManifest } from '../../../engine/src/loader.ts';
 import type { ContentBlock, ToolCallResult } from './protocol.ts';
 import { listTools, loadToolCached, loadIndex, listToolTemplates, loadTemplateSeed } from './catalog.ts';
 import { toolInputSchema, fileInputId } from './schema.ts';
-import { render, transform, mimeForFormat, isTextFormat, normFormat } from './render.ts';
+import { render, transform, isTextFormat, normFormat } from './render.ts';
 import { withHost } from './host.ts';
 import type { RenderOpts } from './render.ts';
 

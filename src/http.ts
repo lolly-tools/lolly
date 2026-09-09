@@ -14,7 +14,6 @@
  */
 
 import { createServer } from 'node:http';
-import type { IncomingMessage, ServerResponse } from 'node:http';
 import { pathToFileURL } from 'node:url';
 import { createGateway } from './gateway.ts';
 
