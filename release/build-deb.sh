@@ -24,7 +24,7 @@ if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
 fi
 
 step "Building signed frontend (profile mode) on the host"
-( cd "$DESKTOP" && LOLLY_EMBED_CATALOG=profile npm run build:frontend:release )
+( cd "$DESKTOP" && LOLLY_EMBED_CATALOG=profile pnpm run build:frontend:release )
 
 # Cheap guards against the failure modes that have actually shipped.
 [ -s "$DESKTOP/dist/precache.json" ] || die "dist/precache.json missing - offline model list would read 'Not offered by this server'"

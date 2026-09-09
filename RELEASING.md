@@ -38,10 +38,10 @@ omission shipped as a silent, user-visible hole:
 worse than it looks. `vite.config.js`'s `ortWasmFromPublic()` plugin hard-fails:
 
     vite.config: .../ort.bundle.min.mjs loads ort-wasm-simd-threaded.jsep.wasm,
-    but public/ort/ort-wasm-simd-threaded.jsep.wasm is missing - run npm run build:ort
+    but public/ort/ort-wasm-simd-threaded.jsep.wasm is missing - run pnpm run build:ort
 
-and because `npm run previews` drives a web build, **you cannot rebuild tool previews
-without running `npm run build:ort` first**. The error surfaces buried under a rolldown
+and because `pnpm run previews` drives a web build, **you cannot rebuild tool previews
+without running `pnpm run build:ort` first**. The error surfaces buried under a rolldown
 worker-bundling stack trace, so it reads like a bundler bug rather than a missing step.
 Run it before `previews`.
 
@@ -50,13 +50,13 @@ If you add a step to `build:web`, ask whether this shell needs it too.
 ## Tool previews: rebuild them, and decide whether to ship them
 
 `catalog/previews/` is **git-ignored and generated** - 190 per-tool SVG previews built
-by `npm run previews` (a real browser via Playwright; `npx playwright install chromium`
+by `pnpm run previews` (a real browser via Playwright; `pnpm exec playwright install chromium`
 first). They are the gallery's tool thumbnails.
 
 ```bash
-npm run build:ort         # REQUIRED FIRST - previews drives a web build, which hard-fails without it
-npx playwright install chromium   # once; the generator renders in a real browser
-npm run previews          # build-previews + optimize-preview-webp + build-preview-bundle
+pnpm run build:ort         # REQUIRED FIRST - previews drives a web build, which hard-fails without it
+pnpm exec playwright install chromium   # once; the generator renders in a real browser
+pnpm run previews          # build-previews + optimize-preview-webp + build-preview-bundle
 ```
 
 **They are NOT in the default packaged build.** `LOLLY_EMBED_CATALOG` defaults to
@@ -71,19 +71,19 @@ blank and fills in.
 
 So decide, per release:
 
-- `npm run build` - neutral. Small, no thumbnails, tiles generate on first load.
-- `npm run build:profile` - embeds the active `tools/` + `catalog/` views including
+- `pnpm run build` - neutral. Small, no thumbnails, tiles generate on first load.
+- `pnpm run build:profile` - embeds the active `tools/` + `catalog/` views including
   previews and og cards. On the `lolly-start` profile that content is the public blank
   brand, so it is safe to ship; on `suse` it is NOT (private pack).
 
-Whichever you pick, run `npm run previews` first if the tool set changed, or you will
+Whichever you pick, run `pnpm run previews` first if the tool set changed, or you will
 embed stale art.
 
 ## Profile safety
 
 The active content profile decides what gets baked in. **`brands/suse` is private and
-must never reach a public artifact.** `npm run profile` shows the active one;
-`npm run profile:start` selects the public blank brand. `rpm/make-sources.sh` refuses
+must never reach a public artifact.** `pnpm run profile` shows the active one;
+`pnpm run profile:start` selects the public blank brand. `rpm/make-sources.sh` refuses
 to run on the `suse` profile for this reason; the Flathub manifest gets it right
 structurally, by pinning only public submodules and never fetching `brands/suse`.
 

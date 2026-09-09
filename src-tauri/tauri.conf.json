@@ -4,8 +4,8 @@
   "version": "1.0.7",
   "identifier": "tools.lolly.Desktop",
   "build": {
-    "beforeDevCommand": "npm run dev:frontend",
-    "beforeBuildCommand": "npm run build:frontend:release && npm run build:quicklook && npm run build:cli-sidecar",
+    "beforeDevCommand": "pnpm run dev:frontend",
+    "beforeBuildCommand": "pnpm run build:frontend:release && pnpm run build:quicklook && pnpm run build:cli-sidecar",
     "devUrl": "http://localhost:5173",
     "frontendDist": "../dist"
   },

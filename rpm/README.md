@@ -56,12 +56,12 @@ does pick up a shared `libonnxruntime`, so this cannot regress silently.
 Needs network, **node 24** (see `.nvmrc`) and **Rust >= 1.88**.
 
 ```bash
-git submodule update --init --recursive   # BEFORE npm install
-npm install                               # builds the tools/ + catalog/ profile views
-npm run profile:start                     # public profile - see the warning below
+git submodule update --init --recursive   # BEFORE pnpm install
+pnpm install                               # builds the tools/ + catalog/ profile views
+pnpm run profile:start                     # public profile - see the warning below
 
 cd shells/tauri-desktop
-npm ci
+pnpm install --frozen-lockfile
 rpm/make-sources.sh
 ```
 

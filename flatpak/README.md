@@ -41,7 +41,7 @@ package name) all have to stay in agreement. If you set `mainBinaryName` in
 
 # 1) build the .deb
 cd shells/tauri-desktop
-npm ci && npm run build:frontend && npm run tauri -- build --bundles deb
+pnpm install --frozen-lockfile && pnpm run build:frontend && pnpm run tauri build --bundles deb
 
 # 2) stage it next to the manifest
 cp src-tauri/target/release/bundle/deb/*.deb flatpak/lolly.deb

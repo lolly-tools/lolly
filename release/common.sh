@@ -26,6 +26,6 @@ DOCKER_RUN=(docker run --rm --security-opt label=disable
 assert_public_profile() {
   local profile
   profile="$(cat "$REPO/.lolly-profile" 2>/dev/null || echo unknown)"
-  [ "$profile" != "suse" ] || die "active profile is 'suse' (private pack) - run 'npm run profile:start'"
+  [ "$profile" != "suse" ] || die "active profile is 'suse' (private pack) - run 'pnpm run profile:start'"
   echo "active content profile: $profile"
 }

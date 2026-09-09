@@ -18,7 +18,7 @@
 #
 #   --skip-frontend   reuse an existing ../dist instead of rebuilding it. Only safe
 #                     if that dist was built from the current tree by this shell's
-#                     `npm run build:frontend:release` - a stale dist is silently embedded
+#                     `pnpm run build:frontend:release` - a stale dist is silently embedded
 #                     into the binary and is invisible in the finished RPM.
 set -euo pipefail
 
@@ -60,7 +60,7 @@ mkdir -p "$stage"
 #    must never be baked into a published RPM.
 # --------------------------------------------------------------------------
 if [ "$skip_frontend" -eq 0 ]; then
-  step "Building signed frontend (LOLLY_EMBED_CATALOG=profile npm run build:frontend:release)"
+  step "Building signed frontend (LOLLY_EMBED_CATALOG=profile pnpm run build:frontend:release)"
   # profile, not the shells' 'neutral' default: profile embeds catalog/previews/, the
   # per-tool gallery thumbnails. Neutral deliberately omits them (plans/131 WP-A), and
   # the visible cost is a gallery where every tile renders itself on first load. Safe
@@ -68,9 +68,9 @@ if [ "$skip_frontend" -eq 0 ]; then
   # the public blank brand.
   #
   # Rebuild the previews first if the tool set changed, or you embed stale art:
-  #   npm run build:ort && npm run previews
+  #   pnpm run build:ort && pnpm run previews
   # (build:ort is not optional - previews drives a web build that hard-fails without it.)
-  ( cd "$desktop" && LOLLY_EMBED_CATALOG=profile npm run build:frontend:release )
+  ( cd "$desktop" && LOLLY_EMBED_CATALOG=profile pnpm run build:frontend:release )
 else
   step "Reusing existing dist/ (--skip-frontend)"
 fi
@@ -83,8 +83,8 @@ active_profile="$(cat "$repo/.lolly-profile" 2>/dev/null || echo unknown)"
 echo "    active content profile: $active_profile"
 case "$active_profile" in
   lolly-start) ;;  # the public blank brand - the only thing we may publish
-  suse) die "refusing to package the private SUSE profile; run 'npm run profile:start' first" ;;
-  *) die "unrecognised or unset profile '$active_profile'; run 'npm run profile:start'" ;;
+  suse) die "refusing to package the private SUSE profile; run 'pnpm run profile:start' first" ;;
+  *) die "unrecognised or unset profile '$active_profile'; run 'pnpm run profile:start'" ;;
 esac
 
 # --------------------------------------------------------------------------

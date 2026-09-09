@@ -38,7 +38,7 @@ function jsToTsFallback() {
 // configs cannot drift. Default 'neutral' (start brand), matching mobile
 // (2026-08-23): every shipped app is the neutral build, and SUSE folks load
 // the SUSE brand from a .lolly pack until the internal hosted instance
-// exists. `npm run build:profile` flips it back to embedding the active
+// exists. `pnpm run build:profile` flips it back to embedding the active
 // repo-root profile views for an internal build.
 const EMBED_CATALOG = resolveEmbedMode(process.env.LOLLY_EMBED_CATALOG, 'neutral');
 

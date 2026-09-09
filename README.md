@@ -49,7 +49,7 @@ Two details of that hook are hard-won and easy to break:
 
 | Module | Replaced with | Why |
 |---|---|---|
-| `state` | `bridge-overrides/state.ts` | Filesystem state via `tauri-plugin-fs` instead of IndexedDB. Saved sessions become `$APPDATA/Lolly/saved-state/<slot>.json`. The API surface has to match the web original method for method, because nothing downstream knows which implementation is running, so a missing method crashes boot - as of the TS conversion that is enforced: `createFsStateAPI` returns the web module's own `WebStateAPI`, imported type-only, so a method added there and forgotten here fails `npm run typecheck` instead of a device boot. The logic (slot-name codec, legacy-filename migration, record shape, asset-ref collection) lives in `../tauri-shared/bridge-overrides/state-fs.ts`, shared with the mobile shell; this file is just the `tauri-plugin-fs` binding it is handed, which is also where desktop-only storage behaviour would go. It is an adapter rather than a plain import because the Tauri shells are not npm workspaces, so the parent repo cannot resolve `@tauri-apps/plugin-fs`. |
+| `state` | `bridge-overrides/state.ts` | Filesystem state via `tauri-plugin-fs` instead of IndexedDB. Saved sessions become `$APPDATA/Lolly/saved-state/<slot>.json`. The API surface has to match the web original method for method, because nothing downstream knows which implementation is running, so a missing method crashes boot - as of the TS conversion that is enforced: `createFsStateAPI` returns the web module's own `WebStateAPI`, imported type-only, so a method added there and forgotten here fails `pnpm run typecheck` instead of a device boot. The logic (slot-name codec, legacy-filename migration, record shape, asset-ref collection) lives in `../tauri-shared/bridge-overrides/state-fs.ts`, shared with the mobile shell; this file is just the `tauri-plugin-fs` binding it is handed, which is also where desktop-only storage behaviour would go. It is an adapter rather than a plain import because the Tauri shells are separate pnpm projects, so the parent repo cannot resolve `@tauri-apps/plugin-fs`. |
 | `capture` | `bridge-overrides/capture.ts` | Real page capture instead of the web shell's throwing stub. `page(spec)` calls the native `capture_page` for a raster plus page geometry; `vector(spec)` calls `capture_page_pdf` and converts the vector PDF to a standalone SVG through the engine's PDF interpreter, then windows it so a vector shot frames identical content to a raster shot of the same spec. |
 | `capabilities-provided` | `bridge-overrides/capabilities-provided.ts` | Declares a genuine superset: it spreads the web list, filters out `'screen'` and adds `'filesystem'` and `'capture'`. It spreads rather than re-lists so that a capability added on the web side can never silently go missing here and gate a tool off as "desktop only" on the desktop itself. `'screen'` is subtracted because display capture is `getDisplayMedia`, and wry's webviews do not grant it without the host app answering a permission delegate that this shell does not implement, so advertising it would un-grey the screen-capture tool and then fail at the tap. |
 | `export` | `bridge-overrides/export.ts` | Delivery only. The web `download()` uses `URL.createObjectURL` plus an `<a download>` click. WKWebView hands that navigation to wry, which **cancels** it outright unless a native download handler is registered. The override replaces `download` and `file` with a real save through `tauri-plugin-fs`: fast Download writes to a de-collided `Downloads/Lolly` filename, while the desktop-only **Save as…** action uses the native dialog, remembers its last folder and lets the OS confirm replacement. A successful save offers Reveal through a native recent-path allowlist. `render()` and the rasteriser are inherited unchanged. |
@@ -126,7 +126,7 @@ Two things have to be true before any of it works.
 
 **A signing keypair.** `plugins.updater.pubkey` ships as the literal
 `PLACEHOLDER-RUN-TAURI-SIGNER-GENERATE`. Mint the real one with
-`npm exec tauri signer generate -- -w ~/.lolly-updater.key`, paste the public half
+`pnpm exec tauri signer generate -w ~/.lolly-updater.key`, paste the public half
 into `tauri.conf.json`, and keep the private half and its password as the CI
 secrets `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` -
 `tauri build` reads those to sign the artifact. `build-latest-json.ts` refuses to
@@ -299,7 +299,7 @@ must never advertise a file for which the router has no honest destination.
 - **macOS:** Tauri writes `CFBundleDocumentTypes` and `UTExportedTypeDeclarations`.
   `src-tauri/Info.plist` adds the icon keys that Tauri's association schema cannot express,
   and `icons/lolly-document.icns` is bundled as the Finder document icon. It is generated
-  directly from the rich root `icon-primary.svg` by `npm run icons`; do not wrap it in a
+  directly from the rich root `icon-primary.svg` by `pnpm run icons`; do not wrap it in a
   mock sheet of paper, because Finder already supplies the file context. Two sandboxed app
   extensions under `macos/quicklook/` make the file itself visible too: Finder thumbnails
   work on macOS 10.15+, and the data-based Space-bar preview on macOS 12+. Both lift only the
@@ -312,7 +312,7 @@ must never advertise a file for which the router has no honest destination.
   Open With. The single-instance handler forwards a file opened while Lolly is already live.
 - **Linux:** the deb/rpm/Flatpak desktop entry claims the MIME type; shared-mime-info
   supplies the `*.lolly` glob and the hicolor mimetype icons under `linux/icons/`.
-  Those icons are generated directly from the rich root `icon-primary.svg` by `npm run
+  Those icons are generated directly from the rich root `icon-primary.svg` by `pnpm run
   icons`, with no mock page treatment, and are consumed by both GNOME Files and KDE Dolphin.
   GNOME Files may replace this fallback with the actual embedded preview when a session share
   carries one; KDE uses the primary MIME icon because no KIO thumbnail plugin is installed.
@@ -323,8 +323,8 @@ contract-tested from the umbrella repo. If one changes, change all package forma
 ## Run it
 
 ```bash
-npm run dev            # tauri dev, which starts vite via beforeDevCommand, then the app
-npm run dev:frontend   # just vite, in a browser, with the desktop overrides active
+pnpm run dev            # tauri dev, which starts vite via beforeDevCommand, then the app
+pnpm run dev:frontend   # just vite, in a browser, with the desktop overrides active
 ```
 
 `dev:frontend` is genuinely useful: it lets you exercise the override modules without a Rust build, though `capture` will fail because there is no `invoke` host.
@@ -332,18 +332,18 @@ npm run dev:frontend   # just vite, in a browser, with the desktop overrides act
 ## Build it
 
 ```bash
-npm run build          # tauri build; its hook builds the frontend + macOS Quick Look extensions
-npm run build:frontend # frontend only, into ./dist
-npm run build:quicklook # universal Finder thumbnail + Quick Look extensions (macOS only)
+pnpm run build          # tauri build; its hook builds the frontend + macOS Quick Look extensions
+pnpm run build:frontend # frontend only, into ./dist
+pnpm run build:quicklook # universal Finder thumbnail + Quick Look extensions (macOS only)
 ```
 
 Requires a Rust toolchain. Note that `dist/` here is this shell's own output, distinct from `shells/web/dist`.
 
-`tsconfig.json` here typechecks `bridge-overrides/` only - the frontend is covered by `tsc -p shells/web`. It is reached from the umbrella's `npm run typecheck` through `scripts/typecheck-tauri.ts` rather than as a bare `tsc -p` step, because the overrides import `@tauri-apps/api` and `@tauri-apps/plugin-fs` and **this shell is not an npm workspace**, so a root `npm ci` never creates its `node_modules`. That script SKIPS with a logged reason when they are absent, so a plain clone is not punished; CI installs both Tauri shells (`--omit=dev`) and then re-runs it with `--strict`, which fails on a skip, so the gate cannot quietly become a no-op. To run it locally:
+`tsconfig.json` here typechecks `bridge-overrides/` only - the frontend is covered by `tsc -p shells/web`. It is reached from the umbrella's `pnpm run typecheck` through `scripts/typecheck-tauri.ts` rather than as a bare `tsc -p` step, because the overrides import `@tauri-apps/api` and `@tauri-apps/plugin-fs` and **this shell is a separate pnpm project**, so a root `pnpm install --frozen-lockfile` never creates its `node_modules`. That script SKIPS with a logged reason when they are absent, so a plain clone is not punished; CI installs both Tauri shells (`--prod`) and then re-runs it with `--strict`, which fails on a skip, so the gate cannot quietly become a no-op. To run it locally:
 
 ```bash
-npm --prefix shells/tauri-desktop ci --omit=dev   # once
-npm run typecheck:tauri
+pnpm -C shells/tauri-desktop install --frozen-lockfile --prod   # once
+pnpm run typecheck:tauri
 ```
 
 ## Surprising things
@@ -355,11 +355,11 @@ npm run typecheck:tauri
 
 ## Submodule caveat
 
-This shell builds **inside the umbrella repo** and nowhere else, more strictly than any other. Its Vite root is `../web`, its overrides import `../../web/src/bridge/…`, it resolves `@lolly/engine` and `@tauri-apps/*` through the umbrella's workspaces and its own `package-lock.json`, and it copies the repo-root `tools/` and `catalog/` profile views into `dist/`. A standalone clone of `lolly-desktop` builds nothing at all.
+This shell builds **inside the umbrella repo** and nowhere else, more strictly than any other. Its Vite root is `../web`, its overrides import `../../web/src/bridge/…`, it resolves `@lolly/engine` and `@tauri-apps/*` through the umbrella's workspaces and its own `pnpm-lock.yaml`, and it copies the repo-root `tools/` and `catalog/` profile views into `dist/`. A standalone clone of `lolly-desktop` builds nothing at all.
 
 ```bash
 git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
-# or, in an existing clone, BEFORE npm install:
+# or, in an existing clone, BEFORE pnpm install:
 git submodule update --init --recursive
 ```
 

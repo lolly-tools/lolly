@@ -8,14 +8,14 @@
     "dev": "tauri dev",
     "dev:frontend": "VITE_MODELS_BASE=https://lolli.li vite",
     "build": "tauri build",
-    "build:frontend": "npm --prefix ../.. run build:ort && npm --prefix ../.. run build:info && VITE_MODELS_BASE=https://lolli.li vite build && node -e \"const fs=require('node:fs');for(const f of fs.readdirSync('../web/src/locales'))if(f.endsWith('.json'))fs.rmSync('dist/info/'+f.slice(0,-5),{recursive:true,force:true})\"",
-    "build:frontend:release": "npm --prefix ../.. run build:desktop:frontend:release",
+    "build:frontend": "pnpm -C ../.. run build:ort && pnpm -C ../.. run build:info && VITE_MODELS_BASE=https://lolli.li vite build && node -e \"const fs=require('node:fs');for(const f of fs.readdirSync('../web/src/locales'))if(f.endsWith('.json'))fs.rmSync('dist/info/'+f.slice(0,-5),{recursive:true,force:true})\"",
+    "build:frontend:release": "pnpm -C ../.. run build:desktop:frontend:release",
     "build:quicklook": "sh scripts/build-macos-quicklook.sh",
     "build:cli-sidecar": "node ../../scripts/build-cli-sidecar.ts --install",
     "tauri": "tauri",
-    "build:profile": "LOLLY_EMBED_CATALOG=profile npm run build",
-    "build:frontend:profile": "LOLLY_EMBED_CATALOG=profile npm run build:frontend",
-    "build:frontend:profile:release": "LOLLY_EMBED_CATALOG=profile npm run build:frontend:release"
+    "build:profile": "LOLLY_EMBED_CATALOG=profile pnpm run build",
+    "build:frontend:profile": "LOLLY_EMBED_CATALOG=profile pnpm run build:frontend",
+    "build:frontend:profile:release": "LOLLY_EMBED_CATALOG=profile pnpm run build:frontend:release"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
@@ -28,5 +28,6 @@
   "devDependencies": {
     "@tauri-apps/cli": "^2",
     "vite": "^8.2.2"
-  }
+  },
+  "packageManager": "pnpm@11.1.2"
 }

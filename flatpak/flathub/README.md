@@ -14,11 +14,11 @@ the freedesktop metadata they install. Only the build strategy should differ.
 |---|---|
 | `tools.lolly.Desktop.yml` | The manifest. Filename must equal the app id. |
 | `cargo-sources.json` | **Generated.** ~600 crates. |
-| `node-sources.json` | **Generated.** Both npm lockfiles, merged. |
+| `node-sources.json` | **Generated.** Both pnpm lockfiles, one offline store. |
 
 ## Regenerating the sources
 
-Needed whenever `Cargo.lock` or either `package-lock.json` changes.
+Needed whenever `Cargo.lock` or either `pnpm-lock.yaml` changes.
 
 ```bash
 pip install tomlkit aiohttp 'PyYAML>=6.0.2'
@@ -28,23 +28,19 @@ git clone https://github.com/flatpak/flatpak-builder-tools
 python3 flatpak-builder-tools/cargo/flatpak-cargo-generator.py \
   shells/tauri-desktop/src-tauri/Cargo.lock -o cargo-sources.json
 
-# npm - TWO lockfiles. The desktop shell is deliberately not a workspace member, so
-# its deps are not in the root lockfile. Generate both and merge.
+# pnpm - generate BOTH locks together so they share one v11 store manifest.
+# Run from the umbrella root. The temporary directory excludes unrelated locks.
 pip install ./flatpak-builder-tools/node
-flatpak-node-generator npm package-lock.json \
-  -o /tmp/node-root.json --node-sdk-extension node24
-cd shells/tauri-desktop && flatpak-node-generator npm package-lock.json \
-  -o /tmp/node-desktop.json --node-sdk-extension node24
+lolly_flatpak_locks=$(mktemp -d)
+mkdir -p "$lolly_flatpak_locks/desktop"
+cp pnpm-lock.yaml "$lolly_flatpak_locks/pnpm-lock.yaml"
+cp shells/tauri-desktop/pnpm-lock.yaml "$lolly_flatpak_locks/desktop/pnpm-lock.yaml"
+flatpak-node-generator pnpm "$lolly_flatpak_locks/pnpm-lock.yaml" --recursive \
+  --pnpm-store-version v11 --no-xdg-layout --node-sdk-extension node24 \
+  -o shells/tauri-desktop/flatpak/flathub/node-sources.json
 ```
 
-Merge the two JSON arrays with the repository helper. It deduplicates identical
-destinations and fails if two sources would write different content to one path:
-
-```bash
-node scripts/merge-flatpak-node-sources.ts \
-  /tmp/node-root.json /tmp/node-desktop.json \
-  shells/tauri-desktop/flatpak/flathub/node-sources.json
-```
+Use flatpak-builder-tools commit `1fc32195e3e60fe5c97f0af646dec7a99df5962b` or newer for pnpm 11 store support. The manifest stages the pinned pnpm archive as a verified source, and both installs read the generated store. When upgrading pnpm, update its archive digest and confirm the generator supports the new store version.
 
 ## Building and linting locally
 
