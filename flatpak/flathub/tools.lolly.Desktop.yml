@@ -231,7 +231,7 @@ modules:
       # brands/lolly-start pack, and the packages/* workspaces.
       - type: git
         url: https://github.com/lolly-tools/lolly.git
-        commit: 08895e1b84070e015db2175cd17f41ab762d5e86
+        commit: 27e51f1b32054af54a04451c385e33371611d952
         disable-submodules: true
 
       # The submodules this build needs, pinned to what the umbrella commit above
@@ -240,15 +240,15 @@ modules:
       # though the desktop app does not run them.
       - type: git
         url: https://github.com/lolly-tools/lolly-web.git
-        commit: cd8116089f3416eb076c8dc31989548eb0470b19
+        commit: 2ff971eaed90f212869d780858620123bc33ac2e
         dest: shells/web
       - type: git
         url: https://github.com/lolly-tools/lolly-cli.git
-        commit: 000616d28da1f85c495ae53627b46b4a4fa22095
+        commit: 9f731a5e2d865b39caf9e751384008f0ec6804f4
         dest: shells/cli
       - type: git
         url: https://github.com/lolly-tools/lolly-tui.git
-        commit: 8fefa886a6f85dfe86b0252d7fff4c839b9a58b3
+        commit: 38005e5b9db4b0760b20ddd02c508f8b13b9bac5
         dest: shells/tui
       - type: git
         url: https://github.com/lolly-tools/lolly-ca.git
@@ -256,7 +256,7 @@ modules:
         dest: services/ca
       - type: git
         url: https://github.com/lolly-tools/lolly-mcp-server.git
-        commit: a43135502664e6aa6a3b6b50425a468c43f3289a
+        commit: 7cb67dbca4d03df3905036e8d998931f4fc426de
         dest: services/mcp
       # Not workspaces, but the build reads them: community/ is the public tool set
       # that scripts/use-profile.ts builds the tools/ view from, and docs/ is what
@@ -272,7 +272,7 @@ modules:
       # The shell being built.
       - type: git
         url: https://github.com/lolly-tools/lolly-desktop.git
-        commit: bfacd787d21d19e736f25be762b7fae2378fa227
+        commit: 06ff6b9489a4cfd6ae5b83e4a3e6f7bf22c3ae1c
         dest: shells/tauri-desktop
 
       # ONNX Runtime, byte-identical to what ort-sys would have fetched. Extracts to
