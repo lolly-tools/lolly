@@ -50,6 +50,11 @@ export interface ActionsCtx {
   activeSlot: string | null;
   automaticHistory: AutomaticHistory | undefined;
   saveGen: number;
+  /** The last export's exact delivered file, retained for retry (plans/236). Replaced
+   *  by the next export; released when the panel unmounts (releaseDelivery). */
+  deliveryResult: import('../../lib/delivery-result.ts').DeliveryResult | null;
+  /** Unmounts the recovery control painted for `deliveryResult`. */
+  deliveryUnmount: (() => void) | null;
   canvasBlocksInput: { canvas?: { fixedCanvas?: boolean; }; } | undefined;
   artboardFollowsDims: boolean;
   SHARE_SVG: string;

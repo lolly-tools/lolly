@@ -1,1 +1,14 @@
-.download-recovery { display: block; margin-top: var(--ui-space-control-block); }
+/* The recovery controls beside a delivered file (plans/236). Flex-wrapped so the
+   message and both buttons stay visible at a narrow width and with large text. */
+.download-recovery {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2, .5rem);
+  margin-top: var(--ui-space-control-block);
+}
+.download-recovery-label {
+  display: block;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-sm);
+}

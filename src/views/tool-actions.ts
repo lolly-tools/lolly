@@ -399,6 +399,12 @@ function renderActions(
     getSlot: () => ta.activeSlot,
     history: ta.automaticHistory,
     dispose: ta.preflight.disposeActions,
+    // Release the last export's retained file (plans/236). The tool view registers
+    // this on its mount lifecycle, so leaving the view frees the bytes.
+    releaseDelivery: (): void => {
+      ta.deliveryUnmount?.(); ta.deliveryUnmount = null;
+      ta.deliveryResult?.dispose(); ta.deliveryResult = null;
+    },
   };
 }
 

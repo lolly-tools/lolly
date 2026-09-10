@@ -22,6 +22,28 @@ type SaveFilePicker = (opts: {
 
 let saveAsNext = false;
 
+/**
+ * What a delivery could actually prove (plans/236). `saved` - a picker or native
+ * write closed. `requested` - an anchor was clicked; the file may or may not have
+ * landed. `cancelled` - the user dismissed a dialog; nothing was written.
+ */
+export type DeliveryOutcome = 'saved' | 'requested' | 'cancelled';
+
+// The web export bridge's download() records how it delivered, and lib/deliver-
+// file.ts reads it straight back after the same call. A single slot, consumed on
+// read, so a stale record from an earlier delivery can never be mistaken for the
+// answer to this one. The Tauri overrides never write here: their download is a
+// native save, and a resolved call already means the file was written.
+let lastOutcome: DeliveryOutcome | null = null;
+
+export function recordDeliveryOutcome(outcome: DeliveryOutcome): void { lastOutcome = outcome; }
+
+export function takeDeliveryOutcome(): DeliveryOutcome | null {
+  const outcome = lastOutcome;
+  lastOutcome = null;
+  return outcome;
+}
+
 /** Can this browser put a real save dialog up? Chromium-family only today. */
 export function saveFilePickerSupported(): boolean {
   return typeof window !== 'undefined'

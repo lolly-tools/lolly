@@ -20,7 +20,8 @@ import { sourceToGrid, gridToTarget } from '../lib/convert-codecs.ts';
 import { t } from '../i18n.ts';
 import { escape } from '../utils.ts';
 import { wireTabs } from '../lib/tabs.ts';
-import { offerDownloadRecovery } from '../lib/download-recovery.ts';
+import { attachDeliveryResult, releaseDeliveryFor } from '../lib/download-recovery.ts';
+import { deliverFile } from '../lib/deliver-file.ts';
 import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
 import { mountHomeFab } from '../components/home-fab.ts';
@@ -204,10 +205,13 @@ export async function mountDataView(viewEl: HTMLElement, host: HostV1, _params =
         const out = gridToTarget([value.columns, ...value.rows], target.id);
         const blob = new Blob([out as BlobPart], { type: target.mime });
         const name = `${baseName}.${target.ext}`;
-        await host.export.download(blob, name);
+        const outcome = await deliverFile(host, blob, name);
         if (!active || current !== generation) return;
-        status.textContent = t('File ready. Download requested.');
-        clearRecovery = offerDownloadRecovery(status, blob, name, t('File saved.'));
+        clearRecovery = () => releaseDeliveryFor(status);
+        attachDeliveryResult(status, status, { blob, filename: name, label: name }, host, outcome, {
+          ready: t('File ready. Download requested.'),
+          saved: t('File saved.'),
+        });
       } catch (e) {
         if (active && current === generation) announceError((e as Error).message);
       } finally {

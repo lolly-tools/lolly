@@ -24,9 +24,11 @@ import './run-overlay.css';
 import { runBatch } from './batch.ts';
 import { playSfx } from '../lib/sfx.ts';
 import { t } from '../i18n.ts';
+import { deliverFile } from '../lib/deliver-file.ts';
+import { attachDeliveryResult, releaseDeliveryFor } from '../lib/download-recovery.ts';
 import { isBatchRunActive, startBatchJob, releaseBatchJob } from '../lib/batch-job.ts';
 import type { JobHandle } from '../lib/jobs.ts';
-import { buildZip, saveBlob, saveSequential } from './zip.ts';
+import { buildZip, saveSequential } from './zip.ts';
 import { QUIPS, quipLines } from './quips.ts';
 import { buildPreflightReport, collectUnmade, rowLabel, type SkippedLike } from './manifest.ts';
 import type { BatchRow, BatchFile, BatchResult, BatchNotes, RowNotes } from './batch.ts';
@@ -297,6 +299,8 @@ export async function runBatchWithProgress<F = unknown>(host: HostV1, rows: Batc
   // single Cancel button, then the live log. Built ONCE; draw() rewrites only the
   // head text and each finished row appends one <li>.
   mount.hidden = false;
+  // A new run in this overlay replaces the file the last one retained (plans/236).
+  releaseDeliveryFor(mount);
   mount.innerHTML = `
     <div class="pro-quip" aria-hidden="true"></div>
     <div class="pro-progress-body">
@@ -320,6 +324,19 @@ export async function runBatchWithProgress<F = unknown>(host: HostV1, rows: Batc
   if (skipNote) logEl.insertAdjacentHTML('beforeend', skipNote);
   const draw = (head: string) => { headEl.innerHTML = head; };
   const appendLog = (li: string) => logEl.insertAdjacentHTML('beforeend', li);
+  // The delivery line (plans/236): the final file, retained, and the way back to it.
+  // Separate from the headline, which reports what was GENERATED - a browser can
+  // confirm the one but only ever request the other.
+  const deliveryLine = (): HTMLElement => {
+    let line = mount.querySelector<HTMLElement>('.pro-delivery');
+    if (!line) {
+      line = document.createElement('p');
+      line.className = 'pro-delivery pro-progress-msg';
+      line.setAttribute('role', 'status');
+      logEl.insertAdjacentElement('beforebegin', line);
+    }
+    return line;
+  };
 
   // A live wall of preview cards - each finished export pops in as a thumbnail so the
   // job reads as a visual build-up, not a wall of text. Newest first; capped so the DOM
@@ -603,7 +620,7 @@ export async function runBatchWithProgress<F = unknown>(host: HostV1, rows: Batc
     onBatchRendered?.(files); // host-injected usage metric (see main.js)
 
     // Deliver: one zip when possible; spaced sequential downloads as a fallback.
-    // Delivery is a browser download either way (pro/zip.ts saveBlob), so it lands
+    // Delivery goes through the host either way (lib/deliver-file.ts), so it lands
     // whether or not the view that started the run is still on screen.
     let delivered = false;
     let zipName: string | undefined;
@@ -632,9 +649,11 @@ export async function runBatchWithProgress<F = unknown>(host: HostV1, rows: Batc
             const { encryptPdfStrong } = await import('../bridge/export.ts');
             pdf = await encryptPdfStrong(pdf, strongPassword);
           }
-          await saveBlob(pdf, `${zipBaseName}.pdf`);
+          const pdfName = `${zipBaseName}.pdf`;
+          const pdfOutcome = await deliverFile(host, pdf, pdfName);
           delivered = true;
-          zipName = `${zipBaseName}.pdf`;
+          zipName = pdfName;
+          attachDeliveryResult(mount, deliveryLine(), { blob: pdf, filename: pdfName, label: pdfName }, host, pdfOutcome);
           appendLog(`<li class="pro-log-skip">Combined document: per-file Content Credentials ride the zip delivery, not a merged PDF.</li>`);
           draw(`<strong>Done - ${files.length} row${files.length === 1 ? '' : 's'} in one PDF${tail}.</strong>`);
           announce?.(`Batch complete - ${files.length} row${files.length === 1 ? '' : 's'} in one PDF${tail}.`);
@@ -648,9 +667,13 @@ export async function runBatchWithProgress<F = unknown>(host: HostV1, rows: Batc
 
     if (!delivered) try {
       const zip = await buildZip(files, { zipName: `${zipBaseName}.zip`, author, csv, zipLock, password: strongPassword, unmade, noted, runNotes, retryOf, preflight });
-      await saveBlob(zip, `${zipBaseName}.zip`);
+      const archiveName = `${zipBaseName}.zip`;
+      // The retained archive is the one just built - locked, if a lock was asked for -
+      // so a retry re-hands it without collecting the password again or rebuilding.
+      const zipOutcome = await deliverFile(host, zip, archiveName);
       delivered = true;
-      zipName = `${zipBaseName}.zip`;
+      zipName = archiveName;
+      attachDeliveryResult(mount, deliveryLine(), { blob: zip, filename: archiveName, label: archiveName }, host, zipOutcome);
       draw(`<strong>Done - ${files.length} file${files.length === 1 ? '' : 's'} in one zip${tail}.</strong>`);
       announce?.(`Batch complete - ${files.length} file${files.length === 1 ? '' : 's'} in one zip${tail}.`);
       // The whole queue finished - celebrate: the big trumpet for a real batch, the subtle
@@ -662,7 +685,7 @@ export async function runBatchWithProgress<F = unknown>(host: HostV1, rows: Batc
         // A lock was requested - NEVER fall back to unencrypted sequential downloads,
         // which would silently ship the non-PDF members (and the lolly.txt manifest
         // with author details) in cleartext. Fail loudly and save nothing.
-        appendLog(`<li class="pro-log-err">Couldn't build the password-protected zip (${msg}) - nothing was downloaded. Try again, or export fewer files at once.</li>`);
+        appendLog(`<li class="pro-log-err">Couldn't build the password-protected zip (${msg}) - nothing was delivered. Try again, or export fewer files at once.</li>`);
         draw(`<strong>Couldn't build the password-protected zip - nothing was saved.</strong>`);
         announce?.('Encrypted download failed; nothing was saved.');
       } else {
@@ -673,8 +696,10 @@ export async function runBatchWithProgress<F = unknown>(host: HostV1, rows: Batc
           onSaved: (n, tot) => draw(`<strong>Saving ${n} / ${tot}…</strong>`),
         });
         delivered = true;
-        draw(`<strong>Done - ${files.length} files downloaded${tail}.</strong>`);
-        announce?.(`Batch complete - ${files.length} file${files.length === 1 ? '' : 's'} downloaded${tail}.`);
+        // Individual anchor downloads: each was REQUESTED, and there is no single
+        // archive to retain, so say exactly that - never "downloaded".
+        draw(`<strong>Done - ${files.length} files; ${files.length} downloads requested${tail}.</strong>`);
+        announce?.(`Batch complete - ${files.length} file${files.length === 1 ? '' : 's'}, downloads requested${tail}.`);
         if (!isCancelled()) playSfx(total > 1 ? 'fanfare' : 'victory'); // finished (fallback path) - big trumpet for a batch, subtle "ta-da" for one
       }
     }

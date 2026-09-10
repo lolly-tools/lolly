@@ -885,6 +885,7 @@ export function paintBar(ta: ActionsCtx): void {
       ${secondaryRow}
       ${downloadRow}
       ${actions.includes('download') ? `<p class="export-degraded-note" data-export-degraded role="status" hidden style="margin:.2rem 0 0;color:hsl(var(--muted-foreground));font-size:12px;text-align:center"></p>` : ''}
+      ${actions.includes('download') ? `<p class="export-delivery" data-export-delivery role="status" hidden></p>` : ''}
     </div>
     ${actions.includes('download') ? `${recordingRow}${filenameRow}${dimsRow}${timingRow}${aspectWarnRow}${fidelityWarnRow}${notesHandoutRow}${hdrRow}${cmykRow}${printRow}${pkgRow}${protectionRow}<div class="export-ingredient-note" data-ingredient-note hidden></div>${audioRow}${loudnessRow}${captionsRow}${settingsRow}${videoQualityRow}${sendRow}${preflightRow}${costRow}` : ''}
   `;

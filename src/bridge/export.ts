@@ -40,7 +40,7 @@ import { buildAudioTags } from '../lib/audio-tags.ts';
 import { createStaticChromeGuard, staticChromeVerdict, chromePaintsOverLive, countToolMutations, staticChromeFrameAction } from './frame-static.ts';
 import type { Box, ChromeEl } from './frame-static.ts';
 import { buildExportPack, renderLinuxPackage } from './export-linux-package.ts';
-import { consumeSaveAsNext } from './export-save-picker.ts';
+import { consumeSaveAsNext, recordDeliveryOutcome } from './export-save-picker.ts';
 import { packIco } from './ico-pack.ts';
 import type { ExportMeta, IngredientCredential, HostV1, C2paSignOpts } from '@lolly-tools/core/host-v1';
 import type { C2paActionInput } from '../../../../engine/src/c2pa.ts';
@@ -197,9 +197,12 @@ export function createExportAPI(host: WebHost) {
     async download(blob: Blob, filename: string): Promise<void> {
       // Armed by the export panel's Save As button (requestSaveAsNext), and only
       // ever for one delivery. Falls through to the anchor path when the dialog
-      // could not open, so a refused picker still saves the file.
-      if (await consumeSaveAsNext(blob, filename)) return;
+      // could not open, so a refused picker still saves the file. Either way the
+      // outcome is recorded for lib/deliver-file.ts: a closed dialog write is the
+      // one thing that may be reported as Saved; an anchor click is only a request.
+      if (await consumeSaveAsNext(blob, filename)) { recordDeliveryOutcome('saved'); return; }
       anchorSave(blob, filename);
+      recordDeliveryOutcome('requested');
     },
 
     // Transform-path delivery: a blob the tool produced itself (a transformed

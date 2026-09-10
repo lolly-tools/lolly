@@ -13,6 +13,9 @@ import { CENTRE_LOW } from '../../bridge/audio-envelope.ts';
 import { _setExportNoticeSink } from '../../bridge/export.ts';
 import { linkHelpDescriptions, wireHelpTips } from '../../components/help-tip.js';
 import { currentLang, t, tRaw } from '../../i18n.ts';
+import { DeliveryResult } from '../../lib/delivery-result.ts';
+import { chooseLocationDeliver, deliverFile } from '../../lib/deliver-file.ts';
+import { mountDownloadRecovery } from '../../lib/download-recovery.ts';
 import { openApprovalRequest } from '../../lib/approval-request.ts';
 import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { stageDeckAsSequence, stagedDeckMs } from '../../lib/deck-as-sequence.ts';
@@ -708,6 +711,12 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         degradeNote.hidden = true;
         degradeNote.textContent = '';
       }
+      // A new export replaces the retained one (plans/236): release it and clear its
+      // surface, so a retry can never hand over an earlier render as this one.
+      ta.deliveryUnmount?.(); ta.deliveryUnmount = null;
+      ta.deliveryResult?.dispose(); ta.deliveryResult = null;
+      const deliverySurface = el!.querySelector<HTMLElement>('[data-export-delivery]');
+      if (deliverySurface) { deliverySurface.hidden = true; deliverySurface.textContent = ''; }
       const degradedNotes: string[] = [];
       _setExportNoticeSink((msg) => {
         if (degradedNotes.includes(msg)) return; // per-clip mutes can repeat the same line
@@ -1075,6 +1084,32 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         // 'renders' auto-save skips it: saving the zip under the per-page format tag would
         // write a corrupt asset (a .zip stored as if it were a png/svg/pdf).
         let downloadedIsZip = false;
+        // plans/236: every delivery below goes through here, so the EXACT bytes and name
+        // handed over are retained on the panel together with what the browser could
+        // vouch for. A later retry re-hands those bytes; it never re-renders, re-stamps
+        // provenance, re-encrypts a ZIP or records a revision (the history and library
+        // writes further down run once, for the export, not for a retry).
+        const deliver = async (blob: Blob, name: string): Promise<void> => {
+          const outcome = await deliverFile(host, blob, name);
+          ta.deliveryUnmount?.(); ta.deliveryUnmount = null;
+          ta.deliveryResult?.dispose();
+          const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const result = new DeliveryResult(
+            { blob, filename: name, label: tRaw('{name} · exported {time}', { name, time }) },
+            (again, againName) => deliverFile(host, again, againName),
+            chooseLocationDeliver(host),
+          );
+          result.recordOutcome(outcome);
+          ta.deliveryResult = result;
+          const surface = el!.querySelector<HTMLElement>('[data-export-delivery]');
+          if (surface) {
+            surface.hidden = false;
+            ta.deliveryUnmount = mountDownloadRecovery(surface, result, {
+              ready: tRaw('{name} ready.', { name }),
+              saved: t('Saved.'),
+            });
+          }
+        };
         const framePages = framePick.kind === 'page' ? [pageEls[framePick.index]!] : pageEls;
         const notesHandout =
           fmt === 'pdf' &&
@@ -1163,7 +1198,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             },
             { shutter: true, detail: t('Speaker notes handout'), onCancel: cancelExport }
           );
-          await host.export.download(downloadedBlob, `${outputBase}.pdf`);
+          await deliver(downloadedBlob, `${outputBase}.pdf`);
         } else if (fmt === 'scorm') {
           const { buildScormPackage, collectScormFonts } = await import(
             '../../bridge/export-scorm.ts'
@@ -1288,7 +1323,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
           // A course package is an archive, not a render: the 'renders' auto-save must not
           // store it under the format tag, exactly as the multi-page zip must not.
           downloadedIsZip = true;
-          await host.export.download(pkg.blob, `${filename}-scorm.zip`);
+          await deliver(pkg.blob, `${filename}-scorm.zip`);
         } else if (
           pageEls.length >= 1 &&
           !isAnimated &&
@@ -1403,16 +1438,13 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
           }
           if (files.length === 1) {
             downloadedBlob = files[0]!.blob;
-            await host.export.download(
-              files[0]!.blob,
-              `${filename}.${extFor(fmt, files[0]!.blob)}`
-            );
+            await deliver(files[0]!.blob, `${filename}.${extFor(fmt, files[0]!.blob)}`);
           } else {
             const { buildZip } = await import('../../pro/zip.ts');
             const zipBlob = await buildZip(files, { zipName: filename });
             downloadedBlob = zipBlob;
             downloadedIsZip = true;
-            await host.export.download(zipBlob, `${filename}.zip`);
+            await deliver(zipBlob, `${filename}.zip`);
           }
         } else {
           // A LIVE take must keep the fit-to-stage scale. exportUnscaled blows the
@@ -1500,10 +1532,10 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             const zipBlob = new Blob([zipped as BlobPart], { type: 'application/zip' });
             downloadedBlob = zipBlob;
             downloadedIsZip = true;
-            await host.export.download(zipBlob, `${filename}.zip`);
+            await deliver(zipBlob, `${filename}.zip`);
           } else {
             downloadedBlob = blob;
-            await host.export.download(blob, `${filename}.${extFor(fmt, blob)}`);
+            await deliver(blob, `${filename}.${extFor(fmt, blob)}`);
           }
         }
         revokeTrackUrls();

@@ -215,6 +215,8 @@ export interface ActionsApi {
   /** Tear down the cost-authoring slot: unsubscribe the registry-change listener
    *  and run the hydrated extension's disposer. Called from mountTool's cleanup. */
   dispose?: () => void;
+  /** Release the last export's retained file (plans/236); the mount lifecycle calls it. */
+  releaseDelivery?: () => void;
 }
 
 /** Optional outcome guidance layered over the generic export pipeline. */

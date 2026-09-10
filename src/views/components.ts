@@ -91,7 +91,9 @@ import { mountHomeFab } from '../components/home-fab.ts';
 import { customSliderHtml, mountCustomSlider } from '../components/custom-slider.ts';
 import { mountThemeFab } from '../components/theme-toggle.ts';
 import { listLollyUiTokens } from '../lib/lolly-ui-tokens.ts';
-import { offerDownloadRecovery } from '../lib/download-recovery.ts';
+import { attachDeliveryResult, releaseDeliveryFor } from '../lib/download-recovery.ts';
+import { deliverFile } from '../lib/deliver-file.ts';
+import type { DeliveryOutcome } from '../lib/delivery-result.ts';
 import { componentFixture } from './components-fixtures.ts';
 import { copyText, importInfo, markupOf, tokensUsedBy } from './components-reference.ts';
 
@@ -653,13 +655,17 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
       const { blob, filename, notes } = await buildComponentDownload(indexes.map(i => ({ name: displayName(flat[i]!), node: viewEl.querySelector<HTMLElement>(`[data-cl-stage="${i}"]`)! })), indexes.length === 1 ? `lolly-${String(indexes[0]! + 1).padStart(3, '0')}-${slug(displayName(flat[indexes[0]!]!))}` : 'lolly-component-library');
       if (!active) return;
       const savedMessage = 'Saved. Import the file in Penpot to edit its component and tokens.' + (notes.length ? ' ' + notes.join(' ') : '');
-      status.textContent = 'File ready. Check your browser’s downloads, then import the file in Penpot.' + (notes.length ? ' ' + notes.join(' ') : '');
-      clearDownloadRecovery = offerDownloadRecovery(status, blob, filename, savedMessage);
-      await host.export.download(blob, filename);
+      const readyMessage = 'File ready. Check your browser’s downloads, then import the file in Penpot.' + (notes.length ? ' ' + notes.join(' ') : '');
+      // The archive exists from here on: a delivery failure keeps it retained with a
+      // retry, and only a BUILD failure reaches the outer catch (plans/236).
+      clearDownloadRecovery = () => releaseDeliveryFor(status);
+      let outcome: DeliveryOutcome | { failed: string };
+      try { outcome = await deliverFile(host, blob, filename); }
+      catch (error) { outcome = { failed: `Download failed. ${error instanceof Error ? error.message : String(error)} Please try again.` }; }
+      if (!active) return;
+      attachDeliveryResult(status, status, { blob, filename, label: filename }, host, outcome, { ready: readyMessage, saved: savedMessage });
     } catch (error) {
-      const failure = `Download failed. ${error instanceof Error ? error.message : String(error)} Please try again. `;
-      if (status.querySelector('.cl-download-recovery')) status.prepend(failure);
-      else status.textContent = failure;
+      status.textContent = `Download failed. ${error instanceof Error ? error.message : String(error)} Please try again. `;
     } finally {
       exporting = false; buttons.forEach(b => { b.disabled = false; }); button.removeAttribute('aria-busy');
     }
@@ -691,13 +697,17 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
       if (!active) return;
       const blob = new Blob([JSON.stringify(tokens, null, 2)], { type: 'application/json' });
       const filename = 'lolly-ui.tokens.json';
-      status.textContent = 'Tokens ready with the current theme’s semantic colours. Check your browser’s downloads.';
-      clearDownloadRecovery = offerDownloadRecovery(status, blob, filename, 'Tokens saved.');
-      await host.export.download(blob, filename);
+      clearDownloadRecovery = () => releaseDeliveryFor(status);
+      let outcome: DeliveryOutcome | { failed: string };
+      try { outcome = await deliverFile(host, blob, filename); }
+      catch (error) { outcome = { failed: `Token download failed: ${String(error)}` }; }
+      if (!active) return;
+      attachDeliveryResult(status, status, { blob, filename, label: filename }, host, outcome, {
+        ready: 'Tokens ready with the current theme’s semantic colours. Check your browser’s downloads.',
+        saved: 'Tokens saved.',
+      });
     } catch (error) {
-      const failure = `Token download failed: ${String(error)} `;
-      if (status.querySelector('.cl-download-recovery')) status.prepend(failure);
-      else status.textContent = failure;
+      status.textContent = `Token download failed: ${String(error)} `;
     }
     finally { exporting = false; buttons.forEach(b => { b.disabled = false; }); button.removeAttribute('aria-busy'); }
   });

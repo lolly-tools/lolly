@@ -707,6 +707,8 @@ export function mountActions(tview: ToolViewCtx): void {
       ...historyParticipation(tview.tool.manifest, !!collabHandle || !!ephemeralState || !!getCollabSessionSource()),
     }
   ); tview.actionsApi = actionsApi;
+  // The retained export file (plans/236) lives only as long as this mount.
+  mountLifecycle.add('export delivery result', () => actionsApi?.releaseDelivery?.());
   tview.revisionChanged = () => actionsApi?.history?.changed();
   const capture = mountCollabActionHistory({ handle: collabHandle, snapshot: actionsApi?.sessionState,
     toolId, slot: actionsApi?.getSlot?.(), open: () => revisionPanel.open() }); tview.capture = capture;

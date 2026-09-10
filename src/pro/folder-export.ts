@@ -13,10 +13,11 @@
  * is the part lazy-loaded by the shared overlay at export time (Batch export, now
  * available to everyone - the pro-batch flag was retired).
  */
-import { escape } from '../utils.ts';
 import { planBatch, runBatch, notesFromFindings } from './batch.ts';
 import { runBatchWithProgress } from './run-overlay.ts';
 import { playSfx } from '../lib/sfx.ts';
+import { deliverFile } from '../lib/deliver-file.ts';
+import { attachDeliveryResult, releaseDeliveryFor } from '../lib/download-recovery.ts';
 import type { ZipTier } from '@lolly/engine';
 import { createBatchRowCheck, skippedFindings } from './preflight-rows.ts';
 import { rowsForFolder, rowFromToolSession, rowFromBatchRow, slug, isMotionRow } from './folder-rows.ts';
@@ -208,7 +209,7 @@ export async function renderSessionToFile(host: FolderExportHost, slot: string, 
   const row = rowFromToolSession(data);
   const { renderable, skipped } = await planBatch([row] as BatchRow[]);
   if (renderable.length === 0) throw new Error(skipped[0]?.reason || 'This session can’t be rendered to a file.');
-  if (mount) mount.innerHTML = `<p class="pro-progress-msg"><strong>Rendering…</strong></p>`;
+  if (mount) { releaseDeliveryFor(mount); mount.innerHTML = `<p class="pro-progress-msg"><strong>Rendering…</strong></p>`; }
   // The one path with NO overlay and no zip: a single session rendered to a bare file.
   // Its diagnostics reach the caller through the return value or nowhere, and Phase 2
   // accepts "nowhere" - a single-session render is not a batch report.
@@ -217,7 +218,9 @@ export async function renderSessionToFile(host: FolderExportHost, slot: string, 
   onBatchRendered?.(files);
   const file = files[0]!;
   const name = file.name.replace(/^\d+-/, '');   // strip runBatch's sequence prefix → bare name
-  host.export.download(file.blob, name);
+  // plans/236: hand the file over, then retain it on the mount with what the browser
+  // could vouch for - an anchor click is a request; only a closed dialog write is a save.
+  const outcome = await deliverFile(host, file.blob, name);
   // Auto-save the same credentialed bytes into the personal library ('renders'
   // tag). Best-effort + non-blocking, deduped + toggle-gated inside the helper.
   void (async () => {
@@ -231,7 +234,10 @@ export async function renderSessionToFile(host: FolderExportHost, slot: string, 
       });
     } catch { /* library save is best-effort */ }
   })();
-  if (mount) mount.innerHTML = `<p class="pro-progress-msg"><strong>Downloaded ${escape(name)}.</strong></p>`;
+  if (mount) {
+    mount.innerHTML = `<p class="pro-progress-msg" data-delivery></p>`;
+    attachDeliveryResult(mount, mount.querySelector<HTMLElement>('[data-delivery]')!, { blob: file.blob, filename: name, label: name }, host, outcome);
+  }
   playSfx('victory'); // a single render finished - the subtle "ta-da" (the ding fired inside runBatch)
   return { files, name };
 }

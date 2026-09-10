@@ -892,6 +892,20 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   line-height: 1.35;
   text-align: left;
 }
+/* The retained-file line under Download (plans/236): what was delivered, and the
+   way back to the same bytes if no file appeared. Same register as the outcome
+   summary; wraps so the controls stay visible at a narrow width and large text. */
+.export-delivery {
+  margin: .2rem 0 0;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / .65);
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
 
 /* On a phone this is a modal sub-view of the export sheet, not a desktop
    popover with coordinates that can start off-screen or extend under the
