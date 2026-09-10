@@ -23,7 +23,7 @@ import { isBrowserOnly } from '../tool-support.ts';
 const CARD_W = 26;
 const CARD_H = 4;   // border(2) + name(1) + subtitle(1) - cards never shrink below this
 
-export function Gallery({ tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit }: { tools: ToolEntry[]; onOpen: (id: string) => void; onOpenUrl: (url: string) => string | null; onImportFile: (path: string) => Promise<string | null>; onNav: (t: NavTarget) => void; onQuit: () => void }) {
+export function Gallery({ tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit, onPrepare }: { tools: ToolEntry[]; onPrepare: () => void; onOpen: (id: string) => void; onOpenUrl: (url: string) => string | null; onImportFile: (path: string) => Promise<string | null>; onNav: (t: NavTarget) => void; onQuit: () => void }) {
   const { cols, rows } = useTermSize();
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -102,6 +102,7 @@ export function Gallery({ tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit 
       if (key.escape) setSearching(false);
       return; // TextInput owns the rest
     }
+    if (input === 'p') return onPrepare();
     if (input === 'q') return onQuit();
     if (input === '2') return onNav('projects');
     if (input === '3') return onNav('profile');
@@ -135,6 +136,7 @@ export function Gallery({ tools, onOpen, onOpenUrl, onImportFile, onNav, onQuit 
     <Box flexDirection="column" width={cols} height={rows}>
       <Box justifyContent="space-between">
         <Tabs active="tools" />
+      <Text dimColor>P Prepare for sharing</Text>
         {compactHeader ? null : <Box paddingX={1}>
           <Text color={theme.dim}>
             {favOnly ? '★ ' : ''}{filtered.length} tool{filtered.length === 1 ? '' : 's'}
