@@ -40,7 +40,7 @@ function nativeSaveAsSeam(): NativeSaveAsSeam | undefined {
 }
 
 /**
- * The best available "choose where this file lands" path, or null when there is
+ * The best available "choose where this file is saved" path, or null when there is
  * none to offer. The browser picker first (it needs no host and confirms its own
  * write); otherwise the desktop shell's native dialog through the host. A surface
  * offers a Save control only when this is non-null, so it never renders a dialog

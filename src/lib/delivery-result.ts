@@ -63,7 +63,7 @@ export class DeliveryResult {
 
   /**
    * `deliver` is the ordinary path (anchor on web, native on the shells). `picker`
-   * is a path that lets the user CHOOSE where the file lands and can confirm the
+   * is a path that lets the user CHOOSE where the file is saved and can confirm the
    * write closed - the browser picker, or the desktop shell's native dialog
    * (lib/deliver-file.ts chooseLocationDeliver). Null where neither exists, and
    * then `canSave` is false and no surface offers a dialog it cannot open.

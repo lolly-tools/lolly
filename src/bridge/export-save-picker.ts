@@ -25,7 +25,7 @@ let saveAsNext = false;
 /**
  * What a delivery could actually prove (plans/236). `saved` - a picker or native
  * write closed. `requested` - an anchor was clicked; the file may or may not have
- * landed. `cancelled` - the user dismissed a dialog; nothing was written.
+ * reached disk. `cancelled` - the user dismissed a dialog; nothing was written.
  */
 export type DeliveryOutcome = 'saved' | 'requested' | 'cancelled';
 
