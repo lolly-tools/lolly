@@ -246,6 +246,7 @@ export function buildSheet(dt: DetailsCtx): void {
             `<button type="button" class="btn cat-act-fav${fav ? ' is-fav' : ''}" data-act="fav" data-sfx="twinkle" aria-pressed="${fav}">${STAR_ICON}<span>${fav ? t('Favourited') : t('Favourite')}</span></button>`,
             `<button type="button" class="btn cat-act-download" data-act="download">${DOWNLOAD_ICON}<span>${configurable ? t('Download…') : t('Download')}</span></button>`,
             isTextAsset ? `<button type="button" class="btn cat-act-dl-as" data-act="dl-as" aria-haspopup="menu" aria-expanded="false">${DOWNLOAD_ICON}<span>${t('Download as')}</span></button>` : '',
+            `<button type="button" class="btn" data-act="prepare">${t('Prepare for sharing')}</button>`,
             `<button type="button" class="btn cat-act-send" data-act="send">${icon('upload', { size: 14 })}<span>${t('Send to…')}</span></button>`,
             `<button type="button" class="btn cat-act-share" data-act="share">${SHARE_ICON}<span>${t('Copy link')}</span></button>`,
           ];
@@ -1181,6 +1182,13 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     }
     if (act === 'download') {
       await cat.downloads.openAssetDownloadDialog(ref, dt.dTheme, dt.dTreatment);
+    }
+    else if (act === 'prepare') {
+      if (!host.assets.bytes) throw new Error(t('Local asset bytes are unavailable. Download the asset and open Prepare for sharing.'));
+      const bytes = await host.assets.bytes(ref);
+      const { openPreparation } = await import('../../lib/prepare-entry.ts');
+      const filename = name.toLowerCase().endsWith(`.${ref.format}`) ? name : `${name}.${ref.format || 'bin'}`;
+      openPreparation(host, [new File([bytes.slice().buffer as ArrayBuffer], filename)]);
     }
     else if (act === 'send') { await cat.downloads.openSendDialog(ref); }
     else if (act === 'darkroom') {

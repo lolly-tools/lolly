@@ -128,6 +128,8 @@ export function createExportAPI(host: WebHost) {
   setExportHost(host);
   return {
     async render(node: Element, format: string, opts: ExportOpts = {}): Promise<Blob> {
+      const unavailable = node.matches('[data-export-error]') ? node : node.querySelector('[data-export-error]');
+      if (unavailable) throw new Error(unavailable.getAttribute('data-export-error') || 'The tool is not ready to export.');
       // Wait for the brand webfont before ANY format reads the live node's layout.
       // render() rasterises (renderRaster/renderBitmap) or walks (renderSvg/pdf) the
       // LIVE node, so an export fired before the font has loaded would capture the

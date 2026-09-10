@@ -20,6 +20,14 @@
   "size": 711396
  },
  {
+  "url": "/models/depth/CREDITS.txt",
+  "size": 1004
+ },
+ {
+  "url": "/models/depth/depth-anything-v2-small.onnx",
+  "size": 27258801
+ },
+ {
   "url": "/models/embed/config.json",
   "size": 650
  },

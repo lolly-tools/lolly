@@ -6,7 +6,7 @@
  * A tool is DATA: community/spatial-photo can never import the shell. So the web
  * shell publishes exactly one function on `window` and the tool feature-detects
  * it - absent (the CLI, both Tauri shells, any host with no model) the tool
- * renders the flat photo and stays honest.
+ * shows an unavailable state and blocks depth-dependent export.
  *
  * WHY THIS IS ITS OWN FILE, separate from lib/depth-job.ts: `main.ts` calls
  * `installDepthSeam()` at module scope, so the seam is on the boot graph by
@@ -33,7 +33,7 @@ export function installDepthSeam(): void {
   target.__lollyDepth = {
     // A failed import resolves null like every other unreadable source: the
     // contract above says forImage never rejects, and a tool that asked for
-    // depth it cannot get is exactly the flat-photo case.
+    // depth it cannot get must show a retryable unavailable state.
     forImage: (url) => import('./depth-job.ts').then(m => m.depthForImage(url), () => null),
   };
 }

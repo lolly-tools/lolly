@@ -82,6 +82,7 @@ export function catBulkMenuHtml(cat: CatCtx): string {
   const uploads = cat.bulk.allSelectedUploads();
   return `<p class="folder-menu-head">${t('{n} selected', { n: selected.size })}</p>`
     + `<div class="folder-menu-list" role="menu" aria-label="${escapeText(t('Selection actions'))}">${[
+        cat.bulk.canCompareSelection() ? menuItemHtml('compare', icon('duplicate'), t('Compare…')) : '',
         menuItemHtml('fav', icon('star'), cat.bulk.allSelectedFav() ? t('Unfavourite') : t('Favourite')),
         menuItemHtml('add-to-project', icon('folder'), t('Add to project…')),
         menuItemHtml('hide', icon('eye'), cat.bulk.allSelectedHidden() ? t('Unhide') : t('Hide')),

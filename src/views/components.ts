@@ -297,7 +297,7 @@ const LIVE: Record<string, { render: () => string | HTMLElement; wire?: (stage: 
   exportSheet: {
     render: () => `<div class="export-popup" role="group" aria-label="${escape(t('Export'))}">
       <div class="export-popup-head"><span class="export-popup-title">${t('Export')}</span><button type="button" class="export-popup-close" aria-label="${escape(t('Close'))}">&#x2715;</button></div>
-      <div class="export-popup-body"><div class="tool-actions"><div class="export-actions-dock"><div class="export-action-buttons"><button type="button" class="btn">${t('Copy')}</button><button type="button" class="btn">${t('Save')}</button><button type="button" class="btn">${t('Share')}</button></div><div class="export-action-buttons"><button type="button" class="btn btn--primary" data-action="download">${t('Download')}</button></div></div>${exportFieldsExample()}</div></div>
+      <div class="export-popup-body"><div class="tool-actions"><div class="export-actions-dock"><div class="export-action-buttons"><button type="button" class="btn btn--ghost">${t('Copy')}</button><button type="button" class="btn">${t('Save')}</button><button type="button" class="btn">${t('Share')}</button></div><div class="export-action-buttons"><button type="button" class="btn btn--ghost">${t('Save as')}</button><button type="button" class="btn btn--primary" data-action="download">${t('Download')}</button></div></div>${exportFieldsExample()}</div></div>
     </div>`,
   },
   bodyPopover: {

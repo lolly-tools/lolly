@@ -90,7 +90,7 @@ installDepthSeam();
 type WebHost = Awaited<ReturnType<typeof createBridge>>;
 
 /** Route names the shell can be in. */
-type RouteName = 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'start' | 'multi' | 'components' | 'lab' | 'pdf' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply';
+type RouteName = 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'compare' | 'start' | 'multi' | 'components' | 'lab' | 'pdf' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply';
 
 /** A parsed route: a discriminated union on `name`. */
 type Route =
@@ -99,6 +99,8 @@ type Route =
   | { name: 'dashboard'; params?: string }
   | { name: 'verify'; params?: string }
   | { name: 'convert'; params?: string }
+  | { name: 'prepare' }
+  | { name: 'compare' }
   | { name: 'data'; params?: string }
   | { name: 'pro'; params?: string }
   | { name: 'projects'; folderId: string | null; params?: string }
@@ -205,6 +207,8 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   // plans/99 M3 once proven (decision locked 2026-08-08).
   verify: { label: 'Verify', viewClasses: ['verify-view'], footer: 'none' },
   convert: { label: 'Convert', viewClasses: ['convert-view'], sigKey: 'params', footer: 'none' },
+  compare: { label: 'Compare', viewClasses: ['compare-view'], footer: 'none' },
+  prepare: { label: 'Prepare for sharing', viewClasses: ['prepare-view'], footer: 'none' },
   data: { label: 'Spreadsheet', viewClasses: ['data-view'], footer: 'none' },
   // The studio keys on ?tab= for the same reason - "Manage fonts" (#/start?tab=type)
   // clicked while already on #/start must switch steps, not dedupe to a no-op.
@@ -467,6 +471,16 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     }
     // /data - on-device spreadsheet viewer/editor (xlsx/csv/tsv/json → virtualized
     // grid → edit → download-as). Lazy-loaded like the other dashboards.
+    case 'compare': {
+      const { mountCompare } = await import('./views/compare.ts');
+      mountCompare(view, host);
+      break;
+    }
+    case 'prepare': {
+      const { mountPrepare } = await import('./views/prepare.ts');
+      mountPrepare(view, host);
+      break;
+    }
     case 'data': {
       const { mountDataView } = await import('./views/data.ts');
       await mountDataView(view, host, route.params);
@@ -1750,6 +1764,8 @@ function parseRoute(): Route {
     }
     if (parts[0] === 'verify' || parts[0] === 'valid' || parts[0] === 'v') return { name: 'verify', params: query || '' };
     if (parts[0] === 'convert') return { name: 'convert', params: query || '' }; // on-device file converter
+    if (parts[0] === 'compare') return { name: 'compare' };
+    if (parts[0] === 'prepare') return { name: 'prepare' };
     if (parts[0] === 'data') return { name: 'data', params: query || '' }; // on-device spreadsheet viewer/editor
     if (parts[0] === 'start') return { name: 'start', params: query || '' }; // brand wizard
     if (parts[0] === 'multi') return { name: 'multi', params: query || '' }; // multi-edit (?s=slot,slot…)
@@ -1869,6 +1885,8 @@ function parseRoute(): Route {
       catalog:   { hash: '#/c',    route: { name: 'catalog' } },
       lab:       { hash: '#/lab',  route: { name: 'lab' } },
       // Unpack: /unpack is canonical, /pdf a kept alias (old shared links).
+      compare:   { hash: '#/compare', route: { name: 'compare' } },
+      prepare:   { hash: '#/prepare', route: { name: 'prepare' } },
       unpack:    { hash: '#/unpack', route: { name: 'pdf' } },
       pdf:       { hash: '#/unpack', route: { name: 'pdf' } },
       profile:   { hash: '#/profile', route: { name: 'profile', params: '' } },

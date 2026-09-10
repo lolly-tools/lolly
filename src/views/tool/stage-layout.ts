@@ -358,6 +358,14 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
                 ${hasGuide(tview.tool.manifest) ? guideButtonHtml() : ''}
                 ${canSaveSession ? `<button type="button" class="multi-edit-btn" id="multi-edit-btn" data-tip="${escapeText(t('Make variants'))}" aria-label="${escapeText(t('Make variants'))}" aria-haspopup="menu" aria-expanded="false">${icon('grid', { className: 'multi-edit-icon' })}</button>` : ''}
                 ${
+                  /* "Templates" - the sidebar layout's door back to the chooser mid-session
+                      (plans/226 D11; the editor layout has the Lolly menu's row instead).
+                      Rendered hidden unless this tool SHIPS templates, and revealed by
+                      session.ts when the person has one of their own - the user list is a
+                      profile read, which the markup pass cannot wait for. */ ''
+                }
+                <button type="button" class="multi-edit-btn" id="templates-btn" data-tip="${escapeText(t('Templates'))}" aria-label="${escapeText(t('Templates'))}"${tview.hasTemplates ? '' : ' hidden'}>${icon('filePlus', { className: 'multi-edit-icon' })}</button>
+                ${
                   /* "Bulk from rows" - the same icon-only header control as Make variants
                       next to it, so it needs no styling of its own. */ ''
                 }
@@ -440,9 +448,14 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
             canSaveSession
               ? `
           <span class="render-pill-sep" aria-hidden="true"></span>
-          <button type="button" class="render-pill-btn render-pill-save" id="render-save" data-sfx="save" aria-label="${escapeText(t('Save to your library'))}" title="${escapeText(t('Save to your library'))}">
+          ${
+            /* This half opens the "Save as…" dialog (a project, or a template), so it is
+                named for what it does; the export sheet's own Save is the silent quick
+                save and keeps the plain "Save" label (plans/226 D7 + D12). */ ''
+          }
+          <button type="button" class="render-pill-btn render-pill-save" id="render-save" data-sfx="save" aria-label="${escapeText(t('Save as'))}" title="${escapeText(t('Save as'))}">
             <svg class="render-pill-icon render-pill-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-            <span data-save-label>${t('Save')}</span>
+            <span data-save-label>${t('Save as')}</span>
           </button>`
               : ''
           }

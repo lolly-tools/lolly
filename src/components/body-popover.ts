@@ -94,6 +94,8 @@ export interface BodyPopoverOptions {
   /** Called on window resize INSTEAD OF re-running `position()` - e.g. to close
    *  the popover outright when a responsive breakpoint no longer applies. */
   onResize?(popover: BodyPopoverHandle): void;
+  /** Follow a scrolling trigger; scrolling within the panel leaves it in place. */
+  trackScroll?: boolean;
   /** Called AFTER a close that actually closed something, whichever route took it:
    *  the caller's own `close()`, Escape, an outside pointerdown, or a route change.
    *  For a caller whose content is not owned by the popover - the timeline inspector
@@ -269,6 +271,9 @@ export function mountBodyPopover(
 
   const reposition = (): void => { if (menu) position(menu, anchor); };
   const onResizeEvt = (): void => { opts.onResize ? opts.onResize(handle) : reposition(); };
+  const onScroll = (event: Event): void => {
+    if (menu && !(event.target instanceof Node && menu.contains(event.target))) reposition();
+  };
   // preventDefault (not just stopPropagation) so an ancestor native <dialog> showing
   // modally - e.g. folder-overlay's, which a context menu can mount inside via
   // `container` - doesn't ALSO process this Escape as its own close request and
@@ -297,6 +302,7 @@ export function mountBodyPopover(
     if (outside) document.removeEventListener('pointerdown', outside);
     document.removeEventListener('keydown', onKey);
     window.removeEventListener('resize', onResizeEvt);
+    if (opts.trackScroll) window.removeEventListener('scroll', onScroll, true);
     NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNavAway));
     outside = null;
     trap?.release();
@@ -328,9 +334,11 @@ export function mountBodyPopover(
     };
     // Deferred so the very click that opened the popover doesn't also fire as
     // its own outside-click dismissal.
-    setTimeout(() => document.addEventListener('pointerdown', outside!), 0);
+    const listener = outside;
+    setTimeout(() => { if (outside === listener) document.addEventListener('pointerdown', listener); }, 0);
     document.addEventListener('keydown', onKey);
     window.addEventListener('resize', onResizeEvt);
+    if (opts.trackScroll) window.addEventListener('scroll', onScroll, true);
     NAV_EVENTS.forEach(ev => window.addEventListener(ev, onNavAway));
     // Taking system Back costs one history entry per open. On a touch device that is
     // the trade to make: Back is how a user dismisses a menu, and without an entry the

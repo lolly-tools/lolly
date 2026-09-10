@@ -1,0 +1,261 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this lazy-loaded sheet sits in the `views` layer (order declared once
+   in styles/app.css), so its priority never depends on when Vite injects the chunk. */
+@layer views {
+/* ── Prepare for sharing ─────────────────────────────────────────────────────────────
+   The route (#/prepare) and the "Prepare this copy" dialog share one panel: a main
+   column (sources in, prepared copies out) beside the inspection panel. On desktop the
+   route docks that panel into the app's one right edge column (lib/edge-dock.ts); in the
+   dialog, on phones and wherever docking is unavailable it stays an in-flow sticky aside.
+   Atoms come from the primitives (.btn, .field-*, .chip, .card). Tokens only, so every
+   theme and brand palette follows with no work here. */
+
+.prepare-view { padding: 88px 28px 48px; }
+.prepare-page { max-width: 1180px; margin: 0 auto; }
+/* With the inspection panel docked at the edge the page no longer needs the width the
+   aside took, and a shorter measure keeps the text column readable. */
+.prepare-view:has(.prepare-panel.is-docked) .prepare-page { max-width: 880px; }
+/* platform.css lays .plat-header out as a row; this page stacks eyebrow, title and lead. */
+.prepare-view .plat-header { display: block; margin: 0 0 var(--sp-6); }
+.prepare-view .plat-header .section-header-eyebrow { margin-block-end: var(--sp-3); }
+.prepare-view .plat-title { margin: 0 0 var(--sp-2); }
+.prepare-view .plat-sub { max-width: 64ch; }
+
+.prepare-panel { font-size: var(--ui-type-body); overflow-wrap: anywhere; }
+.prepare-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: var(--sp-6);
+  align-items: start;
+}
+.prepare-panel.is-docked .prepare-layout { grid-template-columns: minmax(0, 1fr); }
+.prep-main { min-width: 0; display: flex; flex-direction: column; gap: var(--sp-5); }
+.prep-vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ── cards (main column) ── */
+.prep-card { position: relative; padding: var(--sp-5); box-shadow: var(--ui-edge-default); }
+.prep-card[hidden] { display: none; }
+.prep-card-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2) var(--sp-4); margin: 0 0 var(--sp-4); }
+.prep-card-title { margin: 0; font-size: var(--ui-type-lead); font-weight: 700; letter-spacing: -.01em; }
+.prep-card-sub { flex: 1 1 16rem; margin: 0; color: var(--ui-color-text-muted); font-size: var(--fs-md); line-height: 1.5; }
+.prep-hint, .prep-limits, .prep-footnote { margin: 0; color: var(--ui-color-text-muted); font-size: var(--fs-sm); line-height: 1.5; }
+.prep-limits { margin-block-start: var(--sp-3); }
+.prep-status { margin: var(--sp-3) 0 0; min-height: 1.4em; color: var(--ui-color-text-muted); font-size: var(--fs-md); line-height: 1.5; }
+.prep-status[data-tone="error"] { color: hsl(var(--destructive)); }
+.prep-alert { margin: 0; padding: var(--sp-3); border-radius: var(--ui-radius-control); background: hsl(var(--destructive) / .1); color: hsl(var(--destructive)); font-size: var(--fs-md); line-height: 1.5; }
+.prep-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+.prep-actions[hidden] { display: none; }
+.prep-pre { margin: 0; max-height: 18rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--ui-type-mono-family); font-size: var(--fs-xs); line-height: 1.5; }
+
+/* ── the drop area: dashed means "drop here" and nothing else ── */
+.prep-drop {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-3);
+  padding: var(--sp-7) var(--sp-5);
+  border: 2px dashed var(--ui-color-border-default); border-radius: var(--ui-radius-panel);
+  color: var(--ui-color-text-muted); text-align: center; cursor: pointer;
+  transition: border-color var(--ui-motion-feedback), background var(--ui-motion-feedback), color var(--ui-motion-feedback);
+}
+.prep-drop:hover, .prep-drop:focus-within { border-color: hsl(var(--primary) / .55); color: var(--ui-color-text-default); }
+.prep-drop:focus-within { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.prepare-panel.is-file-drag .prep-drop, .prep-drop.is-over { border-color: var(--ui-color-selection-border); background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
+.prep-drop-icon { display: inline-flex; }
+.prep-drop-icon svg { width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); }
+.prep-drop-lead { font-size: var(--ui-type-lead); font-weight: 600; color: var(--ui-color-text-default); }
+.prep-drop-hint { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-1); }
+.prep-drop-cta { margin-block-start: var(--sp-1); }
+/* Once files are in, the zone shrinks to a row so the list below it is the subject. */
+.prep-drop.has-files { flex-direction: row; flex-wrap: wrap; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); text-align: start; }
+.prep-drop.has-files .prep-drop-icon svg { width: calc(20px * var(--a11y-fs)); height: calc(20px * var(--a11y-fs)); }
+.prep-drop.has-files .prep-drop-lead { flex: 1 1 auto; font-size: var(--fs-lg); }
+.prep-drop.has-files .prep-drop-hint { display: none; }
+.prep-drop.has-files .prep-drop-cta { margin: 0; }
+
+/* ── file rows ── */
+.prep-files { list-style: none; margin: var(--sp-3) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.prep-files:empty { display: none; }
+.prep-file {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--sp-3); align-items: start;
+  padding: var(--sp-3) var(--sp-4); border-radius: var(--ui-radius-control);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent);
+}
+.prep-file-icon { display: inline-flex; padding-block-start: 2px; color: var(--ui-color-text-muted); }
+.prep-file-icon svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.prep-file-body { min-width: 0; display: flex; flex-direction: column; gap: var(--sp-1); }
+.prep-file-name { font-family: var(--ui-type-mono-family); font-size: var(--fs-md); font-weight: 600; }
+.prep-file-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
+.prep-file-opt { display: inline-flex; align-items: center; gap: var(--sp-2); margin-block-start: var(--sp-1); font-size: var(--fs-sm); cursor: pointer; }
+.prep-file-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--sp-1); }
+.prep-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); padding: 0;
+  border: 0; border-radius: var(--ui-radius-control); background: transparent; color: var(--ui-color-text-muted); cursor: pointer;
+}
+.prep-icon-btn:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.prep-icon-btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.prep-note { margin: var(--sp-3) 0 0; color: var(--ui-color-text-muted); font-size: var(--fs-sm); line-height: 1.5; }
+.prep-note[hidden] { display: none; }
+
+/* ── text ── */
+.prep-text { margin-block-start: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); }
+/* Grows with its content (panel.ts sizes it on input) up to a screenful, so a pasted
+   file reads top to bottom instead of scrolling inside a six-row box. */
+.prep-textarea { min-height: 9rem; max-height: 70vh; resize: vertical; font-family: var(--ui-type-mono-family); font-size: var(--fs-md); line-height: 1.5; }
+
+/* ── prepared copies ── */
+.prep-copies { transition: opacity var(--ui-motion-overlay); }
+.prep-copies[data-stale] { opacity: .55; }
+.prep-outputs { display: flex; flex-direction: column; gap: var(--sp-3); }
+.prep-output { padding: var(--sp-4); border-radius: var(--ui-radius-panel); background: var(--ui-color-surface-canvas); box-shadow: var(--ui-edge-faint); }
+.prep-output-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--sp-2) var(--sp-3); align-items: start; }
+.prep-output-title { min-width: 0; display: flex; flex-direction: column; gap: var(--sp-1); }
+.prep-output-title h3 { margin: 0; font-family: var(--ui-type-mono-family); font-size: var(--ui-type-title); font-weight: 600; overflow-wrap: anywhere; }
+.prep-output-actions { grid-column: 2; display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.prep-output-actions .btn { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.prep-output-actions .btn svg { width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); }
+.prep-compare { margin-block-start: var(--sp-3); }
+.prep-compare > summary { cursor: pointer; padding-block: var(--sp-2); font-size: var(--fs-md); font-weight: 600; }
+.prep-compare-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); margin-block-start: var(--sp-2); }
+.prep-compare-grid label { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; }
+.prep-compare-grid textarea { min-height: 8rem; resize: vertical; font-family: var(--ui-type-mono-family); font-size: var(--fs-sm); line-height: 1.5; }
+.prep-output-dest { margin-block-start: var(--sp-3); }
+.prep-output-dest > summary { cursor: pointer; padding-block: var(--sp-1); font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.prep-output-dest .btn { margin: var(--sp-2) var(--sp-2) 0 0; }
+
+/* ── the inspection panel ─────────────────────────────────────────────────────────────
+   One element, two homes. Docked, the edge dock stretches it to the slot (width and
+   height 100%) and it scrolls inside; in flow it is a sticky column with its own
+   max-height. The head and foot stay put, the middle scrolls. */
+.prep-side {
+  display: flex; flex-direction: column; min-height: 0; min-width: 0;
+  background: var(--ui-color-surface-raised); color: var(--ui-color-text-default);
+  border-radius: var(--ui-radius-card); box-shadow: var(--ui-edge-default);
+  overscroll-behavior: contain;
+}
+.prepare-layout > .prep-side {
+  position: sticky;
+  top: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-4));
+  max-height: calc(100dvh - var(--chrome-top) - var(--chrome-h) - var(--sp-6));
+}
+.prep-side-head { flex: none; display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4); border-block-end: 1px solid var(--ui-color-border-default); }
+.prep-side-icon { display: inline-flex; flex: none; color: var(--ui-color-action-primary); }
+.prep-side-icon svg { width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
+.prep-side-title { flex: 1 1 auto; min-width: 0; margin: 0; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ui-color-text-muted); white-space: nowrap; }
+.prep-side-status { max-width: 60%; overflow: hidden; text-overflow: ellipsis; }
+.prep-side-status[data-tone="busy"] { color: var(--ui-color-text-default); }
+.prep-side-status[data-tone="ready"] { background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
+.prep-side-status[data-tone="error"] { background: hsl(var(--destructive) / .12); color: hsl(var(--destructive)); }
+.prep-side-scroll { flex: 1 1 auto; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: var(--sp-5); padding: var(--sp-4); }
+.prep-side-foot { flex: none; display: flex; flex-wrap: wrap; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4); border-block-start: 1px solid var(--ui-color-border-default); }
+
+.prep-sec { display: flex; flex-direction: column; gap: var(--sp-3); }
+.prep-sec[hidden] { display: none; }
+.prep-review { display: flex; flex-direction: column; gap: var(--sp-3); }
+.prep-sec-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+.prep-sec-title { flex: 1 1 auto; display: inline-flex; align-items: center; gap: var(--sp-2); margin: 0; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ui-color-text-muted); }
+.prep-sec-tools { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+.prep-stats { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.prep-stats[hidden] { display: none; }
+.prep-stats b { font-weight: 700; color: var(--ui-color-text-default); }
+
+/* What gets checked: the panel's content before anything is inspected. */
+.prep-checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); font-size: var(--fs-md); line-height: 1.4; }
+.prep-checks li { display: flex; align-items: center; gap: var(--sp-2); }
+.prep-checks svg { flex: none; width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); color: var(--ui-color-action-primary); }
+
+/* Category chips: pressed = every group in that category is selected. */
+.prep-cats { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+.prep-cat { border: 0; cursor: pointer; font: inherit; font-size: calc(.75rem * var(--a11y-fs)); font-weight: 500; transition: background var(--ui-motion-feedback), color var(--ui-motion-feedback); }
+.prep-cat:hover { color: var(--ui-color-text-default); }
+.prep-cat[aria-pressed="true"] { background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); box-shadow: var(--ui-effect-selected); }
+.prep-cat svg { width: calc(12px * var(--a11y-fs)); height: calc(12px * var(--a11y-fs)); }
+
+/* Suggestion groups */
+.prep-groups { display: flex; flex-direction: column; gap: var(--sp-2); }
+.prep-group { padding: var(--sp-3); border-radius: var(--ui-radius-control); background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent); transition: opacity var(--ui-motion-feedback); }
+.prep-group-row { display: flex; align-items: center; gap: var(--sp-2); cursor: pointer; }
+.prep-group-cat { flex: 1 1 auto; min-width: 0; display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-md); font-weight: 600; }
+.prep-group-cat svg { flex: none; width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); color: var(--ui-color-text-muted); }
+.prep-group-body { display: flex; flex-direction: column; gap: var(--sp-2); margin-block-start: var(--sp-2); padding-inline-start: calc(var(--sp-2) + 18px); }
+.prep-group:has([data-selected]:not(:checked)) { opacity: .65; }
+.prep-group:has([data-selected]:not(:checked)) .prep-group-body { display: none; }
+.prep-group-value { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
+.prep-mask { flex: 1 1 auto; min-width: 0; font-family: var(--ui-type-mono-family); font-size: var(--fs-sm); color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
+.prep-mask.is-revealed { color: var(--ui-color-text-default); }
+.prep-group-repl { display: flex; flex-direction: column; gap: var(--sp-1); }
+.prep-occ > summary { cursor: pointer; padding-block: var(--sp-1); font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.prepare-occurrence { display: flex; align-items: flex-start; gap: var(--sp-2); padding: var(--sp-1) 0; font-size: var(--fs-sm); line-height: 1.4; cursor: pointer; }
+.prepare-occurrence .field-check { margin-block-start: 2px; }
+.prep-occ-path { font-family: var(--ui-type-mono-family); }
+.prep-occ-loc { color: var(--ui-color-text-muted); }
+
+/* Coverage */
+.prep-scopes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+.prep-scope { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-2); font-size: var(--fs-sm); }
+.prep-scope-path { flex: 1 1 100%; font-family: var(--ui-type-mono-family); font-weight: 600; }
+.prep-scope-status[data-status="inspected"] { background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
+.prep-scope-status[data-status="uninspected"] { background: hsl(var(--destructive) / .12); color: hsl(var(--destructive)); }
+.prep-scope-notes { flex: 1 1 100%; }
+.prep-scope-notes > summary { cursor: pointer; padding-block: var(--sp-1); color: var(--ui-color-text-muted); }
+.prep-scope-notes p { margin: var(--sp-1) 0 0; color: var(--ui-color-text-muted); line-height: 1.4; }
+.prep-scope-remove { flex: 1 1 100%; display: inline-flex; align-items: center; gap: var(--sp-2); cursor: pointer; }
+
+/* Rules and recipes: a fold, because most runs never need it. */
+.prep-fold { border-block-start: 1px solid var(--ui-color-border-default); padding-block-start: var(--sp-3); }
+.prep-fold-head { list-style: none; cursor: pointer; display: flex; align-items: center; gap: var(--sp-2); }
+.prep-fold-head::-webkit-details-marker { display: none; }
+.prep-fold-head .prep-sec-title { flex: 1 1 auto; }
+.prep-fold-chev { display: inline-flex; color: var(--ui-color-text-muted); transition: transform var(--ui-motion-overlay); }
+.prep-fold-chev svg { width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); }
+.prep-fold[open] .prep-fold-chev { transform: rotate(90deg); }
+.prep-fold-body { display: flex; flex-direction: column; gap: var(--sp-3); margin-block-start: var(--sp-3); }
+.prep-rule-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+.prep-rules { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-1); }
+.prep-rules:empty { display: none; }
+.prep-rule { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-sm); }
+.prep-rule code { flex: 1 1 auto; min-width: 0; font-family: var(--ui-type-mono-family); overflow-wrap: anywhere; }
+
+/* Focus for the composed controls the primitives do not cover (native checkboxes, summaries). */
+.prepare-panel summary:focus-visible, .prepare-panel .field-check:focus-visible, .prep-icon-btn:focus-visible, .prep-cat:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+/* ── the dialog entry ("Prepare this copy for sharing") and the transient offer ── */
+.prepare-dialog {
+  width: min(80rem, 95vw); max-height: 92dvh; overflow: auto; padding: var(--sp-5);
+  border: 0; border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface-overlay); color: var(--ui-color-text-default);
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-overlay);
+}
+.prepare-dialog[open] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-4); }
+.prepare-dialog::backdrop { background: hsl(0 0% 0% / .45); }
+.prepare-dialog > h1 { order: -1; flex: 1 1 auto; margin: 0; font-size: var(--ui-type-heading); font-weight: 700; letter-spacing: -.02em; }
+.prepare-dialog > .prepare-dialog-body { order: 1; flex-basis: 100%; }
+.prepare-dialog .prepare-layout > .prep-side { top: 0; max-height: calc(92dvh - 2 * var(--sp-5)); }
+.prepare-offer {
+  position: fixed; inset-inline-end: var(--sp-4); bottom: calc(5rem + var(--safe-bottom)); z-index: 1200;
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2);
+  max-width: calc(100vw - 2 * var(--sp-4)); padding: var(--sp-3);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-overlay); color: var(--ui-color-text-default);
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-floating);
+}
+
+@media (max-width: 900px) {
+  /* One column, in reading order: what went in, what was found, what came out. The
+     main wrapper dissolves so the inspection panel can sit between sources and copies. */
+  .prepare-layout { grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
+  .prepare-panel:not(.is-docked) .prep-main { display: contents; }
+  .prepare-panel:not(.is-docked) .prep-sources { order: 1; }
+  .prepare-panel:not(.is-docked) .prepare-layout > .prep-side { order: 2; position: static; max-height: none; }
+  .prepare-panel:not(.is-docked) .prep-copies { order: 3; }
+  .prepare-panel:not(.is-docked) .prep-footnote { order: 4; }
+  .prep-compare-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .prepare-view { padding: 82px 12px 32px; }
+  .prep-card { padding: var(--sp-4); }
+  .prep-file { grid-template-columns: auto minmax(0, 1fr); }
+  .prep-file-actions { grid-column: 2; justify-content: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prep-copies, .prep-group, .prep-cat, .prep-fold-chev, .prep-drop { transition: none; }
+}
+}

@@ -573,9 +573,11 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
     }
   );
 
+  // "Save as" here is the render pill's Save as - the document dialog (file into a
+  // project, or keep as a template) - one label, one meaning. Choosing where an
+  // exported FILE is saved is the post-export "Save file…" control (plans/236).
   el.querySelector<HTMLButtonElement>('[data-action="save-as"]')?.addEventListener('click', () => {
-    desktopExport?.requestSaveAs();
-    el.querySelector<HTMLButtonElement>('[data-action="download"]')?.click();
+    ta.experience.openSaveAs?.();
   });
 
   el.querySelector<HTMLButtonElement>('[data-action="download"]')?.addEventListener(

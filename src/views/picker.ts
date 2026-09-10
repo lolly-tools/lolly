@@ -531,10 +531,15 @@ async function render(
 
   // Which sources get a tab. The Catalog is always present; the rest are conditional.
   // ("library" stays the internal id/data-pane - the visible label is "Catalogue".)
-  const tabs: Tab[] = [{ id: 'library', label: 'Catalogue' }];
+  // Your own things lead (plan 216 item 5): the user's private uploads first, then
+  // their saved creations, then the Catalogue, then Projects and Tools. Catalogue is
+  // the only always-present source; the rest are conditional. ("library" stays the
+  // internal id/data-pane - the visible label is "Catalogue".)
+  const tabs: Tab[] = [];
   // The user's own uploads live on their own tab - private to them until shared.
   if (showUserAssets) tabs.push({ id: 'uploads', label: 'Private assets' });
   if (allowToolUrl) tabs.push({ id: 'sessions', label: 'Saved creations' });
+  tabs.push({ id: 'library', label: 'Catalogue' });
   if (showProjects) tabs.push({ id: 'projects', label: 'Projects' });
   if (embedTools.length) tabs.push({ id: 'tools', label: 'Tools' });
   // Which pane opens first. The caller's `initialTab` wins when this pick actually
@@ -553,6 +558,18 @@ async function render(
     return m && tabs.some(tb => tb.id === m) ? m : null;
   })();
   let activeTab: TabId = requestedTab ?? (collect && embedTools.length ? 'tools' : rememberedTab ?? 'library');
+  // "Private assets first and default" (plan 216 item 5) - but only WHEN PRESENT,
+  // and never over an explicit initialTab, a remembered tab, or collect mode's Tools.
+  // The catch: whether the user has uploads at all isn't known synchronously (the list
+  // loads async, below), so we can't just seed activeTab to 'uploads' - that would
+  // open an empty "Nothing here yet" pane for a first-time user, and Andy's rule is
+  // "empty uploads stays Catalogue". So the picker opens on Catalogue (instant, never
+  // empty), and the user-asset load switches it to uploads iff some turned up and the
+  // user hasn't already navigated. See the _listUserAssets .then below.
+  const autoUploadsDefault = showUserAssets && !requestedTab && !rememberedTab && !(collect && embedTools.length);
+  // Set the moment the user picks a tab or types - so the async uploads-default
+  // switch above never yanks the pane out from under someone who already moved.
+  let userTouched = false;
   // Declared before the boot code that applies the initial tab (applyTab is
   // hoisted and runs during setup, so this must already be initialised).
   let tabMemoryArmed = false;
@@ -898,7 +915,12 @@ async function render(
   // Keyboard roving must keep focus ON the tab so the next arrow press still lands
   // there; a click (or a programmatic jump) hands focus down to the pane's first card.
   const selectTab = tabsEl
-    ? wireTabs(tabsEl, { key: 'tab', onSelect: (v, info) => applyTab(v as TabId, info.reason !== 'key') })
+    ? wireTabs(tabsEl, { key: 'tab', onSelect: (v, info) => {
+        // A live tab pick (not the programmatic boot / uploads-default switch) means
+        // the user has chosen - stop the async uploads-default from moving the pane.
+        if (info.reason === 'click' || info.reason === 'key') userTouched = true;
+        applyTab(v as TabId, info.reason !== 'key');
+      } })
     : null;
 
   // The initial pane is baked into the markup as Library; if the default tab is
@@ -2388,6 +2410,11 @@ async function render(
         renderUserAssets();
         markIncompatibleTiles();
         renderFavourites();
+        // "Private assets first and default" (plan 216 item 5), resolved now that we
+        // know there ARE some: with no initialTab / remembered tab / collect intent,
+        // and only if the user hasn't already moved, open the uploads pane. Empty
+        // uploads never reaches here (length 0), so the default stays Catalogue.
+        if (autoUploadsDefault && !userTouched && userAssets.length > 0 && activeTab === 'library') setTab('uploads');
         // Images just arrived - refresh Projects so folder item tiles + counts fill in.
         if (activeTab === 'projects') renderProjects(searchInput.value.trim().toLowerCase());
       })
@@ -2509,6 +2536,7 @@ async function render(
     let detectSeq = 0;
     let searchDebounce: ReturnType<typeof setTimeout>;
     searchInput?.addEventListener('input', async () => {
+      userTouched = true; // the user is driving now - don't auto-switch the pane out
       const raw = searchInput.value.trim();
       if (allowToolUrl && /^https?:\/\//i.test(raw)) {
         const seq = ++detectSeq;

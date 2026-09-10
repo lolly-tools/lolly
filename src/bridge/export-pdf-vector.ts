@@ -606,19 +606,7 @@ export function borderDashArray(borderStyle: string | undefined | null, w: numbe
   return null;
 }
 
-// Apply CSS text-transform to a display string. CSS transforms text only at paint
-// time (textContent is unchanged), so the vector walkers - which read textContent
-// - must apply it themselves or vector exports show the original case. upper/lower
-// are 1:1 so they don't disturb per-line substring offsets; capitalize upcases the
-// first letter of each whitespace-separated word (locale-default).
-export function applyTextTransform(str: string, transform: string | null | undefined): string {
-  switch (transform) {
-    case 'uppercase': return str.toUpperCase();
-    case 'lowercase': return str.toLowerCase();
-    case 'capitalize': return str.replace(/(^|[\s ])([^\s ])/gu, (_, p, c) => p + c.toUpperCase());
-    default: return str;
-  }
-}
+export { applyTextTransform } from './text-svg.ts';
 
 // A resolved brand-palette hit: the CMYK 4-tuple (0–1) to substitute - a plain
 // process-locked (or auto-derived-and-measured) swatch's own cmyk, or, for a

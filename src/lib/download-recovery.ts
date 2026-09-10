@@ -35,7 +35,7 @@ export interface RecoveryCopy {
 function control(label: string, ariaLabel: string): HTMLButtonElement {
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = 'btn btn--sm';
+  button.className = 'btn btn--ghost btn--sm';
   button.textContent = label;
   button.setAttribute('aria-label', ariaLabel);
   return button;
@@ -127,7 +127,7 @@ export function releaseDeliveryFor(owner: HTMLElement): void {
 
 /**
  * Retain an already-delivered file for `owner`, painting its recovery control into
- * `surface` with the outcome the first hand-over could vouch for. Replaces any
+ * `surface` with the outcome the first hand-over could vouch for. Replaces whatever
  * result the owner held before.
  */
 export function attachDeliveryResult(
@@ -151,10 +151,11 @@ export function attachDeliveryResult(
   return result;
 }
 
-/** The ordinary path for a result that has no owner-supplied deliverer: through the
- *  live host (overridable by the shells), or the bridge's own anchor before a host
- *  exists - never a raw anchor of this module's own. */
-const ordinaryDeliver: Deliver = async (blob, filename) => {
+/** Deliver a prepared file the ordinary way from a surface with no host in scope:
+ *  through the live host (which the Tauri shells override with a native save), or
+ *  the bridge's own anchor before a host exists - never a raw anchor of a view's
+ *  own, which the Tauri WebView drops (raw-anchor-download-guard.test.ts). */
+export const deliverBlob: Deliver = async (blob, filename) => {
   const host = getHostRef();
   if (host?.export?.download) return deliverFile(host, blob, filename);
   (await import('../bridge/export.ts')).anchorSave(blob, filename);
@@ -167,7 +168,7 @@ const ordinaryDeliver: Deliver = async (blob, filename) => {
  * unmounts the control and releases the file.
  */
 export function offerDownloadRecovery(status: HTMLElement, blob: Blob, filename: string, savedMessage: string): () => void {
-  const result = new DeliveryResult({ blob, filename, label: filename }, ordinaryDeliver, chooseLocationDeliver(getHostRef()));
+  const result = new DeliveryResult({ blob, filename, label: filename }, deliverBlob, chooseLocationDeliver(getHostRef()));
   const unmount = mountDownloadRecovery(status, result, { ready: status.textContent || '', saved: savedMessage });
   return () => {
     unmount();

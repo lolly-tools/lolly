@@ -32,6 +32,7 @@ globalThis.Event = dom.window.Event as unknown as typeof globalThis.Event;
 
 const backNav = await import('../lib/back-nav.ts');
 const { resolveBackTarget, backPillHtml, backHomeHtml, mountBackPill } = await import('./back-pill.ts');
+const { mountHomeFab } = await import('./home-fab.ts');
 
 /** Reset the module's persisted memory between cases. The in-memory
  *  "did this document navigate?" flag can't be un-set, so ordering matters:
@@ -284,3 +285,39 @@ test('a view that renders its own Home FAB keeps exactly one', () => {
   assert.equal(root.querySelectorAll('[data-home-fab]').length, 1);
   assert.equal(root.querySelectorAll('.chrome-topleft').length, 1, 'no island inside the island');
 });
+
+for (const layout of ['sidebar', 'design'] as const) {
+  test(`${layout} Home waits for the unsaved-work decision before navigating`, () => {
+    clearStored();
+    walkFrom('projects', 'Campaign assets - Lolly', '/#/p/abc');
+    const root = document.getElementById('view')!;
+    root.innerHTML = layout === 'sidebar' ? backPillHtml({ class: 'sidebar-back' }) : backHomeHtml();
+    let dirty = true;
+    let intercepted = 0;
+    let release: (() => void) | undefined;
+    const opts = { intercept: (go: () => void): boolean => {
+      intercepted++;
+      if (!dirty) return false;
+      release = go;
+      return true;
+    } };
+    mountBackPill(root, opts);
+    if (layout === 'design') mountHomeFab(root, opts);
+    const home = root.querySelector<HTMLElement>('[data-home-fab]')!;
+    const click = (): void => {
+      home.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }));
+    };
+
+    click();
+    assert.equal(intercepted, 1, 'Home uses the same leave guard as Back');
+    assert.equal(window.location.pathname, '/t/qr-code', 'opening or cancelling the dialog keeps the tool open');
+    assert.equal(typeof release, 'function');
+    release!();
+    assert.equal(window.location.pathname + window.location.hash, '/#/', 'Leave without saving goes Home');
+
+    dom.reconfigure({ url: 'http://localhost/t/qr-code' });
+    dirty = false;
+    click();
+    assert.equal(window.location.pathname + window.location.hash, '/#/', 'a clean tool leaves immediately');
+  });
+}

@@ -293,10 +293,15 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
 /* Active option in the view-options popover. */
 .projects-viewmenu .folder-menu-item.is-on { font-weight: 700; }
 
-/* The per-tile/bulk-selection context menu (mountBodyPopover) is body-mounted and
-   viewport-relative, unlike the base .folder-menu (still page-absolute, for the
-   view-options popover above). */
-.projects-menu { position: fixed; }
+/* Both panels use the shared body popover's viewport-relative positioning. */
+.projects-menu, .projects-viewmenu { position: fixed; }
+.projects-viewmenu {
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+.projects-viewmenu .folder-menu-item { white-space: normal; overflow-wrap: anywhere; }
 /* The bulk menu's "{n} selected" head sits outside its nested role="menu" (see
    views/projects.ts bulkMenuHtml) - same flex-column list layout as the outer
    .folder-menu, just one level deeper. */
@@ -618,4 +623,64 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ui-color-text-muted);
+}
+
+/* ─── Templates collection (#/p/__templates__, plans/226 section 4.3) ────────
+   The collection reads as a CONTAINER wherever it is a door: the root grid tile
+   wears the folder tile's short cover (never the sessions' 4/3 document card),
+   and the rail chip is navigation only - no data-drop-folder, so nothing can be
+   dropped into it. The tiles INSIDE it are the chooser's card: a rounded card
+   with a neutral hairline border, a live preview, name, description and tool. */
+.folder-tile--templates .tile-cover { height: 90px; aspect-ratio: auto; }
+.folder-tile--templates .tile-cover svg { opacity: 0.5; }
+.projects-list .folder-tile--templates .tile-cover { height: calc(40px * var(--a11y-fs)); }
+/* A navigation chip sits apart from the "Move to" drop targets, and must NOT light
+   up as one mid-drag (the drag rules above key on .projects-chip, so opt back out). */
+.projects-chip--nav { margin-left: auto; }
+.projects.is-dragging-session .projects-chip--nav,
+.projects.is-dragging-folder .projects-chip--nav {
+  border-color: var(--ui-color-border-default); background: var(--ui-color-surface-raised);
+}
+.tpl-lede { margin: -6px 0 14px; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.tpl-chips { margin-bottom: 18px; }
+/* The chosen tool chip is a tinted FILL, not an accent outline (house rule). */
+.projects-chip.is-on {
+  background: color-mix(in srgb, var(--ui-color-selection-surface) 75%, transparent);
+  color: var(--ui-color-text-default); font-weight: 600;
+}
+.tpl-sec { margin: 0 0 22px; }
+.tpl-sec .projects-sec-label { margin: 0 0 8px; }
+.tpl-hidden-toggle {
+  display: inline-flex; align-items: center; gap: 8px; margin: 0 0 8px;
+  padding: 6px 10px; border: 0; border-radius: var(--ui-radius-control);
+  background: none; color: var(--ui-color-text-muted); cursor: pointer;
+  font: inherit; font-size: var(--fs-xs); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.tpl-hidden-toggle:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.tpl-hidden-count {
+  min-width: 18px; padding: 1px 6px; border-radius: var(--radius-pill);
+  background: var(--ui-color-surface-muted); color: var(--ui-color-text-muted);
+  font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0;
+}
+/* A hidden template still shows its preview, just calmer, so Restore is an informed
+   choice rather than a name in a list. */
+.tpl-sec--hidden .tpl-tile { opacity: 0.62; }
+.tpl-sec--hidden .tpl-tile:hover { opacity: 1; }
+.tpl-cover {
+  display: grid; place-items: center;
+  background: var(--preview-checker), var(--preview-surface);
+}
+.tpl-cover > * { grid-area: 1 / 1; }
+.tpl-cover-glyph { display: flex; color: var(--ui-color-text-muted); opacity: 0.55; }
+.tpl-cover-glyph svg { width: calc(30px * var(--a11y-fs)); height: calc(30px * var(--a11y-fs)); }
+.tpl-cover-img { width: 100%; height: 100%; object-fit: contain; display: block; opacity: 0; }
+.tpl-cover-img[src] { opacity: 1; transition: opacity .25s ease; }
+.tpl-cover:has(.tpl-cover-img[src]) .tpl-cover-glyph { visibility: hidden; }
+/* "Starts here" - the tool's current Start-with. A tinted fill, never a border. */
+.tpl-starts {
+  padding: 2px 7px; border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--ui-color-selection-surface) 85%, transparent);
+  color: var(--ui-color-text-default);
+  font-size: var(--fs-xs); font-weight: 600;
 }

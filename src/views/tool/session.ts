@@ -11,6 +11,8 @@ import type { AssetRef, Profile } from '@lolly-tools/core/host-v1';
 import { DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, PACK_PARAM, assetIdForUrl, blocksForUrl, encodeTableCompact, isBakedRef, isPackAvailable, isTokenValue, normalizeTableValue, packQuery, serializeHdr, toCssPx } from '@lolly/engine';
 import type { InputValue } from '../../../../../engine/src/inputs.js';
 import { migrateBlockRowIds, stripHiddenRowIds } from '../../lib/row-id.ts';
+import type { UserTemplate, UserTemplateHost } from '../../lib/user-templates.ts';
+import type { TemplateActionHost } from '../../lib/template-actions.ts';
 import { parseEditorState } from '../../lib/editor-state.ts';
 import { attachCanvasEditorApi } from '../../lib/canvas-editor-api.ts';
 import { DESIGN_INTENT_OPTIONS, designNarrationEnabled, designOutcome, designTimelineEnabled, inferDesignIntent } from '../design-workspace.ts';
@@ -358,9 +360,8 @@ export const openBulk = (tview: ToolViewCtx): void => {
 };
 // Wire the back pill(s) - the full-screen one and/or the sidebar one. When the
 // tool has inputs and they've been touched, take the click over and offer the save
-// dialog first; the pill's own `go` is what finally leaves, so the dialog's exits
-// land exactly where the pill says they will (the launch folder when the session
-// came from one, else the view the user arrived from).
+// dialog first. Saving returns to the launch folder or defaults to Projects, where
+// the saved session lives; leaving without saving follows the pill's destination.
 /**
  * The unsaved-work gate every Home/Back pill in this view shares. A `function`
  * declaration, so it hoists over the whole mount: the Design top bar's pill is wired
@@ -386,7 +387,7 @@ export function backPillIntercept(tview: ToolViewCtx, go: () => void): boolean {
     canSave
       ? async () => {
       const actionsApi = tview.actionsApi as NonNullable<ToolViewCtx['actionsApi']>;
-          if (await actionsApi!.save!()) go();
+          if (await actionsApi!.save!()) navigateTo(tview.fromFolder ? tview.returnTo : '/#/p');
         }
       : null,
     () => {
@@ -591,6 +592,34 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
       shareDialogOptions(runtime, actionsEl, tview.tool.manifest, lolly)));
   }
 
+  // ── Templates, the person's own (plans/226 WP-1) ────────────────────────────────────
+  // Three surfaces read the same per-tool list - the Save as… dialog's "Update ‹name›"
+  // targets, the sidebar header's Templates button, and the mid-session chooser - so it
+  // is resolved ONCE here (the profile record is already cached by the mount) and
+  // refreshed after each change rather than re-read three times.
+  //
+  // One cast serves every profile-WRITING store below: HostV1's ProfileAPI is read-only
+  // by contract, and the web host is the one that also has `set`.
+  const profileHost = tview.host as unknown as UserTemplateHost & TemplateActionHost;
+  const templatesBtn = viewEl.querySelector<HTMLButtonElement>('#templates-btn');
+  let myTemplates: UserTemplate[] = [];
+  const refreshMyTemplates = async (): Promise<UserTemplate[]> => {
+    try {
+      const { createUserTemplateStore } = await import('../../lib/user-templates.ts');
+      myTemplates = await createUserTemplateStore(profileHost).list(toolId);
+    } catch {
+      /* user templates are best-effort - the tool still opens, just without them */
+    }
+    // The header button is rendered hidden for a tool with no built-in templates; a
+    // template of the person's own is the other reason for it to exist.
+    if (templatesBtn) templatesBtn.hidden = !(hasTemplates || myTemplates.length > 0);
+    return myTemplates;
+  };
+  await refreshMyTemplates();
+  /** Open the "Save as…" dialog, optionally on its template card. Assigned below when
+   *  this tool can save at all; the Design Lolly menu's rows spend it through the ports. */
+  let openSaveAs: ((focus?: 'project' | 'template') => Promise<void>) | null = null;
+
   // The render pill's Save half: an in-place quick-save. It reuses the exact same
   // export-aware save routine as the popup's Save button (performSave), but unlike
   // that button it does NOT navigate away - it's a checkpoint affordance. performSave
@@ -607,51 +636,76 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
       tview.session.markSessionSaved(); // drop the amber unsaved cue
       tview.renderSaveBtn!.classList.add('is-just-saved');
       setTimeout(() => {
-        if (saveLabel) saveLabel.textContent = t('Save');
+        // Back to the door's own name, not "Save" - this half opens the Save as… dialog
+        // (plans/226 D12), and the label is what tells the two saves apart.
+        if (saveLabel) saveLabel.textContent = t('Save as');
         tview.renderSaveBtn!.classList.remove('is-just-saved');
       }, 1500);
     };
-    // Save now opens a dialog (plan 114 / user-templates): file into a PROJECT, or save the
-    // doc as a reusable TEMPLATE / VARIATION for this tool. Everything the dialog does is
+    // Save opens the "Save as…" dialog (plan 114, plans/226 D12): file into a PROJECT, or
+    // save the doc as a reusable TEMPLATE for this tool. The export sheet's own Save stays
+    // a silent quick save and never comes through here. Everything the dialog does is
     // injected here, where host / runtime / stores / the Share vehicle are all in scope.
-    tview.renderSaveBtn.addEventListener('click', async () => {
+    openSaveAs = async (focus?: 'project' | 'template'): Promise<void> => {
       if (tview.renderSaveBtn!.dataset.saving) return; // mid-save
       if (document.querySelector('dialog.save-dialog')) return; // already open
       const [
         { openSaveDialog },
         { createFolderStore },
-        { createUserTemplateStore },
+        { canSaveTemplate, createUserTemplateStore },
         { createUserToolStore },
-        { parseTemplates },
+        { setStartWith, startWith: readStartWith, templateDesignSystemStamp },
+        { parseTemplateRef, userTemplateRef },
+        { templateValuesFromSnapshot },
       ] = await Promise.all([
         import('../../lib/save-dialog.ts'),
         import('../../folders.ts'),
         import('../../lib/user-templates.ts'),
         import('../../lib/user-tools.ts'),
-        import('../template-chooser.ts'),
+        import('../../lib/template-actions.ts'),
+        import('../../lib/template-ref.ts'),
+        import('../tool-session-snapshot.ts'),
       ]);
       const folderStore = createFolderStore(
         tview.host as unknown as Parameters<typeof createFolderStore>[0]
       );
-      const tplStore = createUserTemplateStore(
-        tview.host as unknown as Parameters<typeof createUserTemplateStore>[0]
-      );
+      const tplStore = createUserTemplateStore(profileHost);
       const userToolStore = createUserToolStore(
         tview.host as unknown as Parameters<typeof createUserToolStore>[0]
       );
       // "Create a tool" turns a saved Design doc into the user's own listed tool - shown only
       // for a tool that can BE a user tool's base (Design today). See lib/user-tools.ts.
       const canCreateTool = toolId === 'design';
-      // Variation bases: this tool's built-in templates + the user's own saved ones.
-      const bases: { id: string; name: string }[] = [];
-      try {
-        for (const tv of parseTemplates(templateMeta)) bases.push({ id: tv.id, name: tv.name });
-        for (const ut of await tplStore.list(toolId)) bases.push({ id: ut.id, name: ut.name });
-      } catch {
-        /* bases are best-effort - the variation card just offers fewer options */
-      }
       const plainValues = (): Record<string, unknown> =>
         Object.fromEntries(runtime.getModel().map((i) => [i.id, i.value]));
+      // What a TEMPLATE keeps: the same session snapshot the save-to-library path writes,
+      // minus the per-document identity and every `file` input (tool-session-snapshot.ts).
+      // The export markers ride along, so a template opens at the size/format it was saved
+      // at. The runtime model is the fallback for a tool with no export panel.
+      const snapshot = (): Record<string, unknown> => actionsApi?.sessionState?.() ?? plainValues();
+      const templateValues = (): Record<string, unknown> =>
+        templateValuesFromSnapshot(snapshot(), tview.tool.manifest);
+      const templateToast = (message: string): void => {
+        void import('../../lib/sfx.ts').then(({ playSfx }) => playSfx('save'));
+        void import('../../lib/undo-toast.ts').then(({ showUndoToast }) =>
+          showUndoToast({
+            message,
+            actionLabel: t('Manage'),
+            undo: () => navigateTo(`#/p/__templates__?tool=${encodeURIComponent(toolId)}`),
+            duration: 6000,
+          })
+        );
+      };
+      const mine = await refreshMyTemplates();
+      // The user template this tool currently starts new documents with, so the card's
+      // checkbox tells the truth for the template being updated (plans/226 4.4).
+      let startWithId: string | null = null;
+      try {
+        const parsed = parseTemplateRef(await readStartWith(profileHost, toolId));
+        if (parsed?.kind === 'user') startWithId = parsed.id;
+      } catch {
+        /* "Start with" is best-effort - the checkbox just opens unticked */
+      }
       // The project this session is already filed in, so the dialog's picker can
       // tell the truth on a re-save (plans/142 W1). Best-effort: an unfiled or
       // never-saved session resolves null and the picker falls back to the
@@ -664,10 +718,16 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
       } catch {
         currentFolderId = null;
       }
+      const label = String(snapshot().__label ?? '').trim();
       openSaveDialog({
         toolName: tview.tool.manifest.name,
-        hasTemplates,
-        bases,
+        // Every tool with something to seed offers the card - the old gate was "this tool
+        // ships templates", which is why ~50 tools could never make a first one.
+        canSaveTemplate: canSaveTemplate(tview.tool.manifest.inputs),
+        templateName: label || tRaw('{tool} template', { tool: tview.tool.manifest.name }),
+        existingTemplates: mine.map((x) => ({ id: x.id, name: x.name })),
+        startWithId,
+        ...(focus ? { focus } : {}),
         currentFolderId,
         listFolders: () =>
           folderStore.list().then((fs) => fs.map((f) => ({ id: f.id, name: f.name }))),
@@ -677,8 +737,27 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
           if (ok) flashSaved();
           return ok;
         },
-        saveTemplate: async (name, variationOf) => {
-          await tplStore.save({ toolId, name, values: plainValues(), variationOf });
+        saveTemplate: async ({ name, description, startWith }) => {
+          const saved = await tplStore.save({
+            toolId,
+            name,
+            description,
+            values: templateValues(),
+            designSystem: await templateDesignSystemStamp(tview.host),
+          });
+          if (startWith) await setStartWith(profileHost, toolId, userTemplateRef(saved.id));
+          await refreshMyTemplates();
+          templateToast(t('Saved as a template'));
+        },
+        updateTemplate: async (id, { description, startWith }) => {
+          await tplStore.replace(id, templateValues());
+          if (description) await tplStore.describe(id, description);
+          if (startWith) await setStartWith(profileHost, toolId, userTemplateRef(id));
+          // Un-ticking the box on the template this tool DOES start with is a real
+          // "stop starting with this"; on another template it is simply left alone.
+          else if (startWithId === id) await setStartWith(profileHost, toolId, null);
+          await refreshMyTemplates();
+          templateToast(t('Template updated'));
         },
         canCreateTool,
         toolFormats: tview.tool.manifest.render?.formats,
@@ -703,10 +782,108 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
           showShareDialog(runtime, actionsEl, tview.tool.manifest, lolly);
         },
         announce: (m) => announce(m),
-        t,
+        // tRaw, not t: every string the dialog renders is escape()d at its own sink, so a
+        // param escaped here would reach the user as `O&#39;Brien`.
+        t: tRaw,
       });
+    };
+    // Exposed for the export panel's Save as, which opens this same dialog - one label,
+    // one meaning - rather than arming a file dialog for the next download.
+    tview.openSaveAs = openSaveAs;
+    tview.renderSaveBtn.addEventListener('click', () => {
+      void openSaveAs!();
     });
   }
+
+  // New from template (plans/142 WP-1, universal since plans/226 WP-1): re-open the Start
+  // chooser mid-session. Unlike the fresh-open seed (applyPatch, deliberately outside the
+  // history), a mid-session pick REPLACES live content, so it applies through the
+  // history-wrapped setInput - one ⌘Z restores the doc, exactly like the import panel's
+  // commit. Blank/Escape/close resolve `{}` and apply nothing. Two doors reach it: the
+  // Design Lolly menu's row (through the ports below) and the sidebar header's Templates
+  // button - one implementation, so a template opens the same way in every layout. The
+  // Design-only steps at the end are no-ops elsewhere (setDesignIntent returns early off
+  // Design, refreshDesignExperience/poseTemplate are armed only with that chrome).
+  let templateChooserBusy = false;
+  const openTemplatesMidSession = async (): Promise<void> => {
+    if (templateChooserBusy) return;
+    templateChooserBusy = true;
+    try {
+      const [
+        { openTemplateChooser, templateEditorPose },
+        { shippedVariants, userVariants },
+        { defaultHiddenTemplateRefs },
+        { templateValuesFromSnapshot },
+      ] = await Promise.all([
+        import('../template-chooser.ts'),
+        import('../../lib/template-ref.ts'),
+        import('../../catalog/sync.ts'),
+        import('../tool-session-snapshot.ts'),
+      ]);
+      // Both halves carry their ref + own flag, which is what turns each tile into a
+      // managed one (hide / start with / rename / delete - plans/226 WP-3).
+      const templates = [
+        ...shippedVariants(toolId, templateMeta),
+        ...userVariants(await refreshMyTemplates(), t('Yours')),
+      ];
+      if (!templates.length) return;
+      // Held in a local first: the mount-gate contract test (tool-template-mount.
+      // test.ts) forbids the literal `await openTemplateChooser(` file-wide, so the
+      // fresh-open path can never regress into gating createRuntime on a click.
+      // This callback runs long after mount, where waiting on the pick is the point.
+      const pick = openTemplateChooser({
+        toolName: tview.tool.manifest.name,
+        title: t('New from template'),
+        toolId,
+        templates,
+        host: tview.host,
+        formats: tview.tool.manifest.render?.formats,
+        hiddenDefaults: defaultHiddenTemplateRefs(),
+        // Mid-session, so "Update from this document" on one of the person's own
+        // templates has a document to take - the same snapshot a template save keeps.
+        currentValues: () =>
+          templateValuesFromSnapshot(
+            actionsApi?.sessionState?.() ?? Object.fromEntries(runtime.getModel().map((i) => [i.id, i.value])),
+            tview.tool.manifest
+          ),
+        onChanged: () => { void refreshMyTemplates(); },
+        onPick: ({ templateId, category }) =>
+          tview.history.setDesignIntent(inferDesignIntent({ templateId, templateCategory: category }), true),
+        // Same navigate-away teardown as the fresh-open chooser: _cleanup calls
+        // templatePickClose so the modal never outlives the view.
+        onOpen: (close) => { if (tview.templatePickTornDown) close(); else tview.templatePickClose = close; },
+      });
+      const chosen = await pick;
+      tview.templatePose = templateEditorPose(chosen);
+      if (tview.templatePickTornDown || !viewEl.isConnected) return;
+      // A template the person saved carries the `__export_*` markers of the document it
+      // was made from (plans/226 C5); those are the export sheet's, not the model's, and
+      // mid-session the sheet already holds this document's own. Seed the declared inputs
+      // and leave the rest - setInput would be a no-op per key anyway, at one re-render
+      // each, and a `__` key in templateSeededIds would reach the URL sync.
+      const seeds = Object.entries(chosen ?? {}).filter(([k]) => !k.startsWith('__'));
+      for (const [id] of seeds) templateSeededIds.add(id);
+      for (const [k, v] of seeds) await runtime.setInput(k, v);
+      if (seeds.length) {
+        await migrateBlockRowIds(runtime);
+        // setInput resolves no refs, so the template's {color.*} tokens + tool-URL
+        // image stubs would render black/placeholder; run the mount's resolve pass
+        // once, mirroring the fresh-open seed path above.
+        if (!tview.templatePickTornDown && viewEl.isConnected) await runtime.resolveRefs();
+        tview.refreshDesignExperience(true);
+        tview.poseTemplate();
+      }
+    } catch (e) {
+      tview.host.log?.('warn', 'template chooser failed: ' + String(e));
+    } finally {
+      templateChooserBusy = false;
+    }
+  };
+  // The sidebar-layout door (plans/226 D11): the editor layout has no sidebar header, so
+  // Design reaches the same function through its Lolly menu instead.
+  templatesBtn?.addEventListener('click', () => {
+    void openTemplatesMidSession();
+  });
 
   // Darkroom's "Grade a video…" (plans/130): the tool authors the look and publishes
   // it as the `videoLook` hook extra (a baked .cube, key-guarded); the shell owns the
@@ -999,72 +1176,6 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
       if (o?.speaker) presenter?.speaker();
     };
 
-    // New from template (plans/142 WP-1): re-open the Start chooser from the editor's
-    // Lolly menu. Unlike the fresh-open seed (applyPatch, deliberately outside the
-    // history), a mid-session pick REPLACES live content, so it applies through the
-    // history-wrapped setInput - one ⌘Z restores the doc, exactly like the import
-    // panel's commit. Blank/Escape/close resolve `{}` and apply nothing.
-    let templateChooserBusy = false;
-    const openTemplatesMidSession = async (): Promise<void> => {
-      if (templateChooserBusy) return;
-      templateChooserBusy = true;
-      try {
-        const { openTemplateChooser, parseTemplates } = await import('../template-chooser.ts');
-        const templates = parseTemplates(templateMeta);
-        try {
-          const { createUserTemplateStore } = await import('../../lib/user-templates.ts');
-          const mine = await createUserTemplateStore(
-            tview.host as unknown as Parameters<typeof createUserTemplateStore>[0]
-          ).list(toolId);
-          for (const ut of mine)
-            templates.push({
-              id: ut.id,
-              name: ut.name,
-              category: t('Your templates'),
-              values: ut.values as Record<string, InputValue>,
-            });
-        } catch {
-          /* user templates are best-effort */
-        }
-        if (!templates.length) return;
-        // Held in a local first: the mount-gate contract test (tool-template-mount.
-        // test.ts) forbids the literal `await openTemplateChooser(` file-wide, so the
-        // fresh-open path can never regress into gating createRuntime on a click.
-        // This callback runs long after mount, where waiting on the pick is the point.
-        const pick = openTemplateChooser({
-          toolName: tview.tool.manifest.name,
-          title: t('New from template'),
-          toolId,
-          templates,
-          host: tview.host,
-          formats: tview.tool.manifest.render?.formats,
-          onPick: ({ templateId, category }) =>
-            tview.history.setDesignIntent(inferDesignIntent({ templateId, templateCategory: category }), true),
-          // Same navigate-away teardown as the fresh-open chooser: _cleanup calls
-          // templatePickClose so the modal never outlives the view.
-          onOpen: (close) => { if (tview.templatePickTornDown) close(); else tview.templatePickClose = close; },
-        });
-        const chosen = await pick;
-        tview.templatePose = (await import('../template-chooser.ts')).templateEditorPose(chosen);
-        if (tview.templatePickTornDown || !viewEl.isConnected) return;
-        for (const id of Object.keys(chosen ?? {})) templateSeededIds.add(id);
-        for (const [k, v] of Object.entries(chosen ?? {})) await runtime.setInput(k, v);
-        if (Object.keys(chosen ?? {}).length) {
-          await migrateBlockRowIds(runtime);
-          // setInput resolves no refs, so the template's {color.*} tokens + tool-URL
-          // image stubs would render black/placeholder; run the mount's resolve pass
-          // once, mirroring the fresh-open seed path above.
-          if (!tview.templatePickTornDown && viewEl.isConnected) await runtime.resolveRefs();
-          tview.refreshDesignExperience(true);
-          tview.poseTemplate();
-        }
-      } catch (e) {
-        tview.host.log?.('warn', 'template chooser failed: ' + String(e));
-      } finally {
-        templateChooserBusy = false;
-      }
-    };
-
     // The document name lives in ONE place - the export sheet's filename field - and three
     // surfaces read and write it (the Document-info panel, the top bar, the save snapshot's
     // `__label`). Hoisted out of the `info` literal below so the bar shares the exact same
@@ -1231,7 +1342,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
           },
           // Chrome the tool view owns and the overlay's trimmed Lolly menu now hosts: the
           // theme cycle and sound toggles the retired zoom HUD used to carry (see the
-          // setupStageNav call above), the profile avatar, and "Save to your library".
+          // setupStageNav call above), the profile avatar, and the two save rows.
           // The elements are ADOPTED, not cloned - the HUD is not built in this layout,
           // so nothing else holds a claim on them.
           chrome: {
@@ -1242,6 +1353,14 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
                   tview.renderSaveBtn?.click();
                 }
               : undefined,
+            // The same dialog, opened on its template card (plans/226 4.1) - so the menu
+            // offers both destinations by name instead of one row that hides the other.
+            saveAsTemplate:
+              canSaveSession && openSaveAs
+                ? () => {
+                    void openSaveAs!('template');
+                  }
+                : undefined,
           },
           // Primary actions as prominent rail icons (the chromeless editor has no
           // bottom pill). Each delegates to the tool's existing handler/button so
@@ -1261,10 +1380,10 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             present: (atFrameId?: string) => {
               void openPresenter(atFrameId ? { at: atFrameId } : undefined);
             },
-            // Only offered when the tool ships templates (index metadata / inline
-            // manifest); a tool with only user-saved templates reaches them via a
-            // fresh open, which the chooser gate already covers.
-            newFromTemplate: hasTemplates
+            // Offered when the tool has templates of EITHER kind (plans/226 WP-1): a
+            // person's own template is as good a reason to re-open the chooser as a
+            // shipped one, and the list is already resolved for the Save as… dialog.
+            newFromTemplate: hasTemplates || myTemplates.length > 0
               ? () => {
                   void openTemplatesMidSession();
                 }
@@ -1495,7 +1614,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             // The bar's Home pill is not in the DOM when the view-wide mountBackPill() runs
             // (this callback is a dynamic import behind it), so wire the bar's own subtree.
             mountBackPill(designTopbar.el, { intercept: tview.session.backPillIntercept });
-            mountHomeFab(designTopbar.el);
+            mountHomeFab(designTopbar.el, { intercept: tview.session.backPillIntercept });
             // An edit made to the filename in the export sheet must show up in the bar. The
             // event is dispatched on the actions panel and does not bubble, so listen there.
             // Both edges of the sheet: it can open on one name and close on another (the field
@@ -1511,8 +1630,10 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             // one delegated listener covers the field however it is rebuilt; the bar's own
             // `sync()` skips an unchanged value, so this is inert while typing in the bar.
             const onFilenameInput = (e: Event): void => {
-              if ((e.target as HTMLElement | null)?.closest?.('[data-action="filename"]'))
+              if ((e.target as HTMLElement | null)?.closest?.('[data-action="filename"]')) {
+                tview.session.markUserDirty('filename');
                 designTopbar?.sync();
+              }
             };
             actionsEl?.addEventListener('input', onFilenameInput);
 

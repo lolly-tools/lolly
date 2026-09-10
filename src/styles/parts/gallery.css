@@ -1815,6 +1815,52 @@ a.gtile-name:focus-visible::after {
 .meta-look-thumb > * { grid-area: 1 / 1; }
 .meta-look-thumb:has(.meta-look-img[src]) .meta-look-glyph { visibility: hidden; }
 .meta-look-name { font-size: var(--fs-sm); font-weight: 600; line-height: 1.25; }
+/* A tile plus its "Start with this" chip (plans/226): the chip is a SIBLING of the
+   tile link, never a child - a button inside an anchor is not a control anyone can
+   reach. The two stack, so the grid cell still reads as one starting point. */
+.meta-look-item { display: flex; flex-direction: column; gap: var(--sp-1); list-style: none; }
+.meta-look-item > .meta-look { flex: 1; }
+.meta-look-start {
+  border: 0;
+  border-radius: calc(var(--radius) * 0.6);
+  padding: 3px 7px;
+  font-size: var(--fs-xs);
+  font-family: inherit;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 0.55);
+  cursor: pointer;
+}
+.meta-look-start:hover { background: hsl(var(--muted) / 0.9); color: hsl(var(--foreground)); }
+/* The chosen one reads as filled, not outlined - no accent-coloured borders here. */
+.meta-look-start[aria-pressed="true"] {
+  background: hsl(var(--primary) / 0.16);
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+/* "Starts with X · Ask me every time" - the one line that says what a fresh open does. */
+.meta-start {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+}
+.meta-start-clear {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: hsl(var(--primary));
+  cursor: pointer;
+  text-decoration: underline;
+}
+/* "Yours" - the person's own templates, under the shipped ones in the same tile shape. */
+.meta-sec-sub {
+  margin: var(--sp-4) 0 var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: hsl(var(--muted-foreground));
+}
 .meta-look-desc {
   font-size: var(--fs-xs);
   line-height: 1.4;

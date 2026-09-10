@@ -6,6 +6,8 @@ import { JSDOM } from 'jsdom';
 import { previewContextSignature } from '../lib/preview-context.ts';
 const previewSig = async (values: unknown) => JSON.stringify([values, await previewContextSignature({} as Parameters<typeof previewContextSignature>[0])]);
 import { openTemplateChooser, parseTemplates, templateValuesById } from './template-chooser.ts';
+import { shippedVariants, userVariants } from '../lib/template-ref.ts';
+import type { UserTemplate } from '../lib/user-templates.ts';
 
 test('template chooser modal layers above the portalled edge dock', () => {
   const css = readFileSync(new URL('../styles/template-chooser.css', import.meta.url), 'utf8');
@@ -464,4 +466,300 @@ test('openTemplateChooser: the tile itself still picks the template BASE when ch
   await new Promise(r => setTimeout(r, 0));
   document.querySelector<HTMLElement>('.tmpl-chooser-tile[data-template-id="poster"] .tmpl-chooser-tile-name')!.click();
   assert.deepEqual(await pick, { w: 1080, h: 1080 }, 'a click outside the chips is the base pick');
+});
+
+// ── The chooser as the per-tool manager (plans/226 WP-3) ─────────────────────
+// With a host that can read the profile, the chooser also HIDES shipped templates
+// behind a "Hidden (N)" chip, lists the person's own templates first, states and
+// clears "Start with", and offers a per-tile menu whose every row goes through
+// lib/template-actions.ts or the lib/user-templates.ts store. A host without a
+// profile bridge (every test above) keeps the plain picker, which is why none of
+// those tiles grew a menu button.
+
+// The shared dialogs dispatch on `e.target instanceof Element`, so that constructor has
+// to be a global here the way HTMLElement already is above.
+globalThis.Element = dom.window.Element;
+globalThis.Node = dom.window.Node;
+
+// jsdom 25 has no <dialog> showModal/close, and Rename / Delete go through the app's
+// shared modal (components/modal.ts). Shim the two methods so the real dialog code
+// runs here rather than being mocked away.
+const dialogProto = dom.window.HTMLDialogElement.prototype as unknown as {
+  showModal?: () => void;
+  close?: () => void;
+};
+if (typeof dialogProto.showModal !== 'function') {
+  dialogProto.showModal = function showModal(this: HTMLDialogElement): void { this.open = true; };
+  dialogProto.close = function close(this: HTMLDialogElement): void {
+    this.open = false;
+    this.dispatchEvent(new dom.window.Event('close'));
+  };
+}
+
+/** A profile that lives in memory, read and written exactly as the web host does.
+ *  `reads` counts profile reads, which is how the tests below know the chooser's
+ *  management boot (profile read, own-template list, repaint) has really run. */
+function memHost(seed: Record<string, unknown> = {}) {
+  const state = { profile: seed, reads: 0 };
+  return {
+    host: {
+      profile: {
+        get: async () => { state.reads++; return state.profile; },
+        set: async (p: Record<string, unknown>) => { state.profile = p; },
+      },
+    } as never,
+    profile: () => state.profile,
+    reads: () => state.reads,
+  };
+}
+
+/** The modal opened most recently - earlier tests close theirs, this survives a stray. */
+const modal = (): HTMLElement => {
+  const all = document.querySelectorAll<HTMLElement>('.tmpl-chooser-modal');
+  return all[all.length - 1]!;
+};
+const tiles = (): string[] =>
+  [...modal().querySelectorAll<HTMLElement>('.tmpl-chooser-tile')].map(el => el.dataset.templateId ?? '');
+const tile = (id: string): HTMLElement | null =>
+  modal().querySelector<HTMLElement>(`.tmpl-chooser-tile[data-template-id="${id}"]`);
+const chip = (filter: string): HTMLElement | undefined =>
+  [...modal().querySelectorAll<HTMLElement>('.tmpl-chooser-filter')].find(c => c.dataset.filter === filter);
+const closeChooser = (): void => { modal()?.querySelector<HTMLElement>('.tmpl-chooser-close')?.click(); };
+const ctxMenuEl = (): HTMLElement | null => document.querySelector<HTMLElement>('.ctx-menu');
+
+/** Poll the event loop until `cond` holds (or give up), so a test never guesses at
+ *  how many ticks a dynamic import plus a profile round trip takes. */
+async function until(cond: () => boolean, steps = 300): Promise<void> {
+  for (let i = 0; i < steps && !cond(); i++) await new Promise(r => setTimeout(r, 0));
+}
+
+const SHIPPED = shippedVariants('design', [
+  { id: 'poster', name: 'Poster', category: 'Poster', values: { w: 1 } },
+  { id: 'card', name: 'Card', category: 'Card', values: { w: 2 } },
+]);
+const ownRecord = (over: Partial<UserTemplate> = {}): UserTemplate => ({
+  id: 'u1', toolId: 'design', name: 'My deck', values: { w: 3 },
+  createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', ...over,
+});
+
+/** Open the chooser and wait for its management boot: the profile read plus the
+ *  own-template list read (two reads), then the repaint those produce. */
+async function openManaged(opts: Parameters<typeof openTemplateChooser>[0], host: { reads(): number }): Promise<void> {
+  const before = host.reads();
+  void openTemplateChooser(opts);
+  await until(() => host.reads() >= before + 2);
+  await until(() => false, 4);
+}
+
+/** Open one tile's menu. The context-menu module is fetched lazily, so the click is
+ *  retried until the popover is actually there rather than raced against the import. */
+async function openMenu(id: string): Promise<HTMLElement> {
+  await until(() => {
+    tile(id)?.querySelector<HTMLElement>('[data-tile-menu]')?.click();
+    return !!ctxMenuEl();
+  });
+  return ctxMenuEl()!;
+}
+
+test('a hidden shipped template leaves the grid and is reachable under the Hidden chip', async () => {
+  const mem = memHost({ hiddenTemplates: ['design:poster'], hiddenTemplatesSeeded: true });
+  await openManaged({ toolName: 'Design', toolId: 'design', templates: SHIPPED, host: mem.host }, mem);
+
+  assert.equal(tile('poster'), null, 'the hidden shipped tile is not in the ordinary grid');
+  assert.ok(tile('card'), 'the rest of the shipped set is untouched');
+
+  const hiddenChip = chip('__hidden__');
+  assert.ok(hiddenChip, 'a Hidden chip appears once something is hidden');
+  assert.match(hiddenChip!.textContent ?? '', /Hidden \(1\)/, 'and it counts what is behind it');
+  assert.equal(
+    [...modal().querySelectorAll<HTMLElement>('.tmpl-chooser-filter')].at(-1),
+    hiddenChip,
+    'the Hidden chip sits at the END of the chips row',
+  );
+
+  hiddenChip!.click();
+  assert.ok(tile('poster'), 'selecting Hidden lists the hidden tile');
+  assert.equal(tile('card'), null, '...and only the hidden ones');
+  assert.ok(tile('poster')!.querySelector('[data-restore]'), 'each hidden tile carries a Restore button');
+  closeChooser();
+});
+
+test('Restore puts the tile back, writes the profile and reports the change', async () => {
+  const mem = memHost({ hiddenTemplates: ['design:poster'], hiddenTemplatesSeeded: true });
+  let changed = 0;
+  await openManaged({
+    toolName: 'Design', toolId: 'design', templates: SHIPPED, host: mem.host,
+    onChanged: () => { changed++; },
+  }, mem);
+  chip('__hidden__')!.click();
+  tile('poster')!.querySelector<HTMLElement>('[data-restore]')!.click();
+  await until(() => !!tile('card'));
+
+  assert.deepEqual(mem.profile().hiddenTemplates, [], 'the ref left the profile hidden set');
+  assert.ok(tile('poster'), 'the tile is back in the ordinary grid');
+  assert.equal(chip('__hidden__'), undefined, 'and the Hidden chip goes with the last hidden tile');
+  assert.equal(changed, 1, 'onChanged fired exactly once for the restore');
+  closeChooser();
+});
+
+test('the templates a person saved lead the grid and carry an ownership glyph', async () => {
+  const mem = memHost({ userTemplates: [ownRecord()] });
+  const templates = [...userVariants([ownRecord()], 'Yours'), ...SHIPPED];
+  await openManaged({ toolName: 'Design', toolId: 'design', templates, host: mem.host }, mem);
+
+  assert.deepEqual(tiles(), ['__blank__', 'u1', 'poster', 'card'], 'Blank, then Yours, then the shipped set');
+  assert.ok(tile('u1')!.querySelector('.tmpl-chooser-tile-own'), 'an own tile is marked with a glyph');
+  assert.equal(tile('poster')!.querySelector('.tmpl-chooser-tile-own'), null, 'a shipped tile is not');
+  assert.equal(
+    [...modal().querySelectorAll<HTMLElement>('.tmpl-chooser-filter')][1]?.dataset.filter,
+    'Yours',
+    'and the Yours chip leads the category chips (All is always first)',
+  );
+  closeChooser();
+});
+
+test('the tile menu hides a shipped template through the shared action', async () => {
+  const mem = memHost({});
+  let changed = 0;
+  await openManaged({
+    toolName: 'Design', toolId: 'design', templates: SHIPPED, host: mem.host,
+    onChanged: () => { changed++; },
+  }, mem);
+  const menu = await openMenu('poster');
+  assert.ok(menu.querySelector('[data-act="copy"]'), 'a shipped tile offers Make a copy');
+  assert.equal(menu.querySelector('[data-act="delete"]'), null, 'and never Delete');
+  menu.querySelector<HTMLElement>('[data-act="hide"]')!.click();
+  await until(() => tile('poster') === null);
+
+  assert.deepEqual(mem.profile().hiddenTemplates, ['design:poster'], 'the hide went to the profile');
+  assert.equal(changed, 1, 'and the caller was told');
+  closeChooser();
+});
+
+test('"Start with" is set from the menu, stated in a header line and marked on the tile', async () => {
+  const mem = memHost({});
+  await openManaged({ toolName: 'Design', toolId: 'design', templates: SHIPPED, host: mem.host }, mem);
+  assert.equal(modal().querySelector('.tmpl-chooser-start'), null, 'nothing is stated while the tool asks');
+
+  (await openMenu('poster')).querySelector<HTMLElement>('[data-act="start"]')!.click();
+  await until(() => !!modal().querySelector('.tmpl-chooser-start'));
+
+  assert.deepEqual(mem.profile().templateStart, { design: 'design:poster' }, 'the ref is stored per tool');
+  assert.match(modal().querySelector('.tmpl-chooser-start')!.textContent ?? '', /Starts with Poster/);
+  assert.ok(tile('poster')!.querySelector('.tmpl-chooser-tile-mark'), 'the chosen tile takes the corner mark');
+  assert.equal(tile('card')!.querySelector('.tmpl-chooser-tile-mark'), null, 'no other tile does');
+
+  modal().querySelector<HTMLElement>('.tmpl-chooser-startclear')!.click();
+  await until(() => !modal().querySelector('.tmpl-chooser-start'));
+  assert.equal(mem.profile().templateStart, undefined, 'the link puts the tool back to asking');
+  closeChooser();
+});
+
+test('the Blank tile can be made the start, and its menu says so', async () => {
+  const mem = memHost({});
+  await openManaged({ toolName: 'Design', toolId: 'design', templates: SHIPPED, host: mem.host }, mem);
+  const blankMenu = await openMenu('__blank__');
+  assert.match(blankMenu.textContent ?? '', /Start Design with this/);
+  blankMenu.querySelector<HTMLElement>('[data-act="start"]')!.click();
+  await until(() => !!modal().querySelector('.tmpl-chooser-start'));
+  assert.deepEqual(mem.profile().templateStart, { design: 'blank' }, 'Blank is stored as the blank sentinel');
+  closeChooser();
+});
+
+test('an own template renames through the store, and the tile follows', async () => {
+  const mem = memHost({ userTemplates: [ownRecord()] });
+  await openManaged({
+    toolName: 'Design', toolId: 'design', host: mem.host,
+    templates: [...userVariants([ownRecord()], 'Yours'), ...SHIPPED],
+  }, mem);
+  const menu = await openMenu('u1');
+  assert.ok(menu.querySelector('[data-act="export"]'), 'an own tile offers Export as file');
+  assert.equal(menu.querySelector('[data-act="hide"]'), null, 'an own template is deleted, never hidden');
+  assert.equal(menu.querySelector('[data-act="replace"]'), null, 'Update from this document needs currentValues');
+  menu.querySelector<HTMLElement>('[data-act="rename"]')!.click();
+
+  await until(() => !!document.querySelector('dialog.modal .modal-input'));
+  const input = document.querySelector<HTMLInputElement>('dialog.modal .modal-input')!;
+  assert.equal(input.value, 'My deck', 'the field is pre-filled with the current name');
+  input.value = 'Quarterly deck';
+  document.querySelector<HTMLElement>('dialog.modal [data-act="ok"]')!.click();
+  await until(() => (tile('u1')?.textContent ?? '').includes('Quarterly deck'));
+
+  const saved = (mem.profile().userTemplates as UserTemplate[])[0]!;
+  assert.equal(saved.name, 'Quarterly deck', 'the store holds the new name');
+  assert.match(tile('u1')!.textContent ?? '', /Quarterly deck/, 'and the tile was repainted from it');
+  closeChooser();
+});
+
+test('"Update from this document" is offered only with currentValues, and re-seeds the record', async () => {
+  const mem = memHost({ userTemplates: [ownRecord()] });
+  await openManaged({
+    toolName: 'Design', toolId: 'design', host: mem.host,
+    templates: [...userVariants([ownRecord()], 'Yours'), ...SHIPPED],
+    currentValues: () => ({ w: 99 }),
+  }, mem);
+  (await openMenu('u1')).querySelector<HTMLElement>('[data-act="replace"]')!.click();
+  await until(() => ((mem.profile().userTemplates as UserTemplate[])[0]!.values as { w?: number }).w === 99);
+
+  assert.deepEqual((mem.profile().userTemplates as UserTemplate[])[0]!.values, { w: 99 }, 'the seed was replaced');
+  closeChooser();
+});
+
+test('"Make a copy" turns a shipped template into one of the person own', async () => {
+  const mem = memHost({});
+  await openManaged({ toolName: 'Design', toolId: 'design', templates: SHIPPED, host: mem.host }, mem);
+  (await openMenu('poster')).querySelector<HTMLElement>('[data-act="copy"]')!.click();
+  await until(() => ((mem.profile().userTemplates as UserTemplate[] | undefined)?.length ?? 0) > 0);
+
+  const copy = (mem.profile().userTemplates as UserTemplate[])[0]!;
+  assert.equal(copy.name, 'Poster', 'the copy keeps the shipped name by default');
+  assert.equal(copy.from, 'design:poster', 'and remembers where it came from');
+  assert.deepEqual(copy.values, { w: 1 }, 'with the shipped seed');
+  await until(() => !!tile(copy.id));
+  assert.equal(tiles()[1], copy.id, 'the copy joins the grid at the head, under Yours');
+  closeChooser();
+});
+
+test('Delete asks first, then takes the tile with it', async () => {
+  const mem = memHost({
+    userTemplates: [ownRecord()],
+    templateStart: { design: 'user:u1' },
+  });
+  let changed = 0;
+  await openManaged({
+    toolName: 'Design', toolId: 'design', host: mem.host,
+    templates: [...userVariants([ownRecord()], 'Yours'), ...SHIPPED],
+    onChanged: () => { changed++; },
+  }, mem);
+  (await openMenu('u1')).querySelector<HTMLElement>('[data-act="delete"]')!.click();
+  await until(() => !!document.querySelector('dialog.modal .modal-msg'));
+  assert.match(
+    document.querySelector('dialog.modal .modal-msg')!.textContent ?? '',
+    /My deck/,
+    'the confirm names the template it is about to remove',
+  );
+  document.querySelector<HTMLElement>('dialog.modal [data-act="ok"]')!.click();
+  await until(() => tile('u1') === null);
+
+  assert.deepEqual(mem.profile().userTemplates, [], 'the record is gone from the store');
+  assert.equal(mem.profile().templateStart, undefined, 'and a Start-with pointing at it cleared with it');
+  assert.equal(changed, 1);
+  closeChooser();
+});
+
+test('Escape on an open tile menu closes the menu only', async () => {
+  const mem = memHost({});
+  const pick = openTemplateChooser({
+    toolName: 'Design', toolId: 'design', templates: SHIPPED, host: mem.host,
+  } as Parameters<typeof openTemplateChooser>[0]);
+  await until(() => !!modal()?.querySelector('[data-tile-menu]'));
+  await openMenu('poster');
+
+  const panel = modal().querySelector<HTMLElement>('.tmpl-chooser-panel')!;
+  panel.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  assert.equal(ctxMenuEl(), null, 'the first Escape takes the menu');
+  assert.ok(document.body.contains(modal()), 'and leaves the chooser open');
+
+  panel.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  assert.deepEqual(await pick, {}, 'the second Escape closes the chooser, blank as ever');
 });

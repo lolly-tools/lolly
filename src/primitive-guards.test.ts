@@ -713,6 +713,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // interpolations are a clamped integer score, toFixed() arc lengths and the
   // analyser's closed band union (escape()d anyway); its label is an aria attribute.
   'views/docs.ts': 5,
+  // #/prepare route scaffold: the shared chrome (backHomeHtml/langFabHtml) plus t() copy,
+  // no free text; the panel itself mounts into an empty slot (components/prepare/panel.ts).
+  'views/prepare.ts': 1,
   // The Transcript panel (right dock, plans/174). Two sinks, both TRUSTED lib/icons
   // constants: the close-button glyph and makeActBtn's toolbar-button glyph. The flowing
   // transcript words, the title and every label are set via textContent - no user/model
@@ -732,7 +735,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // `var(--brand-primary, …)` fallbacks - a design-token colour, not free text.
   'bridge/media.ts': 1,
   'bridge/embed.ts': 1,
-  'components/color-field.ts': 6, // System-picker fallback uses the constant, escaped icon('palette') renderer.
+  'components/color-field.ts': 5, // System-picker fallback uses the constant, escaped icon('palette') renderer. 6 → 5, 2026-09-10 (attrition).
   'components/custom-slider.ts': 1,
   // The virtual data grid (spreadsheet view). Reviewed 2026-08-07: the 3 sinks are the
   // static viewport scaffold (no interpolation), the header cells (esc()d column names +
@@ -752,6 +755,19 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/lang-menu.ts': 2,
   'components/modal.ts': 1,
   'components/music-player.ts': 5,
+  // Prepare for sharing (components/prepare/, 2026-09-10). Every sink is a template whose
+  // free-text interpolations go through escape() (utils.ts): file names, byte counts,
+  // scope paths, formats, limitations, masked and revealed values, replacements, rule
+  // values, the report JSON. Everything else is t() copy, lib/icons glyphs, numeric
+  // counts, or engine-generated ids (g0/f0/file0) that never carry user text.
+  // inspector.ts: the panel shell, the what-gets-checked list, the stat chips, coverage,
+  // the report and the rule list. outputs.ts: the copies header and one card per copy.
+  // panel.ts: the layout scaffold, the file rows, and the "Updating…" placeholder.
+  // review.ts: the suggestions list.
+  'components/prepare/inspector.ts': 6,
+  'components/prepare/outputs.ts': 2,
+  'components/prepare/panel.ts': 3,
+  'components/prepare/review.ts': 1,
   // neuro-dock.ts lost its one sink in the @lolly-tools/audio-dock migration (Phase 2b,
   // 2026-08-15): the dock DOM is now built by createAudioDock (in the package, outside
   // this scan); this module only toggles classes + wires the shell's option callbacks.
@@ -1230,7 +1246,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/profile-sync.ts': 2,
   'views/profile.ts': 19,  // +1 2026-07-31: the Offline-tools download manager list (loadOffline) - ids/names escape()d, sizes via fmtBytes, glyphs via icon(); +1 2026-08-17: the "Save my renders" auto-save toggle (jelly-switch) - label + id escape()d; 23 → 18 2026-08-19: "Export everything" became a background job (lib/batch-job.ts), so its five progress-toast writes are gone - the global job toast reports it now; +1 2026-09-03: the Appearance card's "Interface follows the design system" row (plans/182 SS5.6) re-rendered when the Jelly flag flips, exactly as the a11y and render-save lists beside it are - the row is a t() label and an escape()d id, no user data
                            // +1 2026-08-01: the offline persistence line (syncPersistLine) - both t() strings escape()d, the button markup is static
-  'views/projects.ts': 9,   // 10 → 9: the context-menu popover sink moved to lib/context-menu.ts (2026-08-09)
+  'views/projects.ts': 8,   // View-options markup moved to its shared-popover adapter.
+  'views/projects-view-options.ts': 1, // Static enums + escaped t() labels and the existing theme/sound generators.
+  'lib/live-preview.ts': 2, // Inert templates parse the same hydrated source already mounted by render.ts; only local raster-frame attributes are patched after complete structural comparison.
   // 6 → 7, 2026-08-27: the choose-microphone stage button's glyph injection,
   // `micBtn.innerHTML = icon('mic', { size: 18 })`. Reviewed: icon() is the shared
   // trusted glyph generator (lib/icons.ts PATHS constant, R9-guarded), the name is a
@@ -1304,7 +1322,11 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // 1 as of 2026-08-09 (new template-chooser overlay, Design frame primitive). The
   // one innerHTML sink is the dialog scaffold: escapeHtml()'d toolName, static t()
   // markup, and the blankTile/groupsHtml composed-markup helpers; no raw input.
-  'views/template-chooser.ts': 1,
+  // 1 → 2 on 2026-09-10 (plans/226 WP-3): the manager re-render (`bodyEl.innerHTML =
+  // bodyHtml()`) after a hide/restore/rename/delete - the SAME composed helpers the
+  // scaffold sink already uses, whose every interpolated value (template name,
+  // description, category, ref, tool name) is escapeHtml()'d at its use site.
+  'views/template-chooser.ts': 2,
   // 5 as of 2026-07-31: every sink here writes icon() markup from lib/icons.ts
   // (own SVG bodies, guarded by R9) - no interpolated data at any of them.
   // 5 → 7 on 2026-08-11 (the clip inspector's grouped disclosure, plans/104 section 8):
@@ -1384,6 +1406,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/tool/history.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/tool/design-system.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/tool-history-controls.ts': 1, // 2026-09-08: el.innerHTML = icon(glyph), glyph an undo/redo/history literal (icon-registry markup, no user data)
+  'views/compare.ts': 1, // Shared backHomeHtml() only; all supplied comparison content uses textContent.
   'views/history.ts': 2, // 2026-09-08: shared backHomeHtml() escaped navigation chrome, and icon() with fixed registry names; all history captions use textContent
   // 21 as of 2026-07-31: +2 deep-scan watermark notes (trustmarkNoteHtml,
   // contentSealNoteHtml). Reviewed - every attacker-controlled value on this

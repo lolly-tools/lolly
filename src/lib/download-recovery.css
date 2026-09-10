@@ -12,3 +12,7 @@
   color: hsl(var(--muted-foreground));
   font-size: var(--fs-sm);
 }
+.download-recovery .btn { white-space: normal; overflow-wrap: anywhere; }
+@media (pointer: coarse) {
+  .download-recovery .btn { min-height: var(--ui-size-target); }
+}

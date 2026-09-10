@@ -55,6 +55,9 @@ function bodyAfter(src: string, head: string): string {
 }
 
 const CODE = stripComments(readFileSync(join(HERE, 'projects.ts'), 'utf8'));
+// The chooser itself moved out of the mount closure with plans/226 WP-4: the view calls it,
+// views/projects-templates-wiring.ts holds it.
+const WIRING = stripComments(readFileSync(join(HERE, 'projects-templates-wiring.ts'), 'utf8'));
 const PICKER = stripComments(readFileSync(join(HERE, 'picker.ts'), 'utf8'));
 
 test('addDefaultSession takes an optional seed and hands it to the runtime', () => {
@@ -69,25 +72,34 @@ test('addDefaultSession takes an optional seed and hands it to the runtime', () 
 
 test('quick-add offers the variation chooser and seeds from the pick', () => {
   const body = bodyAfter(CODE, 'onQuickAddTool: async (toolId) =>');
-  assert.match(body, /const choice = await chooseAddSeed\(toolId\);/,
-    'quick-add first runs the default-or-variation chooser');
+  assert.match(body, /const choice = await chooseAddSeed\(tpl, toolId, profile, \{ toolName, closeMenu \}\);/,
+    'quick-add first runs the blank-or-a-template chooser, over the collection and the '
+    + 'profile the view already read');
   assert.match(body, /if \(choice\.cancelled\) return \{ ok: false, silent: true \};/,
     'a dismissed chooser returns a SILENT result so no ✓/✗ flashes');
   assert.match(body, /await addDefaultSession\(toolId, choice\.values\);/,
     'the chosen seed (undefined for the default) is threaded into addDefaultSession');
 });
 
-test('a tool with no saved templates skips the chooser entirely (no extra step)', () => {
-  const body = bodyAfter(CODE, 'async function chooseAddSeed(toolId: string): Promise<{ cancelled: boolean; values?: Record<string, unknown> }>');
-  assert.match(body, /createUserTemplateStore\([\s\S]{0,200}?\)\.list\(toolId\)/,
-    'the saved templates come from the user-template store scoped to this tool');
-  const guardAt = body.indexOf('if (!mine.length) return { cancelled: false };');
-  assert.notEqual(guardAt, -1, 'no saved templates → resolve to the default with cancelled:false');
+// The chooser's LIST moved to views/projects-templates.ts with plans/226 WP-4: it now
+// offers the shipped templates too (minus the hidden ones) and leads with the tool's
+// "Start with". What that list holds is covered behaviourally in
+// views/projects-templates.test.ts; this file keeps pinning the view's wiring.
+test('a tool with no templates at all skips the chooser entirely (no extra step)', () => {
+  assert.match(WIRING, /export async function chooseAddSeed\(/, 'the chooser is the wiring module\'s');
+  const body = bodyAfter(WIRING, '): Promise<AddSeedPick>');
+  assert.match(body, /const choices = await tpl\.addSeedChoices\(toolId, profile\);/,
+    'the choices come from the Templates collection, over the same profile the view read');
+  const guardAt = body.indexOf('if (choices.length < 2) return { cancelled: false };');
+  assert.notEqual(guardAt, -1, 'nothing but "Blank" → resolve to the default with cancelled:false');
   const choiceAt = body.indexOf('choiceDialog(');
-  assert.ok(guardAt !== -1 && (choiceAt === -1 || guardAt < choiceAt),
-    'the empty-list early return sits BEFORE the dialog is ever opened');
-  assert.match(body, /choices: \[\s*\{ id: '__default__'/,
-    'the chooser leads with a Default settings choice, then the variations');
+  assert.ok(choiceAt === -1 || guardAt < choiceAt,
+    'that early return sits BEFORE the dialog is ever opened');
+  assert.match(body, /message: t\('Start blank, or from a template\.'\)/, 'the message names both answers');
+  assert.match(body, /if \(chosen === ADD_SEED_BLANK\) return \{ cancelled: false \};/,
+    'the blank row still resolves to the tool defaults');
+  assert.match(body, /return \{ cancelled: false, values: await tpl\.seedForRef\(chosen, toolId\) \};/,
+    'and any other pick is resolved through the shared template resolver (a shipped seed is fetched)');
 });
 
 test('the picker suppresses the flash for a silent quick-add result', () => {

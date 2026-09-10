@@ -25,7 +25,7 @@
    .tool-actions (the export panel), which predates the .btn class and still
    needs the identical look without every call-site adding the class by hand. */
 .btn,
-.tool-actions button {
+.tool-actions button:not(.btn) {
   text-decoration: none;
   padding: 5px 14px;
   background: var(--ui-color-surface-canvas);
@@ -42,7 +42,7 @@
 /* Hover/disabled stay scoped to .tool-actions button (its historical reach) -
    many bare-.btn call-sites (gallery footer, catalog bulk bar, …) define their
    own hover locally, so a blanket `.btn:hover` here would change their look. */
-.tool-actions button:hover {
+.tool-actions button:not(.btn):hover:not(:disabled) {
   background: hsl(var(--accent));
   border-color: var(--ui-color-border-default);
 }
@@ -75,6 +75,7 @@
 .be-btn:hover:not(:disabled), .be-add:hover:not(:disabled) {   /* brand-studio.css - identical hover */
   border-color: hsl(var(--primary) / .55);
 }
+.btn--ghost:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
 
 /* Primary - the fill recipe that used to be re-typed with no base class in
    ~10 places. This selector list is its ONLY declaration app-wide; every
@@ -83,8 +84,6 @@
 .btn--primary,
 .toast-action,                                    /* tool-chrome.css */
 .tool-actions [data-action="copy"].copy-armed,    /* tool-chrome.css */
-.tool-actions [data-action="download"],           /* tool-chrome.css */
-.tool-actions [data-action="request-approval"],   /* tool-chrome.css - control-plane export gate */
 .share-copy-btn,                                  /* dialogs.css */
 .unsaved-save,                                    /* dialogs.css */
 .modal .modal-primary,                            /* dialogs.css */

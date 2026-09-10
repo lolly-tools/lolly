@@ -10,6 +10,7 @@
 import { C2PA_FORMATS, DEFAULT_CMYK_CONDITION, VIDEO_CODEC_STRINGS, hasVideoParams, normalizeTableValue } from '@lolly/engine';
 import { t } from '../../i18n.ts';
 import { livePalette } from '../../lib/live-palette.ts';
+import { patchLivePreview } from '../../lib/live-preview.ts';
 import { scopeTemplateStyles } from '../../lib/scope-css.ts';
 import { runTemplateScripts, waitForQuiescence } from '../../lib/render-lifecycle.ts';
 import { hydrateEmbeds, neutralizeEmbeds } from '../../bridge/embed.ts';
@@ -33,6 +34,7 @@ import { bindOp, type ToolViewCtx } from './context.ts';
 export async function runPreview(tview: ToolViewCtx, btn?: HTMLElement | null): Promise<void> {
   const { actionsApi, contentEl } = tview;
   const target = btn ?? contentEl.querySelector<HTMLElement>('[data-preview]');
+  if (!target) return;
   const iconOnly = Boolean(target?.dataset.iconOnly);
   if (target) {
     if (target.dataset.busy) return; // re-entrancy guard
@@ -151,8 +153,11 @@ export function paint(tview: ToolViewCtx): void {
     }
   }
 
-  let contentPainted = geomSkipped;
-  if (!geomSkipped && hydrated !== tview.lastPainted) {
+  const livePatched = !geomSkipped && hydrated !== tview.lastPainted &&
+    patchLivePreview(contentEl, tview.lastPainted, hydrated);
+  if (livePatched) tview.lastPainted = hydrated;
+  let contentPainted = geomSkipped || livePatched;
+  if (!geomSkipped && !livePatched && hydrated !== tview.lastPainted) {
     const gen = ++tview.renderGen;
     // Paged docs scroll the whole document in the canvas surface; a full innerHTML
     // rebuild would otherwise snap the view back to the cover on every keystroke.
@@ -467,6 +472,15 @@ export function flushRender(tview: ToolViewCtx): void {
 }
 export function wirePreview(tview: ToolViewCtx): void {
   const { autoCopy, autoExport, canvasEl, contentEl, previewCfg, runtime, sizeDriver } = tview;
+  if (tview.host.prepare) contentEl?.classList.add('prepare-capable');
+  contentEl?.addEventListener('click', async event => {
+    if (!(event.target as HTMLElement).closest('[data-prepare-sharing]')) return;
+    const input = contentEl.querySelector<HTMLTextAreaElement>('[data-tt-in]');
+    if (!input) return;
+    const text = input.selectionStart !== input.selectionEnd ? input.value.slice(input.selectionStart, input.selectionEnd) : input.value;
+    const { openPreparation } = await import('../../lib/prepare-entry.ts');
+    if (contentEl.isConnected) openPreparation(tview.host, [new File([text], 'text.txt', { type: 'text/plain' })]);
+  });
   if (previewCfg && canvasEl) {
     canvasEl.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest<HTMLElement>('[data-preview]');
@@ -510,6 +524,8 @@ export function wirePreview(tview: ToolViewCtx): void {
           const { bytes, mime, filename } = items[0]!;
           const blob = new Blob([bytes as BlobPart], { type: mime || 'application/octet-stream' });
           await tview.host.export.file(blob, { filename: filename || 'file' });
+          const { offerPreparationResult } = await import('../../lib/prepare-entry.ts');
+          offerPreparationResult(tview.host, blob, filename || 'file');
         } else {
           // Batch (a `multiple` file input): fold every transformed file into ONE
           // zip so the browser delivers a single download (STORED for the already-
@@ -535,6 +551,8 @@ export function wirePreview(tview: ToolViewCtx): void {
           await tview.host.export.file(new Blob([zip as BlobPart], { type: 'application/zip' }), {
             filename: btn.dataset.exportArchive || 'transformed-files.zip',
           });
+          const { offerPreparationFiles } = await import('../../lib/prepare-entry.ts');
+          offerPreparationFiles(tview.host, items.map((item, i) => new File([item.bytes as BlobPart], item.filename || `file-${i + 1}`, { type: item.mime || 'application/octet-stream' })));
         }
         btn.classList.remove('is-busy');
         btn.textContent = btn.dataset.idleLabel!;

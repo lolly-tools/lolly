@@ -1179,11 +1179,12 @@ test('inline palette is populated and fine-tuning is optional; names precede tri
   assert.deepEqual([...named.querySelector('.color-trigger')!.children].map(el => el.className), ['color-trigger-name', 'color-trigger-preview']);
 });
 
-test('unsupported screen sampling keeps a functional system picker action', () => {
+test('with no screen sampler and no creative surface, the eyedropper opens the system colour picker', () => {
+  // No window.EyeDropper (jsdom) and no #tool-canvas to loupe → the button falls
+  // back to the OS colour panel rather than doing nothing (plan 216 item 8). This
+  // decision is now made at click time, so there are no mount-time markers to read.
   const { field, seen } = mount('#30ba7880');
   const action = field.querySelector<HTMLButtonElement>('[data-color-eyedropper]')!;
-  assert.equal(action.dataset.colorPickerFallback, 'native');
-  assert.equal(action.getAttribute('aria-label'), 'Open system colour picker');
   const native = field.querySelector<HTMLInputElement>('.color-popover-native')!;
   let opened = 0;
   native.addEventListener('click', () => opened++);
@@ -1198,16 +1199,18 @@ test('screen eyedropper preserves alpha and treats cancellation as no edit', asy
   const win = window as typeof window & { EyeDropper?: new () => { open(): Promise<{ sRGBHex: string }> } };
   let cancelled = false;
   win.EyeDropper = class { async open() { if (cancelled) throw new Error('cancelled'); return { sRGBHex: '#2453ff' }; } };
+  // Warm the lazily-imported eyedropper module so the click's dynamic import is a
+  // cache hit and a one-tick wait is enough to observe the result.
+  await import('../lib/eyedropper.ts');
   try {
     const { field, seen } = mount('#30ba7880');
     const action = field.querySelector<HTMLButtonElement>('[data-color-eyedropper]')!;
-    assert.equal(action.dataset.colorPickerFallback, undefined);
     action.click();
-    await wait(1);
-    assert.equal(seen.at(-1)!.value, '#2453ff80');
+    await wait(5);
+    assert.equal(seen.at(-1)!.value, '#2453ff80', 'the picked colour keeps the field alpha');
     cancelled = true;
     action.click();
-    await wait(1);
-    assert.equal(seen.length, 1);
+    await wait(5);
+    assert.equal(seen.length, 1, 'a cancelled pick is no edit');
   } finally { delete win.EyeDropper; }
 });

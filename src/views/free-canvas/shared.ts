@@ -458,7 +458,7 @@ export interface ToolbarActions {
   /** Open the frames as a fullscreen deck (plan 112); absent = not a frame tool. The
    *  optional id starts the deck ON that artboard (plans/179 M2's "Present from here"). */
   present?(atFrameId?: string): void;
-  newFromTemplate?(): void; // re-open the Start template chooser mid-session (plans/142 WP-1); absent = tool has no templates
+  newFromTemplate?(): void; // re-open the Start template chooser mid-session (plans/142 WP-1); absent = the tool has no templates, shipped or the person's own (plans/226 WP-1)
   bulk?(): void; // hand this template to /batch (plans/147 M1); absent = the batch can't run this tool
   canSave?: boolean; // omit the Save icon for tools that don't persist a session
   dirtyRef?: HTMLElement | null; // element whose `is-unsaved` class the Save icon mirrors

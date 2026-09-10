@@ -90,3 +90,82 @@ test('writes never clobber sibling profile fields (folders, headshot)', async ()
   assert.deepEqual(p.folders, [{ id: 'f1', name: 'Proj', items: [] }], 'folders preserved');
   assert.equal((p.userTemplates as unknown[]).length, 1, 'userTemplates written');
 });
+
+// ─── plans/226: v2 record + management methods ─────────────────────────────────
+
+test('save carries description / designSystem / from, and never writes variationOf', async () => {
+  const { host, raw } = memHost();
+  const store = createUserTemplateStore(host);
+  const t = await store.save({
+    toolId: 'qr-code', name: '  Wi-Fi  ', values: { url: 'x' }, description: '  For   the office ',
+    designSystem: { id: 'suse', label: 'SUSE' }, from: 'qr-code:wifi',
+  });
+  assert.equal(t.name, 'Wi-Fi');
+  assert.equal(t.description, 'For the office');
+  assert.deepEqual(t.designSystem, { id: 'suse', label: 'SUSE' });
+  assert.equal(t.from, 'qr-code:wifi');
+  assert.equal('variationOf' in t, false);
+  const plain = await store.save({ toolId: 'qr-code', name: 'Plain', values: {}, description: '   ' });
+  assert.equal('description' in plain, false, 'a blank description is not stored');
+  assert.equal((raw().userTemplates as unknown[]).length, 2);
+  assert.equal(raw().headshot, 'keep-me');
+});
+
+test('get / replace / describe / duplicate / remove', async () => {
+  const { host } = memHost();
+  const store = createUserTemplateStore(host);
+  const t = await store.save({ toolId: 'design', name: 'Deck', values: { boxes: [1] }, description: 'v1' });
+  assert.equal((await store.get(t.id))?.name, 'Deck');
+  assert.equal(await store.get('nope'), null);
+
+  assert.equal(await store.replace(t.id, { boxes: [1, 2] }), true);
+  assert.deepEqual((await store.get(t.id))?.values, { boxes: [1, 2] });
+  assert.equal(await store.replace('nope', {}), false);
+
+  await store.describe(t.id, '  v2  ');
+  assert.equal((await store.get(t.id))?.description, 'v2');
+  await store.describe(t.id, '');
+  assert.equal((await store.get(t.id))?.description, undefined);
+
+  const copy = await store.duplicate(t.id);
+  assert.ok(copy && copy.id !== t.id);
+  assert.equal(copy.name, 'Deck copy');
+  assert.equal(copy.from, `user:${t.id}`);
+  assert.deepEqual(copy.values, { boxes: [1, 2] });
+  copy.values.boxes = [];   // a deep copy, not the same array
+  assert.deepEqual((await store.get(t.id))?.values, { boxes: [1, 2] });
+  const named = await store.duplicate(t.id, 'Deck B');
+  assert.equal(named?.name, 'Deck B');
+  assert.equal(await store.duplicate('nope'), null);
+
+  await store.remove(t.id);
+  assert.equal(await store.get(t.id), null);
+  assert.equal((await store.list('design')).length, 2);
+});
+
+test('canSaveTemplate: needs one non-file input', async () => {
+  const { canSaveTemplate } = await import('./user-templates.ts');
+  assert.equal(canSaveTemplate([{ type: 'text' }]), true);
+  assert.equal(canSaveTemplate([{ type: 'file' }, { type: 'select' }]), true);
+  assert.equal(canSaveTemplate([{ type: 'file' }]), false);
+  assert.equal(canSaveTemplate([]), false);
+  assert.equal(canSaveTemplate(undefined), false);
+});
+
+test('size gauge: 40 Design templates keep the profile record under 1 MB (plans/226 D5)', async () => {
+  // The shipped Design templates are the heaviest real seeds we have; cycle them to 40
+  // records and measure the profile as JSON. If this ever trips, the follow-up is the
+  // dedicated store + backup part (plans/186 pattern), not a bigger budget.
+  const { readdirSync, readFileSync } = await import('node:fs');
+  const dir = new URL('../../../../community/design/templates/', import.meta.url);
+  const files = readdirSync(dir).filter(f => f.endsWith('.json'));
+  assert.ok(files.length >= 8, 'shipped Design templates present');
+  const { host, raw } = memHost();
+  const store = createUserTemplateStore(host);
+  for (let i = 0; i < 40; i++) {
+    const file = JSON.parse(readFileSync(new URL(files[i % files.length]!, dir), 'utf8')) as { values: Record<string, unknown> };
+    await store.save({ toolId: 'design', name: `Template ${i}`, values: file.values });
+  }
+  const bytes = Buffer.byteLength(JSON.stringify(raw()), 'utf8');
+  assert.ok(bytes < 1_000_000, `profile is ${bytes} bytes`);
+});

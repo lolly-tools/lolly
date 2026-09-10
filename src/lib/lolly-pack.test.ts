@@ -17,6 +17,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { encodeAssetVersion } from '../../../../engine/src/asset-version.ts';
 import type { BeamAssetRecord, BeamPackHost, BeamSessionRow } from './beam-pack.ts';
+import type { UserTemplateRecord } from '@lolly-tools/core/host-v1';
 import {
   buildLollyFile,
   readLollyFile,
@@ -26,6 +27,8 @@ import {
   extractBundledTool,
   LOLLY_FILE_FORMAT,
   LOLLY_MIME,
+  LOLLY_MIN_READER,
+  TEMPLATES_PART,
   type LollyLibraryAsset,
   type LollyToolBundle,
 } from './lolly-pack.ts';
@@ -368,6 +371,74 @@ test('creatorFromProfile embeds identity only with the useDetails opt-in', () =>
   const optedIn = creatorFromProfile({ firstname: 'Ada', lastname: 'L', useDetails: true }, { orgFallback: 'Contoso Inc' });
   assert.equal(optedIn.name, 'Ada L');
   assert.equal(optedIn.org, 'Contoso Inc', 'the instance name fills the org line when the user has none');
+});
+
+// ── templates.json (plans/226 WP-6) ───────────────────────────────────────────
+
+const TEMPLATE: UserTemplateRecord = {
+  id: 'ut-quarterly',
+  toolId: 'chart',
+  name: 'Quarterly bars',
+  description: 'The house chart',
+  values: { title: 'Q3', kind: 'bar', __export_format: 'svg' },
+  designSystem: { id: 'ds-1', label: 'Acme' },
+  createdAt: '2026-09-01T00:00:00.000Z',
+  updatedAt: '2026-09-02T00:00:00.000Z',
+};
+const TEMPLATE_SESSION = { __toolId: 'chart', __label: 'Quarterly bars', title: 'Q3', kind: 'bar', __export_format: 'svg' };
+
+test('.lolly carries templates as an additive, integrity-covered part', async () => {
+  const built = await buildLollyFile({
+    session: TEMPLATE_SESSION, toolId: 'chart', name: 'Quarterly bars', userAssets: [], templates: [TEMPLATE],
+  });
+  assert.deepEqual(built.manifest.templates, { count: 1 }, 'the manifest announces the count');
+  assert.ok(built.manifest.integrity?.[TEMPLATES_PART], 'the part is in the integrity map');
+  // Additive: the reader gate is untouched, so a build that predates the part opens the
+  // file and simply never looks for it.
+  assert.equal(LOLLY_MIN_READER, 1);
+  assert.equal(built.manifest.minReader, 1, 'carrying templates never raises the reader floor');
+
+  const parsed = await readLollyFile(new Uint8Array(await built.blob.arrayBuffer()));
+  assert.deepEqual(parsed.templates, [TEMPLATE], 'the record round-trips verbatim');
+  assert.deepEqual(parsed.session, TEMPLATE_SESSION, 'the session still reads as an ordinary document');
+
+  // The pre-part path (the session ingest, which never mentions templates) is unchanged:
+  // the document is saved to a slot exactly as it always did.
+  const store = memHost();
+  const res = await ingestLollyFile(parsed, store.host);
+  assert.equal(res.toolId, 'chart');
+  assert.ok(store.slots.has(res.slot), 'an older reader still gets its saved session');
+});
+
+test('.lolly reads a file without the templates part as none', async () => {
+  const plain = await buildLollyFile({ session: { a: 1 }, toolId: 'chart', userAssets: [] });
+  assert.equal(plain.manifest.templates, undefined, 'no part, no manifest block');
+  assert.equal(plain.manifest.integrity?.[TEMPLATES_PART], undefined);
+  const parsed = await readLollyFile(new Uint8Array(await plain.blob.arrayBuffer()));
+  assert.deepEqual(parsed.templates, [], 'callers never branch on the part being absent');
+});
+
+test('.lolly drops junk template rows rather than importing them', async () => {
+  // Whatever a sender (or a hand-edited file) puts in the part, only rows with the four
+  // required fields come back - the rest are dropped, and one bad row is never fatal.
+  const junk = [
+    TEMPLATE,
+    null,
+    'not a template',
+    [TEMPLATE],
+    { id: 'no-tool', name: 'x', values: {} },
+    { id: 'no-name', toolId: 'chart', name: '   ', values: {} },
+    { id: 'no-values', toolId: 'chart', name: 'x', values: 'nope' },
+    { id: 'thin', toolId: 'chart', name: 'Thin', values: { a: 1 }, description: 7, designSystem: 'x', from: 9 },
+  ] as unknown as UserTemplateRecord[];
+  const built = await buildLollyFile({ session: { a: 1 }, toolId: 'chart', userAssets: [], templates: junk });
+  const parsed = await readLollyFile(new Uint8Array(await built.blob.arrayBuffer()));
+  assert.deepEqual(parsed.templates.map(t => t.id), ['ut-quarterly', 'thin'], 'only the well-formed rows survive');
+  const thin = parsed.templates[1]!;
+  assert.equal(thin.description, undefined, 'a non-string description is dropped, not coerced');
+  assert.equal(thin.designSystem, undefined);
+  assert.equal(thin.from, undefined);
+  assert.equal(thin.createdAt, '', 'a missing timestamp reads as empty rather than a made-up date');
 });
 
 test('.lolly carries the sender\'s design system as its own integrity-covered part, and reads it back', async () => {

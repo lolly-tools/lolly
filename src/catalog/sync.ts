@@ -78,6 +78,9 @@ interface AssetIndex {
    *  DEFAULT_HIDDEN_ASSETS. Authored in the brand catalog data so it's per-brand (SUSE-scoped;
    *  omitted from lolly-start), never in shell code. See lib/hidden-tools.ts + gallery.ts. */
   defaultHiddenTools?: string[];
+  /** Template refs (`"<toolId>:<tid>"`) a brand ships hidden for a fresh profile (plans/226) -
+   *  the template twin of `defaultHiddenTools`, merged by lib/hidden-templates.ts until seeded. */
+  defaultHiddenTemplates?: string[];
 }
 
 /**
@@ -434,6 +437,12 @@ let defaultHiddenToolIds_: readonly string[] = [];
  *  fetched this session). Merged into a fresh profile's hidden-tools overlay by the gallery. */
 export function defaultHiddenToolIds(): readonly string[] { return defaultHiddenToolIds_; }
 
+let defaultHiddenTemplateRefs_: readonly string[] = [];
+/** Template refs flagged `defaultHiddenTemplates` in the catalog asset index (empty if the index
+ *  hasn't been fetched this session). Merged into a fresh profile's hidden-templates overlay by
+ *  the chooser, the gallery and the Projects Templates collection (lib/hidden-templates.ts). */
+export function defaultHiddenTemplateRefs(): readonly string[] { return defaultHiddenTemplateRefs_; }
+
 /**
  * With a remote instance base set, rewrite the index's root-relative format
  * URLs to absolute instance URLs BEFORE they reach the asset-meta store - one
@@ -461,6 +470,9 @@ async function syncAssets(host: SyncHost): Promise<void> {
   }
   if (Array.isArray(index.defaultHiddenTools)) {
     defaultHiddenToolIds_ = index.defaultHiddenTools.filter((x): x is string => typeof x === 'string');
+  }
+  if (Array.isArray(index.defaultHiddenTemplates)) {
+    defaultHiddenTemplateRefs_ = index.defaultHiddenTemplates.filter((x): x is string => typeof x === 'string');
   }
 
   // Write metadata into IndexedDB so host.assets.get(id) can resolve any asset.

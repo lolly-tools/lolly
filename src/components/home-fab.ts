@@ -26,12 +26,19 @@ import { escape } from '../utils.ts';
 import { icon } from '../lib/icons.ts';
 import { navigateTo } from '../nav.ts';
 
+export interface MountHomeFabOpts {
+  /** Take over the click while unsaved work is resolved; call go() to leave. */
+  intercept?: (go: () => void) => boolean | undefined;
+}
+
 /** The one home step: front door, history-free, unless the click is modified
  *  (new tab / new window), which is what keeping a real href is for. */
-function goHomeOnClick(e: MouseEvent): void {
+function goHomeOnClick(e: MouseEvent, opts: MountHomeFabOpts): void {
   if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
   e.preventDefault();
-  navigateTo('/#/');
+  const go = (): void => navigateTo('/#/');
+  if (opts.intercept?.(go)) return;
+  go();
 }
 
 /** The trigger markup - drop directly into a .gallery-topright / .plat-header
@@ -51,9 +58,9 @@ export function homeFabHtml(opts: { className?: string } = {}): string {
 /** Wire every home FAB inside `root`. Call once per mount (like mountBackPill /
  *  attachLangMenu); a re-render that replaces the markup gets re-wired on its
  *  own mount. */
-export function mountHomeFab(root: HTMLElement): void {
+export function mountHomeFab(root: HTMLElement, opts: MountHomeFabOpts = {}): void {
   root.querySelectorAll<HTMLElement>('[data-home-fab]').forEach(el => {
-    el.addEventListener('click', e => goHomeOnClick(e as MouseEvent));
+    el.addEventListener('click', e => goHomeOnClick(e as MouseEvent, opts));
   });
 }
 
@@ -62,7 +69,7 @@ export function mountHomeFab(root: HTMLElement): void {
  *  Same skin, same behaviour; the ONE icon-injection sink here is a constant
  *  lib/icons glyph, never user input (mirrors createThemeToggle/createSoundToggle,
  *  and is why this file carries a raw-HTML-sink allowlist entry of 1). */
-export function homeFabEl(opts: { className?: string } = {}): HTMLAnchorElement {
+export function homeFabEl(opts: { className?: string } & MountHomeFabOpts = {}): HTMLAnchorElement {
   const a = document.createElement('a');
   a.className = opts.className ?? 'home-fab';
   a.setAttribute('href', '/#/');
@@ -71,6 +78,6 @@ export function homeFabEl(opts: { className?: string } = {}): HTMLAnchorElement 
   a.setAttribute('aria-label', label);
   a.title = label;
   a.innerHTML = icon('home');
-  a.addEventListener('click', e => goHomeOnClick(e as MouseEvent));
+  a.addEventListener('click', e => goHomeOnClick(e as MouseEvent, opts));
   return a;
 }

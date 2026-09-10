@@ -317,6 +317,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     rootSelector: '.catalog',
     count: () => selected.size,
     actions: [
+      { id: 'compare', icon: icon('duplicate'), label: () => t('Compare'), hidden: () => !cat.bulk.canCompareSelection() },
       { id: 'fav', icon: STAR_ICON, label: () => (cat.bulk.allSelectedFav() ? t('Unfavourite') : t('Favourite')) },
       { id: 'add-to-project', icon: icon('folder'), label: () => t('Add to project'), title: () => t('Reference the selection into a project folder - no copies, the assets stay in the Catalog') },
       { id: 'hide', icon: icon('eye'), label: () => (cat.bulk.allSelectedHidden() ? t('Unhide') : t('Hide')) },

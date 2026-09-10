@@ -93,5 +93,5 @@ export function saveAsButtonHtml(show: boolean): string {
   const label = escapeHtml(t('Save as'));
   return jellyActive()
     ? `<jelly-button variant="platinum" data-action="save-as" class="save-as-btn">${label}</jelly-button>`
-    : `<button type="button" data-action="save-as" class="save-as-btn">${label}</button>`;
+    : `<button type="button" data-action="save-as" class="btn btn--ghost save-as-btn">${label}</button>`;
 }

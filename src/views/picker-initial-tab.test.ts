@@ -285,6 +285,42 @@ test('an untyped pick tiles only the user assets that HAVE a picture', async () 
 });
 
 
+// ── Private assets first and default (plan 216 item 5b) ──────────────────────
+// The picker opens on Private assets WHEN the user has any, unless an explicit
+// initialTab / remembered tab / collect mode says otherwise. The switch waits on
+// the async upload load, so an empty library never flashes an empty uploads pane.
+// (Each clears the per-type tab memory other tests in this file leave behind.)
+
+function clearTabMemory(): void {
+  try { dom.window.localStorage.removeItem('lolly:pickerTab'); } catch { /* ok */ }
+}
+
+test('with uploads present and no remembered tab, the picker opens on Private assets', async () => {
+  setToolIndex(TOOLS);
+  clearTabMemory();
+  const p = await open({ allowUpload: true, type: 'image' }, [asset('a/one')], [asset('user/images/photo', 'raster')]);
+  assert.equal(p.visiblePane(), 'uploads', 'your own assets are what you land on');
+  assert.equal(p.selectedTab(), 'uploads');
+  await p.close();
+});
+
+test('with no uploads, the picker stays on Catalogue (empty uploads never becomes the default)', async () => {
+  setToolIndex(TOOLS);
+  clearTabMemory();
+  const p = await open({ allowUpload: true, type: 'image' }, [asset('a/one')], []);
+  assert.equal(p.visiblePane(), 'library', 'nothing of your own → the Catalogue');
+  assert.equal(p.selectedTab(), 'library');
+  await p.close();
+});
+
+test('an explicit initialTab still wins over the uploads default', async () => {
+  setToolIndex(TOOLS);
+  clearTabMemory();
+  const p = await open({ allowUpload: true, type: 'image', initialTab: 'library' }, [asset('a/one')], [asset('user/images/photo', 'raster')]);
+  assert.equal(p.visiblePane(), 'library', 'the caller asked for Catalogue, uploads present or not');
+  await p.close();
+});
+
 // ── a 3-D model tile is never a blank <img> at its .glb (plan 216 item 9) ─────
 
 test('a 3-D model with no baked still tiles as a glyph, not a broken <img> of its .glb', async () => {

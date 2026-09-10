@@ -70,5 +70,8 @@ export async function deliverFile(host: DeliveryHost, blob: Blob, filename: stri
     if ((err as { name?: string })?.name === 'AbortError') return 'cancelled';
     throw err;
   }
-  return takeDeliveryOutcome() ?? 'saved';
+  // Nothing recorded: only a host with the desktop shell's native seam has actually
+  // written the file by the time download() resolves. Any other silent host (a test
+  // stub, an unknown shell) gets the honest answer - requested, not saved.
+  return takeDeliveryOutcome() ?? (nativeSaveAsSeam() ? 'saved' : 'requested');
 }

@@ -101,6 +101,9 @@
 
 .share-dialog { max-width: 460px; }
 .save-dialog { max-width: 480px; }
+/* With the template card present the dialog carries TWO peer cards side by side
+   (plans/226 WP-1), so it needs the room; a project-only save keeps 480px. */
+.save-dialog--wide { max-width: 640px; }
 /* The unsaved-changes guard has three actions ("Save & leave" / "Leave without
    saving" / "Cancel"); at 380px they wrap to two rows (worse with the wider
    jelly capsules). Give it room to lay them out on one line - applies in both
@@ -123,10 +126,11 @@
   backdrop-filter: blur(2px);
 }
 
-/* ─── Save dialog (lib/save-dialog.ts) ───────────────────────────────────────
-   Save now opens a destination chooser: file into a PROJECT, or save the doc as a
-   reusable TEMPLATE / VARIATION for this tool. Three stacked cards, each with its own
-   action; the project card's Save is the primary. */
+/* ─── Save as… dialog (lib/save-dialog.ts) ───────────────────────────────────
+   "Save as…" opens a destination chooser: file into a PROJECT, or save the doc as a
+   reusable TEMPLATE for this tool. The two are PEER cards side by side (plans/226
+   WP-1) and stack when the dialog is narrow; the project card's Save is the primary.
+   "Create a tool" (Design only) stays folded under the More disclosure below. */
 .save-dialog-head {
   display: flex; align-items: center; gap: 10px;
   padding: 16px 20px; border-bottom: 1px solid hsl(var(--border));
@@ -140,6 +144,15 @@
 
 .save-dialog-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
 
+/* The two peer cards. `auto-fit` + a 240px floor is the whole responsive rule: at the
+   dialog's 640px they sit side by side, and once the viewport clamps it (90vw, so around
+   560px) two columns no longer fit their floor and the pair stacks - no media query, and
+   a project-only dialog's single card simply fills the row. */
+.save-cards {
+  display: grid; gap: 12px; align-items: start;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
 .save-card {
   padding: 14px; border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) * 1.4); background: hsl(var(--muted) / 0.35);
@@ -150,6 +163,15 @@
 .save-card-row .save-input { flex: 1 1 140px; min-width: 0; }
 .save-card-row .btn { flex: none; }
 .save-new-project { margin-top: 8px; width: 100%; }
+.save-card-row + .save-card-row { margin-top: 8px; }
+
+/* "Start new ‹Tool› documents with this" - the template card's single checkbox. */
+.save-card-check {
+  display: flex; align-items: flex-start; gap: 7px;
+  margin: 10px 0 0; font-size: var(--fs-sm); line-height: 1.35;
+  color: hsl(var(--foreground)); cursor: pointer;
+}
+.save-card-check input { flex: none; margin: 1px 0 0; }
 
 /* Create-a-tool: a narrow emoji/icon field beside the name, and the format checkbox row. */
 .save-tool-icon { flex: 0 0 64px; text-align: center; }

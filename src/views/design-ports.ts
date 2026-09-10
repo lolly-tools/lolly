@@ -215,6 +215,8 @@ export interface DesignChromeOpts {
   themeToggle?: HTMLElement;
   soundToggle?: HTMLElement;
   profileEl?: HTMLElement;
-  /** Save to your library (the render pill's save), when the tool can save. */
+  /** "Save as…" - the save dialog (the render pill's save), when the tool can save. */
   saveToLibrary?(): void;
+  /** The same dialog opened on its template card ("Save as a template…", plans/226). */
+  saveAsTemplate?(): void;
 }

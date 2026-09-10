@@ -182,7 +182,7 @@ export interface MountBackPillOpts {
    * supplied `go()` when the user has confirmed. Return false/undefined to let
    * the pill navigate normally.
    */
-  intercept?: (go: () => void) => boolean | void;
+  intercept?: (go: () => void) => boolean | undefined;
 }
 
 /** Perform the back step for an already-rendered pill. */
@@ -210,11 +210,11 @@ function leave(el: HTMLElement): void {
  * At mount rather than in backPillHtml() because "does this view already have a
  * Home?" is a question about the rendered DOM, not about the pill.
  */
-function addHomeEscape(root: HTMLElement, pill: HTMLElement): void {
+function addHomeEscape(root: HTMLElement, pill: HTMLElement, opts: MountBackPillOpts): void {
   if (pill.hasAttribute('data-back-home') || root.querySelector('[data-home-fab]')) return;
   const corner = pill.classList.contains('home-full');
   if (!corner && !pill.classList.contains('sidebar-back')) return;
-  const fab = homeFabEl();
+  const fab = homeFabEl({ intercept: opts.intercept });
   if (!corner) { pill.after(fab); return; }
   // The corner pill pins ITSELF (position: fixed, tool.css .tools-home.home-full),
   // so a sibling would land in flow. Hand the pinning to the .chrome-topleft island
@@ -250,6 +250,6 @@ export function mountBackPill(root: HTMLElement, opts: MountBackPillOpts = {}): 
       // No intercept, or it declined (no unsaved work): the plain, history-aware back step.
       leave(el);
     });
-    addHomeEscape(root, el);
+    addHomeEscape(root, el, opts);
   });
 }

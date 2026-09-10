@@ -19,7 +19,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { __resetJobsForTest, cancelJob, jobsSnapshot, subscribe } from './jobs.ts';
+import { __resetJobsForTest, cancelJob, jobsSnapshot, subscribe, startJob } from './jobs.ts';
 import {
   depthErrorMessage, imageChecksum, runDepthJob, startDepthJob,
   type DepthCache, type DepthJobDeps, type DepthJobRequest,
@@ -205,4 +205,20 @@ test('download bytes become a percentage; an unknowable fraction stays indetermi
   assert.deepEqual(seen[0], { done: 25, total: 100, note: 'Downloading the model…' }, 'bytes → percent');
   assert.deepEqual(seen[1], { done: 0, total: 0, note: 'Reading depth…' }, 'total 0 = the indeterminate candy stripe');
   assert.deepEqual(seen[2], { done: 50, total: 100, note: 'Reading depth…' });
+});
+
+
+test('cancelling queued depth settles its consumer without starting inference', async () => {
+  __resetJobsForTest();
+  const blocker = startJob({ title: 'First job', heavy: true });
+  let calls = 0, inferred = false;
+  const depth = startDepthJob(req(), { onComplete: (map) => { calls++; assert.equal(map, null); } }, {
+    cache: memCache(), infer: async () => { inferred = true; return mapOf(); },
+  });
+  cancelJob(depth.id);
+  await new Promise<void>(resolve => setTimeout(resolve, 0));
+  assert.equal(calls, 1);
+  assert.equal(inferred, false);
+  blocker.finish();
+  __resetJobsForTest();
 });

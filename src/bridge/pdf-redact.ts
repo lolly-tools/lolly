@@ -85,7 +85,8 @@ function fillRounded(
  * aren't available in this app" fallback. At most maxPages (default 40) come
  * back.
  */
-export async function pdfPages(bytes: Uint8Array, opts?: { maxPages?: number; pageNumbers?: number[] }, host?: RedactHost): Promise<PdfPagesResult> {
+export async function pdfPages(bytes: Uint8Array, opts?: { maxPages?: number; pageNumbers?: number[]; signal?: AbortSignal }, host?: RedactHost): Promise<PdfPagesResult> {
+  opts?.signal?.throwIfAborted();
   const input = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   const core = await import('./pdf-redact-core.ts');
   const maxPages = core.clampMaxPages(opts?.maxPages);
@@ -95,7 +96,8 @@ export async function pdfPages(bytes: Uint8Array, opts?: { maxPages?: number; pa
   // redaction pass will burn bars against.
   const { PDFDocument } = await import('pdf-lib');
   const src = await PDFDocument.load(input, PDF_LOAD_OPTS);
-  const sizes = src.getPages().map((p) => p.getSize());
+  opts?.signal?.throwIfAborted();
+  const sizes = src.getPages().map((p) => ({ ...p.getSize(), rotation: ((p.getRotation().angle % 360) + 360) % 360 }));
   if (!sizes.length) throw new Error('This PDF has no pages.');
 
   const { openPdfFile } = await import('../views/pdf-import.ts');
@@ -103,19 +105,27 @@ export async function pdfPages(bytes: Uint8Array, opts?: { maxPages?: number; pa
   const handle = await openPdfFile(new Blob([input as BlobPart], { type: 'application/pdf' }));
 
   const res = await core.collectPages(sizes.length, maxPages, async (i) => {
+    opts?.signal?.throwIfAborted();
     const { width: wPt, height: hPt } = sizes[i]!;
+    const warnings: string[] = [];
     const page = await handle.pageToSvg(i, {
       // The SVG must render with no document fonts - outline every run to real
       // paths, with embedFonts as the safety net for unresolved runs.
-      outlineText: makeTextOutliner([], host?.text),
+      outlineText: makeTextOutliner(warnings, host?.text),
+      warn: message => { warnings.push(message); },
       // Terminal preview output, never re-exported as vectors - safe to hoist.
       dedupePaths: true,
       // Several page SVGs land in one DOM - the ids must not collide.
       idPrefix: `rdpg${i}-`,
     });
-    const svg = await embedFonts(page.svg, []);
-    return { svg, page: i + 1, widthPt: wPt, heightPt: hPt };
+    const svg = await embedFonts(page.svg, warnings);
+    opts?.signal?.throwIfAborted();
+    const angle = sizes[i]!.rotation;
+    const rotation: 0 | 90 | 180 | 270 = angle === 90 || angle === 180 || angle === 270 ? angle : 0;
+    return { svg, page: i + 1, widthPt: wPt, heightPt: hPt, rotation,
+      limitations: warnings.length ? ['The PDF preview renderer reported unsupported content or unresolved fonts.'] : [] };
   }, opts?.pageNumbers);
+  opts?.signal?.throwIfAborted();
   if (!res.pages.length) {
     throw new Error('None of the pages in this PDF could be rendered. It may be encrypted or damaged.');
   }

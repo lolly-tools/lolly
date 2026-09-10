@@ -781,7 +781,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   const copyBtn = actions.includes('copy')
     ? jellyActive()
       ? `<jelly-button variant="platinum" data-action="copy" class="copy-btn" title="Copy to clipboard" label="Copy">${CLIPBOARD_SVG}<span>Copy</span></jelly-button>`
-      : `<button data-action="copy" class="copy-btn" title="Copy to clipboard">${CLIPBOARD_SVG}<span>Copy</span></button>`
+      : `<button type="button" data-action="copy" class="btn btn--ghost copy-btn" title="Copy to clipboard">${CLIPBOARD_SVG}<span>Copy</span></button>`
     : ''; ta.copyBtn = copyBtn;
   const saveBtn = actions.includes('save') ? ta.saving.saveBtnHtml() : ''; ta.saveBtn = saveBtn;
   // Download is the primary CTA - jelly mode gives it the accent-fill squish.
@@ -805,7 +805,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   // not download-specific); the delegated [data-action] handler is unchanged.
   const requestApprovalBtn = jellyActive()
     ? `<jelly-button data-action="request-approval" class="download-btn-jelly">${escapeText(t('Request approval'))}</jelly-button>`
-    : `<button type="button" data-action="request-approval">${escapeText(t('Request approval'))}</button>`; ta.requestApprovalBtn = requestApprovalBtn;
+    : `<button type="button" class="btn btn--primary" data-action="request-approval">${escapeText(t('Request approval'))}</button>`; ta.requestApprovalBtn = requestApprovalBtn;
   const downloadBtn = !actions.includes('download')
     ? ''
     : affordance === 'request-approval'
@@ -817,14 +817,16 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
           // the capsule), so the jelly label carries the arrow as plain text.
           jellyActive()
           ? `<jelly-button data-action="download" class="download-btn-jelly">↓ <span data-download-label>${escapeText(downloadLabel)}</span></jelly-button>`
-          : `<button data-action="download"><span data-download-label>${escapeText(downloadLabel)}</span></button>`; ta.downloadBtn = downloadBtn;
-  // The Tauri desktop export override registers this one-shot seam, and a browser
-  // with the File System Access API answers it the same way (saveAsBridge). Where
-  // neither can, nothing renders: the fast Downloads action stays the single CTA,
-  // and the secondary file-dialog path is a quiet addition beside it.
+          : `<button type="button" class="btn btn--primary" data-action="download"><span data-download-label>${escapeText(downloadLabel)}</span></button>`; ta.downloadBtn = downloadBtn;
+  // The desktop shell's one-shot native-dialog seam (or the browser picker standing
+  // in for it). Kept on the context for the export's own bookkeeping; choosing WHERE
+  // an exported file is saved is the post-export "Save file…" control now.
   const desktopExport = saveAsBridge(); ta.desktopExport = desktopExport;
+  // "Save as" beside Download opens the SAME document dialog the render pill's Save
+  // does (a project, or a template) - one label, one meaning - so it renders
+  // wherever that dialog exists, not only where a file dialog does.
   const saveAsBtn = saveAsButtonHtml(
-    Boolean(desktopExport && downloadBtn && affordance === 'download')
+    Boolean(experience.openSaveAs && downloadBtn && affordance === 'download')
   ); ta.saveAsBtn = saveAsBtn;
   const blockedNote =
     actions.includes('download') && affordance === 'blocked'

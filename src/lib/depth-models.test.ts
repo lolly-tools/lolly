@@ -3,10 +3,8 @@
  * Depth catalogue (lib/depth-models.ts) - the honesty gates, the working-size cap
  * and the cache identity. The matte-models.test.ts idiom applied to plans/160.
  *
- * The property that MUST hold: nothing is offered until its licence AND its
- * weights are verified. Today NOTHING is staged - publishing the quantised ONNX is
- * a human step - so the pinned staged set is EMPTY, and this test is the tripwire
- * that makes a flip visible in review.
+ * Offered models must have matching verified pins, sizes and a deployment
+ * manifest entry. The model-host rollout ships those files with this build.
  *
  * Run: node --test shells/web/src/lib/depth-models.test.ts
  */
@@ -37,27 +35,24 @@ test('the default model is a real catalogue entry', () => {
   assert.ok(depthModel(DEPTH_DEFAULT_MODEL), 'default resolves in the full catalogue');
 });
 
-test('HONESTY GATE: nothing is offered until the weights are actually published', () => {
-  // Publishing the quantised Depth Anything V2 Small ONNX to the models host is a
-  // HUMAN step (plans/160 section 7) and has not happened. Until it does, offering
-  // the model would promise a one-time download that can never complete.
-  //
-  // When you stage it you are asserting: the file is published at
-  // ${MODELS_BASE}/models/depth/, its sha256 + byte length are pinned and the
-  // catalogue's approxBytes reconciled against the real file, its ONNX graph was
-  // inspected in onnxruntime (input shape/dtype, and DEPTH_MODEL_SPEC's mean/std/
-  // fit/output CONFIRMED against the real graph + preprocessor config - a wrong
-  // value there does not crash, it silently ruins the map), and its licence was
-  // re-read from a primary source (Small is Apache-2.0; Base/Large are CC-BY-NC
-  // and must never be staged). Then update this list in the SAME change.
-  assert.deepEqual(stagedDepthModels().map(m => m.id), [], 'no depth model is staged yet');
+test('the offered depth model has verified pins and a deployment manifest entry', async () => {
+  const { ML_MODEL_FILES } = await import('../../../../packages/node-shell/src/ml/model-pins.ts');
+  const { readFileSync } = await import('node:fs');
+  const manifest = JSON.parse(readFileSync(new URL('../../models-manifest.json', import.meta.url), 'utf8'));
+  assert.deepEqual(stagedDepthModels().map(m => m.id), ['depth-anything-v2-small']);
+  for (const m of stagedDepthModels()) {
+    const file = DEPTH_MODEL_FILES[m.id];
+    const pin = ML_MODEL_FILES.depth.files.find(f => f.path === file);
+    assert.ok(pin);
+    assert.equal(pin.bytes, m.approxBytes);
+    assert.match(pin.sha256, /^[a-f0-9]{64}$/);
+    assert.ok(JSON.stringify(manifest).includes('depth/' + file));
+  }
 });
 
-test('the offline download offers exactly what the picker would - nothing, today', () => {
-  // The size shown and the bytes fetched must come from ONE list (matteOfflineFiles'
-  // rule), or the offline manager and the picker disagree about what is downloadable.
+test('the offline download offers exactly what the picker would', () => {
   assert.deepEqual(depthOfflineFiles(), stagedDepthModels().map(m => DEPTH_MODEL_FILES[m.id]));
-  assert.deepEqual(depthOfflineFiles(), [], 'nothing to pull down until the weights are published');
+  assert.deepEqual(depthOfflineFiles(), ['depth-anything-v2-small.onnx']);
 });
 
 test('the spec matches the ViT-S/14 backbone constraint', () => {

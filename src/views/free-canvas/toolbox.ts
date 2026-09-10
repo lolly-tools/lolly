@@ -209,10 +209,20 @@ export function buildToolbar(fc: FcCtx): void {
     // hidden in editor layout, so the menu keeps the door open when the view offers it.
     if (barMounted && designChrome?.saveToLibrary) {
       items.push({
-        label: t('Save to your library'),
+        label: t('Save as'),
         icon: icon(SVG.save),
         key: 'save',
         run: () => designChrome.saveToLibrary!(),
+      });
+    }
+    // The same dialog, named for the other thing it does (plans/226 4.1): a template is
+    // the reason most people open it, and one row called "Save as…" hid that entirely.
+    if (barMounted && designChrome?.saveAsTemplate) {
+      items.push({
+        label: t('Save as a template…'),
+        icon: icon(SVG.templates),
+        key: 'save-template',
+        run: () => designChrome.saveAsTemplate!(),
       });
     }
     // Share is hidden with the bar's centre under 640px, and a phone has no ⌘Z, so

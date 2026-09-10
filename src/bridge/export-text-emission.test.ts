@@ -34,6 +34,8 @@
  * Run directly: node --test shells/web/src/bridge/export-text-emission.test.ts
  */
 import test from 'node:test';
+import type { HostV1, TextAPI } from '@lolly-tools/core/host-v1';
+import type { renderSvgFromHtml } from './export-svg-walker.ts';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -76,7 +78,8 @@ async function bundle(): Promise<string> {
       // The `emits a <path>` test is the canary for exactly that mistake.
       contents: `import { renderSvgFromHtml, createExportAPI } from ${JSON.stringify(EXPORT_MODULE)};
                  import { createTextAPI } from ${JSON.stringify(join(HERE, 'text.ts'))};
-                 window.__setup = () => createExportAPI({ text: createTextAPI(), log: () => {} });
+                 window.__setup = (overrides = {}) => createExportAPI({ text: createTextAPI(), log: () => {}, ...overrides });
+                 window.__makeText = createTextAPI;
                  window.__render = renderSvgFromHtml;`,
       resolveDir: HERE, loader: 'ts',
     },
@@ -619,3 +622,75 @@ test('a print-dpi export keeps a higher-resolution raster than a screen export',
     const print = await measure(300);
     assert.ok(print > screen, `print (${print}px) must keep more than screen (${screen}px)`);
   });
+
+interface TextHarness {
+  __render: typeof renderSvgFromHtml;
+  __setup: (overrides: { text: TextAPI; log: HostV1['log'] }) => void;
+  __makeText: () => TextAPI;
+}
+
+declare global { interface Window extends TextHarness {} }
+
+test('interleaved HTML renders retain their shaping and logging capabilities across blocks',
+  { skip: SKIP }, async () => {
+    // Initialize the production bundle/font resolver, then use two different roots.
+    await render(OUTFIT('Warm font'));
+    const pg = await page();
+    const result = await pg.evaluate(async () => {
+      const harness = window;
+      const a = document.createElement('div');
+      const b = document.createElement('div');
+      for (const root of [a, b]) {
+        root.style.cssText = 'width:500px;height:150px;font-family:Outfit;font-size:24px';
+        document.body.append(root);
+      }
+      for (const text of ['A first', 'A second', 'A fallback']) {
+        const block = document.createElement('div'); block.textContent = text; a.append(block);
+      }
+      b.textContent = 'B only';
+      const calls: Record<string, string[]> = { A: [], B: [] };
+      const logs: Record<string, string[]> = { A: [], B: [] };
+      let release = () => {};
+      let entered = () => {};
+      const held = new Promise<void>((resolve) => { release = resolve; });
+      const started = new Promise<void>((resolve) => { entered = resolve; });
+      const api = harness.__makeText();
+      const install = (id: 'A' | 'B') => harness.__setup({
+        text: { ...api, async toPath(opts) {
+          calls[id]!.push(opts.text);
+          if (opts.text === 'A first') { entered(); await held; }
+          if (opts.text === 'A fallback') throw new Error('controlled shaping failure');
+          return api.toPath(opts);
+        } },
+        log: (_level, message) => { logs[id]!.push(message); },
+      });
+      install('A');
+      const pendingA = harness.__render(a, { rasterFallback: false });
+      await Promise.race([started, new Promise<void>((_, reject) => {
+        setTimeout(() => reject(new Error('render A did not reach shaping')), 10000);
+      })]);
+      install('B');
+      const svgB = await (await harness.__render(b, { rasterFallback: false })).text();
+      release();
+      const svgA = await (await pendingA).text();
+      return { calls, logs, svgA, svgB };
+    });
+    assert.deepEqual(result.calls, { A: ['A first', 'A second', 'A fallback'], B: ['B only'] });
+    assert.equal(result.logs.A.filter((s: string) => s.includes('controlled shaping failure')).length, 1);
+    assert.equal(result.logs.B.filter((s: string) => s.includes('controlled shaping failure')).length, 0);
+    assert.equal(pathCount(result.svgA), 2);
+    assert.match(result.svgA, /<text[^>]*>A fallback<\/text>/);
+    assert.equal(pathCount(result.svgB), 1);
+  });
+
+test('text shadow filter IDs are deterministic and owned by each render', { skip: SKIP }, async () => {
+  const first = await render(OUTFIT('Shadow', 'text-shadow:2px 3px 4px red,4px 5px 6px blue'));
+  const pg = await page();
+  const second = await pg.evaluate(async () => {
+    const harness = window;
+    return (await harness.__render(document.getElementById('root')!, { rasterFallback: false })).text();
+  });
+  assert.match(first, /id="fctxsh-1"/);
+  assert.match(first, /id="fctxsh-2"/);
+  assert.equal(second, first);
+});

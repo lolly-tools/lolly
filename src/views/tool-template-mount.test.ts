@@ -128,10 +128,13 @@ test('the pick is seeded with applyPatch - no undo step, no collab echo, one ren
 test('the deterministic `?template=` seed stays awaited - export remounts depend on it', () => {
   // No human in the loop there: an off-screen scene/export remount re-parses the URL and
   // must have the values in the model before the first hydrate, or it renders blank.
-  // (fetchTemplateSeed = fetchTemplateValues + the ?preset= overlay merge, plans/142.)
-  assert.match(CODE, /await\s+fetchTemplateSeed\(/,
+  // The shipped-file fetch itself moved into lib/template-ref.ts with plans/226 WP-0
+  // (resolveTemplateSeed = the person's own store, then fetchTemplateSeed - which is
+  // fetchTemplateValues + the ?preset= overlay merge, plans/142 - then inline metadata),
+  // so what this file pins is the ONE resolver call and its position in the mount.
+  assert.match(CODE, /await\s+resolveTemplateSeed\(/,
     '?template= must remain a pre-createRuntime seed, unlike the chooser');
-  const named = CODE.indexOf('await fetchTemplateSeed(');
+  const named = CODE.indexOf('await resolveTemplateSeed(');
   assert.ok(named < CODE.indexOf('await createRuntime('), '…and it must resolve before the mount');
 });
 
@@ -212,9 +215,10 @@ test('the chooser gate opens on built-in OR user templates', () => {
     'the user templates are counted from the store list()');
   assert.match(CODE, /createUserTemplateStore\([\s\S]{0,200}?\)\.list\(toolId\)/,
     'the count comes from the user-template store scoped to this tool id');
-  assert.match(CODE, /if \(\((?:tview\.)?hasTemplates \|\| (?:tview\.)?hasUserTemplates\) && !hasPendingDesignImport\(\)\) \{/,
+  assert.match(CODE, /if \(!startSeeded && \((?:tview\.)?hasTemplates \|\| (?:tview\.)?hasUserTemplates\) && !hasPendingDesignImport\(\)\) \{/,
     'the chooser opens for built-in OR user templates - for neither, this guard leaves templatePick null -'
-    + ' and never over a pending design import, whose drop front door owns this mount (2026-09-02)');
+    + ' and never over a pending design import, whose drop front door owns this mount (2026-09-02),'
+    + ' and never once a "Start with" already seeded the document (plans/226)');
 });
 
 test('the built-in fast path skips the user-template store read before mount', () => {
@@ -226,8 +230,117 @@ test('the built-in fast path skips the user-template store read before mount', (
   const branch = bodyAfter(CODE, head!);
   const countAt = branch.indexOf('hasUserTemplates = mine.length > 0;');
   assert.notEqual(countAt, -1, 'the user-template count is inside this branch');
-  assert.match(branch.slice(0, countAt), /if \(!(?:tview\.)?hasTemplates\) \{/,
-    'the store read only runs when there are no built-in templates (Design stays fast)');
+  assert.match(branch.slice(0, countAt), /if \(!startSeeded && !(?:tview\.)?hasTemplates\) \{/,
+    'the store read only runs when there are no built-in templates (Design stays fast) and no '
+    + '"Start with" already answered the question');
+});
+
+// ── Surface 2: the blank fresh-open ladder (plans/226 section 3) ──────────────
+//
+// A person can tell a tool how to open: a template of theirs, a shipped one, "Blank", or
+// nothing (ask). The rungs have to stay in this order, because each one exists to beat the
+// one below it, and each is a single line that a later edit can drop without noticing:
+//
+//   a. an EMPTY `?template=` asks, always - that is what the gallery card's "+ New" means,
+//      and it must beat a "Start with" or the button silently stops working;
+//   b. a "Start with" REF seeds the document directly, through the SAME applier the
+//      `?template=` launcher uses, and opens no chooser;
+//   c. a ref that no longer resolves clears itself and falls through to the ask, so a
+//      deleted template can never wedge a tool open on something nobody chose;
+//   d. "blank" seeds the manifest defaults (declared artboards kept) and opens no chooser;
+//   e. anything the URL already decided - a resume, a seed, a link with params - never
+//      reaches the ladder at all (the else-if gate above is what guarantees that).
+//
+// Same source-scan reasoning as the rest of this file: mountTool cannot be imported
+// outside Vite. The pieces the ladder calls are unit-tested where they live
+// (lib/template-start.ts, lib/template-ref.ts, lib/template-actions.ts).
+
+/** The blank-fresh-open branch body - the ladder's home. */
+function ladderBranch(): string {
+  const head = CODE.match(/else if \(\s*!(?:tview\.)?slot\s*&&\s*!(?:tview\.)?seededDirect\s*&&\s*Object\.keys\((?:tview\.)?values\)\.length === 0\s*&&\s*\(!(?:tview\.)?reachedViaLink \|\| (?:tview\.)?templateParam === ''\)\s*\)/)?.[0];
+  assert.ok(head, 'the blank-fresh-open branch exists');
+  return bodyAfter(CODE, head!);
+}
+
+test('an empty `?template=` still asks, whatever the "Start with" says', () => {
+  const branch = ladderBranch();
+  const gate = branch.indexOf("if (templateParam !== '') {");
+  assert.notEqual(gate, -1,
+    'the whole "Start with" read is behind an explicit-ask check - an empty ?template= '
+    + 'is the gallery "+ New" button and must reach the chooser with the setting untouched');
+  const startAt = branch.indexOf('loadTemplateStart(');
+  assert.ok(gate < startAt, 'the setting is only read once the ask has been ruled out');
+});
+
+test('a "Start with" ref seeds through the SAME applier as `?template=`', () => {
+  const branch = ladderBranch();
+  assert.match(branch, /const start = loadTemplateStart\(mountProfile, toolId\);/,
+    'the setting comes from lib/template-start.ts, off the profile read above it');
+  assert.match(branch, /if \(start && start !== START_BLANK\) \{[\s\S]{0,600}?await resolveTemplateSeed\(/,
+    'a ref is resolved through the one resolver (their own store, the shipped file, inline metadata)');
+  // Both rungs and the ?template= launcher apply their seed through applyTemplateSeed, so
+  // the pose, the URL/profile precedence and templateSeededIds can never disagree.
+  assert.equal((CODE.match(/await applyTemplateSeed\(/g) ?? []).length, 3,
+    'exactly three appliers: the ?template= launcher, the start-with ref, and start-with blank');
+  const applier = bodyAfter(CODE, 'const applyTemplateSeed = async (seed: Record<string, InputValue>): Promise<void> => {');
+  assert.match(applier, /templateSeededIds\.add\(id\)/, 'a seeded field stays in later share URLs');
+  assert.match(applier, /\{ \.\.\.seed, \.\.\.tview\.initialValues \}/,
+    'a URL/profile-supplied key still wins over the template, as it always has');
+});
+
+test('a "Start with" that no longer resolves clears itself and asks', () => {
+  const branch = ladderBranch();
+  assert.match(branch, /\} else \{[\s\S]{0,400}?await setStartWith\((?:[\s\S]{0,120}?)toolId, null\);/,
+    'a ref that resolves to nothing (deleted, hidden, unsynced) is cleared, not carried');
+  const cleared = branch.indexOf('setStartWith(');
+  const seeded = branch.indexOf('startSeeded = true;');
+  assert.ok(seeded < cleared,
+    'the clear is the ELSE of the found case - clearing must not run on a good ref');
+  // …and having cleared it, the branch falls through with startSeeded false, so the
+  // chooser gate below decides exactly as it would for a person who never set one.
+  assert.doesNotMatch(branch.slice(cleared, branch.indexOf('} else if (start === START_BLANK)')), /startSeeded = true;/,
+    'a cleared setting must NOT count as seeded, or the tool opens blank with no chooser');
+});
+
+test('"Start with: blank" keeps the declared artboards and opens no chooser', () => {
+  const branch = ladderBranch();
+  assert.match(branch, /else if \(start === START_BLANK\) \{[\s\S]{0,500}?blankTemplateSeed\(tview\.tool\.manifest\.inputs\)/,
+    'blank is the manifest defaults through blankTemplateSeed - a frame tool keeps its artboards');
+  const blankAt = branch.indexOf('start === START_BLANK');
+  assert.match(branch.slice(blankAt), /startSeeded = true;/,
+    'and it settles the ladder, so nothing opens over it');
+});
+
+test('the ladder never runs for a link that carries its own intent', () => {
+  // Resume, in-process seed and URL values are excluded by the else-if gate itself - the
+  // ladder lives INSIDE it, so a seeded/parameterised open cannot reach a "Start with".
+  const branch = ladderBranch();
+  assert.ok(branch.includes('loadTemplateStart('), 'the setting is read inside the gate, not before it');
+  const beforeGate = CODE.slice(0, CODE.indexOf(branch));
+  assert.ok(!/loadTemplateStart\(/.test(beforeGate),
+    'nothing reads "Start with" ahead of the resume/seed/link checks');
+});
+
+test('the ladder costs ONE profile read, shared with the profile-fill loop', () => {
+  const pick = bodyAfter(CODE, 'export async function templatePick(tview: ToolViewCtx): Promise<void> {');
+  assert.match(pick, /let mountProfile: Profile \| null = null;/, 'the one record is held for the mount');
+  assert.match(pick, /mountProfile = await tview\.host\.profile\.get\(\);/, 'the ladder fills it');
+  assert.match(pick, /const profile = mountProfile \?\? await tview\.host\.profile\.get\(\);/,
+    'the profile-fill loop reuses it instead of reading a second time');
+  assert.equal((pick.match(/tview\.host\.profile\.get\(\)/g) ?? []).length, 2,
+    'those two sites are the only profile reads on the mount path');
+});
+
+test('the chooser list is built from the shared ref-carrying builders', () => {
+  // Every tile has to carry its ref, or the chooser cannot offer hide / start-with /
+  // rename / delete on it (plans/226 WP-3) - which is why the list is assembled by
+  // lib/template-ref.ts and not by hand here.
+  assert.match(CODE, /const templates = shippedVariants\(toolId, templateMeta\);/,
+    'the shipped tiles come from shippedVariants (ref + own:false)');
+  assert.match(CODE, /templates\.push\(\.\.\.userVariants\(mine, t\('Yours'\)\)\);/,
+    "the person's own come from userVariants under one group name");
+  assert.match(CODE, /hiddenDefaults: defaultHiddenTemplateRefs\(\),/,
+    "the brand's hidden-by-default refs are handed over - the chooser owns the filtering");
 });
 
 test('the chooser hands back a working close only once the modal is real', () => {

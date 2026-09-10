@@ -57,6 +57,7 @@ import type { BeamPackHost } from './beam-pack.ts';
 import type { Unzipped } from 'fflate';
 import type { LollyPreview, LollySessionPreview } from './lolly-intake.ts';
 import type { LollyFileContents } from './lolly-pack.ts';
+import type { UserTemplate, UserTemplateHost } from './user-templates.ts';
 import type { DesignSystemRegistry } from './design-system/registry.ts';
 
 type PickerModule = typeof import('../views/picker.ts');
@@ -675,6 +676,16 @@ function intakeBytesLabel(n: number): string {
   return `${mb.toFixed(mb < 10 ? 1 : 0)} MB`;
 }
 
+/** How many templates a share manifest declares (plans/226 section 4.7). Read off the raw
+ *  manifest the streaming preview already holds, so the intake can say a file brings
+ *  starting points without inflating `templates.json` to find out. */
+function declaredTemplateCount(manifest: Record<string, unknown>): number {
+  const block = manifest.templates;
+  if (!block || typeof block !== 'object') return 0;
+  const n = Number((block as { count?: unknown }).count);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+}
+
 function previewFacts(preview: LollyPreview): string {
   const size = intakeBytesLabel(preview.fileBytes);
   const pace = preview.sizeBand === 'large'
@@ -683,11 +694,13 @@ function previewFacts(preview: LollyPreview): string {
       ? t(' It may take a moment to verify on this device.')
       : '';
   if (preview.kind === 'session') {
+    const templates = declaredTemplateCount(preview.manifest);
     const content = [
       preview.embeddedAssets === 1 ? t('1 embedded file') : t('{n} embedded files', { n: preview.embeddedAssets }),
       preview.referencedAssets ? (preview.referencedAssets === 1 ? t('1 external reference') : t('{n} external references', { n: preview.referencedAssets })) : null,
       preview.includesDesignSystem ? t('a design system') : null,
       preview.includesTool ? t('the tool itself') : null,
+      templates === 0 ? null : templates === 1 ? t('1 template') : t('{n} templates', { n: templates }),
     ].filter(Boolean).join(' · ');
     const tool = preview.toolId ? tRaw(' for {tool}', { tool: preview.toolId }) : '';
     return tRaw('“{name}” is a {size} shared design{tool}. Opening it adds a new Project and {content}; it does not replace existing work.{pace}', {
@@ -761,6 +774,104 @@ async function importCarriedDesignSystem(
   }
 }
 
+/** What to do with a carried template whose name is already taken for that tool. */
+export type TemplateCollision = 'replace' | 'keep-both' | null;
+
+/** Asks the person about one name collision; `null` skips that template. Injected so the
+ *  registration is testable headlessly - the default asks through the app's choice dialog. */
+export type TemplateCollisionAsk = (incoming: UserTemplate, existing: UserTemplate) => Promise<TemplateCollision>;
+
+const askTemplateCollision: TemplateCollisionAsk = async (incoming) => {
+  const choice = await choiceDialog({
+    title: t('You already have this template'),
+    message: tRaw('A template called “{name}” is already saved for this tool.', { name: incoming.name }),
+    choices: [
+      { id: 'replace', label: t('Replace'), primary: true },
+      { id: 'keep-both', label: t('Keep both') },
+    ],
+    tag: 'lolly-template-import',
+  });
+  return choice === 'replace' || choice === 'keep-both' ? choice : null;
+};
+
+/** A free name for the "Keep both" branch: "Name", then "Name 2", "Name 3"… */
+function freeTemplateName(name: string, taken: ReadonlySet<string>): string {
+  if (!taken.has(name.toLowerCase())) return name;
+  for (let n = 2; n < 1000; n++) {
+    const candidate = `${name} ${n}`;
+    if (!taken.has(candidate.toLowerCase())) return candidate;
+  }
+  return `${name} ${Date.now()}`;
+}
+
+/**
+ * Register the templates a `.lolly` handed over into this device's own store
+ * (plans/226 section 4.7). Ids are re-minted by the store on save, so a shared template
+ * is a copy, never a claim on the sender's record.
+ *
+ * Collisions are per (toolId, name), case-insensitively, because that pair is what the
+ * chooser shows: Replace overwrites the seed and the note of the template already here
+ * (keeping its id, so a "Start with" pointing at it survives), Keep both saves a sibling
+ * under the next free numbered name, and a dismissed dialog skips that one template and
+ * moves on. `from` is dropped - it names a template ref on the SENDER's device, which
+ * would read as a false ancestry here.
+ */
+export async function importCarriedTemplates(
+  templates: readonly UserTemplate[],
+  host: UserTemplateHost,
+  ask: TemplateCollisionAsk = askTemplateCollision,
+): Promise<{ added: number; replaced: number; skipped: number }> {
+  const out = { added: 0, replaced: 0, skipped: 0 };
+  if (!templates.length) return out;
+  const { createUserTemplateStore } = await import('./user-templates.ts');
+  const store = createUserTemplateStore(host);
+  for (const tpl of templates) {
+    const mine = await store.list(tpl.toolId);
+    const existing = mine.find(t => t.name.trim().toLowerCase() === tpl.name.trim().toLowerCase());
+    let name = tpl.name;
+    if (existing) {
+      const choice = await ask(tpl, existing);
+      if (!choice) { out.skipped++; continue; }
+      if (choice === 'replace') {
+        await store.replace(existing.id, tpl.values);
+        await store.describe(existing.id, tpl.description ?? '');
+        out.replaced++;
+        continue;
+      }
+      name = freeTemplateName(tpl.name, new Set(mine.map(t => t.name.trim().toLowerCase())));
+    }
+    await store.save({
+      toolId: tpl.toolId,
+      name,
+      values: tpl.values,
+      ...(tpl.description ? { description: tpl.description } : {}),
+      ...(tpl.designSystem ? { designSystem: tpl.designSystem } : {}),
+    });
+    out.added++;
+  }
+  return out;
+}
+
+/** The Templates collection in Projects - where a template import takes the person. */
+const TEMPLATES_HASH = '#/p/__templates__';
+
+/** Announce what was registered and offer the way to it. The session is saved either
+ *  way, so this toast is about the templates only. */
+async function announceTemplateImport(result: { added: number; replaced: number; skipped: number }): Promise<void> {
+  const n = result.added + result.replaced;
+  if (!n) return;
+  const message = n === 1 ? t('1 template added') : tRaw('{n} templates added', { n });
+  announce(message);
+  const { showUndoToast } = await import('./undo-toast.ts');
+  showUndoToast({
+    message,
+    actionLabel: t('Manage'),
+    // The action-toast shape: `undo` is the offered action, and there is no deferred
+    // commit - the templates are already saved.
+    undo: () => { routeToConsumer(TEMPLATES_HASH, window.location.hash === TEMPLATES_HASH); },
+  });
+}
+
 /**
  * The one `.lolly` intake used by Open, drag/drop, native document-open and the
  * contextual Design System picker. The context may recommend a capability, but
@@ -813,6 +924,23 @@ export async function openLollyFile(
         : t('Saving the shared design…')),
     });
     playSfx('drop');
+    // A file that carries templates was shared AS a template (lib/template-share.ts), so
+    // its starting points are the point of it. Register them, then land on the Templates
+    // collection rather than opening the copy of the document that came along for the
+    // ride: the session is saved in Projects either way, and the person's next move here
+    // is to use or manage the template, not to edit the sender's copy.
+    if (loaded.contents.templates.length) {
+      const result = await importCarriedTemplates(loaded.contents.templates, host);
+      if (result.added + result.replaced) {
+        routeToConsumer(TEMPLATES_HASH, window.location.hash === TEMPLATES_HASH);
+        // The templates are already saved, so a toast that cannot render must never
+        // report back as an import failure.
+        await announceTemplateImport(result).catch(() => {});
+        return;
+      }
+      // Every one was declined, so there is nothing new to show: fall through and open
+      // the document that came with them, exactly as an ordinary share does.
+    }
     if (available) {
       announce(tRaw('Opened {name}', { name: file.name }));
       const hash = `#/tool/${res.toolId}?slot=${encodeURIComponent(res.slot)}`;

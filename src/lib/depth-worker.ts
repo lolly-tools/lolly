@@ -22,11 +22,8 @@
  * drives image-in → normalised-map-out through the real module in node, and the
  * worker stops depending on OffscreenCanvas being present.
  *
- * KNOWN GAPS (matter.ts's, inherited): the ORT path has never been run. The
- * weights are not published yet (plans/160 section 7 - a human step), so
- * DEPTH_STAGED is false and a run surfaces ModelNotInstalledError rather than
- * hanging. The PURE math below IS unit-tested; the orchestration around it is
- * verified by hand once a model is staged.
+ * The verified quantised graph is served from the shared models host. A missing
+ * file or unavailable runtime still surfaces a classified error to the job.
  */
 
 import { createDebugLogger, createModelFetcher, loadOrt, serializeSessionCreate, type FetchProgress } from './ort.ts';
@@ -104,7 +101,7 @@ const sessionCache = new Map<string, Promise<InferenceSession | null>>();
 
 /** Load (once) the ONNX session for a model file, or null when its bytes aren't
  *  on device. Never throws - a missing/failed model is 'not-installed'. Note the
- *  bytes are fetched BEFORE onnxruntime is imported, so the (currently universal)
+ *  bytes are fetched BEFORE onnxruntime is imported, so the
  *  no-weights case never pays for the runtime and never hangs on it. */
 function loadSession(fileName: string, onDownload?: (p: FetchProgress) => void): Promise<InferenceSession | null> {
   let entry = sessionCache.get(fileName);
@@ -152,7 +149,6 @@ export async function runDepth(frame: DepthFrame, opts: DepthOpts, ctx: DepthRun
   ctx.checkAbort();
   const id = opts.model ?? DEPTH_DEFAULT_MODEL;
   const spec = DEPTH_MODEL_SPEC[id];
-  const edge = spec.inputSize[0];
 
   const session = await loadSession(DEPTH_MODEL_FILES[id], (p) =>
     ctx.onProgress?.({ phase: 'download', loaded: p.loaded, total: p.total }));
@@ -164,7 +160,7 @@ export async function runDepth(frame: DepthFrame, opts: DepthOpts, ctx: DepthRun
   ctx.checkAbort();
 
   const ort = await loadOrt();
-  const tensor = new ort.Tensor('float32', pre.input, [1, 3, edge, edge]);
+  const tensor = new ort.Tensor('float32', pre.input, [1, 3, pre.inputH, pre.inputW]);
   const result = await session.run({ [session.inputNames[0]!]: tensor });
   ctx.checkAbort();
   const out = result[session.outputNames[0]!]!;

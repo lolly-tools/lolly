@@ -84,6 +84,27 @@
   padding: 16px 20px 24px;
 }
 
+/* "Starts with X" (plans/226 WP-3) - the per-tool new-document setting, stated under the
+   header with the link that puts the tool back to asking. Muted register: it reports a
+   setting, it is not a control the eye should land on first. */
+.tmpl-chooser-start {
+  margin: 0 0 12px;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-md);
+}
+.tmpl-chooser-startclear {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: hsl(var(--foreground));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.tmpl-chooser-startclear:hover { color: hsl(var(--primary)); }
+.tmpl-chooser-startclear:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+
 /* Tag-filter chips - one row of pills (replaces the old per-category sections); "All" plus
    one per category, narrowing the single grid below. */
 .tmpl-chooser-filters {
@@ -117,6 +138,7 @@
 }
 
 .tmpl-chooser-tile {
+  position: relative;   /* the corner marks + the "…" button below anchor to the tile box */
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -223,6 +245,83 @@
 }
 .tmpl-chooser-preset:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 
+/* Tile management chrome (plans/226 WP-3).
+
+   House rule: a rounded tile never takes an accent-coloured border, so ownership and
+   "this is where new documents start" are a glyph on a TINTED FILL instead. Both sit
+   inside the tile box (not the media slot), because the preview drain replaces the
+   media slot's contents when a live thumbnail arrives.
+
+   The "…" button is a pointer convenience only: right-click and press-and-hold reach
+   the same menu, so it can stay out of the way until the tile is hovered or something
+   inside it takes focus. It is always painted where there is no hover (touch). */
+.tmpl-chooser-tile-mark {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(20px * var(--a11y-fs));
+  height: calc(20px * var(--a11y-fs));
+  border-radius: var(--radius-pill);
+  background: hsl(var(--primary) / 0.16);
+  color: hsl(var(--foreground));
+}
+.tmpl-chooser-tile-mark svg { width: calc(13px * var(--a11y-fs)); height: calc(13px * var(--a11y-fs)); }
+
+.tmpl-chooser-tile-own {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(16px * var(--a11y-fs));
+  height: calc(16px * var(--a11y-fs));
+  margin-right: 5px;
+  vertical-align: -3px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+.tmpl-chooser-tile-own svg { width: calc(11px * var(--a11y-fs)); height: calc(11px * var(--a11y-fs)); }
+
+.tmpl-chooser-tile-menu {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(26px * var(--a11y-fs));
+  height: calc(26px * var(--a11y-fs));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-1), background var(--dur-1), color var(--dur-1);
+}
+.tmpl-chooser-tile-menu svg { width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
+.tmpl-chooser-tile:hover .tmpl-chooser-tile-menu,
+.tmpl-chooser-tile:focus-within .tmpl-chooser-tile-menu,
+.tmpl-chooser-tile-menu[aria-expanded="true"] { opacity: 1; }
+.tmpl-chooser-tile-menu:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.tmpl-chooser-tile-menu:focus-visible { opacity: 1; outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+/* No hover to reveal it with (touch, pen): the button is simply always there. */
+@media (hover: none) {
+  .tmpl-chooser-tile-menu { opacity: 1; }
+}
+
+/* The way back from the Hidden chip's grid, stated on the tile itself as well as in
+   its menu, so a restore never depends on finding the menu first. */
+.tmpl-chooser-tile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
 .tmpl-chooser-empty {
   padding: 40px 12px;
   text-align: center;
@@ -263,5 +362,15 @@
     padding: 8px 12px;
     font-size: var(--fs-sm);
   }
+  /* Management chrome on a phone: the "…" button is a real touch target, and the tile
+     has less room, so the two corner affordances tuck in tighter. */
+  .tmpl-chooser-tile-menu {
+    top: 2px;
+    right: 2px;
+    width: calc(44px * var(--a11y-fs));
+    height: calc(44px * var(--a11y-fs));
+  }
+  .tmpl-chooser-tile-mark { top: 5px; left: 5px; }
+  .tmpl-chooser-tile-actions .btn { min-height: 44px; }
 }
 }

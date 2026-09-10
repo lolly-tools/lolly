@@ -18,10 +18,8 @@
  * evictable, regenerable, never part of the portable backup. Reopening a link
  * re-uses it; a cache miss re-infers. THE DEPTH MAP ITSELF NEVER TRAVELS IN A URL.
  *
- * THE WEIGHTS ARE NOT PUBLISHED YET (plans/160 section 7 - a human step), so every
- * run today ends in ModelNotInstalledError. That is deliberately a clean, classified,
- * surfaced failure with an actionable message - never a hang and never ort-web's raw
- * C++ string.
+ * The pinned Small graph is served from /models/depth/. Download, decode and
+ * inference errors are surfaced through the job with a retryable message.
  */
 
 import { startJob, type JobHandle } from './jobs.ts';
@@ -263,7 +261,7 @@ export function startDepthJob(
   const job = startJob({ title: t('Reading depth'), cancel: () => controller.abort(), heavy: true });
   void (async (): Promise<void> => {
     await job.started;
-    if (job.cancelled) return;
+    if (job.cancelled) { hooks.onComplete?.(null); return; }
     try {
       const map = await runDepthJob(req, {
         signal: controller.signal,
@@ -290,11 +288,6 @@ export function startDepthJob(
 // this module on the first request - see that file's header for why the two are
 // split. What lives here is the work: decode the source, run the job, settle.
 //
-// Still gated on the 'depth-models' object store missing from bridge/db.ts
-// (DB_VERSION 15 -> 16) and on flipping DEPTH_STAGED once the weights are
-// published; until both land every run ends in ModelNotInstalledError and the
-// tool renders flat.
-
 async function decodeToFrame(url: string): Promise<{ frame: DepthFrame; checksum: string } | null> {
   const resp = await fetch(url);
   if (!resp.ok) return null;

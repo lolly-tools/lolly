@@ -1,41 +1,76 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The Save dialog - the "Save to your library" button opens THIS instead of a silent one-shot
- * save, so a creative can choose WHERE the work lands:
+ * The "Save as…" dialog - the render pill's Save half and Design's Lolly menu open THIS
+ * instead of a silent one-shot save, so a creative can choose WHERE the work lands:
  *
- *   1. Add to a project - file the saved session into a project (folder), or leave it at the
- *      library root. This is the everyday save, plus a home.
- *   2. Save as a template - the current doc becomes a reusable STARTING POINT for this tool,
- *      shown in its "New from template" chooser (and, later, the Projects add-picker).
- *   3. Save as a variation - the same, tagged as a variation OF an existing template so the
- *      chooser can group it under its parent.
+ *   1. Save to a project - file the saved session into a project (folder), or leave it at
+ *      the library root. This is the everyday save, plus a home.
+ *   2. Save as a template - the current doc becomes a reusable STARTING POINT for this
+ *      tool, shown in its "New from template" chooser, the Projects add-picker and the
+ *      Templates collection. It can also become what NEW documents of this tool start
+ *      with ("Start with", plans/226).
  *
- * A saved template/variation is an ordinary session seed, so the existing Share modal's
- * `.lolly` path carries it unchanged - "make variations → share a .lolly for anyone to import
- * / submit to the catalog" (the footer points at it). This module owns only the DOM + wiring;
- * every side effect (save, folder create/file, template persist, share) is INJECTED, so it is
- * headless-testable and knows nothing about the host bridge, the runtime, or the store shapes.
+ * The two are PEERS - side by side, no disclosure - because on most tools the template
+ * card is the only door to a first template (plans/226 C6). "Create a tool" (Design only)
+ * stays folded under "More ways to save". The export sheet's own Save is a separate,
+ * silent quick save and never opens this (plans/226 D7).
+ *
+ * A saved template is an ordinary values seed, so the existing Share modal's `.lolly`
+ * path carries it unchanged (the footer points at it). This module owns only the DOM +
+ * wiring; every side effect (save, folder create/file, template persist/update, share) is
+ * INJECTED, so it is headless-testable and knows nothing about the host bridge, the
+ * runtime, or the store shapes.
  */
 
 import { mountModal } from '../components/modal.ts';
 import { escape } from '../utils.ts';
 
 export interface SaveDialogFolder { id: string; name: string; }
-export interface SaveDialogBase { id: string; name: string; }
+/** One template the person already saved for this tool - the "Update ‹name›" targets. */
+export interface SaveDialogTemplate { id: string; name: string; }
+
+/** What the template card collects for a NEW template. */
+export interface SaveTemplateMeta {
+  name: string;
+  /** One line, '' when the field was left empty. */
+  description: string;
+  /** "Start new ‹Tool› documents with this" - sets the tool's "Start with". */
+  startWith: boolean;
+}
 
 export interface SaveDialogDeps {
   toolName: string;
-  /** Show the template / variation cards only for a tool that has a template chooser. */
-  hasTemplates: boolean;
-  /** Existing templates (built-in + the user's own) offered as the base for a variation. */
-  bases: SaveDialogBase[];
+  /**
+   * Show the "Save as a template" card. The caller computes it with
+   * `canSaveTemplate(manifest.inputs)` (lib/user-templates.ts): true when the tool has at
+   * least one non-`file` input, i.e. there is something a template could carry. It is NOT
+   * "this tool already has templates" - that gate is what kept ~50 tools from ever making
+   * a first one (plans/226).
+   */
+  canSaveTemplate?: boolean;
+  /** Prefill for the template name - the session label if the doc has one, else
+   *  "‹Tool› template". The caller owns the wording so it stays translated. */
+  templateName?: string;
+  /** This tool's existing user templates, offered as "Update ‹name›" targets. */
+  existingTemplates?: readonly SaveDialogTemplate[];
+  /** The user-template id this tool currently starts new documents with, when it is one
+   *  of `existingTemplates` - the checkbox reflects it while that template is selected. */
+  startWithId?: string | null;
+  /** Force the checkbox on for the selected update target (the caller already knows the
+   *  answer). Absent, `startWithId` decides. */
+  startWithCurrent?: boolean;
+  /** Which card the dialog opens on - focus + scroll. Default 'project'. */
+  focus?: 'project' | 'template';
   /** Projects (folders) to file into. Awaited on open so the dialog paints instantly. */
   listFolders: () => Promise<SaveDialogFolder[]>;
   createFolder: (name: string) => Promise<SaveDialogFolder>;
   /** Save the session to the library, filed into `folderId` (null = library root). true = ok. */
   saveToLibrary: (folderId: string | null) => Promise<boolean>;
-  /** Persist the current doc as a user template (variationOf set → a variation). */
-  saveTemplate: (name: string, variationOf?: string) => Promise<void>;
+  /** Persist the current doc as a NEW user template. */
+  saveTemplate: (meta: SaveTemplateMeta) => Promise<void>;
+  /** Re-point an existing user template at the current doc (store.replace) - its name is
+   *  its identity and never changes here. Required for the "Update ‹name›" options. */
+  updateTemplate?: (id: string, meta: { description: string; startWith: boolean }) => Promise<void>;
   /** Show the "Create a tool" card - true when saving from a tool that can be a user tool's
    *  base (the Design tool). Needs `createTool` to actually do anything. */
   canCreateTool?: boolean;
@@ -51,10 +86,13 @@ export interface SaveDialogDeps {
    *  instead of showing "No project" (plans/142 W1). */
   currentFolderId?: string | null;
   announce?: (msg: string) => void;
-  t?: (s: string) => string;
+  /** The i18n lookup. Pass `tRaw`: every string this module renders is escape()d at the
+   *  sink, so a param escaped by `t` would reach the user as `O&#39;Brien`. */
+  t?: (s: string, params?: Record<string, string | number>) => string;
 }
 
 const NEW_PROJECT = '__new_project__';
+const NEW_TEMPLATE = '';
 
 /** The last project a save filed into, remembered for the app session (module
  *  scope) - an operator filing ten outputs into one project should not re-pick
@@ -67,47 +105,51 @@ let lastPickedFolderId: string | null = null;
  *  UNFILED session here instead of scattering to the root). */
 export function lastPickedFolder(): string | null { return lastPickedFolderId; }
 
-/** The "More ways to save" disclosure (template / variation / create-a-tool),
- *  collapsed for a first-timer so the everyday save reads as ONE decision
- *  (plans/170 WP-1). Its open state is remembered per device - chrome
- *  preference, same class as the catalogue's collapsed sections, never tool
- *  state - so a template author who opens it keeps it open. */
+/** The "More ways to save" disclosure (create-a-tool), collapsed for a first-timer so the
+ *  everyday save reads as ONE decision (plans/170 WP-1). Its open state is remembered per
+ *  device - chrome preference, same class as the catalogue's collapsed sections, never
+ *  tool state - so an author who opens it keeps it open. */
 const SAVE_MORE_KEY = 'lolly-save-more-open';
 const savedMoreOpen = (): boolean => {
   try { return localStorage.getItem(SAVE_MORE_KEY) === '1'; } catch { return false; }
 };
 
+/** The dialog's own fallback lookup: identity plus plain {name} interpolation. */
+const identityT = (s: string, params?: Record<string, string | number>): string =>
+  params ? s.replace(/\{(\w+)\}/g, (m, k: string) => (k in params ? String(params[k]) : m)) : s;
+
 export function openSaveDialog(deps: SaveDialogDeps): void {
-  const t = deps.t ?? ((s: string) => s);
-  const showTemplates = deps.hasTemplates;
-  const showVariation = showTemplates && deps.bases.length > 0;
+  const t = deps.t ?? identityT;
+  const showTemplate = Boolean(deps.canSaveTemplate);
   const showCreateTool = Boolean(deps.canCreateTool && deps.createTool);
+  const existing = deps.existingTemplates ?? [];
 
-  const baseOptions = deps.bases
-    .map(b => `<option value="${escape(b.id)}">${escape(b.name)}</option>`)
-    .join('');
-
-  const templateCard = showTemplates ? `
+  // The template card: name + one-line description + the "Start with" checkbox, plus a
+  // "Save as new / Update ‹name›" select once this tool has templates of its own. Update
+  // keeps the target's name (that is its identity) and only re-points its values, so the
+  // name field hides while an update target is selected.
+  const templateCard = showTemplate ? `
     <section class="save-card" data-card="template">
       <h3 class="save-card-title">${escape(t('Save as a template'))}</h3>
-      <p class="save-card-desc">${escape(t('A reusable starting point for'))} ${escape(deps.toolName)} - ${escape(t('shown when you start it from a template.'))}</p>
+      <p class="save-card-desc">${escape(t('A reusable starting point for {tool} - offered whenever you start a new document.', { tool: deps.toolName }))}</p>
+      ${existing.length ? `
       <div class="save-card-row">
+        <select class="save-input" data-tpl-target aria-label="${escape(t('Save as new or update an existing template'))}"></select>
+      </div>` : ''}
+      <div class="save-card-row" data-tpl-name-row>
         <input type="text" class="save-input" data-tpl-name maxlength="80" placeholder="${escape(t('Template name'))}" aria-label="${escape(t('Template name'))}">
+      </div>
+      <div class="save-card-row">
+        <input type="text" class="save-input" data-tpl-desc maxlength="120" placeholder="${escape(t('Description (optional)'))}" aria-label="${escape(t('Description'))}">
+      </div>
+      <label class="save-card-check">
+        <input type="checkbox" data-tpl-start>
+        <span>${escape(t('Start new {tool} documents with this', { tool: deps.toolName }))}</span>
+      </label>
+      <div class="save-card-row">
         <button type="button" class="btn" data-act="save-template">${escape(t('Save template'))}</button>
       </div>
       <p class="save-card-err" data-err="template" hidden></p>
-    </section>` : '';
-
-  const variationCard = showVariation ? `
-    <section class="save-card" data-card="variation">
-      <h3 class="save-card-title">${escape(t('Save as a variation'))}</h3>
-      <p class="save-card-desc">${escape(t('A variation of an existing template, grouped with it.'))}</p>
-      <div class="save-card-row">
-        <select class="save-input" data-var-base aria-label="${escape(t('Base template'))}">${baseOptions}</select>
-        <input type="text" class="save-input" data-var-name maxlength="80" placeholder="${escape(t('Variation name'))}" aria-label="${escape(t('Variation name'))}">
-        <button type="button" class="btn" data-act="save-variation">${escape(t('Save variation'))}</button>
-      </div>
-      <p class="save-card-err" data-err="variation" hidden></p>
     </section>` : '';
 
   // "Create a tool": turn the current doc into the user's own listed tool. Format options are
@@ -133,42 +175,50 @@ export function openSaveDialog(deps: SaveDialogDeps): void {
 
   const shareFoot = deps.shareLolly ? `
     <div class="save-dialog-foot">
-      <span>${escape(t('Made a variation worth sharing? Send it as a .lolly file for anyone to import.'))}</span>
+      <span>${escape(t('Made something worth sharing? Send it as a .lolly file for anyone to import.'))}</span>
       <button type="button" class="save-link" data-act="share">${escape(t('Share…'))}</button>
     </div>` : '';
 
+  const title = t('Save as');
   const content = `
     <div class="save-dialog-head">
-      <h2>${escape(t('Save your work'))}</h2>
+      <h2>${escape(title)}</h2>
       <button type="button" class="save-dialog-close" data-act="close" aria-label="${escape(t('Close'))}">&times;</button>
     </div>
     <div class="save-dialog-body">
-      <section class="save-card" data-card="project">
-        <h3 class="save-card-title">${escape(t('Add to a project'))}</h3>
-        <p class="save-card-desc">${escape(t('Keep this in your library, filed under a project.'))}</p>
-        <div class="save-card-row">
-          <select class="save-input" data-project aria-label="${escape(t('Project'))}">
-            <option value="">${escape(t('Loading projects…'))}</option>
-          </select>
-          <button type="button" class="btn btn--primary" data-act="save-project">${escape(t('Save'))}</button>
-        </div>
-        <input type="text" class="save-input save-new-project" data-new-project maxlength="80" placeholder="${escape(t('New project name'))}" aria-label="${escape(t('New project name'))}" hidden>
-        <p class="save-card-err" data-err="project" hidden></p>
-      </section>
-      ${templateCard || variationCard || createToolCard ? `
+      <div class="save-cards">
+        <section class="save-card" data-card="project">
+          <h3 class="save-card-title">${escape(t('Save to a project'))}</h3>
+          <p class="save-card-desc">${escape(t('Keep this in your library, filed under a project.'))}</p>
+          <div class="save-card-row">
+            <select class="save-input" data-project aria-label="${escape(t('Project'))}">
+              <option value="">${escape(t('Loading projects…'))}</option>
+            </select>
+          </div>
+          <input type="text" class="save-input save-new-project" data-new-project maxlength="80" placeholder="${escape(t('New project name'))}" aria-label="${escape(t('New project name'))}" hidden>
+          <div class="save-card-row">
+            <button type="button" class="btn btn--primary" data-act="save-project">${escape(t('Save'))}</button>
+          </div>
+          <p class="save-card-err" data-err="project" hidden></p>
+        </section>
+        ${templateCard}
+      </div>
+      ${createToolCard ? `
       <details class="save-more" data-save-more${savedMoreOpen() ? ' open' : ''}>
         <summary>${escape(t('More ways to save'))}</summary>
-        ${templateCard}
-        ${variationCard}
         ${createToolCard}
       </details>` : ''}
     </div>
     ${shareFoot}`;
 
+  const wantsTemplate = showTemplate && deps.focus === 'template';
   const modal = mountModal(content, {
-    className: 'save-dialog',
-    ariaLabel: t('Save your work'),
-    initialFocus: (el) => el.querySelector<HTMLElement>('[data-act="save-project"]'),
+    className: `save-dialog${showTemplate ? ' save-dialog--wide' : ''}`,
+    ariaLabel: title,
+    initialFocus: (el) =>
+      (wantsTemplate
+        ? el.querySelector<HTMLElement>('[data-tpl-name]') ?? el.querySelector<HTMLElement>('[data-act="save-template"]')
+        : null) ?? el.querySelector<HTMLElement>('[data-act="save-project"]'),
   });
   const root = modal.el;
 
@@ -230,6 +280,29 @@ export function openSaveDialog(deps: SaveDialogDeps): void {
     try { localStorage.setItem(SAVE_MORE_KEY, (e.target as HTMLDetailsElement).open ? '1' : '0'); } catch { /* device pref only */ }
   });
 
+  // ── Template card: the update targets, the name field's visibility, the Start-with box ──
+  const tplTarget = q<HTMLSelectElement>('[data-tpl-target]');
+  const tplNameInput = q<HTMLInputElement>('[data-tpl-name]');
+  const tplNameRow = q<HTMLElement>('[data-tpl-name-row]');
+  const tplStart = q<HTMLInputElement>('[data-tpl-start]');
+  if (showTemplate) {
+    if (tplNameInput && deps.templateName) tplNameInput.value = deps.templateName;
+    // Options as DOM, like the project select: a template name is the person's own text.
+    tplTarget?.replaceChildren(
+      opt(NEW_TEMPLATE, t('Save as new')),
+      ...existing.map(x => opt(x.id, t('Update {name}', { name: x.name }))),
+    );
+    const syncTemplateMode = (): void => {
+      const target = tplTarget?.value ?? NEW_TEMPLATE;
+      if (tplNameRow) tplNameRow.hidden = Boolean(target); // an update keeps its own name
+      // Reflect the tool's current "Start with" for the selected template, so ticking is
+      // an opt-in and un-ticking an update is a real "stop starting with this".
+      if (tplStart) tplStart.checked = Boolean(target) && (deps.startWithCurrent === true || target === deps.startWithId);
+    };
+    syncTemplateMode();
+    tplTarget?.addEventListener('change', syncTemplateMode);
+  }
+
   // ── Create-a-tool: format checkboxes, built as DOM (a format id is catalog data, but this
   // keeps the same no-HTML-string-sink discipline as the project select above) ──
   if (showCreateTool) {
@@ -247,6 +320,10 @@ export function openSaveDialog(deps: SaveDialogDeps): void {
       }
     }
   }
+
+  // Opened on the template card ("Save as a template…"): bring it into view as well as
+  // into focus, for the narrow layout where the two cards are stacked.
+  if (wantsTemplate) q<HTMLElement>('[data-card="template"]')?.scrollIntoView?.({ block: 'nearest' });
 
   // ── Actions ──
   root.addEventListener('click', (e) => {
@@ -275,36 +352,33 @@ export function openSaveDialog(deps: SaveDialogDeps): void {
     }
 
     if (act === 'save-template') {
-      const name = (q<HTMLInputElement>('[data-tpl-name]')?.value || '').trim();
+      const target = tplTarget?.value || NEW_TEMPLATE;
+      const name = (tplNameInput?.value || '').trim();
+      const description = (q<HTMLInputElement>('[data-tpl-desc]')?.value || '').trim();
+      const startWith = Boolean(tplStart?.checked);
       void withButton(btn, 'template', async () => {
-        if (!name) throw new Error(t('Name the template first.'));
-        await deps.saveTemplate(name);
-        announce(t('Template saved'));
-        modal.close();
-      });
-      return;
-    }
-
-    if (act === 'save-variation') {
-      const base = q<HTMLSelectElement>('[data-var-base]')?.value || '';
-      const name = (q<HTMLInputElement>('[data-var-name]')?.value || '').trim();
-      void withButton(btn, 'variation', async () => {
-        if (!name) throw new Error(t('Name the variation first.'));
-        await deps.saveTemplate(name, base || undefined);
-        announce(t('Variation saved'));
+        if (target) {
+          if (!deps.updateTemplate) throw new Error(t('Save failed - please try again.'));
+          await deps.updateTemplate(target, { description, startWith });
+          announce(t('Template updated'));
+        } else {
+          if (!name) throw new Error(t('Name the template first.'));
+          await deps.saveTemplate({ name, description, startWith });
+          announce(t('Saved as a template'));
+        }
         modal.close();
       });
       return;
     }
 
     if (act === 'create-tool') {
-      const title = (q<HTMLInputElement>('[data-tool-title]')?.value || '').trim();
+      const title2 = (q<HTMLInputElement>('[data-tool-title]')?.value || '').trim();
       const description = (q<HTMLInputElement>('[data-tool-desc]')?.value || '').trim();
       const icon = (q<HTMLInputElement>('[data-tool-icon]')?.value || '').trim();
       const formats = Array.from(root.querySelectorAll<HTMLInputElement>('[data-tool-format]:checked')).map(c => c.value);
       void withButton(btn, 'tool', async () => {
-        if (!title) throw new Error(t('Name the tool first.'));
-        await deps.createTool!({ title, description, icon, formats });
+        if (!title2) throw new Error(t('Name the tool first.'));
+        await deps.createTool!({ title: title2, description, icon, formats });
         announce(t('Tool created'));
         modal.close();
       });

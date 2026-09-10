@@ -1953,29 +1953,30 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
   // interact() still brackets it like a slider drag so hosts hold their
   // popover/undo grouping open.
   scope.querySelectorAll<HTMLButtonElement>('.color-eyedropper[data-color-eyedropper]').forEach(btn => {
-    type EyeDropperCtor = new () => { open(): Promise<{ sRGBHex: string }> };
-    const EyeDropper = (window as { EyeDropper?: EyeDropperCtor }).EyeDropper;
     const field = btn.closest<HTMLElement>('[data-color-field]');
     if (!field) return;
-    if (!EyeDropper) {
-      // Keep a useful picking action in Safari/WebViews instead of making the
-      // affordance disappear. The native panel owns any OS sampling capability.
-      btn.dataset.colorPickerFallback = 'native';
-      btn.setAttribute('aria-label', 'Open system colour picker');
-      btn.title = 'Open system colour picker — screen eyedropper unavailable in this browser';
-      btn.innerHTML = icon('palette', { size: 16 });
-      btn.addEventListener('click', () => field.querySelector<HTMLInputElement>('input.color-popover-native')?.click());
-      return;
-    }
     btn.addEventListener('click', async () => {
+      // Decide at click time so a tool canvas that mounted after this field still
+      // counts. Where the browser has NO EyeDropper (iOS/Android/every WebView) AND
+      // there is no creative surface to sample, keep the button useful by opening
+      // the OS colour panel rather than doing nothing (plan 216 item 8). Otherwise
+      // pickColor uses native EyeDropper when present, else the loupe over the
+      // tool canvas - the phone path: a colour off your own artwork.
+      const hasNative = typeof (window as { EyeDropper?: unknown }).EyeDropper === 'function';
+      if (!hasNative && !document.querySelector('#tool-canvas, .tool-canvas, #tool-content')) {
+        field.querySelector<HTMLInputElement>('input.color-popover-native')?.click();
+        return;
+      }
       interact(true);
       try {
-        const picked = parseColor((await new EyeDropper().open()).sRGBHex);
+        const { pickColor } = await import('../lib/eyedropper.ts');
+        const hex = await pickColor();
+        const picked = hex ? parseColor(hex) : null;
         const st = STATE.get(field);
         if (picked && st) {
           applyColor(field, { kind: 'color', color: { ...picked, alpha: st.kind === 'transparent' ? 1 : st.color.alpha }, ref: null });
         }
-      } catch { /* Esc / dismissed - nothing picked */ }
+      } catch { /* dismissed / no surface - nothing picked */ }
       finally { interact(false); }
     });
   });

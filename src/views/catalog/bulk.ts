@@ -23,6 +23,7 @@ import { STAMPABLE_FORMATS as STAMPABLE } from '../../lib/derived-asset.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { EMPTY_HAYSTACK, downloadName } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
+import { assetComparisonMode, comparisonAssetRef } from '../../lib/compare-asset-sources.ts';
 
 // ── selection (user uploads only) ───────────────────────────────────────────────
 // The set of currently-selectable ids - exactly the uploads the grid is SHOWING right now.
@@ -44,6 +45,11 @@ export const uploadSelectableIds = (cat: CatCtx): Set<string> => selectableIdsRu
 );
 export const allSelectedUploads = (cat: CatCtx): boolean =>
   { const { selected } = cat; return selected.size > 0 && [...selected].every(id => cat.assetById.get(id)?.source === 'user'); };
+export function canCompareSelection(cat: CatCtx): boolean {
+  const refs = [...cat.selected].map(id => cat.assetById.get(id)).filter((ref): ref is AssetRef => !!ref);
+  const mode = assetComparisonMode(refs);
+  return cat.selected.size === 2 && !!cat.host.compare && !!mode && (mode !== 'visual' || !!cat.host.compare.visual);
+}
 // The single selected upload, or null. Replace (one file → one file) and Rename (one
 // asset's name) only make sense on exactly one of the user's own uploads.
 export const singleSelectedUploadRef = (cat: CatCtx): AssetRef | null => {
@@ -177,6 +183,10 @@ export function handleBulk(cat: CatCtx, action: string): void {
   // guard re-checks at dispatch so a selection that changed under a stale menu
   // can never route a catalog asset into a delete.
   else if (action === 'add-to-project') { void addToProject(cat, [...selected]); }
+  else if (action === 'compare' && canCompareSelection(cat)) {
+    const sources = [...selected].map(id => comparisonAssetRef(cat.assetById.get(id)!));
+    void import('../../components/compare-assets.ts').then(({ openAssetComparison }) => openAssetComparison(cat.host, sources));
+  }
   else if (action === 'delete') { if (allSelectedUploads(cat)) void deleteSelection(cat); }
   else if (action === 'download') { if (allSelectedUploads(cat)) void downloadSelection(cat); }
   else if (action === 'duplicate') { if (allSelectedUploads(cat)) void duplicateSelection(cat); }
@@ -384,6 +394,7 @@ export function bulkOps(cat: CatCtx) {
     selectableIds: bindOp(cat, selectableIds),
     uploadSelectableIds: bindOp(cat, uploadSelectableIds),
     allSelectedUploads: bindOp(cat, allSelectedUploads),
+    canCompareSelection: bindOp(cat, canCompareSelection),
     singleSelectedUploadRef: bindOp(cat, singleSelectedUploadRef),
     allSelectedFav: bindOp(cat, allSelectedFav),
     allSelectedHidden: bindOp(cat, allSelectedHidden),

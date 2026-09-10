@@ -897,8 +897,9 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
     const common = shared.size === 1 ? [...shared][0]! : null;
     openSaveDialog({
       toolName: t('these designs'),
-      hasTemplates: false,
-      bases: [],
+      // No template card here: a template is one document's starting point, and this
+      // save is N sessions at once (plans/226 WP-1).
+      canSaveTemplate: false,
       currentFolderId: originFolderId ?? common,
       listFolders: async () => (await store.list()).map(f => ({ id: f.id, name: f.name })),
       createFolder: async (name) => { const f = await store.create(name, null); return { id: f.id, name: f.name }; },

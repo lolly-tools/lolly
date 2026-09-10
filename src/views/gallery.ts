@@ -28,6 +28,9 @@ import { toolSupport, capabilityLabel } from '../capabilities.ts';
 import { hiddenCategories, perfUiOn } from '../feature-flags.ts';
 import { canStartCollab, startCollab } from '../lib/collab-availability.ts';
 import { syncCatalog, prefetchAssetsById, defaultHiddenToolIds } from '../catalog/sync.ts';
+import { shippedTemplateRef, userTemplateRef } from '../lib/template-ref.ts';
+import { createUserTemplateStore, type UserTemplate } from '../lib/user-templates.ts';
+import { galleryTemplates, templateLine, templateSearchTerms, templateMotionPreviews, infoTemplates, NO_INFO_TEMPLATES, type InfoTemplates } from './gallery-templates.ts';
 import { pinTool, unpinTool, pinnedToolIds, pinnedRenderLayouts } from '../lib/offline-pins.ts';
 import { getInjectedTools } from '../lib/injected-tools.ts';
 import { LEAD_TOOL_ORDER } from '../lib/lead-tools.ts';
@@ -71,7 +74,7 @@ import { activeDesignSystemSource } from '../lib/design-system/active.ts';
  * is a denormalised, gallery-facing projection of the tool manifest, not a domain
  * type the engine owns.
  */
-interface GalleryTool {
+export interface GalleryTool {
   id: string;
   name: string;
   description?: string;
@@ -197,7 +200,7 @@ type SavedEntry = StateEntry & { filename: string | null; thumb: string | null }
  * concrete WebHost interface is not exported, so this is reconstructed from the
  * factory return types.
  */
-type GalleryHost = HostV1 & {
+export type GalleryHost = HostV1 & {
   state: WebStateAPI;
   profile: WebProfileAPI;
   assets: ReturnType<typeof createAssetsAPI>;
@@ -514,13 +517,16 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     anim: undefined,
     examples: galleryPreviewLooks(tool),
   })) };
-  const [savedEntriesRaw, profile, sessionSizes, pinnedTools] = await Promise.all([
+  const [savedEntriesRaw, profile, sessionSizes, pinnedTools, myTemplates] = await Promise.all([
     host.state.list(),
     host.profile.get(),
     host.state.sizes().catch((): Record<string, number> => ({})),
     // Tools pinned "available offline" (lib/offline-pins.ts) - drives each card's
     // pin toggle state. Unreadable pins just render every card unpinned.
     pinnedToolIds().catch(() => new Set<string>()),
+    // The templates this person saved (plans/226): read WITH the profile beside it, so
+    // the first paint waits on nothing new. Unreadable ones leave the shipped counts as they were.
+    createUserTemplateStore(host).list().catch((): UserTemplate[] => []),
   ]);
   // Trashed sessions (projects Trash, `__trash__:` slots) never list here.
   const savedEntries = savedEntriesRaw.filter(e => !isHiddenSlot(e.slot));
@@ -582,6 +588,12 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // curated gallery opens tidy - exactly how hidden ASSETS seed their defaults.
   const hiddenTools = loadHiddenTools(profile, defaultHiddenToolIds());
   let showHiddenTools = false;   // ephemeral reveal, per mount (matches the catalog's showHidden)
+
+  // The starting points a card can offer (plans/226 section 4.5): the shipped templates
+  // this person has not hidden, plus the ones they saved. Both overlays are read from the
+  // profile record already in hand, so nothing here delays the first paint; every surface
+  // below asks views/gallery-templates.ts for them rather than reading the index raw.
+  const gtpl = galleryTemplates(host, profile, myTemplates, toolById, viewEl);
 
   // Multi-selection of tiles - tool ids plus `view:<id>` card keys. A closure Set so
   // it survives the render() that wipes the masonry; repainted in place (never via a
@@ -1355,25 +1367,15 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // on a device with no hover, the centered-tile observer. Re-armed on each full paint
   // because innerHTML replaced the elements the previous observer held.
   let motionPreviews: { destroy(): void } | null = null;
-  let templateMotionCleanup: (() => void) | undefined;
-  let templateMotionEpoch = 0;
+  // The animated TEMPLATE covers are their own arm (views/gallery-templates.ts): a
+  // lazy chunk, an epoch guard, and a cleanup this one calls beside its own.
+  const tplMotion = templateMotionPreviews(host);
   function armMotion(): void {
-    templateMotionCleanup?.();
-    const epoch = ++templateMotionEpoch;
-    if (masonry?.querySelector('[data-motion-template]')) {
-      const root = masonry;
-      void Promise.all([import('../lib/template-motion-preview.ts'), import('./template-chooser.ts')]).then(([{ armTemplateMotion }, { fetchTemplateFile }]) => {
-        if (!root.isConnected || epoch !== templateMotionEpoch) return;
-        templateMotionCleanup = armTemplateMotion(root, { host, toolId: 'design', card: '[data-motion-template]', media: '.gcar-open',
-          id: card => card.dataset.motionTemplate,
-          async load(id) { const file = await fetchTemplateFile('design', id); return file?.motion ? { values: file.values, motion: file.motion } : null; },
-        });
-      });
-    }
+    tplMotion.arm(masonry);
     motionPreviews?.destroy();
     motionPreviews = masonry ? armMotionPreviews(masonry, { hover: false }) : null;
   }
-  cleanups.push(() => { motionPreviews?.destroy(); templateMotionEpoch++; templateMotionCleanup?.(); });
+  cleanups.push(() => { motionPreviews?.destroy(); tplMotion.destroy(); });
 
   // Move to a given slide (by index) and by ±1 (with wrap for the auto-advance loop),
   // then reflect it in the dots. Uses smooth native scroll so touch, trackpad and this
@@ -1516,9 +1518,8 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     [t.name, t.en?.name, t.description, t.en?.description, ...(t.tags ?? []),
       // Template + preset names/categories (plans/142): the curated starting points
       // are the discovery layer - "poster" must find Design via its Poster template
-      // even though no tool is called poster. Search-only, like tags.
-      ...(t.templates ?? []).flatMap(tp => [tp.name, tp.category, tp.description,
-        ...(tp.presets ?? []).map(p => p.name)]),
+      // even though no tool is called poster. Both overlays apply (plans/226).
+      ...templateSearchTerms(gtpl, t),
     ]
       .filter((s): s is string => !!s)
       .map(text => ({ text: fold(text), weight: 1 })),
@@ -1612,7 +1613,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
         .slice(0, featuredHandle ? EAGER_TILES_WITH_HERO : EAGER_TILES).map(t => t.id),
     );
     masonry.innerHTML = viewCards + allTools
-      .map(t => cardMarkup(t, latestByTool(t.id), host.capabilities, darkTheme, opts.only === 'utility', eagerIds.has(t.id)))
+      .map(t => cardMarkup(t, latestByTool(t.id), host.capabilities, darkTheme, opts.only === 'utility', eagerIds.has(t.id), templateLine(gtpl, t)))
       .join('');
     masonry.append(noResults);
     masonry.append(hiddenBox);
@@ -2125,7 +2126,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       const ref = [...selected][0];
       if (!ref) return;
       if (isViewRef(ref)) { const v = viewByRef(ref); if (v) showViewInfoDialog(v); }
-      else showInfoDialog(toolById.get(ref), host, darkTheme);
+      else showInfoDialog(toolById.get(ref), host, darkTheme, infoTemplates(gtpl, ref));
       return;
     }
     if (action === 'copylink') {
@@ -2223,7 +2224,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     if (act === 'copylink') { await copyLink(ref); return; }
     if (act === 'info') {
       if (isViewRef(ref)) { const v = viewByRef(ref); if (v) showViewInfoDialog(v); }
-      else showInfoDialog(toolById.get(ref), host, darkTheme);
+      else showInfoDialog(toolById.get(ref), host, darkTheme, infoTemplates(gtpl, ref));
       return;
     }
     if (act === 'hide') { await hideOne(ref); }
@@ -2243,7 +2244,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   const deepLinkTool = toolById.get(deepLink.get('tool') ?? deepLink.get('history') ?? '');
   if (deepLinkTool) {
     if (deepLink.has('history')) openHistoryFor(deepLinkTool);
-    else showInfoDialog(deepLinkTool, host, darkTheme);
+    else showInfoDialog(deepLinkTool, host, darkTheme, infoTemplates(gtpl, deepLinkTool.id));
   }
 
   // ── First-run ladder: welcome dialog, else ONE banner ───────────────────────
@@ -2380,6 +2381,15 @@ interface UtilityView {
  * disagree about whether the card exists.
  */
 const utilityViews = (speechOk: boolean): UtilityView[] => [{
+  id: 'compare', href: '#/compare', icon: 'document', name: t('Compare'),
+  description: t('Compare text, JSON, images, PDFs and saved versions locally. See what changed without changing either source.'),
+}, {
+  id: 'prepare',
+  href: '#/prepare',
+  icon: 'shieldCheck',
+  name: t('Prepare for sharing'),
+  description: t('Review private text, credentials and technical files on your device. Choose replacements, compare the result and share a copy.'),
+}, {
   id: 'verify',
   href: '#/verify',
   // The same glyph the footer's Verify pill uses, deliberately: the card exists
@@ -2484,6 +2494,10 @@ function cardMarkup(
   darkTheme = false,
   utilityLayout = false,
   eager = false,
+  /** The starting-point line (plans/226): "Starts with X", "N templates", or nothing.
+   *  Composed by the mount, which is where the hidden overlay and the person's own
+   *  templates live; this function only places it. */
+  templateLine = '',
 ): string {
   const sup = toolSupport(tool, shellCaps);
   const unavailable = sup.status === 'unavailable';
@@ -2618,10 +2632,12 @@ function cardMarkup(
             ${name}
             ${sub ? `<span class="gtile-sub">${sub}</span>` : ''}
             <p class="gtile-desc">${escape(tool.description ?? '')}</p>
-            ${tool.templates?.length && !unavailable
+            ${templateLine && !unavailable
               // Curated starting points (plans/142): say they exist right on the card.
-              // Opening the tool fresh presents the chooser, so the count IS the path.
-              ? `<span class="gtile-tpl">${tool.templates.length === 1 ? t('1 template') : tRaw('{n} templates', { n: tool.templates.length })}</span>`
+              // Opening the tool fresh presents the chooser, so the count IS the path -
+              // unless this person set a "Start with", in which case the line names it
+              // and the chooser is one "+ New" click away (plans/226 section 4.4).
+              ? `<span class="gtile-tpl">${escape(templateLine)}</span>`
               : ''}
           </span>
           ${unavailable ? ''
@@ -2643,7 +2659,10 @@ function cardMarkup(
 
 // ── Info modal ──────────────────────────────────────────────────────────────
 
-function showInfoDialog(tool: GalleryTool | undefined, host: GalleryHost, darkTheme: boolean): void {
+// A tool's starting points as the About dialog sees them (plans/226 section 4.5) are
+// composed by the mount, where both overlays live: see views/gallery-templates.ts for
+// the InfoTemplates contract and the empty NO_INFO_TEMPLATES a bare call falls back to.
+function showInfoDialog(tool: GalleryTool | undefined, host: GalleryHost, darkTheme: boolean, tpl: InfoTemplates = NO_INFO_TEMPLATES): void {
   if (!tool) return;
   const caps = Array.isArray(tool.capabilities) ? tool.capabilities : [];
   // Formats + privacy come straight from the catalog index entry - no fetch.
@@ -2688,25 +2707,57 @@ function showInfoDialog(tool: GalleryTool | undefined, host: GalleryHost, darkTh
       : /card|badge|label/.test(hay) ? 'shapes' : 'layers';
     return icon(key as Parameters<typeof icon>[0], { size: 26 });
   };
-  const templates = tool.templates ?? [];
-  const tplHtml = templates.length ? `
+  // A hidden shipped template is not listed here (the person removed it from view); the
+  // templates they saved themselves follow the shipped ones under their own heading, in
+  // the same tile shape, deep-linking through the `user:<id>` ref the launcher resolves.
+  const templates = tpl.shipped;
+  const mine = tpl.mine;
+  // Per tile: set this tool to open with it. A second click on the one already chosen
+  // goes back to asking, so the chip is the whole toggle - the line below the heading
+  // says which it is, and offers the same way out in words.
+  const startChip = (ref: string): string =>
+    `<button type="button" class="meta-look-start" data-start-ref="${escape(ref)}" aria-pressed="false"></button>`;
+  const lookTile = (opts: { attr: string; id: string; ref: string; href: string; name: string; description?: string; glyph: string }): string =>
+    `<li class="meta-look-item"><a class="meta-look" ${opts.attr}="${escape(opts.id)}" href="${opts.href}">
+            <span class="meta-look-thumb"><span class="meta-look-glyph" aria-hidden="true">${opts.glyph}</span><img class="meta-look-img" alt="" decoding="async"></span>
+            <span class="meta-look-name">${escape(opts.name)}</span>
+            ${opts.description ? `<span class="meta-look-desc">${escape(opts.description)}</span>` : ''}
+          </a>${startChip(opts.ref)}
+          </li>`;
+  const tplHtml = (templates.length || mine.length) ? `
       <section class="meta-sec" aria-label="${escape(t('Templates'))}">
         <h3 class="meta-sec-title">${t('Templates')}</h3>
+        <p class="meta-start" hidden><span class="meta-start-text"></span> <button type="button" class="meta-start-clear">${t('Ask me every time')}</button></p>
+        ${templates.length ? `<ul class="meta-look-list">
+          ${templates.map(tp => lookTile({
+            attr: 'data-tpl',
+            id: tp.id,
+            ref: shippedTemplateRef(tool.id, tp.id),
+            href: `#/tool/${escape(tool.id)}?template=${escape(encodeURIComponent(tp.id))}`,
+            name: tp.name,
+            description: tp.description,
+            glyph: tplGlyph(tp),
+          })).join('')}
+        </ul>` : ''}
+        ${mine.length ? `<h4 class="meta-sec-sub">${t('Yours')}</h4>
         <ul class="meta-look-list">
-          ${templates.map(tp => `<li><a class="meta-look" data-tpl="${escape(tp.id)}" href="#/tool/${escape(tool.id)}?template=${escape(encodeURIComponent(tp.id))}">
-            <span class="meta-look-thumb"><span class="meta-look-glyph" aria-hidden="true">${tplGlyph(tp)}</span><img class="meta-look-img" alt="" decoding="async"></span>
-            <span class="meta-look-name">${escape(tp.name)}</span>
-            ${tp.description ? `<span class="meta-look-desc">${escape(tp.description)}</span>` : ''}
-          </a>
-          </li>`).join('')}
-        </ul>
+          ${mine.map(ut => lookTile({
+            attr: 'data-utpl',
+            id: ut.id,
+            ref: userTemplateRef(ut.id),
+            href: `#/tool/${escape(tool.id)}?template=${escape(encodeURIComponent(userTemplateRef(ut.id)))}`,
+            name: ut.name,
+            description: ut.description,
+            glyph: tplGlyph(ut),
+          })).join('')}
+        </ul>` : ''}
       </section>` : '';
 
   // Preset looks (manifest examples) - the same looks the card's preview strip
   // shows, uncapped here. Thumbs live-render lazily through the shared
   // featured:<id>:<i> cache (hydrateInfoPresets), so anything the grid already
   // rendered resolves instantly; a click opens the tool seeded with that look.
-  const looks = templates.length ? [] : galleryExampleLooks(tool, darkTheme, Infinity);
+  const looks = (templates.length || mine.length) ? [] : galleryExampleLooks(tool, darkTheme, Infinity);
   // "Examples", not "Presets" (plans/142): a preset now means a template's curated
   // variant; these are the manifest example looks the card strip shows.
   const exHtml = looks.length ? `
@@ -2775,18 +2826,53 @@ function showInfoDialog(tool: GalleryTool | undefined, host: GalleryHost, darkTh
       void galleryLookHref(tool.id, hit?.v).then(href => { modal.close(); window.location.hash = href; });
     });
   });
+  // "Start with" (plans/226 section 4.4): every tile can become this tool's opening
+  // document, and the line under the heading says which one currently is. Read straight
+  // back off the setting after each write, so the dialog can never claim a state the
+  // profile does not hold.
+  const syncStart = (): void => {
+    const current = tpl.start();
+    const name = tpl.startName();
+    const line = modal.el.querySelector<HTMLElement>('.meta-start');
+    const text = modal.el.querySelector<HTMLElement>('.meta-start-text');
+    if (line && text) {
+      line.hidden = !name;
+      text.textContent = name ? tRaw('Starts with {name}', { name }) : '';
+    }
+    modal.el.querySelectorAll<HTMLButtonElement>('[data-start-ref]').forEach(btn => {
+      const on = !!current && btn.dataset.startRef === current;
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.textContent = on ? t('Starts here') : t('Start with this');
+      btn.title = on ? t('Ask me every time instead') : tRaw('Start new {name} documents with this', { name: tool.name });
+    });
+  };
+  modal.el.querySelectorAll<HTMLButtonElement>('[data-start-ref]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ref = btn.dataset.startRef ?? '';
+      void tpl.setStart(tpl.start() === ref ? null : ref).then(syncStart);
+    });
+  });
+  modal.el.querySelector('.meta-start-clear')?.addEventListener('click', () => {
+    void tpl.setStart(null).then(syncStart);
+  });
+  syncStart();
   void fillDefaultsList(modal.el, tool.id);
   void hydrateInfoPresets(modal.el, host, tool, looks);
-  void hydrateInfoTemplates(modal.el, host, tool);
+  void hydrateInfoTemplates(modal.el, host, tool, templates, mine);
 }
 
 /** Live-render the template tiles (plans/142 WP-2), serially, through the SAME
  *  template:<toolId>:<tid> cache the in-tool Start chooser uses - a template the
  *  chooser already rendered resolves instantly, and vice versa. Values are fetched
  *  per template (the index is metadata-only); a failure leaves the glyph. */
-async function hydrateInfoTemplates(dialog: HTMLElement, host: GalleryHost, tool: GalleryTool): Promise<void> {
-  const metas = tool.templates ?? [];
-  if (!metas.length) return;
+async function hydrateInfoTemplates(
+  dialog: HTMLElement,
+  host: GalleryHost,
+  tool: GalleryTool,
+  metas: NonNullable<GalleryTool['templates']>,
+  mine: readonly UserTemplate[] = [],
+): Promise<void> {
+  if (!metas.length && !mine.length) return;
   const esc = (s: string): string => (typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(s) : s);
   const { fetchTemplateValues } = await import('./template-chooser.ts');
   for (const tp of metas) {
@@ -2799,6 +2885,18 @@ async function hydrateInfoTemplates(dialog: HTMLElement, host: GalleryHost, tool
       const thumb = await renderFeaturedVariant(host, tool.id, tool.formats, tp.id, values as Record<string, unknown>, 'template', tp.motion?.posterMs);
       if (!dialog.isConnected || !thumb) continue;
       img.src = thumb;   // the [src] CSS reveals it; the glyph sits behind
+    } catch { /* leave the glyph */ }
+  }
+  // The person's own carry their values inline (they ride the profile), so there is
+  // nothing to fetch - only the render, through the same cache under their own id.
+  for (const ut of mine) {
+    if (!dialog.isConnected) return;
+    const img = dialog.querySelector<HTMLImageElement>(`.meta-look[data-utpl="${esc(ut.id)}"] .meta-look-img`);
+    if (!img || img.getAttribute('src')) continue;
+    try {
+      const thumb = await renderFeaturedVariant(host, tool.id, tool.formats, ut.id, ut.values, 'template');
+      if (!dialog.isConnected || !thumb) continue;
+      img.src = thumb;
     } catch { /* leave the glyph */ }
   }
 }

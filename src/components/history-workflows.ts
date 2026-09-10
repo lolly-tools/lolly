@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { RevisionEntry, RevisionHistoryAPI, RevisionQuery } from '../bridge/revision-history.ts';
+import type { ComparisonSource } from '@lolly-tools/core/host-v1';
+import { mountHistoryComparison } from './history-comparison.ts';
 import { t } from '../i18n.ts';
 
 const button = (label: string): HTMLButtonElement => {
@@ -7,7 +9,7 @@ const button = (label: string): HTMLButtonElement => {
 };
 
 /** Lazy History-only controls. Compare decodes at most the selected pair. */
-export function mountHistoryWorkflows(history: RevisionHistoryAPI, changed: () => void, error: (message: string) => void, onNamed?: () => void) {
+export function mountHistoryWorkflows(history: RevisionHistoryAPI, changed: () => void, error: (message: string) => void, onNamed?: () => void, current?: (entry: RevisionEntry) => Promise<ComparisonSource | null>) {
   const el = document.createElement('div'); el.className = 'revision-history-workflows';
   const filters = document.createElement('details');
   const summary = document.createElement('summary'); summary.textContent = t('Find a version'); filters.append(summary);
@@ -30,6 +32,7 @@ export function mountHistoryWorkflows(history: RevisionHistoryAPI, changed: () =
   const compare = document.createElement('section'); compare.className = 'revision-history-compare'; compare.hidden = true; compare.setAttribute('aria-label', t('Version comparison'));
   el.append(filters, compare);
   let timer: ReturnType<typeof setTimeout> | undefined, closed = false, generation = 0;
+  let comparisonJob: AbortController | undefined, disposeComparison: (() => void) | undefined;
   const selected = new Map<string, RevisionEntry>();
   const controls = new Set<HTMLInputElement>();
   const query = (): RevisionQuery => ({ search: search.value.trim() || undefined, toolId: tool.value || undefined, milestones: named.checked || undefined,
@@ -40,7 +43,9 @@ export function mountHistoryWorkflows(history: RevisionHistoryAPI, changed: () =
   for (const input of [tool, from, to, named]) input.addEventListener('change', notify);
   reset.addEventListener('click', () => { clearTimeout(timer); search.value = tool.value = from.value = to.value = ''; named.checked = false; changed(); });
 
-  const showComparison = async (): Promise<void> => {
+  const showComparison = async (useCurrent = false): Promise<void> => {
+    comparisonJob?.abort(); disposeComparison?.(); disposeComparison = undefined;
+    const controller = new AbortController(); comparisonJob = controller;
     const request = ++generation;
     compare.hidden = !selected.size; compare.replaceChildren();
     if (!selected.size) return;
@@ -49,31 +54,19 @@ export function mountHistoryWorkflows(history: RevisionHistoryAPI, changed: () =
     const clear = button('Clear comparison');
     clear.addEventListener('click', () => { selected.clear(); for (const input of controls) input.checked = false; void showComparison(); });
     compare.append(info, clear);
-    if (selected.size < 2) return;
     const pair = [...selected.values()].sort((a, b) => a.at.localeCompare(b.at) || a.id.localeCompare(b.id));
+    if (selected.size < 2 && !useCurrent) {
+      if (current) { const now = button('Compare with current'); now.addEventListener('click', () => { void showComparison(true); }); compare.append(now); }
+      return;
+    }
+    const body = document.createElement('div'); compare.append(body);
     try {
-      const payloads = await Promise.all(pair.map(entry => history.read(entry.id)));
+      const after = useCurrent ? await current?.(pair[0]!) : pair[1];
+      if (!after) throw new Error(t('The current creation is unavailable.'));
       if (closed || request !== generation) return;
-      if (payloads.some(value => !value)) throw new Error(t('One of these versions is no longer available.'));
-      const { revisionDifference } = await import('../lib/revision-difference.ts');
-      if (closed || request !== generation) return;
-      const diff = revisionDifference(payloads[0], payloads[1]);
-      info.textContent = diff.changed ? (diff.changed === 1 && !diff.truncated ? t('1 value changed') : `${diff.changed}${diff.truncated ? '+' : ''} ${t('values changed')}`) : t('The editable values are identical.');
-      const pictures = document.createElement('div'); pictures.className = 'revision-history-comparison-pair';
-      const previews = await Promise.all(pair.map(entry => history.preview(entry.id)));
-      if (closed || request !== generation) return;
-      pair.forEach((entry, index) => {
-        const figure = document.createElement('figure'), caption = document.createElement('figcaption');
-        caption.textContent = `${index ? t('Later') : t('Earlier')} · ${entry.milestone ?? entry.label}`;
-        const image = document.createElement('img'); image.alt = caption.textContent;
-        const preview = previews[index];
-        if (preview && /^data:image\/(png|jpeg|webp);base64,/.test(preview)) { image.src = preview; figure.append(image); }
-        else { const missing = document.createElement('p'); missing.textContent = t('Preview unavailable'); figure.append(missing); }
-        figure.append(caption); pictures.append(figure);
-      });
-      const paths = document.createElement('ul');
-      for (const path of diff.paths) { const row = document.createElement('li'); row.textContent = path; paths.append(row); }
-      compare.append(pictures, paths);
+      disposeComparison = await mountHistoryComparison(body, history, pair[0]!, after, controller.signal);
+      if (closed || request !== generation) { disposeComparison(); return; }
+      info.textContent = '';
     } catch (failure) { if (!closed && request === generation) info.textContent = failure instanceof Error ? failure.message : t('Could not compare these versions.'); }
   };
 
@@ -107,6 +100,6 @@ export function mountHistoryWorkflows(history: RevisionHistoryAPI, changed: () =
       });
       actions.append(name, checkLabel); return actions;
     },
-    dispose() { closed = true; generation++; clearTimeout(timer); selected.clear(); controls.clear(); compare.replaceChildren(); },
+    dispose() { comparisonJob?.abort(); disposeComparison?.(); closed = true; generation++; clearTimeout(timer); selected.clear(); controls.clear(); compare.replaceChildren(); },
   };
 }

@@ -106,6 +106,8 @@ export interface FlatpickrHost extends HTMLInputElement {
 export interface ActionsExperience extends Partial<ReturnType<typeof historyParticipation>> {
   current?: () => ExportExperience;
   sessionMeta?: () => Record<string, unknown>;
+  /** Open the document "Save as" dialog - the same one the render pill opens. */
+  openSaveAs?: () => void;
   /** This mount provides the portable .lolly vehicle and inline Share controls. */
   portable?: boolean;
   historyBase?: import('../bridge/revision-records.ts').RevisionCursor;

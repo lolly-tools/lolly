@@ -9,6 +9,8 @@ import { safeFileName } from '@lolly-tools/core/file-v1';
 import '../styles/parts/convert.css';
 import { openDB } from '../bridge/db.ts';
 import { allUserAssetVersions } from '../bridge/asset-history.ts';
+import { assetComparisonMode } from '../lib/compare-asset-sources.ts';
+import { openAssetComparison } from '../components/compare-assets.ts';
 interface AssetVersionActions {
   _listUserAssetVersions(id: string): Promise<Array<{ version: string; savedAt: number; sha256: string; bytes: number; name: string; format: string }>>;
   _getBlob(id: string, options: { version: string }): Promise<Blob | null>;
@@ -23,13 +25,15 @@ export async function openAssetVersions(id: string, host: HostV1, onChanged: () 
   const render = async (): Promise<void> => {
     const versions = await assets._listUserAssetVersions(id);
     if (!modal.el.isConnected) return;
-    modal.el.querySelector('[data-versions]')!.innerHTML = versions.length ? versions.map((v, i) => `<article class="convert-history-row"><h3>${escapeHtml(v.name)}</h3><p>${escapeHtml(new Date(v.savedAt).toLocaleString())} · ${fmtBytes(v.bytes)}</p><code style="overflow-wrap:anywhere">${escapeHtml(v.sha256)}</code><div class="convert-actions"><button class="btn" data-download-version="${i}">${t('Download')}</button><button class="btn" data-restore-version="${i}">${t('Restore as current')}</button><button class="btn" data-remove-version="${i}">${t('Remove saved version')}</button></div></article>`).join('') : `<p>${t('Previous versions appear here after you replace this asset. Your current copy is unchanged.')}</p>`;
-    modal.el.querySelectorAll<HTMLButtonElement>('[data-download-version], [data-restore-version], [data-remove-version]').forEach(button => { button.addEventListener('click', async () => {
-      const index = Number(button.dataset.downloadVersion ?? button.dataset.restoreVersion ?? button.dataset.removeVersion);
+    modal.el.querySelector('[data-versions]')!.innerHTML = versions.length ? versions.map((v, i) => `<article class="convert-history-row"><h3>${escapeHtml(v.name)}</h3><p>${escapeHtml(new Date(v.savedAt).toLocaleString())} · ${fmtBytes(v.bytes)}</p><code style="overflow-wrap:anywhere">${escapeHtml(v.sha256)}</code><div class="convert-actions">${host.compare && assetComparisonMode([v, v]) ? `<button class="btn" data-compare-version="${i}">${t('Compare with current')}</button>` : ''}<button class="btn" data-download-version="${i}">${t('Download')}</button><button class="btn" data-restore-version="${i}">${t('Restore as current')}</button><button class="btn" data-remove-version="${i}">${t('Remove saved version')}</button></div></article>`).join('') : `<p>${t('Previous versions appear here after you replace this asset. Your current copy is unchanged.')}</p>`;
+    modal.el.querySelectorAll<HTMLButtonElement>('[data-compare-version], [data-download-version], [data-restore-version], [data-remove-version]').forEach(button => { button.addEventListener('click', async () => {
+      const index = Number(button.dataset.compareVersion ?? button.dataset.downloadVersion ?? button.dataset.restoreVersion ?? button.dataset.removeVersion);
       const version = versions[index]!;
       button.disabled = true;
       try {
-        if (button.dataset.downloadVersion !== undefined) {
+        if (button.dataset.compareVersion !== undefined) {
+          openAssetComparison(host, [{ id, version: version.version, format: version.format, label: version.name }, { id }]);
+        } else if (button.dataset.downloadVersion !== undefined) {
           const blob = await assets._getBlob(id, { version: version.version });
           if (!blob) throw new Error(t('Saved version not found.'));
           await host.export.download(blob, safeFileName(version.name.includes('.') ? version.name : `${version.name}.${version.format}`));

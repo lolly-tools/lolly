@@ -54,6 +54,9 @@ export interface ToolViewCtx {
   toolId: string;
   urlParams: string | null | undefined;
   mountLifecycle: MountLifecycle;
+  /** Open the document "Save as" dialog (a project, or a template) - the render
+   *  pill's Save. Set by session wiring; the export panel's Save as calls it too. */
+  openSaveAs?: (focus?: 'project' | 'template') => Promise<void>;
   installed: boolean;
   catalog: ToolIndex & { tools?: { id: string; }[]; };
   fetchFile: (path: string) => Promise<string>;

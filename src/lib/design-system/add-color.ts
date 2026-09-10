@@ -150,11 +150,6 @@ export function parseColorEntries(text: string): ColorEntry[] {
 
 // ── Mount ────────────────────────────────────────────────────────────────────
 
-/** Chromium's screen sampler. Absent in Firefox, Safari and the Tauri WebViews,
- *  which is why the button is feature-detected into existence rather than
- *  rendered and disabled (the precedent is `components/color-field.ts`). */
-type EyeDropperCtor = new () => { open(): Promise<{ sRGBHex: string }> };
-
 export interface AddColorOpts {
   /** Called only from an explicit press: Enter/Add on a single colour, or
    *  "Add all" / "Add selected" on a group. Never from typing or the picker. */
@@ -216,9 +211,6 @@ export const COLOR_NOTATION_EXAMPLES = '#7c3aed, rgb(124 58 237), oklch(55% .24 
  */
 export function mountAddColor(el: HTMLElement, opts: AddColorOpts): () => void {
   const { t } = opts;
-  const EyeDropper = typeof window === 'undefined'
-    ? undefined
-    : (window as { EyeDropper?: EyeDropperCtor }).EyeDropper;
 
   el.innerHTML = `
     <div class="ds-addc">
@@ -236,11 +228,12 @@ export function mountAddColor(el: HTMLElement, opts: AddColorOpts): () => void {
           placeholder="${escape(t('Paste a colour, or a list'))}"
           aria-label="${escape(t('Colour value, or paste several'))}"
           autocomplete="off" autocapitalize="off" spellcheck="false">
-        ${EyeDropper
-          ? `<button type="button" class="ds-addc-drop" data-ds-addc-drop
-              aria-label="${escape(t('Pick a colour from the screen'))}"
-              title="${escape(t('Pick a colour from the screen'))}">${icon('droplet')}</button>`
-          : ''}
+        ${/* Always shown (plan 216 item 8): where the browser has no EyeDropper -
+              iOS, Android, every WebView - pickColor falls back to an in-app loupe
+              over the tool canvas, so the affordance no longer vanishes on a phone. */''}
+        <button type="button" class="ds-addc-drop" data-ds-addc-drop
+          aria-label="${escape(t('Pick a colour from the screen'))}"
+          title="${escape(t('Pick a colour from the screen'))}">${icon('droplet')}</button>
         ${opts.onImageFile
           ? `<button type="button" class="ds-addc-drop ds-addc-image" data-ds-addc-image
               aria-label="${escape(t('Take colours from an image'))}"
@@ -423,12 +416,15 @@ export function mountAddColor(el: HTMLElement, opts: AddColorOpts): () => void {
     if (target.closest('[data-ds-addc-all]')) { commit(entries.slice()); return; }
     if (target.closest('[data-ds-addc-sel]')) { commit(entries.filter((_, i) => picked[i])); return; }
 
-    if (target.closest('[data-ds-addc-drop]') && EyeDropper) {
-      // The OS overlay samples anywhere on screen and swallows pointer events.
-      // A dismissal (Escape) rejects, and picking nothing is a normal outcome - 
-      // hence the empty catch. The result FILLS the field; adding stays explicit.
-      void new EyeDropper().open()
-        .then(res => { input.value = res.sRGBHex; sync(); input.focus(); })
+    if (target.closest('[data-ds-addc-drop]')) {
+      // pickColor uses the OS eyedropper where it exists (samples anywhere on
+      // screen) and otherwise the in-app loupe over the tool canvas (plan 216
+      // item 8) - so the button now works on iOS/Android/WebViews, where before
+      // it was hidden entirely. The result FILLS the field; adding stays explicit.
+      // A dismissal / nothing-to-sample resolves null - a normal outcome.
+      void import('../eyedropper.ts')
+        .then(({ pickColor }) => pickColor())
+        .then(hex => { if (hex) { input.value = hex; sync(); input.focus(); } })
         .catch(() => { /* dismissed - nothing picked */ });
     }
   };

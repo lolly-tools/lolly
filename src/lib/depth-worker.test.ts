@@ -6,9 +6,8 @@
  * The whole run EXCEPT `session.run()` is pure typed-array maths (no canvas, no
  * ORT), which is what lets a fixture image go in and a normalised map come out
  * through the REAL module here rather than a re-implementation. `runDepth` itself
- * is not exercised: the weights are not published yet (plans/160 section 7), so it
- * can only ever throw ModelNotInstalledError - which is the honest behaviour, and
- * is asserted below as a clean surfaced error rather than a hang.
+ * is verified with the real graph in the Node ML suite and in browser QA;
+ * this suite isolates geometry, normalization and failure handling.
  *
  * Run: node --test shells/web/src/lib/depth-worker.test.ts
  */
@@ -42,18 +41,18 @@ function rampImage(w: number, h: number): DepthFrame {
 
 // ── the fixture goes all the way through ──────────────────────────────────────
 
-test('a fixture image preprocesses to the model square with ImageNet normalisation', () => {
+test('a fixture image preprocesses without square distortion with ImageNet normalisation', () => {
   const pre = preprocessDepth(rampImage(64, 32), SPEC);
   assert.equal(pre.edge, EDGE);
   assert.equal(pre.workW, 64, 'a small photo is not upscaled to the work cap');
   assert.equal(pre.workH, 32);
-  assert.equal(pre.input.length, 3 * EDGE * EDGE, 'NCHW [1,3,518,518]');
+  assert.equal(pre.input.length, 3 * pre.inputW * pre.inputH, 'rectangular NCHW input');
   assert.ok(pre.input.every(Number.isFinite), 'no NaN reaches the tensor');
 
   // The footgun this pins: normalisation must be (px/255 − mean)/std per channel,
   // NOT a bare /255. White (255) on the R plane is (1 − 0.485)/0.229.
   const white = (1 - SPEC.mean[0]) / SPEC.std[0];
-  assert.ok(Math.abs(pre.input[EDGE - 1]! - white) < 1e-4, `right edge of row 0 is white → ${white}`);
+  assert.ok(Math.abs(pre.input[pre.inputW - 1]! - white) < 1e-4, `right edge of row 0 is white → ${white}`);
   const black = (0 - SPEC.mean[0]) / SPEC.std[0];
   assert.ok(Math.abs(pre.input[0]! - black) < 1e-4, 'left edge of row 0 is black');
 });
@@ -62,8 +61,8 @@ test('a fixture image produces a plausible normalised depth map', () => {
   const pre = preprocessDepth(rampImage(64, 32), SPEC);
   // Stand in for the model: a raw INVERSE-depth field on an arbitrary, offset
   // scale (Depth Anything's head has no absolute reference), rising down the frame.
-  const raw = new Float32Array(EDGE * EDGE);
-  for (let y = 0; y < EDGE; y++) for (let x = 0; x < EDGE; x++) raw[y * EDGE + x] = -50 + y * 0.3;
+  const raw = new Float32Array(pre.inputW * pre.inputH);
+  for (let y = 0; y < pre.inputH; y++) for (let x = 0; x < pre.inputW; x++) raw[y * pre.inputW + x] = -50 + y * 0.3;
 
   const map = postprocessDepth(raw, pre);
   assert.equal(map.width, 64);
@@ -96,7 +95,7 @@ test('the working image is capped before inference (iOS memory)', () => {
   const pre = preprocessDepth(rampImage(800, 600), SPEC, { maxEdge: 200 });
   assert.equal(pre.workW, 200);
   assert.equal(pre.workH, 150);
-  const map = postprocessDepth(new Float32Array(EDGE * EDGE).map((_, i) => i), pre);
+  const map = postprocessDepth(new Float32Array(pre.inputW * pre.inputH).map((_, i) => i), pre);
   assert.equal(map.width, 200, 'and the map comes back at the WORK size, not the source size');
   assert.equal(map.height, 150);
 });
@@ -161,4 +160,21 @@ test('the shared fetcher builds its URL from MODELS_BASE', () => {
   assert.match(ort, /import\s*\{\s*MODELS_BASE\s*\}\s*from\s*'\.\/models-base\.ts'/);
   assert.match(ort, /const url = `\$\{MODELS_BASE\}\/models\/\$\{dir\}\/\$\{fileName\}`/,
     'every model byte comes from ${MODELS_BASE}/models/<dir>/<file>');
+});
+
+
+test('portrait, landscape and panorama inputs preserve aspect within patch rounding and stay bounded', () => {
+  for (const [w, h] of [[1600, 1067], [1067, 1600], [2048, 100], [100, 2048]]) {
+    const pre = preprocessDepth(rampImage(w!, h!), SPEC);
+    assert.equal(pre.inputW % 14, 0);
+    assert.equal(pre.inputH % 14, 0);
+    assert.ok(Math.max(pre.inputW, pre.inputH) <= 2 * EDGE);
+    assert.ok(Math.abs(pre.inputW / pre.inputH - w! / h!) / (w! / h!) < 0.12);
+  }
+});
+
+
+test('a wrong output shape fails instead of producing a plausible empty map', () => {
+  const pre = preprocessDepth(rampImage(64, 32), SPEC);
+  assert.throws(() => postprocessDepth(new Float32Array(4), pre), /dimensions/);
 });

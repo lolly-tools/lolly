@@ -54,21 +54,23 @@ import {
   buildSessionHaystack, buildFolderHaystack, matchesHaystack,
 } from '../lib/search/projects-source.ts';
 import { tokenize } from '../lib/search/match.ts';
-import { confirmDialog as baseConfirmDialog, choiceDialog, closeConfirmDialogs } from '../components/confirm-dialog.ts';
+import { confirmDialog as baseConfirmDialog, closeConfirmDialogs } from '../components/confirm-dialog.ts';
 import type { ConfirmDialogOpts } from '../components/confirm-dialog.ts';
 import { mountModal } from '../components/modal.ts';
 import type { ModalHandle } from '../components/modal.ts';
 import { startBatchExport } from '../lib/batch-job.ts';
 import { announce } from '../a11y.ts';
-import { soundSegmentHtml, wireSoundSegment } from '../components/sound-toggle.ts';
+import { mountProjectsViewOptions } from './projects-view-options.ts';
+import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { openShareDialog } from '../components/share-dialog.ts';
-import { themeSegmentHtml, wireThemeSegment } from '../components/theme-toggle.ts';
 import { serializeUrlState, ENGINE_VERSION } from '@lolly/engine';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 import { getTool } from '../bridge/tool-loader.ts';
-import type { UserTemplate } from '../lib/user-templates.ts';   // type-only (erased) - the store is lazy-imported
 import type { ProjectedUserTool } from '../lib/user-tools.ts';   // type-only (erased) - the store is lazy-imported
 import { setPendingToolSeed } from '../lib/drop-router.ts';
+import { TEMPLATES, templateBulkMenuHtml, type SessionSaveSource, type TemplatesCollection } from './projects-templates.ts';
+import { chooseAddSeed, templateBulkRows, templateSessionSource, templatesCollectionFor, templatesRailChip, templatesRootTile } from './projects-templates-wiring.ts';
+import type { TemplateActionHost } from '../lib/template-actions.ts';
 import { getSessionSource } from '../lib/session-source.ts';
 // A leaf with no imports of its own (module state, no network/DOM), so this costs the
 // Projects chunk nothing and drags no control-plane code onto any path - see its header.
@@ -124,7 +126,7 @@ type ViewMode = 'preview' | 'list';
 // their own literal comparisons; these exist for the URL, which is untrusted input.
 const VIEW_MODES = new Set<string>(['preview', 'list'] satisfies ViewMode[]);
 const SORT_BYS = new Set<string>(['modified', 'added', 'name', 'tool', 'size'] satisfies SortBy[]);
-type SelectKind = 'folder' | 'session' | 'image';   // images join via marquee (no checkbox)
+type SelectKind = 'folder' | 'session' | 'image' | 'template';   // images join via marquee (no checkbox)
 
 /** Query result: the (capped) tiles to render plus the true `total` so the header can
  *  say "showing the first N of M" without holding every match's DOM. */
@@ -147,6 +149,9 @@ interface MountProjectsOpts {
 }
 
 // Sentinel folderId for the synthetic "Uncategorised" folder (sessions in no folder).
+// Its twin, TEMPLATES ('__templates__' - the synthetic Templates collection, plans/226
+// section 4.3), is declared in ./projects-templates.ts and imported above: the module
+// that owns that route's body owns its sentinel. Neither is a real folder record.
 const UNCAT = '__uncat__';
 // The Cut/Copy clipboard (plans/133 WP-7). MODULE scope on purpose: it must outlive
 // a mount, so you can cut in one folder, open another, and paste there. Refs are
@@ -223,6 +228,10 @@ export async function mountProjects(
   // Full index entries (formats + intended width/height/unit) so session tiles can show
   // the same "what you'll get" spec the gallery cards do - see sessionTile's `tool` opt.
   const toolById = new Map((w.__toolIndex?.tools ?? []).map((t): [string, ProjectsTool] => [t.id, t as unknown as ProjectsTool]));
+  // The Templates collection (#/p/__templates__, plans/226 section 4.3) owns that route's
+  // model, tiles, menu and every mutation, plus the session tile's "Save as a template...".
+  // The view lends it only the answers it alone has; the wiring module supplies the rest.
+  const tpl: TemplatesCollection = templatesCollectionFor(host as ProjectsHost & TemplateActionHost, { params: opts.params || '', toolName, isSelected: (ref) => isSelected(ref), isMounted: () => mounted, confirm: (o) => confirmDialog(o), refresh: async () => { if (mounted) { await reload(); render(); } } });
 
   // Live data, re-read on every reload() so a move/rename/delete reflects at once.
   let folders: Folder[] = [];
@@ -345,6 +354,7 @@ export async function mountProjects(
     trashEntries = await store.trashList().catch(() => []);
     templates = await store.templateList().catch(() => []);
     favourites = loadProjectFavourites(profile);
+    if (folderId === TEMPLATES) await tpl.load(profile);   // the collection reads the same profile pass
     headshotUrl = profile?.headshot?.id
       ? (await host.assets.get(profile.headshot.id).catch(() => null))?.url || ''
       : '';
@@ -433,7 +443,10 @@ export async function mountProjects(
   function pruneSelection(): void {
     if (!selected.size) return;
     const visible = new Set<string>();
-    if (query) {
+    // The collection filters its own tiles, so it names what is visible (the query branch
+    // below knows only folders and sessions).
+    if (folderId === TEMPLATES) for (const ref of tpl.visibleRefs(query)) visible.add(ref);
+    else if (query) {
       // Searching swaps the grid for a flat results set spanning the subtree - the
       // selection stays valid for anything the results still show.
       const m = searchMatches();
@@ -562,18 +575,19 @@ export async function mountProjects(
 
   // ── render ───────────────────────────────────────────────────────────────
   function render(): void {
+    viewPopover?.close();
     if (!mounted) return; // an async callback fired after we navigated away - don't clobber the new view
     // Title the view for the tab bar AND for back-nav (lib/back-nav.ts labels the
     // previous view off document.title - this is how a tool opened from a folder,
     // or #/start reached from one, gets a back pill wearing the folder's name).
     const titleName = folderId == null ? t('Projects')
-      : folderId === UNCAT ? t('Uncategorised')
+      : folderId === UNCAT ? t('Uncategorised') : folderId === TEMPLATES ? t('Templates')
       : (folders.find(f => f.id === folderId)?.name || t('Projects'));
     document.title = tRaw('{name} - Lolly', { name: titleName });
     featuredHandle?.destroy(); featuredHandle = null;  // stop the prior ribbon's rAF loop + listeners before its DOM is wiped
     searchCache = null;   // recompute matches once for this render (sort/data may have changed); the two callers below then share it
     pruneSelection();     // forget refs that vanished since the last render
-    viewEl.innerHTML = folderId == null ? rootHtml() : folderHtml(folderId);
+    viewEl.innerHTML = folderId == null ? rootHtml() : folderId === TEMPLATES ? shell(t('Templates'), 'projects', tpl.html(query), { inFolder: true }) : folderHtml(folderId);
     wire();
   }
 
@@ -638,7 +652,7 @@ export async function mountProjects(
           so the place answers to it. Grid mode only - the list table has its own
           header row - and pointless when the grid IS only the library. */ ''}
         ${!list && loose.length && topFolders.length ? `<h2 class="projects-sec-label">${t('My library')}</h2>` : ''}
-        ${looseTiles}${list ? '' : `${createFolder}${createTool}${templateTile()}`}${teamTile}${trashTile}
+        ${looseTiles}${list ? '' : `${createFolder}${createTool}${blueprintTile()}`}${teamTile}${templatesRootTile()}${trashTile}
       </div>
       ${recentExports.length ? `
         <section class="projects-exports folder-exports">
@@ -697,9 +711,12 @@ export async function mountProjects(
       href: resumeHref(e),
     };
   }
-  /** "New from template" create tile - only once a project template exists (WP-11a). */
-  const templateTile = (): string => templates.length
-    ? createTile('template', TEMPLATE_ICON, t('New from template'), t('Start from a saved project template'))
+  /** The blueprint create tile - only once a blueprint exists (WP-11a). A BLUEPRINT is a
+   *  saved project (a folder tree of sessions); a TEMPLATE is a starting point for one
+   *  tool. The stored field stays `profile.projectTemplates` - this is the word, not the
+   *  data (plans/226 D3). */
+  const blueprintTile = (): string => templates.length
+    ? createTile('template', TEMPLATE_ICON, t('New project from a blueprint'), t('Start from a saved blueprint'))
     : '';
 
   /** The compact create buttons UP TOP (Andy, 2026-08-22): at the root, list
@@ -712,7 +729,7 @@ export async function mountProjects(
     return [
       isUncat ? '' : btn('folder', FOLDER_PLUS_ICON, t('New folder')),
       btn('tool', FILE_PLUS_ICON, t('New asset')),
-      !isUncat && templates.length ? btn('template', TEMPLATE_ICON, t('New from template')) : '',
+      !isUncat && templates.length ? btn('template', TEMPLATE_ICON, t('New project from a blueprint')) : '',
     ].join('');
   }
 
@@ -767,11 +784,13 @@ export async function mountProjects(
           ...(parentId ? [{ id: parentId, name: folders.find(f => f.id === parentId)?.name || t('Parent') }] : []),
           ...childFolders(folders, folder!.parentId ?? null).filter(f => f.id !== id).map(f => ({ id: f.id, name: f.name })),
         ];
-    const rail = railTargets.length ? `
+    // The rail always ends with the Templates chip, so the collection has a door from
+    // every folder (a navigation chip, never a drop target - see the wiring module).
+    const rail = `
       <div class="projects-rail" aria-label="${escape(t('Drag a session or folder onto a folder to move it'))}">
-        <span class="projects-rail-hint">${t('Move to')}</span>
-        ${railTargets.map(rt => `<button type="button" class="projects-chip" data-drop-folder="${escape(rt.id)}" data-open-folder-nav="${escape(rt.id)}">${escape(rt.name)}</button>`).join('')}
-      </div>` : '';
+        ${railTargets.length ? `<span class="projects-rail-hint">${t('Move to')}</span>` : ''}
+        ${railTargets.map(rt => `<button type="button" class="projects-chip" data-drop-folder="${escape(rt.id)}" data-open-folder-nav="${escape(rt.id)}">${escape(rt.name)}</button>`).join('')}${templatesRailChip()}
+      </div>`;
 
     // Uncategorised only: a cinematic preview ribbon of the loose sessions, ABOVE the
     // "Move to" rail. Empty mount now; wire() hydrates it with the shared Featured strip
@@ -932,7 +951,7 @@ export async function mountProjects(
       <div class="projects${inFolder ? ' projects--folder' : ''}${query ? ' projects--searching' : ''}">
         ${viewTopbarHtml({
           active,
-          right: projectsTopRight(folderId && folderId !== UNCAT ? folderId : null),
+          right: projectsTopRight(folderId && folderId !== UNCAT && folderId !== TEMPLATES ? folderId : null),
           // No view-specific class on the cluster: the old `.projects-topright` marker
           // this markup used to carry had no CSS rule and no selector anywhere in the
           // repo, so it went out with the hand-rolled copy.
@@ -951,7 +970,7 @@ export async function mountProjects(
   // handoff puts this view into results mode.
   function searchPlaceholder(): string {
     const scopeName = folderId == null ? t('all projects')
-      : folderId === UNCAT ? t('Uncategorised')
+      : folderId === UNCAT ? t('Uncategorised') : folderId === TEMPLATES ? t('Templates')
       : (folders.find(f => f.id === folderId)?.name || t('this folder'));
     return folderId == null ? t('Search all projects…') : tRaw('Search {scope}…', { scope: scopeName });
   }
@@ -979,26 +998,36 @@ export async function mountProjects(
   // header button; "Edit together" only shows for a manageable set of single-tool
   // sessions (2–8, no folders/images/batch grids) - the multi-edit view mounts one
   // live runtime per session, so the cap keeps it responsive.
+  // The rows the Templates collection contributes to that set, and what gates them here.
+  const templateRows = templateBulkRows({ templatable: () => templatableSelection().length > 0, kinds: () => tpl.bulkKinds(inTemplates() ? [...selected.keys()] : []) });
   const bulkBarCfg: BulkBarConfig = {
     prefix: 'projects-bulkbar',
     rootSelector: '.projects',
     count: () => selected.size,
     actions: [
-      { id: 'render', icon: RENDER_ICON, label: () => t('Render selection'), extraClass: 'projects-render projects-bulk-render' },
+      { id: 'render', icon: RENDER_ICON, label: () => t('Render selection'), extraClass: 'projects-render projects-bulk-render', hidden: () => inTemplates() },
       { id: 'edit', icon: EDIT_ICON, label: () => t('Edit together'), title: () => t('Open the selected sessions side by side with one combined sidebar'), hidden: () => !editableSelection() },
       { id: 'sheet', icon: SHEET_ICON, label: () => t('Edit as sheet'), title: () => t('Open the whole selection as rows in the batch grid - no size limit'), hidden: () => !sheetableSelection() },
       { id: 'duplicate', icon: DUPLICATE_ICON, label: () => t('Duplicate'), title: () => t('Copy each selected creation beside the original'), hidden: () => ![...selected.values()].includes('session') },
-      { id: 'favourite', icon: STAR_ICON, label: () => [...selected.keys()].every(r => favourites.has(r)) ? t('Unfavourite') : t('Favourite') },
-      { id: 'move', icon: MOVE_ICON, label: () => t('Move to…') },
-      { id: 'cut', icon: CUT_ICON, label: () => t('Cut') },
-      { id: 'copy', icon: DUPLICATE_ICON, label: () => t('Copy') },
-      { id: 'download', icon: DOWNLOAD_ICON, label: () => t('Download originals'), title: () => t('A zip of the selected files as they are stored - .lolly sessions and image bytes, nothing rendered') },
-      { id: 'newfolder', icon: FOLDER_PLUS_ICON, label: () => t('New folder') },
-      { id: 'delete', icon: TRASH_ICON, label: () => t('Delete'), extraClass: 'projects-bulk-danger' },
+      ...templateRows.save,
+      { id: 'favourite', icon: STAR_ICON, label: () => [...selected.keys()].every(r => favourites.has(r)) ? t('Unfavourite') : t('Favourite'), hidden: () => inTemplates() },
+      { id: 'move', icon: MOVE_ICON, label: () => t('Move to…'), hidden: () => inTemplates() },
+      { id: 'cut', icon: CUT_ICON, label: () => t('Cut'), hidden: () => inTemplates() },
+      { id: 'copy', icon: DUPLICATE_ICON, label: () => t('Copy'), hidden: () => inTemplates() },
+      { id: 'download', icon: DOWNLOAD_ICON, label: () => t('Download originals'), title: () => t('A zip of the selected files as they are stored - .lolly sessions and image bytes, nothing rendered'), hidden: () => inTemplates() },
+      { id: 'newfolder', icon: FOLDER_PLUS_ICON, label: () => t('New folder'), hidden: () => inTemplates() },
+      ...templateRows.overlay,
+      { id: 'delete', icon: TRASH_ICON, label: () => t('Delete'), extraClass: 'projects-bulk-danger', hidden: () => inTemplates() && !tpl.bulkKinds([...selected.keys()]).delete },
     ],
   };
   const bulkBarHtml = (): string => buildBulkBar(bulkBarCfg);
   const syncBulkBar = (): void => syncSharedBulkBar(viewEl, bulkBarCfg);
+
+  // In the Templates collection the file actions (render, move, cut, download, new folder)
+  // have nothing to act on and stand down, and Hide / Restore / Delete take their place.
+  // `templatableSelection` is the other direction: selected SESSIONS that can become one.
+  const inTemplates = (): boolean => folderId === TEMPLATES;
+  const templatableSelection = (): string[] => inTemplates() ? [] : selectedByKind('session').filter(ref => !isBatchSlot(ref) && tpl.canTemplate(entryBySlot().get(ref)?.toolId ?? ''));
 
   /** The selected slots IFF the whole selection is 2–8 single-tool sessions; else null. */
   function editableSelection(): string[] | null {
@@ -1040,17 +1069,8 @@ export async function mountProjects(
   }
 
   // ── wiring ─────────────────────────────────────────────────────────────────
-  // The view-options (filter) popover is still this hand-rolled body-absolute one - 
-  // only the two CONTEXT menus (below) moved onto mountBodyPopover, rec 9's remainder.
-  let openPopover: HTMLElement | null = null;
-  function closeMenu(): void {
-    openPopover?.remove(); openPopover = null;
-    document.removeEventListener('pointerdown', onDocDown, true); document.removeEventListener('keydown', onMenuKey, true);
-    tileMenu.close();
-  }
-  function onDocDown(e: PointerEvent): void { if (openPopover && !openPopover.contains(e.target as Node)) closeMenu(); }
-  // Escape closes an open popover menu - matching the app-wide dialog convention (see confirm-dialog).
-  function onMenuKey(e: KeyboardEvent): void { if (e.key === 'Escape' && openPopover) { e.preventDefault(); e.stopPropagation(); closeMenu(); } }
+  let viewPopover: BodyPopoverHandle | null = null;
+  function closeMenu(): void { viewPopover?.close(); tileMenu.close(); }
 
   // ── per-tile / bulk-selection context menu (kebab button, right-click, long-press) ──
   // The whole mechanism - one mountBodyPopover over a mutable pointAnchor, the edge-
@@ -1083,7 +1103,7 @@ export async function mountProjects(
   // fallback up front and refocus it once the dialog resolves. See components/confirm-dialog.js.
   const confirmDialog = (opts: ConfirmDialogOpts): Promise<boolean> => {
     const active = document.activeElement;
-    const fallback = (active instanceof HTMLElement && active !== document.body && active.isConnected && !openPopover?.contains(active))
+    const fallback = (active instanceof HTMLElement && active !== document.body && active.isConnected && !active.closest('.projects-viewmenu'))
       ? active
       : viewEl.querySelector<HTMLElement>('.projects-viewopts');
     closeMenu();
@@ -1192,7 +1212,7 @@ export async function mountProjects(
         if (kind === 'folder') {
           const name = await promptFolderName();
           if (name && mounted) { await store.create(name, currentFolderTarget()); await reload(); render(); }
-        } else if (kind === 'template') void openTemplateChooser();
+        } else if (kind === 'template') void openBlueprintChooser();
         else startCreateTool();
         return;
       }
@@ -1203,7 +1223,7 @@ export async function mountProjects(
         const kind = create.dataset.create;
         if (kind === 'folder') startCreateFolder(create);
         else if (kind === 'team') void openTeamProjects();
-        else if (kind === 'template') void openTemplateChooser();
+        else if (kind === 'template') void openBlueprintChooser();
         else startCreateTool();
         return;
       }
@@ -1262,6 +1282,7 @@ export async function mountProjects(
     });
 
     wireDrag(root);
+    if (folderId === TEMPLATES) tpl.wire(root, query);   // chips, the Hidden reveal, lazy previews
     mountUncatRibbon(root);
     mountFavStrip(root);
     syncBulkBar();   // reflect a selection that survived this re-render
@@ -1361,9 +1382,11 @@ export async function mountProjects(
     },
   });
 
+  const sessionSource = (slot: string): SessionSaveSource => templateSessionSource(entryBySlot().get(slot), slot, toolName);
+
   /** A ref's kind, from the live data (folder record → folder, state row → session, else image). */
   const kindOfRef = (ref: string): SelectKind =>
-    folders.some(f => f.id === ref) ? 'folder' : entryMap.has(ref) ? 'session' : 'image';
+    tpl.has(ref) ? 'template' : folders.some(f => f.id === ref) ? 'folder' : entryMap.has(ref) ? 'session' : 'image';
 
   // Reconcile the Map to exactly `refs` (the kind is read back off each tile), then
   // repaint every tile in place - a full render() would drop scroll/focus mid-drag.
@@ -1416,6 +1439,10 @@ export async function mountProjects(
   // selection once applied.
   function handleBulk(action: string): void {
     if (action === 'clear') { dropSelection(); render(); return; }
+    // 'save-templates' (plural) is the SELECTION's id; the folder menu's 'save-template' is
+    // the blueprint save, and both arrive in this dispatch.
+    if (action === 'save-templates') { void tpl.saveSessions(templatableSelection().map(sessionSource), { ask: false }); return; }
+    if (inTemplates()) { void tpl.bulk(action, [...selected.keys()]); return; }
     if (action === 'render') { renderSelection(); return; }
     if (action === 'cut' || action === 'copy') { setClipboard(action, [...selected.keys()]); return; }
     if (action === 'download') { void downloadOriginals(t('Selection'), selectedByKind('session'), selectedByKind('image'), topLevelSelectedFolders()); return; }
@@ -1535,6 +1562,7 @@ export async function mountProjects(
   // `ref` come through the shared wireTileContextMenu's target: folder or session,
   // "Move to…" opens the drill-down picker (no more flat all-folders-at-once list).
   function tileMenuHtml(kind: string, ref: string): string {
+    if (kind === 'template') return tpl.menuHtml(ref);   // the collection owns its own action set
     // Favourite / unfavourite row - a folder, session or image can be starred to the strip up top.
     const fav = (): string => menuItem('fav', favourites.has(ref) ? STAR_FILLED_ICON : STAR_ICON,
       favourites.has(ref) ? t('Remove from favourites') : t('Add to favourites'));
@@ -1552,7 +1580,7 @@ export async function mountProjects(
         canPaste ? menuItem('paste-into', PASTE_ICON, t('Paste here')) : '',
         menuItem('render', RENDER_ICON, t('Render folder'), { render: true }),
         menuItem('download-folder', DOWNLOAD_ICON, t('Download originals')),
-        menuItem('save-template', TEMPLATE_ICON, t('Save as project template…')),
+        menuItem('save-template', TEMPLATE_ICON, t('Save project as a blueprint…')),
         menuItem('style-folder', PALETTE_ICON, t('Colour and icon…')),
         menuItem('info', INFO_ICON, t('Get info')),
         menuItem('delete', TRASH_ICON, t('Move to Trash'), { danger: true }),
@@ -1576,6 +1604,9 @@ export async function mountProjects(
       menuItem('open', OPEN_ICON, t('Open')),
       menuItem('rename-session', EDIT_ICON, t('Rename')),
       menuItem('duplicate-session', DUPLICATE_ICON, t('Duplicate')),
+      // "Save as a template…" only where there is something to save: one document (not a batch
+      // grid) whose tool declares at least one non-file input, per its manifest.
+      canShare && tpl.canTemplate(entryBySlot().get(ref)?.toolId ?? '') ? menuItem('save-session-template', TEMPLATE_ICON, t('Save as a template…')) : '',
       fav(),
       menuItem('move', MOVE_ICON, t('Move to…')),
       clip(),
@@ -1592,7 +1623,7 @@ export async function mountProjects(
     return [
       menuItem('new-folder', FOLDER_PLUS_ICON, t('New folder')),
       menuItem('new-asset', FILE_PLUS_ICON, t('New asset')),
-      templates.length ? menuItem('new-from-template', TEMPLATE_ICON, t('New from template…')) : '',
+      templates.length ? menuItem('new-from-template', TEMPLATE_ICON, t('New project from a blueprint…')) : '',
       canPaste ? menuItem('paste', PASTE_ICON, t('Paste')) : '',
       menuItem('select-all', SELECT_ALL_ICON, t('Select all')),
     ].join('');
@@ -1609,7 +1640,7 @@ export async function mountProjects(
       await reload(); render();
     }
     else if (act === 'new-asset') startCreateTool();
-    else if (act === 'new-from-template') await openTemplateChooser();
+    else if (act === 'new-from-template') await openBlueprintChooser();
     else if (act === 'paste') await pasteClipboard(currentFolderTarget());
     else if (act === 'select-all') applySelectionRefs(new Set(selectableTiles().map(t2 => t2.dataset.ref!)));
   }
@@ -1621,11 +1652,14 @@ export async function mountProjects(
   // so it's a valid sibling instead of an invalid child of the menu - the same
   // reasoning lang-menu.ts's sort-tabs-above-the-list split documents.
   function bulkMenuHtml(): string {
+    // In the Templates collection the same gesture offers what a template selection can do.
+    if (inTemplates()) return templateBulkMenuHtml(selected.size, tpl.bulkKinds([...selected.keys()]));
     return `<p class="folder-menu-head">${t('{n} selected', { n: selected.size })}</p>`
       + `<div class="folder-menu-list" role="menu" aria-label="${escape(t('Selection actions'))}">${[
         menuItem('render', RENDER_ICON, t('Render selection'), { render: true }),
         ...(sheetableSelection() ? [menuItem('sheet', SHEET_ICON, t('Edit as sheet'))] : []),
         ...([...selected.values()].includes('session') ? [menuItem('duplicate', DUPLICATE_ICON, t('Duplicate'))] : []),
+        ...(templatableSelection().length ? [menuItem('save-templates', TEMPLATE_ICON, t('Save as a template…'))] : []),
         menuItem('favourite', STAR_ICON, [...selected.keys()].every(r => favourites.has(r)) ? t('Unfavourite') : t('Favourite')),
         menuItem('move', MOVE_ICON, t('Move to…')),
         menuItem('cut', CUT_ICON, t('Cut')),
@@ -1644,6 +1678,7 @@ export async function mountProjects(
     if (!target) { handleBulk(act); return; }
     const { ref, tile: tileEl } = target;
     closeMenu();   // the viewopts popover could be up behind a kebab-opened menu
+    if (tpl.has(ref)) { await tpl.action(act, ref); return; }
     // Rename can fire from a folder TILE (root view) or the folder-view header menu
     // button (no enclosing tile) - fall back to the header <h2> in that case.
     if (act === 'rename') startRename(tileEl || viewEl.querySelector<HTMLElement>('.projects-title[data-rename-folder]'), ref);
@@ -1655,7 +1690,7 @@ export async function mountProjects(
     else if (act === 'cut' || act === 'copy') setClipboard(act, selected.has(ref) ? [...selected.keys()] : [ref]);
     else if (act === 'paste-into') await pasteClipboard(ref);
     else if (act === 'download-folder') await downloadOriginals(folders.find(f => f.id === ref)?.name || t('Folder'), [], [], [ref]);
-    else if (act === 'save-template') await saveAsTemplate(ref);
+    else if (act === 'save-template') await saveAsBlueprint(ref);
     else if (act === 'open-folder') { window.location.hash = '#/p/' + ref; }
     else if (act === 'move-folder') {
       // A folder can't move into itself or its own subtree - block those targets.
@@ -1668,6 +1703,7 @@ export async function mountProjects(
     else if (act === 'open') resumeSession(ref);
     else if (act === 'rename-session') startRenameSession(tileEl, ref);
     else if (act === 'duplicate-session') duplicateSession(ref);
+    else if (act === 'save-session-template') await tpl.saveSessions([sessionSource(ref)], { ask: true });
     else if (act === 'move') {
       openMovePicker({
         title: t('Move to…'),
@@ -2053,40 +2089,18 @@ export async function mountProjects(
   // The gallery-style filter button → a popover to switch view mode (Preview/List) and
   // sort (Name / Date added / Last modified / By tool). Preference persists in localStorage.
   function openViewOpts(btn: HTMLElement): void {
+    if (viewPopover?.isOpen()) { viewPopover.close(true); return; }
     closeMenu();
-    const atRoot = folderId == null;
-    const opt = (on: boolean, attr: string, val: string, label: string): string =>
-      `<button type="button" class="folder-menu-item${on ? ' is-on' : ''}" data-${attr}="${val}">${on ? '✓ ' : '  '}${label}</button>`;
-    // (The Uncategorised preview-strip Gallery↔Cover-Flow switch is no longer a menu item - 
-    // it's a .view-seg segmented control below the ribbon, matching the catalog.)
-    const pop = document.createElement('div');
-    pop.className = 'folder-menu projects-viewmenu';
-    pop.innerHTML = `
-      ${themeSegmentHtml('folder-menu-head')}
-      <p class="folder-menu-head">${t('View')}</p>
-      ${opt(viewMode === 'preview', 'vm', 'preview', t('Preview'))}
-      ${opt(viewMode === 'list', 'vm', 'list', t('List'))}
-      <p class="folder-menu-head">${t('Sort')}</p>
-      ${opt(sortBy === 'name', 'sort', 'name', t('Name'))}
-      ${opt(sortBy === 'added', 'sort', 'added', t('Date added'))}
-      ${opt(sortBy === 'modified', 'sort', 'modified', t('Last modified'))}
-      ${opt(sortBy === 'size', 'sort', 'size', t('Size'))}
-      ${atRoot ? '' : opt(sortBy === 'tool', 'sort', 'tool', t('By tool'))}
-      ${soundSegmentHtml('folder-menu-head')}`;
-    document.body.appendChild(pop);
-    wireThemeSegment(pop, host as unknown as Parameters<typeof wireThemeSegment>[1]);   // Theme picker atop the menu
-    wireSoundSegment(pop, host as unknown as Parameters<typeof wireSoundSegment>[1]);   // Sound on/off segment
-    const r = btn.getBoundingClientRect();
-    pop.style.top = `${Math.round(r.bottom + 6 + window.scrollY)}px`;
-    pop.style.left = `${Math.round(Math.min(r.left, window.innerWidth - pop.offsetWidth - 12) + window.scrollX)}px`;
-    openPopover = pop;
-    document.addEventListener('pointerdown', onDocDown, true);
-    document.addEventListener('keydown', onMenuKey, true);
-    pop.addEventListener('click', (e) => {
-      const vm = (e.target as HTMLElement).closest<HTMLElement>('[data-vm]'); const so = (e.target as HTMLElement).closest<HTMLElement>('[data-sort]');
-      if (vm) { viewMode = vm.dataset.vm as ViewMode; try { localStorage.setItem('lolly:projectsView', viewMode); } catch { /* ignore */ } saveViewPrefs(); closeMenu(); render(); }
-      else if (so) { sortBy = so.dataset.sort as SortBy; sortRev = false; try { localStorage.setItem('lolly:projectsSort', sortBy); } catch { /* ignore */ } saveViewPrefs(); closeMenu(); render(); }
+    const repaint = (): void => {
+      saveViewPrefs(); render();
+      viewEl.querySelector<HTMLElement>('.projects-viewopts')?.focus({ preventScroll: true });
+    };
+    viewPopover = mountProjectsViewOptions(btn, host as ProjectsHost, {
+      view: viewMode, sort: sortBy, atRoot: folderId == null,
+      onView: value => { viewMode = value; try { localStorage.setItem('lolly:projectsView', value); } catch { /* storage off */ } repaint(); },
+      onSort: value => { sortBy = value; sortRev = false; try { localStorage.setItem('lolly:projectsSort', value); } catch { /* storage off */ } repaint(); },
     });
+    viewPopover.open();
   }
 
   // ── create / rename ────────────────────────────────────────────────────────
@@ -2318,7 +2332,7 @@ export async function mountProjects(
           const openId = ut ? ut.userTool.baseToolId : toolId;
           if (ut) setPendingToolSeed(openId, ut.userTool.values);
           else {
-            const choice = await chooseAddSeed(toolId);
+            const choice = await chooseAddSeed(tpl, toolId, profile, { toolName, closeMenu });
             if (choice.cancelled) return;   // stay in the picker
             if (choice.values) setPendingToolSeed(openId, choice.values);
           }
@@ -2332,7 +2346,7 @@ export async function mountProjects(
             // straight away (no default-or-variation step). A real tool offers that chooser.
             const ut = userToolById.get(toolId);
             if (ut) { await addDefaultSession(ut.userTool.baseToolId, ut.userTool.values); return { ok: true }; }
-            const choice = await chooseAddSeed(toolId);
+            const choice = await chooseAddSeed(tpl, toolId, profile, { toolName, closeMenu });
             if (choice.cancelled) return { ok: false, silent: true };   // chooser dismissed → no toast
             await addDefaultSession(toolId, choice.values);
             return { ok: true };
@@ -2370,33 +2384,6 @@ export async function mountProjects(
     }, '');
     const target = (folderId && folderId !== UNCAT) ? folderId : null;
     if (target) await store.moveItem(slot, target, 'session');
-  }
-
-  // Quick-add intermediate step: when a tool has saved templates/variations, offer a tiny
-  // chooser (the tool's default settings, or one of the user's saved variations) and return
-  // the seed values to hand addDefaultSession. A tool with NONE resolves straight to the
-  // default (no extra step, exactly as before). `cancelled` is true only when the chooser was
-  // actually shown and dismissed, so the caller can stay silent instead of flashing a failure.
-  async function chooseAddSeed(toolId: string): Promise<{ cancelled: boolean; values?: Record<string, unknown> }> {
-    let mine: UserTemplate[] = [];
-    try {
-      const { createUserTemplateStore } = await import('../lib/user-templates.ts');
-      mine = await createUserTemplateStore(host as unknown as Parameters<typeof createUserTemplateStore>[0]).list(toolId);
-    } catch { /* best-effort - fall through to the default add */ }
-    if (!mine.length) return { cancelled: false };   // nothing saved → default, no extra step
-    closeMenu();
-    const toolName = nameById.get(toolId) || toolId;
-    const chosen = await choiceDialog({
-      title: tRaw('Add {tool}', { tool: toolName }),
-      message: t('Start from the default, or one of your saved variations.'),
-      choices: [
-        { id: '__default__', label: t('Default settings'), primary: true },
-        ...mine.map(ut => ({ id: ut.id, label: ut.name })),
-      ],
-    });
-    if (chosen === null) return { cancelled: true };            // Cancel / Escape / backdrop
-    if (chosen === '__default__') return { cancelled: false };  // resolved defaults
-    return { cancelled: false, values: mine.find(x => x.id === chosen)?.values };
   }
 
   // Arm the return target so the tool's Save button lands back on this exact page - 
@@ -2942,13 +2929,15 @@ export async function mountProjects(
 
   // ── clipboard (plans/133 WP-7) ──────────────────────────────────────────────
   /** The destination for a paste, an OS drop, or New-from-template: the open folder, or loose (null). */
-  const currentFolderTarget = (): string | null => (folderId && folderId !== UNCAT) ? folderId : null;
+  const currentFolderTarget = (): string | null => (folderId && folderId !== UNCAT && folderId !== TEMPLATES) ? folderId : null;
 
   /** Put refs on the module clipboard. Images are single-home REFERENCES, so they
    *  can be cut (moved) but never copied - a copy drops them and says so. */
   function setClipboard(mode: 'cut' | 'copy', refs: readonly string[]): void {
     closeMenu();
-    let items = refs.map(ref => ({ ref, kind: kindOfRef(ref) }));
+    // A template is a starting point, not a file with a home, so it never travels on the
+    // clipboard - the Templates collection offers no Cut/Copy either way.
+    let items = refs.map(ref => ({ ref, kind: kindOfRef(ref) })).filter((i): i is { ref: string; kind: 'folder' | 'session' | 'image' } => i.kind !== 'template');
     const droppedImages = mode === 'copy' ? items.filter(i => i.kind === 'image').length : 0;
     if (droppedImages) items = items.filter(i => i.kind !== 'image');
     clipboard = items.length ? { mode, items } : null;
@@ -3111,16 +3100,17 @@ export async function mountProjects(
     });
   }
 
-  // ── Project templates (plans/133 WP-11a) ────────────────────────────────────
-  // "Save as project template" copies a folder's subtree + each member session's
+  // ── Blueprints, formerly "project templates" (plans/133 WP-11a; renamed by
+  // plans/226 D3 so "template" means one thing: a starting point for a TOOL) ───────
+  // "Save project as a blueprint" copies a folder's subtree + each member session's
   // record into the `__ptpl__:` namespace (the trash's split: records in the
   // profile, slots in state); "New from template" copies them back out under
   // fresh ids and slots, so one template seeds any number of projects.
-  async function saveAsTemplate(id: string): Promise<void> {
+  async function saveAsBlueprint(id: string): Promise<void> {
     closeMenu();
     const folder = folders.find(f => f.id === id);
     if (!folder) return;
-    const name = await promptFolderName({ title: t('Save as project template'), placeholder: t('Template name'), ok: t('Save'), value: folder.name });
+    const name = await promptFolderName({ title: t('Save project as a blueprint'), placeholder: t('Blueprint name'), ok: t('Save'), value: folder.name });
     if (!name || !mounted) return;
     const tree = await store.snapshotSubtree(id);
     if (!tree) return;
@@ -3144,11 +3134,13 @@ export async function mountProjects(
     await store.templateAdd({ name, tree });
     if (!mounted) return;
     await reload(); render();
-    announce(copied === 1 ? tRaw('Saved "{name}" as a project template (1 session)', { name }) : tRaw('Saved "{name}" as a project template ({n} sessions)', { name, n: copied }));
+    announce(copied === 1 ? tRaw('Saved "{name}" as a blueprint (1 session)', { name }) : tRaw('Saved "{name}" as a blueprint ({n} sessions)', { name, n: copied }));
   }
 
-  /** Pick a template to instantiate here, or delete one. */
-  async function openTemplateChooser(): Promise<void> {
+  /** Pick a blueprint to instantiate here, or delete one. (Named for the vocabulary
+   *  split in plans/226 D3, and so it cannot be confused with the tool-template chooser
+   *  in views/template-chooser.ts, which owns the other meaning.) */
+  async function openBlueprintChooser(): Promise<void> {
     closeMenu();
     if (!templates.length) return;
     const fmtWhen = (iso: string): string => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -3159,24 +3151,24 @@ export async function mountProjects(
         <span class="trash-row-icon" aria-hidden="true">${FOLDER_ICON}</span>
         <span class="trash-row-meta"><span class="trash-row-name">${escape(tp.name)}</span><span class="trash-row-sub">${sub}</span></span>
         <button type="button" class="btn btn--sm modal-primary" data-tpl-use="${i}">${t('Use')}</button>
-        <button type="button" class="btn btn--sm cat-act-danger" data-tpl-drop="${i}" aria-label="${escape(tRaw('Delete template {name}', { name: tp.name }))}">${t('Delete')}</button>
+        <button type="button" class="btn btn--sm cat-act-danger" data-tpl-drop="${i}" aria-label="${escape(tRaw('Delete blueprint {name}', { name: tp.name }))}">${t('Delete')}</button>
       </li>`;
     }).join('');
     const where = currentFolderTarget() ? (folders.find(f => f.id === currentFolderTarget())?.name ?? t('this folder')) : t('Projects');
     const modal = mountModal<void>(`
       <div class="trash-dialog-body">
-        <h2>${t('New from template')}</h2>
-        <p class="trash-note">${t('A copy of the template lands in {where} with fresh sessions.', { where })}</p>
+        <h2>${t('New project from a blueprint')}</h2>
+        <p class="trash-note">${t('A copy of the blueprint lands in {where} with fresh sessions.', { where })}</p>
         <ul class="trash-list">${rows}</ul>
         <div class="trash-actions"><button type="button" class="btn" data-tpl-close>${t('Close')}</button></div>
-      </div>`, { className: 'trash-dialog', ariaLabel: t('Project templates'), onClose: () => { if (overlayModal === modal) overlayModal = null; } });
+      </div>`, { className: 'trash-dialog', ariaLabel: t('Blueprints'), onClose: () => { if (overlayModal === modal) overlayModal = null; } });
     overlayModal = modal;
     modal.el.addEventListener('click', async (e) => {
       const el = e.target as HTMLElement;
       if (el.closest('[data-tpl-close]')) { modal.close(); return; }
       const use = el.closest<HTMLElement>('[data-tpl-use]');
       const drop = el.closest<HTMLElement>('[data-tpl-drop]');
-      if (use) { const tp = templates[Number(use.dataset.tplUse)]; modal.close(); if (tp) await instantiateTemplate(tp, currentFolderTarget()); return; }
+      if (use) { const tp = templates[Number(use.dataset.tplUse)]; modal.close(); if (tp) await instantiateBlueprint(tp, currentFolderTarget(), { host: host as ProjectsHost, store, isMounted: () => mounted, refresh: async () => { await reload(); render(); } }); return; }
       if (drop) {
         const tp = templates[Number(drop.dataset.tplDrop)];
         modal.close();
@@ -3184,41 +3176,9 @@ export async function mountProjects(
         for (const f of tp.tree) for (const it of f.items) await host.state.delete(it.ref).catch(() => {});
         await store.templateDrop(tp.id);
         if (mounted) { await reload(); render(); }
-        announce(tRaw('Deleted template "{name}"', { name: tp.name }));
+        announce(tRaw('Deleted blueprint "{name}"', { name: tp.name }));
       }
     });
-  }
-
-  async function instantiateTemplate(tp: ProjectTemplate, parent: string | null): Promise<void> {
-    const h = host as ProjectsHost;
-    const rows = await h.state.list().catch(() => [] as Entry[]);
-    const thumbOf = new Map(rows.map(r => [r.slot, r.thumb]));
-    const live = new Set(rows.map(r => r.slot));
-    const slotMap = new Map<string, string>();
-    let i = 0;
-    for (const f of tp.tree) for (const it of f.items) {
-      if (it.type !== 'session' || slotMap.has(it.ref)) continue;
-      const data = await h.state.load(it.ref).catch(() => null);
-      if (!data) continue;
-      // The original slot sits after the template token: __ptpl__:<token>:<toolId:ts | __batch__:label>.
-      const original = it.ref.slice(PTPL_SLOT_PREFIX.length).split(':').slice(1).join(':');
-      let slot: string;
-      if (isBatchSlot(original)) {
-        const base = original.slice(BATCH_SLOT_PREFIX.length);
-        slot = BATCH_SLOT_PREFIX + base;
-        for (let n = 2; live.has(slot); n++) slot = `${BATCH_SLOT_PREFIX}${base} ${n}`;
-      } else {
-        const toolId = String((data as { __toolId?: unknown }).__toolId || original.split(':')[0] || 'session');
-        slot = `${toolId}:${Date.now()}-${++i}`;
-      }
-      await h.state.save(slot, data, thumbOf.get(it.ref) ?? undefined);
-      live.add(slot);
-      slotMap.set(it.ref, slot);
-    }
-    const root = await store.instantiateSubtree(tp.tree, parent, slotMap);
-    if (!mounted) return;
-    await reload(); render();
-    if (root) announce(tRaw('Created "{name}" from the template', { name: root.name }));
   }
 
   // ── boot ─────────────────────────────────────────────────────────────────
@@ -3227,11 +3187,11 @@ export async function mountProjects(
   try { sessionStorage.removeItem(FILE_INTO_KEY); sessionStorage.removeItem(RETURN_KEY); } catch { /* ignore */ }
   // NB tileSelect.destroy() is not optional: its mousedown is bound to viewEl (#view), which
   // the router REUSES for every route - leave it bound and the next mount stacks another.
-  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
   await reload();
   void sweepTrash();   // age out trash entries past the 30-day retention (silent)
   // A stale /p/<id> deep link to a deleted folder falls back to root.
-  if (folderId && folderId !== UNCAT && !folders.some(f => f.id === folderId)) folderId = null;
+  if (folderId && folderId !== UNCAT && folderId !== TEMPLATES && !folders.some(f => f.id === folderId)) folderId = null;
   // Claim the shell search bar AFTER reload() - the scope-aware placeholder needs
   // `folders` (and the deleted-folder fallback above) resolved. NO onQuery (the M2
   // flip, plans/99 section 2a): Projects is an overlay-only view, so typing feeds the
@@ -3259,4 +3219,44 @@ export async function mountProjects(
     onClear: exitSearch,
   });
   render();
+}
+
+/** What the lifted blueprint step borrows from the mount: data access and a repaint. */
+type BlueprintView = { host: ProjectsHost; store: ReturnType<typeof createFolderStore>; isMounted(): boolean; refresh(): Promise<void> };
+
+/**
+ * Copy a blueprint's stored sessions out of the `__ptpl__:` namespace under fresh slots,
+ * then rebuild its folder tree over them. Module scope rather than a closure function: it
+ * needs only the host, the folder store and a repaint, so the mount lends it those.
+ */
+async function instantiateBlueprint(tp: ProjectTemplate, parent: string | null, view: BlueprintView): Promise<void> {
+  const h = view.host;
+  const rows = await h.state.list().catch(() => [] as Entry[]);
+  const thumbOf = new Map(rows.map(r => [r.slot, r.thumb]));
+  const live = new Set(rows.map(r => r.slot));
+  const slotMap = new Map<string, string>();
+  let i = 0;
+  for (const f of tp.tree) for (const it of f.items) {
+    if (it.type !== 'session' || slotMap.has(it.ref)) continue;
+    const data = await h.state.load(it.ref).catch(() => null);
+    if (!data) continue;
+    // The original slot sits after the template token: __ptpl__:<token>:<toolId:ts | __batch__:label>.
+    const original = it.ref.slice(PTPL_SLOT_PREFIX.length).split(':').slice(1).join(':');
+    let slot: string;
+    if (isBatchSlot(original)) {
+      const base = original.slice(BATCH_SLOT_PREFIX.length);
+      slot = BATCH_SLOT_PREFIX + base;
+      for (let n = 2; live.has(slot); n++) slot = `${BATCH_SLOT_PREFIX}${base} ${n}`;
+    } else {
+      const toolId = String((data as { __toolId?: unknown }).__toolId || original.split(':')[0] || 'session');
+      slot = `${toolId}:${Date.now()}-${++i}`;
+    }
+    await h.state.save(slot, data, thumbOf.get(it.ref) ?? undefined);
+    live.add(slot);
+    slotMap.set(it.ref, slot);
+  }
+  const root = await view.store.instantiateSubtree(tp.tree, parent, slotMap);
+  if (!view.isMounted()) return;
+  await view.refresh();
+  if (root) announce(tRaw('Created "{name}" from the blueprint', { name: root.name }));
 }

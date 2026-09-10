@@ -59,7 +59,7 @@ export function mountActionHistory(opts: {
     failure: message => { void import('../lib/undo-toast.ts').then(({ showUndoToast }) => showUndoToast({
       message, actionLabel: 'History', undo: async () => {
         const { openHistoryPanel } = await import('../components/history-panel.ts');
-        openHistoryPanel({ state, slot: opts.getSlot, controller });
+        openHistoryPanel({ state, slot: opts.getSlot, controller, currentSnapshot: opts.snapshot });
       },
     })); },
     saved: () => {
@@ -103,6 +103,7 @@ export function wireToolRevisionHistory(opts: {
   state: WebStateAPI; slot(): string | null; controller?: AutomaticHistory; collab?: CollabHistoryCapability; connected(): boolean;
   root?: HTMLElement;
   copyState?: WebStateAPI;
+  currentSnapshot?: () => SavedStateData;
   collaborating?: boolean;
   peer?: { list(): Promise<readonly HistoryWireEntry[]>; fetch(revisionId: string): Promise<SavedStateData> };
 }): { open(): Promise<void>; dispose(): void } {

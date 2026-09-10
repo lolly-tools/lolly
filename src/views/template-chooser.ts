@@ -24,15 +24,24 @@
  * `_cleanup`, which calls it so a torn-down view never leaves this floating on top of
  * whatever loads next).
  *
- * House UI rules honoured: Escape closes; focus is trapped and lands in the
- * search field; tiles are rounded with a neutral border (no accent-coloured
- * border, no dashed border - dashed is reserved for drop areas). Chrome strings
- * go through t() (they became mid-session UI with plans/142 WP-1); template
- * names/descriptions/categories are authored metadata and stay as written until
- * the template i18n sidecar ships.
+ * It is ALSO the per-tool template manager (plans/226 WP-3). When the host can read
+ * the profile, each tile carries a menu (right-click, press-and-hold, and a "…"
+ * button for pointer users) that uses, sets "Start with", renames/describes/updates/
+ * exports/deletes the person's own templates, and copies or hides a shipped one. The
+ * hidden shipped tiles leave the grid and sit behind a "Hidden (N)" chip with a
+ * Restore action, and the person's own group is listed first. Every mutation goes
+ * through lib/template-actions.ts + the lib/user-templates.ts store, so the Projects
+ * Templates collection and this chooser behave identically.
+ *
+ * House UI rules honoured: Escape closes (an open tile menu takes the first Escape
+ * and stops there); focus is trapped and lands in the search field; tiles are rounded
+ * with a neutral border (no accent-coloured border, no dashed border - dashed is
+ * reserved for drop areas), so ownership and "Starts here" are glyphs with a tinted
+ * fill rather than a coloured edge. Chrome strings go through t() (they became
+ * mid-session UI with plans/142 WP-1); template names/descriptions/categories are
+ * authored metadata and stay as written until the template i18n sidecar ships.
  */
 
-import { parseTemplateMotion, type TemplateMotion } from '../lib/template-motion.ts';
 import '../styles/template-chooser.css'; // async CSS chunk (lazy view - not on the landing)
 import { t, tRaw } from '../i18n.ts';
 import { escapeHtml } from '../lib/html.ts';
@@ -40,170 +49,40 @@ import { trapFocus, type FocusTrap } from '../lib/focus-trap.ts';
 import { icon } from '../lib/icons.ts';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { loadHiddenTemplates } from '../lib/hidden-templates.ts';
+import {
+  copyShippedTemplate,
+  deleteUserTemplate,
+  downloadTemplateFile,
+  hideShippedTemplate,
+  restoreShippedTemplate,
+  setStartWith,
+  templateDesignSystemStamp,
+  type TemplateActionHost,
+} from '../lib/template-actions.ts';
+import { parseTemplateRef, userVariants } from '../lib/template-ref.ts';
+import { loadTemplateStart, START_BLANK, type TemplateStart } from '../lib/template-start.ts';
+import { createUserTemplateStore } from '../lib/user-templates.ts';
 
-/**
- * A parsed template entry. Its metadata (id/name/category/description/thumb) is what
- * the synced index carries and the chooser renders the grid from; `values` is the heavy
- * input seed, which now lives in an EXTERNAL per-template file (tools/<id>/templates/
- * <tid>.json) and is FETCHED ON DEMAND (preview render + select). For a metadata-only
- * entry `values` is `{}` - fetchTemplateValues() supplies the real seed lazily.
- */
-/** A template's curated variant (plans/142): a values OVERLAY merged over the
- *  template's base `values` (shallow, preset wins). `values` is `{}` for a
- *  metadata-only entry off the synced index - the overlay rides the template's
- *  external file and is read with it. */
-export interface TemplatePreset {
-  id: string;
-  name: string;
-  description?: string;
-  values: Record<string, InputValue>;
-}
-
-export interface TemplateVariant {
-  id: string;
-  name: string;
-  description?: string;
-  category?: string;
-  thumb?: string;
-  motion?: TemplateMotion;
-  values: Record<string, InputValue>;
-  presets?: TemplatePreset[];
-}
-
-/** Narrow an unknown `presets` array (template file, index metadata, or inline
- *  manifest) to the shape above - malformed entries drop, first id wins. */
-function parsePresets(raw: unknown): TemplatePreset[] {
-  if (!Array.isArray(raw)) return [];
-  const out: TemplatePreset[] = [];
-  const seen = new Set<string>();
-  for (const item of raw) {
-    if (!item || typeof item !== 'object') continue;
-    const p = item as Record<string, unknown>;
-    if (typeof p.id !== 'string' || !p.id || seen.has(p.id)) continue;
-    if (typeof p.name !== 'string' || !p.name) continue;
-    seen.add(p.id);
-    out.push({
-      id: p.id,
-      name: p.name,
-      description: typeof p.description === 'string' ? p.description : undefined,
-      values: p.values && typeof p.values === 'object' && !Array.isArray(p.values)
-        ? (p.values as Record<string, InputValue>)
-        : {},
-    });
-  }
-  return out;
-}
-
-/**
- * Fetch one template's full input seed from its external file
- * (tools/<toolId>/templates/<tid>.json) through the instance base / profile view - the
- * same static namespace the card-preview paths use. Returns the `values` map, or `null`
- * on any failure (network, missing file, malformed JSON, non-object `values`) so a
- * caller falls through to a blank/default open rather than throwing. The heavy seed is
- * never packed into a URL - this fetch is the on-demand path for both the chooser select
- * and the reserved `?template=<id>` launcher.
- */
-export async function fetchTemplateValues(toolId: string, tid: string): Promise<Record<string, InputValue> | null> {
-  const f = await fetchTemplateFile(toolId, tid);
-  return f?.values ?? null;
-}
-
-/**
- * Fetch one template's external file whole: the base `values` plus its `presets`
- * overlays (plans/142). Same failure contract as fetchTemplateValues - null, never
- * a throw. The chooser's select path and the `?template=&preset=` launcher both
- * need the presets, so the file is read once and shared.
- */
-export async function fetchTemplateFile(toolId: string, tid: string): Promise<{ values: Record<string, InputValue>; presets: TemplatePreset[]; motion?: TemplateMotion } | null> {
-  try {
-    const { instanceFetch, instancePath } = await import('../lib/instance.ts');
-    const resp = await instanceFetch(instancePath(`/tools/${encodeURIComponent(toolId)}/templates/${encodeURIComponent(tid)}.json`));
-    if (!resp.ok) return null;
-    const data = await resp.json() as { values?: unknown; presets?: unknown; motion?: unknown };
-    const v = data?.values;
-    if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
-    return { values: v as Record<string, InputValue>, presets: parsePresets(data?.presets), ...(parseTemplateMotion(data.motion) ? { motion: parseTemplateMotion(data.motion) } : {}) };
-  } catch {
-    return null;
-  }
-}
-
-/** The seed for `?template=<tid>[&preset=<pid>]`: the template base merged with the
- *  named preset's overlay (shallow, preset wins). An unknown preset id applies the
- *  base alone - a stale link still opens something sensible. */
-/** A blank template keeps declared artboards, with no composed cover content. */
-export function blankTemplateSeed(inputs: Array<{ id: string; type?: string; default?: unknown; canvas?: { frameKind?: string; kindField?: string } }>): Record<string, InputValue> {
-  const input = inputs.find(i => i.type === 'blocks' && !!i.canvas?.frameKind);
-  const rows = Array.isArray(input?.default) ? input.default as Array<Record<string, unknown>> : [];
-  const frames = rows.filter(row => row && String(row[input?.canvas?.kindField ?? 'kind']) === input?.canvas?.frameKind);
-  return frames.length && input ? { [input.id]: frames as InputValue } : {};
-}
-
-const seedPosters = new WeakMap<object, number>();
-export const templateEditorPose = (values: object): { playhead?: number } => {
-  const ms = seedPosters.get(values);
-  return ms === undefined ? {} : { playhead: ms / 1000 };
-};
-function rememberPoster(values: Record<string, InputValue>, motion?: TemplateMotion) {
-  if (motion) {
-    const rows = Array.isArray(values.boxes) ? values.boxes as Array<Record<string, unknown>> : [];
-    const duration = Math.max(0, ...rows.map(b => (Number(b.start) || 0) + (Number(b.dur) || 0))) * 1000;
-    seedPosters.set(values, motion.posterMs * (duration || motion.durationMs) / motion.durationMs);
-  }
-  return values;
-}
-
-export async function fetchTemplateSeed(toolId: string, tid: string, presetId?: string | null): Promise<Record<string, InputValue> | null> {
-  const f = await fetchTemplateFile(toolId, tid);
-  if (!f) return null;
-  const overlay = presetId ? f.presets.find(p => p.id === presetId)?.values : undefined;
-  return rememberPoster(overlay && Object.keys(overlay).length ? { ...f.values, ...overlay } : f.values, f.motion);
-}
-
-/**
- * Narrow a manifest's `templates` (typed `unknown[]` on the SDK Manifest) into
- * the variants this chooser can render. Entries missing the required `id` /
- * `name` / object `values` are dropped rather than throwing - a malformed
- * template must never break a tool's fresh open.
- */
-export function parseTemplates(raw: unknown): TemplateVariant[] {
-  if (!Array.isArray(raw)) return [];
-  const out: TemplateVariant[] = [];
-  const seen = new Set<string>();
-  for (const item of raw) {
-    if (!item || typeof item !== 'object') continue;
-    const t = item as Record<string, unknown>;
-    if (typeof t.id !== 'string' || !t.id) continue;
-    if (typeof t.name !== 'string' || !t.name) continue;
-    if (seen.has(t.id)) continue; // first wins on a duplicate id
-    const values = t.values && typeof t.values === 'object' && !Array.isArray(t.values)
-      ? (t.values as Record<string, InputValue>)
-      : {};
-    seen.add(t.id);
-    const presets = parsePresets(t.presets);
-    out.push({
-      id: t.id,
-      name: t.name,
-      description: typeof t.description === 'string' ? t.description : undefined,
-      category: typeof t.category === 'string' && t.category ? t.category : undefined,
-      thumb: typeof t.thumb === 'string' && t.thumb ? t.thumb : undefined,
-      values,
-      ...(presets.length ? { presets } : {}),
-      ...(parseTemplateMotion(t.motion) ? { motion: parseTemplateMotion(t.motion) } : {}),
-    });
-  }
-  return out;
-}
-
-/** Look up one template's seed by id (the inline-manifest fallback for the reserved
- *  `?template=<id>` path). With `presetId`, the named preset's overlay is merged over
- *  the base (shallow, preset wins); an unknown preset id applies the base alone. */
-export function templateValuesById(raw: unknown, id: string, presetId?: string | null): Record<string, InputValue> | null {
-  const found = parseTemplates(raw).find(v => v.id === id);
-  if (!found) return null;
-  const overlay = presetId ? found.presets?.find(p => p.id === presetId)?.values : undefined;
-  return overlay && Object.keys(overlay).length ? { ...found.values, ...overlay } : found.values;
-}
+import {
+  fetchTemplateFile,
+  rememberPoster,
+  type TemplatePreset,
+  type TemplateVariant,
+} from '../lib/template-source.ts';
+// The data layer moved to lib/template-source.ts (plans/226 WP-0); every importer that
+// reached these through the chooser keeps working via this re-export.
+export {
+  blankTemplateSeed,
+  fetchTemplateFile,
+  fetchTemplateSeed,
+  fetchTemplateValues,
+  parseTemplates,
+  templateEditorPose,
+  templateValuesById,
+  type TemplatePreset,
+  type TemplateVariant,
+} from '../lib/template-source.ts';
 
 // A neutral glyph per template, chosen from the category keyword so a poster reads
 // as an image and a carousel as a grid - falls back to a generic layers glyph.
@@ -217,6 +96,10 @@ function glyphFor(t: TemplateVariant): Parameters<typeof icon>[0] {
 }
 
 const BLANK_ID = '__blank__';
+
+/** The pseudo-category the "Hidden (N)" chip selects. Not a real `category` value, so it
+ *  can never collide with an authored one (those are display strings, never `__`-fenced). */
+const HIDDEN_FILTER = '__hidden__';
 
 // ── Brand token scope (plan 179 C12) ────────────────────────────────────────────
 //
@@ -326,6 +209,22 @@ interface ChooserOpts {
    * scratch" means what it says.
    */
   blankSeed?: () => Record<string, InputValue>;
+  /**
+   * Management (plans/226 WP-3). `hiddenDefaults` is the brand's
+   * defaultHiddenTemplateRefs(); the chooser reads the person's hidden set and
+   * "Start with" through `host` (profile get/set), shows shipped tiles that are
+   * hidden behind a "Hidden (N)" chip, and offers the tile menu (use, start with,
+   * rename / describe / delete for own, make a copy / hide for shipped, export as
+   * file). Entries need `ref` + `own` (lib/template-ref.ts shippedVariants /
+   * userVariants) for the menu to appear.
+   */
+  hiddenDefaults?: readonly string[];
+  /** Mid-session only: the live document's template values, for "Update from this
+   *  document" on one of the person's own templates. */
+  currentValues?: () => Record<string, unknown>;
+  /** Fired after any management change (hide, restore, rename, delete, start-with) so
+   *  the caller can refresh what it derived from the list. */
+  onChanged?: () => void;
 }
 
 /**
@@ -340,6 +239,9 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
     let motionCleanup: (() => void) | undefined;
     document.body.appendChild(root);
     let disposeOpenObservers = (): void => {};
+    // The tile context menu is body-mounted and outlives a re-render of the grid, so it
+    // is torn down on every exit path (a pick, Escape, the caller's force-close, a throw).
+    let ctxMenu: import('../lib/context-menu.ts').TileContextMenuHandle | null = null;
     // The documented contract is "never rejects (close = {})" - make it structurally
     // true: any throw below (markup build, icon lookup, preview wiring) would REJECT
     // this promise and strand the caller's await, leaving the tool stuck on its
@@ -348,6 +250,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
     const settleBlank = (e: unknown): void => {
       disposeOpenObservers();
       motionCleanup?.();
+      ctxMenu?.destroy();
       try { root.remove(); } catch { /* already gone */ }
       console.warn('template chooser failed - resolving blank', e);
       resolve({});
@@ -380,7 +283,42 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
     };
     syncBrandScope();
 
-    const byId = new Map<string, TemplateVariant>(opts.templates.map(v => [v.id, v]));
+    // ── Management state (plans/226 WP-3) ──────────────────────────────────────
+    // The manager half needs the profile: which shipped templates this person hid, and
+    // what a blank open of this tool starts from. A host without a profile bridge (an
+    // offline shell, a preview-only test host) gets the plain picker instead - no tile
+    // menu, no Hidden chip, no "Starts with" line - so the chooser never depends on it.
+    const profileHost = opts.host && typeof (opts.host as { profile?: { get?: unknown } }).profile?.get === 'function'
+      ? (opts.host as TemplateActionHost)
+      : null;
+    const store = profileHost ? createUserTemplateStore(profileHost) : null;
+    /** The group name the caller listed the person's own templates under, so a refresh
+     *  from the store re-files them under the same chip. */
+    const ownCategory = opts.templates.find(v => v.own)?.category ?? t('Yours');
+    /** Own first, shipped after: the person's own starting points lead the grid. */
+    const ownFirst = (list: readonly TemplateVariant[]): TemplateVariant[] =>
+      [...list.filter(v => v.own), ...list.filter(v => !v.own)];
+
+    let hiddenRefs = new Set<string>();
+    let startRef: TemplateStart | null = null;
+    let entries = ownFirst(opts.templates);
+    let activeFilter = '';
+    /** Set by the preview block below (when there is one) so a re-render can re-observe
+     *  its tiles and re-queue their thumbnails. */
+    let repaintPreviews: (() => void) | null = null;
+
+    let byId = new Map<string, TemplateVariant>();
+    let byRef = new Map<string, TemplateVariant>();
+    const reindex = (): void => {
+      byId = new Map(entries.map(v => [v.id, v]));
+      byRef = new Map(entries.filter(v => v.ref).map(v => [v.ref!, v]));
+    };
+    reindex();
+
+    /** A shipped tile this person has hidden. Own templates are deleted, never hidden. */
+    const isHidden = (v: TemplateVariant): boolean => !!v.ref && !v.own && hiddenRefs.has(v.ref);
+    /** The ref the tile menu acts on, or '' for a tile that has none (no menu is wired). */
+    const menuRefOf = (v: TemplateVariant): string => (profileHost && v.ref ? v.ref : '');
 
     // Memoised whole-file per template: the base `values` seed PLUS its preset
     // overlays (plans/142). An inline entry that already carries a non-empty
@@ -404,10 +342,19 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
     const getValues = (id: string): Promise<Record<string, InputValue> | null> =>
       getFile(id).then(f => f?.values ?? null);
 
-    // Distinct categories (tags), first-seen order - these become the filter chips. Every
-    // template lives in ONE grid; a chip narrows it, so there are no per-category sections.
-    const cats: string[] = [];
-    for (const v of opts.templates) { const c = v.category; if (c && !cats.includes(c)) cats.push(c); }
+    // The corner marks and the "…" button a tile carries. They live inside the tile box
+    // (which is position:relative) rather than in the media slot, so the preview drain's
+    // thumb-for-glyph swap cannot take them with it.
+    const tileChromeHtml = (v: TemplateVariant | null, ref: string): string => {
+      const startMark = ref && startRef === ref
+        ? `<span class="tmpl-chooser-tile-mark" role="img" title="${escapeHtml(t('Starts here'))}" aria-label="${escapeHtml(t('Starts here'))}">${icon('pin', { size: 14 })}</span>`
+        : '';
+      const menuRef = v ? menuRefOf(v) : (profileHost ? ref : '');
+      const kebab = menuRef
+        ? `<button type="button" class="tmpl-chooser-tile-menu" data-tile-menu aria-haspopup="menu" aria-expanded="false" aria-label="${escapeHtml(t('Template options'))}" title="${escapeHtml(t('Template options'))}">${icon('menuDots', { size: 16 })}</button>`
+        : '';
+      return startMark + kebab;
+    };
 
     const tileHtml = (v: TemplateVariant): string => {
       // The media slot starts as the authored thumb (if any) or a category glyph; when a
@@ -423,33 +370,88 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
         ? `<span class="tmpl-chooser-presets" role="group" aria-label="${escapeHtml(t('Variants'))}">${v.presets.map(p =>
             `<button type="button" class="tmpl-chooser-preset" data-preset-id="${escapeHtml(p.id)}"${p.description ? ` title="${escapeHtml(p.description)}"` : ''}>${escapeHtml(p.name)}</button>`).join('')}</span>`
         : '';
-      // A tile WITH chips renders as a div[role=button] (a <button> cannot contain
-      // buttons); a chipless tile stays a real <button> for free keyboard semantics.
-      const tag = chips || v.motion ? 'div' : 'button';
-      const btnAttrs = chips || v.motion ? ' role="button" tabindex="0"' : ' type="button"';
-      return `<${tag} class="tmpl-chooser-tile" data-template-id="${escapeHtml(v.id)}"${v.motion ? ' data-motion-template="true"' : ''} data-category="${escapeHtml(v.category ?? '')}" data-search="${escapeHtml(search)}"${btnAttrs}>
+      const menuRef = menuRefOf(v);
+      // Ownership reads as a glyph beside the name, never as a coloured edge (house rule).
+      const ownMark = v.own
+        ? `<span class="tmpl-chooser-tile-own" role="img" title="${escapeHtml(t('Yours'))}" aria-label="${escapeHtml(t('Yours'))}">${icon('user', { size: 12 })}</span>`
+        : '';
+      // A hidden tile is only ever shown under the Hidden chip, and carries its way back.
+      const restore = isHidden(v)
+        ? `<span class="tmpl-chooser-tile-actions"><button type="button" class="btn btn--sm" data-restore>${escapeHtml(t('Restore'))}</button></span>`
+        : '';
+      // A tile WITH chips, motion, a menu button or a Restore button renders as a
+      // div[role=button] (a <button> cannot contain buttons); a plain one stays a real
+      // <button> for free keyboard semantics.
+      const rich = !!chips || !!v.motion || !!menuRef || !!restore;
+      const tag = rich ? 'div' : 'button';
+      const btnAttrs = rich ? ' role="button" tabindex="0"' : ' type="button"';
+      return `<${tag} class="tmpl-chooser-tile" data-template-id="${escapeHtml(v.id)}"${menuRef ? ` data-menu-ref="${escapeHtml(menuRef)}"` : ''}${v.own ? ' data-own-template="true"' : ''}${v.motion ? ' data-motion-template="true"' : ''} data-category="${escapeHtml(v.category ?? '')}" data-search="${escapeHtml(search)}"${btnAttrs}>
+        ${tileChromeHtml(v, v.ref ?? '')}
         <span class="tmpl-chooser-tile-media">${media}</span>
-        <span class="tmpl-chooser-tile-name">${escapeHtml(v.name)}</span>
+        <span class="tmpl-chooser-tile-name">${ownMark}${escapeHtml(v.name)}</span>
         ${v.description ? `<span class="tmpl-chooser-tile-desc">${escapeHtml(v.description)}</span>` : ''}
         ${v.motion ? `<span class="tmpl-motion-beats">${escapeHtml(v.motion.beats.join(' → '))}</span><span class="tmpl-motion-actions"><button type="button" class="btn btn--sm" data-motion-play aria-pressed="false"${opts.host && opts.toolId === 'design' ? '' : ' disabled'}>${escapeHtml(t('Preview animation'))}</button><button type="button" class="btn btn--primary btn--sm">${escapeHtml(t('Use this'))} ↗</button></span>` : ''}
-        ${chips}
+        ${chips}${restore}
       </${tag}>`;
     };
 
-    // The always-first "Blank canvas" tile sits in its own leading group.
-    const blankTile = `<button type="button" class="tmpl-chooser-tile" data-template-id="${BLANK_ID}" data-search="blank canvas empty scratch">
-      <span class="tmpl-chooser-tile-icon" aria-hidden="true">${icon('filePlus', { size: 22 })}</span>
-      <span class="tmpl-chooser-tile-name">${escapeHtml(t('Blank canvas'))}</span>
-      <span class="tmpl-chooser-tile-desc">${escapeHtml(t('Start from scratch.'))}</span>
-    </button>`;
+    // The always-first "Blank canvas" tile sits in its own leading group. Its menu ref is
+    // the START_BLANK sentinel, which parseTemplateRef never reads as a template.
+    const blankTileHtml = (): string => {
+      const menuRef = profileHost ? START_BLANK : '';
+      const tag = menuRef ? 'div' : 'button';
+      const btnAttrs = menuRef ? ' role="button" tabindex="0"' : ' type="button"';
+      return `<${tag} class="tmpl-chooser-tile" data-template-id="${BLANK_ID}"${menuRef ? ` data-menu-ref="${escapeHtml(menuRef)}"` : ''} data-search="blank canvas empty scratch"${btnAttrs}>
+        ${tileChromeHtml(null, menuRef)}
+        <span class="tmpl-chooser-tile-icon" aria-hidden="true">${icon('filePlus', { size: 22 })}</span>
+        <span class="tmpl-chooser-tile-name">${escapeHtml(t('Blank canvas'))}</span>
+        <span class="tmpl-chooser-tile-desc">${escapeHtml(t('Start from scratch.'))}</span>
+      </${tag}>`;
+    };
 
-    // Tag filters - "All" plus one chip per category. Only shown when there's more than one
-    // category to choose between; a single-category set has nothing to filter.
-    const filtersHtml = cats.length > 1 ? `
-      <div class="tmpl-chooser-filters" role="group" aria-label="${escapeHtml(t('Filter templates by type'))}">
-        <button type="button" class="tmpl-chooser-filter is-active" data-filter="" aria-pressed="true">${escapeHtml(t('All'))}</button>
-        ${cats.map(c => `<button type="button" class="tmpl-chooser-filter" data-filter="${escapeHtml(c)}" aria-pressed="false">${escapeHtml(c)}</button>`).join('')}
-      </div>` : '';
+    // Tag filters - "All", one chip per category (own first, since `entries` is own-first),
+    // then "Hidden (N)" at the end when this person has hidden anything. Shown when there is
+    // more than one category to choose between OR there is a hidden set to reach; a single
+    // visible category with nothing hidden has nothing to filter.
+    const chipHtml = (filter: string, label: string): string => {
+      const on = activeFilter === filter;
+      return `<button type="button" class="tmpl-chooser-filter${on ? ' is-active' : ''}" data-filter="${escapeHtml(filter)}" aria-pressed="${on ? 'true' : 'false'}">${escapeHtml(label)}</button>`;
+    };
+    const filtersHtml = (): string => {
+      const cats: string[] = [];
+      for (const v of entries) { const c = v.category; if (c && !isHidden(v) && !cats.includes(c)) cats.push(c); }
+      const hiddenCount = entries.filter(isHidden).length;
+      if (cats.length <= 1 && !hiddenCount) return '';
+      return `<div class="tmpl-chooser-filters" role="group" aria-label="${escapeHtml(t('Filter templates by type'))}">
+        ${chipHtml('', t('All'))}${cats.map(c => chipHtml(c, c)).join('')}${hiddenCount ? chipHtml(HIDDEN_FILTER, tRaw('Hidden ({n})', { n: hiddenCount })) : ''}
+      </div>`;
+    };
+
+    // The "Starts with X" line, with the link that puts this tool back to asking.
+    const startLineHtml = (): string => {
+      if (!startRef) return '';
+      const name = startRef === START_BLANK
+        ? t('Blank canvas')
+        : byRef.get(startRef)?.name ?? parseTemplateRef(startRef, { toolId: opts.toolId })?.id ?? startRef;
+      return `<p class="tmpl-chooser-start">${escapeHtml(tRaw('Starts with {name}', { name }))} <button type="button" class="tmpl-chooser-startclear">${escapeHtml(t('Ask me every time'))}</button></p>`;
+    };
+
+    const gridHtml = (): string => {
+      const showing = activeFilter === HIDDEN_FILTER ? entries.filter(isHidden) : entries.filter(v => !isHidden(v));
+      const blank = activeFilter === HIDDEN_FILTER ? '' : blankTileHtml();
+      return `<div class="tmpl-chooser-grid">${blank}${showing.map(tileHtml).join('')}</div>`;
+    };
+
+    const bodyHtml = (): string =>
+      `${startLineHtml()}${filtersHtml()}${gridHtml()}<p class="tmpl-chooser-empty" hidden>${tRaw('No templates match “{term}”.', { term: '<span data-empty-term></span>' })}</p>`;
+
+    /** Everything the body's markup is derived from, minus the active chip (which drives
+     *  its own render). Comparing it is how refresh() tells a real change from a no-op. */
+    const renderSig = (): string => JSON.stringify([
+      startRef ?? '',
+      [...hiddenRefs].sort(),
+      entries.map(v => [v.id, v.name, v.description ?? '', v.category ?? '', v.own === true]),
+    ]);
 
     root.innerHTML = `
       <div class="tmpl-chooser-backdrop" aria-hidden="true"></div>
@@ -459,18 +461,18 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
           <input type="search" class="tmpl-chooser-search" placeholder="${escapeHtml(t('Search templates…'))}" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(t('Search templates'))}">
           <button type="button" class="tmpl-chooser-close" aria-label="${escapeHtml(t('Close'))}">×</button>
         </header>
-        <div class="tmpl-chooser-body">
-          ${filtersHtml}
-          <div class="tmpl-chooser-grid">${blankTile}${opts.templates.map(tileHtml).join('')}</div>
-          <p class="tmpl-chooser-empty" hidden>${tRaw('No templates match “{term}”.', { term: '<span data-empty-term></span>' })}</p>
-        </div>
+        <div class="tmpl-chooser-body">${bodyHtml()}</div>
       </div>
     `;
 
+    /** The signature the body currently ON SCREEN was built from. */
+    let paintedSig = renderSig();
+
     const panel = root.querySelector<HTMLElement>('.tmpl-chooser-panel')!;
     const searchInput = root.querySelector<HTMLInputElement>('.tmpl-chooser-search')!;
-    const emptyEl = root.querySelector<HTMLElement>('.tmpl-chooser-empty')!;
-    const emptyTermEl = root.querySelector<HTMLElement>('[data-empty-term]')!;
+    const bodyEl = root.querySelector<HTMLElement>('.tmpl-chooser-body')!;
+    let emptyEl = root.querySelector<HTMLElement>('.tmpl-chooser-empty')!;
+    let emptyTermEl = root.querySelector<HTMLElement>('[data-empty-term]')!;
 
     const opener = document.activeElement;
     let trap: FocusTrap | undefined;
@@ -481,6 +483,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
       settled = true;
       disposeOpenObservers();
       motionCleanup?.();
+      ctxMenu?.destroy();
       trap?.release();
       root.remove();
       if (opener instanceof HTMLElement) opener.focus();
@@ -504,7 +507,14 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
     root.querySelector('.tmpl-chooser-backdrop')?.addEventListener('click', () => finish({}));
 
     panel.addEventListener('keydown', e => {
-      if (e.key === 'Escape') { e.preventDefault(); finish({}); }
+      if (e.key !== 'Escape') return;
+      // One Escape, the innermost overlay: an open tile menu takes it and the chooser
+      // stays. The menu's own listener is on `document`, so it only sees this event when
+      // focus is already inside the popover; when focus is still on the "…" button that
+      // opened it, this handler is the one in the bubble path and has to stop here.
+      if (ctxMenu?.isOpen()) { e.preventDefault(); e.stopPropagation(); ctxMenu.close(); focusAfter(''); return; }
+      e.preventDefault();
+      finish({});
     });
 
     const pickTile = (tile: HTMLElement, presetId?: string): void => {
@@ -526,16 +536,30 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
         finish(rememberPoster(overlay && Object.keys(overlay).length ? { ...f.values, ...overlay } : f.values, byId.get(id)?.motion));
       });
     };
-    root.querySelector('.tmpl-chooser-body')?.addEventListener('click', e => {
-      if ((e.target as HTMLElement).closest('[data-motion-play]')) return;
-      const tile = (e.target as HTMLElement).closest<HTMLElement>('[data-template-id]');
+    bodyEl.addEventListener('click', e => {
+      const el = e.target as HTMLElement;
+      if (el.closest('[data-motion-play]')) return;
+      // The management controls sit inside tiles and the body, so each one is claimed
+      // before the tile pick below can read the click as "open this template".
+      if (el.closest('.tmpl-chooser-startclear')) { void runAction('start-clear', ''); return; }
+      const filterChip = el.closest<HTMLElement>('.tmpl-chooser-filter');
+      if (filterChip) { setFilter(filterChip.dataset.filter ?? ''); return; }
+      const kebab = el.closest<HTMLElement>('[data-tile-menu]');
+      if (kebab) { openTileMenu(kebab); return; }
+      const restoreBtn = el.closest<HTMLElement>('[data-restore]');
+      if (restoreBtn) {
+        const ref = restoreBtn.closest<HTMLElement>('.tmpl-chooser-tile')?.dataset.menuRef;
+        if (ref) void runAction('restore', ref);
+        return;
+      }
+      const tile = el.closest<HTMLElement>('[data-template-id]');
       if (!tile) return;
-      const chip = (e.target as HTMLElement).closest<HTMLElement>('[data-preset-id]');
+      const chip = el.closest<HTMLElement>('[data-preset-id]');
       pickTile(tile, chip?.dataset.presetId);
     });
-    // div[role=button] tiles (the ones carrying preset chips) need their keyboard
-    // activation wired by hand; real <button> tiles fire click natively.
-    root.querySelector('.tmpl-chooser-body')?.addEventListener('keydown', ev => {
+    // div[role=button] tiles (the ones carrying preset chips, a menu button or motion)
+    // need their keyboard activation wired by hand; real <button> tiles fire click natively.
+    bodyEl.addEventListener('keydown', ev => {
       const e = ev as KeyboardEvent;
       if (e.key !== 'Enter' && e.key !== ' ') return;
       const el = e.target as HTMLElement;
@@ -558,14 +582,15 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
 
     // Live filter: the search term AND the active tag chip, over the one grid. Blank always
     // shows; an empty-state note appears only when a real query leaves nothing but Blank.
-    let activeFilter = '';
+    // The Hidden chip is not a tag - the grid it renders holds only hidden tiles already,
+    // so it narrows nothing here and the term is the whole filter.
     const applyFilter = (): void => {
       const term = searchInput.value.trim().toLowerCase();
       let anyTemplateVisible = false;
       for (const tile of root.querySelectorAll<HTMLElement>('.tmpl-chooser-tile')) {
         if (tile.dataset.templateId === BLANK_ID) { tile.hidden = false; continue; } // Blank is never filtered
         const matchTerm = !term || (tile.dataset.search ?? '').includes(term);
-        const matchTag = !activeFilter || tile.dataset.category === activeFilter;
+        const matchTag = !activeFilter || activeFilter === HIDDEN_FILTER || tile.dataset.category === activeFilter;
         const show = matchTerm && matchTag;
         tile.hidden = !show;
         if (show) anyTemplateVisible = true;
@@ -574,15 +599,226 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
       emptyTermEl.textContent = term || activeFilter;
     };
     searchInput.addEventListener('input', applyFilter);
-    for (const chip of root.querySelectorAll<HTMLButtonElement>('.tmpl-chooser-filter')) {
-      chip.addEventListener('click', () => {
-        activeFilter = chip.dataset.filter ?? '';
-        for (const c of root.querySelectorAll<HTMLElement>('.tmpl-chooser-filter')) {
-          const on = c === chip;
-          c.classList.toggle('is-active', on);
-          c.setAttribute('aria-pressed', on ? 'true' : 'false');
+
+    // ── Rendering the body ─────────────────────────────────────────────────────
+    // Chips + grid are rebuilt whenever the underlying data moves (a hide, a restore, a
+    // rename, a delete, a new copy) or the Hidden view is entered/left. The delegated
+    // listeners are bound to `.tmpl-chooser-body`, which this never replaces, so nothing
+    // has to be re-wired; only the two empty-state nodes are re-read.
+    const renderBody = (): void => {
+      // A chip can vanish under the person (the last own template deleted, the last
+      // hidden one restored) - fall back to "All" rather than render an empty grid.
+      if (activeFilter === HIDDEN_FILTER) {
+        if (!entries.some(isHidden)) activeFilter = '';
+      } else if (activeFilter && !entries.some(v => !isHidden(v) && v.category === activeFilter)) {
+        activeFilter = '';
+      }
+      bodyEl.innerHTML = bodyHtml();
+      paintedSig = renderSig();
+      emptyEl = root.querySelector<HTMLElement>('.tmpl-chooser-empty')!;
+      emptyTermEl = root.querySelector<HTMLElement>('[data-empty-term]')!;
+      applyFilter();
+      repaintPreviews?.();
+    };
+
+    const setFilter = (next: string): void => {
+      if (next === activeFilter) return;
+      // Entering or leaving the Hidden view changes WHICH tiles exist, not just which are
+      // shown, so that one needs a rebuild; an ordinary tag chip only toggles visibility.
+      const membershipMoves = (next === HIDDEN_FILTER) !== (activeFilter === HIDDEN_FILTER);
+      activeFilter = next;
+      if (membershipMoves) { renderBody(); return; }
+      for (const c of root.querySelectorAll<HTMLElement>('.tmpl-chooser-filter')) {
+        const on = (c.dataset.filter ?? '') === activeFilter;
+        c.classList.toggle('is-active', on);
+        c.setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+      applyFilter();
+    };
+
+    // ── The manager: hidden set, "Start with", and the per-tile menu ───────────
+    // Every mutation below is one of lib/template-actions.ts's shared handlers or one
+    // call on the lib/user-templates.ts store, never a profile write of its own, so the
+    // Projects Templates collection and this chooser cannot drift apart.
+
+    const tileFor = (ref: string): HTMLElement | null =>
+      ref ? root.querySelector<HTMLElement>(`.tmpl-chooser-tile[data-menu-ref="${CSS.escape(ref)}"]`) : null;
+
+    /** Re-read the profile + the person's own templates and repaint, but only when the
+     *  read actually moved something. The FIRST refresh is the common case - no hidden
+     *  set, no "Start with", the same own list the caller already handed in - and a
+     *  repaint there would throw away tile previews and a mounted motion player for
+     *  nothing. */
+    const refresh = async (): Promise<void> => {
+      if (!profileHost) return;
+      try {
+        const profile = await profileHost.profile.get();
+        hiddenRefs = loadHiddenTemplates(profile, opts.hiddenDefaults ?? []);
+        startRef = loadTemplateStart(profile, opts.toolId);
+        if (store) entries = ownFirst([...userVariants(await store.list(opts.toolId), ownCategory), ...opts.templates.filter(v => !v.own)]);
+      } catch (e) {
+        console.warn('template chooser could not read the profile', e);
+        return;
+      }
+      reindex();
+      if (settled || renderSig() === paintedSig) return;
+      renderBody();
+    };
+
+    /** Keep focus inside the modal after a menu or a dialog took it away. */
+    const focusAfter = (ref: string): void => {
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && active !== document.body && root.contains(active)) return;
+      (tileFor(ref) ?? searchInput).focus();
+    };
+
+    async function runAction(act: string, ref: string): Promise<void> {
+      if (!profileHost || !store) return;
+      const entry = ref && ref !== START_BLANK ? byRef.get(ref) ?? null : null;
+      const hiddenDefaults = opts.hiddenDefaults ?? [];
+      try {
+        switch (act) {
+          case 'use': {
+            const tile = tileFor(ref);
+            if (tile) pickTile(tile);
+            return;
+          }
+          case 'start':
+            await setStartWith(profileHost, opts.toolId, ref === START_BLANK ? START_BLANK : ref);
+            break;
+          case 'start-clear':
+            await setStartWith(profileHost, opts.toolId, null);
+            break;
+          case 'hide':
+            await hideShippedTemplate(profileHost, ref, hiddenDefaults);
+            break;
+          case 'restore':
+            await restoreShippedTemplate(profileHost, ref, hiddenDefaults);
+            break;
+          case 'copy': {
+            const parsed = parseTemplateRef(ref, { toolId: opts.toolId });
+            if (!entry || entry.own || parsed?.kind !== 'shipped') return;
+            const values = await getValues(entry.id);
+            if (!values) return;
+            await copyShippedTemplate(profileHost, parsed.toolId, parsed.id, values, {
+              name: entry.name,
+              description: entry.description,
+              designSystem: await templateDesignSystemStamp(profileHost),
+            });
+            break;
+          }
+          case 'rename': {
+            if (!entry?.own) return;
+            const { promptDialog } = await import('../components/confirm-dialog.ts');
+            const name = await promptDialog({
+              title: t('Rename template'), message: t('Template name'),
+              confirmLabel: t('Rename'), value: entry.name,
+            });
+            if (name === null || !name.trim()) { focusAfter(ref); return; }
+            await store.rename(entry.id, name);
+            break;
+          }
+          case 'describe': {
+            if (!entry?.own) return;
+            const { promptDialog } = await import('../components/confirm-dialog.ts');
+            const text = await promptDialog({
+              title: t('Edit description'), message: t('One line about this template'),
+              confirmLabel: t('Save'), value: entry.description ?? '',
+            });
+            if (text === null) { focusAfter(ref); return; }
+            await store.describe(entry.id, text);
+            break;
+          }
+          case 'replace': {
+            if (!entry?.own || !opts.currentValues) return;
+            await store.replace(entry.id, opts.currentValues());
+            // A tile preview is memoised against a signature of the values it was rendered
+            // from (featured-render.ts), so the new seed re-renders on its own; the
+            // whole-file cache here is keyed by template id alone and has to be dropped.
+            fileById.delete(entry.id);
+            break;
+          }
+          case 'export': {
+            if (!entry?.own) return;
+            const tpl = await store.get(entry.id);
+            if (tpl) downloadTemplateFile(tpl);
+            return;
+          }
+          case 'delete': {
+            if (!entry?.own) return;
+            const { confirmDialog } = await import('../components/confirm-dialog.ts');
+            const ok = await confirmDialog({
+              title: t('Delete this template?'),
+              message: tRaw('{name} is removed from this tool. Documents you already made from it are not affected.', { name: entry.name }),
+              confirmLabel: t('Delete'),
+            });
+            if (!ok) { focusAfter(ref); return; }
+            await deleteUserTemplate(profileHost, { id: entry.id, toolId: opts.toolId });
+            break;
+          }
+          default:
+            return;
         }
-        applyFilter();
+      } catch (e) {
+        console.warn('template action failed', act, e);
+        return;
+      }
+      await refresh();
+      opts.onChanged?.();
+      focusAfter(ref);
+    }
+
+    let ctxMod: typeof import('../lib/context-menu.ts') | null = null;
+
+    /** The rows for one tile - only the ones that apply to it. */
+    const tileMenuHtml = (ref: string): string => {
+      const mod = ctxMod;
+      if (!mod) return '';
+      const blank = ref === START_BLANK;
+      const entry = blank ? null : byRef.get(ref);
+      if (!blank && !entry) return '';
+      const rows = [
+        mod.menuItemHtml('use', icon('arrowRight', { size: 16 }), t('Use')),
+        startRef === ref
+          ? mod.menuItemHtml('start-clear', icon('pin', { size: 16 }), t('Ask me every time'))
+          : mod.menuItemHtml('start', icon('pin', { size: 16 }), tRaw('Start {tool} with this', { tool: opts.toolName })),
+      ];
+      if (entry?.own) {
+        rows.push(mod.menuItemHtml('rename', icon('pen', { size: 16 }), t('Rename')));
+        rows.push(mod.menuItemHtml('describe', icon('document', { size: 16 }), t('Edit description')));
+        if (opts.currentValues) rows.push(mod.menuItemHtml('replace', icon('refresh', { size: 16 }), t('Update from this document')));
+        rows.push(mod.menuItemHtml('export', icon('download', { size: 16 }), t('Export as file (.json)')));
+        rows.push(mod.menuItemHtml('delete', icon('trash', { size: 16 }), t('Delete'), { danger: true }));
+      } else if (entry) {
+        rows.push(mod.menuItemHtml('copy', icon('duplicate', { size: 16 }), t('Make a copy')));
+        rows.push(hiddenRefs.has(ref)
+          ? mod.menuItemHtml('restore', icon('eye', { size: 16 }), t('Restore'))
+          : mod.menuItemHtml('hide', icon('eyeOff', { size: 16 }), t('Hide')));
+      }
+      return rows.join('');
+    };
+
+    /** The pointer-user door into the same menu: the tile's hover/focus "…" button. */
+    const openTileMenu = (kebab: HTMLElement): void => {
+      const tile = kebab.closest<HTMLElement>('.tmpl-chooser-tile');
+      const ref = tile?.dataset.menuRef;
+      if (!ctxMenu || !tile || !ref) return;
+      const r = kebab.getBoundingClientRect();
+      ctxMenu.openAt(r.left, r.bottom, { ref, tile }, kebab);
+    };
+
+    if (profileHost) {
+      void refresh();
+      void import('../lib/context-menu.ts').then(mod => {
+        if (settled) return;
+        ctxMod = mod;
+        ctxMenu = mod.wireTileContextMenu({
+          host: bodyEl,
+          tileSelector: '.tmpl-chooser-tile[data-menu-ref]',
+          refOf: tile => tile.dataset.menuRef ?? null,
+          singleHtml: target => tileMenuHtml(target.ref),
+          onAction: (act, target) => { if (target) void runAction(act, target.ref); },
+        });
       });
     }
 
@@ -605,12 +841,17 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
       // A brand can finish hydrating after early tiles have already rendered. Reset
       // the queue under the new namespace so every visible preview agrees with the
       // canvas; stale in-flight results are discarded by their captured tag.
+      // Reads the tiles that are ON SCREEN rather than the whole template list: the grid
+      // shows a subset now (hidden tiles only under the Hidden chip), and a manager
+      // re-render replaces every tile node, so this is also what re-queues them.
+      const renderedIds = (): string[] =>
+        [...root.querySelectorAll<HTMLElement>('.tmpl-chooser-tile')]
+          .map(tile => tile.dataset.templateId ?? '')
+          .filter(id => id && id !== BLANK_ID);
       const requeueAll = (): void => {
         queue.length = 0;
         queued.clear();
-        for (const template of opts.templates) {
-          if (template.id !== BLANK_ID) enqueue(template.id);
-        }
+        for (const id of renderedIds()) enqueue(id);
       };
       const refreshBrand = (): void => {
         if (syncBrandScope()) requeueAll();
@@ -674,16 +915,13 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
       // callback was the ONLY producer for the queue). There are only a handful of templates,
       // and the serial drain renders one at a time, so this cannot stampede the engine.
       // enqueue() dedups via `queued` and skips authored-thumb tiles, so it can't double-render.
-      for (const v of opts.templates) {
-        if (v.id !== BLANK_ID) enqueue(v.id);
-      }
+      for (const id of renderedIds()) enqueue(id);
 
       // IntersectionObserver stays as an off-screen prioritisation nicety - with the eager
       // loop above it is no longer required (its enqueue() calls dedup to no-ops against
       // `queued`). Root to the real scroll container (the body panel; see template-chooser.css
       // `.tmpl-chooser-body { overflow-y: auto }`), falling back to the viewport - the modal is
       // a fixed overlay filling it - so a missing body never means a dead observer.
-      const bodyEl = root.querySelector('.tmpl-chooser-body');
       const io = new IntersectionObserver((entries, obs) => {
         for (const en of entries) {
           if (!en.isIntersecting) continue;
@@ -692,9 +930,17 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
           if (id && id !== BLANK_ID) enqueue(id);
         }
       }, { root: bodyEl, rootMargin: '200px' });
-      for (const tile of root.querySelectorAll<HTMLElement>('.tmpl-chooser-tile')) {
-        if (tile.dataset.templateId !== BLANK_ID) io.observe(tile);
-      }
+      const observeTiles = (): void => {
+        for (const tile of root.querySelectorAll<HTMLElement>('.tmpl-chooser-tile')) {
+          if (tile.dataset.templateId !== BLANK_ID) io.observe(tile);
+        }
+      };
+      observeTiles();
+      // A manager re-render swaps every tile node, taking the rendered <img> and the
+      // observed elements with it - so the new nodes are observed and re-queued. The
+      // per-template results are memoised in host.previews, so this is a cache read
+      // rather than a second round of engine work.
+      repaintPreviews = (): void => { observeTiles(); requeueAll(); };
 
       // Observe the exact inline-style chain brandScopeVars reads. applyBrandVars
       // settles asynchronously while the chooser is already open; this closes the

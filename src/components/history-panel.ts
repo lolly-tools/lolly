@@ -22,6 +22,8 @@ export function openHistoryPanel(opts: {
   state: WebStateAPI;
   /** Only an explicit copy may cross out of a guest's temporary state. */
   copyState?: WebStateAPI;
+  /** Captured on an explicit Compare with current action, never an autosave. */
+  currentSnapshot?: () => SavedStateData;
   container?: HTMLElement;
   onClose?: () => void;
   onNamed?: () => void;
@@ -77,7 +79,11 @@ export function openHistoryPanel(opts: {
   const projects = document.createElement('a'); projects.className = 'btn'; projects.href = '#/p'; projects.textContent = t('Open Projects');
   const recovery = document.createElement('div');
   panel.append(head, scope, status);
-  const workflows = history ? mountHistoryWorkflows(history, () => { void load(); }, showError, opts.onNamed) : undefined;
+  const workflows = history ? mountHistoryWorkflows(history, () => { void load(); }, showError, opts.onNamed, async entry => {
+    const live = opts.currentSnapshot && entry.slot === opts.slot?.();
+    const value = live ? structuredClone(opts.currentSnapshot!()) : await opts.state.load(entry.slot);
+    return value ? { identity: { id: `current:${entry.slot}`, kind: 'state', label: live ? t('Current creation') : t('Current saved state') }, content: { kind: 'structure', value } } : null;
+  }) : undefined;
   if (workflows) panel.append(workflows.el);
   if (opts.collab) panel.append(note);
   panel.append(recovery, list, newer, more);

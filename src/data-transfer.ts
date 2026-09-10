@@ -40,6 +40,7 @@
 
 import { strToU8 } from 'fflate';
 import { packBackupSessions, restoreBackupSessions, type BackupState, type BackupHistoryMode } from './lib/backup-sessions.ts';
+import { backupOwnCounts } from './lib/backup-summary.ts';
 import { zipAsync } from './lib/zip.ts';
 import {
   BUNDLE_HEADER, README_NAME, buildIntegrity, readJson, unzipBundle, verifyIntegrity,
@@ -166,6 +167,8 @@ function backupReadme(
   const now = new Date();
   const date = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   const time = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
+  // The templates and tools the person made ride inside profile.json; the counts say so.
+  const own = backupOwnCounts(profile);
 
   const lines = [
     BUNDLE_HEADER,
@@ -193,6 +196,8 @@ function backupReadme(
     `↶  Saved asset versions  ${summary.assetVersions ?? 0}`,
     `✓  File operation records ${summary.fileOperations ?? 0} (completed copies included)`,
     `☷  File batch manifests  ${summary.fileBatches ?? 0} (all selected members)`,
+    `◫  Templates             ${own.templates}`,
+    `✎  Tools you made        ${own.userTools}`,
     '',
     '',
     '[ The files in this zip ]',

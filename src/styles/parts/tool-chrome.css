@@ -695,6 +695,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 /* Taller, easier-to-hit targets while labelled; collapses back to compact icons
    in the @container query below. */
 .export-action-buttons button { flex: 1 1 0; min-width: 0; padding-block: 9px; }
+.export-action-buttons .btn { white-space: normal; overflow-wrap: anywhere; }
 /* Jelly-mode stand-ins (Save / Download) share the same flex tracks; their
    height/padding come from the component (scaled by the lib/jelly.ts bridge). */
 .export-action-buttons jelly-button { flex: 1 1 0; min-width: 0; }
@@ -1886,10 +1887,8 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
    weight) when a deployment withholds download but permits an approval request. */
 .tool-actions [data-action="download"],
 .tool-actions [data-action="request-approval"] {
-  /* fill (background/color) lives in parts/buttons.css's .btn--primary alias list */
-  border-color: hsl(var(--primary));
   font-weight: 600;
-  padding-block: 13px;
+  padding-block: var(--ui-space-control-block);
 }
 
 /* Down-arrow glyph as the download affordance, riding ahead of the label. */
@@ -1899,11 +1898,6 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   font-weight: 700;
 }
 
-.tool-actions [data-action="download"]:hover,
-.tool-actions [data-action="request-approval"]:hover {
-  background: hsl(var(--primary) / 0.88);
-  border-color: hsl(var(--primary) / 0.88);
-}
 }
 
 /* ── Visitor page (`?nostage` on a no-export tool - views/tool.ts) ───────────

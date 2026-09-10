@@ -25,7 +25,7 @@
  */
 
 import { strToU8 } from 'fflate';
-import type { Profile } from '@lolly-tools/core/host-v1';
+import type { Profile, UserTemplateRecord } from '@lolly-tools/core/host-v1';
 import { assetDependency } from '../../../../engine/src/asset-version.ts';
 import { resolveSessionUserAsset, rebaseImportedAssetPins } from './session-asset-versions.ts';
 import { zipAsync } from './zip.ts';
@@ -66,6 +66,15 @@ export const LOLLY_EXT = '.lolly';
  *  carries the brand a session was made under - the design-system studio's "Add from a
  *  file" can bring it across without the sender's pack. */
 export const DESIGN_SYSTEM_PART = 'design-system.json';
+/** The templates the file carries (plans/226 section 4.7), as `{ templates: [...] }`.
+ *  Additive exactly like `design-system.json`: `minReader` stays 1, so a reader that
+ *  predates the part simply never looks for it and the file still opens as the document
+ *  in `session.json`. On import the records are re-minted into the receiver's own store,
+ *  so the sender's ids never travel as identity - only as content. */
+export const TEMPLATES_PART = 'templates.json';
+/** How many templates one file may hand over. A share is a handful, not a library;
+ *  the cap bounds a hostile archive without needing a second size guard. */
+export const LOLLY_MAX_TEMPLATES = 200;
 
 // Read caps - a .lolly can legitimately carry a video, so allow well past the
 // brand-pack defaults while still bounding a malicious archive.
@@ -195,6 +204,10 @@ export interface LollyManifest {
    *  and (plans/186 section 3.8) its id and where it came from - a hosted system
    *  names its instance so the recipient can add it by link and keep it current. */
   designSystem?: { label?: string; id?: string; source?: { kind: string; instance?: string } };
+  /** Present when `templates.json` travels: how many starting points the file carries.
+   *  The count is a preview convenience (an intake can say "1 template" without
+   *  inflating the part); the part itself is what import reads. */
+  templates?: { count: number };
   integrity?: Record<string, string> | null;
 }
 
@@ -260,6 +273,10 @@ export interface LollyBuildInput {
    *  `design-system.json` so the receiving studio can install the same look. Omit when
    *  the sender has none of their own. */
   designSystem?: { doc: unknown; label?: string; id?: string; source?: { kind: string; instance?: string } } | null;
+  /** Starting points to hand over beside the session (plans/226 section 4.7). The
+   *  records travel verbatim; the receiver re-mints their ids when it saves them, so
+   *  two devices never fight over one id. Omit ⇒ no `templates.json` part at all. */
+  templates?: readonly UserTemplateRecord[];
 }
 
 export interface LollyBuildResult {
@@ -275,6 +292,9 @@ export interface LollyFileContents {
   session: unknown;
   /** The carried design system document, when the manifest announces one. */
   designSystem?: unknown;
+  /** The carried templates, validated and junk-free. Always an array - a file written
+   *  before the part existed reads as `[]`, so callers never branch on its absence. */
+  templates: UserTemplateRecord[];
   /** The unzipped parts, so ingest can pull each asset's bytes by `entry.path`. */
   files: Record<string, Uint8Array>;
 }
@@ -449,6 +469,11 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
   // holds, so "Add from a file" on another device installs the look the session wore.
   const designSystem = input.designSystem?.doc != null ? input.designSystem : null;
   if (designSystem) entries[DESIGN_SYSTEM_PART] = strToU8(JSON.stringify(designSystem.doc, null, 2));
+  // The starting points, when the sender is handing some over. A separate part rather
+  // than a manifest field so it rides the integrity map like every other payload and
+  // costs a file without templates nothing at all.
+  const templates = (input.templates ?? []).slice(0, LOLLY_MAX_TEMPLATES);
+  if (templates.length) entries[TEMPLATES_PART] = strToU8(JSON.stringify({ templates }, null, 2));
 
   const byReferenceCount = assets.filter(a => a.kind === 'asset-ref').length;
   const summary: LollySummary = {
@@ -490,6 +515,7 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
       ...(designSystem.id ? { id: designSystem.id } : {}),
       ...(designSystem.source ? { source: designSystem.source } : {}),
     } } : {}),
+    ...(templates.length ? { templates: { count: templates.length } } : {}),
     ...(integrity ? { integrity } : {}),
   };
   // Put the routing manifest first. The universal intake can then describe a
@@ -554,6 +580,11 @@ function lollyReadme(manifest: LollyManifest, summary: LollySummary): string {
     lines.push('', `This file includes the tool itself (under tool/), so it opens even on a`,
       `device that doesn't already have "${manifest.bundledTool.id}".`);
   }
+  const templateCount = manifest.templates?.count ?? 0;
+  if (templateCount) {
+    lines.push('', `It also carries ${templateCount} template${templateCount === 1 ? '' : 's'} (templates.json) - saved starting`,
+      'points that join your own templates for this tool when you open the file.');
+  }
   if (summary.assetCount > 0) {
     // A .lolly is a plain zip: rename it .zip and open it. The embedded assets are
     // ordinary files under assets/ with their original names + extensions, so a
@@ -573,6 +604,45 @@ function lollyReadme(manifest: LollyManifest, summary: LollySummary): string {
 }
 
 // ── Read (parse + verify; ingest is the shell's job) ──────────────────────────
+
+/**
+ * Read the `templates.json` part into records this device is willing to store.
+ *
+ * The bytes came off someone else's machine, so every field is checked rather than
+ * trusted: a row needs a string `id`, `toolId` and `name` and a plain-object `values`,
+ * and anything else about it is optional. A row that fails is DROPPED, never repaired
+ * and never fatal - one malformed template must not cost the recipient the rest of the
+ * file. `id` is carried through only so a caller can match the row against the session
+ * it came with; the user-template store mints its own on save.
+ */
+function readTemplatesPart(raw: unknown): UserTemplateRecord[] {
+  const rows = (raw as { templates?: unknown } | null | undefined)?.templates;
+  if (!Array.isArray(rows)) return [];
+  const out: UserTemplateRecord[] = [];
+  for (const row of rows.slice(0, LOLLY_MAX_TEMPLATES)) {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) continue;
+    const r = row as Record<string, unknown>;
+    const { id, toolId, name, values, description, from, variationOf, designSystem, createdAt, updatedAt } = r;
+    if (typeof id !== 'string' || !id) continue;
+    if (typeof toolId !== 'string' || !toolId) continue;
+    if (typeof name !== 'string' || !name.trim()) continue;
+    if (!values || typeof values !== 'object' || Array.isArray(values)) continue;
+    const stamp = designSystem && typeof designSystem === 'object' && !Array.isArray(designSystem)
+      ? designSystem as { id?: unknown; label?: unknown } : null;
+    out.push({
+      id, toolId, name,
+      ...(typeof description === 'string' && description ? { description } : {}),
+      values: values as Record<string, unknown>,
+      ...(stamp && typeof stamp.id === 'string' && typeof stamp.label === 'string'
+        ? { designSystem: { id: stamp.id, label: stamp.label } } : {}),
+      ...(typeof from === 'string' && from ? { from } : {}),
+      ...(typeof variationOf === 'string' && variationOf ? { variationOf } : {}),
+      createdAt: typeof createdAt === 'string' ? createdAt : '',
+      updatedAt: typeof updatedAt === 'string' ? updatedAt : '',
+    });
+  }
+  return out;
+}
 
 /**
  * Parse and integrity-verify a `.lolly`'s bytes. Refuses a genuinely newer format
@@ -597,7 +667,11 @@ export async function readLollyFile(bytes: ArrayBuffer | Uint8Array): Promise<Lo
   await verifyIntegrity(files, manifest.integrity, 'This .lolly file');
   const session = readJson(files, 'session.json');
   const designSystem = manifest.designSystem && files[DESIGN_SYSTEM_PART] ? readJson(files, DESIGN_SYSTEM_PART) : undefined;
-  return { manifest, session, files: files as Record<string, Uint8Array>, ...(designSystem !== undefined ? { designSystem } : {}) };
+  // The part is read whenever it is THERE, not whenever the manifest mentions it: the
+  // integrity map already vouched for its bytes, and a file whose manifest lost the
+  // count would otherwise hand back templates it plainly carries.
+  const templates = files[TEMPLATES_PART] ? readTemplatesPart(readJson(files, TEMPLATES_PART)) : [];
+  return { manifest, session, templates, files: files as Record<string, Uint8Array>, ...(designSystem !== undefined ? { designSystem } : {}) };
 }
 
 /** A carried tool pulled out of a parsed `.lolly`, ready to hand to the installer.

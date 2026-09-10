@@ -222,6 +222,14 @@ export async function createBridge(): Promise<WebHost> {
   // the node CLI, and pdf-redact.ts reaches the views/pdf-import renderer and a
   // real canvas that the CLI does not have. The host is passed for the text
   // outliner (host.text, itself a lazy facade above).
+  host.compare = {
+    run: async (request, options) => (await import('../lib/compare-client.ts')).runComparison(request, options),
+    visual: async (request, options) => (await import('../lib/compare-client.ts')).runVisualComparison(request, options),
+  };
+  host.prepare = {
+    inspect: async (sources, rules) => (await import('../lib/prepare-client.ts')).runPreparation({ action: 'inspect', sources, rules }),
+    apply: async (sources, inspection, choices, remove) => (await import('../lib/prepare-client.ts')).runPreparation({ action: 'apply', sources, inspection, choices, remove }),
+  };
   const loadPdf = memo(async () => (await import('./pdf.ts')).createPdfAPI());
   host.pdf = {
     analyze: async (bytes) => (await loadPdf()).analyze(bytes),

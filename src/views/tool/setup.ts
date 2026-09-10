@@ -8,6 +8,7 @@
  * from mountTool() by scripts/split-closure.ts.
  */
 import { annotateTemplate, diffDocuments, expandQuery, hasEncryptedState, inspectDocument, measureDocument, parseUrlState } from '@lolly/engine';
+import type { Profile } from '@lolly-tools/core/host-v1';
 import type { InputValue } from '../../../../../engine/src/inputs.js';
 import { createInteractiveToolRuntime as createRuntime } from '../../lib/mount-runtime.ts';
 import { attachCollabPlumbing } from '../../lib/collab-plumbing.ts';
@@ -29,6 +30,8 @@ import { setupRecordControl } from '../record-control.ts';
 import { setSwatches } from '../../components/color-field.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { createNetAPI } from '../../bridge/net.ts';
+import { defaultHiddenTemplateRefs } from '../../catalog/sync.ts';
+import { loadTemplateStart, START_BLANK } from '../../lib/template-start.ts';
 import { BROWSER_TARGET, costUrlState } from '../../lib/url-budget.ts';
 import { createUrlGauge } from '../../lib/url-budget-gauge.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
@@ -328,33 +331,86 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   // instead of leaving it floating over whatever loads next.
   tview.templatePickTornDown = false;
   tview.templatePickClose = null;
-  // A NAMED `?template=` seeds on its own authority - the values fetch decides
+  // ONE way to apply a starting point before the runtime is born - the `?template=`
+  // launcher and the "Start with" ladder below both go through it, so the two can never
+  // drift apart on what a seed does (pose, precedence, the kept-in-share-URLs marks).
+  const applyTemplateSeed = async (seed: Record<string, InputValue>): Promise<void> => {
+    const { templateEditorPose } = await import('../../lib/template-source.ts');
+    tview.templatePose = templateEditorPose(seed);
+    tview.initialValues = { ...seed, ...tview.initialValues };
+    for (const id of Object.keys(seed)) templateSeededIds.add(id);
+  };
+  // The profile record, read at most ONCE per mount: the "Start with" ladder below wants
+  // it, and so does the profile-fill loop further down. Null until something asks.
+  let mountProfile: Profile | null = null;
+  // A NAMED `?template=` seeds on its own authority - the ref lookup decides
   // (unknown id → null → normal open). It must NOT gate on `hasTemplates`:
   // metadata rides `window.__toolIndex`, which only the gallery populates, so a
   // direct link, a share, or an OFFSCREEN export remount (the blank-PDF/MP4 bug:
   // scene and export renders re-parse the URL in a context with no index and no
   // inline manifest fallback) would silently drop the seed and render empty.
   if (templateParam && !slot && !tview.seededDirect && Object.keys(values).length === 0) {
-    const { fetchTemplateSeed, templateValuesById, templateEditorPose } = await import('../template-chooser.ts');
-    let seed = await fetchTemplateSeed(toolId, templateParam, presetParam);
-    if (!seed && Array.isArray(templateMeta))
-      seed = templateValuesById(templateMeta, templateParam, presetParam);
-    if (seed) {
-      tview.templatePose = templateEditorPose(seed);
-      tview.initialValues = { ...seed, ...tview.initialValues };
-      for (const id of Object.keys(seed)) templateSeededIds.add(id);
-    }
+    // `?template=` names a REF now (plans/226): a bare `<tid>` is this tool's shipped
+    // template, exactly as every existing link has it, and `user:<id>` is one the person
+    // saved - the Projects tiles and the Templates collection link that way.
+    // resolveTemplateSeed is the single lookup (their own store, then the shipped file,
+    // then the inline manifest metadata); anything unknown resolves null and falls
+    // through to the ordinary open rather than throwing.
+    const { resolveTemplateSeed } = await import('../../lib/template-ref.ts');
+    const found = await resolveTemplateSeed(
+      tview.host,
+      templateParam,
+      { toolId, templateMeta, presetId: presetParam },
+    );
+    if (found) await applyTemplateSeed(found.values);
   } else if (
     !slot &&
     !tview.seededDirect &&
     Object.keys(values).length === 0 &&
     (!reachedViaLink || templateParam === '')
   ) {
+    // ── The blank fresh-open ladder (plans/226 section 3) ────────────────────────
+    //
     // An EMPTY `?template=` (present, no id) is an explicit ask for the chooser - the
     // gallery card's "+ new" button navigates with it - so it overrides the
     // reachedViaLink skip that would otherwise read "?template=" as a deep link with
-    // its own intent. Auto-export/`?full` links never carry a bare `template`, so the
+    // its own intent, AND it overrides the person's "Start with" below: asking is what
+    // that button means. Auto-export/`?full` links never carry a bare `template`, so the
     // no-modal-over-headless-export guarantee holds.
+    //
+    // Otherwise the person's own setting for this tool decides: a template ref seeds the
+    // document directly (the same path `?template=` takes, so a start-with and a link to
+    // the same template open identically), 'blank' opens on the manifest defaults, and
+    // nothing set falls through to today's rule - the chooser when there is anything to
+    // choose from. A ref that no longer resolves clears itself rather than opening
+    // something the person did not choose.
+    let startSeeded = false;
+    if (templateParam !== '') {
+      mountProfile = await tview.host.profile.get();
+      const start = loadTemplateStart(mountProfile, toolId);
+      if (start && start !== START_BLANK) {
+        const { resolveTemplateSeed } = await import('../../lib/template-ref.ts');
+        const found = await resolveTemplateSeed(
+          tview.host,
+          start,
+          { toolId, templateMeta },
+        );
+        if (found) {
+          await applyTemplateSeed(found.values);
+          startSeeded = true;
+        } else {
+          // Deleted, hidden by a brand update, or not synced to this device yet.
+          const { setStartWith } = await import('../../lib/template-actions.ts');
+          await setStartWith(tview.host, toolId, null);
+        }
+      } else if (start === START_BLANK) {
+        // "Blank" on a frame-based tool is the DECLARED artboards with nothing on them,
+        // not the composed cover the manifest default opens with (plan 179).
+        const { blankTemplateSeed } = await import('../../lib/template-source.ts');
+        await applyTemplateSeed(blankTemplateSeed(tview.tool.manifest.inputs));
+        startSeeded = true;
+      }
+    }
     // The chooser opens on a blank fresh open (no resume, no seed, no link) when the tool
     // has built-in templates OR the current user has saved templates/variations for this
     // toolId - so a tool whose only starting points are user-saved is still reachable. The
@@ -362,12 +418,13 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
     // we resolve the user's own here to decide whether to open at all. A tool WITH built-in
     // templates always opens, so we skip that await and let the chooser promise below fetch
     // the user templates off the mount path (as it already did), keeping the fast path fast.
+    // A "Start with" that already seeded the document skips the question altogether.
     let hasUserTemplates = false;
-    if (!hasTemplates) {
+    if (!startSeeded && !hasTemplates) {
       try {
         const { createUserTemplateStore } = await import('../../lib/user-templates.ts');
         const mine = await createUserTemplateStore(
-          tview.host as unknown as Parameters<typeof createUserTemplateStore>[0]
+          tview.host
         ).list(toolId);
         hasUserTemplates = mine.length > 0;
       } catch {
@@ -379,7 +436,7 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
     // template picked (or merely clicked through) under a running import replaces the
     // board and re-mounts the canvas, and the import finishes in a view that is gone.
     const { hasPendingDesignImport } = await import('../../lib/drop-router.ts');
-    if ((hasTemplates || hasUserTemplates) && !hasPendingDesignImport()) {
+    if (!startSeeded && (hasTemplates || hasUserTemplates) && !hasPendingDesignImport()) {
       // NOT AWAITED - and that is the whole point. This chooser used to sit between the
       // user and `createRuntime` below: the tool could not begin to mount until a human
       // clicked a tile, and the chooser's own live tile previews (a real off-screen tool
@@ -404,27 +461,24 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
       // chooser means anyway. That is why the whole thing, the lazy import included, is
       // wrapped in one promise that resolves `{}` instead of rejecting.
       tview.templatePick = (async () => {
-        const { openTemplateChooser, parseTemplates, blankTemplateSeed } = await import('../template-chooser.ts');
+        const { openTemplateChooser, blankTemplateSeed } = await import('../template-chooser.ts');
+        const { shippedVariants, userVariants } = await import('../../lib/template-ref.ts');
         // A navigate-away while the chunk above was loading - the modal never got to
         // open, so there is nothing for `onOpen` below to arm a close over. Resolve
         // blank without opening it, exactly like a torn-down mount that arrives later.
         if (tview.templatePickTornDown) return {};
-        const templates = parseTemplates(templateMeta);
+        // Every tile carries its ref, which is what the chooser's own management menu
+        // (hide, start with, rename, delete) acts on - see lib/template-ref.ts.
+        const templates = shippedVariants(toolId, templateMeta);
         // Merge the user's own saved templates for this tool. Same TemplateVariant shape, but
         // their `values` ride INLINE (stored on the profile), so the chooser renders + applies
         // them with no fetch - a picked one seeds the doc exactly like a built-in. One chip.
         try {
           const { createUserTemplateStore } = await import('../../lib/user-templates.ts');
           const mine = await createUserTemplateStore(
-            tview.host as unknown as Parameters<typeof createUserTemplateStore>[0]
+            tview.host
           ).list(toolId);
-          for (const ut of mine)
-            templates.push({
-              id: ut.id,
-              name: ut.name,
-              category: t('Your templates'),
-              values: ut.values as Record<string, InputValue>,
-            });
+          templates.push(...userVariants(mine, t('Yours')));
         } catch {
           /* user templates are best-effort */
         }
@@ -438,6 +492,9 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
           // "Blank canvas" on a frame-based tool is the default document's artboards with
           // nothing on them, not the composed cover the default opens with (plan 179).
           blankSeed: () => blankTemplateSeed(tview.tool.manifest.inputs),
+          // The brand's own hidden-by-default shipped templates. The chooser owns the
+          // filtering and the tile menu (plans/226 WP-3); it only needs the seed set.
+          hiddenDefaults: defaultHiddenTemplateRefs(),
           onPick: ({ templateId, category }) =>
             tview.history.setDesignIntent(inferDesignIntent({ templateId, templateCategory: category }), true),
           // Arms the navigate-away close. If teardown arrived in the same tick as the
@@ -491,14 +548,14 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   // it does everywhere else: names and returns to the view you actually came from
   // (the gallery, the catalog, a search…), falling back to "Tools" only on a direct
   // visit. Either way the editing session stays a round-trip instead of dumping the
-  // user in the gallery. The unsaved-changes dialog's "Save & leave" leaves through
-  // the pill's own handler rather than re-deriving a target, so both exits agree by
-  // construction.
+  // user in the gallery. "Leave without saving" follows this target; "Save & leave"
+  // returns to the launch folder when present and otherwise opens Projects.
   const fromFolder = tview.returnTo !== '/'; tview.fromFolder = fromFolder;
   const backPillOpts = fromFolder ? { href: tview.returnTo } : {}; tview.backPillOpts = backPillOpts;
 
-  // Populate inputs from user profile if they match profile field names
-  const profile = await tview.host.profile.get(); tview.profile = profile;
+  // Populate inputs from user profile if they match profile field names. The ladder
+  // above may already have read it - one record, one read.
+  const profile = mountProfile ?? await tview.host.profile.get(); tview.profile = profile;
   const profileInputIds = (tview.tool.manifest.inputs ?? []).map((i) => i.id); tview.profileInputIds = profileInputIds;
   for (const inputId of profileInputIds) {
     if (inputId in profile && !(inputId in tview.initialValues)) {
@@ -702,6 +759,8 @@ export function mountActions(tview: ToolViewCtx): void {
     reachedViaLink,
     {
       portable: true, historyBase: openedSession.cursor,
+      // A thunk: session wiring assigns tview.openSaveAs after this mount runs.
+      openSaveAs: () => { void tview.openSaveAs?.(); },
       current: toolId === 'design' ? () => tview.session.currentDesignOutcome() : undefined,
       sessionMeta: toolId === 'design' ? () => ({ __workspace_intent: tview.designIntent }) : undefined,
       ...historyParticipation(tview.tool.manifest, !!collabHandle || !!ephemeralState || !!getCollabSessionSource()),
@@ -724,7 +783,7 @@ export function mountActions(tview: ToolViewCtx): void {
     : undefined; tview.peerHistory = peerHistory as ToolViewCtx['peerHistory'];
   const revisionPanel = wireToolRevisionHistory({ state: tview.host.state as import('../../bridge/state.ts').WebStateAPI,
     copyState: libraryHost.state as import('../../bridge/state.ts').WebStateAPI,
-    slot: () => actionsApi?.getSlot?.() ?? null, controller: actionsApi?.history,
+    slot: () => actionsApi?.getSlot?.() ?? null, controller: actionsApi?.history, currentSnapshot: actionsApi?.sessionState,
     collab: collabHandle?.history, collaborating: !!collabHandle || !!ephemeralState, root: viewEl, connected: () => viewEl.isConnected,
     ...(peerHistory ? { peer: peerHistory } : {}) }); tview.revisionPanel = revisionPanel;
   const _openRevisions = () => revisionPanel.open();
