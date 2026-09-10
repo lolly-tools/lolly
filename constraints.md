@@ -19,17 +19,19 @@ The declaration also carries the bounds. A `number` input's `min`/`max` clamp on
 
 Templates are Handlebars and logic-less on purpose (`engine/src/template.ts`). The helper set is registered once at module load and deliberately small: `default`, `upper`, `lower`, `eq`, `icsStamp`, `rfcText`, `csvCell`, `arrow`, `markdown`, `asset` and `media`. There is no way to write a loop with a side effect, call out to the page or invent a value. `{{x}}` HTML-escapes; `{{{x}}}` is the opt-in raw form.
 
-The context a template is hydrated with is one line, `engine/src/runtime.ts:517`:
+The context a template is hydrated with is one assignment in `engine/src/runtime.ts` (search for `ctxCache`):
 
 ```js
 ctxCache = { ...modelToValues(model), ...extras };
 ```
 
-Declared input values, then hook-computed extras. A template that references a name in neither renders empty, because there is no outer scope for it to reach into. This is also why no template needs its own security audit: with no arbitrary code in a template, there is no code in a template to audit.
+Declared input values, then hook-computed extras. A template that references a name in neither renders empty, because there is no outer scope for it to reach into.
+
+That bounds what a template can *compute*; it does not make every template safe to ship unread. `{{x}}` escapes, but `{{{x}}}` and the `markdown` helper emit whatever they are handed, and many templates use them for markup, JSON inside a `<script>` and style strings that a hook built. The escaping responsibility for that content sits with the hook that produced it (the community `_shared` `esc` helper is the convention), so a review of a tool still reads its raw interpolations and its hooks. What the logic-less template guarantees is narrower, and still worth having: no loop with a side effect, no call out to the page, and no value the template invented for itself.
 
 ## Brand values resolve from tokens
 
-Colour, type and spacing come from the brand's design tokens rather than from numbers typed into a template. `engine/src/tokens.ts` is the engine's single source of truth for token semantics: it parses a W3C DTCG document (the format Penpot and Tokens Studio exchange), resolves `{dotted.path}` aliases including chains, applies `$themes` set layering and normalises every colour form to a plain hex string for the rest of the app.
+Colour, type and spacing come from the brand's design tokens rather than from numbers typed into a template. `engine/src/tokens.ts` is the engine's single source of truth for token semantics: it parses a W3C DTCG document (the format Penpot and Tokens Studio exchange), resolves `{dotted.path}` aliases including chains, applies `$themes` set layering and resolves every colour form to an sRGB hex string for the rest of the app. A wide-gamut `oklch()` token is gamut-mapped to reach that hex (an authored sRGB override wins where one is given), while the token itself keeps the notation its author typed.
 
 A colour input can hold a token reference rather than a literal, as `{ ref, value }`. The reference is what travels in a share link; the template only ever sees the resolved string. So re-pointing a brand token updates every tool that referenced it, and no template has to be edited.
 
@@ -41,13 +43,18 @@ That is why the same `number` input with a `min`, a `max` and a `step` becomes a
 
 ## The same closed set in a URL
 
-A tool's URL is not a wider door than its sidebar. `engine/src/url-mode.ts` parses a query string against the tool's own declared inputs, and anything it does not recognise is ignored rather than guessed at. The one set of names that mean something without being inputs is closed and explicit - the `RESERVED` set at `engine/src/url-mode.ts:327`, covering output concerns such as `format`, `width`, `height`, `unit`, `dpi`, `profile`, `bleed`, `marks` and the provenance switches.
+A tool's URL is not a wider door than its sidebar. `engine/src/url-mode.ts` parses a query string against the tool's own declared inputs, and anything it does not recognise is ignored rather than guessed at. The one set of names that mean something without being inputs is closed and explicit - the exported `RESERVED` set in `engine/src/url-mode.ts`, covering output concerns such as `format`, `width`, `height`, `unit`, `dpi`, `profile`, `bleed`, `marks` and the provenance switches.
 
 So there is no undocumented parameter that changes what a tool will do. You can read the manifest, read `RESERVED` and know the complete vocabulary a link can speak. The CLI speaks the same one, because `--foo=bar` is converted by that module too.
 
-## A tool reaches only the hosts its manifest names
+## `host.net` reaches only the hosts its manifest names
 
-Tools never touch the network directly. `host.net` is the only path, it is gated by the `network` capability plus an explicit `network.allowlist` in the manifest, and it is fail-closed: no capability or no allowlist means every fetch rejects before any I/O happens. `tests/net-allowlist-conformance.test.ts` proves that against the real shared module across shells, which is the drift it exists to catch - a new shell writing its own `host.net` and omitting the check.
+`host.net` is the supported, portable way for a tool to fetch, and it is fail-closed: it is gated by the `network` capability plus an explicit `network.allowlist` in the manifest, and no capability or no allowlist means every fetch rejects before any I/O happens. `tests/net-allowlist-conformance.test.ts` proves that against the real shared module across shells, which is the drift it exists to catch - a new shell writing its own `host.net` and omitting the check.
+
+That is a statement about the adapter, not about every line of code a tool can run. Whether a hook can reach *around* `host.net` depends on how it is executed, and there are two modes (`engine/src/runtime.ts` takes the executor as its `hookExecutor` option; `engine/src/loader.ts` names the trust levels):
+
+- **Trusted, in the shell's realm.** A first-party catalog tool's `hooks.js` runs through `new Function('host', …)` in the page's own realm. That is closure-scope injection for compatibility, not confinement: in a browser such a hook can reach `window`, `document` and `fetch`, and the Limits section below says so plainly. Review is the control for these tools.
+- **Strict, in a Worker.** A tool that opts in with `isolate: true`, and every sideloaded or remote tool (the `sideloaded-consented` and `remote-untrusted` trust levels), runs its hooks in a Worker whose `host` is a proxy and whose globals are omitted or seeded by policy - `engine/src/hook-worker-core.ts`, with the web executor in `shells/web/src/bridge/hook-worker.ts` and the Node one in `packages/node-shell/src/hook-worker.ts`; `shells/web/src/bridge/hook-worker.test.ts`, `tests/hook-worker-node.test.ts` and `tests/tool-isolation.test.ts` pin the policy. A Worker is a strong boundary for globals and the DOM, not the whole security story; the [Threat Model](/info/threat-model.html) states that boundary in full.
 
 ## The receipts
 
@@ -58,7 +65,8 @@ Tools never touch the network directly. `host.net` is the only path, it is gated
 | Declared bounds actually bind | `tests/engine.test.ts` - `inputs: number constraints clamp to min/max on update`, `inputs: text maxLength truncates on update` |
 | A template escapes by default and cannot invent values | `tests/engine.test.ts` - `template: escapes HTML by default (XSS guard)`, `template: missing values render empty in if-blocks` |
 | A token reference resolves before the template sees it | `tests/tokens-value-path.test.ts` |
-| A tool's network access is fail-closed | `tests/net-allowlist-conformance.test.ts` |
+| `host.net` is fail-closed without a capability and an allowlist | `tests/net-allowlist-conformance.test.ts` |
+| Isolated, sideloaded and remote tools run their hooks behind the Worker policy | `shells/web/src/bridge/hook-worker.test.ts`, `tests/hook-worker-node.test.ts`, `tests/tool-isolation.test.ts` |
 | The shipped catalog matches its manifests | `scripts/validate-catalog.ts`, run as a CI job in `.github/workflows/ci.yml` - duplicate ids, index drift, asset checksums, `bindToProfile` fields, palette references and `replacedBy` chains |
 | Every tool still renders at its declared defaults | the catalog-wide render gate in `.github/workflows/ci.yml`, which renders every tool in the active profile and exits non-zero on any failure |
 
