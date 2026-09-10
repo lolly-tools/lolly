@@ -195,6 +195,7 @@ const pages: Page[] = [
 
   // ── Creators pathway ─────────────────────────────────────────────────────
   { slug: 'using',            title: 'Using Lolly',       src: 'using.md',        pathway: 'creators' },
+  { slug: 'templates',        title: 'Templates',         src: 'templates.md',    pathway: 'creators', description: "Saved starting points for a tool: how to keep one, how to open a tool on it every time, and how yours sit beside the ones a tool ships with." },
   { slug: 'brand-studio',     title: 'The Brand Studio',  src: 'brand-studio.md', pathway: 'creators' },
   { slug: 'profile',          title: 'Profiles',          src: 'profile.md',      pathway: 'creators', description: "The working identity Lolly creates as - your name, role and contact details, filled into tools automatically and stored on your own device." },
   // Both of these pages HOST a band that used to sit on the landing (plan 117 block
@@ -452,6 +453,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       // mental model. Record has no page of its own - Using Lolly carries it.
       { label: 'Make', items: [
         { slug: 'using',           label: 'Using Lolly' },
+        { slug: 'templates',       label: 'Templates' },
         { slug: 'brand-studio',    label: 'The Brand Studio' },
         { slug: 'design-import',   label: 'Import a design' },
         { slug: 'utilities',       label: 'Utility views' },
@@ -4597,7 +4599,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   // kind of thing - who-you-are doors - so they read as one group, with each pathway's
   // sub-columns following after the trio. Membership is unchanged, order only.
   { hub: 'creators', label: 'For Creators', slugs: [
-    'using', 'brand-studio', 'design-import', 'sequence-editor', 'animating', 'utilities', 'extension'] },
+    'using', 'templates', 'brand-studio', 'design-import', 'sequence-editor', 'animating', 'utilities', 'extension'] },
   { hub: 'builders', label: 'For Builders', slugs: [
     'overview', 'design-tokens', 'authoring-tools', 'authoring-assets', 'host-api', 'url-mode'] },
   { hub: 'operators', label: 'For Operators', slugs: [
@@ -4713,7 +4715,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   quickstart: 'star', creators: 'palette', builders: 'wrench', operators: 'checklist', trust: 'shieldcheck',
   'status-quo': 'convert', 'input-not-impersonation': 'usercheck',
   // Creators
-  using: 'pentool', 'brand-studio': 'palette', profile: 'usercheck', 'design-import': 'upload',
+  using: 'pentool', templates: 'folder', 'brand-studio': 'palette', profile: 'usercheck', 'design-import': 'upload',
   'sequence-editor': 'clock', animating: 'layers', exporting: 'download', formats: 'convert', positioning: 'sliders', compare: 'checklist',
   'compare-canva': 'checklist', 'compare-adobe': 'checklist', 'compare-figma': 'checklist', 'compare-render-apis': 'checklist', 'compare-converters': 'checklist',
   'compare-penpot': 'checklist', 'compare-brand-portals': 'checklist',

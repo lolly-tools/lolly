@@ -45,6 +45,7 @@ security posture).
 |---|---|---|
 | [creators.md](creators.md) | end user | Pathway hub. A router: one lane per activity - make, animate, record, collaborate, post - each listing the pages that carry it. |
 | [using.md](using.md) | end user | Driving the app: opening a tool, working the canvas, exporting, saving, sharing, moving to another device. |
+| [templates.md](templates.md) | end user | Saved starting points for a tool: saving one from a tool or from Projects, the per-tool "Start with" setting, and managing yours beside the ones a tool ships with. |
 | [brand-studio.md](brand-studio.md) | end user | The Brand Studio at `#/start`: logos, colours, type, tokens and files, plus how a brand pack moves between devices. |
 | [profile.md](profile.md) | end user | Profiles as the on-device working identity a tool pre-fills from, and how they differ from the platform brand and from capabilities. |
 | [search.md](search.md) | end user | The one field at the bottom of every screen: which routes carry it, what each provider reaches (tools, saved sessions, the catalogue, settings, docs), the spotlight chord, and what it deliberately does not index. |

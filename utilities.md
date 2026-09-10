@@ -24,6 +24,63 @@ They live in the **Utilities** tab (`#/u`), alongside the on-device utility *too
 
 **Clean** reduces voice noise with the on-device speech model, trims silent edges sample-exactly, normalises to podcast, streaming or broadcast loudness, and holds the output under a -1 dBTP ceiling. Audio can leave as WAV, MP3, M4A or Opus. For a video, the picture is carried into the new container while the cleaned audio replaces its original track. The terminal path accepts WAV without pretending Node has codecs it does not; other containers move to the browser tier or are refused by name.
 
+## Prepare for sharing - `#/prepare`
+
+Inspect text, JSON, YAML, HAR and ZIP files locally, choose replacements, review
+originals beside the resulting copies, then copy, download, send or save a result
+to the library. Text Helper opens the same panel for the selected input text (or
+all input when there is no selection). Catalog assets and saved file results have
+a **Prepare for sharing** action; exported file utilities offer it for the copy.
+
+Suggestions cover credential fields and common token shapes, email, payment-card,
+bank-account, phone, date, postcode, address and possible name patterns. They can
+be wrong and can miss confidential information. **Keep all** and **Continue
+unchanged** remain available. Add a missed exact value or a sensitive field name;
+edit a replacement or choose individual occurrences. Identical values share a
+mapping across every file in the job.
+
+Supported PDF, JPEG, PNG and SVG copies can use the existing **Strip Hidden Data**
+operation inside the panel, with metadata inspected again afterward. Removal can
+invalidate signatures, remove colour profiles or discard JPEG HDR gain maps.
+Visible content needs its own review; **Redact** opens the selected original in
+its existing utility, and its exported copy can return to preparation. Opening a
+utility leaves the preparation view, so finish or download other copies first.
+Office, audio, OCR and language-model expansion are separate work.
+
+Jobs accept up to 100 files, 32 MiB each and 64 MiB total. Text inspection stops at
+1 MiB per file/value; ZIP inspection has a global 300-member limit, three archive
+levels and a 64 MiB expansion budget. Unsupported, encrypted or malformed members
+are listed as uninspected and can be retained or removed. Names and archive comments
+are not inspected; rebuilding removes archive comments and empty directory records.
+YAML aliases are inspected at their anchors, without expanding sensitive field
+context at alias uses. Reports state these limitations; zero suggestions is not a
+certificate that a copy contains no private data.
+
+Working originals, replacement maps and preview content stay in memory. Clearing
+or leaving the view releases them. Saving a recipe keeps category choices and
+custom field names, without prior text, literal rules or mappings. **Add to
+library** explicitly saves the result bytes into normal library backup/sync;
+it does not save the source or map. Downloaded reports contain counts, scope IDs,
+hashes and limitations, without filenames or private values.
+
+The CLI uses the same engine, with no catalog required:
+
+```sh
+lolly prepare request.har
+lolly prepare request.har --review-file=private-review.json
+lolly prepare request.har --choices=private-review.json --output=prepared.har
+lolly prepare one.json two.yaml --replace-all --out-dir=prepared
+lolly prepare image.png --strip-hidden-data --output=prepared.png
+```
+
+The default JSON report never fails solely because findings remain. Explicit
+`--review-file` output contains private values and editable choices bound to source
+hashes; keep it private. `--recipe`, `--save-recipe`, `--rules` and `--report` support
+repeated work. Files are created with owner-only permissions and existing files
+are preserved. Partial delivery reports successful copies separately from failures.
+In the TUI, press **P** from Tools; add file paths, inspect, choose replacements,
+review coverage with Tab, and download the resulting copies. Escape cancels work.
+
 ## Spreadsheet - `#/data`
 
 Open, read and lightly edit a spreadsheet with no Excel, no LibreOffice and no internet. Drop an `.xlsx`, `.csv`, `.tsv` or `.json`, or choose one; a multi-sheet workbook gets a tab bar and you can switch sheets without re-picking the file. Cells are editable in place, and **Download as** writes the grid as it stands - CSV, Excel, JSON or TSV.

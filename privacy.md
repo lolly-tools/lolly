@@ -77,6 +77,17 @@ ours - the point of most of them is to remove & protect data, not add risk.
 
 ![The badge these tools carry: Runs on your device - nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
 
+Prepare for sharing holds working inputs, private findings and replacement maps
+in memory, without automatically adding them to history, links, backups or sync.
+Inspection and replacement do not send file contents to a server or validate
+credentials online. Users choose whether to copy, download, send or explicitly
+save a result to their library; a saved result then follows normal library
+backup and sync settings. Recipe files omit prior payloads and literal mappings.
+Summary reports contain counts, scope IDs and file hashes. The CLI can also save
+a private review file containing original values, only when explicitly requested
+with `--review-file`. Clearing or leaving a browser preparation view releases its
+working state; this is not a promise of forensic erasure from browser or OS memory.
+
 ## When the app talks to a network, in full
 
 The table below is the complete list of everything the app fetches or sends over a

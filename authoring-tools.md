@@ -617,8 +617,55 @@ A tool's curated starting points live as one file per template in `tools/<id>/te
 - Keep names and descriptions short and plain - they are user-facing copy and will be
   localized.
 
-People also save their own templates in the app (see Publishing) - those join the same
-chooser under "Your templates", no files involved.
+### Templates people save
+
+Someone using your tool can save what they have as a template of their own, from the
+editor's Save dialog or from a session tile in Projects. A saved template carries the
+same fields as one you ship: an id, a name, an optional description, and a `values` seed
+keyed by input id. It lives on that person's profile, never in the catalog, and it joins
+yours in the same chooser, grouped under "Yours".
+
+Two things follow for a tool author:
+
+- **The seed is the session, minus what cannot travel.** It keeps the export settings the
+  session had (format, size, unit, dpi) and drops every `file` input, whose bytes are the
+  person's own file rather than a value. A tool whose inputs are all `file` inputs
+  therefore cannot be saved as a template, and the app does not offer it.
+- **A saved template can become a shipped one.** "Export as file" writes
+  `{ id, name, description, values }` in exactly the file format above. Put that file in
+  `tools/<id>/templates/`, run `pnpm run build:catalog`, and it is a starter like the
+  rest. That is the route from something one person made to something the tool ships, and
+  what a pull request against `lolly-tools` should carry.
+
+What can be done to a template follows from who owns it. A template someone saved is
+theirs to delete. A template you ship can be hidden and restored, never deleted, whether
+or not the brand is locked.
+
+### Hiding a starter by default
+
+A brand pack can decide that some of your starters are not for it. It lists them at the
+top level of its own `catalog/assets/index.json`, beside `defaultHiddenTools`:
+
+```json
+"defaultHiddenTemplates": ["chart:candlestick-series", "design:poster"]
+```
+
+Each entry is `"<toolId>:<templateId>"` - the tool's id, then the template file's
+basename. `pnpm run validate:catalog` resolves both halves against that profile's own
+view and fails on an entry naming a tool the profile does not mount or a template file
+that is not there, so a typo cannot ship as a rule that hides nothing. For the same
+reason no tool may take the id `user`: that word is the prefix a person's own templates
+use in the same ref.
+
+The list seeds a fresh profile and then steps aside. As soon as someone hides or restores
+a template themselves, their set is the one that counts and the brand's list is no longer
+merged in - the rule `defaultHiddenTools` already follows. Hidden is not deleted: the
+template stays in the catalog, a `?template=` link still opens it, and the person can
+bring it back from the chooser's Hidden group.
+
+Both brand packs ship the key with an empty list, so there is an obvious place to add
+one. Editing it takes the usual catalog ritual: `pnpm run build:catalog:all`, then
+`pnpm run validate:catalog:all`.
 
 ### Curated Design motion
 
