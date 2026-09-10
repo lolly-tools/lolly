@@ -90,7 +90,7 @@ export function saveAsBridge(): DesktopExportBridge | undefined {
 
 export function saveAsButtonHtml(show: boolean): string {
   if (!show) return '';
-  const label = `${escapeHtml(t('Save as'))}…`;
+  const label = escapeHtml(t('Save as'));
   return jellyActive()
     ? `<jelly-button variant="platinum" data-action="save-as" class="save-as-btn">${label}</jelly-button>`
     : `<button type="button" data-action="save-as" class="save-as-btn">${label}</button>`;
