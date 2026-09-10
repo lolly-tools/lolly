@@ -15,7 +15,7 @@
        tool. Pages are separated by each page's own margin-bottom; a small bottom gap
        keeps the last page's shadow / scroll end from clipping. */
     padding: 0 0 var(--gap);
-    font-family: "SUSE", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-brand, "SUSE", system-ui, sans-serif);
     -webkit-font-smoothing: antialiased;
   }
 
@@ -27,7 +27,7 @@
     width: var(--pw);
     height: var(--ph);
     margin: 0 auto var(--gap);
-    background: #fff;
+    background: var(--paper, #fff);
     color: var(--ink);
     overflow: hidden;
     box-shadow: 0 6px 28px rgba(0, 0, 0, .28);

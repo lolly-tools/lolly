@@ -103,6 +103,7 @@ function stash(model) {
   // always did, and the phone pane is a standalone {{#if}} block that leaves no
   // whitespace behind - single stays byte-identical.
   return {
+    captureAvailable: !host || !Array.isArray(host.capabilities) || host.capabilities.includes('capture'),
     cmpClass: compare === 'single' ? '' : ' url-shot--' + compare,
     cmpPhone: compare !== 'single',
     cmpAspect: mobile.width + ' / ' + mobile.height,

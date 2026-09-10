@@ -3,7 +3,7 @@
   "name": "Diagrams",
   "description": "Org charts, flowcharts, timelines and more - from cards, text, Mermaid, DOT or CSV.",
   "a11yLabel": "{{default title \"Untitled\"}} - {{diagramType}} diagram",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "engineVersion": "^1.0.0",
   "status": "experimental",
   "category": "everyone",
@@ -89,7 +89,7 @@
     { "id": "gridBg", "label": "Background pattern", "type": "select", "default": "dots", "section": "Style", "options": [ { "value": "none", "label": "None" }, { "value": "dots", "label": "Dots" }, { "value": "grid", "label": "Grid" } ] },
 
     { "id": "density", "label": "Density", "type": "select", "default": "cozy", "section": "Layout", "help": "Seeds the spacing + card scale below. Pick one, then nudge the sliders.", "options": [ { "value": "custom", "label": "Custom" }, { "value": "compact", "label": "Compact" }, { "value": "cozy", "label": "Cozy" }, { "value": "comfortable", "label": "Comfortable" }, { "value": "spacious", "label": "Spacious" } ] },
-    { "id": "cardWidth", "label": "Card width", "type": "number", "display": "slider", "min": 120, "max": 320, "step": 4, "default": 148, "section": "Layout" },
+    { "id": "cardWidth", "label": "Card width", "type": "number", "display": "slider", "min": 120, "max": 320, "step": 4, "default": 196, "section": "Layout" },
     { "id": "cardScale", "label": "Card scale", "type": "number", "display": "slider", "min": 0.6, "max": 1.6, "step": 0.05, "default": 1, "section": "Layout", "help": "Scales card size, padding and text together." },
     { "id": "rowGap", "label": "Row / layer gap", "type": "number", "display": "slider", "min": 0, "max": 200, "step": 4, "default": 56, "section": "Layout", "help": "Spacing along the flow (levels, ranks, bands)." },
     { "id": "siblingGap", "label": "Sibling gap", "type": "number", "display": "slider", "min": 0, "max": 160, "step": 2, "default": 30, "section": "Layout", "help": "Spacing between neighbours within a level." },

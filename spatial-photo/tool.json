@@ -1,7 +1,7 @@
 {
   "id": "spatial-photo",
   "name": "Spatial Photo",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "engineVersion": "^1.152.0",
   "status": "experimental",
   "singleInstance": true,

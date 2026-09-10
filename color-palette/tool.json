@@ -2,7 +2,7 @@
   "id": "color-palette",
   "name": "Palette Lab",
   "description": "Grow a palette from one seed colour - harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export.",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "engineVersion": "^1.0.0",
   "status": "community",
   "category": "utility",

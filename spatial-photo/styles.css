@@ -16,21 +16,3 @@
   max-height: 100%;
   touch-action: none; /* a tap sets focus instead of scrolling the page */
 }
-
-/* The message is a sibling of the canvas inside the centred flex row, so the
-   canvas has to leave the flow or the two share the width and the text sits
-   off-centre. A message means there is nothing to draw, so hiding it is safe:
-   the template IIFE rebuilds the canvas on the next paint. */
-.sp-wrap:has(.sp-msg) .sp-canvas { display: none; }
-
-.sp-msg {
-  font-family: var(--font-brand);
-  font-size: 20px;
-  line-height: 1.35;
-  color: var(--brand-ink, #16202b);
-  padding: 28px 32px;
-  text-align: center;
-  max-width: 16em;
-  border-radius: 16px;
-  background: color-mix(in oklab, var(--brand-accent, #30ba78) 12%, transparent);
-}

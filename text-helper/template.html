@@ -34,7 +34,7 @@
 
   <div class="tt-panes" data-tt-panes id="tt-result-panel" role="tabpanel" aria-label="Result">
     <section class="tt-pane">
-      <div class="tt-pane-head"><span class="tt-label" data-tt-inlabel>Input</span></div>
+      <div class="tt-pane-head"><span class="tt-label" data-tt-inlabel>Input</span><button type="button" class="tt-prepare" data-prepare-sharing>Prepare for sharing</button></div>
       <textarea class="tt-area" data-tt-in placeholder="Paste text here…" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
     </section>
     <div class="tt-divider" data-tt-divider role="separator" aria-orientation="vertical" aria-label="Drag to resize the panes"></div>
@@ -297,6 +297,9 @@
 .tt-area-out { background: hsl(var(--tt-fill)); }
 .tt-area-out.is-error { background: hsl(var(--tt-warn) / .12); color: color-mix(in oklab, hsl(var(--tt-warn)), hsl(var(--tt-fg)) 30%); }
 
+.tt-prepare { display: none; align-items: center; border: 1px solid hsl(var(--tt-bd)); border-radius: 8px; padding: 6px 10px; color: hsl(var(--tt-fg)); background: hsl(var(--tt-card)); font: inherit; font-size: 13px; cursor: pointer; }
+.prepare-capable .tt-prepare { display: inline-flex; }
+.tt-prepare:focus-visible { outline: 3px solid hsl(var(--tt-brand)); outline-offset: 3px; }
 .tt-copy {
   position: fixed; right: 24px; bottom: 24px; z-index: 50;
   appearance: none; border: none; background: hsl(var(--tt-brand)); color: hsl(var(--tt-brandfg)); font: inherit;

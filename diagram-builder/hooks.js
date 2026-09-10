@@ -173,14 +173,16 @@ function inkOn(fill, prefer) {
 }
 
 // Greedy word-wrap into at most `maxLines` lines of ~maxChars each.
-function wrapLines(text, maxChars, maxLines) {
+function wrapLines(text, maxChars, maxLines, quiet) {
   maxChars = Math.max(4, Math.floor(maxChars));
   var words = trim(text).split(/\s+/).filter(Boolean);
   if (!words.length) return [];
   var lines = [], cur = '', i = 0;
   for (; i < words.length; i++) {
     var w = words[i];
-    if (w.length > maxChars) w = w.slice(0, Math.max(1, maxChars - 1)) + '…';
+    if (w.length > maxChars) {
+      words.splice(i + 1, 0, w.slice(maxChars)); w = w.slice(0, maxChars);
+    }
     var cand = cur ? cur + ' ' + w : w;
     if (!cur || cand.length <= maxChars) { cur = cand; }
     else {
@@ -190,6 +192,7 @@ function wrapLines(text, maxChars, maxLines) {
   }
   if (cur) lines.push(cur);
   if ((i < words.length) || lines.length > maxLines) {
+    if (!quiet) note('Some text is shortened. Increase Card width or reduce Label size in Layout / Style, or shorten the card text.');
     lines = lines.slice(0, maxLines);
     var k = lines.length - 1;
     if (k >= 0) {
@@ -201,7 +204,7 @@ function wrapLines(text, maxChars, maxLines) {
   }
   return lines;
 }
-function estLineCount(text, maxChars) { return wrapLines(text, maxChars, 6).length; }
+function estLineCount(text, maxChars) { return wrapLines(text, maxChars, 6, true).length; }
 function maxCharsFor(width, fontSize) { return Math.max(4, Math.floor((width - 18) / (fontSize * 0.56))); }
 function textWidth(str, fontSize) { return String(str).length * fontSize * 0.62; }
 
@@ -209,9 +212,9 @@ function textWidth(str, fontSize) { return String(str).length * fontSize * 0.62;
 // Standalone-file fallback only: the DECIDING rule is `svg text` in styles.css,
 // which points at the active brand's face via --font-brand. The vector export
 // walker reads a run's COMPUTED font-family, so outlining picks up that rule.
-var FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+var FONT = 'SUSE', FONT_MONO = 'SUSE Mono';
 function textEl(x, y, str, size, weight, fill, anchor, cls) {
-  return '<text ' + (cls ? 'class="' + cls + '" ' : '') + 'x="' + f2(x) + '" y="' + f2(y) + '" font-family="' + FONT + '"'
+  return '<text ' + (cls ? 'class="' + cls + '" ' : '') + 'x="' + f2(x) + '" y="' + f2(y) + '" font-family="' + esc(cls === 'db-axis' ? FONT_MONO : FONT) + '"'
     + ' font-size="' + f2(size) + '" font-weight="' + weight + '" fill="' + esc(fill) + '"'
     + ' text-anchor="' + (anchor || 'middle') + '">' + esc(str) + '</text>';
 }
@@ -385,7 +388,7 @@ function rectRx(shape, w, h, S) {
   return Math.min(S ? S.cornerRadius : 14, lim); // rounded
 }
 function computeCardH(S, lines, hasDetail) {
-  var textH = lines * S.labelLH + (hasDetail ? S.detailLH + 3 : 0);
+  var textH = lines * S.labelLH + (hasDetail ? (S.detailLines || 1) * S.detailLH + 3 : 0);
   // Row layout sets the image beside the text, so height is the taller of the two
   // (not text + image band). Stacked adds the image band on top of the text.
   var content = S.cardLayout === 'row' ? Math.max(textH, S.rowImgSide || 0) : (S.imgBand || 0) + textH;
@@ -427,16 +430,15 @@ function renderCard(n, S) {
     var rtx = n.x + rpad + (rHasImg ? rside + S.imgGap : 0);
     var rtw = Math.max(8, (n.x + n.w - rpad) - rtx);
     var rlines = wrapLines(n.label, maxCharsFor(rtw, S.labelSize), S.labelLines);
-    var rdt = trim(n.detail), rdet = '';
-    if (rdt) { var rdl = wrapLines(rdt, maxCharsFor(rtw, S.detailSize), 1); rdet = rdl.length ? rdl[0] : ''; }
-    var rbh = rlines.length * S.labelLH + (rdet ? S.detailLH + 3 : 0);
+    var rdl = wrapLines(n.detail, maxCharsFor(rtw, S.detailSize), S.detailLines || 1);
+    var rbh = rlines.length * S.labelLH + (rdl.length ? rdl.length * S.detailLH + 3 : 0);
     var rtop = n.y + (n.h - rbh) / 2;
     for (var ri = 0; ri < rlines.length; ri++) {
       g += textEl(rtx, rtop + ri * S.labelLH + S.labelSize * 0.8, rlines[ri], S.labelSize, S.labelWeight, rink, 'start');
     }
-    if (rdet) {
-      g += textEl(rtx, rtop + rlines.length * S.labelLH + S.detailSize * 0.8 + 3, rdet, S.detailSize, 400, rdink, 'start');
-    }
+    rdl.forEach(function (line, i) {
+      g += textEl(rtx, rtop + rlines.length * S.labelLH + i * S.detailLH + S.detailSize * 0.8 + 3, line, S.detailSize, 400, rdink, 'start');
+    });
     return g + '</g>';
   }
 
@@ -453,12 +455,8 @@ function renderCard(n, S) {
   }
 
   var lines = wrapLines(n.label, maxCharsFor(tb.w, S.labelSize), S.labelLines);
-  var detail = trim(n.detail);
-  if (detail) {
-    var dl = wrapLines(detail, maxCharsFor(tb.w, S.detailSize), 1);
-    detail = dl.length ? dl[0] : '';
-  }
-  var blockH = lines.length * S.labelLH + (detail ? S.detailLH + 3 : 0);
+  var details = wrapLines(n.detail, maxCharsFor(tb.w, S.detailSize), S.detailLines || 1);
+  var blockH = lines.length * S.labelLH + (details.length ? details.length * S.detailLH + 3 : 0);
   var top;
   if (S.imgBand > 0) {
     var textTop = n.y + S.cardPadV + S.imgH + S.imgGap;
@@ -471,9 +469,9 @@ function renderCard(n, S) {
   for (var i = 0; i < lines.length; i++) {
     g += textEl(cx, top + i * S.labelLH + S.labelSize * 0.8, lines[i], S.labelSize, S.labelWeight, ink, 'middle');
   }
-  if (detail) {
-    g += textEl(cx, top + lines.length * S.labelLH + S.detailSize * 0.8 + 3, detail, S.detailSize, 400, dink, 'middle');
-  }
+  details.forEach(function (line, i) {
+    g += textEl(cx, top + lines.length * S.labelLH + i * S.detailLH + S.detailSize * 0.8 + 3, line, S.detailSize, 400, dink, 'middle');
+  });
   return g + '</g>';
 }
 
@@ -2458,6 +2456,7 @@ function renderPikchrPrims(prims, S, bg, bb) {
 // ── compose the whole scene ─────────────────────────────────────────────────────
 async function buildDiagram(inp) {
   _notes = [];
+  var fonts = await resolvedFonts(); FONT = fonts._fontBrand; FONT_MONO = fonts._fontMono;
   var mode = VALID_TYPES[inp.diagramType] ? inp.diagramType : 'org';
   var source = ['text', 'ascii', 'mermaid', 'dot', 'pikchr', 'table'].indexOf(inp.source) >= 0 ? inp.source : 'visual';
   var bg = color(inp.background, WHITE);
@@ -2537,10 +2536,14 @@ async function buildDiagram(inp) {
     // In row mode an image card's text is only as wide as what's left beside the
     // avatar, so measure each card against its own available width.
     var rowTextW = Math.max(40, refW - S.rowImgSide - S.imgGap);
-    S.labelLines = nodes.some(function (n) {
+    S.labelLines = Math.max(1, ...nodes.map(function (n) {
       var w = (S.cardLayout === 'row' && n.image && S.rowImgSide) ? rowTextW : refW;
-      return estLineCount(n.label, maxCharsFor(w, S.labelSize)) > 1;
-    }) ? 2 : 1;
+      return estLineCount(n.label, maxCharsFor(w, S.labelSize));
+    }));
+    S.detailLines = Math.min(3, Math.max(1, ...nodes.map(function (n) {
+      var w = (S.cardLayout === 'row' && n.image && S.rowImgSide) ? rowTextW : refW;
+      return estLineCount(n.detail, maxCharsFor(w, S.detailSize));
+    })));
     var hd = nodes.some(function (n) { return trim(n.detail); });
     S.cardH = computeCardH(S, S.labelLines, hd);
   }
@@ -2799,3 +2802,18 @@ async function compute(model, changedId) {
 
 function onInit(ctx) { return compute(ctx.model, null); }
 function onInput(ctx) { return compute(ctx.model, ctx.id); }
+
+// Carry concrete font families in the template too: headless SVG has no CSS cascade.
+async function resolvedFonts() {
+  var fonts = { _fontBrand: 'SUSE', _fontMono: 'SUSE Mono' };
+  if (host && host.tokens && host.tokens.resolve) {
+    for (var pair of [['_fontBrand', 'brand'], ['_fontMono', 'mono']]) {
+      try {
+        var value = await host.tokens.resolve('{font.' + pair[1] + '}');
+        if (Array.isArray(value)) value = value.join(', ');
+        if (typeof value === 'string' && value.trim() && value[0] !== '{') fonts[pair[0]] = value;
+      } catch (e) { /* retain the shell-served fallback face */ }
+    }
+  }
+  return fonts;
+}

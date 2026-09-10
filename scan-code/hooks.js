@@ -418,7 +418,8 @@ async function onFrame({ frame, model, host }) {
   }
   var src = await _encodeFrame(frame, host);
   var vm = _result(_scanned);      // last decode's result panel (persists between decodes)
-  vm.scanFrameSrc = src;           // live viewfinder image
+  // A failed encode must not replace the last visible frame with the start hint.
+  if (src) vm.scanFrameSrc = src;
   vm.scanFrameW = frame.width;
   vm.scanFrameH = frame.height;
   vm.scanCorners = _lastCorners;   // found-code quad overlay, in frame coords

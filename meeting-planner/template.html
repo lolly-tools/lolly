@@ -3,16 +3,16 @@
 
 .mp-root {
   width: 100%; height: 100%;
-  font-family: SUSE, ui-sans-serif, sans-serif;
+  font-family: var(--font-brand, SUSE, ui-sans-serif, sans-serif);
   display: flex; flex-direction: column;
   overflow: hidden;
   --fs: 1;
 }
 
 /* ── Themes ──────────────────────────────────────────────────────────────── */
-.mp-dark  { background: #071f1a; color: #fff;    --accent: #30ba78; --muted: rgba(255,255,255,.42); --land: #163d2e; --ocean: #050f0c; }
-.mp-light { background: #f0f5f2; color: #0c322c; --accent: #0a6e43; --muted: rgba(12,50,44,.58);   --land: #9fbfaa; --ocean: #cde4d5; }
-.mp-green { background: #30ba78; color: #0c322c; --accent: #ffffff; --muted: rgba(12,50,44,1);   --land: #1a7a48; --ocean: #0d5c35; }
+.mp-dark { background: var(--brand-primary, #16202b); color: var(--brand-on-primary, #fff); --accent: var(--brand-secondary, #2d6bd8); --muted: color-mix(in srgb, currentColor 65%, transparent); --land: color-mix(in srgb, var(--brand-primary, #16202b) 65%, var(--brand-secondary, #2d6bd8)); --ocean: var(--brand-primary, #16202b); }
+.mp-light { background: var(--brand-surface, #fff); color: var(--brand-text, #16202b); --accent: var(--brand-primary, #2d6bd8); --muted: var(--brand-muted, #616975); --land: color-mix(in srgb, var(--brand-secondary, #2d6bd8) 30%, var(--brand-surface, #fff)); --ocean: var(--brand-surface, #fff); }
+.mp-green { background: var(--brand-primary, #2d6bd8); color: var(--brand-on-primary, #fff); --accent: var(--brand-on-primary, #fff); --muted: color-mix(in srgb, currentColor 75%, transparent); --land: var(--brand-secondary, #16202b); --ocean: var(--brand-primary, #2d6bd8); }
 
 /* ── Layout: portrait - map left, sidebar right ──────────────────────────── */
 .mp-root.mp-layout-portrait {
@@ -212,26 +212,11 @@
   if (landColorIn)  landCol  = landColorIn;
   if (oceanColorIn) oceanCol = oceanColorIn;
 
-  var textStroke, nightFill, gratStroke, labelBgCol, sphereStroke;
-  if (theme === 'light') {
-    textStroke   = 'rgba(240,245,242,0)';
-    nightFill    = 'rgba(0,0,40,.18)';
-    gratStroke   = 'rgba(0,60,30,.08)';
-    labelBgCol   = 'rgba(240,245,242,1)';
-    sphereStroke = 'rgba(0,60,30,.12)';
-  } else if (theme === 'green') {
-    textStroke   = 'rgba(255,255,255,.0)';
-    nightFill    = 'rgba(0,20,10,.42)';
-    gratStroke   = 'rgba(12,50,44,.15)';
-    labelBgCol   = 'rgba(239,239,239,1)';
-    sphereStroke = 'rgba(12,50,44,.28)';
-  } else {
-    textStroke   = 'rgba(5,15,12,0)';
-    nightFill    = 'rgba(0,0,0,.45)';
-    gratStroke   = 'rgba(48,186,120,.07)';
-    labelBgCol   = 'rgba(5,15,12,1)';
-    sphereStroke = 'rgba(48,186,120,.2)';
-  }
+  var textStroke = 'transparent';
+  var nightFill = 'rgba(0,0,0,.3)';
+  var gratStroke = 'color-mix(in srgb, ' + cs.color + ' 12%, transparent)';
+  var labelBgCol = cs.backgroundColor;
+  var sphereStroke = 'color-mix(in srgb, ' + cs.color + ' 24%, transparent)';
 
   /* ── Timezone math ───────────────────────────────────────────────────── */
   function tzLocalMs(utcMs, tz) {
@@ -445,7 +430,7 @@
       return parent.append('text')
         .attr('x', x).attr('y', y)
         .attr('text-anchor', anchor || 'start')
-        .attr('font-family', 'SUSE, ui-sans-serif, sans-serif')
+        .attr('font-family', cs.fontFamily)
         .attr('font-size', size).attr('font-weight', weight || '400')
         .attr('fill', fill)
         .attr('paint-order', 'stroke')

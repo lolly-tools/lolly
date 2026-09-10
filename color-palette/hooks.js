@@ -701,8 +701,8 @@ function compute(model) {
   return _memoResult;
 }
 
-function onInit(ctx) { return compute(ctx.model); }
-function onInput(ctx) { return compute(ctx.model); }
+async function onInit(ctx) { return Object.assign({}, compute(ctx.model), await resolvedFonts()); }
+function onInput(ctx) { return onInit(ctx); }
 
 function beforeExport({ format, opts }) {
   // Clear the container background for alpha-capable raster formats so the
@@ -728,4 +728,19 @@ function exportStill(ctx) {
     var bytes = capi.paletteExportBytes(_lastSwatches, 'ase');
     return bytes && bytes.length ? { bytes: bytes, mime: 'application/octet-stream' } : null;
   } catch (e) { return null; }
+}
+
+// Carry concrete font families in the template too: headless SVG has no CSS cascade.
+async function resolvedFonts() {
+  var fonts = { _fontBrand: 'SUSE', _fontMono: 'SUSE Mono' };
+  if (host && host.tokens && host.tokens.resolve) {
+    for (var pair of [['_fontBrand', 'brand'], ['_fontMono', 'mono']]) {
+      try {
+        var value = await host.tokens.resolve('{font.' + pair[1] + '}');
+        if (Array.isArray(value)) value = value.join(', ');
+        if (typeof value === 'string' && value.trim() && value[0] !== '{') fonts[pair[0]] = value;
+      } catch (e) { /* retain the shell-served fallback face */ }
+    }
+  }
+  return fonts;
 }

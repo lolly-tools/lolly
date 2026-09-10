@@ -24,3 +24,5 @@ svg text {
 svg text.db-axis {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
 }
+
+.db-warning { font-family: var(--font-brand, system-ui); font-size: 16px; line-height: 1.4; padding: 12px; color: var(--brand-text, #16202b); background: var(--brand-surface, #fff); }

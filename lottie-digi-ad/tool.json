@@ -3,7 +3,7 @@
   "name": "Lottie Ad",
   "description": "Build animated ads from layered scenes, each carrying a Lottie motion asset, for any standard size.",
   "a11yLabel": "Animated Lottie ad with {{sceneCount}} scenes",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "engineVersion": "^1.0.0",
   "status": "community",
   "category": "designer",

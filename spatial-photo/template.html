@@ -3,7 +3,7 @@
      shell's inline-edit controls - so every click meant for the focus pick would
      also pop a camera-move dropdown over the picture. `focus` is a vector, which
      has no inline editor, so the click focuses its sidebar row and nothing else. -->
-<div class="sp-wrap" data-canvas-input="focus" data-lolly-anno="{{move}} {{amount}} {{duration}} {{fog}} {{fogAmount}} {{dof}} {{depthContrast}}">
+<div data-export-error="Pick a photo and wait for depth before exporting." class="sp-wrap" data-canvas-input="focus" data-lolly-anno="{{move}} {{amount}} {{duration}} {{fog}} {{fogAmount}} {{dof}} {{depthContrast}}">
   <canvas class="sp-canvas" id="sp-canvas" data-capture-stream></canvas>
 </div>
 <script type="application/json" id="sp-state">{{{_state}}}</script>
@@ -38,12 +38,60 @@
     window.__lollySpatial = null;
   }
 
-  function message(txt) {
-    var w = canvas && canvas.parentNode;
-    if (w) { var d = document.createElement('div'); d.className = 'sp-msg'; d.textContent = txt; w.appendChild(d); }
+  var wrap = canvas.parentElement;
+  var overlay = null, renderer = null;
+  window.__lollySpatial = { dispose: function () {
+    if (overlay) overlay.remove();
+    if (renderer) renderer.dispose();
+  } };
+  function message(txt, retry, actionLabel) {
+    if (!alive()) return;
+    wrap.setAttribute('data-export-error', txt);
+    if (overlay) overlay.remove();
+    overlay = document.createElement('div');
+    overlay.className = 'sp-status';
+    overlay.setAttribute('role', 'status');
+    overlay.setAttribute('data-export-hide', '');
+    // A sibling of the scaled artwork keeps guidance readable on a phone.
+    var stage = canvas.closest('.tool-canvas-outer') || wrap;
+    Object.assign(overlay.style, {
+      position: 'absolute', inset: '0', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '20px',
+      boxSizing: 'border-box', textAlign: 'center', zIndex: '3',
+      font: '16px/1.45 var(--font-brand, system-ui)',
+      background: 'var(--brand-surface, #ffffff)', color: 'var(--brand-text, #16202b)'
+    });
+    var label = document.createElement('p'); label.textContent = txt; overlay.appendChild(label);
+    if (retry) {
+      var button = document.createElement('button');
+      button.type = 'button'; button.textContent = actionLabel || 'Retry depth';
+      Object.assign(button.style, { font: 'inherit', padding: '10px 16px', cursor: 'pointer', border: '0', borderRadius: 'var(--radius, 12px)', background: 'var(--brand-primary, #16202b)', color: 'var(--brand-on-primary, #fff)' });
+      button.addEventListener('click', retry); overlay.appendChild(button);
+    }
+    stage.appendChild(overlay);
+  }
+  function depthReady(inst, map) {
+    if (!alive()) return;
+    if (!map || !(map.width > 0 && map.height > 0) || !map.data || map.data.length !== map.width * map.height || !map.data.every(Number.isFinite)) {
+      CACHE.map = null; CACHE.url = '';
+      message('Depth could not be read or was cancelled. Check the job details and try again.', requestDepth);
+      return;
+    }
+    try { inst.setDepth(map, true); } // Paint a complete depth frame before releasing export.
+    catch (e) { message('The depth scene could not be drawn. Reload the tool to retry.'); return; }
+    wrap.removeAttribute('data-export-error');
+    if (overlay) { overlay.remove(); overlay = null; }
+    fireReady();
   }
 
-  if (!cfg.photoUrl) { message('Pick a photo to bring it into three dimensions.'); fireReady(); return; }
+  if (!cfg.photoUrl) {
+    message('Pick a photo to bring it into three dimensions.', function () {
+      var picker = document.querySelector('.asset-picker-trigger[data-input-id="photo"]');
+      if (picker) picker.click();
+    }, 'Choose photo');
+    return;
+  }
+  message('Reading depth… You can cancel in the job panel.');
 
   var LIB = '/tools/spatial-photo/lib/spatial.js';
   function loadLib() {
@@ -82,7 +130,7 @@
   Promise.all([loadLib(), loadImage(cfg.photoUrl)]).then(function (both) {
     if (!alive()) return;
     var LollySpatial = both[0], img = both[1];
-    if (!LollySpatial || !LollySpatial.create) { message('The renderer failed to load.'); fireReady(); return; }
+    if (!LollySpatial || !LollySpatial.create) { message('The renderer failed to load. Reload this tool to retry.'); return; }
 
     var inst;
     try {
@@ -91,7 +139,6 @@
     } catch (err) {
       console.error('[spatial-photo] init error:', err);
       message(String((err && err.message) || err));
-      fireReady();
       return;
     }
 
@@ -105,25 +152,24 @@
       inst.renderLoopFrame(t01);
     };
 
-    window.__lollySpatial = { dispose: inst.dispose };
+    renderer = inst;
     wireFocusPick(inst);
 
-    /* The flat photo is on screen NOW; the scene inflates when depth lands.
+    requestDepth();
+  }).catch(function (e) {
+    console.error('[spatial-photo]', e);
+    message('That picture could not be read. Choose another photo.');
+  });
 
-       THE DEPTH SEAM (plans/160 section 7). `window.__lollyDepth` is a WEB-SHELL
-       ONLY progressive enhancement: the monocular depth model runs in the shell's
-       own worker (shells/web/src/lib/depth-{models,worker,job}.ts) behind the
-       heavy-job toast, and a tool is data - it cannot import a shell module. So
-       the shell exposes one function and this feature-detects it. Where it is
-       absent - the CLI, the Tauri shells, any host without the model - the tool
-       renders the flat photo and stays honest rather than failing. */
-    if (CACHE.url === cfg.photoUrl && CACHE.map) {
-      inst.setDepth(CACHE.map, true);
-      fireReady();
+  function requestDepth() {
+    if (!alive() || !renderer) return;
+    if (CACHE.url === cfg.photoUrl && CACHE.map) { depthReady(renderer, CACHE.map); return; }
+    var depth = window.__lollyDepth;
+    if (!depth || typeof depth.forImage !== 'function') {
+      message('Depth is unavailable in this host. Open Spatial Photo in the web app to create and export a scene.');
       return;
     }
-    var depth = window.__lollyDepth;
-    if (!depth || typeof depth.forImage !== 'function') { fireReady(); return; }
+    message('Reading depth… You can cancel in the job panel.');
     if (CACHE.url !== cfg.photoUrl || !CACHE.p) {
       CACHE.url = cfg.photoUrl;
       CACHE.map = null;
@@ -131,22 +177,17 @@
     }
     var req = CACHE.p;
     req.then(function (map) {
-      // A newer picture has already replaced this request - its result is not
-      // ours to store.
-      if (CACHE.p === req) { CACHE.p = null; CACHE.map = map || null; }
-      if (!alive() || !map) return;
-      inst.setDepth(map, false);
+      if (CACHE.p === req) {
+        CACHE.p = null; CACHE.map = map || null;
+        if (!map) CACHE.url = '';
+      }
+      if (alive()) depthReady(renderer, map);
     }, function (e) {
-      // Clear both, so asking again is a retry rather than a permanent flat photo.
       if (CACHE.p === req) { CACHE.p = null; CACHE.url = ''; }
-      // The shell's own toast owns the human message; the flat photo stands.
       console.warn('[spatial-photo] depth unavailable:', e);
-    }).then(fireReady, fireReady);
-  }).catch(function (e) {
-    console.error('[spatial-photo]', e);
-    message('That picture could not be read.');
-    fireReady();
-  });
+      if (alive()) message('Depth could not be read. Check your connection and try again.', requestDepth);
+    });
+  }
 
   /* Click the canvas to set the focus point. It writes the `focus` vector input
      through the supported DOM path (set the .vec-num fields, fire one 'input',

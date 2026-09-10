@@ -15,11 +15,11 @@
     <p class="target">{{default url "No URL set"}}</p>
     <div class="ph-actions">
       <button type="button" class="compose-btn" data-compose data-export-hide hidden>Compose visually</button>
-      <button type="button" class="preview-btn" data-preview data-busy-label="Capturing…">
+      {{#if captureAvailable}}<button type="button" class="preview-btn" data-preview data-busy-label="Capturing…">
         Click to preview
-      </button>
+      </button>{{/if}}
     </div>
-    <p class="hint">Captured live in a real browser - preview here, then Export to save. SVG gives a true vector; webm/mp4 pans a scroll of the page.</p>
+    <p class="hint">{{#if captureAvailable}}Preview the page here, then Export to save. SVG gives a true vector; webm/mp4 pans a scroll of the page.{{else}}Live capture needs the Lolly browser extension, desktop app, or CLI. Connect the extension and reload this tool to preview and export.{{/if}}</p>
   </div>
 {{#if cmpPhone}}
   <!-- The phone frame follows the desktop one in the flow, so a row lays them out
@@ -36,9 +36,9 @@
   <button type="button" class="shot-compose" data-compose data-export-hide hidden aria-label="Compose visually" title="Compose visually">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h7v7H3z"/><path d="M14 14h7v7h-7z"/><path d="M14 3h7v7h-7z" opacity=".4"/><path d="M3 14h7v7H3z" opacity=".4"/></svg>
   </button>
-  <button type="button" class="shot-refresh" data-preview data-icon-only aria-label="Re-capture the page" title="Re-capture the page">
+  {{#if captureAvailable}}<button type="button" class="shot-refresh" data-preview data-icon-only aria-label="Re-capture the page" title="Re-capture the page">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
-  </button>
+  </button>{{/if}}
 
 <script>
 (function () {

@@ -23,7 +23,7 @@
   container-type: size;
   display: flex; align-items: center; justify-content: center;
   background: transparent;
-  font-family: 'SUSE Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-family: var(--font-mono, 'SUSE Mono', ui-monospace, monospace);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -180,7 +180,7 @@
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.22);
 }
 .favx-chip figcaption {
-  font: 700 2.4cqmin/1 SUSE, ui-sans-serif, system-ui, sans-serif;
+  font: 700 2.4cqmin/1 var(--font-brand, SUSE, ui-sans-serif, system-ui, sans-serif);
   letter-spacing: 0.02em;
   color: #444;
 }

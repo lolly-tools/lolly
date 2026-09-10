@@ -519,7 +519,7 @@ async function compute(model) {
 // A hook must never throw: a failure becomes the `error` extra the sheet shows.
 async function _safe(ctx) {
   try {
-    return await compute(ctx.model);
+    return Object.assign({}, await compute(ctx.model), await resolvedFonts());
   } catch (e) {
     // The root <svg> and the background rect fill from vbW/vbH, so the error
     // result must carry them too - an empty width/height is an invalid attribute.
@@ -533,3 +533,18 @@ async function _safe(ctx) {
 
 function onInit(ctx) { return _safe(ctx); }
 function onInput(ctx) { return _safe(ctx); }
+
+// Carry concrete font families in the template too: headless SVG has no CSS cascade.
+async function resolvedFonts() {
+  var fonts = { _fontBrand: 'SUSE', _fontMono: 'SUSE Mono' };
+  if (host && host.tokens && host.tokens.resolve) {
+    for (var pair of [['_fontBrand', 'brand'], ['_fontMono', 'mono']]) {
+      try {
+        var value = await host.tokens.resolve('{font.' + pair[1] + '}');
+        if (Array.isArray(value)) value = value.join(', ');
+        if (typeof value === 'string' && value.trim() && value[0] !== '{') fonts[pair[0]] = value;
+      } catch (e) { /* retain the shell-served fallback face */ }
+    }
+  }
+  return fonts;
+}

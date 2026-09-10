@@ -127,25 +127,36 @@ async function compute(model) {
   var coverLogoScale = LOGO_SCALE[str(inputs.coverLogoSize)] || 1;
   var backLogoScale  = LOGO_SCALE[str(inputs.backLogoSize)] || 1;
 
+  // Paper uses the light brand roles even when the editor itself is dark.
+  async function role(name, fallback) {
+    if (!host || !host.tokens || !host.tokens.resolve) return fallback;
+    try { return colour(await host.tokens.resolve('{color.semantic.' + name + '}', { theme: 'light' }), fallback); }
+    catch (e) { return fallback; }
+  }
+  var primary = await role('primary', '#16202b');
+  var onPrimary = await role('on-primary', '#ffffff');
+  var paper = await role('surface', '#ffffff');
+  var paperInk = await role('text', '#16202b');
+  var paperMuted = await role('muted', '#616975');
   // Colours / theme.
-  var accent = colour(inputs.accent, '#30ba78');
+  var accent = colour(inputs.accent, primary);
 
   // Cover: the light/dark style sets the ink + logo variant; an optional custom
   // background colour overrides the style's default background.
   var coverDark = str(inputs.theme) === 'dark';
-  var coverBg  = colour(inputs.coverBg, coverDark ? '#0c322c' : '#ffffff');
-  var coverInk = coverDark ? '#ffffff' : '#0c322c';
+  var coverBg  = colour(inputs.coverBg, coverDark ? primary : paper);
+  var coverInk = coverDark ? onPrimary : paperInk;
 
-  // Content pages are always on white - the two-column grid is built for light paper.
-  var ink   = '#10231f';
-  var muted = '#5b6b66';
+  // Content pages use the light brand surface and ink.
+  var ink = paperInk;
+  var muted = paperMuted;
 
   // Back page shares the cover's light/dark style (ink + logo variant), but keeps
   // its own optional custom background so the two cards can differ in colour.
   var backDark  = coverDark;
-  var backBg    = colour(inputs.backBg, backDark ? '#0c322c' : '#ffffff');
-  var backInk   = backDark ? '#ffffff' : '#10231f';
-  var backMuted = backDark ? 'rgba(255,255,255,.72)' : '#5b6b66';
+  var backBg    = colour(inputs.backBg, backDark ? primary : paper);
+  var backInk   = backDark ? onPrimary : paperInk;
+  var backMuted = backDark ? onPrimary : paperMuted;
 
   // ── per-block row-span estimate ──────────────────────────────────────────
   function estLines(text, w, fs) {
@@ -299,7 +310,7 @@ async function compute(model) {
     '--col-gap:' + colGap + 'px', '--row-gap:' + rowGap + 'px',
     '--row-h:' + rowH + 'px',
     '--accent:' + accent,
-    '--ink:' + ink, '--muted:' + muted,
+    '--paper:' + paper, '--ink:' + ink, '--muted:' + muted,
     '--cover-bg:' + coverBg, '--cover-ink:' + coverInk,
     '--back-bg:' + backBg, '--back-ink:' + backInk, '--back-muted:' + backMuted,
     '--body-size:' + bodySize + 'px', '--heading-size:' + headingSize + 'px',

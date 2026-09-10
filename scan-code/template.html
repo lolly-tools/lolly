@@ -3,9 +3,9 @@
   {{#if (eq mode "camera")}}
   <div class="sc-viewfinder" aria-label="Camera viewfinder">
     {{#if scanFrameSrc}}
-    <svg class="sc-vf" viewBox="0 0 {{scanFrameW}} {{scanFrameH}}" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Live camera">
+    <svg class="sc-vf" data-live-preview viewBox="0 0 {{scanFrameW}} {{scanFrameH}}" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Live camera">
       <image href="{{scanFrameSrc}}" x="0" y="0" width="{{scanFrameW}}" height="{{scanFrameH}}" preserveAspectRatio="xMidYMid slice"/>
-      {{#if scanCorners}}<polygon points="{{scanCorners}}" class="sc-vf__quad"/>{{/if}}
+      <polygon points="{{scanCorners}}" class="sc-vf__quad"/>
     </svg>
     <div class="sc-vf__reticle" aria-hidden="true"></div>
     {{else}}
@@ -51,6 +51,7 @@
         {{/if}}
       </div>
 
+      <p class="sc-copy-status" role="status" aria-live="polite" data-export-hide></p>
       <p class="sc-foot">Read on this device. Nothing was uploaded.</p>
     </div>
   {{/if}}
@@ -61,17 +62,53 @@
   (function () {
     var root = document.currentScript && document.currentScript.parentElement;
     if (!root) return;
-    root.addEventListener('click', function (e) {
+    function copyFallback(value) {
+      var active = document.activeElement;
+      var input = document.createElement('textarea');
+      input.value = value;
+      input.readOnly = true;
+      input.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
+      document.body.appendChild(input);
+      try {
+        input.focus({ preventScroll: true });
+        input.select();
+        input.setSelectionRange(0, value.length);
+        return !!(document.execCommand && document.execCommand('copy'));
+      } finally {
+        input.remove();
+        if (active && active.focus) active.focus({ preventScroll: true });
+      }
+    }
+    root.addEventListener('click', async function (e) {
       var copyBtn = e.target.closest('[data-copy]');
       if (copyBtn) {
+        e.stopPropagation();
         var v = copyBtn.getAttribute('data-copy') || '';
-        try { navigator.clipboard && navigator.clipboard.writeText(v); } catch (err) {}
-        var was = copyBtn.textContent; copyBtn.textContent = 'Copied';
-        setTimeout(function () { copyBtn.textContent = was; }, 1200);
+        if (copyBtn.disabled) return;
+        var hadFocus = document.activeElement === copyBtn;
+        var status = root.querySelector('.sc-copy-status');
+        if (status) status.textContent = '';
+        copyBtn.disabled = true; copyBtn.textContent = 'Copying…';
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            try { await navigator.clipboard.writeText(v); }
+            catch (err) { if (!copyFallback(v)) throw err; }
+          } else if (!copyFallback(v)) throw new Error('Clipboard unavailable');
+          if (status) status.textContent = 'Copied';
+        } catch (err) {
+          if (status) status.textContent = 'Could not copy. Select and copy the text above, or try again.';
+        } finally {
+          copyBtn.disabled = false; copyBtn.textContent = 'Copy';
+          if (hadFocus) copyBtn.focus({ preventScroll: true });
+        }
         return;
       }
+      // Keep the native link tap in this gesture; the canvas's Source annotation
+      // must not turn a result action into a settings picker on mobile.
+      if (e.target.closest('a[data-open]')) { e.stopPropagation(); return; }
       var reveal = e.target.closest('[data-reveal]');
       if (reveal) {
+        e.stopPropagation();
         var span = reveal.parentElement.querySelector('[data-secret]');
         if (span) {
           var open = reveal.getAttribute('data-open') === '1';

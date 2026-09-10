@@ -1,37 +1,37 @@
 <div class="pl-wrap">
   <svg class="pl-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" role="img" aria-label="Palette Lab swatch sheet">
     <rect x="0" y="0" width="1600" height="1000" fill="{{paperFill}}"/>
-    <text x="56" y="84" fill="{{ink}}" font-family="SUSE, system-ui, sans-serif" font-size="42" font-weight="700">Palette Lab</text>
-    <text x="56" y="118" fill="{{ink}}" fill-opacity="0.66" class="pl-mono" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="19">{{subtitle}}</text>
+    <text x="56" y="84" fill="{{ink}}" font-family="{{@root._fontBrand}}" font-size="42" font-weight="700">Palette Lab</text>
+    <text x="56" y="118" fill="{{ink}}" fill-opacity="0.66" class="pl-mono" font-family="{{@root._fontMono}}" font-size="19">{{subtitle}}</text>
     <line x1="56" y1="134" x2="1544" y2="134" stroke="{{hairline}}" stroke-width="1.5"/>
     {{#each swatches}}
     <g>
       <rect x="56" y="{{y}}" width="400" height="{{h}}" rx="12" fill="{{paint}}"/>
-      <text x="82" y="{{nameY}}" fill="{{on}}" font-family="SUSE, system-ui, sans-serif" font-size="27" font-weight="600">{{name}}</text>
-      <text x="82" y="{{hexY}}" fill="{{on}}" fill-opacity="0.92" class="pl-mono" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="19">{{hex}}</text>
-      <text x="82" y="{{badgeY}}" fill="{{on}}" fill-opacity="0.85" font-family="SUSE, system-ui, sans-serif" font-size="15" font-weight="500">{{badges}}</text>
+      <text x="82" y="{{nameY}}" fill="{{on}}" font-family="{{@root._fontBrand}}" font-size="27" font-weight="600">{{name}}</text>
+      <text x="82" y="{{hexY}}" fill="{{on}}" fill-opacity="0.92" class="pl-mono" font-family="{{@root._fontMono}}" font-size="19">{{hex}}</text>
+      <text x="82" y="{{badgeY}}" fill="{{on}}" fill-opacity="0.85" font-family="{{@root._fontBrand}}" font-size="15" font-weight="500">{{badges}}</text>
       {{#each ramp}}
       <rect x="{{x}}" y="{{../y}}" width="{{w}}" height="{{../h}}" rx="8" fill="{{paint}}"/>
-      <text x="{{cx}}" y="{{../cellLabelY}}" fill="{{on}}" fill-opacity="0.9" class="pl-mono" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" text-anchor="middle">{{hex}}</text>
+      <text x="{{cx}}" y="{{../cellLabelY}}" fill="{{on}}" fill-opacity="0.9" class="pl-mono" font-family="{{@root._fontMono}}" font-size="13" text-anchor="middle">{{hex}}</text>
       {{/each}}
     </g>
     {{/each}}
     {{#if gridOn}}
     <line x1="56" y1="632" x2="1544" y2="632" stroke="{{hairline}}" stroke-width="1.5"/>
-    <text x="56" y="660" fill="{{ink}}" fill-opacity="0.9" font-family="SUSE, system-ui, sans-serif" font-size="21" font-weight="600">{{gridTitle}}</text>
+    <text x="56" y="660" fill="{{ink}}" fill-opacity="0.9" font-family="{{@root._fontBrand}}" font-size="21" font-weight="600">{{gridTitle}}</text>
     {{#each gridColHeads}}
     <rect x="{{x}}" y="{{y}}" width="24" height="24" rx="6" fill="{{paint}}"/>
-    <text x="{{textX}}" y="{{textY}}" fill="{{../ink}}" fill-opacity="0.8" font-family="SUSE, system-ui, sans-serif" font-size="15">{{name}}</text>
+    <text x="{{textX}}" y="{{textY}}" fill="{{../ink}}" fill-opacity="0.8" font-family="{{@root._fontBrand}}" font-size="15">{{name}}</text>
     {{/each}}
     {{#each gridRowHeads}}
     <rect x="56" y="{{y}}" width="26" height="26" rx="6" fill="{{paint}}"/>
-    <text x="92" y="{{textY}}" fill="{{../ink}}" fill-opacity="0.8" font-family="SUSE, system-ui, sans-serif" font-size="15">{{name}}</text>
+    <text x="92" y="{{textY}}" fill="{{../ink}}" fill-opacity="0.8" font-family="{{@root._fontBrand}}" font-size="15">{{name}}</text>
     {{/each}}
     {{#each gridCells}}
     <rect x="{{x}}" y="{{y}}" width="{{w}}" height="{{h}}" rx="8" fill="{{bgPaint}}"/>
     <path d="{{mark}}" transform="translate({{markX}} {{markY}})" fill="none" stroke="{{fgPaint}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="{{ratioX}}" y="{{textY}}" fill="{{fgPaint}}" class="pl-mono" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="{{rSize}}">{{ratioText}}</text>
-    <text x="{{levelX}}" y="{{textY}}" fill="{{fgPaint}}" fill-opacity="0.9" font-family="SUSE, system-ui, sans-serif" font-size="{{lSize}}" font-weight="600" text-anchor="end">{{level}}</text>
+    <text x="{{ratioX}}" y="{{textY}}" fill="{{fgPaint}}" class="pl-mono" font-family="{{@root._fontMono}}" font-size="{{rSize}}">{{ratioText}}</text>
+    <text x="{{levelX}}" y="{{textY}}" fill="{{fgPaint}}" fill-opacity="0.9" font-family="{{@root._fontBrand}}" font-size="{{lSize}}" font-weight="600" text-anchor="end">{{level}}</text>
     {{/each}}
     {{/if}}
   </svg>

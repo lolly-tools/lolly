@@ -3,7 +3,7 @@
   "name": "URL Screenshot",
   "description": "Any web page, at any scroll-depth, with custom CSS",
   "a11yLabel": "Screenshot of {{default url \"(no URL set)\"}}",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "utility",

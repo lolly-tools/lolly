@@ -3,7 +3,7 @@
   "name": "Icon",
   "description": "Favicon and app-icon maker - a multi-size .ico, PNG and SVG, or the whole app kit as one zip.",
   "a11yLabel": "Web icon labelled {{default text \"untitled\"}}",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "engineVersion": "^1.0.0",
   "status": "community",
   "category": "everyone",

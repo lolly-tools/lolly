@@ -3,7 +3,7 @@
   "name": "Booklet",
   "description": "Build a multi-page PDF - a cover, flowing content blocks, and a back page.",
   "a11yLabel": "{{default coverTitle \"Untitled\"}} - multi-page PDF document",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "designer",
