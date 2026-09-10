@@ -67,13 +67,13 @@ export const VALUE_FLAGS = new Set([
   // string "1" and then be reported as an unreadable file called "1". There is
   // deliberately no flag that takes the KEY or its passphrase: argv is visible in `ps`
   // to every user on the machine, kept in shell history, and echoed into CI logs.
-  'sign-key', 'sign-cert',
+  'sign-key', 'sign-cert', 'recipe', 'rules', 'review-file', 'choices', 'save-recipe', 'report',
 ]);
 
 /** Subcommand words a tool id may never take (contract section 1.1). `completion` is reserved
  *  now so the deferred `lolly completion <shell>` can land additively later. */
 export const RESERVED_SUBCOMMANDS = [
-  'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'assets', 'batch', 'smoke', 'validate', 'preflight',
+  'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'assets', 'batch', 'smoke', 'validate', 'preflight',
   'install-browser', 'completion', 'help', 'version',
   // The on-device model surface (plans/183): `models` owns the one command that
   // downloads a model, `speak` and `transcribe` are host.speech's two directions.

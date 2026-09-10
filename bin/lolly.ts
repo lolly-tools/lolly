@@ -45,6 +45,7 @@ Usage:
   lolly compile <tool-id> [--inputs=x.json] compile a hydrated document (JSON)
   lolly schema <tool-id>                    print its typed input JSON Schema
   lolly inspect|measure <document.json>     inspect without rasterising
+  lolly prepare <file…>                   inspect and prepare private files locally
   lolly diff <a.json> <b.json>              semantic document diff
   lolly optimize <document.json>            run named immutable stages
   lolly package <document.json> [--output]  write a portable .lolly package
@@ -222,7 +223,7 @@ process.stdout.on('error', (err: NodeJS.ErrnoException) => {
 // A raw argv scan is enough: `--json` has one spelling and no bare-value trap. The
 // command name is re-set accurately by main() once the parse succeeds; this pre-set is
 // only the fallback for a failure that happens before that.
-const RAW_VERBS = new Set(['files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'tui']);
+const RAW_VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'tui']);
 const rawFirst = args.find(a => !a.startsWith('-'));
 beginCommand(
   RAW_VERBS.has(rawFirst ?? '') ? rawFirst! : 'lolly',
@@ -236,7 +237,8 @@ try {
   // --help / -h / --version / -v are recognised ANYWHERE in argv, before anything treats
   // the token as a tool id (`lolly --help` used to print "Tool not found: --help").
   if (args.some(a => a === '--help' || a === '-h' || a === 'help')) {
-    await writeOut(USAGE);
+    if (rawFirst === 'prepare') { const { prepareCli } = await import('../src/prepare.ts'); await prepareCli([], { help: '1' }); }
+    else await writeOut(USAGE);
   } else if (args.some(a => a === '--version' || a === '-v')) {
     const { ENGINE_VERSION } = await import('@lolly/engine');
     const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')) as { version: string };
@@ -295,7 +297,7 @@ async function main(): Promise<void> {
   // before any work, so the top-level catch can name the command in a failure envelope
   // even when the throw happened before the command function was reached. A bare tool
   // id reports as `describe`/`run` - the verb it is sugar for - not as its own name.
-  const VERBS = new Set(['files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'tui']);
+  const VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'tui']);
   beginCommand(VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
 
   // Content-free binary (plans/131): the published CLI ships no tools and no catalog.
@@ -342,6 +344,12 @@ async function main(): Promise<void> {
     const toolId = positionals[1];
     if (!toolId) throw usageError('usage: lolly run <tool-id> [--flags]', 'MISSING_ARGUMENT');
     await render(toolId, flags, undefined, repeated);
+    return;
+  }
+
+  if (cmd === 'prepare') {
+    const { prepareCli } = await import('../src/prepare.ts');
+    await prepareCli(positionals.slice(1), flags);
     return;
   }
 

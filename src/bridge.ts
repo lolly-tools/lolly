@@ -521,6 +521,8 @@ export async function createCliBridge(
   // round-trip suite. Optional/additive, like host.images: a reader tool feature-
   // detects it. Zero network - the wasm is loaded from disk (see node-shell/scan).
   host.scan = createNodeScanAPI();
+  host.prepare = (await import('@lolly/engine')).createPrepareAPI();
+  host.compare = (await import('@lolly/engine')).createCompareAPI();
 
   // host.net - allowlisted fetch for tools that declared the 'network' capability,
   // built per-invocation from the loaded manifest's network.allowlist (callers thread
@@ -780,6 +782,9 @@ function rootSvgOf(node: Element | null): Element | null {
 
   host.export = {
     async render(node: Element, format: string, opts: CliExportRenderOpts = {}): Promise<Blob> {
+      const unavailable = node.matches('[data-export-error]') ? node : node.querySelector('[data-export-error]');
+      // HTML is the runnable template, not a captured result.
+      if (format !== 'html' && unavailable) throw new Error(unavailable.getAttribute('data-export-error') || 'The tool is not ready to export.');
       // Data/text formats: the engine already hydrated the payload (JSON from the
       // model, ICS/VCF/CSV from a sibling text template). The host just wraps it.
       if (opts.dataText !== undefined) {
