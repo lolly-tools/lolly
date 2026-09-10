@@ -20,14 +20,14 @@
  *                                  checkpoint only - Base/Large are CC-BY-NC and
  *                                  disqualified, see lib/depth-models.ts)
  *
- * ── THE LICENCE + ARTIFACT GATES (worked 2026-08-26; re-work for any change) ─
+ * ── THE LICENCE + ARTIFACT GATES (worked 2026-09-10; re-work for any change) ─
  * As fetch-matte-models.ts's header, verbatim: (1) upstream licence covers the
  * WEIGHTS - Depth-Anything-V2 publishes the Small checkpoint under Apache-2.0
  * (Base/Large CC-BY-NC-4.0); (2) the mirror's provenance - onnx-community's
  * transformers.js export, repo card licensed apache-2.0; (3) real byte size +
  * sha256 recorded below; (4) loaded and RUN in onnxruntime (wasm-class CPU
  * path); (5) graph inspected: input `pixel_values` f32 dynamic [1,3,H,W] run at
- * 518x518, one output [1,H,W]; (6) output confirmed empirically as relative
+ * rectangular /14 inputs, one output [1,H,W]; (6) output confirmed empirically as relative
  * INVERSE depth (near = larger), min-max normalised by the worker.
  *
  * ── Integrity ────────────────────────────────────────────────────────────────
@@ -62,13 +62,13 @@ interface Pin {
 
 const PINS: Record<string, Pin> = {
   'depth-anything-v2-small.onnx': {
-    url: 'https://huggingface.co/onnx-community/depth-anything-v2-small/resolve/main/onnx/model_quantized.onnx',
-    sha256: PLACEHOLDER,
-    bytes: null,
+    url: 'https://huggingface.co/onnx-community/depth-anything-v2-small/resolve/4472b7362082ad9968fee890ca0f1e5aca36b93d/onnx/model_quantized.onnx',
+    sha256: 'fcf51f1b230362b28690bb9d1809bf0431f29cad20534e3f589bd7285547f20d',
+    bytes: 27_258_801,
     license: 'Apache-2.0',
     source: 'https://github.com/DepthAnything/Depth-Anything-V2 (upstream; the Small checkpoint is Apache-2.0); ONNX by onnx-community/depth-anything-v2-small',
     copyright: 'Copyright (c) 2024, Lihe Yang et al. (Depth Anything V2)',
-    note: 'Relative inverse depth (disparity), ViT-S/14 head run at 518x518, ImageNet norm. Quantised export for the ~25 MB one-time download.',
+    note: 'Verified 2026-09-10 against upstream LFS SHA-256 and CPU inference: pixel_values float32 [1,3,518,518] → predicted_depth [1,518,518]. Relative inverse depth, ImageNet norm. 27,258,801-byte quantised export.',
   },
 };
 

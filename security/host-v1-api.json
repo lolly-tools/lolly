@@ -5,7 +5,7 @@
     "HOST_V1_OPTIONAL_APIS": {
       "module": "apis.ts",
       "kind": "FirstStatement",
-      "sha256": "0107bff60840d685d7389145f04cad08585ce6477fe1d8297007766e9e4b118c"
+      "sha256": "22e9287189cda12564bf8dcdedce20528b869dd9557489c45a8836422bd4413e"
     },
     "HostApiName": {
       "module": "apis.ts",
@@ -232,6 +232,76 @@
       "kind": "InterfaceDeclaration",
       "sha256": "9a51bf7f7427feddcd7532de6d1afc39d0818bf4c8b12e7858214a5e8c77aaef"
     },
+    "ComparisonIdentity": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "b0bdcfd47bc120951b3bdb7a5f8f4f43741afde67fd822463ac22cc5e643c225"
+    },
+    "ComparisonSource": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "102abfc69486d6468baa6af2d7cb12474ebe7d15b0a4d16627323de047fcb662"
+    },
+    "ComparisonOptions": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "7d4f669a21275071943b2a7b521e3a97842e448bb4f92865fa12fe3e4b938012"
+    },
+    "ComparisonRequest": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "539fabdd0f5140d04b8ce5ce1b83ef36319944cf9aadf60c922288b2d70fe515"
+    },
+    "ComparisonLocation": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "3127fa994e56e1ac7ee26e5e4f26b71fafa13bf70f0045d38a3595c4fedfbc91"
+    },
+    "ComparisonChange": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "8d10370c3ef3504520220c4b73612171c98619eb8990cd832e8e9251c240ada1"
+    },
+    "ComparisonResult": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "481b05aaeafe975852926a1ea32351bd82f6c9b8632dda6f1ce095a56fb558bd"
+    },
+    "CompareAPI": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "058d8857c076559e4dddf72c33a1162c4715f343516027dcf2bebee3751c344d"
+    },
+    "VisualComparisonPage": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "f1c32148cb89ec859d8bb6abc37609490c8ed2cb3c397cf3176ff20233f2900a"
+    },
+    "VisualComparisonSource": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "14b4c4cc54c2a75dff2a0d9b030624939f3fb326b268c75027ce1e9d8bbd26ad"
+    },
+    "VisualComparisonOptions": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a02795369e7de973dc66e540964bce6ecf1921f33442ec5306c3803c95fd7135"
+    },
+    "VisualComparisonRequest": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "ef61f7aace8f5fe7ced3fe34cac5d89ce0b2366f9243aac46a3b9c53ad52f083"
+    },
+    "VisualPageDifference": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "bf1f5f79699d838251e65cc1273f1b05d01aa8a7e3d3c0e71a848c6c7a397fa1"
+    },
+    "VisualComparisonResult": {
+      "module": "compare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "17a3d250e28086253782b072bc4667d5e6def078da0ad386e36ce6c85ac88fc7"
+    },
     "ComposeAPI": {
       "module": "compose.ts",
       "kind": "InterfaceDeclaration",
@@ -405,7 +475,7 @@
     "HostV1": {
       "module": "host.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "28e2f470c701ee23017ea96ea6e6b6e1a6b2e33744ce5ba665f6c9e718324000"
+      "sha256": "c8c5821811bc1a6b063a4b006304edf8c8f2661bd66010995cd7621cf35e1ba7"
     },
     "Capability": {
       "module": "host.ts",
@@ -585,7 +655,7 @@
     "PdfAPI": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "55e59d9cbd4fdaebe137b36057e806701874e9125ae25707e83faf05f09eb88a"
+      "sha256": "dfc0e92a1e7015980d63f7302779e7038c64c295f4396a3fe2f3bac76036e102"
     },
     "PdfPageOperation": {
       "module": "pdf.ts",
@@ -660,7 +730,7 @@
     "PdfPageSvg": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "c0a1892b3b3f197bd073eaf1c2e8dad0ef5dac473a379a03b4b37bb9f176f5c1"
+      "sha256": "c3d620a3a27fb1734093c891a0403b38db7c7774626c26c65c22e4db0040d389"
     },
     "PdfPagesResult": {
       "module": "pdf.ts",
@@ -727,6 +797,66 @@
       "kind": "InterfaceDeclaration",
       "sha256": "c7ebae0ba8f394a00333c20dcc9111749ba3fdf8cd1add4147cad22536695334"
     },
+    "PreparationSource": {
+      "module": "prepare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "5652718ae75b2c5bcdd84d12aebdd9c8963e08ba8bd1a733e9b108c41d760a40"
+    },
+    "PreparationRule": {
+      "module": "prepare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "97d4ec4521eb5376d0199eaef0003446183b76d409455b741d2ed06029b9840b"
+    },
+    "PreparationRecipe": {
+      "module": "prepare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "4c2c156341bb517e6cd0a0d5421ca2404b83cd79cc11fff8960eb491021a2f35"
+    },
+    "PreparationScope": {
+      "module": "prepare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a1f85ab218dd44162339d65be07bc966b6eb475cee9c705798ccfcade9ee5cdc"
+    },
+    "PreparationFinding": {
+      "module": "prepare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "7362563e4d9bb7cbcd1c95e4eb2e8b98071d155e217699972fb1ae094fbdbc79"
+    },
+    "PreparationGroup": {
+      "module": "prepare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "69db8966c31917264d36aa980a115b487b8bc3fa5d66bc81a65d5c4fc4bdfbdb"
+    },
+    "PreparationInspection": {
+      "module": "prepare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "f77b97e09d9445409151233175cda17f3b9ab1b1ce458f066dc202c9578c81de"
+    },
+    "PreparationChoice": {
+      "module": "prepare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "45be4f65608776a560d4d775f0a43ce1f3aa8c30fd3fd70d3a677b0a0cbe8cd0"
+    },
+    "PreparationReport": {
+      "module": "prepare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "f374bea869224a8ec9dc44cae68affbff7dc03ca84b98859beca6fdb772b32f2"
+    },
+    "PreparationResult": {
+      "module": "prepare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "38e31d9734a42ff78b3778a0f306e8d86328722fc32d3633e9a105ea8c6a8117"
+    },
+    "PrepareAPI": {
+      "module": "prepare.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a3fe745c794adc21f5c782844349a2b469399c26a8b750b9cd1a28ce81e52788"
+    },
+    "UserTemplateRecord": {
+      "module": "profile.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "f092e9ed9e50e0cee8a24768730c23f8a518e07859cc1358c50810eec02e2f8c"
+    },
     "ProfileAPI": {
       "module": "profile.ts",
       "kind": "InterfaceDeclaration",
@@ -735,7 +865,7 @@
     "Profile": {
       "module": "profile.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "eca483f2b82adf7c71717c7bfe17c8a638fbdce16b25ffd8f8605a4f28479c87"
+      "sha256": "f6253fd8a8a54ec4d1ed16f0e4a4000fe682bb37681bfb7ab35f03ddc73eb22f"
     },
     "RasterAPI": {
       "module": "raster.ts",

@@ -569,6 +569,30 @@
         "fuzzCoverage": "`watermark-analysis`",
         "notes": "The view count and bit width are enforced before pairwise allocation; this is also a correctness boundary because the threshold is calibrated only for 4x256. Wrong/ragged shapes return the safe negative result."
       }
+    },
+    "engine/src/prepare-document.ts": {
+      "fuzzTargets": [
+        "prepare"
+      ],
+      "details": {
+        "inputSource": "Local text, JSON, YAML, HAR and nested ZIP preparation sources",
+        "bounds": "32 MiB per input, 64 MiB total and expanded bytes, 1 MiB text, 300 scopes, 20,000 structured nodes/units, 64 structured levels and three archive levels; aliases never expand",
+        "directTests": "`tests/prepare.test.ts`",
+        "fuzzCoverage": "`prepare` (inspection plus selected replacements)",
+        "notes": "Unsupported, encrypted, malformed and over-budget content is reported as uninspected and retained. ZIP member reframing preserves unknown compressed bytes. YAML parse errors do not expose source snippets."
+      }
+    },
+    "engine/src/prepare-text.ts": {
+      "fuzzTargets": [
+        "prepare"
+      ],
+      "details": {
+        "inputSource": "Decoded preparation scalars, log text, HAR bodies and bounded declarative local rules",
+        "bounds": "1 MiB text per value, 2,000 findings per job, 100 rules with 256-character values, 4,096-character replacements; no executable rules",
+        "directTests": "`tests/prepare.test.ts`",
+        "fuzzCoverage": "`prepare` (inspection plus selected replacements)",
+        "notes": "Patterns suggest credentials and personal data locally. Replacements are bound to source hashes and freshly derived locations. Private maps are excluded from summary reports."
+      }
     }
   }
 }

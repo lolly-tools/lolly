@@ -98,18 +98,8 @@ export const ML_MODEL_FILES: Record<MlModelFamily, MlFamilyPins> = {
     ],
   },
   depth: {
-    files: [],
-    // scripts/fetch-depth-models.ts holds one entry and its sha256 is still the
-    // PLACEHOLDER string, so nothing was ever verified and nothing was ever
-    // published: /models/depth/depth-anything-v2-small.onnx answers 404. A
-    // --refresh-pins candidate does sit at /models/depth/.candidates/, which is
-    // deliberately not the served path - an unverified 26 MB ONNX must not be
-    // reachable by the name the runtime loads. Registering the family with an
-    // empty file list is what turns `lolly models fetch depth` into an honest
-    // refusal rather than a download that 404s halfway.
-    unpublished:
-      'no depth model is published yet: scripts/fetch-depth-models.ts still carries a PLACEHOLDER pin for '
-      + 'depth-anything-v2-small.onnx, so there is nothing verified to download. The candidate under '
-      + 'models/depth/.candidates/ is deliberately not served under the name the runtime loads.',
+    files: [
+      { path: 'depth-anything-v2-small.onnx', bytes: 27_258_801, sha256: 'fcf51f1b230362b28690bb9d1809bf0431f29cad20534e3f589bd7285547f20d' },
+    ],
   },
 };

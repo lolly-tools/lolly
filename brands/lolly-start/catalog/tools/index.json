@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-08T21:26:26.127Z",
+  "generatedAt": "2026-09-10T08:49:18.442Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1161,7 +1161,7 @@
       "id": "text-helper",
       "name": "Text Helper",
       "description": "Format, decode, hash and de-identify text - JSON, JWT and more.",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -1306,7 +1306,7 @@
       "id": "url-shot",
       "name": "URL Screenshot",
       "description": "Any web page, at any scroll-depth, with custom CSS",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "status": "official",
       "category": "utility",
       "capabilities": [
@@ -1625,7 +1625,7 @@
       "id": "color-palette",
       "name": "Palette Lab",
       "description": "Grow a palette from one seed colour - harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export.",
-      "version": "2.3.2",
+      "version": "2.3.3",
       "status": "community",
       "category": "utility",
       "tags": [
@@ -4825,7 +4825,7 @@
       "id": "lottie-digi-ad",
       "name": "Lottie Ad",
       "description": "Build animated ads from layered scenes, each carrying a Lottie motion asset, for any standard size.",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -4970,7 +4970,7 @@
       "id": "multi-page-pdf",
       "name": "Booklet",
       "description": "Build a multi-page PDF - a cover, flowing content blocks, and a back page.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -5536,7 +5536,7 @@
       "id": "contrast-check",
       "name": "Contrast",
       "description": "Check a text and background pair, or every pairing in your brand palette, against WCAG 2.1 and APCA, and see how it reads to colour-blind viewers.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "status": "community",
       "category": "utility",
       "tags": [
@@ -8025,7 +8025,7 @@
       "id": "spatial-photo",
       "name": "Spatial Photo",
       "description": "Drop in one photo and move a camera through it: depth is read on your device, so a flat picture becomes a scene with real parallax, atmosphere and focus.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "status": "experimental",
       "category": "designer",
       "tags": [
@@ -8165,7 +8165,7 @@
       "id": "scan-code",
       "name": "Scan",
       "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "experimental",
       "category": "utility",
       "tags": [
@@ -9786,7 +9786,7 @@
       "id": "icon",
       "name": "Icon",
       "description": "Favicon and app-icon maker - a multi-size .ico, PNG and SVG, or the whole app kit as one zip.",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "status": "community",
       "category": "everyone",
       "capabilities": [
@@ -10770,7 +10770,7 @@
       "id": "diagram-builder",
       "name": "Diagrams",
       "description": "Org charts, flowcharts, timelines and more - from cards, text, Mermaid, DOT or CSV.",
-      "version": "1.7.2",
+      "version": "1.7.3",
       "status": "experimental",
       "category": "everyone",
       "tags": [
@@ -12515,7 +12515,7 @@
       "id": "meeting-planner",
       "name": "Meeting Planner",
       "description": "Plan a global meeting and see the time for every teammate's timezone.",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "status": "official",
       "category": "event",
       "tags": [

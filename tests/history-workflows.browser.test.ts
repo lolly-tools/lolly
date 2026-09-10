@@ -34,7 +34,7 @@ test('milestones, comparison, filters and bounded paging work in the History pan
     await page.locator('.revision-history-entry strong', { hasText: 'Launch approved' }).waitFor();
     await page.locator('.revision-history-entry').nth(0).getByRole('checkbox', { name: 'Compare', exact: true }).check();
     await page.locator('.revision-history-entry').nth(1).getByRole('checkbox', { name: 'Compare', exact: true }).check();
-    await page.getByText('1 value changed', { exact: true }).waitFor();
+    await page.getByText('1 change found', { exact: true }).waitFor();
     assert.equal(await page.locator('.revision-history-comparison-pair figure').count(), 2);
     const shots = new URL('../plans/221-history-mockups/', import.meta.url); await mkdir(shots, { recursive: true });
     await page.screenshot({ path: fileURLToPath(new URL('build-history-workflows.png', shots)) });

@@ -568,6 +568,8 @@ var init_tool_schema = __esm({
               "tokens",
               "text",
               "pdf",
+              "prepare",
+              "compare",
               "pptx",
               "capture",
               "compose",
@@ -2148,6 +2150,40 @@ var init_tool_schema = __esm({
             values: {
               type: "object",
               description: "Map of input id -> value read directly into the fresh session - the same shape URL params resolve to, and the same shape a `default` composition uses. Authored in the EXTERNAL per-template file tools/<id>/templates/<tid>.json (not the synced index, which carries metadata only). Any size (a free-canvas `boxes` array can be many KB), because it is fetched on demand and seeded in-process, never serialised into a URL."
+            },
+            presets: {
+              type: "array",
+              description: "Curated variants INSIDE this template - each one a values overlay merged over the template's base `values` (shallow, per input id, the preset wins). Deep-linked as `?template=<tid>&preset=<pid>`. Same two shapes as the template itself: the external file carries each overlay's `values`, the synced index carries id/name/description only.",
+              items: {
+                $ref: "#/$defs/templatePreset"
+              }
+            }
+          }
+        },
+        templatePreset: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "id",
+            "name"
+          ],
+          description: "One curated variant of a template: a values overlay merged over the template base.",
+          properties: {
+            id: {
+              type: "string",
+              description: "Stable id, unique within this template's `presets[]`. Addressable via the reserved `?preset=<id>` param, so treat it as a permanent contract."
+            },
+            name: {
+              type: "string",
+              description: "Display name shown on the preset chip."
+            },
+            description: {
+              type: "string",
+              description: "Optional one-line description shown beside the name."
+            },
+            values: {
+              type: "object",
+              description: "The overlay merged over the template's base `values` - only the input ids this variant changes, each carrying a FULL replacement value (a blocks array is replaced whole, never merged element-wise). Lives in the external template file; the synced index strips it."
             }
           }
         }
@@ -2865,11 +2901,11 @@ function canonicalJson(value) {
   if (Array.isArray(value)) {
     return "[" + value.map((v) => canonicalJson(v)).join(",") + "]";
   }
-  const record2 = value;
+  const record3 = value;
   const parts = [];
-  for (const key of Object.keys(record2).sort()) {
-    if (record2[key] === void 0) continue;
-    parts.push(JSON.stringify(key) + ":" + canonicalJson(record2[key]));
+  for (const key of Object.keys(record3).sort()) {
+    if (record3[key] === void 0) continue;
+    parts.push(JSON.stringify(key) + ":" + canonicalJson(record3[key]));
   }
   return "{" + parts.join(",") + "}";
 }
@@ -2978,7 +3014,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.186.0";
+    ENGINE_VERSION = "1.190.0";
   }
 });
 
@@ -6774,12 +6810,12 @@ function safeFileName(name, fallback = "file") {
   const clean2 = (value) => value.normalize("NFC").replace(/\\/g, "/").split("/").pop().replace(/[\u0000-\u001f\u007f-\u009f<>:"|?*]/g, "-").replace(/[\u202a-\u202e\u2066-\u2069]/g, "").trim().replace(/[. ]+$/, "");
   let base = clean2(name) || clean2(fallback) || "file";
   if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(base)) base = `_${base}`;
-  const encoder4 = new TextEncoder();
-  if (encoder4.encode(base).length > 220) {
+  const encoder5 = new TextEncoder();
+  if (encoder5.encode(base).length > 220) {
     const dot = base.lastIndexOf(".");
     const ext = dot > 0 && base.length - dot <= 16 ? base.slice(dot) : "";
     const chars = [...ext ? base.slice(0, dot) : base];
-    while (chars.length && encoder4.encode(chars.join("") + ext).length > 220) chars.pop();
+    while (chars.length && encoder5.encode(chars.join("") + ext).length > 220) chars.pop();
     base = chars.join("") + ext;
   }
   return base;
@@ -6936,7 +6972,9 @@ var init_apis = __esm({
       "raster",
       "geom",
       "connectors",
-      "c2pa"
+      "c2pa",
+      "prepare",
+      "compare"
     ];
   }
 });
@@ -7109,6 +7147,20 @@ var init_profile = __esm({
   }
 });
 
+// packages/core/src/host-v1/prepare.ts
+var init_prepare = __esm({
+  "packages/core/src/host-v1/prepare.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/compare.ts
+var init_compare = __esm({
+  "packages/core/src/host-v1/compare.ts"() {
+    "use strict";
+  }
+});
+
 // packages/core/src/host-v1/raster.ts
 var init_raster = __esm({
   "packages/core/src/host-v1/raster.ts"() {
@@ -7212,6 +7264,8 @@ var init_host_v1 = __esm({
     init_pdf();
     init_pptx();
     init_profile();
+    init_prepare();
+    init_compare();
     init_raster();
     init_recorder();
     init_scan();
@@ -9073,6 +9127,8 @@ var init_tool_url = __esm({
       "multi",
       "convert",
       "data",
+      "prepare",
+      "compare",
       "script",
       "join",
       "join-reply",
@@ -9476,11 +9532,11 @@ function voidElement(span) {
   }
   return null;
 }
-function seekHeadEntrySplice(bytes, scan, seekId, pos) {
-  const i = scan.elements.findIndex((e) => e.id === SEEKHEAD && !e.unknown);
+function seekHeadEntrySplice(bytes, scan2, seekId, pos) {
+  const i = scan2.elements.findIndex((e) => e.id === SEEKHEAD && !e.unknown);
   if (i < 0) return null;
-  const sh = scan.elements[i];
-  const voidEl = scan.elements[i + 1];
+  const sh = scan2.elements[i];
+  const voidEl = scan2.elements[i + 1];
   if (!voidEl || voidEl.id !== VOID || voidEl.unknown) return null;
   const shPayload = sh.off + sh.idWidth + sh.sizeWidth;
   if (readId(bytes, shPayload)?.value === CRC32) return null;
@@ -9514,10 +9570,10 @@ function embedWebmMeta(bytes, tags) {
   if (!segSize) return bytes;
   if (segSize.unknown) {
     const payloadStart2 = segOff + SEGMENT_ID.length + segSize.width;
-    const scan2 = scanSegmentChildren(bytes, payloadStart2, bytes.length);
-    const indexed = scan2?.elements.some((e) => e.id === SEEKHEAD || e.id === CUES);
-    if (scan2?.firstCluster && !indexed) {
-      const at = scan2.firstCluster.off;
+    const scan3 = scanSegmentChildren(bytes, payloadStart2, bytes.length);
+    const indexed = scan3?.elements.some((e) => e.id === SEEKHEAD || e.id === CUES);
+    if (scan3?.firstCluster && !indexed) {
+      const at = scan3.firstCluster.off;
       return concat(bytes.subarray(0, at), tagsEl, bytes.subarray(at));
     }
     return concat(bytes, tagsEl);
@@ -9527,8 +9583,8 @@ function embedWebmMeta(bytes, tags) {
   if (segEnd > bytes.length) return bytes;
   const patched = writeVint(segSize.value + tagsEl.length, segSize.width);
   if (!patched) return bytes;
-  const scan = scanSegmentChildren(bytes, payloadStart, segEnd);
-  const splice = scan ? seekHeadEntrySplice(bytes, scan, ID_TAGS, segSize.value) : null;
+  const scan2 = scanSegmentChildren(bytes, payloadStart, segEnd);
+  const splice = scan2 ? seekHeadEntrySplice(bytes, scan2, ID_TAGS, segSize.value) : null;
   const payload = splice ? concat(bytes.subarray(payloadStart, splice.start), splice.bytes, bytes.subarray(splice.end, segEnd)) : bytes.subarray(payloadStart, segEnd);
   return concat(
     bytes.subarray(0, segOff + SEGMENT_ID.length),
@@ -9803,9 +9859,9 @@ function scanJpegSegments(bytes) {
   return { segments, sos, eoi, trailerStart, truncated: eoi === null };
 }
 function findJpegSegments(bytes, marker, appId) {
-  const scan = scanJpegSegments(bytes);
-  if (!scan) return [];
-  return scan.segments.filter((s) => s.marker === marker && (appId === void 0 || s.appId === appId));
+  const scan2 = scanJpegSegments(bytes);
+  if (!scan2) return [];
+  return scan2.segments.filter((s) => s.marker === marker && (appId === void 0 || s.appId === appId));
 }
 function findJpegSegment(bytes, marker, appId) {
   return findJpegSegments(bytes, marker, appId)[0] ?? null;
@@ -9842,8 +9898,8 @@ function prepare(seg) {
 function insertJpegSegments(bytes, newSegments, opts = {}) {
   try {
     if (!bytes || !newSegments.length) return bytes;
-    const scan = scanJpegSegments(bytes);
-    if (!scan) return bytes;
+    const scan2 = scanJpegSegments(bytes);
+    if (!scan2) return bytes;
     const prepared2 = [];
     for (const s of newSegments) {
       const p = prepare(s);
@@ -9851,7 +9907,7 @@ function insertJpegSegments(bytes, newSegments, opts = {}) {
       prepared2.push(p);
     }
     const head2 = [];
-    for (const s of scan.segments) {
+    for (const s of scan2.segments) {
       if (s.marker === 218) break;
       head2.push(s);
     }
@@ -9939,9 +9995,9 @@ function patchMpfEntries(bytes, images) {
 }
 function repairMpfOffsets(bytes) {
   try {
-    const scan = scanJpegSegments(bytes);
-    if (!scan || scan.trailerStart === null) return bytes;
-    const trailer = scan.trailerStart;
+    const scan2 = scanJpegSegments(bytes);
+    if (!scan2 || scan2.trailerStart === null) return bytes;
+    const trailer = scan2.trailerStart;
     if (bytes[trailer] !== 255 || bytes[trailer + 1] !== 216) return bytes;
     const out = new Uint8Array(bytes);
     const ok3 = patchMpfEntries(out, [
@@ -10654,27 +10710,27 @@ function placeWebm(webm, manifest) {
   const attach = c2paAttachment(manifest);
   const payloadStart = segOff + SEGMENT_ID.length + segSize.width;
   if (segSize.unknown) {
-    const scan2 = scanSegmentChildren(webm, payloadStart, webm.length);
-    if (!scan2) throw new Error("C2PA embed: malformed Matroska Segment");
-    const restStart = scan2.firstCluster && !scan2.firstCluster.unknown ? scan2.firstCluster.off + scan2.firstCluster.idWidth + scan2.firstCluster.sizeWidth + scan2.firstCluster.size : -1;
+    const scan3 = scanSegmentChildren(webm, payloadStart, webm.length);
+    if (!scan3) throw new Error("C2PA embed: malformed Matroska Segment");
+    const restStart = scan3.firstCluster && !scan3.firstCluster.unknown ? scan3.firstCluster.off + scan3.firstCluster.idWidth + scan3.firstCluster.sizeWidth + scan3.firstCluster.size : -1;
     const restIds = restStart >= 0 ? scanIdsTolerant(webm, restStart, webm.length) : [];
-    if ([...scan2.elements.map((e) => e.id), ...restIds].some((id) => id === SEEKHEAD || id === CUES)) {
+    if ([...scan3.elements.map((e) => e.id), ...restIds].some((id) => id === SEEKHEAD || id === CUES)) {
       throw new Error("C2PA embed: unsupported Matroska shape (unknown-size Segment with an index)");
     }
-    if (scan2.elements.some((e) => e.id === ATTACHMENTS_NUM && !isC2paAttachments(webm, e))) {
+    if (scan3.elements.some((e) => e.id === ATTACHMENTS_NUM && !isC2paAttachments(webm, e))) {
       throw new Error("C2PA embed: Matroska file already has attachments");
     }
-    const lastEl = scan2.elements[scan2.elements.length - 1];
-    if (!scan2.firstCluster && lastEl) {
+    const lastEl = scan3.elements[scan3.elements.length - 1];
+    if (!scan3.firstCluster && lastEl) {
       const lastEnd = lastEl.off + lastEl.idWidth + lastEl.sizeWidth + lastEl.size;
       if (lastEl.unknown || lastEnd > webm.length) {
         throw new Error("C2PA embed: unsupported Matroska shape (unmeasurable Segment tail)");
       }
     }
-    const prior = scan2.elements.find((e) => isC2paAttachments(webm, e));
+    const prior = scan3.elements.find((e) => isC2paAttachments(webm, e));
     const dropStart = prior ? prior.off : -1;
     const dropEnd = prior ? prior.off + prior.idWidth + prior.sizeWidth + prior.size : -1;
-    const at = scan2.firstCluster ? scan2.firstCluster.off : webm.length;
+    const at = scan3.firstCluster ? scan3.firstCluster.off : webm.length;
     if (prior && dropEnd > at) throw new Error("C2PA embed: cannot replace existing Matroska credential");
     const before = prior ? concatBytes([webm.subarray(0, dropStart), webm.subarray(dropEnd, at)]) : webm.subarray(0, at);
     return {
@@ -10701,9 +10757,9 @@ function placeWebm(webm, manifest) {
   }
   const patched = writeVint(payloadLen + attach.length, segSize.width);
   if (!patched) throw new Error("C2PA embed: Segment size does not fit its VINT width");
-  const scan = scanSegmentChildren(bytes, payloadStart, segEnd);
-  const hasEntry = scan && seekHeadHasEntry(bytes, scan, ID_ATTACHMENTS);
-  const splice = scan && !hasEntry ? seekHeadEntrySplice(bytes, scan, ID_ATTACHMENTS, payloadLen) : null;
+  const scan2 = scanSegmentChildren(bytes, payloadStart, segEnd);
+  const hasEntry = scan2 && seekHeadHasEntry(bytes, scan2, ID_ATTACHMENTS);
+  const splice = scan2 && !hasEntry ? seekHeadEntrySplice(bytes, scan2, ID_ATTACHMENTS, payloadLen) : null;
   const payload = splice ? concatBytes([bytes.subarray(payloadStart, splice.start), splice.bytes, bytes.subarray(splice.end, segEnd)]) : bytes.subarray(payloadStart, segEnd);
   const out = concatBytes([
     bytes.subarray(0, segOff + SEGMENT_ID.length),
@@ -10752,8 +10808,8 @@ function readIdAt(bytes, off, end) {
   for (let i = 0; i < width; i++) value = value * 256 + bytes[off + i];
   return { width, value };
 }
-function seekHeadHasEntry(bytes, scan, seekId) {
-  const sh = scan.elements.find((e) => e.id === SEEKHEAD && !e.unknown);
+function seekHeadHasEntry(bytes, scan2, seekId) {
+  const sh = scan2.elements.find((e) => e.id === SEEKHEAD && !e.unknown);
   if (!sh) return false;
   const start = sh.off + sh.idWidth + sh.sizeWidth;
   const end = start + sh.size;
@@ -15366,7 +15422,8 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   const composeMemo = /* @__PURE__ */ new Map();
   let setInputSeq = 0;
   const profile = await host.profile.get();
-  const profileValues = { ...profile };
+  const { userTemplates: _templates, ...profileValues } = profile;
+  void _templates;
   let model2 = buildInputModel(tool.manifest, { profile: profileValues, initial: initialState });
   const inputIds = new Set(model2.map((i) => i.id));
   const hookErrors = [];
@@ -16991,11 +17048,11 @@ function revBits(code, len2) {
 }
 function tokenize(data, lazy, maxChain) {
   const n2 = data.length;
-  const tokens = new Uint32Array(n2);
+  const tokens2 = new Uint32Array(n2);
   let count2 = 0;
   if (n2 < MIN_MATCH + 1) {
-    for (let i2 = 0; i2 < n2; i2++) tokens[count2++] = data[i2];
-    return { tokens, count: count2 };
+    for (let i2 = 0; i2 < n2; i2++) tokens2[count2++] = data[i2];
+    return { tokens: tokens2, count: count2 };
   }
   const head2 = new Int32Array(HASH_SIZE).fill(-1);
   const prev = new Int32Array(n2);
@@ -17043,13 +17100,13 @@ function tokenize(data, lazy, maxChain) {
     }
     if (havePrev) {
       if (mLen > prevLen) {
-        tokens[count2++] = data[i - 1];
+        tokens2[count2++] = data[i - 1];
         prevLen = mLen;
         prevDist = mDist;
         i++;
         continue;
       }
-      tokens[count2++] = 1073741824 | prevDist << 8 | prevLen - MIN_MATCH;
+      tokens2[count2++] = 1073741824 | prevDist << 8 | prevLen - MIN_MATCH;
       const end = Math.min(i - 1 + prevLen, hashLimit + 1);
       for (let j = i + 1; j < end; j++) insert(j);
       i = i - 1 + prevLen;
@@ -17064,20 +17121,20 @@ function tokenize(data, lazy, maxChain) {
         i++;
         continue;
       }
-      tokens[count2++] = 1073741824 | mDist << 8 | mLen - MIN_MATCH;
+      tokens2[count2++] = 1073741824 | mDist << 8 | mLen - MIN_MATCH;
       const end = Math.min(i + mLen, hashLimit + 1);
       for (let j = i + 1; j < end; j++) insert(j);
       i += mLen;
     } else {
-      tokens[count2++] = data[i];
+      tokens2[count2++] = data[i];
       i++;
     }
   }
-  return { tokens, count: count2 };
+  return { tokens: tokens2, count: count2 };
 }
-function writeTokens(w, tokens, count2) {
+function writeTokens(w, tokens2, count2) {
   for (let t = 0; t < count2; t++) {
-    const tok = tokens[t];
+    const tok = tokens2[t];
     if (tok < 256) {
       w.writeBits(FIXED_LIT_CODE[tok], FIXED_LIT_BITS[tok]);
     } else {
@@ -17093,10 +17150,10 @@ function writeTokens(w, tokens, count2) {
   }
   w.writeBits(FIXED_LIT_CODE[256], FIXED_LIT_BITS[256]);
 }
-function fixedCost(tokens, count2) {
+function fixedCost(tokens2, count2) {
   let bits = 3 + FIXED_LIT_BITS[256];
   for (let t = 0; t < count2; t++) {
-    const tok = tokens[t];
+    const tok = tokens2[t];
     if (tok < 256) {
       bits += FIXED_LIT_BITS[tok];
     } else {
@@ -17111,15 +17168,15 @@ function deflateRaw(data, opts) {
   const n2 = data.length;
   const lazy = opts?.lazy !== false;
   const maxChain = Math.max(1, opts?.maxChain ?? 128);
-  const { tokens, count: count2 } = tokenize(data, lazy, maxChain);
-  const fixedBytes = Math.ceil(fixedCost(tokens, count2) / 8);
+  const { tokens: tokens2, count: count2 } = tokenize(data, lazy, maxChain);
+  const fixedBytes = Math.ceil(fixedCost(tokens2, count2) / 8);
   const storedBlocks = Math.max(1, Math.ceil(n2 / STORED_MAX));
   const storedBytes = n2 + 5 * storedBlocks;
   if (fixedBytes <= storedBytes) {
     const w2 = new BitWriter(fixedBytes);
     w2.writeBits(1, 1);
     w2.writeBits(1, 2);
-    writeTokens(w2, tokens, count2);
+    writeTokens(w2, tokens2, count2);
     return w2.finish();
   }
   const w = new BitWriter(storedBytes);
@@ -17177,7 +17234,7 @@ function createDeflateStream(opts = {}) {
   const win = new Uint8Array(2 * WINDOW);
   const head2 = new Int32Array(HASH_SIZE).fill(-1);
   const prev = new Int32Array(WINDOW).fill(-1);
-  const tokens = new Uint32Array(blockBytes + MAX_MATCH + 8);
+  const tokens2 = new Uint32Array(blockBytes + MAX_MATCH + 8);
   const w = new StreamWriter();
   let winLen = 0;
   let strstart = 0;
@@ -17221,11 +17278,11 @@ function createDeflateStream(opts = {}) {
   const flushBlock = (final) => {
     if (!final && tokenCount === 0) return;
     const rawLen = tokenEnd - blockStart;
-    const fixedBytes = Math.ceil(fixedCost(tokens, tokenCount) / 8);
+    const fixedBytes = Math.ceil(fixedCost(tokens2, tokenCount) / 8);
     if (fixedBytes <= rawLen + 5) {
       w.writeBits(final ? 1 : 0, 1);
       w.writeBits(1, 2);
-      writeTokens(w, tokens, tokenCount);
+      writeTokens(w, tokens2, tokenCount);
     } else {
       w.writeBits(final ? 1 : 0, 1);
       w.writeBits(0, 2);
@@ -17240,12 +17297,12 @@ function createDeflateStream(opts = {}) {
     if (tokenEnd - blockStart >= blockBytes) flushBlock(false);
   };
   const emitLiteral = (b) => {
-    tokens[tokenCount++] = b;
+    tokens2[tokenCount++] = b;
     tokenEnd++;
     maybeFlush();
   };
   const emitMatch = (dist2, len2) => {
-    tokens[tokenCount++] = 1073741824 | dist2 << 8 | len2 - MIN_MATCH;
+    tokens2[tokenCount++] = 1073741824 | dist2 << 8 | len2 - MIN_MATCH;
     tokenEnd += len2;
     maybeFlush();
   };
@@ -18384,6 +18441,41 @@ function u322(b, o) {
   return (b[o] | b[o + 1] << 8 | b[o + 2] << 16 | b[o + 3] << 24) >>> 0;
 }
 function readZip(bytes, opts = {}) {
+  return readZipMembers(bytes, opts).map((member) => ({ name: member.name, bytes: decodeZipMember(member) }));
+}
+function decodeZipMember(member) {
+  if (member.flags & 1) throw new Error("readZip: encrypted member is not supported");
+  const out = member.method === METHOD_STORED ? Uint8Array.from(member.compressed) : member.method === METHOD_DEFLATE ? inflateRaw(member.compressed, member.size) : null;
+  if (!out) throw new Error("readZip: unsupported compression method");
+  if (out.length !== member.size) throw new Error("readZip: size mismatch");
+  if (crc322(out) !== member.crc) throw new Error("readZip: CRC-32 mismatch (corrupt archive)");
+  return out;
+}
+function storeZipMembers(members) {
+  if (members.length >= 65535) throw new Error("Too many archive members.");
+  const locals = [], centrals = [];
+  const seen = /* @__PURE__ */ new Set();
+  let offset = 0, centralSize = 0;
+  for (const member of members) {
+    if (seen.has(member.name)) throw new Error("Duplicate archive member names are not supported.");
+    seen.add(member.name);
+    const central = Uint8Array.from(member.central);
+    new DataView(central.buffer).setUint32(42, offset, true);
+    centrals.push(central);
+    locals.push(member.local);
+    offset += member.local.length;
+    centralSize += central.length;
+  }
+  if (offset + centralSize + 22 > U32_MAX) throw new Error("ZIP64 output is not supported.");
+  const end = new Uint8Array(22), view = new DataView(end.buffer);
+  view.setUint32(0, SIG_EOCD, true);
+  view.setUint16(8, members.length, true);
+  view.setUint16(10, members.length, true);
+  view.setUint32(12, centralSize, true);
+  view.setUint32(16, offset, true);
+  return concatBytes([...locals, ...centrals, end]);
+}
+function readZipMembers(bytes, opts = {}) {
   if (!(bytes instanceof Uint8Array)) throw new Error("readZip: expected a Uint8Array");
   const maxInputBytes = readLimit(opts.maxInputBytes, ZIP_READ_MAX_INPUT_BYTES, "maxInputBytes");
   const maxEntries = readLimit(opts.maxEntries, ZIP_READ_MAX_ENTRIES, "maxEntries");
@@ -18417,6 +18509,8 @@ function readZip(bytes, opts = {}) {
   for (let i = 0; i < totalCdCount; i++) {
     if (p + 46 > cdEnd) throw new Error("readZip: truncated central directory");
     if (u322(bytes, p) !== SIG_CENTRAL) throw new Error("readZip: bad central directory signature");
+    const centralStart = p;
+    const flags = u162(bytes, p + 8);
     const method = u162(bytes, p + 10);
     const crc = u322(bytes, p + 16);
     const compSize = u322(bytes, p + 20);
@@ -18449,20 +18543,27 @@ function readZip(bytes, opts = {}) {
     const localExtraLen = u162(bytes, localOffset + 28);
     const dataStart = localOffset + 30 + localNameLen + localExtraLen;
     if (dataStart + compSize > bytes.length) throw new Error(`readZip: truncated data for "${name}"`);
-    const stored = bytes.subarray(dataStart, dataStart + compSize);
-    let out;
-    if (method === METHOD_STORED) {
-      out = stored.slice();
-    } else if (method === METHOD_DEFLATE) {
-      out = inflateRaw(stored, uncompSize);
-    } else {
-      throw new Error(`readZip: unsupported compression method ${method} for "${name}"`);
+    if (dataStart + compSize > cdOffset) throw new Error("readZip: member overlaps central directory");
+    const localFlags = u162(bytes, localOffset + 6);
+    if (u162(bytes, localOffset + 8) !== method || localFlags !== flags) throw new Error("readZip: conflicting local header");
+    if (decoder.decode(bytes.subarray(localOffset + 30, localOffset + 30 + localNameLen)) !== name) throw new Error("readZip: conflicting member name");
+    let localEnd = dataStart + compSize;
+    if (flags & 8) {
+      const descriptor = localEnd + (u322(bytes, localEnd) === 134695760 ? 4 : 0);
+      localEnd = descriptor + 12;
+      if (localEnd > cdOffset) throw new Error("readZip: truncated data descriptor");
+      if (u322(bytes, descriptor) !== crc || u322(bytes, descriptor + 4) !== compSize || u322(bytes, descriptor + 8) !== uncompSize) throw new Error("readZip: conflicting data descriptor");
     }
-    if (out.length !== uncompSize) {
-      throw new Error(`readZip: size mismatch for "${name}" (header ${uncompSize}, got ${out.length})`);
-    }
-    if (crc322(out) !== crc) throw new Error(`readZip: CRC-32 mismatch for "${name}" (corrupt archive)`);
-    entries.push({ name, bytes: out });
+    entries.push({
+      name,
+      flags,
+      method,
+      crc,
+      size: uncompSize,
+      compressed: bytes.subarray(dataStart, dataStart + compSize),
+      local: bytes.subarray(localOffset, localEnd),
+      central: bytes.subarray(centralStart, recordEnd)
+    });
   }
   return entries;
 }
@@ -18882,9 +18983,9 @@ function readIptc(bytes, start, len2, out) {
 function hasGainMapMetadata(bytes, start, end) {
   if (start < 0 || end > bytes.length || end - start < 4) return false;
   const sub = bytes.subarray(start, end);
-  const scan = scanJpegSegments(sub);
-  if (!scan) return false;
-  for (const seg of scan.segments) {
+  const scan2 = scanJpegSegments(sub);
+  if (!scan2) return false;
+  for (const seg of scan2.segments) {
     if (seg.marker !== 225 && seg.marker !== 226) continue;
     if (seg.appId === JPEG_APP_IDS.MPF || seg.appId === JPEG_APP_IDS.ICC) continue;
     if (seg.appId === ISO_GAINMAP_URN) return true;
@@ -18893,9 +18994,9 @@ function hasGainMapMetadata(bytes, start, end) {
   }
   return false;
 }
-function primaryDeclaresGainMap(bytes, scan) {
-  if (!scan) return false;
-  for (const seg of scan.segments) {
+function primaryDeclaresGainMap(bytes, scan2) {
+  if (!scan2) return false;
+  for (const seg of scan2.segments) {
     if (seg.marker !== 225 || seg.appId !== JPEG_APP_IDS.XMP) continue;
     const body = bytes.subarray(seg.start + 4, Math.min(seg.end, seg.start + 4 + MAX_GAINMAP_SNIFF));
     const text3 = new TextDecoder("latin1").decode(body);
@@ -18906,10 +19007,10 @@ function primaryDeclaresGainMap(bytes, scan) {
 function readMpfIndex(bytes) {
   try {
     if (!bytes) return null;
-    const scan = scanJpegSegments(bytes);
-    if (!scan || scan.eoi === null) return null;
-    const trailerStart = scan.eoi + 2;
-    const mpf = scan.segments.find((s) => s.marker === 226 && s.appId === JPEG_APP_IDS.MPF);
+    const scan2 = scanJpegSegments(bytes);
+    if (!scan2 || scan2.eoi === null) return null;
+    const trailerStart = scan2.eoi + 2;
+    const mpf = scan2.segments.find((s) => s.marker === 226 && s.appId === JPEG_APP_IDS.MPF);
     if (!mpf) return null;
     const h = mpf.start + 8;
     if (h + 8 > mpf.end || h + 8 > bytes.length) return null;
@@ -18944,7 +19045,7 @@ function readMpfIndex(bytes) {
     if (second.start <= 0 || second.length <= 0) return null;
     if (second.start + second.length > bytes.length) return null;
     if (bytes[second.start] !== 255 || bytes[second.start + 1] !== 216) return null;
-    const gainMap = hasGainMapMetadata(bytes, second.start, second.start + second.length) || primaryDeclaresGainMap(bytes, scan);
+    const gainMap = hasGainMapMetadata(bytes, second.start, second.start + second.length) || primaryDeclaresGainMap(bytes, scan2);
     return { images, trailerStart, gainMap };
   } catch {
     return null;
@@ -18963,12 +19064,12 @@ function sniffAppended(b, off) {
   if (at(0, "MZ")) return "Windows executable";
   if (b[off] === 127 && at(1, "ELF")) return "ELF executable";
   let printable = 0;
-  const scan = Math.min(256, b.length - off);
-  for (let i = 0; i < scan; i++) {
+  const scan2 = Math.min(256, b.length - off);
+  for (let i = 0; i < scan2; i++) {
     const c = b[off + i];
     if (c === 9 || c === 10 || c === 13 || c >= 32 && c < 127) printable++;
   }
-  return scan > 0 && printable / scan > 0.9 ? "text" : "binary data";
+  return scan2 > 0 && printable / scan2 > 0.9 ? "text" : "binary data";
 }
 function fmtBytes(n2) {
   if (n2 < 1024) return `${n2} B`;
@@ -19254,13 +19355,13 @@ function bmffGps(out, fix) {
   out.mapUrl = `https://www.openstreetmap.org/?mlat=${fix.lat.toFixed(6)}&mlon=${fix.lon.toFixed(6)}#map=15/${fix.lat.toFixed(5)}/${fix.lon.toFixed(5)}`;
   out.fields.push({ label: "Coordinates", value: `${fix.lat.toFixed(6)}, ${fix.lon.toFixed(6)}`, group: "location", sensitive: true });
 }
-function detectProducer(handlerNotes, encoder4, hasVideo) {
+function detectProducer(handlerNotes, encoder5, hasVideo) {
   const dated = handlerNotes.find((n2) => GOOGLE_NOTE_DATED.test(n2));
   if (dated) return { vendor: "Google", signature: "reencode", hint: "a YouTube-style server re-encode", markers: [dated] };
   const markers = [];
   const note = handlerNotes.find((n2) => GOOGLE_NOTE.test(n2));
   if (note) markers.push(note);
-  if (encoder4 === "Google") markers.push("encoder tag \u201CGoogle\u201D");
+  if (encoder5 === "Google") markers.push("encoder tag \u201CGoogle\u201D");
   if (!markers.length) return void 0;
   return {
     vendor: "Google",
@@ -19270,18 +19371,18 @@ function detectProducer(handlerNotes, encoder4, hasVideo) {
   };
 }
 function readIlst(bytes, ilst, out) {
-  let encoder4 = null;
+  let encoder5 = null;
   for (const entry of bmffChildren(bytes, ilst.payload, ilst.end)) {
     const tag2 = ILST_TAGS[entry.type];
     if (!tag2) continue;
     const text3 = ilstText(bytes, entry);
     if (!text3) continue;
-    if (entry.type === "\xA9too") encoder4 = text3;
+    if (entry.type === "\xA9too") encoder5 = text3;
     if (out.fields.length < MAX_FIELDS) {
       out.fields.push({ label: tag2.label, value: text3, group: tag2.group, ...tag2.sensitive ? { sensitive: true } : {} });
     }
   }
-  return encoder4;
+  return encoder5;
 }
 function metaChildren(bytes, meta) {
   const bare = bmffChildren(bytes, meta.payload, meta.end);
@@ -19324,7 +19425,7 @@ function readBmff(bytes, out) {
   const top = bmffChildren(bytes, 0, bytes.length, 65536);
   const handlerNotes = [];
   const trackRows = [];
-  let encoder4 = null;
+  let encoder5 = null;
   let hasVideo = false;
   const ftyp = top.find((b) => b.type === "ftyp");
   const brand = ftyp && ftyp.end - ftyp.payload >= 4 ? bmffString(bytes, ftyp.payload, ftyp.payload + 4) : "";
@@ -19391,7 +19492,7 @@ function readBmff(bytes, out) {
         readMdtaMeta(bytes, mk, out);
       } else {
         const ilst = mk.find((b) => b.type === "ilst");
-        if (ilst) encoder4 = readIlst(bytes, ilst, out) ?? encoder4;
+        if (ilst) encoder5 = readIlst(bytes, ilst, out) ?? encoder5;
       }
     }
     const mvhd = kids.find((b) => b.type === "mvhd");
@@ -19415,7 +19516,7 @@ function readBmff(bytes, out) {
   if (brand && out.fields.length < MAX_FIELDS) {
     out.fields.push({ label: "Container profile", value: fragmented ? `${brand} - fragmented (streaming delivery)` : brand, group: "technical" });
   }
-  const producer = detectProducer(handlerNotes, encoder4, hasVideo);
+  const producer = detectProducer(handlerNotes, encoder5, hasVideo);
   if (producer) out.producer = producer;
 }
 function readHeifItemTable(bytes) {
@@ -19618,9 +19719,9 @@ function extractXmpPacket(bytes) {
     const dec = new TextDecoder("utf-8");
     switch (sniff(bytes)) {
       case "JPEG": {
-        const scan = scanJpegSegments(bytes);
-        if (!scan) return null;
-        for (const seg of scan.segments) {
+        const scan2 = scanJpegSegments(bytes);
+        if (!scan2) return null;
+        for (const seg of scan2.segments) {
           if (seg.marker !== 225 || seg.appId !== JPEG_APP_IDS.XMP) continue;
           const start = seg.start + 4 + JPEG_APP_IDS.XMP.length + 1;
           if (start >= seg.end) return null;
@@ -20121,8 +20222,8 @@ async function compileDocument(tool, inputs, opts) {
   try {
     const model2 = runtime.getModel();
     const warnings = [...runtime.hookErrors.map((e) => `${e.hook}: ${e.message}`), ...runtime.droppedAssets.map((a) => `asset ${a.id} for ${a.inputId} was not resolved`)];
-    const tokens = tokenValuesFromModel(model2);
-    const document2 = { apiVersion: DOCUMENT_API_VERSION, toolId: tool.manifest.id, toolVersion: tool.manifest.version, ...opts.designVersion ? { designVersion: opts.designVersion } : {}, manifest: tool.manifest, model: model2, values: modelToValues(model2), ...Object.keys(tokens).length ? { tokens } : {}, hydrated: runtime.getHydrated(), styles: runtime.styles };
+    const tokens2 = tokenValuesFromModel(model2);
+    const document2 = { apiVersion: DOCUMENT_API_VERSION, toolId: tool.manifest.id, toolVersion: tool.manifest.version, ...opts.designVersion ? { designVersion: opts.designVersion } : {}, manifest: tool.manifest, model: model2, values: modelToValues(model2), ...Object.keys(tokens2).length ? { tokens: tokens2 } : {}, hydrated: runtime.getHydrated(), styles: runtime.styles };
     return { document: document2, model: model2, warnings, ...opts.designVersion ? { designVersion: opts.designVersion } : {} };
   } finally {
     runtime.destroy();
@@ -20270,8 +20371,8 @@ function tokenValuesFromModel(model2) {
 function semanticJson(value) {
   if (value === null || typeof value !== "object") return JSON.stringify(value) ?? "null";
   if (Array.isArray(value)) return `[${value.map(semanticJson).join(",")}]`;
-  const record2 = value;
-  return `{${Object.keys(record2).sort().filter((key) => record2[key] !== void 0).map((key) => `${JSON.stringify(key)}:${semanticJson(record2[key])}`).join(",")}}`;
+  const record3 = value;
+  return `{${Object.keys(record3).sort().filter((key) => record3[key] !== void 0).map((key) => `${JSON.stringify(key)}:${semanticJson(record3[key])}`).join(",")}}`;
 }
 function diffRecords(a, b) {
   const ak = new Set(Object.keys(a));
@@ -25633,8 +25734,8 @@ function isAnimatedWebp(bytes) {
     const flags = bytes[20] ?? 0;
     if (flags & 2) return true;
   }
-  const scan = Math.min(bytes.length - 4, 4096);
-  for (let p = 12; p < scan; p++) {
+  const scan2 = Math.min(bytes.length - 4, 4096);
+  for (let p = 12; p < scan2; p++) {
     if (fourcc2(bytes, p, "ANIM") || fourcc2(bytes, p, "ANMF")) return true;
   }
   return false;
@@ -37710,12 +37811,12 @@ function splitTopLevelWs(str7) {
   return out;
 }
 function parseGradientStop(raw, index, total) {
-  const tokens = splitTopLevelWs(raw.trim());
+  const tokens2 = splitTopLevelWs(raw.trim());
   const positions = [];
-  while (tokens.length && /^-?[\d.]+(px|%)$/.test(tokens[tokens.length - 1])) {
-    positions.unshift(tokens.pop());
+  while (tokens2.length && /^-?[\d.]+(px|%)$/.test(tokens2[tokens2.length - 1])) {
+    positions.unshift(tokens2.pop());
   }
-  const colorRaw = tokens.join(" ").trim().toLowerCase();
+  const colorRaw = tokens2.join(" ").trim().toLowerCase();
   const pos = positions[0];
   const norm2 = (p) => p.endsWith("%") ? p : parseFloat(p) + "px";
   const offset = pos ? norm2(pos) : `${(index / Math.max(total - 1, 1) * 100).toFixed(2)}%`;
@@ -45176,11 +45277,11 @@ function padTo512(n2) {
   return n2 + BLOCK2 - 1 & ~(BLOCK2 - 1);
 }
 function packTar(files) {
-  const encoder4 = new TextEncoder();
+  const encoder5 = new TextEncoder();
   const nameBytesList = [];
   let total = 0;
   for (const f of files) {
-    const nameBytes = encoder4.encode(f.name);
+    const nameBytes = encoder5.encode(f.name);
     if (nameBytes.length === 0) throw new Error("packTar: empty file name");
     if (nameBytes.length > NAME_MAX) {
       throw new Error(`packTar: name too long for USTAR (${nameBytes.length} > ${NAME_MAX} bytes): ${f.name}`);
@@ -45410,11 +45511,11 @@ function writeHeader3(out, off, nameBytes, ino, mode, mtime, filesize, nlink) {
   return pad4(off + HEADER + namesize);
 }
 function packCpio(files) {
-  const encoder4 = new TextEncoder();
+  const encoder5 = new TextEncoder();
   const nameBytesList = [];
   let total = 0;
   for (const f of files) {
-    const nameBytes = encoder4.encode(f.name);
+    const nameBytes = encoder5.encode(f.name);
     if (nameBytes.length === 0) throw new Error("packCpio: empty member name");
     if (f.data.length > U32_MAX2) {
       throw new Error(`packCpio: file exceeds newc 4 GiB field limit: ${f.name}`);
@@ -45422,7 +45523,7 @@ function packCpio(files) {
     nameBytesList.push(nameBytes);
     total += pad4(HEADER + nameBytes.length + 1) + pad4(f.data.length);
   }
-  const trailerName = encoder4.encode(TRAILER_NAME);
+  const trailerName = encoder5.encode(TRAILER_NAME);
   total += pad4(HEADER + trailerName.length + 1);
   const out = new Uint8Array(total);
   let off = 0;
@@ -58220,15 +58321,15 @@ var init_fs_token = __esm({
 function sessionVersionStamp() {
   return { formatVersion: SESSION_FORMAT_VERSION, engineVersion: ENGINE_VERSION };
 }
-function migrateSessionRecord(record2, log) {
-  if (!record2 || typeof record2 !== "object") return null;
-  const data = record2.data;
+function migrateSessionRecord(record3, log) {
+  if (!record3 || typeof record3 !== "object") return null;
+  const data = record3.data;
   if (data == null || typeof data !== "object") return null;
-  const raw = record2.formatVersion;
+  const raw = record3.formatVersion;
   const fromVersion = typeof raw === "number" && Number.isFinite(raw) ? raw : 0;
   if (fromVersion > SESSION_READER_VERSION) {
     log?.("warn", "saved session was written by a newer version of the app - reading it as-is", {
-      slot: record2.slot,
+      slot: record3.slot,
       recordFormatVersion: fromVersion,
       readerFormatVersion: SESSION_READER_VERSION
     });
@@ -58243,6 +58344,1275 @@ var init_session_record = __esm({
     init_version();
     SESSION_FORMAT_VERSION = 2;
     SESSION_READER_VERSION = 2;
+  }
+});
+
+// engine/src/prepare-pii.ts
+function piiDigits(s) {
+  return String(s).replace(/[^0-9]/g, "");
+}
+function luhnOk(digits) {
+  if (digits.length < 13 || digits.length > 19) return false;
+  let sum = 0;
+  let alt = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let d = digits.charCodeAt(i) - 48;
+    if (d < 0 || d > 9) return false;
+    if (alt) {
+      d *= 2;
+      if (d > 9) d -= 9;
+    }
+    sum += d;
+    alt = !alt;
+  }
+  return sum % 10 === 0;
+}
+function piiNameOk(m2) {
+  const parts = String(m2).split(/\s+/);
+  for (let i = 0; i < parts.length; i++) {
+    const w = parts[i].replace(/[^A-Za-z]/g, "").toLowerCase();
+    if (w && Object.hasOwn(PII_STOP, w)) return false;
+  }
+  return true;
+}
+function piiPhoneOk(m2) {
+  const d = piiDigits(m2);
+  return d.length >= 7 && d.length <= 15;
+}
+function piiFindings(text3) {
+  const s = String(text3 == null ? "" : text3);
+  if (!s) return [];
+  const claimed = [];
+  const out = [];
+  function free(a, b) {
+    for (let c = 0; c < claimed.length; c++) {
+      if (a < claimed[c][1] && claimed[c][0] < b) return false;
+    }
+    return true;
+  }
+  for (let i = 0; i < PII_MATCHERS.length; i++) {
+    const spec = PII_MATCHERS[i];
+    const re = spec.re;
+    re.lastIndex = 0;
+    for (const m2 of s.matchAll(re)) {
+      if (out.length >= 2001 || claimed.length >= 1e4) return out;
+      const hit = m2[0];
+      if (!hit) {
+        re.lastIndex++;
+        continue;
+      }
+      const a = m2.index;
+      const b = a + hit.length;
+      if (!free(a, b)) continue;
+      if (spec.test && !spec.test(hit)) continue;
+      claimed.push([a, b]);
+      if (!spec.kind) continue;
+      out.push({
+        kind: spec.kind,
+        label: spec.label,
+        text: hit,
+        maybe: spec.maybe === true,
+        start: a,
+        end: b
+      });
+    }
+  }
+  out.sort((x, y) => x.start - y.start);
+  return out;
+}
+var PII_STOP, PII_MONTH, PII_MATCHERS;
+var init_prepare_pii = __esm({
+  "engine/src/prepare-pii.ts"() {
+    "use strict";
+    PII_STOP = {
+      january: 1,
+      february: 1,
+      march: 1,
+      april: 1,
+      may: 1,
+      june: 1,
+      july: 1,
+      august: 1,
+      september: 1,
+      october: 1,
+      november: 1,
+      december: 1,
+      monday: 1,
+      tuesday: 1,
+      wednesday: 1,
+      thursday: 1,
+      friday: 1,
+      saturday: 1,
+      sunday: 1,
+      the: 1,
+      this: 1,
+      that: 1,
+      dear: 1,
+      from: 1,
+      sent: 1,
+      page: 1,
+      total: 1,
+      invoice: 1,
+      receipt: 1,
+      account: 1,
+      date: 1,
+      name: 1,
+      address: 1,
+      phone: 1,
+      email: 1,
+      subject: 1,
+      note: 1,
+      notes: 1,
+      terms: 1,
+      please: 1,
+      thank: 1,
+      thanks: 1,
+      best: 1,
+      kind: 1,
+      yours: 1,
+      new: 1,
+      united: 1,
+      north: 1,
+      south: 1,
+      east: 1,
+      west: 1,
+      all: 1,
+      rights: 1,
+      reserved: 1,
+      copyright: 1,
+      content: 1,
+      credentials: 1,
+      general: 1,
+      public: 1,
+      private: 1
+    };
+    PII_MONTH = "(?:January|February|March|April|September|October|November|December|Jan|Feb|Mar|Apr|May|June|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec)\\.?";
+    PII_MATCHERS = [
+      // Claim-only, kind '': a URL and a version string are digit runs with
+      // separators, which is exactly what the phone matchers look for.
+      { kind: "", re: /\bhttps?:\/\/\S+/g },
+      {
+        kind: "",
+        re: /\bv?\d+\.\d+(?:\.\d+)+/g,
+        // 12.03.1980 is a version string by shape and a date of birth in most of
+        // Europe. Three dotted numbers whose last part is a 2-to-4 digit year are
+        // left unclaimed so the date matcher below reports them; a real version
+        // (v1.77.0, 1.149.0, 10.15.7.2024) does not fit that shape and is claimed.
+        test: (m2) => !/^\d{1,4}\.\d{1,2}\.\d{2,4}$/.test(m2)
+      },
+      { kind: "email", label: "Email address", re: /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g },
+      {
+        kind: "iban",
+        label: "Bank account (IBAN)",
+        re: /\b[A-Z]{2}\d{2}(?:\s?[A-Z0-9]{4}){2,7}(?:\s?[A-Z0-9]{1,3})?\b/g,
+        test: (m2) => {
+          const n2 = m2.replace(/\s/g, "").length;
+          return n2 >= 15 && n2 <= 34;
+        }
+      },
+      {
+        kind: "card",
+        label: "Card number",
+        re: /\b\d[\d\s-]{11,21}\d\b/g,
+        test: (m2) => luhnOk(piiDigits(m2))
+      },
+      // Dates before phones: 12.03.1980 is seven digits with separators.
+      { kind: "date", label: "Date", maybe: true, re: /\b\d{1,4}[/.-]\d{1,2}[/.-]\d{2,4}\b/g },
+      {
+        kind: "date",
+        label: "Date",
+        maybe: true,
+        re: new RegExp("\\b\\d{1,2}(?:st|nd|rd|th)?\\s+" + PII_MONTH + "\\s+(?:19|20)\\d{2}\\b", "g")
+      },
+      {
+        kind: "date",
+        label: "Date",
+        maybe: true,
+        re: new RegExp("\\b" + PII_MONTH + "\\s+\\d{1,2}(?:st|nd|rd|th)?,?\\s+(?:19|20)\\d{2}\\b", "g")
+      },
+      {
+        kind: "phone",
+        label: "Phone number",
+        re: /\+\d[\d\s().-]{5,18}\d/g,
+        test: piiPhoneOk
+      },
+      {
+        kind: "phone",
+        label: "Phone number",
+        maybe: true,
+        re: /\(?\b0?\d[\d\s().-]{5,18}\d\b/g,
+        test: piiPhoneOk
+      },
+      {
+        kind: "address",
+        label: "Street address",
+        re: /\b\d{1,5}[A-Za-z]?\s+(?:[A-Z][A-Za-z.'-]+\s+){1,4}(?:Street|St|Road|Rd|Avenue|Ave|Lane|Ln|Drive|Dr|Boulevard|Blvd|Highway|Hwy|Way|Close|Court|Ct|Place|Pl|Terrace|Parade|Crescent|Square|Sq|Strasse|Straße)\b\.?/g
+      },
+      { kind: "postcode", label: "Postcode", re: /\b[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}\b/g },
+      { kind: "postcode", label: "Postcode", maybe: true, re: /\b\d{5}(?:-\d{4})?\b/g },
+      {
+        kind: "name",
+        label: "Name",
+        maybe: true,
+        re: /\b[A-Z][a-z]{1,15}\s+(?:[A-Z][a-z]?\.?\s+)?[A-Z][a-z]{1,15}\b/g,
+        test: piiNameOk
+      }
+    ];
+  }
+});
+
+// engine/src/prepare-text.ts
+function sensitiveField(field, rules) {
+  const normalized = field.replace(/[-_\s]/g, "");
+  return FIELD.test(normalized) || rules.some((r3) => r3.kind === "field" && r3.value.toLowerCase() === field.toLowerCase());
+}
+function validatePreparationRules(rules) {
+  if (!Array.isArray(rules) || rules.length > PREPARE_MAX_RULES) throw new Error("Use at most 100 local rules.");
+  const ids2 = /* @__PURE__ */ new Set();
+  return rules.map((r3) => {
+    if (!r3 || !["field", "literal"].includes(r3.kind) || typeof r3.value !== "string" || !r3.value.trim() || r3.value.length > 256 || typeof r3.label !== "string" || r3.label.length > 80 || typeof r3.id !== "string" || !/^[a-zA-Z0-9_-]{1,64}$/.test(r3.id) || ids2.has(r3.id)) throw new Error("A local rule is invalid. Use a field name or literal value, up to 256 characters.");
+    ids2.add(r3.id);
+    return { id: r3.id, kind: r3.kind, value: r3.value, label: r3.label };
+  });
+}
+function inspectPrivateText(text3, rules = [], field) {
+  if (text3.length > PREPARE_MAX_TEXT) throw new Error("Text inspection is limited to 1 MiB per value.");
+  const spans = [];
+  let truncated = false;
+  const add = (start, end, category, label, rule, uncertain = false, encoding) => {
+    if (end <= start || spans.some((s) => start < s.end && s.start < end)) return;
+    if (spans.length >= PREPARE_MAX_FINDINGS) {
+      truncated = true;
+      return;
+    }
+    let value = text3.slice(start, end);
+    if (encoding) {
+      try {
+        value = decodeURIComponent(value.replace(/\+/g, " "));
+      } catch {
+      }
+    }
+    spans.push({ start, end, value, category, label, rule, uncertain, ...encoding ? { encoding } : {} });
+  };
+  if (field && sensitiveField(field, rules) && text3.trim()) {
+    const prefix = /^(?:Bearer|Basic)\s+/i.exec(text3)?.[0].length ?? 0;
+    add(prefix, text3.length, "credential", "Sensitive field", "sensitive-field");
+    return { spans, truncated };
+  }
+  const match = (pattern, category, label, rule) => {
+    for (const m2 of text3.matchAll(pattern)) {
+      add(m2.index, m2.index + m2[0].length, category, label, rule);
+      if (truncated) break;
+    }
+  };
+  match(/-----BEGIN (?:RSA |EC |OPENSSH |DSA |ENCRYPTED )?PRIVATE KEY-----[\s\S]*?(?:-----END (?:RSA |EC |OPENSSH |DSA |ENCRYPTED )?PRIVATE KEY-----|$)/g, "credential", "Private key", "private-key");
+  match(/\b(?:gh[pousr]_[A-Za-z0-9]{20,255}|github_pat_[A-Za-z0-9_]{20,255}|AKIA[A-Z0-9]{16}|sk-(?:proj-)?[A-Za-z0-9_-]{20,255}|xox[baprs]-[A-Za-z0-9-]{12,255})\b/g, "credential", "Credential-shaped value", "credential-shape");
+  match(/\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g, "credential", "Signed token", "jwt");
+  for (const m2 of text3.matchAll(/\b(?:Bearer|Basic)\s+([A-Za-z0-9_+./=-]{4,})/gi)) add(m2.index + m2[0].length - m2[1].length, m2.index + m2[0].length, "credential", "Authorization value", "authorization");
+  const assignments = /(?:^|[\s?&;,{])["']?([\w-]{1,80})["']?\s*[:=]\s*(?:"([^"\r\n]*)"|'([^'\r\n]*)'|([^\s&,;}\r\n]+))/g;
+  for (; ; ) {
+    const m2 = assignments.exec(text3);
+    if (!m2) break;
+    if (!sensitiveField(m2[1], rules)) {
+      assignments.lastIndex = m2.index + 1;
+      continue;
+    }
+    const v = m2[2] ?? m2[3] ?? m2[4] ?? "";
+    if (!v) continue;
+    const offset = m2[0].lastIndexOf(v);
+    add(m2.index + offset, m2.index + offset + v.length, "credential", "Sensitive assignment", "assignment", false, /[?&=]/.test(m2[0]) && /%[0-9a-f]{2}/i.test(v) ? "url" : void 0);
+  }
+  for (const query of text3.matchAll(/[?&][^=&#\s]{1,80}=([^&#\s]+)/g)) {
+    const raw = query[1];
+    let decoded;
+    try {
+      decoded = decodeURIComponent(raw.replace(/\+/g, " "));
+    } catch {
+      continue;
+    }
+    const personal = piiFindings(decoded).find((f) => f.kind);
+    const custom = rules.find((r3) => r3.kind === "literal" && decoded.includes(r3.value));
+    if (!personal && !custom) continue;
+    const start = query.index + query[0].length - raw.length;
+    add(start, start + raw.length, personal?.kind ?? "custom", "Query parameter value", personal ? `pii-${personal.kind}` : custom.id, personal?.maybe ?? false, "url");
+  }
+  for (const rule of rules) if (rule.kind === "literal") {
+    for (let offset = text3.indexOf(rule.value); offset >= 0; offset = text3.indexOf(rule.value, offset + rule.value.length)) {
+      add(offset, offset + rule.value.length, "custom", rule.label || "Your value", rule.id);
+      if (truncated) break;
+    }
+  }
+  for (const hit of piiFindings(text3)) {
+    add(hit.start, hit.end, hit.kind, hit.label ?? hit.kind, `pii-${hit.kind}`, hit.maybe);
+    if (truncated) break;
+  }
+  return { spans: spans.sort((a, b) => a.start - b.start), truncated };
+}
+function replacePrivateSpans(text3, edits) {
+  let result = text3;
+  for (const { span, replacement } of [...edits].sort((a, b) => b.span.start - a.span.start)) {
+    result = result.slice(0, span.start) + (span.encoding === "url" ? encodeURIComponent(replacement) : replacement) + result.slice(span.end);
+  }
+  return result;
+}
+var PREPARE_MAX_TEXT, PREPARE_MAX_FINDINGS, PREPARE_MAX_RULES, FIELD;
+var init_prepare_text = __esm({
+  "engine/src/prepare-text.ts"() {
+    "use strict";
+    init_prepare_pii();
+    PREPARE_MAX_TEXT = 1024 * 1024;
+    PREPARE_MAX_FINDINGS = 2e3;
+    PREPARE_MAX_RULES = 100;
+    FIELD = /^(?:password|passwd|pwd|secret|clientsecret|apikey|accesskey|secretkey|privatekey|token|accesstoken|refreshtoken|idtoken|authorization|proxyauthorization|cookie|setcookie|session|sessionid|sessiontoken|credential|credentials)$/i;
+  }
+});
+
+// engine/src/prepare-document.ts
+import { isMap, isSeq, isScalar, isAlias as isAlias2, parseAllDocuments } from "yaml";
+function decodeText(bytes) {
+  if (bytes.length > PREPARE_MAX_TEXT) return void 0;
+  try {
+    const text3 = decoder5.decode(bytes);
+    for (const c of text3) {
+      const code = c.charCodeAt(0);
+      if (code < 32 && ![9, 10, 12, 13].includes(code)) return void 0;
+    }
+    return text3;
+  } catch {
+    return void 0;
+  }
+}
+function base64Text(value) {
+  try {
+    return decodeText(Uint8Array.from(atob(value), (c) => c.charCodeAt(0)));
+  } catch {
+    return void 0;
+  }
+}
+function encodeBase64(value) {
+  let binary = "";
+  for (const b of encoder4.encode(value)) binary += String.fromCharCode(b);
+  return btoa(binary);
+}
+function scalarText(value) {
+  return ["string", "number", "bigint", "boolean"].includes(typeof value) ? String(value) : void 0;
+}
+function textDocument(doc, bytes, text3, structured, json, rules, budget) {
+  const lineStarts = [0];
+  for (let i = 0; i < text3.length; i++) if (text3[i] === "\n") lineStarts.push(i + 1);
+  const lineAt = (offset) => {
+    let low = 0, high = lineStarts.length;
+    while (low < high) {
+      const mid3 = low + high >>> 1;
+      if (lineStarts[mid3] <= offset) low = mid3 + 1;
+      else high = mid3;
+    }
+    return low;
+  };
+  const edits = [];
+  const add = (value, start, end, location, field, encode) => {
+    if (value.length > PREPARE_MAX_TEXT || ++budget.units > 2e4) {
+      doc.scope.status = "partial";
+      return;
+    }
+    const id = `${doc.scope.id}:u${doc.units.length}`;
+    doc.units.push({ id, scopeId: doc.scope.id, text: value, field, location, line: lineAt(start) });
+    edits.push({ id, start, end, encode });
+  };
+  if (!structured) add(text3, 0, text3.length, "Text", void 0, (s) => s);
+  else {
+    if (json) JSON.parse(text3);
+    const documents = parseAllDocuments(text3, { prettyErrors: false, logLevel: "silent", strict: true, uniqueKeys: true, intAsBigInt: true, stringKeys: true });
+    if (!documents.length || documents.some((d) => d.errors.length)) throw new Error("Could not parse structured text.");
+    const ranges = [];
+    const queue = documents.map((d, i) => ({ node: d.contents, path: documents.length > 1 ? `Document ${i + 1}` : "$", depth: 0 }));
+    let visited = 0;
+    for (const d of documents) if (d.warnings.length) {
+      doc.scope.status = "partial";
+      doc.scope.limitations.push("Some YAML tags or directives are unsupported; values are inspected without executing them.");
+    }
+    for (let cursor = 0; cursor < queue.length; cursor++) {
+      if (++visited > 2e4) {
+        doc.scope.status = "partial";
+        doc.scope.limitations.push("The structured node limit was reached.");
+        break;
+      }
+      const { node, path, field, base64, depth } = queue[cursor];
+      if (depth > 64) {
+        doc.scope.status = "partial";
+        doc.scope.limitations.push("Nested content beyond 64 levels was not inspected.");
+        continue;
+      }
+      if (isAlias2(node)) {
+        doc.scope.status = "partial";
+        doc.scope.limitations.push("YAML aliases are inspected at their anchors; sensitive field context at alias uses is not inspected.");
+        continue;
+      }
+      if (isMap(node)) {
+        const named = node.items.find((p) => isScalar(p.key) && p.key.value === "name");
+        const context = named && isScalar(named.value) ? scalarText(named.value.value) : void 0;
+        const encoded = node.items.some((p) => isScalar(p.key) && p.key.value === "encoding" && isScalar(p.value) && p.value.value === "base64");
+        for (const pair of node.items) {
+          const key = isScalar(pair.key) ? String(pair.key.value) : "?";
+          queue.push({ node: pair.key, path: `${path} (key)`, depth: depth + 1 });
+          queue.push({ node: pair.value, path: `${path}.${key}`, field: key === "value" && path.includes(".cookies[") ? "cookie" : key === "value" && context ? context : key, base64: encoded && key === "text", depth: depth + 1 });
+        }
+      } else if (isSeq(node)) node.items.forEach((item, i) => {
+        queue.push({ node: item, path: `${path}[${i}]`, field, depth: depth + 1 });
+      });
+      else if (isScalar(node) && node.range) {
+        const [start, end] = node.range;
+        ranges.push([start, end]);
+        const value = scalarText(node.value);
+        if (value === void 0) continue;
+        const raw = text3.slice(start, end);
+        const suffix = /\r?\n$/.exec(raw)?.[0] ?? "";
+        const encode = (v) => JSON.stringify(v) + suffix;
+        if (base64) {
+          const decoded = base64Text(value);
+          if (decoded === void 0) {
+            doc.scope.status = "partial";
+            doc.scope.limitations.push("A base64 body is binary, invalid or too large to inspect.");
+          } else add(decoded, start, end, `${path} (decoded body)`, void 0, (v) => encode(encodeBase64(v)));
+        } else add(value, start, end, path, field && sensitiveField(field, rules) ? field : void 0, encode);
+      }
+    }
+    if (!json) {
+      ranges.sort((a, b) => a[0] - b[0]);
+      let range = 0;
+      for (let offset = text3.indexOf("#"); offset >= 0; ) {
+        while (range < ranges.length && ranges[range][1] <= offset) range++;
+        if (range < ranges.length && ranges[range][0] <= offset) {
+          offset = text3.indexOf("#", ranges[range][1]);
+          continue;
+        }
+        const newline = text3.indexOf("\n", offset), end = newline < 0 ? text3.length : newline;
+        add(text3.slice(offset, end), offset, end, "Comment", void 0, (s) => s);
+        offset = text3.indexOf("#", end);
+      }
+    }
+  }
+  doc.write = (values) => {
+    let result = text3, changed = false;
+    for (const edit of [...edits].sort((a, b) => b.start - a.start)) {
+      const value = values.get(edit.id);
+      if (value !== void 0) {
+        result = result.slice(0, edit.start) + edit.encode(value) + result.slice(edit.end);
+        changed = true;
+      }
+    }
+    if (!changed) return bytes;
+    if (json) JSON.parse(result);
+    if (structured && parseAllDocuments(result, { prettyErrors: false, logLevel: "silent" }).some((d) => d.errors.length)) throw new Error("A replacement would make the structured file invalid. Adjust the replacement.");
+    return encoder4.encode(result);
+  };
+}
+function openPreparationDocument(bytes, name, sourceId, id, rules, budget, depth = 0, counted = false) {
+  const ext = name.split(".").pop()?.toLowerCase() ?? "";
+  const scope = { id, sourceId, path: name, format: "unknown", status: "uninspected", limitations: [] };
+  const doc = { scope, children: [], units: [], write: () => bytes };
+  if (!counted && ++budget.scopes > PREPARE_MAX_SCOPES) {
+    scope.limitations.push("The 300-member inspection limit was reached.");
+    return doc;
+  }
+  if (bytes.length > PREPARE_MAX_BYTES) {
+    scope.limitations.push("This file exceeds the 32 MiB preparation limit.");
+    return doc;
+  }
+  const zip = bytes[0] === 80 && bytes[1] === 75 && (ext === "zip" || ext === "");
+  if (zip) {
+    scope.format = "zip";
+    if (depth >= 3) {
+      scope.limitations.push("Archives deeper than three levels are retained without inspection.");
+      return doc;
+    }
+    let members;
+    try {
+      members = readZipMembers(bytes, { maxInputBytes: PREPARE_MAX_BYTES, maxEntries: PREPARE_MAX_SCOPES, maxEntryBytes: PREPARE_MAX_TOTAL, maxTotalBytes: PREPARE_MAX_TOTAL });
+    } catch {
+      scope.limitations.push("This archive is malformed, unsupported or exceeds the expansion limits. Its original bytes are available unchanged.");
+      return doc;
+    }
+    if (new Set(members.map((m2) => m2.name)).size !== members.length) {
+      scope.limitations.push("Duplicate archive member names prevent a reliable selective rewrite.");
+      return doc;
+    }
+    if (budget.scopes + members.length > PREPARE_MAX_SCOPES) {
+      scope.limitations.push("The global 300-member inspection limit was reached. This archive is retained without member inspection.");
+      return doc;
+    }
+    budget.scopes += members.length;
+    scope.status = "partial";
+    scope.limitations.push("Member names and archive comments are not inspected. Rebuilding removes archive comments and empty directory records.");
+    for (const [index, member] of members.entries()) {
+      const childId = `${id}:m${index}`;
+      budget.expanded += member.size;
+      const reason = member.flags & 1 ? "Encrypted member; retained without decryption." : ![0, 8].includes(member.method) ? "Unsupported archive compression; member retained." : budget.expanded > PREPARE_MAX_TOTAL ? "The 64 MiB expansion budget was reached." : member.size > PREPARE_MAX_BYTES ? "Member exceeds the 32 MiB preparation limit." : "";
+      if (reason) doc.children.push({ scope: { id: childId, sourceId, path: `${name}/${member.name}`, format: "unknown", status: "uninspected", limitations: [reason] }, children: [], units: [], write: () => new Uint8Array() });
+      else {
+        try {
+          doc.children.push(openPreparationDocument(decodeZipMember(member), `${name}/${member.name}`, sourceId, childId, rules, budget, depth + 1, true));
+        } catch {
+          doc.children.push({ scope: { id: childId, sourceId, path: `${name}/${member.name}`, format: "unknown", status: "uninspected", limitations: ["Member could not be decoded; retained unchanged."] }, children: [], units: [], write: () => new Uint8Array() });
+        }
+      }
+    }
+    doc.write = (values, remove) => {
+      let changed = false;
+      const kept = [];
+      doc.children.forEach((child, i) => {
+        const member = members[i];
+        if (remove.has(child.scope.id)) {
+          changed = true;
+          return;
+        }
+        const affected = [...values.keys(), ...remove].some((key) => key.startsWith(`${child.scope.id}:`));
+        if (!affected) {
+          kept.push(member);
+          return;
+        }
+        const output = child.write(values, remove);
+        kept.push(readZipMembers(storeZip([{ name: member.name, bytes: output }]))[0]);
+        changed = true;
+      });
+      return changed ? storeZipMembers(kept) : bytes;
+    };
+    return doc;
+  }
+  if (["pdf", "png", "jpg", "jpeg", "svg", "webp", "docx", "pptx", "xlsx", "mp3", "wav", "mp4"].includes(ext)) {
+    scope.format = ext;
+    scope.limitations.push(["pdf", "png", "jpg", "jpeg", "svg"].includes(ext) ? "Use Strip Hidden Data for metadata or Redact for visible content. This file is retained until you choose that operation." : "This binary format is not inspected here; its bytes are retained unchanged.");
+    return doc;
+  }
+  const text3 = decodeText(bytes);
+  if (text3 === void 0) {
+    scope.limitations.push("Binary, non-UTF-8 or larger than 1 MiB: retained without text inspection.");
+    return doc;
+  }
+  scope.status = "inspected";
+  const json = ["json", "har", "jsonl", "ndjson"].includes(ext);
+  const structured = json || ["yml", "yaml"].includes(ext);
+  scope.format = json ? ext : structured ? "yaml" : "text";
+  if (budget.units >= 2e4) {
+    scope.status = "uninspected";
+    scope.limitations.push("The structured value budget was reached.");
+    return doc;
+  }
+  try {
+    textDocument(doc, bytes, text3, structured, json, rules, budget);
+  } catch {
+    doc.units = [];
+    doc.write = () => bytes;
+    scope.status = "uninspected";
+    scope.limitations.push("Structured text could not be parsed reliably. Keep the original or inspect a plain-text copy.");
+  }
+  if (doc.scope.status === "partial") scope.limitations = [.../* @__PURE__ */ new Set([...scope.limitations, "Some structured content was not inspected."])];
+  return doc;
+}
+function preparationDocuments(roots) {
+  const all = [], queue = [...roots];
+  while (queue.length) {
+    const doc = queue.shift();
+    all.push(doc);
+    queue.push(...doc.children);
+  }
+  return all;
+}
+var encoder4, decoder5, PREPARE_MAX_BYTES, PREPARE_MAX_TOTAL, PREPARE_MAX_SCOPES;
+var init_prepare_document = __esm({
+  "engine/src/prepare-document.ts"() {
+    "use strict";
+    init_zip();
+    init_prepare_text();
+    encoder4 = new TextEncoder();
+    decoder5 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+    PREPARE_MAX_BYTES = 32 * 1024 * 1024;
+    PREPARE_MAX_TOTAL = 64 * 1024 * 1024;
+    PREPARE_MAX_SCOPES = 300;
+  }
+});
+
+// engine/src/prepare.ts
+async function preparationDigest(bytes) {
+  return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", Uint8Array.from(bytes).buffer)), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+function validateSources(sources) {
+  if (!Array.isArray(sources) || !sources.length || sources.length > 100) throw new Error("Choose between 1 and 100 files.");
+  const ids2 = /* @__PURE__ */ new Set();
+  let total = 0;
+  for (const s of sources) {
+    if (!s || typeof s.id !== "string" || !/^[a-zA-Z0-9_-]{1,64}$/.test(s.id) || ids2.has(s.id) || typeof s.name !== "string" || s.name.length > 1024 || !(s.bytes instanceof Uint8Array)) throw new Error("Invalid preparation source.");
+    if (s.bytes.length > PREPARE_MAX_BYTES) throw new Error("Each source must be at most 32 MiB.");
+    ids2.add(s.id);
+    total += s.bytes.length;
+  }
+  if (total > PREPARE_MAX_TOTAL) throw new Error("A preparation job supports at most 64 MiB of input.");
+}
+async function scan(sources, rules, options2 = {}) {
+  validateSources(sources);
+  sources = sources.map((s) => ({ ...s, bytes: Uint8Array.from(s.bytes) }));
+  rules = validatePreparationRules(rules);
+  const inspection = { version: 1, sources: [], scopes: [], findings: [], groups: [], rules };
+  const roots = [];
+  const spans = /* @__PURE__ */ new Map();
+  const groups = /* @__PURE__ */ new Map();
+  const budget = { scopes: 0, expanded: 0, units: 0 };
+  for (const [index, source] of sources.entries()) {
+    options2.signal?.throwIfAborted();
+    const digest2 = await preparationDigest(source.bytes);
+    inspection.sources.push({ id: source.id, sha256: digest2, size: source.bytes.length, ...source.revision ? { revision: source.revision } : {} });
+    const root = openPreparationDocument(source.bytes, source.name, source.id, source.id, rules, budget);
+    roots.push(root);
+    for (const doc of preparationDocuments([root])) {
+      inspection.scopes.push(doc.scope);
+      for (const unit2 of doc.units) {
+        if (inspection.findings.length >= PREPARE_MAX_FINDINGS) {
+          doc.scope.status = "partial";
+          doc.scope.limitations.push("The 2,000-finding limit was reached.");
+          break;
+        }
+        const found = inspectPrivateText(unit2.text, rules, unit2.field);
+        if (found.truncated) {
+          doc.scope.status = "partial";
+          doc.scope.limitations.push("The finding limit was reached.");
+        }
+        for (const span of found.spans) {
+          if (inspection.findings.length >= PREPARE_MAX_FINDINGS) {
+            doc.scope.status = "partial";
+            break;
+          }
+          let group = groups.get(span.value);
+          if (!group) {
+            group = { id: `g${groups.size}`, value: span.value, replacement: `[${span.category.toUpperCase()}_${groups.size + 1}]`, category: span.category, count: 0 };
+            groups.set(span.value, group);
+          }
+          group.count++;
+          const finding3 = { id: `f${inspection.findings.length}`, scopeId: unit2.scopeId, groupId: group.id, rule: span.rule, category: span.category, label: span.label, uncertain: span.uncertain, location: unit2.location, value: span.value, line: unit2.line + unit2.text.slice(0, span.start).split("\n").length - 1 };
+          inspection.findings.push(finding3);
+          spans.set(finding3.id, { unit: unit2, span });
+        }
+      }
+    }
+    options2.progress?.({ completed: index + 1, total: sources.length, phase: "input" });
+    await new Promise((resolve3) => setTimeout(resolve3, 0));
+  }
+  options2.signal?.throwIfAborted();
+  inspection.groups = [...groups.values()];
+  inspection.scopes.forEach((scope) => {
+    scope.limitations = [...new Set(scope.limitations)];
+  });
+  return { inspection, roots, spans };
+}
+async function inspectPreparation(sources, rules = [], options2) {
+  return (await scan(sources, rules, options2)).inspection;
+}
+function outputScopeId(id, remove) {
+  const [source, ...steps] = id.split(":m");
+  let original = source, output = source;
+  for (const step of steps) {
+    const index = Number(step), prefix = `${original}:m`;
+    const skipped = [...remove].filter((r3) => r3.startsWith(prefix) && /^\d+$/.test(r3.slice(prefix.length)) && Number(r3.slice(prefix.length)) < index).length;
+    original += `:m${index}`;
+    if (remove.has(original)) return void 0;
+    output += `:m${index - skipped}`;
+  }
+  return output;
+}
+async function applyPreparation(sources, inspection, choices, removeScopes = [], options2 = {}) {
+  validateSources(sources);
+  sources = sources.map((s) => ({ ...s, bytes: Uint8Array.from(s.bytes) }));
+  if (inspection?.version !== 1) throw new Error("Unsupported preparation inspection.");
+  const fresh = await scan(sources, inspection.rules, options2);
+  if (JSON.stringify(fresh.inspection.sources) !== JSON.stringify(inspection.sources) || JSON.stringify(fresh.inspection.findings) !== JSON.stringify(inspection.findings)) throw new Error("The source or inspection changed. Inspect again before applying choices.");
+  if (!Array.isArray(choices) || choices.length > PREPARE_MAX_FINDINGS || !Array.isArray(removeScopes) || removeScopes.length > 300) throw new Error("Too many preparation choices.");
+  const chosen = /* @__PURE__ */ new Map();
+  for (const choice of choices) {
+    if (!fresh.inspection.groups.some((g2) => g2.id === choice.groupId) || chosen.has(choice.groupId) || typeof choice.replacement !== "string" || choice.replacement.length > 4096) throw new Error("Invalid replacement choice.");
+    if (choice.findings && (!Array.isArray(choice.findings) || choice.findings.some((id) => !fresh.inspection.findings.some((f) => f.id === id && f.groupId === choice.groupId)))) throw new Error("A selected occurrence no longer belongs to this group.");
+    chosen.set(choice.groupId, choice);
+  }
+  const remove = new Set(removeScopes);
+  for (const id of remove) if (!fresh.inspection.scopes.some((s) => s.id === id && s.id !== s.sourceId)) throw new Error("Only listed archive members can be removed.");
+  const byUnit = /* @__PURE__ */ new Map();
+  const replaced = /* @__PURE__ */ new Map();
+  for (const finding3 of fresh.inspection.findings) {
+    const choice = chosen.get(finding3.groupId);
+    if (choice?.replacement === finding3.value) continue;
+    if (!choice || choice.findings && !choice.findings.includes(finding3.id)) continue;
+    const entry = fresh.spans.get(finding3.id);
+    const group = byUnit.get(entry.unit.id) ?? { unit: entry.unit, edits: [] };
+    group.edits.push({ span: entry.span, replacement: choice.replacement });
+    byUnit.set(entry.unit.id, group);
+    replaced.set(finding3.scopeId, (replaced.get(finding3.scopeId) ?? 0) + 1);
+  }
+  const values = new Map([...byUnit].map(([id, { unit: unit2, edits }]) => [id, replacePrivateSpans(unit2.text, edits)]));
+  const outputs = [], failed = /* @__PURE__ */ new Set();
+  for (const [index, root] of fresh.roots.entries()) {
+    options2.signal?.throwIfAborted();
+    const source = sources[index];
+    try {
+      const bytes = root.write(values, remove);
+      if (bytes.length > PREPARE_MAX_BYTES) throw new Error("The result would exceed the size limit.");
+      outputs.push({ ...source, bytes: bytes.slice() });
+    } catch {
+      failed.add(source.id);
+      outputs.push({ ...source, bytes: source.bytes.slice() });
+    }
+  }
+  const after = await inspectPreparation(outputs, inspection.rules, { ...options2, progress: (p) => options2.progress?.({ ...p, phase: "output" }) });
+  const report = {
+    version: 1,
+    operation: "prepare-for-sharing",
+    execution: "device",
+    sources: fresh.inspection.sources.map(({ id, sha256: sha2562, size }) => ({ id, sha256: sha2562, size })),
+    outputs: after.sources.map((s) => ({ id: s.id, sha256: s.sha256, size: s.size, changed: s.sha256 !== fresh.inspection.sources.find((x) => x.id === s.id)?.sha256 })),
+    scopes: fresh.inspection.scopes.map((scope) => {
+      const failedSource = failed.has(scope.sourceId);
+      const currentId = failedSource ? scope.id : outputScopeId(scope.id, remove);
+      const current = currentId === void 0 ? void 0 : after.scopes.find((s) => s.id === currentId);
+      const deleted = !failedSource && [...remove].some((id) => scope.id === id || scope.id.startsWith(`${id}:`));
+      return {
+        id: scope.id,
+        status: current?.status ?? scope.status,
+        format: scope.format,
+        findings: inspection.findings.filter((f) => f.scopeId === scope.id).length,
+        replaced: failedSource ? 0 : deleted ? inspection.findings.filter((f) => f.scopeId === scope.id).length : replaced.get(scope.id) ?? 0,
+        remaining: current ? after.findings.filter((f) => f.scopeId === current.id).length : 0,
+        limitations: failedSource ? ["Selected changes could not be applied to this file. The original was retained; adjust the choices or retry."] : deleted ? ["Member removed by your choice."] : current?.limitations ?? scope.limitations
+      };
+    }),
+    replaced: 0,
+    remaining: after.findings.length,
+    limitations: GENERAL_LIMITS,
+    ...failed.size ? { stages: [...failed].map((sourceId) => ({ sourceId, operation: "replace-values", status: "failed", inputSha256: fresh.inspection.sources.find((s) => s.id === sourceId).sha256, outputSha256: after.sources.find((s) => s.id === sourceId).sha256, limitations: ["Selected changes failed. Original retained."] })) } : {}
+  };
+  report.replaced = report.scopes.reduce((n2, s) => n2 + s.replaced, 0);
+  return { outputs, report, inspection: after };
+}
+function createPrepareAPI() {
+  return { inspect: inspectPreparation, apply: applyPreparation };
+}
+function preparationRecipe(categories, rules = []) {
+  if (categories.length > 100 || categories.some((c) => !/^[a-z-]{1,32}$/.test(c))) throw new Error("Invalid recipe categories.");
+  return { version: 1, categories: [...new Set(categories)], fields: [...new Set(validatePreparationRules(rules).filter((r3) => r3.kind === "field").map((r3) => r3.value))] };
+}
+function readPreparationRecipe(value) {
+  if (!value || typeof value !== "object") throw new Error("Invalid preparation recipe.");
+  const recipe = value;
+  if (recipe.version !== 1 || !Array.isArray(recipe.categories) || !Array.isArray(recipe.fields) || recipe.fields.length > 100) throw new Error("Unsupported preparation recipe.");
+  return preparationRecipe(recipe.categories, recipe.fields.map((value2, i) => ({ id: `field-${i}`, kind: "field", label: "Custom field", value: value2 })));
+}
+var GENERAL_LIMITS;
+var init_prepare2 = __esm({
+  "engine/src/prepare.ts"() {
+    "use strict";
+    init_prepare_document();
+    init_prepare_text();
+    GENERAL_LIMITS = ["File and archive member names are not inspected.", "Pattern suggestions can miss confidential information and can be wrong. Review the result.", "No online credential validation or external reference lookup was performed."];
+  }
+});
+
+// engine/src/prepare-metadata.ts
+async function applyPreparationMetadata(input, ids2, pdf, options2 = {}) {
+  const result = structuredClone(input);
+  result.report.stages ??= [];
+  for (const id of [...new Set(ids2)]) {
+    options2.signal?.throwIfAborted();
+    const output = result.outputs.find((s) => s.id === id);
+    if (!output) throw new Error("Unknown metadata source.");
+    const ext = output.name.split(".").pop()?.toLowerCase();
+    const originalHash = await preparationDigest(output.bytes);
+    try {
+      const format = ext === "jpg" ? "jpeg" : ext;
+      let before, after, bytes;
+      if (format === "pdf") {
+        if (!pdf) throw new Error("PDF metadata removal is unavailable.");
+        before = (await pdf.analyze(output.bytes)).findings.length;
+        bytes = (await pdf.strip(output.bytes)).bytes;
+        after = (await pdf.analyze(bytes)).findings.length;
+      } else if (format === "jpeg" || format === "png" || format === "svg") {
+        const first = extractFileMetadata(output.bytes);
+        if (first.format.toLowerCase() !== format) throw new Error("The file does not match this format.");
+        before = first.fields.length;
+        bytes = stripMetadata(output.bytes, format);
+        after = extractFileMetadata(bytes).fields.length;
+      } else throw new Error("Metadata removal is unavailable for this format.");
+      options2.signal?.throwIfAborted();
+      if (bytes.length > 32 * 1024 * 1024) throw new Error("Metadata output is too large.");
+      const sha2562 = await preparationDigest(bytes);
+      output.bytes = bytes;
+      const ref = result.report.outputs.find((s) => s.id === id);
+      ref.sha256 = sha2562;
+      ref.size = bytes.length;
+      ref.changed = sha2562 !== result.report.sources.find((s) => s.id === id)?.sha256;
+      const inspected = result.inspection.sources.find((s) => s.id === id);
+      inspected.sha256 = sha2562;
+      inspected.size = bytes.length;
+      const limitations = ["Metadata was re-inspected after removal; structural file fields may remain.", "Visible content, attachments, scripts and unrecognized data are not certified removed by this metadata operation.", "Metadata removal can invalidate signatures, remove colour profiles or discard JPEG HDR gain maps."];
+      result.report.stages.push({ sourceId: id, operation: "strip-hidden-data", status: "completed", inputSha256: originalHash, outputSha256: sha2562, before, after, limitations });
+      const scope = result.report.scopes.find((s) => s.id === id);
+      if (scope) {
+        scope.status = "partial";
+        scope.limitations = limitations;
+      }
+      const privateScope = result.inspection.scopes.find((s) => s.id === id);
+      if (privateScope) {
+        privateScope.status = "partial";
+        privateScope.limitations = limitations;
+      }
+    } catch {
+      options2.signal?.throwIfAborted();
+      result.report.stages.push({ sourceId: id, operation: "strip-hidden-data", status: "failed", inputSha256: originalHash, outputSha256: originalHash, limitations: ["Metadata removal could not finish. This file was retained; review it or retry in Strip Hidden Data."] });
+    }
+  }
+  return result;
+}
+var init_prepare_metadata = __esm({
+  "engine/src/prepare-metadata.ts"() {
+    "use strict";
+    init_strip_metadata();
+    init_file_metadata();
+    init_prepare2();
+  }
+});
+
+// engine/src/compare-budget.ts
+function comparisonBudget(options2, signal) {
+  let work = 0;
+  const bounded = (value, fallback, max) => Number.isFinite(value) ? Math.max(1, Math.min(max, Math.floor(value))) : fallback;
+  const maxWork = bounded(options2.maxWork, 1e6, 2e6);
+  const maxChanges = bounded(options2.maxChanges, 200, 1e3);
+  const budget = {
+    changes: [],
+    summary: { added: 0, removed: 0, changed: 0, moved: 0, total: 0 },
+    limitations: /* @__PURE__ */ new Set(),
+    partial: false,
+    detailsTruncated: false,
+    spend(count2 = 1) {
+      signal?.throwIfAborted();
+      work += count2;
+      if (work <= maxWork) return true;
+      budget.limit("The comparison work limit was reached. Unchecked content may differ.");
+      return false;
+    },
+    add(change) {
+      budget.summary[change.kind]++;
+      budget.summary.total++;
+      if (budget.changes.length < maxChanges) budget.changes.push(change);
+      else budget.detailsTruncated = true;
+    },
+    limit(message) {
+      budget.partial = true;
+      budget.limitations.add(message);
+    }
+  };
+  return budget;
+}
+function comparisonValue(value) {
+  let text3;
+  if (typeof value === "string") text3 = value;
+  else if (value === null || typeof value === "boolean" || typeof value === "number") text3 = String(value);
+  else if (value && typeof value === "object") return structuredExcerpt(value);
+  else text3 = `[${typeof value}]`;
+  return { text: text3.slice(0, 2e3), truncated: text3.length > 2e3 };
+}
+function structuredExcerpt(value) {
+  let text3 = "", truncated = false, nodes = 0;
+  const seen = /* @__PURE__ */ new WeakSet();
+  const append = (part) => {
+    if (text3.length + part.length > 2e3) truncated = true;
+    text3 += part.slice(0, Math.max(0, 2e3 - text3.length));
+  };
+  const visit = (value2, depth) => {
+    if (text3.length >= 2e3 || ++nodes > 100 || depth > 8) {
+      truncated = true;
+      return;
+    }
+    if (typeof value2 === "string") {
+      if (value2.length > 2e3) truncated = true;
+      append(JSON.stringify(value2.slice(0, 2e3)));
+      return;
+    }
+    if (value2 === null || typeof value2 !== "object") {
+      append(String(value2));
+      return;
+    }
+    if (seen.has(value2)) {
+      truncated = true;
+      append("[repeated reference]");
+      return;
+    }
+    seen.add(value2);
+    const array = Array.isArray(value2);
+    append(array ? "[" : "{");
+    let count2 = 0;
+    for (const key in value2) {
+      if (!Object.hasOwn(value2, key)) continue;
+      if (count2 >= 20 || text3.length >= 2e3 || nodes >= 100) {
+        truncated = true;
+        break;
+      }
+      if (count2++) append(", ");
+      if (!array) append(`${JSON.stringify(key.slice(0, 2e3))}: `);
+      visit(value2[key], depth + 1);
+    }
+    append(array ? "]" : "}");
+  };
+  visit(value, 0);
+  return { text: text3, truncated };
+}
+var COMPARE_MAX_TEXT;
+var init_compare_budget = __esm({
+  "engine/src/compare-budget.ts"() {
+    "use strict";
+    COMPARE_MAX_TEXT = 2 * 1024 * 1024;
+  }
+});
+
+// engine/src/compare-structure.ts
+function stationaryIds(before, after) {
+  const common = [...before.keys()].filter((id) => after.has(id));
+  const tails = [], prior = new Int32Array(common.length).fill(-1);
+  for (let i = 0; i < common.length; i++) {
+    const at = after.get(common[i]);
+    let lo = 0, hi = tails.length;
+    while (lo < hi) {
+      const mid3 = lo + hi >>> 1;
+      if (after.get(common[tails[mid3]]) < at) lo = mid3 + 1;
+      else hi = mid3;
+    }
+    if (lo) prior[i] = tails[lo - 1];
+    tails[lo] = i;
+  }
+  const stable = /* @__PURE__ */ new Set();
+  for (let i = tails.at(-1) ?? -1; i >= 0; i = prior[i]) stable.add(common[i]);
+  return stable;
+}
+function compareStructure(before, after, options2, budget) {
+  const queue = [{ a: before, b: after, left: [], right: [] }];
+  const seenA = /* @__PURE__ */ new WeakSet(), seenB = /* @__PURE__ */ new WeakSet();
+  const change = (kind, a, b, left, right) => {
+    const av = comparisonValue(a), bv = comparisonValue(b);
+    budget.add({
+      kind,
+      ...kind !== "added" ? { before: { path: left }, beforeValue: av.text } : {},
+      ...kind !== "removed" ? { after: { path: right }, afterValue: bv.text } : {},
+      valueTruncated: av.truncated || bv.truncated
+    });
+  };
+  while (queue.length) {
+    if (!budget.spend()) break;
+    const { a, b, left, right } = queue.pop();
+    if (a === b && (a === null || typeof a !== "object")) continue;
+    const arrays = Array.isArray(a) && Array.isArray(b);
+    if (arrays || record2(a) && record2(b)) {
+      if (seenA.has(a) || seenB.has(b)) {
+        budget.limit("Repeated or cyclic object references were not compared.");
+        continue;
+      }
+      seenA.add(a);
+      seenB.add(b);
+      if (left.length > 100 || right.length > 100) {
+        budget.limit("Nested data beyond 100 levels was not compared.");
+        continue;
+      }
+      const ak = Object.keys(a), bk = Object.keys(b);
+      if (arrays && (ak.length !== a.length || bk.length !== b.length)) {
+        budget.limit("Sparse arrays or arrays with extra properties are not supported.");
+        continue;
+      }
+      if (ak.length + bk.length + queue.length > 4e4) {
+        budget.limit("An object or array exceeds the 20,000-item comparison limit.");
+        continue;
+      }
+      if (arrays && options2.arrayAlignment === "id") {
+        const ids2 = (items) => {
+          const map = /* @__PURE__ */ new Map();
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (!record2(item) || typeof item.id !== "string" || map.has(item.id)) return null;
+            map.set(item.id, i);
+          }
+          return map;
+        };
+        const am = ids2(a), bm = ids2(b);
+        if (am && bm) {
+          const stable = stationaryIds(am, bm);
+          for (const [id, i] of am) {
+            const j = bm.get(id);
+            if (j === void 0) change("removed", a[i], void 0, [...left, i], right);
+            else {
+              if (!stable.has(id)) change("moved", a[i], b[j], [...left, i], [...right, j]);
+              queue.push({ a: a[i], b: b[j], left: [...left, i], right: [...right, j] });
+            }
+          }
+          for (const [id, j] of bm) if (!am.has(id)) change("added", void 0, b[j], left, [...right, j]);
+          continue;
+        }
+        budget.limitations.add("An array has missing or duplicate IDs; it was compared by position.");
+      }
+      const ar = a, br = b;
+      const keys = [.../* @__PURE__ */ new Set([...ak, ...bk])];
+      for (const key of keys.reverse()) {
+        if (!left.length && options2.ignoreRootMetadata && key.startsWith("__")) continue;
+        const segment = arrays && /^\d+$/.test(key) ? Number(key) : key;
+        const lp = [...left, segment], rp = [...right, segment];
+        if (!Object.hasOwn(ar, key)) change("added", void 0, br[key], lp, rp);
+        else if (!Object.hasOwn(br, key)) change("removed", ar[key], void 0, lp, rp);
+        else queue.push({ a: ar[key], b: br[key], left: lp, right: rp });
+      }
+    } else {
+      if ([a, b].some((v) => typeof v === "function" || typeof v === "symbol" || v && typeof v === "object" && !Array.isArray(v) && !record2(v))) {
+        budget.limit("Only plain structured data is supported.");
+        continue;
+      }
+      change("changed", a, b, left, right);
+    }
+  }
+}
+var record2;
+var init_compare_structure = __esm({
+  "engine/src/compare-structure.ts"() {
+    "use strict";
+    init_compare_budget();
+    record2 = (value) => !!value && typeof value === "object" && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
+  }
+});
+
+// engine/src/compare-text.ts
+function tokens(text3, options2) {
+  let line = 1, offset = 0;
+  const out = [];
+  const pattern = options2.granularity === "word" ? /\s+|[^\s]+/gu : /[^\n]*\n|[^\n]+$/g;
+  for (const match of text3.matchAll(pattern)) {
+    const text4 = match[0];
+    let key = options2.whitespace === "ignore" ? text4.replace(/\s+/g, " ").trim() : text4;
+    if (options2.ignoreCase) key = key.toLowerCase();
+    const token2 = { text: text4, key, line, offset };
+    offset += text4.length;
+    line += (text4.match(/\n/g) ?? []).length;
+    if (options2.whitespace !== "ignore" || token2.key !== "") out.push(token2);
+    if (out.length > 2e4) return null;
+  }
+  return out;
+}
+function compareText(before, after, options2, budget) {
+  if (before.length > COMPARE_MAX_TEXT || after.length > COMPARE_MAX_TEXT) {
+    budget.limit("Text exceeds the 2 MiB comparison limit.");
+    return;
+  }
+  if (before === after) return;
+  const a = tokens(before, options2), b = tokens(after, options2);
+  if (!a || !b) {
+    budget.limit("Text exceeds the 20,000-token comparison limit.");
+    return;
+  }
+  let start = 0, ae = a.length, be = b.length;
+  while (start < ae && start < be && a[start].key === b[start].key) start++;
+  while (ae > start && be > start && a[ae - 1].key === b[be - 1].key) {
+    ae--;
+    be--;
+  }
+  const n2 = ae - start, m2 = be - start;
+  if (!n2 && !m2) return;
+  if (!budget.spend((n2 + 1) * (m2 + 1))) return;
+  const cols = m2 + 1, dp = new Uint32Array((n2 + 1) * cols);
+  for (let i2 = n2 - 1; i2 >= 0; i2--) for (let j2 = m2 - 1; j2 >= 0; j2--)
+    dp[i2 * cols + j2] = a[start + i2].key === b[start + j2].key ? 1 + dp[(i2 + 1) * cols + j2 + 1] : Math.max(dp[(i2 + 1) * cols + j2], dp[i2 * cols + j2 + 1]);
+  let i = 0, j = 0;
+  const location = (token2) => ({ path: [], line: token2.line, offset: token2.offset });
+  while (i < n2 || j < m2) {
+    if (i < n2 && j < m2 && a[start + i].key === b[start + j].key) {
+      i++;
+      j++;
+      continue;
+    }
+    const left = [], right = [];
+    while (i < n2 || j < m2) {
+      if (i < n2 && j < m2 && a[start + i].key === b[start + j].key) break;
+      if (j < m2 && (i === n2 || dp[i * cols + j + 1] > dp[(i + 1) * cols + j])) right.push(b[start + j++]);
+      else left.push(a[start + i++]);
+    }
+    const av = comparisonValue(left.map((t) => t.text).join("")), bv = comparisonValue(right.map((t) => t.text).join(""));
+    budget.add({
+      kind: !left.length ? "added" : !right.length ? "removed" : "changed",
+      ...left.length ? { before: location(left[0]), beforeValue: av.text } : {},
+      ...right.length ? { after: location(right[0]), afterValue: bv.text } : {},
+      valueTruncated: av.truncated || bv.truncated
+    });
+  }
+}
+var init_compare_text = __esm({
+  "engine/src/compare-text.ts"() {
+    "use strict";
+    init_compare_budget();
+  }
+});
+
+// engine/src/compare-visual.ts
+function validPage(page2) {
+  return Number.isInteger(page2.page) && page2.page > 0 && Number.isFinite(page2.width) && page2.width > 0 && Number.isFinite(page2.height) && page2.height > 0 && Number.isInteger(page2.pixelWidth) && page2.pixelWidth > 0 && Number.isInteger(page2.pixelHeight) && page2.pixelHeight > 0 && page2.pixelWidth * page2.pixelHeight <= MAX_PIXELS && page2.rgba instanceof Uint8ClampedArray && page2.rgba.length === page2.pixelWidth * page2.pixelHeight * 4;
+}
+function renderComparisonPage(page2, grid, alignment) {
+  const { width, height, scale } = grid;
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width * height > MAX_EDGE * MAX_EDGE || !Number.isFinite(scale) || scale <= 0) throw new Error("Invalid comparison frame.");
+  if (page2 && !validPage(page2)) throw new Error("Invalid comparison page.");
+  const out = new Uint8ClampedArray(width * height * 4);
+  out.fill(255);
+  if (!page2) return out;
+  const dw = alignment === "fit" ? width : page2.width * scale, dh = alignment === "fit" ? height : page2.height * scale;
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    if (x + 0.5 >= dw || y + 0.5 >= dh) continue;
+    const sx = Math.min(page2.pixelWidth - 1, Math.floor((x + 0.5) * page2.pixelWidth / dw));
+    const sy = Math.min(page2.pixelHeight - 1, Math.floor((y + 0.5) * page2.pixelHeight / dh));
+    const src = (sy * page2.pixelWidth + sx) * 4, dst = (y * width + x) * 4, alpha = page2.rgba[src + 3] / 255;
+    for (let c = 0; c < 3; c++) out[dst + c] = Math.round(page2.rgba[src + c] * alpha + 255 * (1 - alpha));
+  }
+  return out;
+}
+function compareVisualSources(request, signal) {
+  signal?.throwIfAborted();
+  if (request.version !== 1) throw new Error("Unsupported comparison version.");
+  const { before, after } = request;
+  const threshold = request.options?.threshold ?? 0;
+  const options2 = { alignment: request.options?.alignment === "fit" ? "fit" : "native", threshold: Number.isFinite(threshold) ? Math.max(0, Math.min(255, Math.round(threshold))) : 0 };
+  const limitations = /* @__PURE__ */ new Set(["Previews use nearest-neighbour samples on white, at most 768 pixels per edge. Matching previews do not establish original pixel or structural equality."]);
+  let partial = false;
+  const limit = (message) => {
+    partial = true;
+    limitations.add(message);
+  };
+  for (const source of [before, after]) {
+    if (!Number.isInteger(source.totalPages) || source.totalPages < 1 || source.pages.length > MAX_PAGES || source.pages.some((p) => !validPage(p) || p.page > source.totalPages) || new Set(source.pages.map((p) => p.page)).size !== source.pages.length || source.pages.reduce((sum, p) => sum + p.pixelWidth * p.pixelHeight, 0) > MAX_PIXELS) throw new Error("Invalid or oversized comparison preview.");
+    if (source.fidelity && source.fidelity.level !== "complete") {
+      partial = true;
+      if (!source.fidelity.limitations.length) limitations.add("A source preview has incomplete fidelity.");
+    }
+    for (const message of source.fidelity?.limitations ?? []) limitations.add(message);
+  }
+  const total = Math.max(before.totalPages, after.totalPages), pages = [];
+  if (total > MAX_PAGES) limit("Only the first 12 pages were compared.");
+  let byteEquality = "unknown";
+  if (before.bytes && after.bytes) {
+    if (Math.max(before.bytes.length, after.bytes.length) > 32 * 1024 * 1024) limitations.add("Byte equality was not checked above 32 MiB.");
+    else byteEquality = before.bytes.length === after.bytes.length && before.bytes.every((b, i) => b === after.bytes[i]) ? "equal" : "different";
+  }
+  const summary = { added: 0, removed: 0, changed: 0, unchanged: 0, unavailable: 0, total };
+  for (let page2 = 1; page2 <= Math.min(MAX_PAGES, total); page2++) {
+    signal?.throwIfAborted();
+    const a = before.pages.find((p) => p.page === page2), b = after.pages.find((p) => p.page === page2);
+    const w = Math.max(a?.width ?? 1, b?.width ?? 1), h = Math.max(a?.height ?? 1, b?.height ?? 1);
+    const density = Math.max(1, ...[a, b].flatMap((p) => p ? [p.pixelWidth / p.width, p.pixelHeight / p.height] : []));
+    const scale = Math.min(density, MAX_EDGE / Math.max(w, h));
+    const width = Math.max(1, Math.min(MAX_EDGE, Math.ceil(w * scale))), height = Math.max(1, Math.min(MAX_EDGE, Math.ceil(h * scale)));
+    const result = { page: page2, kind: "unchanged", width, height, scale, sizeChanged: !!a && !!b && (a.width !== b.width || a.height !== b.height || a.unit !== b.unit), changedPixels: 0, sampledPixels: 0, mask: new Uint8Array(width * height) };
+    if (!a && page2 <= before.totalPages || !b && page2 <= after.totalPages || before.fidelity?.level === "unavailable" || after.fidelity?.level === "unavailable") {
+      result.kind = "unavailable";
+      limit("Some pages could not be rendered; they are not treated as absent or equal.");
+    } else if (!a || !b) {
+      result.kind = a ? "removed" : "added";
+    } else {
+      if (a.unit !== b.unit && options2.alignment === "native") limit("Source units differ. Native alignment compares numeric sizes, not physical size. Choose fit to compare composition.");
+      const left = renderComparisonPage(a, result, options2.alignment), right = renderComparisonPage(b, result, options2.alignment);
+      let x0 = width, y0 = height, x1 = -1, y1 = -1;
+      for (let i = 0; i < width * height; i++) {
+        if (i % 32768 === 0) signal?.throwIfAborted();
+        const offset = i * 4;
+        if (Math.max(Math.abs(left[offset] - right[offset]), Math.abs(left[offset + 1] - right[offset + 1]), Math.abs(left[offset + 2] - right[offset + 2])) > options2.threshold) {
+          result.mask[i] = 255;
+          result.changedPixels++;
+          const x = i % width, y = Math.floor(i / width);
+          x0 = Math.min(x0, x);
+          x1 = Math.max(x1, x);
+          y0 = Math.min(y0, y);
+          y1 = Math.max(y1, y);
+        }
+      }
+      result.sampledPixels = width * height;
+      if (result.changedPixels) result.bounds = { x: x0, y: y0, width: x1 - x0 + 1, height: y1 - y0 + 1 };
+      if (result.changedPixels || result.sizeChanged) result.kind = "changed";
+    }
+    summary[result.kind]++;
+    pages.push(result);
+  }
+  return {
+    version: 1,
+    before: { ...before.identity },
+    after: { ...after.identity },
+    mode: "visual",
+    options: options2,
+    byteEquality,
+    appearance: summary.added + summary.removed + summary.changed ? "different" : partial ? "undetermined" : "same-rendered-pixels",
+    completeness: partial ? "partial" : "complete",
+    summary,
+    pages,
+    limitations: [...limitations]
+  };
+}
+var MAX_EDGE, MAX_PAGES, MAX_PIXELS;
+var init_compare_visual = __esm({
+  "engine/src/compare-visual.ts"() {
+    "use strict";
+    MAX_EDGE = 768;
+    MAX_PAGES = 12;
+    MAX_PIXELS = 8 * 1024 * 1024;
+  }
+});
+
+// engine/src/compare.ts
+function compareSources(request, signal) {
+  signal?.throwIfAborted();
+  if (request.version !== 1) throw new Error("Unsupported comparison version.");
+  const { before, after } = request, options2 = { ...request.options };
+  const budget = comparisonBudget(options2, signal);
+  const mode = options2.mode ?? (before.content.kind === "structure" && after.content.kind === "structure" ? "structure" : "text");
+  let byteEquality = "unknown";
+  if (before.bytes && after.bytes) {
+    if (before.bytes.length > COMPARE_MAX_TEXT || after.bytes.length > COMPARE_MAX_TEXT) budget.limitations.add("Byte equality was not checked above 2 MiB.");
+    else byteEquality = before.bytes.length === after.bytes.length && before.bytes.every((value, i) => value === after.bytes[i]) ? "equal" : "different";
+  }
+  for (const source of [before, after]) {
+    for (const limit of source.fidelity?.limitations ?? []) budget.limitations.add(limit);
+    if (source.fidelity && source.fidelity.level !== "complete") budget.limit("A source is incomplete or unavailable. Equality cannot be established.");
+  }
+  if ([before, after].some((source) => source.fidelity?.level === "unavailable")) {
+  } else if (mode === "text" && before.content.kind === "text" && after.content.kind === "text") {
+    compareText(before.content.text, after.content.text, options2, budget);
+  } else if (mode === "structure" && before.content.kind === "structure" && after.content.kind === "structure") {
+    compareStructure(before.content.value, after.content.value, options2, budget);
+  } else budget.limit("The selected mode does not match both sources.");
+  const different = budget.summary.total > 0;
+  return {
+    version: 1,
+    before: { ...before.identity },
+    after: { ...after.identity },
+    mode,
+    options: options2,
+    equality: different ? "different" : budget.partial ? "undetermined" : byteEquality === "equal" ? "identical-bytes" : "equivalent-content",
+    byteEquality,
+    appearance: "not-compared",
+    completeness: budget.partial ? "partial" : "complete",
+    alignment: mode === "text" ? options2.granularity ?? "line" : options2.arrayAlignment === "id" ? "stable-id" : "object-keys-ordered-arrays",
+    summary: budget.summary,
+    changes: budget.changes,
+    detailsTruncated: budget.detailsTruncated,
+    limitations: [...budget.limitations]
+  };
+}
+function createCompareAPI() {
+  return { async run(request, options2) {
+    return compareSources(request, options2?.signal);
+  }, async visual(request, options2) {
+    return compareVisualSources(request, options2?.signal);
+  } };
+}
+var init_compare2 = __esm({
+  "engine/src/compare.ts"() {
+    "use strict";
+    init_compare_budget();
+    init_compare_structure();
+    init_compare_text();
+    init_compare_visual();
   }
 });
 
@@ -58594,6 +59964,8 @@ __export(src_exports, {
   applyManifestI18n: () => applyManifestI18n,
   applyModelEstimate: () => applyModelEstimate,
   applyPinnedAssets: () => applyPinnedAssets,
+  applyPreparation: () => applyPreparation,
+  applyPreparationMetadata: () => applyPreparationMetadata,
   applySuggestion: () => applySuggestion,
   assembleSealMessage: () => assembleSealMessage,
   assembleTokenSetFiles: () => assembleTokenSetFiles,
@@ -58673,6 +60045,8 @@ __export(src_exports, {
   colorToSrgb: () => colorToSrgb,
   colorToSrgb8: () => colorToSrgb8,
   compactPath: () => compactPath,
+  compareSources: () => compareSources,
+  compareVisualSources: () => compareVisualSources,
   compile: () => compileDocument,
   compileDocument: () => compileDocument,
   composeSong: () => composeSong,
@@ -58696,9 +60070,11 @@ __export(src_exports, {
   cornerFitDashArray: () => cornerFitDashArray,
   cornerRadii: () => cornerRadii,
   crc32: () => crc322,
+  createCompareAPI: () => createCompareAPI,
   createDeepFrame: () => createDeepFrame,
   createHookWorkerCore: () => createHookWorkerCore,
   createLoudnessMeter: () => createLoudnessMeter,
+  createPrepareAPI: () => createPrepareAPI,
   createRuntime: () => createRuntime,
   createTokenSet: () => createTokenSet,
   createTruePeakLimiter: () => createTruePeakLimiter,
@@ -58918,6 +60294,8 @@ __export(src_exports, {
   inspect: () => inspectDocument,
   inspectChartSpec: () => inspectChartSpec,
   inspectDocument: () => inspectDocument,
+  inspectPreparation: () => inspectPreparation,
+  inspectPrivateText: () => inspectPrivateText,
   integratedLoudness: () => integratedLoudness,
   interpolateColor: () => interpolateColor,
   interpretPdfPage: () => interpretPdfPage,
@@ -59157,6 +60535,8 @@ __export(src_exports, {
   pqToU16: () => pqToU16,
   preflight: () => preflight,
   premultiply: () => premultiply,
+  preparationDigest: () => preparationDigest,
+  preparationRecipe: () => preparationRecipe,
   prepareC2paIngredient: () => prepareC2paIngredient,
   prepareC2paIngredientFromStore: () => prepareC2paIngredientFromStore,
   preparePassword: () => preparePassword,
@@ -59178,6 +60558,7 @@ __export(src_exports, {
   readLollyDurable: () => readLollyDurable,
   readMpfIndex: () => readMpfIndex,
   readPptx: () => readPptx,
+  readPreparationRecipe: () => readPreparationRecipe,
   readPsd: () => readPsd,
   readTar: () => readTar,
   readTarGz: () => readTarGz,
@@ -59190,6 +60571,7 @@ __export(src_exports, {
   rebrandPptxParts: () => rebrandPptxParts,
   relativeLuminance: () => relativeLuminance,
   render: () => renderDocument,
+  renderComparisonPage: () => renderComparisonPage,
   renderDocument: () => renderDocument,
   renderZzfxm: () => renderZzfxm,
   resamplePcm: () => resamplePcm,
@@ -59321,6 +60703,7 @@ __export(src_exports, {
   validateChartSpec: () => validateChartSpec,
   validateDocument: () => validateDocument,
   validateManifest: () => validateManifest,
+  validatePreparationRules: () => validatePreparationRules,
   validateRateCard: () => validateRateCard,
   verifyC2pa: () => verifyC2pa,
   verifyC2paPdf: () => verifyC2paPdf,
@@ -59559,6 +60942,11 @@ var init_src2 = __esm({
     init_gzip();
     init_tar_read();
     init_pdf_artwork();
+    init_prepare2();
+    init_prepare_text();
+    init_prepare_metadata();
+    init_compare2();
+    init_compare_visual();
   }
 });
 
@@ -66045,7 +67433,7 @@ async function writeSessionRecord(stateDir, write) {
   await mkdir(sessionsDir(stateDir), { recursive: true });
   const prior = await readSessionRecord(stateDir, write.slot);
   const now2 = (/* @__PURE__ */ new Date()).toISOString();
-  const record2 = {
+  const record3 = {
     slot: write.slot,
     toolId: write.toolId ?? write.data.__toolId,
     toolVersion: write.toolVersion ?? write.data.__toolVersion,
@@ -66056,8 +67444,8 @@ async function writeSessionRecord(stateDir, write) {
     createdAt: prior?.createdAt ?? now2,
     ...sessionVersionStamp()
   };
-  await writeFile(sessionFilePath(stateDir, write.slot), JSON.stringify(record2, null, 2));
-  return record2;
+  await writeFile(sessionFilePath(stateDir, write.slot), JSON.stringify(record3, null, 2));
+  return record3;
 }
 async function deleteSessionRecord(stateDir, slot) {
   try {
@@ -66488,6 +67876,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   const ocr = createNodeOcrAPI();
   if (ocr) host.ocr = ocr;
   host.scan = createNodeScanAPI();
+  host.prepare = (await Promise.resolve().then(() => (init_src2(), src_exports))).createPrepareAPI();
+  host.compare = (await Promise.resolve().then(() => (init_src2(), src_exports))).createCompareAPI();
   host.net = createNetAPI({ allowlist: networkAllowlist });
   host.assets = {
     // v1.183: bytes behind a ref. This bridge inlines catalog files as data:
@@ -66686,6 +68076,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   }
   host.export = {
     async render(node, format, opts = {}) {
+      const unavailable = node.matches("[data-export-error]") ? node : node.querySelector("[data-export-error]");
+      if (format !== "html" && unavailable) throw new Error(unavailable.getAttribute("data-export-error") || "The tool is not ready to export.");
       if (opts.dataText !== void 0) {
         return new Blob([opts.dataText], { type: opts.dataMime ?? "text/plain" });
       }
@@ -68314,9 +69706,9 @@ function rowAt(rows, id, path) {
     throw new Error(`${path}: layer "${id}" ${matches2.length ? "is duplicated" : "does not exist"}.`);
   return matches2[0];
 }
-function anchorOf(record2, path) {
-  const before = record2.beforeId;
-  const after = record2.afterId;
+function anchorOf(record3, path) {
+  const before = record3.beforeId;
+  const after = record3.afterId;
   if (before !== void 0 && (typeof before !== "string" || !before.trim()))
     throw new Error(`${path}/beforeId: a stable layer id is required.`);
   if (after !== void 0 && (typeof after !== "string" || !after.trim()))
@@ -68325,9 +69717,9 @@ function anchorOf(record2, path) {
     throw new Error(`${path}: provide exactly one of beforeId or afterId.`);
   return before !== void 0 ? { side: "before", id: before } : { side: "after", id: after };
 }
-function optionalAnchorOf(record2, path) {
-  if (record2.beforeId === void 0 && record2.afterId === void 0) return null;
-  return anchorOf(record2, path);
+function optionalAnchorOf(record3, path) {
+  if (record3.beforeId === void 0 && record3.afterId === void 0) return null;
+  return anchorOf(record3, path);
 }
 function assertNewDesignId(rows, value, path) {
   if (typeof value !== "string" || !value.trim())
@@ -68384,17 +69776,17 @@ function applyDesignLayerOperations(toolId, manifest, inputs, value) {
     const operation = value[index];
     if (!operation || typeof operation !== "object" || Array.isArray(operation))
       throw new Error(`${path}: operation must be an object.`);
-    const record2 = operation;
-    const op = record2.op;
+    const record3 = operation;
+    const op = record3.op;
     if (op !== "add" && op !== "duplicate" && op !== "remove" && op !== "reparent" && op !== "reorder")
       throw new Error(`${path}/op: expected add, duplicate, remove, reparent or reorder.`);
     const allowed = new Set(
       op === "add" ? ["op", "layer", "beforeId", "afterId"] : op === "duplicate" ? ["op", "id", "newId", "childIds", "beforeId", "afterId"] : op === "remove" ? ["op", "id", "cascade"] : op === "reparent" ? ["op", "id", "artboardId", "beforeId", "afterId"] : ["op", "id", "beforeId", "afterId"]
     );
-    const extra = Object.keys(record2).find((key) => !allowed.has(key));
+    const extra = Object.keys(record3).find((key) => !allowed.has(key));
     if (extra) throw new Error(`${path}/${extra}: unknown ${op} field.`);
     if (op === "add") {
-      const valueLayer = record2.layer;
+      const valueLayer = record3.layer;
       if (!valueLayer || typeof valueLayer !== "object" || Array.isArray(valueLayer))
         throw new Error(`${path}/layer: a layer object is required.`);
       const supplied = valueLayer;
@@ -68410,10 +69802,10 @@ function applyDesignLayerOperations(toolId, manifest, inputs, value) {
         h: fieldDefault("h", 200),
         ...supplied
       };
-      const hasAnchor = record2.beforeId !== void 0 || record2.afterId !== void 0;
+      const hasAnchor = record3.beforeId !== void 0 || record3.afterId !== void 0;
       if (!hasAnchor) rows.push(layer);
       else {
-        const anchor = anchorOf(record2, path);
+        const anchor = anchorOf(record3, path);
         const relative = rowAt(rows, anchor.id, `${path}/${anchor.side}Id`);
         if (!sameReorderDomain(layer, relative.row))
           throw new Error(`${path}: an added layer and its anchor must be siblings or two artboards.`);
@@ -68423,15 +69815,15 @@ function applyDesignLayerOperations(toolId, manifest, inputs, value) {
       continue;
     }
     if (op === "duplicate") {
-      const source = rowAt(rows, record2.id, `${path}/id`);
-      const newId = assertNewDesignId(rows, record2.newId, `${path}/newId`);
-      const anchor = optionalAnchorOf(record2, path) ?? {
+      const source = rowAt(rows, record3.id, `${path}/id`);
+      const newId = assertNewDesignId(rows, record3.newId, `${path}/newId`);
+      const anchor = optionalAnchorOf(record3, path) ?? {
         side: "after",
         id: String(source.row.id)
       };
       const isFrame = source.row.kind === "frame";
       const children = isFrame ? rows.filter((row) => row && typeof row === "object" && !Array.isArray(row) && row.kind !== "frame" && row.frame === source.row.id) : [];
-      const childIdsValue = record2.childIds;
+      const childIdsValue = record3.childIds;
       if (!isFrame && childIdsValue !== void 0)
         throw new Error(`${path}/childIds: only an artboard duplicate may supply child ids.`);
       if (childIdsValue !== void 0 && (!childIdsValue || typeof childIdsValue !== "object" || Array.isArray(childIdsValue)))
@@ -68475,9 +69867,9 @@ function applyDesignLayerOperations(toolId, manifest, inputs, value) {
       continue;
     }
     if (op === "remove") {
-      const target = rowAt(rows, record2.id, `${path}/id`);
+      const target = rowAt(rows, record3.id, `${path}/id`);
       const children = target.row.kind === "frame" ? rows.filter((row) => row && typeof row === "object" && !Array.isArray(row) && row.frame === target.row.id) : [];
-      if (children.length && record2.cascade !== true)
+      if (children.length && record3.cascade !== true)
         throw new Error(`${path}/cascade: artboard "${String(target.row.id)}" has ${children.length} child layer${children.length === 1 ? "" : "s"}; pass cascade:true to remove them.`);
       const removeIds = /* @__PURE__ */ new Set([target.row.id, ...children.map((row) => row.id)]);
       for (let rowIndex = rows.length - 1; rowIndex >= 0; rowIndex--) {
@@ -68487,10 +69879,10 @@ function applyDesignLayerOperations(toolId, manifest, inputs, value) {
       continue;
     }
     if (op === "reparent") {
-      const target = rowAt(rows, record2.id, `${path}/id`);
+      const target = rowAt(rows, record3.id, `${path}/id`);
       if (target.row.kind === "frame")
         throw new Error(`${path}/id: artboards cannot be reparented.`);
-      const artboardId = record2.artboardId;
+      const artboardId = record3.artboardId;
       if (artboardId !== null && (typeof artboardId !== "string" || !artboardId.trim()))
         throw new Error(`${path}/artboardId: expected an artboard stable id or null for the pasteboard.`);
       if (typeof artboardId === "string") {
@@ -68499,7 +69891,7 @@ function applyDesignLayerOperations(toolId, manifest, inputs, value) {
           throw new Error(`${path}/artboardId: layer "${artboardId}" is not an artboard.`);
       }
       target.row.frame = artboardId ?? "";
-      const anchor = optionalAnchorOf(record2, path);
+      const anchor = optionalAnchorOf(record3, path);
       if (anchor) {
         reorderDesignRow(rows, String(target.row.id), anchor, path);
       } else {
@@ -68515,9 +69907,9 @@ function applyDesignLayerOperations(toolId, manifest, inputs, value) {
       }
       continue;
     }
-    const id = record2.id;
+    const id = record3.id;
     if (typeof id !== "string" || !id.trim()) throw new Error(`${path}/id: a stable layer id is required.`);
-    reorderDesignRow(rows, id, anchorOf(record2, path), path);
+    reorderDesignRow(rows, id, anchorOf(record3, path), path);
   }
   return { ...inputs, boxes: rows };
 }
@@ -68530,12 +69922,12 @@ function applyDesignLayerPatches(toolId, manifest, inputs, value) {
     const patch = value[index];
     if (!patch || typeof patch !== "object" || Array.isArray(patch))
       throw new Error(`/layerPatches/${index}: patch must be an object.`);
-    const record2 = patch;
-    const extra = Object.keys(record2).find((key) => key !== "id" && key !== "set");
+    const record3 = patch;
+    const extra = Object.keys(record3).find((key) => key !== "id" && key !== "set");
     if (extra) throw new Error(`/layerPatches/${index}/${extra}: unknown patch field.`);
-    const id = record2.id;
+    const id = record3.id;
     if (typeof id !== "string" || !id) throw new Error(`/layerPatches/${index}/id: a stable layer id is required.`);
-    const set = record2.set;
+    const set = record3.set;
     if (!set || typeof set !== "object" || Array.isArray(set)) throw new Error(`/layerPatches/${index}/set: fields must be an object.`);
     if (Object.hasOwn(set, "id")) throw new Error(`/layerPatches/${index}/set/id: a stable layer id cannot be changed.`);
     const match = rowAt(rows, id, `/layerPatches/${index}/id`);
@@ -68998,9 +70390,9 @@ var RESOURCE_TEMPLATES = [
   { uriTemplate: "lolly://asset/{id}", name: "Brand asset", description: "A catalog asset (logo, palette, font) resolved to bytes.", mimeType: "application/octet-stream" }
 ];
 function headTokensAsset(assets) {
-  const tokens = assets.filter((a) => a.type === "tokens");
-  const headId = pickHeadAssetId(tokens.map((a) => a.id));
-  return tokens.find((a) => a.id === headId);
+  const tokens2 = assets.filter((a) => a.type === "tokens");
+  const headId = pickHeadAssetId(tokens2.map((a) => a.id));
+  return tokens2.find((a) => a.id === headId);
 }
 async function tokensResource(uri) {
   const idx = JSON.parse(await readFile13(ASSET_INDEX, "utf8"));

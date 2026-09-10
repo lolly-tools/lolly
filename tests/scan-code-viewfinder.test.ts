@@ -64,3 +64,13 @@ test('the live result masks a secret exactly like the still path', { skip: SKIP 
   assert.match(String(vm.scanFieldsHtml), /data-secret="hunter2secret"/, 'real value only behind reveal');
   assert.ok(!/>hunter2secret</.test(String(vm.scanFieldsHtml)), 'not shown in the clear in the live view');
 });
+
+test('a failed preview encode retains the last frame instead of returning to the start hint', { skip: SKIP }, async () => {
+  const { onFrame } = await loadHooks();
+  const first = await onFrame({ frame: frame(1000), model: MODEL, host: host(null) });
+  const failing = host(null);
+  failing.raster.encode = async () => { throw new Error('Temporary encode failure'); };
+  const next = await onFrame({ frame: frame(1200), model: MODEL, host: failing });
+  assert.equal(Object.hasOwn(next, 'scanFrameSrc'), false);
+  assert.equal({ ...first, ...next }.scanFrameSrc, first.scanFrameSrc);
+});

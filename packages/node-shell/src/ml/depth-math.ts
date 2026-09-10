@@ -2,7 +2,7 @@
 /**
  * The DOM-free maths of on-device monocular depth: the two resamplers, the
  * channel packing, the min-max normalisation, and the pre/post pair that turn a
- * source frame into the model's square input and its raw head back into a
+ * source frame into the model's aspect-preserving input and its raw head back into a
  * work-size 0..1 map.
  *
  * SPLIT OUT of shells/web/src/lib/depth-worker.ts (2026-09-03, plans/183 WS2),
@@ -128,35 +128,45 @@ export interface DepthPre {
   /** Work-size dimensions (source capped to opts.maxEdge). */
   workW: number;
   workH: number;
-  /** NCHW [1,3,edge,edge] float32, normalized per the spec - the model input. */
+  /** NCHW [1,3,inputH,inputW] float32, normalized per the spec. */
   input: Float32Array;
-  /** Model square edge (spec.inputSize[0]). */
+  inputW: number;
+  inputH: number;
+  /** The target edge (retained for existing callers). */
   edge: number;
 }
 
 /** Source frame → the model's normalized NCHW input, keeping the work size the
  *  map is handed back at. Two resamples on purpose: source → work (the iOS memory
  *  cap, and the size the render and the export actually use), then work → the
- *  model square. */
+ *  aspect-preserving model input. */
 export function preprocessDepth(frame: DepthFrame, spec: DepthModelSpec, opts: DepthOpts = {}): DepthPre {
   const edge = spec.inputSize[0];
   const { width: workW, height: workH } = planWorkSize(frame.width, frame.height, opts.maxEdge ?? DEPTH_MAX_WORK_EDGE);
   const work = workW === frame.width && workH === frame.height
     ? frame.data
     : resampleRgba(frame.data, frame.width, frame.height, workW, workH);
-  // 'stretch': the square is filled ignoring aspect. Letterboxing would put a
-  // black border into the field, and that border becomes fake far-depth that
-  // drags the min-max normalisation with it.
-  const square = resampleRgba(work, workW, workH, edge, edge);
-  return { workW, workH, input: packNchwNormalized(square, edge, edge, spec), edge };
+  let inputW = edge, inputH = edge;
+  if (spec.fit === 'aspect') {
+    // DPT's keep_aspect_ratio: choose the scale closest to one, then round
+    // both sides to a ViT /14 patch. Bound extreme panoramas to 2x the target
+    // edge so a tiny source height cannot create an enormous model tensor.
+    const sx = edge / workW, sy = edge / workH;
+    const scale = Math.min(Math.abs(1 - sx) < Math.abs(1 - sy) ? sx : sy, (2 * edge) / Math.max(workW, workH));
+    inputW = Math.max(14, Math.round(workW * scale / 14) * 14);
+    inputH = Math.max(14, Math.round(workH * scale / 14) * 14);
+  }
+  const resized = resampleRgba(work, workW, workH, inputW, inputH);
+  return { workW, workH, input: packNchwNormalized(resized, inputW, inputH, spec), inputW, inputH, edge };
 }
 
 /** The model's raw output → the finished work-size 0..1 depth map. */
 export function postprocessDepth(raw: ArrayLike<number>, pre: DepthPre): DepthMap {
-  const { edge, workW, workH } = pre;
-  const normalised = normaliseDepth(raw, edge * edge);
-  const data = edge === workW && edge === workH
+  const { inputW, inputH, workW, workH } = pre;
+  if (raw.length !== inputW * inputH) throw new Error('Depth output dimensions do not match the model input.');
+  const normalised = normaliseDepth(raw, inputW * inputH);
+  const data = inputW === workW && inputH === workH
     ? normalised
-    : resampleFloat(normalised, edge, edge, workW, workH);
+    : resampleFloat(normalised, inputW, inputH, workW, workH);
   return { width: workW, height: workH, data };
 }

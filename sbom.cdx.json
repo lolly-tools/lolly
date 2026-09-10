@@ -4,7 +4,7 @@
   "serialNumber": "urn:uuid:b1234b4a-bce0-487d-8266-545cd239e6f7",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-09T14:13:10.317Z",
+    "timestamp": "2026-09-10T14:41:48.546Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -35963,7 +35963,7 @@
       "name": "yaml",
       "version": "2.9.0",
       "purl": "pkg:npm/yaml@2.9.0",
-      "scope": "excluded",
+      "scope": "required",
       "licenses": [
         {
           "license": {
@@ -35975,12 +35975,6 @@
         {
           "alg": "SHA-512",
           "content": "d80be1357de66fccdde99cbb20d4ed4a9975175e475ba5a7aa3d2cad696428b729625fe03083098b2b86ab629e236605c543e376507edcb735d2c78c2ed2f870"
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
         }
       ]
     },

@@ -62,7 +62,7 @@ test('hash route with no query yields an empty query string', () => {
 });
 
 test('does not mistake app routes for tools (the frozen APP_PATH_WORDS vocabulary)', () => {
-  for (const route of ['pro', 'batch', 'start', 'unpack', 'docs', 'catalog', 'platform', 'capabilities', 'profile', 'gallery', 'join-reply']) {
+  for (const route of ['prepare', 'pro', 'batch', 'start', 'unpack', 'docs', 'catalog', 'platform', 'capabilities', 'profile', 'gallery', 'join-reply']) {
     assert.equal(parseToolUrl(`https://lolly.tools/${route}`), null, `should reject /${route}`);
   }
   // The two-segment /t/ form checks the id, not the prefix: an app word after /t/

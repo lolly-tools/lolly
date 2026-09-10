@@ -21,16 +21,16 @@
   ],
   "modules": {
     "shells/web/src/bridge/export-svg-walker.ts": {
-      "lines": 1878,
+      "lines": 1708,
       "largestFunctionLines": 1866,
       "importFanIn": 1,
-      "importFanOut": 15,
-      "typeEscapes": 41
+      "importFanOut": 16,
+      "typeEscapes": 39
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 4639,
+      "lines": 4642,
       "largestFunctionLines": 647,
-      "importFanIn": 23,
+      "importFanIn": 25,
       "importFanOut": 42,
       "typeEscapes": 115
     },
@@ -63,15 +63,15 @@
       "typeEscapes": 89
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1896,
-      "largestFunctionLines": 1884,
+      "lines": 1965,
+      "largestFunctionLines": 1882,
       "importFanIn": 1,
-      "importFanOut": 52,
+      "importFanOut": 54,
       "typeEscapes": 34
     },
     "shells/web/src/views/picker.ts": {
-      "lines": 2683,
-      "largestFunctionLines": 2206,
+      "lines": 2691,
+      "largestFunctionLines": 2234,
       "importFanIn": 23,
       "importFanOut": 47,
       "typeEscapes": 38
@@ -84,11 +84,11 @@
       "typeEscapes": 36
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2352,
-      "largestFunctionLines": 3054,
+      "lines": 2327,
+      "largestFunctionLines": 3009,
       "importFanIn": 1,
       "importFanOut": 44,
-      "typeEscapes": 28
+      "typeEscapes": 25
     },
     "shells/web/src/views/start.ts": {
       "lines": 2515,
@@ -241,7 +241,7 @@
     "shells/web/src/bridge/export-scale.ts": 1,
     "shells/web/src/bridge/export-scorm.ts": 1,
     "shells/web/src/bridge/export-shared.ts": 5,
-    "shells/web/src/bridge/export-svg-walker.ts": 41,
+    "shells/web/src/bridge/export-svg-walker.ts": 39,
     "shells/web/src/bridge/export.ts": 115,
     "shells/web/src/bridge/font-registry.ts": 4,
     "shells/web/src/bridge/fontface-discovery.ts": 1,
@@ -301,7 +301,7 @@
     "shells/web/src/components/collab-focus.ts": 3,
     "shells/web/src/components/collab-overlay.ts": 3,
     "shells/web/src/components/collab-pill.ts": 2,
-    "shells/web/src/components/color-field.ts": 14,
+    "shells/web/src/components/color-field.ts": 13,
     "shells/web/src/components/color-spaces.ts": 7,
     "shells/web/src/components/confirm-dialog.ts": 1,
     "shells/web/src/components/custom-slider.ts": 1,
@@ -317,6 +317,7 @@
     "shells/web/src/components/music-player.ts": 2,
     "shells/web/src/components/neuro-dock.ts": 1,
     "shells/web/src/components/num-field.ts": 1,
+    "shells/web/src/components/prepare/panel.ts": 1,
     "shells/web/src/components/profile-menu.ts": 3,
     "shells/web/src/components/profiles-manager.ts": 5,
     "shells/web/src/components/scrub-readout.ts": 1,
@@ -559,6 +560,7 @@
     "shells/web/src/lib/sync-service.ts": 3,
     "shells/web/src/lib/table-canvas-edit.ts": 1,
     "shells/web/src/lib/tabs.ts": 1,
+    "shells/web/src/lib/template-share.ts": 1,
     "shells/web/src/lib/text-doc-export.ts": 4,
     "shells/web/src/lib/tile-select.ts": 4,
     "shells/web/src/lib/token-studio.ts": 5,
@@ -705,7 +707,7 @@
     "shells/web/src/views/profile-connections.ts": 3,
     "shells/web/src/views/profile-sync.ts": 1,
     "shells/web/src/views/profile.ts": 36,
-    "shells/web/src/views/projects.ts": 28,
+    "shells/web/src/views/projects.ts": 25,
     "shells/web/src/views/record-control.ts": 6,
     "shells/web/src/views/retouch-inline.ts": 3,
     "shells/web/src/views/rich-text.ts": 3,
@@ -766,8 +768,8 @@
     "shells/web/src/views/tool/history.ts": 2,
     "shells/web/src/views/tool/popovers.ts": 2,
     "shells/web/src/views/tool/render.ts": 7,
-    "shells/web/src/views/tool/session.ts": 16,
-    "shells/web/src/views/tool/setup.ts": 15,
+    "shells/web/src/views/tool/session.ts": 15,
+    "shells/web/src/views/tool/setup.ts": 13,
     "shells/web/src/views/tool/shared.ts": 1,
     "shells/web/src/views/tool/stage-layout.ts": 13,
     "shells/web/src/views/transcribe-control.ts": 1,

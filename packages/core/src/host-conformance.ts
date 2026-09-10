@@ -43,6 +43,8 @@ export const HOST_V1_METHODS: Record<HostApi, ApiMethods> = {
   tokens: { required: ['get', 'colors', 'resolve', 'themes'], optional: ['list', 'active', 'snapshot'] },
   text: { required: ['toPath', 'preload'], optional: ['axisDefaults', 'fontUrl'] },
   pdf: { required: ['analyze', 'strip', 'compress'], optional: ['redact', 'pages', 'organize', 'stamp', 'lock'] },
+  compare: { required: ['run'], optional: ['visual'] },
+  prepare: { required: ['inspect', 'apply'], optional: [] },
   pptx: { required: ['inspect', 'rebrand'], optional: [] },
   capture: { required: ['page'], optional: ['vector'] },
   compose: { required: ['render'], optional: ['renderUrl'] },

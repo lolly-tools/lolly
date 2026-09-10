@@ -15,7 +15,8 @@
  *     files:     '<toolId>/<filename>' → sha256 hex, for every tool file the
  *                loader can fetch (tool.json, template.html, styles.css,
  *                hooks.js, template.{ics,vcf,csv,md}, plus each i18n/<lang>.json
- *                sidecar the tool ships)
+ *                sidecar the tool ships) and every starter template
+ *                (templates/<tid>.json) it offers
  *     signature: base64url raw-r||s ECDSA P-256/SHA-256 over the canonical-JSON
  *                bytes of the envelope MINUS this field
  *   }
@@ -69,6 +70,16 @@ export const CATALOG_SIGNED_TOOL_FILES: readonly string[] = [
  *  validator share it so an envelope key like `qr-code/i18n/de.json` means
  *  exactly one thing on both sides. */
 export const CATALOG_SIGNED_I18N_SIDECAR = /^i18n\/[a-z0-9-]+\.json$/;
+/** Per-tool starter templates (`templates/<tid>.json`) are signed on the same
+ *  enumerate-what-exists footing as the i18n sidecars. They differ from every
+ *  other entry in one way: loadTool never fetches one. A template is read
+ *  later, when a person picks a starting point, and its `values` seed a
+ *  whole document - the artboards, the copy, the colours. Unsigned, that is the
+ *  one file a hostile CDN could rewrite to change what every new document starts
+ *  as, with the tool code itself passing verification untouched. So the envelope
+ *  covers them and scripts/validate-catalog.ts refuses a template filename this
+ *  pattern would skip, which would otherwise ship as a quietly unsigned file. */
+export const CATALOG_SIGNED_TEMPLATE_FILE = /^templates\/[A-Za-z0-9._-]+\.json$/;
 
 const EC_P256 = { name: 'ECDSA', namedCurve: 'P-256' } as const;
 const ECDSA_SHA256 = { name: 'ECDSA', hash: 'SHA-256' } as const;

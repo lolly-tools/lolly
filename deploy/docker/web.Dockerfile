@@ -2,12 +2,23 @@
 # ============================================================================
 # Lolly Web PWA - the primary self-hosted product.
 # ============================================================================
-# Multi-stage: a Node build stage runs the real `pnpm run build:web` and a tiny
+# Multi-stage: a Node build stage runs `pnpm run build:web:release` and a tiny
 # nginx-unprivileged stage serves the resulting static `shells/web/dist`.
 #
 # BUILD CONTEXT MUST BE THE REPO ROOT (not deploy/docker):
 #
-#   docker build -f deploy/docker/web.Dockerfile -t <registry>/lolly-web:0.1.0 .
+#   docker buildx build --load --no-cache-filter build \
+#     -f deploy/docker/web.Dockerfile \
+#     --secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY \
+#     --secret id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK \
+#     -t <registry>/lolly-web:0.1.0 .
+#
+# Supply the signing key (PKCS8 PEM or private JWK) and matching PUBLIC P-256
+# JWK through the build environment or --secret id=...,src=/secure/path.
+# BuildKit exposes them only to the release step, never as image ARG/ENV or a
+# copied key file. The public pin is intentionally embedded in the client.
+# --no-cache-filter build re-runs signing even when only key material changes;
+# BuildKit secret values do not invalidate cached build steps. See README.md.
 #
 # The build bakes ONE brand/profile into the static output (theme-color, PWA
 # chrome, and the copied tools/ + catalog/ content are resolved at build time by
@@ -20,9 +31,9 @@
 # Helm chart needs NO runtime pack/brand mount for the web app.
 #
 # REQUIREMENT: the repo's content submodules (community/, brands/*) must be
-# checked out in the build context - `pnpm run build:web` dereferences the
+# checked out in the build context - `pnpm run build:web:release` dereferences the
 # tools/ + catalog/ profile views into dist. A bare checkout without submodules
-# will build a shell with an empty catalog.
+# cannot produce a complete signed release.
 # ============================================================================
 
 # ── build stage ─────────────────────────────────────────────────────────────
@@ -51,8 +62,12 @@ COPY . .
 RUN npm install --global pnpm@11.1.2
 RUN pnpm install --frozen-lockfile --prod=false
 
-# Produce shells/web/dist (build:ort → build:info → OG images → vite build).
-RUN pnpm run build:web
+# Sign the active catalog, validate the public pin, and build verified-only
+# shells/web/dist. Missing keys fail the build; there is no unsigned fallback.
+# Secret env mounts require Dockerfile frontend >= 1.10 (syntax=1 above).
+RUN --mount=type=secret,id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY,required=true \
+    --mount=type=secret,id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK,required=true \
+    pnpm run build:web:release
 
 # ── runtime stage ───────────────────────────────────────────────────────────
 # nginx-unprivileged runs as uid 101 (non-root) and listens on 8080 by default.

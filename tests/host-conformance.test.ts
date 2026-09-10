@@ -19,14 +19,14 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 const API_FILE: Record<string, string> = {
   profile: 'profile', assets: 'assets', state: 'state', clipboard: 'clipboard', export: 'export',
-  net: 'net', tokens: 'tokens', text: 'text', pdf: 'pdf', pptx: 'pptx', capture: 'capture', compose: 'compose',
+  compare: 'compare', prepare: 'prepare', net: 'net', tokens: 'tokens', text: 'text', pdf: 'pdf', pptx: 'pptx', capture: 'capture', compose: 'compose',
   media: 'media', scan: 'scan', lift: 'lift', keyframes: 'keyframes', recorder: 'recorder', audio: 'audio',
   codec: 'codec', layers: 'layers', upscale: 'upscale', matte: 'matte', ocr: 'ocr', speech: 'speech', viz: 'viz',
   color: 'color', images: 'images', raster: 'raster', geom: 'geom', connectors: 'connectors', c2pa: 'c2pa',
 };
 const API_INTERFACE: Record<string, string> = {
   profile: 'ProfileAPI', assets: 'AssetsAPI', state: 'StateAPI', clipboard: 'ClipboardAPI', export: 'ExportAPI',
-  net: 'NetAPI', tokens: 'TokensAPI', text: 'TextAPI', pdf: 'PdfAPI', pptx: 'PptxAPI', capture: 'CaptureAPI',
+  compare: 'CompareAPI', prepare: 'PrepareAPI', net: 'NetAPI', tokens: 'TokensAPI', text: 'TextAPI', pdf: 'PdfAPI', pptx: 'PptxAPI', capture: 'CaptureAPI',
   compose: 'ComposeAPI', media: 'MediaAPI', scan: 'ScanAPI', lift: 'LiftAPI', keyframes: 'KeyframesAPI',
   recorder: 'RecorderAPI', audio: 'AudioAPI', codec: 'CodecAPI', layers: 'LayersAPI', upscale: 'UpscaleAPI',
   matte: 'MatteAPI', ocr: 'OcrAPI', speech: 'SpeechAPI', viz: 'VizAPI', color: 'ColorAPI', images: 'ImagesAPI',

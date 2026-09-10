@@ -66,7 +66,7 @@ const FORMAT_EXT: Record<string, string> = { png: 'png', jpg: 'jpg', jpeg: 'jpg'
 export const APP_PATH_WORDS = new Set([
   'tool', 't', 'tools', 'batch', 'pro', 'start', 'verify', 'valid', 'v', 'c',
   'catalog', 'u', 'utilities', 'p', 'projects', 'd', 'dashboard', 'b', 'brand',
-  'lab', 'unpack', 'pdf', 'docs', 'components', 'ask', 'multi', 'convert', 'data',
+  'lab', 'unpack', 'pdf', 'docs', 'components', 'ask', 'multi', 'convert', 'data', 'prepare', 'compare',
   'script', 'join', 'join-reply', 'profile', 'gallery', 'platform', 'capabilities',
   'info', 'og', 'api', 'assets', 'fonts', 'ort', 'ort-hf', 'models', 'icons',
   'l', 'a',

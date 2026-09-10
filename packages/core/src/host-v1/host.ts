@@ -43,6 +43,8 @@ import type { PdfAPI } from './pdf.ts';
 import type { PptxAPI } from './pptx.ts';
 
 import type { ProfileAPI } from './profile.ts';
+import type { CompareAPI } from './compare.ts';
+import type { PrepareAPI } from './prepare.ts';
 
 import type { RasterAPI } from './raster.ts';
 
@@ -139,6 +141,12 @@ export interface HostV1 {
    * are never uploaded.
    */
   pdf?: PdfAPI;
+
+  /** Local inspection and chosen replacements. Results are transient; reports omit private values. */
+  prepare?: PrepareAPI;
+
+  /** Local bounded text/structure comparison of immutable snapshots. (v1.189) */
+  compare?: CompareAPI;
 
   /**
    * PPTX inspect + rebrand. Reads an uploaded .pptx deck (slide count, theme,

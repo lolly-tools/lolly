@@ -26,6 +26,8 @@ export * from './host-v1/ocr.ts';
 export * from './host-v1/pdf.ts';
 export * from './host-v1/pptx.ts';
 export * from './host-v1/profile.ts';
+export * from './host-v1/prepare.ts';
+export * from './host-v1/compare.ts';
 export * from './host-v1/raster.ts';
 export * from './host-v1/recorder.ts';
 export * from './host-v1/scan.ts';

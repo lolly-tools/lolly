@@ -95,7 +95,7 @@ export const DEPTH_MODEL_STORE = 'depth-models';
 export const DEPTH_MODEL_DIR = 'depth';
 /** Bump to invalidate every cached entry (a requantised model, or a poisoned
  *  cache - the HTML-response guard in createModelFetcher). */
-export const DEPTH_MODEL_CACHE_VERSION = 1;
+export const DEPTH_MODEL_CACHE_VERSION = 2;
 
 /** The weights file for each model, under `/models/depth/`. */
 export const DEPTH_MODEL_FILES: Record<DepthModelId, string> = {
@@ -115,9 +115,8 @@ export const DEPTH_MODELS: DepthModelInfo[] = [
     id: 'depth-anything-v2-small',
     name: 'Depth Anything V2 small',
     tier: 'default',
-    // RESEARCH-SOURCED AND UNVERIFIED - nobody has weighed the published file yet.
-    // Reconcile with the real byte length in the SAME change that flips DEPTH_STAGED.
-    approxBytes: 25_000_000,
+    // Verified SHA-256 and exact byte length: model-pins.ts.
+    approxBytes: 27_258_801,
     license: 'Apache-2.0',
     attribution: 'Depth Anything V2 © 2024 Lihe Yang et al. (Apache-2.0)',
     version: 'v2-small',
@@ -140,20 +139,14 @@ export const DEPTH_MODEL_BYTES: Record<DepthModelId, number> = DEPTH_MODELS.redu
 // before DEPTH_STAGED flips.
 
 export interface DepthModelSpec {
-  /** Fixed model input [height, width]. */
+  /** Target model input [height, width]; aspect-preserving inputs are dynamic. */
   inputSize: [number, number];
   /** Per-channel mean subtracted after the /255 scale (RGB order). */
   mean: [number, number, number];
   /** Per-channel std divided after the mean subtraction (RGB order). */
   std: [number, number, number];
-  /**
-   * How the source is fitted to inputSize.
-   *  'stretch' - resized to the square ignoring aspect (what the DPT image
-   *    processor does by default), so no padding enters the field. Padding would
-   *    be worse than the distortion: a black border becomes fake far-depth and
-   *    drags the min-max normalisation with it.
-   */
-  fit: 'stretch';
+  /** Keep the source aspect, round to /14 patches, and avoid padding. */
+  fit: 'aspect' | 'stretch';
   /**
    * What the single output channel means.
    *  'inverse' - relative INVERSE depth (disparity): larger = NEARER. Depth
@@ -172,7 +165,7 @@ export const DEPTH_MODEL_SPEC: Record<DepthModelId, DepthModelSpec> = {
     inputSize: [518, 518],
     mean: IMAGENET_MEAN,
     std: IMAGENET_STD,
-    fit: 'stretch',
+    fit: 'aspect',
     output: 'inverse',
   },
 };
@@ -184,18 +177,14 @@ export const DEPTH_MODEL_SPEC: Record<DepthModelId, DepthModelSpec> = {
 // licence has been re-confirmed from a primary source. Until then, offering it
 // would promise a one-time download that can never complete.
 
-/** True where the model's weights are published + licence-verified. FALSE today:
- *  publishing the quantised Depth Anything V2 Small ONNX to the models host is a
- *  human step (plans/160 section 7) and has not happened, so the capability
- *  honestly reports itself unavailable rather than offering a dead download. Flip
- *  this in the SAME change that adds the verified pin, the real `approxBytes`,
- *  and the DEPTH_MODEL_SPEC confirmed against the real graph. */
+/** Verified graph and weights included in this build's models-host manifest.
+ * Deploy that manifest's files together with this build. */
 export const DEPTH_STAGED: Record<DepthModelId, boolean> = {
-  'depth-anything-v2-small': false,
+  'depth-anything-v2-small': true,
 };
 
 /** The models actually runnable in this build - what a picker should OFFER.
- *  Empty until the weights are published, which is the honest answer. */
+ *  Availability of the bytes at runtime is still checked by the model fetcher. */
 export function stagedDepthModels(): DepthModelInfo[] {
   return DEPTH_MODELS.filter((m) => DEPTH_STAGED[m.id]);
 }
@@ -209,24 +198,8 @@ export function depthModel(id: DepthModelId): DepthModelInfo | undefined {
 /**
  * The depth files an "Available offline" download vendors - the same list the
  * picker would offer, so the size shown and the bytes fetched can never disagree
- * (matteOfflineFiles' rule). EMPTY until DEPTH_STAGED flips, so the offline part
- * is honestly a no-op rather than a download that cannot complete.
- *
- * OUTSTANDING WIRING (plans/160 WP-A, deliberately not applied here - it edits
- * four files outside this triple):
- *   1. bridge/db.ts - bump DB_VERSION and `db.createObjectStore('depth-models')`,
- *      the same way 'matte-models' was added at v12. WITHOUT IT the fetcher's
- *      IndexedDB read/write throw, are swallowed, and every run re-downloads the
- *      weights. (The depth-MAP cache needs nothing: it lives in 'derived-media',
- *      which already exists.)
- *   2. lib/model-prefetch.ts - a `depthFetch = createModelFetcher({ store:
- *      DEPTH_MODEL_STORE, dir: DEPTH_MODEL_DIR, version: DEPTH_MODEL_CACHE_VERSION,
- *      dbg })`, plus `prefetchDepthModels()` / `depthCacheBytes()` over this list.
- *   3. lib/offline-manager.ts - `'depth'` in OfflinePartId, a `downloadDepth()`
- *      beside downloadMatte, and 'depth' in removePart's model-store clear.
- *   4. views/profile.ts - the PartDef row, the download dispatcher branch, and the
- *      two TOTAL `Record<OfflinePartId, …>` maps (plannedBytes, partAvailable),
- *      which is what makes step 3 a compile error until this one is done too.
+ * (matteOfflineFiles' rule). The web model-prefetch and offline-manager modules
+ * consume this list; the depth map cache is separate in derived-media.
  */
 export function depthOfflineFiles(): string[] {
   return stagedDepthModels().map((m) => DEPTH_MODEL_FILES[m.id]);
@@ -237,7 +210,7 @@ export function depthOfflineFiles(): string[] {
 /**
  * Longest edge of the WORKING image, before inference and before the render.
  * iOS memory is the constraint that sets this, not quality: the model sees a
- * 518px square either way, so anything above this buys nothing and a 48MP phone
+ * roughly 518px along the target edge, so anything above this buys nothing and a 48MP phone
  * photo decoded at full size is what actually kills the tab.
  */
 export const DEPTH_MAX_WORK_EDGE = 2048;

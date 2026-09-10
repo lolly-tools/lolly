@@ -15,11 +15,9 @@
  * pair, and depth-worker.ts imports it too. Depth never needed a canvas, so this
  * runner is thinner than matte's - sharp is not used at all.
  *
- * TODAY IT ALWAYS REFUSES on a stock checkout: DEPTH_STAGED is false (the
- * quantised weights have not been published, plans/160 section 7), and the
- * candidate ONNX in the repo sits under `models/depth/.candidates/`, which is
- * not the served path. `models()` is honestly empty and `run()` names the
- * download. Flip DEPTH_STAGED with the published pin and this path runs.
+ * The verified quantised model is offered by models(). run() requires its
+ * bytes in the configured models directory and explains how to fetch them
+ * when they are absent.
  */
 import {
   DEPTH_DEFAULT_MODEL, DEPTH_MODEL_BYTES, DEPTH_MODEL_FILES, DEPTH_MODEL_SPEC,
@@ -87,7 +85,7 @@ export function createNodeDepthAPI(): NodeDepthAPI | null {
       const ort = await loadOrt();
       const inName = session.inputNames[0];
       if (!inName) throw new Error('depth model has no input tensor');
-      const result = await session.run({ [inName]: new ort.Tensor('float32', pre.input, [1, 3, pre.edge, pre.edge]) });
+      const result = await session.run({ [inName]: new ort.Tensor('float32', pre.input, [1, 3, pre.inputH, pre.inputW]) });
       checkSignal(opts.signal);
       const raw = tensorFloats(firstOutput(result, session.outputNames[0]));
       const map = postprocessDepth(raw, pre);

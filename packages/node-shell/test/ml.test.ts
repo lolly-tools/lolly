@@ -402,15 +402,33 @@ test('reword: the real SmolLM2 graph samples a watermarked rewrite that the engi
   assert.ok(marked.z > plain.z, `the sampled text carries the green-list bias (z ${marked.z.toFixed(2)} vs ${plain.z.toFixed(2)})`);
 });
 
-test('depth: the family is unstaged, so it refuses by name rather than offering a dead download', () => {
+test('depth: missing weights refuse by name even though the verified model is offered', async () => {
   const api = createNodeDepthAPI();
   assert.ok(api, 'onnxruntime-node resolves');
-  // DEPTH_STAGED is false until the quantised weights are published, so the
-  // honest roster is empty and nothing can be run. When that flips, this test
-  // becomes the gated real-model case beside the other five.
-  assert.deepEqual(api.models(), [], 'no depth model is offered');
-  assert.rejects(
-    () => api.run(disc(32, 32)),
-    (err: unknown) => err instanceof ModelNotInstalledError && /lolly models fetch depth/.test(err.message),
-  );
+  assert.deepEqual(api.models().map(model => model.id), ['depth-anything-v2-small']);
+  const previous = process.env.LOLLY_MODELS_DIR;
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-depth-missing-'));
+  process.env.LOLLY_MODELS_DIR = dir;
+  try {
+    await assert.rejects(() => api.run(disc(32, 32)),
+      (err: unknown) => err instanceof ModelNotInstalledError && /lolly models fetch depth/.test(err.message));
+  } finally {
+    if (previous === undefined) delete process.env.LOLLY_MODELS_DIR;
+    else process.env.LOLLY_MODELS_DIR = previous;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('depth: the real graph returns finite maps for portrait and landscape inputs', {
+  skip: !modelFileExists('depth', 'depth-anything-v2-small.onnx') && 'the depth model family is not on this machine',
+}, async () => {
+  const api = createNodeDepthAPI();
+  assert.ok(api);
+  for (const [width, height] of [[64, 40], [40, 64]]) {
+    const map = await api.run(disc(width!, height!));
+    assert.equal(map.width, width); assert.equal(map.height, height);
+    assert.equal(map.data.length, width! * height!);
+    assert.ok(map.data.every(Number.isFinite));
+    assert.ok(Math.max(...map.data) - Math.min(...map.data) > 0.5);
+  }
 });

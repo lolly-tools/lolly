@@ -5,6 +5,7 @@
     "wordmark",
     "rebrand-deck"
   ],
+  "defaultHiddenTemplates": [],
   "assets": [
     {
       "id": "lolly/tokens/brand",

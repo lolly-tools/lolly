@@ -45,6 +45,8 @@
  *   - docx-read     : readDocx(parts, parseXml) + isDocx, then both doc-md serialisers
  */
 
+import { storeZip } from '../../engine/src/zip.ts';
+import { inspectPreparation, applyPreparation } from '../../engine/src/prepare.ts';
 import { embedC2paInPdf, embedC2pa, attachC2paStore, encodeCbor, type Signer } from '../../engine/src/c2pa.ts';
 import { generateSigner, generateCaRoot, issueLeafCert } from '../../engine/src/x509.ts';
 import { verifyC2pa, parseCertificate, decodeCbor } from '../../engine/src/c2pa-verify.ts';
@@ -1507,8 +1509,19 @@ export const watermarkAnalysisTarget: FuzzTarget = {
   },
 };
 
+export const prepareTarget: FuzzTarget = {
+  name: 'prepare',
+  async seeds() { return [new TextEncoder().encode('password: secret\nemail: person@example.test'), new TextEncoder().encode('{"password":"secret","headers":[{"name":"Authorization","value":"Bearer secret"}]}'), storeZip([{ name: 'config.yaml', bytes: new TextEncoder().encode('password: secret') }])]; },
+  async invoke(bytes) {
+    const name = bytes[0] === 0x50 ? 'input.zip' : bytes[0] === 0x7b ? 'input.json' : 'input.yaml';
+    const sources = [{ id: 'f', name, bytes }];
+    const inspection = await inspectPreparation(sources);
+    await applyPreparation(sources, inspection, inspection.groups.map(g => ({ groupId: g.id, replacement: '' })));
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
-  c2paVerifyTarget, cborTarget, mediaSniffTarget, pdfMapTarget, pdfDerivedTarget, x509Target,
+  prepareTarget, c2paVerifyTarget, cborTarget, mediaSniffTarget, pdfMapTarget, pdfDerivedTarget, x509Target,
   fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget, brandImportTarget, tarReadTarget,
   epubReadTarget, jpegStructureTarget,
   rasterDecodeTarget,

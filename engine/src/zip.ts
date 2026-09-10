@@ -129,7 +129,49 @@ function u32(b: Uint8Array, o: number): number {
  * @throws on a missing/invalid EOCD, a ZIP64 archive, an unsupported compression
  *         method, a truncated member, or a CRC-32 mismatch.
  */
+/** A validated ZIP member without decompression. Used to retain uninspected
+ * encrypted/unknown members during selective preparation. Views borrow input bytes. */
+export interface ZipRawMember {
+  name: string; flags: number; method: number; crc: number; size: number;
+  compressed: Uint8Array; local: Uint8Array; central: Uint8Array;
+}
 export function readZip(bytes: Uint8Array, opts: ReadZipOptions = {}): ZipEntry[] {
+  return readZipMembers(bytes, opts).map(member => ({ name: member.name, bytes: decodeZipMember(member) }));
+}
+
+export function decodeZipMember(member: ZipRawMember): Uint8Array {
+  if (member.flags & 1) throw new Error('readZip: encrypted member is not supported');
+  const out = member.method === METHOD_STORED ? Uint8Array.from(member.compressed)
+    : member.method === METHOD_DEFLATE ? inflateRaw(member.compressed, member.size) : null;
+  if (!out) throw new Error('readZip: unsupported compression method');
+  if (out.length !== member.size) throw new Error('readZip: size mismatch');
+  if (crc32(out) !== member.crc) throw new Error('readZip: CRC-32 mismatch (corrupt archive)');
+  return out;
+}
+
+/** Reframe validated original members, optionally replaced by storeZip members.
+ * No extracted files, original trailers or discarded payloads enter the result. */
+export function storeZipMembers(members: ZipRawMember[]): Uint8Array {
+  if (members.length >= 65535) throw new Error('Too many archive members.');
+  const locals: Uint8Array[] = [], centrals: Uint8Array[] = [];
+  const seen = new Set<string>();
+  let offset = 0, centralSize = 0;
+  for (const member of members) {
+    if (seen.has(member.name)) throw new Error('Duplicate archive member names are not supported.');
+    seen.add(member.name);
+    const central = Uint8Array.from(member.central);
+    new DataView(central.buffer).setUint32(42, offset, true);
+    centrals.push(central); locals.push(member.local);
+    offset += member.local.length; centralSize += central.length;
+  }
+  if (offset + centralSize + 22 > U32_MAX) throw new Error('ZIP64 output is not supported.');
+  const end = new Uint8Array(22), view = new DataView(end.buffer);
+  view.setUint32(0, SIG_EOCD, true); view.setUint16(8, members.length, true); view.setUint16(10, members.length, true);
+  view.setUint32(12, centralSize, true); view.setUint32(16, offset, true);
+  return concatBytes([...locals, ...centrals, end]);
+}
+
+export function readZipMembers(bytes: Uint8Array, opts: ReadZipOptions = {}): ZipRawMember[] {
   if (!(bytes instanceof Uint8Array)) throw new Error('readZip: expected a Uint8Array');
   const maxInputBytes = readLimit(opts.maxInputBytes, ZIP_READ_MAX_INPUT_BYTES, 'maxInputBytes');
   const maxEntries = readLimit(opts.maxEntries, ZIP_READ_MAX_ENTRIES, 'maxEntries');
@@ -168,13 +210,15 @@ export function readZip(bytes: Uint8Array, opts: ReadZipOptions = {}): ZipEntry[
     throw new Error('readZip: central directory runs past end of file');
   }
 
-  const entries: ZipEntry[] = [];
+  const entries: ZipRawMember[] = [];
   let p = cdOffset;
   let totalBytes = 0;
   for (let i = 0; i < totalCdCount; i++) {
     if (p + 46 > cdEnd) throw new Error('readZip: truncated central directory');
     if (u32(bytes, p) !== SIG_CENTRAL) throw new Error('readZip: bad central directory signature');
 
+    const centralStart = p;
+    const flags = u16(bytes, p + 8);
     const method = u16(bytes, p + 10);
     const crc = u32(bytes, p + 16);
     const compSize = u32(bytes, p + 20);
@@ -217,22 +261,20 @@ export function readZip(bytes: Uint8Array, opts: ReadZipOptions = {}): ZipEntry[
     const dataStart = localOffset + 30 + localNameLen + localExtraLen;
     if (dataStart + compSize > bytes.length) throw new Error(`readZip: truncated data for "${name}"`);
 
-    const stored = bytes.subarray(dataStart, dataStart + compSize);
-    let out: Uint8Array;
-    if (method === METHOD_STORED) {
-      out = stored.slice(); // detach from the parent buffer
-    } else if (method === METHOD_DEFLATE) {
-      out = inflateRaw(stored, uncompSize);
-    } else {
-      throw new Error(`readZip: unsupported compression method ${method} for "${name}"`);
+    if (dataStart + compSize > cdOffset) throw new Error('readZip: member overlaps central directory');
+    const localFlags = u16(bytes, localOffset + 6);
+    if (u16(bytes, localOffset + 8) !== method || localFlags !== flags) throw new Error('readZip: conflicting local header');
+    if (decoder.decode(bytes.subarray(localOffset + 30, localOffset + 30 + localNameLen)) !== name) throw new Error('readZip: conflicting member name');
+    let localEnd = dataStart + compSize;
+    if (flags & 8) {
+      const descriptor = localEnd + (u32(bytes, localEnd) === 0x08074b50 ? 4 : 0);
+      localEnd = descriptor + 12;
+      if (localEnd > cdOffset) throw new Error('readZip: truncated data descriptor');
+      if (u32(bytes, descriptor) !== crc || u32(bytes, descriptor + 4) !== compSize || u32(bytes, descriptor + 8) !== uncompSize) throw new Error('readZip: conflicting data descriptor');
     }
-
-    if (out.length !== uncompSize) {
-      throw new Error(`readZip: size mismatch for "${name}" (header ${uncompSize}, got ${out.length})`);
-    }
-    if (crc32(out) !== crc) throw new Error(`readZip: CRC-32 mismatch for "${name}" (corrupt archive)`);
-
-    entries.push({ name, bytes: out });
+    entries.push({ name, flags, method, crc, size: uncompSize,
+      compressed: bytes.subarray(dataStart, dataStart + compSize),
+      local: bytes.subarray(localOffset, localEnd), central: bytes.subarray(centralStart, recordEnd) });
   }
 
   return entries;

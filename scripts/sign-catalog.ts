@@ -41,6 +41,7 @@ import {
   canonicalJson, sha256Hex, jwkThumbprint, signCatalogEnvelope,
   importSpkiOrJwkPublicKey, verifyCatalogEnvelope,
   CATALOG_SIG_ALG, CATALOG_SIGNED_TOOL_FILES, CATALOG_SIGNED_I18N_SIDECAR,
+  CATALOG_SIGNED_TEMPLATE_FILE,
 } from '../engine/src/catalog-integrity.ts';
 import type { UnsignedCatalogEnvelope } from '../engine/src/catalog-integrity.ts';
 import { pemToDer, derToPem } from '../engine/src/x509.ts';
@@ -168,10 +169,21 @@ async function run(args: Args): Promise<void> {
     // Without these digests a signed catalog forces every tool back to English
     // (loader.ts drops any overlay it can't verify).
     const i18nDir = join(args.toolsDir, id, 'i18n');
-    if (!existsSync(i18nDir) || !statSync(i18nDir).isDirectory()) continue;
-    for (const name of readdirSync(i18nDir).sort()) {
-      if (!CATALOG_SIGNED_I18N_SIDECAR.test(`i18n/${name}`)) continue;
-      files[`${id}/i18n/${name}`] = await sha256Hex(readFileSync(join(i18nDir, name)));
+    if (existsSync(i18nDir) && statSync(i18nDir).isDirectory()) {
+      for (const name of readdirSync(i18nDir).sort()) {
+        if (!CATALOG_SIGNED_I18N_SIDECAR.test(`i18n/${name}`)) continue;
+        files[`${id}/i18n/${name}`] = await sha256Hex(readFileSync(join(i18nDir, name)));
+      }
+    }
+    // Starter templates, enumerated the same way and for the same reason: optional,
+    // per tool, and any number of them. Their `values` decide what a new document
+    // opens as, so leaving them out of the envelope leaves the one file a hostile
+    // catalog could rewrite while every signed file still verified.
+    const templatesDir = join(args.toolsDir, id, 'templates');
+    if (!existsSync(templatesDir) || !statSync(templatesDir).isDirectory()) continue;
+    for (const name of readdirSync(templatesDir).sort()) {
+      if (!CATALOG_SIGNED_TEMPLATE_FILE.test(`templates/${name}`)) continue;
+      files[`${id}/templates/${name}`] = await sha256Hex(readFileSync(join(templatesDir, name)));
     }
   }
 

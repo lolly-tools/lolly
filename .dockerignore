@@ -1,12 +1,24 @@
 # Keep Docker build contexts lean and reproducible. The build stages run their
-# OWN `pnpm install --frozen-lockfile` and `pnpm run build:web`, so never ship
+# OWN `pnpm install --frozen-lockfile` and signed release build, so never ship
 # host build artifacts.
 .git
+**/.git
 node_modules
 **/node_modules
 shells/web/dist
+# Native packages and compiler outputs are not inputs to any service image.
+**/src-tauri/target
+**/src-tauri/gen
+shells/tauri-desktop/dist
+shells/tauri-mobile/dist
+shells/tauri-desktop/rpm
 dist
+dist-packs
+# Separate model-host output; the web shell's own public/models stays included.
+deploy/models-host/models
 scratch
+.scratch
+.tokensave
 plans
 tests
 .vercel
@@ -20,3 +32,12 @@ npm-debug.log*
 **/.env
 **/.env.*
 services/ca/.env
+# Git ignores do not protect the Docker context. Local signing material must
+# reach the release build only through BuildKit secrets, including JSON keys.
+**/keys
+**/*.pem
+**/*.key
+# Local assistant state and personal release paperwork are not build inputs.
+.claude
+.codex-*
+appstore

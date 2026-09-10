@@ -223,11 +223,10 @@ test('a unitless gantt renders byte for byte what it rendered before dates exist
   const svg = await render({ nodes: UNITLESS, ganttUnit: 'wk' });
   const hash = createHash('sha256').update(svg).digest('hex').slice(0, 32);
   if (RECORD) console.log('unitless gantt hash:', hash);
-  // Re-recorded 2026-08-27 with the move to the community pack: the SVG's
-  // font-family attribute lost its hardcoded brand name (the deciding rule is now
-  // `svg text` in styles.css, pointing at --font-brand), so the bytes moved by that
-  // string alone. Geometry is unchanged - the tick assertions below still hold.
-  assert.equal(hash, '5bfaa5f310b7da815acbf3d1a22f49d8',
+  // Re-recorded 2026-09-10: concrete resolved brand fonts now travel in SVG
+  // attributes as well as CSS, fixing CLI outlining. The geometry assertions
+  // below continue to pin the unitless layout.
+  assert.equal(hash, 'f95f75c7e66421dbc5ce1be967439462',
     'the unitless bars moved - dates are additive, so this only changes deliberately');
 
   // Readable companions to the hash, so a break says WHAT moved.

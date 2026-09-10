@@ -61,7 +61,7 @@ export interface PdfAPI {
    * and the node CLI does not - a tool must feature-detect `host.pdf?.pages`.
    * Runs locally; the bytes are never uploaded.
    */
-  pages?(bytes: Uint8Array, opts?: { maxPages?: number; pageNumbers?: number[] }): Promise<PdfPagesResult>;
+  pages?(bytes: Uint8Array, opts?: { maxPages?: number; pageNumbers?: number[]; signal?: AbortSignal }): Promise<PdfPagesResult>;
 
   /**
    * Reorder, rotate, extract, delete, merge, or split pages without rasterising
@@ -239,6 +239,10 @@ export interface PdfPageSvg {
   widthPt: number;
   /** Page height in PDF points (the viewBox height). */
   heightPt: number;
+  /** Optional v1.190: clockwise display rotation; SVG remains in MediaBox coordinates. */
+  rotation?: 0 | 90 | 180 | 270;
+  /** Optional v1.190: fixed capability notices, without source text or font names. */
+  limitations?: string[];
 }
 
 export interface PdfPagesResult {

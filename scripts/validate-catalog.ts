@@ -68,6 +68,10 @@ import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../en
 // from the shells', it either passes a pack that cannot resolve or fails one that can.
 import { isVersionAssetId, readVersionIndex, DESIGN_VERSION_LATEST } from '../engine/src/design-version.ts';
 import { parseRateCard, isRateCardError } from '../engine/src/rate-card.ts';
+// The filename shape the catalog signer enumerates for starter templates. Imported
+// rather than restated so a template that ships can never be one the envelope skips:
+// under a signed catalog an unsigned file is indistinguishable from an injected one.
+import { CATALOG_SIGNED_TEMPLATE_FILE } from '../engine/src/catalog-integrity.ts';
 import { LANGS } from '../engine/src/lang.ts';
 // Shared-hook-region drift guard - the writer (pnpm run sync:shared) and this
 // check share one parser (same import-without-side-effect pattern as
@@ -100,6 +104,10 @@ import { APP_PATH_WORDS } from '../engine/src/tool-url.ts';
 // this closes the reference side, which no JSON Schema can (it has to look at a
 // SIBLING array). Pure module so tests can drive it without running the script.
 import { canvasFieldRefErrors } from './lib/canvas-refs.ts';
+// Brand-curated template refs (`defaultHiddenTemplates`) and the tool id the ref
+// grammar reserves. Pure module for the same reason as canvas-refs above: the
+// rules are drivable from tests without running the script.
+import { defaultHiddenTemplateErrors, reservedTemplateToolIdError } from './lib/template-refs.ts';
 
 // Fields tools/index.json mirrors from each manifest - kept in sync with
 // scripts/build-catalog-index.ts.
@@ -200,6 +208,15 @@ for (const dir of toolDirs) {
       `so the tool's own links could never resolve. Rename the tool.`,
     );
   }
+  // A tool id may never be the template-ref prefix `user` (plans/226 section 3):
+  // a saved template is addressed as "user:<id>" and a shipped one as
+  // "<toolId>:<tid>", so a tool called `user` collides with every saved template
+  // in the same one string - in the profile's hidden set and in the "start with"
+  // setting, both of which are permanent stored data.
+  {
+    const reserved = reservedTemplateToolIdError(manifest.id);
+    if (reserved) errors.push(`[${dir}] ${reserved}`);
+  }
   seenToolIds.add(manifest.id);
   toolManifests.set(manifest.id, manifest);
 
@@ -264,6 +281,10 @@ for (const dir of toolDirs) {
     for (const file of readdirSync(templatesDir).sort()) {
       if (!file.endsWith('.json')) continue;
       const rel = `tools/${dir}/templates/${file}`;
+      if (!CATALOG_SIGNED_TEMPLATE_FILE.test(`templates/${file}`)) {
+        errors.push(`[${dir}] template ${file}: filename outside the signed-catalog pattern (letters, digits, dot, dash, underscore) - sign-catalog.ts would skip it, so it would ship unsigned and be refused on a signed deployment (${rel})`);
+        continue;
+      }
       let t: any;
       try { t = JSON.parse(readFileSync(join(templatesDir, file), 'utf8')); } catch (e) {
         errors.push(`[${dir}] template ${file}: invalid JSON (${(e as Error).message})`);
@@ -1483,6 +1504,18 @@ if (assetsIndex.defaultHiddenTools !== undefined) {
       }
     }
   }
+}
+
+// Default-hidden TEMPLATES (plans/226 section 4.6) - the same idea one level down: a
+// brand curates which shipped starters a fresh profile sees, by ref ("<toolId>:<tid>").
+// Same home as defaultHiddenTools, for the same reason (the asset index is per-brand and
+// round-trips top-level keys through checksum-assets; the tool index is regenerated).
+// The rules live in scripts/lib/template-refs.ts so tests can drive them.
+for (const message of defaultHiddenTemplateErrors(assetsIndex.defaultHiddenTemplates, {
+  hasTool: (toolId) => seenToolIds.has(toolId),
+  hasTemplateFile: (toolId, tid) => existsSync(join(ROOT, `tools/${toolId}/templates/${tid}.json`)),
+})) {
+  errors.push(`assets/index.json: ${message}`);
 }
 
 // ─── Design-system version pins (plans/97 section 6a) ──────────────────────────────

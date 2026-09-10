@@ -92,6 +92,9 @@ importers:
       handlebars:
         specifier: ^4.7.8
         version: 4.7.9
+      yaml:
+        specifier: 2.9.0
+        version: 2.9.0
     devDependencies:
       typescript:
         specifier: ^5.5.0

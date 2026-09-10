@@ -544,7 +544,7 @@
       "items": {
         "type": "string",
         "enum": [
-          "net", "tokens", "text", "pdf", "pptx", "capture", "compose", "media", "scan", "lift",
+          "net", "tokens", "text", "pdf", "prepare", "compare", "pptx", "capture", "compose", "media", "scan", "lift",
           "keyframes", "recorder", "audio", "codec", "layers", "upscale", "matte", "ocr", "speech",
           "viz", "color", "images", "raster", "geom", "connectors", "c2pa"
         ]
@@ -2105,6 +2105,40 @@
         "values": {
           "type": "object",
           "description": "Map of input id -> value read directly into the fresh session - the same shape URL params resolve to, and the same shape a `default` composition uses. Authored in the EXTERNAL per-template file tools/<id>/templates/<tid>.json (not the synced index, which carries metadata only). Any size (a free-canvas `boxes` array can be many KB), because it is fetched on demand and seeded in-process, never serialised into a URL."
+        },
+        "presets": {
+          "type": "array",
+          "description": "Curated variants INSIDE this template - each one a values overlay merged over the template's base `values` (shallow, per input id, the preset wins). Deep-linked as `?template=<tid>&preset=<pid>`. Same two shapes as the template itself: the external file carries each overlay's `values`, the synced index carries id/name/description only.",
+          "items": {
+            "$ref": "#/$defs/templatePreset"
+          }
+        }
+      }
+    },
+    "templatePreset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name"
+      ],
+      "description": "One curated variant of a template: a values overlay merged over the template base.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable id, unique within this template's `presets[]`. Addressable via the reserved `?preset=<id>` param, so treat it as a permanent contract."
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name shown on the preset chip."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional one-line description shown beside the name."
+        },
+        "values": {
+          "type": "object",
+          "description": "The overlay merged over the template's base `values` - only the input ids this variant changes, each carrying a FULL replacement value (a blocks array is replaced whole, never merged element-wise). Lives in the external template file; the synced index strips it."
         }
       }
     }

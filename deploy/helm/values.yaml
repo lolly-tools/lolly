@@ -48,7 +48,7 @@ serviceAccount:
 # IndexedDB), so replicas are freely interchangeable and it scales trivially.
 #
 # The brand/catalog is BAKED INTO THE IMAGE at build time (theme, tools/, and
-# catalog/ are resolved by `pnpm run build:web` - see deploy/docker/web.Dockerfile
+# catalog/ are resolved by `pnpm run build:web:release` - see deploy/docker/web.Dockerfile
 # --build-arg LOLLY_PROFILE). The running container reads nothing at serve time,
 # so there is NOTHING to mount here - no pack, no config, no secret.
 web:
@@ -59,8 +59,10 @@ web:
 
   image:
     # REQUIRED: build and push the web image, then set this repository.
-    #   docker build -f deploy/docker/web.Dockerfile \
+    #   docker buildx build --load --no-cache-filter build -f deploy/docker/web.Dockerfile \
     #     --build-arg LOLLY_PROFILE=suse \
+    #     --secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY \
+    #     --secret id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK \
     #     -t <registry>/lolly-web:0.1.0 .
     #   docker push <registry>/lolly-web:0.1.0
     repository: ghcr.io/lolly-tools/lolly-web

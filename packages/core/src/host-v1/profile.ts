@@ -4,6 +4,36 @@ import type { AssetRef } from './asset-ref.ts';
 
 // ─── Profile ────────────────────────────────────────────────────────────────
 
+/**
+ * A template the person saved from a tool (plans/226): a reusable starting point that
+ * joins the tool's shipped templates in its "New from template" chooser and in the
+ * Projects Templates collection. `values` is the full document snapshot minus the
+ * per-document identity keys (`__label`, `__toolId`, `__toolVersion`,
+ * `__export_filename`) and minus any `file` input (bytes are not a seed); the
+ * `__export_*` settings stay so a template opens at the size, format and dpi it was
+ * saved at. Asset inputs keep their refs, exactly as a saved session does.
+ */
+export interface UserTemplateRecord {
+  id: string;
+  /** The tool this template seeds. */
+  toolId: string;
+  name: string;
+  /** One optional line, shown under the name in the chooser and the collection. */
+  description?: string;
+  values: Record<string, unknown>;
+  /** Which design system the template was made with - the active record's id and label
+   *  at save time, the same stamp a session carries. Display only, never a filter. */
+  designSystem?: { id: string; label: string };
+  /** The template ref this one was copied from ("Make a copy" of a shipped starter):
+   *  `"<toolId>:<tid>"` or `"user:<id>"`. Display only. */
+  from?: string;
+  /** Legacy field from the 2026-08 "variation" card: the base template this one
+   *  descended from. Read for grouping older records, never written any more. */
+  variationOf?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ProfileAPI {
   get(): Promise<Profile>;
   /** Subscribe to profile changes (e.g. user updates headshot mid-session). */
@@ -96,6 +126,26 @@ export interface Profile {
    *  current set in and sets this true, so their later un-hides stick and the defaults never
    *  re-apply. The tool twin of `catalogDefaultsSeeded` (which covers the asset overlay). */
   hiddenToolsSeeded?: boolean;
+  /** Templates the person saved from tools (plans/226). Each rides the profile like
+   *  `folders` do, so they persist, back up and restore with everything else here. */
+  userTemplates?: UserTemplateRecord[];
+  /** SHIPPED templates the person hid from the chooser, the gallery's About dialog and
+   *  the Projects Templates collection, as refs `"<toolId>:<tid>"`. The tool's file is
+   *  never deleted (the same per-user overlay as `hiddenTools` / `hiddenAssets`: the only
+   *  honest "delete" for synced content); `?template=` deep links, MCP and the CLI keep
+   *  working. Tolerant of a ref that no longer resolves. */
+  hiddenTemplates?: string[];
+  /** One-shot marker that the brand's `defaultHiddenTemplates` (catalog asset index)
+   *  have been established for this profile - the `hiddenToolsSeeded` mechanism, for
+   *  templates: merged at load until set, then the stored set is authoritative. */
+  hiddenTemplatesSeeded?: boolean;
+  /** Per-tool "Start with" for a blank fresh open (plans/226): tool id → `"blank"` (open
+   *  on the manifest defaults, no chooser) or a template ref (`"<toolId>:<tid>"` or
+   *  `"user:<id>"`, seeded directly, no chooser). Absent = ask (the chooser). Applies to
+   *  the interactive blank open and the Projects quick-add only - never to a link that
+   *  carries its own intent, and never to URL mode, the CLI or MCP, which always render
+   *  the manifest default. A ref that stops resolving is cleared by the shell. */
+  templateStart?: Record<string, string>;
   /** Asset ids the user has starred - the Catalog's asset "Favourites", surfaced as a
    *  pinned collapsible section at the top of every asset picker. Distinct from
    *  `favourites` (TOOL ids). Keyed by the base asset id (theme suffix stripped). */

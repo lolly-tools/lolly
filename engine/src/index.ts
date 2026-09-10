@@ -824,3 +824,10 @@ export { BMP_MAX_PIXELS } from './bmp.ts';
 export { GUNZIP_MAX_OUTPUT_BYTES } from './gzip.ts';
 export { TAR_MAX_ARCHIVE_BYTES, TAR_MAX_MEMBERS, TAR_MAX_PAYLOAD_BYTES } from './tar-read.ts';
 export { PDF_ARTWORK_MAX_CANDIDATES } from './pdf-artwork.ts';
+export { createPrepareAPI, inspectPreparation, applyPreparation, preparationDigest, preparationRecipe, readPreparationRecipe } from './prepare.ts';
+export { inspectPrivateText, validatePreparationRules } from './prepare-text.ts';
+
+export { applyPreparationMetadata } from './prepare-metadata.ts';
+
+export { compareSources, createCompareAPI } from './compare.ts';
+export { compareVisualSources, renderComparisonPage } from './compare-visual.ts';

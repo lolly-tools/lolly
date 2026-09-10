@@ -5,6 +5,13 @@
   "skips": [
     {
       "file": "packages/node-shell/test/ml.test.ts",
+      "fullName": "depth: the real graph returns finite maps for portrait and landscape inputs",
+      "reason": "the depth model family is not on this machine",
+      "capability": "model",
+      "owner": "packages/node-shell"
+    },
+    {
+      "file": "packages/node-shell/test/ml.test.ts",
       "fullName": "detect-ai: the real classifier returns a probability, and the gate refuses short text",
       "reason": "the ai-detect model family is not on this machine",
       "capability": "model",
@@ -2423,6 +2430,48 @@
       "fullName": "ImageMagick cross-check (skipped unless a WMF delegate is present)",
       "reason": "no ImageMagick binary",
       "capability": "external-tool",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/compare.browser.test.ts",
+      "fullName": "Compare utility: real worker, keyboard, files, report privacy and mobile layout",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/compare.browser.test.ts",
+      "fullName": "History compares retained or current snapshots without changing saved or live state",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/compare-visual.browser.test.ts",
+      "fullName": "visual utility Chromium: movement, mobile swipe, keyboard, report privacy and cancellation",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/compare-visual.browser.test.ts",
+      "fullName": "visual utility WebKit: movement, mobile swipe, keyboard, report privacy and cancellation",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/compare-visual.browser.test.ts",
+      "fullName": "catalog visual pairs and exact saved versions preserve selection and bytes offline",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/compare-visual.browser.test.ts",
+      "fullName": "PDF comparison reports page additions, rotation, changed text and font fidelity",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
+      "capability": "environment",
       "owner": "tests"
     }
   ]

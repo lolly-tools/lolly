@@ -184,15 +184,10 @@ describe('the ML pin tables match the fetch scripts', () => {
     assert.equal(pinnedBytes(ML_MODEL_FILES.reword.files), REWORD_MODEL_BYTES, 'the consent size is the sum');
   });
 
-  test('depth is registered as unpublished, not as an empty family', () => {
-    const pins = pinsFromScript('scripts/fetch-depth-models.ts');
-    assert.ok(pins.size > 0, 'the depth fetch script still has a table');
-    for (const [file, pin] of pins) {
-      assert.equal(pin.sha256, null, `${file} now has a real pin - register the depth family and drop the refusal`);
-    }
-    assert.equal(ML_MODEL_FILES.depth.files.length, 0);
-    assert.ok(ML_MODEL_FILES.depth.unpublished, 'an unpublished family says why');
-    assert.match(ML_MODEL_FILES.depth.unpublished, /PLACEHOLDER/);
+  test('depth pins match the verified fetch-script artifact', () => {
+    assertMatches('depth', 'scripts/fetch-depth-models.ts', p => p);
+    assert.equal(ML_MODEL_FILES.depth.unpublished, undefined);
+    assert.equal(ML_MODEL_FILES.depth.files.length, 1);
   });
 });
 

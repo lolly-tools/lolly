@@ -28,7 +28,7 @@ test('the commands that need tools and a catalog are the ones that render', () =
     assert.equal(needsContentRoot(cmd), true, `${cmd} needs content`);
   }
   // File-in file-out and the design-system store work on a bare install.
-  for (const cmd of ['validate', 'system', 'start', 'completion', 'models', 'speak', 'ocr', 'pack']) {
+  for (const cmd of ['prepare', 'validate', 'system', 'start', 'completion', 'models', 'speak', 'ocr', 'pack']) {
     assert.equal(needsContentRoot(cmd), false, `${cmd} must run with no catalog`);
   }
 });

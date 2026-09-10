@@ -12,6 +12,38 @@ exact export list is pinned by `tests/engine-barrel.test.ts`, so the next change
 barrel is a deliberate edit of that pin. New modules: `clamp.ts` (the one numeric clamp,
 replacing 27 local copies) and `xml-escape.ts` (the EPUB/ODT/AppStream escaper).
 
+1.190.0 - Visual comparison. Optional `host.compare.visual` compares bounded decoded
+image/page previews with explicit alignment, noise threshold, page differences,
+byte equality and fidelity. Web providers resolve exact catalog versions and reuse
+PDF page rendering, now reporting display rotation and fixed fidelity notices.
+Local files, catalog pairs and saved asset versions share the same comparison UI.
+
+1.189.0 - Shared comparison. Optional `host.compare.run` compares supplied text or
+structured snapshots with bounded work/results, explicit fidelity and equality,
+source locations, line/word options and ordered or stable-ID array matching.
+Web jobs are cancellable workers; CLI/TUI hosts expose the same engine result.
+The utility and History share controls. No comparison writes source state or logs
+content; summary reports exclude source names, paths and values by default.
+
+1.188.0 - Prepare for sharing. Optional `host.prepare.inspect/apply` provides a
+source-bound local inspection and replacement contract for text, JSON, YAML, HAR
+and bounded ZIP jobs. Private maps stay transient; shareable reports contain
+counts, scope IDs, hashes and limitations. Existing metadata removers can join
+the operation with per-file recovery. Web, CLI and TUI offer optional review,
+consistent mappings and payload-free recipes without introducing policy blocks.
+
+1.187.0 - Templates the person makes (plans/226). The core `Profile` gains
+`UserTemplateRecord` and four optional fields: `userTemplates` (saved starting
+points per tool), `hiddenTemplates` + `hiddenTemplatesSeeded` (the per-user hide
+overlay for SHIPPED templates, seeded from a brand's `defaultHiddenTemplates` in
+the catalog asset index), and `templateStart` (per-tool "Start with": `blank` or a
+template ref, applied to the interactive blank open only - URL mode, the CLI and
+MCP keep rendering the manifest default). The runtime leaves `userTemplates` out of
+the `bindToProfile` lookup. `tools/<id>/templates/*.json` join the signed catalog
+envelope (`CATALOG_SIGNED_TEMPLATE_FILE`, beside the i18n sidecar pattern), so a
+starter's `values` are verified like its manifest once the catalogs are re-signed.
+Additive within HostV1.
+
 1.186.0 - Flat block inputs can opt into the shared table editor with
 `tableColumns` (field ids in display order). Input objects, row identifiers and
 the existing positional URL encoding remain unchanged; unsupported complex

@@ -29,7 +29,7 @@ import { execFileSync } from 'node:child_process';
 import {
   canonicalJson, sha256Hex, jwkThumbprint, importSpkiOrJwkPublicKey,
   signCatalogEnvelope, verifyEnvelopeSignature, verifyCatalogEnvelope, verifyToolFile,
-  CATALOG_SIG_ALG, CATALOG_SIGNED_TOOL_FILES, TEXT_TEMPLATE_EXTS,
+  CATALOG_SIG_ALG, CATALOG_SIGNED_TOOL_FILES, CATALOG_SIGNED_TEMPLATE_FILE, TEXT_TEMPLATE_EXTS,
 } from '../engine/src/catalog-integrity.ts';
 import type { CatalogSignatureEnvelope } from '../engine/src/catalog-integrity.ts';
 import { loadTool, ToolLoadError } from '../engine/src/loader.ts';
@@ -390,4 +390,90 @@ test('a signed tool shipping template.srt and template.gpl loads (end to end)', 
   const tool = await loadTool('demo', makeFetchFile(files), { integrity: { envelope, publicKey } });
   assert.equal(tool.textTemplates.srt, files['demo/template.srt']);
   assert.equal(tool.textTemplates.gpl, files['demo/template.gpl']);
+});
+
+// ─── starter templates ────────────────────────────────────────────────────────
+//
+// A tool's `templates/<tid>.json` files are the one part of a catalog that loadTool
+// never fetches: the web shell reads one later, when a person picks a starting
+// point (shells/web/src/lib/template-source.ts). Their `values` decide what a new
+// document opens as, so an unsigned template is a hostile catalog's way to rewrite
+// every new document while the tool code itself verifies clean (plans/226 WP-7).
+
+test('CATALOG_SIGNED_TEMPLATE_FILE matches a template file and nothing else', () => {
+  for (const name of ['templates/poster.json', 'templates/city-poster.json', 'templates/A_1.json']) {
+    assert.ok(CATALOG_SIGNED_TEMPLATE_FILE.test(name), `${name} should be signed`);
+  }
+  for (const name of [
+    'templates/notes.txt',        // not a template
+    'templates/',                 // the directory itself
+    'templates/sub/poster.json',  // no nesting: the envelope key would be ambiguous
+    'i18n/de.json',               // the sidecar pattern's business, not this one
+    'template.json',              // the sibling text template, already in the fixed list
+  ]) {
+    assert.ok(!CATALOG_SIGNED_TEMPLATE_FILE.test(name), `${name} should not match`);
+  }
+});
+
+test('verifyToolFile accepts a signed template and refuses a tampered one', async () => {
+  const seed = JSON.stringify({ id: 'poster', name: 'Poster', values: { title: 'hi' } });
+  const envelope = await makeEnvelope({ ...TOOL_FILES, 'demo/templates/poster.json': seed });
+  assert.equal((await verifyToolFile(envelope, 'demo', 'templates/poster.json', te.encode(seed))).ok, true);
+  const swapped = JSON.stringify({ id: 'poster', name: 'Poster', values: { title: 'buy this' } });
+  const bad = await verifyToolFile(envelope, 'demo', 'templates/poster.json', te.encode(swapped));
+  assert.equal(bad.ok, false);
+  assert.match(bad.reason ?? '', /does not match its signed digest/);
+  // A template absent from the envelope is refused too - an unsigned extra file is
+  // indistinguishable from an injected one.
+  const unknown = await verifyToolFile(envelope, 'demo', 'templates/other.json', te.encode(seed));
+  assert.equal(unknown.ok, false);
+});
+
+test('sign-catalog.ts digests starter templates into the envelope (end to end)', async () => {
+  const seed = JSON.stringify({ id: 'poster', name: 'Poster', values: { title: 'hi' } });
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-sign-tpl-'));
+  const toolDir = join(dir, 'tools', 'demo');
+  mkdirSync(join(toolDir, 'templates'), { recursive: true });
+  for (const [path, text] of Object.entries(TOOL_FILES)) writeFileSync(join(dir, 'tools', path), text);
+  writeFileSync(join(toolDir, 'templates', 'poster.json'), seed);
+  writeFileSync(join(toolDir, 'templates', 'notes.txt'), 'not a template'); // must NOT be signed
+  const indexPath = join(dir, 'index.json');
+  writeFileSync(indexPath, Buffer.from(INDEX_BYTES));
+  const keyPath = join(dir, 'key.jwk.json');
+  writeFileSync(keyPath, JSON.stringify(await subtle.exportKey('jwk', privateKey)));
+  const outPath = join(dir, 'index.sig.json');
+  execFileSync(process.execPath, [
+    join(ROOT, 'scripts/sign-catalog.ts'),
+    '--keyfile', keyPath, '--tools', join(dir, 'tools'), '--index', indexPath, '--out', outPath,
+  ], { stdio: 'pipe' });
+  const envelope = JSON.parse(readFileSync(outPath, 'utf8')) as CatalogSignatureEnvelope;
+  assert.equal(envelope.files['demo/templates/poster.json'], await sha256Hex(te.encode(seed)));
+  assert.equal(envelope.files['demo/templates/notes.txt'], undefined);
+  assert.equal((await verifyCatalogEnvelope(envelope, INDEX_BYTES, publicKey)).ok, true);
+  // Signing templates changes nothing about the tool files that were signed before.
+  assert.ok(envelope.files['demo/hooks.js'], 'the signer stopped digesting hooks.js');
+  const tool = await loadTool('demo', makeFetchFile(TOOL_FILES), { integrity: { envelope, publicKey } });
+  assert.equal(tool.manifest.name, 'Demo');
+});
+
+test('a tool with an i18n dir AND a templates dir gets both signed', async () => {
+  const seed = JSON.stringify({ id: 'poster', name: 'Poster', values: {} });
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-sign-both-'));
+  const toolDir = join(dir, 'tools', 'demo');
+  mkdirSync(join(toolDir, 'i18n'), { recursive: true });
+  mkdirSync(join(toolDir, 'templates'), { recursive: true });
+  for (const [path, text] of Object.entries(TOOL_FILES_I18N)) writeFileSync(join(dir, 'tools', path), text);
+  writeFileSync(join(toolDir, 'templates', 'poster.json'), seed);
+  const indexPath = join(dir, 'index.json');
+  writeFileSync(indexPath, Buffer.from(INDEX_BYTES));
+  const keyPath = join(dir, 'key.jwk.json');
+  writeFileSync(keyPath, JSON.stringify(await subtle.exportKey('jwk', privateKey)));
+  const outPath = join(dir, 'index.sig.json');
+  execFileSync(process.execPath, [
+    join(ROOT, 'scripts/sign-catalog.ts'),
+    '--keyfile', keyPath, '--tools', join(dir, 'tools'), '--index', indexPath, '--out', outPath,
+  ], { stdio: 'pipe' });
+  const envelope = JSON.parse(readFileSync(outPath, 'utf8')) as CatalogSignatureEnvelope;
+  assert.ok(envelope.files['demo/i18n/de.json'], 'sidecar digest missing');
+  assert.ok(envelope.files['demo/templates/poster.json'], 'template digest missing');
 });

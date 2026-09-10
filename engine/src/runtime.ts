@@ -33,7 +33,7 @@ import { isTokenValue, isAlias, colorToHex } from './tokens.ts';
 import { resolveNestedRenders } from './compose.ts';
 import { isToolUrl } from './tool-url.ts';
 import { isBakedRef } from './bake.ts';
-import type { InputModelItem, InputValue, ProfileValues } from './inputs.ts';
+import type { InputModelItem, InputValue } from './inputs.ts';
 import type { LoadedTool, ToolManifest } from './loader.ts';
 import type { ComposeMemo } from './compose.ts';
 import type {
@@ -352,7 +352,10 @@ export async function createRuntime(
   // buildInputModel reads the profile as a string-keyed lookup (bindToProfile);
   // Profile is an interface (no implicit index signature), so hand it over as a
   // fresh ProfileValues object. Read-only downstream, so the copy is a no-op.
-  const profileValues: ProfileValues = { ...profile };
+  // The person's saved templates ride the same record (plans/226) but are never
+  // a bind target, and their shape is not an input value, so they stay out.
+  const { userTemplates: _templates, ...profileValues } = profile;
+  void _templates;
   let model = buildInputModel(tool.manifest, { profile: profileValues, initial: initialState });
 
   // The set of declared input ids is fixed for the life of the runtime (only
