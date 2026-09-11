@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-Przełącznik jest ustawiany per wdrożenie (`LOLLY_DISABLE_RENDER_GET=1`): w [lolly.art](https://lolly.art), publicznej instancji demonstracyjnej, renderowanie przez hot-link jest celowo aktywne, więc ta sama sonda zwraca tam obraz - ta różnica to działanie flagi, a nie niespójność.
+Przełącznik jest ustawiany per wdrożenie (`LOLLY_DISABLE_RENDER_GET=1`): w instancji, w której ta flaga pozostaje nieustawiona, renderowanie przez hot-link jest aktywne, więc ta sama sonda zwraca tam obraz - ta różnica to działanie flagi, a nie niespójność.
 
 **7. Powierzchnia serwera jest wyliczalna.** [Server Surface](/info/server-surface.html) wymienia każdą istniejącą trasę po stronie serwera, ze stałą zasadą, że endpoint spoza tej strony nie jest częścią Lolly. Wywołaj je przez `curl`; nie ma tam nic więcej do znalezienia.
 

@@ -145,7 +145,7 @@ Batas itu ditarik di dalam lisensinya, bukan di dalam sebuah janji: apa pun yang
 
 ## Seberapa banyak yang disimpan SUSE secara privat? (alias kapan kami ditinggal di tengah jalan)
 
-Engine, shell, skema dan alat yang tidak terikat merek bersifat open source; merek dagang SUSE dan alat bermereknya adalah bagian yang tetap privat, dan keduanya sudah dipisahkan. Anda bisa menemukan instans Lolly tanpa merek di [lolly.ART](https://lolly.art).
+Engine, shell, skema dan alat yang tidak terikat merek bersifat open source; merek dagang SUSE dan alat bermereknya adalah bagian yang tetap privat, dan keduanya sudah dipisahkan. Instans publik di [lolly.tools](https://lolly.tools) berjalan pada merek kosong.
 
 Batasnya bersifat struktural, bukan sekadar dijanjikan. Setiap versi yang dirilis bersifat open source dan tidak bisa ditarik dari peredaran, tidak ada perjanjian kontributor yang bisa melisensikan ulang karya siapa pun, dan satu-satunya yang ditahan adalah merek dagangnya. Ketika perusahaan lain menutup sumber Linux enterprise-nya pada 2023, SUSE ikut mendirikan [OpenELA](https://openela.org) agar kode itu tetap terbuka - sikap yang sama yang diwarisi proyek ini.
 

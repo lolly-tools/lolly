@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-Sakelar ini bersifat per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): di [lolly.art](https://lolly.art), instance demo publik, render hot-link sengaja diaktifkan, sehingga probe yang sama di sana mengembalikan gambar - perbedaan itu adalah flag yang bekerja, bukan inkonsistensi.
+Sakelar ini bersifat per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): di instance yang membiarkannya tidak diset, render hot-link aktif, sehingga probe yang sama di sana mengembalikan gambar - perbedaan itu adalah flag yang bekerja, bukan inkonsistensi.
 
 **7. Permukaan server dapat dienumerasi.** [Server Surface](/info/server-surface.html) mencantumkan setiap rute sisi server yang ada, dengan aturan baku bahwa endpoint yang tidak ada di halaman itu bukan bagian dari Lolly. `curl` semuanya; tidak ada yang lain untuk ditemukan.
 

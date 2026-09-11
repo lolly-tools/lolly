@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-L'interruttore è per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): su [lolly.art](https://lolly.art), l'istanza demo pubblica, i render hot-link sono deliberatamente attivi, quindi la stessa verifica lì restituisce un'immagine - quella differenza è il flag che funziona, non un'incoerenza.
+L'interruttore è per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): su un'istanza che lo lascia non impostato, i render hot-link sono attivi, quindi la stessa verifica lì restituisce un'immagine - quella differenza è il flag che funziona, non un'incoerenza.
 
 **7. La superficie server è enumerabile.** [Server Surface](/info/server-surface.html) elenca ogni rotta lato server esistente, con la regola di base che un endpoint non presente in quella pagina non fa parte di Lolly. Provale con `curl`; non c'è nient'altro da trovare.
 

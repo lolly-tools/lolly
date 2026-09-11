@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-Comutatorul este per implementare (`LOLLY_DISABLE_RENDER_GET=1`): pe [lolly.art](https://lolly.art), instanța publică de demonstrație, randările prin hot-link sunt active în mod deliberat, așa că aceeași sondă returnează acolo o imagine - această diferență arată că flag-ul funcționează, nu o inconsecvență.
+Comutatorul este per implementare (`LOLLY_DISABLE_RENDER_GET=1`): pe o instanță care lasă acest flag nesetat, randările prin hot-link sunt active, așa că aceeași sondă returnează acolo o imagine - această diferență arată că flag-ul funcționează, nu o inconsecvență.
 
 **7. Suprafața serverului este enumerabilă.** [Server Surface](/info/server-surface.html) listează fiecare rută existentă pe server, cu regula permanentă că un endpoint care nu apare pe acea pagină nu face parte din Lolly. Rulează `curl` pe ele; nu mai e nimic altceva de găsit.
 

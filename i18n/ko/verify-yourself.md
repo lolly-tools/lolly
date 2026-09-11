@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-이 스위치는 배포별로 설정됩니다(`LOLLY_DISABLE_RENDER_GET=1`): 공개 데모 인스턴스인 [lolly.art](https://lolly.art)에서는 핫링크 렌더링이 의도적으로 켜져 있어서, 같은 검사를 해도 이미지가 반환됩니다 - 이 차이는 불일치가 아니라 플래그가 제대로 작동하고 있다는 증거입니다.
+이 스위치는 배포별로 설정됩니다(`LOLLY_DISABLE_RENDER_GET=1`): 이를 설정하지 않은 인스턴스에서는 핫링크 렌더링이 켜져 있어서, 같은 검사를 해도 이미지가 반환됩니다 - 이 차이는 불일치가 아니라 플래그가 제대로 작동하고 있다는 증거입니다.
 
 **7. 서버 표면은 모두 나열되어 있습니다.** [Server Surface](/info/server-surface.html)는 존재하는 모든 서버 측 라우트를 나열하며, 그 페이지에 없는 엔드포인트는 Lolly의 일부가 아니라는 원칙을 따릅니다. `curl`로 확인해보세요; 그 외에는 아무것도 없습니다.
 

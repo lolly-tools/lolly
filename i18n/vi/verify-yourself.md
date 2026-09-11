@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-Công tắc này áp dụng theo từng lần triển khai (`LOLLY_DISABLE_RENDER_GET=1`): trên [lolly.art](https://lolly.art), phiên bản demo công khai, kết xuất qua liên kết trực tiếp được cố ý bật, nên cùng một phép thử ở đó trả về một hình ảnh - sự khác biệt này là do cờ đang hoạt động đúng, không phải là sự thiếu nhất quán.
+Công tắc này áp dụng theo từng lần triển khai (`LOLLY_DISABLE_RENDER_GET=1`): trên một instance không đặt biến này, kết xuất qua liên kết trực tiếp vẫn hoạt động, nên cùng một phép thử ở đó trả về một hình ảnh - sự khác biệt này là do cờ đang hoạt động đúng, không phải là sự thiếu nhất quán.
 
 **7. Bề mặt máy chủ có thể liệt kê được.** [Server Surface](/info/server-surface.html) liệt kê mọi tuyến phía máy chủ đang tồn tại, với quy tắc cố định là một điểm cuối không có trên trang đó thì không thuộc về Lolly. Hãy `curl` chúng; không còn gì khác để tìm thấy.
 

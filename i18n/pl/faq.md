@@ -145,7 +145,7 @@ Ta granica jest wyznaczona licencją, a nie obietnicą: wszystko, co działa lok
 
 ## Ile SUSE zatrzymuje dla siebie? (czyli kiedy wyciągną nam dywan spod nóg)
 
-Silnik, powłoki, schematy i narzędzia niezwiązane z marką są open source; prywatne zostają znaki towarowe SUSE i narzędzia z jego marką, i są już wydzielone. Instancję Lolly bez marki znajdziesz pod adresem [lolly.ART](https://lolly.art).
+Silnik, powłoki, schematy i narzędzia niezwiązane z marką są open source; prywatne zostają znaki towarowe SUSE i narzędzia z jego marką, i są już wydzielone. Publiczna instancja pod adresem [lolly.tools](https://lolly.tools) działa na neutralnej marce.
 
 Ta granica wynika ze struktury, a nie z obietnicy. Każda wydana wersja jest open source i nie da się jej cofnąć, nie ma umowy dla współtwórców, która mogłaby zmienić licencję czyjejś pracy, a jedyne, co jest zatrzymane, to znak towarowy. Kiedy w 2023 roku inna firma zamknęła źródła swojego korporacyjnego Linuksa, SUSE współzałożyło [OpenELA](https://openela.org), żeby ten kod pozostał otwarty - ten projekt dziedziczy dokładnie tę postawę.
 

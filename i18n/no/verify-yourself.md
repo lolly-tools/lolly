@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-Bryteren er per utrulling (`LOLLY_DISABLE_RENDER_GET=1`): på [lolly.art](https://lolly.art), den offentlige demoinstansen, er hot-link-rendringer bevisst aktive, så den samme testen der returnerer et bilde - denne forskjellen er flagget som virker, ikke en inkonsistens.
+Bryteren er per utrulling (`LOLLY_DISABLE_RENDER_GET=1`): på en instans som lar den stå usatt, er hot-link-rendringer aktive, så den samme testen der returnerer et bilde - denne forskjellen er flagget som virker, ikke en inkonsistens.
 
 **7. Serveroverflaten kan telles opp.** [Server Surface](/info/server-surface.html) lister hver serverside-rute som finnes, med den faste regelen at et endepunkt som ikke står på den siden, ikke er en del av Lolly. `curl` dem; det finnes ikke noe annet å finne.
 

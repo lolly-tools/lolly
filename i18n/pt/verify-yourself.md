@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-O interruptor é por implantação (`LOLLY_DISABLE_RENDER_GET=1`): no [lolly.art](https://lolly.art), a instância pública de demonstração, as renderizações via hot-link estão deliberadamente ativas, então o mesmo teste lá retorna uma imagem - essa diferença é a flag funcionando, não uma inconsistência.
+O interruptor é por implantação (`LOLLY_DISABLE_RENDER_GET=1`): numa instância que deixa essa variável sem definir, as renderizações via hot-link ficam ativas, então o mesmo teste lá retorna uma imagem - essa diferença é a flag funcionando, não uma inconsistência.
 
 **7. A superfície do servidor é enumerável.** [Server Surface](/info/server-surface.html) lista cada rota do lado do servidor que existe, com a regra permanente de que um endpoint fora dessa página não faz parte do Lolly. Faça `curl` nelas; não há mais nada a encontrar.
 

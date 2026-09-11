@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-Per-deployment ang switch (`LOLLY_DISABLE_RENDER_GET=1`): sa [lolly.art](https://lolly.art), ang pampublikong demo instance, sinasadyang live ang hot-link renders, kaya nagbabalik ng imahe ang parehong probe doon - ang pagkakaibang iyon ay ang flag na gumagana, hindi isang hindi pagkakapare-pareho.
+Per-deployment ang switch (`LOLLY_DISABLE_RENDER_GET=1`): sa isang instance na hindi ito isinasaad, live ang hot-link renders, kaya nagbabalik ng imahe ang parehong probe doon - ang pagkakaibang iyon ay ang flag na gumagana, hindi isang hindi pagkakapare-pareho.
 
 **7. Mabibilang ang server surface.** Nakalista sa [Server Surface](/info/server-surface.html) ang bawat server-side route na umiiral, kasama ang standing rule na ang endpoint na wala sa pahinang iyon ay hindi bahagi ng Lolly. I-`curl` ang mga ito; wala nang iba pang matutuklasan.
 

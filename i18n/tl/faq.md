@@ -146,7 +146,7 @@ Nakaguhit ang linyang iyon sa lisensya, hindi sa pangako: anumang tumatakbo nang
 
 ## Gaano karami ang itinatago ng SUSE bilang pribado? (o kung kailan kami iiwan sa ere)
 
-Open source ang engine, ang mga shell, ang mga schema at ang mga brand-agnostic na tool; ang mga trademark at branded na tool ng SUSE ang bahaging nananatiling pribado, at nakahiwalay na ang mga ito. Makikita mo ang isang unbranded na instance ng Lolly sa [lolly.ART](https://lolly.art).
+Open source ang engine, ang mga shell, ang mga schema at ang mga brand-agnostic na tool; ang mga trademark at branded na tool ng SUSE ang bahaging nananatiling pribado, at nakahiwalay na ang mga ito. Ang pampublikong instance sa [lolly.tools](https://lolly.tools) ay tumatakbo gamit ang blangkong brand.
 
 Estruktural ang hangganan, hindi lamang pangako. Bawat inilabas na bersyon ay open source at hindi na maibabalik sa pagkakatago, walang contributor agreement na puwedeng mag-relicense ng gawa ninuman, at ang trademark lang ang pinipigil. Nang isara ng isa pang kumpanya ang mga source ng enterprise Linux nito noong 2023, isa ang SUSE sa nagtatag ng [OpenELA](https://openela.org) para manatiling bukas ang code na iyon - ito rin ang paninindigang minana ng proyektong ito.
 

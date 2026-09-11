@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-Brytaren är per driftsättning (`LOLLY_DISABLE_RENDER_GET=1`): på [lolly.art](https://lolly.art), den offentliga demoinstansen, är hotlink-renderingar medvetet aktiva, så samma test där returnerar en bild - den skillnaden är flaggan som fungerar, inte en inkonsekvens.
+Brytaren är per driftsättning (`LOLLY_DISABLE_RENDER_GET=1`): på en instans som lämnar den osatt, är hotlink-renderingar aktiva, så samma test där returnerar en bild - den skillnaden är flaggan som fungerar, inte en inkonsekvens.
 
 **7. Serverytan går att räkna upp.** [Server Surface](/info/server-surface.html) listar varje serversidig rutt som finns, med den stående regeln att en endpoint som inte står på den sidan inte är en del av Lolly. `curl`:a dem; det finns inget annat att hitta.
 

@@ -145,7 +145,7 @@ Esa línea está trazada en la licencia, no en una promesa: todo lo que se ejecu
 
 ## ¿Cuánto se guarda SUSE en privado? (o sea, ¿cuándo llega el cambiazo?)
 
-El motor, los shells, los esquemas y las herramientas sin marca son de código abierto; las marcas registradas de SUSE y sus herramientas de marca son la parte que se mantiene privada, y ya están separadas. Puedes encontrar una instancia de Lolly sin marca en [lolly.ART](https://lolly.art).
+El motor, los shells, los esquemas y las herramientas sin marca son de código abierto; las marcas registradas de SUSE y sus herramientas de marca son la parte que se mantiene privada, y ya están separadas. La instancia pública en [lolly.tools](https://lolly.tools) funciona con la marca en blanco.
 
 El límite es estructural, no prometido. Cada versión publicada es de código abierto y no se puede despublicar, no existe ningún acuerdo de colaborador que pudiera relicenciar el trabajo de nadie y lo único que se reserva es la marca registrada. Cuando otra empresa cerró las fuentes de su Linux empresarial en 2023, SUSE cofundó [OpenELA](https://openela.org) para mantener ese código abierto - la misma postura que hereda este proyecto.
 

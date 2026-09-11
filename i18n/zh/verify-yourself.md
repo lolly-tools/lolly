@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-这个开关是按部署实例配置的(`LOLLY_DISABLE_RENDER_GET=1`):在公开演示实例 [lolly.art](https://lolly.art) 上,热链渲染是有意开启的,所以同样的探测在那里会返回一张图片 - 这个差异正是该开关在正常工作的体现,而不是不一致。
+这个开关是按部署实例配置的(`LOLLY_DISABLE_RENDER_GET=1`):在没有设置该开关的实例上,热链渲染是启用的,所以同样的探测在那里会返回一张图片 - 这个差异正是该开关在正常工作的体现,而不是不一致。
 
 **7. 服务器暴露面是可枚举的。** [Server Surface](/info/server-surface.html) 列出了所有存在的服务端路由,并以此为一贯规则:不在该页面上的端点就不属于 Lolly。用 `curl` 去逐一验证;不会再有别的东西可找。
 

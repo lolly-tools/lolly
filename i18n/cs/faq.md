@@ -145,7 +145,7 @@ Tuhle čáru kreslí licence, ne slib: cokoli běží lokálně, je zdarma, nav�
 
 ## Kolik si SUSE nechává pro sebe? (neboli kdy nám vytáhnou koberec pod nohama)
 
-Engine, shelly, schémata a nástroje nezávislé na značce jsou open source; soukromá zůstává část s ochrannými známkami SUSE a značkovými nástroji, a ta je už oddělená. Instanci Lolly bez značky najdeš na [lolly.ART](https://lolly.art).
+Engine, shelly, schémata a nástroje nezávislé na značce jsou open source; soukromá zůstává část s ochrannými známkami SUSE a značkovými nástroji, a ta je už oddělená. Veřejná instance na [lolly.tools](https://lolly.tools) běží na prázdné značce.
 
 Ta hranice je strukturální, ne slíbená. Každá vydaná verze je open source a vydání nejde vzít zpět, neexistuje žádná dohoda pro přispěvatele, která by mohla něčí práci přelicencovat, a jediné, co zůstává stranou, je ochranná známka. Když v roce 2023 jiná firma uzavřela zdrojové kódy svého enterprise Linuxu, SUSE spoluzaložilo [OpenELA](https://openela.org), aby ten kód zůstal otevřený - stejný postoj dědí i tenhle projekt.
 

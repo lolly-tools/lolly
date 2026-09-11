@@ -144,7 +144,7 @@ Bu sınır bir sözle değil, lisansla çizildi: yerelde çalışan her şey son
 
 ## SUSE ne kadarını özel tutuyor? (yani halı ne zaman ayağımızın altından çekilecek)
 
-Motor, kabuklar, şemalar ve markadan bağımsız araçlar açık kaynaktır; özel kalan kısım SUSE'nin ticari markaları ile markalı araçlarıdır ve bunlar zaten ayrılmış durumdadır. Lolly'nin markasız bir örneğini [lolly.ART](https://lolly.art) adresinde bulabilirsin.
+Motor, kabuklar, şemalar ve markadan bağımsız araçlar açık kaynaktır; özel kalan kısım SUSE'nin ticari markaları ile markalı araçlarıdır ve bunlar zaten ayrılmış durumdadır. [lolly.tools](https://lolly.tools) adresindeki genel örnek, boş marka üzerinde çalışır.
 
 Bu sınır söz verilmiş değil, yapısaldır. Yayımlanan her sürüm açık kaynaktır ve yayımlanmamış hale getirilemez, kimsenin çalışmasını yeniden lisanslayabilecek bir katkıda bulunan sözleşmesi yoktur ve geride tutulan tek şey ticari markadır. 2023'te başka bir şirket kurumsal Linux kaynaklarını kapattığında SUSE, o kodu açık tutmak için [OpenELA](https://openela.org) oluşumunun kurucularından biri oldu - bu proje de aynı duruşu devralıyor.
 

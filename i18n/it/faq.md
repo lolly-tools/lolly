@@ -145,7 +145,7 @@ Quella linea è tracciata nella licenza, non in una promessa: tutto ciò che gir
 
 ## Quanto sta tenendo privato SUSE? (ovvero: quando arriva la fregatura)
 
-Il motore, le shell, gli schemi e gli strumenti indipendenti dal brand sono open source; i marchi registrati di SUSE e gli strumenti a marchio sono la parte che resta privata, e sono già stati separati. Puoi trovare un'istanza di Lolly senza marchio su [lolly.ART](https://lolly.art).
+Il motore, le shell, gli schemi e gli strumenti indipendenti dal brand sono open source; i marchi registrati di SUSE e gli strumenti a marchio sono la parte che resta privata, e sono già stati separati. L'istanza pubblica su [lolly.tools](https://lolly.tools) gira sul brand vuoto.
 
 Il confine è strutturale, non promesso. Ogni versione rilasciata è open source e non può essere ritirata, non esiste alcun contributor agreement che possa cambiare licenza al lavoro di qualcuno, e l'unica cosa trattenuta è il marchio registrato. Quando nel 2023 un'altra azienda ha chiuso i sorgenti del suo Linux enterprise, SUSE ha co-fondato [OpenELA](https://openela.org) per mantenere quel codice aperto - la stessa postura che questo progetto eredita.
 

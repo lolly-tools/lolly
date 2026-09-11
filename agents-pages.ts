@@ -226,8 +226,9 @@ ${u}/#/tool/{id}?{input}={value}&{input}={value}&format={ext}&export
    file for the browser-free formats - ${formats} - plus \`png\` for SVG-native tools.
    Tools with status \`official\` or \`community\` only; Content Credentials are off so the
    bytes are cacheable (a strong ETag, a day at the CDN); renders are rate-limited per
-   address. The route is per deployment: switched off on lolly.tools, live on
-   https://lolly.art. A \`404\` means the tool is not public there or the route is off; a
+   address. The route is per deployment, and switched off on lolly.tools; an instance
+   that leaves \`LOLLY_DISABLE_RENDER_GET\` unset serves it. A \`404\` means the tool
+   is not public there or the route is off; a
    \`400\` names the reason (a browser-tier format, an output bound, a query over 4096
    characters). Full contract: ${u}/openapi.json
 2. **MCP.** \`${mcpFull}\` renders every format a tool declares (a headless browser sits
@@ -315,7 +316,6 @@ export function buildOpenApi(o: AgentDocsOpts): Record<string, unknown> {
     externalDocs: { description: 'The docs, as markdown twins', url: `${u}/llms.txt` },
     servers: [
       { url: u, description: 'The reference instance. The hot-link render route is switched off here (404).' },
-      { url: 'https://lolly.art', description: 'The public demo instance. The hot-link render route is live.' },
     ],
     tags: [
       { name: 'render', description: 'Files from URL parameters' },
@@ -433,7 +433,7 @@ export function buildWellKnown(o: AgentDocsOpts): Record<string, unknown> {
       auth: 'none',
       formats: [...RENDER_GET_FORMATS],
       content_credentials: false,
-      note: 'Per deployment: 404 where the route is switched off (lolly.tools), live on https://lolly.art. png only for SVG-native tools.',
+      note: 'Per deployment: 404 where the route is switched off (lolly.tools); live on an instance that leaves LOLLY_DISABLE_RENDER_GET unset. png only for SVG-native tools.',
     },
     mcp: {
       full: o.mcpFull ?? MCP_FULL_DEFAULT,

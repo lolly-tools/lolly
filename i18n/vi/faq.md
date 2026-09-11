@@ -145,7 +145,7 @@ Ranh giới đó được vạch trong giấy phép, không phải trong một l
 
 ## SUSE giữ riêng bao nhiêu? (hay là bao giờ thì lật kèo)
 
-Engine, các shell, các schema và những công cụ không gắn thương hiệu đều là mã nguồn mở; nhãn hiệu của SUSE cùng các công cụ gắn thương hiệu là phần giữ riêng, và chúng đã được tách ra sẵn. Bạn có thể tìm thấy một instance Lolly không gắn thương hiệu tại [lolly.ART](https://lolly.art).
+Engine, các shell, các schema và những công cụ không gắn thương hiệu đều là mã nguồn mở; nhãn hiệu của SUSE cùng các công cụ gắn thương hiệu là phần giữ riêng, và chúng đã được tách ra sẵn. Instance công khai tại [lolly.tools](https://lolly.tools) chạy trên thương hiệu trống.
 
 Ranh giới này mang tính cấu trúc chứ không phải một lời hứa. Mọi phiên bản đã phát hành đều là mã nguồn mở và không thể rút lại, không có thoả thuận đóng góp nào có thể cấp phép lại công sức của bất kỳ ai, và thứ duy nhất được giữ lại là nhãn hiệu. Khi một công ty khác đóng mã nguồn Linux doanh nghiệp của họ vào năm 2023, SUSE đã đồng sáng lập [OpenELA](https://openela.org) để giữ mã đó luôn mở - chính là lập trường mà dự án này kế thừa.
 

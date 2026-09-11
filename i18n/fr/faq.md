@@ -142,7 +142,7 @@ Cette ligne est tracée dans la licence, pas dans une promesse : tout ce qui tou
 
 ## Quelle part SUSE garde-t-elle privée ? (autrement dit : quand nous retire-t-on le tapis sous les pieds ?)
 
-Le moteur, les shells, les schémas et les outils indépendants de toute marque sont open source ; les marques déposées de SUSE et ses outils de marque sont la partie qui reste privée, et elle est déjà séparée. Tu trouveras une instance sans marque de Lolly sur [lolly.ART](https://lolly.art).
+Le moteur, les shells, les schémas et les outils indépendants de toute marque sont open source ; les marques déposées de SUSE et ses outils de marque sont la partie qui reste privée, et elle est déjà séparée. L'instance publique sur [lolly.tools](https://lolly.tools) tourne avec la marque vierge.
 
 La frontière est structurelle plutôt que promise. Chaque version publiée est open source et ne peut pas être dépubliée, aucun accord de contributeur ne pourrait relicencier le travail de qui que ce soit, et la seule chose retenue est la marque déposée. Quand une autre entreprise a fermé les sources de son Linux d'entreprise en 2023, SUSE a cofondé [OpenELA](https://openela.org) pour garder ce code ouvert - c'est la posture dont ce projet hérite.
 

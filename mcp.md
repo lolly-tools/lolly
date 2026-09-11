@@ -30,8 +30,8 @@ GET https://<host>/tool/<tool-id>.<ext>?<inputs>
 > **Where this is live.** The route is per-deployment. It is **switched off on
 > lolly.tools** (`LOLLY_DISABLE_RENDER_GET=1` - every such URL returns 404) until that
 > service moves to organisation-owned hosting, because a GET's query string ends up in
-> the host's access logs and a link's inputs can carry personal data. It is
-> deliberately **live on lolly.art**, the public demo instance. The
+> the host's access logs and a link's inputs can carry personal data. An
+> instance that leaves the flag unset serves the route. The
 > [privacy policy](/info/privacy.html) explains the reasoning.
 
 This is the same "raw render URL" `lolly_build_url` returns - drop it into a README, wiki, Notion page or dashboard as an `<img src=…>` and it serves real bytes, no token needed. Its scope is deliberately narrow:

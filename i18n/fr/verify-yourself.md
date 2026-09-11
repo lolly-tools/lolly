@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-Le commutateur est propre à chaque déploiement (`LOLLY_DISABLE_RENDER_GET=1`) : sur [lolly.art](https://lolly.art), l'instance de démonstration publique, les rendus en hot-link sont délibérément actifs, donc la même vérification y renvoie une image - cette différence est le drapeau qui fonctionne, pas une incohérence.
+Le commutateur est propre à chaque déploiement (`LOLLY_DISABLE_RENDER_GET=1`) : sur une instance qui laisse cette variable non définie, les rendus en hot-link sont actifs, donc la même vérification y renvoie une image - cette différence est le drapeau qui fonctionne, pas une incohérence.
 
 **7. La surface serveur est énumérable.** [Server Surface](/info/server-surface.html) liste chaque route côté serveur qui existe, avec la règle constante qu'un point de terminaison absent de cette page ne fait pas partie de Lolly. Fais un `curl` dessus ; il n'y a rien d'autre à trouver.
 

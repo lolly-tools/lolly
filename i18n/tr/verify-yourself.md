@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-Bu anahtar dağıtım başınadır (`LOLLY_DISABLE_RENDER_GET=1`): genel demo örneği olan [lolly.art](https://lolly.art)'ta doğrudan bağlantı render'ları kasıtlı olarak etkindir, bu yüzden oradaki aynı sınama bir görsel döndürür - bu fark bayrağın çalıştığını gösterir, bir tutarsızlık değildir.
+Bu anahtar dağıtım başınadır (`LOLLY_DISABLE_RENDER_GET=1`): bu değişkeni ayarlamadan bırakan bir örnekte doğrudan bağlantı render'ları etkindir, bu yüzden oradaki aynı sınama bir görsel döndürür - bu fark bayrağın çalıştığını gösterir, bir tutarsızlık değildir.
 
 **7. Sunucu yüzeyi listelenebilirdir.** [Server Surface](/info/server-surface.html) var olan her sunucu tarafı rotasını listeler; yerleşik kural, o sayfada olmayan bir uç noktanın Lolly'nin parçası olmadığıdır. Onları `curl` ile dene; bulunacak başka bir şey yok.
 

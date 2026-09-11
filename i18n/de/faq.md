@@ -145,7 +145,7 @@ Diese Grenze zieht die Lizenz, nicht ein Versprechen: Alles, was lokal läuft, i
 
 ## Wie viel behält SUSE für sich? (also: wann kommt der Rückzieher)
 
-Die Engine, die Shells, die Schemas und die markenunabhängigen Werkzeuge sind Open Source; privat bleiben die Marken von SUSE und die gebrandeten Werkzeuge, und die sind bereits herausgetrennt. Eine Instanz von Lolly ohne Branding finden Sie unter [lolly.ART](https://lolly.art).
+Die Engine, die Shells, die Schemas und die markenunabhängigen Werkzeuge sind Open Source; privat bleiben die Marken von SUSE und die gebrandeten Werkzeuge, und die sind bereits herausgetrennt. Die öffentliche Instanz unter [lolly.tools](https://lolly.tools) läuft mit der leeren Marke.
 
 Die Grenze ist strukturell, nicht bloß versprochen. Jede veröffentlichte Version ist Open Source und lässt sich nicht zurückziehen, es gibt keine Contributor-Vereinbarung, die die Arbeit anderer neu lizenzieren könnte, und zurückgehalten wird allein die Marke. Als ein anderes Unternehmen 2023 die Quellen seines Enterprise-Linux schloss, hat SUSE [OpenELA](https://openela.org) mitgegründet, um diesen Code offen zu halten - dieselbe Haltung erbt dieses Projekt.
 

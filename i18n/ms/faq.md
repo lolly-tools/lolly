@@ -145,7 +145,7 @@ Garisan itu ditetapkan dalam lesen, bukan dalam janji: apa sahaja yang berjalan 
 
 ## Berapa banyak yang SUSE simpan secara peribadi? (iaitu bila tikar akan ditarik dari bawah kaki)
 
-Enjin, shell, skema dan alat yang tidak terikat jenama adalah sumber terbuka; tanda dagangan SUSE dan alat berjenamanya ialah bahagian yang kekal peribadi, dan semuanya sudah pun diasingkan. Anda boleh menemui instans Lolly tanpa jenama di [lolly.ART](https://lolly.art).
+Enjin, shell, skema dan alat yang tidak terikat jenama adalah sumber terbuka; tanda dagangan SUSE dan alat berjenamanya ialah bahagian yang kekal peribadi, dan semuanya sudah pun diasingkan. Instans awam di [lolly.tools](https://lolly.tools) berjalan atas jenama kosong.
 
 Sempadan itu bersifat struktur, bukan sekadar janji. Setiap versi yang dilepaskan adalah sumber terbuka dan tidak boleh dinyahlepaskan, tiada perjanjian penyumbang yang boleh melesenkan semula hasil kerja sesiapa, dan satu-satunya perkara yang ditahan ialah tanda dagangan. Apabila sebuah syarikat lain menutup sumber Linux perusahaannya pada 2023, SUSE menjadi pengasas bersama [OpenELA](https://openela.org) untuk mengekalkan kod itu terbuka - pendirian yang sama diwarisi oleh projek ini.
 

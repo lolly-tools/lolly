@@ -145,7 +145,7 @@ That line is drawn in the licence, not in a promise: anything that runs locally 
 
 ## How much is SUSE keeping private? (aka when is the rug-pull)
 
-The engine, the shells, the schemas and the brand-agnostic tools are open source; SUSE's trademarks and branded tools are the part that stays private, and they are already separated out. You can find an unbranded instance of Lolly at [lolly.ART](https://lolly.art).
+The engine, the shells, the schemas and the brand-agnostic tools are open source; SUSE's trademarks and branded tools are the part that stays private, and they are already separated out. The public instance at [lolly.tools](https://lolly.tools) runs on the blank brand.
 
 The boundary is structural rather than promised. Every released version is open source and cannot be un-released, there is no contributor agreement that could relicense anyone's work, and the only thing held back is the trademark. When another company closed its enterprise Linux sources in 2023, SUSE co-founded [OpenELA](https://openela.org) to keep that code open - the same posture this project inherits.
 

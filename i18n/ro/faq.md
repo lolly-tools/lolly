@@ -145,7 +145,7 @@ Linia aceasta este trasată în licență, nu într-o promisiune: tot ce ruleaz�
 
 ## Cât păstrează SUSE privat? (adică, când se trage covorul de sub picioare)
 
-Motorul, shell-urile, schemele și instrumentele independente de brand sunt open source; mărcile înregistrate SUSE și instrumentele cu brand sunt partea care rămâne privată și sunt deja separate. Poți găsi o instanță fără brand a lui Lolly la [lolly.ART](https://lolly.art).
+Motorul, shell-urile, schemele și instrumentele independente de brand sunt open source; mărcile înregistrate SUSE și instrumentele cu brand sunt partea care rămâne privată și sunt deja separate. Instanța publică de la [lolly.tools](https://lolly.tools) rulează pe brandul neutru.
 
 Granița este structurală, nu promisă. Fiecare versiune lansată este open source și nu poate fi retrasă, nu există niciun acord de contribuitor care să poată relicenția munca cuiva, iar singurul lucru păstrat deoparte este marca înregistrată. Când o altă companie și-a închis sursele Linux pentru întreprinderi în 2023, SUSE a cofondat [OpenELA](https://openela.org) pentru a menține acel cod deschis - aceeași poziție pe care o moștenește acest proiect.
 

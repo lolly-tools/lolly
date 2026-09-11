@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-Der Schalter gilt pro Deployment (`LOLLY_DISABLE_RENDER_GET=1`): Auf [lolly.art](https://lolly.art), der öffentlichen Demo-Instanz, sind Hot-Link-Renders bewusst aktiv, daher liefert derselbe Test dort ein Bild zurück - dieser Unterschied ist das Kennzeichen dafür, dass der Schalter funktioniert, keine Inkonsistenz.
+Der Schalter gilt pro Deployment (`LOLLY_DISABLE_RENDER_GET=1`): Auf einer Instanz, die diese Variable nicht setzt, sind Hot-Link-Renders aktiv, daher liefert derselbe Test dort ein Bild zurück - dieser Unterschied ist das Kennzeichen dafür, dass der Schalter funktioniert, keine Inkonsistenz.
 
 **7. Die Server-Oberfläche ist vollständig aufzählbar.** [Server Surface](/info/server-surface.html) listet jede serverseitige Route auf, die existiert, mit der festen Regel, dass ein Endpunkt, der nicht auf dieser Seite steht, nicht Teil von Lolly ist. Rufen Sie sie mit `curl` ab; es gibt nichts weiter zu finden.
 

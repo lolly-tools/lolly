@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-Přepínač je nastaven na úrovni jednotlivého nasazení (`LOLLY_DISABLE_RENDER_GET=1`): na veřejné demo instanci [lolly.art](https://lolly.art) je vykreslování přes hot-link záměrně zapnuté, takže tam stejná zkouška vrátí obrázek - ten rozdíl je funkčnost přepínače, ne nekonzistence.
+Přepínač je nastaven na úrovni jednotlivého nasazení (`LOLLY_DISABLE_RENDER_GET=1`): na instanci, která tuto proměnnou ponechá nenastavenou, je vykreslování přes hot-link zapnuté, takže tam stejná zkouška vrátí obrázek - ten rozdíl je funkčnost přepínače, ne nekonzistence.
 
 **7. Serverová plocha je vyčíslitelná.** [Server Surface](/info/server-surface.html) vypisuje každou existující serverovou trasu s trvalým pravidlem, že endpoint, který na této stránce není, není součástí Lolly. Vyzkoušej si je přes `curl`; nic dalšího tam nenajdeš.
 

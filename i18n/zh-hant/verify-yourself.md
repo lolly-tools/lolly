@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-這個開關是依部署而定的(`LOLLY_DISABLE_RENDER_GET=1`):在公開示範站台 [lolly.art](https://lolly.art) 上,熱連結渲染是刻意保持啟用的,所以在那裡進行同樣的探測會回傳一張圖片 - 這個差異正是該旗標在正常運作,而不是不一致。
+這個開關是依部署而定的(`LOLLY_DISABLE_RENDER_GET=1`):在未設定此開關的站台上,熱連結渲染是啟用的,所以在那裡進行同樣的探測會回傳一張圖片 - 這個差異正是該旗標在正常運作,而不是不一致。
 
 **7. 伺服器介面可以被完整列舉。** [伺服器介面](/info/server-surface.html)列出了所有存在的伺服器端路由,其常設規則是:不在該頁面上的端點就不屬於 Lolly 的一部分。你可以用 `curl` 逐一驗證;找不到清單以外的其他東西。
 

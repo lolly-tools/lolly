@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-De schakelaar geldt per implementatie (`LOLLY_DISABLE_RENDER_GET=1`): op [lolly.art](https://lolly.art), de publieke demo-instantie, staan hotlink-renders bewust wel aan, dus dezelfde test daar levert een afbeelding op - dat verschil is de vlag die werkt, geen inconsistentie.
+De schakelaar geldt per implementatie (`LOLLY_DISABLE_RENDER_GET=1`): op een instantie die dit ongezet laat, staan hotlink-renders aan, dus dezelfde test daar levert een afbeelding op - dat verschil is de vlag die werkt, geen inconsistentie.
 
 **7. Het serveroppervlak is opsombaar.** [Server Surface](/info/server-surface.html) somt elke serverzijdige route op die bestaat, met de vaste regel dat een endpoint dat niet op die pagina staat geen deel uitmaakt van Lolly. `curl` ze; er valt verder niets te vinden.
 

@@ -145,7 +145,7 @@ Den grensa er trukket i lisensen, ikke i et løfte: alt som kjører lokalt, er g
 
 ## Hvor mye holder SUSE privat? (altså: når blir teppet dratt vekk?)
 
-Motoren, skallene, skjemaene og de merkevareuavhengige verktøyene er åpen kildekode; SUSEs varemerker og merkede verktøy er den delen som forblir privat, og de er allerede skilt ut. Du finner en umerket instans av Lolly på [lolly.ART](https://lolly.art).
+Motoren, skallene, skjemaene og de merkevareuavhengige verktøyene er åpen kildekode; SUSEs varemerker og merkede verktøy er den delen som forblir privat, og de er allerede skilt ut. Den offentlige instansen på [lolly.tools](https://lolly.tools) kjører på den blanke merkevaren.
 
 Grensa er strukturell, ikke lovet. Hver utgitte versjon er åpen kildekode og kan ikke trekkes tilbake, det finnes ingen bidragsyteravtale som kunne gitt noens arbeid en ny lisens, og det eneste som holdes tilbake, er varemerket. Da et annet selskap lukket kildekoden til sin enterprise-Linux i 2023, var SUSE med på å grunnlegge [OpenELA](https://openela.org) for å holde den koden åpen - den samme holdningen som dette prosjektet arver.
 

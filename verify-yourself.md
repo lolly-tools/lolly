@@ -46,7 +46,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 # 404
 ```
 
-The switch is per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): on [lolly.art](https://lolly.art), the public demo instance, hot-link renders are deliberately live, so the same probe there returns an image - that difference is the flag working, not an inconsistency.
+The switch is per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): on an instance that leaves it unset, hot-link renders are live, so the same probe there returns an image - that difference is the flag working, not an inconsistency.
 
 **7. The server surface is enumerable.** [Server Surface](/info/server-surface.html) lists every server-side route that exists, with the standing rule that an endpoint not on that page is not part of Lolly. `curl` them; there's nothing else to find.
 

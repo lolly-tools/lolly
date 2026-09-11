@@ -145,7 +145,7 @@ Die grens ligt vast in de licentie, niet in een belofte: alles wat lokaal draait
 
 ## Hoeveel houdt SUSE privé? (oftewel wanneer wordt het kleed onder ons vandaan getrokken)
 
-De engine, de shells, de schema's en de merkonafhankelijke tools zijn open source; de handelsmerken van SUSE en de tools met merk zijn het deel dat privé blijft, en die zijn al afgesplitst. Een instantie van Lolly zonder merk vind je op [lolly.ART](https://lolly.art).
+De engine, de shells, de schema's en de merkonafhankelijke tools zijn open source; de handelsmerken van SUSE en de tools met merk zijn het deel dat privé blijft, en die zijn al afgesplitst. De publieke instantie op [lolly.tools](https://lolly.tools) draait op het lege merk.
 
 De grens is structureel, geen belofte. Elke uitgebrachte versie is open source en kan niet worden teruggetrokken, er is geen contributor agreement dat iemands werk opnieuw zou kunnen licentiëren, en het enige wat wordt achtergehouden is het handelsmerk. Toen een ander bedrijf in 2023 zijn enterprise-Linux-broncode sloot, was SUSE medeoprichter van [OpenELA](https://openela.org) om die code open te houden - dezelfde houding die dit project overneemt.
 
