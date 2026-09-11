@@ -40,6 +40,7 @@ import { fileURLToPath } from 'node:url';
 import { createViewCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
 import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-browser.ts';
 import { stampBitmap } from './lib/stamp-media.ts';
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE_URL = 'https://lolly.tools';
@@ -53,7 +54,7 @@ const STUB_DIR = resolve(PUBLIC, 'view');            // → /view/<slug>.html   
 // Cards are COMMITTED here (served /catalog/og/views/<slug>.png), mirroring the committed
 // tool cards + catalog/previews - so a git deploy ships them even though the render browser
 // isn't installed on the Vercel build. Locally, build:web refreshes these; commit them.
-const OG_DIR   = resolve(ROOT, 'catalog/og/views');  // → /catalog/og/views/<slug>.png (committed)
+const OG_DIR   = catalogFile('og/views');  // → /catalog/og/views/<slug>.png (committed)
 // Input-hash gate (see build-tool-og.ts for the full rationale): a card is re-rendered
 // only when its render inputs change, so the non-deterministic render path (Playwright +
 // Imprint/C2PA stamp) stops churning identical-looking PNGs every push. We persist, per

@@ -36,8 +36,10 @@
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { hydrate, buildInputModel } from '../engine/src/index.ts';
+import { toolDirs } from '@lolly-tools/node-shell/content-roots';
 
 const ROOT = new URL('..', import.meta.url).pathname;
+const TOOL_DIRS = toolDirs();
 
 // Per-tool config - deliberately only ONE knob: whether to ALSO emit a standalone SVG per
 // manifest example (`looks`). There is no backdrop and no input-override slot; see the
@@ -122,7 +124,8 @@ function resolveExamples(manifest: Record<string, any>): Array<{ values?: Record
 function buildCard(toolId: string): void {
   const cfg = CARDS[toolId];
   if (!cfg) throw new Error(`no card config for ${toolId}`);
-  const dir = join(ROOT, 'tools', toolId);
+  const dir = TOOL_DIRS.get(toolId)?.dir;
+  if (!dir) throw new Error(`no such tool: ${toolId}`);
   const manifest = JSON.parse(readFileSync(join(dir, 'tool.json'), 'utf8'));
   const template = readFileSync(join(dir, 'template.html'), 'utf8');
 
@@ -156,6 +159,6 @@ function buildCard(toolId: string): void {
 const ids = process.argv.slice(2);
 if (!ids.length) { console.error('usage: node scripts/build-svg-card.ts <toolId> [...]'); process.exit(1); }
 for (const id of ids) {
-  if (!existsSync(join(ROOT, 'tools', id))) { console.error(`✗ ${id}: no such tool`); continue; }
+  if (!TOOL_DIRS.has(id)) { console.error(`✗ ${id}: no such tool`); continue; }
   try { buildCard(id); } catch (e) { console.error(`✗ ${id}: ${(e as Error).message}`); }
 }

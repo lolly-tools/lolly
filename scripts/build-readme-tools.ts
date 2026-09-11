@@ -7,19 +7,22 @@
  *
  * Regenerates the count sentence + tool table between the
  * `<!-- tools-table:start -->` / `<!-- tools-table:end -->` markers in
- * README.md from `catalog/tools/index.json` - the ACTIVE-profile view, so the
- * table reflects whatever `pnpm run profile:<name>` last built. The table lists
- * LISTED tools only (alphabetical); unlisted helpers are called out in the
- * sentence, mirroring how the section was hand-maintained before it was
- * generated. Idempotent: a second run is a byte-identical no-op.
+ * README.md from the active profile's `tools/index.json` (resolved through
+ * `content-roots`, not the retired `catalog/` view), so the table reflects
+ * whichever profile `LOLLY_PROFILE` (or the resolver's own precedence) picks.
+ * The table lists LISTED tools only (alphabetical); unlisted helpers are
+ * called out in the sentence, mirroring how the section was hand-maintained
+ * before it was generated. Idempotent: a second run is a byte-identical no-op.
  */
-import { existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { catalogFile, contentRoots } from '@lolly-tools/node-shell/content-roots';
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const README_PATH = join(ROOT, 'README.md');
-const INDEX_PATH = join(ROOT, 'catalog/tools/index.json');
+const INDEX_PATH = catalogFile('tools/index.json');
 const START_MARK = '<!-- tools-table:start -->';
 const END_MARK = '<!-- tools-table:end -->';
 
@@ -40,17 +43,15 @@ function cell(s: string): string {
   return s.replace(/\s+/g, ' ').replace(/\|/g, '\\|').trim();
 }
 
-/** The active profile's human label ("SUSE"), resolved by matching the
- *  catalog/ view against profiles.json's catalog paths. */
+/** The active profile's human label ("SUSE"), read straight from
+ *  profiles.json by the profile name content-roots resolved. */
 function activeCatalogLabel(): string {
   try {
     const profiles = JSON.parse(readFileSync(join(ROOT, 'profiles.json'), 'utf8')) as {
-      profiles?: Record<string, { label?: string; catalog?: string }>;
+      profiles?: Record<string, { label?: string }>;
     };
-    const real = realpathSync(join(ROOT, 'catalog'));
-    for (const p of Object.values(profiles.profiles ?? {})) {
-      if (p.catalog && realpathSync(join(ROOT, p.catalog)) === real) return p.label ?? 'active';
-    }
+    const name = contentRoots().profile;
+    return profiles.profiles?.[name]?.label ?? 'active';
   } catch {
     /* fall through - a missing/odd profiles.json never blocks the README build */
   }
@@ -59,8 +60,7 @@ function activeCatalogLabel(): string {
 
 if (!existsSync(INDEX_PATH)) {
   fail(
-    'catalog/tools/index.json not found - the catalog view is not built. ' +
-      'Run `pnpm run profile` (postinstall builds it) or `pnpm run build:catalog` first.',
+    'tools/index.json not found for the active profile. Run `pnpm run build:catalog` first.',
   );
 }
 

@@ -20,8 +20,9 @@
  */
 
 import { mkdirSync, writeFileSync, readFileSync, statSync } from 'node:fs';
-import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+
+import { toolDirs } from '@lolly-tools/node-shell/content-roots';
 
 type Coord = [number, number];
 type BBox = { s: number; w: number; n: number; e: number };
@@ -43,8 +44,6 @@ type Feature = {
     | { type: 'LineString'; coordinates: Coord[] }
     | { type: 'Polygon'; coordinates: Coord[][] };
 };
-
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 // ─── City registry ───────────────────────────────────────────────────────────
 // center is [lon, lat] (an iconic, dense downtown point); radiusM is the pan
@@ -116,7 +115,15 @@ const CITIES: Record<string, City> = {
   noosa:        { label: 'Noosa',         center: [153.0910, -26.3910],  radiusM: 1100 }, // Hastings St / Main Beach
 };
 
-const LIB_DIR   = join(ROOT, 'tools', 'street-map', 'lib');
+// street-map is a plain community tool (never overlaid), so its dir is stable
+// across profiles; resolve it once through the pack resolver instead of the
+// retired repo-root tools/ view.
+const STREET_MAP_DIR = toolDirs().get('street-map')?.dir;
+if (!STREET_MAP_DIR) {
+  console.error('build-street-clips: no "street-map" tool in the active profile.');
+  process.exit(1);
+}
+const LIB_DIR   = join(STREET_MAP_DIR, 'lib');
 const ROADS_DIR = join(LIB_DIR, 'roads');
 const OVERPASS  = 'https://overpass-api.de/api/interpreter';
 

@@ -28,17 +28,16 @@
  */
 
 import { readFileSync, writeFileSync, existsSync, rmSync } from 'node:fs';
-import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const INDEX_PATH = join(ROOT, 'catalog/assets/index.json');
+const INDEX_PATH = catalogFile('assets/index.json');
 
-/** Repo-root-relative path for a catalog URL like "/catalog/assets/...".
+/** Absolute path for a catalog URL like "/catalog/assets/...", resolved through the
+ * active profile's catalog pack rather than the retired repo-root catalog/ view.
  * Inlined (not imported from checksum-assets.ts) so this script has no import side-effects. */
 function localPathForUrl(url: string): string {
-  return join(ROOT, url.replace(/^\//, ''));
+  return catalogFile(url.replace(/^\/catalog\//, ''));
 }
 
 // Longest-side cap for a derivative. The featured render composes into ~720×560 and the

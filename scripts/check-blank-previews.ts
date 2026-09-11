@@ -48,11 +48,11 @@
 
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const PREVIEWS_DIR = join(ROOT, 'catalog/previews');
+const PREVIEWS_DIR = catalogFile('previews');
 
 /** File name of the report, exported so the validate-catalog gate names one string. */
 export const REPORT_FILE = 'blank-report.json';

@@ -16,6 +16,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'shells/web/public/voice');
@@ -24,13 +25,16 @@ const VOICE = 'Zarvox'; // the classic macOS robot voice
 export const voiceSlug = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
 // The labels to voice: the type filters, plus every photo treatment + icon theme label.
+// These read the SUSE brand's own palette files, so this script only produces its full
+// set under the suse profile - unchanged from before the fold, just resolved through the
+// active profile's catalog pack instead of the retired repo-root catalog/ view.
 const labels = new Set<string>(['All', 'Image', 'Vector', 'Motion', 'Original']);
-const readLabels = (relPath: string, key: 'treatments' | 'themes'): void => {
-  const doc = JSON.parse(readFileSync(join(ROOT, relPath), 'utf8')) as Record<string, { label?: string }[]>;
+const readLabels = (catalogRelPath: string, key: 'treatments' | 'themes'): void => {
+  const doc = JSON.parse(readFileSync(catalogFile(catalogRelPath), 'utf8')) as Record<string, { label?: string }[]>;
   for (const entry of doc[key] ?? []) if (entry.label) labels.add(entry.label);
 };
-readLabels('catalog/assets/suse/palette/photo-treatments.json', 'treatments');
-readLabels('catalog/assets/suse/palette/icon-themes.json', 'themes');
+readLabels('assets/suse/palette/photo-treatments.json', 'treatments');
+readLabels('assets/suse/palette/icon-themes.json', 'themes');
 
 // Snappier + deeper: pitch DOWN then speed UP, independently. `say` renders at a fixed
 // 22050 Hz; asetrate replays at PITCH× (drops pitch AND tempo), aresample normalises,

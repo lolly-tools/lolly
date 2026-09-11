@@ -55,6 +55,7 @@ import { fileURLToPath } from 'node:url';
 import { createToolCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
 import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-browser.ts';
 import { stampBitmap } from './lib/stamp-media.ts';
+import { catalogFile, toolFile } from '@lolly-tools/node-shell/content-roots';
 
 // Catalog index entries are dynamic JSON; only the fields this script reads are typed.
 interface ToolEntry {
@@ -75,7 +76,7 @@ const SITE_URL = 'https://lolly.tools';
 const AUTHOR_EXTS = ['png', 'jpg', 'jpeg', 'webp'];
 function authorOgImage(id: string): string | null {
   for (const ext of AUTHOR_EXTS) {
-    if (existsSync(resolve(ROOT, 'tools', id, `og.${ext}`))) {
+    if (toolFile(id, `og.${ext}`)) {
       return `${SITE_URL}/tools/${id}/og.${ext}`;
     }
   }
@@ -93,7 +94,7 @@ const STUB_DIR = resolve(PUBLIC, 't');         // → /t/<id>.html        (exact
 // the committed catalog/previews - so a git deploy ships them even though the render
 // browser (Playwright/Chromium) isn't installed on the Vercel build. Locally, where the
 // browser is available, build:web refreshes these; commit the changes like previews.
-const OG_DIR   = resolve(ROOT, 'catalog/og');  // → /catalog/og/<id>.png (committed)
+const OG_DIR   = catalogFile('og');  // → /catalog/og/<id>.png (committed)
 // Input-hash gate: a card is re-rendered only when its render inputs change. The render
 // path is non-deterministic (Playwright + Imprint/C2PA stamp → new bytes for identical
 // input), so an ungated build churned ~21MB of PNGs every push. We persist, per tool id,
@@ -173,7 +174,7 @@ function stubHtml(
 // placeholder icon rather than the build dying.
 function previewDataUri(previewPath: string | undefined): string | null {
   if (!previewPath) return null;
-  const file = resolve(ROOT, previewPath.replace(/^\//, ''));
+  const file = catalogFile(previewPath.replace(/^\/catalog\//, ''));
   if (!existsSync(file)) return null;
   if (file.endsWith('.png')) {
     return `data:image/png;base64,${readFileSync(file).toString('base64')}`;
@@ -185,7 +186,7 @@ function previewDataUri(previewPath: string | undefined): string | null {
 }
 
 async function main(): Promise<void> {
-  const index = JSON.parse(readFileSync(resolve(ROOT, 'catalog/tools/index.json'), 'utf8'));
+  const index = JSON.parse(readFileSync(catalogFile('tools/index.json'), 'utf8'));
   const tools: ToolEntry[] = Array.isArray(index.tools) ? index.tools : [];
 
   // Renderer is best-effort: a missing browser (or SUSE fonts) degrades stubs to the
