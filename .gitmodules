@@ -1,6 +1,3 @@
-[submodule "shells/tauri-mobile"]
-	path = shells/tauri-mobile
-	url = https://github.com/lolly-tools/lolly-mobile.git
 [submodule "shells/chrome-extension"]
 	path = shells/chrome-extension
 	url = https://github.com/lolly-tools/lolly-chrome-extension.git
