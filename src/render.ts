@@ -427,6 +427,9 @@ async function renderTierB(
   const ctx = await browser.newContext({ serviceWorkers: 'block', acceptDownloads: true });
   let clearPassword = (): void => {};
   try {
+    await ctx.addInitScript(() => {
+      Object.defineProperty(globalThis, '__LOLLY_AI_DISABLED__', { value: true, writable: false, configurable: false });
+    });
     clearPassword = await exposeExportPassword(ctx, fmt === 'pdf' ? o.password : undefined);
     const page = await ctx.newPage();
     await installBrowserEgressPolicy(page, base);
@@ -611,6 +614,9 @@ async function transformTierB(
   }
   const ctx = await browser.newContext({ serviceWorkers: 'block', acceptDownloads: true });
   try {
+    await ctx.addInitScript(() => {
+      Object.defineProperty(globalThis, '__LOLLY_AI_DISABLED__', { value: true, writable: false, configurable: false });
+    });
     const page = await ctx.newPage();
     await installBrowserEgressPolicy(page, base);
     await page.goto(url, { waitUntil: 'load', timeout: 30_000 });

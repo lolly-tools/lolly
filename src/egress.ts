@@ -60,6 +60,8 @@ export async function assertBrowserRequestAllowed(
   const url = new URL(raw);
   if (url.protocol === 'blob:' || url.protocol === 'data:' || url.protocol === 'about:') return;
   if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error(`browser egress rejects ${url.protocol}`);
+  // Hosted MCP renders have no member AI lease, including same-origin models.
+  if (/\/models\/|\.(onnx|gguf|safetensors)$/i.test(url.pathname)) throw new Error('MCP model execution is disabled');
   if (!browserAllowedOrigins(base, env).has(url.origin)) throw new Error(`browser egress rejects off-list origin ${url.origin}`);
 
   const baseUrl = checkedBase(base);

@@ -51,3 +51,9 @@ test('browser requests require an allowlisted origin whose complete DNS answer i
     'http://127.0.0.1:8123/app.js', 'http://127.0.0.1:8123', {}, async () => [],
   ));
 });
+
+test('hosted MCP cannot acquire model weights even from its allowed local shell', async () => {
+  for (const path of ['/models/matte/model.onnx', '/other/model.gguf', '/other/model.safetensors']) {
+    await assert.rejects(assertBrowserRequestAllowed(`http://127.0.0.1:8123${path}`, 'http://127.0.0.1:8123', {}, async () => []), /model execution is disabled/);
+  }
+});

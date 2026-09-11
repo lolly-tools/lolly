@@ -62,3 +62,15 @@ Duplicate a complete artboard while keeping every resulting ID addressable:
   ]
 }
 ```
+
+## Hosted AI scope
+
+Hosted MCP rendering has no member AI policy lease. Its headless host therefore
+omits speech, upscaling, model-based background removal and OCR APIs. Its browser
+render contexts disable the matching web shell's supported AI paths and reject
+model asset requests. Work's Managed AI switch does not enable MCP AI. Ordinary
+non-model rendering, file processing and the standalone CLI/TUI are unchanged.
+
+Promote the matching updated shell and MCP code together. These application
+controls do not sandbox arbitrary custom JavaScript or govern an independent CLI;
+review trusted tools, endpoint controls and network access for the service scope.
