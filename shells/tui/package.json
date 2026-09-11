@@ -15,7 +15,7 @@
     "@lolly/engine": "workspace:*",
     "@resvg/resvg-js": "^2.6.2",
     "fflate": "^0.8.3",
-    "ink": "^5.0.1",
+    "ink": "^7.1.1",
     "ink-text-input": "^6.0.0",
     "jsdom": "^25.0.0",
     "pdf-lib": "^1.17.1",
