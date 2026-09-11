@@ -1,0 +1,89 @@
+{
+  "name": "lilv",
+  "buildsystem": "meson",
+  "modules": [
+    {
+      "name": "serd",
+      "buildsystem": "meson",
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://download.drobilla.net/serd-0.32.10.tar.xz",
+          "sha256": "b0e93b49e52f01a049475b7886ef140407115a32d3b1e5dc5f95141c88275d1c"
+        }
+      ],
+      "cleanup": [
+        "/bin",
+        "/include",
+        "/lib/pkgconfig",
+        "/share/man"
+      ]
+    },
+    {
+      "name": "zix",
+      "buildsystem": "meson",
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://download.drobilla.net/zix-0.8.2.tar.xz",
+          "sha256": "4c73aab0f8cbbfe56b00c8c6d648316021e699c5ae6cbf254391ef309047e67b"
+        }
+      ],
+      "cleanup": [
+        "/bin",
+        "/include",
+        "/lib/pkgconfig",
+        "/share/doc",
+        "/share/man"
+      ]
+    },
+    {
+      "name": "sord",
+      "buildsystem": "meson",
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://download.drobilla.net/sord-0.16.22.tar.xz",
+          "sha256": "bb23b34b216579136795d518cffa73d91cf205594ce9accebfd408afb839173f"
+        }
+      ],
+      "cleanup": [
+        "/bin",
+        "/include",
+        "/lib/pkgconfig",
+        "/share/doc",
+        "/share/man"
+      ]
+    },
+    "lv2.json",
+    {
+      "name": "sratom",
+      "buildsystem": "meson",
+      "cleanup": [
+        "/include",
+        "/lib/pkgconfig"
+      ],
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://download.drobilla.net/sratom-0.6.22.tar.xz",
+          "sha256": "0209b7d0f22c96abb416722ed735b0933be47931ecff4aa4b26ded7760b4f252"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "type": "archive",
+      "url": "https://download.drobilla.net/lilv-0.28.0.tar.xz",
+      "sha256": "8dcb70adb5cf072335115a6b091f4113710bdc73abaadaa3f9e9c1e55957b149"
+    }
+  ],
+  "cleanup": [
+    "/bin",
+    "/etc",
+    "/include",
+    "/lib/pkgconfig",
+    "/share/man"
+  ]
+}

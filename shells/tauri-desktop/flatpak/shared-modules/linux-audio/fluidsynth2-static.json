@@ -1,0 +1,36 @@
+{
+  "name": "fluidsynth",
+  "buildsystem": "cmake-ninja",
+  "build-options": {
+    "cflags": "-fPIC",
+    "cxxflags": "-fPIC"
+  },
+  "config-opts": [
+    "-DBUILD_SHARED_LIBS=OFF",
+    "-Denable-jack=OFF",
+    "-Denable-pipewire=OFF",
+    "-Denable-sdl3=OFF"
+  ],
+  "cleanup": [
+    "/bin",
+    "/include",
+    "/lib/cmake",
+    "/lib/pkgconfig",
+    "/share/man",
+    "*.so",
+    "*.a"
+  ],
+  "sources": [
+    {
+        "type": "archive",
+        "url": "https://github.com/FluidSynth/fluidsynth/archive/v2.5.7.tar.gz",
+        "sha256": "ce27840221ab00dd59bf27e85ecbba480c6c2a7c9fbec4243658f68f59c07f4a"
+    },
+    {
+        "type": "git",
+        "url": "https://github.com/kthohr/gcem.git",
+        "commit": "012ae73c6d0a2cb09ffe86475f5c6fba3926e200",
+        "dest": "gcem"
+    }
+  ]
+}
