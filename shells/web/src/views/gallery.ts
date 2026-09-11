@@ -18,6 +18,7 @@
  */
 
 import { escape } from '../utils.ts';
+import { cssEscape } from '../lib/util/escape.ts';
 import { presentApis } from '@lolly-tools/core/host-v1';
 import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -2871,7 +2872,7 @@ async function hydrateInfoTemplates(
   mine: readonly UserTemplate[] = [],
 ): Promise<void> {
   if (!metas.length && !mine.length) return;
-  const esc = (s: string): string => (typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(s) : s);
+  const esc = cssEscape;
   const { fetchTemplateValues } = await import('./template-chooser.ts');
   for (const tp of metas) {
     if (!dialog.isConnected) return;

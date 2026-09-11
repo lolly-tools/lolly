@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The MilkDrop visualizer's engine wrapper - everything WebGL and audio, nothing UI.
- * components/viz-overlay.ts owns the surface it draws into; this module owns the
+ * lib/neurospicy-dock-host.ts owns the surface it draws into; this module owns the
  * butterchurn instance, the render loop, and the audio tap.
  *
  * Deliberately kept out of the initial bundle: `butterchurn` is ~40 KB gzipped and

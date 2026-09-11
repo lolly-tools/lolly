@@ -177,7 +177,7 @@ export function detectUnsupportedCss(el: Element, s: CSSStyleDeclaration, vector
 // CSS basic-shape / gradient / drop-shadow value parsing lives DOM-free in the engine
 // (parseClipShape / parseRadialGradient / parseDropShadowFilter - engine/src/css-paint.ts),
 // so the SVG and PDF walkers share one parser. This file keeps only the DOM assembly:
-// turning that geometry into SVG elements (svgClipShapeEl / build*El) or jsPDF ops.
+// turning that geometry into SVG elements (svgClipShapeEl / build*El) or PDF ops.
 
 // Build the SVG shape element for a ClipShape, offset into root coords by (ox, oy).
 function svgClipShapeEl(NS: string, shape: ClipShape, ox: number, oy: number): Element {
@@ -2965,7 +2965,7 @@ function isCanvasOpaque(ctx: CanvasRenderingContext2D, w: number, h: number): bo
 }
 
 // Fetch + parse an image source into a live <svg> element IFF it is SVG, so it
-// can be drawn as true PDF vectors (jsPDF.addImage rejects SVG). Detection is by
+// can be drawn as true PDF vectors (addImage rejects SVG). Detection is by
 // CONTENT, not URL - asset URLs are blob: with no extension or MIME hint, so we
 // fetch the bytes and sniff for "<svg". Known raster MIME types are skipped fast.
 // Handles blob:, http(s) and data: sources; returns null for non-SVG/unfetchable.

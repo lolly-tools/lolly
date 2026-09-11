@@ -23,6 +23,7 @@ import type {
 } from '@lolly-tools/core/host-v1';
 import type { ZzfxSong } from '../../../../engine/src/zzfxm.ts';
 import { renderSong } from '../lib/zzfxm-render.ts';
+import { audioSourceBytes } from '../lib/util/bytes.ts';
 import { isZzfxmRef, parseZzfxmRef } from '../../../../engine/src/zzfxm-ref.ts';
 import { isModuleFormat, renderMod } from '../lib/mod-render.ts';
 
@@ -137,17 +138,18 @@ export async function toPcm(src: AudioSource): Promise<{ channels: Float32Array[
   // sniffs the real format itself, and an asset's `format` carries the true extension
   // (mod/xm/s3m/…) precisely so the badge and filename stay honest.
   if (isRef(src) && isModuleFormat(src.format)) {
-    // `.slice()` because renderMod TRANSFERS the buffer to its worker, and `toBytes` may
-    // hand back the caller's own ArrayBuffer - transferring that would detach a buffer
-    // the caller still holds. A copy of a tracker module is cheap; they are tiny by
-    // construction (sample-based song data, which is why they are kept verbatim).
-    const raw = await toBytes(src);
+    // `.slice()` because renderMod TRANSFERS the buffer to its worker, and
+    // `audioSourceBytes` may hand back the caller's own ArrayBuffer - transferring
+    // that would detach a buffer the caller still holds. A copy of a tracker module
+    // is cheap; they are tiny by construction (sample-based song data, which is why
+    // they are kept verbatim).
+    const raw = await audioSourceBytes(src);
     const { left, right, sampleRate } = await renderMod(new Uint8Array(raw.slice(0)), 44100);
     if (!left.length) throw new Error('tracker module rendered empty');
     return { channels: [left, right], sampleRate };
   }
 
-  const bytes = await toBytes(src);
+  const bytes = await audioSourceBytes(src);
   // A 1-frame context: the rate and channel count here don't constrain the decode - 
   // decodeAudioData reports the file's own - this context exists only to own the call.
   const OAC = window.OfflineAudioContext ?? (window as { webkitOfflineAudioContext?: typeof OfflineAudioContext }).webkitOfflineAudioContext;
@@ -156,20 +158,6 @@ export async function toPcm(src: AudioSource): Promise<{ channels: Float32Array[
   const channels: Float32Array[] = [];
   for (let c = 0; c < buf.numberOfChannels; c++) channels.push(buf.getChannelData(c));
   return { channels, sampleRate: buf.sampleRate };
-}
-
-async function toBytes(src: AudioSource): Promise<ArrayBuffer> {
-  if (src instanceof ArrayBuffer) return src;
-  if (src instanceof Uint8Array) {
-    // decodeAudioData wants an ArrayBuffer it can detach, and it will detach whatever
-    // it is given - so hand it a COPY of the caller's view rather than the buffer the
-    // caller still holds (a `file` input's bytes may be read again for the export).
-    return src.slice().buffer as ArrayBuffer;
-  }
-  const url = typeof src === 'string' ? src : src.url;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`audio fetch failed: ${res.status}`);
-  return res.arrayBuffer();
 }
 
 async function fetchSong(url: string): Promise<ZzfxSong> {

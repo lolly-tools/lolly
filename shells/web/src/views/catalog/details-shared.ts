@@ -78,7 +78,7 @@ export function wireAudioViz(cat: CatCtx, dlg: HTMLElement, ref: AssetRef, meter
   /** Mount (or re-mount) the live visualiser on the current preset + colour. */
   /**
    * Put `id` on `h`: our own presets by id, artist presets by fetching the JSON and
-   * wrapping it with the brand blend. Mirrors viz-overlay's applyStockPreset - same
+   * wrapping it with the brand blend. Mirrors the dock host's applyStockPreset - same
    * fallback, so a clone without the staged pack still shows a working visualiser
    * rather than a black square.
    */

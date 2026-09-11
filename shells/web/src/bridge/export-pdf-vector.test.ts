@@ -4,7 +4,7 @@
  * bridge/export.ts (stage 1 of the export.ts split).
  * Run directly:  node --test shells/web/src/bridge/export-pdf-vector.test.ts
  *
- * The jsPDF handle these helpers drive is a plain object, so a recording mock
+ * The document handle these helpers drive is a plain object, so a recording mock
  * captures the exact operator stream - the tests assert the emitted geometry
  * (including the hard-won SVG-spec behaviours: Z resetting the current point to
  * the subpath start, and smooth-curve control-point reflection surviving Q/T).
@@ -27,7 +27,7 @@ import { readFileSync } from 'node:fs';
 
 type Op = [string, ...unknown[]];
 
-// Recording jsPDF stand-in: every method the helpers touch pushes [name, ...args].
+// Recording document stand-in: every method the helpers touch pushes [name, ...args].
 function pdfRecorder() {
   const ops: Op[] = [];
   const rec = (name: string) => (...args: unknown[]) => { ops.push([name, ...args]); };
@@ -43,7 +43,7 @@ function pdfRecorder() {
 const names = (ops: Op[]) => ops.map(o => o[0]);
 const round2 = (v: unknown) => Math.round((v as number) * 100) / 100;
 
-// ── drawSvgPathToPdf: SVG path data → jsPDF operators ────────────────────────
+// ── drawSvgPathToPdf: SVG path data → PDF operators ──────────────────────────
 
 test('drawSvgPathToPdf: M/L/H/V/Z with absolute and implicit-lineto coordinates', () => {
   const { ops, pdf } = pdfRecorder();
@@ -338,8 +338,8 @@ test('applyTextTransform: uppercase, lowercase, capitalize, passthrough', () => 
 
 // ── brand-palette CMYK / spot machinery ──────────────────────────────────────
 
-test('cmykKey: two-decimal quantisation matches jsPDF rounding of the same channel', () => {
-  // jsPDF writes 124/255 as "0.49"; the hex-exact fraction must land on the
+test('cmykKey: two-decimal quantisation matches the writer rounding of the same channel', () => {
+  // The writer writes 124/255 as "0.49"; the hex-exact fraction must land on the
   // same bucket or every brand colour silently misses (the documented invariant).
   assert.equal(cmykKey(124 / 255, 0, 254 / 255), cmykKey(0.49, 0, 1));
   assert.equal(cmykKey(1, 0.5, 0), '100,50,0');
@@ -423,7 +423,7 @@ test('substitutePdfRgb: spot lock switches to the /Separation colourspace at ful
   const spotNames = assignSpotResourceNames(map);
   const usedSpots = new Set<string>();
   const stream = `${cmykN(0x0C / 255)} ${cmykN(0x32 / 255)} ${cmykN(0x2C / 255)} rg`;
-  // jsPDF emits two decimals; feed the exact two-decimal form it would write.
+  // The writer emits two decimals; feed the exact two-decimal form it would write.
   const jsPdfStream = '0.05 0.2 0.17 rg 0.05 0.2 0.17 RG';
   assert.equal(cmykKey(0.05, 0.2, 0.17), cmykKey(0x0C / 255, 0x32 / 255, 0x2C / 255), stream);
   const out = substitutePdfRgb(jsPdfStream, map, spotNames, undefined, usedSpots);

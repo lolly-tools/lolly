@@ -33,7 +33,8 @@
   max-width: calc(100vw - 16px);
 }
 
-.emoji-pop unicode-emoji-picker {
+.emoji-pop unicode-emoji-picker,
+unicode-emoji-picker.emoji-browser {
   /* The component is sized in em off its own font-size, so this one number sets
      the whole grid. 22px gives 8 columns at about 427px wide on a desktop
      sidebar. */
@@ -66,7 +67,8 @@
    369px, and the 6-column minimum at 272px, so the grid never forces the page to
    scroll sideways. */
 @media (max-width: 420px) {
-  .emoji-pop unicode-emoji-picker {
+  .emoji-pop unicode-emoji-picker,
+unicode-emoji-picker.emoji-browser {
     font-size: 19px;
     --max-emoji-row-count: 6;
   }
@@ -80,3 +82,5 @@
 .table-cell--emoji {
   font-family: 'Lolly Emoji', apple color emoji, segoe ui emoji, noto color emoji, android emoji, emojisymbols, emojione mozilla, twemoji mozilla, segoe ui symbol;
 }
+
+unicode-emoji-picker.emoji-browser { width: 100%; max-width: 100%; font-size: var(--ui-type-heading); box-shadow: none; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-card); --min-emoji-col-count: 4; --max-emoji-col-count: 12; --min-emoji-row-count: 4; --max-emoji-row-count: 7; --fill-color: var(--ui-color-surface-canvas); --text-color: var(--ui-color-text-default); --tab-active-marker-color: var(--ui-color-selection-border); --tabs-border-color: var(--ui-color-border-default); --search-input-border-color: var(--ui-color-border-default); }

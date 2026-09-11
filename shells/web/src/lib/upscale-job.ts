@@ -29,6 +29,7 @@
 
 import { extractC2paStore, prepareC2paIngredientFromStore, COMPOSITE_SOURCE_TYPE } from '@lolly/engine';
 import { startJob, type JobHandle } from './jobs.ts';
+import { clamp01 } from './util/number.ts';
 import { t, tRaw } from '../i18n.ts';
 import type {
   AssetRef, HostV1, UpscaleFrame, UpscaleModelId, UpscaleProgress,
@@ -182,8 +183,6 @@ async function defaultStamp(host: UpscaleJobHost, blob: Blob, format: string, o:
     ...(o.dimensions ? { dimensions: o.dimensions } : {}),
   });
 }
-
-const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
 
 /**
  * Run one image-upscale job end-to-end: enlarge → encode → stamp → save.

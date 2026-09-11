@@ -5,6 +5,11 @@
  * ProseMirror JSON and its `mdSource` extra never cross to the host), so the model is
  * read back off the DOM - exactly as `mdBlockDom` does for Markdown export.
  *
+ * Direction map: this file is DOM → doc-model. `export.ts` renderMarkdown is DOM →
+ * markdown (a separate walk with its own escaping rules), `engine/src/doc-md.ts` is
+ * doc-model → markdown and → HTML, and `shells/web/src/lib/markdown.ts` is markdown
+ * text → HTML. No two of those are the same conversion.
+ *
  * doc-studio splits its content across `.doc-page > .doc-body`; walking every
  * `.doc-body`'s children in document order reconstructs the flow while dropping the
  * running header/footer chrome (`.doc-footer-*`), which lives outside `.doc-body`.

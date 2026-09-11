@@ -10,4 +10,4 @@
  * stays as a stable re-export so every web import site keeps working unchanged.
  */
 
-export { createNetAPI } from '../../../../packages/node-shell/src/net.ts';
+export { createNetAPI } from '@lolly-tools/node-shell/net';

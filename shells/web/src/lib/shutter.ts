@@ -45,6 +45,7 @@
    is the whole reason a sub-second still export still looks exactly as it did. */
 
 import { playSfx } from './sfx.ts';
+import { clamp01 } from './util/number.ts';
 import { t } from '../i18n.ts';
 import { prefersReducedMotion } from './a11y-prefs.ts';
 import { liveAccentHint } from './viz-palette.ts';
@@ -193,7 +194,6 @@ function saturationOf([r, g, b]: Rgb): number {
 }
 
 const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
-const clamp01 = (x: number): number => Math.max(0, Math.min(1, x));
 const mixRgb = (a: Rgb, b: Rgb, t: number): Rgb => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 /** Push an rgb away from its own luma to change saturation (>1 more, <1 less). */
 function saturate([r, g, b]: Rgb, factor: number): Rgb {

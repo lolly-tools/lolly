@@ -53,6 +53,7 @@ import { insertWebpMeta, insertAvifExif, iccWanted, insertPngPhys, insertPngMeta
 import { pureRotationDeg, buildCmykPaletteMap, cmykKey, applyTextTransform, brandSwatchPalette, parseSvgColor, blendSvgWithWhite, drawSvgPathToPdf, svgLen, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
 import type { PaletteHit, BrandPaletteEntry } from './export-pdf-vector.ts';
 import { applyPdfX } from './export-pdfx.ts';
+import { createPdfDoc } from './export-pdf-doc.ts';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
 import { _host, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost } from './export-shared.ts';
@@ -1931,14 +1932,11 @@ function printGeometry(node: Element, opts: ExportOpts, paletteSource: BrandPale
 }
 
 
-// Render the artwork to a jsPDF blob. Without geometry the page is the trim size
-// and the design fills it (unchanged legacy behaviour, incl. optional jsPDF
-// encryption). With geometry the page is the full sheet and the design is drawn
-// (scaled) into the bleed box; page boxes + marks are added later in pdf-lib.
+// Render the artwork to a PDF blob. Without geometry the page is the trim size
+// and the design fills it (unchanged legacy behaviour, incl. the optional
+// standard-tier lock). With geometry the page is the full sheet and the design is
+// drawn (scaled) into the bleed box; page boxes + marks are added in a later pass.
 async function renderArtworkPdf(node: Element, opts: ExportOpts, geo: PrintGeometry | null): Promise<Blob> {
-  const mod: any = await import('jspdf');
-  const jsPDF = mod.jsPDF ?? mod.default?.jsPDF ?? mod.default;
-
   // Page size in points (1/72"). Physical units convert exactly; px maps via
   // the CSS 96-DPI convention, preserving existing pixel-based tools.
   const d = exportDims(node, opts);
@@ -1948,21 +1946,21 @@ async function renderArtworkPdf(node: Element, opts: ExportOpts, geo: PrintGeome
   const pageH = geo ? geo.page.h : trimH;
   const art   = geo ? geo.artwork : { x: 0, y: 0, w: trimW, h: trimH };
 
-  // orientation must be derived from the actual dimensions - jsPDF's default
-  // 'portrait' mode swaps format[0] and format[1] when width > height, which
-  // would produce an inverted page with all drawHtmlVectors coordinates wrong.
+  // orientation must be derived from the actual dimensions - a 'portrait' writer
+  // swaps format[0] and format[1] when width > height, which would produce an
+  // inverted page with all drawHtmlVectors coordinates wrong.
   const orientation = pageW >= pageH ? 'landscape' : 'portrait';
 
-  // A non-empty opts.password locks the PDF on open via jsPDF's standard security
+  // A non-empty opts.password locks the PDF on open with the standard security
   // handler (user = owner password; printing-only permissions). Only the plain
-  // RGB path with NO print finishing encrypts - print marks/boxes are applied in
-  // pdf-lib, which can't write encrypted PDFs, so the two are mutually exclusive
-  // (the UI hides the password field when marks/bleed are on). `undefined` is a
-  // no-op (jsPDF treats it as unencrypted).
+  // RGB path with NO print finishing encrypts - print marks/boxes are applied by
+  // a later pdf-lib pass, which can't reopen an encrypted PDF, so the two are
+  // mutually exclusive (the UI hides the password field when marks/bleed are on).
+  // `undefined` is a no-op (the document ships unencrypted).
   const encryption = (opts.password && !geo)
     ? { userPassword: opts.password, ownerPassword: opts.password, userPermissions: ['print'] }
     : undefined;
-  const pdf = new jsPDF({ unit: 'pt', format: [pageW, pageH], orientation, encryption });
+  const pdf = await createPdfDoc({ format: [pageW, pageH], orientation, encryption });
   applyPdfMeta(pdf, opts.meta);
 
   // SVG-rooted canvas (the node IS an <svg>, or its only meaningful child is) →
@@ -1978,11 +1976,18 @@ async function renderArtworkPdf(node: Element, opts: ExportOpts, geo: PrintGeome
     await drawHtmlVectors(pdf, node, art.x, art.y, art.w, art.h, opts.convertPaths !== false, opts.onProgress, opts.rasterFallback !== false, opts._imprintSink, opts.signal);
   }
 
-  return pdf.output('blob');
+  logPdfWarnings(pdf);
+  return await pdf.output('blob') as Blob;
 }
 
-// Stamp the document-info dictionary (creator/author/title/…) onto a jsPDF
-// instance. Shared by the single-page and multi-page paths.
+// Anything the writer could not do (an image that would not decode, a font file
+// it could not embed) reaches the user through the host log, not silence.
+function logPdfWarnings(pdf: { takeWarnings?: () => string[] }): void {
+  for (const msg of pdf.takeWarnings?.() ?? []) _host?.log?.('warn', msg);
+}
+
+// Stamp the document-info dictionary (creator/author/title/…) onto a document.
+// Shared by the single-page and multi-page paths.
 function applyPdfMeta(pdf: any, m: ExportMeta | null | undefined): void {
   const creator = m?.software || 'Lolly';
   pdf.setProperties({
@@ -1995,7 +2000,7 @@ function applyPdfMeta(pdf: any, m: ExportMeta | null | undefined): void {
 }
 
 // Strong tier - AES-256 (R6 / ISO 32000-2) applied as a FINAL encrypt-last pass
-// over already-finished PDF bytes. Unlike the jsPDF-native 40-bit RC4 `password`
+// over already-finished PDF bytes. Unlike the standard-tier 40-bit RC4 `password`
 // (which must be built into an unfinished document), this reopens the finished
 // bytes with pdf-lib and encrypts every string/stream, so it composes with the
 // PDF/X-4 / CMYK / print-marks finishing passes. The engine owns the crypto
@@ -2109,7 +2114,7 @@ export async function renderPdf(node: Element, opts: ExportOpts): Promise<Blob> 
     const geo = printGeometry(node, opts);
     const artBlob = await renderArtworkPdf(node, opts, geo);
     if (opts.password && !geo) {
-      // jsPDF encryption and pdf-lib post-processing are mutually exclusive:
+      // Encryption and pdf-lib post-processing are mutually exclusive:
       // the locked blob (only produced when there's no print geometry) ships
       // as-is, without the PDF/X-4 finishing pass.
       _host?.log?.('info', 'pdf: password-locked export - skipping PDF/X finishing (pdf-lib cannot rewrite an encrypted document)');
@@ -2536,8 +2541,6 @@ export async function stampCaptureClip(host: HostV1, blob: Blob, format: Capture
 // what changes between pages is the sequence playhead (bridge/sequence-cuts.ts).
 // Absent for the [data-pdf-page] case, where the pages are already distinct nodes.
 async function renderMultiPagePdf(pageEls: Element[], opts: ExportOpts, prepare?: (i: number) => void): Promise<Blob> {
-  const mod: any = await import('jspdf');
-  const jsPDF = mod.jsPDF ?? mod.default?.jsPDF ?? mod.default;
   const convert = opts.convertPaths !== false;
 
   // Page size in points from the element's own box. getBoundingClientRect matches
@@ -2554,9 +2557,9 @@ async function renderMultiPagePdf(pageEls: Element[], opts: ExportOpts, prepare?
   // front, and only the numeric box/mark values scale with each page's own size.
   const bleedPtCheck = (() => { const b = parseDimension(opts.bleed); return b ? toPoints(b) : 0; })();
   const hasGeo = bleedPtCheck > 0 || Boolean(opts.cropMarks) || Boolean(opts.registrationMarks) || Boolean(opts.bleedMarks) || Boolean(opts.colorBars) || Boolean(opts.provenance);
-  // Lock on open via jsPDF's standard security handler. jsPDF RC4 and the pdf-lib
-  // marks pass are mutually exclusive, so encrypt ONLY when there is no geometry
-  // (mirrors renderArtworkPdf). undefined is a no-op (unencrypted).
+  // Lock on open with the standard security handler. An encrypted document and
+  // the pdf-lib marks pass are mutually exclusive, so encrypt ONLY when there is
+  // no geometry (mirrors renderArtworkPdf). undefined is a no-op (unencrypted).
   const encryption = (opts.password && !hasGeo)
     ? { userPassword: opts.password, ownerPassword: opts.password, userPermissions: ['print'] }
     : undefined;
@@ -2567,7 +2570,7 @@ async function renderMultiPagePdf(pageEls: Element[], opts: ExportOpts, prepare?
   geos.push(g0);
   const p0w = g0 ? g0.page.w : first.w;
   const p0h = g0 ? g0.page.h : first.h;
-  const pdf = new jsPDF({ unit: 'pt', format: [p0w, p0h], orientation: orientOf(p0w, p0h), encryption });
+  const pdf = await createPdfDoc({ format: [p0w, p0h], orientation: orientOf(p0w, p0h), encryption });
   applyPdfMeta(pdf, opts.meta);
 
   for (let i = 0; i < pageEls.length; i++) {
@@ -2590,10 +2593,11 @@ async function renderMultiPagePdf(pageEls: Element[], opts: ExportOpts, prepare?
     if (svgRoot) await drawSvgVectorsInRegion(pdf, svgRoot, art.x, art.y, art.w, art.h, new Set(), opts._imprintSink, opts.convertPaths !== false);
     else await drawHtmlVectors(pdf, el, art.x, art.y, art.w, art.h, convert, opts.onProgress, opts.rasterFallback !== false, opts._imprintSink, opts.signal);
   }
-  const blob = pdf.output('blob');
+  logPdfWarnings(pdf);
+  const blob = await pdf.output('blob') as Blob;
   if (opts.password && !hasGeo) {
-    // jsPDF encryption and pdf-lib post-processing are mutually exclusive - a
-    // locked multi-page document ships without the PDF/X-4 finishing pass.
+    // Encryption and pdf-lib post-processing are mutually exclusive - a locked
+    // multi-page document ships without the PDF/X-4 finishing pass.
     _host?.log?.('info', 'pdf: password-locked export - skipping PDF/X finishing (pdf-lib cannot rewrite an encrypted document)');
     return blob;
   }
@@ -2619,11 +2623,11 @@ async function embeddedProfile(colorProfile: string | undefined): Promise<EmbedR
   return resolveEmbeddedProfile(_host as never, colorProfile, 'CMYK').catch(() => null);
 }
 
-// Re-save a jsPDF blob through one pdf-lib pass: print page boxes + marks (when
+// Re-save a rendered blob through one pdf-lib pass: print page boxes + marks (when
 // print geometry is supplied) and the PDF/X-4 metadata set. Subsumes the old
 // finishPrintPdf so the plain RGB path loads pdf-lib exactly once; the CMYK path
 // has its own pdf-lib pass and calls applyPdfX inside it (see renderCmykPdf).
-// Never fed an encrypted blob - pdf-lib can't reopen jsPDF's RC4 output.
+// Never fed an encrypted blob - pdf-lib can't reopen an RC4-locked document.
 async function finishPdfX(
   blobOrBytes: Blob | Uint8Array, opts: ExportOpts,
   { intentKind = 'srgb', geo = null, geos = null, space = 'rgb', labels = null }:
@@ -2774,7 +2778,7 @@ async function drawSvgVectorsInRegion(pdf: any, svgEl: Element, ox: number, oy: 
   }
 
   // Gradient / filter / pattern SVGs can't be reproduced by the vector walk below:
-  // jsPDF compat mode has no axial/radial shading, and a url(#…) fill resolves to null
+  // The SVG walker has no axial/radial shading here, and a url(#…) fill resolves to null
   // → the shape simply VANISHES. Rasterise the whole subtree to an alpha-preserved PNG
   // and drop it into the SAME PAR-fitted box the vectors would occupy. drawHtmlVectors
   // already does this for an inline <svg>; centralising it here means EVERY entry point - 
@@ -2977,8 +2981,8 @@ async function drawSvgVectorsInRegion(pdf: any, svgEl: Element, ox: number, oy: 
       // own style, then return its advance in USER units. Font props: attribute first, else
       // the COMPUTED style - tools that set the typeface/size/weight via CSS (chart-creator/d3
       // → SUSE) otherwise fell back to Helvetica at the default size. Advance uses the
-      // browser's measured getComputedTextLength (a length → maps like the x attrs); jsPDF's
-      // width is the fallback. Baseline y matches jsPDF's default (SVG y IS the baseline).
+      // browser's measured getComputedTextLength (a length → maps like the x attrs); the
+      // writer's width is the fallback. Baseline y is the writer's own (SVG y IS the baseline).
       const drawRun = async (styleEl: any, runText: string, userX: number, userY: number, anchor: string): Promise<number> => {
         const t = (runText ?? '').trim();
         if (!t) return 0;
@@ -3120,7 +3124,7 @@ async function drawSvgVectorsInRegion(pdf: any, svgEl: Element, ox: number, oy: 
       if (w <= 0 || h <= 0) return;
 
       // An <image> pointing at an SVG (e.g. the brand logo) must stay VECTOR - 
-      // jsPDF.addImage can't embed SVG. Inline it and recurse, honouring the
+      // addImage can't embed SVG. Inline it and recurse, honouring the
       // <image>'s preserveAspectRatio (meet → fit the whole mark, centred).
       // SVG-ness is detected from the bytes (asset URLs are blob: with no hint).
       {
@@ -3212,7 +3216,7 @@ function resolveStyleProp(el: any, prop: string): string | null {
 }
 
 
-// Rasterise a CSS linear- or radial-gradient fill to a PNG data URL at pxW×pxH. jsPDF's
+// Rasterise a CSS linear- or radial-gradient fill to a PNG data URL at pxW×pxH. The PDF
 // compat-mode API has no vector shading (patterns need advancedAPI, which flips the
 // coordinate system), so the PDF walker embeds this bounded bitmap as the box background - 
 // faithful multi-stop + angle and alpha-correct (unlike the old flat-midpoint solid),
@@ -3246,7 +3250,7 @@ async function gradientPng(bgImg: string, w: number, h: number, pxW: number, pxH
 }
 
 // Rasterise ONE outer box-shadow (shape only - never the element's content/text) to a
-// PNG for the PDF walker: jsPDF has no blur primitive, so a soft shadow is embedded as a
+// PNG for the PDF walker: PDF has no blur primitive, so a soft shadow is embedded as a
 // bounded shadow-only bitmap behind the box, mirroring the SVG walker's feGaussianBlur
 // shape (makeRoundedFill + the identical stdDeviation = blur/2). Returns the PNG plus the
 // shadow's region in element-local CSS px (the caller scales to pt + places it behind the
@@ -3414,7 +3418,7 @@ async function rasterizeBoxShadow(
 }
 
 
-// Walks the live DOM tree and emits jsPDF vector objects:
+// Walks the live DOM tree and emits PDF vector objects:
 //   • background-color → filled rect / roundedRect
 //   • border-top → thin filled rect (used for divider lines)
 //   • <svg> subtrees → drawSvgVectorsInRegion
@@ -3423,7 +3427,7 @@ async function rasterizeBoxShadow(
 //
 // Font: custom webfonts (e.g. SUSE) are approximated with Helvetica. Text is
 // still selectable/searchable vector - only the typeface differs from screen.
-// Transparency: jsPDF fills are opaque; semi-transparent CSS colors render at
+// Transparency: PDF fills are opaque; semi-transparent CSS colors render at
 // full opacity (acceptable approximation for brand colours).
 // Rasterise a live <svg> subtree (inner <style> + gradients intact) to a PNG
 // data URL, alpha preserved. The PDF walker uses this for gradient / filter
@@ -3542,7 +3546,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     if (elOpacity === 0) return;
 
     // CSS rotate(): neutralise it, walk the axis-aligned subtree, and wrap the draw
-    // in a jsPDF rotation about the transform-origin. Additive (no-op unrotated).
+    // in a PDF rotation about the transform-origin. Additive (no-op unrotated).
     const rotDeg = pureRotationDeg(style.transform);
     if (rotDeg) {
       // Guarded neutralise, exactly as the SVG walker does it - a running transform
@@ -3613,7 +3617,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     const w = rect.width  * scaleX;
     const h = rect.height * scaleY;
 
-    // clip-path (circle/ellipse/inset/polygon) → jsPDF clip so the node stays vector
+    // clip-path (circle/ellipse/inset/polygon) → a PDF clip so the node stays vector
     // (mirrors the SVG walker). Geometry is parsed in CSS px, scaled to pt when applied.
     // The clip wraps the WHOLE element paint (bg/border/content), so it goes around
     // paintEl inside a graphics-state save/restore - restored on every early-return path
@@ -3624,7 +3628,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     // A zero-area clip paints nothing - return before any draw, matching the SVG walker.
     if (clipShapeRaw && clipShapeRaw.kind === 'empty') return;
     const clipShape = clipShapeRaw;
-    // Partial element opacity (0<o<1): jsPDF has no group-opacity primitive, so apply it
+    // Partial element opacity (0<o<1): there is no group-opacity primitive here, so apply it
     // as a GState alpha on the element's own draws. Correct for a LEAF (text/solid box - 
     // no descendants to composite); non-leaves keep the current opaque behaviour rather
     // than mis-composite overlapping descendants (a per-op alpha ≠ CSS group opacity).
@@ -3654,7 +3658,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
 
     // ── Box shadow (painted behind everything, mirrors the SVG walker) ──────────
     // A HARD shadow (blur 0) is a plain offset shape → true vector rounded rect. A SOFT
-    // (blurred) shadow has no jsPDF vector primitive, so it's a bounded shadow-ONLY raster
+    // (blurred) shadow has no PDF vector primitive, so it's a bounded shadow-ONLY raster
     // (never the element's content/text). PDF-only path - EMF/EPS go through the SVG walker
     // with noBoxShadow, so no gate is needed here.
     if (tag !== 'img' && tag !== 'svg' && style.boxShadow && style.boxShadow !== 'none') {
@@ -3772,7 +3776,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
 
     // ── Background fill ───────────────────────────────────────────────────────
     // CSS corner-overlap clamped (→ pill, not ellipse) via the shared engine math,
-    // resolved in CSS px then scaled per axis. Uniform corners take jsPDF's fast
+    // resolved in CSS px then scaled per axis. Uniform corners take the writer's fast
     // roundedRect; differing corners take a four-corner path.
     const { radii: radiiCss, uniform: uniformCss } = resolveRadii(style, rect.width, rect.height);
     const radii = scaleRadii(radiiCss);
@@ -3782,14 +3786,14 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     if (bgImg && (/^radial-gradient\(/.test(bgImg) || /^linear-gradient\(/.test(bgImg))) {
       // linear/radial gradient: rasterise the fill (faithful multi-stop + angle,
       // alpha-correct) and place it as the box background, clipped to the rounded box - 
-      // jsPDF compat mode has no vector shading. A solid background-color paints behind it
+      // A rasterised gradient is opaque. A solid background-color paints behind it
       // (CSS order) so a gradient with transparent stops sits on the right colour. If the
       // gradient can't be parsed/rasterised we fall back to the flat solid-midpoint so we
       // are never WORSE than before.
       const solid = parseCssColor(style.backgroundColor);
       if (solid) { pdf.setFillColor(solid[0], solid[1], solid[2]); pdfRoundedRect(pdf, x, y, w, h, radii, uniform, 'F'); }
       let placed = false;
-      // 1) TRUE VECTOR - a jsPDF ShadingPattern, unless the gradient has transparent
+      // 1) TRUE VECTOR - a PDF shading pattern, unless the gradient has transparent
       //    stops (PDF shading carries no per-stop alpha → would lose them).
       const spec = pdfGradientSpec(bgImg, x, y, w, h, cssToPt);
       if (spec && !spec.hasAlpha) {
@@ -3921,7 +3925,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     // ── Borders ───────────────────────────────────────────────────────────────
     // A uniform border is stroked as one rect/path (so a radius is honoured); a
     // divider (border-top only) or mixed border fills per edge. Colours keep their
-    // alpha via GState (jsPDF GState is sticky, so withPdfAlpha resets it).
+    // alpha via GState (the graphics state is sticky, so withPdfAlpha resets it).
     const bSide = (wKey: string, cKey: string): { bw: number; rgb: Rgba | null } => {
       const bw = parseFloat((style as any)[wKey]) || 0;
       return { bw, rgb: bw > 0 ? parseCssColorFull((style as any)[cKey]) : null };
@@ -3937,10 +3941,10 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
       const lw = bT.bw * scaleY;
       pdf.setDrawColor(bT.rgb![0], bT.rgb![1], bT.rgb![2]);
       pdf.setLineWidth(lw);
-      // CSS border-box: the border sits inside w×h; jsPDF strokes centred, so inset by lw/2.
+      // CSS border-box: the border sits inside w×h; PDF strokes centred, so inset by lw/2.
       const innerUniform: CornerPair | null = uniform ? [Math.max(0, uniform[0] - lw / 2), Math.max(0, uniform[1] - lw / 2)] : null;
-      // dashed/dotted → a line-dash pattern (jsPDF dash is sticky, so reset after). Round
-      // caps for dotted give round dots. Guarded - older jsPDF lacks the setters.
+      // dashed/dotted → a line-dash pattern (the dash state is sticky, so reset after). Round
+      // caps for dotted give round dots. Guarded, so a writer without the setters still draws.
       const dash = borderDashArray(style.borderTopStyle, lw);
       if (dash && typeof pdf.setLineDashPattern === 'function') {
         pdf.setLineDashPattern(dash.dash, 0);
@@ -4160,7 +4164,7 @@ async function renderInlineContent(
       const embedUrl = await pdfUserFontEmbed(vf);
       const isUserFont = Boolean(vf?.url.startsWith('blob:'));
       // Outline when converting paths, OR when a user font can't be faithfully
-      // embedded in jsPDF (variable off-weight / needs the subset chain) - so
+      // embedded as live text (variable off-weight / needs the subset chain) - so
       // weight and coverage never silently break in live-text mode either.
       // A faithfully-embeddable user run stays live (pdf.text below).
       const outline = canVectoriseText(nodeStyle, fontUrl, Boolean(_host?.text))
@@ -4174,7 +4178,7 @@ async function renderInlineContent(
       const { ascent, descent } = fontMetricsPx(nodeStyle, fontSizePx);
 
       // Use the browser's actual line breaks + per-line positions (exact match to
-      // on-screen and the SVG output), NOT jsPDF's splitTextToSize - which re-measures
+      // on-screen and the SVG output), NOT a writer-side line breaker - which re-measures
       // with the embedded font's metrics and can wrap a word a character or two early
       // when they differ slightly from the browser's. 'Convert paths' ON outlines each
       // line via host.text.toPath; OFF (or any shape failure) draws embedded pdf.text
@@ -4352,7 +4356,7 @@ async function pdfPseudoContent(pdf: any, el: Element, rootRect: { left: number;
     const { ascent: pAsc, descent: pDesc } = fontMetricsPx(ds.ps, fontSizePx);
     const baselinePt = textBaselineY(ds.y - rootRect.top, lineHPx, pAsc, pDesc) * scaleY;
     let drawn = false;
-    // Outline in convert-paths mode, or for a user font jsPDF can't embed faithfully.
+    // Outline in convert-paths mode, or for a user font live text can't carry faithfully.
     if (canVectoriseText(ds.ps, fontUrl, Boolean(_host?.text)) && (convertPaths || (isUserFont && !embedUrl))) {
       try {
         const { d, notdef } = await _host!.text!.toPath({ text: ds.text, fontUrl: fontUrl!, fontSize: fontSizePx, variations: vf!.variations, fallbackFonts: vf!.fallbacks });
@@ -4371,7 +4375,7 @@ async function pdfPseudoContent(pdf: any, el: Element, rootRect: { left: number;
   }
 }
 
-// Sets jsPDF text color, font size, and the font to draw pdf.text() with. The
+// Sets the text color, font size, and the font to draw pdf.text() with. The
 // font is chosen in order: a faithfully-embeddable user font (its sfnt URL,
 // pre-decided by pdfUserFontEmbed) → the SUSE static for the weight/style →
 // Helvetica. Embeds whichever it picks into the PDF (once) as a side effect.
@@ -4440,8 +4444,8 @@ async function loadFontBase64(url: string): Promise<string> {
   return b64;
 }
 
-// Embeds a SUSE weight+style variant into the jsPDF instance and returns the
-// jsPDF fontStyle key to use with pdf.setFont(suseFontName(mono), key).
+// Embeds a SUSE weight+style variant into the document and returns the
+// fontStyle key to use with pdf.setFont(suseFontName(mono), key).
 // registeredFonts is a per-PDF-instance Set that avoids re-registering.
 // Font-file naming is shared with the SVG path emitter (text-svg.js) so the two
 // export paths never resolve the same weight to different files.
@@ -4464,11 +4468,11 @@ async function embedSuseFont(pdf: any, registeredFonts: Set<unknown>, weight: nu
 }
 
 // Embeds a decompressed USER font (a blob: sfnt URL minted by the font registry
-// from a stored Google woff2) into the jsPDF instance and returns the jsPDF font
+// from a stored Google woff2) into the document and returns the font
 // name to setFont with. The name is derived from the url so it's stable and
 // unique per face across a PDF; registeredFonts embeds each at most once.
 // Unlike SUSE (per-weight static files), a user font is a single variable file,
-// so pdfUserFontEmbed only offers it up when jsPDF's default-instance render is
+// so pdfUserFontEmbed only offers it up when the default-instance render is
 // actually faithful - see there.
 async function embedUserFont(pdf: any, registeredFonts: Set<unknown>, url: string): Promise<string | null> {
   const name = `uf_${url}`;
@@ -4487,14 +4491,14 @@ async function embedUserFont(pdf: any, registeredFonts: Set<unknown>, url: strin
 }
 
 // Decide whether a resolved run font can be FAITHFULLY embedded as live text in
-// jsPDF, returning its sfnt URL if so, else null (the caller outlines instead - 
-// the outline path has the variable axis and per-subset fallback jsPDF lacks).
+// live text, returning its sfnt URL if so, else null (the caller outlines instead - 
+// the outline path has the variable axis and per-subset fallback an embed lacks).
 // Only decompressed USER faces (blob: URLs) are candidates; SUSE stays on its
 // own per-weight-static path, and the platform face isn't embedded here.
-// Embeddable requires a single face covering the whole run (jsPDF can't chain
+// Embeddable requires a single face covering the whole run (an embed can't chain
 // subsets) rendering at the requested weight: a static face always does; a
-// variable face only when the request equals its default instance (jsPDF can't
-// move the axis). axisDefaults is additive - without it, don't risk a variable
+// variable face only when the request equals its default instance (an embedded
+// file can't move the axis). axisDefaults is additive - without it, don't risk a variable
 // face.
 async function pdfUserFontEmbed(vf: VectorFont | null): Promise<string | null> {
   if (!vf || !vf.url.startsWith('blob:') || vf.fallbacks?.length) return null;
@@ -4508,11 +4512,11 @@ async function pdfUserFontEmbed(vf: VectorFont | null): Promise<string | null> {
 
 // ── CMYK PDF export ───────────────────────────────────────────────────────────
 //
-// Post-processes a jsPDF-rendered PDF to convert RGB colour operators to CMYK.
-// The pipeline: render with jsPDF → load into pdf-lib → decompress each content
+// Post-processes a rendered PDF to convert RGB colour operators to CMYK.
+// The pipeline: render the artwork → load into pdf-lib → decompress each content
 // stream → swap `rg`/`RG` operators → recompress → save.
 //
-// Raster images embedded by jsPDF remain RGB (their pixel data is not touched).
+// Raster images stay RGB (their pixel data is not touched).
 // Fills, strokes, and text colours become DeviceCMYK.
 //
 // If opts.palette is provided (array of { hex, cmyk: [C,M,Y,K] } entries with
@@ -4557,7 +4561,7 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
     const sub = dict.get(PDFName.of('Subtype'));
     if (sub && String(sub).includes('Image')) continue;
 
-    // jsPDF uses /FlateDecode; skip other filters (e.g. /DCTDecode for JPEG XObjects).
+    // Content streams are /FlateDecode; skip other filters (e.g. /DCTDecode for JPEG XObjects).
     const filter = dict.get(PDFName.of('Filter'));
     if (filter && !String(filter).includes('FlateDecode')) continue;
 
@@ -4747,9 +4751,9 @@ export function strokeWidthOf(el: Element): number {
  * stroke's colour and width, so a dashed or flat-capped outline exported as a plain round
  * solid one: a control whose effect vanished on export, which is worse than not offering it.
  *
- * jsPDF's line state is STICKY (it writes the operator once and every later stroke inherits
+ * The line state is STICKY (the operator is written once and every later stroke inherits
  * it), which is why the caller must run the returned restore - the same discipline the
- * border path already follows. Every setter is feature-checked because older jsPDF builds
+ * border path already follows. Every setter is feature-checked because a writer build
  * ship only some of them.
  *
  * Lengths are multiplied by `mul`, the same user-unit → pt factor applied to stroke-width,
@@ -4769,7 +4773,7 @@ export function applySvgStrokeDecoration(pdf: any, el: Element, mul: number): ((
   }
   const cap = el.getAttribute('stroke-linecap') ?? resolveStyleProp(el, 'stroke-linecap') ?? '';
   if ((cap === 'round' || cap === 'square') && typeof pdf.setLineCap === 'function') {
-    // jsPDF's CapJoinStyles understands the SVG keywords verbatim ('square' → projecting),
+    // The writer understands the SVG cap/join keywords verbatim ('square' → projecting),
     // and THROWS on anything it does not, which is why only the two are let through.
     pdf.setLineCap(cap);
     undo.push(() => pdf.setLineCap('butt'));
@@ -4884,16 +4888,16 @@ async function imageDims(src: string): Promise<{ w: number; h: number } | null> 
   } catch { return null; }
 }
 
-// Pick the jsPDF.addImage format from a data: URL's REAL MIME (the previous
+// Pick the addImage format from a data: URL's REAL MIME (the previous
 // `.includes('image/png')` guess silently misclassified WebP/AVIF/GIF user images
-// as PNG, so jsPDF dropped them). PNG/JPEG/WebP are passed through as the formats
-// jsPDF accepts; anything else jsPDF can't embed (AVIF/GIF/BMP…) is rasterised to
-// PNG via a canvas first. Non-data / unrecognised sources keep the old PNG fallback.
+// as PNG, so they were dropped). PNG and JPEG are the two encodings PDF itself
+// carries, so they pass through; everything else (WebP/AVIF/GIF/BMP…) is
+// rasterised to PNG via a canvas first, which is what the old WebP decoder did
+// internally anyway. Non-data / unrecognised sources keep the old PNG fallback.
 async function imageForPdf(src: string): Promise<{ src: string; fmt: string }> {
   const mime = (/^data:([^;,]+)/i.exec(src)?.[1] || '').toLowerCase();
   if (mime === 'image/png')  return { src, fmt: 'PNG' };
   if (mime === 'image/jpeg' || mime === 'image/jpg') return { src, fmt: 'JPEG' };
-  if (mime === 'image/webp') return { src, fmt: 'WEBP' };
   if (mime.startsWith('image/')) {
     try { return { src: await rasterizeToPng(src), fmt: 'PNG' }; }
     catch { return { src, fmt: 'PNG' }; }
@@ -4902,7 +4906,7 @@ async function imageForPdf(src: string): Promise<{ src: string; fmt: string }> {
 }
 
 // Decode any image source the browser understands and re-encode it as a PNG data
-// URL, so a format jsPDF can't embed natively can still be placed.
+// URL, so a format PDF can't carry natively can still be placed.
 async function rasterizeToPng(src: string): Promise<string> {
   const img = await new Promise<HTMLImageElement>((res, rej) => {
     const i = new Image();
@@ -7279,6 +7283,19 @@ function walkDom(node: Node, handlers: DomHandlers): string {
 // hr, links, emphasis) so ANY text tool that declares the `md` format gets a
 // faithful markdown export from its rendered DOM - no per-tool serializer needed.
 // (Tools wanting model-derived, CLI-working output ship a template.md instead.)
+//
+// THIS IS THE DOM → MARKDOWN DIRECTION, and the only one of the four converters in
+// the repo that reads a rendered DOM and writes markdown:
+//   • engine/src/doc-md.ts mdFromBlocks takes doc-model blocks, not a DOM, and under
+//     different rules: it escapes markdown punctuation in running text and prints
+//     every ordered item as "1.", where the walk below escapes nothing and counts.
+//     One DOM through both paths gives two different files, so they are not a pair
+//     waiting to be merged.
+//   • engine/src/doc-md.ts htmlFromBlocks, engine/src/template.ts's {{markdown}}
+//     helper and shells/web/src/lib/markdown.ts all run the other way (model or
+//     text → HTML).
+//   • bridge/doc-blocks.ts lowers this same DOM to doc-model blocks for the docx and
+//     odt writers. Same input, different output model, still not this path.
 const mdSkip = (el: Element): boolean =>
   el.getAttribute('aria-hidden') === 'true' || el.hasAttribute('data-export-hide');
 function mdFenceFor(code: string): string {

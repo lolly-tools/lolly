@@ -1,3 +1,4 @@
+import { wireSyntaxRequests } from '../../lib/syntax-preview.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * tool view: preview runs, canvas errors, paint and flush.
@@ -9,6 +10,7 @@
  */
 import { C2PA_FORMATS, DEFAULT_CMYK_CONDITION, VIDEO_CODEC_STRINGS, hasVideoParams, normalizeTableValue } from '@lolly/engine';
 import { t } from '../../i18n.ts';
+import { cssEscape } from '../../lib/util/escape.ts';
 import { livePalette } from '../../lib/live-palette.ts';
 import { patchLivePreview } from '../../lib/live-preview.ts';
 import { scopeTemplateStyles } from '../../lib/scope-css.ts';
@@ -128,8 +130,7 @@ export function paint(tview: ToolViewCtx): void {
         kindField: fastCfgPaint.kindField,
       }),
     });
-    const esc = (id: string): string =>
-      typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(id) : id;
+    const esc = cssEscape;
     if (
       plan?.every((pt) => {
         // A frame patch targets the artboard PAGE element - its inline left/top are
@@ -471,6 +472,7 @@ export function flushRender(tview: ToolViewCtx): void {
   }
 }
 export function wirePreview(tview: ToolViewCtx): void {
+  if (tview.contentEl) tview.mountLifecycle.add('syntax-highlighting', wireSyntaxRequests(tview.contentEl));
   const { autoCopy, autoExport, canvasEl, contentEl, previewCfg, runtime, sizeDriver } = tview;
   if (tview.host.prepare) contentEl?.classList.add('prepare-capable');
   contentEl?.addEventListener('click', async event => {

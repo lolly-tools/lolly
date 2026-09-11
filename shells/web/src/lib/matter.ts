@@ -18,6 +18,7 @@
  */
 
 import type { MatteFeasibility, MatteFrame, MatteModelId, MatteOpts, MatteProgress } from '@lolly-tools/core/host-v1';
+import { abortError as makeAbortError } from './util/abort.ts';
 import {
   createDebugLogger, createModelFetcher, loadOrt, makeCanvas, serializeSessionCreate,
   type FetchProgress,
@@ -28,7 +29,7 @@ import {
 } from './matte-models.ts';
 import {
   activateMask, packNchwNormalized, planLetterbox, type LetterboxPlan,
-} from '../../../../packages/node-shell/src/ml/matte-math.ts';
+} from '@lolly-tools/node-shell/ml/matte-math';
 
 type OrtModule = typeof import('onnxruntime-web');
 type InferenceSession = Awaited<ReturnType<OrtModule['InferenceSession']['create']>>;
@@ -61,11 +62,8 @@ export function currentBackend(): 'webgpu' | 'wasm' | null {
   return backendProbed ?? null;
 }
 
-/** A DOMException-shaped AbortError (with a plain-Error fallback for old runtimes). */
-export function abortError(msg = 'The matte run was aborted.'): Error {
-  try { return new DOMException(msg, 'AbortError'); }
-  catch { return Object.assign(new Error(msg), { name: 'AbortError' }); }
-}
+/** A DOMException-shaped AbortError (with a plain-Error fallback for old runtimes), carrying this path's message. */
+export const abortError = (msg = 'The matte run was aborted.'): Error => makeAbortError(msg);
 
 /** Raised when a run is requested but the model's weights aren't on device. */
 export class ModelNotInstalledError extends Error {
@@ -129,8 +127,8 @@ export async function modelCached(id: MatteModelId): Promise<boolean> {
 // so the Node matte runner reuses the exact same numbers instead of carrying a
 // second copy. They are re-exported here unchanged: lib/matter.test.ts and every
 // call site below still import them from this module.
-export { activateMask, packNchwNormalized, planLetterbox } from '../../../../packages/node-shell/src/ml/matte-math.ts';
-export type { LetterboxPlan } from '../../../../packages/node-shell/src/ml/matte-math.ts';
+export { activateMask, packNchwNormalized, planLetterbox } from '@lolly-tools/node-shell/ml/matte-math';
+export type { LetterboxPlan } from '@lolly-tools/node-shell/ml/matte-math';
 
 // ─── the run ──────────────────────────────────────────────────────────────────
 

@@ -327,6 +327,7 @@ export function creatorFromProfile(
 
 // ── Build ─────────────────────────────────────────────────────────────────────
 
+// Not `lib/util/bytes.ts`'s conversions: this one takes a Blob and is async.
 function toBytes(v: Uint8Array | Blob): Promise<Uint8Array> {
   return v instanceof Uint8Array ? Promise.resolve(v) : v.arrayBuffer().then(b => new Uint8Array(b));
 }

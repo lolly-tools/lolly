@@ -20,7 +20,7 @@
  */
 
 import {
-  colorToHex, TOKEN_EXT, readFaces, writeFace,
+  clamp, colorToHex, TOKEN_EXT, readFaces, writeFace,
   parseOklch, formatOklch, sampleCurve, defaultColorCurve, serializeCurve,
   solveLightnessForApca, hexToOklch, oklchToHex, clipToGamut,
 } from '@lolly/engine';
@@ -347,8 +347,9 @@ export function setSwatchCmykLock(doc: unknown, path: string[], cmyk: [number, n
   }
   const ext = (isRec(leaf.$extensions) ? leaf.$extensions : (leaf.$extensions = {} as Rec)) as Rec;
   const ns = (isRec(ext[TOKEN_EXT]) ? ext[TOKEN_EXT] : (ext[TOKEN_EXT] = {} as Rec)) as Rec;
-  const clamp = (n: number): number => Math.round(Math.min(100, Math.max(0, n)));
-  ns.cmyk = cmyk.map(clamp);
+  // CMYK is stored as whole percentages, so this rounds on top of the engine clamp.
+  const pct = (n: number): number => Math.round(clamp(n, 0, 100));
+  ns.cmyk = cmyk.map(pct);
   return true;
 }
 

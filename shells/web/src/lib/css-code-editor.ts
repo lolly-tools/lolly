@@ -11,11 +11,11 @@
  * dropdown are theme CSS vars (styles/parts/css-editor.css), so it follows the app theme.
  */
 
+import { escapeHtml } from './util/escape.ts';
+
 // ── Highlighting ─────────────────────────────────────────────────────────────────────
 
-function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
+const esc = escapeHtml;
 function span(cls: string, text: string): string {
   return `<span class="tk-${cls}">${esc(text)}</span>`;
 }

@@ -30,14 +30,14 @@
  */
 import { controlHtml, readControlValue } from './controls.ts';
 import { colorFieldHtml, wireColorField } from '../components/color-field.ts';
+import { escapeHtml } from '../lib/util/escape.ts';
 import type { InputSpec, InputValue, BlockFieldSpec } from '../../../../engine/src/inputs.ts';
 import type { HostV1, AssetRef, AssetQuery } from '@lolly-tools/core/host-v1';
 
 /** One block record: a field-id → value map. */
 type BlockRecord = Record<string, InputValue | undefined>;
 
-const esc = (s: unknown): string => String(s ?? '')
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const esc = escapeHtml;
 
 // Stop waiting on a single preview render after this long. The engine's own
 // quiescence cap is ~8s; this is the outer bound for the whole render+export, so

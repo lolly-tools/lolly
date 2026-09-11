@@ -20,6 +20,7 @@ import {
   fromU8Srgb, pqEncodeFrame, pqToU16, packPng, HDR_PQ_CICP,
 } from '@lolly/engine';
 import type { DeepFrame, PixelSpace } from '@lolly/engine';
+import { clamp01 } from './util/number.ts';
 
 /** A job posted to hdr-image.worker.ts. `rgba` is a transferred ArrayBuffer (the
  *  RGBA bytes); the worker returns {@link HdrResult}. */
@@ -45,8 +46,6 @@ export interface HdrExposure {
   /** Luma at/above which a pixel rides all the way to `peakNits`. Default 1. */
   kneeHi?: number;
 }
-
-const clamp01 = (x: number): number => (x < 0 ? 0 : x > 1 ? 1 : x);
 
 /** Smooth 0→1 ramp between `lo` and `hi` (Hermite), so the exposure has no seam. */
 function smoothstep(lo: number, hi: number, x: number): number {

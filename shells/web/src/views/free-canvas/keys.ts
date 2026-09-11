@@ -10,7 +10,7 @@
 import { boxRect, moveBoxes } from '../free-canvas-math.ts';
 import type { Box } from '../free-canvas-math.ts';
 import { announce } from '../../a11y.ts';
-import { escape as escapeText } from '../../utils.ts';
+import { escapeHtml as escapeText, cssEscape as escapeSelector } from '../../lib/util/escape.ts';
 import { deepActiveElement, isTypingTarget } from '../../lib/typing-target.ts';
 import { t } from '../../i18n.ts';
 import { centreCtxBar, ctxTopBand, stageBlockers } from './shared.ts';
@@ -120,7 +120,7 @@ export function normHex(_fc: FcCtx, v: any, fallback = '#ffffff'): string {
   return fallback;
 }
 export function cssEscape(_fc: FcCtx, s: any): string {
-  return window.CSS && CSS.escape ? CSS.escape(s) : String(s).replace(/["\\]/g, '\\$&');
+  return escapeSelector(s);
 }
 // Finite number clamped to [lo,hi], or the default when not a number.
 export function clampN(_fc: FcCtx, v: any, dflt: number, lo: number, hi: number): number {
@@ -128,8 +128,10 @@ export function clampN(_fc: FcCtx, v: any, dflt: number, lo: number, hi: number)
   if (!Number.isFinite(n)) return dflt;
   return n < lo ? lo : n > hi ? hi : n;
 }
-// Delegates to the canonical 5-char escape (utils.ts) - this used to hand-roll a 4-char
-// (no `'`) escape, safe only by accident of every call site using double-quoted attrs.
+// Delegates to the canonical 5-char escape (lib/util/escape.ts) - this used to hand-roll
+// a 4-char (no `'`) escape, safe only by accident of every call site using double-quoted
+// attrs. Both wrappers exist only so the 6.8k-line feature can keep calling them by the
+// names the closure used, with the `fc` first parameter every module function takes.
 export function escapeHtml(_fc: FcCtx, s: any): string {
   return escapeText(s);
 }

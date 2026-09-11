@@ -32,17 +32,16 @@
  *     dict we do not write), so no claim;
  *  2. no unmanaged RGB under a CMYK intent - no image XObject in plain /DeviceRGB,
  *     no transparency group in /DeviceRGB, and no /DeviceRGB shading (the vector
- *     form a CSS gradient takes: jsPDF writes an axial/radial ShadingPattern whose
+ *     form a CSS gradient takes: the writer emits an axial/radial shading whose
  *     /ColorSpace is /DeviceRGB, and a shading is a bare dict, so the CMYK pass's
  *     content-stream substitution never touches it). This is not a nicety - it is
  *     the standard's own colour-consistency rule, and embedding a CMYK profile does
  *     NOT cure it;
  *  3. every font the content actually SELECTS is embedded (X-4 has no exception for
  *     the standard 14). Read off the content streams' `Tf` operators, not off the
- *     resource dicts: jsPDF declares all fourteen standard fonts in every page's
- *     resources whether a glyph is set in them or not, so resource dicts would
- *     withhold the claim from every export including the conformant ones (text
- *     outlined to paths selects no font at all). pdf-lib's StandardFonts, which
+ *     resource dicts: a resource dict can name a font no glyph is ever set in, and
+ *     judging by it would withhold the claim from exports that are conformant
+ *     (text outlined to paths selects no font at all). pdf-lib's StandardFonts, which
  *     drawPrintMarks uses for the provenance labels, are NOT embedded - so a marked
  *     Print PDF withholds the claim until those labels are drawn with a real face.
  *     Withholding is the correct interim answer;
@@ -257,7 +256,7 @@ function pdfText(s: string, { PDFString, PDFHexString }: any): any {
 }
 
 /**
- * True when any image XObject draws in plain /DeviceRGB - jsPDF embeds rasters
+ * True when any image XObject draws in plain /DeviceRGB - rasters are embedded
  * this way, and unmanaged RGB pixels under a CMYK output intent are exactly what
  * PDF/X's colour-consistency rule forbids. Indirect (ICCBased/Indexed) colour
  * spaces don't stringify to /DeviceRGB and count as managed.
@@ -302,9 +301,9 @@ export function groupCsOk(pdfDoc: any, PDFName: any): boolean {
  * False when a shading paints in plain /DeviceRGB - the third face of the same
  * colour-consistency rule, and the one the two checks above cannot see.
  *
- * A CSS gradient on the print path is exported as a TRUE VECTOR jsPDF
- * ShadingPattern (`fillPdfShading`, taken for every opaque linear/radial
- * gradient), which jsPDF writes as `<< /ShadingType 2 /ColorSpace /DeviceRGB … >>`.
+ * A CSS gradient on the print path is exported as a TRUE VECTOR PDF shading
+ * pattern (`fillPdfShading`, taken for every opaque linear/radial
+ * gradient), written as `<< /ShadingType 2 /ColorSpace /DeviceRGB … >>`.
  * That is a bare dict, not a stream, so renderCmykPdf's substitution loop - which
  * only rewrites `rg`/`RG` operators inside content streams - never converts it: the
  * better vector path is the one that escapes, since the raster fallback would have
@@ -347,12 +346,12 @@ export function shadingCsOk(pdfDoc: any, PDFName: any): boolean {
  * Is every font the content actually DRAWS WITH embedded? X-4 requires it with no
  * exception for the standard 14.
  *
- * "Actually draws with" is the whole subtlety. Every jsPDF document declares all
- * fourteen standard fonts in its page resources whether or not a glyph is set in
- * them (VERIFIED: 14 /Font dicts, none with a FontDescriptor, on a two-word
- * document), so judging resource dicts would withhold the claim from every export
- * Lolly makes - including the ones that genuinely are conformant because the text
- * was outlined to paths. So the content streams are read, and only a font a `Tf`
+ * "Actually draws with" is the whole subtlety. A page's resource dict can name a
+ * font that no glyph is ever set in, so judging resource dicts would withhold the
+ * claim from exports that genuinely are conformant because the text was outlined
+ * to paths. (Under the previous writer this was extreme: it declared all fourteen
+ * standard fonts on every page, VERIFIED as 14 /Font dicts with no FontDescriptor
+ * on a two-word document.) So the content streams are read, and only a font a `Tf`
  * operator selects has to be embedded.
  *
  * pdf-lib's StandardFonts - what drawPrintMarks sets the provenance labels in - 
@@ -421,7 +420,7 @@ function* contentStreams(pdfDoc: any, lib: any): Generator<{ stream: string; res
   const { PDFName, decodePDFRawStream } = lib;
   const ctx = pdfDoc.context;
   // Two shapes reach here and they decode differently: a stream PARSED out of the
-  // jsPDF bytes is a PDFRawStream (pdf-lib's own decoder handles its filter chain - 
+  // rendered bytes is a PDFRawStream (pdf-lib's own decoder handles its filter chain - 
   // no second inflate, and synchronous, which DecompressionStream is not), while one
   // pdf-lib itself built for the print marks holds its operators unencoded until
   // save. Reading getContents() on the latter returns the compressed bytes, which is

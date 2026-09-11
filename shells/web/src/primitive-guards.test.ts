@@ -740,8 +740,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // The virtual data grid (spreadsheet view). Reviewed 2026-08-07: the 3 sinks are the
   // static viewport scaffold (no interpolation), the header cells (esc()d column names +
   // numeric width/index attrs), and the row cells (esc()d cell text + numeric row/col/
-  // width attrs) - esc() escapes &<> and is used only in text content, so no user markup
-  // reaches a sink unescaped.
+  // width attrs) - esc() is the shared escapeHtml (lib/util/escape.ts) and is used only in
+  // text content, so no user markup reaches a sink unescaped.
   'components/data-grid.ts': 3,
   'components/featured-row.ts': 2,
   'components/fonts-manager.ts': 3,
@@ -808,14 +808,14 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // and then re-admits `**bold**` alone.
   'components/tool-guide.ts': 1,
   'components/view-toggle.ts': 2,  // +1 2026-08-20: injectJellyIcons' ic.innerHTML - ICONS registry glyphs only (trusted, never user text), prepended into the jelly pill's open shadow buttons
-  'components/viz-overlay.ts': 5,
   'components/welcome-dialog.ts': 3,  // +1 2026-08-23: mountBrandedIntro's strip.innerHTML (plans/140 S4) - literal copy; the one interpolation is docsAppHref('start/quickstart'), a constant route string
   'components/zoom-hud.ts': 1,
   'folder-overlay.ts': 3,
   'lib/audio-coaching.ts': 1,
   'lib/audio-transport.ts': 2,
   // The Custom CSS editor (plan 112 M4): the highlight overlay writes highlightCss(text),
-  // whose one job is to HTML-escape the source (& < >) before wrapping tokens in spans, and
+  // whose one job is to HTML-escape the source (the shared escapeHtml) before wrapping
+  // tokens in spans, and
   // the autocomplete menu writes rows from the curated CSS_PROPERTIES list - never a raw user
   // value. Two provably-safe sinks.
   'lib/css-code-editor.ts': 2,
@@ -1513,6 +1513,19 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // and its current string value); the remaining interpolations are t() UI literals and
   // the field id, an identifier drawn from the kit definition's own field list.
   'pro/kit-panel.ts': 1,
+  // Text surfaces: code uses the engine's escaping highlighter; action/font labels
+  // use escapeHtml. Markdown uses the shared safe renderer. Other markup is static.
+  'components/code-editor.ts': 1,
+  'lib/syntax-preview.ts': 2,
+  'views/text/actions.ts': 1,
+  'views/text/characters.ts': 1,
+  // 2026-09-11: shared menus use fixed labels and registry icons. The workspace's
+  // extra sinks contain only registry icons. Log filters escape source names;
+  // inspection escapes findings and uses the shared, escaped document-facts renderer.
+  'views/text/presentation.ts': 3,
+  'views/text/logs.ts': 1,
+  'views/text/inspection.ts': 1,
+  'views/text.ts': 3,
 };
 
 test('R10: raw-HTML sinks are a pinned inventory, not a growing one', () => {
@@ -1543,7 +1556,11 @@ test('R10: raw-HTML sinks are a pinned inventory, not a growing one', () => {
 const ESCAPE_DEF = /\bfunction\s+escape(?:Html|Text|Attr)?\s*\(|\bconst\s+escape(?:Html|Text|Attr)?\s*=\s*\(/;
 
 const ESCAPE_DEF_ALLOWED: Record<string, number> = {
-  // The one shared implementation. Everything else must import this.
+  // The one shared implementation, beside the CSS and regex escapers so the three
+  // semantics that used to travel as `esc` cannot be confused. Everything else imports it.
+  'lib/util/escape.ts': 1,
+  // The name most of the tree imports: a one-line delegate to lib/util/escape.ts,
+  // not a second implementation.
   'utils.ts': 1,
   // A deliberate zero-import primitive: float-panel.ts imports nothing but its
   // own CSS, so it inlines an escape that is character-for-character equivalent
@@ -1571,13 +1588,18 @@ test('R11: HTML escaping is implemented once (utils.ts escape), never re-forked'
 test('R11: the shared escape covers every character an attribute or text node needs', () => {
   // The ratchet above says "one implementation"; this says that one is correct.
   // & < > " ' - the omission that made the pro/index.ts fork dangerous was "'".
-  const src = ALL.find(f => f.rel === 'utils.ts')?.text ?? '';
-  assert.ok(src.includes('export function escape'), 'utils.ts no longer exports escape');
+  const src = ALL.find(f => f.rel === 'lib/util/escape.ts')?.text ?? '';
+  assert.ok(src.includes('export function escapeHtml'), 'lib/util/escape.ts no longer exports escapeHtml');
   for (const ch of ['&', '<', '>', '"', "'"]) {
     assert.ok(src.includes(`'${ch}'`) || src.includes(`"${ch}"`) || (ch === "'" && src.includes('"\'"')),
-      `utils.ts escape does not mention ${ch} - an unescaped ${ch} breaks out of an attribute`);
+      `escapeHtml does not mention ${ch} - an unescaped ${ch} breaks out of an attribute`);
   }
   assert.match(src, /&#39;|&apos;/, "escape must map the single quote to an entity (the pro/index.ts fork's omission)");
+  // utils.ts keeps exporting `escape` under that name, delegating to the module above -
+  // hundreds of call sites import it, and a rename would fork the name, not the code.
+  const utils = ALL.find(f => f.rel === 'utils.ts')?.text ?? '';
+  assert.ok(utils.includes('export function escape'), 'utils.ts no longer exports escape');
+  assert.match(utils, /escapeHtml\(s\)/, 'utils.ts escape must delegate to the shared escapeHtml');
 });
 
 // ── R12 (plan 97 section 8 - one candidate tray per mounted studio) ─────────────────

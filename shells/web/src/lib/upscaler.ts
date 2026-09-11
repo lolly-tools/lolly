@@ -37,6 +37,7 @@ import type {
   UpscaleFeasibility, UpscaleFrame, UpscaleModelId, UpscaleModelInfo, UpscaleOpts, UpscaleProgress,
 } from '@lolly-tools/core/host-v1';
 import { openDB } from '../bridge/db.ts';
+import { abortError as makeAbortError } from './util/abort.ts';
 import {
   createDebugLogger, createModelFetcher, loadOrt, makeCanvas, packNchw01, serializeSessionCreate,
   type FetchProgress,
@@ -52,7 +53,7 @@ import {
 import {
   ABS_MAX_EDGE, ABS_MAX_PIXELS, blendPlanes, clamp255, estimatePeakBytes, hasAlpha,
   planTarget, planTiles, planesToRgba, tileEdgeFor, type Target,
-} from '../../../../packages/node-shell/src/ml/upscale-math.ts';
+} from '@lolly-tools/node-shell/ml/upscale-math';
 
 // ── Diagnostics (gated; console.debug - host.log isn't in scope in a lazy lib) ─
 const dbg = createDebugLogger({
@@ -78,12 +79,8 @@ export interface RunContext {
   checkAbort: () => void;
 }
 
-/** A DOMException-style AbortError so `err.name === 'AbortError'` works like fetch. */
-export function abortError(message = 'upscale aborted'): Error {
-  return typeof DOMException !== 'undefined'
-    ? new DOMException(message, 'AbortError')
-    : Object.assign(new Error(message), { name: 'AbortError' });
-}
+/** A DOMException-style AbortError so `err.name === 'AbortError'` works like fetch, carrying this path's message. */
+export const abortError = (message = 'upscale aborted'): Error => makeAbortError(message);
 
 // ── Backend probe (once) ─────────────────────────────────────────────────────
 

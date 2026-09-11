@@ -551,3 +551,16 @@ function brandRoleStack(role: 'sans' | 'mono'): string[] {
   const fams = parseFontFamilies(raw.trim());
   return fams.length ? fams : (role === 'mono' ? ['SUSE Mono'] : ['SUSE']);
 }
+
+/** All subsets of the requested family instance, without adding fallback families. */
+export async function characterFontFiles(family: string, weight = 400): Promise<string[]> {
+  registryPromise ??= buildRegistry();
+  const faces = (await registryPromise).get(family.toLowerCase()) ?? [];
+  const upright = faces.filter(face => face.style !== 'italic');
+  const variable = upright.filter(face => weightRange(face.weight));
+  const nearest = upright.reduce<RegistryFace | null>((a, b) => !a || Math.abs(parseInt(b.weight, 10) - weight) < Math.abs(parseInt(a.weight, 10) - weight) ? b : a, null);
+  const chosen = variable.length ? variable : upright.filter(face => face.weight === nearest?.weight);
+  if (chosen.length) return Promise.all(chosen.map(faceUrl));
+  const url = resolveSuseFontUrl({ fontFamily: family, fontWeight: String(weight), fontStyle: 'normal' });
+  return url && await fontUrlUsable(url) ? [url] : [];
+}

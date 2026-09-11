@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
+import { mountCodeEditor } from '../components/code-editor.ts';
+import { mountCharacterGrid } from '../components/character-grid.ts';
+import './text/text.css';
 /**
  * The browsable component library (#/components).
  *
@@ -117,9 +120,19 @@ function triggerButton(label: string, onClick: () => void): HTMLElement {
  *  an HTML string or a node; a `wire` runs after it's inserted. Only pure/wired
  *  components with a safe render path are here - everything else falls back to a
  *  markup sample or a source snippet. */
+const previewDisposers: Array<() => void> = [];
 const previewPopovers = new Set<BodyPopoverHandle>();
 
 const LIVE: Record<string, { render: () => string | HTMLElement; wire?: (stage: HTMLElement) => void }> = {
+  codeEditor: { render: () => '<div data-code-specimen style="width:100%;height:20rem"></div>', wire: stage => {
+    const editor = mountCodeEditor(stage.querySelector<HTMLElement>('[data-code-specimen]')!, { text: 'const greeting = "Hello";\n// Type here or select text.\nconsole.log(greeting);', language: 'javascript', label: 'Example code editor' });
+    previewDisposers.push(() => editor.destroy());
+  } },
+  characterGrid: { render: () => '<div data-character-specimen></div>', wire: stage => {
+    const grid = mountCharacterGrid(stage.querySelector<HTMLElement>('[data-character-specimen]')!, { onPick: value => { void navigator.clipboard.writeText(value); } });
+    grid.set([{ value: 'Æ', label: 'Latin capital ligature AE' }, { value: 'Ω', label: 'Greek capital letter omega' }, { value: '→', label: 'Rightwards arrow' }], 'var(--font-brand)');
+    previewDisposers.push(() => grid.destroy());
+  } },
   projectTiles: { render: projectTilesExample },
   contextMenu: { render: contextMenuExample },
   selectionBar: { render: selectionBarExample },
@@ -452,6 +465,7 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
   (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => {
     active = false;
     resetDownloadRecovery();
+    for (const dispose of previewDisposers.splice(0)) dispose();
     previewPopovers.forEach(popover => { popover.close(); });
     previewPopovers.clear();
   };

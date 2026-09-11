@@ -407,7 +407,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
             : ''
       }
       <div class="tool-stage" id="tool-stage">
-        ${!exportUiEmpty && !visitorPage ? `<div class="url-budget" id="url-budget-gauge" role="button" tabindex="0" aria-label="${escapeText(t('URL budget'))}" title="${escapeText(t('URL budget'))}" hidden><span class="url-budget-fill" data-gauge-fill></span></div><div class="url-budget-toast" data-gauge-toast role="status" aria-live="polite" hidden></div>` : ''}
+        ${runtime.manifest.render.urlSync !== false && !exportUiEmpty && !visitorPage ? `<div class="url-budget" id="url-budget-gauge" role="button" tabindex="0" aria-label="${escapeText(t('URL budget'))}" title="${escapeText(t('URL budget'))}" hidden><span class="url-budget-fill" data-gauge-fill></span></div><div class="url-budget-toast" data-gauge-toast role="status" aria-live="polite" hidden></div>` : ''}
         ${showAside ? `<button class="fullscreen-toggle-float" id="fullscreen-toggle-float" aria-label="${escapeText(t('Expand sidebar'))}"></button>` : ''}
         ${
           hideSidebar && onDevice

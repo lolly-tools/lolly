@@ -56,7 +56,7 @@ import { easingPoints, splitPhaseWindowMs } from '../lib/transitions.ts';
 import { MIN_TRANSITION_MS, MAX_TRANSITION_MS } from '../bridge/sequence-plan.ts';
 import { CAPTION_BOX_CLASS } from './timeline-captions.ts';
 
-/** How long the HUD stays visible after the last pointer/key wake (viz-overlay's 2600). */
+/** How long the HUD stays visible after the last pointer/key wake (the old visualiser panel used 2600). */
 const IDLE_MS = 2600;
 
 /**

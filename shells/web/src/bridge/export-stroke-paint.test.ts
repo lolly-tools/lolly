@@ -159,6 +159,6 @@ test('strokeOf/strokeWidthOf: attribute > inline style > CSS class, and SVG defa
     // wrong would paint outlines onto artwork that never asked for them.
     assert.deepEqual(r.bare, ['none', 1]);
     assert.equal(r.off[0], 'none');
-    // currentColor must resolve through the computed style, not reach jsPDF verbatim.
+    // currentColor must resolve through the computed style, not reach the writer verbatim.
     assert.equal(r.cc[0], 'rgb(0, 0, 255)');
   });

@@ -12,4 +12,4 @@
  * This file stays as the import path lib/depth-job.ts and lib/depth-worker.ts
  * have always used, so nothing in the web shell changes.
  */
-export * from '../../../../packages/node-shell/src/ml/depth-models.ts';
+export * from '@lolly-tools/node-shell/ml/depth-models';

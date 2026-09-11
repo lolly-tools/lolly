@@ -50,7 +50,7 @@ export function parseCssLen(val: string | null | undefined, refPx: number): numb
 //
 // Returns { radii, uniform }: `radii` is the four clamped [h,v] corners; `uniform`
 // is a single [rx,ry] pair when all four corners are equal (the common pill /
-// ellipse / circle / rounded-rect case - emit a fast <rect rx ry> / jsPDF
+// ellipse / circle / rounded-rect case - emit a fast <rect rx ry> / PDF
 // roundedRect) or null when they differ (emit a four-corner path so e.g. a
 // top-only-rounded card keeps its square bottom corners instead of rounding all
 // four). The uniform path is byte-identical to before, preserving the pill fix.

@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { openAssetInText, textAssetSupported } from '../../lib/text-handoff.ts';
+import { paintSyntaxPreview, syntaxLanguageForFile } from '../../lib/syntax-preview.ts';
 /**
  * catalog details: building the sheet and wiring its events, in mount order.
  *
@@ -245,6 +247,7 @@ export function buildSheet(dt: DetailsCtx): void {
             ref.type === 'lut' ? `<button type="button" class="btn cat-act-open-lut" data-act="open-lut">${icon('camera', { size: 14 })}<span>${t('Open in Darkroom')}</span></button>` : '',
             `<button type="button" class="btn cat-act-fav${fav ? ' is-fav' : ''}" data-act="fav" data-sfx="twinkle" aria-pressed="${fav}">${STAR_ICON}<span>${fav ? t('Favourited') : t('Favourite')}</span></button>`,
             `<button type="button" class="btn cat-act-download" data-act="download">${DOWNLOAD_ICON}<span>${configurable ? t('Download…') : t('Download')}</span></button>`,
+            textAssetSupported(ref) ? `<button type="button" class="btn" data-act="open-text">${t('Open in Text')}</button>` : '',
             isTextAsset ? `<button type="button" class="btn cat-act-dl-as" data-act="dl-as" aria-haspopup="menu" aria-expanded="false">${DOWNLOAD_ICON}<span>${t('Download as')}</span></button>` : '',
             `<button type="button" class="btn" data-act="prepare">${t('Prepare for sharing')}</button>`,
             `<button type="button" class="btn cat-act-send" data-act="send">${icon('upload', { size: 14 })}<span>${t('Send to…')}</span></button>`,
@@ -508,7 +511,9 @@ export function wireTextAsset(dt: DetailsCtx): void {
           // Chips from the FIRST paint: hidden characters must not wait for
           // an Analyse click to become visible.
           pre.replaceChildren();
-          dt.panels.appendVisible(pre, shown);
+          const language = syntaxLanguageForFile(String(ref.meta?.name ?? `file.${ref.format}`));
+          if (language === 'plain') dt.panels.appendVisible(pre, shown);
+          else paintSyntaxPreview(pre, shown, language, { invisibleClass: 'cat-invis' });
           if (text.length > shown.length) pre.appendChild(document.createTextNode(`\n\n${t('…preview truncated.')}`));
         }
         // Markdown-shaped text gets the render toggle; a real .md defaults to
@@ -621,6 +626,10 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     }
     const act = target.closest<HTMLElement>('[data-act]')?.dataset.act;
     if (!act) return;
+    if (act === 'open-text') {
+      try { await openAssetInText(host, ref); cat.sections.closeDetails(); } catch (error) { announce(error instanceof Error ? error.message : t('This text could not be read.')); }
+      return;
+    }
     if (act === 'close') { cat.sections.closeDetails(); return; }
     if (act === 'fav') {
       if (cat.favSet.has(base)) cat.favSet.delete(base); else cat.favSet.add(base);

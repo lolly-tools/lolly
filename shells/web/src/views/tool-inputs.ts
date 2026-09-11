@@ -3809,6 +3809,8 @@ function setupVectorControl(
     const el = fieldId ? nums.get(fieldId) : undefined;
     if (!f || !el) return;
     const step = f.step ?? 1;
+    // Not the numeric engine clamp: each bound is OPTIONAL, so a field with only a min
+    // (or neither) is left open at the other end.
     const clamp = (v: number): number => {
       if (f.min !== undefined) v = Math.max(f.min, v);
       if (f.max !== undefined) v = Math.min(f.max, v);

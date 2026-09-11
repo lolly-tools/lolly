@@ -91,6 +91,7 @@ export function wireDesignInspectorFloat(
       ? { x0: vw() - span, x1: vw() }
       : { x0: 0, x1: span };
   };
+  // Not the numeric engine clamp: a whole box, bounded against the live viewport.
   const clamp = (value: GripBox): GripBox => {
     const { x0, x1 } = freeSpan();
     const maxW = Math.max(MIN.w, x1 - x0 - MARGIN * 2);

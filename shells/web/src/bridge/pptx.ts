@@ -14,4 +14,4 @@
 
 export {
   PPTX_MIME, looksLikePptxFile, inflatePptx, createPptxAPI,
-} from '../../../../packages/node-shell/src/pptx.ts';
+} from '@lolly-tools/node-shell/pptx';

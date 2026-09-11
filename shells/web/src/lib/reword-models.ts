@@ -15,9 +15,9 @@
  */
 
 import { MODELS_BASE } from './models-base.ts';
-import { REWORD_MODEL_DIR, REWORD_MODEL_ONNX } from '../../../../packages/node-shell/src/ml/reword-models.ts';
+import { REWORD_MODEL_DIR, REWORD_MODEL_ONNX } from '@lolly-tools/node-shell/ml/reword-models';
 
-export * from '../../../../packages/node-shell/src/ml/reword-models.ts';
+export * from '@lolly-tools/node-shell/ml/reword-models';
 
 /** The cache probe URL: the big file's local path, as transformers.js keys its
  *  Cache API entries ('transformers-cache', keyed by fetched path). */

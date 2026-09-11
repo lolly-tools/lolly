@@ -5,7 +5,7 @@
  * Inlining a raw `<svg>` (unlike an `<img src=…svg>`, which is an opaque, script-
  * inert document) executes anything it carries - `<script>`, `on*` handlers,
  * `javascript:` refs, `<foreignObject>` HTML. That is the price of making an SVG
- * animation live + seekable (see anim-svg-mount / dom-frame). So every SVG that
+ * animation live + seekable (see anim-svg-mount and scrubAnimations in export.ts). So every SVG that
  * did not originate in our own catalog goes through here first.
  *
  * This is the SAME treatment an upload already gets at ingest (picker.ts) and in

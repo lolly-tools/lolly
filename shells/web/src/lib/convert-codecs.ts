@@ -146,7 +146,7 @@ export async function convert(bytes: Uint8Array, kind: string, target: Target, f
   // it is imported here and nowhere else in this view.
   if (kind === 'pdf') {
     if (target.id === 'pdf-clean' || target.id === 'pdf-optimize') {
-      const { runPdfFileOperation } = await import('../../../../packages/node-shell/src/pdf-file-operation.ts');
+      const { runPdfFileOperation } = await import('@lolly-tools/node-shell/pdf-file-operation');
       return new Blob([await runPdfFileOperation(bytes, target.id, signal) as BlobPart], { type: 'application/pdf' });
     }
     const { openPdfFile } = await import('../views/pdf-import.ts');
@@ -232,7 +232,7 @@ async function sourceToCanvas(kind: string, bytes: Uint8Array, file: File, optio
 
 /** Encode a rasterised canvas straight to the target format. png/jpeg/webp/avif ride
  *  the browser's own `canvas.toBlob`; bmp/tiff use the engine writers on the raw RGBA;
- *  pdf wraps the image (jsPDF); ico wraps a ≤256px PNG. */
+ *  pdf wraps the image; ico wraps a ≤256px PNG. */
 async function encodeFromCanvas(canvas: HTMLCanvasElement, target: Target, quality = 0.92): Promise<Blob> {
   switch (target.id) {
     case 'png':  return canvasBlob(canvas, 'image/png');
@@ -272,12 +272,12 @@ function canvasBlob(canvas: HTMLCanvasElement, mime: string, quality?: number): 
 
 /** One image, one page, sized to the pixels (points). PNG so transparency survives. */
 async function imageToPdf(canvas: HTMLCanvasElement): Promise<Blob> {
-  const { jsPDF } = await import('jspdf');
-  const doc = new jsPDF({ unit: 'pt', format: [canvas.width, canvas.height], orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait' });
-  const pw = doc.internal.pageSize.getWidth();
-  const ph = doc.internal.pageSize.getHeight();
-  doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pw, ph);
-  return doc.output('blob');
+  const { createPdfDoc } = await import('../bridge/export-pdf-doc.ts');
+  const w = canvas.width;
+  const h = canvas.height;
+  const doc = await createPdfDoc({ format: [w, h], orientation: w >= h ? 'landscape' : 'portrait' });
+  doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, w, h);
+  return await doc.output('blob') as Blob;
 }
 
 /** ICO wrapping a PNG payload (modern icons allow PNG), downscaled to ≤256px. */

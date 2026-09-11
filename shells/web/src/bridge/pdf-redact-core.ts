@@ -20,6 +20,6 @@ export {
   clampDpi, clampMaxPages, collectPages,
   barToPixels, normaliseInk, inflateForRadius, stampLayout,
   grayscaleInPlace, buildImagePdf,
-} from '../../../../packages/node-shell/src/pdf-redact-core.ts';
+} from '@lolly-tools/node-shell/pdf-redact-core';
 
-export type { PixelRect, RoundedPixelRect, RedactedPageImage } from '../../../../packages/node-shell/src/pdf-redact-core.ts';
+export type { PixelRect, RoundedPixelRect, RedactedPageImage } from '@lolly-tools/node-shell/pdf-redact-core';

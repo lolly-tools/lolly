@@ -13,4 +13,4 @@
  * and pdf-redact-core.test.ts keep working unchanged.
  */
 
-export { scanPdfStructure } from '../../../../packages/node-shell/src/pdf-structure.ts';
+export { scanPdfStructure } from '@lolly-tools/node-shell/pdf-structure';

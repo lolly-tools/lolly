@@ -113,6 +113,7 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
     const span = Math.max(MIN.w + MARGIN * 2, vw() - band);
     return document.documentElement.dir === 'rtl' ? { x0: vw() - span, x1: vw() } : { x0: 0, x1: span };
   };
+  // Not the numeric engine clamp: a whole box, bounded against the live viewport.
   const clamp = (b: Box): Box => {
     const { x0, x1 } = freeSpan();
     const w = Math.min(Math.max(MIN.w, b.w), (x1 - x0) - MARGIN * 2);

@@ -1,0 +1,18 @@
+.code-editor { position: relative; min-height: 20rem; overflow: hidden; background: var(--ui-color-surface-canvas); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); color: var(--ui-color-text-default); }
+.code-editor:focus-within { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.code-editor > pre, .code-editor > textarea { box-sizing: border-box; position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: var(--ui-space-panel); border: 0; border-radius: inherit; font: var(--ui-type-body)/1.6 var(--font-mono, ui-monospace, monospace); letter-spacing: normal; tab-size: 2; white-space: pre; overflow: auto; background: transparent; }
+.code-editor > pre { pointer-events: none; scrollbar-width: none; }
+.code-editor > textarea { resize: none; color: transparent; caret-color: var(--ui-color-text-default); -webkit-text-fill-color: transparent; outline: none; }
+.code-editor > textarea::selection { background: var(--ui-color-selection-surface); }
+.code-editor > textarea:disabled { opacity: 1; }
+.syntax .tok-keyword, .code-editor .tok-keyword { color: var(--ui-color-syntax-keyword); }
+.syntax .tok-string, .code-editor .tok-string { color: var(--ui-color-syntax-string); }
+.syntax .tok-comment, .code-editor .tok-comment { color: var(--ui-color-syntax-comment); font-style: italic; }
+.syntax .tok-number, .code-editor .tok-number { color: var(--ui-color-syntax-number); }
+.syntax .tok-function, .code-editor .tok-function { color: var(--ui-color-syntax-function); }
+.syntax .tok-type, .code-editor .tok-type { color: var(--ui-color-syntax-type); }
+.syntax .tok-operator, .code-editor .tok-operator { color: var(--ui-color-syntax-operator); }
+@media (forced-colors: active) { .code-editor > pre { visibility: hidden; } .code-editor > textarea { color: CanvasText; -webkit-text-fill-color: CanvasText; caret-color: CanvasText; } }
+
+.code-editor--wrap > pre, .code-editor--wrap > textarea { white-space: pre-wrap; overflow-wrap: anywhere; }
+.code-editor > textarea::placeholder { color: var(--ui-color-text-muted); -webkit-text-fill-color: var(--ui-color-text-muted); }

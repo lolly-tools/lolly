@@ -21,6 +21,14 @@
  * `CONTROL: plain text` (0.11% / 45.5%) the text floor - glyph rasterisation differs
  * between Chromium and Quartz, and no shadow row can beat that.
  *
+ * ## The page's change of basis
+ *
+ * The last four rows are geometry rather than shadows - two rotations, a raw matrix and
+ * an elliptical radial gradient. All four compose against the basis the in-house writer
+ * opens each page with (`1 0 0 -1 0 H cm`, top-left and y-down), and this is the only
+ * suite that rasterises a real PDF: the matrix arithmetic's own unit test asserts
+ * numbers against a recorder stub and passes under either basis. Details per row.
+ *
  * ## What this caught
  *
  *   - `drop-shadow()`: the raster escape hatch captured the element at exactly its
@@ -220,6 +228,39 @@ const ROWS: Row[] = [
   // 0.27% now - so the combination ends up MORE faithful than it was, not less.
   { name: 'layer blur over a box-shadow', markup: box('background:#fff;box-shadow:0 6px 16px rgba(0,0,0,0.35);filter:blur(3px)'),
     maxMean: 0.005, maxWorst: 0.14 },                       // 0.93% doubled → 0.27% / 7.1%
+
+  // ── the page's change of basis (2026-09-11) ─────────────────────────────────
+  // The in-house PDF writer opens every page with `1 0 0 -1 0 H cm`, so a caller's
+  // own `cm` composes inside a top-left, y-down basis. withPdfRotation and
+  // withPdfMatrix (export-pdf-vector.ts) compute their matrices in that space, and
+  // pdfGradientSpec scales a radial gradient's y about the same origin. The library
+  // this replaced never changed basis - it flipped y per drawing operator - so the
+  // same matrices used to compose in PDF's y-up space. These four rows are the only
+  // thing in the repo that reads the RESULT: export-pdf-vector.test.ts asserts the
+  // matrix numbers against a recorder stub and passes under either basis, so a
+  // regression to the old composition order is invisible without them. Each sits at
+  // the geometry control's own thresholds, and the measured numbers are Quartz's on
+  // this tree (2026-09-11), a whisker above the unrotated control's 0.03% / 9.7%.
+  { name: 'rotated box', markup: box('background:#4a90d9;transform:rotate(20deg)'),
+    maxMean: 0.002, maxWorst: 0.15 },                       // Quartz 0.04% / 11.4%
+  { name: 'rotated box, other direction', markup: box('background:#4a90d9;transform:rotate(-35deg)'),
+    maxMean: 0.002, maxWorst: 0.15 },                       // Quartz 0.05% / 10.1%
+  { name: 'skewed box (raw matrix)', markup: box('background:#4a90d9;transform:matrix(1,0.3,0.2,1,0,0)'),
+    maxMean: 0.002, maxWorst: 0.15 },                       // Quartz 0.03% / 7.1%
+  // The gradient half of the same basis question: an ellipse in a 140x70 box, so the
+  // radial y-scale is far from 1 and an inverted origin moves the whole bloom.
+  // No border-radius on this one, which is what lets it assert a tight worst pixel:
+  // measured both ways on 2026-09-11, a rounded corner against the white page costs
+  // 20.3% worst on a flat dark fill and 18.6% on this gradient, while the square
+  // version of the same gradient reads 1.0%. That corner error is Chromium-vs-Quartz
+  // antialiasing (the geometry control carries 11.2% of it), and it would have hidden
+  // a real gradient shift. Square edges keep the row about the shading.
+  // What the row reaches, read out of the produced file: a `/ShadingType 3` dictionary
+  // with the ramp as a sampled function, and a page stream that composes
+  // `1 0 0 0.6 0 21.9 cm` (the ry/rx y-scale about the ellipse centre) before `/Sh1 sh`,
+  // inside the page's own `1 0 0 -1 0 120 cm`. No image XObject anywhere in it.
+  { name: 'elliptical radial gradient', markup: `<div style="width:140px;height:70px;background:radial-gradient(ellipse at 50% 40%, #ffeeaa 0%, #4a90d9 70%, #123456 100%)"></div>`,
+    maxMean: 0.002, maxWorst: 0.03 },                       // Quartz 0.05% / 1.0%
 ];
 
 for (const row of ROWS) {

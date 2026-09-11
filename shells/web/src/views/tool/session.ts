@@ -75,6 +75,12 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
     );
   }
 
+  if (runtime.manifest.render.urlSync === false && tview.userHasMadeChanges) {
+    const slot = tview.actionsApi?.getSlot?.() ?? tview.slot;
+    history.replaceState(history.state, '', TOOL_URL_BASE + (slot ? `?slot=${encodeURIComponent(slot)}` : ''));
+    return;
+  }
+
   // A password-protected (`zx`) link stays ENCRYPTED in the address bar until the
   // user actually changes something - otherwise this first auto-sync would rewrite
   // the bar to the cleartext state, so copying it would re-share an UNPROTECTED link
@@ -534,6 +540,15 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
 }
 /** Live editing: the runtime subscriptions, the canvas edit tools and the collab wiring. */
 export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
+  if (tview.runtime.getHydrated().includes('data-text-workspace') && tview.contentEl?.parentElement) {
+    const { mountTextWorkspace } = await import('../text.ts');
+    if (tview.mountLifecycle.disposed) return;
+    const content = tview.contentEl;
+    content.style.display = 'none';
+    const cleanup = await mountTextWorkspace({ container: content.parentElement!, runtime: tview.runtime, host: tview.host, onDirty: tview.session.markUserDirty, history: tview.actionsApi?.history, historyEnabled: !tview.ephemeralState && !tview.collabHandle, slot: tview.slot, historyBase: tview.openedSession.cursor, flushState: async () => { tview.actionsApi?.history?.changed(); await tview.actionsApi?.history?.flush(); } });
+    tview.mountLifecycle.add('text-workspace', () => { cleanup(); content.style.removeProperty('display'); });
+  }
+
   const { TOOL_URL_BASE, actionsApi, actionsEl, backPillOpts, barSeq, brandVarsReady, canBulk, canSaveSession, canvasEditInput, canvasEl, collabHandle, contentEl, deckEditInput, deckLayout, docEditInput, documentLayout, editorLayout, fixedCanvasMode, frameCfg, hasTemplates, isPresent, mountLifecycle, nativeH, nativeW, outerEl, pagesCfg, pagesMode, presentAddress, profileToggle, renderFab, runtime, slot, soundToggle, stageEl, templateMeta, templateParam, templateSeededIds, themeToggle, toolId, transcribeSpec, urlFlags, urlHeight, urlWidth, viewEl } = tview;
   (
     globalThis as {

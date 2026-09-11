@@ -149,6 +149,7 @@ export function clustersFrom(
 
 export function createTextAPI(): TextAPI {
   return {
+    async characters(fontUrl) { return [...(await loadFace(fontUrl)).unicodes].sort((a, b) => a - b); },
     /**
      * Shape `text` using the given font at `fontSize` px and return an SVG path.
      *
@@ -273,7 +274,7 @@ export function createTextAPI(): TextAPI {
     },
 
     /** The font's variable-axis defaults (tag → value), `{}` for a static font.
-     *  Lets a caller embedding the raw file elsewhere (jsPDF, which has no axis
+     *  Lets a caller embedding the raw file elsewhere (a PDF embed, which has no axis
      *  control) know which instance it will actually get. */
     async axisDefaults(fontUrl) {
       const { face } = await loadFace(fontUrl);

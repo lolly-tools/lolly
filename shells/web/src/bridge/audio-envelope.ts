@@ -14,6 +14,7 @@
  * (that would drag the whole rasteriser into its lazy chunk), so the one copy of
  * this math lives here and both graphs consume it.
  */
+import { clamp01 } from '../lib/util/number.ts';
 
 /** A window (seconds, clip time) over which the primary audio is playing. */
 export interface DuckSpan { from: number; to: number }
@@ -65,8 +66,6 @@ export const MIX_RAMP_SEC = 0.8;
 
 /** The "low" centre level of the export card's off/low/full select. */
 export const CENTRE_LOW = 0.2;
-
-const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
 
 /**
  * Build the bed's whole gain timeline: fade in → full → (per primary span) ramp

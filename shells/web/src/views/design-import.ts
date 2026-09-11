@@ -1545,6 +1545,8 @@ function firstDefined(...vals: unknown[]): unknown {
   return undefined;
 }
 
+// Not lib/util/number.ts's clamp01: an absent or non-finite imported opacity means
+// fully opaque (1), not NaN.
 function clamp01(n: number): number {
   if (!Number.isFinite(n)) return 1;
   return n < 0 ? 0 : n > 1 ? 1 : n;

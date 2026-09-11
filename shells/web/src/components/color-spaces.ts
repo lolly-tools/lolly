@@ -118,6 +118,8 @@ const pct = (v: number): string => `${Math.round(v)}%`;
 const int = (v: number): string => `${Math.round(v)}`;
 const dp3 = (v: number): string => v.toFixed(3);
 
+// Not lib/util/number.ts's clamp01: a non-finite channel reads as 0 here, because a
+// NaN component would poison a whole colour conversion.
 const clamp01 = (v: number): number => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);
 
 /** At most two decimals, no trailing zeros - a byte-exact colour reads as `48`. */

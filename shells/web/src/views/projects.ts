@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { handleProjectTextAction, projectAssetMenu } from './projects-asset-actions.ts';
 import { moveSessionSlot } from './tool-revision-history.ts';
 /**
  * Projects view (route /p and /p/<folderId>).
@@ -1588,17 +1589,7 @@ export async function mountProjects(
         menuItem('delete', TRASH_ICON, t('Move to Trash'), { danger: true }),
       ].join('');
     }
-    if (kind === 'image') {
-      // Every folder image is a REFERENCE (plans/133 WP-4): removing it only takes
-      // it out of this project - the bytes stay in the Catalog, which owns deletion.
-      return [
-        menuItem('open-image', OPEN_ICON, t('Preview')),
-        fav(),
-        menuItem('move-image', MOVE_ICON, t('Move to…')),
-        clip(),
-        menuItem('delete-image', TRASH_ICON, t('Remove from project'), { danger: true }),
-      ].join('');
-    }
+    if (kind === 'image') return projectAssetMenu(imageRefs.get(ref), fav(), clip());
     // A batch session is a multi-row group with no single tool URL, so it can't be
     // shared as a link - offer Share only for single-tool sessions.
     const canShare = !isBatchSlot(ref);
@@ -1680,6 +1671,7 @@ export async function mountProjects(
     if (!target) { handleBulk(act); return; }
     const { ref, tile: tileEl } = target;
     closeMenu();   // the viewopts popover could be up behind a kebab-opened menu
+    if (await handleProjectTextAction(act, host, imageRefs.get(ref), folderId)) return;
     if (tpl.has(ref)) { await tpl.action(act, ref); return; }
     // Rename can fire from a folder TILE (root view) or the folder-view header menu
     // button (no enclosing tile) - fall back to the header <h2> in that case.

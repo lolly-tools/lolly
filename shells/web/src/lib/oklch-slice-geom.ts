@@ -25,6 +25,7 @@
  */
 
 import { chromaTickStep } from '@lolly/engine';
+import { clamp01 } from './util/number.ts';
 import type { SlicePlane } from '@lolly/engine';
 
 /**
@@ -38,7 +39,6 @@ import type { SlicePlane } from '@lolly/engine';
  */
 export const SLICE_C_MAX = 0.4;
 
-const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
 const normHue = (h: number): number => ((h % 360) + 360) % 360;
 
 export interface Oklch { l: number; c: number; h: number }

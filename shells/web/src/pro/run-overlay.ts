@@ -23,6 +23,7 @@
 import './run-overlay.css';
 import { runBatch } from './batch.ts';
 import { playSfx } from '../lib/sfx.ts';
+import { escapeHtml } from '../lib/util/escape.ts';
 import { t } from '../i18n.ts';
 import { releaseDeliveryFor } from '../lib/download-recovery.ts';
 import { deliverBatchFile, releaseBackgroundDelivery } from '../lib/background-delivery.ts';
@@ -148,9 +149,7 @@ interface RunBatchProgressResult<F = unknown> {
   zipName?: string;
 }
 
-const esc = (s: unknown): string => String(s ?? '').replace(/[&<>"']/g, c => (
-  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' } as Record<string, string>)[c]!
-));
+const esc = escapeHtml;
 
 // Per-format glyphs for the preview cards - Lucide line icons (matching the app's iconography),
 // grouped by kind: a vector PEN for svg/eps/…, a document for pdf, film for video, and the

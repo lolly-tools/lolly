@@ -50,6 +50,7 @@ import { escape } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { nameColor } from '../lib/color-namer.ts';
+import { clamp01 } from '../lib/util/number.ts';
 
 // The attribute selectors below quote a channel or mode id. Browsers expose
 // CSS.escape for that; jsdom (the test host for every view that mounts a colour
@@ -320,8 +321,6 @@ const STATE = new WeakMap<HTMLElement, FieldColorState>();
  *  the colour, so a lossy space stays stable while dragging: CMYK↔RGB is
  *  many-to-one on K, and re-decomposing mid-drag would make K jump. */
 const PANEL_VALS = new WeakMap<HTMLElement, Record<string, number>>();
-
-const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
 
 const TRANSPARENT: CssColor = { space: 'srgb', components: [0, 0, 0], alpha: 0, missing: 0 };
 const BLACK: CssColor = { space: 'srgb', components: [0, 0, 0], alpha: 1, missing: 0 };

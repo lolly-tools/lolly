@@ -240,3 +240,25 @@ export function disposeReworder(): void {
   if (worker) { worker.onmessage = null; worker.onerror = null; worker.terminate(); }
   worker = null;
 }
+
+/** General text assistance uses the same local model, policy and download progress. */
+export function assistText(text: string, task: import('../../../../engine/src/text-assist.ts').TextAssistTask, onProgress?: (progress: RewordProgress) => void, firstLine = 1): { done: Promise<string[]>; abort: () => void } {
+  assertAiAllowed('reword');
+  const w = guardAiWorker('reword', () => new Worker(new URL('./reword-worker.ts', import.meta.url), { type: 'module' })), id = ++seq;
+  let cancel: () => void = () => {};
+  const done = new Promise<string[]>((resolve, reject) => {
+    const finish = (result?: string[], error?: string): void => {
+      w.onmessage = null; w.onerror = null; w.terminate();
+      if (result) resolve(result); else reject(new Error(error ?? 'Text assistance failed.'));
+    };
+    cancel = () => finish(undefined, 'Cancelled.');
+    w.onmessage = (event: MessageEvent<RewordWorkerReply>) => {
+      if (event.data.id !== id) return;
+      if (event.data.progress) onProgress?.(event.data.progress);
+      else finish(event.data.result, event.data.error);
+    };
+    w.onerror = () => finish(undefined, 'The local model could not run.');
+  });
+  w.postMessage({ id, type: 'text-task', text, task, firstLine } satisfies RewordWorkerRequest);
+  return { done, abort: () => cancel() };
+}

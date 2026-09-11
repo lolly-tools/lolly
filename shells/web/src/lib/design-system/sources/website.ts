@@ -302,6 +302,8 @@ function b64ToBytes(b64: string): Uint8Array | null {
  * A transport that hands over something unreadable contributes nothing; it does
  * not get to throw inside a scan.
  */
+// Distinct from `lib/util/bytes.ts`: an empty buffer reads as null, a view is
+// copied out, and a number array is accepted.
 export function toBytes(value: unknown): Uint8Array | null {
   if (value instanceof Uint8Array) return value.length > 0 ? value : null;
   if (value instanceof ArrayBuffer) return value.byteLength > 0 ? new Uint8Array(value) : null;

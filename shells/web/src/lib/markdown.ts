@@ -9,9 +9,23 @@
 // horizontal rules, links and images. Output HTML is fed to TipTap's schema parser
 // (Doc Studio) after DOMPurify, so this converter is not a trust boundary - it only
 // needs to be structurally faithful, not sanitising.
+//
+// NOT A DUPLICATE OF THE ENGINE MARKDOWN MODULES. Four converters live in this repo
+// and each one runs a different direction:
+//   • this file: markdown TEXT → HTML string (plus looksLikeMarkdown and
+//     splitMarkdownIntoBlocks, which take markdown in and hand markdown back).
+//   • engine/src/doc-md.ts: doc-model BLOCKS → markdown, and blocks → HTML. Its
+//     input is a model, never text, so it cannot stand in for this path.
+//   • engine/src/template.ts's {{markdown}} helper: a narrower text → HTML dialect
+//     for tool templates. No tables, no fences, a leading `>` is an arrow bullet and
+//     ordered items carry <span class="md-index">, so its output is not this output.
+//   • shells/web/src/bridge/export.ts renderMarkdown: a rendered DOM → markdown.
+// Nothing above parses markdown into the doc-model. If a path needs that, write the
+// parser once rather than folding two directions into one module.
 
-const ESC: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
-const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => ESC[c]!);
+import { escapeHtml } from './util/escape.ts';
+
+const esc = escapeHtml;
 
 // ── inline ────────────────────────────────────────────────────────────────────
 // Order matters: protect code spans first (their content is literal), then images,

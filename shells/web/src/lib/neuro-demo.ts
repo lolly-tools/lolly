@@ -92,8 +92,7 @@ export async function applyNeuroDemo(host: NeurospicyHost, mode: NeuroDemoMode):
 }
 
 // ── the deterministic viz-demo kit ───────────────────────────────────────────
-// Shared by BOTH visualiser surfaces - the viz-overlay panel
-// (components/viz-overlay.ts) and the dock's DockViz renderer
+// Shared with the dock's DockViz renderer
 // (lib/neurospicy-dock-host.ts) - so a ?neuro=viz capture renders the identical
 // frozen field whichever surface hosts it. One source, because the two drifted
 // once: when the enlarged viz moved from the panel into the dock (2026-08-14)

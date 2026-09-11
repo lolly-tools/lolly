@@ -29,6 +29,7 @@
  * flows outward, < 1 inward.
  */
 import type { VizPalette, VizRgb } from './viz-palette.ts';
+import { clamp01 } from './util/number.ts';
 import {
   compBrandTone, compBrandEcho, compBrandRadial, compBrandEdge, compBrandRelief,
   compBrandStreak, compBrandClouds, compBrandMosaic, compBrandBump, compBrandWatercolour,
@@ -106,8 +107,6 @@ function shaders(warp: string, comp: string): { warp: string; comp: string } {
 }
 
 // ── Palette helpers ──────────────────────────────────────────────────────────
-
-const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
 
 /**
  * Sample the brand ramp at `t`, wrapping and interpolating between steps so a

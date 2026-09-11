@@ -14,6 +14,7 @@
  * host picker (passed in by the caller) rather than embedding picker UI.
  */
 import { optionValue } from './model.ts';
+import { escapeHtml } from '../lib/util/escape.ts';
 import type { InputValue, SelectOption, BlockFieldSpec } from '../../../../engine/src/inputs.ts';
 
 /**
@@ -59,9 +60,7 @@ interface AssetRefLike {
   meta?: Record<string, unknown>;
 }
 
-const esc = (s: unknown): string => String(s ?? '')
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;');
+const esc = escapeHtml;
 
 /**
  * HTML for an editable control bound to one input declaration + current value.

@@ -104,6 +104,8 @@ const MIN_GHOST_PX = 2;
 /** The `fit` values that map to a legal `object-fit`; anything else falls back. */
 const FITS = new Set(['contain', 'cover', 'fill', 'none', 'scale-down']);
 
+// Not lib/util/number.ts's clamp01: this takes an unknown input value and defaults a
+// missing or unparseable opacity to 1 (fully visible), not to NaN.
 const clamp01 = (v: unknown): number => {
   const n = typeof v === 'number' ? v : Number(v);
   return Number.isFinite(n) ? (n < 0 ? 0 : n > 1 ? 1 : n) : 1;

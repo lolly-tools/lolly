@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { aiAllowed, assertAiAllowed, guardAiWorker } from '../lib/ai-policy.ts';
+import { abortError as makeAbortError } from '../lib/util/abort.ts';
 /**
  * Web implementation of `host.upscale` (v1.101) - on-device AI image upscaling.
  * THIN by design: this file is only worker plumbing (an id-keyed pending map,
@@ -65,11 +66,8 @@ function serializeOpts(opts: UpscaleOpts = {}): Omit<UpscaleOpts, 'signal' | 'on
   return rest;
 }
 
-function abortError(message = 'upscale aborted'): Error {
-  return typeof DOMException !== 'undefined'
-    ? new DOMException(message, 'AbortError')
-    : Object.assign(new Error(message), { name: 'AbortError' });
-}
+/** This path's AbortError - the shared constructor with the upscale message. */
+const abortError = (message = 'upscale aborted'): Error => makeAbortError(message);
 
 export function createUpscaleAPI(): UpscaleAPI {
   return {

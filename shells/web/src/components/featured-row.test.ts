@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { test, type TestContext } from 'node:test';
 import { JSDOM } from 'jsdom';
 import { mountFeaturedRow } from './featured-row.ts';
+import { mountCoverFlow } from '../lib/covers-flow.ts';
 
 // Drive the mounted component's real event handlers and animation loop. jsdom
 // supplies the DOM; these layout measurements model a 390px phone with 260px
@@ -10,11 +11,12 @@ import { mountFeaturedRow } from './featured-row.ts';
 function fixture(t: TestContext, viewMode: 'coverflow' | 'gallery' = 'coverflow', reduced = false, count = 7, recent?: string, unstyled = false) {
   const dom = new JSDOM('<!doctype html><div id="mount"></div>', { url: 'http://localhost/', pretendToBeVisual: true });
   const win = dom.window;
+  t.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] });
   Object.assign(globalThis, {
     window: win, document: win.document, localStorage: win.localStorage,
     AbortController: win.AbortController,
   });
-  win.matchMedia = () => ({ matches: false }) as MediaQueryList;
+  win.matchMedia = () => ({ matches: reduced }) as MediaQueryList;
   if (reduced) win.document.documentElement.dataset.a11yMotion = 'reduce';
   let now = 1000;
   let nextFrame = 0;
@@ -61,23 +63,44 @@ function fixture(t: TestContext, viewMode: 'coverflow' | 'gallery' = 'coverflow'
     for (const callback of pending) callback(now);
     return scroll.position;
   };
-  const pointer = (type: string, x: number, ms = 16, y = 100, extra: Record<string, unknown> = {}, target: Element = viewport): void => {
+  const pointer = (type: string, x: number, ms = 16, y = 100, extra: Record<string, unknown> = {}, target: Element = viewport): number => {
     now += ms;
     const event = new win.MouseEvent(type, { clientX: x, clientY: y, button: 0, bubbles: true, cancelable: true });
     Object.defineProperties(event, Object.fromEntries(Object.entries({
       pointerId: 1, pointerType: 'touch', isPrimary: true, timeStamp: now, ...extra,
     }).map(([key, value]) => [key, { value }])));
     target.dispatchEvent(event);
+    return event.timeStamp;
   };
-  const settle = (fps = 60): number[] => {
+  const settle = (fps = 60, duration = 3000): number[] => {
     const positions = [scroll.position];
-    for (let elapsed = 0; elapsed < 650; elapsed += 1000 / fps) positions.push(frame(1000 / fps));
+    for (let elapsed = 0; elapsed < duration; elapsed += 1000 / fps) positions.push(frame(1000 / fps));
     return positions;
   };
   frame();
   t.after(() => { handle.destroy(); win.close(); });
   return { mount, viewport, scroll, opened, pointer, frame, settle, handle,
     loadStyles() { stylesReady = true; handle.setVisible(true); },
+    mountDocs() {
+      Object.assign(globalThis, {
+        getComputedStyle: win.getComputedStyle.bind(win), matchMedia: win.matchMedia,
+        addEventListener: win.addEventListener.bind(win),
+      });
+      const docs = win.document.createElement('section');
+      docs.className = 'covers-section';
+      docs.innerHTML = `<div id="coversRoot" tabindex="0"><div id="coversStrip" style="padding-left:65px">${entries.map(e => `<a class="cover-card"><span class="cover-cap"><b>${e.name}</b></span></a>`).join('')}</div><nav class="covers-nav"><div class="covers-dots"></div></nav></div>`;
+      win.document.body.append(docs);
+      const strip = docs.querySelector<HTMLElement>('#coversStrip')!;
+      let position = 0;
+      Object.defineProperty(strip, 'scrollLeft', {
+        get: () => position,
+        set: (value: number) => { position = Math.round(Math.max(0, Math.min((strip.children.length - 1) * 260, value))); },
+      });
+      mountCoverFlow(docs);
+      return { strip, get position() {
+        return position - docs.querySelector<HTMLElement>('.cover-card:not(.is-clone)')!.offsetLeft + 65;
+      } };
+    },
   };
 }
 
@@ -144,8 +167,22 @@ test('a relayout with unchanged cover geometry preserves the chosen landing cove
   assert.equal(f.settle().at(-1), 260, 'remeasuring must not snap a short flick back to its start');
 });
 
-test('trackpad deltas move directly without a competing snap between events', t => {
+test('trackpad swipes build momentum and coast before settling, as on Docs', t => {
   const f = fixture(t);
+  let previous = 0;
+  for (let i = 1; i <= 4; i++) {
+    f.viewport.dispatchEvent(new window.WheelEvent('wheel', { deltaX: 40, cancelable: true }));
+    f.frame(30);
+    assert.ok(f.scroll.position > previous);
+    previous = f.scroll.position;
+  }
+  const positions = f.settle();
+  assert.ok(positions[30]! > previous + 200, 'wheel release keeps gliding after half a second');
+  assert.equal(positions.at(-1)! % 260, 0, 'rests at a cover centre');
+});
+
+test('reduced motion applies wheel deltas directly and waits for the stream to finish', t => {
+  const f = fixture(t, 'coverflow', true);
   for (let i = 1; i <= 4; i++) {
     f.viewport.dispatchEvent(new window.WheelEvent('wheel', { deltaX: 40, cancelable: true }));
     f.frame(30);
@@ -164,7 +201,10 @@ test('a late direction change uses recent movement rather than the original thro
   f.pointer('pointermove', 230, 25);
   f.pointer('pointerup', 230, 10);
   const positions = f.settle();
-  monotonic(positions, -1);
+  monotonic(positions.slice(0, 61), -1); // the coast follows the final finger direction
+  // Once inertia runs out, Docs eases to the nearest centre, which may sit
+  // slightly behind the final coast position.
+  assert.ok(positions.at(-1)! - Math.min(...positions) < 130);
   assert.ok(positions.at(-1)! < 780);
 });
 
@@ -307,3 +347,65 @@ test('late carousel CSS preserves the requested favourite instead of selecting a
   assert.equal(f.settle().at(-1), 780);
   assert.equal(f.mount.querySelector('.is-centred')?.getAttribute('data-tool'), 'tool-3');
 });
+
+for (const fps of [30, 60, 120]) {
+  test(`Docs and featured coverflows follow the same swipe trajectory at ${fps}Hz`, t => {
+    const f = fixture(t);
+    const docs = f.mountDocs();
+    const period = 7 * 260;
+    const compare = (): void => {
+      // Each component keeps a different number of off-screen clones. Compare
+      // the visible position modulo a full cycle, including the wrap frame.
+      const difference = ((f.scroll.position - docs.position) % period + period) % period;
+      assert.ok(Math.min(difference, period - difference) <= 1,
+        `featured ${f.scroll.position}, Docs ${docs.position}`);
+    };
+    const pointer = (type: string, x: number, ms = 16, y = 100): void => {
+      const timeStamp = f.pointer(type, x, ms, y);
+      // Dispatch work can delay the second handler; coast timing must use the
+      // original touch timestamp, as velocity sampling does.
+      f.pointer(type, x, type === 'pointerup' ? 5 : 0, y, { timeStamp }, docs.strip);
+      compare();
+    };
+    const frame = (ms = 1000 / fps): void => { f.frame(ms); compare(); };
+    const settle = (): void => {
+      for (let elapsed = 0; elapsed < 3000; elapsed += 1000 / fps) frame();
+      assert.equal(f.scroll.position % 260, 0);
+    };
+    for (const [distance, duration] of [[45, 50], [320, 80], [-600, 160], [260, 600]]) {
+      const start = f.scroll.position;
+      pointer('pointerdown', 300);
+      const samples = Math.max(2, Math.round(duration! * fps / 1000));
+      for (let i = 1; i <= samples; i++) {
+        pointer('pointermove', 300 - distance! * i / samples, duration! / samples);
+        frame(0);
+      }
+      pointer('pointerup', 300 - distance!, 10);
+      settle();
+      if (distance === 45) assert.equal(f.scroll.position - start, 260, 'a short flick advances one cover');
+    }
+    // Reverse during a long throw, then pause with a finger still down.
+    pointer('pointerdown', 350);
+    pointer('pointermove', 100, 30); frame(0);
+    pointer('pointermove', 170, 30); frame(0);
+    pointer('pointerup', 170, 10); settle();
+    pointer('pointerdown', 350);
+    pointer('pointermove', 190, 30); frame(0);
+    pointer('pointerup', 190, 180); settle();
+    // A vertical page gesture or lost capture must never launch a throw.
+    pointer('pointerdown', 200);
+    pointer('pointermove', 204, 16, 140); frame(0);
+    pointer('pointercancel', 204, 16, 160); settle();
+    pointer('pointerdown', 300);
+    pointer('pointermove', 140, 20); frame(0);
+    pointer('lostpointercapture', 140); settle();
+    for (let i = 0; i < 4; i++) {
+      for (const strip of [f.viewport, docs.strip]) {
+        strip.dispatchEvent(new window.WheelEvent('wheel', { deltaX: 40, cancelable: true }));
+      }
+      frame();
+    }
+    settle();
+    assert.deepEqual(f.opened, []);
+  });
+}

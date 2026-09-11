@@ -266,17 +266,17 @@ test('one intent only - a second pass replaces rather than appends', async () =>
   assert.equal(str(intent.dict.get(PDFName.of('OutputConditionIdentifier'))), 'FOGRA51');
 });
 
-test('an ordinary jsPDF export still claims PDF/X-4 exactly as it did before', async () => {
-  // The non-regression that matters most: the RGB `pdf` path re-saves a jsPDF blob
-  // and has always claimed X-4 (sRGB intent, profile embedded). Lolly outlines text
-  // to vector paths on export, so a real document selects no font - and the new font
-  // check must not take that claim away.
+test('an ordinary vector export still claims PDF/X-4 exactly as it did before', async () => {
+  // The non-regression that matters most: the RGB `pdf` path re-saves the writer's
+  // blob and has always claimed X-4 (sRGB intent, profile embedded). Lolly outlines
+  // text to vector paths on export, so a real document selects no font - and the
+  // font check must not take that claim away.
   const lib = await import('pdf-lib') as any;
-  const { jsPDF } = await import('jspdf') as any;
-  const doc = new jsPDF({ unit: 'pt', format: [200, 200] });
+  const { createPdfDoc } = await import('./export-pdf-doc.ts');
+  const doc = await createPdfDoc({ format: [200, 200] });
   doc.setFillColor(20, 40, 60);
   doc.rect(10, 10, 120, 60, 'f');
-  const loaded = await lib.PDFDocument.load(new Uint8Array(doc.output('arraybuffer')), { updateMetadata: false });
+  const loaded = await lib.PDFDocument.load(new Uint8Array(await doc.output('arraybuffer') as ArrayBuffer), { updateMetadata: false });
 
   const { reopened, bytes, PDFName } = await roundTrip(loaded, {}, 'srgb', {});
   assert.equal(str(intentOf(reopened, PDFName)!.dict.get(PDFName.of('OutputConditionIdentifier'))), 'sRGB IEC61966-2.1');
@@ -294,26 +294,30 @@ test('the document checks answer honestly on a bare document', async () => {
 });
 
 test('usedFontsEmbedded: a declared-but-unused standard font is not a violation', async () => {
-  // The reason the check reads Tf operators rather than resource dicts. jsPDF
-  // declares ALL FOURTEEN standard fonts in every page's /Resources - verified: 14
-  // /Font dicts, none with a FontDescriptor, on a document containing one word - so
-  // judging resources would withhold the claim from every Lolly PDF ever exported,
-  // including the ones that are conformant because their text was outlined to paths.
+  // The reason the check reads Tf operators rather than resource dicts: a writer may
+  // name a font in /Resources that no glyph is ever set in (the previous one declared
+  // all fourteen standard faces on every page), and judging resources would withhold
+  // the claim from documents that are conformant because their text was outlined.
   const lib = await import('pdf-lib') as any;
-  const { jsPDF } = await import('jspdf') as any;
+  const { createPdfDoc } = await import('./export-pdf-doc.ts');
 
-  const outlined = new jsPDF({ unit: 'pt', format: [200, 200] });
+  const outlined = await createPdfDoc({ format: [200, 200] });
   outlined.setFillColor(0, 0, 0);
   outlined.rect(10, 10, 50, 20, 'f');                 // shapes only: no Tf anywhere
-  const clean = await lib.PDFDocument.load(new Uint8Array(outlined.output('arraybuffer')), { updateMetadata: false });
-  const declared = clean.getPage(0).node.Resources().lookup(lib.PDFName.of('Font'), lib.PDFDict);
-  assert.ok(declared.keys().length >= 14, 'jsPDF really does declare the standard fonts unused');
+  const clean = await lib.PDFDocument.load(new Uint8Array(await outlined.output('arraybuffer') as ArrayBuffer), { updateMetadata: false });
+  // Declare Helvetica in the page resources without ever selecting it, which is the
+  // case the check has to forgive.
+  const page = clean.getPage(0);
+  const helv = clean.embedStandardFont(lib.StandardFonts.Helvetica);
+  page.node.Resources().set(lib.PDFName.of('Font'), clean.context.obj({ F9: helv.ref }));
+  const declared = page.node.Resources().lookup(lib.PDFName.of('Font'), lib.PDFDict);
+  assert.ok(declared.keys().length >= 1, 'the standard font really is declared unused');
   assert.equal(usedFontsEmbedded(clean, lib), true, 'declared but never selected - nothing to embed');
 
   // The same document with real text in a standard face DOES select one.
-  const withText = new jsPDF({ unit: 'pt', format: [200, 200] });
+  const withText = await createPdfDoc({ format: [200, 200] });
   withText.text('hi', 10, 10);
-  const dirty = await lib.PDFDocument.load(new Uint8Array(withText.output('arraybuffer')), { updateMetadata: false });
+  const dirty = await lib.PDFDocument.load(new Uint8Array(await withText.output('arraybuffer') as ArrayBuffer), { updateMetadata: false });
   assert.equal(usedFontsEmbedded(dirty, lib), false, 'a Tf on a non-embedded face is a violation');
 });
 
@@ -352,19 +356,20 @@ test('usedFontsEmbedded: a real embedded face passes where Helvetica fails', asy
 
 test('a DeviceRGB shading blocks the claim EVEN WITH a profile embedded', async () => {
   // The vector form of a CSS gradient, built through the REAL export path: an opaque
-  // linear-gradient becomes a jsPDF ShadingPattern whose /ColorSpace is /DeviceRGB.
+  // linear-gradient becomes a PDF shading whose /ColorSpace is /DeviceRGB.
   // It is a bare dict, not a content stream, so renderCmykPdf's rg/RG substitution
   // never converts it - and neither of the other two checks can see it, which is the
   // whole reason this one exists.
   const lib = await import('pdf-lib') as any;
-  const { jsPDF } = await import('jspdf') as any;
+  const { createPdfDoc } = await import('./export-pdf-doc.ts');
   const { pdfGradientSpec, fillPdfShading } = await import('./export-pdf-vector.ts');
 
-  const pdf = new jsPDF({ unit: 'pt', format: [200, 200] });
+  const pdf = await createPdfDoc({ format: [200, 200] });
   const spec = pdfGradientSpec('linear-gradient(90deg, rgb(255,0,0), rgb(0,0,255))', 0, 0, 200, 200)!;
   assert.equal(spec.hasAlpha, false, 'an opaque gradient takes the true-vector path');
   assert.equal(fillPdfShading(pdf, spec, () => { pdf.rect(0, 0, 200, 200); }), true);
-  const doc = await lib.PDFDocument.load(new Uint8Array(pdf.output('arraybuffer')), { updateMetadata: false });
+  const rendered = new Uint8Array(await pdf.output('arraybuffer') as ArrayBuffer);
+  const doc = await lib.PDFDocument.load(rendered, { updateMetadata: false });
 
   assert.equal(hasDeviceRgbImage(doc, lib.PDFName), false, 'no image XObject - the old veto is blind here');
   assert.equal(groupCsOk(doc, lib.PDFName), true, 'and so is the group check');
@@ -383,7 +388,7 @@ test('a DeviceRGB shading blocks the claim EVEN WITH a profile embedded', async 
   assert.match(logged[0]!, /unmanaged RGB/);
 
   // The same shading under the sRGB intent is not a violation at all.
-  const rgbDoc = await lib.PDFDocument.load(new Uint8Array(pdf.output('arraybuffer')), { updateMetadata: false });
+  const rgbDoc = await lib.PDFDocument.load(rendered, { updateMetadata: false });
   const srgb = await roundTrip(rgbDoc, {}, 'srgb', {});
   assert.deepEqual(claimOf(srgb.reopened, srgb.bytes, PDFName), { info: true, xmp: true });
 });

@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { aiAllowed, assertAiAllowed, guardAiWorker } from '../lib/ai-policy.ts';
+import { abortError as makeAbortError } from '../lib/util/abort.ts';
+import { audioSourceBytes } from '../lib/util/bytes.ts';
 /**
  * Web implementation of `host.speech` (v1.96; transcription v1.99) - on-device
  * Kokoro text-to-speech with word timings for captions, and on-device Whisper
@@ -147,23 +149,6 @@ function ensureWhisperWorker(): Worker {
   return whisperWorker;
 }
 
-/** Source → the ArrayBuffer decodeAudioData wants (which it will detach) - 
- *  the same reduction bridge/audio.ts makes, minus the procedural-song forms:
- *  a zzfxm ref or tracker module has no place here (we made it; if it needs
- *  words, synthesis already knows them). */
-async function toBytes(src: AudioSource): Promise<ArrayBuffer> {
-  if (src instanceof ArrayBuffer) return src;
-  if (src instanceof Uint8Array) {
-    // decodeAudioData detaches whatever it is given - hand it a COPY of the
-    // caller's view, not the buffer the caller still holds.
-    return src.slice().buffer as ArrayBuffer;
-  }
-  const url = typeof src === 'string' ? src : src.url;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`audio fetch failed: ${res.status}`);
-  return res.arrayBuffer();
-}
-
 /**
  * Decode any AudioSource to the 16 kHz mono Float32 PCM Whisper consumes.
  * Main thread by necessity (no OfflineAudioContext in a worker); the 16 kHz
@@ -172,7 +157,7 @@ async function toBytes(src: AudioSource): Promise<ArrayBuffer> {
  * downmix is a plain channel average, which is right for speech.
  */
 async function decodePcm16k(src: AudioSource): Promise<Float32Array> {
-  const bytes = await toBytes(src);
+  const bytes = await audioSourceBytes(src);
   const OAC = window.OfflineAudioContext ?? (window as { webkitOfflineAudioContext?: typeof OfflineAudioContext }).webkitOfflineAudioContext;
   if (!OAC) throw new Error('no audio decoder in this browser');
   const buf = await new OAC(1, 1, WHISPER_SAMPLE_RATE).decodeAudioData(bytes);
@@ -346,10 +331,5 @@ export function createSpeechAPI(): WebSpeechAPI {
   };
 }
 
-function abortError(message: string = 'speech synthesis aborted'): Error {
-  // DOMException where the platform provides it, so `err.name === 'AbortError'`
-  // works the same as for an aborted fetch.
-  return typeof DOMException !== 'undefined'
-    ? new DOMException(message, 'AbortError')
-    : Object.assign(new Error(message), { name: 'AbortError' });
-}
+/** This path's AbortError - the shared constructor with the speech message. */
+const abortError = (message = 'speech synthesis aborted'): Error => makeAbortError(message);

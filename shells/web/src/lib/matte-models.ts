@@ -12,4 +12,4 @@
  * This file stays as the import path lib/matte-wasm-api.ts, lib/matter.ts and
  * lib/matte-worker.ts have always used, so nothing in the web shell changes.
  */
-export * from '../../../../packages/node-shell/src/ml/matte-models.ts';
+export * from '@lolly-tools/node-shell/ml/matte-models';

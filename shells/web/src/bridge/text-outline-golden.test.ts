@@ -361,16 +361,16 @@ test('an interior space (no-ink glyph) advances the pen and keeps bbox well-form
 });
 
 // Split from the static half below on purpose. This is the assertion with the
-// consequence - the weight a jsPDF embed silently gets - and pairing it with a
+// consequence - the weight a plain font embed silently gets - and pairing it with a
 // SUSE-static check used to take it down with the brand pack on every profile
 // that isn't `suse`. It now reads the shell's own master and runs everywhere.
-test('axisDefaults reports a variable font’s default instance (the jsPDF-embed weight cue)', { skip: SKIP_NO_VARIABLE }, async () => {
+test('axisDefaults reports a variable font’s default instance (the font-embed weight cue)', { skip: SKIP_NO_VARIABLE }, async () => {
   // axisDefaults is an optional (v1.30) TextAPI method; this shell's impl always
   // provides it - narrow + assert that, so a shell that dropped it fails loudly.
   const axisDefaults = api.axisDefaults;
   assert.ok(axisDefaults, 'this shell must implement host.text.axisDefaults');
   // The shipped SUSE[wght] master’s fvar default is wght=100 - the weight a
-  // jsPDF embed (no axis control) will actually get. A change here means that
+  // font embed (no axis control) will actually get. A change here means that
   // embed default moved and must be reviewed deliberately, not silently.
   assert.deepEqual(await axisDefaults(VARIABLE), { wght: 100 });
 });

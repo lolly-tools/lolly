@@ -3,11 +3,11 @@
  * The landing's Cover Flow (plans/177 beat 2) - ONE source for both surfaces.
  * docs/build.ts bundles this file with esbuild into the static /info page's
  * inline covers script, and lib/docs-landing.ts imports it for the in-app
- * reader at #/docs/index. The pure geometry helper is shared with the app carousel; the static bundle
- * stays independent of the app runtime.
+ * reader at #/docs/index. Geometry and motion are shared with the app carousel;
+ * the static bundle stays independent of the app runtime.
  *
- * The motion model is the app gallery's own (components/featured-row.ts): the
- * strip is a real horizontal scroller whose scrollLeft is the single source of
+ * The shared coverflow-motion.ts model drives a real horizontal scroller. Its
+ * scrollLeft is the single source of
  * truth, and each cover's transform is a pure function of its LAYOUT offset
  * from the viewport centre - offsetLeft/offsetWidth are transform-independent,
  * so there is no feedback loop. One rAF loop owns scrollLeft in three states:
@@ -58,13 +58,9 @@
  * the Design cover, posed at Lolly's hue.
  */
 
+import { CoverflowGesture, CoverflowMotion, COVERFLOW_WHEEL_REST_MS } from './coverflow-motion.ts';
 import { COVERFLOW_TUCK as CF_TUCK, coverflowPose } from './coverflow-geometry.ts';
 
-const WHEEL_TO_VELOCITY = 14;   // px/s of spin per unit of horizontal wheel delta
-const MAX_VELOCITY = 3200;      // px/s cap so a wild flick cannot teleport the strip
-const INERTIA_FRICTION = 0.94;  // velocity decay per ~16.7 ms frame
-const INERTIA_MIN_V = 6;        // px/s; below this the coast is over
-const EASE_PER_SEC = 12;        // settle ease rate (time-based)
 const DRAG_SLOP = 8;            // px a press may travel and still count as a click
 const REST_MS = 900;            // a cover must rest centred this long before Open appears
 const HOLD_MS = 12000;          // autoplay pause after any hand input
@@ -224,14 +220,15 @@ export function mountCoverFlow(root: ParentNode): void {
   let period = 0;                 // strip distance between a cover and its clone one loop away
   let raf = 0;
   let lastTs = 0;
-  let velocity = 0;
-  let snapTarget: number | null = null;
+  const motion = new CoverflowMotion();
+  const gesture = new CoverflowGesture();
   let dragging = false;
   let dragMoved = false;
   let dragPointerId = -1;
   let dragStartX = 0;
   let lastPointerX = 0;
-  let lastMoveTs = 0;
+  let dragStartY = 0;
+  let dragAxis: 'pending' | 'horizontal' | 'vertical' = 'horizontal';
   let pendingDx = 0;              // pointer travel not yet applied - flushed once per frame
   let hold = 0;
   let hov = false;
@@ -253,7 +250,6 @@ export function mountCoverFlow(root: ParentNode): void {
     });
   }
 
-  const clampV = (v: number): number => Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, v));
   const half = (): number => strip.clientWidth / 2;
   const centerOf = (i: number): number => (geom[i]?.center ?? 0) - half();
 
@@ -286,16 +282,16 @@ export function mountCoverFlow(root: ParentNode): void {
     const shift = loopShift(curIndex(), K, n) * period;
     if (!shift) return;
     strip.scrollLeft += shift;
-    if (snapTarget !== null) snapTarget += shift;
+    motion.shift(shift);
   }
 
-  function nearestTarget(): number {
+  function nearestTarget(position = strip.scrollLeft): number {
     const h = half();
     let best = strip.scrollLeft;
     let bd = Infinity;
     for (const g of geom) {
       const target = g.center - h;
-      const dist = Math.abs(target - strip.scrollLeft);
+      const dist = Math.abs(target - position);
       if (dist < bd) { bd = dist; best = target; }
     }
     return best;
@@ -377,35 +373,23 @@ export function mountCoverFlow(root: ParentNode): void {
       // Pointer travel is applied HERE, once per frame, however many move events
       // arrived - a 120 Hz pointer on a 60 Hz screen otherwise writes scrollLeft
       // twice a frame and WebKit renders the in-between.
-      if (pendingDx) { strip.scrollLeft -= pendingDx; pendingDx = 0; }
-      rebase();
-      layout();
+      if (pendingDx) { motion.position -= pendingDx; pendingDx = 0; }
+      writeMotion();
       loop();
       return;
     }
-    if (Math.abs(velocity) > INERTIA_MIN_V) {
-      strip.scrollLeft += (velocity * dt) / 1000;
-      velocity = clampV(velocity * INERTIA_FRICTION ** (dt / 16.67));
-      if (Math.abs(velocity) < INERTIA_MIN_V) velocity = 0;
-      rebase();
-      layout();
-      loop();
-      return;
-    }
-    const target = snapTarget ?? nearestTarget();
-    const diff = target - strip.scrollLeft;
-    if (Math.abs(diff) < 0.5 || reduced) {
-      strip.scrollLeft = target;
-      snapTarget = null;
-      rebase();
-      layout();
-      lastTs = 0;
-      return;                                   // at rest: the loop stops here
-    }
-    strip.scrollLeft += diff * Math.min(1, (dt / 1000) * EASE_PER_SEC);
+    motion.reconcile(strip.scrollLeft);
+    const active = motion.advance(dt, nearestTarget, reduced);
+    writeMotion();
+    if (active) loop();
+    else lastTs = 0;
+  }
+
+  function writeMotion(): void {
+    strip.scrollLeft = motion.position;
+    motion.reconcile(strip.scrollLeft);
     rebase();
     layout();
-    loop();
   }
 
   /** Ease onto an ABSOLUTE strip index (a neighbour of the current one, usually). */
@@ -413,8 +397,8 @@ export function mountCoverFlow(root: ParentNode): void {
     if (!fan) return;
     i = Math.max(0, Math.min(all.length - 1, i));
     hold = Date.now() + HOLD_MS;
-    velocity = 0;
-    snapTarget = centerOf(i);
+    motion.reconcile(strip.scrollLeft);
+    motion.select(centerOf(i));
     loop();
   }
   /** Ease onto a REAL cover by the shortest way round the loop. */
@@ -436,6 +420,7 @@ export function mountCoverFlow(root: ParentNode): void {
     all.forEach((el) => el.setAttribute('draggable', 'false'));
     measure();
     strip.scrollLeft = centerOf(keep);
+    motion.reset(strip.scrollLeft);
     lastCur = -1;
     layout();
   }
@@ -446,7 +431,7 @@ export function mountCoverFlow(root: ParentNode): void {
     const cur = curIndex();
     measure();
     strip.scrollLeft = centerOf(cur);
-    snapTarget = null;
+    motion.reset(strip.scrollLeft);
     rebase();
     layout();
   }, { passive: true });
@@ -458,7 +443,7 @@ export function mountCoverFlow(root: ParentNode): void {
     if (!fan || raf || dragging) return;
     layout();
     clearTimeout(nativeSettleT);
-    nativeSettleT = setTimeout(() => { if (!raf && !dragging) { snapTarget = nearestTarget(); loop(); } }, 120);
+    nativeSettleT = setTimeout(() => { if (!raf && !dragging) { motion.select(nearestTarget()); loop(); } }, 120);
   }, { passive: true });
 
   // ── Input ────────────────────────────────────────────────────────────────
@@ -474,35 +459,37 @@ export function mountCoverFlow(root: ParentNode): void {
   // Horizontal wheel (trackpad swipe) spins the fan with momentum; a vertical
   // wheel ALWAYS falls through to the page - the strip never captures it.
   strip.addEventListener('wheel', (e) => {
-    if (!fan) return;
-    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    if (!fan || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
     e.preventDefault();
     hold = Date.now() + HOLD_MS;
-    snapTarget = null;
+    motion.reconcile(strip.scrollLeft);
+    motion.wheel(e.deltaX, reduced);
     if (reduced) {
-      // No momentum: move with the hand, then snap once it stops.
-      strip.scrollLeft += e.deltaX;
-      rebase();
-      layout();
+      cancelAnimationFrame(raf);
+      raf = 0;
+      lastTs = 0;
+      writeMotion();
       clearTimeout(wheelSettleT);
-      wheelSettleT = setTimeout(() => { snapTarget = nearestTarget(); loop(); }, 150);
+      wheelSettleT = setTimeout(() => { motion.select(nearestTarget()); loop(); }, COVERFLOW_WHEEL_REST_MS);
       return;
     }
-    velocity = clampV(velocity + e.deltaX * WHEEL_TO_VELOCITY);
+    if (!raf) lastTs = performance.now();
     loop();
   }, { passive: false });
 
   strip.addEventListener('pointerdown', (e) => {
-    if (!fan) return;
+    if (!fan || dragging || !e.isPrimary) return;
     if (e.pointerType !== 'touch' && e.button !== 0 && e.button !== 1) return;
-    velocity = 0;
-    snapTarget = null;
+    motion.reset(strip.scrollLeft);
+    clearTimeout(wheelSettleT);
     dragging = true;
     dragMoved = false;
     dragPointerId = e.pointerId;
     dragStartX = e.clientX;
     lastPointerX = e.clientX;
-    lastMoveTs = performance.now();
+    dragStartY = e.clientY;
+    dragAxis = e.pointerType === 'touch' ? 'pending' : 'horizontal';
+    gesture.start(e.clientX, e.timeStamp);
     pendingDx = 0;
     hold = Date.now() + HOLD_MS;
     section.classList.add('covers--dragging');
@@ -516,14 +503,17 @@ export function mountCoverFlow(root: ParentNode): void {
   strip.addEventListener('mousedown', (e) => { if (e.button === 1) e.preventDefault(); });
   strip.addEventListener('pointermove', (e) => {
     if (!dragging || e.pointerId !== dragPointerId) return;
-    const now = performance.now();
+    if (dragAxis === 'pending') {
+      const x = Math.abs(e.clientX - dragStartX), y = Math.abs(e.clientY - dragStartY);
+      if (Math.max(x, y) <= DRAG_SLOP) return;
+      dragAxis = x >= y ? 'horizontal' : 'vertical';
+    }
+    if (dragAxis === 'vertical') return;
     const dx = e.clientX - lastPointerX;
     if (Math.abs(e.clientX - dragStartX) > DRAG_SLOP) dragMoved = true;
     pendingDx += dx;
-    const dtm = now - lastMoveTs;
-    if (dtm > 0) velocity = clampV(velocity * 0.7 + ((-dx / dtm) * 1000) * 0.3);
+    gesture.move(e.clientX, e.timeStamp);
     lastPointerX = e.clientX;
-    lastMoveTs = now;
     if (e.pointerType !== 'touch') e.preventDefault();
   });
   const endDrag = (e: PointerEvent): void => {
@@ -531,7 +521,7 @@ export function mountCoverFlow(root: ParentNode): void {
     dragging = false;
     dragPointerId = -1;
     section.classList.remove('covers--dragging');
-    if (pendingDx) { strip.scrollLeft -= pendingDx; pendingDx = 0; rebase(); }
+    if (pendingDx) { motion.position -= pendingDx; pendingDx = 0; writeMotion(); }
     // Take focus on RELEASE: Chrome's own press handling still moves focus to
     // the body after a cancelled pointerdown, so a focus() there is undone by
     // the time the keys arrive. After the release it sticks, and the region's
@@ -541,10 +531,9 @@ export function mountCoverFlow(root: ParentNode): void {
     // Andy saw the whole fan outlined after a drag); the mark clears on the
     // first key or when focus leaves, so keyboard users still see the ring.
     if (e.pointerType !== 'touch') { rootEl.setAttribute('data-focus-by', 'pointer'); rootEl.focus({ preventScroll: true }); }
-    // A slow release (the hand already at rest) stops dead; only a real throw
-    // coasts. A cancelled pointer (the page took the gesture for a vertical
-    // scroll) coasts with whatever it had - stopping dead there is the jolt.
-    if (reduced || (e.type === 'pointerup' && performance.now() - lastMoveTs > 80)) velocity = 0;
+    motion.release(gesture.release(e.timeStamp, e.type !== 'pointerup' || !dragMoved, reduced));
+    lastTs = e.timeStamp;
+    if (reduced) { motion.advance(0, nearestTarget, true); writeMotion(); }
     if (!dragMoved && e.type === 'pointerup' && e.button === 0) {
       // Cards are pointer-events:none, so map the press to a cover by its DRAWN
       // centre (layout centre + this frame's tuck) and centre that cover.
@@ -561,6 +550,7 @@ export function mountCoverFlow(root: ParentNode): void {
   };
   strip.addEventListener('pointerup', endDrag);
   strip.addEventListener('pointercancel', endDrag);
+  strip.addEventListener('lostpointercapture', endDrag);
 
   rootEl.addEventListener('mouseenter', () => { hov = true; });
   rootEl.addEventListener('mouseleave', () => { hov = false; });
@@ -570,9 +560,9 @@ export function mountCoverFlow(root: ParentNode): void {
   if (!reduced) {
     const timer = setInterval(() => {
       if (!rootEl.isConnected) { clearInterval(timer); return; }
-      if (!fan || hov || dragging || Date.now() < hold || document.hidden || Math.abs(velocity) > INERTIA_MIN_V) return;
+      if (!fan || hov || dragging || Date.now() < hold || document.hidden || motion.active) return;
       // Always one step on: the loop re-bases, so there is no "back to the start".
-      snapTarget = centerOf(curIndex() + 1);
+      motion.select(centerOf(curIndex() + 1));
       loop();
     }, AUTOPLAY_MS);
   }

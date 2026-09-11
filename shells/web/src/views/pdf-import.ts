@@ -37,6 +37,7 @@ import {
   type DesignMapOptions, type PageText, type HiddenTextFinding, type TaggedElement, 
 } from '@lolly/engine';
 import type { CullWindow } from '../../../../engine/src/pdf-svg.ts';
+import { bytesToBase64 } from '../lib/util/bytes.ts';
 import type { PdfNode, PdfFontInfo, PdfXObject, PdfShading, PdfPattern, PdfSoftMaskDef } from '../../../../engine/src/pdf-map.ts';
 import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 import { renderTilePixels, type TileSource } from '../lib/pdf-shading.ts';
@@ -631,7 +632,7 @@ async function imageBytes(desc: ImageDesc, warn: (msg: string) => void): Promise
       base = { bytes: desc.stream.getContents(), mime: 'image/jpeg', ext: 'jpg' };
     } else {
       // Flate RGB/Gray at 8bpc. Accept no predictor / TIFF-none (<=1) AND PNG
-      // predictors (>=10) - the latter is what jsPDF's addImage(png,'PNG') writes
+      // predictors (>=10) - the latter is what a PNG passed through addImage writes
       // (/Predictor 15), so this is how /verify can read Lolly's OWN PDF PNG embeds.
       // TIFF predictor 2 (2..9) stays skipped (flateImageToPng would return null).
       const pred = (desc.predictor as number) ?? 1;
@@ -1535,7 +1536,7 @@ export async function openPdfFile(file: File | Blob): Promise<PdfHandle> {
  *  inspection. `skipped`/`skippedFilters` count the image XObjects present that
  *  this path can't yet turn into pixels - TIFF-predictor Flate (Predictor 2) and
  *  JPXDecode / CCITTFax / JBIG2 - so a caller can report the coverage gap honestly
- *  instead of reading "no hit" as "nothing there". jsPDF's own FlateDecode PNG-
+ *  instead of reading "no hit" as "nothing there". A FlateDecode PNG-
  *  predictor rasters (/Predictor 15) ARE decoded now (via unfilterPng), so Lolly's
  *  own PDF PNG embeds are readable by the Lolly-Imprint scan. */
 export interface PdfImageScan {
@@ -1586,14 +1587,6 @@ export async function extractPdfImageBytes(
     }
   }
   return { images, skipped, skippedFilters: [...skippedFilters] };
-}
-
-// Base64 in chunks - String.fromCharCode(...bigArray) overflows the call stack.
-function bytesToBase64(u8: Uint8Array): string {
-  let bin = '';
-  const CHUNK = 0x8000;
-  for (let i = 0; i < u8.length; i += CHUNK) bin += String.fromCharCode(...u8.subarray(i, i + CHUNK));
-  return btoa(bin);
 }
 
 function xmlEsc(s: string): string {

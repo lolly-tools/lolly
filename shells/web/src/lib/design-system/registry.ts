@@ -122,6 +122,8 @@ export interface DesignSystemRegistry {
   bust(): void;
 }
 
+// Not `lib/util/guards.ts`'s isRecord: this narrows to a DesignSystemRecord, so it
+// also demands a string `id`.
 function isRecord(v: unknown): v is DesignSystemRecord {
   return typeof v === 'object' && v !== null && typeof (v as DesignSystemRecord).id === 'string';
 }
