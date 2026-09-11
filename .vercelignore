@@ -18,7 +18,7 @@ plans
 
 # Scoped Chromium for the CLI/MCP Tier-B raster path (`lolly install-browser`),
 # ~540 MB. Never used by the deployed function - esbuild bundles the MCP fn and
-# includeFiles is only {tools,catalog}/**. Was the bulk of the 450 MB upload.
+# includeFiles only names the content packs. Was the bulk of the 450 MB upload.
 .browsers
 
 # Prebuilt web output - Vercel regenerates it via buildCommand (outputDirectory
@@ -67,23 +67,20 @@ shells/web/public/models
 # build reads only community/ + brands/lolly-start/, never this pack. So it is pure
 # upload weight now AND it is private content that has no business in the app
 # archive. If a SUSE-profile deploy ever comes back, drop this line (its build needs
-# the pack) - the loldev clean-worktree ship also excludes it for start by simply
-# not initialising the submodule.
+# the pack) and add brands/suse/** to vercel.json's includeFiles - a clean-worktree
+# ship also excludes it for start by simply not initialising the submodule.
 brands/suse
 
-# Profile views - derived from the packs (community/, brands/**), which DO ship.
-# postinstall (use-profile --auto) rebuilds them on Vercel as real copies, so
-# vercel.json's includeFiles globs and the web build's dist copy see real files.
-/tools
-/catalog
-
-# Local sticky profile choice - a developer's `loldev profile <name>` selection.
-# NEVER ship it: `loldev ship` archives the local tree, and use-profile --auto
-# ranks the sticky file ABOVE the default profile. If it leaked into a deploy
+# Local sticky profile choice - a developer's own default for this checkout.
+# NEVER ship it: `pnpm run ship` archives the local tree, and the content resolver
+# ranks the sticky file ABOVE profiles.json's default. If it leaked into a deploy
 # whose project has no LOLLY_PROFILE env, it would ship the developer's local
 # brand (e.g. lolly-start) instead of the project's intended one - which once
 # shipped the blank brand to lolly.tools. Each project's brand is pinned by its
 # own LOLLY_PROFILE env var (or the `suse` default); this file is local-only.
+# (The repo-root /tools and /catalog views that used to be excluded here are gone -
+# plan 244. The packs they were built from ship, and vercel.json's includeFiles
+# names them directly.)
 /.lolly-profile
 
 # Local Claude Code state (tool-permission config, a scheduler lock, and - the
