@@ -1,9 +1,10 @@
 # lolly-ca
 
-Extracted from the [`lolly`](https://github.com/lolly-tools/lolly) monorepo and
-consumed there as a git submodule at `services/ca/`.
+Lives at `services/ca/` in the [`lolly`](https://github.com/lolly-tools/lolly) repository.
+Before 2026-09-11 this was its own repository, `lolly-ca`, mounted as a git submodule; its
+history came across intact and is archived at the old URL with a redirect notice.
 
-Builds **within the monorepo** - depends on sibling workspace packages
+Builds **within the repository** - depends on sibling workspace packages
 (`@lolly/engine`) / relative paths that only exist in that layout.
 
 Hosted deployments must configure `CA_RATE_LIMIT_REST_URL` and

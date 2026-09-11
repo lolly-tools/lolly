@@ -4,7 +4,7 @@ An interactive terminal shell built on Ink and React. Four top-level sections sw
 
 The one-line summary is in the header of `src/bridge.ts`: **the TUI is the CLI bridge under an interactive transport.** Same Node plus jsdom render path, same filesystem assets, same engine.
 
-Own repo `lolly-tui`, mounted in the umbrella [`lolly`](https://github.com/lolly-tools/lolly) as a git submodule at `shells/tui/`. See the [submodule caveat](#submodule-caveat).
+Lives at `shells/tui/` in the [`lolly`](https://github.com/lolly-tools/lolly) repository. See the [note](#builds-inside-the-repository-it-lives-in) at the bottom. Before 2026-09-11 this was its own repository, `lolly-tui`, mounted as a git submodule; its history came across intact and is archived at the old URL with a redirect notice.
 
 ## Entry point
 
@@ -28,13 +28,13 @@ It creates the jsdom document itself, exposes `window`, `document` and `Element`
 - **`profile`**: the CLI captures a profile once at boot. The TUI reads the persisted profile live on every `get()`, so `bindToProfile` inputs pre-fill correctly and an edit in the Profile view takes effect on the next tool mount.
 - **`clipboard`**: the CLI stubs it out, because a headless render has nowhere to paste. An interactive terminal does, so `writeText` is backed by the OS clipboard tool (`pbcopy`, `wl-copy` or `xclip`). `writeImage` still throws.
 
-Everything else is inherited, `host.capture` included: it is real in the shared CLI bridge now, backed by the same scoped Chromium, so the TUI gets it without an override. That means the [cross-submodule dependency documented for the CLI](../cli/README.md#cross-submodule-dependency-this-shell-does-not-build-without-shellsweb) is inherited too. **This shell needs `shells/cli` *and* `shells/web` checked out**, the latter because the CLI bridge imports four files out of it.
+Everything else is inherited, `host.capture` included: it is real in the shared CLI bridge now, backed by the same scoped Chromium, so the TUI gets it without an override. The CLI bridge's [dependency on `shells/web`](../cli/README.md#cross-directory-dependency-on-shellsweb-closed) is closed - it no longer imports any file from it - so this shell needs nothing beyond `shells/cli` and `packages/node-shell`. It still shares the web shell's *build output* for Tier B rasterisation, the same way the CLI does.
 
 `src/engine-render.ts` is the engine glue: `mountTool` creates the runtime, `renderSvg` turns current state into an SVG string for the terminal preview, and `exportToFile` writes a real file through the Node bridge. It shares the format split, the resvg fast path and the export Content Credentials payload with the CLI through `@lolly-tools/node-shell`, so the two cannot drift.
 
 ## Run it
 
-From the umbrella root:
+From the repo root:
 
 ```bash
 pnpm run tui
@@ -44,7 +44,7 @@ That is `pnpm --filter ./shells/tui run start`, which is `tsx src/main.tsx`. It 
 
 ## Build it
 
-Nothing to build, but note that unlike every other TypeScript project here this one is run through **`tsx`** rather than Node's native type-stripping, because the sources are `.tsx` and Node does not strip JSX. Typechecking is `tsc -p shells/tui`, part of the umbrella's `pnpm run typecheck`.
+Nothing to build, but note that unlike every other TypeScript project here this one is run through **`tsx`** rather than Node's native type-stripping, because the sources are `.tsx` and Node does not strip JSX. Typechecking is `tsc -p shells/tui`, part of the repo's `pnpm run typecheck`.
 
 ## Surprising things
 
@@ -53,14 +53,14 @@ Nothing to build, but note that unlike every other TypeScript project here this 
 - **It renders raster, PDF and video by driving the built web shell**, exactly as the CLI does, through `@lolly-tools/node-shell/webshell-render`. So those formats need `pnpm run build:web` to have run, and the Chromium download from `lolly install-browser`.
 - The alternate-screen dance means a crash that escapes the handlers can leave your terminal in the alternate buffer. `reset` fixes it.
 
-## Submodule caveat
+## Builds inside the repository it lives in
 
-This shell runs **inside the umbrella repo** and nowhere else. It resolves `@lolly/engine` and `@lolly-tools/node-shell` through npm workspaces declared in the umbrella's `package.json`, it reads the repo-root `catalog/` and `tools/` profile views, and it imports the CLI bridge across a submodule boundary, which in turn imports the web shell.
+This shell runs **inside the `lolly` repository** and nowhere else. It resolves `@lolly/engine` and `@lolly-tools/node-shell` through npm workspaces declared in the root `package.json`, it reads tool and catalogue content through `packages/node-shell/src/content-roots.ts`, and it imports the CLI bridge from `shells/cli`, which in turn shares the web shell's build output for raster rendering.
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
-# or, in an existing clone, BEFORE pnpm install:
-git submodule update --init --recursive
+git clone https://github.com/lolly-tools/lolly.git
+cd lolly
+pnpm install
 ```
 
-Commit changes to files in this directory in the `lolly-tui` repo, then commit the moved pointer in the umbrella. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) section 4.
+Commit changes to files in this directory directly, as part of the normal repo. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) section 3.

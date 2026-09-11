@@ -11,22 +11,24 @@ The package name, repo, and working directory are all `lolly`.
 ## Commands
 
 ```bash
-# This repo is split into submodules - community/ (tools), brands/suse/ (PRIVATE brand pack),
-# services/{mcp,ca}, docs/, and every shells/* live in github.com/lolly-tools/*.
-# Clone with --recurse-submodules, or:
-git submodule update --init --recursive   # REQUIRED before pnpm install (workspaces need every package.json)
-                                          # brands/suse is `update = none` (private) - SUSE devs opt in:
+# This is one repository (community/ tools, docs/, services/{mcp,ca} and every
+# shells/* are plain directories here). One exception: brands/suse/ is a PRIVATE
+# submodule, `update = none`, absent from a public clone. A plain clone needs no
+# submodule step at all. SUSE devs opt in:
 git submodule update --init --checkout brands/suse
 
 # Install the pinned package manager once (or use Corepack).
 npm install --global pnpm@11.1.2
-pnpm install                  # install workspace deps; postinstall builds the tools/ + catalog PROFILE VIEWS
+pnpm install                  # install workspace deps
 
-# Content profiles - tools/ and catalog/ at the repo root are gitignored VIEWS of the
-# active profile (profiles.json), built by scripts/use-profile.ts. NEVER commit them.
-pnpm run profile              # show active + available profiles
-pnpm run profile:suse         # community + SUSE tools, SUSE catalog (needs brands/suse mounted)
-pnpm run profile:start        # blank brand: community tools + a single neutral tokens asset (brands/lolly-start)
+# Content profiles - which tool packs and catalog a build uses (profiles.json),
+# resolved at runtime by packages/node-shell/src/content-roots.ts (contentRoots(),
+# toolFile(), catalogFile()). No view is written to disk for dev/build/test; the
+# resolver answers "where does tool <id> live" and "where is the catalog" directly.
+# LOLLY_PROFILE picks a profile explicitly; otherwise it resolves the same way
+# `use-profile --auto` used to (default profile, else the first profile whose
+# packs are complete - lolly-start on a public clone).
+pnpm run profile              # print the resolved profile and its roots
 pnpm run ingest:brand <src> --name <brand> [--register|--activate]  # hydrate a brand pack from DTCG/Tokens-Studio/Penpot tokens (scripts/ingest-brand.ts)
 
 pnpm run dev:web              # run the web shell (Vite) + live-rebuild the /info site on docs changes
@@ -73,15 +75,16 @@ The Tauri `bridge-overrides/` are `.ts` as of 2026-07-30 and typechecked, but **
 ```
 engine/     ← platform-agnostic core. Knows NOTHING about brands, the DOM, storage, or networking.
 shells/     ← host implementations. Each provides a "capability bridge" the engine calls into.
-community/  ← brand-agnostic tool definitions (manifest + template + hooks). Data, not code. Public.
+community/  ← brand-agnostic tool definitions (manifest + template + hooks). Data, not code.
 brands/     ← brand packs: suse/ (PRIVATE submodule: SUSE tools + catalog), lolly-start/ (blank, parent-owned).
-tools/      ← VIEW (gitignored): the active profile's merged tool set - community/* ∪ brands/<active>/tools/*.
-catalog/    ← VIEW (gitignored): symlink to the active brand's catalog.
+                          the resolver (packages/node-shell/src/content-roots.ts) answers, at
+                          runtime, where a tool or the catalog lives for the active profile -
+                          no tools/ or catalog/ view is written to disk.
 ```
 
 - `engine/` has **no** dependency on a DOM library, framework, or storage backend (see `engine/package.json` - only `handlebars`, `ajv`, `fflate`, and the workspace tool-author SDK `@lolly-tools/core`). Everything platform-specific is injected at runtime by the shell via the bridge.
 - **Tools never import from the engine** and never touch the DOM/filesystem/network directly. They call `host.*` methods. This is what makes one tool run unchanged in browser, Tauri, and CLI.
-- **Repository split (done - brand-pack layout since 2026-07-08):** content is mounted as packs: `community/` → public [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) (the brand-agnostic tools: the studios, utilities, qr-code, street-map, filter), `brands/suse/` → **private** `suse-lolly` (the SUSE tools + the full SUSE catalog, incl. tokens and the PremiumBeat music - private, so the old 2026-08-29 public-removal deadline no longer applies to it), plus `services/mcp`, `services/ca`, `docs/`, and every `shells/*` as public submodules. `engine/`, `schemas/`, `api/`, `scripts/`, `tests/`, `brands/lolly-start/`, and `profiles.json` stay in this parent repo. The repo-root `tools/` and `catalog/` are gitignored **profile views** built by `scripts/use-profile.ts` (symlink farm; real copies on Vercel where `postinstall` runs with `VERCEL=1`, and the views are `.vercelignore`d) - every script/shell/deploy path still consumes those two paths unchanged. `brands/suse` is `update = none` in `.gitmodules` so public clones (and CI) skip the private pack and fall back to the `lolly-start` profile. The split toolkit + day-to-day workflow live in `scripts/subrepo/` (see its README); `loldev profile <name>` switches profiles. Editing a SUSE tool touches two repos (`suse-lolly` + parent pointer); a community tool touches three (`lolly-tools` manifest, `suse-lolly` regenerated `index.json`, parent pointer). The no-cross-imports rule stays enforced so the split stays clean. **Do not add SUSE-specific or DOM-specific logic to `engine/`, and never commit the `tools/`/`catalog/` views.** The retired `lolly-suse-tools` / `lolly-suse-catalog` repos are archived (2026-08-22); `lolly-suse-catalog` was also made private, taking the PremiumBeat music off the public internet ahead of the 2026-08-29 deadline.
+- **One repository, one private submodule (folded 2026-09-11):** content is mounted as packs, not as separate repositories: `community/` (the brand-agnostic tools - the studios, utilities, qr-code, street-map, filter) and `brands/lolly-start/` (the blank starter brand) are plain directories in this repo, along with `docs/`, `services/mcp`, `services/ca` and every `shells/*`. Only `brands/suse/` stays a **private** submodule, `suse-lolly` (the SUSE tools + the full SUSE catalog, incl. tokens and the PremiumBeat music), `update = none` in `.gitmodules` so a public clone (and CI) never fetches it and falls back to the `lolly-start` profile. `engine/`, `schemas/`, `api/`, `scripts/`, `tests/`, and `profiles.json` were always in this repo and stay put. There is no repo-root `tools/`/`catalog/` view on disk any more: `packages/node-shell/src/content-roots.ts` resolves "where does tool `<id>` live" and "where is the catalog" straight from `profiles.json` at runtime (`contentRoots()`, `toolFile()`, `catalogFile()`, and `materializeInto()` for the one place a real copy is still needed - `dist/`, for static hosting). Editing a SUSE tool is one commit to `brands/suse` plus one pointer commit here; editing a community tool is one commit, in this repo, though it still needs `build:catalog:all` because the generated per-brand `index.json` is not otherwise updated for the SUSE profile. The no-cross-imports rule stays enforced so the pack split stays clean. **Do not add SUSE-specific or DOM-specific logic to `engine/`.** The ten folded repositories (`lolly-tools`, `lolly-docs`, `lolly-web`, `lolly-cli`, `lolly-tui`, `lolly-mcp-server`, `lolly-ca`, `lolly-desktop`, `lolly-mobile`, `lolly-chrome-extension`) are archived on GitHub with a redirect notice; their history came across with `git subtree add` and is browseable with `git log --follow` (see CONTRIBUTING.md's note on history before the fold). The retired `lolly-suse-tools` / `lolly-suse-catalog` repos are archived separately (2026-08-22); `lolly-suse-catalog` was also made private, taking the PremiumBeat music off the public internet ahead of the 2026-08-29 deadline.
 
 ### The Capability Bridge (`engine/src/bridge/host-v1.ts`)
 
@@ -154,13 +157,13 @@ tools/<id>/
 | `shells/cli/` | `bin/lolly.ts` (entry), `src/run.ts` (jsdom render), `src/bridge.ts` (CLI bridge) |
 | `shells/tauri-desktop`, `shells/tauri-mobile` | Tauri shells with `bridge-overrides/` (`.ts`, typechecked via `pnpm run typecheck:tauri`) |
 | `shells/tauri-shared/` | parent-owned `bridge-overrides/state-fs.ts` - the filesystem state logic BOTH Tauri shells call into, over an injected `fs` adapter |
-| `community/` | 60 brand-agnostic tool dirs (design, darkroom, filter, flythrough, qr-code, street-map, strip-data, text-helper, gradient, chart, compress-pdf, countdown-timer, url-shot, the PDF utilities, …) plus `_shared/` - public submodule `lolly-tools` |
+| `community/` | 60 brand-agnostic tool dirs (design, darkroom, filter, flythrough, qr-code, street-map, strip-data, text-helper, gradient, chart, compress-pdf, countdown-timer, url-shot, the PDF utilities, …) plus `_shared/` - a plain directory in this repo |
 | `brands/suse/` | PRIVATE submodule `suse-lolly`: `tools/` (18 SUSE tool dirs) + `catalog/` (assets incl. `assets/suse/tokens/brand.json`, fonts, previews, og, generated `tools/index.json`) |
 | `brands/lolly-start/` | parent-owned blank brand: `tools/` (voice-recorder) + a neutral `catalog/` (assets/fonts/og/previews + generated `tools/index.json`) - where the brand-import (DTCG) experience gets built |
-| `tools/`, `catalog/` | gitignored profile VIEWS of the above (scripts/use-profile.ts + profiles.json) - what every script/shell actually reads |
-| `packages/` | `core` (`@lolly-tools/core` - canonical `host-v1.ts` contract + tool-author SDK), `node-shell` (shared Node host pieces for CLI/TUI) |
+| `packages/node-shell/src/content-roots.ts` | the resolver: `contentRoots()`, `toolFile()`, `catalogFile()`, `materializeInto()` - answers where a tool or the catalog lives for the active profile, replacing the old `tools/`/`catalog/` view |
+| `packages/` | `core` (`@lolly-tools/core` - canonical `host-v1.ts` contract + tool-author SDK), `node-shell` (shared Node host pieces for CLI/TUI, incl. the resolver above) |
 | `schemas/` | `tool.schema.json`, `asset.schema.json`, `asset-ref.schema.json`, `tokens.schema.json`, `canonical-inputs.json` |
-| `scripts/` | `build-catalog-index.ts`, `checksum-assets.ts`, `validate-catalog.ts`, `use-profile.ts`, `ingest-brand.ts`, … |
+| `scripts/` | `build-catalog-index.ts`, `checksum-assets.ts`, `validate-catalog.ts`, `ingest-brand.ts`, … |
 | `api/` | Vercel serverless functions. `api/mcp/[...path].js` and `api/ca/[...path].js` are GENERATED esbuild bundles (`scripts/build-mcp-fn.ts` / `scripts/build-ca-fn.ts`) - never hand-edit them; CI's api-bundles job rebuilds and fails on drift |
 | `docs/` | architecture, authoring guides, positioning, URL mode; `build.ts` builds the info site |
 | `plans/` | **gitignored, local to the maintainer's machine** - any `plans/NN-…` reference in code comments or docs points at a file that is not in any repo. Treat those as citations you cannot follow, not as required reading |

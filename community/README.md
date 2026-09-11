@@ -1,9 +1,12 @@
 # lolly-tools
 
 Community-safe tool definitions for [Lolly](https://github.com/lolly-tools/lolly) -
-the constraint-first, template-driven creative-asset platform. Consumed by the
-`lolly` monorepo as a git submodule at `community/`, and merged into the active
-profile's `tools/` view alongside a brand pack (see the monorepo's `profiles.json`).
+the constraint-first, template-driven creative-asset platform. Lives at `community/`
+in the `lolly` repository, and is one of the tool roots the active profile resolves
+alongside a brand pack (see `profiles.json` and `packages/node-shell/src/content-roots.ts`).
+Before 2026-09-11 this was its own repository, `lolly-tools`, mounted as a git
+submodule; its history came across intact and is archived at the old URL with a
+redirect notice.
 
 These tools are **brand-agnostic**: they declare no catalog asset dependencies,
 so they run against any brand pack (SUSE, the blank `lolly-start` brand, or your

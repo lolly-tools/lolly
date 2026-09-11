@@ -1,107 +1,67 @@
 # Contributing to Lolly
 
-This file is a **router**. It tells you where things live, which repo owns the file you are about to change, and which command to run before you open a pull request. The concepts themselves are explained elsewhere and linked from here rather than repeated.
+This file is a **router**. It tells you where things live and which command to run before you open a pull request. The concepts themselves are explained elsewhere and linked from here rather than repeated.
 
 Start with [`README.md`](README.md) for what Lolly is, and [`docs/`](docs/) for the architecture and authoring guides.
 
-**Contributing one tool? You can skip the clone.** A tool is a folder: `tool.json`, `template.html`, and whatever else it needs. Write one, zip the folder, drop the zip on [lolly.tools](https://lolly.tools) or any Lolly instance, and choose **Install this tool** to run it on that device. When it works, open a pull request against [`lolly-tools`](https://github.com/lolly-tools/lolly-tools), the small public repo of community tools. The steps and the consent prompt are in [Try it without the monorepo](docs/authoring-tools.md#try-it-without-the-monorepo). Everything below is for changing the platform itself.
+**Contributing one tool? You can skip the clone.** A tool is a folder: `tool.json`, `template.html`, and whatever else it needs. Write one, zip the folder, drop the zip on [lolly.tools](https://lolly.tools) or any Lolly instance, and choose **Install this tool** to run it on that device. When it works, open a pull request against [`lolly`](https://github.com/lolly-tools/lolly) with your tool under `community/<id>/`. The steps and the consent prompt are in [Try it without cloning](docs/authoring-tools.md#try-it-without-the-monorepo). Everything below is for changing the platform itself.
 
-## 1. Clone recursively, before you install
+**History before 2026-09-11.** Until that date the shells, docs, services and the community tool pack each lived in their own repository under `github.com/lolly-tools`, mounted here as git submodules. They were folded into this one repository with `git subtree add`, which carries over every commit, author and message but not path continuity: a plain `git log -- shells/web/src/main.ts` stops at the fold. Use `git log --follow` to cross it, and `git blame --follow` for line history that predates the fold. The ten former repositories are archived on GitHub, each with a redirect note naming the commit it was folded at, and pre-fold bundles are kept for anyone who needs a clone of just one shell's history.
+
+## 1. Clone, then install
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
-
-# Already cloned without --recurse-submodules? Run this BEFORE pnpm install:
-git submodule update --init --recursive
 
 # Install the pinned package manager once (or use Corepack).
 npm install --global pnpm@11.1.2
 pnpm install
 ```
 
-The root `pnpm-workspace.yaml` lists ten workspaces, including the web, CLI, TUI and service submodules. Initialise the submodules before installing so pnpm can resolve their local packages. The pre-install bootstrap check reports any missing workspace. Tauri desktop and mobile are separate pnpm projects with their own lockfiles; run `pnpm -C shells/tauri-desktop install` or `pnpm -C shells/tauri-mobile install` before building them.
+Use the pinned pnpm version in `packageManager`. Commit `pnpm-lock.yaml` when dependencies change; CI and deployments use `pnpm install --frozen-lockfile`. Workspace dependencies use `workspace:*` so published packages cannot silently replace local code. Pass script arguments directly, for example `pnpm run profile lolly-start`.
 
-Use the pinned pnpm version in `packageManager`. Commit `pnpm-lock.yaml` when dependencies change; CI and deployments use `pnpm install --frozen-lockfile`. The hoisted module layout supports the existing renderer, native sidecar and deployment packaging scripts. Workspace dependencies use `workspace:*` so published packages cannot silently replace local code. Pass script arguments directly, for example `pnpm run profile lolly-start`.
+Tauri desktop and mobile are separate pnpm projects with their own lockfiles, deliberately kept out of the root workspace; run `pnpm -C shells/tauri-desktop install` or `pnpm -C shells/tauri-mobile install` before building them.
 
 After dependency changes, run `pnpm run update:npm-licenses`, `pnpm run build:sbom` and `pnpm run build:licenses`, and commit the generated license cache and notices. The cache records registry license metadata for exact versions, including optional packages for other operating systems.
 
-`pnpm install` runs `node scripts/use-profile.ts --auto` as its postinstall step. That is what creates the repo-root `tools/` and `catalog/` paths.
+## 2. The one private pack, and why it does not block you
 
-## 2. Content profiles, and why the private brand does not block you
+`brands/suse` is a private submodule holding SUSE's tool and asset pack, including licensed fonts and PremiumBeat music. It is declared `update = none` in [`.gitmodules`](.gitmodules), so a plain clone or `git submodule update --init --recursive` never fetches it and no credential prompt appears.
 
-Tool and asset content is mounted as packs, not baked into the tree. [`profiles.json`](profiles.json) names the combinations:
+Tool and asset content is otherwise mounted as packs, resolved at build and run time from [`profiles.json`](profiles.json) by `packages/node-shell/src/content-roots.ts` - there is no repo-root `tools/`/`catalog/` view written to disk:
 
 | Profile | Tool roots | Catalog |
 |---|---|---|
 | `suse` (the declared default) | `community` + `brands/suse/tools` | `brands/suse/catalog` |
 | `lolly-start` | `community` + `brands/lolly-start/tools` | `brands/lolly-start/catalog` |
 
-`brands/suse` is a private repository and is declared `update = none` in [`.gitmodules`](.gitmodules), so `git submodule update --init --recursive` skips it and no credential prompt appears. That leaves the default `suse` profile incomplete on your machine, which `scripts/use-profile.ts` handles deliberately rather than by accident: under `--auto` it checks `LOLLY_PROFILE`, then the sticky choice recorded in `.lolly-profile`, then the default, and if the default's packs are not all present on disk it warns and falls back to the first profile whose packs are complete. In a public clone that is `lolly-start`, the blank starter brand. Everything builds, renders and tests from there.
+Without `brands/suse` mounted, the default `suse` profile is incomplete on your machine, which the resolver handles deliberately: it checks `LOLLY_PROFILE`, then the sticky choice from your last explicit pick, then the default, and if the default's packs are not all present on disk it falls back to the first profile whose packs are complete. In a public clone that is `lolly-start`, the blank starter brand. Everything builds, renders and tests from there.
 
 Switch explicitly at any time:
 
 ```bash
-pnpm run profile          # show the active profile and what is available
-pnpm run profile:start    # blank starter brand, community tools only
-pnpm run profile:suse     # needs: git submodule update --init --checkout brands/suse
+pnpm run profile              # print the resolved profile and its roots
+LOLLY_PROFILE=lolly-start pnpm run dev:web    # blank starter brand, community tools only
+LOLLY_PROFILE=suse pnpm run dev:web           # needs: git submodule update --init --checkout brands/suse
 ```
 
-## 3. Read this before you edit anything under `tools/` or `catalog/`
+## 3. Where your changes go
 
-> **`tools/` and `catalog/` at the repo root are gitignored symlink VIEWS.** They are generated by `scripts/use-profile.ts` and listed in `.gitignore`. `catalog` is a symlink to the active brand's catalog directory. `tools/` is a directory of per-tool symlinks merged from the profile's tool roots.
->
-> Editing `tools/qr-code/tool.json` therefore writes into `community/qr-code/tool.json`, which belongs to a **different git repository** (`lolly-tools`). Editing a SUSE tool through the same view writes into `brands/suse/tools/…`, in the private `suse-lolly` repo. Your editor and your grep results will show you the view path, and `git status` at the repo root will show you nothing at all, because the umbrella only sees a submodule pointer.
->
-> Work on the real path (`community/<id>/` or `brands/<brand>/tools/<id>/`) when you want to be certain where a change is landing. Never create a new file directly under the repo-root `tools/` or `catalog/`: the next profile switch deletes the view and rebuilds it.
+Almost everywhere, a change is one commit in this repository: `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, root files, `community/`, `brands/lolly-start/`, `profiles.json`, `docs/`, `services/mcp`, `services/ca`, and every `shells/*`.
 
-One exception worth knowing: for a brand tool that declares `"extends": "community"`, the view's composed `tool.json` is a real file with the `extends` marker stripped, not a symlink. Edits to that one file do not write through. Edit the pack source.
+The one exception is `brands/suse`: it is a separate, private repository (`suse-lolly`), mounted as a submodule. A change there is a commit inside `brands/suse`, then a second commit here recording the new pointer. Committing from the repo root does **not** capture edits made *inside* the submodule - git only sees the pointer.
 
-## 4. Where your changes go
-
-The umbrella pins a specific commit of each submodule, so a change is committed to *the repo that owns the file*, and then the umbrella records the new pointer. Submodule paths and URLs below are from [`.gitmodules`](.gitmodules).
-
-| You edit… | Commits to |
-|---|---|
-| `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, root files | the umbrella (`lolly`) |
-| `brands/lolly-start/`, `profiles.json` | the umbrella (`lolly`) |
-| `community/` (or a community tool via the `tools/` view) | `lolly-tools` |
-| `brands/suse/` (or a SUSE tool or asset via the views) | `suse-lolly` (private) |
-| `docs/` | `lolly-docs` |
-| `services/mcp` | `lolly-mcp-server` |
-| `services/ca` | `lolly-ca` |
-| `shells/web` | `lolly-web` |
-| `shells/cli` | `lolly-cli` |
-| `shells/tui` | `lolly-tui` |
-| `shells/tauri-desktop` | `lolly-desktop` |
-| `shells/tauri-mobile` | `lolly-mobile` |
-| `shells/chrome-extension` | `lolly-chrome-extension` |
-
-Committing from the umbrella root does not capture edits made *inside* a submodule. Git only sees the pointer there. Commit inside the submodule, then commit the moved pointer in the umbrella. A SUSE tool change touches two repos (`suse-lolly` plus the umbrella pointer); a community tool change touches three, because every brand's generated catalog index lists community tools (`lolly-tools`, the regenerated index in each brand pack, and the umbrella pointer).
-
-### `loldev`, the multi-repo helper
-
-[`scripts/subrepo/`](scripts/subrepo/README.md) holds the split toolkit and a `loldev` wrapper that does the multi-repo dance for you. Put it on your PATH:
+One case still deserves care even though it is no longer a cross-repo edit. `catalog/tools/index.json` is generated **per brand**, and every brand's index lists the community tools - so editing a community `tool.json` leaves the SUSE profile's index stale even though both live in the same repository now, and the single-profile `pnpm run build:catalog` can't see the drift because it only looks at the active profile. After any community tool change:
 
 ```bash
-ln -sf "$PWD/scripts/subrepo/loldev" /usr/local/bin/loldev
+pnpm run build:catalog:all      # rebuild every mounted profile, then restore the active one
+pnpm run validate:catalog:all   # validate every mounted profile; exits 1 on drift (the CI guard)
 ```
 
-| Command | What it does |
-|---|---|
-| `loldev status` (`st`) | what is dirty or ahead, per repo |
-| `loldev gtg -m "…"` | build the catalog, then commit and push every changed submodule and the umbrella |
-| `loldev push` | `gtg --no-build` |
-| `loldev ship -m "…"` | `gtg`, then deploy |
-| `loldev pull` (`up`) | pull the umbrella, update all submodules, rebuild the profile views |
-| `loldev profile <name>` | switch content profile |
-| `loldev build` / `validate` | catalog build / `pnpm run validate:catalog` |
-| `loldev dev` / `cli -- …` | run the web shell / run a tool headlessly |
-| `loldev help` | every command |
+A profile whose packs are not mounted is skipped rather than failed, so `brands/suse` being absent is fine.
 
-It operates on `~/Build/lolly` by default; override with `LOLLY_ROOT`.
-
-## 5. Commands to run before you open a PR
+## 4. Commands to run before you open a PR
 
 ```bash
 pnpm test          # the full suite: tests/ plus the co-located suites
@@ -116,35 +76,28 @@ node --test "tests/**/*.test.ts"
 
 An unquoted directory (`node --test tests/`) makes current Node try to load `tests` as a module instead of discovering test files. Layout, gated tests and the conventions the suite holds itself to are in [`tests/README.md`](tests/README.md).
 
-**If you touched any `tool.json` or a catalog asset:**
-
-```bash
-pnpm run build:catalog:all
-pnpm run validate:catalog:all
-```
-
-Not the singular forms. `catalog/tools/index.json` is generated **per brand**, while `build:catalog` and `validate:catalog` only ever see the active profile's view. Editing a community tool's manifest updates the index of whichever brand you happen to be on and silently leaves every other brand a version behind, and `validate:catalog` cannot detect that because it validates the active view too. The drift then surfaces with no context, on a public clone that fell back to `lolly-start`, or in CI. The `:all` variants rebuild or check every mounted profile and always restore the profile you started on, including when a rebuild throws. A profile whose packs are not mounted is skipped rather than failed, so the private `brands/suse` pack being absent is fine.
+**If you touched any `tool.json` or a catalog asset:** see section 3 above, `pnpm run build:catalog:all` and `pnpm run validate:catalog:all`, not the singular forms.
 
 **Linting is advisory.** `pnpm run lint` is Biome, and the baseline carries thousands of pre-existing findings. It is not a CI gate, a clean run is not a precondition for merging, and you should not spend your PR fixing the backlog. Keep the files you touched tidy and move on.
 
-## 6. Where does this code live
+## 5. Where does this code live
 
 | Path | What it is |
 |---|---|
-| `engine/` | The platform-agnostic core. No DOM, no storage, no networking, no brand knowledge. Owned by the umbrella. |
-| `schemas/` | JSON Schemas for `tool.json`, assets, asset refs, tokens and canonical inputs. Owned by the umbrella. |
+| `engine/` | The platform-agnostic core. No DOM, no storage, no networking, no brand knowledge. |
+| `schemas/` | JSON Schemas for `tool.json`, assets, asset refs, tokens and canonical inputs. |
 | `shells/web/` | The Vite PWA and its capability-bridge implementations. See [`shells/web/README.md`](shells/web/README.md). Other hosts sit alongside it: [`cli`](shells/cli/README.md), [`tui`](shells/tui/README.md), [`tauri-desktop`](shells/tauri-desktop/README.md), [`tauri-mobile`](shells/tauri-mobile/README.md), [`chrome-extension`](shells/chrome-extension/README.md). |
 | `community/` | Brand-agnostic tool definitions: manifest, template, optional hooks. Data, not code. See [`community/README.md`](community/README.md). |
-| `brands/` | Brand packs. [`brands/lolly-start/`](brands/lolly-start/README.md) is the parent-owned blank starter; [`brands/suse/`](brands/suse/README.md) is the private SUSE pack. |
-| `packages/core` | `@lolly-tools/core`, the tool-author SDK and the canonical `HostV1` contract. See [`packages/core/README.md`](packages/core/README.md). `packages/node-shell` holds the [shared Node host pieces](packages/node-shell/README.md). |
+| `brands/` | Brand packs. [`brands/lolly-start/`](brands/lolly-start/README.md) is the blank starter, owned here; [`brands/suse/`](brands/suse/README.md) is the private SUSE pack, a submodule. |
+| `packages/core` | `@lolly-tools/core`, the tool-author SDK and the canonical `HostV1` contract. See [`packages/core/README.md`](packages/core/README.md). `packages/node-shell` holds the [shared Node host pieces](packages/node-shell/README.md), including the content-pack resolver (`src/content-roots.ts`). |
 | `services/` | The optional hosted components: the [MCP server](services/mcp/README.md) and the [device-credential CA](services/ca/README.md). |
-| `scripts/` | Catalog build and validation, the profile switcher, brand ingest, and the [subrepo toolkit](scripts/subrepo/README.md). |
+| `scripts/` | Catalog build and validation, brand ingest, and deploy. See [`scripts/README.md`](scripts/README.md). |
 | `tests/` | Engine and contract tests, plus the fuzz harness under `tests/fuzz/`. See [`tests/README.md`](tests/README.md). |
 | `docs/` | Architecture, authoring guides, positioning, and the generator for the `/info` site. See [`docs/README.md`](docs/README.md). |
 
 Two rules hold this shape together. Tools never import from the engine and never touch the DOM, filesystem or network directly, they call `host.*`. The engine never learns about a brand, a shell or a platform. A pull request that crosses either line will be asked to move the code.
 
-## 7. Security
+## 6. Security
 
 Report vulnerabilities privately. The policy, scope and safe-harbour statement are in [`SECURITY.md`](SECURITY.md). The standing posture, the cryptographic primitives, and the design boundaries the project is explicit about, including the fact that tool hooks are not a security sandbox, are documented in [`docs/security-verification.md`](docs/security-verification.md).
 

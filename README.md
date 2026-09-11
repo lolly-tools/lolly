@@ -55,35 +55,34 @@ See `docs/positioning.md` for the full market comparison.
 
 ## Repository layout
 
-`lolly` is an **umbrella repo**: the app core lives here, and each shippable unit is a **git submodule** hosted under [github.com/lolly-tools](https://github.com/lolly-tools). Every submodule is mounted at its original path, so the monorepo builds and runs exactly as before.
+`lolly` is one repository. Every shippable unit - each shell, the community tool pack, the docs, the services - lives here as a plain directory. The one exception is `brands/suse`, a **private** git submodule: SUSE's tool and asset pack, which stays out of the public tree.
 
 ```
-lolly/                              # umbrella: engine + glue (this repo)
+lolly/
 ├── engine/                         # platform-agnostic core (the open-source heart)
 ├── packages/                       # @lolly-tools/core (tool-author SDK, the HostV1 contract) + node-shell
 ├── schemas/                        # JSON Schemas for tool.json, assets, AssetRef
-├── scripts/                        # catalog build/validate + scripts/subrepo/ split toolkit
+├── scripts/                        # catalog build/validate, brand ingest, deploy
 ├── tests/                          # engine + contract tests
 ├── api/                            # Vercel functions (mcp, ca)
-├── brands/lolly-start/             # blank starter brand (neutral tokens only), parent-owned
-├── tools/                          # VIEW: the active profile's merged tool set (gitignored)
-├── catalog/                        # VIEW: the active profile's brand catalog (gitignored)
-│                                   #  ── submodules (github.com/lolly-tools/*) ──
-├── docs/              → lolly-docs             # architecture, guides, /info generator
-├── community/         → lolly-tools            # community-safe tools (data, not code; MPL-2.0)
-├── brands/suse/       → suse-lolly             # PRIVATE: SUSE tools + brand catalog
-├── services/mcp/      → lolly-mcp-server       # Model Context Protocol server
-├── services/ca/       → lolly-ca               # device-credential Certificate Authority
+├── docs/                           # architecture, guides, /info generator
+├── community/                      # community-safe tools (data, not code; MPL-2.0)
+├── brands/
+│   ├── lolly-start/                # blank starter brand (neutral tokens only)
+│   └── suse/          → suse-lolly # PRIVATE submodule: SUSE tools + brand catalog
+├── services/
+│   ├── mcp/                        # Model Context Protocol server
+│   └── ca/                         # device-credential Certificate Authority
 └── shells/
-    ├── web/           → lolly-web              # installable PWA
-    ├── cli/           → lolly-cli              # command line
-    ├── tui/           → lolly-tui              # terminal UI
-    ├── tauri-desktop/ → lolly-desktop          # macOS / Linux / Windows
-    ├── tauri-mobile/  → lolly-mobile           # iOS / Android
-    └── chrome-extension/ → lolly-chrome-extension
+    ├── web/                        # installable PWA
+    ├── cli/                        # command line
+    ├── tui/                        # terminal UI
+    ├── tauri-desktop/               # macOS / Linux / Windows
+    ├── tauri-mobile/                # iOS / Android
+    └── chrome-extension/
 ```
 
-**Critical separation:** `engine/` knows nothing about SUSE. Brand-specific content lives in **brand packs** (`brands/suse` - private; `brands/lolly-start` - the blank starter brand), brand-agnostic tools in `community/`; the shells, services, engine and docs are MPL-2.0. The repo-root `tools/` and `catalog/` paths every script and shell consumes are **profile views** built by `scripts/use-profile.ts` from `profiles.json` - switch brands with `pnpm run profile:suse` / `pnpm run profile:start`. Keeping each unit in its own repo lets it ship on its own cadence while the umbrella pins a known-good combination.
+**Critical separation:** `engine/` knows nothing about SUSE. Brand-specific content lives in **brand packs** (`brands/suse` - private; `brands/lolly-start` - the blank starter brand), brand-agnostic tools in `community/`; the shells, services, engine and docs are MPL-2.0. There is no repo-root `tools/`/`catalog/` view on disk: `packages/node-shell/src/content-roots.ts` resolves which tool pack and catalog a build uses, from `profiles.json`, at runtime - `contentRoots()`, `toolFile()`, `catalogFile()`, and `materializeInto()` for the one place a real copy is still needed (`dist/`, for static hosting). Set `LOLLY_PROFILE=suse` or `LOLLY_PROFILE=lolly-start` to choose explicitly; otherwise it resolves the same way the old profile switcher did (the declared default, else the first profile whose packs are complete - `lolly-start` on a public clone, since `brands/suse` is absent).
 
 ## Architectural commitments
 
@@ -111,21 +110,21 @@ These decisions are settled. Changing any of them is a major undertaking:
 git clone https://github.com/lolly-tools/lolly.git && cd lolly && ./setup.sh
 ```
 
-`./setup.sh` installs the prerequisites (git, Node), checks out the submodules, runs `pnpm install` and builds a content profile - then tells you what to run next. SUSE devs add `--suse` to mount the private brand pack. Full details, the manual path and troubleshooting are in **[INSTALL.md](INSTALL.md)**.
+`./setup.sh` installs the prerequisites (git, Node), runs `pnpm install` and builds a content profile - then tells you what to run next. SUSE devs add `--suse` to mount the private brand pack. Full details, the manual path and troubleshooting are in **[INSTALL.md](INSTALL.md)**.
 
-Prefer to do it by hand? Because the shippable units are submodules, **clone recursively**:
+Prefer to do it by hand? It's a plain clone:
 
 ```bash
 # Prerequisite: Node >=22.18 or >=24 (see .nvmrc). Older Node fails pnpm install -
 # the scripts run TypeScript directly via native type-stripping. INSTALL.md has the table.
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
-# already cloned non-recursively? → git submodule update --init --recursive
+# SUSE dev with access to the private brand pack? Opt in:
+git submodule update --init --checkout brands/suse
 
 # Install the pinned package manager once (or use Corepack).
 npm install --global pnpm@11.26.0
-pnpm install                    # workspaces need every submodule's package.json, so init submodules FIRST
-                               # (postinstall picks a content profile automatically; see below)
+pnpm install                    # picks a content profile automatically; see below
 
 pnpm run dev:web                # run the web shell → then open http://localhost:5173
 pnpm run cli qr-code --url=https://suse.com --output=./qr.svg   # run a tool headlessly
@@ -134,15 +133,15 @@ pnpm run validate:catalog       # validate the catalog
 
 Once it is running, **[docs/make-something.md](docs/make-something.md)** walks a first render in about 60 seconds (no account, nothing to configure), and **[docs/quickstart.md](docs/quickstart.md)** covers making Lolly wear your own brand.
 
-**Content profiles.** `tools/` and `catalog/` are gitignored *views* assembled from the mounted packs (`profiles.json`): the private `brands/suse` pack (skipped automatically on clone if you don't have access - it's `update = none`) plus the public `community/` tools. Without SUSE access you land on the blank **lolly-start** brand and everything still builds and runs. Switch explicitly:
+**Content profiles.** Which tool pack and catalog a build uses is resolved at runtime from `profiles.json` by `packages/node-shell/src/content-roots.ts`, no view written to disk: the private `brands/suse` pack (skipped automatically on a clone if you don't have access - it's `update = none`) plus the public `community/` tools, or the blank **lolly-start** brand if `brands/suse` is absent. Everything still builds and runs either way. Switch explicitly:
 
 ```bash
-pnpm run profile          # show the active profile + what's available
-pnpm run profile:suse     # SUSE brand pack (needs: git submodule update --init --checkout brands/suse)
-pnpm run profile:start    # blank starter brand: community tools + neutral tokens
+pnpm run profile               # print the resolved profile and its roots
+LOLLY_PROFILE=suse pnpm run dev:web         # SUSE brand pack (needs: git submodule update --init --checkout brands/suse)
+LOLLY_PROFILE=lolly-start pnpm run dev:web  # blank starter brand: community tools + neutral tokens
 ```
 
-See `docs/authoring-tools.md` to build your first tool, and [Development](#development) below for the submodule workflow. Writing a tool without cloning the platform? `npm i -D @lolly-tools/core` installs the tool-author SDK from npm: the `HostV1` contract types, the manifest validator and a mock host for testing hooks headlessly (see [`packages/core/README.md`](packages/core/README.md)). A new brand pack can be generated from design tokens with `pnpm run ingest:brand` (DTCG / Tokens Studio / Penpot exports).
+See `docs/authoring-tools.md` to build your first tool, and [Development](#development) below for where each change goes. Writing a tool without cloning the platform? `npm i -D @lolly-tools/core` installs the tool-author SDK from npm: the `HostV1` contract types, the manifest validator and a mock host for testing hooks headlessly (see [`packages/core/README.md`](packages/core/README.md)). A new brand pack can be generated from design tokens with `pnpm run ingest:brand` (DTCG / Tokens Studio / Penpot exports).
 
 ## The CLI
 
@@ -163,43 +162,21 @@ Full command surface in [`docs/cli.md`](docs/cli.md); the setup path from a clea
 
 ## Development
 
-> **New contributor?** Start at **[CONTRIBUTING.md](CONTRIBUTING.md)** - it routes you through the recursive clone, content profiles, the `tools/`/`catalog/` symlink-view trap, which repo owns which file and the commands to run before a PR. Auditors and anyone touching a parser or a crypto module should read **[docs/threat-model.md](docs/threat-model.md)** and **[docs/parser-inventory.md](docs/parser-inventory.md)**.
+> **New contributor?** Start at **[CONTRIBUTING.md](CONTRIBUTING.md)** - it routes you through the clone, content profiles, which file goes where, and the commands to run before a PR. Auditors and anyone touching a parser or a crypto module should read **[docs/threat-model.md](docs/threat-model.md)** and **[docs/parser-inventory.md](docs/parser-inventory.md)**.
 
-Lolly is an umbrella repo composed of **git submodules** (see [Repository layout](#repository-layout)). That changes two things: how you clone, and where each change is committed.
+Lolly is one repository, with one private submodule (see [Repository layout](#repository-layout)). A plain clone and a normal commit are almost always what you want.
 
 **Clone / update**
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
-git submodule update --init --recursive     # in an existing clone, run BEFORE pnpm install
+git clone https://github.com/lolly-tools/lolly.git
+# SUSE dev with access to the private brand pack? Opt in, any time:
+git submodule update --init --checkout brands/suse
 ```
 
-Each submodule is checked out on its own `main`, tracking its repo under `github.com/lolly-tools/*`.
+**Where your changes go** - almost everywhere, a change is one commit in this repo. The one exception is `brands/suse`: a change there is a commit inside that submodule, then a pointer commit here recording it. See **[CONTRIBUTING.md section 4](CONTRIBUTING.md#4-where-your-changes-go)** for the full breakdown, including why a community tool change still needs `pnpm run build:catalog:all` (the generated catalog index is per brand, so a SUSE-profile build needs its own rebuild even though the tool lives in this repo).
 
-**Where your changes go** - the umbrella pins a specific commit of each submodule, so a change is committed to *the repo that owns the file*, then the umbrella records the new pointer. The full path-to-repo ownership table lives in **[CONTRIBUTING.md section 4](CONTRIBUTING.md#4-where-your-changes-go)**, which is the single source of truth for it.
-
-> ⚠️ Committing from the umbrella root does **not** capture edits made *inside* a submodule - git only sees the pointer. Commit inside the submodule, or use `loldev` (below). The `tools/` and `catalog/` views are symlinks into the packs, so editing through them flows to the right pack checkout automatically. Editing a SUSE tool touches two repos (`suse-lolly` + umbrella pointer); a community tool touches three (`lolly-tools` manifest, `suse-lolly` regenerated index, umbrella pointer).
-
-**`loldev` - one command to ship a change.** A helper that does the multi-repo dance for you. Install it on your PATH:
-
-```bash
-ln -sf "$PWD/scripts/subrepo/loldev" /usr/local/bin/loldev   # or any dir on your PATH
-```
-
-```bash
-loldev gtg -m "replaced suse logomark"   # build catalog → commit + push every changed
-                                         # submodule to its repo → commit + push the umbrella
-loldev gtg                               # same, with an empty commit message
-loldev ship -m "…"                       # gtg, THEN deploy to Vercel prod (lolly.tools); --preview for a preview URL
-loldev status                            # what's dirty / ahead, per repo
-loldev profile suse|lolly-start          # switch the content profile (rebuilds tools/ + catalog views)
-loldev pull                              # pull umbrella + update all submodules + refresh views
-loldev dev                               # run the web shell
-loldev cli -- qr-code --url=…            # run a tool headlessly
-loldev help                              # every command
-```
-
-`loldev` operates on `~/Build/lolly` by default (override with `LOLLY_ROOT`). The underlying scripts live in [`scripts/subrepo/`](scripts/subrepo/) - `sync.sh`, `status.sh`, `verify.sh`, plus `migrate.sh`/`snap-history.sh` (the one-time split).
+**Deploying.** `scripts/ship.ts` runs the pre-push gate (typecheck, the full test suite, a per-profile catalog build, the docs-shot and boot-budget checks) then deploys to Vercel. See [`scripts/README.md`](scripts/README.md).
 
 ## Current tools
 
@@ -274,10 +251,10 @@ The `utility` "Offline Utilities" section always renders last in the gallery.
 
 ## Licensing & structure
 
-Every unit now lives in its own repo under [github.com/lolly-tools](https://github.com/lolly-tools), pinned as a submodule of this umbrella (see [Repository layout](#repository-layout)).
+This is one repository (see [Repository layout](#repository-layout)), with one private submodule for the SUSE brand pack.
 
 - **Code** - `engine/`, `shells/*`, `services/*`, `docs/` - is **[MPL-2.0](LICENSE)**.
-- **Tool content ships as brand packs.** `community/` (public [`lolly-tools`](https://github.com/lolly-tools/lolly-tools)) holds the brand-agnostic tools; `brands/suse/` (private `suse-lolly`) holds the SUSE tools and catalog - including its licensed PremiumBeat music, which stays private with the pack. The repo-root `tools/` and `catalog/` are gitignored profile *views* assembled from those packs; see each pack's `NOTICE.md`.
-- **Fonts** ship inside each brand pack under the SIL Open Font License 1.1 - the SUSE pack carries the **SUSE** and **SUSE Mono** typefaces (neither the MPL nor SUSE-proprietary; "SUSE" is a SUSE trademark). They appear at `catalog/fonts/` in a built profile view.
+- **Tool content ships as brand packs.** `community/` holds the brand-agnostic tools; `brands/suse/` (private submodule `suse-lolly`) holds the SUSE tools and catalog - including its licensed PremiumBeat music, which stays private with the pack. See each pack's `NOTICE.md`.
+- **Fonts** ship inside each brand pack under the SIL Open Font License 1.1 - the SUSE pack carries the **SUSE** and **SUSE Mono** typefaces (neither the MPL nor SUSE-proprietary; "SUSE" is a SUSE trademark). They appear at `catalog/fonts/` in a build.
 
 Bundled third-party attributions are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

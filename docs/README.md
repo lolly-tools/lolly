@@ -1,14 +1,15 @@
 # Lolly documentation
 
-This directory is its own repository ([`lolly-tools/lolly-docs`](https://github.com/lolly-tools)),
-consumed by the [`lolly`](https://github.com/lolly-tools/lolly) monorepo as a git submodule at
-`docs/`. It holds the prose documentation **and** the generator for the `/info` site
-(`docs/build.ts`), which is why it only builds from within the monorepo: it reads sibling paths
-such as `engine/`, `../README.md` and `shells/web/public/info/` that exist only in that layout.
-Run `pnpm run build:info` from the repo root, never from here.
+This directory lives at `docs/` in the [`lolly`](https://github.com/lolly-tools/lolly)
+repository. Before 2026-09-11 it was its own repository, `lolly-docs`, mounted as a git
+submodule; its history came across intact and is archived at the old URL with a redirect
+notice. It holds the prose documentation **and** the generator for the `/info` site
+(`docs/build.ts`), which is why it only builds from within the repository: it reads sibling
+paths such as `engine/`, `../README.md` and `shells/web/public/info/` that exist only in
+that layout. Run `pnpm run build:info` from the repo root, never from here.
 
 New contributors should start with [`CONTRIBUTING.md`](../CONTRIBUTING.md) at the repo root, which
-owns the setup steps, the profile workflow and the submodule ownership table.
+owns the setup steps, the profile workflow and where each kind of change goes.
 
 ## How this index is grouped
 

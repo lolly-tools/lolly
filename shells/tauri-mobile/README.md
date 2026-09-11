@@ -17,7 +17,7 @@ Everything in this directory is therefore one of four things:
 
 If you are looking for a view, a style or an input control, it is in [`shells/web/src/`](../web/src/README.md). If you change something there, it changes here too.
 
-Own repo `lolly-mobile`, mounted in the umbrella [`lolly`](https://github.com/lolly-tools/lolly) as a git submodule at `shells/tauri-mobile/`. See the [submodule caveat](#submodule-caveat).
+Lives at `shells/tauri-mobile/` in the [`lolly`](https://github.com/lolly-tools/lolly) repository. See the [note](#builds-inside-the-repository-it-lives-in) at the bottom. Before 2026-09-11 this was its own repository, `lolly-mobile`, mounted as a git submodule; its history came across intact and is archived at the old URL with a redirect notice.
 
 ## Entry point
 
@@ -132,7 +132,7 @@ pnpm run build:frontend  # frontend only, into ./dist
 
 Android needs the SDK, NDK and a JDK; iOS needs Xcode and `minimumSystemVersion` 14.3 or later per `tauri.conf.json`.
 
-`tsconfig.json` here typechecks `bridge-overrides/` only - the frontend is covered by `tsc -p shells/web`. It is reached from the umbrella's `pnpm run typecheck` through `scripts/typecheck-tauri.ts` rather than as a bare `tsc -p` step, because the overrides import `@tauri-apps/api` and `@tauri-apps/plugin-fs` and **this shell is a separate pnpm project**, so a root `pnpm install --frozen-lockfile` never creates its `node_modules`. That script SKIPS with a logged reason when they are absent, so a plain clone is not punished; CI installs both Tauri shells (`--prod`) and then re-runs it with `--strict`, which fails on a skip, so the gate cannot quietly become a no-op. To run it locally:
+`tsconfig.json` here typechecks `bridge-overrides/` only - the frontend is covered by `tsc -p shells/web`. It is reached from the repo's `pnpm run typecheck` through `scripts/typecheck-tauri.ts` rather than as a bare `tsc -p` step, because the overrides import `@tauri-apps/api` and `@tauri-apps/plugin-fs` and **this shell is a separate pnpm project**, so a root `pnpm install --frozen-lockfile` never creates its `node_modules`. This is deliberate even now that every directory here is folded into one repository: adding `shells/tauri-mobile` to `pnpm-workspace.yaml` would make a plain `pnpm install` start resolving `@tauri-apps/*` for everyone. That script SKIPS with a logged reason when the Tauri `node_modules` are absent, so a plain clone is not punished; CI installs both Tauri shells (`--prod`) and then re-runs it with `--strict`, which fails on a skip, so the gate cannot quietly become a no-op. To run it locally:
 
 ```bash
 pnpm -C shells/tauri-mobile install --frozen-lockfile --prod   # once
@@ -147,14 +147,15 @@ pnpm run typecheck:tauri
 - **A state file name must not begin with a dot.** `tauri-plugin-fs` defaults `require_literal_leading_dot` to `cfg!(unix)`, true on Android, so the `$APPDATA/saved-state/**` scope cannot match a dotfile and every access to one is rejected as a forbidden path.
 - `vite.config.js` is still `.js` while `bridge-overrides/` is now `.ts`. The Vite config is a build-tool file (Biome excludes `**/*.config.js` repo-wide) and is not part of the shipped app; the overrides are.
 
-## Submodule caveat
+## Builds inside the repository it lives in
 
-This shell builds **inside the umbrella repo** and nowhere else. Its Vite root is `../web`, its overrides import `../../web/src/bridge/…`, it resolves `@lolly/engine` and `@tauri-apps/*` through the umbrella's workspaces and its own `pnpm-lock.yaml`, and it copies the repo-root `tools/` and `catalog/` profile views into `dist/`. A standalone clone of `lolly-mobile` builds nothing at all.
+This shell builds **inside the `lolly` repository** and nowhere else. Its Vite root is `../web`, its overrides import `../../web/src/bridge/…`, it resolves `@lolly/engine` through the repo's workspaces and `@tauri-apps/*` through its own separate `pnpm-lock.yaml`, and it calls `materializeInto()` (`packages/node-shell/src/content-roots.ts`) to copy a real `tools/` + `catalog/` tree into `dist/`. A copy of just this directory builds nothing at all.
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
-# or, in an existing clone, BEFORE pnpm install:
-git submodule update --init --recursive
+git clone https://github.com/lolly-tools/lolly.git
+cd lolly
+pnpm install
+pnpm -C shells/tauri-mobile install --frozen-lockfile
 ```
 
-Commit changes to files in this directory in the `lolly-mobile` repo, then commit the moved pointer in the umbrella. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) section 4.
+Commit changes to files in this directory directly, as part of the normal repo. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) section 3.

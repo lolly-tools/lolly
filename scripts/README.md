@@ -1,10 +1,10 @@
 # `scripts/`
 
-Build, validation and content-ingest scripts for the umbrella repo. There are 52 top-level TypeScript scripts here plus one shell script and two Python converters, and until now they were discoverable only by reading the `scripts` block of the root `package.json`. This file is the index.
+Build, validation and content-ingest scripts for this repo. There are 52 top-level TypeScript scripts here plus one shell script and two Python converters, and until now they were discoverable only by reading the `scripts` block of the root `package.json`. This file is the index.
 
-Everything here is owned by the umbrella (`lolly`) repo and runs on Node directly, without a build step, using Node's native type-stripping. `scripts/tsconfig.json` is what `pnpm run typecheck` uses for this directory.
+Everything here runs on Node directly, without a build step, using Node's native type-stripping. `scripts/tsconfig.json` is what `pnpm run typecheck` uses for this directory.
 
-Read this alongside [`../CONTRIBUTING.md`](../CONTRIBUTING.md), which explains the submodule layout and which repo owns which file.
+Read this alongside [`../CONTRIBUTING.md`](../CONTRIBUTING.md), which explains which file lives where.
 
 ## How to read the tables
 
@@ -13,13 +13,13 @@ Each script carries flags for the things that will surprise you:
 | Flag | Meaning |
 |---|---|
 | **DESTRUCTIVE** | Overwrites or deletes files in place. Commit or stash your work first. |
-| **submodule** | Writes into a git submodule, so the change lands in another repository. Usually `catalog/` (a symlink into the active brand pack), `community/`, `docs/` or `shells/web/`. |
+| **submodule** | Writes into the one remaining git submodule, `brands/suse`, so the change lands in a separate, private repository. |
 | **network** | Makes outbound requests. Will not work offline. |
 | **browser** | Drives a real Chromium through Playwright. Slow, and needs the browser installed. |
 | **native** | Shells out to a native toolchain (Emscripten, poppler, `sips`, Python with PyTorch). |
 | **API key** | Needs a credential in the environment. |
 
-A note on `catalog/` in the tables below: it is the gitignored symlink view of the active profile's brand catalog. Under the `suse` profile it resolves into the private `brands/suse` submodule; under `lolly-start` it resolves into `brands/lolly-start/`, which the umbrella owns. So whether a preview or OG script counts as writing into a submodule depends on which profile is active.
+A note on `catalog/` in the tables below: there is no `catalog/` directory on disk any more. It is a logical path resolved at build and run time by `packages/node-shell/src/content-roots.ts` (`catalogFile()`) from the active profile's brand pack - `brands/suse/catalog` under the `suse` profile, `brands/lolly-start/catalog` under `lolly-start`. Whether a preview or OG script counts as writing into the private submodule depends on which profile is active; `pnpm run profile` prints the resolved paths.
 
 ## Catalog build and validation
 
@@ -31,7 +31,7 @@ The manifest is always the source of truth; `catalog/tools/index.json` and the a
 | `checksum-assets.ts` | part of `build:catalog` | Recomputes the content checksums in `catalog/assets/index.json`. | DESTRUCTIVE, submodule |
 | `build-preview-bundle.ts` | part of `build:catalog`, `previews` | Builds the preview-look bundle the gallery's featured hero row and example carousels render from. | DESTRUCTIVE, submodule |
 | `validate-catalog.ts` | `validate:catalog` | Validates every `tool.json` and asset entry against the schemas, then checks the invariants schemas cannot express: checksums, file existence, `bindToProfile` fields, palette references, `replacedBy` chains, and canonical-input divergence (a warning, never an error). | |
-| `build-catalog-all.ts` | `build:catalog:all`, `validate:catalog:all` (`--check`) | Rebuilds or checks **every mounted profile's** catalog, then restores the profile you started on. This is the one to run after any community `tool.json` edit, because the index is generated per brand. Skips a profile whose packs are not mounted rather than failing. | DESTRUCTIVE, submodule |
+| `build-catalog-all.ts` | `build:catalog:all`, `validate:catalog:all` (`--check`) | Rebuilds or checks **every mounted profile's** catalog by passing `--profile=<name>` to the underlying build for each one in turn. This is the one to run after any community `tool.json` edit, because the index is generated per brand. Skips a profile whose packs are not mounted rather than failing. | DESTRUCTIVE, submodule |
 | `sign-catalog.ts` | none | Produces `catalog/tools/index.sig.json`, the ECDSA P-256/SHA-256 integrity envelope `engine/src/catalog-integrity.ts` verifies before executing tool code. Deliberately not part of `build:catalog`, and no key lives in the repo: pass `--keyfile` or set `LOLLY_CATALOG_SIGNING_KEY`. `--gen-key` writes a fresh keypair into the gitignored `keys/` and refuses to overwrite an existing one. | submodule, API key |
 | `build-readme-tools.ts` | `build:readme-tools` | Regenerates the "Current tools" section of the root `README.md` between its marker comments, from the active profile's `catalog/tools/index.json`. | DESTRUCTIVE |
 | `sync-shared-hooks.ts` | `sync:shared` | Rewrites every `// === lolly:shared <name> ===` region in a tool's `hooks.js` from its canonical source in `community/_shared/`. Idempotent, refuses CRLF files, fails loudly on malformed or nested regions. | DESTRUCTIVE, submodule |
@@ -40,10 +40,13 @@ The manifest is always the source of truth; `catalog/tools/index.json` and the a
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
-| `use-profile.ts` | `profile`, `profile:suse`, `profile:start`, `postinstall` (`--auto`) | The profile switcher. Builds the repo-root `tools/` and `catalog/` views. See [Profile resolution](#profile-resolution-and-the-lolly-profile-state-file) below. | DESTRUCTIVE |
 | `ingest-brand.ts` | `ingest:brand` | Hydrates a `brands/<name>/` pack from a DTCG, Tokens Studio or Penpot token export, optionally registering or activating it as a profile. | DESTRUCTIVE, native |
 | `build-brand-tokens.ts` | none | Emits the canonical SUSE colour tokens as a DTCG document at `catalog/assets/suse/tokens/brand.json`, reshaped from the web shell's swatch list in `shells/web/src/palette.ts` (the script's own header still names the pre-migration `palette.js`). Run `build:catalog` afterwards to checksum it. | DESTRUCTIVE, submodule |
-| `check-bootstrap.ts` | `preinstall` | Refuses `pnpm install` into a half-cloned checkout, where submodule workspace mount points have no `package.json` and npm would fail during workspace resolution with an unhelpful error. | |
+| `check-bootstrap.ts` | `preinstall` | Refuses `pnpm install` when no profile in `profiles.json` is complete on disk - the case that matters now that every pnpm workspace lives in this repository is a missing or incomplete brand pack, not a missing submodule. `brands/suse` being absent is expected and fine, since `lolly-start` covers it. | |
+
+### The content-pack resolver
+
+`packages/node-shell/src/content-roots.ts` is not a script - it is imported at build and run time - but it replaces what `use-profile.ts` used to do here, so it is worth naming: `contentRoots()` resolves the active profile from `profiles.json` and `LOLLY_PROFILE`; `toolFile()` and `catalogFile()` answer where a given tool or catalog path lives for that profile; `materializeInto()` writes a real `tools/` + `catalog/` tree, the one place a build still needs actual files on disk (`dist/`, an RPM payload, a Docker image). Nothing switches a shared view any more, so there is no state file and no restore-on-exit dance - each call just resolves against the current environment. `pnpm run profile` prints what it resolves to.
 
 ## Previews and thumbnails
 
@@ -66,7 +69,7 @@ These drive tools in a real browser and export through the app's own render path
 |---|---|---|---|
 | `build-tool-og.ts` | part of `og`, part of `build:web` | Per-tool Open Graph share cards. | DESTRUCTIVE, submodule, browser |
 | `build-view-og.ts` | part of `og`, part of `build:web` | Per-view Open Graph cards for the app's own sections. | DESTRUCTIVE, submodule, browser |
-| `build-og-all.ts` | `og:all` | Rebuilds the OG cards for every mounted profile, restoring the starting profile afterwards. | DESTRUCTIVE, submodule, browser |
+| `build-og-all.ts` | `og:all` | Rebuilds the OG cards for every mounted profile, one `--profile=<name>` pass at a time. | DESTRUCTIVE, submodule, browser |
 | `build-svg-card.ts` | `cards:svg` | Generates the animated inline-SVG card format for tools that are, at heart, a self-contained animated SVG. | DESTRUCTIVE, submodule |
 | `build-html-card.ts` | `cards:html` | The third card format, produced by running the tool through the CLI shell with `--export=html`. | DESTRUCTIVE, native |
 
@@ -128,7 +131,7 @@ These drive tools in a real browser and export through the app's own render path
 | `copy-viz-presets.ts` | none | Stages the curated MilkDrop artist presets from `node_modules/butterchurn-presets` into `shells/web/public/viz-presets/`. Depend, do not vendor: these are community works by roughly 118 authors and are never committed here. | DESTRUCTIVE, submodule |
 | `build-viz-preset-list.ts` | none | Rebuilds `scripts/viz-preset-list.json` and the matching option list in `community/audiogram/tool.json` from butterchurn's own packs, replacing what used to be a hand-assembled selection. | DESTRUCTIVE, submodule |
 | `check-bundle-budget.ts` | `check:bundle` | Regression guard on the web shell's boot-path bundle size. | |
-| `build-docs-shots.ts` | `docs:shots` | Captures, compares and credentials the docs screenshots that are declared as ordinary markdown images in the docs pages. Switches profile while it runs and restores it afterwards. | DESTRUCTIVE, submodule, browser, native |
+| `build-docs-shots.ts` | `docs:shots` | Captures, compares and credentials the docs screenshots that are declared as ordinary markdown images in the docs pages. Pins the `lolly-start` profile for the capture, since SUSE tools and assets must never reach the public docs repo. | DESTRUCTIVE, submodule, browser, native |
 | `lib/shot-compare.ts` | none | The pure comparison logic behind `build-docs-shots.ts`. | |
 | `lib/rasterize-svg-browser.ts` | none | SVG to PNG through our own render path in Chromium rather than resvg. | browser |
 | `lib/pdfrender.swift` | none | Renders page one of a PDF to PNG via Quartz, the renderer every macOS app uses. An independent ground truth for the vector audit. | native |
@@ -139,7 +142,7 @@ These drive tools in a real browser and export through the app's own render path
 
 ## Audio and media ingest
 
-All four write into `brands/lolly-start/catalog/`, which the umbrella owns, so they do not touch a submodule.
+All four write into `brands/lolly-start/catalog/`, which this repository owns, so they do not touch the private submodule.
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
@@ -151,23 +154,12 @@ All four write into `brands/lolly-start/catalog/`, which the umbrella owns, so t
 | `build-street-clips.ts` | none | Offline road and water geometry prep for the `street-map` tool, fetched from OpenStreetMap via the public Overpass API. Writes into the tool's `lib/` directory through the `tools/` view, so it lands in `community/street-map/lib/`. | DESTRUCTIVE, submodule, network |
 | `lib/zzfx-music.ts` | none | A re-export shim. The ZzFX preset bank and ZzFXM composition helpers now live in `engine/src/zzfx-compose.ts`. | |
 
-## The subrepo split toolkit
+## Profile resolution
 
-[`subrepo/`](subrepo/README.md) holds the multi-repo workflow, documented in its own README. `subrepo/loldev` is the wrapper you put on your PATH; `config.sh`, `status.sh`, `sync.sh`, `verify.sh`, `snap-history.sh` and `migrate.sh` are the pieces behind it. `loldev ship` is the only supported route to a lolly.tools deploy, because it archive-deploys the local tree (private packs included) and pins `LOLLY_PROFILE` for that one build.
+There is no state file and no view-building script any more. `packages/node-shell/src/content-roots.ts`'s `contentRoots()` resolves the active profile named in [`../profiles.json`](../profiles.json) fresh on every call, in this order: an explicit `profile` argument, then `LOLLY_PROFILE` in the environment (trimmed - the mechanism that works on Vercel), then the `default` field in `profiles.json` if its packs are all present on disk, then the first profile in `profiles.json` whose packs are all complete. That last step is the public-clone path: `brands/suse` is `update = none`, so it is absent, the declared default is incomplete, and resolution lands on `lolly-start`.
 
-## Profile resolution and the `.lolly-profile` state file
+One fail-loud exception cuts across that order: on Vercel (`$VERCEL` set) an incomplete profile is a hard failure rather than a fallback, because silently falling back there would deploy the blank brand to production. An overlay authoring error - a brand tool declaring `"extends": "community"` whose base is missing - fails the same way, rather than shipping a silent partial tool.
 
-`scripts/use-profile.ts` materialises the repo-root `tools/` and `catalog/` paths as gitignored views of one profile named in [`../profiles.json`](../profiles.json). `catalog` becomes a symlink to the brand's catalog directory, and `tools/` becomes a directory of per-tool symlinks merged from the profile's tool roots, with later roots winning on id collision so a brand pack can override a community tool.
+`toolFile()` and `catalogFile()` answer where a given path lives for the resolved profile, so most consumers never need a real `tools/`/`catalog/` tree on disk. `materializeInto()` is the one place that still writes one - a build that ships static files (`dist/`, an RPM payload, a Docker image) - and it writes a plain copy, not symlinks, since a copy is what a package manifest or a container layer can actually contain.
 
-**`.lolly-profile`** is a one-line file at the repo root holding the name of the currently active profile. It is gitignored (`.gitignore` line 249), it is the sticky record of your local choice, and it is what `pnpm run profile` prints as "Active profile". Other scripts read it too: `build-catalog-all.ts`, `build-og-all.ts` and `build-docs-shots.ts` all snapshot it before switching profiles so they can restore your choice afterwards, `shells/web/vite.config.js` reads it to know which brand it is building, and `subrepo/status.sh` and `subrepo/verify.sh` report it.
-
-When the script is given an explicit name (`pnpm run profile:suse`), that name wins outright. Under `--auto`, which is what `postinstall` runs, the resolution order is:
-
-1. **`LOLLY_PROFILE`** in the environment, trimmed. Explicit, and the mechanism that works on Vercel.
-2. **`.lolly-profile`**, the sticky local choice, but only if it names a known profile whose packs are all present on disk.
-3. **The `default`** field in `profiles.json` (`suse` today), if its packs are all present.
-4. **The first profile in `profiles.json` whose packs are all complete.** This is the public-clone path: `brands/suse` is `update = none`, so it is absent, the default is incomplete, and the fallback lands on `lolly-start` with a warning.
-
-Two deliberate fail-loud exceptions cut across that order. On Vercel (`$VERCEL` set) an incomplete profile is a hard `exit 1` rather than a fallback, whether the profile came from the default branch or from an explicitly set `LOLLY_PROFILE`, because silently falling back there would deploy the blank brand to production. And an overlay authoring error (a brand tool declaring `"extends": "community"` whose base is missing) fails the build even under `--auto`, rather than shipping a silent partial tool.
-
-Two more behaviours worth knowing. `--copy`, implied by `$VERCEL`, materialises real copies instead of symlinks, because Vercel's function-bundling globs and the tgz archive path are not symlink-safe. And a view is only ever deleted when it is recognisably ours, meaning a symlink, a symlink farm, or a copy carrying the `.lolly-view.json` marker. Real content sitting at `tools/` or `catalog/` aborts the switch instead of being clobbered.
+Retired with the old view: `scripts/use-profile.ts`, `scripts/subrepo/` (the multi-repo `loldev` toolkit - `sync.sh`, `status.sh`, `verify.sh`, `migrate.sh`, `snap-history.sh` - whose reason for existing was coordinating separate repositories), and the `.lolly-profile` sticky-choice file. Deploying now goes through `scripts/ship.ts`.

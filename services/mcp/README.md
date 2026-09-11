@@ -1,9 +1,11 @@
 # lolly-mcp-server
 
-Extracted from the [`lolly`](https://github.com/lolly-tools/lolly) monorepo and
-consumed there as a git submodule at `services/mcp/`.
+Lives at `services/mcp/` in the [`lolly`](https://github.com/lolly-tools/lolly) repository.
+Before 2026-09-11 this was its own repository, `lolly-mcp-server`, mounted as a git
+submodule; its history came across intact and is archived at the old URL with a redirect
+notice.
 
-Builds **within the monorepo** - depends on sibling workspace packages
+Builds **within the repository** - depends on sibling workspace packages
 (`@lolly/engine`) / relative paths that only exist in that layout.
 
 For agent-authored assets, use the discover → describe → validate → render

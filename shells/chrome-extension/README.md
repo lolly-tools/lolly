@@ -4,7 +4,7 @@
 
 It is the odd one out in `shells/`. It is not a host for the engine, it runs no tools, it renders nothing and it never sees a tool manifest. It is a **capability provider for the web shell**, filling in the same `capture` capability that the Tauri desktop shell fulfils with native headless Chrome. Calling it a shell is a filing convenience.
 
-Own repo `lolly-chrome-extension`, mounted in the umbrella [`lolly`](https://github.com/lolly-tools/lolly) as a git submodule at `shells/chrome-extension/`.
+Lives at `shells/chrome-extension/` in the [`lolly`](https://github.com/lolly-tools/lolly) repository. Before 2026-09-11 this was its own repository, `lolly-chrome-extension`, mounted as a git submodule; its history came across intact and is archived at the old URL with a redirect notice.
 
 ## Contents
 
@@ -43,28 +43,27 @@ The same module exposes `hasSiteCapture()` and `createExtensionSiteTransport()` 
 There is nothing to build and nothing to install:
 
 1. `chrome://extensions`, enable Developer mode, **Load unpacked**, choose this directory.
-2. Start the web shell with `pnpm run dev:web` from the umbrella root.
+2. Start the web shell with `pnpm run dev:web` from the repo root.
 3. The URL Screenshot tool un-greys in the gallery.
 
 `localhost:5173` is in the manifest's match list precisely so that this works. `PUBLISHING.md` reminds you to strip it before zipping for the Web Store.
 
 ## Surprising things
 
-- **The submodule boilerplate that used to be in this file was wrong.** It claimed a dependency on `@lolly/engine` and on monorepo-relative paths. This extension has neither. It is four plain `.js` files with no imports at all, it is a separate pnpm project, and it is the one directory under `shells/` that would load standalone. It still lives here because it is versioned and released alongside the web shell whose capability it fills.
+- **Earlier boilerplate in this file, written while this was still a separate submodule, was wrong even then.** It claimed a dependency on `@lolly/engine` and on repo-relative paths. This extension has neither. It is four plain `.js` files with no imports at all, it is a separate pnpm project, and it is the one directory under `shells/` that would load standalone. It still lives here because it is versioned and released alongside the web shell whose capability it fills.
 - **Capturing localhost and private URLs is a feature, not a hole.** The extension runs in the user's own browser, on their own network, at their own request, so `background.js` rejects only non-http(s) schemes. The SSRF concern belongs to a server-side render service, where an attacker could choose the URL, and there is no such service.
 - **It needs the `debugger` permission**, which is why it exists as an extension rather than as a content script trick. `Page.captureScreenshot` is the only way to get an accurate full-page shot at a chosen viewport and device pixel ratio. `PUBLISHING.md` carries the justification copy for each permission.
 - **The site read asks for `scripting` even though `debugger` is already granted.** `Runtime.evaluate` could have collected the same markup and returned it over CDP, at the cost of zero new permissions. It was not worth it: the collector is an async function that fetches a dozen subresources and returns megabytes of structured data, which `chrome.scripting.executeScript` hands back as a real object, and it runs *only* in the tab this extension opened, for the URL the user typed. `scripting` is also the milder of the two permissions to review and to explain.
 - Nothing is uploaded and nothing is collected. Both readings happen locally and the bytes go straight back to the page — a data URL for the screenshot, base64 blobs for the site read's assets.
 - The `content.js` relay deliberately tolerates a missing background worker: `chrome.runtime.lastError` is folded into the result posted back to the page, so the web shell surfaces a real error rather than hanging.
 
-## Submodule caveat
+## No workspace dependency, no build
 
-Unlike every other directory under `shells/`, this one has no workspace dependency and no build. It is still consumed as a git submodule, so a non-recursive clone of the umbrella leaves it empty:
+Unlike every other directory under `shells/`, this one has no workspace dependency and no build. It is four static files that need nothing beyond themselves:
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
-# or, in an existing clone:
-git submodule update --init --recursive
+git clone https://github.com/lolly-tools/lolly.git
+cd lolly/shells/chrome-extension
 ```
 
-Commit changes to files in this directory in the `lolly-chrome-extension` repo, then commit the moved pointer in the umbrella. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) section 4.
+Commit changes to files in this directory directly, as part of the normal repo. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) section 3.

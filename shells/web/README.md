@@ -2,7 +2,7 @@
 
 The Vite PWA, and the reference implementation of the v1 capability bridge. Every other shell is measured against this one: the Tauri desktop and mobile shells literally *are* this code with a few modules substituted at build time, and the CLI reuses four of its bridge files directly.
 
-Own repo `lolly-web`, mounted in the umbrella [`lolly`](https://github.com/lolly-tools/lolly) as a git submodule at `shells/web/`. See the [submodule caveat](#submodule-caveat) at the bottom before you try to build it standalone.
+Lives at `shells/web/` in the [`lolly`](https://github.com/lolly-tools/lolly) repository. It only builds from inside that checkout - see the [note](#builds-inside-the-repository-it-lives-in) at the bottom before you try anything standalone. Before 2026-09-11 this was its own repository, `lolly-web`, mounted as a git submodule; its history came across intact with `git subtree add` and is archived at the old URL with a redirect notice.
 
 ## Entry point
 
@@ -56,7 +56,7 @@ The switch is wrapped in a `try`, and a mount failure in production that looks l
 
 ## Run it
 
-From the umbrella root:
+From the repo root:
 
 ```bash
 pnpm run dev:web     # this is the one you want
@@ -69,31 +69,31 @@ pnpm run dev:web     # this is the one you want
 ## Build it
 
 ```bash
-pnpm run build:web   # from the umbrella root
+pnpm run build:web   # from the repo root
 ```
 
 That is `build:ort`, then `build:info`, then the per-tool and per-view OG card generators, then `vite build` in this workspace. Running `vite build` here on its own skips the first four.
 
-Typechecking is `tsc -p shells/web` plus `tsc -p shells/web/tsconfig.tests.json`, both part of the umbrella's `pnpm run typecheck`. The main project excludes `src/**/*.test.ts`, which is why the tests need their own config.
+Typechecking is `tsc -p shells/web` plus `tsc -p shells/web/tsconfig.tests.json`, both part of the repo's `pnpm run typecheck`. The main project excludes `src/**/*.test.ts`, which is why the tests need their own config.
 
 ## Surprising things
 
 - **Styles are plain CSS with cascade layers, and the layer order is declared exactly once.** `src/styles/app.css` opens with `@layer vendor, base, primitives, chrome, views, overrides, a11y;`. A sheet's weight comes from its layer, not from when it loaded, so a lazily injected view chunk cannot outrank `overrides` or `a11y`. `fonts.css` and `tokens.css` stay unlayered on purpose, because unlayered declarations outrank every layer and that is exactly what design tokens want. Vendor CSS must be imported into `layer(vendor)`.
 - **The service worker is hand-written**, `public/sw.js`, with four strategies chosen per request: network-first for navigations with a cached-shell fallback, cache-first for content-hashed build assets and bundled fonts, network-first with a timeout race for `/tools/` files plus a separate bucket holding tools the user pinned for offline use, then stale-while-revalidate for `/catalog/previews/`. There is no Workbox.
-- **`/tools/` and `/catalog/` are served from outside this directory.** A dev-server middleware in `vite.config.js` maps those URL prefixes onto the repo-root profile views. Those views are symlink farms built by `scripts/use-profile.ts`, so anything that copies them has to dereference.
+- **`/tools/` and `/catalog/` are served from outside this directory.** A dev-server middleware in `vite.config.js` maps those URL prefixes through `packages/node-shell/src/content-roots.ts` (`toolFile()`, `catalogFile()`) to the active profile's pack files, and the production build's `closeBundle` step calls `materializeInto()` to write a real `tools/` + `catalog/` tree into `dist/`.
 - **`src/org/` is dormant on a plain deployment.** It probes an optional control plane once, tolerantly and time-boxed, and a build without the module behaves identically. Do not assume there is a server.
 - **`src/catalog/integrity.ts` is inert unless the build pins `VITE_CATALOG_PUBLIC_KEY_JWK`**, and when a key is pinned it fails closed.
 - `html2canvas-stub.js` at the root of this directory exists to keep a transitive dependency out of the bundle. It is not a rendering path.
-- **Routing, redirects and `Cache-Control` are not configured here.** They live in the umbrella's root `vercel.json`; the Vercel project deploys from the umbrella root, so a `vercel.json` in this directory is read by nothing (one used to sit here and had silently diverged).
+- **Routing, redirects and `Cache-Control` are not configured here.** They live in this repo's root `vercel.json`; the Vercel project deploys from the repo root, so a `vercel.json` in this directory is read by nothing (one used to sit here and had silently diverged).
 
-## Submodule caveat
+## Builds inside the repository it lives in
 
-This shell builds **inside the umbrella repo** and nowhere else. It resolves `@lolly/engine` through npm workspaces declared in the umbrella's `package.json`, it imports `../../../../engine/src/…` by relative path, and it serves tool and catalogue content from the repo-root `tools/` and `catalog/` profile views. A standalone clone of `lolly-web` has none of that.
+This shell builds **inside the `lolly` repository** and nowhere else. It resolves `@lolly/engine` through npm workspaces declared in the root `package.json`, it imports `../../../../engine/src/…` by relative path, and at build time it resolves tool and catalogue content through `packages/node-shell/src/content-roots.ts`. A copy of just this directory has none of that.
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
-# or, in an existing clone, BEFORE pnpm install:
-git submodule update --init --recursive
+git clone https://github.com/lolly-tools/lolly.git
+cd lolly
+pnpm install
 ```
 
-Commit changes to files in this directory in the `lolly-web` repo, then commit the moved pointer in the umbrella. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) section 4.
+Commit changes to files in this directory directly, as part of the normal repo. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) section 3.

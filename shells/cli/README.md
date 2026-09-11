@@ -4,7 +4,7 @@ The headless shell. It renders any tool in the catalogue to a file without a bro
 
 The design claim it defends is stated in the header of `bin/lolly.ts`: **the CLI is URL mode under a different transport.** `--foo=bar` argv pairs become the same input values the web shell parses from `?foo=bar`. The engine cannot tell which transport delivered them, so the GUI and the CLI cannot drift.
 
-Own repo `lolly-cli`, mounted in the umbrella [`lolly`](https://github.com/lolly-tools/lolly) as a git submodule at `shells/cli/`. See the [submodule caveat](#submodule-caveat), which for this shell is sharper than usual.
+Lives at `shells/cli/` in the [`lolly`](https://github.com/lolly-tools/lolly) repository. See the [note](#builds-inside-the-repository-it-lives-in) at the bottom, which for this shell is sharper than usual. Before 2026-09-11 this was its own repository, `lolly-cli`, mounted as a git submodule; its history came across intact and is archived at the old URL with a redirect notice.
 
 ## Entry point
 
@@ -43,15 +43,15 @@ Three small modules carry the whole contract a script or an agent sees, and ever
 
 `applyBrandVars` is also exported from here, and `shells/tui` imports `createCliBridge` directly.
 
-### Cross-submodule dependency on `shells/web`: closed
+### Cross-directory dependency on `shells/web`: closed
 
-`src/bridge.ts` used to import four modules from the web shell by relative path, so **this shell could not be typechecked or run without `shells/web` checked out**, even though they are separate git repositories. That is done with, as of plans/202 WP1.1. No file under `shells/cli`, `shells/tui` or `packages/node-shell` imports from `shells/web` any more.
+`src/bridge.ts` used to import four modules from the web shell by relative path, so **this shell could not be typechecked or run without `shells/web` present** (a sharper problem while these were separate git repositories, mounted as submodules - a partial checkout could genuinely omit one). That is done with, as of plans/202 WP1.1. No file under `shells/cli`, `shells/tui` or `packages/node-shell` imports from `shells/web` any more.
 
 `net.ts` and `pptx.ts` went first. `pdf.ts` and `svg-ir.ts` followed the same way: the implementation moved to `packages/node-shell/src/`, which is where shared shell plumbing belongs, and the web file stayed as a re-export shim so every web import site is unchanged. `pdf.ts` needed nothing else - analyze and strip are pure pdf-lib, and the compress pass already feature-detected a canvas and skipped the image re-encode when there was none. `pdf-structure.ts` went with it, because `pdf.ts` reaches it by a lazy sibling import. `text-svg.ts` went too: `svg-ir.ts` reads three of its parsers, and every one is a pure string parse.
 
 `svg-ir.ts` was the only one that had to change shape. It reached `font-registry.ts` directly, and the registry reads IndexedDB and `document.fonts`. The font resolver is now injected as `ctx.resolveFont`: the web shim hands over `resolveVectorFont`, and this shell passes nothing, because it outlines its `<text>` upstream in `src/svg-outline.ts` through `host.text`'s own headless registry. No resolver means no outlining, which is what `canVectoriseText` already reported and what the web registry already did under jsdom.
 
-A partial submodule checkout that omits `shells/web` now leaves this shell intact. The pieces it needs are in `packages/node-shell`, which lives in the parent repo.
+The pieces this shell needs are in `packages/node-shell`, so nothing about `shells/web` beyond its build output (below) matters to it any more.
 
 There is a second, looser dependency on the web shell, this time on its *build output*. The raster tier in `src/raster.ts` has two levels. Tier A rasterises an SVG-native tool's PNG with resvg, a few-megabyte Rust module, and needs nothing else. Tier B covers everything else, meaning HTML-layout raster, JPEG, WebP, PDF and video, by driving the **built** web shell in a scoped Chromium so the bytes match a web or desktop download exactly. `packages/node-shell/src/webshell-render.ts` serves `shells/web/dist` from an ephemeral localhost server and errors clearly when there is no `index.html` there, so Tier B needs `pnpm run build:web` to have run. `--durable=1` additionally needs the TrustMark encoder model inside that dist.
 
@@ -59,7 +59,7 @@ Everything else in the bridge comes from `@lolly/engine` and `@lolly-tools/node-
 
 ## Run it
 
-From the umbrella root, no build step:
+From the repo root, no build step:
 
 ```bash
 pnpm run cli                                              # list available tools
@@ -71,11 +71,11 @@ pnpm run smoke                                            # render every catalog
 
 `pnpm run cli` is `node shells/cli/bin/lolly.ts`. The `--` matters, otherwise npm eats the flags.
 
-It reads the **active content profile's** views at the repo root, so `pnpm run profile` tells you which tools it can see. `lolly --help` prints the full flag set and the exit-code taxonomy (0 OK, 1 FAILED, 2 USAGE, 3 UNAVAILABLE_HERE, 4 REFUSED, 5 NOT_FOUND, 6 AUTH, 70 INTERNAL).
+It reads the **active content profile's** tools and catalogue through the resolver, so `pnpm run profile` tells you which tools it can see. `lolly --help` prints the full flag set and the exit-code taxonomy (0 OK, 1 FAILED, 2 USAGE, 3 UNAVAILABLE_HERE, 4 REFUSED, 5 NOT_FOUND, 6 AUTH, 70 INTERNAL).
 
 ## Build it
 
-There is nothing to build. Node runs the TypeScript directly. Typechecking is `tsc -p shells/cli`, part of the umbrella's `pnpm run typecheck`, and it compiles the two web-shell files listed above alongside this shell's own.
+There is nothing to build. Node runs the TypeScript directly. Typechecking is `tsc -p shells/cli`, part of the repo's `pnpm run typecheck`.
 
 ## Surprising things
 
@@ -90,14 +90,14 @@ There is nothing to build. Node runs the TypeScript directly. Typechecking is `t
 - **A tool ID can never be `validate`, `install-browser`, `assets`, `batch` or `smoke`.** Those five are reserved subcommands, matched before the argv is treated as a tool ID.
 - Tier B's Chromium is downloaded on request by `lolly install-browser` into a scope this shell owns. It is not your system Chrome and it is not fetched implicitly on first render.
 
-## Submodule caveat
+## Builds inside the repository it lives in
 
-This shell runs **inside the umbrella repo** and nowhere else. It resolves `@lolly/engine` and `@lolly-tools/node-shell` through npm workspaces declared in the umbrella's `package.json`, it reads the repo-root `catalog/` and `tools/` profile views, and as described above it imports four files out of `shells/web`.
+This shell runs **inside the `lolly` repository** and nowhere else. It resolves `@lolly/engine` and `@lolly-tools/node-shell` through npm workspaces declared in the root `package.json`, it reads tool and catalogue content through `packages/node-shell/src/content-roots.ts`, and as described above it imports four files out of `shells/web`.
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
-# or, in an existing clone, BEFORE pnpm install:
-git submodule update --init --recursive
+git clone https://github.com/lolly-tools/lolly.git
+cd lolly
+pnpm install
 ```
 
-Commit changes to files in this directory in the `lolly-cli` repo, then commit the moved pointer in the umbrella. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) section 4.
+Commit changes to files in this directory directly, as part of the normal repo. See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) section 3.

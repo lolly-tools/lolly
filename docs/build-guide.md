@@ -9,33 +9,19 @@ How to build Lolly for each distribution target: standalone CLI binary, desktop 
 ## Prerequisites (all targets)
 
 - <!--l:node-->**Node.js ≥ 22.18** (the 22 LTS line) **or ≥ 24**, and **npm 10+**. The repo's scripts run TypeScript sources directly (`node scripts/foo.ts`), which relies on Node's unflagged type-stripping - added in Node 22.18 and 24. Node 20 and early 22.x fail at `pnpm install`. `.nvmrc` pins `22`, so nvm users can just run `nvm install` in the repo.
-- The repo and its submodules checked out, dependencies installed - see below
+- The repo checked out, dependencies installed - see below
 
 ---
 
 ## Getting the source
 
-Lolly is a parent repo plus a set of git submodules. The parent owns `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/` and `profiles.json`; everything else is mounted from its own repository under [github.com/lolly-tools](https://github.com/lolly-tools):
+Lolly is one repository. `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `docs/`, `community/`, `brands/lolly-start/`, every `shells/*` and both services live here as plain directories. The one exception is `brands/suse`, a **private** git submodule holding the SUSE tool pack and catalog - licensed fonts and music included, which is why it stays out of the public tree.
 
-| Path | Repository | Contains |
-|---|---|---|
-| `community/` | `lolly-tools` | the brand-agnostic tool definitions |
-| `docs/` | `lolly-docs` | this documentation |
-| `shells/web` | `lolly-web` | the PWA |
-| `shells/cli` | `lolly-cli` | the scriptable CLI |
-| `shells/tui` | `lolly-tui` | the interactive terminal shell |
-| `shells/tauri-desktop` | `lolly-desktop` | the desktop app |
-| `shells/tauri-mobile` | `lolly-mobile` | the iOS / Android app |
-| `shells/chrome-extension` | `lolly-chrome-extension` | the browser extension |
-| `services/mcp` | `lolly-mcp-server` | the MCP server |
-| `services/ca` | `lolly-ca` | the Content Credentials CA |
-| `brands/suse` | `suse-lolly` | **private** - the SUSE tool pack and catalog |
-
-All of those except `brands/suse` are public, so a read-only contributor gets a complete, buildable checkout with the script (or single command) below. Write access is enforced by the host at push time, not by the checkout, so the setup is identical whether you're a maintainer of a given repo or just reading it.
+Everything except `brands/suse` is public, so a read-only contributor gets a complete, buildable checkout with the script (or single command) below. Write access is enforced by the host at push time, not by the checkout, so the setup is identical whether you're a maintainer or just reading it.
 
 ### The setup script
 
-On macOS and openSUSE, one script takes a fresh clone to a running state - it detects your package manager (<!--l:homebrew-->Homebrew or zypper), installs git and Node if they are missing or too old, initialises every public submodule, runs `pnpm install` and selects a content profile:
+On macOS and openSUSE, one script takes a fresh clone to a running state - it detects your package manager (<!--l:homebrew-->Homebrew or zypper), installs git and Node if they are missing or too old, runs `pnpm install` and selects a content profile:
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git
@@ -53,56 +39,49 @@ pnpm run dev:web           # web shell at http://localhost:5173
 
 ### By hand
 
-If you'd rather run the steps yourself, prefer SSH remotes with each submodule on a branch from the start or are on a distro the script doesn't cover:
+If you'd rather run the steps yourself, or are on a distro the script doesn't cover:
 
 ```bash
 git -c url."git@github.com:".insteadOf=https://github.com/ \
-    clone --recurse-submodules git@github.com:lolly-tools/lolly.git && \
+    clone git@github.com:lolly-tools/lolly.git && \
 cd lolly && \
 git config url."git@github.com:".insteadOf https://github.com/ && \
-git submodule foreach 'git checkout main' && \
 pnpm install
 ```
 
-What each step is for:
+`url.insteadOf` rewrites the HTTPS URL to SSH, which is safe for everyone since this is a public repo, and means the moment you get push access nothing else needs to change. Drop both `git config` lines if you'd rather authenticate over HTTPS.
 
-- **`url.insteadOf`** rewrites the HTTPS URLs recorded in `.gitmodules` to SSH. SSH clones work for public repos regardless of write access, so this is safe for everyone - and it means the submodules you *can* push to are already set up to push, with no per-repo remote fiddling later. Repeating it as a `git config` after the clone makes the rewrite stick for future `git submodule update` runs. Drop both lines if you'd rather authenticate over HTTPS.
-- **`--recurse-submodules`** checks out every submodule in the table except `brands/suse`, which is marked `update = none` in `.gitmodules` precisely so that public clones and CI skip the private pack and fall back to the neutral `lolly-start` profile.
-- **`git submodule foreach 'git checkout main'`** puts each submodule on a branch. Submodules clone in detached HEAD, and a commit made there is easy to lose. Every submodule's default branch is `main`. Note this moves each one to the remote tip, which can sit ahead of the commit the parent recorded; `git submodule update` returns them to the recorded commits if a build starts behaving oddly.
-- **`pnpm install`** must run *after* the submodules exist, because the npm workspaces resolve against a `package.json` in each one. Its `postinstall` runs `scripts/use-profile.ts --auto`, which builds the gitignored `tools/` and `catalog/` profile views - see [Configuration](/info/configuration.html).
+`pnpm install`'s postinstall check confirms the checkout is complete; a content-pack resolver (`packages/node-shell/src/content-roots.ts`) then picks a profile from `profiles.json` the first time anything reads tool or catalog content - see [Configuration](/info/configuration.html).
 
-Verify the result with `pnpm run profile` (shows the active profile) and `pnpm run cli` (lists the tools it can see).
+Verify the result with `pnpm run profile` (shows the resolved profile) and `pnpm run cli` (lists the tools it can see).
 
 ### The private SUSE brand pack
 
-`brands/suse` holds the SUSE tool pack and its catalog, including licensed fonts and music, so it lives in a private repository. If you have access, opt in explicitly:
+`brands/suse` holds the SUSE tool pack and its catalog, including licensed fonts and music, so it lives in a private repository, mounted as a submodule. If you have access, opt in explicitly:
 
 ```bash
 git submodule update --init --checkout brands/suse
-pnpm run profile:suse
+LOLLY_PROFILE=suse pnpm run dev:web
 ```
 
-(`./setup.sh --suse` does both in one go.) Without it, `pnpm run profile` reports `lolly-start` as active - the blank brand, which is the correct default for anyone not doing SUSE-specific work, and the profile the public site and CI build against.
+(`./setup.sh --suse` mounts it and selects the profile in one go.) Without it, `pnpm run profile` reports `lolly-start` as active - the blank brand, which is the correct default for anyone not doing SUSE-specific work, and the profile the public site and CI build against.
 
 ### If something fails
 
 - **`pnpm install` dies with a syntax error in a `.ts` file** - your Node is too old for type-stripping; you need ≥ 22.18 or ≥ 24 (`node -v`). With Homebrew, note `node@22` is keg-only: add `export PATH="$(brew --prefix node@22)/bin:$PATH"` to your shell profile.
-- **`Cannot find module '@lolly-tools/…'` or a workspace `package.json` is missing** - the submodules weren't checked out before `pnpm install`. Run `git submodule update --init --recursive`, then `pnpm install` again.
 - **`brands/suse` won't clone** - it's private. Drop `--suse`; you land on `lolly-start` and everything still builds and runs.
-- **A tool edit doesn't show up, or ends up in the wrong repo** - `tools/` and `catalog/` at the repo root are gitignored symlink views into the packs, so edits flow through to the pack checkout and commits belong *inside* the owning submodule - see the next section.
+- **A SUSE tool edit doesn't show up** - `brands/suse` is a separate, private repository (`suse-lolly`) mounted as a submodule. Commit *inside* it, then commit the moved pointer here - see the next section. A community tool has no such indirection: it is a plain directory in this repository, and a normal commit is enough.
 
-### Working across submodules
+### The one thing that still touches two repositories
 
-A change inside a submodule is always **two commits**: one in the submodule repository, and one in the parent to move the recorded pointer. Push the submodule first, or the parent will point at a commit nobody else can fetch.
+A change inside `brands/suse` needs **two commits**: one in that submodule, and one that moves the recorded pointer in this repository. Push the submodule first, or this repository will point at a commit nobody else can fetch. Every other directory in the tree takes a plain commit, no pointer involved.
 
-One case deserves care. `catalog/tools/index.json` is generated **per brand**, and every brand's index lists the community tools - so editing a community `tool.json` leaves every *other* brand's index stale, and the single-profile `pnpm run build:catalog` can't see the drift because it only ever looks at the active view. After any community tool change, run the all-profiles variants instead:
+One case deserves care even though it is not cross-repository. `catalog/tools/index.json` is generated **per brand**, and every brand's index lists the community tools - so editing a community `tool.json` leaves the SUSE profile's index stale, and the single-profile `pnpm run build:catalog` can't see the drift because it only ever looks at the active profile. After any community tool change, run the all-profiles variants instead:
 
 ```bash
 pnpm run build:catalog:all      # rebuild every mounted profile, then restore the active one
 pnpm run validate:catalog:all   # validate every mounted profile; exits 1 on drift (the CI guard)
 ```
-
-Day-to-day submodule workflow - syncing, status across all repos, verification - lives in `scripts/subrepo/README.md` in the parent repo.
 
 ---
 
@@ -529,13 +508,11 @@ docker login        dp.apps.rancher.io -u <username-or-sa-username> -p <access-t
 
 ### 1. Build the image
 
-`deploy/docker/web.Dockerfile` does the static build *and* the packaging in one multi-stage build, so there is no separate "run npm, then copy `dist/`" step to perform by hand. Two things it needs from you: the **build context must be the repo root**, and the content submodules must be checked out in it - a bare clone builds a shell with an empty catalog.
+`deploy/docker/web.Dockerfile` does the static build *and* the packaging in one multi-stage build, so there is no separate "run npm, then copy `dist/`" step to perform by hand. The one thing it needs from you: the **build context must be the repo root**. A plain clone already has `community/` and `brands/lolly-start/` checked out, so a `LOLLY_PROFILE=lolly-start` build needs nothing further; building the `suse` profile needs `brands/suse` mounted first (`git submodule update --init --checkout brands/suse`).
 
 ```bash
-git submodule update --init --recursive
-
 docker build -f deploy/docker/web.Dockerfile \
-  --build-arg LOLLY_PROFILE=suse \
+  --build-arg LOLLY_PROFILE=lolly-start \
   -t <your-registry>/lolly-web:0.1.0 .
 docker push <your-registry>/lolly-web:0.1.0
 ```
@@ -545,7 +522,7 @@ What the two stages do:
 - **build** - `node:26-bookworm`, pinned by digest, runs `pnpm install --frozen-lockfile` then the real `pnpm run build:web`. Deliberately not the slim variant: the optional native dependencies (sharp, onnxruntime, resvg, playwright) need build tooling slim doesn't carry.
 - **runtime** - `nginxinc/nginx-unprivileged`, also digest-pinned, running as uid 101 on port **8080**. `dist/` is copied to `/usr/share/nginx/html`, `deploy/docker/nginx.conf` becomes `conf.d/default.conf` and `deploy/docker/security-headers.conf` is copied beside it.
 
-`--build-arg LOLLY_PROFILE=suse|lolly-start` bakes one brand into the static output - theme colour, PWA chrome and the resolved `tools/` + `catalog/` content. Nothing is read at serve time, which is why the chart needs no pack, config or volume mounted for the web app; changing brand means rebuilding the image and rolling the deployment.
+`--build-arg LOLLY_PROFILE=suse|lolly-start` bakes one brand into the static output - theme colour, PWA chrome and the resolved tool and catalog content. Nothing is read at serve time, which is why the chart needs no pack, config or volume mounted for the web app; changing brand means rebuilding the image and rolling the deployment.
 
 `mcp.Dockerfile` and `ca.Dockerfile` follow the same pattern (repo-root context, digest-pinned `node:26-bookworm-slim`, non-root `node` user) and run their entry point on Node directly. Build them only if you enable those components.
 
