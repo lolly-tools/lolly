@@ -2,8 +2,8 @@
   "id": "snippet",
   "name": "Snippet",
   "description": "Turn code snippets into clean, syntax-highlighted, shareable images.",
-  "version": "1.2.3",
-  "engineVersion": "^1.0.0",
+  "version": "1.3.0",
+  "engineVersion": "^1.191.0",
   "status": "official",
   "category": "everyone",
   "tags": [
@@ -18,7 +18,14 @@
   "render": {
     "width": 1200,
     "height": 800,
-    "formats": ["png", "svg", "penpot", "jpg", "webp", "pdf"],
+    "formats": [
+      "png",
+      "svg",
+      "penpot",
+      "jpg",
+      "webp",
+      "pdf"
+    ],
     "actions": [
       "copy",
       "download",
@@ -282,5 +289,8 @@
       "type": "boolean",
       "default": false
     }
+  ],
+  "requires": [
+    "textTools"
   ]
 }

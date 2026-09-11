@@ -1,5 +1,5 @@
 {
-  "name": "Trợ Lý Văn Bản",
-  "description": "Định dạng, giải mã, băm và ẩn danh hóa văn bản - JSON, JWT và hơn thế nữa.",
-  "a11yLabel": "Trợ Lý Văn Bản - không gian làm việc JSON / YAML / Helm / JWT / Base64 / băm / ẩn danh ngay trên thiết bị"
+  "name": "Text",
+  "description": "Find, edit, understand and transform text.",
+  "a11yLabel": "Text - characters, editing, analysis and conversions"
 }

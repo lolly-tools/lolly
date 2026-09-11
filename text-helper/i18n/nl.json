@@ -1,5 +1,5 @@
 {
-  "name": "Teksthelper",
-  "description": "Formatteer, decodeer, hash en anonimiseer tekst - JSON, JWT en meer.",
-  "a11yLabel": "Teksthelper - werkbank voor JSON, YAML, Helm, JWT, Base64, hash en anonimiseren, volledig op je apparaat"
+  "name": "Text",
+  "description": "Find, edit, understand and transform text.",
+  "a11yLabel": "Text - characters, editing, analysis and conversions"
 }

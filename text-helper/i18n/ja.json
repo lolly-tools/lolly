@@ -1,5 +1,5 @@
 {
-  "name": "テキストヘルパー",
-  "description": "テキストの整形、デコード、ハッシュ化、匿名化 - JSON、JWTなど。",
-  "a11yLabel": "テキストヘルパー - オンデバイスの JSON / YAML / Helm / JWT / Base64 / ハッシュ化 / 匿名化ワークベンチ"
+  "name": "Text",
+  "description": "Find, edit, understand and transform text.",
+  "a11yLabel": "Text - characters, editing, analysis and conversions"
 }

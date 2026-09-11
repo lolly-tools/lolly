@@ -1,5 +1,5 @@
 {
-  "name": "ٹیکسٹ ہیلپر",
-  "description": "متن کو فارمیٹ، ڈی کوڈ، ہیش اور ڈی آئیڈینٹیفائی کریں - JSON، JWT اور مزید۔",
-  "a11yLabel": "ٹیکسٹ ہیلپر - آن ڈیوائس JSON / YAML / Helm / JWT / Base64 / ہیش / ڈی آئیڈینٹیفائی ورک بینچ"
+  "name": "Text",
+  "description": "Find, edit, understand and transform text.",
+  "a11yLabel": "Text - characters, editing, analysis and conversions"
 }
