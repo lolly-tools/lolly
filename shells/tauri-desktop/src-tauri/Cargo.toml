@@ -65,7 +65,7 @@ ort = "=2.0.0-rc.10"
 # fancy-regex feature keeps the pretokenizer pure Rust (no oniguruma C dep) -
 # the same no-C rule that picked snow's default-resolver.
 tokenizers = { version = "0.21", default-features = false, features = ["fancy-regex"] }
-rand = "0.8"
+rand = "0.10"
 # Nearby discovery (src/nearby.rs, plans/110 section 3): pure-Rust mDNS/DNS-SD, no Bonjour
 # daemon and no C dependency, so it builds the same on macOS/Linux/Windows. Runs its
 # own background thread; the invite exchange itself is plain std::net TCP, no async
