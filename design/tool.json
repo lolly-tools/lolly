@@ -2,7 +2,7 @@
   "id": "design",
   "name": "Design",
   "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "engineVersion": "^1.160.0",
   "status": "community",
   "category": "designer",
@@ -1975,6 +1975,13 @@
             { "value": "custom", "label": "Custom (set in the timeline)" }
           ],
           "help": "For a FRAME: how THIS slide changes into the next one, overriding the document's own Slide transition. Empty follows the deck. 'Custom (set in the timeline)' means the frame's own Enter/Exit rows in the timeline inspector are the truth and nothing derives them. Set from the artboard inspector; showFor:[] keeps it out of the sidebar. APPENDED after locked - the compact-blocks URL wire format is append-only."
+        },
+        {
+          "id": "plainText",
+          "type": "boolean",
+          "label": "Plain text",
+          "default": false,
+          "help": "Print every character as entered, including Markdown markers. Useful for linked briefs and imported copy. Appended to preserve existing compact URLs."
         }
       ],
       "default": [

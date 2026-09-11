@@ -1366,10 +1366,10 @@ function wrapLineUnits(html, tier, u) {
 // tier is active, so every other box's markup stays byte-identical to richText's.
 // The a11y shape is the field-tested SplitText pattern: the wrapper carries the
 // whole string as aria-label, every unit span is aria-hidden.
-function splitText(raw, tier) {
+function splitText(raw, tier, plain) {
   var u = { n: 0 };
   var lines = esc(raw).split('\n').map(function (ln) {
-    var rendered = richLine(ln);
+    var rendered = plain ? ln : richLine(ln);
     if (tier === 'line') {
       if (!rendered || u.n >= MAX_SPLIT_UNITS) return rendered;
       u.n++;
@@ -1385,7 +1385,8 @@ function splitText(raw, tier) {
 function textHtmlFor(b) {
   var raw = (b && b.text) || '';
   var tier = splitTierFor(b);
-  return tier ? splitText(raw, tier) : richText(raw);
+  var plain = boolVal(b && b.plainText, false);
+  return tier ? splitText(raw, tier, plain) : plain ? esc(raw) : richText(raw);
 }
 
 // An authored easing, canonicalised for the attribute: a whitelisted preset name, or
