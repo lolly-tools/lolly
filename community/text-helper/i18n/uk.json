@@ -1,5 +1,5 @@
 {
-  "name": "Текстовий помічник",
-  "description": "Форматуйте, декодуйте, хешуйте й знеособлюйте текст - JSON, JWT та інше.",
-  "a11yLabel": "Текстовий помічник - локальна робоча панель для JSON / YAML / Helm / JWT / Base64 / хешування / деідентифікації"
+  "name": "Text",
+  "description": "Find, edit, understand and transform text.",
+  "a11yLabel": "Text - characters, editing, analysis and conversions"
 }

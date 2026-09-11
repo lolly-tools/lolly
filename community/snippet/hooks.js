@@ -6,28 +6,21 @@ var EXT = {
   plain: 'txt', auto: 'txt'
 };
 
-function detectLang(code) {
-  if (/^\s*FROM\s+\S+/im.test(code)) return 'dockerfile';
-  if (/^<(!DOCTYPE|html)/i.test(code.trim())) return 'html';
-  if (/^\s*\{[\s\S]*\}\s*$/.test(code.trim()) && code.includes('"')) return 'json';
-  if (/\bdef \w+\(|^import \w|^from \w+ import|:\s*$|\bprint\(/m.test(code)) return 'python';
-  if (/\bfn \w+\(|\blet mut\b|\bimpl\b|\buse std::/m.test(code)) return 'rust';
-  if (/\bfunc \w+\(|\bpackage \w|\bfmt\.\w|\bgo \w/m.test(code)) return 'go';
-  if (/\$\(|\becho\b|\b(?:if|fi|then|done)\b.*\n|\bexport\b/m.test(code)) return 'bash';
-  if (/\{[^}]*:\s*[^;]+;/.test(code) && !code.includes('function')) return 'css';
-  if (/\binterface\b|\btype\b.*=|\b(?:string|number|boolean)\b/.test(code)) return 'typescript';
-  return 'javascript';
-}
-
 function safeJson(v) {
   return JSON.stringify(v)
     .replace(/</g, '\\u003c')
     .replace(/>/g, '\\u003e');
 }
 
-function compute(inputs) {
+async function compute(inputs) {
   var code = inputs.code || DEFAULT_CODE;
-  var lang = inputs.language === 'auto' ? detectLang(code) : (inputs.language || 'javascript');
+  var col = 0;
+  var displayCode = code.replace(/\t|\n/g, function (c, offset) {
+    if (c === '\n') { col = offset + 1; return c; }
+    var count = 2 - ((offset - col) % 2); col -= count - 1; return ' '.repeat(count);
+  });
+  var highlighted = await host.textTools.highlight(displayCode, inputs.language || 'auto', { calloutMode: inputs.calloutMode || 'off', calloutPrefixes: (inputs.calloutPrefix || '').split(',').map(function(p) { return p.trim().toLowerCase(); }).filter(Boolean) });
+  var lang = highlighted.language;
   var theme = inputs.theme || 'suse-dark';
   var windowStyle = inputs.windowStyle || 'nuremberg';
   var lineNumbers = inputs.lineNumbers !== false;
@@ -39,6 +32,7 @@ function compute(inputs) {
     : '';
 
   return {
+    highlightedCode: safeJson(highlighted.html),
     rawCode:     safeJson(code),
     language:    lang,
     theme:       theme,

@@ -1,5 +1,5 @@
 {
-  "name": "Assistant texte",
-  "description": "Formatez, décodez, hachez et anonymisez du texte - JSON, JWT et plus.",
-  "a11yLabel": "Assistant texte - atelier JSON / YAML / Helm / JWT / Base64 / hachage / anonymisation sur l'appareil"
+  "name": "Text",
+  "description": "Find, edit, understand and transform text.",
+  "a11yLabel": "Text - characters, editing, analysis and conversions"
 }

@@ -1,5 +1,5 @@
 {
-  "name": "مساعد النصوص",
-  "description": "نسّق النص وفكّ ترميزه وجزّئه وأزل هويته - JSON وJWT والمزيد.",
-  "a11yLabel": "مساعد النصوص - منضدة عمل على الجهاز لـ JSON / YAML / Helm / JWT / Base64 والتجزئة وإخفاء الهوية"
+  "name": "Text",
+  "description": "Find, edit, understand and transform text.",
+  "a11yLabel": "Text - characters, editing, analysis and conversions"
 }

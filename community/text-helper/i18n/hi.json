@@ -1,5 +1,5 @@
 {
-  "name": "टेक्स्ट हेल्पर",
-  "description": "टेक्स्ट को फ़ॉर्मैट, डिकोड, हैश और डी-आइडेंटिफ़ाई करें - JSON, JWT और अधिक।",
-  "a11yLabel": "टेक्स्ट हेल्पर - ऑन-डिवाइस JSON / YAML / Helm / JWT / Base64 / हैश / डी-आइडेंटिफ़ाई वर्कबेंच"
+  "name": "Text",
+  "description": "Find, edit, understand and transform text.",
+  "a11yLabel": "Text - characters, editing, analysis and conversions"
 }

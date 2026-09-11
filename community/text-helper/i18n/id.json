@@ -1,5 +1,5 @@
 {
-  "name": "Asisten Teks",
-  "description": "Format, decode, hash dan de-identifikasi teks - JSON, JWT dan lainnya.",
-  "a11yLabel": "Asisten Teks - workbench JSON / YAML / Helm / JWT / Base64 / hash / anonimisasi di perangkat"
+  "name": "Text",
+  "description": "Find, edit, understand and transform text.",
+  "a11yLabel": "Text - characters, editing, analysis and conversions"
 }

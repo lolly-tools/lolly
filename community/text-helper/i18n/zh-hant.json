@@ -1,5 +1,5 @@
 {
-  "name": "文字小幫手",
-  "description": "格式化、解碼、雜湊與去識別化文字 - JSON、JWT 等等。",
-  "a11yLabel": "文字小幫手 - 本機 JSON / YAML / Helm / JWT / Base64 / 雜湊 / 去識別化工作台"
+  "name": "Text",
+  "description": "Find, edit, understand and transform text.",
+  "a11yLabel": "Text - characters, editing, analysis and conversions"
 }

@@ -1,5 +1,5 @@
 {
-  "name": "Metin Yardımcısı",
-  "description": "Metni biçimlendirin, kodunu çözün, karma alın ve kimliğini gizleyin - JSON, JWT ve daha fazlası.",
-  "a11yLabel": "Metin Yardımcısı - cihaz üzerinde JSON / YAML / Helm / JWT / Base64 / hash / anonimleştirme çalışma alanı"
+  "name": "Text",
+  "description": "Find, edit, understand and transform text.",
+  "a11yLabel": "Text - characters, editing, analysis and conversions"
 }

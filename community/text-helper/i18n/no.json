@@ -1,5 +1,5 @@
 {
-  "name": "Tekstverktøy",
-  "description": "Formater, dekod, hash og avidentifiser tekst - JSON, JWT og mer.",
-  "a11yLabel": "Tekstverktøy - arbeidsområde på enheten for JSON / YAML / Helm / JWT / Base64 / hash / anonymisering"
+  "name": "Text",
+  "description": "Find, edit, understand and transform text.",
+  "a11yLabel": "Text - characters, editing, analysis and conversions"
 }
