@@ -4,6 +4,14 @@ import { existsSync, statSync, readFileSync, cpSync, readdirSync, writeFileSync,
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { materializeDirectory } from './build/materialize-directory.ts';
+// Where the active profile's tools and catalog are (plan 244): content lives in
+// mounted packs, not under a repo-root tools/ or catalog/ directory. RELATIVE import,
+// not the `@lolly-tools/node-shell` specifier: the two Tauri shells import this config
+// from ../web/vite.config.js and are separate pnpm projects that do not depend on
+// node-shell, so a bare specifier would not resolve in either of their builds.
+import {
+  catalogFile, materializeInto, toolFile,
+} from '../../packages/node-shell/src/content-roots.ts';
 
 // This file's directory (shells/web/). Computed from import.meta.url rather
 // than the __dirname global only Vite's config bundler shims in, so plain node
@@ -29,7 +37,7 @@ if (process.env.LOLLY_RELEASE_BUILD === '1') {
   if (!process.env.VITE_CATALOG_PUBLIC_KEY_JWK?.trim()) {
     throw new Error('vite.config: release builds require VITE_CATALOG_PUBLIC_KEY_JWK');
   }
-  const envelope = resolve(repoRoot, 'catalog/tools/index.sig.json');
+  const envelope = catalogFile('tools/index.sig.json');
   if (!existsSync(envelope)) {
     throw new Error('vite.config: release catalog signature is missing; run scripts/sign-catalog.ts first');
   }
@@ -54,6 +62,25 @@ const MIME = {
   '.mjs':  'text/javascript',
   '.wasm': 'application/wasm',
 };
+
+/**
+ * A `/tools/<id>/<rel>`, `/catalog/<rel>` or `/schemas/<rel>` request URL onto disk.
+ * The first two go through the content resolver (they are URL namespaces the packs
+ * answer); /schemas/ is a real directory at the repo root. null when the URL is
+ * outside all three, or names a tool this profile does not mount.
+ */
+function contentFilePath(url) {
+  const segs = url.split('/').filter(Boolean).map(decodeURIComponent);
+  if (segs.some((s) => s === '..')) return null;
+  const [head, ...rest] = segs;
+  if (!rest.length) return null;
+  if (head === 'schemas') return resolve(repoRoot, 'schemas', ...rest);
+  try {
+    if (head === 'catalog') return catalogFile(rest.join('/'));
+    if (head === 'tools' && rest.length > 1) return toolFile(rest[0], rest.slice(1).join('/'));
+  } catch { /* no such tool in this profile, or no profile at all */ }
+  return null;
+}
 
 // Vite resolve.alias only rewrites JS import statements - it has no effect on
 // browser fetch() calls. This plugin adds an actual HTTP handler for /tools/,
@@ -120,8 +147,10 @@ function serveRepoStatic() {
         }
 
         if (!url?.startsWith('/tools/') && !url?.startsWith('/catalog/') && !url?.startsWith('/schemas/')) return next();
-        const filePath = resolve(repoRoot, url.slice(1));
-        if (!existsSync(filePath) || !statSync(filePath).isFile()) return next();
+        // /tools/ and /catalog/ are URL namespaces, not directories: the resolver says
+        // which pack answers each one. /schemas/ IS a real repo directory.
+        const filePath = contentFilePath(url);
+        if (!filePath || !existsSync(filePath) || !statSync(filePath).isFile()) return next();
         const data = readFileSync(filePath);
         res.setHeader('Content-Type', MIME[extname(filePath)] ?? 'application/octet-stream');
         res.setHeader('Content-Length', data.byteLength);
@@ -130,12 +159,13 @@ function serveRepoStatic() {
       });
     },
     closeBundle() {
-      for (const dir of ['catalog', 'tools', 'schemas']) {
-        const src = resolve(repoRoot, dir);
-        // dereference: tools/ and catalog are profile VIEWS (symlink farms built
-        // by scripts/use-profile.ts) - copy the real files, not the links.
-        if (existsSync(src)) materializeDirectory(src, resolve(outDir, dir));
-      }
+      // dist/ still needs REAL tools/ and catalog/ trees: the static site, the RPM
+      // payload, the Docker image, the offline manager and the service worker all
+      // serve those two paths over HTTP. This is the one copy the resolver keeps,
+      // made once per build instead of once per profile switch.
+      materializeInto(outDir);
+      const schemas = resolve(repoRoot, 'schemas');
+      if (existsSync(schemas)) materializeDirectory(schemas, resolve(outDir, 'schemas'));
     },
   };
 }
