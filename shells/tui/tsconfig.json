@@ -1,0 +1,14 @@
+{
+  "//": "The TUI runs via tsx (esbuild), not Node's native type-stripping, so it can use JSX. That's why erasableSyntaxOnly is off here (JSX is transformed, not erased) and jsx is the React 18 automatic runtime.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // "DOM" like engine/cli: the engine contract (host-v1.ts) uses DOM structural
+    // types (Element, Blob). The TUI also drives a jsdom for the render node.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "jsx": "react-jsx",
+    "erasableSyntaxOnly": false,
+    "esModuleInterop": true
+  },
+  "include": ["src/**/*", "bin/**/*"]
+}

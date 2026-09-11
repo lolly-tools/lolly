@@ -1,0 +1,31 @@
+{
+  "name": "@lolly/tui",
+  "version": "0.1.0",
+  "license": "MPL-2.0",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "lolly-tui": "./bin/lolly-tui.tsx"
+  },
+  "scripts": {
+    "start": "tsx src/main.tsx"
+  },
+  "dependencies": {
+    "@lolly-tools/node-shell": "workspace:*",
+    "@lolly/engine": "workspace:*",
+    "@resvg/resvg-js": "^2.6.2",
+    "fflate": "^0.8.3",
+    "ink": "^5.0.1",
+    "ink-text-input": "^6.0.0",
+    "jsdom": "^25.0.0",
+    "pdf-lib": "^1.17.1",
+    "playwright-core": "^1.49.0",
+    "react": "^18.3.1",
+    "@lolly-tools/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "ink-testing-library": "^4.0.0",
+    "tsx": "^4.19.2"
+  }
+}
