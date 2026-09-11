@@ -254,10 +254,13 @@ interface CliBridgeOpts {
    * it off, since capturing your own localhost is a normal thing to do there.
    */
   capturePublicOnly?: boolean;
+  /** Hosted renderers without a member AI lease omit model-backed APIs.
+   * Standalone CLI/TUI behaviour remains enabled by default. */
+  aiEnabled?: boolean;
 }
 
 export async function createCliBridge(
-  { profile = {}, dom, networkAllowlist, designVersion, capturePublicOnly = false }: CliBridgeOpts = {} as CliBridgeOpts,
+  { profile = {}, dom, networkAllowlist, designVersion, capturePublicOnly = false, aiEnabled = true }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
   const w = dom.window;
   // Pre-load the asset catalog so query/get can be synchronous-ish.
@@ -485,7 +488,7 @@ export async function createCliBridge(
   // words at the same times. ATTACHED ONLY IF the runtime resolves, like host.images.
   // Models are READ, never fetched: one that is not staged refuses by name with the
   // `lolly models fetch <family>` command (packages/node-shell/src/speech.ts).
-  const speech = createNodeSpeechAPI({});
+  const speech = aiEnabled ? createNodeSpeechAPI({}) : undefined;
   if (speech) host.speech = speech;
 
   // host.images - decode/resize/encode, backed by sharp (native codecs; reads HEIC/AVIF/
@@ -509,11 +512,11 @@ export async function createCliBridge(
   // The other three families in that directory (ai-detect, reword, depth) have no
   // HostV1 member today - the web shell reaches them as libs, not bridge methods
   // - so they are CLI subcommands only and nothing is invented on the bridge.
-  const upscale = createNodeUpscaleAPI();
+  const upscale = aiEnabled ? createNodeUpscaleAPI() : undefined;
   if (upscale) host.upscale = upscale;
-  const matte = createNodeMatteAPI();
+  const matte = aiEnabled ? createNodeMatteAPI() : undefined;
   if (matte) host.matte = matte;
-  const ocr = createNodeOcrAPI();
+  const ocr = aiEnabled ? createNodeOcrAPI() : undefined;
   if (ocr) host.ocr = ocr;
 
   // host.scan (v1.153, plans/162 Part 2) - on-device code reader via zxing-wasm.
