@@ -2,9 +2,10 @@
 #
 # Lolly workstation setup - macOS + openSUSE.
 #
-# Gets a fresh clone of the umbrella repo to a running state: system prerequisites
-# (git, Node), the git submodules that make up the monorepo, workspace deps, and a
-# content profile. Safe to re-run (idempotent). See INSTALL.md for the manual path
+# Gets a fresh clone to a running state: system prerequisites (git, Node), workspace
+# deps, and a content profile. The shells, services, docs and the community tool pack
+# are all in this repository; the private SUSE brand pack is the one submodule, and
+# --suse mounts it. Safe to re-run (idempotent). See INSTALL.md for the manual path
 # and troubleshooting.
 #
 #   ./setup.sh                     # public setup - community tools + the blank lolly-start brand
@@ -51,7 +52,7 @@ while [ $# -gt 0 ]; do
 done
 
 cd "$REPO_ROOT"
-[ -f package.json ] && [ -f .gitmodules ] || die "run this from the lolly repo root (no package.json/.gitmodules here)"
+[ -f package.json ] && [ -f profiles.json ] || die "run this from the lolly repo root (no package.json/profiles.json here)"
 
 # ── 0. detect OS + package manager ────────────────────────────────────────────────
 step "Detecting platform"
@@ -70,7 +71,7 @@ case "$OS" in
       [ "$(id -u)" -eq 0 ] || SUDO="sudo"
     else
       warn "Not openSUSE - this script only auto-installs prerequisites on macOS and openSUSE."
-      warn "It will still init submodules + pnpm install; install git/Node yourself first."
+      warn "It will still run pnpm install; install git/Node yourself first."
     fi
     ;;
   *) die "unsupported OS: $OS (macOS or openSUSE)" ;;
@@ -136,14 +137,11 @@ fi
 # npm is used only to bootstrap the project's pinned package manager.
 have pnpm || { have npm && npm install --global pnpm@11.1.2; } || die "Install pnpm 11.1.2 and re-run ./setup.sh"
 
-# ── 3. submodules ─────────────────────────────────────────────────────────────────
-# The ten pnpm workspaces include submodules, so these MUST exist before `pnpm install`.
-# brands/suse is `update = none` (private) → skipped here unless --suse.
-step "Initialising submodules (public)"
-git submodule sync --recursive >/dev/null 2>&1 || true
-git submodule update --init --recursive
-ok "public submodules ready (shells/*, community, docs, services/*)"
-
+# ── 3. the private SUSE brand pack (opt-in) ──────────────────────────────────────
+# Everything else - the shells, the services, docs and the community tool pack - is
+# in this repository, so a plain clone already has every pnpm workspace on disk.
+# brands/suse is the one submodule left, `update = none` (private), so it is only
+# fetched when asked for.
 if [ "$WITH_SUSE" -eq 1 ]; then
   step "Mounting the private SUSE brand pack"
   if git submodule update --init --checkout brands/suse; then

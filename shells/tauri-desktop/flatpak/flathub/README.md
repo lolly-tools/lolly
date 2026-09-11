@@ -56,12 +56,17 @@ statically linked ONNX Runtime. Budget accordingly.
 
 ## The commit pin lags by one
 
-`sources[0].commit` points at a commit of this repo. Because the manifest lives *in*
-the repo it pins, the pin necessarily refers to the **previous** commit. That is fine:
-the build never reads the manifest from the checkout, only the source. On Flathub the
-manifest lives in the `flathub/tools.lolly.Desktop` repo instead, so the cycle
-disappears entirely - but **the pin must be bumped to a pushed commit** before any
-build, or you are testing stale source.
+There is now exactly one git source: this repository. Every submodule this build used
+to pin separately is part of the tree (plan 244), so `sources[0]` is the whole of it,
+with `disable-submodules: true` to keep the private `brands/suse` pack out.
+
+`sources[0].commit` is shipped as the placeholder `REPLACE-WITH-A-PUSHED-COMMIT-OF-THIS-REPO`,
+and flatpak-builder refuses to start until you replace it. **Set it to a pushed
+commit** before any build, or you are testing source nobody else can fetch. Because
+the manifest lives *in* the repository it pins, the pin refers to the **previous**
+commit; that is fine, since the build never reads the manifest from the checkout,
+only the source. On Flathub the manifest lives in the `flathub/tools.lolly.Desktop`
+repo instead, so the cycle disappears entirely.
 
 `brands/suse` is `update = none` in `.gitmodules`, so git skips that private pack and a
 Flathub builder resolves to the public `lolly-start` profile. Do not "fix" this.

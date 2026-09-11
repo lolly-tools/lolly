@@ -3,9 +3,13 @@
 # security updates" is enabled in repo Settings → Code security - vulnerable deps
 # get an immediate fix PR to back up the CI `audit` gate (npm audit + SBOM drift).
 #
-# Scope: the PARENT repo only. Each submodule (lolly-tools/community, docs, every
-# shells/*, services/*) carries its own dependabot.yml in its own repo; the Tauri
-# Rust crates live inside the shells/* submodules, not here.
+# Scope: everything except the private brands/suse pack, which is content and the
+# only submodule left. Before plan 244 the shells, services, docs and the community
+# pack were submodules and each carried its own dependabot.yml in its own repo.
+# GitHub reads dependabot config from the repository root ONLY, so when those became
+# plain directories their own configs stopped being read by anything: the two Tauri
+# shells' entries are absorbed below and their files are deleted, because a config
+# nobody reads looks like coverage and is not.
 version: 2
 updates:
   # ── pnpm workspaces ───────────────────────────────────────────────────────
@@ -37,6 +41,64 @@ updates:
       # stamping (see plans/security-audit... / the adm-zip override rationale).
       - dependency-name: "onnxruntime-node"
         update-types: ["version-update:semver-major"]
+
+  # ── The two Tauri shells: their own npm manifests ─────────────────────────
+  # Neither shell is a pnpm workspace member (their Rust/CLI toolchain has no
+  # business in the root install - see scripts/typecheck-tauri.ts), so each has its
+  # own package.json and pnpm-lock.yaml that the root "npm" entry above does not
+  # cover. These two entries are what shells/tauri-{desktop,mobile}/.github/
+  # dependabot.yml used to do from inside their own repositories.
+  - package-ecosystem: "npm"
+    directory: "/shells/tauri-desktop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+  - package-ecosystem: "npm"
+    directory: "/shells/tauri-mobile"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  # ── The two Tauri shells: the Rust crates ─────────────────────────────────
+  # Cargo.lock lives under each shell's src-tauri/. The live
+  # origin/dependabot/cargo/src-tauri/* branches on both shell repos show this
+  # automation was running before the fold; these entries keep it running.
+  #
+  # Note for triage: root CI does not build either Rust crate (typecheck:tauri is
+  # TypeScript only, and the tagged release workflows are what compile Rust), so a
+  # green check on a cargo PR here is not a build. .github/workflows/
+  # dependabot-auto-merge.yml therefore leaves cargo PRs alone, which is how they
+  # were handled while the shells were separate repositories.
+  - package-ecosystem: "cargo"
+    directory: "/shells/tauri-desktop/src-tauri"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+  - package-ecosystem: "cargo"
+    directory: "/shells/tauri-mobile/src-tauri"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
 
   # ── GitHub Actions: the CI workflows (.github/workflows/*.yml) ─────────────
   - package-ecosystem: "github-actions"
@@ -78,13 +140,22 @@ updates:
   # the pins moving as upstream rebuilds, so a pin does not become a stale base
   # nobody patches - the failure mode that makes digest pinning worse than tags.
   #
-  # services/mcp is a SUBMODULE and carries no dependabot.yml of its own, so
-  # nothing here or there watches services/mcp/deploy/Dockerfile. Its base image
-  # is digest-pinned to the same node:24-bookworm-slim as the others, and it must
-  # be bumped BY HAND alongside these until that repo gains its own config.
-  # Do not assume the submodule is covered; it is not.
+  # services/mcp/deploy/Dockerfile is in this repository since the fold, and gets
+  # its own entry below rather than the hand-bumping it needed as a submodule.
   - package-ecosystem: "docker"
     directory: "/deploy/docker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deploy"
+
+  # The MCP service's own image, same node:24-bookworm-slim digest pin.
+  - package-ecosystem: "docker"
+    directory: "/services/mcp/deploy"
     schedule:
       interval: "weekly"
       day: "monday"

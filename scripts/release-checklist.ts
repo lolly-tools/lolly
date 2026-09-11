@@ -61,7 +61,7 @@ export function renderChecklist(inventory: Inventory): string {
     '## Repository closure',
     '',
     '- [ ] `git submodule status --recursive` has no missing (`-`) or conflicted (`U`) checkout.',
-    '- [ ] Intended changes are committed in each child repository before its parent gitlink.',
+    '- [ ] `brands/suse` is the only submodule. Its intended changes are committed there before the parent gitlink that names them.',
     '- [ ] `pnpm run audit:all`, `pnpm run secrets:scan:checkout`, and `pnpm run check:workflow-pins` pass.',
     '- [ ] `pnpm run typecheck`, `pnpm run check:maintainability`, and `pnpm run lint:changed --all` pass.',
     '',

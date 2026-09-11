@@ -57,11 +57,18 @@ jobs:
       - name: Approve + enable auto-merge for low-risk bumps
         # npm: patch/minor only. docker (digest) + github-actions: any, they are
         # digest/action-ref bumps. Majors fall through → left for the routine/human.
+        #
+        # cargo is excluded whatever the update type. The two Tauri crates arrived
+        # here with plan 244's fold, and root CI compiles neither (typecheck:tauri is
+        # TypeScript only; Rust is built by the tagged release workflows), so green
+        # checks on a cargo PR say nothing about whether it builds. While the shells
+        # were separate repos nothing auto-merged their cargo PRs either.
         if: >-
+          steps.meta.outputs.package-ecosystem != 'cargo' && (
           steps.meta.outputs.update-type == 'version-update:semver-patch' ||
           steps.meta.outputs.update-type == 'version-update:semver-minor' ||
           steps.meta.outputs.package-ecosystem == 'docker' ||
-          steps.meta.outputs.package-ecosystem == 'github_actions'
+          steps.meta.outputs.package-ecosystem == 'github_actions' )
         run: |
           gh pr review --approve "$PR_URL"
           gh pr merge --auto --squash "$PR_URL"

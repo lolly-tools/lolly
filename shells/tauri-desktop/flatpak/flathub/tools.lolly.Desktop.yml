@@ -29,17 +29,18 @@
 #                          ship webkit2gtk-4.1, GTK3, libsoup3 and OpenSSL, so no
 #                          native dependency needs building here.
 #
-# SUBMODULES ARE DECLARED ONE BY ONE, AND THAT IS DELIBERATE.
-# flatpak-builder fetches every submodule named in .gitmodules and does NOT honour
-# `update = none` - so letting it recurse makes it try to clone brands/suse, the
-# PRIVATE SUSE pack, and the build dies on a credential prompt (it did, before this
-# was written). A Flathub builder would fail identically, and must never reach that
-# repo anyway. So the top-level source sets disable-submodules and each submodule the
-# build genuinely needs is its own pinned source below.
+# ONE GIT SOURCE, AND SUBMODULES STAY DISABLED.
+# Everything this build reads is in the one repository (plan 244 folded the ten
+# public submodules back in). brands/suse is still a submodule, and flatpak-builder
+# fetches every submodule named in .gitmodules without honouring `update = none` -
+# so recursion makes it try to clone the PRIVATE SUSE pack and the build dies on a
+# credential prompt (it did, before this was written). A Flathub builder would fail
+# identically, and must never reach that repository anyway. Hence
+# disable-submodules on the single source below.
 #
-# Omitted on purpose: brands/suse (private - its absence is what makes the build
-# resolve to the public lolly-start profile), shells/chrome-extension and
-# shells/tauri-mobile (neither is an pnpm workspace member nor used by this build).
+# shells/chrome-extension and shells/tauri-mobile now arrive with the tree. Neither
+# is a pnpm workspace member nor used by this build, so they cost a little checkout
+# and nothing else.
 id: tools.lolly.Desktop
 
 # Was tools.lolly.desktop until 2026-08-28. flatpak-builder-lint rejects an app id
@@ -227,53 +228,28 @@ modules:
       - install -Dm644 LICENSE /app/share/licenses/tools.lolly.Desktop/LICENSE
 
     sources:
-      # The umbrella repo: engine/, schemas/, scripts/, profiles.json, the
-      # brands/lolly-start pack, and the packages/* workspaces.
+      # One repository, one tree. engine/, schemas/, scripts/, profiles.json, the
+      # brands/lolly-start pack, packages/*, every shells/* and services/*, the
+      # community tool pack and docs/ are all in it since plan 244 folded the ten
+      # public submodules back in. Before that fold this list carried nine git
+      # sources, one per submodule the build needed, each pinned separately.
+      #
+      # disable-submodules is still required. brands/suse - the PRIVATE SUSE pack -
+      # remains a submodule, and flatpak-builder fetches every submodule named in
+      # .gitmodules without honouring `update = none`, so letting it recurse makes
+      # the build die on a credential prompt for a repository it must never reach.
+      # Its absence is what makes the build resolve to the public lolly-start
+      # profile, which build-commands step 2 then names explicitly.
+      #
+      # The commit is a PLACEHOLDER and this manifest cannot build until it is
+      # replaced with a pushed commit of this repository (see ./README.md, "The
+      # commit pin lags by one"). A wrong-but-valid sha would build stale source in
+      # silence; a placeholder stops the build instead, which is the failure anyone
+      # preparing a submission wants.
       - type: git
         url: https://github.com/lolly-tools/lolly.git
-        commit: 27e51f1b32054af54a04451c385e33371611d952
+        commit: REPLACE-WITH-A-PUSHED-COMMIT-OF-THIS-REPO
         disable-submodules: true
-
-      # The submodules this build needs, pinned to what the umbrella commit above
-      # points at. The first five are pnpm WORKSPACE members - `pnpm install --frozen-lockfile` reads every
-      # workspace package.json and fails if one is missing, so they are required even
-      # though the desktop app does not run them.
-      - type: git
-        url: https://github.com/lolly-tools/lolly-web.git
-        commit: 2ff971eaed90f212869d780858620123bc33ac2e
-        dest: shells/web
-      - type: git
-        url: https://github.com/lolly-tools/lolly-cli.git
-        commit: 9f731a5e2d865b39caf9e751384008f0ec6804f4
-        dest: shells/cli
-      - type: git
-        url: https://github.com/lolly-tools/lolly-tui.git
-        commit: 38005e5b9db4b0760b20ddd02c508f8b13b9bac5
-        dest: shells/tui
-      - type: git
-        url: https://github.com/lolly-tools/lolly-ca.git
-        commit: 39c2bf7cece3131831ef8bf9f53499f3e5158397
-        dest: services/ca
-      - type: git
-        url: https://github.com/lolly-tools/lolly-mcp-server.git
-        commit: 7cb67dbca4d03df3905036e8d998931f4fc426de
-        dest: services/mcp
-      # Not workspaces, but the build reads them: community/ is the public tool set
-      # that scripts/use-profile.ts builds the tools/ view from, and docs/ is what
-      # build:info turns into the /info pages the in-app #/docs reader fetches.
-      - type: git
-        url: https://github.com/lolly-tools/lolly-tools.git
-        commit: 229edded401b5fc303e6f94e10fbc7b3489daabc
-        dest: community
-      - type: git
-        url: https://github.com/lolly-tools/lolly-docs.git
-        commit: 62faf8f2e53aec00fb658beb4aad8d1edcc24ddf
-        dest: docs
-      # The shell being built.
-      - type: git
-        url: https://github.com/lolly-tools/lolly-desktop.git
-        commit: 06ff6b9489a4cfd6ae5b83e4a3e6f7bf22c3ae1c
-        dest: shells/tauri-desktop
 
       # ONNX Runtime, byte-identical to what ort-sys would have fetched. Extracts to
       # onnxruntime/lib/libonnxruntime.a - a static archive, so the finished app has

@@ -139,10 +139,15 @@ function repositories(): string[] {
   return inventory.repositories.map((repo) => repo.path);
 }
 
+/**
+ * Uncommitted work, per repository in the inventory. Since the fold there are two
+ * of those: the parent and the private brands/suse pack, which a public clone does
+ * not have - so a path that is not on disk is skipped rather than reported.
+ */
 function dirtyRepositories(): string[] {
-  return repositories().filter(
-    (repo) => run('git', ['status', '--porcelain'], path.join(REPO, repo)).output.length > 0
-  );
+  return repositories()
+    .filter((repo) => existsSync(path.join(REPO, repo, '.git')))
+    .filter((repo) => run('git', ['status', '--porcelain'], path.join(REPO, repo)).output.length > 0);
 }
 
 function commandVersion(command: string, args = ['--version']): string | null {

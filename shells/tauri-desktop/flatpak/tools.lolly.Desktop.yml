@@ -68,9 +68,9 @@ modules:
   #
   # Flathub's shared-modules maintains the whole stack (intltool -> libdbusmenu ->
   # ayatana-ido -> libayatana-indicator -> libayatana-appindicator) with the patches it
-  # needs against a modern toolchain. It is a submodule of ../ (one real copy;
-  # flathub/shared-modules is a symlink to it), so `git submodule update --init` is
-  # enough - and CI's recursive checkout already does that.
+  # needs against a modern toolchain. It is vendored at ../shared-modules (one real
+  # copy; flathub/shared-modules is a symlink to it), so a plain checkout has it -
+  # it was a submodule of this directory until plan 244's fold.
   - shared-modules/libayatana-appindicator/libayatana-appindicator-gtk3.json
 
   - name: lolly

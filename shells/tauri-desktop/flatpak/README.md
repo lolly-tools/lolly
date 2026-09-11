@@ -25,7 +25,7 @@ tauri build --bundles deb  ──►  Lolly_x.y.z_amd64.deb  ──►  flatpak-
 | `tools.lolly.Desktop.metainfo.xml` | AppStream metadata (id must match the app id) |
 | `icon-{32,128,256}.png` | hicolor icons, copied from `../src-tauri/icons/` |
 | `lolly.deb` | **not committed** - the built package, staged here before building |
-| `shared-modules/` | submodule - Flathub's shared module definitions; supplies libayatana-appindicator |
+| `shared-modules/` | vendored copy of Flathub's shared module definitions; supplies libayatana-appindicator |
 | `flathub/` | the from-source manifest prepared for a Flathub submission (see the note below) |
 
 The app id `tools.lolly.Desktop`, the runtime (`org.gnome.Platform//50`, which provides
@@ -65,8 +65,7 @@ The runtime does **not** ship `libayatana-appindicator3`, which the tray dlopens
 lazily. Every bundle built before 2026-08-30 unpacked, linted, installed and then
 died on launch, and none of the automated signals noticed - they were all checking
 that files existed. `shared-modules/libayatana-appindicator` now builds it into
-`/app`, and the `git submodule update --init` that provides it is part of a normal
-recursive checkout.
+`/app`, and it is vendored in the tree, so any checkout has it.
 
 The general lesson is worth keeping: a Flatpak that builds is not a Flatpak that
 runs. `flatpak run tools.lolly.Desktop` and confirm a WebKit process settles above

@@ -2,16 +2,6 @@
   "schemaVersion": 1,
   "repositories": [
     { "id": "parent", "path": ".", "owner": "lolly-tools/lolly", "required": true },
-    { "id": "mcp", "path": "services/mcp", "owner": "lolly-tools/lolly-mcp-server", "required": true },
-    { "id": "ca", "path": "services/ca", "owner": "lolly-tools/lolly-ca", "required": true },
-    { "id": "web", "path": "shells/web", "owner": "lolly-tools/lolly-web", "required": true },
-    { "id": "cli", "path": "shells/cli", "owner": "lolly-tools/lolly-cli", "required": true },
-    { "id": "tui", "path": "shells/tui", "owner": "lolly-tools/lolly-tui", "required": true },
-    { "id": "desktop", "path": "shells/tauri-desktop", "owner": "lolly-tools/lolly-desktop", "required": true },
-    { "id": "mobile", "path": "shells/tauri-mobile", "owner": "lolly-tools/lolly-mobile", "required": true },
-    { "id": "extension", "path": "shells/chrome-extension", "owner": "lolly-tools/lolly-chrome-extension", "required": true },
-    { "id": "docs", "path": "docs", "owner": "lolly-tools/lolly-docs", "required": true },
-    { "id": "community", "path": "community", "owner": "lolly-tools/lolly-tools", "required": true },
     { "id": "suse", "path": "brands/suse", "owner": "lolly-tools/suse-lolly", "required": false }
   ],
   "generatedArtifacts": [

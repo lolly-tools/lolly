@@ -6,23 +6,13 @@ This is the repository-closure checklist. Commands are authoritative; tick boxes
 ## Repository closure
 
 - [ ] `git submodule status --recursive` has no missing (`-`) or conflicted (`U`) checkout.
-- [ ] Intended changes are committed in each child repository before its parent gitlink.
+- [ ] `brands/suse` is the only submodule. Its intended changes are committed there before the parent gitlink that names them.
 - [ ] `pnpm run audit:all`, `pnpm run secrets:scan:checkout`, and `pnpm run check:workflow-pins` pass.
 - [ ] `pnpm run typecheck`, `pnpm run check:maintainability`, and `pnpm run lint:changed --all` pass.
 
 | Repository | Path | Required |
 |---|---|---|
 | lolly-tools/lolly | `.` | yes |
-| lolly-tools/lolly-mcp-server | `services/mcp` | yes |
-| lolly-tools/lolly-ca | `services/ca` | yes |
-| lolly-tools/lolly-web | `shells/web` | yes |
-| lolly-tools/lolly-cli | `shells/cli` | yes |
-| lolly-tools/lolly-tui | `shells/tui` | yes |
-| lolly-tools/lolly-desktop | `shells/tauri-desktop` | yes |
-| lolly-tools/lolly-mobile | `shells/tauri-mobile` | yes |
-| lolly-tools/lolly-chrome-extension | `shells/chrome-extension` | yes |
-| lolly-tools/lolly-docs | `docs` | yes |
-| lolly-tools/lolly-tools | `community` | yes |
 | lolly-tools/suse-lolly | `brands/suse` | optional/private |
 
 ## Generated artifacts
