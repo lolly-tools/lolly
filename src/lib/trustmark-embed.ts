@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { AiPolicyError, assertAiAllowed, runAi } from './ai-policy.ts';
 /**
  * TrustMark durable-credential EMBED - the neural encode counterpart to the
  * decode-only lib/trustmark.ts. Hides Lolly's own durable identifier
@@ -164,6 +165,14 @@ export async function embedLollyDurable(
   rgba: Uint8ClampedArray | Uint8Array, width: number, height: number,
   opts: DurableEmbedOptions = {},
 ): Promise<Uint8ClampedArray | null> {
+  try { return await runAi('watermark', () => embedLollyDurableImpl(rgba, width, height, opts)); }
+  catch (error) { if (error instanceof AiPolicyError) return null; throw error; }
+}
+
+async function embedLollyDurableImpl(
+  rgba: Uint8ClampedArray | Uint8Array, width: number, height: number,
+  opts: DurableEmbedOptions = {},
+): Promise<Uint8ClampedArray | null> {
   try {
     if (width < MIN_SIDE || height < MIN_SIDE) return null;
     const ort = await loadOrt();
@@ -190,6 +199,7 @@ export async function embedLollyDurable(
     const secretT = new ort.Tensor('float32', Float32Array.from(bits, (b) => (b ? 1 : 0)), [1, TRUSTMARK_PAYLOAD_BITS]);
 
     // 3) encoder(cover, secret) → stego [1,3,256,256] in [-1,1].
+    assertAiAllowed('watermark');
     const results = await session.run({ cover: coverT, secret: secretT });
     const stego = results.stego ?? results[Object.keys(results)[0] ?? ''];
     const stegoData = stego?.data as Float32Array | undefined;

@@ -25,6 +25,8 @@
  * link to its tool, so the whole feature degrades to "a scrollable row of links".
  */
 
+import { mountCoverflow, type CoverflowHandle } from './coverflow.ts';
+import { featuredStartIndex, recordFeaturedActivity, type FeaturedCollection } from '../lib/featured-activity.ts';
 import type { PreviewQueue } from '../lib/preview-queue.ts';
 import { escape } from '../utils.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
@@ -210,7 +212,7 @@ export function mountFeaturedRow(
   mount: HTMLElement,
   entriesIn: FeaturedEntry[],
   host: FeaturedHost,
-  opts: { previewQueue?: PreviewQueue; viewMode?: FeaturedViewMode; staticStrip?: boolean; label?: string; ariaLabel?: string; tileDragOut?: boolean; tileMenu?: boolean; labelHref?: string; labelHelp?: string; onActivate?: (id: string) => void } = {},
+  opts: { collection?: FeaturedCollection; favourites?: Iterable<string>; previewQueue?: PreviewQueue; viewMode?: FeaturedViewMode; staticStrip?: boolean; label?: string; ariaLabel?: string; tileDragOut?: boolean; tileMenu?: boolean; labelHref?: string; labelHelp?: string; onActivate?: (id: string) => void } = {},
 ): FeaturedRowHandle {
   const entries = [...entriesIn].sort(byFeaturedOrder);
   // An automated screenshot run is treated as reduced motion. Every motion this
@@ -232,6 +234,10 @@ export function mountFeaturedRow(
   // preview/icon, exactly as under reduced motion. Off by default ⇒ byte-identical.
   const reduced = prefersReducedMotion() || captureNeutralPinned() || opts.staticStrip === true || perfUiOn();
   let coverflow = opts.viewMode === 'coverflow';
+  const collection = opts.collection ?? 'tools';
+  const initialIndex = featuredStartIndex(collection, entries.map(entry => entry.id), opts.favourites);
+  let flow: CoverflowHandle | null = null;
+  let pendingDx = 0;
   // Drag-out mode (Projects "Uncategorised" ribbon): each tile is a native HTML5 drag
   // source so a loose session can be dragged onto a "Move to" folder. The consumer wires
   // dragstart/dragend (it owns the payload); here we only make the tiles draggable and,
@@ -252,10 +258,10 @@ export function mountFeaturedRow(
     <section class="featured${reduced ? ' featured--static' : ''}${coverflow ? ' featured--coverflow' : ''}" aria-label="${escape(opts.ariaLabel || opts.label || 'Featured tools')}" aria-roledescription="carousel">
       ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - opts.labelHref is a call-site literal doc route, never remote data */ ''}
       ${opts.label ? `<span class="featured-label">${escape(opts.label)}${opts.labelHref ? `<a class="featured-label-help" href="${escape(opts.labelHref)}" aria-label="${escape(opts.labelHelp || 'Learn more')}" title="${escape(opts.labelHelp || 'Learn more')}">${HELP_ICON}</a>` : ''}</span>` : ''}
-      <div class="featured-viewport">
-        <ul class="featured-track">${entries.map((e, i) => tileMarkup(e, i === 0, tileMenu)).join('')}</ul>
+      <div class="featured-viewport" tabindex="0" aria-label="${escape(opts.ariaLabel || opts.label || 'Featured tools')}">
+        <ul class="featured-track">${entries.map((e, i) => tileMarkup(e, i === initialIndex, tileMenu)).join('')}</ul>
       </div>
-      <button type="button" class="featured-go" tabindex="-1" aria-hidden="true">Open ${ARROW}</button>
+      <button type="button" class="featured-go">Open ${ARROW}</button>
       <div class="featured-grip" aria-hidden="true"><span class="featured-grip-bar"></span></div>
     </section>`;
 
@@ -472,101 +478,29 @@ export function mountFeaturedRow(
     else if (viewport.scrollLeft < 0) viewport.scrollLeft += halfWidth;
   }
 
-  // ── Cover Flow ────────────────────────────────────────────────────────────────
-  // The scroll position is the single source of truth: each cover's transform is a
-  // pure function of its LAYOUT offset from the viewport centre (offsetLeft/offsetWidth
-  // are transform-independent, so there's no feedback loop). The centred cover is
-  // upright + front (`.is-centred`); its neighbours fan back, rotate, and tuck inward.
-  const CF_MAX_ANGLE = 50;   // deg a fully side-on cover rotates
-  const CF_TUCK = 0.52;      // fraction of a cover-width each neighbour pulls toward centre
-                             // (higher → covers overlap more toward the screen edges, so
-                             //  the fan stacks tighter and more covers fit on screen)
-  const CF_MIN_SCALE = 0.72; // scale of the side covers
-
-  // A cover's centre + width only change on (re)layout, but layoutCoverflow() runs every
-  // frame during a drag/flick. Cache them in setupLoop so the hot loop is WRITE-only: an
-  // offsetLeft/offsetWidth read mid-loop would flush a style recalc after each is-centred
-  // class toggle (a per-tile-per-frame cost - felt most on mobile). Rebuilt on resize,
-  // view-switch, and the post-decode relayout.
-  // `vc` is the cover's centre as DRAWN (layout centre + this frame's tuck) - the fan
-  // pulls each cover toward the middle, so a pointer x can only be mapped back to a cover
-  // through it (see coverAtClientX). Written by layoutCoverflow, which computes the tuck
-  // anyway; undefined until the first fan layout.
-  let cfGeom: Array<{ el: HTMLElement; center: number; w: number; vc?: number }> = [];
-  let cfViewportWidth = 0;
-  let cfPaintedPosition = NaN;
-
+  // The shared fan owns geometry, clone identity and seamless rebasing. Input
+  // below supplies one scroll write per animation frame, as on the Docs landing.
   function layoutCoverflow(): void {
-    if (!coverflow) return;
-    const position = viewport.scrollLeft;
-    if (position === cfPaintedPosition) return;
-    cfPaintedPosition = position;
-    const focus = position + cfViewportWidth / 2;
-    let bestI = -1, bestAbs = Infinity, i = 0;             // which cover is centred, for the flick
-    for (const g of cfGeom) {
-      const d = (g.center - focus) / g.w;                 // signed offset in cover-widths
-      if (Math.abs(d) < bestAbs) { bestAbs = Math.abs(d); bestI = i; }
-      i++;
-      const cd = Math.max(-1.4, Math.min(1.4, d));        // angle/scale saturate near the edge
-      // Tuck keeps pulling the FURTHER covers in (own wider clamp), instead of plateauing
-      // at cd's ±1.4 like the rotation does - otherwise every cover past the first neighbour
-      // sits ~a full width apart and the fan gaps out at the screen edges. With a wider range
-      // the net spacing stays a uniform ~(1-CF_TUCK)·width, so the covers stack tight all the
-      // way out. (Range caps the transform for far off-screen covers; doesn't affect visible ones.)
-      const td = Math.max(-3.2, Math.min(3.2, d));
-      const angle = -cd * CF_MAX_ANGLE;
-      const scale = 1 - Math.min(Math.abs(d), 1) * (1 - CF_MIN_SCALE);
-      const tuck = -td * g.w * CF_TUCK;
-      // Rotating a cover about its own centre swings its NEAR half toward the camera by
-      // (halfWidth · scale · sin angle) - enough to cross the centred cover's z=0 plane, and
-      // the browser depth-sorts the intersecting planes per-pixel: the neighbour's near half
-      // paints OVER the centred cover, smearing its frost/edge across it. Recede each cover
-      // by exactly its own protrusion (+2px slack) so no plane ever reaches in front of the
-      // one before it, and the centred cover keeps a clean, unbroken edge.
-      // The +8px-per-cover-width term keeps stacking the far covers back after the angle has
-      // saturated, so every cover in the fan sits strictly behind the one nearer the centre
-      // instead of going coplanar and leaving the overlap to z-index alone.
-      const back = (g.w / 2) * scale * Math.abs(Math.sin((angle * Math.PI) / 180)) + Math.abs(td) * 8 + 2;
-      g.el.style.transform = `translateX(${tuck.toFixed(1)}px) translateZ(${(-back).toFixed(1)}px) rotateY(${angle.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
-      g.vc = g.center + tuck;                             // where this cover now READS (see coverAtClientX)
-      g.el.style.zIndex = String(1000 - Math.round(Math.abs(d) * 20));
-      g.el.classList.toggle('is-centred', Math.abs(d) < 0.5);
+    if (!flow) return;
+    const shift = flow.normalize();
+    if (shift) {
+      dragPosition += shift;
+      if (snap) { snap.from += shift; snap.to += shift; }
     }
-    // Flip past a cover → a flick. (Coverflow has no ambient drift, so every change is the user.)
-    if (bestI !== flickIndex) { if (flickIndex !== -1) flick(); flickIndex = bestI; }
+    flow.paint();
+    section.classList.toggle('is-moving', dragging || snap !== null || performance.now() < cfWheelUntil);
   }
-
-  // scrollLeft that centres a given cover (offsetLeft includes the track's centring pad).
-  const coverScrollLeft = (el: HTMLElement): number => el.offsetLeft + el.offsetWidth / 2 - viewport.clientWidth / 2;
-
-  // Which cover a press at viewport-x `clientX` was aimed at. Needed because the fan is
-  // not hit-testable: every cover is z-translated inside the track's preserve-3d context,
-  // so Chrome resolves each press in the strip to the track itself and `closest('.ftile')`
-  // finds nothing (see the .featured-go note). Matched against the covers' DRAWN centres,
-  // not their layout ones - the fan tucks each cover CF_TUCK of a width toward the middle,
-  // so at the third cover out the two are more than a full cover apart. Nearest drawn
-  // centre wins: the covers stay in order across the strip, and the boundary between two
-  // of them lands on the overlap where the nearer one starts hiding the further.
-  function coverAtClientX(clientX: number): HTMLElement | null {
-    if (!coverflow || !cfGeom.length) return null;
-    const x = clientX - viewport.getBoundingClientRect().left + viewport.scrollLeft;  // → track coords
-    let best: HTMLElement | null = null, bestD = Infinity;
-    for (const g of cfGeom) {
-      const d = Math.abs((g.vc ?? g.center) - x);
-      if (d < bestD) { bestD = d; best = g.el; }
-    }
-    return best;
-  }
-
-  function nearestCoverScrollLeft(position = viewport.scrollLeft): number {
-    const half = cfViewportWidth / 2;
-    let best = viewport.scrollLeft, bestD = Infinity;
-    for (const g of cfGeom) {                              // cached geometry (see layoutCoverflow)
-      const target = g.center - half;
-      const dist = Math.abs(target - position);
-      if (dist < bestD) { bestD = dist; best = target; }
-    }
-    return best;
+  const coverScrollLeft = (el: HTMLElement): number => flow?.target(el) ?? 0;
+  const coverAtClientX = (x: number): HTMLElement | null => flow?.atClientX(x) ?? null;
+  const nearestCoverScrollLeft = (position = viewport.scrollLeft): number => flow?.nearest(position) ?? 0;
+  function flushDrag(): void {
+    if (!pendingDx) return;
+    dragPosition -= pendingDx;
+    pendingDx = 0;
+    viewport.scrollLeft = dragPosition;
+    // Keep the browser's bounds for a single item, plus its fractional position.
+    if (Math.abs(viewport.scrollLeft - dragPosition) > 1) dragPosition = viewport.scrollLeft;
+    layoutCoverflow();
   }
 
   // Choose the landing cover at release, then travel there in ONE deceleration.
@@ -578,10 +512,7 @@ export function mountFeaturedRow(
     const from = viewport.scrollLeft;
     let to = nearestCoverScrollLeft(from + releaseVelocity * 0.18);
     if (Math.abs(releaseVelocity) >= 250 && (to - from) * releaseVelocity <= 0) {
-      const targets = cfGeom.map(g => g.center - cfViewportWidth / 2);
-      to = releaseVelocity > 0
-        ? (targets.find(target => target > from + 1) ?? to)
-        : (targets.findLast(target => target < from - 1) ?? to);
+      to = flow?.step(Math.sign(releaseVelocity)) ?? to;
     }
     snapToCover(to, releaseVelocity);
   }
@@ -599,13 +530,6 @@ export function mountFeaturedRow(
     snap = { from, to, start: performance.now(), duration };
   }
 
-  function clearCoverflow(): void {
-    track.querySelectorAll<HTMLElement>('.ftile').forEach((el) => {
-      el.style.transform = ''; el.style.zIndex = ''; el.classList.remove('is-centred');
-    });
-    track.style.paddingLeft = ''; track.style.paddingRight = '';
-  }
-
   function tick(ts: number): void {
     if (destroyed) { raf = 0; return; }             // stop rescheduling once torn down
     if (!onScreen) { raf = 0; return; }             // parked off-screen - the observer restarts us
@@ -613,7 +537,7 @@ export function mountFeaturedRow(
     const dt = lastTs ? ts - lastTs : 0;
     lastTs = ts;
     if (!visible || document.hidden || dt <= 0 || dt > 200) return; // skip huge gaps
-    if (dragging) { if (coverflow) layoutCoverflow(); return; }   // (1) pointer owns scrollLeft
+    if (dragging) { if (coverflow) { flushDrag(); layoutCoverflow(); } return; }   // (1) pointer owns scrollLeft
 
     if (coverflow) {
       if (!snap && ts >= cfWheelUntil && Math.abs(nearestCoverScrollLeft() - viewport.scrollLeft) > 0.5) settleCoverflow();
@@ -640,30 +564,27 @@ export function mountFeaturedRow(
   }
 
   function setupLoop(): void {
-    // Re-evaluate on resize: (un)clone and (dis)engage drift to match overflow.
-    track.querySelectorAll('.ftile--clone').forEach((n) => n.remove());
-    looping = false;
-    halfWidth = 0;
-    // Cover Flow is a finite, snap carousel (no gapless clone loop). Pad the track so
-    // the first and last cover can reach the centre, then lay out the fan.
     if (coverflow) {
       section.classList.remove('featured--overflow');
-      const tiles = [...track.querySelectorAll<HTMLElement>('.ftile')];
-      const pad = Math.max(0, (viewport.clientWidth - (tiles[0]?.offsetWidth ?? 0)) / 2);
-      track.style.paddingLeft = track.style.paddingRight = `${pad}px`;
-      // Snapshot geometry AFTER padding lands (it shifts every offsetLeft) so the per-frame
-      // layout can read from cfGeom instead of the DOM. Tile width/left are otherwise stable
-      // here (fixed cover width; no clones in this mode; decoding only changes height).
-      const nextGeom = tiles.map((el) => ({ el, center: el.offsetLeft + el.offsetWidth / 2, w: el.offsetWidth || 1 }));
-      const changed = cfViewportWidth !== viewport.clientWidth || nextGeom.length !== cfGeom.length
-        || nextGeom.some((g, i) => g.center !== cfGeom[i]?.center || g.w !== cfGeom[i]?.w);
-      cfGeom = nextGeom;
-      cfViewportWidth = viewport.clientWidth;
-      cfPaintedPosition = NaN;
-      if (changed) snap = null; // an image decode with unchanged geometry must not interrupt a fling
+      if (flow) { if (flow.refresh()) { snap = null; pendingDx = 0; dragPosition = viewport.scrollLeft; } }
+      else {
+        track.querySelectorAll('.ftile--clone').forEach(node => node.remove());
+        looping = false;
+        halfWidth = 0;
+        flow = mountCoverflow(viewport, track, { initialIndex, onChange(index) {
+          if (flickIndex !== index) { if (flickIndex !== -1) flick(); flickIndex = index; }
+          const button = section.querySelector('.featured-go');
+          button?.setAttribute('aria-label', `Open ${entries[index]?.name ?? ''}`);
+        } });
+      }
       layoutCoverflow();
       return;
     }
+    flow?.destroy();
+    flow = null;
+    track.querySelectorAll('.ftile--clone').forEach(node => node.remove());
+    looping = false;
+    halfWidth = 0;
     // A tile is ~fixed width; overflow means the single set is wider than the viewport.
     const overflow = track.scrollWidth - viewport.clientWidth > 4;
     if (reduced || !overflow) { section.classList.toggle('featured--overflow', overflow); return; }
@@ -719,8 +640,9 @@ export function mountFeaturedRow(
   const openLink = (link: HTMLAnchorElement | null): void => {
     // Consumer-driven in-view open (see onActivate): hand the tile's id to the callback
     // rather than navigating its href, so a same-route "Open" isn't lost to route dedupe.
+    const id = link?.closest<HTMLElement>('.ftile')?.dataset.tool;
+    if (id) recordFeaturedActivity(collection, id);
     if (onActivate) {
-      const id = link?.closest<HTMLElement>('.ftile')?.dataset.tool;
       if (id) { onActivate(id); return; }
     }
     const href = link?.href || link?.getAttribute('href');
@@ -734,7 +656,7 @@ export function mountFeaturedRow(
   // the old vertical-flips-examples gesture trapped readers trying to get past
   // the row). Non-passive so the horizontal branch can preventDefault.
   viewport.addEventListener('wheel', (e) => {
-    if (reduced) return;
+    if (reduced && !coverflow) return;
     if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;    // vertical → page scroll
     manualUntil = performance.now() + RESUME_DELAY_MS;
     e.preventDefault();
@@ -744,6 +666,7 @@ export function mountFeaturedRow(
       viewport.scrollLeft += e.deltaX;
       snap = null;
       cfWheelUntil = performance.now() + 100;
+      layoutCoverflow();
       return;
     }
     velocity = clampV(velocity + e.deltaX * WHEEL_TO_VELOCITY);
@@ -769,6 +692,7 @@ export function mountFeaturedRow(
     if (tileDragOut && e.pointerType !== 'touch' && e.button === 0 && (e.target as Element | null)?.closest?.('.ftile-link')) return;
     velocity = 0;                                            // a grab cancels any coast
     snap = null;
+    pendingDx = 0;
     dragMoved = false;                                       // fresh press - never inherit a prior drag's "moved"
     suppressNextClick = false;                               // fresh press - never inherit a stale suppress flag
     dragStartX = e.clientX;                                  // anchor for the click-vs-drag slop test
@@ -813,9 +737,7 @@ export function mountFeaturedRow(
     // a plain click must still open the tool. Panning tracks every move regardless.
     if (Math.abs(e.clientX - dragStartX) > DRAG_SLOP) dragMoved = true;
     if (coverflow) {
-      const max = Math.max(0, (cfGeom.at(-1)?.center ?? 0) - cfViewportWidth / 2);
-      dragPosition = Math.max(0, Math.min(max, dragPosition - dx));
-      viewport.scrollLeft = dragPosition;
+      pendingDx += dx; // coalesced with every pointer sample into the next frame
       dragSamples.push({ x: e.clientX, ts: e.timeStamp });
       while (dragSamples.length > 2 && dragSamples[0]!.ts < e.timeStamp - 100) dragSamples.shift();
     } else viewport.scrollLeft -= dx;                        // content follows the pointer
@@ -839,6 +761,7 @@ export function mountFeaturedRow(
       return;
     }
     if (!dragging || (e.pointerId !== undefined && e.pointerId !== dragPointerId)) return;
+    if (coverflow) flushDrag();
     dragging = false;
     dragPointerId = -1;
     section.classList.remove('is-grabbing');
@@ -852,6 +775,12 @@ export function mountFeaturedRow(
       settleCoverflow(releaseVelocity);
     } else if (cancelled || reduced || performance.now() - lastMoveTs > 80) velocity = 0;
     if (cancelled) { pressLink = null; suppressNextClick = true; return; }
+    // As on Docs, take focus on release so a mouse/trackpad grab can be
+    // followed immediately by arrow keys without an extra Tab or click.
+    if (coverflow && e.pointerType !== 'touch') {
+      viewport.dataset.focusBy = 'pointer';
+      viewport.focus({ preventScroll: true });
+    }
     // Deterministic open: a clean left tap/click (no drag, no modifier keys) opens the
     // pressed tile right here on release, rather than depending on the native <a> click
     // (which the drifting carousel drops when the press and release land on different
@@ -906,12 +835,36 @@ export function mountFeaturedRow(
     // cover the pointer's x lands on.
     if (coverflow) {
       const tile = (e.target as Element | null)?.closest?.<HTMLElement>('.ftile') ?? coverAtClientX(e.clientX);
-      if (tile && !tile.classList.contains('is-centred')) {
+      if (tile && !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)) {
         e.preventDefault(); e.stopPropagation();
-        snapToCover(coverScrollLeft(tile));
+        if (tile.classList.contains('is-centred')) openLink(tile.querySelector<HTMLAnchorElement>('.ftile-link'));
+        else snapToCover(coverScrollLeft(tile));
       }
     }
   }, { signal, capture: true });
+
+  section.addEventListener('keydown', (event) => {
+    if (!coverflow || !flow || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    delete viewport.dataset.focusBy;
+    const targetEl = event.target as Element;
+    if (targetEl.closest('input,select,textarea,[contenteditable="true"],.ftile-menu,.ftile-dot')) return;
+    let target: number | undefined;
+    if (event.key === 'ArrowLeft') target = flow.step(-1, snap?.to);
+    if (event.key === 'ArrowRight') target = flow.step(1, snap?.to);
+    if (event.key === 'Home') target = flow.first();
+    if (event.key === 'End') target = flow.last();
+    if (target !== undefined) { event.preventDefault(); snapToCover(target); }
+    else if (event.key === 'Enter' && event.target === viewport) {
+      event.preventDefault();
+      openLink(track.querySelector<HTMLAnchorElement>('.is-centred .ftile-link'));
+    }
+  }, { signal });
+  viewport.addEventListener('focusin', (event) => {
+    if (!coverflow || !flow) return;
+    const tile = (event.target as Element).closest<HTMLElement>('.ftile:not(.ftile--clone)');
+    if (tile) snapToCover(flow.target(tile));
+  }, { signal });
+  viewport.addEventListener('blur', () => { delete viewport.dataset.focusBy; }, { signal });
 
   // ── Cover Flow's Open button ─────────────────────────────────────────────────
   // The one control that opens the selected cover, and the reason it lives out here in
@@ -983,6 +936,10 @@ export function mountFeaturedRow(
     resizeRaf = requestAnimationFrame(setupLoop);
   };
   window.addEventListener('resize', onResize, { signal });
+  const sizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(onResize) : null;
+  sizeObserver?.observe(viewport);
+  const firstTile = track.querySelector('.ftile');
+  if (firstTile) sizeObserver?.observe(firstTile);
 
   // Initial layout can shift as the committed preview images decode (they change tile
   // heights only, but a late web-font / reflow can nudge widths); establish the loop
@@ -1144,14 +1101,17 @@ export function mountFeaturedRow(
       snap = null;
       flickIndex = -1;   // the two modes index differently - don't flick on the switchover
       section.classList.toggle('featured--coverflow', coverflow);
-      if (!coverflow) clearCoverflow();      // shed inline transforms + padding before re-cloning
-      setupLoop();                           // coverflow → pad + fan; gallery → clone + drift
+      pendingDx = 0;
+      dragging = false;
+      setupLoop();
       startRaf();                            // Cover Flow needs the loop even under reduced motion
     },
     destroy() {
       destroyed = true;
       ac.abort();
       vizObserver?.disconnect();
+      flow?.destroy();
+      sizeObserver?.disconnect();
       cancelAnimationFrame(raf);
       cancelAnimationFrame(resizeRaf);
       clearTimeout(relayout);

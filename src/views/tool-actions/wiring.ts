@@ -16,6 +16,7 @@ import { currentLang, t, tRaw } from '../../i18n.ts';
 import { DeliveryResult } from '../../lib/delivery-result.ts';
 import { chooseLocationDeliver, deliverFile } from '../../lib/deliver-file.ts';
 import { mountDownloadRecovery } from '../../lib/download-recovery.ts';
+import { deliverBatchFile, releaseBackgroundDelivery } from '../../lib/background-delivery.ts';
 import { openApprovalRequest } from '../../lib/approval-request.ts';
 import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { stageDeckAsSequence, stagedDeckMs } from '../../lib/deck-as-sequence.ts';
@@ -717,6 +718,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
       // surface, so a retry can never hand over an earlier render as this one.
       ta.deliveryUnmount?.(); ta.deliveryUnmount = null;
       ta.deliveryResult?.dispose(); ta.deliveryResult = null;
+      releaseBackgroundDelivery();
       const deliverySurface = el!.querySelector<HTMLElement>('[data-export-delivery]');
       if (deliverySurface) { deliverySurface.hidden = true; deliverySurface.textContent = ''; }
       const degradedNotes: string[] = [];
@@ -1092,7 +1094,10 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         // provenance, re-encrypts a ZIP or records a revision (the history and library
         // writes further down run once, for the export, not for a retry).
         const deliver = async (blob: Blob, name: string): Promise<void> => {
-          const outcome = await deliverFile(host, blob, name);
+          if (!el?.isConnected) {
+            await deliverBatchFile(undefined, undefined, { blob, filename: name, label: name }, host);
+            return;
+          }
           ta.deliveryUnmount?.(); ta.deliveryUnmount = null;
           ta.deliveryResult?.dispose();
           const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1101,7 +1106,6 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             (again, againName) => deliverFile(host, again, againName),
             chooseLocationDeliver(host),
           );
-          result.recordOutcome(outcome);
           ta.deliveryResult = result;
           const surface = el!.querySelector<HTMLElement>('[data-export-delivery]');
           if (surface) {
@@ -1111,6 +1115,9 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
               saved: t('Saved.'),
             });
           }
+          // Retain before attempting delivery: a failed first write must leave
+          // the same bytes available to the recovery controls.
+          await result.retry();
         };
         const framePages = framePick.kind === 'page' ? [pageEls[framePick.index]!] : pageEls;
         const notesHandout =

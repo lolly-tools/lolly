@@ -3,8 +3,8 @@
  * The landing's Cover Flow (plans/177 beat 2) - ONE source for both surfaces.
  * docs/build.ts bundles this file with esbuild into the static /info page's
  * inline covers script, and lib/docs-landing.ts imports it for the in-app
- * reader at #/docs/index. Zero imports on purpose: the static bundle has to
- * stay tiny and cannot reach the app's modules.
+ * reader at #/docs/index. The pure geometry helper is shared with the app carousel; the static bundle
+ * stays independent of the app runtime.
  *
  * The motion model is the app gallery's own (components/featured-row.ts): the
  * strip is a real horizontal scroller whose scrollLeft is the single source of
@@ -58,9 +58,8 @@
  * the Design cover, posed at Lolly's hue.
  */
 
-const CF_MAX_ANGLE = 50;        // deg a fully side-on cover rotates
-const CF_TUCK = 0.52;           // fraction of a cover width each neighbour pulls in
-const CF_MIN_SCALE = 0.72;      // scale of the side covers
+import { COVERFLOW_TUCK as CF_TUCK, coverflowPose } from './coverflow-geometry.ts';
+
 const WHEEL_TO_VELOCITY = 14;   // px/s of spin per unit of horizontal wheel delta
 const MAX_VELOCITY = 3200;      // px/s cap so a wild flick cannot teleport the strip
 const INERTIA_FRICTION = 0.94;  // velocity decay per ~16.7 ms frame
@@ -343,21 +342,10 @@ export function mountCoverFlow(root: ParentNode): void {
         return;
       }
       if (g.el.style.visibility) g.el.style.visibility = '';
-      const cd = Math.max(-1.4, Math.min(1.4, d));
-      // Tuck keeps pulling the further covers in with its own wider clamp, so the
-      // fan stacks tight to the screen edge instead of gapping past ±1.4. The
-      // clamp reaches six pitches out so a 2560px screen is filled edge to edge;
-      // at laptop widths everything past three is off-screen anyway.
-      const td = Math.max(-6, Math.min(6, d));
-      const angle = -cd * CF_MAX_ANGLE;
-      const scale = 1 - Math.min(ad, 1) * (1 - CF_MIN_SCALE);
-      const tuck = -td * g.w * CF_TUCK;
-      // Recede each cover by its own protrusion (+ slack) so a rotated neighbour's
-      // near half never crosses the centred cover's plane.
-      const back = (g.w / 2) * scale * Math.abs(Math.sin((angle * Math.PI) / 180)) + Math.abs(td) * 8 + 2;
-      g.el.style.transform = `translate3d(${tuck.toFixed(1)}px,0,${(-back).toFixed(1)}px) rotateY(${angle.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
-      g.el.style.zIndex = String(1000 - Math.round(ad * 20));
-      g.vc = g.center + tuck;
+      const pose = coverflowPose(d, g.w);
+      g.el.style.transform = pose.transform;
+      g.el.style.zIndex = pose.zIndex;
+      g.vc = g.center + pose.tuck;
     });
     const r = real(cur);
     if (r !== lastCur) {

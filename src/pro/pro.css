@@ -65,7 +65,7 @@
      Collapse at ≈720px - keeps the full toolbar on laptops/tablets. Keep in sync
      with the matchMedia query in index.js that relocates the format/sessions
      controls. */
-  .pro-toolbar { position: relative; overflow: visible; padding-left: 7rem; }
+  .pro-toolbar { position: relative; overflow: visible; padding-left: 8.5rem; min-height: 48px; height: auto; flex-wrap: wrap; }
   .pro-hamburger { display: inline-flex; }
   /* Group becomes a dropdown, so the spacer goes back to pushing zoom/render right. */
   .pro-spacer { flex: 1; }

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { aiAllowed, assertAiAllowed, guardAiWorker } from '../ai-policy.ts';
 /**
  * Ask embed client (plans/103 M1) - the main-thread face of the embed worker.
  * Mirrors bridge/speech.ts's protocol: id-keyed pending map, progress fan-out,
@@ -42,8 +43,9 @@ let seq = 0;
 const pending = new Map<number, Pending>();
 
 function ensureWorker(): Worker {
+  assertAiAllowed('embedding');
   if (worker) return worker;
-  worker = new Worker(new URL('./embed-worker.ts', import.meta.url), { type: 'module' });
+  worker = guardAiWorker('embedding', () => new Worker(new URL('./embed-worker.ts', import.meta.url), { type: 'module' }));
   worker.onmessage = (e: MessageEvent<{ id: number; progress?: EmbedProgress; result?: Float32Array; error?: string }>): void => {
     const { id, progress, result, error } = e.data;
     const p = pending.get(id);
@@ -78,12 +80,13 @@ export async function cachedEmbedModel(): Promise<boolean> {
 
 /** Worker support probe - false under jsdom, where retrieval stays lexical. */
 export function embedAvailable(): boolean {
-  return typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
+  return aiAllowed('embedding') && typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
 }
 
 /** Embed ONE query string to a 384-dim L2-normalised vector. The first call
  *  after consent may stream the model download through onProgress. */
 export function embedQuery(text: string, opts: { onProgress?: (p: EmbedProgress) => void } = {}): Promise<Float32Array> {
+  assertAiAllowed('embedding');
   const id = ++seq;
   return new Promise<Float32Array>((resolve, reject) => {
     pending.set(id, { resolve, reject, onProgress: opts.onProgress });

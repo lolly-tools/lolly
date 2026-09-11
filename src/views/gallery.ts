@@ -779,10 +779,8 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
 
   // Featured hero view mode (Gallery strip vs Cover Flow), persisted like the sort.
   // Declared here (before the markup) since the popover's segmented control reads it.
-  // New users (no stored preference) default to Cover Flow on desktop, but Gallery on a
-  // mobile viewport - the coverflow fan is still buggy at that size. An explicit choice wins.
-  const mobileViewport = typeof matchMedia !== 'undefined' && matchMedia('(max-width: 640px)').matches;
-  let featuredView: FeaturedViewMode = mobileViewport ? 'gallery' : 'coverflow';
+  // The shared looping fan supports touch at every viewport size.
+  let featuredView: FeaturedViewMode = 'coverflow';
   try {
     const savedView = localStorage.getItem(FEATURED_VIEW_STORAGE);
     if (savedView && (FEATURED_VIEWS as readonly string[]).includes(savedView)) featuredView = savedView as FeaturedViewMode;
@@ -1063,7 +1061,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       // The 'gallery' favourites strip is STATIC now (Andy 2026-08-10): no marquee drift,
       // no example/preset cross-fade - a favourite is the tool's single template, swipe/drag
       // only. Cover Flow keeps its own motion, so only opt the gallery mode into staticStrip.
-      ? mountFeaturedRow(featuredMount, entries, host, { viewMode: featuredView, staticStrip: featuredView === 'gallery', previewQueue })
+      ? mountFeaturedRow(featuredMount, entries, host, { viewMode: featuredView, favourites, staticStrip: featuredView === 'gallery', previewQueue })
       : null;
     viewEl.querySelector('.gallery')?.classList.toggle('has-featured', entries.length > 0);
   }

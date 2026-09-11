@@ -2,7 +2,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
-import { mountDownloadRecovery, offerDownloadRecovery } from './download-recovery.ts';
+import { mountDownloadRecovery, offerDownloadRecovery, deliverWithRecovery, releaseDeliveryFor } from './download-recovery.ts';
+import { deliverBatchFile, releaseBackgroundDelivery } from './background-delivery.ts';
+import type { DeliveryHost } from './deliver-file.ts';
+import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { getHostRef, setHostRef } from './host-ref.ts';
+import { createClipboardAPI } from '../bridge/clipboard.ts';
 import { DeliveryResult } from './delivery-result.ts';
 import { consumeSaveAsNext, requestSaveAsNext, saveFileWithPicker } from '../bridge/export-save-picker.ts';
 
@@ -27,6 +32,62 @@ function withDom(html: string): { dom: JSDOM; restore: () => void } {
 
 const buttons = (status: Element): HTMLButtonElement[] => [...status.querySelectorAll<HTMLButtonElement>('button')];
 const byText = (status: Element, text: string): HTMLButtonElement | undefined => buttons(status).find(b => b.textContent === text);
+
+test('clipboard fallback retains its generated image when the first file write fails', async () => {
+  const { restore } = withDom('<main></main>');
+  const previous = getHostRef();
+  const blob = new Blob(['prepared image'], { type: 'image/png' });
+  let calls = 0;
+  const host = { export: { download: async (data: Blob, name: string) => {
+    assert.equal(data, blob); assert.equal(name, 'image.png');
+    if (++calls === 1) throw new Error('Induced clipboard fallback failure');
+  } } } as HostV1;
+  try {
+    setHostRef(host);
+    assert.deepEqual(await createClipboardAPI().writeImage(blob), { method: 'download' });
+    const result = document.querySelector('.background-delivery')!;
+    assert.match(result.textContent!, /Induced clipboard fallback failure/);
+    byText(result, 'Retry download')!.click(); await tick();
+    assert.equal(calls, 2);
+    assert.match(result.textContent!, /Download requested/);
+  } finally { releaseBackgroundDelivery(); setHostRef(previous as HostV1); restore(); }
+});
+
+test('failed first delivery and a background retry retain exactly one prepared archive', async () => {
+  const { restore } = withDom('<div id="owner"><p role="status"></p></div>');
+  const owner = document.querySelector<HTMLElement>('#owner')!;
+  const surface = owner.querySelector('p')!;
+  const blob = new Blob(['already encrypted archive']);
+  const writes: Blob[] = [];
+  let fail = true;
+  const host = { export: { download: async (data: Blob, filename: string) => {
+    writes.push(data);
+    assert.equal(filename, 'event.zip');
+    if (fail) throw new Error('Disk unavailable');
+  } } } as DeliveryHost;
+  try {
+    const first = await deliverWithRecovery(owner, surface, { blob, filename: 'event.zip', label: 'Three outputs' }, host);
+    assert.equal(first.state, 'failed');
+    assert.equal(first.file?.blob, blob);
+    assert.match(surface.textContent!, /Disk unavailable/);
+    fail = false;
+    await first.retry();
+    assert.equal(first.state, 'requested');
+    assert.deepEqual(writes, [blob, blob]);
+    releaseDeliveryFor(owner);
+    assert.equal(first.file, null);
+
+    owner.remove();
+    const second = await deliverBatchFile(owner, surface, { blob, filename: 'event.zip', label: 'Three outputs' }, host);
+    const visible = document.querySelector<HTMLElement>('.background-delivery')!;
+    assert.ok(visible.isConnected, 'a detached batch owner has a visible recovery surface');
+    await second.retry();
+    assert.equal(writes.at(-1), blob);
+    byText(visible, 'Dismiss')!.click();
+    assert.equal(second.disposed, true);
+    assert.equal(document.querySelector('.background-delivery'), null);
+  } finally { releaseDeliveryFor(owner); releaseBackgroundDelivery(); restore(); }
+});
 
 test('download recovery preserves the file, opens the picker on the click, and confirms only a closed write', async () => {
   const { restore } = withDom('<p role="status">File ready.</p>');
@@ -159,18 +220,19 @@ test('a result replaced or released cannot repaint the surface from a late compl
   }
 });
 
-test('legacy Save As consumes cancellation once and still falls back on API refusal', async () => {
+test('Save As preserves cancellation and refusal without starting an anchor download', async () => {
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
   const blob = new Blob(['file']);
   const win = { showSaveFilePicker: async (): Promise<never> => { throw new DOMException('cancel', 'AbortError'); } };
   Object.defineProperty(globalThis, 'window', { configurable: true, value: win });
   try {
     requestSaveAsNext();
-    assert.equal(await consumeSaveAsNext(blob, 'file.txt'), true);
-    assert.equal(await consumeSaveAsNext(blob, 'file.txt'), false);
+    assert.equal(await consumeSaveAsNext(blob, 'file.txt'), 'cancelled');
+    assert.equal(await consumeSaveAsNext(blob, 'file.txt'), null);
     win.showSaveFilePicker = async () => { throw new DOMException('gesture expired', 'SecurityError'); };
     requestSaveAsNext();
-    assert.equal(await consumeSaveAsNext(blob, 'file.txt'), false);
+    await assert.rejects(consumeSaveAsNext(blob, 'file.txt'), { name: 'SecurityError' });
+    assert.equal(await consumeSaveAsNext(blob, 'file.txt'), null);
     await assert.rejects(saveFileWithPicker(blob, 'file.txt'), { name: 'SecurityError' });
   } finally {
     if (previousWindow) Object.defineProperty(globalThis, 'window', previousWindow); else delete (globalThis as any).window;

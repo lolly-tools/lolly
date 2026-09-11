@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { aiAllowed, assertAiAllowed, guardAiWorker } from '../lib/ai-policy.ts';
 /**
  * Web implementation of `host.upscale` (v1.101) - on-device AI image upscaling.
  * THIN by design: this file is only worker plumbing (an id-keyed pending map,
@@ -34,8 +35,9 @@ const pending = new Map<number, Pending>();
 let resolvedBackend: 'webgpu' | 'wasm' | null = null;
 
 function ensureWorker(): Worker {
+  assertAiAllowed('upscale');
   if (worker) return worker;
-  worker = new Worker(new URL('../lib/upscale-worker.ts', import.meta.url), { type: 'module' });
+  worker = guardAiWorker('upscale', () => new Worker(new URL('../lib/upscale-worker.ts', import.meta.url), { type: 'module' }));
   worker.onmessage = (e: MessageEvent<UpscaleWorkerReply>): void => {
     const reply = e.data;
     if (reply.backend) resolvedBackend = reply.backend; // latch (also the id:0 spawn probe)
@@ -74,7 +76,7 @@ export function createUpscaleAPI(): UpscaleAPI {
     isAvailable(): boolean {
       // A wasm backend to run the model + a Worker to run it off-thread. The
       // Worker check is also what answers false under jsdom (the CLI omits this).
-      return typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
+      return aiAllowed('upscale') && typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
     },
 
     backend(): 'webgpu' | 'wasm' | null {

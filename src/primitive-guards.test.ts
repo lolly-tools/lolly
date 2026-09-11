@@ -1508,6 +1508,11 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/timeline-panel/menus.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/timeline-panel/playback.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/timeline-panel/rows.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  // 2026-09-11: the pro kit panel renders its brief form in one innerHTML pass. Every
+  // user-controlled value reaches it through escapeHtml (the kit name, each field label
+  // and its current string value); the remaining interpolations are t() UI literals and
+  // the field id, an identifier drawn from the kit definition's own field list.
+  'pro/kit-panel.ts': 1,
 };
 
 test('R10: raw-HTML sinks are a pinned inventory, not a growing one', () => {

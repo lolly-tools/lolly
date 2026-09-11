@@ -236,8 +236,8 @@
   /* Declared unconditionally so `calc(… * var(--a11y-fs))` is never an invalid
      computed value - an undefined var there would drop the whole font-size to
      its inherited value, i.e. break type everywhere, not just under the pref.
-     --a11y-os-fs is the iOS Dynamic Type ratio, probed once at boot
-     (main.ts initMobilePlatformFit) and written INLINE on <html> - which is
+     --a11y-os-fs is the iOS Dynamic Type ratio, observed live
+     (lib/ios-text-scale.ts) and written INLINE on <html> - which is
      exactly why the pref cannot live inline too: an inline --a11y-fs would
      outrank the attribute rule below and freeze the toggle. Composing here
      keeps both sources live: the OS ratio scales the chrome on its own, and

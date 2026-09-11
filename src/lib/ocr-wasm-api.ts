@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { aiAllowed, assertAiAllowed, guardAiWorker } from './ai-policy.ts';
 /**
  * The WASM implementation of `host.ocr` (plans/125) - worker plumbing only: an
  * id-keyed pending map, progress fan-out, abort translation. The onnxruntime-web
@@ -27,8 +28,9 @@ const pending = new Map<number, Pending>();
 let resolvedBackend: 'wasm' | null = null;
 
 function ensureWorker(): Worker {
+  assertAiAllowed('ocr');
   if (worker) return worker;
-  worker = new Worker(new URL('./ocr-worker.ts', import.meta.url), { type: 'module' });
+  worker = guardAiWorker('ocr', () => new Worker(new URL('./ocr-worker.ts', import.meta.url), { type: 'module' }));
   worker.onmessage = (e: MessageEvent<OcrWorkerReply>): void => {
     const reply = e.data;
     if (reply.backend) resolvedBackend = reply.backend;
@@ -62,7 +64,7 @@ function abortError(message = 'The text read was aborted.'): Error {
 export function createWasmOcrAPI(): OcrAPI {
   return {
     isAvailable(): boolean {
-      return typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
+      return aiAllowed('ocr') && typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
     },
 
     backend(): 'wasm' | null {

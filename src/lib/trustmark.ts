@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { AiPolicyError, assertAiAllowed, runAi } from './ai-policy.ts';
 /**
  * TrustMark deep scan - the neural half of Adobe TrustMark watermark
  * detection (see engine/src/trustmark.ts for the pure BCH/ECC half, which
@@ -378,6 +379,7 @@ async function preprocess(
       const X = new ort.Tensor('float32', packNchw01(cropData, cropW, cropH), [1, 3, cropH, cropW]);
       const scales = new ort.Tensor('float32', computeScalesFixed(size, cropH, cropW), [4]);
       const targetSize = new ort.Tensor('int64', new BigInt64Array([BigInt(size)]), [1]);
+      assertAiAllowed('watermark');
       const res = await resizerSession.run({ X, scales, target_size: targetSize });
       const y = res.Y ?? res[Object.keys(res)[0] ?? ''];
       if (y) {
@@ -409,6 +411,7 @@ async function preprocess(
  *  graphs; the first tensor in the result map is a defensive fallback in case a
  *  vendored model names it differently (unverified - see module header). */
 async function runDecoder(session: InferenceSession, imageTensor: OrtTensor): Promise<number[] | null> {
+  assertAiAllowed('watermark');
   const results = await session.run({ image: imageTensor });
   const outName = results.output ? 'output' : (Object.keys(results)[0] ?? '');
   const out: OrtTensor | undefined = results[outName];
@@ -447,6 +450,14 @@ async function runDecoder(session: InferenceSession, imageTensor: OrtTensor): Pr
  * unverified.
  */
 export async function detectTrustmark(
+  rgba: Uint8ClampedArray | Uint8Array, width: number, height: number,
+  opts: { cacheOnly?: boolean } = {},
+): Promise<TrustmarkDetection> {
+  try { return await runAi('watermark', () => detectTrustmarkImpl(rgba, width, height, opts)); }
+  catch (error) { if (error instanceof AiPolicyError) return { status: 'error' }; throw error; }
+}
+
+async function detectTrustmarkImpl(
   rgba: Uint8ClampedArray | Uint8Array, width: number, height: number,
   opts: { cacheOnly?: boolean } = {},
 ): Promise<TrustmarkDetection> {

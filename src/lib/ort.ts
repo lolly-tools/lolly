@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { modelCapability, runAi } from './ai-policy.ts';
 // ─── Shared onnxruntime-web loader (deep-scan watermark detectors) ────────────
 //
 // ONE onnxruntime-web module + ONE wasm init, shared by every deep-scan detector
@@ -173,6 +174,7 @@ export function createModelFetcher(
   { store, dir, version, dbg, afterCache }: ModelCacheOptions,
 ): (fileName: string, cacheOnly?: boolean, onProgress?: (p: FetchProgress) => void) => Promise<ArrayBuffer | null> {
   return async function fetchModelBytes(fileName, cacheOnly = false, onProgress) {
+    return runAi(modelCapability(dir) ?? 'unclassified', async (signal) => {
     try {
       const db = await openDB();
       const cached = await db.get(store, fileName) as CachedModel | undefined;
@@ -189,7 +191,7 @@ export function createModelFetcher(
     const url = `${MODELS_BASE}/models/${dir}/${fileName}`;
     let resp: Response;
     try {
-      resp = await fetch(url);
+      resp = await fetch(url, { signal });
     } catch (err) {
       dbg('fetch', { file: fileName, url, status: 'network-error', error: (err as Error)?.message });
       return null; // offline, or the dev server has nothing mounted at /models/
@@ -217,12 +219,15 @@ export function createModelFetcher(
 
     try {
       const db = await openDB();
+      signal.throwIfAborted();
       await db.put(store, { bytes, version, cachedAt: Date.now() }, fileName);
       await afterCache?.(fileName, db);
     } catch {
       // Best-effort cache write - a failed put just means re-fetching next time.
     }
+    signal.throwIfAborted();
     return bytes;
+    });
   };
 }
 

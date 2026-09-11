@@ -22,6 +22,8 @@ import { moveSessionSlot } from './tool-revision-history.ts';
  * Folders live on the profile via the pro-free folder store; rendering a folder gates a
  * dynamic import of ./pro so the Projects chunk stays light and /pro stays removable.
  */
+import { captureNeutralPinned } from '../lib/capture-neutral.ts';
+import { perfUiOn } from '../feature-flags.ts';
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
@@ -2412,7 +2414,7 @@ export async function mountProjects(
       const v = localStorage.getItem(FEATURED_VIEW_STORAGE);
       if (v && (FEATURED_VIEWS as readonly string[]).includes(v)) return v as FeaturedViewMode;
     } catch { /* storage off */ }
-    return 'gallery';
+    return captureNeutralPinned() || perfUiOn() ? 'gallery' : 'coverflow';
   }
 
   // The favourites strip at the top of the Projects ROOT view: a browsable ribbon of the
@@ -2487,6 +2489,8 @@ export async function mountProjects(
     if (!tiles.length) { mount.remove(); return; }   // all favourites vanished (deleted elsewhere)
     featuredHandle = mountFeaturedRow(mount, tiles, host, {
       viewMode: readFeaturedView(),
+      collection: 'projects',
+      favourites,
       ariaLabel: t('Favourites'),
       tileDragOut: false,
       tileMenu: false,
@@ -2513,6 +2517,8 @@ export async function mountProjects(
     if (!tiles.length) return;
     featuredHandle = mountFeaturedRow(mount, tiles, host, {
       viewMode: readFeaturedView(),
+      collection: 'projects',
+      favourites,
       ariaLabel: t('Uncategorised previews'),
       tileDragOut: true,
       tileMenu: true,

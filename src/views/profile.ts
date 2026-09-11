@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { aiOfflinePartAllowed, aiPolicy } from '../lib/ai-policy.ts';
 /**
  * Profile view - personal details + appearance preferences.
  *
@@ -2304,6 +2305,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
   // WP-F job), so leaving /profile mid-sweep keeps the download going with the
   // global job toast owning its progress and its Cancel.
   let offlineRunUnsub: (() => void) | null = null;
+  let aiPolicyUnsub: (() => void) | null = null;
   async function loadOffline() {
     if (offlineLoaded) return;
     offlineLoaded = true;
@@ -2685,6 +2687,12 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
       const dl = row.querySelector<HTMLButtonElement>(`[data-part-dl="${id}"]`)!;
       const rm = row.querySelector<HTMLButtonElement>(`[data-part-rm="${id}"]`)!;
       const rec = partState[id];
+      if (!aiOfflinePartAllowed(id)) {
+        sub.textContent = t('AI downloads are disabled by your service policy.');
+        dl.hidden = true;
+        rm.hidden = !rec;
+        return;
+      }
       if (!partAvailable[id]) {
         sub.textContent = t('Not offered by this server');
         dl.hidden = true;
@@ -2715,7 +2723,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
     // honest. availableModelParts() filters to what THIS server actually offers.
     const MODEL_PARTS = ['speech', 'upscale', 'matte', 'ocr', 'reword', 'ask', 'ai-detect', 'verify', 'durable'] as const;
     const inclModels = (): boolean => !!body.querySelector<HTMLInputElement>('#odl-incl-models')?.checked;
-    const availableModelParts = (): OfflinePartId[] => MODEL_PARTS.filter(id => partAvailable[id]);
+    const availableModelParts = (): OfflinePartId[] => MODEL_PARTS.filter(id => partAvailable[id] && aiOfflinePartAllowed(id));
     const modelsRow = body.querySelector<HTMLElement>('#odl-models-row');
     const modelsSizeEl = body.querySelector<HTMLElement>('#odl-models-size');
     const syncSweepSize = (): void => {
@@ -2828,7 +2836,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
       if (running || (!outer && offlineRunActive())) return false;
       running = true;   // synchronous - closes the double-click window the two awaits below open
       try {
-        const want = ids.filter(id => partAvailable[id] && (!partState[id] || isStale(id)));
+        const want = ids.filter(id => partAvailable[id] && aiOfflinePartAllowed(id) && (!partState[id] || isStale(id)));
         if (!want.length) return true; // nothing to do IS a completed run
         const scope = catalogScope();
         const totalPlanned = want.reduce((n, id) => n + planned(id), 0);
@@ -2997,6 +3005,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
     // as THIS view lives and picks up a run that started in a previous mount.
     // Fires on change only (the lib/jobs.ts subscribe contract), so the current
     // line is read once below. _cleanup unsubscribes; it never aborts.
+    aiPolicyUnsub = aiPolicy.subscribe(syncSweepSize);
     offlineRunUnsub = subscribeOfflineRun({
       onProgress: line => showProgress(line),
       onEnd: () => { void (async () => {
@@ -3276,6 +3285,8 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
     // paints its controls busy.
     offlineRunUnsub?.();
     offlineRunUnsub = null;
+    aiPolicyUnsub?.();
+    aiPolicyUnsub = null;
   };
 }
 

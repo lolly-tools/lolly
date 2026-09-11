@@ -19,6 +19,8 @@ import { BATCH_SLOT_PREFIX, isBatchSlot } from '../lib/batch-slots.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
+import { restoreKit } from './kit-model.ts';
+import type { KitState } from './kit-model.ts';
 
 // Distinctive prefix; single-tool slots are `<toolId>:<timestamp>` so they
 // never start with this. The literal + predicate are the shared lib module now
@@ -27,6 +29,7 @@ export { BATCH_SLOT_PREFIX, isBatchSlot };
 
 /** A live batch row (what the grid holds and sessions read/write). */
 export interface SessionRow {
+  kitOutputId?: string;
   toolId: string;
   values: Record<string, InputValue>;
   manifest: ToolManifest | null;
@@ -47,6 +50,7 @@ export interface SessionRow {
 
 /** The slice of live batch state a snapshot captures. */
 export interface SessionStateInput {
+  kit?: KitState;
   format: string;
   unit?: string;
   dpi?: number;
@@ -67,6 +71,7 @@ export interface SessionStateInput {
 
 /** One row inside a serialized snapshot (transient/derived fields dropped). */
 export interface SnapshotRow {
+  kitOutputId?: string;
   toolId: string;
   values: Record<string, InputValue>;
   format?: string;
@@ -86,6 +91,7 @@ export interface SnapshotRow {
 
 /** A serializable snapshot of a whole batch, persisted via host.state. */
 export interface BatchSnapshot {
+  kit?: KitState;
   __batch: true;
   format: string;
   unit: string;
@@ -129,6 +135,7 @@ export interface SessionStore {
 export function snapshotFromState(state: SessionStateInput): BatchSnapshot {
   return {
     __batch: true,
+    ...(state.kit ? { kit: restoreKit(state.kit) } : {}),
     format: state.format,
     unit: state.unit ?? 'px',
     dpi: state.dpi ?? 300,
@@ -143,6 +150,7 @@ export function snapshotFromState(state: SessionStateInput): BatchSnapshot {
     rows: state.rows
       .filter(r => r.toolId)
       .map(r => ({
+        ...(r.kitOutputId ? { kitOutputId: r.kitOutputId } : {}),
         toolId: r.toolId,
         values: r.values ?? {},
         format: r.format,
@@ -181,6 +189,7 @@ export async function rowsFromSnapshot<R extends SessionRow>(
   for (const r of data.rows ?? []) {
     const row = newRow();
     row.toolId = r.toolId;
+    if (r.kitOutputId) row.kitOutputId = r.kitOutputId;
     row.values = r.values ?? {};
     if (r.format) row.format = r.format;
     if (r.filename) row.filename = r.filename;
@@ -195,9 +204,9 @@ export async function rowsFromSnapshot<R extends SessionRow>(
     try {
       const manifest = (await getTool(r.toolId)).manifest;
       if (isExportable(manifest)) row.manifest = manifest;
-      else { row.toolId = ''; row.manifest = null; }
+      else { if (!r.kitOutputId) row.toolId = ''; row.manifest = null; }
     } catch {
-      row.toolId = '';
+      if (!r.kitOutputId) row.toolId = '';
       row.manifest = null;
     }
     rows.push(row);

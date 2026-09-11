@@ -135,19 +135,28 @@ export function attachDeliveryResult(
   surface: HTMLElement,
   file: PreparedFile,
   host: DeliveryHost,
-  outcome: DeliveryOutcome | { failed: string },
+  outcome: DeliveryOutcome | { failed: string } | null,
   copy: Partial<RecoveryCopy> = {},
 ): DeliveryResult {
   releaseDeliveryFor(owner);
   const result = new DeliveryResult(file, (blob, filename) => deliverFile(host, blob, filename), chooseLocationDeliver(host));
   if (typeof outcome === 'string') result.recordOutcome(outcome);
-  else result.recordFailure(outcome.failed);
+  else if (outcome) result.recordFailure(outcome.failed);
   surface.hidden = false;
   const unmount = mountDownloadRecovery(surface, result, {
     ready: copy.ready ?? tRaw('{name} ready.', { name: file.filename }),
     saved: copy.saved ?? t('Saved.'),
   });
   retained.set(owner, { result, unmount });
+  return result;
+}
+
+/** Retain before the first write, so delivery failure never becomes lost output. */
+export async function deliverWithRecovery(
+  owner: HTMLElement, surface: HTMLElement, file: PreparedFile, host: DeliveryHost,
+): Promise<DeliveryResult> {
+  const result = attachDeliveryResult(owner, surface, file, host, null);
+  await result.retry();
   return result;
 }
 

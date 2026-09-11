@@ -83,8 +83,8 @@ export function createClipboardAPI(): WebClipboardAPI {
           // Fall through to download.
         }
       }
-      // Fallback: deliver the image as a file instead. Tools that ask for clipboard
-      // get a guaranteed outcome - the user gets the image one way or another.
+      // Fallback: retain the prepared image and request file delivery. The browser
+      // cannot guarantee that an ordinary download reached disk.
       // Route through host.export.download when the bridge is up, so the Tauri
       // shells' native-save override catches it (a raw anchor is dropped by wry's
       // WebView on mobile - plan 216 item 1); fall back to the bridge's own anchor
@@ -92,7 +92,8 @@ export function createClipboardAPI(): WebClipboardAPI {
       const filename = `image.${imageExt(blob.type)}`;
       const host = getHostRef();
       if (host?.export?.download) {
-        await host.export.download(blob, filename);
+        const { deliverBatchFile } = await import('../lib/background-delivery.ts');
+        await deliverBatchFile(undefined, undefined, { blob, filename, label: filename }, host);
       } else {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

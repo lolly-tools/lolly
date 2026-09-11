@@ -9,6 +9,7 @@
  * so the storage location stays swappable.
  */
 
+import { recordNewFavourites } from './featured-activity.ts';
 import type { HostV1, Profile } from '@lolly-tools/core/host-v1';
 
 type FavHost = HostV1 & { profile: { set(p: Profile): Promise<void> } };
@@ -26,6 +27,7 @@ export function loadFavourites(profile: Profile | null | undefined): Set<string>
  * means the star doesn't survive a reload.
  */
 export async function saveFavourites(host: FavHost, profile: Profile, favourites: Set<string>): Promise<void> {
+  recordNewFavourites('tools', profile.favourites, favourites);
   profile.favourites = [...favourites];
   try { await host.profile.set(profile); } catch { /* storage off / quota - non-fatal */ }
 }

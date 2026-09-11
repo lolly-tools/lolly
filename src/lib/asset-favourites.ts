@@ -17,6 +17,7 @@
  * collide.
  */
 
+import { recordNewFavourites } from './featured-activity.ts';
 import { stripAssetModifiers } from '../../../../engine/src/photo-treatment.ts';
 import type { HostV1, Profile } from '@lolly-tools/core/host-v1';
 
@@ -75,6 +76,7 @@ export function loadFavouriteAssets(profile: Profile | null | undefined): Set<st
  *  via host.profile.set. Best-effort - a failed write just means the star doesn't survive
  *  a reload. */
 export async function saveFavouriteAssets(host: FavHost, profile: Profile, favs: Set<string>): Promise<void> {
+  recordNewFavourites('assets', profile.favouriteAssets, favs);
   profile.favouriteAssets = [...favs];
   try { await host.profile.set(profile); } catch { /* storage off / quota - non-fatal */ }
 }

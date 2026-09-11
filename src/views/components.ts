@@ -92,8 +92,6 @@ import { customSliderHtml, mountCustomSlider } from '../components/custom-slider
 import { mountThemeFab } from '../components/theme-toggle.ts';
 import { listLollyUiTokens } from '../lib/lolly-ui-tokens.ts';
 import { attachDeliveryResult, releaseDeliveryFor } from '../lib/download-recovery.ts';
-import { deliverFile } from '../lib/deliver-file.ts';
-import type { DeliveryOutcome } from '../lib/delivery-result.ts';
 import { componentFixture } from './components-fixtures.ts';
 import { copyText, importInfo, markupOf, tokensUsedBy } from './components-reference.ts';
 
@@ -659,11 +657,8 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
       // The archive exists from here on: a delivery failure keeps it retained with a
       // retry, and only a BUILD failure reaches the outer catch (plans/236).
       clearDownloadRecovery = () => releaseDeliveryFor(status);
-      let outcome: DeliveryOutcome | { failed: string };
-      try { outcome = await deliverFile(host, blob, filename); }
-      catch (error) { outcome = { failed: `Download failed. ${error instanceof Error ? error.message : String(error)} Please try again.` }; }
-      if (!active) return;
-      attachDeliveryResult(status, status, { blob, filename, label: filename }, host, outcome, { ready: readyMessage, saved: savedMessage });
+      const result = attachDeliveryResult(status, status, { blob, filename, label: filename }, host, null, { ready: readyMessage, saved: savedMessage });
+      await result.retry();
     } catch (error) {
       status.textContent = `Download failed. ${error instanceof Error ? error.message : String(error)} Please try again. `;
     } finally {
@@ -698,14 +693,11 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
       const blob = new Blob([JSON.stringify(tokens, null, 2)], { type: 'application/json' });
       const filename = 'lolly-ui.tokens.json';
       clearDownloadRecovery = () => releaseDeliveryFor(status);
-      let outcome: DeliveryOutcome | { failed: string };
-      try { outcome = await deliverFile(host, blob, filename); }
-      catch (error) { outcome = { failed: `Token download failed: ${String(error)}` }; }
-      if (!active) return;
-      attachDeliveryResult(status, status, { blob, filename, label: filename }, host, outcome, {
+      const result = attachDeliveryResult(status, status, { blob, filename, label: filename }, host, null, {
         ready: 'Tokens ready with the current theme’s semantic colours. Check your browser’s downloads.',
         saved: 'Tokens saved.',
       });
+      await result.retry();
     } catch (error) {
       status.textContent = `Token download failed: ${String(error)} `;
     }

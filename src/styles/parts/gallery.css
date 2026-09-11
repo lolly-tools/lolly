@@ -60,6 +60,10 @@
   position: fixed;
   left: var(--vv-left, 0px); right: var(--vv-right, 0px);
   bottom: calc(var(--vv-bottom, 0px) + var(--footer-h, 3.4rem) - 1px);
+  /* Same edge-dock reserve as the footer it stacks on (lib/edge-dock.ts): without
+     it the strip spans the whole viewport, centres its line under the docked
+     column and gets clipped by it. 0px at rest. */
+  margin-inline-end: var(--dock-w, 0px);
   z-index: 49; /* just under the footer (50) so they read as one stacked unit */
   display: flex;
   align-items: center;

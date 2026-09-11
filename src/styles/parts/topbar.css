@@ -106,6 +106,40 @@
   .gallery-topbar .view-toggle-opt { padding: 6px ; }
 }
 
+/* ── Edge dock up (html[data-edge-dock], lib/edge-dock.ts): bound the pill ────────
+   Same collision as the in-between band, reached from the other side: the viewport
+   is wide enough, but the docked column (up to 560px) takes the inline-end of it and
+   the cluster steps inward by --dock-w with it. A media query cannot see the dock,
+   so this keys off the attribute the dock sets while it has a column. The box is the
+   band's - left-anchored, the cluster's 19em reserve taken off the REMAINING width -
+   so the pill centres between the viewport's left edge and the cluster rather than on
+   the content (a symmetric reserve was tried first and left nothing to centre in once
+   the remaining width fell under ~620px: the gallery's pill ran under the filter
+   button on a 800px window with a 250px dock). The box is a container, and when it
+   gets too tight for four labelled tabs the tabs tighten and then drop to icons, the
+   same two steps the ≤640px bar already takes. Width, not the inset, scales on
+   --a11y-fs for the reason the band above spells out. Only a dock at its 50%-of-
+   viewport maximum on a ~640px window still has the icon pill overflow the box. */
+@media (min-width: 641px) {
+  html[data-edge-dock] .gallery-topbar .view-toggle-wrap {
+    left: .75em;
+    width: calc(100% - var(--dock-w, 0px) - .75em - 19em * var(--a11y-fs, 1));
+    transform: none;
+    justify-content: center;
+    container-type: inline-size;
+  }
+  /* Selectors carry the .gallery-topbar prefix so they out-specify the base
+     .view-toggle-opt padding in projects.css, as the band rule above does. */
+  @container (max-width: 480px) {
+    .gallery-topbar .view-toggle-opt { padding: 6px; }
+  }
+  @container (max-width: 360px) {
+    .gallery-topbar .view-toggle-label { display: none; }
+    .gallery-topbar .view-toggle-ic { margin-inline-end: 0; }
+    .gallery-topbar .view-toggle-opt { padding: 8px 8px 8px 12px; }
+  }
+}
+
 /* ── Consolidated profile menu (mobile) - opened by tapping the avatar. ─────────
    Gathers what the bar can't show at this width: theme switcher, saved sessions,
    and a link to the full Settings page. Body-mounted popover; matches the filter
@@ -368,3 +402,44 @@
     min-height: 44px;
   }
 }
+
+/* Native accessibility sizes need real flow, beyond the compact fixed row.
+   Let navigation and actions wrap above content on iPhone and iPad; scrolling
+   the page then reaches every enlarged control, including in Split View. */
+html[data-ios-large-type] .gallery-topbar {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  top: auto;
+  left: auto;
+  right: auto;
+  padding: calc(.5rem + var(--safe-top)) .75rem .5rem;
+  pointer-events: auto;
+}
+html[data-ios-large-type] .gallery-topbar .view-toggle-wrap,
+html[data-ios-large-type] .gallery-topbar .gallery-topright {
+  position: static;
+  transform: none;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+}
+html[data-ios-large-type] .gallery-topbar .view-toggle-wrap { overflow-x: auto; }
+html[data-ios-large-type] .gallery-topbar .view-toggle { flex-wrap: wrap; }
+html[data-ios-large-type] .gallery-topbar .view-toggle-opt { padding: 6px; }
+html[data-ios-large-type] .gallery-topbar .view-toggle-label,
+html[data-ios-large-type] .gallery-topbar .profile-link-name,
+html[data-ios-large-type] .gallery-topbar .history-fab { display: none; }
+html[data-ios-large-type] .gallery-topbar .gallery-topright { flex-wrap: wrap; }
+html[data-ios-large-type] .gallery-topbar .profile-link {
+  width: var(--chrome-h);
+  min-width: var(--chrome-h);
+  padding: 0;
+  justify-content: center;
+}
+/* The toolbar now clears its own space in normal flow. */
+html[data-ios-large-type] .gallery-topbar ~ .featured-mount .featured { --featured-top-space: 0px; }

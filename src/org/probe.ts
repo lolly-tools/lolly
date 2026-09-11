@@ -22,6 +22,7 @@
  */
 import { instanceFetch, instancePath, getInstanceBase } from '../lib/instance.ts';
 import type { AuthConfig, OrgState } from './index.ts';
+import { beginAiProbe, finishAiProbe, knownManagedAi } from './ai-policy.ts';
 
 /** Short probe budget - a hung network must never delay boot by more than this. */
 export const PROBE_TIMEOUT_MS = 1500;
@@ -98,10 +99,12 @@ export function rememberAbsent(): void {
  * situation as a probe that times out.
  */
 export async function initOrgProbeFirst(): Promise<OrgState | null> {
+  beginAiProbe();
   try {
-    if (isRecentlyAbsent()) return null;
+    if (!knownManagedAi() && isRecentlyAbsent()) { finishAiProbe(false); return null; }
     const auth = await probeAuthConfig();
-    if (!auth) { rememberAbsent(); return null; }
+    if (!auth) { finishAiProbe(false); rememberAbsent(); return null; }
+    finishAiProbe(true);
     const org = await import('./index.ts');
     return await org.initOrgWithAuth(auth);
   } catch {

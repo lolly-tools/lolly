@@ -41,7 +41,7 @@ import { brandVarTokenPath } from "../brand-vars.ts";
 import { domToPenpotDoc } from "../lib/dom-penpot.ts";
 import { stampSvgBindings } from "../lib/svg-bindings.ts";
 import { bakeTextStyles } from "./export-pptx.ts";
-import { renderSvgFromHtml, type ExportOpts } from "./export.ts";
+import { renderSvgFromHtml, _exportNotice, type ExportOpts } from "./export.ts";
 
 /** Per-image ceiling. Matches the pptx deck path: a `src` is tool-controlled. */
 const MAX_PENPOT_IMG_BYTES = 32 * 1024 * 1024;
@@ -350,11 +350,19 @@ export async function renderPenpot(node: Element, opts: ExportOpts): Promise<Blo
 
   let doc: PenpotDoc | null = null;
   const notes: string[] = [];
+  // What went into the file, to report to the user (plans/222 item B). `stored` is
+  // filled from build.mediaCount after the build; the rest come from the producer.
+  const report = { producer: 'picture', editableText: 0, linked: 0, embedded: 0, missingImages: 0 };
 
   // 1. The Design tool's own document, when the stage carries one.
   const model = readPenpotDocModel(node);
   if (model) {
+    report.producer = 'design';
     const media = await resolveBoxMedia(model.boxes);
+    // Count by DISTINCT box id: resolveBoxMedia (and boxesToPenpotDoc) dedupe boxes
+    // by id, so a duplicate-id picture is dropped as a dup, not "left out".
+    const pictures = new Set(model.boxes.filter(isPictureBox).map((b) => String(b.id ?? ''))).size;
+    report.missingImages = Math.max(0, pictures - media.size);
     const colors = makeColorResolver(node);
     try {
       doc = boxesToPenpotDoc(model.boxes, {
@@ -379,6 +387,11 @@ export async function renderPenpot(node: Element, opts: ExportOpts): Promise<Blo
       const dom = await domToPenpotDoc(node, { name, background: opts.background, bindToken: brandBindToken });
       if (dom?.doc.pages[0]?.shapes.length) {
         doc = Object.assign(dom.doc, shared);
+        report.producer = 'html';
+        report.editableText = dom.report.editableText;
+        report.linked = dom.report.bound;
+        report.embedded = dom.report.embedded;
+        report.missingImages = dom.report.missingImages;
         if (dom.report.notes.length) notes.push(...dom.report.notes);
         if (dom.report.fonts.length) notes.push(`fonts used: ${dom.report.fonts.join(', ')} - install them in Penpot to paint the text`);
       }
@@ -390,10 +403,11 @@ export async function renderPenpot(node: Element, opts: ExportOpts): Promise<Blo
     const svg = await svgTextFor(node, opts);
     const lowered = svgToPenpotDoc(svg, { ...shared, background: opts.background });
     if (lowered) {
+      report.producer = 'svg';
       notes.push(...lowered.notes);
       for (const pending of lowered.pending) {
         const media = await mediaFromUrl(pending.href, pending.name || basenameOf(pending.href), pending.mediaId);
-        if (!media) continue;                 // mediaFromUrl already said why
+        if (!media) { report.missingImages++; continue; }  // mediaFromUrl already said why
         (lowered.doc.media ??= []).push(media);
       }
       doc = lowered.doc;
@@ -414,6 +428,23 @@ export async function renderPenpot(node: Element, opts: ExportOpts): Promise<Blo
   markToolComponents(doc, name);
 
   const build = buildPenpotEntries(doc);
+
+  // Report what went into the file, to the USER (aria-live + the export card note),
+  // not only the console (plans/222 item B). A count summary + the limitation notes;
+  // the console keeps the full log for support.
+  const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;
+  const parts: string[] = [];
+  // Embedded illustrations ARE local media, so subtract them from the media count to
+  // get the real stored-image count - reporting both would double-count the same file.
+  const stored = Math.max(0, build.mediaCount - report.embedded);
+  if (report.editableText) parts.push(plural(report.editableText, 'editable text object', 'editable text objects'));
+  if (report.linked) parts.push(plural(report.linked, 'token binding', 'token bindings'));
+  if (stored) parts.push(`${plural(stored, 'image', 'images')} stored`);
+  if (report.embedded) parts.push(`${plural(report.embedded, 'illustration', 'illustrations')} embedded`);
+  if (report.missingImages) parts.push(`${plural(report.missingImages, 'image', 'images')} left out`);
+  const line = [parts.length ? `Penpot: ${parts.join(', ')}.` : '', ...notes].filter(Boolean).join(' ');
+  if (line) _exportNotice(line);
+
   if (notes.length) warn(notes.join('; '));
   if (build.warnings.length) warn(build.warnings.join('; '));
 

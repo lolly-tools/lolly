@@ -24,8 +24,8 @@ import './run-overlay.css';
 import { runBatch } from './batch.ts';
 import { playSfx } from '../lib/sfx.ts';
 import { t } from '../i18n.ts';
-import { deliverFile } from '../lib/deliver-file.ts';
-import { attachDeliveryResult, releaseDeliveryFor } from '../lib/download-recovery.ts';
+import { releaseDeliveryFor } from '../lib/download-recovery.ts';
+import { deliverBatchFile, releaseBackgroundDelivery } from '../lib/background-delivery.ts';
 import { isBatchRunActive, startBatchJob, releaseBatchJob } from '../lib/batch-job.ts';
 import type { JobHandle } from '../lib/jobs.ts';
 import { buildZip, saveSequential } from './zip.ts';
@@ -250,6 +250,7 @@ export async function runBatchWithProgress<F = unknown>(host: HostV1, rows: Batc
   // No mount → the shell is built detached and the global job toast is the visible
   // channel (see RunBatchProgressOpts.mount).
   const mount = opts.mount ?? document.createElement('div');
+  releaseBackgroundDelivery();
   const total = rows.length;
   let cancelRequested = false;
   // Two ways to stop: this overlay's own Cancel button and the toast's ✕ (which flips
@@ -650,10 +651,9 @@ export async function runBatchWithProgress<F = unknown>(host: HostV1, rows: Batc
             pdf = await encryptPdfStrong(pdf, strongPassword);
           }
           const pdfName = `${zipBaseName}.pdf`;
-          const pdfOutcome = await deliverFile(host, pdf, pdfName);
+          await deliverBatchFile(mount, deliveryLine(), { blob: pdf, filename: pdfName, label: pdfName }, host);
           delivered = true;
           zipName = pdfName;
-          attachDeliveryResult(mount, deliveryLine(), { blob: pdf, filename: pdfName, label: pdfName }, host, pdfOutcome);
           appendLog(`<li class="pro-log-skip">Combined document: per-file Content Credentials ride the zip delivery, not a merged PDF.</li>`);
           draw(`<strong>Done - ${files.length} row${files.length === 1 ? '' : 's'} in one PDF${tail}.</strong>`);
           announce?.(`Batch complete - ${files.length} row${files.length === 1 ? '' : 's'} in one PDF${tail}.`);
@@ -670,10 +670,9 @@ export async function runBatchWithProgress<F = unknown>(host: HostV1, rows: Batc
       const archiveName = `${zipBaseName}.zip`;
       // The retained archive is the one just built - locked, if a lock was asked for -
       // so a retry re-hands it without collecting the password again or rebuilding.
-      const zipOutcome = await deliverFile(host, zip, archiveName);
+      await deliverBatchFile(mount, deliveryLine(), { blob: zip, filename: archiveName, label: archiveName }, host);
       delivered = true;
       zipName = archiveName;
-      attachDeliveryResult(mount, deliveryLine(), { blob: zip, filename: archiveName, label: archiveName }, host, zipOutcome);
       draw(`<strong>Done - ${files.length} file${files.length === 1 ? '' : 's'} in one zip${tail}.</strong>`);
       announce?.(`Batch complete - ${files.length} file${files.length === 1 ? '' : 's'} in one zip${tail}.`);
       // The whole queue finished - celebrate: the big trumpet for a real batch, the subtle

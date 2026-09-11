@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { aiAllowed, assertAiAllowed, guardAiWorker } from './ai-policy.ts';
 /**
  * Main-thread facade over the AI-text detector worker (plans/126 WP-A) - the
  * views' one entry point to the local-model tier. Owns the worker lifecycle
@@ -32,7 +33,7 @@ export { aiDetectEligible };
 
 /** Can this environment even try? (A staged model + Worker + wasm.) */
 export function aiDetectAvailable(): boolean {
-  return aiDetectModel() !== null && typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
+  return aiAllowed('ai-detect') && aiDetectModel() !== null && typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
 }
 
 /** One-time download size of the active model, for the consent line. */
@@ -63,8 +64,9 @@ let seq = 0;
 const pending = new Map<number, Pending>();
 
 function ensureWorker(): Worker {
+  assertAiAllowed('ai-detect');
   if (worker) return worker;
-  worker = new Worker(new URL('./ai-detect-worker.ts', import.meta.url), { type: 'module' });
+  worker = guardAiWorker('ai-detect', () => new Worker(new URL('./ai-detect-worker.ts', import.meta.url), { type: 'module' }));
   worker.onmessage = (e: MessageEvent<AiDetectWorkerReply>): void => {
     const { id, progress, prob, error } = e.data;
     const p = pending.get(id);

@@ -9,6 +9,7 @@
  * folder-image ref. The set is namespace-free here because Projects refs are already distinct
  * from tool ids and catalog asset ids (separate profile fields).
  */
+import { recordNewFavourites } from './featured-activity.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
 
 // A host whose profile can persist. `get` (which every host's ProfileAPI has) anchors the
@@ -31,6 +32,7 @@ export function loadProjectFavourites(profile: Profile | null | undefined): Set<
  * survive the reload.
  */
 export async function saveProjectFavourites(host: FavHost, profile: Profile, favs: Set<string>): Promise<void> {
+  recordNewFavourites('projects', profile.favouriteProjects, favs);
   profile.favouriteProjects = [...favs];
   try { await host.profile.set?.(profile); } catch { /* storage off / quota - non-fatal */ }
 }

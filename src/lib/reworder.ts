@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { aiAllowed, assertAiAllowed, guardAiWorker, runAi } from './ai-policy.ts';
 /**
  * Main-thread facade over the reword worker (plans/127) - the catalog UI's one
  * entry point to the model tier. Owns the worker lifecycle (spawn on first use,
@@ -45,8 +46,9 @@ const pending = new Map<number, Pending>();
 const pendingWm = new Map<number, (r: TextWatermarkScore | null) => void>();
 
 function ensureWorker(): Worker {
+  assertAiAllowed('reword');
   if (worker) return worker;
-  worker = new Worker(new URL('./reword-worker.ts', import.meta.url), { type: 'module' });
+  worker = guardAiWorker('reword', () => new Worker(new URL('./reword-worker.ts', import.meta.url), { type: 'module' }));
   worker.onmessage = (e: MessageEvent<RewordWorkerReply>): void => {
     const { id, progress, result, wm, error } = e.data;
     const w = pendingWm.get(id);
@@ -110,12 +112,14 @@ async function nativeStaged(): Promise<boolean | null> {
 /** Materialise the staged set into the native side's app-data dir: fetch each
  *  file (same-origin /models/, or wherever this deploy serves them) and hand
  *  the bytes to reword_put_file. Bytes-weighted progress over the known total. */
-async function nativeStage(t: TauriInternals, onProgress?: (p: RewordProgress) => void): Promise<void> {
+async function nativeStage(t: TauriInternals, onProgress: ((p: RewordProgress) => void) | undefined, signal: AbortSignal): Promise<void> {
   let loaded = 0;
   for (const file of REWORD_MODEL_FILES) {
-    const res = await fetch(`${MODELS_BASE}/models/${REWORD_MODEL_DIR}/${file}`);
+    assertAiAllowed('reword');
+    const res = await fetch(`${MODELS_BASE}/models/${REWORD_MODEL_DIR}/${file}`, { signal });
     if (!res.ok) throw new Error(`reword model file unavailable: ${file} (${res.status})`);
     const bytes = new Uint8Array(await res.arrayBuffer());
+    signal.throwIfAborted();
     await t.invoke('reword_put_file', bytes, { headers: { 'x-file': file } });
     loaded += bytes.byteLength;
     onProgress?.({ phase: 'download', loaded, total: REWORD_MODEL_BYTES, fraction: Math.min(1, loaded / REWORD_MODEL_BYTES) });
@@ -126,9 +130,11 @@ async function nativeGenerate(
   t: TauriInternals,
   sentence: string,
   count: number,
-  onProgress?: (p: RewordProgress) => void,
+  onProgress: ((p: RewordProgress) => void) | undefined,
+  signal: AbortSignal,
 ): Promise<string[]> {
-  if (!(await t.invoke('reword_probe'))) await nativeStage(t, onProgress);
+  if (!(await t.invoke('reword_probe'))) await nativeStage(t, onProgress, signal);
+  signal.throwIfAborted();
   const raws = await t.invoke('reword_generate', {
     system: REWORD_SYSTEM_PROMPT,
     sentence,
@@ -145,7 +151,7 @@ async function nativeGenerate(
 
 /** Can this environment even try? (Worker + wasm; false under jsdom.) */
 export function rewordAvailable(): boolean {
-  return REWORD_STAGED && typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
+  return aiAllowed('reword') && REWORD_STAGED && typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
 }
 
 /** One-time download size for the consent line. */
@@ -181,10 +187,11 @@ export function rewordSentence(
   // Desktop-native first: seconds, not minutes, and no worker session held in
   // webview memory. Abort is a no-op there (a native run is short); the web
   // worker path keeps its cooperative abort.
+  assertAiAllowed('reword');
   const t = tauri();
   if (t) {
     return {
-      done: nativeGenerate(t, sentence, opts.count ?? REWORD_SAMPLES, opts.onProgress),
+      done: runAi('reword', (signal) => nativeGenerate(t, sentence, opts.count ?? REWORD_SAMPLES, opts.onProgress, signal)),
       abort: (): void => { /* native runs are short - nothing to abort */ },
     };
   }

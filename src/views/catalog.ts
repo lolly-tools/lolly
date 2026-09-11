@@ -226,7 +226,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // shorter than the hero (the previews shouldn't dominate the page here).
   const FAV_VIEW_KEY = 'lolly-catalog-fav-view'; cat.FAV_VIEW_KEY = FAV_VIEW_KEY;
   const FAV_STRIP_KEY = 'lolly-catalog-fav-strip'; cat.FAV_STRIP_KEY = FAV_STRIP_KEY;
-  cat.favView = 'gallery';
+  cat.favView = 'coverflow';
   cat.favStripOn = true;
   cat.featuredHandle = null;   // the mounted favourites strip, if any
   cat.lottieThumbs = null;   // on-screen-gated lottie grid autoplayer

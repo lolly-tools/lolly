@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { aiAllowed, callAiApi } from '../lib/ai-policy.ts';
 /**
  * Web implementation of the v1 capability bridge.
  *
@@ -24,6 +25,7 @@ import { createTokensAPI, USER_TOKENS_ID } from './tokens.ts';
 import { createDesignSystemRegistry, type DesignSystemRegistry, type RegistryDb } from '../lib/design-system/registry.ts';
 import { createPinPreserver } from './version-assets.ts';
 import { createClipboardAPI } from './clipboard.ts';
+import { deferredDownload } from './download.ts';
 // export.ts (the 90 KB SVG/PDF/video bridge) and compose.ts (which statically pulls
 // in the full render runtime - Handlebars - and the tool loader - Ajv) are NOT
 // imported statically: they'd land in the boot chunk that the gallery landing loads
@@ -178,7 +180,7 @@ export async function createBridge(): Promise<WebHost> {
   };
   host.export = {
     render: async (node, format, opts) => (await loadExport()).render(node, format, opts),
-    download: async (blob, filename) => (await loadExport()).download(blob, filename),
+    download: deferredDownload(async () => (await loadExport()).download),
     file: async (blob, opts) => (await loadExport()).file(blob, opts),
     imprint: async (bytes, format, opts) => (await loadExport()).imprint(bytes, format, opts),
     // Linux packaging (plan 197 M5). Must be on the facade or hooks can't see it -
@@ -471,18 +473,18 @@ export async function createBridge(): Promise<WebHost> {
   // list. Assigned through a named const because a fresh object literal on
   // `host.speech` would be rejected for the extra method.
   const speechFacade: WebSpeechAPI = {
-    isAvailable: () => typeof WebAssembly !== 'undefined' && typeof Worker === 'function',
+    isAvailable: () => aiAllowed('speech') && typeof WebAssembly !== 'undefined' && typeof Worker === 'function',
     modelBytes: () => KOKORO_MODEL_BYTES,
-    cached: async () => (await loadSpeech()).cached(),
-    voices: async () => (await loadSpeech()).voices(),
-    synthesize: async (text, opts) => (await loadSpeech()).synthesize(text, opts),
-    synthesizeLines: async (lines, opts) => (await loadSpeech()).synthesizeLines(lines, opts),
-    transcribeAvailable: () => typeof WebAssembly !== 'undefined' && typeof Worker === 'function'
+    cached: async () => callAiApi('speech', loadSpeech, (api) => api.cached()),
+    voices: async () => callAiApi('speech', loadSpeech, (api) => api.voices()),
+    synthesize: async (text, opts) => callAiApi('speech', loadSpeech, (api, signal) => api.synthesize(text, { ...opts, signal: opts?.signal ? AbortSignal.any([opts.signal, signal]) : signal })),
+    synthesizeLines: async (lines, opts) => callAiApi('speech', loadSpeech, (api, signal) => api.synthesizeLines(lines, { ...opts, signal: opts?.signal ? AbortSignal.any([opts.signal, signal]) : signal })),
+    transcribeAvailable: () => aiAllowed('transcription') && typeof WebAssembly !== 'undefined' && typeof Worker === 'function'
       && (typeof window.OfflineAudioContext === 'function'
         || typeof (window as { webkitOfflineAudioContext?: unknown }).webkitOfflineAudioContext === 'function'),
     transcribeModelBytes: () => WHISPER_MODEL_BYTES,
-    transcribeCached: async () => (await loadSpeech()).transcribeCached(),
-    transcribe: async (src, opts) => (await loadSpeech()).transcribe(src, opts),
+    transcribeCached: async () => callAiApi('transcription', loadSpeech, (api) => api.transcribeCached()),
+    transcribe: async (src, opts) => callAiApi('transcription', loadSpeech, (api, signal) => api.transcribe(src, { ...opts, signal: opts?.signal ? AbortSignal.any([opts.signal, signal]) : signal })),
   };
   host.speech = speechFacade;
 
@@ -534,15 +536,15 @@ export async function createBridge(): Promise<WebHost> {
     return api;
   });
   host.upscale = {
-    isAvailable: () => typeof WebAssembly !== 'undefined' && typeof Worker === 'function',
+    isAvailable: () => aiAllowed('upscale') && typeof WebAssembly !== 'undefined' && typeof Worker === 'function',
     backend: () => upscaleApi?.backend() ?? null,
     // Only OFFER models whose weights are actually vendored - a placeholder-pinned
     // model would promise a download that can never complete (honesty gate).
     models: () => stagedUpscaleModels(),
     modelBytes: (id) => UPSCALE_MODEL_BYTES[id],
-    cached: async (id) => (await loadUpscale()).cached(id),
-    canRun: async (src, o) => (await loadUpscale()).canRun(src, o),
-    run: async (f, o) => (await loadUpscale()).run(f, o),
+    cached: async (id) => callAiApi('upscale', loadUpscale, (api) => api.cached(id)),
+    canRun: async (src, o) => callAiApi('upscale', loadUpscale, (api, signal) => api.canRun(src, { ...o, signal: o?.signal ? AbortSignal.any([o.signal, signal]) : signal })),
+    run: async (f, o) => callAiApi('upscale', loadUpscale, (api, signal) => api.run(f, { ...o, signal: o?.signal ? AbortSignal.any([o.signal, signal]) : signal })),
   };
 
   // On-device background removal (v1.103). Same lazy-facade shape as upscale:
@@ -559,7 +561,7 @@ export async function createBridge(): Promise<WebHost> {
     return api;
   });
   host.matte = {
-    isAvailable: () => typeof WebAssembly !== 'undefined' && typeof Worker === 'function',
+    isAvailable: () => aiAllowed('matte') && typeof WebAssembly !== 'undefined' && typeof Worker === 'function',
     backend: () => matteApi?.backend() ?? null,
     // Offer only what THIS shell can actually run: a model that needs native ORT (no
     // wasm32 address-space ceiling) appears on the Tauri desktop shell and is withheld
@@ -568,9 +570,9 @@ export async function createBridge(): Promise<WebHost> {
     // uses the same one, so the picker and the download can never disagree.
     models: () => matteModelsFor(isTauriShell()),
     modelBytes: (id) => MATTE_MODEL_BYTES[id],
-    cached: async (id) => (await loadMatte()).cached(id),
-    canRun: async (src, o) => (await loadMatte()).canRun(src, o),
-    run: async (f, o) => (await loadMatte()).run(f, o),
+    cached: async (id) => callAiApi('matte', loadMatte, (api) => api.cached(id)),
+    canRun: async (src, o) => callAiApi('matte', loadMatte, (api, signal) => api.canRun(src, { ...o, signal: o?.signal ? AbortSignal.any([o.signal, signal]) : signal })),
+    run: async (f, o) => callAiApi('matte', loadMatte, (api, signal) => api.run(f, { ...o, signal: o?.signal ? AbortSignal.any([o.signal, signal]) : signal })),
   };
 
   // On-device text recognition / OCR (plans/125). Same lazy-facade shape as matte:
@@ -586,13 +588,13 @@ export async function createBridge(): Promise<WebHost> {
     return api;
   });
   host.ocr = {
-    isAvailable: () => typeof WebAssembly !== 'undefined' && typeof Worker === 'function',
+    isAvailable: () => aiAllowed('ocr') && typeof WebAssembly !== 'undefined' && typeof Worker === 'function',
     backend: () => ocrApi?.backend() ?? null,
     models: () => ocrModelsFor(isTauriShell()),
     modelBytes: (id) => OCR_MODEL_BYTES[id] ?? 0,
-    cached: async (id) => (await loadOcr()).cached(id),
-    canRun: async (src, o) => (await loadOcr()).canRun(src, o),
-    run: async (f, o) => (await loadOcr()).run(f, o),
+    cached: async (id) => callAiApi('ocr', loadOcr, (api) => api.cached(id)),
+    canRun: async (src, o) => callAiApi('ocr', loadOcr, (api, signal) => api.canRun(src, { ...o, signal: o?.signal ? AbortSignal.any([o.signal, signal]) : signal })),
+    run: async (f, o) => callAiApi('ocr', loadOcr, (api, signal) => api.run(f, { ...o, signal: o?.signal ? AbortSignal.any([o.signal, signal]) : signal })),
   };
 
   // Content Credentials signing (v1.85; widened v1.104). A lazy facade for the

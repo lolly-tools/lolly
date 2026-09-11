@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { aiAllowed, assertAiAllowed, guardAiWorker } from '../lib/ai-policy.ts';
 /**
  * Web implementation of `host.speech` (v1.96; transcription v1.99) - on-device
  * Kokoro text-to-speech with word timings for captions, and on-device Whisper
@@ -88,8 +89,9 @@ let seq = 0;
 const pending = new Map<number, Pending>();
 
 function ensureWorker(): Worker {
+  assertAiAllowed('speech');
   if (worker) return worker;
-  worker = new Worker(new URL('../lib/speech-kokoro-worker.ts', import.meta.url), { type: 'module' });
+  worker = guardAiWorker('speech', () => new Worker(new URL('../lib/speech-kokoro-worker.ts', import.meta.url), { type: 'module' }));
   worker.onmessage = (e: MessageEvent<SpeechWorkerReply>): void => {
     const { id, progress, result, lines, error } = e.data;
     const p = pending.get(id);
@@ -122,8 +124,9 @@ let whisperSeq = 0;
 const pendingTranscribe = new Map<number, PendingTranscribe>();
 
 function ensureWhisperWorker(): Worker {
+  assertAiAllowed('transcription');
   if (whisperWorker) return whisperWorker;
-  whisperWorker = new Worker(new URL('../lib/speech-whisper-worker.ts', import.meta.url), { type: 'module' });
+  whisperWorker = guardAiWorker('transcription', () => new Worker(new URL('../lib/speech-whisper-worker.ts', import.meta.url), { type: 'module' }));
   whisperWorker.onmessage = (e: MessageEvent<TranscribeWorkerReply>): void => {
     const { id, progress, result, error } = e.data;
     const p = pendingTranscribe.get(id);
@@ -193,7 +196,8 @@ async function decodePcm16k(src: AudioSource): Promise<Float32Array> {
 function ask(
   req: Omit<SpeechWorkerRequest, 'id' | 'type'>, opts: SpeechSynthesizeOpts,
 ): Promise<SpeechWorkerReply> {
-  const { signal } = opts;
+  assertAiAllowed('transcription');
+      const { signal } = opts;
   const w = ensureWorker();
   const id = ++seq;
   return new Promise<SpeechWorkerReply>((resolve, reject) => {
@@ -218,7 +222,7 @@ export function createSpeechAPI(): WebSpeechAPI {
     isAvailable(): boolean {
       // Wasm for the model + a worker to run it off-thread. The Worker check is
       // also what answers `false` under jsdom (the CLI omits host.speech for now).
-      return typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
+      return aiAllowed('speech') && typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
     },
 
     async cached(): Promise<boolean> {
@@ -281,7 +285,7 @@ export function createSpeechAPI(): WebSpeechAPI {
     transcribeAvailable(): boolean {
       // Synthesis's checks plus a decoder: the PCM is decoded on this thread
       // before anything crosses to the Whisper worker.
-      return typeof WebAssembly !== 'undefined' && typeof Worker === 'function'
+      return aiAllowed('transcription') && typeof WebAssembly !== 'undefined' && typeof Worker === 'function'
         && (typeof window.OfflineAudioContext === 'function'
           || typeof (window as { webkitOfflineAudioContext?: unknown }).webkitOfflineAudioContext === 'function');
     },

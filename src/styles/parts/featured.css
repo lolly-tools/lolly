@@ -6,6 +6,9 @@
 .featured {
   --featured-top-space: 0px;
   position: relative;   /* anchor for the optional pull label */
+  min-width: 0;
+  max-width: 100%;
+  contain: inline-size; /* loop copies must never enlarge a flex/grid host */
 }
 
 /* A tiny "pull label" tab inside the strip area (used by the bottom Utilities strip),
@@ -100,6 +103,7 @@
 [data-theme="dark"] .featured-viewport { --spot: hsl(var(--primary) / .22); }
 [data-theme="brand"] .featured-viewport { --spot: hsl(var(--primary) / .18); }
 .featured-viewport::-webkit-scrollbar { width: 0; height: 0; display: none; }
+.featured-viewport[data-focus-by="pointer"]:focus-visible { outline: none; }
 .featured.is-grabbing .featured-viewport { cursor: grabbing; }
 /* Grabbing lights the backdrop a touch - playful, and it gives transparent-background
    examples something to read against while you flip through them. Fades back on release. */
@@ -327,7 +331,7 @@
   background: hsl(var(--card) / .8);
   box-shadow: 0 1px 2px #00000012, inset 0 0 0 1px hsl(var(--border) / .5);
   color: hsl(var(--foreground));
-  font-size: clamp(15px, 2.1vh, 21px);
+  font-size: calc(clamp(15px, 2.1vh, 21px) * var(--a11y-fs));
   font-weight: 700;
   line-height: 1.25;
   text-align: center;
@@ -345,7 +349,7 @@
   --fic-size: clamp(64px, 12vh, 112px);
   --fic-stroke: .72em;
 }
-.featured--coverflow .ftile--icon .ftile-iconname { font-size: clamp(12px, 1.5vh, 15px); }
+.featured--coverflow .ftile--icon .ftile-iconname { font-size: calc(clamp(12px, 1.5vh, 15px) * var(--a11y-fs)); }
 
 /* Ken Burns - a still tile still breathes. Scales from the base so the object stays
    planted on its floor shadow. Gentle; restarts on each cross-fade. Motion only. */
@@ -378,7 +382,7 @@
   pointer-events: none;
 }
 .ftile-name {
-  font-size: clamp(14px, 1.7vw, 20px);
+  font-size: calc(clamp(14px, 1.7vw, 20px) * var(--a11y-fs));
   font-weight: 700;
   line-height: 1.15;
   color: hsl(var(--foreground));
@@ -499,6 +503,8 @@
    position; this block just sets the 3D stage and the resting/selected chrome. */
 .featured--coverflow .featured-viewport {
   perspective: 1500px;
+  overflow-x: hidden; /* one owner of horizontal motion, including WKWebView */
+  scroll-snap-type: none;
   touch-action: pan-y;                /* JS owns the horizontal drag + snap; vertical stays with the page */
 }
 .featured--coverflow .featured-track {
@@ -510,10 +516,10 @@
      CAPPED: --ftile-h is tuned for the immersive Gallery strip (42vh desktop), which on a
      TALL device makes the Cover Flow band - and the near-square covers in it - balloon far
      past their content. Cap the band so tall screens don't show a giant, mostly-empty fan. */
-  min-height: min(var(--ftile-h), 440px);
+  min-height: calc(var(--cf-cover-h) + 5rem);
 }
 .featured--coverflow .ftile {
-  width: clamp(200px, 25vw, 320px);
+  width: min(86vw, calc(clamp(200px, 25vw, 320px) * var(--a11y-fs)));
   transform-origin: center center;
   -webkit-backface-visibility: hidden;
           backface-visibility: hidden;
@@ -545,7 +551,7 @@
    band note above). ~square-ish at the max cover width. A var because the Open button
    positions itself off the cover's bottom edge (see .featured-go). */
 .featured--coverflow {
-  --cf-cover-h: min(calc(var(--ftile-h) - 6rem), 360px);
+  --cf-cover-h: calc(min(calc(var(--ftile-h) - 6rem), 360px) * var(--a11y-fs));
   --cf-grip-h: 0px;             /* .featured-grip is display:none until the mobile block */
 }
 /* Covers read as floating cards here (the flush-strip framing is a Gallery-mode thing).
@@ -600,7 +606,7 @@
    clickable button. It's parked over the bottom edge of the centred cover (which never
    moves - the fan slides under it) and opens whichever cover is `.is-centred` at click
    time; see the featured-row.ts note beside its handler. */
-.featured--coverflow { --cf-go-h: 30px; }
+.featured--coverflow { --cf-go-h: max(44px, calc(30px * var(--a11y-fs))); }
 .featured--coverflow .ftile-open { display: none; }
 .featured-go { display: none; }
 .featured--coverflow .featured-go {
@@ -619,7 +625,8 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  height: var(--cf-go-h);
+  min-width: 44px;
+  min-height: var(--cf-go-h);
   font: inherit;
   font-size: var(--fs-sm);
   font-weight: 600;
@@ -640,6 +647,9 @@
 /* The dots row sits on the cover's bottom edge, which the button now owns - lift it
    clear so the two never overlap. */
 .featured--coverflow .ftile-dots { padding-bottom: calc(var(--cf-go-h) + 10px); }
+.featured--coverflow .ftile--icon .ftile-stage { padding-bottom: calc(var(--cf-go-h) + 16px); }
+.featured--coverflow .ftile-name { overflow-wrap: anywhere; }
+.featured--coverflow .ftile--icon { --fic-size: min(30vw, calc(clamp(64px, 12vh, 112px) * var(--a11y-fs))); }
 
 /* ── Cover Flow on a phone (see the order note above the base rules) ──────────
    TWO things happen here, and both need to out-rank the base rules above.
@@ -667,20 +677,20 @@
       keeps the full glow and easing. */
 @media (max-width: 640px) {
   .featured--coverflow .ftile {
-    width: 66vw;
+    width: min(86vw, calc(66vw * var(--a11y-fs)));
     -webkit-backdrop-filter: none;
             backdrop-filter: none;
   }
   .featured--coverflow {
-    --cf-cover-h: 62vw;
+    --cf-cover-h: calc(62vw * var(--a11y-fs));
     --cf-grip-h: 30px;          /* == .featured-grip's mobile height, below */
-    --cf-go-h: 26px;
+    --cf-go-h: max(44px, calc(30px * var(--a11y-fs)));
   }
   .featured--coverflow .ftile-link {
     box-shadow: none;
     transition: none;
   }
-  .featured--coverflow .featured-track { min-height: 72vw; }
+  .featured--coverflow .featured-track { min-height: calc(var(--cf-cover-h) + 10vw); }
   .featured--coverflow .ftile.is-centred .ftile-link {
     box-shadow: 0 0 0 1.5px hsl(var(--primary) / .55), inset 0 0 0 1px #fff2;
     background-color: #dfe3;
@@ -724,3 +734,23 @@
 }
 .featured-grip.is-dragging { cursor: grabbing; }
 .featured-grip.is-dragging .featured-grip-bar { transform: scaleX(1.12); }
+
+/* Use the same touch treatment on iPad as on iPhone. Translucency and crisp
+   highlights remain on every glass tile; only the resting selected tile samples
+   a blurred backdrop, keeping a swipe from rerasterising a stack of filters. */
+@media (pointer: coarse) {
+  .featured--coverflow .ftile {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .featured--coverflow .ftile-link {
+    background: linear-gradient(150deg, hsl(var(--card) / .3), hsl(var(--card) / .08));
+    box-shadow: var(--ui-effect-bevel), inset 0 0 0 1px #fff2;
+    transition: none;
+  }
+  .featured--coverflow .ftile-img { filter: none; }
+  .featured--coverflow:not(.is-moving) .ftile.is-centred {
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+}

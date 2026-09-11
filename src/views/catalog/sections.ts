@@ -76,6 +76,8 @@ export function mountFavStrip(cat: CatCtx): void {
   }));
   cat.featuredHandle = mountFeaturedRow(mount, [...entries, ...swatchEntries], host, {
     viewMode: cat.favView,
+    collection: 'assets',
+    favourites: cat.favSet,
     label: t('Favourites'),
     ariaLabel: t('Favourite assets'),
     // Open the asset's details modal in place. The tiles' hrefs point at this same view

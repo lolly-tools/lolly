@@ -13,6 +13,15 @@
   font-size: var(--fs-sm);
 }
 .download-recovery .btn { white-space: normal; overflow-wrap: anywhere; }
+.background-delivery {
+  position: fixed; inset: auto 1rem 5rem auto; z-index: 300;
+  box-sizing: border-box; width: min(28rem, calc(100vw - 2rem)); max-height: 60vh;
+  padding: 1rem; overflow: auto; overflow-wrap: anywhere;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
+  box-shadow: 0 4px 24px #0003;
+}
+.background-delivery > button { float: right; }
 @media (pointer: coarse) {
   .download-recovery .btn { min-height: var(--ui-size-target); }
 }

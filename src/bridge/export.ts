@@ -40,7 +40,7 @@ import { buildAudioTags } from '../lib/audio-tags.ts';
 import { createStaticChromeGuard, staticChromeVerdict, chromePaintsOverLive, countToolMutations, staticChromeFrameAction } from './frame-static.ts';
 import type { Box, ChromeEl } from './frame-static.ts';
 import { buildExportPack, renderLinuxPackage } from './export-linux-package.ts';
-import { consumeSaveAsNext, recordDeliveryOutcome } from './export-save-picker.ts';
+import { createDownload } from './download.ts';
 import { packIco } from './ico-pack.ts';
 import type { ExportMeta, IngredientCredential, HostV1, C2paSignOpts } from '@lolly-tools/core/host-v1';
 import type { C2paActionInput } from '../../../../engine/src/c2pa.ts';
@@ -89,6 +89,11 @@ type LabelsRecord = Partial<Record<LabelSlot, string>>;
 // never serialized; a null sink (nobody listening) simply drops the notice.
 export let _exportNoticeSink: ((msg: string) => void) | null = null;
 export function _setExportNoticeSink(fn: ((msg: string) => void) | null): void { _exportNoticeSink = fn; }
+/** Surface one export-status line to the user through the registered sink (aria-live
+ *  announce + the export card's [data-export-degraded] note), or nothing when no sink
+ *  is registered (a direct caller). Lets a format module - e.g. the .penpot export's
+ *  report - reach the person, not only host.log (plans/222 item B). */
+export function _exportNotice(msg: string): void { if (msg) _exportNoticeSink?.(msg); }
 
 /**
  * The one place a Blob becomes a browser download: a transient object-URL anchor.
@@ -196,16 +201,7 @@ export function createExportAPI(host: WebHost) {
       }
     },
 
-    async download(blob: Blob, filename: string): Promise<void> {
-      // Armed by the export panel's Save As button (requestSaveAsNext), and only
-      // ever for one delivery. Falls through to the anchor path when the dialog
-      // could not open, so a refused picker still saves the file. Either way the
-      // outcome is recorded for lib/deliver-file.ts: a closed dialog write is the
-      // one thing that may be reported as Saved; an anchor click is only a request.
-      if (await consumeSaveAsNext(blob, filename)) { recordDeliveryOutcome('saved'); return; }
-      anchorSave(blob, filename);
-      recordDeliveryOutcome('requested');
-    },
+    download: createDownload(anchorSave),
 
     // Transform-path delivery: a blob the tool produced itself (a transformed
     // user file from the exportFile hook). On the web this is just a download - 
@@ -1522,6 +1518,15 @@ async function renderSvg(node: Element, opts: ExportOpts = {}): Promise<Blob> {
   const svg = node.tagName?.toLowerCase() === 'svg' ? node : node.querySelector('svg');
   const clone = svg!.cloneNode(true) as Element;
   stripCommentNodes(clone);
+  // annotateTemplate leaves click-to-focus / paint markers on the LIVE <svg> (the web
+  // keeps data-canvas-input live for click-to-focus, so the live node cannot be
+  // stripped); they are inert noise in a standalone .svg file. Remove them from the
+  // CLONE only. The .penpot export is a separate path (export-penpot.ts) that KEEPS
+  // data-lolly-bind, so this never touches it (plans/222 item E).
+  for (const attr of ['data-canvas-input', 'data-lolly-paint', 'data-lolly-bind']) {
+    if (clone.hasAttribute?.(attr)) clone.removeAttribute(attr);
+    clone.querySelectorAll(`[${attr}]`).forEach((el) => { el.removeAttribute(attr); });
+  }
   // The clone leaves the canvas, so any rule scopeTemplateStyles pinned under the
   // canvas selector has to be released or it matches nothing in the standalone file.
   unscopeStyleEls(clone);

@@ -9,6 +9,8 @@
  *   4. Hand the engine runtime a mounted node to render into.
  */
 
+import { recordFeaturedRoute } from './lib/featured-activity.ts';
+import { mountIOSTextScale } from './lib/ios-text-scale.ts';
 import { createBridge } from './bridge/index.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
 import { syncCatalog, syncCorePrefetch, defaultFavouriteAssetIds, toolIndexChanged, localizeToolIndex, loadSlimToolIndex } from './catalog/sync.ts';
@@ -338,6 +340,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   if (!opts.force && routeSig === mountedRouteSig) return;
   const prevSig = mountedRouteSig;
   mountedRouteSig = routeSig;
+  if (routeSig !== prevSig) recordFeaturedRoute(route);
 
   // Remember the view being left so the next view's back pill can name it and
   // return there (lib/back-nav.ts). Only on a genuine view change: the routes
@@ -821,14 +824,16 @@ function trackVisualViewport(): void {
  *    notched iPhone, feed tokens.css's --safe-*-fb from the screen class
  *    (erring a few px generous - chrome sits a hair lower, never under glass).
  * 3) OS text size: iOS Dynamic Type does not reach web content, so probe the
- *    `-apple-system-body` font (which DOES track it) and feed the ratio into
- *    the EXISTING --a11y-fs chrome multiplier - the export-safe scale
- *    (a11y-prefs: chrome-only, never the canvas). Capped at 1.5 - beyond that
- *    the chrome needs real reflow work, not scaling. When the in-app largeText
- *    pref is also on, the larger of the two wins.
+ *    `-apple-system-body` font continuously and feed its full ratio (smaller
+ *    and larger settings) into the existing --a11y-fs type/icon/control tokens.
+ *    The in-app Large text preference composes with that live OS value.
  */
 function initMobilePlatformFit(): void {
-  if (!('__TAURI_INTERNALS__' in window) || !matchMedia('(pointer: coarse)').matches) return;
+  if (!('__TAURI_INTERNALS__' in window)) return;
+  const ios = /iP(hone|ad|od)/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // iPad can have a fine primary pointer when a trackpad is attached.
+  if (!ios && !matchMedia('(pointer: coarse)').matches) return;
   const root = document.documentElement;
 
   document.querySelector('meta[name="viewport"]')?.setAttribute(
@@ -836,8 +841,6 @@ function initMobilePlatformFit(): void {
     'width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no',
   );
 
-  const ios = /iP(hone|ad|od)/.test(navigator.userAgent)
-    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   if (!ios) return;
 
   const probe = document.createElement('div');
@@ -849,7 +852,6 @@ function initMobilePlatformFit(): void {
   root.appendChild(probe);
   const cs = getComputedStyle(probe);
   const envTop = parseFloat(cs.paddingTop) || 0;
-  const bodyPx = parseFloat(cs.fontSize) || 17;
   probe.remove();
 
   // The fallback classes are IPHONE-ONLY. An iPad has no notch: fullscreen
@@ -879,14 +881,7 @@ function initMobilePlatformFit(): void {
     root.style.setProperty('--safe-top-fb', '28px');
   }
 
-  // 17px is -apple-system-body at the default (Large) setting. The ratio goes
-  // to its OWN variable, composed into --a11y-fs by parts/a11y.css - writing
-  // --a11y-fs inline would outrank the html[data-a11y-text] rule on the same
-  // element and freeze the in-app Large text pref at whatever this boot saw.
-  const ratio = bodyPx / 17;
-  if (ratio > 1.02) {
-    root.style.setProperty('--a11y-os-fs', String(Math.min(1.5, ratio).toFixed(3)));
-  }
+  mountIOSTextScale(root);
 }
 
 /** Run `fn` once the critical load has finished. A client-side re-entry (or a

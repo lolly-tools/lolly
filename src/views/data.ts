@@ -21,7 +21,6 @@ import { t } from '../i18n.ts';
 import { escape } from '../utils.ts';
 import { wireTabs } from '../lib/tabs.ts';
 import { attachDeliveryResult, releaseDeliveryFor } from '../lib/download-recovery.ts';
-import { deliverFile } from '../lib/deliver-file.ts';
 import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
 import { mountHomeFab } from '../components/home-fab.ts';
@@ -205,13 +204,13 @@ export async function mountDataView(viewEl: HTMLElement, host: HostV1, _params =
         const out = gridToTarget([value.columns, ...value.rows], target.id);
         const blob = new Blob([out as BlobPart], { type: target.mime });
         const name = `${baseName}.${target.ext}`;
-        const outcome = await deliverFile(host, blob, name);
         if (!active || current !== generation) return;
         clearRecovery = () => releaseDeliveryFor(status);
-        attachDeliveryResult(status, status, { blob, filename: name, label: name }, host, outcome, {
-          ready: t('File ready. Download requested.'),
+        const result = attachDeliveryResult(status, status, { blob, filename: name, label: name }, host, null, {
+          ready: t('File ready.'),
           saved: t('File saved.'),
         });
+        await result.retry();
       } catch (e) {
         if (active && current === generation) announceError((e as Error).message);
       } finally {

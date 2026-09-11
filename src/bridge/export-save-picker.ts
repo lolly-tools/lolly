@@ -29,21 +29,6 @@ let saveAsNext = false;
  */
 export type DeliveryOutcome = 'saved' | 'requested' | 'cancelled';
 
-// The web export bridge's download() records how it delivered, and lib/deliver-
-// file.ts reads it straight back after the same call. A single slot, consumed on
-// read, so a stale record from an earlier delivery can never be mistaken for the
-// answer to this one. The Tauri overrides never write here: their download is a
-// native save, and a resolved call already means the file was written.
-let lastOutcome: DeliveryOutcome | null = null;
-
-export function recordDeliveryOutcome(outcome: DeliveryOutcome): void { lastOutcome = outcome; }
-
-export function takeDeliveryOutcome(): DeliveryOutcome | null {
-  const outcome = lastOutcome;
-  lastOutcome = null;
-  return outcome;
-}
-
 /** Can this browser put a real save dialog up? Chromium-family only today. */
 export function saveFilePickerSupported(): boolean {
   return typeof window !== 'undefined'
@@ -87,16 +72,11 @@ export async function saveFileWithPicker(blob: Blob, filename: string): Promise<
 /**
  * The web export bridge's download() calls this first. Disarms whatever the Save
  * As button armed (one delivery only) and reports whether the dialog settled the
- * file. False - not armed, or the picker refused - means deliver the ordinary
- * anchor way, so a refused picker still saves the file.
+ * file. Null means no picker was requested. Cancellation is a distinct outcome;
+ * refusal/write failures propagate so the prepared file can be retried explicitly.
  */
-export async function consumeSaveAsNext(blob: Blob, filename: string): Promise<boolean> {
-  if (!saveAsNext) return false;
+export async function consumeSaveAsNext(blob: Blob, filename: string): Promise<DeliveryOutcome | null> {
+  if (!saveAsNext) return null;
   saveAsNext = false;
-  try {
-    await saveFileWithPicker(blob, filename);
-    return true;
-  } catch {
-    return false;
-  }
+  return saveFileWithPicker(blob, filename);
 }

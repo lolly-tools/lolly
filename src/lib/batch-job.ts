@@ -119,6 +119,6 @@ function announceDelivered(out: BatchExportOutcome | null | undefined): void {
   const name = out?.zipName || out?.name;
   if (!name) return;
   void import('../a11y.ts')
-    .then(({ announce }) => { announce(tRaw('Saved {name}', { name })); })
+    .then(({ announce }) => { announce(tRaw('{name} ready.', { name })); })
     .catch(() => { /* an announcement must never fail a finished run */ });
 }

@@ -13,6 +13,8 @@
  * To remove the feature: delete this folder and that one route case.
  */
 import './pro.css';
+import { mountKitPanel, type KitPanel } from './kit-panel.ts';
+import { captureKitEdits, restoreKit, type KitState } from './kit-model.ts';
 import { isHiddenSlot, BATCH_SLOT_PREFIX } from '../lib/batch-slots.ts';
 import { serializeUrlState, buildEmbedUrl, toCssPx, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION } from '@lolly/engine';
 import { marksToCsv, csvToMarks } from '../lib/print-marks-csv.ts';
@@ -113,6 +115,7 @@ interface ProMountOpts {
 // resolves); `values` is the row's per-input value map (loose - coerced per the
 // input's declared type at render time).
 interface GridRow {
+  kitOutputId?: string;
   uid: string;
   toolId: string;
   manifest: ToolManifest | null;
@@ -143,6 +146,7 @@ interface GridCtx {
 
 // The live batch model + view state.
 interface BatchState {
+  kit?: KitState;
   rows: GridRow[];
   format: string;
   unit: string;
@@ -269,6 +273,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
           </label>
           <!-- + Row / +5 live at the bottom-left of the grid, where you use them.
                CSV download/upload live inside the Sessions dialog. -->
+          <button type="button" class="pro-btn" id="pro-event-kit">${t('Event kit')}</button>
           <input type="file" id="pro-csv-file" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" hidden>
         </div>
         <span class="pro-spacer"></span>
@@ -295,12 +300,14 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
         ${langFabHtml()}
       </div>
 
+      <section id="pro-kit-host" aria-label="${escape(t('Event kit'))}" hidden></section>
       <div id="pro-grid-host"></div>
 
       <div class="pro-progress" id="pro-progress" hidden></div>
     </div>
   `;
 
+  let kitPanel: KitPanel | undefined;
   const gridHost  = viewEl.querySelector<HTMLElement>('#pro-grid-host')!;
   const progressEl = viewEl.querySelector<HTMLElement>('#pro-progress')!;
   const renderBtn = viewEl.querySelector<HTMLButtonElement>('#pro-render')!;
@@ -325,10 +332,12 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   const formatField = viewEl.querySelector<HTMLElement>('#pro-format-field')!;
   const sessionsBtn = viewEl.querySelector<HTMLElement>('#pro-sessions')!;
   const toolbarGroup = viewEl.querySelector<HTMLElement>('#pro-toolbar-group')!;
+  const zoomField = viewEl.querySelector<HTMLElement>('[data-pro-zoom]')!;
+  const sheetButton = viewEl.querySelector<HTMLElement>('#pro-tosheet')!;
   const narrowMq = window.matchMedia('(max-width: 720px)'); // keep in sync with the @media in pro.css
   const placeFormat = () => {
-    if (narrowMq.matches) toolbarGroup.append(unitField, dpiField, formatField, printBtn, sessionsBtn);
-    else renderBtn.before(unitField, dpiField, formatField, printBtn, sessionsBtn); // desktop order
+    if (narrowMq.matches) toolbarGroup.append(zoomField, unitField, dpiField, formatField, printBtn, sessionsBtn, sheetButton);
+    else renderBtn.before(zoomField, unitField, dpiField, formatField, printBtn, sessionsBtn, sheetButton); // desktop order
   };
   placeFormat();
   narrowMq.addEventListener('change', placeFormat);
@@ -404,7 +413,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   // baseline captured at load / last save. snapshotFromState already drops
   // transient bits (uid, manifest), so a serialise-compare is robust; it errs
   // toward false-positives, the safe direction for a "save before leaving?" guard.
-  const serialize = () => JSON.stringify(snapshotFromState(state));
+  const serialize = () => { if (state.kit) captureKitEdits(state.kit, state.rows); return JSON.stringify(snapshotFromState(state)); };
   let baseline: string | null = null;        // set once the initial grid is in place
   const isDirty = () => baseline !== null && serialize() !== baseline;
   const markClean = () => { baseline = serialize(); };
@@ -516,6 +525,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     const nextScroll = gridHost.querySelector('.pro-grid-scroll');
     if (nextScroll) { nextScroll.scrollLeft = scrollX; nextScroll.scrollTop = scrollY; }
     highlightRelevantTags(); // outline the hidden tags the active row actually uses
+    kitPanel?.refresh();
     syncPrintButton();       // rows (and their formats) decide whether print applies
     return visible;
   }
@@ -1231,7 +1241,11 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   // Replace the whole grid + view state with a saved snapshot, reloading each
   // row's manifest (same rebuild path the CSV import uses).
   async function applySnapshot(data: any) {
+    let kit: KitState | undefined;
+    try { kit = restoreKit(data.kit); } catch { showProgress('<p role="alert">This saved kit is unsupported or damaged.</p>'); return; }
     const rows = await rowsFromSnapshot(data, { newRow });
+    state.kit = kit;
+    viewEl.classList.toggle('kit-hide-rows', !!kit);
     state.rows = rows.length ? rows : blankRows();
     state.format = data.format ?? state.format;
     state.unit = data.unit ?? 'px';
@@ -1836,7 +1850,9 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
 
   // ── Batch run + delivery ────────────────────────────────────────────────────
   async function runBatchFlow() {
-    if (state.running) return;
+    if (state.running || kitPanel?.isBusy()) return;
+    const kitErrors = await kitPanel?.validate() ?? [];
+    if (kitErrors.length) { showProgress(`<p role="alert">${kitErrors.map(escape).join(' ')}</p>`); return; }
     // `state.running` only knows about runs THIS grid started. A retry launched from the
     // previous run's overlay is a second run that this flag never saw, and two runs
     // sharing the offscreen stage and the same progress mount is the failure mode the
@@ -1969,7 +1985,8 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   }
 
   // ── Cleanup (called by the router on navigation away) ───────────────────────
-  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { detachLangMenu(); closeBulkPopover(); closeSessions(); closePrintPopover(); closeTemplatePicker(); closeBlocksPanel(); nav.destroy(); detachResize(); detachReorder(); detachScrub(); zipRO.disconnect(); zoomHud.destroy(); narrowMq.removeEventListener('change', placeFormat); narrowMq.removeEventListener('change', sizeZip); document.removeEventListener('pointerdown', onDocPointer); document.removeEventListener('keydown', onAddRowKey, true); };
+  kitPanel = mountKitPanel(viewEl, host, state, { newRow, changed: () => { zipNameInput.value = state.zipName; columns = renderGrid(); }, save: () => sessionsBtn.click() });
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { kitPanel?.dispose(); detachLangMenu(); closeBulkPopover(); closeSessions(); closePrintPopover(); closeTemplatePicker(); closeBlocksPanel(); nav.destroy(); detachResize(); detachReorder(); detachScrub(); zipRO.disconnect(); zoomHud.destroy(); narrowMq.removeEventListener('change', placeFormat); narrowMq.removeEventListener('change', sizeZip); document.removeEventListener('pointerdown', onDocPointer); document.removeEventListener('keydown', onAddRowKey, true); };
 
   // Deep link, in precedence order:
   //  · a Projects "Edit as sheet" selection (#/pro?s=slot,slot…) → one row per

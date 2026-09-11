@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { aiAllowed, assertAiAllowed, guardAiWorker } from './ai-policy.ts';
 /**
  * The WASM implementation of `host.matte` (v1.103) - worker plumbing only: an
  * id-keyed pending map, progress fan-out, abort translation. The onnxruntime-web
@@ -36,8 +37,9 @@ const pending = new Map<number, Pending>();
 let resolvedBackend: 'webgpu' | 'wasm' | null = null;
 
 function ensureWorker(): Worker {
+  assertAiAllowed('matte');
   if (worker) return worker;
-  worker = new Worker(new URL('./matte-worker.ts', import.meta.url), { type: 'module' });
+  worker = guardAiWorker('matte', () => new Worker(new URL('./matte-worker.ts', import.meta.url), { type: 'module' }));
   worker.onmessage = (e: MessageEvent<MatteWorkerReply>): void => {
     const reply = e.data;
     if (reply.backend) resolvedBackend = reply.backend; // latch (also the id:0 spawn probe)
@@ -71,7 +73,7 @@ function abortError(message = 'matte aborted'): Error {
 export function createWasmMatteAPI(): MatteAPI {
   return {
     isAvailable(): boolean {
-      return typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
+      return aiAllowed('matte') && typeof WebAssembly !== 'undefined' && typeof Worker === 'function';
     },
 
     backend(): 'webgpu' | 'wasm' | null {

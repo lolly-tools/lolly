@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { AiPolicyError, assertAiAllowed, runAi } from './ai-policy.ts';
 /**
  * Meta Content Seal deep scan - the neural half of Pixel Seal / Video Seal
  * (image-mode) watermark detection (see engine/src/contentseal.ts for the pure,
@@ -277,6 +278,7 @@ async function buildViews(
  *  missing/malformed. The graph pools internally, so `preds` is already
  *  [1,257]; a >0 logit (equivalently sigmoid>0.5) is a set bit. */
 async function runExtractor(session: InferenceSession, imageTensor: OrtTensor): Promise<number[] | null> {
+  assertAiAllowed('watermark');
   const results = await session.run({ image: imageTensor });
   const outName = results.preds ? 'preds' : (Object.keys(results)[0] ?? '');
   const out: OrtTensor | undefined = results[outName];
@@ -319,6 +321,14 @@ async function runExtractor(session: InferenceSession, imageTensor: OrtTensor): 
  * guarantees, what remains unverified, and the Muse-proprietary caveat.
  */
 export async function detectContentSeal(
+  rgba: Uint8ClampedArray | Uint8Array, width: number, height: number,
+  opts: { cacheOnly?: boolean } = {},
+): Promise<ContentSealDetection> {
+  try { return await runAi('watermark', () => detectContentSealImpl(rgba, width, height, opts)); }
+  catch (error) { if (error instanceof AiPolicyError) return { status: 'error' }; throw error; }
+}
+
+async function detectContentSealImpl(
   rgba: Uint8ClampedArray | Uint8Array, width: number, height: number,
   opts: { cacheOnly?: boolean } = {},
 ): Promise<ContentSealDetection> {

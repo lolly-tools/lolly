@@ -36,6 +36,8 @@ import {
   ensureInstallId, setInstallTag, setInstanceSession,
 } from '../lib/instance.ts';
 import { setFieldPolicies } from '../lib/field-policy.ts';
+import { beginAiProbe, finishAiProbe, knownManagedAi, startAiPolicyPolling, stopAiPolicyPolling } from './ai-policy.ts';
+import type { AiPolicy } from '../lib/ai-policy.ts';
 import type { FieldPolicy } from '../lib/field-policy.ts';
 import { setToolInputPolicies, clearInputPolicies, setInputPolicyFailClosed } from '../lib/input-policy.ts';
 import type { InputPolicy } from '../lib/input-policy.ts';
@@ -154,6 +156,7 @@ export interface ChromeInjectable {
 export type Injectable = ToolInjectable | ChromeInjectable;
 
 export interface OrgConfig {
+  ai?: AiPolicy;
   instance: { name: string };
   session?: Session;
   profilePolicy?: Record<string, ProfileFieldSpec>;
@@ -311,7 +314,9 @@ type OrgConfigLoad = { ok: true; config: OrgConfig } | { ok: false };
  * can fall back to a still-fresh cached copy or, absent one, fail closed.
  */
 async function fetchOrgConfig(): Promise<OrgConfigLoad> {
-  const init: RequestInit = orgConfigEtag ? { headers: { 'If-None-Match': orgConfigEtag } } : {};
+  // A real network confirmation is required before this payload can grant an
+  // AI lease. The server's private HTTP cache must not extend that lease.
+  const init: RequestInit = { cache: 'no-store', ...(orgConfigEtag ? { headers: { 'If-None-Match': orgConfigEtag } } : {}) };
   const res = await safeFetch('/api/v1/org-config', init);
   if (!res) return { ok: false };                       // network error / timeout
   if (res.status === 304) {                             // unchanged - honour the cache
@@ -645,13 +650,15 @@ function wireDeviceCodeSignIn(slot: HTMLElement): void {
  * optional seam can never block or break boot.
  */
 export async function initOrg(): Promise<OrgState | null> {
+  beginAiProbe();
   try {
     // Skip even the probe when this origin was recently seen to have no control
     // plane (module state already covers a single session; this covers reloads).
-    if (isRecentlyAbsent()) return null;
+    if (!knownManagedAi() && isRecentlyAbsent()) { finishAiProbe(false); return null; }
 
     const auth = await probeAuthConfig();
-    if (!auth) { rememberAbsent(); return null; }
+    if (!auth) { finishAiProbe(false); rememberAbsent(); return null; }
+    finishAiProbe(true);
 
     return await initOrgWithAuth(auth);
   } catch (e) {
@@ -667,6 +674,8 @@ export async function initOrg(): Promise<OrgState | null> {
  * a line of it. Same tolerance contract: it resolves, it does not throw to boot.
  */
 export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null> {
+  stopAiPolicyPolling();
+  finishAiProbe(true);
   try {
     session = await fetchSession();
     const isMember = session?.kind === 'member';
@@ -695,6 +704,7 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
     // Member → load org-config, apply its profile policy, surface the inbox.
     if (isMember) {
       const load = await fetchOrgConfig();
+      startAiPolicyPolling(load.ok ? load.config.ai : undefined);
       // Resilient-cache resolution. A fresh (or in-session 304) load governs directly.
       // A failed load (the present control plane is unreachable this boot) falls back to
       // the last good copy while it is still within ORG_CONFIG_TTL_MS; past the TTL - or
@@ -898,6 +908,7 @@ function readCachedOrgConfig(): OrgConfig | null {
 
 /** TEST-ONLY: reset module state between cases. */
 export function _resetOrgForTests(): void {
+  stopAiPolicyPolling();
   setInstallTag(null);
   session = null;
   orgConfigState = null;

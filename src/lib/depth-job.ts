@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { aiAllowed, assertAiAllowed, guardAiWorker } from './ai-policy.ts';
 /**
  * Monocular depth as a background JOB (plans/160 WP-A) - the sibling of
  * lib/matte-job.ts and lib/upscale-job.ts.
@@ -147,8 +148,9 @@ let seq = 0;
 const pending = new Map<number, { resolve: (m: DepthMap) => void; reject: (e: unknown) => void; onProgress?: (p: DepthProgress) => void }>();
 
 function spawn(): Worker {
+  assertAiAllowed('depth');
   if (worker) return worker;
-  const w = new Worker(new URL('./depth-worker.ts', import.meta.url), { type: 'module' });
+  const w = guardAiWorker('depth', () => new Worker(new URL('./depth-worker.ts', import.meta.url), { type: 'module' }));
   w.onmessage = (e: MessageEvent<DepthWorkerReply>): void => {
     const r = e.data;
     if (r.id === 0) return; // the unsolicited backend warm-up
@@ -213,11 +215,13 @@ function reportProgress(ctx: DepthJobCtx, p: DepthProgress): void {
 export async function runDepthJob(
   req: DepthJobRequest, ctx: DepthJobCtx = {}, deps: DepthJobDeps = {},
 ): Promise<DepthMap | null> {
+  if (!aiAllowed('depth')) return null;
   const model = req.model ?? DEPTH_DEFAULT_MODEL;
   const cache = deps.cache ?? depthCache;
   const key = depthCacheKey(req.checksum, model);
 
   const hit = await cache.get(key);
+  if (!aiAllowed('depth')) return null;
   if (hit) return hit;
   if (ctx.isCancelled?.()) return null;
 
@@ -241,8 +245,9 @@ export async function runDepthJob(
   }
   if (ctx.isCancelled?.()) return null;
 
+  if (!aiAllowed('depth')) return null;
   await cache.put(key, map);
-  return map;
+  return aiAllowed('depth') ? map : null;
 }
 
 /**

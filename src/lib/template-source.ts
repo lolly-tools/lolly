@@ -95,15 +95,15 @@ export async function fetchTemplateValues(toolId: string, tid: string): Promise<
  * a throw. The chooser's select path and the `?template=&preset=` launcher both
  * need the presets, so the file is read once and shared.
  */
-export async function fetchTemplateFile(toolId: string, tid: string): Promise<{ values: Record<string, InputValue>; presets: TemplatePreset[]; motion?: TemplateMotion } | null> {
+export async function fetchTemplateFile(toolId: string, tid: string): Promise<{ values: Record<string, InputValue>; presets: TemplatePreset[]; motion?: TemplateMotion; kit?: unknown } | null> {
   try {
     const { instanceFetch, instancePath } = await import('./instance.ts');
     const resp = await instanceFetch(instancePath(`/tools/${encodeURIComponent(toolId)}/templates/${encodeURIComponent(tid)}.json`));
     if (!resp.ok) return null;
-    const data = await resp.json() as { values?: unknown; presets?: unknown; motion?: unknown };
+    const data = await resp.json() as { values?: unknown; presets?: unknown; motion?: unknown; kit?: unknown };
     const v = data?.values;
     if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
-    return { values: v as Record<string, InputValue>, presets: parsePresets(data?.presets), ...(parseTemplateMotion(data.motion) ? { motion: parseTemplateMotion(data.motion) } : {}) };
+    return { values: v as Record<string, InputValue>, presets: parsePresets(data?.presets), ...(data.kit !== undefined ? { kit: data.kit } : {}), ...(parseTemplateMotion(data.motion) ? { motion: parseTemplateMotion(data.motion) } : {}) };
   } catch {
     return null;
   }

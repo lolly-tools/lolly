@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { assertAiAllowed, modelCapability, runAi } from './ai-policy.ts';
 /**
  * The "Available offline" download manager - the engine behind the profile
  * view's offline section.
@@ -265,8 +266,9 @@ async function cachedMatches(cache: Cache, file: ManifestFile): Promise<boolean>
  *  (net::ERR_CONTENT_DECODING_FAILED on the exact chunk the download existed
  *  to guarantee). Strip the transfer headers, set the true length, and stamp
  *  the manifest identity for cachedMatches. */
-async function putFile(cache: Cache, file: ManifestFile, resp: Response): Promise<void> {
+async function putFile(cache: Cache, file: ManifestFile, resp: Response, signal?: AbortSignal): Promise<void> {
   const blob = await resp.blob();
+  signal?.throwIfAborted();
   const headers = new Headers(resp.headers);
   headers.delete('content-encoding');
   headers.delete('content-range');
@@ -312,32 +314,41 @@ export async function downloadList(
   const report = () => onProgress?.({ loaded, total, done, count: files.length });
   report();
 
-  const queue = [...files];
-  const worker = async (): Promise<void> => {
-    for (let file = queue.shift(); file; file = queue.shift()) {
-      signal?.throwIfAborted();
-      try {
-        if (await cachedMatches(cache, file)) {
-          loaded += file.size;
-          done++;
-          report();
-          continue;
-        }
-        const resp = await fetch(modelFetchUrl(file.url), { signal });
-        const ct = resp.headers.get('content-type') ?? '';
-        // SPA-fallback guard: HTML for a non-.html path = the file is gone.
-        if (!resp.ok || (ct.includes('text/html') && !file.url.endsWith('.html'))) {
-          failures.push(file.url);
-          continue;
-        }
-        await putFile(cache, file, resp);
+  const downloadFile = async (file: ManifestFile, downloadSignal?: AbortSignal): Promise<void> => {
+    downloadSignal?.throwIfAborted();
+    try {
+      if (await cachedMatches(cache, file)) {
+        downloadSignal?.throwIfAborted();
         loaded += file.size;
         done++;
         report();
-      } catch (err) {
-        if (signal?.aborted) throw err;
-        failures.push(file.url);
+        return;
       }
+      const resp = await fetch(modelFetchUrl(file.url), { signal: downloadSignal });
+      const ct = resp.headers.get('content-type') ?? '';
+      if (!resp.ok || (ct.includes('text/html') && !file.url.endsWith('.html'))) {
+        failures.push(file.url);
+        return;
+      }
+      // Buffer before publishing to Cache Storage so policy revocation aborts
+      // the download rather than leaving an apparently complete cache entry.
+      await putFile(cache, file, resp, downloadSignal);
+      loaded += file.size;
+      done++;
+      report();
+    } catch (err) {
+      if (downloadSignal?.aborted) throw err;
+      failures.push(file.url);
+    }
+  };
+  const queue = [...files];
+  const worker = async (): Promise<void> => {
+    for (let file = queue.shift(); file; file = queue.shift()) {
+      if (/\/models\//.test(file.url)) {
+        const current = file;
+        await runAi(modelCapability(file.url) ?? 'unclassified', (policySignal) =>
+          downloadFile(current, signal ? AbortSignal.any([signal, policySignal]) : policySignal));
+      } else await downloadFile(file, signal);
     }
   };
   await Promise.all(Array.from({ length: Math.min(DOWNLOAD_CONCURRENCY, files.length) }, worker));
@@ -413,6 +424,7 @@ export async function downloadVerify(
   manifest: PrecacheManifest,
   opts: { signal?: AbortSignal; onProgress?: OnProgress } = {},
 ): Promise<PartRecord> {
+  assertAiAllowed('watermark');
   const { signal, onProgress } = opts;
   const ortTotal = manifest.groups.ort.reduce((n, f) => n + f.size, 0);
   // Seed the model share of the bar from the manifest's size metadata - the
@@ -511,6 +523,7 @@ export async function downloadSpeechFiles(
   manifest: PrecacheManifest,
   opts: { signal?: AbortSignal; onProgress?: OnProgress } = {},
 ): Promise<{ bytes: number; files: number }> {
+  assertAiAllowed('speech');
   const { signal, onProgress } = opts;
   const { model, voices } = speechFileLists(manifest);
   // The transformers.js runtime (/ort-hf/) the Kokoro/Whisper worker RUNS on. Owned by
@@ -542,6 +555,7 @@ export async function downloadSpeech(
   manifest: PrecacheManifest,
   opts: { signal?: AbortSignal; onProgress?: OnProgress } = {},
 ): Promise<PartRecord> {
+  assertAiAllowed('speech');
   const res = await downloadSpeechFiles(manifest, opts);
   const rec: PartRecord = { at: new Date().toISOString(), version: manifest.version, ...res };
   await recordPart('speech', rec);
@@ -665,6 +679,7 @@ export async function downloadAiDetectFiles(
   manifest: PrecacheManifest,
   opts: { signal?: AbortSignal; onProgress?: OnProgress } = {},
 ): Promise<{ bytes: number; files: number }> {
+  assertAiAllowed('ai-detect');
   const { signal, onProgress } = opts;
   const model = manifest.groups.aiDetect ?? [];
   const ortHf = manifest.groups.ortHf ?? [];
@@ -690,6 +705,7 @@ export async function downloadAiDetect(
   manifest: PrecacheManifest,
   opts: { signal?: AbortSignal; onProgress?: OnProgress } = {},
 ): Promise<PartRecord> {
+  assertAiAllowed('ai-detect');
   if (!manifest.groups.aiDetect?.length) throw new Error('offline download: this build carries no AI-text detector');
   const res = await downloadAiDetectFiles(manifest, opts);
   const rec: PartRecord = { at: new Date().toISOString(), version: manifest.version, ...res };
@@ -706,6 +722,7 @@ export async function downloadRewordFiles(
   manifest: PrecacheManifest,
   opts: { signal?: AbortSignal; onProgress?: OnProgress } = {},
 ): Promise<{ bytes: number; files: number }> {
+  assertAiAllowed('reword');
   const { signal, onProgress } = opts;
   const model = manifest.groups.reword ?? [];
   const ortHf = manifest.groups.ortHf ?? [];
@@ -732,6 +749,7 @@ export async function downloadReword(
   manifest: PrecacheManifest,
   opts: { signal?: AbortSignal; onProgress?: OnProgress } = {},
 ): Promise<PartRecord> {
+  assertAiAllowed('reword');
   if (!manifest.groups.reword?.length) throw new Error('offline download: this build carries no reword model');
   const res = await downloadRewordFiles(manifest, opts);
   const rec: PartRecord = { at: new Date().toISOString(), version: manifest.version, ...res };
@@ -749,6 +767,7 @@ export async function downloadAskFiles(
   manifest: PrecacheManifest,
   opts: { signal?: AbortSignal; onProgress?: OnProgress } = {},
 ): Promise<{ bytes: number; files: number }> {
+  assertAiAllowed('embedding');
   const { signal, onProgress } = opts;
   const model = manifest.groups.embed ?? [];
   const ortHf = manifest.groups.ortHf ?? [];
@@ -775,6 +794,7 @@ export async function downloadAsk(
   manifest: PrecacheManifest,
   opts: { signal?: AbortSignal; onProgress?: OnProgress } = {},
 ): Promise<PartRecord> {
+  assertAiAllowed('embedding');
   if (!manifest.groups.embed?.length) throw new Error('offline download: this build carries no embed model');
   const res = await downloadAskFiles(manifest, opts);
   const rec: PartRecord = { at: new Date().toISOString(), version: manifest.version, ...res };
@@ -797,6 +817,7 @@ export async function downloadAsk(
  *  store the dialog reads. Throws (like downloadVerify) if a staged model didn't
  *  land, so a partial run never records itself complete. */
 export async function downloadUpscale(opts: { signal?: AbortSignal; onProgress?: OnProgress } = {}): Promise<PartRecord> {
+  assertAiAllowed('upscale');
   const { prefetchUpscaleModels } = await import('./model-prefetch.ts');
   const res = await prefetchUpscaleModels(opts);
   opts.signal?.throwIfAborted();
@@ -809,6 +830,7 @@ export async function downloadUpscale(opts: { signal?: AbortSignal; onProgress?:
 /** Download the background-removal part - every staged matte model into the
  *  `matte-models` IDB store the dialog reads. */
 export async function downloadMatte(opts: { signal?: AbortSignal; onProgress?: OnProgress } = {}): Promise<PartRecord> {
+  assertAiAllowed('matte');
   const { prefetchMatteModels } = await import('./model-prefetch.ts');
   const res = await prefetchMatteModels(opts);
   opts.signal?.throwIfAborted();
@@ -831,6 +853,7 @@ export async function downloadMatte(opts: { signal?: AbortSignal; onProgress?: O
  * downloaded when nothing came down.
  */
 export async function downloadDurable(opts: { signal?: AbortSignal; onProgress?: OnProgress } = {}): Promise<PartRecord> {
+  assertAiAllowed('watermark');
   const { signal, onProgress } = opts;
   const { prefetchTrustmarkEncoder } = await import('./trustmark-embed.ts');
   let bytes = 0;
@@ -858,6 +881,7 @@ export async function downloadDurable(opts: { signal?: AbortSignal; onProgress?:
 /** Download the OCR part - every staged model's det + rec + dict into the
  *  `ocr-models` IDB store the runner reads. */
 export async function downloadOcr(opts: { signal?: AbortSignal; onProgress?: OnProgress } = {}): Promise<PartRecord> {
+  assertAiAllowed('ocr');
   const { prefetchOcrModels } = await import('./model-prefetch.ts');
   const res = await prefetchOcrModels(opts);
   opts.signal?.throwIfAborted();

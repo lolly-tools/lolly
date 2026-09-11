@@ -58,6 +58,7 @@ const { getFieldPolicy, _clearFieldPoliciesForTests } = await import('../lib/fie
 const { getInputPolicy, _clearInputPoliciesForTests } = await import('../lib/input-policy.ts');
 const ORG_CONFIG_KEY = 'lolly:org-config:same-origin';
 const { getExportPolicy, exportAffordance, _clearExportPolicyForTests } = await import('../lib/export-policy.ts');
+const { aiAllowed } = await import('../lib/ai-policy.ts');
 const { openApprovalRequest, _clearApprovalOpenerForTests } = await import('../lib/approval-request.ts');
 const { registerSendTarget, sendTargetId, sendTargetsFor, unregisterSendTarget } = await import('../lib/send-target.ts');
 
@@ -455,6 +456,21 @@ test('resilient cache: no cache + unreachable org-config ⇒ fail closed (never 
   assert.equal(exportAffordance(getExportPolicy()), 'request-approval');
   assert.equal(getInputPolicy('event-badge', 'logo')?.mode, 'locked', 'inputs fail closed with no cache');
   assert.equal(getInputPolicy('event-badge', 'logo')?.note, 'Managed by your organisation');
+});
+
+test('AI: legacy member config and cached AI approval never grant a fresh lease', async () => {
+  reset();
+  memberPlane(() => json({ instance: { name: 'Acme' }, inboxUnread: 0 }));
+  await initOrg();
+  assert.equal(aiAllowed('ocr'), false, 'legacy Work has no execution policy');
+  const ai = { version: 1, enabled: true, capabilities: ['ocr'], maxAgeSeconds: 60 };
+  memberPlane(() => json({ instance: { name: 'Acme' }, inboxUnread: 0, ai }));
+  await initOrg();
+  assert.equal(aiAllowed('ocr'), true);
+  memberPlane(() => new Response('offline', { status: 503 }));
+  await initOrg();
+  assert.equal(orgConfig()?.instance.name, 'Acme', 'UI can still use its bounded cache');
+  assert.equal(aiAllowed('ocr'), false, 'AI requires live confirmation');
 });
 
 test('resilient cache: dormant (no control plane) writes no cache and stays byte-identical', async () => {

@@ -16,8 +16,8 @@
 import { planBatch, runBatch, notesFromFindings } from './batch.ts';
 import { runBatchWithProgress } from './run-overlay.ts';
 import { playSfx } from '../lib/sfx.ts';
-import { deliverFile } from '../lib/deliver-file.ts';
-import { attachDeliveryResult, releaseDeliveryFor } from '../lib/download-recovery.ts';
+import { releaseDeliveryFor } from '../lib/download-recovery.ts';
+import { deliverBatchFile, releaseBackgroundDelivery } from '../lib/background-delivery.ts';
 import type { ZipTier } from '@lolly/engine';
 import { createBatchRowCheck, skippedFindings } from './preflight-rows.ts';
 import { rowsForFolder, rowFromToolSession, rowFromBatchRow, slug, isMotionRow } from './folder-rows.ts';
@@ -178,6 +178,7 @@ export async function exportFolderAsBatch(host: FolderExportHost, folder: Folder
  * @param {object} opts   { mount, author, onBatchRendered }
  */
 export async function renderSessionToFile(host: FolderExportHost, slot: string, { mount, job, author = null, onBatchRendered }: RenderSessionOpts = {}) {
+  releaseBackgroundDelivery();
   const data = await host.state.load(slot);
   if (!data) throw new Error('This saved session could not be loaded.');
   // A batch session expands to many rows → no single bare file; render its rows directly
@@ -218,9 +219,10 @@ export async function renderSessionToFile(host: FolderExportHost, slot: string, 
   onBatchRendered?.(files);
   const file = files[0]!;
   const name = file.name.replace(/^\d+-/, '');   // strip runBatch's sequence prefix → bare name
-  // plans/236: hand the file over, then retain it on the mount with what the browser
-  // could vouch for - an anchor click is a request; only a closed dialog write is a save.
-  const outcome = await deliverFile(host, file.blob, name);
+  // Retain before delivery, including jobs whose originating view has gone away.
+  if (mount) mount.innerHTML = `<p class="pro-progress-msg" data-delivery></p>`;
+  await deliverBatchFile(mount, mount?.querySelector<HTMLElement>('[data-delivery]') ?? undefined,
+    { blob: file.blob, filename: name, label: name }, host);
   // Auto-save the same credentialed bytes into the personal library ('renders'
   // tag). Best-effort + non-blocking, deduped + toggle-gated inside the helper.
   void (async () => {
@@ -234,10 +236,6 @@ export async function renderSessionToFile(host: FolderExportHost, slot: string, 
       });
     } catch { /* library save is best-effort */ }
   })();
-  if (mount) {
-    mount.innerHTML = `<p class="pro-progress-msg" data-delivery></p>`;
-    attachDeliveryResult(mount, mount.querySelector<HTMLElement>('[data-delivery]')!, { blob: file.blob, filename: name, label: name }, host, outcome);
-  }
   playSfx('victory'); // a single render finished - the subtle "ta-da" (the ding fired inside runBatch)
   return { files, name };
 }

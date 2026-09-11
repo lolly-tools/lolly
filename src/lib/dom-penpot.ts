@@ -103,6 +103,75 @@ function inlineValue(el: Element, props: string[]): string {
   return out;
 }
 
+/** Approximate CSS specificity [ids, classes+attrs+pseudo-classes, elements] of a
+ *  selector - enough to rank the rules that match ONE element so the highest-
+ *  specificity paint wins, the way the cascade actually paints it. `:not(...)`/`:is(...)`
+ *  arguments are dropped (a conservative under-count, fine for tool sheets). */
+function selectorSpecificity(sel: string): [number, number, number] {
+  const s = sel.replace(/\([^()]*\)/g, '');
+  const ids = (s.match(/#[\w-]+/g) || []).length;
+  const cls = (s.match(/\.[\w-]+/g) || []).length + (s.match(/\[[^\]]+\]/g) || []).length + (s.match(/:[\w-]+/g) || []).length;
+  const els = (s.match(/(?:^|[\s>+~])[a-zA-Z][\w-]*/g) || []).length;
+  return [ids, cls, els];
+}
+
+interface MatchedDecl { value: string; important: boolean; spec: [number, number, number]; order: number }
+
+/**
+ * The declaration a matched stylesheet RULE contributes for one of `props` on an
+ * element, chosen by the cascade it obeys - `!important` first, then specificity,
+ * then source order (plans/222 item C) - so a colour painted by a CSS class
+ * (`.title { color: var(--brand-text) }`) is captured the way an inline one is,
+ * and a low-specificity rule never overrules the one that actually paints. Reads
+ * every same-origin sheet in the document (an external webfont `<link>` throws on
+ * `.cssRules` and is skipped, as is a selector `Element.matches` cannot parse).
+ * `null` when no rule sets it. A fallback only (see `paintSource`); the engine
+ * writer re-validates every path, so a stray match degrades to the painted colour.
+ */
+function matchedDecl(el: Element, props: string[]): MatchedDecl | null {
+  const sheets = el.ownerDocument?.styleSheets;
+  if (!sheets) return null;
+  const wins = (a: MatchedDecl, b: MatchedDecl): boolean => {
+    if (a.important !== b.important) return a.important;
+    for (let i = 0; i < 3; i++) { const av = a.spec[i] ?? 0, bv = b.spec[i] ?? 0; if (av !== bv) return av > bv; }
+    return a.order >= b.order;
+  };
+  let best: MatchedDecl | null = null;
+  let order = 0;
+  for (let i = 0; i < sheets.length; i++) {
+    let rules: CSSRuleList | null | undefined;
+    try { rules = sheets[i]!.cssRules; } catch { continue; }
+    if (!rules) continue;
+    for (let j = 0; j < rules.length; j++) {
+      order++;
+      const rule = rules[j] as CSSStyleRule;
+      if (rule.type !== 1 /* CSSRule.STYLE_RULE */ || !rule.selectorText || !rule.style) continue;
+      let hit = false;
+      try { hit = el.matches(rule.selectorText); } catch { continue; }
+      if (!hit) continue;
+      const spec = selectorSpecificity(rule.selectorText);
+      for (const p of props) {
+        const v = rule.style.getPropertyValue(p);
+        if (!v?.trim()) continue;
+        const cand: MatchedDecl = { value: v.trim(), important: rule.style.getPropertyPriority(p) === 'important', spec, order };
+        if (!best || wins(cand, best)) best = cand;
+      }
+    }
+  }
+  return best;
+}
+
+/** An element's paint SOURCE for `props`, following the cascade closely enough for
+ *  token capture: an `!important` class rule beats a non-important inline value;
+ *  otherwise inline wins; otherwise the highest-specificity class rule (plans/222). */
+function paintSource(el: Element, props: string[]): string {
+  const inline = inlineValue(el, props);
+  const cls = matchedDecl(el, props);
+  if (cls?.important) return cls.value;
+  if (inline) return inline;
+  return cls ? cls.value : '';
+}
+
 /**
  * Walk a rendered tool canvas into an editable Penpot document, or return null to
  * defer to the caller's faithful fallback. `node` is the tool's render root (the
@@ -170,8 +239,8 @@ export async function domToPenpotDoc(node: Element, opts: DomPenpotOptions): Pro
       const surface: PenpotIrShape = { type: 'rect', name: `${label} surface`, ...b, radius,
         fills: fill ? [{ color: fill }] : [], strokes: bw && stroke ? [{ color: stroke, width: bw, alignment: 'inner' }] : [], shadows, backgroundBlur };
       const applied: Record<string, string> = {};
-      if (fill) { const p = tokenPathOf(inlineValue(el, ['background-color', 'background']), 'color', opts.bindToken); if (p) applied.fill = p; }
-      if (bw && stroke) { const p = tokenPathOf(inlineValue(el, ['border-color', 'border-top-color', 'border']), 'color', opts.bindToken); if (p) applied.strokeColor = p; }
+      if (fill) { const p = tokenPathOf(paintSource(el, ['background-color', 'background']), 'color', opts.bindToken); if (p) applied.fill = p; }
+      if (bw && stroke) { const p = tokenPathOf(paintSource(el, ['border-color', 'border-top-color', 'border']), 'color', opts.bindToken); if (p) applied.strokeColor = p; }
       // A resolved data-lolly-bind (from a token-linked input) wins over the inline
       // guess. `textFill` is the element's text colour, not the surface's - it rides
       // to the text shapes below, not this rect.
@@ -210,8 +279,8 @@ export async function domToPenpotDoc(node: Element, opts: DomPenpotOptions): Pro
    *  carrying its colour binding when the parent's inline colour names a token. */
   function lineShapes(textNode: ChildNode, style: CSSStyleDeclaration): PenpotIrShape[] {
     const parent = textNode.parentElement;
-    const fillPath = parent ? tokenPathOf(inlineValue(parent, ['color']), 'color', opts.bindToken) : null;
-    const fontPath = parent ? tokenPathOf(inlineValue(parent, ['font-family']), 'font', opts.bindToken) : null;
+    const fillPath = parent ? tokenPathOf(paintSource(parent, ['color']), 'color', opts.bindToken) : null;
+    const fontPath = parent ? tokenPathOf(paintSource(parent, ['font-family']), 'font', opts.bindToken) : null;
     const text = textNode.textContent ?? '';
     const range = (node.ownerDocument ?? document).createRange();
     const lines: Array<{ text: string; rect: DOMRect }> = [];
@@ -289,8 +358,10 @@ export async function domToPenpotDoc(node: Element, opts: DomPenpotOptions): Pro
       } catch { /* tainted or unreadable - fall through to a placeholder */ }
     }
     // A labelled placeholder rect, so unsupported content does not vanish and does
-    // not flatten its neighbours; the report says it was simplified.
-    embedded++;
+    // not flatten its neighbours. This is a SIMPLIFICATION, not an embedded still (no
+    // media is stored), so it is NOT counted in `embedded` - only a real embedded
+    // image is (plans/222 item B: the report must not claim artwork it did not store).
+    notes.add(`${label} could not be captured; a placeholder stands in for it.`);
     return [{ type: 'rect', name: label, ...b, fills: [{ color: colour(getComputedStyle(el).backgroundColor) || '#eeeeee', opacity: 0.5 }] }];
   }
 

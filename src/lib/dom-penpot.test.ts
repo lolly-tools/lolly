@@ -82,6 +82,32 @@ test('text stays editable, an inherited colour binds to its token, a literal sta
   );
 });
 
+test('a colour painted by a CSS class rule (var(--brand-*)) binds via matched-rule capture', async () => {
+  await withDom(
+    '<style>.brand-title{color:var(--brand-primary)} .card{background-color:var(--brand-surface)} .plain{color:#123456}</style>' +
+    '<div id="stage">' +
+      '<div class="card"><p class="brand-title">Class bound</p></div>' +
+      '<p class="plain">Literal class</p>' +
+    '</div>',
+    async (win, stage) => {
+      // Precondition: jsdom exposes the tool <style> as a readable same-origin sheet.
+      const sheetRuleCount = Array.from(win.document.styleSheets as StyleSheetList).reduce((n, s) => { try { return n + s.cssRules.length; } catch { return n; } }, 0);
+      if (sheetRuleCount === 0) { win.__skipMatchedRule = true; return; }
+      const result = await domToPenpotDoc(stage, { name: 'Tool', bindToken });
+      assert.ok(result);
+      const flat = flatten(result!.doc.pages[0]!.shapes);
+      const text = (t: string) => flat.find(s => s.type === 'text' && s.paragraphs[0]!.runs[0]!.text.trim() === t);
+      // The matched-rule capture reads the class's declaration directly (classValue),
+      // so the text colour binds even though jsdom's getComputedStyle does not apply
+      // class rules. (A class-painted BACKGROUND also binds in a real browser, but the
+      // surface rect only exists when getComputedStyle resolves the bg, which jsdom
+      // does not - so that leg is a browser-only check, not asserted here.)
+      assert.deepEqual(text('Class bound')!.appliedTokens, { fill: 'color.semantic.primary' }, 'a class-painted brand var binds the text colour');
+      assert.equal(text('Literal class')!.appliedTokens, undefined, 'a class-painted literal does not bind');
+    },
+  );
+});
+
 test('an unsupported <canvas> is embedded locally without flattening neighbouring text', async () => {
   await withDom(
     '<div id="stage" style="background-color:rgb(255,255,255)">' +
@@ -93,7 +119,11 @@ test('an unsupported <canvas> is embedded locally without flattening neighbourin
       assert.ok(result);
       const flat = flatten(result!.doc.pages[0]!.shapes);
       assert.ok(flat.some(s => s.type === 'text' && s.paragraphs[0]!.runs[0]!.text.trim() === 'Caption above'), 'the caption is still editable');
-      assert.ok(result!.report.embedded >= 1, 'the canvas was embedded as artwork, not lowered');
+      // jsdom cannot rasterise the canvas (toDataURL is unimplemented), so it becomes a
+      // local PLACEHOLDER rect - kept in place, not flattening the caption, and NOT
+      // counted as an embedded still (no media stored). A real browser stores the pixels.
+      assert.ok(flat.some(s => s.type === 'rect' && s.name === 'Live viz'), 'the canvas is a local placeholder, not flattened away');
+      assert.equal(result!.report.embedded, 0, 'a placeholder is a simplification, not an embedded still');
     },
   );
 });

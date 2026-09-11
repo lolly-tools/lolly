@@ -43,7 +43,12 @@
    0.5rem (8px), which is why the pill sat a pixel proud of the cluster it is
    supposed to line up with. */
 .view-toggle-wrap {
-  position: fixed; top: var(--chrome-top); left: 50%; transform: translateX(-50%);
+  /* Centred in the space the edge dock (lib/edge-dock.ts) leaves: #view and the
+     top-right cluster both step inline-end by --dock-w, so a pill centred on the
+     whole viewport drifts right of the content and runs under the cluster once
+     the Neurospicy player is docked. Unset ⇒ exactly 50%, byte-identical at rest.
+     Above 640px topbar.css additionally bounds the pill while a dock is up. */
+  position: fixed; top: var(--chrome-top); left: calc((100% - var(--dock-w, 0px)) / 2); transform: translateX(-50%);
   z-index: 99999; display: flex; justify-content: center; margin: 0;
 }
 /* The pill was padding-driven, so its height was whatever its own font-size and
@@ -109,7 +114,7 @@
      flag is toggled. Height is left to the segmented component: it paints to a
      canvas it sizes itself, and a min-height here would stretch the frosted track
      away from the mark drawn inside it. */
-  position: fixed; top: var(--chrome-top); left: 50%; transform: translateX(-50%);
+  position: fixed; top: var(--chrome-top); left: calc((100% - var(--dock-w, 0px)) / 2); transform: translateX(-50%);
   z-index: 100001;
   /* The frosted pill: same glass recipe as the native .view-toggle. The
      segmented control's own canvas track is made transparent below, so this

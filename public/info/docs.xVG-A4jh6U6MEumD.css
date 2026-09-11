@@ -39,7 +39,7 @@
 }
 @media (pointer: coarse) {
   :root {
-    --chrome-h: 44px;
+    --chrome-h: max(44px, calc(44px * var(--a11y-fs)));
   }
 }
 @media (pointer: coarse) {

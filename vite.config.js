@@ -3,6 +3,7 @@ import { resolve, extname, relative, join, sep, dirname } from 'node:path';
 import { existsSync, statSync, readFileSync, cpSync, readdirSync, writeFileSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { materializeDirectory } from './build/materialize-directory.ts';
 
 // This file's directory (shells/web/). Computed from import.meta.url rather
 // than the __dirname global only Vite's config bundler shims in, so plain node
@@ -60,6 +61,7 @@ const MIME = {
 // dev - and so the schema $id URLs (https://lolly.tools/schemas/*.schema.json)
 // resolve to the real files in both dev and the production build.
 function serveRepoStatic() {
+  let outDir = resolve(webDir, 'dist');
   // This middleware short-circuits BEFORE Vite's own header middleware, so the
   // dev server's cross-origin-isolation headers (server.headers below) never
   // reach these responses unless set here too. Load-bearing for /ort-hf/: the
@@ -73,6 +75,9 @@ function serveRepoStatic() {
   };
   return {
     name: 'serve-repo-static',
+    configResolved(config) {
+      outDir = resolve(config.root ?? webDir, config.build?.outDir ?? 'dist');
+    },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const url = req.url?.split('?')[0];
@@ -125,12 +130,11 @@ function serveRepoStatic() {
       });
     },
     closeBundle() {
-      const outDir = resolve(webDir, 'dist');
       for (const dir of ['catalog', 'tools', 'schemas']) {
         const src = resolve(repoRoot, dir);
         // dereference: tools/ and catalog are profile VIEWS (symlink farms built
         // by scripts/use-profile.ts) - copy the real files, not the links.
-        if (existsSync(src)) cpSync(src, resolve(outDir, dir), { recursive: true, dereference: true });
+        if (existsSync(src)) materializeDirectory(src, resolve(outDir, dir));
       }
     },
   };
@@ -452,12 +456,16 @@ function fontPreloadUrls() {
 // git-integration, or the loldev-ship archive. Build-only (`apply: 'build'`), so dev-server
 // candidate evaluation is untouched. Runs before precacheManifest for tidiness; the scan
 // skips dot-dirs regardless, so the emitted manifest is byte-identical either way.
-function stripModelCandidates() {
+export function stripModelCandidates() {
+  let outDir = resolve(webDir, 'dist');
   return {
     name: 'lolly-strip-model-candidates',
     apply: 'build',
+    configResolved(config) {
+      outDir = resolve(config.root ?? webDir, config.build?.outDir ?? 'dist');
+    },
     closeBundle() {
-      const modelsDir = resolve(webDir, 'dist', 'models');
+      const modelsDir = resolve(outDir, 'models');
       if (!existsSync(modelsDir)) return;
       for (const cat of readdirSync(modelsDir, { withFileTypes: true })) {
         if (!cat.isDirectory()) continue;

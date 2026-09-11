@@ -7,6 +7,8 @@
  * a value (an event listener), goes through `cat.<module>.<fn>`. Extracted verbatim
  * from mountCatalog() by scripts/split-closure.ts.
  */
+import { recordFeaturedActivity } from '../../lib/featured-activity.ts';
+import { assetBaseId } from '../../lib/asset-favourites.ts';
 import { derivePeaks, memoPeaks } from '../../lib/audio-peaks.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { bindOp } from './context.ts';
@@ -20,6 +22,7 @@ export { wireAudioViz, audioCardArt, audioElOf, meterElOf, setAudioCover } from 
 
 
 export function openDetails(cat: CatCtx, ref: AssetRef, initialTheme?: string | null, initialTreatment?: string | null): void {
+  recordFeaturedActivity('assets', assetBaseId(ref.id));
   const dt = {} as DetailsCtx;
   dt.panels = panelsOps(dt);
   dt.inlineModes = inlineModesOps(dt);

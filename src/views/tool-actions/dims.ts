@@ -221,12 +221,12 @@ export function wireUnitSelect(ta: ActionsCtx): void {
     // text/html paths play it as parallel feedback (they have no such resize).
     ta.copying.performCopy()
       .then((res) => {
-        bumpMetric('imagesCopied');
+        if (res?.method !== 'download') bumpMetric('imagesCopied');
         // Honest feedback: on browsers without image-clipboard support the bridge
         // downloads the file instead, so don't claim it was copied.
         announce(
           res?.method === 'download'
-            ? 'Clipboard image not supported here - downloaded instead'
+            ? 'Clipboard image not supported here - file ready to download'
             : 'Copied to clipboard'
         );
         ta.saving.exportCompleted();

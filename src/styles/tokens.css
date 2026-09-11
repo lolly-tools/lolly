@@ -122,18 +122,12 @@
    separately (a min-height here, extra padding there), which is exactly how
    they drifted apart on phones.
 
-   Deliberately a FLAT 44px, NOT max(44px, calc(2.6rem * var(--a11y-fs))). The
-   max() form looks equivalent - 2.6rem is 41.6px, so the floor wins - but only
-   while the root font size is 16px, and nothing in this codebase pins it: a user
-   who raises their browser's default type to 20px makes 2.6rem 52px, and the
-   touch row would silently grow 8px for someone who set no Lolly preference at
-   all. That is exactly this audience, so the additive form is the flat value plus
-   a gated override below. Both declarations are :root (0,1,0), so this wins on
-   document order at coarse pointers and loses everywhere else, and the
-   max-width:640px block above is untouched because it only moves --chrome-top. */
+   Scale from a 44px base (not rem, which would also respond to the browser's
+   unrelated default font). Native Dynamic Type and the in-app preference both
+   grow the controls; smaller text retains the minimum finger target. */
 @media (pointer: coarse) {
   :root {
-    --chrome-h: 44px;
+    --chrome-h: max(44px, calc(44px * var(--a11y-fs)));
   }
 }
 
