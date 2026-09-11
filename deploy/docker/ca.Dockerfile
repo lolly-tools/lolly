@@ -21,7 +21,7 @@
 # The Helm chart wires these from a Secret. Health is liveness, not OIDC readiness.
 # ============================================================================
 
-FROM node:24-alpine@sha256:50c8e8ca1d27439048670df5883f32d57cf81cff6233222c893fd0d9884cbd81 AS runtime
+FROM node:26-alpine@sha256:ef24c5053d50fdc3e4e56eb4e7ddb7861874ab0fdc797046ba897581deb8e868 AS runtime
 WORKDIR /app
 RUN apk add --no-cache libcrypto3=3.5.8-r0 libssl3=3.5.8-r0
 ENV NODE_ENV=production
