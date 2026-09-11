@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:b3aae191-60c6-42c7-84ce-3835200c1153",
+  "serialNumber": "urn:uuid:e804f033-1d1c-4d73-8a07-6afbbac08625",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-11T16:56:54.764Z",
+    "timestamp": "2026-09-11T22:26:09.396Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -20963,11 +20963,32 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40jridgewell/gen-mapping@0.3.13",
+      "name": "@jridgewell/gen-mapping",
+      "version": "0.3.13",
+      "purl": "pkg:npm/%40jridgewell/gen-mapping@0.3.13",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "da492dffb9e227a32010fc45d1b61d43a7ad65a03e7d0bc370b29c921cb5c8840ecdaa0a8c10634a3eb7fda2d58d8137aa146de5dbccfae5327c283a50a0816c"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40jridgewell/resolve-uri@3.1.2",
       "name": "@jridgewell/resolve-uri",
       "version": "3.1.2",
       "purl": "pkg:npm/%40jridgewell/resolve-uri@3.1.2",
-      "scope": "excluded",
+      "scope": "required",
       "licenses": [
         {
           "license": {
@@ -20980,11 +21001,26 @@
           "alg": "SHA-512",
           "content": "6d12128022233f6d3fb5b5923d63048b9e1054f45913192e0fd9492fe508c542adc15240f305b54eb6f58ccb354455e8d42053359ff98690bd42f98a59da292b"
         }
-      ],
-      "properties": [
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40jridgewell/source-map@0.3.11",
+      "name": "@jridgewell/source-map",
+      "version": "0.3.11",
+      "purl": "pkg:npm/%40jridgewell/source-map@0.3.11",
+      "scope": "required",
+      "licenses": [
         {
-          "name": "cdx:npm:package:development",
-          "value": "true"
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "64ca7557c64570f1b97485a740baf7352235322094ed4113752fc0d06f15fd7587bc9bf766c16abad267d58e513e600f5fa177062137f7b3aabde53ff4d0ae20"
         }
       ]
     },
@@ -20994,7 +21030,7 @@
       "name": "@jridgewell/sourcemap-codec",
       "version": "1.5.5",
       "purl": "pkg:npm/%40jridgewell/sourcemap-codec@1.5.5",
-      "scope": "excluded",
+      "scope": "required",
       "licenses": [
         {
           "license": {
@@ -21007,11 +21043,26 @@
           "alg": "SHA-512",
           "content": "71843ddf5d20aeac6e7966e5f96b885086a251a0dc8fb58eab97d58449633558117ce52163d7f2db34ef7e8a96b2779b87c4a5ef45527056c80af2672ca0743a"
         }
-      ],
-      "properties": [
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40jridgewell/trace-mapping@0.3.31",
+      "name": "@jridgewell/trace-mapping",
+      "version": "0.3.31",
+      "purl": "pkg:npm/%40jridgewell/trace-mapping@0.3.31",
+      "scope": "required",
+      "licenses": [
         {
-          "name": "cdx:npm:package:development",
-          "value": "true"
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "cf3351f9275048327373c8e869e3fc410a0242bf0db98c76748232b65d507811191c9f6e5ba85e6ecad881bcfc849c1441aa374d608cb667d5f0dbb5b7038b03"
         }
       ]
     },
@@ -24587,6 +24638,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40types/css-tree@3.2.0",
+      "name": "@types/css-tree",
+      "version": "3.2.0",
+      "purl": "pkg:npm/%40types/css-tree@3.2.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "2792979a4e811487a9393ef6f3415d17236ce1ce5f87451e7b4a2d8ca12fcdc86b46cdfc222f6a9a29ea73876cd0bd7d5fc65dfeb4fe6eb47d8e406d8728235b"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40types/d3-geo@3.1.1",
       "name": "@types/d3-geo",
       "version": "3.1.1",
@@ -24927,7 +25005,7 @@
       "name": "acorn",
       "version": "8.17.0",
       "purl": "pkg:npm/acorn@8.17.0",
-      "scope": "excluded",
+      "scope": "required",
       "licenses": [
         {
           "license": {
@@ -24939,12 +25017,6 @@
         {
           "alg": "SHA-512",
           "content": "c5141b0dbf419f00da7d8367e95c25f37f436158ea5d86f55d51ad58067591c0dcea2c002f8860dc1d5d665462b8434578ed87e778051b78a7eb6d4074445502"
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
         }
       ]
     },
@@ -25452,6 +25524,27 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/buffer-from@1.1.2",
+      "name": "buffer-from",
+      "version": "1.1.2",
+      "purl": "pkg:npm/buffer-from@1.1.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "13e5d0091c126da6a20a1b6fea4e83c2073e6f1f81b3abee2891c7979928c7f05a29b8625f3a903b02b870edb6c84946a763829a3c15853dc79b18323c69c97d"
         }
       ]
     },
@@ -26029,6 +26122,13 @@
       "version": "2.20.3",
       "purl": "pkg:npm/commander@2.20.3",
       "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -26462,7 +26562,7 @@
       "name": "css-tree",
       "version": "3.2.1",
       "purl": "pkg:npm/css-tree@3.2.1",
-      "scope": "excluded",
+      "scope": "required",
       "licenses": [
         {
           "license": {
@@ -26474,12 +26574,6 @@
         {
           "alg": "SHA-512",
           "content": "5fbb2343371e521bb5bbb63fca5ad1645536152e8b462155a7aaca2cf836df2df1ddcdc338a030b97183a7e3c01a387a0929c28d8780ba5f29713f1b025fa548"
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
         }
       ]
     },
@@ -30338,6 +30432,27 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/libxml2-wasm@0.7.2",
+      "name": "libxml2-wasm",
+      "version": "0.7.2",
+      "purl": "pkg:npm/libxml2-wasm@0.7.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "124f0575bf1f225ea6042beb30622690e3f4d9a0e900dc2eb343d5f36eefe20a1b57d8e7a181073683d3c16a24b7bd5e814065fac9e0e777e3679cb63dec4ba9"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/lightningcss-android-arm64@1.32.0",
       "name": "lightningcss-android-arm64",
       "version": "1.32.0",
@@ -30915,7 +31030,7 @@
       "name": "mdn-data",
       "version": "2.27.1",
       "purl": "pkg:npm/mdn-data@2.27.1",
-      "scope": "excluded",
+      "scope": "required",
       "licenses": [
         {
           "license": {
@@ -30927,12 +31042,6 @@
         {
           "alg": "SHA-512",
           "content": "f58b9b9edddef00d0e2b0c58497ca12f29865b8b02b9f70b1ba55d88375419590f869a8bc65bcfe6f975f7cde0423265deda9baccef7d668da65a3faf00828b1"
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
         }
       ]
     },
@@ -34091,7 +34200,7 @@
       "name": "source-map-js",
       "version": "1.2.1",
       "purl": "pkg:npm/source-map-js@1.2.1",
-      "scope": "excluded",
+      "scope": "required",
       "licenses": [
         {
           "license": {
@@ -34104,11 +34213,26 @@
           "alg": "SHA-512",
           "content": "51758c2a12cec1529bef6f0852d40f5f17d853ebac7726ed52b2bff2e184f0240cbeb84ea70bf30c1c23d108522fb31073bbc8b084811bc550f3e203431a5f40"
         }
-      ],
-      "properties": [
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/source-map-support@0.5.21",
+      "name": "source-map-support",
+      "version": "0.5.21",
+      "purl": "pkg:npm/source-map-support@0.5.21",
+      "scope": "required",
+      "licenses": [
         {
-          "name": "cdx:npm:package:development",
-          "value": "true"
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "b811d4dcbddccec232617297f3c7ddac6a2fc5d482a13183459e92617b524712d95331e0e4fffae87b7aba85251eef4466877e8a75e12a8dea420c17513ff2d7"
         }
       ]
     },
@@ -34520,6 +34644,27 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/terser@5.51.2",
+      "name": "terser",
+      "version": "5.51.2",
+      "purl": "pkg:npm/terser@5.51.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "6d69e348db1c9ae23e189cdee99ba99c73fc1bf71372c245f9b5c279092793648742c81b3499cbaea887f636765b84933d55c7da60ca2915f78b03e173d0a7fd"
         }
       ]
     },

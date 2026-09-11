@@ -1,8 +1,1449 @@
 {
   "schemaVersion": 1,
   "environment": "ci-ubuntu",
-  "sourceRun": 33879540030,
   "skips": [
+    {
+      "file": "shells/web/src/bridge/export-atomic-inline.test.ts",
+      "fullName": "a plain display:inline is still left to the text pass, and paints once",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-atomic-inline.test.ts",
+      "fullName": "an inline <img> is emitted - replaced content defaults to display:inline",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-atomic-inline.test.ts",
+      "fullName": "an inline-block border is painted",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-atomic-inline.test.ts",
+      "fullName": "an inline-block keeps its background",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-atomic-inline.test.ts",
+      "fullName": "an inline-flex keeps its background",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-atomic-inline.test.ts",
+      "fullName": "nested inline-blocks each paint their own box, once",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
+      "fullName": "a backdrop-filter that is more than a plain blur is not faked",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
+      "fullName": "a blurred backdrop is reconstructed: content behind is cloned, clipped and blurred",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
+      "fullName": "a chained backdrop-filter reaches the raster hatch too",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
+      "fullName": "a reconstructed panel does NOT rasterise - the caps stay honest in both directions",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
+      "fullName": "a rotated frosted panel is left alone rather than double-transformed",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
+      "fullName": "a rotated frosted panel reaches the raster hatch instead of silently dropping the frost",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-backdrop-blur.test.ts",
+      "fullName": "the filter region is scoped to the element box, not the duplicated backdrop",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-bg-layers.test.ts",
+      "fullName": "a single-layer gradient still emits exactly one gradient with its own stops",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-bg-layers.test.ts",
+      "fullName": "each layer takes its OWN background-size, not the first entry in the list",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-bg-layers.test.ts",
+      "fullName": "two stacked linear-gradients emit TWO gradients, not one merged stop list",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-emf-eps-shadow.test.ts",
+      "fullName": "a hard-edged shadow is ONE shape, not a ramp",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-emf-eps-shadow.test.ts",
+      "fullName": "a soft shadow reaches EMF/EPS as a ramp of distinct shapes",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-emf-eps-shadow.test.ts",
+      "fullName": "an inset shadow also survives to these formats",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-emf-eps-shadow.test.ts",
+      "fullName": "no shadow means no extra shapes",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-emf-eps-shadow.test.ts",
+      "fullName": "the rings paint BEFORE the element background, so it covers them",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-form-controls.test.ts",
+      "fullName": "a CSS-styled control is not given a second, UA-shaped widget",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-form-controls.test.ts",
+      "fullName": "a native range paints a track and a thumb positioned by its value",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-form-controls.test.ts",
+      "fullName": "a password field paints bullets, not the password",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-form-controls.test.ts",
+      "fullName": "a placeholder stands in for an empty value, in the placeholder colour",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-form-controls.test.ts",
+      "fullName": "a select paints its chosen option, not its first",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-form-controls.test.ts",
+      "fullName": "a textarea keeps its lines",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-form-controls.test.ts",
+      "fullName": "an input's value reaches the output - the blank-field defect",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-form-controls.test.ts",
+      "fullName": "control text is clipped to the field, so an over-long value cannot escape it",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-form-controls.test.ts",
+      "fullName": "the mirror element used for layout does not survive the export",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "Chromium parses --force-color-profile (counterfactual: display-p3 flips the gamut query)",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "golden: html-card renders byte-exact dxf",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "golden: html-card renders byte-exact emf",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "golden: html-card renders byte-exact eps",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "golden: html-card renders byte-exact svg",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "golden: linear-gradient renders byte-exact dxf",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "golden: linear-gradient renders byte-exact emf",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "golden: linear-gradient renders byte-exact eps",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "golden: linear-gradient renders byte-exact svg",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "golden: svg-native renders byte-exact dxf",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "golden: svg-native renders byte-exact emf",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "golden: svg-native renders byte-exact eps",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "golden: svg-native renders byte-exact svg",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-format-golden.test.ts",
+      "fullName": "negative control: a perturbed fixture produces different bytes in every format",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-layer-ids.test.ts",
+      "fullName": "an element with no id contributes none - ids only where the canvas minted one",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-layer-ids.test.ts",
+      "fullName": "OFF (the default): the emitted bytes are identical with and without the option present",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-layer-ids.test.ts",
+      "fullName": "ON: a rotated box still gets exactly one stamp (the walker re-enters itself there)",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-layer-ids.test.ts",
+      "fullName": "ON: each stamped element's own <g> carries its id, and nothing else changes",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-layer-ids.test.ts",
+      "fullName": "the round trip closes: a stamped walker SVG lifts along the CANVAS's boundaries",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "a <canvas> exports its pixels instead of an empty box",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "a background image at its intrinsic size is not stretched",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "a blank canvas still emits, and a tainted one does not throw",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "a blur filter gets a filter region big enough to hold the spread",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "a CSS filter is emitted as an SVG filter rather than dropped",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "a drop-shadow-only filter adds no SVG filter, since it is drawn as geometry",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "a fixed-size background image keeps its size and position",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "a host's unslotted light children are NOT painted",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "a replaced element inside a plain-inline wrapper is not dropped",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "a tiling background becomes a <pattern>, not a screenshot",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "an inline svg using currentColor keeps the page's inherited color",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "cover still fills the box - the case the old behaviour got right",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "shadow-root content is walked - it used to be invisible entirely",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-m3.test.ts",
+      "fullName": "slotted light content paints exactly once",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-nested-svg.test.ts",
+      "fullName": "a class-styled status ring survives: computed fill/stroke baked inline, vars and classes collapsed",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-nested-svg.test.ts",
+      "fullName": "a stroke=\"var(--series)\" ATTRIBUTE paints standalone - the computed literal is baked over it",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-nested-svg.test.ts",
+      "fullName": "nested-svg <text> carries its inherited font and fill - no more viewer-default serif",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-nested-svg.test.ts",
+      "fullName": "url(#…) paints survive verbatim - a gradient fill is referenced, never clobbered by a literal",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-paint-order.test.ts",
+      "fullName": "a canvas with NO vector twin serialises byte-identically before and after the feature exists",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-paint-order.test.ts",
+      "fullName": "a positioned child paints AFTER its parent's inline text (E.2 step 5 then 8)",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-paint-order.test.ts",
+      "fullName": "a twin producer that re-enters the walker gets NO twins inside it (depth guard)",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-paint-order.test.ts",
+      "fullName": "a unit hoisted out of an overflow-clip group re-applies the clip",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-paint-order.test.ts",
+      "fullName": "a z-index:-1 child paints after its context's own background and before in-flow content",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-paint-order.test.ts",
+      "fullName": "a z-indexed child hoists OUT of a non-stacking-context ancestor",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-paint-order.test.ts",
+      "fullName": "every twin-producer failure mode falls back to the unmodified raster path",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-paint-order.test.ts",
+      "fullName": "flag OFF: emitted order is exactly document order, even on a heavily z-indexed tree",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-paint-order.test.ts",
+      "fullName": "hoisting stops at isolation:isolate",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-paint-order.test.ts",
+      "fullName": "hoisting stops at opacity<1 - a z-index:99 child stays inside the opacity group",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-paint-order.test.ts",
+      "fullName": "KNOWN LIMITATION: floats are painted in tree order, not section E.2 layer 4",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-paint-order.test.ts",
+      "fullName": "position:relative;z-index:2 declared FIRST still paints above a later static sibling",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-paint-order.test.ts",
+      "fullName": "z-index sorts positioned siblings: declared 40,30,20 must PAINT 20,30,40",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-filter.test.ts",
+      "fullName": "a mixed blur + drop-shadow chain is measured for spill, not silently written off",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-filter.test.ts",
+      "fullName": "blur, shadow:content and shadow:depth each reach the PDF as an embedded image",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-filter.test.ts",
+      "fullName": "the same filters stay VECTOR in SVG - the PDF cap must not leak across walkers",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: CONTROL: no-shadow box",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: CONTROL: plain text",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: drop-shadow",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: elliptical radial gradient",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: hard outer shadow",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: inset shadow",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: layer blur",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: layer blur + drop-shadow",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: layer blur over a box-shadow",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: outer shadow under a translucent background",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: rotated box",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: rotated box, other direction",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: shadow with spread",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: skewed box (raw matrix)",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: soft outer shadow",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: text-shadow, blurred",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
+      "fullName": "pdf shadow fidelity: text-shadow, hard offset",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pseudo-position.test.ts",
+      "fullName": "a backdrop-filtered STATIC ancestor is the containing block, not the positioned one",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pseudo-position.test.ts",
+      "fullName": "a pseudo's own translate is applied (top:50% + translateY(-50%) centres it)",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-pseudo-position.test.ts",
+      "fullName": "a rotated pseudo emits a transform about its own origin",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
+      "fullName": "shadow fidelity: CONTROL: plain text, no shadow",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
+      "fullName": "shadow fidelity: drop-shadow",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
+      "fullName": "shadow fidelity: drop-shadow, blur larger than the element",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
+      "fullName": "shadow fidelity: drop-shadow, opaque colour",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
+      "fullName": "shadow fidelity: hard outer shadow (no blur, pure geometry)",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
+      "fullName": "shadow fidelity: inset shadow",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
+      "fullName": "shadow fidelity: outer shadow under a TRANSLUCENT background",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
+      "fullName": "shadow fidelity: shadow with spread",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
+      "fullName": "shadow fidelity: soft outer shadow",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
+      "fullName": "shadow fidelity: text-shadow, blurred",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
+      "fullName": "shadow fidelity: text-shadow, hard offset",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-shadow-fidelity.test.ts",
+      "fullName": "shadow fidelity: text-shadow, large blur",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-stroke-paint.test.ts",
+      "fullName": "strokeOf: a class-declared stroke on the real catalog artwork resolves (PDF outlines)",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-stroke-paint.test.ts",
+      "fullName": "strokeOf/strokeWidthOf: attribute > inline style > CSS class, and SVG defaults",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "a background-image whose data-URI contains quotes is emitted, not dropped",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "a fully TRANSPARENT band paints nothing at all",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "a HARD-STOPPED conic emits one EXACT sector per band, not a sampled fan",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "a percentage-only gradient is untouched by the px conversion",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "a plain path and an unquoted url() still parse (no regression from the quote fix)",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "a print-dpi export keeps a higher-resolution raster than a screen export",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "a run the font cannot cover (notdef) keeps its <text> instead of emitting tofu",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "a run whose font resolves is emitted as <path> glyph outlines, not <text>",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "a run with no resolvable font file falls back to <text>",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "a TILED conic background becomes one <pattern>, not an element-sized sweep",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "a TILED gradient layer becomes a <pattern>, not an element-sized sweep",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "a variable-font weight reaches the shaper (Outfit is wght 100..900)",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "an <img> with a PATH src is inlined as a data: URI, not left as a fetchable href",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "an absolute px stop position becomes a fraction of the gradient line, not \"Npx\"",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "an oversized bitmap is downscaled to what its display box can show",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "an UNTILED conic with a real RAMP is still emitted as a wedge fan",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "an UNTILED gradient still fills the element directly, with no pattern",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "CHARACTERIZATION: a mixed run (covered Latin + one uncovered CJK char) falls back to <text> as a WHOLE",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "convertPaths:false keeps every run as selectable <text>",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "emission is deterministic - the same markup exports byte-identical SVG",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "font-feature-settings reaches the shaper (frac changes the emitted geometry)",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "interleaved HTML renders retain their shaping and logging capabilities across blocks",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "letter-spacing reaches the shaper and changes the emitted geometry",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "text inside a SCALED element exports at the size the browser paints it",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "text shadow filter IDs are deterministic and owned by each render",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-text-emission.test.ts",
+      "fullName": "text-transform is applied BEFORE shaping, not left to the renderer",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-transform-animation.test.ts",
+      "fullName": "a RUNNING transform transition walks once, not once per attempt",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-transform-animation.test.ts",
+      "fullName": "a statically rotated element: one wrapper group, shallow tree (the baseline)",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-transform-animation.test.ts",
+      "fullName": "a transform an author `!important` rule owns falls to the AABB path, bounded",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-transform-animation.test.ts",
+      "fullName": "an element that only DECLARES a transform transition explodes too - and must not",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-transform-animation.test.ts",
+      "fullName": "an INFINITE transform animation terminates, and the page keeps spinning",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/export-transform-animation.test.ts",
+      "fullName": "no transform animation anywhere: the same DOM exports the same bytes twice",
+      "reason": "no Chromium (pnpm exec playwright install chromium)",
+      "capability": "browser",
+      "owner": "shells/web"
+    },
+    {
+      "file": "tests/ai-policy.browser.test.ts",
+      "fullName": "managed build: first boot denied, real Worker terminated, streamed fetch aborted",
+      "reason": "set LOLLY_AI_BROWSER_TEST=1 (installed Chromium required)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/app-history.browser.test.ts",
+      "fullName": "app History merges providers without skips and lists saved work without reading document values",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/app-history.browser.test.ts",
+      "fullName": "file History hands off to the exact batch and its retained report and download",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/app-history.browser.test.ts",
+      "fullName": "History route supports project filters, milestones, right-panel versions, Back and mobile",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/app-history.browser.test.ts",
+      "fullName": "same-time sparse searches continue past 500 candidates and metadata browsing scales to 50,000 creations",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/app-history.browser.test.ts",
+      "fullName": "v23 upgrade preserves saved payloads and download settings while adding metadata keys",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/asset-version.browser.test.ts",
+      "fullName": "an uncached old catalog version never fetches today’s URL or poisons the old cache key",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/asset-version.browser.test.ts",
+      "fullName": "history pins exact uploaded bytes through replacement and backup; referenced versions cannot be deleted",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/cli-tierb-video.test.ts",
+      "fullName": "--seconds and --fps shape the clip: the URL-mode video params reach the browser tier",
+      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/cli-tierb-video.test.ts",
+      "fullName": "a deck exports a real pptx through the browser tier",
+      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/cli-tierb-video.test.ts",
+      "fullName": "a Tier-B failure fails, and fails PROMPTLY, with the debug log it was asked for",
+      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/cli-tierb-video.test.ts",
+      "fullName": "an animated tool exports a real mp4 through the browser tier",
+      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/collab-history.browser.test.ts",
+      "fullName": "a collaboration without a history capability never reads private local history",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/collab-history.browser.test.ts",
+      "fullName": "a guest opens a durable copy without persisting its temporary history",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/compare-visual.browser.test.ts",
+      "fullName": "catalog visual pairs and exact saved versions preserve selection and bytes offline",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/compare-visual.browser.test.ts",
+      "fullName": "PDF comparison reports page additions, rotation, changed text and font fidelity",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/compare-visual.browser.test.ts",
+      "fullName": "visual utility Chromium: movement, mobile swipe, keyboard, report privacy and cancellation",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/compare-visual.browser.test.ts",
+      "fullName": "visual utility WebKit: movement, mobile swipe, keyboard, report privacy and cancellation",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/compare.browser.test.ts",
+      "fullName": "Compare utility: real worker, keyboard, files, report privacy and mobile layout",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/compare.browser.test.ts",
+      "fullName": "History compares retained or current snapshots without changing saved or live state",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/event-kit.browser.test.ts",
+      "fullName": "chromium: first delivery failure retains a real downloadable file",
+      "reason": "set LOLLY_KIT_TEST_URL to a local web shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/event-kit.browser.test.ts",
+      "fullName": "event kit saves links, reopens, exports correct formats and retries identical bytes",
+      "reason": "set LOLLY_KIT_TEST_URL to a local web shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/event-kit.browser.test.ts",
+      "fullName": "firefox: first delivery failure retains a real downloadable file",
+      "reason": "set LOLLY_KIT_TEST_URL to a local web shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/event-kit.browser.test.ts",
+      "fullName": "webkit: first delivery failure retains a real downloadable file",
+      "reason": "set LOLLY_KIT_TEST_URL to a local web shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/file-batch-history.browser.test.ts",
+      "fullName": "durable batches preserve failures, unread cancellations, quota failures and crash windows across reload and backup",
+      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/file-conversion.browser.test.ts",
+      "fullName": "Convert: mobile/desktop, output bytes, receipts, collision-safe batches and failure retention",
+      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/file-history.browser.test.ts",
+      "fullName": "built application backs up and restores a converted copy through the real UI",
+      "reason": "no built web shell origin (set LOLLY_PRODUCTION_TEST_URL, browser-driven)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/file-history.browser.test.ts",
+      "fullName": "portable file history: two-device restore, immutable collisions, orphan recovery and mobile storage UI",
+      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/file-result-reuse.browser.test.ts",
+      "fullName": "real UI reuses exact result bytes in the library, a new design and another conversion",
+      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/gallery-preview.browser.test.ts",
+      "fullName": "every gallery tool gets a cover before extra templates, including tools below the fold",
+      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/gallery-preview.browser.test.ts",
+      "fullName": "gallery renders branded templates, preserves their framing, and invalidates palette caches",
+      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "chart: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "gradient: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "org-chart: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "pricing-table: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "qr-code: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "Snippet history retains an uploaded icon version after replacement and mobile history stays reachable",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "snippet: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-adapters.browser.test.ts",
+      "fullName": "wordmark: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-fidelity.browser.test.ts",
+      "fullName": "asset checks stay local and repair copies revalidate exact compatible upload replacements",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-fidelity.browser.test.ts",
+      "fullName": "asset labels stay text and closing an inspector cancels late results and copy handoffs",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-fidelity.browser.test.ts",
+      "fullName": "revision reads verify payload bytes and hash without rewriting corrupt or missing data",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-fidelity.browser.test.ts",
+      "fullName": "the History panel checks only on request and opens selected repairs as a new creation",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-workflows.browser.test.ts",
+      "fullName": "50,000 metadata rows retain indexed tool/date paging and bounded free-text continuation",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/history-workflows.browser.test.ts",
+      "fullName": "milestones, comparison, filters and bounded paging work in the History panel",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/launch-motion.browser.test.ts",
+      "fullName": "Launch gallery preview opens the composition it demonstrates",
+      "reason": "LOLLY_MOTION_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/launch-motion.browser.test.ts",
+      "fullName": "Launch: branded frame sampling, real previews, mobile controls and video export",
+      "reason": "LOLLY_MOTION_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lift-flythrough.browser.test.ts",
+      "fullName": "plans/104 P3 - the Lift-layers exit demo > push-in over the lifted stack: two runs are byte-identical, and parallax is ordered by depth",
+      "reason": "byte-identical encode is not stable in the software chromium build on a CI runner - rerun with LOLLY_BROWSER_CHANNEL=chrome",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/revision-history.browser.test.ts",
+      "fullName": "Design auto checkpoint, right History tab, and editable file export are wired end to end",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/revision-history.browser.test.ts",
+      "fullName": "manual backup round-trips revision IDs, previews and drafts; reimport is idempotent and conflicts roll back",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/revision-history.browser.test.ts",
+      "fullName": "revision transactions: concurrent writers, paged metadata, previews, quota rollback, slot moves and deletion",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/revision-history.browser.test.ts",
+      "fullName": "rolling recovery survives reopen, preserves competing edits and keeps the visible history sparse",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/revision-history.browser.test.ts",
+      "fullName": "the recovery schema upgrade preserves a v21 document and adopts its old head token",
+      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/sequence-render.browser.test.ts",
+      "fullName": "sequence export (browser tier) > WP-B: an explicit HEVC codec + CBR encodes deterministically and decodes (mp4)",
+      "reason": "no HEVC encode in this browser build - set LOLLY_BROWSER_CHANNEL=chrome",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/sequence-render.browser.test.ts",
+      "fullName": "sequence export (browser tier) > WP-G: mediabunny alpha:keep round-trips a transparent WebM in this browser",
+      "reason": "no alpha VP9/AV1 encode in this browser build - the transparent-WebM option is correctly not offered",
+      "capability": "browser",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/timezone-table.browser.test.ts",
+      "fullName": "Timezone table: first visit, keyboard entry, list paste, row actions and reload",
+      "reason": "LOLLY_TIMEZONE_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/timezone-table.browser.test.ts",
+      "fullName": "Timezone table: saved object ids, optional fields and large-list deletion survive editing",
+      "reason": "LOLLY_TIMEZONE_TEST_URL not set (serve the web shell and point it here)",
+      "capability": "environment",
+      "owner": "tests"
+    },
     {
       "file": "packages/node-shell/test/ml.test.ts",
       "fullName": "depth: the real graph returns finite maps for portrait and landscape inputs",
@@ -19,7 +1460,7 @@
     },
     {
       "file": "packages/node-shell/test/ml.test.ts",
-      "fullName": "matte: the real U\u00b2-Net graph returns the source RGB with a computed alpha",
+      "fullName": "matte: the real U²-Net graph returns the source RGB with a computed alpha",
       "reason": "the matte model family is not on this machine",
       "capability": "model",
       "owner": "packages/node-shell"
@@ -82,6 +1523,13 @@
     },
     {
       "file": "packages/node-shell/test/speech.test.ts",
+      "fullName": "a staged family reports complete, and its files are the size the pins claim",
+      "reason": "the kokoro model is not staged under /home/runner/.cache/lolly/models - run: lolly models fetch kokoro",
+      "capability": "model",
+      "owner": "packages/node-shell"
+    },
+    {
+      "file": "packages/node-shell/test/speech.test.ts",
       "fullName": "Kokoro speaks a sentence and times its words",
       "reason": "the kokoro model is not staged under /home/runner/.cache/lolly/models - run: lolly models fetch kokoro",
       "capability": "model",
@@ -95,374 +1543,87 @@
       "owner": "packages/node-shell"
     },
     {
-      "file": "packages/node-shell/test/speech.test.ts",
-      "fullName": "a staged family reports complete, and its files are the size the pins claim",
-      "reason": "the kokoro model is not staged under /home/runner/.cache/lolly/models - run: lolly models fetch kokoro",
-      "capability": "model",
-      "owner": "packages/node-shell"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: CONTROL: no-shadow box",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "file": "tests/font-outline-subset-parity.test.ts",
+      "fullName": "skera subset shapes identically through the current outline pipeline",
+      "reason": "skera not installed (cargo install skera --features cli, or SKERA_BIN=…)",
       "capability": "external-tool",
-      "owner": "shells/web"
+      "owner": "tests"
     },
     {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: CONTROL: plain text",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
+      "file": "tests/font-outline-subset-parity.test.ts",
+      "fullName": "skera subset still reports uncovered characters as notdef",
+      "reason": "skera not installed (cargo install skera --features cli, or SKERA_BIN=…)",
       "capability": "external-tool",
-      "owner": "shells/web"
+      "owner": "tests"
     },
     {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: drop-shadow",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: hard outer shadow",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: inset shadow",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: layer blur",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: layer blur + drop-shadow",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: layer blur over a box-shadow",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: outer shadow under a translucent background",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: shadow with spread",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: soft outer shadow",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: text-shadow, blurred",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-pdf-shadow-fidelity.test.ts",
-      "fullName": "pdf shadow fidelity: text-shadow, hard offset",
-      "reason": "no PDF rasteriser binary (needs swiftc or pdftoppm)",
-      "capability": "external-tool",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/export-stroke-paint.test.ts",
-      "fullName": "strokeOf: a class-declared stroke on the real catalog artwork resolves (PDF outlines)",
-      "reason": "SUSE brand pack not mounted (see profiles.json)",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "a blank/whitespace-only run returns the documented empty sentinel, not a degenerate shape",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "a codepoint no face covers shapes as .notdef and is counted - the caller's cue to keep <text>",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "a fallback face is instanced at its OWN variations (fallbackFonts[].variations is honoured)",
-      "reason": "Missing catalog/fonts/ttf/SUSE-Regular.ttf - skipping fallbackFonts golden case.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "an interior space (no-ink glyph) advances the pen and keeps bbox well-formed without shaping as .notdef",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "axisDefaults reports {} for a pre-instanced static",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "baseline & bbox sanity on an ordinary run: ascenders go negative-y, bbox is well-formed",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "bold and bold-italic outlines differ from regular (real shape difference, not just re-snapshot)",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "fallbackFonts: an uncovered character drops out of notdef once a covering face is chained",
-      "reason": "Missing catalog/fonts/ttf/SUSE-Regular.ttf - skipping fallbackFonts golden case.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "golden: \"office\" with ligatures forced off (liga=0), Regular 48px",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "golden: \"office\" with ligatures on (default), Regular 48px",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "golden: CJK run SUSE cannot cover (tofu/.notdef), Regular 48px",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "golden: basic Latin run, SUSE Regular 48px",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "golden: blank/whitespace-only run",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "golden: letterSpacing=0 baseline, Regular 48px",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "golden: letterSpacing=4px, Regular 48px",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "golden: mixed run with a SUSE-uncovered char, NO fallback face",
-      "reason": "Missing catalog/fonts/ttf/SUSE-Regular.ttf - skipping fallbackFonts golden case.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "golden: same mixed run, WITH Outfit as a fallback face",
-      "reason": "Missing catalog/fonts/ttf/SUSE-Regular.ttf - skipping fallbackFonts golden case.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "golden: same run, SUSE Bold 48px",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "golden: same run, SUSE Bold Italic 48px",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "golden: two-word run with an interior space glyph, Regular 48px",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "letterSpacing strictly widens advanceWidth over the same run at 0",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
-      "fullName": "liga=0 disables the ffi/fi ligature HarfBuzz applies by default",
-      "reason": "SUSE static fonts not present at catalog/fonts/ttf/SUSE-Regular.ttf etc. - this checkout's active profile (see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.",
-      "capability": "brand:suse",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/components/profiles-manager.test.ts",
-      "fullName": "a fetched profile is stored, mounted and charted in one press",
-      "reason": "no system CMYK profile",
-      "capability": "fixture",
-      "owner": "shells/web"
-    },
-    {
-      "file": "shells/web/src/lib/ask/chunks.test.ts",
-      "fullName": "drift guard: every markdown page fully aligns; the pinned exceptions do not",
-      "reason": "no built docs site at public/info/search-index.json (run pnpm run build:info) - drift is enforced where the site is built",
+      "file": "tests/docs-page-seal.test.ts",
+      "fullName": "a built page verifies against its sidecar, and one changed byte breaks it",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
-      "owner": "shells/web"
+      "owner": "tests"
     },
     {
-      "file": "shells/web/src/lib/ask/vectors-staleness.test.ts",
-      "fullName": "committed ask-vectors match the docs corpus on disk",
-      "reason": "no public/info/search-index.json - run pnpm run build:info first",
+      "file": "tests/docs-page-seal.test.ts",
+      "fullName": "a page read WITHOUT its sidecar says the credential is elsewhere, never \"no credential\"",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
-      "owner": "shells/web"
+      "owner": "tests"
     },
     {
-      "file": "shells/web/src/lib/ask/vectors-staleness.test.ts",
-      "fullName": "the committed .bin header agrees with ask-vectors.json",
-      "reason": "no public/info/search-index.json - run pnpm run build:info first",
+      "file": "tests/docs-page-seal.test.ts",
+      "fullName": "a second build over an unchanged site writes no sidecar (the churn guard)",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
-      "owner": "shells/web"
+      "owner": "tests"
     },
     {
-      "file": "shells/web/src/lib/collab-colors.test.ts",
-      "fullName": "suse: every collaborator colour clears the floor in both themes and is 50\u00b0 from the rest",
-      "reason": "suse is not mounted",
-      "capability": "brand:suse",
-      "owner": "shells/web"
+      "file": "tests/docs-page-seal.test.ts",
+      "fullName": "every English page carries exactly one seal link, in <head>, pointing at its own slug",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
     },
     {
-      "file": "shells/web/src/lib/collab-colors.test.ts",
-      "fullName": "suse: the pack's own hues survive into the set",
-      "reason": "suse is not mounted",
-      "capability": "brand:suse",
-      "owner": "shells/web"
+      "file": "tests/docs-page-seal.test.ts",
+      "fullName": "locale pages carry no seal link at all",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
     },
     {
-      "file": "shells/web/src/lib/collab-colors.test.ts",
-      "fullName": "suse: the same pack yields the same colours every time",
-      "reason": "suse is not mounted",
-      "capability": "brand:suse",
-      "owner": "shells/web"
+      "file": "tests/docs-page-seal.test.ts",
+      "fullName": "no sidecar is left behind by a page that no longer exists",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
     },
     {
-      "file": "shells/web/src/lib/collab-colors.test.ts",
-      "fullName": "the shipped packs do not collapse onto one another",
-      "reason": "both packs need mounting",
-      "capability": "brand:profiles",
-      "owner": "shells/web"
+      "file": "tests/docs-page-seal.test.ts",
+      "fullName": "the seal names the page's signed components as ingredients",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-render-manifest.test.ts",
+      "fullName": "the manifest credential facts carry the full DocsRenderContext shape",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-render-manifest.test.ts",
+      "fullName": "the render manifest covers every shot with a size and credential facts",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
     },
     {
       "file": "tests/ai-detect-model-gate.test.ts",
       "fullName": "staged detector honours the FP corpus contract",
       "reason": "ai-detect model not staged locally",
       "capability": "model",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/app-history.browser.test.ts",
-      "fullName": "History route supports project filters, milestones, right-panel versions, Back and mobile",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/app-history.browser.test.ts",
-      "fullName": "app History merges providers without skips and lists saved work without reading document values",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/app-history.browser.test.ts",
-      "fullName": "file History hands off to the exact batch and its retained report and download",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/app-history.browser.test.ts",
-      "fullName": "same-time sparse searches continue past 500 candidates and metadata browsing scales to 50,000 creations",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/app-history.browser.test.ts",
-      "fullName": "v23 upgrade preserves saved payloads and download settings while adding metadata keys",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/asset-version.browser.test.ts",
-      "fullName": "an uncached old catalog version never fetches today\u2019s URL or poisons the old cache key",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/asset-version.browser.test.ts",
-      "fullName": "history pins exact uploaded bytes through replacement and backup; referenced versions cannot be deleted",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
       "owner": "tests"
     },
     {
@@ -515,48 +1676,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/cli-tierb-video.test.ts",
-      "fullName": "--seconds and --fps shape the clip: the URL-mode video params reach the browser tier",
-      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/cli-tierb-video.test.ts",
-      "fullName": "a Tier-B failure fails, and fails PROMPTLY, with the debug log it was asked for",
-      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/cli-tierb-video.test.ts",
-      "fullName": "a deck exports a real pptx through the browser tier",
-      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/cli-tierb-video.test.ts",
-      "fullName": "an animated tool exports a real mp4 through the browser tier",
-      "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/collab-history.browser.test.ts",
-      "fullName": "a collaboration without a history capability never reads private local history",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/collab-history.browser.test.ts",
-      "fullName": "a guest opens a durable copy without persisting its temporary history",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
       "file": "tests/color-block.test.ts",
       "fullName": "color-block: \"logo\" is a block kind that can be added like any other",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
@@ -572,7 +1691,7 @@
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: a composition survives a URL serialize \u2192 parse round-trip",
+      "fullName": "color-block: a composition survives a URL serialize → parse round-trip",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -607,28 +1726,28 @@
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo horizontal/green on #0c322c \u2192 hor-neg-green",
+      "fullName": "color-block: logo horizontal/green on #0c322c → hor-neg-green",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo horizontal/green on #ffffff \u2192 hor-pos-green",
+      "fullName": "color-block: logo horizontal/green on #ffffff → hor-pos-green",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo horizontal/mono on #0c322c \u2192 hor-neg-white",
+      "fullName": "color-block: logo horizontal/mono on #0c322c → hor-neg-white",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo horizontal/mono on #ffffff \u2192 hor-pos-black",
+      "fullName": "color-block: logo horizontal/mono on #ffffff → hor-pos-black",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -642,28 +1761,28 @@
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo stacked/green on #0c322c \u2192 vert-neg-green",
+      "fullName": "color-block: logo stacked/green on #0c322c → vert-neg-green",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo stacked/green on #ffffff \u2192 vert-pos-green",
+      "fullName": "color-block: logo stacked/green on #ffffff → vert-pos-green",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo stacked/mono on #0c322c \u2192 vert-neg-white",
+      "fullName": "color-block: logo stacked/mono on #0c322c → vert-neg-white",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/color-block.test.ts",
-      "fullName": "color-block: logo stacked/mono on #ffffff \u2192 vert-pos-black",
+      "fullName": "color-block: logo stacked/mono on #ffffff → vert-pos-black",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -740,14 +1859,7 @@
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "accent scheme forces the MONO logo (accent bg \u2248 the brand logomark colour)",
-      "reason": "SUSE brand pack not mounted (see profiles.json)",
-      "capability": "brand:suse",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "animation OFF by default: an unset transition rests STILL (sl-frozen on slide 0), never auto-plays",
+      "fullName": "accent scheme forces the MONO logo (accent bg ≈ the brand logomark colour)",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -755,6 +1867,13 @@
     {
       "file": "tests/deck-builder-freeform.test.ts",
       "fullName": "animation is opt-in: choosing a transition (and no focus) lets an unfocused deck play",
+      "reason": "SUSE brand pack not mounted (see profiles.json)",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-freeform.test.ts",
+      "fullName": "animation OFF by default: an unset transition rests STILL (sl-frozen on slide 0), never auto-plays",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -789,7 +1908,7 @@
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "freeform box geometry: px on the 1920 canvas \u2192 % of the slide",
+      "fullName": "freeform box geometry: px on the 1920 canvas → % of the slide",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -852,21 +1971,21 @@
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "shape box: filled rounded card \u2192 .sl-box-shape with fill + cqw radius + cqw border",
+      "fullName": "shape box: filled rounded card → .sl-box-shape with fill + cqw radius + cqw border",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "shape box: geometry reuses the same px\u2192% mapping as text/image boxes",
+      "fullName": "shape box: geometry reuses the same px→% mapping as text/image boxes",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "shape box: per-corner radius \u2192 four cqw corners in CSS order",
+      "fullName": "shape box: per-corner radius → four cqw corners in CSS order",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -880,7 +1999,7 @@
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "shape variants: pill \u2192 9999px, ellipse \u2192 50%, rect/absent \u2192 0",
+      "fullName": "shape variants: pill → 9999px, ellipse → 50%, rect/absent → 0",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -894,7 +2013,7 @@
     },
     {
       "file": "tests/deck-builder-freeform.test.ts",
-      "fullName": "table cells honour backslash-escaped pipes (\\| \u2192 literal |)",
+      "fullName": "table cells honour backslash-escaped pipes (\\| → literal |)",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -929,20 +2048,6 @@
     },
     {
       "file": "tests/deck-builder-markdown.test.ts",
-      "fullName": "SECURITY: a javascript: link produces NO href (text only)",
-      "reason": "SUSE brand pack not mounted (see profiles.json)",
-      "capability": "brand:suse",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deck-builder-markdown.test.ts",
-      "fullName": "SECURITY: an <img onerror> in a cell is escaped, never a live tag",
-      "reason": "SUSE brand pack not mounted (see profiles.json)",
-      "capability": "brand:suse",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deck-builder-markdown.test.ts",
       "fullName": "a line of dashes is not treated as a table separator",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
@@ -971,7 +2076,7 @@
     },
     {
       "file": "tests/deck-builder-markdown.test.ts",
-      "fullName": "layout body: ordered list \u2192 <ol class=\"sl-ol\">",
+      "fullName": "layout body: ordered list → <ol class=\"sl-ol\">",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -991,107 +2096,121 @@
       "owner": "tests"
     },
     {
-      "file": "tests/deck-builder-style.test.ts",
-      "fullName": "SECURITY: a hostile font name is stripped of style-breakout characters",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
-      "capability": "fixture",
+      "file": "tests/deck-builder-markdown.test.ts",
+      "fullName": "SECURITY: a javascript: link produces NO href (text only)",
+      "reason": "SUSE brand pack not mounted (see profiles.json)",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-markdown.test.ts",
+      "fullName": "SECURITY: an <img onerror> in a cell is escaped, never a live tag",
+      "reason": "SUSE brand pack not mounted (see profiles.json)",
+      "capability": "brand:suse",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
-      "fullName": "SECURITY: custom CSS cannot close the <style> element or @import",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deck-builder-style.test.ts",
-      "fullName": "SECURITY: html inside a fenced code block is escaped, never a live tag",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deck-builder-style.test.ts",
-      "fullName": "a brand font \u2192 a quoted --ds-*-family with a sensible fallback baked in",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
+      "fullName": "a brand font → a quoted --ds-*-family with a sensible fallback baked in",
+      "reason": "deck-builder is not in the active content profile",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "an element is only emitted when its chip (<el>On) is on",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
+      "reason": "deck-builder is not in the active content profile",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "an empty custom CSS box emits no extra <style>",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
+      "reason": "deck-builder is not in the active content profile",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "an unterminated code fence still renders (consumes to EOF, no throw)",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
+      "reason": "deck-builder is not in the active content profile",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "an untouched deck emits NO --ds-* custom properties",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
+      "reason": "deck-builder is not in the active content profile",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
-      "fullName": "custom CSS is wrapped in .slides { \u2026 } and emitted as a <style>",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
+      "fullName": "custom CSS is wrapped in .slides { … } and emitted as a <style>",
+      "reason": "deck-builder is not in the active content profile",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "freeform box: same parser emits bare <pre>/<code> and <blockquote>",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
+      "reason": "deck-builder is not in the active content profile",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
-      "fullName": "layout body: blockquote \u2192 <blockquote class=\"sl-quote\"> with inline md",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
+      "fullName": "layout body: blockquote → <blockquote class=\"sl-quote\"> with inline md",
+      "reason": "deck-builder is not in the active content profile",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
-      "fullName": "layout body: fenced code block \u2192 <pre class=\"sl-pre\"><code>, content literal",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
+      "fullName": "layout body: fenced code block → <pre class=\"sl-pre\"><code>, content literal",
+      "reason": "deck-builder is not in the active content profile",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "SECURITY: a hostile font name is stripped of style-breakout characters",
+      "reason": "deck-builder is not in the active content profile",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "SECURITY: custom CSS cannot close the <style> element or @import",
+      "reason": "deck-builder is not in the active content profile",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/deck-builder-style.test.ts",
+      "fullName": "SECURITY: html inside a fenced code block is escaped, never a live tag",
+      "reason": "deck-builder is not in the active content profile",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
       "fullName": "size % becomes a ratio scale var; weight becomes a weight var",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
+      "reason": "deck-builder is not in the active content profile",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
-      "fullName": "size is clamped to 25\u2013300%; a bogus weight is ignored",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
+      "fullName": "size is clamped to 25–300%; a bogus weight is ignored",
+      "reason": "deck-builder is not in the active content profile",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/deck-builder-style.test.ts",
-      "fullName": "the full 100\u2013900 weight scale is accepted (Thin \u2026 Black)",
-      "reason": "deck-builder tool view not built (run pnpm run profile)",
+      "fullName": "the full 100–900 weight scale is accepted (Thin … Black)",
+      "reason": "deck-builder is not in the active content profile",
       "capability": "fixture",
       "owner": "tests"
     },
@@ -1306,55 +2425,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/docs-page-seal.test.ts",
-      "fullName": "a built page verifies against its sidecar, and one changed byte breaks it",
-      "reason": "no built /info on disk - run `pnpm run build:info`",
-      "capability": "docs-build",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/docs-page-seal.test.ts",
-      "fullName": "a page read WITHOUT its sidecar says the credential is elsewhere, never \"no credential\"",
-      "reason": "no built /info on disk - run `pnpm run build:info`",
-      "capability": "docs-build",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/docs-page-seal.test.ts",
-      "fullName": "a second build over an unchanged site writes no sidecar (the churn guard)",
-      "reason": "no built /info on disk - run `pnpm run build:info`",
-      "capability": "docs-build",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/docs-page-seal.test.ts",
-      "fullName": "every English page carries exactly one seal link, in <head>, pointing at its own slug",
-      "reason": "no built /info on disk - run `pnpm run build:info`",
-      "capability": "docs-build",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/docs-page-seal.test.ts",
-      "fullName": "locale pages carry no seal link at all",
-      "reason": "no built /info on disk - run `pnpm run build:info`",
-      "capability": "docs-build",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/docs-page-seal.test.ts",
-      "fullName": "no sidecar is left behind by a page that no longer exists",
-      "reason": "no built /info on disk - run `pnpm run build:info`",
-      "capability": "docs-build",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/docs-page-seal.test.ts",
-      "fullName": "the seal names the page's signed components as ingredients",
-      "reason": "no built /info on disk - run `pnpm run build:info`",
-      "capability": "docs-build",
-      "owner": "tests"
-    },
-    {
       "file": "tests/docs-provenance-pills.test.ts",
       "fullName": "a page whose source uses pills ships them as rendered spans",
       "reason": "no built /info on disk",
@@ -1373,34 +2443,6 @@
       "fullName": "the markdown twin unwraps markers instead of shipping them",
       "reason": "no built /info on disk",
       "capability": "docs-build",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/docs-render-manifest.test.ts",
-      "fullName": "the manifest credential facts carry the full DocsRenderContext shape",
-      "reason": "no built /info on disk - run `pnpm run build:info`",
-      "capability": "docs-build",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/docs-render-manifest.test.ts",
-      "fullName": "the render manifest covers every shot with a size and credential facts",
-      "reason": "no built /info on disk - run `pnpm run build:info`",
-      "capability": "docs-build",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/email-signature-inline-logo.test.ts",
-      "fullName": "email-signature: LOGO_GREY's credential verifies as SUSE, delivered by Lolly",
-      "reason": "SUSE brand pack not mounted (see profiles.json)",
-      "capability": "brand:suse",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/email-signature-inline-logo.test.ts",
-      "fullName": "email-signature: LOGO_STANDARD's credential verifies as SUSE, delivered by Lolly",
-      "reason": "SUSE brand pack not mounted (see profiles.json)",
-      "capability": "brand:suse",
       "owner": "tests"
     },
     {
@@ -1427,6 +2469,20 @@
     {
       "file": "tests/email-signature-inline-logo.test.ts",
       "fullName": "email-signature: inlined LOGO_STANDARD is byte-identical to its signed master",
+      "reason": "SUSE brand pack not mounted (see profiles.json)",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/email-signature-inline-logo.test.ts",
+      "fullName": "email-signature: LOGO_GREY's credential verifies as SUSE, delivered by Lolly",
+      "reason": "SUSE brand pack not mounted (see profiles.json)",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/email-signature-inline-logo.test.ts",
+      "fullName": "email-signature: LOGO_STANDARD's credential verifies as SUSE, delivered by Lolly",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "tests"
@@ -1460,69 +2516,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/file-batch-history.browser.test.ts",
-      "fullName": "durable batches preserve failures, unread cancellations, quota failures and crash windows across reload and backup",
-      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/file-conversion.browser.test.ts",
-      "fullName": "Convert: mobile/desktop, output bytes, receipts, collision-safe batches and failure retention",
-      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/file-history.browser.test.ts",
-      "fullName": "built application backs up and restores a converted copy through the real UI",
-      "reason": "no built web shell origin (set LOLLY_PRODUCTION_TEST_URL, browser-driven)",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/file-history.browser.test.ts",
-      "fullName": "portable file history: two-device restore, immutable collisions, orphan recovery and mobile storage UI",
-      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/file-result-reuse.browser.test.ts",
-      "fullName": "real UI reuses exact result bytes in the library, a new design and another conversion",
-      "reason": "no browser origin (set LOLLY_CONVERT_TEST_URL to a running web shell)",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/font-outline-subset-parity.test.ts",
-      "fullName": "skera subset shapes identically through the current outline pipeline",
-      "reason": "skera not installed (cargo install skera --features cli, or SKERA_BIN=\u2026)",
-      "capability": "external-tool",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/font-outline-subset-parity.test.ts",
-      "fullName": "skera subset still reports uncovered characters as notdef",
-      "reason": "skera not installed (cargo install skera --features cli, or SKERA_BIN=\u2026)",
-      "capability": "external-tool",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/gallery-preview.browser.test.ts",
-      "fullName": "every gallery tool gets a cover before extra templates, including tools below the fold",
-      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/gallery-preview.browser.test.ts",
-      "fullName": "gallery renders branded templates, preserves their framing, and invalidates palette caches",
-      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
       "file": "tests/gamut-icc-integration.test.ts",
       "fullName": "a display gamut read from its own ICC profile agrees with its matrix",
       "reason": "no stock display profiles on this machine",
@@ -1552,21 +2545,21 @@
     },
     {
       "file": "tests/gamut-icc-integration.test.ts",
-      "fullName": "grid-based slice membership agrees with the profile\u2019s own contains",
+      "fullName": "grid-based slice membership agrees with the profile’s own contains",
       "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/gamut-icc-integration.test.ts",
-      "fullName": "host.color.iccProfile \u2192 the three profile queries",
+      "fullName": "host.color.iccProfile → the three profile queries",
       "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/gamut-icc-integration.test.ts",
-      "fullName": "iccRoundTripDecides tells apart the profiles the \u0394E actually decides",
+      "fullName": "iccRoundTripDecides tells apart the profiles the ΔE actually decides",
       "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
       "capability": "fixture",
       "owner": "tests"
@@ -1607,104 +2600,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "Snippet history retains an uploaded icon version after replacement and mobile history stays reachable",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "chart: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "gradient: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "org-chart: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "pricing-table: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "qr-code: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "snippet: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "wordmark: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-fidelity.browser.test.ts",
-      "fullName": "asset checks stay local and repair copies revalidate exact compatible upload replacements",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-fidelity.browser.test.ts",
-      "fullName": "asset labels stay text and closing an inspector cancels late results and copy handoffs",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-fidelity.browser.test.ts",
-      "fullName": "revision reads verify payload bytes and hash without rewriting corrupt or missing data",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-fidelity.browser.test.ts",
-      "fullName": "the History panel checks only on request and opens selected repairs as a new creation",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-workflows.browser.test.ts",
-      "fullName": "50,000 metadata rows retain indexed tool/date paging and bounded free-text continuation",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/history-workflows.browser.test.ts",
-      "fullName": "milestones, comparison, filters and bounded paging work in the History panel",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
       "file": "tests/icc-pixels.test.ts",
       "fullName": "real profile: sRGB-v2-2014.icc applied to a 2x2 frame round-trips",
       "reason": "real-profile fixture not on this machine: /home/runner/Desktop/profiles/sRGB-v2-2014.icc",
@@ -1734,20 +2629,6 @@
     },
     {
       "file": "tests/icc-real-profiles.test.ts",
-      "fullName": "icc real: LargeRGB-elle-V2-g18.icc parses and reports its header",
-      "reason": "real-profile fixture not on this machine: /home/runner/Desktop/profiles/LargeRGB-elle-V2-g18.icc",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/icc-real-profiles.test.ts",
-      "fullName": "icc real: LargeRGB-elle-V4-g18.icc parses and reports its header",
-      "reason": "real-profile fixture not on this machine: /home/runner/Desktop/profiles/LargeRGB-elle-V4-g18.icc",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/icc-real-profiles.test.ts",
       "fullName": "icc real: every one of these is additive, so ink coverage is null",
       "reason": "real-profile fixtures not on this machine: /home/runner/Desktop/profiles",
       "capability": "fixture",
@@ -1762,6 +2643,20 @@
     },
     {
       "file": "tests/icc-real-profiles.test.ts",
+      "fullName": "icc real: LargeRGB-elle-V2-g18.icc parses and reports its header",
+      "reason": "real-profile fixture not on this machine: /home/runner/Desktop/profiles/LargeRGB-elle-V2-g18.icc",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc-real-profiles.test.ts",
+      "fullName": "icc real: LargeRGB-elle-V4-g18.icc parses and reports its header",
+      "reason": "real-profile fixture not on this machine: /home/runner/Desktop/profiles/LargeRGB-elle-V4-g18.icc",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc-real-profiles.test.ts",
       "fullName": "icc real: matrix/TRC display profiles are decided by the cube, not the round trip",
       "reason": "real-profile fixtures not on this machine: /home/runner/Desktop/profiles",
       "capability": "fixture",
@@ -1771,6 +2666,13 @@
       "file": "tests/icc-real-profiles.test.ts",
       "fullName": "icc real: none of these carry a characterization target",
       "reason": "real-profile fixtures not on this machine: /home/runner/Desktop/profiles",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc-real-profiles.test.ts",
+      "fullName": "icc real: spac is accepted as a gamut today (documented finding, see note above)",
+      "reason": "real-profile fixture not on this machine: /home/runner/Desktop/profiles/sRGB-v4-ICC_preference.icc",
       "capability": "fixture",
       "owner": "tests"
     },
@@ -1792,13 +2694,6 @@
       "file": "tests/icc-real-profiles.test.ts",
       "fullName": "icc real: sRGB2014 refuses a colour whose round trip barely moves",
       "reason": "real-profile fixture not on this machine: /home/runner/Desktop/profiles/sRGB-v2-2014.icc",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/icc-real-profiles.test.ts",
-      "fullName": "icc real: spac is accepted as a gamut today (documented finding, see note above)",
-      "reason": "real-profile fixture not on this machine: /home/runner/Desktop/profiles/sRGB-v4-ICC_preference.icc",
       "capability": "fixture",
       "owner": "tests"
     },
@@ -1839,6 +2734,27 @@
     },
     {
       "file": "tests/icc.test.ts",
+      "fullName": "absolute intent differs from relative by the media white rescale",
+      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc.test.ts",
+      "fullName": "an unknown intent string cannot reach a transform",
+      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc.test.ts",
+      "fullName": "bit-flipped real profiles never throw and never hang",
+      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/icc.test.ts",
       "fullName": "CLUT index order is last-channel-fastest: only the K axis moves when K does",
       "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
       "capability": "fixture",
@@ -1867,8 +2783,8 @@
     },
     {
       "file": "tests/icc.test.ts",
-      "fullName": "GRAY profile neutralises on the PCS axis rather than its unadapted white point",
-      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic Gray Profile.icc",
+      "fullName": "every truncation of a real profile is handled",
+      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
       "capability": "fixture",
       "owner": "tests"
     },
@@ -1881,36 +2797,8 @@
     },
     {
       "file": "tests/icc.test.ts",
-      "fullName": "XYZ-PCS LUT decodes u1Fixed15 PCS values into a sane Lab",
-      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic XYZ Profile.icc",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/icc.test.ts",
-      "fullName": "absolute intent differs from relative by the media white rescale",
-      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/icc.test.ts",
-      "fullName": "an unknown intent string cannot reach a transform",
-      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/icc.test.ts",
-      "fullName": "bit-flipped real profiles never throw and never hang",
-      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/icc.test.ts",
-      "fullName": "every truncation of a real profile is handled",
-      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic CMYK Profile.icc",
+      "fullName": "GRAY profile neutralises on the PCS axis rather than its unadapted white point",
+      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic Gray Profile.icc",
       "capability": "fixture",
       "owner": "tests"
     },
@@ -2027,31 +2915,17 @@
       "owner": "tests"
     },
     {
+      "file": "tests/icc.test.ts",
+      "fullName": "XYZ-PCS LUT decodes u1Fixed15 PCS values into a sane Lab",
+      "reason": "stock profile not on this machine: /System/Library/ColorSync/Profiles/Generic XYZ Profile.icc",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
       "file": "tests/instance-pack.test.ts",
       "fullName": "the suse pack builds clean: exclusions hold, fonts/tools/envelope complete",
       "reason": "brands/suse not mounted",
       "capability": "brand:suse",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/launch-motion.browser.test.ts",
-      "fullName": "Launch gallery preview opens the composition it demonstrates",
-      "reason": "LOLLY_MOTION_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/launch-motion.browser.test.ts",
-      "fullName": "Launch: branded frame sampling, real previews, mobile controls and video export",
-      "reason": "LOLLY_MOTION_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/lift-flythrough.browser.test.ts",
-      "fullName": "plans/104 P3 - the Lift-layers exit demo > push-in over the lifted stack: two runs are byte-identical, and parallax is ordered by depth",
-      "reason": "byte-identical encode is not stable in the software chromium build on a CI runner - rerun with LOLLY_BROWSER_CHANNEL=chrome",
-      "capability": "browser",
       "owner": "tests"
     },
     {
@@ -2091,20 +2965,6 @@
     },
     {
       "file": "tests/penpot-keynote-replay.test.ts",
-      "fullName": "keynote: PERSON INTRO\u2019s master hydrates through the real design",
-      "reason": "UXDays keynote .penpot not on this machine",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/penpot-keynote-replay.test.ts",
-      "fullName": "keynote: a Work Sans box hydrates to font-family:'Work Sans' via the real design",
-      "reason": "UXDays keynote .penpot not on this machine",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/penpot-keynote-replay.test.ts",
       "fullName": "keynote: a baked path maps to its content bbox with rot 0; identity paths keep selrect + rot",
       "reason": "UXDays keynote .penpot not on this machine",
       "capability": "fixture",
@@ -2119,6 +2979,13 @@
     },
     {
       "file": "tests/penpot-keynote-replay.test.ts",
+      "fullName": "keynote: a Work Sans box hydrates to font-family:'Work Sans' via the real design",
+      "reason": "UXDays keynote .penpot not on this machine",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/penpot-keynote-replay.test.ts",
       "fullName": "keynote: each master subtree maps to boxes through the real resolvers",
       "reason": "UXDays keynote .penpot not on this machine",
       "capability": "fixture",
@@ -2126,14 +2993,14 @@
     },
     {
       "file": "tests/penpot-keynote-replay.test.ts",
-      "fullName": "keynote: every Mask group holding blurred circles flattens with feGaussianBlur AND clip-path",
+      "fullName": "keynote: every component preview belongs to an INSTANCE, so a master needs the fallback",
       "reason": "UXDays keynote .penpot not on this machine",
       "capability": "fixture",
       "owner": "tests"
     },
     {
       "file": "tests/penpot-keynote-replay.test.ts",
-      "fullName": "keynote: every component preview belongs to an INSTANCE, so a master needs the fallback",
+      "fullName": "keynote: every Mask group holding blurred circles flattens with feGaussianBlur AND clip-path",
       "reason": "UXDays keynote .penpot not on this machine",
       "capability": "fixture",
       "owner": "tests"
@@ -2168,6 +3035,13 @@
     },
     {
       "file": "tests/penpot-keynote-replay.test.ts",
+      "fullName": "keynote: PERSON INTRO’s master hydrates through the real design",
+      "reason": "UXDays keynote .penpot not on this machine",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/penpot-keynote-replay.test.ts",
       "fullName": "keynote: scanPenpotUsage census matches the audit scan exactly",
       "reason": "UXDays keynote .penpot not on this machine",
       "capability": "fixture",
@@ -2189,7 +3063,7 @@
     },
     {
       "file": "tests/penpot-keynote-replay.test.ts",
-      "fullName": "keynote: the 4 flipX slide-background frames mirror 117\u00b0 \u2192 243\u00b0",
+      "fullName": "keynote: the 4 flipX slide-background frames mirror 117° → 243°",
       "reason": "UXDays keynote .penpot not on this machine",
       "capability": "fixture",
       "owner": "tests"
@@ -2349,41 +3223,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/revision-history.browser.test.ts",
-      "fullName": "Design auto checkpoint, right History tab, and editable file export are wired end to end",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/revision-history.browser.test.ts",
-      "fullName": "manual backup round-trips revision IDs, previews and drafts; reimport is idempotent and conflicts roll back",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/revision-history.browser.test.ts",
-      "fullName": "revision transactions: concurrent writers, paged metadata, previews, quota rollback, slot moves and deletion",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/revision-history.browser.test.ts",
-      "fullName": "rolling recovery survives reopen, preserves competing edits and keeps the visible history sparse",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/revision-history.browser.test.ts",
-      "fullName": "the recovery schema upgrade preserves a v21 document and adopts its old head token",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
       "file": "tests/rpm.test.ts",
       "fullName": "a real rpm accepts the package (gated on $LOLLY_RPM_BIN)",
       "reason": "set LOLLY_RPM_BIN to an rpm binary to run",
@@ -2398,34 +3237,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/sequence-render.browser.test.ts",
-      "fullName": "sequence export (browser tier) > WP-B: an explicit HEVC codec + CBR encodes deterministically and decodes (mp4)",
-      "reason": "no HEVC encode in this browser build - set LOLLY_BROWSER_CHANNEL=chrome",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/sequence-render.browser.test.ts",
-      "fullName": "sequence export (browser tier) > WP-G: mediabunny alpha:keep round-trips a transparent WebM in this browser",
-      "reason": "no alpha VP9/AV1 encode in this browser build - the transparent-WebM option is correctly not offered",
-      "capability": "browser",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/timezone-table.browser.test.ts",
-      "fullName": "Timezone table: first visit, keyboard entry, list paste, row actions and reload",
-      "reason": "LOLLY_TIMEZONE_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/timezone-table.browser.test.ts",
-      "fullName": "Timezone table: saved object ids, optional fields and large-list deletion survive editing",
-      "reason": "LOLLY_TIMEZONE_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
       "file": "tests/wmf.test.ts",
       "fullName": "ImageMagick cross-check (skipped unless a WMF delegate is present)",
       "reason": "no ImageMagick binary",
@@ -2433,46 +3244,214 @@
       "owner": "tests"
     },
     {
-      "file": "tests/compare.browser.test.ts",
-      "fullName": "Compare utility: real worker, keyboard, files, report privacy and mobile layout",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
-      "capability": "environment",
-      "owner": "tests"
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "a blank/whitespace-only run returns the documented empty sentinel, not a degenerate shape",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
     },
     {
-      "file": "tests/compare.browser.test.ts",
-      "fullName": "History compares retained or current snapshots without changing saved or live state",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
-      "capability": "environment",
-      "owner": "tests"
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "a codepoint no face covers shapes as .notdef and is counted - the caller's cue to keep <text>",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
     },
     {
-      "file": "tests/compare-visual.browser.test.ts",
-      "fullName": "visual utility Chromium: movement, mobile swipe, keyboard, report privacy and cancellation",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
-      "capability": "environment",
-      "owner": "tests"
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "a fallback face is instanced at its OWN variations (fallbackFonts[].variations is honoured)",
+      "reason": "Missing brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf - skipping fallbackFonts golden case.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
     },
     {
-      "file": "tests/compare-visual.browser.test.ts",
-      "fullName": "visual utility WebKit: movement, mobile swipe, keyboard, report privacy and cancellation",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
-      "capability": "environment",
-      "owner": "tests"
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "an interior space (no-ink glyph) advances the pen and keeps bbox well-formed without shaping as .notdef",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
     },
     {
-      "file": "tests/compare-visual.browser.test.ts",
-      "fullName": "catalog visual pairs and exact saved versions preserve selection and bytes offline",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
-      "capability": "environment",
-      "owner": "tests"
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "axisDefaults reports {} for a pre-instanced static",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
     },
     {
-      "file": "tests/compare-visual.browser.test.ts",
-      "fullName": "PDF comparison reports page additions, rotation, changed text and font fidelity",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell locally)",
-      "capability": "environment",
-      "owner": "tests"
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "baseline & bbox sanity on an ordinary run: ascenders go negative-y, bbox is well-formed",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "bold and bold-italic outlines differ from regular (real shape difference, not just re-snapshot)",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "fallbackFonts: an uncovered character drops out of notdef once a covering face is chained",
+      "reason": "Missing brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf - skipping fallbackFonts golden case.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: \"office\" with ligatures forced off (liga=0), Regular 48px",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: \"office\" with ligatures on (default), Regular 48px",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: basic Latin run, SUSE Regular 48px",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: blank/whitespace-only run",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: CJK run SUSE cannot cover (tofu/.notdef), Regular 48px",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: letterSpacing=0 baseline, Regular 48px",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: letterSpacing=4px, Regular 48px",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: mixed run with a SUSE-uncovered char, NO fallback face",
+      "reason": "Missing brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf - skipping fallbackFonts golden case.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: same mixed run, WITH Outfit as a fallback face",
+      "reason": "Missing brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf - skipping fallbackFonts golden case.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: same run, SUSE Bold 48px",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: same run, SUSE Bold Italic 48px",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "golden: two-word run with an interior space glyph, Regular 48px",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "letterSpacing strictly widens advanceWidth over the same run at 0",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/bridge/text-outline-golden.test.ts",
+      "fullName": "liga=0 disables the ffi/fi ligature HarfBuzz applies by default",
+      "reason": "SUSE static fonts not present at brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf etc. - the private brands/suse pack is not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/components/profiles-manager.test.ts",
+      "fullName": "a fetched profile is stored, mounted and charted in one press",
+      "reason": "no system CMYK profile",
+      "capability": "fixture",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/lib/ask/chunks.test.ts",
+      "fullName": "drift guard: every markdown page fully aligns; the pinned exceptions do not",
+      "reason": "no built docs site at public/info/search-index.json (run pnpm run build:info) - drift is enforced where the site is built",
+      "capability": "docs-build",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/lib/ask/vectors-staleness.test.ts",
+      "fullName": "committed ask-vectors match the docs corpus on disk",
+      "reason": "no public/info/search-index.json - run pnpm run build:info first",
+      "capability": "docs-build",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/lib/ask/vectors-staleness.test.ts",
+      "fullName": "the committed .bin header agrees with ask-vectors.json",
+      "reason": "no public/info/search-index.json - run pnpm run build:info first",
+      "capability": "docs-build",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/lib/collab-colors.test.ts",
+      "fullName": "suse: every collaborator colour clears the floor in both themes and is 50° from the rest",
+      "reason": "suse is not mounted",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/lib/collab-colors.test.ts",
+      "fullName": "suse: the pack's own hues survive into the set",
+      "reason": "suse is not mounted",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/lib/collab-colors.test.ts",
+      "fullName": "suse: the same pack yields the same colours every time",
+      "reason": "suse is not mounted",
+      "capability": "brand:suse",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/lib/collab-colors.test.ts",
+      "fullName": "the shipped packs do not collapse onto one another",
+      "reason": "both packs need mounting",
+      "capability": "brand:profiles",
+      "owner": "shells/web"
     }
   ]
 }

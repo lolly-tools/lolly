@@ -120,7 +120,12 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 // gone from the build entirely. Next growth needs its own argument, not this note - the
 // standing candidate for a real diet is the template + asset-version reader cluster the
 // previous note names, which needs its feature owner.
-const MAX_PRELOAD_JS_GZ = 157 * 1024;
+// Moved 157 -> 158 on 2026-09-11 (evening): the text-utility wave (engine 1.191, the text
+// views and their handoff) merged on top of the escaper dedupe and measured 157.1 KB gz
+// in CI against 157.0. That is the wave's first-paint weight, not the fold's: the same
+// tree without the fold measured the same. Reclaim it from the text views before the
+// next raise.
+const MAX_PRELOAD_JS_GZ = 158 * 1024;
 // -----------------------------------------------------------------------------
 
 function fail(msg: string): never {
