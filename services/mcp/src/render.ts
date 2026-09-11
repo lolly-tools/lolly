@@ -29,7 +29,7 @@ import { needsBrowserTier } from '../../../packages/node-shell/src/browser-tier.
 import { readFile, stat } from 'node:fs/promises';
 import { loadToolCached } from './catalog.ts';
 import { withHost } from './host.ts';
-import { FONTS_DIR, BROWSERS_DIR } from './paths.ts';
+import { fontsDir, BROWSERS_DIR } from './paths.ts';
 import { webShellBase, closeWebShell } from './webshell.ts';
 import {
   BrowserJobQueue, BrowserQueueFullError, BrowserQueueTimeoutError, browserQueueOptions,
@@ -253,7 +253,7 @@ async function svgToPng(svg: string, width: number | undefined, background: stri
   const r = new Resvg(svg, {
     ...(background ? { background } : {}),
     fitTo,
-    font: { fontDirs: [FONTS_DIR], loadSystemFonts: true },
+    font: { fontDirs: [fontsDir()], loadSystemFonts: true },
   });
   return r.render().asPng();
 }

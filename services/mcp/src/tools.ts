@@ -378,8 +378,11 @@ export const TOOL_DEFS: McpToolDef[] = [
   },
 ];
 
-/** Tool ids are `[a-z0-9-]` slugs (matches resources.ts); reject anything else so
- *  a crafted id can't escape TOOLS_DIR via `..` (existence-probe / path leak). */
+/** Tool ids are `[a-z0-9-]` slugs (matches resources.ts); reject anything else so a
+ *  crafted id never reaches the loader (existence-probe / path leak). The resolver
+ *  matches an id against the profile's own tool directories rather than joining it
+ *  onto a path (paths.ts fetchToolFile), so this is the request-shape check it reads
+ *  as, not the only thing between a crafted id and the filesystem. */
 const TOOL_ID_RE = /^[a-z0-9-]+$/;
 
 function textOnly(text: string): ToolCallResult {

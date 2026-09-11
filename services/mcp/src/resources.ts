@@ -8,7 +8,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createTokenSet, pickHeadAssetId } from '@lolly/engine';
-import { ASSET_INDEX, REPO_ROOT } from './paths.ts';
+import { assetIndexPath, contentUrl, previewsDir } from './paths.ts';
 import { loadIndex, loadToolCached } from './catalog.ts';
 import { toolInputSchema } from './schema.ts';
 import { withHost } from './host.ts';
@@ -57,10 +57,13 @@ export function headTokensAsset<T extends { id: string; type: string }>(assets: 
 }
 
 async function tokensResource(uri: string): Promise<ResourceContent> {
-  const idx = JSON.parse(await readFile(ASSET_INDEX, 'utf8')) as AssetIndex;
+  const idx = JSON.parse(await readFile(assetIndexPath(), 'utf8')) as AssetIndex;
   const tokenAsset = headTokensAsset(idx.assets);
   if (!tokenAsset) return { uri, mimeType: 'application/json', text: JSON.stringify({ colors: [], note: 'No tokens asset in catalog.' }) };
-  const doc = JSON.parse(await readFile(join(REPO_ROOT, tokenAsset.formats[0]!.url.replace(/^\//, '')), 'utf8'));
+  const tokenUrl = tokenAsset.formats[0]!.url;
+  const tokenPath = contentUrl(tokenUrl);
+  if (!tokenPath) throw new Error(`Tokens asset ${tokenAsset.id}: ${tokenUrl} is not in this profile's catalog.`);
+  const doc = JSON.parse(await readFile(tokenPath, 'utf8'));
   const set = createTokenSet(doc);
   return { uri, mimeType: 'application/json', text: JSON.stringify({ colors: set.colors() }, null, 2) };
 }
@@ -73,7 +76,7 @@ function parseDataUrl(url: string): { mime: string; base64: string } | null {
 
 /** The catalog listing an agent needs to pick a REAL asset id instead of hallucinating one. */
 async function assetsListing(uri: string): Promise<ResourceContent> {
-  const idx = JSON.parse(await readFile(ASSET_INDEX, 'utf8')) as AssetIndex;
+  const idx = JSON.parse(await readFile(assetIndexPath(), 'utf8')) as AssetIndex;
   // Same listing shape host.assets.query resolves (id/type/name/tags), minus bytes;
   // fetch an individual asset via lolly://asset/{id}.
   const assets = idx.assets.map(a => ({
@@ -85,13 +88,11 @@ async function assetsListing(uri: string): Promise<ResourceContent> {
   return { uri, mimeType: 'application/json', text: JSON.stringify({ count: assets.length, assets }, null, 2) };
 }
 
-const PREVIEWS_DIR = join(REPO_ROOT, 'catalog', 'previews');
-
 /** The tool's committed gallery preview: `<id>.svg`, else its first example look. */
 async function previewResource(uri: string, id: string): Promise<ResourceContent> {
   for (const file of [`${id}.svg`, `${id}.look0.svg`]) {
     try {
-      const text = await readFile(join(PREVIEWS_DIR, file), 'utf8');
+      const text = await readFile(join(previewsDir(), file), 'utf8');
       return { uri, mimeType: 'image/svg+xml', text };
     } catch { /* try the next candidate */ }
   }

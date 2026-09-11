@@ -10,7 +10,7 @@
 
 import { readFile } from 'node:fs/promises';
 import { loadTool } from '@lolly/engine';
-import { CATALOG_INDEX, fetchToolFile } from './paths.ts';
+import { catalogIndexPath, fetchToolFile } from './paths.ts';
 
 export interface CatalogTemplatePreset {
   id: string;
@@ -61,7 +61,7 @@ let indexCache: Promise<CatalogIndex> | null = null;
 
 /** The generated tool registry. Cached for the process (tools are static in prod). */
 export function loadIndex(): Promise<CatalogIndex> {
-  return (indexCache ??= readFile(CATALOG_INDEX, 'utf8').then(s => JSON.parse(s) as CatalogIndex));
+  return (indexCache ??= readFile(catalogIndexPath(), 'utf8').then(s => JSON.parse(s) as CatalogIndex));
 }
 
 const toolCache = new Map<string, Promise<LoadedTool>>();
