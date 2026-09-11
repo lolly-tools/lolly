@@ -1099,7 +1099,7 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
   const images = existsSync(previewsDir)
     ? readdirSync(previewsDir).filter((f) => isImage(f) && statSync(join(previewsDir, f)).isFile()).sort()
     : [];
-  const report = readJsonOptional(`catalog/previews/${BLANK_REPORT_FILE}`);
+  const report = readCatalogJsonOptional(`previews/${BLANK_REPORT_FILE}`);
 
   if (images.length && !report) {
     errors.push(

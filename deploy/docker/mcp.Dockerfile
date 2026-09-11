@@ -37,9 +37,10 @@ ENV NODE_ENV=production
 
 COPY . .
 
-# Runtime deps only (omit dev). postinstall materialises the tools/ + catalog/
-# views for LOLLY_PROFILE. PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD keeps the optional
-# playwright-core from fetching a browser we don't ship.
+# Runtime deps only (omit dev). The server reads content from the packs through
+# the resolver, with LOLLY_PROFILE above picking the brand - there is no view to
+# materialise. PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD keeps the optional playwright-core
+# from fetching a browser we don't ship.
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN npm install --global pnpm@11.26.0
 RUN pnpm install --frozen-lockfile --prod

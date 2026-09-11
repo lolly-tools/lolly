@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The content-root resolver against the symlink farm it replaces (plan 244 step 4).
+ * The content-root resolver: overlay composition, profile precedence, and what a
+ * materialized content root resolves to (plan 244).
  *
- * The point of this suite while both exist: every answer the resolver gives is
- * diffed against the repo-root `tools/` and `catalog/` VIEWS that
- * scripts/use-profile.ts built, so the collapse cannot change which tools are
- * mounted, where their files come from, or what bytes a consumer reads. Once the
- * views are gone (step 6) the farm cases skip by name and the fixture cases below
- * carry the overlay and precedence contracts on their own.
+ * This suite was written while the repo-root `tools/` and `catalog/` symlink views
+ * still existed, and half of it diffed every resolver answer against the farm
+ * scripts/use-profile.ts had built, so the collapse could not change which tools were
+ * mounted, where their files came from, or what bytes a consumer read. Step 6 removed
+ * the views and the script, so those cases are gone with them: a skipped-forever case
+ * is not coverage, and the contracts they pinned are the ones the fixture cases below
+ * state directly.
  *
  * Overlay composition has no live example in the mounted profiles (lolly-start
  * carries no brand tools, and brands/suse is private), so the extends rules get a
@@ -18,31 +20,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync,
-  rmSync, statSync, writeFileSync,
+  existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, relative } from 'node:path';
+import { join } from 'node:path';
 
 import {
   catalogFile, contentRoots, listToolFiles, materializeInto, readToolManifest, toolDirs, toolFile,
 } from '../src/content-roots.ts';
 
-const REPO_ROOT = realpathSync(new URL('../../../', import.meta.url).pathname);
-const FARM = join(REPO_ROOT, 'tools');
-const CATALOG_VIEW = join(REPO_ROOT, 'catalog');
-const MARKER = '.lolly-view.json';
-
-/** The views only exist until step 6 removes the script that built them. */
-const farmBuilt = existsSync(join(FARM, MARKER));
-
-/** Tool ids in the farm, i.e. what the active profile mounted. */
-function farmIds(): string[] {
-  return readdirSync(FARM).filter((n) => n !== MARKER && !n.startsWith('.')).sort();
-}
-
-/** Every file under `dir`, '/' separated and relative to it, links followed
- *  (statSync, not a Dirent: a farm entry is a symlink to a pack directory). */
+/** Every file under `dir`, '/' separated and relative to it, links followed. */
 function walk(dir: string, prefix = ''): string[] {
   const out: string[] = [];
   for (const name of readdirSync(dir)) {
@@ -53,100 +40,6 @@ function walk(dir: string, prefix = ''): string[] {
   }
   return out.sort();
 }
-
-test('the resolver mounts exactly the tool ids the farm does', { skip: !farmBuilt }, () => {
-  const roots = contentRoots({ root: REPO_ROOT });
-  assert.deepEqual([...toolDirs(roots).keys()].sort(), farmIds());
-  // The farm's marker records the profile it was built for.
-  const marker = JSON.parse(readFileSync(join(FARM, MARKER), 'utf8')) as { profile?: string };
-  assert.equal(roots.profile, marker.profile);
-});
-
-test('each id resolves to the same real directory the farm links to', { skip: !farmBuilt }, () => {
-  const roots = contentRoots({ root: REPO_ROOT });
-  for (const [id, { dir, base }] of toolDirs(roots)) {
-    const link = join(FARM, id);
-    if (lstatSync(link).isSymbolicLink()) {
-      assert.equal(realpathSync(dir), realpathSync(link), `${id}: resolved dir differs from the farm link`);
-      assert.equal(base, undefined, `${id}: the farm linked it plainly, so it is not an overlay`);
-    } else {
-      // A composed (overlay) dir is a real directory in the farm, not a link.
-      assert.ok(base, `${id}: the farm composed it, so the resolver must report a base`);
-    }
-  }
-});
-
-test('listToolFiles matches a readdir over the farm, per tool', { skip: !farmBuilt }, () => {
-  const roots = contentRoots({ root: REPO_ROOT });
-  for (const id of toolDirs(roots).keys()) {
-    assert.deepEqual(listToolFiles(id, roots), walk(join(FARM, id)), `${id}: file list differs from the farm`);
-  }
-});
-
-test('readToolManifest matches the farm manifest, byte for byte where a path can', { skip: !farmBuilt }, () => {
-  const roots = contentRoots({ root: REPO_ROOT });
-  for (const [id, { base }] of toolDirs(roots)) {
-    const farmRaw = readFileSync(join(FARM, id, 'tool.json'), 'utf8');
-    assert.deepEqual(
-      readToolManifest(id, roots), JSON.parse(farmRaw),
-      `${id}: manifest differs from the farm`,
-    );
-    if (!base) {
-      // A plain tool's manifest is the pack file itself, so bytes must match.
-      assert.equal(readFileSync(toolFile(id, 'tool.json', roots)!, 'utf8'), farmRaw, `${id}: manifest bytes`);
-    }
-  }
-});
-
-test('toolFile resolves the same bytes the farm serves, and null for a miss', { skip: !farmBuilt }, () => {
-  const roots = contentRoots({ root: REPO_ROOT });
-  for (const id of toolDirs(roots).keys()) {
-    for (const rel of listToolFiles(id, roots)) {
-      const from = toolFile(id, rel, roots);
-      assert.ok(from, `${id}/${rel}: resolver returned null for a file the union contains`);
-      assert.equal(
-        readFileSync(from).equals(readFileSync(join(FARM, id, ...rel.split('/')))), true,
-        `${id}/${rel}: bytes differ from the farm`,
-      );
-    }
-    assert.equal(toolFile(id, 'no-such-file.txt', roots), null);
-  }
-});
-
-test('catalogFile resolves to the catalog view', { skip: !farmBuilt }, () => {
-  const roots = contentRoots({ root: REPO_ROOT });
-  assert.equal(
-    realpathSync(catalogFile('tools/index.json', roots)),
-    realpathSync(join(CATALOG_VIEW, 'tools', 'index.json')),
-  );
-  assert.equal(realpathSync(roots.catalogRoot), realpathSync(CATALOG_VIEW));
-});
-
-test('materializeInto writes the farm, file for file', { skip: !farmBuilt }, () => {
-  const roots = contentRoots({ root: REPO_ROOT });
-  const dest = mkdtempSync(join(tmpdir(), 'lolly-materialize-'));
-  try {
-    materializeInto(dest, roots);
-    // The marker was view bookkeeping and carried a timestamp; nothing else differs.
-    const expected = walk(FARM).filter((p) => p !== MARKER);
-    assert.deepEqual(walk(join(dest, 'tools')), expected);
-    for (const rel of expected) {
-      assert.equal(
-        readFileSync(join(dest, 'tools', ...rel.split('/'))).equals(readFileSync(join(FARM, ...rel.split('/')))),
-        true, `tools/${rel}: materialised bytes differ from the farm`,
-      );
-    }
-    // The catalog is large; compare the tree and spot-check the index bytes.
-    assert.deepEqual(walk(join(dest, 'catalog')), walk(CATALOG_VIEW).filter((p) => p !== MARKER));
-    assert.equal(
-      readFileSync(join(dest, 'catalog', 'tools', 'index.json'))
-        .equals(readFileSync(join(CATALOG_VIEW, 'tools', 'index.json'))),
-      true,
-    );
-  } finally {
-    rmSync(dest, { recursive: true, force: true });
-  }
-});
 
 // --- fixture tree: the overlay rules and the precedence order -----------------
 
@@ -396,7 +289,3 @@ test('a materialized tools/ + catalog/ tree resolves with no profiles.json', () 
   }
 });
 
-test('the farm case list is not silently empty', { skip: !farmBuilt }, () => {
-  assert.ok(farmIds().length > 10, `expected a mounted profile, saw ${farmIds().length} tools`);
-  assert.ok(relative(REPO_ROOT, FARM) === 'tools');
-});

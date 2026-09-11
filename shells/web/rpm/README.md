@@ -48,7 +48,7 @@ builds `shells/web/dist` here and stages it as `Source0`. This mirrors the
 lolly-desktop spec, whose frontend is this same dist.
 
 A **public** package must be built on the neutral `lolly-start` profile
-(`npm run profile:start`) - the SUSE tools and assets must never ship in a public
+(`LOLLY_PROFILE=lolly-start`) - the SUSE tools and assets must never ship in a public
 RPM. `make-sources.sh` warns if the active profile is something else.
 
 ## Building

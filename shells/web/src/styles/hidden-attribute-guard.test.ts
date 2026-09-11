@@ -20,7 +20,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, dirname, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -44,6 +44,26 @@ function walkCss(dir: string, out: string[] = []): string[] {
     else if (entry.name.endsWith('.css')) out.push(p);
   }
   return out;
+}
+
+/**
+ * Every tool pack in the tree: the community pack plus each brand's own tools root.
+ * This used to be the single repo-root `tools/` symlink view, which plan 244 removed -
+ * and which a `withFileTypes` walk could not see into anyway, because a farm symlink
+ * reports isDirectory() false. Walking the packs covers every tool's stylesheet
+ * whatever profile is resolved, which is what a drift guard wants.
+ */
+function toolPackDirs(): string[] {
+  const dirs = [join(REPO, 'community')];
+  const brands = join(REPO, 'brands');
+  if (existsSync(brands)) {
+    for (const entry of readdirSync(brands, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const tools = join(brands, entry.name, 'tools');
+      if (existsSync(tools)) dirs.push(tools);
+    }
+  }
+  return dirs.filter((d) => existsSync(d));
 }
 
 test('a11y.css carries the app-wide `[hidden] { display: none !important }`', () => {
@@ -97,7 +117,7 @@ test('a11y is still the last-declared cascade layer, and a11y.css is imported in
 });
 
 test('no stylesheet asks a `[hidden]` element to keep a display (the fix would break it)', () => {
-  const files = [...walkCss(SRC_DIR), ...walkCss(join(REPO, 'tools'))];
+  const files = [...walkCss(SRC_DIR), ...toolPackDirs().flatMap((d) => walkCss(d))];
   assert.ok(files.length > 20, `only ${files.length} stylesheets found - the walk is broken`);
 
   const offenders: string[] = [];

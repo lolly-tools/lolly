@@ -89,7 +89,7 @@
   "scripts/fetch-upscale-models.ts": 1,
   "scripts/fetch-whisper-models.ts": 1,
   "scripts/ingest-audio.ts": 1,
-  "scripts/ingest-brand.ts": 6,
+  "scripts/ingest-brand.ts": 5,
   "scripts/lib/shot-compare.ts": 1,
   "scripts/say-lines.ts": 1,
   "scripts/sign-docs-art.ts": 1,

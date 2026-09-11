@@ -21,8 +21,9 @@
 # BuildKit secret values do not invalidate cached build steps. See README.md.
 #
 # The build bakes ONE brand/profile into the static output (theme-color, PWA
-# chrome, and the copied tools/ + catalog/ content are resolved at build time by
-# scripts/use-profile.ts + the vite brandChrome plugin - see shells/web/vite.config.js).
+# chrome, and the tools/ + catalog/ content written into dist are resolved at
+# build time by the content resolver plus the vite brandChrome plugin - see
+# shells/web/vite.config.js).
 # Choose it with --build-arg LOLLY_PROFILE=lolly-start|suse. The default is the
 # neutral lolly-start brand, so a public image ships NO private (SUSE) tools or
 # assets; pass --build-arg LOLLY_PROFILE=suse to build the SUSE-branded image
@@ -30,10 +31,11 @@
 # resulting image is fully self-contained - nothing is read at serve time, so the
 # Helm chart needs NO runtime pack/brand mount for the web app.
 #
-# REQUIREMENT: the repo's content submodules (community/, brands/*) must be
-# checked out in the build context - `pnpm run build:web:release` dereferences the
-# tools/ + catalog/ profile views into dist. A bare checkout without submodules
-# cannot produce a complete signed release.
+# REQUIREMENT: the content packs (community/, brands/*) must be present in the
+# build context - `pnpm run build:web:release` writes a real tools/ + catalog/
+# tree into dist from the resolved profile. community/ and brands/lolly-start/ are
+# in this repository; brands/suse is the one remaining submodule and has to be
+# checked out for LOLLY_PROFILE=suse.
 # ============================================================================
 
 # ── build stage ─────────────────────────────────────────────────────────────
@@ -57,10 +59,9 @@ COPY . .
 
 # Full install (--prod=false): build:web needs devDeps (vite, esbuild, sharp,
 # onnxruntime-node, svgo, resvg) that the runtime-only ca/mcp images omit.
-# pnpm-workspace.yaml's enablePrePostScripts runs the root postinstall
-# (scripts/use-profile.ts --auto), which materialises the tools/ + catalog/ views
-# for LOLLY_PROFILE; its allowBuilds list approves the native build scripts
-# (esbuild, onnxruntime-node, fsevents).
+# There is no root postinstall to run: content is read from the packs where it
+# lives, and LOLLY_PROFILE above picks which. pnpm-workspace.yaml's allowBuilds
+# list approves the native build scripts (esbuild, onnxruntime-node, fsevents).
 RUN npm install --global pnpm@11.26.0
 RUN pnpm install --frozen-lockfile --prod=false
 

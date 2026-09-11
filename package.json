@@ -10,10 +10,7 @@
   },
   "scripts": {
     "preinstall": "node scripts/check-bootstrap.ts",
-    "postinstall": "node scripts/use-profile.ts --auto",
-    "profile": "node scripts/use-profile.ts",
-    "profile:suse": "node scripts/use-profile.ts suse",
-    "profile:start": "node scripts/use-profile.ts lolly-start",
+    "profile": "node scripts/profile.ts",
     "ingest:brand": "node scripts/ingest-brand.ts",
     "ingest:boilerplate": "node scripts/ingest-epub.ts",
     "compose:deck": "node scripts/compose-deck.ts",

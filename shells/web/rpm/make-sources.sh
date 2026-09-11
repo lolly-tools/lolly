@@ -27,9 +27,9 @@
 # fails loudly if that dist is unsigned or missing its catalog.
 #
 # PROFILE: a PUBLIC package must be built on the neutral `lolly-start` profile -
-# the SUSE tools and assets must never reach a public RPM. Run `npm run
-# profile:start` before building. This script warns if the active profile is
-# something else.
+# the SUSE tools and assets must never reach a public RPM. Build with
+# LOLLY_PROFILE=lolly-start, or leave a checkout whose .lolly-profile says so.
+# This script warns if what it can see resolves to something else.
 
 set -euo pipefail
 
@@ -59,14 +59,13 @@ if [ -z "$VERSION" ]; then
 fi
 [ -n "$VERSION" ] || { echo "could not determine version" >&2; exit 1; }
 
-# Profile sanity: public RPM => neutral profile.
-if [ -f "$REPO/.lolly-profile" ]; then
-    PROFILE="$(tr -d '[:space:]' < "$REPO/.lolly-profile")"
-    if [ "$PROFILE" != "lolly-start" ]; then
-        echo "WARNING: active profile is '$PROFILE', not 'lolly-start'." >&2
-        echo "         A public RPM must not ship SUSE (or any brand) tools/assets." >&2
-        echo "         Run 'npm run profile:start' first unless this is deliberate." >&2
-    fi
+# Profile sanity: public RPM => neutral profile. Ask the resolver rather than
+# reading .lolly-profile, so LOLLY_PROFILE and profiles.json's default count too.
+PROFILE="$(cd "$REPO" && node scripts/profile.ts 2>/dev/null | sed -n 's/^profile[[:space:]]*//p')"
+if [ -n "$PROFILE" ] && [ "$PROFILE" != "lolly-start" ]; then
+    echo "WARNING: this checkout resolves to profile '$PROFILE', not 'lolly-start'." >&2
+    echo "         A public RPM must not ship SUSE (or any brand) tools/assets." >&2
+    echo "         Build with LOLLY_PROFILE=lolly-start unless that is intended." >&2
 fi
 
 if [ "$BUILD" -eq 1 ]; then

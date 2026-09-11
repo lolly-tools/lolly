@@ -137,41 +137,40 @@ modules:
       #    platform packages (@esbuild/linux-x64, @rollup/*, @tauri-apps/cli-linux-*)
       #    ship their binaries in the package rather than fetching them.
       #
-      #    That also skips the root's OWN preinstall and postinstall, so the one that
-      #    matters is run explicitly on the next line. (The skipped preinstall,
-      #    scripts/check-bootstrap.ts, only guards against a half-cloned checkout - the
-      #    manifest pins every submodule it needs, so there is nothing for it to catch.)
+      #    That also skips the root's OWN preinstall, scripts/check-bootstrap.ts, which
+      #    only guards against a checkout with no content pack - and this manifest
+      #    builds from one source tree that carries them, so there is nothing for it
+      #    to catch. There is no root postinstall to make up for: the repo-root tools/
+      #    and catalog/ views it used to build are gone (plan 244), and the content
+      #    resolver reads the packs where they live.
       - pnpm install --frozen-lockfile --offline --ignore-scripts --store-dir=/run/build/lolly/flatpak-node/pnpm-store
 
-      # 2) The root postinstall, run by hand because of the above. It builds the
-      #    repo-root tools/ and catalog/ profile VIEWS.
-      #
-      #    lolly-start is named EXPLICITLY rather than using --auto. profiles.json's
-      #    `default` is "suse" - the PRIVATE pack - and --auto only lands on
-      #    lolly-start because brands/suse happens to be absent here. Naming the
-      #    profile makes shipping public content a stated intent rather than a
-      #    side-effect of a missing directory, and fails loudly if that ever changes.
-      - node scripts/use-profile.ts lolly-start
-
-      # 3) The desktop shell has its OWN lockfile (not a workspace member).
+      # 2) The desktop shell has its OWN lockfile (not a workspace member).
       - cd shells/tauri-desktop && pnpm install --frozen-lockfile --offline --ignore-scripts --store-dir=/run/build/lolly/flatpak-node/pnpm-store
 
-      # 4) Frontend. build:frontend also runs build:info, which generates the /info
+      # 3) Frontend. build:frontend also runs build:info, which generates the /info
       #    docs HTML - without it every in-app #/docs route 404s and the footer
-      #    "What?" button goes nowhere. Vite copies tools/ and catalog/ into dist/,
-      #    and tauri-build embeds the whole of dist/ into the binary.
+      #    "What?" button goes nowhere. Vite writes a real tools/ + catalog/ tree into
+      #    dist/ from the resolved profile, and tauri-build embeds the whole of dist/
+      #    into the binary.
       #
-      #    LOLLY_EMBED_CATALOG=profile embeds the active tools/ + catalog/ views
-      #    INCLUDING catalog/previews/ - the per-tool gallery thumbnails. The shells
-      #    default to 'neutral', which deliberately carries no previews and no og
-      #    cards (plans/131 WP-A), on the reasoning that brand content arrives from a
-      #    connected instance or a .lolly pack. The visible cost of that is a gallery
-      #    where every tile has to render itself on first load. On lolly-start the
-      #    embedded content IS the public blank brand, so shipping it is safe - which
-      #    is exactly why step 2 pins that profile rather than trusting a fallback.
-      - cd shells/tauri-desktop && LOLLY_EMBED_CATALOG=profile pnpm run build:frontend
+      #    LOLLY_PROFILE=lolly-start names the public brand EXPLICITLY. profiles.json's
+      #    `default` is "suse" - the PRIVATE pack - and leaving it to the resolver's
+      #    fallback would only reach lolly-start because brands/suse happens to be
+      #    absent here. Naming it makes shipping public content a stated intent rather
+      #    than a side-effect of a missing directory, and fails loudly if that changes.
+      #
+      #    LOLLY_EMBED_CATALOG=profile embeds that tools/ + catalog/ tree INCLUDING
+      #    catalog/previews/ - the per-tool gallery thumbnails. The shells default to
+      #    'neutral', which carries no previews and no og cards by design (plans/131
+      #    WP-A), on the reasoning that brand content arrives from a connected instance
+      #    or a .lolly pack. The visible cost of that is a gallery where every tile has
+      #    to render itself on first load. On lolly-start the embedded content IS the
+      #    public blank brand, so shipping it is safe - which is why the profile is
+      #    pinned here rather than trusted from a fallback.
+      - cd shells/tauri-desktop && LOLLY_PROFILE=lolly-start LOLLY_EMBED_CATALOG=profile pnpm run build:frontend
 
-      # 5) The Rust side.
+      # 4) The Rust side.
       #
       #    --features tauri/custom-protocol is NOT optional. It is what the Tauri CLI
       #    normally adds for you, and tauri's own is_dev() is literally
@@ -185,7 +184,7 @@ modules:
       #    --locked so the lockfile we generated cargo sources from is the one built.
       - cd shells/tauri-desktop/src-tauri && cargo build --release --offline --locked --features tauri/custom-protocol
 
-      # 6) Install. The binary is the Cargo package name; everything else is the app id.
+      # 5) Install. The binary is the Cargo package name; everything else is the app id.
       - install -Dm755 shells/tauri-desktop/src-tauri/target/release/lolly-desktop /app/bin/lolly-desktop
       - install -Dm644 shells/tauri-desktop/flatpak/tools.lolly.Desktop.desktop /app/share/applications/tools.lolly.Desktop.desktop
       - install -Dm644 shells/tauri-desktop/flatpak/tools.lolly.Desktop.metainfo.xml /app/share/metainfo/tools.lolly.Desktop.metainfo.xml
@@ -239,7 +238,7 @@ modules:
       # .gitmodules without honouring `update = none`, so letting it recurse makes
       # the build die on a credential prompt for a repository it must never reach.
       # Its absence is what makes the build resolve to the public lolly-start
-      # profile, which build-commands step 2 then names explicitly.
+      # profile, which build-commands step 3 then names explicitly.
       #
       # The commit is a PLACEHOLDER and this manifest cannot build until it is
       # replaced with a pushed commit of this repository (see ./README.md, "The

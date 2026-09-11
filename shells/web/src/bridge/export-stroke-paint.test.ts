@@ -39,8 +39,9 @@ const EXPORT_MODULE = join(HERE, 'export.ts');
 
 // The reference artwork: 103 shapes, most of them stroked ONLY by a class. Lives in the
 // private SUSE brand pack, so it is absent under lolly-start / public CI - skip cleanly,
-// exactly as tests/color-block.test.ts does for its tool.
-const ART = join(REPO, 'catalog/assets/suse/illustrations/cybersecurity.svg');
+// exactly as tests/color-block.test.ts does for its tool. Named at its real place in the
+// pack: the repo-root catalog/ view that used to front it is gone (plan 244).
+const ART = join(REPO, 'brands/suse/catalog/assets/suse/illustrations/cybersecurity.svg');
 
 /** Resolve a Chromium, or a reason to skip. Mirrors packages/node-shell/src/browsers.ts's
  *  stance: a plain `pnpm install` pulls no browser, so its absence is normal, not a failure. */

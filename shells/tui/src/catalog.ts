@@ -5,8 +5,7 @@
  * needs. No engine coupling: this is pure Node fs, mirroring shells/cli.
  */
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { repoRoot } from '@lolly-tools/node-shell/repo-root';
+import { catalogFile, readToolText } from '@lolly-tools/node-shell/content-roots';
 
 /** A denormalised tool row as the generated catalog index carries it. */
 export interface ToolEntry {
@@ -26,23 +25,22 @@ export interface ToolEntry {
   fileTransform?: boolean;
 }
 
-// repoRoot() is the ONE shared resolver (@lolly-tools/node-shell/repo-root): LOLLY_ROOT,
-// then a marker walk UP from the module dir (the only form that survives a bundled or
-// relocated layout), then cwd, then the monorepo-relative guess. This file used to carry
-// a weaker twin (fixed `../../..`, no walk-up, no cache); the CLI already consumes the
-// shared one, and the TUI reads the same catalog, so they must resolve it identically.
+// The content resolver (@lolly-tools/node-shell/content-roots) is the ONE place that
+// answers where a tool or a catalog file lives, for the CLI and the TUI alike: it picks
+// the profile, composes brand overlays, and reads a packaged materialized root the same
+// way it reads a checkout. This file used to join 'catalog' and 'tools' onto repoRoot(),
+// which worked only while those two repo-root symlink views existed (plan 244 removed
+// them). The TUI and the CLI must resolve content identically, so both go through here.
 
 /** All tools from the generated registry, in catalog order. */
 export async function loadTools(): Promise<ToolEntry[]> {
-  const p = join(repoRoot(), 'catalog', 'tools', 'index.json');
-  const idx = JSON.parse(await readFile(p, 'utf8')) as { tools?: ToolEntry[] };
+  const idx = JSON.parse(await readFile(catalogFile('tools/index.json'), 'utf8')) as { tools?: ToolEntry[] };
   return idx.tools ?? [];
 }
 
 /** The `fetchFile` the engine's `loadTool` calls to read a tool's files from disk. */
 export function toolFetchFile(): (path: string) => Promise<string> {
-  const root = repoRoot();
-  return (path: string) => readFile(join(root, 'tools', path), 'utf8');
+  return readToolText;
 }
 
 /** One catalog asset row as the generated asset registry carries it. */
@@ -58,7 +56,6 @@ export interface AssetRow {
 
 /** All catalog assets, in registry order (mirrors the web catalog view's source). */
 export async function loadAssets(): Promise<AssetRow[]> {
-  const p = join(repoRoot(), 'catalog', 'assets', 'index.json');
-  const idx = JSON.parse(await readFile(p, 'utf8')) as { assets?: AssetRow[] };
+  const idx = JSON.parse(await readFile(catalogFile('assets/index.json'), 'utf8')) as { assets?: AssetRow[] };
   return idx.assets ?? [];
 }

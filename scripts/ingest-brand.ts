@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Brand pack hydrator - turns a design-tokens export into a `brands/<name>`
- * pack, ready to register as a profile (see profiles.json / use-profile.ts).
+ * pack, ready to register as a profile (see profiles.json and
+ * packages/node-shell/src/content-roots.ts).
  *
  * Run as:
  *   pnpm run ingest:brand <source> --name <brand> [--label "Label"]
@@ -44,8 +45,8 @@
  * --register  upserts profiles.json: profiles[<name>] = community tools (+ the
  *             pack's own tools/ root if one exists) + this catalog. Never
  *             touches the "default" key; re-running updates the entry in place.
- * --activate  implies --register, then chains use-profile.ts <name> →
- *             build:catalog → validate:catalog, propagating the first failure.
+ * --activate  implies --register, then chains build:catalog → validate:catalog
+ *             for that profile, propagating the first failure.
  */
 
 import { createHash } from 'node:crypto';
@@ -81,7 +82,7 @@ const USAGE = `Usage:
   --label       human label (default: capitalised name)
   --out         pack directory, inside the repo (default: brands/<name>)
   --register    upsert the profile into profiles.json (never touches "default")
-  --activate    implies --register, then: use-profile <name> && build:catalog && validate:catalog
+  --activate    implies --register, then builds + validates that profile's catalog
   --force       write into an existing non-empty --out`;
 
 /** Human name for each container shape, for console + README provenance. */
@@ -158,17 +159,18 @@ function parseArgs(argv: string[]): Args {
   }
 
   // The pack must live INSIDE the repo: profiles.json paths are joined onto the
-  // repo root by use-profile.ts (an absolute/outside path would register a
-  // broken profile), and it must never be the repo root or the tools/ +
-  // catalog/ SYMLINK VIEWS - writing "into" a view lands in whatever pack is
-  // active (--force could clobber brands/suse's real assets/index.json).
+  // repo root by the content resolver, so an absolute or outside path would
+  // register a broken profile. The repo root itself is refused for the same
+  // reason, and so are tools/ and catalog/: those two names are the URL
+  // namespaces a materialized content root uses, and a pack written there would
+  // be read as a composed tree rather than as a pack.
   const rawOut = typeof flags.out === 'string' ? flags.out : join('brands', name);
   const outRel = relative(ROOT, resolve(ROOT, rawOut)).split(sep).join('/');
   if (outRel === '' || outRel.startsWith('..')) {
     fail(`--out ${rawOut} resolves outside the repo (or to the repo root) - packs must live inside it, e.g. brands/${name}`);
   }
   if (/^(catalog|tools)(\/|$)/.test(outRel)) {
-    fail(`--out ${rawOut} points into the ${outRel.split('/')[0]}/ profile VIEW - write to a real pack dir instead, e.g. brands/${name}`);
+    fail(`--out ${rawOut} uses the reserved ${outRel.split('/')[0]}/ content path - write to a real pack dir instead, e.g. brands/${name}`);
   }
 
   return {
@@ -643,8 +645,8 @@ version in \`catalog/assets/index.json\`.
 1. Register the profile (if you didn't pass \`--register\`): add
    \`profiles.json → profiles.${args.name}\` pointing \`catalog\` here.
 2. Activate and build the generated tool index:
-   \`node scripts/use-profile.ts ${args.name} && pnpm run build:catalog && pnpm run validate:catalog\`
-   (\`--activate\` does all three).
+   \`node scripts/build-catalog-index.ts --profile=${args.name} && node scripts/validate-catalog.ts --profile=${args.name}\`
+   (\`--activate\` does both).
 3. Grow the pack: brand tools under \`${args.out}/tools/\` (append that path to
    the profile's \`tools\` roots), fonts under \`catalog/fonts/\`, previews via
    \`pnpm run previews\`.
@@ -692,21 +694,21 @@ function registerProfile(args: Args): void {
   console.log(`✓ registered profile "${args.name}" in profiles.json (default stays "${cfg.default}")`);
 }
 
-/** use-profile <name> → build:catalog → validate:catalog; first failure wins. */
+/** build:catalog → validate:catalog for the new profile; first failure wins.
+ *  There is nothing to "activate" globally any more - the pack is registered in
+ *  profiles.json and every command can address it by name - so this builds and
+ *  validates its catalog, which is what the flag was always really for. */
 function activateProfile(name: string): void {
-  const steps: [string, string[]][] = [
-    [process.execPath, [join(ROOT, 'scripts/use-profile.ts'), name]],
-    ['pnpm', ['run', 'build:catalog']],
-    ['pnpm', ['run', 'validate:catalog']],
-  ];
-  for (const [cmd, cmdArgs] of steps) {
-    const r = spawnSync(cmd, cmdArgs, { stdio: 'inherit', cwd: ROOT });
+  const steps = ['build-catalog-index.ts', 'checksum-assets.ts', 'build-preview-bundle.ts', 'validate-catalog.ts'];
+  for (const script of steps) {
+    const cmdArgs = [join(ROOT, 'scripts', script), `--profile=${name}`];
+    const r = spawnSync(process.execPath, cmdArgs, { stdio: 'inherit', cwd: ROOT });
     if (r.status !== 0) {
-      console.error(`✗ ${cmd} ${cmdArgs.join(' ')} failed (exit ${r.status ?? 'signal'})`);
+      console.error(`✗ ${script} --profile=${name} failed (exit ${r.status ?? 'signal'})`);
       process.exit(r.status ?? 1);
     }
   }
-  console.log(`✓ profile "${name}" active - catalog built and validated`);
+  console.log(`✓ profile "${name}" registered - catalog built and validated`);
 }
 
 function main(): void {

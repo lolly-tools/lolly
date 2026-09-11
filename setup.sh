@@ -10,7 +10,7 @@
 #
 #   ./setup.sh                     # public setup - community tools + the blank lolly-start brand
 #   ./setup.sh --suse              # also mount the PRIVATE SUSE brand pack (needs repo access)
-#   ./setup.sh --profile lolly-start   # force a content profile after install
+#   ./setup.sh --profile lolly-start   # set this checkout's default content profile
 #   ./setup.sh --skip-node         # don't touch Node (you manage it, e.g. via nvm)
 #   ./setup.sh --help
 #
@@ -154,35 +154,33 @@ if [ "$WITH_SUSE" -eq 1 ]; then
 fi
 
 # ── 4. dependencies ───────────────────────────────────────────────────────────────
-# postinstall (scripts/use-profile.ts --auto) picks a profile: SUSE if its pack is
-# mounted, else the blank lolly-start. Never fails on a public clone.
 step "Installing workspace dependencies (pnpm install)"
 pnpm install
-ok "dependencies installed + content profile built"
+ok "dependencies installed"
 
-# ── 5. content profile (optional override) ───────────────────────────────────────
+# ── 5. content profile ───────────────────────────────────────────────────────────
+# Nothing is switched globally any more: there is no tools/ or catalog/ view to
+# build, so a profile is resolved per process from profiles.json plus LOLLY_PROFILE
+# (packages/node-shell/src/content-roots.ts). --profile writes the sticky local
+# choice this checkout defaults to; every profile stays available with
+# LOLLY_PROFILE=<name> on the command that wants it.
 if [ -n "$FORCE_PROFILE" ]; then
-  step "Selecting content profile: $FORCE_PROFILE"
-  # use-profile.ts takes the profile NAME (suse | lolly-start) - the same thing the
-  # `pnpm run profile:*` scripts wrap. Names, not the package-script suffixes.
-  if node scripts/use-profile.ts "$FORCE_PROFILE"; then
-    ok "profile → $FORCE_PROFILE"
-  else
-    warn "could not switch to '$FORCE_PROFILE' (is its pack mounted?) - keeping the auto-selected profile"
-  fi
+  step "Default content profile for this checkout: $FORCE_PROFILE"
+  printf '%s\n' "$FORCE_PROFILE" > .lolly-profile
+  ok "wrote .lolly-profile → $FORCE_PROFILE"
 fi
 
 # ── 6. done ───────────────────────────────────────────────────────────────────────
 echo
 step "Setup complete"
-node scripts/use-profile.ts 2>/dev/null || true
+node scripts/profile.ts 2>/dev/null || true
 cat <<EOF
 
 ${B}Next steps${X}
   pnpm run dev:web                 # run the web shell (http://localhost:5173)
   pnpm run cli qr-code --url=https://suse.com --output=./qr.svg
   pnpm test                        # the engine + shell test suites
-  pnpm run profile                 # show / switch the content profile
+  pnpm run profile                 # which brand am I looking at, and from where
 
 Docs: README.md · CONTRIBUTING.md · INSTALL.md · docs/authoring-tools.md
 EOF
