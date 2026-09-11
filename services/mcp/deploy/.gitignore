@@ -1,0 +1,2 @@
+# Real deploy config holds secrets - never commit it.
+deploy.env

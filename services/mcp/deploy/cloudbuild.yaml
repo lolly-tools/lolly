@@ -1,0 +1,25 @@
+# Cloud Build: build the Tier-B image from the repo root and push to Artifact
+# Registry. Invoked by deploy.sh (which then runs `gcloud run deploy`).
+#
+#   gcloud builds submit --config services/mcp/deploy/cloudbuild.yaml \
+#     --substitutions=_IMAGE=REGION-docker.pkg.dev/PROJECT/lolly/lolly-mcp:latest .
+#
+# Context is the repo root; Cloud Build honours the repo's .gitignore (no
+# .gcloudignore needed), so node_modules/, services/mcp/.browsers/, and dist/ are
+# NOT uploaded - Chromium is fetched fresh inside the build.
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - '-f'
+      - 'services/mcp/deploy/Dockerfile'
+      - '-t'
+      - '${_IMAGE}'
+      - '.'
+images:
+  - '${_IMAGE}'
+options:
+  # pnpm install --frozen-lockfile + apt system-deps + Chromium download are heavy; give it CPU + headroom.
+  machineType: 'E2_HIGHCPU_8'
+  diskSizeGb: 30
+timeout: 1800s
