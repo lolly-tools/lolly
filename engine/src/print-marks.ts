@@ -22,7 +22,7 @@
  *   └─────────────────────────────────────────────┘
  *
  * All coordinates are TOP-LEFT origin, in PostScript points (1/72"), matching
- * `drawHtmlVectors`/jsPDF. A pdf-lib consumer flips y (bottom-left origin).
+ * `drawHtmlVectors`. A pdf-lib consumer flips y (bottom-left origin).
  */
 
 import type { Cmyk } from './color.ts';

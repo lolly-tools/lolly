@@ -28,6 +28,17 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/prune-caches.ts\" --yes --when-below=10 --quiet",
+            "statusMessage": "Pruning regenerable build caches when the disk is under 10 GiB free"
+          }
+        ]
+      }
     ]
   }
 }

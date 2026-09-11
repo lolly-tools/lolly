@@ -14,6 +14,7 @@ import { existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { scan, scanBuilt, staleAllows } from '../scripts/check-docs-vernacular.ts';
+import { VERNACULAR_WHY } from '../scripts/lib/vernacular-why.ts';
 
 const BUILT = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'shells/web/public/info');
 
@@ -22,7 +23,7 @@ test('docs sources carry no banned vernacular or fingerprint unicode', () => {
   assert.deepStrictEqual(
     v.map(x => `${x.file}:${x.line} [${x.what}] ${x.excerpt}`),
     [],
-    'Banned phrase or unicode in docs sources - fix the copy (see scripts/check-docs-vernacular.ts for the ban list and the rules for ALLOW entries).',
+    `Banned phrase or unicode in docs sources - fix the copy, not the list.\n${VERNACULAR_WHY}`,
   );
 });
 

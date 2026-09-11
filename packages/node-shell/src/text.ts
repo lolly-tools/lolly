@@ -300,6 +300,7 @@ function clustersFrom(
 
 export function createNodeTextAPI({ repoRoot }: { repoRoot: string }): TextAPI {
   return {
+    async characters(fontUrl) { return [...(await loadFace(fontUrl, repoRoot)).unicodes].sort((a, b) => a - b); },
     async toPath({ text, fontUrl, fontSize, features, letterSpacing = 0, variations, fallbackFonts, clusters: wantClusters }) {
       if (!text || !text.trim()) {
         return { d: '', advanceWidth: 0, bbox: null, notdef: 0, ...(wantClusters ? { clusters: [] } : {}) };

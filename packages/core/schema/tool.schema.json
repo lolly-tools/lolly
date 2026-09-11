@@ -64,7 +64,12 @@
     },
     "category": {
       "type": "string",
-      "enum": ["everyone", "designer", "utility", "event"],
+      "enum": [
+        "everyone",
+        "designer",
+        "utility",
+        "event"
+      ],
       "description": "Free-form, used for gallery grouping. Examples: 'everyone', 'event', 'product', 'designer'."
     },
     "new": {
@@ -389,10 +394,19 @@
         "liveCameraWhen": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["input", "value"],
+          "required": [
+            "input",
+            "value"
+          ],
           "properties": {
-            "input": { "type": "string", "description": "Id of an input whose value drives the live camera." },
-            "value": { "type": "string", "description": "The input value that means 'camera on'." }
+            "input": {
+              "type": "string",
+              "description": "Id of an input whose value drives the live camera."
+            },
+            "value": {
+              "type": "string",
+              "description": "The input value that means 'camera on'."
+            }
           },
           "description": "For onFrame (live camera) tools: AUTO-start the camera when the named input holds `value`, and stop it otherwise - so a reader/scanner turns the camera on when it loads in that mode (and when the user selects it) without a manual 'Use camera' tap. Prompts for permission the first time; a denial degrades to the tool's non-camera modes. Honoured only where a camera is usable."
         },
@@ -509,6 +523,11 @@
               "description": "The warning text shown to the editor."
             }
           }
+        },
+        "urlSync": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set false to keep live edits out of the address bar. Explicit URL inputs and generated share links remain supported; local recovery uses the session slot."
         }
       }
     },
@@ -544,9 +563,35 @@
       "items": {
         "type": "string",
         "enum": [
-          "net", "tokens", "text", "pdf", "prepare", "compare", "pptx", "capture", "compose", "media", "scan", "lift",
-          "keyframes", "recorder", "audio", "codec", "layers", "upscale", "matte", "ocr", "speech",
-          "viz", "color", "images", "raster", "geom", "connectors", "c2pa"
+          "net",
+          "tokens",
+          "text",
+          "textTools",
+          "pdf",
+          "prepare",
+          "compare",
+          "pptx",
+          "capture",
+          "compose",
+          "media",
+          "scan",
+          "lift",
+          "keyframes",
+          "recorder",
+          "audio",
+          "codec",
+          "layers",
+          "upscale",
+          "matte",
+          "ocr",
+          "speech",
+          "viz",
+          "color",
+          "images",
+          "raster",
+          "geom",
+          "connectors",
+          "c2pa"
         ]
       },
       "description": "Optional HostV1 APIs (`host.text`, `host.pdf`, …) this tool calls WITHOUT feature-detecting them. The runtime refuses to mount the tool on a shell that lacks one, before any hook runs, and the gallery greys it out there. An API the hooks guard (`if (host.text)`, `host.text?.`) is NOT required and must not be listed. `scripts/tool-requires.ts` computes this from hooks.js and can rewrite it (`--write`); `validate:catalog` warns when the two disagree. Distinct from `capabilities`, which names device abilities (camera, microphone, screen, …) rather than bridge APIs."
@@ -812,7 +857,9 @@
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "On flat scalar blocks, edit rows using the shared table in this field-id order; unlisted fields follow in declaration order. Stored block objects and URL field order are unchanged. Fixed headings, spreadsheet paste, copy, and pop-out are available. Complex/nested blocks keep the block editor."
         },
         "columnEditors": {

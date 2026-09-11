@@ -8,10 +8,26 @@
  * writers need exactly that: a PNG writer compresses IDAT with zlib-wrapped
  * DEFLATE (PNG spec section 10.1), and an OpenEXR writer's ZIP compression is raw
  * DEFLATE per scanline block. CompressionStream is async and stream-shaped -
- * wrong fit for a writer that interleaves compressed chunks into a container -
- * and pulling in a dependency for a frozen 1996 IETF standard is not the
- * engine's style. Pure math + typed arrays; DOM-free, deterministic, identical
- * in browser/CLI/MCP.
+ * wrong fit for a writer that interleaves compressed chunks into a container.
+ * Pure math + typed arrays; DOM-free, deterministic, identical in
+ * browser/CLI/MCP.
+ *
+ * ─── Kept, not inherited: why fflate does not compress for us ────────────────
+ * fflate is a direct engine dependency and gzip.ts's INFLATE is now fflate's
+ * (a decoder's output is defined by its input, so that swap was free). This
+ * encoder is not, and the reason is measured rather than stylistic: fflate's
+ * `deflateSync` is a different compressor, emitting DYNAMIC Huffman blocks
+ * where this file emits FIXED ones. Over fourteen fixtures (empty, short ascii,
+ * a 72 KB repetitive string, 8 KB of pseudo-random bytes, four repo source
+ * files and six binary test fixtures) at levels 0/1/6/9, its bytes matched
+ * `deflateRaw` on two - the empty and 23-byte inputs, where both degenerate to
+ * the same fixed block - and differed on every other one; `zlibSync` matched
+ * the same two. Example: the 72 KB repetitive fixture is 460 bytes here and 90
+ * from fflate at level 6, from the first byte on. Those bytes are pinned by
+ * shipped goldens (tests/png.test.ts, shells/web/src/bridge/export-hdr-png.test.ts)
+ * and feed C2PA hashes, so adopting fflate here would re-pin every one of them.
+ * Smaller output is a real upgrade to weigh on its own; it is not a
+ * consolidation, and it is not byte-compatible with what Lolly has shipped.
  *
  * ─── What subset of RFC 1951 this emits ──────────────────────────────────────
  * LZ77 over the full 32 KB window (hash-chain matcher, lazy matching as in

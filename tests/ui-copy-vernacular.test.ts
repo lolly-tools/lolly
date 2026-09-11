@@ -7,6 +7,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { drift, uiLiterals, manifestCopy } from '../scripts/check-ui-copy-vernacular.ts';
+import { VERNACULAR_WHY } from '../scripts/lib/vernacular-why.ts';
 
 test('the literal extractors read what a person sees', () => {
   assert.deepEqual(uiLiterals(`x(t('Save'), tRaw("It\\'s {n}"), t('Search the catalogue…'))`), ['Save', "It's {n}", 'Search the catalogue…']);
@@ -20,5 +21,5 @@ test('ui copy carries no new em dashes or claudism phrases (ratchet only goes do
     ...d.fresh.map(x => `${x.file}: new file with ${x.now} finding(s)`),
     ...d.under.map(x => `${x.file}: improved ${x.was} → ${x.now} (run --write to lock)`),
   ];
-  assert.deepEqual(lines, [], 'ui-copy vernacular ratchet drifted - see scripts/check-ui-copy-vernacular.ts');
+  assert.deepEqual(lines, [], `ui-copy vernacular ratchet drifted (UI strings gained em dashes or banned phrases).\n${VERNACULAR_WHY}`);
 });

@@ -103,6 +103,8 @@ export interface AssetQuery {
 }
 
 export interface AssetPickerOpts extends AssetQuery {
+  /** Optional v1.191: accept several catalog types in one picker. Overrides type. */
+  types?: Array<NonNullable<AssetQuery['type']>>;
   title?: string;
   allowUpload?: boolean;
   /** Pre-select this asset id if present in results. */

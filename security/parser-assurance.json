@@ -476,14 +476,15 @@
     },
     "engine/src/svg-path.ts": {
       "fuzzTargets": [
-        "svg-readers"
+        "svg-readers",
+        "geom"
       ],
       "details": {
-        "inputSource": "an SVG path `d` string, from artwork, a template or a URL param",
-        "bounds": "`SVG_PATH_MAX_CHARS = 400_000`, `SVG_PATH_MAX_ARGS = 100_000`, `SVG_PATH_MAX_SEGMENTS = 100_000`, `SVG_PATH_MAX_SUBPATHS = 10_000`",
-        "directTests": "`tests/svg-path.test.ts`",
-        "fuzzCoverage": "`svg-readers` (number and path normalisation)",
-        "notes": "A linear single-pass tokenizer with no recursion; allocation ceilings are enforced while scanning numbers and before appending each emitted subpath/segment. Any budget breach rejects the whole path rather than returning partial geometry."
+        "inputSource": "the `d` attribute of any SVG a user drops or pastes, and every path string the geometry kernel receives",
+        "bounds": "tokeniser is linear in the input; the callers bound the string (`geom-api.ts` at 512,000 chars, `svg-layers.ts` through its layer and candidate caps) before or as they parse",
+        "directTests": "`tests/svg-path.test.ts` where present, plus every `tests/geom-*.test.ts` that starts from path data",
+        "fuzzCoverage": "`svg-readers` (parseSvgPath, parseSvgPathArgs) and `geom` (through every kernel entry)",
+        "notes": "A junk token ends the command it sits in rather than throwing; arcs are converted to cubics by the endpoint parameterisation, which is where an absurd radius would have become NaN, so the kernel's coordinate finiteness guard sits after it."
       }
     },
     "engine/src/midi.ts": {
@@ -592,6 +593,18 @@
         "directTests": "`tests/prepare.test.ts`",
         "fuzzCoverage": "`prepare` (inspection plus selected replacements)",
         "notes": "Patterns suggest credentials and personal data locally. Replacements are bound to source hashes and freshly derived locations. Private maps are excluded from summary reports."
+      }
+    },
+    "engine/src/geom-api.ts": {
+      "fuzzTargets": [
+        "geom"
+      ],
+      "details": {
+        "inputSource": "path-data (`d`) strings a tool hook hands to `host.geom` (union, offset, stroke, simplify, bounds, area, hit tests) and authored-path tokens lifted from a share URL (`decodeAuthored`)",
+        "bounds": "`MAX_CHARS = 512,000` checked before any regex touches the string; `MAX_COMMANDS = 20,000`; `MAX_CURVES = 16,000` cubics after normalisation (below the kernel's 8,000-per-operand pairwise ceiling times two); `MAX_PATHS = 64` operands per boolean call; `MAX_NODES = 20,000`; `MAX_COORD = 1e9` finiteness guard on every coordinate; all reported through `limits()`",
+        "directTests": "`tests/geom-api.test.ts`, `tests/geom-boolean.test.ts`, `tests/geom-offset.test.ts`, `tests/geom-stroke.test.ts`, `tests/geom-fit.test.ts`, `tests/geom-spline.test.ts`, `tests/geom-bezier.test.ts`, `tests/geom-intersect.test.ts`, `tests/spiro.test.ts`",
+        "fuzzCoverage": "`geom` (parse, bounds, area, winding, nearest, simplify, selfUnion, union, difference, offset, stroke, decodeAuthored)",
+        "notes": "Results, never throws: bad input comes back as `{ok:false, code}` and the kernel's `GeomLimitError` becomes code `limit`, so a caller can check `limits()` before offering an operation rather than after failing one. A non-finite coordinate produced by the kernel itself is reported as code `internal` rather than written into a template as `M NaN NaN`. The superlinear passes (boolean, offset, stroke) are the reason the char and curve ceilings sit where they do: sized above any real authored path and below where those passes stop being interactive."
       }
     }
   }

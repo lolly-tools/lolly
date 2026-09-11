@@ -3,6 +3,8 @@
 // ─── Text-to-path ───────────────────────────────────────────────────────────
 
 export interface TextAPI {
+  /** Actual Unicode character map of a font file, without fallback (v1.191). */
+  characters?(fontUrl: string): Promise<number[]>;
   /**
    * Shape `text` using the given font at `fontSize` px and return an SVG path.
    *
@@ -22,7 +24,7 @@ export interface TextAPI {
   /**
    * The font's variable-axis DEFAULT values, tag → value (`{ wght: 400 }`), or
    * `{}` for a static font. A caller embedding the raw file into a renderer with
-   * no variable-axis control (jsPDF) gets exactly this instance, so it needs the
+   * no variable-axis control (a plain PDF font embed) gets exactly this instance, so it needs the
    * defaults to know whether the file will render at the weight it wants.
    * Optional/additive (v1.30); absent on older hosts. (v1.30)
    */

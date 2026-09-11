@@ -111,6 +111,17 @@ test('inflateRaw refuses to over-allocate on a hostile size hint', () => {
   const raw = new Uint8Array(deflateRawSync(Buffer.from(new Uint8Array(50_000))));
   // Declaring a smaller size than the stream decodes to must fail, not silently truncate.
   assert.throws(() => inflateRaw(raw, 10), /exceeds declared size/);
+
+  // The throw alone proves nothing about memory: fflate decodes a whole push
+  // before the cap can be consulted, so a fixed push size let 64 KB of input
+  // expand to ~64 MB before failing. Use a bomb big enough to show that, and
+  // assert on the allocation rather than only on the error.
+  const bomb = new Uint8Array(deflateRawSync(Buffer.alloc(64 * 1024 * 1024)));
+  assert.ok(bomb.length < 200_000, `fixture should be a bomb, got ${bomb.length} compressed bytes`);
+  const before = process.memoryUsage().arrayBuffers;
+  assert.throws(() => inflateRaw(bomb, 10), /exceeds declared size/);
+  const grew = (process.memoryUsage().arrayBuffers - before) / (1024 * 1024);
+  assert.ok(grew < 24, `a 10-byte size hint must not buy megabytes of decoding, grew ${grew.toFixed(1)} MB`);
 });
 
 // ── tar ─────────────────────────────────────────────────────────────────────

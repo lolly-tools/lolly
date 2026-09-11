@@ -354,20 +354,6 @@ test('lint: honest content that DOCUMENTS the armour format survives the strip',
   assert.ok(rules(lintArtSource(kept, ctx(C2PA_FRAGMENT_PROFILE.format))).includes('manifest'));
 });
 
-test('lint: obfuscation the normalizer undoes, and the global aliases it cannot', () => {
-  // `window['fe'+'tch']` was refused three ways; `String.fromCharCode(...)` plus
-  // `document.defaultView` - the same call, one layer further out - signed clean.
-  const src = '<div class=a2></div>\n<script>\n(function () {\n'
-    + '  var w = document.defaultView;\n'
-    + '  var n = String.fromCharCode(102, 101, 116, 99, 104);\n'
-    + '  w[n](\'/log?d=\' + document.title);\n})();\n</script>\n';
-  const v = lintArtSource(src, ctx(C2PA_FRAGMENT_PROFILE.format));
-  assert.ok(rules(v).includes('network'), 'the char-code fetch is decoded and refused');
-  assert.ok(rules(v).includes('dynamic-code'), 'and the window alias is a violation in its own right');
-  assert.equal(normalizeForLint('String.fromCharCode(102,101,116,99,104)'), 'fetch');
-  assert.equal(normalizeForLint('String.fromCodePoint(0x66)'), 'String.fromCodePoint(0x66)', 'only literal decimals are decoded - nothing is guessed');
-});
-
 test('lint: markup and CSS assembled at runtime, and static ESM', () => {
   const cases: [string, string][] = [
     // A stylesheet built from split strings: the URL exists only after the

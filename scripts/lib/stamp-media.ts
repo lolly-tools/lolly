@@ -22,7 +22,7 @@
  */
 import { embedC2pa } from '../../engine/src/index.ts';
 import { embedWatermark, LOSSLESS_STRENGTH, DEFAULT_STRENGTH } from '../../engine/src/pixel-watermark.ts';
-import { buildExportC2paOpts } from '../../packages/node-shell/src/c2pa-opts.ts';
+import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 
 export interface StampMeta {
   /** Short id for the artifact (tool id, view slug, doc slug) - logging + credential title fallback. */

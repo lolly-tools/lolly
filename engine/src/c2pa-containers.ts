@@ -282,7 +282,7 @@ const xrefEntryLine = (offset: number, gen: number): string => `${String(offset)
  * /Filespec with /AFRelationship /C2PA_Manifest, the manifest as an
  * /EmbeddedFile stream, a classic xref section and a trailer whose /Prev
  * points at the original startxref. Requires a classic cross-reference
- * table (jsPDF-style); cross-reference streams throw a clear Error the
+ * table (the classic form); cross-reference streams throw a clear Error the
  * shell treats as "cannot attach".
  */
 export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, specVersion, dates = {}, signer }: EmbedOptions = {}): Promise<Uint8Array> {

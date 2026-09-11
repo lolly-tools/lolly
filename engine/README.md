@@ -2,7 +2,7 @@
 
 The platform-agnostic core of Lolly. It loads a tool manifest, builds the input model from it, resolves asset references, runs the tool's hooks, hydrates the Handlebars template, and drives the export. Everything a render needs that is *not* a platform capability lives here, which is why the same tool produces the same output from the web PWA, the Tauri desktop and mobile shells, the CLI and the TUI.
 
-The engine ships as source. `main` is `./src/index.ts` and there is no build step: Node runs the TypeScript directly via native type-stripping, Vite and esbuild handle it for the web shell. Its only runtime dependencies are `handlebars`, `ajv` and the workspace tool-author SDK `@lolly-tools/core`.
+The engine ships as source. `main` is `./src/index.ts` and there is no build step: Node runs the TypeScript directly via native type-stripping, Vite and esbuild handle it for the web shell. Its only runtime dependencies are `handlebars`, `ajv`, `fflate`, `yaml` and the workspace tool-author SDK `@lolly-tools/core`.
 
 ## The three-layer separation
 
@@ -90,16 +90,29 @@ Everything else is a format or feature module, and the families are easier to na
 - **Colour and gamut**: `color*.ts`, `css-color.ts`, `gamut*.ts`, `icc.ts`, `hdr.ts`, `bake.ts`, `image-cloud.ts`, `gradient-spec.ts`.
 - **Brand and tokens**: `brand-*.ts`, `tokens.ts`, `design-map.ts`, `icon-theme.ts`, `photo-treatment.ts`.
 - **Document and container formats**: `pdf*.ts`, `pptx*.ts`, `eps.ts`, `emf.ts`, `dxf.ts`, `tiff.ts`, `apng.ts`, `webp-anim.ts`, `zip-crypto.ts`, `media-sniff.ts`, `video-meta.ts`, `print-marks.ts`, `pdfx.ts`.
-- **Geometry**: `geom/*.ts` with `geom-api.ts` as its façade, plus `svg-path.ts`, `svg-colors.ts`, `svg-custgeom.ts`, `css-box.ts`, `css-paint.ts`.
+- **Geometry**: `geom/*.ts` with `geom-api.ts` as its façade, plus `svg-path.ts`, `svg-colors.ts`, `svg-custgeom.ts`, `css-box.ts`, `css-paint.ts`. See [Why the geometry is in-house](#why-the-geometry-is-in-house).
 - **Audio**: `audio-analyse.ts`, `wav.ts`, `midi.ts`, `zzfxm.ts`, `zzfx-compose.ts`, `zzfxm-ref.ts`.
 - **Plumbing**: `bytes.ts`, `batch.ts`, `compose.ts`, `tool-url.ts`, `url-pack.ts`, `embed.ts`, `lang.ts`, `fs-token.ts`, `session-record.ts`, `catalog-integrity.ts`, `data-import.ts`, `semver-range.ts`, `version.ts`.
+
+## Why the geometry is in-house
+
+`geom/*.ts` plus `geom-api.ts` is roughly 8,000 lines of Bézier geometry: booleans, offsetting, stroke outlining, curve intersection, spline lowering, cubic fitting. It is the one family in this engine with an obvious off-the-shelf answer for each job (paper.js, a Clipper2 port, bezier-js), so the reasons for writing it are recorded here rather than assumed.
+
+- **The engine's dependency rule.** `engine/package.json` declares five runtime dependencies (`@lolly-tools/core`, `ajv`, `fflate`, `handlebars`, `yaml`) and no DOM library, framework or storage backend. `scripts/check-engine-purity.ts` enforces that by scanning: it fails on any `node:` builtin import, any DOM or storage global, and any import escaping `engine/src` other than the few it names one by one. A geometry package would have to go into `engine/package.json`, be granted an exception in that guard, and then run unchanged in a browser, in Node, and inside a Worker.
+- **One kernel, attached verbatim by every shell.** `host.geom = makeGeomApi()` is the whole of what a shell does here: `shells/cli/src/bridge.ts` and `shells/web/src/bridge/index.ts` attach the same object, and `hook-worker-core.ts` co-locates `geom` in bucket A, constructing it inside the worker instead of proxying every call back over RPC. Being pure and dependency-free is what allows that copy. A shell-side library would mean a second implementation behind the same method names, and web/CLI/Tauri could then disagree.
+- **The output is a coordinate, and it has to be the same coordinate everywhere.** `bezier.ts` keeps full cubic precision and returns parameters on the ORIGINAL curves; `intersect.ts` never flattens, samples or rasterises inside the geometry; `spline.ts`'s `hyperbezierCubics` places control points from the chord vector so the lowering is exactly equivariant under translation, rotation and uniform scale, to rounding. A polygon clipper decides regions on flattened input, which is the approximation those modules refuse. Pen shapes also travel inside share links, in the compact wire form of `geom/authored-url.ts`, so a design link opened a year later has to lower to the numbers it was saved with.
+- **Two of the curve families are not cubic-library work.** `spline.ts` keeps an `AuthoredPath` (knots, handles, per-node continuity) and lowers one direction only, because a pen tool that stored cubics alone could not round-trip a knot. The curves it lowers come from Raph Levien's own sources, cited in the module headers: `spiro.ts` reproduces the Euler-spiral solver's formulae from the paper and from libspiro's `compute_ends` / `spiro_to_bpath` (upstream MIT OR Apache-2.0), and the `hyperbezier` default comes from spline-research. `fit.ts` determines each cubic by matching signed area and first x-moment in closed form, and measures Fréchet rather than Hausdorff error. A cubic-Bézier utility library replaces none of those three files.
+- **Hardening is at the tool boundary, not in the kernel.** `geom-api.ts` validates a `d` string's grammar first (size, command vocabulary, argument arity, number syntax, coordinate magnitude) against exported ceilings - `MAX_CHARS`, `MAX_COMMANDS`, `MAX_CURVES`, `MAX_PATHS`, `MAX_NODES`, `MAX_COORD` - and returns a discriminated result rather than throwing, because a throw out of `onInit` is caught and discarded by the runtime. The parser upstream of it, `svg-path.ts`, carries its own ceilings in `docs/parser-inventory.md` and is fuzzed under the `svg-readers` target. The kernel itself has no fuzz target; its assurance is per-module tests (`tests/geom-*.test.ts`, `tests/spiro.test.ts`) plus the consumer suites `tests/design-path.test.ts`, `tests/path-stroke-pad.test.ts` and `tests/connector-geometry.test.ts`.
+- **Licence posture.** The engine is MPL-2.0. `security/npm-licenses.json` records an exact-version licence for every locked package and feeds `scripts/build-sbom.ts`; none of paper.js, a Clipper2 port or bezier-js appears in it today, so each would be a new entry there, in the SBOM, and in the release audit.
+
+None of this says those libraries are bad. It says a replacement has to clear the purity guard, produce identical coordinates in web, CLI, Tauri and the hook worker, and still leave `spline.ts`, `spiro.ts` and `fit.ts` in the tree.
 
 ## Module map
 
 The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, removing or renaming a module, and `node scripts/gen-engine-modules.ts --check` to fail on drift. Purpose comes from each file's leading doc comment, so the way to improve a row is to improve that comment.
 
 <!-- engine-modules:start -->
-**210 modules** under `engine/src/` (excluding the `index.ts` barrel): 183 re-exported from `index.ts`, 158 with a dedicated `tests/*.test.ts`, 32 covered indirectly, 20 with no coverage under `tests/`, 29 wired into the fuzz corpus. Generated by `node scripts/gen-engine-modules.ts` - do not hand-edit between the markers.
+**218 modules** under `engine/src/` (excluding the `index.ts` barrel): 187 re-exported from `index.ts`, 158 with a dedicated `tests/*.test.ts`, 38 covered indirectly, 22 with no coverage under `tests/`, 29 wired into the fuzz corpus. Generated by `node scripts/gen-engine-modules.ts` - do not hand-edit between the markers.
 
 | Module | Lines | Purpose | Public? | Test | Fuzzed |
 |---|--:|---|:--:|---|:--:|
@@ -160,16 +173,16 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `css-paint.ts` | 465 | Pure, DOM-free CSS "paint" value parsers: clip-path basic shapes, gradient stops + radial-gradient geometry, and drop-shadow filters. | yes | `tests/css-paint.test.ts` | – |
 | `dash-fit.ts` | 263 |  | yes | `tests/dash-fit.test.ts` | – |
 | `data-import.ts` | 230 | Data-file → blocks rows. | yes | `tests/data-import.test.ts` | yes |
-| `deck-md.ts` | 266 | deck-md.ts - serialise a .pptx READ-MODEL to Deck Studio's markdown dialect. | yes | indirect | – |
+| `deck-md.ts` | 270 | deck-md.ts - serialise a .pptx READ-MODEL to Deck Studio's markdown dialect. | yes | indirect | – |
 | `deep-encode.ts` | 98 | deep-encode - one place that turns a linear {@link DeepFrame} into finished image bytes at the depth the caller asked for. | no | indirect | – |
-| `deflate.ts` | 837 | Raw DEFLATE compressor + zlib wrapper - the byte-emitting half the engine was missing. | yes | `tests/deflate.test.ts` | – |
+| `deflate.ts` | 853 | Raw DEFLATE compressor + zlib wrapper - the byte-emitting half the engine was missing. | yes | `tests/deflate.test.ts` | – |
 | `der-read.ts` | 120 | DER/ASN.1 read-side authority - the bounds-checked TLV walker plus the ECDSA signature-shape conversions and the EC named-curve table, shared by the certificate/signature modules (c2pa-verify.ts, x509.ts, seal.ts). | no | `tests/der-read.test.ts` | yes |
 | `derived-formats.ts` | 45 | Derived export formats - the ones that are a trivial, lossless transform of a format a tool already declares, so a tool that can emit the parent can emit the child for free. | yes | `tests/derived-formats.test.ts` | – |
 | `design-components.ts` | 326 | Penpot component definitions → template descriptors (pure collectors). | yes | `tests/design-components.test.ts` | – |
 | `design-map.ts` | 2164 | Design-file → Design boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
 | `design-system.ts` | 257 | design-system.ts - the identity and namespace rules for holding SEVERAL design systems on one device (plans/186 section 6). | yes | `tests/design-system.test.ts` | – |
 | `design-version.ts` | 487 | design-version.ts - the pure model behind versioned design systems (plans/97 section 6a). | yes | `tests/design-version.test.ts` | – |
-| `doc-md.ts` | 404 | doc-md.ts - the two serialisers over `doc-model.ts`: GFM markdown, and the HTML projection a rich-text editor ingests. | yes | `tests/doc-md.test.ts` | – |
+| `doc-md.ts` | 415 | doc-md.ts - the two serialisers over `doc-model.ts`: GFM markdown, and the HTML projection a rich-text editor ingests. | yes | `tests/doc-md.test.ts` | – |
 | `doc-model.ts` | 77 | doc-model.ts - the ONE block model every document reader produces and every document serialiser consumes. | yes | indirect | – |
 | `document-api.ts` | 226 | Stable, transport-neutral document/compiler verbs. | yes | `tests/document-api.test.ts` | – |
 | `docx-read.ts` | 1031 | docx-read.ts: PARSE an unzipped .docx part map into `doc-model.ts` blocks. | yes | `tests/docx-read.test.ts` | yes |
@@ -207,7 +220,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `geom/stroke.ts` | 382 | Stroke outlining: the region a stroked path paints, expressed as a fillable path. | yes | `tests/geom-stroke.test.ts` | – |
 | `grade.ts` | 576 |  | yes | `tests/grade.test.ts` | – |
 | `gradient-spec.ts` | 255 | The Lolly gradient spec: one terse, URL-safe string that describes a gradient, and the CSS it bakes down to. | yes | `tests/gradient-spec.test.ts` | – |
-| `gzip.ts` | 435 | gzip (RFC 1952): the member wrapper around raw DEFLATE, plus a self-contained inflater so a `.gz`/`.svgz` can be read back without a platform decoder. | yes | indirect | – |
+| `gzip.ts` | 283 | gzip (RFC 1952): the member wrapper around raw DEFLATE, plus a synchronous inflater so a `.gz`/`.svgz` can be read back without a platform decoder. | yes | indirect | – |
 | `hdr.ts` | 555 | HDR raster export: brand-colour highlight boost + PQ (SMPTE ST 2084) encoding. | yes | `tests/hdr.test.ts` | – |
 | `hook-worker-core.ts` | 461 | Hook worker core - the transport-agnostic half of running a tool's hooks.js OFF the thread that owns the host bridge (plans/86 M2, moved here from the web shell's hook-worker.worker.ts so a Node `worker_threads`… | yes | none | – |
 | `humanize.ts` | 88 | "Humanize" a text asset - a DETERMINISTIC, on-device clean-up of the AI artifacts a text-signal analysis flags, plus a tidy of the typography to house style. | yes | `tests/humanize.test.ts` | – |
@@ -267,7 +280,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `reword.ts` | 401 | Reword flagged text - the SEMANTIC half humanize.ts's header defers (plans/127). | yes | `tests/reword.test.ts` | – |
 | `riff-meta.ts` | 98 | WAV provenance tags: the RIFF LIST/INFO chunk. | yes | `tests/riff-meta.test.ts` | – |
 | `rpm.ts` | 443 | RPM v4 package writer - the container half of a `.rpm`. | yes | `tests/rpm.test.ts` | – |
-| `runtime.ts` | 1747 | Runtime - orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
+| `runtime.ts` | 1737 | Runtime - orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
 | `scorm.ts` | 627 | SCORM packaging - the pure half (plans/180 section 6). | yes | `tests/scorm.test.ts` | – |
 | `seal.ts` | 756 | SEAL (hackerfactor.com) signature verifier - pure, DOM-free (globalThis.crypto only, like c2pa-verify.ts / x509.ts). | yes | `tests/seal.test.ts` | yes |
 | `semver-range.ts` | 112 | Minimal SemVer range satisfaction - enough to enforce a tool manifest's `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3). | yes | `tests/semver-range.test.ts` | – |
@@ -284,8 +297,16 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `tar-read.ts` | 227 | tar (USTAR / POSIX 1003.1-1988) reader. | yes | `tests/tar-read.test.ts` | yes |
 | `tar.ts` | 155 | tar (USTAR / POSIX 1003.1-1988) writer. | yes | indirect | – |
 | `template.ts` | 587 | Template hydration. | yes | indirect | – |
+| `text-ascii.ts` | 99 | Small original bitmap alphabet. | no | none | – |
+| `text-assist.ts` | 131 | Source-referenced, bounded prompts and acceptance rules for local text assistance. | no | indirect | – |
+| `text-document.ts` | 120 | Exact text, source selections and bounded undo history for shared editors. | no | indirect | – |
 | `text-facts.ts` | 167 | Document facts - a NEUTRAL census of what a text observably contains, for the verify and catalog panels' interrogation surface. | yes | `tests/text-facts.test.ts` | – |
+| `text-formats.ts` | 93 | Portable formatters and loss-aware structured text conversions. | no | indirect | – |
+| `text-logs.ts` | 214 | Log text retains source offsets even when an event cannot be classified. | yes | indirect | – |
+| `text-operations.ts` | 275 | Discoverable text actions and their portable option declarations. | yes | none | – |
 | `text-signals.ts` | 1102 | Text AI-likelihood signals - a string in, a tiered report of the signals that bear on "was this text generated by (or run through) an AI model" out. | yes | `tests/text-signals.test.ts` | – |
+| `text-syntax.ts` | 179 | Shared lexical highlighting. | yes | indirect | – |
+| `text-tools.ts` | 557 | On-device text transformations with platform services injected by the host. | yes | indirect | – |
 | `text-watermark.ts` | 227 | Statistical text watermark - the green-list scheme of Kirchenbauer et al., "A Watermark for Large Language Models" (arXiv:2301.10226), as Lolly's own generation paths embed it and /verify detects it. | yes | `tests/text-watermark.test.ts` | – |
 | `tiff.ts` | 224 | Baseline TIFF encoder (uncompressed, single strip, little-endian). | yes | `tests/tiff.test.ts` | – |
 | `token-ext.ts` | 27 | The DTCG vendor-extension namespace, alone in its own module. | no | indirect | – |
@@ -309,7 +330,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `xlsx-write.ts` | 267 | xlsx-write.ts - write a plain grid out as a valid SpreadsheetML .xlsx. | yes | `tests/xlsx-write.test.ts` | – |
 | `xml-escape.ts` | 16 | The one XML text/attribute escaper for the document writers (EPUB, ODT, AppStream). | no | none | – |
 | `zip-crypto.ts` | 344 | Two-tier zip encryption - the crypto behind the "lock this download" option. | yes | `tests/zip-crypto.test.ts` | – |
-| `zip.ts` | 440 | zip.ts - the shared PLAIN (unencrypted) zip primitive. | yes | `tests/zip.test.ts` | – |
+| `zip.ts` | 450 | zip.ts - the shared PLAIN (unencrypted) zip primitive. | yes | `tests/zip.test.ts` | – |
 | `zzfx-compose.ts` | 446 | ZzFXM composition - the shared ZzFX preset bank + the archetype composer behind Lolly's procedural music (Neurospicy Mode tracks, video music beds, the ingest/generator scripts). | yes | `tests/zzfx-compose.test.ts` | – |
 | `zzfxm-ref.ts` | 102 | zzfxm-ref.ts: the `zzfxm:<seed>[:<style>]` asset id, and nothing else. | yes | none | – |
 | `zzfxm.ts` | 493 | ZzFXM procedural-music renderer. | yes | `tests/zzfxm.test.ts` | yes |

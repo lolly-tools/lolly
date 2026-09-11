@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.190.0', () => {
+test('ENGINE_VERSION is 1.191.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -466,7 +466,11 @@ test('ENGINE_VERSION is 1.190.0', () => {
   // 1.190.0 (2026-09-10): visual comparison - optional `host.compare.visual` compares
   //          bounded decoded image/page previews (alignment, noise threshold, page
   //          differences, byte equality) - additive within HostV1, no capture change.
-  assert.equal(ENGINE_VERSION, '1.190.0');
+  // 1.191.0 (2026-09-11): portable text operations - optional `host.textTools.operations/run`
+  //          (on-device text edit/inspect/convert/generate) plus optional
+  //          `host.text.characters` (one font file's real Unicode coverage, no fallback) -
+  //          additive within HostV1, no capture change.
+  assert.equal(ENGINE_VERSION, '1.191.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

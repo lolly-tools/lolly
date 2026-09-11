@@ -1086,7 +1086,7 @@ async function stillAt(spec: StageSpec, tMs: number, probes: { x: number; y: num
  * page count (pdf).
  *
  * Only a browser can answer the questions that matter here - the members are real
- * rasters and the pdf is real jsPDF output - so the headless suite
+ * rasters and the pdf is real writer output - so the headless suite
  * (shells/web/src/bridge/sequence-cuts.test.ts) stops at the loop and the naming,
  * and this is where "cut 3 shows the clip that is live at its midpoint" is decided.
  */

@@ -430,7 +430,7 @@ function makeImageDesc(ctx: PDFContext, ref: Ref, depth = 0): ImageDesc {
 
 /** Inflate + de-predictor a Flate image stream's raw samples (8bpc only), the same
  *  rules the web half applies: no predictor / TIFF-none (<=1) and PNG predictors
- *  (>=10, what jsPDF writes); TIFF predictor 2..9 is refused. */
+ *  (>=10, what a PNG embed writes); TIFF predictor 2..9 is refused. */
 function flateSamples(desc: ImageDesc, comps: number): Uint8Array | null {
   if (desc.bpc !== 8 || desc.width < 1 || desc.height < 1) return null;
   let samples: Uint8Array;

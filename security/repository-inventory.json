@@ -10,7 +10,7 @@
     { "id": "api-ca", "paths": ["api/ca/[...path].js"], "repair": "npm run build:ca-fn", "check": "git diff --exit-code -- 'api/ca/[...path].js'" },
     { "id": "api-penpot", "paths": ["api/penpot/[...path].js"], "repair": "npm run build:penpot-fn", "check": "git diff --exit-code -- 'api/penpot/[...path].js'" },
     { "id": "sbom", "paths": ["sbom.cdx.json"], "repair": "npm run build:sbom", "check": "git diff --exit-code -- sbom.cdx.json" },
-    { "id": "licenses", "paths": ["THIRD-PARTY-NOTICES.md", "cargo-licenses.json"], "repair": "npm run build:licenses && npm run build:cargo-licenses", "check": "npm run check:cargo-licenses" },
+    { "id": "licenses", "paths": ["THIRD-PARTY-NOTICES.md", "security/cargo-licenses.json"], "repair": "npm run build:licenses && npm run build:cargo-licenses", "check": "npm run check:cargo-licenses" },
     { "id": "engine-map", "paths": ["engine/README.md"], "repair": "npm run build:engine-modules", "check": "npm run check:engine-modules" },
     { "id": "web-map", "paths": ["shells/web/src/README.md"], "repair": "npm run build:web-src-readme", "check": "npm run check:web-src-readme" },
     { "id": "parser-inventory", "paths": ["docs/parser-inventory.md"], "repair": "npm run build:parser-inventory", "check": "npm run check:parser-inventory" },

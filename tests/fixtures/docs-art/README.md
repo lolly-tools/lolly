@@ -6,6 +6,12 @@ so a test can stage a temp `docs/` directory and run the real script end to end.
 banked art**: no file in this directory is ever served, inlined or published, and the pipeline is
 pointed at a temp copy, never at this tree.
 
+The encoded-string refusal case is in `tests/docs-art-obfuscation.test.ts`, with
+its literal input and assertions preserved. Keeping independent adversarial cases
+in separate modules avoids the combined source triggering ClamAV's SVG-phishing
+signature in OBS. Both modules run through the normal test discovery; no scanner
+exception or skipped security test is required.
+
 The `.meta.json` files are true. These artifacts were emitted by a model (Claude Opus 5, prompted
 and reviewed by a human), so they declare `source: "trainedAlgorithmicMedia"` with that model
 disclosed - not the `digitalCreation` a hand-typed file would carry. Declaring "no trained model

@@ -31,7 +31,7 @@ import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import type { AddressInfo } from 'node:net';
 import type { Browser, Page } from 'playwright-core';
-import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { getBrowser, closeBrowser } from '@lolly-tools/node-shell/browsers';
 import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');

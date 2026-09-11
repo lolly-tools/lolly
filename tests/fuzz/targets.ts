@@ -107,6 +107,7 @@ import { depthHint } from '../../shells/web/src/lib/image-sample.ts';
 import { extractSvgColors } from '../../engine/src/svg-colors.ts';
 import { enumerateSvgLayers, svgRootViewBox } from '../../engine/src/svg-layers.ts';
 import { svgToCustGeomPaths, svgToNativePptx } from '../../engine/src/svg-custgeom.ts';
+import { makeGeomApi } from '../../engine/src/geom-api.ts';
 import { parseSvgPath, parseSvgPathArgs } from '../../engine/src/svg-path.ts';
 import { evaluateKf, kfChannelsUsed, parseKf, serialiseKf } from '../../engine/src/keyframes.ts';
 import { midiToSong, parseMidi } from '../../engine/src/midi.ts';
@@ -1520,6 +1521,44 @@ export const prepareTarget: FuzzTarget = {
   },
 };
 
+// ── geom: the vector kernel behind host.geom ─────────────────────────────────
+// Every entry takes a path-data string a tool hook hands over (or, for
+// decodeAuthored, a token lifted from a share URL), so the whole surface is
+// attacker-reachable text. The API never throws: bad input comes back as a
+// {ok:false, code} result and the kernel's GeomLimitError becomes code 'limit'.
+// The harness still catches a crash, an allocation failure or a hang, which is
+// what this target is for - the superlinear passes (boolean, offset, stroke)
+// must stay bounded by MAX_CHARS / MAX_COMMANDS / MAX_CURVES on garbage.
+export const geomTarget: FuzzTarget = {
+  name: 'geom',
+  async seeds() {
+    return [
+      bytesOf('M0 0 L100 0 L100 100 L0 100 Z'),
+      bytesOf('M0 0 C10 0 20 10 20 20 S30 40 40 40'),
+      bytesOf('M10 10 h20 v20 H0 V0 Z'),
+      bytesOf('M0 0A5 5 0 0110 0L20 20Z'),
+      bytesOf('M0 0 L50 100 L100 0 Z M20 20 L80 20 L50 80 Z'),
+      bytesOf('M0 0 Q50 100 100 0 T200 0 Z'),
+    ];
+  },
+  async invoke(bytes) {
+    const d = new TextDecoder('utf-8').decode(bytes);
+    const g = makeGeomApi();
+    g.parse(d);
+    g.bounds(d);
+    g.area(d);
+    g.winding(d, 1, 1);
+    g.nearest(d, 1, 1);
+    g.simplify(d);
+    g.selfUnion(d);
+    g.union([d, 'M0 0 L10 0 L10 10 Z']);
+    g.difference([d, 'M2 2 L8 2 L8 8 Z']);
+    g.offset(d, 3);
+    g.stroke(d, 2);
+    g.decodeAuthored(d);
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   prepareTarget, c2paVerifyTarget, cborTarget, mediaSniffTarget, pdfMapTarget, pdfDerivedTarget, x509Target,
   fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget, brandImportTarget, tarReadTarget,
@@ -1530,5 +1569,6 @@ export const ALL_TARGETS: FuzzTarget[] = [
   depthHintTarget, lutParseTarget, psdTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, midiTarget, zzfxmTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
+  geomTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

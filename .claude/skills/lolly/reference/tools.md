@@ -65,7 +65,7 @@ document rather than a handful of fields: **chart** (`chart.md`), **design**
 | `qr-code` | QR Code | everyone | svg, penpot, png, jpeg, webp, avif, tiff, pdf, pdf-cmyk, cmyk-tiff, eps, eps-cmyk, dxf, emf | - | - | Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locati… |
 | `record` | Record | everyone | mp4, webm, srt, vtt, gif, webp-anim | - | camera, microphone | Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically. |
 | `signature` | Signature | everyone | svg, penpot, png, webp, avif, pdf | - | - | Sign with a finger, stylus or mouse and get a clean signature on transparency - SVG or PNG, no scanner, no photo of a… |
-| `snippet` | Snippet | everyone | png, svg, penpot, jpg, webp, pdf | - | - | Turn code snippets into clean, syntax-highlighted, shareable images. |
+| `snippet` | Snippet | everyone | png, svg, penpot, jpg, webp, pdf | textTools | - | Turn code snippets into clean, syntax-highlighted, shareable images. |
 | `spatial-photo` | Spatial Photo | designer | png, jpg, webp, webm, mp4, gif, avif, tiff, webp-anim | - | - | Drop in one photo and move a camera through it: depth is read on your device, so a flat picture becomes a scene with… |
 | `stationery` | Stationery | everyone | pdf, pdf-cmyk, svg, penpot, png, jpg, webp, tiff, cmyk-tiff | - | - | Business cards, letterhead and compliments slips from your brand - each piece sized to its real print trim, ready as… |
 | `street-map` | Street Map | designer | svg, penpot, emf, dxf, pdf, pdf-cmyk, png, jpg, webp, avif, tiff, eps | - | - | Clean vector street-block maps of any city. |
@@ -105,7 +105,7 @@ On-device file utilities: bytes in, bytes out. Most take the user's own file
 | `screencap` | Screen Capture | utility | png, jpg, webp, avif, tiff | - | screen, microphone | Screenshot or record your whole screen, a window, or a browser tab. |
 | `sign` | Sign | utility | pdf | - | - | Place your signature on a PDF, optionally add a Content Credential and lock the result. |
 | `strip-data` | Strip Hidden Data | utility | jpg, png, svg, penpot, pdf | - | - | Reveal and remove hidden metadata from images and PDFs - on your device. |
-| `text-helper` | Text Helper | utility | html | - | - | Format, decode, hash and de-identify text - JSON, JWT and more. |
+| `text-helper` | Text | utility | html | textTools | - | Find, edit, understand and transform text. |
 | `trim` | Trim | utility | mp4, webm, gif, m4a, opus, wav | - | - | Cut an audio or video clip, change its container, mute it or extract its audio on your device. |
 | `url-shot` | URL Screenshot | utility | png, jpg, webp, svg, penpot, pdf, webm, mp4, avif, tiff, gif | - | capture | Any web page, at any scroll-depth, with custom CSS |
 <!-- /GEN:tools-utilities -->

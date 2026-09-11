@@ -70,12 +70,12 @@ export const FINISH_MASK_CMYK: [number, number, number, number] = [0, 0, 0, 1];
 /**
  * Quantise an RGB triple (0–1) to a brand-match key.
  *
- * The precision MUST match what jsPDF writes into the content stream: it emits
- * colour operators at two decimals (254/255 → "1.", 124/255 → "0.49"), so the
+ * The precision MUST match what the PDF writer puts into the content stream: it
+ * emits colour operators at two decimals (254/255 → "1.", 124/255 → "0.49"), so the
  * palette side has to bucket to two decimals too - a 3-decimal key never matches
- * jsPDF's "0.49" against the hex-exact 0.486, and every brand colour silently
+ * "0.49" against the hex-exact 0.486, and every brand colour silently
  * falls through to the generic conversion. No 0–255 channel lands on a .5
- * boundary at x100, so jsPDF's toFixed(2) and Math.round always agree.
+ * boundary at x100, so toFixed(2) and Math.round always agree.
  */
 export function cmykKey(r: number, g: number, b: number): string {
   return `${Math.round(r * 100)},${Math.round(g * 100)},${Math.round(b * 100)}`;

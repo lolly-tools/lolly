@@ -86,6 +86,22 @@ const ALLOWED_PACKAGES = new Set([
   // (unzlibSync) and xlsx-import.ts (unzipSync); every other engine module that
   // mentions fflate in comments hands bytes to a SHELL to (de)compress instead.
   'fflate',
+  // engine/package.json dep (engine 1.188, prepare-document.ts): pure JS YAML
+  // parser, no DOM/fs/network.
+  'yaml',
+  // Text operations use the browser-compatible parser/formatter entry points.
+  // No CLI entry points, filesystem resolution or external schema loading.
+  'ajv',
+  'smol-toml',
+  'sql-formatter',
+  'prettier/standalone',
+  'prettier/plugins/babel',
+  'prettier/plugins/estree',
+  'prettier/plugins/postcss',
+  'prettier/plugins/html',
+  'prettier/plugins/markdown',
+  'terser',
+  'css-tree',
 ]);
 
 /** Relative imports that leave engine/src and are nonetheless legal, repo-relative. */

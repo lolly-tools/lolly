@@ -10,7 +10,7 @@
 // The reason this exists: browsers render border-radius with the CSS Backgrounds
 // & Borders section 5.5 "corner overlap" rule. A single scale factor shrinks every
 // corner together, so a huge `border-radius: 999px` becomes a stadium/pill. SVG
-// <rect> and jsPDF roundedRect instead clamp each axis independently (→ ellipse),
+// <rect> and the PDF roundedRect instead clamp each axis independently (→ ellipse),
 // so the geometry must be resolved here before it reaches those primitives.
 
 import { findColorToken } from './css-color.ts';
@@ -262,7 +262,7 @@ export function cornerRadii(corners: CornerInputs, w: number, h: number): Corner
 }
 
 // If all four (already-clamped) corners are equal, return the single [rx, ry]
-// pair. This is the fast path callers use to emit <rect rx ry> / jsPDF.roundedRect.
+// pair. This is the fast path callers use to emit <rect rx ry> / roundedRect.
 // Returns [0, 0] when there is no rounding, and null when corners differ (the
 // caller must emit a four-corner path via roundedRectPath instead).
 export function uniformRadius(radii: CornerRadii): CornerPair | null {

@@ -63,7 +63,7 @@ import {
   C2PA_SPEC_VERSION, HUMAN_OVERSIGHT_LEVELS,
   DIGITAL_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE,
 } from '../engine/src/c2pa.ts';
-import { buildExportC2paOpts, type ExportC2paOpts } from '../packages/node-shell/src/c2pa-opts.ts';
+import { buildExportC2paOpts, type ExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 

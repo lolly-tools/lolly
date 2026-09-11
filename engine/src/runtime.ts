@@ -268,8 +268,6 @@ export interface Runtime {
   stopLive(): void;
   /** True when this tool declares an `onLevel` hook (it CAN react to live audio levels). */
   hasLevelHook: boolean;
-  /** Whether the audio-level meter loop is currently running. */
-  isMetering(): boolean;
   /**
    * Start driving the tool's `onLevel` hook from the host mic level meter - a
    * pre-record "sound check". Resolves true once levels flow; rejects if permission
@@ -279,8 +277,6 @@ export interface Runtime {
   startMeter(opts?: { deviceId?: string }): Promise<boolean>;
   /** Stop the level-meter loop and release the mic reference (idempotent). */
   stopMeter(): void;
-  /** Whether a recording session is currently capturing. */
-  isRecording(): boolean;
   /**
    * Begin a recording session (mic, optionally camera) via host.recorder, driving
    * the tool's `onLevel` hook - if any - from the session's live levels. Resolves
@@ -572,8 +568,6 @@ export async function createRuntime(
   let recordGeneration = 0;
   let recordStarting = false;
   let recordSession: RecordSession | null = null;
-  const isMetering = () => meterUnsub != null && recordSession == null;
-  const isRecording = () => recordSession != null;
 
   // Subscribe onLevel to any level source ({ subscribe(cb) }) - the mic meter or a
   // live RecordSession - with the same drop-overlap throttle as onFrame. Returns the
@@ -975,8 +969,6 @@ export async function createRuntime(
     // host.recorder being present.
     hasLevelHook: Boolean(hooks?.onLevel),
 
-    isMetering,
-
     /**
      * Start driving the tool's `onLevel` hook from the host mic meter (a pre-record
      * sound check). Rejects if permission is denied or there's no mic (the shell
@@ -1009,8 +1001,6 @@ export async function createRuntime(
     },
 
     stopMeter: stopMeterLoop,
-
-    isRecording,
 
     /**
      * Begin a recording session via host.recorder and (if the tool has onLevel)

@@ -28,17 +28,17 @@
       "typeEscapes": 39
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 4642,
+      "lines": 4644,
       "largestFunctionLines": 647,
       "importFanIn": 25,
-      "importFanOut": 42,
-      "typeEscapes": 115
+      "importFanOut": 43,
+      "typeEscapes": 113
     },
     "shells/web/src/bridge/sequence-render.ts": {
       "lines": 1700,
       "largestFunctionLines": 1071,
       "importFanIn": 2,
-      "importFanOut": 22,
+      "importFanOut": 23,
       "typeEscapes": 33
     },
     "shells/web/src/views/color-lab.ts": {
@@ -64,30 +64,30 @@
     },
     "shells/web/src/views/gallery.ts": {
       "lines": 1965,
-      "largestFunctionLines": 1882,
+      "largestFunctionLines": 1880,
       "importFanIn": 1,
-      "importFanOut": 54,
+      "importFanOut": 55,
       "typeEscapes": 34
     },
     "shells/web/src/views/picker.ts": {
-      "lines": 2691,
-      "largestFunctionLines": 2234,
-      "importFanIn": 23,
+      "lines": 2689,
+      "largestFunctionLines": 2206,
+      "importFanIn": 24,
       "importFanOut": 47,
-      "typeEscapes": 38
+      "typeEscapes": 33
     },
     "shells/web/src/views/profile.ts": {
-      "lines": 2437,
-      "largestFunctionLines": 2966,
+      "lines": 2448,
+      "largestFunctionLines": 2975,
       "importFanIn": 2,
-      "importFanOut": 60,
+      "importFanOut": 61,
       "typeEscapes": 36
     },
     "shells/web/src/views/projects.ts": {
       "lines": 2327,
-      "largestFunctionLines": 3009,
+      "largestFunctionLines": 3004,
       "importFanIn": 1,
-      "importFanOut": 44,
+      "importFanOut": 47,
       "typeEscapes": 25
     },
     "shells/web/src/views/start.ts": {
@@ -105,10 +105,10 @@
       "typeEscapes": 20
     },
     "shells/web/src/views/valid.ts": {
-      "lines": 2861,
+      "lines": 2827,
       "largestFunctionLines": 2032,
       "importFanIn": 3,
-      "importFanOut": 38,
+      "importFanOut": 40,
       "typeEscapes": 17
     }
   },
@@ -231,10 +231,10 @@
     "shells/web/src/bridge/clipboard.ts": 1,
     "shells/web/src/bridge/compose.ts": 1,
     "shells/web/src/bridge/db.ts": 3,
-    "shells/web/src/bridge/dom-frame.ts": 1,
     "shells/web/src/bridge/export-gainmap-jpeg.ts": 2,
     "shells/web/src/bridge/export-gradients.ts": 2,
     "shells/web/src/bridge/export-hdr-png.ts": 2,
+    "shells/web/src/bridge/export-pdf-doc.ts": 1,
     "shells/web/src/bridge/export-pdf-vector.ts": 15,
     "shells/web/src/bridge/export-pdfx.ts": 28,
     "shells/web/src/bridge/export-pptx.ts": 5,
@@ -242,7 +242,7 @@
     "shells/web/src/bridge/export-scorm.ts": 1,
     "shells/web/src/bridge/export-shared.ts": 5,
     "shells/web/src/bridge/export-svg-walker.ts": 39,
-    "shells/web/src/bridge/export.ts": 115,
+    "shells/web/src/bridge/export.ts": 113,
     "shells/web/src/bridge/font-registry.ts": 4,
     "shells/web/src/bridge/fontface-discovery.ts": 1,
     "shells/web/src/bridge/format-support.ts": 2,
@@ -250,7 +250,7 @@
     "shells/web/src/bridge/hook-worker.worker.ts": 1,
     "shells/web/src/bridge/identity.ts": 2,
     "shells/web/src/bridge/image-resize.ts": 2,
-    "shells/web/src/bridge/index.ts": 10,
+    "shells/web/src/bridge/index.ts": 19,
     "shells/web/src/bridge/live-capture-detect.ts": 1,
     "shells/web/src/bridge/live-capture.ts": 3,
     "shells/web/src/bridge/media-trim.ts": 4,
@@ -281,10 +281,9 @@
     "shells/web/src/bridge/video-shared.ts": 2,
     "shells/web/src/capabilities.ts": 1,
     "shells/web/src/catalog/sync.ts": 7,
-    "shells/web/src/collab/beam-protocol.ts": 5,
+    "shells/web/src/collab/beam-protocol.ts": 4,
     "shells/web/src/collab/beam-session.ts": 3,
     "shells/web/src/collab/ceremony.ts": 2,
-    "shells/web/src/collab/history-exchange.ts": 1,
     "shells/web/src/collab/join-route.ts": 8,
     "shells/web/src/collab/native-transport-select.ts": 1,
     "shells/web/src/collab/op-guard.ts": 7,
@@ -326,7 +325,6 @@
     "shells/web/src/components/sound-toggle.ts": 2,
     "shells/web/src/components/spotlight.ts": 3,
     "shells/web/src/components/view-toggle.ts": 1,
-    "shells/web/src/components/viz-overlay.ts": 9,
     "shells/web/src/components/welcome-dialog.ts": 3,
     "shells/web/src/data-transfer.ts": 5,
     "shells/web/src/ext/host.ts": 4,
@@ -337,6 +335,7 @@
     "shells/web/src/lib/a11y-prefs.ts": 1,
     "shells/web/src/lib/ai-detect-worker.ts": 2,
     "shells/web/src/lib/ai-detect.ts": 1,
+    "shells/web/src/lib/ai-policy.ts": 2,
     "shells/web/src/lib/ambience-dsp.ts": 2,
     "shells/web/src/lib/anim-detect.ts": 1,
     "shells/web/src/lib/approval-request.ts": 2,
@@ -389,7 +388,7 @@
     "shells/web/src/lib/brand-propose.ts": 1,
     "shells/web/src/lib/brand-studio-tabs.ts": 3,
     "shells/web/src/lib/bulk-bar.ts": 1,
-    "shells/web/src/lib/bundle.ts": 7,
+    "shells/web/src/lib/bundle.ts": 6,
     "shells/web/src/lib/butterchurn-viz.ts": 6,
     "shells/web/src/lib/canvas-blur.ts": 5,
     "shells/web/src/lib/canvas-editor-api.ts": 1,
@@ -508,7 +507,7 @@
     "shells/web/src/lib/neurospicy.ts": 5,
     "shells/web/src/lib/nextcloud-send.ts": 4,
     "shells/web/src/lib/ocr.ts": 1,
-    "shells/web/src/lib/offline-manager.ts": 5,
+    "shells/web/src/lib/offline-manager.ts": 6,
     "shells/web/src/lib/offline-pins.ts": 2,
     "shells/web/src/lib/oklch-slice.ts": 3,
     "shells/web/src/lib/onedrive-send.ts": 4,
@@ -552,7 +551,6 @@
     "shells/web/src/lib/speech-kokoro-worker.ts": 3,
     "shells/web/src/lib/speech-whisper-worker.ts": 1,
     "shells/web/src/lib/stt-job.ts": 3,
-    "shells/web/src/lib/studio-split.ts": 1,
     "shells/web/src/lib/svg-anim-core.ts": 1,
     "shells/web/src/lib/swatches.ts": 1,
     "shells/web/src/lib/sync-engine.ts": 1,
@@ -585,6 +583,7 @@
     "shells/web/src/lib/zip.ts": 1,
     "shells/web/src/lib/zzfxm-render.ts": 2,
     "shells/web/src/main.ts": 64,
+    "shells/web/src/org/ai-policy.ts": 1,
     "shells/web/src/org/banner.ts": 1,
     "shells/web/src/org/collab-handle.ts": 2,
     "shells/web/src/org/collab-protocol.ts": 1,
@@ -699,7 +698,7 @@
     "shells/web/src/views/pdf-extract.ts": 9,
     "shells/web/src/views/pdf-import.ts": 18,
     "shells/web/src/views/penpot-import.ts": 8,
-    "shells/web/src/views/picker.ts": 38,
+    "shells/web/src/views/picker.ts": 33,
     "shells/web/src/views/pptx-import.ts": 6,
     "shells/web/src/views/present-math.ts": 2,
     "shells/web/src/views/present-mode.ts": 5,

@@ -7,6 +7,17 @@
  * more later) prints the same way. Every convention below is decided here once,
  * which is the point of the shared model.
  *
+ * ── NOT THE OTHER MARKDOWN MODULES ───────────────────────────────────────────
+ * This is the only converter whose INPUT is the doc-model. Three others exist,
+ * each running a different direction, and none is a duplicate of this one:
+ *   • deck-md.ts: a pptx read-model → Deck Studio's markdown dialect.
+ *   • shells/web/src/lib/markdown.ts: markdown TEXT → HTML, for paste and preview
+ *     in the web shell. The reverse of the HTML projection below, not the same job.
+ *   • shells/web/src/bridge/export.ts renderMarkdown: a rendered DOM → markdown,
+ *     under different rules (it escapes no markdown punctuation and numbers ordered
+ *     items 1., 2., 3.), so routing it through mdFromBlocks would change the bytes
+ *     of every .md export. Keep the two paths separate unless that is the intent.
+ *
  * ── MARKDOWN CONVENTIONS (GFM) ───────────────────────────────────────────────
  *   • atx headings (`##`), clamped to 1..6.
  *   • `- ` unordered / `1. ` ordered, TWO spaces of indent per nesting level.
