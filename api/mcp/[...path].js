@@ -71918,7 +71918,16 @@ async function limited(limiter, scope, subject, limit) {
 }
 function createGateway(env = process.env) {
   const mcpEnabled = !!signingSecret(env) || env.LOLLY_MCP_ALLOW_ANONYMOUS === "1";
-  const base = mcpEnabled ? publicOrigin(env) : null;
+  let base = null;
+  let mcpUnavailable = null;
+  if (mcpEnabled) {
+    try {
+      base = publicOrigin(env);
+    } catch (error) {
+      mcpUnavailable = error.message;
+      console.error(`[mcp] ${mcpUnavailable} - the MCP surface answers 503 until it is set; the public render route is unaffected`);
+    }
+  }
   const limiter = createRateLimiter(env);
   return async (req, res) => {
     const method = req.method || "GET";
@@ -71944,6 +71953,11 @@ function createGateway(env = process.env) {
     if (!mcpEnabled) {
       res.writeHead(404, { ...CORS, "content-type": "application/json" });
       res.end(JSON.stringify({ error: "not_found" }));
+      return;
+    }
+    if (mcpUnavailable || base === null) {
+      res.writeHead(503, { ...CORS, "content-type": "application/json", "retry-after": "60" });
+      res.end(JSON.stringify({ error: "temporarily_unavailable", error_description: "The MCP surface is not configured on this deployment." }));
       return;
     }
     const publicBase = base;
