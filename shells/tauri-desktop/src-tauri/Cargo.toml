@@ -74,7 +74,7 @@ mdns-sd = "0.11"
 # Native LAN socket transport (src/native_transport.rs, plans/110 section 4): Noise
 # XX_25519_ChaChaPoly_BLAKE2s. The pure-Rust resolver (no `ring`/C dependency) keeps
 # cross-compilation to Linux/Windows/macOS - and later the Android NDK - unchanged.
-snow = { version = "0.9", default-features = false, features = ["default-resolver"] }
+snow = { version = "0.10", default-features = false, features = ["default-resolver"] }
 
 # Clipboard lens (plans/174 #5): one-shot clipboard read when the tray menu is
 # opened - never a watcher. arboard over tauri-plugin-clipboard-manager because
