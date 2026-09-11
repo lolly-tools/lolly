@@ -22,10 +22,10 @@ import type { ExportFormat, ExportOpts, Profile, InputFile } from '@lolly-tools/
 import type { ToolManifest } from '../../../engine/src/loader.ts';
 // Relative imports (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // Vercel MCP bundle, where a bare workspace specifier would dangle (see bridge.ts).
-import { assertRenderOk, RenderIntegrityError } from '../../../packages/node-shell/src/render-integrity.ts';
-import { isDeepFormat, DeepSourceError } from '../../../packages/node-shell/src/raster.ts';
-import { buildExportC2paOpts } from '../../../packages/node-shell/src/c2pa-opts.ts';
-import { needsBrowserTier } from '../../../packages/node-shell/src/browser-tier.ts';
+import { assertRenderOk, RenderIntegrityError } from '@lolly-tools/node-shell/render-integrity';
+import { isDeepFormat, DeepSourceError } from '@lolly-tools/node-shell/raster';
+import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
+import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
 import { readFile, stat } from 'node:fs/promises';
 import { loadToolCached } from './catalog.ts';
 import { withHost } from './host.ts';

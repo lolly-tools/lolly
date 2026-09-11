@@ -14,7 +14,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // Relative import (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // serverless bundle, same as render.ts's node-shell imports.
-import { repoRoot } from '../../../packages/node-shell/src/repo-root.ts';
+import { repoRoot } from '@lolly-tools/node-shell/repo-root';
 
 // The repo root holding tools/ + catalog/ comes from the ONE shared resolver
 // (node-shell/repo-root), in this order: LOLLY_ROOT, then a marker walk UP from
