@@ -5,7 +5,7 @@ Deterministic, fast, open-source platform - bring your own brand.
 
 <img src="icon.svg" alt="Lolly Icon - Large green and white lollipop candy" width="350"/>
 
-**Try it now.** [lolly.tools](https://lolly.tools) runs in the browser and installs as an app. Nothing you make ever leaves your device without your say. [lolly.art](https://lolly.art) is the same app on a blank brand. Desktop, mobile and command-line builds are on the [releases page](https://github.com/lolly-tools/lolly/releases).
+**Try it now.** [lolly.tools](https://lolly.tools) runs in the browser and installs as an app. Nothing you make ever leaves your device without your say. Desktop, mobile and command-line builds are on the [releases page](https://github.com/lolly-tools/lolly/releases).
 
 **Read first.** The platform is explained at [lolly.tools/info](https://lolly.tools/info/), with one door each for [creators](https://lolly.tools/info/create/creators.html), [builders](https://lolly.tools/info/build/builders.html) and [operators](https://lolly.tools/info/operate/operators.html), a [quickstart](https://lolly.tools/info/start/quickstart.html), and the [trust pages](https://lolly.tools/info/trust/trust.html) that back each claim with the mechanism that enforces it.
 

@@ -1,8 +1,8 @@
 # lolly-models - the on-device model host
 
 A static Vercel project serving ONLY `/models/**` (the ~1.2 GB of ONNX model
-files). The app deploys (bt -> lolly.tools, lolly-start -> lolly.art) exclude
-`shells/web/public/models` from their upload (.vercelignore) and rewrite
+files). The app deploy (bt -> lolly.tools) excludes
+`shells/web/public/models` from its upload (.vercelignore) and rewrites
 `/models/:path*` here (vercel.json `rewrites`), so:
 
 - every app ship stops re-uploading ~1.2 GB of unchanged model bytes;

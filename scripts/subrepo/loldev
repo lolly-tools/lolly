@@ -594,9 +594,10 @@ verify_deploy() {
 }
 
 # ship = gtg (build + commit + push to GitHub) THEN deploy to Vercel - EVERY
-# project in SHIP_TARGETS, uniformly (currently `bt`→lolly.tools/SUSE and
-# `lolly-start`→lolly.art/blank brand), so `loldev ship` never leaves one site
-# stale relative to the other. Uses `npx vercel` (CLI not installed globally) +
+# project in SHIP_TARGETS, uniformly (currently `bt`→lolly.tools on the lolly-start
+# profile; lolly.art was retired on 2026-09-10 to a Vercel domain-level redirect),
+# so `loldev ship` never leaves one site stale relative to another. Uses
+# `npx vercel` (CLI not installed globally) +
 # cached auth (andyfitz); VERCEL_ORG_ID/VERCEL_PROJECT_ID env overrides pick the
 # target project per deploy without touching the local `.vercel/` link (stays
 # pointed at `bt`, e.g. for `vercel dev`). The CLI uploads the LOCAL tree per file (see

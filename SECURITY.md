@@ -66,7 +66,7 @@ or accounts.
 
 - This repository and the `lolly-tools` organisation repositories (engine,
   shells, services, community tools).
-- The reference deployments at `lolly.tools` and `lolly.art`, including the
+- The reference deployment at `lolly.tools`, including the
   optional server components (`/api/mcp`, `/api/ca`, the public
   `/tool/<id>.<ext>` render route).
 

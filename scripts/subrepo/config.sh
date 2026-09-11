@@ -34,10 +34,10 @@ GIT_HOST="https://github.com"
 VERCEL_TEAM_ID="team_6XAaRitEb6CnNoNPwI3pI6hb"
 # 2026-08-29: lolly.tools flipped from the SUSE brand to the START (lolly-start)
 # brand - the merge of lolly.tools + lolly.art onto the start profile as the default.
-# Both domains now serve lolly-start; the SUSE profile is being taken offline.
+# 2026-09-10: lolly.art retired. The domain (and www.) sits on the bt project as a
+# 308 redirect to lolly.tools at the Vercel domain level; its own project is deleted.
 SHIP_TARGETS=(
   "bt|prj_13zlzrOV2VHeK0CGUCyHGx4cPLu7|lolly-start|lolly.tools"
-  "lolly-start|prj_1t1TmmTPcchUyLluRIZDP7Fflq9d|lolly-start|lolly.art"
 )
 
 # Resolve repo root from this file's location (scripts/subrepo/config.sh).

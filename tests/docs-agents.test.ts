@@ -188,7 +188,7 @@ test('the discovery record points every URL at the site (or the MCP host) and li
   const urls = walk(wk).filter((s) => /^https?:\/\//.test(s));
   assert.ok(urls.length >= 15, 'a real record has many URLs');
   for (const s of urls) {
-    assert.ok(s.startsWith(URL) || s.startsWith('https://mcp.lolly.tools/') || s.startsWith('https://github.com/lolly-tools/') || s === 'https://lolly.art', `unexpected host in ${s}`);
+    assert.ok(s.startsWith(URL) || s.startsWith('https://mcp.lolly.tools/') || s.startsWith('https://github.com/lolly-tools/'), `unexpected host in ${s}`);
   }
   assert.deepEqual(wk.render.formats, [...RENDER_GET_FORMATS]);
   assert.equal(wk.engine, '9.9.9');
