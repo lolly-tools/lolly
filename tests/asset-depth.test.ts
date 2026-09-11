@@ -28,6 +28,8 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Ajv from 'ajv/dist/2020.js';
 
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
+
 import { depthForFormat, localPathForUrl, sriForFile } from '../scripts/checksum-assets.ts';
 import { DATA_TYPES, VISUAL_TYPES } from '../shells/web/src/lib/asset-kinds.ts';
 
@@ -212,7 +214,7 @@ test('validate-catalog re-sniffs through the same function the writer uses', () 
 });
 
 test('importing checksum-assets.ts does not rewrite the index (the guard imports it)', async () => {
-  const indexPath = join(ROOT, 'catalog/assets/index.json');
+  const indexPath = catalogFile('assets/index.json');
   const before = readFileSync(indexPath);
   const mod = await import('../scripts/checksum-assets.ts');
   assert.equal(typeof mod.depthForFormat, 'function');
@@ -223,7 +225,7 @@ test('every depth in the active catalog matches a re-sniff of the real bytes', a
   // The guard's invariant, executed against the shipped pack. Also the report:
   // a label present on a file whose header says otherwise, or missing from a
   // file whose header states one, is stale-index drift.
-  const index = JSON.parse(readFileSync(join(ROOT, 'catalog/assets/index.json'), 'utf8'));
+  const index = JSON.parse(readFileSync(catalogFile('assets/index.json'), 'utf8'));
   let checked = 0, labelled = 0, rasterByExt = 0;
   for (const asset of index.assets) {
     for (const formats of [asset.formats, ...Object.values(asset.locales ?? {}) as unknown[][]]) {

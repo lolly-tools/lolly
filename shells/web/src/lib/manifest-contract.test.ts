@@ -28,6 +28,8 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
+
 import { deepLinkToHash } from './deep-link.ts';
 
 const at = (rel: string): string => fileURLToPath(new URL(rel, import.meta.url));
@@ -64,12 +66,10 @@ const pathWords = new Set([
 /** Tool ids in the active profile's catalog - a bare `/<id>` shortcut is one of
  *  these (main.ts's last path branch) and nothing else. */
 function toolIds(): Set<string> {
-  for (const rel of ['../../../../catalog/tools/index.json', '../../../../brands/lolly-start/catalog/tools/index.json']) {
-    if (!existsSync(at(rel))) continue;
-    const index = JSON.parse(read(rel)) as { tools?: Array<{ id?: string }> };
-    return new Set((index.tools ?? []).map((tool) => tool.id!).filter(Boolean));
-  }
-  return new Set();
+  const index = catalogFile('tools/index.json');
+  if (!existsSync(index)) return new Set();
+  const parsed = JSON.parse(readFileSync(index, 'utf8')) as { tools?: Array<{ id?: string }> };
+  return new Set((parsed.tools ?? []).map((tool) => tool.id!).filter(Boolean));
 }
 
 // Path words main.ts keeps ONLY to rescue links minted before a rename (each one

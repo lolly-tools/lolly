@@ -12,9 +12,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
 
+import { readToolManifest, toolFile } from '@lolly-tools/node-shell/content-roots';
 import { PDFDocument } from 'pdf-lib';
 
 import { createRuntime } from '../engine/src/runtime.ts';
@@ -23,16 +22,15 @@ import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
 import { validateManifest } from '../engine/src/validate.ts';
 import { createPdfAPI, compressPdf } from '../shells/web/src/bridge/pdf.ts';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-
 const BARE_HOST: any = { version: '1', profile: { get: async () => ({}) }, log: () => {} };
 const PDF_HOST: any = { ...BARE_HOST, pdf: createPdfAPI() };
 
 function compressTool(): any {
+  const read = (rel: string) => readFileSync(toolFile('compress-pdf', rel)!, 'utf8');
   return {
-    manifest: JSON.parse(readFileSync(join(ROOT, 'tools/compress-pdf/tool.json'), 'utf8')),
-    hooksSource: readFileSync(join(ROOT, 'tools/compress-pdf/hooks.js'), 'utf8'),
-    template: readFileSync(join(ROOT, 'tools/compress-pdf/template.html'), 'utf8'),
+    manifest: readToolManifest('compress-pdf'),
+    hooksSource: read('hooks.js'),
+    template: read('template.html'),
   };
 }
 

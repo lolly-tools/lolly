@@ -16,7 +16,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -109,9 +109,12 @@ test('validate-catalog runs both rules (they are not dead code)', () => {
   assert.match(src, /reservedTemplateToolIdError\(manifest\.id\)/);
 });
 
-test('both brand packs carry the key, so a curator can see it', () => {
+test('every mounted brand pack carries the key, so a curator can see it', () => {
+  // brands/suse is a private, optional submodule: a public clone and CI run
+  // without it, so an absent pack is skipped rather than failed.
   for (const brand of ['suse', 'lolly-start']) {
     const path = join(ROOT, `brands/${brand}/catalog/assets/index.json`);
+    if (!existsSync(path)) continue;
     const index = JSON.parse(readFileSync(path, 'utf8')) as { defaultHiddenTemplates?: unknown };
     assert.ok(
       Array.isArray(index.defaultHiddenTemplates),

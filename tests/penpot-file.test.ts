@@ -42,6 +42,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { unzipSync } from 'fflate';
 
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
+
 import {
   PENPOT_MIME, PENPOT_ROOT_ID, PENPOT_FILE_VERSION, PENPOT_FEATURES, PENPOT_MIGRATIONS,
   buildPenpotEntries, boxesToPenpotDoc, svgToPenpotDoc, imageToPenpotDoc,
@@ -1153,7 +1155,7 @@ test('svgToPenpotDoc: a hidden element is skipped, not lowered', () => {
 
 // ── 7. tokens.json ───────────────────────────────────────────────────────────
 
-const BRAND_TOKENS = join(ROOT, 'catalog/assets/lolly/tokens/brand.json');
+const BRAND_TOKENS = catalogFile('assets/lolly/tokens/brand.json');
 const PENPOT_TOKEN_TYPES = new Set([
   'boolean', 'borderRadius', 'color', 'dimension', 'fontFamilies', 'fontSizes', 'fontWeights', 'letterSpacing',
   'number', 'opacity', 'other', 'rotation', 'shadow', 'sizing', 'spacing', 'string', 'borderWidth', 'textCase',
@@ -1175,7 +1177,7 @@ function tokenLeaves(node: unknown, prefix = ''): Array<[string, Record<string, 
 
 test('penpotTokensJson: the shipped brand doc is filtered to what Penpot reads', (t) => {
   if (!existsSync(BRAND_TOKENS)) {
-    t.skip(`no ${BRAND_TOKENS} on disk (the catalog view is per profile - run pnpm run profile:start)`);
+    t.skip(`no ${BRAND_TOKENS} on disk - the active profile's catalog carries no lolly brand tokens`);
     return;
   }
   const brand = JSON.parse(readFileSync(BRAND_TOKENS, 'utf8'));
@@ -1227,7 +1229,7 @@ test('penpotTokensJson: the shipped brand doc is filtered to what Penpot reads',
 
 test('penpotTokensJson: the brand doc survives a write → extractPenpotProject → createTokenSet round trip', (t) => {
   if (!existsSync(BRAND_TOKENS)) {
-    t.skip(`no ${BRAND_TOKENS} on disk (the catalog view is per profile - run pnpm run profile:start)`);
+    t.skip(`no ${BRAND_TOKENS} on disk - the active profile's catalog carries no lolly brand tokens`);
     return;
   }
   const brand = JSON.parse(readFileSync(BRAND_TOKENS, 'utf8'));

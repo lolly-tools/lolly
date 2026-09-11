@@ -14,9 +14,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
 
+import { readToolManifest, toolFile } from '@lolly-tools/node-shell/content-roots';
 import { PDFDocument } from 'pdf-lib';
 
 import { buildInputModel, updateInput } from '../engine/src/inputs.ts';
@@ -24,8 +23,6 @@ import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
 import { validateManifest } from '../engine/src/validate.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { createPdfAPI } from '../shells/web/src/bridge/pdf.ts';
-
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const FILE_MANIFEST: any = { inputs: [{ id: 'photo', type: 'file', accept: ['image/jpeg'] }] };
 const fileRef = (over: Record<string, any> = {}): any => ({ __file: true, name: 'a.jpg', mime: 'image/jpeg', size: 3, bytes: new Uint8Array([1, 2, 3]), url: null, ...over });
@@ -245,10 +242,11 @@ function buildTextPng(): Uint8Array {
 // Synthesise a tool from the real on-disk strip-data files so the actual
 // hook logic (analyze + strip) is what's under test.
 function stripDataTool(): any {
+  const read = (rel: string) => readFileSync(toolFile('strip-data', rel)!, 'utf8');
   return {
-    manifest: JSON.parse(readFileSync(join(ROOT, 'tools/strip-data/tool.json'), 'utf8')),
-    hooksSource: readFileSync(join(ROOT, 'tools/strip-data/hooks.js'), 'utf8'),
-    template: readFileSync(join(ROOT, 'tools/strip-data/template.html'), 'utf8'),
+    manifest: readToolManifest('strip-data'),
+    hooksSource: read('hooks.js'),
+    template: read('template.html'),
   };
 }
 

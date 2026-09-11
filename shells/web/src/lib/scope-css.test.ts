@@ -3,9 +3,9 @@
 // old regex caused, which tools had to work around by hand.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
+import { toolDirs, toolFile } from '@lolly-tools/node-shell/content-roots';
 import { scopeCss, unscopeCss, scopeTemplateStyles, unscopeStyleEls } from './scope-css.ts';
 
 const S = '#c';
@@ -155,21 +155,19 @@ function tokenLeaks(css: string, token: string): boolean {
 
 test('corpus: scoping every tool styles.css never leaks the token into parens or strings', () => {
   const TK = '.zzscopezz'; // distinctive: never collides with hex colours (#ccc…)
-  const toolsDir = fileURLToPath(new URL('../../../../tools', import.meta.url));
+  // Every tool in the active profile, overlay union applied, from the resolver -
+  // the repo-root tools/ view this used to read is gone (plan 244).
   let checked = 0;
-  for (const d of readdirSync(toolsDir, { withFileTypes: true })) {
-    // tools/ is a profile VIEW (symlink farm - scripts/use-profile.ts), so tool
-    // dirs are symlinks here: Dirent.isDirectory() is false for them.
-    if (!d.isDirectory() && !d.isSymbolicLink()) continue;
-    const p = `${toolsDir}/${d.name}/styles.css`;
-    if (!existsSync(p)) continue;
+  for (const id of toolDirs().keys()) {
+    const p = toolFile(id, 'styles.css');
+    if (!p) continue;
     const css = readFileSync(p, 'utf8');
     const out = scopeCss(css, TK);
     checked++;
-    assert.ok(!tokenLeaks(out, TK), `${d.name}: scope token leaked into a paren/string/comment`);
-    assert.equal(count(out, '{'), count(css, '{'), `${d.name}: '{' balance preserved`);
-    assert.equal(count(out, '}'), count(css, '}'), `${d.name}: '}' balance preserved`);
-    assert.doesNotThrow(() => scopeCss(out, TK), `${d.name}: re-scoping does not crash`);
+    assert.ok(!tokenLeaks(out, TK), `${id}: scope token leaked into a paren/string/comment`);
+    assert.equal(count(out, '{'), count(css, '{'), `${id}: '{' balance preserved`);
+    assert.equal(count(out, '}'), count(css, '}'), `${id}: '}' balance preserved`);
+    assert.doesNotThrow(() => scopeCss(out, TK), `${id}: re-scoping does not crash`);
   }
   assert.ok(checked > 0, 'expected to find at least one tool styles.css');
 });

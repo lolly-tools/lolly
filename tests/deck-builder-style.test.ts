@@ -17,19 +17,23 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+
+import { readToolText, toolFile } from '@lolly-tools/node-shell/content-roots';
 
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 
-const TOOLS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'tools');
-const fetchFile = (path: string) => readFile(join(TOOLS_DIR, path), 'utf8');
+// The tool comes from the active profile's packs through the resolver, which is
+// the same `fetchFile` shape loadTool takes. A profile that does not carry
+// deck-builder skips rather than fails.
+const fetchFile = (path: string) => readToolText(path);
 
-const SKIP = !existsSync(join(TOOLS_DIR, 'deck-builder/tool.json'))
-  && 'deck-builder tool view not built (run pnpm run profile)';
+function present(id: string): boolean {
+  try { return toolFile(id, 'tool.json') !== null; } catch { return false; }
+}
+
+const SKIP = !present('deck-builder')
+  && 'deck-builder is not in the active content profile';
 
 const tool: any = SKIP ? null : await loadTool('deck-builder', fetchFile);
 
