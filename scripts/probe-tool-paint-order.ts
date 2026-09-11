@@ -32,6 +32,7 @@ import { tmpdir } from 'node:os';
 import type { AddressInfo } from 'node:net';
 import type { Browser, Page } from 'playwright-core';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'shells', 'web', 'dist');
@@ -73,8 +74,8 @@ async function bundleWalker(modulePath: string, name: string): Promise<string> {
 
 /** Tool ids from the active profile's generated catalog index. */
 function toolIds(): string[] {
-  const idx = join(ROOT, 'catalog', 'tools', 'index.json');
-  if (!existsSync(idx)) throw new Error('catalog/tools/index.json missing - run `pnpm run profile` first');
+  const idx = catalogFile('tools/index.json');
+  if (!existsSync(idx)) throw new Error('catalog/tools/index.json missing - run `pnpm run build:catalog` first');
   const json = JSON.parse(readFileSync(idx, 'utf8')) as { tools?: { id: string }[] } | { id: string }[];
   const list = Array.isArray(json) ? json : (json.tools ?? []);
   let ids = list.map(t => t.id);

@@ -62,18 +62,16 @@
  */
 
 import { readFile, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
-import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import type { BrowserContext, Page } from 'playwright';
 // The frame diff, from the docs-shot comparator that already owns "these pixels differ".
 import { pixelDiffFraction, DEFAULT_THRESHOLDS, type RawImage } from './lib/shot-compare.ts';
 // The content measure + probe size, from the blank-preview probe, so a `still` verdict on a
 // tool that renders nothing reads differently from one on a tool that renders a full tile.
 import { measureImage, PROBE_DIM, type Measured } from './check-blank-previews.ts';
+import { catalogFile, listToolFiles } from '@lolly-tools/node-shell/content-roots';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const PREVIEWS_DIR = join(ROOT, 'catalog', 'previews');
+const PREVIEWS_DIR = catalogFile('previews');
 const REPORT_FILE = 'motion-report.json';
 const REPORT_PATH = join(PREVIEWS_DIR, REPORT_FILE);
 
@@ -455,12 +453,12 @@ function mark(v: Verdict): string {
 // ── Tool list + plumbing ────────────────────────────────────────────────────
 
 async function toolList(): Promise<Tool[]> {
-  const index = JSON.parse(await readFile(join(ROOT, 'catalog', 'tools', 'index.json'), 'utf8')) as { tools: RawToolEntry[] };
+  const index = JSON.parse(await readFile(catalogFile('tools/index.json'), 'utf8')) as { tools: RawToolEntry[] };
   let tools: Tool[] = index.tools.map((t) => ({
     id: t.id,
     capabilities: Array.isArray(t.capabilities) ? t.capabilities : [],
     status: t.status ?? '',
-    hasCard: ['svg', 'png', 'html', 'webm'].some((ext) => existsSync(join(ROOT, 'tools', t.id, `card.${ext}`))),
+    hasCard: ['svg', 'png', 'html', 'webm'].some((ext) => listToolFiles(t.id).includes(`card.${ext}`)),
   }));
   if (opts.only.length) {
     const want = new Set(opts.only);

@@ -13,12 +13,11 @@
  *   pnpm run optimize:previews
  */
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
-import { resolve, dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 import { svgoThumb } from './optimize-preview-svg.ts';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const DIR = join(ROOT, 'catalog', 'previews');
+const DIR = catalogFile('previews');
 
 const svgs = readdirSync(DIR).filter((f) => f.endsWith('.svg'));
 let totalBefore = 0, totalAfter = 0, shrunk = 0;

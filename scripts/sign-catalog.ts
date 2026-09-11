@@ -24,8 +24,10 @@
  *                        private PKCS8 PEM + public JWK), print the public JWK
  *                        to pin in the deployment, and exit. Refuses to
  *                        overwrite an existing key.
- *   --tools <dir>        tools directory        (default: <repo>/tools)
- *   --index <path>       tool index to bind     (default: <repo>/catalog/tools/index.json)
+ *   --tools <dir>        tools directory, plain (non-overlay) layout - overrides the
+ *                        active profile's resolved tool packs entirely
+ *                        (default: resolved from profiles.json via content-roots)
+ *   --index <path>       tool index to bind     (default: the active profile's catalog/tools/index.json)
  *   --out <path>         envelope destination   (default: sibling index.sig.json of --index)
  *
  * Deterministic apart from signedAt + signature (ECDSA is randomised); re-run
@@ -45,6 +47,7 @@ import {
 } from '../engine/src/catalog-integrity.ts';
 import type { UnsignedCatalogEnvelope } from '../engine/src/catalog-integrity.ts';
 import { pemToDer, derToPem } from '../engine/src/x509.ts';
+import { catalogFile, toolDirs, toolFile, listToolFiles } from '@lolly-tools/node-shell/content-roots';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const KEYS_DIR = join(ROOT, 'keys');
@@ -54,7 +57,9 @@ const EC_P256 = { name: 'ECDSA', namedCurve: 'P-256' } as const;
 interface Args {
   genKey: boolean;
   keyfile: string | null;
-  toolsDir: string;
+  /** A plain (non-overlay) tools directory, only when --tools is passed explicitly.
+   *  null means "resolve the active profile's tool packs via content-roots". */
+  toolsDir: string | null;
   indexPath: string;
   outPath: string | null;
 }
@@ -63,8 +68,8 @@ function parseArgs(argv: string[]): Args {
   const args: Args = {
     genKey: false,
     keyfile: null,
-    toolsDir: join(ROOT, 'tools'),
-    indexPath: join(ROOT, 'catalog/tools/index.json'),
+    toolsDir: null,
+    indexPath: catalogFile('tools/index.json'),
     outPath: null,
   };
   for (let i = 0; i < argv.length; i++) {
@@ -157,33 +162,60 @@ async function run(args: Args): Promise<void> {
   const indexHash = await sha256Hex(indexBytes);
 
   const files: Record<string, string> = {};
-  const toolIds = listToolIds(args.toolsDir);
-  for (const id of toolIds) {
-    for (const filename of CATALOG_SIGNED_TOOL_FILES) {
-      const path = join(args.toolsDir, id, filename);
-      if (!existsSync(path)) continue;
-      files[`${id}/${filename}`] = await sha256Hex(readFileSync(path));
-    }
-    // i18n sidecars are per-language and optional per tool - enumerate whatever
-    // exists (sorted for a deterministic envelope) rather than a fixed list.
-    // Without these digests a signed catalog forces every tool back to English
-    // (loader.ts drops any overlay it can't verify).
-    const i18nDir = join(args.toolsDir, id, 'i18n');
-    if (existsSync(i18nDir) && statSync(i18nDir).isDirectory()) {
-      for (const name of readdirSync(i18nDir).sort()) {
-        if (!CATALOG_SIGNED_I18N_SIDECAR.test(`i18n/${name}`)) continue;
-        files[`${id}/i18n/${name}`] = await sha256Hex(readFileSync(join(i18nDir, name)));
+  let toolIds: string[];
+  if (args.toolsDir) {
+    // Explicit --tools: a plain, non-overlay directory (the shape a materialized
+    // dist tree or a test fixture uses) - read straight off disk, as before.
+    const toolsDir = args.toolsDir;
+    toolIds = listToolIds(toolsDir);
+    for (const id of toolIds) {
+      for (const filename of CATALOG_SIGNED_TOOL_FILES) {
+        const path = join(toolsDir, id, filename);
+        if (!existsSync(path)) continue;
+        files[`${id}/${filename}`] = await sha256Hex(readFileSync(path));
+      }
+      // i18n sidecars are per-language and optional per tool - enumerate whatever
+      // exists (sorted for a deterministic envelope) rather than a fixed list.
+      // Without these digests a signed catalog forces every tool back to English
+      // (loader.ts drops any overlay it can't verify).
+      const i18nDir = join(toolsDir, id, 'i18n');
+      if (existsSync(i18nDir) && statSync(i18nDir).isDirectory()) {
+        for (const name of readdirSync(i18nDir).sort()) {
+          if (!CATALOG_SIGNED_I18N_SIDECAR.test(`i18n/${name}`)) continue;
+          files[`${id}/i18n/${name}`] = await sha256Hex(readFileSync(join(i18nDir, name)));
+        }
+      }
+      // Starter templates, enumerated the same way and for the same reason: optional,
+      // per tool, and any number of them. Their `values` decide what a new document
+      // opens as, so leaving them out of the envelope leaves the one file a hostile
+      // catalog could rewrite while every signed file still verified.
+      const templatesDir = join(toolsDir, id, 'templates');
+      if (!existsSync(templatesDir) || !statSync(templatesDir).isDirectory()) continue;
+      for (const name of readdirSync(templatesDir).sort()) {
+        if (!CATALOG_SIGNED_TEMPLATE_FILE.test(`templates/${name}`)) continue;
+        files[`${id}/templates/${name}`] = await sha256Hex(readFileSync(join(templatesDir, name)));
       }
     }
-    // Starter templates, enumerated the same way and for the same reason: optional,
-    // per tool, and any number of them. Their `values` decide what a new document
-    // opens as, so leaving them out of the envelope leaves the one file a hostile
-    // catalog could rewrite while every signed file still verified.
-    const templatesDir = join(args.toolsDir, id, 'templates');
-    if (!existsSync(templatesDir) || !statSync(templatesDir).isDirectory()) continue;
-    for (const name of readdirSync(templatesDir).sort()) {
-      if (!CATALOG_SIGNED_TEMPLATE_FILE.test(`templates/${name}`)) continue;
-      files[`${id}/templates/${name}`] = await sha256Hex(readFileSync(join(templatesDir, name)));
+  } else {
+    // No --tools: resolve the active profile's tool packs through content-roots,
+    // overlay-aware (a brand tool.json may `extends: "community"` and carry only
+    // the files that differ - listToolFiles/toolFile apply that union, the same
+    // one scripts/use-profile.ts used to bake into the tools/ view).
+    toolIds = [...toolDirs().keys()].sort();
+    for (const id of toolIds) {
+      for (const filename of CATALOG_SIGNED_TOOL_FILES) {
+        const path = toolFile(id, filename);
+        if (!path) continue;
+        files[`${id}/${filename}`] = await sha256Hex(readFileSync(path));
+      }
+      for (const rel of listToolFiles(id)) {
+        const signed = (rel.startsWith('i18n/') && CATALOG_SIGNED_I18N_SIDECAR.test(rel))
+          || (rel.startsWith('templates/') && CATALOG_SIGNED_TEMPLATE_FILE.test(rel));
+        if (!signed) continue;
+        const path = toolFile(id, rel);
+        if (!path) continue;
+        files[`${id}/${rel}`] = await sha256Hex(readFileSync(path));
+      }
     }
   }
 

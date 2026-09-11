@@ -43,6 +43,7 @@ import { fileURLToPath } from 'node:url';
 import { embedC2pa } from '../engine/src/c2pa.ts';
 import { ENGINE_VERSION } from '../engine/src/index.ts';
 import { issueLeafCert, pemToDer } from '../engine/src/x509.ts';
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 
 const USE_CA = process.argv.includes('--ca');
 // --catalog DELIVERS every stampable asset: signs the real catalog file in place. Kept as an
@@ -60,7 +61,14 @@ const CA_LEAF_DAYS = 800; // long enough that a shipped asset never reads "expir
 const SELF_SIGNED_DAYS = 3650; // on-device fallback window
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const INDEX_PATH = join(ROOT, 'catalog/assets/index.json');
+const INDEX_PATH = catalogFile('assets/index.json');
+
+/** Map a catalog-relative HTTP URL (e.g. "/catalog/assets/suse/x.png") to its
+ *  real disk path under the active profile's catalog root. */
+function diskPathForCatalogUrl(url: string): string {
+  const rel = url.replace(/^\//, '');
+  return catalogFile(rel.startsWith('catalog/') ? rel.slice('catalog/'.length) : rel);
+}
 // The id prefix of the retired "Made with Lolly" demo set. deliverCatalog skips it (defensive),
 // and main() strips any lingering entry so the index never re-lists a deleted file.
 const ID_PREFIX = 'suse/credentials/';
@@ -205,7 +213,7 @@ async function deliverCatalog(index: AssetIndex, sb: SignerBundle): Promise<void
       skippedFormats[fmt || '?'] = (skippedFormats[fmt || '?'] ?? 0) + 1;
       continue;
     }
-    const path = join(ROOT, f.url.replace(/^\//, ''));
+    const path = diskPathForCatalogUrl(f.url);
     const bytes = readFileSync(path);
     if (hasC2pa(bytes)) {
       already++;

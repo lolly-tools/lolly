@@ -48,6 +48,9 @@ import type { ToolManifest } from '../engine/src/loader.ts';
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { analyseRequires } from './tool-requires.ts';
+import {
+  catalogFile, toolDirs as resolveToolDirs, toolFile, readToolManifest, listToolFiles,
+} from '@lolly-tools/node-shell/content-roots';
 import { createHash } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -151,16 +154,13 @@ const validateRateCard = ajv.compile<any>(rateCardSchema);
 const errors: string[] = [];
 const warnings: string[] = [];
 
-const toolsDir = join(ROOT, 'tools');
-const assetsIndex = readJson('catalog/assets/index.json');
-const toolsIndex = readJson('catalog/tools/index.json');
+const assetsIndex = readCatalogJson('assets/index.json');
+const toolsIndex = readCatalogJson('tools/index.json');
 
-// Underscore-prefixed dirs are pack infrastructure (community/_shared, the
-// canonical hook-helper corpus), not tools - use-profile.ts excludes them from
-// the view, and this filter keeps a stale view from failing as "missing tool.json".
-const toolDirs = readdirSync(toolsDir).filter(d =>
-  !d.startsWith('_') && statSync(join(toolsDir, d)).isDirectory(),
-);
+// Tool ids for the active profile, overlay-aware and already excluding pack
+// infrastructure (community/_shared etc - content-roots drops any "_"-prefixed
+// entry itself, the same rule use-profile.ts's view used to apply).
+const toolDirs = [...resolveToolDirs().keys()];
 
 // ─── Tool validation ────────────────────────────────────────────────────────
 
@@ -171,8 +171,7 @@ const seenToolIds = new Set<string>();
 const toolManifests = new Map<string, any>(); // id → manifest
 
 for (const dir of toolDirs) {
-  const manifestPath = `tools/${dir}/tool.json`;
-  const manifest = readJsonOptional(manifestPath);
+  const manifest = readToolManifestOptional(dir);
   if (!manifest) {
     errors.push(`[${dir}] missing tool.json`);
     continue;
@@ -230,7 +229,7 @@ for (const dir of toolDirs) {
   }
 
   // Required files present?
-  if (!existsSync(join(ROOT, `tools/${dir}/template.html`))) {
+  if (!toolFile(dir, 'template.html')) {
     errors.push(`[${dir}] missing template.html`);
   }
   // Manifest `requires` vs what hooks.js actually reaches for unguarded
@@ -238,8 +237,8 @@ for (const dir of toolDirs) {
   // the static read is conservative and a maintainer may know better, but the
   // two disagreeing is exactly the drift the field exists to prevent.
   {
-    const hooksPath = join(ROOT, `tools/${dir}/hooks.js`);
-    const { required } = analyseRequires(existsSync(hooksPath) ? readFileSync(hooksPath, 'utf8') : '');
+    const hooksPath = toolFile(dir, 'hooks.js');
+    const { required } = analyseRequires(hooksPath ? readFileSync(hooksPath, 'utf8') : '');
     const declared: string[] = Array.isArray(manifest.requires) ? manifest.requires : [];
     if (declared.join(',') !== required.join(',')) {
       warnings.push(`[${dir}] requires drift: manifest says [${declared.join(', ')}], hooks.js reaches unguarded for [${required.join(', ')}] - run \`node scripts/tool-requires.ts --write\``);
@@ -267,7 +266,7 @@ for (const dir of toolDirs) {
     // is that a new one cannot ship.
     if (!CANONICAL_ALIASES.allow.includes(key)) errors.push(msg);
   }
-  if (manifest.hooks && !existsSync(join(ROOT, `tools/${dir}/hooks.js`))) {
+  if (manifest.hooks && !toolFile(dir, 'hooks.js')) {
     errors.push(`[${dir}] manifest declares hooks but hooks.js is missing`);
   }
 
@@ -277,18 +276,18 @@ for (const dir of toolDirs) {
   // basename must equal `id` (so <tid>.json ↔ id stays a stable, addressable contract),
   // and ids must be unique within the dir. (Like example looks, this does NOT resolve
   // the values map's asset refs - that scope matches the historical example validator.)
-  const templatesDir = join(ROOT, `tools/${dir}/templates`);
-  if (existsSync(templatesDir)) {
+  const templateFiles = listToolFiles(dir).filter((f) => f.startsWith('templates/') && f.endsWith('.json')).sort();
+  {
     const seenTemplateIds = new Set<string>();
-    for (const file of readdirSync(templatesDir).sort()) {
-      if (!file.endsWith('.json')) continue;
-      const rel = `tools/${dir}/templates/${file}`;
-      if (!CATALOG_SIGNED_TEMPLATE_FILE.test(`templates/${file}`)) {
+    for (const templateRel of templateFiles) {
+      const file = templateRel.slice('templates/'.length);
+      const rel = `tools/${dir}/${templateRel}`;
+      if (!CATALOG_SIGNED_TEMPLATE_FILE.test(templateRel)) {
         errors.push(`[${dir}] template ${file}: filename outside the signed-catalog pattern (letters, digits, dot, dash, underscore) - sign-catalog.ts would skip it, so it would ship unsigned and be refused on a signed deployment (${rel})`);
         continue;
       }
       let t: any;
-      try { t = JSON.parse(readFileSync(join(templatesDir, file), 'utf8')); } catch (e) {
+      try { t = JSON.parse(readFileSync(toolFile(dir, templateRel)!, 'utf8')); } catch (e) {
         errors.push(`[${dir}] template ${file}: invalid JSON (${(e as Error).message})`);
         continue;
       }
@@ -303,7 +302,7 @@ for (const dir of toolDirs) {
           const definition = parseKitDefinition(t.kit);
           const manifests = new Map<string, ToolManifest>();
           for (const id of new Set(definition.outputs.map(output => output.toolId))) {
-            manifests.set(id, JSON.parse(readFileSync(join(ROOT, 'tools', id, 'tool.json'), 'utf8')));
+            manifests.set(id, readToolManifest(id) as ToolManifest);
           }
           const { kit } = createKitRows(definition, manifests);
           const issues = kitIssues(kit);
@@ -524,7 +523,7 @@ for (const entry of toolsIndex.tools) {
   if (
     entry.preview !== derived.preview &&
     typeof derived.preview === 'string' &&
-    existsSync(join(ROOT, derived.preview.replace(/^\//, '')))
+    existsSync(catalogUrlPath(derived.preview))
   ) {
     errors.push(`tools/index.json: "${entry.id}" preview ${entry.preview} ≠ derived ${derived.preview} - run \`pnpm run build:catalog\` (after \`pnpm run previews\`)`);
   }
@@ -572,11 +571,11 @@ for (const id of toolManifests.keys()) {
 // catalog/previews/ (a best-effort build artifact the gallery tolerates missing), the
 // slim index is generated by the same `pnpm run build:catalog` as index.json itself, so
 // "not there" always means "not regenerated".
-const slimIndex = readJsonOptional('catalog/tools/index.slim.json');
+const slimIndex = readCatalogJsonOptional('tools/index.slim.json');
 if (!slimIndex) {
   // readJsonOptional has already reported a parse failure; only an actually absent
   // file needs a message of its own.
-  if (!existsSync(join(ROOT, 'catalog/tools/index.slim.json'))) {
+  if (!existsSync(catalogFile('tools/index.slim.json'))) {
     errors.push('tools/index.slim.json is missing - run `pnpm run build:catalog`');
   }
 } else {
@@ -645,7 +644,7 @@ if (!slimIndex) {
 // by design ("a look that fails just isn't bundled, and the gallery live-renders it as
 // before"), so a missing entry must not turn a documented graceful degrade into a red
 // build. No bundle at all = a checkout that hasn't generated previews: skip entirely.
-const previewBundle = readJsonOptional('catalog/previews/bundle.json');
+const previewBundle = readCatalogJsonOptional('previews/bundle.json');
 if (previewBundle) {
   for (const [id, manifest] of toolManifests) {
     // Canonical source is `examples`; `featured.variants` is the pre-`examples` alias.
@@ -940,7 +939,7 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
 };
 
 {
-  const previewsDir = join(ROOT, 'catalog/previews');
+  const previewsDir = catalogFile('previews');
   // Budgets from plans/155 (Phase 1 exit: first-viewport art ≤ 1 MB, measured against a
   // 4G-throttled cold load). KiB, matching the `find catalog/previews -size +300k` the
   // plan's own accept step uses. A look is capped harder than a tile because a tool's
@@ -1090,7 +1089,7 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
 // loop the plan asks for: re-running the generator cannot reintroduce a blank tile silently,
 // because the report no longer matches the file and the gate says so.
 {
-  const previewsDir = join(ROOT, 'catalog/previews');
+  const previewsDir = catalogFile('previews');
   const isImage = (f: string): boolean => /\.(svg|png|webp|jpg|jpeg|avif)$/i.test(f);
   const images = existsSync(previewsDir)
     ? readdirSync(previewsDir).filter((f) => isImage(f) && statSync(join(previewsDir, f)).isFile()).sort()
@@ -1275,17 +1274,22 @@ for (const [toolId, manifest] of toolManifests) {
 // refactor renamed/removed an input) would silently translate nothing.
 const SIDECAR_LANGS = new Set(LANGS.filter(l => l !== 'en'));
 for (const [toolId, manifest] of toolManifests) {
-  const i18nDir = join(ROOT, `tools/${toolId}/i18n`);
-  if (!existsSync(i18nDir)) continue;
-  for (const file of readdirSync(i18nDir)) {
-    if (!file.endsWith('.json')) continue;
+  const i18nFiles = listToolFiles(toolId)
+    .filter((f) => f.startsWith('i18n/') && f.endsWith('.json'))
+    .map((f) => f.slice('i18n/'.length));
+  for (const file of i18nFiles) {
     const lang = file.replace(/\.json$/, '');
     if (!SIDECAR_LANGS.has(lang as any)) {
       errors.push(`[${toolId}] i18n/${file}: "${lang}" is not a supported language (${[...SIDECAR_LANGS].join(', ')})`);
       continue;
     }
-    const overlay = readJsonOptional(`tools/${toolId}/i18n/${file}`);
-    if (!overlay) continue; // readJsonOptional already recorded a parse error
+    let overlay: any;
+    try {
+      overlay = JSON.parse(readFileSync(toolFile(toolId, `i18n/${file}`)!, 'utf8'));
+    } catch (e) {
+      errors.push(`[${toolId}] i18n/${file}: not valid JSON: ${(e as Error).message}`);
+      continue;
+    }
     if (typeof overlay !== 'object' || Array.isArray(overlay)) {
       errors.push(`[${toolId}] i18n/${file} must be a flat JSON object`);
       continue;
@@ -1355,7 +1359,7 @@ for (const asset of assetsIndex.assets) {
   const formatLists = [asset.formats, ...Object.values(asset.locales ?? {})];
   for (const formats of formatLists) {
     for (const fmt of formats ?? []) {
-      const absPath = join(ROOT, fmt.url.replace(/^\//, ''));
+      const absPath = catalogUrlPath(fmt.url);
       if (!existsSync(absPath)) {
         errors.push(`[asset ${asset.id}] format "${fmt.format}" url "${fmt.url}" does not exist on disk`);
         continue;
@@ -1527,7 +1531,7 @@ if (assetsIndex.defaultHiddenTools !== undefined) {
 // The rules live in scripts/lib/template-refs.ts so tests can drive them.
 for (const message of defaultHiddenTemplateErrors(assetsIndex.defaultHiddenTemplates, {
   hasTool: (toolId) => seenToolIds.has(toolId),
-  hasTemplateFile: (toolId, tid) => existsSync(join(ROOT, `tools/${toolId}/templates/${tid}.json`)),
+  hasTemplateFile: (toolId, tid) => !!toolFile(toolId, `templates/${tid}.json`),
 })) {
   errors.push(`assets/index.json: ${message}`);
 }
@@ -1565,7 +1569,7 @@ for (const head of tokensAssets) {
   const url: string | undefined = head.formats?.[0]?.url;
   if (!url) continue;
   try {
-    const doc: unknown = JSON.parse(readFileSync(join(ROOT, url.replace(/^\//, '')), 'utf8'));
+    const doc: unknown = JSON.parse(readFileSync(catalogUrlPath(url), 'utf8'));
     for (const entry of readVersionIndex(doc).versions) ledgerVersionSlugs.add(entry.slug);
   } catch { /* an unreadable/absent tokens file is already an error elsewhere */ }
 }
@@ -1843,6 +1847,21 @@ function readJson(rel: string): any {
   return JSON.parse(readFileSync(join(ROOT, rel), 'utf8'));
 }
 
+// Same as readJson, but resolved against the active profile's catalog root
+// (brands/<brand>/catalog/, community's assets have no catalog of their own)
+// instead of the repo root.
+function readCatalogJson(rel: string): any {
+  return JSON.parse(readFileSync(catalogFile(rel), 'utf8'));
+}
+
+// Map a catalog-relative HTTP URL (e.g. "/catalog/previews/x.svg" or
+// "catalog/assets/suse/x.png") to its real disk path under the active
+// profile's catalog root.
+function catalogUrlPath(url: string): string {
+  const rel = url.replace(/^\//, '');
+  return catalogFile(rel.startsWith('catalog/') ? rel.slice('catalog/'.length) : rel);
+}
+
 // Mirrors the traversal engine/src/loader.ts's applyManifestI18n uses to apply
 // a sidecar overlay - but reports WHY a key doesn't resolve instead of
 // silently skipping it (silent-skip is the right runtime behaviour; a build-time
@@ -1910,6 +1929,32 @@ function readJsonOptional(rel: string): any {
     return JSON.parse(readFileSync(p, 'utf8'));
   } catch (e) {
     errors.push(`[${rel}] not valid JSON: ${(e as Error).message}`);
+    return null;
+  }
+}
+
+// Same as readJsonOptional, but resolved against the active profile's catalog root.
+function readCatalogJsonOptional(rel: string): any {
+  const p = catalogFile(rel);
+  if (!existsSync(p)) return null;
+  try {
+    return JSON.parse(readFileSync(p, 'utf8'));
+  } catch (e) {
+    errors.push(`[catalog/${rel}] not valid JSON: ${(e as Error).message}`);
+    return null;
+  }
+}
+
+// A tool's manifest (extends stripped, overlay-composed - the same bytes a
+// consumer sees today), or null when the tool has no tool.json at all. Errors
+// (missing file, invalid JSON, unknown id) push onto `errors` exactly like
+// readJsonOptional does, so a caller can just check for null.
+function readToolManifestOptional(id: string): any {
+  if (!toolFile(id, 'tool.json')) return null;
+  try {
+    return readToolManifest(id);
+  } catch (e) {
+    errors.push(`[${id}] tool.json: ${(e as Error).message}`);
     return null;
   }
 }
