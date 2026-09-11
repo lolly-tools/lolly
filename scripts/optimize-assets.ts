@@ -18,13 +18,12 @@
  *   pnpm run optimize:assets && pnpm run build:catalog && pnpm run validate:catalog
  */
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
-import { resolve, dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { optimize, type Config } from 'svgo';
 import { isThemableIconSvg } from '../engine/src/icon-theme.ts';
+import { catalogFile } from '../packages/node-shell/src/content-roots.ts';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const DIR = join(ROOT, 'catalog', 'assets');
+const DIR = catalogFile('assets');
 
 const CONFIG: Config = {
   multipass: true,

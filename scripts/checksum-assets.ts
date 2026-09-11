@@ -28,17 +28,19 @@
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 // The ingest path's bounded bit-depth header sniff, reused verbatim so a catalog
 // label and a user upload can never disagree about the same bytes. The module is
 // DOM-free at import time (its DOM work lives inside sampleImageFile), and
 // scripts already import across this boundary - validate-catalog.ts pulls in
 // shells/web/src/palette.ts, tests/fuzz/targets.ts fuzzes this very function.
 import { depthHint } from '../shells/web/src/lib/image-sample.ts';
+import { catalogFile } from '../packages/node-shell/src/content-roots.ts';
+import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const INDEX_PATH = join(ROOT, 'catalog/assets/index.json');
+const ROOT = repoRoot();
+const INDEX_PATH = catalogFile('assets/index.json');
 
 // Asset id → the date its primary file was first added (YYYY-MM-DD), minted by
 // scripts/gen-asset-added-dates.ts from the packs' git history and COMMITTED -
@@ -72,9 +74,12 @@ interface AssetIndex {
   assets: Asset[];
 }
 
-/** Repo-root-relative path for a catalog URL like "/catalog/assets/...". */
+/** Resolved disk path for a catalog URL like "/catalog/assets/...", inside the
+ *  active profile's catalog root (plan 244: no more repo-root tools/+catalog/
+ *  views, so this maps the URL namespace onto catalogFile instead of ROOT). */
 export function localPathForUrl(url: string): string {
-  return join(ROOT, url.replace(/^\//, ''));
+  const rel = url.replace(/^\//, '').replace(/^catalog\//, '');
+  return catalogFile(rel);
 }
 
 /** SRI SHA-256 for a file's bytes, or null if the file is missing. The bytes come

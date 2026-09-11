@@ -4,11 +4,12 @@
 import { spawnSync } from 'node:child_process';
 import { createHash, createPrivateKey, createPublicKey } from 'node:crypto';
 import type { Dirent } from 'node:fs';
-import { existsSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadInventory, validateCoverage } from './audit-all.ts';
 import { SHARDS, shardInventory } from './run-test-suite.ts';
+import { contentRoots } from '../packages/node-shell/src/content-roots.ts';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 type State = 'PASS' | 'WARN' | 'FAIL';
@@ -118,15 +119,7 @@ export function signingState(
 
 function activeProfile(): string | null {
   try {
-    const actual = realpathSync(path.join(REPO, 'catalog'));
-    const profiles = JSON.parse(readFileSync(path.join(REPO, 'profiles.json'), 'utf8')) as {
-      profiles: Record<string, { catalog: string }>;
-    };
-    return (
-      Object.entries(profiles.profiles).find(
-        ([, profile]) => realpathSync(path.join(REPO, profile.catalog)) === actual
-      )?.[0] ?? null
-    );
+    return contentRoots().profile;
   } catch {
     return null;
   }

@@ -72,6 +72,7 @@ import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { contentRoots, catalogFile } from '../packages/node-shell/src/content-roots.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -451,8 +452,16 @@ async function main(): Promise<void> {
   const profiles = JSON.parse(readFileSync(join(ROOT, 'profiles.json'), 'utf8')) as
     { profiles: Record<string, { catalog: string }> };
   const catalogRel = catalogDirForBrand(args.brand, profiles);
-  const indexPath = join(ROOT, catalogRel, 'assets/index.json');
-  if (!existsSync(indexPath)) fail(`${catalogRel}/assets/index.json not found - is the "${args.brand}" pack mounted? (git submodule update --init)`);
+  // Resolve through the content-root resolver (--brand names a profile, exactly
+  // what contentRoots({ profile }) exists for) rather than hand-joining ROOT +
+  // catalogRel - the resolver also gives the "pack not mounted" message for free.
+  let roots: ReturnType<typeof contentRoots>;
+  try {
+    roots = contentRoots({ profile: args.brand });
+  } catch (e) {
+    fail(e instanceof Error ? e.message : String(e));
+  }
+  const indexPath = catalogFile('assets/index.json', roots);
   const index = JSON.parse(readFileSync(indexPath, 'utf8')) as { assets: AssetEntry[]; generatedAt?: string };
   const existingIds = new Set(index.assets.map(a => a.id));
 
@@ -498,7 +507,7 @@ async function main(): Promise<void> {
       + 'silently drops the unlicensed files is how an unlicensed asset gets shipped later by hand.');
   }
   for (const p of ok) {
-    const dest = join(ROOT, catalogRel, p.destRel!.replace(/^catalog\//, ''));
+    const dest = catalogFile(p.destRel!.replace(/^catalog\//, ''), roots);
     mkdirSync(dirname(dest), { recursive: true });
     copyFileSync(p.src, dest);
     index.assets.push(p.entry!);

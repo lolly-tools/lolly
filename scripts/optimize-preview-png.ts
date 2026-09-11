@@ -22,12 +22,11 @@
  */
 
 import { readdirSync, writeFileSync, statSync } from 'node:fs';
-import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import sharp from 'sharp';
+import { catalogFile } from '../packages/node-shell/src/content-roots.ts';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const PREVIEWS_DIR = join(ROOT, 'catalog/previews');
+const PREVIEWS_DIR = catalogFile('previews');
 
 // Retina-safe cap: featured/grid previews display at up to ~600 CSS px, so 1280 covers 2×.
 const MAX_DIM = 1280;

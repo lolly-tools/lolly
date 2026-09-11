@@ -20,13 +20,12 @@
  */
 
 import { readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
-import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import sharp from 'sharp';
 import { stampBitmap } from './lib/stamp-media.ts';
+import { catalogFile } from '../packages/node-shell/src/content-roots.ts';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const PREVIEWS_DIR = join(ROOT, 'catalog/previews');
+const PREVIEWS_DIR = catalogFile('previews');
 
 // Retina-safe cap: the featured hero shows a preview at ~400 CSS px, grid tiles smaller,
 // so 1024 covers 2× on the largest surface while keeping bytes down.
