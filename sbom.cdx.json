@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:e804f033-1d1c-4d73-8a07-6afbbac08625",
+  "serialNumber": "urn:uuid:62d885db-4cc8-4acd-8cab-48a5e8bfb729",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-11T22:26:09.396Z",
+    "timestamp": "2026-09-11T23:26:30.483Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -23600,25 +23600,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/api@2.11.0",
-      "name": "@tauri-apps/api",
-      "version": "2.11.0",
-      "purl": "pkg:npm/%40tauri-apps/api@2.11.0",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "Apache-2.0 OR MIT"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "ec28a760e0e1932f6598edb7c479d416fd17b78ddf6ed58ccb165c2dc44194591c8172ae122ac1bc7a66b49f3d60c87278672adb45ae738ec56b85e3ca78b2c0"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/%40tauri-apps/api@2.11.1",
       "name": "@tauri-apps/api",
       "version": "2.11.1",
@@ -23638,45 +23619,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/cli@2.11.2",
+      "bom-ref": "pkg:npm/%40tauri-apps/cli@2.11.4",
       "name": "@tauri-apps/cli",
-      "version": "2.11.2",
-      "purl": "pkg:npm/%40tauri-apps/cli@2.11.2",
+      "version": "2.11.4",
+      "purl": "pkg:npm/%40tauri-apps/cli@2.11.4",
       "scope": "excluded",
-      "licenses": [
-        {
-          "expression": "Apache-2.0 OR MIT"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "6e4dc77a6aaf191a32fb90ff75531440728c60b8250f48d59cc9bfd2218c1fab9f67ea7caf5e26e81a488b1c228f73c1bd976f391529d5889f4c3f10c5567537"
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/cli@2.11.3",
-      "name": "@tauri-apps/cli",
-      "version": "2.11.3",
-      "purl": "pkg:npm/%40tauri-apps/cli@2.11.3",
-      "scope": "excluded",
-      "licenses": [
-        {
-          "expression": "Apache-2.0 OR MIT"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "1049507bccfcb83ecf8b9fbeb49fd47c4c16b8ad3caddde808361d7886c901bea9651af196a9a8179821e47e58bf39943e14b821109a2d2b1086f5a4adf2be19"
+          "content": "47cc46b4ca70c9eb5ac12aa6f6460eb8c984aa48546ef714cbc9f468d5c8c689652812c4494bb97f8171fbae218004989b51fe8d25aaea3096eb3a939c7ea1a9"
         }
       ],
       "properties": [
@@ -23707,20 +23658,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/plugin-fs@2.5.1",
+      "bom-ref": "pkg:npm/%40tauri-apps/plugin-fs@2.5.2",
       "name": "@tauri-apps/plugin-fs",
-      "version": "2.5.1",
-      "purl": "pkg:npm/%40tauri-apps/plugin-fs@2.5.1",
+      "version": "2.5.2",
+      "purl": "pkg:npm/%40tauri-apps/plugin-fs@2.5.2",
       "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "f4bcfe268a69e90c9e116865a64331e11ffe3fd1e047e015008e2f3998654fc5daca6b73f22548fcebfdf38fd74ea809cffe60cf936b7ada8f07f5c4312dcd85"
+          "content": "5d7bcc4a7162a1bf86d47f981c20dff9bcd656e9ac790b84221ce96ce2737af51f2f893453eb13029656247a682e26a68209d53c99b9749e6c0ec9e24725b196"
         }
       ]
     },
