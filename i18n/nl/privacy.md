@@ -123,11 +123,10 @@ andere claim op deze pagina, met de exacte commando's en verwachte uitvoer, vind
 
 ## Hot-linked render-URL's
 
-> **Momenteel uitgeschakeld op lolly.tools.** Elke
-> `https://lolly.tools/tool/<tool-id>.<ext>`-URL geeft vandaag 404 terug. De sectie
-> hieronder beschrijft wat de functie doet wanneer een operator deze inschakelt, en waarom
-> wij dat niet hebben gedaan. Hij wordt hier ingeschakeld zodra de dienst verhuist naar door SUSE beheerde
-> infrastructuur, en deze melding verandert dan mee.
+> **Live op lolly.tools.** Elke
+> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>`-URL rendert echt, en de
+> invoer reist mee in die URL. De sectie hieronder beschrijft wat dat voor jou
+> betekent, en een operator kan de functie op zijn eigen instantie uitschakelen.
 
 De app zelf blijft volledig op je apparaat. Los daarvan kan een operator **hot-link render-
 URL's** inschakelen - `/tool/<tool-id>.<ext>?<inputs>` - zodat een gedeelde Lolly-
@@ -142,8 +141,8 @@ die in de URL staat geschreven.
   requestregel, dus die verschijnt in de gewone toegangslogs van het hostingplatform, op
   dezelfde manier als elk opgevraagd pad. Als de invoer van een link iemands naam of e-mail
   bevat - een naamplaatje, een e-mailhandtekening - **staat die tekst in die logs**, en
-  geen enkele beleidstekst verandert daar iets aan. Dit is precies de reden waarom de functie
-  hier uit staat in plaats van aan.
+  geen enkele beleidstekst verandert daar iets aan. Een hot-link-URL is dus de verkeerde plek
+  voor persoonlijke gegevens: geef er alleen in wat je ook op een publieke pagina zou zetten.
 - <!--i:globe--> **De invoer is sowieso openbaar door constructie** - het is wat de auteur van de
   link ook in de URL heeft getypt, leesbaar voor iedereen die de link bereikt. Zet geen
   geheimen in een gedeelde link. Lolly biedt linkversleuteling voor gevoelige content.
@@ -151,7 +150,7 @@ die in de URL staat geschreven.
   als `noindex` zodat zoekmachines je renders niet indexeren.
 
 Self-hostend Lolly en wil je geen publiek render-oppervlak? Stel
-`LOLLY_DISABLE_RENDER_GET=1` in - wat lolly.tools zelf momenteel doet - en
+`LOLLY_DISABLE_RENDER_GET=1` in en
 al deze URL's geven 404 terug.
 
 ## De MCP-server (optioneel, voor AI-agents)

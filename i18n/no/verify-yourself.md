@@ -39,14 +39,14 @@ De ærlige unntakene - alle er opt-in, brukerinitiert og synlige i samme Network
 
 ## Fra en terminal
 
-**6. Rendringsendepunktet er slått av på lolly.tools.** Den ene serverfunksjonen som ville lagt brukerinntastede data inn i en URL - hot-link-rendringer - er deaktivert her inntil tjenesten flyttes til organisasjonseid hosting ([personvernerklæringen](/info/privacy.html) forklarer hvorfor):
+**6. Rendringsendepunktet svarer bare med offentlige data.** Den ene serverfunksjonen som legger brukerinntastede data inn i en URL - hot-link-rendringer - er aktiv her, og [personvernerklæringen](/info/privacy.html) forklarer hva det betyr for inndataene du legger i en lenke:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-Bryteren er per utrulling (`LOLLY_DISABLE_RENDER_GET=1`): på en instans som lar den stå usatt, er hot-link-rendringer aktive, så den samme testen der returnerer et bilde - denne forskjellen er flagget som virker, ikke en inkonsistens.
+Bryteren er per utrulling (`LOLLY_DISABLE_RENDER_GET=1`): på en instans som setter den, returnerer den samme testen `404` - denne forskjellen er flagget som virker, ikke en inkonsistens.
 
 **7. Serveroverflaten kan telles opp.** [Server Surface](/info/server-surface.html) lister hver serverside-rute som finnes, med den faste regelen at et endepunkt som ikke står på den siden, ikke er en del av Lolly. `curl` dem; det finnes ikke noe annet å finne.
 

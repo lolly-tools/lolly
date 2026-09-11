@@ -134,12 +134,11 @@ inaasahang output, ay nasa
 
 ## Hot-linked na render URL
 
-> **Kasalukuyang naka-off sa lolly.tools.** Bawat
-> `https://lolly.tools/tool/<tool-id>.<ext>` URL ay nagbabalik ng 404 sa ngayon.
-> Inilalarawan ng seksyon sa ibaba kung ano ang ginagawa ng feature kapag
-> pinagana ito ng isang operator, at kung bakit hindi pa namin ito ginagawa.
-> Ma-o-on ito rito kapag lumipat na ang serbisyo sa infrastructure na
-> pinapatakbo ng SUSE, at magbabago ang abisong ito kapag nangyari na iyon.
+> **Live sa lolly.tools.** Bawat
+> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` URL ay talagang
+> nagre-render, at kasama ang mga input sa URL na iyon. Ipinapaliwanag ng
+> seksyon sa ibaba kung ano ang ibig sabihin nito para sa iyo, at puwedeng
+> i-off ng isang operator ang feature na ito sa sarili nilang instance.
 
 Ang app mismo ay nananatiling buong-buo sa iyong device. Hiwalay dito, puwedeng
 paganahin ng isang operator ang **hot-link render URL** - `/tool/<tool-id>.<ext>?<inputs>`
@@ -155,8 +154,8 @@ nakasulat sa URL.
   line, kaya lumalabas ito sa ordinaryong access log ng hosting platform sa parehong paraan gaya ng
   bawat hiniling na path. Kung ang mga input ng isang link ay naglalaman ng pangalan o email ng isang tao -
   isang name badge, isang email signature - **nananatili ang tekstong iyon sa mga log na iyon**, at wala
-  kahit anong salita ng patakaran ang makakapagbago nito. Ito mismo ang dahilan kung bakit naka-off
-  ang feature na ito rito sa halip na naka-on.
+  kahit anong salita ng patakaran ang makakapagbago nito. Kaya mali ang hot-link URL na
+  paglagyan ng personal na detalye: ilagay lang dito ang ilalagay mo sa isang pampublikong pahina.
 - <!--i:globe--> **Pampubliko na ang mga input sa likas nitong pagkakabuo** kahit papaano - anuman ang
   itinype ng may-akda ng link sa URL, mababasa ng sinumang mararating ng link. Huwag maglagay ng
   mga sekreto sa isang shared link. Nag-aalok ang Lolly ng link encryption para sa sensitibong content.
@@ -164,7 +163,7 @@ nakasulat sa URL.
   `noindex` para hindi i-index ng mga search engine ang mga render mo.
 
 Nag-self-host ng Lolly at ayaw ng pampublikong render surface? I-set ang
-`LOLLY_DISABLE_RENDER_GET=1` - ang ginagawa mismo ngayon ng lolly.tools - at ang
+`LOLLY_DISABLE_RENDER_GET=1`, at ang
 bawat isa sa mga URL na ito ay magbabalik ng 404.
 
 ## Ang MCP server (opsyonal, para sa mga AI agent)

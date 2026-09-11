@@ -39,14 +39,14 @@ De eerlijke uitzonderingen - elk opt-in, door de gebruiker geïnitieerd en zicht
 
 ## Vanuit een terminal
 
-**6. Het render-endpoint staat uit op lolly.tools.** De ene serverfunctie die door de gebruiker getypte invoer in een URL zou zetten - hotlink-renders - is hier uitgeschakeld totdat de service verhuist naar hosting van de eigen organisatie (het [privacybeleid](/info/privacy.html) legt uit waarom):
+**6. Het render-endpoint antwoordt alleen met publieke data.** De ene serverfunctie die door de gebruiker getypte invoer in een URL zet - hotlink-renders - is hier live, en het [privacybeleid](/info/privacy.html) legt uit wat dat betekent voor de invoer die je in een link zet:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-De schakelaar geldt per implementatie (`LOLLY_DISABLE_RENDER_GET=1`): op een instantie die dit ongezet laat, staan hotlink-renders aan, dus dezelfde test daar levert een afbeelding op - dat verschil is de vlag die werkt, geen inconsistentie.
+De schakelaar geldt per implementatie (`LOLLY_DISABLE_RENDER_GET=1`): op een instantie die dit instelt, levert dezelfde test `404` op - dat verschil is de vlag die werkt, geen inconsistentie.
 
 **7. Het serveroppervlak is opsombaar.** [Server Surface](/info/server-surface.html) somt elke serverzijdige route op die bestaat, met de vaste regel dat een endpoint dat niet op die pagina staat geen deel uitmaakt van Lolly. `curl` ze; er valt verder niets te vinden.
 

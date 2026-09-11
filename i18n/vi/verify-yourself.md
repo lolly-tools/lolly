@@ -39,14 +39,14 @@ Những ngoại lệ trung thực - mỗi ngoại lệ đều là tùy chọn th
 
 ## Từ một terminal
 
-**6. Điểm cuối kết xuất bị tắt trên lolly.tools.** Tính năng duy nhất của máy chủ có thể đưa dữ liệu người dùng gõ vào một URL - kết xuất qua liên kết trực tiếp (hot-link) - bị vô hiệu hóa ở đây cho đến khi dịch vụ chuyển sang lưu trữ do tổ chức sở hữu ([chính sách quyền riêng tư](/info/privacy.html) giải thích lý do):
+**6. Điểm cuối kết xuất chỉ trả về dữ liệu công khai.** Tính năng duy nhất của máy chủ có thể đưa dữ liệu người dùng gõ vào một URL - kết xuất qua liên kết trực tiếp (hot-link) - đang hoạt động ở đây, và [chính sách quyền riêng tư](/info/privacy.html) giải thích điều đó có ý nghĩa gì với những dữ liệu bạn đưa vào một liên kết:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-Công tắc này áp dụng theo từng lần triển khai (`LOLLY_DISABLE_RENDER_GET=1`): trên một instance không đặt biến này, kết xuất qua liên kết trực tiếp vẫn hoạt động, nên cùng một phép thử ở đó trả về một hình ảnh - sự khác biệt này là do cờ đang hoạt động đúng, không phải là sự thiếu nhất quán.
+Công tắc này áp dụng theo từng lần triển khai (`LOLLY_DISABLE_RENDER_GET=1`): trên một instance có đặt biến này, cùng một phép thử đó trả về `404` - sự khác biệt này là do cờ đang hoạt động đúng, không phải là sự thiếu nhất quán.
 
 **7. Bề mặt máy chủ có thể liệt kê được.** [Server Surface](/info/server-surface.html) liệt kê mọi tuyến phía máy chủ đang tồn tại, với quy tắc cố định là một điểm cuối không có trên trang đó thì không thuộc về Lolly. Hãy `curl` chúng; không còn gì khác để tìm thấy.
 

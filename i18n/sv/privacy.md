@@ -132,11 +132,11 @@ annat påstående på den här sidan, med exakta kommandon och förväntad utdat
 
 ## Direktlänkade render-URL:er
 
-> **För närvarande avstängt på lolly.tools.** Varje
-> `https://lolly.tools/tool/<tool-id>.<ext>`-URL returnerar 404 i dag. Avsnittet
-> nedan beskriver vad funktionen gör när en operatör aktiverar den, och varför vi
-> inte har gjort det. Den slås på här så snart tjänsten flyttar till SUSE-driven
-> infrastruktur, och den här notisen ändras då.
+> **Aktiv på lolly.tools.** Varje
+> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>`-URL renderas på riktigt,
+> och indata följer med i den URL:en. Avsnittet nedan förklarar vad det
+> betyder för dig, och en operatör kan stänga av funktionen på sin egen
+> instans.
 
 Appen i sig stannar helt på din enhet. Separat kan en operatör aktivera
 **direktlänkade render-URL:er** - `/tool/<tool-id>.<ext>?<inputs>` - så att en delad Lolly-
@@ -151,8 +151,8 @@ skrivna i URL:en.
   förfrågningsraden, så den hamnar i värdplattformens vanliga åtkomstloggar på samma sätt
   som varje begärd sökväg gör. Om en länks indata innehåller någons namn eller e-post -
   en namnbricka, en e-postsignatur - **finns den texten i de loggarna**, och ingen
-  mängd policytext ändrar på det. Det är det specifika skälet till att funktionen är
-  avstängd här snarare än påslagen.
+  mängd policytext ändrar på det. Därför är en hotlink-URL fel plats för
+  personuppgifter: lägg bara in det du skulle lägga på en offentlig sida.
 - <!--i:globe--> **Indata är offentliga av konstruktion** i vilket fall - de är vad som helst
   länkens upphovsperson skrev in i URL:en, läsbart för alla länken når. Lägg inte
   hemligheter i en delad länk. Lolly erbjuder länkkryptering för känsligt innehåll.
@@ -160,7 +160,7 @@ skrivna i URL:en.
   `noindex` så att sökmotorer inte indexerar dina renderingar.
 
 Självhostar du Lolly och vill inte ha en publik renderingsyta? Sätt
-`LOLLY_DISABLE_RENDER_GET=1` - vilket lolly.tools själv gör för närvarande - så
+`LOLLY_DISABLE_RENDER_GET=1`, så
 returnerar var och en av de här URL:erna 404.
 
 ## MCP-servern (valfri, för AI-agenter)

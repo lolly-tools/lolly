@@ -39,14 +39,14 @@ The honest exceptions - every one opt-in, user-initiated and visible in the same
 
 ## From a terminal
 
-**6. The render endpoint is off on lolly.tools.** The one server feature that would put user-typed inputs into a URL - hot-link renders - is disabled here until the service moves to organisation-owned hosting (the [privacy policy](/info/privacy.html) explains why):
+**6. The render endpoint answers with public data only.** The one server feature that puts user-typed inputs into a URL - hot-link renders - is live here, and the [privacy policy](/info/privacy.html) says what that means for the inputs you put in a link:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-The switch is per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): on an instance that leaves it unset, hot-link renders are live, so the same probe there returns an image - that difference is the flag working, not an inconsistency.
+The switch is per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): on an instance that sets it, the same probe returns `404` - that difference is the flag working, not an inconsistency.
 
 **7. The server surface is enumerable.** [Server Surface](/info/server-surface.html) lists every server-side route that exists, with the standing rule that an endpoint not on that page is not part of Lolly. `curl` them; there's nothing else to find.
 

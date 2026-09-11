@@ -134,11 +134,11 @@ lain dakwaan lain pada halaman ini, berserta arahan tepat dan output yang dijang
 
 ## URL render pautan-terus (hot-linked)
 
-> **Kini dimatikan pada lolly.tools.** Setiap
-> URL `https://lolly.tools/tool/<tool-id>.<ext>` memulangkan 404 pada hari ini. Bahagian
-> di bawah menerangkan apa yang dilakukan oleh ciri ini apabila pengendali mengaktifkannya, dan sebab kami
-> tidak berbuat demikian. Ia akan diaktifkan di sini sebaik sahaja perkhidmatan berpindah ke
-> infrastruktur yang dikendalikan SUSE, dan notis ini akan berubah apabila ia berlaku.
+> **Kini aktif pada lolly.tools.** Setiap
+> URL `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` benar-benar dirender,
+> dan input-input itu turut serta dalam URL tersebut. Bahagian di bawah
+> menerangkan apa maknanya ini kepada anda, dan pengendali boleh mematikan
+> ciri ini pada instans mereka sendiri.
 
 Aplikasi itu sendiri kekal sepenuhnya pada peranti anda. Secara berasingan, pengendali boleh mengaktifkan
 **URL render pautan-terus** - `/tool/<tool-id>.<ext>?<inputs>` - supaya pautan Lolly
@@ -153,8 +153,8 @@ dengan input yang ditulis ke dalam URL.
   daripada baris permintaan, jadi ia muncul dalam log akses biasa milik platform hosting sama
   seperti setiap laluan yang diminta. Jika input sesuatu pautan mengandungi nama atau e-mel
   seseorang - lencana nama, tandatangan e-mel - maka **teks itu kekal dalam log
-  tersebut**, dan tiada susunan kata dasar yang mengubahnya. Inilah sebab khusus mengapa ciri
-  ini dimatikan di sini dan bukannya dihidupkan.
+  tersebut**, dan tiada susunan kata dasar yang mengubahnya. Jadi URL pautan-terus adalah
+  tempat yang salah untuk butiran peribadi: berikan hanya apa yang anda akan letakkan pada halaman awam.
 - <!--i:globe--> **Input-input itu memang bersifat awam secara struktur** - apa sahaja kandungannya, penulis
   pautan itulah yang menaipnya ke dalam URL, dan sesiapa sahaja yang mencapai pautan itu
   boleh membacanya. Jangan letakkan rahsia dalam pautan yang dikongsi. Lolly menawarkan
@@ -163,7 +163,7 @@ dengan input yang ditulis ke dalam URL.
   ditandakan `noindex` supaya enjin carian tidak mengindeks render anda.
 
 Menghoskan Lolly sendiri dan tidak mahu permukaan render awam? Tetapkan
-`LOLLY_DISABLE_RENDER_GET=1` - iaitu apa yang dilakukan oleh lolly.tools sendiri pada masa ini - dan setiap
+`LOLLY_DISABLE_RENDER_GET=1` dan setiap
 satu daripada URL ini akan memulangkan 404.
 
 ## Pelayan MCP (pilihan, untuk ejen AI)

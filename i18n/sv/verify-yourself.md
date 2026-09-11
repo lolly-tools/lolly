@@ -39,14 +39,14 @@ De ärliga undantagen - vart och ett opt-in, användarinitierat och synligt i sa
 
 ## Från en terminal
 
-**6. Renderingsändpunkten är avstängd på lolly.tools.** Den enda serverfunktion som skulle lägga användarinskrivna indata i en URL - hotlink-renderingar - är avaktiverad här tills tjänsten flyttar till organisationsägd hosting ([integritetspolicyn](/info/privacy.html) förklarar varför):
+**6. Renderingsändpunkten svarar bara med publik data.** Den enda serverfunktion som lägger användarinskrivna indata i en URL - hotlink-renderingar - är aktiv här, och [integritetspolicyn](/info/privacy.html) förklarar vad det betyder för de indata du lägger i en länk:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-Brytaren är per driftsättning (`LOLLY_DISABLE_RENDER_GET=1`): på en instans som lämnar den osatt, är hotlink-renderingar aktiva, så samma test där returnerar en bild - den skillnaden är flaggan som fungerar, inte en inkonsekvens.
+Brytaren är per driftsättning (`LOLLY_DISABLE_RENDER_GET=1`): på en instans som sätter den, returnerar samma test `404` - den skillnaden är flaggan som fungerar, inte en inkonsekvens.
 
 **7. Serverytan går att räkna upp.** [Server Surface](/info/server-surface.html) listar varje serversidig rutt som finns, med den stående regeln att en endpoint som inte står på den sidan inte är en del av Lolly. `curl`:a dem; det finns inget annat att hitta.
 

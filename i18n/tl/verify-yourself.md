@@ -39,14 +39,14 @@ Ang mga tapat na eksepsiyon - bawat isa ay opt-in, sinimulan ng user, at nakikit
 
 ## Mula sa terminal
 
-**6. Naka-off ang render endpoint sa lolly.tools.** Ang tanging server feature na maglalagay ng mga input na itina-type ng user sa isang URL - hot-link renders - ay naka-disable dito hangga't hindi lumilipat ang serbisyo sa hosting na pag-aari ng organisasyon (ipinapaliwanag ng [privacy policy](/info/privacy.html) kung bakit):
+**6. Sumasagot lang ang render endpoint gamit ang pampublikong data.** Ang tanging server feature na naglalagay ng mga input na itina-type ng user sa isang URL - hot-link renders - ay live dito, at ipinapaliwanag ng [privacy policy](/info/privacy.html) kung ano ang ibig sabihin nito para sa mga input na inilalagay mo sa isang link:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-Per-deployment ang switch (`LOLLY_DISABLE_RENDER_GET=1`): sa isang instance na hindi ito isinasaad, live ang hot-link renders, kaya nagbabalik ng imahe ang parehong probe doon - ang pagkakaibang iyon ay ang flag na gumagana, hindi isang hindi pagkakapare-pareho.
+Per-deployment ang switch (`LOLLY_DISABLE_RENDER_GET=1`): sa isang instance na naka-set ito, nagbabalik ng `404` ang parehong probe - ang pagkakaibang iyon ay ang flag na gumagana, hindi isang hindi pagkakapare-pareho.
 
 **7. Mabibilang ang server surface.** Nakalista sa [Server Surface](/info/server-surface.html) ang bawat server-side route na umiiral, kasama ang standing rule na ang endpoint na wala sa pahinang iyon ay hindi bahagi ng Lolly. I-`curl` ang mga ito; wala nang iba pang matutuklasan.
 

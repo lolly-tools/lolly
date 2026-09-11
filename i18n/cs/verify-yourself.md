@@ -39,14 +39,14 @@ Poctivé výjimky - každá je opt-in, spouští ji uživatel a je vidět ve ste
 
 ## Z terminálu
 
-**6. Vykreslovací endpoint je na lolly.tools vypnutý.** Jediná serverová funkce, která by vkládala uživatelem zadané vstupy do URL - vykreslování přes hot-link - je zde zakázaná, dokud se služba nepřesune na hosting vlastněný organizací (proč, vysvětlují [zásady ochrany osobních údajů](/info/privacy.html)):
+**6. Vykreslovací endpoint odpovídá jen veřejnými daty.** Jediná serverová funkce, která vkládá uživatelem zadané vstupy do URL - vykreslování přes hot-link - je tady naostro, a [zásady ochrany osobních údajů](/info/privacy.html) vysvětlují, co to znamená pro vstupy, které vložíš do odkazu:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-Přepínač je nastaven na úrovni jednotlivého nasazení (`LOLLY_DISABLE_RENDER_GET=1`): na instanci, která tuto proměnnou ponechá nenastavenou, je vykreslování přes hot-link zapnuté, takže tam stejná zkouška vrátí obrázek - ten rozdíl je funkčnost přepínače, ne nekonzistence.
+Přepínač je nastaven na úrovni jednotlivého nasazení (`LOLLY_DISABLE_RENDER_GET=1`): na instanci, která tuto proměnnou nastaví, stejná zkouška vrátí `404` - ten rozdíl je funkčnost přepínače, ne nekonzistence.
 
 **7. Serverová plocha je vyčíslitelná.** [Server Surface](/info/server-surface.html) vypisuje každou existující serverovou trasu s trvalým pravidlem, že endpoint, který na této stránce není, není součástí Lolly. Vyzkoušej si je přes `curl`; nic dalšího tam nenajdeš.
 

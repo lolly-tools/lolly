@@ -120,11 +120,10 @@ andere Behauptung auf dieser Seite, mit den genauen Befehlen und erwarteten Ausg
 
 ## Hot-verlinkte Render-URLs
 
-> **Derzeit auf lolly.tools abgeschaltet.** Jede
-> `https://lolly.tools/tool/<tool-id>.<ext>`-URL liefert heute 404. Der Abschnitt
-> unten beschreibt, was die Funktion tut, wenn ein Betreiber sie aktiviert, und warum wir
-> es nicht getan haben. Sie wird hier eingeschaltet, sobald der Dienst auf SUSE-betriebene
-> Infrastruktur umzieht, und dieser Hinweis wird sich dann ändern.
+> **Live auf lolly.tools.** Jede
+> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>`-URL wird tatsächlich gerendert, und die Eingaben
+> reisen in dieser URL mit. Der Abschnitt unten erklärt, was das für Sie bedeutet, und
+> ein Betreiber kann die Funktion auf seiner eigenen Instanz abschalten.
 
 Die App selbst bleibt vollständig auf Ihrem Gerät. Separat kann ein Betreiber
 **Hot-Link-Render-URLs** aktivieren - `/tool/<tool-id>.<ext>?<inputs>` -, sodass ein
@@ -139,8 +138,8 @@ die URL geschriebenen Eingaben zu rendern.
   daher erscheint er in den gewöhnlichen Zugriffsprotokollen der Hosting-Plattform, genauso
   wie jeder angeforderte Pfad. Enthalten die Eingaben eines Links den Namen oder die E-Mail-Adresse jemandes -
   ein Namensschild, eine E-Mail-Signatur - **steht dieser Text in diesen Protokollen**, und keine
-  noch so sorgfältige Formulierung einer Richtlinie ändert das. Das ist der konkrete Grund, warum die Funktion
-  hier standardmäßig aus statt an ist.
+  noch so sorgfältige Formulierung einer Richtlinie ändert das. Eine Hot-Link-URL ist deshalb der falsche Ort für persönliche Angaben: geben Sie ihr nur,
+  was Sie auch auf eine öffentliche Seite stellen würden.
 - <!--i:globe--> **Die Eingaben sind ohnehin von Natur aus öffentlich** - sie sind das, was die Autorin oder der Autor
   des Links in die URL getippt hat, lesbar für jeden, den der Link erreicht. Geben Sie keine
   Geheimnisse in einen geteilten Link. Lolly bietet Link-Verschlüsselung für sensible Inhalte an.
@@ -148,7 +147,7 @@ die URL geschriebenen Eingaben zu rendern.
   `noindex` markiert, damit Suchmaschinen Ihre Renderings nicht indexieren.
 
 Hosten Sie Lolly selbst und möchten keine öffentliche Render-Oberfläche? Setzen Sie
-`LOLLY_DISABLE_RENDER_GET=1` - was lolly.tools derzeit selbst tut -, und jede
+`LOLLY_DISABLE_RENDER_GET=1`, und jede
 dieser URLs liefert 404.
 
 ## Der MCP-Server (optional, für KI-Agenten)

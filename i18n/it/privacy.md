@@ -133,11 +133,11 @@ altra affermazione in questa pagina, con i comandi esatti e l'output atteso, si 
 
 ## URL di rendering incorporabili
 
-> **Attualmente disattivato su lolly.tools.** Ogni
-> URL `https://lolly.tools/tool/<tool-id>.<ext>` restituisce oggi 404. La sezione
-> sottostante descrive cosa fa la funzionalità quando un operatore la attiva, e perché
-> non l'abbiamo fatto. Verrà attivata qui una volta che il servizio si sposterà su un'infrastruttura
-> gestita da SUSE, e questo avviso cambierà quando accadrà.
+> **Attivo su lolly.tools.** Ogni
+> URL `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` viene effettivamente
+> renderizzato, e gli input viaggiano in quello stesso URL. La sezione sottostante
+> spiega cosa significa questo per te, e un operatore può disattivare la
+> funzionalità sulla propria istanza.
 
 L'app stessa resta interamente sul tuo dispositivo. Separatamente, un operatore può abilitare
 gli **URL di rendering incorporabili** - `/tool/<tool-id>.<ext>?<inputs>` - così un
@@ -152,8 +152,8 @@ scritti nell'URL.
   richiesta, quindi compare nei normali log di accesso della piattaforma di hosting, proprio come
   qualsiasi percorso richiesto. Se gli input di un link contengono il nome o l'email di qualcuno -
   un badge nominativo, una firma email - **quel testo finisce in quei log**, e nessuna
-  formulazione della policy lo cambia. Questa è la ragione specifica per cui questa funzione è
-  disattivata qui per impostazione predefinita anziché attiva.
+  formulazione della policy lo cambia. Quindi un URL hot-link è il posto sbagliato per dati
+  personali: dagli solo ciò che metteresti su una pagina pubblica.
 - <!--i:globe--> **Gli input sono comunque pubblici per costruzione** - sono ciò che chi ha creato
   il link ha digitato nell'URL, leggibile da chiunque raggiunga il link. Non inserire
   informazioni riservate in un link condiviso. Lolly offre la cifratura dei link per i contenuti sensibili.
@@ -161,7 +161,7 @@ scritti nell'URL.
   come `noindex` così i motori di ricerca non indicizzano i tuoi render.
 
 Fai self-hosting di Lolly e non vuoi una superficie di rendering pubblica? Imposta
-`LOLLY_DISABLE_RENDER_GET=1` - come fa attualmente lolly.tools stesso - e ognuno
+`LOLLY_DISABLE_RENDER_GET=1` e ognuno
 di questi URL restituisce 404.
 
 ## Il server MCP (opzionale, per agenti AI)

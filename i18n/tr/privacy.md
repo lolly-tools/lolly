@@ -132,12 +132,11 @@ It Yourself](/info/verify-yourself.html) sayfasında bulunur.
 
 ## Doğrudan bağlantılı render URL'leri
 
-> **Şu anda lolly.tools'ta kapalı.** Bugün her
-> `https://lolly.tools/tool/<tool-id>.<ext>` URL'si 404 döndürür. Aşağıdaki
-> bölüm, bir işletmeci bu özelliği etkinleştirdiğinde ne yaptığını ve bizim
-> neden etkinleştirmediğimizi açıklar. Hizmet SUSE tarafından işletilen
-> altyapıya taşındığında burada açılacak ve bu bildirim de o zaman
-> değişecektir.
+> **lolly.tools'ta aktif.** Her
+> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` URL'si gerçekten render
+> edilir ve girdiler bu URL'nin içinde taşınır. Aşağıdaki bölüm bunun senin
+> için ne anlama geldiğini açıklar; bir işletmeci ise bu özelliği kendi
+> örneğinde kapatabilir.
 
 Uygulamanın kendisi tamamen cihazında kalır. Ayrı olarak bir işletmeci
 **doğrudan bağlantılı render URL'lerini** etkinleştirebilir -
@@ -153,8 +152,8 @@ verisini** render etmesini ister.
   bir parçasıdır, bu yüzden barındırma platformunun sıradan erişim günlüklerinde,
   istenen her yol gibi görünür. Bir bağlantının girdileri birinin adını veya
   e-postasını içeriyorsa - bir isim rozeti, bir e-posta imzası - **bu metin o
-  günlüklere işlenir**, ve hiçbir politika ifadesi bunu değiştirmez. Bu özelliğin
-  burada açık değil kapalı olmasının özel nedeni tam olarak budur.
+  günlüklere işlenir**, ve hiçbir politika ifadesi bunu değiştirmez. Bu yüzden
+  doğrudan bağlantı URL'si kişisel bilgiler için yanlış bir yerdir: ona yalnızca genel bir sayfaya koyacağın şeyi ver.
 - <!--i:globe--> **Girdiler zaten yapı gereği herkese açıktır** - bunlar bağlantının
   yazarının URL'ye yazdığı her neyse, bağlantıya ulaşan herkes tarafından okunabilir.
   Paylaşılan bir bağlantıya gizli bilgi koyma. Lolly, hassas içerik için bağlantı şifrelemesi sunar.
@@ -162,8 +161,7 @@ verisini** render etmesini ister.
   render'larını dizine eklememesi için `noindex` olarak işaretlenir.
 
 Lolly'yi kendin barındırıyorsun ve genel bir render yüzeyi istemiyor musun?
-`LOLLY_DISABLE_RENDER_GET=1` ayarını yap - lolly.tools'un kendisinin şu anda
-yaptığı da bu - ve bu URL'lerin tamamı 404 döndürür.
+`LOLLY_DISABLE_RENDER_GET=1` ayarını yap ve bu URL'lerin tamamı 404 döndürür.
 
 ## MCP sunucusu (isteğe bağlı, yapay zeka ajanları için)
 

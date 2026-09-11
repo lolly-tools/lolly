@@ -128,11 +128,11 @@ znajdziesz na stronie [Verify It Yourself](/info/verify-yourself.html).
 
 ## Bezpośrednio linkowane adresy URL renderowania
 
-> **Obecnie wyłączone na lolly.tools.** Każdy adres
-> `https://lolly.tools/tool/<tool-id>.<ext>` zwraca dziś 404. Poniższa sekcja
-> opisuje, co robi ta funkcja, gdy operator ją włączy, i dlaczego my jej nie
-> włączyliśmy. Zostanie tu włączona, gdy usługa przeniesie się na infrastrukturę
-> obsługiwaną przez SUSE, a ta informacja zostanie wtedy zaktualizowana.
+> **Aktywne na lolly.tools.** Każdy adres
+> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` renderuje się naprawdę, a
+> dane wejściowe podróżują razem z tym adresem URL. Poniższa sekcja wyjaśnia,
+> co to oznacza dla Ciebie, a operator może wyłączyć tę funkcję na swojej
+> własnej instancji.
 
 Sama aplikacja pozostaje w całości na twoim urządzeniu. Niezależnie od tego operator
 może włączyć **bezpośrednio linkowane adresy URL renderowania** - `/tool/<tool-id>.<ext>?<inputs>` -
@@ -147,8 +147,8 @@ danych narzędzia i katalogu** z parametrami wpisanymi w adres URL.
   żądania, więc pojawia się w zwykłych logach dostępu platformy hostingowej tak samo jak
   każda żądana ścieżka. Jeśli dane wejściowe linku zawierają czyjeś imię lub e-mail -
   identyfikator na plakietce, podpis w e-mailu - **ten tekst trafia do tych logów**, i żadne
-  sformułowanie polityki tego nie zmieni. To konkretny powód, dla którego ta funkcja jest
-  tutaj wyłączona, a nie włączona.
+  sformułowanie polityki tego nie zmieni. Dlatego adres hot-link to złe miejsce na dane
+  osobowe: podawaj w nim tylko to, co umieściłbyś na publicznej stronie.
 - <!--i:globe--> **Dane wejściowe są z natury publiczne** i tak - to cokolwiek autor linku
   wpisał w adres URL, czytelne dla każdego, do kogo link dotrze. Nie umieszczaj
   sekretów we współdzielonym linku. Lolly oferuje szyfrowanie linków dla wrażliwych treści.
@@ -156,7 +156,7 @@ danych narzędzia i katalogu** z parametrami wpisanymi w adres URL.
   jako `noindex`, więc wyszukiwarki nie indeksują Twoich renderów.
 
 Hostujesz Lolly samodzielnie i nie chcesz publicznej powierzchni renderowania?
-Ustaw `LOLLY_DISABLE_RENDER_GET=1` - dokładnie to, co obecnie robi samo lolly.tools -
+Ustaw `LOLLY_DISABLE_RENDER_GET=1`,
 a każdy z tych adresów URL zwróci 404.
 
 ## Serwer MCP (opcjonalny, dla agentów AI)

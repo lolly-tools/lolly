@@ -39,14 +39,14 @@ Dürüst istisnalar - her biri isteğe bağlı, kullanıcı tarafından başlat�
 
 ## Bir terminalden
 
-**6. Render uç noktası lolly.tools'ta kapalıdır.** Kullanıcının yazdığı girdileri bir URL'ye koyacak tek sunucu özelliği - doğrudan bağlantı render'ları - servis kuruluşa ait bir barındırmaya geçene kadar burada devre dışı bırakılmıştır (nedenini [gizlilik politikası](/info/privacy.html) açıklıyor):
+**6. Render uç noktası yalnızca genel verilerle yanıt verir.** Kullanıcının yazdığı girdileri bir URL'ye koyan tek sunucu özelliği - doğrudan bağlantı render'ları - burada aktiftir, ve [gizlilik politikası](/info/privacy.html) bir bağlantıya koyduğun girdiler için bunun ne anlama geldiğini açıklar:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-Bu anahtar dağıtım başınadır (`LOLLY_DISABLE_RENDER_GET=1`): bu değişkeni ayarlamadan bırakan bir örnekte doğrudan bağlantı render'ları etkindir, bu yüzden oradaki aynı sınama bir görsel döndürür - bu fark bayrağın çalıştığını gösterir, bir tutarsızlık değildir.
+Bu anahtar dağıtım başınadır (`LOLLY_DISABLE_RENDER_GET=1`): bu değişkeni ayarlayan bir örnekte aynı sınama `404` döndürür - bu fark bayrağın çalıştığını gösterir, bir tutarsızlık değildir.
 
 **7. Sunucu yüzeyi listelenebilirdir.** [Server Surface](/info/server-surface.html) var olan her sunucu tarafı rotasını listeler; yerleşik kural, o sayfada olmayan bir uç noktanın Lolly'nin parçası olmadığıdır. Onları `curl` ile dene; bulunacak başka bir şey yok.
 

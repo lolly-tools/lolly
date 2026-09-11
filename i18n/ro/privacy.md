@@ -118,11 +118,11 @@ altă afirmație de pe această pagină, cu comenzile exacte și rezultatul așt
 
 ## URL-uri de randare hot-linked
 
-> **În prezent dezactivat pe lolly.tools.** Fiecare
-> URL `https://lolly.tools/tool/<tool-id>.<ext>` returnează 404 astăzi. Secțiunea
-> de mai jos descrie ce face funcția când un operator o activează, și de ce noi
-> nu am făcut-o. Va fi activată aici odată ce serviciul se mută pe infrastructura operată
-> de SUSE, iar această notă se va schimba atunci.
+> **Activ pe lolly.tools.** Fiecare
+> URL `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` este randat cu
+> adevărat, iar intrările călătoresc în acea adresă URL. Secțiunea de mai jos
+> explică ce înseamnă asta pentru tine, iar un operator poate dezactiva
+> funcția pe propria instanță.
 
 Aplicația în sine rămâne în întregime pe dispozitivul tău. Separat, un operator poate activa
 **URL-uri de randare hot-link** - `/tool/<tool-id>.<ext>?<inputs>` - astfel încât un
@@ -137,8 +137,8 @@ scrise în URL.
   cererii, așa că apare în jurnalele obișnuite de acces ale platformei de găzduire la fel cum
   o face fiecare cale solicitată. Dacă intrările unui link conțin numele sau e-mailul cuiva -
   o ecuson cu nume, o semnătură de e-mail - **acel text ajunge în acele jurnale**, și nicio
-  formulare a politicii nu schimbă asta. Acesta este motivul specific pentru care funcția este
-  dezactivată aici, și nu activată.
+  formulare a politicii nu schimbă asta. De aceea o adresă URL hot-link este locul greșit
+  pentru date personale: pune în ea doar ce ai pune pe o pagină publică.
 - <!--i:globe--> **Intrările sunt publice prin construcție** oricum - sunt orice a
   scris autorul linkului în adresa URL, lizibil pentru oricine ajunge la link. Nu pune
   informații secrete într-un link partajat. Lolly oferă criptare pentru linkuri cu conținut sensibil.
@@ -146,7 +146,7 @@ scrise în URL.
   `noindex`, astfel încât motoarele de căutare nu îți indexează randările.
 
 Faci self-hosting la Lolly și nu vrei o suprafață publică de randare? Setează
-`LOLLY_DISABLE_RENDER_GET=1` - ceea ce face în prezent chiar lolly.tools - și fiecare
+`LOLLY_DISABLE_RENDER_GET=1`, și fiecare
 dintre aceste URL-uri returnează 404.
 
 ## Serverul MCP (opțional, pentru agenți AI)

@@ -39,14 +39,14 @@ Le eccezioni oneste - ognuna opt-in, avviata dall'utente e visibile nella stessa
 
 ## Da un terminale
 
-**6. L'endpoint di rendering è disattivato su lolly.tools.** L'unica funzionalità server che metterebbe input digitati dall'utente in un URL - i render hot-link - è disabilitata qui finché il servizio non passa a un hosting di proprietà dell'organizzazione (la [informativa sulla privacy](/info/privacy.html) spiega perché):
+**6. L'endpoint di rendering risponde solo con dati pubblici.** L'unica funzionalità server che mette input digitati dall'utente in un URL - i render hot-link - è attiva qui, e la [informativa sulla privacy](/info/privacy.html) spiega cosa significa questo per gli input che metti in un link:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-L'interruttore è per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): su un'istanza che lo lascia non impostato, i render hot-link sono attivi, quindi la stessa verifica lì restituisce un'immagine - quella differenza è il flag che funziona, non un'incoerenza.
+L'interruttore è per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): su un'istanza che lo imposta, la stessa verifica restituisce `404` - quella differenza è il flag che funziona, non un'incoerenza.
 
 **7. La superficie server è enumerabile.** [Server Surface](/info/server-surface.html) elenca ogni rotta lato server esistente, con la regola di base che un endpoint non presente in quella pagina non fa parte di Lolly. Provale con `curl`; non c'è nient'altro da trovare.
 

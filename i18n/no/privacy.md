@@ -122,11 +122,10 @@ annen påstand på denne siden, med de nøyaktige kommandoene og forventet resul
 
 ## Hot-linkede render-URL-er
 
-> **For øyeblikket slått av på lolly.tools.** Hver
-> `https://lolly.tools/tool/<tool-id>.<ext>`-URL returnerer 404 i dag. Avsnittet
-> nedenfor beskriver hva funksjonen gjør når en operatør slår den på, og hvorfor vi
-> ikke har gjort det. Den vil bli slått på her når tjenesten flytter til SUSE-driftet
-> infrastruktur, og dette varselet vil endres når det skjer.
+> **Aktiv på lolly.tools.** Hver
+> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>`-URL rendres for ekte, og
+> inndataene følger med i URL-en. Avsnittet nedenfor beskriver hva det betyr
+> for deg, og en operatør kan slå funksjonen av på sin egen instans.
 
 Selve appen blir utelukkende på enheten din. Separat kan en operatør slå på
 **hot-link render-URL-er** - `/tool/<tool-id>.<ext>?<inputs>` - slik at en delt Lolly-
@@ -141,8 +140,8 @@ skrevet inn i URL-en.
   så den dukker opp i vertsplattformens ordinære tilgangslogger på samme måte som
   hver forespurte sti gjør. Hvis en lenkes inndata inneholder noens navn eller e-post -
   et navneskilt, en e-postsignatur - **ligger den teksten i de loggene**, og ingen
-  mengde policytekst endrer det. Dette er den spesifikke grunnen til at funksjonen er
-  av her i stedet for på.
+  mengde policytekst endrer det. Så en hot-link-URL er feil sted for
+  personopplysninger: gi den bare det du ville lagt på en offentlig side.
 - <!--i:globe--> **Inndataene er offentlige av natur** uansett - de er akkurat det lenkens
   forfatter skrev inn i URL-en, lesbart for alle lenken når. Ikke legg
   hemmeligheter i en delt lenke. Lolly tilbyr lenkekryptering for sensitivt innhold.
@@ -150,7 +149,7 @@ skrevet inn i URL-en.
   `noindex` slik at søkemotorer ikke indekserer rendringene dine.
 
 Selvhoster du Lolly og ikke vil ha en offentlig render-flate? Sett
-`LOLLY_DISABLE_RENDER_GET=1` - det lolly.tools selv gjør for øyeblikket - og hver
+`LOLLY_DISABLE_RENDER_GET=1`, og hver
 eneste av disse URL-ene returnerer 404.
 
 ## MCP-serveren (valgfritt, for AI-agenter)

@@ -123,11 +123,11 @@ klaim lain di halaman ini, dengan perintah persis dan keluaran yang diharapkan, 
 
 ## URL render hot-linked
 
-> **Saat ini dimatikan di lolly.tools.** Setiap
-> URL `https://lolly.tools/tool/<tool-id>.<ext>` mengembalikan 404 saat ini. Bagian
-> di bawah menjelaskan apa yang dilakukan fitur ini saat operator mengaktifkannya, dan mengapa kami
-> tidak melakukannya. Fitur ini akan diaktifkan di sini setelah layanan pindah ke infrastruktur yang
-> dioperasikan SUSE, dan pemberitahuan ini akan berubah saat itu terjadi.
+> **Aktif di lolly.tools.** Setiap
+> URL `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` benar-benar merender,
+> dan input-inputnya ikut dalam URL itu. Bagian di bawah menjelaskan apa artinya
+> ini bagi Anda, dan seorang operator dapat mematikan fitur ini di instans
+> miliknya sendiri.
 
 Aplikasi itu sendiri tetap sepenuhnya di perangkat Anda. Secara terpisah, seorang operator dapat mengaktifkan
 **URL render hot-link** - `/tool/<tool-id>.<ext>?<inputs>` - sehingga sebuah tautan Lolly yang dibagikan
@@ -142,8 +142,8 @@ tertulis dalam URL.
   baris permintaan, jadi ia muncul di access log biasa milik platform hosting sama
   seperti setiap path yang diminta. Jika input sebuah link berisi nama atau email
   seseorang - sebuah name badge, sebuah signature email - maka **teks itu tersimpan di
-  log tersebut**, dan tidak ada susunan kata kebijakan yang mengubahnya. Inilah alasan
-  spesifik mengapa fitur ini nonaktif di sini, bukan aktif.
+  log tersebut**, dan tidak ada susunan kata kebijakan yang mengubahnya. Jadi URL hot-link
+  adalah tempat yang salah untuk detail pribadi: berikan hanya apa yang akan Anda taruh di halaman publik.
 - <!--i:globe--> **Input-input itu memang secara struktural bersifat publik** - apa pun isinya, penulis
   link itulah yang mengetiknya ke dalam URL, dan siapa pun yang menerima link itu
   dapat membacanya. Jangan taruh rahasia di link yang dibagikan. Lolly menawarkan
@@ -152,7 +152,7 @@ tertulis dalam URL.
   ditandai `noindex` sehingga mesin pencari tidak mengindeks render Anda.
 
 Self-hosting Lolly dan tidak ingin permukaan render publik? Setel
-`LOLLY_DISABLE_RENDER_GET=1` - yang saat ini dilakukan lolly.tools sendiri - dan setiap
+`LOLLY_DISABLE_RENDER_GET=1` dan setiap
 URL ini mengembalikan 404.
 
 ## Server MCP (opsional, untuk agen AI)

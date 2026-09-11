@@ -131,11 +131,10 @@ dalšímu tvrzení na této stránce, s přesnými příkazy a očekávaným vý
 
 ## Hot-linkované render URL
 
-> **Momentálně na lolly.tools vypnuto.** Každá
-> URL `https://lolly.tools/tool/<tool-id>.<ext>` dnes vrací 404. Sekce
-> níže popisuje, co funkce dělá, když ji provozovatel povolí, a proč jsme to neudělali.
-> Tady se zapne, jakmile se služba přesune na infrastrukturu provozovanou SUSE, a toto
-> oznámení se tehdy změní.
+> **Na lolly.tools naostro.** Každá
+> URL `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` se opravdu vykreslí, a vstupy
+> cestují přímo v té URL. Sekce níže popisuje, co to pro tebe znamená, a
+> provozovatel může tuto funkci na své vlastní instanci vypnout.
 
 Samotná aplikace zůstává celá na tvém zařízení. Provozovatel může samostatně povolit
 **hot-link render URL** - `/tool/<tool-id>.<ext>?<inputs>` - aby se sdílený odkaz Lolly
@@ -150,8 +149,8 @@ v URL.
   žádosti, takže se objeví v běžných přístupových logách hostingové platformy stejně
   jako každá požadovaná cesta. Pokud vstupy odkazu obsahují něčí jméno nebo e-mail -
   jmenovku, e-mailový podpis - **tento text skončí v těchto logách**, a žádná
-  formulace zásad to nezmění. To je konkrétní důvod, proč je tato funkce
-  zde vypnutá, a ne zapnutá.
+  formulace zásad to nezmění. Hot-linkovaná URL adresa je proto špatné místo pro osobní údaje: dávej do ní jen
+  to, co bys dal na veřejnou stránku.
 - <!--i:globe--> **Vstupy jsou svou podstatou veřejné** stejně tak - jsou to cokoli, co
   autor odkazu napsal do URL adresy, čitelné pro kohokoli, koho odkaz zasáhne. Nedávej
   tajné informace do sdíleného odkazu. Lolly nabízí šifrování odkazů pro citlivý obsah.
@@ -159,7 +158,7 @@ v URL.
   jako `noindex`, takže je vyhledávače neindexují.
 
 Provozuješ Lolly sám (self-hosting) a nechceš veřejný render povrch? Nastav
-`LOLLY_DISABLE_RENDER_GET=1` - což momentálně dělá i samotné lolly.tools - a každá
+`LOLLY_DISABLE_RENDER_GET=1` a každá
 tato URL vrátí 404.
 
 ## MCP server (volitelný, pro AI agenty)

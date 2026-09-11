@@ -122,11 +122,10 @@ otra afirmación de esta página, con los comandos exactos y la salida esperada,
 
 ## URLs de renderizado con enlace directo
 
-> **Actualmente desactivado en lolly.tools.** Cada URL
-> `https://lolly.tools/tool/<tool-id>.<ext>` devuelve hoy un 404. La sección
-> siguiente describe qué hace la función cuando un operador la activa, y por qué
-> nosotros no lo hemos hecho. Se activará aquí en cuanto el servicio se traslade a
-> infraestructura operada por SUSE, y este aviso cambiará cuando eso ocurra.
+> **Activo en lolly.tools.** Cada URL
+> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` se renderiza de verdad, y las entradas
+> viajan en esa misma URL. La sección siguiente explica qué significa eso para ti, y
+> un operador puede desactivar la función en su propia instancia.
 
 La aplicación en sí se queda por completo en tu dispositivo. Por separado, un operador puede activar
 las **URLs de renderizado con enlace directo** - `/tool/<tool-id>.<ext>?<inputs>` - para que un
@@ -141,8 +140,8 @@ escritas en la URL.
   solicitud, así que aparece en los registros de acceso habituales de la plataforma de alojamiento, igual que
   cualquier ruta solicitada. Si las entradas de un enlace contienen el nombre o el correo de alguien -
   una etiqueta identificativa, una firma de correo - **ese texto queda en esos registros**, y ninguna
-  redacción de política lo cambia. Esta es la razón concreta por la que esta función está
-  desactivada aquí por defecto en lugar de activada.
+  redacción de política lo cambia. Por eso una URL de enlace directo es el lugar equivocado para datos personales: dale solo
+  lo que pondrías en una página pública.
 - <!--i:globe--> **De todos modos, las entradas son públicas por construcción** - son lo que quien creó
   el enlace escribió en la URL, legible por cualquiera que llegue al enlace. No pongas
   secretos en un enlace compartido. Lolly ofrece cifrado de enlaces para contenido sensible.
@@ -150,7 +149,7 @@ escritas en la URL.
   como `noindex` para que los buscadores no indexen tus renders.
 
 ¿Autoalojas Lolly y no quieres una superficie pública de renderizado? Configura
-`LOLLY_DISABLE_RENDER_GET=1` - lo que hace actualmente lolly.tools - y todas
+`LOLLY_DISABLE_RENDER_GET=1` y todas
 estas URLs devuelven un 404.
 
 ## El servidor MCP (opcional, para agentes de IA)

@@ -39,14 +39,14 @@ Excepțiile oneste - fiecare opțională, inițiată de utilizator și vizibilă
 
 ## Dintr-un terminal
 
-**6. Endpoint-ul de randare este dezactivat pe lolly.tools.** Singura funcție de server care ar pune datele introduse de utilizator într-un URL - randările prin hot-link - este dezactivată aici până când serviciul trece pe o găzduire deținută de organizație (motivul este explicat în [politica de confidențialitate](/info/privacy.html)):
+**6. Endpoint-ul de randare răspunde doar cu date publice.** Singura funcție de server care pune datele introduse de utilizator într-un URL - randările prin hot-link - este activă aici, iar [politica de confidențialitate](/info/privacy.html) explică ce înseamnă asta pentru intrările pe care le pui într-un link:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-Comutatorul este per implementare (`LOLLY_DISABLE_RENDER_GET=1`): pe o instanță care lasă acest flag nesetat, randările prin hot-link sunt active, așa că aceeași sondă returnează acolo o imagine - această diferență arată că flag-ul funcționează, nu o inconsecvență.
+Comutatorul este per implementare (`LOLLY_DISABLE_RENDER_GET=1`): pe o instanță care setează acest flag, aceeași sondă returnează `404` - această diferență arată că flag-ul funcționează, nu o inconsecvență.
 
 **7. Suprafața serverului este enumerabilă.** [Server Surface](/info/server-surface.html) listează fiecare rută existentă pe server, cu regula permanentă că un endpoint care nu apare pe acea pagină nu face parte din Lolly. Rulează `curl` pe ele; nu mai e nimic altceva de găsit.
 

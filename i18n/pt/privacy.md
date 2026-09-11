@@ -134,11 +134,11 @@ outra afirmação nesta página, com os comandos exatos e a saída esperada, est
 
 ## URLs de renderização com hot-link
 
-> **Atualmente desativado no lolly.tools.** Toda
-> URL `https://lolly.tools/tool/<tool-id>.<ext>` retorna 404 hoje. A seção
-> abaixo descreve o que o recurso faz quando um operador o ativa, e por que nós
-> não o ativamos. Ele será ativado aqui assim que o serviço for movido para
-> infraestrutura operada pela SUSE, e este aviso mudará quando isso acontecer.
+> **Ativo no lolly.tools.** Toda
+> URL `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` é renderizada de
+> verdade, e as entradas viajam nessa URL. A seção abaixo explica o que isso
+> significa para você, e um operador pode desativar o recurso na própria
+> instância.
 
 O aplicativo em si permanece inteiramente no seu dispositivo. Separadamente, um operador pode ativar
 **URLs de renderização com hot-link** - `/tool/<tool-id>.<ext>?<inputs>` - para que um
@@ -153,8 +153,8 @@ escritas na URL.
   linha de requisição, então ela aparece nos registros de acesso comuns da plataforma
   de hospedagem, da mesma forma que todo caminho requisitado aparece. Se as entradas de
   um link contêm o nome ou e-mail de alguém - um crachá, uma assinatura de e-mail -
-  **esse texto fica nesses registros**, e nenhuma redação de política muda isso. Esse é
-  o motivo específico de o recurso estar desligado aqui, e não ligado.
+  **esse texto fica nesses registros**, e nenhuma redação de política muda isso. Por isso uma URL de hot-link é o lugar
+  errado para dados pessoais: coloque nela apenas o que você colocaria em uma página pública.
 - <!--i:globe--> **As entradas são públicas por construção** de qualquer forma - são o que quer
   que o autor do link tenha digitado na URL, legível por qualquer um que o link alcance.
   Não coloque segredos em um link compartilhado. O Lolly oferece criptografia de link
@@ -164,7 +164,7 @@ escritas na URL.
   renderizações.
 
 Está autogerenciando o Lolly e não quer uma superfície pública de renderização? Defina
-`LOLLY_DISABLE_RENDER_GET=1` - o que o próprio lolly.tools faz atualmente - e todas
+`LOLLY_DISABLE_RENDER_GET=1`, e todas
 essas URLs retornam 404.
 
 ## O servidor MCP (opcional, para agentes de IA)

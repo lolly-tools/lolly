@@ -39,14 +39,14 @@ As exceções honestas - todas opt-in, iniciadas pelo usuário e visíveis na me
 
 ## Em um terminal
 
-**6. O endpoint de renderização está desativado em lolly.tools.** O único recurso de servidor que colocaria entradas digitadas pelo usuário em uma URL - renderizações via hot-link - está desativado aqui até que o serviço mude para uma hospedagem própria da organização (a [política de privacidade](/info/privacy.html) explica o motivo):
+**6. O endpoint de renderização responde apenas com dados públicos.** O único recurso de servidor que coloca entradas digitadas pelo usuário em uma URL - renderizações via hot-link - está ativo aqui, e a [política de privacidade](/info/privacy.html) explica o que isso significa para as entradas que você coloca em um link:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-O interruptor é por implantação (`LOLLY_DISABLE_RENDER_GET=1`): numa instância que deixa essa variável sem definir, as renderizações via hot-link ficam ativas, então o mesmo teste lá retorna uma imagem - essa diferença é a flag funcionando, não uma inconsistência.
+O interruptor é por implantação (`LOLLY_DISABLE_RENDER_GET=1`): numa instância que define essa variável, o mesmo teste retorna `404` - essa diferença é a flag funcionando, não uma inconsistência.
 
 **7. A superfície do servidor é enumerável.** [Server Surface](/info/server-surface.html) lista cada rota do lado do servidor que existe, com a regra permanente de que um endpoint fora dessa página não faz parte do Lolly. Faça `curl` nelas; não há mais nada a encontrar.
 

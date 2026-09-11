@@ -128,12 +128,10 @@ trouvent sur [Verify It Yourself](/info/verify-yourself.html).
 
 ## URL de rendu en hotlink
 
-> **Actuellement désactivé sur lolly.tools.** Chaque URL
-> `https://lolly.tools/tool/<tool-id>.<ext>` renvoie aujourd'hui une erreur 404. La
-> section ci-dessous décrit ce que fait la fonctionnalité quand un opérateur
-> l'active, et pourquoi nous ne l'avons pas fait. Elle sera activée ici une fois que
-> le service basculera vers une infrastructure exploitée par SUSE, et cette notice
-> changera à ce moment-là.
+> **Actif sur lolly.tools.** Chaque URL
+> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` est vraiment rendue, et les entrées
+> voyagent dans cette URL. La section ci-dessous explique ce que cela signifie pour toi,
+> et un opérateur peut désactiver la fonctionnalité sur sa propre instance.
 
 L'application elle-même reste entièrement sur ton appareil. Séparément, un opérateur
 peut activer les **URL de rendu en hotlink** - `/tool/<tool-id>.<ext>?<inputs>` - pour
@@ -148,8 +146,8 @@ wiki ou un tableau de bord. Récupérer l'une d'elles demande au serveur de rend
   requête, donc elle apparaît dans les journaux d'accès habituels de la plateforme d'hébergement, tout comme
   n'importe quel chemin demandé. Si les entrées d'un lien contiennent le nom ou l'email de quelqu'un -
   un badge nominatif, une signature email - **ce texte se retrouve dans ces journaux**, et aucune
-  formulation de politique n'y change quoi que ce soit. C'est la raison précise pour laquelle cette fonction est
-  désactivée ici par défaut plutôt qu'activée.
+  formulation de politique n'y change quoi que ce soit. Une URL de rendu en hotlink n'est donc pas l'endroit pour des informations personnelles :
+  ne lui donne que ce que tu mettrais sur une page publique.
 - <!--i:globe--> **Les entrées sont de toute façon publiques par construction** - elles sont ce que l'auteur ou l'autrice
   du lien a tapé dans l'URL, lisible par quiconque le lien atteint. Ne mets pas de
   secrets dans un lien partagé. Lolly propose le chiffrement de liens pour le contenu sensible.
@@ -157,7 +155,7 @@ wiki ou un tableau de bord. Récupérer l'une d'elles demande au serveur de rend
   `noindex` pour que les moteurs de recherche n'indexent pas tes rendus.
 
 Tu auto-héberges Lolly et tu ne veux pas d'une surface de rendu publique ? Définis
-`LOLLY_DISABLE_RENDER_GET=1` - ce que fait actuellement lolly.tools lui-même - et
+`LOLLY_DISABLE_RENDER_GET=1` et
 chacune de ces URL renvoie une erreur 404.
 
 ## Le serveur MCP (optionnel, pour les agents IA)

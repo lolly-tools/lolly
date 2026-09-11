@@ -39,14 +39,14 @@ Pengecualian yang jujur - setiap satu adalah opt-in, dimulakan oleh pengguna dan
 
 ## Daripada terminal
 
-**6. Titik akhir pemaparan dimatikan pada lolly.tools.** Satu-satunya ciri pelayan yang akan meletakkan input yang ditaip pengguna ke dalam URL - pemaparan pautan-terus (hot-link) - dilumpuhkan di sini sehingga perkhidmatan ini berpindah ke pengehosan milik organisasi ([dasar privasi](/info/privacy.html) menerangkan sebabnya):
+**6. Titik akhir pemaparan hanya menjawab dengan data awam.** Satu-satunya ciri pelayan yang meletakkan input yang ditaip pengguna ke dalam URL - pemaparan pautan-terus (hot-link) - aktif di sini, dan [dasar privasi](/info/privacy.html) menerangkan apa maknanya ini untuk input yang anda letakkan dalam sesuatu pautan:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-Suis ini adalah mengikut penggunaan setiap penerapan (`LOLLY_DISABLE_RENDER_GET=1`): pada instans yang membiarkannya tidak ditetapkan, pemaparan pautan-terus aktif, jadi ujian yang sama di sana mengembalikan imej - perbezaan itu adalah bendera itu berfungsi, bukan ketidakkonsistenan.
+Suis ini adalah mengikut penggunaan setiap penerapan (`LOLLY_DISABLE_RENDER_GET=1`): pada instans yang menetapkannya, ujian yang sama di sana mengembalikan `404` - perbezaan itu adalah bendera itu berfungsi, bukan ketidakkonsistenan.
 
 **7. Permukaan pelayan boleh disenaraikan.** [Server Surface](/info/server-surface.html) menyenaraikan setiap laluan sisi pelayan yang wujud, dengan peraturan tetap bahawa titik akhir yang tiada pada halaman itu bukan sebahagian daripada Lolly. `curl` kesemuanya; tiada apa-apa lagi untuk ditemui.
 

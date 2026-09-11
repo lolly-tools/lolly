@@ -39,14 +39,14 @@ Pengecualian yang jujur - masing-masing bersifat opt-in, diinisiasi pengguna, da
 
 ## Dari terminal
 
-**6. Endpoint render dinonaktifkan di lolly.tools.** Satu-satunya fitur server yang akan memasukkan input ketikan pengguna ke dalam URL - render hot-link - dinonaktifkan di sini sampai layanan ini pindah ke hosting milik organisasi (jelaskan alasannya di [kebijakan privasi](/info/privacy.html)):
+**6. Endpoint render hanya menjawab dengan data publik.** Satu-satunya fitur server yang memasukkan input ketikan pengguna ke dalam URL - render hot-link - aktif di sini, dan [kebijakan privasi](/info/privacy.html) menjelaskan apa artinya itu bagi input yang Anda masukkan ke dalam sebuah link:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-Sakelar ini bersifat per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): di instance yang membiarkannya tidak diset, render hot-link aktif, sehingga probe yang sama di sana mengembalikan gambar - perbedaan itu adalah flag yang bekerja, bukan inkonsistensi.
+Sakelar ini bersifat per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): di instance yang mengesetnya, probe yang sama di sana mengembalikan `404` - perbedaan itu adalah flag yang bekerja, bukan inkonsistensi.
 
 **7. Permukaan server dapat dienumerasi.** [Server Surface](/info/server-surface.html) mencantumkan setiap rute sisi server yang ada, dengan aturan baku bahwa endpoint yang tidak ada di halaman itu bukan bagian dari Lolly. `curl` semuanya; tidak ada yang lain untuk ditemukan.
 

@@ -39,14 +39,14 @@ Die ehrlichen Ausnahmen - jede davon opt-in, vom Nutzer ausgelöst und im selben
 
 ## Vom Terminal aus
 
-**6. Der Render-Endpunkt ist auf lolly.tools deaktiviert.** Das eine Server-Feature, das von Nutzern eingegebene Eingaben in eine URL setzen würde - Hot-Link-Renders -, ist hier deaktiviert, bis der Dienst auf organisationseigenes Hosting umzieht (die [Datenschutzerklärung](/info/privacy.html) erklärt warum):
+**6. Der Render-Endpunkt antwortet nur mit öffentlichen Daten.** Das eine Server-Feature, das von Nutzern eingegebene Eingaben in eine URL setzt - Hot-Link-Renders -, ist hier live, und die [Datenschutzerklärung](/info/privacy.html) erklärt, was das für die Eingaben bedeutet, die Sie in einen Link stellen:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-Der Schalter gilt pro Deployment (`LOLLY_DISABLE_RENDER_GET=1`): Auf einer Instanz, die diese Variable nicht setzt, sind Hot-Link-Renders aktiv, daher liefert derselbe Test dort ein Bild zurück - dieser Unterschied ist das Kennzeichen dafür, dass der Schalter funktioniert, keine Inkonsistenz.
+Der Schalter gilt pro Deployment (`LOLLY_DISABLE_RENDER_GET=1`): Auf einer Instanz, die diese Variable setzt, liefert derselbe Test `404` zurück - dieser Unterschied ist das Kennzeichen dafür, dass der Schalter funktioniert, keine Inkonsistenz.
 
 **7. Die Server-Oberfläche ist vollständig aufzählbar.** [Server Surface](/info/server-surface.html) listet jede serverseitige Route auf, die existiert, mit der festen Regel, dass ein Endpunkt, der nicht auf dieser Seite steht, nicht Teil von Lolly ist. Rufen Sie sie mit `curl` ab; es gibt nichts weiter zu finden.
 

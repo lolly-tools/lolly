@@ -121,11 +121,10 @@ mọi tuyên bố khác trên trang này, cùng các lệnh chính xác và kế
 
 ## URL render liên kết trực tiếp
 
-> **Hiện đang tắt trên lolly.tools.** Mọi
-> URL `https://lolly.tools/tool/<tool-id>.<ext>` hôm nay đều trả về 404. Phần
-> bên dưới mô tả tính năng này làm gì khi một bên vận hành bật nó lên, và tại sao
-> chúng tôi chưa làm vậy. Nó sẽ được bật ở đây một khi dịch vụ chuyển sang hạ tầng do
-> SUSE vận hành, và thông báo này sẽ thay đổi khi điều đó xảy ra.
+> **Đang hoạt động trên lolly.tools.** Mọi
+> URL `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` đều render thật sự,
+> và các dữ liệu đầu vào đi cùng ngay trong URL đó. Phần bên dưới nói rõ điều đó
+> có ý nghĩa gì với bạn, và một bên vận hành có thể tắt tính năng này trên instance riêng của họ.
 
 Bản thân ứng dụng ở lại hoàn toàn trên thiết bị của bạn. Riêng biệt, một bên vận hành có thể bật
 **URL render liên kết trực tiếp** - `/tool/<tool-id>.<ext>?<inputs>` - để một liên kết Lolly được
@@ -140,8 +139,8 @@ ghi trong URL.
   yêu cầu, nên nó xuất hiện trong nhật ký truy cập thông thường của nền tảng lưu trữ, giống như
   mọi đường dẫn được yêu cầu khác. Nếu đầu vào của một liên kết chứa tên hoặc email của ai đó -
   một thẻ tên, một chữ ký email - **văn bản đó sẽ nằm trong những nhật ký đó**, và không
-  câu chữ chính sách nào có thể thay đổi điều đó. Đây chính là lý do tính năng này
-  bị tắt ở đây thay vì bật.
+  câu chữ chính sách nào có thể thay đổi điều đó. Vì vậy một URL liên kết trực tiếp
+  không phải là nơi để đặt thông tin cá nhân: chỉ nên đưa vào đó những gì bạn sẵn sàng đặt trên một trang công khai.
 - <!--i:globe--> **Các đầu vào vốn đã công khai theo bản chất** dù sao đi nữa - chúng là bất cứ điều gì tác giả
   của liên kết đã nhập vào URL, ai nhận được liên kết cũng đọc được. Đừng đặt
   bí mật vào một liên kết được chia sẻ. Lolly cung cấp mã hóa liên kết cho nội dung nhạy cảm.
@@ -149,7 +148,7 @@ ghi trong URL.
   `noindex` để công cụ tìm kiếm không lập chỉ mục các bản kết xuất của bạn.
 
 Tự lưu trữ Lolly và không muốn một bề mặt render công khai? Đặt
-`LOLLY_DISABLE_RENDER_GET=1` - điều mà chính lolly.tools hiện đang làm - và mọi
+`LOLLY_DISABLE_RENDER_GET=1` và mọi
 URL trong số này sẽ trả về 404.
 
 ## Máy chủ MCP (tùy chọn, dành cho các tác nhân AI)

@@ -154,11 +154,10 @@ other claim on this page, with the exact commands and expected output, live at
 
 ## Hot-linked render URLs
 
-> **Currently switched off on lolly.tools.** Every
-> `https://lolly.tools/tool/<tool-id>.<ext>` URL returns 404 today. The section
-> below describes what the feature does when an operator enables it, and why we
-> have not. It will be turned on here once the service moves to SUSE-operated
-> infrastructure, and this notice will change when it is.
+> **Live on lolly.tools.** Every `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>`
+> URL renders for real, and the inputs travel in that URL. The section below is
+> what that means for you, and an operator can switch the feature off on their
+> own instance.
 
 The app itself stays entirely on your device. Separately, an operator can enable
 **hot-link render URLs** - `/tool/<tool-id>.<ext>?<inputs>` - so a shared Lolly
@@ -173,8 +172,8 @@ written into the URL.
   line, so it shows up in the hosting platform's ordinary access logs the same way
   every requested path does. If a link's inputs contain someone's name or email -
   a name badge, an email signature - **that text sits in those logs**, and no
-  amount of policy wording changes it. This is the specific reason the feature is
-  off here rather than on.
+  amount of policy wording changes it. So a hot-link URL is the wrong place for
+  personal details: give it only what you would put on a public page.
 - <!--i:globe--> **The inputs are public by construction** anyway - they are whatever the link's
   author typed into the URL, readable by anyone the link reaches. Don't put
   secrets in a shared link. Lolly offers link encryption for sensitive content.
@@ -182,8 +181,7 @@ written into the URL.
   `noindex` so search engines don't index your renders.
 
 Self-hosting Lolly and don't want a public render surface? Set
-`LOLLY_DISABLE_RENDER_GET=1` - what lolly.tools itself currently does - and every
-one of these URLs returns 404.
+`LOLLY_DISABLE_RENDER_GET=1` and every one of these URLs returns 404.
 
 ## The MCP server (optional, for AI agents)
 

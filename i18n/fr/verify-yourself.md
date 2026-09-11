@@ -39,14 +39,14 @@ Les exceptions honnêtes - chacune opt-in, initiée par l'utilisateur et visible
 
 ## Depuis un terminal
 
-**6. Le point de terminaison de rendu est désactivé sur lolly.tools.** La seule fonctionnalité serveur qui mettrait des entrées saisies par l'utilisateur dans une URL - les rendus en hot-link - est désactivée ici jusqu'à ce que le service passe à un hébergement propre à l'organisation (la [politique de confidentialité](/info/privacy.html) explique pourquoi) :
+**6. Le point de terminaison de rendu répond uniquement avec des données publiques.** La seule fonctionnalité serveur qui met des entrées saisies par l'utilisateur dans une URL - les rendus en hot-link - est active ici, et la [politique de confidentialité](/info/privacy.html) explique ce que cela signifie pour les entrées que tu mets dans un lien :
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
-# 404
+# 200
 ```
 
-Le commutateur est propre à chaque déploiement (`LOLLY_DISABLE_RENDER_GET=1`) : sur une instance qui laisse cette variable non définie, les rendus en hot-link sont actifs, donc la même vérification y renvoie une image - cette différence est le drapeau qui fonctionne, pas une incohérence.
+Le commutateur est propre à chaque déploiement (`LOLLY_DISABLE_RENDER_GET=1`) : sur une instance qui définit cette variable, la même vérification renvoie `404` - cette différence est le drapeau qui fonctionne, pas une incohérence.
 
 **7. La surface serveur est énumérable.** [Server Surface](/info/server-surface.html) liste chaque route côté serveur qui existe, avec la règle constante qu'un point de terminaison absent de cette page ne fait pas partie de Lolly. Fais un `curl` dessus ; il n'y a rien d'autre à trouver.
 
