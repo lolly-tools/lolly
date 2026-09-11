@@ -18,7 +18,13 @@ step "Launching (25s)"
 flatpak run tools.lolly.Desktop >"$CACHE/flatpak-run.log" 2>&1 &
 sleep 25
 
-rss_kb="$(ps -eo rss,comm --no-headers | awk '$2 ~ /WebKitWebProcess/ {if ($1>m) m=$1} END {print m+0}')"
+# Match on argv, NOT on comm. Linux caps comm at 15 chars (TASK_COMM_LEN), so ps
+# reports "WebKitWebProces" and a /WebKitWebProcess/ pattern NEVER matches - this
+# check then reads 0 MB and fails every bundle, including ones that render
+# perfectly. A false negative on the one gate that exists to catch a dead bundle
+# is worse than no gate, because it trains you to ignore it. The [W] bracket keeps
+# the awk process itself from matching.
+rss_kb="$(ps -eo rss,args --no-headers | awk '/[W]ebKitWebProcess/ {if ($1>m) m=$1} END {print m+0}')"
 rss_mb=$(( rss_kb / 1024 ))
 echo "WebKitWebProcess resident: ${rss_mb} MB"
 

@@ -26,15 +26,35 @@ fi
 step "Building signed frontend (profile mode) on the host"
 ( cd "$DESKTOP" && LOLLY_EMBED_CATALOG=profile pnpm run build:frontend:release )
 
+# tauri.conf.json's beforeBuildCommand is
+#   build:frontend:release && build:quicklook && build:cli-sidecar
+# and we blank it below, so EVERY part of it has to be run here instead. Miss this
+# one and src-tauri/bin/ keeps its 197-byte placeholder: the .deb still builds,
+# installs and runs, and `lolly-cli` just prints "this build has no bundled CLI"
+# and exits 3. (build:quicklook is macOS-only and irrelevant to the .deb.)
+step "Building the CLI sidecar on the host"
+( cd "$DESKTOP" && pnpm run build:cli-sidecar )
+
 # Cheap guards against the failure modes that have actually shipped.
+sidecar="$DESKTOP/src-tauri/bin/lolly-cli-x86_64-unknown-linux-gnu"
+[ -f "$sidecar" ] || die "$sidecar missing - the CLI sidecar did not build"
+[ "$(stat -c%s "$sidecar")" -ge 10000000 ] \
+  || die "$sidecar is $(stat -c%s "$sidecar") bytes - that is the placeholder stub, not the real CLI"
 [ -s "$DESKTOP/dist/precache.json" ] || die "dist/precache.json missing - offline model list would read 'Not offered by this server'"
 ls "$DESKTOP"/dist/info/*.html >/dev/null 2>&1 || die "dist/info/*.html missing - every in-app #/docs route would 404"
 
 step "Compiling and bundling the .deb in $IMAGE"
 "${DOCKER_RUN[@]}" -e CARGO_TARGET_DIR -w "$DESKTOP" "$IMAGE" bash -c '
   set -euo pipefail
-  export PATH="$HOME/.cargo/bin:$(echo "$HOME"/.nvm/versions/node/v*/bin | tr " " :):$PATH"
+  # Pick the HIGHEST node, not the first one the glob happens to yield. A plain
+  # v* glob sorts LEXICOGRAPHICALLY, so a machine carrying an old nvm install puts
+  # v10.16.0 ahead of v24.20.0 and the Tauri CLI dies on optional chaining with
+  # "SyntaxError: Unexpected token ." - which reads like a corrupt install, not a
+  # PATH problem. sort -V orders by version.
+  node_bin="$(ls -d "$HOME"/.nvm/versions/node/v*/bin 2>/dev/null | sort -V | tail -1)"
+  export PATH="$HOME/.cargo/bin${node_bin:+:$node_bin}:$PATH"
   node -v && cargo -V
+  case "$(node -v)" in v2[2-9].*|v[3-9][0-9].*) ;; *) echo "error: need node >= 22, got $(node -v)" >&2; exit 1 ;; esac
   ./node_modules/.bin/tauri build --bundles deb --config "{\"build\":{\"beforeBuildCommand\":\"\"}}"
 '
 
