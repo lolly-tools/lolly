@@ -1,0 +1,82 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
+/* This sheet ships with the emoji-picker CHUNK, not the app stylesheet: it is
+   imported by components/emoji-picker.ts, which is only ever reached through a
+   dynamic import. Nothing here exists in the document until someone opens an
+   emoji cell for the first time, which is also when the 1.9 MB face below starts
+   downloading. */
+
+/* Google's Noto Color Emoji, COLRv1 build, served from our own /fonts/ so the
+   picker shows the same glyphs on every device and covers Unicode Emoji 17.0
+   (which no shipping platform font has yet).
+
+   `swap` with the platform emoji fonts behind it in every stack that names this
+   family: the grid paints in the device's own emoji from the first frame and
+   re-paints in Noto when the file arrives, so there is never a screen of blank
+   boxes. The family name is deliberately NOT 'Noto Color Emoji' - that is the
+   name Android and most Linux desktops already have installed, and reusing it
+   would make the fallback entry resolve to this same face. */
+@font-face {
+  font-family: 'Lolly Emoji';
+  src: url('/fonts/NotoColorEmoji-COLRv1.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* The popover is mounted on <body> and positioned fixed, so no sidebar overflow,
+   stacking context or float panel can clip it. The picker paints its own ground,
+   radius and shadow, so this box is only a position. */
+.emoji-pop {
+  position: fixed;
+  z-index: 10002;
+  max-width: calc(100vw - 16px);
+}
+
+.emoji-pop unicode-emoji-picker {
+  /* The component is sized in em off its own font-size, so this one number sets
+     the whole grid. 22px gives 8 columns at about 427px wide on a desktop
+     sidebar. */
+  font-size: 22px;
+  max-width: 100%;
+  --min-emoji-col-count: 6;
+  --max-emoji-col-count: 8;
+  --min-emoji-row-count: 4;
+  --max-emoji-row-count: 7;
+  --emoji-font-family: 'Lolly Emoji', apple color emoji, segoe ui emoji, noto color emoji, android emoji, emojisymbols, emojione mozilla, twemoji mozilla, segoe ui symbol;
+  /* Borrow the app's own theme tokens so the picker follows light/dark with
+     everything else. Custom properties inherit through the shadow boundary, so
+     setting them on the host is enough. */
+  --fill-color: hsl(var(--background));
+  --text-color: hsl(var(--foreground));
+  --tabs-border-color: hsl(var(--border));
+  --tab-fill-color-hover: hsl(var(--border) / 0.5);
+  --tab-active-marker-color: hsl(var(--ring));
+  --content-scrollbar-thumb-fill-color: hsl(var(--border));
+  --content-scrollbar-thumb-fill-color-hover: hsl(var(--muted-foreground));
+  --search-input-border-color: hsl(var(--border));
+  --search-input-border-color-hover: hsl(var(--ring));
+  --emoji-border-color-hover: hsl(var(--border));
+  --emoji-variation-marker-color: hsl(var(--border));
+  --emoji-variation-marker-color-hover: hsl(var(--muted-foreground));
+}
+
+/* Phone sheet. At 393px CSS px (an iPhone 15/16 in portrait) the available width
+   is 377px after the 8px margins the positioner keeps; 19px gives 8 columns at
+   369px, and the 6-column minimum at 272px, so the grid never forces the page to
+   scroll sideways. */
+@media (max-width: 420px) {
+  .emoji-pop unicode-emoji-picker {
+    font-size: 19px;
+    --max-emoji-row-count: 6;
+  }
+}
+
+/* An emoji column's cells render in the same face as the picker, but ONLY once
+   this sheet is in the document. The rule lives here rather than with the rest of
+   the table styles because the face it names is loaded with this chunk: before
+   anyone opens a picker the cells show the platform's own emoji, which is the
+   right answer for a page that has not paid for the download. */
+.table-cell--emoji {
+  font-family: 'Lolly Emoji', apple color emoji, segoe ui emoji, noto color emoji, android emoji, emojisymbols, emojione mozilla, twemoji mozilla, segoe ui symbol;
+}

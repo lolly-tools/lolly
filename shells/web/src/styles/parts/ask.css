@@ -1,0 +1,320 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer (order
+   declared once in styles/app.css), so its rules keep a fixed priority no matter
+   when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* ─── #/ask - Ask Lolly, the in-app help surface (plans/103) ───────────────────
+   A conversation column: a scrollable transcript of question bubbles and answer
+   cards, with the composer pinned at the foot. Answer text is documentation
+   prose rendered by lib/ask/render-md; the citation and open-in-docs link sit
+   under each section. Chrome type rides --a11y-fs like the rest of the shell. */
+
+.ask-view { overflow: hidden; }
+.ask-view .ask-layout {
+  width: 100%;
+  max-width: min(760px, 94vw);
+  margin: 0 auto;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 3.25rem 1.25rem 0; /* top clears the fixed back pill */
+}
+.ask-view .plat-header { flex: none; }
+/* The header stays wordmark-only - the eye goes to the Lolly mark on the Ask
+   button below, where the action is. */
+
+/* ─── top-right cluster: theme switcher + profile link ─────────────────────────── */
+.ask-topright {
+  position: fixed;
+  top: max(0.75rem, var(--safe-top));
+  right: max(0.9rem, var(--safe-right));
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.ask-top-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(38px * var(--a11y-fs));
+  height: calc(38px * var(--a11y-fs));
+  border-radius: var(--radius-pill);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background) / 0.85);
+  color: hsl(var(--foreground));
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.ask-top-btn:hover { background: hsl(var(--muted)); border-color: hsl(var(--foreground) / 0.25); }
+.ask-top-btn:active { transform: scale(0.94); }
+.ask-top-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px hsl(var(--primary) / 0.4); }
+.ask-top-btn svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+
+/* ─── transcript ─────────────────────────────────────────────────────────────── */
+.ask-transcript {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0.25rem 1.5rem;
+  scroll-behavior: smooth;
+}
+.ask-turn { display: flex; flex-direction: column; }
+.ask-turn-user { align-items: flex-end; }
+
+.ask-q {
+  max-width: 85%;
+  margin: 0;
+  padding: 0.55rem 0.9rem;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-radius: calc(var(--radius) * 1.5);
+  border-bottom-right-radius: calc(var(--radius) * 0.4);
+  font-size: var(--fs-lg);
+  line-height: 1.45;
+}
+
+.ask-answer {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.5);
+  border-bottom-left-radius: calc(var(--radius) * 0.4);
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.ask-thinking { color: hsl(var(--muted-foreground)); font-size: var(--fs-lg); font-style: italic; }
+
+/* ─── the extracted documentation section ─────────────────────────────────────── */
+.ask-answer-body { display: flex; flex-direction: column; gap: 0.5rem; }
+.ask-section {
+  font-size: var(--fs-lg);
+  line-height: 1.6;
+  max-height: 20rem;
+  overflow: hidden;
+  position: relative;
+}
+.ask-section.is-open { max-height: none; }
+.ask-section :first-child { margin-top: 0; }
+.ask-section :last-child { margin-bottom: 0; }
+.ask-section p { margin: 0 0 0.7rem; }
+.ask-section ul, .ask-section ol { margin: 0 0 0.7rem; padding-inline-start: 1.4rem; }
+.ask-section li { margin: 0.2rem 0; }
+.ask-section code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.9em;
+  background: hsl(var(--muted));
+  padding: 0.1em 0.35em;
+  border-radius: calc(var(--radius) * 0.5);
+}
+.ask-section pre.ask-code {
+  margin: 0 0 0.7rem;
+  padding: 0.7rem 0.9rem;
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+.ask-section pre.ask-code code { background: none; padding: 0; font-size: 0.85em; }
+.ask-section .ask-h { margin: 0.4rem 0 0.3rem; }
+.ask-section blockquote {
+  margin: 0 0 0.7rem;
+  padding-inline-start: 0.8rem;
+  border-inline-start: 3px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+.ask-section a { color: hsl(var(--primary)); text-decoration: underline; text-underline-offset: 2px; }
+
+.ask-table-wrap { overflow-x: auto; margin: 0 0 0.7rem; }
+.ask-table { border-collapse: collapse; font-size: var(--fs-md); width: 100%; }
+.ask-table th, .ask-table td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.35rem 0.6rem;
+  text-align: start;
+  vertical-align: top;
+}
+.ask-table th { background: hsl(var(--muted)); font-weight: 600; }
+
+.ask-more {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: hsl(var(--primary));
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.1rem 0;
+}
+.ask-cite {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.ask-cite-link { color: hsl(var(--primary)); }
+
+/* ─── related sections + in-app hits ──────────────────────────────────────────── */
+.ask-group-label {
+  margin: 0 0 0.4rem;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.ask-related ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.ask-related-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--fs-md);
+  color: hsl(var(--foreground));
+}
+.ask-related-icon { display: inline-flex; flex: none; color: hsl(var(--muted-foreground)); }
+.ask-related-icon svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.ask-related-sub { color: hsl(var(--muted-foreground)); }
+
+.ask-hit-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.ask-hit {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--foreground));
+  text-decoration: none;
+  transition: background var(--dur-1);
+}
+.ask-hit:hover { background: hsl(var(--accent)); }
+.ask-hit-icon { display: inline-flex; flex: none; color: hsl(var(--muted-foreground)); }
+.ask-hit-icon svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.ask-hit-text { display: flex; flex-direction: column; min-width: 0; }
+.ask-hit-title { font-size: var(--fs-lg); font-weight: 500; }
+.ask-hit-sub { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+
+.ask-empty { margin: 0; font-size: var(--fs-lg); color: hsl(var(--muted-foreground)); }
+
+/* ─── composer - the "talking to Lolly" hero ─────────────────────────────────────
+   A big pill input and a candy Ask button carrying the Lolly mark. Its swirl
+   spins on hover, the whole button lifts, and a press squishes it - the moment
+   worth making delicious, since this is where you actually talk to Lolly. */
+.ask-composer {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.9rem 0 calc(1.1rem + var(--safe-bottom));
+  background: linear-gradient(hsl(var(--background) / 0), hsl(var(--background)) 30%);
+  position: sticky;
+  bottom: 0;
+}
+.ask-input {
+  flex: 1 1 auto;
+  font-size: var(--fs-xl);
+  padding: 0.7rem 1.05rem;
+  border-radius: var(--radius-pill);
+}
+
+.ask-send {
+  --lolly-swirl: var(--brand-primary, hsl(var(--primary)));
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 1.2rem 0.45rem 0.55rem;
+  font-size: var(--fs-xl);
+  font-weight: 650;
+  color: hsl(var(--primary));
+  background: hsl(var(--background));
+  border: 1.5px solid hsl(var(--primary) / 0.35);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  box-shadow: 0 2px 10px -4px hsl(var(--primary) / 0.4);
+  transition: transform var(--dur-2) var(--ease-spring), box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.ask-send:hover {
+  border-color: hsl(var(--primary) / 0.75);
+  background: hsl(var(--primary) / 0.06);
+  box-shadow: 0 8px 22px -6px hsl(var(--primary) / 0.55);
+  transform: translateY(-2px);
+}
+.ask-send:active {
+  transform: translateY(0) scale(0.96);
+  box-shadow: 0 1px 5px -2px hsl(var(--primary) / 0.5);
+  transition-duration: 0.06s;
+}
+.ask-send:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.4), 0 8px 22px -6px hsl(var(--primary) / 0.55);
+}
+.ask-send-label { line-height: 1; }
+
+/* The Lolly mark on the button - bigger than the label, spiral brand-tinted; its
+   three layers counter-spin on hover / press (transform-box: fill-box, so each
+   turns about its own centre). Motion is interaction-only and calm at rest. */
+.ask-send-mark {
+  display: inline-flex;
+  width: calc(36px * var(--a11y-fs));
+  height: calc(36px * var(--a11y-fs));
+  filter: drop-shadow(0 1px 2px hsl(var(--primary) / 0.35));
+}
+.ask-send-mark svg { display: block; width: 100%; height: 100%; }
+.ask-send-mark .lolly-mark__spin-1,
+.ask-send-mark .lolly-mark__spin-2,
+.ask-send-mark .lolly-mark__spin-3 { transform-origin: 50% 50%; transform-box: fill-box; }
+.ask-send:hover .ask-send-mark .lolly-mark__spin-1,
+.ask-send:focus-visible .ask-send-mark .lolly-mark__spin-1 { animation: ask-mark-spin 2.4s linear infinite; }
+.ask-send:hover .ask-send-mark .lolly-mark__spin-2,
+.ask-send:focus-visible .ask-send-mark .lolly-mark__spin-2 { animation: ask-mark-spin 4.6s linear infinite reverse; }
+.ask-send:hover .ask-send-mark .lolly-mark__spin-3,
+.ask-send:focus-visible .ask-send-mark .lolly-mark__spin-3 { animation: ask-mark-spin 7s linear infinite; }
+/* A quick eager flick of the whole mark on press - the tactile "sent" beat. */
+.ask-send:active .ask-send-mark { animation: ask-mark-pop 0.28s ease; }
+@keyframes ask-mark-spin { to { transform: rotate(360deg); } }
+@keyframes ask-mark-pop {
+  0% { transform: scale(1) rotate(0); }
+  45% { transform: scale(1.22) rotate(-12deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+/* Motion prefs (OS + app): the mark never spins or pops; the button still gives
+   its quiet lift/press feedback. */
+@media (prefers-reduced-motion: reduce) {
+  .ask-send .ask-send-mark,
+  .ask-send:hover .ask-send-mark .lolly-mark__spin-1,
+  .ask-send:hover .ask-send-mark .lolly-mark__spin-2,
+  .ask-send:hover .ask-send-mark .lolly-mark__spin-3,
+  .ask-send:focus-visible .ask-send-mark .lolly-mark__spin-1,
+  .ask-send:focus-visible .ask-send-mark .lolly-mark__spin-2,
+  .ask-send:focus-visible .ask-send-mark .lolly-mark__spin-3 { animation: none; }
+}
+html[data-a11y-motion="reduce"] .ask-send .ask-send-mark .lolly-mark__spin-1,
+html[data-a11y-motion="reduce"] .ask-send .ask-send-mark .lolly-mark__spin-2,
+html[data-a11y-motion="reduce"] .ask-send .ask-send-mark .lolly-mark__spin-3 { animation: none; }
+
+@media (max-width: 640px) {
+  .ask-view .ask-layout { padding-inline: 0.9rem; }
+  .ask-q, .ask-answer { max-width: 100%; }
+}
+
+/* ─── M1 consent chip - the "better matching" on-device model offer ─────────
+   One quiet line between the transcript and the composer. Buttons reuse the
+   shared .btn / .btn-link recipes; only layout is declared here. */
+.ask-consent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 4px 0 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2, color-mix(in oklab, var(--fg, #0f172a) 5%, transparent));
+  font-size: var(--fs-md);
+}
+.ask-consent[hidden] { display: none; }
+.ask-consent-text { flex: 1 1 24ch; min-width: 0; }
+}

@@ -1,0 +1,315 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* ============================================================================
+   THE DESIGN TOP BAR (views/design-topbar.ts, plan 179 M1)
+
+   One band docked across the top of `.tool-stage` for `render.layout: "editor"`:
+   identity on the left (mark, Home pill, document name), view verbs in the
+   centre, output verbs on the right.
+
+   Imported from views/tool.ts beside editor.css, so it rides the lazy tool CSS
+   chunk and is UNLAYERED. That matters twice: it lets the `.chrome-topleft` reset
+   below out-rank that island's own `position: fixed` (parts/overrides.css, the
+   `overrides` layer), and it keeps every rule here above the `chrome`/`views`
+   layers without an !important anywhere but the chrome-hidden kill switch, which
+   has to beat a `display` from any layer.
+
+   Colours are tokens only (tokens.css HSL triples), so light, dark, the two
+   high-contrast maps and every brand follow with no work here.
+   ========================================================================== */
+
+.design-topbar {
+  position: absolute;
+  /* The whole width of the STAGE. The right dock is a body-level column that starts
+     BELOW this bar (it reads --design-topbar-h from <html>), so the bar never sits under
+     it and never has to reach past the stage: a negative inline-end inset to "cover" the
+     dock overflowed the overflow-hidden stage and scrolled the whole editor 30px left. */
+  inset-inline: 0;
+  top: 0;
+  z-index: 22;                       /* above the canvas + frame labels, below .fc-popover (24) */
+  box-sizing: border-box;
+  min-height: var(--chrome-h);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-5);
+  padding-top: calc(var(--sp-3) + var(--safe-top));
+  background: color-mix(in srgb, var(--ui-color-surface-raised) 86%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+  color: var(--ui-color-text-default);
+  border-bottom: 1px solid var(--ui-color-border-default);
+  font-size: var(--ui-type-body);
+}
+
+/* The Home pill island ships its own corner pinning (parts/overrides.css). Inside
+   the bar it is just another inline control, so the pinning is neutralised here -
+   the same reset that sheet applies to the pill within the island. */
+.design-topbar .chrome-topleft {
+  position: static;
+  left: auto;
+  top: auto;
+  z-index: auto;
+  gap: var(--sp-3);
+}
+
+.dtb-centre,
+.dtb-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+/* The centre cluster takes the slack on both sides so it sits centred while the
+   left and right groups stay pinned to their edges. */
+.dtb-centre { margin-inline: auto; }
+.dtb-right { margin-inline-start: auto; gap: var(--sp-3); }
+
+.dtb-sep {
+  inline-size: 1px;
+  block-size: 20px;
+  background: var(--ui-color-border-default);
+  margin-inline: var(--sp-2);
+}
+
+/* A cluster of controls that shows and hides as one - today the zoom verbs, which
+   step aside while the compact zoom bar holds a slot in the right-edge dock
+   (design-topbar.ts's syncDock sets `hidden` on the group). The `[hidden]` rule is
+   not optional: `display: inline-flex` here would otherwise out-rank the attribute's
+   own `display: none`, which is how a hidden flex item stays on screen. */
+.dtb-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.dtb-group[hidden] { display: none; }
+
+/* ── controls ──────────────────────────────────────────────────────────────── */
+
+.dtb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  min-height: 30px;
+  padding: var(--sp-2) var(--sp-4);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--ui-type-body);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+/* Icons ride the type multiplier like the rail's do (see the --a11y-fs note in
+   parts/a11y.css): most of these buttons are a glyph plus a hidden label, so the
+   glyph IS the type as far as a largeText reader is concerned. */
+.dtb-ic { display: inline-flex; }
+.dtb-ic svg { display: block; width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.dtb-btn:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+.dtb-btn:active:not(:disabled) { filter: brightness(0.94); }
+.dtb-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.dtb-btn:disabled { opacity: 0.34; cursor: default; }
+.dtb-btn[aria-pressed="true"] { background: color-mix(in srgb, var(--ui-color-action-primary) 14%, transparent); color: var(--ui-color-action-primary); }
+.dtb-btn[aria-expanded="true"] { background: var(--ui-color-surface-muted); }
+
+.dtb-zoom-level { min-width: calc(52px * var(--a11y-fs)); font-variant-numeric: tabular-nums; }
+
+/* Export is the primary call to action; Present is its quieter neighbour, outlined
+   so the split button still reads as one object against the bar. */
+.dtb-primary { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
+.dtb-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--ui-color-action-primary) 86%, transparent); }
+
+.dtb-split { display: inline-flex; align-items: stretch; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); overflow: hidden; }
+.dtb-split .dtb-btn { border: 0; border-radius: 0; }
+.dtb-split-main { padding-inline-end: var(--sp-3); }
+.dtb-split .dtb-split-caret { padding-inline: var(--sp-2); border-inline-start: 1px solid var(--ui-color-border-default); }
+.dtb-split .dtb-split-caret .dtb-ic svg { width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); }
+
+.dtb-name {
+  flex: 0 1 clamp(120px, 22vw, 280px);
+  min-inline-size: 0;
+  padding: var(--sp-2) var(--sp-4);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--ui-type-body);
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+.dtb-name::placeholder { color: var(--ui-color-text-muted); font-weight: 400; }
+.dtb-name:hover { background: var(--ui-color-surface-muted); }
+.dtb-name:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 1px; background: var(--ui-color-surface-canvas); }
+
+.dtb-intent {
+  flex: none;
+  padding-inline: var(--sp-3);
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-type-caption);
+}
+.dtb-intent .dtb-ic { order: 2; align-items: center; gap: 1px; }
+.dtb-intent .dtb-ic svg { width: calc(13px * var(--a11y-fs)); height: calc(13px * var(--a11y-fs)); }
+.dtb-intent-kind { display: none !important; }
+.design-topbar[data-density="icons"] .dtb-intent-kind,
+.design-topbar[data-density="compact"] .dtb-intent-kind,
+.design-topbar[data-density="min"] .dtb-intent-kind { display: block !important; }
+
+.dtb-profile { display: inline-flex; align-items: center; margin-inline-start: var(--sp-2); }
+
+/* The avatar is the SHARED `.profile-link` (components/profile-menu.ts), which pins
+   itself to a view's top-right corner with `position: absolute; right/top; z-index:
+   99999` (parts/components.css). The bar is a positioned element, so inside it that
+   pin resolved against the BAR - the avatar parked itself over the Export button at
+   every width. Reset it to flow inline as a circle in the right group, the same reset
+   `.stage-nav .profile-link` (parts/editor.css) applies for the same reason.
+
+   `relative`, not `static`: the mark and the headshot inside it are absolutely
+   positioned against this box, so a static avatar would hand them to the bar instead
+   and paint a 2.2em swirl in the middle of the toolbar. Relative with no offsets is
+   in-flow either way. */
+.design-topbar .profile-link {
+  position: relative;
+  inset: auto;
+  right: auto;
+  top: auto;
+  z-index: auto;
+  min-height: 0;
+  width: calc(28px * var(--a11y-fs));
+  height: calc(28px * var(--a11y-fs));
+  padding: 0;
+  border-radius: var(--ui-radius-choice-round);
+  overflow: hidden;
+  flex: none;
+}
+.design-topbar .profile-link-mark,
+.design-topbar .profile-link-avatar {
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(22px * var(--a11y-fs));
+  height: calc(22px * var(--a11y-fs));
+}
+/* Icon only in the bar: the name would push Export off a narrow window. */
+.design-topbar .profile-link-name { display: none; }
+
+/* ── menus ─────────────────────────────────────────────────────────────────── */
+
+.dtb-menu {
+  position: absolute;
+  /* Above the floating tool rail (.fc-toolbar-dock, editor.css, z 24) and the canvas
+     hint pills (25, 26), below the colour popover (30). At 24 the rail, painted later,
+     won the tie and covered this menu on a phone - where it is the only way to reach
+     the Navigator and the Inspector (plans/184 section 6, S1). */
+  z-index: 28;
+  min-inline-size: 190px;
+  margin-block-start: var(--sp-3);
+  padding: var(--sp-2);
+  display: flex;
+  flex-direction: column;
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text-default);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-panel);
+  box-shadow: var(--ui-elevation-floating);
+  max-block-size: min(70vh, 480px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.dtb-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--ui-type-body);
+  text-align: start;
+  cursor: pointer;
+}
+.dtb-menu-item:hover:not(:disabled):not([aria-disabled='true']) { background: var(--ui-color-surface-muted); }
+.dtb-menu-item:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+/* Greyed, but still focusable and still readable: a row is turned off with aria-disabled
+   so the keyboard and a screen reader can still find it (design-topbar.ts says why). */
+.dtb-menu-item:disabled,
+.dtb-menu-item[aria-disabled='true'] { opacity: 0.55; cursor: default; }
+/* The reason under a greyed row's label. Inside the label span, so it is part of the
+   row's accessible name rather than a tip nothing on a touch device ever fires. */
+.dtb-menu-why {
+  display: block;
+  font-size: var(--fs-2xs);
+  line-height: 1.4;
+  opacity: 0.85;
+}
+.dtb-menu-ic { display: inline-flex; width: calc(18px * var(--a11y-fs)); }
+.dtb-menu-ic svg { display: block; width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.dtb-menu-label { flex: 1 1 auto; }
+/* The tick for a checkbox row. A ::after mark rather than a glyph column, so the
+   checked and unchecked rows share one baseline and one label indent. */
+.dtb-menu-item[role="menuitemcheckbox"] .dtb-menu-ic { display: none; }
+.dtb-menu-item[role="menuitemcheckbox"]::after {
+  content: '';
+  width: calc(9px * var(--a11y-fs));
+  height: calc(5px * var(--a11y-fs));
+  border: 2px solid currentColor;
+  border-block-start: 0;
+  border-inline-end: 0;
+  transform: rotate(-45deg);
+  opacity: 0;
+}
+.dtb-menu-item[aria-checked="true"] { color: var(--ui-color-action-primary); font-weight: 600; }
+.dtb-menu-item[aria-checked="true"]::after { opacity: 1; }
+
+/* ── breakpoints ───────────────────────────────────────────────────────────── */
+
+/* Density is set by the bar itself from its OWN measured width (design-topbar.ts
+   syncDensity), never by a viewport media query: the sidebars and the right dock take
+   width from the bar, so the viewport says nothing about the room the bar has. The
+   ladder is full -> icons -> compact -> min; each state is a data attribute so the
+   two halves (which controls hide, which fold into the hamburger menu) cannot drift.
+   Under "icons" every label is visually hidden, not removed: the accessible name is
+   untouched, and each button carries its own aria-label anyway. The zoom readout is
+   exempt: its text IS the control. */
+/* One tooltip system (plans/184 section 6, S6): every control carries the app's
+   [data-tip] bubble, below the bar. A button whose text label is showing needs no
+   bubble repeating it, so the bubble only comes through at the densities that hide
+   .dtb-label (the rule just below) - and never on the zoom readout, whose label stays. */
+.design-topbar:not([data-density="icons"]):not([data-density="compact"]):not([data-density="min"]) .dtb-btn[data-tip]:has(.dtb-label)::after,
+.design-topbar:not([data-density="icons"]):not([data-density="compact"]):not([data-density="min"]) .dtb-btn[data-tip]:has(.dtb-label)::before,
+.dtb-zoom-level[data-tip]::after,
+.dtb-zoom-level[data-tip]::before { display: none; }
+.design-topbar[data-density="icons"] .dtb-btn:not(.dtb-zoom-level) .dtb-label,
+.design-topbar[data-density="compact"] .dtb-btn:not(.dtb-zoom-level) .dtb-label,
+.design-topbar[data-density="min"] .dtb-btn:not(.dtb-zoom-level) .dtb-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.design-topbar[data-density="icons"],
+.design-topbar[data-density="compact"],
+.design-topbar[data-density="min"] { gap: var(--sp-2); padding-inline: var(--sp-4); }
+/* Compact and min: the centre cluster (and then Share and the Present menu) live in
+   the hamburger; the name takes the freed width so it never truncates first. */
+.design-topbar[data-density="compact"] .dtb-name,
+.design-topbar[data-density="min"] .dtb-name { flex: 1 1 auto; }
+
+@media (pointer: coarse) {
+  .dtb-btn { min-width: 44px; min-height: 44px; }
+  .design-topbar .chrome-topleft button,
+  .design-topbar .chrome-topleft a { min-width: 44px; min-height: 44px; }
+}
+
+/* Hide-controls full preview (the `\` key, free-canvas.ts): the bar is chrome, so
+   it goes with the rest of it. !important because the kill switch has to beat a
+   `display` set by any layer, matching the list in parts/editor.css. */
+.tool-view.is-chrome-hidden .design-topbar { display: none !important; }

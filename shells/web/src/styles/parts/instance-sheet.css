@@ -1,0 +1,55 @@
+/* Cascade layer: this whole sheet sits in the `views` layer (order declared
+   once in styles/app.css) - same reasoning as welcome.css: it's imported
+   directly by components/instance-sheet.ts (not through app.css's static
+   list), so wrapping pins its priority regardless of when Vite injects the
+   chunk. Do not rely on load order. */
+@layer views {
+
+/*
+ * Instance sheet (components/instance-sheet.ts) - first-run instance choice
+ * + the profile "Change" flow. Reuses the shared `.modal-title`/`.modal-msg`/
+ * `.modal-actions` chrome (dialogs.css), `.btn`/`.btn--primary` (buttons.css),
+ * `.field-input` and `.note`/`.note--warning` (components.css) - only the
+ * sheet's own layout (choice cards, field rows, probe/summary lines) lives
+ * here.
+ */
+.instance-sheet {
+  border: 0;
+  padding: 26px;
+  width: min(480px, 92vw);
+  margin: auto; /* re-assert centring at class specificity (see .modal) */
+  border-radius: calc(var(--radius) * 1.2);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: 0 24px 64px hsl(0 0% 0% / 0.4);
+}
+.instance-sheet::backdrop { background: hsl(0 0% 0% / 0.42); }
+
+.instance-choices { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+.instance-choice {
+  display: flex; align-items: flex-start; gap: 12px; text-align: left;
+  padding: 14px 16px; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * 1.2);
+  background: hsl(var(--background)); color: hsl(var(--foreground)); font: inherit; cursor: pointer;
+  transition: border-color var(--dur-1), background var(--dur-1), transform var(--dur-1);
+}
+.instance-choice:hover { border-color: hsl(var(--primary) / 0.55); transform: translateY(-1px); }
+.instance-choice-icon { flex: none; display: inline-flex; color: hsl(var(--muted-foreground)); margin-top: 1px; }
+.instance-choice-title { font-size: var(--fs-lg); font-weight: 650; display: block; }
+.instance-choice-sub { font-size: var(--fs-sm); line-height: 1.45; color: hsl(var(--muted-foreground)); display: block; margin-top: 2px; }
+
+.instance-field-row { display: flex; gap: 8px; margin: 4px 0 12px; }
+.instance-field-row .field-input { flex: 1 1 auto; min-width: 0; padding: 8px 10px; font-size: var(--fs-md); }
+
+.instance-probe { margin: -4px 0 14px; font-size: calc(12.5px * var(--a11y-fs)); line-height: 1.5; }
+.instance-probe--ok { color: hsl(150 55% 30%); }
+.instance-probe--err { color: hsl(var(--destructive)); }
+
+.instance-import-or {
+  display: flex; align-items: center; gap: 10px; margin: 4px 0 14px;
+  font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.instance-import-or::before, .instance-import-or::after { content: ''; flex: 1; height: 1px; background: hsl(var(--border)); }
+
+.instance-summary { margin: 0 0 14px; font-size: var(--fs-md); color: hsl(var(--foreground)); }
+
+}

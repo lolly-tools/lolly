@@ -1,0 +1,2046 @@
+/* ─── Gallery ───────────────────────────────────────────────────────────── */
+
+/* Sticky footer bar: Batch link on the far left, "what is this?" on the right -
+   both plain .btn-styled links flanking the centered search. One shell-level
+   singleton mounted after #view (components/search-bar.ts, plans/99 M1), shown
+   on every browse route - no view renders its own copy any more. */
+.gallery-footer {
+  position: fixed;
+  /* --vv-* (set by the VisualViewport shim) keep the fixed bar on the visible
+     edge while the page is pinch-zoomed; all 0px when not zoomed. */
+  left: var(--vv-left, 0px); right: var(--vv-right, 0px); bottom: var(--vv-bottom, 0px);
+  /* Reserve the edge-dock width on the logical inline-end (RTL-correct); 0px at rest. A
+     physical `right` bump would overlap the column in RTL, where the dock is on the left. */
+  margin-inline-end: var(--dock-w, 0px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .6rem 1rem;
+  /* viewport-fit=cover (see index.html) lets the footer reach the screen edge;
+     pad its content up past the iOS home-indicator so the controls stay tappable
+     and the bar reads as pinned to the visible viewport bottom. The side insets
+     matter in LANDSCAPE, where the notch/Dynamic Island sits in the bar's ends
+     (plans/132 wave 1). */
+  /* Collapse the safe-area pad once --vv-bottom lifts the whole bar clear of the
+     keyboard - otherwise it's dead space stacked on top of the lift on a notched
+     phone. max() keeps this byte-identical to the plain sum while --vv-bottom is
+     0px (the safe-area pad alone always exceeds the floor there). */
+  padding-bottom: max(.6rem, calc(.6rem + var(--safe-bottom) - var(--vv-bottom, 0px)));
+  padding-left: calc(1rem + var(--safe-left));
+  padding-right: calc(1rem + var(--safe-right));
+  background: hsl(var(--background) / .82);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid hsl(var(--border));
+}
+/* The singleton bar hides via the [hidden] attribute on editing routes - this must
+   out-specify the display:flex above (an author display beats the UA's [hidden]
+   rule, so without this the bar would stay visible on tool views). */
+.gallery-footer[hidden] { display: none; }
+/* Jelly mode: the soft-body controls carry their own vertical bulk, so the bar's
+   own .6rem block padding just doubled the height. Drop it (top fully, bottom to
+   only the iOS home-indicator inset) and tighten the gap. */
+.gallery-footer--jelly {
+  padding-top: 0;
+  padding-bottom: var(--safe-bottom);
+  gap: .5rem;
+}
+/* Clear the fixed footer bar on every route that shows it - the class is toggled
+   by the search-bar singleton's applyRoute (plans/99 M1), so dashboard/profile get
+   the clearance without a per-view rule. */
+.app-view.has-search-footer { padding-bottom: calc(5.5rem + var(--safe-bottom)); }
+
+/* First-visit privacy notice - a slim transparency strip pinned just above the
+   footer (--footer-h is measured live in privacy-notice.js so it tracks the
+   safe-area inset and any wrapped footer controls). One line, one dismiss; not a
+   consent gate, because all storage is strictly necessary. */
+.privacy-notice {
+  position: fixed;
+  left: var(--vv-left, 0px); right: var(--vv-right, 0px);
+  bottom: calc(var(--vv-bottom, 0px) + var(--footer-h, 3.4rem) - 1px);
+  /* Same edge-dock reserve as the footer it stacks on (lib/edge-dock.ts): without
+     it the strip spans the whole viewport, centres its line under the docked
+     column and gets clipped by it. 0px at rest. */
+  margin-inline-end: var(--dock-w, 0px);
+  z-index: 49; /* just under the footer (50) so they read as one stacked unit */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  padding: .45rem 1rem;
+  /* Near-solid background instead of a second blur pass: this strip sits directly
+     above the already-blurred footer, so a second adjacent full-width backdrop
+     blur is wasted GPU work. */
+  background: hsl(var(--background) / .96);
+  border-top: 1px solid hsl(var(--border));
+}
+.privacy-notice-text {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground, var(--foreground)));
+}
+.privacy-notice-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.privacy-notice-dismiss { padding: 3px 12px; font-size: var(--fs-sm); }
+/* Extra bottom clearance so the last card row isn't hidden behind both bars. */
+.app-view.gallery-view.has-privacy-notice { padding-bottom: calc(8.5rem + var(--safe-bottom)); }
+
+/* The gallery renders at most ONE first-run banner per visit and holds it hidden
+   until the welcome modal is ruled out (views/gallery.ts, plans/137 A1). An author
+   display beats the UA's [hidden] rule, so both banners need this - the same
+   reason .gallery-footer[hidden] exists above. */
+.privacy-notice[hidden], .personalize-nudge[hidden] { display: none; }
+
+/* First-visit personalisation nudge (personalize-nudge.js) - a compact card in
+   the top-right, tucked just under the top-bar cluster so it reads as pointing at
+   the profile pill it links to. Dismiss with × or "Not now", or follow the CTA to
+   the profile opt-in. One-time (localStorage), never shown once opted in. Lives
+   top-right so it never meets the bottom-pinned privacy strip. */
+.personalize-nudge {
+  position: fixed;
+  z-index: 99990; /* under the top-bar cluster (99999) so the bar always wins a touch */
+  /* Clear the real shared chrome row rather than estimating it from this
+     card's inherited font size. `--chrome-top` already includes the safe-area
+     inset and `--chrome-h` grows with Large text, so the prompt cannot slide
+     under either the native Tauri switcher or the top-right controls. */
+  top: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-4) + var(--vv-top, 0px));
+  right: calc(2em + var(--vv-right, 0px));
+  width: min(340px, calc(100vw - 2rem));
+  padding: 15px 16px 14px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-6);
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.4);
+  box-shadow: 0 14px 36px hsl(0 0% 0% / 0.26);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .personalize-nudge { animation: personalize-nudge-in var(--dur-2) ease both; transform-origin: top right; }
+}
+@keyframes personalize-nudge-in {
+  from { opacity: 0; transform: translateY(-8px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.personalize-nudge-icon {
+  align-self: start;
+  display: inline-flex; align-items: center; justify-content: center;
+  /* Badge + glyph ride --a11y-fs with the title beside them, so the icon stays the
+     same optical weight as the heading rather than shrinking against it. */
+  width: calc(34px * var(--a11y-fs)); height: calc(34px * var(--a11y-fs)); flex: none;
+  border-radius: var(--radius-md);
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.12);
+}
+.personalize-nudge-icon svg { width: calc(19px * var(--a11y-fs)); height: calc(19px * var(--a11y-fs)); }
+
+.personalize-nudge-body { min-width: 0; }
+.personalize-nudge-title {
+  margin: 0 0 4px; padding-right: 20px; /* clear the × in the corner */
+  font-size: var(--fs-lg); font-weight: 650; line-height: 1.3;
+  color: hsl(var(--foreground));
+}
+.personalize-nudge-text {
+  margin: 0; font-size: var(--fs-md); line-height: 1.45;
+  color: hsl(var(--muted-foreground, var(--foreground)));
+}
+.personalize-nudge-actions {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); margin-top: 12px;
+}
+.personalize-nudge-cta {
+  padding: 6px 14px; font-size: var(--fs-md); font-weight: 600; line-height: 1.3;
+  background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+  border: 0; border-radius: var(--radius-pill); text-decoration: none; cursor: pointer;
+  transition: background var(--dur-1);
+}
+.personalize-nudge-cta:hover { background: hsl(var(--primary) / .9); }
+.personalize-nudge-dismiss {
+  padding: var(--sp-3) var(--sp-5); font-size: var(--fs-md); font-weight: 500; line-height: 1.3;
+  background: transparent; color: hsl(var(--muted-foreground)); border: 0;
+  border-radius: var(--radius-pill); cursor: pointer;
+  transition: background var(--dur-1), color var(--dur-1);
+}
+.personalize-nudge-dismiss:hover { color: hsl(var(--foreground)); background: hsl(var(--muted) / .6); }
+
+.personalize-nudge-close {
+  position: absolute; top: 7px; right: 7px;
+  /* The box holds a ✕ glyph that already scales - at a fixed 26px the 1.2 glyph
+     fills it edge to edge and the hit target stops growing with everything else. */
+  width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs));
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: calc(18px * var(--a11y-fs)); line-height: 1;
+  color: hsl(var(--muted-foreground));
+  background: transparent; border: 0; border-radius: 8px; cursor: pointer;
+  transition: background var(--dur-1), color var(--dur-1);
+}
+.personalize-nudge-close:hover { color: hsl(var(--foreground)); background: hsl(var(--muted) / .6); }
+
+.personalize-nudge :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+
+/* Phones: in flow, not pinned (plans/137 A4). A fixed card held a quarter of a
+   390px viewport for as long as the user browsed; in flow it is a full-width card
+   at the top of the gallery content and scrolls away with it. Same markup, same
+   flags, same CTA - position only. `relative` (not `static`) keeps the × in its
+   corner. The card leads the page, so it carries the topbar clearance itself (the
+   top row floats over the content rather than occupying a bar) and hands it back:
+   the masonry drops its own top padding while the card is above it, the way
+   .brand-tips does, so the two can't stack their gaps. With a featured strip up
+   the strip pads its own track, which leaves the card sitting a little loose above
+   the covers - the fixed-position toast never met that case, and a rare loose gap
+   beats reaching into another sheet's hero. */
+@media (max-width: 640px) {
+  .personalize-nudge {
+    position: relative;
+    top: auto; right: auto;
+    width: auto;
+    margin: calc(4.4rem + var(--safe-top)) .6rem 12px;
+    box-shadow: none;
+  }
+  .gallery:not(.has-featured) .personalize-nudge:not([hidden]) ~ .tool-masonry { padding-top: 0; }
+}
+
+/* Subtle translucent-black wash so the cards read as raised on every theme. */
+/* Subtle page tint shared by the tools gallery and the Projects view. */
+.gallery-view, .projects-view { background-color: #00151910; }
+
+@media (min-width:756px) {
+  .gallery-view {
+    display: grid;
+        grid-template-columns: 1.5fr 4fr;
+        gap: var(--sp-6);
+  
+        align-items: start;
+  }
+}
+
+.gallery-view .saved-list{display:block;}
+.gallery-view .saved-list > *{display:block;}
+
+/* Lives in the sticky footer between the Batch CTA and the info link: take the
+   middle space and center the field within it (min-width:0 lets it shrink past
+   its content on narrow screens so the side items never get pushed off). */
+.gallery-search-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* Relative box so the magnifier can sit inside the (centered, max-width) field. */
+.gallery-search-box {
+  position: relative;
+  width: 100%;
+  max-width: 28rem;
+}
+.gallery-search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+}
+.gallery-search-icon svg { width: var(--fs-xl); height: var(--fs-xl); }
+/* Jelly effects mode (lib/jelly.ts): the field is a <jelly-input>; the search
+   icon and ✕ overlay its canvas, so they need stacking above it, and the inner
+   field needs matching inline padding so text clears the icon. The native field
+   chrome above (border/background/padding) must NOT paint on the jelly host -
+   the component draws its own capsule, and the two together read as a double
+   outline. */
+.gallery-search-wrap--jelly .gallery-search {
+  width: 100%;
+  /* (the icon-clearance --jelly-input-padding-inline lives INLINE on the element,
+     set by gallerySearchBox - a rule here sits in @layer views and would lose to
+     the unlayered lib/jelly.ts bridge sheet) */
+  background: none; border: 0; box-shadow: none; padding: 0; border-radius: 0;
+}
+.gallery-search-wrap--jelly .gallery-search-icon,
+.gallery-search-wrap--jelly .gallery-search-clear,
+.gallery-search-wrap--jelly .gallery-search-kbd { z-index: 1; }
+
+.gallery-search {
+  width: 100%;
+  min-width:4em;
+  /* Left room for the magnifier, right room for the ✕ (both always reserved - the
+     field always ships the clear button).
+     KNOWN LIMIT under largeText: both ornaments scale with the type, so at 1.2 the
+     ✕ reaches 34.8px in from the right edge and the query text grazes it by ~0.8px.
+     Left flat deliberately. The fix would be to scale this reservation, and the
+     multiplier is not allowed on padding (a11y-prefs-contract.test.ts: spacing that
+     follows the type is scaled where its TOKEN is declared, never restated at a use
+     site) - which is the right rule, and 0.8px of overlap is not worth minting a
+     global token for one field or weakening a guard that has caught real bugs. */
+  padding: 8px 34px;
+  font: inherit;
+  font-size: var(--fs-md);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color var(--dur-1);
+}
+
+.gallery-search:focus {
+  border-color: hsl(var(--ring));
+}
+/* ✕ clear button - shared by Tools + Catalogue (component-audit rec 11; previously
+   the gallery built this with inline JS styles and the catalog borrowed projects'
+   .projects-search-clear). Shown/hidden via the `hidden` attribute, so re-assert
+   the UA default against the `display:inline-flex` below. */
+.gallery-search-clear {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs)); display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: var(--radius-round); background: transparent; color: hsl(var(--muted-foreground));
+  font-size: var(--fs-md); line-height: 1; cursor: pointer;
+  transition: background var(--dur-1), color var(--dur-1);
+}
+.gallery-search-clear[hidden] { display: none; }
+.gallery-search-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.gallery-search-clear:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+
+/* Spotlight chord hint (plans/99 section 2f) - the ⌃␣ <kbd> chip right-aligned inside
+   the box. Advertises Control-Space ONLY (⌘Space stays bound but silent - the
+   locked decision). Decorative: aria-hidden, pointer-events none; search-bar's
+   syncClear flips [hidden] the moment the field has text, so it and the ✕
+   never share the corner. Hidden outright on coarse pointers (no keyboard to
+   hint at) and under 640px (the field is full-width and tight). */
+.gallery-search-kbd {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 1px 6px;
+  font-family: inherit;
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 0.55);
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 0.75);
+  pointer-events: none;
+}
+.gallery-search-kbd[hidden] { display: none; }
+@media (pointer: coarse) {
+  .gallery-search-kbd { display: none; }
+}
+@media (max-width: 640px) {
+  .gallery-search-kbd { display: none; }
+}
+
+.gallery-no-results {
+  font-size: var(--fs-md);
+  color: hsl(var(--muted-foreground));
+  padding: 8px 0;
+}
+
+/* Secondary nav links flanking the search - Platform/Capabilities on the left,
+   Verify on the right. Plain footer .btn pills; space-between + the flex:1 search
+   packs the left group left and the right group right. They collapse away on
+   phones (still reachable from the profile page / capabilities), leaving the
+   footer as the original search + Pro/What? stack. */
+.gallery-nav-link { white-space: nowrap; }
+/* Verify (Content Credentials) reads as the trust action: a solid SUSE Pine Green
+   pill with a shield-check. Explicit green (not --primary, which is dark teal in the
+   light theme) so it's green in every theme. */
+.gallery-footer a.gallery-nav-link--verify {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  background: hsl(var(--primary) / 1);
+  color: hsl(var(--primary-foreground) / 1);
+  border-color: transparent;
+  font-weight: 600;
+}
+.gallery-footer a.gallery-nav-link--verify:hover {
+  background: hsl(151 57% 36%);
+  color: #fff;
+  border-color: transparent;
+}
+/* Every footer nav link shows its icon + text label on desktop; on phones the label
+   collapses away (see the media query) so each button is just its icon. */
+/* Icons scale on --a11y-fs: below 640px .gallery-nav-label is hidden (see the media
+   query below) and these buttons are icon-only, so a fixed 15px would leave the
+   footer nav untouched by largeText on exactly the screen it matters most. */
+.gallery-footer > .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-3); }
+.gallery-footer > .btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); flex-shrink: 0; }
+
+/* Jelly footer nav items (flag): the <jelly-button> paints its own capsule, so it
+   just needs to hold its width in the row and size its slotted icon (the slotted
+   svg is light-DOM, so this outer rule reaches it). */
+.gallery-footer .gallery-nav-jelly { flex: 0 0 auto; }
+.gallery-footer .gallery-nav-jelly svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); flex-shrink: 0; }
+
+/* Phones: full-width search on top, the nav links sharing the row beneath it - each
+   collapsed to just its icon (label hidden) rather than dropped, so Platform &
+   Capabilities stay reachable. aria-label keeps them named. */
+@media (max-width: 640px) {
+  /* Search on its own top row; the icon-only nav buttons share ONE row beneath it.
+     A tight column gap + trimmed horizontal padding (the footer's own and each button's)
+     keeps all of them on that row rather than wrapping the last one ("What?") onto a
+     third line - and min-width:0 lets the flex children shrink to fit instead of forcing
+     a wrap at their content width. */
+  .gallery-footer { flex-wrap: wrap; gap: .5rem .3rem; padding-inline: .5rem; }
+  .gallery-search-wrap { flex-basis: 100%; order: -1; }
+  .gallery-footer > .btn,
+  .gallery-footer > .gallery-nav-jelly { flex: 1 1 0; min-width: 0; }
+  .gallery-footer > .btn { padding-inline: .4rem; }
+  .gallery-footer .gallery-nav-label { display: none; }
+  /* First run only (plans/163 F11): footer-nav.ts marks the bar [data-first-run]
+     while the privacy notice is unacknowledged, and for that window each glyph
+     gets its name back underneath in small muted type. Nothing else changes: the
+     two rules stop matching the moment the attribute goes, leaving the icon-only
+     bar above. The coarse-pointer 44px floor further down is a MINIMUM, so the
+     taller stacked button never shrinks a tap target. */
+  .gallery-footer[data-first-run] > .btn,
+  .gallery-footer[data-first-run] > .gallery-nav-jelly { flex-direction: column; gap: 1px; }
+  /* The stacked glyph+name needs the button's full width for the name: at 393px
+     four buttons share ~350px, and the capsule/inline padding was what cut
+     "Dashboard" to "Dashb…" (audit 167 A15). Labels are the whole point of the
+     first-run window, so the padding yields to them. */
+  .gallery-footer[data-first-run] > .btn { padding-inline: .15rem; }
+  .gallery-footer[data-first-run] > .gallery-nav-jelly { --jelly-button-padding-inline: 4px; }
+  .gallery-footer[data-first-run] .gallery-nav-label {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /* Muted via opacity, not a token colour: the same rule has to read right on
+       the plain buttons AND on Verify's solid green pill, whose text is white. */
+    opacity: .78;
+    font-size: calc(9px * var(--a11y-fs));
+    line-height: 1.15;
+  }
+}
+
+/* Empty state: every tool category is hidden (or there are none). */
+.gallery-empty {
+  display: grid;
+  place-content: center;
+  min-height: 70vh;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: hsl(var(--muted-foreground));
+}
+.gallery-empty-title {
+  margin: 0 0 .4rem;
+  font-size: calc(1.05rem * var(--a11y-fs));
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+.gallery-empty-hint { margin: 0; font-size: var(--fs-lg); }
+.gallery-empty-hint a,
+.gallery-retry { color: hsl(var(--primary)); font-weight: 600; }
+.gallery-retry {
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.gallery-retry:disabled { opacity: .6; cursor: default; text-decoration: none; }
+
+.saved-row h4{font-weight: 600;
+    font-size: var(--fs-sm);
+    margin: 0;}
+
+/* One entrance language. Every mount-time reveal in the app (gallery cards,
+   saved rows, the platform/capabilities cascade) shares this duration + curve
+   so nothing reads as faster/snappier than its neighbour - the cross-view
+   timing spread was itself a source of the "jittery" feel. Each surface keeps
+   its OWN stagger ladder (densities differ); only the curve + duration unify.
+   The curve is a gentle decel - long enough to read as a settle, not a
+   single-frame pop. Theme-agnostic, so it lives here, not in tokens.css. */
+:root {
+  --enter-dur: 0.32s;
+  --enter-ease: cubic-bezier(.22, .61, .36, 1);
+}
+
+/* GUARDRAIL for every card-in user: fill with `backwards`, not `both`/`forwards`.
+   A persisted fill keeps a computed `translate: 0px` on the element after the
+   animation ends, and any non-`none` translate - even zero - makes it the containing
+   block + stacking context for position:fixed descendants (colour-swatch popovers,
+   menus), which then clip under `overflow: clip` ancestors and paint beneath later
+   siblings. `backwards` still covers the stagger-delay period; after the run the
+   element returns to its natural style, which equals the `to` state, so nothing
+   visibly changes. Sole exception: the armed masonry below - its tiles' BASE state
+   is `opacity: 0`, so the persisted fill is what keeps them visible (and no fixed
+   popover ever mounts inside a tile). */
+@keyframes card-in {
+  from { opacity: 0; translate: 0 6px; }
+  to   { opacity: 1; translate: 0 0;   }
+}
+
+/* Suppress entrance animation when returning from a tool - cards are already known. */
+.gallery-view.is-returning .tool-masonry .gtile {
+  animation: none;
+}
+
+/* Visual feedback on the element that triggered navigation while the tool loads.
+   Opacity-only - a transform here (scale) reflows the masonry's column packing,
+   so the card appears to resize/jump on tap rather than fade. */
+.is-navigating {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity var(--dur-1);
+}
+/* Per-tool icon (tools/<id>/icon.svg, inlined into the catalog index) - sits to
+   the LEFT of the name + description. Brand accent; inherits currentColor so it
+   themes. (Size/opacity tuned on the svg below.) */
+.tool-card-icon {
+    display: block;
+    flex-shrink: 0;
+    color: hsl(var(--primary));
+    place-self: start;
+
+}
+
+.tool-card-icon svg {
+  width: 48px;
+  height: 48px;
+  display: block;
+stroke-width:.81;
+  opacity:.25;
+}
+
+.badge {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+  z-index: 1;
+}
+/* On cards that lead with a preview image, the status badge is injected into the
+   hero and pinned bottom-right with the same typography, size and padding as the
+   Continue/Open chip (just a little more breathing room top/bottom, and a solid
+   fill). It's persistent - it stays put on hover; the Open/Continue chip stacks
+   just above it (see below) rather than the badge ceding the slot. */
+.gtile-hero .badge,
+.gcar .badge {
+  top: auto;
+  left: auto;
+  right: 12px;                 /* line up with .gtile-continue's gutter, not the 8px inset */
+  bottom: 8px;
+  font-family: inherit;        /* the Open chip uses the UI font, not SUSE Mono */
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: capitalize;  /* "Experimental", echoing the Open chip's case */
+  padding: 6px 9px;            /* Open's side padding, a touch more above/below */
+}
+/* Experimental over a hero is a solid red sibling of the primary Open chip - same
+   shape, the warning colour as its fill. (The inline body badge on preview-less
+   cards keeps its lighter, outlined treatment below.) */
+.gtile-hero .badge-experimental,
+.gcar .badge-experimental {
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+  border: none;
+}
+
+.badge-experimental {
+  background: hsl(var(--background) / .9);
+  
+  color: hsl(var(--destructive));
+  border: 1px solid hsl(var(--destructive) / 0.3);
+}
+
+.badge-community {
+  background: hsl(40 90% 50% / 0.1);
+  color: hsl(35 80% 40%);
+  border: 1px solid hsl(40 70% 50% / 0.3);
+}
+
+.badge-desktop {
+  background: hsl(var(--muted) / 0.9);
+  color: hsl(var(--muted-foreground));
+  border: 1px solid hsl(var(--border));
+}
+
+/* Capture tools on a Chromium browser: runnable via the extension (clickable). */
+.badge-install {
+  background: hsl(152 60% 45% / 0.12);
+  color: hsl(152 55% 32%);
+  border: 1px solid hsl(152 50% 45% / 0.35);
+}
+
+/* ─── Gallery: preview-forward masonry (cards lead with the most-recent
+   session preview at its natural aspect - portrait shows in full, no crop) ── */
+
+/* The masonry gallery is a single full-width column, not the old saved/grid split. */
+.gallery-view.has-masonry { display: block; }
+@media (min-width: 756px) {
+  .gallery-view.has-masonry { display: block; grid-template-columns: none; }
+}
+
+/* ── Filter control - a FAB in the top-right cluster that opens the category
+   pills + the Hide-previews toggle (replaces the old sticky pill bar). The FAB
+   mirrors .history-fab so the cluster reads as one set. ── */
+/* background/color/backdrop-filter/transition come from the shared .btn--glass
+   alias (buttons.css) - matches the rest of the top-right FAB cluster. */
+.filter-fab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  /* Square, on the row's shared height (tokens.css) - see .tools-home. */
+  width: var(--chrome-h);
+  height: var(--chrome-h);
+  padding: 0;
+  border: 1px solid hsl(var(--primary));
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+/* hover + open (aria-expanded) tint is centralised with the rest of the top-right
+   cluster in overrides.css (@layer overrides - the tools-home glass treatment). */
+/* The glyph rides the SAME --a11y-fs the row's type does - this button carries no
+   visible label, so under largeText the mark IS the label, and the box around it
+   (var(--chrome-h)) already grows. One knob, so the two can't drift apart. */
+.filter-fab svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+/* Dot marking a non-default category filter. */
+.filter-fab.has-active::after {
+  content: "";
+  position: absolute;
+  top: -1px; right: -1px;
+  /* This dot is the ONLY signal that a filter is hiding tools, and it is already
+     the smallest mark in the row - it scales too, or largeText makes it relatively
+     smaller against a button that grew. The 2px ring stays put: it is a separation
+     stroke against the background, not type. */
+  width: var(--fs-2xs); height: var(--fs-2xs);
+  border-radius: var(--radius-round);
+  background: hsl(var(--primary));
+  border: 2px solid hsl(var(--background));
+}
+
+/* Desktop: anchored dropdown under the cluster (right-aligned so it stays on
+   screen). .gallery-topright is position:fixed, i.e. the containing block. */
+.filter-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 100;
+  width: min(280px, calc(100vw - 3em));
+  padding: var(--sp-6);
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 10px 28px hsl(0 0% 0% / 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  text-align: left;
+}
+.filter-popover[hidden] { display: none; }
+.filter-pop-head {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: hsl(var(--muted-foreground));
+}
+.filter-pop-pills { display: flex; flex-wrap: wrap; gap: var(--sp-4); }
+.filter-pop-check {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid hsl(var(--border));
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+/* The tick itself is `.field-check` (parts/fields.css); the popover runs it a
+   couple of pixels larger than the 16px default so it reads at a glance in a
+   sparse list. */
+.filter-pop-check input { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+
+/* Sort control at the top of the popover - a native <select> for familiarity and
+   free keyboard/AT support, styled to match the search field. */
+.filter-pop-sort { display: flex; flex-direction: column; gap: var(--sp-3); }
+
+/* Featured view-mode segmented control (Gallery | Cover Flow). */
+.view-seg { display: flex; gap: var(--sp-3); }
+.view-seg-btn {
+  flex: 1;
+  padding: 7px 10px;
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-panel);
+  cursor: pointer;
+  transition: background var(--ui-motion-feedback), color var(--ui-motion-feedback), border-color var(--ui-motion-feedback);
+}
+/* Neutral fill scoped to the UNPRESSED state. The pressed segment's fill comes
+   from buttons.css's `.btn--primary` alias (the `primitives` layer). Under cascade
+   layers, a bare `.view-seg-btn { background }` base would sit in `chrome` and beat
+   that alias by layer rank (chrome > primitives) - losing the selected-state fill.
+   Scoping the neutral fill to :not([aria-pressed="true"]) means the two never
+   target the same element, so the pressed segment keeps the primary fill and no
+   layer/specificity fight exists. */
+.view-seg-btn:not([aria-pressed="true"]) {
+  color: var(--ui-color-text-default);
+  background: var(--ui-color-surface-canvas);
+}
+.view-seg-btn:hover { border-color: color-mix(in srgb, var(--ui-color-action-primary) 50%, transparent); }
+/* The pressed fill (background/color) is declared once in parts/buttons.css's
+   `.btn--primary` alias list (component audit rec 2) - this rule keeps only the
+   border delta, which that list doesn't restate. */
+.view-seg-btn[aria-pressed="true"] {
+  border-color: var(--ui-color-selection-border);
+}
+/* Sort key select + a direction toggle on one row. */
+.gallery-sort-row { display: flex; gap: var(--sp-3); align-items: stretch; }
+/* Box, chevron, hover-lift and focus halo come from `.field-select`
+   (parts/fields.css) - only the row geometry and the heavier weight that
+   matches `.filter-pop-head` above it are local. */
+.gallery-sort {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+/* Direction toggle - reverses the active sort (last results first). The lit arrow
+   (down = default order, up = reversed) shows which way the results run. */
+.gallery-sort-dir {
+  flex: none;
+  /* Square-ish against the sort <select> beside it, whose height is type-driven -
+     a frozen 40px would go oblong the moment the row's type grew. */
+  width: calc(40px * var(--a11y-fs));
+  display: inline-flex; align-items: center; justify-content: center;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: color var(--dur-1) ease, border-color var(--dur-1) ease, background-color var(--dur-1) ease;
+}
+.gallery-sort-dir svg { width: calc(19px * var(--a11y-fs)); height: calc(19px * var(--a11y-fs)); }
+.gallery-sort-dir:hover { border-color: hsl(var(--ring)); }
+.gallery-sort-dir:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+/* Default (descending): the down arrow leads; the up arrow is dimmed. */
+.gallery-sort-dir .sd-up { opacity: 0.3; }
+.gallery-sort-dir .sd-down { opacity: 1; }
+/* Reversed (ascending): flip the emphasis and tint the control so the non-default
+   state reads at a glance (matches the filter FAB's active dot signal). */
+.gallery-sort-dir.is-asc { color: hsl(var(--primary)); border-color: hsl(var(--primary)); }
+.gallery-sort-dir.is-asc .sd-up { opacity: 1; }
+.gallery-sort-dir.is-asc .sd-down { opacity: 0.3; }
+
+.filter-backdrop { display: none; }
+
+/* Mobile: the popover becomes a bottom sheet with a tap-to-close scrim. */
+@media (max-width: 640px) {
+  .filter-popover {
+    position: fixed;
+    inset: auto 0 0 0;
+    width: auto;
+    z-index: 100000;
+    border-radius: 18px 18px 0 0;
+    padding: 16px 16px calc(16px + var(--safe-bottom));
+    box-shadow: 0 -10px 32px hsl(0 0% 0% / 0.32);
+    animation: filter-sheet-up var(--dur-2) ease both;
+  }
+  .filter-backdrop:not([hidden]) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 99998;
+    background: hsl(0 0% 0% / 0.4);
+  }
+}
+@keyframes filter-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.gallery-pill {
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius)*1.5);
+  padding: 7px 14px;
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-1), color var(--dur-1), border-color var(--dur-1);
+}
+.gallery-pill:hover { border-color: hsl(var(--primary) / 0.5); }
+.gallery-pill .ct { opacity: 0.5; margin-left: 5px; font-weight: 600; }
+/* fill (background/color) is aliased in ../styles/parts/buttons.css's .btn--primary list */
+.gallery-pill.active {
+  border-color: hsl(var(--primary));
+}
+/* Favourites pill - leading star; the glyph carries the accent when inactive and
+   rides the foreground colour when the pill is active (filled). */
+.gallery-pill--fav { display: inline-flex; align-items: center; }
+.gallery-pill--fav .pill-star { margin-right: 5px; color: hsl(var(--primary)); line-height: 1; }
+.gallery-pill--fav.active .pill-star { color: inherit; }
+/* Inline star used in the empty-favourites message. */
+.star-inline { color: hsl(var(--primary)); font-weight: 700; }
+
+/* CSS multi-column masonry. --cols scales with width. Column count is fixed by the
+   viewport, NOT the result count: a short list (search / filter) packs into the
+   leftmost columns at the SAME card width the viewport is used to, rather than
+   collapsing to fewer, wider columns - so a lone result stays card-sized instead of
+   ballooning to full width. Leftover columns on the right are just empty. */
+.tool-masonry {
+  --cols: 4;
+  /* Uniform GRID (was a column masonry): every tile is the same width AND - with a
+     square preview + a clamped two-line description - the same height, so the page
+     reads as a tidy grid rather than a ragged bento. --cols keeps the same
+     width-driven breakpoints the masonry used. */
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: var(--grid-gap);   /* tokens.css - collapses to --grid-gap-tight ≤640px */
+  align-items: stretch;   /* every tile fills its row height → equal-size cards */
+  /* Top padding clears the fixed top-right cluster (filter / saved / profile) now
+     that the sticky pill bar - which used to hold this space - is gone. --safe-top
+     matches the phone breakpoint below: on iPadOS the system draws a scroll-edge
+     blur across the top inset and the grid must start below it - the fixed topbar
+     cluster (already offset by --safe-top) stays over the blur, the cards do not.
+     Zero everywhere without an inset, so browsers render byte-identically. */
+  padding: calc(6rem + var(--safe-top)) 1rem 1rem;
+}
+@media (max-width: 1180px) { .tool-masonry { --cols: 3; } }
+@media (max-width: 820px)  { .tool-masonry { --cols: 2; } }
+@media (max-width: 410px)  { .tool-masonry { --cols: 1; } }
+/* Tighter side gutters + a little more top room for the cluster on phones. The
+   top pad tracks the safe-area inset so content clears the fixed bar (which is now
+   offset by var(--safe-top)) on notched standalone PWAs. */
+@media (max-width: 640px)  { .tool-masonry { padding: calc(4.2rem + var(--safe-top)) .6rem 1rem; } }
+
+/* Mobile (single-column) scroll-snap: flicking down the gallery settles each card
+   with its TITLE anchored at the base of the screen - the preview fills the view
+   above it, feed-style. Scoped to ≤520px (where the masonry is ONE column, so snap
+   points don't interleave across columns) and to the gallery view only, applied to
+   the document scroller (`html:has(...)`, the same scoping style as the tool view).
+   `proximity` - never `mandatory` - so a preview taller than the screen is never a
+   trap and free-scrolling to read a card's description still works. The snap target
+   is the title itself (`.gtile-name`).
+     The "base" is the top of the fixed .gallery-footer (search + Pro/What), NOT the
+   raw viewport edge, so a snapped title rests just ABOVE the footer instead of behind
+   it - `scroll-padding-bottom` mirrors the gallery's own footer clearance (5.5rem,
+   or 8.5rem while the first-visit privacy strip is up), and the title's small
+   `scroll-margin-bottom` is the gap between it and the footer. */
+@media (max-width: 520px) {
+  html:has(#view.gallery-view) {
+    scroll-snap-type: y proximity;
+    scroll-padding-bottom: calc(6rem + var(--safe-bottom));
+  }
+  html:has(#view.gallery-view.has-privacy-notice) {
+    scroll-padding-bottom: calc(9rem + var(--safe-bottom));
+  }
+  #view.gallery-view .gtile-name {
+    scroll-snap-align: end;
+    scroll-margin-bottom: var(--grid-gap-tight);   /* tracks the grid's phone gap */
+  }
+}
+
+/* "Hide colourful previews" (the a11y pref, profile → Accessibility - was the
+   filter popover's device-local toggle): drop ALL preview thumbnails for a
+   compact gallery. Demo-preview heroes collapse entirely (the card body's name
+   link already opens the tool). Saved-session heroes keep a slim "Continue" bar -
+   image hidden, resume affordance kept - since the chips are absolutely positioned
+   over the (now hidden) image and would otherwise be stranded on a 0-height box.
+   Gated on html[data-a11y-previews="hidden"] like every a11y pref (dormant by
+   default; the contract test polices the form). */
+html[data-a11y-previews="hidden"] .tool-masonry .gtile-hero--preview { display: none; }
+html[data-a11y-previews="hidden"] .tool-masonry .gtile-hero:not(.gtile-hero--preview) {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: var(--sp-4) var(--sp-6);
+  aspect-ratio: auto;      /* drop the square - this is a slim Continue bar, not a preview */
+  background: none;        /* drop the checkerboard placeholder */
+  line-height: normal;     /* was 0 (for the image) - let the chip size the bar */
+}
+html[data-a11y-previews="hidden"] .tool-masonry .gtile-hero:not(.gtile-hero--preview) .gtile-hero-img,
+html[data-a11y-previews="hidden"] .tool-masonry .gtile-hero:not(.gtile-hero--preview) .gtile-stamp {
+  display: none;           /* image gone; timestamp is redundant with the caption sub-line */
+}
+html[data-a11y-previews="hidden"] .tool-masonry .gtile-hero:not(.gtile-hero--preview) .gtile-continue,
+html[data-a11y-previews="hidden"] .tool-masonry .gtile-hero:not(.gtile-hero--preview) .badge{
+  position: static;        /* flow inside the bar instead of floating over the image */
+  opacity: 1;              /* normally revealed on hover - always show it here */
+}
+/* Icon-led / resume / "desktop only" tiles are previews too - collapse them so
+   every hidden-preview card is just its icon + text body (the icon lives in the
+   caption row; the name link still opens the tool). */
+html[data-a11y-previews="hidden"] .tool-masonry .gtile-tile { display: none; }
+
+/* Featured strip, previews OFF: it STAYS (per Andy) but each hero collapses to a
+   compact icon + name + blurb, so it reads like the collapsed grid cards below
+   rather than a wall of empty preview stages. Scoped to the gallery root because
+   the strip lives OUTSIDE .tool-masonry. */
+html[data-a11y-previews="hidden"] .gallery .featured { --ftile-h: auto; }
+html[data-a11y-previews="hidden"] .gallery .ftile { width: clamp(220px, 26vw, 300px); }
+html[data-a11y-previews="hidden"] .gallery .ftile-link { height: auto; }
+html[data-a11y-previews="hidden"] .gallery .ftile-stage { flex: 0 0 auto; min-height: 0; }
+html[data-a11y-previews="hidden"] .gallery .ftile-img,
+html[data-a11y-previews="hidden"] .gallery .ftile-open,
+html[data-a11y-previews="hidden"] .gallery .featured-go,
+html[data-a11y-previews="hidden"] .gallery .ftile-dots,
+html[data-a11y-previews="hidden"] .gallery .ftile-stage::after { display: none; }
+/* Keep the icon visible even once real art has loaded (.ftile.has-art hides it),
+   and pull it into flow as a small, legible mark rather than the faint z-index:-1
+   ghost that normally sits behind the preview. */
+html[data-a11y-previews="hidden"] .gallery .ftile .ftile-iconfill {
+  display: flex;
+  position: static;
+  z-index: 0;
+  padding: 14px 0 6px;
+  color: hsl(var(--muted-foreground) / .7);
+}
+html[data-a11y-previews="hidden"] .gallery .ftile-iconfill svg { max-width: 52px; max-height: 52px; }
+@media (min-width: 1500px) { .tool-masonry { --cols: 5; } }
+@media (min-width: 1800px) { .tool-masonry { --cols: 6; } }
+@media (min-width: 2100px) { .tool-masonry { --cols: 7; } }
+@media (min-width: 2400px) { .tool-masonry { --cols: 8; } }
+@media (min-width: 2700px) { .tool-masonry { --cols: 9; } }
+
+.gtile {
+  width: 100%;
+  margin: 0;                          /* grid `gap` owns the spacing now */
+  /* Anchor for the action overlay that floats on the preview (.gtile-actions). */
+  position: relative;
+  /* Flex column so the square visual, the text body and the actions stack, and the
+     body can flex to fill - keeping every tile the same height within its grid row. */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: none;
+  border-radius: calc(var(--radius) * 1.1);
+  overflow: hidden;
+  transition: border-color var(--dur-1);
+      box-shadow: 0 .1rem 1rem #0001;
+  /* Skip the expensive work - parsing/rasterising the preview SVG (some carry
+     feGaussianBlur shadows or thousands of dots), layout and paint - for tiles
+     scrolled off-screen; the browser only does it as a tile nears the viewport.
+     The `auto` intrinsic-size remembers each tile's real rendered height, so the
+     column packing barely shifts on scroll-back. Biggest cheap win for a long
+     gallery. IntersectionObserver reveal + the cross-fade ticker are unaffected
+     (elements stay in the DOM; only off-screen rendering is skipped). */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 340px;
+}
+/* Search / category filter hides tiles IN PLACE (the nodes stay live so their decoded
+   thumbs + observers survive) - display:none drops them from the column flow entirely.
+   Higher specificity than the base `.gtile { display: block }` above so it wins. */
+.tool-masonry .gtile.is-filtered { display: none; }
+
+/* ── Multi-select ──
+   Every tile carries the shared .tile-check dot (folder-tiles.ts / folders.css
+   own its box + pressed state); this block adds the gallery's reveal states -
+   folders.css only reveals it inside .folder-tile. In the gallery the dot sits
+   BOTTOM-LEFT (folders.css pins it top-left): the top-left corner belongs to the
+   preview's timestamp stamp (.gtile-stamp), and the card's bottom-left - under
+   the caption icon column - is reliably empty. Above the stretched .gtile-name
+   click target (z-index 2 vs 1), so it stays tappable. */
+.gtile .tile-check { top: auto; bottom: 10px; left: 10px; }
+.gtile:hover .tile-check,
+.gtile.is-selected .tile-check,
+.gallery.has-selection .tile-check { opacity: 1; }
+/* .gtile is borderless (shadow card) - the selection ring is a box-shadow pair. */
+.gtile.is-selected { box-shadow: var(--ui-effect-selected), var(--ui-elevation-control); }
+/* Long-press opens the context menu on touch - suppress the OS link preview /
+   text-selection callout that would race it. */
+.gtile { -webkit-touch-callout: none; }
+@media (pointer: coarse) {
+  .gtile { -webkit-user-select: none; user-select: none; }
+}
+
+/* ── Hidden tools ──
+   A hidden tile only shows while the "Show hidden tools" reveal is on - dimmed and
+   desaturated so the state reads at a glance (hover restores most of it for reading).
+   The dim rides `filter` (opacity()), NOT the opacity property: the entrance
+   cascade's card-in animation is fill-mode:both, which pins `opacity` at its final
+   keyframe forever and silently beats any cascade value. */
+.tool-masonry .gtile.is-hidden-tool:not(.is-filtered) { filter: saturate(0.5) opacity(0.55); }
+.tool-masonry .gtile.is-hidden-tool:not(.is-filtered):hover { filter: saturate(0.8) opacity(0.9); }
+/* The grey reveal box, last in the grid - a plain-text button, deliberately muted
+   (no dashes: dashed borders mean drop areas). Overrides the .gtile card base. */
+.tool-masonry .gtile--hiddenbox {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 84px; height: auto; padding: 14px;
+  border: none; border-radius: calc(var(--radius) * 1.1);
+  background: hsl(var(--muted) / 0.5); color: hsl(var(--muted-foreground));
+  font-size: var(--fs-md); font-weight: 600; text-align: center;
+  cursor: pointer; box-shadow: none;
+}
+.tool-masonry .gtile--hiddenbox:hover { background: hsl(var(--muted) / 0.75); color: hsl(var(--foreground)); }
+
+/* Restrained hover - border highlight only, no lift, no glow shadow. */
+.gtile:hover { border-color: hsl(var(--primary) / 0.45); }
+.gtile:hover .tool-card-icon svg { opacity: 1; }
+.gtile:hover .gtile-desc { color: hsl(var(--foreground)); }
+.gtile.is-navigating { opacity: 0.6; }
+/* Cold-load entrance: a quick, satisfying cascade. JS arms the reveal
+   (.reveal-armed → tiles start hidden) and an IntersectionObserver adds .is-in
+   per tile with a staggered --reveal-delay. So the above-the-fold batch cascades
+   on load and everything below fades in as it scrolls into view (especially nice
+   on mobile's single column). Without JS - or when returning from a tool, or
+   under reduced motion - tiles are never armed and render instantly. */
+@media (prefers-reduced-motion: no-preference) {
+  .tool-masonry.reveal-armed .gtile { opacity: 0; }
+  .tool-masonry.reveal-armed .gtile.is-in {
+    /* `both` is load-bearing here (unlike every other card-in user): the armed base
+       state above is opacity:0, so the persisted end fill is what keeps a revealed
+       tile visible. The translate residue this leaves is only safe because tiles
+       never host position:fixed popovers - see the card-in guardrail comment. */
+    animation: card-in var(--enter-dur) var(--enter-ease) both;
+    animation-delay: var(--reveal-delay, 0ms);
+  }
+}
+
+/* Hero preview - a FIXED SQUARE box (matches the example carousels), the preview fitted
+   within via object-fit:contain. One uniform preview size across every card means the
+   masonry never reflows as art decodes or a session thumb of a different shape loads. */
+.gtile-hero {
+  display: block;
+  position: relative;
+  isolation: isolate;                /* contain the .gtile-iconfill backdrop's z-index:-1 */
+  width: 100%;
+  aspect-ratio: 4 / 3;              /* 16:9 preview area - the preview contains within it */
+  padding: 0;
+  border: 0;
+  margin: 0;
+  cursor: pointer;
+  /* Themed preview surface + transparency checker (tokens.css). A preview is the
+     tool's own render, so it is transparent wherever the tool paints nothing - this
+     is what stands behind it, and it follows the theme rather than being baked into
+     the art. Checker first = on top of the surface. */
+  background: var(--preview-checker), var(--preview-surface);
+  line-height: 0;
+}
+/* Every hero image/iframe fills the square and letterboxes within (never cropped, never
+   stretched - a safety net too against a Safari SVG-in-<img> reporting a fallback 300×150
+   intrinsic). Absolute so it can't push the box off its 1:1 aspect. */
+.gtile-hero-img ,  .gcar-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  filter:drop-shadow(0 .5px 3px #0001);
+}
+
+/* ── Icon backdrop ────────────────────────────────────────────────────────────
+   The tool's inlined icon, always rendered behind a preview image/carousel as an
+   instant on-brand placeholder while lazy art decodes, and as the permanent backup
+   when a preview is missing or 404s (see gallery.ts iconBackdrop). z-index:-1 keeps
+   it under the in-flow preview <img>/track and the positioned chips (Continue/badge),
+   above the tile's checkerboard background; the parent isolates so it can't escape the
+   stacking context (the frosted-menus z-index:-1 gotcha). A loaded, aspect-matched
+   preview covers it completely.
+
+   .gtile-iconfill (here) and featured.css's .ftile-iconfill are the same concept
+   under two prefixes (component audit rec 3) - the positioning box they share is
+   declared ONCE here; featured.css keeps only its real deltas (no base/trace
+   split - the featured row's icon is a static fallback, not a loading tracer).
+   A full single-class merge also needs components/featured-row.ts (the ftile
+   markup's emitter), which is out of this pass's ownership - see followUps. */
+.gtile-iconfill,
+.ftile-iconfill {   /* featured.css */
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+/* Two exactly-overlapping copies: a static muted BASE and, over it, a green TRACE
+   whose drawn segment walks the outline while a preview loads. Both inset from the
+   tile edges so the icon floats within the preview area. */
+.gtile-iconfill-base,
+.gtile-iconfill-trace {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14%;
+  box-sizing: border-box;
+}
+.gtile-iconfill-base svg,
+.gtile-iconfill-trace svg,
+.ftile-iconfill svg {   /* featured.css - shared width/height; max-width/height differ, kept local */
+  width: 100%; height: 100%;
+}
+.gtile-iconfill-base svg,
+.gtile-iconfill-trace svg { max-width: 96px; max-height: 96px; }
+/* A true 2px hairline regardless of icon scale (vector-effect isn't inherited, so it
+   must land on the drawn shapes, not just the <svg>). */
+.gtile-iconfill-base svg :is(path, circle, rect, line, polyline, polygon, ellipse),
+.gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) {
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+/* Base: the very muted ghost that always stands in for a missing/loading preview. */
+.gtile-iconfill-base { color: hsl(var(--muted-foreground) / .18); }
+/* Trace: the brand's own primary from the palette (--brand-primary, set by
+   applyBrandVars when the active brand declares colour.semantic slots), falling
+   back to SUSE Pine Green (#30ba78) when no brand palette is installed - so an
+   unbranded install still traces green, a branded one traces on-brand.
+   stroke-dasharray leaves one short drawn segment per subpath; the animated
+   dashoffset walks it along the outline and loops seamlessly (offset travels
+   exactly one dash+gap). Transparent gaps reveal the muted base. */
+.gtile-iconfill-trace { color: var(--brand-primary, hsl(151 60% 47%)); }
+.gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) {
+  stroke-width: 4px;             /* thicker than the 2px base outline it walks over */
+  stroke-dasharray: 250 250;     /* equal dash + gap */
+  animation: gtile-icon-trace 1.9s linear infinite;
+}
+@keyframes gtile-icon-trace { to { stroke-dashoffset: -500; } }   /* -(250 + 250) */
+/* The trace is a WAITING affordance only - stop it once real art has loaded (carousel
+   .has-art / hero .is-ready), on the permanent icon-only fallback (preview gone, not
+   "loading"), and under reduced-motion - leaving just the muted base. */
+.gcar.has-art .gtile-iconfill-trace,
+.gtile-hero--preview.is-ready .gtile-iconfill-trace,
+.gtile-hero--icononly .gtile-iconfill-trace { display: none; }
+@media (prefers-reduced-motion: reduce) { .gtile-iconfill-trace { display: none; } }
+/* Once a REAL preview is showing, drop the WHOLE icon backdrop (base + trace), not just the
+   animated trace above. The muted base was only ever a loading stand-in, but it sits BEHIND
+   the preview (z-index:-1), so it bleeds through a preview that carries transparency and shows
+   in the letterbox margins of one that doesn't fill the fixed box (a short/long asset), reading
+   as a ghost icon behind the art - the stamp behind a logo lockup, the envelope behind an
+   email-signature banner. "Real preview" = a decoded example/committed-preview slide
+   (.gcar-slide.is-loaded), a lead session-or-authored-card slide that ships real art
+   (.gcar-slide--lead), a rendered page deck (.gcar--deck), or a loaded single hero
+   (.gtile-hero--preview.is-ready). The permanent icon-only fallback (.gtile-hero--icononly,
+   preview 404'd) is excepted - there the icon IS the tile art; and the perf-ui path sets
+   .has-art with no rendered art but none of these markers, so its static icon stays. */
+.gcar:has(.gcar-slide.is-loaded, .gcar-slide--lead) .gtile-iconfill,
+.gcar--deck .gtile-iconfill,
+.gtile-hero--preview.is-ready:not(.gtile-hero--icononly) .gtile-iconfill { display: none; }
+/* Preview failed for good: pin the icon-only hero visible (it never got the load-driven
+   .is-ready reveal) and lift the muted ghost a touch so the fallback still reads. */
+.gtile-hero--icononly .gtile-iconfill-base { color: hsl(var(--muted-foreground) / .32); }
+/* Cross-fade frames for a tile with several saved sessions. Every frame is already an
+   absolutely-filled, contained .gtile-hero-img (see above), stacked in the same square
+   box - so this only drives the dissolve. Only .is-active is opaque; the opacity
+   transition IS the dissolve. On a single-session tile (no .gtile-hero--rotate) the lone
+   frame just shows at full opacity, so this is inert there. */
+.gtile-hero--rotate .gtile-hero-frame {
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  /* No persistent will-change - it promoted up to 5 frames per rotating tile onto
+     their own GPU layer permanently. The opacity transition self-promotes while it
+     runs; the cross-fade stays smooth without holding the layers between fades. */
+}
+.gtile-hero--rotate .gtile-hero-frame.is-active { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  /* Motion off: no ticker runs, so pin the newest frame visible and drop the fade. */
+  .gtile-hero--rotate .gtile-hero-frame { transition: none; }
+  .gtile-hero--rotate .gtile-hero-frame.is-active { opacity: 1; }
+}
+
+/* ── Example preview strip (carousel) ────────────────────────────────────────
+   A tile with manifest `examples`: a horizontally scroll-snapping strip of the
+   newest saved session (if any) then a few live-rendered example states. The box is
+   a FIXED SQUARE so masonry packs it with no reflow - ever - and every slide is
+   object-fit:contain, so differently-shaped example looks fit within the one frame
+   without cropping and without resizing the box as the strip advances. */
+.gcar {
+  position: relative;                /* anchor for nav, dots, badge, Continue chip */
+  isolation: isolate;                /* contain the .gtile-iconfill backdrop's z-index:-1 */
+  width: 100%;
+  aspect-ratio: 4 / 3;              /* uniform 16:9 preview area (matches .gtile-hero) */
+  overflow: hidden;
+  line-height: 0;
+  background: var(--preview-checker);   /* same shade as .gtile-hero */
+}
+.gcar-track {
+  display: flex;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;             /* the dots are the position indicator */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;    /* a horizontal swipe stays in the strip */
+}
+.gcar-track::-webkit-scrollbar { display: none; }
+.gcar-slide {
+  flex: 0 0 100%;
+  height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  position: relative;
+  margin: 0;
+}
+.gcar-open {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;             /* the example slides are <a> - no underline */
+}
+.gcar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+/* An example frame renders in lazily. The empty slide wears a flat --foreground tint
+   (reads on both light and dark themes) as a static skeleton; the empty <img> stays
+   invisible until it decodes, then fades in. No animated shimmer - a moving
+   background-position gradient can't composite and repaints every unloaded slide every
+   frame, which tanks scroll perf when many previews are pending. (The lead session
+   frame carries a real src from the start, so it never wears the skeleton.) */
+.gcar-slide--ex:not(.is-loaded) {
+  background: hsl(var(--foreground) / .06);
+}
+.gcar-slide--ex:not(.is-loaded) .gcar-img { opacity: 0; }
+.gcar-slide--ex.is-loaded .gcar-img { animation: gcar-fade var(--dur-3) ease both; }
+@keyframes gcar-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .gcar-slide--ex.is-loaded .gcar-img { animation: none; }
+}
+
+/* Multi-page tools (render.paged) render their pages as a STACK - the same visual language
+   as carousel-maker's featured card. Two layers per page:
+   • .gcar-deck-page - a full-square layer that carries the fan OFFSET + rotation by depth
+     (--d: 0 = front, on top). Its translate is a % of the SQUARE box, so the spread is the
+     same whatever the page shape - a razor-thin 5:1 banner fans as much as a portrait sheet
+     (a card-relative offset would collapse to nothing once the card is a thin strip).
+   • .gcar-deck-card - the image, sized to the PAGE's real aspect (width/height set inline by
+     gallery.ts deckPageFit) and centred with margin:auto, so its shadow/rim wrap the true
+     sheet (landscape, portrait, or banner) instead of a letterboxed square. */
+.gcar-deck {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.gcar-deck-page {
+  position: absolute;
+  inset: 0;
+  /* Offsets are % of the square box (see the outer-layer note above), so the fan is centred
+     and stays within the frame at any page shape. Both translate axes span ±(mean 0) so the
+     stack sits centred - a wider or lower spread let the back cards of a full-width sheet
+     (4:3, or a 3:1/5:1 banner) clip the right edge and a full-height 1:5 banner kiss the
+     bottom. rotate riffles the stack; scale leaves an edge margin around the fanned deck. */
+  transform:
+    translate(calc(var(--d) * 6% - 6%), calc(5% - var(--d) * 5%))
+    rotate(calc(var(--d) * 3.5deg - 2deg))
+    scale(.8);
+  transform-origin: 50% 60%;
+  z-index: calc(40 - var(--d) * 10);
+  animation: gcar-fade .35s ease both;
+}
+.gcar-deck-card {
+  position: absolute;
+  inset: 0;
+  /* width/height are overridden inline from the page's real aspect; these defaults keep a
+     square until the aspect is known. margin:auto centres the fitted rectangle in the box. */
+  width: 100%;
+  height: 100%;
+  margin: auto;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  /* Drop shadow lifts the deck on light backgrounds; the hairline rim defines each card's
+     edge on dark ones, where the dark shadow can't (mirrors the featured card.svg). 
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .28), 0 0 0 1px hsl(var(--foreground) / .10);*/
+    filter: drop-shadow(2px 4px 6px #0002);
+  }
+@media (prefers-reduced-motion: reduce) {
+  .gcar-deck-page { animation: none; }
+}
+
+/* Prev / next - fine-pointer only; touch just swipes the strip. Revealed on hover. */
+.gcar-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  /* Labelless overlay control - the arrow IS the affordance, so it takes the type
+     multiplier like the rest of the chrome. */
+  width: calc(26px * var(--a11y-fs));
+  height: calc(26px * var(--a11y-fs));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: rgba(0, 0, 0, .42);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-1), background var(--dur-1);
+}
+.gcar-nav svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.gcar-prev { left: 6px; }
+.gcar-next { right: 6px; }
+.gcar:hover .gcar-nav, .gcar:focus-within .gcar-nav { opacity: .92; }
+.gcar-nav:hover { background: rgba(0, 0, 0, .62); }
+@media (hover: none) { .gcar-nav { display: none; } }
+
+/* Dot position indicator - bottom-centre, above the art. */
+.gcar-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 7px;
+  z-index: 2;
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  pointer-events: none;              /* only the dots themselves take clicks */
+}
+.gcar-dot {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, .55);
+  box-shadow: 0 0 2px rgba(0, 0, 0, .45);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background var(--dur-1), transform var(--dur-1);
+}
+.gcar-dot.is-active { background: #fff; transform: scale(1.25); }
+/* Touch: a 6px dot is too small to reliably tap. Grow the TAP AREA only, via a
+   ::after - the dot itself never changes size (padding here would also drag its
+   box-shadow out to the bigger box and read as a bigger dot). */
+@media (pointer: coarse) {
+  .gcar-dot { position: relative; }
+  .gcar-dot::after { content: ''; position: absolute; inset: calc((24px - 100%) / -2); }
+}
+/* Hide the whole strip in "hide previews" mode, like the demo-preview hero. */
+html[data-a11y-previews="hidden"] .tool-masonry .gcar { display: none; }
+.gtile-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.gtile-stamp {
+  position: absolute;
+  top: 8px;
+  /* Top-left so the action overlay can sit just "after" it on the top-right. */
+  left: 8px;
+  line-height: 1;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  color: #fff;
+  background: #000a;
+  border-radius: var(--radius-pill);
+  padding: 3px 8px;
+}
+.gtile-continue {
+  position: absolute;
+  /* 12px (not the 8px hero inset) so it right-aligns with the caption's "+ New"
+     chip in the content gutter just below - the two read as a stacked pair. */
+  right: 12px;
+  bottom: 8px;
+  line-height: 1;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  /* Theme tokens, not hard-coded #fff - keeps contrast in dark / suse themes. */
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary));
+  border-radius: var(--radius-pill);
+  padding: 4px 9px;
+  opacity: 0;
+  transition: opacity var(--dur-1);
+}
+/* Continue belongs to the saved-session preview - reveal it only when the hero
+   is hovered/focused, not the lower body. It's right-anchored to line up with
+   the caption's "+ New" chip just below, so the two read as a stacked pair. */
+.gtile-hero:hover .gtile-continue,
+.gtile-hero:focus-visible .gtile-continue,
+.gcar:hover .gtile-continue { opacity: 1; }
+/* Touch has no hover (plans/132 wave 2): keep the continue affordance visible,
+   slightly calmer than the hover state. */
+@media (hover: none) {
+  .gcar .gtile-continue { opacity: .85; }
+}
+/* When a persistent status badge already holds the bottom-right slot, lift the
+   Continue/Open chip to stack just above it so the two don't overlap on hover.
+   Only badged cards (experimental/community) are affected; official tiles keep
+   the chip at the bottom edge. */
+.gtile-hero:has(.badge) .gtile-continue,
+.gcar:has(.badge) .gtile-continue { bottom: 44px; }
+.gtile-hero:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
+/* Committed demo preview (no session yet) - same hero treatment, but it's an
+   anchor that starts a new session, so suppress the default link underline. */
+.gtile-hero--preview { text-decoration: none; }
+
+/* First-paint progressive reveal: on the cold paint JS arms the masonry
+   (.previews-armed) so demo previews start hidden and each fades in only once its
+   image has decoded (.is-ready, added by the delegated load handler). The card
+   shell cascades in immediately; its preview "appears as it is" ready, so the first
+   view never flashes a blank or half-loaded image. Un-armed (returning, filtered,
+   reduced motion) → previews are full-opacity at once. A 404'd preview sheds
+   .gtile-hero--preview when morphed to a tile, so it's never left invisible. */
+.tool-masonry.previews-armed .gtile-hero--preview { opacity: 0; transition: opacity .34s ease; }
+.tool-masonry.previews-armed .gtile-hero--preview.is-ready { opacity: 1; }
+
+/* Empty tile - tool with no saved session. (Preview cards use .gtile-hero, never
+   .gtile-tile, so these rules can't touch a card that has a preview.) */
+.gtile-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-6);
+  padding: var(--sp-7);
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px dashed hsl(var(--border));
+}
+.gtile-tile--static { cursor: default; }
+/* Icon-led empty tile - the tool's icon beside the "Open to start" note, so even a
+   tool with no preview or examples reads as a real card. Column layout to give the
+   icon presence. */
+.gtile-tile--iconled { flex-direction: column; gap: var(--sp-4); padding: 20px 16px; }
+.gtile-tile-icon { display: flex; color: hsl(var(--muted-foreground) / .45); line-height: 0; }
+.gtile-tile-icon svg { width: 40px; height: 40px; }
+.gtile-tile-txt { font-size: var(--fs-sm); line-height: 1.35; color: hsl(var(--muted-foreground) / .5);; font-weight: 400; font-style: italic; }
+/* A saved session whose preview failed to capture - still resumable, so it reads
+   as an action (not the italic "no sessions" note). */
+.gtile-tile--resume { width: 100%; border: 0; cursor: pointer; text-align: left; background: transparent; }
+.gtile-tile--resume .gtile-tile-txt { font-style: normal; font-weight: 600; color: hsl(var(--muted-foreground) / .5);}
+
+/* Clickable text body (caption + description) - the "start a new session"
+   target. A stretched ::after on the title (below) makes this whole block the
+   hit area, so starting fresh is as obvious as the hero's Continue. */
+/* Body fills the space under the square visual so every tile in a row is the same
+   height (the grid stretches them; the body takes up the slack). */
+.gtile-body { position: relative; flex: 1 1 auto; }
+/* The visual (preview hero / example carousel / icon-or-resume tile) is a fixed
+   square and never shrinks in the flex column - so the grid stays regular. */
+.gtile > .gtile-hero,
+.gtile > .gcar,
+.gtile > .gtile-tile { flex: 0 0 auto; }
+/* Icon-led / resume / "desktop only" tiles were slim boxes → give them the 16:9
+   preview-hero shape so a card with no preview is the same size as one with. */
+.gtile-tile { aspect-ratio: 16 / 9; }
+/* Hover feedback comes from the title underline + "+ New" chip below - no
+   background tint, which muddied the caption text. */
+.gtile-body--link { cursor: pointer; }
+
+/* Caption row: icon + (name / sub-line / description) + "+ New" chip + badge.
+   Top-aligned so the icon, chip and badge sit beside the title at the top of the
+   text column rather than floating against its vertical centre. */
+.gtile-cap {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-5);
+  padding: 11px 12px 12px;
+}
+.gtile-cap .tool-card-icon svg { width: 36px; height: 36px; }
+.gtile-meta { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.gtile-name {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  line-height: 1.2;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The whole text body is the click target (stretched ::after); hovering it
+   underlines the title and reveals the "+ New" chip. Focus moves the outline
+   from the small title text out to the stretched hit area. */
+.gtile-body--link:hover .gtile-name { text-decoration: underline; }
+a.gtile-name::after { content: ''; position: absolute; inset: 0; z-index: 1; }
+a.gtile-name:focus-visible { outline: none; }
+a.gtile-name:focus-visible::after {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: -2px;
+  border-radius: calc(var(--radius) * 0.8);
+}
+
+/* "+ New" action - a persistent link on every card that opens the tool's template
+   chooser (empty ?template= boot flag). Sits above the stretched title link
+   (a.gtile-name::after, z-index 1) so it takes its own click. */
+.gtile-new {
+  flex: none;
+  position: relative;
+  z-index: 2;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 1;
+  background: hsl(var(--primary) /.68);
+  color: hsl(var(--primary-foreground) / 1);
+
+  border: 0;
+  box-shadow: var(--shadow-1);
+  border-radius: var(--radius-pill);
+  padding: var(--sp-6);
+  text-decoration: none;
+  transition: background var(--dur-1);
+}
+.gtile-new:hover { 
+ color: hsl(var(--primary-foreground) / 1);
+    background: hsl(var(--primary) /1); }
+
+/* (The "New" recency badge is retired - Andy 2026-08-28: it collided with the
+   ".gtile-new" "+ New" start-blank action. Recency lives in the info dialog's
+   "Added" line now.) */
+
+/* ── "Yours" shelf - the resident's own tools above the grid (plans/170 WP-2).
+   Favourites + recents as quiet icon-and-name chips; renders only once three
+   distinct tools have saved sessions (views/yours-shelf.ts owns the rules).
+   Icon + text by construction, so the hidePreviews a11y pref needs no rule. ── */
+.yours-shelf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-4);
+  margin: var(--sp-7) var(--sp-7) 0;
+}
+.yours-shelf-label {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--muted-foreground));
+  margin-right: var(--sp-4);
+}
+.yours-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: var(--sp-3) var(--sp-6);
+  border:0;
+  box-shadow: var(--shadow-1);
+  border-radius: var(--radius-pill);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-size: var(--fs-md);
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+.yours-chip:hover, .yours-chip:focus-visible { border-color: hsl(var(--primary) / 0.55); background: hsl(var(--muted) / 0.5); }
+.yours-chip-icon { display: inline-flex; color: hsl(var(--muted-foreground)); }
+.yours-chip-icon svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+/* On the rare resident gallery with no featured strip, the shelf leads the page
+   and must clear the fixed topbar itself - same clearance the tips strip takes
+   (welcome.css .brand-tips). */
+.gallery:not(.has-featured) .yours-shelf { margin-top: 6.4rem; }
+@media (max-width: 640px) {
+  .gallery:not(.has-featured) .yours-shelf { margin-top: calc(4.4rem + var(--safe-top)); }
+}
+
+.gtile-sub {
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gtile-cap .badge { position: static; }   /* badge sits inline here, not pinned */
+/* Curated starting-point count (plans/142) - a quiet line under the description;
+   the fresh open presents the chooser, so the count itself is the affordance. */
+.gtile-tpl {
+  margin-top: 3px;
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground) / 0.85);
+}
+/* Description lives in the meta column, directly under the title - no horizontal
+   padding of its own (the column already starts past the icon). */
+.gtile-desc {
+  margin: 5px 0 0;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+  /* Clamp to two lines so the caption block is a predictable height across every
+     tile - the last thing that would make the grid ragged. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+/* Export-format chips - moved OFF the card into the info (i) dialog. Grouped into
+   vector / raster / video / data sections (see gallery.ts showInfoDialog) with the
+   DEFAULT (first-declared) format filled with the accent. The Exports fact row gets
+   .meta-fmts-row so the dt sits above a full-width, wrapping chip block. */
+.meta-dialog-facts > div.meta-fmts-row {
+  grid-template-columns: 1fr;   /* stack the dt over the chips (they need the full width) */
+  gap: var(--sp-3);
+}
+.meta-fmt-groups { display: flex; flex-direction: column; gap: 7px; }
+.meta-fmt-grp { display: flex; align-items: baseline; gap: var(--sp-5); flex-wrap: wrap; }
+.meta-fmt-kind {
+  flex: 0 0 3.6em;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground) / 0.75);
+}
+.meta-fmts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.meta-fmt {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 3px 7px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 0.4);
+  border: 1px solid hsl(var(--border) / 0.6);
+}
+.meta-fmt--default {
+  color: hsl(var(--primary));
+  font-weight: 600;
+  background: hsl(var(--primary) / 0.12);
+  border-color: hsl(var(--primary) / 0.4);
+}
+
+/* Round icon button - no longer rendered on gallery cards (tile actions live in
+   the context menu + selection toolbar now), but still the close button of the
+   folder overlay's dialogs (folder-overlay.ts), so the base class stays here in
+   the always-loaded sheet. */
+.gtile-iconbtn {
+  /* Aria-labelled, no visible text, so the glyph and its tap target take the
+     multiplier. (The svg below is 1em against the button's inherited, UNSCALED
+     font-size, so it needs the factor spelled out - it does not come along for
+     free.) */
+  width: calc(26px * var(--a11y-fs));
+  height: calc(26px * var(--a11y-fs));
+  padding: 0;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: hsl(var(--muted-foreground) / .5);
+  border: none;
+  border-radius: var(--radius-round);
+  cursor: pointer;
+  transition: color var(--dur-1), border-color var(--dur-1), background var(--dur-1);
+}
+.gtile-iconbtn:hover {
+  color: hsl(var(--primary));
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--primary) / 0.08);
+}
+.gtile-iconbtn svg { width: calc(1em * var(--a11y-fs)); height: calc(1em * var(--a11y-fs)); stroke-width:.125em}
+
+/* ── Utilities view (#/u) ─────────────────────────────────────────────────────
+   A utility's icon is a clear enough affordance on its own, so these tiles drop
+   the preview hero entirely and stack a LARGER icon ABOVE the title + description.
+   The box holds a fixed landscape aspect (3:2 - between 4:3 and 16:9) so every
+   tile is the same height whatever the description length. */
+.gtile--utility {
+  aspect-ratio: 4 / 3;
+  contain-intrinsic-size: auto 220px;
+}
+.gtile--utility .gtile-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gtile--utility .gtile-cap {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--sp-6);
+  padding: 18px 16px;
+}
+.gtile--utility .tool-card-icon { place-self: center; }
+.gtile--utility .tool-card-icon svg {
+  width: 56px;
+  height: 56px;
+  opacity: 0.6;
+}
+.gtile--utility:hover .tool-card-icon svg { opacity: 1; }
+.gtile--utility .gtile-meta { align-items: center; }
+.gtile--utility .gtile-name { white-space: normal; }
+/* (The per-card favourite / offline / info / history icon cluster is gone: tile
+   actions live in the context menu and the selection toolbar now.) */
+
+.gtile--unavailable { opacity: 0.6; }
+
+/* Info / history modals - reuse the shared <dialog> chrome (cf. .unsaved-dialog). */
+.tool-meta-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  padding: 0;
+  max-width: 560px;
+  width: 92vw;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: var(--shadow-3);
+}
+/* A tool with templates / presets gets the wide spec sheet: the facts stay in the
+   left column, templates + presets + defaults fill the right. Below 720px the
+   columns stack back into the single flow. */
+.tool-meta-dialog--wide { max-width: min(920px, 94vw); }
+.meta-dialog-cols,
+.meta-dialog-main,
+.meta-dialog-side { display: contents; }
+@media (min-width: 720px) {
+  .tool-meta-dialog--wide .meta-dialog-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 24px;
+    align-items: start;
+  }
+  .tool-meta-dialog--wide .meta-dialog-main,
+  .tool-meta-dialog--wide .meta-dialog-side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+}
+/* (`.tool-meta-dialog::backdrop` aliases the shared dimmed-blur backdrop in
+   parts/dialogs.css.) */
+.meta-dialog-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.meta-dialog-head { display: flex; align-items: center; gap: var(--sp-6); }
+.meta-dialog-icon { flex: none; }
+.meta-dialog-icon svg { width: calc(40px * var(--a11y-fs)); height: calc(40px * var(--a11y-fs)); opacity: 0.6 !important; }
+.meta-dialog-head h2 { margin: 0; font-size: var(--fs-xl); }
+.meta-dialog-sub { margin: 2px 0 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.meta-dialog-desc { margin: 0; font-size: var(--fs-md); line-height: 1.5; color: hsl(var(--foreground)); }
+.meta-dialog-facts { margin: 0; display: flex; flex-direction: column; gap: var(--sp-4); }
+.meta-dialog-facts > div { display: grid; grid-template-columns: 5.5em 1fr; gap: var(--sp-4); font-size: var(--fs-md); }
+.meta-dialog-facts dt { color: hsl(var(--muted-foreground)); font-weight: 600; }
+.meta-dialog-facts dd { margin: 0; }
+.meta-dialog-actions { display: flex; justify-content: flex-end; gap: var(--sp-4); margin-top: 2px; }
+
+/* Info dialog: the tool preview - the same media the tile shows (img or the
+   sandboxed card.html iframe), framed like a card. aspect-ratio comes inline
+   from the tool's declared render size; the max-height guards tall/portrait
+   tools from swallowing the dialog. */
+.meta-dialog-preview {
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 0.75);
+  background: var(--preview-checker), var(--preview-surface);   /* same shade as the tile */
+  overflow: hidden;
+  max-height: 220px;
+  display: grid;
+  place-items: center;
+}
+.meta-dialog-preview-img,
+.meta-dialog-preview img,
+.meta-dialog-preview iframe {
+  width: 100%;
+  height: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border: 0;
+  display: block;
+  pointer-events: none;   /* preview, not a surface - clicks stay in the dialog */
+}
+
+/* Info dialog: shared section heading (Templates / Presets / Defaults). */
+.meta-sec-title {
+  margin: 0 0 6px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Info dialog: templates + examples share ONE tile shape (.meta-look - media slot
+   over name, optional description), echoing the in-tool Start chooser's tile, so
+   the two starting-point kinds read as the same idea. Both live-render: examples
+   through the featured:<id>:<i> cache, templates through the chooser's shared
+   template:<toolId>:<tid> cache (glyph placeholder until the render arrives). A
+   template's PRESETS (plans/142: curated variant overlays) are the chip links
+   under its tile. */
+.meta-sec { border-top: 1px solid hsl(var(--border) / 0.6); padding-top: 10px; }
+.meta-look-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: var(--sp-4);
+}
+.meta-look {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  height: 100%;
+  padding: 7px;
+  border: 1px solid hsl(var(--border) / 0.7);
+  border-radius: calc(var(--radius) * 0.75);
+  text-decoration: none;
+  color: inherit;
+}
+.meta-look:hover { border-color: hsl(var(--primary) / 0.5); background: hsl(var(--primary) / 0.05); }
+.meta-look-thumb {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  border-radius: calc(var(--radius) * 0.5);
+  overflow: hidden;
+  background: var(--preview-checker), var(--preview-surface);
+}
+.meta-look-img { width: 100%; height: 100%; object-fit: contain; display: block; opacity: 0; }
+.meta-look-img[src] { opacity: 1; transition: opacity .25s ease; }
+.meta-look-glyph { display: flex; color: hsl(var(--muted-foreground) / 0.6); }
+/* A template tile carries BOTH the glyph placeholder and the live-render img
+   (hydrateInfoTemplates): overlay them in the one grid cell so the render covers
+   the glyph when it arrives. Harmless for single-child thumbs. */
+.meta-look-thumb > * { grid-area: 1 / 1; }
+.meta-look-thumb:has(.meta-look-img[src]) .meta-look-glyph { visibility: hidden; }
+.meta-look-name { font-size: var(--fs-sm); font-weight: 600; line-height: 1.25; }
+/* A tile plus its "Start with this" chip (plans/226): the chip is a SIBLING of the
+   tile link, never a child - a button inside an anchor is not a control anyone can
+   reach. The two stack, so the grid cell still reads as one starting point. */
+.meta-look-item { display: flex; flex-direction: column; gap: var(--sp-1); list-style: none; }
+.meta-look-item > .meta-look { flex: 1; }
+.meta-look-start {
+  border: 0;
+  border-radius: calc(var(--radius) * 0.6);
+  padding: 3px 7px;
+  font-size: var(--fs-xs);
+  font-family: inherit;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 0.55);
+  cursor: pointer;
+}
+.meta-look-start:hover { background: hsl(var(--muted) / 0.9); color: hsl(var(--foreground)); }
+/* The chosen one reads as filled, not outlined - no accent-coloured borders here. */
+.meta-look-start[aria-pressed="true"] {
+  background: hsl(var(--primary) / 0.16);
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+/* "Starts with X · Ask me every time" - the one line that says what a fresh open does. */
+.meta-start {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+}
+.meta-start-clear {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: hsl(var(--primary));
+  cursor: pointer;
+  text-decoration: underline;
+}
+/* "Yours" - the person's own templates, under the shipped ones in the same tile shape. */
+.meta-sec-sub {
+  margin: var(--sp-4) 0 var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: hsl(var(--muted-foreground));
+}
+.meta-look-desc {
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+  color: hsl(var(--muted-foreground));
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+/* Hide colourful previews (a11y pref): the dialog's art collapses like the grid's -
+   the hero preview and the template/preset thumbs go; the labelled text tiles stay. */
+html[data-a11y-previews="hidden"] .tool-meta-dialog .meta-dialog-preview,
+html[data-a11y-previews="hidden"] .tool-meta-dialog .meta-look-thumb { display: none; }
+
+/* Info dialog: the defaults spec sheet - small, dense, professional. */
+.meta-defaults { border-top: 1px solid hsl(var(--border) / 0.6); padding-top: 10px; }
+.meta-defaults-list {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 3px 18px;
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.meta-default-row {
+  display: grid;
+  grid-template-columns: minmax(7em, auto) 1fr;
+  gap: var(--sp-4);
+  align-items: baseline;
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+.meta-default-row dt {
+  color: hsl(var(--muted-foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.meta-default-row dd {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+.meta-default-value {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.meta-default-swatch {
+  /* Sized off the value text it sits beside, so the dot doesn't shrink away as
+     the row's type grows. */
+  width: var(--fs-sm);
+  height: var(--fs-sm);
+  border-radius: var(--radius-round);
+  flex: none;
+  box-shadow: var(--edge);
+}
+.meta-default-note {
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  padding: 0 6px;
+  flex: none;
+}
+.meta-default-more dd { color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); }
+.history-list { max-height: 50vh; overflow: auto; margin: 0; padding: 0; }
+
+/* Top-right cluster: history button sits to the LEFT of the profile pill. */
+/* Offsets come from the shared top-row geometry (tokens.css) - the same
+   properties the back pill on the left reads, so the row stays level. */
+.gallery-topright {
+  position: fixed;
+  z-index: 99999;
+  right: calc(var(--chrome-inset) + var(--vv-right, 0px));
+  top: calc(var(--chrome-top) + var(--vv-top, 0px));
+  /* Inset past the edge dock (lib/edge-dock.ts) logically, so it flips with RTL; 0px when
+     nothing is docked. margin-inline-end offsets a right-anchored fixed element inward. */
+  margin-inline-end: var(--dock-w, 0px);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+}
+/* Neutralise the profile pill's own fixed positioning when it lives in the cluster. */
+.gallery-topright .profile-link { position: static; right: auto; top: auto; }
+
+/* ── Universal drop front door (lib/drop-router.ts) ─────────────────────────
+   While a file drag hovers the view, the router toggles .is-file-drag on the
+   view root and parks a single hint pill in it. Unobtrusive by design: no
+   full-view overlay, just the pill floating over the masonry. */
+/* The "drop a file here" pill. One rule for both views that show it - the
+   gallery/tools landing and the dashboard - since lib/drop-router.ts mints a
+   single `.drop-hint` element and both hosts want the identical pill. Lives in
+   this always-eager sheet rather than the lazy dashboard chunk so the hint is
+   styled the instant a drag starts, whichever route you are on. */
+.drop-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%) translateY(6px);
+  padding: 10px 20px;
+  border: 1px solid hsl(var(--primary) / 0.5);
+  border-radius: var(--radius-pill);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-size: calc(13.5px * var(--a11y-fs));
+  font-weight: 650;
+  box-shadow: 0 10px 30px hsl(var(--foreground) / 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-1) ease, transform var(--dur-1) ease;
+  z-index: 90;
+}
+.is-file-drag .drop-hint { opacity: 1; transform: translateX(-50%); }
+
+
+/* ── View-backed utility tiles (#/u) ────────────────────────────────────────
+   A page rather than a tool (Colour Lab). Same tile shape as its neighbours, so
+   it reads as a peer in the grid; it just has no actions row, because favourite
+   / keep-offline / saved-sessions are all tool-store concepts. The lack of that
+   row would otherwise leave the tile short, so it stretches instead. */
+.gtile--view { justify-content: center; }
+.gtile--view .gtile-body { cursor: pointer; }
+.gtile--view .gtile-name { font-size: inherit; }
+
+@media (prefers-reduced-motion: reduce) { .gtile--view { transition: none; } }
+
+/* ── Multi-select bulk-action bar ────────────────────────────────────────────
+   The shared lib/bulk-bar.ts markup with this view's skin - fixed bottom-centre
+   pill above the persistent footer, mirroring .cat-bulkbar/.projects-bulkbar
+   (each view keeps its own surface + offsets by design). */
+.gallery-bulkbar {
+  position: fixed; left: 50%; bottom: calc(4.8rem + var(--safe-bottom));
+  transform: translateX(-50%); z-index: 9000;
+  display: flex; align-items: center; gap: 14px;
+  /* max-content, not shrink-to-fit: a fixed element at left:50% sizes against only
+     the RIGHT half of the viewport, so shrink-to-fit capped the bar at ~50vw and
+     wrapped its actions early. Size to the content; wrap only at the real edge. */
+  width: max-content; max-width: calc(100vw - 24px);
+  padding: 8px 8px 8px 16px; border-radius: var(--radius-pill);
+  background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border)); box-shadow: 0 .6rem 2rem #0006;
+}
+.gallery-bulkbar[hidden] { display: none; }
+.gallery-bulkbar-count { font-size: var(--fs-lg); font-weight: 700; white-space: nowrap; }
+.gallery-bulkbar-actions { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; }
+.gallery-bulkbar-actions .btn { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.gallery-bulkbar-actions .btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.gallery-bulkbar-clear {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: calc(30px * var(--a11y-fs)); height: calc(30px * var(--a11y-fs)); flex: none;
+  border-radius: var(--radius-pill); cursor: pointer;
+  font-size: var(--fs-xl); line-height: 1; color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / .6); border: none;
+}
+.gallery-bulkbar-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+/* Reserve room so the fixed bar never buries the last tile row. */
+.gallery.has-selection { padding-bottom: calc(8rem + var(--safe-bottom)); }
+@media (max-width: 640px) {
+  /* Phones: the footer wraps to two rows, so lift the bar higher and let it wrap. */
+  .gallery-bulkbar { flex-wrap: wrap; justify-content: center; width: min(92vw, 420px); border-radius: var(--radius); bottom: calc(7rem + var(--safe-bottom)); }
+}
+
+/* ── Touch hit-areas (plans/132 wave 2) ──────────────────────────────────────
+   The fixed footer bar's controls get the 44pt HIG floor on coarse pointers;
+   glyphs stay their size, only the tap box grows. */
+@media (pointer: coarse) {
+  .gallery-footer :is(button, a, [role="button"]) {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

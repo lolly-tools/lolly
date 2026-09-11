@@ -1,0 +1,168 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* ── Button system (component audit rec 2) - the one shared `.btn` primitive
+      plus `.btn--primary` / `.btn--ghost` / `.btn--danger` / `.btn--sm` variants.
+      Imported from app.css on the critical path, so every route - including the
+      always-eager gallery/catalog/projects landing - gets a real base instead of
+      depending on a lazily-loaded view chunk to arrive first (previously the
+      `.btn` recipe lived only in tool-chrome.css, a lazy view sheet).
+
+      Several call-sites can't rename their markup this wave (a later wave composes
+      the classes onto existing elements), so they alias onto these rules via
+      selector lists instead of restating the same declarations locally - each
+      hand-rolled "primary fill" recipe below is textually declared exactly ONCE,
+      here. Every aliased selector keeps its own file for true deltas (shape,
+      size, unique hover treatment); only the shared background/color pair moves.
+
+      Policy (component audit M2, 2026-07-13): new buttons use `.btn` + its
+      variants (--primary / --ghost / --danger / --sm / --glass). The legacy
+      per-view families - .pro-btn, .save-btn, .copy-btn, .copy-url-btn,
+      .render-pill-save, .pro-sess-save, [data-me-saveall] - are FROZEN: no new
+      members, no new modifiers, no new call-sites. Their primary-fill recipes
+      already alias .btn--primary below; migrate a family to `.btn` only when
+      its view gets rewritten wholesale. */
+
+/* Base - outline/neutral button. Also covers any plain <button> inside
+   .tool-actions (the export panel), which predates the .btn class and still
+   needs the identical look without every call-site adding the class by hand. */
+.btn,
+.tool-actions button:not(.btn) {
+  text-decoration: none;
+  padding: 5px 14px;
+  background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-default);
+  border: transparent;
+  border-radius: var(--ui-radius-panel);
+  font: inherit;
+  font-size: var(--ui-type-body);
+  cursor: pointer;
+  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
+  transition: background var(--ui-motion-feedback), border-color var(--ui-motion-feedback), color var(--ui-motion-feedback);
+  white-space: nowrap;
+}
+/* Hover/disabled stay scoped to .tool-actions button (its historical reach) -
+   many bare-.btn call-sites (gallery footer, catalog bulk bar, …) define their
+   own hover locally, so a blanket `.btn:hover` here would change their look. */
+.tool-actions button:not(.btn):hover:not(:disabled) {
+  background: hsl(var(--accent));
+  border-color: var(--ui-color-border-default);
+}
+.btn:disabled,
+.tool-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Small size - folds brand-studio's .be-btn--sm/.be-add--sm, a byte-identical
+   duplicate (this was previously just a comment claiming the generalisation;
+   the declaration itself hadn't actually been merged). */
+.btn--sm,
+.be-btn--sm, .be-add--sm {                        /* brand-studio.css */
+  padding: .25rem .6rem;
+  font-size: calc(.72rem * var(--a11y-fs));
+}
+
+/* Ghost - the shape brand-studio's .be-btn composes onto (component audit rec 1). */
+.btn--ghost {
+  background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-default);
+  border-color: var(--ui-color-border-default);
+}
+.btn--ghost:hover:not(:disabled),
+.be-btn:hover:not(:disabled), .be-add:hover:not(:disabled) {   /* brand-studio.css - identical hover */
+  border-color: hsl(var(--primary) / .55);
+}
+.btn--ghost:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+
+/* Primary - the fill recipe that used to be re-typed with no base class in
+   ~10 places. This selector list is its ONLY declaration app-wide; every
+   call-site below keeps just its own delta (border, shape, unique hover) in
+   its own file. */
+.btn--primary,
+.toast-action,                                    /* tool-chrome.css */
+.tool-actions [data-action="copy"].copy-armed,    /* tool-chrome.css */
+.share-copy-btn,                                  /* dialogs.css */
+.unsaved-save,                                    /* dialogs.css */
+.modal .modal-primary,                            /* dialogs.css */
+.projects-render.btn,                             /* projects.css */
+.profile-view .profile-btn-primary,               /* profile.css */
+.cropper-btn--primary,                            /* profile.css */
+.pro-btn--primary,                                /* pro/pro.css */
+.pro-addrow .pro-btn,                             /* pro/pro.css */
+.me-primary,                                      /* multi-edit.css */
+.cat-act-fav.is-fav,                              /* catalog.css */
+.cat-tp-btn.cat-tp-play,                          /* catalog.css - audio transport play/pause */
+.anim-transport-play,                             /* tool.css - animation transport play/pause */
+.view-seg-btn[aria-pressed="true"],               /* gallery.css - canonical segmented control */
+.gallery-pill.active,                             /* gallery.css - category/sort pill */
+.tmpl-chooser-filter.is-active,                   /* template-chooser.css - tag-filter chip */
+.fc-frames-empty-add,                             /* editor.css - Artboards empty-state "Draw an artboard" */
+.plat-pill,                                       /* platform.css - inline qualifier badge */
+.skip-link:focus,                                 /* base.css - a11y skip-nav, revealed on focus */
+.not-found-home,                                  /* notfound.css - 404 "Browse all tools" CTA */
+.script-audio-generate,                           /* script-audio.css - TTS Generate/Save pair */
+.script-audio-save,                               /* script-audio.css */
+.upscale-run,                                     /* upscale.css - on-device AI upscale Run */
+.rt-actions .rt-run,                              /* retouch.css - content-aware fill/save primary */
+.fmt-chip[aria-pressed="true"],                   /* tool-chrome.css - export format picker chosen chip */
+.be-cta {                                         /* brand-studio.css */
+  background: var(--ui-color-action-primary);
+  color: var(--ui-color-action-on-primary);
+}
+.btn--primary {
+  border: 1px solid var(--ui-color-action-primary);
+}
+/* Identical `filter: brightness(1.08)` hover, folded the same way - call-sites
+   with a genuinely different hover (opacity fade, background-only, a different
+   brightness value) keep that locally instead of joining this list. */
+.btn--primary:hover:not(:disabled),
+.toast-action:hover,
+.modal .modal-primary:hover,
+.projects-render.btn:hover,
+.profile-view .profile-btn-primary:hover,
+.cropper-btn--primary:hover {
+  filter: brightness(1.08);
+}
+
+/* Danger - solid destructive fill (confirm-dialog "Delete", etc). The lighter
+   outline-style destructive buttons (.cat-bulk-danger, .projects-bulk-danger)
+   are a deliberately quieter treatment and stay local, not aliased here. */
+.btn--danger,
+.modal .modal-danger {   /* dialogs.css */
+  background: hsl(var(--destructive, 0 70% 50%));
+  color: #fff;
+}
+.btn--danger {
+  border: 1px solid hsl(var(--destructive, 0 70% 50%));
+}
+.btn--danger:hover:not(:disabled),
+.modal .modal-danger:hover {
+  filter: brightness(0.94);
+}
+
+/* Glass - the translucent "glass pill" recipe. Used to live ONLY on the combined
+   .tools-home.home-full selector (tool.css); every other back/topbar pill either
+   hand-typed its own approximation or had no blur at all. Andy's exact recipe,
+   textually declared once here - composable with .btn or standalone via this
+   selector list, same pattern as .btn--primary above. Call-sites keep only real
+   shape deltas (box size, border, hover tint) in their own file. */
+.btn--glass,
+.tools-home,                                      /* components.css - the shared back pill */
+.profile-link,                                    /* components.css - top-right profile pill */
+.filter-fab,                                      /* gallery.css - sort/filter & view-options FAB */
+.history-fab,                                     /* utilities.css/topbar.css - saved-sessions FAB */
+.projects-back,                                   /* projects.css - folder breadcrumb back square */
+.me-back,                                         /* multi-edit.css - multi-edit header back square */
+.home-fab,                                         /* topbar.css - the always-home FAB (nav-less views) */
+.theme-fab,                                        /* topbar.css - the theme-cycle FAB (nav-less views) */
+.lang-fab {                                       /* topbar.css - language FAB */
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  background: hsl(var(--muted) / 0.45);
+  text-shadow: 0 1px hsl(var(--secondary) / .5);
+  color: hsl(var(--on-primary));
+  transition: background var(--ui-motion-feedback), box-shadow var(--ui-motion-feedback);
+}

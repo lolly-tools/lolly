@@ -1,0 +1,176 @@
+/* ─── Spotlight overlay (plans/99 M2) ────────────────────────────────────────
+   The cross-domain search results panel, anchored just above the persistent
+   bottom bar (components/spotlight.ts positions `bottom`/`max-height` inline
+   from the footer's live rect). Body-mounted - NEVER a footer child, because
+   .gallery-footer's backdrop-filter would become the containing block for a
+   fixed panel (the fixed-popover trap). Frosted: a translucent --card over a
+   light backdrop blur, so it reads as one glass unit with the footer it docks
+   to. (backdrop-filter here makes the panel its own containing block, but its
+   children don't position fixed, so the trap stays out of play.) */
+
+.spotlight-panel {
+  position: fixed;
+  /* Centered over the bar; the --vv-* offsets keep it on the visible viewport
+     while pinch-zoomed, same as the footer it docks to. */
+  left: var(--vv-left, 0px);
+  right: var(--vv-right, 0px);
+  margin-inline: auto;
+  width: min(40rem, calc(100vw - 2rem));
+  z-index: 60; /* above the footer (50) - they read as one stacked unit */
+  display: flex;
+  flex-direction: column;
+  background: hsla(var(--card) / .75);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.4);
+  box-shadow: 0 18px 44px hsl(0 0% 0% / 0.26);
+  overflow: hidden; /* the radius clips the scrolling list */
+}
+.spotlight-panel[hidden] { display: none; }
+
+/* Entry motion - the class is added by JS only when prefersReducedMotion()
+   (OS query OR the app a11y pref) allows it; the two gates below are the
+   belt-and-braces for a stale class. */
+.spotlight-anim { animation: spotlight-in 0.16s ease; }
+@keyframes spotlight-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-anim { animation: none; }
+}
+html[data-a11y-motion="reduce"] .spotlight-anim { animation: none; }
+
+/* The listbox: internal scroll, the panel's max-height is set inline. */
+.spotlight-list {
+  overflow-y: auto;
+  padding: 6px;
+  overscroll-behavior: contain;
+}
+
+.spotlight-group-label {
+  padding: 8px 10px 4px;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+/* One result row. Rows are options in a combobox listbox - focus never leaves
+   the field - so hover and the keyboard active state share one look. */
+.spotlight-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.spotlight-opt:hover,
+.spotlight-opt.is-active { background: hsl(var(--muted)); }
+
+.spotlight-opt-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  color: hsl(var(--muted-foreground));
+}
+.spotlight-opt-icon svg { width: var(--fs-xl); height: var(--fs-xl); }
+
+.spotlight-opt-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.spotlight-opt-title {
+  font-size: var(--fs-md);
+  color: hsl(var(--foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.spotlight-opt-sub {
+  font-size: calc(11.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The explicit ?q= handoff row closing a group (plans/99 section 2a). */
+.spotlight-see-all {
+  justify-content: space-between;
+  color: hsl(var(--primary));
+}
+.spotlight-see-all .spotlight-opt-title {
+  color: inherit;
+  font-weight: 600;
+}
+.spotlight-see-all-arrow { flex: none; }
+
+/* ─── The current view's own group (plans/99 section 2a) ────────────────────────────
+   Hoisted to the top of the panel (spotlight.ts) and washed in the brand accent
+   so the results for the view you're ON read as "here". Discovery no longer
+   depends on seeing the live-filtered cards behind the panel, which it can
+   overlap - the same results lead the overlay, highlighted. Uses --primary, the
+   shell-chrome accent brand-vars.ts overrides per active brand (same token the
+   see-all and Ask rows already tint with). */
+.spotlight-group-label--own { color: hsl(var(--primary)); }
+.spotlight-opt--own {
+  background: linear-gradient(90deg, hsl(var(--primary) / 0.08), hsl(var(--primary) / 0));
+  padding-block: 1rem;
+  margin: .5rem 0; /* the lead group breathes a little more than the rest */
+}
+.spotlight-opt--own .spotlight-opt-icon { color: hsl(var(--primary)); }
+/* Hover / keyboard-active deepen the wash so the own group's selection still
+   reads over its resting tint (out-specifies the shared .spotlight-opt:hover). */
+.spotlight-opt--own:hover,
+.spotlight-opt--own.is-active {
+  background: linear-gradient(90deg, hsl(var(--primary) / 0.16), hsl(var(--primary) / 0.04));
+}
+
+.spotlight-empty {
+  padding: 14px 12px;
+  font-size: var(--fs-md);
+  color: hsl(var(--muted-foreground));
+}
+
+/* ─── The Ask Lolly row (plans/103) ──────────────────────────────────────────
+   The assistant affordance: last group, the fallback when concrete hits don't
+   cover the query. It reads as "smart" - the aiSpark glyph in the brand accent
+   over a faint wash - and its glyph twinkles on hover / keyboard-active (the
+   same motion the Verify view's AI flag uses). Kept off under reduced motion. */
+.spotlight-opt[data-group="ask"] {
+  background: linear-gradient(90deg, hsl(var(--primary) / 0.08), hsl(var(--primary) / 0));
+}
+.spotlight-opt[data-group="ask"] .spotlight-opt-icon { color: hsl(var(--primary)); }
+.spotlight-opt[data-group="ask"] .spotlight-opt-icon svg.ask-spark {
+  width: calc(19px * var(--a11y-fs));
+  height: calc(19px * var(--a11y-fs));
+  filter: drop-shadow(0 1px 3px hsl(var(--primary) / 0.4));
+  transform-origin: center;
+}
+.spotlight-opt[data-group="ask"] .spotlight-opt-title { font-weight: 600; }
+.spotlight-opt[data-group="ask"]:hover,
+.spotlight-opt[data-group="ask"].is-active {
+  background: linear-gradient(90deg, hsl(var(--primary) / 0.16), hsl(var(--primary) / 0.03));
+}
+
+.spotlight-opt[data-group="ask"]:hover .ask-spark,
+.spotlight-opt[data-group="ask"].is-active .ask-spark {
+  animation: ask-spark-twinkle 1.1s ease-in-out infinite;
+}
+@keyframes ask-spark-twinkle {
+  0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  50%      { opacity: 0.85; transform: scale(1.18) rotate(10deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-opt[data-group="ask"]:hover .ask-spark,
+  .spotlight-opt[data-group="ask"].is-active .ask-spark { animation: none; }
+}
+html[data-a11y-motion="reduce"] .spotlight-opt[data-group="ask"]:hover .ask-spark,
+html[data-a11y-motion="reduce"] .spotlight-opt[data-group="ask"].is-active .ask-spark { animation: none; }

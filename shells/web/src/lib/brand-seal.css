@@ -1,0 +1,61 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* The locked-brand seal (brand-seal.ts) - a turned-metal disc struck in the
+   brand's own darkest/lightest inks, with a padlock over it. */
+
+.dash-lock {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.dash-lock-text { min-width: 0; }
+.dash-lock-title {
+  margin: 0 0 0.35rem;
+  font-size: calc(1.15rem * var(--a11y-fs));
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.dash-lock-desc {
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.dash-lock-brand { font-weight: 600; color: hsl(var(--foreground)); }
+
+/* The disc. --seal-base is the metal's body; the two blurred fans of --seal-dark
+   and --seal-light rake across it as the turned-metal sheen. */
+.brand-seal {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--seal-size, 116px);
+  height: var(--seal-size, 116px);
+  border-radius: 50%;
+  overflow: clip;
+  background: var(--seal-base, hsl(var(--muted)));
+  box-shadow:
+    0 1px 3px hsl(0 0% 0% / 0.28),
+    inset 0 0 0 1px hsl(0 0% 100% / 0.14);
+}
+.brand-seal-metal {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* Padlock, centred over the point where the cones converge - the busiest part of
+   the disc, so it carries a shadow in the opposite ink to stay legible on both
+   the light and the dark rake. */
+.brand-seal-lock {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 38%;
+  height: 38%;
+  color: var(--seal-light, #fff);
+  filter: drop-shadow(0 1px 2px hsl(0 0% 0% / 0.55));
+}
+}

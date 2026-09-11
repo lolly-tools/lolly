@@ -1,0 +1,257 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* ── Multi-edit (views/multi-edit.ts) - a grid of live canvases + ONE combined
+      sidebar for 2–8 saved sessions. Layout mirrors the tool view's sidebar/stage
+      split; the input controls themselves are styled by tool.css (.tool-inputs). */
+
+.me-layout { display: flex; flex-direction: column; min-height: 100dvh; }
+
+.me-head {
+  display: flex; align-items: center; gap: .9rem;
+  padding: .8rem 1.2rem;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--background) / .9);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  position: sticky; top: 0; z-index: 20;
+}
+/* Icon-only back square - the shared back pill in its compact form
+   (components/back-pill.ts, iconOnly), so it goes back to wherever the
+   multi-edit session was opened from instead of the hardcoded "#/p" it used to
+   point at, and draws the same stroked arrow as every other back control. */
+.me-back {
+  display: grid; place-items: center; width: 2rem; height: 2rem;
+  /* paint comes from buttons.css's .btn--glass alias list */
+  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .8);
+  text-decoration: none; color: inherit;
+}
+.me-back svg { display: block; width: var(--fs-xl); height: var(--fs-xl); }
+.me-back:hover { border-color: hsl(var(--primary) / .55); }
+.me-title { margin: 0; font-size: calc(1.02rem * var(--a11y-fs)); font-weight: 700; }
+.me-count { margin-inline-start: .5rem; font-size: calc(.78rem * var(--a11y-fs)); font-weight: 600; color: hsl(var(--muted-foreground)); }
+.me-head-actions { margin-inline-start: auto; display: flex; gap: .5rem; }
+/* fill (background/color) is aliased in ../styles/parts/buttons.css's .btn--primary list */
+.me-primary { border-color: transparent; }
+.me-primary:hover { background: hsl(var(--primary) / .88); }
+[aria-busy="true"] { opacity: .6; pointer-events: none; }
+
+.me-body { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); align-items: start; gap: 0; flex: 1; }
+
+/* ── Sidebar ── */
+.me-sidebar {
+  position: sticky; top: 56px;
+  max-height: calc(100dvh - 56px);
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: .9rem;
+  border-right: 1px solid hsl(var(--border));
+  display: grid; gap: .6rem; align-content: start;
+}
+/* Desktop: the mobile-sheet grip is inert (the sheet vars are only read below). */
+.me-sheet-grip { display: none; }
+
+/* ── Mobile: the inputs become a draggable bottom sheet over the grid ──────────
+   Same split the tool view uses (lib/mobile-sheet.ts drives --me-sheet-h /
+   data-me-sheet / --me-peek-h / is-me-sheet-dragging on .me-body). The grid is the
+   static backdrop the sheet slides over; the grip is a sticky strip that stays
+   visible at every snap so the list can always be pulled back up. */
+@media (max-width: 900px) {
+  .me-body { grid-template-columns: 1fr; --me-sheet-h: 50dvh; }
+  .me-body[data-me-sheet="peek"] { --me-sheet-h: calc(var(--me-peek-h, 3rem) + var(--safe-bottom, 0px)); }
+  .me-body[data-me-sheet="half"] { --me-sheet-h: min(50dvh, calc(100dvh - var(--vv-bottom, 0px) - 12px)); }
+  .me-body[data-me-sheet="full"] { --me-sheet-h: min(88dvh, calc(100dvh - var(--vv-bottom, 0px) - 12px)); }
+
+  .me-sidebar {
+    /* bottom rides the visual-viewport bottom so the soft keyboard lifts the whole
+       sheet instead of burying it (0px at rest = full-bleed); padding-bottom carries
+       the home-indicator safe-area inset for the content. */
+    position: fixed; left: 0; right: 0; bottom: var(--vv-bottom, 0px); top: auto;
+    height: var(--me-sheet-h); max-height: 92dvh;
+    z-index: 40;
+    padding-bottom: calc(.9rem + var(--safe-bottom, 0px));
+    border-right: 0; border-bottom: 0;
+    border-radius: 16px 16px 0 0;
+    box-shadow: var(--edge-faint), var(--shadow-4);
+    transition: height .34s var(--ease-out, ease);
+  }
+  .me-body.is-me-sheet-dragging .me-sidebar { transition: none; } /* 1:1 finger tracking */
+
+  /* The always-visible drag strip: sticky so it rides the top of the sheet while
+     the inputs scroll under it, and full-bleed over the sidebar's own padding. */
+  .me-sheet-grip {
+    display: block; position: sticky; top: 0; z-index: 2;
+    width: calc(100% + 1.8rem); margin: -.9rem -.9rem .2rem; padding: .7rem 0 .55rem;
+    border: 0; background: hsl(var(--card));
+    border-radius: 16px 16px 0 0;
+    touch-action: none; cursor: grab; -webkit-user-select: none; user-select: none;
+  }
+  .me-sheet-grip::before {
+    content: ""; display: block; width: 2.4rem; height: 4px; margin: 0 auto;
+    border-radius: var(--radius-pill); background: hsl(var(--muted-foreground) / .5);
+  }
+  .me-body.is-me-sheet-dragging .me-sheet-grip { cursor: grabbing; }
+
+  /* Grid clears the peek strip so its last row isn't hidden behind the sheet. */
+  .me-gridwrap { padding-bottom: calc(var(--me-peek-h, 3rem) + var(--safe-bottom, 0px) + 12px); }
+}
+.me-search input {
+  width: 100%; padding: .5rem .7rem; font: inherit; font-size: calc(.84rem * var(--a11y-fs));
+  border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) * .8);
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+}
+.me-search input:focus { outline: none; border-color: hsl(var(--ring) / .6); }
+
+.me-card {
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--card));
+}
+.me-card > summary {
+  display: flex; align-items: baseline; gap: .55rem;
+  padding: .65rem .8rem; cursor: pointer; list-style: none;
+  user-select: none;
+}
+.me-card > summary::-webkit-details-marker { display: none; }
+.me-card > summary::before {
+  content: ""; flex: 0 0 auto; align-self: center;
+  width: .45rem; height: .45rem;
+  border-right: 1.5px solid hsl(var(--muted-foreground));
+  border-bottom: 1.5px solid hsl(var(--muted-foreground));
+  transform: rotate(-45deg); transition: transform .15s ease;
+}
+.me-card[open] > summary::before { transform: rotate(45deg); }
+@media (prefers-reduced-motion: reduce) { .me-card > summary::before { transition: none; } }
+.me-card-title { font-size: calc(.84rem * var(--a11y-fs)); font-weight: 700; }
+.me-card-count { font-size: calc(.72rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.me-card--shared > summary .me-card-title { text-transform: uppercase; letter-spacing: .03em; font-size: calc(.76rem * var(--a11y-fs)); }
+.me-card--nomatch { opacity: .45; }
+.me-inputs { padding: .2rem .8rem .8rem; }
+/* Search filtering sets [hidden] on .input-row wrappers whose own display
+   (grid/flex from tool.css) would otherwise beat the UA's hidden rule. */
+.me-inputs .input-row[hidden] { display: none !important; }
+.me-card.me-flash { animation: me-flash .9s ease-out 1; }
+@keyframes me-flash {
+  0% { box-shadow: 0 0 0 2px hsl(var(--primary) / .8); }
+  100% { box-shadow: 0 0 0 2px transparent; }
+}
+@media (prefers-reduced-motion: reduce) { .me-card.me-flash { animation: none; } }
+
+/* Condensed export block - one row of compact fields at each card's foot. */
+.me-export {
+  display: flex; flex-wrap: wrap; align-items: end; gap: .45rem;
+  padding: .6rem .8rem .75rem;
+  border-top: 1px solid hsl(var(--border) / .6);
+}
+.me-export-label {
+  flex: 1 0 100%; font-size: calc(.64rem * var(--a11y-fs)); font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: hsl(var(--muted-foreground));
+}
+.me-exp-field {
+  display: grid; gap: .15rem;
+  font-size: calc(.64rem * var(--a11y-fs)); font-weight: 600; color: hsl(var(--muted-foreground));
+}
+/* The controls are `.field-input --sm` / `.field-select --sm` (parts/fields.css):
+   the compact box, its focus look and the disabled state all live there now. The
+   only thing this row genuinely differs on is how wide a number field gets. */
+.me-exp-field input { width: 4.6rem; }
+.me-exp-dpi[hidden] { display: none; }
+.me-download { margin-inline-start: auto; font-size: calc(.76rem * var(--a11y-fs)); }
+.me-export-note { margin: .4rem .8rem .7rem; font-size: calc(.74rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+
+/* ── Grid area + zoom toolbar ── */
+.me-gridwrap { min-width: 0; display: flex; flex-direction: column; }
+.me-gridbar {
+  position: sticky; top: 56px; z-index: 15;
+  display: flex; justify-content: flex-end; align-items: center;
+  padding: .55rem 1.2rem;
+  background: hsl(var(--background) / .9);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+/* Zoom cluster: [Fit] | [−] N across [+] - markup/click-wiring/disabled-state
+   come from components/zoom-hud.ts (mountZoomHud); this file only skins it. */
+.me-zoom {
+  display: inline-flex; align-items: center; gap: .1rem;
+  padding: .2rem;
+  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .9);
+  background: hsl(var(--card));
+}
+.me-zoom-btn {
+  display: grid; place-items: center; width: 1.95rem; height: 1.95rem;
+  border: 0; border-radius: calc(var(--radius) * .6);
+  background: transparent; color: hsl(var(--foreground)); cursor: pointer;
+  transition: background var(--dur-1) ease;
+}
+.me-zoom-btn svg { width: var(--fs-xl); height: var(--fs-xl); }
+.me-zoom-btn:hover:not(:disabled) { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+.me-zoom-btn:disabled { opacity: .38; cursor: default; }
+.me-zoom-btn:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+/* Fit sits apart from the −/read/+ stepper. */
+.me-zoom-fit { border-inline-end: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .6) 0 0 calc(var(--radius) * .6); margin-inline-end: .1rem; }
+.me-zoom-read {
+  min-width: 4.4rem; text-align: center;
+  font-size: calc(.72rem * var(--a11y-fs)); font-weight: 600; color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Canvas grid ── */
+.me-grid {
+  display: grid; gap: 1rem; padding: 1rem 1.2rem 2rem;
+  /* Auto-fill from a user-controlled card width (see the zoom control in
+     multi-edit.ts). min(…,100%) keeps a single wide card from overflowing a
+     narrow column; 1fr lets the row stretch to fill leftover space. */
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--me-card-w, 340px), 100%), 1fr));
+  align-content: start;
+}
+
+.me-cell {
+  margin: 0; cursor: pointer;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--card));
+  overflow: hidden;
+  /* Each cell is as tall as its own tool (its stage adopts the tool's real aspect in
+     multi-edit.ts's fit()) - don't stretch a short cell to a tall neighbour's row
+     height, so the grid reads as a bento of true-aspect previews, top-aligned. */
+  align-self: start;
+}
+.me-cell:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.me-cell.is-active { border-color: hsl(var(--primary) / .7); box-shadow: 0 0 0 1px hsl(var(--primary) / .7); }
+.me-stage { position: relative; overflow: hidden; background: hsl(var(--muted) / .3); contain: paint; }
+/* A singleInstance cell is a still until clicked (lib/multi-edit-single). Hint that the
+   preview is interactive; the hint fades on hover and once the cell is the live one. */
+.me-cell.is-single .me-live-hint {
+  position: absolute; inset-block-end: .5rem; inset-inline-start: .5rem; z-index: 2;
+  padding: .18rem .5rem; border-radius: var(--radius-pill);
+  background: hsl(var(--background) / .78); color: hsl(var(--muted-foreground));
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  font-size: var(--fs-xs); font-weight: 600; pointer-events: none;
+  opacity: 1; transition: opacity var(--dur-1) ease;
+}
+.me-cell.is-single:hover .me-live-hint,
+.me-cell.is-single.is-active .me-live-hint { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .me-cell.is-single .me-live-hint { transition: none; } }
+/* The live singleInstance cell: cursor-grab over the interactive canvas. */
+.me-cell.is-single.is-active .me-stage { cursor: grab; }
+.me-cell.is-single.is-active .me-stage:active { cursor: grabbing; }
+/* The session's stored thumbnail - this cell's FIRST paint, shown while its runtime
+   hydrates (createRuntime resolves assets over the network). A plain sibling under
+   .me-scale, so the transform that fits the native-size canvas never touches it; paint()
+   removes it once the live canvas has content. */
+.me-thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.me-scale { position: absolute; inset: 0 auto auto 0; transform-origin: top left; }
+.me-canvas { width: 100%; height: 100%; }
+/* A singleInstance tool's cell is a still preview (lib/multi-edit-single) rather than a
+   live canvas - the rendered PNG fills the native-size box, then scales with .me-scale. */
+.me-canvas > img.me-preview { width: 100%; height: 100%; object-fit: contain; display: block; }
+.me-cap {
+  display: flex; align-items: baseline; gap: .5rem; justify-content: space-between;
+  padding: .5rem .7rem;
+  border-top: 1px solid hsl(var(--border) / .6);
+}
+.me-cap-label { font-size: calc(.78rem * var(--a11y-fs)); font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.me-cap-tool { font-size: calc(.68rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); white-space: nowrap; }
+
+/* Error card (bad selection / vanished session). */
+.me-error { max-width: 32rem; margin: 4rem auto; text-align: center; display: grid; gap: 1rem; justify-items: center; }
+}

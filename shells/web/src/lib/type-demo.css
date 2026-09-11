@@ -1,0 +1,175 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* Variable-type demonstrator (type-demo.ts) - the WEIGHT axis is the animation.
+   Each face's weight rides a CSS var (--td-w-mono / --td-w-brand) that the rAF loop
+   sweeps 100↔900 by default and the slider scrubs on demand. font-variation-settings
+   is inherited, so setting it on the block drives the roman AND italic lines inside. */
+
+.type-demo {
+  display: grid;
+  grid-template-columns: 1fr;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.1);
+  background: hsl(var(--background));
+  overflow: hidden;
+}
+.td-divider { background: hsl(var(--border)); height: 1px; }
+.td-half { min-width: 0; display: flex; flex-direction: column; }
+
+/* Wide tile → the two faces sit side by side, the divider turning into a vertical
+   rule. Keyed on the TILE's own width via a container query (the .dash-typedemo
+   section is the query container), so the split only happens when there's genuine
+   room - a narrow tile keeps the stacked layout. */
+@container (min-width: 620px) {
+  .type-demo { grid-template-columns: 1fr 1px 1fr; }
+  .type-demo--single { grid-template-columns: 1fr; } /* one loaded face fills the tile */
+  .td-divider { width: 1px; height: auto; }
+}
+
+/* Only one face is loaded → its specimen spans the whole tile at every width. */
+.type-demo--single { grid-template-columns: 1fr; }
+
+/* No loaded faces at all (a probe-less shell that also reports no vars). */
+.type-demo--empty { padding: 1rem 1.1rem; }
+.td-empty { margin: 0; color: hsl(var(--muted-foreground)); font-size: calc(0.86rem * var(--a11y-fs)); }
+
+.td-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: calc(0.7rem * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.td-face { font-weight: 700; color: hsl(var(--foreground)); }
+.td-axis { margin-left: auto; font-family: var(--font-mono); /* the live mono face (tokens.css default: SUSE Mono) */ font-size: calc(0.66rem * var(--a11y-fs)); }
+.td-axis b { color: hsl(var(--primary)); font-variant-numeric: tabular-nums; font-weight: 700; }
+.td-dots { display: inline-flex; gap: 4px; }
+.td-dots i { width: 8px; height: 8px; border-radius: 50%; background: hsl(var(--muted)); }
+
+/* ── Mono-face terminal - rendered larger; weight rides --td-w-mono ── */
+.td-term {
+  flex: 1 1 auto;
+  padding: 1.15rem 1rem 1.2rem;
+  font-family: var(--font-mono); /* the live mono face (tokens.css default: SUSE Mono) */
+  font-variation-settings: 'wght' var(--td-w-mono, 440);
+}
+/* The command + comment are <code> elements: the UA `code { font-family: monospace }`
+   rule overrides the mono face set on .td-term, dropping them to system mono - which is
+   NOT variable, so the weight slider did nothing. Re-assert the variable stack here (the
+   child prompt/typed spans inherit it) so `wght` actually animates the terminal. */
+.td-line, .td-italic { font-family: var(--font-mono); /* the live mono face (tokens.css default: SUSE Mono) */ }
+.td-line { display: block; font-size: calc(1.18rem * var(--a11y-fs)); line-height: 1.5; white-space: nowrap; overflow: hidden; }
+.td-prompt { color: hsl(var(--primary)); }
+.td-caret {
+  display: inline-block;
+  width: 0.5ch;
+  height: 1.05em;
+  vertical-align: -0.15em;
+  margin-left: 1px;
+  background: hsl(var(--foreground));
+  animation: td-blink 1s steps(1) infinite;
+}
+.td-italic {
+  display: block;
+  margin-top: 0.6rem;
+  font-style: italic;
+  font-size: calc(0.98rem * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.td-italic.is-shown { opacity: 1; transform: none; }
+@keyframes td-blink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+.is-typed .td-caret { animation-duration: 1.1s; }
+
+/* ── Brand-face display sample - roman word + italic phrase, weight rides --td-w-brand ── */
+.td-sample {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 1.2rem 1rem 1.3rem;
+  font-family: var(--font-brand); /* the live brand face (tokens.css default: SUSE) */
+  font-variation-settings: 'wght' var(--td-w-brand, 440);
+  line-height: 1.02;
+}
+.td-roman { font-size: clamp(2rem, 6.5vw, 3.2rem); letter-spacing: -0.015em; }
+.td-ital { font-style: italic; font-size: clamp(1.6rem, 5.2vw, 2.5rem); letter-spacing: -0.01em; color: hsl(var(--muted-foreground)); }
+
+/* ── Editable sample text - a quiet "click to edit" affordance on the command,
+   comment and the two brand-face display lines: a dotted underline on hover, a real caret
+   and a focus ring. The weight animation keeps running while you type. */
+.type-demo [data-td-edit] { cursor: text; border-radius: 4px; outline: none; }
+.type-demo [data-td-edit]:hover {
+  text-decoration: underline dotted hsl(var(--muted-foreground) / 0.55);
+  text-underline-offset: 4px;
+}
+.type-demo [data-td-edit]:focus { box-shadow: 0 0 0 2px hsl(var(--primary) / 0.55); text-decoration: none; }
+
+/* ── Weight control (Auto pill + min↔max slider) ── */
+.td-ctl {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.9rem 0.85rem;
+  border-top: 1px solid hsl(var(--border));
+}
+.td-auto {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.6rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  color: hsl(var(--muted-foreground));
+  font-size: calc(0.68rem * var(--a11y-fs));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.td-auto-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: currentColor; opacity: 0.5; }
+.td-auto.is-on { color: hsl(var(--primary)); border-color: hsl(var(--primary) / 0.5); background: hsl(var(--primary) / 0.08); }
+.td-auto.is-on .td-auto-dot { opacity: 1; animation: td-pulse 1.6s ease-in-out infinite; }
+.td-auto:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+@keyframes td-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.55; } }
+
+.td-range-wrap { flex: 1 1 auto; display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.td-range {
+  width: 100%;
+  height: 1.1rem;
+  margin: 0;
+  cursor: pointer;
+  accent-color: hsl(var(--primary));
+  background: transparent;
+}
+.td-range:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; border-radius: 4px; }
+.td-scale {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono); /* the live mono face (tokens.css default: SUSE Mono) */
+  font-size: calc(0.56rem * var(--a11y-fs));
+  letter-spacing: 0.04em;
+  color: hsl(var(--muted-foreground) / 0.8);
+}
+.td-scale i:first-child { font-weight: 300; font-style: normal; }
+.td-scale i:last-child { font-weight: 800; font-style: normal; }
+
+@media (prefers-reduced-motion: reduce) {
+  .td-caret { display: none; }
+  .td-auto.is-on .td-auto-dot { animation: none; }
+  /* No auto animation under reduced motion - the sliders still work; hide the Auto pill. */
+  .td-auto { display: none; }
+}
+}

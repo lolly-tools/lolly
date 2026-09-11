@@ -1,0 +1,756 @@
+/* ─── Featured row - the gallery's cinematic hero strip ─────────────────────
+   A slowly-drifting row of large tiles, each cross-fading through live-rendered
+   example looks of one tool. See components/featured-row.ts for the motion (and
+   how prefers-reduced-motion strips it back to a plain scrollable row of links). */
+
+.featured {
+  --featured-top-space: 0px;
+  position: relative;   /* anchor for the optional pull label */
+  min-width: 0;
+  max-width: 100%;
+  contain: inline-size; /* loop copies must never enlarge a flex/grid host */
+}
+
+/* A tiny "pull label" tab inside the strip area (used by the bottom Utilities strip),
+   naming what the strip is without a full heading. */
+.featured-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary) / .85);
+  padding: 4px 12px 5px;
+  border-radius: 0 0 var(--radius) 0;   /* a little tab pulled from the top-left corner */
+  pointer-events: none;
+}
+
+/* Optional "(?)" help link in the pull label (opts.labelHref) - e.g. the Utilities
+   strip links to the /info FAQ explaining how utilities differ from tools. The label
+   itself is pointer-events:none (it must not eat drags over the strip); this child
+   re-enables clicks on just the glyph. */
+.featured-label-help {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  opacity: .75;
+  transition: opacity .15s ease;
+}
+.featured-label-help:hover,
+.featured-label-help:focus-visible { opacity: 1; }
+
+/* The bottom Utilities strip sits after the tool list, with a little air above it. */
+.featured-mount--utilities { display: block; margin-top: 2.4rem; }
+.featured-mount--utilities[hidden] { display: none; }
+/* With the hero present, the masonry no longer needs its cluster clearance - the
+   featured row provides it - so it tucks up right below the strip. */
+.gallery.has-featured .tool-masonry { padding-top: 3em; }
+@media (max-width: 640px) { .gallery.has-featured .tool-masonry { padding-top: .85rem; } }
+
+/* The strip itself - ONE inset panel. A native horizontal scroller (swipe / wheel /
+   keyboard all free), recessed into the page with an inner shadow + hairline ring so
+   the flush, edge-to-edge tiles read as a single filmstrip set into the surface, not a
+   row of separate cards. Scrollbar hidden (it's an ambient band); the JS motion owns
+   scrollLeft, so no smooth-scroll animation may interfere. Grab cursor invites the
+   drag (→ .is-grabbing while held). */
+.featured-viewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  border-radius: 0;             /* square-edged, flush to the gallery gutters */
+  /* TWO stationary background layers (the scroller's tiles drift over them):
+       1. a soft brand-coloured "spotlight" cast from ABOVE the top-centre edge - the
+          radial's source sits beyond the top, so we see the beam fanning down: brightest
+          along the top, fading way past the bottom, like a stage light on the floating
+          previews. Real presence on the dark + SUSE themes (alpha lives in --spot,
+          retuned per theme below; light theme's dark-teal primary stays a gentle wash);
+       2. the fine checkerboard texture (matches the hero-preview placeholder), whose
+          translucent squares let the spotlight and the grab tint below glow through.
+     Per-layer size/position/repeat keep the checker tiling while the spotlight fills. */
+  background-color: transparent;
+  --spot: hsl(var(--primary) / .1);
+  background-image:
+    radial-gradient(ellipse 60% 210% at 50% -8%, var(--spot) 0%, transparent 90%),
+    repeating-conic-gradient(#ffffff06 1% 25%, #00000006 0% 50%);
+  background-size: 100% 100%, .5em .5em;
+  background-position: center, 50%;
+  background-repeat: no-repeat, repeat;
+  cursor: grab;
+  transition: background-color .4s ease;
+  /* The strip is a drag surface, never a place to select text - so dragging pans/flips
+     instead of highlighting the captions. */
+  -webkit-user-select: none;
+          user-select: none;
+  /* Horizontal swipe pans the strip (native scroller); a vertical swipe scrolls the
+     PAGE - the strip never captures vertical (scroll hijack). */
+  touch-action: pan-x pan-y;
+}
+/* Lift the spotlight on the dark themes, where it reads as a genuine lit pool rather
+   than a tint - Pine-Green glow against near-black / dark-teal. Light theme keeps the
+   subtle wash from the base rule (its primary is the dark SUSE teal). */
+[data-theme="dark"] .featured-viewport { --spot: hsl(var(--primary) / .22); }
+[data-theme="brand"] .featured-viewport { --spot: hsl(var(--primary) / .18); }
+.featured-viewport::-webkit-scrollbar { width: 0; height: 0; display: none; }
+.featured-viewport[data-focus-by="pointer"]:focus-visible { outline: none; }
+.featured.is-grabbing .featured-viewport { cursor: grabbing; }
+/* Grabbing lights the backdrop a touch - playful, and it gives transparent-background
+   examples something to read against while you flip through them. Fades back on release. */
+.featured.is-grabbing .featured-viewport { background-color: hsl(var(--primary) / .12); }
+/* A manual look-pick (dot click) flips quickly, not at the slow cinematic cross-fade pace. */
+.featured.is-shifting .ftile-img { transition-duration: var(--dur-3); }
+
+/* Flush filmstrip - NO gap, NO per-tile radius: the tiles butt edge-to-edge inside
+   the inset panel and read as one continuous strip. */
+.featured-track {
+  display: flex;
+  gap: 0;
+  width: max-content;         /* let it exceed the viewport so it can drift */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* Mobile: the strip is the page hero (band top: 0 in BOTH hosts that put it there -
+   the Tools gallery and the Catalogue favourites strip), while the top row floats
+   OVER the page rather than occupying a bar. So the covers ran under it: measured at
+   390px the nav's bottom edge is y=54 with the cover starting at y=20 (gallery) or
+   y=0 (catalogue), i.e. the top 34–54px of every cover sat beneath the back pill and
+   the FAB cluster.
+   Pad the TRACK, not the viewport: setupLoop writes paddingLeft/paddingRight inline
+   for Cover Flow's centring, and never touches the block axis, so this survives it.
+   Safe against clipping too - the fixed height is on .ftile-link, so the track and
+   its auto-height viewport just grow.
+   Derived from the same tokens the row itself is built from rather than a flat 100px,
+   because --chrome-top carries var(--safe-top) and --chrome-h jumps to 44px
+   on coarse pointers: a hard-coded value would slide back under the nav on a notched
+   phone. Lands on 100px at these defaults. */
+@media (max-width: 640px) {
+  .featured { --featured-top-space: calc(var(--chrome-top) + var(--chrome-h) + 2.25rem); }
+  .featured-track { padding-top: var(--featured-top-space); }
+}
+
+.ftile {
+  position: relative;               /* anchor for the optional corner ⋯ menu button */
+  flex: 0 0 auto;
+  width: clamp(320px, 40vw, 620px);
+}
+@media (max-width: 640px) { .ftile { width: 88vw; } }
+
+/* Tile HEIGHT is the hero dial (art is object-fit:contain, so any tile ratio is
+   safe): a commanding third-of-viewport on desktop, near-fullscreen on mobile. On
+   mobile we cap to the space below the fixed top cluster + heading so the caption
+   never drops off-screen; the svh line refines it past the browser toolbar where
+   supported (vh line is the fallback). */
+/* ONE source of truth for the strip height - the Tools hero, the Projects Uncategorised
+   ribbon, and the Catalogue favourites strip all inherit this (they only add their own
+   framing, never their own height). Keep it here; don't re-add per-view --ftile-h. */
+.featured { --ftile-h: max(42vh, 400px); }
+/* Tablet: the hero yields sooner so the grid below is reachable without a long scroll. */
+@media (max-width: 1024px) {
+  .featured { --ftile-h: max(32vh, 300px); }
+}
+/* Mobile: a banner, not a takeover - the view's own content must start inside the first
+   screen. (svh tracks the mobile toolbar; the vh line is the fallback.) */
+@media (max-width: 640px) {
+  .featured { --ftile-h: 34vh; }
+  .featured { --ftile-h: 34svh; }
+}
+
+/* A studio "product shot" per tile: a soft cyclorama sweep (a touch of light up top
+   fading to a touch of shade at the floor), the preview floating with its own shadow,
+   and the centered title resting just below. A vertical flex column stacks
+   art → caption, so the caption always sits directly under the floating art + shadow. */
+.ftile-link {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: var(--ftile-h);
+  border-radius: 0;
+  overflow: hidden;
+  text-decoration: none;
+  isolation: isolate;
+  -webkit-user-drag: none;    /* a link normally starts a native drag-ghost - suppress it */
+  background: linear-gradient(to bottom, #ffffff05 0%, transparent 42%, transparent 58%, #00000005 100%);
+}
+.ftile-link:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -3px; border-radius: 4px; }
+
+/* Art region - takes the space above the caption; the preview floats within it.
+   Cross-fade layers are absolutely stacked; only .is-active is shown. contain (never
+   crop). The drop-shadow is DERIVED from the image, so it's automatically "sized and
+   blurred to match the preview" and swings with each variant as it cross-fades. It
+   rides on the layer's own opacity, so art + shadow fade together. */
+.ftile-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  isolation: isolate;                     /* keeps the contact shadow (z:-1) behind the art */
+  --art-floor: clamp(8px, 1.4vh, 16px);   /* the strip of "floor" between the object's base and the caption */
+}
+/* A wide, VERY thin ground-contact shadow at the object's base - the flat, spread-out
+   shadow of something tall standing under studio light, so each preview reads as
+   standing proud on the floor (not hovering over a desk). Wide + thin = the perspective. */
+.ftile-stage::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: var(--art-floor);
+  z-index: -1;
+  width: 66%;
+  height: clamp(5px, .8vh, 9px);
+  transform: translate(-50%, 50%);        /* centre the ellipse on the floor line */
+  border-radius: var(--radius-round);
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, .4) 0%, rgba(0, 0, 0, .18) 50%, transparent 74%);
+  filter: blur(5px);
+  pointer-events: none;
+}
+.ftile-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;         /* the object stands on the floor line */
+  padding: clamp(14px, 3vh, 44px) clamp(14px, 3vw, 44px) var(--art-floor);
+  opacity: 0;
+  filter: drop-shadow(.5px 1.5px 3px #0002);
+  transition: opacity 1.2s ease;
+  /* No persistent `will-change: opacity` - with up to ~6 variants × 2 clones × 2
+     strips it promoted 100+ images onto their own GPU layer for the life of the
+     view (texture memory + composite cost, worst on mobile). The browser promotes
+     an opacity transition on its own while it runs; the fade stays smooth. */
+}
+.ftile-img.is-active { opacity: 1; }
+/* Hover/focus lifts the art a touch. (Keep the drop-shadow - filter replaces,
+   not stacks, so re-declare it alongside the brightness bump.) */
+.ftile-link:hover .ftile-img.is-active,
+.ftile-link:focus-visible .ftile-img.is-active { filter: drop-shadow(.5px 1.5px 3px #0002) brightness(1.06); }
+
+/* Tool-icon fallback - the always-present backup art for a featured tile. It shows until
+   a real preview/variant decodes and is HIDDEN the instant one does (`.ftile.has-art`),
+   so a missing/slow/errored image is never a blank or broken box, and a TRANSPARENT
+   preview can't reveal the icon behind it. Mirrors the gallery tile's .gtile-iconfill: a
+   muted ghost with a hairline stroke. z-index:-1 keeps it under the art (the stage
+   isolates, so it can't escape the stacking context - the frosted-menus z-index gotcha).
+   Position box + svg width/height compose the merged declaration in gallery.css
+   (component audit rec 3, "one .gtile-iconfill ≡ .ftile-iconfill CSS block") -
+   everything below is this tile's own delta (no base/trace split; bigger max size). */
+.ftile-iconfill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18% 18% calc(18% + var(--art-floor));
+  box-sizing: border-box;
+  color: hsl(var(--muted-foreground) / .22);   /* faint - never competes with real art */
+}
+/* NOT on the icon scale: this is stand-in ARTWORK filling a picture frame, not a
+   mark labelling a control - it is sized to the tile's stage, and growing it with
+   the type would push it into the 18% padding that keeps it off the floor shadow. */
+.ftile-iconfill svg { max-width: 120px; max-height: 120px; }
+/* The stroke treatment is for ICON GLYPHS. Audio waveform art ([data-audio-shape],
+   lib/audio-thumb.ts) tunes its own per-shape stroke widths in its viewBox - the
+   screen-space overrides turned its ring spokes into fat blobs - so it is exempt
+   from every stroke rule here and scales naturally. */
+.ftile-iconfill svg:not([data-audio-shape]) { stroke-width: 2px; }
+/* A true hairline regardless of scale (vector-effect isn't inherited → put it on the shapes). */
+.ftile-iconfill svg:not([data-audio-shape]) :is(path, circle, rect, line, polyline, polygon, ellipse) { vector-effect: non-scaling-stroke; }
+/* Real art decoded → drop the icon so a transparent image never shows it through. */
+.ftile.has-art .ftile-iconfill { display: none; }
+
+/* ── Icon-HERO tile ──────────────────────────────────────────────────────────
+   .ftile--icon (set by tileMarkup when the entry has no preview AND no example
+   looks - the utility tools, favourited view cards). The icon is the tile's
+   artwork for its whole life, not a loading stand-in, so it drops the ghost
+   treatment: large, brand-hued, BOLD stroke, and paired with the name in a pill
+   so the two read as one centred object. For a utility the NAME identifies it
+   faster than the glyph does, which is why the title comes up into the artwork
+   instead of sitting under it (the .ftile-meta twin is hidden below).
+
+   Sized off the viewport HEIGHT, deliberately. The shared .ftile-iconfill box
+   pads 18% - and percentage padding resolves against WIDTH, while the tile's
+   height is fixed (--ftile-h). So on a wide window that padding ate the whole
+   fixed-height stage and the icon COLLAPSED as the page grew: the wider the
+   viewport, the smaller the icon. Two knobs, both height-based, so a wider
+   window never shrinks the lockup. */
+.ftile--icon {
+  --fic-size: clamp(96px, 19vh, 176px);
+  --fic-stroke: 1em;                /* screen-space, via the non-scaling-stroke rule above */
+}
+.ftile--icon .ftile-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;          /* the lockup sits centred in the stage, always */
+  gap: clamp(12px, 2.2vh, 24px);
+  padding-bottom: var(--art-floor); /* clear of the floor shadow, like the art is */
+}
+/* Join the flex flow (the base rule absolutely fills the stage) so icon + pill
+   centre together as one object rather than stacking independently. */
+.ftile--icon .ftile-iconfill {
+  position: static;
+  z-index: auto;
+  padding: 0;
+  flex: none;
+  color: hsl(var(--primary) / .6);
+}
+.ftile--icon .ftile-iconfill svg {
+  width: var(--fic-size);
+  height: var(--fic-size);
+  max-width: none;
+  max-height: none;
+}
+.ftile--icon .ftile-iconfill svg:not([data-audio-shape]) { stroke-width: var(--fic-stroke); }
+/* A shape carrying its OWN stroke-width attribute declared itself deliberately
+   heavier than its icon's base weight - redact's redaction bar is 3.4 against a
+   1.8 base. Inheritance loses to a presentation attribute, so that shape would
+   keep its literal user-space width while everything around it jumped to the em
+   stroke, and the emphasis line would read as a hairline in exactly the context
+   it matters most. Restate it at 2x the base so the intent survives the scale-up. */
+.ftile--icon .ftile-iconfill svg:not([data-audio-shape]) :is(path, circle, rect, line, polyline, polygon, ellipse)[stroke-width] {
+  stroke-width: calc(var(--fic-stroke) * 2);
+}
+/* The title, in the artwork. Sized off height for the same reason as the icon.
+   NEVER truncated: on a utility tile the name is the single most important
+   thing on the card (it identifies the utility better than the glyph does), so
+   a long one WRAPS - the pill grows to fit rather than clipping to an ellipsis.
+   `balance` keeps a two-line name from breaking to one orphaned word. */
+.ftile--icon .ftile-iconname {
+  max-width: 88%;
+  padding: .42em 1.1em;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--card) / .8);
+  box-shadow: 0 1px 2px #00000012, inset 0 0 0 1px hsl(var(--border) / .5);
+  color: hsl(var(--foreground));
+  font-size: calc(clamp(15px, 2.1vh, 21px) * var(--a11y-fs));
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;      /* a single unbreakable word still stays inside the pill */
+}
+/* The pill IS the title on these tiles, so no second caption is needed below. */
+.ftile--icon .ftile-meta { display: none; }
+
+/* Cover Flow: the covers are a third the size of the Gallery hero tiles, so the
+   lockup scales down with them (same two knobs). The pill stays visible on every
+   cover, unlike .ftile-meta - it's artwork here, and a cover whose art is an
+   unlabelled glyph is the blank card this whole treatment exists to avoid. */
+.featured--coverflow .ftile--icon {
+  --fic-size: clamp(64px, 12vh, 112px);
+  --fic-stroke: .72em;
+}
+.featured--coverflow .ftile--icon .ftile-iconname { font-size: calc(clamp(12px, 1.5vh, 15px) * var(--a11y-fs)); }
+
+/* Ken Burns - a still tile still breathes. Scales from the base so the object stays
+   planted on its floor shadow. Gentle; restarts on each cross-fade. Motion only. */
+.featured:not(.featured--static) .ftile-img.is-active {
+  transform-origin: center bottom;
+  animation: ftile-kenburns 12s ease-in-out infinite alternate;
+}
+@keyframes ftile-kenburns { from { transform: scale(1); } to { transform: scale(1.03); } }
+/* Mobile: the Ken Burns scale continuously re-rasterises each active image's
+   drop-shadow (the filter shape changes as it scales), and with several tiles live
+   at once that per-frame filter work is the main cause of choppy left/right swiping
+   on phones. Hold the art still here so the shadow layers stay cached and the swipe
+   composites buttery; desktop keeps the breathing. (The cross-fade is likewise paused
+   mid-swipe - see `touching` in featured-row.ts.) */
+@media (max-width: 640px) {
+  .featured:not(.featured--static) .ftile-img.is-active { animation: none; }
+}
+
+/* Centered caption, resting just under the floating art + its shadow. Theme-coloured
+   (it sits over the studio backdrop now, not over the art), so it reads in light,
+   dark, and SUSE alike. */
+.ftile-meta {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  padding: 2px clamp(14px, 3vw, 32px) clamp(6px, 1.4vh, 14px);
+  pointer-events: none;
+}
+.ftile-name {
+  font-size: calc(clamp(14px, 1.7vw, 20px) * var(--a11y-fs));
+  font-weight: 700;
+  line-height: 1.15;
+  color: hsl(var(--foreground));
+}
+
+/* (.ftile-badge - the featured tile's "New" pill - is retired with the recency
+   badge, Andy 2026-08-28; the info dialog's "Added" line carries recency now.) */
+
+/* The "Open →" affordance - a centred pill low in the preview stage (clear of the fixed
+   top-right control cluster, which used to sit right over it and swallow the tap). It's a
+   purely visual cue: the whole tile is the link, so pointer-events pass through to it. */
+.ftile-open {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(12px, 2.4vh, 24px);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: #fff;
+  background: #000a;
+  border: 1px solid #ffffff2e;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  padding: 6px 13px;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px #0005;
+  pointer-events: none;                       /* the tile itself is the link */
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition: opacity .16s ease, transform .16s ease;
+}
+.ftile-link:hover .ftile-open,
+.ftile-link:focus-visible .ftile-open { opacity: 1; transform: translate(-50%, 0); }
+/* Touch devices have no hover - keep the affordance visible so it's clearly tappable
+   (coverflow keeps its own centred-cover-only rule below). */
+@media (hover: none) {
+  .featured:not(.featured--coverflow) .ftile-open { opacity: 1; transform: translate(-50%, 0); }
+}
+.ftile-open svg { display: block; }
+/* Icon tiles put their title inside the art. Reserve the otherwise empty dots
+   row for Open, so the mobile affordance cannot cover that title. */
+.featured:not(.featured--coverflow) .ftile--icon .ftile-dots { min-height: 44px; padding: 0; }
+.featured:not(.featured--coverflow) .ftile--icon .ftile-open { top: calc(100% + 4px); bottom: auto; }
+
+/* Optional per-tile ⋯ actions button (Projects' Uncategorised ribbon) - a real, tappable
+   handle in the top-right corner, ABOVE the link, so it works on touch and in Cover Flow where
+   drag-to-folder can't. Revealed on hover; always shown on touch and on the centred cover. */
+.ftile-menu {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: #fff;
+  background: #000a;
+  border: 1px solid #ffffff2e;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 2px 8px #0005;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity .16s ease, transform .16s ease, background var(--dur-1);
+}
+.ftile-menu:hover { background: #000d; }
+.ftile-menu svg { display: block; }
+.ftile:hover .ftile-menu,
+.ftile-menu:focus-visible { opacity: 1; transform: translateY(0); }
+/* Touch has no hover - keep it visible so it's clearly tappable (gallery strip). */
+@media (hover: none) {
+  .featured:not(.featured--coverflow) .ftile-menu { opacity: 1; transform: translateY(0); }
+}
+/* Cover Flow: only the centred cover shows AND accepts its menu (matches the Open affordance) -
+   a side cover's hidden button must not swallow a click meant to centre that cover. */
+.featured--coverflow .ftile-menu { opacity: 0; pointer-events: none; }
+.featured--coverflow .ftile.is-centred .ftile-menu { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+/* Variant indicator - which look of how many is showing. A centered row of dots in
+   the flow, resting under the caption. Empty (no dots) until a tile has ≥2 looks. */
+.ftile-dots {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;                     /* the dots' own hit padding provides the spacing */
+  min-height: 5px;
+  padding-bottom: clamp(10px, 1.8vh, 18px);
+}
+/* Clickable: each dot is a padded hit target around a small visual circle (::before)
+   so a fingertip can land on one; clicking jumps the tile straight to that look
+   (delegated in featured-row.ts - the wrapping <a> click is swallowed). */
+.ftile-dot {
+  display: inline-flex;
+  padding: 5px;
+  cursor: pointer;
+}
+.ftile-dot::before {
+  content: "";
+  width: 5px; height: 5px;
+  border-radius: var(--radius-round);
+  background: hsl(var(--muted-foreground) / .4);
+  transition: background var(--dur-3) ease, transform var(--dur-3) ease;
+}
+.ftile-dot:hover::before { background: hsl(var(--muted-foreground) / .8); transform: scale(1.35); }
+.ftile-dot.is-on::before { background: hsl(var(--primary)); transform: scale(1.35); }
+
+/* ── Cover Flow view ─────────────────────────────────────────────────────────
+   The strip becomes a 3D player-select: covers fan back from a centred, upright one.
+   The per-cover transform is set every frame in JS as a pure function of scroll
+   position; this block just sets the 3D stage and the resting/selected chrome. */
+.featured--coverflow .featured-viewport {
+  perspective: 1500px;
+  overflow-x: hidden; /* one owner of horizontal motion, including WKWebView */
+  scroll-snap-type: none;
+  touch-action: pan-y;                /* JS owns the horizontal drag + snap; vertical stays with the page */
+}
+.featured--coverflow .featured-track {
+  transform-style: preserve-3d;
+  align-items: center;
+  /* The track stands taller than the covers, so align-items centres them with room to
+     spare - the covers, their shadows and the lit centre cover float clear of the strip's
+     top/bottom edges instead of butting against (and being clipped by) overflow:hidden.
+     CAPPED: --ftile-h is tuned for the immersive Gallery strip (42vh desktop), which on a
+     TALL device makes the Cover Flow band - and the near-square covers in it - balloon far
+     past their content. Cap the band so tall screens don't show a giant, mostly-empty fan. */
+  min-height: calc(var(--cf-cover-h) + 5rem);
+}
+.featured--coverflow .ftile {
+  width: min(86vw, calc(clamp(200px, 25vw, 320px) * var(--a11y-fs)));
+  transform-origin: center center;
+  -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+  /* Frost the covers stacked behind each one - the fan reads with a little depth-of-field. */
+  -webkit-backdrop-filter: blur(4px);
+          backdrop-filter: blur(4px);
+}
+/* Mobile: a cover is re-transformed (scale + rotateY) every frame during a drag/flick,
+   so EVERY paint effect on it is re-rasterised per frame - the source of the coverflow
+   judder on phones. Strip the fan back to the cheapest thing that still reads as depth:
+     · the depth-of-field frost (backdrop-filter) re-samples the covers behind - gone;
+     · the soft wide resting shadow and the lit cover's Pine-Green *glow* have big blur
+       radii, the costliest to redraw as the box scales - gone (this is the "big box
+       shadow glow" goodbye), replaced on the selected cover by a crisp 0-blur ring;
+     · the art's own drop-shadow is the same per-frame filter cost the Ken Burns note
+       above calls out - gone here too;
+     · the lit/dim + ring state no longer eases over 0.3s, so a fast flick doesn't kick
+       off a pile of overlapping filter/shadow transitions as covers cross centre.
+   Depth is now carried by the brightness dimming + scale alone - both composited, no
+   per-frame repaint. Desktop keeps the full glow and easing. */
+/* NOTE ON ORDER: this block MUST stay below every base `.featured--coverflow .ftile*`
+   rule it overrides. It used to sit above them, at equal specificity - so the base
+   `.ftile-link` rule further down silently re-applied the resting box-shadow and the
+   0.3s filter/box-shadow easing this block exists to remove, and the whole
+   optimisation was a no-op on the phones it was written for. Adding a mobile
+   `height` here was what surfaced it. Keep new mobile overrides in THIS block. */
+/* Cover height tracks the strip on normal viewports, but is capped so a tall device
+   doesn't stretch each cover into a giant portrait card around a square preview (see the
+   band note above). ~square-ish at the max cover width. A var because the Open button
+   positions itself off the cover's bottom edge (see .featured-go). */
+.featured--coverflow {
+  --cf-cover-h: calc(min(calc(var(--ftile-h) - 6rem), 360px) * var(--a11y-fs));
+  --cf-grip-h: 0px;             /* .featured-grip is display:none until the mobile block */
+}
+/* Covers read as floating cards here (the flush-strip framing is a Gallery-mode thing).
+   Sized shorter than the strip so they float uncut; the whole fan sits back in shade
+   (dimmed + a soft resting shadow) so the upright, fully-lit centre cover reads as the
+   selected one on light and dark alike - no hard ring needed. */
+.featured--coverflow .ftile-link {
+  height: var(--cf-cover-h);
+  border-radius: calc(var(--radius) * 1.5);
+  box-shadow: inset 0 1px #fff1, inset 0 1px .15rem#fff2, 0 .6rem 2.2rem -0.6rem #0004;
+  filter: brightness(0.85);
+  transition: filter var(--dur-3) ease, box-shadow var(--dur-3) ease;
+}
+/* The covers here are much smaller than the Gallery-mode filmstrip tiles, so the strip's
+   generous art padding (tuned for the big hero tiles) eats a small cover alive. Pull the
+   preview right up to the cover edge so the art fills the card. Gallery mode keeps the
+   roomier framing from the shared .ftile-img rule. */
+.featured--coverflow .ftile-img {
+  padding: clamp(6px, 1.4vh, 16px) clamp(6px, 1.4vw, 16px) var(--art-floor);
+}
+/* The picked cover is lit and lifted forward - a deeper, softer shadow does the "this is
+   selected" job the old outline did, but reads as real elevation rather than a border. */
+.featured--coverflow .ftile.is-centred .ftile-link {
+  filter: none;
+  box-shadow: 0 0 0 1px hsl(var(--primary)/.25),0 .2rem 2.2rem -0.6rem hsl(var(--primary)/.5)
+}
+/* Only the centred (selected) cover carries its label and dots (the Open button is one
+   per strip now - see .featured-go). Its floor shadow is dropped (it reads odd on an
+   angled cover). */
+.featured--coverflow .ftile-meta,
+.featured--coverflow .ftile-dots { opacity: 0; transition: opacity .2s ease; }
+/* Dots are clickable now: while hidden on a side cover they must not swallow the
+   "centre this cover" click (opacity alone leaves them interactive). */
+.featured--coverflow .ftile-dots { pointer-events: none; }
+.featured--coverflow .ftile.is-centred .ftile-meta,
+.featured--coverflow .ftile.is-centred .ftile-dots { opacity: 1; }
+.featured--coverflow .ftile.is-centred .ftile-dots { pointer-events: auto; }
+.featured--coverflow .ftile-stage::after { opacity: 0; }
+
+/* ── The Open control in Cover Flow ──────────────────────────────────────────
+   Gallery's `.ftile-open` is a pointer-events:none cue: there the whole tile is one
+   unobstructed link, so the cue only has to be seen. In the fan NOTHING inside a cover
+   can be clicked - layoutCoverflow recedes every cover with a `translateZ`, and a
+   z-translated plane inside a `transform-style: preserve-3d` context is not
+   hit-testable in Chrome: press anywhere in the strip and the event's target is the
+   preserve-3d root, `.featured-track`. (rotateY alone hit-tests fine; any translateZ
+   makes the whole subtree untargetable. elementsFromPoint still reports the covers, so
+   it's the event hit test specifically.) A cue drawn on the cover is therefore dead no
+   matter how it's stacked or how wide its pointer-events are opened.
+   So Cover Flow's Open control is `.featured-go`: ONE button per strip, a child of the
+   section rather than of a cover, i.e. outside the 3D context, where it is an ordinary
+   clickable button. It's parked over the bottom edge of the centred cover (which never
+   moves - the fan slides under it) and opens whichever cover is `.is-centred` at click
+   time; see the featured-row.ts note beside its handler. */
+.featured--coverflow { --cf-go-h: max(44px, calc(30px * var(--a11y-fs))); }
+.featured--coverflow .ftile-open { display: none; }
+.featured-go { display: none; }
+.featured--coverflow .featured-go {
+  position: absolute;
+  left: 50%;
+  /* Pinned to the centred cover's bottom edge. The covers are centred in the band
+     (.featured-track's align-items), so measuring up from the section's bottom edge:
+     half the band + half the grip that sits below it (0 on desktop, where the grip is
+     display:none) − half a cover = the cover's own bottom edge, then 4px of air.
+     The mobile track's top padding shifts the cover centre down by half that
+     padding; include it so Open stays below the title. --cf-grip-h must track
+     .featured-grip's height. */
+  bottom: calc(50% + var(--cf-grip-h) / 2 - var(--cf-cover-h) / 2 - var(--featured-top-space) / 2 + 4px);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 44px;
+  min-height: var(--cf-go-h);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: #fff;
+  background: #000a;
+  border: 1px solid #ffffff2e;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  padding: 0 14px;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px #0005;
+  cursor: pointer;
+  transform: translateX(-50%);
+  transition: background var(--dur-1) ease;
+}
+.featured--coverflow .featured-go:hover { background: #000d; }
+.featured--coverflow .featured-go svg { display: block; }
+/* The dots row sits on the cover's bottom edge, which the button now owns - lift it
+   clear so the two never overlap. */
+.featured--coverflow .ftile-dots { padding-bottom: calc(var(--cf-go-h) + 10px); }
+.featured--coverflow .ftile--icon .ftile-stage { padding-bottom: calc(var(--cf-go-h) + 16px); }
+.featured--coverflow .ftile-name { overflow-wrap: anywhere; }
+.featured--coverflow .ftile--icon { --fic-size: min(30vw, calc(clamp(64px, 12vh, 112px) * var(--a11y-fs))); }
+
+/* ── Cover Flow on a phone (see the order note above the base rules) ──────────
+   TWO things happen here, and both need to out-rank the base rules above.
+
+   1. PROPORTION. The base width and height cap against different budgets: the
+      width bottoms out at its 200px clamp floor (25vw is only ~97px at 390px wide)
+      while the height rode the then-60svh --ftile-h up to its 360px cap. That made a
+      200×360 cover - w/h 0.56, a tall portrait card around landscape preview art,
+      the slack spent on empty floor. The base rule's "~square-ish" only holds at
+      the 320px max width, i.e. desktop. Drive BOTH axes off one vw basis so the
+      ratio is fixed by construction (~1.06) at every phone width, and let the band
+      follow the covers instead of the Gallery strip's hero-tile height.
+
+   2. PER-FRAME PAINT. A cover is re-transformed (scale + rotateY) every frame during
+      a drag/flick, so every paint effect on it is re-rasterised per frame - the
+      source of the coverflow judder on phones. Strip the fan back to the cheapest
+      thing that still reads as depth: the depth-of-field frost (backdrop-filter)
+      re-samples the covers behind it; the soft wide resting shadow and the lit
+      cover's Pine-Green glow have big blur radii, the costliest to redraw as the box
+      scales (replaced on the selected cover by a crisp 0-blur ring); the art's own
+      drop-shadow is the same per-frame filter cost the Ken Burns note above calls
+      out. The lit/dim state also stops easing, so a fast flick doesn't kick off a
+      pile of overlapping filter/shadow transitions as covers cross centre. Depth is
+      carried by the brightness dimming + scale alone - both composited. Desktop
+      keeps the full glow and easing. */
+@media (max-width: 640px) {
+  .featured--coverflow .ftile {
+    width: min(86vw, calc(66vw * var(--a11y-fs)));
+    -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+  }
+  .featured--coverflow {
+    --cf-cover-h: calc(62vw * var(--a11y-fs));
+    --cf-grip-h: 30px;          /* == .featured-grip's mobile height, below */
+    --cf-go-h: max(44px, calc(30px * var(--a11y-fs)));
+  }
+  .featured--coverflow .ftile-link {
+    box-shadow: none;
+    transition: none;
+  }
+  .featured--coverflow .featured-track { min-height: calc(var(--cf-cover-h) + 10vw); }
+  .featured--coverflow .ftile.is-centred .ftile-link {
+    box-shadow: 0 0 0 1.5px hsl(var(--primary) / .55), inset 0 0 0 1px #fff2;
+    background-color: #dfe3;
+  }
+  .featured--coverflow .ftile-img { filter: none; }
+  /* Smaller cover, smaller button - and no blur here either (the fan drops its own
+     backdrop-filter above for the same per-frame paint reason). */
+  .featured--coverflow .featured-go {
+    font-size: var(--fs-xs);
+    -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+    background: #000c;
+  }
+}
+
+/* ── Mobile drag handle ──────────────────────────────────────────────────────
+   Matches the tool editor's sheet grip. A belt-and-braces explicit "grab here to
+   slide the page up/down" handle. (Historically the strip captured vertical
+   gestures, which made this pill essential; vertical now scrolls the page from
+   anywhere on the strip, so it's just a clear extra affordance.) Desktop doesn't
+   need it. */
+.featured-grip { display: none; }
+@media (max-width: 640px) {
+  .featured-grip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;                 /* generous hit area */
+    touch-action: none;           /* JS owns the drag (reliable on touch AND mouse) */
+    cursor: grab;
+  }
+  .featured-grip-bar {
+    width: 44px;
+    height: 8px;
+    border-radius: var(--radius);
+    background: hsl(var(--primary));
+    border: 1px solid #fff5;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .22);
+    transition: transform var(--dur-1) ease;
+  }
+}
+.featured-grip.is-dragging { cursor: grabbing; }
+.featured-grip.is-dragging .featured-grip-bar { transform: scaleX(1.12); }
+
+/* Use the same touch treatment on iPad as on iPhone. Translucency and crisp
+   highlights remain on every glass tile; only the resting selected tile samples
+   a blurred backdrop, keeping a swipe from rerasterising a stack of filters. */
+@media (pointer: coarse) {
+  .featured--coverflow .ftile {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .featured--coverflow .ftile-link {
+    background: linear-gradient(150deg, hsl(var(--card) / .3), hsl(var(--card) / .08));
+    box-shadow: var(--ui-effect-bevel), inset 0 0 0 1px #fff2;
+    transition: none;
+  }
+  .featured--coverflow .ftile-img { filter: none; }
+  .featured--coverflow:not(.is-moving) .ftile.is-centred {
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+}

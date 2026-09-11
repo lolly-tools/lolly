@@ -1,0 +1,119 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* Palette color wheel (palette-wheel.ts). */
+
+/* Disc + rail, side by side. The disc takes the room, the rail is a fixed gutter. */
+.dash-wheel-plot {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+}
+.dash-wheel {
+  position: relative;
+  flex: 1 1 auto;
+  aspect-ratio: 1 / 1;
+}
+/* The wheel proper: hue around, saturation outward - the plane the dots are
+   plotted on, drawn underneath them. The conic is stepped in OKLCH at 30°, the
+   SAME hue angles oklchWheelXY() plots by, so a dot lands on its own colour;
+   an hsl() conic would be off by ~30° at the reds (sRGB red is oklch h≈29, not
+   0) and the plot would quietly lie. The core fades to the card colour rather
+   than to white - this is the desaturated end of the axis, and it has to read
+   as "no chroma" in both themes. */
+.dash-wheel-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, hsl(var(--card)) 0%, hsl(var(--card) / 0) 52%),
+    conic-gradient(from 0deg,
+      oklch(70% 0.19 0), oklch(70% 0.19 30), oklch(70% 0.19 60), oklch(70% 0.19 90),
+      oklch(70% 0.19 120), oklch(70% 0.19 150), oklch(70% 0.19 180), oklch(70% 0.19 210),
+      oklch(70% 0.19 240), oklch(70% 0.19 270), oklch(70% 0.19 300), oklch(70% 0.19 330),
+      oklch(70% 0.19 360));
+  opacity: 0.45;
+}
+/* Faint chroma rings so positions read as a plot, not a scatter. */
+.dash-wheel-grid {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 0 40.5%, hsl(var(--border)) 41% 41.6%, transparent 42%),
+    radial-gradient(circle, transparent 0 27%, hsl(var(--border) / 0.6) 27.4% 28%, transparent 28.4%);
+}
+
+/* ── The neutral rail - greys, by lightness, light at the top. They have no hue
+   to plot by, so they don't belong on the disc at all (they'd pile into the hub
+   at an arbitrary angle). Here they get the one axis that separates them. */
+.dash-wheel-rail {
+  position: relative;
+  flex: 0 0 2.25rem;
+}
+.dash-wheel-rail-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 1px solid hsl(var(--border));
+  background: linear-gradient(to bottom, hsl(0 0% 100%), hsl(0 0% 0%));
+  opacity: 0.22;
+}
+.dash-wheel-dot {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;   /* centre the dot on its point */
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  /* Colour over a fine checkerboard so a translucent swatch's alpha is visible
+     (the editable wheel can hold #rrggbbaa dots); opaque dots hide the checker. */
+  background:
+    linear-gradient(var(--dot), var(--dot)),
+    repeating-conic-gradient(hsl(0 0% 60% / 0.9) 0% 25%, hsl(0 0% 96%) 0% 50%) 50% / 6px 6px;
+  box-shadow: 0 1px 4px hsl(0 0% 0% / 0.35);
+  cursor: pointer;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+.dash-wheel-dot.is-light { box-shadow: 0 0 0 1px hsl(var(--border)), 0 1px 4px hsl(0 0% 0% / 0.25); }
+.dash-wheel-dot:hover,
+.dash-wheel-dot:focus-visible {
+  transform: scale(1.6);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.35), 0 2px 8px hsl(0 0% 0% / 0.4);
+  z-index: 3;
+  outline: none;
+}
+
+/* ── Big readout UNDER the wheel - the readable copy of whatever dot is hovered:
+   a large swatch + large name + large value, so you can actually read the colour and
+   its hex. The centre hub stays a compact in-dial echo. */
+.dash-wheel-wrap { display: flex; flex-direction: column; gap: 1rem; }
+.dash-wheel-preview {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.85rem 1rem; min-height: 4.75rem;
+  background: hsl(var(--muted) / 0.4);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  place-content:center;
+}
+.dash-wheel-pv-swatch {
+  flex: 0 0 auto; width: 3.25rem; height: 3.25rem; border-radius: calc(var(--radius) * 0.85);
+  background: transparent; box-shadow: inset 0 0 0 1px hsl(var(--border));
+  transition: background 0.15s ease;
+}
+.dash-wheel-preview.is-active .dash-wheel-pv-swatch { box-shadow: inset 0 0 0 1px hsl(0 0% 0% / 0.15); }
+.dash-wheel-pv-text { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+.dash-wheel-pv-name { font-size: calc(1.3rem * var(--a11y-fs)); font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; }
+.dash-wheel-pv-hex { font-size: calc(1.05rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); font-family: 'SUSE Mono', ui-monospace, monospace; }
+/* Idle state - a quieter, smaller prompt until a dot is hovered. */
+.dash-wheel-preview:not(.is-active) .dash-wheel-pv-name { font-size: calc(1rem * var(--a11y-fs)); font-weight: 600; color: hsl(var(--muted-foreground)); }
+
+@media (prefers-reduced-motion: reduce) { .dash-wheel-dot, .dash-wheel-pv-swatch { transition: none; } }
+}

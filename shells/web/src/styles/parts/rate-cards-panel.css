@@ -1,0 +1,97 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* The rate-cards manager (components/rate-cards-manager.ts). Ships with that
+   component's chunk and sits in the `views` layer, whose order is declared once in
+   styles/app.css - so its priority is fixed no matter when Vite injects the chunk.
+
+   House rules honoured here: the ONE drop area is the `.updz` at the top (dropzone.css,
+   dashed - the only place a dash is allowed). Every card below is a full four-sided box,
+   never a one-sided-border card. Escape-to-close comes from the native <dialog> (modal.ts). */
+@layer views {
+
+.rcm { display: flex; flex-direction: column; gap: 0.9rem; }
+
+.rcm-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.rcm-title { margin: 0; font-size: calc(1.05rem * var(--a11y-fs)); font-weight: 650; }
+.rcm-close {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border-radius: 0.5rem;
+  font-size: calc(1.1rem * var(--a11y-fs));
+  line-height: 1;
+  padding: 0.15rem 0.5rem;
+  cursor: pointer;
+}
+.rcm-close:hover { background: hsl(var(--muted)); }
+
+.rcm-intro { margin: 0; color: hsl(var(--muted-foreground)); font-size: calc(0.9rem * var(--a11y-fs)); }
+
+.rcm-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.rcm-new {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.7rem;
+  font: inherit;
+  font-size: calc(0.9rem * var(--a11y-fs));
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.rcm-new:hover { background: hsl(var(--muted)); }
+
+/* The status line - a refusal or a confirmation, stated once, never in a nested modal. */
+.rcm-msg {
+  margin: 0;
+  font-size: calc(0.9rem * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.rcm-msg[data-tone="error"] { color: hsl(var(--destructive, 0 72% 51%)); }
+
+.rcm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+.rcm-list:empty { display: none; }
+.rcm-empty { margin: 0; color: hsl(var(--muted-foreground)); font-size: calc(0.9rem * var(--a11y-fs)); }
+
+/* One stored card - a full box, all four borders. */
+.rcm-row {
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.6rem;
+  background: hsl(var(--card));
+  padding: 0.65rem 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.rcm-row-main { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+.rcm-row-name { font-weight: 600; font-size: calc(0.95rem * var(--a11y-fs)); word-break: break-word; }
+/* The FACTS Lolly knows: digest, size, date. */
+.rcm-row-fact { color: hsl(var(--muted-foreground)); font-size: calc(0.8rem * var(--a11y-fs)); }
+/* The CLAIM the file makes - reported speech, visibly a quote, never merged with facts. */
+.rcm-row-claim {
+  color: hsl(var(--muted-foreground));
+  font-size: calc(0.8rem * var(--a11y-fs));
+  font-style: italic;
+}
+.rcm-row-priced { font-size: calc(0.85rem * var(--a11y-fs)); }
+
+.rcm-remove {
+  border: 1px solid hsl(var(--border));
+  background: transparent;
+  color: hsl(var(--foreground));
+  border-radius: 0.45rem;
+  padding: 0.25rem 0.55rem;
+  font: inherit;
+  font-size: calc(0.85rem * var(--a11y-fs));
+  cursor: pointer;
+  flex: none;
+}
+.rcm-remove:hover { background: hsl(var(--muted)); }
+
+@media (pointer: coarse) {
+  .rcm-close { min-width: 44px; min-height: 44px; }
+  .rcm-new { min-height: 44px; }
+  .rcm-remove { min-height: 40px; }
+}
+
+}

@@ -1,0 +1,114 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* Interactive recent-creations card stack (see recent-stack.ts). */
+
+.dash-stack {
+  position: relative;
+  user-select: none;
+  touch-action: pan-y;      /* let vertical scroll pass to the page; we own horizontal */
+  outline: none;
+}
+.dash-stack-deck {
+  position: relative;
+  height: 300px;
+  margin: 0.5rem auto 0;
+  max-width: 100%;
+}
+.dash-stack-card {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: min(268px, 70vw);
+  transform: translate(-50%, -50%);
+  transition: transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.42s ease;
+  will-change: transform, opacity;
+  border-radius: calc(var(--radius) * 1.15);
+  overflow: hidden;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 18px 44px hsl(0 0% 0% / 0.24);
+  text-decoration: none;
+  color: inherit;
+  cursor: grab;
+}
+.dash-stack-card:active { cursor: grabbing; }
+.dash-stack-card:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
+.dash-stack-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background-color: hsl(var(--background));
+  background-image:
+    linear-gradient(45deg, hsl(var(--muted) / 0.5) 25%, transparent 25%),
+    linear-gradient(-45deg, hsl(var(--muted) / 0.5) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, hsl(var(--muted) / 0.5) 75%),
+    linear-gradient(-45deg, transparent 75%, hsl(var(--muted) / 0.5) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  pointer-events: none;     /* the whole card is the drag/click target */
+}
+.dash-stack-cap {
+  display: block;
+  padding: 0.5rem 0.7rem;
+  font-size: calc(0.76rem * var(--a11y-fs));
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-top: 1px solid hsl(var(--border));
+}
+.dash-stack-ui {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.9rem;
+}
+.dash-stack-nav {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-size: calc(1.15rem * var(--a11y-fs));
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.dash-stack-nav:hover { background: hsl(var(--muted) / 0.5); border-color: hsl(var(--primary) / 0.5); }
+.dash-stack-count {
+  font-size: calc(0.75rem * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+  min-width: 3.5rem;
+  text-align: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-stack-card { transition: opacity 0.2s ease; }
+}
+/* An explicit "Open" affordance under the deck - the front card is already a
+   real link, but swipe-to-browse isn't a discoverable interaction on its own
+   (especially for keyboard/screen-reader use), so this always targets whichever
+   item swiped to the front (kept in sync by layout()). */
+.dash-stack-open {
+  display: flex; align-items: center; justify-content: center; gap: .4rem;
+  margin: .7rem auto 0; width: fit-content; max-width: 100%;
+  padding: .45rem 1rem; border-radius: 999px;
+  border: 1px solid hsl(var(--border)); background: hsl(var(--card));
+  color: hsl(var(--foreground)); font-size: calc(.82rem * var(--a11y-fs)); font-weight: 600;
+  text-decoration: none; transition: background .15s ease, border-color .15s ease;
+}
+.dash-stack-open:hover { background: hsl(var(--muted) / .5); border-color: hsl(var(--primary) / .5); }
+.dash-stack-open:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.dash-stack-open-label {
+  font-weight: 400; color: hsl(var(--muted-foreground));
+  max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dash-stack-open-label::before { content: '- '; }
+}

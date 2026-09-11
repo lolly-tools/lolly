@@ -1,0 +1,1508 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* Colour Lab (#/lab, views/color-lab.ts).
+
+   A report, not a workspace: one column that scrolls, no stage, no sidebar. The
+   page's own scrollbar is the only one - nothing here is an inner scroller, so
+   Cmd-F, print and "scroll to the bottom" all behave the way a document does. */
+
+.lab {
+  /* Nearly the whole viewport rather than a measure-capped column: this is an
+     instrument panel, not prose, and on a large display the charts are what the
+     extra width is for. The 2em keeps it clear of the edges (and absorbs the
+     scrollbar, which 100vw includes). */
+  max-width: calc(100vw - 2em);
+  margin: 0 auto;
+  padding: 1rem 1.25rem 6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+}
+
+/* The page furniture row: back pill on the left, with the Home + theme capsule
+   packed right beside it (Home immediately to the right of Back, like every other
+   view). STICKY, not fixed - and that is a fix, not a preference.
+
+   Both used to be out of flow (.tools-home.home-full is `position: fixed` in
+   tool.css; the capsule matched it) over a `.lab-back` that reserved 2rem. Out of
+   flow they overlaid live controls for the WHOLE length of the report and won the
+   hit-test against them: measured, `elementFromPoint(120, 28)` returned the back
+   pill rather than the picker's value field under it, so ~95px of a 335px control
+   could not be pressed while the page sat near the top - and the pill's part-opaque
+   glass put its label on top of chart ink.
+
+   Sticky keeps every property that made floating attractive (the theme switch stays
+   reachable the whole way down, which is the point of having it on a page about how
+   a colour READS) and drops the one that broke: the row occupies real height, so
+   nothing is ever underneath it unseen, and the strip is opaque, so content scrolls
+   UNDER the bar rather than through it. `position: static` beats tool.css's fixed
+   rule on specificity (0,3,0 vs 0,2,0) rather than on load order - both sheets are
+   in the `views` layer, so order between two lazy chunks is not something to rely on. */
+.lab-back {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  min-height: 2.25rem;
+  /* Bled to the page's own padding so the opaque strip reaches the edges and no
+     sliver of scrolling content shows beside it. */
+  margin: -1rem -1.25rem 0;
+  padding: 0.4rem 1.25rem;
+  background: hsl(var(--background));
+}
+.lab-back .tools-home.home-full { position: static; }
+.lab-chrome { position: static; }
+
+/* The capsule the theme toggle sits in - modelled on the canvas zoom HUD
+   (.stage-nav in editor.css), which this view cannot borrow because that file is
+   only loaded on the editor routes. Same idiom: a soft-bordered pill of 26px
+   icon-only buttons that light up on hover. Room for a second control later.
+   Its place in the row is set with .lab-back above. No backdrop-filter: it sits on
+   that row's own opaque strip now, so there is nothing behind it to blur. */
+.lab-chrome {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--card) / 0.85);
+  box-shadow: var(--edge);
+}
+.lab-chrome-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Icon-only control: the box rides the chrome icon scale (tokens.css) with
+     the glyph it holds, so the mark never shrinks inside a growing button. */
+  width: calc(26px * var(--a11y-fs));
+  height: calc(26px * var(--a11y-fs));
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: hsl(var(--foreground));
+  border-radius: var(--radius-pill);
+  transition: background var(--dur-1), color var(--dur-1);
+}
+.lab-chrome-btn svg { width: var(--fs-xl); height: var(--fs-xl); }
+.lab-chrome-btn:hover { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+.lab-chrome-btn:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+
+.lab-head h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4vw, 2.75rem);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.lab-sub {
+  margin: 0.5rem 0 0;
+  max-width: 46rem;
+  font-size: calc(1rem * var(--a11y-fs));
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+.lab-h2 {
+  margin: 0;
+  font-size: calc(1.15rem * var(--a11y-fs));
+  letter-spacing: -0.01em;
+}
+.lab-section { display: flex; flex-direction: column; gap: 0.85rem; }
+
+/* ── The five steps ────────────────────────────────────────────────────────
+   The page is a numbered sequence (set a colour → what to see it against →
+   the charts → every notation → tones and blends), so each block is titled and
+   numbered. The numbers are decorative for AT (the headings already carry the
+   order) but they are what makes the hierarchy readable at a glance. */
+.lab-step-block { display: flex; flex-direction: column; gap: 0.85rem; }
+.lab-step-h { display: flex; align-items: center; gap: 0.55rem; }
+.lab-step-n {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--primary) / 0.14);
+  color: hsl(var(--primary));
+  font-size: var(--fs-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+/* A step whose control belongs beside its title rather than under it. */
+.lab-step-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.lab-h3 {
+  margin: 0.5rem 0 0;
+  font-size: calc(0.95rem * var(--a11y-fs));
+  letter-spacing: -0.01em;
+}
+.lab-section-note {
+  margin: -0.35rem 0 0;
+  max-width: 52rem;
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+/* ── The subject: swatch, any-value field, and the real picker ─────────────
+   Three columns on a wide screen, stacked on a narrow one. The picker is the
+   shell's own mountColorField, so it brings its own rings and slider styling -
+   nothing here restyles it, only gives it room. */
+.lab-subject {
+  display: grid;
+  /* TWO columns, not three: the picker on the left, and the swatch STACKED above
+     the brand palette on the right.
+
+     As three columns the swatch had about a quarter of the page, and it holds
+     values like `color(display-p3 0.390131 0.780583 0.903738)` - which wrapped over
+     three lines. Stacking gives the swatch AND the palette roughly double the
+     width and costs only vertical space, which a scrolling report has to spare.
+     Fractions rather than minmax floors so the row grows with the page instead of
+     stalling at a fixed measure on a large display.
+
+     Areas rather than `order`: they place the picker across both rows, which
+     source order alone cannot express. */
+  grid-template-columns: 1.5fr 1fr;
+  grid-template-areas:
+    'picker swatch'
+    'picker brand';
+  gap: 1rem;
+  align-items: start;
+}
+.lab-subject .lab-picker { grid-area: picker; }
+.lab-subject .lab-swatch { grid-area: swatch; max-height: 26em; }
+.lab-subject .lab-entry { grid-area: brand; }
+.lab-swatch {
+  /* NOT square. It is a panel of values that happens to be coloured, so its height
+     follows its content and its width goes to keeping each value on one line. The
+     min-height keeps it reading as a colour rather than as a label. */
+  height: auto;
+  min-height: 11rem;
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.15rem;
+  padding: 1rem;
+  box-shadow: inset 0 0 0 1px hsl(0 0% 0% / 0.12);
+  /* The swatch's own text colour is set inline from the engine's contrast
+     ratio, so the label is readable on any subject. */
+  transition: background 0.16s ease, color 0.16s ease;
+}
+.lab-sw-vals { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.lab-sw-primary {
+  font-family: 'SUSE Mono', ui-monospace, monospace;
+  /* Shrinks as the value gets longer: this holds whatever the user authored, and
+     `color(display-p3 0.482 0.213 0.876)` is a lot more characters than a hex. */
+  font-size: clamp(0.78rem, 1.4cqw + 0.55rem, 1.2rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+/* The alternate expressions. Quieter than the authored one - they are the same
+   colour said differently, not competing values. */
+.lab-sw-alts {
+  list-style: none;
+  margin: 0.45rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  /* Full strength. The ink is already the better of black/white for this swatch,
+     and dimming it on top of that is what made the alternates unreadable on a
+     mid-contrast colour like a saturated red. Only the space LABEL is dimmed. */
+  opacity: 1;
+}
+.lab-sw-alt {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+  font-size: clamp(0.6rem, 0.7cqw + 0.42rem, 0.72rem);
+  /* `anywhere` and nothing fighting it. A `white-space: nowrap` used to sit here to
+     get "one line each now there is width for it" - but nowrap defeats its own
+     overflow-wrap, and where the width was NOT there the value simply left the page:
+     measured 71px of horizontal document scroll at 660px wide and 47px at 720px,
+     from `color(display-p3 0.390131 0.780583 0.903738)` in this list. The band was
+     invisible below 640px only because a media query put the wrap back.
+     Nothing is lost by wrapping: with room the value still takes one line, and
+     without it a broken line beats a page that scrolls sideways. */
+  overflow-wrap: anywhere;
+}
+.lab-sw-alt-space {
+  flex: 0 0 auto;
+  min-width: 4.2em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  opacity: 0.7;
+}
+.lab-sw-alt code { font-family: 'SUSE Mono', ui-monospace, monospace; }
+.lab-swatch { container-type: inline-size; }
+.lab-sw-space {
+  font-size: var(--fs-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+
+/* ── Tooltips on WIDE hosts ────────────────────────────────────────────────
+   The bubble (styles/parts/tooltip.css) is a laid-out pseudo-element even at
+   opacity 0, so an uncapped one EXTENDS THE PAGE: measured 39px of document
+   horizontal scroll at 390px wide and 117px at 840px, the latter because
+   tooltip.css only drops `white-space: nowrap` below 40rem and a blend style's
+   rationale is ~500px on one line. The primitive's hosts elsewhere are small
+   chrome buttons where that never showed; here every host is a block.
+
+   So the Lab caps its own: wrapped at every width, never wider than the phone
+   case allows. The proper fix belongs in the primitive - a bubble nobody is
+   looking at should be `display: none` and out of layout entirely - and is
+   written up as a handoff rather than reached for from here. */
+.lab [data-tip]::after {
+  white-space: normal;
+  width: max-content;
+  max-width: min(13rem, 56vw);
+  line-height: 1.3;
+  text-align: center;
+}
+/* …and a pill at the END of a segmented row sits close enough to the page edge that
+   even a capped bubble runs off it - measured 23px of document scroll at 390px wide
+   and 6px at 840px, both from the blend row's last pill alone. Anchored to the row's
+   edge rather than the pill's centre it travels LEFT instead, which costs nothing:
+   a page cannot be scrolled that way. */
+.lab .view-seg > :last-child[data-tip]::after {
+  left: auto;
+  right: 0;
+  transform: translateY(3px);
+}
+.lab .view-seg > :last-child[data-tip]:hover::after,
+.lab .view-seg > :last-child[data-tip]:focus::after,
+.lab .view-seg > :last-child[data-tip]:focus-visible::after { transform: translateY(0); }
+.lab .view-seg > :last-child[data-tip]::before {
+  left: auto;
+  right: 1.25rem;
+  transform: none;
+}
+
+.lab-entry { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+.lab-field { display: flex; flex-direction: column; gap: 0.3rem; }
+.lab-field-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.lab-raw {
+  font-family: 'SUSE Mono', ui-monospace, monospace;
+  font-size: var(--fs-lg);
+}
+.lab-hint, .lab-err {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+.lab-hint { color: hsl(var(--muted-foreground)); }
+.lab-err { color: hsl(var(--destructive, 0 72% 51%)); font-weight: 500; }
+
+.lab-picker { min-width: 0; }
+
+/* ── Brand rail - a third way IN, so it sits inside step 1 ─────────────────── */
+.lab-brand-rail { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.35rem; }
+.lab-brand { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.lab-brand-sw {
+  position: relative;   /* anchors the out-of-gamut corner badge */
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--radius) * 1);
+  /* Hex first as the universally-parseable fallback, then the token's authored
+     value - a browser that understands it renders the real wide-gamut colour and
+     does its own per-display mapping. */
+  background: var(--sw);
+  background: var(--sw-real, var(--sw));
+  box-shadow:  0 1px 3px hsl(0 0% 0% / 0.15);
+  cursor: pointer;
+  transition: transform var(--dur-1) ease, box-shadow var(--dur-1) ease;
+}
+.lab-brand-sw:hover, .lab-brand-sw:focus-visible {
+  transform: scale(1.12);
+  box-shadow: inset 0 0 0 1px hsl(0 0% 0% / 0.2), 0 0 0 3px hsl(var(--primary) / 0.4);
+  outline: none;
+}
+/* Out-of-gamut indicator: a corner dot, NOT a border on the rounded tile (house
+   rule). Amber for "heads up, this clips" rather than --destructive - a colour
+   the current target cannot hold is a caution, not an error. The card-coloured
+   halo lifts the dot off whatever swatch colour sits behind it; the full verdict
+   (target, clipped hex, ΔE) rides the tile's title/aria-label. Carries no glyph,
+   so no a11y type multiplier applies. */
+.lab-brand-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: var(--radius-round);
+  background: hsl(38 92% 50%);
+  box-shadow: 0 0 0 2px hsl(var(--card)), inset 0 0 0 1px hsl(0 0% 0% / 0.4);
+  pointer-events: none;
+}
+
+/* ── Verdict cards ────────────────────────────────────────────────────────── */
+.lab-verdict {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.85rem;
+}
+.lab-card {
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+  box-shadow: var(--edge);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.lab-card-label {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.lab-card-value {
+  margin: 0;
+  font-size: calc(1.5rem * var(--a11y-fs));
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.lab-card-note {
+  margin: 0;
+  font-size: var(--fs-md);
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+/* The gamut card wears its own verdict as an accent stripe, and the headroom
+   number is coloured too. SEEING THE BOUNDS is the point of the card, so the
+   signalling stays - a colour that leaves sRGB should be visibly different from
+   one that doesn't.
+   The line to hold: caution, never block, and never scold. A colour outside sRGB
+   is frequently the intent - a vivid colour modern displays genuinely reach - and
+   for print the right target depends on the technique and profile in play rather
+   than on sRGB as a default yardstick. So this stripe reports where you are; it
+   does not tell you that you are wrong, and nothing here refuses a value. */
+.lab-gamut { box-shadow: 0 0 0 2px hsl(var(--border)); }
+.lab-gamut[data-gamut="srgb"] { box-shadow: 0 0 0 2px oklch(0.62 0.16 150); }
+.lab-gamut[data-gamut="p3"] { box-shadow: 0 0 0 2px oklch(0.72 0.16 85); }
+.lab-gamut[data-gamut="rec2020"] { box-shadow: 0 0 0 2px oklch(0.62 0.18 35); }
+.lab-gamut[data-gamut="none"] { box-shadow: 0 0 0 2px oklch(0.55 0.2 25); }
+
+.lab-headroom[data-state="over"] .lab-card-value { color: oklch(0.58 0.19 25); }
+.lab-headroom[data-state="under"] .lab-card-value { color: oklch(0.55 0.14 150); }
+
+/* The headroom / nits card (plan 154 WP-5). A full-border accent when the display
+   has headroom in play; muted where it has none. A full box-shadow ring, never a
+   single-edge rail (house rule). The nits figure takes the warm accent that reads as
+   "into the peak"; the SDR states drop to the muted colour so the card plainly says
+   there is nothing above SDR white to show here. */
+.lab-nits[data-state="hdr"] { box-shadow: 0 0 0 2px oklch(0.75 0.15 75); }
+.lab-nits[data-state="hdr"] .lab-card-value { color: oklch(0.7 0.16 70); }
+.lab-nits[data-state="sdr"] .lab-card-value,
+.lab-nits[data-state="sdr-preview"] .lab-card-value {
+  color: hsl(var(--muted-foreground));
+  font-size: calc(1.15rem * var(--a11y-fs));
+}
+
+.lab-ceilings { margin: 0.1rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.2rem; }
+.lab-ceil {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: var(--fs-lg);
+  font-variant-numeric: tabular-nums;
+}
+.lab-ceil-name { color: hsl(var(--muted-foreground)); }
+.lab-ceil-val { font-weight: 600; }
+.lab-ceil-gain { font-weight: 400; color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); }
+/* A ceiling this colour is already beyond - struck through so the bound is
+   unmistakable at a glance. It marks a boundary crossed, not a value rejected. */
+.lab-ceil.is-past .lab-ceil-val { text-decoration: line-through; opacity: 0.55; }
+
+/* The press card - MEASURED numbers, so it wears the profile's own name and
+   nothing derived or approximate is allowed into it. The stripe follows the same
+   rule as the gamut card's: it reports where you are, it does not scold. */
+.lab-press[data-state="in"] { box-shadow: 0 0 0 2px oklch(0.62 0.16 150); }
+.lab-press[data-state="out"] { box-shadow: 0 0 0 2px oklch(0.72 0.16 85); }
+.lab-press-name {
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  overflow-wrap: anywhere;
+}
+.lab-press-verdict { font-size: calc(1.15rem * var(--a11y-fs)); }
+.lab-press-rows { margin: 0.1rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.2rem; }
+.lab-press-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: var(--fs-lg);
+  font-variant-numeric: tabular-nums;
+}
+.lab-press-k { color: hsl(var(--muted-foreground)); }
+.lab-press-v { font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; }
+/* The substrate, painted in CSS lab() - the space the number beside it is in. */
+.lab-press-chip {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: var(--radius-xs);
+  box-shadow: var(--edge);
+}
+
+/* ── The print-profile panel (components/profiles-manager.ts) ─────────────── */
+.labp-modal { max-width: 34rem; width: min(34rem, calc(100vw - 2rem)); }
+.labp { display: flex; flex-direction: column; gap: 0.7rem; }
+.labp-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.labp-title { margin: 0; font-size: calc(1.1rem * var(--a11y-fs)); }
+.labp-close {
+  border: 0;
+  background: none;
+  color: hsl(var(--muted-foreground));
+  font-size: calc(1.4rem * var(--a11y-fs));
+  line-height: 1;
+  cursor: pointer;
+}
+.labp-close:hover { color: hsl(var(--foreground)); }
+.labp-intro, .labp-hint, .labp-msg {
+  margin: 0;
+  font-size: var(--fs-md);
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+/* The ONE place a dashed border is correct in this design language: it is a drop
+   area. `.updz` (styles/parts/dropzone.css) is that treatment, reused verbatim. */
+.labp-drop { margin-bottom: 0; }
+/* Prompt over hint, not run together on one line: `.updz` is a row by default and
+   only its `--empty` modifier stacks, which is a layout this panel does not want
+   (it is not the whole section). */
+.labp-drop .updz-copy { display: grid; gap: var(--sp-1); }
+.labp-msg[hidden] { display: none; }
+
+/* Where a real press profile already lives on this machine. Below the drop zone
+   rather than inside it: as an `.updz-hint` the wrapped path made the target three
+   lines taller and read as instructions rather than as an aside. */
+.labp-where {
+  margin: 0.4rem 0 0;
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+}
+.labp-where code {
+  font-family: 'SUSE Mono', ui-monospace, monospace;
+  font-size: var(--fs-xs);
+  overflow-wrap: anywhere;
+}
+
+/* ── Press conditions ──────────────────────────────────────────────────────
+   The bridge between what a Print PDF DECLARES and what the Lab can EVALUATE.
+   Declaring needs no file; comparing needs the profile's measurements. The two
+   states are carried by weight and a dot, never by a border - and a condition with
+   no profile is not an error, so nothing here is red. */
+.labp-conds { margin-top: 1rem; }
+.labp-conds-h {
+  margin: 0 0 0.4rem;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.labp-conds-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+.labp-cond { display: grid; }
+/* The whole row is the control - a real <button>, so it is focusable, Enter/Space
+   activated and announced with its own action. Solid tint, never a dashed border:
+   this is not a drop area. */
+.labp-cond-btn {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.1rem 0.55rem;
+  align-items: baseline;
+  width: 100%;
+  padding: 0.4rem 0.55rem;
+  border: 0;
+  border-radius: calc(var(--radius) * 0.6);
+  background: hsl(var(--muted) / 0.4);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-1) ease;
+}
+.labp-cond-btn:hover { background: hsl(var(--muted) / 0.85); }
+.labp-cond-btn:focus-visible {
+  outline: 2px solid hsl(var(--ring, var(--primary)));
+  outline-offset: 2px;
+}
+/* A fetch in flight: the row keeps its place and stops taking presses. */
+.labp-cond[data-busy] .labp-cond-btn { cursor: progress; opacity: 0.7; }
+.labp-cond-id {
+  font-family: 'SUSE Mono', ui-monospace, monospace;
+  font-size: calc(0.76rem * var(--a11y-fs));
+  font-weight: 600;
+}
+.labp-cond-name { font-size: var(--fs-sm); }
+.labp-cond-note {
+  grid-column: 2;
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+}
+/* A loaded condition is the stronger state, so it gets the mark and the full-strength
+   identifier; an unloaded one is simply quieter. */
+.labp-cond[data-state="loaded"] .labp-cond-btn { background: hsl(var(--muted) / 0.7); }
+.labp-cond[data-state="loaded"] .labp-cond-id::before {
+  content: '●';
+  margin-inline-end: 0.35rem;
+  color: hsl(var(--primary));
+}
+.labp-cond:not([data-state="loaded"]) .labp-cond-id { opacity: 0.75; }
+.labp-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.5rem; }
+.labp-empty { font-size: var(--fs-lg); color: hsl(var(--muted-foreground)); }
+.labp-row {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+  box-shadow: var(--edge);
+}
+.labp-row.is-active { box-shadow: inset 0 0 0 2px hsl(var(--primary) / 0.6); }
+.labp-row-head { display: flex; align-items: start; justify-content: space-between; gap: 0.75rem; }
+.labp-row-id { display: grid; gap: 0.1rem; min-width: 0; }
+.labp-row-name { font-size: calc(0.92rem * var(--a11y-fs)); overflow-wrap: anywhere; }
+.labp-row-meta { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.labp-remove {
+  flex: 0 0 auto;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  text-decoration: underline;
+  cursor: pointer;
+}
+.labp-remove:hover { color: oklch(0.58 0.19 25); }
+/* Intents the file has no table for stay VISIBLE and focusable: "this profile has no
+   saturation table" is a fact about the file worth stating, and a `disabled` button
+   could not state it to a keyboard or touch reader.
+
+   The buttons say the whole word (Perceptual / Relative / Saturation / Absolute), so
+   the control WRAPS rather than squeezing four words onto one line: four across at the
+   modal's full width, an even 2×2 on a phone. The narrow case is a media query and not
+   a flex basis because a basis that folds a 390px screen to two rows leaves a 414px one
+   at an lopsided 3+1. */
+.labp-intents { display: flex; flex-wrap: wrap; }
+.labp-intents .view-seg-btn {
+  flex: 1 1 5.5rem;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  padding-inline: 0.4rem;
+}
+@media (max-width: 30rem) {
+  .labp-intents { display: grid; grid-template-columns: 1fr 1fr; }
+}
+.labp-intents .view-seg-btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Readability ──────────────────────────────────────────────────────────── */
+.lab-contrast {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.85rem;
+}
+.lab-contrast-card {
+  padding: 1.1rem;
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 0 1px hsl(0 0% 0% / 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.lab-contrast-card.is-best { box-shadow: inset 0 0 0 2px currentColor; }
+.lab-contrast-sample { margin: 0; font-size: calc(1.05rem * var(--a11y-fs)); font-weight: 600; }
+.lab-best {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.lab-contrast-ratio {
+  margin: 0;
+  font-size: calc(1.7rem * var(--a11y-fs));
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.lab-contrast-badges { margin: 0; display: flex; gap: 0.35rem; }
+.lab-wcag {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-pill);
+  /* Outlined in the card's own ink rather than filled with a fixed colour: the
+     card's background IS the subject colour, so the badge has to stay legible
+     without knowing what that colour is. */
+  color: inherit;
+  background: hsl(0 0% 100% / 0.16);
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+.lab-wcag[data-level="fail"] { opacity: 0.65; text-decoration: line-through; }
+.lab-contrast-note {
+  margin: 0;
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+}
+
+/* ── The four charts ──────────────────────────────────────────────────────── */
+/* The target row: which gamut, and whether dragging is held inside it. */
+.lab-target {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+}
+.lab-target .lab-limit { flex: 1 1 20rem; }
+/* The row is a `.field-toggle` and the box a `.field-check` - the ONE form-control
+   recipe (styles/parts/fields.css). It was a bare `<input type=checkbox>`, which the
+   UA drew at 13×13 and which therefore missed the recipe's coarse-pointer bump to
+   20px. This rule is left with only what is specific to sitting in the target row. */
+.lab-bounds {
+  flex: 0 0 auto;
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+}
+
+/* The headroom / nits control (plan 154 WP-5). A full-width block under the target
+   row: the nits slider stretches, the SDR/HDR toggle stays compact beside it. A
+   fully padded, washed block - never a single-edge rail (house rule). Hidden by
+   default in the markup; the view unhides it only on an HDR display. */
+.lab-hdr {
+  margin-top: 0.6rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.4);
+  box-shadow: var(--edge);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.lab-hdr-head { display: flex; flex-direction: column; gap: 0.15rem; }
+.lab-hdr-why {
+  margin: 0;
+  font-size: calc(0.76rem * var(--a11y-fs));
+  line-height: 1.4;
+  color: hsl(var(--muted-foreground));
+}
+.lab-hdr-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+}
+/* The nits slider borrows the `.gsl`/`.lab-mix` skin (lib/oklch-slice.css) but drives
+   an exposure, not a colour, so it never carries the `is-out` mark - and it drops the
+   `.lab-mix` bottom margin, since it sits in a flex row rather than above a ramp. */
+.lab-nits-slider { flex: 1 1 16rem; min-width: 0; margin-bottom: 0; }
+.lab-nits-slider .gsl-val { min-width: 3.4rem; }
+/* The A/B toggle is content-width here, not the full-row `.lab-seg` default. */
+.lab-hdr-ab { flex: 0 0 auto; width: auto; }
+
+/* Full width above the charts - it governs the whole row, so it spans it. The
+   shared segmented control is normally content-width; these options split the
+   space evenly instead.
+   Flex rather than a fixed 3-column grid: the row carries the three display
+   gamuts, then AT MOST ONE press-profile pill, then the `+` that opens the
+   profile panel - so the count is 3, 4 or 5 and only the first four share the
+   width. `+` is a fixed-width affordance, not a fourth option. */
+/* Styled as the app's own view tabs (`.view-toggle`, parts/projects.css): a
+   trough holding borderless pills, rather than a row of separately outlined
+   buttons. Same control, same look - this row does for gamuts what that one does
+   for views, and the reader has already learned to read it. The trough also lets
+   the row be TALLER without four heavy outlines: by this point down the page this
+   is the focal control, and the previous height was set by a toolbar it does not
+   sit in.
+   Kept as `.lab-limit` overrides rather than by adopting `.view-toggle`'s classes
+   because that control is a fixed, centred nav of links and this one is a
+   full-width group of buttons - sharing the class would drag its `position:
+   fixed` wrapper and mobile icon rules along with the paint. */
+.lab-seg {
+  display: flex;
+  width: 100%;
+  gap: var(--sp-1);
+  padding: 3px;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) + 3px);
+  background: hsl(var(--muted) / 0.65);
+}
+.lab-seg .view-seg-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: var(--fs-md);
+  border-color: transparent;
+  border-radius: calc(var(--radius) * 0.8);
+}
+/* Only the gamut row gets the extra height. It is the focal control of its
+   section; the blend rows sit beside a picker and a ramp and would shout over
+   them at the same size. */
+.lab-limit .view-seg-btn { padding-block: 0.62rem; }
+/* The trough IS the unpressed surface - a fill per pill would draw a second box
+   inside it. Left transparent rather than removed, so the pill still has a hover
+   and focus surface of its own. */
+.lab-seg .view-seg-btn:not([aria-pressed="true"]) { background: transparent; }
+.lab-seg .view-seg-btn:not([aria-pressed="true"]):hover {
+  background: hsl(var(--background) / 0.7);
+  border-color: transparent;
+}
+/* Jelly effects: the same row as one <jelly-segmented>. The control paints its
+   own track, so the trough above is left to be the surface (transparent track)
+   exactly as the nav pill does - otherwise a canvas fill sits inside a CSS box
+   and the two edges disagree by a pixel. */
+.lab-seg .lab-limit-seg {
+  flex: 1 1 0;
+  min-width: 0;
+  --jelly-track: transparent;
+  --jelly-segmented-font-size: var(--fs-md);
+  --jelly-segmented-padding: 0;
+  --jelly-segmented-padding-inline: 12px;
+}
+/* The press pill can carry a long profile name; it gets a little more room than
+   an even share and truncates rather than wrapping the row onto two lines.
+   Both of these carry the class of the rule above, because a bare .lab-limit-press
+   loses the flex shorthand to it on specificity and the `+` was silently taking a
+   full fifth of the row while the profile name ellipsed beside it. */
+.lab-limit .view-seg-btn.lab-limit-press {
+  flex-grow: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* A link's profile that is not on this device: shown, never pressed, and it
+   opens the panel instead of switching to a gamut nothing here can compute.
+   Carried by weight and colour, NOT by a dashed border: in this design language a
+   dashed border means drop area and nothing else, and the real drop zone for this
+   very file is one click away behind the `+` (.labp-drop). */
+.lab-limit-press[data-state="absent"] {
+  opacity: 0.65;
+  border-color: hsl(var(--border) / 0.6);
+  font-style: italic;
+}
+.lab-limit .view-seg-btn.lab-limit-add { flex: 0 0 auto; font-weight: 700; }
+
+/* The solid's two embeddings - a compact pair under the figure's own caption,
+   not a page-level control: it changes one picture. */
+.lab-embed { display: flex; margin: 0.15rem 0; }
+.lab-embed .view-seg-btn { flex: 1 1 0; font-size: var(--fs-sm); padding-block: 0.3rem; }
+
+/* As many charts per row as fit at a readable size - 2-up on a laptop, all four
+   in a row on a wide display. A 20rem floor is about where a plot stops being
+   worth reading; `min(…, 100%)` keeps it from overflowing a narrow screen, where
+   auto-fit would otherwise hold the track wider than its container.
+   A second `.lab-charts` block used to follow this one and dead-override it with a
+   hard `1fr 1fr 1fr 1fr` plus two width breakpoints. Same specificity, later in the
+   file, so it always won - and four fixed columns crushed every plot to 122×76 CSS
+   px on a 840px window, which are the charts this whole view exists for. The loser
+   is deleted rather than out-specified: two rules for one grid is how this happened. */
+.lab-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+  gap: 1.5rem 1.25rem;
+}
+
+.lab-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+  /* The plot comes FIRST and the caption sits under it, so every plot's top edge
+     lines up across the row. With the caption above, a two-line description
+     pushed its chart down and the row read as ragged. `margin: 0` on the figure
+     because it is only here for the caption relationship, not for spacing. */
+  margin: 0;
+}
+/* Title bar: the channel this panel sets, and its typed value. Above the plot,
+   because it names the control rather than describing the picture. */
+.lab-chart-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+.lab-chart-title { margin: 0; font-size: calc(0.95rem * var(--a11y-fs)); letter-spacing: -0.01em; }
+.lab-chart-num {
+  /* Drag the number sideways to change it (lib/scrub.ts). `pan-y` is the load-bearing
+     half of touch support: it hands us horizontal gestures while leaving vertical ones
+     to scroll the page. `touch-action: none` would trap the page scroll on a phone. */
+  cursor: ew-resize;
+  touch-action: pan-y;
+  flex: 0 0 auto;
+  width: 6.5rem;
+  padding: 0.2rem 0.35rem;
+  font: inherit;
+  font-family: 'SUSE Mono', ui-monospace, monospace;
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 0.5);
+  background: hsl(var(--muted) / 0.5);
+  color: inherit;
+}
+.lab-chart-num:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 1px;
+}
+
+/* The axis slider between the plot and its caption. */
+.lab-chart-slider { margin: 0.15rem 0 0.1rem; }
+
+.lab-chart-plane {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-chart-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  /* A figcaption is inline-ish by default; make it fill the column. */
+  margin: 0;
+  width: 100%;
+  /* Pushed to the bottom of the cell so the captions line up across the row too.
+     Without this the 3D chart's caption rides higher than the other three, since
+     it has no axis or legend row above it to pad the difference. */
+  margin-top: auto;
+}
+.lab-chart-head h3 { margin: 0; font-size: calc(1rem * var(--a11y-fs)); letter-spacing: -0.01em; }
+.lab-chart-why {
+  margin: 0;
+  font-size: var(--fs-md);
+  line-height: 1.4;
+  color: hsl(var(--muted-foreground));
+}
+.lab-chart-at {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+.lab-chart-at strong { color: hsl(var(--foreground)); }
+.lab-chart-hint { opacity: 0.8; }
+
+/* The 3D solid. It has no axis gutter or legend, so rather than matching the 2D
+   plots' aspect ratio and leaving a gap below, it GROWS into the space they spend
+   on those - the chart gets bigger and the captions still align. */
+.lab-solid {
+  display: block;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 11rem;
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.35);
+  box-shadow: var(--edge);
+  cursor: grab;
+  /* `pan-y`, exactly as the 2D plots do (lib/oklch-slice.css), and for the same
+     reason: this canvas takes ~60% of a phone's viewport height, so with
+     `touch-action: none` a vertical swipe anywhere on it moved NOTHING - the page
+     was frozen and the solid does not turn on vertical travel alone. The rotation
+     survives because the gesture is axis-locked in JS (see the pointerdown handler
+     in views/color-lab.ts): mostly-sideways travel claims the pointer and turns the
+     solid, mostly-vertical travel is handed back to the page. */
+  touch-action: pan-y;
+}
+.lab-solid.is-turning { cursor: grabbing; }
+.lab-solid:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+
+/* ── Ramp controls: stop count, and the blend's far end ───────────────────── */
+
+/* The blend, as two columns: the far-end PICKER beside the ramp it is changing.
+   Stacked, the expanded picker (tab strip, four dials, three channel sliders, the
+   alpha rail) is ~554px tall, which pushed the style pills, the stop slider and
+   every swatch about 600px down the page - so you could not see the ramp move while
+   you picked, which is the entire point of picking here. Side by side you can.
+
+   The picker column is capped rather than fractional: it is a fixed-size control, so
+   past ~24rem the extra width is dead space, and the ramp is what should take it. */
+.lab-blend {
+  display: grid;
+  grid-template-columns: 1fr 1.75fr;
+  gap: 1rem 1.5rem;
+  align-items: start;
+}
+/* One column when there is not room for two side by side - below this the picker
+   and the ramp would each be too narrow to read, so they stack in source order (pick
+   first, then the result). 48rem is where 18rem + gutter + 18rem stops fitting inside
+   the page's own padding. */
+@media (max-width: 48rem) {
+  .lab-blend { grid-template-columns: minmax(0, 1fr); }
+}
+.lab-blend-side { min-width: 0; display: flex; flex-direction: column; }
+
+/* The far end of the blend: the SAME expanded picker as the subject's, because
+   the dials only exist in the inline form. Its lesser weight comes from sitting
+   under a sub-heading late in the page, not from being a reduced control. */
+.lab-blend-to {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.lab-blend-to-head { display: flex; align-items: center; gap: 0.6rem; }
+.lab-blend-picker { min-width: 0; }
+.lab-blend-raw {
+  width: 13rem;
+  font-family: 'SUSE Mono', ui-monospace, monospace;
+  font-size: var(--fs-md);
+}
+.lab-blend-raw[aria-invalid="true"] { border-color: hsl(var(--destructive, 0 72% 51%)); }
+
+/* ── The blend's style, and its stop count ─────────────────────────────────
+   The style tabs sit full width above the ramp, the same shape as the gamut
+   control above the charts: both govern everything under them, so both read as
+   a heading row rather than as one more field in a form. */
+.lab-blend-styles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.85rem 0 0.6rem;
+}
+.lab-blend-styles .lab-limit { flex: 1 1 18rem; }
+.lab-blend-hue { flex: 0 1 12rem; }
+.lab-blend-hue .view-seg-btn { width: 100%; }
+
+/* The stop count wears the channel sliders' skin (.gsl, in lib/oklch-slice.css)
+   so the two read as the same kind of control, and its rail carries the blend
+   itself - the continuous gradient the stops are sampling from. That rail is why
+   there is no separate preview strip: one gradient, with the thumb on it. */
+.lab-mix { margin-bottom: 0.7rem; }
+.lab-mix .gsl-key { font-variant-numeric: normal; }
+
+/* ── Readability: APCA leads, WCAG follows ─────────────────────────────────
+   The order is the hierarchy. APCA models polarity - which WCAG 2's ratio cannot
+   express, since it scores dark-on-light and light-on-dark identically - so the Lc
+   is the number to design against and the ratio is the one to report. Hence the Lc
+   is set large and the ratio sits under it at body size. */
+.lab-apca {
+  margin: 0.35rem 0 0.15rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 0.55rem;
+}
+.lab-apca-lc {
+  font-size: calc(1.45rem * var(--a11y-fs));
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.lab-apca-use { font-size: calc(0.76rem * var(--a11y-fs)); opacity: 0.9; }
+/* The polarity marker: present only when the text is lighter than its ground,
+   which is exactly the case WCAG cannot see. */
+.lab-apca-pol {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 1px currentColor;
+  opacity: 0.7;
+}
+.lab-contrast-wcag {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--fs-md);
+  opacity: 0.85;
+}
+/* The third surface's popover trigger, on the card it scores. Width-capped: the
+   float picker's trigger is a block field by default and stretched to the full card,
+   where it read as the card's main content rather than as one control on it. */
+.lab-ink-pick { margin: 0.15rem 0 0.1rem; max-width: 12rem; }
+.lab-ink-pick .color-field, .lab-ink-pick .color-trigger { width: 100%; }
+
+/* ── Tone ramp ────────────────────────────────────────────────────────────── */
+.lab-ramp {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.35rem;
+}
+.lab-step {
+  border: 0;
+  padding: 0.9rem 0.7rem;
+  border-radius: calc(var(--radius) * 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  align-items: flex-start;
+  cursor: pointer;
+  box-shadow:  0 1 3px hsl(0 0% 0% / 0.12);
+  transition: transform var(--dur-1) ease;
+}
+.lab-step:hover, .lab-step:focus-visible { transform: translateY(-2px); outline: none; }
+.lab-step:focus-visible { box-shadow: inset 0 0 0 1px hsl(0 0% 0% / 0.12), 0 0 0 3px hsl(var(--primary) / 0.45); }
+/* OKLCH leads, hex supports - hex is sRGB-only, the weakest way to name a colour
+   on a page about colour spaces. */
+/* Each value line is its own copy target, so it needs to look clickable without
+   turning the step into a wall of buttons. */
+.lab-step-oklch, .lab-step-hex, .lab-sw-primary, .lab-sw-alt code { cursor: copy; }
+.lab-step-oklch:hover, .lab-step-hex:hover,
+.lab-sw-primary:hover, .lab-sw-alt code:hover { text-decoration: underline dotted; }
+.lab-step-oklch.is-copied, .lab-step-hex.is-copied,
+.lab-sw-primary.is-copied, .lab-sw-alt code.is-copied {
+  text-decoration: none;
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+.lab-step-oklch {
+  font-family: 'SUSE Mono', ui-monospace, monospace;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.lab-step-hex {
+  font-family: 'SUSE Mono', ui-monospace, monospace;
+  font-size: var(--fs-xs);
+  opacity: 0.7;
+}
+
+/* ── Notations ────────────────────────────────────────────────────────────── */
+.lab-notations {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: calc(0.88rem * var(--a11y-fs));
+}
+.lab-notations th, .lab-notations td {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid hsl(var(--border));
+  vertical-align: baseline;
+}
+.lab-notations thead th {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.lab-notations tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+  font-family: 'SUSE Mono', ui-monospace, monospace;
+}
+.lab-notations code {
+  font-family: 'SUSE Mono', ui-monospace, monospace;
+  font-size: var(--fs-lg);
+  word-break: break-all;
+}
+/* A space too narrow to hold the colour: shown, but never as if it were the value. */
+.lab-notations tr.is-inexact code { opacity: 0.62; }
+.lab-note-fit {
+  font-size: var(--fs-xs);
+  color: oklch(0.58 0.16 40);
+  white-space: nowrap;
+}
+.lab-copy {
+  font: inherit;
+  font-size: var(--fs-sm);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: inherit;
+  cursor: pointer;
+}
+.lab-copy:hover { background: hsl(var(--muted)); }
+.lab-copy.is-copied { background: hsl(var(--primary) / 0.15); border-color: hsl(var(--primary) / 0.5); }
+
+@media (max-width: 640px) {
+  .lab { padding: 0.75rem 0.85rem 5rem; gap: 1.75rem; }
+  .lab-back { margin: -0.75rem -0.85rem 0; padding: 0.4rem 0.85rem; }
+  .lab-subject {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'swatch' 'brand' 'picker';
+  }
+
+  /* ── The notation table becomes a row PER SPACE ──────────────────────────
+     Four columns do not fit in 390px, and the previous answer - one inner
+     `overflow-x` scroller with `nowrap` - kept the body from widening (good) at the
+     cost of putting the step's primary action off-screen: the Copy button sat at
+     x 557–604 in a 390px viewport, with nothing on the page saying the table
+     scrolled sideways at all. So it stops being a table on a phone: the space name
+     is a label, the value wraps under it, and Copy is where it can be pressed.
+
+     No borders ADDED: the divider the cells were drawing just moves to the row that
+     now owns the record. */
+  .lab-notations,
+  .lab-notations tbody { display: block; }
+  .lab-notations thead { display: none; }
+  .lab-notations tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'space  copy'
+                         'value  copy'
+                         'fit    copy';
+    align-items: center;
+    gap: 0.1rem 0.6rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .lab-notations th,
+  .lab-notations td { display: block; padding: 0; border: 0; }
+  .lab-notations tbody th {
+    grid-area: space;
+    font-family: inherit;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+  .lab-notations td:nth-of-type(1) { grid-area: value; }
+  .lab-notations td:nth-of-type(2) { grid-area: fit; }
+  .lab-notations td:nth-of-type(3) { grid-area: copy; justify-self: end; }
+  /* An exact row has no fit note, and an empty grid area would still spend a gap. */
+  .lab-notations td:nth-of-type(2):empty { display: none; }
+}
+
+/* ── Diagnostic panel: APCA contrast matrix + vision preview (feature #4) ────
+   A foldable <details>. Read-only: nothing here writes a token. Sits at the foot
+   of step 5 because it is reference material about how the palette READS. */
+.lab-diag {
+  margin-top: 1.25rem;
+  border-top: 1px solid hsl(var(--border));
+  padding-top: 1rem;
+}
+.lab-diag-summary {
+  cursor: pointer;
+  list-style: none;                 /* the disclosure triangle is drawn below */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+}
+.lab-diag-summary::-webkit-details-marker { display: none; }
+.lab-diag-summary::before {
+  content: '';
+  align-self: center;
+  width: 0.5rem; height: 0.5rem;
+  border-right: 2px solid hsl(var(--muted-foreground));
+  border-bottom: 2px solid hsl(var(--muted-foreground));
+  transform: rotate(-45deg);        /* points right when closed */
+  transition: transform var(--dur-1) ease;
+}
+.lab-diag[open] > .lab-diag-summary::before { transform: rotate(45deg); }
+.lab-diag-summary .lab-h3 { margin: 0; }
+.lab-diag-summary:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 3px; border-radius: var(--radius-xs); }
+.lab-diag-hint {
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.lab-diag-body { margin-top: 0.6rem; }
+
+/* The vision-preview control: the segmented row, and the severity slider that
+   only appears for the three graded CVD types. */
+.lab-cvd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+  margin-bottom: 0.75rem;
+}
+.lab-cvd-sev { display: inline-flex; align-items: center; gap: 0.5rem; }
+.lab-cvd-sev .lab-field-label { margin: 0; }
+.lab-cvd-sev-input { width: 8rem; accent-color: hsl(var(--primary)); }
+.lab-cvd-sev-out {
+  min-width: 2.6rem;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+
+/* The matrix itself. A horizontal scroller so a wide palette never pushes the
+   document sideways (the sideways-scroll defect the layout guard pins). */
+.lab-mx { overflow-x: auto; max-width: 100%; }
+.lab-mx-table {
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-variant-numeric: tabular-nums;
+}
+/* Axis headers: a swatch chip over a short name. */
+.lab-mx-h {
+  font-weight: 600;
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+  padding: 0.15rem 0.25rem;
+  max-width: 5rem;
+}
+.lab-mx-h .lab-mx-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 4.5rem;
+}
+tbody .lab-mx-h { text-align: right; }
+tbody .lab-mx-h .lab-mx-name { display: inline-block; vertical-align: middle; }
+.lab-mx-chip {
+  display: inline-block;
+  width: 0.9rem; height: 0.9rem;
+  border-radius: var(--radius-xs);
+  box-shadow: inset 0 0 0 1px hsl(0 0% 0% / 0.15);
+  vertical-align: middle;
+  margin: 0 0.2rem;
+}
+.lab-mx-corner { min-width: 1.5rem; }
+/* A cell: the pairing painted as itself (bg = column, ink = row), the |Lc| centred,
+   and a fixed-scale band strip along the bottom keyed to the APCA use-band. The
+   strip is a data cue, not a card border - no accent colour, no rounded pill. */
+.lab-mx-cell {
+  position: relative;
+  min-width: 2.4rem;
+  height: 2.4rem;
+  padding: 0 0.25rem 0.2rem;
+  text-align: center;
+  vertical-align: middle;
+  border-radius: var(--radius-xs);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+.lab-mx-cell::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  background: var(--mx-band, transparent);
+}
+/* The band scale - six fixed steps read off the existing APCA bands, not the brand
+   accent, so the cue means the same thing in every brand. High to low. */
+.lab-mx-cell[data-use="body-preferred"] { --mx-band: hsl(146 60% 42%); }
+.lab-mx-cell[data-use="body-minimum"]   { --mx-band: hsl(122 46% 46%); }
+.lab-mx-cell[data-use="large-text"]     { --mx-band: hsl(78 58% 44%); }
+.lab-mx-cell[data-use="headline"]       { --mx-band: hsl(45 92% 50%); }
+.lab-mx-cell[data-use="non-text"]       { --mx-band: hsl(28 88% 52%); }
+.lab-mx-cell[data-use="invisible"]      { --mx-band: hsl(0 0% 60% / 0.5); }
+.lab-mx-note { margin-top: 0.5rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-swatch, .lab-brand-sw, .lab-step { transition: none; }
+  .lab-diag-summary::before { transition: none; }
+}
+
+/* ── The image cloud ──────────────────────────────────────────────────────
+   The second way into the report: a colour, or an image plotted in the solid.
+   The control sits in the solid's own caption because that is where its result
+   appears. */
+/* The image entry is a WAY IN to the report, not one more caption button - Andy:
+   "make the plot an image feature more prominent". So it gets a full-width card
+   with its own glyph and a line saying what it does, while Clear stays a quiet
+   pill beside it: one is an invitation, the other is an undo. */
+.lab-cloud-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0;
+}
+.lab-cloud-add {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--primary) / 0.45);
+  background: hsl(var(--primary) / 0.07);
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+.lab-cloud-add-ic {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 2rem; height: 2rem;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--primary) / 0.14);
+  color: hsl(var(--primary));
+}
+.lab-cloud-add-ic svg { width: 1.05rem; height: 1.05rem; }
+.lab-cloud-add-txt { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.lab-cloud-add-txt strong { font-size: var(--fs-lg); font-weight: 650; }
+.lab-cloud-add-txt em {
+  font-style: normal;
+  font-size: var(--fs-xs);
+  line-height: 1.35;
+  color: hsl(var(--muted-foreground));
+}
+/* The file input is `hidden`, so the LABEL carries the focus ring - without this
+   a keyboard user gets no indication the control is focused at all. */
+.lab-cloud-add:hover { border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.12); }
+.lab-cloud-clear {
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+.lab-cloud-clear:hover { border-color: hsl(var(--primary) / 0.5); background: hsl(var(--accent)); }
+.lab-cloud-add:focus-within { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+
+/* The pop-out affordance, on each figure's title bar. */
+.lab-pop-btn {
+  flex: 0 0 auto;
+  width: 1.9rem; height: 1.9rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: var(--fs-lg); line-height: 1;
+  cursor: pointer;
+}
+.lab-pop-btn:hover { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+.lab-pop-btn[aria-pressed="true"] { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+.lab-pop-btn:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 1px; }
+/* Inside the panel the figure's own pop button is redundant - the panel's bar
+   already carries fullscreen and put-back - and two ⤢ glyphs one above the other
+   read as two different actions. */
+.floatp .lab-pop-btn { display: none; }
+/* The solid's caption head is a plain stack; give its new title row the same
+   shape the slice charts' bar already has. */
+.lab-chart--solid .lab-chart-bar { display: flex; align-items: center; gap: 0.4rem; }
+.lab-chart--solid .lab-chart-bar .lab-chart-title { flex: 1 1 auto; margin: 0; }
+.lab-cloud-stats {
+  margin: 0.35rem 0 0;
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+/* Drop feedback on the whole figure. Dashed IS correct here and only here: this
+   is a real drop area, which is exactly what the convention reserves it for. */
+.lab-chart--solid.is-drop {
+  outline: 2px dashed hsl(var(--primary) / 0.7);
+  outline-offset: 4px;
+  border-radius: var(--radius);
+}
+/* A cloud makes every dot a target, so say so. Without a cloud the canvas is a
+   turn-only control and a pointer cursor would promise a pick that does nothing. */
+.lab-chart--solid.has-cloud .lab-solid { cursor: crosshair; }
+
+/* ── "This screen" - the device cards at the foot of the page ──────────────
+   The cards themselves are the Dashboard's (.plat-client-* in platform.css,
+   rendered by lib/device-info.ts), imported unchanged so the two readouts look
+   the same as well as saying the same thing. Only the block around them is
+   local: it is the page's colophon rather than a sixth step, so it is quieter
+   than the numbered blocks above and separated from them by a rule.
+   The grid's own floor is 290px in platform.css - three cards side by side on a
+   laptop, stacking themselves on a phone; nothing to restate here. */
+.lab-device {
+  margin-top: 0.5rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid hsl(var(--border));
+}
+.lab-device .lab-h2 { font-size: calc(1rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.lab-device-grid { margin-top: 0.15rem; }
+.lab-device-more { margin: 0; }
+/* A quiet text link, not a button: this is a way OUT of the page for someone who
+   wants the rest of the snapshot, not an action the report is asking for. */
+.lab-device-link {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  text-decoration: none;
+}
+.lab-device-link:hover { color: hsl(var(--foreground)); text-decoration: underline; }
+.lab-device-link:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; border-radius: var(--radius-xs); }
+
+/* ── Vector (SVG) stills: the single-solid snapshot and the gamut comparison ──
+   Diagnostics that fold away. The live turntable is the canvas above; these are
+   still, self-contained vector images. No dashed borders (drop-zones only) and no
+   accent-coloured border on the rounded panels (house rules) - a quiet top rule
+   is all the separation they need. */
+.lab-vecsnap { margin-top: 0.6rem; }
+.lab-compare {
+  margin-top: 1.25rem;
+  border-top: 1px solid hsl(var(--border));
+  padding-top: 0.9rem;
+}
+.lab-vecsnap > summary,
+.lab-compare > summary {
+  cursor: pointer;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+.lab-vecsnap > summary:focus-visible,
+.lab-compare > summary:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+.lab-vecsnap-body { margin-top: 0.5rem; }
+/* The engine's SVG carries its own square viewBox; let it scale to the column. */
+.lab-vecsnap-body svg,
+.lab-compare-svg svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+.lab-vecsnap-note { margin: 0.4rem 0 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.lab-compare-grid {
+  margin-top: 0.7rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 32rem) {
+  .lab-compare-grid { grid-template-columns: 1fr; }
+}
+.lab-compare-cell { margin: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.lab-compare-cap {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  text-align: center;
+}
+
+}

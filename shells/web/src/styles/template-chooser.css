@@ -1,0 +1,376 @@
+/* Cascade layer: lazy-loaded with the tool view, so it sits in the `views` layer
+   (order declared once in styles/app.css) - a fixed priority regardless of when
+   Vite injects this chunk. Mirrors picker.css's wrapping. */
+@layer views {
+/* "New from template" chooser - host-owned chrome shown only on a blank fresh open. */
+
+.tmpl-chooser-modal:empty { display: none; }
+
+.tmpl-chooser-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  /* The right-edge dock is portalled to <body> at z-index:9400. A template
+     chooser is modal workflow, so its scrim must cover that dock as well as the
+     tool view; otherwise dock controls remain visible and clickable over the
+     picker. Keep it above ordinary shell chrome but below the browser top-layer
+     surfaces (present mode / native dialogs). */
+  z-index: 100001;
+  backdrop-filter: blur(2px);
+}
+
+.tmpl-chooser-panel {
+  position: fixed;
+  inset: 8vh 8vw;
+  z-index: 100002;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--ui-elevation-overlay);
+  overflow: hidden;
+}
+.tmpl-chooser-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.tmpl-chooser-header h2 {
+  margin: 0;
+  font-size: calc(15px * var(--a11y-fs));
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.tmpl-chooser-search {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  outline: none;
+  transition: border-color var(--dur-1);
+}
+.tmpl-chooser-search:focus { border-color: hsl(var(--primary)); }
+.tmpl-chooser-search::placeholder { color: hsl(var(--muted-foreground)); }
+
+.tmpl-chooser-close {
+  background: none;
+  border: none;
+  color: hsl(var(--muted-foreground));
+  font-size: 22px;
+  line-height: 1;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.tmpl-chooser-close:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+
+.tmpl-chooser-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px 24px;
+}
+
+/* "Starts with X" (plans/226 WP-3) - the per-tool new-document setting, stated under the
+   header with the link that puts the tool back to asking. Muted register: it reports a
+   setting, it is not a control the eye should land on first. */
+.tmpl-chooser-start {
+  margin: 0 0 12px;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-md);
+}
+.tmpl-chooser-startclear {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: hsl(var(--foreground));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.tmpl-chooser-startclear:hover { color: hsl(var(--primary)); }
+.tmpl-chooser-startclear:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+
+/* Tag-filter chips - one row of pills (replaces the old per-category sections); "All" plus
+   one per category, narrowing the single grid below. */
+.tmpl-chooser-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+.tmpl-chooser-filter {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid hsl(var(--border));
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--dur-1), color var(--dur-1), border-color var(--dur-1);
+}
+.tmpl-chooser-filter:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+/* Fill pair (background + foreground) is aliased onto the canonical .btn--primary recipe
+   in buttons.css; only the border-color is a local delta. */
+.tmpl-chooser-filter.is-active { border-color: hsl(var(--primary)); }
+.tmpl-chooser-filter:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+
+.tmpl-chooser-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.tmpl-chooser-tile {
+  position: relative;   /* the corner marks + the "…" button below anchor to the tile box */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px;
+  text-align: left;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border:0;
+  box-shadow: inset 0 0 0 .5px #fff1, 0 1.5px 6px #0002;
+  border-radius: calc(var(--radius) * 1.5);
+  cursor: pointer;
+  transition: border-color var(--dur-1), background var(--dur-1), transform 0.08s;
+  font: inherit;
+}
+.tmpl-chooser-tile:hover { background: hsl(var(--muted)); }
+.tmpl-chooser-tile:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+.tmpl-chooser-tile:active { transform: translateY(1px); }
+
+/* Media slot: holds the category glyph on open, then the live-rendered preview <img>
+   (renderPreviews swaps one for the other in place). Full width so a swapped-in preview
+   fills the tile; the glyph inside stays its own 40x40 box, left-aligned as before. */
+.tmpl-chooser-tile-media {
+  display: block;
+  width: 100%;
+}
+.tmpl-chooser-tile[data-motion-template] .tmpl-chooser-tile-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--brand-surface, hsl(var(--muted)));
+}
+.tmpl-chooser-tile[data-motion-template] .tmpl-chooser-tile-thumb {
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+}
+.tmpl-chooser-grid:has([data-motion-template]:not([hidden])) { grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+.tmpl-chooser-grid:has([data-motion-template]:not([hidden])) [data-template-id="__blank__"] { grid-column: 1 / -1; flex-direction: row; align-items: center; flex-wrap: wrap; }
+.tmpl-motion-beats { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); line-height: 1.5; }
+.tmpl-motion-actions { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; font-size: var(--fs-sm); }
+.tmpl-motion-actions .btn { min-height: 44px; }
+.tmpl-chooser-tile[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
+
+.tmpl-chooser-tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+.tmpl-chooser-tile-icon svg { width: 22px; height: 22px; }
+.tmpl-chooser-tile-thumb {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  /* Left-anchored crop: a wide multi-frame template (carousel) center-crops into
+     mid-letter cuts on frame 1's headline; anchoring left keeps the reading edge
+     whole and lets the next frame peek at the right as the swipe cue. */
+  object-position: left center;
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+}
+
+.tmpl-chooser-tile-name {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+.tmpl-chooser-tile-desc {
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.35;
+}
+
+/* Preset chips (plans/142 WP-3): the tile picks the template base, a chip picks
+   base + that preset's overlay. Neutral rounded chips, same vocabulary as the
+   category filter chips above - no accent border, no dashed border. */
+.tmpl-chooser-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tmpl-chooser-preset {
+  min-height: 28px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--background));
+  border:0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: border-color var(--dur-1), background var(--dur-1), color var(--dur-1);
+}
+.tmpl-chooser-preset:hover {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+.tmpl-chooser-preset:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+
+/* Tile management chrome (plans/226 WP-3).
+
+   House rule: a rounded tile never takes an accent-coloured border, so ownership and
+   "this is where new documents start" are a glyph on a TINTED FILL instead. Both sit
+   inside the tile box (not the media slot), because the preview drain replaces the
+   media slot's contents when a live thumbnail arrives.
+
+   The "…" button is a pointer convenience only: right-click and press-and-hold reach
+   the same menu, so it can stay out of the way until the tile is hovered or something
+   inside it takes focus. It is always painted where there is no hover (touch). */
+.tmpl-chooser-tile-mark {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(20px * var(--a11y-fs));
+  height: calc(20px * var(--a11y-fs));
+  border-radius: var(--radius-pill);
+  background: hsl(var(--primary) / 0.16);
+  color: hsl(var(--foreground));
+}
+.tmpl-chooser-tile-mark svg { width: calc(13px * var(--a11y-fs)); height: calc(13px * var(--a11y-fs)); }
+
+.tmpl-chooser-tile-own {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(16px * var(--a11y-fs));
+  height: calc(16px * var(--a11y-fs));
+  margin-right: 5px;
+  vertical-align: -3px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+.tmpl-chooser-tile-own svg { width: calc(11px * var(--a11y-fs)); height: calc(11px * var(--a11y-fs)); }
+
+.tmpl-chooser-tile-menu {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(26px * var(--a11y-fs));
+  height: calc(26px * var(--a11y-fs));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-1), background var(--dur-1), color var(--dur-1);
+}
+.tmpl-chooser-tile-menu svg { width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
+.tmpl-chooser-tile:hover .tmpl-chooser-tile-menu,
+.tmpl-chooser-tile:focus-within .tmpl-chooser-tile-menu,
+.tmpl-chooser-tile-menu[aria-expanded="true"] { opacity: 1; }
+.tmpl-chooser-tile-menu:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.tmpl-chooser-tile-menu:focus-visible { opacity: 1; outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+/* No hover to reveal it with (touch, pen): the button is simply always there. */
+@media (hover: none) {
+  .tmpl-chooser-tile-menu { opacity: 1; }
+}
+
+/* The way back from the Hidden chip's grid, stated on the tile itself as well as in
+   its menu, so a restore never depends on finding the menu first. */
+.tmpl-chooser-tile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.tmpl-chooser-empty {
+  padding: 40px 12px;
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-md);
+}
+
+/* Keep responsive overrides AFTER the base rules they replace. The old block sat
+   above them, so equal-specificity desktop declarations silently won on phones. */
+@media (max-width: 640px) {
+  .tmpl-chooser-panel { inset: max(8px, var(--safe-top, 0px)) 8px max(8px, var(--safe-bottom, 0px)); }
+  .tmpl-chooser-header { flex-wrap: wrap; padding: 10px 12px; }
+  .tmpl-chooser-header h2 { flex: 1 1 auto; }
+  .tmpl-chooser-search { order: 3; flex-basis: 100%; height: 44px; }
+  .tmpl-chooser-close { width: 44px; height: 44px; }
+  .tmpl-chooser-body { padding: 10px 10px 16px; }
+  .tmpl-chooser-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-bottom: 10px;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .tmpl-chooser-filters::-webkit-scrollbar { display: none; }
+  .tmpl-chooser-filter { min-height: 44px; white-space: nowrap; }
+  .tmpl-chooser-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .tmpl-chooser-tile { min-width: 0; gap: 6px; padding: 9px; }
+  .tmpl-chooser-tile-name { font-size: var(--fs-md); }
+  .tmpl-chooser-tile-desc {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  .tmpl-chooser-presets { gap: 8px; }
+  .tmpl-chooser-preset {
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: var(--fs-sm);
+  }
+  /* Management chrome on a phone: the "…" button is a real touch target, and the tile
+     has less room, so the two corner affordances tuck in tighter. */
+  .tmpl-chooser-tile-menu {
+    top: 2px;
+    right: 2px;
+    width: calc(44px * var(--a11y-fs));
+    height: calc(44px * var(--a11y-fs));
+  }
+  .tmpl-chooser-tile-mark { top: 5px; left: 5px; }
+  .tmpl-chooser-tile-actions .btn { min-height: 44px; }
+}
+}

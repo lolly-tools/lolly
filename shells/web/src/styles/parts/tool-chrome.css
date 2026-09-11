@@ -1,0 +1,1959 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* ─── Toast - transient feedback (undo/redo) ────────────────────────────────
+   Body-mounted, fixed bottom-centre pill in the .stage-nav idiom (translucent
+   card + blur + hairline border, theme-aware via tokens). Sits above page chrome
+   (z 900) but below modals (1000+). pointer-events:none so canvas clicks fall
+   through - only the action button re-enables them. Entrance is a TRANSITION
+   (not a keyframe) so it still plays under prefers-reduced-motion, matching the
+   .export-popup philosophy. */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + var(--safe-bottom) + var(--vv-bottom, 0px));
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  max-width: min(92vw, 30rem);
+  padding: 6px 6px 6px 14px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--card) / 0.92);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-3);
+  color: hsl(var(--foreground));
+  font-size: calc(0.8125rem * var(--a11y-fs));
+  line-height: 1.2;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(8px);
+  transition: opacity 0.16s ease, transform var(--dur-2) var(--ease-out), visibility 0.16s;
+}
+.toast.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+.toast-icon { display: inline-flex; flex: none; color: hsl(var(--muted-foreground)); }
+.toast-icon svg { width: var(--fs-xl); height: var(--fs-xl); display: block; }
+.toast-message { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.toast-label { color: hsl(var(--muted-foreground)); }
+/* A toast carrying a sentence rather than a label. The default message is
+   nowrap + ellipsis, which is right for "Copied link" and silently eats anything
+   longer - so a multi-line notice has to opt in rather than be truncated. */
+.toast--wrap { max-width: min(92vw, 34rem); border-radius: var(--radius); padding: 10px 14px; }
+.toast--wrap .toast-message { white-space: normal; overflow: visible; line-height: 1.45; }
+.toast.is-muted { padding: 6px 14px; }
+.toast.is-muted .toast-message { color: hsl(var(--muted-foreground)); }
+.toast-action {
+  pointer-events: auto;            /* the one part of the toast that takes clicks */
+  flex: none;
+  border: none;
+  /* fill (background/color) + hover live in parts/buttons.css's .btn--primary alias list */
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  height: 28px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  transition: filter var(--dur-1);
+}
+.toast-action:active { filter: brightness(0.95); }
+
+/* Mobile: lift the toast above the bottom-centre Render FAB (z55), and cap its
+   width so its right edge can't reach (and steal taps from) the bottom-right zoom
+   HUD. A long label ellipsises rather than spanning edge-to-edge. */
+@media (max-width: 640px) {
+  .toast {
+    bottom: calc(72px + var(--safe-bottom) + var(--vv-bottom, 0px));
+    max-width: calc(100vw - 6rem);
+  }
+}
+
+/* ── Mobile (≤640px): controls become a drag sheet, preview fills below ──────
+   Placed after the base .sidebar / .tool-stage rules so it actually wins the
+   cascade. The controls panel is anchored at the TOP with the grip on its BOTTOM
+   edge, so dragging the grip down grows the controls (and shrinks the preview)
+   while the grip tracks the finger 1:1. Snap heights mirror setupMobileSheet. */
+@media (max-width: 640px) {
+  .tool-layout {
+    display: block;
+    height: 100dvh;
+    --sheet-h: 50dvh;                 /* default; overridden per data-sheet state */
+    /* Clearance below the peek bar so the preview doesn't run up under it. Driven
+       by --peek-h (the measured header height, set in setupMobileSheet) so the
+       taller two-row header still fully shows in peek; 56px is the fallback.
+       Static - independent of the sheet height - so the preview never rescales.
+       The FALLBACK carries the type multiplier: --peek-h is measured, so it already
+       follows a larger header, but a flat 56px is what applies whenever the measure
+       hasn't landed (first paint, or setupMobileSheet not yet run) and at 1.2× that
+       is shorter than the header it is meant to clear - the peek sheet would crop
+       its own title row and the preview would start underneath it. Leads with
+       --safe-top (0px on an unnotched device) since the sheet itself now starts
+       that far down (see .sidebar's `top` below) - without it the preview would
+       start under the peek bar's true bottom edge instead of clear of it. */
+    --preview-top: calc(var(--safe-top, 0px) + var(--peek-h, calc(56px * var(--a11y-fs))) + 0dvh);
+  }
+  .tool-layout[data-sheet="peek"] { --sheet-h: var(--peek-h, calc(56px * var(--a11y-fs))); }
+  /* Clamped against the visible area, not just 100dvh: the soft keyboard eats
+     the bottom of the viewport without shrinking dvh, so an unclamped 50/90dvh
+     sheet would run its own bottom edge (and whatever control sits there)
+     under the keyboard. min() is a no-op while --vv-bottom is 0px. */
+  .tool-layout[data-sheet="half"] { --sheet-h: min(50dvh, calc(100dvh - var(--vv-bottom, 0px) - 12px)); }
+  .tool-layout[data-sheet="full"] { --sheet-h: min(90dvh, calc(100dvh - var(--vv-bottom, 0px) - 12px)); }
+
+  /* Controls panel - anchored at the top, grip on its bottom edge. The --vv-*
+     offsets (set by the VisualViewport shim in main.js) keep it pinned to the
+     VISIBLE area while the page is pinch-zoomed; they're 0px when not zoomed.
+     --safe-top clears the notch/status-bar inset on top of that (0px on a
+     device with no inset, so this is a no-op there). */
+  .sidebar {
+    position: fixed;
+    top: calc(var(--vv-top, 0px) + var(--safe-top, 0px)); left: var(--vv-left, 0px); right: auto;
+    width: 100% !important;           /* override the desktop inline width */
+    height: var(--sheet-h);
+    max-height: 92dvh;
+    display: flex;
+    flex-direction: column;
+    border-right: none;
+    border-bottom: 1px solid hsl(var(--border));
+    border-radius: 0 0 16px 16px;
+    box-shadow: var(--shadow-3);
+    transition: height 0.34s var(--ease-out); /* confident, decelerating settle */
+    z-index: 50;
+    /* Clip the sheet so the form can't spill past its rounded bottom edge. The
+       grip is NOT a child (it's a sibling in tool.js, position:fixed) so this
+       clipping never crops it. Inputs scroll via .sidebar-body's own overflow. */
+    overflow: hidden;
+  }
+  /* The title bar doubles as a wide drag handle for the sheet (see addDragHandle
+     in tool.js). touch-action:none so the drag moves the panel instead of the
+     page; the inner Tools link / controls stay tappable and are excluded in JS. */
+  .sidebar-header {
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .tool-layout.is-sheet-dragging .sidebar-header { cursor: grabbing; }
+
+  /* Grip is pinned to the divider line itself (fixed, out of the panel's flow),
+     so it's always visible and grabbable no matter how short the panel gets. */
+  .sheet-grip {
+    display: flex;
+    position: fixed;
+    left: var(--vv-left, 0px); right: auto; width: 100%;
+    top: calc(var(--sheet-h) + var(--vv-top, 0px) + var(--safe-top, 0px));   /* tracks the sheet + the visible-area + notch offset */
+    transform: translateY(-50%);
+    height: 30px;                 /* generous hit area straddling the divider */
+    z-index: 60;                  /* above the panel (50) and the preview */
+    transition: top 0.34s var(--ease-out); /* match the sheet's settle */
+  }
+  .tool-layout.is-sheet-dragging .sheet-grip { transition: none; }
+  /* Neutral grey pill, matching the export sheet's grabber (.export-popup::before
+     below) instead of tool.css's default fill, which rides --primary - the same
+     hue as a slider thumb, so a real range control sitting near the sheet edge
+     could be mistaken for a second grip. Hit area, dims of the button itself and
+     its aria-label are untouched; only the drawn pill changes. */
+  .sheet-grip::before {
+    width: 40px;
+    height: 4px;
+    background: hsl(var(--muted-foreground) / 0.4);
+    border: none;
+    box-shadow: none;
+  }
+
+  /* Preview - a static backdrop offset below the top bar. The controls sheet
+     slides over it (it doesn't rescale on half/full), and Fit fits to this region
+     since fitCanvas reads the stage rect. Collapse to peek and it re-fits to fill
+     the freed space (see setupMobileSheet's peek re-fit in tool.js). */
+  .tool-stage {
+    position: fixed;
+    /* --preview-top is the mobile top-bar clearance (measured header height, default
+       56px, set on .tool-layout above). The chromeless editor zeroes it (rule below)
+       since its "Tools" link + left rail float over the stage rather than occupying a
+       bar; the 0px fallback also covers any layout that never sets it. */
+    inset: var(--preview-top, 0px) 0 0 0;
+    height: auto;
+  }
+  /* Editor (render.layout:'editor'): the stage keeps `height:100dvh !important` from
+     the [data-sidebar="hidden"] rule, so a non-zero top inset makes it overflow the
+     viewport bottom by that amount - which pushed the bottom-anchored zoom HUD
+     (.stage-nav) off-screen. There's no real top bar here, so pin top:0 and the
+     fixed stage (top 0 + 100dvh) fills the viewport exactly, HUD included. */
+  .tool-layout.is-editor { --preview-top: 0px; }
+
+  /* Track the finger 1:1 while dragging - no easing on the panel height. */
+  .tool-layout.is-sheet-dragging .sidebar { transition: none; }
+
+  /* The grip replaces the desktop width handle + fullscreen toggles. */
+  .sidebar-drag-handle { display: none; }
+  .fullscreen-toggle,
+  .fullscreen-toggle-float { display: none !important; }
+
+  /* The desktop "collapsed" hide must not blank the sheet body on mobile. */
+  .tool-layout[data-sidebar="closed"] .sidebar-body { opacity: 1 !important; pointer-events: auto !important; }
+  /* The sheet is full-width; don't pin the body to the desktop open width. */
+  .sidebar-body { min-width: 0; }
+
+  /* At peek/half the sheet crops its last control mid-control (a slider thumb can
+     end up sliced by the sheet's own bottom edge). This reads as broken rather
+     than "scroll for more", so paint a fade over the cut edge - a generated
+     rectangle, not a child of .sidebar-body, so it can't be scrolled away and
+     never takes a tap. Colour rides --card (the sheet's own background token)
+     so it fades to the same surface in both themes; the sheet's overflow:hidden
+     clip already rounds its bottom two corners for free. The grip lives outside
+     .sidebar entirely (see above) so this can't touch it. */
+  .sidebar::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 28px;
+    background: linear-gradient(to bottom, hsl(var(--card) / 0), hsl(var(--card) / 0.85));
+    pointer-events: none;
+  }
+
+  /* Get|Save pill - the primary export/save CTA, floating bottom-centre over the
+     preview, always reachable regardless of the controls-sheet position. */
+  .render-pill {
+    display: inline-flex;
+    align-items: stretch;
+    position: fixed;
+    left: 50%;
+    bottom: calc(8px + var(--safe-bottom) + var(--vv-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 55;
+    box-shadow: var(--ui-elevation-floating), var(--ui-effect-bevel);
+  }
+  .tool-layout.export-open .render-pill { display: none; }
+
+  /* .url-budget gauge is defined at top level (after this @media closes) so it applies on
+     ALL viewports - this block is mobile-only, which would have left it unstyled on desktop. */
+
+  /* Recorder tools (render.capture) put a "Warm the mic / Record" button at the foot
+     of the stage - the SAME bottom-centre lane as the Get|Save FAB above, so on mobile
+     the pill sits right on top of it. Lift the record button (and its take timer) to
+     stack ABOVE the pill instead. Only needed in this mobile FAB layout: on desktop the
+     pill lives inside the sidebar and never shares the stage lane. */
+  .tool-stage.has-record .canvas-record-btn {
+    bottom: calc(66px + var(--safe-bottom) + var(--vv-bottom, 0px));
+  }
+  .tool-stage.has-record .canvas-record-timer {
+    bottom: calc(112px + var(--safe-bottom) + var(--vv-bottom, 0px));
+  }
+
+  /* Export popup - a bottom sheet holding the (moved) actions panel. Hidden until
+     Render is tapped; dismiss via the scrim or the ✕. */
+  .export-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--ui-motion-overlay) var(--ui-motion-standard), visibility var(--ui-motion-overlay) var(--ui-motion-standard);
+  }
+  .tool-layout.export-open .export-overlay { opacity: 1; visibility: visible; }
+  .export-overlay-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.45); }
+  .export-popup {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    max-height: 85dvh;
+    display: flex;
+    flex-direction: column;
+    background: var(--ui-color-surface-raised);
+    color: var(--ui-color-text-default);
+    border-radius: var(--ui-radius-card) var(--ui-radius-card) 0 0;
+    box-shadow: var(--ui-elevation-sheet);
+    transform: translateY(100%);
+    transition: transform var(--ui-motion-overlay) var(--ui-motion-standard);
+    padding-bottom: var(--safe-bottom);
+  }
+  .tool-layout.export-open .export-popup { transform: translateY(0); }
+  /* While the finger is dragging the sheet down, track it 1:1 - the spring-back
+     / dismiss animation re-enables once the touch ends. */
+  .export-popup.is-popup-dragging { transition: none; }
+  /* Grab affordance - hints that the sheet can be flicked away. */
+  .export-popup::before {
+    content: "";
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 4px;
+    border-radius: var(--ui-radius-pill);
+    background: color-mix(in srgb, var(--ui-color-text-muted) 40%, transparent);
+  }
+  .export-popup-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 16px 12px;
+    border-bottom: 0;
+    flex-shrink: 0;
+  }
+  /* .export-popup-title/-close: hoisted out of both breakpoints - see tool.css. */
+  .export-popup-body { overflow-y: auto; padding: var(--sp-7); }
+  /* Drop the sidebar-specific spacing now that the panel lives in the popup. */
+  .export-popup-body .tool-actions { margin: 0; padding: 0; border-top: none; }
+}
+
+/* Ambient URL-budget gauge (plan 115 P1) - a DRAGGABLE vertical bar showing how much of a
+   shareable link the current edit costs. Chrome-only (position:fixed, never in the canvas);
+   reads the cost model, never moves an exported pixel. Default top-left; the user drags it
+   anywhere (position persists) and clicks it to open Share. Green → amber → red matches the
+   Share dialog's verdict colours (fixed hsl triples). Top-level so it applies on ALL
+   viewports; the fill HEIGHT + aria-label carry the signal, not colour alone. */
+.url-budget {
+  --budget-ok: 142 64% 42%;
+  --budget-warn: 38 92% 50%;
+  --budget-over: 0 72% 51%;
+  /* Absolute within #tool-stage (the canvas area, right of the sidebar) so "top-left"
+     means the top-left of the CANVAS, clear of the sidebar, in every layout. */
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 6;
+  width: 9px;
+  height: 80px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: hsl(0 0% 50% / 0.28);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3), inset 0 0 0 1px hsl(0 0% 0% / 0.14);
+  cursor: grab;
+  touch-action: none; /* the pointer-drag owns the gesture */
+  overflow: hidden;
+  transition: box-shadow var(--dur-1) ease, transform var(--dur-1) ease;
+}
+.url-budget:hover { transform: scaleX(1.25); box-shadow: 0 3px 16px rgba(0, 0, 0, 0.38), inset 0 0 0 1px hsl(0 0% 0% / 0.2); }
+.url-budget:active { cursor: grabbing; }
+.url-budget:focus-visible { outline: 2px solid hsl(var(--budget-warn)); outline-offset: 3px; }
+.url-budget-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--gauge-frac, 0) * 100%);
+  min-height: 3px; /* a hairline so an all-default (0%) bar still reads as "empty", not blank */
+  background: hsl(var(--budget-ok));
+  border-radius: var(--radius-pill);
+  transition: height var(--dur-3) ease, background var(--dur-3) ease;
+}
+.url-budget[data-band="warn"] .url-budget-fill { background: hsl(var(--budget-warn)); }
+.url-budget[data-band="over"] .url-budget-fill { background: hsl(var(--budget-over)); }
+/* Reduced motion (OS query OR the app pref): no fill glide - jump straight to the value. */
+@media (prefers-reduced-motion: reduce) {
+  .url-budget { transition: box-shadow var(--dur-1) ease; }
+  .url-budget-fill { transition: none; }
+}
+html[data-a11y-motion="reduce"] .url-budget-fill { transition: none; }
+
+/* Reassurance toast (url-budget-gauge.ts) - a calm speech-bubble beside the meter the first
+   time a link fills the bar: "keep going, share the .lolly". NOT a warning, so it uses the
+   neutral popover tokens (never the red/amber band colours). Chrome-only (position:absolute in
+   #tool-stage, JS-positioned beside the gauge); pointer-events:none so it never intercepts the
+   gauge's drag/click; it fades itself out after a few seconds. */
+.url-budget-toast {
+  position: absolute;
+  z-index: 7; /* just above the gauge (z-index:6) */
+  max-width: 210px;
+  padding: 8px 11px;
+  border-radius: var(--radius-md);
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  pointer-events: none; /* never blocks the gauge underneath */
+  animation: url-budget-toast-in var(--dur-2) ease both;
+}
+.url-budget-toast[hidden] { display: none; }
+@keyframes url-budget-toast-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .url-budget-toast { animation: none; } }
+html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
+
+/* ─── Actions bar ───────────────────────────────────────────────────────── */
+/* The export panel is a strict priority stack: action buttons (docked to the top,
+   so they stay in reach down a long sheet) → filename·format → dimensions →
+   timing → the format cards → ancillary settings → destinations. DOM order
+   encodes the hierarchy, so a flex column keeps the layout stable no matter which
+   optional rows a given tool/format contributes. */
+.tool-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  padding: 14px 0;
+  border-top: 1px solid hsl(var(--border));
+  margin-top: auto;
+  margin-bottom:5em;
+  width: 100%;
+}
+
+/* Collapse the whitespace-only text nodes left by the template literal so they
+   don't add phantom gaps between rows. */
+.tool-actions:empty { display: none; }
+
+/* The chip wraps INSIDE its own box rather than pushing past the column: these sit
+   in a fixed-width sidebar that does not grow, and a label that overflows it is
+   both unreadable and untappable at its right edge. `normal` costs nothing while
+   there is room - a flex item's shrink-to-fit width is its max-content width either
+   way - so it only takes effect where the chip could not have fitted anyway: a long
+   German/Portuguese mark name, or any label at a larger type scale. `anywhere`
+   because several of those are one unbreakable compound word. */
+.export-option {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 5px 10px;
+  font-size: var(--fs-sm);
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  user-select: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+
+.export-option:hover {
+  border-color: hsl(var(--ring) / 0.4);
+  background: hsl(var(--accent));
+}
+
+.export-option:has(input:checked) {
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--primary) / 0.07);
+}
+
+/* The tick itself is `.field-check` (parts/fields.css) - size, accent, cursor and
+   flex:none all come from the primitive, so the chip adds nothing of its own. */
+
+/* Tier 2 - dimensions. The headline sizing control: both fields share the full
+   width and sit taller than the other inputs. Each field carries a directional
+   icon (↔ width, ↕ height) tucked inside on the left. */
+.export-dims {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-size: var(--fs-md);
+  color: hsl(var(--muted-foreground));
+}
+
+.dim-field {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.dim-icon {
+  position: absolute;
+  /* Centred in the 18px gap before the text: (18 − 15)/2 ≈ 1.5px each side. */
+  left: 1.5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  transition: color var(--dur-1);
+}
+
+.dim-field:focus-within .dim-icon { color: hsl(var(--ring)); }
+
+.export-dims input[type="number"] {
+  width: 100%;
+  padding: 9px 10px 9px 18px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: 0;                      /* segmented pill - outer caps added below */
+  font: inherit;
+  font-size: var(--fs-lg);
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  appearance: textfield;
+  -moz-appearance: textfield;
+  cursor: ew-resize;
+  user-select: none;
+}
+
+.export-dims input[type="number"]:focus {
+  cursor: text;
+  user-select: auto;
+}
+
+/* Width | height | unit (| dpi) read as ONE seamless segmented pill: no gaps,
+   adjacent 1px borders collapsed into a shared line, only the outer corners
+   rounded. The leftmost segment (width) carries the left cap; the rightmost
+   VISIBLE segment carries the right cap - normally the unit select, but the DPI
+   field when it's shown (physical units). `:has` rather than `:last-child`
+   because the DPI field is hidden with display:none, not removed from the DOM. */
+.export-dims > * + * { margin-left: -1px; }              /* overlap borders into one */
+.export-dims .dim-field:first-child input[type="number"] {
+  border-radius: var(--radius) 0 0 var(--radius);        /* left cap = width */
+}
+/* Right cap = the unit select when it's the last visible segment (px, DPI hidden).
+   Prefixed with .tool-actions so it OUTRANKS the generic `.tool-actions
+   select:not(.field-select)` radius rule (specificity 0,2,1) below at ~:1291 -
+   without it the unit inherits an all-corner radius and reads as a detached pill
+   in px mode (mm mode was unaffected only because the :has() rule below is more
+   specific). The row must always read as one pill: flat internal joins, the last
+   VISIBLE segment carries the right cap. */
+.tool-actions .export-dims .dim-unit { border-radius: 0 var(--radius) var(--radius) 0; }
+.tool-actions .export-dims:has(.dim-dpi:not([style*="none"])) .dim-unit { border-radius: 0; }
+.export-dims:has(.dim-dpi:not([style*="none"])) .dim-dpi {
+  border-radius: 0 var(--radius) var(--radius) 0;         /* …but the DPI segment when it's shown */
+}
+/* The focused segment's (ring-coloured) border sits above its neighbours' edges. */
+.export-dims .dim-field:focus-within,
+.export-dims .dim-unit:focus,
+.export-dims .dim-dpi:focus-within { position: relative; z-index: 1; }
+
+/* Units selector - the "value type" (px/mm/cm/in/pt). Its chevron is stacked
+   directly UNDER the unit text (centred, mirroring how the DPI caption sits
+   under its number) instead of to the right of it - so the segment is only as
+   wide as the "mm" text, with no horizontal arrow gutter to pay for. Frees up
+   width for the width & height fields at small sidebar widths.
+   Scoped under .export-dims so it outranks the generic `.tool-actions select`
+   chevron rule (right-side 14px caret) that would otherwise win on specificity. */
+.export-dims .dim-unit {
+  flex: 0 0 auto;
+  align-self: stretch;   /* match the height of the dimension inputs in its row */
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+  background-image: var(--field-chevron);  /* the one shared caret (parts/fields.css) */
+  background-repeat: no-repeat;
+  /* Chevron centred beneath the text. The caret is matched to the 7px DPI caption,
+     which scales with the type, so the caret does too - and the bottom padding IS
+     the room it needs (gap + caret, 3 + 7), expressed as that sum so the three can
+     never drift apart. Scale the caret alone and it grows up into the unit text
+     instead of sitting under it. */
+  --dim-unit-caret: calc(7px * var(--a11y-fs));
+  --dim-unit-caret-gap: calc(3px * var(--a11y-fs));
+  background-position: center bottom var(--dim-unit-caret-gap);
+  background-size: var(--dim-unit-caret);
+  border: 1px solid hsl(var(--input));
+  font: inherit;
+  font-size: var(--fs-md);
+  line-height: 1;
+  text-align: center;
+  text-align-last: center;                 /* centre the selected value over the chevron */
+  /* symmetric sides; bottom room for the stacked chevron (its gap + its size) */
+  padding: 0 6px calc(var(--dim-unit-caret-gap) + var(--dim-unit-caret));
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+.export-dims .dim-unit:focus { border-color: hsl(var(--ring)); outline: none; }
+
+/* DPI field - only shown for physical units. The whole label is the rightmost
+   pill segment: the number sits on top of a micro "DPI" caption, so the segment
+   is only as wide as the number itself (no horizontal "dpi" word), leaving more
+   room for width & height at small sidebar widths. */
+.dim-dpi {
+  flex: 0 0 auto;
+  align-self: stretch;              /* a real segment - match the row height */
+  display: inline-flex;
+  flex-direction: column;           /* stack the number over the caption */
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border: 1px solid hsl(var(--input));
+  background-color: hsl(var(--background));
+  color: hsl(var(--muted-foreground));
+}
+.dim-dpi > span {                   /* the micro "DPI" caption, under the number */
+  font-size: calc(7px * var(--a11y-fs));
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+}
+.export-dims .dim-dpi input[type="number"] {
+  /* border-box: just fits a 4-digit dpi (max 1200) - "just", so the width follows
+     the type or the 1.2× digits are what gets cut. */
+  width: calc(2.9rem * var(--a11y-fs));
+  border: 0;                 /* the .dim-dpi container carries the segment border */
+  background: transparent;
+  padding: 0 4px;
+  font-size: var(--fs-md);
+  line-height: 1;
+  text-align: center;        /* centred over the caption */
+  cursor: text;              /* not a scrub field */
+  user-select: auto;
+}
+/* Focus ring lives on the segment container, not the borderless inner input. */
+.export-dims .dim-dpi:focus-within {
+  border-color: hsl(var(--ring));
+  box-shadow: var(--ring-focus);
+}
+.export-dims .dim-dpi input[type="number"]:focus { box-shadow: none; }
+
+/* Spinner-hiding shared by all action-bar number inputs (dimensions and video
+   timing). Kept as one rule so the two contexts can't drift. */
+.export-dims input[type="number"]::-webkit-inner-spin-button,
+.export-dims input[type="number"]::-webkit-outer-spin-button,
+.video-params input[type="number"]::-webkit-inner-spin-button,
+.video-params input[type="number"]::-webkit-outer-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Their :focus ring is the shared recipe at the foot of tool.css. */
+
+/* Claim the *horizontal* gesture on the scrubbable dimension fields so a drag
+   scrubs the value, while leaving the vertical axis to the browser so the export
+   bottom sheet still scrolls when a swipe starts on a field. The scrub is
+   horizontal-only, so pan-y (not none) is the right grant: a horizontal-dominant
+   gesture reaches our pointer handlers; a vertical one scrolls and fires
+   pointercancel, which tears the scrub down cleanly. DPI is typed, not scrubbed,
+   so it keeps native behaviour. */
+.export-dims input[data-action="export-width"],
+.export-dims input[data-action="export-height"] {
+  touch-action: pan-y;
+}
+
+/* Floating value indicator shown while a dimension field is dragged-to-scrub.
+   Desktop anchors it above the control (the pointer is locked, cursor hidden);
+   touch tracks it above the finger where the value would otherwise hide.
+   Created + positioned in components/scrub-readout.js. */
+.scrub-readout {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10000;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: var(--fs-md);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 6px 20px hsl(0 0% 0% / 0.28);
+  opacity: 0;
+  transform: scale(0.92);
+  transform-origin: center bottom;
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+.scrub-readout.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+.scrub-readout.is-below {
+  transform-origin: center top;
+}
+/* Caret pointing down at the control / finger (above mode). */
+.scrub-readout::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: var(--caret-x, 50%);
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: hsl(var(--primary));
+}
+/* Flipped to point up when the bubble sits below the target. */
+.scrub-readout.is-below::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: hsl(var(--primary));
+}
+/* A zoom is exactly the vestibular motion reduced-motion targets - drop the
+   scale and keep only the fade for users who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  .scrub-readout,
+  .scrub-readout.is-visible { transform: none; }
+}
+
+/* Tier 4 - actions. Download is the primary CTA and gets the widest track;
+   any present secondary buttons (copy/save) split the remainder evenly. */
+.export-action-buttons {
+  display: flex;
+  gap: var(--sp-3);
+  margin-top: 2px;
+  /* Query container so Copy/Save/Share react to the row's own width - the
+     sidebar is resizable, so the viewport isn't a reliable signal here. */
+  container-type: inline-size;
+}
+/* Taller, easier-to-hit targets while labelled; collapses back to compact icons
+   in the @container query below. */
+.export-action-buttons button { flex: 1 1 0; min-width: 0; padding-block: 9px; }
+.export-action-buttons .btn { white-space: normal; overflow-wrap: anywhere; }
+/* Jelly-mode stand-ins (Save / Download) share the same flex tracks; their
+   height/padding come from the component (scaled by the lib/jelly.ts bridge). */
+.export-action-buttons jelly-button { flex: 1 1 0; min-width: 0; }
+/* Copy and Save each carry a line-art glyph ahead of their label. */
+.copy-btn,
+.save-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-3); }
+/* Copy / Save / Share shed their labels in the @container rule below, at which
+   point the glyph IS the button - so these scale with the type either way. */
+.copy-icon,
+.save-icon { width: var(--fs-lg); height: var(--fs-lg); flex-shrink: 0; }
+
+/* Share button - equal flex sibling of Copy and Save in the actions row (sized
+   by .export-action-buttons button), link glyph riding ahead of the label. */
+.copy-url-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.copy-url-icon { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); flex-shrink: 0; }
+
+/* When the actions row gets too narrow for icon + label to sit comfortably
+   side by side, drop the labels and let Copy/Save/Share collapse to their
+   three icons. `title`/`aria-label` keep each button's meaning available.
+   (Audit 167 F-A8 swapped this for stacked full-width rows; reverted
+   2026-08-30 - Andy prefers the icon row. Stacking also can't be done here:
+   a @container query matches against the nearest ANCESTOR container, so this
+   row - its own query container - can never restyle itself, only its
+   children; the F-A8 rules silently half-applied and overflowed the sheet.) */
+@container (max-width: 220px) {
+  .copy-btn > span,
+  .save-btn > [data-save-label],
+  .copy-url-btn > [data-copy-url-label] { display: none; }
+  .copy-btn,
+  .save-btn,
+  .copy-url-btn { gap: 0; }
+  /* Icon-only: drop back to a compact square rather than a tall, empty pill. */
+  .export-action-buttons button { padding-block: 6px; }
+}
+/* Jelly pills run wider than the native buttons (component font + capsule
+   padding), so they shed their labels EARLIER - the Share label was clipping
+   at widths where the native row still fit. Icon-only jelly pills zero the
+   component's inline padding + slot gap so the glyph sits dead-centre. */
+@container (max-width: 320px) {
+  .export-action-buttons jelly-button > span { display: none; }
+  .export-action-buttons jelly-button {
+    --jelly-button-padding-inline: 0;
+    --jelly-button-gap: 0;
+  }
+}
+/* The jelly row reads airier than the native one (capsules, no borders) - pull
+   the three pills closer together. */
+.export-action-buttons:has(jelly-button) { gap: var(--sp-2); }
+
+/* The provenance ask (plans/137 WP-E) - appended under the buttons once, after a
+   file has actually been exported. Deliberately NOT one of the four guidance
+   voices (parts/guide.css): it is an invitation about the next file, not a fact,
+   warning or signal about this one, so it stays muted and borrows none of their
+   alarm colours. */
+.export-details-ask {
+  margin: 8px 0 0;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+}
+/* Same link treatment as the privacy notice's (parts/gallery.css) - inherits the
+   quiet colour, underlined so it is still obviously the actionable half. */
+.export-details-ask a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Tier 1 - filename · format. The filename fills the row; when a format
+   selector exists the two fuse into a single "name.format" segmented control. */
+.filename-extension {
+  display: flex;
+  align-items: stretch;
+}
+.filename-extension .export-filename {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.filename-extension:has(select) .export-filename {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+}
+.filename-extension:has(select) select[data-action="format"] {
+  flex: 0 0 auto;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Grouped format picker (views/export-format-picker.ts). The native select is
+   hidden (value carrier only); the trigger takes its visual place as the fused
+   right half of the name.format pill - the SAME dress as the select it
+   replaced (`.tool-actions select:not(.field-select)` above), so the pill
+   reads solid and its --radius corners are unchanged. The dropdown floats
+   over the rows below (a compact context menu): opening it must never move
+   the settings underneath. */
+.fmt-trigger {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 9px 12px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font: inherit;
+  font-size: var(--fs-md);
+  cursor: pointer;
+  transition: border-color var(--dur-1);
+}
+.fmt-trigger:hover:not(:focus) { border-color: hsl(var(--ring) / 0.4); }
+.fmt-trigger .fmt-chev { width: var(--fs-lg); height: var(--fs-lg); opacity: .6; }
+.fmt-trigger[aria-expanded="true"] .fmt-chev { transform: rotate(180deg); }
+/* The row anchors the dropdown. */
+.filename-extension { position: relative; }
+.fmt-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  z-index: 6;   /* over the sticky actions dock (3) and every settings row */
+  min-width: min(260px, 100%);
+  max-width: 100%;
+  max-height: min(420px, 55dvh);
+  overflow-y: auto;
+  padding: var(--sp-5);
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 12px 32px #00000038;
+}
+.fmt-pop-head { display: none; }
+.fmt-cat + .fmt-cat { margin-top: 10px; padding-top: 10px; border-top: 1px solid hsl(var(--border)); }
+.fmt-cat-head {
+  padding: 0 2px 6px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.fmt-cat-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+.fmt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.fmt-chip .fmt-chip-ic {
+  width: var(--fs-md);
+  height: var(--fs-md);
+  opacity: .75;
+  flex: 0 0 auto;
+}
+/* Resting paint ONLY on the un-pressed state: the chosen chip's primary FILL
+   comes from buttons.css's alias list (R2 - the fill pair is declared once),
+   which is in the earlier `primitives` layer - a restated background here
+   (views layer) would beat it at any specificity. */
+.fmt-chip:not([aria-pressed="true"]) {
+  background: hsl(var(--background));
+  color: inherit;
+}
+.fmt-chip[aria-pressed="true"] { border-color: hsl(var(--primary)); }
+.fmt-show-all {
+  width: 100%;
+  margin-top: var(--sp-5);
+  padding: 8px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.fmt-show-all:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.export-outcome-summary {
+  margin: 0 0 var(--sp-3);
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / .65);
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+  text-align: left;
+}
+/* The retained-file line under Download (plans/236): what was delivered, and the
+   way back to the same bytes if no file appeared. Same register as the outcome
+   summary; wraps so the controls stay visible at a narrow width and large text. */
+.export-delivery {
+  margin: .2rem 0 0;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / .65);
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+/* On a phone this is a modal sub-view of the export sheet, not a desktop
+   popover with coordinates that can start off-screen or extend under the
+   browser chrome. */
+@media (max-width: 640px), (max-height: 430px) and (pointer: coarse) {
+  .export-popup .fmt-pop {
+    position: fixed;
+    inset: calc(var(--safe-top, 0px) + 10px) 10px calc(var(--safe-bottom, 0px) + var(--vv-bottom, 0px) + 10px);
+    z-index: 100004;
+    min-width: 0;
+    max-width: none;
+    max-height: none;
+    padding: 14px;
+    border-radius: calc(var(--radius) * 1.5);
+  }
+  .fmt-pop-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    margin: -6px -4px 10px;
+    padding: 0 4px 8px;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .fmt-pop-head button {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: var(--radius);
+    background: transparent;
+    color: inherit;
+    font-size: 22px;
+  }
+  .fmt-chip { min-height: 44px; padding-inline: 14px; }
+  .fmt-show-all { min-height: 44px; }
+}
+
+/* In a short landscape sheet the primary-action dock can be taller than the
+   remaining scroller. Keeping it sticky then lets it cover the filename/format
+   row and intercept the very tap that opens this picker. Everything remains in
+   the same order; it simply scrolls as one sheet at this height. */
+@media (max-height: 430px) and (pointer: coarse) {
+  .export-popup .export-actions-dock { position: static; }
+}
+
+/* "Your recording" card (audio-capture tools) - the actual take's saves, above
+   the card-image formats. */
+.export-recording { gap: var(--sp-4); }
+.export-recording-hint {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.export-recording-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+}
+.export-recording-size {
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sticky action dock - Copy/Save/Share + Download are the sheet's primary
+   actions, so they lead it and stay pinned to the top edge while the long
+   sheets scroll. Background matches the popup card so settings slide beneath. */
+.export-actions-dock {
+      border-radius: calc(var(--radius) * 1.35);
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  background: hsl(var(--card));
+  padding-bottom: 8px;
+  box-shadow: 0 10px 12px -12px hsl(var(--foreground) / 0.4);
+}
+
+/* The depth fact - what the export WILL carry beyond an ordinary 8-bit image
+   (16-bit HDR PNG, gain-map HDR JPEG). A statement, not a control: no border, no
+   background, no icon, not focusable. It is created only when it is true and
+   removed when it is not (views/export-depth.ts applyDepthFact), so in the common
+   case this rule matches nothing at all.
+
+   It is a SIBLING of the filename·format pair, never a child: that row is a flex
+   pair whose filename grows and whose select hugs, and a third item would resize
+   both every time HDR was toggled. Sitting on its own line under the row, right-
+   aligned to the format select it describes, it cannot move that row a pixel.
+   Negative margin pulls it against the row instead of taking the column's gap. */
+.export-depth-fact {
+  align-self: flex-end;
+  margin-top: -6px;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground) / 0.8);
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+}
+/* Tooltip geometry, [data-tip] primitive: the bubble carries a sentence, and this
+   host hugs the right edge of a sidebar that is overflow-x:hidden - so the default
+   centred nowrap bubble would be sliced. Wrap it and hang it from the right edge
+   (the arrow follows). Same wrap treatment parts/tooltip.css already applies at
+   phone widths, for the same reason. */
+.export-depth-fact::after {
+  /* LOGICAL, not physical: `right: 0` would hang the bubble off the same visual
+     edge in RTL, where the sidebar's clipped edge is the other one, and throw the
+     whole sentence outside overflow-x: hidden. inset-inline-end follows the
+     writing direction, so Arabic gets the same tuck the LTR layout gets. */
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  transform: translateY(3px);
+  white-space: normal;
+  width: max-content;
+  max-width: min(15rem, 62vw);
+  line-height: 1.35;
+  text-align: start;
+  font-weight: 500;
+}
+.export-depth-fact:hover::after { transform: translateY(0); }
+.export-depth-fact::before {
+  inset-inline-start: auto;
+  inset-inline-end: 8px;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .export-depth-fact::after { transition: none; transform: none; }
+}
+
+/* Tier 3 - ancillary settings. A single wrapping cluster of chips so optional
+   controls never disrupt the rows above. */
+.export-settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.export-settings:empty { display: none; }
+
+/* Tier 3.5 - "Before you export" (views/export-preflight.ts). The one export
+   card that is a STATEMENT rather than a setting, so it sits last, below every
+   control it describes and above the Download button.
+
+   It is a real <details>, unlike the other export cards: parts/disclosure.css
+   documents why those are JS-toggled (they hold inputs whose values must survive
+   a collapse), and this one holds no fields, only reading matter - so the native
+   element's keyboard toggling, AT semantics and find-in-page auto-open come free
+   and nothing has to be kept in sync. It reuses .section-card for the box and the
+   canonical .section-card-head/.section-card-icon anatomy for the summary.
+
+   Nothing here animates, pulses or demands attention: severity is colour and
+   wording only. There is no dismiss control, because nothing was demanded. */
+/* The control is a button that opens the details modal (the report outgrew a folded
+   inline body). Full-width, transparent, reusing the .section-card-head anatomy. */
+.preflight-open {
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  gap: 7px;
+  font: inherit;
+  text-align: start;
+}
+.preflight-open:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: calc(var(--radius) * 0.75);
+}
+.preflight-chevron {
+  width: calc(15px * var(--a11y-fs));
+  height: calc(15px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+/* The verdict rides the COLLAPSED summary, so "1 to fix" is legible without
+   opening the card - which is what lets it stay collapsed by default and still
+   be honest. Pushed to the trailing edge, logical so RTL follows. */
+.preflight-verdict {
+  margin-inline-start: auto;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+}
+.export-preflight[data-tone="fix"] .preflight-verdict {
+  color: color-mix(in oklab, hsl(var(--destructive)), hsl(var(--foreground)) 30%);
+}
+.preflight-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding-top: 2px;
+}
+/* The counted facts: the /valid view's label/value anatomy. Counting is the
+   feature, so these are listed even when there is nothing to fix. */
+.preflight-fact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.preflight-fact-value {
+  color: hsl(var(--foreground));
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+.preflight-findings {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+}
+/* Severity is a TINTED FILL PLUS A FULL HAIRLINE BORDER (the community/redact
+   .rd-finding shape), never a one-sided border-left stripe - that is the named
+   house anti-pattern. Dashed borders are reserved for drop areas and appear
+   nowhere in this card. */
+.preflight-finding {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted) / 0.5);
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+/* The metaphor chip: a large rounded tile carrying the CONTENT icon (what the
+   check is about), with the STATUS badge pinned to its corner. A fixed square
+   that never shrinks; nudged onto the first line's cap height. Tone tint is set
+   per severity below - neutral here so a plain note/gap stays calm. */
+.preflight-finding-figure {
+  position: relative;
+  flex: 0 0 auto;
+  width: calc(34px * var(--a11y-fs));
+  height: calc(34px * var(--a11y-fs));
+  margin-top: 1px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+.preflight-finding-metaphor {
+  width: calc(19px * var(--a11y-fs));
+  height: calc(19px * var(--a11y-fs));
+}
+/* The status badge: a small disc on the chip's lower corner, ringed in the card
+   colour so it reads as a separate mark against the tinted tile. Its own tone
+   colour is inherited from the chip (currentColor). */
+.preflight-finding-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: var(--fs-xl);
+  height: var(--fs-xl);
+  border-radius: var(--radius-round);
+  background: hsl(var(--card));
+  box-shadow: 0 0 0 1.5px hsl(var(--card));
+}
+.preflight-finding-badge-icon {
+  width: var(--fs-sm);
+  height: var(--fs-sm);
+}
+/* The message. min-width:0 lets this flex child shrink below its content width so
+   wrapping engages, and overflow-wrap breaks a long unbreakable token (a URL, a
+   filename) instead of forcing horizontal overflow the modal would clip. */
+.preflight-finding-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding-top: 6px;   /* first line's cap sits against the chip centre; alignment, so NOT --a11y-fs scaled */
+}
+/* The same amber .export-aspect-warning already uses two cards up - there is no
+   --warning token in tokens.css, and inventing one for this card would give the
+   panel two different warning hues. Tone drives the chip fill AND the badge/metaphor
+   colour, so severity reads from the mark, never colour alone (the badge glyph
+   differs per tone too). */
+.preflight-finding.is-warn {
+  --aspect-warn: 38 92% 45%;
+  border-color: hsl(var(--aspect-warn) / 0.5);
+  background: hsl(var(--aspect-warn) / 0.12);
+  color: hsl(var(--foreground));
+}
+.preflight-finding.is-warn .preflight-finding-figure {
+  background: hsl(var(--aspect-warn) / 0.18);
+  color: hsl(var(--aspect-warn));
+}
+.preflight-finding.is-error {
+  border-color: hsl(var(--destructive) / 0.45);
+  background: hsl(var(--destructive) / 0.1);
+  color: hsl(var(--foreground));
+}
+.preflight-finding.is-error .preflight-finding-figure {
+  background: hsl(var(--destructive) / 0.15);
+  color: hsl(var(--destructive));
+}
+/* A NAMED GAP: "Lolly could not check this". Same tinted-fill + full-hairline
+   anatomy as the other two (never a left stripe), but drawn DOWN rather than up -
+   a refusal is not a problem and must never be styled as one. It still needs its
+   own box, because rendering it identically to a measured fact is most of the way
+   back to omitting it, and an omitted gap is indistinguishable from "nothing
+   wrong here". Neutral hue on purpose: no amber, no red. */
+.preflight-finding.is-gap {
+  border-style: solid;
+  border-color: hsl(var(--border) / 0.7);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+}
+
+/* The details modal (opened by .preflight-open via mountModal). A centred dialog;
+   its body reuses .preflight-fact / .preflight-finding from above verbatim. */
+.preflight-modal {
+  width: min(720px, 94vw);
+  max-height: 86vh;
+  padding: 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-lg);
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  overflow: hidden;
+}
+.preflight-modal::backdrop { background: rgb(0 0 0 / 0.45); }
+.preflight-modal-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 14px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.preflight-modal-title { color: hsl(var(--foreground)); }
+.preflight-modal-head[data-tone="fix"] .preflight-verdict {
+  color: color-mix(in oklab, hsl(var(--destructive)), hsl(var(--foreground)) 30%);
+}
+.preflight-modal-close {
+  margin-inline-start: 4px;
+  border: none; background: none; cursor: pointer;
+  font-size: calc(18px * var(--a11y-fs)); line-height: 1;
+  color: hsl(var(--muted-foreground)); padding: var(--sp-1) var(--sp-3);
+}
+.preflight-modal-body {
+  display: flex; flex-direction: column; gap: var(--sp-4);
+  padding: var(--sp-7); overflow-y: auto;
+  max-height: calc(86vh - 56px);
+}
+
+/* Tier 3.6 - "Cost, worked out from your rate card" (views/cost-panel.ts). Sits
+   after the preflight card (it consumes preflight's counts) and above Download.
+   Chrome only: it carries data-export-hide and must never move a pixel of the
+   export. A real <details>, same box + head anatomy as the preflight card. There
+   is no money hue: figures read in the foreground colour, the hedge in muted. */
+.export-cost > summary {
+  list-style: none;
+  cursor: pointer;
+  gap: 7px;
+}
+.export-cost > summary::-webkit-details-marker { display: none; }
+.export-cost > summary:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: calc(var(--radius) * 0.75);
+}
+.cost-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding-top: 2px;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+/* Rule 1 body, and the suppressed reason: plain reading matter, no figure. */
+.cost-note {
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+}
+/* Reported speech (section 5): the file's claims, set apart from every fact and figure. */
+.cost-source {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+/* The answer: the full-coverage total-with-source, or the partial-coverage
+   headline. The total reads in the foreground; the "no total" headline is muted,
+   because the honest state there is the absence of a figure, not a figure. */
+.cost-total {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--foreground));
+}
+.cost-headline {
+  margin: 0;
+  color: hsl(var(--foreground));
+}
+/* The <details> "Show the arithmetic" table - one row per multiplication. */
+.cost-working > summary {
+  cursor: pointer;
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+}
+.cost-working-rows {
+  display: grid;
+  gap: var(--sp-2);
+  margin-top: 6px;
+}
+.cost-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "line amount" "calc amount";
+  gap: 0 12px;
+  align-items: baseline;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted) / 0.4);
+}
+.cost-row-line { grid-area: line; color: hsl(var(--foreground)); font-weight: 500; }
+.cost-row-calc {
+  grid-area: calc;
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+.cost-row-amount {
+  grid-area: amount;
+  align-self: center;
+  text-align: end;
+  color: hsl(var(--foreground));
+  font-variant-numeric: tabular-nums;
+}
+.cost-row.is-adjustment { background: transparent; border-color: hsl(var(--border) / 0.6); }
+/* Rule 6, under every total: the hedge, quiet but always present. */
+.cost-disclaimer {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+}
+/* The explicit per-device reveal / opt-in actions (section 5). Device-local memory only. */
+.cost-reveal {
+  align-self: flex-start;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--foreground));
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.cost-reveal:hover { background: hsl(var(--muted) / 0.8); }
+
+/* .export-cmyk/.export-audio/.export-pdfpass/.export-c2pa/.export-print all
+   carry the literal `section-card` class now (component audit rec 7) - the
+   box, icon-head and hint-line anatomy they used to restate here four times
+   over live once as `.section-card`/`.section-card-head`/`.section-card-icon`/
+   `.section-card__hint` in disclosure.css. Only what's genuinely unique to a
+   given card stays below under its own name. */
+.export-pkg {
+  gap: var(--sp-5);
+  container: export-package / inline-size;
+}
+.export-pkg-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-4);
+}
+.export-pkg .field-input { min-width: 0; }
+@container export-package (min-width: 390px) {
+  .export-pkg-grid { grid-template-columns: minmax(7rem, 1fr) minmax(0, 2fr); }
+  .export-pkg-name,
+  .export-pkg-dest { grid-column: 1 / -1; }
+}
+.export-cmyk select[data-action="cmyk-profile"] {
+  font-variant-numeric: tabular-nums;   /* box: .field-select */
+}
+.audio-pick {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.export-audio select[data-action="video-audio"] {
+  flex: 1;
+  min-width: 0;   /* let the select shrink so the preview button always fits the row */
+}
+/* Play/pause toggle that auditions the selected music bed before export. */
+.audio-preview {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: background var(--dur-1), border-color var(--dur-1), color var(--dur-1), opacity var(--dur-1);
+}
+/* Icon-only control (aria-label + glyph), so the glyph is the whole of what the
+   button says; the 38px box still clears it at 1.2×. */
+.audio-preview svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); display: block; }
+.audio-preview:hover:not(:disabled) { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+.audio-preview.is-playing {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+.audio-preview:disabled { opacity: 0.45; cursor: default; }
+.audio-preview.is-loading { opacity: 0.6; cursor: progress; }
+/* Music-bed fade in/out (seconds) - applies the gain envelope baked into the export. */
+.audio-fade {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.audio-fade label { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.audio-fade input {
+  width: 52px;
+  padding: 3px 6px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font: inherit;
+}
+
+/* Editor-only aspect-ratio warning (render.aspectWarning), shown beside the
+   dimension fields when the page size leaves the tool's supported orientation.
+   Amber caution rather than destructive red - the export still works, it just
+   won't lay out as intended. No --warning token exists, so the hue is inline. */
+.export-aspect-warning {
+  --aspect-warn: 38 92% 45%;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  margin-top: -2px;
+  padding: var(--sp-5) var(--sp-6);
+  border: 1px solid hsl(var(--aspect-warn) / 0.5);
+  border-radius: var(--radius);
+  background: hsl(var(--aspect-warn) / 0.12);
+  color: hsl(var(--foreground));
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+.export-aspect-warning[hidden] { display: none; }
+.aspect-warn-icon {
+  flex: none;
+  width: var(--fs-xl);
+  height: var(--fs-xl);
+  margin-top: 1px;
+  color: hsl(var(--aspect-warn));
+}
+/* Clickable disclosure header - the visual treatment (icon-head anatomy) is
+   shared via disclosure.css's `.section-card-head` merge; this is just the
+   <button> reset it needs on top, plus a CSS caret (same idiom as
+   .input-section-summary) that rotates when the card is open. `.protection-head`
+   (the "Content protection" wrapper folding password/C2PA/imprint/print marks -
+   see tool-actions.ts) is the identical button + caret idiom under its own name. */
+.pdfpass-head,
+.protection-head {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  /* These are collapsible-section headers, NOT action buttons - cancel the
+     `.tool-actions button` chrome (the inset/drop box-shadow) so the header
+     reads as a section label with a caret, not a raised button. */
+  box-shadow: none;
+  cursor: pointer;
+}
+.pdfpass-head:hover,
+.protection-head:hover { color: hsl(var(--primary)); }
+.pdfpass-head::after,
+.protection-head::after {
+  content: '';
+  display: block;
+  /* A caret drawn beside a heading is that heading's glyph - it scales with it. */
+  width: calc(8px * var(--a11y-fs));
+  height: calc(8px * var(--a11y-fs));
+  margin-left: auto;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--dur-1) ease;
+  flex-shrink: 0;
+}
+.export-pdfpass.is-open .pdfpass-head::after,
+.export-protection.is-open .protection-head::after,
+.export-send.is-open .protection-head::after { transform: rotate(45deg); }
+.pdfpass-body,
+.protection-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  /* Query container so the C2PA card can lay its "Expires:" control out beside the
+     label when the (resizable) sidebar is wide enough - the viewport isn't the
+     signal here. See the @container rule under .c2pa-life below. */
+  container: protection / inline-size;
+}
+.export-pdfpass input[type="password"] {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: var(--fs-md);
+  box-sizing: border-box;
+}
+/* Encryption-strength selector (Standard 40-bit vs Strong AES-256). Box, chevron,
+   hover-lift and focus halo are `.field-select --sm` (parts/fields.css); the only
+   local truth is that an unavailable tier still has to read as unavailable. */
+.pdfpass-tier option:disabled { color: hsl(var(--muted-foreground)); }
+.export-pdfpass input[type="password"]:focus,
+.print-bleed input[type="number"]:focus{
+  outline: none;
+  border-color: hsl(var(--ring));
+}
+/* The three card master-toggles are `.field-toggle` rows (parts/fields.css):
+   flex + centre + 8px gap + pointer, and the disabled dimming that .hdr-enable /
+   .print-enable never had. Their own class names stay as the hooks the cards and
+   the component catalogue reference; the tick is `.field-check`. */
+
+/* HDR author dials - revealed under the toggle when HDR is on. Two-column grid of
+   compact labelled range sliders (White peak, glow Reach, Dark lift, Focus). */
+.hdr-body {
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  margin-top: 8px;
+}
+.hdr-slider {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+}
+.hdr-slider > span { flex: 0 0 auto; min-width: 52px; }
+/* The track/thumb are the shared `.field-range` drawing; the only delta is the
+   BRAND tint - these dials are about brand colour, so the thumb follows --brand-c1
+   rather than --primary. accent-color stays for the (rare) UA that ignores
+   appearance:none; the explicit thumb colours below are what actually paints,
+   since a custom-drawn thumb no longer answers to accent-color. Vendor pseudos
+   must each get their own rule - one unknown pseudo drops the whole list. */
+.hdr-slider input[type="range"] { flex: 1 1 auto; min-width: 0; accent-color: hsl(var(--brand-c1, var(--ring))); }
+.hdr-slider input[type="range"]::-webkit-slider-thumb { background: hsl(var(--brand-c1, var(--ring))); }
+.hdr-slider input[type="range"]::-moz-range-thumb { background: hsl(var(--brand-c1, var(--ring))); }
+.hdr-slider input[type="range"]::-moz-range-progress { background: hsl(var(--brand-c1, var(--ring))); }
+.c2pa-enable:has(input:disabled) { cursor: default; opacity: 0.55; }
+
+/* C2PA lifetime picker - "Expires:" label + the days <select>, inline. Stacked
+   below the enable row by default (the .section-card column). */
+.c2pa-life-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+  font-size: var(--fs-sm);
+  color: hsl(var(--foreground));
+  cursor: pointer;
+}
+.c2pa-life-label { flex: 0 0 auto; }
+.c2pa-life-pick select[data-action="c2pa-days"] { flex: 0 1 auto; }
+/* When the sidebar (→ this container) is wide enough to hold the label/checkbox AND
+   the "Expires:" control on one line, float them onto a single row (control pushed to
+   the right); below the threshold it collapses back to the stacked column above. Only
+   in the lifetime-picker state - the enrolled-identity "Signed as…" line stays stacked.
+   The WebM hint keeps its own full-width line whenever it shows. */
+@container protection (min-width: 380px) {
+  .export-c2pa:has(.c2pa-life-pick) {
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: var(--sp-6);
+  }
+  .export-c2pa:has(.c2pa-life-pick) .c2pa-hint { flex-basis: 100%; }
+}
+
+/* Print marks & bleed card - the box is the shared .section-card (disclosure.css,
+   rec 7); a master checkbox (.print-enable) reveals the body so ordinary PDFs
+   stay plain. Its row gap is wider than the other three cards' - a real delta. */
+.export-print { gap: var(--sp-5); }
+.print-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+.print-bleed {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  font-size: var(--fs-sm);
+  color: hsl(var(--foreground));
+}
+.print-bleed input[type="number"] {
+  width: 72px;
+  padding: 7px 10px;
+  font-size: var(--fs-md);
+  box-sizing: border-box;
+}
+/* Mark toggles reuse the .export-option chip; wrap so they pack side by side in a
+   wide sidebar and stack only when there's no room. */
+.print-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+/* Filename input */
+.export-filename {
+  padding: 9px 12px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  transition: border-color var(--dur-1);
+}
+
+/* :not(:focus) preserves the pre-dedupe outcome. The :focus ring is now the one
+   shared recipe at the foot of tool.css, and tool.css loads BEFORE this sheet -
+   without the guard this equal-specificity hover would start beating it and dim
+   the ring on a hovered, focused field. Same for .tool-actions select below. */
+.export-filename:hover:not(:focus) {
+  border-color: hsl(var(--ring) / 0.4);
+}
+
+/* Format selector. This is the OLD outlined generation, kept deliberately: the
+   format select is one half of the fused "name.format" pill (see
+   .filename-extension above), where the shared 1px edge between the input and
+   the select IS the control - a borderless embossed select has nothing to fuse
+   with. The four standalone card selects (colour profile, encryption tier,
+   credential lifetime, audio track) have moved to `.field-select`, so this rule
+   yields to them rather than out-ranking the primitive from a higher layer. */
+.tool-actions select:not(.field-select) {
+  padding: 9px 28px 9px 12px;   /* right room for the custom chevron */
+  background-color: hsl(var(--background));
+  background-image: var(--field-chevron);  /* the one shared caret (parts/fields.css) */
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  /* The caret follows the type like the label it sits beside; the 28px gutter above
+     already holds it at 1.2× (10px offset + 16.8px caret), so the padding stands. */
+  background-size: var(--fs-lg);
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  cursor: pointer;
+  transition: border-color var(--dur-1);
+  /* Custom chevron + appearance:none - same native-menulist jitter fix as
+     .input-row select. The 28px right padding already reserved arrow space. */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.tool-actions select:not(.field-select):hover:not(:focus) {
+  border-color: hsl(var(--ring) / 0.4);
+}
+/* Timing inputs - "Start after" and Duration, shown for webm and gif formats.
+   Its own row directly under the dimensions (it used to be the last child of the
+   Tier-3 chip strip, which is why it carried `flex: 1 1 100%` to claim a full line
+   there). As a direct child of the .tool-actions COLUMN it needs no flex sizing at
+   all - a basis of 100% would resolve against the panel's height. It still wraps
+   internally so the controls reflow cleanly in a narrow sidebar. */
+.video-params {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--sp-4);
+  row-gap: var(--sp-3);
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+}
+
+/* Keep each "label · input · unit" trio together as one unwrappable unit. */
+.vp-field {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  white-space: nowrap;
+}
+
+.video-params input[type="number"] {
+  width: 48px;
+  padding: 5px 6px;
+  font-size: var(--fs-sm);
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+/* Dither / 60fps toggles - shown inside .video-params for gif / webm. Separated
+   from the timing fields by the cluster gap so they wrap without a stray
+   divider hanging at the start of a wrapped line. */
+/* Same reasoning as `.export-option`: the toggle may fold inside its own box rather
+   than push past the sidebar column. `.vp-field` above keeps its nowrap on purpose -
+   there the point is that a "label · input · unit" trio never splits. */
+.gif-dither-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  user-select: none;
+  white-space: normal;
+  min-width: 0;
+}
+
+/* Its tick is `.field-check` - nothing to restate here (the 5px row gap above is
+   the only genuine delta from `.field-toggle`). */
+
+/* ── WP-B video quality select + "Pro settings" fold (tool-actions.ts videoQualityRow).
+   The quality stop is the everyday control; the fold holds codec / fps / rate-mode /
+   encoder for pros. `.export-pro-settings` takes its box from the shared `.section-card`
+   (disclosure.css); only the header button, the caret and the body layout are local. */
+.export-video-quality {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.vq-main {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.vq-main > span { font-weight: 600; }
+.export-pro-settings { padding: var(--sp-4) var(--sp-5); gap: var(--sp-3); }
+.prosettings-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.prosettings-head:hover { color: hsl(var(--foreground)); }
+.prosettings-head:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; border-radius: calc(var(--radius) * 0.75); }
+.prosettings-head svg { flex: 0 0 auto; color: hsl(var(--primary)); }
+/* Caret: a rotated corner glyph, not a one-sided border on a radiused box. */
+.prosettings-head::after {
+  content: "";
+  margin-inline-start: auto;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--dur-1) ease;
+}
+.export-pro-settings.is-open .prosettings-head::after { transform: rotate(225deg); }
+.prosettings-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding-top: 8px;
+}
+.prosettings-body .vp-field {
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.prosettings-body .vp-field > span { font-weight: 600; }
+@media (prefers-reduced-motion: reduce) {
+  .prosettings-head::after { transition: none; }
+}
+
+/* ── Destinations (tool-actions.ts renderSendTargets) ──────────────────────────
+   ONE card headed "Send to", holding a compact button per connected destination.
+   A card each - which is what this rendered before - gave a cloud upload the same
+   weight as Content protection, and a heavier button than Download. The card box
+   is the shared .section-card anatomy and the head is the same collapsed
+   .protection-head disclosure Content protection uses; only the button row is
+   local. */
+.export-send-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.export-send-row button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 5px 10px;
+  font-size: var(--fs-sm);
+}
+.export-send-row button svg { flex: 0 0 auto; color: hsl(var(--muted-foreground)); }
+/* The outcome line (a provider link, or why a send failed). Empty until a send
+   finishes, and an empty inline box in a wrap row would leave a stray gap. */
+.export-send .send-status {
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.export-send .send-status:empty { display: none; }
+
+/* Action buttons - base recipe (.btn + .tool-actions button) now lives in
+   parts/buttons.css, imported globally from app.css. */
+
+/* Inline (i) help buttons (help-tip.js) sit inside the export popup's C2PA and
+   audio cards, which live in #tool-actions. The generic `.tool-actions button`
+   pill rule (parts/buttons.css) outranks `.help-tip-btn` on specificity, so
+   without this reset those info buttons render as bordered pills. Restore the
+   transparent icon-only affordance (and hover state) the sidebar's input helpers use. */
+.tool-actions .help-tip-btn {
+  width: var(--fs-xl);
+  height: var(--fs-xl);
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-round);
+  box-shadow: none;
+  font-size: inherit;
+  color: hsl(var(--muted-foreground));
+  cursor: help;
+}
+.tool-actions .help-tip-btn:hover,
+.tool-actions .help-tip-btn:focus-visible {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* The tips on the timing row and the setting chips hang off hosts only a few
+   characters wide, and .help-tip-pop's default left:0;right:0 would size the tip
+   to its host - a one-word-per-line column. Same recipe as the profile view's
+   pref rows and tool.css's .block-control tips: let it take its own width, capped
+   so it cannot spill off a narrow phone. */
+.tool-actions .export-option > .help-tip-pop,
+.tool-actions .video-params .help-tip-host > .help-tip-pop {
+  right: auto;
+  width: max-content;
+  min-width: 11rem;
+  max-width: min(22rem, 70vw);
+}
+
+/* Copy button armed by the ?copy URL action - pulses to invite the click that
+   gives the clipboard write its required user gesture. */
+.tool-actions [data-action="copy"].copy-armed {
+  /* fill (background/color) lives in parts/buttons.css's .btn--primary alias list */
+  border-color: hsl(var(--primary));
+  animation: copy-armed-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes copy-armed-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.5); }
+  50%      { box-shadow: 0 0 0 5px hsl(var(--primary) / 0); }
+}
+
+/* Download is the primary CTA - the biggest, easiest target in the row. The
+   control-plane "Request approval" CTA takes download's place (same row, same
+   weight) when a deployment withholds download but permits an approval request. */
+.tool-actions [data-action="download"],
+.tool-actions [data-action="request-approval"] {
+  font-weight: 600;
+  padding-block: var(--ui-space-control-block);
+}
+
+/* Down-arrow glyph as the download affordance, riding ahead of the label. */
+.tool-actions [data-action="download"]::before {
+  content: "\2193";   /* ↓ */
+  margin-right: 0.4em;
+  font-weight: 700;
+}
+
+}
+
+/* ── Visitor page (`?nostage` on a no-export tool - views/tool.ts) ───────────
+   The link IS the product for these utilities (Jump Page, countdown): a shared
+   link opens as a plain webpage - normal document flow, full viewport width, no
+   stage backdrop, no zoom, no chrome. The canvas keeps its id and render path
+   unchanged; only the presentation differs. Specificity (0,2,0) so these beat
+   the base rules and the ≤640px fixed-stage rules in the same layer. */
+
+.tool-layout.is-visitor { display: block; height: auto; }
+
+/* `height` carries !important to beat `.tool-layout[data-sidebar="hidden"]
+   .tool-stage` (parts/tool.css), which clamps the stage to 100dvh !important for
+   fullscreen utility tools. A visitor page always hides the sidebar, so that rule
+   always applies here; without the override the stage stays one viewport tall and
+   a page taller than the window is unreachable. */
+.tool-layout.is-visitor .tool-stage {
+  position: static;
+  display: block;
+  height: auto !important;
+  min-height: 100dvh;
+  overflow: visible;
+  padding: 0;
+  background: none;
+}
+
+/* The stage flowing is not enough on its own: #view is `.app-view.tool-view`,
+   which sets `overflow: hidden` (parts/base.css) so the editor's stage owns its
+   own scaling and panning. On a visitor page that clips the document instead -
+   the page grows past the viewport, #view swallows the overflow, and body/html
+   never learn there is more, so nothing scrolls and every `animation-timeline:
+   view()` sits frozen at its start. :has() reaches the ancestor the state lives
+   under; where it is unsupported the page renders as it does today. */
+.app-view.tool-view:has(.tool-layout.is-visitor) { overflow: visible; }
+
+.tool-layout.is-visitor .tool-canvas-outer {
+  width: 100% !important;   /* fitCanvas never runs here, but stale inline sizes must not win */
+  height: auto !important;
+  overflow: visible;
+  box-shadow: none;
+}
+
+.tool-layout.is-visitor .tool-canvas {
+  width: 100%;
+  height: auto;
+  min-height: 100dvh;
+  transform: none !important;
+}
+
+/* A tool template's root usually paints 100% x 100% of the fixed canvas; with
+   the canvas at natural height that would collapse to content height, so
+   stretch it to at least the viewport and let the page own the window. */
+.tool-layout.is-visitor .tool-canvas > * {
+  min-height: 100dvh;
+}
+
+/* Experimental tools stamp every export; say so beside the button, not only in
+   preflight and the gallery badge. */
+.export-experimental-note { margin: .2rem 0 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }

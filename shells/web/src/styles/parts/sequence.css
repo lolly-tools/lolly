@@ -1,0 +1,23 @@
+/* ─── The sequence applier's visibility contract ─────────────────────────────
+   ONE class, `seq-off` (OFF_CLASS in bridge/sequence-dom.ts), which the applier
+   toggles on anything that is not live at the moment being composed - a canvas
+   box, a split unit, a `[data-pdf-page]` artboard, a presenter clone's fragment.
+   Those elements carry authored inline styles (position, size, transform,
+   opacity - written by the tool's hooks), so the hide has to out-rank an inline
+   declaration: !important is the only thing that does.
+
+   EAGER, and that is the whole reason this rule lives in its own file rather
+   than in parts/timeline.css where it grew up. That sheet is registered by
+   views/timeline-panel.ts and Vite only fetches it when the timeline panel is
+   opened - so a deck presented without ever opening the timeline had the class
+   applied and nothing to give it meaning, and every build fragment was on screen
+   from the moment its slide arrived. Three surfaces depend on the rule and only
+   one of them mounts that panel: the presenter (views/present-mode.ts), the
+   per-artboard still export (views/tool-actions.ts) and the timeline itself.
+
+   Its layer is assigned by the @import in app.css (`views`), which is the layer
+   it had inside timeline.css - the priority is unchanged by the move.
+
+   NOTE the scope: these elements live inside #tool-canvas or a `.pr-stage`
+   clone, NOT inside `.tl-panel`. Never nest this rule under the panel. */
+.seq-off { display: none !important; }

@@ -1,0 +1,355 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/*
+ * Global job progress toast (lib/job-toast.ts) - the async-job foundation's
+ * only chrome (plans/124 section 9, WP-F). Body-level fixed, so router view
+ * teardown never reaches it; above the topbar dropdowns and ordinary content,
+ * and above open modals too - mountModal adopts the toast node into each open
+ * <dialog> (see job-toast.ts) since z-index can never beat the top layer.
+ * Draggable by the pill / panel header (threshold'd pointer-drag in the TS,
+ * which switches it to inline top/left, clamped on-screen).
+ *
+ * The bar is a CANDY STRIPE built from brand tokens, never colour literals (the
+ * box-colour rule): it re-themes with the active brand and stays visually tied
+ * to the brand-hued icon.svg mark. `--brand-primary`/`--brand-secondary` are set
+ * by brand-vars.ts only when the brand declares those slots, so every use falls
+ * back to the shell's own accent triples and always resolves.
+ *
+ * Chrome-only: every font size rides `var(--fs-md)` and every
+ * icon box the same multiplier, exactly like the rest of the shell chrome. The
+ * stripe drift is fully disabled under reduced motion (OS query AND the app
+ * pref attribute), matching prefersReducedMotion() in lib/a11y-prefs.ts.
+ */
+
+.job-toast {
+  position: fixed;
+  right: 1rem;
+  /* Inset past the edge dock logically (RTL-correct); 0px when nothing is docked. */
+  margin-inline-end: var(--dock-w, 0px);
+  /* Same --vv-bottom/--safe-bottom idiom as .perf-hud below, so the toast clears
+     the iOS home-indicator gesture zone instead of sitting flush in it. */
+  bottom: calc(var(--vv-bottom, 0px) + var(--safe-bottom) + 1rem);
+  z-index: 9500;                 /* above content + the bottom snackbars (9000), below topbar dropdowns (99999+) and modals (top layer) */
+  width: min(360px, calc(100vw - 2rem));
+  color: hsl(var(--foreground));
+  font-family: inherit;
+  /* Two brand hues drive the stripe; declared once here so the pill mini-bar and
+     the per-row bars read as one component. */
+  --candy-a: var(--brand-primary, hsl(var(--primary)));
+  --candy-b: var(--brand-secondary, hsl(var(--accent)));
+}
+.job-toast[hidden] { display: none; }
+
+/* Below 641px the toast widens to near-full-viewport (100vw - 2rem) and would
+   otherwise paint over the render pill's fixed FAB (tool-chrome.css, bottom:
+   8px + safe-bottom) and sit level with .undo-toasts (below, bottom: 4.5rem +
+   safe-bottom - already clear of the pill). Stack the job toast a further
+   3rem above the undo-toast anchor: enough to clear one undo-toast row (its
+   own height is content-driven, no fixed row height to reuse) so the two
+   floating lanes never overlap in the common case of one undo toast. */
+@media (max-width: 640px) {
+  .job-toast {
+    bottom: calc(var(--vv-bottom, 0px) + var(--safe-bottom) + 7.5rem);
+  }
+}
+
+/* ── Collapsed pill ─────────────────────────────────────────────────────────
+   A container (visual pill) holding the expand button + optional count + ✕.
+   The ✕ is a sibling, never nested inside the expand button (no button-in-button). */
+.job-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  background: hsl(var(--card));
+  box-shadow: 0 8px 28px hsl(0 0% 0% / 0.24);
+}
+.job-pill:hover { border-color: hsl(var(--ring)); }
+/* Drag handles: the whole pill and the panel header. touch-action:none so a
+   touch-drag repositions instead of scrolling the page under it (the job list
+   keeps its own touch scrolling); no text selection mid-drag. */
+.job-pill, .job-panel-head { touch-action: none; user-select: none; }
+.job-panel-head { cursor: grab; }
+.job-toast.is-dragging .job-pill,
+.job-toast.is-dragging .job-panel-head,
+.job-toast.is-dragging .job-pill-main { cursor: grabbing; }
+.job-pill-main {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; flex-direction: column; gap: 0.3rem;
+  border: 0; background: none; color: inherit; font: inherit;
+  padding: 0; margin: 0; text-align: left; cursor: pointer;
+}
+.job-pill-title {
+  font-size: calc(12.5px * var(--a11y-fs));
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.job-pill-count {
+  flex: 0 0 auto;
+  min-width: calc(18px * var(--a11y-fs));
+  height: calc(18px * var(--a11y-fs));
+  padding: 0 0.3rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  color: var(--brand-on-primary, hsl(var(--primary-foreground)));
+  background: var(--brand-primary, hsl(var(--primary)));
+}
+
+/* ── Candy-stripe bar (shared: pill mini-bar + per-row bars) ─────────────────*/
+.job-bar {
+  height: 7px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: hsl(var(--muted));
+  box-shadow: inset 0 0 0 1px hsl(var(--border) / 0.6);
+}
+.job-pill .job-bar { height: 6px; }
+.job-bar-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  /* Diagonal barber-pole tile: a 45deg two-hue stripe whose 28px tile repeats,
+     so animating background-position by exactly one tile drifts it seamlessly. */
+  background-image: linear-gradient(
+    45deg,
+    var(--candy-a) 25%, var(--candy-b) 25%, var(--candy-b) 50%,
+    var(--candy-a) 50%, var(--candy-a) 75%, var(--candy-b) 75%
+  );
+  background-size: 28px 28px;
+  transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: job-candy-drift 0.85s linear infinite;
+}
+/* Indeterminate (no known total): the stripe fills the whole track and just
+   drifts, reading as "working" without a false completion figure. */
+.job-bar--indef .job-bar-fill { width: 100% !important; }
+
+@keyframes job-candy-drift { to { background-position: 28px 0; } }
+
+/* Motion off - OS query AND the app pref, the two halves prefersReducedMotion()
+   ORs. The stripe stays (it is the brand mark), only the drift stops. */
+html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .job-bar-fill { animation: none; transition: none; }
+}
+
+/* ── Cancel ✕ (pill + per-row) ──────────────────────────────────────────────*/
+.job-x {
+  flex: 0 0 auto;
+  /* Icon box rides the chrome icon scale with the glyph it holds. */
+  width: calc(24px * var(--a11y-fs));
+  height: calc(24px * var(--a11y-fs));
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0;
+  border-radius: var(--radius-round);
+  background: none;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  font-size: var(--fs-lg);
+  line-height: 1;
+}
+.job-x:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+
+/* Touch hit-area (same 44pt HIG floor as topbar.css's coarse-pointer block).
+   min-width/min-height win over the explicit width/height above, so the glyph
+   stays put and only the tappable box grows. The only cancel for every
+   background job, so it can't be a coarse-pointer thumb-miss. */
+@media (pointer: coarse) {
+  .job-x {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* ── Expanded panel ─────────────────────────────────────────────────────────*/
+.job-panel {
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.1);
+  background: hsl(var(--card));
+  box-shadow: 0 12px 40px hsl(0 0% 0% / 0.28);
+  overflow: hidden;
+}
+.job-panel-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  padding: 0.55rem 0.5rem 0.55rem 0.85rem;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.job-panel-title { font-size: var(--fs-md); font-weight: 700; }
+.job-list {
+  list-style: none; margin: 0; padding: 0.35rem 0;
+  max-height: 50vh; overflow-y: auto;
+}
+.job-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.2rem 0.5rem;
+  padding: 0.45rem 0.85rem;
+}
+.job-row-title {
+  grid-column: 1;
+  font-size: calc(12.5px * var(--a11y-fs));
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.job-row .job-x { grid-column: 2; grid-row: 1 / -1; align-self: center; }
+.job-row-bar-wrap { grid-column: 1; }
+.job-row-meta {
+  grid-column: 1;
+  display: flex; align-items: baseline; gap: 0.4rem;
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.3;
+}
+.job-row-note { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+.job-row-count { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+
+/* Terminal-state word - done reads as the brand accent (a finished render is a
+   win, the --primary precedent from run-overlay's render-time pill), failed as
+   destructive, cancelled/queued as muted. Never a one-sided border. */
+.job-row-status { font-size: calc(11.5px * var(--a11y-fs)); font-weight: 700; }
+.job-row-status--done { color: var(--brand-primary, hsl(var(--primary))); }
+.job-row-status--failed { color: hsl(var(--destructive)); }
+.job-row-status--cancelled,
+.job-row-status--queued { color: hsl(var(--muted-foreground)); font-weight: 600; }
+
+.job-panel-note {
+  margin: 0;
+  padding: 0.4rem 0.85rem 0.6rem;
+  font-size: calc(10.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* ── Performance HUD (lib/perf-hud.ts, perf-hud flag) ────────────────────────
+   Opt-in diagnostic overlay in the same body-level floating cluster as the toast
+   above. Floated clear of the bottom search bar with the same visual-viewport and
+   safe-area idiom the footer itself uses (styles/parts/gallery.css), and parked
+   bottom-LEFT so it never sits under the toast bottom-right pill. DRAGGABLE: a pointer-drag
+   on the header switches it to inline top/left (lib/perf-hud.ts clamps it fully
+   on-screen). Chrome-only, box-coloured from tokens, and every glyph/font size
+   rides calc(Npx * var(--a11y-fs)) like the rest of the shell chrome. */
+.perf-hud {
+  position: fixed;
+  left: calc(var(--vv-left, 0px) + 1rem);
+  /* Above the fixed footer bar (~3.4rem) + its safe-area pad, so it never overlaps
+     the search bar. Drag replaces both with inline top/left. */
+  bottom: calc(var(--vv-bottom, 0px) + var(--safe-bottom) + 4.5rem);
+  z-index: 9490;                 /* above content + the footer (50); just under the job toast (9500) */
+  width: max-content;
+  min-width: 150px;
+  max-width: min(280px, calc(100vw - 2rem));
+  color: hsl(var(--foreground));
+  font-family: inherit;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.1);
+  background: hsl(var(--card));
+  box-shadow: 0 12px 40px hsl(0 0% 0% / 0.28);
+  overflow: hidden;
+  user-select: none;
+}
+.perf-hud[hidden] { display: none; }
+
+/* Drag handle - the whole header. touch-action:none so a touch-drag repositions
+   instead of scrolling the page under it. */
+.perf-hud-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.55rem;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--muted) / 0.4);
+  cursor: grab;
+  touch-action: none;
+}
+.perf-hud.is-dragging .perf-hud-head { cursor: grabbing; }
+.perf-hud-grip { display: inline-flex; color: hsl(var(--muted-foreground)); }
+.perf-hud-grip svg { width: var(--fs-lg); height: var(--fs-lg); }
+.perf-hud-title {
+  font-size: calc(10.5px * var(--a11y-fs));
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.perf-hud-body { display: flex; flex-direction: column; padding: 0.3rem 0.1rem; }
+.perf-hud-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding: 0.2rem 0.55rem;
+}
+.perf-hud-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: calc(11.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.perf-hud-label svg { width: var(--fs-md); height: var(--fs-md); flex-shrink: 0; }
+.perf-hud-value {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Undo toasts (lib/undo-toast.ts) - the same floating cluster ─────────────
+   Bottom-centre, above the bulk bars (9000) and below the job toast (9500).
+   Chrome-only: type rides the --a11y-fs multiplier; the drain bar is decorative
+   and stops entirely under reduced motion (OS query AND the app pref). */
+.undo-toasts {
+  position: fixed;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(4.5rem + var(--safe-bottom) + var(--vv-bottom, 0px));
+  z-index: 9400;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  max-width: min(520px, calc(100vw - 2rem));
+}
+.undo-toast {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  box-shadow: 0 8px 28px hsl(0 0% 0% / 0.24);
+  font-size: var(--fs-md);
+  max-width: 100%;
+}
+.undo-toast-msg { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.undo-toast-btn {
+  flex: none; border: 0; background: none; cursor: pointer;
+  font: inherit; font-weight: 700;
+  color: var(--brand-primary, hsl(var(--primary)));
+  padding: 2px 8px; border-radius: var(--radius);
+}
+.undo-toast-btn:hover { background: hsl(var(--muted)); }
+
+/* Touch hit-area: the only undo for a soft-delete, timed out at 10s, so a
+   coarse-pointer thumb-miss loses the item for good. min-height wins over the
+   button's own content-driven height; the row grows to fit, which is fine. */
+@media (pointer: coarse) {
+  .undo-toast-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 2px 12px;
+  }
+}
+.undo-toast-bar {
+  position: absolute; left: 0; bottom: 0; height: 2px; width: 100%;
+  background: var(--brand-primary, hsl(var(--primary)));
+  transform-origin: left;
+  animation: undo-toast-drain linear forwards;
+}
+@keyframes undo-toast-drain { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+html[data-a11y-motion="reduce"] .undo-toast-bar { animation: none; }
+@media (prefers-reduced-motion: reduce) { .undo-toast-bar { animation: none; } }

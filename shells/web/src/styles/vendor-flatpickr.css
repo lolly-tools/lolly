@@ -1,0 +1,8 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Third-party flatpickr base stylesheet, pulled into the lowest `vendor` cascade
+   layer (order declared in app.css). Layering it means every app rule - including
+   tool.css's flatpickr theme in the `views` layer - overrides the vendor defaults
+   regardless of load order. Without this, the JS-imported vendor CSS would be
+   UNLAYERED and beat the whole app (unlayered wins over every layer). Imported by
+   the tool view so it stays on the lazy tool chunk, not the critical bundle. */
+@import 'flatpickr/dist/flatpickr.min.css' layer(vendor);

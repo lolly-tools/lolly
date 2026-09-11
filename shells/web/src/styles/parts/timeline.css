@@ -1,0 +1,1552 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order.
+
+   Registered by its own view module: shells/web/src/views/timeline-panel.ts
+   does `import '../styles/parts/timeline.css'`, exactly like picker.css and
+   deck-editor.css. Nothing in app.css imports it - it must stay off the
+   critical path, since only sequence-studio-style timed tools ever mount it. */
+@layer views {
+
+/* ─── The clock's visibility contract ────────────────────────────────────────
+   `.seq-off { display: none !important }` is NOT here any more: it moved to
+   styles/parts/sequence.css, which app.css imports eagerly into this same
+   `views` layer. This sheet is lazy - it arrives with the timeline panel - and
+   the presenter and the per-artboard still export both apply the class without
+   ever mounting that panel, so the rule cannot ride this chunk. Same priority,
+   same class, one eager home. */
+
+/* A box being PHOTOGRAPHED for its timeline thumbnail (lib/clip-thumbs.ts, SHOT_CLASS).
+   dom-to-image copies the computed cssText into its clone, so an off-playhead box has
+   to lose `seq-off` for the duration of the shot or it photographs blank - which would
+   make it visible on the live artboard for the ~100-300ms the shot takes, once per bar,
+   after every drag. Park it outside the viewport instead: the shot passes its own
+   `transform: scale()` for the clone root, so this never reaches the picture.
+   Transform (not left/top) so it works whatever the box's positioning, and it is on a
+   canvas box - never on an ancestor of a position:fixed popover.
+
+   The park is NOT the shot's to keep: sequence-dom.ts's applier strips this class (and
+   the `data-tl-borrowed` lease beside it) the instant the playhead moves onto the box,
+   because a scene that is live at the playhead parked 200vw away is a black stage that
+   pops back when the shot settles. See `releaseShotBorrow`. */
+.lolly-box.tl-shot { transform: translate(-200vw, -200vw) !important; }
+
+/* ─── The docked band ────────────────────────────────────────────────────────
+   A stage sibling pinned to the bottom edge. Height is written inline by the
+   panel (clampPanelH) and the matching band is reserved on the stage via
+   --stage-reserve-bottom, so the fitted canvas floats above it rather than
+   under it.
+
+   NO transform / filter / backdrop-filter anywhere on this element or its
+   descendants that are ancestors of a trigger: either would become the
+   containing block for a `position:fixed` popover and knock it off-screen
+   (the same trap documented on .fc-toolbar). The frosted look here is a plain
+   translucent background, deliberately. */
+.tl-panel {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 22;                /* above the free-canvas overlay (12) and pen chrome (16),
+                                 below its toolbar popovers (24) and the modal top layer */
+  display: flex;
+  flex-direction: column;
+  min-height: 112px;          /* mirrors MIN_PANEL_H in timeline-panel.ts */
+  /* …and the ceiling (plans/179 T12): the stage IS the viewport minus the top chrome
+     (`.tool-stage` is `position: relative` + `100dvh` and this panel is absolutely
+     positioned in it), so 100% is exactly "fits the viewport". clampPanelH already
+     holds a DRAGGED height to half the stage; this is the belt for every other way a
+     height reaches the panel - a restored height from a taller window, a chrome row
+     that wrapped after the height was set, the mobile keyboard shrinking the stage. */
+  max-height: 100%;
+  box-sizing: border-box;
+  pointer-events: auto;
+  /* NOT `hidden`. The [data-tip] primitive is a ::after pseudo-element on the button
+     itself, drawn ABOVE it (`bottom: calc(100% + 8px)`), so any clipping ancestor
+     slices the bubble in half - which is exactly what a docked band does to its own
+     toolbar, since the bar sits at the panel's top edge. The panel has no
+     border-radius and every child that can overflow (`.tl-tracks`, `.tl-inspector`)
+     carries its own scroller, so opening this up costs nothing and lets a tooltip
+     float over the canvas where it belongs. */
+  overflow: visible;
+  color: var(--ui-color-text-default);
+  background: color-mix(in srgb, var(--ui-color-surface-raised) 96%, transparent);
+  border-top: 1px solid var(--ui-color-border-default);
+  box-shadow: var(--ui-elevation-sheet);
+  font-size: var(--ui-type-label);
+  user-select: none;
+  touch-action: none;         /* the panel owns its own pointer gestures */
+}
+.tl-panel[hidden] { display: none; }
+/* While a gesture runs, kill hover affordances and the text caret everywhere. */
+.tl-panel.is-dragging,
+.tl-panel.is-dragging * { cursor: inherit; }
+
+/* ─── Resize grip ────────────────────────────────────────────────────────────
+   A full-width separator along the top edge; drag up to grow the panel. */
+.tl-handle {
+  flex: 0 0 auto;
+  height: 9px;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+.tl-handle::after {
+  content: "";
+  width: 46px; height: 3px;
+  border-radius: var(--ui-radius-choice);
+  background: var(--ui-color-border-default);
+  transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard), width var(--ui-motion-feedback) var(--ui-motion-standard);
+}
+.tl-handle:hover::after { background: var(--ui-color-text-muted); width: 64px; }
+.tl-handle:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; border-radius: var(--ui-radius-choice); }
+
+/* ─── Top strip: transport | tools | inspector ───────────────────────────────*/
+.tl-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 10px 6px;
+  min-width: 0;
+}
+.tl-transport,
+.tl-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+.tl-transport { gap: 6px; }
+.tl-time {
+  font-family: var(--ui-type-mono-family);
+  font-size: calc(11.5px * var(--a11y-fs));
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  color: var(--ui-color-text-muted);
+  white-space: nowrap;
+}
+
+/* Buttons - same silhouette as the editor rail's .fc-btn, one size down. */
+.tl-btn {
+  /* Icon-only, so the box follows its glyph on the icon scale; the
+     coarse-pointer 36px below is a finger target and stays flat. */
+  width: calc(30px * var(--a11y-fs)); height: calc(30px * var(--a11y-fs)); padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 auto;
+  border: 0; border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--ui-color-text-default);
+  cursor: pointer;
+  transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard), color var(--ui-motion-feedback) var(--ui-motion-standard);
+}
+/* `display: inline-flex` above beats the base sheet's `[hidden] { display: none }`
+   (later layer wins), leaving a hidden button INVISIBLE BUT STILL LAID OUT - a 30px
+   hole plus the .tl-tools gap. The panel hides the `+` for a timed tool that declares
+   no addKinds, so restate it, exactly as `.tl-scenery[hidden]` does further down. */
+.tl-btn[hidden] { display: none; }
+.tl-btn svg { width: var(--fs-xl); height: var(--fs-xl); }
+.tl-btn:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-color-surface-muted); }
+.tl-btn:active:not(:disabled):not([aria-disabled="true"]) { filter: brightness(0.92); }
+.tl-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+/* `aria-disabled` gets the same greying as the real property. The split blade uses the
+   attribute rather than `disabled` precisely so it stays FOCUSABLE while inert - a
+   focused control that becomes `disabled` is unfocused by the browser, which would drop
+   focus to <body> and take the panel's whole keyboard with it. See syncSplitBtn. */
+.tl-btn:disabled,
+.tl-btn[aria-disabled="true"] { opacity: 0.35; cursor: default; }
+.tl-btn.is-active,
+.tl-btn[aria-pressed="true"] {
+  background: var(--ui-color-action-primary);
+  color: var(--ui-color-action-on-primary);
+}
+.tl-screen.is-recording {
+  background: hsl(var(--destructive));
+  color: var(--ui-color-action-on-primary);
+}
+.tl-mobile-tools { display: none; }
+.tl-play { width: calc(34px * var(--a11y-fs)); height: calc(34px * var(--a11y-fs)); border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); }
+.tl-play svg { width: calc(17px * var(--a11y-fs)); height: calc(17px * var(--a11y-fs)); }
+.tl-play:hover:not(:disabled) { background: var(--ui-color-selection-surface); }
+
+/* Every panel glyph is now a registry icon (lib/icons.ts) rendered as an <svg>,
+   sized by the `.tl-btn svg` / `.tl-play svg` rules above. The CSS-drawn
+   `.tl-glyph` pseudo-element drawings for pause / plus / scissors that used to
+   live here are gone - `plus`, `pause`, `scissors`, `zoomIn` and `zoomOut` are
+   real registry entries. Do not re-draw a glyph in CSS: add it to the registry. */
+
+/* ─── Record-in-place voiceover ──────────────────────────────────────────────
+   The mic button is an ordinary `.tl-btn` at rest; while a take runs it turns
+   destructive-red so "this is live" is legible without reading the label. The HUD
+   beside it (elapsed clock + level meter) only exists during a take.
+
+   No transform / backdrop-filter anywhere below: this strip sits between the tools
+   row and the inspector, both of which host `position: fixed` popovers, and the ban
+   documented on `.tl-panel` applies to every ancestor in between. */
+.tl-mic.is-recording {
+  background: hsl(var(--destructive));
+  color: var(--ui-color-action-on-primary);
+}
+.tl-mic.is-recording:hover:not(:disabled) { background: hsl(var(--destructive) / 0.85); }
+.tl-cam.is-recording {
+  background: hsl(var(--destructive));
+  color: var(--ui-color-action-on-primary);
+}
+.tl-cam.is-recording:hover:not(:disabled) { background: hsl(var(--destructive) / 0.85); }
+
+/* A phone gets a transport strip first, with the editing tools behind one
+   explicit expansion. This keeps the timeline useful without consuming half
+   the canvas or squeezing finger targets down to desktop sizes. */
+@media (pointer: coarse) and (max-width: 640px),
+       (pointer: coarse) and (max-height: 430px) {
+  .tl-panel {
+    height: 112px !important;
+    min-height: 112px;
+    max-height: 112px !important;
+  }
+  .tl-handle { display: none; }
+  .tl-bar {
+    min-height: 48px;
+    padding: 2px 6px;
+    gap: 5px;
+    overflow: hidden;
+  }
+  /* More specific than the later all-coarse rule: a short/phone workspace gets
+     the full 44px target even though an ordinary touch laptop keeps 36px. */
+  .tl-panel .tl-btn,
+  .tl-panel .tl-play { width: 44px; height: 44px; }
+  .tl-time { max-width: 62px; overflow: hidden; text-overflow: ellipsis; }
+  .tl-tools { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .tl-tools::-webkit-scrollbar { display: none; }
+  .tl-mobile-tools { display: inline-flex; }
+  .tl-panel:not(.is-mobile-tools-open) :is(
+    .tl-script, .tl-transcript, .tl-snap, .tl-onion,
+    .tl-zoom-out, .tl-zoom-in, .tl-fit, .tl-keys, .tl-kf-btn
+  ) { display: none; }
+  .tl-inspector { display: none; }
+  .tl-rec-note { position: absolute; left: 8px; right: 8px; bottom: 4px; }
+}
+/* The camera self-view during a video take: a small mirror in the stage's corner, its
+   box in the EXPORT frame's aspect (set inline from frameSize), showing the recorder's
+   already-cropped stream - what you see is what the file gets. Mirrored like a
+   mirror, because a person framing themselves expects one; the recording is not. */
+.tl-cam-view {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  width: min(240px, 34%);
+  aspect-ratio: 16 / 9;
+  border-radius: var(--ui-radius-panel);
+  overflow: hidden;
+  background: #000;
+  box-shadow: var(--ui-elevation-overlay), 0 0 0 2px hsl(var(--destructive) / 0.8);
+  z-index: 30;
+  pointer-events: none;
+}
+.tl-cam-view video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.tl-rec {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  padding: 3px 9px 3px 7px;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-default);
+}
+.tl-rec[hidden] { display: none; }
+.tl-rec-dot {
+  width: 8px; height: 8px;
+  border-radius: var(--ui-radius-choice-round);
+  background: hsl(var(--destructive));
+  animation: tl-rec-pulse 1.4s ease-in-out infinite;
+}
+.tl-rec.is-countin .tl-rec-dot { animation: none; opacity: 0.45; }
+.tl-rec-time {
+  font-family: var(--ui-type-mono-family);
+  font-size: calc(11.5px * var(--a11y-fs));
+  font-variant-numeric: tabular-nums;
+  min-width: 34px;
+  text-align: center;
+  white-space: nowrap;
+}
+.tl-rec.is-countin .tl-rec-time { font-size: var(--fs-lg); font-weight: 700; }
+/* The level meter: a fill inside a track, width driven from dBFS in paintLevel. */
+.tl-rec-meter {
+  position: relative;
+  width: 64px; height: 6px;
+  border-radius: var(--ui-radius-choice);
+  background: var(--ui-color-border-default);
+  overflow: hidden;
+}
+.tl-rec-fill {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ui-color-action-primary);
+  transition: width 0.06s linear;
+}
+.tl-rec.is-hot .tl-rec-fill { background: hsl(var(--destructive)); }
+
+/* Permission / progress line. Truncates rather than pushing the inspector off the bar. */
+.tl-rec-note {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: calc(11.5px * var(--a11y-fs));
+  color: var(--ui-color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tl-rec-note[hidden] { display: none; }
+
+@keyframes tl-rec-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* The add menu and the bar/chip context menu reuse the whole `.folder-menu*` recipe
+   (folders.css) so this sheet adds no second menu look. The ONE thing that must change:
+   `.folder-menu` is `position: absolute`, but these are body-mounted by mountBodyPopover,
+   which writes VIEWPORT coordinates (getBoundingClientRect) - absolute would drift by the
+   scroll offset. Same fix, same reason, as `.projects-menu` in projects.css. */
+.tl-menu { position: fixed; }
+/* An action whose NAME cannot carry its meaning ("Detach audio" says what, not what
+   for) gets a second line in the plainer register. Two lines in one column, so the
+   icon still centres against the pair and the row keeps the folder-menu look. */
+.tl-menu-item--sub { align-items: flex-start; }
+.tl-menu-item--sub svg { margin-top: 2px; }
+.tl-menu-stack { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.tl-menu-sub {
+  max-width: 26ch;
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.35;
+  white-space: normal;
+}
+
+/* The onion-skin options popover. Not a menu of actions but a small settings card, so
+   it gets padding and stacked rows instead of `.folder-menu`'s flush item list - the
+   controls themselves stay the shared `.field-*` primitives (fields.css owns their look;
+   nothing about them is restated here). The ghosts it configures are drawn by
+   views/onion-skin.ts against styles/parts/onion.css - a different sheet, because that
+   one paints over the artboard and this one is panel chrome. */
+.tl-onion-pop {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 232px;
+}
+.tl-onion-desc {
+  margin: 0 0 2px;
+  max-width: 30ch;
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+.tl-onion-row { justify-content: space-between; gap: 10px; }
+.tl-onion-step { width: 4.5em; }
+
+/* The custom-easing card. Like the onion popover it is a settings card rather than a
+   list of actions, so it gets padding instead of `.folder-menu`'s flush rows; the
+   editor inside it brings its own sheet (parts/easing-editor.css) and nothing about
+   its look is restated here. */
+.tl-ease-pop { padding: 10px 12px 12px; min-width: 216px; }
+
+/* ─── Inspector (selected-clip precision fields) ─────────────────────────────
+   The shared field primitive owns the control look (parts/fields.css) - this
+   sheet only lays the rows out and trims them to panel scale. Do NOT restate
+   padding / radius / shadow here. */
+.tl-inspector {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  /* NOT `justify-content: flex-end`, which is what this was and what made the first
+     half of the inspector unreachable. In a scroll container, content that overflows
+     the START edge cannot be scrolled back to - `scrollLeft: 0` is already the far
+     left - so with the row right-aligned, Start, Length, Trim in, Speed and Animate in
+     sat permanently off the left edge of the panel and only the tail (Out (ms), mute,
+     Make always on) was ever reachable. `margin-inline-start: auto` on the first field
+     buys the same right-aligned look when the row FITS and collapses to zero when it
+     does not, which is the whole trick: nothing ever overflows the start edge. */
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  padding-bottom: 2px;
+  /* The panel takes `touch-action: none` so its drag gestures are never stolen by a
+     browser pan. The inspector is NOT a gesture surface - onPointerDown bails on
+     `.tl-inspector` - so hand its overflow row back to the browser, or a phone can't
+     reach the fields past the fold. */
+  touch-action: pan-x;
+}
+.tl-inspector > :first-child { margin-inline-start: auto; }
+.tl-inspector[hidden] { display: none; }
+/* The arrival cue. A row of controls appearing whole, in a toolbar the eye is already
+   on, reads as a glitch; 160ms of fade and a 4px rise reads as an arrival. It runs on
+   entry only (renderInspector adds the class when the row goes from absent to present,
+   never on the rebuilds a scrub or a field edit causes). */
+@keyframes tl-inspector-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+.tl-inspector.is-entering { animation: tl-inspector-in 0.16s ease-out both; }
+.tl-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  flex: 0 0 auto;
+}
+.tl-field .field-label {
+  font-size: calc(10.5px * var(--a11y-fs));
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+  color: var(--ui-color-text-muted);
+  white-space: nowrap;
+}
+.tl-num  { width: 68px; font-size: var(--fs-sm); padding: 5px 7px; font-variant-numeric: tabular-nums; }
+.tl-select { width: auto; font-size: var(--fs-sm); padding: 5px 24px 5px 7px; }
+/* The easing picker carries a `cubic-bezier(…)` option when one is authored, which is
+   ~24 characters and would push every field after it off the fold on a phone. Cap the
+   BOX, not the option text: the menu the browser opens is unaffected, so the full value
+   is still readable where it is being chosen. */
+.tl-ease { max-width: 11ch; }
+
+/* ─── Inspector groups (progressive disclosure) ──────────────────────────────
+   Time / Animate / Keyframes / Sound - and P1's Camera (plans/104 section 8). A header
+   that reads as resolved VALUES when shut, and the controls that produced them
+   when open.
+
+   Three constraints this block is written around, all of them documented rules
+   elsewhere in the app rather than taste:
+
+     • NO transform / filter / backdrop-filter on `.tl-group` or `.tl-group-body`.
+       Both are ancestors of the easing `<select>`, whose popover is
+       `position: fixed`, and either property would make them its containing block
+       - the trap already documented on `.tl-panel` and `.fc-toolbar`. The ONLY
+       transform below is on the caret `<svg>`, a leaf that is an ancestor of
+       nothing.
+     • NOTHING styles `[hidden]`. Collapse is the `hidden` property on the body
+       (and on the chip row when open); parts/a11y.css's app-wide
+       `[hidden] { display: none !important }` does the hiding, and
+       styles/hidden-attribute-guard.test.ts fails the build for a sheet that
+       tries to give a `[hidden]` element a display back.
+     • Logical properties only (`margin-inline`, `padding-inline`), and the caret's
+       collapsed direction flips under `[dir="rtl"]` - the panel ships in 26
+       languages, four of which are right-to-left. */
+.tl-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+/* The disclosure control. A real <button> with aria-expanded, so it is reachable by
+   Tab and speaks its state; the visible text label is its accessible name, and the
+   icon beside it is decorative (aria-hidden), never a replacement for the word. */
+.tl-group-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 4px 7px;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+/* CONSTANT WIDTH, which is what makes the strip stop reflowing: the segment is the
+   icon, the word and the chips whether the group is open or shut, because its body is
+   in a popover either way. The cap is on the SEGMENT (the chips ellipsis inside it),
+   so a long summary cannot push its neighbours off the fold. */
+.tl-group-head { max-width: 22em; }
+.tl-group-head:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); }
+.tl-group-head:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.tl-group.is-open > .tl-group-head {
+  background: var(--ui-color-selection-surface);
+  border-color: var(--ui-color-selection-border);
+}
+/* Icon box AND paint ride the type multiplier, per the a11y `largeText` contract:
+   a header that grows its word and keeps a 14px glyph reads as a broken pair. */
+.tl-group-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--ui-color-text-muted);
+}
+.tl-group-icon svg {
+  width: var(--fs-lg);
+  height: var(--fs-lg);
+}
+.tl-group-label {
+  font-size: calc(10.5px * var(--a11y-fs));
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+  color: var(--ui-color-text-muted);
+}
+.tl-group-chips { display: inline-flex; align-items: center; gap: 6px; }
+/* The collapsed reading. Tabular figures so a scrub does not make the row jitter as
+   digits change width - the same reason `.tl-num` and the ruler labels ask for them. */
+.tl-group-chip {
+  font-size: calc(11.5px * var(--a11y-fs));
+  font-variant-numeric: tabular-nums;
+  color: var(--ui-color-text-default);
+  max-width: 22ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tl-group-chip + .tl-group-chip {
+  padding-inline-start: 6px;
+  border-inline-start: 1px solid var(--ui-color-border-default);
+}
+.tl-group-caret {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--ui-color-text-muted);
+}
+.tl-group-caret svg {
+  width: var(--fs-sm);
+  height: var(--fs-sm);
+}
+/* Shut, the chevron points along the reading direction; open, it points down at the
+   fields it revealed. One glyph, rotated - a second registry entry for the same arrow
+   would be two things to keep in sync. Leaf-only, see the block comment above. */
+.tl-group:not(.is-open) .tl-group-caret { transform: rotate(-90deg); }
+[dir="rtl"] .tl-group:not(.is-open) .tl-group-caret { transform: rotate(90deg); }
+
+/* ─── The group popover (plans/104 section 8, M2.5) ─────────────────────────────────
+   An open group's body is NOT in the strip any more: `mountBodyPopover` mounts it on
+   the body, positioned ABOVE the transport (the panel is docked at the bottom, so
+   "below the anchor" would open into the tracks). Which means the body finally gets
+   to be a COLUMN with real widths - the truncated "Ease in ar…" pickers were the
+   whole complaint the revision answers.
+
+   Same two rules as the segments above: no transform / filter / backdrop-filter
+   anywhere in here (the ease `<select>`s open `position: fixed` popovers of their own,
+   and any of those properties would make this their containing block), and nothing
+   styles `[hidden]`. */
+.tl-group-pop {
+  padding: 10px 12px 12px;
+  max-width: min(420px, calc(100vw - 24px));
+  max-height: 52vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.tl-group-pop-body,
+.tl-group-pop .tl-group-body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+}
+/* A label + its control per line, the label holding a column so the controls line up.
+   `.tl-field` is inline in the strip; in here it is a row that fills the card. */
+.tl-group-pop .tl-field {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+.tl-group-pop .tl-field .field-label { flex: 0 0 auto; }
+/* REAL widths. This is the point of the popover: in the strip these were capped to
+   11ch and a curve read as "Ease in ar…". */
+.tl-group-pop .tl-num { width: 8.5em; }
+.tl-group-pop .tl-select,
+.tl-group-pop .tl-ease,
+.tl-group-pop .tl-kf-ease { max-width: none; width: 15ch; }
+.tl-group-pop .tl-kf-time { width: 7em; }
+.tl-group-pop .tl-kf-list { max-height: 168px; }
+.tl-group-pop .tl-kf-row { gap: 6px; }
+/* The pose block: one row per channel, and the section 5.2 fact ("size is not keyframable")
+   rides its `title` rather than standing on screen as grey text. */
+.tl-kf-pose {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.tl-group-body { display: inline-flex; align-items: center; gap: 8px; }
+
+/* ─── Keyframes group (plans/104 section 8) ─────────────────────────────────────────
+   The inspector is a horizontal strip, and this group stays in it: the latch line,
+   the pose fields, the note, the list and the way out all flow INLINE. Only the
+   list itself stacks, and it is bounded and scrolls - a clip with forty poses must
+   not push the panel's chrome past the tracks it exists to edit. */
+.tl-kf-latch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+/* "Scene pose" ⇄ "Keyframe @ 0:01.8". Tabular figures for the same reason the
+   transport pill asks for them: this changes as you scrub, and proportional digits
+   make the words either side of it shuffle. */
+.tl-kf-state {
+  font-size: calc(11.5px * var(--a11y-fs));
+  font-variant-numeric: tabular-nums;
+  color: var(--ui-color-text-muted);
+  white-space: nowrap;
+}
+/* ON a diamond. A colour and a weight, never a border on one side - a one-sided
+   accent rule is the pattern this shell does not use. */
+.tl-kf-state.is-on {
+  color: var(--ui-color-action-primary);
+  font-weight: 600;
+}
+/* An action that says what it does in words, with the glyph beside the text. */
+.tl-action {
+  width: auto;
+  gap: 5px;
+  padding-inline: 7px;
+}
+.tl-action-label {
+  font-size: calc(11.5px * var(--a11y-fs));
+  white-space: nowrap;
+}
+.tl-action.is-danger { color: hsl(var(--destructive)); }
+.tl-action.is-danger:hover { background: hsl(var(--destructive) / 0.12); }
+.tl-kf-pose-num { width: 5.5em; }
+/* THE keyboard and screen-reader route to the diamonds. Real controls, one row per
+   keyframe, bounded height so a long track scrolls inside its own box. */
+.tl-kf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 0 0 auto;
+  max-height: 92px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding-inline-end: 2px;
+}
+.tl-kf-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 3px;
+  border-radius: var(--ui-radius-control);
+}
+/* The row the playhead is parked on. A tinted BACKGROUND, not an edge stripe. */
+.tl-kf-row.is-current { background: var(--ui-color-selection-surface); }
+.tl-kf-time { width: 5.5em; }
+.tl-kf-ease { max-width: 11ch; }
+
+/* The ANIMATE segment's chip is a PAIR - "Rise · Fade" - and the generic 22ch cap
+   ellipsed it mid-first-kind in languages whose transition names are longer than
+   English's (section 8's M2.6 low: "Animate chip never ellipses before the second kind").
+   Capping is the wrong tool on a chip that carries two facts: the strip it sits in is
+   a horizontal scroller (`.tl-inspector`), so an uncapped segment makes the row a
+   little wider and scrolls, while a capped one silently deletes the second half of
+   its own reading. The head's own cap goes with it, for the same reason. */
+.tl-group[data-group="animate"] > .tl-group-head,
+.tl-group[data-group="animate"] .tl-group-chip { max-width: none; }
+
+/* ─── The depth slider (plans/104 section 5.3) ──────────────────────────────────────
+   Slider AND number on one row: the slider scrubs the tasteful 0–300 band, the
+   number takes the whole field range (−300…900). The row is the popover's own
+   `.tl-field` (label, then controls), so only the slider's flex behaviour is new. */
+.tl-group-pop .tl-kf-pose-row { gap: 8px; }
+.tl-kf-slider {
+  flex: 1 1 90px;
+  min-width: 72px;
+  accent-color: var(--ui-color-action-primary);
+}
+.tl-kf-slider:disabled { opacity: 0.5; }
+
+/* ─── The compact audio strip (Andy, 2026-09-02) ────────────────────────────────
+   The sound fields (Volume / Pan / duck / Effect / Pitch / Preserve pitch) had
+   all-caps text labels and ~165px horizontal sliders, and together overflowed the
+   inspector on any laptop. Labels become icons carrying the SAME string as title
+   + aria-label, and the level faders go VERTICAL - a fader is read by thumb
+   position, not track length, so the vertical form loses nothing and returns
+   ~100px per slider. Vertical ranges use the modern writing-mode form (Chromium,
+   Firefox, Safari 18+); an engine without it renders the same input horizontal,
+   ugly but fully functional. */
+.tl-afield { gap: 4px; }
+.tl-alab {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ui-color-text-muted);
+  flex: 0 0 auto;
+}
+.tl-alab svg { width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); }
+.tl-vslider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 18px;
+  height: 40px;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+/* The fader popovers (Andy's second-round call): the icon is a BUTTON, and the
+   fader it pops over the sequence frame gets real travel - the inline mini-fader
+   had a thumb bigger than its track. Volume is vertical (a level reads
+   bottom-to-top); pan is horizontal (balance reads left-to-right). */
+.tl-fader-btn { flex: 0 0 auto; }
+.tl-fader-pop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 10px 8px;
+}
+.tl-vfader {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 22px;
+  height: 150px;
+  min-width: 0;
+  accent-color: var(--ui-color-action-primary);
+}
+.tl-hfader {
+  width: 150px;
+  height: 22px;
+  min-width: 0;
+  /* .tl-kf-slider's flex-basis is 90px, which a COLUMN container reads as height. */
+  flex: 0 0 auto;
+  accent-color: var(--ui-color-action-primary);
+}
+/* 8ch, not a tighter fit: a number input reserves spinner space inside its box,
+   so 6ch showed "100" as "10" - the worst possible clip on a level control. */
+.tl-anum { width: 8ch; }
+
+/* The EQ popover (the plans/101 three-band rack): Low / Mid / High as vertical
+   dB faders with a live readout. Rides the folder-menu shell for its chrome. */
+.tl-eq-pop { display: flex; gap: 14px; padding: 10px 12px 8px; }
+.tl-eq-band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.tl-eq-band .tl-vslider { height: 110px; }
+.tl-eq-db {
+  font-size: var(--fs-2xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--ui-color-text-muted);
+}
+.tl-group-pop .tl-kf-pose-row .tl-kf-pose-num { flex: 0 0 auto; }
+
+/* ─── The docked curve editor (plans/104 section 8, M2.7) ───────────────────────────
+   ONE surface: the plot lives at the bottom of the Keyframes popup instead of in a
+   nested popover of its own. It carries no transform/filter of its own - the
+   containing-block trap this whole file is written around - and the editor's own
+   sheet (easing-editor.css) owns everything inside it. */
+.tl-kf-dock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ui-color-border-default);
+}
+.tl-kf-dock-note {
+  margin: 0;
+  font-size: calc(11.5px * var(--a11y-fs));
+  color: var(--ui-color-text-muted);
+}
+
+/* ─── The Camera group (plans/104 section 8) ────────────────────────────────────────
+   Five preset moves that each write a whole track, then the pose channels - plus
+   Orbit, which is present and inert until tilt lands (P2). The presets wrap rather
+   than scroll: they are six short words, and a row that has to be scrolled to reach
+   "Reveal" hides the one that shows the feature off. */
+.tl-cam-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+/* Orbit needs no rule of its own: `.tl-btn[aria-disabled="true"]` above already carries
+   BOTH the dimming and `cursor: default`, and a preset is a `.tl-btn` (see `actionBtn`),
+   so the `.tl-cam-preset[aria-disabled="true"] { cursor: default }` that used to sit here
+   only restated it. The reason it is inert is not styling's job at all: `data-tip` draws
+   it for a pointer or a focus ring, and buildCameraGroup puts the same words in the
+   button's accessible NAME, which is the copy a screen reader reads. */
+.tl-group-pop .tl-cam-row { gap: 8px; }
+.tl-cam-num { width: 7em; }
+/* The DRAG / SCROLL affordance chip - the reference tool's own vocabulary, telling
+   you the canvas gesture that does the same thing. Decorative (aria-hidden): the
+   control beside it is the keyboard route, and describing a mouse to someone who is
+   not using one is noise. */
+.tl-cam-chip {
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-choice);
+  font-size: calc(9.5px * var(--a11y-fs));
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+
+/* ─── Diamonds on the bars (plans/104 section 8) ────────────────────────────────────
+   POINTER SUGAR. The strip is aria-hidden and its dots are non-interactive
+   `<span>`s, because a `role="option"` bar may not own interactive children - the
+   same rule the `.tl-seam` chips and the `.tl-dropslot` live under. Everything a
+   dot can do is also a labelled button in the inspector's Keyframes list.
+
+   Positioned exactly like `.tl-seam`: absolute `left` in bar-local px with the
+   half-size offset in the MARGIN, never a transform. The diamond SHAPE is a
+   clip-path rather than a rotated square, so this file introduces no transform on
+   anything inside a bar at all. */
+.tl-kf-strip {
+  position: absolute;
+  inset-block: 0;
+  inset-inline: 0;
+  pointer-events: none;   /* the bar keeps its own press everywhere but on a dot */
+  z-index: 3;
+}
+.tl-kf-dot {
+  position: absolute;
+  top: 50%;
+  margin: -5px 0 0 -5px;
+  width: 10px;
+  height: 10px;
+  pointer-events: auto;
+  cursor: ew-resize;
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-strong);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+.tl-kf-dot:hover { background: color-mix(in srgb, var(--ui-color-text-default) 85%, transparent); }
+/* The SELECTED diamond draws large - the state section 3 records from the reference tool.
+   Size and paint only: growing it must not move it, so the margin grows with it. */
+.tl-kf-dot.is-selected {
+  margin: -7px 0 0 -7px;
+  width: 14px;
+  height: 14px;
+  background: var(--ui-color-action-primary);
+  box-shadow: 0 0 0 1px var(--ui-color-surface-canvas);
+}
+/* Alt is held: this drag will COPY rather than move. */
+.tl-kf-dot.is-duplicating { background: var(--ui-color-action-primary); opacity: 0.75; }
+
+/* ─── Ruler ──────────────────────────────────────────────────────────────────
+   The inner strip is TRANSLATED to follow the tracks' scrollLeft (never
+   scrolled itself), so the ruler must clip. */
+.tl-ruler {
+  touch-action: none;         /* a finger on the ruler scrubs */
+  flex: 0 0 auto;
+  position: relative;
+  height: 19px;
+  overflow: hidden;
+  cursor: ew-resize;
+  border-top: 1px solid color-mix(in srgb, var(--ui-color-border-default) 70%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-color-border-default) 70%, transparent);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 40%, transparent);
+}
+.tl-ruler:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+.tl-ruler-inner { position: relative; height: 100%; }
+.tl-tick {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: var(--ui-color-border-default);
+}
+.tl-tick-label {
+  position: absolute;
+  left: 4px; top: 2px;
+  font-family: var(--ui-type-mono-family);
+  font-size: calc(9.5px * var(--a11y-fs));
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--ui-color-text-muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ─── Tracks scroller ────────────────────────────────────────────────────────*/
+.tl-tracks {
+  flex: 1 1 auto;
+  /* THE SCROLL (plans/179 T12). A flex item's `min-height` is `auto`, which means "never
+     smaller than my content" - so this row refused to shrink, `overflow-y: auto` below
+     never had anything to scroll, and the extra height went straight out of the panel's
+     bottom edge. The panel is bottom-anchored in a `overflow: hidden` stage, so what
+     fell off the end was the "Always on" strip: on a 1009px-tall viewport the scenery
+     chips (and with them every artboard in a deck) sat below the fold with no way to
+     reach them. `0` lets the row shrink to the space the chrome leaves and scroll
+     inside it, which is what the panel always meant. */
+  min-height: 0;
+  position: relative;
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding: 6px 0 4px;
+  /* Same reasoning as `.tl-inspector`: the panel takes `touch-action: none` so its
+     drag gestures survive, but THIS is a real scroller - a long sequence is
+     unreachable on a phone if no finger gesture can pan it. The surfaces that DO own
+     a drag (clips, the ruler, the resize handle) opt back out to `none` below, so a
+     finger on a clip still moves the clip and a finger on the background pans. */
+  touch-action: pan-x pan-y;
+}
+.tl-tracks-inner { position: relative; min-height: 100%; }
+
+.tl-lanes { position: relative; display: flex; flex-direction: column; gap: 4px; }
+.tl-lane {
+  position: relative;
+  height: 34px;
+  border-radius: var(--ui-radius-control);
+  background:
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--ui-color-border-default) 28%, transparent) 0 1px, transparent 1px 100%) 0 0 / 40px 100%,
+    color-mix(in srgb, var(--ui-color-surface-muted) 35%, transparent);
+}
+/* The magnetic sequence row reads as the spine: taller, a touch more present. */
+.tl-lane-seq { height: 46px; background-color: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); }
+/* The row a vertically-dragged bar would land on (plans/165 Slice C-tracks): the
+   same brand ring the selected bar wears, on the ROW, so "drop here to share this
+   layer" reads before the pointer lifts. Solid, never dashed - dashed is reserved
+   for file-drop areas throughout this shell. */
+.tl-lane.is-drop-target {
+  box-shadow: inset 0 0 0 2px var(--ui-color-selection-border);
+  background-color: color-mix(in srgb, var(--ui-color-surface-muted) 55%, transparent);
+}
+
+/* A generated-caption row (overlay boxes sharing a `captions:` group collapse onto
+   one lane - see rebuild's group collapse). The label is a watermark under the cue
+   bars, pinned to the viewport's leading edge so it stays readable mid-scroll. */
+.tl-lane-label {
+  position: sticky;
+  inset-inline-start: 6px;
+  float: inline-start;           /* sticky needs in-flow; the bars are absolute over it */
+  margin-block-start: 2px;
+  padding: 0 4px;
+  font-size: var(--fs-2xs);
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--ui-color-text-muted) 80%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Empty-sequence affordance. */
+.tl-dropslot {
+  position: absolute;
+  inset: 4px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px dashed var(--ui-color-border-default);
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--ui-color-text-muted);
+  font: inherit;
+  font-size: calc(11.5px * var(--a11y-fs));
+  cursor: pointer;
+}
+.tl-dropslot:hover { color: var(--ui-color-text-default); border-color: var(--ui-color-text-muted); background: color-mix(in srgb, var(--ui-color-surface-muted) 50%, transparent); }
+.tl-dropslot:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+/* ─── Clips ──────────────────────────────────────────────────────────────────
+   left/width are written inline (timeToPx). Hue comes from the brand-derived
+   --store-* ramp so every theme and every loaded brand stays coherent. */
+.tl-clip {
+  touch-action: none;         /* a finger on a bar drags the bar, never the scroller */
+  --tl-hue: var(--store-other);
+  position: absolute;
+  top: 3px; bottom: 3px;
+  min-width: 3px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: var(--ui-radius-control);
+  background: hsl(var(--tl-hue) / 0.34);
+  box-shadow: inset 0 0 0 1px hsl(var(--tl-hue) / 0.6);
+  color: var(--ui-color-text-default);
+  cursor: grab;
+  transition: box-shadow var(--ui-motion-feedback) var(--ui-motion-standard), background-color var(--ui-motion-feedback) var(--ui-motion-standard);
+}
+.tl-clip[data-kind="clip"]    { --tl-hue: var(--store-1); }
+.tl-clip[data-kind="video"]   { --tl-hue: var(--store-2); }
+.tl-clip[data-kind="image"]   { --tl-hue: var(--store-3); }
+.tl-clip[data-kind="audio"]   { --tl-hue: var(--store-4); }
+/* A Lottie box used to fall through to the generic clip/overlay tint, which made an
+   animation indistinguishable from a card. It has its own picture now, so it gets its
+   own step of the ramp too. */
+.tl-clip[data-kind="lottie"]  { --tl-hue: var(--store-5); }
+.tl-clip[data-kind="overlay"] { --tl-hue: var(--store-other); }
+.tl-clip-seq { top: 4px; bottom: 4px; }
+
+.tl-clip:hover { background: hsl(var(--tl-hue) / 0.44); }
+.tl-clip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 1px; }
+.tl-clip.is-selected {
+  /* The selection ring is the ACTIVE BRAND's accent (secondary), so it stands apart from
+     the clip's own kind-hue and the brand-primary chrome - never a hardcoded colour. Falls
+     back to brand-primary, then the theme ring token, when a brand declares no secondary. */
+  box-shadow: inset 0 0 0 2px var(--ui-color-selection-border), var(--ui-elevation-control);
+  background: hsl(var(--tl-hue) / 0.5);
+}
+.tl-clip.is-dragging { cursor: grabbing; opacity: 0.85; z-index: 3; }
+.tl-clip.is-drop-target { box-shadow: inset 0 0 0 2px var(--ui-color-text-muted); }
+/* Muted: keep it legible, just visibly "off" - dimmed and hatched, so the state
+   survives a greyscale/colour-blind read rather than relying on tint alone. */
+.tl-clip.is-muted { opacity: 0.62; }
+.tl-clip.is-muted::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--ui-color-text-default) 16%, transparent) 0 3px, transparent 3px 8px);
+  pointer-events: none;
+}
+
+/* IGNORED / struck-through (plans/174): kept in the ruler but skipped by playback and
+   export. Greyed and desaturated so it reads as "not in the cut", with a strike line -
+   the ::after is free here (mute owns ::before). Still selectable, to restore or delete. */
+.tl-clip.is-ignored { opacity: 0.5; filter: grayscale(0.65); }
+.tl-clip.is-ignored::after {
+  content: "";
+  position: absolute;
+  left: 4px; right: 4px; top: 50%;
+  height: 1px;
+  background: color-mix(in srgb, var(--ui-color-text-default) 65%, transparent);
+  pointer-events: none;
+}
+
+/* A/V LINKED - this clip's sound lives on another lane (or IS that sound). A chain
+   glyph in the top-left corner, opposite the speed badge so the two never collide.
+   Deliberately quiet: the link is a fact about the clip, not a warning. `title` is set
+   in JS (it differs by side), so the glyph is not an aria target - the spoken form is
+   the announce() the detach/re-attach commands make. */
+.tl-clip-link {
+  position: absolute;
+  top: 2px; left: 4px;
+  display: flex;
+  padding: 1px;
+  border-radius: 4px;
+  color: var(--ui-color-surface-canvas);
+  background: color-mix(in srgb, var(--ui-color-text-default) 60%, transparent);
+  pointer-events: none;
+}
+.tl-clip-link svg { width: calc(9px * var(--a11y-fs)); height: calc(9px * var(--a11y-fs)); }
+.tl-clip-link[hidden] { display: none; }
+/* `.is-linked` is deliberately a STATE HOOK with no box-shadow of its own. Every ring
+   this bar can wear (selected / drop-target / trimming) is a box-shadow at (0,2,0), so a
+   fourth one at the same weight would win or lose by source order alone and silently
+   swallow one of the others. The chain chip above is the signal; the pair also reads as
+   a pair through the muted half's existing hatch. */
+
+/* The filmstrip / waveform canvas, painted by lib/clip-thumbs.ts. Sized in JS. */
+.tl-clip-thumbs {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.tl-clip.has-thumbs .tl-clip-thumbs { opacity: 0.85; }
+/* With a filmstrip behind it the label needs its own scrim to stay readable. */
+.tl-clip.has-thumbs .tl-clip-label { background: color-mix(in srgb, var(--ui-color-surface-canvas) 72%, transparent); border-radius: var(--ui-radius-choice); }
+
+.tl-clip-label {
+  position: relative;
+  max-width: 100%;
+  margin: 0 4px 3px;
+  padding: 1px 4px;
+  font-size: calc(10.5px * var(--a11y-fs));
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+/* Inline rename input (renameClip) - dressed as the label it replaces, readable
+   over thumbnails. Solid border: the dashed look is reserved for drop areas. */
+.tl-clip-rename {
+  position: relative;
+  z-index: 2;
+  max-width: calc(100% - 8px);
+  margin: 0 4px 3px;
+  padding: 0 4px;
+  font: inherit;
+  font-size: calc(10.5px * var(--a11y-fs));
+  line-height: 1.3;
+  color: var(--ui-color-text-default);
+  background: var(--ui-color-surface-canvas);
+  border: 1px solid var(--ui-color-action-primary);
+  border-radius: var(--ui-radius-choice);
+  outline: none;
+}
+/* Speed badge - only present when the clip is not ×1. */
+.tl-clip[data-speed]::after {
+  content: "×" attr(data-speed);
+  position: absolute;
+  top: 2px; right: 4px;
+  padding: 0 3px;
+  border-radius: 4px;
+  font-family: var(--ui-type-mono-family);
+  font-size: calc(9px * var(--a11y-fs));
+  line-height: 1.5;
+  color: var(--ui-color-surface-canvas);
+  background: color-mix(in srgb, var(--ui-color-text-default) 70%, transparent);
+  pointer-events: none;
+}
+
+/* Trim handles. The HIT area is this box; the VISIBLE grip is the 3px ::after inside
+   it. Keep the two widths in step with EDGE_PX (10) / EDGE_PX_COARSE (24) in
+   timeline-panel.ts - there is a parity test in timeline-panel.test.ts that reads this
+   file and fails if they drift. */
+.tl-edge {
+  position: absolute;
+  top: 0; bottom: 0;
+  /* The `33%` is edgeZonePx's own cap, in CSS: on a bar narrower than 3x the base the
+     hit test shrinks the zone so the two sides can never meet, and the painted grip has
+     to shrink with it or it would sit somewhere the pointer is not listening. */
+  width: min(10px, 33%);
+  cursor: ew-resize;
+  background: transparent;
+}
+.tl-edge-in  { left: 0; }
+.tl-edge-out { right: 0; }
+/* Three states, in order of how loudly they speak:
+   • REST      - the grip appears on hover / selection (below);
+   • ACTIVE    - this edge is being dragged, or the keyboard is aimed at it: thicker,
+                 brand-coloured, and the whole clip gains an inset ring;
+   • LIMIT     - the drag is asking for more than the source has left. */
+.tl-clip:hover .tl-edge::after,
+.tl-clip.is-selected .tl-edge::after,
+.tl-clip.is-trimming .tl-edge::after,
+.tl-edge.is-active::after {
+  content: "";
+  position: absolute;
+  top: 15%; bottom: 15%;
+  left: calc(50% - 1.5px);
+  width: 3px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--ui-color-text-default) 55%, transparent);
+}
+.tl-edge.is-active::after {
+  left: calc(50% - 2px);
+  width: 4px;
+  background: var(--ui-color-action-primary);
+}
+.tl-edge.is-limit::after { background: hsl(var(--destructive)); }
+/* A trim always selects the clip first, so this rule LANDS ON TOP of `.is-selected`'s
+   ring (same specificity, declared later). It therefore has to be at least as strong as
+   that ring, or starting a trim would visibly downgrade the clip's outline. */
+.tl-clip.is-trimming {
+  box-shadow: inset 0 0 0 2px var(--ui-color-selection-border), var(--ui-elevation-control);
+}
+/* Too narrow to carry two zones (MIN_TRIM_BAR_PX): the hit test already refuses, so
+   the affordance must not promise one. The clip's title says where to trim instead. */
+.tl-clip.is-tight .tl-edge { display: none; }
+
+/* The reachable-media ghost, shown for the length of a trim drag. Panel-level, not a
+   child of the bar (`.tl-clip` is overflow:hidden). SOLID outline - dashed borders in
+   this shell mean "drop area", and nothing may be dropped here. */
+.tl-clip-extent {
+  position: absolute;
+  z-index: 2;
+  border-radius: var(--ui-radius-control);
+  outline: 1px solid color-mix(in srgb, var(--ui-color-text-default) 40%, transparent);
+  background: color-mix(in srgb, var(--ui-color-text-default) 12%, transparent);
+  pointer-events: none;
+}
+.tl-clip-extent[hidden] { display: none; }
+
+/* The trim readout: duration + signed delta, anchored on the edge being dragged.
+   Same chip vocabulary as the speed badge above. */
+.tl-trim-badge {
+  position: absolute;
+  z-index: 6;
+  transform: translate(-50%, -100%);
+  margin-top: -4px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: var(--ui-type-mono-family);
+  font-size: var(--fs-2xs);
+  line-height: 1.5;
+  white-space: pre;
+  color: var(--ui-color-surface-canvas);
+  background: color-mix(in srgb, var(--ui-color-text-default) 85%, transparent);
+  pointer-events: none;
+}
+/* First lane: there is no room above, so it hangs below the bar instead. */
+.tl-trim-badge.is-below { transform: translate(-50%, 0); margin-top: 4px; }
+.tl-trim-badge[hidden] { display: none; }
+
+/* Junction (seam) chip - sits ON the cut between two sequence clips. Positioned
+   by an inline `left`; the half-width offset is a MARGIN, not a transform, so
+   the chip never becomes a containing block for anything it opens. */
+.tl-seam {
+  position: absolute;
+  top: 50%;
+  margin: -9px 0 0 -9px;
+  width: 18px; height: 18px;
+  z-index: 4;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-choice-round);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+}
+.tl-seam::before {
+  content: "";
+  width: 8px; height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+}
+.tl-seam.is-fade {
+  border-color: var(--ui-color-action-primary);
+  color: var(--ui-color-action-primary);
+}
+.tl-seam.is-fade::before {
+  width: 10px; height: 8px; border-radius: 2px;
+  background: linear-gradient(90deg, currentColor, transparent);
+}
+/* THROUGH EDIT - a cut whose two sides are still perfectly contiguous, i.e. a split
+   nobody has committed to yet (Final Cut's hairline marker). Drawn as a hollow chip
+   with a dotted-through middle, so it reads as "not really a cut" beside the solid bar
+   of a real one. NOT dashed on the BORDER - dashed borders in this shell mean drop
+   area; the treatment lives on the ::before mark instead. */
+.tl-seam.is-through {
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 85%, transparent);
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--ui-color-text-muted) 60%, transparent);
+}
+.tl-seam.is-through::before {
+  width: 10px; height: 2px;
+  background: repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 4px);
+}
+.tl-seam:hover { color: var(--ui-color-text-default); border-color: var(--ui-color-text-muted); }
+.tl-seam:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+/* ─── Playhead + snap line ───────────────────────────────────────────────────*/
+.tl-playhead {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  z-index: 5;
+  background: var(--ui-color-action-primary);
+  pointer-events: none;
+}
+.tl-playhead::before {
+  content: "";
+  position: absolute;
+  top: -4px; left: -4px;
+  width: 10px; height: 10px;
+  border-radius: var(--ui-radius-choice-round);
+  background: inherit;
+}
+.tl-snapline {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 1px;
+  z-index: 5;
+  background: repeating-linear-gradient(180deg, color-mix(in srgb, var(--ui-color-text-default) 80%, transparent) 0 4px, transparent 4px 8px);
+  pointer-events: none;
+}
+.tl-snapline[hidden] { display: none; }
+
+/* Rubber-band selection rectangle (drag-select on empty lane space, timeline-panel.ts).
+   Sibling of the bars inside .tl-tracks-inner, so it scrolls with them. */
+.tl-marquee {
+  position: absolute;
+  z-index: 6;
+  pointer-events: none;
+  /* Brand-driven, matching the selection accent: the border is the active brand's
+     secondary (→ primary → theme ring). The faint wash stays a theme token because a
+     brand colour is a whole value that cannot take an inline alpha. No hardcoded colour. */
+  background: var(--ui-color-selection-surface);
+  border: 1px solid var(--ui-color-selection-border);
+}
+.tl-marquee[hidden] { display: none; }
+
+/* ─── Scenery strip (everything untimed - "Always on") ───────────────────────*/
+.tl-scenery {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px dashed var(--ui-color-border-default);
+}
+.tl-scenery[hidden] { display: none; }
+.tl-scenery-label {
+  font-size: var(--fs-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ui-color-text-muted);
+  white-space: nowrap;
+}
+/* Each entry is a PILL OF TWO BUTTONS: the label (selects the box, which opens the
+   inspector) and a `+` that promotes it onto the timeline. A button cannot nest
+   inside a button, so the pill's border/background/radius live on this wrapper and
+   the two halves are transparent.
+
+   No transform and NO `overflow: hidden` here: this element is the ancestor of two
+   hoverable buttons, and either one would clip a tooltip bubble or make itself the
+   containing block for a fixed popover (the trap .tl-panel's own `overflow: visible`
+   exists to avoid). The halves round their own outer corners instead. */
+.tl-chip-group {
+  display: inline-flex;
+  align-items: stretch;
+  max-width: 210px;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-pill);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent);
+}
+.tl-chip-group:hover { border-color: var(--ui-color-text-muted); }
+.tl-chip {
+  min-width: 0;
+  max-width: 160px;
+  padding: 3px 9px;
+  border: 0;
+  /* Logical corners, so the pill still reads right in RTL. */
+  border-radius: 0;
+  border-start-start-radius: 999px;
+  border-end-start-radius: 999px;
+  background: transparent;
+  color: var(--ui-color-text-default);
+  font: inherit;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.tl-chip:hover { background: var(--ui-color-surface-muted); }
+.tl-chip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+/* Selected: the chip is the only on-screen anchor for an untimed box, so it has to
+   show selection as plainly as a bar's ring does. */
+.tl-chip.is-selected {
+  background: var(--ui-color-selection-surface);
+  font-weight: 600;
+}
+
+/* The promote half. Divided by its own inline start border rather than a separator
+   element, which keeps the pill a two-child flex row. */
+.tl-chip-add {
+  flex: 0 0 auto;
+  /* On the icon scale with its `+`; the coarse-pointer bump below is a finger
+     target, not a glyph, and stays a flat 32px. */
+  width: calc(22px * var(--a11y-fs));
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0;
+  border: 0;
+  border-inline-start: 1px solid var(--ui-color-border-default);
+  border-radius: 0;
+  border-start-end-radius: 999px;
+  border-end-end-radius: 999px;
+  background: transparent;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+}
+.tl-chip-add svg { width: var(--fs-xs); height: var(--fs-xs); }
+.tl-chip-add:hover {
+  background: var(--ui-color-action-primary);
+  color: var(--ui-color-action-on-primary);
+}
+.tl-chip-add:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+
+/* ─── The timed ⇄ always-on switch (inspector tail) ──────────────────────────
+   A labelled pill rather than an icon: there is no glyph that says "this box has
+   no timing" without a caption, and it is the last control in the inspector row
+   so it has the width. */
+.tl-timing {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-pill);
+  background: transparent;
+  color: var(--ui-color-text-muted);
+  font: inherit;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard), color var(--ui-motion-feedback) var(--ui-motion-standard), border-color var(--ui-motion-feedback) var(--ui-motion-standard);
+}
+.tl-timing:hover {
+  color: var(--ui-color-text-default);
+  border-color: var(--ui-color-text-muted);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent);
+}
+.tl-timing:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+/* ─── Junction modal ─────────────────────────────────────────────────────────
+   Mounted through components/modal.ts, so the dialog chrome is already there -
+   only the form's own layout belongs here. */
+.tl-junction-modal .tl-junction {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: min(300px, 78vw);
+}
+.tl-junction-title { margin: 0; font-size: calc(1rem * var(--a11y-fs)); font-weight: 600; }
+.tl-junction-kinds { display: flex; gap: 8px; }
+.tl-junction-kind { flex: 1 1 0; justify-content: center; }
+/* Selected kind: the brand fill lives in buttons.css (.btn--primary); this is the
+   lighter "chosen of two" state, so it tints rather than fills. */
+.tl-junction-kind.is-active {
+  box-shadow: var(--ui-effect-selected);
+  background: var(--ui-color-selection-surface);
+}
+.tl-junction-dial { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0; }
+.tl-junction-dial .tl-num { width: 92px; }
+/* Join sits on the LEFT of the action row, away from the primary Done - it is the
+   destructive-ish one (it removes a clip), and it is only present on a through edit. */
+.tl-junction-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.tl-junction-join { margin-inline-end: auto; }
+
+/* ─── Generate-subtitles sheet ───────────────────────────────────────────────
+   Rides the junction modal's chrome (same mountModal class); only the consent
+   copy is its own. It carries no progress track: the run is a background job
+   (lib/stt-job.ts), so the sheet consents and closes, and the global job toast
+   paints the download and the inference. */
+.tl-stt { max-width: 340px; }
+.tl-stt-note { margin: 0; font-size: calc(12.5px * var(--a11y-fs)); color: var(--ui-color-text-muted); }
+.tl-stt-note-dl { color: var(--ui-color-text-default); }
+
+/* ─── Keyboard shortcuts sheet ───────────────────────────────────────────────
+   Same modal chrome as the junction; only the two-column table is ours. The rows
+   are built as nodes in timeline-panel.ts (no innerHTML), so nothing here has to
+   defend against a translated string. */
+.tl-keys-modal .tl-keys-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: min(380px, 84vw);
+  max-height: min(70vh, 640px);
+}
+.tl-keys-title { margin: 0; font-size: calc(1rem * var(--a11y-fs)); font-weight: 600; }
+/* The list is the tall part, so IT scrolls - not the dialog - and the heading and
+   the Done button stay put on a short window. */
+.tl-keys-table {
+  display: block;
+  overflow-y: auto;
+  border-collapse: collapse;
+  width: 100%;
+}
+.tl-keys-table td {
+  padding: 5px 0;
+  vertical-align: baseline;
+  font-size: var(--fs-md);
+}
+.tl-keys-keys { width: 1%; white-space: nowrap; padding-inline-end: 14px; }
+.tl-keys-keys kbd {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: var(--ui-radius-choice);
+  border: 1px solid var(--ui-color-border-default);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent);
+  font-family: var(--ui-type-mono-family);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.tl-keys-what { color: var(--ui-color-text-default); }
+/* The modifier line sits UNDER its row rather than beside it: it is a variation on
+   the same keys, not a second shortcut, and a third column would imply otherwise. */
+.tl-keys-hint {
+  display: block;
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-sm);
+}
+.tl-keys-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ─── Narrow / touch ─────────────────────────────────────────────────────────
+   On a phone the inspector cannot share the bar with the transport - drop it to
+   its own scrolling row and give every hit target a finger-sized box. */
+@media (max-width: 720px) {
+  .tl-bar { flex-wrap: wrap; gap: 6px; padding: 2px 8px 5px; }
+  .tl-inspector { order: 3; flex-basis: 100%; justify-content: flex-start; }
+  .tl-tools { margin-left: auto; }
+  /* The labels STAY. Hiding them here used to save horizontal room, but the inspector
+     carries up to nine fields (start, length, trim, speed, both transitions and their
+     durations, mute) and stripping the labels left a row of bare numbers - `4.6  2.4
+     0  ×1  Rise` - with nothing on screen saying which was which. The row is already
+     an `overflow-x: auto` scroller with `touch-action: pan-x`, so the labels cost
+     scroll distance, not comprehension, and the fields sit BESIDE their labels
+     (inline flex) so the row does not grow taller either. An aria-label serves a
+     screen reader; it does nothing for the person looking at the panel. */
+  .tl-num { width: 60px; }
+  .tl-lane { height: 30px; }
+  .tl-lane-seq { height: 40px; }
+}
+/* Narrow AND touch: pinch the tracks to zoom (see the pinch handler in
+   timeline-panel.ts), so the two step buttons stop earning their place in the bar.
+   Dropping them is what lets the transport and the tools share ONE row here instead
+   of wrapping onto two - the single largest contributor to the panel being almost all
+   chrome on a phone. Fit stays: no gesture replaces "show me the whole sequence".
+   Deliberately NOT `pointer: coarse` alone - a touch laptop at full width has room for
+   them - and NOT width alone, since a narrow mouse window has no pinch to fall back on. */
+@media (max-width: 720px) and (pointer: coarse) {
+  .tl-zoom-in,
+  .tl-zoom-out { display: none; }
+  /* And the shortcuts sheet: it documents a keyboard, and this is the one class of
+     device that has none. `?` still opens it if a keyboard is ever attached - this
+     hides the button, not the feature. The room goes to the controls that DO work
+     with a finger. */
+  .tl-keys { display: none; }
+}
+@media (pointer: coarse) {
+  .tl-btn { width: 36px; height: 36px; }
+  .tl-chip { padding: 7px 11px; }
+  .tl-chip-add { width: 32px; }
+  .tl-timing { padding: 8px 12px; }
+  .tl-play { width: 40px; height: 40px; }
+  .tl-handle { height: 14px; }
+  /* EDGE_PX_COARSE - WCAG 2.5.8's 24px target-size floor. The panel picks the same
+     number per EVENT from e.pointerType; this is the cursor/paint half of it. */
+  .tl-edge { width: min(24px, 33%); }
+  .tl-seam { width: 22px; height: 22px; margin: -11px 0 0 -11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-panel *,
+  .tl-panel *::before,
+  .tl-panel *::after { transition: none !important; }
+  /* The recording dot's pulse is an ANIMATION, which the rule above does not reach.
+     It carries no information the red fill doesn't - drop it, don't slow it. */
+  .tl-rec-dot { animation: none !important; }
+  /* The inspector's arrival KEEPS its cue and loses only the movement: the fade still
+     marks the row as new (which is the whole point of the class), the 4px rise is what
+     someone asking for less motion asked not to have. */
+  .tl-inspector.is-entering { animation-name: tl-inspector-fade; }
+}
+html[data-a11y-motion="reduce"] .tl-inspector.is-entering { animation-name: tl-inspector-fade; }
+@keyframes tl-inspector-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+}
+
+/* Stagger-starts card (plans/175 WP-C): one labelled gap input + apply, anchored at
+   the right-click point exactly like the context menu it opens from. */
+.tl-stagger-pop {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+}
+.tl-stagger-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-xs);
+}
+.tl-stagger-label .tl-num { width: 9ch; }

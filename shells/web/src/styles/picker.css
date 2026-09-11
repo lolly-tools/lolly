@@ -1,0 +1,1356 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* Asset Picker Modal - host-owned chrome */
+.asset-picker-dialog {
+  --picker-pad-block: var(--ui-space-panel);
+  --picker-pad-inline: var(--ui-space-page);
+}
+
+.asset-picker-modal:empty { display: none; }
+
+.asset-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.asset-picker-panel {
+  position: fixed;
+  inset: 5vh 5vw;
+  z-index: 1001;
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text-default);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-surface);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--ui-elevation-overlay);
+  overflow: hidden;
+}
+.asset-picker-header, .asset-picker-tabs, .asset-picker-footer { flex-shrink: 0; }
+
+.asset-picker-header {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-control-inline);
+  padding: var(--picker-pad-block) var(--picker-pad-inline);
+  border-bottom: 1px solid var(--ui-color-border-default);
+}
+.asset-picker-header h2 { margin: 0; font-size: calc(15px * var(--a11y-fs)); font-weight: 600; flex-shrink: 0; }
+
+.asset-picker-search {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  outline: none;
+  transition: border-color var(--dur-1);
+}
+.asset-picker-search:focus { border-color: hsl(var(--primary)); }
+.asset-picker-search::placeholder { color: hsl(var(--muted-foreground)); }
+
+.asset-picker-close {
+  background: none;
+  border: none;
+  font-size: calc(22px * var(--a11y-fs));
+  line-height: 1;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  padding: 2px 6px;
+  border-radius: var(--radius);
+  transition: color var(--dur-1), background var(--dur-1);
+}
+.asset-picker-close:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--accent));
+}
+
+/* ── Source tabs (Library / Saved creations / Tools) ─────────────────────── */
+.asset-picker-tabs {
+  display: flex;
+  gap: var(--sp-2);
+  padding: var(--ui-space-control-block) var(--picker-pad-inline) 0;
+  border-bottom: 1px solid var(--ui-color-border-default);
+  overflow-x: auto;             /* 4 tabs can outrun a narrow modal - scroll, don't wrap */
+  scrollbar-width: none;
+}
+.asset-picker-tabs::-webkit-scrollbar { display: none; }
+.asset-picker-tab {
+  position: relative;
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 8px 12px 10px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radius) var(--radius) 0 0;
+  transition: color var(--dur-1), background var(--dur-1), border-color var(--dur-1);
+}
+.asset-picker-tab:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+.asset-picker-tab.is-active {
+  color: hsl(var(--primary));
+  border-bottom-color: hsl(var(--primary));
+}
+.asset-picker-tab:focus-visible { outline: 2px solid hsl(var(--primary) / 0.5); outline-offset: -2px; }
+
+/* ── "Current image is a Lolly render" banner ──────────────────────────────
+   Shown when the slot being changed already holds a tool-sourced image
+   (meta.toolUrl): an edit path back into the source tool's own inputs, while
+   the grids below still offer picking a different image. Hidden during the
+   paste/embed takeover card. */
+.asset-picker-current {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--accent) / 0.4);
+}
+.asset-picker-current[hidden] { display: none; }
+.asset-picker-current-label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.asset-picker-current-label strong { color: hsl(var(--foreground)); font-weight: 600; }
+.asset-picker-current-spark { color: hsl(var(--primary)); }
+.asset-picker-current-edit {
+  flex: none;
+  padding: 4px 12px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  transition: border-color var(--dur-1), color var(--dur-1);
+}
+.asset-picker-current-edit:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+
+.asset-picker-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--picker-pad-block) var(--picker-pad-inline);
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+.asset-picker-pane[hidden],
+.asset-picker-toolcard-host[hidden] { display: none; }
+
+/* ── Icon colour themes strip ───────────────────────────────────────────────
+   Colour pairings for themable two-colour icons (c1 accent / c2 base). Rendered
+   inside the "Icons" group header (directly above the icons it recolours) only
+   when the library contains themable icons; the chosen pairing live-retints their
+   thumbnails and rides in the picked asset id. */
+.asset-picker-themes,
+.asset-picker-treatments {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.asset-picker-themes[hidden] { display: none; }
+.asset-picker-themes-label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  margin-right: 4px;
+}
+.asset-picker-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 5px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--fs-sm);
+  transition: border-color var(--dur-1), box-shadow var(--dur-1);
+}
+.asset-picker-theme:hover { border-color: hsl(var(--primary)); }
+.asset-picker-theme.is-active {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 1px hsl(var(--primary));
+  font-weight: 600;
+}
+.asset-picker-theme-duo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 30px;
+  height: 20px;
+  border-radius: var(--radius-pill);
+  border: 1px solid hsl(var(--border));
+  overflow: hidden;
+}
+.asset-picker-theme-duo i {
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-round);
+}
+/* Photo treatment swatch - a single filled chip previewing the greyscale ramp or
+   the duotone's shadow→highlight gradient. 'None' shows an empty chip with a
+   diagonal strike. */
+.asset-picker-treat-sw {
+  display: block;
+  width: 26px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1px solid hsl(var(--border));
+  background-clip: padding-box;
+}
+.asset-picker-treat-sw.is-none {
+  background:
+    linear-gradient(to top left,
+      transparent calc(50% - 1px), hsl(var(--border)) calc(50% - 1px),
+      hsl(var(--border)) calc(50% + 1px), transparent calc(50% + 1px));
+}
+
+/* Collapsible library sections (Photos / Backgrounds / Logos / Icons). Each has a
+   toggle header; a themable group (Icons) also carries the colour strip below its
+   title, so the strip reads as belonging to the icons it recolours. */
+.asset-picker-group + .asset-picker-group {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid hsl(var(--border));
+}
+.asset-picker-group-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.asset-picker-group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 2px 2px 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+}
+.asset-picker-group-title {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.asset-picker-group-chevron {
+  display: inline-flex;
+  transform: rotate(90deg);          /* points down when the section is open */
+  transition: transform 0.15s ease;
+}
+.asset-picker-group.is-collapsed .asset-picker-group-chevron { transform: rotate(0deg); }
+/* Per-category glyph (lib/category-icons.ts) - smaller than the catalog's to suit
+   the compact uppercase group titles here. */
+.asset-picker-group-icon { display: inline-flex; flex-shrink: 0; color: hsl(var(--muted-foreground)); }
+.asset-picker-group-icon svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.asset-picker-group.is-collapsed .asset-picker-group-body { display: none; }
+/* Inside a section header the strip already has the header's bottom gap. */
+.asset-picker-group-head .asset-picker-themes { margin-bottom: 0; }
+/* Nested sub-group (e.g. Headshots inside Photos): same mechanics, quieter
+   header - indented, no divider rule, normal-case title. */
+.asset-picker-group .asset-picker-group {
+  margin-top: 12px;
+  padding-top: 0;
+  border-top: 0;
+  padding-left: 10px;
+  border-left: 2px solid hsl(var(--border));
+}
+.asset-picker-group .asset-picker-group .asset-picker-group-title {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--fs-sm);
+}
+/* ── Category filter row ─────────────────────────────────────────────────────
+   One icon per present library category, pinned to the top of the library pane.
+   Clicking one pins its section open and collapses the rest (a quick filter); the
+   active state mirrors which section is open, so a manual section toggle moves it
+   too. All filters share one sticky header, keeping the category row below the
+   type/fit controls. Matching spacing tokens let content scroll beneath it. */
+.asset-picker-filters {
+  position: sticky;
+  top: calc(-1 * var(--picker-pad-block));
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-control-block);
+  margin: calc(-1 * var(--picker-pad-block)) calc(-1 * var(--picker-pad-inline)) var(--ui-space-panel);
+  padding: var(--picker-pad-block) var(--picker-pad-inline);
+  background: var(--ui-color-surface-overlay);
+  border-bottom: 1px solid var(--ui-color-border-default);
+}
+.asset-picker-filters:not(:has(> :not([hidden]))) { display: none; }
+.asset-picker-catbar { display: flex; flex-wrap: wrap; gap: var(--ui-space-control-block); }
+.asset-picker-catbar[hidden] { display: none; }
+.asset-picker-catbtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Icon-only control: the box rides the chrome icon scale (tokens.css) with
+     the glyph it holds, so the mark never shrinks inside a growing button. */
+  width: calc(34px * var(--a11y-fs));
+  height: calc(34px * var(--a11y-fs));
+  padding: 0;
+  background: hsl(var(--background));
+  color: hsl(var(--muted-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: color var(--dur-1), border-color var(--dur-1), background var(--dur-1);
+}
+.asset-picker-catbtn:hover { color: hsl(var(--foreground)); border-color: hsl(var(--primary)); }
+.asset-picker-catbtn.is-active {
+  color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.1);
+}
+.asset-picker-catbtn:focus-visible { outline: 2px solid hsl(var(--primary) / 0.5); outline-offset: 2px; }
+.asset-picker-catbtn-glyph { display: inline-flex; }
+.asset-picker-catbtn-glyph svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+/* The category-name bubble on hover/focus comes from the shared [data-tip]
+   tooltip primitive (parts/tooltip.css) - this sheet's copy was promoted there.
+   aria-label carries the same name for assistive tech. */
+
+.asset-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.asset-picker-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.5);
+  padding: 8px;
+  cursor: pointer;
+  gap: 4px;
+  font: inherit;
+  transition: border-color var(--dur-1), box-shadow var(--dur-1);
+}
+.asset-picker-card:hover {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 2px 8px hsl(var(--primary) / 0.12);
+}
+/* Keyboard focus (arrow-key navigation) - clear ring on the focused card.
+   Uses :focus-within (not :focus-visible) so the card focused on open always
+   shows it. For user cards the focusable element is the inner pick button, so
+   :focus-within lifts the ring onto the wrapper - the element that owns the
+   border + radius the ring should trace, so it lines up exactly. */
+.asset-picker-card:focus-within {
+  outline: none;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.45);
+}
+.asset-picker-card-pick:focus { outline: none; }
+
+/* Small file-format badge, bottom-right of each card. */
+.asset-picker-fmt {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  /* The badge can carry a duration chip ("▶ LOTTIE · 1:02:33"); it must stay one
+     line rather than wrapping upward over the thumbnail on a narrow tile. */
+  white-space: nowrap;
+  padding: 2px 5px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+}
+/* Generative-AI badge - top-left corner (the format badge owns bottom-right). The
+   .genai-pill visual (fixed violet, sparkle-in-a-circle) is defined in parts/catalog.css. */
+.asset-picker-card .genai-pill {
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  z-index: 1;
+  pointer-events: none;
+}
+/* The "AI?" signals chip shares the declared badge's corner - only one of the
+   two ever renders (a declaration outranks a signal). Visual: parts/catalog.css. */
+.asset-picker-card .cat-ai-chip {
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  z-index: 1;
+  pointer-events: none;
+}
+.asset-picker-thumb {
+  width: 100%;
+  height: 100px;
+  object-fit: contain;
+  background: hsl(var(--muted));
+  border-radius: calc(var(--radius));
+}
+.asset-picker-thumb-stub {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+}
+/* Looping Lottie thumbnail: the still poster (inline background-image) rests behind the
+   on-screen-gated player's <svg>; a posterless user upload shows a centred ▶ until it mounts.
+   Shares .asset-picker-thumb's 100px height/width/background. */
+.asset-picker-thumb-motion {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  color: hsl(var(--muted-foreground));
+}
+.asset-picker-thumb-motion > svg { width: 100%; height: 100%; display: block; }
+/* Once the live player has painted (lottie-mount adds `is-lottie-live` on DOMLoaded), drop the
+   resting poster + ▶ glyph so the still poster doesn't ghost through the transparent playing SVG.
+   Restored when the player is destroyed (off-screen tile), so the resting frame returns. */
+.asset-picker-thumb-motion.is-lottie-live { background-image: none !important; color: transparent; }
+
+.asset-picker-name {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  /* One line, ellipsis on overflow. Full name shows via the title tooltip on
+     hover (min-width:0 lets the flex item shrink below its content width). */
+  max-width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.asset-picker-id {
+  padding-right: 2.75rem; /* keep ids clear of the badge */
+  font-size: calc(7px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-mono);
+}
+
+.asset-picker-empty,
+.asset-picker-error {
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+  padding: 40px 0;
+}
+.asset-picker-error { color: hsl(var(--destructive)); }
+
+.asset-picker-loading {
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+  padding: 28px 0;
+  font-size: var(--fs-md);
+}
+
+/* ── Paste-a-Lolly-link render card ────────────────────────────────────────
+   Shown in the library region when a tool URL is pasted into the search box.
+   The tool becomes an image: choose format + size, preview, then commit. */
+.asset-picker-toolcard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 460px;
+  margin: 4px auto;
+  padding: 16px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.5);
+}
+
+.asset-picker-toolcard-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-md);
+  color: hsl(var(--card-foreground));
+}
+.asset-picker-toolcard-head strong { font-weight: 700; }
+.asset-picker-toolcard-spark { color: hsl(var(--primary)); font-size: calc(15px * var(--a11y-fs)); }
+
+.asset-picker-toolcard-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.asset-picker-toolcard-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+/* The controls themselves are the shared field primitive (parts/fields.css); all
+   that survives here is this toolbar's compact height and the number fields' width.
+   Both call sites of this wrapper class - the picker's tool card and the embed
+   editor's ee-format/ee-w/ee-h row (views/tool-inputs.ts) - are migrated, so the
+   old outlined recipe that used to live here is gone rather than fenced off. */
+.asset-picker-toolcard-controls .field-select,
+.asset-picker-toolcard-controls .field-input {
+  height: 30px;
+  padding-block: 0;              /* the primitive's 9px block padding would burst 30px */
+}
+.asset-picker-toolcard-controls input { width: 5.5rem; }
+
+.asset-picker-toolcard-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  padding: 10px;
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+  /* Checkerboard so transparent renders read clearly against the panel. */
+  background-image:
+    linear-gradient(45deg, hsl(var(--border) / 0.5) 25%, transparent 25%),
+    linear-gradient(-45deg, hsl(var(--border) / 0.5) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, hsl(var(--border) / 0.5) 75%),
+    linear-gradient(-45deg, transparent 75%, hsl(var(--border) / 0.5) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+.asset-picker-toolcard-img {
+  max-width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+}
+
+/* Click-to-render - a child whose preview crossed the slow threshold renders on
+   demand instead of per keystroke. While a render runs the button shows a
+   spinner ring and a sheen sweep (both stilled under reduced-motion). */
+.tc-render {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary));
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.tc-render:hover:not(:disabled) { filter: brightness(1.08); }
+.tc-render:focus-visible { outline: 2px solid hsl(var(--primary) / 0.5); outline-offset: 2px; }
+.tc-render.is-rendering { cursor: default; }
+.tc-render-ring {
+  width: 14px;
+  height: 14px;
+  border: 2px solid hsl(var(--primary-foreground) / 0.35);
+  border-top-color: hsl(var(--primary-foreground));
+  border-radius: var(--radius-round);
+  animation: tc-render-spin 0.8s linear infinite;
+}
+.tc-render.is-rendering::after,
+.tc-use.is-rendering::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, hsl(var(--primary-foreground) / 0.18) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: tc-render-sheen 1.4s ease-in-out infinite;
+}
+.tc-use.is-rendering { position: relative; overflow: hidden; }
+@keyframes tc-render-spin { to { transform: rotate(360deg); } }
+@keyframes tc-render-sheen { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .tc-render-ring,
+  .tc-render.is-rendering::after,
+  .tc-use.is-rendering::after { animation: none; }
+}
+
+/* "Freeze as a static image" - bake the committed render into a self-contained
+   static asset (engine bakeAssetRef): never live-re-renders, costs no nesting
+   depth. The help line tucks under the label, inside the card's 14px gap. */
+.asset-picker-toolcard-freeze {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--card-foreground));
+  cursor: pointer;
+}
+/* The tick is .field-check (parts/fields.css) - nothing to add here. */
+.asset-picker-toolcard-freeze-help {
+  /* Indent = the tick's own box (.field-check, 16px) + the row's 6px gap, so the
+     help line starts exactly under the label text. Was 20px, tuned against the UA
+     checkbox this row used before the primitive landed. */
+  margin: -10px 0 0 22px;
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+}
+
+/* Tool tiles (the "Make an image from a tool" grid) - preview-forward like the
+   gallery, with the inline icon as the fallback when a preview 404s. */
+.asset-picker-toolgrid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.asset-picker-toolitem { align-items: stretch; }
+.asset-picker-toolitem-preview {
+  width: 100%;
+  height: 84px;
+  object-fit: contain;
+  border-radius: var(--radius);
+  /* Same themed shade the gallery tiles use (tokens.css) - a tool's own render is
+     transparent wherever it paints nothing. No checker in this 84px slot: at this
+     size it reads as noise rather than as transparency. */
+  background: var(--preview-surface);
+}
+/* The icon is always in the DOM but shown ONLY when there's no usable preview
+   (none declared, or the <img> errored → .no-preview added in JS). */
+.asset-picker-toolitem-icon { display: none; }
+.asset-picker-toolitem.no-preview .asset-picker-toolitem-preview { display: none; }
+.asset-picker-toolitem.no-preview .asset-picker-toolitem-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 84px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+  color: hsl(var(--primary));
+}
+.asset-picker-toolitem-icon svg { width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs)); }
+
+/* Collect mode ("Add to a folder"): a tool tile pairs its open-primary with a
+   "+ Add" quick-add (default-settings session, no editor), stacked as one grid cell. */
+.asset-picker-toolcell { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.asset-picker-toolcell .asset-picker-toolitem { flex: 1; }
+.asset-picker-toolquick {
+  align-self: stretch;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+  border: 1px solid hsl(var(--primary) / 0.35);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--dur-1), border-color var(--dur-1);
+}
+.asset-picker-toolquick:hover { background: hsl(var(--primary) / 0.16); }
+.asset-picker-toolquick:focus-visible { outline: 2px solid hsl(var(--primary) / 0.5); outline-offset: 1px; }
+
+/* Added-to-folder feedback: a ✓ overlay flashes on the picked tile (the dialog stays
+   open for multi-add); a toast covers upload / webcam / pasted-link adds with no tile. */
+.asset-picker-card.is-added, .asset-picker-toolitem.is-added { border-color: hsl(var(--primary)); }
+.asset-picker-card.is-addfail, .asset-picker-toolitem.is-addfail { border-color: hsl(var(--destructive)); }
+.asset-picker-added {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: #fff;
+  background: hsl(var(--primary) / 0.86);
+  border-radius: inherit;
+  pointer-events: none;
+  animation: asset-picker-pop 0.16s ease;
+}
+.is-addfail > .asset-picker-added { background: hsl(var(--destructive) / 0.9); }
+@keyframes asset-picker-pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+
+.asset-picker-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translate(-50%, 12px);
+  padding: 8px 16px;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: #fff;
+  background: hsl(var(--primary));
+  border-radius: var(--radius-pill);
+  box-shadow: 0 6px 20px hsl(var(--foreground) / 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-2), transform var(--dur-2);
+  z-index: 5;
+}
+.asset-picker-toast.is-shown { opacity: 1; transform: translate(-50%, 0); }
+.asset-picker-toast.is-fail { background: hsl(var(--destructive)); }
+
+/* Saved-creation tiles reuse the asset card; just the relative-time line is new. */
+.asset-picker-sessitem-when {
+  font-size: var(--fs-2xs);
+  color: hsl(var(--muted-foreground));
+}
+/* A session/tool with no rendered thumb falls back to its tool icon. */
+.asset-picker-thumb-icon { color: hsl(var(--primary)); }
+.asset-picker-thumb-icon svg { width: calc(34px * var(--a11y-fs)); height: calc(34px * var(--a11y-fs)); }
+
+/* ── Projects tab (folders of saved creations + images) ─────────────────────
+   A breadcrumb trail plus folder cards that drill in, above the current folder's
+   pickable items. Folder cards reuse the asset-card chrome with a folder glyph as
+   the "thumb". */
+.asset-picker-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 14px;
+  font-size: var(--fs-md);
+}
+.asset-picker-crumb {
+  padding: 2px 6px;
+  background: none;
+  border: 0;
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--dur-1), background var(--dur-1);
+}
+.asset-picker-crumb:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+.asset-picker-crumb:focus-visible { outline: 2px solid hsl(var(--primary) / 0.5); outline-offset: -1px; }
+.asset-picker-crumb.is-current { color: hsl(var(--foreground)); cursor: default; }
+.asset-picker-crumb-sep { color: hsl(var(--muted-foreground)); opacity: 0.6; }
+
+/* Folder cards read one row of a couple bigger tiles - a folder is a container,
+   not a picture, so the glyph sits centred on a muted field. */
+.asset-picker-foldergrid { margin-bottom: 14px; }
+.asset-picker-folder-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--primary));
+  background: hsl(var(--muted));
+}
+.asset-picker-folder-thumb svg { width: calc(40px * var(--a11y-fs)); height: calc(40px * var(--a11y-fs)); }
+
+/* Back affordance + secondary action in the render-as-image takeover card. */
+.asset-picker-toolcard-back {
+  background: none;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  line-height: 1;
+  font-size: calc(15px * var(--a11y-fs));
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  transition: color var(--dur-1), border-color var(--dur-1), background var(--dur-1);
+}
+.asset-picker-toolcard-back:hover { color: hsl(var(--foreground)); border-color: hsl(var(--primary)); background: hsl(var(--accent)); }
+
+.asset-picker-toolcard-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.asset-picker-toolcard-actions .tc-edit,
+.asset-picker-toolcard-actions .tc-back {
+  text-decoration: none; /* the extension hint renders tc-back as an <a> */
+  padding: 7px 14px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+.asset-picker-toolcard-actions .tc-edit:hover,
+.asset-picker-toolcard-actions .tc-back:hover { border-color: hsl(var(--primary)); background: hsl(var(--accent)); }
+.asset-picker-toolcard-actions .tc-use {
+  padding: 7px 16px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--dur-1);
+}
+.asset-picker-toolcard-actions .tc-use:hover { opacity: 0.9; }
+.asset-picker-toolcard-actions .tc-use:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.asset-picker-footer {
+  padding: var(--picker-pad-block) var(--picker-pad-inline);
+  border-top: 1px solid var(--ui-color-border-default);
+  background: var(--ui-color-surface-muted);
+}
+
+.asset-picker-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--fs-md);
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+.asset-picker-upload:hover,
+.asset-picker-upload:focus-within {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--accent));
+}
+/* The file input inside is `.visually-hidden`, not `hidden` - display:none is not
+   focusable, and the <label> can't take focus itself, so the old markup made
+   "Upload your own…" mouse-only. The input keeps the keyboard tab stop (Enter/Space
+   opens the OS picker) and the label wears its ring, exactly as the shared dropzone
+   does (lib/upload-dropzone.ts + parts/dropzone.css). */
+.asset-picker-upload:focus-within { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.asset-picker-upload.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.asset-picker-footer { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ui-space-control-inline); }
+.asset-picker-webcam,
+.asset-picker-screencap,
+.asset-picker-scriptaudio,
+.asset-picker-upscale,
+.asset-picker-matte {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--fs-md);
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+.asset-picker-webcam:hover,
+.asset-picker-screencap:hover,
+.asset-picker-scriptaudio:hover,
+.asset-picker-matte:hover,
+.asset-picker-upscale:hover { border-color: hsl(var(--primary)); background: hsl(var(--accent)); }
+.asset-picker-webcam svg,
+.asset-picker-screencap svg,
+.asset-picker-scriptaudio svg,
+.asset-picker-matte svg,
+.asset-picker-upscale svg { display: block; }
+
+/* "Screenshot this page" card (pasted non-Lolly URL): the page URL, muted and
+   wrappable; the inline error drops the empty-state's tall centring. */
+.asset-picker-capture-url {
+  margin: 0;
+  font-size: calc(12.5px * var(--a11y-fs));
+  font-family: var(--font-mono);
+  color: hsl(var(--muted-foreground));
+  word-break: break-all;
+}
+.asset-picker-toolcard .cap-error { margin: 0; padding: 0; text-align: left; }
+
+/* ── Webcam capture dialog ─────────────────────────────────────────────────
+   Stacks above the picker panel (which is z 1001). Sibling on <body>. */
+.webcam-capture-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+.webcam-capture-panel {
+  position: fixed;
+  z-index: 1101;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(640px, 92vw);
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  box-shadow: var(--ui-elevation-overlay);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.webcam-capture-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+.webcam-capture-close {
+  background: none;
+  border: none;
+  font-size: calc(20px * var(--a11y-fs));
+  line-height: 1;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+.webcam-capture-close:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+.webcam-capture-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  background: #000;
+}
+.webcam-capture-video {
+  display: block;
+  max-width: 100%;
+  max-height: 60vh;
+  /* Mirror the preview so it reads like a mirror (the captured frame is un-mirrored). */
+  transform: scaleX(-1);
+}
+.webcam-capture-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-md);
+}
+.webcam-capture-status[hidden] { display: none; }
+.webcam-capture-status.webcam-capture-error { color: hsl(var(--destructive)); }
+.webcam-capture-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid hsl(var(--border));
+}
+.webcam-capture-actions .webcam-capture-cancel {
+  padding: 7px 14px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+.webcam-capture-actions .webcam-capture-shoot {
+  padding: 7px 18px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+.webcam-capture-actions .webcam-capture-shoot:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── PDF page picker (multi-page PDF/.ai → which page(s) become SVGs) ──────
+   Opened by pdf-import.ts's pickPdfPages from the catalog drop area, the asset
+   picker's upload path, and the Design design import. Stacks above the
+   picker panel (z 1001) AND the webcam sheet (1100/1101). Sibling on <body>. */
+.pdfpick-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1150;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+.pdfpick-panel {
+  position: fixed;
+  z-index: 1151;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(720px, 94vw);
+  max-height: min(84vh, 720px);
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  box-shadow: var(--ui-elevation-overlay);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.pdfpick-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+.pdfpick-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pdfpick-close {
+  background: none;
+  border: none;
+  font-size: calc(20px * var(--a11y-fs));
+  line-height: 1;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+.pdfpick-close:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+.pdfpick-sub { margin: 10px 16px 0; font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.pdfpick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px;
+  padding: 12px 16px 16px;
+  overflow-y: auto;
+}
+.pdfpick-page {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: border-color var(--dur-1), box-shadow var(--dur-1);
+}
+.pdfpick-page:hover { border-color: hsl(var(--primary) / 0.55); }
+.pdfpick-page.is-on { border-color: hsl(var(--primary)); box-shadow: 0 0 0 1px hsl(var(--primary)); }
+.pdfpick-page:disabled { opacity: 0.55; cursor: not-allowed; }
+.pdfpick-page:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+/* Pages render on white deliberately (in dark mode too): the SVG conversions are
+   transparent where the page painted nothing, and "paper" is the honest preview. */
+.pdfpick-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 3 / 4;
+  background: #fff;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) - 2px);
+  overflow: hidden;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-xs);
+}
+.pdfpick-thumb:empty::before { content: '…'; }
+.pdfpick-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.pdfpick-cap { font-size: var(--fs-sm); text-align: center; color: hsl(var(--muted-foreground)); }
+.pdfpick-page.is-on .pdfpick-cap { color: hsl(var(--foreground)); font-weight: 600; }
+.pdfpick-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid hsl(var(--border));
+}
+.pdfpick-note { margin-right: auto; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.pdfpick-btn {
+  padding: 7px 14px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+.pdfpick-btn:hover { background: hsl(var(--accent)); }
+.pdfpick-btn--primary { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-color: transparent; }
+.pdfpick-btn--primary:hover { background: hsl(var(--primary)); filter: brightness(1.08); }
+.pdfpick-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── The user's private assets (their own uploads, its own picker tab) ──── */
+
+.asset-picker-userassets {
+  padding-bottom: 16px;
+}
+
+.asset-picker-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+}
+.asset-picker-count {
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+/* Folder grouping heading within "Your images" (browse-only; organized in the
+   gallery's folder overlay). */
+.asset-picker-folder-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 8px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+.asset-picker-folder-head::before {
+  content: "📁";
+  font-size: var(--fs-sm);
+  opacity: 0.8;
+}
+
+/* Padding lives on the pick button, not here, so the button fills the whole
+   card and its focus ring matches the card's width/height (not an inset box). */
+.asset-picker-card-user { position: relative; padding: 0; }
+
+.asset-picker-card-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  /* Grow to fill the card so the whole card area stays clickable even when the
+     grid row stretches this card taller than its content (a taller sibling).
+     basis:auto (not 0) so an all-user-card row never collapses to nothing. */
+  flex: 1 0 auto;
+  padding: 8px;
+  text-align: left;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.asset-picker-card-delete {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-round);
+  background: hsl(var(--background) / 0.85);
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-xl);
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-1), color var(--dur-1), background var(--dur-1);
+}
+.asset-picker-card-user:hover .asset-picker-card-delete,
+.asset-picker-card-delete:focus-visible { opacity: 1; }
+.asset-picker-card-delete:hover {
+  color: hsl(var(--destructive));
+  background: hsl(var(--accent));
+}
+
+/* Per-card "Upscale" affordance. A raster library card adopts the same wrapper +
+   pick-button split as a user card (padding moves onto the pick button so it fills
+   the card and its focus ring traces the whole box) so this sibling button is valid
+   HTML rather than a nested one. */
+.asset-picker-card-actionable { padding: 0; }
+/* Pinned bottom-left: the top corners are taken (Gen-AI pill top-left, delete
+   top-right on user cards) and the format badge owns bottom-right. Hover/focus
+   revealed, matching the delete button's behaviour. */
+.asset-picker-card-upscale,
+.asset-picker-card-matte {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-round);
+  background: hsl(var(--background) / 0.85);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-1), color var(--dur-1), background var(--dur-1);
+}
+/* When both are present, the cut-out sits to the right of Upscale so they don't
+   stack. A card with only one shows it at the left edge. */
+.asset-picker-card-upscale ~ .asset-picker-card-matte { left: 33px; }
+.asset-picker-card:hover .asset-picker-card-upscale,
+.asset-picker-card:hover .asset-picker-card-matte,
+.asset-picker-card-upscale:focus-visible,
+.asset-picker-card-matte:focus-visible { opacity: 1; }
+.asset-picker-card-upscale:hover,
+.asset-picker-card-matte:hover {
+  color: hsl(var(--primary));
+  background: hsl(var(--accent));
+}
+.asset-picker-card-upscale svg,
+.asset-picker-card-matte svg { display: block; }
+}
+
+/* ── Phase-4 additions (plans/134) ──────────────────────────────────────────*/
+
+/* Type pills (P5) - untyped picks only. */
+.asset-picker-typebar { display: flex; flex-wrap: wrap; gap: var(--ui-space-control-block); }
+.asset-picker-typebar[hidden] { display: none; }
+.asset-picker-typepill {
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius-pill);
+  background: hsl(var(--background)); color: hsl(var(--muted-foreground));
+  font: inherit; font-size: var(--fs-sm); font-weight: 600;
+  padding: 4px 12px; cursor: pointer;
+  transition: background var(--dur-1), color var(--dur-1), border-color var(--dur-1);
+}
+.asset-picker-typepill:hover { color: hsl(var(--foreground)); border-color: hsl(var(--ring)); }
+.asset-picker-typepill.is-on { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+
+/* Tile dims (P4). */
+.asset-picker-dims { color: hsl(var(--muted-foreground)); }
+
+/* Audio audition ▶ (P4) - sibling of the pick button, bottom-left over the wave. */
+.asset-picker-audition {
+  position: absolute; left: 6px; bottom: 34px;
+  width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs));
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius-round);
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  font-size: var(--fs-sm); line-height: 1; cursor: pointer;
+  box-shadow: 0 2px 8px hsl(0 0% 0% / .18);
+}
+.asset-picker-audition:hover { border-color: hsl(var(--ring)); }
+.asset-picker-audition[aria-pressed="true"] { background: hsl(var(--accent)); }
+
+/* Whole-panel drop target ring (P6) - dashed = drop area, per the house rule. */
+.asset-picker-panel.is-dropping { outline: 2px dashed hsl(var(--primary)); outline-offset: -6px; }
+
+/* Visible upload failure (P6). */
+.asset-picker-footer-error { font-size: var(--fs-sm); color: hsl(var(--destructive)); }
+.asset-picker-footer-error[hidden] { display: none; }
+
+/* Mobile pass (P8): a full-screen sheet, and per-tile actions that touch can see. */
+@media (max-width: 640px) {
+  .asset-picker-panel {
+    inset: 0;
+    border-radius: 0;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+  }
+}
+@media (pointer: coarse) {
+  /* Hover-revealed per-tile actions are invisible to touch - keep them softly
+     present instead (the catalog's always-visible-dot rule). */
+  .asset-picker-card .asset-picker-upscale-btn,
+  .asset-picker-card .asset-picker-matte-btn,
+  .asset-picker-card .asset-picker-delete,
+  .asset-picker-audition { opacity: 0.75; }
+}
+
+/* Cross-tab match counts while searching (P3). */
+.asset-picker-tabcount {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: var(--fs-xl); height: var(--fs-xl);
+  margin-inline-start: 6px; padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--muted)); color: hsl(var(--muted-foreground));
+  font-size: calc(10.5px * var(--a11y-fs)); font-weight: 700;
+}
+
+/* Fade-not-hide (plans/162): a slot shows the whole visual catalog with the tiles
+   it can't accept dimmed rather than hidden, so the grid never looks empty. A full
+   opacity wash (not a one-sided rail, per the house rule); a mouse click still
+   lands and is rejected with a note, keyboard roving skips them. */
+.asset-picker-card.is-incompatible {
+  opacity: 0.32;
+  filter: grayscale(0.6);
+}
+.asset-picker-card.is-incompatible:hover {
+  opacity: 0.5;
+}
+.asset-picker-card.is-incompatible .asset-picker-name {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+/* Fade-not-hide "hide incompatible" toggle (plans/162): when a broadened catalog
+   is cluttered, one tap hides the dimmed tiles (pure CSS; they stay in the DOM). */
+.asset-picker-fitbar { display: flex; justify-content: flex-end; margin: 0 0 6px; }
+.asset-picker-fit-toggle {
+  appearance: none;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted) / 0.4);
+  color: hsl(var(--muted-foreground));
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.asset-picker-fit-toggle.is-active {
+  background: hsl(var(--primary) / 0.16);
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--primary) / 0.5);
+}
+.asset-picker-pane.hide-incompatible .asset-picker-card.is-incompatible { display: none; }

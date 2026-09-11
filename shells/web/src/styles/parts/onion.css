@@ -1,0 +1,166 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order.
+
+   Registered by its own view module: shells/web/src/views/onion-skin.ts does
+   `import '../styles/parts/onion.css'`, exactly like timeline.css and picker.css.
+   Nothing in app.css imports it - onion skin is opt-in and OFF by default, so it
+   must stay off the critical path of every editor that will never turn it on.
+
+   EXPORT CONTRACT: every selector here is scoped under `.onion-layer`, which lives
+   inside `.fc-overlay` - a stage SIBLING of #tool-canvas, carrying [data-export-hide].
+   Nothing in this file may ever be written to a `.lolly-box`: a class on the real box
+   would be photographed into the export (bridge/sequence-render.ts has to strip
+   `.seq-off` for exactly that reason). See onion-skin.ts's module doc. */
+@layer views {
+
+/* Belt and braces over `.fc-overlay`'s own pointer-events:none - a ghost must never be
+   hit-testable, which is what makes "clicking a ghost falls through to the visible box"
+   a STRUCTURAL property rather than new hit-test code. */
+.onion-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  /* Master strength, written inline by onion-skin.ts from the panel's slider. */
+  --onion-master: 1;
+
+  /* A FLOOR under the master, raised only by the high-contrast branch at the bottom of
+     this sheet. It is a second token rather than a `max()` written back into
+     --onion-master because a custom property whose value references ITSELF is a cycle
+     (CSS Custom Properties L1 section 3.2) - it computes to the guaranteed-invalid value, not
+     to the inherited one, which would take every opacity below down with it. */
+  --onion-floor: 0;
+
+  /* Directional coding: past = warm, future = COOL BLUE (Aseprite), never green.
+     Red/green is the worst possible pair for deuteranopia and protanopia (~8% of
+     men); the offset chip below is the redundant non-colour channel (WCAG 1.4.1). */
+  --onion-past: oklch(0.72 0.16 55);
+  --onion-future: oklch(0.72 0.13 230);
+
+  /* Per-offset alpha ramp, multiplied by the master. Two steps is the ceiling
+     (timeline-math's ONION_MAX_STEPS), so two values is the whole ramp. */
+  --onion-o1: 0.30;
+  --onion-o2: 0.15;
+}
+.onion-layer[hidden] { display: none; }
+
+/* A ghost is a plain <div> positioned in STAGE pixels from the model rect, so its
+   outline weight is a fixed px value and is therefore constant under canvas zoom by
+   construction (there is no vector-effect for a div, and none is wanted here - a
+   hairline that thins as you zoom out is the failure mode). */
+.onion-ghost {
+  --onion-c: var(--onion-future);
+  position: absolute;
+  box-sizing: border-box;
+  transform-origin: 50% 50%;
+  outline: 1.5px solid var(--onion-c);
+  /* Inset, so the ring sits ON the model rect rather than a pixel and a half outside
+     it - a ghost must line up with where the scene will actually be. */
+  outline-offset: -1.5px;
+  overflow: hidden;
+  opacity: calc(var(--onion-o2) * max(var(--onion-master), var(--onion-floor)));
+  transition: opacity 120ms ease;
+}
+.onion-ghost[data-offset^="-"] { --onion-c: var(--onion-past); }
+.onion-ghost[data-offset="-1"],
+.onion-ghost[data-offset="+1"] { opacity: calc(var(--onion-o1) * max(var(--onion-master), var(--onion-floor))); }
+
+/* The redundant non-colour channel: a corner chip reading the signed step. Chrome
+   type, so it rides --a11y-fs (the ghost's OUTLINE is geometry and deliberately does
+   not). Not a dash pattern - dashed borders are drop areas only, house rule. */
+.onion-ghost::after {
+  content: attr(data-offset);
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 1px 4px;
+  font-size: var(--fs-2xs);
+  line-height: 1.3;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: var(--onion-c);
+  color: hsl(var(--background));
+  border-bottom-right-radius: 4px;
+}
+
+/* Filled mode. The fill is the box's own colour at 12% - enough to read the shape of
+   the composition, nowhere near enough to compete with the live scene. */
+.onion-fill {
+  position: absolute;
+  inset: 0;
+  opacity: var(--onion-fill-a, 0.12);
+  border-radius: inherit;
+}
+
+/* The COINCIDENT ghost (onion-skin.ts: its rect matches the scene on screen, so its
+   outline lands on that scene's own edge and says nothing). It carries the picture
+   instead - and needs more of it, because 12% inside a ghost already at 30% is 3.6%
+   over an opaque scene, which is the same invisibility by another route. Still far
+   below the live scene: 35% inside 30% is ~10%. */
+.onion-ghost[data-coincident] { --onion-fill-a: 0.35; }
+
+/* The cloned `.lolly-box-text`, laid out at the box's NATIVE size and scaled as a unit
+   (its font-size is native px; the ghost's box is stage px). `top/left: 0` with the
+   origin at the corner is what makes the scale land the text exactly where the scene
+   puts it. Non-interactive and unselectable - it is a picture of text, not text. */
+.onion-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  overflow: hidden;
+  opacity: 0.9;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Flex, so the box's own inline justify-content / align-items (which is where
+     free-canvas writes align/valign) land the words where the scene puts them. */
+  display: flex;
+  /* The direction colour, applied to the clone after onion-skin.ts strips its inline
+     `color` - see the comment there. Warm past / cool future, the same reading the
+     outline and the corner chip carry. */
+  color: var(--onion-c);
+}
+.onion-text * { color: inherit; }
+/* The box's OWN <img>, at a URL the browser already has cached (onion-skin.ts never
+   rasterises anything). Halved again on top of the ghost's own ramp. */
+.onion-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+  border-radius: inherit;
+}
+
+/* ── accessibility branches ───────────────────────────────────────────────────
+   All three are attribute-qualified on `html`, each sitting beside the OS-preference
+   block it extends. They live in THIS sheet rather than tokens.css because no runtime
+   brand block writes --onion-*, so there is nothing here to out-specify. */
+
+/* Ghosts snap between scenes, never fade. */
+@media (prefers-reduced-motion: reduce) {
+  .onion-ghost { transition: none; }
+}
+html[data-a11y-motion="reduce"] .onion-ghost { transition: none; }
+
+/* A 1.5px outline at 0.30 alpha fails WCAG 1.4.11 against a great many brand
+   backgrounds. This branch is what makes it pass: a thicker ring and a floor under the
+   master strength. The floor is raised on the GHOST, where the opacity calc above reads
+   it - it must NOT be written back into --onion-master, because a declaration that
+   references its own property is a cycle and computes to guaranteed-invalid (it does
+   not fall through to the inherited value the layer carries). */
+html[data-a11y-contrast="high"] .onion-ghost {
+  outline-width: 2px;
+  --onion-floor: 0.6;
+}
+
+/* "Hide colourful previews" - onion-skin.ts already forces filled → outline in paint();
+   this is the belt to that braces, so a stale layer left by a previous paint cannot keep
+   showing pictures while the pref is on. */
+html[data-a11y-previews="hidden"] .onion-fill,
+html[data-a11y-previews="hidden"] .onion-text,
+html[data-a11y-previews="hidden"] .onion-img { display: none; }
+
+}

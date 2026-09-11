@@ -1,0 +1,108 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order.
+
+   Registered by its own view module: shells/web/src/views/motion-path.ts does
+   `import '../styles/parts/motion-path.css'`, exactly like onion.css and timeline.css.
+   Nothing in app.css imports it - a motion path exists only while a keyframed box is
+   selected with the timeline open, so it must stay off the critical path of every
+   editor that never animates anything.
+
+   EXPORT CONTRACT: every selector here is scoped under `.mp-layer`, which lives inside
+   `.fc-overlay` - a stage SIBLING of #tool-canvas, carrying [data-export-hide]. Nothing
+   in this file may ever be written to a `.lolly-box`: a class on the real box would be
+   photographed into the export (bridge/sequence-render.ts has to strip `.seq-off` for
+   exactly that reason). See motion-path.ts's module doc. */
+@layer views {
+
+/* Belt and braces over `.fc-overlay`'s own pointer-events:none - a path must never be
+   hit-testable, so "clicking a path falls through to whatever is under it" is a
+   STRUCTURAL property rather than new hit-test code. */
+.mp-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  /* The path's own hue. Deliberately NOT --primary: the selection outline and every
+     handle are already drawn in it, and a line describing the selected box has to be
+     told apart from the box's own frame at a glance. A warm amber against the cool
+     selection blue, at a chroma that survives both themes. */
+  --mp-c: oklch(0.74 0.15 70);
+  --mp-w: 1.5px;
+}
+/* No `.mp-layer[hidden]` restatement here: parts/a11y.css carries the app-wide
+   `[hidden] { display: none !important }` in the top cascade layer, which already beats
+   this rule's `position: absolute`. Restating it per component is what
+   styles/hidden-attribute-guard.test.ts exists to make unnecessary. */
+
+.mp-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* The path itself: SOLID. It is geometry - where the box goes - and geometry is
+   information, so it is drawn identically under every preference. (It is also why
+   there is no dash here: in this design language a dashed line is a drop area.) */
+.mp-line {
+  fill: none;
+  stroke: var(--mp-c);
+  stroke-width: var(--mp-w);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+
+/* The DIRECTION cue: a second, additive stroke over the same points whose short dashes
+   travel forward along the move. Purely decorative - motion-path.ts does not mint this
+   element at all when the user has asked for less motion, so the rules below are the
+   belt to that braces (a layer painted before the pref flipped). */
+.mp-flow {
+  fill: none;
+  stroke: hsl(var(--background));
+  stroke-width: calc(var(--mp-w) - 0.5px);
+  stroke-linecap: round;
+  stroke-dasharray: 2 14;
+  opacity: 0.9;
+  animation: mp-flow 1.4s linear infinite;
+}
+
+/* The keyframe marks: the same diamond the timeline strip draws, filled so they read
+   against the line rather than as gaps in it. */
+.mp-key {
+  fill: var(--mp-c);
+  stroke: hsl(var(--background));
+  stroke-width: 1.25px;
+}
+
+@keyframes mp-flow {
+  /* NEGATIVE, so the dashes travel FORWARD along the path (t = 0 → t = end), which is
+     the direction the box actually moves in. One dash period, so the loop is seamless. */
+  to { stroke-dashoffset: -16px; }
+}
+
+/* ── accessibility branches ───────────────────────────────────────────────────
+   Only the flow is animation, and it has three independent gates. The first is the
+   module's own `prefersReducedMotion()` (which ORs the OS query with the app pref) -
+   it omits the element outright and stamps data-motion; the other two sit here beside
+   the OS-preference block they extend. */
+.mp-layer[data-motion="still"] .mp-flow { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .mp-flow { display: none; }
+}
+html[data-a11y-motion="reduce"] .mp-flow { display: none; }
+
+/* A 1.5px line at 0.85 alpha over brand artwork is thin. This branch is what makes it
+   readable: a thicker stroke at full strength. */
+html[data-a11y-contrast="high"] .mp-layer { --mp-w: 2.5px; }
+html[data-a11y-contrast="high"] .mp-line { opacity: 1; }
+
+/* "Hide colourful previews" calms the gallery's pictures; a motion path is chrome, not
+   a preview, so it stays - but it drops to the muted foreground rather than carrying a
+   saturated hue into a deliberately quiet canvas. */
+html[data-a11y-previews="hidden"] .mp-layer { --mp-c: hsl(var(--muted-foreground)); }
+
+}

@@ -1,0 +1,160 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* ── Chip/pill primitive + card/panel surface (component audit recs 3 + 10).
+      "Rounded label" was spelled chip/pill/tag/badge/stat under half a dozen
+      prefixes with near-identical boxes; "card surface" was restated per view.
+      Imported from app.css on the critical path (same reasoning as buttons.css:
+      every route needs the real base, not a lazy view chunk arriving first).
+
+      Several call-sites can't rename their markup this wave - their shared box
+      recipe is declared exactly ONCE here via a selector list; each aliased
+      class keeps only its own true delta (size, colour, shape) in its own
+      file. Mirrors the buttons.css pattern (component audit rec 2). */
+
+/* ═══ Chips (rec 3) ═══════════════════════════════════════════════════════ */
+
+/* Base box every rounded label shares: a small muted inline-flex pill. */
+.chip,
+.dash-chip {   /* dashboard.css - mono glance chip, see the note below */
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .25rem .55rem;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-muted);
+  font-size: calc(.75rem * var(--a11y-fs));
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+/* `.chip` sets display:inline-flex, which out-specifies the global
+   [hidden]{display:none} (a (0,1,0) tie source order hands to any single-class
+   chip selector), leaving only visibility:hidden - so a hidden chip (e.g. the
+   cold "N tools" stat pill before its count syncs in) would still reserve
+   layout and reflow when shown. This (0,2,0) override restores display:none
+   for every chip-family class that can be hidden. */
+.chip[hidden],
+.chip--count[hidden],
+.cat-group-count[hidden],   /* components.css */
+.plat-ramp-count[hidden],   /* platform.css */
+.chip--stat[hidden],
+.plat-stat[hidden] {        /* platform.css */
+  display: none;
+}
+
+/* --count - the small numeric bubble beside a group/section title.
+   .cat-group-count and .plat-ramp-count were byte-for-byte identical; this is
+   their one merged declaration. */
+.chip--count,
+.cat-group-count,   /* components.css - catalogue-summary group counts */
+.plat-ramp-count {  /* platform.css - palette ramp counts */
+  font-size: calc(.7rem * var(--a11y-fs));
+  font-weight: 600;
+  padding: .05rem .45rem;
+}
+
+/* --flag - a small uppercase inline highlight tag (NOT the absolute-positioned
+   swatch overlay - .plat-chip-flag is its own divergent species, see platform.css). */
+.chip--flag,
+.plat-pill,     /* platform.css - inline qualifier next to a table value */
+.be-ps-chip {   /* brand-studio.css - print-substitute flag */
+  font-size: calc(.58rem * var(--a11y-fs));
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: .12rem .38rem;
+  border-radius: var(--ui-radius-pill);
+}
+
+/* --status - a capitalised status/tag label. */
+.chip--status,
+.plat-chip,        /* platform.css - low-emphasis secondary chip */
+.cat-stat-tag {    /* components.css - catalogue-summary "by status" tags;
+                      renamed from .cat-tag (component audit M1.2) so it no
+                      longer collides with catalog.css's unrelated .cat-tag
+                      on the details-modal tag list */
+  text-transform: capitalize;
+}
+/* .dash-chip (dashboard.css) composes this same base box directly (it's
+   grouped into the .chip selector above) rather than --status - it shows
+   mono glance values verbatim, and capitalising a lowercase acronym would
+   misrepresent it. Its own font/padding/background stay real deltas there. */
+
+/* --stat - a bigger baseline pill with a bold leading number. Deliberately
+   NOT a full pill (var(--radius), not 999px) - a rounded-rect reads as a
+   data stat, not a tag. */
+.chip--stat,
+.plat-stat {   /* platform.css */
+  align-items: baseline;
+  padding: .35rem .65rem;
+  border-radius: var(--ui-radius-panel);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent);
+  font-size: calc(.82rem * var(--a11y-fs));
+}
+
+/* ═══ Cards / panels (rec 10) ═════════════════════════════════════════════ */
+
+/* Canonical surface - mirrors .plat-section, the de-facto canonical card
+   (dashboard nests it via .dash-bento; the verify view reuses it directly). */
+.card,
+.plat-section {   /* platform.css */
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  border-radius: var(--ui-radius-card);
+}
+
+/* --sub - a nested sub-card raised on the page's base background rather than
+   the section's --card, so it reads as a distinct panel one level down. */
+.card--sub,
+.plat-client-card,   /* platform.css - "This device" grouped cards */
+.plat-font,          /* platform.css - font specimen card */
+.plat-theme,         /* platform.css - theme swatch card */
+.cat-stat-tile {     /* components.css - catalogue-summary icon/count tile;
+                         renamed from .cat-tile (component audit rec 10
+                         follow-up) - that bare name collided with catalog.ts's
+                         OWN unrelated asset card, which keeps `.cat-tile`. */
+  background: var(--ui-color-surface-canvas);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-panel);
+}
+/* .cap-card (platform.css) is already a thin variant of .plat-section - its
+   markup always co-applies both classes, so it only ever adds flex layout,
+   never restates the surface. Same for .dash-card (dashboard.css): it's
+   always co-applied with .plat-section too, adding only flex + shadow. */
+
+/* Section header (title/eyebrow/sub) - unifies .plat-header/.plat-title/
+   .plat-sub, .start-head/.start-title/.start-eyebrow/.start-sub, and
+   .be-panel-head/.be-panel-title/.be-panel-sub. Each keeps its own sizing
+   (page hero vs small uppercase panel label) as a local delta. */
+.section-header,
+.plat-header,      /* platform.css */
+.start-head,       /* start.css */
+.be-panel-head {   /* brand-studio.css */
+  margin: 0 0 1.1rem;
+}
+.section-header-eyebrow,
+.start-eyebrow {   /* start.css */
+  display: inline-block;
+  padding: .2rem .55rem;
+  border-radius: var(--radius);
+  background: var(--ui-color-selection-surface);
+  color: var(--ui-color-action-primary);
+  font-size: calc(.68rem * var(--a11y-fs));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.section-header-title,
+.plat-title,        /* platform.css */
+.start-title,       /* start.css */
+.be-panel-title {   /* brand-studio.css */
+  margin: 0 0 .4rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.section-header-sub,
+.plat-sub,        /* platform.css */
+.start-sub,       /* start.css */
+.be-panel-sub {   /* brand-studio.css */
+  margin: 0;
+  color: var(--ui-color-text-muted);
+}

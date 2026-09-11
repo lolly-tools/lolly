@@ -1,0 +1,964 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* ─── Profile layout ────────────────────────────────────────────────────── */
+
+/* ─── Profile view ──────────────────────────────────────────────────────────
+   Everything is scoped under .profile-view (set on the view container for the
+   /profile route) so the shared sidebar classes (.input-row, .btn, …) can't
+   bleed in and these rules can't leak out. Layout: a centred stack of cards. */
+.profile-view .profile-layout {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  /* top clears the fixed back pill; footer clearance comes from #view's shared
+     .has-search-footer padding (gallery.css) */
+  padding: 3rem .5rem 1rem;
+  /* Settings-view shape: a sticky nav rail beside a scrolling stack of cards.
+     `align-items: start` lets the rail's sticky positioning work against the
+     scroll container rather than being stretched to the full column height. */
+  display: grid;
+  grid-template-columns: 216px minmax(0, 1fr);
+  gap: 1.6rem;
+  align-items: start;
+}
+/* The scrolling column of setting cards - the old single-column stack, now the
+   second grid track. Its own gap keeps the cards evenly spaced. */
+.profile-view .profile-panes {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+}
+/* (The visually-hidden <h1> is `position: absolute` - it never occupies a grid
+   track, so it needs no special handling here.) */
+
+/* ─── Settings nav rail ──────────────────────────────────────────────────────
+   Sticky left column: search box + a list of section shortcuts, in page order.
+   Clicking scrolls to the card; scroll-spy lights the section in view. */
+.profile-view .profile-nav {
+  position: sticky;
+  top: 3.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  max-height: calc(100dvh - 5rem);
+  /* Overflow lives on .profile-nav-list, NOT here: the search input's focus ring
+     is an OUTWARD outline (offset +1px), and a scroll container clips paint at its
+     padding box on both axes - so a clip here shaves the ring. The list scrolls
+     instead, and its items use inset rings, which never reach the clip edge. */
+  min-height: 0;
+}
+.profile-view .profile-nav-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.profile-view .profile-nav-search-ic {
+  position: absolute;
+  inset-inline-start: .6rem;
+  display: inline-flex;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+}
+.profile-view .profile-nav-search-input {
+  width: 100%;
+  padding: .5rem .6rem .5rem 2rem;
+  font: inherit;
+  font-size: var(--fs-lg);
+  color: hsl(var(--foreground));
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.5);
+}
+.profile-view .profile-nav-search-input:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 1px;
+}
+/* Silence the native search "×" clear (WebKit) - the input is short-lived scratch. */
+.profile-view .profile-nav-search-input::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+.profile-view .profile-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  /* The scroller (see .profile-nav): shrinks within the rail's max-height and
+     scrolls when the section list is taller than the viewport (largeText / short
+     screens). Item focus rings are inset, so scrolling never clips them. */
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.profile-view .profile-nav-item {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  width: 100%;
+  padding: .5rem .65rem;
+  font: inherit;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  text-align: start;
+  color: hsl(var(--muted-foreground));
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--radius) * 1.1);
+  cursor: pointer;
+  transition: background var(--dur-1) ease, color var(--dur-1) ease;
+}
+.profile-view .profile-nav-item:hover { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+.profile-view .profile-nav-item:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: -1px; }
+.profile-view .profile-nav-item.is-active {
+  background: hsl(var(--primary) / .12);
+  color: hsl(var(--primary));
+}
+.profile-view .profile-nav-ic { flex: 0 0 auto; width: var(--fs-xl); height: var(--fs-xl); }
+.profile-view .profile-nav-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-view .profile-nav-empty {
+  margin: .25rem .65rem;
+  font-size: var(--fs-md);
+  color: hsl(var(--muted-foreground));
+}
+@media (prefers-reduced-motion: reduce) {
+  .profile-view .profile-nav-item { transition: none; }
+}
+
+/* Every card clears the fixed back pill when jumped to (scrollIntoView / :target). */
+.profile-view .profile-card { scroll-margin-top: 4.75rem; }
+/* Search filter: hide cards that don't match the active query. */
+.profile-view .profile-card.is-filtered-out { display: none; }
+
+/* Below the two-column threshold the fixed side rail can't stay a side column. It used
+   to become a floating icon-only bar (11 unlabelled glyphs, scrolled horizontally with
+   its scrollbar hidden, occluding the cards behind it) - and now that every summary row
+   carries its section's value, the collapsed list IS the nav here: it names all eleven
+   sections, on screen, in page order (plans/163 4.4). So the rail goes entirely below
+   1024px and the layout folds to one column. Desktop keeps the rail unchanged.
+   The 1024px cutoff is the full tablet-landscape width: between ~861px and ~1024px the
+   fixed 216px rail plus a details column that can't shrink below its fixed headshot
+   overran the viewport and forced a horizontal scrollbar. */
+@media (max-width: 1024px) {
+  .profile-view .profile-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    /* Clear the floating Home pill, which is fixed to the top-left corner and used to
+       sit on the first card's header. Derived from the chrome tokens, so it follows
+       the pill's own size (largeText included) instead of guessing at it. */
+    padding-top: calc(var(--chrome-top) + var(--chrome-h) + .75rem);
+    /* Footer clearance is #view's shared .has-search-footer padding (gallery.css);
+       this is the small extra breathing room under the last card. */
+    padding-bottom: calc(var(--safe-bottom) + 1.5rem);
+  }
+  /* Last-resort guard so no child can push the page sideways in the tablet band. */
+  .profile-view { overflow-x: clip; }
+  .profile-view .profile-nav { display: none; }
+  /* Stack the fields + headshot/theme columns: side by side, the .6fr headshot column
+     couldn't shrink enough and shoved the card past the viewport. */
+  .profile-view .profile-details-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+}
+
+/* (Phones share the tablet band's treatment now: no section rail, the single-column
+   layout, and the overflow guard all live in the max-width:1024px block above. The
+   phone-specific details-card layout - headshot on top, fields stacked and centred -
+   stays in the max-width:640px block below.) */
+
+/* (The old two-button .profile-footer toolbar is retired - the shell's persistent
+   search bar shows on this route instead; see components/search-bar.ts.) */
+
+.profile-view .profile-card {
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.25);
+  padding: 1.25rem 1.4rem;
+}
+.profile-view .profile-card h2 {
+  margin: 0 0 1rem;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: hsl(var(--muted-foreground));
+}
+/* Language picker sits top-right of the details card, level with its h2 - a
+   permanent preference, unlike the welcome dialog's one-time chips. */
+.profile-view .profile-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.profile-view .profile-card-header h2 { margin: 0 0 1rem; }
+/* (`.profile-lang-picker` / `.profile-lang-select` lived here - a fourth copy of
+   the select chevron data-URI, matched by no markup since the language switcher
+   moved to the topbar's `.lang-fab` body-popover. Deleted 2026-07-25; the chevron
+   itself now lives once as `var(--field-chevron)` in parts/fields.css.) */
+
+/* Collapsible sections (Activity / Storage / Feature flags) - collapsed by
+   default. Card chrome sits on the <details>; the <summary> is the header. */
+.profile-view .profile-collapse { padding: 0; }
+.profile-view .profile-collapse > summary {
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1.1rem 1.4rem;
+}
+.profile-view .profile-collapse > summary::-webkit-details-marker { display: none; }
+.profile-view .profile-collapse > summary h2 { margin: 0; flex: 1 1 auto; text-align: left; }
+.profile-view .profile-collapse > summary:hover h2 { color: hsl(var(--foreground)); }
+.profile-view .profile-collapse > summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -3px; border-radius: calc(var(--radius) * 1.25); }
+/* Explicit width/height (not just the SVG's width/height attributes): a presentation
+   attribute sits at the bottom of the cascade, so during the reflow storm of a big
+   "render everything" export it can lose to the flex layout and the chevron balloons to
+   fill the summary (caught at 913px). An author size rule is authoritative + definite,
+   so no transient can stretch it. Matches how every other icon SVG is sized. */
+.profile-view .profile-collapse-chev { flex: none; width: var(--fs-xl); height: var(--fs-xl); color: hsl(var(--muted-foreground)); transition: transform var(--dur-1) ease; }
+.profile-view .profile-collapse[open] > summary .profile-collapse-chev { transform: rotate(90deg); }
+.profile-view .profile-collapse-body { padding: 0 1.4rem 1.25rem; }
+/* Identity in the "Your details" summary: every card starts folded now, so the
+   person's name rides beside that heading - a page of closed cards still reads as
+   someone's profile. Quiet (it is a value, not a heading); it sits inside the
+   shared value slot below, which is what truncates the row. */
+.profile-view .profile-summary-name {
+  font-size: var(--fs-lg); font-weight: 600;
+  color: hsl(var(--foreground));
+}
+/* The right-hand value preview every folded summary carries (plans/163 4.1):
+   what the section is set to, in a word or two, so a page of closed cards reads
+   as a dashboard instead of eleven identical grey headers. Quiet on purpose -
+   never heavier than the title beside it - and it truncates rather than pushing
+   the chevron off the row. Blank until a lazy section measures its own value. */
+.profile-view .profile-summary-value {
+  flex: 0 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-align: end;
+  font-size: var(--fs-md);
+  color: hsl(var(--muted-foreground));
+}
+/* Stand-in for a lazy section's body until its load lands - it replaced the word
+   "Loading…", which told the reader nothing. Deliberately unanimated: a shimmer
+   would be one more thing to switch off under Reduce motion. */
+.profile-view .profile-skeleton {
+  height: 1.1rem;
+  width: min(14rem, 60%);
+  margin: .35rem 0 .6rem;
+  border-radius: calc(var(--radius) * .75);
+  background: hsl(var(--muted));
+}
+@media (prefers-reduced-motion: reduce) { .profile-view .profile-collapse-chev { transition: none; } }
+
+/* Details card: fields (two columns of three) on the left, theme + headshot
+   stacked on the right. Collapses to one column when there isn't room. */
+.profile-view .profile-details-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) .6fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+/* Stretch to the (taller) headshot/theme column so the actions can pin to the bottom. */
+.profile-view .profile-details-main { min-width: 0; display: flex; flex-direction: column; align-self: stretch; }
+.profile-view .profile-side { display: flex; flex-direction: column; gap: 1.4rem; }
+
+.profile-view .profile-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .85rem 1rem;
+  margin-bottom: 1.25rem;
+}
+.profile-view .profile-field { display: flex; flex-direction: column; gap: .3rem; min-width: 0; }
+.profile-view .profile-field-label {
+  font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase;
+  letter-spacing: .04em; color: hsl(var(--muted-foreground));
+}
+.profile-view .profile-field input {
+  width: 100%; box-sizing: border-box;
+  padding: .5rem .65rem; font-size: var(--fs-lg);
+}
+.profile-view .profile-field input:focus {
+  outline: none; border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / .3);
+}
+/* Jelly-effects mode (lib/jelly.ts): the identity inputs and the Save button
+   swap to <jelly-input>/<jelly-button>. Host-level custom properties override
+   the components' size tables so they sit at the compact form scale the native
+   controls use; width:100% fills the field grid cell like a native input. */
+.profile-view .profile-field jelly-input { width: 100%; }
+
+/* The provenance opt-in leads "Your details" now (plans/163 4.3) - it decides
+   whether anything in the form below ever leaves this device, so it is framed as
+   its own row at the top of the form with one plain sentence under it, rather
+   than trailing the Save button. The pill inside is the unchanged .profile-check. */
+.profile-view .profile-optin {
+  margin: 0 0 1.25rem;
+  padding: .85rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / .35);
+}
+.profile-view .profile-optin .profile-check { margin: 0; }
+.profile-view .profile-optin-note {
+  margin: .5rem 0 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+
+/* Form: "use my details" toggle (a pill that hugs its label) + actions row */
+.profile-view .profile-check {
+  /* Cap at the container: a bare 19em (304px) overflowed a narrow phone, forcing the whole
+     page wider than the viewport and clipping every card off the left edge. */
+  min-width: min(19em, 100%);
+  display: inline-flex; align-items: center; gap: .55rem;
+  margin: 0 auto 0 0; padding: .4rem .8rem; /* margin-right:auto keeps the buttons on the right */
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  font-size: var(--fs-lg); cursor: pointer;
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+.profile-view .profile-check:hover { background: hsl(var(--accent)); }
+.profile-view .profile-check:has(input:checked),
+.profile-view .profile-check:has(jelly-checkbox[checked]) { border-color: hsl(var(--primary)); background: hsl(var(--primary) / .08); }
+.profile-view .profile-check jelly-checkbox { flex: none; }
+.profile-view .profile-check input {
+  width: 1rem; height: 1rem; margin: 0;
+  appearance: none; -webkit-appearance: none;
+  border: 1.5px solid hsl(var(--border));   /* off → outlined box */
+  border-radius: var(--radius-xs);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--dur-1), border-color var(--dur-1);
+}
+.profile-view .profile-check input:checked {
+  background: hsl(var(--primary));          /* on → filled box */
+  border-color: hsl(var(--primary));
+}
+/* Tiny "opt-in" pill before the checkbox. */
+.profile-view .profile-check-tag {
+  flex: none;
+  font-size: calc(.58rem * var(--a11y-fs)); font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  padding: .1rem .45rem; border-radius: calc(var(--radius)*2);
+  background: hsl(var(--primary) / .15); color: hsl(var(--primary));
+}
+
+/* Brief attention highlight when a #/profile?focus=<id> deep link lands (the
+   gallery's nudges, search hits, share links, the rail's own jump()). Generic on
+   purpose - it rings whatever target it's given, the "Use my details" pill or a
+   NAV_SECTIONS card/collapsible alike; box-shadow follows the target's own
+   corner radius, so no per-target CSS is needed. */
+.profile-view .is-focus-pulse { animation: profile-focus-pulse 1.1s ease-out 2; }
+@keyframes profile-focus-pulse {
+  0%   { box-shadow: 0 0 0 0 hsl(var(--primary) / .5); }
+  70%  { box-shadow: 0 0 0 8px hsl(var(--primary) / 0); }
+  100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+}
+/* Reduced motion: no animated ring - a static one that holds, then fades out via
+   a plain box-shadow transition (a colour change, never movement). JS adds
+   is-focus-pulse-out after a short hold to trigger the fade, then drops both
+   classes once it completes (see pulseHighlight in profile.ts). */
+@media (prefers-reduced-motion: reduce) {
+  .profile-view .is-focus-pulse {
+    animation: none;
+    box-shadow: 0 0 0 3px hsl(var(--primary) / .45);
+    transition: box-shadow .5s ease;
+  }
+  .profile-view .is-focus-pulse.is-focus-pulse-out { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+}
+
+/* Feature flags - a list of labelled toggle switches (auto-save on change). */
+.profile-view .feature-flags { list-style: none; margin: .5rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.profile-view .feature-flag {
+  
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .55rem .9rem;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  font-size: var(--fs-lg); cursor: pointer;
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+.profile-view .feature-flag:hover { background: hsl(var(--accent)); }
+.profile-view .feature-flag:has(input:checked),
+.profile-view .feature-flag:has(jelly-switch[checked]) { border-color: hsl(var(--primary)); }
+/* Jelly-effects mode (lib/jelly.ts): the flag rows swap their CSS switch for a
+   <jelly-switch>. Its geometry tokens are host-level custom properties, so this
+   outer rule overrides the component's size table to sit close to the CSS
+   switch's footprint and keep the row height steady across the two modes. */
+.profile-view .feature-flag .feature-flag-jelly {
+  flex: none;
+  --jelly-switch-width: 44px;
+  --jelly-switch-height: 24px;
+}
+.profile-view .feature-flag-label { font-weight: 500; }
+/* "(batch mode)" rendered as a small pill beside the "Pro" label. */
+.profile-view .feature-flag-pill {
+  display: inline-block; vertical-align: middle;
+  margin-left: .5rem; padding: .1rem .5rem;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--primary) / .12);
+  color: hsl(var(--primary));
+  font-size: var(--fs-xs); font-weight: 600; letter-spacing: .02em;
+}
+/* Small (i) explainer beside a flag label - the shared help-tip button now
+   (component audit rec 13); .feature-flag-info stays as its positioning host
+   (see profile.ts's flagRow), its own .help-tip-btn/-pop styling lives in tool.css. */
+.profile-view .feature-flag-info { position: relative; display: inline-flex; vertical-align: middle; margin-left: .35rem; }
+.profile-view .feature-flag-input { position: absolute; opacity: 0; width: 0; height: 0; }
+.profile-view .feature-flag-switch {
+  flex: none; position: relative;
+  width: 2.4rem; height: 1.35rem; border-radius: var(--radius-pill);
+  background: hsl(var(--border));
+  transition: background var(--dur-1);
+}
+.profile-view .feature-flag-switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: calc(1.35rem - 4px); height: calc(1.35rem - 4px);
+  border-radius: var(--radius-round); background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+  transition: transform var(--dur-1);
+}
+/* A named cluster heading inside the flag list (Connectors) - a label row, not a
+   toggle, so it carries the card-heading treatment plus one line of scope text. */
+.profile-view .feature-flag-group {
+  list-style: none;
+  display: flex; flex-direction: column; gap: .2rem;
+  margin: .1rem .25rem;
+  font-size: var(--fs-xs); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .07em;
+  color: hsl(var(--muted-foreground));
+}
+.profile-view .feature-flag-group-note {
+  font-size: var(--fs-md); font-weight: 400;
+  text-transform: none; letter-spacing: 0; line-height: 1.45; max-width: 74ch;
+}
+/* Separates the category flags from the Pro (batch) mode flag. */
+.profile-view .feature-flag-divider {
+  list-style: none;
+  height: 1px;
+  margin: .35rem .25rem;
+  background: hsl(var(--border));
+}
+.profile-view .feature-flag-input:checked + .feature-flag-switch { background: hsl(var(--primary)); }
+.profile-view .feature-flag-input:checked + .feature-flag-switch::after { transform: translateX(calc(2.4rem - 1.35rem)); }
+.profile-view .feature-flag-input:focus-visible + .feature-flag-switch { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+/* Sits at the bottom-left of the details column; margin-top:auto fills the gap. */
+.profile-view .profile-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; margin-top: auto; padding-top: 1.25rem; }
+.profile-view .profile-btn-primary {
+  padding: .5rem 1.15rem; font: inherit; font-size: var(--fs-lg); font-weight: 600;
+  border-radius: var(--radius); border: 1px solid hsl(var(--border));
+  cursor: pointer; text-decoration: none; text-align: center; line-height: 1.4;
+}
+/* fill (background/color) + hover are aliased in parts/buttons.css's .btn--primary list */
+.profile-view .profile-btn-primary { padding: 1em 2em; border-radius: calc(var(--radius) *2); border-color: hsl(var(--primary)); }
+.headshot-heading{text-align:center;}
+
+/* ── Appearance card - theme preview cards (the picker moved here from the
+   dashboard). Each preview is a real <button> carrying its own [data-theme], so
+   tokens.css resolves the dots/sample/border vars in THAT theme's colours no
+   matter which theme the app is wearing. platform.css (.plat-theme*) is a
+   dashboard-only sheet - not on this route - so the equivalents live here under
+   profile-scoped names. Same full-border card chrome as every .profile-card. */
+.profile-view .profile-appearance-sub {
+  margin: -.4rem 0 1rem; max-width: 74ch;
+  font-size: var(--fs-lg); line-height: 1.5; color: hsl(var(--muted-foreground));
+}
+.profile-view .profile-theme-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: .85rem;
+}
+.profile-view .profile-theme {
+  font: inherit; text-align: left; cursor: pointer; width: 100%;
+  padding: 1rem; border-radius: var(--radius);
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-1) ease, transform .1s ease;
+}
+.profile-view .profile-theme:hover { border-color: hsl(var(--primary) / .55); transform: translateY(-2px); box-shadow: 0 6px 16px hsl(0 0% 0% / .1); }
+.profile-view .profile-theme:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.profile-view .profile-theme.is-active { border-color: hsl(var(--primary)); box-shadow: inset 0 0 0 1px hsl(var(--primary)); }
+.profile-view .profile-theme-name { display: flex; align-items: center; gap: .4rem; font-weight: 600; }
+.profile-view .profile-theme-ic { display: inline-flex; }
+.profile-view .profile-theme-ic svg { width: var(--fs-xl); height: var(--fs-xl); }
+.profile-view .profile-theme.is-active .profile-theme-name::after { content: '✓'; margin-inline-start: auto; color: hsl(var(--primary)); font-weight: 800; }
+/* Tiny "default" pill on the Light preview. */
+.profile-view .profile-theme-pill {
+  display: inline-block; font-size: calc(.58rem * var(--a11y-fs)); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .04em;
+  padding: .12rem .38rem; border-radius: var(--radius-pill);
+  background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+}
+.profile-view .profile-theme-dots { display: flex; gap: .35rem; margin: .85rem 0; }
+.profile-view .profile-theme-dots span { width: 22px; aspect-ratio: 1; min-width: 0; border-radius: var(--radius); box-shadow: var(--edge); }
+.profile-view .profile-theme-sample { font-size: calc(1.6rem * var(--a11y-fs)); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .profile-view .profile-theme { transition: none; } }
+
+/* ── Accessibility card - the three opt-in comfort prefs (lib/a11y-prefs.ts).
+   Sits directly under Appearance and reuses the .feature-flag toggle-row
+   primitive above wholesale, so there is exactly one switch look in this view;
+   only the two deltas the card actually needs live here. */
+/* Wider rows than the flag drawer's: two or three switches read better spaced
+   out than crammed, and the help text below each label is longer. */
+.profile-view .profile-a11y-prefs { gap: .6rem; }
+/* The (i) host is a few pixels wide, so help-tip-pop's default `left:0;right:0`
+   would size the tip to it. Let it take its own width (same recipe as the
+   storage info-dots and tool.css's .block-control tips) and cap it against the
+   viewport so it can't spill off a narrow phone at the card's right edge. */
+.profile-view .a11y-pref-info > .help-tip-pop {
+  right: auto; width: max-content;
+  min-width: 12rem; max-width: min(24rem, 68vw);
+}
+
+/* Activity - stat tiles, a format leaderboard (proportional bars), meta line.
+   The declarations byte-identical with the Dashboard's copy of this same
+   component (lib/activity-summary.ts) now live once in components.css,
+   scoped to both view roots (component audit rec 13) - only this view's own
+   sizing stays here. */
+/* On desktop the stat tiles sit beside the format leaderboard; they stack below. */
+.profile-view .activity-split {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.75rem; align-items: start; margin: 0 0 1.25rem;
+}
+.profile-view .activity-grid {
+  /* Cap at ~4 columns (a higher min stops auto-fit cramming 6 narrow ones); the
+     1fr lets the tiles stretch to fill the row. */
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  margin: 0 0 1.25rem;
+}
+.profile-view .activity-stat {
+  padding: .85rem .9rem; border-radius: var(--ui-radius-panel);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ui-color-border-default) 60%, transparent);
+}
+.profile-view .activity-num { font-size: calc(1.75rem * var(--a11y-fs)); }
+.profile-view .activity-label { font-size: var(--fs-2xs); }
+
+.profile-view .activity-block { margin: 0 0 1.1rem; }
+.profile-view .activity-h3 { margin: 0 0 .55rem; font-size: var(--fs-2xs); }
+.profile-view .fmt-row { grid-template-columns: 5rem 1fr 2.75rem; text-align: right; gap: .65rem; font-size: var(--fs-md); }
+.profile-view .fmt-track { height: .55rem; border-radius: var(--radius); }
+.profile-view .fmt-fill { border-radius: var(--radius); }
+
+.profile-view .activity-meta { font-size: var(--fs-md); margin: 0; }
+/* Favourite tool: a pill button in the meta line that opens that tool. */
+.profile-view .activity-meta .activity-fav {
+  display: inline-flex; align-items: center; gap: .25rem;
+  padding: .05rem .5rem;
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control);
+  color: var(--ui-color-text-default); font-weight: 700;
+  transition: background var(--ui-motion-feedback), border-color var(--ui-motion-feedback), color var(--ui-motion-feedback);
+}
+.profile-view .activity-meta .activity-fav::after { content: "→"; font-weight: 600; opacity: .55; }
+.profile-view .activity-meta .activity-fav:hover {
+  background: var(--ui-color-selection-surface); border-color: var(--ui-color-selection-border); color: var(--ui-color-action-primary);
+}
+
+/* Storage */
+.profile-view .storage-subsection:first-of-type { margin-top: 1.1rem; }
+/* A titled sub-block inside any card body - Sync across devices, inside Connected
+   services - reuses .storage-subsection's neutral rule + spacing (parts/storage.css).
+   Only the heading needs taming: that block always used a plain <span>. */
+.profile-view .storage-subsection-header h3 { margin: 0; font: inherit; }
+/* Clear cache + Clear all my data sit together on their own row, right-aligned. */
+.profile-view .storage-actions { display: flex; align-items: center; justify-content: flex-end; gap: .6rem; margin-top: 1.25em; }
+
+/* ─── Storage "Reconciliation Meter" - the redesigned Storage section ───────
+   One honest composition: a hero total (the browser's real device usage), a
+   breakdown bar whose measured slices + an explicit hatched "Other/overhead"
+   remainder reconcile to that total by construction, a legend that doubles as an
+   explore control, a quiet quota gauge, and per-category in-place manage/clear. */
+.profile-view .store-meter { display: flex; flex-direction: column; gap: 1.1rem; }
+
+/* (A) Hero - the ground-truth total, count-up, tabular so it doesn't jitter. */
+.profile-view .store-hero { display: flex; flex-direction: column; gap: .1rem; }
+.profile-view .store-hero-num {
+  margin: 0; font-size: clamp(2.2rem, 7vw, 3.2rem); font-weight: 700; line-height: 1;
+  font-variant-numeric: tabular-nums; color: hsl(var(--foreground));
+}
+.profile-view .store-hero-cap { margin: .4rem 0 0; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
+.profile-view .store-headroom { margin: .1rem 0 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+
+/* (B) Breakdown bar - whole width == usage; flex-grow carries each slice's bytes
+   (zero percent math; segments auto-proportion). Solid = measured exactly,
+   hatch + "~" = derived by subtraction. */
+.profile-view .store-bar {
+  display: flex; gap: 1px; height: 22px; border-radius: var(--radius-pill); overflow: hidden;
+  background: hsl(var(--border)); position: relative;
+}
+.profile-view .store-bar::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, hsl(0 0% 100% / .16), transparent 42%);
+}
+.profile-view .store-bar .seg {
+  border: 0; padding: 0; flex-basis: 0; min-width: 2px; cursor: pointer;
+  /* min-width keeps sub-pixel slices a visible hairline; the EXACT bytes live in
+     the legend + the seg title + the aria sentence, so width never misleads. */
+  transition: flex-grow .45s ease, opacity var(--dur-1) ease;
+}
+.profile-view .store-bar .seg[data-cat="sessions"] { background: hsl(var(--store-1)); }
+.profile-view .store-bar .seg[data-cat="images"]   { background: hsl(var(--store-2)); }
+.profile-view .store-bar .seg[data-cat="file-history"],
+.profile-view .store-chip-sw[data-cat="file-history"] { background: hsl(var(--store-5)); }
+.profile-view .store-manage[data-cat="file-history"] .store-manage-name { min-width: 0; overflow-wrap: anywhere; }
+.profile-view .store-manage[data-cat="file-history"] small { display: block; max-width: 52ch; font-size: var(--fs-sm); font-weight: 400; line-height: 1.5; }
+.profile-view .store-manage[data-cat="file-history"] .btn { min-height: 44px; white-space: normal; }
+.profile-view .store-bar .seg[data-cat="cache"]    { background: hsl(var(--store-3)); }
+.profile-view .store-bar .seg[data-cat="previews"] { background: hsl(var(--store-4)); }
+.profile-view .store-bar .seg[data-cat="pins"]     { background: hsl(var(--store-5)); }
+.profile-view .store-bar .seg--other,
+.profile-view .store-chip-sw.is-hatch {
+  background: repeating-linear-gradient(45deg, hsl(var(--store-other)) 0 5px, hsl(var(--store-other) / .5) 5px 10px);
+}
+.profile-view .store-bar .seg:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+/* Explore: with one slice active, dim the rest and ring the active one. */
+.profile-view .store-bar[data-active] .seg:not(.is-active) { opacity: .3; }
+.profile-view .store-bar[data-active] .seg.is-active { box-shadow: inset 0 0 0 2px hsl(var(--ring)); }
+
+/* (C) Legend - chips ARE the explore control. */
+.profile-view .store-legend { list-style: none; display: flex; flex-wrap: wrap; gap: .35rem .85rem; padding: 0; margin: 0; }
+.profile-view .store-legend > li { display: inline-flex; }
+.profile-view .store-chip {
+  display: inline-flex; align-items: center; gap: .4rem; border: 0; background: none;
+  cursor: pointer; font: inherit; padding: 2px 5px; border-radius: var(--radius-sm);
+}
+.profile-view .store-chip:hover, .profile-view .store-chip.is-active { background: hsl(var(--muted)); }
+.profile-view .store-chip:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+.profile-view .store-chip--other, .profile-view .store-chip--other:hover { cursor: default; background: none; }
+.profile-view .store-chip-sw { width: 11px; height: 11px; border-radius: var(--radius-xs); flex: none; }
+.profile-view .store-chip-sw[data-cat="sessions"] { background: hsl(var(--store-1)); }
+.profile-view .store-chip-sw[data-cat="images"]   { background: hsl(var(--store-2)); }
+.profile-view .store-chip-sw[data-cat="cache"]    { background: hsl(var(--store-3)); }
+.profile-view .store-chip-sw[data-cat="previews"] { background: hsl(var(--store-4)); }
+.profile-view .store-chip-sw[data-cat="pins"]     { background: hsl(var(--store-5)); }
+.profile-view .store-chip-name { font-size: var(--fs-sm); color: hsl(var(--foreground)); }
+.profile-view .store-chip-val { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
+
+/* (D) Quota gauge + reclaim line - the quiet used-of-budget truth. */
+.profile-view .store-quota { display: flex; align-items: center; gap: var(--sp-4); margin: 0; flex-wrap: wrap; }
+.profile-view .store-quota-text, .profile-view .store-reclaim { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); margin: 0; }
+.profile-view .store-quota-text strong, .profile-view .store-reclaim strong { color: hsl(var(--foreground)); }
+.profile-view .store-footnote { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); opacity: .8; margin: .1rem 0 0; }
+
+/* Manage panels - one per measured category. */
+.profile-view .store-manages { display: flex; flex-direction: column; margin-top: .3rem; }
+.profile-view .store-manage { border-top: 1px solid hsl(var(--border)); }
+.profile-view .store-manage-sum {
+  display: flex; align-items: center; gap: .5rem; min-height: 44px; cursor: pointer;
+  list-style: none; font-size: var(--fs-md); color: hsl(var(--foreground));
+}
+.profile-view .store-manage-sum::-webkit-details-marker { display: none; }
+.profile-view .store-manage-sum:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -3px; border-radius: var(--radius); }
+.profile-view .store-manage-sum .profile-collapse-chev { flex: none; color: hsl(var(--muted-foreground)); transition: transform var(--dur-1) ease; }
+.profile-view .store-manage[open] > .store-manage-sum .profile-collapse-chev { transform: rotate(90deg); }
+.profile-view .store-manage-sum .storage-hint { margin-left: auto; }
+.profile-view .store-manage-body { padding: .25rem 0 .75rem; }
+.profile-view .store-manage--row {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  min-height: 44px; border-top: 1px solid hsl(var(--border));
+}
+.profile-view .store-manage-name { font-size: var(--fs-md); color: hsl(var(--foreground)); display: inline-flex; align-items: center; }
+.profile-view .store-manage-link { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); text-decoration: none; display: inline-block; margin-top: .55rem; }
+.profile-view .store-manage-link:hover { color: hsl(var(--foreground)); }
+
+/* Session list - independently scrollable, selectable rows. */
+.profile-view .store-sess-tools { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .4rem; }
+.profile-view .store-selall { display: inline-flex; align-items: center; gap: .4rem; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); cursor: pointer; }
+.profile-view .store-sort { border: 0; background: none; font: inherit; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); cursor: pointer; padding: var(--sp-1) var(--sp-3); border-radius: var(--radius-sm); }
+.profile-view .store-sort:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.profile-view .store-sess-list { list-style: none; margin: 0; padding: 0; max-height: 50vh; overflow: auto; }
+.profile-view .store-sess { display: flex; align-items: center; gap: .6rem; padding: .45rem 0; scroll-margin-block: 8px; }
+.profile-view .store-sess + .store-sess { border-top: 1px solid color-mix(in srgb, var(--ui-color-border-default) 60%, transparent); }
+.profile-view .store-sess-check { flex: none; width: var(--fs-xl); height: var(--fs-xl); cursor: pointer; }
+.profile-view .store-sess-thumb { width: 40px; height: 40px; border-radius: var(--ui-radius-control); object-fit: cover; flex: none; background: var(--ui-color-surface-muted); }
+.profile-view .store-sess-thumb.is-placeholder { display: inline-flex; align-items: center; justify-content: center; color: var(--ui-color-action-primary); }
+.profile-view .store-sess-thumb.is-placeholder svg { width: calc(20px * var(--a11y-fs)); height: calc(20px * var(--a11y-fs)); }
+.profile-view .store-sess-meta { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.profile-view .store-sess-label { font-size: var(--fs-md); color: var(--ui-color-text-default); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.profile-view .store-sess-tag { font-size: var(--fs-2xs); padding: 0 5px; margin-left: .35rem; border-radius: var(--ui-radius-pill); background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
+.profile-view .store-sess-sub { font-size: var(--fs-xs); color: var(--ui-color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.profile-view .store-sess .session-size { margin: 0; flex: none; }
+.profile-view .store-sess-del {
+  flex: none; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-choice-round); background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-muted); cursor: pointer; font-size: var(--fs-sm); line-height: 1; opacity: .6;
+  transition: opacity var(--ui-motion-feedback), color var(--ui-motion-feedback), border-color var(--ui-motion-feedback);
+}
+.profile-view .store-sess:hover .store-sess-del, .profile-view .store-sess-del:focus-visible { opacity: 1; }
+/* No hover on touch, so the delete icon needs to be reachable without it. */
+@media (hover: none) {
+  .profile-view .store-sess-del { opacity: 1; }
+}
+.profile-view .store-sess-del:hover,
+.profile-view .headshot-remove:hover{ color: hsl(var(--destructive)); border-color: hsl(var(--destructive)); }
+.profile-view .store-sess-del:disabled { opacity: .4; cursor: default; }
+
+/* Floating multi-select action bar (sessions only). */
+.store-selbar {
+  /* Matches the other floating bulk bars (.projects-bulkbar, projects.css) - clears
+     a phone's home-indicator/gesture strip instead of sitting under it. */
+  position: fixed; left: 50%; bottom: calc(4.5rem + var(--safe-bottom) + var(--vv-bottom, 0px)); transform: translateX(-50%);
+  display: flex; align-items: center; gap: .8rem; padding: .5rem .5rem .5rem .95rem;
+  border-radius: var(--radius-pill); background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border)); box-shadow: 0 10px 30px hsl(0 0% 0% / .25); z-index: 60;
+}
+.store-selbar[hidden] { display: none; }
+.store-selbar-count { font-size: var(--fs-md); font-variant-numeric: tabular-nums; }
+.store-selbar .btn { padding: var(--sp-2) var(--sp-6); }
+/* While the fixed selection bar is up, reserve space so it never covers the section's
+   own bottom controls (Export / Clear all) on short/mobile viewports. */
+.profile-view .store-meter.has-selbar { padding-bottom: 76px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-view .store-bar .seg, .profile-view .store-manage-sum .profile-collapse-chev { transition: none; }
+}
+
+/* The "i" badge beside a heading (.info-dot/.info-tip) moved onto the shared
+   help-tip component (component audit rec 13) - infoDot() in profile.ts now
+   emits .help-tip-host/.help-tip-btn/.help-tip-pop (tool.css) instead. */
+
+/* Headshot widget - a large circle; "Edit" overlays it (on hover, or always
+   when empty), and a small ✕ badge top-right removes it. */
+.profile-view .headshot {     position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;}
+.profile-view .headshot-preview {
+      box-shadow: 0 .2em 1em #0005;
+  position: relative; width: 100%; height: 100%;
+  border-radius: calc(var(--radius) * 7);  overflow: hidden; border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--muted)); background-size: cover; background-position: center;
+}
+.profile-view .headshot-edit {
+  position: absolute; inset: 0; border: none; border-radius: calc(var(--radius) * 7); cursor: pointer;
+  display: flex; align-items: flex-end; justify-content: center; padding-bottom: 16px;
+  font: inherit; font-size: var(--fs-sm); font-weight: 700; letter-spacing: .03em; color: #fff;
+  background: linear-gradient(to top, rgba(0, 0, 0, .55), rgba(0, 0, 0, 0) 55%);
+  opacity: 0; transition: opacity var(--dur-1);
+}
+.profile-view .headshot-preview:hover .headshot-edit,
+.profile-view .headshot-edit:focus-visible { opacity: 1; }
+/* Empty state: the overlay is always shown as a muted "Upload" prompt. */
+.profile-view .headshot-preview.is-empty .headshot-edit {
+  opacity: 1; align-items: center; padding: 0; background: none;
+  color: hsl(var(--muted-foreground)); font-weight: 600;
+  font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .05em;
+}
+/* Jelly variant (flag): the soft-body button is a content-sized capsule, so
+   centre it in the circle rather than letting it sit at the top-left inline
+   origin (where the label clipped). The whole circle is the hit-area - a click
+   handler on .headshot-preview triggers the file picker (see profile.ts) - so
+   this element is a purely visual affordance; it fades in on hover, and stays
+   shown while the circle is empty (the "Upload" prompt) or the button is focused. */
+.profile-view .headshot-edit-jelly {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  z-index: 1; opacity: 0; transition: opacity var(--dur-1);
+}
+.profile-view .headshot-preview:hover .headshot-edit-jelly,
+.profile-view .headshot-preview.is-empty .headshot-edit-jelly,
+.profile-view .headshot-edit-jelly:focus-within { opacity: 1; }
+.profile-view .headshot-remove {
+  position: absolute; top: 4px; right: 4px; z-index: 2;
+  width: 24px; height: 24px; border-radius: var(--radius-round);
+  border: 1px solid hsl(var(--border)); background: hsl(var(--background));
+  color: hsl(var(--muted-foreground)); font-size: var(--fs-xl); line-height: 1; cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+}
+.profile-view .headshot-remove[hidden] { display: none; }
+
+@media (max-width: 640px) {
+  /* Single-column flow. Flatten both column wrappers (display: contents) so the
+     headshot - which lives in .profile-side - can sit above the name/email
+     fields, while Save (.profile-actions) drops to the bottom. Order:
+     headshot → details → sound → actions. (The opt-in row is no longer in here:
+     it leads the form, above the whole grid.) */
+  .profile-view .profile-details-grid { display: flex; flex-direction: column; gap: 1.4rem; align-items: center; }
+  .profile-view .profile-details-main,
+  .profile-view .profile-side { display: contents; }
+  .profile-view .profile-side .profile-field:has(.headshot) { order: 1; }
+  /* Explicit width: the centred flex column above sizes children to fit-content,
+     and in jelly mode a <jelly-input>'s width:100% contributes no intrinsic width
+     - so without this the whole grid (and every field in it) collapses to the
+     widest label. Native inputs mask it with their own intrinsic size. */
+  .profile-view .profile-fields { grid-template-columns: 1fr; order: 2; margin-bottom: 0; width: 100%; }
+  .profile-view .profile-side .profile-field--sound { order: 3; }
+  .profile-view .profile-actions { order: 4; padding-top: 0; justify-content: center; }
+  .profile-view .activity-split { grid-template-columns: 1fr; gap: 1.1rem; }
+
+  /* "Your details": center the heading + controls; detail inputs stretch
+     full-width with more height for easier tapping (16px font also stops iOS
+     from zoom-jumping on focus). */
+  .profile-view .profile-card:first-of-type h2 { text-align: center; }
+  .profile-view .profile-form .profile-field-label { text-align: center; }
+  .profile-view .profile-form .profile-field input {
+    width: 100%; padding: .65rem .75rem; font-size: calc(1rem * var(--a11y-fs));
+  }
+  .profile-view .profile-actions { justify-content: center; }
+  .profile-view .profile-check { margin: 0; }
+
+  /* Empty-state only: the full 200px circle ate ~40% of the viewport before any
+     field. Row-scale it down to a compact control so First name reaches the
+     first screen. Once a photo exists the circle stays full-size - a real
+     photo earns the space, a blank upload prompt doesn't. */
+  .profile-view .headshot-preview.is-empty .headshot-edit {
+    font-size: calc(.5rem * var(--a11y-fs)); letter-spacing: 0;
+  }
+  /* Jelly-effects mode: the pill is content-sized off these two host properties
+     (lib/jelly.ts), not font-size - shrink both so "Upload" fits the 56px circle
+     instead of overflowing and getting clipped by its overflow:hidden. */
+  .profile-view .headshot-preview.is-empty .headshot-edit-jelly {
+    --jelly-button-font-size: calc(.55rem * var(--a11y-fs));
+    --jelly-button-height: calc(1.3rem * var(--a11y-fs));
+  }
+}
+
+/* ─── Headshot cropper (body-mounted modal; own classes, no profile scoping) ── */
+.cropper-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem; background: rgba(0, 0, 0, .55);
+}
+.cropper {
+  width: min(92vw, 360px);
+  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * 1.25);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .4); padding: 1.25rem;
+}
+.cropper-title { margin: 0 0 1rem; font-size: calc(1rem * var(--a11y-fs)); font-weight: 700; }
+.cropper-stage {
+  position: relative; width: 300px; height: 300px; max-width: 100%;
+  margin: 0 auto; overflow: hidden; border-radius: var(--radius);
+  background: hsl(var(--muted)); cursor: grab; touch-action: none; user-select: none;
+}
+.cropper-stage:active { cursor: grabbing; }
+.cropper-stage:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+.cropper-img { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
+.cropper-mask {
+  position: absolute; inset: 0; pointer-events: none; border-radius: var(--radius-round);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, .45);
+  outline: 0; outline-offset: -1px;
+}
+.cropper-zoom { display: flex; align-items: center; gap: .7rem; margin: 1rem 0 .25rem; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
+.cropper-zoom input { flex: 1; }
+.cropper-actions { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1rem; }
+.cropper-btn {
+  padding: .5rem 1.15rem; font: inherit; font-size: var(--fs-lg); font-weight: 600;
+  border-radius: var(--radius); border: 1px solid hsl(var(--border)); cursor: pointer;
+}
+.cropper-btn--secondary { background: hsl(var(--card)); color: hsl(var(--foreground)); }
+.cropper-btn--secondary:hover { background: hsl(var(--accent)); }
+/* fill (background/color) + hover are aliased in parts/buttons.css's .btn--primary list */
+.cropper-btn--primary { border-color: hsl(var(--primary)); }
+
+/* "Verify a file" CTA in the Content Credentials section - matches the gallery's
+   green Verify button (explicit green so it reads the same in every theme). */
+.identity-verify-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: 12px;
+  background: hsl(151 57% 42%);
+  color: #fff;
+  border-color: transparent;
+  font-weight: 600;
+}
+.identity-verify-link:hover { background: hsl(151 57% 36%); color: #fff; border-color: transparent; }
+.identity-verify-link svg { flex: 0 0 auto; }
+
+/* Connected services (plans/129): the personal send-target providers. Rows
+   reuse the store-manage idiom; the credential providers get a small form. */
+.profile-view .pconn-row { align-items: flex-start; }
+/* The name cell stacks: provider name, then account, then the note - the row's
+   flex display would otherwise glue them onto one line. Same fix inside the
+   credential cards' summaries. */
+.profile-view .pconn-row .store-manage-name,
+.profile-view .pconn-cred summary .store-manage-name { display: block; }
+.profile-view .pconn-account { display: block; font-weight: 600; margin-top: 2px; }
+.profile-view .pconn-note { display: block; opacity: .75; font-size: var(--fs-sm); margin-top: 2px; }
+.profile-view .pconn-persist { display: flex; align-items: center; gap: .4rem; margin-top: .45rem; font-size: var(--fs-md); opacity: .9; }
+/* "Make this my export home" (plans/138 A1): the same inline-check idiom as
+   the persist toggle, tinted with the brand accent when it is the live choice. */
+.profile-view .pconn-home { display: flex; align-items: center; gap: .4rem; margin-top: .45rem; font-size: var(--fs-md); opacity: .9; }
+.profile-view .pconn-home:has(input:checked) { opacity: 1; font-weight: 600; color: hsl(var(--brand-c1, var(--ring))); }
+.profile-view .pconn-cred { border: 1px solid hsl(var(--border) / .6); border-radius: var(--radius-md); padding: .55rem .8rem; margin-top: .6rem; }
+.profile-view .pconn-cred summary { cursor: pointer; list-style: none; }
+.profile-view .pconn-cred summary::-webkit-details-marker { display: none; }
+.profile-view .pconn-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .6rem .8rem; margin-top: .7rem; }
+.profile-view .pconn-field { display: flex; flex-direction: column; gap: .25rem; font-size: var(--fs-md); }
+.profile-view .pconn-form > .pconn-note, .profile-view .pconn-form > .pconn-actions { grid-column: 1 / -1; }
+.profile-view .pconn-actions { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.profile-view .pconn-status { font-size: var(--fs-md); opacity: .85; }
+
+}
+
+/* ── Design systems: each card wears its own palette and typography ────── */
+.profile-view .ds-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: var(--ui-space-panel); margin: var(--ui-space-panel) 0; }
+.ds-row { display: flex; flex-direction: column; position: relative; min-width: 0; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel); background: var(--ui-color-surface-raised); transition: border-color var(--ui-motion-feedback), box-shadow var(--ui-motion-feedback); }
+.ds-row.is-active { border-color: var(--ui-color-action-primary); box-shadow: var(--ui-effect-focus-halo); }
+.ds-row.is-switchable:hover { border-color: var(--ui-color-action-primary); }
+.ds-row:has(.ds-row-hit:focus-visible) { outline: 2px solid var(--ui-color-action-primary); outline-offset: 3px; }
+.ds-row-hit { position: absolute; inset: 0; z-index: 0; border: 0; border-radius: inherit; background: transparent; cursor: pointer; }
+.ds-row-preview { position: relative; z-index: 1; pointer-events: none; overflow: hidden; display: flex; flex-direction: column; gap: var(--sp-5); padding: var(--ui-space-panel); min-height: 180px; border-radius: var(--ui-radius-panel) var(--ui-radius-panel) 0 0; color: var(--ds-preview-fg); background: var(--ds-preview-bg); }
+.ds-preview-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); font: 550 var(--ui-type-caption)/1.3 var(--font-brand); letter-spacing: .06em; }
+.ds-row-active { display: inline-flex; align-items: center; gap: var(--sp-2); white-space: nowrap; letter-spacing: 0; }
+.ds-preview-composition { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); flex: 1; }
+.ds-row-preview-type { font-size: var(--ui-type-display); font-weight: 600; line-height: 1.1; letter-spacing: -.07em; }
+.ds-row-preview-type > span { font-size: .6em; opacity: .55; margin-inline-start: .12em; }
+.ds-preview-mark { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
+.ds-preview-mark i { position: absolute; width: 70%; height: 70%; border-radius: var(--radius-round); background: var(--ds-preview-accent); }
+.ds-preview-mark i + i { inset: 30% 0 0 30%; background: var(--ds-preview-fg); opacity: .65; }
+.ds-preview-logo { width: 100%; height: 100%; object-fit: contain; }
+.ds-preview-mark:has(.ds-preview-logo) i { display: none; }
+.ds-preview-caption { font-size: var(--ui-type-body); letter-spacing: .01em; opacity: .8; }
+.ds-row-preview-swatches { display: flex; height: 14px; margin: 0 calc(-1 * var(--ui-space-panel)) calc(-1 * var(--ui-space-panel)); }
+.ds-row-preview-swatches i { flex: 1; background: var(--ds-swatch); }
+.ds-row-main { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; padding: var(--ui-space-panel); position: relative; z-index: 1; pointer-events: none; }
+.ds-row-label { margin: 0; display: flex; align-items: center; gap: var(--sp-3); font-size: var(--ui-type-lead); font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.ds-row-lock { display: inline-flex; color: var(--ui-color-text-muted); }
+.ds-row-source { min-height: 2.8em; font-size: var(--ui-type-caption); line-height: 1.4; color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
+.ds-row-facts { display: flex; gap: var(--sp-3); font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); }
+.ds-row-actions { display: grid; grid-template-columns: 1fr 1fr 32px; align-items: center; gap: var(--sp-3); padding: 0 var(--ui-space-panel) var(--ui-space-panel); margin-top: auto; position: relative; z-index: 2; pointer-events: none; }
+.ds-row-actions .ds-row-btn { display: inline-flex; justify-content: center; align-items: center; gap: var(--sp-3); min-height: var(--ui-size-target); padding: var(--sp-3); font-size: var(--ui-type-body); pointer-events: auto; }
+.ds-row-more { position: relative; pointer-events: auto; }
+.ds-row-more summary { display: grid; place-items: center; min-height: var(--ui-size-target); cursor: pointer; list-style: none; border-radius: var(--ui-radius-control); }
+.ds-row-more summary::-webkit-details-marker { display: none; }
+.ds-row-more summary:focus-visible { outline: 2px solid var(--ui-color-action-primary); }
+.ds-row-menu { position: absolute; z-index: 5; right: 0; bottom: calc(100% + var(--sp-3)); min-width: 210px; padding: var(--sp-3); background: var(--ui-color-surface-raised); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); box-shadow: var(--ui-effect-focus-halo); }
+.ds-row-menu button { display: flex; align-items: center; gap: var(--sp-4); width: 100%; padding: var(--sp-5); text-align: start; background: none; border: 0; font: inherit; }
+.ds-row-menu button:hover { background: var(--ui-color-surface-muted); }
+.ds-row-menu .ds-row-remove { color: hsl(var(--destructive)); }
+.profile-view .ds-add { display: flex; flex-wrap: wrap; gap: var(--sp-4); padding-top: var(--sp-4); }
+
+/* Brand download uses the same tokens in the dialog's body-mounted top layer. */
+.brand-download { width: min(760px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 40px); padding: var(--ui-space-page); overflow: auto; color: var(--ui-color-text-default); background: var(--ui-color-surface-raised); }
+.bd-head { display: flex; align-items: start; justify-content: space-between; gap: var(--sp-5); }
+.bd-eyebrow { margin: 0 0 var(--sp-4); font-size: var(--ui-type-caption); letter-spacing: .08em; color: var(--ui-color-text-muted); }
+.brand-download .modal-title { margin: 0; font-size: var(--ui-type-heading); line-height: 1.2; overflow-wrap: anywhere; }
+.bd-close { display: grid; place-items: center; width: var(--ui-size-target); height: var(--ui-size-target); flex-shrink: 0; border: 0; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); }
+.bd-intro, .bd-help { font-size: var(--ui-type-body); line-height: 1.5; color: var(--ui-color-text-muted); }
+.bd-modes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); padding: 0; margin: var(--ui-space-panel) 0; border: 0; }
+.bd-modes label { display: flex; align-items: start; gap: var(--sp-4); padding: var(--ui-space-panel); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); cursor: pointer; }
+.bd-modes label:has(:checked) { border-color: var(--ui-color-selection-border); background: var(--ui-color-selection-surface); }
+.bd-modes input { margin-top: 4px; accent-color: var(--ui-color-action-primary); }
+.bd-modes span, .bd-item span { display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; }
+.bd-modes strong { font-size: var(--ui-type-body); }
+.bd-modes small, .bd-item small { font-size: var(--ui-type-caption); line-height: 1.45; color: var(--ui-color-text-muted); }
+.bd-search { display: flex; align-items: center; gap: var(--sp-4); background: var(--ui-color-surface-canvas); padding: 0 var(--sp-5); border-radius: var(--ui-radius-control); border: 1px solid var(--ui-color-border-default); }
+.bd-search input { width: 100%; min-height: var(--ui-size-target); padding: var(--sp-4) 0; border: 0; background: none; color: inherit; font-size: var(--ui-type-body); }
+.bd-lists { display: grid; gap: var(--sp-4); }
+.bd-group { border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); overflow: hidden; }
+.bd-group summary { padding: var(--sp-5); font-weight: 600; font-size: var(--ui-type-body); cursor: pointer; }
+.bd-group summary span { float: right; font-weight: 400; color: var(--ui-color-text-muted); }
+.bd-select-visible { margin: 0 var(--sp-5) var(--sp-4); padding: var(--sp-3) var(--sp-4); font-size: var(--ui-type-caption); background: var(--ui-color-surface-muted); border: 0; border-radius: var(--ui-radius-control); }
+.bd-items { max-height: 220px; overflow-y: auto; overscroll-behavior: contain; }
+.bd-item { display: flex; align-items: center; gap: var(--sp-5); padding: var(--sp-4) var(--sp-5); border-top: 1px solid var(--ui-color-border-default); cursor: pointer; }
+.bd-item[hidden] { display: none; }
+.bd-item:has(:checked) { background: var(--ui-color-selection-surface); }
+.bd-item input { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--ui-color-action-primary); }
+.bd-item strong { font-size: var(--ui-type-body); font-weight: 500; overflow-wrap: anywhere; }
+.bd-item small { overflow-wrap: anywhere; }
+.bd-empty { padding: var(--sp-5); color: var(--ui-color-text-muted); font-size: var(--ui-type-body); }
+.bd-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-5); padding-top: var(--ui-space-panel); margin-top: var(--ui-space-panel); border-top: 1px solid var(--ui-color-border-default); }
+.bd-summary { font-size: var(--ui-type-body); font-weight: 600; }
+.bd-status { margin: var(--sp-3) 0 0; font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
+.bd-status:empty { display: none; }
+.bd-download { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-4); min-height: var(--ui-size-target); flex-shrink: 0; }
+.brand-download :is(button, input, summary):focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
+@media (max-width: 600px) {
+  .brand-download { padding: var(--ui-space-panel); }
+  .bd-modes { grid-template-columns: 1fr; }
+  .bd-footer { align-items: stretch; flex-direction: column; }
+}

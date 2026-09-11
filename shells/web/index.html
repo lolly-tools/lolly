@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Canonical-origin guard. Runs before the deferred module scripts, so it
+       fires while the head parses. The lolly.* domain family funnels to the
+       canonical host (lolly.tools on this SUSE build) via Vercel redirects, but
+       the root document "/" on the www.* primary domains (www.lolly.to,
+       www.lolly.tools) is served from a sticky edge cache as a 200 shell rather
+       than redirecting. Its relative /assets/*.js module scripts then 308
+       cross-origin with a text/plain body, which browsers refuse to load as ES
+       modules ("disallowed MIME type text/plain"). Bounce off the alternate to
+       the canonical before those scripts are even fetched. Scoped to the lolly
+       public domain family, so Vercel preview URLs (*.vercel.app) and localhost
+       are never touched; brandChrome() (vite.config.js) rewrites CANON per
+       profile (lolly-start also canonicalises to lolly.tools) and blanks it
+       (guard off) for any brand with no canonical host. -->
+  <script>
+    (() => {
+      var CANON = 'lolly.tools';
+      var h = location.hostname;
+      if (CANON && h !== CANON && /(^|\.)lolly\.[a-z]{2,}$/.test(h)) {
+        location.replace('https://' + CANON + location.pathname + location.search + location.hash);
+      }
+    })();
+  </script>
+  <!-- Page pinch-zoom is enabled (WCAG 1.4.4 - never lock it). The mobile
+       controls sheet is position:fixed and would otherwise strand off-screen
+       while zoomed; a VisualViewport shim (main.js) re-pins it to the visible
+       area via the --vv-top/--vv-left CSS vars. The canvas preview also keeps
+       its own pinch/pan (setupStagePinchZoom). -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Lolly Tools</title>
+  <meta name="description" content="Lolly generates production-ready assets - QR codes, charts, graphics, PDFs and more - from simple inputs. Constraint-first, template-driven, works offline." />
+  <link rel="canonical" href="https://lolly.tools/" />
+  <meta name="theme-color" content="#0c322c" />
+
+  <!-- Open Graph / social preview -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Lolly" />
+  <meta property="og:title" content="Lolly - assets that stay the same so everything else can change" />
+  <meta property="og:description" content="Generate production-ready assets - QR codes, charts, graphics, PDFs - from simple inputs. Works offline." />
+  <meta property="og:url" content="https://lolly.tools/" />
+  <meta property="og:image" content="https://lolly.tools/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lolly - assets that stay the same so everything else can change" />
+  <meta name="twitter:description" content="Generate production-ready assets from simple inputs. Works offline." />
+  <meta name="twitter:image" content="https://lolly.tools/og.png" />
+
+  <!-- Brand-SERP structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Lolly",
+    "url": "https://lolly.tools/",
+    "applicationCategory": "DesignApplication",
+    "operatingSystem": "Web, Windows, macOS, Linux, iOS, Android",
+    "description": "Generate production-ready assets - QR codes, charts, graphics, PDFs and more - from simple inputs.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <!-- The signed source mark first (crisp at any size, provenance intact); .ico + png are
+       the fallbacks for browsers that don't take an SVG favicon. theme.ts flips this href
+       to /icon-reverse.svg on dark/brand themes live - following the IN-APP toggle, which a
+       `media` query can't see (it only tracks the OS scheme, and needed a reload). -->
+  <link rel="icon" id="favicon-svg" href="/icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" href="/icons/icon-192.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <!-- Preload the UI faces so they aren't discovered only after
+       app.css → @import fonts.css resolves (which causes a visible swap).
+       SUSE is the shell-served platform default on every profile, so these
+       cover every brand pack - before 2026-08-10 this was Outfit plus a
+       catalog-served SUSE that 404'd on any pack but brands/suse. Mono is
+       preloaded too: 34.5 KB of chrome type (code/number runs) that was
+       previously discovered only after the CSS parsed. crossorigin is
+       required for fonts.
+
+       Write the hrefs with LITERAL brackets - the way the files on disk and
+       fonts.css spell them. A preload only matches the request @font-face
+       makes if the two URL STRINGS are equal, and vite normalises its two
+       pipelines in OPPOSITE directions: the CSS pipeline puts a public-file
+       url() through `encodeURI`, so the BUILT css asks for
+       `/fonts/SUSE%5Bwght%5D.woff2`, while the HTML pipeline decodes an
+       attribute href and re-emits it with only `%` escaped, so the built HTML
+       carries the literal `[wght]` no matter what is written here. That is why
+       the first attempt at this fix (2026-08-25, hrefs hand-written as
+       `%5Bwght%5D`) changed nothing in dist/index.html and the 83 KB upright
+       face kept downloading twice. The dev server rewrites neither side, so
+       the literal form below is already correct in dev; fontPreloadUrls() in
+       vite.config.js re-applies vite's own `encodeURI` to these hrefs at build
+       time so the built HTML and the built CSS name one identical string.
+       The real cure is bracket-free filenames (plans/155 task 1.3) - see the
+       blocker note on fontPreloadUrls().
+       Keep these two lines adjacent - brandChrome() in vite.config.js strips
+       the whole run for non-SUSE brands by matching `/fonts/SUSE`. -->
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/SUSE[wght].woff2" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/SUSEMono[wght].woff2" />
+  <!-- The two CONDITIONAL catalog indexes - /catalog/tools/index.json and
+       /catalog/assets/index.json - are deliberately NOT preloaded. Task 3.1 added
+       a hint for the asset index and it was a pure loss both ways, traced in full
+       in catalog/sync.ts's conditionalFetch note: markup cannot set request
+       headers, so the hint is unconditional by construction and spends exactly the
+       40.3 KB gz the visitor's If-None-Match was about to save; and the response is
+       never adopted by the app's own fetch either, because `as="fetch"` without
+       crossorigin makes a mode "no-cors" / credentials "include" request while a
+       bare fetch() defaults to "cors" / "same-origin" (the preload key differs), and
+       instanceFetch's x-lolly-client header would keep it from matching even with
+       crossorigin. Result: the index downloaded twice on every load. The late start
+       those hints were aimed at is fixed by the slim index below, not by a hint that
+       cannot speak this protocol.
+
+       The TOOLS index IS preloaded in its slim form (task 3.8), because that one url
+       is fetched unconditionally - no validator, so no 304 for the hint to defeat -
+       and served must-revalidate, so the warmed cache entry turns the boot fetch into
+       a 304 instead of an 18.9 KB gz download. Only for the visitors who will read it:
+       a repeat visitor paints from their cached copy and main.ts never fetches slim, so
+       a static preload would download a file they never use and log "preload not used"
+       for it. `in` rather than getItem: it answers from the key list without
+       materialising the half-megabyte value. (The one url this can still waste is the
+       first load after a switch to a remote instance - setInstanceBase clears
+       sbt-tool-index, and the base lives in IndexedDB where this script cannot read it,
+       so the hint fetches THIS origin's copy while the app fetches the instance's.) -->
+  <script>
+    (() => {
+      try {
+        if ('sbt-tool-index' in localStorage) return;   // cached index → main.ts never fetches slim
+        var l = document.createElement('link');
+        l.rel = 'preload'; l.as = 'fetch'; l.href = '/catalog/tools/index.slim.json';
+        document.head.appendChild(l);
+      } catch (e) { /* storage blocked - the fetch just starts at boot instead */ }
+    })();
+  </script>
+  <link rel="stylesheet" href="/src/styles/app.css" />
+  <!-- Apply saved theme before CSS paints to prevent flash of wrong theme.
+       With no saved preference, seed from the OS colour scheme (mirrors
+       initTheme in theme.js) so a dark-OS visitor gets no light flash. -->
+  <script>
+    (() => {
+      var t = localStorage.getItem('theme');
+      if (t === 'suse') t = 'brand'; // retired name - theme.ts migrates the store on apply
+      if (!t && matchMedia('(prefers-color-scheme: dark)').matches) t = 'dark';
+      if (t === 'dark' || t === 'brand') {
+        document.documentElement.dataset.theme = t;
+        var fi = document.getElementById('favicon-svg'); if (fi) fi.href = '/icon-reverse.svg';
+      }
+      // Restore the brand font stacks the same way (written by applyChromeBrandVars
+      // in brand-vars.ts) so a branded profile doesn't flash the platform default
+      // every load. setProperty is CSSOM - the cached value can't inject markup.
+      try {
+        var f = JSON.parse(localStorage.getItem('brand-fonts') || 'null');
+        if (f) for (var k in f) {
+          if (k === '--font-brand' || k === '--font-mono' || k === '--font-display' || k === '--font-italic') document.documentElement.style.setProperty(k, f[k]);
+        }
+      } catch (e) { /* corrupt cache - boot JS rewrites it */ }
+      // Same trick for a customised corner radius (unlocked brands only -
+      // applyBrandRadius never writes this key for a locked catalog).
+      try {
+        var r = localStorage.getItem('brand-radius');
+        if (r) document.documentElement.style.setProperty('--radius', r);
+      } catch (e) { /* corrupt cache - boot JS rewrites it */ }
+      // And the base spacing rhythm. The generated --sp-* scale reads this
+      // one value, so it too must land before the first paint.
+      try {
+        var s = localStorage.getItem('brand-space');
+        if (s) document.documentElement.style.setProperty('--space', s);
+      } catch (e) { /* corrupt cache - boot JS rewrites it */ }
+      // Accessibility prefs (lib/a11y-prefs.ts is canonical; this is its FOUC
+      // mirror): set the gating attributes before CSS paints so large text /
+      // high contrast don't flash the regular look for a beat.
+      try {
+        var ax = JSON.parse(localStorage.getItem('lolly-a11y') || 'null');
+        if (ax) {
+          if (ax.reduceMotion) document.documentElement.dataset.a11yMotion = 'reduce';
+          if (ax.highContrast) document.documentElement.dataset.a11yContrast = 'high';
+          if (ax.largeText) document.documentElement.dataset.a11yText = 'large';
+          if (ax.hidePreviews) document.documentElement.dataset.a11yPreviews = 'hidden';
+        }
+      } catch (e) { /* corrupt cache - boot JS rewrites it */ }
+      // Performance UI (feature-flags.ts perf-ui, its FOUC mirror): reflect the flag from
+      // the feature-flag mirror before paint so a lower-powered device never flashes the
+      // full-effect chrome for a beat. Absent/false ⇒ no attribute ⇒ full chrome (default).
+      try {
+        var ff = JSON.parse(localStorage.getItem('lolly:featureFlags') || 'null');
+        if (ff && ff['perf-ui']) document.documentElement.setAttribute('data-perf-ui', '');
+      } catch (e) { /* corrupt cache - boot JS rewrites it */ }
+      // Apply the saved language's <html lang> before paint (glyph fallback/Han
+      // unification depends on it) - the FOUC-mirror half of i18n.ts's canonical
+      // profile.lang store. A hand-inlined alias map + LANG_META.htmlLang mirror
+      // (kept tiny - this script can't import engine/src/lang.ts). The i18n
+      // catalog itself loads async in main.ts's boot(); this only sets the attr.
+      try {
+        var lg = localStorage.getItem('lang');
+        if (lg) {
+          lg = String(lg).trim().toLowerCase();
+          var LANG_ALIASES = {
+            cn: 'zh', 'zh-cn': 'zh', 'zh-hans': 'zh', jp: 'ja',
+            br: 'pt', 'pt-br': 'pt', pt_br: 'pt',
+            tw: 'zh-hant', hk: 'zh-hant', 'zh-tw': 'zh-hant', 'zh-hk': 'zh-hant', 'zh-hant-tw': 'zh-hant', hant: 'zh-hant',
+            my: 'ms', fil: 'tl',
+            'ar-sa': 'ar', 'ar-eg': 'ar', 'ar-ae': 'ar',
+            'hi-in': 'hi', 'bn-bd': 'bn', 'bn-in': 'bn',
+            'ur-pk': 'ur', 'ur-in': 'ur',
+            'in': 'id', 'in-id': 'id', 'id-id': 'id',
+            'tr-tr': 'tr', 'tr-cy': 'tr',
+            'uk-ua': 'uk', ua: 'uk', 'pl-pl': 'pl',
+            nb: 'no', nn: 'no', kr: 'ko',
+          };
+          lg = LANG_ALIASES[lg] || lg;
+          var HTML_LANG = {
+            en: 'en', es: 'es', de: 'de', fr: 'fr', zh: 'zh-Hans', ja: 'ja', vi: 'vi',
+            pt: 'pt-BR', 'zh-hant': 'zh-Hant', cs: 'cs', nl: 'nl', tl: 'tl', sv: 'sv', ms: 'ms',
+            ro: 'ro', hi: 'hi', bn: 'bn', ur: 'ur', id: 'id', ar: 'ar', it: 'it', no: 'no', ko: 'ko', bg: 'bg', tr: 'tr',
+            uk: 'uk', pl: 'pl',
+          };
+          if (HTML_LANG[lg]) {
+            document.documentElement.lang = HTML_LANG[lg];
+            // RTL mirror of LANG_META.dir - Arabic and Urdu flip the document
+            // before paint so the first frame isn't a wrong-direction flash.
+            document.documentElement.dir = (lg === 'ar' || lg === 'ur') ? 'rtl' : 'ltr';
+          }
+        }
+      } catch (e) { /* corrupt cache - boot JS re-derives it */ }
+    })();
+  </script>
+
+  <!-- No-JavaScript welcome. Lolly renders entirely client-side, so with scripting
+       off the app can never boot. Rather than strand visitors on a permanent
+       "Loading…", this styles a self-contained welcome (revealed by the <noscript>
+       in <body>) and hides the two now-misleading shell affordances. Kept in
+       <noscript> so it only applies - and only downloads meaning - when JS is off;
+       its own colours + dark-mode make it stand alone even if the app CSS never loads. -->
+  <noscript>
+    <style>
+      .loading { display: none !important; }   /* never resolves without JS */
+      .skip-link { display: none !important; }  /* nothing to skip past here */
+
+      .nojs {
+        --ink: #0c322c; --ink-soft: #3f5a52; --line: #d7e7e0;
+        --card: #ffffff; --page1: #ffffff; --page2: #e7f3ee;
+        --pine: #159f66; --pine-strong: #128a58; --pine-ink: #ffffff; --glow: 21 159 102;
+        position: relative; overflow: hidden; box-sizing: border-box;
+        min-height: 100vh; min-height: 100dvh;
+        display: flex; align-items: center; justify-content: center;
+        padding: 40px 20px;
+        background: linear-gradient(160deg, var(--page1), var(--page2));
+        color: var(--ink);
+        font-family: 'SUSE', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+      }
+      .nojs::before, .nojs::after {
+        content: ''; position: absolute; width: 62vmax; height: 62vmax;
+        border-radius: 50%; pointer-events: none; z-index: 0;
+      }
+      .nojs::before { top: -24vmax; left: -20vmax;
+        background: radial-gradient(closest-side, rgba(var(--glow), .20), transparent 70%); }
+      .nojs::after { bottom: -28vmax; right: -22vmax;
+        background: radial-gradient(closest-side, rgba(12, 50, 44, .12), transparent 70%); }
+
+      .nojs-card {
+        position: relative; z-index: 1; width: 100%; max-width: 540px;
+        background: var(--card); border: 1px solid var(--line); border-radius: 22px;
+        padding: 40px 36px 32px; text-align: center;
+        box-shadow: 0 1px 2px rgba(12,50,44,.05), 0 26px 60px -30px rgba(12,50,44,.32);
+        animation: nojs-rise .6s cubic-bezier(.2,.7,.2,1) both;
+      }
+      @keyframes nojs-rise { from { opacity: 0; transform: translateY(14px); } }
+
+      .nojs-mark {
+        width: 76px; height: 76px; border-radius: 20px; display: block; margin: 0 auto 22px;
+        box-shadow: 0 12px 28px -14px rgba(12,50,44,.55);
+      }
+      .nojs-title { margin: 0; font-size: clamp(30px, 6vw, 40px); font-weight: 800;
+        letter-spacing: -.02em; line-height: 1; }
+      .nojs-badge { display: inline-flex; align-items: center; gap: 8px; margin: 16px auto 0;
+        padding: 8px 15px; border-radius: 999px; border: 1px solid var(--pine);
+        background: rgba(var(--glow), .12); color: var(--pine);
+        font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
+      .nojs-badge svg { width: 17px; height: 17px; }
+      .nojs-lead { margin: 18px auto 0; max-width: 42ch; font-size: 16px; line-height: 1.65;
+        color: var(--ink-soft); }
+      .nojs-lead strong { color: var(--ink); font-weight: 700; }
+
+      .nojs-formats-label { margin: 24px 0 0; font-size: 11.5px; font-weight: 700;
+        letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); opacity: .7; }
+      .nojs-formats { list-style: none; margin: 11px 0 0; padding: 0;
+        display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+      .nojs-formats li { font-size: 11px; font-weight: 600; color: var(--ink-soft);
+        padding: 3px 9px; border: 1px solid var(--line); border-radius: 7px;
+        background: rgba(var(--glow), .05); white-space: nowrap; }
+
+      .nojs-actions { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px;
+        justify-content: center; }
+      .nojs-btn { display: inline-flex; align-items: center; gap: 8px; font: inherit;
+        font-size: 15px; font-weight: 700; text-decoration: none; padding: 12px 22px;
+        border-radius: 12px; border: 1px solid var(--line); color: var(--ink);
+        background: transparent; transition: transform .15s ease, background .15s ease, border-color .15s ease; }
+      .nojs-btn:hover { transform: translateY(-1px); background: rgba(var(--glow), .08);
+        border-color: var(--pine); }
+      .nojs-btn--primary { background: var(--pine); color: var(--pine-ink); border-color: var(--pine); }
+      .nojs-btn--primary:hover { background: var(--pine-strong); }
+      .nojs-btn svg { width: 16px; height: 16px; }
+
+      .nojs-note { margin: 26px auto 0; max-width: 40ch; font-size: 13px; line-height: 1.55;
+        color: var(--ink-soft); opacity: .9; }
+      .nojs-note strong { color: var(--ink); font-weight: 700; }
+
+      @media (max-width: 480px) {
+        .nojs-card { padding: 32px 22px 26px; border-radius: 18px; }
+        .nojs-btn { flex: 1 1 auto; justify-content: center; }
+      }
+      @media (prefers-color-scheme: dark) {
+        .nojs {
+          --ink: #eaf5f0; --ink-soft: #a7c8bc; --line: rgba(160,210,195,.18);
+          --card: #0f2723; --page1: #0a1f1b; --page2: #061310;
+          --pine: #37c684; --pine-strong: #2ea774; --pine-ink: #06231b; --glow: 48 186 120;
+        }
+        .nojs-card { box-shadow: 0 1px 2px rgba(0,0,0,.3), 0 30px 70px -30px rgba(0,0,0,.72); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .nojs-card { animation: none; }
+        .nojs-btn { transition: none; }
+      }
+    </style>
+  </noscript>
+</head>
+<body>
+  <a class="skip-link" href="#view">Skip to content</a>
+  <div id="app">
+    <main id="view" class="app-view" tabindex="-1">
+      <!-- Boot screen. The mark is /public/icon.svg INLINED (minus its C2PA
+           metadata, which signs the standalone file): Chromium never runs CSS
+           animations inside an SVG loaded via <img>, and only inline elements
+           are reachable by base.css's two reduce-motion blocks. Keyframes are
+           lolly-namespaced because this <style> is page-global once inlined. -->
+      <p class="loading"><svg xmlns="http://www.w3.org/2000/svg" class="lolly-icon loading-icon" width="76" height="76" aria-hidden="true" viewBox="0 0 285.75 285.75">
+  <defs>
+    <radialGradient id="k" cx="880.759" cy="708.563" r="30.665" fx="880.759" fy="708.563" gradientTransform="matrix(4.6 0 0 4.6 -3908.588 -3116.499)" gradientUnits="userSpaceOnUse" href="#a"/>
+    <radialGradient id="l" cx="880.759" cy="708.563" r="104.651" fx="880.759" fy="708.563" gradientTransform="translate(-992.344 -770.4)scale(1.289)" gradientUnits="userSpaceOnUse" href="#b"/>
+    <radialGradient id="m" cx="880.759" cy="708.563" r="30.665" fx="880.759" fy="708.563" gradientTransform="translate(-2464.807 -1954.987)scale(2.9607)" gradientUnits="userSpaceOnUse" href="#a"/>
+    <radialGradient id="n" cx="880.759" cy="708.563" r="62.321" fx="880.759" fy="708.563" gradientTransform="translate(-992.344 -770.4)scale(1.289)" gradientUnits="userSpaceOnUse" href="#c"/>
+    <radialGradient id="o" cx="880.759" cy="708.563" r="30.665" fx="880.759" fy="708.563" gradientTransform="translate(-1162.495 -907.287)scale(1.4821)" gradientUnits="userSpaceOnUse" href="#a"/>
+    <radialGradient id="p" cx="880.759" cy="708.563" r="30.665" fx="880.759" fy="708.563" gradientTransform="translate(-992.344 -770.401)scale(1.289)" gradientUnits="userSpaceOnUse" href="#d"/>
+    <radialGradient id="q" cx="185.5" cy="140.06" r="21.959" gradientTransform="matrix(1.0274 -.2742 .4957 1.857 -99.417 -67.432)" gradientUnits="userSpaceOnUse" href="#e"/>
+    <radialGradient id="r" cx="134.04" cy="55.687" r="44.621" gradientTransform="matrix(.4818 0 0 .201 78.404 99.883)" gradientUnits="userSpaceOnUse" href="#f"/>
+    <radialGradient id="D" cx="133.578" cy="55.41" r="44.621" fx="107821.34" fy="29802.447" gradientTransform="matrix(2.0599 -.891 .3412 .7887 -25.845 190.825)" gradientUnits="userSpaceOnUse" href="#g"/>
+    <radialGradient id="x" cx="134.04" cy="55.687" r="44.621" gradientTransform="rotate(105.09 157.873 118.132)scale(1.3426 .5601)" gradientUnits="userSpaceOnUse" href="#f"/>
+    <radialGradient id="A" cx="134.04" cy="55.687" r="44.621" gradientTransform="matrix(1.6527 0 0 .6895 -82.307 -22.216)" gradientUnits="userSpaceOnUse" href="#h"/>
+    <radialGradient id="h" cx="134.04" cy="55.687" r="44.621" gradientTransform="matrix(3.3089 0 0 1.3804 -177.03 -56.743)" gradientUnits="userSpaceOnUse">
+      <stop offset=".122" stop-color="#fff"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="B" cx="134.04" cy="55.687" r="44.621" gradientTransform="matrix(-.7845 -.2551 .0877 -.3972 226.55 242.407)" gradientUnits="userSpaceOnUse" href="#f"/>
+    <radialGradient id="C" cx="142.79" cy="98.641" r="44.621" gradientTransform="matrix(-2.6758 -.8841 .2991 -1.3766 432.77 441.768)" gradientUnits="userSpaceOnUse" href="#f"/>
+    <radialGradient id="v" cx="133.578" cy="55.41" r="44.621" fx="107821.34" fy="29802.447" gradientTransform="matrix(2.0599 -.891 .3412 .7887 -25.845 190.825)" gradientUnits="userSpaceOnUse" href="#g"/>
+    <linearGradient id="a">
+      <stop offset="0" stop-opacity=".69"/>
+      <stop offset=".837" stop-opacity=".673"/>
+      <stop offset="1" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="b">
+      <stop offset="0" stop-color="#e3e3e3"/>
+      <stop offset=".875" stop-color="#f6f6f6"/>
+      <stop offset="1" stop-color="#6f6f6f"/>
+    </linearGradient>
+    <linearGradient id="c">
+      <stop offset="0" stop-color="#cacaca"/>
+      <stop offset=".768" stop-color="#f6f6f6"/>
+      <stop offset="1" stop-color="#858585"/>
+    </linearGradient>
+    <linearGradient id="d">
+      <stop offset="0" stop-color="#cacaca"/>
+      <stop offset=".687" stop-color="#eaeaea"/>
+      <stop offset="1" stop-color="#a6a6a6"/>
+    </linearGradient>
+    <linearGradient id="e">
+      <stop offset=".476" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".654" stop-color="#fff"/>
+    </linearGradient>
+    <linearGradient id="f">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="s" x1="-19.279" x2="-19.279" y1="48.713" y2="208.86" gradientTransform="translate(139.592 112.18)" gradientUnits="userSpaceOnUse" href="#f"/>
+    <linearGradient id="u" x1="297.634" x2="450.179" y1="324.622" y2="154.152" gradientTransform="translate(12.44 11.846)scale(.4785)" gradientUnits="userSpaceOnUse" href="#j"/>
+    <linearGradient id="j">
+      <stop offset=".087" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".554" stop-color="#fff"/>
+    </linearGradient>
+    <linearGradient id="g">
+      <stop offset=".308" stop-color="#fff"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="y" x1="-33.373" x2="-19.279" y1="49.632" y2="208.86" gradientUnits="userSpaceOnUse" href="#f"/>
+    <linearGradient id="z" x1="-19.279" x2="-19.279" y1="48.713" y2="208.86" gradientUnits="userSpaceOnUse" href="#f"/>
+    <filter id="t" width="1.018" height="1.01" x="-.009" y="-.005" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation=".375"/>
+    </filter>
+    <filter id="w" width="1.02" height="1.12" x="-.01" y="-.06" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation=".707"/>
+    </filter>
+  </defs>
+  <g>
+    <path fill="url(#k)" d="M142.88 1.817A141.06 141.06 0 0 1 283.933 142.87 141.06 141.06 0 0 1 142.88 283.933 141.06 141.06 0 0 1 1.817 142.871 141.06 141.06 0 0 1 142.88 1.817" opacity=".3"/>
+    <g class="lolly-outer">
+      <path fill="url(#l)" d="M142.876 7.989A134.887 134.887 0 0 0 7.99 142.874 134.887 134.887 0 0 0 142.876 277.76a134.887 134.887 0 0 0 134.885-134.887A134.887 134.887 0 0 0 142.876 7.989"/>
+      <path fill="#008657" d="M142.876 7.989a135 135 0 0 0-33.605 4.252A119.3 119.3 0 0 0 87.57 29.407a119.34 119.34 0 0 0-18.971 144.048 80.3 80.3 0 0 1-6.05-30.581 80.3 80.3 0 0 1 6.186-30.901A119.34 119.34 0 0 1 184 23.533a119.3 119.3 0 0 1 27.485 3.21A134.9 134.9 0 0 0 142.876 7.99m29.079 44.623a119.34 119.34 0 0 0-59.597 15.958 80.3 80.3 0 0 1 30.518-6.022 80.3 80.3 0 0 1 30.871 6.176 119.34 119.34 0 0 1 88.47 115.274 119.3 119.3 0 0 1-3.442 27.74 134.9 134.9 0 0 0 18.986-68.864 135 135 0 0 0-4.252-33.603 119.3 119.3 0 0 0-17.166-21.702 119.34 119.34 0 0 0-84.388-34.957M26.975 74.015a134.9 134.9 0 0 0-18.986 68.859 135 135 0 0 0 4.251 33.597 119.3 119.3 0 0 0 17.17 21.71 119.34 119.34 0 0 0 143.982 18.996 80.3 80.3 0 0 1-30.516 6.024 80.3 80.3 0 0 1-30.899-6.18 119.34 119.34 0 0 1-88.443-115.27 119.3 119.3 0 0 1 3.44-27.736m190.177 38.277a80.3 80.3 0 0 1 6.05 30.582 80.3 80.3 0 0 1-6.18 30.896 119.34 119.34 0 0 1-115.27 88.446 119.3 119.3 0 0 1-27.495-3.215 134.9 134.9 0 0 0 68.62 18.76 135 135 0 0 0 33.596-4.252 119.3 119.3 0 0 0 21.71-17.168 119.34 119.34 0 0 0 18.97-144.049" style="mix-blend-mode:multiply"/>
+    </g>
+    <path fill="url(#m)" d="M142.878 52.084a90.793 90.793 0 0 1 90.788 90.788 90.793 90.793 0 0 1-90.788 90.794 90.793 90.793 0 0 1-90.794-90.794 90.793 90.793 0 0 1 90.794-90.788" opacity=".6"/>
+    <g class="lolly-mid">
+      <path fill="url(#n)" d="M220.464 163.666a80.326 80.326 0 0 1-98.378 56.799 80.326 80.326 0 0 1-56.801-98.379 80.326 80.326 0 0 1 98.381-56.8 80.326 80.326 0 0 1 56.798 98.38"/>
+      <path fill="#008657" d="M214.185 179.852a57.95 57.95 0 0 0-6.56-40.723 57.95 57.95 0 0 0-41.68-28.346 39.53 39.53 0 0 1 15.935 25.722 57.95 57.95 0 0 1 9.428 49.505 57.95 57.95 0 0 1-24.153 33.435 80.33 80.33 0 0 0 47.03-39.593m5.271-60.873a80.33 80.33 0 0 0-39.607-47.415 57.95 57.95 0 0 0-40.72 6.56 57.95 57.95 0 0 0-28.218 41.504 39.53 39.53 0 0 1 25.618-15.716 57.95 57.95 0 0 1 49.481-9.47 57.95 57.95 0 0 1 33.446 24.537m-45.835 53.457a58 58 0 0 0 1.313-6.445 39.53 39.53 0 0 1-25.717 15.848 57.95 57.95 0 0 1-49.477 9.469 57.95 57.95 0 0 1-33.447-24.537 80.33 80.33 0 0 0 39.605 47.414 57.95 57.95 0 0 0 40.723-6.56 57.95 57.95 0 0 0 27-35.187zm-53.995 2.402a39.53 39.53 0 0 1-15.759-25.586v-.003a57.95 57.95 0 0 1-9.424-49.512 57.95 57.95 0 0 1 24.51-33.542 80.33 80.33 0 0 0-47.386 39.7 57.95 57.95 0 0 0 6.56 40.724 57.95 57.95 0 0 0 41.499 28.218z" style="mix-blend-mode:multiply"/>
+    </g>
+    <path fill="url(#o)" fill-opacity=".8" d="M142.876 97.426a45.45 45.45 0 0 1 45.447 45.448 45.45 45.45 0 0 1-45.447 45.45 45.45 45.45 0 0 1-45.45-45.45 45.45 45.45 0 0 1 45.45-45.448"/>
+    <g class="lolly-inner">
+      <path fill="url(#p)" d="M142.876 103.35a39.525 39.525 0 0 1 39.523 39.524 39.525 39.525 0 0 1-39.523 39.525 39.525 39.525 0 0 1-39.526-39.525 39.525 39.525 0 0 1 39.526-39.524"/>
+      <path fill="#008657" d="M143.838 104.576c-14.54 0-31.592 16.58-31.931 35.539-.224 12.526 9.73 20.413 19.465 20.413 20.155 0 21.919-14.145 21.919-18.848 0-9.613-12.162-11.825-12.162-3.21 0 4.667-12.846 10.84-12.846-2.182 0-9.75 11.538-19.213 19.751-19.213 11.798 0 25.836 8.958 25.836 26.755 0 23.815-31.731 33.97-44.53 36.18a39.5 39.5 0 0 0 13.536 2.39 39.525 39.525 0 0 0 39.523-39.526 39.53 39.53 0 0 0-18.314-33.348c-6.044-3.278-13.037-4.95-20.247-4.95" style="mix-blend-mode:multiply"/>
+    </g>
+    <g>
+      <path fill="#fff" fill-opacity=".444" d="M131.581 119.013c-17.621 8.806-18.467 29.11-12.983 44.163 0 0-6.741-2.235-6.741-20.462 0-15.502 15.412-23.7 19.724-23.7z" opacity=".684"/>
+      <path fill="url(#q)" d="M158.294 119.812c13.905 0 24.005 26.715 12.15 37.498 8.823-21.547-7.673-34.605-12.15-37.498" opacity=".494"/>
+      <path fill="url(#r)" fill-opacity=".444" d="M163.05 115.707s-8.268-5.927-19.91-5.927-19.909 6.762-19.909 6.762 10.485-4.758 19.91-4.758c9.424 0 19.909 3.923 19.909 3.923"/>
+      <path fill="url(#s)" d="M212.735 130.585c-123.2 51.227-102.44 162.38-100.15 166.35l21.568 27.29c-10.163-43.135-6.36-62.042-6.36-85.5 0-72.01 84.937-108.14 84.937-108.14z" filter="url(#t)" transform="translate(12.44 11.846)scale(.4785)"/>
+      <path fill="url(#u)" d="M211.987 115.969c23.414 34.157-6.325 95.686-57.128 102.418 65.736-30.996 62.2-80.718 57.128-102.418" opacity=".494"/>
+      <path fill="url(#v)" fill-opacity=".444" d="M355.01 135.555c-45.941-31.356-119.43-36.009-170.26 3.57 50.94-25.56 101.02-34.337 170.26-3.57" filter="url(#w)" transform="translate(12.44 11.846)scale(.4785)"/>
+      <path fill="url(#x)" fill-opacity=".444" d="M209.038 212.75c32.284-25.97 43.187-68.525 21.882-109.076 9.557 43.266 9.755 70.988-21.882 109.077"/>
+      <path fill="url(#y)" d="M67.321 28.209c-123.2 51.227-96.614 152.57-94.324 156.54l15.134 19.63c-4.355-18.482-29.268-128.29 79.19-176.17" filter="url(#t)" transform="translate(39.456 5.443)scale(.8626)"/>
+      <path fill="url(#z)" d="M73.143 18.405c-123.2 51.227-102.44 162.38-100.15 166.35l15.134 19.63c-4.355-18.482-26.817-135.03 85.012-185.98Z" filter="url(#t)" opacity=".583" transform="rotate(-175.18 128.86 5.816)scale(.8043 -.8043)"/>
+      <path fill="url(#A)" fill-opacity=".6" d="M208.089 32.072C171.23 6.915 112.267 3.182 71.486 34.936c40.87-20.506 81.053-27.548 136.603-2.864"/>
+      <path fill="url(#B)" fill-opacity=".444" d="M95.604 166.306c14.297 20.182 41.813 31.435 65.21 19.436-22.009 5.505-41.98 3.36-65.21-19.436"/>
+      <path fill="url(#C)" fill-opacity=".444" d="M48.515 167.45c20.164 66.683 72.786 86.511 134.404 63.66-66.198 1.174-101.815 7.328-134.404-63.66"/>
+      <path fill="url(#D)" fill-opacity=".444" d="M355.01 135.555c-45.941-31.356-119.43-36.009-170.26 3.57 50.94-25.56 101.02-34.337 170.26-3.57" filter="url(#w)" transform="translate(12.44 11.846)scale(.4785)"/>
+    </g>
+  </g>
+  <style>
+.lolly-outer{
+transform-origin: 50% 50%;
+  transform-box: fill-box;
+  animation: lolly-spin 3s linear infinite;
+}
+.lolly-mid{
+transform-origin: 50% 50%;
+  transform-box: fill-box;
+  animation: lolly-spin 6s linear infinite;
+}
+.lolly-inner{
+transform-origin: 50% 50%;
+  transform-box: fill-box;
+  animation: lolly-spin 9s linear infinite;
+}
+@keyframes lolly-spin{
+  100%{transform:rotate(360deg)}
+}
+.lolly-icon{animation:lolly-go 3s ease infinite}
+@keyframes lolly-go{
+   0%{filter:hue-rotate(15deg)}
+  50%{filter:hue-rotate(-15deg)}
+   100%{filter:hue-rotate(15deg)}
+}
+    </style></svg>Loading…</p>
+      <noscript>
+        <section class="nojs" aria-label="Welcome to Lolly">
+          <div class="nojs-card">
+            <img class="nojs-mark" src="/icons/icon-192.png" width="76" height="76" alt="Lolly" decoding="async" />
+            <h1 class="nojs-title">Lolly</h1>
+            <p class="nojs-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>
+              JavaScript Required
+            </p>
+            <p class="nojs-lead">
+              Lolly makes design assets in your browser.<br>
+              Rendering and storage happen on your device.<br>
+              It needs <strong>JavaScript switched on</strong> to run.
+            </p>
+            <div class="nojs-actions">
+              <a class="nojs-btn nojs-btn--primary" href="/info/">
+                What is Lolly?
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+              <a class="nojs-btn" href="/info/start/quickstart.html">Getting started</a>
+            </div>
+            <p class="nojs-note">
+              The guides above work without JavaScript. To use the app itself,
+              <strong>turn JavaScript on and reload this page.</strong>
+            </p>
+            <p class="nojs-formats-label">Exports to</p>
+            <ul class="nojs-formats" aria-label="Formats Lolly exports">
+              <li>PNG</li><li>JPG</li><li>WebP</li><li>AVIF</li><li>GIF</li><li>TIFF</li><li>ICO</li>
+              <li>SVG</li><li>PDF</li><li>EPS</li><li>EMF</li><li>DXF</li>
+              <li>PDF/CMYK</li><li>EPS/CMYK</li><li>CMYK TIFF</li>
+              <li>APNG</li><li>Animated WebP</li><li>Animated SVG</li><li>MP4</li><li>WebM</li>
+              <li>PPTX</li>
+              <li>HTML</li><li>Markdown</li><li>TXT</li><li>CSV</li><li>JSON</li>
+              <li>ICS</li><li>VCF</li><li>ZIP</li>
+            </ul>
+          </div>
+        </section>
+      </noscript>
+    </main>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

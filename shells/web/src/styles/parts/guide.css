@@ -1,0 +1,123 @@
+/* Cascade layer: declared in app.css's import (chrome). The GUIDANCE GRAMMAR -
+   one visual language for every piece of trust guidance the app gives, so a
+   user learns once what each voice means and it never varies by surface:
+
+     .guide-fact    - a VERIFIED fact (green): something proven on this device.
+     .guide-warn    - a WARNING (red): danger that must never hide in a fold.
+     .guide-hint    - a SIGNAL (amber): graded evidence, never proof.
+     .guide-absent  - HONEST ABSENCE (neutral italic): what could not be
+                      checked, stated plainly and never alarmingly.
+
+   Also home to the trust LAMP STRIP (the glanceable illumination header on
+   verify and the catalog passport) and the Document-facts census styles, which
+   BOTH views render (they lived in the verify-only lazy sheet before, which
+   left the catalog's census unstyled until /verify had been visited). */
+
+/* ── The four voices ── */
+.guide-fact, .guide-warn, .guide-hint, .guide-absent {
+  display: block; /* element-agnostic: a composed <span> still reads as its voice */
+  margin: 0.5rem 0 0;
+  font-size: calc(0.8rem * var(--a11y-fs));
+  line-height: 1.5;
+}
+.guide-fact { color: hsl(145 45% 32%); font-weight: 600; }
+.guide-warn {
+  padding: 0.45rem 0.6rem;
+  border-radius: calc(var(--radius) * 0.6);
+  background: hsl(0 72% 51% / 0.1);
+  border: 1px solid hsl(0 72% 51% / 0.3);
+  font-weight: 600;
+}
+.guide-hint { color: hsl(32 65% 38%); }
+.guide-absent { color: hsl(var(--muted-foreground)); font-style: italic; }
+:root[data-theme="dark"] .guide-fact, :root:not([data-theme="light"]) .guide-fact { color: hsl(145 45% 62%); }
+:root[data-theme="dark"] .guide-hint, :root:not([data-theme="light"]) .guide-hint { color: hsl(38 70% 62%); }
+
+/* ── The trust lamp strip ──
+   Four lamps, one glance: what is lit, what is warning, what was never
+   checkable. Colour is never the only carrier - each lamp shows its state
+   WORD, and the strip carries a screen-reader summary sentence. */
+.lampstrip {
+  display: flex;
+  text-align:center;
+  flex-wrap: wrap;
+  gap: var(--sp-5);
+  margin: var(--sp-8) 0 var(--sp-3);
+  position: sticky;
+  border-radius: var(--radius);
+  top: 0;
+  z-index: 5;
+  padding: var(--sp-4);
+  background: hsl(var(--background) / 0.92);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.lampstrip--flat { position: static; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0; }
+.lamp {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-3);
+  border-radius: 99px;
+  border: 0;
+  background: hsl(var(--muted) / 0.35);
+  font: inherit;
+  font-size: calc(11.5px * var(--a11y-fs));
+  cursor: pointer;
+  color: hsl(var(--foreground));
+}
+.lamp:hover { border-color: hsl(var(--ring) / 0.6); }
+.lamp:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.lamp-dot {
+  width: calc(9px * var(--a11y-fs));
+  height: calc(9px * var(--a11y-fs));
+  border-radius: var(--radius-round);
+  flex-shrink: 0;
+  background: hsl(var(--muted-foreground) / 0.35);
+}
+.lamp[data-state="fact"] .lamp-dot { background: hsl(145 55% 42%); box-shadow: 0 0 6px hsl(145 55% 42% / 0.55); }
+.lamp[data-state="warn"] .lamp-dot { background: hsl(0 72% 51%); box-shadow: 0 0 6px hsl(0 72% 51% / 0.55); }
+.lamp[data-state="hint"] .lamp-dot { background: hsl(38 85% 52%); box-shadow: 0 0 6px hsl(38 85% 52% / 0.5); }
+.lamp[data-state="unlit"] { opacity: 0.72; }
+.lamp-label { font-weight: 600; }
+.lamp-word { color: hsl(var(--muted-foreground)); }
+.lamp[data-state="warn"] .lamp-word { color: hsl(0 72% 45%); font-weight: 600; }
+:root[data-theme="dark"] .lamp[data-state="warn"] .lamp-word, :root:not([data-theme="light"]) .lamp[data-state="warn"] .lamp-word { color: hsl(0 75% 66%); }
+/* The unlit legend: one quiet line under the strip, said once. */
+.lampstrip-legend {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: calc(10.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+
+/* ── Document facts (census) - shared by verify AND the catalog modal ── */
+/* Composes .guide-warn (the grammar's warn voice) - only the spacing is its own. */
+.tsig-facts-warn { margin: 0.5rem 0 0; }
+.tsig-facts { margin: 0.5rem 0 0; font-size: calc(0.78rem * var(--a11y-fs)); }
+.tsig-facts > summary {
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+  user-select: none;
+}
+.tsig-facts-list { margin: 0.4rem 0 0; display: grid; gap: 0.25rem; }
+.tsig-facts-row { display: flex; gap: 0.6rem; align-items: baseline; }
+.tsig-facts-row dt { flex: 0 0 8.5em; color: hsl(var(--muted-foreground)); }
+.tsig-facts-row dd { margin: 0; overflow-wrap: anywhere; }
+.tsig-facts-chip {
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: hsl(275 65% 55% / .16);
+  color: hsl(275 45% 45%);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86em;
+  font-weight: 700;
+}
+.tsig-facts-chip--severe {
+  background: hsl(0 72% 51% / 0.14);
+  color: hsl(0 72% 45%);
+  border: 1px solid hsl(0 72% 51% / 0.4);
+}
+.tsig-facts-cap { margin: 0.4rem 0 0; color: hsl(var(--muted-foreground)); font-size: calc(0.7rem * var(--a11y-fs)); }

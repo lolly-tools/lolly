@@ -1,0 +1,163 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* ── Cross-cutting overrides (@layer overrides) ───────────────────────────────
+   The home for the rare rule that must win over view chrome regardless of which
+   view is mounted. It sits in the `overrides` layer - above `views`, below
+   `a11y` (order declared in app.css) - so it beats every earlier layer by layer
+   rank, not by load order. Keep this sheet small; most styling belongs in a
+   view or a primitive, not here. */
+
+/* dom-to-image-more's decode wrapper - park it off-screen.
+   makeImage() builds `<svg><img src="data:image/svg+xml,…"></svg>` and appends it
+   to <body> to force the snapshot to decode. Its own comment says "(invisible)"
+   but it sets no styles, so the UA default sizing (width:100%, height:auto→150px)
+   paints a full-width band of the half-decoded page snapshot across the bottom of
+   <body> for the frame or two before onload removes it - the FOUC of giant icons
+   seen on any view that rasterises (personalize-previews at boot, thumbnails,
+   /pro batch). Off-screen positioning doesn't affect it: onload fires on resource
+   load and the caller reads naturalWidth/drawImage, neither of which needs layout.
+   :not([style]) targets the bare wrapper only - our own body-level scratch <svg>s
+   (bridge/export.ts) always set an inline style - and self-disables if a future
+   version of the library styles it itself. */
+body > svg:not([style]) {
+  position: fixed;
+  left: -99999px;
+  top: 0;
+  pointer-events: none;
+}
+
+/* Top-right chrome cluster - the .tools-home surface, no border.
+   The view FABs (.filter-fab / .history-fab - catalog's "View options" and the
+   projects view-sort button both reuse the .filter-fab class), the language FAB,
+   and the profile pill all wear the same soft glowing glass as the .tools-home
+   back pill: the primary bottom-glow gives the filled "contrast" look, and the
+   1px primary border each one declares in its own view/chrome file is dropped to
+   transparent (kept 1px wide so nothing reflows). Because this lives in the
+   `overrides` layer it beats those borders and the lighter hover tints without
+   depending on file load order. Since .lang-fab and .profile-link are shared
+   chrome, it reaches every view the cluster appears in - Tools, Catalog,
+   Projects, the Dashboard/Verify .plat-header, /start, /profile, /valid, /pro,
+   multi-edit.
+   :not(.lang-fab-sm) - the tool sidebar's compact language switcher deliberately
+   strips the glass look (tool.css: border/background/backdrop-filter:none, a plain
+   30px control in a button group), so it opts OUT of the glow here. */
+.filter-fab,
+.history-fab,
+.lang-fab:not(.lang-fab-sm),
+.home-fab,
+.theme-fab,
+.profile-fab,
+.profile-link {
+  border-color: transparent;
+  box-shadow: inset 0 -.1em 1em 1px hsl(var(--primary) / 0.22), 0 .1em .3em #0002;
+}
+.filter-fab:hover,
+.filter-fab[aria-expanded="true"],
+.history-fab:hover,
+.lang-fab:not(.lang-fab-sm):hover,
+.lang-fab:not(.lang-fab-sm)[aria-expanded="true"],
+.home-fab:hover,
+.home-fab:focus-visible,
+.theme-fab:hover,
+.theme-fab:focus-visible,
+.profile-fab:hover,
+.profile-fab:focus-visible,
+.profile-link:hover {
+  background: hsl(var(--primary) / 0.16);
+  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.34);
+}
+
+/* ── Top-LEFT chrome island (components/back-pill.ts backHomeHtml) ────────────
+   The back pill + the always-Home FAB, pinned to the top-left corner as ONE
+   level row - the mirror of the top-right `.gallery-topright` cluster, sharing
+   its box metrics and offsets (tokens.css) so both ends of the top row line up.
+   It lives in the overrides layer (not chrome) on purpose: the `position: static`
+   reset below has to out-rank the back pill's own `position: fixed`, which sits
+   in the views layer (tool.css `.tools-home.home-full`). */
+.chrome-topleft {
+  position: fixed;
+  z-index: 99999;
+  left: calc(var(--chrome-inset) + var(--vv-left, 0px));
+  top: calc(var(--chrome-top) + var(--vv-top, 0px));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* Neutralise the back pill's own fixed positioning when it lives in the cluster,
+   so it flows inline BEFORE the Home FAB instead of self-pinning to the corner
+   (mirrors `.gallery-topright .profile-link` and `.lab-back .tools-home`). */
+.chrome-topleft .tools-home.home-full { position: static; left: auto; top: auto; }
+
+/* A pill that already goes Home (data-back-home) makes a Home FAB beside it pure
+   noise - two adjacent controls, one destination (the docs landing hit this:
+   "← Home" plus a Home FAB). Applies to backHomeHtml's own pair; addHomeEscape's
+   added FAB never coexists with data-back-home by construction. */
+.chrome-topleft .tools-home[data-back-home] ~ .home-fab { display: none; }
+
+/* Views whose profile control carries the consolidated menu (attachProfileMenu /
+   mountProfileFab - Home + Theme + Language rows) drop the standalone Home, Theme
+   and Language FABs the menu duplicates. At EVERY width since 2026-08-26 (was
+   ≤640px-only): the menu now opens on desktop too, so "standardise on it" means
+   one place for these controls at all sizes. The Home FAB's presence depended on
+   where you came FROM (data-back-home above), so it read as a control that
+   wanders view to view; the back pill stays, and Home/Theme/Language now have one
+   fixed place in the avatar menu. Extend the list only alongside an
+   attachProfileMenu()/mountProfileFab() call in that view. /start + the Lab carry
+   their Home in their own rows, not .chrome-topleft.
+   KEEP untouched: view-specific buttons (filter, history), the on-canvas theme
+   toggle on tool/editor (.stage-nav-*, no menu there), and the Colour Lab's own
+   theme control (.lab-chrome-btn - a core workflow affordance, not chrome). */
+.docs-view .chrome-topleft .home-fab,
+.ask-view .chrome-topleft .home-fab,
+.data-view .chrome-topleft .home-fab,
+.convert-view .chrome-topleft .home-fab,
+.pdfx-view .chrome-topleft .home-fab,
+.scriptst-view .chrome-topleft .home-fab,
+.verify-view .chrome-topleft .home-fab,
+.dashboard-view .chrome-topleft .home-fab,
+.start-view .start-back-row .home-fab,
+.lab-back [data-home-fab] { display: none; }
+/* The cluster's own language + theme FABs fold into the same menu wherever a
+   profile menu trigger (mountProfileFab's .profile-fab, or mountViewTopbar's
+   .profile-link pill) sits in the cluster - self-scoping, so a view gaining one
+   needs no entry here. `.theme-fab` is ONLY ever mountThemeFab's output and always
+   co-occurs with a profile menu, so this covers every one of them. (The topbar
+   views' copy of the lang rule is in topbar.css; docs' is in docs.css.) */
+.gallery-topright:has(.profile-fab, .profile-link) .lang-fab,
+.gallery-topright:has(.profile-fab, .profile-link) .theme-fab { display: none; }
+/* Multi-edit carries its cluster inside the header actions, not a .gallery-topright. */
+.me-head-actions:has(.profile-fab) .lang-fab { display: none; }
+
+/* The same Home FAB beside the tool sidebar's back pill (mountBackPill →
+   addHomeEscape). That row holds the pill at one end and undo/redo at the other
+   (`justify-content: space-between`, tool.css `.sidebar-back-row`), so the free
+   space has to be pushed past the FAB or it strands mid-row. Logical margin, so
+   RTL flips with the row. At 390px the three together measure 325px of the 374px
+   the mobile sheet leaves, with the longest tool name in the pill. */
+.sidebar-back-row .home-fab { margin-inline-end: auto; }
+
+/* On a phone the island shares the row with the editor's zoom HUD, which stacks
+   into a narrow capsule at the opposite corner (editor.css .stage-nav) - and a
+   pill can name a project folder, whose title has no length limit (measured: a
+   36-character name put the island at 351px of a 390px screen, before the FAB).
+   Cap the island and let the LABEL give way: the FAB is a fixed square and the
+   only history-free exit, the name is the part that can ellipsize (in full to a
+   screen reader either way). min-width, or the pill won't shrink as a flex item. */
+@media (max-width: 640px) {
+  .chrome-topleft { max-width: 60vw; }
+  .chrome-topleft .tools-home { min-width: 0; }
+  .chrome-topleft .back-pill-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* While a drag-scrub is live (lib/scrub.ts) every surface shows the ew-resize cursor
+   and nothing selects - otherwise dragging a number field paints a text selection
+   across whatever the pointer crosses. In the overrides layer because an `!important`
+   only beats `!important` in EARLIER layers, and this has to win over the field's own
+   cursor wherever that is declared. */
+body.is-scrubbing, body.is-scrubbing * {
+  cursor: ew-resize !important;
+  user-select: none !important;
+}

@@ -1,0 +1,143 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Design's export-hidden rulers and persistent authoring guides. */
+
+.fc-authoring-guides {
+  position: absolute;
+  inset: 0;
+  z-index: 18;
+  pointer-events: none;
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-xs);
+}
+.fc-authoring-guides[hidden] {
+  display: none;
+}
+
+.fc-ruler,
+.fc-ruler-corner {
+  position: absolute;
+  box-sizing: border-box;
+  border: 0;
+  background: color-mix(in srgb, var(--ui-color-surface-raised) 92%, transparent);
+  color: var(--ui-color-text-muted);
+  border-bottom: 1px solid var(--ui-color-border-default);
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+}
+.fc-ruler-x {
+  height: 22px;
+  cursor: row-resize;
+}
+.fc-ruler-y {
+  left: 0;
+  width: 22px;
+  cursor: col-resize;
+  border-bottom: 0;
+  border-right: 1px solid var(--ui-color-border-default);
+}
+.fc-ruler-corner {
+  left: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  cursor: pointer;
+  border-right: 1px solid var(--ui-color-border-default);
+}
+.fc-ruler-corner::after {
+  content: "";
+  display: block;
+  width: 4px;
+  height: 4px;
+  margin: auto;
+  border-radius: var(--radius-round);
+  background: currentColor;
+  opacity: 0.7;
+}
+.fc-ruler-corner:hover {
+  color: var(--ui-color-action-primary);
+}
+.fc-ruler-corner:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: -2px;
+}
+.fc-ruler svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.fc-ruler line {
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0.65;
+  vector-effect: non-scaling-stroke;
+}
+.fc-ruler text {
+  fill: currentColor;
+  font:
+    8px ui-monospace,
+    SFMono-Regular,
+    monospace;
+}
+
+.fc-author-guide-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.fc-author-guide {
+  position: absolute;
+  box-sizing: border-box;
+  height: 11px;
+  margin: -5px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ui-color-action-primary);
+  pointer-events: auto;
+  touch-action: none;
+  transform-origin: 0 5px;
+  cursor: move;
+}
+.fc-author-guide-x { cursor: col-resize; }
+.fc-author-guide-y { cursor: row-resize; }
+.fc-author-guide::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: currentColor;
+  /* Both light and dark edges keep the guide legible on artwork of any colour. */
+  box-shadow: 0 -1px 0 #fff, 0 1px 0 #0008;
+}
+.fc-author-guide:hover::before,
+.fc-author-guide:focus-visible::before,
+.fc-author-guide.is-selected::before,
+.fc-author-guide.is-dragging::before {
+  height: 2px;
+}
+.fc-author-guide:focus-visible { outline: none; }
+.fc-authoring-guides.is-guide-dragging {
+  cursor: grabbing;
+}
+
+@media (min-width: 641px) {
+  /* When the navigator collapses, the floating tools sit beside its rail. Keep
+     their usual 10px gap beyond the ruler; docked columns are already reserved. */
+  .tool-stage:not(.has-tl-reserve):has(> .fc-authoring-guides:not([hidden])) > .fc-toolbar-dock:not(.is-detached) {
+    padding-left: calc(22px + 10px + var(--vv-left, 0px));
+  }
+}
+
+@media (max-width: 640px) {
+  .fc-authoring-guides {
+    display: none;
+  }
+}
+
+.tool-view.is-chrome-hidden .fc-authoring-guides {
+  display: none !important;
+}

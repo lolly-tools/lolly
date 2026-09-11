@@ -1,0 +1,126 @@
+/* Cascade layer: sits in the `views` layer (order declared once in
+   styles/app.css) - same reasoning as instance-sheet.css / welcome.css: it is
+   imported directly by components/models-welcome.ts (not through app.css's
+   static list), so wrapping pins its priority regardless of when Vite injects
+   the chunk. Do not rely on load order. */
+@layer views {
+
+/*
+ * Models welcome (components/models-welcome.ts) - the desktop shell's first-run
+ * "get the on-device AI models" sheet. Larger than the other dialogs on
+ * purpose (Andy: a big, almost-full-page hello with one prominent button).
+ * Reuses `.job-bar`/`.job-bar-fill` (job-toast.css) for the candy-striped
+ * progress, so it declares the same --candy-a/--candy-b the toast does.
+ */
+.models-welcome {
+  --candy-a: var(--brand-primary, hsl(var(--primary)));
+  --candy-b: var(--brand-secondary, hsl(var(--accent)));
+  border: 0;
+  padding: clamp(32px, 6vw, 64px);
+  width: min(900px, 94vw);
+  min-height: min(560px, 88vh);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: auto; /* re-assert centring at class specificity (see .modal) */
+  border-radius: calc(var(--radius) * 1.4);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: 0 28px 80px hsl(0 0% 0% / 0.45);
+  overflow: auto;
+}
+.models-welcome::backdrop { background: hsl(0 0% 0% / 0.5); }
+
+.mw-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 20px;
+  border-radius: 18px;
+  background: color-mix(in oklab, hsl(var(--primary)) 14%, transparent);
+  color: hsl(var(--primary));
+}
+.mw-eyebrow {
+  margin: 0 0 6px;
+  font-size: calc(13px * var(--a11y-fs, 1));
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.mw-title {
+  margin: 0 0 12px;
+  font-size: clamp(24px, 4vw, 34px);
+  line-height: 1.12;
+  font-weight: 700;
+}
+.mw-sub {
+  margin: 0 0 8px;
+  max-width: 52ch;
+  font-size: calc(15px * var(--a11y-fs, 1));
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+.mw-note {
+  margin: 14px 0 24px;
+  max-width: 52ch;
+  font-size: calc(13px * var(--a11y-fs, 1));
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+.mw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+/* A class `display` wins over the UA [hidden] rule at equal specificity, so the
+   .hidden toggle needs an explicit guard on each flex row. */
+.mw-actions[hidden] { display: none; }
+/* The one big button. Sized up from the shared .btn for the hero moment. */
+.mw-download {
+  font-size: calc(16px * var(--a11y-fs, 1));
+  font-weight: 650;
+  padding: 16px 26px;
+  border-radius: calc(var(--radius) * 1.1);
+}
+.mw-download .mw-size { opacity: 0.85; font-weight: 500; }
+.mw-later {
+  background: none;
+  border: 0;
+  padding: 8px 4px;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.mw-later:hover { color: hsl(var(--foreground)); }
+
+/* Progress state - swapped in for .mw-actions once the download starts. */
+.mw-progress { margin-top: 8px; }
+.mw-progress[hidden] { display: none; }
+.mw-progress-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: calc(13px * var(--a11y-fs, 1));
+  color: hsl(var(--muted-foreground));
+}
+/* Reuse the job toast's candy bar. Slightly taller here for the hero. */
+.mw-progress .job-bar { height: 12px; border-radius: var(--radius-pill); }
+
+.mw-done {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+.mw-done[hidden] { display: none; }
+}

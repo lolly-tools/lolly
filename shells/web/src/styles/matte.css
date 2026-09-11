@@ -1,0 +1,179 @@
+/* ── Matte dialog (views/matte-dialog.ts) ──────────────────────────────
+   Pick a raster image → enlarge it on-device (host.matte) → save as a user
+   raster asset. A lazy chunk like script-audio.css: imported by the dialog
+   module itself, so opening it pulls the sheet on demand. Stacks above the
+   picker panel (z 1100/1101) like the webcam sheet and the Script-audio sheet.
+   Sibling on <body>. */
+.matte-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+.matte-panel {
+  position: fixed;
+  z-index: 1101;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(520px, 92vw);
+  max-height: 90vh;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  box-shadow: var(--ui-elevation-overlay);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.matte-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+.matte-close {
+  background: none;
+  border: none;
+  font-size: calc(20px * var(--a11y-fs));
+  line-height: 1;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+.matte-close:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+.matte-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  overflow-y: auto;
+}
+/* "Choose an image" step - a dashed drop/choose target (drop areas are the ONLY
+   dashed-border surface in this design language). */
+.matte-choose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px 16px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+.matte-choose:hover,
+.matte-choose.is-dragover { border-color: hsl(var(--primary)); color: hsl(var(--foreground)); }
+.matte-choose.is-dragover { background: hsl(var(--primary) / 0.06); }
+.matte-source {
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+}
+.matte-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.matte-field {
+  flex: 1;
+  min-width: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+.matte-field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+/* The (i) beside a face-restoring model - its data-tip carries the warning. */
+.matte-info {
+  display: inline-flex;
+  align-items: center;
+  color: hsl(var(--destructive));
+  cursor: help;
+}
+.matte-info svg { display: block; }
+.matte-range { width: 100%; }
+.matte-consent {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--accent) / 0.4);
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+/* The honest confession when a job won't fit - plus the concrete lever button(s). */
+.matte-feasibility {
+  padding: 8px 10px;
+  border: 1px solid hsl(var(--destructive) / 0.5);
+  border-radius: var(--radius);
+  background: hsl(var(--destructive) / 0.08);
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--foreground));
+}
+.matte-suggest {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 3px 8px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.matte-suggest:hover { border-color: hsl(var(--primary)); }
+/* The in-dialog progress bar (.matte-progress / -fill / -indeterminate, and its
+   matte-pulse keyframes) went out on 2026-08-19: the run is a background job, so
+   the global job toast (parts/job-toast.css) owns the bar, its count and its
+   cancel. Nothing here should grow a second progress affordance. */
+.matte-status {
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.matte-status.matte-error { color: hsl(var(--destructive)); }
+.matte-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid hsl(var(--border));
+}
+.matte-actions .matte-cancel {
+  padding: 7px 14px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+/* Fill pair (background + foreground) comes from the .btn--primary alias list in
+   parts/buttons.css; only the deltas live here. */
+.matte-actions .matte-run {
+  padding: 7px 18px;
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+.matte-actions .matte-run:disabled { opacity: 0.5; cursor: not-allowed; }

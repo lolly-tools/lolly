@@ -1,0 +1,368 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* ============================================================================
+   THE DESIGN INSPECTOR PANEL (views/design-inspector.ts, plan 179 M3)
+
+   A scrollable property panel for `render.layout: "editor"`. It replaces the
+   one-slot property panels, so every section is live at once and the selection
+   decides which sections exist.
+
+   The property module positions nothing. The detachable controller either places
+   this same live panel in the app's ONE right sidebar or applies a persisted fixed
+   float box. No stage reserve is written in either mode: the dock nudges #view once,
+   while the floating mode intentionally overlays the workspace.
+   The old version pinned itself to the right of `.tool-stage` AND reserved
+   280px, which is exactly how the editor ended up showing two right-hand
+   columns at once - this panel inside the stage, the export dock beside it.
+
+   Imported from views/tool.ts beside editor.css and design-topbar.css, so it
+   rides the lazy tool CSS chunk and is UNLAYERED - which keeps it above the
+   `chrome`/`views` layers (editor.css's `.fc-row` primitives among them) without
+   an !important anywhere.
+
+   REUSE, NOT RESTATEMENT. The rows inside a section are the editor's OWN row
+   markup - `.fc-row`, `.fc-seg`, `.fc-dims-f`, `.fc-stepper`, `.field-input` /
+   `.field-select` / `.field-range` / `.field-check` - and editor.css + fields.css
+   already style all of it. This sheet adds only what a COLUMN needs that a
+   floating panel did not: the dock, the scroll, the section headers, the label
+   column width, and the arrange grid. Restating a padding or a border here would
+   silently fork the two.
+
+   Colours are tokens only (tokens.css HSL triples), so light, dark, both
+   high-contrast maps and every brand follow with no work here.
+   ========================================================================== */
+
+.fc-insp {
+  position: relative;                /* the popovers inside it anchor to this, nothing more */
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  font-size: var(--ui-type-body);
+  /* It is its own scroll container - never the stage's, and never the dock's. */
+  overscroll-behavior: contain;
+}
+
+/* The same live panel can leave the shared edge dock and float over the workspace.
+   Geometry is inline and persisted by design-inspector-float.ts; the dock still owns
+   every edge-docked dimension, so this mode never creates a second right sidebar. */
+@media (min-width: 641px) {
+  .fc-insp.is-floating {
+    position: fixed;
+    z-index: 80;
+    min-width: 300px;
+    min-height: 280px;
+    border: 1px solid var(--ui-color-border-default);
+    border-radius: var(--ui-radius-panel);
+    box-shadow: var(--ui-elevation-floating);
+  }
+  .fc-insp.is-maximized { border-radius: 0; }
+  .fc-insp.is-dragging,
+  .fc-insp.is-resizing { user-select: none; transition: none !important; }
+  .fc-insp.is-floating .panel-grip { display: block; }
+  .fc-insp-headbar { cursor: grab; touch-action: none; }
+  .fc-insp.is-dragging .fc-insp-headbar { cursor: grabbing; }
+}
+
+.fc-insp > .panel-grip { display: none; }
+
+/* Hidden via the element's own `hidden` (the module toggles `el.hidden`), which a
+   `display: flex` above would otherwise beat. Stated once, here. */
+.fc-insp[hidden] { display: none; }
+
+/* ── the column head ────────────────────────────────────────────────────────────
+   What this is, and the way out of it. Fixed above the scroller (the sections
+   scroll under it), because a close control you have to scroll to find is not a
+   close control - on a narrow stage this column is a sheet over most of the
+   screen and this is its only dismiss. */
+.fc-insp-headbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--ui-color-border-default);
+}
+.fc-insp-coltitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ui-color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fc-insp-close,
+.fc-insp-tool {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(24px * var(--a11y-fs));
+  height: calc(24px * var(--a11y-fs));
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: none;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+}
+.fc-insp-close svg,
+.fc-insp-tool svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.fc-insp-close:hover,
+.fc-insp-tool:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.fc-insp-close:focus-visible,
+.fc-insp-tool:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.fc-insp-tools { display: inline-flex; align-items: center; gap: var(--sp-1); margin-inline-start: auto; }
+
+.fc-insp-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: calc(var(--sp-6) + var(--safe-bottom));
+}
+/* The scroll container takes focus programmatically (tabindex="-1") when a reveal
+   lands, so it must not paint a ring for that - only for a real keyboard focus. */
+.fc-insp-scroll:focus { outline: none; }
+
+/* ── sections ───────────────────────────────────────────────────────────────── */
+
+.fc-insp-sec { border-bottom: 1px solid color-mix(in srgb, var(--ui-color-border-default) 70%, transparent); }
+.fc-insp-sec:last-child { border-bottom: 0; }
+
+/* The header is a real <button>: keyboard reachable, `aria-expanded` carries the
+   state, and the whole strip is the hit area (a caret-sized target is a miss). */
+.fc-insp-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border: 0;
+  background: transparent;
+  color: var(--ui-color-text-default);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: start;
+  cursor: pointer;
+}
+.fc-insp-head:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); }
+.fc-insp-head:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+.fc-insp-head svg {
+  flex: none;
+  width: calc(15px * var(--a11y-fs));
+  height: calc(15px * var(--a11y-fs));
+  color: var(--ui-color-text-muted);
+}
+.fc-insp-head > span { flex: 1 1 auto; min-width: 0; }
+
+/* Caret: a chevron drawn from two borders, rotated. Pure CSS so the header needs
+   no second glyph, and it follows `aria-expanded` rather than a class. */
+.fc-insp-caret {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-inline-end: 2px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  transform: rotate(45deg);
+  transform-origin: center;
+  opacity: 0.55;
+  transition: transform var(--ui-motion-feedback) var(--ui-motion-standard);
+}
+.fc-insp-head[aria-expanded="false"] .fc-insp-caret { transform: rotate(-45deg); }
+@media (prefers-reduced-motion: reduce) { .fc-insp-caret { transition: none; } }
+html[data-a11y-motion="reduce"] .fc-insp-caret { transition: none; }
+
+.fc-insp-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-4) var(--sp-4);
+}
+
+/* Nothing here for a sub-heading any more (2026-09-03): Shadow, Perspective tilt
+   and Arrange were `.fc-insp-sub` divs inside one long Object list, unreachable by
+   keyboard and impossible to put away. They are sections with their own header
+   buttons now, so they use the same rules as every other section above. */
+
+/* ── rows ───────────────────────────────────────────────────────────────────── */
+
+/* The column is narrower than the floating panels were, so the label cell is
+   tighter than editor.css's 86px - and, like that one, it is a TEXT cell, so it
+   follows the accessibility type multiplier instead of a fixed px. */
+.fc-insp .fc-row > span:first-child,
+.fc-insp .fc-row-lbl { flex-basis: calc(96px * var(--a11y-fs)); }
+
+.fc-insp .fc-row input[type="text"],
+.fc-insp .fc-row select { flex: 1 1 auto; min-width: 0; }
+/* The number cell (components/num-field.ts) is capped rather than greedy, and the
+   cap is a flex-basis so it follows the type multiplier - `max-width` may not
+   (a11y-prefs-contract.test.ts: the multiplier sizes type and icons, never arbitrary
+   geometry). It holds digits, so it is a text cell like the label column beside it.
+   `min-width: 0` on every one of them is what keeps the column from overflowing at
+   its narrowest: a flex item defaults to its content's min size, and a number cell
+   with a label, an input and a unit inside it has a wide one. */
+.fc-insp .fc-row .num-field { flex: 0 1 auto; min-width: 0; flex-basis: calc(80px * var(--a11y-fs)); }
+/* Beside a slider the number is the fixed half and the slider takes the rest. The
+   track's floor is a plain 40px: it is a rail, not a glyph, so it does not ride the
+   type multiplier. */
+.fc-insp .fc-row .field-range { flex: 1 1 auto; min-width: 40px; }
+/* The A- / A+ stepper is the size row's whole control, so its number fills it. */
+.fc-insp .fc-stepper .num-field { flex: 1 1 auto; }
+
+/* A read-only readout row: same geometry as an editable one, visibly not a control. */
+.fc-insp-read > b {
+  flex: 1 1 auto;
+  text-align: end;
+  color: var(--ui-color-text-muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The dims rows (X/Y, W/H, rotation, the shadow offsets, the two tilts): a leading
+   icon and then equal number cells, which is what keeps two of them inside a 340px
+   dock column without a horizontal scrollbar. */
+.fc-insp .fc-dims-row { display: flex; align-items: center; gap: var(--sp-2); }
+.fc-insp .fc-dims-row .num-field { flex: 1 1 0; min-width: 0; }
+.fc-insp .fc-dims-ic {
+  flex: none;
+  display: inline-flex;
+  color: var(--ui-color-text-muted);
+}
+.fc-insp .fc-dims-ic svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+
+.fc-insp-area { display: flex; flex-direction: column; gap: var(--sp-1); }
+.fc-insp-area > span { color: var(--ui-color-text-muted); }
+.fc-insp-area textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+
+/* A door onto something that is not a field: the picker, the timeline. Full width,
+   left-aligned, so it reads as a row rather than a stray button. */
+.fc-insp-door .fc-cbtn { width: 100%; justify-content: flex-start; gap: var(--sp-2); }
+/* The mini button beside a colour swatch (Gradient) stays on the row. */
+.fc-insp-mini { flex: none; }
+
+.fc-insp-hint {
+  margin: 0;
+  padding: var(--sp-4);
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-sm);
+}
+
+/* The same structural Design check MCP exposes, kept compact enough to lead the
+   Document group without turning the inspector into a report. It never blocks an
+   export; the authored-value findings are a status and the mount-only checks remain
+   in export preflight, where rendered evidence exists. */
+.fc-design-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  margin: var(--sp-3) var(--sp-4);
+  padding: var(--sp-3);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-default);
+  font-size: var(--fs-sm);
+}
+.fc-design-check-icon { flex: none; display: inline-flex; color: var(--ui-color-text-muted); }
+.fc-design-check-icon svg { width: calc(17px * var(--a11y-fs)); height: calc(17px * var(--a11y-fs)); }
+.fc-design-check-copy { min-width: 0; display: flex; flex-direction: column; gap: var(--sp-1); }
+.fc-design-check-copy strong { font-weight: 700; }
+.fc-design-check-copy > span { color: var(--ui-color-text-muted); }
+.fc-design-check-copy ul { margin: var(--sp-1) 0 0; padding-inline-start: var(--sp-5); }
+.fc-design-check[data-design-check="error"] {
+  border-color: hsl(var(--destructive) / 0.45);
+  background: hsl(var(--destructive) / 0.06);
+}
+.fc-design-check[data-design-check="error"] .fc-design-check-icon { color: hsl(var(--destructive)); }
+.fc-design-check[data-design-check="warn"] .fc-design-check-icon { color: var(--ui-color-action-primary); }
+
+/* ── keyboard focus ─────────────────────────────────────────────────────────── */
+
+/* Every control here that is NOT a text field commits during the interaction - a
+   checkbox, a select, a slider arrow-key, a segment - so the model echoes and the
+   column rebuilds under the user's hand. The module re-focuses the control it just
+   replaced (design-inspector.ts `focusKey`), and a restored focus that paints
+   nothing is a focus nobody can find. `.field-*` primitives bring their own ring
+   from fields.css; `.fc-seg-btn` and `.fc-cbtn` have none, so it is stated here,
+   scoped to the column, rather than forked into the shared editor sheet.
+   `--ring` is a token, so light, dark and the contrast maps all follow. */
+.fc-insp .fc-seg-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -1px; }
+.fc-insp .fc-cbtn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 1px; }
+
+/* ── Appears (plans/179 M4) ─────────────────────────────────────────────────── */
+
+/* The three ways a box can arrive are three short sentences, and the 96px label
+   column beside them leaves each segment about 50px - enough to show "With…" and
+   nothing else. So this row alone stacks: the label takes its own line and the
+   control gets the column's whole width. Nothing else about `.fc-row` changes. */
+.fc-insp .fc-row.fc-insp-appear { flex-wrap: wrap; }
+.fc-insp .fc-row.fc-insp-appear > span:first-child { flex-basis: 100%; }
+
+/* ── motion chips ───────────────────────────────────────────────────────────── */
+
+.fc-insp-chips { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+.fc-insp-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 2px var(--sp-2);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-default);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+.fc-insp-chip > i {
+  color: var(--ui-color-text-muted);
+  font-style: normal;
+}
+
+/* ── arrange grid ───────────────────────────────────────────────────────────── */
+
+.fc-insp-arrs { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+.fc-insp-arr {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(30px * var(--a11y-fs));
+  height: calc(30px * var(--a11y-fs));
+  padding: 0;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-default);
+  cursor: pointer;
+}
+.fc-insp-arr svg { width: calc(17px * var(--a11y-fs)); height: calc(17px * var(--a11y-fs)); }
+.fc-insp-arr:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+.fc-insp-arr:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+/* Disabled, not hidden: distribute needs three, group needs two, and a control that
+   VANISHES at two boxes and reappears at three teaches nothing. The dim says why. */
+.fc-insp-arr:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── narrow stages ──────────────────────────────────────────────────────────── */
+
+/* Nothing to do here any more: the dock column owns the width at every size, and
+   below its mobile breakpoint (640px) it does not exist, so the host never docks
+   this panel there. The old @media block sized the panel itself, which was part of
+   the same panel-positions-itself mistake described at the top.
+
+   Hide-controls full preview (the editor's `\` key) strips every piece of chrome.
+   Kept for a stage-mounted panel; a DOCKED one is a child of the body-level dock
+   column, so this cannot reach it - hiding the whole sidebar is the dock's own
+   business, not this sheet's. */
+.tool-view.is-chrome-hidden .fc-insp { display: none !important; }

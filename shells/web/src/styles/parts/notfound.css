@@ -1,0 +1,179 @@
+/* ─── 404 / not-found ───────────────────────────────────────────────────── */
+
+.not-found {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 48px 24px;
+}
+
+.not-found-inner {
+  text-align: center;
+  max-width: 360px;
+}
+
+.not-found-code {
+  font-size: calc(96px * var(--a11y-fs));
+  font-weight: 700;
+  line-height: 1;
+  margin: 0 0 8px;
+  color: hsl(var(--muted-foreground) / 0.3);
+  letter-spacing: -4px;
+}
+
+.not-found-title {
+  font-size: calc(22px * var(--a11y-fs));
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: hsl(var(--foreground));
+}
+
+.not-found-desc {
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 28px;
+}
+
+.not-found-desc code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  background: hsl(var(--muted));
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+
+.not-found-home {
+  display: inline-block;
+  padding: 8px 20px;
+  /* fill comes from buttons.css's .btn--primary alias list */
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: var(--fs-lg);
+  transition: opacity var(--dur-1);
+}
+
+.not-found-home:hover {
+  opacity: 0.85;
+}
+
+/* Secondary "no thanks" escape under a primary CTA (e.g. the extension prompt). */
+.not-found-back {
+  display: block;
+  margin-top: 16px;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-md);
+  text-decoration: none;
+}
+.not-found-back:hover {
+  color: hsl(var(--foreground));
+  text-decoration: underline;
+}
+
+/* ═══ Mobile / touch affordances ═════════════════════════════════════════════
+   Polish for finger input. Desktop is untouched: the font-size bumps and the
+   enlarged hit-areas live behind (pointer: coarse), and the press feedback is
+   :active (a no-op on a mouse until you actually click). Hover-only affordances
+   never fire on touch, so these add the tactile cues a finger otherwise misses. */
+
+/* Kill the translucent grey/blue flash iOS & Android paint over tapped
+   controls - we provide our own :active feedback instead. */
+.btn,
+.color-trigger,
+.color-swatch,
+.asset-picker-trigger,
+.asset-clear,
+.block-add,
+.block-remove,
+.input-row--checkbox,
+.custom-slider,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Quick, springy press state. Transform-only so it composites on the GPU and
+   can't reflow the layout. */
+.color-trigger:active,
+.asset-picker-trigger:active,
+.asset-clear:active,
+.block-add:active,
+.block-remove:active {
+  transform: scale(0.97);
+}
+.color-swatch:active {
+  transform: scale(1.05);
+}
+.color-trigger,
+.asset-picker-trigger,
+.asset-clear,
+.block-add,
+.block-remove {
+  transition: border-color var(--dur-1), background var(--dur-1), color var(--dur-1), transform 0.08s ease;
+}
+
+@media (pointer: coarse) {
+  /* 16px is the threshold below which iOS Safari zooms the page on focus - a
+     jarring jump that strands the sticky sidebar header and can lose the user
+     mid-edit. Enforce it on EVERY text-entry control, not just the tool sidebar:
+     <input> never inherits the page font, so search boxes, the export panel,
+     profile onboarding, the date-picker popup and Pro mode all sit at 13–14px
+     and would otherwise trigger the zoom. !important so this usability guarantee
+     wins over each component's cosmetic font-size; the lone opt-out is the
+     oversized Pro batch-name field, whose width is measured against 1.5rem. */
+  input:not([type="checkbox"]):not([type="color"]):not([type="range"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="image"]),
+  textarea,
+  select {
+    font-size: var(--fs-xl) !important;
+  }
+  .pro-zip input { font-size: calc(1.5rem * var(--a11y-fs)) !important; }
+
+  /* Comfortable ~44px tap targets for the tappable controls. */
+  .input-row select,
+  .asset-picker-trigger,
+  .asset-clear,
+  .color-trigger,
+  .block-add,
+  .tool-card-action {
+    min-height: 44px;
+  }
+  .asset-clear {
+    width: 44px;
+  }
+
+  /* Bigger, easier-to-grab slider: a taller track and a thumb sized for a
+     fingertip. The row already captures the whole hit-area, so this is purely
+     making the target legible. Only the two numbers the box is built from move -
+     the track height, the tick row and the padding all derive from them in
+     parts/fields.css, so a touch slider can no longer end up with its detents
+     drawn on top of its own track. The box still stands 26px tall around a 22px
+     thumb, clear of WCAG 2.5.8's 24px target. */
+  .cs-thumb { width: 22px; height: 22px; }
+  .custom-slider { --cs-pad-top: 10px; --cs-track-h: 6px; }
+
+  /* Roomier swatches and checkbox. */
+  .color-swatch { height: 2.4em; width: 2.4em; }
+  .input-row input[type="checkbox"] { width: 20px; height: 20px; }
+  .input-row--checkbox { padding: 11px 12px; }
+
+  /* Finger-friendly hit areas for toolbar / nav / dismiss controls. (Corner
+     overlay deletes are left for a visual pass - enlarging them risks stealing
+     taps from the card beneath.) */
+  .nav-btn,
+  .privacy-notice-dismiss { min-height: 44px; }
+  .fullscreen-toggle,
+  .stage-nav-btn,
+  .export-popup-close { min-height: 44px; min-width: 44px; }
+
+  /* Gallery touch targets: category pills (in the filter popover), the per-card
+     icon buttons and footer links. */
+  .gallery-pill,
+  .gallery-footer .btn { min-height: 44px; }
+  .gallery-footer .btn { display: inline-flex; align-items: center; justify-content: center; }
+  .gtile-iconbtn { width: 44px; height: 44px; }
+  /* The whole top row - back pill, FABs, language and profile pills - grows to
+     the 44px finger target through the ONE property they all size from. That
+     override lives in tokens.css (which is unlayered, so a :root rule here
+     could not win against it); bumping each control separately, as this block
+     used to, is what let them drift apart at touch sizes. */
+}
+

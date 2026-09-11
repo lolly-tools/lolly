@@ -1,0 +1,47 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* ── Surface elevation primitives (plans/172 P3) ─────────────────────────────
+   The composable form of the app's signature look: a hairline ring plus a soft
+   drop, stated once per level instead of hand-mixed per view (the 2026-08-29
+   audit counted 346 distinct box-shadows; the population is these few recipes).
+
+   .card (chips.css) stays the background+radius panel; .surface is the
+   ELEVATION treatment, so a call-site composes `class="card surface--raised"`
+   or writes `box-shadow: var(--edge), var(--shadow-2)` directly - both spell
+   the same pixels. Levels map to the token ramp in tokens.css:
+
+     (flat)      --edge alone           a bordered box, no lift
+     --raised    --shadow-2             cards that sit proud of the page
+     --floating  --shadow-3             popovers, dropdowns, floating panels
+     --overlay   --shadow-4             drawers, side sheets
+     --modal     --shadow-5             modal dialogs
+
+   Policy (extends plans/76 M2): NEW panels/popovers/dialogs compose these (or
+   the tokens directly); existing hand-mixed shadows migrate when their view is
+   touched. Do not add a sixth level - a look that needs one is a design
+   conversation, not a variant. */
+.surface {
+  background: var(--ui-color-surface-raised);
+  border-radius: var(--ui-radius-surface);
+  box-shadow: var(--ui-edge-default);
+}
+.surface--raised   { box-shadow: var(--ui-edge-default), var(--ui-elevation-panel); }
+.surface--floating { box-shadow: var(--ui-edge-faint), var(--ui-elevation-floating); }
+.surface--overlay  { background: var(--ui-color-surface-overlay); box-shadow: var(--ui-edge-faint), var(--ui-elevation-sheet); }
+.surface--modal    { background: var(--ui-color-surface-overlay); box-shadow: var(--ui-edge-faint), var(--ui-elevation-overlay); }
+
+/* Glass - the frosted variant (.btn--glass is the button-shaped sibling in
+   buttons.css); bevel top-light plus blur, over a translucent muted wash. */
+.surface--glass {
+  background: hsl(var(--muted) / .45);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  box-shadow: var(--ui-edge-faint), var(--ui-effect-bevel), var(--ui-elevation-control);
+}
+
+/* Focus ring as a utility: the one focus treatment for composed surfaces and
+   custom controls that cannot take the outline pair buttons.css uses. Keeps
+   the ring OUTSIDE the box-shadow stack a surface already carries. */
+.u-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-edge-default), var(--ui-effect-focus-halo);
+}

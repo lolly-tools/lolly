@@ -1,0 +1,51 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Eight resize grips (lib/panel-grips.ts) - four edges, four corners. Worn by the
+   popped-out figures (lib/float-panel.ts) and the visualizer's enlarged player
+   (components/viz-overlay.ts). Cascade layer: `views`, declared in styles/app.css. */
+@layer views {
+
+/* Invisible, and generous - 10px reads as an edge on a mouse and is still findable
+   with a thumb, where a 4px hairline is not. `touch-action: none` on each, or the
+   browser claims the drag for a scroll before the first pointermove arrives.
+   No z-index, deliberately: being positioned and LAST in the panel's markup already
+   puts a grip over the canvas, body and toolbar it shares an edge with, while an
+   overlay that raises itself (the visualizer's options menu) still wins - a 10px
+   strip must not eat clicks on a menu item that happens to reach the edge. */
+.panel-grip { position: absolute; touch-action: none; }
+.panel-grip--n, .panel-grip--s { left: 10px; right: 10px; height: 10px; cursor: ns-resize; }
+.panel-grip--e, .panel-grip--w { top: 10px; bottom: 10px; width: 10px; cursor: ew-resize; }
+.panel-grip--n { top: 0; }
+.panel-grip--s { bottom: 0; }
+.panel-grip--e { right: 0; }
+.panel-grip--w { left: 0; }
+.panel-grip--ne, .panel-grip--nw, .panel-grip--se, .panel-grip--sw { width: 16px; height: 16px; }
+.panel-grip--nw { top: 0; left: 0; cursor: nwse-resize; }
+.panel-grip--se { bottom: 0; right: 0; cursor: nwse-resize; }
+.panel-grip--ne { top: 0; right: 0; cursor: nesw-resize; }
+.panel-grip--sw { bottom: 0; left: 0; cursor: nesw-resize; }
+
+/* Fullscreen: the panel IS the screen, so the grips would resize nothing. */
+:fullscreen > .panel-grip { display: none; }
+
+/* The corner most people already know. Drawn on the SE grip itself rather than the
+   panel's ::after, so it lands wherever the grip is and disappears with it. */
+.panel-grip--se::after {
+  content: '';
+  position: absolute;
+  right: 3px; bottom: 3px;
+  width: 11px; height: 11px;
+  opacity: 0.42;
+  background: linear-gradient(135deg, transparent 45%, currentColor 45%, currentColor 55%, transparent 55%);
+}
+
+/* Coarse pointer: a fingertip misses a 10/16px strip more often than a mouse tip
+   does. 24px is the WCAG 2.5.8 floor, not the usual 44px HIG target - a corner
+   that big would eat into the panel's own content, and an edge grip already runs
+   the whole side of the panel so a floor is enough there too. */
+@media (pointer: coarse) {
+  .panel-grip--n, .panel-grip--s { height: 24px; }
+  .panel-grip--e, .panel-grip--w { width: 24px; }
+  .panel-grip--ne, .panel-grip--nw, .panel-grip--se, .panel-grip--sw { width: 28px; height: 28px; }
+}
+
+}

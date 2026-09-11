@@ -1,0 +1,199 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* ─── #/script - Script audio, the writing surface ─────────────────────────────
+   The script sheet is the hero: a page-like card with generous reading type,
+   the word count and listening estimate as a quiet margin note beneath it, and
+   everything mechanical (voice, speed, generate, save) in a side rail. The
+   shared progress track and preview row keep their .script-audio-* classes
+   (styles/script-audio.css) - one recipe for both Script-audio surfaces. */
+
+.scriptst-view { overflow-y: auto; }
+.scriptst-view .scriptst-layout {
+  width: 100%; max-width: min(1160px, 94vw); margin: 0 auto;
+  padding: 3.25rem 1.25rem 5rem; /* top clears the fixed back pill */
+}
+
+.scriptst-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 2rem;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .scriptst-cols { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ─── the script sheet ──────────────────────────────────────────────────────── */
+
+.scriptst-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.5rem 1.75rem 1.1rem;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+.scriptst-sheet-label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+/* ─── the chip bar and its Tips (plans/181 section 4) ───────────────────────────
+   Marks are ordinary text, so a chip is a shortcut for typing rather than a
+   widget: the bar sits between the sheet label and the page, quiet enough to
+   ignore and close enough to reach. */
+.scriptst-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.scriptst-chip {
+  min-width: calc(28px * var(--a11y-fs));
+  padding: 3px 8px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  background: hsl(var(--background));
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-size: var(--fs-md);
+  line-height: 1.4;
+  cursor: pointer;
+}
+.scriptst-chip:hover { background: hsl(var(--accent) / 0.5); color: hsl(var(--foreground)); }
+.scriptst-tips-toggle { margin-inline-start: auto; }
+.scriptst-tips {
+  padding: 10px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--accent) / 0.35);
+}
+.scriptst-tips-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.scriptst-tips-list li { display: flex; flex-direction: column; gap: 2px; }
+.scriptst-tip-eg {
+  white-space: pre-line;   /* an example may be two lines - the split-here tip */
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: hsl(var(--foreground));
+}
+
+/* The hero: reading-sized type on a borderless page. The sheet card carries the
+   visual edge, so the field's own box dissolves into the page - the focus ring
+   (a11y layer, :focus-visible) still draws on the textarea itself. */
+.scriptst-text {
+  resize: vertical;
+  min-height: min(52vh, 30rem);
+  padding: 0.25rem 0;
+  border-color: transparent;
+  background: transparent;
+  font: inherit;
+  font-size: calc(17px * var(--a11y-fs));
+  line-height: 1.7;
+}
+/* The margin note: how many words, how long they take to hear. */
+.scriptst-meter {
+  margin: 0;
+  align-self: flex-end;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+.scriptst-meter-over { color: hsl(var(--destructive)); }
+
+/* ─── the rail ──────────────────────────────────────────────────────────────── */
+
+.scriptst-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: sticky;
+  top: 4.5rem; /* below the fixed back pill, so controls ride along a long script */
+}
+@media (max-width: 860px) {
+  .scriptst-rail { position: static; }
+}
+.scriptst-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+/* ─── voice blending: the second voice and its one weight ─────────────────────
+   One slider for two voices - the label carries both shares, so the control
+   reads as a mix rather than as "how much of the other one". */
+.scriptst-mix {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.scriptst-slider { width: 100%; accent-color: hsl(var(--primary)); }
+.scriptst-accent {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
+}
+/* Which saved clip this sheet was opened on, and what Save will do to it. */
+.scriptst-source {
+  margin: 0.35rem 0 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.scriptst-audition {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+}
+.scriptst-audition-icon { display: inline-flex; }
+.scriptst-audition-icon svg {
+  width: var(--fs-lg);
+  height: var(--fs-lg);
+}
+.scriptst-consent {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--accent) / 0.4);
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.scriptst-kbd {
+  margin: 0;
+  font-size: calc(11.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+}
+.scriptst-status {
+  margin: 0;
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.scriptst-status-error { color: hsl(var(--destructive)); }
+.scriptst-saved {
+  margin: 0;
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.scriptst-saved a { color: hsl(var(--primary)); }
+}

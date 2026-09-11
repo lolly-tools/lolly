@@ -1,0 +1,66 @@
+/*
+ * App chrome - layout and component styles for the web shell.
+ *
+ * All colours flow through tokens.css HSL variables so the three themes
+ * (light / dark / suse) require no per-component overrides here.
+ * Tool-internal styles live in each tool's own template <style> block and
+ * are scoped to #tool-canvas - they don't inherit these variables.
+ */
+
+/* Landing + shared chrome. Everything here render-blocks first paint, so it holds
+ * ONLY what the gallery/catalog landing and every-page chrome need. View-specific
+ * sheets (tool, editor, profile, picker, platform, valid, storage) are imported
+ * from their own lazy view modules instead - Vite emits them as async CSS chunks
+ * loaded with the view, keeping ~60% of the old bundle off the critical path. */
+
+/* ── Cascade layers ───────────────────────────────────────────────────────────
+ * Declared ONCE, here, before any layered import - this single line fixes the
+ * priority order for the whole app. A sheet's weight now comes from its LAYER,
+ * not from when it happens to load, so adding/reordering an @import (or a lazy
+ * view chunk injecting its own `@layer views {}` at runtime) can no longer flip
+ * which rule wins. Priority low → high:
+ *   vendor     - third-party stylesheets (flatpickr…) so app CSS always overrides
+ *   base       - element resets/defaults + low-priority helpers (base, utilities)
+ *   primitives - shared .btn/.chip/.card/.section-card bases meant to be extended
+ *   chrome     - the render-blocking landing/chrome sheets below
+ *   views      - every lazy per-view chunk (each wraps itself in `@layer views`)
+ *   overrides  - rare cross-cutting rules that must beat any view (overrides.css)
+ *   a11y       - focus rings + RTL correctness; accessibility wins over everything
+ * fonts.css + tokens.css stay UNLAYERED on purpose: @font-face + the design-token
+ * variables are consumed everywhere and never competed over, and unlayered
+ * declarations outrank every layer - exactly what tokens want. */
+@layer vendor, base, primitives, chrome, views, overrides, a11y;
+
+@import './fonts.css';
+@import './tokens.css';
+
+@import './parts/base.css'         layer(base);
+@import './parts/utilities.css'    layer(base);
+@import './parts/buttons.css'      layer(primitives); /* .btn/.btn--primary/.btn--glass - primitives layer, so view rules extend them */
+@import './parts/chips.css'        layer(primitives); /* .chip/.card/.section-header */
+@import './parts/fields.css'       layer(primitives); /* .field-input/.field-select/.field-check/.field-radio/.field-range - the ONE form-control recipe */
+@import './parts/disclosure.css'   layer(primitives); /* .section-card fold primitive (rec 7) */
+@import './parts/tooltip.css'      layer(primitives); /* [data-tip] - the ONE styled tooltip */
+@import './parts/surfaces.css'     layer(primitives); /* .surface elevation levels + .u-focus-ring (plans/172 P3) - the composable form of the edge+shadow token recipes */
+@import './parts/gallery.css'      layer(chrome);
+@import './parts/spotlight.css'    layer(chrome); /* the search overlay above the footer bar (plans/99 M2) - chrome, like the bar it docks to */
+@import './parts/featured.css'     layer(chrome);
+@import './parts/topbar.css'       layer(chrome);
+@import './parts/folders.css'      layer(chrome);
+@import './parts/collab.css'       layer(chrome); /* the Projects live-collab tile badge (plan 100 section 4.6) - sits beside folders.css/projects.css, which it decorates; the rest of the presence chrome is self-styled components (see the file's own header) */
+@import './parts/projects.css'     layer(chrome);
+@import './parts/catalog.css'      layer(chrome); /* Catalog view (a primary tab; kept on the landing sheet) */
+@import './parts/guide.css'        layer(chrome); /* The guidance grammar + trust lamps + shared census (verify AND catalog render these) */
+@import './parts/components.css'   layer(chrome);
+@import './parts/color-field.css'  layer(chrome); /* colour picker - split out of components.css; same layer, so host overrides keep winning */
+@import './parts/dialogs.css'      layer(chrome);
+@import './parts/present.css'      layer(chrome); /* presentation mode fullscreen deck (plan 112) - body-level fixed overlay, above every view */
+@import './parts/sequence.css'     layer(views);  /* `.seq-off` - the sequence applier's ONE visibility rule. In the views layer (where it lived inside timeline.css) but EAGER: the presenter and the still export both apply the class without ever mounting the timeline panel, so it cannot ride that panel's lazy chunk. See the file's own header. */
+@import './parts/job-toast.css'    layer(chrome); /* global async-job progress toast (plan 124 WP-F) - body-level fixed, outside #view, below modals */
+@import './parts/css-editor.css'   layer(chrome); /* shared CSS code editor (plan 112 M4) - highlight overlay + autocomplete */
+@import './parts/saved-list.css'   layer(chrome); /* saved-session rows - history modal + drawer + /profile */
+@import './parts/notfound.css'     layer(chrome);
+@import './parts/overrides.css'    layer(overrides); /* cross-cutting overrides (top-right FAB/profile cluster) */
+@import './parts/a11y.css'         layer(a11y);
+@import './parts/rtl.css'          layer(a11y); /* RTL correctness rules (Arabic) - accessibility layer, wins over views */
+@import './parts/perf-ui.css'; /* Performance UI (perf-ui flag) - UNLAYERED on purpose, so its !important strip of blur/shadow/blend outranks every layer. Gated on html[data-perf-ui]: absent by default ⇒ no-op. */

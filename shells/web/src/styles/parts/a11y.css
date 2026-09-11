@@ -1,0 +1,344 @@
+/* ─── Keyboard focus rings (a11y) ───────────────────────────────────────────
+   Several form controls replace the focus ring with a tinted border + a faint
+   ~0.15 box-shadow glow on :focus (or set outline:none on the base), which is
+   near-invisible for keyboard users and beats the global :focus-visible ring.
+   Restore a real, high-contrast ring on :focus-visible ONLY - mouse focus keeps
+   the subtle styled look (the existing :focus rules are untouched). Selectors
+   mirror each control's :focus rule (same specificity) and are declared last so
+   they win the cascade. */
+.gallery-search:focus-visible,
+.input-row input:focus-visible,
+.input-row textarea:focus-visible,
+.input-row select:focus-visible,
+.time-input-wrap input[type="time"]:focus-visible,
+.block-field:focus-visible,
+.vec-num:focus-visible,
+.dim-unit:focus-visible,
+.export-dims input[type="number"]:focus-visible,
+.video-params input[type="number"]:focus-visible,
+.export-pdfpass input[type="password"]:focus-visible,
+.print-bleed input[type="number"]:focus-visible,
+.export-filename:focus-visible,
+.tool-actions select:focus-visible,
+.profile-view .profile-field input:focus-visible,
+.color-input:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* The swatch editor's Name/format fields carry a tighter corner radius than
+   the global :focus-visible rule's border-radius override assumes - restate
+   it here so keyboard focus doesn't visually balloon these small fields into
+   a rounder pill than their own border. */
+.be-editor-name:focus-visible,
+.be-fmt-input:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: calc(var(--radius) * .5);
+}
+
+/* The shared field primitive (parts/fields.css) states its own :focus-visible
+   ring so it is correct standalone, but it sits in `primitives` - below every
+   view sheet. Restate it here, in the top layer, so a view that legitimately
+   overrides the field's :focus look can never take the keyboard ring with it. */
+.field-input:focus-visible,
+.field-select:focus-visible,
+.field-check:focus-visible,
+.field-radio:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Controls whose own sheet sets `outline: none` and offers only a tinted border
+   (or nothing at all) in its place - a ~1px hue shift is not a focus indicator.
+   Same treatment as the list above: the styled :focus look is left alone, the
+   keyboard-only :focus-visible state gets a real ring. Grouped by sheet:
+   multi-edit.css, picker.css, pro/pro.css, gallery.css, tool-chrome.css,
+   brand-studio.css, editor.css, document.css, deck-editor.css, valid.css. */
+.me-search input:focus-visible,
+.me-exp-field input:focus-visible,
+.me-exp-field select:focus-visible,
+.asset-picker-search:focus-visible,
+.asset-picker-toolcard-controls select:focus-visible,
+.asset-picker-toolcard-controls input:focus-visible,
+.pro-zip input:focus-visible,
+.pro-tpl-search:focus-visible,
+.pro-cell .pro-control:focus-visible,
+.gallery-sort:focus-visible,
+.be-pal-fmt-sel:focus-visible,
+.pdfpass-tier:focus-visible,
+.identity-days-select:focus-visible,
+.fc-row select:focus-visible,
+.fc-fmt-font:focus-visible,
+.fc-fmt-weight:focus-visible,
+.doc-setup-row select:focus-visible,
+.doc-font-select:focus-visible,
+.doc-style-select:focus-visible,
+.doc-lh-select:focus-visible,
+.doc-ls-select:focus-visible,
+.deck-free__sel:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* ProseMirror (the Doc Studio editable) kills its own outline three times over
+   in document.css and puts nothing back, so a keyboard user tabbing into the
+   document body gets no indication they've landed. The editable is a page-sized
+   surface - a 2px outline around it reads as a border, so it takes the softer
+   ring the type-demo editable already uses. */
+.doc-tt-holder .ProseMirror:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--ring) / .55);
+}
+
+
+/* ─── `hidden` actually hides (@layer a11y) ───────────────────────────────────
+   `[hidden]` is the platform contract for "not rendered, and not in the
+   accessibility tree". base.css states it - but base.css sits in the `base`
+   layer, second from the bottom, so EVERY class rule that sets `display` in
+   `primitives` / `chrome` / `views` beats it outright. Not on specificity (a
+   single class and an attribute selector are both (0,1,0)) - on LAYER RANK, and
+   no amount of specificity in `base` can climb a layer. The result: any
+   component that says `.thing { display: flex }` and is later hidden with the
+   attribute keeps its box, and a screen reader stays silent about a control the
+   sighted user can still see - or, as in Colour Lab, a hidden card holds its
+   grid row open as a 79px void.
+
+   A survey of shells/web/src (2026-07-28) found 62 places that had already been
+   patched one at a time with a hand-written `.foo[hidden] { display: none }`
+   restatement, and 89 more classes with the same collision still unpatched.
+   That is 151 instances of one bug, so it is fixed once, here, in the top layer.
+
+   Why `!important`, given the layer alone already beats every sheet:
+     · Tool template CSS is injected UNLAYERED (tools are data, scoped to
+       #tool-canvas), and unlayered declarations outrank every layer. Without
+       `!important` a tool's own `display` would still defeat `hidden` inside the
+       canvas, where hooks set `el.hidden` constantly.
+     · An inline `el.style.display = 'flex'` also outranks every layer.
+   It is safe because nothing in the codebase wants a hidden element laid out:
+   there is not one rule in shells/web/src or tools/ where a `[hidden]` selector
+   sets `display` to anything but `none` (checked; the only two `!important`s
+   already present, multi-edit.css and saved-list.css, are this same fix applied
+   locally). `hidden="until-found"` is not used anywhere - it would need an
+   exemption, since it relies on `content-visibility`, not `display`.
+
+   NOT wrapped in `:where()`: keeping the real (0,1,0) specificity means an
+   intentional escape hatch has to out-specify it deliberately (a more specific
+   `!important` selector added to this sheet, or an inline `!important`) rather
+   than any stray element-level `!important` knocking it out by accident. */
+[hidden] {
+  display: none !important;
+}
+
+
+/* ─── Large text - data-a11y-text="large" (@layer a11y) ──────────────────────
+   The chrome-wide type scale-up behind the opt-in `largeText` preference
+   (lib/a11y-prefs.ts). It is ONE custom property: `--a11y-fs`, a multiplier
+   every chrome font-size is written through -
+
+     font-size: var(--fs-md);
+
+   - which is 1 with the attribute absent, so every one of those calc()s
+   computes byte-for-byte what it computed before the preference existed. The
+   additivity guarantee is therefore per-declaration and provable by reading a
+   single line, not something resting on a list that has to be kept complete.
+
+   WHY NOT A BIGGER ROOT font-size
+   `rem` resolves against the document root, and real shipping tools style
+   themselves in rem (community/url-shot, community/screencap/styles.css,
+   brands/suse/tools/color-palette). The web shell
+   exports by WALKING THE LIVE DOM (bridge/export.ts), so a root font-size bump
+   would silently re-lay-out those tools and their PNG/SVG/PDF would stop
+   matching the CLI's render of the same URL - one render path is the whole
+   point (CLAUDE.md, "URL mode is first-class"). The root font-size therefore
+   stays 16px, permanently, and `rem` means the same length under this pref as
+   without it. That is also why the multiplier is spelled onto individual
+   font-size declarations rather than inherited from a container: a tool
+   template's own type is left strictly alone.
+
+   WHY NOT `zoom`
+   Two independent findings, either of which is fatal:
+    · COORDINATE SPACE. Under Chrome's standardized CSS zoom (M128+)
+      getBoundingClientRect() reports zoom-scaled values while an inline
+      `left:Npx` written onto a zoomed element resolves in the ZOOMED space. 23
+      files here position elements by mixing the two (components/body-popover.ts,
+      lib/float-panel.ts, components/color-field.ts, views/free-canvas.ts,
+      views/timeline-panel.ts, views/deck-editor.ts, views/doc-editor.ts,
+      components/lang-menu.ts, lib/palette-wheel.ts, …), so every popover,
+      floating panel and canvas handle landed 1.25× off - broken for precisely
+      the users who asked for larger text.
+    · IT NEEDED A PIN LIST, AND THE LIST WAS INCOMPLETE. Zoom multiplies down
+      the tree, so each offscreen render/measurement stage had to be counter-
+      zoomed by hand; pro/render-export.ts's `pro-export-canvas` (which serves
+      /pro batch rows, every `compose` child render, featured-row renders and
+      the boot personalize previews), views/multi-edit.ts's `.me-scale` and
+      lib/audio-cover-bake.ts's holder were all missed, so exports came out
+      1.25× and a poisoned cover bake outlived the preference in cache. Any
+      mechanism whose correctness depends on an exhaustive hand-maintained list
+      of stages is the wrong mechanism - a multiplier that only ever appears
+      where it is written cannot miss one.
+
+   WHY NOT `transform: scale()`
+   A transform doesn't affect layout: the chrome would overlap itself and be
+   clipped at the viewport edge instead of reflowing into the extra space.
+
+   WHY 1.2
+   This scales TYPE only, so it is more clip-prone than a whole-UI scale was:
+   1.2 is the gentler starting point. There is no reciprocal requirement any
+   more (nothing is counter-scaled anywhere), so the factor is free - it is a
+   single token and retuning it is a one-line edit here.
+
+   ICONS RIDE THE SAME FACTOR
+   Chrome icon sizes are written through `--a11y-fs` too - `width: calc(18px *
+   var(--a11y-fs))` and the like, plus the size tokens the shadow-DOM jelly
+   controls declare in lib/jelly.ts. They have to: the chrome has dozens of
+   controls that are an aria-label and an <svg> with no visible text at all, and
+   under 640px parts/topbar.css hides `.view-toggle-label` so the app's top-level
+   navigation carries 100% of its meaning in 18px glyphs - inside a button whose
+   height already grows with --chrome-h, so an unscaled icon SHRANK as its box
+   grew. There is deliberately no second token for it: one knob is the point, a
+   separate icon scale is one more thing that has to be kept in step with the type
+   scale, and an icon that grows with its label is what the preference means.
+   Done in CSS only - lib/icons.ts's inline width/height attributes stay as they
+   are, because other code measures and clones that markup; a CSS rule beats a
+   presentational attribute, so a rule here wins wherever one exists.
+
+   WHAT THE MULTIPLIER DOES NOT SCALE
+   px paddings, fixed px heights, border widths, gaps, and every
+   rem-based geometry token (--radius, --chrome-h, …) all keep their length.
+   Bigger type inside an unchanged box is the known trade: text in fixed-height
+   chrome can clip. Geometry that must follow the type is scaled WHERE ITS TOKEN
+   IS DECLARED (styles/tokens.css) and not restated here - tokens.css also
+   carries the max-width:640px and pointer:coarse overrides of that row, and a
+   second copy of them in this sheet is exactly how the two would drift apart.
+
+   Still no minimum-font-size floor: a multiplier lifts a 10px micro-label to
+   12px while preserving every size RELATION in the type scale, and a floor
+   would flatten exactly those relations.
+
+   WHAT NO CSS MECHANISM CAN REACH (accepted, not overlooked)
+    · TEXT PAINTED INTO A CANVAS. lib/particles.ts sizes its confetti labels in
+      JS (`rand(11, 20)px`) and reads only the brand FAMILY from CSS, so those
+      words keep their size. It is the only chrome canvas that draws text -
+      lib/shutter.ts, lib/butterchurn-viz.ts and components/viz-overlay.ts's
+      bar meter paint no glyphs, so nothing is lost there.
+    · TEXT BAKED INTO AN IMAGE. The per-tool and per-view OG share cards
+      (catalog/og/), tool `thumb.png` and the `card.html` animated banners
+      (lib/preview-media.ts), the catalog preview SVGs
+      (catalog/previews/bundle.json) and the /info docs screenshots (docs/shots)
+      are all pixels - or font-sizes fixed at capture time - by the time the shell
+      shows them. A whole-UI zoom would have magnified every one; a type
+      multiplier cannot touch any. That is the price of the mechanism that keeps
+      exports byte-identical, paid knowingly rather than left to be rediscovered.
+      (Previews and thumbnails are renders of tool OUTPUT, so invariant B would
+      hold their type fixed even if CSS could reach them.) */
+:root {
+  /* Declared unconditionally so `calc(… * var(--a11y-fs))` is never an invalid
+     computed value - an undefined var there would drop the whole font-size to
+     its inherited value, i.e. break type everywhere, not just under the pref.
+     --a11y-os-fs is the iOS Dynamic Type ratio, observed live
+     (lib/ios-text-scale.ts) and written INLINE on <html> - which is
+     exactly why the pref cannot live inline too: an inline --a11y-fs would
+     outrank the attribute rule below and freeze the toggle. Composing here
+     keeps both sources live: the OS ratio scales the chrome on its own, and
+     with the pref on the LARGER of the two wins. */
+  --a11y-os-fs: 1;
+  --a11y-fs: var(--a11y-os-fs, 1);
+}
+
+html[data-a11y-text="large"] {
+  --a11y-fs: max(var(--a11y-os-fs, 1), 1.2);
+}
+
+
+/* ─── High-contrast focus ring - data-a11y-contrast="high" (@layer a11y) ─────
+   The keyboard ring is a 2px `hsl(var(--ring))` outline hardcoded in ~15 places
+   (there is no width token to raise), and at 2px it can vanish against a filled
+   button or a busy card - the one indicator a keyboard user has, failing for the
+   users who opted into stronger contrast. Under the contrast attribute it grows
+   to 3px and gains a `--background` halo so the ring reads against whatever it
+   is drawn over: the halo fills the offset gap (0–2px) and one px beyond the
+   outline (5–6px), so the ring is banded by page colour on BOTH sides and never
+   has to out-contrast the button it surrounds.
+
+   No `!important`: every sheet that states a ring sits in `base`, `primitives`,
+   `chrome` or `views` - this file is the last layer, so it wins on LAYER RANK
+   whatever the specificity, and no unlayered sheet (tokens.css, brand-vars.ts's
+   injected <style>) or inline style sets an outline. That is the whole reason
+   the `[hidden]` block above needs `!important` and this does not.
+
+   The halo REPLACES an element's own box-shadow while focused (a resting
+   elevation is not a focus indicator, and the contrast pref is allowed to trade
+   depth for legibility) - but only for the duration of focus, and only on
+   chrome: the sacred render stages are excluded through `:not(:where(…))`, which
+   contributes NO specificity, so an export walk over the live canvas can never
+   pick up a shadow this sheet added. */
+html[data-a11y-contrast="high"] :focus-visible:not(:where(
+  #tool-canvas-outer, #tool-canvas, #tool-content, .tool-canvas,
+  .pro-export-canvas, .me-canvas, .me-scale,
+  #tool-canvas-outer *, #tool-canvas *, #tool-content *, .tool-canvas *,
+  .pro-export-canvas *, .me-canvas *, .me-scale *)) {
+  outline: 3px solid hsl(var(--ring));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px hsl(var(--background));
+}
+
+/* The Doc Studio editable takes the softer ring above (a page-sized surface
+   with a 3px outline reads as a border, and it is the user's document), so it
+   keeps box-shadow as the indicator - strengthened here rather than swapped.
+   Restated because its own rule in this sheet is (0,3,0) and would otherwise
+   out-specify the (0,2,1) block above on `outline`. */
+html[data-a11y-contrast="high"] .doc-tt-holder .ProseMirror:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--ring));
+}
+
+/* Controls that indicate focus with a 60%-alpha border tint instead of a ring
+   (see the `/ .6` rules in brand-studio.css, multi-edit.css, color-field.css).
+   These are :focus - the styled, mouse-included look - so they stay a border;
+   under high contrast it just goes fully opaque, which is the cheapest real
+   contrast win available without inventing a second indicator. */
+html[data-a11y-contrast="high"] .be-lock-field input:focus,
+html[data-a11y-contrast="high"] .be-lock-field select:focus,
+html[data-a11y-contrast="high"] .be-cmyk-in input:focus,
+html[data-a11y-contrast="high"] .be-fmt-input:focus,
+html[data-a11y-contrast="high"] .be-logo-addmark-name:focus,
+html[data-a11y-contrast="high"] .be-logo-addidentity input:focus,
+html[data-a11y-contrast="high"] .be-tok-dim:focus,
+html[data-a11y-contrast="high"] .be-tok-num:focus,
+html[data-a11y-contrast="high"] .be-tok-add-name:focus,
+html[data-a11y-contrast="high"] .me-search input:focus,
+html[data-a11y-contrast="high"] .color-input:focus {
+  border-color: hsl(var(--ring));
+}
+
+/* ─── The render canvas keeps the theme's ink under high contrast (@layer a11y) ─
+   parts/base.css sets `body { color: hsl(var(--foreground)) }`, and that
+   declaration is INHERITED by tool markup: most templates set no colour of their
+   own, several draw with `currentColor` (e.g. design's undrawn-path
+   placeholder), and neither #tool-content nor the offscreen export stages
+   .pro-export-canvas / .me-canvas declare a colour. So whatever --foreground
+   resolves to is the ink of the live canvas AND of the stage every export is
+   captured from.
+
+   Following the THEME there is intended and long-standing. Following a comfort
+   PREFERENCE is not: high contrast re-points --foreground in the dark and brand
+   themes (styles/tokens.css), which changed exported pixels and - worse - baked
+   into the session thumbnails and featured-row/preview renders that are cached
+   under keys with no pref component, so the wrong ink survived turning the
+   preference back off. Restore the base ink at the canvas boundary: each theme
+   declares --foreground-canvas alongside --foreground (brand-vars.ts emits the
+   pair for a runtime-constructed brand too), and only --foreground is ever
+   re-pointed.
+
+   Re-declaring the TOKEN as well as `color` matters: a tool that reads
+   hsl(var(--foreground)) directly gets the base value too, and every chrome
+   token still inherits into the canvas unchanged for anything that deliberately
+   wants it. Gated on the attribute, so with the preference off this rule does
+   not exist and the cascade is untouched. Residual, documented in tokens.css: a
+   tool that reads another re-pointed chrome token (--border, --primary, …) is
+   outside the tool contract and is not covered here. */
+html[data-a11y-contrast="high"] :is(.tool-canvas, #tool-content, .pro-export-canvas, .me-canvas, .me-scale) {
+  --foreground: var(--foreground-canvas);
+  color: hsl(var(--foreground-canvas));
+}

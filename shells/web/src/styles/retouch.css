@@ -1,0 +1,171 @@
+/* ── Retouch, inline mode (views/retouch-inline.ts) ─────────────────────────
+   Brush over a raster IN the catalog detail preview, then content-aware fill
+   on-device. Not a window: `.rt-work` mounts inside `.cat-details-preview`
+   (which goes `.is-retouching`, hiding the zoom stage and nav), with the
+   toolbar pinned to the TOP of the preview and the Cancel/primary row taking
+   the modal action row's place. A lazy chunk like matte.css: imported by the
+   module itself, so entering the mode pulls the sheet on demand. */
+
+/* The work fills the preview box; column layout: toolbar, stage, status. */
+.rt-work {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 3;
+}
+
+/* The toolbar ON TOP - a solid surface (the zoom-HUD contrast rule: controls
+   must stay readable over any art the stage might show through). The inline
+   padding-end clears the modal's absolutely-positioned close button. */
+.rt-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  padding-inline-end: 52px;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border-bottom: 1px solid hsl(var(--border));
+}
+.rt-field {
+  flex: 1 1 150px;
+  min-width: 130px;
+  max-width: 240px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+.rt-field-label { white-space: nowrap; }
+.rt-brush { flex: 1 1 auto; min-width: 70px; }
+/* Tool buttons (Erase, Clear, Undo fill) - the quiet outline recipe. */
+.rt-tool {
+  padding: 5px 11px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: calc(12.5px * var(--a11y-fs));
+  font-weight: 600;
+  cursor: pointer;
+}
+.rt-tool:hover:not(:disabled) { border-color: hsl(var(--primary)); }
+.rt-tool:disabled { opacity: 0.5; cursor: not-allowed; }
+.rt-tool.is-active {
+  background: hsl(var(--primary) / 0.12);
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+}
+/* The fill progress lives IN the bar so the eye never has to leave the image. */
+.rt-progress {
+  flex: 1 1 90px;
+  min-width: 70px;
+  height: 6px;
+  border-radius: var(--radius-xs);
+  background: hsl(var(--border));
+  overflow: hidden;
+}
+.rt-progress[hidden] { display: none; }
+.rt-progress-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: var(--radius-xs);
+  background: hsl(var(--primary));
+  transition: width 0.15s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rt-progress-fill { transition: none; }
+}
+html[data-a11y-motion="reduce"] .rt-progress-fill { transition: none; }
+
+/* The stage: canvases stacked and centred in whatever height the preview
+   leaves under the toolbar. Children are position:absolute (JS sets their
+   pixel size as canvas attributes), so the box just flexes to fill. */
+.rt-stagebox {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 160px;
+  overflow: hidden;
+}
+.rt-image,
+.rt-mask {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+/* The mask sits on top (it paints the brush strokes) and owns pointer input.
+   touch-action:none stops the browser treating a drag as a page scroll on
+   touch devices; cursor:none hides the system pointer so the custom ring
+   below can stand in for it. */
+.rt-mask {
+  touch-action: none;
+  cursor: none;
+}
+/* Custom brush cursor - JS moves it with left/top and sizes it to the brush
+   diameter. A white ring plus a dark outer ring so it reads over both light
+   and dark parts of the image underneath. */
+.rt-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-round);
+  border: 1.5px solid #fff;
+  box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+/* Status line along the preview's foot - solid for the same contrast reason. */
+.rt-status {
+  padding: 6px 12px;
+  background: hsl(var(--card));
+  border-top: 1px solid hsl(var(--border));
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.rt-status[hidden] { display: none; }
+.rt-status.rt-error { color: hsl(var(--destructive)); }
+
+/* Cancel + the morphing primary live at the END of the top bar, so the whole
+   decision loop happens without leaving the image or scrolling the body. */
+.rt-bar-actions {
+  display: inline-flex;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+.rt-cancel {
+  padding: 7px 14px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+/* Colours come from the shared primary roster in parts/buttons.css (R2: the
+   primary pair is declared once app-wide); only the deltas live here. */
+.rt-run {
+  padding: 7px 18px;
+  border: 1px solid hsl(var(--primary));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+.rt-run:hover:not(:disabled) { filter: brightness(1.08); }
+.rt-run:disabled { opacity: 0.5; cursor: not-allowed; }

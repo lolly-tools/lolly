@@ -1,0 +1,413 @@
+// SPDX-License-Identifier: MPL-2.0
+/**
+ * The beam staging sink (plan 100 section 6.4, section 11.15a, section 11.18).
+ *
+ * Storage is injected (the `StateDb` idiom from bridge/state.ts), so every claim
+ * below is asserted against an in-memory store that behaves like the real one:
+ * a row per `[beamId, itemIndex, seq]`, reads in seq order, whole-beam deletes.
+ * No IndexedDB, no DOM - the same conditions the sink meets inside a Worker.
+ *
+ * The claims, in order of what a regression would cost:
+ *
+ *  1. BYTE-EXACTNESS. A chunked item comes back out identical, and the digest the
+ *     sink hands the protocol is the catalog's own SRI form. This is the property
+ *     C2PA credentials survive a beam by; nothing else here matters if it breaks.
+ *  2. A missing chunk is caught at finalize. A gap must fail loudly, never assemble
+ *     into a shorter file that then fails a checksum for a mystery reason.
+ *  3. section 11.18 - discard leaves ZERO rows, mid-write, and twice.
+ *  4. The orphan sweep clears a crashed session's litter and spares a live beam.
+ *  5. A full disk surfaces as a typed error with user copy, so the protocol can
+ *     cancel and the UI can say what happened.
+ *  6. End to end through the real receiver with `hasher: null` - the arrangement
+ *     where the protocol buffers nothing and this driver's digest is the only
+ *     verification there is.
+ *
+ * Run directly:  node --test shells/web/src/lib/beam-sink.test.ts
+ */
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+
+import {
+  STRINGS,
+  BeamSinkError,
+  clearStaleBeams,
+  createBeamSink,
+} from './beam-sink.ts';
+import type { BeamStagingDb, BeamStagingRow } from './beam-sink.ts';
+import { BEAM_PROTOCOL_VERSION, createBeamReceiver, sriSha256 } from '../collab/beam-protocol.ts';
+import type { BeamHash, BeamMessage } from '../collab/beam-protocol.ts';
+
+// ── an in-memory beam-staging store ───────────────────────────────────────────
+
+interface MemDb extends BeamStagingDb {
+  rows: Map<string, BeamStagingRow>;
+  /** Injected failure for the next N puts (the quota drill). */
+  failPut: ((row: BeamStagingRow) => unknown) | null;
+}
+
+function memDb(seed: readonly BeamStagingRow[] = []): MemDb {
+  const rows = new Map<string, BeamStagingRow>();
+  const key = (r: { beamId: string; itemIndex: number; seq: number }) => `${r.beamId}\u0000${r.itemIndex}\u0000${r.seq}`;
+  for (const r of seed) rows.set(key(r), r);
+  const db: MemDb = {
+    rows,
+    failPut: null,
+    async put(row) {
+      const boom = db.failPut?.(row);
+      if (boom) throw boom;
+      rows.set(key(row), row);          // same key overwrites, exactly like IDB
+    },
+    async itemRows(beamId, itemIndex) {
+      return [...rows.values()]
+        .filter(r => r.beamId === beamId && r.itemIndex === itemIndex)
+        .sort((a, b) => a.seq - b.seq);  // the store's key order
+    },
+    async deleteItem(beamId, itemIndex) {
+      for (const [k, r] of rows) if (r.beamId === beamId && r.itemIndex === itemIndex) rows.delete(k);
+    },
+    async deleteBeam(beamId) {
+      for (const [k, r] of rows) if (r.beamId === beamId) rows.delete(k);
+    },
+    async beamStamps() {
+      const stamps = new Map<string, number>();
+      for (const r of [...rows.values()].sort((a, b) => a.at - b.at)) stamps.set(r.beamId, r.at);
+      return stamps;
+    },
+  };
+  return db;
+}
+
+/** Deterministic non-trivial bytes - a real payload, not a run of zeroes. */
+function payload(n: number, seed = 1): Uint8Array {
+  const out = new Uint8Array(n);
+  let x = seed >>> 0;
+  for (let i = 0; i < n; i++) {
+    x = (x * 1664525 + 1013904223) >>> 0;
+    out[i] = (x >>> 24) & 0xff;
+  }
+  return out;
+}
+
+function chunks(bytes: Uint8Array, size: number): Uint8Array[] {
+  const out: Uint8Array[] = [];
+  for (let at = 0; at < bytes.length; at += size) out.push(bytes.subarray(at, Math.min(at + size, bytes.length)));
+  return out;
+}
+
+async function blobBytes(blob: Blob): Promise<Uint8Array> {
+  return new Uint8Array(await blob.arrayBuffer());
+}
+
+function silent(): (message: string, meta?: Record<string, unknown>) => void {
+  return () => {};
+}
+
+// ── 1. byte-exactness ─────────────────────────────────────────────────────────
+
+test('a chunked item round-trips byte-exact, and finalize returns the catalog SRI digest', async () => {
+  const db = memDb();
+  const sink = createBeamSink('beam-1', { db });
+  const bytes = payload(150_000);
+  const parts = chunks(bytes, 64 * 1024);
+  assert.equal(parts.length, 3, 'the fixture really is multi-chunk');
+
+  for (let seq = 0; seq < parts.length; seq++) await sink.write(0, seq, parts[seq]!);
+  const item = await sink.finalizeItem(0);
+
+  assert.deepEqual(await blobBytes(item.blob), bytes, 'not one byte moved');
+  assert.equal(item.bytes, bytes.length);
+  assert.equal(item.chunks, 3);
+  assert.equal(item.checksum, await sriSha256(bytes), 'the digest is over the whole item, in the catalog form');
+});
+
+test('write() does not retain the caller buffer past the synchronous call', async () => {
+  const db = memDb();
+  const sink = createBeamSink('beam-buf', { db });
+  const scratch = new Uint8Array([1, 2, 3, 4]);
+  const pending = sink.write(0, 0, scratch);
+  scratch.fill(0xff);                       // a wire reusing its receive buffer
+  await pending;
+  const item = await sink.finalizeItem(0);
+  assert.deepEqual(await blobBytes(item.blob), new Uint8Array([1, 2, 3, 4]));
+});
+
+test('chunks that arrive out of order still assemble in seq order', async () => {
+  const db = memDb();
+  const sink = createBeamSink('beam-2', { db });
+  const bytes = payload(30, 7);
+  const parts = chunks(bytes, 10);
+  await sink.write(0, 2, parts[2]!);
+  await sink.write(0, 0, parts[0]!);
+  await sink.write(0, 1, parts[1]!);
+
+  const item = await sink.finalizeItem(0);
+  assert.deepEqual(await blobBytes(item.blob), bytes, 'assembly follows seq, not arrival');
+});
+
+// ── 2. continuity ─────────────────────────────────────────────────────────────
+
+test('a missing seq is caught at finalize, not papered over', async () => {
+  const db = memDb();
+  const sink = createBeamSink('beam-3', { db });
+  const parts = chunks(payload(30, 9), 10);
+  await sink.write(0, 0, parts[0]!);
+  await sink.write(0, 1, parts[1]!);
+  await sink.write(0, 3, parts[2]!);        // seq 2 never landed
+
+  await assert.rejects(() => sink.finalizeItem(0), (err: unknown) => {
+    assert.ok(err instanceof BeamSinkError);
+    assert.equal(err.code, 'missing-chunk');
+    assert.match(err.message, /expected seq 2, staged 3/);
+    assert.equal(err.userMessage, STRINGS['missing-chunk']);
+    return true;
+  });
+  assert.equal(db.rows.size, 3, 'a failed seal drops nothing - discard() owns cleanup');
+});
+
+test('an empty item seals to an empty blob, with the empty digest', async () => {
+  const db = memDb();
+  const sink = createBeamSink('beam-4', { db });
+  const item = await sink.finalizeItem(0);   // a 0-byte item is sent as no chunks at all
+  assert.equal(item.bytes, 0);
+  assert.equal(item.chunks, 0);
+  assert.equal(item.checksum, await sriSha256(new Uint8Array(0)));
+});
+
+test('finalize drops that item’s staging rows, is idempotent, and hands items over once', async () => {
+  const db = memDb();
+  const sink = createBeamSink('beam-5', { db });
+  await sink.write(0, 0, payload(8, 3));
+  await sink.write(1, 0, payload(8, 4));
+  assert.equal(db.rows.size, 2);
+
+  const first = await sink.finalizeItem(0);
+  assert.equal(db.rows.size, 1, 'item 0 left staging; item 1 is untouched');
+  assert.equal(await sink.finalizeItem(0), first, 'a second seal returns the same item');
+  const [a, b] = await Promise.all([sink.finalizeItem(0), sink.finalizeItem(0)]);
+  assert.equal(a, b, 'concurrent seals assemble the item once');
+
+  await sink.finalizeItem(1);
+  assert.equal(db.rows.size, 0);
+  assert.deepEqual(sink.items().map(i => i.itemIndex), [0, 1]);
+  assert.equal(sink.takeAll().length, 2);
+  assert.equal(sink.items().length, 0, 'taken items are the caller’s now');
+});
+
+// ── 3. section 11.18 discard ─────────────────────────────────────────────────────────
+
+test('discard mid-stream leaves zero rows, twice over', async () => {
+  const db = memDb();
+  const sink = createBeamSink('beam-6', { db, log: silent() });
+  await sink.write(0, 0, payload(64, 1));
+  await sink.finalizeItem(0);               // one item already sealed…
+  await sink.write(1, 0, payload(64, 2));   // …and another mid-flight
+  const inFlight = sink.write(1, 1, payload(64, 3));
+
+  await sink.discard();
+  await inFlight;                            // the racing write must not resurrect a row
+  assert.equal(db.rows.size, 0, 'every row for the beam is gone');
+  assert.equal(sink.items().length, 0, 'sealed blobs are dropped too - nothing partial survives');
+
+  await sink.discard();                      // idempotent
+  assert.equal(db.rows.size, 0);
+});
+
+test('discard spares other beams, and a write after it stages nothing', async () => {
+  const db = memDb();
+  const other = createBeamSink('beam-other', { db });
+  await other.write(0, 0, payload(8));
+  const sink = createBeamSink('beam-7', { db, log: silent() });
+  await sink.write(0, 0, payload(8));
+
+  await sink.discard();
+  await sink.write(0, 1, payload(8));
+  assert.equal(db.rows.size, 1);
+  assert.equal([...db.rows.values()][0]!.beamId, 'beam-other');
+
+  await assert.rejects(() => sink.finalizeItem(0), (err: unknown) => {
+    assert.ok(err instanceof BeamSinkError);
+    assert.equal(err.code, 'closed');
+    return true;
+  });
+});
+
+test('a declined beam never opens storage to prove it staged nothing', async () => {
+  const logged: string[] = [];
+  const sink = createBeamSink('beam-8', { log: (message) => { logged.push(message); } });
+  // No `db` injected and nothing written - the section 11.24 decline path. This process has
+  // no IndexedDB at all, so an attempt to open the real store would fail and log;
+  // silence is the proof that the default storage was never reached for.
+  await sink.discard();
+  assert.deepEqual(logged, []);
+});
+
+// ── 4. the orphan sweep ───────────────────────────────────────────────────────
+
+test('clearStaleBeams removes crashed sessions, spares fresh and kept beams', async () => {
+  const stamp = (beamId: string, at: number, seq = 0): BeamStagingRow =>
+    ({ beamId, itemIndex: 0, seq, bytes: new Blob([new Uint8Array([1])]), size: 1, at });
+  const db = memDb([
+    stamp('crashed', 1_000),
+    stamp('slow-but-alive', 1_000),          // an old FIRST chunk…
+    stamp('slow-but-alive', 9_500, 1),       // …with a recent newest row
+    stamp('fresh', 9_900),
+    stamp('mine', 1_000),
+  ]);
+
+  const cleared = await clearStaleBeams(1_000, { db, now: () => 10_000, keep: ['mine'] });
+
+  assert.deepEqual(cleared, ['crashed'], 'only the beam whose NEWEST row is stale');
+  assert.deepEqual(
+    [...new Set([...db.rows.values()].map(r => r.beamId))].sort(),
+    ['fresh', 'mine', 'slow-but-alive'],
+  );
+});
+
+test('clearStaleBeams never rejects when storage is unusable', async () => {
+  const broken: BeamStagingDb = {
+    async put() { throw new Error('nope'); },
+    async itemRows() { throw new Error('nope'); },
+    async deleteItem() { throw new Error('nope'); },
+    async deleteBeam() { throw new Error('nope'); },
+    async beamStamps() { throw new Error('no IndexedDB here'); },
+  };
+  assert.deepEqual(await clearStaleBeams(1, { db: broken, log: silent() }), []);
+});
+
+// ── 5. quota + failure typing ─────────────────────────────────────────────────
+
+test('a full disk surfaces as a typed quota error, with user copy', async () => {
+  const db = memDb();
+  db.failPut = () => Object.assign(new Error('The quota has been exceeded.'), { name: 'QuotaExceededError' });
+  const sink = createBeamSink('beam-9', { db });
+
+  await assert.rejects(() => sink.write(0, 0, payload(64)), (err: unknown) => {
+    assert.ok(err instanceof BeamSinkError, 'never a raw DOMException');
+    assert.equal(err.code, 'quota');
+    assert.equal(err.userMessage, STRINGS.quota);
+    assert.match(err.message, /item 0 seq 0/, 'the diagnostic says which chunk');
+    return true;
+  });
+  assert.equal(db.rows.size, 0);
+});
+
+test('any other storage failure is write-failed, and carries its cause', async () => {
+  const db = memDb();
+  const cause = new Error('transaction aborted');
+  db.failPut = () => cause;
+  const sink = createBeamSink('beam-10', { db });
+
+  await assert.rejects(() => sink.write(2, 5, payload(8)), (err: unknown) => {
+    assert.ok(err instanceof BeamSinkError);
+    assert.equal(err.code, 'write-failed');
+    assert.equal((err as { cause?: unknown }).cause, cause);
+    return true;
+  });
+});
+
+test('a rejected write is never an unhandled rejection when the caller ignores it', async () => {
+  const db = memDb();
+  db.failPut = () => new Error('boom');
+  const sink = createBeamSink('beam-11', { db, log: silent() });
+  const unhandled: unknown[] = [];
+  const onUnhandled = (err: unknown) => unhandled.push(err);
+  process.on('unhandledRejection', onUnhandled);
+  try {
+    void sink.write(0, 0, payload(8)).catch(() => {});   // the protocol awaits; a driver might not
+    void sink.write(0, 1, payload(8));                   // …this one is dropped on the floor
+    await new Promise(r => setTimeout(r, 20));
+  } finally {
+    process.off('unhandledRejection', onUnhandled);
+  }
+  assert.deepEqual(unhandled, []);
+});
+
+// ── the streaming-digest escape hatch (section 11.15a mode 2) ────────────────────────
+
+test('an injected hasher digests as chunks arrive, and falls back if they arrive out of order', async () => {
+  const fed: number[] = [];
+  const fakeHasher = (): BeamHash => ({
+    update(bytes) { fed.push(bytes.length); },
+    async digest() { return `sha256-${'A'.repeat(43)}=`; },
+  });
+
+  const ordered = createBeamSink('beam-12', { db: memDb(), hasher: fakeHasher });
+  const parts = chunks(payload(30, 5), 10);
+  for (let seq = 0; seq < parts.length; seq++) await ordered.write(0, seq, parts[seq]!);
+  const streamed = await ordered.finalizeItem(0);
+  assert.deepEqual(fed, [10, 10, 10], 'every chunk went through the streaming digest');
+  assert.equal(streamed.checksum, `sha256-${'A'.repeat(43)}=`, 'and its digest is what the protocol verifies');
+
+  const jumbled = createBeamSink('beam-13', { db: memDb(), hasher: fakeHasher });
+  await jumbled.write(0, 1, parts[1]!);
+  await jumbled.write(0, 0, parts[0]!);
+  await jumbled.write(0, 2, parts[2]!);
+  const item = await jumbled.finalizeItem(0);
+  assert.equal(item.checksum, await sriSha256(payload(30, 5)), 'a streamed digest that could lie is not used');
+});
+
+test('digest: false hands verification back to the protocol’s own hasher', async () => {
+  const sink = createBeamSink('beam-14', { db: memDb(), digest: false });
+  await sink.write(0, 0, payload(16));
+  assert.equal(await sink.finalize(0), undefined, 'no digest means the protocol must supply one');
+});
+
+// ── 6. end to end through the real receiver ───────────────────────────────────
+
+async function driveBeam(bytes: Uint8Array, corrupt = false) {
+  const db = memDb();
+  const sink = createBeamSink('beam-e2e', { db, log: silent() });
+  const sent: BeamMessage[] = [];
+  // `hasher: null` is the arrangement this driver exists for: the protocol holds no
+  // bytes of its own, and the sink's digest is the only verification there is.
+  const receiver = createBeamReceiver({
+    wire: { json: (msg) => sent.push(msg), binary: () => {} },
+    sink,
+    hasher: null,
+  });
+  const checksum = await sriSha256(bytes);
+  const v = BEAM_PROTOCOL_VERSION;
+  const beamId = 'beam-e2e';
+
+  receiver.receive({
+    v, beamId, t: 'offer', kind: 'assets', name: 'Berlin pack',
+    items: [{ id: 'user/photo-1', label: 'Rooftop.jpg', bytes: bytes.length, checksum }],
+    totalBytes: bytes.length,
+  });
+  receiver.accept();
+
+  const parts = chunks(bytes, 64 * 1024);
+  for (let seq = 0; seq < parts.length; seq++) {
+    receiver.receive({ v, beamId, t: 'chunk', itemIndex: 0, seq, last: seq === parts.length - 1 });
+    const part = new Uint8Array(parts[seq]!);
+    if (corrupt && seq === 1) part[0] = part[0]! ^ 0xff;
+    receiver.receiveBinary(part);
+  }
+  receiver.receive({ v, beamId, t: 'item-done', itemIndex: 0, checksum });
+  receiver.receive({ v, beamId, t: 'complete' });
+  await receiver.drain();
+  return { db, sink, receiver, sent };
+}
+
+test('the protocol drives the sink end to end: complete, byte-exact, staging empty', async () => {
+  const bytes = payload(140_000, 11);
+  const { db, sink, receiver } = await driveBeam(bytes);
+
+  assert.equal(receiver.state.phase, 'complete');
+  assert.equal(receiver.state.discarded, false);
+  const [item] = sink.takeAll();
+  assert.ok(item);
+  assert.deepEqual(await blobBytes(item.blob), bytes);
+  assert.equal(db.rows.size, 0, 'staging is empty once every item is sealed');
+});
+
+test('one flipped byte fails the beam and leaves nothing behind (section 11.18)', async () => {
+  const { db, sink, receiver, sent } = await driveBeam(payload(140_000, 12), true);
+
+  assert.equal(receiver.state.phase, 'cancelled');
+  assert.equal(receiver.state.reason, 'checksum-mismatch', 'the sink’s digest is what caught it');
+  assert.equal(receiver.state.discarded, true);
+  assert.equal(db.rows.size, 0);
+  assert.equal(sink.items().length, 0, 'no half-good item survives to be ingested');
+  assert.equal(sent.at(-1)?.t, 'cancel');
+});

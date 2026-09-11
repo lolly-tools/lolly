@@ -1,0 +1,1891 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* ─── WYSIWYG editor layout (render.layout:'editor') ──────────────────────────
+   A chromeless free-canvas surface: no input sidebar, but the fixed render canvas,
+   pan/zoom and full export UI are kept. The direct-manipulation overlay + left
+   toolbar are stage siblings mounted by shells/web/src/views/free-canvas.js. All
+   chrome carries [data-export-hide] and sits outside #tool-canvas, so it never
+   appears in exported files. These rules follow the [data-sidebar="hidden"] block
+   above so .is-editor re-centres the fixed canvas (that block left-aligns it). */
+.tool-layout.is-editor .tool-stage {
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  place-items: center;
+  background-color: hsl(var(--muted));
+  background-image:
+    linear-gradient(45deg, rgba(0, 0, 0, 0.045) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.045) 75%),
+    linear-gradient(45deg, rgba(0, 0, 0, 0.045) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.045) 75%);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+}
+
+/* Figma-style page boundary - a soft drop-shadow + a hairline ring so a frame
+   ([data-pdf-page]) AND the default single artboard (.artboard) read as a board on
+   the canvas. Every layer is a box-shadow (OUTSIDE the element's border box), so the
+   per-page / per-canvas export capture - dom-to-image sizes the output to the box, the
+   SVG/PDF walkers draw only box content - clips them out: an editor affordance, never
+   in an exported PNG/SVG/PDF. Both selectors share the treatment so the default artboard
+   and a newly-created frame look identical (Andy, 2026-08-08). */
+.tool-layout.is-editor #tool-canvas [data-pdf-page],
+.tool-layout.is-editor #tool-canvas .artboard {
+  box-shadow:
+    0 0 0 1px hsl(var(--foreground) / 0.07),
+    0 2px 6px hsl(var(--foreground) / 0.10),
+    0 14px 34px hsl(var(--foreground) / 0.09);
+}
+
+/* Editor mode surfaces Export/Save/Copy/Share as prominent icons in the toolbar
+   rail (see .fc-action), so the floating bottom Export|Save pill is removed. The
+   #render-fab / #render-save buttons stay in the DOM (hidden) - the rail icons
+   trigger them, and the Export popup still opens from the rail Export icon. */
+.tool-layout.is-editor .render-pill { display: none; }
+
+/* Hide-controls full preview (Figma/Penpot `\`, toggled in free-canvas.ts): strip every
+   piece of editor chrome to a clean canvas so the artwork reads whole. Chrome ONLY - the
+   canvas, its artwork and the export geometry are never touched. Escape restores it. */
+.tool-view.is-chrome-hidden .fc-toolbar-dock,
+.tool-view.is-chrome-hidden .stage-nav,
+.tool-view.is-chrome-hidden .tl-panel,
+.tool-view.is-chrome-hidden .fc-ctxbar,
+.tool-view.is-chrome-hidden .fc-frame-labels,
+.tool-view.is-chrome-hidden [data-back-pill],
+.tool-view.is-chrome-hidden .url-budget,
+.tool-view.is-chrome-hidden .render-pill { display: none !important; }
+/* The hidden state takes the chrome's SPACE back as well. The columns' reserves live as
+   inline custom properties on the stage and the right dock's width on <html>, and with
+   the chrome merely display:none the canvas kept fitting into the middle of a blank
+   frame (a 232px band on the left, the dock's 340px on the right, the timeline's band
+   below). A stylesheet !important wins over a plain inline value, the fit reads
+   computed values, and the toggle in free-canvas.ts asks for a refit. The dock is a
+   fixed column outside .tool-view, hence the :has() on <html>. */
+.tool-view.is-chrome-hidden .tool-stage {
+  --stage-reserve-top: 0px !important; --stage-reserve-left: 0px !important;
+  --stage-reserve-right: 0px !important; --stage-reserve-bottom: 0px !important;
+  --ldock-rail-w: 0px !important;
+}
+html:has(.tool-view.is-chrome-hidden) {
+  --dock-w: 0px !important; --ldock-w: 0px !important;
+  --design-topbar-h: 0px !important; --design-timeline-h: 0px !important;
+}
+html:has(.tool-view.is-chrome-hidden) .edge-dock,
+html:has(.tool-view.is-chrome-hidden) .edge-dock-drop { display: none !important; }
+
+/* Floating tool palette - a detached, DRAGGABLE rail rather than a full-height
+   slab, always visible (it auto-hid at rest until 2026-08-28; the hover reveal
+   annoyed more than it calmed, and it kept the rail out of every capture). At
+   rest a flex DOCK wrapper parks it against the left edge; once dragged the dock
+   carries plain left/top (`.is-detached`).
+
+   Neither the dock nor the rail may carry `transform`/`backdrop-filter` - either
+   would become the containing block for the colour-picker popover's
+   `position:fixed` and knock it off-screen, which is also why the drag writes
+   left/top and never a translate. The rail's own full-height frosted ::before is
+   gone for the same family of reasons (and because a detached palette should read
+   as an object on the canvas, not a pane of glass down the whole edge). */
+.fc-toolbar-dock {
+  position: absolute;
+  /* Starts where the left BAND ends, not at the stage edge. `--stage-reserve-left` is
+     the whole left band (the Design navigator plus, while the timeline is docked, this
+     rail's own column) and `--ldock-rail-w` is this rail's share of it, so the
+     difference is the navigator's own width in both states - and 0px for every editor
+     that has no navigator. Without it the floating rail painted over the navigator's
+     rows, covering the index badges and swallowing clicks meant for a slide (the dock
+     is pointer-transparent, `.fc-toolbar` inside it is not), and covered the collapsed
+     36px dot rail entirely. A dragged rail carries its own inline `left` and is kept
+     clear of the same band by `clampRailPos`'s `reserveLeft`. */
+  left: calc(var(--stage-reserve-left, 0px) - var(--ldock-rail-w, 0px));
+  /* Inside the stage band only: below the top bar, above the timeline. */
+  top: var(--stage-reserve-top, 0px); bottom: var(--stage-reserve-bottom, 0px);
+  display: flex;
+  align-items: center;
+  padding-left: calc(10px + var(--vv-left, 0px));
+  pointer-events: none;
+  /* Above the timeline (z 22) so the draggable rail floats over it rather than being
+     covered - the user can drag it out of the way (fc-grip) if it gets in the way. */
+  z-index: 24;
+}
+/* Dragged: the dock shrinks to the rail and takes the clamped left/top written by
+   free-canvas.ts (clampRailPos keeps it inside the stage and off the export pill). */
+.fc-toolbar-dock.is-detached {
+  bottom: auto;
+  align-items: flex-start;
+  padding-left: 0;
+}
+/* Timeline open AND no navigator column (free-canvas toggles .has-tl-reserve only in
+   that case - with the navigator open the rail is a grid inside it instead, see
+   parts/design-navigator.css; syncStageReserves writes both --ldock-rail-w, this
+   column's OWN width, and --stage-reserve-left, the whole left band - plans/179 M2-d):
+   the rail stops floating and becomes a fixed-width left PANEL, the mirror of the
+   right edge-dock column (export settings / player). fitCanvas margins the canvas
+   into the remaining band, so content is nudged right, never overlapped. It runs from
+   the foot of the top bar to the bottom of the stage - the timeline band starts at its
+   right edge (the .tl-panel shift below) rather than running under it. The grip hides and
+   free-canvas refuses rail drags while docked - a set-width panel has nowhere to
+   drag to. Desktop only: free-canvas skips the dock below the 640px breakpoint. */
+.tool-stage.has-tl-reserve .fc-toolbar-dock {
+  width: var(--ldock-rail-w, 58px);
+  /* BELOW the top bar, exactly like `.fc-nav` - the same fix for the same defect. This
+     column has a higher z-index than the bar (24 vs 22, so a FLOATING rail rides over
+     the timeline), so a docked one that started at the stage top painted over the Home
+     pill and swallowed its clicks: the label read as "ome" and the link could not be hit
+     (Andy's screenshot, 2026-09-02). design-topbar's `measure` writes the property and
+     it defaults to 0, so an editor with no top bar lays the column out as before. */
+  top: var(--stage-reserve-top, 0px);
+  padding-left: 0;
+  justify-content: center;
+  background: var(--ui-color-surface-raised);
+  border-right: 1px solid var(--ui-color-border-default);
+  /* Short viewports scroll the column. align-items flips off `center` because a
+     centred flex child taller than its container overflows BOTH ends and the top
+     becomes unreachable; the toolbar's auto block margins centre it when it fits
+     and collapse to 0 when it does not - the scroll-safe centring. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  align-items: flex-start;
+  pointer-events: auto;              /* the column is chrome now, not a pass-through */
+}
+.tool-stage.has-tl-reserve .fc-toolbar { margin-block: auto; flex: none; }
+/* THE TIMELINE BAND STARTS WHERE THE LEFT COLUMN ENDS, whatever is standing there -
+   the navigator column, the rail docked as a column, or nothing (the property is absent
+   and the panel spans the stage exactly as it always did). Not gated on
+   `.has-tl-reserve` any more: that class only means "the rail is the column", and with
+   the navigator open the band ran under the navigator's rows and clipped the layer names
+   (Andy's screenshot, 2026-09-02). `.tool-stage` qualifies it so it out-specifies
+   parts/timeline.css's own `left: 0` regardless of which sheet Vite injects first. */
+/* The timeline is a full-width band across the whole VIEWPORT (Andy, 2026-09-03: the sequence
+   editor gets the full width of the viewport). The stage is its positioned ancestor and is
+   overflow: hidden, so an absolute band can never reach past the stage; a fixed band spans
+   the viewport while the sidebars stop at its top (--stage-reserve-bottom) and the right dock
+   ends above it (--design-timeline-h, published by free-canvas reserveBottom). The stage
+   reserve for the canvas is unchanged - the band is the same height either way. */
+.tool-layout.is-editor .tool-stage .tl-panel {
+  position: fixed;
+  left: 0; right: 0;
+  /* A fixed bottom anchor honours the notch inset and the soft keyboard (mobile-chrome
+     contract): both are 0px on desktop. */
+  bottom: calc(0px + var(--safe-bottom) + var(--vv-bottom, 0px));
+  max-height: 50vh;
+}
+/* A docked panel is chrome: the floating card dressing (shadow, own background)
+   comes off - the panel column carries it. */
+.tool-stage.has-tl-reserve .fc-toolbar {
+  box-shadow: none;
+  background: transparent;
+}
+.tool-stage.has-tl-reserve .fc-grip { display: none; }
+.fc-toolbar {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 4px 7px 7px;
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--ui-elevation-floating), var(--ui-edge-default);
+}
+.fc-toolbar-dock.is-dragging .fc-toolbar {
+  cursor: grabbing;
+  box-shadow: var(--ui-elevation-overlay), var(--ui-edge-default);
+}
+
+/* Drag grip - two short bars at the top of the palette. Deliberately NOT a button:
+   it is the one part of the rail that lets a pointerdown through to the drag
+   handler (every button stops it, so a tool click never moves the rail). */
+.fc-grip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 14px;
+  cursor: grab;
+  touch-action: none;
+}
+.fc-grip span {
+  display: block;
+  width: 16px; height: 2px;
+  border-radius: 2px;
+  background: var(--ui-color-border-default);
+}
+.fc-toolbar:hover .fc-grip span { background: color-mix(in srgb, var(--ui-color-text-muted) 60%, transparent); }
+@media (pointer: coarse) { .fc-grip { height: 20px; } }
+
+/* Rail tooltips point INTO the canvas (to the RIGHT), overriding tooltip.css's centred-above
+   default. The rail hugs the left edge, so an above-centred bubble runs off the left edge for
+   a long label (e.g. "Click a shape to edit its nodes directly") and stacks over the button
+   above it. Right-side keeps the whole label on-screen and reads toward the work. Higher
+   specificity than the base `[data-tip]::after` so it wins, incl. over the reduced-motion
+   resting transform. (A rail dragged to the far-right edge falls back to a possibly-clipped
+   bubble - the common left dock is what this optimises.) */
+.fc-toolbar [data-tip]::after {
+  bottom: auto;
+  top: 50%;
+  left: calc(100% + 10px);
+  right: auto;
+  transform: translateY(-50%) translateX(-3px);
+}
+.fc-toolbar [data-tip]::before {
+  bottom: auto;
+  top: 50%;
+  left: calc(100% + 5px);
+  right: auto;
+  transform: translateY(-50%);
+  border-color: transparent;
+  border-right-color: var(--ui-color-text-default);
+}
+.fc-toolbar [data-tip]:hover::after,
+.fc-toolbar [data-tip]:focus-visible::after { transform: translateY(-50%) translateX(0); }
+@media (prefers-reduced-motion: reduce) {
+  .fc-toolbar [data-tip]::after { transform: translateY(-50%); }
+}
+
+/* The Lolly mark at the top of the rail opens the document menu (export, save,
+   undo/redo, canvas size, copy, share, info, import). Brand-hued identity mark
+   (--lolly-mark, injected by brand-vars.ts) - never the verify verdict green.
+   Wins over .fc-action-primary, which it also carries so mountTool keeps finding
+   the editor's primary affordance to focus. */
+.fc-toolbar .fc-btn.fc-btn-lolly {
+  --lolly-accent: 145 58% 34%;
+  /* The mark's swirl inherits this (lolly-mark.ts uses var(--lolly-swirl)); the grey rings
+     keep their own gradients. Brand-hued, matching the identity mark it replaced. */
+  --lolly-swirl: var(--lolly-mark, hsl(var(--lolly-accent)));
+  background: transparent;
+  color: var(--lolly-mark, hsl(var(--lolly-accent)));
+}
+[data-theme="dark"] .fc-toolbar .fc-btn.fc-btn-lolly { --lolly-accent: 145 52% 60%; }
+.fc-toolbar .fc-btn.fc-btn-lolly:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+/* The mark is the rail's brand anchor - deliberately larger than the tool glyphs (nearly
+   fills its 40px button), so it reads as the app's identity, not just another tool. */
+.fc-toolbar .fc-btn.fc-btn-lolly svg { width: calc(36px * var(--a11y-fs)); height: calc(36px * var(--a11y-fs)); }
+/* Unsaved work (Save lives in the menu now): no background pill - the MARK ITSELF warns.
+   Its swirl inherits --lolly-swirl (the same variable that brand-tints it), so pointing that
+   at the amber warning colour recolours the identity glyph instead of boxing it. The grey
+   rings stay neutral; only the spiral goes amber, which is the cue. */
+.fc-toolbar .fc-btn.fc-btn-lolly.is-unsaved { --lolly-swirl: var(--brand-warn, #b28727); }
+
+/* The brand mark's three rings spin (interaction-only, calm at rest) on hover / focus - the
+   same treatment as the Ask Lolly send button (parts/ask.css). transform-box:fill-box turns
+   each ring about its own centre; the counter-rotating speeds give it life. Static otherwise -
+   Andy's "minus animation unless hover". */
+.fc-btn-lolly svg .lolly-mark__spin-1,
+.fc-btn-lolly svg .lolly-mark__spin-2,
+.fc-btn-lolly svg .lolly-mark__spin-3 { transform-origin: 50% 50%; transform-box: fill-box; }
+.fc-btn-lolly:hover svg .lolly-mark__spin-1,
+.fc-btn-lolly:focus-visible svg .lolly-mark__spin-1 { animation: fc-lolly-spin 2.4s linear infinite; }
+.fc-btn-lolly:hover svg .lolly-mark__spin-2,
+.fc-btn-lolly:focus-visible svg .lolly-mark__spin-2 { animation: fc-lolly-spin 4.6s linear infinite reverse; }
+.fc-btn-lolly:hover svg .lolly-mark__spin-3,
+.fc-btn-lolly:focus-visible svg .lolly-mark__spin-3 { animation: fc-lolly-spin 7s linear infinite; }
+@keyframes fc-lolly-spin { to { transform: rotate(360deg); } }
+/* Motion prefs (OS + app): the mark never spins; the button keeps its quiet hover fill. The
+   OS media query and the app attribute are kept adjacent (same as parts/ask.css) so the two
+   can't drift - the global base.css app-motion rule already caps duration, this zeroes it. */
+@media (prefers-reduced-motion: reduce) {
+  .fc-btn-lolly:hover svg .lolly-mark__spin-1,
+  .fc-btn-lolly:hover svg .lolly-mark__spin-2,
+  .fc-btn-lolly:hover svg .lolly-mark__spin-3,
+  .fc-btn-lolly:focus-visible svg .lolly-mark__spin-1,
+  .fc-btn-lolly:focus-visible svg .lolly-mark__spin-2,
+  .fc-btn-lolly:focus-visible svg .lolly-mark__spin-3 { animation: none; }
+}
+html[data-a11y-motion="reduce"] .fc-btn-lolly:hover svg .lolly-mark__spin-1,
+html[data-a11y-motion="reduce"] .fc-btn-lolly:hover svg .lolly-mark__spin-2,
+html[data-a11y-motion="reduce"] .fc-btn-lolly:hover svg .lolly-mark__spin-3,
+html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spin-1,
+html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spin-2,
+html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spin-3 { animation: none; }
+
+/* (Undo / redo used to be a stacked capsule in the rail. They are menu rows in the
+   Lolly menu now - see lollyItems() in free-canvas.ts - where they keep their live
+   enabled/disabled state and hold the menu open so you can step back repeatedly.) */
+
+.fc-btn {
+  width: 40px; height: 40px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: var(--ui-radius-control);
+  background: transparent; color: var(--ui-color-text-default);
+  cursor: pointer;
+  transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard);
+}
+/* `hidden` must be restated here. base.css's `[hidden]{display:none}` sits in the `base`
+   layer and this sheet is in `views`, which WINS on layer order regardless of
+   specificity - so .fc-btn's own `display: inline-flex` would beat it and leave an
+   invisible-but-space-taking 40px hole in the rail (Arrange, the mic button, every
+   conditionally-hidden icon). Same restatement as .tl-panel[hidden] in timeline.css. */
+.fc-btn[hidden] { display: none; }
+/* A KNOWN, UNFIXED defect lives here: the dock centres the rail vertically, so a button
+   that comes and goes (Arrange, gated on the selection; the recorder's mic) changes the
+   rail's height and therefore its top in the same frame - selecting a card teleports the
+   whole palette ~27px up the stage, with every icon landing somewhere other than where
+   the cursor was.
+   The obvious fix - collapse the button to zero height instead of removing it - was
+   tried and reverted, because it cannot work and must not: `[hidden] { display: none
+   !important }` in parts/a11y.css out-ranks any `display` a sheet asks for, so the
+   collapse was inert, and `hidden` means "not rendered AND not in the accessibility
+   tree", which a laid-out zero-height button is not. `styles/hidden-attribute-guard.test.ts`
+   fails the build on exactly that mistake.
+   The two real fixes, neither of which is a CSS one-liner: gate rail buttons with a class
+   (plus `inert` + `aria-hidden`) instead of the `hidden` property, which is what the
+   guard's own message recommends; or anchor the dock to a fixed top so its height grows
+   downward instead of re-centring - a deliberate change to where the rail sits, which is
+   a design decision, not a bug fix. */
+/* Every button in this rail is an aria-label + a glyph: the icon carries 100% of
+   the control's meaning, so it scales on the type multiplier like any label would
+   (one knob - see the --a11y-fs note in parts/a11y.css). A fixed-px glyph inside a
+   box that already grows would leave largeText doing nothing for the whole palette.
+   The 40px box is left alone deliberately: a 1.2× glyph is 25.2px and still clears
+   it, and the rail's drag geometry (clampRailPos in free-canvas.ts) measures the box.
+   The SELECTION chrome below (handles, pen nodes, gradient stops) is excluded on
+   purpose - those sizes are matched to screen-px hit tolerances owned by JS. */
+.fc-btn svg { width: calc(21px * var(--a11y-fs)); height: calc(21px * var(--a11y-fs)); }
+.fc-btn:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+/* Press feedback - a tactile down-state (audit A4#7). Brightness only, so it needs no reduced-motion guard.
+   NOT on the colour button: its picker is a position:fixed popover INSIDE the button, and a
+   `filter` on an ancestor makes that ancestor the containing block for fixed descendants
+   (the same trap as transform/backdrop-filter, see fixed-popover-containing-block.test.ts).
+   With the filter applied for exactly the duration of a press, the popover jumped ~800px
+   between pointerdown and pointerup, so the click landed on the stage and no swatch ever
+   applied - the second half of the "can't fill artboards" report (plan 179 A1). The
+   colour button presses its trigger instead, which contains no popover. */
+.fc-btn:active:not(:disabled):not(.fc-color-btn) { filter: brightness(0.92); }
+.fc-color-btn:active .color-trigger { filter: brightness(0.92); }
+.fc-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+/* Undo/redo dim out at the ends of history (same treatment as .history-btn). */
+.fc-btn:disabled { opacity: 0.3; cursor: default; }
+.fc-btn.is-armed { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
+/* Primary actions (Export/Save/Copy/Share) - a touch more prominent than the plain
+   tools: brand-accent icons, with Export filled as the lead call-to-action. */
+.fc-btn.fc-action { color: var(--ui-color-action-primary); }
+.fc-btn.fc-action:hover:not(:disabled) { background: var(--ui-color-selection-surface); }
+.fc-btn.fc-action-primary { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
+.fc-btn.fc-action-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--ui-color-action-primary) 85%, transparent); }
+/* "Unsaved" cue mirrored from the render pill's Save button - --brand-warn, the
+   active brand's own colour closest in hue to red/yellow (brand-vars.ts
+   nearestWarmHex, recomputed on every brand change), falling back to the
+   tokenless Amber #b28727. Shared by every free-canvas host - Design,
+   Carousel Maker, Doc Studio - since they all build their toolbar via toolBtn(). */
+.fc-btn.fc-action-save.is-unsaved,
+.fc-btn.fc-action-save.is-unsaved:hover:not(:disabled) { background: var(--brand-warn, #b28727); color: var(--brand-warn-ink, #0c322c); }
+.fc-sep { height: 1px; background: var(--ui-color-border-default); margin: 3px 4px; }
+.fc-sep-v { display: inline-block; width: 1px; height: 20px; background: var(--ui-color-border-default); margin: 0 3px; }
+
+/* Toolbar popovers (add / arrange / align / context menu). These host no
+   colour-picker (no position:fixed descendants), so the blur can sit on the
+   element itself - which also keeps it correct when the menu scrolls, unlike the
+   ::before technique the picker-hosting bars need. */
+.fc-popover {
+  position: absolute; z-index: 24; min-width: 184px;
+  background: color-mix(in srgb, var(--ui-color-surface-overlay) 82%, transparent); color: var(--ui-color-text-default);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel);
+  box-shadow: var(--ui-elevation-floating);
+  padding: 5px; display: flex; flex-direction: column;
+  /* The frame menu is ~36 rows; uncapped, the stage clipped its tail INVISIBLY -
+     with the timeline open everything after "Add to the timeline" (the whole
+     present section included) was simply unreachable. Cap to the stage and
+     scroll; spawnPopover measures AFTER append, so placePopover clamps the
+     capped height and the box always fits. */
+  max-height: min(76vh, 100%);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+/* A menu whose trigger lives outside the stage (the docked HUD's mark in the right
+   column, a fixed sibling stacked at 9400): spawnPopover puts it on the body in
+   viewport coordinates, above the column, or it opens behind it. */
+.fc-popover.fc-popover--viewport { position: fixed; z-index: 9500; max-height: 76vh; }
+
+/* Import a design (openImportPanel) - the chrome that used to live in `style=` attributes
+   on every element, hard-coding a brand green that never themed. Now class-driven, so it
+   follows the active brand + dark mode; the choose button is the standard `.btn--primary`. */
+.fc-import-panel { width: 264px; padding: var(--sp-6); white-space: normal; gap: 0; }
+.fc-import-title { font-weight: 700; margin-bottom: 6px; }
+.fc-import-hint { margin: 0 0 10px; font-size: var(--fs-sm); line-height: 1.45; opacity: 0.82; }
+/* Wraps: with three modes (board / artboards / scenes) the row is wider than the
+   panel, and a clipped third option is an option nobody can pick. */
+.fc-import-mode { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin: 0 0 8px; }
+.fc-import-mode-opt {
+  flex: 1 1 auto; display: flex; align-items: center; gap: 5px; white-space: nowrap;
+  padding: var(--sp-3) var(--sp-4); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control);
+  font-size: var(--fs-sm); cursor: pointer;
+}
+.fc-import-scenes-hint { margin: 0 0 10px; font-size: var(--fs-sm); line-height: 1.45; opacity: 0.82; }
+.fc-import-choose { width: 100%; }
+.fc-import-templates { align-items: flex-start; gap: var(--sp-3); margin-top: 8px; font-size: var(--fs-sm); line-height: 1.4; }
+.fc-import-templates:not([hidden]) { display: flex; }
+.fc-import-templates > input { margin-top: 2px; }
+.fc-import-status { margin-top: 8px; font-size: var(--fs-sm); line-height: 1.4; min-height: 16px; }
+.fc-import-status.is-ok { color: #128a5b; }
+.fc-import-status.is-err { color: hsl(var(--destructive)); }
+
+.fc-pop-item {
+  display: flex; align-items: center; gap: 9px;
+  border: none; background: transparent; color: inherit;
+  font: inherit; font-size: calc(13.5px * var(--a11y-fs)); text-align: left;
+  padding: var(--sp-4) var(--sp-5); border-radius: var(--ui-radius-control); cursor: pointer;
+}
+.fc-pop-item:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+/* Radio rows (the pen's spline type): the current one reads as chosen, not merely hovered,
+   so it stays legible while the pointer is somewhere else in the list. */
+.fc-pop-item.is-on { color: var(--ui-color-action-primary); font-weight: 600; }
+.fc-pop-item.is-on::after { content: ''; margin-left: auto; width: 6px; height: 6px; border-radius: var(--ui-radius-choice-round); background: currentColor; }
+.fc-pop-item:disabled,
+.fc-pop-gitem:disabled{ opacity: 0.38; cursor: default; }
+.fc-pop-item.fc-pop-danger:hover:not(:disabled),
+.fc-cbtn.fc-danger:hover{ background: #ef4444; color: #ffffff; }
+.fc-pop-ic svg { width: var(--fs-xl); height: var(--fs-xl); display: block; }
+.fc-pop-sep { height: 1px; background: var(--ui-color-border-default); margin: 4px 2px; }
+/* Icon-only action grid inside a popover (align = 3 cols, distribute = 2). Fixed-width
+   columns so both grids share the same square button size and sit left-aligned. */
+.fc-pop-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 3), 40px);
+  gap: var(--sp-1);
+  padding: var(--sp-1);
+}
+.fc-pop-gitem {
+  height: 34px; border: none; background: transparent; color: inherit;
+  border-radius: var(--ui-radius-control); cursor: pointer;
+}
+.fc-pop-gitem svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); display: block; }
+.fc-pop-gitem:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+/* Right-click context menu - longer, so cap its height and scroll. */
+.fc-context-menu { max-height: min(80vh, 560px); overflow-y: auto; min-width: 210px; }
+/* The boolean row is 4 across, which is wider than the align grid's 3 - let the menu
+   grow to fit rather than clipping the fourth glyph. */
+.fc-context-menu .fc-pop-grid { justify-content: start; }
+
+/* One-number prompt (Offset path / Outline stroke) - the `fc-panel` recipe with the
+   field, its unit and the confirm button on one line, so the whole prompt is one row
+   under its heading. */
+.fc-num-panel { min-width: 250px; }
+.fc-num-panel .fc-panel-head { font-weight: 700; font-size: var(--fs-md); }
+.fc-num-hint { margin: -3px 0 0; font-size: var(--fs-sm); line-height: 1.4; color: hsl(var(--muted-foreground)); }
+.fc-num-row { display: flex; align-items: center; gap: 7px; }
+.fc-num-row > i { font-style: normal; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+/* The confirm button is the shared `.btn .btn--primary` primitive (buttons.css) - only
+   its behaviour inside this one row is local. Restating the fill pair here would beat the
+   primitive from the `views` layer, which is what primitive-guards.test.ts ratchets. */
+.fc-num-go { flex: none; }
+
+/* Selection overlay - siblings of the canvas, never exported. */
+.fc-overlay { position: absolute; inset: 0; z-index: 12; pointer-events: none; }
+/* Frame dimmer - sits above the artboard but below the selection chrome (no
+   z-index, first overlay child). Its big outset box-shadow floods everything
+   OUTSIDE the frame with a faint background-matched tint, so boxes dragged off the
+   artboard read as gently faded (~0.8) while remaining fully visible + selectable.
+   Zero per-box cost; pointer-transparent; the stage clips the shadow's reach.
+   Theme-aware via --background, so it fades toward the surrounding stage in every
+   theme. Editor-only and inside .fc-overlay, so it never reaches export. */
+.fc-frame-scrim {
+  position: absolute;
+  pointer-events: none;
+  box-shadow: 0 0 0 100vmax hsl(var(--background) / 0.22);
+}
+.fc-outline {
+  position: absolute; box-sizing: border-box;
+  border: 1.5px solid hsl(var(--primary));
+  transform-origin: 50% 50%;
+}
+/* Group / multi-selection bounding box (plans/184 R17): the same solid line and the same
+   handles as a single box - one vocabulary - told apart by weight and tone rather than a
+   dash. Dashed borders are drop areas throughout this shell and nothing else. */
+.fc-group-outline { border-width: 1px; border-color: hsl(var(--primary) / 0.65); }
+.fc-handle {
+  position: absolute; width: 12px; height: 12px;
+  margin-left: -6px; margin-top: -6px;
+  background: #ffffff; border: 1.5px solid hsl(var(--primary));
+  border-radius: var(--radius-xs); pointer-events: auto; touch-action: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+}
+.fc-handle::after { content: ""; position: absolute; inset: -9px; }  /* fat touch target */
+.fc-h-n, .fc-h-s { cursor: ns-resize; }
+.fc-h-e, .fc-h-w { cursor: ew-resize; }
+.fc-h-ne, .fc-h-sw { cursor: nesw-resize; }
+.fc-h-nw, .fc-h-se { cursor: nwse-resize; }
+.fc-h-rotate {
+  width: 14px; height: 14px; margin-left: -7px; margin-top: -7px;
+  border-radius: var(--radius-round); cursor: grab; background: hsl(var(--primary)); border-color: #ffffff;
+}
+.fc-rot-stem {
+  position: absolute; height: 1.5px; background: hsl(var(--primary));
+  transform-origin: 0 50%; margin-top: -0.75px; pointer-events: none;
+}
+
+/* Rubber-band (create-drag + marquee). */
+.fc-rubber {
+  position: absolute; z-index: 13;
+  border: 1.5px dashed hsl(var(--primary));
+  background: hsl(var(--primary) / 0.10);
+  pointer-events: none;
+}
+
+/* Camera-gesture HUD (audit A2/A4): the only live feedback a camera drag has, since the
+   shot itself commits on release. Pinned bottom-centre of the stage, pointer-transparent,
+   above the guides. Same card recipe as the panels so it reads as chrome, not artwork. */
+.fc-cam-hud {
+  position: absolute; z-index: 17;
+  left: 50%; bottom: 18px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: var(--sp-6);
+  padding: 6px 13px; border-radius: var(--radius-md);
+  background: hsl(var(--card) / 0.86); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border)); box-shadow: var(--shadow-3);
+  -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+  font-size: var(--fs-md); line-height: 1;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  pointer-events: none;
+}
+.fc-cam-hud-k {
+  font-weight: 700; font-size: var(--fs-xs);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+}
+.fc-cam-hud-v { font-weight: 600; min-width: 3.4em; }
+
+/* Contextual bar PINNED to the top chrome row (JS sets left/top/max-width from ctxTopBand
+   in free-canvas.ts) - a toolbar on the line with the back pill and zoom HUD, no longer a
+   float above the selection where it sat over the artwork being edited. Its `left` is
+   JS-centred (NOT translateX, and no backdrop-filter) so its colour-picker popover's
+   `position:fixed` stays viewport-relative rather than anchoring to a transformed/filtered
+   ancestor. Capped to the band between that chrome and scrolled inside it (overflow-x
+   below), so a narrow phone keeps one clean row instead of a bar that drops over the
+   canvas. */
+.fc-ctxbar {
+  position: absolute; z-index: 15;
+  display: flex; align-items: center; gap: var(--sp-1);
+  padding: var(--sp-2); border-radius: 12px;
+  background: hsl(var(--card) / 0.7);
+  isolation: isolate;   /* contain the frosted ::before (see .fc-frosted note) */
+  box-shadow: var(--shadow-3), 0 0 0 1px hsl(var(--border));
+  pointer-events: auto;
+  /* Overflow scrolls the controls into reach when the band is narrower than the bar
+     (mobile), keeping it a single row on the chrome line. The colour popover is
+     `position:fixed` with no transform/filter on this element, so it escapes the clip
+     rather than being trapped by it; the scrollbar itself is hidden - swipe on touch,
+     shift-wheel/drag on desktop. */
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* legacy Edge */
+  overscroll-behavior: contain; /* a swipe on the bar never pans the stage behind it */
+  /* Auto-hide with the rail - gone at rest, revealed whenever the pointer is over
+     the editor stage, on the bar's own hover, or while it holds focus (so an open
+     colour popover keeps it up). Always-on for touch (see the coarse block below). */
+  opacity: 0;
+  /* Hysteresis, same as the rail: reveal on the spot, but make the FADE-OUT wait. The
+     stage's `:hover` blinks off for a frame or two as the pointer crosses chrome that
+     is not a stage descendant, and with a zero delay that read as the bar flickering
+     out and back while the user was doing nothing but moving the mouse. */
+  transition: opacity var(--dur-2) ease 0.45s;
+}
+.fc-ctxbar::-webkit-scrollbar { display: none; }   /* WebKit/Blink */
+.tool-stage:hover .fc-ctxbar,
+.fc-ctxbar:hover,
+.fc-ctxbar:focus-within { opacity: 1; transition-delay: 0s; }
+/* With the full Design chrome mounted (free-canvas setInspector) the bar is the
+   selection toolbar under the top bar: it stays while something is selected, because
+   the pointer now spends its time in the inspector and the navigator, and a bar that
+   faded every time it left the stage read as "gone" (Andy, 2026-09-03). */
+.fc-ctxbar.fc-ctxbar--pinned { opacity: 1; transition-delay: 0s; }
+
+/* The ENTRANCE (absent → present), driven by showCtxBar() in free-canvas.ts.
+   The auto-hide above means the stage is ALREADY hovered at the moment a card is
+   selected, so the opacity transition has nothing left to run and a dozen controls
+   materialise fully formed between two frames, right under the pointer. This is the
+   only cue there is: a beat to let the gesture settle, then a fade and a small rise
+   so the eye is led to the bar rather than ambushed by it.
+
+   `backwards` and NOT `forwards` is what the rule depends on. A transform on this bar is the
+   containing block for its colour popover's `position: fixed` - the reason the bar is
+   centred with a computed `left` rather than a translateX - so the transform must not
+   survive the animation. backwards fills the 120ms delay only; afterwards the computed
+   transform is `none` again, and free-canvas.ts drops the class on animationend. */
+@keyframes fc-ctxbar-in {
+  from { opacity: 0; transform: translateY(7px); }
+  to   { opacity: 1; transform: none; }
+}
+.fc-ctxbar.fc-ctxbar-enter { animation: fc-ctxbar-in var(--dur-2) cubic-bezier(0.2, 0.7, 0.3, 1) var(--dur-1) backwards; }
+.fc-cbtn {
+  min-width: 32px; height: 32px; padding: 0 7px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 8px; background: transparent;
+  color: hsl(var(--foreground)); font: inherit; font-size: var(--fs-lg); font-weight: 700;
+  cursor: pointer;
+}
+.fc-cbtn svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.fc-cbtn:hover { background: hsl(var(--muted)); }
+.fc-cbtn:active:not(:disabled) { filter: brightness(0.92); }
+/* An action the SELECTION cannot take right now (today: "+Keyframe" on a sound clip,
+   plans/104 section 8). Dimmed and inert, never hidden and never removed - a control that
+   comes and goes as you click around teaches nothing, and its tooltip is where the
+   reason lives. `aria-disabled` rather than the `disabled` property, so it keeps its
+   place in the tab order and can still be read. Same posture, same numbers, as
+   `.tl-btn[aria-disabled="true"]` in parts/timeline.css - the button's other home. */
+.fc-cbtn[aria-disabled="true"] { opacity: 0.35; cursor: default; }
+.fc-cbtn[aria-disabled="true"]:hover { background: transparent; }
+/* The transform readout. `min-width` is the whole point: this text grows from
+   "241, -235" to "113, -92 · 1920×1080" DURING a drag, and the bar is centred on the
+   selection, so every character the readout gained shoved half of it - and every
+   button in it - sideways under the cursor. Reserve the settled form's width up front
+   (tabular-nums makes a digit's width a constant, so ch is an honest unit here) and the
+   bar stops breathing. It still grows past this for genuinely large numbers; the
+   placement freeze in positionCtxBar covers what remains. */
+.fc-readout {
+  font-size: var(--fs-xs); color: hsl(var(--muted-foreground));
+  padding: 0 6px; white-space: nowrap; font-variant-numeric: tabular-nums;
+  min-width: 21ch; text-align: center;
+}
+
+/* Armed-create cursor + gesture body state. */
+.tool-stage.fc-arming { cursor: crosshair; }
+/* Connect mode: linking cards. The crosshair signals "click a card"; cards lift on
+   hover so it's clear they're the click targets. */
+.tool-stage.fc-connecting { cursor: crosshair; }
+.tool-stage.fc-connecting .lolly-box { cursor: crosshair; }
+/* Line tool (plan 90): drag anywhere to draw a line/arrow - crosshair everywhere. */
+.tool-stage.fc-lining { cursor: crosshair; }
+.tool-stage.fc-lining .lolly-box { cursor: crosshair; }
+.tool-stage.fc-connecting .lolly-box:hover { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+/* Keyboard focus on a card (Tab) - a visible ring; focus also makes it the selection. */
+.fc-open-canvas .lolly-box:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; border-radius: 2px; }
+
+/* Empty-canvas first-run invite (overlay lets pointer through except the button). */
+.fc-empty { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; z-index: 2; }
+.fc-empty[hidden] { display: none; }
+.fc-empty-add {
+  pointer-events: auto; cursor: pointer; font: inherit; font-weight: 600;
+  padding: 12px 20px; border-radius: var(--radius-md);
+  border: 1.5px dashed hsl(var(--border)); background: hsl(var(--card) / 0.82);
+  color: hsl(var(--muted-foreground)); backdrop-filter: blur(3px);
+}
+.fc-empty-add:hover { border-color: hsl(var(--primary)); color: hsl(var(--foreground)); }
+.fc-empty-add:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+/* Transient refusal message (a vector operation the engine declined). Bottom-centre of
+   the stage, above the object bar's usual perch, pointer-transparent - it is a statement,
+   not a control, and it must never sit between the user and the artwork. */
+.fc-flash {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+  max-width: min(430px, 88%); z-index: 26; pointer-events: none;
+  padding: 9px 14px; border-radius: var(--radius-md);
+  font-size: var(--fs-md); line-height: 1.45; text-wrap: pretty;
+  background: hsl(var(--card) / 0.92); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border)); box-shadow: var(--shadow-3);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.fc-flash[hidden] { display: none; }
+/* Armed-tool hint (see free-canvas.ts's showArmHint). The same frosted pill the
+   off-playhead and frames-in-order chips wear, on the frames-in-order chip's TOP-centre
+   perch - a drawing gesture happens under the pointer, and a chip at the bottom of the
+   stage is read once and then never looked at again (plan 179 A18). Offset below the top
+   chrome row so it clears the back pill, the zoom HUD and the object bar rather than
+   landing on them. POINTER-TRANSPARENT except its dismiss button: the whole chip is asking
+   for a canvas gesture, so it must not be able to swallow one. Shown only while a create
+   tool is armed - free-canvas.ts owns that gate, so there is no media query here. */
+.fc-armhint {
+  position: absolute; left: 50%; top: 58px; transform: translateX(-50%); z-index: 25;
+  pointer-events: none; display: flex; align-items: center; gap: var(--sp-2);
+  max-width: min(430px, 88%);
+  padding: 7px 6px 7px 14px; border-radius: var(--radius-pill);
+  font-size: var(--fs-sm); line-height: 1.4; text-wrap: pretty;
+  background: hsl(var(--card) / 0.94); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border)); box-shadow: var(--shadow-3);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.fc-armhint[hidden] { display: none; }
+.fc-armhint-txt { flex: 1 1 auto; }
+/* The dismiss IS `.btn.btn--sm` (buttons.css owns fill/hover/focus - never restate them
+   here); local to this chip are only the pill shape and the pointer-events opt back IN. */
+.fc-armhint-x { pointer-events: auto; flex: 0 0 auto; border-radius: var(--radius-pill); font-weight: 600; white-space: nowrap; }
+/* Off-playhead selection - the one rule's reconciliation toast (see free-canvas.ts's
+   header). At the foot of the stage, bottom-centre, beside the timeline it speaks
+   about (plans/184 section 6, S3): dead-centre on the canvas it read as a stuck error
+   over the work. Above the frame scrim (13) and the object bar (15) - which is hidden
+   for the whole time this is up, by construction. Solid border, never dashed: dashed
+   is reserved for drop areas throughout this shell. POINTER-TRANSPARENT except its
+   buttons, the armhint chip's own recipe, so the body never swallows a stage tap. */
+.fc-offplayhead {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 24;
+  pointer-events: none; display: flex; align-items: center; gap: var(--sp-5);
+  max-width: min(430px, 88%);
+  padding: 8px 10px 8px 14px; border-radius: var(--radius-pill);
+  font-size: var(--fs-sm); line-height: 1.4; text-wrap: pretty;
+  background: hsl(var(--card) / 0.94); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border)); box-shadow: var(--shadow-3);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.fc-offplayhead[hidden] { display: none; }
+/* The button IS `.btn.btn--primary.btn--sm` (buttons.css owns the fill, the hover and
+   the focus ring - never restate them here). Local: the pill shape to match its chip,
+   and the pointer-events opt back IN (the chip body is transparent, above). */
+.fc-offplayhead-go { pointer-events: auto; border-radius: var(--radius-pill); font-weight: 600; }
+.fc-offplayhead-x { pointer-events: auto; flex: 0 0 auto; border-radius: var(--radius-pill); margin-inline-start: calc(-1 * var(--sp-3)); }
+/* Frames-as-scenes invitation - the "Play your N frames in order?" prompt shown when the
+   timeline opens on an un-sequenced frame doc (free-canvas.ts). Top-centre so it never
+   sits over the docked timeline panel (bottom) or fights the object bar; a pointer-
+   receiving child of the otherwise pointer-transparent overlay (its buttons are its whole
+   point). Same frosted chip as the off-playhead reconciliation, above the frame scrim. */
+.fc-frameseq {
+  position: absolute; left: 50%; top:calc(var(--sp-6) * 4.4); z-index: 24;
+  pointer-events: auto; display: flex; align-items: center; gap: var(--sp-5);
+  max-width: min(460px, 92%);
+  padding: 8px 10px 8px 14px; border-radius: var(--radius-pill);
+  font-size: var(--fs-sm); line-height: 1.4; text-wrap: pretty;
+  background: hsl(var(--card) / 0.94); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border)); box-shadow: var(--shadow-3);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.fc-frameseq[hidden] { display: none; }
+.fc-frameseq-txt { flex: 1 1 auto; }
+/* The buttons ARE `.btn` (buttons.css owns fill/hover/focus); only the pill shape is local. */
+.fc-frameseq .btn { border-radius: var(--radius-pill); font-weight: 600; white-space: nowrap; }
+/* The connector preview <svg> (rubber line + live-drag lines) never eats pointers. */
+.fc-connect-layer { pointer-events: none; }
+
+/* ── pen tool (Stage D) ───────────────────────────────────────────────────────
+   Node/handle chrome is POINTER-TRANSPARENT throughout: every pen hit test happens in
+   box-local coordinates against the real geometry (a handle can sit under another node),
+   so free-canvas.ts owns it and there is no element-based second answer. That is also what
+   lets the chrome be built once per node COUNT and only repositioned. */
+/* CONTRAST - every pen mark carries a DUAL HALO: a light casing tight around it and a
+   dark edge just beyond. Whatever is underneath, one of the two separates from it: the
+   dark edge does the work on a white artboard, the light casing on a black shape, and on
+   a shape filled with the BRAND colour - where the --primary ink itself disappears - the
+   casing pair is the whole of what you see. It is what vector editors have drawn control
+   geometry with for decades, and it needs no measurement of the backdrop.
+   The alternative considered was `mix-blend-mode: difference` on the layer: it
+   self-inverts and is the only treatment that is strictly correct over a photograph. It
+   was rejected because it also inverts the brand colour these marks are deliberately
+   drawn in (a SUSE-green pen turns magenta), it goes muddy on antialiased edges and on
+   mid-grey backdrops it inverts to a near-identical mid-grey, and it would recolour the
+   corner/smooth/symmetric vocabulary into arbitrary hues. The halo keeps the ink
+   meaningful. Both layers are editor chrome inside the [data-export-hide] stage overlay
+   and are never exported, so the `filter` below costs the export walkers nothing; neither
+   layer hosts a popover or a [data-tip], so the stacking context it creates is harmless. */
+.fc-pen-layer,
+.fc-pen-chrome { --pen-casing: rgba(255, 255, 255, 0.95); --pen-edge: rgba(0, 0, 0, 0.55); }
+/* The preview path is a single stroked <path> painted in currentColor, so its halo has to
+   come from the layer: a tight light glow, then a darker one over that result. */
+.fc-pen-layer {
+  pointer-events: none; color: hsl(var(--primary)); z-index: 13;
+  filter: drop-shadow(0 0 1px var(--pen-casing)) drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.45));
+}
+.fc-pen-chrome { position: absolute; inset: 0; pointer-events: none; z-index: 16; }
+/* A node: square for a corner, round for smooth, round + ringed for symmetric - so the
+   continuity a drag will honour is legible without opening the control that sets it.
+   The white body plus the dark outer ring is the halo; the --primary rim stays as the
+   brand read, but nothing depends on it being visible. */
+.fc-pen-node {
+  position: absolute; box-sizing: border-box;
+  width: 9px; height: 9px; margin-left: -4.5px; margin-top: -4.5px;
+  border-radius: var(--radius-round);
+  background: #ffffff; border: 1.5px solid hsl(var(--primary));
+  box-shadow: 0 0 0 1px var(--pen-edge), 0 1px 3px rgba(0, 0, 0, 0.28);
+}
+.fc-pen-node.is-corner { border-radius: 1px; }
+/* Symmetric keeps its ring, now sandwiched: dark edge, the --primary band, light edge -
+   so the ring reads as a ring even where the band itself matches the backdrop. */
+.fc-pen-node.is-symmetric {
+  box-shadow:
+    0 0 0 1px var(--pen-edge),
+    0 0 0 3px hsl(var(--primary) / 0.55),
+    0 0 0 3.75px var(--pen-casing),
+    0 1px 3px rgba(0, 0, 0, 0.28);
+}
+.fc-pen-node.is-on { background: hsl(var(--primary)); border-color: #ffffff; }
+/* The first node of an open draft, i.e. the point a click closes the path on. */
+.fc-pen-node.is-close-target { width: 13px; height: 13px; margin-left: -6.5px; margin-top: -6.5px; border-width: 2px; }
+/* An end ATTACHED to a box (plan 96 P3): the line is a connector at that end, routed to
+   the box's border and following it. FILLED rather than hollow, which is the one read the
+   other three states leave free - corner is square, symmetric is ringed, selected is the
+   primary fill with a white rim, and this is the primary fill with the ordinary rim. Drag
+   it off every box and it goes hollow again, which is exactly what detaching does. */
+.fc-pen-node.is-bound {
+  background: hsl(var(--primary));
+  box-shadow:
+    0 0 0 1px var(--pen-edge),
+    0 0 0 3px hsl(var(--primary) / 0.28),
+    0 1px 3px rgba(0, 0, 0, 0.28);
+}
+.fc-pen-node[hidden] { display: none; }
+.fc-pen-handle {
+  position: absolute; width: 7px; height: 7px;
+  margin-left: -3.5px; margin-top: -3.5px; border-radius: var(--radius-round);
+  background: hsl(var(--primary)); border: 1px solid #ffffff;
+  box-shadow: 0 0 0 1px var(--pen-edge);
+}
+.fc-pen-handle[hidden] { display: none; }
+/* A SELECTED control point (shift-clicked, for align/distribute). The resting handle is
+   already primary-filled, so selection inverts it - white fill, primary ring - to read
+   clearly as picked at any size. */
+.fc-pen-handle.is-on {
+  background: #ffffff;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsl(var(--primary));
+}
+/* The arms were the worst case - a 1px line at 60% in the brand colour vanished against
+   anything near it. Full-strength ink, cased both ways, still reads as a hairline. */
+.fc-pen-arm {
+  position: absolute; height: 1px; background: hsl(var(--primary) / 0.9);
+  transform-origin: 0 50%; margin-top: -0.5px;
+  box-shadow: 0 0 0 0.75px var(--pen-casing), 0 0 0 1.5px rgba(0, 0, 0, 0.4);
+}
+.fc-pen-arm[hidden] { display: none; }
+/* Armed pen / node-edit cursors, matching .fc-arming's vocabulary. */
+.tool-stage.fc-penning { cursor: crosshair; }
+.tool-stage.fc-node-editing { cursor: default; }
+/* A max-width capping a list of worded options (corner / smooth / symmetric) - it
+   has to follow the type or the wider labels are what gets cut. */
+.fc-pen-kind { --fc-pen-kind-cap: calc(148px * var(--a11y-fs)); max-width: var(--fc-pen-kind-cap); }
+/* The lossy-switch confirmation reuses the one-number prompt's panel; only its row differs
+   (two buttons rather than a field + a button). */
+.fc-confirm-row { justify-content: flex-end; }
+
+/* ── Lift layers (plans/104 section 7) ────────────────────────────────────────────────
+   The confirm dialog is the same `fc-panel fc-num-panel` recipe as askConfirm; the
+   only new furniture is the plan LIST between the sentence and the buttons. It is a
+   preview, not a control: no checkboxes (an unticked layer would have nowhere to go -
+   see askLiftLayers) and no thumbnails, so the row is a tick, an index and a count. */
+.fc-lift-panel { min-width: 264px; max-width: 340px; }
+/* `aria-busy` on this panel (askLiftLayers, while it reads and while it lifts) is a
+   STATE for assistive tech, not a look - and it has to be pinned as one, because
+   parts/multi-edit.css declares an UNSCOPED `[aria-busy="true"] { opacity: .6;
+   pointer-events: none }` and CSS has no module scope: whether that rule is in the
+   document depends on whether the session has been through /multi. Without this the
+   reading sentence would fade on some routes and not others, and the panel would stop
+   swallowing its own presses mid-read (the pointerdown guard needs the event to land),
+   so an idle click would dismiss it there and do nothing here. Two classes beat one
+   attribute, so this wins wherever both are loaded. */
+.fc-lift-panel[aria-busy="true"] { opacity: 1; pointer-events: auto; }
+.fc-lift-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  /* Sixty-four layers is the engine's ceiling; scroll rather than run off the stage. */
+  max-height: min(42vh, 260px);
+  overflow-y: auto;
+}
+.fc-lift-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 2px;
+  font-size: var(--fs-sm);
+}
+.fc-lift-tick { display: inline-flex; color: hsl(var(--primary)); }
+.fc-lift-tick svg { width: var(--fs-lg); height: var(--fs-lg); }
+.fc-lift-name { flex: 1 1 auto; }
+.fc-lift-n {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--muted-foreground));
+}
+/* The enumerator's own words about anything it refused, repaired or capped. */
+.fc-lift-warn { margin-top: 8px; }
+/* Depth intensity (audit A5#2): label left, the select taking the rest of the row. */
+.fc-lift-strength-row { margin-top: 10px; }
+.fc-lift-strength-lab { flex: none; }
+.fc-lift-strength { flex: 1 1 auto; min-width: 0; }
+/* A worded ACTION inside the More panel, as opposed to the labelled controls around
+   it: full width, glyph then words, so it reads as a button rather than a row that
+   happens to be clickable. The row itself needs nothing - a `.fc-row-act { display:
+   block }` used to sit here and never applied, because `.fc-row` below is the same
+   specificity and comes later in the same layer, so flex won every time. The whole
+   look is the button's, which is where it now says so. */
+.fc-mp-lift, .fc-mp-choreo { width: 100%; justify-content: flex-start; gap: 7px; }
+
+/* ── Choreograph (plans/104 P4) ───────────────────────────────────────────────────────
+   The showcase picker is the same `fc-panel fc-num-panel` recipe again; the only new
+   furniture is the grid of showcase cards between the sentence and the settings rows. */
+/* The height cap is not decoration. `.tool-stage` is `overflow: hidden` at 100dvh, so a
+   panel taller than the stage is CUT, and this one is the tallest in the file: six wrapping
+   cards, three labelled rows, two toggles and the confirm row. Measured past 640px on a
+   short window and further again under `largeText`, which put the Choreograph button below
+   the cut and out of reach. The cap keeps the whole dialog inside the stage; the card grid
+   below is what gives way, exactly as `.fc-lift-list` does in the dialog above. */
+.fc-choreo-quick { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block: var(--space-2); }
+.fc-choreo-panel { min-width: 300px; max-width: 360px; max-height: calc(100% - 12px); }
+/* Pinned for exactly the reason .fc-lift-panel pins it above: `aria-busy` here is a STATE
+   for assistive tech while the chunk loads and the commit runs, and parts/multi-edit.css
+   declares an UNSCOPED `[aria-busy="true"] { opacity: .6; pointer-events: none }` whose
+   presence depends on whether the session has been through /multi. Without this the panel
+   would fade on some routes and not others, and would stop swallowing its own presses
+   mid-run (the pointerdown guard needs the event), so an idle click would dismiss it
+   there and do nothing here. Two classes beat one attribute. */
+.fc-choreo-panel[aria-busy="true"] { opacity: 1; pointer-events: auto; }
+/* `min-height: 0` + a scroll are what make this the one child of the flex column that
+   gives way under the panel's cap: every other row keeps its automatic minimum size, so
+   the settings and the confirm row stay whole and the cards scroll instead. */
+.fc-choreo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; min-height: 0; overflow-y: auto; }
+/* A card, not a row: glyph over name over sub, bordered on all four sides. Deliberately
+   the canvas-size presets' recipe and their picked state, so the two grids of choices in
+   this editor read as one thing rather than two designers' answers to the same problem. */
+.fc-choreo-card {
+  display: flex; flex-direction: column; gap: 1px; align-items: flex-start;
+  padding: 7px 9px; border-radius: var(--radius-md); cursor: pointer;
+  border: 1px solid hsl(var(--border)); background: hsl(var(--background)); color: inherit;
+  font: inherit; text-align: left;
+}
+.fc-choreo-card svg { width: var(--fs-xl); height: var(--fs-xl); margin-bottom: 2px; }
+.fc-choreo-card:hover { border-color: hsl(var(--ring) / 0.5); }
+.fc-choreo-card[aria-checked="true"] { border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.08); }
+.fc-choreo-name { font-size: var(--fs-sm); font-weight: 600; }
+.fc-choreo-sub { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); line-height: 1.3; }
+/* Label left, the control taking the rest of the row - the Lift dialog's strength row. */
+.fc-choreo-grid + .fc-num-row { margin-top: 10px; }
+.fc-choreo-lab { flex: none; }
+.fc-choreo-num, .fc-choreo-order { flex: 1 1 auto; min-width: 0; }
+body.fc-manipulating { user-select: none; -webkit-user-select: none; }
+
+/* Hide the editor chrome while the export shutter is closing (belt-and-braces -
+   detachExportHidden also removes it during the actual capture). */
+.tool-stage:has(.export-shutter.is-active) .fc-overlay,
+.tool-stage:has(.export-shutter.is-active) .fc-toolbar { opacity: 0; pointer-events: none; }
+
+/* Reduced motion. showCtxBar() already declines to add .fc-ctxbar-enter when
+   prefersReducedMotion() is true (it ORs this query with the app pref), so the bar
+   simply appears; these blocks are the belt to that pair of braces. The app-pref
+   attribute sits beside the OS query it extends - a11y-prefs.ts's model, and what
+   a11y-prefs-contract.test.ts checks for. The ctxbar keeps its auto-hide fade-out
+   DELAY: a delay is not motion, and dropping it puts the flicker straight back. */
+@media (prefers-reduced-motion: reduce) {
+  .fc-ctxbar { transition-duration: 0s; }
+  .fc-ctxbar.fc-ctxbar-enter { animation: none; }
+  .fc-toolbar .fc-btn { transition: none; }
+}
+html[data-a11y-motion="reduce"] .fc-ctxbar { transition-duration: 0s; }
+html[data-a11y-motion="reduce"] .fc-ctxbar.fc-ctxbar-enter { animation: none; }
+html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
+
+/* Touch: always-visible object bar + larger hit targets (no hover to reveal it
+   on, so its auto-hide would strand it off-screen). */
+@media (pointer: coarse) {
+  .fc-ctxbar { opacity: 1; }
+  .fc-btn { width: 44px; height: 44px; }
+  .fc-handle { width: 16px; height: 16px; margin-left: -8px; margin-top: -8px; }
+  .fc-h-rotate { width: 18px; height: 18px; margin-left: -9px; margin-top: -9px; }
+  /* Pen nodes are hit-tested against the geometry with a SCREEN-px radius, so the chrome
+     only has to look grabbable at this size - the tolerance is already generous. */
+  .fc-pen-node { width: 13px; height: 13px; margin-left: -6.5px; margin-top: -6.5px; }
+  .fc-pen-node.is-close-target { width: 18px; height: 18px; margin-left: -9px; margin-top: -9px; }
+  .fc-pen-handle { width: 11px; height: 11px; margin-left: -5.5px; margin-top: -5.5px; }
+}
+
+/* Compact touch editors use a scrollable bottom palette. A vertical rail on a
+   390px-tall landscape viewport overflowed at both ends; on a portrait phone it
+   also hid the reading edge of the active artboard. */
+@media (pointer: coarse) and (max-width: 640px),
+       (pointer: coarse) and (max-height: 430px) {
+  /* Design already puts Fit/zoom in the top bar's compact More menu. The editor
+     stage HUD cannot dock on mobile, so leaving it floating recreated the exact
+     right-edge obstruction the desktop dock removed. */
+  .tool-layout.is-editor .tool-stage .stage-nav--editor { display: none !important; }
+  .tool-layout.is-editor .tool-stage .fc-toolbar-dock {
+    left: calc(8px + var(--vv-left, 0px)) !important;
+    right: calc(8px + var(--vv-right, 0px));
+    top: auto !important;
+    bottom: calc(var(--stage-reserve-bottom, 0px) + 8px);
+    width: auto !important;
+    height: 60px;
+    padding: 0;
+    align-items: center;
+    pointer-events: none;
+    overflow: hidden;
+    background: transparent;
+    border: 0;
+  }
+  .tool-layout.is-editor .tool-stage .fc-toolbar-dock.is-detached {
+    right: calc(8px + var(--vv-right, 0px));
+  }
+  .tool-layout.is-editor .tool-stage .fc-toolbar {
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    height: 52px;
+    margin: 0;
+    padding: 4px 6px;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    box-shadow: var(--ui-elevation-floating), var(--ui-edge-default);
+  }
+  .tool-layout.is-editor .tool-stage .fc-toolbar::-webkit-scrollbar { display: none; }
+  .tool-layout.is-editor .tool-stage .fc-grip,
+  .tool-layout.is-editor .tool-stage .fc-sep { display: none; }
+
+  /* The artboard navigator is a temporary bottom sheet at this size. Let it own
+     that edge while open; selecting an artboard closes it and restores the tool
+     rail immediately. Two independent floating rows in the same 154px produced
+     an accidental stack of buttons over the navigator thumbnails. */
+  .tool-layout.is-editor .tool-stage:has(.fc-nav--strip:not(.is-collapsed)) .fc-toolbar-dock {
+    display: none !important;
+  }
+
+  /* While the keyboard is up, the text and its format bar are the task. Removing
+     the unrelated rails prevents the inline toolbar from being covered. */
+  .tool-layout.is-editor .tool-stage.is-text-editing .fc-toolbar-dock,
+  .tool-layout.is-editor .tool-stage.is-text-editing .stage-nav--editor,
+  .tool-layout.is-editor .tool-stage.is-text-editing .fc-nav { display: none !important; }
+}
+
+/* ── Editor iteration 2: guides · unified controls · colour picker · text edit ── */
+
+/* Snap / alignment guide lines drawn during move / resize / create. */
+.fc-guides { position: absolute; inset: 0; pointer-events: none; z-index: 14; }
+.fc-guide {
+  position: absolute; height: 1.5px; background: #ff2d78;
+  transform-origin: 0 0; pointer-events: none;
+  box-shadow: 0 0 0 0.5px rgba(255, 45, 120, 0.35);
+}
+
+/* Frame name labels (Figma-style) - a tab above each artboard's top-left that names it and
+   selects the FRAME on click. Container is click-through (so canvas clicks fall through the
+   gaps); only the tabs take a hit. Fixed-size chrome, positioned in stage px by the view. */
+.fc-frame-labels { position: absolute; inset: 0; pointer-events: none; z-index: 15; }
+.fc-frame-label {
+  position: absolute;
+  pointer-events: auto;
+  max-width: 240px;
+  padding: 0 6px;
+  border: 0; border-radius: 5px 5px 0 0;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: var(--fs-xs); font-weight: 600;
+  line-height: calc(17px * var(--a11y-fs));
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  cursor: pointer;
+  transition: color var(--dur-1), background var(--dur-1);
+}
+.fc-frame-label:hover { color: hsl(var(--foreground)); background: hsl(var(--muted) / 0.6); }
+.fc-frame-label.is-active { color: hsl(var(--primary)); }
+.fc-frame-label:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+
+/* Inline artboard rename (plans/179 A10) - sits on the tab's own rect, so the name is
+   edited where it is read. Same type as the tab so nothing jumps on the swap. */
+.fc-frame-rename {
+  position: absolute;
+  pointer-events: auto;
+  width: 160px; max-width: 240px;
+  height: calc(19px * var(--a11y-fs));
+  padding: 0 5px;
+  border: 1px solid hsl(var(--primary));
+  border-radius: var(--radius-sm);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font: inherit; font-size: var(--fs-xs); font-weight: 600;
+  line-height: calc(17px * var(--a11y-fs));
+}
+
+/* Toolbar canvas-background - the shared colour picker, compacted to a swatch. */
+.fc-color-btn { padding: 0; overflow: visible; }
+.fc-toolbar .color-picker-field { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+.fc-toolbar .color-trigger { width: 34px; height: 34px; padding: 0; gap: 0; justify-content: center; border-radius: var(--radius-md); }
+.fc-toolbar .color-trigger-name { display: none; }
+.fc-toolbar .color-trigger-preview { width: 22px; height: 22px; border-radius: var(--radius-sm); }
+
+/* Context-bar fill + text-colour fields - compact swatch triggers. */
+.fc-cfield { display: inline-flex; }
+.fc-ctxbar .color-picker-field { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+.fc-ctxbar .color-trigger { width: 30px; height: 30px; padding: 0; gap: 0; justify-content: center; border-radius: 8px; }
+.fc-ctxbar .color-trigger-name { display: none; }
+.fc-ctxbar .color-trigger-preview { width: 20px; height: 20px; border-radius: var(--radius-sm); }
+
+/* Any picker-hosting chrome with an OPEN colour popover leapfrogs the rest of the
+   stage chrome. The popover stays a DOM descendant of its bar, and the bars form
+   stacking contexts (isolation:isolate / their own z-index), so its z-index:10001
+   resolves INSIDE the bar - at z-15/16 it loses overlaps against the zoom HUD (20)
+   and panels (24). Raising the HOST while the popover is open is the only way the
+   swatches paint over neighbouring chrome; reverts the moment it closes. */
+.fc-toolbar-dock:has(.color-popover:not([hidden])),
+.fc-ctxbar:has(.color-popover:not([hidden])),
+.fc-fmtbar:has(.color-popover:not([hidden])),
+.fc-panel:has(.color-popover:not([hidden])) { z-index: 30; }
+/* …but raising the BAR only settles it against its own siblings. The bar lives inside
+   `.fc-overlay` (z-index 12) while a panel is a direct child of the stage at 24, so the
+   two sit in different stacking contexts and the panel wins no matter how high the bar
+   goes - a popover opened from the ctx bar painted UNDER an open panel, and the panel's
+   buttons swallowed the clicks meant for the swatches. (Nothing hit this until the
+   gradient panel, which is the first that expects you to use the bar's colour field
+   while it is open.) So the panel steps aside instead, for exactly as long as the
+   popover is open. */
+.fc-overlay:has(.fc-ctxbar .color-popover:not([hidden])) ~ .fc-panel { z-index: 11; }
+
+/* "More" panel: shape / radius / opacity / image fit / blend. */
+.fc-panel {
+  position: absolute; z-index: 24; min-width: 238px;
+  display: flex; flex-direction: column; gap: var(--ui-space-control-inline);
+  padding: var(--ui-space-panel); border-radius: var(--ui-radius-panel);
+  background: color-mix(in srgb, var(--ui-color-surface-raised) 92%, transparent); color: var(--ui-color-text-default);
+  isolation: isolate;   /* contain the frosted ::before (see .fc-frosted note) */
+  border: 1px solid var(--ui-color-border-default); box-shadow: var(--ui-elevation-floating);
+}
+.fc-row { display: flex; align-items: center; gap: var(--ui-space-control-inline); font-size: var(--ui-type-body); }
+/* The label column and the numeric readout are rigid flex bases holding TEXT, so
+   they have to follow the type: at a fixed 86px/32px a 1.2× label or a "100%"
+   readout paints past its own cell and into the control beside it. */
+.fc-row > span { flex: 0 0 auto; flex-basis: calc(86px * var(--a11y-fs)); color: var(--ui-color-text-muted); }
+/* The box itself is `.field-select` / `.field-range` (fields.css). All a panel row
+   adds is how the control shares the row: fill the cell, never push it wider than
+   its label. Restating padding/border/background here would silently beat the
+   primitive - `views` outranks `primitives` - so it deliberately does not. */
+.fc-row select, .fc-row input[type="range"] { flex: 1; min-width: 0; }
+.fc-row > b { flex: 0 0 auto; flex-basis: calc(32px * var(--a11y-fs)); text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+/* Toggle rows (ligatures / stylistic alternates) - checkbox sits at the right edge.
+   The tick is `.field-check` + `.field-toggle` (which also dims the row while the
+   box is disabled); only the label's flex behaviour is local. */
+.fc-row-toggle { cursor: pointer; transition: opacity var(--dur-1); }
+.fc-row-toggle > span { flex: 1 1 auto; }
+/* `.field-toggle`'s disabled dim is the right read for the Credit-me row's INITIAL
+   state (it ships `disabled` and is enabled once the profile read resolves), but the
+   change handler also disables the box for the duration of each write - so a plain
+   dim would flash the row on every toggle. Delay the dim and restore it instantly:
+   a fast write never crosses the threshold, a stalled one still reads as inert.
+   `cursor` has to be restated because `.fc-row-toggle` above (layer `views`) beats
+   the primitive's `not-allowed` - this is the delta that makes it true. */
+.fc-row-toggle:has(.field-check:disabled) { cursor: not-allowed; }
+
+/* The More panel hangs from the object bar, which is pinned to the TOP chrome row, so on
+   a short viewport its last section (Perspective tilt) ran off the bottom of the screen
+   with no way to reach it (plan 179 C6). free-canvas.ts measures the room left below the
+   anchor and writes an inline `max-height`; this is the scroll that cap needs to clip
+   against. Inert until the cap is written - a panel that fits paints exactly as before,
+   and no other `.fc-more-panel` (stroke, dims, text) sets one.
+   `overscroll-behavior` keeps a flick at the end of the list off the page behind it. */
+.fc-more-panel { overflow-y: auto; overscroll-behavior: contain; }
+
+/* Connector inspector (org-chart) - the properties popover for a selected line. */
+.fc-edge-panel { min-width: 236px; }
+.fc-edge-count {
+  font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase;
+  color: hsl(var(--primary)); padding: 1px 2px 5px; margin-bottom: 2px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.fc-edge-panel .fc-seg { flex: 1 1 auto; }
+.fc-edge-actions { justify-content: flex-end; margin-top: 2px; }
+.fc-edge-actions .fc-cbtn {
+  width: auto; display: inline-flex; align-items: center; gap: var(--sp-3);
+  padding: 6px 11px; font: inherit; font-size: var(--fs-sm); font-weight: 600; border-radius: 8px;
+}
+.fc-edge-actions .fc-cbtn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+
+/* Canvas-size panel - presets grid + custom width/height. */
+.fc-size-panel { min-width: 262px; }
+.fc-panel-head { }
+.fc-size-presets { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.fc-size-preset {
+  display: flex; flex-direction: column; gap: 1px; align-items: flex-start;
+  padding: 7px 9px; border-radius: 8px; cursor: pointer;
+  border: 1px solid hsl(var(--border)); background: hsl(var(--background)); color: inherit;
+  font: inherit; font-size: var(--fs-sm); text-align: left;
+}
+.fc-size-preset b { font-weight: 600; }
+.fc-size-preset span { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
+.fc-size-preset:hover { border-color: hsl(var(--ring) / 0.5); }
+.fc-size-preset.is-current { border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.08); }
+.fc-size-panel .fc-row input[type="number"] {
+  flex: 1; min-width: 0; font: inherit; font-size: var(--fs-md); padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm); border: 1px solid hsl(var(--input)); background: hsl(var(--background)); color: inherit;
+}
+
+/* Pages panel - a page-count stepper above the shared page-size presets. */
+.fc-pages-panel .fc-panel-head + .fc-panel-head { margin-top: 10px; }
+.fc-pages-step { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.fc-pages-step .fc-step-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 9px; cursor: pointer;
+  border: 1px solid hsl(var(--border)); background: hsl(var(--background)); color: inherit;
+}
+.fc-pages-step .fc-step-btn:hover:not(:disabled) { border-color: hsl(var(--ring) / 0.5); }
+.fc-pages-step .fc-step-btn:disabled { opacity: 0.4; cursor: default; }
+.fc-pages-step .fc-step-btn svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.fc-pages-count { min-width: 1.6ch; text-align: center; font-weight: 700; font-size: calc(18px * var(--a11y-fs)); font-variant-numeric: tabular-nums; }
+
+/* Inline text editing - the box's own text element becomes contentEditable. */
+.lolly-box-text.fc-editing {
+  outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px;
+  /* Square the focus ring - an outline follows the element's own radius, so a
+     rounded box would otherwise round the blue ring while editing. */
+  border-radius: 0 !important;
+  cursor: text; min-height: 1em; min-width: 8px; caret-color: var(--ui-color-focus-ring);
+}
+/* While editing, let the caret/text spill past the box so nothing types "into the
+   void"; the box re-clips (and grows to fit) on commit. Rounding and clip masks
+   come off too (inline styles, hence !important) - editing happens on a plain
+   rectangle so corners/masks never hide the caret or the copy. */
+.lolly-box.fc-box-editing {
+  overflow: visible;
+  border-radius: 0 !important;
+  clip-path: none !important;
+}
+/* Gentle placeholder in an empty text box being edited (editor-only: the class is
+   removed before export, so it never leaks into output). */
+.lolly-box-text.fc-editing:empty::before {
+  content: "Type\2026"; opacity: 0.4; pointer-events: none;
+}
+
+/* Floating format bar shown while editing text: bold / italic / bullets, plus
+   text alignment (horizontal + vertical), weight, and size. Sits in the
+   pointer-events:none overlay, so it opts back in. */
+.fc-fmtbar {
+  position: absolute; z-index: 16; pointer-events: auto;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  flex-wrap: wrap; max-width: min(92vw, 540px);
+  padding: 4px 5px; border-radius: 12px;
+  background: hsl(var(--card) / 0.7);
+  isolation: isolate;   /* contain the frosted ::before (see .fc-frosted note) */
+  box-shadow: var(--shadow-3), 0 0 0 1px hsl(var(--border));
+}
+/* Frosted-glass backing for the floating chrome that sits over the canvas
+   (toolbar rail, object bar, format bar, panels), so it reads as part of the
+   scene rather than an opaque slab. The blur lives on a ::before pseudo BEHIND the
+   content - NOT on the element itself - because an element with backdrop-filter
+   becomes the containing block for its position:fixed descendants, which would
+   knock the colour-picker popovers these bars host off-screen. The pseudo has no
+   descendants, so it frosts the canvas without capturing those popovers. Each host
+   sets `isolation:isolate` so the z-index:-1 pseudo stays layered behind its own
+   content but above the artboard. The host keeps a translucent solid background too
+   - a graceful fallback where backdrop-filter is unsupported, and it keeps a
+   scrolling panel readable in the strip a scrolled-away pseudo can't cover.
+
+   NOT the tool rail: that palette is opaque and unfrosted on purpose - a floating,
+   draggable object rather than a full-height sheet of glass down the stage edge. */
+.fc-ctxbar::before, .fc-fmtbar::before, .fc-panel::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  border-radius: inherit;
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+}
+.fc-fmtbar .fc-cbtn { min-width: 32px; }
+.fc-fmtbar i { font-style: italic; }
+/* Logical clusters (type · styles · align · valign · size · OpenType). Buttons sit
+   tight WITHIN a group (1px); the bar's own 7px gap sets the group apart. Each group
+   is one non-splitting flex item, so a wrap breaks cleanly between groups. */
+.fc-fmt-group { display: inline-flex; align-items: center; gap: 1px; }
+.fc-fmtbar .fc-cbtn.is-on { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary)); }
+/* Both are `.field-select .field-select--sm .field-select--auto`; the only thing
+   the bar has an opinion about is how wide a font/weight name may get before it
+   ellipsises, so that is all that is left here. */
+/* This cap is an ellipsis threshold on a TEXT control, so it follows the type: held
+   at a fixed px a larger face simply loses characters, which is the opposite of what
+   the preference was asked for. The cap is a token so the three places that set a
+   different one (below, and the type pill's two) re-point it rather than each
+   restating the multiplier. */
+.fc-fmt-weight, .fc-fmt-font { --fc-fmt-cap: calc(104px * var(--a11y-fs)); max-width: var(--fc-fmt-cap); }
+.fc-fmt-font { --fc-fmt-cap: calc(118px * var(--a11y-fs)); }
+
+/* Type pill - font · weight · colour joined into one connected control. Only the
+   pill's outer corners round, so the three read as a single object. The -1px pull
+   below dates from when all three segments were outlined and had a shared 1px edge
+   to collapse; the two selects are now `.field-select` (embossed, `border: 0`), so
+   it survives only to keep the colour trigger's surviving left border flush against
+   its neighbour - it is a 1px nudge now, not a border collapse.
+   The `:first-child`/`:last-child` rules also target the colour
+   field's nested trigger (its real bordered element), so the ends round whichever
+   control sits there. */
+.fc-fmt-typegroup { display: inline-flex; align-items: stretch; }
+.fc-fmt-typegroup > * { margin: 0; }
+.fc-fmt-typegroup > * + * { margin-left: -1px; }
+.fc-fmt-typegroup .fc-fmt-font,
+.fc-fmt-typegroup .fc-fmt-weight { border-radius: 0; --fc-fmt-cap: calc(108px * var(--a11y-fs)); }
+.fc-fmt-typegroup .fc-fmt-weight { --fc-fmt-cap: calc(92px * var(--a11y-fs)); }
+/* Colour segment: the swatch chip only (hex hidden), squared, filling the pill
+   height so it lines up with the two selects. */
+.fc-fmt-typegroup .fc-fmt-color,
+.fc-fmt-typegroup .fc-fmt-color .color-picker-field { display: flex; align-items: stretch; }
+.fc-fmt-typegroup .fc-fmt-color .color-trigger {
+  width: auto; height: auto; padding: 0 10px; gap: 0; border-radius: 0; justify-content: center;
+}
+.fc-fmt-typegroup .fc-fmt-color .color-trigger-name { display: none; }
+.fc-fmt-typegroup .fc-fmt-color .color-trigger-preview { width: 18px; height: 18px; border-radius: var(--radius-sm); }
+/* Hover / focus lifts the active segment's border above its overlapped neighbours. */
+.fc-fmt-typegroup > :hover,
+.fc-fmt-typegroup select:focus,
+.fc-fmt-typegroup .color-trigger:hover { position: relative; z-index: 1; }
+/* Round only the pill's outer corners. */
+.fc-fmt-typegroup > :first-child,
+.fc-fmt-typegroup > :first-child .color-trigger { border-top-left-radius: 9px; border-bottom-left-radius: 9px; }
+.fc-fmt-typegroup > :last-child,
+.fc-fmt-typegroup > :last-child .color-trigger { border-top-right-radius: 9px; border-bottom-right-radius: 9px; }
+
+/* The "Aa" text-options trigger - nudge its glyph so it reads as a type control. */
+.fc-cbtn-text { font-weight: 800; letter-spacing: -0.02em; }
+
+/* Brand-ligature inserter - force a colour-emoji font for the LABEL so all three
+   glyphs read as 🦎💚🐧 (the SUSE text font supplies a chameleon glyph for 🦎 but
+   not the heart/penguin, so in that font the label would look truncated). The
+   inserted text still renders in the SUSE font, where the trio shapes into the
+   brand mark. flex:none so the wider label never shrinks and clips. */
+.fc-fmt-emoji {
+  flex: none; min-width: 0; padding: 0 7px; letter-spacing: 1px; font-size: var(--fs-md);
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+/* Segmented control (align / vertical align) inside the Text panel. */
+.fc-seg { display: inline-flex; flex: 1; min-width: 0; gap: var(--sp-1); padding: var(--sp-1);
+  border-radius: 8px; background: hsl(var(--muted)); }
+/* The segments share the row (`flex: 1`) and the label is nowrap, so anything the
+   basis can't hold has to be contained BY the button: without the overflow guard a
+   wider label paints outside its own box and over its neighbours, and the segment
+   under the pointer stops being the one the label says it is. `min-height` rather
+   than `height` for the same reason on the other axis - the box grows with the type
+   instead of cropping it. Both are inert at --a11y-fs: 1 (26px content in a 26px
+   min-height box, labels that already fit), so the control is unchanged for anyone
+   who set no preference. */
+.fc-seg-btn {
+  flex: 1; min-width: 0; min-height: 26px; height: auto; padding: 0 6px;
+  border: none; border-radius: var(--radius-sm); background: transparent; color: inherit;
+  font: inherit; font-size: var(--fs-sm); cursor: pointer; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.fc-seg-btn:hover { background: hsl(var(--background) / 0.6); }
+.fc-seg-btn.is-on {
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+  font-weight: 700; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+}
+.fc-text-panel { min-width: 256px; }
+
+/* Icon segment buttons (align / shape / fit) - centre the glyph. */
+.fc-seg-btn.fc-seg-ic { display: inline-flex; align-items: center; justify-content: center; padding: 0 4px; }
+.fc-seg-btn.fc-seg-ic svg { width: var(--fs-xl); height: var(--fs-xl); }
+
+/* Image-position anchor picker: a 3×3 grid where each cell IS its anchor. The dot
+   is a target affordance; the selected cell lights up like any .fc-seg-btn.is-on. */
+.fc-seg.fc-posgrid { display: grid; flex: none; grid-template-columns: repeat(3, 24px); grid-auto-rows: 24px; }
+/* A 3×3 cell is sized by its grid track, not by the segment row - so it clears the
+   segment's row height BOTH ways (`.fc-seg-btn` sets a min-height as well now, and
+   an unreset floor would push each cell past its 24px track). */
+.fc-pos-btn { flex: none; width: auto; height: auto; min-height: 0; padding: 0; display: grid; place-items: center; }
+.fc-pos-btn i { width: 6px; height: 6px; border-radius: var(--radius-round); background: currentColor; opacity: 0.35; transition: opacity 0.1s; }
+.fc-pos-btn:hover i { opacity: 0.6; }
+.fc-pos-btn.is-on i { opacity: 1; }
+
+/* Leading icon+label for More-panel rows (radius / opacity / fit / shape / blend). */
+.fc-row-lbl { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.fc-row-lbl svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); flex: none; }
+.fc-row-lbl > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Text-only inputs / steppers / dims / info panels share the number+text field look.
+   This is the OLD outlined generation and it is scoped by element type, so it swallows
+   anything that wanders into a panel - including the Doc Studio page-setup fields, which
+   live in a `.fc-panel` and have already moved to `.field-input`. The `:not()` yields to
+   the primitive rather than out-ranking it from the same layer; migrate the remaining
+   free-canvas panel fields and this rule can go entirely. */
+.fc-panel input[type="number"]:not(.field-input), .fc-panel input[type="text"]:not(.field-input) {
+  flex: 1; min-width: 0; font: inherit; font-size: var(--fs-md); padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm); border: 1px solid hsl(var(--input)); background: hsl(var(--background)); color: inherit;
+}
+/* A panel field the code has JUDGED wrong - today only the stroke panel's Dash array,
+   whose validity is a parse ("6 4" yes, "6 x" no) that no HTML constraint expresses, so
+   `:user-invalid` (fields.css) can never fire for it. Same destructive ring as the
+   primitive's, matched on the attribute the panel already sets for assistive tech, so the
+   visual state and the announced state cannot drift apart. `="true"` only: the field
+   carries aria-invalid="false" the rest of the time. */
+.fc-panel input[aria-invalid="true"] {
+  border-color: hsl(var(--destructive) / .8);
+  box-shadow: 0 0 0 2px hsl(var(--destructive) / .35);
+}
+.fc-panel .fc-cfield { flex: 1; }
+
+/* Size stepper (A− / number / A+) in the Text panel. */
+.fc-stepper { flex: 1; display: inline-flex; align-items: center; gap: var(--sp-3); }
+.fc-stepper input[type="number"] { text-align: center; }
+.fc-stepper .fc-cbtn { min-width: 30px; height: 28px; border: 1px solid hsl(var(--input)); border-radius: var(--radius-sm); font-size: var(--fs-md); }
+.fc-stepper .fc-cbtn:hover { background: hsl(var(--muted)); }
+
+/* More panel: sub-heading (Shadow) + a taller, scrollable body. */
+.fc-more-panel { min-width: 270px; max-height: min(72vh, 540px); overflow-y: auto; }
+.fc-panel-sub { margin-top: 2px; padding-top: 9px;
+  border-top: 1px solid hsl(var(--border));
+}
+.fc-more-panel .color-picker-field { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+.fc-more-panel .color-trigger { min-width: 0; padding: 3px 7px; border-radius: var(--radius-sm); }
+.fc-more-panel .color-trigger-preview { width: 18px; height: 18px; border-radius: var(--radius-sm); }
+/* Shadow colour sits in a LABELLED row ("Colour  [swatch hex]"), so it gets a
+   full-width trigger + hex - not the 30px icon treatment above. The popover is
+   left:0/right:0 on the field, so a 30px field also made a 30px (unusable) picker;
+   filling the row's flex cell gives the swatch and its popover proper room. */
+.fc-more-panel .fc-row .color-picker-field { width: 100%; height: auto; display: block; }
+.fc-more-panel .fc-row .color-trigger { justify-content: flex-end; padding: 5px 10px; border-radius: var(--radius); }
+.fc-more-panel .fc-row .color-trigger-name { display: inline; }
+
+/* Artboards navigator (plan 112) - a bottom-docked filmstrip of the document's frames
+   in page order, each a LIVE scaled thumbnail. Clicking one (or the ‹ › steppers) frames
+   that artboard in the viewport. Stage reserves keep the strip above the timeline and
+   centred in the usable space between side columns, including while they resize. */
+.fc-frames-panel {
+  --frames-space: calc(100% - var(--stage-reserve-left, 0px) - var(--stage-reserve-right, 0px));
+  left: calc(var(--stage-reserve-left, 0px) + var(--frames-space) / 2);
+  right: auto; top: auto; transform: translateX(-50%);
+  bottom: calc(var(--stage-reserve-bottom, 0px) + var(--ui-space-panel));
+  min-width: 0; max-width: min(calc(var(--frames-space) - 2 * var(--ui-space-panel)), 880px);
+  gap: var(--ui-space-control-inline); padding: var(--ui-space-panel);
+}
+.fc-frames-head { display: flex; align-items: center; gap: var(--sp-3); }
+.fc-frames-title {
+  flex: 1 1 auto; font-weight: 700; font-size: var(--fs-xs);
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--ui-color-text-muted);
+}
+.fc-frames-step { min-width: 28px; }
+.fc-frames-strip {
+  display: flex; gap: var(--sp-4); overflow-x: auto; overflow-y: hidden;
+  padding-bottom: 2px; scrollbar-width: thin;
+}
+.fc-frame-cell {
+  flex: none; display: flex; flex-direction: column; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2); border-radius: var(--ui-radius-control); border: 1px solid transparent;
+  background: none; cursor: pointer; color: var(--ui-color-text-muted);
+  transition: background var(--ui-motion-feedback), border-color var(--ui-motion-feedback), color var(--ui-motion-feedback);
+}
+.fc-frame-cell:hover { background: var(--ui-color-surface-muted); }
+.fc-frame-cell.is-active { border-color: var(--ui-color-selection-border); color: var(--ui-color-text-default); }
+.fc-frame-cell:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.fc-frame-cell-slot {
+  display: block; width: fit-content; border-radius: var(--ui-radius-choice); overflow: hidden;
+  border: 1px solid var(--ui-color-border-default); background: var(--ui-color-surface-canvas);
+  box-shadow: var(--ui-elevation-control);
+}
+.fc-frame-cell.is-active .fc-frame-cell-slot { border-color: var(--ui-color-selection-border); }
+.fc-frame-thumb { position: relative; overflow: hidden; display: block; }
+.fc-frame-cell-n { font-size: var(--fs-xs); font-weight: 600; font-variant-numeric: tabular-nums; }
+.fc-fmt-serif { font-family: serif; }
+.fc-fmt-number-glyph { font-size: var(--fs-xs); }
+.fc-fmt-type-glyph { font-size: var(--ui-type-label); }
+.fc-frames-empty {
+  display: flex; align-items: center; gap: var(--sp-5); flex-wrap: wrap;
+  color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); padding: var(--sp-2) var(--sp-1);
+}
+.fc-frames-empty-msg { flex: 0 0 auto; }
+/* "Draw an artboard" - the actionable way out of the empty state (arms the Artboard tool).
+   Fill pair is aliased onto .btn--primary in buttons.css; only the border + layout are local. */
+.fc-frames-empty-add {
+  display: inline-flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-6); border: 1px solid hsl(var(--primary)); border-radius: 8px;
+  font: inherit; font-size: var(--fs-md); font-weight: 600; cursor: pointer;
+  transition: filter var(--dur-1);
+}
+.fc-frames-empty-add:hover { filter: brightness(1.08); }
+.fc-frames-empty-add:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.fc-frames-empty-add svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+
+/* Position & size panel - each concept (position / size / rotation) on its own
+   icon-led row: two labelled number cells (X·Y, W·H) or a number + drag slider. */
+.fc-dims-panel { min-width: 236px; }
+.fc-dims { display: flex; flex-direction: column; gap: var(--sp-4); }
+/* The leading icon column is sized to its glyph, so the track scales with it - a
+   fixed 18px track would clip a 1.2× icon against the fields beside it. The track
+   widths are tokens (the rotation row below re-points them) rather than a factor
+   restated inside each grid-template-columns. */
+.fc-dims-row {
+  display: grid;
+  --fc-dims-ic-col: calc(18px * var(--a11y-fs));
+  grid-template-columns: var(--fc-dims-ic-col) 1fr 1fr;
+  align-items: center; gap: var(--sp-4);
+}
+.fc-dims-ic { display: inline-flex; color: hsl(var(--muted-foreground)); }
+.fc-dims-ic svg { width: var(--fs-xl); height: var(--fs-xl); }
+.fc-dims-f { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
+.fc-dims-f > span { flex: none; width: calc(9px * var(--a11y-fs)); font-weight: 600; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.fc-dims-f > i { flex: none; font-style: normal; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.fc-dims-f input[type="number"] { flex: 1; min-width: 0; }
+/* Rotation row: a narrower number cell + a drag slider filling the rest. */
+.fc-dims-rot {
+  --fc-dims-num-col: calc(86px * var(--a11y-fs));
+  grid-template-columns: var(--fc-dims-ic-col) var(--fc-dims-num-col) 1fr;
+}
+/* `.field-range` draws it (fields.css); the grid cell only needs it to be
+   allowed to shrink below its intrinsic width. */
+.fc-dims-slider { min-width: 0; }
+
+/* Document info panel - editable name + at-a-glance meta rows. */
+.fc-info-panel { min-width: 262px; }
+.fc-info-meta { display: flex; flex-direction: column; gap: 5px; padding-top: 9px; border-top: 1px solid hsl(var(--border)); }
+.fc-info-line { display: flex; justify-content: space-between; gap: 14px; font-size: var(--fs-sm); }
+.fc-info-line > span { color: hsl(var(--muted-foreground)); }
+.fc-info-line > b { font-weight: 600; text-align: right; word-break: break-word; }
+/* "Embedded in exports" sub-heading + the provenance opt-in note. */
+.fc-panel-head.fc-info-sub { margin-top: 14px; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.06em; color: hsl(var(--muted-foreground)); }
+.fc-info-note { font-size: var(--fs-xs); line-height: 1.4; color: hsl(var(--muted-foreground)); margin-top: 2px; }
+.fc-info-note a { color: hsl(var(--primary)); text-decoration: underline; }
+.fc-info-note:empty { display: none; }
+
+/* The transform readout is now a button (opens the dims panel). */
+button.fc-readout { border: none; background: transparent; cursor: pointer; font: inherit; border-radius: var(--radius-sm); height: 32px; }
+button.fc-readout:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+button.fc-readout:empty { display: none; }
+
+@media (pointer: coarse) {
+  .fc-ctxbar .color-picker-field, .fc-ctxbar .color-trigger { width: 36px; height: 36px; }
+  /* Touch: the bar routinely overflows the narrow top band and scrolls, and the frosted
+     ::before is an absolute child that would scroll out from under the controls. Drop it
+     and lean on a near-opaque solid, which paints on the element box and stays put. */
+  .fc-ctxbar { background: hsl(var(--card) / 0.94); }
+  .fc-ctxbar::before { display: none; }
+}
+
+/* Canvas-layout file utilities (render.layout:"canvas") put the drop zone on
+   #tool-content; sidebar tools with a dropToAdd blocks input (e.g. logo-wall) put
+   it on the #tool-canvas preview. Either way, dragging files over the canvas draws
+   a clear drop affordance. The outline is transient (only while dragging, removed
+   before export), so it never bleeds into output. */
+#tool-content.is-file-dragover,
+#tool-canvas.is-file-dragover {
+  outline: 3px dashed hsl(var(--primary));
+  outline-offset: -12px;
+  background: hsl(var(--primary) / 0.05);
+}
+
+/* On-device reassurance badge, floated onto the stage when there's no sidebar to
+   host it. Pinned bottom-centre, out of the way of the canvas content. */
+.on-device-badge--float {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  margin-bottom: 0;
+  background: hsl(var(--background));
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+
+.tool-canvas {
+  background: transparent;
+  overflow: hidden;
+  position: relative;
+  transform-origin: top left;
+}
+/* Editor (free-canvas) only - boxes dragged off the artboard stay visible and
+   selectable: hit-testing follows the visual overflow, and the box DOM still
+   lives inside the canvas so clicks bubble to the overlay's handlers. `> *`
+   un-clips the tool's own clipping root (e.g. design's .artboard)
+   without naming a tool class. Export is unaffected: the raster capture is
+   bounded by the canvas rect, and the vector walkers' out-of-viewBox geometry
+   never paints. */
+.tool-canvas.fc-open-canvas,
+.tool-canvas.fc-open-canvas > * { overflow: visible !important; }
+
+/* ── Canvas pan/zoom (setupStageNav) ────────────────────────────────────── */
+/* Panning the stage: Space- or middle-drag. Plain clicks stay free for the
+   canvas click-to-focus behaviour, so the grab cursor only shows on Space-hold. */
+.tool-stage.is-grabbable { cursor: grab; }
+.tool-stage.is-grabbing  { cursor: grabbing; }
+
+/* Zoom HUD - a small TOP-RIGHT pill: −  [NN%]  +  Fit. Dimmed until the stage
+   is hovered or the canvas is zoomed, so it stays out of the way at rest.
+
+   It used to sit bottom-right, which is the same lane as the docked timeline band
+   (.tl-panel, z-index 22, timeline.css) - with the timeline open the band covered
+   the HUD outright and no z-index shuffle fixes that, since the band legitimately
+   owns the bottom of the stage. Top-right removes the collision instead of fighting
+   it, and shares the lane with nothing (the live-camera toggle and the fullscreen
+   float are both top-LEFT; the record flip button and the mobile Get|Save pill are
+   both bottom).
+
+   Vertical geometry comes from the SHARED top-row tokens (tokens.css: --chrome-top,
+   --chrome-h, --chrome-inset) - the same three the chromeless editor's back pill
+   reads via .tools-home.home-full (tool.css) - so the HUD and the back pill sit on
+   one line at every width and can't drift apart. min-height (not height) mirrors the
+   pill exactly and leaves the mobile stacked capsule below free to grow taller. The
+   --vv-* offsets re-pin it to the visible top-right while the page is pinch-zoomed,
+   as on the other end of the row. */
+.stage-nav {
+  position: absolute;
+  top: calc(var(--chrome-top) + var(--vv-top, 0px));
+  right: calc(var(--chrome-inset) + var(--vv-right, 0px));
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-height: var(--chrome-h);
+  box-sizing: border-box;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--card) / 0.85);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid hsl(var(--border));
+  opacity: 0.45;
+  transition: opacity var(--dur-1);
+}
+.tool-stage:hover .stage-nav,
+.stage-nav[data-zoomed="1"],
+.stage-nav:focus-within { opacity: 1; }
+
+/* The pill around these already grows (min-height is --chrome-h, which carries the
+   type multiplier - tokens.css), so the segments inside it grow on the same factor:
+   held at a flat 26px they would shrink INSIDE a taller pill. */
+.stage-nav-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: hsl(var(--foreground));
+  height: calc(26px * var(--a11y-fs));
+  width: calc(26px * var(--a11y-fs));
+  font-size: var(--fs-xl);
+  line-height: 1;
+  border-radius: var(--radius-pill);
+  transition: background var(--dur-1), color var(--dur-1);
+}
+/* Fit is the middle reset control - an icon button, so size its glyph like the
+   theme/sound toggles rather than the ± digits. */
+.stage-nav-fit svg { width: var(--fs-xl); height: var(--fs-xl); }
+.stage-nav-btn:hover { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+
+/* The drag grip (tool-stage-nav.ts) - the only draggable surface on the pill, since
+   every other segment is a click target. Grab it to move the HUD over the canvas, or
+   onto the inline-end edge to dock it (lib/edge-dock.ts). Desktop only (added under
+   !isTouch); touch keeps the fixed vertical capsule. */
+.stage-nav-grip {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  /* Wider than a button so it's an easy grab target (the dots stay centred). */
+  width: calc(30px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  cursor: grab; touch-action: none; border-radius: var(--radius-pill);
+  transition: background var(--dur-1), color var(--dur-1), box-shadow var(--dur-1);
+}
+/* Glow on hover so the grab target announces itself (matches the primary-tinted glow
+   the top-right chrome FABs use). */
+.stage-nav-grip:hover,
+.stage-nav-grip:focus-visible {
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.14);
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.35), 0 0 10px hsl(var(--primary) / 0.5);
+  outline: none;
+}
+.stage-nav-grip:active { cursor: grabbing; }
+.stage-nav-grip svg { width: var(--fs-lg); height: var(--fs-lg); display: block; }
+
+/* Docked into the edge column: always solid (no rest-dimming), laid out as a row
+   regardless of the mobile stacking rules, and no floating pill offset (the dock slot
+   owns position). */
+.stage-nav[data-docked] { position: static; opacity: 1; flex-direction: row; }
+
+/* Editor layout keeps the HUD but hides it while it is OUT of the right sidebar - the
+   top bar owns zoom then (tool-stage-nav.ts `paintHudVisible`). Nothing is needed here
+   for that: parts/a11y.css's `[hidden] { display: none !important }` sits in the top
+   layer and already beats this sheet's `display: flex`.
+
+   The profile avatar is one node the top bar hands over while the column is open
+   (design-topbar's profileDock). The File menu stays beside the filename. */
+
+/* Theme cycle + sound toggles docked at the end of the HUD (createThemeToggle /
+   createSoundToggle) - icon-only .stage-nav-btn, set off from the zoom controls by a
+   hairline separator so they don't read as zoom buttons. The explicit svg size pins
+   BOTH icons at 16px; without it a global svg rule wins and - on mobile, where the
+   button becomes width:auto - the icon balloons. */
+.stage-nav-theme svg,
+.stage-nav-sound svg { width: var(--fs-xl); height: var(--fs-xl); }
+.stage-nav-sep {
+  flex: none;
+  align-self: center;
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+  border-radius: 1px;
+  background: hsl(var(--border));
+}
+
+/* Profile avatar docked in the HUD, right of the sound/mute toggle (createProfileControl,
+   the same consolidated menu the top-right avatar opens). Icon only - no name - in every
+   state. The shared `.profile-link` pins itself to a view's top-right corner
+   (components.css, chrome layer); reset that so it flows inline as a circle in the pill
+   (this views-layer rule out-ranks it). */
+.stage-nav .profile-link {
+  position: relative; right: auto; top: auto; inset: auto; z-index: auto;
+  min-height: 0;
+  width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs));
+  padding: 0; border-radius: var(--radius-round); overflow: hidden; flex: none;
+}
+.stage-nav .profile-link-mark,
+.stage-nav .profile-link-avatar {
+  left: 50%; transform: translate(-50%, -50%);
+  width: calc(20px * var(--a11y-fs)); height: calc(20px * var(--a11y-fs));
+}
+
+/* Mobile: stack the zoom HUD into a vertical capsule so it fits the narrow stage,
+   reading + / NN% / − / Fit top-to-bottom like a map zoom control. It hangs DOWN from
+   the top-right corner, so nothing here needs a bottom offset any more (the base rule
+   is top-anchored, and --chrome-top already carries var(--safe-top) on phones
+   - see tokens.css - so the capsule clears the notch the same way the back pill does).
+   The stacked capsule is taller than --chrome-h, which is why the base rule pins the
+   row height with min-height rather than height. */
+@media (max-width: 640px) {
+  .stage-nav {
+    flex-direction: column;
+    align-items: stretch;
+    opacity: 1;                                    /* no hover on touch - keep it visible */
+  }
+  .stage-nav-btn { width: auto; }                 /* fill the column when stacked */
+  .stage-nav [data-nav="in"]  { order: 1; }       /* + */
+  .stage-nav [data-nav="fit"] { order: 2; }       /* Fit (between + and −) */
+  .stage-nav [data-nav="out"] { order: 3; }       /* − */
+  .stage-nav-sep              { order: 4; }        /* divider */
+  .stage-nav-theme            { order: 5; }        /* theme */
+  .stage-nav-sound            { order: 6; }        /* sound */
+  .stage-nav .profile-link    { order: 7; width: auto; height: calc(26px * var(--a11y-fs)); }  /* profile (capsule's bottom) */
+  /* The separator turns horizontal in the stacked capsule. */
+  .stage-nav-sep {
+    width: auto;
+    height: 1px;
+    margin: 3px 6px;
+    align-self: stretch;
+  }
+  /* Round the capsule's ends: top button (+) and the bottom (profile) control. Fit is
+     a middle segment now (between + and −), so it carries no round. */
+  .stage-nav [data-nav="in"]  { border-radius: 6em 6em 1em 1em; }
+  .stage-nav-theme            { border-radius: 1em; }
+  .stage-nav-sound            { border-radius: 1em; }
+  .stage-nav .profile-link    { border-radius: 1em 1em 6em 6em; }
+}
+
+/* ── Collapsible pill (#3): the lolly swirl is the anchor ──────────────────────
+   The zoom/theme/sound controls clutter every tool canvas, so they fold away behind
+   the lolly swirl. The swirl sits FIRST (top of the vertical capsule, left of the row)
+   and larger, reading as a handle; a long-press on it toggles the fold (tool-stage-nav.ts),
+   while a short tap still opens the profile menu. The drag grip moves to the far end. */
+.stage-nav .profile-link { order: -1; align-self: center;
+  width: calc(34px * var(--a11y-fs)); height: calc(34px * var(--a11y-fs));
+  border-radius: var(--radius-round);
+  -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: none; }
+.stage-nav .profile-link-mark,
+.stage-nav .profile-link-avatar { width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); }
+/* …but NOT in the editor's docked bar (.stage-nav--editor, set in tool-stage-nav.ts):
+   the brand mark is the anchor there, the bar cannot fold, and the avatar is on loan
+   from the top bar - so it sits last, at the pill's ordinary control size, exactly as
+   it does beside the theme and sound toggles. Same specificity as the fold rule above
+   (both two classes), so it has to stay BELOW it to win. The mobile capsule order is
+   left alone on purpose: under 640px there is no dock column, so the editor's pill
+   never holds the avatar in the first place. */
+.stage-nav--editor .profile-link { order: 0;
+  width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs)); }
+.stage-nav--editor .profile-link-mark,
+.stage-nav--editor .profile-link-avatar { width: calc(20px * var(--a11y-fs)); height: calc(20px * var(--a11y-fs)); }
+.stage-nav-grip { order: 100; }
+.stage-nav.is-collapsed > :not(.profile-link) { display: none; }
+.stage-nav.is-collapsed { opacity: 1; padding: 3px; }
+/* A hint that the anchor holds more: a soft ring while collapsed. */
+.stage-nav.is-collapsed .profile-link { box-shadow: var(--ring-focus-strong); }
+
+/* On touch the HUD is the primary zoom control; the canvas also keeps pinch/drag. */
+}
+
+/* ── on-canvas gradient editing ─────────────────────────────────────────────────
+   The gradient's line and its stop handles. Same layering logic as the pen: the line
+   is an <svg> at z-index 13 (under the selection chrome), the handles a sibling div at
+   15 so they stay grabbable over it. Both live inside the [data-export-hide] overlay,
+   so none of this reaches an export.
+
+   The stop handle is a SWATCH: --stop carries the stop's own colour, over a small
+   checkerboard so a translucent stop reads as translucent rather than as whatever the
+   artwork behind it happens to be. The white casing + dark ring is the same two-tone
+   treatment the pen nodes use, and for the same reason - a handle has to stay legible
+   on top of arbitrary artwork, including artwork the same colour as the handle. */
+.fc-grad-layer { pointer-events: none; z-index: 13; }
+.fc-grad-line-halo {
+  stroke: rgba(0, 0, 0, 0.55); stroke-width: 3.5; stroke-linecap: round; fill: none;
+}
+.fc-grad-line {
+  stroke: rgba(255, 255, 255, 0.95); stroke-width: 1.5; stroke-linecap: round; fill: none;
+  stroke-dasharray: 5 4;
+}
+.fc-grad-chrome { position: absolute; inset: 0; pointer-events: none; z-index: 15; }
+.fc-grad-stop {
+  position: absolute; width: 16px; height: 16px; margin-left: -8px; margin-top: -8px;
+  border-radius: var(--radius-round); pointer-events: auto; touch-action: none; cursor: ew-resize;
+  /* The swatch over a checkerboard, so alpha is visible. */
+  background:
+    linear-gradient(var(--stop, transparent), var(--stop, transparent)),
+    conic-gradient(#d8d8d8 0% 25%, #ffffff 0% 50%, #d8d8d8 0% 75%, #ffffff 0%) 0 0 / 8px 8px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+.fc-grad-stop::after { content: ""; position: absolute; inset: -8px; }  /* fat touch target */
+.fc-grad-stop.is-on {
+  /* The selected stop is what the Fill field and Delete act on, so it needs to be
+     unmistakable - a primary ring outside the white casing. */
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 0 0 3.5px hsl(var(--primary)), 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+.fc-grad-dir {
+  position: absolute; width: 13px; height: 13px; margin-left: -6.5px; margin-top: -6.5px;
+  border-radius: var(--radius-round); pointer-events: auto; touch-action: none; cursor: grab;
+  background: hsl(var(--primary)); border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+.fc-grad-dir::after { content: ""; position: absolute; inset: -9px; }
+.fc-grad-panel .fc-grad-row-btns { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+.fc-grad-panel .fc-grad-row-btns .fc-pop-item { flex: 1 1 auto; justify-content: center; }
+
+/* ── Touch on the canvas (plans/132 wave 2) ──────────────────────────────────
+   The stage's ACTIVE interaction modes (draw-arming, connecting, pen, node
+   editing, space-pan) run on pointer events; without touch-action the browser
+   claims the finger for scrolling and the gesture never reaches them. Claim
+   touches only IN those modes - the idle stage keeps native scroll/pinch, so a
+   tall tool preview still pans normally on a phone. Full touch pan/pinch for
+   the dense editors is the plans/132 wave-2 triage follow-up, not this rule. */
+@media (pointer: coarse) {
+  .tool-stage:is(.fc-arming, .fc-connecting, .fc-lining, .fc-penning, .fc-node-editing, .is-grabbable) {
+    touch-action: none;
+  }
+}
+/* Outcome-aware disclosure: the Design overlay still owns one timeline, but a
+ * static design or carousel should not advertise a playback workflow in either
+ * copy of the canvas chrome. The top bar applies its own live gate because it
+ * can also fold this control into a menu. */
+.tool-view[data-design-intent="general"] .fc-btn-timeline,
+.tool-view[data-design-intent="carousel"] .fc-btn-timeline {
+  display: none;
+}
+
+/* ── Design keyboard shortcuts ───────────────────────────────────────────────
+   The timeline has a focused, timeline-only sheet. This is the canvas/document
+   inventory opened by `?` everywhere else and by the document menu. Native dialog
+   lifecycle comes from mountModal; only the compact grouped table is owned here. */
+.fc-shortcuts-modal .fc-shortcuts-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(720px, 86vw);
+  max-height: min(78vh, 760px);
+}
+.fc-shortcuts-title { margin: 0; font-size: var(--fs-xl); }
+.fc-shortcuts-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 28px;
+  overflow-y: auto;
+  padding-inline-end: 4px;
+}
+.fc-shortcuts-group h3 {
+  margin: 0 0 7px;
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.fc-shortcuts-group table { width: 100%; border-collapse: collapse; }
+.fc-shortcuts-group td { padding: 4px 0; vertical-align: baseline; font-size: var(--fs-md); }
+.fc-shortcuts-keys { width: 1%; padding-inline-end: 12px !important; white-space: nowrap; }
+.fc-shortcuts-keys kbd {
+  display: inline-block;
+  padding: 2px 7px;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-choice);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent);
+  font-family: var(--ui-type-mono-family);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+.fc-shortcuts-actions { display: flex; justify-content: flex-end; }
+@media (max-width: 640px) {
+  .fc-shortcuts-groups { grid-template-columns: 1fr; }
+}

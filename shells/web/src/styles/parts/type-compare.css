@@ -1,0 +1,266 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer (order
+   declared once in styles/app.css), exactly like tray.css and dropzone.css - so
+   its rules keep a fixed priority (above chrome/primitives/base, below
+   overrides/a11y) no matter when Vite injects this chunk. Do not rely on load
+   order. */
+@layer views {
+/*
+ * The Type room's compare stage (lib/design-system/type-compare.ts, plan 97 section 7.2).
+ *
+ * ONE SIZE, ONE LINE. Every card sets the same string at --tycmp-size, which the
+ * module writes on the stage root from the shared slider. A per-card size would
+ * make the comparison meaningless, so the size lives on the ROOT and nothing
+ * below is allowed its own.
+ *
+ * THE SPECIMEN IS NOT CHROME. Every label, chip and note here rides
+ * var(--a11y-fs) like the rest of the studio, but `.tycmp-specimen` deliberately
+ * does NOT: it is the measurement, and a preference must not silently move the
+ * thing being measured. The person comparing faces has a slider for exactly this.
+ *
+ * SEPARATION is a full uniform border on theme tokens plus the card background -
+ * never a single accent edge on a rounded card. The one dashed border in this
+ * sheet is `.tycmp-drop`, which is a drop area; dashed means "drop here" and
+ * nothing else.
+ *
+ * Cards are a responsive grid, not a scroller: side by side on a desktop, stacked
+ * on a phone. Same room, different layout (plan 97 section 11).
+ */
+
+.tycmp {
+  --tycmp-size: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── The shared controls ─────────────────────────────────────────────────── */
+
+.tycmp-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+.tycmp-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 16rem; min-width: 0; }
+.tycmp-field--size { flex: 0 1 12rem; }
+/* The range and its readout sit on one line under the label. */
+.tycmp-field--size { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 8px; align-items: center; }
+.tycmp-field--size > .field-label { grid-column: 1 / -1; }
+.tycmp-size { width: 100%; min-width: 0; accent-color: hsl(var(--primary)); }
+.tycmp-size:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.tycmp-size-out {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.tycmp-lede {
+  margin: 0;
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+
+/* ── The cards ───────────────────────────────────────────────────────────── */
+
+.tycmp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 12px;
+}
+/* Three across on a desktop, one on a phone (plan 182 section 6.3). Auto-fit
+   alone put five narrow cards on a wide stage, and a face judged in a 12rem
+   column is a face nobody judged - the specimen is the point, so the column has
+   to be wide enough to hold a line of it. */
+@media (min-width: 900px) {
+  .tycmp-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .tycmp-cards { grid-template-columns: 1fr; }
+}
+
+.tycmp-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+.tycmp-card-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.tycmp-glyph { display: inline-flex; flex: none; color: hsl(var(--muted-foreground)); }
+.tycmp-glyph svg { width: var(--fs-xl); height: var(--fs-xl); }
+.tycmp-family {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: calc(13.5px * var(--a11y-fs));
+}
+/* The only way to take a card off the stage by pointer, and on a phone every
+   card carries one at the top-right - so it gets a real touch target. The box is
+   32px (it has to stay small enough not to crowd the family name beside it) and
+   the ::after carries the rest: `inset: calc((44px - 100%) / -2)` resolves
+   against the button's own padding box, so the hit area is 44×44 and grows with
+   --a11y-fs along with the button. Six pixels of that overhangs the family
+   label, which is text, not a control. */
+.tycmp-x {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(32px * var(--a11y-fs));
+  height: calc(32px * var(--a11y-fs));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+.tycmp-x::after { content: ''; position: absolute; inset: calc((44px - 100%) / -2); }
+.tycmp-x:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.tycmp-x:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.tycmp-x svg { width: var(--fs-lg); height: var(--fs-lg); }
+
+/* The card is programmatically focusable (tabindex="-1") so a repaint can hand
+   the keyboard back to it rather than to its Remove - it must show where it is
+   when that happens, and never draw a ring on a plain click. */
+.tycmp-card:focus { outline: none; }
+.tycmp-card:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+
+.tycmp-label {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(11.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+
+/* The measurement. Shared size, no a11y multiplier (see the sheet note), and it
+   wraps rather than clipping - a face is judged on its shapes, and a cut-off
+   line hides half of them. `word-break` guards a single long word typed into the
+   specimen field from pushing the grid wider than the room. */
+.tycmp-specimen {
+  margin: 2px 0;
+  min-height: calc(var(--tycmp-size) * 1.25);
+  font-size: var(--tycmp-size);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+/* Not loaded: the interface face is doing the drawing and the card says so, so
+   the line is calmed to make that obvious at a glance rather than only in words.
+   Reached only by the `no-source` card now - every other unloaded state draws
+   the skeleton below instead of a line of type in the wrong face. */
+.tycmp-card[data-tycmp-state="loading"] .tycmp-specimen,
+.tycmp-card[data-tycmp-state="idle"] .tycmp-specimen,
+.tycmp-card[data-tycmp-state="failed"] .tycmp-specimen { color: hsl(var(--muted-foreground)); }
+
+/* The specimen's placeholder while there is no face to set it in (plan 182
+   section 6.2). Same box as `.tycmp-specimen` - the same size variable, the same
+   margin - so a card does not jump when the face arrives. */
+.tycmp-skel {
+  margin: 2px 0;
+  height: calc(var(--tycmp-size) * 1.25);
+  max-width: 70%;
+  border-radius: var(--radius-sm);
+  background: hsl(var(--muted));
+}
+
+.tycmp-fallback,
+.tycmp-note {
+  margin: 0;
+  font-size: calc(11.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.tycmp-card[data-tycmp-state="failed"] .tycmp-note { color: hsl(var(--destructive)); }
+
+.tycmp-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; padding: 0; list-style: none; }
+/* The chips are the honesty, and the longest of them are the licence sentences
+   ("Licence flags not readable in this format", "Embedding not permitted") -
+   which is exactly the text a fixed max-width would cut in half. Nothing else in
+   the stage states these facts, and a truncated one is worse than a long one, so
+   a chip WRAPS instead: no nowrap, no ellipsis, and the only limit is the card
+   it sits in. (The old 12rem cap did not track --a11y-fs either, so large text
+   clipped strictly more of the sentence - the pref made the problem worse.) */
+.tycmp-chip {
+  padding: 1px 7px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  font-size: calc(10.5px * var(--a11y-fs));
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.tycmp-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 4px; }
+/* On a phone the card's one press is a real target: 40px, which is what the
+   phone mockup draws and what a thumb needs on a card it has scrolled to. */
+@media (max-width: 640px) {
+  .tycmp-acts .btn { min-height: 40px; }
+}
+
+/* ── Empty state, drop zone, messages ────────────────────────────────────── */
+
+.tycmp-empty {
+  margin: 0;
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.tycmp-empty[hidden] { display: none; }
+
+/* A drop area, hence the dashed border (the one place this sheet is allowed
+   one). Modelled on .updz (dropzone.css): a <label> over a visually-hidden file
+   input, so click-to-browse is native and the keyboard ring is :focus-within. */
+.tycmp-drop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 2px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font-size: calc(.9rem * var(--a11y-fs));
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--dur-1), background var(--dur-1), color var(--dur-1);
+}
+.tycmp-drop-ic { display: inline-flex; flex: none; }
+.tycmp-drop-ic svg { width: calc(20px * var(--a11y-fs)); height: calc(20px * var(--a11y-fs)); }
+.tycmp-drop-input {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.tycmp-drop:hover,
+.tycmp-drop:focus-within { border-color: hsl(var(--primary) / .55); color: hsl(var(--foreground)); }
+.tycmp-drop:focus-within { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.tycmp-drop.is-dragover { border-color: hsl(var(--primary)); background: hsl(var(--primary) / .08); color: hsl(var(--foreground)); }
+/* At the cap the zone stays VISIBLE and keeps its focus ring - it is not
+   disabled, it is full, and the message line says which. A drop while full is
+   refused with a sentence rather than swallowed by pointer-events: none. */
+.tycmp-drop.is-full { opacity: .6; }
+
+.tycmp-msg {
+  margin: 0;
+  min-height: 1em;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tycmp-drop { transition: none; }
+}
+html[data-a11y-motion="reduce"] .tycmp-drop { transition: none; }
+}

@@ -1,0 +1,329 @@
+/* ─── Folder overlay (file-manager for saved sessions / images) ──────────── */
+/* A wider <dialog> than the meta modal; reuses .tool-meta-dialog chrome. */
+.folder-overlay { max-width: 94vw; width: 94vw; }
+.folder-overlay-body { padding: 18px 20px 22px; position: relative; }
+.folder-overlay-loading { padding: 40px; text-align: center; color: var(--ui-color-text-muted); }
+.folder-overlay-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.folder-overlay-head h2 { margin: 0; font-size: var(--fs-xl); }
+.folder-overlay-head-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.folder-overlay-crumb { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.folder-crumb-icon svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); opacity: 0.6; }
+.folder-back {
+  border: 1px solid var(--ui-color-border-default); background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-default); border-radius: var(--ui-radius-control);
+  width: 28px; height: 28px; cursor: pointer; font-size: calc(15px * var(--a11y-fs)); line-height: 1;
+}
+.folder-back:hover { background: var(--ui-color-surface-muted); }
+.folder-overlay-empty { padding: 28px 12px; text-align: center; color: var(--ui-color-text-muted); font-size: var(--fs-md); }
+
+.folder-grid {
+  display: grid; gap: 12px; margin: 0 0 14px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+.folder-grid--folders { margin-bottom: 18px; }
+
+/* Recent exports - the downloads log's reopen rail (moved here from the export
+   popup), shown alongside the saved sessions in the history overlay. */
+.folder-exports { margin-top: 4px; }
+/* The /p root rail's collapsible head (plans/133 WP-10) - a plain disclosure row. */
+.projects-exports { margin-top: 18px; }
+.projects-exports-head {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: none; padding: 0 0 6px; cursor: pointer; font: inherit;
+}
+.projects-exports-head .folder-exports-title { margin: 0; }
+.projects-exports-count { font-size: calc(.72rem * var(--a11y-fs)); color: var(--ui-color-text-muted); }
+/* The thin recents dialog (components/recents-dialog.ts) - rail + hand-off.
+   Padding lives here: the host .tool-meta-dialog chrome is padding: 0 and expects
+   the content block to bring its own (cf. .meta-dialog-body), otherwise the title
+   clips at the rounded corner on phones. */
+.recents-dialog { display: flex; flex-direction: column; gap: 14px; min-width: min(480px, 82vw); padding: 16px 20px 20px; }
+.recents-dialog-head { display: flex; align-items: center; gap: 10px; }
+.recents-dialog-title { margin: 0; flex: 1 1 auto; font-size: calc(1.05rem * var(--a11y-fs)); }
+.recents-dialog-close {
+  flex: none; width: 30px; height: 30px; border: 0; border-radius: var(--radius);
+  background: none; color: var(--ui-color-text-muted); font-size: 22px; line-height: 1; cursor: pointer;
+}
+.recents-dialog-close:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+@media (pointer: coarse) {
+  .recents-dialog-close { min-width: 44px; min-height: 44px; }
+}
+.recents-dialog-empty { margin: 0; color: var(--ui-color-text-muted); font-size: calc(.85rem * var(--a11y-fs)); }
+.recents-dialog-go { align-self: flex-start; }
+.folder-exports-title {
+  margin: 0 0 6px; font-size: var(--fs-xs); font-weight: 600;
+  color: var(--ui-color-text-muted); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.folder-exports-rail { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.folder-export-tile {
+  flex: 0 0 auto; display: block; line-height: 0; overflow: hidden;
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-muted); transition: border-color var(--ui-motion-feedback), box-shadow var(--ui-motion-feedback);
+}
+.folder-export-tile:hover { border-color: color-mix(in srgb, var(--ui-color-action-primary) 60%, transparent); box-shadow: var(--ui-elevation-control); }
+.folder-export-tile img { height: 56px; width: auto; max-width: 120px; object-fit: cover; display: block; }
+/* A thumbless saved session in the recents dialog's rail (plans/142 W4): the
+   caption IS the tile, sized to match its image siblings. */
+.folder-export-tile-caption {
+  display: flex; align-items: center; height: 56px; max-width: 120px;
+  padding: 0 10px; font-size: 0.72rem; line-height: 1.25;
+  color: var(--ui-color-text-muted); overflow: hidden;
+}
+
+.folder-tile {
+  position: relative; border: 0;
+  border-radius: var(--ui-radius-card); background: var(--ui-color-surface-raised);
+  overflow: hidden; box-shadow: var(--shadow-1);
+}
+.folder-tile:hover { border-color: color-mix(in srgb, var(--ui-color-action-primary) 60%, transparent); box-shadow: var(--ui-elevation-control); }
+.tile-primary {
+  display: flex; flex-direction: column; width: 100%; padding: 0; box-sizing: border-box;
+  border: 0; background: none; color: inherit; cursor: pointer; text-align: left;
+  text-decoration: none;   /* the cover is an <a href> in the Projects grid (plans/133 WP-13) */
+}
+.tile-cover, .folder-mosaic {
+  display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
+  background: var(--ui-color-surface-muted); border-bottom: 1px solid var(--ui-color-border-default);
+}
+.tile-cover--batch, .tile-cover--empty {
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ui-color-text-muted);
+}
+.tile-cover--batch svg { width: calc(34px * var(--a11y-fs)); height: calc(34px * var(--a11y-fs)); opacity: 0.55; }
+.folder-mosaic {
+  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1px;
+  overflow: hidden;   /* clip cells to the 90px banner - belt-and-suspenders with the min-0 below */
+}
+/* min-width/height:0 defeats the grid item's default `min-*: auto`, which otherwise lets a
+   tall member thumbnail inflate a `1fr` row to the image's intrinsic height - spilling the
+   preview down over the folder's name + item count. */
+.folder-cell { width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: cover; background: var(--ui-color-surface-muted); }
+.folder-cell--batch, .folder-cell--empty { color: var(--ui-color-text-muted);
+}
+.folder-cell--batch svg { width: calc(20px * var(--a11y-fs)); height: calc(20px * var(--a11y-fs)); opacity: 0.5; }
+/* Folders + the "New folder/tool" create tiles are COMPACT cards: a short preview
+   banner instead of the big 4/3 box, so a folder no longer towers over its name and a
+   row of folders reads as a tidy band with the names aligned. Saved-session tiles keep
+   their 4/3 preview (they show the actual creation). */
+.folder-tile--folder .folder-mosaic,
+.folder-tile--folder .tile-cover,
+.tile-cover--create { aspect-ratio: auto; height: 90px; }
+.tile-cover--batch svg { width: calc(30px * var(--a11y-fs)); height: calc(30px * var(--a11y-fs)); }
+.tile-meta { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px 10px; min-width: 0; }
+.tile-title {
+  font-size: calc(12.5px * var(--a11y-fs)); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tile-sub { font-size: var(--fs-xs); color: var(--ui-color-text-muted); }
+.tile-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.tile-badge {
+  font-size: var(--fs-2xs); font-weight: 600; line-height: 1; padding: 3px 5px;
+  border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted); color: var(--ui-color-text-muted);
+}
+.tile-badge--type { background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
+.tile-badge--rows { background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
+
+.tile-menu-btn {
+  /* The box rides the icon scale with the glyph it holds - a 15px mark growing
+     to 18 inside a fixed 26px circle would swallow the ring it sits in. */
+  position: absolute; top: 6px; right: 6px; width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs));
+  display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-choice-round);
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 85%, transparent); color: var(--ui-color-text-default);
+  cursor: pointer; opacity: 0; transition: opacity var(--ui-motion-feedback), background var(--ui-motion-feedback);
+}
+.folder-tile:hover .tile-menu-btn, .tile-menu-btn:focus-visible { opacity: 1; }
+/* Touch has no hover: a hover-revealed control is an invisible control
+   (plans/132 wave 2). Softer than the hover state so the grid stays calm. */
+@media (hover: none) {
+  .tile-menu-btn { opacity: .72; }
+}
+.tile-menu-btn:hover { background: var(--ui-color-surface-muted); }
+.tile-menu-btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+
+/* Multi-select toggle - a SIBLING of .tile-primary (never nested; Space would double-
+   fire the open action). Mirrors .tile-menu-btn but pinned top-LEFT. Hover-revealed on
+   fine pointers, filled primary when selected, and always visible on touch / when the
+   tile is selected. */
+.tile-check {
+  /* Box on the icon scale with its tick, as .tile-menu-btn above. */
+  position: absolute; top: 6px; left: 6px; z-index: 2; width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs));
+  display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  border: 2px solid var(--ui-color-border-default); border-radius: var(--ui-radius-choice-round);
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 85%, transparent); color: var(--ui-color-action-on-primary);
+  cursor: pointer; opacity: 0; transition: opacity var(--ui-motion-feedback), background var(--ui-motion-feedback), border-color var(--ui-motion-feedback);
+}
+.folder-tile:hover .tile-check, .tile-check:focus-visible,
+.folder-tile.is-selected .tile-check { opacity: 1; }
+.tile-check svg { width: var(--fs-md); height: var(--fs-md); opacity: 0; }
+.tile-check[aria-pressed="true"] {
+  background: var(--ui-color-action-primary); border-color: var(--ui-color-action-primary); opacity: 1;
+}
+.tile-check[aria-pressed="true"] svg { opacity: 1; }
+.folder-tile.is-selected { border-color: 0; box-shadow: var(--shadow-2), var(--ui-effect-selected); }
+/* Touch devices have no hover - keep the toggle visible so selection is discoverable. */
+@media (pointer: coarse) {
+  .tile-check { opacity: 1; }
+  /* Hit area only, via ::after - the visible circle stays 22px everywhere this
+     shared class renders (gallery included); Projects grows the real box further
+     still (projects.css), and the two floors simply compose. */
+  .tile-check::after { content: ''; position: absolute; inset: calc((28px - 100%) / -2); }
+}
+
+/* Per-tile action popover (move / rename / delete) - mountBodyPopover-mounted (see
+   components/body-popover.ts). Appended to <body> (projects.ts) and z-indexed ABOVE
+   the fixed chrome (top bar 99999, bulk bar 9000) so it's never painted behind them -
+   on mobile the menu can open over the bottom bulk bar. folder-overlay.ts's OWN item
+   menu instead mounts inside its host <dialog> (only a modal dialog's own subtree
+   paints above its ::backdrop) - position:absolute there resolves against the dialog
+   itself, which the UA promotes to position:fixed while showing modally. */
+.folder-menu {
+  position: absolute; z-index: 100001; min-width: 180px; padding: 5px;
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-overlay); box-shadow: var(--ui-elevation-floating);
+  display: flex; flex-direction: column; gap: 1px;
+}
+.folder-menu-item {
+  display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; padding: 7px 10px;
+  border: 0; background: none; color: var(--ui-color-text-default); cursor: pointer;
+  font-size: calc(12.5px * var(--a11y-fs)); border-radius: var(--ui-radius-control);
+}
+.folder-menu-item svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); flex: none; opacity: 0.8; }
+.folder-menu-item:hover { background: var(--ui-color-surface-muted); }
+.folder-menu-item--danger { color: hsl(var(--destructive, 0 70% 50%)); }
+/* The Render action is the primary affordance - tint its icon + label so it stands
+   out from Open/Rename/Move, matching the pronounced header "Render folder" button. */
+.folder-menu-item--render { color: var(--ui-color-action-primary); font-weight: 600; }
+.folder-menu-item--render svg { opacity: 1; }
+/* Uppercase group label inside a folder menu - `--sep` is the folder overlay's "Move to"
+   separator, `--head` the Projects view's own menu/popover section headings ("View",
+   "Sort", "{n} selected", and the theme/sound segment labels). One recipe, one home: the
+   whole .folder-menu-* family lives in this sheet (the -head copy used to sit in
+   projects.css, byte-identical). Both sheets are app-wide @imports in app.css, so this is
+   about family ownership, not route weight. */
+.folder-menu-sep,
+.folder-menu-head {
+  padding: 8px 10px 3px; font-size: calc(10.5px * var(--a11y-fs)); font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--ui-color-text-muted);
+}
+
+/* Inline name prompt (create / rename), centered over the dialog. */
+.folder-ask {
+  position: absolute; inset: 0; z-index: 8; display: flex; align-items: center; justify-content: center;
+  background: hsl(0 0% 0% / 0.18); border-radius: inherit;
+}
+.folder-ask-card {
+  display: flex; flex-direction: column; gap: 10px; width: min(320px, 80%); padding: 16px;
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-raised); box-shadow: var(--ui-elevation-floating);
+}
+.folder-ask-label { font-size: var(--fs-md); font-weight: 600; }
+.folder-ask-input {
+  padding: 8px 10px; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-canvas); color: var(--ui-color-text-default); font-size: var(--fs-md);
+}
+.folder-ask-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+
+/* ── "Hide colourful previews" (a11y pref, html[data-a11y-previews="hidden"]) ──
+   The Projects grid, folder overlay and export rail are the one EXCEPTION to
+   hiding imagery: a session thumbnail you can't see is a session you can't find,
+   so instead of removing them we calm them - half the saturation, half the
+   contrast (Andy's tuned values), structure intact. Full colour returns inside
+   the tool. */
+html[data-a11y-previews="hidden"] img.tile-cover,
+html[data-a11y-previews="hidden"] img.folder-cell,
+html[data-a11y-previews="hidden"] .folder-export-tile img {
+  filter: saturate(.5) contrast(.5);
+}
+
+/* ── Folder silhouette (plans/133 WP-1) ──────────────────────────────────────
+   Containers read differently from documents: the folder cover is a tabbed
+   folder shape (body + a ::before tab), not the sessions' 4/3 preview card.
+   The optional accent (--folder-tint, a fixed tag palette - identity data the
+   user picked, not chrome theming) tints body and tab; without one the shape
+   sits on the muted surface. Shared by every folderTile consumer (projects,
+   folder overlay, picker). */
+.folder-cover {
+  --ftint: var(--folder-tint, hsl(var(--muted-foreground) / 0.5));
+  position: relative;
+  display: block;
+  margin-top: 9px;                        /* room for the tab */
+  height: 74px;
+  border-radius: 0 10px 10px 10px;
+  background: color-mix(in oklab, var(--ftint) 30%, hsl(var(--card)));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ftint) 55%, transparent);
+}
+.folder-cover::before {
+  content: '';
+  position: absolute;
+  top: -9px; left: 0;
+  width: 42%; height: 10px;
+  border-radius: 7px 10px 0 0;
+  background: color-mix(in oklab, var(--ftint) 72%, hsl(var(--card)));
+}
+/* The member mosaic sits INSIDE the folder body now. */
+.folder-cover .folder-mosaic {
+  position: absolute; inset: 7px;
+  width: auto; height: auto; aspect-ratio: auto;   /* left+right size it; the base width:100% would overflow the right inset */
+  background: none; border: 0;
+}
+.folder-cover-glyph { position: absolute; inset: 0; display: grid; place-items: center; }
+.folder-cover-glyph svg { width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); opacity: 0.5; }
+.folder-emoji {
+  /* Pronounced identity mark (Andy, 2026-08-20): big, OVERHANGING the cover's
+     bottom-right corner - the sticker read. Negative offsets poke it past the
+     rounded body (the cover has no overflow clip); the drop shadow lifts it
+     off busy mosaics. */
+  position: absolute; bottom: -9px; right: -4px; z-index: 2;
+  font-size: calc(27px * var(--a11y-fs)); line-height: 1;
+  filter: drop-shadow(0 2px 3px hsl(0 0% 0% / 0.3));
+  pointer-events: none;
+}
+.folder-star {
+  position: absolute; top: 3px; right: 6px; z-index: 1;
+  color: var(--brand-primary, hsl(var(--primary)));
+  font-size: var(--fs-sm); line-height: 1;
+}
+
+/* ── Trash dialog + folder style dialog (plans/133 WP-4 / WP-1) ─────────────*/
+.trash-dialog, .folder-style-dialog { border: 0; border-radius: calc(var(--radius) * 1.2); padding: 0; background: hsl(var(--card)); color: hsl(var(--foreground)); width: min(440px, calc(100vw - 32px)); box-shadow: 0 1.5rem 4rem #0007; }
+.trash-dialog::backdrop, .folder-style-dialog::backdrop { background: #0008; }
+.trash-dialog-body, .folder-style-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.trash-dialog h2, .folder-style-body h2 { margin: 0; font-size: var(--fs-xl); }
+.trash-note { margin: 0; font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.trash-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
+.trash-row { display: flex; align-items: center; gap: 10px; padding: 6px 4px; }
+.trash-row-icon { display: inline-flex; color: hsl(var(--muted-foreground)); }
+.trash-row-icon svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.trash-row-meta { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.trash-row-name { font-size: var(--fs-md); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trash-row-sub { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.trash-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.folder-style-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.folder-color-dot { width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs)); border-radius: var(--radius-round); border: 2px solid transparent; cursor: pointer; padding: 0; }
+.folder-color-dot[aria-pressed="true"] { border-color: hsl(var(--foreground)); box-shadow: 0 0 0 2px hsl(var(--card)) inset; }
+.folder-style-emoji span { font-size: var(--fs-md); }
+.folder-style-emoji input { width: 4em; font: inherit; padding: 4px 8px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--background)); color: inherit; }
+
+/* ── Folder count pill (2026-08-20) ── replaces the "N items" subline: a dot
+   at one character (min-width = height makes a circle) that widens into a pill
+   as the compact count grows (7 → 24 → 1.1K). The exact number lives in the
+   title/aria-label. Type + box ride the a11y multiplier together. */
+.folder-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: calc(18px * var(--a11y-fs));
+  height: calc(18px * var(--a11y-fs));
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-size: calc(10.5px * var(--a11y-fs));
+  font-weight: 700;
+  line-height: 1;
+  align-self: flex-start;
+}
+.folder-style-tags { flex-direction: column; align-items: flex-start; gap: 4px; }
+.folder-style-tags input { width: 100%; box-sizing: border-box; font: inherit; padding: 6px 8px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--background)); color: inherit; }

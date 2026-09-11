@@ -1,0 +1,219 @@
+/* ─── Live collaboration - Projects live badge (plan 100 section 4.6, section 4.8; wave 1.5) ─
+ *
+ * This file owns exactly ONE presence surface: the small avatar-cluster + pulse
+ * badge a session tile in `/p` shows when a live collab exists on that slot
+ * (`.collab-tile-*` below, painted by `lib/collab-tile-state.ts`'s
+ * `renderCollabBadge`, wired from `views/projects.ts`).
+ *
+ * IT DOES NOT OWN THE REST OF THE PRESENCE CHROME THE PLAN DESCRIBES. The stage
+ * pill, the sidebar remote-focus ring and the canvas cursor/focus overlay (section 4.6's
+ * other real estate) are each a self-contained MOUNTED component with its own
+ * injected `<style>` sheet - the `music-player.ts`/`neuro-dock.ts` pattern this
+ * codebase already uses for lazy, cost-nothing-to-single-player chrome:
+ *
+ *   - `src/components/collab-pill.ts`   → `.collab-pill`, `.collab-dot`, `.collab-av`, …
+ *   - `src/components/collab-focus.ts`  → `.input-row.is-remote-focus`, `.collab-ring`, …
+ *   - `src/components/collab-overlay.ts`→ `.collab-cursor`, `.collab-cursor-arrow`, …
+ *
+ * Those three inject UNLAYERED stylesheets straight into `<head>` on first mount,
+ * which in the CSS cascade beats ANY declaration from a `@layer`-imported file -
+ * including this one - regardless of specificity or source order. A shared
+ * `parts/*.css` rule using one of their bare class names would therefore be
+ * silently inert wherever they're mounted, and confusingly duplicate (and drift
+ * from) the real definition everywhere else. So this file never reaches for
+ * `.collab-pill`, `.collab-dot`, `.collab-av`, `.collab-ring`, `.collab-chip` or
+ * `.collab-cursor*` - every selector below is prefixed `.collab-tile-`, a family
+ * that exists nowhere else in the app, so this file can never collide with a
+ * style injected by any of the three (present or future - see section 4.6's "real
+ * estate reserved now" note: that reservation was fulfilled by those components
+ * landing directly, not by this stylesheet).
+ *
+ * The tile avatar's VISUAL language deliberately mirrors `collab-pill.ts`'s
+ * `.collab-av` recipe - a filled disc in the collaborator's own colour with a
+ * fixed near-black ink, not a themed ring - so a person recognises the same
+ * avatar in the Projects grid as in the stage pill. See that file's comment for
+ * why the ink is fixed rather than a theme token: `COLLAB_BAND` (collab-colors.ts)
+ * projects every collaborator colour into one OKLCH lightness/chroma calibrated
+ * for APCA contrast against a fixed dark ink, so one ink colour is legible on
+ * all six collaborator hues in both themes - and if that band ever moves, every
+ * place duplicating this literal (this file included) has to move with it.
+ *
+ * Every glyph size (avatar box, dot, font-size) is `calc(<px> * var(--a11y-fs))`;
+ * spacing (gap/padding/inset/margin) stays fixed, matching the rest of this
+ * codebase's convention (`.tile-check`/`.tile-menu-btn`, folders.css). RTL ships
+ * via logical properties (`inset-inline-*`, `margin-inline-start`). The pulse
+ * animation is killed under BOTH the OS `prefers-reduced-motion` query and the
+ * app's own `html[data-a11y-motion="reduce"]` attribute, matching every other
+ * gated animation in this codebase (see `.canvas-live-dot` in tool.css for the
+ * one-state precedent this extends).
+ */
+
+/* Clear of `.tile-check` (top-inline-start, folders.css) and `.tile-menu-btn`
+ * (top-inline-end) - both hover-only, so the live badge is the one tile
+ * decoration that stays visible at rest. `.folder-tile` is already
+ * `position: relative` (folders.css), which is what this anchors against. */
+.collab-tile-badge {
+  position: absolute;
+  inset-block-end: 6px;
+  inset-inline-start: 6px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-block: 2px;
+  padding-inline: 3px 6px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--card) / 0.9);
+  border: 1px solid hsl(var(--border));
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  box-shadow: 0 1px 4px hsl(0 0% 0% / 0.15);
+}
+.collab-tile-avatars { display: flex; align-items: center; }
+
+/* One filled disc per collaborator, coloured by the `--collab-color` custom
+ * property the renderer sets inline (collab-colors.ts's `CollabColor.hex`) -
+ * falls back to the theme accent so a peer with no colour yet still renders. */
+.collab-tile-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  box-sizing: border-box;
+  border-radius: var(--radius-round);
+  background: var(--collab-color, hsl(var(--primary)));
+  /* Fixed ink, not a theme token - see the file header. */
+  color: hsl(222 47% 8%);
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  /* Inner halo in the theme ground separates two overlapped avatars; outer
+   * hairline in the theme ink keeps the disc legible over a tile cover that
+   * happens to share the collaborator's own hue (the selection-handle
+   * convention - collab-pill.ts's `.collab-av` carries the identical pair). */
+  box-shadow: 0 0 0 1px hsl(var(--card)), 0 0 0 2px hsl(var(--foreground) / 0.28);
+  width: calc(15px * var(--a11y-fs));
+  height: calc(15px * var(--a11y-fs));
+  font-size: calc(7.5px * var(--a11y-fs));
+}
+.collab-tile-avatar + .collab-tile-avatar { margin-inline-start: -5px; }
+/* An away peer keeps its place in the cluster (section 11.4 - away is a display state,
+ * never a reason to drop someone) but dims: paired with the roster/aria-label
+ * naming everyone, never the only signal. */
+.collab-tile-avatar--away { opacity: 0.55; }
+/* The "+N" overflow chip represents a COUNT, not a person, so it takes the same
+ * disc shape with no collaborator colour of its own. */
+.collab-tile-more {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  width: auto;
+  min-width: calc(15px * var(--a11y-fs));
+  padding-inline: 3px;
+  box-shadow: 0 0 0 1px hsl(var(--card));
+}
+
+/* The "live now" pulse - a single state today (a Projects tile has no notion of
+ * "reconnecting"/"closed", only "someone is here" or not), so this is its own
+ * small class rather than a share of collab-pill.ts's multi-state `.collab-dot`
+ * (see the file header on why that name is off-limits here regardless). */
+.collab-tile-dot {
+  display: inline-block;
+  flex: none;
+  border-radius: var(--radius-round);
+  background: hsl(var(--primary));
+  width: calc(6px * var(--a11y-fs));
+  height: calc(6px * var(--a11y-fs));
+  animation: collab-tile-pulse 1.6s ease-in-out infinite;
+}
+@keyframes collab-tile-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.45); }
+  50%      { box-shadow: 0 0 0 4px hsl(var(--primary) / 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .collab-tile-dot { animation: none; }
+}
+html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
+
+/* ─── Stage pill placement in editor layouts (plan 100 section 4.6, resolved 2026-08-09:
+ * below the zoom HUD in editor layouts, top-right elsewhere) ──────────────────
+ *
+ * `collab-pill.ts`'s own header explains the default: `.collab-pill--stage` sits
+ * top-inline-end, the exact lane `.stage-nav` (the zoom HUD, editor.css) already
+ * occupies, and `views/tool-collab.ts`'s `pillLaneOffset` measures the HUD's real
+ * width on every mount/resize and writes it into `--collab-pill-offset` as an
+ * INLINE style on the pill element - sliding the pill sideways, clear of the HUD,
+ * on every layout that has one. That is "top-right elsewhere" already, and this
+ * file does not repeat it.
+ *
+ * Editor-layout tools (`render.layout: 'editor'` - `#tool-layout.is-editor` minus
+ * `.is-document`, which shares the "chromeless" class but is a different layout -
+ * `views/tool.ts`'s `chromeless`/`editorLayout` split) are the one case the plan
+ * asks to look different: they alone dock a scenes/timeline band across the
+ * BOTTOM of the stage (the reason `.stage-nav` moved to top-right in the first
+ * place - editor.css's own comment), so sliding the pill sideways there still
+ * leaves two HUDs sharing one visual row at the tool's busiest, most-collaborated
+ * canvas. Dropping the pill BELOW the zoom HUD instead - same inline-end edge,
+ * next row down - reads as one stacked cluster rather than two capsules jostling
+ * for the corner.
+ *
+ * TWO DECLARATIONS, for two different reasons neither could do alone:
+ *
+ *  - `transform: translateY(...)` is the actual "below" move. `.collab-pill--stage`
+ *    is UNLAYERED (mounted straight into <head>, per the header above), which
+ *    beats ANY declaration this LAYERED file could write for `top` or
+ *    `inset-inline-end` - but it never declares `transform` at all, so there is
+ *    no competing declaration to lose to and this one simply applies. The offset
+ *    is the HUD's own height (`--chrome-h`, the SAME token `.collab-pill` uses for
+ *    its own `min-height` - both capsules are the same row height by construction,
+ *    tokens.css) plus an 8px gap - the identical gap `pillLaneOffset`'s
+ *    `PILL_LANE_GAP_PX` uses for the sideways case, so the two placements read as
+ *    one visual language rather than two invented numbers.
+ *  - `--collab-pill-offset: 0px !important` cancels `pillLaneOffset`'s inline
+ *    write for exactly this case: once the pill has dropped a full row below the
+ *    HUD there is nothing left to slide sideways clear of, and leaving the
+ *    horizontal clearance in place would push the pill both down AND left of the
+ *    HUD's own inline-end edge - two capsules that no longer share an edge, which
+ *    reads as an accident rather than a stack. An inline style is normally the
+ *    end of the cascade for anything a stylesheet could add (no layer order
+ *    reaches it), but `!important` is the one thing that legitimately does - an
+ *    author `!important` outranks an author-normal inline style regardless of
+ *    layer, which is exactly the (rare, deliberate) case this is: overriding a
+ *    value JS itself writes on THIS element, not fighting a specificity war
+ *    against another author's rule.
+ *
+ * `documentLayout` tools keep the default (sideways, or flush top-right with no
+ * HUD to clear): they are also "chromeless" but have no timeline band, so the
+ * corner they share is with `.stage-nav` alone, and the existing measured
+ * clearance already handles that correctly.
+ *
+ * MOBILE IS SPECIAL-CASED, and the note that used to stand here said the opposite.
+ * It claimed `--chrome-h` "already reflects" the stacked capsule's height. It does
+ * not: `--chrome-h` is a SINGLE-ROW token (2.6rem, 44px under 640px - tokens.css),
+ * while under 640px editor.css turns `.stage-nav` into a COLUMN of seven segments
+ * (+ / NN% / − / Fit / separator / theme / sound) at ~26px each plus gaps and
+ * padding - roughly 180px tall. editor.css says so in its own words beside that
+ * breakpoint: "the stacked capsule is taller than --chrome-h, which is why the base
+ * rule pins the row height with min-height rather than height."
+ *
+ * So the drop landed the pill ~52px down, i.e. INSIDE the capsule, and because the
+ * `!important` above had already cancelled the measured sideways clearance the two
+ * boxes no longer had that separation either - strictly worse than the default it
+ * was replacing. The fix is to stop overriding at that width. A tall narrow column
+ * and a pill in the same top-inline-end corner is exactly the case `pillLaneOffset`
+ * measures correctly (it reads the capsule's real WIDTH, which is small), so the
+ * mobile answer is the default answer: sideways, measured, no transform.
+ *
+ * That is why the whole rule is inside `min-width: 641px` rather than being undone by
+ * a second block below it. An `!important` custom property cannot be handed back to
+ * the inline value it is overriding: `unset` on a custom property means INHERIT (they
+ * are inherited properties), and `revert-layer` only reaches this file's own layer -
+ * so the only way for `pillLaneOffset`'s inline write to win again is for this rule
+ * not to exist at that width. The breakpoint is the exact complement of editor.css's
+ * own `max-width: 640px`, which is what makes it right rather than tuned.
+ */
+@media (min-width: 641px) {
+  #tool-layout.is-editor:not(.is-document) .collab-pill--stage {
+    --collab-pill-offset: 0px !important;
+    transform: translateY(calc(var(--chrome-h) + 8px));
+  }
+}

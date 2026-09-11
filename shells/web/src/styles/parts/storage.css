@@ -1,0 +1,384 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* ─── Saved section (gallery page) ─────────────────────────────────────── */
+
+.section-title {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 12px;
+}
+.small{font-size:var(--fs-md)}
+
+/* ─── Storage bar (used inline on the profile page) ─────────────────────── */
+
+.storage-bar-wrap {
+  display: inline-block;
+  width: 80px;
+  height: 6px;
+  background: hsl(var(--border));
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.storage-bar-fill {
+  display: block;
+  height: 100%;
+  background: hsl(var(--muted-foreground));
+  border-radius: var(--radius-xs);
+  min-width: 2px;
+}
+
+.storage-subsection {
+  margin-top: 1.25em;
+  border-top: 1px solid hsl(var(--border));
+  padding-top: 1em;
+}
+.storage-subsection-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--fs-md);
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 0.5em;
+}
+.storage-count {
+  display: inline-block;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  border-radius: 99px;
+  padding: 0 6px;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  margin-left: 4px;
+}
+.storage-hint {
+  font-size: var(--fs-xs);
+  opacity: 0.7;
+}
+.storage-empty {
+  list-style: none;
+  font-size: var(--fs-md);
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  padding: 4px 0;
+}
+.storage-hint-text {
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  margin: 4px 0 0;
+  line-height: 1.4;
+}
+
+.feature-hint-text {margin-bottom:2em;}
+/* .session-size + the .saved-* session-row component moved to parts/saved-list.css
+   (always-loaded via app.css) so the gallery history modal - which the landing
+   renders without loading storage.css - gets them too. */
+.btn-link-danger {
+  background: hsl(0 72% 51% / 0.1);
+  border: 1px solid hsl(0 72% 51% / 0.35);
+  color: hsl(0 72% 51%);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+}
+.btn-link-danger:hover { background: hsl(0 72% 51% / 0.18); border-color: hsl(0 72% 51% / 0.55); }
+.btn-link-danger:disabled,
+.userimg-delete:disabled{ opacity: 0.4; cursor: default; }
+
+/* My images - personal device-image library */
+.userimg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.userimg-item {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: hsl(var(--muted));
+}
+.userimg-view {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+}
+.userimg-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.15s ease;
+}
+/* SVGs (logos/icons) are shown whole, not cropped to fill. */
+.userimg-thumb.is-vector { object-fit: contain; padding: 6px; }
+.userimg-view:hover .userimg-thumb { transform: scale(1.05); }
+.userimg-delete {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: var(--radius-round);
+  background: hsl(var(--background) / 0.85);
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-sm);
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-1), color var(--dur-1), background var(--dur-1);
+}
+.userimg-item:hover .userimg-delete,
+.userimg-delete:focus-visible { opacity: 1; }
+.userimg-delete:hover { color: hsl(var(--destructive)); background: hsl(var(--accent)); }
+
+/* "Add" tile - sits in the grid as the last cell (or the only cell when empty),
+   matching the thumb cells in size but dashed to read as an upload affordance. */
+.userimg-add {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.4);
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  cursor: pointer;
+  transition: border-color var(--dur-1), color var(--dur-1), background var(--dur-1);
+}
+.userimg-add:hover {
+  border-color: hsl(var(--ring) / 0.6);
+  color: hsl(var(--foreground));
+  background: hsl(var(--accent));
+}
+.userimg-add:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.userimg-add:disabled,
+.btn-danger:disabled{ opacity: 0.5; cursor: default; }
+.userimg-add-icon { font-size: calc(20px * var(--a11y-fs)); line-height: 1; font-weight: 300; }
+.userimg-add-text { font-size: var(--fs-2xs); letter-spacing: 0.02em; }
+
+/* My images - full-size preview lightbox. A native <dialog class="userimg-lightbox">
+   mounted via mountModal (profile.ts openImageLightbox); it carries the retired
+   body-overlay wrapper's flex-centering + dark backdrop itself (::backdrop below). */
+.userimg-lightbox {
+  /* Reset the <dialog> UA defaults (border/padding/background) - this is a
+     transparent frame around the media, not a card. */
+  border: 0;
+  padding: 0;
+  background: transparent;
+  margin: auto;   /* dialog:modal centring - reasserted per the .modal convention
+                      (dialogs.css) in case a scoped reset leaks in */
+  /* was .userimg-lightbox-overlay's 6vw/6vh padding - the dialog is now its own
+     positioned box, so the old inset becomes a size cap instead. */
+  max-width: 88vw;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.userimg-lightbox::backdrop {
+  background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.userimg-lightbox-img {
+  max-width: 100%;
+  max-height: 82vh;
+  object-fit: contain;
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+/* viewBox-only SVGs report no intrinsic size - in an <img> they'd fall back to
+   ~300×150 and look tiny. Give vectors a definite, bounded box and let
+   object-fit scale them up to fit (preserving the viewBox aspect, no distortion
+   at any size), on a card so transparent art stays visible. */
+.userimg-lightbox-img.is-vector {
+  width: min(86vw, 680px);
+  height: min(78vh, 520px);
+  object-fit: contain;
+  padding: 28px;
+  background: hsl(var(--card));
+}
+.userimg-lightbox-caption {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  color: #fff;
+  font-size: var(--fs-md);
+}
+.userimg-lightbox-dims {
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+.userimg-lightbox-close {
+  position: fixed;
+  /* Clears a phone's notch/status-bar cutout. */
+  top: calc(16px + var(--safe-top, 0px));
+  right: 16px;
+  /* Icon-only control: the box rides the chrome icon scale (tokens.css) with
+     the glyph it holds, so the mark never shrinks inside a growing button. */
+  width: calc(32px * var(--a11y-fs));
+  height: calc(32px * var(--a11y-fs));
+  border: none;
+  border-radius: var(--radius-round);
+  background: #fff;
+  color: #111;
+  font-size: calc(15px * var(--a11y-fs));
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.userimg-lightbox-close:hover { background: hsl(var(--accent)); }
+
+.btn-danger {
+  background: hsl(0 72% 51%);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: var(--fs-md);
+  cursor: pointer;
+}
+.btn-danger:hover { background: hsl(0 72% 42%); }
+
+/* ─── Clear-data / hoard / keep-active / import confirmation dialog ────────
+   Native <dialog class="clear-dialog[ clear-dialog--hoard]"> mounted via
+   mountModal (profile.ts: clear-storage, export-render, askKeepTabActive,
+   showImportDialog); the card styling applies straight to the <dialog> box,
+   dialog:modal's own fixed+auto-margin centring replaces the retired overlay
+   wrapper's flex-centring, and `::backdrop` replaces its background. */
+.clear-dialog {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  padding: 28px 32px;
+  max-width: 360px;
+  width: 90%;
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.2);
+  /* dialog:modal centring - reasserted per the .modal convention (dialogs.css)
+     in case a scoped reset leaks in. */
+  margin: auto;
+}
+.clear-dialog::backdrop { background: hsl(0 0% 0% / 0.5); }
+
+.clear-dialog h3 {
+  margin: 0 0 8px;
+  font-size: calc(17px * var(--a11y-fs));
+  font-weight: 600;
+}
+
+.clear-dialog p {
+  margin: 0 0 24px;
+  font-size: var(--fs-md);
+  color: hsl(var(--muted-foreground));
+}
+
+.clear-dialog-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clear-dialog-actions .btn {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: var(--fs-lg);
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid hsl(var(--border));
+  background: transparent;
+  color: hsl(var(--foreground));
+  text-align: center;
+}
+
+.clear-dialog-actions .btn:hover { background: hsl(var(--muted)); }
+.clear-dialog-actions .btn.btn-danger { border-color: transparent; }
+.clear-dialog-actions .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* "Type <word> to confirm" gate on the destructive clear-all dialog. */
+.clear-confirm { display: flex; flex-direction: column; gap: 6px; margin: -8px 0 20px; }
+.clear-confirm-prompt { font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
+.clear-confirm-prompt strong { color: hsl(var(--foreground)); font-weight: 700; letter-spacing: .02em; }
+.clear-confirm-input {
+  font: inherit; font-size: var(--fs-lg); padding: 9px 12px;
+  border: 1px solid hsl(var(--input)); border-radius: 8px;
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+}
+.clear-confirm-input:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+
+/* "Export my data & render everything" - the headline archive action, so it's a big,
+   celebratory full-width CTA that stands clearly apart from the smaller export/import row
+   above it (it also earns a victory fanfare when it fires). */
+.storage-hoard-btn {
+  display: block; width: 100%; margin-top: 16px; text-align: center;
+  padding: 15px 22px; font-size: var(--fs-xl); font-weight: 650; line-height: 1.25;
+  border-radius: 12px; border-color: hsl(var(--primary) / 0.55);
+  box-shadow: inset 0 1px #fff3, 0 2px 8px hsl(var(--primary) / 0.14);
+}
+.storage-hoard-btn:hover { background: hsl(var(--primary) / 0.08); border-color: hsl(var(--primary)); }
+.storage-hoard-hint { margin: 6px 2px 0; font-size: var(--fs-sm); line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.storage-hoard-hint strong { color: hsl(var(--foreground)); font-weight: 600; }
+
+/* The confirm gate reuses the clear-all dialog's layout, but this action is celebratory
+   (a big backup, nothing destroyed) - so the primary "go" button uses the accent colour
+   instead of danger red. Same type-a-word speed-bump, opposite mood. */
+.clear-dialog-actions .btn.btn-go {
+  border-color: transparent; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); font-weight: 600;
+}
+.clear-dialog-actions .btn.btn-go:hover:not(:disabled) { background: hsl(var(--primary) / 0.9); }
+.clear-dialog-actions .btn.btn-go:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Dim the progress toast while the "keep this tab active?" choice sits in front of it. */
+.pro-toast.is-dimmed { opacity: 0.35; pointer-events: none; transition: opacity 0.15s; }
+
+/* The .saved-* session-row component moved to parts/saved-list.css (always-loaded
+   via app.css) - see the note by .session-size above. */
+
+/* The storage meter's model-download slices (views/profile.ts): the speech Cache
+   Storage buckets and the upscale / matte IndexedDB model stores. The other
+   categories colour from profile.css's --store-1..5; tokens.css defines no
+   --store-6..8 yet, so the fallback literal carries the hue - each chosen distinct
+   from the teal→green store ramp, from each other, and legible in all four themes
+   (a violet, an amber, and a blue). */
+.profile-view .store-bar .seg[data-cat="speech"],
+.profile-view .store-chip-sw[data-cat="speech"] { background: hsl(var(--store-6, 265 55% 70%)); }
+.profile-view .store-bar .seg[data-cat="upscale"],
+.profile-view .store-chip-sw[data-cat="upscale"] { background: hsl(var(--store-7, 35 80% 58%)); }
+.profile-view .store-bar .seg[data-cat="matte"],
+.profile-view .store-chip-sw[data-cat="matte"] { background: hsl(var(--store-8, 212 62% 60%)); }
+.profile-view .store-bar .seg[data-cat="ocr"],
+.profile-view .store-chip-sw[data-cat="ocr"] { background: hsl(var(--store-9, 330 60% 64%)); }
+.profile-view .store-bar .seg[data-cat="reword"],
+.profile-view .store-chip-sw[data-cat="reword"] { background: hsl(var(--store-10, 75 50% 52%)); }
+.profile-view .store-bar .seg[data-cat="aidetect"],
+.profile-view .store-chip-sw[data-cat="aidetect"] { background: hsl(var(--store-11, 180 45% 48%)); }
+.profile-view .store-bar .seg[data-cat="durable"],
+.profile-view .store-chip-sw[data-cat="durable"] { background: hsl(var(--store-12, 8 62% 60%)); }
+
+/* `.segmented-control`/`.segmented-btn` (component audit rec 1) used to live here -
+   a byte-for-byte duplicate of `.view-seg`/`.view-seg-btn` (styles/parts/gallery.css)
+   with nothing in shells/web/src ever minting the markup (verified: not one
+   .segmented-control/.segmented-btn call-site since the repo's initial extraction).
+   Deleted rather than migrated - there was no live control to re-skin. Any future
+   storage-manager segmented control should render via lib/seg.ts's `segHtml`. */
+}

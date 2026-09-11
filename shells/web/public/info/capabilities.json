@@ -1,0 +1,1487 @@
+{
+  "generator": "lolly",
+  "license": "MPL-2.0",
+  "offers": 0,
+  "url": "https://lolly.tools",
+  "formats": [
+    {
+      "token": "SVG",
+      "name": "SVG",
+      "category": "Vector",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "vector",
+        "alpha",
+        "text-as-paths",
+        "embeds-bitmaps",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [
+          "dc",
+          "xmp"
+        ],
+        "writes": [
+          "dc",
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "Export writes <title>/<desc> plus a Dublin Core <metadata> block. An imported SVG keeps its own metadata; the re-export is written fresh."
+      }
+    },
+    {
+      "token": "PDF",
+      "name": "PDF",
+      "category": "Vector",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "vector",
+        "print",
+        "text-as-paths",
+        "embeds-bitmaps",
+        "provenance",
+        "encryption"
+      ],
+      "metadata": {
+        "reads": [
+          "xmp"
+        ],
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "Reads the info dictionary and any XMP packet. Writes the PDF info dictionary (creator, author, title, subject, keywords); an XMP packet only on the PDF/X-4 path."
+      }
+    },
+    {
+      "token": "PNG",
+      "name": "PNG",
+      "category": "Raster",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "raster",
+        "alpha",
+        "lossless",
+        "hdr",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [
+          "exif",
+          "xmp"
+        ],
+        "writes": [
+          "exif",
+          "xmp",
+          "c2pa"
+        ],
+        "preserves": "partial",
+        "note": "Export writes iTXt text chunks plus an XMP packet. The image converter also carries the source EXIF into an eXIf chunk: descriptive fields carry, location only if you turn it on, and a Content Credential is never copied across a re-encode."
+      }
+    },
+    {
+      "token": "JPG",
+      "name": "JPG",
+      "category": "Raster",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "raster",
+        "lossy",
+        "hdr",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [
+          "exif",
+          "xmp",
+          "iptc"
+        ],
+        "writes": [
+          "exif",
+          "xmp",
+          "c2pa"
+        ],
+        "preserves": "partial",
+        "note": "Export writes an EXIF APP1 segment plus an XMP packet. Same converter carry rules as PNG: descriptive fields carry, location on opt-in, no credential copy."
+      }
+    },
+    {
+      "token": "WEBP",
+      "name": "WebP",
+      "category": "Raster",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "raster",
+        "alpha",
+        "lossless",
+        "lossy",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [
+          "exif",
+          "xmp"
+        ],
+        "writes": [
+          "exif",
+          "xmp",
+          "c2pa"
+        ],
+        "preserves": "partial",
+        "note": "RIFF EXIF and XMP chunks with the VP8X flags set. Same converter carry rules as PNG and JPG."
+      }
+    },
+    {
+      "token": "GIF",
+      "name": "GIF",
+      "category": "Raster",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "raster",
+        "alpha",
+        "animation",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "GIF has no EXIF or XMP container: the credit line goes in a comment extension block."
+      }
+    },
+    {
+      "token": "TIFF",
+      "name": "TIFF",
+      "category": "Raster",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "raster",
+        "lossless",
+        "hdr",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [
+          "exif",
+          "xmp"
+        ],
+        "writes": [
+          "exif",
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "Writes the baseline tags ImageDescription, Software and Artist. TIFF is not an output of the image converter, so nothing is carried across."
+      }
+    },
+    {
+      "token": "AVIF",
+      "name": "AVIF",
+      "category": "Raster",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "raster",
+        "alpha",
+        "lossy",
+        "hdr",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [
+          "exif",
+          "xmp"
+        ],
+        "writes": [
+          "exif",
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "EXIF is written as a HEIF Exif item (engine insertAvifExif) and read the same way, alongside the XMP item. The Content Credential uses the BMFF binding."
+      }
+    },
+    {
+      "token": "PSD",
+      "name": "PSD",
+      "category": "Layered",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "layers",
+        "raster",
+        "alpha",
+        "cmyk"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "Layer names, opacity and blend modes carry; PSD image resource blocks are neither read nor written."
+      }
+    },
+    {
+      "token": "MP4",
+      "name": "MP4",
+      "category": "Motion",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "animation",
+        "lossy",
+        "audio",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [
+          "xmp"
+        ],
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "Writes udta/ilst tags (title, artist, date, comment, encoder). Reads the XMP box, the ilst tags and the QuickTime mdta keys."
+      }
+    },
+    {
+      "token": "WEBM",
+      "name": "WebM",
+      "category": "Motion",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "animation",
+        "lossy",
+        "audio",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "Writes Matroska Tags (title, artist, date, comment, encoder); the credential travels as an attachment."
+      }
+    },
+    {
+      "token": "MP3",
+      "name": "MP3",
+      "category": "Audio",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "audio",
+        "lossy"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "No ID3 title or artist writer today. The Content Credential travels in an ID3v2 GEOB frame."
+      }
+    },
+    {
+      "token": "M4A",
+      "name": "M4A",
+      "category": "Audio",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "audio",
+        "lossy",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [
+          "xmp"
+        ],
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "Audio-only MP4: the credential uses the BMFF binding. The M4A export path writes no container tags."
+      }
+    },
+    {
+      "token": "PPTX",
+      "name": "PPTX",
+      "category": "Document",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "editable-text",
+        "vector",
+        "embeds-bitmaps",
+        "data-table"
+      ],
+      "metadata": {
+        "reads": [
+          "core-props"
+        ],
+        "writes": [
+          "core-props"
+        ],
+        "preserves": "none",
+        "note": "Reads and writes docProps/core.xml (title, creator, description, created). A rebranded deck does not yet re-export the source deck's creator; the seam is recorded in plans/144 Wave 2."
+      }
+    },
+    {
+      "token": "SCORM",
+      "name": "SCORM",
+      "category": "Document",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "multi-file-bundle",
+        "audio",
+        "animation",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "The imsmanifest.xml carries the deck's title and the package identifier; the slide images and film inside keep whatever Content Credentials their exports carried."
+      }
+    },
+    {
+      "token": "CSV",
+      "name": "CSV",
+      "category": "Data",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "data-table"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "Plain text: no metadata container."
+      }
+    },
+    {
+      "token": "JSON",
+      "name": "JSON",
+      "category": "Data",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "data-table"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "Plain data: no metadata container."
+      }
+    },
+    {
+      "token": "Penpot",
+      "name": "Penpot",
+      "category": "Vector",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "vector",
+        "editable-text",
+        "embeds-bitmaps"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "A .penpot archive carries no document-metadata block: the boards, shapes, colours, typographies and tokens are the payload. An imported file's own metadata is not re-exported."
+      }
+    },
+    {
+      "token": "Illustrator",
+      "name": "Illustrator",
+      "category": "Vector",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "vector",
+        "editable-text",
+        "embeds-bitmaps"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Read as PDF-compatible artwork; the file's own XMP is not surfaced."
+      }
+    },
+    {
+      "token": "InDesign",
+      "name": "InDesign",
+      "category": "Vector",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "vector",
+        "editable-text",
+        "embeds-bitmaps"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "Figma",
+      "name": "Figma",
+      "category": "Vector",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "vector",
+        "editable-text",
+        "embeds-bitmaps"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "HEIC",
+      "name": "HEIC",
+      "category": "Raster",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "raster",
+        "lossy"
+      ],
+      "metadata": {
+        "reads": [
+          "exif",
+          "xmp"
+        ],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "The HEIF Exif and XMP items are read (authorship, capture data, GPS) - the source of the image converter's carry for iPhone photos. Lolly does not write HEIC."
+      }
+    },
+    {
+      "token": "PSB",
+      "name": "PSB",
+      "category": "Layered",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "layers",
+        "raster",
+        "alpha",
+        "cmyk"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "XCF",
+      "name": "XCF",
+      "category": "Layered",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "layers",
+        "raster",
+        "alpha"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "MOV",
+      "name": "MOV",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "lossy",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [
+          "xmp"
+        ],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Same BMFF reader as MP4: the XMP box, the ilst tags and the QuickTime mdta keys."
+      }
+    },
+    {
+      "token": "Lottie",
+      "name": "Lottie",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "vector",
+        "animation"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "WAV",
+      "name": "WAV",
+      "category": "Audio",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "audio",
+        "lossless"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "info",
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "Writes a RIFF LIST/INFO chunk (INAM, IART, ICMT, ICOP, ISFT). A source WAV's own INFO chunk is not read back."
+      }
+    },
+    {
+      "token": "Opus",
+      "name": "Opus",
+      "category": "Audio",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "audio",
+        "lossy",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "n/a",
+        "note": "The credential travels in the OpusTags comment header, which Lolly's own verifier reads."
+      }
+    },
+    {
+      "token": "OGG",
+      "name": "OGG",
+      "category": "Audio",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "audio",
+        "lossy"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "FLAC",
+      "name": "FLAC",
+      "category": "Audio",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "audio",
+        "lossless"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "MIDI",
+      "name": "MIDI",
+      "category": "Audio",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "audio",
+        "sequenced"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "MOD",
+      "name": "MOD",
+      "category": "Audio",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "audio",
+        "sequenced"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "GLB",
+      "name": "GLB",
+      "category": "3D",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "3d"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "glTF",
+      "name": "glTF",
+      "category": "3D",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "3d"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "CMYK PDF",
+      "name": "Print PDF (CMYK)",
+      "category": "Vector",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "vector",
+        "cmyk",
+        "print",
+        "text-as-paths",
+        "embeds-bitmaps",
+        "provenance",
+        "encryption"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "xmp",
+          "c2pa"
+        ],
+        "preserves": "n/a",
+        "note": "The info dictionary plus the PDF/X-4 XMP packet, which also states the output-intent press condition."
+      }
+    },
+    {
+      "token": "EPS",
+      "name": "EPS",
+      "category": "Vector",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "vector",
+        "text-as-paths",
+        "embeds-bitmaps"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "A %%Creator comment names Lolly, omitted when metadata is stripped."
+      }
+    },
+    {
+      "token": "CMYK EPS",
+      "name": "EPS (CMYK)",
+      "category": "Vector",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "vector",
+        "cmyk",
+        "text-as-paths",
+        "embeds-bitmaps"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "A %%Creator comment names Lolly, omitted when metadata is stripped."
+      }
+    },
+    {
+      "token": "EMF",
+      "name": "EMF",
+      "category": "Vector",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "vector",
+        "text-as-paths"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "The format has no metadata record."
+      }
+    },
+    {
+      "token": "DXF",
+      "name": "DXF",
+      "category": "Vector",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "vector",
+        "text-as-paths",
+        "print"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "A 999 comment names Lolly."
+      }
+    },
+    {
+      "token": "CMYK TIFF",
+      "name": "Print TIFF (CMYK)",
+      "category": "Raster",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "raster",
+        "cmyk",
+        "print",
+        "lossless"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "exif",
+          "c2pa"
+        ],
+        "preserves": "n/a",
+        "note": "Baseline TIFF tags: ImageDescription (with the press condition), Software and Artist."
+      }
+    },
+    {
+      "token": "EXR",
+      "name": "EXR",
+      "category": "Raster",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "raster",
+        "hdr",
+        "deep-color",
+        "lossless",
+        "alpha"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "The standard's own software attribute names Lolly."
+      }
+    },
+    {
+      "token": "Radiance HDR",
+      "name": "Radiance HDR",
+      "category": "Raster",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "raster",
+        "hdr",
+        "deep-color"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "A SOFTWARE= header line names Lolly."
+      }
+    },
+    {
+      "token": "ICO",
+      "name": "ICO",
+      "category": "Raster",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "raster",
+        "alpha",
+        "lossless"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "The icon bundle has no metadata container."
+      }
+    },
+    {
+      "token": "APNG",
+      "name": "Animated PNG",
+      "category": "Motion",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "raster",
+        "alpha",
+        "animation",
+        "lossless",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [
+          "exif",
+          "xmp"
+        ],
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "Writes the same PNG iTXt text chunks as a still PNG (Software, Author, Description, Copyright). The XMP packet the still path writes is not applied on the animated path."
+      }
+    },
+    {
+      "token": "Animated WebP",
+      "name": "Animated WebP",
+      "category": "Motion",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "raster",
+        "alpha",
+        "animation",
+        "lossy",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [
+          "exif",
+          "xmp"
+        ],
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "The still-WebP EXIF and XMP stamper does not run on the animated mux."
+      }
+    },
+    {
+      "token": "Animated SVG",
+      "name": "Animated SVG",
+      "category": "Motion",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "vector",
+        "animation",
+        "text-as-paths",
+        "alpha",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "dc",
+          "c2pa"
+        ],
+        "preserves": "n/a",
+        "note": "A Dublin Core <metadata> block with dc:description, plus a leading credit comment."
+      }
+    },
+    {
+      "token": "HTML",
+      "name": "HTML",
+      "category": "Document",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "editable-text",
+        "embeds-bitmaps"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "The C2PA text binding can stamp an HTML export; the markup itself carries no metadata block."
+      }
+    },
+    {
+      "token": "MD",
+      "name": "Markdown",
+      "category": "Document",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "editable-text"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "The C2PA text binding travels in an armoured comment; Markdown has no metadata container."
+      }
+    },
+    {
+      "token": "TXT",
+      "name": "Plain Text",
+      "category": "Document",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "editable-text"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "Plain words: no metadata container."
+      }
+    },
+    {
+      "token": "ICS",
+      "name": "ICS",
+      "category": "Data",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "calendar"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "prodid"
+        ],
+        "preserves": "n/a",
+        "note": "The calendar tools write a PRODID line naming Lolly."
+      }
+    },
+    {
+      "token": "VCF",
+      "name": "VCF",
+      "category": "Data",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "contacts"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "The card carries the contact's own fields; no PRODID is written."
+      }
+    },
+    {
+      "token": "DTCG",
+      "name": "DTCG",
+      "category": "Tokens",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "design-tokens",
+        "palette"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none"
+      }
+    },
+    {
+      "token": "Tokens Studio",
+      "name": "Tokens Studio",
+      "category": "Tokens",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "design-tokens",
+        "palette"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "ASE",
+      "name": "ASE",
+      "category": "Tokens",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "palette"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "GPL",
+      "name": "GPL",
+      "category": "Tokens",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "palette"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "CSS variables",
+      "name": "CSS variables",
+      "category": "Tokens",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "palette",
+        "design-tokens",
+        "editable-text"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "SCSS",
+      "name": "SCSS",
+      "category": "Tokens",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "palette",
+        "editable-text"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "ZIP",
+      "name": "ZIP",
+      "category": "Bundle",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "multi-file-bundle",
+        "encryption"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "The archive carries no metadata of its own; every member keeps its own file intact."
+      }
+    },
+    {
+      "token": "SVGZ",
+      "name": "SVGZ",
+      "category": "Vector",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "vector",
+        "lossless",
+        "text-as-paths",
+        "provenance"
+      ],
+      "metadata": {
+        "reads": [
+          "dc",
+          "xmp"
+        ],
+        "writes": [
+          "dc",
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "gzip around an SVG: the same Dublin Core block, read and written through the SVG path."
+      }
+    },
+    {
+      "token": "BMP",
+      "name": "BMP",
+      "category": "Raster",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "raster",
+        "alpha",
+        "lossless"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "No metadata box, so no Content Credential either. The pixel imprint is the only provenance this format holds."
+      }
+    },
+    {
+      "token": "WMF",
+      "name": "WMF",
+      "category": "Vector",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "vector",
+        "text-as-paths"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "The format has no metadata record."
+      }
+    },
+    {
+      "token": "WOFF",
+      "name": "WOFF",
+      "category": "Font",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "font",
+        "lossless"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "partial",
+        "note": "Every sfnt table, the name and licence records included, survives the container swap. WOFF's optional extended-metadata block is not written."
+      }
+    },
+    {
+      "token": "TTF",
+      "name": "TTF",
+      "category": "Font",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "font",
+        "lossless"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "full",
+        "note": "Every sfnt table, the name and licence records included, is copied unchanged; only the head checksum is recomputed."
+      }
+    },
+    {
+      "token": "OTF",
+      "name": "OTF",
+      "category": "Font",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "font",
+        "lossless"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "full",
+        "note": "Every sfnt table, the name and licence records included, is copied unchanged; only the head checksum is recomputed."
+      }
+    },
+    {
+      "token": "XLSX",
+      "name": "XLSX",
+      "category": "Data",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "data-table"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Cells are read; the workbook core properties are not."
+      }
+    },
+    {
+      "token": "EPUB",
+      "name": "EPUB",
+      "category": "Document",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "multi-file-bundle",
+        "editable-text"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "dc"
+        ],
+        "preserves": "n/a",
+        "note": "The OPF package carries dc:title, dc:creator and dc:language."
+      }
+    },
+    {
+      "token": "DOCX",
+      "name": "DOCX",
+      "category": "Document",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "editable-text"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "core-props"
+        ],
+        "preserves": "n/a",
+        "note": "docProps/core.xml (title, creator, description, created, modified) plus app.xml."
+      }
+    },
+    {
+      "token": "ODT",
+      "name": "ODT",
+      "category": "Document",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "editable-text"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "dc"
+        ],
+        "preserves": "n/a",
+        "note": "meta.xml carries dc:title only."
+      }
+    },
+    {
+      "token": "GZ",
+      "name": "gzip",
+      "category": "Bundle",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "compression",
+        "lossless"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "gzip carries no descriptive metadata of its own."
+      }
+    },
+    {
+      "token": "TAR",
+      "name": "tar",
+      "category": "Bundle",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "multi-file-bundle"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "USTAR headers keep each member name, mode and timestamp; the archive holds no descriptive metadata."
+      }
+    }
+  ]
+}

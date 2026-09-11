@@ -1,0 +1,188 @@
+/* SPDX-License-Identifier: MPL-2.0
+ * Transcript panel - the right-docked surface for transcript-driven editing
+ * (plans/174). On desktop the panel is re-parented into the shared right-edge
+ * column (lib/edge-dock.ts), which NUDGES #view (and the timeline inside it) in;
+ * these .tr-panel rules are the fixed full-width overlay it falls back to below the
+ * mobile breakpoint, where edge docking is inert. Themes off the popover tokens.
+ * views/transcript-panel.ts does `import '../styles/parts/transcript.css'`. */
+
+.tr-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 10000;
+  width: clamp(300px, 30vw, 420px);
+  display: flex; flex-direction: column;
+  /* Full-height STRETCH like .pro-blocks-panel, so the surface reaches the screen
+     edge; the padding lifts the footer out of the iOS home-indicator strip
+     (0px where there is no inset - the stu-sheet idiom). */
+  padding-bottom: var(--safe-bottom, 0px);
+  background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
+  border-left: 1px solid hsl(var(--border));
+  /* No drop shadow declared here: when docked, .edge-dock casts its own; the mobile
+     fallback is a full-width overlay that needs none. (Chrome-token ratchet, R12.) */
+  animation: tr-slide .18s ease;
+}
+@keyframes tr-slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@media (max-width: 640px) { .tr-panel { width: 100%; } }
+@media (prefers-reduced-motion: reduce), (prefers-reduced-motion) { .tr-panel { animation: none; } }
+html[data-a11y-motion="reduce"] .tr-panel { animation: none; }
+
+.tr-head, .tr-toolbar, .tr-foot {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .6rem .85rem; flex: 0 0 auto;
+}
+.tr-head { justify-content: space-between; border-bottom: 1px solid hsl(var(--border)); }
+.tr-title { font-weight: 600; font-size: var(--fs-sm); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tr-toolbar { border-bottom: 1px solid hsl(var(--border) / .6); flex-wrap: wrap; }
+.tr-foot { border-top: 1px solid hsl(var(--border) / .6); color: hsl(var(--muted-foreground)); font-size: calc(11px * var(--a11y-fs, 1)); }
+
+.tr-chk { display: inline-flex; align-items: center; gap: .35rem; font-size: calc(12px * var(--a11y-fs, 1)); cursor: pointer; }
+.tr-spacer { flex: 1 1 auto; }
+
+/* Spelled-out actions: no shortcut knowledge required. Enabled once words are selected. */
+.tr-act {
+  display: inline-flex; align-items: center; gap: .35rem;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius-sm);
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  font: inherit; font-size: calc(12px * var(--a11y-fs, 1)); padding: .25rem .6rem;
+  cursor: pointer;
+}
+.tr-act:hover:not(:disabled) { background: hsl(var(--muted)); }
+.tr-act:disabled { opacity: .45; cursor: default; }
+.tr-act[data-danger]:hover:not(:disabled) { color: hsl(var(--destructive, 0 72% 51%)); border-color: hsl(var(--destructive, 0 72% 51%) / .5); }
+.tr-act-ico { display: inline-flex; }
+.tr-act-ico svg { width: calc(14px * var(--a11y-fs, 1)); height: calc(14px * var(--a11y-fs, 1)); }
+
+/* The head's control cluster (Dock, Close) - kept together at the end of the row, so
+   `justify-content: space-between` splits title | tools rather than spreading three
+   items across the head. */
+.tr-head-tools { display: inline-flex; align-items: center; gap: .25rem; flex: 0 0 auto; }
+
+.tr-close { display: inline-flex; align-items: center; justify-content: center; width: calc(28px * var(--a11y-fs, 1)); height: calc(28px * var(--a11y-fs, 1)); border: 0; background: transparent; color: inherit; border-radius: var(--radius-sm); cursor: pointer; }
+.tr-close:hover { background: hsl(var(--muted)); }
+.tr-close svg { width: calc(18px * var(--a11y-fs, 1)); height: calc(18px * var(--a11y-fs, 1)); }
+
+/* The flowing transcript: one paragraph of selectable words - edit like a document. */
+.tr-list { flex: 1 1 auto; overflow-y: auto; }
+.tr-empty { padding: 2rem 1rem; text-align: center; color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); }
+.tr-flow {
+  padding: .75rem .95rem;
+  font-size: calc(15px * var(--a11y-fs, 1));
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+  user-select: text;
+  cursor: text;                 /* I-beam - this is text you select, not buttons you click */
+  caret-color: hsl(var(--foreground));
+  outline: none;                /* it's a read-only contenteditable; no focus box */
+}
+/* A word: the seek/selection unit. The flow is a read-only contenteditable, so the browser
+   gives a blinking caret, arrow-key navigation, drag-select and double-click-to-select free. */
+.tr-word { cursor: text; border-radius: var(--radius-xs); padding: 0 .05em; }
+.tr-word:hover { background: hsl(var(--muted) / .7); }
+.tr-word.is-ignored { text-decoration: line-through; color: hsl(var(--muted-foreground)); }
+/* Read-along: the word under the playhead. Uses the brand accent, matching the timeline. */
+.tr-word.is-now { background: var(--brand-secondary, var(--brand-primary, hsl(var(--accent)))); color: hsl(var(--accent-foreground)); }
+.tr-flow ::selection { background: hsl(var(--ring) / .35); }
+
+/* Hide struck words when "Show skipped" is off. */
+.tr-panel[data-hide-ignored="1"] .tr-word.is-ignored { display: none; }
+
+/* ── Edit script (plans/181 sections 5.4 and 6) ────────────────────────────────
+   The same flow, in a mode where the caret moves freely: sentences are the unit,
+   marks are text drawn as highlighted segments, and the dirty band IS the cost
+   signal for how much will be spoken again. Nothing below applies until
+   .tr-panel[data-edit="1"] or a mode-only element is rendered, so read mode is
+   byte-identical to what it was. */
+
+/* The chip bar: the same text anyone can type, one press away. */
+.tr-chips {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .3rem;
+  padding: .45rem .85rem; flex: 0 0 auto;
+  border-bottom: 1px solid hsl(var(--border) / .6);
+}
+.tr-chip {
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius-sm);
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  font: inherit; font-size: var(--fs-sm); line-height: 1.4;
+  min-width: calc(26px * var(--a11y-fs, 1)); padding: .2rem .45rem;
+  cursor: pointer;
+}
+.tr-chip:hover { background: hsl(var(--muted)); }
+.tr-chip-tips { margin-inline-start: auto; color: hsl(var(--muted-foreground)); }
+
+/* The count beside Regenerate: how many sentences and words this press buys. */
+.tr-regen-count { color: hsl(var(--muted-foreground)); font-size: var(--fs-xs); }
+
+/* In edit mode the flow carries real newlines between breath groups, so the
+   separator the script uses is the separator the caret walks over. */
+.tr-panel[data-edit="1"] .tr-flow { white-space: pre-wrap; }
+
+/* One sentence. Inline-level on purpose: a sentence break is a character in the
+   text, not a block boundary, which is what lets deleting a full stop join two. */
+.tr-sentence { display: inline; border-radius: var(--radius-xs); }
+/* Dirty: touched, and waiting to be spoken again. The same family as the
+   read-along highlight, held still. */
+.tr-sentence.is-dirty {
+  background: hsl(var(--accent) / .35);
+  /* Padding rather than a ring, and cloned onto every wrapped fragment, so the
+     band reads as one tint across as many lines as the sentence takes. */
+  padding: .1em .15em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* A mark, drawn as a segment. A styling wrapper only - the caret walks through it. */
+.tr-mark {
+  border-radius: var(--radius-xs);
+  padding: 0 .15em;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.tr-mark:hover { background: hsl(var(--ring) / .3); color: hsl(var(--foreground)); }
+.tr-mark[data-mark="say"] { color: hsl(var(--foreground)); }
+
+/* The job's progress, under the words it is re-speaking. */
+.tr-regen-track {
+  /* Inline-block at full width: the sentence it sits in is inline, so a real
+     block child would tear the flow apart. This takes its own line under the
+     words instead. */
+  display: inline-block; width: 100%; height: 3px; margin: .2rem 0 .35rem;
+  vertical-align: middle;
+  background: hsl(var(--muted)); border-radius: var(--radius-pill); overflow: hidden;
+}
+.tr-regen-fill {
+  height: 100%; width: 0;
+  background: var(--brand-primary, hsl(var(--primary)));
+  border-radius: var(--radius-pill);
+}
+.tr-regen-track.is-indeterminate .tr-regen-fill { opacity: .55; }
+
+/* The small popovers: a mark's control, the Tips list, the read-only recipe. */
+.tr-pop {
+  position: absolute; z-index: 2;
+  max-width: min(320px, calc(100% - 1rem));
+  padding: .5rem .6rem;
+  display: flex; flex-direction: column; gap: .4rem;
+  background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
+  border-radius: var(--radius-md);
+  box-shadow: var(--edge), var(--shadow-2);
+  font-size: var(--fs-sm);
+}
+.tr-pop-row { display: flex; align-items: center; gap: .35rem; }
+.tr-pop-key { color: hsl(var(--muted-foreground)); min-width: 4.5em; }
+.tr-pop-val { min-width: 3em; text-align: center; }
+.tr-pop-btn {
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius-sm);
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  font: inherit; font-size: var(--fs-sm); padding: .15rem .5rem; cursor: pointer;
+}
+.tr-pop-btn:hover { background: hsl(var(--muted)); }
+.tr-pop-field { width: 100%; font-size: var(--fs-sm); }
+.tr-pop-note { margin: 0; color: hsl(var(--muted-foreground)); font-size: var(--fs-xs); }
+.tr-pop-tips { max-height: 60vh; overflow-y: auto; }
+.tr-tip { display: flex; flex-direction: column; gap: .15rem; }
+.tr-tip-text { line-height: 1.4; }
+.tr-tip-ex {
+  color: hsl(var(--muted-foreground)); font-size: var(--fs-xs);
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}

@@ -1,0 +1,626 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/*
+ * In-app documentation reader (#/docs/<slug>) - plan "this-is-a-very-sparkling-eich" M2,
+ * Phase 1 (reader only).
+ *
+ * The reader FETCHES a built /info page and rehosts its `.docs-content` fragment into
+ * #view (views/docs.ts), so the body markup is the exact, tested static-build output.
+ * The static build inlines its own copy of these rules from docs/build.ts's CSS constant;
+ * this file is the APP-SIDE stylesheet for the SAME fragment. Two differences from the
+ * static site are deliberate:
+ *
+ *   1. BRAND-REACTIVE. The static build inlines the app tokens at NEUTRAL values; here the
+ *      running app's tokens.css + brand-vars.ts are already in force, so the legacy-var
+ *      bridge below resolves --page/--text/--green/… to the ACTIVE brand's app slots. The
+ *      docs pick up the active profile's design system for free - the whole point of M2.
+ *   2. SCOPED. The static build's bridge lives on a global `:root`; here it is scoped to
+ *      `.docs-content` so importing this stylesheet can never clobber the app chrome's own
+ *      `:root` tokens (which would un-brand the shell while the reader is mounted).
+ *
+ * INTERIM: this is a focused reproduction of the docs BODY styling (the enumerated
+ * structural classes: .shot/.shot--dual, .shot-try, .md-cols/.md-col, .md-timeline,
+ * .icon-list/.ic, .table-wrap, .doc-logo). The plan's end-state is ONE shared docs
+ * stylesheet that docs/build.ts inlines AND the app imports; extracting that (byte-parity
+ * with build.ts, full doc-primitive + provenance-pill parity) stays a dedicated follow-up.
+ */
+
+/* The legacy docs token names, expressed in the app's design-token slots - a scoped copy
+ * of docs/build.ts's DOCS_BRIDGE. Because the app's --background/--foreground/--primary/…
+ * are brand-reactive (tokens.css + brand-vars.ts), every var() call site in the fragment
+ * follows the active brand and the app's [data-theme] light/dark/brand system. */
+.docs-content,
+.docs-landing {
+  --page: hsl(var(--background));
+  --text: hsl(var(--foreground));
+  --muted: hsl(var(--muted-foreground));
+  --border: hsl(var(--border));
+  --pale: hsl(var(--muted));
+  --green: hsl(var(--primary));
+  --dark: hsl(var(--foreground));
+  --light: hsl(var(--primary) / 0.4);
+  --red: hsl(var(--destructive));
+  --orange: #fe7c3f;
+  --navy: #192072;
+  --blue: #2453ff;
+}
+
+/* The landing (#/docs/index) is the ONLY fragment that carries marketing BANDS, so the
+ * four tokens its bands need sit here rather than in the shared bridge above. The static
+ * build declares them on :root (docs/build.ts, DOCS_BRIDGE); the app has no equivalent
+ * slot for any of them, and a missing custom property is invalid at computed-value time,
+ * which would leave the hero with no gradient and its ink inherited (dark on dark).
+ * Values mirror the static defaults, so both surfaces open the same way. Making the pair
+ * brand-reactive (the build.ts comment's plan for brand-vars.ts) is a follow-up, not a
+ * silent guess at what a self-hosted brand's dark band should be. */
+.docs-landing {
+  --band-dark: 171 62% 12%;   /* the always-dark band surface (hero, pathways, about) */
+  --on-band-dark: 0 0% 100%;  /* the always-light ink that rides on it */
+  --band-accent: 151 57% 46%; /* the always-bright CTA accent on that band */
+  --col-cap: 38rem;           /* the reading measure the landing's prose columns cap at */
+}
+
+/* ── View shell ─────────────────────────────────────────────────────────────── */
+.docs-view {
+  min-height: 100%;
+  /* NO overflow-y:auto here (2026-08-17): the view grows and the DOCUMENT scrolls, so
+   * an overflow value made this the nearest scroll container for position:sticky - a
+   * scrollport that never scrolls - and silently broke the sidebar and TOC rails'
+   * stickiness. With overflow untouched they stick against the real viewport. */
+}
+.docs-reader {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Top-right chrome cluster (home / theme), mirroring the Ask view idiom so the reader
+ * sits in the same button family as its peer utility views. */
+.docs-topright {
+  position: fixed;
+  top: max(0.75rem, var(--safe-top));
+  right: max(0.9rem, var(--safe-right));
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.docs-top-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(38px * var(--a11y-fs));
+  height: calc(38px * var(--a11y-fs));
+  border-radius: var(--radius-pill);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background) / 0.85);
+  color: hsl(var(--foreground));
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.docs-top-btn:hover { background: hsl(var(--muted)); border-color: hsl(var(--foreground) / 0.25); }
+/* The full-width toggle is meaningless on a phone (the reader is already full-bleed)
+   and its slot collides with the back-pill island at large Dynamic Type sizes. */
+@media (max-width: 640px) {
+  .docs-top-btn--wide { display: none; }
+}
+/* Language lives in the profile menu (profile-menu.ts Language row) at every
+   width now (2026-08-26) - the menu opens on desktop too, so the docs top-bar's
+   own language pill is redundant. Was ≤640px-only. */
+.docs-top-btn--lang { display: none; }
+.docs-top-btn:active { transform: scale(0.94); }
+.docs-top-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px hsl(var(--primary) / 0.4); }
+.docs-top-btn svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+
+/* A pending / failed state - the reader renders chrome first, then swaps this out. */
+.docs-status {
+  padding: 4rem 1rem;
+  text-align: center;
+  color: var(--muted, hsl(var(--muted-foreground)));
+  font-size: calc(0.9375rem * var(--a11y-fs, 1));
+}
+.docs-status a { color: hsl(var(--primary)); }
+
+/* ── Body: the rehosted .docs-content fragment ──────────────────────────────── */
+.docs-content {
+  min-width: 0;
+  padding: 2.75rem 0 5rem;
+  color: var(--text);
+  /* Reading text rides the a11y type multiplier (iOS Dynamic Type / largeText):
+     docs prose is exactly what the OS setting is for, and unlike tool canvases
+     nothing here is exported, so nothing byte-identical is at stake. */
+  font-size: calc(1rem * var(--a11y-fs, 1));
+  line-height: 1.65;
+}
+
+.docs-content h1,
+.docs-content h2,
+.docs-content h3,
+.docs-content h4 { line-height: 1.25; font-weight: 700; }
+.docs-content h1 {
+  font-size: calc(3rem * var(--a11y-fs, 1)); color: var(--dark); line-height: 1.15; font-weight: 300;
+  margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border);
+}
+.docs-content h2 {
+  font-size: calc(1.5rem * var(--a11y-fs, 1)); font-weight: 700; color: var(--dark);
+  border-top: 1px solid var(--border); padding-top: 2rem;
+  margin-top: 2.5rem; margin-bottom: 0.75rem;
+}
+.docs-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.docs-content h3 { font-size: calc(1.15rem * var(--a11y-fs, 1)); color: var(--dark); margin-top: 1.75rem; margin-bottom: 0.5rem; }
+.docs-content h4 { font-size: calc(1rem * var(--a11y-fs, 1)); color: var(--muted); margin-top: 1.25rem; margin-bottom: 0.35rem; }
+.docs-content h2[id], .docs-content h3[id], .docs-content h4[id] { scroll-margin-top: 1.5rem; }
+
+/* Narration follow-along highlight (lib/docs-narration-host.ts): the currently
+   spoken block. Mirrors the static docs player's `.ldp-here` (docs/player/player.css)
+   - a soft, SYMMETRIC brand-tinted surround wash (no one-sided edge), brand-reactive
+   via the scoped bridge above so it reads in light/dark/brand. Clicking it re-engages
+   follow-along (hence the pointer). Only present while the Listen dock is playing;
+   the class is added/removed by the narration host. */
+.docs-content .docs-narr-here {
+  background: hsl(var(--primary) / 0.14);
+  box-shadow: 0 0 0 6px hsl(var(--primary) / 0.14);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 400ms ease, box-shadow 400ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .docs-content .docs-narr-here { transition: none; }
+}
+
+.docs-content p { margin-bottom: 1.5rem; }
+.docs-content ul, .docs-content ol { margin-bottom: 1rem; padding-left: 1.25rem; }
+.docs-content li { margin-bottom: 0.35rem; }
+.docs-content a { color: var(--green); text-decoration: underline; }
+.docs-content a:hover { text-decoration: underline; }
+.docs-content strong { font-weight: 600; }
+.docs-content hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+.docs-content code {
+  font-family: 'SUSE Mono', 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.875em; background: hsl(var(--card) / 1); padding: 0.15em 0.35em; border-radius: 3px;
+}
+.docs-content pre {
+  background: hsl(var(--muted)); padding: 1.25rem 1.5rem; border-radius: 8px;
+  overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere;
+  font-size: calc(0.875rem * var(--a11y-fs, 1)); line-height: 1.5; margin-bottom: 1.25rem;
+  box-shadow: inset 0 0.2rem 0.4rem #0002;
+}
+.docs-content pre code { background: none; padding: 0; color: inherit; font-size: 1em; }
+
+.docs-content blockquote {
+  border-left: 0; border-radius: 1.5em; padding: 1.5rem 2.25rem;
+  background: var(--pale); margin: 2.5rem 0;
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.14), inset 0 1px #fff3, 0 0.1rem 2.4rem hsl(var(--primary) / 0.18);
+}
+.docs-content blockquote p { margin: 0; }
+
+/* ── Tables ─────────────────────────────────────────────────────────────────── */
+.docs-content .table-wrap {
+  overflow-x: auto; margin-bottom: 2rem; border-radius: 1em;
+  box-shadow: 0 0 0 1px hsl(var(--border)), 0 0.2rem 0.4rem #00000018;
+}
+.docs-content table { width: 100%; border-collapse: collapse; font-size: calc(0.8rem * var(--a11y-fs, 1)); }
+.docs-content th, .docs-content td { padding: 0.6rem 0.9rem; text-align: left; border-bottom: 1px solid var(--border);vertical-align: top;border-bottom:1px solid var(--green) }
+.docs-content th { font-weight: 700; color: var(--dark); }
+.docs-content tr:last-child td { border-bottom: none; }
+
+/* The static site's base safety net for inline icon SVGs, scoped: every `<!--i:-->`
+ * icon ships only a viewBox, so without this each one balloons to the CSS default
+ * 300x150 (the ai-stance giant-icon bug). Element specificity (0,1,1) on purpose - a
+ * figure's own co-located <style> sits later in the document, so its sizing rules win
+ * every tie, exactly as the static page's more-specific contexts beat its global net. */
+.docs-content svg { width: 1em; height: 1em; flex: none; }
+
+/* A figure spans the whole content column (Andy, 2026-08-17): the co-located figure
+ * styles centre it with side margins, which on a wide comparison table just donates
+ * space to the gutters and forces more horizontal scrolling than needed. The scroll
+ * remains the escape hatch; the column is used first. */
+.docs-content .docs-figure { margin-inline: 0; }
+
+/* ── Images & screenshots ───────────────────────────────────────────────────── */
+.docs-content img { max-width: min(100%, 40em); height: auto; margin: 0 auto; display: block; }
+/* Inline video, mirroring build.ts's .doc-video sizing (the beatrice-warde giant-video
+ * bug: a bare <video> has no intrinsic constraint in the reader). */
+.docs-content video { max-width: 100%; height: auto; }
+.docs-content .doc-video { margin: 0 auto 1rem; max-width: min(420px, 100%); }
+.docs-content .doc-video video { width: 100%; display: block; border-radius: 10px; }
+/* App screenshots (docs/shots captures) read at full column width, framed like a window. */
+.docs-content img[src*="/info/shots/"] {
+  max-width: 100%; min-width: 50%; border-radius: 1.2em;
+  border: 1px solid hsl(var(--border)); box-shadow: 0 6px 24px #0002;
+}
+
+/* Dual light/dark screenshots: .shot holds both the light img and a `.shot-alt` dark img;
+ * the app's [data-theme] on <html> chooses which one shows (same mechanism as the static site). */
+.docs-content .shot { display: block; position: relative; width: fit-content; max-width: 100%; margin: 1.5rem auto; }
+.docs-content .shot--dual > img.shot-alt { display: none; }
+[data-theme="dark"] .docs-content .shot--dual > img:not(.shot-alt) { display: none; }
+[data-theme="dark"] .docs-content .shot--dual > img.shot-alt { display: block; }
+
+/* Phase 1 hides the inline Content-Credentials puck (its tap/Escape reveal is wired by the
+ * static page's own scripts, which the reader does not run). The signed shot itself still
+ * renders, and the app's /verify surface remains the credential check. Follow-up: port the
+ * CSS-only :focus-within reveal, or link the puck to #/verify?src=. */
+.docs-content .shot-cred, .docs-landing .shot-cred { display: none; }
+
+/* "Try it in the app" deep link under a screenshot - points at a real app route. */
+.docs-content .shot-try {
+  display: block; margin-block-start: 0.5rem; text-align: center;
+  font-size: calc(0.8125rem * var(--a11y-fs, 1)); font-weight: 600; color: var(--muted);
+}
+.docs-content .shot-try::after { content: ' →'; }
+.docs-content .shot-try:hover, .docs-content .shot-try:focus-visible { color: var(--green); text-decoration: underline; }
+
+/* ── M3: interactive "Try it" affordance (lib/docs-tryit.ts) ─────────────────────
+ * PROGRESSIVE ENHANCEMENT, hydrated only over shots whose capture recipe is a live
+ * TOOL render. The overlay pills sit ON the shot and reveal on hover / keyboard focus;
+ * the in-place <iframe> boots the tool live over the (retained) static image. Brand-
+ * reactive via the app's own token slots - NOT the scoped legacy bridge - since these
+ * are app chrome painted over docs content. */
+
+/* Once the overlay exists, the static below-shot text link is redundant - but it stays in
+ * the DOM as the no-JS baseline, hidden only here. */
+.docs-content .shot-try--superseded { display: none; }
+
+.docs-content .shot-tryit {
+  position: absolute;
+  inset-block-end: 0.6rem;
+  inset-inline-end: 0.6rem;
+  z-index: 4;
+  display: flex;
+  gap: 0.4rem;
+  opacity: 0;
+  transform: translateY(0.35rem);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  pointer-events: none; /* keyboard focus is unaffected; :focus-within re-enables clicks */
+}
+.docs-content .shot:hover .shot-tryit,
+.docs-content .shot:focus-within .shot-tryit {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.docs-content .shot-tryit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.42rem 0.72rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background) / 0.9);
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: calc(0.8125rem * var(--a11y-fs, 1));
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 10px #0003;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.docs-content .shot-tryit-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.docs-content .shot-tryit-btn:hover { background: hsl(var(--muted)); border-color: hsl(var(--foreground) / 0.25); }
+.docs-content .shot-tryit-btn:active { transform: scale(0.96); }
+.docs-content .shot-tryit-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px hsl(var(--primary) / 0.4); }
+
+/* Primary (navigate) pill reads as the brand action. */
+.docs-content .shot-tryit-open,
+.docs-content .shot-tryit-open:hover {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: transparent;
+  text-decoration: none;
+}
+.docs-content .shot-tryit-open:hover { filter: brightness(1.06); }
+
+/* The in-place live embed: the iframe overlays the retained static image, fading in once
+ * it loads; on error the JS removes it and the image is the baseline again. */
+.docs-content .shot--live { overflow: hidden; }
+.docs-content .shot-live-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 1.2em;
+  background: hsl(var(--muted));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.docs-content .shot--live-ready .shot-live-frame { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .docs-content .shot-tryit { transition: none; transform: none; }
+  .docs-content .shot-live-frame { transition: none; }
+}
+
+/* ── Doc primitives: ::: cols, ::: timeline, icon lists, inline logos ────────── */
+.docs-content .md-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem 3rem; margin: 2rem 0 2.5rem; }
+.docs-content .md-cols .md-col > h2:first-child { margin-top: 0; font-size: calc(1.25rem * var(--a11y-fs, 1)); border-top: none; padding-top: 0; }
+.docs-content .md-cols .md-col > ul { margin-bottom: 0; }
+.docs-content .md-cols .md-col li { font-size: calc(0.9375rem * var(--a11y-fs, 1)); }
+
+.docs-content ul.icon-list { list-style: none; padding-inline-start: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+.docs-content ul.icon-list > li.ic { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0; }
+.docs-content .li-icon { flex-shrink: 0; width: 1.35rem; height: 1.35rem; margin-top: 0.2rem; color: var(--green); }
+.docs-content .li-icon svg { width: 100%; height: 100%; display: block; }
+
+.docs-content .md-timeline .icon-list { position: relative; gap: 1.35rem; }
+.docs-content .md-timeline .icon-list > li.ic { position: relative; padding-bottom: 0.1rem; }
+.docs-content .md-timeline .icon-list > li.ic .li-icon { width: 1.75rem; height: 1.75rem; }
+.docs-content .md-timeline .icon-list > li.ic .li-icon svg { width: 1rem; height: 1rem; }
+.docs-content .md-timeline .icon-list > li.ic:not(:last-child)::before {
+  content: ''; position: absolute; left: 0.875rem; top: 1.75rem; bottom: -1.35rem;
+  width: 1px; background: var(--border);
+}
+
+.docs-content .doc-logo {
+  display: inline-block; width: 1.1em; height: 1.1em; max-width: 1.35em; max-height: 1.35em;
+  vertical-align: -0.18em; margin-inline-end: 0.3em; opacity: 0.85;
+}
+.docs-content .doc-logo svg { width: 100%; height: 100%; display: block; }
+.docs-content .doc-logo-block { display: flex; justify-content: center; align-items: center; gap: 1.1rem; margin: 3rem 0 1.5rem; color: var(--muted); opacity: 0.55; }
+.docs-content .doc-logo-mark { display: block; width: 36px; height: 36px; }
+.docs-content .doc-logo-mark svg { width: 100%; height: 100%; display: block; }
+
+/* Dark-mode heading ink (mirrors the static build's dark override). */
+[data-theme="dark"] .docs-content h1,
+[data-theme="dark"] .docs-content h2,
+[data-theme="dark"] .docs-content h3 { color: var(--text); }
+
+/* ── Narrow viewports ───────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .docs-content { padding: 1.75rem 0 1.5rem; }
+  .docs-content h1 { font-size: calc(2.25rem * var(--a11y-fs, 1)); }
+  .docs-content .md-cols { grid-template-columns: 1fr; gap: 2.25rem; }
+}
+
+/* ── In-app docs reader: chrome + navigation (M2) ─────────────────────────────
+   The reader rehosts a docs page's CONTENT plus its real navigation - the section
+   pathways, the docs sidebar rail, the footer sitemap - and a DERIVED on-page TOC.
+   All token-driven so it themes light/dark/brand and follows the active brand. */
+
+.docs-reader {
+  /* Clearance for the FIXED chrome row (back-pill island left, home/theme cluster
+     right): --chrome-top carries --safe-top on notched phones and --chrome-h scales
+     with Dynamic Type / largeText, so a static top padding under-clears on device. */
+  --docs-chrome-clear: calc(var(--chrome-top, 0.75rem) + var(--chrome-h, 2.6rem) + 1.5rem);
+  max-width: 84rem; margin: 0 auto; padding: var(--docs-chrome-clear) 1.5rem 3rem; box-sizing: border-box;
+}
+
+/* SAFETY FIRST: never let a rehosted/chrome icon size itself to the page (the
+   blown-up palette bug). Scoped to CHROME + NAV only - never .docs-content, whose
+   shots/figures are meant to be full width. */
+.docs-topright .docs-top-btn svg,
+.docs-back-pill svg { width: 20px; height: 20px; }
+.docs-pathways svg, .docs-pathways img,
+.docs-sidebar-slot svg, .docs-sidebar-slot img,
+.docs-toc-slot svg, .docs-toc-slot img,
+.docs-sitemap-slot svg, .docs-sitemap-slot img { width: 1.05em; height: 1.05em; max-width: 1.25em; max-height: 1.25em; flex: none; }
+
+/* top section pathways (Quickstart · For Creators · For Builders · For Operators · Trust) */
+.docs-pathways { display: flex; flex-wrap: wrap; gap: .3rem 1.4rem; padding: 0 0 1rem; border-bottom: 1px solid hsl(var(--border)); margin-bottom: 1.75rem;margin-top:4em; }
+.docs-pathway { font: 600 calc(.95rem * var(--a11y-fs, 1))/1.4 var(--font-brand, system-ui, sans-serif); color: hsl(var(--muted-foreground)); text-decoration: none; padding: .2rem 0; border-bottom: 2px solid transparent; white-space: nowrap; }
+.docs-pathway:hover { color: hsl(var(--foreground)); }
+.docs-pathway.active { color: hsl(var(--primary)); border-bottom-color: hsl(var(--primary)); }
+
+/* AI-scan donut at the strip's right end: the page's text-signal score (the same
+   read #/verify runs on this served page), pressing through to the full report.
+   Colour follows the band (valid.css's gauge hues); the number inside carries the
+   value, so colour is never the only carrier. */
+.docs-tsig-donut { margin-inline-start: auto; align-self: center; display: inline-flex; padding: .2rem 0; }
+/* The donut hugs the strip's right edge, so the shared tooltip's centred bubble
+   (parts/tooltip.css) would hang past the viewport - anchor bubble and arrow to
+   the host's right edge instead, statically (no slide, the fade still runs). */
+.docs-pathways .docs-tsig-donut[data-tip]::after { left: auto; right: 0; transform: none; }
+.docs-pathways .docs-tsig-donut[data-tip]::before { left: auto; right: 8px; transform: none; }
+.docs-pathways .docs-tsig-donut svg { width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs)); max-width: none; max-height: none; }
+.docs-tsig-donut circle { fill: none; stroke-width: 7; }
+.docs-tsig-track { stroke: hsl(var(--muted-foreground) / 0.25); }
+.docs-tsig-fill { stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; }
+.docs-tsig-num { font-size: 22px; font-weight: 700; text-anchor: middle; fill: hsl(var(--muted-foreground)); }
+.docs-tsig-donut:hover .docs-tsig-num { fill: hsl(var(--foreground)); }
+.docs-tsig-donut svg[data-band="none"] .docs-tsig-fill { stroke: hsl(var(--muted-foreground) / 0.6); }
+.docs-tsig-donut svg[data-band="weak"] .docs-tsig-fill { stroke: hsl(45 90% 42%); }
+.docs-tsig-donut svg[data-band="notable"] .docs-tsig-fill { stroke: hsl(30 90% 45%); }
+.docs-tsig-donut svg[data-band="strong"] .docs-tsig-fill { stroke: hsl(0 82% 50%); }
+:root[data-theme="dark"] .docs-tsig-donut svg[data-band="weak"] .docs-tsig-fill,
+:root:not([data-theme="light"]) .docs-tsig-donut svg[data-band="weak"] .docs-tsig-fill { stroke: hsl(45 90% 55%); }
+:root[data-theme="dark"] .docs-tsig-donut svg[data-band="notable"] .docs-tsig-fill,
+:root:not([data-theme="light"]) .docs-tsig-donut svg[data-band="notable"] .docs-tsig-fill { stroke: hsl(30 90% 55%); }
+:root[data-theme="dark"] .docs-tsig-donut svg[data-band="strong"] .docs-tsig-fill,
+:root:not([data-theme="light"]) .docs-tsig-donut svg[data-band="strong"] .docs-tsig-fill { stroke: hsl(0 82% 60%); }
+
+/* three-column grid: sidebar | content | on-page TOC */
+.docs-reader-grid { display: grid; grid-template-columns: 14rem minmax(0, 1fr) 13rem; gap: 2.75rem; align-items: start; }
+.docs-content-col { min-width: 0; }
+
+/* docs sidebar rail (extracted .docs-sidebar) */
+.docs-sidebar-slot { position: sticky; top: var(--docs-chrome-clear, 4.75rem); align-self: start; max-height: calc(100vh - var(--docs-chrome-clear, 4.75rem) - 1.75rem); overflow-y: auto; font-size: calc(.9rem * var(--a11y-fs, 1)); }
+.docs-sidebar-slot :is(ul, ol) { list-style: none; margin: 0; padding: 0; }
+.docs-sidebar-slot a { display: flex; align-items: center; gap: .55rem; color: hsl(var(--muted-foreground)); text-decoration: none; padding: .32rem .55rem; border-radius: 7px; line-height: 1.35; }
+.docs-sidebar-slot a:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.docs-sidebar-slot a.active { color: hsl(var(--primary)); font-weight: 600; background: hsl(var(--primary) / .09); }
+.docs-sidebar-slot :is(.docs-sidebar-group, h2, h3, .sidebar-head) { font: 700 calc(.68rem * var(--a11y-fs, 1))/1 var(--font-mono, ui-monospace, monospace); letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--muted-foreground)); margin: 1.1rem 0 .4rem .55rem; }
+
+/* on-page table of contents (derived from stamped heading ids) */
+.docs-toc-slot { position: sticky; top: var(--docs-chrome-clear, 4.75rem); align-self: start; max-height: calc(100vh - var(--docs-chrome-clear, 4.75rem) - 1.75rem); overflow-y: auto; }
+.docs-toc-head { font: 700 calc(.68rem * var(--a11y-fs, 1))/1 var(--font-mono, ui-monospace, monospace); letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--muted-foreground)); margin-bottom: .65rem; }
+.docs-toc-list { list-style: none; margin: 0; padding: 0; border-left: 1px solid hsl(var(--border)); }
+.docs-toc-link { display: block; color: hsl(var(--muted-foreground)); text-decoration: none; padding: .28rem .85rem; font-size: calc(.85rem * var(--a11y-fs, 1)); line-height: 1.35; border-left: 2px solid transparent; margin-left: -1px; }
+.docs-toc-link.is-h3 { padding-left: 1.7rem; font-size: calc(.82rem * var(--a11y-fs, 1)); }
+/* Scroll-spy state: the section under the reading line. */
+.docs-toc-link.active { color: hsl(var(--primary)); border-left-color: hsl(var(--primary)); font-weight: 600; }
+.docs-toc-link:hover { color: hsl(var(--foreground)); border-left-color: hsl(var(--muted-foreground) / .5); }
+
+/* footer sitemap (extracted .footer-sitemap) */
+.docs-sitemap-slot { margin-top: 3.5rem; padding-top: 2rem; border-top: 1px solid hsl(var(--border)); font-size: calc(.88rem * var(--a11y-fs, 1)); color: hsl(var(--muted-foreground)); }
+.docs-sitemap-slot :is(ul, ol) { list-style: none; margin: 0; padding: 0; }
+.docs-sitemap-slot a { color: hsl(var(--muted-foreground)); text-decoration: none; }
+.docs-sitemap-slot a:hover { color: hsl(var(--primary)); }
+
+/* The .footer-sitemap adopted from the built page carries its column markup but NOT
+   its layout: that lives inline in docs/build.ts and ships only to the static /info
+   site, so here the grid must be re-declared or every section's links run together on
+   one line (icon jammed against text, each .sitemap-col a full-width block row).
+   auto-fill rather than a fixed column count so the index fills as many ~11rem tracks
+   as the reader width offers - more columns on a wide viewport, folding down to two on
+   a phone - with each column's links stacked vertically inside it. */
+.docs-sitemap-slot .footer-sitemap { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); align-items: start; gap: 1.5rem 1.75rem; }
+.docs-sitemap-slot .sitemap-col { display: flex; flex-direction: column; min-width: 0; }
+.docs-sitemap-slot .footer-sitemap a { display: flex; align-items: flex-start; gap: .5em; padding: .12rem 0; line-height: 1.4; }
+.docs-sitemap-slot .sitemap-ic { flex: none; margin-top: .1em; opacity: .55; color: hsl(var(--primary)); }
+.docs-sitemap-slot .footer-sitemap a:hover .sitemap-ic { opacity: 1; }
+.docs-sitemap-slot .sitemap-title { font-size: calc(.7rem * var(--a11y-fs, 1)); text-transform: uppercase; letter-spacing: .09em; font-weight: 700; color: hsl(var(--foreground)); margin-bottom: .35rem; }
+.docs-sitemap-slot a.sitemap-title:hover { color: hsl(var(--primary)); }
+
+/* footer contact block (extracted <footer> minus the sitemap) - the "Questions? Contact
+   Andy Fitzsimon - fitzy@suse.com" line, the Open-Source/Privacy/Inclusive-Design line,
+   and the Founded-by-SUSE badge. The built page's own footer CSS lives in its <head>,
+   which the reader never keeps, so re-declare the centred muted look here - and, load-
+   bearing, size the badge image: /info/founded-by.svg ships with NO intrinsic width or
+   height, so without an explicit width the inline anchor + image collapse to 0×0. */
+.docs-contact-slot { margin-top: 2.25rem; padding-top: 1.5rem; border-top: 1px solid hsl(var(--border)); font-size: calc(.82rem * var(--a11y-fs, 1)); color: hsl(var(--muted-foreground)); }
+/* Centre the block - a global `footer { text-align: right }` (base.css) directly
+   matches the adopted <footer>, so it must be overridden on the element itself. */
+.docs-contact-slot .docs-contact-footer { text-align: center; }
+.docs-contact-slot p { margin: 0 0 .5rem; }
+.docs-contact-slot a { color: hsl(var(--muted-foreground)); text-decoration: underline; text-underline-offset: 2px; }
+.docs-contact-slot a:hover { color: hsl(var(--primary)); }
+.docs-contact-slot .founded-badge { display: inline-block; line-height: 0; margin-top: .5rem; }
+.docs-contact-slot .founded-badge img { display: block; width: 15em; max-width: 100%; height: auto; }
+
+/* responsive: fold the rails away on narrow screens (content + TOC-in-flow) */
+@media (max-width: 1024px) {
+  .docs-reader-grid { grid-template-columns: minmax(0, 1fr); }
+  .docs-sidebar-slot { display: none; }
+  .docs-toc-slot { position: static; max-height: none; margin-bottom: 1.5rem; }
+}
+
+/* ── Landing mode: #/docs/index (plans/123) ───────────────────────────────────
+   The front door rehosted through the reader (views/docs.ts + lib/docs-landing.ts).
+   Its bands are full-bleed compositions, not an article in a measure, so the reader
+   drops to ONE column: no sidebar rail (the landing ships none anyway), no on-page
+   TOC (the bands are sections of a front door, and the landing's own sticky quicknav
+   answers the same need on the static site). Both rails are hidden unconditionally
+   rather than left to the `hidden` attribute, so a future landing that happened to
+   carry a `.docs-sidebar` still cannot open a rail here. The pathways bar and the
+   footer sitemap keep their slots.
+
+   The band CSS itself is NOT here: it is styles/parts/docs-landing.css, the one file
+   docs/build.ts inlines and lib/docs-landing.ts injects wrapped in @scope. */
+/* Full-width reading (the topright toggle): the ENTIRE viewport for the big reference
+   tables - the rails fold away too, since with them the content track only gains a
+   sliver. One click back restores the rails. */
+.docs-reader--wide { max-width: none; padding: var(--docs-chrome-clear) 1.75rem 3rem; }
+.docs-reader--wide .docs-reader-grid { grid-template-columns: minmax(0, 1fr); }
+.docs-reader--wide [data-sidebar],
+.docs-reader--wide [data-toc] { display: none; }
+
+.docs-reader--landing { max-width: none; padding: 0; }
+.docs-reader--landing .docs-reader-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+.docs-reader--landing [data-sidebar],
+.docs-reader--landing [data-toc] { display: none; }
+/* Full-bleed pulls the pathways bar under the reader's FIXED chrome (back pill left,
+   home/theme cluster right), so in landing mode the bar keeps clear of both; on narrow
+   screens it drops below the pill instead, where there is no room beside it. */
+.docs-reader--landing .docs-pathways-slot { padding-inline: 8.5rem 8rem; }
+@media (max-width: 700px) {
+  .docs-reader--landing .docs-pathways-slot { padding-inline: 1rem; margin-top: var(--docs-chrome-clear); }
+}
+
+/* ── The three-zone formats table (#/docs/formats) ────────────────────────────
+ * The formats page composes a rich table + a click-to-open detail dialog whose
+ * layout lives INLINE in docs/build.ts and only ships to the static /info site;
+ * the in-app reader rehosts the markup (.fmt-*) but not that CSS, so without the
+ * rules below the category icons size to the column (huge) and every row's chips
+ * run together. This is the app-side copy, resolved through the .docs-content
+ * token bridge above (--green/--dark/--muted/--pale) so it follows the active
+ * brand + theme, with one substitution: the static build's --on-band-dark (a
+ * marketing-only token, absent here) becomes --primary-foreground.
+ *
+ * FLEX rows, not the static build's grid. The grid sized the centre "both" zone
+ * to auto = max-content, so it never wrapped and hogged the row, squeezing the
+ * import/export zones into needless wrapping. As a flex item the centre zone can
+ * shrink and wrap its own chips, sharing width fairly; equal flex on the two side
+ * zones keeps "both" centred, so the import-left / both-centre / export-right
+ * reading survives. */
+.docs-content .formats-section { padding: 2.5rem 0 0; margin: 0; border: 0; background: none; }
+.docs-content .formats-inner { max-width: none; margin: 0; }
+.docs-content .formats-head { margin-bottom: 1.25rem; }
+.docs-content .formats-hint { font-size: calc(.9rem * var(--a11y-fs, 1)); margin: .5rem 0 0; color: var(--green); font-weight: 600; }
+.docs-content .fmt-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.docs-content .fmt-table { display: flex; flex-direction: column; row-gap: .1rem; min-width: 0; padding-bottom: .5rem; }
+.docs-content .fmt-row { display: flex; align-items: baseline; column-gap: 1.25rem; padding: .2rem 0; }
+.docs-content .fmt-row--head { align-items: flex-end; }
+.docs-content .fmt-cat { flex: 0 0 4.5rem; display: flex; flex-direction: column; align-items: flex-start; gap: .3rem; }
+.docs-content .fmt-cat svg { width: 26px; height: 26px; color: var(--green); opacity: .9; flex: none; }
+.docs-content .fmt-cat-label { font-size: calc(.62rem * var(--a11y-fs, 1)); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); white-space: nowrap; }
+/* No min-width:0 on the zones: a zone's floor is its widest (nowrap) chip, so a
+ * squeezed side zone wraps its chips instead of letting one overflow into the
+ * neighbouring zone. A row that still cannot fit scrolls via .fmt-scroll. */
+.docs-content .fmt-zone { display: flex; flex-wrap: wrap; gap: .4rem; align-content: center; }
+.docs-content .fmt-zone--in { flex: 1 1 0; justify-content: flex-start; }
+.docs-content .fmt-zone--both { flex: 0 1 auto; justify-content: center; }
+.docs-content .fmt-zone--out { flex: 1 1 0; justify-content: flex-end; }
+.docs-content .fmt-zonelabel { font-size: calc(.6rem * var(--a11y-fs, 1)); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); display: inline-flex; align-items: center; gap: .45em; white-space: nowrap; }
+.docs-content .fmt-zonelabel .rt-mark { margin: 0; color: var(--green); }
+.docs-content .fmt-zonelabel b { color: var(--green); background: hsl(var(--primary) / .12); padding: .15em .5em; border-radius: 1em; font-family: 'SUSE Mono', 'SF Mono', monospace; font-size: .92em; font-weight: 700; }
+.docs-content .fmt-divider { height: 0; border-bottom: 2px solid var(--border); margin: .15rem 0 .35rem; }
+.docs-content .fmt-rowsep { height: 0; border-top: 1px solid var(--border); margin: .1rem 0; }
+.docs-content .fmt-chip { display: inline-flex; align-items: center; background: hsl(var(--primary) / .1); color: var(--green); font-size: calc(.74rem * var(--a11y-fs, 1)); font-family: 'SUSE Mono', 'SF Mono', monospace; font-weight: 700; padding: .3em .64em; border-radius: 1em; letter-spacing: .03em; border: 1px solid transparent; cursor: pointer; transition: transform .1s, box-shadow .12s, background .12s, color .12s; white-space: nowrap; -webkit-appearance: none; appearance: none; }
+.docs-content .fmt-chip:hover { transform: translateY(-1px); box-shadow: 0 3px 10px hsl(var(--foreground) / .16); }
+.docs-content .fmt-chip:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.docs-content .fmt-chip--both { background: var(--green); color: hsl(var(--primary-foreground)); }
+.docs-content .fmt-chip .rt-mark { margin-right: .3em; }
+
+.docs-content .fmt-dialog { border: 0; border-radius: 18px; padding: 0; width: min(94vw, 38rem); max-height: 88vh; overflow: auto; margin: auto; color: var(--dark); background: hsl(var(--popover)); box-shadow: 0 30px 80px hsl(var(--foreground) / .34); }
+.docs-content .fmt-dialog::backdrop { background: hsl(220 40% 6% / .5); backdrop-filter: blur(3px); }
+.docs-content .fmt-dialog-inner { padding: 1.75rem 1.75rem 1.6rem; position: relative; }
+.docs-content .fmt-dialog-x { position: absolute; top: .7rem; right: .7rem; border: 0; background: var(--pale); width: 1.9rem; height: 1.9rem; border-radius: var(--radius-round); cursor: pointer; color: var(--muted); font-size: calc(.82rem * var(--a11y-fs, 1)); line-height: 1; }
+.docs-content .fmt-dialog-x:hover { background: var(--border); }
+.docs-content .fmt-dialog-dir { display: inline-block; font-size: calc(.62rem * var(--a11y-fs, 1)); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--green); background: hsl(var(--primary) / .14); padding: .3em .7em; border-radius: 1em; margin-bottom: .7rem; }
+.docs-content .fmt-dialog h3 { margin: 0; color: inherit; font-size: calc(1.55rem * var(--a11y-fs, 1)); line-height: 1.1; }
+.docs-content .fmt-dialog-head { display: flex; align-items: flex-start; gap: .9rem; padding-right: 1.8rem; }
+.docs-content .fmt-dialog-icon { flex: none; place-self: end; width: 2.9rem; height: 2.9rem; color: var(--green); margin-top: .1rem; }
+.docs-content .fmt-dialog-icon svg { stroke-width: .5px; width: 100%; height: 100%; display: block; }
+.docs-content .fmt-dialog-icon:empty { display: none; }
+.docs-content .fmt-dialog-headtext { min-width: 0; }
+.docs-content .fmt-dialog-full { margin: .15rem 0 0; color: var(--muted); font-size: calc(.9rem * var(--a11y-fs, 1)); font-weight: 600; }
+.docs-content .fmt-dialog-desc { margin: .9rem 0 0; color: inherit; font-size: calc(.95rem * var(--a11y-fs, 1)); line-height: 1.65; opacity: .92; }
+.docs-content .fmt-dialog-specs { list-style: none; margin: 1.1rem 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .45rem .9rem; }
+.docs-content .fmt-dialog-specs:empty { margin: 0; }
+.docs-content .fmt-dialog-specs li { font-size: calc(.82rem * var(--a11y-fs, 1)); line-height: 1.3; color: inherit; display: flex; align-items: flex-start; gap: .45em; opacity: .95; }
+.docs-content .fmt-dialog-specs li::before { content: '✓'; color: var(--green); font-weight: 800; flex: none; margin-top: .02em; }
+.docs-content .fmt-dialog-feats { list-style: none; margin: 1.15rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
+.docs-content .fmt-dialog-feats:empty { margin: 0; }
+.docs-content .fmt-dialog-feats li { font-size: calc(.72rem * var(--a11y-fs, 1)); font-weight: 700; color: inherit; background: var(--pale); border: 1px solid var(--border); padding: .32em .68em; border-radius: 1em; display: inline-flex; align-items: center; gap: .4em; }
+.docs-content .fmt-dialog-feats li::before { content: ''; width: .5em; height: .5em; border-radius: var(--radius-round); background: var(--green); flex: none; }
+.docs-content .fmt-dialog-unsup { margin: 1.2rem 0 0; padding: .85rem 1rem; border-radius: 12px; background: hsl(20 99% 62% / .1); }
+.docs-content .fmt-dialog-unsup[hidden] { display: none; }
+.docs-content .fmt-dialog-unsup-label { display: block; font-size: calc(.62rem * var(--a11y-fs, 1)); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--orange); margin-bottom: .5rem; }
+.docs-content .fmt-dialog-unsup-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .4rem .9rem; }
+.docs-content .fmt-dialog-unsup-list li { font-size: calc(.82rem * var(--a11y-fs, 1)); line-height: 1.3; display: flex; align-items: flex-start; gap: .45em; opacity: .9; }
+.docs-content .fmt-dialog-unsup-list li::before { content: '-'; color: var(--orange); font-weight: 800; flex: none; }
+@media (max-width: 520px) {
+  .docs-content .fmt-dialog-specs, .docs-content .fmt-dialog-unsup-list { grid-template-columns: 1fr; }
+}
+/* Narrow reader: stack each category as its own block with per-zone labels, the
+ * same fold the static site makes - the flex row's edge alignment has too little
+ * width to read below ~640px. */
+@media (max-width: 640px) {
+  .docs-content .fmt-row { display: block; padding: .6rem 0; border-bottom: 1px solid var(--border); }
+  .docs-content .fmt-row--head { display: none; }
+  .docs-content .fmt-divider, .docs-content .fmt-rowsep { display: none; }
+  .docs-content .fmt-cat { flex-direction: row; align-items: center; gap: .5rem; margin-bottom: .5rem; }
+  .docs-content .fmt-cat svg { width: 20px; height: 20px; }
+  .docs-content .fmt-zone { justify-content: flex-start !important; margin: .2rem 0; }
+  .docs-content .fmt-zone:empty { display: none; }
+  .docs-content .fmt-zone:not(:empty)::before { flex-basis: 100%; font-size: calc(.56rem * var(--a11y-fs, 1)); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: .15rem; }
+  .docs-content .fmt-zone--in:not(:empty)::before { content: 'Import only'; }
+  .docs-content .fmt-zone--both:not(:empty)::before { content: '⇄ Both ways'; }
+  .docs-content .fmt-zone--out:not(:empty)::before { content: 'Export only'; }
+}

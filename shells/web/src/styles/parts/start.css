@@ -1,0 +1,1137 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/*
+ * #/start - the Design System studio shell (views/start.ts). Async CSS chunk,
+ * loaded with the view. The rooms themselves are the brand studio's panels
+ * (lib/brand-editor.ts, .be-* styles from brand-studio.css, imported by that
+ * module); this sheet styles what sits around them - header, the rail of rooms
+ * (a left sidebar from 900px, a horizontal chip strip below it), the rail's
+ * foot actions, the Overview room, and the import card. Chrome colours flow
+ * through tokens.css.
+ *
+ * `.ds-*` is the design-system studio's own namespace (plan 97 section 10); `.start-*`
+ * is what the surrounding page has always been called.
+ */
+
+/* Full-viewport on EVERY tab: the hero wash (.start::before) paints on this
+   container, so any narrower cap visibly clips the gradient at the container
+   edge - and the studio panels want the room. The 2650px ceiling only kicks in
+   on ultra-wide monitors, where margin:auto recenters the page. */
+.start {
+  max-width: 2650px;
+  margin: 0 auto;
+  padding: 18px 22px 96px;
+  position: relative;
+}
+/* A soft brand-tinted wash behind the hero so a first-run page reads as crafted,
+   not blank - the accent the user is about to define, hinted. Theme-aware via the
+   primary token; pointer-events-through so it never blocks the controls. */
+.start::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 340px;
+  background:
+    radial-gradient(120% 80% at 15% 0%, hsl(var(--primary) / 0.10), transparent 60%),
+    radial-gradient(90% 70% at 100% 0%, hsl(var(--primary) / 0.06), transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+/* Lift real content above the ::before wash - but NOT the language cluster, whose
+   own `position: fixed` (gallery.css) pins it top-right like every other view.
+   Without the exclusion this rule's `position: relative` wins (equal specificity,
+   later sheet) and drops the selector into flow. */
+.start > *:not(.gallery-topright) { position: relative; z-index: 1; }
+
+/* The studio's return pill is a real .tools-home glass pill (arrow + label from
+   components/back-pill.ts, paint from components.css/buttons.css) - this keeps
+   only the studio's own placement. It sits in flow rather than pinned to the
+   corner, so align-self + fit-content hold it to content size on the colour
+   tab, where .start becomes a flex column (≥1100px below) and a stretched flex
+   item would paint the pill as a full-width bar. */
+.start-back {
+  margin-bottom: 10px;
+  align-self: flex-start;
+  width: fit-content;
+}
+/* Back pill + always-home FAB as ONE in-flow row. The studio's back pill sits in
+   flow (not pinned - see .start-back), so its Home twin rides right beside it here
+   rather than in the top-right cluster, matching every other view's back+home pair.
+   align-self keeps the row content-width when .start becomes a flex column (≥1100px);
+   the row owns the bottom gap so the pill inside it drops its own. */
+.start-back-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  width: fit-content;
+  margin-bottom: 10px;
+}
+.start-back-row .start-back { margin-bottom: 0; }
+/* The global profile/language cluster is physically top-right even in RTL.
+   Keep the escape row on the opposite edge so neither can cover the other. */
+html[dir="rtl"] .start-back-row {
+  align-self: flex-end;
+  margin-right: auto;
+}
+/* The always-home FAB that twins the language FAB in this view's top-right
+   cluster is shared chrome now - its box + glass live in topbar.css/.home-fab
+   (components/home-fab.ts), so nothing about it is styled here. */
+
+/* ── Header - .start-head/-eyebrow/-title/-sub compose .section-header
+      (chips.css). ONE compact header for every tab - eyebrow, title and sub on
+      a single wrapping line. It used to run hero-sized with the Colour tab
+      alone folding it down (a :has(data-active-tab) variant), but that jumped
+      the whole top chrome on every switch to/from Colours; the steps should
+      feel like one stable surface, so the workbench header is now the only
+      header. ─────────────────────────────────────────────────────────── */
+.start-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 12px;
+  /* Leave the fixed top-right cluster its room - the Home + language FABs now
+     that the whole-system actions sit in the rail's foot (two 2.6rem squares +
+     gap fit inside 8rem). Capped against the viewport so a narrow window doesn't
+     reserve most of the line. */
+  padding-right: min(8rem, 24vw);
+}
+.start-eyebrow {
+  margin: 0;
+  padding: 4px 11px;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.08em;
+}
+.start-title {
+  margin: 0;
+  font-size: calc(20px * var(--a11y-fs));
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+.start-sub { font-size: calc(12.5px * var(--a11y-fs)); line-height: 1.5; flex: 1 1 26ch; }
+.start-ds { display: inline-flex; align-items: center; gap: .35rem; flex: 0 1 auto; }
+.start-ds-name {
+  width: min(16rem, 44vw); min-width: 7rem; padding: .16rem .38rem;
+  border: 1px solid hsl(var(--input)); border-radius: var(--ui-radius-control);
+  background: hsl(var(--background) / .72); color: hsl(var(--foreground));
+  font: inherit; font-size: inherit; font-weight: 650; outline: none;
+}
+.start-ds-name:focus { border-color: hsl(var(--ring) / .65); box-shadow: var(--ui-effect-focus-halo); }
+.start-ds-lock { color: hsl(var(--muted-foreground)); font-size: var(--fs-xs); }
+/* Short screens: the sentence goes entirely - the tabs already say where we are. */
+@media (max-height: 720px) {
+  .start-sub { display: none; }
+}
+
+/* ── The studio: a rail of rooms beside the open room ─────────────────────────
+      The rooms are PEERS. There is no order to walk, so there is nothing here
+      that counts, numbers or nudges - an item is either where you are or where
+      you could go.
+
+      Stacking: this takes `.start > *`'s z-index 1, so the rail (15) and the
+      swatch popover (.be-editor, 30) both live in THIS context - the popover
+      paints over the rail, and the palette sheet (a direct child of .start at
+      50) still paints over everything, exactly as before. ───────────────────── */
+.ds-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "rooms" "main" "actions";
+  gap: 14px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .ds-shell {
+    grid-template-columns: 13.5rem minmax(0, 1fr);
+    grid-template-areas: "rail main";
+    gap: 20px;
+  }
+}
+
+.ds-rail { min-width: 0; }
+/* Phones: the rail folds to a wrapping chip strip under the header. Only the
+   CHIPS pin (the wayfinding); display:contents makes the nav a grid sibling of
+   the tall room, so its sticky boundary is the whole studio rather than a short
+   rail wrapper. The action buttons remain after the room and scroll normally. */
+@media (max-width: 899px) {
+  .ds-rail { display: contents; }
+  .ds-room-nav {
+    grid-area: rooms;
+    position: sticky;
+    top: 0;
+    z-index: 15; /* under the swatch popover (30) and the palette sheet (50) */
+    padding: 6px 0;
+    background: hsl(var(--background) / 0.92);
+    backdrop-filter: blur(8px);
+  }
+  .ds-main { grid-area: main; }
+  .ds-rail-actions { grid-area: actions; }
+}
+@media (min-width: 900px) {
+  .ds-rail {
+    grid-area: rail;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: sticky;
+    top: 14px;
+    max-height: calc(100dvh - 28px);
+    overflow-y: auto;
+  }
+  .ds-main { grid-area: main; }
+}
+
+.ds-rooms {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+@media (max-width: 899px) {
+  /* Wrap, never scroll: a room chip off the page is a room the user doesn't
+     know exists (and a scroll container clips the focus ring). Two rows on a
+     phone beats six chips with three hidden. */
+  .ds-rooms { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+  .ds-rooms > li { flex: none; }
+}
+
+.ds-room {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;      /* a real touch target on every width */
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+  transition: background var(--dur-1), color var(--dur-1);
+}
+.ds-room:hover { background: hsl(var(--muted) / 0.7); color: hsl(var(--foreground)); }
+/* The current room reads as a TINTED FILL, never a coloured outline - the house
+   rule for anything with a border-radius. */
+.ds-room[aria-current="page"] { background: hsl(var(--primary) / 0.14); color: hsl(var(--foreground)); }
+.ds-room[aria-current="page"] .ds-room-ic { color: hsl(var(--primary)); }
+.ds-room-ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: calc(18px * var(--a11y-fs));
+  height: calc(18px * var(--a11y-fs));
+}
+.ds-room-ic svg { width: 100%; height: 100%; }
+.ds-room-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 899px) {
+  .ds-room { width: auto; border-radius: var(--radius-pill); padding: 8px 14px; }
+}
+
+/* Foot: the whole-system actions and the transient note. */
+.ds-rail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid hsl(var(--border));
+}
+@media (min-width: 900px) {
+  .ds-rail-actions { flex-direction: column; align-items: stretch; }
+}
+.ds-rail-actions .be-btn {
+  /* --chrome-h is the shared height of every top-level control (tokens.css). */
+  min-height: var(--chrome-h);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+  padding-inline: 0.85rem;
+  border-radius: var(--radius);
+  white-space: nowrap;
+}
+/* `hidden` on a foot action has to actually hide it: the display above
+   out-specifies base.css's own [hidden] rule. Four of the five start out hidden
+   now - the tray, both exports and the Versions entry (plans/137 B1) - so one
+   rule for the group beats another per-class exception each time. */
+.ds-rail-actions .be-btn[hidden] { display: none; }
+/* The quiet way to a FIRST publish (plans/137 B2) - text under the export
+   actions rather than a fifth peer button, because until a version exists there
+   is nothing to go and look at. Full 44px tap target all the same. */
+.ds-versions-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 4px;
+  border: 0;
+  background: none;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-size: var(--fs-sm);
+  text-align: start;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.ds-versions-link:hover { color: hsl(var(--foreground)); }
+.ds-versions-link[hidden] { display: none; }
+.ds-rail-note {
+  /* width, not a flex-basis: the foot is a ROW on phones (where 100% width puts
+     the note on its own line) and a COLUMN on desktop (where a 100% basis would
+     be a height). */
+  width: 100%;
+  flex: none;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  overflow-wrap: anywhere;
+}
+.ds-rail-note.is-error { color: hsl(var(--destructive)); }
+
+.ds-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.ds-panel[hidden] { display: none; }
+
+/* ── The Overview room - counts and doors, no progress ─────────────────────── */
+.ds-ov { display: flex; flex-direction: column; gap: 14px; }
+.ds-ov-loading { margin: 0; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
+.ds-ov-title { margin: 0; font-size: calc(17px * var(--a11y-fs)); font-weight: 800; letter-spacing: -0.01em; }
+.ds-ov-sub { margin: 0; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); max-width: 62ch; }
+
+.ds-ov-doors {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+.ds-ov-door,
+.ds-ov-card {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  text-align: start;
+  padding: 16px;
+  border: 0;
+  box-shadow: inset 0 0 0 1px #fff1, 0 1px 4px #0002;
+  border-radius: calc(var(--radius) * 1.2);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font: inherit;
+  cursor: pointer;
+  transition: background var(--dur-1), box-shadow var(--dur-1), transform var(--dur-1);
+}
+.ds-ov-door:hover,
+.ds-ov-card:hover {
+  background: hsl(var(--muted) / 0.5);
+  box-shadow: var(--ui-elevation-floating);
+  transform: translateY(-2px);
+}
+.ds-ov-door:focus-visible,
+.ds-ov-card:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
+/* The two fastest starts carry a quiet tint. Neither is the "recommended"
+   route: one colour and a complete file are equally valid first material. */
+.ds-ov-door[data-ds-door="color-pick"],
+.ds-ov-door[data-ds-door="file"] {
+  background:
+    linear-gradient(145deg, hsl(var(--primary) / .11), transparent 64%),
+    hsl(var(--card));
+}
+.ds-ov-door-ic {
+  display: grid;
+  place-items: center;
+  width: calc(22px * var(--a11y-fs));
+  height: calc(22px * var(--a11y-fs));
+  color: hsl(var(--primary));
+}
+.ds-ov-door-ic svg { width: 100%; height: 100%; }
+.ds-ov-door-name { font-size: var(--fs-lg); font-weight: 700; }
+.ds-ov-door-note { font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+
+.ds-ov-cards {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+}
+.ds-ov-card-label { font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.ds-ov-card-value { font-size: var(--fs-lg); font-weight: 700; overflow-wrap: anywhere; }
+/* Own counts lead, the starter's follows in the muted register - the one
+   grammar every room paints ownership with (plan 182 section 4.2). */
+.ds-ov-sub-value { font-size: var(--fs-sm); font-weight: 500; color: hsl(var(--muted-foreground)); }
+.ds-ov-card-note { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); overflow-wrap: anywhere; }
+.ds-ov-strip { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.ds-ov-chip {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.12);
+}
+/* Scaffolding, not a decision: smaller and faded, behind a hairline. Never a
+   dashed edge - dashed means drop target in this app. */
+.ds-ov-chip.is-starter { width: 12px; height: 12px; border-radius: var(--radius-xs); opacity: 0.5; }
+.ds-ov-strip-rule { width: 1px; height: 14px; margin: 0 2px; background: hsl(var(--border)); }
+/* The empty state's one quiet line: two inline controls that read as text. */
+.ds-ov-bring { margin: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.ds-ov-inline {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.ds-ov-inline:hover { color: hsl(var(--foreground)); }
+.ds-ov-more { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ds-ov-exit { font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+
+/* ── The import card, and the modal it now opens in ──────────────────────── */
+/* Import is the inviting way in - bringing your existing brand across is the best
+   first move, so the button wears the house glowing-CTA look (the same brand-
+   coloured gloss as .be-cta.is-active): a top-lit gradient mixed off --primary, a
+   soft glow in the same hue, and a gentle lift + brighter glow on hover. A slow,
+   low-amplitude breathing glow draws the eye without nagging. */
+/* Combined selector (.be-btn.start-import-cta) so this beats .be-btn's own
+   background - same tie-break the glowing CTA uses. */
+.be-btn.start-import-cta {
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(0 0% 100% / .28);
+  background: linear-gradient(163deg,
+    color-mix(in oklab, hsl(var(--primary)), white 12%),
+    color-mix(in oklab, hsl(var(--primary)), black 20%));
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / .38), 0 3px 12px -5px hsl(var(--primary) / .7);
+  transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+}
+.start-import-cta .start-import-cta-ic { font-weight: 700; }
+.be-btn.start-import-cta:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(163deg,
+    color-mix(in oklab, hsl(var(--primary)), white 18%),
+    color-mix(in oklab, hsl(var(--primary)), black 14%));
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / .45), 0 6px 18px -5px hsl(var(--primary) / .95);
+}
+.be-btn.start-import-cta.is-open { transform: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .be-btn.start-import-cta:not(:hover):not(.is-open) { animation: start-import-glow 3s ease-in-out infinite; }
+}
+@keyframes start-import-glow {
+  0%, 100% { box-shadow: inset 0 1px 0 hsl(0 0% 100% / .38), 0 3px 12px -5px hsl(var(--primary) / .55); }
+  50%      { box-shadow: inset 0 1px 0 hsl(0 0% 100% / .38), 0 5px 16px -5px hsl(var(--primary) / .9); }
+}
+
+/* The dialog: wider than the plain .modal so the five format tiles stay on one
+   line, and capped so a long result list scrolls inside it rather than growing the
+   dialog past the viewport. */
+.start-import-modal {
+  width: min(52rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 3rem);
+  overflow-y: auto;
+}
+/* Title plus a visible way out (plans/137 B3). Escape and a backdrop tap dismiss
+   the dialog on their own, but on a phone the card is the whole screen and
+   neither of those is something you can see. */
+.start-import-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.start-import-head .modal-title { flex: 1 1 auto; }
+.start-import-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-top: -10px;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: hsl(var(--muted-foreground));
+  font-size: calc(15px * var(--a11y-fs));
+  line-height: 1;
+  cursor: pointer;
+}
+.start-import-close:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.start-import-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.start-import-panel[hidden] { display: none; }
+/* The card IS the control - a label wrapping the file input, so a click
+   anywhere opens the picker; drops land on the same routing. */
+.start-import-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 16px 18px;
+  border: 1.5px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--card) / 0.6);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+.start-import-drop:hover { border-color: hsl(var(--primary) / 0.55); }
+.start-import-drop.is-dragover {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.07);
+}
+/* Keyboard path: the visually-hidden file input inside is focusable - surface
+   its focus on the card. */
+.start-import-drop:has(.start-import-file:focus-visible) {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+/* The four accepted formats, in preference order - recognition over prose. */
+.start-import-formats {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.start-import-fmt {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 108px;
+  padding: 12px 14px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 0.7);
+  background: hsl(var(--card));
+}
+.start-import-fmt-icon {
+  display: grid;
+  place-items: center;
+  width: calc(30px * var(--a11y-fs));
+  height: calc(30px * var(--a11y-fs));
+  color: hsl(var(--foreground) / 0.8); /* the mono marks; the Lolly tile's img keeps its own colour */
+}
+.start-import-fmt-icon img { display: block; border-radius: var(--radius-sm); }
+.start-import-fmt-name { font-size: calc(12.5px * var(--a11y-fs)); font-weight: 700; color: hsl(var(--foreground)); }
+.start-import-fmt-ext {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+}
+.start-import-btn { cursor: pointer; }
+.start-import-drophint { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); margin-top: -8px; }
+.start-import-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: stretch;
+  padding: 12px 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+}
+.start-import-name { margin: 0; font-size: var(--fs-md); font-weight: 700; overflow-wrap: anywhere; }
+.start-import-source {
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-size: calc(10.5px * var(--a11y-fs));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+}
+.start-import-stats { margin: 0; font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.start-import-warn { margin: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); font-style: italic; }
+.start-import-err { margin: 0; font-size: calc(12.5px * var(--a11y-fs)); font-weight: 600; color: hsl(var(--destructive)); }
+.start-cta--import { align-self: flex-start; }
+
+/* ── The studio mount ────────────────────────────────────────────────────── */
+/* z-index auto: the wrap must not become a stacking context of its own, so the
+   swatch popover inside it (.be-editor, z-index 30) shares a context with the
+   sticky rail (15) and paints above it, while the rooms' normal-flow panels
+   still scroll beneath. */
+.start-editor-wrap { display: flex; flex-direction: column; gap: 22px; z-index: auto; }
+.start-editor-mount { display: block; }
+.start-editor-loading { margin: 0; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
+/* The studio's own panels already gap themselves (.be gap); match that rhythm
+   so the whole page reads as one column of evenly-spaced cards. */
+.start-editor-mount .be { gap: 22px; }
+.start-editor-mount .be-tab { gap: 22px; }
+/* Main pane only - the side pane spaces its panels inside .be-split-scroll
+   (brand-studio.css margins), and ≥1100px it's a flex column whose gap would
+   double-space the download dock. */
+.start-editor-mount .be-split-main { gap: 22px; }
+/* The .be-tab gap above would re-widen the split's gutter - the divider's own
+   16px track is the whole gutter there (brand-studio.css). */
+@media (min-width: 1100px) {
+  .start-editor-mount .be-tab--split { column-gap: 0; }
+}
+
+/* ── Colours room, ≥1100px: a viewport-fit page. The ONLY scrolling happens
+      inside the split's two panes (brand-studio.css gives each overflow-y:auto
+      and stretches them to the split's height), so their bottoms anchor to the
+      viewport and the page itself never scrolls. The chain hands 100dvh down
+      view → shell → main → wrap → mount → .be → split; every grid link needs a
+      minmax(0,1fr) track (or min-height:0) or it would size to its content
+      instead. Any other room (Overview parks `overview` on the same attribute)
+      simply doesn't match, and the page scrolls normally. */
+@media (min-width: 1100px) {
+  .start:has(.be[data-active-tab="color"]) {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 14px;
+    overflow: clip; /* not hidden: clip can't become a scroll container, so the page stays put */
+  }
+  .start:has(.be[data-active-tab="color"]) .ds-shell { flex: 1; min-height: 0; align-items: stretch; }
+  .start:has(.be[data-active-tab="color"]) .ds-main { min-height: 0; }
+  .start:has(.be[data-active-tab="color"]) .start-editor-wrap { flex: 1; min-height: 0; }
+  .start:has(.be[data-active-tab="color"]) .start-editor-mount {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+  }
+  .start:has(.be[data-active-tab="color"]) .start-editor-mount .be {
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr); /* the one visible panel (the split) gets the full height */
+  }
+  /* The rail is a grid item in a stretched row here, so cap it to the row
+     rather than letting six items decide the page's height. */
+  .start:has(.be[data-active-tab="color"]) .ds-rail { max-height: 100%; }
+}
+
+/* ── SVG colour review (the "no formal tokens - pick which colours to keep"
+      path) - a checkbox grid, each chip a uniform-border rounded swatch card
+      (never a single accent edge). ─────────────────────────────────────────── */
+.start-color-actions { display: flex; gap: 8px; margin: 10px 0; }
+.start-color-grid {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+.start-color-chip {
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 0.6);
+  overflow: hidden;
+}
+.start-color-chip label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+.start-color-chip input[type="checkbox"] { flex: none; margin: 0; }
+.start-color-swatch {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid hsl(var(--border));
+}
+.start-color-hex {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── The source picker (plan 97 section 8) ──────────────────────────────────────────
+      Stage 1 asks WHAT you have; stage 2 is that source's own control. Only the
+      sources that can actually be used are here - there is no disabled tile and
+      no "coming soon" line, because a control nobody can press is an apology
+      taking up a slot. ─────────────────────────────────────────────────────── */
+.ds-src-tiles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+.ds-src-tiles[hidden] { display: none; }
+.ds-src-tile {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  text-align: start;
+  width: 100%;
+  min-height: 44px;
+  padding: 16px;
+  /* A uniform border on all four sides - the house rule for a rounded card. */
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.2);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font: inherit;
+  cursor: pointer;
+  transition: background var(--dur-1), box-shadow var(--dur-1);
+}
+.ds-src-tile:hover { background: hsl(var(--muted) / 0.5); box-shadow: 0 2px 10px -6px hsl(var(--foreground) / 0.4); }
+.ds-src-tile:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.ds-src-tile-ic {
+  display: grid;
+  place-items: center;
+  width: calc(22px * var(--a11y-fs));
+  height: calc(22px * var(--a11y-fs));
+  color: hsl(var(--primary));
+}
+.ds-src-tile-ic svg { width: 100%; height: 100%; }
+.ds-src-tile-name { font-size: var(--fs-lg); font-weight: 700; }
+.ds-src-tile-note { font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+
+.ds-src-stage { display: flex; flex-direction: column; gap: 12px; }
+.ds-src-stage[hidden] { display: none; }
+/* The only way back out of a stage, on every stage - so it holds the same 44px
+   floor .ds-src-tile, .ds-src-url-go, .ds-pdf-add and .ds-roles-chip hold to.
+   .be-btn--sm's padding alone leaves it near 27px, which is a thumb-sized miss
+   on the one control that undoes a wrong turn. */
+.ds-src-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+.ds-src-back:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+/* The image drop card composes .start-import-drop, so it inherits the dashed
+   edge - this file's dashed borders mark drop areas and nothing else. */
+.ds-src-drop:has(.ds-src-imgfile:focus-visible) {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+.ds-src-drop-ic {
+  display: grid;
+  place-items: center;
+  width: calc(30px * var(--a11y-fs));
+  height: calc(30px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.ds-src-drop-ic svg { width: 100%; height: 100%; }
+.ds-src-drop:has(.ds-src-pdffile:focus-visible) {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+.ds-src-stage-note,
+.ds-src-note { margin: 0; font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+/* Colour is NOT the signal. Every refusal in the picker - a bad address, a page
+   that would not answer, a mark over the limit - arrives through this one line,
+   and `color: hsl(var(--destructive))` on 12.5px text is the case tokens.css
+   writes up under KNOWN LIMITS: Lc 16.6 on the dark page, Lc 23.5 with the
+   darkened value, against a bar of 75, and no red reaches it. It would make the
+   error state markedly LESS readable than the muted state it replaces. So the
+   ink stays --foreground with a weight, and the semantics ride a mark that does
+   not depend on telling two colours apart - exactly what .ds-v-slugline.is-error
+   does on the Versions panel, and what that KNOWN LIMITS entry prescribes. */
+.ds-src-note.is-error { color: hsl(var(--foreground)); font-weight: 600; }
+.ds-src-note.is-error::before { content: '\26A0'; color: hsl(var(--destructive)); margin-inline-end: 0.4em; }
+
+/* ── The PDF source's result (plan 97 M5) ────────────────────────────────────
+      What one scan found, and the presses that act on it: the marks hand-off,
+      the embedded faces with the caveats the DOCUMENT stated, and the way out to
+      the full exploder. Same card shell as the design-file result, so the two
+      stages read as one family. */
+.ds-src-pdf-result,
+.ds-src-site-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+}
+.ds-src-pdf-result[hidden],
+.ds-src-site-result[hidden] { display: none; }
+.ds-pdf-fonts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+/* A uniform border on all four sides - the house rule for a rounded card. */
+.ds-pdf-font {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 0.6);
+}
+.ds-pdf-font-name { font-size: var(--fs-md); font-weight: 700; overflow-wrap: anywhere; }
+.ds-pdf-font-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.ds-pdf-chip {
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-size: calc(10.5px * var(--a11y-fs));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+/* The warning chip carries the SUBSET / reuse-forbidden caveat, so it has to be
+   the most readable thing in the row, not the least. Destructive-on-destructive
+   measured 3.86 : 1 in light, 2.49 : 1 in dark and 2.00 : 1 in teal against a
+   4.5 : 1 requirement - and at 10.5px uppercase nothing here is large text. The
+   tint alone carries the warning and the text keeps the sheet's own foreground,
+   which is what .pdfx-tag--warn does on the sibling surface. */
+.ds-pdf-chip--warn { background: hsl(var(--destructive) / 0.18); color: hsl(var(--foreground)); }
+.ds-pdf-font-note {
+  flex: 1 1 12rem;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+/* 44px on every width, the same floor .ds-src-tile and .ds-roles-chip hold to. */
+.ds-pdf-add,
+.ds-pdf-logos,
+.ds-pdf-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+.ds-pdf-add { margin-inline-start: auto; }
+/* Busy and added are aria-disabled, never `disabled` - the control keeps focus
+   (views/start.ts), so it needs the resting look the attribute usually brings. */
+.ds-pdf-add[aria-disabled="true"] { cursor: default; }
+/* Added reads as a tinted fill, never a coloured edge on a rounded control. */
+.ds-pdf-add.is-added { background: hsl(var(--primary) / 0.16); font-weight: 700; }
+.ds-pdf-more { align-self: flex-start; text-decoration: none; }
+
+/* ── The website source (plan 97 section 9, M6) ─────────────────────────────────────
+      One field and one button, because that is the whole interaction: type an
+      address, press the button that names the host it is about to read. The
+      stage only exists on a device that can actually read a page (views/start.ts
+      renders nothing here otherwise), so there is no disabled state to style. */
+.ds-src-url { display: flex; flex-direction: column; gap: 6px; }
+.ds-src-url-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+/* The field takes the row and the button hugs; below ~26rem the button wraps to
+   its own line and both stay full-width targets rather than shrinking. */
+/* The 44px floor applies to the field too, not just the button: it is the one
+   thing on this stage a thumb has to hit first, and the shared .field-input
+   sits nearer 35px. */
+.ds-src-urlfield { flex: 1 1 16rem; min-width: 0; min-height: 44px; }
+.ds-src-url-go {
+  flex: 0 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* The same 44px floor .ds-src-tile, .ds-roles-chip and .ds-pdf-add hold to. */
+  min-height: 44px;
+  /* The label grows and shrinks with the host it names ("Read the page" →
+     "Read suse.com"), so it must not reflow the field beside it into a jump. */
+  min-width: 10rem;
+}
+/* The consent line: what will be read, and by what. Muted because it is a
+   statement of fact rather than a warning - there is nothing to alarm anyone
+   about until they press, and nothing happens if they do not. */
+.ds-src-url-consent {
+  margin: 0;
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  overflow-wrap: anywhere;
+}
+/* The result card's presses, on the same floor as the PDF card's. Busy and done
+   are aria-disabled, never `disabled` - the control keeps focus
+   (views/start.ts), so it needs the resting look the attribute usually brings. */
+.ds-site-act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+.ds-site-act[aria-disabled="true"] { cursor: default; }
+/* Done reads as a tinted fill, never a coloured edge on a rounded control. */
+.ds-site-act.is-added { background: hsl(var(--primary) / 0.16); font-weight: 700; }
+
+/* ── The semantic mapping review - ONE decision, in the result card ────────── */
+.ds-roles-card { display: flex; flex-direction: column; gap: 8px; }
+.ds-roles-q { margin: 0; font-size: calc(13.5px * var(--a11y-fs)); font-weight: 700; }
+.ds-roles-choices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ds-roles-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  /* The same 44px .ds-src-tile and .ds-tray-row hold to - this is the one
+     decision the mapping card asks for, on every width including a phone. */
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: background var(--dur-1);
+}
+.ds-roles-chip:hover { background: hsl(var(--muted) / 0.7); }
+/* Chosen reads as a tinted fill, never a coloured edge on a rounded control. */
+.ds-roles-chip[aria-pressed="true"] { background: hsl(var(--primary) / 0.16); font-weight: 700; }
+.ds-roles-chip:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+
+/* The result card's action row wraps: an install, its skip and a "keep it for
+   later" can be three controls on a phone. */
+.start-color-actions { flex-wrap: wrap; align-items: center; }
+
+/* ── The tray's rail toggle ──────────────────────────────────────────────────
+      Hidden while the tray is empty (views/start.ts owns that), so this only
+      styles the state where there is something to see. */
+.ds-tray-toggle[hidden] { display: none; }
+.ds-tray-toggle-ic {
+  display: grid;
+  place-items: center;
+  width: var(--fs-xl);
+  height: var(--fs-xl);
+}
+.ds-tray-toggle-ic svg { width: 100%; height: 100%; }
+.ds-tray-toggle-n {
+  min-width: calc(18px * var(--a11y-fs));
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--primary) / 0.16);
+  color: hsl(var(--foreground));
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: calc(18px * var(--a11y-fs));
+  text-align: center;
+}
+.ds-tray-toggle-n:empty { display: none; }
+
+/* Phones: the foot actions share the line evenly rather than one of them
+   wrapping alone under the others. */
+@media (max-width: 640px) {
+  .ds-rail-actions .be-btn { flex: 1 1 auto; }
+}
+
+/* ── The Versions panel (plan 97 section 6a) ─────────────────────────────────────────
+      A foot-pinned panel, not a room, and it looks like one: the same quiet
+      surface the Overview room uses, no colour of its own, and NO ANIMATION
+      anywhere - there is nothing here worth drawing the eye to, and reduced
+      motion then needs no exception because there is no motion to reduce.
+
+      The one place colour is spent is the breaking half of the compat card
+      (--destructive on the disclosure's own text) and the Active pill (a tinted
+      FILL, never a coloured outline - the house rule for anything rounded). */
+.ds-versions-toggle[hidden] { display: none; }
+.ds-versions-toggle-ic {
+  display: grid;
+  place-items: center;
+  width: var(--fs-xl);
+  height: var(--fs-xl);
+}
+.ds-versions-toggle-ic svg { width: 100%; height: 100%; }
+
+.ds-versions { display: flex; flex-direction: column; gap: 14px; }
+.ds-v-loading { margin: 0; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
+.ds-v-title { margin: 0; font-size: calc(17px * var(--a11y-fs)); font-weight: 800; letter-spacing: -0.01em; }
+/* The heading is the landing spot after an action removes the control that was
+   pressed, so it takes focus programmatically - and must show a ring when it
+   does, without growing one on a mouse click. */
+.ds-v-title:focus { outline: none; }
+.ds-v-title:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; border-radius: 4px; }
+.ds-v-sub,
+.ds-v-nothing,
+.ds-v-empty,
+.ds-v-follow-note,
+.ds-v-permanent,
+.ds-v-storage-note {
+  margin: 0;
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  max-width: 62ch;
+}
+.ds-v-h3 { margin: 0; font-size: var(--fs-md); font-weight: 700; }
+
+/* Every control in the panel is a real touch target on every width. */
+.ds-versions .be-btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+}
+.ds-v-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.ds-v-err {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: hsl(var(--destructive) / 0.12);
+  color: hsl(var(--destructive));
+  font-size: calc(12.5px * var(--a11y-fs));
+  overflow-wrap: anywhere;
+}
+.ds-v-err[hidden] { display: none; }
+
+.ds-v-ahead,
+.ds-v-restored {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.55);
+}
+.ds-v-ahead-txt,
+.ds-v-restored-txt {
+  margin: 0;
+  flex: 1 1 16rem;
+  font-size: calc(12.5px * var(--a11y-fs));
+}
+
+/* ── Publish ──────────────────────────────────────────────────────────────── */
+.ds-v-publish {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.35);
+}
+.ds-v-fields {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+.ds-v-slugline {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  overflow-wrap: anywhere;
+}
+/* Colour is not the signal - the two states put the same neutral sentence in the
+   same place, so a mark and a weight carry the refusal for anyone who cannot
+   tell them apart. The programmatic half is aria-invalid on the field
+   (rooms/versions.ts). */
+.ds-v-slugline.is-error { color: hsl(var(--destructive)); font-weight: 600; }
+.ds-v-slugline.is-error::before { content: '⚠'; margin-inline-end: 0.4em; }
+
+.ds-v-compat { display: flex; flex-direction: column; gap: 6px; }
+.ds-v-compat-head,
+.ds-v-compat-sub,
+.ds-v-compat-none {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.ds-v-compat-head { font-weight: 700; color: hsl(var(--foreground)); }
+/* `display: flex` on a <summary> takes it out of `list-item`, which removes the
+   native disclosure triangle in every engine - so one is drawn back. Without it
+   the diff rows read as plain bold sentences with nothing saying the token paths
+   are behind them, and the breaking set is the one thing here a person must not
+   skim past. Same construction as .lab-diag-summary (color-lab.css). The 44px is
+   the panel's own touch-target rule: these toggles are the ONLY way to open the
+   lists, so they are controls like any other. */
+.ds-v-diff-sum {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  list-style: none;
+  font-size: calc(12.5px * var(--a11y-fs));
+  cursor: pointer;
+}
+.ds-v-diff-sum::-webkit-details-marker { display: none; }
+.ds-v-diff-sum::before {
+  content: '';
+  flex: none;
+  width: 0.45em; height: 0.45em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  rotate: -45deg;                    /* points to the reading direction when closed */
+  transition: rotate 0.15s ease;
+}
+.ds-v-diff[open] > .ds-v-diff-sum::before { rotate: 45deg; }
+.ds-v-diff-sum:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; border-radius: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .ds-v-diff-sum::before { transition: none; }
+}
+html[data-a11y-motion="reduce"] .ds-v-diff-sum::before { transition: none; }
+/* The breaking set is the one thing on this page a person must not skim past. */
+.ds-v-diff--break > .ds-v-diff-sum { color: hsl(var(--destructive)); font-weight: 700; }
+.ds-v-paths,
+.ds-v-assets {
+  list-style: none;
+  margin: 4px 0 0;
+  /* Logical, not physical: the indent has to follow the reading direction
+     (styles/parts/rtl.css does not patch what is already direction-aware). */
+  padding: 0;
+  padding-inline-start: 14px;
+  max-height: 12rem;
+  overflow-y: auto;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  overflow-wrap: anywhere;
+}
+.ds-v-asset--break { color: hsl(var(--destructive)); }
+
+/* ── The published list ───────────────────────────────────────────────────── */
+.ds-v-list-sec { display: flex; flex-direction: column; gap: 10px; }
+.ds-v-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ds-v-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.35);
+}
+.ds-v-row.is-active { background: hsl(var(--primary) / 0.1); }
+.ds-v-row-main { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.ds-v-row-label { font-size: var(--fs-lg); font-weight: 700; overflow-wrap: anywhere; }
+.ds-v-row-slug,
+.ds-v-row-date,
+.ds-v-row-pins {
+  margin: 0;
+  font-size: calc(11.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.ds-v-row-slug { font-family: var(--font-mono, ui-monospace, monospace); overflow-wrap: anywhere; }
+.ds-v-row-note { margin: 0; font-size: calc(12.5px * var(--a11y-fs)); overflow-wrap: anywhere; }
+.ds-v-pill {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--primary) / 0.18);
+  color: hsl(var(--foreground));
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+.ds-v-row-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.ds-v-storage {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  overflow-wrap: anywhere;
+}
+}

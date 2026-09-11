@@ -1,0 +1,154 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* ── Shared upload dropzone (lib/upload-dropzone.ts) ── Neutral `.updz*` classes so any
+   surface can mount it (the catalogue's "Your uploads" section, the #/start Catalogue
+   tab); visual treatment ported from the catalogue's old .cat-dropzone. A <label> over
+   a visually-hidden file input, so :focus-within is the input's keyboard ring.
+   Modifiers (applied by the CALLER - the component can't know its surroundings):
+     .updz--empty    the roomier column layout when the zone IS the whole section
+     .updz--compact  a tighter row for dense surfaces (drops the hint line)
+   State classes set by the component: .is-dragover (a file drag is over the zone) and
+   .is-busy (ingest in flight - pointer-events off so a second drop can't land). */
+.updz {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  margin-bottom: .9rem; padding: 14px 16px;
+  min-height: 20vh; height:15em;
+  border: 2px dashed hsl(var(--border)); border-radius: var(--radius);
+  color: hsl(var(--muted-foreground)); font-size: calc(.9rem * var(--a11y-fs)); text-align: center;
+  cursor: pointer;
+  transition: border-color var(--dur-1), background var(--dur-1), color var(--dur-1);
+}
+.updz-icon { display: inline-flex; flex: none; color: hsl(var(--muted-foreground)); }
+.updz-icon svg { width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs)); }
+/* Stack the prompt over the format list so the two read as headline + fine print,
+   not one wrapped sentence. */
+.updz-copy { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+/* The prompt is the thing to see: larger and in the foreground tone against the zone's
+   muted body colour. */
+.updz-lead { font-size: calc(1.05rem * var(--a11y-fs)); font-weight: 500; color: hsl(var(--foreground)); }
+.updz--empty { flex-direction: column; gap: 12px; padding: 2.6rem 1.5rem; }
+.updz--empty .updz-icon svg { width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); }
+.updz--compact { flex-direction: row; margin-bottom: 0; padding: 9px 12px; gap: 8px; font-size: calc(.85rem * var(--a11y-fs)); }
+.updz--compact .updz-hint { display: none; }
+.updz:hover, .updz:focus-within { border-color: hsl(var(--primary) / .55); color: hsl(var(--foreground)); }
+.updz:focus-within { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.updz.is-dragover { border-color: hsl(var(--primary)); background: hsl(var(--primary) / .08); color: hsl(var(--foreground)); }
+.updz.is-busy { opacity: .6; pointer-events: none; }
+.updz-browse { color: hsl(var(--primary)); font-weight: 600; text-decoration: underline; }
+/* Supported formats as subtle, glanceable chips (exact formats in each chip's title). */
+.updz-hint { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
+.updz-chip {
+  padding: var(--sp-3) var(--sp-5); border-radius: var(--radius-pill);
+  border: 0;
+  background: hsl(var(--muted) / .4);
+  color: hsl(var(--muted-foreground));
+  font-size: calc(.72rem * var(--a11y-fs)); line-height: 1.6; white-space: nowrap;
+}
+
+/* Touch flips the hierarchy: "browse" was a small inline link inside a sentence about
+   a gesture a phone does not have, in a zone spending a screenful on it. A coarse
+   pointer gets the picker as a full-width primary CTA (fill from .btn--primary,
+   buttons.css) and a row-height zone; the drag listeners are untouched, so an iPad
+   drag-in still lands. The type list goes with the lead - the OS picker filters by
+   `accept` anyway. Both leads sit INSIDE .updz-text so the "Adding…" swap and its
+   restore still cover whichever one is showing. */
+.updz-cta { display: none; }
+@media (pointer: coarse) {
+  /* 68px = the CTA's 44px floor plus the padding, so the "Adding…" swap (which
+     replaces the CTA with a line of text) does not shrink the zone under itself. */
+  .updz { flex-direction: row; min-height: 68px; height: auto; padding: 12px 14px; }
+  /* The roomier column layout is a desktop luxury; on touch both variants are the
+     same [icon][CTA] band, so the CTA has a row to be full-width in. */
+  .updz--empty { flex-direction: row; padding: 12px 14px; }
+  .updz-copy { flex: 1; min-width: 0; }
+  .updz-hint, .updz-lead { display: none; }
+  .updz-cta {
+    display: block; width: 100%; min-height: 44px;
+    padding: 0.7rem 1rem; font-size: calc(0.95rem * var(--a11y-fs));
+  }
+}
+
+/* ── Trim-to-content offer (lib/design-system/trim-offer.ts) ── plan 97 section 7.3. Lives in
+   this sheet because it belongs to the same moment as the zone above: a user file is
+   becoming an asset, and every surface that ingests one (the dropzone, the Logos room,
+   the asset picker's upload flow, the catalogue details panel) shows the same card.
+   NOT a drop area, so the border is solid - dashed means "drop here" and nothing else.
+   Neutral `.trimo*` classes; the caller owns the mount and its surroundings. The pad
+   field is the shared `.field-input--sm` primitive (fields.css), the actions are `.btn`
+   (buttons.css): nothing here re-forks an atom. */
+.trimo {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+.trimo-head { display: flex; align-items: center; gap: 8px; }
+.trimo-glyph { display: inline-flex; flex: none; color: hsl(var(--muted-foreground)); }
+.trimo-glyph svg { width: var(--fs-xl); height: var(--fs-xl); }
+.trimo-title { font-weight: 600; font-size: calc(.95rem * var(--a11y-fs)); }
+/* Pushed to the end rather than given a colour of its own: the number is the finding,
+   not a status. */
+.trimo-savings { margin-inline-start: auto; color: hsl(var(--muted-foreground)); font-size: calc(.8rem * var(--a11y-fs)); }
+/* Backing out of the question entirely - the pointer twin of Escape (the two
+   buttons below both CHOOSE a file; this one chooses none). Sized as a real
+   target rather than a decorative glyph. */
+.trimo-x {
+  flex: none; display: grid; place-items: center;
+  width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs));
+  border: 0; border-radius: var(--radius-sm); background: transparent; cursor: pointer; line-height: 1;
+  color: hsl(var(--muted-foreground)); font-size: calc(.8rem * var(--a11y-fs));
+}
+.trimo-x:hover { color: hsl(var(--foreground)); background: hsl(var(--muted)); }
+
+/* Before and after, side by side, folding to one column when the mount is narrow
+   (a bottom sheet on a phone) rather than at a device breakpoint. */
+.trimo-figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.trimo-fig { display: flex; flex-direction: column; gap: 6px; margin: 0; }
+.trimo-shot {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 96px; padding: 8px;
+  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) - 2px);
+  /* Transparency is the first question of a logo, so the artwork rides the shared
+     preview checker (tokens.css) - a white mark and a transparent one must not look
+     the same in the card that decides what gets stored. */
+  background: var(--preview-checker), var(--preview-surface);
+}
+.trimo-shot img { max-width: 100%; max-height: 120px; object-fit: contain; }
+.trimo-fig figcaption {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  color: hsl(var(--muted-foreground)); font-size: calc(.78rem * var(--a11y-fs));
+}
+.trimo-dims { color: hsl(var(--foreground)); font-variant-numeric: tabular-nums; }
+
+.trimo-pad { display: flex; align-items: center; gap: 8px; font-size: calc(.85rem * var(--a11y-fs)); }
+.trimo-pad .field-label { margin: 0; }
+.trimo-pad-input { width: 5.5em; }
+.trimo-unit { color: hsl(var(--muted-foreground)); }
+
+/* The permanence sentence (plan 97 section 14.4) sits with the actions, not in a tooltip:
+   the trim is default-on, so its cost is read before the default is taken. */
+.trimo-note { margin: 0; color: hsl(var(--muted-foreground)); font-size: calc(.78rem * var(--a11y-fs)); }
+.trimo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* The mount the card is rendered into. Neutral, because three surfaces share it: the
+   shared dropzone (below its zone), the asset picker (between the scrolling body and the
+   upload footer - flex:none so the panel squeezes the body, not the question) and the
+   catalogue details modal (below the action row, where catalog.css drops the inset the
+   body already carries). Capped + scrollable so a short viewport can still reach the two
+   buttons. Empty until an offer stands, so it is `hidden` at rest and carries no padding
+   of its own then. */
+.trimo-host { flex: none; padding: 12px 20px; max-height: 55vh; overflow-y: auto; }
+
+/* Touch: every control in the card is a real 44px target (plan 97 section 11). The
+   stepper is a text field as well as a target, so it grows in height only. */
+@media (pointer: coarse) {
+  .trimo-x { width: 44px; height: 44px; }
+  .trimo-actions .btn { min-height: 44px; }
+  .trimo-pad-input { min-height: 44px; }
+}
+}

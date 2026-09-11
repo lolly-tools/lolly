@@ -1,0 +1,296 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer (order
+   declared once in styles/app.css), exactly like start.css - so its rules keep a
+   fixed priority (above chrome/primitives/base, below overrides/a11y) no matter
+   when Vite injects this chunk. Do not rely on load order. */
+@layer views {
+/*
+ * The candidate tray (lib/design-system/tray-ui.ts, plan 97 section 8) - one DOM, two
+ * layouts:
+ *
+ *   ≥641px  a DOCK: a small fixed panel on the inline-end edge of the studio.
+ *   ≤640px  a SHEET: the palette sheet's peek/half/full bottom dock, driven by
+ *           lib/mobile-sheet.ts through --ds-tray-h / data-ds-tray-sheet /
+ *           --ds-tray-peek-h / .is-ds-tray-dragging, all stamped on `.start`
+ *           (the common parent, so the grip - a SIBLING kept outside the sheet's
+ *           overflow clip - reads the same vars).
+ *
+ * SPECIFICITY. start.css gives `.start > *:not(.gallery-topright)` position:
+ * relative + z-index:1, which is (0,2,0) and would beat a bare `.ds-tray`. The
+ * shipped palette sheet answers that with `.start > .stu-sheet` - a TIE resolved
+ * by sheet order, which is not something two lazily-injected chunks in the same
+ * layer should be resting on. So the fixed-position rules here are element-
+ * qualified (`.start > aside.ds-tray`, `.start > button.ds-tray-grip`) at
+ * (0,2,1), which wins deterministically. tray-ui.ts creates exactly those two
+ * elements; changing either tag means changing these selectors.
+ *
+ * Separation is SHADOW + a full uniform border on theme tokens - never a single
+ * accent edge on a rounded card, and no colour literals.
+ */
+
+.ds-tray[hidden],
+.ds-tray-grip[hidden] { display: none; }
+
+/* ── The panel itself (shared by both layouts) ───────────────────────────── */
+.start > aside.ds-tray {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  z-index: 40; /* over the sticky rail (15) and the swatch popover (30) */
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.2);
+  box-shadow: 0 10px 34px -12px hsl(var(--foreground) / 0.45);
+  overflow: hidden; /* the body scrolls inside the rounded edge */
+}
+
+/* Dock geometry - bottom inline-end, clear of the phone-only surfaces. */
+@media (min-width: 641px) {
+  .start > aside.ds-tray {
+    inset-inline-end: 18px;
+    bottom: 18px;
+    width: min(23rem, calc(100vw - 2rem));
+    max-height: min(70dvh, 34rem);
+  }
+}
+
+.ds-tray-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 10px 14px;
+  min-height: 44px;
+}
+.ds-tray-title {
+  font-size: calc(13.5px * var(--a11y-fs));
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.ds-tray-count {
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+  margin-inline-end: auto;
+}
+
+.ds-tray-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 0 14px 14px;
+}
+.ds-tray-sub {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+.ds-tray-groups { display: grid; gap: 14px; }
+.ds-tray-group { display: grid; gap: 6px; }
+.ds-tray-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+}
+.ds-tray-group-label {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.ds-tray-group-n {
+  margin-inline-start: 0.4em;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.ds-tray-all {
+  /* A group action, quieter than a row's own Add. */
+  font-size: calc(11.5px * var(--a11y-fs));
+  padding-inline: 0.6rem;
+}
+
+.ds-tray-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.ds-tray-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px; /* a real touch target on every width */
+  padding: 6px 8px;
+  border-radius: calc(var(--radius) * 0.7);
+  background: hsl(var(--muted) / 0.4);
+}
+.ds-tray-dot {
+  flex: none;
+  width: calc(20px * var(--a11y-fs));
+  height: calc(20px * var(--a11y-fs));
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.14);
+}
+.ds-tray-ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: calc(18px * var(--a11y-fs));
+  height: calc(18px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.ds-tray-ic svg { width: 100%; height: 100%; }
+
+.ds-tray-txt { display: grid; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.ds-tray-val {
+  font-size: calc(12.5px * var(--a11y-fs));
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.ds-tray-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: calc(11.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.ds-tray-chip {
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ds-tray-unavail { font-style: italic; }
+
+.ds-tray-acts { flex: none; display: flex; align-items: center; gap: 4px; }
+/* Both the per-row dismiss and the panel's close. 36px on a dock (a pointer
+   target inside a 44px row that must not grow the row past its text), and the
+   full 44px .ds-tray-row and .ds-src-tile hold themselves to on the phone sheet,
+   where the thumb acts and the close button sits inside a head that doubles as
+   the drag handle. The glyph stays 15px either way; only the hit area moves. */
+.ds-tray-x {
+  display: grid;
+  place-items: center;
+  width: calc(36px * var(--a11y-fs));
+  height: calc(36px * var(--a11y-fs));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+.ds-tray-x svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.ds-tray-x:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+
+/* Keyboard focus - the tray's own controls, since the row backgrounds are
+   quiet enough that a default ring can be lost against them. */
+.ds-tray :is(button):focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* ── Phones: the same panel as a bottom sheet ────────────────────────────── */
+.ds-tray-grip { display: none; }
+
+@media (max-width: 640px) {
+  .start { --ds-tray-h: 50dvh; } /* pre-first-snap default; per-state below */
+  /* Peek = the measured head row + the home-indicator inset (the sheet hugs the
+     viewport bottom, so the head itself must clear it). */
+  .start[data-ds-tray-sheet="peek"] { --ds-tray-h: calc(var(--ds-tray-peek-h, 56px) + var(--safe-bottom)); }
+  .start[data-ds-tray-sheet="half"] { --ds-tray-h: 50dvh; }
+  .start[data-ds-tray-sheet="full"] { --ds-tray-h: 88dvh; }
+
+  /* Page bottom clearance while the tray is up - the last panel must scroll
+     clear of the peek strip. */
+  .start:has(> .ds-tray:not([hidden])) {
+    padding-bottom: calc(96px + var(--ds-tray-peek-h, 56px) + var(--safe-bottom));
+  }
+
+  .start > aside.ds-tray {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: var(--ds-tray-h);
+    max-height: 92dvh;
+    /* Above the palette sheet (50) and its grip (60). The view's single-owner
+       rule means the two never sit here together, but a mid-transition frame
+       must still not paint the palette sheet over this one. */
+    z-index: 70;
+    border: 0;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -10px 34px hsl(var(--foreground) / 0.18);
+    padding-bottom: var(--safe-bottom);
+    transition: height 0.34s var(--ease-out); /* the tool sheet's settle */
+  }
+  .start.is-ds-tray-dragging > aside.ds-tray { transition: none; } /* 1:1 finger tracking */
+
+  /* Thumb targets: the full 44px on the surface a thumb actually drives. */
+  .ds-tray-x {
+    width: calc(44px * var(--a11y-fs));
+    height: calc(44px * var(--a11y-fs));
+  }
+
+  /* The head doubles as the sheet's wide drag handle (mobile-sheet's guard skips
+     real controls, so the close button stays tappable). */
+  .ds-tray-head {
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .start.is-ds-tray-dragging .ds-tray-head { cursor: grabbing; }
+
+  /* The grip - fixed on the sheet's top edge, a full-perimeter pill riding
+     `bottom` since this sheet rises from below. */
+  .start > button.ds-tray-grip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    left: 0;
+    width: 100%;
+    bottom: var(--ds-tray-h); /* tracks the sheet's free edge */
+    transform: translateY(50%);
+    height: 30px;             /* generous hit area straddling the edge */
+    z-index: 80;              /* above the sheet */
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: grab;
+    touch-action: none;
+    transition: bottom 0.34s var(--ease-out); /* match the sheet's settle */
+  }
+  .start.is-ds-tray-dragging > button.ds-tray-grip { transition: none; cursor: grabbing; }
+  .start > button.ds-tray-grip::before {
+    content: "";
+    width: 44px;
+    height: 8px;
+    border-radius: var(--radius-pill);
+    background: hsl(var(--primary));
+    border: 1px solid hsl(var(--background) / 0.35);
+    box-shadow: 0 1px 4px hsl(var(--foreground) / 0.25);
+  }
+  .start > button.ds-tray-grip:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: -6px;
+  }
+}
+
+/* Reduced motion (OS preference and the app pref alike): the snap is instant.
+   After the mobile block so equal-specificity rules lose to these. */
+@media (prefers-reduced-motion: reduce) {
+  .start > aside.ds-tray,
+  .start > button.ds-tray-grip { transition: none; }
+}
+html[data-a11y-motion="reduce"] .start > aside.ds-tray,
+html[data-a11y-motion="reduce"] .start > button.ds-tray-grip { transition: none; }
+}

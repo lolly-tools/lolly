@@ -1,0 +1,6 @@
+Contact: mailto:fitzy+security@suse.com
+Contact: https://github.com/lolly-tools/lolly/security/advisories/new
+Expires: 2027-06-30T00:00:00Z
+Policy: https://github.com/lolly-tools/lolly/blob/main/SECURITY.md
+Preferred-Languages: en
+Canonical: https://lolly.tools/.well-known/security.txt

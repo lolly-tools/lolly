@@ -1,0 +1,701 @@
+/* Native top-layer shell for sheets that own their panel and backdrop layout. */
+.modal-overlay {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%; max-width: none; max-height: none;
+  margin: 0; padding: 0; border: 0;
+  background: transparent; overflow: visible;
+}
+.modal-overlay::backdrop { background: transparent; }
+
+/* ─── Modal primitive (components/modal.ts) ─────────────────────────────────
+   The shared chrome for confirm/choice/notice/prompt (confirm-dialog.ts) plus
+   any other mountModal() caller reusing the plain chrome (e.g. the New-folder
+   name prompt in projects.ts, the export-lock password prompt). Named `.modal-*`
+   - it long ago outgrew being Projects-only (component audit rec 4), so it moved
+   here out of parts/projects.css rather than staying under that view's sheet. */
+.modal {
+  border: 0; padding: 22px; width: min(420px, 92vw);
+  /* Centring is normally the UA's `dialog:modal { margin: auto }` - but a mounted
+     tool's template <style> is injected unscoped and may carry a universal
+     `* { margin: 0 }` reset (e.g. event-name-badge), which pins the modal to the
+     top-left. Re-assert at class specificity so it stays centred inside tools. */
+  margin: auto;
+  border-radius: var(--ui-radius-card); background: var(--ui-color-surface-raised); color: var(--ui-color-text-default);
+  box-shadow: 0 24px 64px hsl(0 0% 0% / 0.4);
+}
+.modal::backdrop { background: hsl(0 0% 0% / 0.42); }
+.modal-title { margin: 0 0 8px; font-size: var(--fs-xl); font-weight: 700; }
+.modal-msg { margin: 0 0 18px; font-size: var(--fs-md); line-height: 1.5; color: var(--ui-color-text-muted); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+/* Scoped (two-class) so it beats the generic .btn base by specificity. Fill
+   (background/color) + hover are aliased in parts/buttons.css's .btn--danger list. */
+.modal .modal-danger {
+  border-color: hsl(var(--destructive, 0 70% 50%));
+}
+/* choiceDialog: the lead choice gets the brand fill (two-class scope beats the
+   generic .btn base - same trick as .modal-danger). Fill + hover are
+   aliased in parts/buttons.css's .btn--primary list. */
+.modal .modal-primary {
+  border-color: hsl(var(--primary));
+}
+/* Choice buttons can carry longer labels than OK/Cancel - on a narrow screen they
+   wrap (and the modal stays 420px). On desktop there's no need to cramp them: let
+   the modal grow to fit its options on ONE row (same idea as .unsaved-dialog's
+   widening), capped so a very wordy chooser still can't run off the screen. */
+.modal-actions--choices { flex-wrap: wrap; }
+@media (min-width: 641px) {
+  .modal:has(.modal-actions--choices) { width: auto; max-width: min(760px, 92vw); }
+  .modal-actions--choices { flex-wrap: nowrap; }
+}
+/* ─── "Make copies…" chooser (gallery bulk action) ──────────────────────────
+   A compact list of the selected tools, each with a native copy-count field,
+   above the two editor destinations (Edit together / Edit as sheet). */
+.copies-dialog { width: min(460px, 92vw); }
+.copies-list {
+  list-style: none; margin: 0 0 12px; padding: 0;
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: min(46vh, 360px); overflow-y: auto;
+}
+.copies-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.copies-name {
+  font-size: var(--fs-md); font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.copies-count {
+  flex: none; width: 4.5em; text-align: center; padding: 6px 8px;
+  border: 1px solid hsl(var(--input)); border-radius: var(--radius);
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+  font-size: var(--fs-md);
+}
+.copies-total { margin: 0 0 16px; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.copies-dialog .modal-actions button svg { width: 16px; height: 16px; }
+
+/* askExportLock's password + zip-tier controls (lib/export-lock.ts). Both are
+   plain `.field-input` / `.field-select` now; the only thing the old inline
+   recipe carried that the primitive doesn't is the hairline gap between the two
+   stacked blocks (and before .modal-actions). Nothing else styles them - this
+   dialog is body-mounted, so no view sheet reaches it. */
+.export-lock-pw,
+.export-lock-tier { margin: 0.1rem 0; }
+
+/* ─── Unsaved changes dialog ─────────────────────────────────────────────── */
+/* pro/index.ts's leave-guard and views/tool.ts's clear/unsaved pair are all
+   mountModal-built (className: 'unsaved-dialog') - same class names everywhere,
+   so this chrome serves every leave-guard without a fork. */
+
+.unsaved-dialog,
+.share-dialog,
+.save-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  padding: 0;
+  max-width: 380px;
+  width: 90vw;
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.2);
+}
+
+.share-dialog { max-width: 460px; }
+.save-dialog { max-width: 480px; }
+/* With the template card present the dialog carries TWO peer cards side by side
+   (plans/226 WP-1), so it needs the room; a project-only save keeps 480px. */
+.save-dialog--wide { max-width: 640px; }
+/* The unsaved-changes guard has three actions ("Save & leave" / "Leave without
+   saving" / "Cancel"); at 380px they wrap to two rows (worse with the wider
+   jelly capsules). Give it room to lay them out on one line - applies in both
+   jelly on/off. Still clamped to 90vw above, so mobile stacks them as before. */
+.unsaved-dialog { max-width: 540px; }
+
+/* The dimmed-and-blurred backdrop, declared once for every dialog that wants it.
+   `.tool-meta-dialog` (gallery.css) and `.welcome-dialog` (welcome.css) each used
+   to restate these three declarations verbatim; they alias here instead.
+   Deliberately NOT a blanket `dialog::backdrop` - several dialogs run a plainer
+   scrim at a different alpha and no blur (projects, instance-sheet, storage,
+   catalog), and a default would silently blur all of them. */
+.unsaved-dialog::backdrop,
+.share-dialog::backdrop,
+.save-dialog::backdrop,
+.tool-meta-dialog::backdrop,   /* gallery.css */
+.welcome-dialog::backdrop {    /* welcome.css */
+  background: hsl(0 0% 0% / 0.45);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+/* ─── Save as… dialog (lib/save-dialog.ts) ───────────────────────────────────
+   "Save as…" opens a destination chooser: file into a PROJECT, or save the doc as a
+   reusable TEMPLATE for this tool. The two are PEER cards side by side (plans/226
+   WP-1) and stack when the dialog is narrow; the project card's Save is the primary.
+   "Create a tool" (Design only) stays folded under the More disclosure below. */
+.save-dialog-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 20px; border-bottom: 1px solid hsl(var(--border));
+}
+.save-dialog-head h2 { margin: 0; flex: 1 1 auto; font-size: var(--fs-xl); font-weight: 700; }
+.save-dialog-close {
+  flex: none; width: 30px; height: 30px; border: 0; border-radius: var(--radius);
+  background: none; color: hsl(var(--muted-foreground)); font-size: 22px; line-height: 1; cursor: pointer;
+}
+.save-dialog-close:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+
+.save-dialog-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+/* The two peer cards. `auto-fit` + a 240px floor is the whole responsive rule: at the
+   dialog's 640px they sit side by side, and once the viewport clamps it (90vw, so around
+   560px) two columns no longer fit their floor and the pair stacks - no media query, and
+   a project-only dialog's single card simply fills the row. */
+.save-cards {
+  display: grid; gap: 12px; align-items: start;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.save-card {
+  padding: 14px; border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.4); background: hsl(var(--muted) / 0.35);
+}
+.save-card-title { margin: 0 0 3px; font-size: calc(13.5px * var(--a11y-fs)); font-weight: 700; }
+.save-card-desc { margin: 0 0 10px; font-size: var(--fs-sm); line-height: 1.4; color: hsl(var(--muted-foreground)); }
+.save-card-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.save-card-row .save-input { flex: 1 1 140px; min-width: 0; }
+.save-card-row .btn { flex: none; }
+.save-new-project { margin-top: 8px; width: 100%; }
+.save-card-row + .save-card-row { margin-top: 8px; }
+
+/* "Start new ‹Tool› documents with this" - the template card's single checkbox. */
+.save-card-check {
+  display: flex; align-items: flex-start; gap: 7px;
+  margin: 10px 0 0; font-size: var(--fs-sm); line-height: 1.35;
+  color: hsl(var(--foreground)); cursor: pointer;
+}
+.save-card-check input { flex: none; margin: 1px 0 0; }
+
+/* Create-a-tool: a narrow emoji/icon field beside the name, and the format checkbox row. */
+.save-tool-icon { flex: 0 0 64px; text-align: center; }
+.save-tool-formats {
+  display: flex; flex-wrap: wrap; gap: 8px 14px;
+  margin: 10px 0 0; padding: 0; border: 0;
+}
+.save-tool-format {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: var(--fs-sm); color: hsl(var(--foreground));
+}
+
+/* Shared control look for the dialog's selects + text inputs. */
+.save-input {
+  height: 32px; padding: 0 10px;
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  font: inherit; font-size: var(--fs-md); outline: none;
+  transition: border-color var(--dur-1);
+}
+.save-input:focus { border-color: hsl(var(--primary)); }
+
+.save-card-err { margin: 8px 0 0; font-size: var(--fs-sm); color: hsl(var(--destructive, 0 70% 50%)); }
+
+/* "More ways to save" (plans/170 WP-1): the template / variation / create-a-tool
+   cards fold behind one disclosure so a first save reads as one decision. The
+   summary styles like a quiet card header; open state is remembered per device. */
+.save-more { display: flex; flex-direction: column; gap: 12px; }
+.save-more > summary {
+  cursor: pointer; list-style: none; user-select: none;
+  font-size: calc(12.5px * var(--a11y-fs)); font-weight: 600;
+  color: hsl(var(--muted-foreground)); padding: 2px 2px;
+}
+.save-more > summary::-webkit-details-marker { display: none; }
+.save-more > summary::before { content: '▸'; display: inline-block; margin-right: 6px; transition: transform var(--dur-1); }
+.save-more[open] > summary::before { transform: rotate(90deg); }
+.save-more > summary:hover, .save-more > summary:focus-visible { color: hsl(var(--foreground)); outline: none; }
+
+.save-dialog-foot {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 12px 20px 16px; border-top: 1px solid hsl(var(--border));
+  font-size: var(--fs-sm); color: hsl(var(--muted-foreground));
+}
+.save-dialog-foot span { flex: 1 1 200px; line-height: 1.4; }
+.save-link {
+  flex: none; border: 0; background: none; padding: 0; cursor: pointer;
+  color: hsl(var(--primary)); font: inherit; font-size: var(--fs-sm); font-weight: 600;
+}
+.save-link:hover { text-decoration: underline; }
+
+/* Share dialog - a ready-to-copy link plus on-visit behaviour toggles. */
+.share-dialog-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.share-dialog-body h2,
+.unsaved-dialog-body h2{
+  font-size: calc(15px * var(--a11y-fs));
+  font-weight: 600;
+  margin: 0;
+}
+.share-link-row {
+  display: flex;
+  gap: 8px;
+}
+/* Box + color/font come from the shared .field-input alias (components.css,
+   component audit rec 13) - this keeps only its own row-item layout. */
+.share-link-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.share-copy-btn {
+  flex: 0 0 auto;
+  padding: 7px 16px;
+  border: none;
+  border-radius: var(--radius);
+  /* fill (background/color) lives in parts/buttons.css's .btn--primary alias list */
+  font: inherit;
+  font-size: var(--fs-md);
+  cursor: pointer;
+  transition: opacity var(--dur-1);
+}
+.share-copy-btn:hover { opacity: 0.88; }
+/* Complexity caution - shown (JS toggles [hidden]) when even the shortest achievable
+   link is too long to paste reliably, so the user knows to trim elements. Amber, kept
+   distinct from the accented "Shortest link" pack row below.
+   border-radius is the literally-identical line folded into the shared `.note`
+   selector list in components.css (component audit M1.3) - the amber border is a
+   true delta and stays here. */
+.share-warning {
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid hsl(38 92% 50% / 0.55);
+  background: hsl(38 92% 50% / 0.1);
+  color: hsl(var(--foreground));
+  font-size: calc(12.5px * var(--a11y-fs));
+  line-height: 1.45;
+}
+.share-warning[hidden] { display: none; }
+/* The content-loss verdict - device-local images, or text/blocks past the link
+   caps, that a URL simply cannot carry - is a harder failure than an over-long
+   link: packing can rescue length, nothing rescues dropped content. So it reads
+   red, not amber. The default (.is-warn / no modifier) stays the amber length cue. */
+.share-warning.is-error {
+  border-color: hsl(0 72% 51% / 0.6);
+  background: hsl(0 72% 51% / 0.12);
+}
+/* Local-image caveat - persistent (no [hidden] toggle), shown only for tools that
+   accept images. Catalog image refs ride in the link, but device-local images
+   never leave this browser, so the recipient won't get them. Calm/neutral, so it
+   reads as a standing heads-up distinct from the amber complexity warning above.
+   border + border-radius are the literally-identical lines folded into the shared
+   `.note` selector lists in components.css (component audit M1.3) - only this
+   dialog's own layout/spacing/tint stays here. */
+.share-note {
+  margin: 0;
+  display: flex;
+  gap: 9px;
+  padding: 9px 12px;
+  background: hsl(var(--muted) / 0.4);
+  color: hsl(var(--muted-foreground));
+  font-size: calc(12.5px * var(--a11y-fs));
+  line-height: 1.45;
+}
+.share-note-ico { flex: 0 0 auto; font-size: var(--fs-lg); line-height: 1.3; }
+/* The .lolly download card (plans/114) - the faithful vehicle a link can't be. A
+   prominent primary-tinted block, distinct from the calm .share-note above; the
+   content-loss verdict points here. */
+.share-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 11px 12px;
+  border: 1px solid hsl(var(--primary) / 0.4);
+  border-radius: var(--radius);
+  background: hsl(var(--primary) / 0.06);
+}
+/* The verdict routes here (dropped content, or a link too long to pass around): a stronger
+   accent halo + a "Recommended" tag, so the eye lands on the vehicle that actually carries
+   everything. Toggled by share-dialog.ts (.is-recommended); the calm default stands otherwise. */
+.share-file.is-recommended {
+  border-color: hsl(var(--primary) / 0.85);
+  background: hsl(var(--primary) / 0.12);
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.5);
+}
+.share-file.is-recommended .share-file-text strong::after {
+  content: "Recommended";
+  margin-inline-start: 8px;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  /* A soft accent TAG, not a solid primary-fill button (that fill pair is buttons.css's
+     alone - see the R2 primitive guard); a translucent tint reads better here anyway. */
+  background: hsl(var(--primary) / 0.16);
+  color: hsl(var(--primary));
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.share-file-text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 180px; min-width: 0; }
+.share-file-text strong { font-size: var(--fs-md); }
+.share-file-note { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); line-height: 1.4; }
+.share-file-btn { flex: 0 0 auto; }
+/* "Include the tool" toggle - revealed once its offer resolves (see share-dialog.ts). */
+.share-file-tool {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+.share-file-tool[hidden] { display: none; }
+.share-file-tool input { flex: 0 0 auto; }
+.share-file-licensed { flex: 1 1 100%; }
+.share-file-licensed[hidden] { display: none; }
+.share-file-warn {
+  margin: 8px 0 6px;
+  padding: 8px 10px;
+  border: 1px solid hsl(0 72% 51% / 0.5);
+  background: hsl(0 72% 51% / 0.1);
+  border-radius: var(--radius);
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+.share-file-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+/* "Shortest link" - shown only when packing beats the readable URL (JS toggles
+   [hidden]). A prominent accented row: it changes what the link IS, not just an
+   on-visit flag like the ones in the fieldset below. */
+.share-shortest {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid hsl(var(--primary) / 0.4);
+  border-radius: var(--radius);
+  background: hsl(var(--primary) / 0.06);
+  cursor: pointer;
+  font-size: var(--fs-md);
+}
+.share-shortest[hidden] { display: none; }
+/* The box is `.field-check`; only the optical nudge onto the first text line
+   (this row is align-items: flex-start, two lines tall) stays here. */
+.share-shortest input[type="checkbox"] { margin-top: 2px; }
+.share-shortest-text { display: flex; flex-direction: column; gap: 1px; }
+.share-shortest-note {
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+/* Collapsible "Link options" / "Link behaviour" groups. */
+.share-section {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+.share-section > summary {
+  padding: 10px 14px;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.share-section > summary::-webkit-details-marker { display: none; }
+.share-section > summary::before {
+  content: "›";
+  display: inline-block;
+  font-size: calc(15px * var(--a11y-fs));
+  line-height: 1;
+  color: hsl(var(--muted-foreground));
+  transition: transform 0.15s;
+}
+.share-section[open] > summary::before { transform: rotate(90deg); }
+.share-section-body {
+  padding: 0 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* Row layout (flex/centre/8px gap/pointer) + the tick itself now come from the
+   shared `.field-toggle` + `.field-check` primitive (parts/fields.css); the type
+   size is this dialog's own delta. */
+.share-toggle-row { font-size: var(--fs-md); }
+/* Inside a collapsible section the fieldset drops its own border - the section owns it. */
+.share-section > .share-toggles {
+  border: 0;
+  padding: 0 14px 12px;
+}
+/* Inside a section the summary already names the group visually, so the legend is
+   hidden - but VISUALLY, not with `display: none`, which would drop it from the
+   accessibility tree and leave the shell's only <fieldset> unnamed. Same
+   declarations as `.visually-hidden` (parts/base.css). */
+.share-section > .share-toggles legend {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.share-toggles {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.share-toggles legend {
+  padding: 0 6px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+/* Each label carries `.field-toggle` and each box `.field-check` - the row's
+   flex/centre/gap/cursor and the tick's whole appearance live there now. */
+.share-toggles label { font-size: var(--fs-md); }
+/* Kept: the disabled treatment is set on the LABEL by JS (`full` wins over
+   `options`), and this dimmer/cursor pair is the dialog's own value - it beats
+   the primitive's `:has(.field-check:disabled)` fallback from the `chrome` layer. */
+.share-toggles label.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.share-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.share-done {
+  padding: 6px 16px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: var(--fs-md);
+  cursor: pointer;
+  transition: background var(--dur-1);
+}
+.share-done:hover { background: hsl(var(--accent)); }
+
+.unsaved-dialog-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.unsaved-dialog-body p {
+  font-size: var(--fs-md);
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
+/* Size/detail line (e.g. "Includes a 6.2 MB video clip") - a quieter chip below the prompt. */
+.unsaved-dialog-detail {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted) / 0.6);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.unsaved-dialog-actions {
+  display: flex;
+  gap: 3px;
+  justify-content: space-between;
+  margin-top: 8px;
+  flex-wrap: wrap;
+
+}
+
+.unsaved-save {
+  padding: 6px 14px;
+  border: none;
+  border-radius: var(--radius);
+  /* fill (background/color) lives in parts/buttons.css's .btn--primary alias list */
+  font: inherit;
+  font-size: var(--fs-md);
+  cursor: pointer;
+  transition: opacity var(--dur-1);
+}
+
+.unsaved-save:hover {
+  opacity: 0.88;
+}
+
+.unsaved-leave,
+.unsaved-cancel {
+  padding: 6px 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: var(--fs-md);
+  cursor: pointer;
+    transition: background var(--dur-1);
+  }
+  
+  .unsaved-leave:hover,
+  .unsaved-cancel:hover {
+    background: hsl(var(--accent));
+  }
+
+  /* On mobile the three actions wrap awkwardly with space-between (uneven rows,
+     a lone button). Stack them full-width with comfortable tap targets; the
+     primary "Save & leave" stays on top. */
+  /* Jelly variant (flag): the soft-body buttons paint their own capsule on a
+     canvas, so they don't take the .unsaved-* box classes - just keep them from
+     stretching oddly in the flex row. */
+  .unsaved-dialog-actions jelly-button { flex: 0 0 auto; }
+
+  @media (max-width: 640px) {
+    .unsaved-dialog-actions {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 8px;
+    }
+    .unsaved-dialog-actions button,
+    .unsaved-dialog-actions jelly-button {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+
+  .clear-inputs-btn {
+    appearance: none;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    cursor: pointer;
+    padding: 4px 16px;
+    background-color: transparent;
+    max-width: 10em;
+    place-self: end;
+    color: hsl(var(--muted-foreground));
+    font: inherit;
+    font-size: var(--fs-md);
+    transition: border-color var(--dur-1), color var(--dur-1), background-color var(--dur-1);
+  }
+
+  .clear-inputs-btn:hover {
+    border-color: hsl(var(--destructive));
+    color: hsl(var(--destructive));
+    background-color: hsl(var(--destructive) / 0.08);
+  }
+
+
+/* ─── Tool guide (components/tool-guide.ts) ─────────────────────────────────
+   The tool's own "now what?" walkthrough - manifest data, rendered as a dialog
+   behind the help button beside the sidebar title. Box + backdrop alias the
+   share dialog's (it's the same size of thing: one focused panel of steps);
+   only the step list and its tabs are new here. */
+.tool-guide-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  padding: 0;
+  max-width: 440px;
+  width: 90vw;
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.2);
+}
+.tool-guide-dialog::backdrop {
+  background: hsl(0 0% 0% / 0.45);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.tool-guide-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.tool-guide-title {
+  margin: 0;
+  font-size: calc(15px * var(--a11y-fs));
+  font-weight: 600;
+}
+/* Track tabs - only rendered when a tool declares more than one route
+   (e.g. desktop vs phone). Segmented, so the alternative is visible rather
+   than hidden behind a menu. */
+.tool-guide-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.5);
+}
+.tool-guide-tab {
+  flex: 1 1 0;
+  padding: 6px 10px;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-1), color var(--dur-1);
+}
+.tool-guide-tab:hover { color: hsl(var(--foreground)); }
+.tool-guide-tab[aria-selected="true"] {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: var(--shadow-1);
+}
+.tool-guide-tab:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+.tool-guide-steps {
+  margin: 0;
+  padding-left: 1.35em;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: var(--fs-md);
+  line-height: 1.5;
+}
+.tool-guide-steps li::marker { color: hsl(var(--muted-foreground)); font-weight: 600; }
+.tool-guide-steps strong { font-weight: 650; }
+.tool-guide-note {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+.tool-guide-actions { display: flex; justify-content: flex-end; }
+
+/* Device picker (plans/162) - a mountModal adapter: camera / mic radio lists. */
+.devpick-body { display: flex; flex-direction: column; gap: 14px; margin: 8px 0 4px; }
+.devpick-section { display: flex; flex-direction: column; gap: 6px; }
+.devpick-heading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: hsl(var(--muted-foreground));
+}
+.devpick-list { display: flex; flex-direction: column; gap: 4px; }
+.devpick-item {
+  appearance: none;
+  border: 0;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: hsl(var(--muted) / 0.5);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.devpick-item:hover { background: hsl(var(--muted)); }
+.devpick-item.is-current { background: hsl(var(--primary) / 0.16); font-weight: 600; }

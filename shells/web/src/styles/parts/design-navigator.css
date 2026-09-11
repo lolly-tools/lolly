@@ -1,0 +1,630 @@
+/* Cascade layer: this sheet is loaded with the editor view, so it sits in the
+   `views` layer (order declared once in styles/app.css) - above chrome/primitives,
+   below overrides/a11y, no matter when Vite injects the chunk. */
+@layer views {
+/* ─── Design NAVIGATOR (views/design-navigator.ts, plans/179 M2) ───────────────
+   A stage sibling of #tool-canvas, exactly like .tl-panel: absolutely positioned
+   inside .tool-stage, [data-export-hide] so no export walk ever sees it, and its
+   width is the ONLY thing the host reserves (--stage-reserve-left).
+
+   Two skins from one module: `column` (left, 232px, collapsible to a 36px rail of
+   numbered dots) and `strip` (a bottom filmstrip for the mobile Artboards slot).
+   Every colour is a token, so light, dark and a runtime brand theme all read. */
+
+.fc-nav {
+  position: absolute;
+  /* INSIDE the docked bands, like `.fc-insp` - never under them. The top bar is a
+     stage sibling at `top: 0` with a higher z-index and an opaque background, so a
+     column that started at 0 had its whole head (the title AND `.fc-nav-toggle`,
+     which is the only way back out of the collapsed rail) painted over and its
+     pointer events swallowed; the timeline band does the same at the foot. Both
+     properties are written on the stage by their own owner (design-topbar's
+     `measure`, free-canvas's `reserveBottom`) and default to 0 when absent, so a
+     stage with no bar and no timeline lays the column out exactly as before. */
+  top: var(--stage-reserve-top, 0px);
+  bottom: var(--stage-reserve-bottom, 0px);
+  left: 0;
+  z-index: 21;                  /* over the overlay (12), under the timeline band (22) */
+  box-sizing: border-box;
+  width: 232px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-3) var(--sp-5);
+  pointer-events: auto;
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-default);
+  color: var(--ui-color-text-default);
+  font-size: var(--ui-type-body);
+  overflow: hidden;
+}
+.fc-nav.is-collapsed { width: 36px; padding-inline: var(--sp-2); }
+/* The module writes a live `width` inline while the grip is dragged, so both widths
+   above are the DEFAULTS a host that never touches the grip gets. */
+.fc-nav svg {
+  width: calc(16px * var(--a11y-fs));
+  height: calc(16px * var(--a11y-fs));
+  flex: none;
+}
+/* An open colour picker inside the column has to paint over the rest of the stage
+   chrome. The popover is `position: fixed` but stays a DOM descendant, and this column
+   is a stacking context (z-index 21), so its z-index resolves INSIDE it and loses to the
+   timeline band (22). Raising the HOST while the popover is open is the same fix the
+   editor's other picker hosts get - see the `.fc-toolbar-dock:has(...)` family in
+   parts/editor.css; it matters here because the tool rail's paint swatch is docked into
+   this column while it is open. */
+.fc-nav:has(.color-popover:not([hidden])) { z-index: 30; }
+
+/* ── The tool rail, docked into the column (plans/179 M4) ─────────────────────
+   free-canvas re-parents its `.fc-toolbar` into this slot while the column is open and
+   marks it `.fc-toolbar--grid`, so the editor has ONE left sidebar rather than a column
+   with a floating palette over its rows. The buttons keep their own elements (handlers,
+   tooltips and accessible names travel with them); the layout, the dropped separators
+   and the hidden drag grip are all here. */
+.fc-nav-rail-slot { flex: none; position: relative; }
+.fc-nav-rail-slot:empty { display: none; }
+.fc-nav-rail-slot .fc-toolbar--grid {
+  display: grid;
+  /* As many 40px tool columns as the sidebar is wide (editor.css sizes each `.fc-btn`):
+     widening the sidebar adds columns, narrowing removes them, and the mark, the tools
+     and the colour swatch all flow in the one grid (Andy, 2026-09-03: the grid must
+     expand with the available dock space). */
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  justify-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-2);
+  border-radius: var(--ui-radius-panel);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 50%, transparent);
+  box-shadow: none;
+}
+/* No grip (a docked rail has nowhere to drag to) and no dividers: a 3-column grid has
+   no single line for a full-width rule to sit on. */
+.fc-nav-rail-slot .fc-grip,
+.fc-nav-rail-slot .fc-sep { display: none; }
+/* Rail tooltips point INTO the canvas from a floating palette (parts/editor.css). In
+   here that runs them straight out of a 232px column, which is `overflow: hidden` - so
+   the bubble drops BELOW the grid and spans the slot instead. `position: static` on the
+   button is what lets it: the bubble is a pseudo-element on the button, so the slot has
+   to be its containing block for a full-width box to mean the column's width. */
+.fc-nav-rail-slot .fc-toolbar--grid .fc-btn { position: static; }
+.fc-nav-rail-slot .fc-toolbar--grid [data-tip]::after {
+  top: calc(100% + var(--sp-2));
+  bottom: auto;
+  left: 0;
+  right: 0;
+  transform: translateY(-3px);
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+}
+.fc-nav-rail-slot .fc-toolbar--grid [data-tip]:hover::after,
+.fc-nav-rail-slot .fc-toolbar--grid [data-tip]:focus-visible::after { transform: translateY(0); }
+/* The little arrow has no anchor to point at once the bubble is the slot's width. */
+.fc-nav-rail-slot .fc-toolbar--grid [data-tip]::before { display: none; }
+
+/* ── The column's own edge grip ───────────────────────────────────────────────
+   The same drag the inputs sidebar has (views/tool.ts), on the shared `.resize-grip`
+   primitive (parts/tool.css owns the cursor and the pill). It sits INSIDE the column's
+   right edge rather than straddling it: `.fc-nav` is `overflow: hidden`, so a grip
+   hanging outside would be clipped in half. 8px keeps it clear of a row's kebab, which
+   the column and row padding already inset by 10px.
+
+   PHYSICAL `right`, deliberately, and it must stay physical: the column itself is pinned
+   with `left: 0` and the left band it reserves (`--stage-reserve-left`) is physical too,
+   so in Arabic and Urdu the column still sits on the left of the stage. A logical
+   `inset-inline-end` flipped only the grip, putting the drag strip against the stage
+   edge, 232px from the edge it resizes - and `.fc-nav` clips its overflow, so there was
+   no other pointer target for the width at all. The inputs sidebar's grip
+   (parts/tool.css `#sidebar-drag-handle`) is physical for the same reason. */
+.fc-nav-grip {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 100%;
+  z-index: 2;
+}
+.fc-nav-grip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+
+/* Head: the list's name + the collapse control. The title hides in the rail, the
+   button never does - it is the only way back out. */
+.fc-nav-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: calc(20px * var(--a11y-fs));
+}
+.fc-nav-title {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ui-color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fc-nav-toggle,
+.fc-nav-row-menu {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(24px * var(--a11y-fs));
+  height: calc(24px * var(--a11y-fs));
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: none;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+  transition: background var(--ui-motion-feedback), color var(--ui-motion-feedback);
+}
+.fc-nav.is-collapsed .fc-nav-toggle { margin-inline: auto; }
+.fc-nav-toggle:hover,
+.fc-nav-row-menu:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.fc-nav-toggle:focus-visible,
+.fc-nav-row-menu:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+.fc-nav-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.fc-nav-empty {
+  margin: 0;
+  padding: var(--sp-4) var(--sp-2);
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-sm);
+}
+/* A document with boxes and no artboards (plans/184 R15): the one press that draws an
+   artboard around everything, under the empty text and above the loose layers. */
+.fc-nav-make-all { margin: 0 var(--sp-2) var(--sp-4); }
+.fc-nav-make-all[hidden] { display: none; }
+
+/* ── Rows ─────────────────────────────────────────────────────────────────────
+   One row per artboard: thumbnail, index, name, then the notes dot and the chips.
+   The active board is a filled row with a brand edge, not a one-sided rule. */
+.fc-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+/* One entry = the selectable ROW plus its actions kebab, side by side. The kebab is the
+   row's SIBLING, not its child: a `role="option"` flattens its content to an accessible
+   name, so a button inside one is not in the accessibility tree at all (see
+   design-navigator.ts's buildFrameRow). The wrapper is `role="presentation"`, so the
+   listbox still owns the option itself. */
+.fc-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+.fc-nav-row {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-panel);
+  cursor: pointer;
+  color: var(--ui-color-text-muted);
+  transition: background var(--ui-motion-feedback), border-color var(--ui-motion-feedback), color var(--ui-motion-feedback);
+}
+.fc-nav-row:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); color: var(--ui-color-text-default); }
+.fc-nav-row.is-active {
+  background: var(--ui-color-selection-surface);
+  border-color: var(--ui-color-selection-border);
+  color: var(--ui-color-text-default);
+}
+.fc-nav-row:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+/* The board preview. The clone inside is letterboxed to the board's own aspect (frameThumb
+   sizes it), so the slot centres it instead of pinning it top-left, and its ground is the
+   muted surface rather than the app background: what shows here is "no board pixels", and
+   on a dark theme --background reads as a black hole where a board should be. */
+.fc-nav-thumb {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 25px;
+  overflow: hidden;
+  border-radius: var(--ui-radius-choice);
+  background: var(--ui-color-surface-muted);
+  box-shadow: var(--ui-edge-faint);
+}
+.fc-nav-thumb > * { pointer-events: none; }
+.fc-nav-idx {
+  flex: none;
+  min-width: calc(14px * var(--a11y-fs));
+  text-align: right;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ui-color-text-muted);
+}
+.fc-nav-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.fc-nav-name {
+  display: block;
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fc-nav-name-input {
+  width: 100%;
+  min-width: 0;
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--ui-color-action-primary);
+  border-radius: var(--ui-radius-choice);
+  background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-default);
+  font: inherit;
+  font-size: var(--fs-sm);
+}
+.fc-nav-name-input:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 1px; }
+.fc-nav-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+/* The speaker-notes mark: a dot, because the row has no room for a word and the
+   accessible name carries the meaning. */
+.fc-nav-dot {
+  flex: none;
+  width: calc(6px * var(--a11y-fs));
+  height: calc(6px * var(--a11y-fs));
+  border-radius: var(--ui-radius-choice-round);
+  background: var(--ui-color-action-primary);
+}
+/* Narration status (plans/180 section 8), on the same dot. Notes with no voice yet is
+   a HOLLOW dot, so "waiting" and "done" differ in shape as well as in colour; stale is
+   the destructive tone because it is the one state that needs a decision. Each dot's
+   accessible name says the whole thing - see narrationLabel. */
+.fc-nav-dot[data-narration="pending"] {
+  background: transparent;
+  box-shadow: var(--ui-edge-strong);
+}
+/* Stale carries a SHAPE as well as a tone: a DIAMOND, so the three answers differ by
+   outline as well as by colour (WCAG 1.4.1) - filled circle for current, hollow circle
+   for pending, diamond for stale. Colour alone was the whole differentiator, and stale
+   is the one state the feature exists to surface. */
+.fc-nav-dot[data-narration="stale"] {
+  background: hsl(var(--destructive));
+  border-radius: var(--ui-radius-choice);
+  transform: rotate(45deg);
+  /* A hair larger, because a rotated square reads smaller than the circle beside it. */
+  width: calc(7px * var(--a11y-fs));
+  height: calc(7px * var(--a11y-fs));
+}
+.fc-nav-chip {
+  padding: 0 var(--sp-2);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface-muted);
+  box-shadow: var(--ui-edge-faint);
+  font-size: var(--fs-2xs);
+  line-height: 1.7;
+  white-space: nowrap;
+  max-width: 11ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fc-nav-chip--dwell { font-variant-numeric: tabular-nums; }
+/* The transition chip is a BUTTON - pressing it plays the move into the next slide on
+   the canvas - so it takes the chip's shape and drops the platform button look. */
+button.fc-nav-chip {
+  border: 0;
+  font: inherit;
+  font-size: var(--fs-2xs);
+  color: inherit;
+  cursor: pointer;
+}
+button.fc-nav-chip:hover { background: color-mix(in srgb, var(--ui-color-text-muted) 25%, transparent); }
+button.fc-nav-chip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+/* Dimmed when the value is the DECK's rather than this slide's own: the chip is showing
+   what the document says, and the row has not answered for itself. */
+.fc-nav-chip--trans.is-inherited { opacity: 0.6; }
+
+/* Drag to reorder: the dragged row dims, and the drop lands on a brand rule drawn
+   as an outline, never a one-sided border on the box itself. */
+.fc-nav-list.is-reordering .fc-nav-row { cursor: grabbing; }
+.fc-nav-row.is-dragging,
+.fc-nav-layer.is-dragging { opacity: 0.55; }
+.fc-nav-row.is-drop-before::before,
+.fc-nav-layer.is-drop-before::before,
+.fc-nav-row.is-drop-after::after,
+.fc-nav-layer.is-drop-after::after {
+  content: "";
+  position: absolute;
+  left: var(--sp-2);
+  right: var(--sp-2);
+  height: 2px;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-action-primary);
+}
+.fc-nav-row.is-drop-before::before,
+.fc-nav-layer.is-drop-before::before { top: -2px; }
+.fc-nav-row.is-drop-after::after,
+.fc-nav-layer.is-drop-after::after { bottom: -2px; }
+/* The strip runs horizontally, so its drop marks do too. */
+.fc-nav--strip .fc-nav-row.is-drop-before::before,
+.fc-nav--strip .fc-nav-row.is-drop-after::after {
+  top: var(--sp-2);
+  bottom: var(--sp-2);
+  left: auto;
+  right: auto;
+  width: 2px;
+  height: auto;
+}
+.fc-nav--strip .fc-nav-row.is-drop-before::before { left: -2px; }
+.fc-nav--strip .fc-nav-row.is-drop-after::after { right: -2px; }
+
+/* ── Row menu ─────────────────────────────────────────────────────────────────
+   FIXED, not absolute, and placed off the row's client rect by placeMenu(). Two
+   reasons, both structural: `.fc-nav` is `overflow: hidden` AND the nearest
+   positioned ancestor, so an absolutely-placed menu is clipped away entirely for
+   any row near the bottom of the list; and the rows scroll inside `.fc-nav-body`,
+   whose content coordinates stop matching the painted row the moment it does.
+   A fixed box is laid out against the viewport, so neither reaches it - and the
+   module closes the menu on scroll/resize, since a fixed box cannot follow. */
+.fc-nav-menu {
+  position: fixed;
+  z-index: 40;                  /* over the column (21) and the timeline band (22) */
+  min-inline-size: 190px;
+  /* Never wider than the open column: the timeline band starts where the column ends
+     (`--stage-reserve-left`) and is painted ABOVE it, so a menu that spilled past that
+     edge would be occluded by the band rather than sitting over it. */
+  max-inline-size: min(232px, calc(100vw - 2 * var(--sp-3)));
+  max-block-size: min(60vh, 360px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-2);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--ui-edge-default), var(--ui-elevation-floating);
+}
+.fc-nav-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-sm);
+  text-align: start;
+  cursor: pointer;
+}
+.fc-nav-menu-item:hover:not([disabled]) { background: var(--ui-color-surface-muted); }
+.fc-nav-menu-item:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+.fc-nav-menu-item[disabled] { opacity: 0.45; cursor: default; }
+/* "Move up" borrows the chevron "Move down" uses - one glyph, two directions. */
+.fc-nav-flip svg { transform: rotate(180deg); }
+
+/* ── Layers ───────────────────────────────────────────────────────────────── */
+.fc-nav-layers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.fc-nav-subhead {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ui-color-text-muted);
+}
+.fc-nav-layer-list {
+  display: flex;
+  flex-direction: column;
+}
+.fc-nav-layer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2);
+  border-radius: var(--ui-radius-control);
+  cursor: pointer;
+  color: var(--ui-color-text-muted);
+  transition: background var(--ui-motion-feedback), color var(--ui-motion-feedback);
+}
+.fc-nav-layer:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); color: var(--ui-color-text-default); }
+.fc-nav-layer.is-active { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
+.fc-nav-layer:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.fc-nav-layer-glyph { flex: none; display: inline-flex; color: var(--ui-color-text-muted); }
+.fc-nav-layer.is-active .fc-nav-layer-glyph { color: var(--ui-color-action-primary); }
+.fc-nav-layer-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* A layer row and its two flag toggles. The toggles are the row's SIBLINGS - a
+   role="option" flattens everything inside it into one accessible name - so this item
+   is the flex line, and the option takes whatever the two buttons leave. */
+.fc-nav-layer-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+.fc-nav-layer-item > .fc-nav-layer { flex: 1 1 auto; min-width: 0; }
+/* Hidden and Locked in the row's own words, because the buttons that set them are
+   outside the option and a screen reader would otherwise hear no difference at all. */
+.fc-nav-layer-state {
+  flex: none;
+  font-size: var(--fs-2xs);
+  color: var(--ui-color-text-muted);
+  white-space: nowrap;
+}
+/* When a timed layer is (plans/184 R15) - the timeline's own seconds, aligned as numbers. */
+.fc-nav-layer-time {
+  flex: none;
+  font-size: var(--fs-2xs);
+  color: var(--ui-color-text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+/* A hidden layer is not drawn on the canvas, so its row reads as absent too. */
+.fc-nav-layer.is-hidden { opacity: 0.5; }
+.fc-nav-layer-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(22px * var(--a11y-fs));
+  height: calc(22px * var(--a11y-fs));
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: none;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--ui-motion-feedback), background var(--ui-motion-feedback), color var(--ui-motion-feedback);
+}
+.fc-nav-layer-btn svg { width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); }
+/* Out of the way until the pointer is on the row - a column of eyes and padlocks is
+   noise - but ALWAYS shown once the flag is set, since that is the state being reported. */
+.fc-nav-layer-item:hover .fc-nav-layer-btn,
+.fc-nav-layer-btn:focus-visible,
+.fc-nav-layer-btn.is-on { opacity: 1; }
+.fc-nav-layer-btn:hover,
+.fc-nav-layer-btn.is-on { color: var(--ui-color-text-default); }
+.fc-nav-layer-btn:hover { background: var(--ui-color-surface-muted); }
+.fc-nav-layer-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+/* ── Collapsed rail ───────────────────────────────────────────────────────────
+   Numbered dots, one per board: the list's identity survives the collapse, so
+   the column can be closed without losing where you are. */
+.fc-nav-rail {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;             /* the module restates role="list" - Safari drops it here */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+/* The list item carries the list semantics; the dot inside it stays a button. */
+.fc-nav-rail-item { flex: none; display: flex; }
+.fc-nav-dot-btn {
+  flex: none;
+  width: calc(24px * var(--a11y-fs));
+  height: calc(24px * var(--a11y-fs));
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-choice-round);
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-muted);
+  font: inherit;
+  font-size: var(--fs-2xs);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background var(--ui-motion-feedback), border-color var(--ui-motion-feedback), color var(--ui-motion-feedback);
+}
+.fc-nav-dot-btn:hover { color: var(--ui-color-text-default); }
+/* The active dot rings rather than fills: the brand fill pair is the shared
+   .btn--primary recipe (buttons.css) and a dot is not a button in that sense -
+   restating it here would fork the primitive (primitive-guards R2). */
+.fc-nav-dot-btn.is-active {
+  border-color: var(--ui-color-selection-border);
+  background: var(--ui-color-selection-surface);
+  color: var(--ui-color-text-default);
+  font-weight: 700;
+}
+.fc-nav-dot-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+/* ── Strip skin (the mobile Artboards slot) ───────────────────────────────────
+   The same rows, laid out along the bottom: thumbnail over number, no layers. */
+.fc-nav--strip {
+  top: auto;
+  right: 0;
+  width: auto;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+  box-shadow: var(--ui-edge-default), var(--ui-elevation-panel);
+  max-height: min(44vh, 320px);
+}
+/* A closed mobile navigator is a temporary sheet, not the column skin's 36px
+   collapsed rail. The top-bar Navigator action is the durable way back in. */
+.fc-nav--strip.is-collapsed { display: none; }
+.fc-nav--strip .fc-nav-body { overflow: hidden; }
+.fc-nav--strip .fc-nav-list {
+  flex-direction: row;
+  gap: var(--sp-4);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: var(--sp-1);
+  scrollbar-width: thin;
+}
+.fc-nav--strip .fc-nav-item { flex: none; }
+.fc-nav--strip .fc-nav-row {
+  flex: none;
+  flex-direction: column;
+  gap: var(--sp-1);
+  max-width: 96px;
+}
+.fc-nav--strip .fc-nav-main { align-items: center; text-align: center; }
+.fc-nav--strip .fc-nav-name { max-width: 88px; }
+.fc-nav--strip .fc-nav-row-menu { position: absolute; top: 0; inset-inline-end: 0; }
+
+@media (pointer: coarse) {
+  .fc-nav-toggle,
+  .fc-nav-row-menu,
+  .fc-nav-dot-btn { min-width: 44px; min-height: 44px; }
+  .fc-nav--strip .fc-nav-row { min-width: 88px; min-height: 74px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-nav-row,
+  .fc-nav-layer,
+  .fc-nav-toggle,
+  .fc-nav-row-menu,
+  .fc-nav-dot-btn { transition: none; }
+}
+html[data-a11y-motion="reduce"] .fc-nav-row,
+html[data-a11y-motion="reduce"] .fc-nav-layer,
+html[data-a11y-motion="reduce"] .fc-nav-toggle,
+html[data-a11y-motion="reduce"] .fc-nav-row-menu,
+html[data-a11y-motion="reduce"] .fc-nav-dot-btn { transition: none; }
+
+/* Hide-controls full preview (the `\` key, free-canvas.ts): the column is chrome, so
+   it goes with the top bar, the inspector, the rail and the timeline - the list this
+   joins lives in parts/editor.css. !important because the kill switch has to beat a
+   `display` set anywhere in this sheet. */
+.tool-view.is-chrome-hidden .fc-nav { display: none !important; }
+}

@@ -1,0 +1,212 @@
+/* ── Upscale dialog (views/upscale-dialog.ts) ──────────────────────────────
+   Pick a raster image → enlarge it on-device (host.upscale) → save as a user
+   raster asset. A lazy chunk like script-audio.css: imported by the dialog
+   module itself, so opening it pulls the sheet on demand. Stacks above the
+   picker panel (z 1100/1101) like the webcam sheet and the Script-audio sheet.
+   Sibling on <body>. */
+.upscale-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+.upscale-panel {
+  position: fixed;
+  z-index: 1101;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(520px, 92vw);
+  max-height: 90vh;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  box-shadow: var(--ui-elevation-overlay);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.upscale-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+.upscale-close {
+  background: none;
+  border: none;
+  font-size: calc(20px * var(--a11y-fs));
+  line-height: 1;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+.upscale-close:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+.upscale-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  overflow-y: auto;
+}
+/* "Choose an image" step - a dashed drop/choose target (drop areas are the ONLY
+   dashed-border surface in this design language). */
+.upscale-choose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px 16px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+.upscale-choose:hover,
+.upscale-choose.is-dragover { border-color: hsl(var(--primary)); color: hsl(var(--foreground)); }
+.upscale-choose.is-dragover { background: hsl(var(--primary) / 0.06); }
+.upscale-source {
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+}
+.upscale-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.upscale-field {
+  flex: 1;
+  min-width: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+.upscale-field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+/* Visible warning banner for a face-restoring model (GFPGAN) - an important
+   safety note, shown inline rather than behind a hover tooltip (which is
+   invisible on touch and was clipped by the panel's rounded overflow). */
+.upscale-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 10px;
+  /* A caution, not an error - the same amber the unsaved-changes / Save warning
+     uses (var(--brand-warn), #b28727), NOT the destructive red. --brand-warn is a
+     full colour (hex), so tint/border go through color-mix rather than hsl(). */
+  border: 1px solid color-mix(in srgb, var(--brand-warn, #b28727) 50%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--brand-warn, #b28727) 10%, transparent);
+  color: var(--brand-warn, #b28727);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.upscale-warning svg { display: block; flex: 0 0 auto; }
+/* The "higher quality" opt-in: a checkbox + label on one row, not the stacked
+   label/control of a normal field. */
+.upscale-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex-basis: 100%;
+}
+.upscale-check .upscale-checkbox { flex: 0 0 auto; margin: 0; }
+.upscale-check .upscale-field-label { font-weight: 600; }
+/* An informational note (e.g. "Illustration uses the general model for now") - muted,
+   NOT the amber caution styling of .upscale-warning. */
+.upscale-note {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.4);
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.upscale-range { width: 100%; }
+.upscale-consent {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--accent) / 0.4);
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+/* The honest confession when a job won't fit - plus the concrete lever button(s). */
+.upscale-feasibility {
+  padding: 8px 10px;
+  border: 1px solid hsl(var(--destructive) / 0.5);
+  border-radius: var(--radius);
+  background: hsl(var(--destructive) / 0.08);
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--foreground));
+}
+.upscale-suggest {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 3px 8px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.upscale-suggest:hover { border-color: hsl(var(--primary)); }
+/* No in-dialog progress bar: Run enqueues a WP-F background job and the sheet
+   closes, so the global job toast (styles/parts/job-toast.css) owns the bar. The
+   status line below carries only the decode errors and the hand-off message. */
+.upscale-status {
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.upscale-status.upscale-error { color: hsl(var(--destructive)); }
+.upscale-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid hsl(var(--border));
+}
+.upscale-actions .upscale-cancel {
+  padding: 7px 14px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+/* Fill pair (background + foreground) comes from the .btn--primary alias list in
+   parts/buttons.css; only the deltas live here. */
+.upscale-actions .upscale-run {
+  padding: 7px 18px;
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+.upscale-actions .upscale-run:disabled { opacity: 0.5; cursor: not-allowed; }

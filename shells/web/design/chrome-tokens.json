@@ -1,0 +1,398 @@
+{
+  "$description": "The web shell's chrome scale tokens (plans/172 P4) - the non-colour axes of the app chrome, as a W3C DTCG document so Penpot and Tokens Studio can open and edit them. scripts/gen-chrome-tokens.ts emits the marked block in shells/web/src/styles/tokens.css from this file; tests/chrome-tokens.test.ts fails on drift. Where a token's CSS spelling cannot be expressed in DTCG (a shadow whose colour is a theme variable, a font size that must ride the --a11y-fs multiplier), $extensions['tools.lolly'].css carries the exact emission and $value stays a representative literal so a visual editor still renders something sensible. Colour deliberately stays out of this file until the codegen has proven itself on these axes - see plan 172.",
+  "font": {
+    "$description": "typeface stacks - the platform defaults (SUSE / SUSE Mono, shell-served). applyChromeBrandVars (brand-vars.ts) overrides both inline on <html> when the active brand's tokens declare font.brand / font.mono; these are the unbranded fallback",
+    "brand": {
+      "$type": "fontFamilies",
+      "$value": [
+        "SUSE",
+        "ui-sans-serif",
+        "system-ui",
+        "sans-serif"
+      ]
+    },
+    "mono": {
+      "$type": "fontFamilies",
+      "$value": [
+        "SUSE Mono",
+        "ui-monospace",
+        "monospace"
+      ]
+    }
+  },
+  "edge": {
+    "$description": "edges - the hairline-ring-instead-of-border move (82 audited sites)",
+    "default": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#cfd8e3",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "0px",
+        "spread": "1px"
+      },
+      "$extensions": {
+        "tools.lolly": {
+          "css": "inset 0 0 0 1px hsl(var(--border))"
+        }
+      }
+    },
+    "faint": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#0b10211a",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "0px",
+        "spread": "1px"
+      },
+      "$extensions": {
+        "tools.lolly": {
+          "css": "inset 0 0 0 1px hsl(var(--foreground) / .1)"
+        }
+      }
+    },
+    "strong": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#0b10212e",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "0px",
+        "spread": "1px"
+      },
+      "$extensions": {
+        "tools.lolly": {
+          "css": "inset 0 0 0 1px hsl(var(--foreground) / .18)"
+        }
+      }
+    }
+  },
+  "shadow": {
+    "$description": "elevation - control / raised / floating / drawer / modal",
+    "1": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#00000021",
+        "offsetX": "0px",
+        "offsetY": "1px",
+        "blur": "3px",
+        "spread": "0px"
+      },
+      "$extensions": {
+        "tools.lolly": {
+          "css": "0 1px 3px hsl(0 0% 0% / .13)"
+        }
+      }
+    },
+    "2": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#0000002e",
+        "offsetX": "0px",
+        "offsetY": "4px",
+        "blur": "14px",
+        "spread": "0px"
+      },
+      "$extensions": {
+        "tools.lolly": {
+          "css": "0 4px 14px hsl(0 0% 0% / .18)"
+        }
+      }
+    },
+    "3": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#00000038",
+        "offsetX": "0px",
+        "offsetY": "8px",
+        "blur": "28px",
+        "spread": "0px"
+      },
+      "$extensions": {
+        "tools.lolly": {
+          "css": "0 8px 28px hsl(0 0% 0% / .22)"
+        }
+      }
+    },
+    "4": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#00000042",
+        "offsetX": "0px",
+        "offsetY": "12px",
+        "blur": "36px",
+        "spread": "0px"
+      },
+      "$extensions": {
+        "tools.lolly": {
+          "css": "0 12px 36px hsl(0 0% 0% / .26)"
+        }
+      }
+    },
+    "5": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#0000004d",
+        "offsetX": "0px",
+        "offsetY": "24px",
+        "blur": "60px",
+        "spread": "0px"
+      },
+      "$extensions": {
+        "tools.lolly": {
+          "css": "0 24px 60px hsl(0 0% 0% / .3)"
+        }
+      }
+    }
+  },
+  "bevel": {
+    "$description": "glass top-light",
+    "default": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#ffffff1a",
+        "offsetX": "0px",
+        "offsetY": "1px",
+        "blur": "0px",
+        "spread": "0px"
+      },
+      "$extensions": {
+        "tools.lolly": {
+          "css": "inset 0 1px hsl(0 0% 100% / .1)"
+        }
+      }
+    }
+  },
+  "ring-focus": {
+    "$description": "focus rings",
+    "default": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#0c322c26",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "0px",
+        "spread": "3px"
+      },
+      "$extensions": {
+        "tools.lolly": {
+          "css": "0 0 0 3px hsl(var(--ring) / .15)"
+        }
+      }
+    },
+    "strong": {
+      "$type": "shadow",
+      "$value": {
+        "color": "#0c322c59",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "0px",
+        "spread": "2px"
+      },
+      "$extensions": {
+        "tools.lolly": {
+          "css": "0 0 0 2px hsl(var(--primary) / .35)"
+        }
+      }
+    }
+  },
+  "radius": {
+    "$description": "Radius scale derived from the design system's shape.radius source (--radius). Zero makes every Lolly UI corner square; any non-zero base turns the high 999× step into a pill/round treatment.",
+    "xs": {
+      "$type": "dimension",
+      "$value": "4px",
+      "$extensions": {
+        "tools.lolly": {
+          "css": "calc(var(--radius) * .25)",
+          "derivedFrom": "shape.radius",
+          "multiplier": 0.25
+        }
+      }
+    },
+    "sm": {
+      "$type": "dimension",
+      "$value": "8px",
+      "$extensions": {
+        "tools.lolly": {
+          "css": "calc(var(--radius) * .5)",
+          "derivedFrom": "shape.radius",
+          "multiplier": 0.5
+        }
+      }
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "12px",
+      "$extensions": {
+        "tools.lolly": {
+          "css": "calc(var(--radius) * .75)",
+          "derivedFrom": "shape.radius",
+          "multiplier": 0.75
+        }
+      }
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "16px",
+      "$extensions": {
+        "tools.lolly": {
+          "css": "var(--radius)",
+          "derivedFrom": "shape.radius",
+          "multiplier": 1
+        }
+      }
+    },
+    "pill": {
+      "$type": "dimension",
+      "$value": "999px",
+      "$extensions": {
+        "tools.lolly": {
+          "css": "calc(var(--radius) * 999)",
+          "derivedFrom": "shape.radius",
+          "multiplier": 999
+        }
+      }
+    },
+    "round": {
+      "$type": "dimension",
+      "$extensions": {
+        "tools.lolly": {
+          "css": "calc(var(--radius) * 999)",
+          "derivedFrom": "shape.radius",
+          "multiplier": 999
+        }
+      },
+      "$value": "999px"
+    }
+  },
+  "fs": {
+    "$description": "chrome type scale - pre-multiplied by --a11y-fs (the sanctioned home for the largeText multiplier: scaled once, at declaration)",
+    "$extensions": {
+      "tools.lolly": {
+        "a11yScale": true
+      }
+    },
+    "2xs": {
+      "$type": "dimension",
+      "$value": "10px"
+    },
+    "xs": {
+      "$type": "dimension",
+      "$value": "11px"
+    },
+    "sm": {
+      "$type": "dimension",
+      "$value": "12px"
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "13px"
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "14px"
+    },
+    "xl": {
+      "$type": "dimension",
+      "$value": "16px"
+    }
+  },
+  "sp": {
+    "$description": "Spacing scale derived from the design system's space.base source (--space). The default base is 8px; changing one token retunes every Lolly chrome gap proportionally.",
+    "1": {
+      "$type": "dimension",
+      "$value": "2px",
+      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * .25)", "derivedFrom": "space.base", "multiplier": 0.25 } }
+    },
+    "2": {
+      "$type": "dimension",
+      "$value": "4px",
+      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * .5)", "derivedFrom": "space.base", "multiplier": 0.5 } }
+    },
+    "3": {
+      "$type": "dimension",
+      "$value": "6px",
+      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * .75)", "derivedFrom": "space.base", "multiplier": 0.75 } }
+    },
+    "4": {
+      "$type": "dimension",
+      "$value": "8px",
+      "$extensions": { "tools.lolly": { "css": "var(--space)", "derivedFrom": "space.base", "multiplier": 1 } }
+    },
+    "5": {
+      "$type": "dimension",
+      "$value": "10px",
+      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * 1.25)", "derivedFrom": "space.base", "multiplier": 1.25 } }
+    },
+    "6": {
+      "$type": "dimension",
+      "$value": "12px",
+      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * 1.5)", "derivedFrom": "space.base", "multiplier": 1.5 } }
+    },
+    "7": {
+      "$type": "dimension",
+      "$value": "16px",
+      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * 2)", "derivedFrom": "space.base", "multiplier": 2 } }
+    },
+    "8": {
+      "$type": "dimension",
+      "$value": "24px",
+      "$extensions": { "tools.lolly": { "css": "calc(var(--space) * 3)", "derivedFrom": "space.base", "multiplier": 3 } }
+    }
+  },
+  "dur": {
+    "$description": "motion",
+    "1": {
+      "$type": "duration",
+      "$value": "120ms"
+    },
+    "2": {
+      "$type": "duration",
+      "$value": "180ms"
+    },
+    "3": {
+      "$type": "duration",
+      "$value": "300ms"
+    }
+  },
+  "ease": {
+    "out": {
+      "$type": "cubicBezier",
+      "$value": [
+        0.32,
+        0.72,
+        0,
+        1
+      ]
+    },
+    "spring": {
+      "$type": "cubicBezier",
+      "$value": [
+        0.34,
+        1.56,
+        0.64,
+        1
+      ]
+    }
+  },
+  "z": {
+    "$description": "stacking - names for what were magic numbers (99999/100000)",
+    "chrome": {
+      "$type": "number",
+      "$value": 20
+    },
+    "overlay": {
+      "$type": "number",
+      "$value": 50
+    },
+    "toast": {
+      "$type": "number",
+      "$value": 90
+    },
+    "max": {
+      "$type": "number",
+      "$value": 100
+    }
+  }
+}

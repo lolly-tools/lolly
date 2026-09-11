@@ -1,0 +1,4 @@
+# The libopenmpt build embeds its WebAssembly as a binary string. A text pass over
+# the tree (a glyph sweep, an EOL normaliser) corrupts it silently - see
+# src/lib/libopenmpt-vendor.test.ts for the day that happened.
+src/vendor/libopenmpt/libopenmpt.mjs binary

@@ -1,0 +1,302 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/*
+ * First-run welcome dialog + gallery tips strip (components/welcome-dialog.ts).
+ *
+ * Loaded WITH the welcome-dialog module - the gallery lazy-imports it only for
+ * unbranded installs, so branded catalogs never pay for this sheet. All colours
+ * flow through the tokens.css HSL variables (shell chrome, not brand values).
+ */
+
+/* One fixed size for every page of the two-page carousel ON DESKTOP: the body
+   scrolls, the footer does not move, and neither can be clipped. The height is
+   stated as well as capped so a short page does not shrink the dialog when the
+   user pages back and forth; the cap also replaces the UA default max-height,
+   which used to cut the last line off a 393x852 phone with no scrollbar to show
+   for it. Phones size to content instead - see the 640px block below. */
+.welcome-dialog {
+  border: 1px solid hsl(var(--border));
+  padding: 0;
+  width: min(1080px, 94vw);
+  block-size: min(680px, calc(100dvh - 32px));
+  max-block-size: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: auto; /* re-assert centring at class specificity (see .modal) */
+  border-radius: calc(var(--radius) * 2);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: 0 24px 64px hsl(0 0% 0% / 0.4);
+}
+/* (`.welcome-dialog::backdrop` aliases the shared dimmed-blur backdrop in
+   parts/dialogs.css - three declarations that were identical in three sheets.) */
+
+/* The one scrolling region - the page content. `min-height: 0` is what lets a flex
+   child actually scroll instead of growing the dialog past its stated height. The
+   page is centred while it fits (the dialog keeps one height for both pages, and
+   the shorter page would otherwise stack against the top with a gap under it);
+   `safe` drops back to top-aligned once it overflows, so the first line is never
+   scrolled out of reach. */
+.welcome-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+}
+/* Column flex items shrink by default - the cards must keep their own height and
+   let the body scroll instead. */
+.welcome-body > * { flex: none; }
+
+/* The pinned footer: page dots, language row, skip link. Same on both pages.
+   Opaque on purpose - the body scrolls UNDER it, and without its own paint the
+   scrolled cards showed through the language row as a text collision (audit 167
+   F-A6, the clipped third door at 393x852). The painted edge is also the scroll
+   cue: a card cut off at an opaque border reads as "more below". */
+.welcome-foot {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 14px 28px;
+  border-top: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+}
+@media (max-width: 640px) {
+  /* Phones: size to content instead of holding the desktop's stated height -
+     three stacked doors plus the footer only just exceed a 393x740 viewport,
+     and a content-height dialog keeps the whole third door (CTA included) on
+     screen wherever it fits (audit 167 F-A6). Still capped, still scrollable. */
+  .welcome-dialog { block-size: auto; max-block-size: calc(100dvh - 16px); }
+  .welcome-body { padding: 20px; }
+  .welcome-foot { padding: 12px 20px; }
+  .welcome-card { padding: 12px; gap: 6px; }
+  .welcome-cards { gap: 10px; }
+  .welcome-sub { margin-bottom: 14px; }
+}
+
+/* Page dots - 8px marks in a 20px touch target, current one filled. */
+.welcome-dots { display: flex; align-items: center; gap: 2px; }
+.welcome-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.welcome-dot::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-round);
+  background: hsl(var(--muted-foreground) / 0.4);
+  transition: background var(--dur-1);
+}
+.welcome-dot:hover::before { background: hsl(var(--muted-foreground) / 0.7); }
+.welcome-dot.is-active::before { background: hsl(var(--primary)); }
+
+/* Language chips - a wrapping pill row in the footer. Each chip is a plain pill (no
+   border-in-a-card trick); the active one gets a filled background, matching the
+   segmented filter pattern (.cat-typefilter). */
+.welcome-langs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex: 1 1 auto; margin: 0; padding: 0; }
+.welcome-langs .lang-switch-icon { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); flex: none; color: hsl(var(--muted-foreground)); margin-right: 2px; }
+.welcome-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 0.6);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background var(--dur-1), color var(--dur-1);
+}
+/* Native emoji flags, lifted with a soft shadow - matches the language menu's
+   flag garnish. Decorative (aria-hidden); the native name is the label. */
+.welcome-lang-flags {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--fs-lg);
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+}
+.welcome-lang:hover { color: hsl(var(--foreground)); }
+.welcome-lang.is-active { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+/* The A3 expander: the row ships collapsed to the detected language, and this pill
+   opens it to the full wrapping set in place. Unfilled, so it reads as the way in
+   rather than as one more language. */
+.welcome-lang-more { background: none; text-decoration: underline; text-underline-offset: 2px; }
+
+/* "Skip for now" - the visible twin of Escape, in the footer. Quiet on purpose:
+   a text link, never a fourth card competing with the three real paths. The global
+   keyboard focus ring (parts/base.css) covers it. */
+.welcome-skip {
+  display: inline-block;
+  margin: 0;
+  padding: 2px 0;
+  font: inherit;
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.welcome-skip:hover { color: hsl(var(--foreground)); }
+
+/* The privacy assurance rides the welcome (plans/137 A2), so a first-run visit
+   reads it here instead of meeting the standalone strip as a second banner: the
+   short line on page 1, the full page behind its link on page 2. The link is an
+   <a> on page 2 (the docs route) and a <button> on page 1 (page change) - both
+   painted the same, so the two read as one affordance. */
+.welcome-privacy {
+  margin: 14px 0 0;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+.welcome-privacy-link {
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.welcome-privacy-link:hover { color: hsl(var(--foreground)); }
+
+/* Page 2's assurance list - what "on this device" actually means. */
+.welcome-facts {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding-left: 18px;
+  font-size: var(--fs-md);
+  line-height: 1.55;
+  color: hsl(var(--muted-foreground));
+}
+.welcome-gotit { margin-top: 18px; }
+
+.welcome-eyebrow {
+  margin: 0 0 6px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--muted-foreground));
+}
+.welcome-title {
+  margin: 0 0 6px;
+  font-size: calc(23px * var(--a11y-fs));
+  font-weight: 750;
+  letter-spacing: -0.015em;
+}
+.welcome-sub {
+  margin: 0 0 20px;
+  font-size: calc(13.5px * var(--a11y-fs));
+  line-height: 1.55;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Auto-fit: two cards (no upload host) or three ("Bring your design") both fill
+   the row; narrow viewports stack to one column. */
+.welcome-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .welcome-cards { grid-template-columns: 1fr; } }
+
+.welcome-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  padding: 16px;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.4);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font: inherit;
+  cursor: pointer;
+  transition: border-color var(--dur-1), background var(--dur-1), transform var(--dur-1);
+}
+.welcome-card:hover { border-color: hsl(var(--primary) / 0.55); transform: translateY(-1px); }
+.welcome-card--brand {
+  border-color: hsl(var(--primary) / 0.45);
+  background: hsl(var(--primary) / 0.06);
+}
+/* Icon leading each choice card - heart (make it yours) / filePlus (bring your
+   design) / eye (explore). Brand card picks up the primary accent; the rest
+   stay muted. */
+.welcome-card-icon { display: inline-flex; color: hsl(var(--muted-foreground)); }
+.welcome-card--brand .welcome-card-icon { color: hsl(var(--primary)); }
+.welcome-card-kicker { font-size: calc(15px * var(--a11y-fs)); font-weight: 700; }
+.welcome-card-line { font-size: calc(12.5px * var(--a11y-fs)); line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.welcome-card-cta { margin-top: auto; padding-top: 4px; font-size: calc(12.5px * var(--a11y-fs)); font-weight: 650; color: hsl(var(--primary)); }
+
+/* ── Tips strip - slim, above the masonry, until dismissed ─────────────────── */
+.brand-tips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  /* Centred over the grid - the app's floating pills (top nav, bulk bar, drop
+     hint) all centre, and a top-left pill fought the centred topbar. */
+  margin: 0 auto 14px;
+  padding: 7px 8px 7px 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+  font-size: calc(12.5px * var(--a11y-fs));
+}
+/* On the fresh-install gallery the strip LEADS the page (no featured strip above
+   it), so it must clear the fixed topbar itself - it takes over .tool-masonry's
+   chrome clearance (6rem desktop / 4.2rem + safe-area on phones, gallery.css) and
+   the grid keeps only the strip's own 14px gap below. Scoped so a strip sitting
+   mid-page (a favourite promoted a featured row above it) keeps the plain margin. */
+.gallery:not(.has-featured) .brand-tips { margin-top: 6.4rem; }
+.gallery:not(.has-featured) .brand-tips + .tool-masonry { padding-top: 0; }
+@media (max-width: 640px) {
+  .gallery:not(.has-featured) .brand-tips { margin-top: calc(4.4rem + var(--safe-top)); }
+}
+.brand-tips-text { margin: 0; line-height: 1.4; }
+/* The unbranded strip's one call to action: the import path for a person's own
+   tokens, which used to sit one select deep in the brand editor. */
+.brand-tips-import { display: inline-block; margin: 0 .6em .2em 0; font-weight: 600;    color: hsl(var(--primary)); text-underline-offset: .15em; }
+.brand-tips-dot { opacity: 0.55; }
+.brand-tips-dismiss {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: var(--radius-round);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-xs);
+  line-height: 1;
+  cursor: pointer;
+}
+.brand-tips-dismiss:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+}

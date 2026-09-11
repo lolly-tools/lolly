@@ -1,0 +1,137 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/*
+ * The beam consent + progress toast (plan 100 section 6.4, section 4.6 point 6). Same visual
+ * idiom as the `.pro-toast` progress-pill family (`pro/run-overlay.css`'s
+ * `.pro-toast`/`.pro-toast-close`/`.pro-progress-track`/`.pro-progress-fill`,
+ * the plan's own named reference) - translucent-free solid card, close corner
+ * button, a real progress fill - but declared fresh under its own `.beam-toast`
+ * namespace rather than importing that sheet. Two reasons: `pro/` is a heavy,
+ * deliberately lazy-loaded batch/export subsystem (cardwall, quips, a render-time
+ * chart) that a corner consent toast has no business pulling in just to borrow a
+ * handful of small rules, and `.pro-toast`'s own footprint (spans the viewport
+ * width with side gutters, for a batch log that needs room to breathe) is the
+ * wrong shape for a small "corner toast" (section 6.4: never a blocking modal) - fighting
+ * that with an override would mean winning a cross-file cascade-layer/specificity
+ * contest instead of just declaring the right box once. `.btn`/`.btn--primary`/
+ * `.btn--ghost`/`.btn--sm` (buttons.css, critical path, always loaded) cover every
+ * button here with no import needed at all.
+ *
+ * Layered `chrome`, like the other always-available cross-view chrome (topbar,
+ * collab pill's own parts/collab.css) - this can appear over any view, not just
+ * one lazily-loaded route.
+ */
+@layer chrome {
+
+.beam-toast {
+  position: fixed;
+  z-index: 100000;
+  right: 1.25rem;
+  /* Clears a phone's home-indicator/gesture strip. */
+  bottom: calc(1.25rem + var(--safe-bottom, 0px));
+  width: min(22rem, calc(100vw - 2.5rem));
+  padding: 0.9rem 1.1rem 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.1);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: 0 10px 36px hsl(0 0% 0% / 0.28);
+  animation: beam-toast-in 0.28s ease-out;
+}
+@keyframes beam-toast-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .beam-toast { animation: none; }
+}
+
+.beam-toast-close {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  width: calc(26px * var(--a11y-fs));
+  height: calc(26px * var(--a11y-fs));
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  font-size: calc(14px * var(--a11y-fs));
+  line-height: 1;
+}
+.beam-toast-close:hover { background: hsl(var(--muted)); }
+
+.beam-toast-title {
+  margin: 0 1.5rem 0.2rem 0;
+  font-weight: 700;
+  font-size: calc(0.92rem * var(--a11y-fs));
+}
+.beam-toast-msg {
+  margin: 0 0 0.5rem;
+  color: hsl(var(--muted-foreground));
+  font-size: calc(0.85rem * var(--a11y-fs));
+  line-height: 1.4;
+}
+.beam-toast-peer {
+  margin: 0 0 0.6rem;
+  font-size: calc(0.78rem * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.beam-toast-item {
+  margin: 0 0 0.4rem;
+  font-size: calc(0.78rem * var(--a11y-fs));
+  color: hsl(var(--foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.beam-toast-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.beam-toast-bar-row { margin: 0 0 0.55rem; }
+.beam-toast-bar-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.2rem;
+  font-size: calc(0.68rem * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+.beam-toast-track {
+  height: 7px;
+  background: hsl(var(--muted));
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px hsl(var(--border) / 0.6);
+}
+.beam-toast-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: hsl(var(--primary));
+  border-radius: var(--radius);
+  transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* Total bytes is the secondary bar - dimmer than the current-item bar, so the
+   two never read as equally weighted (mirrors run-overlay's shortest/slowest
+   dim-vs-full-accent convention in its render-time chart). */
+.beam-toast-fill--total { background: hsl(var(--primary) / 0.55); }
+@media (prefers-reduced-motion: reduce) {
+  .beam-toast-fill { transition: none; }
+}
+
+.beam-toast-terminal { margin: 0; font-size: calc(0.88rem * var(--a11y-fs)); }
+.beam-toast-terminal--err { color: hsl(var(--destructive)); }
+
+.beam-toast-queue {
+  margin: 0.6rem 0 0;
+  font-size: calc(0.68rem * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+
+}

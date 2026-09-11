@@ -1,0 +1,496 @@
+/* Authored logo shading: primary on light surfaces, reverse on dark/brand themes.
+   Both variants keep their SVG gradients; only the coloured spiral is tintable. */
+.lolly-mark { isolation: isolate; }
+.lolly-mark__primary { display: inline; }
+.lolly-mark__reverse { display: none; }
+[data-theme="dark"] .lolly-mark__primary,
+[data-theme="brand"] .lolly-mark__primary { display: none; }
+[data-theme="dark"] .lolly-mark__reverse,
+[data-theme="brand"] .lolly-mark__reverse { display: inline; }
+
+/* ─── State messages ────────────────────────────────────────────────────── */
+
+.loading,
+.empty {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  text-align: center;
+}
+
+.loading {
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* The boot screen's animated mark - icon.svg INLINED in index.html (an SVG
+   loaded via <img> never runs its CSS animations in Chromium). Inline, its
+   spin is ordinary page CSS, so base.css's two reduce-motion blocks (OS media
+   query and data-a11y-motion) freeze it with no extra rules here. */
+.loading-icon {
+  width: 76px;
+  height: 76px;
+}
+
+/* ── Note / callout primitive (component audit rec 13) - the shared "bordered
+   muted-background paragraph" shape that .plat-note (platform.css) and
+   .valid-note (valid.css) restate with their own spacing; this pass owns both
+   of those blocks too, so their literally-identical `border-radius`/`border`
+   lines move into the combined selectors below instead of being retyped -
+   their own padding/font-size/background stay local (folding those in would
+   nudge existing pixel values, a visual change this pass avoids).
+   .share-note/.share-warning (dialogs.css) alias here too (component audit
+   M1.3): both share the radius, .share-note the border as well -
+   .share-warning's amber border is a true delta that stays in dialogs.css.
+   `.note--error`/`.note--warning` are ready-made variants for markup that
+   adopts `.note` directly later; today only `.error` below uses the error
+   tone, kept as its own full ruleset since nothing in the DOM applies
+   `.note` to it. */
+.note,
+.error,
+.plat-note,               /* platform.css */
+.share-note,              /* dialogs.css */
+.share-warning {          /* dialogs.css */
+  border-radius: var(--radius);
+}
+.note,
+.plat-note,                /* platform.css */
+.valid-note,               /* valid.css */
+.share-note {              /* dialogs.css */
+  border: 0;
+}
+/* .plat-note's spacing/type/colour block was byte-identical to this one, so the
+   earlier PARTIAL fold (border + radius only) is finished here: platform.css now
+   holds nothing of its own for the class. Note the layer move - platform.css is
+   `views`, this sheet is `chrome`, so dashboard.css's `.dash-foot { margin: 0;
+   max-width: none }` (also `views`) now beats it deterministically instead of by
+   whichever lazy chunk Vite injected last. That is the override .dash-foot was
+   written to be. */
+.note,
+.plat-note {              /* platform.css */
+  margin: 0; max-width: 72ch; padding: .75rem .9rem;
+  font-size: calc(.85rem * var(--a11y-fs)); line-height: 1.55; color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / .5);
+}
+.note strong,
+.plat-note strong {       /* platform.css */
+  color: hsl(var(--foreground));
+}
+.note--error {
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.4);
+  background: hsl(var(--destructive) / 0.06);
+}
+.note--warning {
+  color: hsl(38 92% 30%);
+  border-color: hsl(38 92% 50% / 0.55);
+  background: hsl(38 92% 50% / 0.1);
+}
+
+.error {
+  color: hsl(var(--destructive));
+  padding: 12px 16px;
+  border: 1px solid hsl(var(--destructive) / 0.4);
+  background: hsl(var(--destructive) / 0.06);
+  font-size: var(--fs-md);
+  text-align:center;
+}
+
+.error-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  font-size: var(--fs-sm);
+  opacity: 0.85;
+}
+
+/* ─── Catalogue summary (lib/catalog-summary.ts) ───────────────────────────────
+   A shared, read-only overview of what ships in this build - the tools (by
+   category, tagged by status) and the brand-asset library (by type). Rendered on
+   BOTH the Platform dashboard and the foot of the Profile page from one source,
+   so the classes live here (shared components) rather than in either view's part.
+   Every item type carries an icon and lands in an even icon-tile grid. */
+.cat-summary { display: grid; gap: 1.6rem; }
+.cat-group { min-width: 0; }
+.cat-group-title {
+  display: flex; align-items: center; gap: .5rem;
+  margin: 0 ; font-size: calc(.78rem * var(--a11y-fs)); font-weight: 650;
+  text-transform: uppercase; letter-spacing: .07em; color: hsl(var(--muted-foreground));
+}
+/* Box + [hidden] reassert merged into .chip--count (chips.css, byte-identical
+   to .plat-ramp-count) - nothing left to restate here. */
+
+/* ─── Tile-grid marquee (rubber-band) selection ──────────────────────────────
+   The box dragged through the gaps between cards in Projects and the Catalogue -
+   one class for both, drawn by the shared gesture module (lib/tile-select.ts), so
+   the two grids can't drift apart visually any more than they can behaviourally.
+   Body-mounted and position:fixed (the module sets left/top/width/height inline),
+   so it floats free of either view's stacking + overflow contexts.
+
+   Corners take HALF the global card radius: unmistakably of the same family as the
+   cards it's sweeping over, but tighter - a selection box reads as an instrument,
+   not a surface, and shouldn't look like another card laid on top of them. */
+.tile-marquee {
+  position: fixed; z-index: 8000; pointer-events: none;
+  border: 1px solid var(--ui-color-selection-border);
+  background: var(--ui-color-selection-surface);
+  border-radius: var(--ui-radius-control);
+}
+/* Kill text selection while a box is live - otherwise the drag paints the page blue
+   as it crosses card captions. Scoped to the marqueeing view root (the module puts the
+   class on the view's mount element), and lifted the moment the drag ends. */
+.is-marqueeing, .is-marqueeing * { user-select: none; }
+
+/* The shared tile context menu (lib/context-menu.ts, default class) - the
+   `.folder-menu` skin, pinned to the viewport point the popover was opened at.
+   Same fixed-positioning delta `.projects-menu` applies over the page-relative
+   base .folder-menu (which the projects view-options popover still uses). */
+.ctx-menu { position: fixed; }
+
+.cat-grid {
+  display: grid; gap: .6rem;
+  grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+}
+/* Icon tile: glyph, then a big count, then the type label. Surface composes
+   .card--sub (chips.css) - layout + padding are local deltas. Named
+   .cat-stat-tile (component audit rec 10 follow-up) - it used to be plain
+   .cat-tile, which collided with catalog.ts's OWN unrelated .cat-tile asset
+   card (that one stays put; this is the renamed side). */
+.cat-stat-tile {
+  display: flex; flex-direction: column; align-items: flex-start; gap: .1rem;
+  padding: .85rem .9rem;
+}
+.cat-stat-tile-icon { color: hsl(var(--muted-foreground)); margin-bottom: .45rem; }
+.cat-stat-tile-icon svg { display: block; width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); }
+.cat-stat-tile-num { font-size: calc(1.45rem * var(--a11y-fs)); font-weight: 700; line-height: 1; }
+.cat-stat-tile-label { font-size: calc(.78rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+
+/* Secondary "by status" row - compact icon chips beneath the tool tiles.
+   Capitalize composes .chip--status (chips.css); the rest (gap, padding,
+   background alpha, font-size) are real local deltas. Named
+   .cat-stat-tag (component audit M1.2 follow-up) - it used to be plain
+   .cat-tag, which collided with catalog.ts's OWN unrelated .cat-tag on the
+   details-modal tag list (that one stays put; this is the renamed side). */
+.cat-stat-tags { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+.cat-stat-tag {
+  padding: .3rem .65rem .3rem .5rem;
+  background: hsl(var(--muted) / .6); font-size: calc(.78rem * var(--a11y-fs));
+}
+.cat-stat-tag-icon { display: inline-flex; color: hsl(var(--muted-foreground)); }
+.cat-stat-tag-icon svg { display: block; width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.cat-stat-tag strong { font-weight: 700; }
+
+.cat-empty { margin: 0; color: hsl(var(--muted-foreground)); font-size: calc(.85rem * var(--a11y-fs)); font-style: italic; }
+
+/* ─── Activity summary (lib/activity-summary.ts) ───────────────────────────────
+   Same story as Catalogue summary above: one source, rendered on BOTH the
+   Profile page and the Dashboard's "This device" tab, each hosting it at a
+   different size (Profile's cards run larger). Previously EVERY `.activity-*`/
+   `.fmt-*` rule was retyped whole in profile.css AND dashboard.css - a drift
+   risk (component audit rec 13). The declarations that were already
+   byte-identical between the two views move here, scoped to both view roots
+   in one selector list so they can't drift apart again; each view's own file
+   keeps only its real size/spacing deltas. */
+.profile-view .activity-split .activity-grid, .profile-view .activity-split .activity-block,
+.dashboard-view .activity-split .activity-grid, .dashboard-view .activity-split .activity-block {
+  margin: 0;
+}
+.profile-view .activity-grid, .dashboard-view .activity-grid { display: grid; gap: .7rem; }
+.profile-view .activity-stat, .dashboard-view .activity-stat {
+  text-align: center; display: flex; flex-direction: column; gap: .25rem;
+}
+.profile-view .activity-num, .dashboard-view .activity-num {
+  font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums;
+}
+.profile-view .activity-label, .dashboard-view .activity-label {
+  text-transform: uppercase; letter-spacing: .05em; color: hsl(var(--muted-foreground));
+}
+.profile-view .activity-h3, .dashboard-view .activity-h3 {
+  text-transform: uppercase; letter-spacing: .06em; color: hsl(var(--muted-foreground)); font-weight: 700;
+}
+.profile-view .fmt-bars, .dashboard-view .fmt-bars {
+  list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem;
+}
+.profile-view .fmt-row, .dashboard-view .fmt-row { display: grid; align-items: center; }
+.profile-view .fmt-name, .dashboard-view .fmt-name { font-weight: 700; letter-spacing: .03em; }
+.profile-view .fmt-track, .dashboard-view .fmt-track { background: hsl(var(--muted)); overflow: hidden; }
+.profile-view .fmt-fill, .dashboard-view .fmt-fill {
+  display: block; height: 100%; background: hsl(var(--primary) / .5);
+}
+.profile-view .fmt-row.is-top .fmt-fill, .dashboard-view .fmt-row.is-top .fmt-fill { background: hsl(var(--primary)); }
+.profile-view .fmt-count, .dashboard-view .fmt-count {
+  text-align: right; color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums;
+}
+.profile-view .activity-meta, .dashboard-view .activity-meta {
+  line-height: 1.7; color: hsl(var(--muted-foreground));
+}
+.profile-view .activity-meta strong, .dashboard-view .activity-meta strong {
+  color: hsl(var(--foreground)); font-weight: 700;
+}
+.profile-view .activity-meta .dot, .dashboard-view .activity-meta .dot { opacity: .45; margin: 0 .15rem; }
+.profile-view .activity-meta .activity-fav, .dashboard-view .activity-meta .activity-fav { text-decoration: none; }
+
+/* The brand-asset tiles land after a fetch; fade them in rather than pop. */
+@keyframes cat-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) {
+  .cat-hydrated { animation: cat-fade .28s var(--enter-ease) both; }
+}
+
+/* Staggered entrance cascade for a section's items as it opens (lib/reveal.ts sets a
+   per-item --reveal-delay). Reuses the gallery's card-in keyframes so an input group
+   or a catalog category unfolds with the same satisfying rise the gallery tiles have.
+   Gated to no-preference: under reduced motion the items simply appear.
+   Fill is `backwards`, NOT `both`: backwards still hides the item through its stagger
+   delay, but once the animation ends the item returns to its natural style - `both`
+   left a computed `translate: 0px` on it forever, which made the item the containing
+   block + stacking context for any position:fixed popover inside it (a colour field's
+   swatch panel: clipped by the section's overflow, painted under later sections). */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-item {
+    animation: card-in var(--enter-dur, 0.32s) var(--enter-ease, cubic-bezier(.22, .61, .36, 1)) backwards;
+    animation-delay: var(--reveal-delay, 0ms);
+  }
+}
+
+.error-list code {
+  font-family: ui-monospace, monospace;
+  background: hsl(var(--muted));
+  padding: 1px 4px;
+  border-radius: var(--radius-xs);
+}
+
+.muted {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-sm);
+}
+
+/* background/color/text-shadow/backdrop-filter/transition come from the shared
+   .btn--glass alias (buttons.css) - every back pill, including this base rule
+   and the .sidebar-back variant below, now gets the same glass treatment. */
+.tools-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: var(--fs-md);
+  line-height: 1;
+  cursor: pointer;
+  z-index: 9;
+
+  box-shadow: inset 0 -.1em 1em 1px hsl(var(--primary) / 0.22), 0 .1em .3em #0002;
+
+  /* Sized off the shared top-row geometry (tokens.css) rather than its own
+     padding box, so the pill is exactly as tall as the .lang-fab / .profile-link
+     cluster opposite it. A 1px transparent border matches the one those carry
+     (dropped to transparent in overrides.css) so the two ends of the row have
+     identical outer boxes and nothing reflows. */
+  min-height: var(--chrome-h);
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  padding: 0 16px;
+  border-radius: calc(var(--radius)*1.5);           /* pill */
+  text-decoration: none;
+}
+.tools-home:hover {
+  background-color: hsl(var(--primary) / 0.16);
+  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.34);
+}
+
+/* The leading arrow. backPillHtml() renders a stroked Lucide glyph so the pill
+   matches the icon FABs across the row; the text "←" below is the fallback for
+   any pill still written as bare markup (the #/components specimens), and is
+   suppressed the moment a real icon is present. */
+.back-pill-icon {
+  display: inline-flex;
+  flex: none;
+}
+.back-pill-icon svg { display: block; }
+
+.tools-home:before {
+  content: "←";
+  font-weight: 700;
+  line-height: 1;
+}
+.tools-home:has(.back-pill-icon):before { content: none; }
+
+/* Sidebar back button: sits at the left of the back row (with the theme toggle on
+   the right - see .sidebar-back-row). The filled .tools-home base gives the pill
+   look; this just keeps it from stretching. */
+.tools-home.sidebar-back {
+  flex: none;
+}
+
+/* background/color/text-shadow/backdrop-filter/transition come from the shared
+   .btn--glass alias (buttons.css) - matches the top-right FAB cluster. */
+/* Height/inset come from the shared top-row geometry (tokens.css) - the same
+   three properties the back pill on the opposite side reads, which is what
+   keeps the two ends of the row level. */
+.profile-link {
+    position: absolute;
+    z-index:99999;
+    right: var(--chrome-inset);
+    top: var(--chrome-top);
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    min-height: var(--chrome-h);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: var(--fs-md);
+    line-height: 1;
+    border: 1px solid hsl(var(--primary));
+    padding: 0 10px 0 3em;
+    border-radius: calc(var(--radius)*1.5);
+  }
+
+/* The top-right chrome cluster's shared "glowing glass, no border" treatment for
+   .filter-fab / .history-fab / .lang-fab / .profile-link moved to its own sheet,
+   styles/parts/overrides.css (@layer overrides), so it wins over view chrome by
+   layer rank instead of by being the last @import. */
+
+/* Pin the profile link to the viewport on the gallery so it stays put while the
+   tool list scrolls (mobile already does this below; this covers desktop too). */
+ 
+
+/* Default avatar - shown when the user has no headshot yet (every profile): the Lolly
+   swirl mark, still at rest and spinning on hover/focus, the same treatment the design
+   canvas's menu button and the Ask send button use (parts/ask.css .ask-send-mark). */
+.profile-link-mark {
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.2em;
+  height: 2.2em;
+  border-radius: var(--radius-round);
+  overflow: hidden;
+  pointer-events: none;
+}
+.profile-link-mark svg { width: 100%; height: 100%; display: block; }
+/* A real headshot replaces it. */
+.profile-link.has-avatar .profile-link-mark { display: none; }
+/* Still until hovered: the three swirl layers counter-spin about their own centres. */
+.profile-link-mark .lolly-mark__spin-1,
+.profile-link-mark .lolly-mark__spin-2,
+.profile-link-mark .lolly-mark__spin-3 { transform-origin: 50% 50%; transform-box: fill-box; }
+.profile-link:hover .profile-link-mark .lolly-mark__spin-1,
+.profile-link:focus-visible .profile-link-mark .lolly-mark__spin-1 { animation: profile-mark-spin 2.4s linear infinite; }
+.profile-link:hover .profile-link-mark .lolly-mark__spin-2,
+.profile-link:focus-visible .profile-link-mark .lolly-mark__spin-2 { animation: profile-mark-spin 4.6s linear infinite reverse; }
+.profile-link:hover .profile-link-mark .lolly-mark__spin-3,
+.profile-link:focus-visible .profile-link-mark .lolly-mark__spin-3 { animation: profile-mark-spin 7s linear infinite; }
+@keyframes profile-mark-spin { to { transform: rotate(360deg); } }
+/* No hover surface (touch), OS reduced-motion, and the app a11y pref: never spin. */
+@media (hover: none) {
+  .profile-link:hover .profile-link-mark .lolly-mark__spin-1,
+  .profile-link:hover .profile-link-mark .lolly-mark__spin-2,
+  .profile-link:hover .profile-link-mark .lolly-mark__spin-3 { animation: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .profile-link:hover .profile-link-mark .lolly-mark__spin-1,
+  .profile-link:hover .profile-link-mark .lolly-mark__spin-2,
+  .profile-link:hover .profile-link-mark .lolly-mark__spin-3,
+  .profile-link:focus-visible .profile-link-mark .lolly-mark__spin-1,
+  .profile-link:focus-visible .profile-link-mark .lolly-mark__spin-2,
+  .profile-link:focus-visible .profile-link-mark .lolly-mark__spin-3 { animation: none; }
+}
+html[data-a11y-motion="reduce"] .profile-link .profile-link-mark .lolly-mark__spin-1,
+html[data-a11y-motion="reduce"] .profile-link .profile-link-mark .lolly-mark__spin-2,
+html[data-a11y-motion="reduce"] .profile-link .profile-link-mark .lolly-mark__spin-3 { animation: none; }
+
+/* Real user headshot, clipped to a circle in place of the dot. */
+.profile-link-avatar {
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.2em;
+ height: 2.2em;
+  border-radius: var(--radius-round);
+  object-fit: cover;
+  border: 1px solid hsl(var(--primary) / .4);
+}
+
+/* On mobile the gallery scrolls under it, so pin the profile button to the
+   viewport; the legibility blur comes from the shared .btn--glass recipe
+   (buttons.css) - no local backdrop-filter, so the canonical blur(4px) applies. */
+@media (max-width: 640px) {
+  .profile-link {
+    position: fixed;
+    /* Re-pin to the visible top-right while the page is pinch-zoomed. */
+    top: calc(var(--chrome-top) + var(--vv-top, 0px));
+    right: calc(var(--chrome-inset) + var(--vv-right, 0px));
+  }
+}
+
+/* ─── Mono value-box aliases (the colour picker's own rules now live in
+       parts/color-field.css) ────────────────────────────────────────────── */
+
+/* ── Mono field-input primitive (component audit rec 13) - the "bordered
+   monospace value box" recipe repeated across the app. .share-link-field
+   (dialogs.css) turned out byte-identical (bar its own flex/min-width layout),
+   so it fully composes the box below. .be-fmt-input/.be-lock-field input/
+   .be-cmyk-in input (brand-studio.css) are the SAME idea at the studio's own
+   tighter scale - different padding/border-radius/background/font-size/
+   font-family (brand-studio.css's `--font-mono` token, not this recipe's
+   literal stack), so only their two genuinely byte-identical declarations
+   (`color`, `font: inherit`) move into the second selector list; the rest
+   stays local rather than nudging the studio's own pixel values. .color-input
+   (parts/color-field.css) is the SAME concept again (a mono value field) but its
+   box is a distinct oversized/painted variant with no property textually
+   identical to either list, so it stays its own full ruleset over there.
+
+   NAME HANDOVER (2026-07-25): `.field-input` used to be declared here, meaning
+   "the small mono value box". It now means "the shared text field" and is
+   declared in parts/fields.css (`primitives`) - the generic sense won because it
+   has an order of magnitude more call-sites. The mono reading survives as the
+   `.field-input--mono` modifier on that primitive; the aliases below keep their
+   share of the old recipe unchanged. Nothing in this file may claim
+   `.field-input` again: components.css is `chrome` and would silently beat the
+   primitive for every adopter in the app. */
+.be-fmt-input,           /* brand-studio.css */
+.be-lock-field input,    /* brand-studio.css */
+.be-lock-field select,   /* brand-studio.css - the Finish picker, same box */
+.be-cmyk-in input,       /* brand-studio.css */
+.share-link-field {      /* dialogs.css */
+  color: hsl(var(--foreground));
+  font: inherit;
+}
+/* MUST come after the `font: inherit` shorthand above - same specificity, so
+   source order is what lets the mono face/size win for the full box (the be-*
+   fields above keep inherit only; their mono comes from their context). */
+.share-link-field {         /* dialogs.css */
+  padding: 7px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.4);
+  font-size: var(--fs-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Floating swatch-name chip - painted in the swatch's own colour (--sw-c) with a
+   black/white contrast label (set inline by showSwatchTip). Fixed to the body so the
+   scrolling swatch grid never clips it; pointer-events:none so it never intercepts a
+   click on the swatch below - slide straight to the next one. Anchored above the swatch
+   (JS sets left/top to its top-centre; the translate lifts + centres the chip). The tiny
+   pop-in delay is done in JS (a 240ms timer before .is-shown), so it only fades in. */
+.swatch-name-tip {
+  position: fixed;
+  z-index: 10002; /* above the portaled popovers (10001) it labels */
+  transform: translate(-50%, -100%);
+  padding: 3px 8px;
+  border-radius: 7px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: 1.35;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  box-shadow: 0 2px 10px #0005, inset 0 0 0 1px #ffffff30;
+}
+.swatch-name-tip.is-shown { opacity: 1; }

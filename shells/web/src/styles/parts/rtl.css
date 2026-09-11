@@ -1,0 +1,36 @@
+/*
+ * RTL baseline - correctness rules for right-to-left languages (Arabic).
+ *
+ * i18n.ts stamps <html dir="rtl"> alongside <html lang>, and the app's
+ * flex/grid layouts mirror themselves from that alone. This sheet holds only
+ * what direction inheritance gets WRONG, not cosmetic mirroring:
+ *
+ *   - Code is Latin and always reads left-to-right: without an isolated LTR
+ *     context, leading/trailing punctuation in an RTL paragraph jumps to the
+ *     wrong side of a snippet.
+ *   - Inherently-LTR input values (URLs, emails, phone numbers, plain numbers)
+ *     keep LTR typing/caret order, right-aligned so they sit naturally in the
+ *     mirrored form column.
+ *
+ * Anything cosmetic (physical left/right offsets on FABs, border accents)
+ * deliberately stays unmirrored until it's verified broken in a real RTL
+ * pass - a fixed top-right control cluster is fine in RTL, and blanket
+ * mirroring rules are how layouts break in BOTH directions.
+ */
+
+[dir="rtl"] pre,
+[dir="rtl"] code,
+[dir="rtl"] kbd,
+[dir="rtl"] samp {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate;
+}
+
+[dir="rtl"] input[type="url"],
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] input[type="number"] {
+  direction: ltr;
+  text-align: right;
+}

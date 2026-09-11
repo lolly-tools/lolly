@@ -1,0 +1,179 @@
+/* ── Script audio dialog (views/script-audio.ts) ───────────────────────────
+   Type a script → generate on-device speech → save as a user audio asset.
+   A lazy chunk like picker.css: imported by the dialog module itself, so both
+   openers (asset picker footer, catalog uploads section) pull it on demand.
+   Stacks above the picker panel (z 1001) like the webcam sheet (1100/1101).
+   Sibling on <body>. */
+.script-audio-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+.script-audio-panel {
+  position: fixed;
+  z-index: 1101;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, 92vw);
+  max-height: 90vh;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  box-shadow: var(--ui-elevation-overlay);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.script-audio-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+.script-audio-close {
+  background: none;
+  border: none;
+  font-size: calc(20px * var(--a11y-fs));
+  line-height: 1;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+.script-audio-close:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+.script-audio-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  overflow-y: auto;
+}
+.script-audio-label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+.script-audio-text {
+  resize: vertical;
+  min-height: 120px;
+  font: inherit;
+  font-size: var(--fs-md);
+}
+.script-audio-count {
+  font-size: calc(11.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  text-align: right;
+}
+.script-audio-count-over { color: hsl(var(--destructive)); }
+/* The one way out of the compact dialog: voice blending and the prosody chips
+   live in the writing view, so this sheet stays two controls wide. */
+.script-audio-more {
+  margin: 0;
+  font-size: var(--fs-xs);
+}
+.script-audio-more a { color: hsl(var(--primary)); }
+.script-audio-controls {
+  display: flex;
+  gap: 10px;
+}
+.script-audio-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+.script-audio-consent {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--accent) / 0.4);
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+/* Same recipe as the /verify deep-scan bar (parts/valid.css): a thin track, a
+   primary fill whose width JS drives from onProgress. */
+.script-audio-progress {
+  height: 6px;
+  border-radius: var(--radius-xs);
+  background: hsl(var(--border));
+  overflow: hidden;
+}
+.script-audio-progress-fill {
+  height: 100%;
+  width: 0;
+  border-radius: var(--radius-xs);
+  background: hsl(var(--primary));
+  transition: width 0.15s;
+}
+/* No fraction to report (a transport that won't say): pulse the full track. */
+.script-audio-progress-indeterminate .script-audio-progress-fill {
+  animation: script-audio-pulse 1.2s ease-in-out infinite;
+}
+@keyframes script-audio-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .script-audio-progress-indeterminate .script-audio-progress-fill { animation: none; opacity: 0.7; }
+}
+html[data-a11y-motion="reduce"] .script-audio-progress-indeterminate .script-audio-progress-fill { animation: none; opacity: 0.7; }
+.script-audio-status {
+  font-size: calc(12.5px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.script-audio-status.script-audio-error { color: hsl(var(--destructive)); }
+/* The preview row hosts the shared themed transport (.cat-tp - lib/audio-transport.ts,
+   visuals in parts/catalog.css) plus its hidden <audio> engine. */
+.script-audio-preview {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+}
+.script-audio-preview .cat-tp { flex: 1; }
+.script-audio-preview audio { display: none; }
+.script-audio-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid hsl(var(--border));
+}
+.script-audio-actions .script-audio-cancel {
+  padding: 7px 14px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+/* Fill pair (background + foreground) comes from the .btn--primary alias list
+   in parts/buttons.css; only the deltas live here. */
+.script-audio-actions .script-audio-generate,
+.script-audio-actions .script-audio-save {
+  padding: 7px 18px;
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+.script-audio-actions .script-audio-generate:disabled,
+.script-audio-actions .script-audio-save:disabled { opacity: 0.5; cursor: not-allowed; }

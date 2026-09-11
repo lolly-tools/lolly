@@ -1,0 +1,174 @@
+/* css-editor.css - the shared CSS code editor (lib/css-code-editor.ts). Imported by
+ * app.css with layer(chrome). The overlay trick needs the <textarea> and the <pre> to
+ * share EXACTLY the same text metrics so tokens sit under the characters; every font /
+ * spacing / padding rule below is therefore applied to BOTH via `.css-ed-hl, .css-ed-ta`.
+ * Token colours are tokens so the editor follows the app theme (defined light-first, then
+ * a dark override). */
+
+:root {
+  --cssed-bg: #f7f8fa;
+  --cssed-fg: #1a2230;
+  --cssed-caret: #2563eb;
+  --cssed-hair: #0000001a;
+  --tk-com: #7b8494;
+  --tk-str: #0a7d33;
+  --tk-num: #b5561a;
+  --tk-prop: #2456c9;
+  --tk-val: #1a2230;
+  --tk-sel: #8a2a86;
+  --tk-fn: #7a4bd0;
+  --tk-at: #b5561a;
+  --tk-kw: #b5561a;
+  --tk-punc: #66707e;
+  --cssed-ac-bg: #ffffff;
+  --cssed-ac-sel: #2563eb1f;
+}
+:root:not([data-theme="light"]) {
+  @media (prefers-color-scheme: dark) {
+    --cssed-bg: #0e1420;
+    --cssed-fg: #dbe3f0;
+    --cssed-caret: #6ea8ff;
+    --cssed-hair: #ffffff1f;
+    --tk-com: #6b7686;
+    --tk-str: #7dd69b;
+    --tk-num: #f0a877;
+    --tk-prop: #7db0ff;
+    --tk-val: #dbe3f0;
+    --tk-sel: #e59bdf;
+    --tk-fn: #c3a6f5;
+    --tk-at: #f0a877;
+    --tk-kw: #f0a877;
+    --tk-punc: #98a2b3;
+    --cssed-ac-bg: #131a28;
+    --cssed-ac-sel: #6ea8ff2e;
+  }
+}
+:root[data-theme="dark"] {
+  --cssed-bg: #0e1420;
+  --cssed-fg: #dbe3f0;
+  --cssed-caret: #6ea8ff;
+  --cssed-hair: #ffffff1f;
+  --tk-com: #6b7686;
+  --tk-str: #7dd69b;
+  --tk-num: #f0a877;
+  --tk-prop: #7db0ff;
+  --tk-val: #dbe3f0;
+  --tk-sel: #e59bdf;
+  --tk-fn: #c3a6f5;
+  --tk-at: #f0a877;
+  --tk-kw: #f0a877;
+  --tk-punc: #98a2b3;
+  --cssed-ac-bg: #131a28;
+  --cssed-ac-sel: #6ea8ff2e;
+}
+
+.css-ed {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--cssed-bg);
+  border: 1px solid var(--cssed-hair);
+}
+
+/* Shared text metrics - the two layers MUST match to the pixel. */
+.css-ed-hl,
+.css-ed-ta {
+  margin: 0;
+  padding: 10px 12px;
+  border: 0;
+  font: 400 13px/1.5 ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  tab-size: 2;
+  white-space: pre;
+  overflow-wrap: normal;
+  letter-spacing: 0;
+  box-sizing: border-box;
+}
+
+.css-ed-ta {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  min-height: 220px;
+  resize: vertical;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--cssed-caret);
+  outline: none;
+  overflow: auto;
+}
+.css-ed-ta::placeholder { color: var(--tk-com); }
+
+.css-ed-hl {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  color: var(--tk-val);
+  background: transparent;
+}
+.css-ed-hl .tk-com { color: var(--tk-com); font-style: italic; }
+.css-ed-hl .tk-str { color: var(--tk-str); }
+.css-ed-hl .tk-num { color: var(--tk-num); }
+.css-ed-hl .tk-prop { color: var(--tk-prop); }
+.css-ed-hl .tk-val { color: var(--tk-val); }
+.css-ed-hl .tk-sel { color: var(--tk-sel); }
+.css-ed-hl .tk-fn { color: var(--tk-fn); }
+.css-ed-hl .tk-at { color: var(--tk-at); }
+.css-ed-hl .tk-kw { color: var(--tk-kw); font-weight: 600; }
+.css-ed-hl .tk-punc { color: var(--tk-punc); }
+
+/* Autocomplete dropdown - anchored to the editor; positioned near the caret is overkill
+   for M4, so it docks under the top-left of the editor and lists prefix matches. */
+.css-ed-ac {
+  position: absolute;
+  left: 12px;
+  top: 8px;
+  z-index: 3;
+  max-height: 220px;
+  overflow: auto;
+  min-width: 180px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--cssed-ac-bg);
+  border: 1px solid var(--cssed-hair);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  font: 400 12.5px/1.4 ui-monospace, Menlo, monospace;
+}
+.css-ed-ac-item {
+  padding: 4px 8px;
+  border-radius: 5px;
+  color: var(--cssed-fg);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.css-ed-ac-item.is-sel { background: var(--cssed-ac-sel); }
+.css-ed-ac-item:hover { background: var(--cssed-ac-sel); }
+
+/* The free-canvas ⋯-menu panel that hosts the editor (fc-panel base is styled elsewhere). */
+.fc-css-panel { width: min(540px, 92vw); }
+.fc-css-hint {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 0.78;
+}
+.fc-css-mount { display: block; }
+
+/* Per-frame present state panel (one text field). */
+.fc-fstate-panel { width: min(420px, 92vw); }
+.fc-fstate-input { width: 100%; box-sizing: border-box; }
+
+/* Per-frame speaker-notes panel (a multi-line textarea). */
+.fc-notes-panel { width: min(440px, 92vw); }
+.fc-notes-input {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 5.5em;
+  font: inherit;
+  line-height: 1.5;
+}
+
+

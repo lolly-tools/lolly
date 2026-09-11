@@ -1,0 +1,360 @@
+/* present.css - presentation mode (plan 112, M1). Imported by app.css with
+ * layer(chrome), so these rules live in the `chrome` layer; do NOT wrap them in an
+ * @layer here (that would nest a second level).
+ *
+ * The stage is a body-level fixed overlay the conductor (views/present-mode.ts) builds
+ * out of CLONED `.lolly-frame-page` nodes - the editor canvas underneath is never
+ * touched. Every slide is centred in one co-located stack; the STATE-CLASS CONTRACT
+ * (pr-past / pr-active / pr-future, + pr-prev/pr-next/pr-stack, direction on the root as
+ * data-nav-dir) is the public API for both the built-in transition here and, later (M4),
+ * author custom CSS. Motion is transform+opacity only - the standing rule (easing governs
+ * transform; opacity keeps a plain ramp). NOTHING here targets the real tool canvas or an
+ * export stage, so a calmer presenter never moves a pixel of an exported file. */
+
+.pr-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000; /* above every view, dialog, and float panel */
+  background: #05070c;
+  color: #fff;
+  overflow: hidden;
+  isolation: isolate;
+  /* Transition tuning - one place to change speed/curve; the app reduced-motion pref
+     and the OS query both collapse it (see the reduced blocks below). */
+  --pr-dur: 0.46s;
+  --pr-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --pr-accent: #4c8dff;
+  cursor: default;
+}
+
+/* ---- The co-located deck ------------------------------------------------------------ */
+.pr-frames {
+  position: absolute;
+  inset: 0;
+}
+
+/* Each cloned page: centred, scaled to fit (letterboxed to its own aspect via --pr-scale,
+   set inline by the conductor), and offset/faded by its state class. The transform
+   structure is FIXED (same function list in every state) so transitions interpolate
+   per-function, not via a matrix decomposition. */
+.pr-page {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: center center;
+  transform:
+    translate(calc(-50% + var(--pr-tx, 0px)), calc(-50% + var(--pr-ty, 0px)))
+    scale(calc(var(--pr-scale, 1) * var(--pr-sc, 1)));
+  opacity: var(--pr-op, 1);
+  transition:
+    transform var(--pr-dur) var(--pr-ease),
+    opacity var(--pr-dur) linear;
+  backface-visibility: hidden;
+  /* Contain layout+paint so a slide's internals never invalidate the stage (the
+     rendering monopoly, plan section 5.2). */
+  contain: layout paint;
+}
+
+/* The state-class contract → the default transition (a gentle push + fade). Only the
+   active slide and its two neighbours are ever in the DOM's paint window; the rest carry
+   [hidden]. Neighbours sit just off their travel side and faded, so any advance reads as
+   a left-to-right push and a reverse plays it backwards for free (the classes swap). */
+.pr-page.pr-active { --pr-tx: 0px; --pr-op: 1; }
+.pr-page.pr-past   { --pr-tx: -12vw; --pr-op: 0; }
+.pr-page.pr-future { --pr-tx: 12vw; --pr-op: 0; }
+
+/* Vertical stacks (sub-slides): when travel is up/down, a stack member enters/leaves
+   vertically instead of sideways. Data lands in M5; the rule is here so stacks animate
+   correctly the moment stackOf frames exist. */
+.pr-stage[data-nav-dir="down"] .pr-page.pr-past,
+.pr-stage[data-nav-dir="up"] .pr-page.pr-future { --pr-tx: 0px; --pr-ty: -12vh; }
+.pr-stage[data-nav-dir="down"] .pr-page.pr-future,
+.pr-stage[data-nav-dir="up"] .pr-page.pr-past { --pr-tx: 0px; --pr-ty: 12vh; }
+
+/* Deck-level `fade` transition: no travel, opacity only (the conductor sets data-pr-transition). */
+.pr-stage[data-pr-transition="fade"] .pr-page.pr-past,
+.pr-stage[data-pr-transition="fade"] .pr-page.pr-future { --pr-tx: 0px; --pr-ty: 0px; --pr-op: 0; }
+
+/* Deck-level `none`: a straight cut. No travel, no fade, no transition to interpolate -
+   the frame field spells this one "Cut", and it should look like one. */
+.pr-stage[data-pr-transition="none"] .pr-page { transition: none; }
+.pr-stage[data-pr-transition="none"] .pr-page.pr-past,
+.pr-stage[data-pr-transition="none"] .pr-page.pr-future { --pr-tx: 0px; --pr-ty: 0px; --pr-op: 0; }
+
+/* Morph (M5): while a morph is in flight, the PAGES crossfade in place (both centred) so
+   only the matched boxes - FLIP-animated by the conductor via WAAPI - appear to travel. */
+.pr-stage.pr-morphing .pr-page.pr-past,
+.pr-stage.pr-morphing .pr-page.pr-future { --pr-tx: 0px; --pr-ty: 0px; --pr-op: 0; }
+.pr-stage.pr-morphing .pr-page.pr-active { --pr-tx: 0px; --pr-ty: 0px; --pr-op: 1; }
+
+/* ---- The canvas stage: "fly between artboards" (plan 179 M4 section 7) -------------- */
+/* A flight is not a swap of two centred pages - it is a CAMERA over the arrangement the
+   deck was authored in. Every page sits at its own x/y inside `.pr-frames`, and one
+   transform on that container carries the audience from one frame to the next. The camera
+   rides three custom properties so the conductor can set the duration per leg of the arc
+   (zoom out to hold both frames, then in on the destination) while the transition
+   interpolates the composed transform. Placement is `cameraFor` in present-math.ts - the
+   same function the overview map uses, so the map and the flight cannot disagree about
+   where a frame is. Reduced motion never enters this mode; it crossfades instead. */
+.pr-stage.pr-canvas .pr-frames {
+  transform-origin: 0 0;
+  transform: translate(var(--pr-cam-x, 0px), var(--pr-cam-y, 0px)) scale(var(--pr-cam-s, 1));
+  will-change: transform;
+}
+.pr-stage.pr-canvas .pr-page {
+  left: var(--pr-cx, 0px);
+  top: var(--pr-cy, 0px);
+  transform-origin: 0 0;
+  /* The camera owns the scale and the offset; a page in canvas mode is simply where it
+     was authored, at full size, fully opaque. */
+  transform: none;
+  --pr-op: 1;
+  transition: none;
+}
+
+/* Unload window - belt and braces beside a11y.css's global [hidden] rule. */
+.pr-page[hidden] { display: none; }
+
+/* ---- Overview: the authored arrangement as an audience-facing map ------------------- */
+.pr-stage.pr-overview .pr-page {
+  left: var(--pr-ox, 0px);
+  top: var(--pr-oy, 0px);
+  transform-origin: top left;
+  transform: scale(var(--pr-oscale, 0.2));
+  opacity: 1;
+  cursor: pointer;
+  /* Constrained flight: fade only, no position animation (the Prezi motion-sickness
+     lesson - do not fly the whole map on every open). */
+  transition: opacity var(--pr-dur) linear;
+}
+.pr-stage.pr-overview .pr-page.pr-active {
+  outline: 3px solid var(--pr-accent);
+  outline-offset: 3px;
+}
+.pr-stage.pr-overview .pr-tap { display: none; }
+
+/* ---- Edge tap zones (siblings of the frames, so slide content stays clickable) ------ */
+.pr-tap {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: clamp(48px, 12vw, 160px);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  z-index: 2; /* above frames, but they only cover the two edges */
+  -webkit-tap-highlight-color: transparent;
+}
+.pr-tap-prev { left: 0; }
+.pr-tap-next { right: 0; }
+.pr-tap:focus-visible { outline: 2px solid var(--pr-accent); outline-offset: -4px; }
+
+/* ---- HUD -------------------------------------------------------------------------- */
+.pr-hud {
+  position: absolute;
+  left: 50%;
+  /* Lifts clear of the soft keyboard (e.g. a notes/search field elsewhere in
+     the deck leaves it focused); a no-op while --vv-bottom is 0px. */
+  bottom: calc(max(18px, var(--safe-bottom)) + var(--vv-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(12, 16, 24, 0.72);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  opacity: 1;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.pr-counter {
+  font: 500 13px/1 SUSE, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  padding: 0 8px;
+  min-width: 3.5em;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
+}
+.pr-hud-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: var(--radius-round);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.pr-hud-btn:hover { background: rgba(255, 255, 255, 0.14); }
+.pr-hud-btn:focus-visible { outline: 2px solid var(--pr-accent); outline-offset: 2px; }
+.pr-hud-btn svg { width: 22px; height: 22px; }
+
+/* Idle: fade the chrome out after inactivity; any pointer/key/focus wakes it. The HUD
+   keeps `pointer-events` while faded so a click (mouse teleport or a touch tap that never
+   emits a wake-triggering pointermove first) still lands on its button rather than passing
+   through - otherwise the first tap is silently spent lifting the idle state. */
+.pr-stage.pr-idle { cursor: none; }
+.pr-stage.pr-idle .pr-hud {
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
+}
+.pr-stage.pr-idle .pr-hud:hover { opacity: 1; transform: translateX(-50%); }
+
+/* ---- Stage note (plan 179 P4) ------------------------------------------------------ */
+/* A transient message, mounted INSIDE the stage on purpose: the presenter normally owns
+   fullscreen, and a body-level toast would paint behind the fullscreen element where no
+   one can see it. Sits just above the HUD, never takes the pointer, and is hidden (not
+   just faded) between messages so it leaves the a11y tree with the text. */
+.pr-note {
+  position: absolute;
+  left: 50%;
+  bottom: calc(max(18px, var(--safe-bottom)) + var(--vv-bottom, 0px) + 62px);
+  transform: translateX(-50%);
+  z-index: 6; /* above the speaker overlay - it may be reporting on that very panel */
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 9px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(12, 16, 24, 0.86);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: var(--shadow-3);
+  font: 500 13px/1.35 SUSE, system-ui, sans-serif;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: center;
+  pointer-events: none;
+  animation: pr-note-in 0.22s ease both;
+}
+@keyframes pr-note-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  to { opacity: 1; transform: translateX(-50%); }
+}
+
+/* ---- Builds / fragments (M3) ------------------------------------------------------- */
+/* A build box starts hidden and fades in when its step is revealed (`pr-shown`). Reveal
+   is opacity-only here. Reduced motion and OS reduce both cut the fade (below). Only
+   inside the presenter - never the editor.
+   NOT on a slide running its own motion (`pr-motion`, plan 179 M4): there a fragment is
+   held back by the applier's own `seq-off` and enters with whatever Enter its author gave
+   it, and this fixed fade would sit on top of that one, fighting it for the opacity. */
+.pr-stage:not(.pr-motion) .pr-page .pr-build {
+  opacity: 0;
+  transition: opacity var(--pr-dur) ease;
+}
+.pr-stage:not(.pr-motion) .pr-page .pr-build.pr-shown { opacity: 1; }
+
+/* ---- Kiosk dwell progress + blackout (M2) ------------------------------------------ */
+.pr-progress {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+.pr-progress.pr-progress-on { opacity: 1; }
+.pr-progress-fill {
+  height: 100%;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: var(--pr-accent);
+}
+
+/* Blackout (`b`): fade the whole deck to black; media + auto-advance are paused in JS. */
+.pr-frames { transition: opacity 0.2s ease; }
+.pr-stage.pr-blackout { background: #000; }
+.pr-stage.pr-blackout .pr-frames,
+.pr-stage.pr-blackout .pr-hud,
+.pr-stage.pr-blackout .pr-progress { opacity: 0; pointer-events: none; }
+
+/* ---- Speaker view (M5): the presenter's private panel ------------------------------ */
+/* A full-stage overlay (above the deck + HUD) with a large CURRENT preview, a small NEXT
+   preview, the frame's speaker notes, an elapsed timer, and its own prev/next. v1 covers
+   the deck (a rehearsal/notes aid); a dual-screen second window is the follow-up. */
+.pr-speaker {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 30%);
+  gap: clamp(12px, 2.4vw, 32px);
+  padding: clamp(14px, 2.6vw, 40px);
+  background: #0b0f18;
+  color: rgba(255, 255, 255, 0.92);
+}
+.pr-sp-now,
+.pr-sp-nextwrap { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.pr-sp-now { min-height: 0; }
+.pr-sp-tag {
+  font: 600 11px/1 SUSE, system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 8px;
+}
+.pr-sp-slot {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.pr-sp-slot-next { min-height: clamp(90px, 22vh, 220px); }
+.pr-sp-aside {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.8vh, 22px);
+  min-height: 0;
+}
+.pr-sp-timer {
+  font: 700 clamp(28px, 5vw, 54px)/1 ui-monospace, "SUSE Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+.pr-sp-notes {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  font: 400 clamp(15px, 1.5vw, 20px)/1.5 SUSE, system-ui, sans-serif;
+  color: rgba(255, 255, 255, 0.86);
+  white-space: pre-wrap;
+  padding-right: 6px;
+}
+.pr-sp-controls { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.pr-sp-counter {
+  font: 500 14px/1 SUSE, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  min-width: 4em;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
+}
+/* The slide-preview primitive: a static, scaled page. Its child `.lolly-frame-page` clone
+   carries an inline transform:scale(); this box just clips it to the letterboxed size. */
+.pr-preview { position: relative; overflow: hidden; background: transparent; }
+/* The active HUD button (speaker toggled on). */
+.pr-hud-btn-on { background: rgba(255, 255, 255, 0.2); }
+/* Narrow screens: stack the panel (current on top, aside below). */
+@media (max-width: 720px) {
+  .pr-speaker { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; }
+}
+
+/* ---- Reduced motion: cut, don't fly (OS query OR app pref) -------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .pr-page { transition: opacity var(--pr-dur) linear; }
+  .pr-page.pr-past, .pr-page.pr-future { --pr-tx: 0px; --pr-ty: 0px; }
+  .pr-note { animation: none; }
+}
+.pr-stage.pr-reduced .pr-note { animation: none; }
+.pr-stage.pr-reduced { --pr-dur: 0.14s; }
+.pr-stage.pr-reduced .pr-page { transition: opacity var(--pr-dur) linear; }
+.pr-stage.pr-reduced .pr-page.pr-past,
+.pr-stage.pr-reduced .pr-page.pr-future { --pr-tx: 0px; --pr-ty: 0px; }

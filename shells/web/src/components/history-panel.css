@@ -1,0 +1,46 @@
+.revision-history-panel { display:flex; flex-direction:column; gap:var(--ui-space-control-block); padding:var(--ui-space-panel); min-height:0; height:100%; overflow:auto; background:var(--ui-color-surface-canvas); color:var(--ui-color-text-default); box-sizing:border-box; }
+.revision-history-panel > header { display:flex; align-items:center; justify-content:space-between; gap:var(--ui-space-control-block); position:sticky; top:0; z-index:1; background:var(--ui-color-surface-canvas); padding-block:var(--sp-2); }
+.revision-history-panel h2 { font-size:var(--ui-type-lead); margin:0; }
+.revision-history-status,.revision-history-note { font-size:var(--ui-type-caption); line-height:1.5; margin:0; }
+.revision-history-note { opacity:.7; }
+.revision-history-list { display:flex; flex-direction:column; gap:var(--ui-space-control-block); }
+.revision-history-entry { border:1px solid var(--ui-color-border-default); border-radius:var(--ui-radius-control); padding:var(--ui-space-control-block); display:flex; gap:var(--ui-space-control-block); }
+.revision-history-entry > div { display:flex; flex-direction:column; gap:var(--sp-2); min-width:0; flex:1; }
+.revision-history-entry strong { overflow-wrap:anywhere; font-size:var(--ui-type-label); }
+.revision-history-entry time,.revision-history-entry span { font-size:var(--ui-type-caption); opacity:.75; }
+.revision-history-entry img { width:72px; height:64px; object-fit:contain; border-radius:var(--ui-radius-choice); background:var(--ui-color-surface-muted); }
+.revision-history-resume { font-size:var(--ui-type-caption); overflow-wrap:anywhere; }
+.revision-history-period { display:flex; flex-direction:column; }
+.revision-history-period > summary { cursor:pointer; font-size:var(--ui-type-label); padding-block:var(--ui-space-control-block); }
+.revision-history-period > article { margin-block-end:var(--ui-space-control-block); }
+.revision-history-workflows { display:flex; flex-direction:column; gap:var(--ui-space-control-block); }
+.revision-history-workflows details > :not(summary) { margin-block-start:var(--ui-space-control-block); }
+.revision-history-workflows input,.revision-history-workflows select { max-width:100%; box-sizing:border-box; }
+.revision-history-workflows input[type=search],.revision-history-workflows select { width:100%; }
+.revision-history-workflows summary,.revision-history-workflows label { font-size:var(--ui-type-label); }
+.revision-history-dates { display:flex; gap:var(--ui-space-control-block); }
+.revision-history-dates label { flex:1; min-width:0; }
+.revision-history-dates input { width:100%; }
+.revision-history-actions { display:flex; flex-wrap:wrap; gap:var(--ui-space-control-block); align-items:center; }
+.revision-history-actions label { font-size:var(--ui-type-caption); }
+.revision-history-actions form { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+.revision-history-actions form input { width:100%; min-width:0; }
+.revision-history-compare { padding:var(--ui-space-control-block); border:1px solid var(--ui-color-border-default); border-radius:var(--ui-radius-control); font-size:var(--ui-type-caption); }
+.revision-history-compare li { overflow-wrap:anywhere; }
+.revision-history-comparison-pair { display:grid; grid-template-columns:1fr 1fr; gap:var(--ui-space-control-block); margin-block:var(--ui-space-control-block); }
+.revision-history-comparison-pair figure { min-width:0; margin:0; }
+.revision-history-comparison-pair img { display:block; width:100%; max-height:var(--preview-h-md,180px); object-fit:contain; background:var(--ui-color-surface-muted); }
+.revision-history-recovery h3 { font-size:var(--ui-type-label); margin:0 0 var(--ui-space-control-block); }
+.revision-history-draft { display:flex; flex-direction:column; gap:var(--sp-2); padding:var(--ui-space-control-block); border:1px solid var(--ui-color-border-default); border-radius:var(--ui-radius-control); }
+.revision-history-draft strong { font-size:var(--ui-type-label); overflow-wrap:anywhere; }
+.revision-history-draft time,.revision-history-draft p { font-size:var(--ui-type-caption); line-height:1.5; margin:0; opacity:.8; }
+.revision-history-mobile { position:fixed; inset:0 0 0 auto; width:min(100%,380px); z-index:var(--ui-layer-overlay); box-shadow:var(--ui-elevation-sheet); overscroll-behavior:contain; padding-block-start:max(var(--ui-space-panel),var(--safe-top)); }
+/* Legacy fixed navigation sits above ordinary overlays. A full-height History
+ * sheet owns this space until closed; don't leave an invisible focus target. */
+body:has(> .revision-history-mobile) .chrome-topleft { visibility:hidden; }
+/* Keep legacy fixed editor controls below the sheet without escalating its
+ * z-index. The panel also makes this background inert until it closes. */
+body:has(> .revision-history-mobile) #view { isolation:isolate; }
+@media(max-width:800px) {
+  .chrome-topleft:has(~ .app-history.has-detail) { visibility:hidden; }
+}

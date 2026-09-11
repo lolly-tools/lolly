@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lolly bridge</title>
+<!-- Self-contained by design: no external src/href anywhere. The plugin's
+     whole privacy story is zero egress, and the co-located test asserts it. -->
+<style>
+  :root {
+    --bg: #18181c; --panel: #232329; --text: #e8e8ec; --muted: #9a9aa4;
+    --edge: #3a3a44; --accent: #7048e8; --ok: #37b24d; --err: #f03e3e;
+  }
+  body.light {
+    --bg: #ffffff; --panel: #f4f4f6; --text: #18181c; --muted: #5c5c66;
+    --edge: #d5d5dd; --accent: #6741d9; --ok: #2b8a3e; --err: #c92a2a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 12px; background: var(--bg); color: var(--text);
+    font: 13px/1.45 system-ui, sans-serif;
+  }
+  h1 { font-size: 14px; margin: 0 0 4px; }
+  p.hint { margin: 0 0 12px; color: var(--muted); font-size: 12px; }
+  section { margin-bottom: 14px; }
+  label { display: block; font-weight: 600; margin-bottom: 4px; }
+  textarea, input[type="text"] {
+    width: 100%; background: var(--panel); color: var(--text);
+    border: 1px solid var(--edge); border-radius: 6px; padding: 6px 8px;
+    font: 12px/1.4 ui-monospace, monospace;
+  }
+  textarea { height: 90px; resize: vertical; }
+  .row { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
+  .row input { flex: 1; }
+  button {
+    background: var(--accent); color: #fff; border: 0; border-radius: 6px;
+    padding: 6px 12px; font: 600 12px system-ui, sans-serif; cursor: pointer;
+    white-space: nowrap;
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  #log {
+    background: var(--panel); border: 1px solid var(--edge); border-radius: 6px;
+    padding: 8px; min-height: 3em; max-height: 10em; overflow-y: auto;
+    font: 12px/1.5 ui-monospace, monospace; white-space: pre-wrap;
+  }
+  .ok { color: var(--ok); }
+  .err { color: var(--err); }
+</style>
+</head>
+<body>
+<h1>Lolly bridge</h1>
+<p class="hint">Get the JSON in Lolly: brand editor &gt; Colour &gt; Download &gt; Design tokens (JSON).</p>
+
+<section>
+  <label for="tokens-json">Brand tokens (DTCG JSON)</label>
+  <textarea id="tokens-json" placeholder='{"color":{"brand":{"$type":"color","$value":"#30ba78"}}}' spellcheck="false"></textarea>
+  <div class="row">
+    <input type="text" id="set-name" value="brand" aria-label="Token set name">
+    <button id="apply-tokens">Apply tokens</button>
+  </div>
+</section>
+
+<section>
+  <label for="svg-in">Session SVG</label>
+  <textarea id="svg-in" placeholder="<svg ...>...</svg>" spellcheck="false"></textarea>
+  <div class="row">
+    <button id="place-svg">Place as editable shapes</button>
+  </div>
+</section>
+
+<section>
+  <label>Result</label>
+  <div id="log" aria-live="polite">Ready.</div>
+</section>
+
+<script>
+  // Penpot passes ?theme= on the UI url; honour 'light' minimally.
+  if (new URLSearchParams(location.search).get('theme') === 'light') {
+    document.body.classList.add('light');
+  }
+
+  var logEl = document.getElementById('log');
+  function log(text, cls) {
+    var line = document.createElement('div');
+    if (cls) line.className = cls;
+    line.textContent = text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function send(msg) { window.parent.postMessage(msg, '*'); }
+
+  document.getElementById('apply-tokens').addEventListener('click', function () {
+    var json = document.getElementById('tokens-json').value.trim();
+    if (!json) { log('Paste the tokens JSON first.', 'err'); return; }
+    try { JSON.parse(json); } catch (e) { log('Not valid JSON: ' + e.message, 'err'); return; }
+    var setName = document.getElementById('set-name').value.trim() || 'brand';
+    log('Applying tokens to set "' + setName + '"...');
+    send({ type: 'apply-tokens', json: json, setName: setName });
+  });
+
+  document.getElementById('place-svg').addEventListener('click', function () {
+    var svg = document.getElementById('svg-in').value.trim();
+    if (!svg) { log('Paste the SVG first.', 'err'); return; }
+    log('Placing SVG...');
+    send({ type: 'place-svg', svg: svg });
+  });
+
+  window.addEventListener('message', function (event) {
+    var msg = event.data;
+    if (!msg || typeof msg !== 'object') return;
+    if (msg.type === 'tokens-applied') {
+      log('Tokens applied: ' + msg.added + ' added, ' + msg.updated + ' updated'
+        + (msg.skipped && msg.skipped.length
+          ? ', ' + msg.skipped.length + ' skipped (' + msg.skipped.join(', ') + ')'
+          : ''), 'ok');
+    } else if (msg.type === 'svg-placed') {
+      log('Placed ' + msg.shapes + ' editable shape' + (msg.shapes === 1 ? '' : 's') + '.', 'ok');
+    } else if (msg.type === 'error') {
+      log('Error: ' + msg.message, 'err');
+    }
+  });
+</script>
+</body>
+</html>

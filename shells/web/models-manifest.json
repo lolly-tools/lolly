@@ -1,0 +1,302 @@
+[
+ {
+  "url": "/models/ai-detect/e5-small-ai-detector/config.json",
+  "size": 728
+ },
+ {
+  "url": "/models/ai-detect/e5-small-ai-detector/onnx/model_quantized.onnx",
+  "size": 33934808
+ },
+ {
+  "url": "/models/ai-detect/e5-small-ai-detector/special_tokens_map.json",
+  "size": 695
+ },
+ {
+  "url": "/models/ai-detect/e5-small-ai-detector/tokenizer_config.json",
+  "size": 1301
+ },
+ {
+  "url": "/models/ai-detect/e5-small-ai-detector/tokenizer.json",
+  "size": 711396
+ },
+ {
+  "url": "/models/depth/CREDITS.txt",
+  "size": 1004
+ },
+ {
+  "url": "/models/depth/depth-anything-v2-small.onnx",
+  "size": 27258801
+ },
+ {
+  "url": "/models/embed/config.json",
+  "size": 650
+ },
+ {
+  "url": "/models/embed/CREDITS.txt",
+  "size": 1631
+ },
+ {
+  "url": "/models/embed/onnx/model_quantized.onnx",
+  "size": 22972370
+ },
+ {
+  "url": "/models/embed/tokenizer_config.json",
+  "size": 366
+ },
+ {
+  "url": "/models/embed/tokenizer.json",
+  "size": 711661
+ },
+ {
+  "url": "/models/kokoro/config.json",
+  "size": 44
+ },
+ {
+  "url": "/models/kokoro/onnx/model_quantized.onnx",
+  "size": 92361055
+ },
+ {
+  "url": "/models/kokoro/tokenizer_config.json",
+  "size": 113
+ },
+ {
+  "url": "/models/kokoro/tokenizer.json",
+  "size": 3497
+ },
+ {
+  "url": "/models/kokoro/voices/af_alloy.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/af_aoede.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/af_bella.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/af_heart.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/af_jessica.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/af_kore.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/af_nicole.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/af_nova.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/af_river.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/af_sarah.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/af_sky.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/am_adam.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/am_echo.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/am_eric.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/am_fenrir.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/am_liam.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/am_michael.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/am_onyx.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/am_puck.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/am_santa.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/bf_alice.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/bf_emma.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/bf_isabella.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/bf_lily.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/bm_daniel.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/bm_fable.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/bm_george.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/kokoro/voices/bm_lewis.bin",
+  "size": 522240
+ },
+ {
+  "url": "/models/matte/CREDITS.txt",
+  "size": 1332
+ },
+ {
+  "url": "/models/matte/modnet.onnx",
+  "size": 25888640
+ },
+ {
+  "url": "/models/matte/u2netp.onnx",
+  "size": 4574861
+ },
+ {
+  "url": "/models/ocr/CREDITS.txt",
+  "size": 1492
+ },
+ {
+  "url": "/models/ocr/ppocrv5-dict.txt",
+  "size": 74012
+ },
+ {
+  "url": "/models/ocr/ppocrv5-mobile-det.onnx",
+  "size": 4826518
+ },
+ {
+  "url": "/models/ocr/ppocrv5-mobile-rec.onnx",
+  "size": 16562373
+ },
+ {
+  "url": "/models/reword/smollm2-360m-instruct/config.json",
+  "size": 846
+ },
+ {
+  "url": "/models/reword/smollm2-360m-instruct/generation_config.json",
+  "size": 132
+ },
+ {
+  "url": "/models/reword/smollm2-360m-instruct/onnx/model_q4.onnx",
+  "size": 387943246
+ },
+ {
+  "url": "/models/reword/smollm2-360m-instruct/special_tokens_map.json",
+  "size": 655
+ },
+ {
+  "url": "/models/reword/smollm2-360m-instruct/tokenizer_config.json",
+  "size": 3764
+ },
+ {
+  "url": "/models/reword/smollm2-360m-instruct/tokenizer.json",
+  "size": 2104556
+ },
+ {
+  "url": "/models/trustmark/decoder_P.onnx",
+  "size": 47400467
+ },
+ {
+  "url": "/models/trustmark/decoder_Q.onnx",
+  "size": 47401222
+ },
+ {
+  "url": "/models/trustmark/encoder_Q.onnx",
+  "size": 34603555
+ },
+ {
+  "url": "/models/trustmark/resizer.onnx",
+  "size": 454
+ },
+ {
+  "url": "/models/upscale/CREDITS-anime.txt",
+  "size": 707
+ },
+ {
+  "url": "/models/upscale/CREDITS.txt",
+  "size": 2111
+ },
+ {
+  "url": "/models/upscale/face-detect.onnx",
+  "size": 535842
+ },
+ {
+  "url": "/models/upscale/gfpgan-v1.4.onnx",
+  "size": 340299087
+ },
+ {
+  "url": "/models/upscale/realesr-general-x4v3.onnx",
+  "size": 4871181
+ },
+ {
+  "url": "/models/upscale/realesrgan-x4plus-anime.onnx",
+  "size": 17939969
+ },
+ {
+  "url": "/models/upscale/realesrgan-x4plus.onnx",
+  "size": 67051616
+ },
+ {
+  "url": "/models/whisper/config.json",
+  "size": 2243
+ },
+ {
+  "url": "/models/whisper/generation_config.json",
+  "size": 3832
+ },
+ {
+  "url": "/models/whisper/onnx/decoder_model_merged_quantized.onnx",
+  "size": 53712708
+ },
+ {
+  "url": "/models/whisper/onnx/encoder_model_quantized.onnx",
+  "size": 23159167
+ },
+ {
+  "url": "/models/whisper/preprocessor_config.json",
+  "size": 339
+ },
+ {
+  "url": "/models/whisper/tokenizer_config.json",
+  "size": 282682
+ },
+ {
+  "url": "/models/whisper/tokenizer.json",
+  "size": 2480466
+ }
+]

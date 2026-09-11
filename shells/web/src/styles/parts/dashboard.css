@@ -1,0 +1,860 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* ─── Dashboard view (#/d) - the read-only instrument panel ──────────────────
+   Layout + the pieces unique to this view (device hero, palette ink-ribbon,
+   storage glance, capability disclosure). The card/section chrome (.plat-*,
+   .cap-feat) and the catalogue tiles (.cat-*) come from platform.css /
+   components.css, which this view also loads. */
+
+.dashboard-view { overflow-y: auto; }
+.dashboard-view .dash-layout {
+  width: 100%;
+  max-width: 100vw;      /* full-bleed - the instrument panel earns the whole screen */
+  margin: 0 auto;
+  padding: 3.25rem clamp(1rem, 3.2vw, 3rem) 5rem; /* top clears the fixed "Tools" pill; sides scale with width */
+}
+
+/* Mono is the instrument typeface here - labels, readouts, hex. */
+.dashboard-view .dash-dev-stat-label,
+.dashboard-view .dash-dev-stat-value.is-mono,
+.dashboard-view .dash-readout,
+.dashboard-view .dash-readout-hex { font-family: var(--font-mono); }
+
+/* ── Entrance cascade - one ladder over the back-link, header and each section.
+   armViewEnter() stamps --enter-i on every .tools-home/.plat-header/.plat-section
+   (document order) and toggles .is-entering; the CSS owns the motion. Gated on
+   no-preference so reduced motion renders instantly. Mirrors platform.css. */
+@media (prefers-reduced-motion: no-preference) {
+  .dashboard-view.is-entering .tools-home,
+  .dashboard-view.is-entering .plat-header,
+  .dashboard-view.is-entering .dash-tabs,
+  .dashboard-view.is-entering .plat-section,
+  .dashboard-view.is-entering .dash-foot {
+    animation: card-in var(--enter-dur) var(--enter-ease) backwards;
+    animation-delay: calc(var(--enter-i, 0) * 0.05s);
+  }
+}
+
+/* ── Primary tabs ────────────────────────────────────────────────────────────
+   A segmented control under the header; one .dash-panel shows at a time (inactive
+   panels are [hidden] but stay in the DOM so async hydration keeps resolving onto
+   them). Four tabs share a row on desktop and wrap to 2×2 on narrow screens. */
+.dash-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: 0 0 1.6rem;
+  padding: .38rem;
+  background: hsl(var(--muted) / .55);
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.1);
+}
+.dash-tab {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-width: 0;
+  padding: .62rem .9rem;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius) * .85);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-weight: 650;
+  font-size: var(--fs-sm);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.dash-tab:hover { color: hsl(var(--foreground)); background: hsl(var(--card) / .6); }
+.dash-tab-icon { display: inline-flex; flex: none; }
+.dash-tab-icon svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); display: block; }
+.dash-tab.is-active {
+  background: hsl(var(--card));
+  color: hsl(var(--primary));
+  border-color: hsl(var(--border));
+  box-shadow: 0 1px 3px hsl(0 0% 0% / .07);
+}
+.dash-tab:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+
+.dash-panel[hidden] { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  /* Each panel fades up as it becomes visible (display:none→block restarts it), so
+     tab switches feel like a settle, not a snap. */
+  .dash-panel:not([hidden]) { animation: dash-panel-in var(--dur-2) var(--enter-ease, ease) both; }
+}
+@keyframes dash-panel-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 560px) {
+  .dash-tab { flex-basis: calc(50% - .2rem); padding: .58rem .5rem; font-size: var(--fs-xs); letter-spacing: .03em; }
+}
+
+/* Non-collapsible sections carry their own padding (they hold content directly,
+   unlike the <details> reference panels, which pad via summary/body). */
+.dash-section { padding: 1.4rem; }
+.dash-section.dash-device { padding-bottom: 1.5rem; }
+
+/* ── Yours ──────────────────────────────────────────────────────────────────
+   The personal shelf is intentionally a small set of direct links, not another gallery:
+   recent creations and exports already carry visual stacks below it. These are the tools
+   the person explicitly starred, visible only once there is enough activity to make the
+   Dashboard feel personal rather than promotional. */
+.dash-yours-tools { display: flex; flex-wrap: wrap; gap: .55rem; }
+.dash-yours-tool {
+  display: inline-flex; align-items: center; gap: .42rem; min-width: 0;
+  padding: .55rem .72rem; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-pill);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent); color: var(--ui-color-text-default); text-decoration: none;
+  font-size: var(--fs-sm); font-weight: 650;
+}
+.dash-yours-tool:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-action-primary); text-decoration: none; }
+.dash-yours-tool:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.dash-yours-tool svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); color: var(--ui-color-action-primary); flex: none; }
+
+.dash-sec-head { margin: 0 0 1.05rem; }
+.dash-sec-title { margin: 0; font-size: calc(.95rem * var(--a11y-fs)); font-weight: 700; letter-spacing: -.01em; }
+.dash-sec-desc {
+  margin: .35rem 0 0; max-width: 78ch;
+  color: hsl(var(--muted-foreground)); font-size: calc(.84rem * var(--a11y-fs)); line-height: 1.55;
+}
+.dash-sec-desc strong { color: hsl(var(--foreground)); }
+.dash-sec-desc a, .dash-foot a, .dash-store-note a, .dash-store-headline a { color: hsl(var(--primary)); }
+
+/* ── Collapsible primary sections (device · palette · catalogue · capabilities) ──
+   Each folds the whole card down to its title bar, reusing the reference-panel
+   <details> chrome (.plat-section-summary / .plat-section-body handle the chevron +
+   padding). The mount plays a soft hydraulic cue on toggle (data-dash-collapse). */
+.dash-collapse { margin: 0 0 1.1rem; }
+/* A prominent, sentence-case title (these anchor the page - not the tiny uppercase
+   reference-panel labels at the foot). */
+.dash-collapse-summary .plat-section-title {
+  font-size: calc(.95rem * var(--a11y-fs)); font-weight: 700; letter-spacing: -.01em;
+  text-transform: none; color: hsl(var(--foreground));
+}
+.dash-collapse-summary .plat-section-chev { width: calc(17px * var(--a11y-fs)); height: calc(17px * var(--a11y-fs)); }
+/* The section blurb sits under the title inside the body, spaced from the content. */
+.dash-collapse-desc { margin-top: 0; margin-bottom: 1rem; }
+/* A collapsed card reads as a quiet, closed bar. */
+.dash-collapse:not([open]) .dash-collapse-summary { opacity: .82; box-shadow: 0 .2px 12px #0002;}
+.dash-collapse:not([open]) .dash-collapse-summary:hover { opacity: 1; box-shadow: 0 .2px 7px #0003;}
+/* Icon + glance chips, hydrated in once collectDevice() resolves (see
+   dashboard.ts's collapse() and its collectDevice().then(...) hookup) - empty
+   until then, so an unsupported browser just shows the title, never a gap. */
+.dash-collapse-icon { display: flex; width: calc(19px * var(--a11y-fs)); height: calc(19px * var(--a11y-fs)); flex: 0 0 auto; color: hsl(var(--muted-foreground)); }
+.dash-collapse-icon:empty { display: none; }
+.dash-collapse-icon svg { width: 100%; height: 100%; display: block; }
+.dash-collapse-chips { display: flex; flex-wrap: wrap; gap: .3rem; justify-content: flex-end; }
+/* Box composes .chip directly (chips.css) - font/padding/background alpha
+   are the only real deltas (see the note there on why it skips --status). */
+.dash-chip {
+  font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.4;
+  padding: .18rem .55rem;
+  background: hsl(var(--muted) / .7);
+}
+
+/* ── This device tab - "This device" and the Sound/Storage stack side by side
+   on wide screens (roughly equal columns); one column, top to bottom, on
+   anything narrower. Every header in here is a collapsible <details> (via
+   collapse()), so mobile can fold each one independently. */
+.dash-device-grid { display: grid; gap: 1.1rem; grid-template-columns: 1fr; margin: 0 0 1.1rem; }
+@media (min-width: 900px) { .dash-device-grid { grid-template-columns: 1.618fr .7fr; align-items: start; } }
+.dash-device-col > .dash-collapse { margin: 0; }
+/* Sound stacked above Storage, not side by side - overrides the fan-and-wrap
+   behaviour below, which is for the Design system tab's bento row. */
+.dash-device-grid .dash-bento { flex-direction: column; margin: 0; }
+.dash-device-grid .dash-bento > .plat-section { flex: 0 1 auto; }
+
+/* ── Bento - the instrument tiles fan across the full width and grow to fill each row.
+   Flex-wrap + grow (not a fixed column grid) means the last row's tiles simply widen to
+   close any remainder, so there are never stranded empty cells - the old grid left a hole
+   whenever the tile count didn't divide evenly across its columns. */
+.dash-bento { display: flex; flex-wrap: wrap; gap: 1.1rem; margin: 0 0 1.1rem; }
+.dash-bento > .plat-section { margin: 0; flex: 1 1 340px; min-width: 0; }
+/* The stats strip isn't a card - it's a header bar, so it always takes the full
+   row (forcing whatever follows in the bento onto the next row) rather than
+   sitting beside the first card at whatever width its own content happens to be. */
+.dash-bento > .plat-stats { flex: 1 1 100%; margin: 0 0 .2rem; }
+/* Recent / Exports tiles start [hidden] until their data loads. The card `display:flex`
+   below outranks the UA [hidden] rule, so without this they'd reserve an empty tile-sized
+   gap in the flow - force them out until unhidden. */
+.dash-bento > .plat-section[hidden] { display: none; }
+/* The instrument tiles read as cards - a hair more presence than a bare section.
+   .dash-card always co-applies with .plat-section/.card in markup, so it only
+   ever adds this flex layout + shadow, never restates the surface (component
+   audit rec 10). */
+.dash-bento .dash-card { display: flex; flex-direction: column; box-shadow: 0 1px 3px hsl(0 0% 0% / 0.05); }
+.dash-bento .dash-card .dash-sec-head { margin-bottom: 0.7rem; }
+
+
+/* ── Brand hero - the Design-system tab's opening statement. A read-only card
+   that WEARS the loaded brand: surface, text and edge come from the --brand-*
+   slots applyBrandVars paints onto the section (see dashboard.ts), and every
+   use keeps a shell-token fallback so an unbranded install (or a doc with no
+   semantic slots) reads perfectly in both themes. Full border or none - never
+   a one-sided stripe. */
+.dash-hero {
+  padding: clamp(1.5rem, 3.2vw, 2.4rem);
+  background: var(--brand-surface, hsl(var(--card)));
+  color: var(--brand-text, hsl(var(--card-foreground)));
+  border: 1px solid var(--brand-edge, transparent);
+  border-radius: calc(var(--radius) * 1.25);
+}
+.dash-hero-main { display: flex; flex-wrap: wrap; align-items: stretch; gap: 1.4rem clamp(1.4rem, 3.5vw, 3rem); }
+.dash-hero-id { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: .7rem; }
+.dash-hero-eyebrow {
+  font-family: var(--font-mono); font-size: calc(.6rem * var(--a11y-fs)); font-weight: 600;
+  text-transform: uppercase; letter-spacing: .18em;
+  color: var(--brand-muted, hsl(var(--muted-foreground)));
+}
+/* The horizontal-primary mark, when installed - an <img>, theme-aware (the
+   reverse form is preferred on dark-leaning themes; see the hero hydration). */
+.dash-hero-logo { display: block; max-height: 52px; max-width: min(320px, 100%); width: auto; height: auto; margin-top: .2rem; }
+.dash-hero-name {
+  margin: 0; min-height: 1.1em;
+  font-family: var(--font-brand);
+  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+  font-weight: 700; letter-spacing: -.02em; line-height: 1.08;
+  color: var(--brand-text, hsl(var(--foreground)));
+  overflow-wrap: anywhere;
+}
+.dash-hero-status { margin: 0; max-width: 52ch; font-size: calc(.86rem * var(--a11y-fs)); line-height: 1.6; color: var(--brand-muted, hsl(var(--muted-foreground))); }
+.dash-hero-status strong { color: var(--brand-text, hsl(var(--foreground))); }
+/* The one action on the whole tab - dressed in the brand's own primary. NOT
+   aliased onto buttons.css's .btn--primary list (component audit rec 2): the
+   fill here is `var(--brand-primary, hsl(var(--primary)))`, a real delta (the
+   brand-var indirection the rest of the shared list doesn't carry), not just
+   duplicated decoration - folding it in would drop brand-var override on the
+   dashboard's one hero CTA. */
+.dash-hero-cta {
+  display: inline-flex; align-items: center; gap: .5rem;
+  margin-top: .45rem; padding: .62rem 1.1rem;
+  border-radius: var(--radius); text-decoration: none; white-space: nowrap;
+  font-size: calc(.84rem * var(--a11y-fs)); font-weight: 650;
+  background: var(--brand-primary, hsl(var(--primary)));
+  color: var(--brand-on-primary, hsl(var(--primary-foreground)));
+  box-shadow: var(--edge-faint);
+  transition: transform var(--dur-1) ease, box-shadow var(--dur-1) ease;
+}
+.dash-hero-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 18px hsl(0 0% 0% / .18), var(--edge-faint); }
+.dash-hero-cta:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.dash-hero-cta-arrow { transition: transform var(--dur-1) ease; }
+.dash-hero-cta:hover .dash-hero-cta-arrow,
+.dash-hero-cta:focus-visible .dash-hero-cta-arrow { transform: translateX(3px); }
+
+/* The primary field - a generous swatch of the brand's lead colour, and the
+   hero's quiet instrument: hover (or focus) brightens a mono hex · oklch
+   readout; click copies the hex (wireCopyButtons). The inset hairline keeps a
+   near-white primary legible on a pale surface. */
+.dash-hero-primary {
+  flex: 0 1 300px; min-width: min(240px, 100%); min-height: 150px;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: .6rem;
+  position: relative; padding: 1rem 1.1rem; border: 0; cursor: pointer;
+  text-align: left; font: inherit;
+  border-radius: var(--radius);
+  background: var(--brand-primary, hsl(var(--primary)));
+  color: var(--brand-on-primary, hsl(var(--primary-foreground)));
+  box-shadow: var(--edge-faint);
+  transition: box-shadow var(--dur-1) ease;
+}
+.dash-hero-primary:hover { box-shadow: var(--edge-strong), 0 6px 20px hsl(0 0% 0% / .14); }
+.dash-hero-primary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.dash-hero-primary-label { font-size: calc(.62rem * var(--a11y-fs)); font-weight: 700; text-transform: uppercase; letter-spacing: .16em; opacity: .85; }
+.dash-hero-primary-code {
+  font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: .01em;
+  min-height: 1em; opacity: .7; overflow-wrap: anywhere;
+  transition: opacity var(--dur-1) ease;
+}
+.dash-hero-primary:hover .dash-hero-primary-code,
+.dash-hero-primary:focus-visible .dash-hero-primary-code { opacity: 1; }
+.dash-hero-primary.is-copied::after {
+  content: '✓ copied'; position: absolute; top: .85rem; right: .95rem;
+  font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em;
+}
+
+/* The faces in force - each name set in its own face; the hairline is the
+   brand's own edge where one is declared. */
+.dash-hero-type {
+  display: flex; flex-wrap: wrap; gap: .9rem 2.4rem;
+  margin-top: clamp(1.1rem, 2.4vw, 1.6rem); padding-top: 1.1rem;
+  border-top: 1px solid var(--brand-edge, hsl(var(--border)));
+}
+.dash-hero-face { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.dash-hero-face strong { font-size: calc(1.3rem * var(--a11y-fs)); font-weight: 600; line-height: 1.15; overflow-wrap: anywhere; }
+.dash-hero-face em {
+  font-style: normal; font-family: var(--font-mono);
+  font-size: calc(.6rem * var(--a11y-fs)); text-transform: uppercase; letter-spacing: .14em;
+  color: var(--brand-muted, hsl(var(--muted-foreground)));
+}
+
+
+/* ── Type-in-motion tile. */
+.dash-typedemo .dash-sec-head { margin-bottom: 0.8rem; }
+/* The tile is a query container so its specimen can go two-up when it's wide enough
+   (see the @container rule in type-demo.css). On desktop the showcase claims its own
+   full-width bento row, which gives the mono + SUSE faces room to sit side by side. */
+.dash-typedemo { container-type: inline-size; }
+@media (min-width: 781px) { .dash-bento > .dash-typedemo { flex-basis: 100%; } }
+
+/* Type facts - the compact figures under the live specimen (they carry what the old
+   Typography reference panel showed: variable/static, weights, styles, source). */
+.dash-type-facts {
+  list-style: none; margin: .9rem 0 0; padding: .9rem 0 0;
+  border-top: 1px solid hsl(var(--border));
+  display: flex; flex-direction: column; gap: .55rem;
+}
+.dash-type-facts li { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem .6rem; }
+.dash-type-fam { font-size: calc(.95rem * var(--a11y-fs)); font-weight: 600; }
+.dash-type-meta { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.dash-type-src { font-family: var(--font-mono); font-size: var(--fs-xs); color: hsl(var(--muted-foreground) / .85); margin-left: auto; }
+.dash-type-manage { justify-content: flex-end; }
+.dash-type-manage a { font-size: var(--fs-xs); color: hsl(var(--primary)); text-decoration: none; }
+.dash-type-manage a:hover { text-decoration: underline; }
+
+/* ── Sound card (the shared sound switch injects its own styles; the theme
+   picker moved to #/profile's Appearance panel). */
+.dash-sound-mount { margin-top: .1rem; }
+
+/* ── Storage ring - a rounded-cap donut of used vs. device budget. Sized to fill the
+   card so the Storage block reads as tall as its neighbours, not a small dial. */
+.dash-store-donut { position: relative; width: min(240px, 88%); margin: 0.6rem auto 1.1rem; }
+.dash-store-donut svg { width: 100%; display: block; }
+.dash-donut-track { stroke: hsl(var(--muted)); }
+.dash-donut-arc { stroke: hsl(var(--primary)); transition: stroke-dasharray 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.dash-store-donut-c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.dash-store-donut-c strong { font-size: calc(1.7rem * var(--a11y-fs)); font-weight: 700; letter-spacing: -0.02em; }
+.dash-store-donut-c span { font-size: var(--fs-md); color: var(--ui-color-text-muted); margin-top: 0.1rem; }
+.dash-store-donut-c em { font-size: var(--fs-xs); font-style: normal; font-weight: 700; color: var(--ui-color-action-primary); margin-top: 0.28rem; letter-spacing: 0.02em; }
+@media (prefers-reduced-motion: reduce) { .dash-donut-arc { transition: none; } }
+
+/* ── This device - a full-width collapsible section. Six big readouts, the machine
+   leading with a green spine, then the full card grid below the "Full readout" rule. */
+.dash-dev-hero {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+  gap: .8rem; margin: 0 0 1.25rem;
+}
+.dash-dev-stat {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: .18rem;
+  padding: .9rem 1rem; min-height: 82px;
+  background: var(--ui-color-surface-canvas); border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-panel);
+}
+.dash-dev-stat.is-skeleton { background: color-mix(in srgb, var(--ui-color-surface-muted) 40%, transparent); border-style: dashed; }
+.dash-dev-stat-icon { position: absolute; top: .75rem; right: .8rem; width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); color: color-mix(in srgb, var(--ui-color-text-muted) 50%, transparent); }
+.dash-dev-stat-icon svg { width: 100%; height: 100%; display: block; }
+.dash-dev-stat-label { font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .14em; color: var(--ui-color-text-muted); }
+.dash-dev-stat-value { font-size: calc(1.15rem * var(--a11y-fs)); font-weight: 700; line-height: 1.15; word-break: break-word; padding-right: 1.4rem; }
+.dash-dev-stat-value.is-mono { letter-spacing: -.01em; }
+.dash-dev-stat-sub { font-size: var(--fs-xs); color: var(--ui-color-text-muted); }
+/* The machine is the star - green spine, bigger value, primary-tinted panel. */
+.dash-dev-hero .dash-dev-stat:first-child { background: color-mix(in srgb, var(--ui-color-selection-surface) 50%, transparent); border-color: color-mix(in srgb, var(--ui-color-selection-border) 35%, transparent); }
+.dash-dev-hero .dash-dev-stat:first-child .dash-dev-stat-value { font-size: calc(1.45rem * var(--a11y-fs)); }
+.dash-dev-hero .dash-dev-stat:first-child .dash-dev-stat-icon { color: color-mix(in srgb, var(--ui-color-action-primary) 60%, transparent); }
+
+/* Summary vs. detail - the two box kinds in "This device" read differently on sight.
+   SUMMARY (the hero readouts) are FILLED chips: solid muted panel, borderless, the
+   headline glance. DETAIL (the full card grid below) are OUTLINED: no fill, a hairline
+   border and an underlined title - a reference spec-sheet that recedes behind the glance. */
+.dash-device .dash-dev-stat {
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 55%, transparent);
+  border-color: transparent;
+}
+.dash-device .dash-dev-cards .plat-client-card {
+  background: none;
+  border: 1px solid hsl(var(--border));
+}
+.dash-device .dash-dev-cards .plat-client-title {
+  padding-bottom: .55rem;
+  border-bottom: 1px solid hsl(var(--border) / .7);
+}
+
+/* The rule that separates the summary readouts from the full detail readout. */
+.dash-dev-split {
+  display: flex; align-items: center; gap: .7rem;
+  margin: .35rem 0 1.1rem;
+  font-family: var(--font-mono);
+  font-size: calc(.58rem * var(--a11y-fs)); text-transform: uppercase; letter-spacing: .16em;
+  color: hsl(var(--muted-foreground));
+}
+.dash-dev-split::after { content: ''; flex: 1 1 auto; height: 1px; background: hsl(var(--border)); }
+
+/* ── Your activity (mirrors the Profile card; scoped so the shared markup reads
+   correctly here). In this narrow card the stats stack above the leaderboard.
+   The declarations byte-identical with the Profile page's copy of this same
+   component (lib/activity-summary.ts) now live once in components.css,
+   scoped to both view roots (component audit rec 13) - only this card's own
+   sizing stays here. */
+.dashboard-view .activity-split { display: grid; grid-template-columns: 1fr; gap: 1.1rem; }
+.dashboard-view .activity-grid { grid-template-columns: repeat(auto-fit, minmax(74px, 1fr)); }
+.dashboard-view .activity-stat { padding: .7rem .4rem; border-radius: var(--ui-radius-panel); background: color-mix(in srgb, var(--ui-color-surface-muted) 50%, transparent); }
+.dashboard-view .activity-num { font-size: calc(1.5rem * var(--a11y-fs)); }
+.dashboard-view .activity-label { font-size: calc(.6rem * var(--a11y-fs)); }
+.dashboard-view .activity-block { margin: 0; }
+.dashboard-view .activity-h3 { margin: 0 0 .6rem; font-size: var(--fs-xs); }
+.dashboard-view .fmt-row { grid-template-columns: 4.5rem 1fr 2.5rem; gap: .6rem; font-size: var(--fs-sm); }
+.dashboard-view .fmt-track { height: .5rem; border-radius: var(--radius-pill); }
+.dashboard-view .fmt-fill { border-radius: var(--radius-pill); }
+.dashboard-view .activity-meta { font-size: var(--fs-md); margin: 1rem 0 0; }
+.dashboard-view .activity-meta .activity-fav { color: var(--ui-color-action-primary); font-weight: 650; }
+.dashboard-view .activity-meta .activity-fav::after { content: " →"; opacity: .6; }
+.dashboard-view .storage-hint-text { margin: 0; color: hsl(var(--muted-foreground)); font-size: var(--fs-lg); line-height: 1.6; }
+
+/* ── Storage glance - a read-only composition bar. */
+.dash-store-headline { margin: 0 0 .65rem; font-size: calc(.95rem * var(--a11y-fs)); }
+.dash-store-headline strong { font-weight: 700; }
+.dash-store-bar { display: flex; gap: var(--sp-1); height: .8rem; border-radius: var(--ui-radius-pill); overflow: hidden; background: var(--ui-color-surface-muted); box-shadow: var(--ui-edge-faint); }
+.dash-store-seg { display: block; min-width: 3px; }
+.dash-store-seg--sessions { background: var(--ui-color-action-primary); }
+.dash-store-seg--images   { background: #2453ff; }
+.dash-store-seg--cache    { background: #fe7c3f; }
+.dash-store-seg--previews { background: #90ebcd; }
+.dash-store-seg--other    { background: hsl(var(--muted-foreground) / .4); }
+.dash-store-legend { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin: .7rem 0 0; font-size: calc(.74rem * var(--a11y-fs)); color: var(--ui-color-text-muted); }
+.dash-store-key { display: inline-flex; align-items: center; gap: .4rem; }
+.dash-store-key strong { color: var(--ui-color-text-default); font-variant-numeric: tabular-nums; font-weight: 650; }
+/* Inset hairline so a pale segment colour (e.g. the mint previews swatch) stays
+   distinguishable from a near-white card in light theme. */
+.dash-store-dot { width: .7rem; height: .7rem; border-radius: var(--ui-radius-choice); flex: 0 0 auto; box-shadow: var(--ui-edge-strong); }
+.dash-store-note { margin: .85rem 0 0; font-size: calc(.74rem * var(--a11y-fs)); color: var(--ui-color-text-muted); line-height: 1.5; }
+
+/* ── Colour palette - the compact ink ribbon. Each family is a labelled row of
+   thin bars; hover/focus drives the mono readout, click copies the hex. */
+.dash-ribbon { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; margin: 0 0 1rem; }
+.dash-ink-group { display: flex; flex-direction: column; gap: .45rem; flex: 1 1 200px; min-width: 0; }
+.dash-ink-group-label {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: calc(.6rem * var(--a11y-fs)); font-weight: 700; text-transform: uppercase; letter-spacing: .09em;
+  color: hsl(var(--muted-foreground));
+}
+.dash-ink-group-n { font-size: calc(.58rem * var(--a11y-fs)); font-weight: 600; padding: .02rem .38rem; border-radius: var(--radius-pill); background: hsl(var(--muted)); letter-spacing: 0; }
+.dash-ink-row { display: flex; gap: var(--sp-1); height: 46px; border-radius: 8px; overflow: hidden; box-shadow: inset 0 0 0 1px hsl(var(--border) / .55); }
+.dash-ink {
+  position: relative; flex: 1 1 0; min-width: 13px; padding: 0; border: 0; cursor: pointer;
+  background: var(--ink, hsl(var(--muted))); transition: box-shadow var(--dur-1);
+}
+.dash-ink.is-transparent {
+  background-color: hsl(var(--card));
+  background-image: conic-gradient(hsl(var(--muted-foreground) / .25) 25%, transparent 0 50%, hsl(var(--muted-foreground) / .25) 0 75%, transparent 0);
+  background-size: 10px 10px;
+}
+.dash-ink:hover, .dash-ink:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px hsl(0 0% 100% / .92), inset 0 0 0 3px hsl(0 0% 0% / .32);
+  z-index: 1;
+}
+/* A tiny cap-dot marks an ink with measured (exact) CMYK. */
+.dash-ink.is-measured::after {
+  content: ''; position: absolute; top: 3px; left: 50%; transform: translateX(-50%);
+  width: 4px; height: 4px; border-radius: var(--radius-round);
+  background: hsl(0 0% 100% / .85); box-shadow: 0 0 0 1px hsl(0 0% 0% / .28);
+}
+.dash-ink.is-copied::before {
+  content: '✓'; position: absolute; inset: 0; display: grid; place-content: center;
+  color: #fff; font-size: var(--fs-xs); font-weight: 700; background: hsl(0 0% 0% / .45);
+}
+
+.dash-readout {
+  display: flex; align-items: center; gap: .7rem; flex-wrap: wrap;
+  padding: .55rem .8rem; min-height: 2.5rem;
+  background: hsl(var(--muted) / .5); border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  font-size: var(--fs-md);
+}
+.dash-readout-swatch { flex: 0 0 auto; width: 1.5rem; height: 1.5rem; border-radius: var(--radius-sm); background: hsl(var(--muted)); box-shadow: var(--edge); }
+.dash-readout-swatch.is-transparent {
+  background-image: conic-gradient(hsl(var(--muted-foreground) / .25) 25%, transparent 0 50%, hsl(var(--muted-foreground) / .25) 0 75%, transparent 0);
+  background-size: 9px 9px;
+}
+.dash-readout-name { font-weight: 600; font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif); }
+.dash-readout-hex { color: hsl(var(--foreground)); }
+.dash-readout-cmyk { color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif); }
+.dash-readout-cmyk.is-measured { color: hsl(var(--primary)); font-weight: 600; }
+.dash-readout:not(.is-active) .dash-readout-hex,
+.dash-readout:not(.is-active) .dash-readout-cmyk { display: none; }
+.dash-readout:not(.is-active) .dash-readout-swatch { opacity: .5; }
+
+/* All values - the classic swatch grid, disclosed on demand (no figure hidden). */
+.dash-values { margin: 1rem 0 0; border-top: 1px solid hsl(var(--border)); }
+.dash-values-summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center; gap: .5rem;
+  padding: .85rem 0 .1rem; font-size: var(--fs-xs); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em; color: hsl(var(--muted-foreground));
+}
+.dash-values-summary::-webkit-details-marker { display: none; }
+.dash-values-summary:hover { color: hsl(var(--foreground)); }
+.dash-values-n { font-size: calc(.62rem * var(--a11y-fs)); padding: .05rem .4rem; border-radius: var(--radius-pill); background: hsl(var(--muted)); letter-spacing: 0; }
+.dash-values-summary .plat-section-chev { margin-left: auto; width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); transition: transform var(--dur-1) ease; }
+.dash-values[open] .dash-values-summary .plat-section-chev { transform: rotate(90deg); }
+.dash-values-body { padding: .4rem 0 .2rem; }
+
+/* ── Brand tokens - read-only chips for the brand's non-colour primitives
+   (corner radius, spacing, opacity, shadows, gradients …), each with a tiny
+   true-to-value preview. The section renders hidden and only appears once the
+   async hydration finds any (see dashboard.ts). Full borders - never a stripe. */
+.dash-token-grid {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .7rem;
+}
+.dash-token {
+  display: flex; align-items: center; gap: .75rem; min-width: 0;
+  padding: .6rem .8rem;
+  background: var(--ui-color-surface-canvas); border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-panel);
+}
+.dash-token-preview { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 44px; min-height: 28px; }
+.dash-token-preview:empty { display: none; }
+.dash-token-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1rem; }
+.dash-token-name { font-size: var(--fs-md); font-weight: 650; line-height: 1.25; overflow-wrap: anywhere; }
+.dash-token-kind { font-family: var(--font-mono); font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .12em; color: var(--ui-color-text-muted); }
+.dash-token-value {
+  flex: 0 0 auto; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--ui-color-text-muted);
+  max-width: 9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Kind previews - every inline value is validated before it reaches a style
+   attribute (see studioPreview in dashboard.ts). The radius square wears its
+   own border-radius; the bar/rule take their real length/thickness (clamped);
+   the alpha chip layers the brand primary over a checkerboard at the token's
+   opacity; the needle points at the rotation; shadow/gradient render verbatim. */
+.dash-token-shape {
+  display: block; width: 26px; height: 26px;
+  background: var(--ui-color-selection-surface); border: 1px solid color-mix(in srgb, var(--ui-color-selection-border) 55%, transparent);
+}
+.dash-token-bar { display: block; width: 44px; height: 6px; border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted); overflow: hidden; }
+.dash-token-bar i { display: block; height: 100%; max-width: 100%; border-radius: var(--ui-radius-pill); background: var(--ui-color-action-primary); }
+.dash-token-rule { display: flex; align-items: center; width: 44px; min-height: 16px; }
+.dash-token-rule i { display: block; width: 100%; max-height: 14px; border-radius: var(--ui-radius-choice); background: color-mix(in srgb, var(--ui-color-text-default) 80%, transparent); }
+.dash-token-alpha {
+  display: block; width: 26px; height: 26px; border-radius: var(--radius-sm); overflow: hidden;
+  background-color: hsl(var(--card));
+  background-image: conic-gradient(hsl(var(--muted-foreground) / .25) 25%, transparent 0 50%, hsl(var(--muted-foreground) / .25) 0 75%, transparent 0);
+  background-size: 10px 10px;
+  box-shadow: var(--edge);
+}
+.dash-token-alpha i { display: block; width: 100%; height: 100%; background: var(--brand-primary, hsl(var(--primary))); }
+.dash-token-rot { position: relative; width: 26px; height: 26px; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-choice-round); }
+.dash-token-rot i {
+  position: absolute; left: calc(50% - 1px); top: calc(50% - 9px);
+  width: 2px; height: 9px; border-radius: 1px;
+  background: hsl(var(--primary)); transform-origin: 50% 100%;
+}
+/* Shadow chips carry the token's real box-shadow inline (it replaces this
+   rule's none), so the outline is a border the inline style can't erase. */
+.dash-token-shadow { display: block; width: 26px; height: 26px; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-raised); border: 1px solid var(--ui-color-border-default); }
+.dash-token-grad { display: block; width: 44px; height: 26px; border-radius: var(--ui-radius-control); box-shadow: var(--ui-edge-faint); }
+
+/* ── Capabilities - each sub-section is a full-width banner (one big icon +
+      title/desc), then a grid of boxes that FILL the row; a box previews its modal
+      subheadings in tiny SUSE Mono, then pops the detail into a dialog. ── */
+/* Two-up: the heading + description live in their own left rail (sticky, so they
+   stay beside their cards as you scroll a tall group); the box grid fills the right. */
+/* Each capability group is a collapsible accordion panel: a summary row
+   (icon · title · one-line description · chevron) over a grid of feature cards
+   that expands below. Folded groups keep the whole map scannable at a glance. */
+/* ── Capabilities search ──────────────────────────────────────────────────
+   Eleven sections and ~60 cards is too much to read top-to-bottom, so the
+   search is the primary way in and sits above the accordion. Sticky, because a
+   query you can no longer see is a query you cannot refine - the offset clears
+   the panel's own header. */
+.dash-cap-search {
+  position: sticky; top: 0; z-index: 3;
+  display: flex; align-items: center; gap: .5rem;
+  margin: 0 0 .7rem; padding: .1rem 0;
+  background: hsl(var(--background));
+}
+.dash-cap-search-icon {
+  position: absolute; left: .7rem; display: inline-flex;
+  width: var(--fs-xl); height: var(--fs-xl);
+  color: hsl(var(--muted-foreground)); pointer-events: none;
+}
+.dash-cap-search-icon svg { width: 100%; height: 100%; display: block; }
+.dash-cap-search-input {
+  flex: 1 1 auto; min-width: 0;
+  /* The left inset clears the lens glyph. Expressed in `em` so it follows this
+     input's own font-size - which already carries --a11y-fs - rather than
+     restating the multiplier on a geometry property, which the a11y contract
+     (lib/a11y-prefs-contract.test.ts) forbids at a use site. */
+  padding: .55rem .8rem .55rem 1.95em;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius-pill);
+  background: hsl(var(--card) / .6); color: hsl(var(--foreground));
+  font: inherit; font-size: calc(.86rem * var(--a11y-fs));
+}
+.dash-cap-search-input::placeholder { color: hsl(var(--muted-foreground)); }
+.dash-cap-search-input:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+/* The UA's own search-clear affordance would sit beside ours, so drop it. */
+.dash-cap-search-input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.dash-cap-search-clear {
+  position: absolute; right: .5rem;
+  width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs));
+  border: 0; border-radius: var(--radius-round); cursor: pointer;
+  background: hsl(var(--muted) / .6); color: hsl(var(--muted-foreground));
+  font-size: var(--fs-sm); line-height: 1;
+}
+.dash-cap-search-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.dash-cap-count {
+  margin: -.35rem 0 .6rem .9rem;
+  color: hsl(var(--muted-foreground)); font-size: calc(.76rem * var(--a11y-fs));
+}
+.dash-cap-empty {
+  margin: .2rem 0 0; padding: 1.4rem 1rem; text-align: center;
+  color: var(--ui-color-text-muted); font-size: var(--fs-lg);
+  border: 1px dashed var(--ui-color-border-default); border-radius: var(--ui-radius-surface);
+}
+/* The filter hides cards and whole sections with [hidden]. The UA's
+   `[hidden] { display: none }` is a plain type-less rule, so the class rules
+   below (`display: flex` on an item) would out-specify it and the "hidden"
+   card would stay on screen. These two lines are what actually make the filter
+   filter - do not fold them into the rules above. */
+.dash-cap-item[hidden], .dash-cap-group[hidden] { display: none; }
+
+.dash-cap-group {
+  margin: 0 0 .7rem;
+  border: 0;
+      box-shadow: 0 .1rem .5rem -.2em #0003;
+  border-radius: var(--radius-lg);
+  background: hsl(var(--card) / 0.4);
+  overflow: hidden;
+}
+.dash-cap-group:last-child { margin-bottom: 0; }
+.dash-cap-group-head {
+  display: flex; align-items: center; gap: .9rem;
+  margin: 0; padding: .8rem 1rem;
+  cursor: pointer; list-style: none;                 /* it's a <summary> now */
+}
+.dash-cap-group-head::-webkit-details-marker { display: none; }
+.dash-cap-group-head:hover { background: hsl(var(--muted) / 0.5); }
+.dash-cap-group-icon {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  background: none; color: hsl(var(--muted-foreground));
+}
+.dash-cap-group-icon svg { width: 1.85rem; height: 1.85rem; display: block; }
+.dash-cap-group-text { min-width: 0; flex: 1 1 auto; }
+.dash-cap-group-title { margin: 0; font-size: calc(1rem * var(--a11y-fs)); font-weight: 700; letter-spacing: -.01em; }
+/* How many cards are behind a folded section - otherwise the summary gives no
+   clue whether opening it reveals one card or eight. */
+.dash-cap-group-n {
+  display: inline-block; margin-left: .45rem; vertical-align: .08em;
+  padding: .1rem .4rem; border-radius: var(--radius-pill);
+  background: hsl(var(--muted)); color: hsl(var(--muted-foreground));
+  font-size: calc(.62rem * var(--a11y-fs)); font-weight: 700;
+}
+.dash-cap-group-desc { margin: .15rem 0 0; color: hsl(var(--muted-foreground)); font-size: var(--fs-md); line-height: 1.45; }
+.dash-cap-group-head .plat-section-chev { flex: 0 0 auto; margin-left: .4rem; color: hsl(var(--muted-foreground)); }
+.dash-cap-group[open] > .dash-cap-group-head .plat-section-chev { transform: rotate(90deg); }
+
+/* Full-width grid of boxes - many, evenly sized, so the row never looks squished. */
+.dash-cap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 264px), 1fr)); gap: .8rem; align-items: stretch; padding: 0 1rem 1rem; }
+.dash-cap-item { min-width: 0; display: flex; }
+
+/* Each box is a button that pops its detail into the dialog. */
+.dash-cap-card {
+  width: 100%; display: flex; flex-direction: column; gap: .65rem;
+  padding: 1rem 1.05rem .8rem; text-align: left; font: inherit; color: inherit; cursor: pointer;
+  background: hsl(var(--background)); border:0; border-radius: calc(var(--radius) * 1.1);
+  transition: border-color var(--dur-1) ease, background var(--dur-1) ease, transform var(--dur-1) ease, box-shadow var(--dur-1) ease;
+}
+.dash-cap-card:hover {
+  background: hsl(var(--muted) / .35); border-color: hsl(var(--primary) / .55);
+  transform: translateY(-2px); box-shadow: 0 8px 22px hsl(0 0% 0% / .1);
+}
+.dash-cap-card:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+
+.dash-cap-card-top { display: flex; align-items: center; gap: .6rem; }
+.dash-cap-icon {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: auto; height: auto;
+  background: none; color: hsl(var(--muted-foreground));
+}
+.dash-cap-icon svg { width: 1.75rem; height: 1.75rem; display: block; }
+
+/* Every "What Lolly can do" icon (banner, card, modal): thin hairline stroke that
+   stays 1.5px however large it renders (non-scaling), capped at 5em, muted. */
+.dash-cap-group-icon svg, .dash-cap-icon svg, .dash-cap-modal-icon svg {
+  max-width: 5em; max-height: 5em; stroke-width: 1.5px;
+}
+.dash-cap-group-icon svg *, .dash-cap-icon svg *, .dash-cap-modal-icon svg * {
+  vector-effect: non-scaling-stroke;
+}
+.dash-cap-title { flex: 1 1 auto; min-width: 0; font-size: calc(.92rem * var(--a11y-fs)); font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+
+/* The mono sneak - the exact subheadings the modal will show, small + muted. */
+.dash-cap-peek {
+  flex: 1 1 auto; list-style: none; margin: 0; padding: 0;
+  font-family: var(--font-mono); font-size: var(--fs-2xs); line-height: 1.7;
+  color: hsl(var(--muted-foreground));
+}
+.dash-cap-peek li { position: relative; padding-left: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dash-cap-peek li::before { content: '›'; position: absolute; left: 0; color: hsl(var(--primary) / .7); font-weight: 700; }
+
+.dash-cap-foot { display: flex; align-items: center; gap: .5rem; margin-top: .1rem; padding-top: .55rem; border-top: 1px dashed hsl(var(--border)); }
+.dash-cap-n { flex: 0 0 auto; font-size: calc(.6rem * var(--a11y-fs)); font-weight: 700; padding: .12rem .45rem; border-radius: var(--radius-pill); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+.dash-cap-more { margin-left: auto; font-size: var(--fs-xs); font-weight: 700; color: hsl(var(--primary)); opacity: .7; transform: translateX(-2px); transition: opacity var(--dur-1) ease, transform var(--dur-1) ease; }
+.dash-cap-card:hover .dash-cap-more, .dash-cap-card:focus-visible .dash-cap-more { opacity: 1; transform: none; }
+.dash-cap-feat { padding: 0; margin: 0; }
+.dash-cap-feat dd a { color: hsl(var(--primary)); }
+
+/* Build-up: cards float in, staggered, when the grid scrolls into view (JS adds
+   [data-build] + .is-in; without JS/reduced-motion they're just visible). */
+.dash-cap-grid[data-build] .dash-cap-item { opacity: 0; }
+.dash-cap-grid[data-build].is-in .dash-cap-item {
+  animation: dash-cap-in .5s cubic-bezier(.2, .9, .25, 1.12) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+@keyframes dash-cap-in {
+  from { opacity: 0; transform: translateY(16px) scale(.9); }
+  60%  { opacity: 1; transform: translateY(-3px) scale(1.02); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Capability detail popup (native <dialog>). ──────────────────────────────
+   Two shapes, one dialog. A card that names a screenshot opens WIDE and
+   two-pane - the shot carries the left, the prose the right - because a 560px
+   column on a 1600px desktop wasted the screen and forced the feature list into
+   a narrow scroll. A card with no shot keeps a single reading column and stays
+   narrow: the reason to be wide is the picture, so with no picture the width
+   would only stretch the measure past comfortable reading.
+   The two widths are the ONLY difference; `.has-shot` is set on open. */
+.dash-cap-modal {
+  padding: 0;
+  width: min(600px, 94vw);
+  max-width: 94vw;
+  border: none;
+  border-radius: calc(var(--radius) * 1.25);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: 0 28px 70px hsl(0 0% 0% / .38);
+}
+.dash-cap-modal.has-shot { width: min(1120px, 94vw); }
+.dash-cap-modal::backdrop { background: hsl(0 0% 0% / .5); backdrop-filter: blur(2px); }
+.dash-cap-modal[open] { animation: dash-modal-in var(--dur-2) ease-out; }
+@keyframes dash-modal-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+.dash-cap-modal-head { display: flex; align-items: center; gap: .7rem; padding: 1.15rem 1.35rem; border-bottom: 1px solid hsl(var(--border)); }
+.dash-cap-modal-icon { flex: 0 0 auto; display: inline-flex; width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.dash-cap-modal-icon svg { width: 100%; height: 100%; display: block; }
+.dash-cap-modal-title { flex: 1 1 auto; margin: 0; font-size: calc(1.2rem * var(--a11y-fs)); font-weight: 700; letter-spacing: -.015em; }
+.dash-cap-modal-close { flex: 0 0 auto; width: calc(32px * var(--a11y-fs)); height: calc(32px * var(--a11y-fs)); border: 0; border-radius: var(--radius-round); background: hsl(var(--muted) / .5); color: hsl(var(--muted-foreground)); font-size: calc(15px * var(--a11y-fs)); line-height: 1; cursor: pointer; }
+.dash-cap-modal-close:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+
+.dash-cap-modal-panes { display: grid; }
+/* Shot first and slightly wider than the prose: it is the subject, and a
+   screenshot scaled below about half the dialog stops being legible. */
+.dash-cap-modal.has-shot .dash-cap-modal-panes { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+.dash-cap-modal-body { padding: 1.25rem 1.35rem 1.5rem; max-height: min(70vh, 640px); overflow: auto; }
+/* The measure. Prose set across a 500px+ pane reads badly, so the column is
+   capped in `ch` - the unit that tracks the actual font - and the pane keeps
+   the leftover space rather than the line growing into it. */
+.dash-cap-modal-body > * { max-width: 62ch; }
+
+/* The dialog's own type scale. `.cap-feat` (platform.css) is sized for a
+   264px CARD, where .8rem is right; in a dialog that is now the primary
+   reading surface it was too small and too tight. Scoped to the dialog so the
+   shared list keeps its card sizing everywhere else it is used. */
+.dash-cap-modal .dash-cap-feat { gap: 1.15rem; }
+.dash-cap-modal .dash-cap-feat dt {
+  margin: 0 0 .25rem;
+  font-size: calc(.92rem * var(--a11y-fs)); font-weight: 700;
+  letter-spacing: -.005em;
+}
+.dash-cap-modal .dash-cap-feat dd {
+  font-size: calc(.875rem * var(--a11y-fs)); line-height: 1.62;
+  color: hsl(var(--muted-foreground));
+}
+/* Inline code sat flush against the prose at this size; a little padding and a
+   tint separate a literal parameter name from the sentence around it. */
+.dash-cap-modal .dash-cap-feat dd code {
+  padding: .08em .32em; border-radius: .3em;
+  background: hsl(var(--muted) / .8); color: hsl(var(--foreground));
+  font-size: .88em;
+}
+.dash-cap-modal .dash-cap-feat dd strong { color: hsl(var(--foreground)); font-weight: 650; }
+
+/* The screenshot pane. The image sits on a pad that MATCHES the capture shown:
+   a light shot on white, a dark shot on the theme background - because the pad
+   is really the shot's own bezel, and a light image on a dark pad (or the
+   reverse) reads as a rendering fault rather than a frame. Which capture is
+   shown is decided in JS by theme, with `.is-dark-shot` set when the dark twin
+   is used (and cleared on the fallback to a light-only shot). */
+.dash-cap-modal-shot {
+  margin: 0; display: flex; flex-direction: column; gap: .55rem;
+  padding: 1.25rem 1.35rem 1.5rem;
+  background: hsl(var(--muted) / .45);
+  border-right: 1px solid hsl(var(--border));
+  min-width: 0;
+}
+.dash-cap-modal-shot img {
+  display: block; width: 100%; height: auto;
+  max-height: min(62vh, 560px); object-fit: contain; object-position: top center;
+  border-radius: calc(var(--radius) * .9);
+  border: 1px solid hsl(var(--border));
+  background: #fff;                       /* light capture → white bezel */
+  box-shadow: 0 6px 20px hsl(0 0% 0% / .1);
+}
+/* Dark twin shown: the capture carries dark chrome, so the bezel follows the
+   theme background instead of white. */
+.dash-cap-modal-shot.is-dark-shot img { background: hsl(var(--background)); }
+.dash-cap-modal-shot figcaption {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-xs); line-height: 1.4;
+}
+.dash-cap-modal-shot[hidden] { display: none; }
+
+/* Below the two-pane threshold the panes stack, shot first, and the dialog
+   drops back to one width - a 1120px dialog on a narrow window is just 94vw
+   with a stretched measure. */
+@media (max-width: 900px) {
+  .dash-cap-modal.has-shot { width: min(600px, 94vw); }
+  .dash-cap-modal.has-shot .dash-cap-modal-panes { grid-template-columns: minmax(0, 1fr); }
+  .dash-cap-modal-shot { border-right: 0; border-bottom: 1px solid hsl(var(--border)); padding-bottom: 1rem; }
+  .dash-cap-modal-shot img { max-height: 42vh; }
+  .dash-cap-modal-body { max-height: none; }
+  /* Stacked, the whole card scrolls as one - two independently scrolling panes
+     in a phone-height dialog is a trap. */
+  .dash-cap-modal-card { max-height: 86vh; overflow: auto; }
+}
+
+/* ── Reference panels (typography / themes / print) - collapsible <details>. */
+.dash-ref-grid { display: grid; gap: 1.1rem; margin: 0 0 1.1rem; }
+.dash-ref-grid > .plat-section { margin: 0; }
+
+.dash-foot { margin: 0; max-width: none; }
+
+/* Shared focus ring for the disclosure summaries here. */
+.dash-values-summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -3px; border-radius: var(--radius); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-ink, .dash-values-summary .plat-section-chev { transition: none; }
+  .dash-cap-card { transition: none; }
+  .dash-cap-grid[data-build] .dash-cap-item { opacity: 1; animation: none; }
+  .dash-cap-modal[open] { animation: none; }
+  .dash-hero-cta, .dash-hero-cta-arrow, .dash-hero-primary, .dash-hero-primary-code { transition: none; }
+  .dash-hero-cta:hover { transform: none; }
+  .dash-hero-cta:hover .dash-hero-cta-arrow,
+  .dash-hero-cta:focus-visible .dash-hero-cta-arrow { transform: none; }
+}
+
+/* Narrow: tighten the accordion head + card padding. */
+@media (max-width: 560px) {
+  .dash-cap-group-head { padding: .7rem .8rem; gap: .7rem; }
+  .dash-cap-group-icon svg { width: 1.6rem; height: 1.6rem; }
+  .dash-cap-group-title { font-size: calc(.95rem * var(--a11y-fs)); }
+  .dash-cap-grid { padding: 0 .8rem .8rem; }
+}
+
+@media (max-width: 560px) {
+  .dashboard-view .dash-layout { padding: 3rem 1rem 4rem; }
+  .dash-section { padding: 1.1rem; }
+  .dash-dev-hero { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .dash-hero-primary { min-height: 112px; }
+  .dash-hero-logo { max-height: 40px; }
+}
+
+/* ── Universal drop front door (lib/drop-router.ts) ─────────────────────────
+   Same hint-pill pattern as the gallery: the router toggles .is-file-drag on
+   the view root while a file drag hovers it. */
+/* (The `.drop-hint` pill was declared here AND in gallery.css, byte-identical
+   down to the .is-file-drag line. It now lives once, unscoped, in gallery.css.) */
+}

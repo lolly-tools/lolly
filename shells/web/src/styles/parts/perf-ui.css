@@ -1,0 +1,79 @@
+/* SPDX-License-Identifier: MPL-2.0
+ *
+ * Performance UI - the gated stylesheet for the opt-in `perf-ui` feature flag
+ * (src/feature-flags.ts). Imported UNLAYERED by app.css (no `layer()`), so its !important
+ * strip outranks every cascade layer.
+ *
+ * The whole sheet is scoped to `html[data-perf-ui]`, an attribute that is ABSENT unless the
+ * flag is on. So with the flag OFF - the default - NOTHING here matches and the chrome is
+ * byte-identical: the same additive contract the a11y prefs keep (styles/parts/a11y.css).
+ * feature-flags.ts applyPerfUi() (boot + the profile toggle) and the index.html pre-paint
+ * script set/clear the attribute.
+ *
+ * WHAT IT STRIPS when ON: the GPU-expensive chrome compositing - backdrop blur (the glass
+ * panels), box-shadows, and blend modes - and it idles the decorative featured preview pan
+ * until hovered. A cheaper frame to paint on a lower-powered device.
+ *
+ * CHROME-ONLY, deliberately: every strip rule excludes the tool-canvas roots
+ * (#tool-canvas / .tool-canvas / #tool-content / .pro-export-canvas) AND their subtrees, so a
+ * tool render - and its export, whose geometry is shared with the CLI export path - is never
+ * altered. A creation keeps its own shadows and blends; only the app frame is simplified.
+ * The strip also exempts :focus-visible, so box-shadow FOCUS RINGS (styles/parts/fields.css)
+ * stay visible - a perf mode must not cost keyboard users their focus indicator.
+ */
+
+html[data-perf-ui] *:not(:is(#tool-canvas, .tool-canvas, #tool-content, .pro-export-canvas)):not(:is(#tool-canvas, .tool-canvas, #tool-content, .pro-export-canvas) *):not(:focus-visible):not(:focus-visible *),
+html[data-perf-ui] *:not(:is(#tool-canvas, .tool-canvas, #tool-content, .pro-export-canvas)):not(:is(#tool-canvas, .tool-canvas, #tool-content, .pro-export-canvas) *):not(:focus-visible *)::before,
+html[data-perf-ui] *:not(:is(#tool-canvas, .tool-canvas, #tool-content, .pro-export-canvas)):not(:is(#tool-canvas, .tool-canvas, #tool-content, .pro-export-canvas) *):not(:focus-visible *)::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  mix-blend-mode: normal !important;
+  background-blend-mode: normal !important;
+}
+
+/* Decorative previews animate only while hovered. The featured tile's Ken Burns pan
+   (.ftile-img, a 12s infinite loop) idles until the pointer is on - or keyboard focus is
+   within - its tile, so nothing pans in the background eating frames. */
+html[data-perf-ui] .ftile-img { animation-play-state: paused !important; }
+html[data-perf-ui] .ftile:hover .ftile-img,
+html[data-perf-ui] .ftile:focus-within .ftile-img { animation-play-state: running !important; }
+
+/* will-change forces a STANDING GPU compositor layer (idle memory). Release the decorative
+   chrome hints back to auto - the browser promotes on demand instead. EXCLUDES the
+   virtualised data-grid (.dg-rows), whose scroll-recycle transform genuinely needs the hint. */
+html[data-perf-ui] :is(
+  .view-fade,
+  .cat-zoom-stage .cat-thumb,
+  .cs-jelly .cs-thumb,
+  .cs-jelly .cs-tail,
+  .cropper-img,
+  .export-shutter__mark,
+  .export-shutter__layer
+) { will-change: auto !important; }
+
+/* Ambient decorative animations idle under perf-ui - the continuous pulses/glows/floats/
+   shimmers that repaint every frame. EXCLUDES functional motion - loading spinners,
+   indeterminate progress, live/recording indicators, and the export shutter's own transient
+   feedback - which must keep moving to read as "working" (the base.css reduced-motion block
+   draws the same line). */
+html[data-perf-ui] :is(
+  .be-cta.is-active,
+  .collab-tile-dot,
+  .deck-strip__load.is-inviting,
+  .mp-flow,
+  .spotlight-opt[data-group="ask"].is-active .ask-spark,
+  .be-btn.start-import-cta:not(:hover):not(.is-open),
+  .tool-actions [data-action="copy"].copy-armed,
+  .ask-send:hover .ask-send-mark [class*="lolly-mark__spin"],
+  .ask-send:focus-visible .ask-send-mark [class*="lolly-mark__spin"],
+  .fc-btn-lolly:focus-visible svg [class*="lolly-mark__spin"],
+  .valid-result.is-valid .valid-hero-icon,
+  .valid-result.is-trusted .valid-hero-icon,
+  .valid-result.is-lolly .valid-hero-icon,
+  .valid-result.is-delivered .valid-hero-icon,
+  .valid-ai-flag,
+  .valid-ai-flag-ic svg
+) { animation-play-state: paused !important; }
+html[data-perf-ui] :is(.valid-result.is-valid, .valid-result.is-trusted, .valid-result.is-lolly, .valid-result.is-delivered) .valid-hero-icon::after,
+html[data-perf-ui] .valid-ai-flag::after { animation-play-state: paused !important; }

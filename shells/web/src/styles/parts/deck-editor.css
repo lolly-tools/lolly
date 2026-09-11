@@ -1,0 +1,652 @@
+/* Cascade layer: this sheet sits in the `views` layer (order declared once in
+   styles/app.css), so its rules keep a fixed priority regardless of when Vite injects
+   the chunk. Do not rely on load order. */
+@layer views {
+/* ─── Deck Builder - on-canvas editor overlay (render.layout:'deck') ──────────
+   Mounted into the stage subtree by deck-editor.ts, OVER the live #tool-canvas, so it
+   survives the canvas's innerHTML repaint. The 'deck' layout keeps the input sidebar, so
+   this overlay only decorates the canvas - it must never block pointer events meant for
+   the canvas underneath (interactive children opt back in with pointer-events:auto). */
+
+.deck-editor {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;   /* the canvas beneath stays fully interactive */
+  overflow: visible;
+}
+
+/* ── Filmstrip (pagination) - a docked HUD at the bottom of the stage ──────── */
+.deck-strip {
+  pointer-events: auto;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding: 8px 10px;
+  background: color-mix(in oklab, hsl(var(--card, 0 0% 100%)) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid hsl(var(--border, 220 13% 90%));
+  box-shadow: 0 -6px 20px -14px rgba(0, 0, 0, 0.4);
+}
+
+.deck-strip__load {
+  flex: 0 0 auto;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: calc(0.8rem * var(--a11y-fs));
+  font-weight: 600;
+  padding: 7px 13px;
+  border-radius: 9px;
+  border: 1px solid hsl(var(--border, 220 13% 88%));
+  background: hsl(var(--background, 0 0% 100%));
+  color: hsl(var(--foreground, 220 20% 15%));
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.deck-strip__load svg { width: var(--fs-xl); height: var(--fs-xl); }
+.deck-strip__load:hover {
+  background: color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 8%, hsl(var(--background, 0 0% 100%)));
+  border-color: color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 40%, transparent);
+}
+/* Fresh deck → the primary CTA, gently pulsing, until the user starts building. */
+.deck-strip__load.is-inviting {
+  background: hsl(var(--primary, 231 60% 55%));
+  border-color: transparent;
+  color: hsl(var(--primary-foreground, 0 0% 100%));
+  animation: deck-load-pulse 2.4s ease-in-out infinite;
+}
+.deck-strip__load.is-inviting:hover {
+  background: color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 88%, black);
+}
+@keyframes deck-load-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 45%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .deck-strip__load.is-inviting { animation: none; }
+}
+
+.deck-strip__scroll {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  padding-bottom: 2px;
+}
+
+/* ── Thumbnail ─────────────────────────────────────────────────────────────
+   A data-driven mini-preview: the slide's background colour, its first image (if any),
+   and its title - enough to recognise each slide without rendering the full deck. */
+.deck-thumb {
+  flex: 0 0 auto;
+  position: relative;
+  width: 88px;      /* overwritten inline to the deck's aspect ratio */
+  height: 66px;
+  padding: 0;
+  border-radius: 7px;
+  border: 2px solid transparent;
+  outline: 1px solid hsl(var(--border, 220 13% 88%));
+  outline-offset: -1px;
+  background: #141b2d;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-1) ease, transform var(--dur-1) ease;
+}
+/* Active slide: a prominent ring + slight lift so the current thumbnail clearly stands out -
+   border/ring only, never a tint over the face, so the mini-render stays colour-accurate. */
+.deck-thumb.is-active {
+  border-color: hsl(var(--primary, 231 60% 55%));
+  outline-color: hsl(var(--primary, 231 60% 55%));
+  box-shadow: 0 0 0 3px hsl(var(--primary, 231 60% 55%) / 0.32), 0 3px 10px hsl(220 30% 10% / 0.3);
+
+}
+.deck-thumb:hover:not(.is-active) { border-color: hsl(var(--border, 220 13% 70%)); transform: translateY(-1px); }
+
+/* ── Faithful mini-slide - mirrors the tool's .sl-slide structure + .sl-l-* layouts at
+      thumbnail scale (px units, since the thumb is a fixed size). Background + ink colour
+      are set inline from the slide data. ────────────────────────────────────────────── */
+.deck-thumb__slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 5px;
+  overflow: hidden;
+  text-align: left;
+}
+.deck-thumb__head { flex: 0 0 auto; min-height: 0; }
+.deck-thumb__t-title {
+  font-size: 8px;
+  line-height: 1.1;
+  font-weight: 800;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.deck-thumb__t-sub {
+  font-size: 6px;
+  line-height: 1.15;
+  opacity: 0.8;
+  margin-top: 1px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+.deck-thumb__grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  gap: 2px;
+}
+.deck-thumb__slot {
+  position: relative;
+  border-radius: 2px;
+  overflow: hidden;
+  background: color-mix(in oklab, currentColor 12%, transparent);   /* empty-slot panel */
+}
+.deck-thumb__slot.is-filled { background: none; }
+.deck-thumb__slot-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+
+/* Per-layout grid templates - the same shapes as the tool's .sl-l-* rules. */
+.deck-thumb__slide[data-layout="title"] { justify-content: center; align-items: center; text-align: center; }
+.deck-thumb__slide[data-layout="title"] .deck-thumb__t-title { font-size: 10px; -webkit-line-clamp: 3; }
+.deck-thumb__slide[data-layout="full"], .deck-thumb__slide[data-layout="hero"] { padding: 0; gap: 0; }
+.deck-thumb__slide[data-layout="full"] .deck-thumb__head,
+.deck-thumb__slide[data-layout="hero"] .deck-thumb__head {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: 3px 4px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.45));
+}
+.deck-thumb__slide[data-layout="full"] .deck-thumb__t-title,
+.deck-thumb__slide[data-layout="hero"] .deck-thumb__t-title { color: #fff; }
+.deck-thumb__slide[data-layout="full"] .deck-thumb__slot-img,
+.deck-thumb__slide[data-layout="hero"] .deck-thumb__slot-img { object-fit: cover; }
+.deck-thumb__slide[data-layout="full"] .deck-thumb__grid,
+.deck-thumb__slide[data-layout="hero"] .deck-thumb__grid { grid-template-columns: 1fr; }
+.deck-thumb__slide[data-layout="split"] .deck-thumb__grid { grid-template-columns: 1fr 1fr; }
+.deck-thumb__slide[data-layout="stack"] .deck-thumb__grid { grid-template-rows: 1fr 1fr; }
+.deck-thumb__slide[data-layout="golden"] .deck-thumb__grid { grid-template-columns: 1.618fr 1fr; }
+.deck-thumb__slide[data-layout="cols3"] .deck-thumb__grid { grid-template-columns: repeat(3, 1fr); }
+.deck-thumb__slide[data-layout="grid4"] .deck-thumb__grid { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+.deck-thumb__num {
+  position: absolute;
+  left: 3px;
+  bottom: 2px;
+  z-index: 2;
+  font-size: calc(9px * var(--a11y-fs));
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 0 4px;
+  border-radius: 4px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.45);
+}
+.deck-thumb__del {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  z-index: 2;
+  /* Icon-only control: the box rides the chrome icon scale (tokens.css) with
+     the glyph it holds, so the mark never shrinks inside a growing button. */
+  width: calc(15px * var(--a11y-fs));
+  height: calc(15px * var(--a11y-fs));
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-round);
+  font-size: var(--fs-sm);
+  line-height: 1;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity var(--dur-1) ease;
+}
+.deck-thumb:hover .deck-thumb__del,
+.deck-thumb:focus-within .deck-thumb__del { opacity: 1; }
+.deck-thumb__del:hover { background: hsl(var(--destructive, 0 70% 45%)); }
+
+.deck-thumb--add {
+  background: hsl(var(--muted, 220 14% 96%));
+  color: hsl(var(--muted-foreground, 220 10% 45%));
+  font-size: calc(22px * var(--a11y-fs));
+  font-weight: 300;
+  display: grid;
+  place-items: center;
+  width: 52px;
+}
+.deck-thumb--add:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Load popover (JSON / Markdown) ─────────────────────────────────────────
+   Anchored above the filmstrip's Load button. */
+.deck-load {
+  pointer-events: auto;
+  position: absolute;
+  left: 10px;
+  bottom: 92px;
+  width: min(440px, calc(100% - 20px));
+  z-index: 20;   /* above the free-canvas layer (z 4) + its click-catching bg, or it can't be used in freeform mode */
+  padding: 14px;
+  border-radius: 12px;
+  background: hsl(var(--background, 0 0% 100%));
+  color: hsl(var(--foreground, 220 20% 15%));
+  border: 1px solid hsl(var(--border, 220 13% 88%));
+  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.deck-load__hd { font-weight: 700; font-size: calc(0.95rem * var(--a11y-fs)); }
+.deck-load__hint { margin: 0; font-size: calc(0.78rem * var(--a11y-fs)); color: hsl(var(--muted-foreground, 220 10% 45%)); line-height: 1.4; }
+.deck-load__hint code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  padding: 0 3px;
+  border-radius: var(--radius-xs);
+  background: hsl(var(--muted, 220 14% 96%));
+}
+.deck-load__ta {
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: calc(0.8rem * var(--a11y-fs));
+  line-height: 1.4;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border, 220 13% 85%));
+  background: hsl(var(--muted, 220 14% 98%));
+  color: inherit;
+}
+.deck-load__err {
+  font-size: calc(0.78rem * var(--a11y-fs));
+  color: hsl(var(--destructive, 0 70% 45%));
+}
+/* Drag-a-deck-file feedback - mirrors the app's dropzone affordance. */
+.deck-load.is-dragover {
+  border-color: hsl(var(--primary, 231 60% 55%));
+  background: color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 8%, hsl(var(--background, 0 0% 100%)));
+}
+.deck-load__row { display: flex; justify-content: flex-end; gap: 8px; }
+.deck-load__btn {
+  font: inherit;
+  font-size: calc(0.82rem * var(--a11y-fs));
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border, 220 13% 85%));
+  background: hsl(var(--background, 0 0% 100%));
+  color: inherit;
+  cursor: pointer;
+}
+.deck-load__btn:hover { background: hsl(var(--muted, 220 14% 96%)); }
+.deck-load__btn--go {
+  background: hsl(var(--primary, 231 60% 55%));
+  color: hsl(var(--primary-foreground, 0 0% 100%));
+  border-color: transparent;
+}
+.deck-load__btn--go:hover { filter: brightness(1.05); }
+
+/* ── Slide toolbar (step 7) - deck theme (global) + per-slide theme/logo/mode + Edit text.
+      A docked HUD at the TOP of the stage (the filmstrip owns the bottom). ─────────────── */
+.deck-bar {
+  pointer-events: auto;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 6px 8px;
+  z-index: 12;   /* above the free-canvas layer (z 4/10) so its controls are never covered */
+  background: color-mix(in oklab, hsl(var(--card, 0 0% 100%)) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid hsl(var(--border, 220 13% 90%));
+  box-shadow: 0 6px 20px -14px rgba(0, 0, 0, 0.4);
+}
+/* Related controls cluster into a soft group, matching the freeform toolbar's .deck-free__grp. */
+.deck-bar__grp {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 9px;
+  background: color-mix(in oklab, hsl(var(--muted, 220 14% 96%)) 60%, transparent);
+}
+.deck-bar__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 4px 2px 6px;
+  border-radius: 7px;
+}
+.deck-bar__field:hover { background: color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 10%, transparent); }
+/* The icon replaces the old text caption - the control's meaning rides in the field's `title`
+   tooltip and the select's aria-label, so the bar stays uncluttered without losing clarity. */
+.deck-bar__ico {
+  display: inline-flex;
+  color: hsl(var(--muted-foreground, 220 10% 45%));
+}
+.deck-bar__ico svg { width: var(--fs-xl); height: var(--fs-xl); display: block; }
+.deck-bar__sel {
+  font: inherit;
+  font-size: calc(0.78rem * var(--a11y-fs));
+  padding: 3px 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: hsl(var(--foreground, 220 20% 15%));
+  cursor: pointer;
+  max-width: 8.5em;
+}
+.deck-bar__sel:hover { background: hsl(var(--background, 0 0% 100%) / 0.6); }
+.deck-bar__sel:focus-visible { outline: 2px solid hsl(var(--ring, 231 60% 55%)); outline-offset: 2px; }
+/* Icon action button in the bar (Edit text) - square, ghost, matches .deck-free__btn--icon. */
+.deck-bar__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Box on the chrome icon scale with its glyph (tokens.css). */
+  min-width: calc(28px * var(--a11y-fs));
+  height: calc(26px * var(--a11y-fs));
+  padding: 0 5px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: hsl(var(--foreground, 220 20% 15%));
+  cursor: pointer;
+}
+.deck-bar__btn:hover { background: color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 14%, transparent); }
+.deck-bar__btn svg { width: var(--fs-xl); height: var(--fs-xl); display: block; }
+
+/* ── Inline layout-slide text editing (step 5) ──────────────────────────────────
+   The REAL rendered `.sl-head` / `.sl-body` in the tool canvas become contenteditable -
+   you type on the slide itself, at its true size/position, no popup. These rules only
+   dress the editing state: a soft ring so it's clear what's live, and a text caret. The
+   tool's own CSS still owns the type. */
+.sl-head.is-editing,
+.sl-body.is-editing {
+  outline: 2px solid color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 70%, transparent);
+  outline-offset: 3px;
+  border-radius: var(--radius-xs);
+  cursor: text;
+}
+.sl-head.is-editing { outline-offset: 6px; }
+
+/* The floating format bar - bold / italic / heading / lists - while inline editing. Styled
+   like the freeform toolbar (.deck-free__grp) so the tool's two editing surfaces match. */
+.deck-fmt {
+  pointer-events: auto;
+  position: absolute;
+  z-index: 14;   /* above the top bar (z 12) - it's the active inline-edit toolbar */
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+  background: color-mix(in oklab, hsl(var(--card, 0 0% 100%)) 88%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 10px hsl(220 20% 10% / 0.18);
+}
+.deck-fmt__btn {
+  font: inherit;
+  font-size: calc(0.82rem * var(--a11y-fs));
+  font-weight: 600;
+  /* B/I/U carry their letter as TYPE, which already scales - the box has to
+     follow it on the icon scale or the letter clips at the first factor up. */
+  min-width: calc(26px * var(--a11y-fs));
+  height: calc(26px * var(--a11y-fs));
+  padding: 0 7px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: hsl(var(--foreground, 220 20% 15%));
+  cursor: pointer;
+}
+.deck-fmt__btn:hover { background: color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 14%, transparent); }
+.deck-fmt__btn--b { font-weight: 800; }
+.deck-fmt__btn--i { font-style: italic; }
+
+/* ── Per-slide free-canvas (step 6) - draggable/resizable box rectangles over the slide. ─ */
+.deck-free {
+  pointer-events: none;   /* only the boxes + tools opt back in */
+  position: absolute;
+  z-index: 4;
+}
+/* The freeform chrome band - the arrange toolbar + inspector, docked to the STAGE below the
+   slide bar (deck-editor.ts sets `top` to the slide bar's measured height), NOT over the
+   canvas. fitCanvas reserves this band (--stage-reserve-top) + the filmstrip band so the
+   fitted canvas sits between them - the toolbars never cover the content being edited.
+   pointer-events:none keeps the band's empty space click-through to the stage; the bars
+   opt back in. */
+.deck-free-chrome {
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;                     /* deck-editor.ts overrides to the slide bar's height */
+  z-index: 13;                /* over the free layer (z 4) AND the slide bar (z 12), so the
+                                 inspector's colour popover (fixed, inside here) is never covered */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 0;
+}
+.deck-free__tools,
+.deck-free__insp {
+  pointer-events: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 6px;
+  max-width: 100%;
+}
+.deck-free__grp {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 9px;
+  /* A near-opaque card fill, NO backdrop-filter: blur on the group made it the containing
+     block + stacking context for the inspector's position:fixed colour popover, which
+     mispositioned it and dropped it behind the sibling bars ("[object]"/see-through picker).
+     The 92%-opaque fill reads as a solid pill without needing the blur. */
+  background: color-mix(in oklab, hsl(var(--card, 0 0% 100%)) 92%, transparent);
+  box-shadow: 0 1px 3px hsl(220 20% 10% / 0.14);
+}
+.deck-free__btn {
+  font: inherit;
+  font-size: calc(0.78rem * var(--a11y-fs));
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: hsl(var(--foreground, 220 20% 15%));
+  cursor: pointer;
+}
+.deck-free__btn:hover:not(:disabled) { background: color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 14%, transparent); }
+.deck-free__btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.deck-free__btn--icon { min-width: calc(28px * var(--a11y-fs)); padding: 5px 6px; display: inline-flex; align-items: center; justify-content: center; }
+.deck-free__btn--icon svg { width: calc(17px * var(--a11y-fs)); height: calc(17px * var(--a11y-fs)); display: block; }
+.deck-free__btn--del:not(:disabled) { color: hsl(var(--destructive, 0 70% 45%)); }
+
+/* ── The box inspector - a second row under the arrange toolbar ─────────────────
+   Shown only when the selection holds a text box or a shape. It reuses .deck-free__grp
+   so it reads as the same toolbar family, but carries LABELLED fields rather than icons:
+   its controls set what's inside a box, while the row above aligns boxes to each other,
+   and icon-for-icon the two would look identical. */
+/* .deck-free__insp shares the flow layout with .deck-free__tools (see the rule above); it
+   only needs its own cell/field styling below. */
+
+/* Layout-mode slots are click-to-fill on the FROZEN (focused/editable) slide - deck-editor.ts
+   opens the picker for them. Only the frozen slide takes the click (styles.css / buildAnimCss
+   gate pointer-events), so only its slots advertise it. `sl-frozen` is an editor-only state
+   (exports are sl-static), so this never leaks a cursor into a rendered deck. */
+.slides.sl-frozen .sl-slot { cursor: pointer; }
+.deck-free__cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 6px;
+  font-size: calc(0.72rem * var(--a11y-fs));
+  font-weight: 600;
+  color: hsl(var(--muted-foreground, 220 10% 45%));
+  white-space: nowrap;
+  cursor: default;
+}
+.deck-free__cell-t { user-select: none; }
+.deck-free__num,
+.deck-free__sel {
+  font: inherit;
+  font-size: calc(0.74rem * var(--a11y-fs));
+  font-weight: 600;
+  color: hsl(var(--foreground, 220 20% 15%));
+  background: hsl(var(--background, 0 0% 100%) / 0.7);
+  border: 1px solid color-mix(in oklab, hsl(var(--foreground, 220 20% 15%)) 16%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 3px 4px;
+  cursor: pointer;
+}
+.deck-free__num { width: 3.6em; text-align: right; cursor: text; }
+.deck-free__num::placeholder { opacity: 0.5; font-weight: 500; }
+.deck-free__check { width: var(--fs-lg); height: var(--fs-lg); accent-color: hsl(var(--primary, 231 60% 55%)); cursor: pointer; }
+/* Colour picker (the app's OKLCH float field) + its clear button. An unset colour means
+   "inherit the slide's ink / no fill" - a state the picker can't show - so the trigger is
+   dimmed when unset, and the clear button sets it back to inherit. */
+.deck-free__colour { display: inline-flex; align-items: center; gap: 2px; }
+.deck-free__cpick { display: inline-flex; }
+.deck-free__colour.is-unset .deck-free__cpick { opacity: 0.55; }
+.deck-free__clear {
+  font: inherit;
+  font-size: calc(0.8rem * var(--a11y-fs));
+  line-height: 1;
+  padding: 2px 3px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: hsl(var(--muted-foreground, 220 10% 45%));
+  cursor: pointer;
+}
+.deck-free__clear:hover:not(:disabled) { background: color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 14%, transparent); }
+.deck-free__clear:disabled { opacity: 0.25; cursor: default; }
+.deck-free__btn--link { font-size: calc(0.7rem * var(--a11y-fs)); padding: 3px 7px; }
+/* Marquee-drag surface (below the boxes) + the rubber-band rectangle it draws. */
+.deck-free__bg { position: absolute; inset: 0; z-index: 0; pointer-events: auto; }
+.deck-free__marquee {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  border: 1px solid hsl(var(--primary, 231 60% 55%));
+  background: color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 12%, transparent);
+}
+/* Smart-guide snap lines drawn while dragging. */
+.deck-free__guides { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.deck-free__guide { position: absolute; }
+.deck-free__guide--v { width: 0; border-left: 1px dashed hsl(330 90% 60%); }
+.deck-free__guide--h { height: 0; border-top: 1px dashed hsl(330 90% 60%); }
+/* Group bounding box (multi-selection) - outline only; clicks pass to the boxes beneath. */
+.deck-free-bbox {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  border: 1px dashed hsl(var(--primary, 231 60% 55%));
+}
+/* Rotate handle - a small knob on a stalk above the box / group box. */
+.deck-free-rot {
+  position: absolute;
+  left: 50%;
+  top: -22px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: var(--radius-round);
+  background: hsl(var(--background, 0 0% 100%));
+  border: 1.5px solid hsl(var(--primary, 231 60% 55%));
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+.deck-free-rot::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 11px;
+  width: 1px;
+  height: 10px;
+  margin-left: -0.5px;
+  background: hsl(var(--primary, 231 60% 55%));
+}
+.deck-free-box {
+  pointer-events: auto;
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 55%, transparent);
+  cursor: move;
+  overflow: hidden;
+  touch-action: none;
+}
+.deck-free-box.is-sel { border-color: hsl(var(--primary, 231 60% 55%)); box-shadow: 0 0 0 1px hsl(var(--primary, 231 60% 55%)); }
+.deck-free-box.is-empty { background: color-mix(in oklab, hsl(var(--muted, 220 14% 90%)) 60%, transparent); }
+.deck-free-box__hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  text-align: center;
+  font-size: calc(0.72rem * var(--a11y-fs));
+  color: hsl(var(--muted-foreground, 220 10% 45%));
+  pointer-events: none;
+}
+.deck-free-box__text {
+  width: 100%;
+  height: 100%;
+  padding: 4px 6px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.deck-free-box__text > :first-child { margin-top: 0; }
+.deck-free-box__text h1, .deck-free-box__text h2, .deck-free-box__text h3 { margin: 0 0 0.18em; line-height: 1.1; }
+.deck-free-box__text p { margin: 0 0 0.3em; }
+.deck-free-box__text ul { margin: 0 0 0.3em; padding-left: 1.2em; }
+/* Editing a text box in place - the editable opts back into pointer events + shows a caret. */
+.deck-free-box.is-editing { overflow: visible; cursor: text; }
+.deck-free-box.is-editing .deck-free-box__text {
+  pointer-events: auto;
+  overflow: auto;
+  cursor: text;
+  outline: 2px solid hsl(var(--primary, 231 60% 55%));
+  background: color-mix(in oklab, hsl(var(--card, 0 0% 100%)) 88%, transparent);
+}
+.deck-free-h {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: hsl(var(--background, 0 0% 100%));
+  border: 1.5px solid hsl(var(--primary, 231 60% 55%));
+  touch-action: none;
+}
+.deck-free-h--nw { left: -6px; top: -6px; cursor: nwse-resize; }
+.deck-free-h--n  { left: 50%; top: -6px; margin-left: -5px; cursor: ns-resize; }
+.deck-free-h--ne { right: -6px; top: -6px; cursor: nesw-resize; }
+.deck-free-h--e  { right: -6px; top: 50%; margin-top: -5px; cursor: ew-resize; }
+.deck-free-h--se { right: -6px; bottom: -6px; cursor: nwse-resize; }
+.deck-free-h--s  { left: 50%; bottom: -6px; margin-left: -5px; cursor: ns-resize; }
+.deck-free-h--sw { left: -6px; bottom: -6px; cursor: nesw-resize; }
+.deck-free-h--w  { left: -6px; top: 50%; margin-top: -5px; cursor: ew-resize; }
+}

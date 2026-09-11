@@ -1,0 +1,14 @@
+.export-share { border-top: 1px solid var(--ui-color-border-default); margin-top: 14px; padding-top: 12px; }
+.export-share > summary { cursor: pointer; font-size: calc(13px * var(--a11y-fs, 1)); font-weight: 600; padding: 8px 0; }
+.export-share-surface .share-dialog-body { padding: 12px 0 0; }
+.export-share-surface .share-dialog-body > h2 { display: none; }
+.export-share-surface .share-link-row { flex-wrap: wrap; }
+.export-share-surface .share-link-field { min-width: 0; flex: 1 1 170px; }
+.export-share-surface .share-file-btns { flex-wrap: wrap; }
+.export-share-surface .share-file { flex-wrap: wrap; }
+.export-is-lolly > .section-card,
+.export-is-lolly [data-action="copy"],
+.export-is-lolly [data-action="download"],
+.export-is-lolly [data-action="save-as"],
+.export-is-lolly [data-send-targets] { display: none !important; }
+.export-is-lolly .export-share { border-top: 0; }

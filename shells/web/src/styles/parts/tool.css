@@ -1,0 +1,4020 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* ─── Tool view layout ──────────────────────────────────────────────────── */
+
+.tool-layout {
+  display: flex;
+  min-height: 100vh ;
+  min-height: 100dvh ;
+}
+
+/* ─── Sidebar ───────────────────────────────────────────────────────────── */
+
+/* Drag grip for the mobile sheet - hidden on desktop. The full mobile sheet
+   layout lives in a media block near the end of this file: it must come AFTER the
+   base .sidebar / .tool-stage rules (which appear later in source order) or those
+   would override it at equal specificity. */
+.sheet-grip { display: none; }
+
+/* The "Export | Save" render pill + export popup. Shared visual styling here; each
+   breakpoint positions the pill - a bottom-centre FAB + full-screen sheet on
+   mobile, a bottom-left sidebar pill + non-modal sticky panel on desktop. Hidden
+   until a breakpoint shows it. The export controls (#tool-actions) move into the
+   popup on both. The pill is a two-half control: "Export" (left, an up-arrow) opens
+   the export popup; "Save" (right, a checkmark) quick-saves the session in place. */
+.render-pill {
+  display: none;            /* shown per breakpoint */
+  align-items: stretch;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-action-primary);
+  color: var(--ui-color-action-on-primary);
+  box-shadow: var(--ui-elevation-floating);
+  overflow: hidden;         /* clip the two halves to the pill's rounded ends */
+  isolation: isolate;
+}
+.render-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: calc(15px * var(--a11y-fs));
+  font-weight: 700;
+  padding: 13px 22px;
+  cursor: pointer;
+  transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard), color var(--ui-motion-feedback) var(--ui-motion-standard);
+}
+.render-pill-btn:hover { background: rgba(255, 255, 255, 0.14); }
+.render-pill-btn:active { background: rgba(0, 0, 0, 0.12); }
+.render-pill-btn:focus-visible { outline: 2px solid var(--ui-color-action-on-primary); outline-offset: -4px; border-radius: var(--ui-radius-pill); }
+/* The arrow/check rides the same multiplier as the "Export"/"Save" word beside
+   it - an icon paired with a growing label has to grow with it, or the pill
+   reads as a big word next to a stale mark. The pill has no fixed height, so
+   the taller glyph reflows the padding box instead of being clipped by it. */
+.render-pill-icon { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); flex-shrink: 0; }
+/* Hairline divider between the two halves. */
+.render-pill-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 9px 0;
+  background: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+/* Unsaved cue: the Save half goes amber the instant the first un-saved edit
+   lands, with a one-shot flash to draw the eye. The resting amber persists until
+   the user saves (markSessionSaved removes the class). No --warning token exists
+   (see tool-chrome.css's aspect-ratio warning), so this is --brand-warn - the
+   ACTIVE BRAND's own colour closest in hue to red/yellow, scanned + kept current
+   by brand-vars.ts's nearestWarmHex (recomputed on every brand change, so a
+   user's own colour choice takes over automatically) - with the static Amber
+   #b28727 (src/palette.ts) as the tokenless fallback. --brand-warn-ink is
+   whichever of black/white reads legibly on it; hover/flash lighten via
+   color-mix() so they too follow whatever hue --brand-warn resolves to. */
+.render-pill-save.is-unsaved {
+  background: var(--brand-warn, #b28727);
+  color: var(--brand-warn-ink, #2a1c00);
+  animation: renderSaveFlash 1.1s ease-in-out 1;
+}
+.render-pill-save.is-unsaved:hover { background: color-mix(in srgb, var(--brand-warn, #b28727) 85%, white 15%); }
+/* Two bright pulses, then settle on the brand's warm accent. Every edge (0%,
+   100%) and the resting state share that colour, so a frozen/backgrounded tab
+   or reduced-motion still shows the cue - the flash is pure enhancement. */
+@keyframes renderSaveFlash {
+  0%   { background: var(--brand-warn, #b28727); }
+  14%  { background: color-mix(in srgb, var(--brand-warn, #b28727) 35%, white 65%); }
+  28%  { background: var(--brand-warn, #b28727); }
+  42%  { background: color-mix(in srgb, var(--brand-warn, #b28727) 35%, white 65%); }
+  100% { background: var(--brand-warn, #b28727); }
+}
+/* Brief confirmation after a save completes. */
+.render-pill-save.is-just-saved { background: rgba(255, 255, 255, 0.16); }
+@media (prefers-reduced-motion: reduce) {
+  .render-pill-save.is-unsaved { animation: none; }
+  .render-pill-btn { transition: none; }
+}
+.export-overlay { display: none; }
+
+/* The export panel's head label + close button. Breakpoint-independent - the
+   desktop (≥641px, below) and mobile (≤640px, tool-chrome.css) copies of the
+   export popup were byte-identical here, so they live outside both media
+   queries. Only the surrounding .export-popup-head/-body spacing is genuinely
+   per-breakpoint and stays in the two blocks. */
+.export-popup-title {
+  font-size: var(--fs-md); font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--ui-color-text-muted);
+}
+.export-popup-close {
+  border: none; background: none; cursor: pointer; padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--ui-radius-control);
+  font-size: calc(18px * var(--a11y-fs)); line-height: 1; color: var(--ui-color-text-muted);
+}
+.export-popup-close:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.export-popup-close:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+/* Desktop (>640px): the Render button lives bottom-left of the sidebar and the
+   export panel expands as a NON-MODAL sticky sheet over the sidebar bottom - no
+   scrim, so the inputs above stay live. Sized to the (resizable) sidebar width. */
+@media (min-width: 641px) {
+  /* The Get|Save pill is a centred footer INSIDE the sidebar (JS reparents it there
+     on desktop; on mobile it's a viewport FAB outside the sheet). */
+  .render-pill {
+    display: inline-flex;
+    align-self: center;
+    flex-shrink: 0;
+    margin: 6px auto 14px;
+  }
+  .tool-layout.export-open .render-pill { display: none; }
+
+  .export-overlay {
+    display: block;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    /* Stop 8px short of the sidebar's right edge so the drag handle (which straddles
+       the edge, ±8px) stays clear and grabbable while the export panel is open - the
+       handle is trapped in the sidebar's backdrop-filter stacking context, so it
+       can't simply be lifted above this z-index:40 panel. */
+    width: calc(var(--sidebar-w, 272px) - 8px);
+    z-index: 40;
+    pointer-events: none;        /* the box never blocks; only the panel is interactive */
+  }
+  .export-overlay-scrim { display: none; }   /* no darkening - non-modal */
+  .export-popup {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    width: 100%;
+    max-height: 72vh;
+    backdrop-filter: blur(.5em);
+    display: flex;
+    flex-direction: column;
+    background: color-mix(in srgb, var(--ui-color-surface-raised) 70%, transparent);
+    color: var(--ui-color-text-default);
+    border-radius: var(--ui-radius-panel) var(--ui-radius-panel) 0 0;
+    border-top: 1px solid var(--ui-color-border-default);
+    box-shadow: var(--ui-elevation-sheet);
+    pointer-events: auto;
+    transform: translateY(110%);              /* tucked below the viewport when closed */
+    transition: transform var(--ui-motion-overlay) var(--ui-motion-standard);
+  }
+  .tool-layout.export-open .export-popup { transform: translateY(0); }
+  .export-popup-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 0;
+    flex-shrink: 0;
+  }
+  /* .export-popup-title/-close: hoisted out of both breakpoints - see tool.css. */
+  .export-popup-body { overflow-y: auto; padding: 14px; padding-top:0;}
+  .export-popup-body .tool-actions { margin: 0; padding: 0; border-top: none; }
+  /* Let the last input scroll clear of the open export panel. */
+  .tool-layout.export-open .sidebar-body { padding-bottom: 45vh; }
+  /* No export affordance while the sidebar is collapsed (fullscreen preview). */
+  .tool-layout[data-sidebar="closed"] .render-pill,
+  .tool-layout[data-sidebar="closed"] .export-overlay { display: none; }
+}
+
+/* ── Export panel: free-float tooling (desktop only) ──────────────────────────
+   The head buttons + resize grips exist in the DOM on every breakpoint but only
+   act ≥641px; on the mobile bottom sheet they stay hidden and the sheet keeps its
+   flick-to-dismiss. Behaviour lives in lib/export-panel-float.ts; it reuses the
+   same grip primitive as the neurospicy player (lib/panel-grips.ts). */
+.export-popup-tool { display: none; }
+.export-popup .panel-grip { display: none; }
+
+@media (min-width: 641px) {
+  /* The whole head is the drag handle (its buttons still click - the JS ignores
+     pointerdowns that land on a button). */
+  .export-popup-head { cursor: grab; touch-action: none; }
+  .export-popup.is-dragging .export-popup-head { cursor: grabbing; }
+  .export-popup-tools { display: inline-flex; align-items: center; gap: var(--sp-1); }
+  .export-popup-tool {
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; background: none; cursor: pointer; padding: var(--sp-2);
+    border-radius: var(--ui-radius-control); color: var(--ui-color-text-muted);
+  }
+  .export-popup-tool:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+  .export-popup-tool:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .export-popup-tool svg { width: var(--fs-xl); height: var(--fs-xl); display: block; }
+
+  /* Lifted off the dock into an explicitly-placed, resizable floating window. The
+     box is driven by inline left/top/width/height; visibility follows .export-open
+     (the docked slide-up transform no longer applies). */
+  .export-popup.is-floating {
+    position: fixed;
+    right: auto; bottom: auto;
+    max-height: none;
+    transform: none;
+    border-radius: var(--ui-radius-panel);
+    z-index: 80;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity var(--ui-motion-overlay) var(--ui-motion-standard), visibility var(--ui-motion-overlay) var(--ui-motion-standard);
+  }
+  .tool-layout.export-open .export-popup.is-floating {
+    opacity: 1; visibility: visible; pointer-events: auto;
+  }
+  .export-popup.is-floating .export-popup-body { flex: 1 1 auto; min-height: 0; }
+  .export-popup.is-maximized { border-radius: 0; }
+  .export-popup.is-dragging, .export-popup.is-resizing {
+    transition: none !important; user-select: none;
+  }
+  .export-popup.is-floating .panel-grip { display: block; }
+}
+
+.sidebar {
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: hsl(var(--card) / .8);
+  backdrop-filter: blur(5px);
+  border-right: 1px solid hsl(var(--border));
+  transition: width var(--dur-2) ease;
+  /* overflow-x hidden so the contents (frozen at the open width via --sb-open-w,
+     see .sidebar-body) CLIP rather than reflow as the panel width-collapses - a
+     smooth glide with no scrollbar flash. overflow-y auto for tall input lists. */
+  overflow-x: hidden;
+  overflow-y: auto;
+    max-height: 100vh;
+    max-height: 100dvh; /* track the visible viewport so mobile chrome can't hide the header/actions */
+}
+
+.sidebar.is-dragging {
+  transition: none;
+}
+
+.sidebar-drag-handle {
+  position: absolute;
+  top: 0;
+  right: -8px;
+  width: 16px;
+  height: 100%;
+  z-index: 10;
+}
+
+/* Shared resize grip - the SAME drag component for the inputs sidebar's edge and the
+   right-side dock's edge (lib/edge-dock.ts adds .resize-grip to its width grip). A
+   wide, invisible-at-rest hit strip with a centred pill that glows on hover / while
+   dragging, so both side panels resize with one consistent, discoverable affordance.
+   The sidebar stays a sidebar (resizable, not dockable); only the right side is a dock. */
+.resize-grip { cursor: col-resize; touch-action: none; }
+.resize-grip::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  inset-block: 0;
+  margin-block: auto;
+  width: 4px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--primary));
+  opacity: 0;
+  transition: opacity var(--dur-1), box-shadow var(--dur-1);
+}
+.resize-grip:hover::before,
+.resize-grip:active::before,
+.sidebar.is-dragging .sidebar-drag-handle::before {
+  opacity: 1;
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.35), 0 0 10px hsl(var(--primary) / 0.55);
+}
+
+.sidebar-header {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px 8px 10px;
+    border-bottom: 0;
+    flex-shrink: 0;
+    gap: var(--sp-4);
+
+    /* Sticky - pins to the top of the scrolling sidebar so the Tools /
+       fullscreen controls are always reachable, even after scrolling the inputs. */
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: hsl(var(--card) / 0.82);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    width: 100%;
+    box-shadow: inset 0 -1px #fff1, 0 .1em 2.7em #0001, 0 .1em .2em #0001
+}
+
+/* Top row of the sidebar header: the Tools back pill (left) + undo/redo (right).
+   The theme toggle now lives in the canvas zoom HUD (.stage-nav-theme), not here,
+   so every canvas tool carries it and the header stays uncluttered. (The HUD's own
+   rules - .stage-nav/.stage-nav-btn/-pct/-fit/-sep - live in editor.css, not here;
+   its markup/click-wiring/disabled-state come from components/zoom-hud.ts.) */
+.sidebar-back-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+
+/* ─── Icon-only controls and the type scale ──────────────────────────────────
+   .history-btn, .lang-fab-sm and .multi-edit-btn carry an <svg> and NOTHING
+   else - their name is an aria-label, so 100% of what a sighted user reads is
+   the glyph. Under largeText every label-bearing control beside them grew and
+   these did not, which is exactly backwards: the icon IS the label here.
+
+   An icon is a glyph, so it rides the SAME --a11y-fs the text does - there is
+   deliberately no second icon scale to keep in step, and an icon that grows
+   with its label is the expectation. The BOXES keep their px lengths: the
+   multiplier sizes glyphs, not geometry, and every glyph still clears its box
+   at the large-text factor (19.2px in a 30px button, 18px in a 26px one).
+
+   In CSS only. lib/icons.ts keeps emitting its inline width/height attributes
+   - a CSS rule outranks a presentational attribute, which is why sizing here
+   works - and templating the factor into that markup would put it somewhere
+   other code measures and clones. */
+.history-btn svg { flex: none; width: var(--fs-xl); height: var(--fs-xl); }
+
+/* Undo / redo buttons in the sidebar header - compact icon buttons centred
+   between Tools (left) and the theme toggle (right). The tappable counterpart to
+   Cmd+Z/Cmd+Y and the primary history trigger on touch. Dimmed + non-interactive
+   at the ends of history (disabled reflects empty undo/redo stacks). */
+.history-controls { display: inline-flex; align-items: center; gap: var(--sp-1); }
+.history-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: background var(--dur-1), color var(--dur-1), opacity var(--dur-1);
+}
+.history-btn:hover:not(:disabled) { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+.history-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* Lang-fab riding along in the same compact row - same trigger/popover as the
+   regular .lang-fab, sized to match .history-btn instead of the 2.9em box. */
+.lang-fab-sm {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: hsl(var(--foreground));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* Icon-only, like .history-btn above - the glyph carries the whole control. */
+.lang-fab-sm svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.lang-fab-sm:hover,
+.lang-fab-sm[aria-expanded="true"] { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+@media (pointer: coarse) {
+  .lang-fab-sm { width: 40px; height: 40px; }
+  .lang-fab-sm svg { width: calc(17px * var(--a11y-fs)); height: calc(17px * var(--a11y-fs)); }
+}
+
+/* Touch: larger tap targets for the header undo/redo (44px guideline). */
+@media (pointer: coarse) {
+  .history-btn { width: 40px; height: 40px; }
+  /* Touch restates the glyph length, so it restates the multiplier with it -
+     left as a bare 18px this rule would win on source order and pin the icon
+     out of the type scale on exactly the devices the preference matters on. */
+  .history-btn svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+}
+
+/* Second row of the sidebar header: tool title (left, truncating) + expand toggle
+   (right). */
+.sidebar-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+
+/* Title + the multi-edit trigger hug each other on the left; the wrap owns the
+   flexible width (and the collapsed-sidebar fade) so the icon stays NEXT TO the
+   name rather than drifting to the row's far edge. */
+.sidebar-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-width: 0;
+  flex: 1;
+  transition: opacity var(--dur-1);
+}
+
+.sidebar-title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.tool-layout[data-sidebar="closed"] .sidebar-title-wrap {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Multi-edit trigger - icon-only, labelled by the [data-tip] tooltip primitive.
+   Opens the how-many-copies menu (see tool-actions.ts).
+   `.tool-guide-btn` (components/tool-guide.ts) is its neighbour in the sidebar
+   header and the same control shape - an icon-only button whose tooltip is its
+   label - so it aliases onto every rule here rather than restating the box. */
+.multi-edit-btn,
+.tool-guide-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  transition: background var(--dur-1), color var(--dur-1);
+}
+.multi-edit-btn:hover,
+.tool-guide-btn:hover { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+.multi-edit-btn:focus-visible,
+.tool-guide-btn:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.multi-edit-btn[disabled] { opacity: 0.5; cursor: default; }
+/* Icon-only, like .history-btn above - the glyph carries the whole control. */
+.multi-edit-btn svg,
+.tool-guide-btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+
+/* The how-many-copies dropdown (body-mounted via mountBodyPopover - position:fixed,
+   so it escapes the sidebar's overflow clipping). Surface mirrors .profile-menu. */
+.multi-edit-menu {
+  position: fixed;
+  z-index: 100000;
+  padding: var(--sp-4);
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.4);
+  box-shadow: var(--shadow-4);
+}
+.multi-edit-menu-head {
+  padding: 2px 4px 8px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+}
+.multi-edit-menu-counts { display: flex; gap: var(--sp-2); }
+.multi-edit-count {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-1), border-color var(--dur-1);
+}
+.multi-edit-count:hover { background: hsl(var(--accent)); border-color: hsl(var(--primary)); }
+.multi-edit-count:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+
+.fullscreen-toggle {
+  flex-shrink: 0;
+  z-index: 9;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-xl);
+  line-height: 1;
+  transition: background var(--dur-1), color var(--dur-1);
+}
+
+.fullscreen-toggle::before {
+  content: "\02192";
+}
+
+/* Sidebar-collapse state - a sidebar-panel icon (kept class name). A currentColor
+   mask so it still inherits the toggle's colour + hover, unlike a coloured glyph. */
+.fullscreen-toggle[open]::before {
+  content: "";
+  /* One affordance drawn two ways: the expanded state is a "→" text glyph (which
+     already grows, off the button's var(--fs-xl)), the collapsed
+     state this masked panel mark (which did not). The mark takes the same
+     factor so the control doesn't change size when it changes state. The 28px
+     button keeps its length - 20.4px inside 28px still clears. */
+  width: calc(17px * var(--a11y-fs));
+  height: calc(17px * var(--a11y-fs));
+  background-color: currentColor;
+  --sidebar-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cline x1='9' y1='3' x2='9' y2='21'/%3E%3C/svg%3E");
+  -webkit-mask: var(--sidebar-icon) no-repeat center / contain;
+          mask: var(--sidebar-icon) no-repeat center / contain;
+}
+
+.fullscreen-toggle:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+/* Mobile sheet grip - a centred drag bar. Positioned (fixed, on the divider) in
+   the mobile media block; this is just its appearance + interaction. */
+.sheet-grip {
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+}
+.sheet-grip::before {
+  content: "";
+  width: 44px;
+  height: 8px;            /* was 5px - ~0.2em taller, easier to spot & grab */
+  border-radius: var(--radius-pill);
+  background: hsl(var(--primary));
+  border: 1px solid #fff5;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+}
+.tool-layout.is-sheet-dragging .sheet-grip { cursor: grabbing; }
+
+.sidebar-utils{display: grid;
+    grid-template-columns: 1fr;
+    /* The reset/clear control is the last thing in the scroll. It used to be a
+       muted right-aligned link that blended into the panel - easy to miss on
+       reaching the bottom. Divider + a full-width, legible button (below) make
+       it read as a deliberate "start over" footer once you scroll to it. */
+    border-top: 1px solid hsl(var(--border));
+    padding-top: 12px;}
+/* Only the reset button is promoted; sibling utilities (grade-video, transcribe)
+   stay compact and secondary via the base .clear-inputs-btn rule. Scoped by id so
+   it out-specifies that class regardless of source order. */
+#clear-inputs-btn {
+  place-self: stretch;
+  max-width: none;
+  width: 100%;
+  min-height: 40px;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--muted));
+  font-weight: 500;
+}
+#clear-inputs-btn:hover {
+  background-color: hsl(var(--destructive) / 0.1);
+}
+/* Inline, FULL-WIDTH two-step confirm for "Clear changes" (replaces the centred modal).
+   The grid is one column, so both buttons span the whole sidebar; place-self:stretch
+   overrides the resting button's place-self:end. */
+.sidebar-utils.is-confirming { gap: var(--sp-4); }
+.clear-inputs-confirm, .clear-inputs-cancel {
+  appearance: none; width: 100%; place-self: stretch;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  padding: 9px 16px; font: inherit; font-size: var(--fs-md); cursor: pointer;
+  transition: background-color var(--dur-1), border-color var(--dur-1), color var(--dur-1);
+}
+.clear-inputs-confirm { border-color: hsl(var(--destructive)); color: #fff; background: hsl(var(--destructive)); font-weight: 600; }
+.clear-inputs-confirm:hover { filter: brightness(0.94); }
+.clear-inputs-cancel { background: transparent; color: hsl(var(--muted-foreground)); }
+.clear-inputs-cancel:hover { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+.sidebar-body {
+  flex: 1;
+  /* Hold the open width so the controls don't reflow (squish/wrap) frame-by-frame
+     while the panel collapses - they stay put and get clipped, so the collapse
+     glides. --sb-open-w is set by the shell as the sidebar opens/resizes.
+
+     NOT on the largeText multiplier, deliberately, and neither is the 272px on
+     --sidebar-w above. The panel's width is not CSS's to decide: setSidebarWidth
+     (views/tool.ts) writes `sidebar.style.width` as an INLINE px value - which
+     outranks every sheet and every layer - from SIDEBAR_DEFAULT (a TS constant)
+     or from localStorage['sidebarWidth'], and then PUBLISHES that same number
+     into --sb-open-w / --sidebar-w. The two literals here are only the pre-JS
+     fallback. So scaling them could not widen anything; it could only make this
+     min-width exceed the real inline width, and .sidebar is overflow-x:hidden,
+     which would clip the right edge off every control - permanently, for the
+     one user who asked for larger text. A dragged width makes it worse again:
+     that px number is persisted verbatim and no stylesheet can revise it, so
+     the same preference would produce two different layouts depending on
+     whether the user had ever touched the drag handle.
+     A scaled default therefore belongs at SIDEBAR_DEFAULT, together with a
+     decision about what to do with an already-stored width - not here. What IS
+     fixed here is the contents: everything in the panel truncates or wraps at
+     272px (the grid track is minmax(0,1fr), every trigger/label ellipsises),
+     so 20% larger type reflows inside the box rather than being cut off. */
+  min-width: var(--sb-open-w, 272px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Don't let scroll anchoring reposition the list when a control's box changes
+     under the pointer (e.g. a section un-clipping, a popover opening). Anchoring
+     buys nothing here - the sidebar has no async content loading in above the
+     fold - and its "keep content stable" adjustment is what turned a hover into a
+     scroll nudge. Belt-and-suspenders with the clip-path fix on .input-section. */
+  overflow-anchor: none;
+  padding: 14px;
+  padding-top: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+  transition: opacity var(--dur-1);
+}
+
+.tool-layout[data-sidebar="closed"] .sidebar-body {
+  opacity: 0;
+  pointer-events: none;
+}
+/* minmax(0,1fr): let the single column shrink below its content's intrinsic
+   width (default grid tracks are min-content), so long values (e.g. an asset
+   file path) truncate instead of widening the sidebar. */
+/* 16px between top-level rows - the same rhythm the sections use, one notch
+   tighter than the 18px it was, so an unsectioned tool reads at the density of
+   a sectioned one. */
+.tool-inputs{display:grid; grid-template-columns:minmax(0,1fr); gap: var(--sp-7)}
+
+/* Notice shown when a saved design referenced an image that's since been deleted. */
+.tool-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  margin: 0 0 12px;
+  padding: 9px 10px;
+  font-size: var(--fs-md);
+  line-height: 1.4;
+  color: hsl(var(--foreground));
+  background: hsl(var(--destructive) / 0.08);
+  border: 1px solid hsl(var(--destructive) / 0.3);
+  border-radius: var(--radius);
+}
+.tool-notice-text { flex: 1; min-width: 0; }
+.tool-notice-text strong { font-weight: 600; }
+.tool-notice-close {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: hsl(var(--foreground) / 0.55);
+  cursor: pointer;
+  font-size: var(--fs-md);
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: var(--radius-sm);
+}
+.tool-notice-close:hover,
+.embed-editor-close:hover{ color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+.fullscreen-toggle-float {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 20;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card) / 0.88);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-xl);
+  line-height: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--dur-1), color var(--dur-1);
+}
+
+.fullscreen-toggle-float::before {
+    content: "\02192";
+}
+
+.tool-layout[data-sidebar="closed"] .fullscreen-toggle-float {
+  display: flex;
+}
+
+.fullscreen-toggle-float:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.home-full {
+  /* inline-flex (not block) so it inherits the base .tools-home pill layout -
+     rounded, filled, with the arrow / label gap - matching the sidebar back
+     pill. Height and padding stay on the base rule (components.css) so this
+     variant can't drift off the shared top-row geometry. */
+  display: inline-flex;
+  position: absolute;
+}
+
+/* Shared back pill - fixed top-left corner. Used identically on the
+   profile page, /pro batch mode, and full-screen utility tools (color-palette,
+   countdown-timer). Combined selector beats the single-class .tools-home/.home-full
+   rules so the fixed positioning always wins regardless of source order.
+   The glass look itself (background/backdrop-filter/text-shadow) now lives on
+   the base .tools-home rule (components.css, via the .btn--glass alias in
+   buttons.css) - every back pill gets it, not just this fixed variant - so this
+   combined selector is left with ONLY its positioning job. */
+.tools-home.home-full {
+  position: fixed;
+  /* Mirror image of the top-right cluster's offsets (tokens.css) - same top,
+     same edge inset, same pinch-zoom re-pin - so the back pill and the
+     profile/language cluster sit on one line. It used to be pinned at its own
+     1.25rem/1.25rem, which put it a few px low and a few px in from where the
+     cluster started. */
+  top: calc(var(--chrome-top) + var(--vv-top, 0px));
+  /* --ldock-w: the free-canvas rail's docked left panel (set on <html> while the
+     timeline is open - see dockRailForTimeline), the mirror of the right dock's
+     --dock-w inset. Unset everywhere else, so this resolves to the plain inset. */
+  left: calc(var(--chrome-inset) + var(--vv-left, 0px) + var(--ldock-w, 0px));
+  z-index: 99999;
+}
+
+.input-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  position: relative;
+  min-width: 0; /* shrink below content (grid/flex item) so children can truncate */
+}
+
+/* ─── Sidebar focus, navigation & on-demand help ──────────────────────────────
+   Make a long sidebar guide the eye. Web-shell presentation only - none of this
+   touches the engine, the render path, or the CLI/headless export.
+     · clicking the canvas glides the matching row into view (scrollToControl, tool.js)
+     · focus spotlights the active control and dims the rest (pure :focus-within)
+     · per-input help collapses behind an info button (components/help-tip.js)
+   Costs nothing at render/paint time: the dim is CSS state toggled by focus, not
+   recomputed per frame, and stays off the live-camera onFrame path entirely. */
+
+/* Land a canvas-targeted row just clear of the sidebar's top edge (block:'start'). */
+.input-row, .block-item { scroll-margin-block: 16px; }
+
+/* One-shot "you are here" ping on arrival. Inset box-shadow so the sidebar's
+   clipped right edge can't crop it and the row's own background is undisturbed;
+   the global reduce-motion reset zeroes the animation, and tool.js clears
+   .is-target on a timer regardless of whether animationend fires. */
+@keyframes spotlight-pulse {
+  from { box-shadow: inset 0 0 0 100px hsl(var(--ring) / 0.15); }
+  to   { box-shadow: inset 0 0 0 100px hsl(var(--ring) / 0); }
+}
+.input-row.is-target, .block-item.is-target { animation: spotlight-pulse 0.7s ease; }
+
+/* Focus spotlight - when the panel holds focus, anything not containing it recedes
+   so the active control reads as the single target. Pure :focus-within: no JS
+   state, survives the per-keystroke innerHTML rebuild (focus is restored after it),
+   and releases the instant focus leaves the panel. Opacity only, so dimmed controls
+   stay keyboard- and screen-reader-reachable. The selectors deliberately never dim
+   two nested elements at once (which would multiply opacities and over-darken): a
+   non-focused section dims as a whole; its rows are not dimmed again. */
+.input-row, .input-section, .block-item, .block-control { transition: opacity var(--dur-1) ease; }
+.tool-inputs:focus-within > .input-row:not(:focus-within),
+.tool-inputs:focus-within .input-section:not(:focus-within) { opacity: 0.7; }
+.input-section:focus-within .input-row:not(:focus-within) { opacity: 0.7; }
+.blocks-list:focus-within .block-item:not(:focus-within) { opacity: 0.7; }
+.block-fields:focus-within .block-control:not(:focus-within) { opacity: 0.85; }
+
+/* Colour rows keep their swatch at full opacity - a faded colour indicator reads as
+   a faded/transparent colour, which misleads. Opacity on the row would cascade to
+   the swatch (a child can't exceed its parent's opacity), so instead leave the
+   colour row solid and recede only its text. Higher specificity than the dim rules
+   above, so it wins. */
+.tool-inputs:focus-within > .input-row:has(.color-trigger):not(:focus-within),
+.input-section:focus-within .input-row:has(.color-trigger):not(:focus-within) { opacity: 1; }
+.tool-inputs:focus-within > .input-row:has(.color-trigger):not(:focus-within) > .input-label,
+.tool-inputs:focus-within > .input-row:has(.color-trigger):not(:focus-within) .color-trigger-name,
+.input-section:focus-within .input-row:has(.color-trigger):not(:focus-within) > .input-label,
+.input-section:focus-within .input-row:has(.color-trigger):not(:focus-within) .color-trigger-name { opacity: 0.7; }
+
+/* A container hosting an OPEN swatch popover never dims: opacity < 1 would make it an
+   atomic stacking context, so the fixed popover would render faded AND paint under
+   later siblings (same paint phase, later tree order). An open popover means the user
+   is choosing a colour - it must stay solid and on top no matter where focus sits.
+   Later + more specific than every dim rule above, so it wins. */
+.tool-inputs:focus-within .input-section:has(.color-popover:not([hidden])),
+.tool-inputs:focus-within > .input-row:has(.color-popover:not([hidden])),
+.input-section:focus-within .input-row:has(.color-popover:not([hidden])),
+.blocks-list:focus-within .block-item:has(.color-popover:not([hidden])),
+.block-fields:focus-within .block-control:has(.color-popover:not([hidden])) { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* The global reset covers animations + scroll-behavior but not transitions. These
+     include LAYOUT-affecting ones (tree reparent margin-left, chevron rotation) that
+     the low-specificity rule above doesn't reach. */
+  .input-row, .input-section, .block-item, .block-control,
+  .blocks-input--tree .block-item.is-nestable,
+  .block-collapse svg,
+  .input-section-summary::after { transition: none; }
+}
+
+/* On-demand help: a small info button by the label reveals the help text on hover
+   (desktop), tap (touch), or keyboard focus, instead of printing it under every
+   control. The text stays in the DOM, wired to its control via aria-describedby. */
+.input-label-text { display: inline; }
+.help-tip-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  vertical-align: middle; margin-left: 4px;
+  width: 16px; height: 16px; padding: 0;
+  border: none; border-radius: var(--radius-round); background: transparent;
+  color: hsl(var(--muted-foreground)); cursor: help;
+  opacity: 0.55; transition: opacity var(--dur-1) ease, color var(--dur-1) ease;
+}
+.help-tip-btn:hover, .help-tip-btn:focus-visible { opacity: 1; color: var(--primary); }
+.help-tip-btn:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; border-radius: var(--radius-round); }
+/* Unified "Add data" affordance (plan 87) - a text/longtext input's dataSource button,
+   styled like the help-tip button so it reads as label chrome, not a primary control. */
+.input-data-src {
+  display: inline-flex; align-items: center; justify-content: center;
+  vertical-align: middle; margin-left: 4px;
+  width: 16px; height: 16px; padding: 0;
+  border: none; border-radius: var(--radius-xs); background: transparent;
+  color: hsl(var(--muted-foreground)); cursor: pointer;
+  opacity: 0.55; transition: opacity var(--dur-1) ease, color var(--dur-1) ease;
+}
+.input-data-src:hover, .input-data-src:focus-visible { opacity: 1; color: var(--primary); }
+.input-data-src:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+/* 16px is a fingertip miss. Padding grows the box to a 32px target; the matching
+   negative margin pulls it back to its original 16px footprint (and 4px gap from
+   the label text) in the flow, so no input row grows or reflows on every tool. */
+@media (pointer: coarse) {
+  .help-tip-btn, .input-data-src {
+    padding: var(--sp-4);
+    margin: -8px -8px -8px -4px;
+  }
+}
+/* The focus ring sits a few px outside the 16px button. The floating-label rule
+   clips .input-label (overflow:hidden, for long-label ellipsis), which crops that
+   ring top/bottom - so un-clip the label when it hosts a help button (selectors
+   mirror the floating-label rule's so this wins specificity) and move the
+   truncation onto the text span, which keeps long labels ellipsised. */
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"])):has(.help-tip-btn) .input-label,
+.input-row:not(.input-row--static-label):has(textarea):has(.help-tip-btn) .input-label {
+  overflow: visible;
+}
+.input-label:has(.help-tip-btn) > .input-label-text {
+  display: inline-block; max-width: 100%; vertical-align: middle;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* The "i" is the entire button - the 16px box is just its tap target, so the
+   MARK takes the multiplier and the box does not (15.6px still clears 16px at
+   the large-text factor, and growing the box would nudge the label's baseline
+   on every row that has help text). 13px matches the inline attributes the
+   icon ships with (components/help-tip.ts); a CSS rule outranks them. */
+.help-tip-btn svg { display: block; width: var(--fs-md); height: var(--fs-md); }
+.block-control { position: relative; }
+/* Generic tip host (outside the sidebar - e.g. the export dialog's C2PA card):
+   anchor the drop-down pop to it, same as a .block-control. */
+.help-tip-host { position: relative; }
+.help-tip-pop {
+  position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px; z-index: 30;
+  padding: 7px 9px; border-radius: var(--radius);
+  background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 8px 22px hsl(var(--foreground) / 0.16);
+  font-size: var(--fs-xs); font-weight: 400; line-height: 1.4;
+  letter-spacing: 0; text-transform: none; white-space: normal;
+}
+/* Block sub-field cells are narrow - let their tip take its own width, capped so a long
+   help string WRAPS to several lines instead of one runaway line (white-space:normal above). */
+.block-control > .help-tip-pop { right: auto; width: max-content; min-width: 150px; max-width: 240px; }
+.help-tip-pop[hidden] { display: none; }
+/* Optional action link at the foot of a tip (e.g. "Check a file →" to /verify). */
+.help-tip-link { display: block; margin-top: 5px; color: hsl(var(--primary)); font-weight: 600; text-decoration: none; }
+.help-tip-link:hover, .help-tip-link:focus-visible { text-decoration: underline; }
+/* Sections clip their contents (clip-path, for rounded corners - see .input-section).
+   Un-clip only while a popover that must escape the edge is active: a help tip, or an
+   open colour picker (its absolute swatch panel would otherwise be clipped by the
+   section, hiding the swatches for a colour input placed in a section - e.g. multi-
+   page-pdf's Cover background). The focus-visible-summary case un-clips too so the
+   section's keyboard focus halo (box-shadow, below) isn't cropped by the clip. Toggling
+   clip-path is paint-only and never moves the sidebar scroll (unlike overflow, which it
+   replaced - that flipped the section's scroll-container status on hover and made the
+   sidebar thrash). Mirrors the block-colour field's "escape the clip" intent, but keeps
+   the panel attached to the trigger so it still scrolls with the field. */
+.input-section:has(.help-tip-btn:hover),
+.input-section:has(.help-tip-btn:focus-visible),
+.input-section:has(.help-tip-pop:not([hidden])),
+.input-section:has(.input-section-summary:focus-visible) { overflow: visible; }
+/* Colour popover no longer needs an un-clip - it portals to position:fixed (color-field.ts),
+   escaping the section entirely so it's always on top and never clipped. */
+/* Desktop reveal on hover / keyboard focus of the trigger. Touch toggles via JS. */
+@media (hover: hover) {
+  .input-row:has(.help-tip-btn:hover) > .help-tip-pop,
+  .input-row:has(.help-tip-btn:focus-visible) > .help-tip-pop,
+  .block-control:has(.help-tip-btn:hover) > .help-tip-pop,
+  .block-control:has(.help-tip-btn:focus-visible) > .help-tip-pop,
+  .help-tip-host:has(.help-tip-btn:hover) > .help-tip-pop,
+  .help-tip-host:has(.help-tip-btn:focus-visible) > .help-tip-pop { display: block; }
+}
+
+/* Base label - used for selects, checkboxes, asset-pickers, etc. */
+.input-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+}
+
+/* A slider row's caption is one short line with its live value already sitting
+   on it (the `.input-value` span below), so the 1.5 body leading is document
+   text spacing this row never asked for. Slider rows only: a text field's label
+   floats itself against its own line box, and moving that would shift the
+   floating-label offsets tuned further down this sheet. */
+.input-row:has(.custom-slider) > .input-label { line-height: 1.25; }
+
+.input-value {
+  font-size: var(--fs-xs);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: hsl(var(--muted-foreground));
+  margin-left: 0.4em;
+}
+
+/* Always-visible fine print between a row's label and its control - the
+   consent-gate disclosure slot (input.notice; e.g. "entering a place here looks
+   it up at open-meteo.com"). Sentence case, unlike the uppercase label. Rows
+   with a notice render static-labelled (tool-inputs.ts), so this never meets
+   the floating-label offset math above. */
+.input-notice {
+  display: block;
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: hsl(var(--muted-foreground));
+  margin: 2px 0 6px;
+}
+
+/* ── Floating labels for text inputs and textareas ─────────────── */
+
+/* Resting state: label sits inside the field like placeholder text.
+   Rows tagged .input-row--static-label (e.g. the flatpickr datetime) opt out and
+   keep the plain static label above the field. */
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"])) .input-label,
+.input-row:not(.input-row--static-label):has(textarea) .input-label {
+  position: absolute;
+  left: 10px;
+  /* The vertical offset FOLLOWS THE TYPE instead of being a frozen number.
+     The field below is `1px border + 16px padding + one line box` and its line
+     box is `line-height 1.5 × var(--fs-md)` - the very same
+     font-size this label carries - so as the type grows the box grows with it
+     and a hardcoded `top` slides out of position (it drifted from 3.75px above
+     the field's centre to 5.7px at the large-text factor, and kept going).
+
+     Written as "today's value + a delta that is exactly 0 at --a11y-fs:1", not
+     as a fresh centring formula: 0.75em is HALF the field's line box, and
+     9.75px is that same half with no preference set, so the bracket cancels and
+     nothing moves for a user who never opted in.
+        --a11y-fs 1    →  23px + (9.75px − 9.75px) = 23px      (field centre 26.75px)
+        --a11y-fs 1.2  →  23px + (11.7px − 9.75px) = 24.95px   (field centre 28.7px)
+     The 3.75px the resting label already sits ABOVE the field's centre is
+     therefore preserved, not silently corrected - that offset predates this
+     work, it is what every text field in the product looks like today, and
+     changing it is a design decision, not an accessibility fix. A <textarea>
+     takes the same rule and wants exactly this behaviour: its label is pinned
+     near the top of a tall box, so tracking the FIRST line box is right there
+     too, where centring the box would not be.
+
+     line-height is restated rather than left to inherit (it is the same 1.5
+     that parts/base.css puts on <body>, so this changes nothing today) because
+     the em arithmetic above is only true while it holds. */
+  line-height: 1.5;
+  top: calc(23px + (0.75em - 9.75px));
+  transform: translateY(-50%);
+  font-size: var(--fs-md);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: hsl(var(--muted-foreground) / 0.9);
+  pointer-events: none;
+  transition:
+    top 0.15s ease,
+    transform 0.15s ease,
+    font-size 0.15s ease,
+    color 0.15s ease,
+    font-weight 0.15s ease,
+    letter-spacing 0.15s ease;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 20px);
+}
+
+/* Floating state - focused or has content */
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"]):focus) .input-label,
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"]):not(:placeholder-shown)) .input-label,
+.input-row:not(.input-row--static-label):has(textarea:focus) .input-label,
+.input-row:not(.input-row--static-label):has(textarea:not(:placeholder-shown)) .input-label {
+  /* BOTTOM-anchored, because what has to be protected here is the gap between
+     the micro-label and the value glyphs underneath it. The label's box hangs
+     DOWNWARD from `top` (1.5em tall, off its own 10px type), while the field's
+     value starts at a fixed 17px - 1px border + 16px padding - that does not
+     move. So a fixed `top` means every increase in the label's type is spent
+     eating into the value: the two ran ~0.75px clear at rest and overlapped by
+     ~1.1px at the large-text factor. Subtracting the line box's GROWTH holds
+     the label's lower edge where it is and lets it grow up into the padding.
+        --a11y-fs 1    →  max(2px, 7px − (15px − 15px)) = 7px
+        --a11y-fs 1.2  →  max(2px, 7px − (18px − 15px)) = 4px
+     Byte-identical with no preference set, and the clearance is preserved (in
+     fact recovered) with one. The max() floor is not reachable at either
+     factor; it is there so retuning the multiplier upward can never push the
+     label out through the field's top border. */
+  top: max(2px, 7px - (1.5em - 15px));
+  transform: translateY(0);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+      color: hsl(var(--muted-foreground));
+}
+
+/* Highlight label on focus */
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"]):focus) .input-label,
+.input-row:not(.input-row--static-label):has(textarea:focus) .input-label {
+  color: hsl(var(--ring));
+}
+
+/* Hide placeholder in resting state - label acts as the visual placeholder.
+   Only reveal hint text once the label has floated up (on focus). */
+.input-row:not(.input-row--static-label) input:not([type="checkbox"]):not([type="color"]):not([type="range"])::placeholder,
+.input-row:not(.input-row--static-label) textarea::placeholder {
+  color: transparent;
+  transition: color var(--dur-1);
+}
+
+.input-row:not(.input-row--static-label) input:not([type="checkbox"]):not([type="color"]):not([type="range"]):focus::placeholder,
+.input-row:not(.input-row--static-label) textarea:focus::placeholder {
+  color: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* Shared control appearance.
+   `.vec-num` opts OUT: the vector scrubbers are a segmented pill (collapsed inner
+   borders, square inner corners, compact height) and this rule - 4 classes/attrs
+   to their 1 - would otherwise win the cascade and hand them the full-size
+   floating-label box. See the .vec-num block below for their real styling. */
+.input-row input:not([type="checkbox"]):not([type="color"]):not([type="range"]):not(.vec-num):not(.table-cell),
+.input-row textarea:not(.table-cell) {
+  width: 100%;
+
+  background: hsl(var(--background) / .5);
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  transition: border-color var(--dur-1);
+  appearance: auto;
+  padding: 16px 14px 16px;
+}
+
+/* The rule above forces appearance:auto on number fields (the vector scrubbers),
+   which re-shows Firefox's spin buttons - Chrome hides them via ::-webkit-*-spin-
+   button, which Firefox lacks. Restore appearance:textfield with matching
+   specificity so it wins the cascade and the spinners stay hidden everywhere. */
+.input-row input[type="number"]:not([type="checkbox"]):not([type="color"]):not([type="range"]) {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.input-row select {
+  width: 100%;
+  padding: 9px 32px 9px 10px;   /* right room for the custom chevron */
+  background-color: hsl(var(--background));
+  background-image: var(--field-chevron);   /* the ONE chevron - parts/fields.css */
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  /* The caret is part of the control's glyph set, not its frame: a fixed 14px
+     chevron beside 15.6px text reads as a shrunken select. It is a CSS-painted
+     mark, so the multiplier rides background-size. The 32px right padding still
+     clears it - 10px inset + 16.8px at the large-text factor. */
+  background-size: var(--fs-lg);
+  color: hsl(var(--foreground));
+  border: 0;
+  box-shadow: inset 0 1px #fff1, 0 .1rem .3rem #0002;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  transition: border-color var(--dur-1);
+  /* appearance:none drops the native menulist widget. The old appearance:auto +
+     transition combo made Chrome re-lay-out the native control on every hover
+     frame, producing a ~1px baseline jitter. A plain box transitions cleanly. */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.input-row input:not([type="checkbox"]):not([type="color"]):not([type="range"]):not(.vec-num):not(.table-cell):hover,
+.input-row textarea:not(.table-cell):hover,
+.input-row select:hover {
+  border-color: hsl(var(--ring) / 0.4);
+}
+.vec-num:hover { border-color: hsl(var(--ring) / 0.4); }
+
+/* :focus ring - the one shared recipe at the foot of this sheet. */
+
+
+/* `:not(.table-cell)` for the same reason the box recipe above carries it: a table
+   cell is a GRID cell, not a field. It opts out of all three of these. The drag
+   handle is the visible half - a cell dragged taller keeps that explicit height
+   while its row-mates stay content-sized, so one resize leaves the row ragged, and
+   there is nothing to resize FOR when the only thing a cell holds is text that
+   already auto-grows. The min/max-height are the invisible half: an 80px floor on
+   every cell turns a compact grid into a wall of boxes. */
+.input-row textarea:not(.table-cell) {
+  resize: vertical;
+  min-height: 80px;
+  /* Grow to fit content as the user types - native, no JS, no jitter - so a
+     multi-paragraph cover / body / about field isn't trapped in a cramped 3-row
+     scrolly box that has to be dragged bigger by its tiny corner handle. Capped so
+     one long field can't swallow the panel; content past the cap scrolls. A manual
+     drag still wins (it sets an explicit height). Browsers without field-sizing keep
+     the old rows + resize-handle behaviour. */
+  field-sizing: content;
+  max-height: 45vh;
+}
+
+.input-row--checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 7px 10px;
+  border: 0;
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  cursor: pointer;
+  transition: border-color var(--dur-1), background var(--dur-1);
+    box-shadow: inset 0 1px #fff1,inset 0 .06rem .3rem #0002;
+  user-select: none;
+}
+
+.input-row--checkbox:hover {
+  border-color: hsl(var(--ring) / 0.4);
+  background: hsl(var(--accent));
+  
+    box-shadow:  0 1px #fff2,inset 0 .06rem .3rem #0004;
+}
+
+.input-row--checkbox:has(input:checked),
+.input-row--checkbox:has(jelly-switch[checked]) {
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--primary) / 0.07);
+}
+/* Jelly-mode boolean rows (lib/jelly.ts): the switch replaces the checkbox and
+   must not grow the compact row - cap its geometry via the host-level tokens. */
+.input-row--checkbox jelly-switch {
+  flex: none;
+  --jelly-switch-width: 38px;
+  --jelly-switch-height: 22px;
+}
+
+.input-row--checkbox .input-label {
+  font-size: var(--fs-md);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+}
+
+.input-row input[type="checkbox"] {
+  flex-shrink: 0;
+  /* The tick is a glyph like any other, and it is the whole state readout of a
+     boolean row - a 15px box beside 15.6px type reads as a control that shrank.
+     The row has no fixed height, so it reflows around the taller box. */
+  width: calc(15px * var(--a11y-fs));
+  height: calc(15px * var(--a11y-fs));
+  cursor: pointer;
+  accent-color: hsl(var(--primary));
+}
+
+/* ── Pill chip toggles (boolean display:'pill') ───────────────────────────────
+   A run of pill booleans is wrapped by renderInputs in an .input-pillbar so the
+   chips flow inline and wrap. Each chip is still a checkbox <label> row, so the
+   ordinary checkbox change wiring drives it; only the shape changes. */
+.input-pillbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+.input-row--pill {
+  width: auto;
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  gap: var(--sp-3);
+}
+.input-row--pill .input-label {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+.input-row--pill input[type="checkbox"] {
+  /* Same as the full-size row above, at the pill's tighter length. */
+  width: var(--fs-md);
+  height: var(--fs-md);
+}
+/* Active chip reads as filled (the base .input-row--checkbox:has(:checked) only
+   tints faintly - a pill wants a clearer on-state). */
+.input-row--pill:has(input:checked) {
+  background: hsl(var(--primary) / 0.14);
+  border-color: hsl(var(--primary));
+}
+.input-row--pill:has(input:checked) .input-label {
+  color: hsl(var(--primary));
+}
+
+/* ── Badged select (select options carrying a `badge`) ────────────────────────
+   A radiogroup of full-width option buttons, each a label plus a small pill (e.g.
+   vector / raster). Reuses the checked-pill on-state (tint + full primary border,
+   mirroring .input-row--pill:has(:checked)) so it reads consistently. */
+.badge-select {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  width: 100%;
+}
+.badge-select-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  width: 100%;
+  padding: 8px 11px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: var(--fs-md);
+  cursor: pointer;
+  text-align: start;
+}
+.badge-select-opt:hover { border-color: hsl(var(--primary) / 0.5); }
+.badge-select-opt:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 1px; }
+.badge-select-opt.is-on {
+  background: hsl(var(--primary) / 0.14);
+  border-color: hsl(var(--primary));
+}
+.badge-select-opt.is-on .badge-select-label {
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+.badge-select-pill {
+  flex: none;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--foreground) / 0.08);
+  color: hsl(var(--muted-foreground));
+}
+/* Vector output = the crisp/scalable path → the accent tint; raster stays neutral.
+   Tint only (no coloured border) so the pill obeys the rounded-pill border rule. */
+.badge-select-pill[data-badge="vector"] {
+  background: hsl(var(--primary) / 0.15);
+  color: hsl(var(--primary));
+}
+/* Icon pill (vector/raster): the export picker's format glyph replaces the word.
+   Glyph box rides the a11y type multiplier like other chrome icons. */
+.badge-select-pill--icon {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 6px;
+}
+.badge-select-pill--icon svg {
+  display: block;
+  width: var(--fs-sm);
+  height: var(--fs-sm);
+}
+
+/* Compact option grid (>4 options, all short labels - see compactOptionGrid in
+   views/tool-inputs.ts) - the same radiogroup laid out two-up. Filter's ten-option
+   EFFECT list halves from ten rows to five, and the badge keeps its place at the
+   right edge of each cell because the button was already a space-between row. */
+.badge-select--compact {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
+}
+.badge-select--compact .badge-select-opt {
+  min-width: 0;   /* grid item: let the label truncate instead of widening the cell */
+}
+.badge-select--compact .badge-select-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Back to one column where two readable cells no longer fit - the same breakpoint
+   and the same large-text opt-out the dense section grid below uses, since both
+   are the same bet about how narrow a sidebar column can get. */
+@media (max-width: 380px) {
+  .badge-select--compact { grid-template-columns: 1fr; }
+}
+html[data-a11y-text="large"] .badge-select--compact {
+  grid-template-columns: 1fr;
+}
+
+/* Segmented select (display:'segmented') - the same radiogroup laid out as a row of
+   equal-width tabs for a small mode switch (e.g. Hue / Saturation / Luminance). */
+.badge-select--segmented {
+  flex-direction: row;
+  gap: var(--sp-2);
+}
+.badge-select--segmented .badge-select-opt {
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
+  padding: var(--sp-3) var(--sp-2);
+  /* Slightly smaller than the 13px stacked pills so 2–4 full words (Saturation,
+     Luminance) fit a narrow sidebar without truncating. Keeps the a11y multiplier. */
+  font-size: var(--fs-sm);
+}
+.badge-select--segmented .badge-select-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* (A `.input-row input[type="color"]:not(.color-popover-native)` box lived here.
+   The shell mints exactly ONE native colour input - `.color-popover-native`, the
+   escape hatch inside our own OKLCH picker (components/color-field.ts) - and the
+   policy that there is never another is stated outright in views/deck-editor.ts.
+   So the rule could only ever match nothing. Deleted 2026-07-25; the `:not([type=
+   "color"])` guards on the shared text-box rules above are vestigial for the same
+   reason, but they stay until someone re-derives those selectors.) */
+
+.input-row:has(.time-input-wrap) .input-label,
+.input-row:has(.blocks-input) .input-label{
+  position: static;
+  transform: none;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+  pointer-events: auto;
+  white-space: normal;
+  max-width: none;
+}
+
+.time-input-wrap input[type="time"] {
+  width: 100%;
+  padding: 7px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-md);
+  transition: border-color var(--dur-1);
+  color-scheme: light dark;
+}
+.time-input-wrap input[type="time"]:hover { border-color: hsl(var(--ring) / 0.4); }
+/* :focus ring - the one shared recipe at the foot of this sheet. */
+
+/* ─── Datetime-local input ──────────────────────────────────────────────── */
+
+/* The datetime control renders a flatpickr-enhanced `.fp-datetime` text input
+   (see controlHtml in tool.js) - it picks up the shared input-box styling above.
+   Its row carries .input-row--static-label so the label stays static rather than
+   floating: the panel re-renders on every keystroke and flatpickr re-populates
+   the value, which would otherwise make a floating label wobble each time. */
+
+/* ─── Flatpickr datetime picker ─────────────────────────────────────────── */
+/* These override flatpickr's base sheet (flatpickr.min.css, imported lazily in
+   tool.ts AFTER this file). They live here - not on the render-blocking landing
+   sheet - because flatpickr only ever mounts inside the lazy tool view. */
+
+input.fp-datetime {
+  width: 100%;
+  cursor: pointer;
+}
+
+.flatpickr-calendar {
+  background:    hsl(var(--popover));
+  border:        1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  box-shadow:    0 8px 32px hsl(var(--foreground) / 0.12);
+  font-family:   SUSE, ui-sans-serif, system-ui, sans-serif;
+  font-size:     var(--fs-md);
+  color:         hsl(var(--popover-foreground));
+}
+
+.flatpickr-calendar.arrowBottom::before,
+.flatpickr-calendar.arrowBottom::after,
+.flatpickr-calendar.arrowTop::before,
+.flatpickr-calendar.arrowTop::after {
+  border-bottom-color: hsl(var(--border));
+  border-top-color:    hsl(var(--border));
+}
+
+.flatpickr-months .flatpickr-month,
+.flatpickr-current-month,
+.flatpickr-current-month input.cur-year,
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  background:    transparent;
+  color:         hsl(var(--popover-foreground));
+  fill:          hsl(var(--popover-foreground));
+}
+
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+  color: hsl(var(--muted-foreground));
+  fill:  hsl(var(--muted-foreground));
+}
+
+.flatpickr-months .flatpickr-prev-month:hover,
+.flatpickr-months .flatpickr-next-month:hover {
+  color: hsl(var(--popover-foreground));
+  fill:  hsl(var(--popover-foreground));
+}
+
+.flatpickr-weekdays,
+span.flatpickr-weekday {
+  background: transparent;
+  color:      hsl(var(--muted-foreground));
+  font-size:  var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+
+.flatpickr-day {
+  color:         hsl(var(--popover-foreground));
+  border-radius: 0.4rem;
+}
+
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+  background: hsl(var(--accent));
+  border-color: transparent;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover {
+  background:   hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color:        hsl(var(--primary-foreground));
+  font-weight:  700;
+}
+
+.flatpickr-day.today {
+  border-color: hsl(var(--primary));
+}
+
+.flatpickr-day.today:not(.selected) {
+  color: hsl(var(--primary));
+}
+
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+  color: hsl(var(--muted-foreground) / 0.4);
+}
+
+.flatpickr-time {
+  border-top: 1px solid hsl(var(--border));
+}
+
+.flatpickr-time input,
+.flatpickr-time .flatpickr-time-separator,
+.flatpickr-time .flatpickr-am-pm {
+  background: transparent;
+  color:      hsl(var(--popover-foreground));
+  font-family: var(--font-brand);
+}
+
+.flatpickr-time input:hover,
+.flatpickr-time input:focus,
+.flatpickr-time .flatpickr-am-pm:hover,
+.flatpickr-time .flatpickr-am-pm:focus {
+  background: hsl(var(--accent));
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover,
+.flatpickr-current-month input.cur-year:hover {
+  background: hsl(var(--accent) / 0.6);
+}
+
+.numInputWrapper:hover,
+.numInputWrapper span:hover {
+  background: hsl(var(--accent) / 0.6);
+}
+
+/* ─── Collapsible input section ─────────────────────────────────────────── */
+/* Same disclosure family as the shared `.section-card` fold primitive
+   (disclosure.css, component audit rec 7) - a <details>/<summary> that folds
+   a body - but every rule below is a real, deliberate local delta: the
+   summary's height matches a sidebar <select> (so a collapsed section lines
+   up with the dropdowns beside it), its own CSS-triangle chevron (not the
+   shared SVG one), and `overflow: clip` + the `:has()` focus-ring promotion
+   just below are hard-won fixes for bugs specific to this dense, nested
+   sidebar context (see the comments on each). Composing them onto the shared
+   primitive would either lose one of those fixes or force a visual parity
+   this dense a context never asked for, so `.input-section` keeps its own
+   rules rather than taking the literal `section-card` class. */
+
+.input-section {
+  border: 0; box-shadow: 0 .06rem .3rem #0001;
+  border-radius: var(--radius);
+  /* Clip content to the rounded corners with `overflow: clip` - NOT clip-path and
+     NOT overflow:hidden. `overflow: clip` clips only DESCENDANTS (never the element's
+     own border/box-shadow), so the border stays solid + continuous in every state -
+     unlike clip-path, which clipped the 1px border itself and let a hovered summary's
+     opaque fill break it at the rounded corners. It also creates no stacking context
+     (clip-path did - that trapped the colour popover below sibling sections) and is
+     NOT a scroll container (unlike overflow:hidden), so the popover un-clip toggle
+     below can flip it to `visible` without any scroll thrash. */
+  overflow: clip;
+  /* No border-color transition: Chromium can leave a :has()-triggered transition
+     stuck at its start value, so the focus-ring border below would never paint.
+     The ring switches instantly instead (the box-shadow halo carries the motion). */
+  min-width: 0; /* grid item: allow shrink so inner controls can truncate */
+}
+
+.input-section-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-5) var(--sp-6);
+  /* Match a sidebar <select>'s height (39.5px) so a collapsed section lines up
+     with the dropdowns in the input list - minus the section's 2px border. */
+  min-height: 32px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase; 
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.input-section-summary:hover{
+  color:var(--primary);
+background-color:hsl(var(--background) / 1);
+}
+
+/* Keyboard focus ring. The section's overflow:hidden would clip an outline or
+   box-shadow on the focused <summary>, so promote the ring to the section
+   wrapper - its own box-shadow paints outside its border box, unclipped - using
+   the same border + halo idiom as a focused <select> / text field. */
+.input-section-summary:focus-visible { outline: none; }
+.input-section:has(.input-section-summary:focus-visible) {
+  border-color: hsl(var(--ring));
+  box-shadow: var(--ring-focus);
+}
+
+.input-section-summary::-webkit-details-marker { display: none; }
+
+.input-section-summary::after {
+  content: '';
+  display: block;
+  /* The open/closed caret is the summary's only non-text part and the sole cue
+     that a section folds, so it takes the same factor as the summary's words.
+     The 1.5px strokes deliberately do NOT scale: a hairline is a hairline at any
+     type size, and thickening it reads as a bolder rule, not a bigger arrow. */
+  width: calc(8px * var(--a11y-fs));
+  height: calc(8px * var(--a11y-fs));
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--dur-1) ease;
+  flex-shrink: 0;
+}
+
+.input-section[open] .input-section-summary::after {
+  transform: rotate(45deg);
+}
+
+.input-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: 18px 10px 10px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* Dense sections (opt-in via manifest render.denseSections) - a pro tool with
+   many short controls (sliders, selects, numbers) fits roughly twice as many per
+   screen in a 2-column grid, so the panel scrolls far less. Chrome-only: it
+   never touches the render, export, model, or URL. Wide controls span both
+   columns, and the grid collapses back to one column on a narrow panel or under
+   the large-text a11y preference, so nothing is ever squeezed. */
+.input-section--dense .input-section-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  align-items: start;
+}
+.input-section--dense .input-section-body > .input-row:has(.vector-input),
+.input-section--dense .input-section-body > .input-row:has(textarea),
+.input-section--dense .input-section-body > .input-row:has(.blocks-input),
+.input-section--dense .input-section-body > .input-row:has(.asset-picker-row),
+.input-section--dense .input-section-body > .input-row:has(input[type="color"]),
+.input-section--dense .input-section-body > .input-row:has(.color-input),
+.input-section--dense .input-section-body > .input-pillbar {
+  grid-column: 1 / -1;
+}
+@media (max-width: 380px) {
+  .input-section--dense .input-section-body { grid-template-columns: 1fr; }
+}
+html[data-a11y-text="large"] .input-section--dense .input-section-body {
+  grid-template-columns: 1fr;
+}
+
+.blocks-input {margin-top: 2em; display: flex; flex-direction: column; gap: var(--sp-3); }
+.blocks-list  { display: flex; flex-direction: column; gap: var(--sp-2);     margin: 0 -12px;}
+
+.block-item {
+  display: grid;
+  grid-template-columns: 1fr .51fr .71fr ;
+  gap: 1px;
+  align-items: center;
+}
+
+/* Color picker field inside a block row spans full width on its own row.
+   The remove button is pinned to row 1 col 3 so it stays with the text fields. */
+.block-item:has(.block-color-field) .block-remove {
+  grid-row: 1;
+  grid-column: 4;
+}
+.block-color-field {
+ 
+  grid-row: 1;grid-column: 3;
+}
+.blocks-list .block-field{padding:4px  4px 4px  14px !important; }
+.block-field {
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: var(--fs-sm);
+  transition: border-color var(--dur-1);
+}
+.block-field:hover { border-color: hsl(var(--ring) / 0.4); }
+/* :focus ring - the one shared recipe at the foot of this sheet. */
+
+.block-remove {
+  width: 28px; height: 28px; flex-shrink: 0;   /* larger tap target (was 24) */
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  color: hsl(var(--muted-foreground)); border-radius: var(--radius);
+  font-size: var(--fs-sm); transition: color var(--dur-1), background var(--dur-1);
+}
+.block-remove:hover,
+.block-asset-clear:hover{ color: hsl(var(--destructive, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
+
+.block-add {
+  align-self: flex-start;
+  padding: 5px 10px;
+  background: none;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: var(--fs-sm); cursor: pointer;
+  transition: border-color var(--dur-1), color var(--dur-1);
+}
+.block-add:hover,
+.blocks-drop-hint:hover,
+.blocks-collapse-all:hover,
+.block-asset-trigger:hover{ border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
+
+/* ── Table input ─────────────────────────────────────────────────────────────
+   A user-defined grid (columns AND rows are data). Kept deliberately minimal:
+   the real batch editor is the user's spreadsheet - this is the paste target
+   and touch-up surface. The grid scrolls horizontally inside its own box so a
+   wide table never widens the sidebar. */
+.table-input { display: flex; flex-direction: column; gap: var(--sp-3); }
+.table-scroll { overflow-x: auto; max-width: 100%; border: 1px solid hsl(var(--border)); border-radius: var(--radius); }
+/* A big table renders the virtualized data-grid (plan 89) here; give its viewport a
+   sidebar-appropriate height. In a popped-out float panel it can breathe taller. */
+.table-vgrid .dg-viewport { height: min(400px, 46vh); }
+.floatp .table-vgrid .dg-viewport { height: min(70vh, 640px); }
+.table-grid { border-collapse: collapse; width: 100%; }
+.table-grid th, .table-grid td { padding: 0; border: 0; }
+.table-grid th { position: relative; }
+.table-grid td + td, .table-grid th + th { border-left: 1px solid hsl(var(--border) / 0.6); }
+.table-grid tbody tr { border-top: 1px solid hsl(var(--border) / 0.6); }
+/* Cells are FLAT - no per-cell border, radius, or shadow (the shared
+   `.input-row input` recipe opts out via :not(.table-cell)); the only rounding
+   is the outer .table-scroll box. Body cells are textareas that auto-grow to
+   their paragraph (field-sizing: content where supported). */
+.table-cell {
+  width: 100%; min-width: 72px; box-sizing: border-box; display: block;
+  padding: var(--sp-2) var(--sp-3);
+  background: none; border: none; border-radius: 0; box-shadow: none;
+  color: hsl(var(--foreground));
+  font: inherit; font-size: var(--fs-sm); line-height: 1.4;
+  resize: none;
+  field-sizing: content;
+}
+.table-cell--head { font-weight: 600; padding-right: 20px; white-space: nowrap; }
+.table-grid thead tr { background: hsl(var(--muted, var(--border)) / 0.35); }
+.table-cell:focus { outline: none; background: hsl(var(--ring) / 0.08); }
+/* An `emoji` column's cell (manifest columnEditors): a button, not a textarea, so
+   it opens the picker instead of the keyboard. It keeps the flat .table-cell box
+   and only changes what a glyph looks like inside it. The face it renders in is
+   set by components/emoji-picker.css, which arrives with the picker chunk. */
+.table-cell--emoji {
+  cursor: pointer; text-align: center;
+  min-height: 28px;
+  font-size: calc(18px * var(--a11y-fs)); line-height: 1.2;
+}
+.table-cell--emoji:hover, .table-cell--emoji:focus-visible { background: hsl(var(--ring) / 0.08); }
+.table-emoji-empty { color: hsl(var(--muted-foreground)); font-size: var(--fs-xs); }
+/* A fingertip needs the whole cell to be the target, not an 18px glyph. */
+@media (pointer: coarse) { .table-cell--emoji { min-height: 40px; } }
+.table-del-col {
+  position: absolute; top: 50%; right: 2px; transform: translateY(-50%);
+  width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer; border-radius: var(--radius);
+  color: hsl(var(--muted-foreground)); font-size: var(--fs-2xs); opacity: 0;
+  transition: opacity var(--dur-1), color var(--dur-1);
+}
+.table-grid th:hover .table-del-col, .table-del-col:focus-visible { opacity: 1; }
+/* No hover to reveal it on touch, so keep it visible at a calmer resting opacity. */
+@media (hover: none) {
+  .table-del-col { opacity: .6; }
+  .table-del-col:active { opacity: 1; }
+}
+/* A fingertip-sized hit area via a ::before the same width/height as the button, so
+   the column header keeps its own box (`.table-cell--head`'s padding-right already
+   reserves the icon's own space; growing the button itself would eat into that). */
+@media (pointer: coarse) {
+  .table-del-col::before {
+    content: ''; position: absolute; inset: calc((40px - 100%) / -2);
+  }
+}
+.table-rowctl { width: 24px; }
+/* Fixed-schema tables keep city entry roomy and optional details scrollable. */
+.table-input[data-table-fixed] .table-cell { min-width: 112px; }
+.table-input[data-table-fixed] tr > :first-child .table-cell { min-width: 160px; }
+.table-input[data-table-fixed] .table-rowctl {
+  position: sticky; right: 0; white-space: nowrap;
+  background: hsl(var(--background)); min-width: 56px;
+}
+.table-input[data-table-fixed] .table-rowctl button { display: inline-flex; }
+
+/* The blank placeholder row waiting under the filled rows (views/table-cells.ts
+   wantsGhostRow) - dimmed until the user engages it, full-strength once typed into
+   (the rebuild then renders it as a real row and grows a fresh one beneath). */
+.table-grid tr[data-table-ghost] { opacity: .55; }
+.table-grid tr[data-table-ghost]:focus-within,
+.table-grid tr[data-table-ghost]:hover { opacity: 1; }
+.table-del-row {
+  /* Positioned (not just for layout) so the coarse-pointer ::before below resolves
+     its inset against THIS box, not the row it sits in. */
+  position: relative;
+  width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer; border-radius: var(--radius);
+  color: hsl(var(--muted-foreground)); font-size: var(--fs-2xs); opacity: 0;
+  transition: opacity var(--dur-1), color var(--dur-1);
+}
+.table-grid tbody tr:hover .table-del-row, .table-del-row:focus-visible { opacity: 1; }
+/* No hover to reveal it on touch, so keep it visible at a calmer resting opacity. */
+@media (hover: none) {
+  .table-del-row { opacity: .6; }
+  .table-del-row:active { opacity: 1; }
+}
+/* A fingertip-sized hit area via a ::before, so the row height doesn't grow. */
+@media (pointer: coarse) {
+  .table-del-row::before {
+    content: ''; position: absolute; inset: calc((40px - 100%) / -2);
+  }
+}
+.table-del-col:hover, .table-del-row:hover { color: hsl(var(--destructive, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
+/* Pop-out, pinned to the grid's top-right. Its own bar rather than an overlay on
+   the corner cell, which already carries that column's remove-×. The negative
+   margin pulls the icon down onto the grid's top edge so the bar costs almost no
+   vertical space in a sidebar - it reads as sitting ON the table, not above it. */
+.table-headbar {
+  display: flex; justify-content: flex-end;
+  min-height: 0; margin-bottom: -8px;
+  position: relative; z-index: 1;
+}
+.table-pop {
+  width: 24px; height: 24px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: var(--fs-md); line-height: 1; cursor: pointer;
+  transition: border-color var(--dur-1), color var(--dur-1);
+}
+.table-pop:hover { border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
+/* Already floating: the panel's own bar owns close/fullscreen, so the trigger
+   would be a second, differently-worded way to do the same thing. */
+.floatp .table-headbar { display: none; }
+
+.table-toolbar { display: flex; gap: var(--sp-3); align-items: center; }
+.table-toolbar-gap { flex: 1; }
+.table-btn {
+  padding: 5px 10px;
+  background: none;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: var(--fs-sm); cursor: pointer;
+  transition: border-color var(--dur-1), color var(--dur-1);
+}
+.table-btn:hover:not(:disabled) { border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
+.table-btn:disabled { opacity: 0.45; cursor: default; }
+.table-empty-hint {
+  margin: 0; padding: 14px 12px;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); text-align: center;
+}
+.table-count { margin: 0; color: hsl(var(--muted-foreground)); font-size: var(--fs-xs); }
+
+/* Drop-to-add: a blocks input that declares `dropToAdd` (e.g. logo-wall) becomes
+   a drop zone. The empty-state prompt doubles as a "choose files" button; the
+   whole list highlights while files are dragged over it. */
+.blocks-input--droppable .blocks-list { min-height: 8px; }
+.blocks-drop-hint {
+  display: block; width: 100%; box-sizing: border-box;
+  margin: 2px 0; padding: 18px 12px;
+  background: none;
+  border: 1.5px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: var(--fs-md); text-align: center; cursor: pointer;
+  transition: border-color var(--dur-1), color var(--dur-1);
+}
+/* Quick-start group - "Paste Markdown" + "Import CSV/JSON" paired at the TOP of a
+   blocks list: the fastest ways to fill the whole deck, so they lead as the first,
+   most prominent offer before hand-adding blocks. Both share the prominent .blocks-quick
+   look; the group is pushed left so the quiet "Collapse all" pill stays right. */
+.blocks-quick-group { display: flex; align-items: center; gap: var(--sp-4); margin-right: auto; flex-wrap: wrap; }
+.blocks-quick {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 14px;
+  background: hsl(var(--primary) / 0.1);
+  border: 1px solid hsl(var(--primary) / 0.35);
+  border-radius: var(--radius-pill);
+  color: hsl(var(--primary));
+  font: inherit; font-size: var(--fs-md); font-weight: 600; line-height: 1;
+  cursor: pointer;
+  transition: border-color var(--dur-1), color var(--dur-1), background var(--dur-1), box-shadow var(--dur-1);
+}
+.blocks-quick:hover { background: hsl(var(--primary) / 0.18); box-shadow: 0 1px 3px hsl(var(--primary) / 0.18); }
+.blocks-quick-ic { font-size: 1.1em; opacity: 0.85; }
+.blocks-input--droppable.is-file-dragover .blocks-list,
+.blocks-input--droppable.is-file-dragover .blocks-drop-hint {
+  outline: 2px dashed hsl(var(--primary));
+  outline-offset: 3px;
+  border-color: hsl(var(--primary));
+}
+
+/* "Collapse all / Expand all" - a small pill above a multi-block list so a long
+   stack of opened blocks folds back in one tap. Right-aligned, deliberately quiet
+   (it's a tidy-up affordance, not a primary action like the brand-fill Add pill). */
+.blocks-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-3); margin-bottom: 6px; }
+.blocks-toolbar--quick { margin-bottom: 10px; }
+.blocks-collapse-all {
+  padding: 3px 10px;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: var(--fs-xs); font-weight: 500;
+  cursor: pointer;
+  transition: border-color var(--dur-1), color var(--dur-1), background var(--dur-1);
+}
+/* Paste / Upload flash states - the base look is .blocks-quick; these tint the clicked
+   button green (ok) / amber (nothing usable) briefly after a click. */
+.blocks-io.is-ok { background: hsl(140 60% 45% / 0.9); color: #fff; border-color: transparent; }
+.blocks-io.is-empty { background: hsl(38 92% 50% / 0.9); color: #fff; border-color: transparent; }
+
+/* ── Typed blocks (addMenu) ──────────────────────────────────────────────────
+   Each block is a self-contained card with a type label + remove in its head and
+   a two-column field grid below. Opts out of the legacy fixed 3-column row grid
+   used by name/value blocks (meeting-planner, chart-creator). */
+.blocks-input--cards .blocks-list { margin: 0; gap: var(--sp-4); }
+/* Untyped (compact name/value) blocks reuse the card chrome but have no variant
+   label - the header is a bare drag/collapse handle whose empty `.block-type-label`
+   acts as a flex spacer, and the collapsed pill (preview + swatch) is the identity. */
+.block-item.is-typed {
+  display: block;
+  grid-template-columns: none;
+  padding: 9px 11px 11px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.35);
+}
+/* The header doubles as a drag handle (grip + label); the remove button sits at
+   the far end, pushed there by the label's flex-grow. */
+.block-item.is-typed .block-head {
+  display: flex; align-items: center; gap: var(--sp-4);   /* more separation between grip/label/actions (was 6) */
+  margin-bottom: 8px;
+  cursor: grab;
+  user-select: none;
+}
+.block-item.is-typed .block-head:active { cursor: grabbing; }
+/* Grip + collapse chevron: the block header's two wordless affordances (drag to
+   reorder, click to fold). Both take the multiplier so they stay findable
+   alongside the type label between them; both keep their aspect (10×16, 12×12)
+   and both sit well inside their boxes at the large-text factor. */
+.block-grip { flex: none; fill: hsl(var(--muted-foreground)); opacity: 0.45; width: var(--fs-2xs); height: var(--fs-xl); }
+.block-item.is-typed .block-head:hover .block-grip { opacity: 0.8; }
+.block-type-label {
+  flex: 1; min-width: 0;
+  font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em; color: hsl(var(--muted-foreground));
+}
+/* Drag-reorder feedback */
+.block-item.is-dragging { opacity: 0.4; }
+.block-item.drag-over { outline: 2px dashed hsl(var(--ring)); outline-offset: 2px; }
+
+/* Tree (nested) blocks - diagram-builder org / mind map. The flat reference-by-id
+   array is rendered as an indented outline (one step per depth level); drop
+   feedback splits into before / after (reorder as a sibling) and inside (re-nest
+   as a child). Data stays flat: only this presentation is tree-shaped. */
+.blocks-input--tree .block-item.is-nestable {
+  position: relative;
+  margin-left: calc(var(--block-depth, 0) * 16px);
+  transition: margin-left var(--dur-1) ease;
+}
+/* Elbow connector tying a child card back up toward its parent's indent. */
+.blocks-input--tree .block-item.is-child::before {
+  content: ""; position: absolute; left: -10px; top: -6px; height: calc(50% + 6px); width: 9px;
+  border-left: 1.5px solid hsl(var(--border));
+  border-bottom: 1.5px solid hsl(var(--border));
+  border-bottom-left-radius: 6px;
+  pointer-events: none;
+}
+.block-item.drop-before { box-shadow: inset 0 2px 0 0 hsl(var(--ring)); }
+.block-item.drop-after  { box-shadow: inset 0 -2px 0 0 hsl(var(--ring)); }
+.block-item.drop-inside {
+  outline: 2px solid hsl(var(--ring)); outline-offset: 1px;
+  background: hsl(var(--ring) / 0.10);
+}
+/* Two-step delete confirm - the armed state reads unmistakably destructive. */
+.block-remove.is-confirming {
+  width: auto; height: 22px; padding: 0 9px;
+  background: hsl(var(--destructive, 0 72% 51%)); color: #fff;
+  font-size: var(--fs-2xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.block-remove.is-confirming:hover { background: hsl(var(--destructive, 0 72% 51%)); color: #fff; }
+.block-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 8px; align-items: end; }
+
+/* Compact untyped blocks (bare fields, no per-field labels, ≤3 fields) lay their
+   fields side by side in a single row instead of the 2-col grid, which would wrap a
+   3rd field to its own line - e.g. chart-creator's Label / Value / Colour. Scoped by
+   :not(:has(> .block-control)) (excludes labelled blocks like logo-wall) and
+   :not(:has(> :nth-child(4))) (excludes many-field blocks like arrows/wayfinding),
+   so only genuinely compact rows are affected. */
+/* Gated on :not(.is-collapsed) - this compact-row layout is for the EXPANDED
+   state. Without the guard its specificity (0,4,0) out-ranks the collapse rule
+   `.block-item.is-collapsed .block-fields { display:none }` (0,3,0), so a folded
+   row block kept its fields visible and stayed two rows tall - the pill's 999px
+   radius then wrapped that tall block into a runaway stadium. */
+.block-item--row:not(.is-collapsed) .block-fields:not(:has(> .block-control)):not(:has(> :nth-child(4))) {
+  display: flex;
+  align-items: center;
+}
+.block-item--row:not(.is-collapsed) .block-fields:not(:has(> .block-control)):not(:has(> :nth-child(4))) > .block-field {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.block-item--row:not(.is-collapsed) .block-fields:not(:has(> .block-control)):not(:has(> :nth-child(4))) > .block-color-field {
+  flex: 0 0 auto;
+}
+/* Text + number inputs sitting side by side in a compact row join into ONE seamless
+   segment - like the position/vector fields: the first rounds its LEFT, the last
+   text/number rounds its RIGHT, and the shared border collapses so there's a single
+   divider between them. This is keyed off the RUN of inputs (`:has(+ …)` and the
+   adjacent-sibling combinator) - never `:last-child`, because a compact row often ends
+   in a colour swatch or a button, and those keep their own shape. `SEAM` below is
+   "a text or number block field": input.block-field that isn't a range or a checkbox
+   (selects, colour fields, textareas and buttons aren't <input>, so they're excluded). */
+.block-item--row:not(.is-collapsed) .block-fields:not(:has(> .block-control)):not(:has(> :nth-child(4))) > input.block-field:not([type="range"]):not([type="checkbox"]):has(+ input.block-field:not([type="range"]):not([type="checkbox"])) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right-width: 0;                 /* the next field's left border becomes the shared divider */
+}
+.block-item--row:not(.is-collapsed) .block-fields:not(:has(> .block-control)):not(:has(> :nth-child(4))) > input.block-field:not([type="range"]):not([type="checkbox"]) + input.block-field:not([type="range"]):not([type="checkbox"]) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: -8px;                     /* cancel the row's 8px column-gap so the pair sits flush */
+}
+/* Lift a focused seam field (its focus ring) above its flush neighbour. */
+.block-item--row:not(.is-collapsed) .block-fields:not(:has(> .block-control)):not(:has(> :nth-child(4))) > input.block-field:not([type="range"]):not([type="checkbox"]):focus {
+  position: relative;
+  z-index: 1;
+}
+.block-control { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.block-control--full { grid-column: 1 / -1; }
+/* Icon-labelled field: the icon sits inline to the LEFT of the control (used by dense
+   slider grids like flythrough poses), the control flexes to fill the rest of the cell.
+   The icon doubles as the help-tip trigger, so these rules also OVERRIDE the .help-tip-btn
+   button chrome (16px round / 0.55 opacity / 13px svg) back to the block icon's look -
+   higher specificity than the .help-tip-btn base, matched source order below it. */
+.block-control--ico { flex-direction: row; align-items: center; gap: var(--sp-3); }
+.block-control--ico > .block-control-ico {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: calc(15px * var(--a11y-fs)); height: auto; margin: 0; padding: 0;
+  border: none; background: transparent; opacity: 1;
+  color: hsl(var(--muted-foreground)); cursor: help;
+}
+.block-control--ico > .block-control-ico > svg { width: 100%; height: auto; }
+.block-control--ico > .block-control-ico:hover,
+.block-control--ico > .block-control-ico:focus-visible { color: var(--primary); opacity: 1; }
+.block-control--ico > .block-field,
+.block-control--ico > input[type="range"] { flex: 1 1 0; min-width: 0; }
+/* A grid of icon-labelled controls gets a wider column gutter so the two columns of
+   sliders read as separate (the default 8px is too tight once each has an icon). */
+.block-fields:has(> .block-control--ico) { column-gap: 18px; }
+.block-control-label {
+  font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; color: hsl(var(--muted-foreground));
+}
+.block-fields .block-field--full { grid-column: 1 / -1; }
+/* Checkbox sub-field (e.g. logo-wall's per-logo "Tune this logo" / "Invert"):
+   a checkbox + inline label on its own full-width row. */
+.block-control--checkbox { flex-direction: row; align-items: center; gap: var(--sp-4); flex-wrap: wrap; cursor: pointer; }
+.block-control--checkbox .block-control-label {
+  text-transform: none; letter-spacing: 0; font-size: var(--fs-sm); font-weight: 600; color: hsl(var(--foreground));
+}
+.block-field--checkbox { width: auto; flex: none; margin: 0; cursor: pointer; }
+.block-item.is-typed .block-field--checkbox { padding: 0 !important; }
+/* Multi-line block text field (e.g. body copy) - grows downward with its content
+   (native field-sizing, capped) so long body copy isn't stuck in a tiny scrolly box;
+   manual vertical resize still wins. */
+.block-field--textarea { min-height: 52px; line-height: 1.4; resize: vertical; field-sizing: content; max-height: 40vh; }
+/* The legacy rule forces left-padding on every .block-field; typed cards don't
+   want it (selects/ranges read better flush). */
+.block-item.is-typed .block-field { padding: 6px 8px !important; }
+.block-item.is-typed .block-color-field { grid-row: auto; grid-column: auto; }
+.block-item.is-typed .color-trigger { width: 100%; }
+
+/* Collapse-to-pill - an icon button in the header folds the block down to a
+   compact pill (type label + colour dot + first line of text). The chevron
+   rotates to point right when collapsed. */
+.block-collapse {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; padding: 0;   /* larger tap target (was 22) */
+  border: none; border-radius: var(--radius-sm); background: transparent;
+  color: hsl(var(--muted-foreground)); cursor: pointer;
+}
+.block-collapse:hover { background: hsl(var(--muted-foreground) / 0.12); color: hsl(var(--foreground)); }
+.block-collapse svg { transition: transform var(--dur-1) ease; width: var(--fs-sm); height: var(--fs-sm); }
+.block-item.is-collapsed .block-collapse svg { transform: rotate(-90deg); }
+
+/* Per-row copy / paste / clear buttons (rowActions) - same icon-button chrome as collapse,
+   a touch smaller since there are three of them. Hidden on the collapsed pill to keep it tidy. */
+.block-act {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; padding: 0;
+  border: none; border-radius: var(--radius-sm); background: transparent;
+  color: hsl(var(--muted-foreground)); cursor: pointer;
+  transition: background var(--dur-1) ease, color var(--dur-1) ease;
+}
+.block-act:hover { background: hsl(var(--muted-foreground) / 0.12); color: hsl(var(--foreground)); }
+.block-act svg { width: var(--fs-sm); height: var(--fs-sm); }
+.block-act.is-done { color: hsl(var(--primary)); }   /* brief tick after Copy */
+.block-item.is-collapsed .block-act { display: none; }
+
+.block-item.is-collapsed { padding: 0; border-radius: var(--radius-pill); background: hsl(var(--muted) / 0.5); }
+/* The whole collapsed pill is clickable to expand (JS handler), so the header reads as
+   a button rather than a drag handle while folded. */
+.block-item.is-collapsed .block-head { margin-bottom: 0; padding:9px 6px 9px 10px; cursor: pointer; }
+.block-item.is-collapsed .block-head:hover { background: hsl(var(--muted-foreground) / 0.07); border-radius: var(--radius-pill); }
+.block-item.is-collapsed .block-fields { display: none; }
+
+/* Pill summary bits - only shown while collapsed. */
+.block-head-swatch, .block-head-preview { display: none; }
+.block-item.is-collapsed .block-type-label { flex: none; }
+.block-item.is-collapsed .block-head-swatch {
+  display: block; flex: none; width: 12px; height: 12px;
+  border-radius: var(--radius-round); border: 1px solid hsl(var(--border));
+}
+.block-item.is-collapsed .block-head-preview {
+  display: block; flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--fs-sm); font-weight: 400; text-transform: none; letter-spacing: 0;
+  color: hsl(var(--foreground)); opacity: 0.7;
+}
+
+/* Per-block image picker */
+.block-asset { display: flex; gap: var(--sp-2); align-items: stretch; }
+.block-asset-trigger {
+  flex: 1; min-width: 0; height: 34px;
+  padding: 0; overflow: hidden;
+  border: 1px dashed hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--background)); cursor: pointer;
+  font: inherit; font-size: var(--fs-xs); color: hsl(var(--muted-foreground));
+  transition: border-color var(--dur-1), color var(--dur-1);
+}
+.block-asset-trigger img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Picked Lottie animation: play glyph + name (the ref URL is JSON, not an image). */
+.block-asset-lottie {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.block-asset-clear {
+  flex-shrink: 0; width: 24px; border: none; border-radius: var(--radius);
+  background: none; cursor: pointer; color: hsl(var(--muted-foreground));
+  font-size: var(--fs-xs); transition: color var(--dur-1), background var(--dur-1);
+}
+/* ✦ Edit - shown only for a block image that came from a Lolly link. */
+.block-asset-edit {
+  flex-shrink: 0; width: 24px; border: none; border-radius: var(--radius);
+  background: none; cursor: pointer; color: hsl(var(--primary));
+  font-size: var(--fs-sm); transition: background var(--dur-1), filter var(--dur-1);
+}
+.block-asset-edit:hover { background: hsl(var(--primary) / 0.1); filter: brightness(1.1); }
+/* ❄ Edit / ↻ Re-bake - a block image that's a baked (frozen) tool render.
+   Muted, not brand-tinted: the image is a static copy, not a live render. */
+.block-asset-edit--baked { color: hsl(var(--muted-foreground)); }
+.block-asset-edit--baked:hover { background: hsl(var(--muted-foreground) / 0.1); }
+/* Block image that's a live Lolly render - same is-lolly cue as the top-level slot
+   (the dashed empty-state border goes solid + brand-tinted). */
+.block-asset.is-lolly .block-asset-trigger {
+  border-style: solid;
+  border-color: hsl(var(--primary) / 0.55);
+}
+.block-asset.is-lolly .block-asset-trigger:hover { border-color: hsl(var(--primary)); }
+
+/* Per-block range slider - native, kept compact */
+.block-range-input { width: 100%; cursor: pointer; }   /* thumb/track: .field-range (fields.css) - accent-color is inert on an appearance:none range */
+
+/* Typed add-menu */
+.block-add-menu { position: relative; align-self: stretch; }
+/* Prominent primary call-to-action for adding a block - full width, brand fill. */
+.block-add--prominent {
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  width: 100%; padding: 9px 12px;
+  background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+  border: 1px solid transparent; border-radius: var(--radius);
+  font-weight: 600; font-size: var(--fs-md);
+  transition: filter var(--dur-1);
+}
+.block-add--prominent:hover { filter: brightness(1.08); border-color: transparent; color: hsl(var(--primary-foreground)); }
+.block-add-options {
+  position: absolute; z-index: 6; top: calc(100% + 4px); left: 0; right: 0;
+  display: flex; flex-direction: column; min-width: 150px; padding: var(--sp-2);
+  background: hsl(var(--background)); border: 1px solid hsl(var(--border));
+  border-radius: var(--radius); box-shadow: 0 6px 20px rgb(0 0 0 / 0.14);
+}
+.block-add-option {
+  text-align: left; padding: 7px 9px; border: none; border-radius: calc(var(--radius) - 2px);
+  background: none; cursor: pointer; font: inherit; font-size: var(--fs-sm);
+  color: hsl(var(--foreground)); transition: background 0.1s;
+}
+.block-add-option:hover:not(:disabled) { background: hsl(var(--muted)); }
+.block-add-option:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Vector input - N Figma-style number scrubbers on one row, one control/column.
+   The label doubles as a drag handle (scrub left/right); the number field is
+   typeable. */
+/* Vector input - N numeric fields joined into one segmented component (e.g. the
+   background Zoom / X / Y control). Each field overlays a tiny draggable character
+   (Figma-style scrub) on the left of a typeable number, mirroring the export-dims
+   width/height fields. Only the outer corners round; internal borders collapse so
+   the segments read as a single pill. */
+
+/* The row's own label is redundant for a vector control - the section header
+   names it (e.g. "Position") and the per-field scrub symbols + help text carry
+   the rest. Left visible it gets the floating-label treatment (the fields are
+   <input type=number>) and collides with the scrubbers, so hide it. Each field
+   keeps its own aria-label, so the accessible name is unaffected. */
+.input-row:has(.vector-input) .input-label { display: none; }
+
+/* A sub-control belongs to the row above it (gradient: "Colour 3" then its X/Y
+   - see isSubControl in tool-inputs.ts). The 16px .tool-inputs grid gap gives them
+   equal spacing on both sides, so the pair doesn't read as a pair; pull it up until
+   it sits nearer its own colour (8px) than the next control (16px). */
+.input-row--sub { margin-top: -8px; }
+
+.vector-input {
+  display: flex;
+  margin-top: 2px;
+}
+.vec-field {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+/* The scrub character, overlaid inside the field on the left. Drag it to change
+   the value; the rest of the field stays clickable for typing. */
+.vec-scrub {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 4px;
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    line-height: 1;
+    color: hsl(var(--muted-foreground));
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    z-index: 1;
+    /* Purely a visual cue - let hover/click/focus fall through to the <input>
+       below. Drag-to-scrub still works: that listener is on .vec-field and gets
+       pointer events bubbling up from the input. */
+    pointer-events: none;
+    transition: color var(--dur-1);
+}
+.vec-field:hover .vec-scrub { color: hsl(var(--foreground)); }
+.vec-field:focus-within .vec-scrub { color: hsl(var(--ring)); }
+.vec-num {
+  width: 100%;
+  min-width: 0;
+  /* Compact: a vector is a sub-property of the control above it, so it reads as a
+     tight numeric strip rather than a second full-size field. min-height keeps the
+     drag/tap target usable at 2px padding. */
+  padding: 2px 6px 2px 19px;       /* left room for the scrub character */
+  min-height: 26px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: 0;
+  border-right-width: 0;           /* collapse internal dividers */
+  font: inherit;
+  font-size: var(--fs-md);
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  cursor: ew-resize;               /* drag anywhere to scrub (handled on .vec-field) */
+}
+/* Round only the outer corners; the last field restores its right border. */
+.vec-field:first-child .vec-num {
+  border-top-left-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+}
+.vec-field:last-child .vec-num {
+  border-right-width: 1px;
+  border-top-right-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+}
+.vec-num::-webkit-outer-spin-button,
+.vec-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.vec-num:focus {
+  outline: none;
+  position: relative;
+  z-index: 2;                      /* lift the focused field's ring above its neighbours */
+  border-color: hsl(var(--ring));
+  border-right-width: 1px;
+  cursor: text;                    /* once editing, show the caret instead of the scrub cue */
+}
+
+/* ─── Jelly text fields in the sidebar (flag-gated) ─────────────────────────
+   Jelly hosts default to marketing-page fixed widths (220–280px); the sidebar
+   wants them full-bleed. Page-level rules beat the shadow :host size table.
+   Height is trimmed a touch so a stack of them stays sidebar-dense. */
+.input-row jelly-input,
+.input-row jelly-textarea {
+  display: block;
+  width: 100%;
+}
+.input-row jelly-input {
+  height: 2.6rem;
+}
+
+/* Asset picker */
+.asset-picker-row {
+  /* The asset card reads top-to-bottom as one hierarchy: a SOURCE tab row (Use
+     image / Use camera / Play), a PREVIEW area, a caption, then a SETTINGS row.
+     min-width:0 lets a long asset name ellipsise instead of widening the sidebar. */
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* ── Source tab row: how the slot is filled. The "Use image" pick tab leads;
+   live-controls.ts appends Use camera / Play (as .slot-act.slot-live) beside it. */
+.asset-slot-source { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); min-width: 0; }
+.asset-slot-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-6);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius-pill);
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: border-color var(--dur-1), background-color var(--dur-1), color var(--dur-1);
+}
+.asset-slot-tab svg { flex: none; width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.asset-slot-tab-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asset-slot-tab:hover { border-color: hsl(var(--primary) / 0.55); background: hsl(var(--primary) / 0.07); }
+/* The active source reads as a filled tab. */
+.asset-slot-tab.is-active { border-color: hsl(var(--primary) / 0.55); background: hsl(var(--primary) / 0.12); color: hsl(var(--primary)); }
+/* Empty slot: the pick tab is the primary call to action - a full-width dashed drop
+   target (it accepts a dragged catalog tile), matching the app's drop-area language. */
+.asset-slot:not(.has-value) .asset-slot-tab { flex: 1 1 auto; justify-content: center; border-style: dashed; padding: var(--sp-6); }
+.asset-picker-row.is-dragover .asset-slot-tab { border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.12); }
+
+/* ── Preview area: the hero. A stable, generous box that holds any media type -
+   image/video object-fit:contain, the square audio waveform + Lottie glyph centred.
+   Capped so a many-slot tool (booth-studio's 9) stays scrollable. */
+.asset-slot-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  max-height: 200px;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+  overflow: hidden;
+}
+/* Clear (✕) overlays the preview's top-right rather than taking a column. */
+.asset-slot-preview .asset-clear {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  background: hsl(var(--background) / 0.82);
+}
+/* ── Caption: names the loaded asset (the pick tab names the SOURCE, not the file). */
+.asset-slot-caption {
+  min-width: 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* ── Settings row: the fit/cover toggle (attachTo) + Fit canvas / Match / Preview. */
+.asset-slot-settings { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+.asset-slot-settings .slot-actions { margin-top: 0; }
+.saved-row{font-weight:600;text-transform:capitalize;}
+
+.saved-row small{    display: grid;
+    padding: var(--sp-1) var(--sp-2);
+    border-radius: var(--radius);
+    color: hsl(var(--primary));
+    font-size: calc(9px * var(--a11y-fs));
+    font-weight: 400;
+    cursor: pointer;
+    float: right;
+    text-decoration: none;
+    font-family: var(--font-mono);
+}
+
+/* `attachTo` (see tool-inputs.ts renderInputs): a compact modifier riding at the
+   head of the control it belongs to, instead of taking a labelled row of its own.
+   min-width:0 on the hosted control so a long asset name still ellipsises rather
+   than widening the sidebar (same reason as .asset-picker-row). */
+.input-attached {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  max-width: 100%;
+}
+.input-attached > :not(.icon-toggle) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.icon-toggle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: color var(--dur-1), border-color var(--dur-1), background-color var(--dur-1);
+}
+.icon-toggle:hover {
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--primary) / 0.55);
+  background: hsl(var(--primary) / 0.07);
+}
+/* An `icon-toggle` input renders as a glyph with no visible text (its state and
+   its next state live in the aria-label + title), so the glyph is the control.
+   Scoped to svg on purpose: the same button falls back to a TEXT label when the
+   chosen option has no icon, and that path already scales through font-size.
+   The 32px box is unchanged - 19.2px inside it at the large-text factor. */
+.icon-toggle svg { display: block; width: var(--fs-xl); height: var(--fs-xl); }
+
+/* One media-agnostic preview tile at a STABLE size, whatever the asset is. An
+   image or video sits object-fit:contain; the audio waveform (a square 64-viewBox
+   SVG, preserveAspectRatio meet) and the Lottie glyph centre in the same box - so
+   an audio slot no longer balloons to fill the sidebar. Click it to change (JS in
+   tool-inputs.ts forwards to the trigger). A `<span>` needs an explicit display to
+   honour width/height; block works for the img/video (which carry this class
+   directly) and the audio span alike - the Lottie modifier below re-flexes itself. */
+/* The thumb fills the preview area; the area owns the size/border/background. Any
+   media type: image/video object-fit:contain, the audio waveform SVG (square 64
+   viewBox, preserveAspectRatio meet) and the Lottie glyph centre in the same box.
+   Clicking it changes the asset (JS in tool-inputs.ts forwards to the pick tab). */
+.asset-picker-thumb-inline {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  cursor: pointer;
+}
+.asset-picker-thumb-inline > svg { width: 100%; height: 100%; display: block; }
+
+/* Play-glyph stub for picked Lottie animations (their URL is JSON, not an image). */
+.asset-picker-thumb-lottie {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(28px * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+
+.asset-clear {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-md);
+  transition: color var(--dur-1), border-color var(--dur-1);
+}
+
+.asset-clear:hover {
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive));
+}
+
+/* Provenance line for an image that came from a pasted Lolly link: a "✦ from
+   <tool>" badge + an Edit button that re-opens the source tool (openEmbedEditor).
+   Rendered below the asset-picker-row, only when the asset carries meta.toolUrl. */
+.asset-from-tool {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: 5px;
+}
+.asset-from-tool-label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.asset-from-tool-label strong { color: hsl(var(--foreground)); font-weight: 600; }
+.asset-from-tool-spark { color: hsl(var(--primary)); }
+
+/* Opt-in per-slot media affordances: Fit canvas / Match length / Preview sound. */
+.slot-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+/* A standalone camera row (a reader like scan-code has no asset slot to ride):
+   pinned at the top of the inputs so "Use camera" is always in the inputs bar,
+   reachable on mobile. plans/162. */
+.live-actions-standalone { margin: 0 0 12px; }
+.live-actions-standalone .slot-act.slot-live { flex: 1 1 auto; justify-content: center; }
+.slot-act {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1;
+  padding: var(--sp-2) var(--sp-4);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  background: hsl(var(--muted) / 0.45);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-1), color var(--dur-1), border-color var(--dur-1);
+}
+.slot-act:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.slot-act:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 1px; }
+
+/* Live frame-source controls riding the source asset slot's actions row
+   (live-controls.ts): ▶ Play (animated asset / sample) + ● Go live (camera).
+   Same .slot-act chip language as Fit/Match/Preview; the red dot + pulse reuse
+   the stage toggle's .canvas-live-dot pieces below. */
+.slot-live-cluster { display: contents; }
+.slot-act.slot-live { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.slot-act.slot-live[hidden] { display: none; }
+.slot-act.slot-live:disabled { opacity: 0.6; cursor: progress; }
+.slot-act.slot-live .canvas-live-dot { width: 7px; height: 7px; }
+.slot-live-flip .canvas-live-dot, .slot-live-device .canvas-live-dot,
+.canvas-flip-toggle .canvas-live-dot, .canvas-device-toggle .canvas-live-dot { display: none; }
+.slot-act.slot-live.is-live {
+  border-color: hsl(var(--destructive));
+  color: hsl(var(--destructive));
+  background: hsl(var(--destructive) / 0.08);
+}
+.slot-act.slot-live.is-live .canvas-live-dot {
+  background: hsl(var(--destructive));
+  animation: canvas-live-pulse 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .slot-act.slot-live.is-live .canvas-live-dot { animation: none; }
+}
+.slot-play.is-playing {
+  /* brand-var indirection (matches .dash-hero-cta) so this reuses the primary fill
+     rather than restating the pair verbatim - the single-source-of-truth guard
+     (primitive-guards R2) keeps the bare hsl(var(--primary)) pair to buttons.css. */
+  background: var(--brand-primary, hsl(var(--primary)));
+  color: var(--brand-on-primary, hsl(var(--primary-foreground)));
+  border-color: var(--brand-primary, hsl(var(--primary)));
+}
+
+/* Baked (frozen) provenance row - the inert sibling of the live ✦ badge: a
+   "❄ baked from <tool>" line whose Edit/Re-bake buttons appear only when the
+   source URL (meta.bakedFrom) survived baking. Muted, not brand-tinted: this
+   image is a static copy, not a live render. */
+.asset-from-tool--baked .asset-from-tool-spark { color: hsl(var(--muted-foreground)); }
+/* Inline re-bake failure (shares the picker's .asset-picker-error colour). */
+.asset-rebake-error { margin: 4px 0 0; font-size: var(--fs-xs); }
+
+/* A slot holding a live Lolly render (AssetRef carries meta.toolUrl) is marked
+   is-lolly: brand-tinted border + ✦ spark on the trigger, so "this is a live
+   render, not a static file" reads before clicking. The click itself then asks
+   edit-or-replace (askLollyIntent) instead of opening the picker directly. */
+.asset-picker-row.is-lolly .asset-picker-trigger {
+  border-color: hsl(var(--primary) / 0.55);
+  background: hsl(var(--primary) / 0.05);
+}
+.asset-picker-row.is-lolly .asset-picker-trigger:hover { border-color: hsl(var(--primary)); }
+.asset-picker-row.is-lolly .asset-picker-thumb-inline { border-color: hsl(var(--primary) / 0.55); }
+.asset-lolly-spark { color: hsl(var(--primary)); }
+.asset-edit {
+  flex: none;
+  padding: 3px 10px;
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  transition: border-color var(--dur-1), color var(--dur-1);
+}
+.asset-edit:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+
+/* ─── Edit-a-Lolly-image overlay (openEmbedEditor) ────────────────────────────
+   Body-mounted modal: the source tool's own inputs on the left, format/size +
+   live preview on the right. Reuses the picker's .asset-picker-toolcard-* control
+   and preview styling for the right column. */
+.embed-editor-overlay { position: fixed; inset: 0; z-index: 1100; }
+.embed-editor-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+.embed-editor-panel {
+  position: absolute; inset: 5vh 5vw;
+  display: flex; flex-direction: column;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  box-shadow: var(--shadow-5);
+  overflow: hidden;
+}
+.embed-editor-head {
+  display: flex; align-items: center; gap: var(--sp-5);
+  padding: 14px 20px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.embed-editor-spark { color: hsl(var(--primary)); font-size: var(--fs-xl); flex: none; }
+.embed-editor-title { margin: 0; font-size: calc(15px * var(--a11y-fs)); font-weight: 600; flex: 1; min-width: 0; }
+.embed-editor-from { color: hsl(var(--muted-foreground)); font-weight: 400; }
+.embed-editor-close {
+  flex: none; background: none; border: none;
+  font-size: calc(22px * var(--a11y-fs)); line-height: 1; cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  padding: var(--sp-1) var(--sp-3); border-radius: var(--radius);
+  transition: color var(--dur-1), background var(--dur-1);
+}
+.embed-editor-body {
+  flex: 1; min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 0;
+}
+.embed-editor-form {
+  overflow-y: auto;
+  padding: 18px 20px;
+  border-right: 1px solid hsl(var(--border));
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+.embed-editor-side {
+  display: flex; flex-direction: column; gap: 14px;
+  overflow-y: auto;
+  padding: 18px 20px;
+}
+.embed-editor-side .asset-picker-toolcard-preview { flex: 1; }
+.embed-editor-actions {
+  display: flex; justify-content: flex-end; gap: var(--sp-5);
+}
+.embed-editor-actions .ee-cancel,
+.embed-editor-actions .ee-apply {
+  padding: 7px 16px;
+  border-radius: var(--radius);
+  font: inherit; font-size: var(--fs-md); font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--dur-1), border-color var(--dur-1);
+}
+.embed-editor-actions .ee-cancel {
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+}
+.embed-editor-actions .ee-cancel:hover { border-color: hsl(var(--ring) / 0.4); }
+.embed-editor-actions .ee-apply {
+  background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+  border: 1px solid hsl(var(--primary));
+}
+.embed-editor-actions .ee-apply:hover { opacity: 0.9; }
+.embed-editor-actions .ee-apply:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* On a narrow viewport stack the form above the preview. */
+@media (max-width: 720px) {
+  .embed-editor-body { grid-template-columns: minmax(0, 1fr); grid-auto-rows: min-content; overflow-y: auto; }
+  .embed-editor-form { border-right: none; border-bottom: 1px solid hsl(var(--border)); }
+}
+
+/* ─── File picker (file-typed inputs for on-device utilities) ────────────── */
+
+.file-picker {
+  display: grid;
+  gap: var(--sp-3);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.file-trigger {
+  text-align: left;
+  padding: 7px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px dashed hsl(var(--input));
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--fs-md);
+  transition: border-color var(--dur-1), color var(--dur-1);
+}
+
+.file-trigger:hover {
+  border-color: hsl(var(--ring) / 0.5);
+  color: hsl(var(--primary));
+}
+
+/* Live drop feedback - the binding accepts drops on the whole control, so the
+   dashed border keeps its promise. */
+.file-picker.is-dragover .file-trigger {
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.05);
+}
+
+.file-chosen {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+  font-family: var(--font-mono);
+  color: hsl(var(--muted-foreground));
+}
+
+.file-clear {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-sm);
+  transition: color var(--dur-1), border-color var(--dur-1);
+}
+
+.file-clear:hover {
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive));
+}
+
+/* ─── "Runs on your device" badge (privacy:'on-device' utilities) ─────────── */
+
+.on-device-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-bottom: 14px;
+  padding: var(--sp-4) var(--sp-5);
+  border: 1px solid hsl(var(--primary) / 0.3);
+  border-radius: var(--radius);
+  background: hsl(var(--primary) / 0.06);
+  color: hsl(var(--primary));
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.on-device-badge svg {
+  flex: none;
+  /* This badge is a privacy claim and the shield carries as much of it as the
+     words do, so the two grow together. flex:none above already stops the row
+     shrinking it back. */
+  width: calc(18px * var(--a11y-fs));
+  height: calc(18px * var(--a11y-fs));
+}
+
+/* ─── Tool stage & canvas ───────────────────────────────────────────────── */
+
+.tool-stage {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0  ;
+  place-items: center;
+  overflow: hidden;
+  justify-content: center;
+  height:100vh;
+  height:100dvh;
+
+    background:
+    repeating-conic-gradient(
+      rgba(255,255,255,.025) 0% 25%,
+      rgba(0,0,0,.025) 0% 50%)
+     50% / 2em 2em;
+}
+
+/* Full-bleed utility (is-bare, hideSidebar tools like the sandbox): reserve the
+   top chrome strip so the fixed back pill (top-left) and profile cluster
+   (top-right) never sit OVER the tool's own toolbar - the tool's UI must be
+   readable the moment it opens. Padding rides the STAGE (app chrome), never
+   #tool-content itself, so an exported render does not move by a pixel. */
+.tool-layout.is-bare .tool-stage {
+  padding-top: calc(var(--chrome-top) + var(--chrome-h) + 0.5rem);
+}
+
+/* Live-camera toggle - top-left of the stage (zoom controls sit bottom-right).
+   Only present for tools with an onFrame hook on a camera-capable shell. */
+.canvas-live-toggle {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: var(--sp-3) var(--sp-6);
+  background: hsl(var(--card) / 0.92);
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: border-color var(--dur-1), background var(--dur-1), color var(--dur-1);
+}
+.canvas-live-toggle:hover { border-color: hsl(var(--primary)); }
+.canvas-live-toggle:disabled { opacity: 0.6; cursor: progress; }
+.canvas-live-toggle[hidden] { display: none; }
+/* When the stage hosts BOTH toggles (fallback placement - no sidebar row to
+   ride), stack Play under Go live so they can't overlap at top-left. */
+.canvas-live-toggle + .canvas-anim-toggle { top: 54px; }
+.canvas-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-round);
+  background: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+.canvas-live-toggle.is-live {
+  border-color: hsl(var(--destructive));
+  color: hsl(var(--destructive));
+}
+.canvas-live-toggle.is-live .canvas-live-dot {
+  background: hsl(var(--destructive));
+  animation: canvas-live-pulse 1.4s ease-in-out infinite;
+}
+@keyframes canvas-live-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 hsl(var(--destructive) / 0.5); }
+  50%      { opacity: 0.6; box-shadow: 0 0 0 4px hsl(var(--destructive) / 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .canvas-live-toggle.is-live .canvas-live-dot { animation: none; }
+}
+
+/* Click-to-edit-in-place: the small option-list popover a canvas click opens for
+   a `select` input (see tool.ts openSelectPopover). position:fixed is set inline
+   per-instance (viewport coords, computed off the clicked element); this only
+   carries the visual recipe - same card/border/shadow as .color-popover
+   (components.css) so the two read as siblings when they appear side by side. */
+.canvas-input-popover {
+  display: grid;
+  gap: var(--sp-1);
+  padding: var(--sp-3);
+  max-width: min(320px, calc(100vw - 16px));
+  max-height: min(360px, calc(100vh - 16px));
+  overflow: auto;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px hsl(0 0% 0% / 0.15);
+}
+.canvas-input-popover-opt {
+  display: block;
+  width: 100%;
+  padding: var(--sp-3) var(--sp-5);
+  border: 0;
+  border-radius: calc(var(--radius) - 4px);
+  background: none;
+  color: hsl(var(--foreground));
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.canvas-input-popover-opt:hover,
+.canvas-input-popover-opt:focus-visible { background: hsl(var(--muted)); outline: none; }
+.canvas-input-popover-opt.is-current { font-weight: 600; color: hsl(var(--primary)); }
+
+/* Device recording (engine v1.17): a Record button centred at the foot of the stage,
+   for tools declaring render.capture.
+   The pill is shared with the display-capture Screenshot button (engine v1.54,
+   render.capture:"screen") - see .canvas-screen-bar below, which re-anchors both. */
+.canvas-record-btn,
+.canvas-screen-btn {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 9px 18px;
+  background: hsl(var(--card) / 0.95);
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-2);
+  transition: border-color var(--dur-1), background var(--dur-1), color var(--dur-1);
+}
+.canvas-record-btn:hover { border-color: hsl(var(--destructive)); }
+.canvas-record-btn:disabled { opacity: 0.6; cursor: progress; }
+
+/* Animation transport (play / pause / scrub) - reusable across animated tools, driven by
+   window.__lollyAnim (see views/anim-transport.ts). Bottom-centre pill on the stage,
+   hidden until an animation is active; [data-export-hide] keeps it out of captures. */
+.anim-transport {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 460px;
+  max-width: min(560px, calc(100% - 28px));
+  padding: 6px 12px 6px 6px;
+  background: hsl(var(--card) / 0.95);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-2);
+}
+.anim-transport[hidden] { display: none; }
+.anim-transport-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(30px * var(--a11y-fs));
+  height: calc(30px * var(--a11y-fs));
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: hsl(var(--card-foreground));
+  cursor: pointer;
+  transition: background var(--dur-1);
+}
+.anim-transport-btn:hover { background: hsl(var(--muted)); }
+.anim-transport-btn svg { width: 62%; height: 62%; fill: currentColor; }
+/* .anim-transport-play fill (background + color) is declared once in buttons.css's
+   .btn--primary selector list; only its hover override lives here (to beat the
+   grey .anim-transport-btn:hover). */
+.anim-transport-play:hover { background: hsl(var(--primary)); filter: brightness(1.08); }
+.anim-transport-track {
+  position: relative;
+  flex: 1 1 auto;
+  height: 22px;
+  margin: 0 6px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+.anim-transport-track::before {   /* the rail */
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 4px;
+  transform: translateY(-50%);
+  background: hsl(var(--muted));
+  border-radius: var(--radius-pill);
+}
+.anim-transport-fill {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0;
+  height: 4px;
+  transform: translateY(-50%);
+  background: hsl(var(--primary));
+  border-radius: var(--radius-pill);
+  pointer-events: none;
+}
+.anim-transport-ticks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.anim-transport-tick {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 10px;
+  transform: translate(-50%, -50%);
+  background: hsl(var(--border));
+  border-radius: 1px;
+}
+.anim-transport-head {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  transform: translate(-50%, -50%);
+  background: hsl(var(--primary));
+  border: 2px solid hsl(var(--card));
+  border-radius: var(--radius-pill);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+.anim-transport-label {
+  flex: none;
+  min-width: 2.5em;
+  padding-left: 2px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: hsl(var(--card-foreground));
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+/* Flip-camera control (touch video capture) - bottom-right, clear of the centred record btn. */
+.canvas-record-flip {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: hsl(var(--card) / 0.95);
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-2);
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+.canvas-record-flip:hover { border-color: hsl(var(--primary)); }
+.canvas-record-flip[hidden] { display: none; }
+
+/* Choose-microphone control (device picker) - same pill as flip, bottom-LEFT so
+   both can show for an audio+video (av) take without overlapping. plans/162. */
+.canvas-record-mic {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: hsl(var(--card) / 0.95);
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-2);
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+.canvas-record-mic:hover { border-color: hsl(var(--primary)); }
+.canvas-record-mic[hidden] { display: none; }
+.canvas-record-dot {
+  width: 12px; height: 12px;
+  border-radius: var(--radius-round);
+  background: hsl(var(--destructive));
+  flex-shrink: 0;
+}
+.canvas-record-square {
+  width: 11px; height: 11px;
+  border-radius: 2px;
+  background: hsl(var(--destructive));
+  flex-shrink: 0;
+}
+.canvas-record-btn[data-state="armed"] { border-color: hsl(var(--destructive)); }
+.canvas-record-btn[data-state="recording"] {
+  border-color: hsl(var(--destructive));
+  color: hsl(var(--destructive));
+}
+.canvas-record-btn[data-state="recording"] .canvas-record-square {
+  animation: canvas-live-pulse 1.4s ease-in-out infinite;
+}
+.canvas-record-timer {
+  position: absolute;
+  bottom: 58px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground, 0 0% 100%));
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+/* Last few seconds before the hard cap - pulse the timer as a warning. */
+.canvas-record-timer.is-ending { animation: crt-cap-pulse 1s ease-in-out infinite; }
+@keyframes crt-cap-pulse { 50% { transform: translateX(-50%) scale(1.12); filter: brightness(1.28); } }
+@media (prefers-reduced-motion: reduce) { .canvas-record-timer.is-ending { animation: none; filter: brightness(1.3); } }
+/* Red frame while recording. */
+.tool-stage.is-recording::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  border: 3px solid hsl(var(--destructive));
+  animation: canvas-live-pulse 1.4s ease-in-out infinite;
+}
+/* Coaching HUD for video/av capture - a level bar + warning over the viewfinder, plus an
+   exposure warning row (too dark / too bright / overexposed) fed by the live camera frames
+   (the tool canvas shows the composited bookends, not a meter). Shell-drawn, never exported
+   ([data-export-hide]), never captures pointer events. */
+.canvas-record-coach {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 7;
+  display: flex;
+  flex-direction: column;       /* audio row above the exposure row */
+  gap: var(--sp-3);
+  max-width: min(92%, 460px);
+  padding: 7px 12px;
+  border-radius: 16px;
+  background: rgba(12, 18, 16, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  pointer-events: none;
+}
+.canvas-record-coach .crc-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  --crc-tone: #30ba78;
+}
+.canvas-record-coach .crc-row[data-tone="low"] { --crc-tone: #f5b301; }
+.canvas-record-coach .crc-row[data-tone="hot"] { --crc-tone: #ff5a4d; }
+/* The exposure row only occupies space while it has something to warn about. */
+.canvas-record-coach .crc-exposure:not(.has-warn) { display: none; }
+.canvas-record-coach .crc-eye {
+  flex: 0 0 auto;
+  color: var(--crc-tone);
+  opacity: 0.95;
+}
+.canvas-record-coach .crc-meter {
+  position: relative;
+  flex: 0 0 92px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+}
+.canvas-record-coach .crc-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  border-radius: var(--radius-pill);
+  background: var(--crc-tone);
+  transition: width 60ms linear;
+}
+.canvas-record-coach .crc-peak {
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  width: 2px;
+  background: #fff;
+  opacity: 0.85;
+  transition: left 0.09s linear;  /* glide the hold-then-fall-off */
+}
+@media (prefers-reduced-motion: reduce) { .canvas-record-coach .crc-peak { transition: none; } }
+.canvas-record-coach .crc-db {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+  min-width: 42px;
+}
+.canvas-record-coach .crc-warn {
+  flex: 1 1 auto;
+  min-width: 0;                 /* allow the flex item to shrink instead of forcing overflow */
+  color: var(--crc-tone);
+  overflow-wrap: break-word;    /* wrap (grow the pill vertically) rather than clip on mobile */
+}
+.canvas-record-coach .crc-audio:not(.has-warn) .crc-warn { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .canvas-record-coach .crc-fill { transition: none; }
+}
+
+/* A capture-tool stage is a size container so its coaching overlays can scale their text
+   to the canvas (cqi below) - big on a large canvas, still readable when small. */
+.tool-stage.has-record { container-type: inline-size; }
+
+/* Recording tips - a "?" chip (top-left of the stage) that opens a reference panel of
+   mic/room best-practice (lib/recording-tips.ts). Themed via tokens so it reads on the
+   audio tool's light stage and the video viewfinder alike. Never exported. */
+.canvas-record-help { position: absolute; top: 14px; left: 14px; z-index: 7; }
+.canvas-record-help .crh-btn {
+  width: 44px; height: 44px;   /* comfortable touch target */
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-round);
+  background: hsl(var(--card) / 0.95);
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: calc(17px * var(--a11y-fs)); font-weight: 700; line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-2);
+  transition: color var(--dur-1), border-color var(--dur-1);
+}
+.canvas-record-help .crh-btn:hover,
+.canvas-record-help.is-open .crh-btn { color: hsl(var(--primary)); border-color: hsl(var(--primary) / 0.55); }
+.canvas-record-help .crh-btn:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.canvas-record-help .crh-panel {
+  position: absolute; top: 34px; left: 0;
+  width: clamp(240px, 44cqi, 440px);
+  /* Full stage height (minus the button offset + a small bottom gap) so all tips fit
+     without a scroll list; only a very short viewport falls back to scrolling. */
+  max-height: calc(100dvh - 62px);
+  overflow-y: auto;
+  padding: 12px 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  background: hsl(var(--card) / 0.98);
+  color: hsl(var(--card-foreground));
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+}
+.canvas-record-help .crt-title {
+  margin: 0 0 8px; font-size: clamp(10.5px, 1.4cqi, 14px); font-weight: 700; letter-spacing: 0.02em;
+  text-transform: uppercase; color: hsl(var(--muted-foreground));
+}
+.canvas-record-help .crt-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-4); }
+.canvas-record-help .crt-item {
+  display: flex; gap: 9px; align-items: flex-start;
+  font-size: clamp(13.5px, 1.9cqi, 19px); line-height: 1.4;
+  padding: 7px 9px; border-radius: 8px;
+  background: hsl(var(--muted) / 0.4);
+}
+/* Per-tip glyph - a primary-tinted Lucide icon that makes each tip scannable; scales with
+   the tip text so it stays proportional as the canvas grows. */
+.canvas-record-help .crt-ic {
+  flex: 0 0 auto;
+  width: clamp(15px, 2.1cqi, 22px); height: clamp(15px, 2.1cqi, 22px);
+  margin-top: 1px;
+  color: hsl(var(--primary));
+}
+/* Spotlight for a detected tip (in-panel flash) - a brief primary pulse. */
+.canvas-record-help .crt-item.is-flash { animation: crt-flash 1.1s ease-out 2; }
+@keyframes crt-flash {
+  0%, 100% { background: hsl(var(--muted) / 0.4); box-shadow: none; }
+  30% { background: hsl(var(--primary) / 0.18); box-shadow: 0 0 0 1px hsl(var(--primary) / 0.55) inset; }
+}
+
+/* Transient single-tip nudge - shown by flash() when the panel is closed and a detected
+   condition holds. Anchored under the "?" (mutually exclusive with the panel). */
+.canvas-record-help .crh-nudge {
+  position: absolute; top: 34px; left: 0;
+  display: flex; gap: var(--sp-5); align-items: flex-start;
+  width: clamp(260px, 52cqi, 520px);
+  padding: clamp(10px, 1.4cqi, 16px) clamp(12px, 1.6cqi, 18px);
+  border: 1px solid hsl(var(--primary) / 0.6);
+  border-radius: 12px;
+  background: hsl(var(--card) / 0.98);
+  color: hsl(var(--card-foreground));
+  font-size: clamp(15px, 2.7cqi, 26px); line-height: 1.4; font-weight: 500;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  opacity: 0; transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity var(--dur-2) ease, transform var(--dur-2) ease;
+}
+.canvas-record-help .crh-nudge:empty { display: none; }
+.canvas-record-help .crh-nudge.is-shown { opacity: 1; transform: none; }
+/* The nudge's glyph tracks its (larger) text. */
+.canvas-record-help .crh-nudge .crt-ic {
+  width: clamp(18px, 3cqi, 30px); height: clamp(18px, 3cqi, 30px); margin-top: 2px;
+}
+/* A short pulse on the "?" when a nudge fires, drawing the eye to the tips affordance. */
+.canvas-record-help.is-nudging .crh-btn { animation: crh-pulse 1s ease-out 2; }
+@keyframes crh-pulse {
+  0%, 100% { box-shadow: var(--shadow-2); }
+  40% { box-shadow: 0 0 0 4px hsl(var(--primary) / 0.35); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .canvas-record-help .crt-item.is-flash { animation: none; background: hsl(var(--primary) / 0.16); }
+  .canvas-record-help .crh-nudge { transition: none; }
+  .canvas-record-help.is-nudging .crh-btn { animation: none; }
+}
+
+/* Framing viewfinder (video tools), covering the stage until recording starts. */
+.canvas-record-viewfinder {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+  transform: scaleX(-1); /* mirror like a selfie camera for natural framing */
+}
+
+/* "Processing your video" curtain - shown while the record tool auto-composites the
+   intro/outro around a freshly-recorded clip (see record-control.ts autoProcessRecording). */
+.canvas-processing {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(3px);
+  color: #fff;
+  animation: canvas-proc-fade var(--dur-2) ease-out;
+}
+.canvas-processing-card { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding: var(--sp-8); }
+.canvas-processing-spinner {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-round);
+  border: 4px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #30ba78;
+  animation: canvas-proc-spin 0.9s linear infinite;
+}
+.canvas-processing-text { font-size: calc(18px * var(--a11y-fs)); font-weight: 700; letter-spacing: -0.01em; }
+.canvas-processing-sub { font-size: var(--fs-md); opacity: 0.82; }
+@keyframes canvas-proc-spin { to { transform: rotate(360deg); } }
+@keyframes canvas-proc-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .canvas-processing { animation: none; }
+  .canvas-processing-spinner { animation-duration: 2.4s; }
+}
+/* Post-record audio download bar. */
+.canvas-audio-dl {
+  position: absolute;
+  bottom: 66px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  max-width: min(92%, 360px);
+  background: hsl(var(--card) / 0.97);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-lg);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(6px);
+}
+.canvas-audio-dl audio { width: 100%; height: 34px; }
+.canvas-audio-dl-actions { display: flex; gap: var(--sp-3); align-items: center; }
+.canvas-audio-dl-actions button {
+  padding: var(--sp-3) var(--sp-6);
+  border-radius: var(--radius-pill);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.canvas-audio-dl-actions button:hover { border-color: hsl(var(--primary)); }
+.canvas-audio-dl-actions button:disabled { opacity: 0.6; cursor: progress; }
+.canvas-audio-dl-x { margin-left: auto; padding: 6px 10px !important; }
+@media (prefers-reduced-motion: reduce) {
+  .canvas-record-btn[data-state="recording"] .canvas-record-square,
+  .tool-stage.is-recording::after { animation: none; }
+}
+
+/* Display capture (engine v1.54): tools declaring render.capture:"screen" mount a
+   Screenshot + Record pair on the stage instead of the single centred record button.
+   The bar is the absolutely-positioned, centred flow container at the foot of the
+   stage; the pill look of each button is inherited from .canvas-record-btn /
+   .canvas-screen-btn above, so this only re-anchors them side by side. */
+.canvas-screen-bar {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+}
+/* Return the two pills to normal flow inside the bar - the shared .canvas-record-btn
+   base absolutely-centres a lone button, which would stack them on top of each other. */
+.canvas-screen-bar > .canvas-screen-btn,
+.canvas-screen-bar > .canvas-record-btn {
+  position: static;
+  inset: auto;
+  transform: none;
+}
+/* Live preview of the shared surface. It reuses the video viewfinder for its fill +
+   black backdrop, but a screen is not a selfie: undo the mirror, and let it letterbox
+   (object-fit:contain is set inline) so a captured display is never cropped. The
+   compound selector outranks the .canvas-record-viewfinder mirror regardless of order. */
+.canvas-record-viewfinder.canvas-screen-preview {
+  transform: none;
+  background: #000;
+}
+/* Free-form crop overlay for a screen capture (screencap tool). Shell-owned, laid
+   over the canvas by screen-capture-control.ts on every pointerdown/resize; sized
+   and positioned inline from the canvas's visual rect. data-export-hide keeps it
+   out of the capture. Non-destructive: it only drives the `crop` input. */
+.canvas-crop-layer {
+  position: absolute;
+  z-index: 5;                /* under the .canvas-screen-bar (z 6), over the canvas */
+  cursor: crosshair;
+  touch-action: none;        /* let pointer drags draw a box instead of scrolling */
+}
+.canvas-crop-box {
+  position: absolute;
+  outline: 1px dashed currentColor;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  pointer-events: none;
+}
+
+/* ── Image framing overlay (plans/148) ────────────────────────────────────────
+   ONE overlay for every framed image in every tool, mounted by
+   views/framing-overlay.ts wherever the rendered canvas carries a
+   [data-framing] element. Arm-then-manipulate: an un-armed image scrolls the
+   page like any other, and only the armed one takes the drag. Chrome-only -
+   data-export-hide keeps the layer out of every capture, and nothing here
+   reaches inside the canvas element itself. */
+.framing-layer {
+  position: absolute;
+  z-index: 5;                /* over the canvas, under a capture bar (z 6) */
+  cursor: grab;
+  touch-action: none;        /* only while armed - the layer only exists then */
+  outline: 2px solid hsl(var(--ring) / 0.75);
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+.framing-layer:active { cursor: grabbing; }
+/* The armed image itself: a faint tint so it is obvious WHICH slot is live when a
+   tool frames several. Chrome, not content - it never reaches an export. */
+.tool-canvas [data-framing].is-framing-armed,
+#tool-content [data-framing].is-framing-armed {
+  outline: 2px solid hsl(var(--ring) / 0.75);
+  outline-offset: 1px;
+}
+.framing-rotate {
+  position: absolute;
+  left: 50%;
+  top: -26px;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  padding: 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-round);
+  background: hsl(var(--background));
+  cursor: grab;
+  touch-action: none;
+}
+.framing-rotate::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 1px;
+  height: 6px;
+  background: hsl(var(--ring) / 0.75);
+}
+.framing-rotate::after {
+  content: "\21BB";          /* clockwise open circle arrow */
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  line-height: 1;
+}
+.framing-rotate:active { cursor: grabbing; }
+.framing-bar {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, 6px);
+  display: flex;
+  gap: var(--sp-2);
+  padding: 3px;
+  border-radius: 8px;
+  background: hsl(var(--background) / 0.92);
+  box-shadow: 0 1px 6px #0003;
+  white-space: nowrap;
+}
+.framing-btn {
+  font: inherit;
+  font-size: var(--fs-xs);
+  padding: 3px 8px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  background: hsl(var(--background));
+  color: inherit;
+  cursor: pointer;
+}
+.framing-btn:hover { background: hsl(var(--muted)); }
+
+/* The screen clip is offered in the same post-capture bar as a voice take, but the
+   player is a <video>, not <audio> - give it the same full-width, letterboxed frame. */
+.canvas-audio-dl video {
+  width: 100%;
+  max-height: min(46vh, 320px);
+  border-radius: 8px;
+  background: #000;
+  object-fit: contain;
+}
+
+/* Clips the canvas to its visual (scaled) size so the stage doesn't leave
+   a gap when transform: scale() reduces the canvas below its DOM dimensions. */
+.tool-canvas-outer {
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px #8884,0 .5em 3em #0002;
+  /* Slow default transition = the gentle fade-OUT after a resize ends. */
+  transition: box-shadow 0.4s ease;
+}
+
+/* Editor-only outline pulsed onto the canvas WHILE the export size is being
+   changed (scrub / scroll / type) and removed shortly after - see
+   pulseCanvasResize() in tool.js. Lives on the OUTER wrapper, never the exported
+   #tool-canvas, so it can't bleed into output; box-shadow (not outline/border)
+   so it sits OUTSIDE the canvas and never draws over its content. A faster
+   transition here makes it appear quickly; the base rule fades it out slowly. */
+.tool-canvas-outer.is-resizing {
+  box-shadow: 0 .5em 3em #0002,
+              0 0 0 1.2px hsl(var(--ring) / 0.6),
+              0 0 16px hsl(var(--ring) / 0.10);
+  transition: box-shadow 0.09s ease;
+}
+
+/* Editor (free-canvas) only - let boxes dragged off the artboard spill PAST the
+   frame so they stay visible and manageable instead of being clipped at its edge.
+   The frame's own box-shadow (above) is kept as the "here's where the export area
+   begins" cue; the stage still clips the overflow to the visible viewport, and
+   export is unaffected (the raster capture is bounded by #tool-canvas, and the
+   vector walkers' out-of-viewBox geometry never paints). Scoped via :has() so it
+   only applies while the free-canvas overlay is mounted. */
+.tool-canvas-outer:has(> .tool-canvas.fc-open-canvas) { overflow: visible; }
+
+/* With artboards in the doc (frames mode) the canvas rect is only the PASTEBOARD:
+   each artboard page paints its own surface + editor shadow, so the outer ring +
+   drop shadow here would outline a phantom page behind them (and it lingered
+   after drawing the first artboard). free-canvas stamps `fc-has-frames` from the
+   model on every chrome sync; no-frames docs keep the page chrome - there the
+   canvas IS the artboard. (plans/141) */
+.tool-canvas-outer:has(> .tool-canvas.fc-has-frames) { box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-canvas-outer,
+  .tool-canvas-outer.is-resizing { transition: none; }
+}
+
+/* ── Multi-page document editor (render.paged, e.g. multi-page-pdf) ──────────────
+   The whole document is laid out at full length and the CANVAS SURFACE scrolls, so
+   every page is visible and pages no longer "appear out of nowhere" from a one-page
+   clip. Each [data-pdf-page] box keeps its locked one-page size - that's what export
+   reads - it just stops bounding what the editor shows. The stage stays overflow:hidden
+   so the docked toggles keep their fixed spot; the outer wrapper is the scroll surface. */
+.tool-layout.is-paged .tool-stage { overflow: hidden; }
+.tool-layout.is-paged .tool-canvas-outer {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 24px 44px;                 /* side padding leaves room for the page shadows */
+  background: none;
+  box-shadow: none;                       /* each page carries its own shadow */
+  touch-action: pan-y;                    /* native vertical scroll on touch */
+}
+/* Grow the canvas to the full stacked height (it was locked to one page) and keep it at
+   its content height so the surface - not an inner one-page window - owns the scroll.
+   overflow:visible so each page's own drop-shadow shows instead of being clipped at the
+   canvas edge - safe here: export draws each [data-pdf-page] individually (never the whole
+   canvas) and every page clips its own content, so nothing can bleed into the output. */
+.tool-layout.is-paged #tool-canvas {
+  height: auto !important;
+  overflow: visible !important;
+  flex-shrink: 0;
+  box-shadow: none;
+  transform: none !important;             /* fit is via `zoom`, not a transform */
+}
+/* Undo the tool root's own fill-and-internal-scroll (e.g. .mpdf-doc { height:100%;
+   overflow:auto }) so the pages stack naturally to full length. Targets the mounted
+   root generically (skips the tool's <style>), never a tool-specific class. */
+/* Scoped away from the web-page preview below: a web page's root keeps its own
+   min-height semantics (its 100vh opening IS the design), so only true PAGE
+   stacks get flattened. */
+.tool-layout.is-paged:not(.is-webdoc) #tool-canvas > *:not(style) {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+/* Web-page preview (render.webPreview - the paged surface with the zoom fit
+   dropped): the canvas is a real viewport. Full pane width, live reflow on any
+   pane resize, natural height, edge-to-edge - the page's own paper is the only
+   chrome, exactly what a visitor's browser would show. */
+.tool-layout.is-webdoc .tool-canvas-outer {
+  padding: 0;
+  align-items: stretch;
+}
+.tool-layout.is-webdoc #tool-canvas {
+  width: 100% !important;
+  height: auto !important;
+  box-shadow: none;
+}
+
+/* ── Slide-sorter filmstrip (paged tools) ────────────────────────────────────
+   A vertical rail of thumbnails down the left of the canvas: click one to jump to
+   its slide (and, when the page carries data-block-index, to the sidebar block that
+   authors it); the ← → / ↑ ↓ keys step. Lives in #tool-stage OUTSIDE the scaled
+   #tool-canvas, so it stays a fixed size. Mounted by lib/page-filmstrip.ts; the
+   .has-pagestrip class on #tool-stage gates it (single-page tools show nothing). */
+#tool-stage { --pagestrip-w: 172px; --pagestrip-h: 138px; }
+.pagestrip { display: none; }
+#tool-stage.has-pagestrip .pagestrip {
+  display: flex; flex-direction: column; gap: var(--sp-5);
+  position: absolute; left: 0; top: 0; bottom: 0; width: var(--pagestrip-w);
+  box-sizing: border-box; padding: 14px 12px;
+  overflow-y: auto; overflow-x: hidden;
+  background: hsl(var(--muted) / 0.5);
+  border-right: 1px solid hsl(var(--border));
+  z-index: 6;
+  scrollbar-width: thin;
+}
+/* Shift the scrolling page surface right to clear the rail. The #tool-stage id beats
+   the `.tool-layout.is-paged .tool-canvas-outer { inset: 0 }` rule for `left`. */
+#tool-stage.has-pagestrip .tool-canvas-outer { left: var(--pagestrip-w); }
+
+.pagestrip-thumb { position: relative; width: 100%; }
+.pagestrip-open {
+  display: flex; flex-direction: column; gap: var(--sp-2);
+  padding: 0; border: 0; background: none; cursor: pointer;
+  width: 100%; text-align: left;
+}
+/* Per-slide delete - a small × in the thumbnail's top-right, revealed on hover/focus. */
+.pagestrip-del {
+  position: absolute; top: 4px; right: 4px;
+  width: 20px; height: 20px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: 0; border-radius: var(--radius-round);
+  background: rgba(0, 0, 0, 0.55); color: #fff;
+  font-size: calc(15px * var(--a11y-fs)); line-height: 1; cursor: pointer;
+  opacity: 0; transition: opacity var(--dur-1), background var(--dur-1);
+}
+.pagestrip-thumb:hover .pagestrip-del,
+.pagestrip-del:focus-visible { opacity: 1; }
+.pagestrip-del:hover { background: hsl(0 72% 48%); }
+.pagestrip-frame {
+  position: relative; width: 100%; display: block;
+  border-radius: var(--radius-sm); overflow: hidden;
+  border: 2px solid transparent;
+  background: #fff;                        /* shows through if a page has no bg of its own */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
+  transition: border-color var(--dur-1), box-shadow var(--dur-1), transform 0.08s;
+}
+/* The cloned page inside is a decorative mini-render - never interactive. */
+.pagestrip-frame > * { pointer-events: none; }
+.pagestrip-thumb:hover .pagestrip-frame { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22); }
+.pagestrip-thumb.is-active .pagestrip-frame { border-color: hsl(var(--primary)); box-shadow: var(--ring-focus-strong); }
+.pagestrip-num {
+  font-size: var(--fs-2xs); font-weight: 600; color: hsl(var(--muted-foreground));
+  padding-left: 2px;
+}
+.pagestrip-thumb.is-active .pagestrip-num { color: hsl(var(--primary)); }
+
+/* ── Bottom filmstrip (render.filmstrip: "bottom") ───────────────────────────
+   Same rail, laid along the bottom edge instead of the left - the deck-strip shape,
+   for tools whose pages are wide and few (battlecards, decks) where a left rail eats
+   the width the card actually needs. The module fixes each thumbnail's HEIGHT in this
+   mode (widths follow the page aspect), so --pagestrip-h below is exact and no
+   measure-then-relayout pass is needed (--pagestrip-h is set with --pagestrip-w above). */
+#tool-stage.has-pagestrip.is-pagestrip-bottom .pagestrip {
+  flex-direction: row; align-items: flex-end;
+  left: 0; right: 0; top: auto; bottom: 0;
+  width: auto; height: var(--pagestrip-h);
+  padding: 12px 14px;
+  overflow-x: auto; overflow-y: hidden;
+  border-right: 0;
+  border-top: 1px solid hsl(var(--border));
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+}
+/* The page surface clears the strip from below, not from the left. */
+#tool-stage.has-pagestrip.is-pagestrip-bottom .tool-canvas-outer {
+  left: 0;
+  bottom: var(--pagestrip-h);
+}
+/* Thumbs size to their own (aspect-derived) width and never squash to fit the row. */
+#tool-stage.is-pagestrip-bottom .pagestrip-thumb { width: auto; flex: 0 0 auto; }
+#tool-stage.is-pagestrip-bottom .pagestrip-open { width: auto; align-items: flex-start; }
+#tool-stage.is-pagestrip-bottom .pagestrip-frame { width: auto; }
+
+/* A sidebar block briefly flagged when its slide (or thumbnail) was jumped to. */
+.block-item.is-slide-linked {
+  animation: block-slide-linked 0.9s ease-out;
+}
+@keyframes block-slide-linked {
+  0%, 40% { box-shadow: 0 0 0 2px hsl(var(--primary) / 0.55); }
+  100% { box-shadow: 0 0 0 2px hsl(var(--primary) / 0); }
+}
+
+/* Export shutter - a candy-swirl lollipop iris that closes to COVER the whole
+   stage while the brief full-res resize during export (the "shake") happens,
+   then opens again. Template-agnostic: the live canvas is what's exported
+   underneath, so canvas/WebGL document roots keep their real pixels.
+   The swirl, seal plate and mark pop are driven in lib/shutter.ts; this file
+   only positions and stacks the surfaces (seal behind → iris → mark → flash). */
+.export-shutter {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  overflow: hidden;
+  display: none;             /* only mounted/composited while exporting */
+}
+/* A sealed plate SWALLOWS taps (pointer-events). It used to let them through,
+   which on the fullscreen (mobile) shutter meant tapping controls the user could
+   not see - sidebar, export popup, FAB - all mid-export. Only the status block's
+   own button opts back in (see .export-shutter__status below). */
+.export-shutter.is-active { display: block; pointer-events: auto; }
+/* Mobile: the controller moves the shutter to <body> and adds this class so it
+   covers the whole screen - above the sidebar sheet, export popup and FAB - while
+   the system download/share sheet appears. Desktop keeps the in-stage shutter. */
+.export-shutter--fullscreen { position: fixed; inset: 0; z-index: 100000; }
+/* Seal plate - an opaque backdrop the swirl closes in front of. The swirl already
+   fills the frame at full close, so with WebGL this only fades in over the last
+   sliver as belt-and-braces occlusion; without WebGL, lib/shutter.ts ramps it
+   across the whole close so the "hide the stage" contract still holds. Sits
+   BEHIND the iris. Colour follows the active theme/brand background. */
+.export-shutter__seal {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: hsl(var(--background));
+}
+/* The swirl itself - a WebGL canvas painted by lib/shutter.ts. This only sizes
+   and stacks the surface (above the seal, below the mark). */
+.export-shutter__iris {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%; height: 100%;
+  display: block;
+  pointer-events: none;
+}
+/* The brand-hued Lolly mark that pops out on top of the swirl at ~70% of the
+   close. Centred; lib/shutter.ts sets its width (18% of the stage's smaller
+   side), opacity and pop scale each frame. */
+.export-shutter__mark {
+  position: absolute;
+  top: 50%; left: 50%;
+  z-index: 2;
+  aspect-ratio: 1;            /* height follows the JS-set width (the swirl viewBox is square) */
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.5);
+  will-change: transform, opacity;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4));
+  isolation: isolate;         /* multiply layers blend within the mark, never the seal behind */
+}
+/* The mark is STACKED LAYER DIVS (shutter-mark.ts, generated from the repo-root
+   icon.svg), each holding one slice of the swirl. The spin animates the DIVS,
+   not SVG children: an HTML transform composites off the main thread, so the
+   mark keeps turning while the export render blocks it - the old single-SVG
+   mark (SVG-child transforms are main-thread in Chromium) froze the moment an
+   export started. Cadence is the icon's own 3/6/9s; the hue drift rides the
+   mark container (drop-shadow restated in each keyframe - an animated filter
+   replaces, never merges). The coloured spiral is var(--exsh-swirl), set per
+   export to the brand tone in lib/shutter.ts, which also self-gates the whole
+   flourish under reduced motion. */
+.export-shutter__layer { position: absolute; inset: 0; will-change: transform; }
+.export-shutter__layer svg { display: block; width: 100%; height: 100%; }
+/* The icon's swirl paths paint with mix-blend-mode:multiply, and the layers are
+   concentric - inner darkens mid darkens outer - so the blend must cross the
+   stacked divs exactly as it crossed paint order inside one SVG canvas. The
+   generator hoists each multiply run into its own div; isolation on the mark
+   keeps the blend from sampling the seal plate behind it. */
+.export-shutter__layer--multiply { mix-blend-mode: multiply; }
+.export-shutter__layer--spin1 { animation: export-shutter-spin 3s linear infinite; }
+.export-shutter__layer--spin2 { animation: export-shutter-spin 6s linear infinite; }
+.export-shutter__layer--spin3 { animation: export-shutter-spin 9s linear infinite; }
+@keyframes export-shutter-spin {
+  100% { transform: rotate(360deg); }
+}
+.export-shutter__mark { animation: export-shutter-hue 6s ease-in-out infinite; }
+@keyframes export-shutter-hue {
+  0%, 100% { filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4)) hue-rotate(15deg); }
+  50%      { filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4)) hue-rotate(-15deg); }
+}
+/* Shutter-closed flash. Sits ABOVE the swirl and mark so the sealed cover flashes
+   too, not just the artwork behind it. Fast in, long out - over this duration
+   a plain two-stop fade reads as a slow dip rather than a flash, which is why
+   the decay is stepped. Fires only at the end of a close. */
+.export-shutter__flash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  background: var(--brand-primary, hsl(var(--primary)));
+}
+.export-shutter__flash.is-on { animation: export-shutter-flash 1.05s cubic-bezier(0.16, 0.8, 0.3, 1) both; }
+@keyframes export-shutter-flash {
+  0% { opacity: 0; } 6% { opacity: 1; } 22% { opacity: 0.5; } 48% { opacity: 0.18; } 100% { opacity: 0; }
+}
+
+/* Status block - what is exporting, how far in, how long, and the way out. Above
+   every other shutter surface (flash is 3). lib/shutter.ts builds it on first use
+   and only reveals it once an export outlasts STATUS_DELAY, so a sub-second still
+   export is untouched. Bottom-anchored: clear of the centred mark, and
+   thumb-reachable on the fullscreen (mobile) shutter, which is the case that used
+   to be an opaque screen with no progress and no escape. */
+.export-shutter__status {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px));
+  transform: translateX(-50%);
+  width: min(320px, calc(100% - 32px));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  text-align: center;
+  /* The plate swallows taps; this is the one surface that must still take them. */
+  pointer-events: auto;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--dur-2) ease;
+}
+.export-shutter__status.is-visible { opacity: 1; visibility: visible; }
+.export-shutter__status-label {
+  margin: 0;
+  font-size: calc(15px * var(--a11y-fs));
+  font-weight: 600;
+  line-height: 1.3;
+}
+.export-shutter__status-meta {
+  margin: 0;
+  font-size: var(--fs-md);
+  color: hsl(var(--muted-foreground));
+  /* The clock ticks every second - tabular digits keep the line from jittering. */
+  font-variant-numeric: tabular-nums;
+}
+.export-shutter__status-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  background: hsl(var(--muted));
+}
+.export-shutter__status-bar i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: hsl(var(--primary));
+  transition: width var(--dur-2) linear;
+}
+.export-shutter__status-hide {
+  min-height: 44px;          /* touch target - this is the phone's only way out */
+  align-self: stretch;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  cursor: pointer;
+}
+.export-shutter__status-hide:hover { background: hsl(var(--muted)); }
+
+/* Inline render-failure notice - overlays the stage when a template script throws
+   during render (see the runtime.subscribe catch in tool.js). A sibling of the
+   canvas so the per-render innerHTML rebuild doesn't remove it. z-index sits below
+   the export shutter (6) so an in-progress export still covers it. */
+.canvas-error {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  max-width: min(90%, 420px);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  /* Solid destructive pairing - guaranteed AA in light/dark/suse (unlike red text
+     on the card, which is low-contrast on the SUSE dark-teal card). */
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+  font-size: var(--fs-md);
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 6px 20px hsl(0 0% 0% / 0.2);
+}
+
+/* Fullscreen utility tools (no sidebar, no export) */
+.tool-layout[data-sidebar="hidden"] .tool-stage {
+  overflow: auto;
+  align-items: flex-start;
+  justify-content: flex-start;
+  place-items: start;
+  background: none;
+    height:  100vh  !important;
+    height:  100dvh  !important;
+}
+
+#tool-content {
+  width: 100%;
+  min-height: 100%;
+}
+
+/* ─── The focused-field ring ─────────────────────────────────────────────────
+   ONE recipe (tinted border + a 3px translucent halo, the browser outline
+   suppressed) for every bordered text/number/select control in the tool view.
+   It was restated six times - three here, three in tool-chrome.css.
+
+   This sheet owns it, not tool-chrome.css, because it is the one that is ALWAYS
+   present wherever these selectors render: views/tool.ts loads both sheets, but
+   views/multi-edit.ts and views/profile.ts load tool.css ALONE, and both render
+   .input-row controls. Parking the shared rule in tool-chrome.css would have
+   silently dropped the ring in those two views.
+
+   Declared last in the sheet so it still beats the :hover border-colors above it
+   (.time-input-wrap, .block-field) exactly as the six separate rules did.
+   tool-chrome.css loads AFTER this sheet, so its two competing :hover rules
+   (.export-filename, .tool-actions select) carry a :not(:focus) there to keep
+   the same hover-vs-focus outcome - see the note beside them. The export panel's
+   card selects have moved to `.field-select`, which owns its own focus state
+   (halo OVER the emboss), so they are excluded here rather than having this
+   recipe flatten the highlight back out.
+
+   Untouched deliberately: the two partial variants that omit `outline: none`
+   (.export-dims .dim-dpi:focus-within here's sibling in tool-chrome.css, and
+   .input-section:has(.input-section-summary:focus-visible) above) - they ring a
+   CONTAINER, not the focusable element, so they are not this recipe. And
+   a11y.css's :focus-visible rings sit in a higher layer and keep winning. */
+.input-row input:focus,
+.input-row textarea:focus,
+.input-row select:focus,
+.time-input-wrap input[type="time"]:focus,
+.block-field:focus,
+.export-dims input[type="number"]:focus,    /* tool-chrome.css */
+.video-params input[type="number"]:focus,   /* tool-chrome.css */
+.export-filename:focus,                     /* tool-chrome.css */
+.tool-actions select:not(.field-select):focus {   /* tool-chrome.css */
+  border-color: hsl(var(--ring));
+  outline: none;
+  box-shadow: var(--ring-focus);
+}
+
+/* ── Entrance settle (plans/142) - the tool view mounts as one brief fade
+   (sidebar + stage wrapper) instead of an instant cut; the worst measured
+   transition was the countdown tool's full-bleed dark canvas over a white
+   page (ΔL 0.90). Same card-in ladder as the dashboards/gallery; armed by
+   views/tool.ts via armViewEnter, which skips arming under the OS OR app
+   reduced-motion pref, so this block never needs an attribute guard. The
+   animated node is .tool-stage (the wrapper), never #tool-canvas - the
+   artwork's own paint stays untouched. */
+@media (prefers-reduced-motion: no-preference) {
+  .tool-view.is-entering .sidebar,
+  .tool-view.is-entering .tool-stage {
+    animation: card-in var(--enter-dur) var(--enter-ease) backwards;
+    animation-delay: calc(var(--enter-i, 0) * 0.05s);
+  }
+}
+}
+
+/* A link-shaped action inside a notice (a switch, a reload) - plans/186. */
+.tool-notice-link {
+  border: none;
+  background: none;
+  padding: 0;
+  margin-left: 0.25em;
+  font: inherit;
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  cursor: pointer;
+}
+.tool-notice-link:hover { text-decoration: none; }

@@ -1,0 +1,83 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this sheet ships with the profile panel's own chunk
+   (components/profiles-manager.ts imports it) and sits in the `views` layer, whose
+   order is declared once in styles/app.css. Wrapping it means its rules keep a fixed
+   priority - above chrome/primitives/base, below overrides/a11y - no matter when Vite
+   injects the chunk. Do not rely on load order.
+
+   Split from color-lab.css rather than added to it for two reasons: the panel is a
+   COMPONENT, mountable from anywhere a `ColorProfilesHost` exists, and the Lab's sheet
+   is loaded by the Lab. The existing `.labp-*` rules stay where they are - moving them
+   would collide with work in flight on that file - so this sheet holds only the
+   sections, the invitation on the `+` pill, and the touch sizes. */
+@layer views {
+
+/* ── The panel's sections (components/profiles-manager.ts) ────────────────────
+   Print and Display, each with the loaded profiles of that kind followed by the
+   presets we can honestly offer. Separation is space and type weight; no rules, no
+   boxes, and certainly no dashed borders - a dashed border in this design language
+   means DROP AREA, and the panel's one drop area is the `.updz` at the top. */
+.labp-sec + .labp-sec { margin-top: 1.1rem; }
+.labp-sec-h {
+  /* Sentence case at body-ish size, so it reads as a section of a document. The
+     sub-heading inside Print (`.labp-conds-h`, color-lab.css) is the small uppercase
+     muted label - two levels, told apart by case and colour rather than by size alone. */
+  margin: 0 0 0.5rem;
+  font-size: calc(0.95rem * var(--a11y-fs));
+  font-weight: 650;
+  color: hsl(var(--foreground));
+}
+/* An empty list must cost nothing: `.labp-list` is a grid with a gap, and an empty
+   grid still contributes its own box, which showed as a stray half-line of space
+   under a heading whose section had presets but no loaded files. */
+.labp-list:empty { display: none; }
+/* The loaded rows and the preset list below them are two groups, not one column of
+   rows - a little more air between them than the 0.35rem inside each. */
+.labp-sec .labp-list:not(:empty) + .labp-conds-list { margin-top: 0.6rem; }
+.labp-sec .labp-conds-h { margin-top: 0.7rem; }
+
+/* Touch: a preset row IS the control, so it gets a full-size target on a coarse
+   pointer. A section heading is not a target and gets nothing. `min-height` rather
+   than padding so the two-line rows (identifier + note) are unaffected. */
+@media (pointer: coarse) {
+  .labp-cond-btn { min-height: 44px; }
+  .labp-remove { min-height: 32px; padding-inline: 0.35rem; }
+  .labp-close { min-width: 44px; min-height: 44px; }
+}
+
+/* ── The `+` that opens all of this (views/color-lab.ts, `.lab-limit-add`) ────
+   Adding your own colour space is the POINT of the feature, not an overflow control,
+   and as a plain neutral segment at the end of the limit row it read as the latter.
+   So it is filled in the brand hue and carries the row's largest glyph: an invitation
+   sitting beside the options rather than a fifth option.
+
+   It is not `aria-pressed` and never becomes the charted target - pressing it opens a
+   panel - so it deliberately does NOT wear the pressed segment's solid primary fill.
+   A tint plus a primary border is the "act" state; solid primary would claim it was
+   the current comparison. Only properties color-lab.css's own `.lab-limit-add` rule
+   leaves alone are set here, so neither rule depends on which sheet loads first. */
+.lab-limit .view-seg-btn.lab-limit-add {
+  padding-inline: 0.7rem;
+  border-color: hsl(var(--primary) / 0.55);
+  background: hsl(var(--primary) / 0.14);
+  color: hsl(var(--primary));
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+/* The row's largest glyph - this is the one control in it that adds something. The
+   size lives on the glyph rather than the button so the word beside it stays the
+   row's own type size; a 1.15rem WORD would out-shout the three gamut options it
+   sits next to, and this pill is an invitation, not a fourth option. */
+.lab-limit .view-seg-btn.lab-limit-add .lab-limit-add-g { font-size: calc(1.15rem * var(--a11y-fs)); }
+.lab-limit .view-seg-btn.lab-limit-add:hover {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.24);
+}
+/* A comfortable target on a phone, where this pill is the smallest thing in the row. */
+@media (pointer: coarse) {
+  .lab-limit .view-seg-btn.lab-limit-add { min-width: 44px; min-height: 44px; }
+}
+
+}

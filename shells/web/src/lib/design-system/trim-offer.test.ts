@@ -1,0 +1,333 @@
+// SPDX-License-Identifier: MPL-2.0
+/**
+ * trim-offer.ts - the PURE half of the trim-to-content offer (plan 97 section 7.3).
+ *
+ * Run with:
+ *   node --import ./tests/css-stub.mjs --test "shells/web/src/lib/design-system/trim-offer.test.ts"
+ *
+ * `prepareTrim` needs canvas/Image decoding and is verified in a browser;
+ * everything it DECIDES with is here - the svg-vs-raster routing, the artboard
+ * read, the pad clamp, the savings maths and the gate that keeps an already-tight
+ * file from costing the user a decision.
+ *
+ * `mountTrimOffer` builds real DOM, so the last section runs it under jsdom with
+ * a hand-built proposal (no decode involved). What it pins is the card's ANSWER
+ * CONTRACT - which control means which of the three answers - because three of
+ * the four surfaces mount this card in front of an upload that has not happened
+ * yet, and there a dismissal that resolved instead of cancelling would silently
+ * store the file the user was backing out of.
+ */
+
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { JSDOM } from 'jsdom';
+import {
+  trimKindOf,
+  svgArtboardBox,
+  padTrimBox,
+  trimSavings,
+  isMeaningfulTrim,
+  mountTrimOffer,
+  TRIM_PAD_MAX,
+  MIN_TRIM_SAVINGS,
+} from './trim-offer.ts';
+import type { Box } from './trim-bounds.ts';
+import type { TrimProposal } from './trim-offer.ts';
+
+const bytes = (...values: number[]): Uint8Array => new Uint8Array(values);
+const ascii = (s: string): Uint8Array => new Uint8Array([...s].map(c => c.charCodeAt(0)));
+const box = (x: number, y: number, width: number, height: number): Box => ({ x, y, width, height });
+
+// ── routing: magic bytes, then MIME, then the name ───────────────────────────
+
+test('PNG/JPEG/GIF/WEBP/BMP/AVIF magic all route to the raster path', () => {
+  assert.equal(trimKindOf({}, bytes(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)), 'raster');
+  assert.equal(trimKindOf({}, bytes(0xff, 0xd8, 0xff, 0xe0)), 'raster');
+  assert.equal(trimKindOf({}, ascii('GIF89a...')), 'raster');
+  assert.equal(trimKindOf({}, ascii('RIFF\u0000\u0000\u0000\u0000WEBPVP8 ')), 'raster');
+  assert.equal(trimKindOf({}, ascii('BM\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000')), 'raster');
+  assert.equal(trimKindOf({}, ascii('\u0000\u0000\u0000 ftypavif')), 'raster');
+});
+
+test('an SVG root tag routes to the svg path, with or without an XML prolog', () => {
+  assert.equal(trimKindOf({}, ascii('<svg xmlns="http://www.w3.org/2000/svg">')), 'svg');
+  assert.equal(trimKindOf({}, ascii('\n  <svg viewBox="0 0 10 10">')), 'svg');
+  assert.equal(trimKindOf({}, ascii('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN">')), 'svg');
+  assert.equal(trimKindOf({}, ascii('<?xml version="1.0"?><svg viewBox="0 0 8 8">')), 'svg');
+});
+
+test('a UTF-8 BOM in front of the root tag does not lose the svg', () => {
+  assert.equal(trimKindOf({}, bytes(0xef, 0xbb, 0xbf, ...ascii('<svg width="10">'))), 'svg');
+});
+
+test('magic bytes outrank a lying MIME type and a lying file name', () => {
+  const png = bytes(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
+  assert.equal(trimKindOf({ type: 'image/svg+xml', name: 'logo.svg' }, png), 'raster');
+  const svg = ascii('<svg viewBox="0 0 4 4"><rect width="4" height="4"/></svg>');
+  assert.equal(trimKindOf({ type: 'image/png', name: 'logo.png' }, svg), 'svg');
+});
+
+test('with no readable magic the MIME type decides, then the extension', () => {
+  assert.equal(trimKindOf({ type: 'image/svg+xml', name: 'anything' }), 'svg');
+  assert.equal(trimKindOf({ type: 'image/webp', name: 'anything' }), 'raster');
+  // The OS handed over no MIME type at all - the name must still get the offer.
+  assert.equal(trimKindOf({ type: '', name: 'mark.SVG' }), 'svg');
+  assert.equal(trimKindOf({ type: '', name: 'shot.jpeg' }), 'raster');
+  // An XML prolog with no <svg> in the window proves nothing on its own.
+  assert.equal(trimKindOf({ type: '', name: 'thing.xml' }, ascii('<?xml version="1.0" encoding="UTF-8"?>')), null);
+});
+
+test('anything we do not trim answers null rather than guessing', () => {
+  assert.equal(trimKindOf({ type: 'application/pdf', name: 'guidelines.pdf' }, ascii('%PDF-1.7')), null);
+  assert.equal(trimKindOf({ type: 'font/woff2', name: 'Inter.woff2' }, ascii('wOF2')), null);
+  assert.equal(trimKindOf({}), null);
+});
+
+// ── the artboard read ────────────────────────────────────────────────────────
+
+test('the artboard is the root viewBox when there is one', () => {
+  assert.deepEqual(svgArtboardBox('<svg viewBox="-5 -5 110 60"><rect width="1" height="1"/></svg>'),
+    box(-5, -5, 110, 60));
+});
+
+test('width/height stand in for a missing viewBox, and percentages do not', () => {
+  assert.deepEqual(svgArtboardBox('<svg width="200" height="80"></svg>'), box(0, 0, 200, 80));
+  assert.deepEqual(svgArtboardBox("<svg width='200px' height='80px'></svg>"), box(0, 0, 200, 80));
+  assert.equal(svgArtboardBox('<svg width="100%" height="100%"></svg>'), null);
+});
+
+test('no authored box at all means no offer to make', () => {
+  assert.equal(svgArtboardBox('<svg xmlns="http://www.w3.org/2000/svg"><rect width="4" height="4"/></svg>'), null);
+  assert.equal(svgArtboardBox('not an svg at all'), null);
+  // A degenerate viewBox is not a box.
+  assert.equal(svgArtboardBox('<svg viewBox="0 0 0 0"></svg>'), null);
+});
+
+// ── pad maths ────────────────────────────────────────────────────────────────
+
+test('pad grows the content box on every side', () => {
+  assert.deepEqual(padTrimBox(box(40, 40, 20, 20), box(0, 0, 100, 100), 8), box(32, 32, 36, 36));
+});
+
+test('pad is clamped per side to the artboard, not uniformly', () => {
+  // A wordmark filling the artboard width with room above and below: the sides
+  // can give nothing, the top and bottom can give the full pad.
+  const padded = padTrimBox(box(0, 40, 100, 20), box(0, 0, 100, 100), 10);
+  assert.deepEqual(padded, box(0, 30, 100, 40));
+});
+
+test('pad never pushes the box past the artboard', () => {
+  const padded = padTrimBox(box(2, 2, 96, 96), box(0, 0, 100, 100), TRIM_PAD_MAX);
+  assert.deepEqual(padded, box(0, 0, 100, 100));
+});
+
+test('pad is clamped to the stepper range, and a bad value reads as none', () => {
+  assert.deepEqual(padTrimBox(box(40, 40, 20, 20), box(0, 0, 1000, 1000), 999),
+    padTrimBox(box(40, 40, 20, 20), box(0, 0, 1000, 1000), TRIM_PAD_MAX));
+  assert.deepEqual(padTrimBox(box(40, 40, 20, 20), box(0, 0, 100, 100), -12), box(40, 40, 20, 20));
+  assert.deepEqual(padTrimBox(box(40, 40, 20, 20), box(0, 0, 100, 100), Number.NaN), box(40, 40, 20, 20));
+});
+
+test('artwork that overflows its own artboard is never clipped by the clamp', () => {
+  // Content runs 20 units past the right edge of the authored box.
+  const padded = padTrimBox(box(10, 10, 110, 30), box(0, 0, 100, 100), 6);
+  assert.deepEqual(padded, box(4, 4, 116, 42));
+});
+
+test('a zero pad returns the content box unchanged', () => {
+  assert.deepEqual(padTrimBox(box(12.5, 3, 40, 9), box(0, 0, 100, 100), 0), box(12.5, 3, 40, 9));
+});
+
+// ── savings ──────────────────────────────────────────────────────────────────
+
+test('savings is the percentage of artboard AREA removed', () => {
+  assert.equal(trimSavings(box(0, 0, 100, 100), box(25, 25, 50, 50)), 75);
+  assert.equal(trimSavings(box(0, 0, 200, 100), box(0, 0, 100, 100)), 50);
+  assert.equal(trimSavings(box(0, 0, 100, 100), box(0, 0, 100, 100)), 0);
+});
+
+test('savings is reported to one decimal', () => {
+  // 1000×1000 with a 1px border trimmed: 1 - 998²/1000² = 0.3996 → 0.4
+  assert.equal(trimSavings(box(0, 0, 1000, 1000), box(1, 1, 998, 998)), 0.4);
+});
+
+test('savings never goes negative and never divides by a zero artboard', () => {
+  assert.equal(trimSavings(box(0, 0, 100, 100), box(-10, -10, 120, 120)), 0);
+  assert.equal(trimSavings(box(0, 0, 0, 0), box(0, 0, 10, 10)), 0);
+});
+
+// ── the "is this worth asking about" gate ────────────────────────────────────
+
+test('a margin worth removing clears the gate', () => {
+  // 1000×1000, a 4px border: 1 - 992²/1000² = 1.6% ≥ MIN_TRIM_SAVINGS.
+  assert.equal(isMeaningfulTrim(box(0, 0, 1000, 1000), box(4, 4, 992, 992)), true);
+  assert.equal(isMeaningfulTrim(box(0, 0, 400, 100), box(0, 0, 300, 100)), true);
+});
+
+test('an already-tight file makes no offer', () => {
+  const artboard = box(0, 0, 512, 512);
+  assert.equal(isMeaningfulTrim(artboard, artboard), false);
+  // 1000×1000 with a 1px border: 0.4%, under the threshold.
+  assert.equal(isMeaningfulTrim(box(0, 0, 1000, 1000), box(1, 1, 998, 998)), false);
+});
+
+test('the threshold is the documented one, in both directions', () => {
+  const artboard = box(0, 0, 1000, 1000);
+  // Exactly MIN_TRIM_SAVINGS of the area removed clears the gate.
+  const atThreshold = box(0, 0, 1000, 1000 * (1 - MIN_TRIM_SAVINGS / 100));
+  assert.equal(trimSavings(artboard, atThreshold), MIN_TRIM_SAVINGS);
+  assert.equal(isMeaningfulTrim(artboard, atThreshold), true);
+  const under = box(0, 0, 1000, 1000 * (1 - (MIN_TRIM_SAVINGS - 0.5) / 100));
+  assert.equal(isMeaningfulTrim(artboard, under), false);
+});
+
+test('a degenerate box on either side is not a trim', () => {
+  assert.equal(isMeaningfulTrim(box(0, 0, 100, 100), box(10, 10, 0, 40)), false);
+  assert.equal(isMeaningfulTrim(box(0, 0, 100, 0), box(10, 10, 40, 40)), false);
+});
+
+// ── the card: which control means which answer ───────────────────────────────
+
+const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://lolly.tools/' });
+globalThis.window = dom.window as unknown as typeof globalThis.window;
+globalThis.document = dom.window.document;
+// jsdom's addEventListener only accepts ITS AbortSignal, and the card wires every
+// listener through one controller - so the realm's controller has to be jsdom's.
+globalThis.AbortController = dom.window.AbortController as unknown as typeof globalThis.AbortController;
+// jsdom has no blob URLs; the card only mints them for two <img src> previews.
+const minted: string[] = [];
+const revoked: string[] = [];
+(URL as unknown as { createObjectURL(f: unknown): string }).createObjectURL = () => {
+  const u = `blob:test/${minted.length}`;
+  minted.push(u);
+  return u;
+};
+(URL as unknown as { revokeObjectURL(u: string): void }).revokeObjectURL = (u) => { revoked.push(u); };
+
+/** The consuming file's t(): the English source, with {params} filled in. */
+const t = (source: string, params?: Record<string, string | number>): string =>
+  Object.entries(params ?? {}).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, String(v)), source);
+
+const ORIGINAL = new File(['<svg viewBox="0 0 100 100"/>'], 'mark.svg', { type: 'image/svg+xml' });
+const TRIMMED = new File(['<svg viewBox="25 25 50 50"/>'], 'mark.svg', { type: 'image/svg+xml' });
+
+function proposal(): TrimProposal {
+  const made: TrimProposal = {
+    kind: 'svg',
+    originalFile: ORIGINAL,
+    trimmedFile: TRIMMED,
+    originalBox: box(0, 0, 100, 100),
+    trimmedBox: box(25, 25, 50, 50),
+    savings: 75,
+    pad: 0,
+    retrim: () => Promise.resolve(made),
+  };
+  return made;
+}
+
+interface Answered { file: File | null; trimmed: boolean | null; cancelled: boolean }
+
+/** Mount a card and return the host plus a record of the single answer it gave. */
+function mountCard(): { el: HTMLElement; got: Answered; teardown: () => void } {
+  const el = document.createElement('div');
+  document.body.appendChild(el);
+  const got: Answered = { file: null, trimmed: null, cancelled: false };
+  const teardown = mountTrimOffer(el, proposal(), {
+    t,
+    onResolve: (file, trimmed) => { got.file = file; got.trimmed = trimmed; },
+    onCancel: () => { got.cancelled = true; },
+  });
+  return { el, got, teardown };
+}
+
+const press = (el: Element, key: string): void => {
+  el.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key, bubbles: true }));
+};
+const click = (el: Element, sel: string): void => {
+  el.querySelector<HTMLElement>(sel)!.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+};
+
+test('the card: Trim answers with the trimmed bytes, Keep with the original', () => {
+  const trim = mountCard();
+  click(trim.el, '[data-trimo-act="trim"]');
+  assert.equal(trim.got.file, TRIMMED);
+  assert.equal(trim.got.trimmed, true);
+  assert.equal(trim.got.cancelled, false);
+  trim.teardown();
+
+  const keep = mountCard();
+  click(keep.el, '[data-trimo-act="keep"]');
+  assert.equal(keep.got.file, ORIGINAL);
+  assert.equal(keep.got.trimmed, false);
+  assert.equal(keep.got.cancelled, false);
+  keep.teardown();
+});
+
+test('the card: Escape CANCELS - it never answers with a file', () => {
+  // The whole point of the separate channel: on three of the four surfaces this
+  // card stands in front of an upload that has not happened, so a dismissal that
+  // resolved would store the very file the user was backing out of.
+  const { el, got, teardown } = mountCard();
+  press(el.querySelector('[data-trimo-act="trim"]')!, 'Escape');
+  assert.equal(got.cancelled, true);
+  assert.equal(got.file, null);
+  assert.equal(got.trimmed, null);
+  teardown();
+});
+
+test('the card: the ✕ is the pointer twin of Escape', () => {
+  const { el, got, teardown } = mountCard();
+  click(el, '[data-trimo-act="cancel"]');
+  assert.equal(got.cancelled, true);
+  assert.equal(got.file, null);
+  teardown();
+});
+
+test('the card answers exactly once, whatever is pressed afterwards', () => {
+  const { el, got, teardown } = mountCard();
+  press(el.querySelector('.trimo')!, 'Escape');
+  click(el, '[data-trimo-act="trim"]');
+  click(el, '[data-trimo-act="keep"]');
+  assert.equal(got.cancelled, true);
+  assert.equal(got.file, null, 'a late click must not add a second answer');
+  teardown();
+});
+
+test('the card: a key that is not Escape is left alone', () => {
+  const { el, got, teardown } = mountCard();
+  press(el.querySelector('.trimo-pad-input')!, 'ArrowUp');
+  assert.equal(got.cancelled, false);
+  assert.equal(got.file, null);
+  teardown();
+});
+
+test('the card: the stepper points at the readouts, and the savings line is live', () => {
+  // The stepper's entire effect is those two numbers. Without the pairing a
+  // screen-reader user pressing ArrowUp hears the spinner value and nothing else.
+  const { el, teardown } = mountCard();
+  const input = el.querySelector<HTMLInputElement>('.trimo-pad-input')!;
+  const savings = el.querySelector<HTMLElement>('[data-trimo-savings]')!;
+  const dims = el.querySelector<HTMLElement>('[data-trimo-after-dims]')!;
+  assert.equal(savings.getAttribute('role'), 'status');
+  assert.equal(savings.getAttribute('aria-live'), 'polite');
+  assert.deepEqual(
+    (input.getAttribute('aria-describedby') ?? '').split(' '),
+    [savings.id, dims.id],
+  );
+  assert.ok(savings.id && dims.id, 'both readouts carry an id to be pointed at');
+  // Written INTO the markup, not painted in afterwards: a live region filled
+  // after insertion announces itself the moment the card appears.
+  assert.equal(savings.textContent, 'Removes 75% of the area');
+  assert.equal(dims.textContent, '50 × 50');
+  teardown();
+});
+
+test('the card: teardown empties the mount and revokes every preview URL', () => {
+  minted.length = 0;
+  revoked.length = 0;
+  const { el, teardown } = mountCard();
+  assert.ok(minted.length > 0);
+  teardown();
+  assert.equal(el.innerHTML, '');
+  assert.deepEqual([...revoked].sort(), [...minted].sort());
+});

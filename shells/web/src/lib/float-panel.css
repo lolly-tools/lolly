@@ -1,0 +1,95 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Floating, resizable panel (lib/float-panel.ts) - a layout-bearing figure lifted
+   out of the flow, with a placeholder holding its exact box open behind it.
+   Cascade layer: `views`, declared once in styles/app.css. */
+@layer views {
+
+.floatp {
+  position: fixed;
+  z-index: 9100;          /* over the report; under the neuro dock's own 9002+ chrome */
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+  box-shadow: 0 18px 48px hsl(0 0% 0% / 0.28), 0 0 0 1px hsl(var(--border));
+  overflow: hidden;
+}
+/* No transition on left/top/width/height: they are written every pointermove, so
+   an eased one lags the cursor by its own duration and the panel swims. */
+.floatp.is-dragging, .floatp.is-resizing { user-select: none; }
+
+.floatp-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.4rem 0.35rem 0.7rem;
+  background: hsl(var(--muted) / 0.7);
+  cursor: grab;
+  /* The bar owns the gesture - without this a touch drag scrolls the page behind
+     the panel instead of moving it. */
+  touch-action: none;
+}
+.floatp.is-dragging .floatp-bar { cursor: grabbing; }
+.floatp-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: calc(0.78rem * var(--a11y-fs));
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.floatp-acts { flex: 0 0 auto; display: inline-flex; gap: 2px; }
+.floatp-btn {
+  width: 1.8rem; height: 1.8rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 999px;
+  background: none; color: hsl(var(--muted-foreground));
+  font: inherit; font-size: calc(0.85rem * var(--a11y-fs)); line-height: 1;
+  cursor: pointer;
+}
+.floatp-btn:hover { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+.floatp-btn:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: -2px; }
+
+/* The body scrolls rather than the panel, so the drag bar is always reachable -
+   a panel resized smaller than its content must not push its own handle away. */
+.floatp-body { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 0.6rem; }
+/* Whatever was popped out fills the panel. It arrives carrying whatever width its
+   old grid track gave it, which would leave it stranded at that size in a panel
+   the reader is dragging bigger. */
+.floatp-body > * { width: 100%; max-width: none; margin: 0; }
+
+/* The grips themselves (four edges, four corners) are the shared primitive -
+   lib/panel-grips.css, worn by the visualizer's enlarged player too. */
+
+/* Fullscreen: the panel IS the screen, so the grips would resize nothing (they
+   hide themselves) and the rounding would show black corners. */
+.floatp:fullscreen { border-radius: 0; width: 100% !important; height: 100% !important; }
+
+/* ── The placeholder ────────────────────────────────────────────────────────
+   Holds the popped-out figure's exact box open so nothing on the page moves.
+   Its border IS dashed, and that is the one case the convention allows: this is
+   a drop area in the literal sense - the outline of where the thing goes back. */
+.floatp-slot {
+  display: grid;
+  place-items: center;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.35);
+}
+.floatp-restore {
+  font: inherit;
+  font-size: calc(0.78rem * var(--a11y-fs));
+  font-weight: 600;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  cursor: pointer;
+}
+.floatp-restore:hover { border-color: hsl(var(--primary) / 0.5); background: hsl(var(--accent)); }
+.floatp-restore:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+
+}

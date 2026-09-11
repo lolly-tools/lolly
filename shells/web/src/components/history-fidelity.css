@@ -1,0 +1,10 @@
+.revision-history-entry:has(.revision-history-fidelity) { flex-wrap:wrap; }
+.revision-history-fidelity { flex-basis:100%; min-width:0; border-top:1px solid var(--ui-color-border-default); padding-block-start:var(--ui-space-control-block); display:flex; flex-direction:column; gap:var(--ui-space-control-block); }
+.revision-history-fidelity h3 { margin:0; font-size:var(--ui-type-label); }
+.revision-history-fidelity p,.revision-history-fidelity label { margin:0; font-size:var(--ui-type-caption); line-height:1.5; overflow-wrap:anywhere; }
+.revision-history-fidelity-summary { font-weight:bold; }
+.revision-history-fidelity ul { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:var(--ui-space-control-block); }
+.revision-history-fidelity li { padding:var(--ui-space-control-block); background:var(--ui-color-surface-muted); border-radius:var(--ui-radius-control); display:flex; flex-direction:column; gap:var(--sp-2); min-width:0; }
+.revision-history-fidelity-choice { display:flex; align-items:flex-start; gap:var(--sp-2); }
+.revision-history-fidelity-choice input { flex-shrink:0; }
+.revision-history-fidelity .btn { white-space:normal; }

@@ -1,0 +1,2344 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* ── Brand studio (lib/brand-editor.ts) - every .be-* rule for the editor the
+      #/start brand studio mounts. Extracted from dashboard.css when the editor
+      became start-exclusive; imported by brand-editor.ts so whichever view mounts
+      the editor pulls these styles with the same lazy chunk. `.be` is the
+      positioning context for the swatch-editor popover. */
+
+.be { position: relative; display: grid; gap: 1.1rem; }
+.be-locked { margin: 0; font-size: calc(.86rem * var(--a11y-fs)); line-height: 1.6; color: hsl(var(--muted-foreground)); }
+/* Background/text colour compose .card (chips.css, same --card/--card-foreground
+   pair); border/radius/padding are real deltas - .be-panel is bordered and at
+   the plain 1x radius, unlike .plat-section's borderless 1.25x. */
+.be-panel { border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 1.05rem 1.1rem; }
+/* .be-panel-head/-title/-sub compose .section-header (chips.css) - only the
+   small uppercase panel-label sizing stays a local delta. */
+.be-panel-head { margin-bottom: .9rem; }
+.be-panel-title { font-size: calc(.84rem * var(--a11y-fs)); letter-spacing: .02em; text-transform: uppercase; color: hsl(var(--foreground)); }
+.be-panel-sub { margin: .3rem 0 0; max-width: 74ch; font-size: var(--fs-md); line-height: 1.55; }
+.be-panel-sub strong { color: hsl(var(--foreground)); font-weight: 600; }
+.be-err { margin: .5rem 0 0; font-size: var(--fs-sm); color: hsl(var(--destructive)); }
+
+/* .be-btn/.be-cta/.be-add compose parts/buttons.css's `.btn` system (component
+   audit rec 2): the pressed/hover FILLS are declared once there (`.btn--primary`'s
+   and `.btn--ghost:hover`'s alias selector lists include `.be-cta` / `.be-btn`,
+   `.be-add` by name) - buttons.css is an eager sheet that always loads before this
+   lazy studio one, so these rules only need to carry what's left: the studio's own
+   tighter size/shape, and `.be-cta`'s genuinely different hover technique
+   (alpha-fade instead of `.btn--primary`'s brightness filter, since it has to sit
+   under the glossy `.is-active` gradient below without fighting it). */
+.be-btn, .be-cta, .be-add {
+  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .6);
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+  font: inherit; font-size: var(--fs-sm); font-weight: 600; padding: .45rem .85rem; cursor: pointer;
+}
+.be-cta { border-color: transparent; }
+.be-cta:hover { background: hsl(var(--primary) / .88); }
+.be-btn:disabled, .be-cta:disabled { opacity: .55; cursor: default; }
+
+/* Shared active CTA treatment. Draft exploration does not apply this state;
+   it is reserved for explicit actions such as the studio import button. */
+.be-cta.is-active {
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(0 0% 100% / .3);
+  background: linear-gradient(163deg,
+    color-mix(in oklab, hsl(var(--primary)), white 14%),
+    color-mix(in oklab, hsl(var(--primary)), black 20%));
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / .4), 0 4px 13px -5px hsl(var(--primary) / .75);
+}
+.be-cta.is-active:hover {
+  background: linear-gradient(163deg,
+    color-mix(in oklab, hsl(var(--primary)), white 20%),
+    color-mix(in oklab, hsl(var(--primary)), black 14%));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .be-cta.is-active { animation: be-cta-pulse 2.4s ease-in-out infinite; }
+}
+@keyframes be-cta-pulse {
+  0%, 100% { box-shadow: inset 0 1px 0 hsl(0 0% 100% / .4), 0 4px 13px -5px hsl(var(--primary) / .7); }
+  50%      { box-shadow: inset 0 1px 0 hsl(0 0% 100% / .4), 0 6px 19px -4px hsl(var(--primary) / .95); }
+}
+/* .be-add--sm/.be-btn--sm's size now lives solely in parts/buttons.css's `.btn--sm`
+   alias list (component audit rec 2) - was a byte-identical duplicate here. */
+
+/* ── Corner style - the shape.radius slider, a .be-panel on the studio's
+      Tokens tab (the Dashboard shows the value read-only, without this). */
+.brand-radius-row { display: flex; align-items: center; gap: var(--sp-6); margin-top: 0.2rem; }
+.brand-radius-preview {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  background: hsl(var(--primary) / 0.55);
+  border: 0;
+  box-shadow: 0 2px 3px #0002;
+}
+/* accent-color dropped - parts/fields.css's `:where(input[type=range])` baseline
+   supplies the identical `hsl(var(--primary))` and dresses the track/thumb too.
+   Nothing here sets height/appearance, so that baseline lands unopposed. */
+.brand-radius-slider { flex: 1 1 auto; min-width: 0; }
+.brand-radius-value {
+  flex: 0 0 auto;
+  min-width: 7.5ch;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--fs-md);
+  color: hsl(var(--muted-foreground));
+  text-align: right;
+}
+.brand-space-row { display: flex; align-items: center; gap: var(--sp-6); margin-top: 0.2rem; }
+.brand-space-preview {
+  --brand-space-preview: .5rem;
+  display: inline-flex; align-items: center; justify-content: center; gap: calc(var(--brand-space-preview) * .5);
+  flex: 0 0 auto; width: 32px; height: 32px; padding: calc(var(--brand-space-preview) * .5);
+  border: 1px solid hsl(var(--border)); border-radius: var(--ui-radius-control); background: hsl(var(--muted) / .45);
+}
+.brand-space-preview i { display: block; flex: 1 1 0; height: 100%; background: hsl(var(--primary)); border-radius: calc(var(--radius) * .2); }
+.brand-space-slider { flex: 1 1 auto; min-width: 0; }
+.brand-space-value { flex: 0 0 auto; min-width: 7.5ch; font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--fs-sm); }
+
+/* Derive: the Primary picker leads full-width, then controls + live preview. */
+.be-derive { display: grid; gap: 1.1rem; }
+.be-derive { grid-template-columns: minmax(0, 1fr); align-items: start; }
+/* The inline colour picker gets its own roomy row spanning both columns -
+   sliders + swatch palette side by side, given the whole panel width to breathe
+   (it used to be a cramped popover trapped in the narrow controls column). */
+.be-colorpick { grid-column: 1 / -1; display: grid; gap: .5rem; }
+
+/* Screen readout - the primary's on-screen (sRGB) form (its print form sits in
+   the shared print-lock control, .be-lock, right below). */
+.be-subst { display: grid; gap: .3rem; margin-top: .35rem; font-size: var(--fs-sm); }
+.be-subst-line { display: flex; align-items: center; gap: .6rem; }
+.be-subst-key {
+  flex: 0 0 3.4rem; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: hsl(var(--muted-foreground));
+}
+.be-subst-val { font-family: var(--font-mono); font-size: calc(.76rem * var(--a11y-fs)); color: hsl(var(--foreground)); }
+.be-subst-tag {
+  margin-inline-start: auto; font-size: var(--fs-2xs); font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; color: hsl(var(--muted-foreground));
+}
+
+/* Shared print-lock control (independent CMYK lock + Spot-colour lock) - the
+   Colour panel's primary field and the Palette panel's swatch popover both
+   mount one; each block locks/pins independently of the other. */
+.be-lock { display: grid; gap: .6rem; margin-top: .2rem; font-size: var(--fs-sm); }
+/* The collapsible bodies set their own display (grid/flex), which would beat the
+   UA's [hidden] { display: none } - restate it so `hidden` actually hides. */
+.be-lock-body[hidden], .be-lock-spot[hidden], .be-ps-body[hidden] { display: none; }
+.be-lock-block { display: grid; gap: .5rem; }
+.be-lock-block + .be-lock-block { padding-top: .5rem; border-top: 1px solid hsl(var(--border) / .5); }
+.be-lock-block.is-pinned .be-subst-val { color: hsl(var(--primary)); font-weight: 600; }
+.be-lock-body { display: grid; gap: .5rem; margin-top: .1rem; }
+.be-lock-spot { display: flex; gap: .5rem; flex-wrap: wrap; }
+.be-lock-field { display: grid; gap: .12rem; flex: 1 1 10rem; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.be-lock-field em { font-style: normal; opacity: .75; }
+/* color + font: inherit come from the shared .field-input alias list
+   (components.css, component audit rec 13); the rest (sizing/token deltas)
+   stays local. */
+.be-lock-field input, .be-lock-field select {
+  padding: .32rem .5rem; font-size: var(--fs-sm);
+  border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) * .5);
+  background: hsl(var(--background));
+}
+.be-lock-field input:focus, .be-lock-field select:focus { outline: none; border-color: hsl(var(--ring) / .6); }
+.be-cmyk-inputs { display: flex; gap: .35rem; }
+.be-cmyk-in { display: grid; gap: .12rem; justify-items: center; }
+.be-cmyk-in span {
+  font-family: var(--font-mono); font-size: calc(.62rem * var(--a11y-fs)); font-weight: 700; color: hsl(var(--muted-foreground));
+}
+/* color + font: inherit come from the shared .field-input alias list
+   (components.css, component audit rec 13); the rest stays local. */
+.be-cmyk-in input {
+  width: 3.1rem; padding: .28rem .35rem; text-align: center; font-size: calc(.76rem * var(--a11y-fs));
+  font-family: var(--font-mono); border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) * .5);
+  background: hsl(var(--background));
+}
+.be-cmyk-in input:focus { outline: none; border-color: hsl(var(--ring) / .6); }
+/* A locked swatch's small tag - reused on the tile, the popover header + here. */
+.be-swatch-lock {
+  display: inline-block; margin-inline-start: .4rem; padding: .05rem .35rem;
+  font-size: calc(.58rem * var(--a11y-fs)); font-weight: 700; letter-spacing: .05em; vertical-align: middle;
+  color: hsl(var(--primary)); border: 0; 
+}
+.be-derive-controls { display: grid; gap: .8rem; align-content: start; }
+.be-field { display: grid; gap: .35rem; }
+.be-field-label { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.be-seg { flex-wrap: wrap; }
+/* Shades slider - how many divisions each ramp carries (3–20). */
+.be-steps-field .be-field-label { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
+.be-steps-val { font-family: var(--font-mono); font-size: var(--fs-md); font-weight: 700; color: hsl(var(--foreground)); }
+.be-steps-slider { width: 100%; cursor: pointer; }
+
+.be-preview { display: grid; gap: .9rem; align-content: start; }
+.be-draft-ramp { display: grid; gap: .5rem; min-width: 0; }
+.be-draft-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; }
+.be-draft-head h3 { margin: 0; font: 600 var(--fs-sm) var(--font-brand); }
+.be-draft-shades { display: grid; grid-template-columns: repeat(auto-fit, minmax(36px, 1fr)); gap: 4px; }
+.be-draft-shade { min-width: 0; min-height: 44px; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .4); display: grid; place-items: center; cursor: pointer; font: 500 var(--fs-lg) var(--font-brand); }
+.be-draft-shade:disabled { cursor: default; opacity: 1; }
+.be-draft-status { margin: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.be-draft-status:empty { display: none; }
+.be-draft-themes { min-width: 0; font-size: var(--fs-sm); }
+.be-draft-themes > summary, .be-rebuild > summary { cursor: pointer; color: hsl(var(--muted-foreground)); padding-block: .6rem; }
+.be-draft-themes .be-ramps { margin-block: .75rem; }
+.be-rebuild { border-top: 1px solid hsl(var(--border)); padding-top: .5rem; }
+.be-ramps { display: grid; gap: .5rem; }
+.be-ramp-row { display: grid; grid-template-columns: 5.2rem 1fr auto; align-items: center; gap: .6rem; }
+.be-ramp-label { font-size: var(--fs-xs); font-weight: 600; color: hsl(var(--muted-foreground)); }
+/* flex, not a fixed-column grid - the ramp can be 3 to 20 steps (the Shades
+   slider), so cells must always share the full row width equally, not just 9/9ths
+   of one sized for a hardcoded step count. */
+.be-ramp { display: flex; border-radius: calc(var(--radius) * .45); overflow: hidden; box-shadow: 0 0 0 1px hsl(var(--border)); }
+.be-ramp-cell { height:3.5em; display: block; flex: 1 1 0; min-width: 0; aspect-ratio: 1 / 1.35; min-height: 22px; border: 0; margin: 0; padding: 0; }
+/* Neutral/secondary steps are real buttons (the Primary ramp stays a plain
+   span) - the selected one gets the same ring `.be-swatch.is-selected` uses. */
+button.be-ramp-cell { cursor: pointer; }
+button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), inset 0 0 0 4px hsl(var(--card)); }
+.be-specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; }
+.be-spec { border: 1px solid; border-radius: calc(var(--radius) * .7); padding: .8rem .85rem; display: grid; gap: .35rem; }
+.be-spec-name { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.be-spec-h { margin: 0; font-family: var(--font-display, var(--font-brand)); font-size: calc(.95rem * var(--a11y-fs)); font-weight: 700; letter-spacing: -.01em; }
+.be-spec-b { margin: 0; font-size: calc(.74rem * var(--a11y-fs)); line-height: 1.5; }
+.be-spec-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .2rem; }
+.be-spec-btn { border-radius: var(--radius); padding: .28rem .7rem; font-size: var(--fs-xs); font-weight: 600; }
+.be-spec-ratio { font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
+
+/* ── Build your palette (the brand generator): harmony picker → named candidate
+      chips (each + Add to officiate into the brand) → "applied" preview scenes. */
+.be-generate { display: grid; gap: 1.1rem; }
+.be-schemekinds { flex-wrap: wrap; }
+/* Parametric-analogous count + angle sliders - shown only in Analogous mode.
+   Two side-by-side range fields; the value readout mirrors the Shades slider. */
+.be-analogous { display: flex; flex-wrap: wrap; gap: .55rem .9rem; margin-top: -.4rem; }
+.be-analog-field { flex: 1 1 9rem; min-width: 8rem; }
+.be-analog-field .be-field-label { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
+.be-analog-val { font-family: var(--font-mono); font-size: var(--fs-md); font-weight: 700; color: hsl(var(--foreground)); }
+.be-analog-slider { width: 100%; cursor: pointer; }
+.be-candidates { display: grid; gap: .55rem; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.be-cand {
+  display: flex; align-items: center; gap: .6rem; min-width: 0;
+  padding: .45rem .55rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .6);
+  background: hsl(var(--background));
+}
+.be-cand.is-added { opacity: .62; }
+.be-cand-sw { flex: 0 0 auto; width: 26px; height: 26px; border-radius: var(--radius-sm); box-shadow: var(--edge-faint); }
+.be-cand-meta { display: grid; gap: 1px; min-width: 0; margin-inline-end: auto; }
+.be-cand-name { font-size: var(--fs-sm); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.be-cand-hex { font-family: var(--font-mono); font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.be-cand-add {
+  flex: 0 0 auto; border: 1px solid hsl(var(--primary) / .4); background: hsl(var(--primary) / .1);
+  color: hsl(var(--primary)); font: inherit; font-size: var(--fs-xs); font-weight: 700;
+  padding: .3rem .6rem; border-radius: var(--radius-pill); cursor: pointer; transition: background var(--dur-1);
+}
+.be-cand-add:hover:not(:disabled) { background: hsl(var(--primary) / .18); }
+.be-cand-add:disabled { border-color: hsl(var(--border)); background: transparent; color: hsl(var(--muted-foreground)); cursor: default; }
+
+.be-previews-wrap { display: grid; gap: .5rem; }
+.be-previews { display: grid; min-width: 0; }
+.be-pv[hidden] { display: none; }
+.be-pv { margin: 0; display: grid; gap: .35rem; }
+.be-pv-art { border: 0; border-radius: var(--radius); overflow: hidden; background: hsl(var(--background)); }
+.be-pv-art svg { display: block; width: 100%; height: auto; }
+.be-pv-cap { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+
+/* Palette. The wheel lives in the folded "Colour chart" card below the grid. */
+.be-wheel-hint { margin: .55rem 0 0; font-size: var(--fs-xs); line-height: 1.4; color: hsl(var(--muted-foreground)); text-align: center; }
+/* Editable wheel affordances: crosshair over empty space (= add), grab on a dot.
+   Both surfaces - the hue disc and the neutral rail - take the same treatment. */
+.dash-wheel.is-editable,
+.dash-wheel-rail.is-editable { cursor: crosshair; touch-action: none; }
+.dash-wheel-dot--edit { cursor: grab; }
+.dash-wheel-dot--edit:active { cursor: grabbing; }
+/* Colour chart - the demoted wheel, folded by default (repainted on open: a
+   hidden mount measures 0×0). Reuses the .be-subst-details folding chrome. */
+.be-chart-details { margin-top: 1rem; }
+.be-chart-details .be-pal-wheel { max-width: 380px; margin: .8rem auto 0; }
+/* Wheel ⇄ Gamut, the two views of the same swatches. */
+.be-chartview { margin: .8rem auto 0; max-width: 380px; }
+/* The gamut chart wants the room the wheel doesn't: it is a wide plane, not a
+   disc, and the boundary curve is what's being read off it. */
+.be-chart-details .be-pal-slice { max-width: 520px; margin: .8rem auto 0; }
+.be-slice-ctl {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem;
+  margin-bottom: .7rem;
+}
+.be-sliceplane { flex: 0 0 auto; }
+/* The fixed-channel scrubber - which plane you're looking through. */
+.be-slice-fixed { display: flex; align-items: center; gap: .45rem; flex: 1 1 11rem; min-width: 0; }
+.be-slice-fixed-label {
+  font-size: calc(.62rem * var(--a11y-fs)); font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
+  color: hsl(var(--muted-foreground)); white-space: nowrap;
+}
+.be-slice-range { flex: 1 1 auto; min-width: 4rem; }
+.be-slice-fixed-val {
+  font-size: var(--fs-xs); font-variant-numeric: tabular-nums; white-space: nowrap;
+  min-width: 2.6rem; text-align: right; color: hsl(var(--foreground));
+}
+
+/* Palette: grouped shape-only swatch tiles - name + hex live in title/aria
+   (and in the editor popover a click opens), never on the tile itself. */
+.be-pal-top { display: flex; align-items: center; justify-content: space-between; gap: .8rem; margin-bottom: .9rem; }
+.be-pal-count { font-size: calc(.74rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
+/* Each group is a <details open>; the summary row is the group's header. */
+.be-pal-group + .be-pal-group { margin-top: 1.5rem; }
+.be-pal-group-head {
+  display: flex; align-items: center; gap: .6rem; margin-bottom: .45rem;
+  cursor: pointer; list-style: none;
+}
+.be-pal-group-head::-webkit-details-marker { display: none; }
+.be-pal-group-head::after { content: '▸'; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); transition: rotate var(--dur-1); }
+.be-pal-group[open] > .be-pal-group-head::after { rotate: 90deg; }
+@media (prefers-reduced-motion: reduce) { .be-pal-group-head::after { transition: none; } }
+.be-pal-group-head .be-add { margin-inline-start: 0; }
+.be-pal-group-label { font-size: var(--fs-sm); font-weight: 600; color: hsl(var(--foreground)); margin-inline-end: auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.be-pal-group-n { margin-inline-start: .4rem; font-weight: 500; opacity: .7; }
+/* "Select all" - a quiet text button, not a third pill competing with + Add.
+   It takes the free space so + Add keeps its seat at the end of the row (plan
+   182 section 5.5). */
+.be-pal-group-all {
+  margin-inline-start: 0;
+  border: 0; background: transparent; cursor: pointer;
+  padding: .4rem .2rem; border-radius: var(--radius-sm);
+  font: inherit; font-size: var(--fs-xs); color: hsl(var(--muted-foreground));
+}
+.be-pal-group-all:hover { color: hsl(var(--foreground)); text-decoration: underline; }
+/* A section still holding the colours the blank brand shipped with (plan 137 C3).
+   The chip is a statement of fact, not a state to act on, so it is quiet: the
+   same pill the rest of the studio uses, in the muted pair, and the sentence
+   under the heading says what happens to it. */
+.be-pal-starter {
+  padding: .05rem .4rem; border: 1px solid hsl(var(--border)); border-radius: var(--radius-pill);
+  font-size: calc(.62rem * var(--a11y-fs)); font-weight: 600; letter-spacing: .02em;
+  text-transform: none; color: hsl(var(--muted-foreground));
+}
+.be-pal-group-note { margin: 0 0 .5rem; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+/* The pane is the marquee's canvas, so it owns the coordinate space the
+   rectangle is drawn in (plan 182 section 5.5). */
+.be-pal { position: relative; }
+.be-pal.is-marqueeing { user-select: none; }
+/* The sweep itself: one div, alive only for the length of the drag. z 5 keeps
+   it over the tiles and well under the swatch popover (30) - it must never
+   paint across a card the person is operating. */
+.be-marquee {
+  position: absolute; z-index: 5; pointer-events: none;
+  border: 1.5px solid hsl(var(--primary));
+  background: hsl(var(--primary) / .08);
+  border-radius: var(--radius-sm);
+}
+/* Dense grid of pure swatches; corner rounding rides the brand radius token -
+   a full-radius brand rounds these into circles, and that's the intent. */
+.be-pal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: .9rem .6rem; }
+.be-pal-card { position: relative; display: grid; align-content: start; gap: .2rem; min-width: 0; }
+.be-pal-card .be-swatch { aspect-ratio: 1.12; border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px hsl(var(--foreground) / .07); }
+.be-pal-name { font-size: var(--fs-xs); font-weight: 550; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-top: .25rem; }
+.be-pal-hex { font-family: var(--font-mono); font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.be-pal-check { position: absolute; inset-block-start: .15rem; inset-inline-end: .15rem; width: 30px; height: 30px; display: grid; place-items: center; cursor: pointer; }
+.be-pal-check input { width: 18px; height: 18px; margin: 0; accent-color: hsl(var(--foreground)); cursor: pointer; }
+.be-pal-card:has(.is-multi) .be-pal-name { font-weight: 750; }
+.be-pal-empty { display: block; width: 100%; min-height: 88px; border: 0; border-radius: var(--radius-sm); background: hsl(var(--muted) / .55); color: hsl(var(--muted-foreground)); font: inherit; font-size: var(--fs-sm); cursor: pointer; }
+.be-pal-empty:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.be-pal-restore { border: 0; padding: .6rem 0; margin-top: .75rem; background: none; color: hsl(var(--muted-foreground)); font: inherit; font-size: var(--fs-xs); text-decoration: underline; cursor: pointer; }
+.be-pal-topbtns { display: flex; flex-wrap: wrap; gap: .4rem; }
+.be-save-state { margin: 0; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.be-save-state[hidden] { display: none; }
+.be-save-state.is-error { color: hsl(var(--destructive)); }
+
+.be-pal .be-add { border: 0; background: hsl(var(--muted) / .7); box-shadow: none; }
+.be-pal .be-add:hover { background: hsl(var(--muted)); }
+.be-pal .be-add--sm { min-width: 32px; min-height: 32px; background: transparent; }
+.be-pal-restore[hidden] { display: none; }
+.be-gradients > .be-panel-head { display: none; }
+
+
+
+.be-swatch {
+  position: relative; display: block; width: 100%; aspect-ratio: 1;
+  padding: 0; cursor: pointer; font: inherit; overflow: hidden;
+  border: 0; border-radius: var(--radius);
+  background: hsl(var(--background)); box-shadow: inset 0 1px #fff1, 0 .1rem .4rem #0002; border-radius: var(--radius);
+}
+.be-swatch:hover { border-color: hsl(var(--primary) / .55); }
+.be-swatch.is-selected { border-color: hsl(var(--ring)); box-shadow: 0 0 0 2px hsl(var(--ring) / .28); }
+.be-swatch.is-pinned:not(.is-selected) { border-color: hsl(var(--primary) / .4); }
+.be-swatch-chip {
+  position: absolute; inset: 0; display: block;
+  /* The colour rides OVER a checkerboard, so a translucent swatch shows its
+     alpha (the checker peeks through) instead of reading as a solid colour. */
+  background:
+    linear-gradient(var(--sw, transparent), var(--sw, transparent)),
+    repeating-conic-gradient(hsl(var(--muted-foreground) / .35) 0% 25%, hsl(var(--card)) 0% 50%) 50% / 8px 8px;
+
+}
+/* The role mark a tile wears when a role points at it - P, S, Su, T (plan 182
+   section 4.2). ONE tile per token: an assignment re-points an alias, it never
+   makes a second swatch, so this corner glyph is how an assigned colour looks
+   different from an unassigned one. Paper on a dark tile, ink on a light one -
+   the caller measures the swatch's lightness, because a text-shadow alone is
+   not readable over a pale ground. */
+.be-swatch-role {
+  position: absolute; right: 4px; bottom: 2px;
+  font-family: var(--font-mono); font-size: var(--fs-2xs); font-weight: 700;
+  line-height: 1.2; letter-spacing: .02em; pointer-events: none;
+  /* Measured against the SWATCH, which is the user's colour and not a theme
+     token - so these two are absolute, exactly as the swatch's own checkerboard
+     is, and neither may follow the theme. */
+  color: hsl(0 0% 100%); text-shadow: 0 1px 2px hsl(0 0% 0% / .5);
+}
+.be-swatch-role.is-onlight { color: hsl(0 0% 8%); text-shadow: 0 1px 2px hsl(0 0% 100% / .55); }
+
+/* Download-all - the floating pill at the palette pane's bottom edge (the
+   catalog toolbar's exact clothes: catalog.css .cat-toolbar), so the palette
+   export never scrolls away while the pane shows. ≥1100px it simply SITS at
+   the pane's viewport-anchored bottom, outside the pane's scroller; below
+   that the pane is in page flow and the sticky bottom floats the pill. */
+.be-pal-dock {
+  position: static;
+  z-index: 10; /* over the panels it floats past; well under the popovers (30) */
+  display: flex; align-items: center; gap: var(--sp-5);
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 7px 9px;
+  border-radius: calc(var(--radius) * 2);
+  /* SOLID, not frosted: the pill floats over panel body text on phones (no
+     pane scroller below 1100px), and the old .82-alpha + blur let that text
+     read through the controls (plans/163 F5). A card-solid fill with the
+     border and a slightly deeper shadow keeps it legible as a docked bar. */
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 4px 16px #00000029;
+}
+/* The box/chevron/focus recipe now comes from `.field-select .field-select--sm`
+   (parts/fields.css, layer primitives - the markup carries both). Only the dock's
+   own geometry stays here: it must shrink inside the pill and never run past it,
+   and it keeps the pill's full-radius corner rather than the compact half-radius.
+   (`--auto` on the markup keeps the content-width sizing it always had - the
+   primitive's default is a full-width sidebar field.) */
+.be-pal-fmt-sel { min-width: 0; max-width: 15rem; border-radius: var(--radius); }
+
+/* Swatch editor popover - absolutely placed under the clicked tile by JS.
+   The card is a flex column: everything scrolls in .be-editor-scroll while the
+   Delete/Save footer stays pinned - the two actions never scroll away. */
+/* Wide enough for the full picker it now carries: five mode tabs, a row of dials,
+   and the print control's four CMYK inputs. */
+.be-editor { position: absolute; z-index: 30; width: 340px; }
+.be-editor[hidden] { display: none; }
+.be-editor-card {
+  display: flex; flex-direction: column; border-radius: var(--radius);
+  border: 1px solid hsl(var(--border)); background: hsl(var(--popover));
+  box-shadow: 0 12px 34px hsl(var(--foreground) / .18);
+  /* The card is free to grow with its folds - positionEditor MOVES it (flipping it
+     above the tile) to find the room, rather than scrolling the body. This is the
+     last resort only: a card genuinely taller than the viewport. */
+  max-height: calc(100dvh - 16px); overflow: hidden;
+}
+.be-editor-scroll { display: grid; gap: .6rem; padding: .7rem .7rem .6rem; overflow-y: auto; min-height: 0; }
+/* Identity row - the live chip anchors what's being edited; the name renames in place. */
+.be-editor-id { display: flex; align-items: center; gap: .5rem; }
+.be-editor-chip {
+  flex: 0 0 auto; width: 26px; height: 26px; border-radius: calc(var(--radius) * .45);
+  background:
+    linear-gradient(var(--sw, transparent), var(--sw, transparent)),
+    repeating-conic-gradient(hsl(var(--muted-foreground) / .28) 0% 25%, transparent 0% 50%) 0 0 / 8px 8px;
+  box-shadow: var(--edge-faint);
+}
+.be-editor-lockbadge { flex: 0 0 auto; }
+.be-editor-field { display: grid; gap: .3rem; }
+.be-editor-name {
+  width: 100%; min-width: 0; padding: .4rem .55rem; font: inherit; font-size: var(--fs-md); font-weight: 600;
+  border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) * .5);
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+  outline: none;
+}
+/* "Stored as" - how the token document writes this swatch's value. Tiny on purpose. */
+.be-stored { display: flex; align-items: center; gap: .5rem; }
+.be-stored[hidden] { display: none; }
+.be-stored-label { font-size: var(--fs-2xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+/* .be-stored-seg composes the shared `.view-seg` primitive (component audit rec 1 -
+   lib/seg.ts; the markup now carries both classes). Every declaration below is a
+   real delta from `.view-seg`'s gapped-pill look - a compact JOINED trough (no gap,
+   one shared border, dividers between buttons) - not a restated duplicate, so it
+   stays local. Same-specificity single-class selectors; gallery.css (`.view-seg`,
+   eager) always loads before this lazy studio sheet, so these win the cascade tie. */
+/* flex-wrap: the joined trough must stay ONE row - a wrapped segment would break
+   the shared border/divider run. segHtml() stamps `.be-seg` (wrap: wrap, for the
+   gapped derive segments) on every group it renders, so this restores nowrap for
+   this one; same specificity, declared later, so it wins the tie. */
+.be-stored-seg { display: inline-flex; flex-wrap: nowrap; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .45); overflow: hidden; }
+.be-stored-seg button {
+  border: 0; background: transparent; color: hsl(var(--muted-foreground));
+  font: inherit; font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .03em;
+  padding: .22rem .48rem; cursor: pointer;
+}
+.be-stored-seg button + button { border-inline-start: 1px solid hsl(var(--border) / .6); }
+.be-stored-seg button[aria-pressed="true"] { background: hsl(var(--primary) / .14); color: hsl(var(--foreground)); }
+/* Print substitutes - folded until asked; the summary chips carry the state.
+   Same disclosure family as the shared `.section-card` fold primitive
+   (disclosure.css, component audit rec 7) - a <summary> that carries a
+   rotating indicator and folds a body - but at the studio's own compact
+   scale (an unclassed, glyph-chevron summary nested inside a colour field,
+   not a page-level card), so it keeps its own rules rather than a literal
+   `section-card` class. */
+.be-subst-details { border-top: 1px solid hsl(var(--border) / .6); padding-top: .5rem; }
+.be-subst-details summary {
+  display: flex; align-items: center; gap: .5rem; cursor: pointer; list-style: none;
+  font-size: var(--fs-2xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground));
+}
+.be-subst-details summary::-webkit-details-marker { display: none; }
+.be-subst-details summary::after { content: '▸'; margin-inline-start: auto; font-size: var(--fs-xs); transition: rotate var(--dur-1); }
+.be-subst-details[open] summary::after { rotate: 90deg; }
+@media (prefers-reduced-motion: reduce) { .be-subst-details summary::after { transition: none; } }
+.be-subst-chips { display: inline-flex; gap: .3rem; }
+/* Font-weight/letter-spacing-base/radius compose .chip--flag (chips.css);
+   the mono value string needs its own font-family/size/case/spacing/padding
+   overrides since it displays exact print-substitute values, not a label. */
+.be-ps-chip {
+  font-family: var(--font-mono); font-size: calc(.62rem * var(--a11y-fs)); text-transform: none; letter-spacing: 0;
+  padding: .1rem .4rem;
+  background: hsl(var(--primary) / .12); color: hsl(var(--foreground));
+}
+.be-ps-chip--auto { background: hsl(var(--muted) / .6); color: hsl(var(--muted-foreground)); }
+/* .be-fmt-input outlives the "Set by value" row it was written for - the gradient
+   stop popover (brand-studio-tabs.ts) still wears it as its custom-value input.
+   color + font: inherit come from the shared .field-input alias list
+   (components.css, component audit rec 13); the rest stays local. */
+.be-fmt-input {
+  flex: 1 1 auto; min-width: 0; padding: .4rem .55rem; font-size: var(--fs-md);
+  font-family: var(--font-mono); border: 1px solid hsl(var(--input));
+  border-radius: calc(var(--radius) * .5); background: hsl(var(--background));
+  outline: none;
+}
+/* Mouse/programmatic focus (openEditor() auto-focuses Name on open) - a subtle
+   tinted border, same treatment as .color-input, instead of the browser
+   default. Real keyboard focus gets a proper ring back via a11y.css. */
+.be-editor-name:focus,
+.be-fmt-input:focus { border-color: hsl(var(--ring) / .6); }
+/* Sticky footer - pinned by the card's flex column, never scrolls away. */
+.be-editor-actions {
+  display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+  flex: 0 0 auto; padding: .55rem .7rem;
+  border-top: 1px solid hsl(var(--border) / .7); background: hsl(var(--popover));
+}
+.be-editor-del {
+  border: 1px solid hsl(var(--destructive) / .5); border-radius: calc(var(--radius) * .5);
+  background: transparent; color: hsl(var(--destructive));
+  font: inherit; font-size: calc(.74rem * var(--a11y-fs)); font-weight: 600; padding: .35rem .7rem; cursor: pointer;
+}
+.be-editor-del:hover { background: hsl(var(--destructive) / .1); }
+.be-editor-del[hidden] { display: none; }
+.be-editor-done { margin-inline-start: auto; }
+
+/* Fonts. */
+.be-font-list { list-style: none; margin: 0 0 .8rem; padding: 0; display: grid; gap: .45rem; }
+.be-font-row { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem .7rem; padding: .5rem .6rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .55); }
+/* The optional face-roles (primary / headings / code / italic) as a group that
+   wraps under the name when the row is tight, rather than overflowing it. */
+.be-font-roles { display: inline-flex; align-items: center; flex-wrap: wrap; gap: .3rem .45rem; }
+/* A face of the design system's own (plan 182 section 4.2). Every row in the
+   list is one - the starter's faces are the fold below, never rows - so this is
+   the tint, and the green PRIMARY badge inside says which own face serves the
+   primary role. It was `.is-primary`, which tinted one row and left the others
+   looking like candidates. */
+.be-font-row.is-own { border-color: hsl(var(--primary) / .5); background: hsl(var(--primary) / .05); }
+/* The group label above the own rows, and the folded starter row under them.
+   The fold reuses the studio's own disclosure (.be-subst-details) but not its
+   uppercase summary: this summary is a SENTENCE, not a label. */
+.be-font-glabel { font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.be-font-starter { list-style: none; }
+.be-font-starterfold { padding: .5rem .6rem; border: 1px solid hsl(var(--border) / .7); border-radius: calc(var(--radius) * .55); }
+.be-font-starterfold summary { text-transform: none; letter-spacing: normal; font-size: var(--fs-xs); font-weight: 500; }
+.be-font-startersum { color: hsl(var(--muted-foreground)); }
+.be-font-starterbody { display: grid; gap: .4rem; margin-top: .5rem; }
+/* Inherited material is quiet, never dashed (dashed means drop target here):
+   no tint, no roles to press, no delete. */
+.be-font-row--starter { color: hsl(var(--muted-foreground)); border-color: hsl(var(--border) / .7); }
+.be-font-aa { flex: 0 0 auto; width: 2rem; font-size: calc(1.1rem * var(--a11y-fs)); line-height: 1; text-align: center; color: hsl(var(--foreground)); }
+.be-font-meta { display: grid; gap: 1px; min-width: 0; margin-inline-end: auto; }
+.be-font-name { font-size: var(--fs-md); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.be-font-sub { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.be-font-badge { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--primary)); }
+.be-font-del {
+  flex: 0 0 auto; border: 0; background: transparent; cursor: pointer; padding: .25rem .4rem;
+  color: hsl(var(--muted-foreground)); font-size: var(--fs-md); border-radius: var(--radius-sm);
+}
+.be-font-del:hover { color: hsl(var(--destructive)); background: hsl(var(--destructive) / .1); }
+.be-font-empty { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); padding: .4rem .1rem; }
+.be-font-add { display: flex; gap: .5rem; flex-wrap: wrap; }
+/* One field shape for both doors into a family name: the management list's row
+   (now a button that opens the stage) and the stage's own Google search. Neither
+   suppresses the outline, so base.css's global :focus-visible ring stands. */
+.be-font-add input,
+.be-typestage-search input {
+  flex: 1 1 16rem; min-width: 0; padding: .45rem .6rem; font: inherit; font-size: var(--fs-md);
+  border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) * .5);
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+}
+
+/* Logo variants - a matrix of orientation (rows) × treatment (tiles per row). */
+.be-logo-grid { display: grid; gap: 1.3rem; }
+.be-logo-group { display: grid; gap: .6rem; }
+.be-logo-group-head { display: flex; align-items: baseline; gap: .55rem; flex-wrap: wrap; }
+.be-logo-group-name { font-size: var(--fs-md); font-weight: 700; letter-spacing: .01em; color: hsl(var(--foreground)); }
+.be-logo-group-hint { font-size: calc(.74rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+/* An all-empty group is a <details> instead (plan 137 C4) - same heading row,
+   folded, with the palette sections' own disclosure marker so it reads as one of
+   them. Closed is the resting state and it is not persisted: the group unfolds
+   for good the moment it holds a mark, because it renders as a plain div then.
+   `display: block` overrides the grid above ON PURPOSE: a <details> with a
+   non-block display has a history of not hiding its own closed content, and a
+   "folded" group that still shows four empty slots is the whole feature lost.
+   The gap the grid would have given is a margin on the row instead. */
+.be-logo-group--fold { display: block; }
+.be-logo-group--fold > .be-logo-row { margin-top: .6rem; }
+.be-logo-group--fold > .be-logo-group-head { cursor: pointer; list-style: none; }
+.be-logo-group--fold > .be-logo-group-head::-webkit-details-marker { display: none; }
+.be-logo-group--fold > .be-logo-group-head::after {
+  content: '▸'; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); transition: rotate var(--dur-1);
+}
+.be-logo-group--fold[open] > .be-logo-group-head::after { rotate: 90deg; }
+@media (prefers-reduced-motion: reduce) {
+  .be-logo-group--fold > .be-logo-group-head::after { transition: none; }
+}
+/* Touch: the heading IS the control that opens the group. */
+@media (pointer: coarse) {
+  .be-logo-group--fold > .be-logo-group-head { min-height: 44px; align-items: center; }
+}
+/* The room's lead sentence plus its help tip. A BLOCK host on purpose: the tip's
+   pop is absolutely positioned against it (parts/tool.css .help-tip-host), and
+   an inline host would anchor the pop to one line fragment of the sentence. */
+.be-logos-lead { display: block; }
+.be-logo-row { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.be-logo-slot { display: grid; gap: .4rem;}
+.be-logo-slot-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 1.2rem; }
+.be-logo-slot-name { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.be-logo-del {
+  border: 0; background: transparent; cursor: pointer; padding: .1rem .3rem; line-height: 1;
+  color: hsl(var(--muted-foreground)); font-size: var(--fs-md); border-radius: var(--radius-sm);
+}
+.be-logo-del:hover { color: hsl(var(--destructive)); background: hsl(var(--destructive) / .1); }
+.be-logo-drop {
+  display: grid; place-items: center; cursor: pointer; overflow: hidden;
+  aspect-ratio: 1 / 1; padding: .8rem;
+  border: 1.5px dashed hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--background)); transition: border-color var(--dur-1), background var(--dur-1);
+}
+.be-logo-slot.is-filled .be-logo-drop { border-style: solid; }
+.be-logo-drop:hover { border-color: hsl(var(--primary) / .55); }
+/* The tile's file input is `visually-hidden` (focusable) rather than `hidden`
+   (display:none, unfocusable) - so the LABEL wears the keyboard ring on its
+   behalf. Same construction as the shared upload dropzone (dropzone.css .updz). */
+.be-logo-drop:focus-within {
+  border-color: hsl(var(--primary) / .55);
+  outline: 2px solid hsl(var(--ring)); outline-offset: 2px;
+}
+.be-logo-art {
+  
+  background-image:
+    repeating-conic-gradient(
+      rgba(255,255,255,.05) 0% 25%,
+      rgba(0,0,0,.05) 0% 50%);
+     background-position: 50%; background-size: 1rem 1rem ;  display: grid; place-items: center; width: 100%; height: 100%; border-radius: calc(var(--radius) * .6); }
+
+
+     .be-logo-slot[data-treatment$="reverse"] .be-logo-art{
+background-image:
+    repeating-conic-gradient(
+      rgba(255,255,255,.05) 0% 25%,
+      rgba(0,0,0,.05) 0% 50%) #000c;
+     background-position: 50%; background-size: 1rem 1rem !important ;
+     background-color:#000c !important;
+
+     }
+
+
+     .be-logo-art img { max-width: 100%; max-height: 100%; object-fit: contain; }
+/* Reverse marks (primary-reverse, mono-reverse) read on dark; plain mono on a
+   neutral card so a one-colour dark mark still shows. */
+.be-logo-slot[data-treatment$="reverse"] .be-logo-art { background: hsl(var(--foreground)); padding: .5rem; }
+.be-logo-slot[data-treatment="mono"] .be-logo-art { background: hsl(var(--muted) / .5); padding: .5rem; }
+/* "Not set", in the muted register - the slot says what it is rather than
+   drawing a 1.6rem "+" that reads as an instruction (plan 182 section 4.2). */
+.be-logo-empty { font-size: var(--fs-sm); font-weight: 500; color: hsl(var(--muted-foreground) / .8); }
+.be-logo-hint { margin: 0; font-size: var(--fs-xs); line-height: 1.45; color: hsl(var(--muted-foreground)); }
+
+/* ── Logo intake - level 0 of the room (plan 97 section 7.3) ──────────────────────────
+   One multi-file drop zone, then a queue of confirm chips: a dropped file is
+   classified, proposes a slot and waits for a tap. The zone is a genuine drop
+   area, which is why it (and the per-slot tiles above) are the only dashed
+   borders in this room - every chip and menu below is solid. */
+.be-logo-intake { display: grid; gap: .8rem; margin-bottom: 1.3rem; }
+.be-logo-intake-drop {
+  display: grid; justify-items: center; gap: .28rem; text-align: center; cursor: pointer;
+  padding: 1.05rem .9rem;
+  border: 1.5px dashed hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--muted) / .25);
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+.be-logo-intake-drop:hover,
+.be-logo-intake.is-over .be-logo-intake-drop { border-color: hsl(var(--primary) / .55); background: hsl(var(--primary) / .07); }
+/* The file input is `visually-hidden` (focusable), so the label wears the ring on
+   its behalf - the same construction .be-logo-drop uses above. */
+.be-logo-intake-drop:focus-within {
+  border-color: hsl(var(--primary) / .55);
+  outline: 2px solid hsl(var(--ring)); outline-offset: 2px;
+}
+.be-logo-intake-glyph { display: grid; color: hsl(var(--muted-foreground)); }
+.be-logo-intake-glyph svg { width: calc(20px * var(--a11y-fs)); height: calc(20px * var(--a11y-fs)); }
+.be-logo-intake-lead { font-size: var(--fs-md); font-weight: 600; color: hsl(var(--foreground)); }
+.be-logo-intake-hint {
+  max-width: 56ch; font-size: calc(.74rem * var(--a11y-fs)); line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+.be-logo-queue { display: grid; gap: .55rem; }
+.be-logo-queue-head {
+  margin: 0; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; color: hsl(var(--muted-foreground));
+}
+.be-logo-chip {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .55rem; align-items: center;
+  padding: .5rem .6rem;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--background));
+}
+/* A mark the room generated reads as an offer, not as something that arrived. */
+.be-logo-chip[data-generated="1"] { background: hsl(var(--muted) / .4); }
+.be-logo-chip-art {
+  width: 3rem; height: 3rem; display: grid; place-items: center; padding: .2rem;
+  border-radius: calc(var(--radius) * .5);
+  background-image: repeating-conic-gradient(rgba(255,255,255,.05) 0% 25%, rgba(0,0,0,.05) 0% 50%);
+  background-position: 50%; background-size: .8rem .8rem;
+}
+.be-logo-chip-art img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.be-logo-chip-body { min-width: 0; display: grid; gap: .12rem; }
+.be-logo-chip-lead {
+  margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: .4rem;
+  font-size: var(--fs-md); font-weight: 600; color: hsl(var(--foreground));
+}
+.be-logo-chip-tag {
+  padding: .08rem .38rem; border-radius: var(--radius-pill);
+  font-size: calc(.62rem * var(--a11y-fs)); font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  background: hsl(var(--muted)); color: hsl(var(--muted-foreground));
+}
+.be-logo-chip-why {
+  margin: 0; font-size: var(--fs-xs); line-height: 1.4;
+  color: hsl(var(--muted-foreground)); overflow-wrap: anywhere;
+}
+.be-logo-chip-acts { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .35rem; }
+/* A square box, not a bare glyph: this is the destructive control of the chip and
+   it sits a few pixels from the primary one. 28px at rest, a full 44px target on a
+   coarse pointer (plan 97 section 11) - the same treatment .labp-close takes. */
+.be-logo-chip-x {
+  flex: none; display: grid; place-items: center;
+  width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs));
+  border: 0; background: transparent; cursor: pointer; line-height: 1; border-radius: var(--radius-sm);
+  color: hsl(var(--muted-foreground)); font-size: var(--fs-md);
+}
+.be-logo-chip-x:hover { color: hsl(var(--destructive)); background: hsl(var(--destructive) / .1); }
+/* The chip is focusable (tabindex="-1") so the keyboard has somewhere to sit while
+   a placement is in flight and its buttons are disabled; it must show where it is. */
+.be-logo-chip:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+/* The slot menu is tap-through, not hover: it stays open until it is used or
+   dismissed, so it works the same on a phone as under a mouse. */
+.be-logo-chip-menu {
+  grid-column: 1 / -1; display: grid; gap: .35rem;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+.be-logo-chip-slot { display: flex; align-items: baseline; justify-content: space-between; gap: .4rem; text-align: left; }
+.be-logo-chip-slot.is-suggested { border-color: hsl(var(--primary) / .55); }
+.be-logo-chip-taken { font-weight: 500; color: hsl(var(--muted-foreground)); font-size: var(--fs-xs); }
+/* The trim card mounts here; every .trimo* rule rides parts/dropzone.css, which
+   trim-offer.ts imports itself. */
+.be-logo-trim { display: grid; }
+
+@media (max-width: 640px) {
+  .be-logo-chip { grid-template-columns: auto minmax(0, 1fr); }
+  .be-logo-chip-acts { grid-column: 1 / -1; justify-content: flex-start; }
+}
+
+/* Touch: every control in the intake queue is a real 44px target (plan 97 section 11).
+   The chip's own actions ride .be-btn--sm, which is sized for a mouse, so the
+   height is lifted here rather than in the shared button primitive - this queue
+   is the surface with a destructive control inches from a primary one. */
+@media (pointer: coarse) {
+  .be-logo-chip-x { width: 44px; height: 44px; }
+  .be-logo-chip-acts .be-btn,
+  .be-logo-chip-acts .be-cta { min-height: 44px; }
+  /* The slot rows are two-part (name + "in use"), so they centre once they are
+     taller than their text rather than keeping the baseline they share at rest. */
+  .be-logo-chip-slot { min-height: 44px; align-items: center; }
+}
+
+/* Share. */
+.be-share-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+@media (max-width: 560px) {
+  .be-panel { padding: .9rem; }
+  .be-pal-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+  .be-editor { width: min(300px, calc(100vw - 3rem)); }
+}
+
+/* ── Colour tab muting - the quiet disclosures. Fine-tune reuses the swatch
+      popover's folded details pattern (.be-subst-details); state chips keep a
+      folded summary honest. (`.be-print-details` retired with the Colour
+      panel's print block - the Print WING renders that now.) */
+.be-finetune-body { display: grid; gap: .8rem; padding-top: .7rem; }
+/* Gradients list - folded with a count chip while unopened. */
+.be-grads-details .be-grad-list { margin-top: .7rem; }
+
+/* ── Colour-room wings (plan 97 section 7.1) - the level-2 expert controls, folded
+      until asked. Same disclosure family as .be-subst-details, at panel scale:
+      the wing IS the panel, so it borrows .be-panel's box and adds a summary
+      row. Closed on mount, no persistence - the palette's own sections do the
+      same. */
+.be-wing { border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 1.05rem 1.1rem; }
+.be-wing-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: .3rem .6rem; cursor: pointer; list-style: none; }
+.be-wing-head::-webkit-details-marker { display: none; }
+.be-wing-head::after { content: '▸'; margin-inline-start: auto; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); transition: rotate var(--dur-1); }
+.be-wing[open] > .be-wing-head::after { rotate: 90deg; }
+@media (prefers-reduced-motion: reduce) { .be-wing-head::after { transition: none; } }
+.be-wing-title { font-size: calc(.84rem * var(--a11y-fs)); letter-spacing: .02em; text-transform: uppercase; color: hsl(var(--foreground)); }
+.be-wing-sub { flex: 1 1 18ch; font-size: calc(.74rem * var(--a11y-fs)); line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.be-wing-body { display: grid; gap: 1.1rem; padding-top: .9rem; }
+/* Shade curves, Contrast and Print are for a system that already exists, and
+   four identical collapsed headers made Generate - the one a first run needs -
+   look like a fourth setting (plans/163 F7). Same control, quieter: a smaller
+   title in the muted ink the sub-line already uses, and a softer edge. */
+.be-wing--advanced { padding: .8rem .9rem; border-color: hsl(var(--border) / .6); }
+.be-wing--advanced .be-wing-title {
+  font-size: calc(.76rem * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+.be-wing--advanced .be-wing-sub { font-size: var(--fs-xs); }
+.be-ramppick { flex-wrap: wrap; }
+
+/* Replace palette + its review card. The card IS the review (there is no
+   confirm dialog on this path) and undo is the safety net behind it. */
+.be-gen-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem .8rem; }
+.be-gen-note { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.be-generate-detail {
+  padding-top: .85rem;
+  border-top: 1px solid hsl(var(--border) / .7);
+}
+.be-generate-detail > summary {
+  width: fit-content;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-sm);
+  font-weight: 650;
+  cursor: pointer;
+}
+.be-generate-detail[open] > summary { margin-bottom: 1rem; color: hsl(var(--foreground)); }
+.be-review { display: grid; gap: .6rem; padding: .8rem .9rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .7); background: hsl(var(--muted) / .35); }
+.be-review[hidden] { display: none; }
+.be-review-title { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: hsl(var(--foreground)); }
+.be-review-list { margin: 0; padding: 0; list-style: none; display: grid; gap: .25rem; font-size: calc(.74rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.be-review-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+/* ── Add a colour (lib/design-system/add-color.ts) - the room's level-0 control.
+      One row: value field, the optional eyedropper (feature-detected into
+      existence, never rendered-and-disabled), and Add. A multi-value paste
+      reveals the chips block below it, and nothing is added until a button. */
+.ds-addc { display: grid; gap: .7rem; }
+.ds-addc-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.ds-addc-input { flex: 1 1 16rem; min-width: 12rem; }
+/* The live chip that IS the picker (plan 182 section 5.1). It paints `--sw` -
+   the same swatch custom property every tile in the room paints - so the row
+   shows the colour it is holding before anything is committed. 48px in the
+   compact row; the beat-0 hero grows it to 72px (see the beat rules below).
+   Never dashed while empty: dashed borders are drop targets in this app. */
+.ds-addc-pick {
+  flex: 0 0 auto; display: grid; place-items: center;
+  width: 48px; height: 48px; padding: 0; cursor: pointer;
+  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .8);
+  background: var(--sw, transparent); box-shadow: var(--edge-strong);
+}
+.ds-addc-pick.is-empty { background: hsl(var(--muted) / .6); }
+/* The empty state's half-moon, drawn rather than iconised: it is a state of one
+   control, not a glyph the icon registry has any other use for. Hidden the
+   moment the chip carries a colour, so the colour is the whole chip. */
+.ds-addc-pick-glyph { display: none; }
+.ds-addc-pick.is-empty .ds-addc-pick-glyph {
+  display: block; width: 42%; aspect-ratio: 1; border-radius: var(--radius-round);
+  border: 2px solid hsl(var(--muted-foreground) / .75);
+  background: linear-gradient(90deg, transparent 0 50%, hsl(var(--muted-foreground) / .3) 50% 100%);
+}
+.ds-addc-drop {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: calc(2rem * var(--a11y-fs)); height: calc(2rem * var(--a11y-fs));
+  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .6);
+  background: hsl(var(--background)); color: hsl(var(--foreground)); cursor: pointer;
+}
+.ds-addc-drop:hover { background: hsl(var(--muted) / .6); }
+/* The inline icon carries no width/height attributes (lib/icons.ts), so its box
+   is set here - the house "Icon SVG CSS size" rule. */
+.ds-addc-drop svg { width: calc(1rem * var(--a11y-fs)); height: calc(1rem * var(--a11y-fs)); }
+/* What Add says when the field holds text it cannot read (plan 182 section 5.1). The
+   button is never disabled, so the row has to explain itself in words instead.
+   No margin of its own: `.ds-addc` is a grid and its gap already spaces this,
+   and hidden it leaves no row behind (the `.ds-addc-found` pattern above). */
+.ds-addc-hint { margin: 0; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.ds-addc-hint[hidden] { display: none; }
+.ds-addc-found { display: grid; gap: .5rem; }
+.ds-addc-found[hidden] { display: none; }
+.ds-addc-count { margin: 0; font-size: calc(.74rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.ds-addc-chips { display: flex; flex-wrap: wrap; gap: .35rem; }
+.ds-addc-chip {
+  display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .5rem;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius-pill);
+  background: hsl(var(--background)); color: hsl(var(--muted-foreground));
+  font: inherit; font-size: var(--fs-xs); cursor: pointer;
+}
+.ds-addc-chip[aria-pressed="true"] { background: hsl(var(--muted) / .7); color: hsl(var(--foreground)); }
+.ds-addc-chip-dot { width: var(--fs-lg); height: var(--fs-lg); border-radius: var(--radius-round); box-shadow: var(--edge-strong); }
+.ds-addc-chip-v { font-family: var(--font-mono); }
+.ds-addc-acts { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+/* ── Roles as an assignment layer (lib/design-system/roles.ts). An unset slot is
+      a solid border at reduced opacity - never a dashed one, and never a
+      one-sided accent edge. */
+/* The 250px floor is the width one role card needs before its own parts start
+   fighting: swatch (26) + gaps (2 x .6rem) + padding (2 x .55rem) + borders take
+   ~62px, and the picker is capped at 8.5rem (136px), which leaves the name/value
+   column about 50px at the floor. At the old 210px floor a 507px column still
+   fitted TWO tracks of ~215px, and the picker - a native select whose auto
+   min-width is its longest option - pushed the name and the value underneath
+   itself. 250 makes that width one full-width track instead, and 390px and the
+   desktop widths keep resolving to the same track counts they always did. */
+/* 250 → 320 (plan 182 section 4.2): a value line used to be a swatch NAME and is
+   now sometimes a short sentence ("Starter Paper stands in", "↳ follows
+   Primary"). The fixed items in a row are a 26px swatch, the Lc readout and a
+   136px picker, which with padding and gaps leaves a 250px track about 20px for
+   the meta column - three letters and an ellipsis. At 320 the same row keeps
+   ~90px, and the track counts that matter are unchanged: one full-width track
+   below 640px (the phone) and at the 507px stacked width, two across a desktop
+   split's main column. */
+.be-roles-strip { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.be-role { display: flex; align-items: center; gap: .6rem; min-width: 0; padding: .45rem .55rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .6); background: hsl(var(--background)); }
+.be-role.is-unset { border-style: solid; opacity: .75; }
+/* A slot filled by a colour NOBODY CHOSE - the starter's, standing in, or the
+   primary showing through (plan 182 section 4.2). It is not "unset" (something
+   is resolving there, and tools read it), and it is not a decision either, so
+   it gets its own quiet register: the row recedes and its value line drops the
+   mono face that says "this is a value somebody set". Never dashed - dashed is
+   a drop target in this app. */
+.be-role.is-starter { opacity: .72; }
+.be-role.is-starter .be-role-val { font-family: inherit; color: hsl(var(--muted-foreground)); }
+.be-role.is-starter .be-role-sw { opacity: .8; }
+.be-role-sw { flex: 0 0 auto; width: 26px; height: 26px; border-radius: var(--radius-sm); background: var(--sw, transparent); box-shadow: var(--edge-faint); }
+.be-role-meta { display: grid; gap: 1px; min-width: 0; margin-inline-end: auto; }
+/* Clipped like the value line below it. `.be-role-meta` is a min-width: 0 grid,
+   so a name wider than its track OVERFLOWED rather than shrinking - and painted
+   straight over the APCA readout and the picker beside it. Visible the moment a
+   value line got longer than a swatch name ("Starter Paper stands in"), but the
+   overlap was always one long role label away. */
+.be-role-name {
+  font-size: calc(.74rem * var(--a11y-fs)); font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.be-role-val { font-family: var(--font-mono); font-size: var(--fs-xs); color: hsl(var(--foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.be-role-apca { font-family: var(--font-mono); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; color: hsl(var(--muted-foreground)); }
+.be-role-apca.is-weak { color: hsl(var(--destructive)); }
+/* The picker is the assignment control: native, so it is keyboard- and
+   phone-native. .field-select supplies the base look; this only bounds it.
+   `min-width: 0` is what makes the cap real: a flex item's automatic minimum is
+   its content size, and for a select that is its longest option name, which
+   out-ranks max-width and grew the picker over the card's own labels. */
+.be-role-pick { flex: 0 0 auto; min-width: 0; max-width: 8.5rem; font-size: var(--fs-xs); }
+/* `on-primary` is maintained by the derive against the primary so the pair
+   passes (plan 182 section 5.7 step 1), so its row is shown and MEASURED but has
+   no picker - the word sits where the picker would, in the muted register, so
+   the strip's columns still line up. */
+.be-role.is-derived .be-role-derived {
+  flex: 0 0 auto; font-size: var(--fs-xs); color: hsl(var(--muted-foreground));
+}
+
+/* The swatch popover's "Use as" row - roles reached from the colour itself. */
+.be-useas-row { display: flex; align-items: center; flex-wrap: wrap; gap: .35rem; padding-top: .5rem; border-top: 1px solid hsl(var(--border) / .6); }
+.be-useas-row[hidden] { display: none; }
+.be-useas-label { font-size: var(--fs-2xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+/* A pressed "Use as" means THIS swatch already holds that role - and pressing it
+   again is what un-sets the role, so the state is not decoration, it is the
+   difference between assign and remove. It has to be visible without reading
+   the a11y tree.
+
+   An all-round ring in the brand's own colour plus a wash of the same hue: the
+   ring reads at a glance and in high-contrast, and it wraps the pill evenly
+   (a one-sided accent edge on a rounded control is the house's standing no).
+   Deliberately NOT the primary fill pair - that recipe is declared once, in
+   buttons.css, and this is a toggle state, not a primary action. */
+.be-useas-row .be-btn[aria-pressed="true"] {
+  border-color: hsl(var(--primary));
+  box-shadow: inset 0 0 0 1px hsl(var(--primary));
+  background: hsl(var(--primary) / .14);
+  color: hsl(var(--foreground));
+}
+
+/* ── Tab panels - the host view (start.ts) sets data-active-tab on .be; every
+      panel stays mounted (wiring intact) and CSS shows just the active one.
+      Without the attribute (no tab bar) every panel shows, stacked. */
+.be-tab { display: grid; gap: 1.1rem; }
+.be[data-active-tab] > .be-tab { display: none; }
+.be[data-active-tab="logos"] > [data-be-tab-panel="logos"],
+.be[data-active-tab="color"] > [data-be-tab-panel="color"],
+.be[data-active-tab="type"] > [data-be-tab-panel="type"],
+.be[data-active-tab="tokens"] > [data-be-tab-panel="tokens"],
+.be[data-active-tab="catalogue"] > [data-be-tab-panel="catalogue"] { display: grid; }
+
+/* ── Type tab (≥1100px) - level 0 and the compare stage run full width (the
+      role cards read as one row, and six faces side by side want every pixel);
+      the management list and the upload panel share the left column with the
+      Type roles specimen alongside on the right, so picking a face and seeing
+      what it's for happen in one glance. Below 1100px everything keeps the tab's
+      single-column stack. (Same breakpoint as the Colour tab's split, but plain
+      grid placement - no divider/scroller machinery for a few small panels.)
+
+      `dense` is load-bearing, not a flourish: the compare stage is `hidden` most
+      of the time, so the row the specimen should sit in is not a fixed number.
+      Dense packing puts the column-2 specimen in the first row where column 2 is
+      free, which is the row the list starts on whether the stage is up or not.
+      Explicit `grid-row` values were tried first and left a hole in the stage's
+      absence. Only the specimen is auto-placed, so nothing else can be reordered
+      by this. */
+@media (min-width: 1100px) {
+  [data-be-tab-panel="type"] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-auto-flow: row dense;
+    align-items: start;
+  }
+  [data-be-tab-panel="type"] > .be-typecards,
+  [data-be-tab-panel="type"] > .be-typestage { grid-column: 1 / -1; }
+  [data-be-tab-panel="type"] > .be-fonts { grid-column: 1; }
+  [data-be-tab-panel="type"] > .be-typeroles { grid-column: 2; }
+}
+
+/* ── Colour tab split (≥1100px) - main column | draggable divider | palette
+      side pane (lib/studio-split.ts drives --be-side-w/.is-collapsed). The
+      HOST bounds the split's height to the viewport (start.css hands 100dvh
+      down the chain), so both panes scroll INTERNALLY and their bottoms anchor
+      to the viewport - the page itself never scrolls on this tab.
+      GUARD: the side pane must NEVER get a z-index, transform or contain - the
+      swatch popover (.be-editor, z-index 30) positions against `.be` and has
+      to keep beating the sticky action row (z-index 20); any of those would
+      trap it in a new stacking/containing context. Below 1100px the divider is
+      display:none and the side content simply follows the main column in flow.
+      (This block sits AFTER the .be-tab rules above - the column-gap override
+      relies on source order at equal specificity.) */
+/* Colour workspace: the palette leads; previews and optional tools support it.
+   Available groups and starter colours never depend on the ownership beat. */
+.be-tab--split { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+.be-split-side, .be-split-main, .be-split-scroll { min-width: 0; }
+.be-split-main { display: grid; gap: 1rem; align-content: start; }
+.be-split-scroll > * + * { margin-top: 1.5rem; }
+.be-split-side > .be-pal-dock { margin-top: 1rem; }
+.be-split-divider, .be-generate-cta, .be-pal-later { display: none; }
+[data-be-tab-panel="color"] .be-panel { border: 0; padding: 0; }
+[data-be-tab-panel="color"] .be-wing { border: 0; background: hsl(var(--muted) / .45); }
+[data-be-tab-panel="color"] .be-wing-body { padding: 1rem; }
+[data-be-tab-panel="color"] .be-wing-head { padding: .85rem 1rem; }
+[data-be-tab-panel="color"] .be-wing-sub { font-size: var(--fs-xs); }
+.be-palette-heading, .be-context-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; justify-content: space-between; margin-bottom: 1rem; }
+.be-palette-heading h2, .be-context-head h2 { font-size: var(--fs-lg); margin: 0; font-weight: 650; }
+.be-palette-heading > span, .be-context-head > span { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.be-context { display: grid; gap: .75rem; }
+.be-bulk-preview { display: none; }
+@media (max-width: 1099px) {
+  .be-bulk-preview { display: inline-flex; }
+  .be-context { scroll-margin-block-start: calc(var(--chrome-h) * 2 + var(--sp-4)); }
+}
+.be-preview-empty { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: var(--radius); margin: 0; padding: 1rem; background: hsl(var(--muted) / .5); color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); text-align: center; }
+.be-context .be-context-head { margin-bottom: 0; }
+.be-context > .view-seg { width: 100%; }
+.be-context .be-pv-cap { display: none; }
+.be-addcolor { margin-top: 1.5rem; }
+.be-addcolor > summary { color: hsl(var(--muted-foreground)); cursor: pointer; font-size: var(--fs-sm); padding-block: .6rem; }
+.be-addcolor[open] > summary { margin-bottom: .5rem; }
+.be-group-form { display: flex; flex-wrap: wrap; gap: .5rem; padding-block: .5rem 1rem; }
+.be-group-form .field-input { flex: 1 1 10rem; min-width: 0; width: auto; }
+.be-editor-group { display: flex; align-items: center; gap: .75rem; padding: .5rem 1rem; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.be-editor-group select { flex: 1; min-width: 0; }
+.be-editor.is-pick .be-editor-group { display: none; }
+@media (min-width: 1100px) {
+  .be-tab--split { grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); grid-template-rows: minmax(0, 1fr); gap: 2rem; align-items: stretch; }
+  .be-split-main { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-inline-end: .25rem; }
+  .be-split-side { display: flex; flex-direction: column; min-height: 0; }
+  .be-split-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-inline-end: .5rem; }
+}
+
+/* ── The generate offer (plan 182 section 3a, beat 1). A panel, not a link on a
+      chip that a dismiss takes away: it is the one thing worth doing after a
+      first colour, and it says which colour it will build from. Full-perimeter
+      tint in the brand's own colour - never a single accent edge. */
+.be-generate-cta {
+  display: none; align-items: center; gap: 1rem; flex-wrap: wrap;
+  border-color: hsl(var(--primary) / .5); background: hsl(var(--primary) / .06);
+}
+.be-generate-cta[hidden] { display: none; }
+.be-generate-cta-copy { display: grid; gap: .25rem; min-width: 0; flex: 1 1 18rem; }
+.be-generate-cta-title { font-size: var(--fs-lg); font-weight: 700; color: hsl(var(--foreground)); }
+.be-generate-cta-sub { font-size: var(--fs-sm); line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.be-generate-cta-go { flex: 0 0 auto; margin-inline-start: auto; }
+
+/* What beat 1's pane is holding back, said once. */
+.be-pal-later { margin: .7rem 0 0; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+
+/* Beat 0's "or bring a file" - a real button that reads as the link it is
+   (the studio has no shared link-button primitive; this is the only one). */
+.be-beat0-file {
+  border: 0; padding: 0; background: none; font: inherit; color: hsl(var(--primary));
+  text-decoration: underline; cursor: pointer;
+}
+.be-beat0-file:hover, .be-beat0-file:focus-visible { text-decoration: none; }
+
+/* The Print wing with no primary ramp to pin (the starter cut, plan 182 section
+   12) - one sentence where the controls would be. */
+.be-subst-none { margin: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.be-subst-none[hidden] { display: none; }
+
+/* ── The pick card (plan 182 section 5.1) - the swatch popover with nothing
+      selected. Same box, different footer; the pair of actions that does not
+      apply is `hidden`, so only the geometry is here. */
+.be-editor-cancel[hidden], .be-editor-add[hidden], .be-editor-done[hidden] { display: none; }
+.be-editor-add { margin-inline-start: auto; }
+
+/* ── The one folded group where a starter colour is drawn: the Tokens room's
+      "Open" for the neutrals (`?area=color&group=neutral`). Recedes, because it
+      is scaffolding - and never dashed. */
+.be-pal-group--starter { margin-top: 1.5rem; }
+
+/* ── Colour-from-logo suggestion (Colour tab, fed by the Logos tab). */
+.be-suggest { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin: -.3rem 0 .8rem; }
+.be-suggest[hidden] { display: none; }
+.be-suggest-note { display: inline-flex; align-items: center; gap: .45rem; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.be-suggest-note code { font-family: var(--font-mono); font-size: calc(.74rem * var(--a11y-fs)); color: hsl(var(--foreground)); }
+.be-suggest-sw {
+  width: 16px; height: 16px; border-radius: var(--radius-xs); background: var(--sw, transparent);
+  box-shadow: inset 0 0 0 1px hsl(var(--foreground) / .15);
+}
+.be-suggest-dismiss {
+  border: 0; background: transparent; color: hsl(var(--muted-foreground));
+  font-size: var(--fs-md); cursor: pointer; padding: .15rem .3rem;
+}
+.be-suggest-dismiss:hover { color: hsl(var(--foreground)); }
+
+/* ── The post-add chip (plan 137 C1). Same box as the suggestion row above - it
+      is the same kind of row in the same panel - so only its own addition lives
+      here: a touch floor. Not shared with .be-suggest because these are the
+      first controls a first-run tap meets, and .be-btn is sized for a mouse.
+      (`.be-added-gen` retired with the chip's handover LINK, plan 182 section
+      3a - the generate offer is `.be-generate-cta`, a panel that is on screen
+      for the whole of beat 1 rather than a link a dismiss takes away.) */
+@media (pointer: coarse) {
+  .be-added .be-btn { min-height: 44px; }
+  .be-added .be-suggest-dismiss { min-width: 44px; min-height: 44px; }
+}
+
+/* ── Type room level 0 (plan 97 section 7.2): the four role cards.
+      brand-editor.ts updates these IN PLACE (textContent + one class), never by
+      re-rendering, so nothing here may assume a fresh element on every paint.
+
+      The sample paints through the role's own CSS var chain
+      (`var(--font-display, var(--font-brand))`), which is why an unset Headings
+      card shows the primary: that IS what a heading wears today, and a blank
+      would be a different, untrue answer.
+
+      `is-own` is the tint, and it is the WHOLE tint rule of this room (plan 182
+      section 4.2): a face the person installed. It replaced `is-set`, which
+      tinted any role that resolved to a face and therefore tinted the starter's
+      two on a profile nobody had touched (T1). An inherited face wears the
+      `.be-pal-starter` pill instead - the same pill the palette's inherited
+      groups wear, because it is the same statement - and a following role draws
+      the arrow and the role it follows. Full border and a tinted fill, never one
+      accent edge; same recipe as `.be-font-row.is-own`. */
+.be-typecard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .7rem; }
+/* The stage is DOM-moved into this grid, under the card that opened it (plan
+   182 section 6.6). It is full width wherever it lands - while it is open the
+   cards are the collapsed strip below, where the flex rules take over. */
+.be-typecard-grid > .be-typestage { grid-column: 1 / -1; }
+.be-typecard {
+  display: grid; gap: .45rem; align-content: start; min-width: 0;
+  padding: .75rem .8rem;
+  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .55);
+}
+.be-typecard.is-own { border-color: hsl(var(--primary) / .5); background: hsl(var(--primary) / .05); }
+.be-typecard-head { display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+.be-typecard-role { font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.be-typecard-face {
+  flex: 1 1 8ch; min-width: 0; font-size: var(--fs-xs); color: hsl(var(--muted-foreground));
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* An own face is the person's own words on the card: full ink, and the weight
+   that says so. Everything else stays in the muted register above. */
+.be-typecard.is-own .be-typecard-face { color: hsl(var(--foreground)); font-weight: 600; }
+.be-typecard-tag { flex: none; }
+.be-typecard-tag[hidden] { display: none; }
+/* One line, always: the card is a glance at a face, and a wrapped sample would
+   change height as the type does. */
+.be-typecard-sample {
+  margin: 0; font-size: calc(1.3rem * var(--a11y-fs)); line-height: 1.3; color: hsl(var(--foreground));
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.be-typecard-sample--mono { font-size: calc(.86rem * var(--a11y-fs)); }
+.be-typecard-act { justify-self: start; }
+/* Beat 0's one line of reassurance, beside the one button (plan 182 section
+   3a). Present in the markup at every beat and shown at beat 0 only - the
+   sentence is about a first choice, and after one it is noise. */
+.be-typecard-note { display: none; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+/* The card's one-line self, drawn only inside the collapsed strip below. */
+.be-typecard-chip { display: none; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+
+/* ── Beat 0 (plan 182 section 3a): no face of its own, so ONE decision.
+      A centred column - the room's own title, the Primary card at reading size,
+      and the sentence that says what the other three roles do meanwhile. The
+      Fonts list and the specimen do not exist yet; there is nothing in them.
+      Everything here is a display switch on markup that is always present, so a
+      beat change is one attribute and never a re-render. */
+[data-be-tab-panel="type"][data-be-beat="0"] > .be-fonts,
+[data-be-tab-panel="type"][data-be-beat="0"] > .be-typeroles { display: none; }
+[data-be-tab-panel="type"][data-be-beat="0"] > .be-typecards {
+  border: 0; padding: 0; max-width: 42rem; margin-inline: auto; display: grid; gap: 1rem;
+}
+[data-be-tab-panel="type"][data-be-beat="0"] > .be-typecards > .be-panel-head { display: none; }
+[data-be-tab-panel="type"][data-be-beat="0"] .be-typecard-grid { grid-template-columns: minmax(0, 1fr); }
+/* The other three roles are deferred, not hidden: the sentence below the card
+   says what they are doing, and the button reveals them for the rest of the
+   mount (`data-be-more`). */
+[data-be-tab-panel="type"][data-be-beat="0"]:not([data-be-more]) .be-typecard:not([data-be-typecard="brand"]) { display: none; }
+/* Beat 0 is one card at reading size. The three sizes it needs are bigger than
+   the --fs-* scale carries (it stops at 16px), and tokens.css's rule is that the
+   a11y multiplier lives INSIDE a token while call sites read the token - so
+   these are room-scoped tokens rather than three more inline multipliers. */
+[data-be-tab-panel="type"][data-be-beat="0"] .be-typecard {
+  --be-type-hero-fs: calc(1.6rem * var(--a11y-fs));
+  --be-type-hero-mono-fs: calc(1rem * var(--a11y-fs));
+  padding: 1rem 1.1rem; gap: .55rem;
+}
+[data-be-tab-panel="type"][data-be-beat="0"] .be-typecard-sample { font-size: var(--be-type-hero-fs); }
+[data-be-tab-panel="type"][data-be-beat="0"] .be-typecard-sample--mono { font-size: var(--be-type-hero-mono-fs); }
+[data-be-tab-panel="type"][data-be-beat="0"] .be-typecard[data-be-typecard="brand"] .be-typecard-act { justify-self: start; }
+[data-be-tab-panel="type"][data-be-beat="0"] > .be-typecards:not([data-collapsed]) .be-typecard[data-be-typecard="brand"] .be-typecard-note { display: inline; }
+/* The lede and the deferral sentence are display:none by default and SHOWN by
+   the beat-0 rules - which is why the collapsed strip below does not need to
+   out-specify anything to hide them: `:not([data-collapsed])` in the show rule
+   simply stops showing them. */
+.be-typelede { display: none; --be-type-lede-fs: calc(1.5rem * var(--a11y-fs)); }
+[data-be-tab-panel="type"][data-be-beat="0"] > .be-typecards:not([data-collapsed]) > .be-typelede { display: grid; gap: .35rem; }
+.be-typelede-title { margin: 0; font-size: var(--be-type-lede-fs); font-weight: 800; letter-spacing: -.02em; color: hsl(var(--foreground)); }
+.be-typelede-sub { margin: 0; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
+.be-typemore { display: none; margin: 0; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+[data-be-tab-panel="type"][data-be-beat="0"]:not([data-be-more]) > .be-typecards:not([data-collapsed]) > .be-typemore { display: block; }
+.be-typemore-btn {
+  border: 0; background: none; padding: 0; margin-inline-start: .3rem;
+  font: inherit; font-weight: 600; color: hsl(var(--foreground));
+  text-decoration: underline; cursor: pointer;
+}
+.be-typemore-btn:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+
+/* ── The collapsed strip (plan 182 section 6.6). While the stage is open the
+      four cards fold to one line each - role plus what serves it - so the
+      decision and its subject are on the same screen, which on a phone they
+      were not (T7). The panel gives up its own chrome while collapsed, because
+      the stage moves INSIDE it and two nested panel borders read as a box in a
+      box. `order` keeps the stage after the pills whatever card it follows in
+      the DOM; the DOM order is what a widthless reading (and the keyboard) go
+      by, so both are right. */
+.be-typecards[data-collapsed] { border: 0; padding: 0; }
+/* Beat 0 is a narrow centred column, but the stage that opens inside it is a
+   comparison and wants the room's full width. */
+[data-be-tab-panel="type"][data-be-beat="0"] > .be-typecards[data-collapsed] { max-width: none; }
+.be-typecards[data-collapsed] > .be-panel-head { display: none; }
+.be-typecards[data-collapsed] .be-typecard-grid { display: flex; flex-wrap: wrap; gap: .45rem; }
+.be-typecards[data-collapsed] .be-typecard {
+  display: flex; align-items: center; gap: .45rem; flex: 0 1 auto;
+  min-height: calc(2.5rem * var(--a11y-fs));
+  padding: 0 .75rem; border-radius: var(--radius-pill);
+}
+/* `display: contents` rather than a second copy of the role name in the markup:
+   the header stops being a box and its role span becomes an item of the pill. */
+.be-typecards[data-collapsed] .be-typecard-head { display: contents; }
+.be-typecards[data-collapsed] .be-typecard-face,
+.be-typecards[data-collapsed] .be-typecard-tag,
+.be-typecards[data-collapsed] .be-typecard-sample,
+.be-typecards[data-collapsed] .be-typecard-note,
+.be-typecards[data-collapsed] .be-typecard-act { display: none; }
+.be-typecards[data-collapsed] .be-typecard-chip { display: inline; white-space: nowrap; }
+.be-typecards[data-collapsed] .be-typecard.is-choosing {
+  border-color: hsl(var(--primary) / .5); background: hsl(var(--primary) / .05);
+}
+.be-typecards[data-collapsed] .be-typecard.is-choosing .be-typecard-role,
+.be-typecards[data-collapsed] .be-typecard.is-choosing .be-typecard-chip { color: hsl(var(--foreground)); }
+/* The grammar holds in the strip: an own face is full ink here too. */
+.be-typecards[data-collapsed] .be-typecard.is-own .be-typecard-chip { color: hsl(var(--foreground)); font-weight: 600; }
+/* The stage, when it is a grid item: full width, and after every pill whatever
+   card it follows in the DOM. Below 640px it is not here at all - placeStage
+   leaves it after the strip, because the strip is a sideways scroller there and
+   a stage inside one would be off to the right of it. */
+.be-typecards[data-collapsed] .be-typestage { flex: 1 0 100%; order: 1; }
+@media (max-width: 640px) {
+  .be-typecards[data-collapsed] .be-typecard-grid { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .be-typecards[data-collapsed] .be-typecard { flex: none; }
+}
+
+/* ── The compare stage's frame (plan 97 section 7.2). Everything INSIDE
+      [data-be-typestage-mount] belongs to styles/parts/type-compare.css, which
+      the stage module imports; this is only the panel the room wraps it in - the
+      title, the close, and the Google search that seeds candidates. */
+.be-typestage { display: grid; gap: .8rem; }
+.be-typestage[hidden] { display: none; }
+.be-typestage-head { display: flex; align-items: baseline; gap: .6rem; }
+.be-typestage-title { margin: 0; font-size: var(--fs-lg); font-weight: 700; color: hsl(var(--foreground)); }
+/* The only pointer way to close the stage, so it carries a real touch target:
+   a 2rem box (any bigger and it dwarfs the title row) plus an ::after that
+   expands the hit area to 44×44 - `inset: calc((44px - 100%) / -2)` resolves
+   against the button's own padding box, so it tracks --a11y-fs with it. The
+   overhang lands in the head row's own gap, not on another control. */
+.be-typestage-x {
+  position: relative;
+  margin-inline-start: auto; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: calc(2rem * var(--a11y-fs)); height: calc(2rem * var(--a11y-fs));
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius-pill);
+  background: transparent; color: hsl(var(--muted-foreground)); cursor: pointer;
+}
+.be-typestage-x::after { content: ''; position: absolute; inset: calc((44px - 100%) / -2); }
+.be-typestage-x:hover { color: hsl(var(--foreground)); background: hsl(var(--muted)); }
+.be-typestage-x:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.be-typestage-x svg { width: var(--fs-lg); height: var(--fs-lg); }
+.be-typestage-search { display: flex; gap: .5rem; flex-wrap: wrap; }
+/* Pinned families - one press each (plan 182 section 6.4). A row of names under
+   the field, so a fresh origin has something to press before it has something
+   to type. On a phone the row scrolls sideways rather than wrapping into three
+   lines of chips above the cards they would push off-screen. */
+.be-typestage-pins { display: flex; align-items: center; gap: .4rem .5rem; flex-wrap: wrap; }
+.be-typestage-pins[hidden] { display: none; }
+.be-typestage-pins-label { font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.be-typestage-pinrow { display: flex; gap: .4rem; flex-wrap: wrap; min-width: 0; }
+.be-typestage-pin { border-radius: var(--radius-pill); }
+.be-typestage-pinnote { font-size: var(--fs-2xs); color: hsl(var(--muted-foreground)); }
+@media (max-width: 640px) {
+  .be-typestage-pinrow { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .be-typestage-pin { flex: none; }
+  .be-typestage-pinnote { display: none; }
+  /* One decision per line on a phone: the field, then the press (TypePhone). */
+  .be-typestage-search { display: grid; }
+}
+/* The note beside "Add a face" says what the button opens, so the management
+   list never looks like a dead end now that the search lives in the stage. */
+.be-font-addnote { align-self: center; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+
+/* ── Type roles specimen - each role rendered in the face that serves it.
+      (`be-typerole`, NOT `be-spec-*` - the derive preview's spec cards own
+      that family and a shared row class briefly broke their button row.) */
+.be-specimen { display: grid; gap: .9rem; }
+.be-typerole { display: grid; gap: .25rem; padding: .7rem .8rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .55); }
+.be-typerole-role { font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.be-typerole-sample { font-size: calc(.95rem * var(--a11y-fs)); line-height: 1.5; color: hsl(var(--foreground)); overflow-wrap: break-word; }
+.be-typerole-sample--h { font-size: calc(1.5rem * var(--a11y-fs)); line-height: 1.2; font-weight: 700; }
+.be-typerole-sample--mono { font-size: calc(.84rem * var(--a11y-fs)); }
+.be-typerole-face { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+/* Assigned optional-role chips (code / headings / italic) read as muted pills,
+   distinct from the primary-coloured "Primary" badge. */
+.be-font-badge--mono,
+.be-font-badge--display,
+.be-font-badge--italic { background: hsl(var(--muted) / .7); color: hsl(var(--foreground)); border-radius: var(--radius-pill); padding: .1rem .45rem; }
+.be-font-mono, .be-font-role { white-space: nowrap; }
+
+/* ── Logos: identity sections + custom marks + the two inline add forms. */
+.be-logo-identity { display: grid; gap: 1rem; }
+.be-logo-identity + .be-logo-identity { margin-top: 1.1rem; padding-top: 1.1rem; border-top: 1px solid hsl(var(--border) / .7); }
+.be-logo-identity-head { display: flex; align-items: baseline; gap: .6rem; }
+.be-logo-identity-name { margin: 0; font-size: var(--fs-sm); font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: hsl(var(--foreground)); }
+.be-logo-slot[data-treatment="custom"] .be-logo-art { background: hsl(var(--muted) / .35); padding: .5rem; }
+.be-logo-addmark {
+  display: grid; gap: .45rem; align-content: center; padding: .7rem;
+  border: 1px dashed hsl(var(--border)); border-radius: calc(var(--radius) * .55);
+}
+.be-logo-addmark-name {
+  width: 100%; min-width: 0; padding: .35rem .5rem; font: inherit; font-size: calc(.76rem * var(--a11y-fs));
+  border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) * .45);
+  background: hsl(var(--background)); color: hsl(var(--foreground)); outline: none;
+}
+.be-logo-addmark-name:focus { border-color: hsl(var(--ring) / .6); }
+.be-logo-addmark-pick { text-align: center; cursor: pointer; }
+/* It is styled as a button and now behaves like one for the keyboard too: the
+   file input inside is visually-hidden (focusable), so the label carries the ring. */
+.be-logo-addmark-pick:focus-within { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.be-logo-addidentity { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1.1rem; padding-top: 1.1rem; border-top: 1px solid hsl(var(--border) / .7); }
+.be-logo-addidentity input {
+  flex: 1 1 16rem; min-width: 0; padding: .45rem .6rem; font: inherit; font-size: var(--fs-md);
+  border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) * .5);
+  background: hsl(var(--background)); color: hsl(var(--foreground)); outline: none;
+}
+.be-logo-addidentity input:focus { border-color: hsl(var(--ring) / .6); }
+
+/* ── Tokens tab: the starter neutrals (plan 182 section 12).
+   Ink and paper, listed where they belong - one row, nine small tiles and the
+   one Open that ever draws a starter tile (it routes to the Colours pane with
+   that group revealed). Muted and small because it is scaffolding; never dashed,
+   which in this app means drop target. */
+.be-neutrals { display: grid; gap: .35rem; margin-bottom: 1.2rem; }
+.be-neutrals[hidden] { display: none; }
+.be-neutrals-row { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.be-neutrals-label { font-size: var(--fs-sm); font-weight: 600; color: hsl(var(--muted-foreground)); }
+.be-neutrals-tiles { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+.be-neutrals-tile {
+  width: 14px; height: 14px; border-radius: var(--radius-xs);
+  background: var(--sw, transparent);
+  box-shadow: var(--edge-faint);
+}
+.be-neutrals-open { margin-inline-start: auto; }
+.be-neutrals-note { margin: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.be-neutrals-note[hidden] { display: none; }
+
+/* ── Tokens tab: Lolly's own UI starter roles.
+   This is intentionally an *unowned* preview, not a one-click preset. The
+   system's complete semantic scale remains visible and Penpot-exportable while
+   a brand stays clean; only a changed-and-saved field creates its matching
+   `lolly.ui.*` leaf. The quiet default/owned badge makes that boundary legible
+   without treating a useful starting point as an empty state. */
+.be-ui-starter {
+  display: grid; gap: .75rem; margin: 0 0 1.35rem; padding: 1rem;
+  border: 1px solid hsl(var(--border)); border-radius: var(--ui-radius-surface, var(--radius));
+  background: linear-gradient(135deg, hsl(var(--primary) / .08), transparent 52%), hsl(var(--card));
+  box-shadow: var(--ui-edge-faint);
+}
+.be-ui-starter-head { display: flex; align-items: start; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+.be-ui-starter-kicker { margin: 0 0 .16rem; font-size: var(--fs-2xs); font-weight: 800; letter-spacing: .075em; text-transform: uppercase; color: hsl(var(--primary)); }
+.be-ui-starter-title { margin: 0; font-size: var(--fs-xl); line-height: 1.25; }
+.be-ui-starter-count, .be-ui-role-badge, .be-ui-group-count {
+  display: inline-flex; align-items: center; min-height: 1.45rem; padding-inline: .48rem;
+  border-radius: var(--radius-pill); font-size: var(--fs-2xs); font-weight: 700; white-space: nowrap;
+}
+.be-ui-starter-count { background: hsl(var(--primary) / .13); color: hsl(var(--foreground)); }
+.be-ui-starter-note { margin: 0; max-width: 76ch; font-size: var(--fs-sm); line-height: 1.55; color: hsl(var(--muted-foreground)); }
+.be-ui-starter-note strong { color: hsl(var(--foreground)); }
+.be-ui-starter-groups { display: grid; gap: .4rem; }
+.be-ui-group { border: 1px solid hsl(var(--border) / .8); border-radius: calc(var(--radius) * .65); background: hsl(var(--background) / .55); overflow: clip; }
+.be-ui-group > summary { display: flex; align-items: center; gap: .55rem; min-height: 2.6rem; padding: .45rem .65rem; cursor: pointer; list-style: none; font-size: var(--fs-sm); font-weight: 700; text-transform: capitalize; }
+.be-ui-group > summary::-webkit-details-marker { display: none; }
+.be-ui-group > summary::before { content: '›'; font-size: 1.15em; color: hsl(var(--muted-foreground)); transition: rotate var(--dur-1); }
+.be-ui-group[open] > summary::before { rotate: 90deg; }
+.be-ui-group-count { margin-inline-start: auto; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); text-transform: none; }
+.be-ui-role-list { display: grid; gap: .45rem; padding: 0 .55rem .55rem; }
+.be-ui-role { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(12rem, 1.2fr) auto; gap: .45rem .7rem; align-items: center; padding: .6rem; border-radius: calc(var(--radius) * .5); background: hsl(var(--muted) / .36); }
+.be-ui-role.is-owned { background: hsl(var(--primary) / .10); box-shadow: var(--ui-effect-selected); }
+.be-ui-role-meta, .be-ui-role-state { display: grid; gap: .16rem; min-width: 0; }
+.be-ui-role-name { font-size: var(--fs-sm); font-weight: 700; text-transform: capitalize; }
+.be-ui-role-path, .be-ui-role-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); font-size: var(--fs-2xs); color: hsl(var(--muted-foreground)); }
+.be-ui-role-state { justify-items: start; }
+.be-ui-role-badge { background: hsl(var(--background) / .75); color: hsl(var(--muted-foreground)); }
+.be-ui-role.is-owned .be-ui-role-badge { background: hsl(var(--primary) / .17); color: hsl(var(--foreground)); }
+.be-ui-role-actions { display: inline-flex; gap: .35rem; justify-content: end; flex-wrap: wrap; }
+.be-ui-edit { grid-column: 1 / -1; display: grid; gap: .45rem; padding-top: .35rem; border-top: 1px solid hsl(var(--border) / .8); }
+.be-ui-edit label { display: grid; gap: .3rem; font-size: var(--fs-xs); font-weight: 700; color: hsl(var(--foreground)); }
+.be-ui-edit input, .be-ui-edit textarea { width: 100%; min-width: 0; padding: .42rem .55rem; border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) * .45); background: hsl(var(--background)); color: hsl(var(--foreground)); font: inherit; font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.45; outline: none; resize: vertical; }
+.be-ui-edit input:focus, .be-ui-edit textarea:focus { border-color: hsl(var(--ring) / .65); box-shadow: var(--ui-effect-focus-halo); }
+.be-ui-edit p { margin: 0; font-size: var(--fs-2xs); color: hsl(var(--muted-foreground)); }
+.be-ui-edit .be-cta { justify-self: start; min-height: 2.2rem; }
+@media (max-width: 620px) {
+  .be-ui-role { grid-template-columns: 1fr; }
+  .be-ui-role-actions { justify-content: start; }
+}
+
+/* ── Tokens tab: grouped rows, one editor per kind. */
+.be-tok-list { display: grid; gap: 1rem; margin-bottom: 1rem; }
+.be-tok-empty, .be-cat-empty { margin: 0; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
+.be-tok-group { display: grid; gap: .4rem; }
+.be-tok-group-head { display: flex; align-items: baseline; gap: .4rem; }
+.be-tok-group-label { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.be-tok-group-n { font-size: var(--fs-2xs); color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
+.be-tok-row {
+  display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+  padding: .45rem .6rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .5);
+}
+.be-tok-name { font-size: var(--fs-sm); font-weight: 600; min-width: 7rem; }
+.be-tok-editor { display: flex; align-items: center; gap: .45rem; flex: 1 1 auto; flex-wrap: wrap; }
+.be-tok-dim, .be-tok-num {
+  padding: .3rem .45rem; font: inherit; font-size: calc(.76rem * var(--a11y-fs)); font-family: var(--font-mono);
+  border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) * .45);
+  background: hsl(var(--background)); color: hsl(var(--foreground)); outline: none;
+}
+.be-tok-num { width: 5.5rem; }
+.be-tok-dim:focus, .be-tok-num:focus { border-color: hsl(var(--ring) / .6); }
+.be-tok-range { flex: 1 1 8rem; min-width: 6rem; }
+.be-tok-out { font-family: var(--font-mono); font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); min-width: 2.6rem; }
+.be-tok-unit { font-size: calc(.74rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.be-tok-shadow-chip {
+  width: 26px; height: 26px; flex: 0 0 auto; border-radius: calc(var(--radius) * .4);
+  background: hsl(var(--card)); border: 1px solid hsl(var(--border) / .6);
+}
+.be-tok-shadow-in { display: grid; gap: .1rem; justify-items: center; font-size: calc(.6rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.be-tok-shadow-in input {
+  width: 3.4rem; padding: .22rem .3rem; font: inherit; font-size: var(--fs-xs); font-family: var(--font-mono); text-align: center;
+  border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) * .4);
+  background: hsl(var(--background)); color: hsl(var(--foreground)); outline: none;
+}
+/* Our colour picker in the shadow row - narrow enough that the trigger's
+   container query drops the colour name and leaves just the swatch. */
+.be-tok-shadow-cf { flex: 0 0 auto; width: 34px; display: inline-flex; }
+.be-tok-shadow-cf .color-picker-field, .be-tok-shadow-cf .color-trigger { width: 100%; }
+.be-tok-del {
+  margin-inline-start: auto; border: 0; background: transparent; cursor: pointer;
+  color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); padding: .2rem .35rem;
+}
+.be-tok-del:hover { color: hsl(var(--destructive)); }
+.be-tok-add { display: flex; gap: .5rem; flex-wrap: wrap; }
+/* Same story as .be-pal-fmt-sel - `.field-select .field-select--sm` carries the
+   box; the add-row only needs the kind picker to hug its content beside the
+   flexible name field. */
+.be-tok-add-kind { flex: 0 0 auto; }
+.be-tok-add-name {
+  flex: 1 1 14rem; min-width: 0; padding: .4rem .55rem; font: inherit; font-size: var(--fs-md);
+  border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) * .5);
+  background: hsl(var(--background)); color: hsl(var(--foreground)); outline: none;
+}
+.be-tok-add-name:focus { border-color: hsl(var(--ring) / .6); }
+
+/* ── Gradients (Colour tab). */
+.be-grad-list { display: grid; gap: .5rem; margin-bottom: .8rem; }
+.be-grad-row {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .45rem .6rem; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .5);
+}
+.be-grad-preview { flex: 0 0 auto; width: 64px; height: 30px; border-radius: calc(var(--radius) * .4); box-shadow: var(--edge-faint); }
+.be-grad-meta { display: grid; gap: .3rem; min-width: 0; flex: 1 1 auto; }
+.be-grad-name { font-size: var(--fs-sm); font-weight: 600; }
+.be-grad-stops { display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; }
+/* Stop chips - each stop wears its (resolved) colour; an alias chip carries a
+   corner dot so "follows the swatch" is visible at a glance. */
+.be-grad-stopwrap { position: relative; display: inline-flex; }
+.be-grad-stop-chip {
+  position: relative; width: 26px; height: 22px; padding: 0; cursor: pointer;
+  border: 1px solid hsl(var(--input)); border-radius: var(--radius-sm);
+  background:
+    linear-gradient(var(--sw, transparent), var(--sw, transparent)),
+    repeating-conic-gradient(hsl(var(--muted-foreground) / .28) 0% 25%, transparent 0% 50%) 0 0 / 8px 8px;
+}
+.be-grad-stop-chip:hover { border-color: hsl(var(--primary) / .55); }
+.be-grad-stop-chip.is-ref::after {
+  content: ''; position: absolute; right: 2px; bottom: 2px; width: 5px; height: 5px;
+  border-radius: var(--radius-pill); background: hsl(var(--popover));
+  box-shadow: 0 0 0 1px hsl(var(--foreground) / .35);
+}
+/* Per-stop remove - a corner ✕ revealed on hover/focus (the stop-count stepper
+   covers shrink where hover doesn't exist). */
+.be-grad-stopdel {
+  position: absolute; top: -6px; right: -6px; width: 14px; height: 14px; padding: 0;
+  display: none; align-items: center; justify-content: center;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius-pill);
+  background: hsl(var(--popover)); color: hsl(var(--muted-foreground));
+  font-size: calc(.55rem * var(--a11y-fs)); line-height: 1; cursor: pointer;
+}
+.be-grad-stopwrap:hover .be-grad-stopdel,
+.be-grad-stopwrap:focus-within .be-grad-stopdel { display: inline-flex; }
+.be-grad-stopdel:hover { color: hsl(var(--destructive)); border-color: hsl(var(--destructive) / .5); }
+.be-grad-addstop {
+  width: 22px; height: 22px; border: 1px dashed hsl(var(--border)); border-radius: var(--radius-sm);
+  background: transparent; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: var(--fs-md); line-height: 1;
+}
+.be-grad-addstop:hover { border-color: hsl(var(--primary) / .55); color: hsl(var(--foreground)); }
+.be-grad-nstops, .be-grad-angle { display: inline-flex; align-items: center; gap: .15rem; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.be-grad-nstops input,
+.be-grad-angle input {
+  width: 3.6rem; padding: .22rem .3rem; font: inherit; font-size: var(--fs-xs); font-family: var(--font-mono); text-align: center;
+  border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) * .4);
+  background: hsl(var(--background)); color: hsl(var(--foreground)); outline: none;
+}
+.be-grad-nstops input { width: 2.9rem; }
+/* Stop-colour popover - ONE shared instance, absolutely placed under the
+   clicked chip INSIDE the panel: the side pane's own scroll carries it with
+   its anchor, so there's no `.be`-space drift to chase (contrast the swatch
+   editor's onAnchorScroll). position:relative only - the pane must never gain
+   a z-index/transform/contain (see the split-side guard above). */
+.be-gradients { position: relative; }
+.be-grad-pop { position: absolute; z-index: 30; width: min(248px, 100%); }
+.be-grad-pop[hidden] { display: none; }
+.be-grad-pop-card {
+  display: grid; gap: .55rem; padding: .6rem;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--popover)); box-shadow: 0 12px 34px hsl(var(--foreground) / .18);
+}
+.be-grad-pop-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(24px, 1fr));
+  gap: .3rem; max-height: 168px; overflow-y: auto; overscroll-behavior: contain;
+}
+.be-grad-pop-sw {
+  aspect-ratio: 1; width: 100%; padding: 0; cursor: pointer;
+  border: 1px solid hsl(var(--input)); border-radius: var(--radius-sm); background: var(--sw, transparent);
+}
+.be-grad-pop-sw:hover { border-color: hsl(var(--primary) / .55); }
+.be-grad-pop-sw.is-active { box-shadow: 0 0 0 2px hsl(var(--ring)); }
+.be-grad-pop-custom summary {
+  cursor: pointer; list-style: none;
+  font-size: var(--fs-2xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground));
+}
+.be-grad-pop-custom summary::-webkit-details-marker { display: none; }
+.be-grad-pop-customrow { display: flex; gap: .4rem; margin-top: .45rem; }
+.be-grad-pop-customrow .be-fmt-input { flex: 1 1 auto; min-width: 0; }
+
+/* ── Catalogue tab: dropzone + the sorted recap. */
+.be-cat-groups { display: grid; gap: .45rem; margin-top: .9rem; }
+.be-cat-group { display: flex; align-items: baseline; gap: .7rem; flex-wrap: wrap; }
+.be-cat-group-label { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.be-cat-group-n { margin-inline-start: .3rem; font-size: var(--fs-xs); font-weight: 400; color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
+.be-cat-group-names { display: inline-flex; gap: .35rem; flex-wrap: wrap; }
+.be-cat-name {
+  font-size: var(--fs-xs); color: hsl(var(--foreground)); background: hsl(var(--muted) / .5);
+  padding: .12rem .5rem; border-radius: var(--radius-pill); max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.be-cat-more { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); align-self: center; }
+
+/* ── Mobile palette sheet (≤640px, Colour tab) - views/start.ts mounts
+      .stu-sheet + its sibling grip as DIRECT children of .start while the
+      Colour tab is active; lib/mobile-sheet.ts drives --stu-sheet-h /
+      data-stu-sheet / --stu-peek-h, all stamped on .start (the common parent,
+      so the grip - a sibling kept OUTSIDE the sheet's overflow clip - reads
+      the same vars). Sheet + grip rules are written at `.start > .stu-sheet`
+      specificity: start.css's `.start > *` (position:relative; z-index:1)
+      beats a bare class. Separation is SHADOW-ONLY on theme tokens - no
+      border at all (a rounded top edge + border-top single-edge stripe is a
+      banned construction), no black literals. */
+.stu-sheet, .stu-sheet-grip { display: none; }
+@media (max-width: 640px) {
+  .start { --stu-sheet-h: 45dvh; } /* pre-first-snap default; per-state below */
+  /* Peek = the measured strip row + the home-indicator inset (the sheet hugs
+     the viewport bottom, so the strip itself must clear it). */
+  .start[data-stu-sheet="peek"] { --stu-sheet-h: calc(var(--stu-peek-h, 64px) + var(--safe-bottom)); }
+  /* Clamped against the visible area: the soft keyboard eats the bottom of the
+     viewport without shrinking dvh, so an unclamped 50/88dvh sheet would run
+     its own free edge under the keyboard. min() is a no-op while --vv-bottom
+     is 0px, same idiom as .tool-layout[data-sheet] in tool-chrome.css. */
+  .start[data-stu-sheet="half"] { --stu-sheet-h: min(50dvh, calc(100dvh - var(--vv-bottom, 0px) - 12px)); }
+  .start[data-stu-sheet="full"] { --stu-sheet-h: min(88dvh, calc(100dvh - var(--vv-bottom, 0px) - 12px)); }
+
+  /* Page bottom clearance - the last panel must scroll clear of the peek strip. */
+  .start:has(> .stu-sheet) { padding-bottom: calc(96px + var(--stu-peek-h, 64px) + var(--safe-bottom)); }
+
+  /* The download pill sticks to the viewport bottom here (no pane scroller
+     below 1100px) - lifted clear of the palette sheet's peek strip. */
+  .be-pal-dock { margin-block: 1rem; }
+
+  /* ── Beat 0 on a phone (plan 182 section 7, ColoursPhone.dc.html). Chip and
+        field on one line, then the three doors with Add filled and taking the
+        rest of the row, so the whole beat fits under the header and the room
+        chips on a 390×844 screen. The hero steps down to 22px, which is the
+        one line of copy that gives way - the room chips never do. */
+
+  /* The pick card as the phone's bottom sheet (plan 182 section 5.3). It is the
+     same card - not reparented into lib/mobile-sheet.ts's driver, which owns
+     the palette mirror and admits one occupant - so the inline left/top the
+     anchored pose writes is cleared by brand-editor.ts before this pose
+     applies, and nothing here has to out-!important it. */
+  .be-editor.is-picksheet {
+    position: fixed; left: 0; right: 0; top: auto; width: auto;
+    /* Rides ABOVE the soft keyboard, which this card actually raises (its name
+       field is a text input), and reaches the screen edge when there is none.
+       The home-indicator inset is padding on the card below, so the card's
+       background still runs to the edge while its footer clears the strip. */
+    bottom: var(--vv-bottom, 0px);
+    z-index: 60; /* over the palette sheet (50), which it parks below */
+  }
+  .be-editor.is-picksheet .be-editor-card {
+    max-height: min(86dvh, calc(100dvh - var(--vv-bottom, 0px) - 12px));
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding-bottom: var(--safe-bottom);
+  }
+  /* Single owner of the bottom edge, the rule the tray already keeps: two fixed
+     sheets stacked is one of them unreachable, so the palette mirror and its
+     grip stand down while the picker is up. */
+  .start:has(.be-editor.is-picksheet:not([hidden])) > .stu-sheet,
+  .start:has(.be-editor.is-picksheet:not([hidden])) > .stu-sheet-grip { display: none; }
+
+  /* The bulk bar rides the sheet's FREE EDGE, exactly as the grip does. It
+     cannot be lifted over the sheet with z-index (see the ladder note at
+     .be-bulkbar), so it is placed where the sheet is not: at peek this is the
+     slot the download dock vacates while selecting, and at half or full it
+     tracks the sheet up and stays tappable. Same easing as the sheet and the
+     grip, so the three settle as one movement rather than three; :has() scopes
+     it to a mounted sheet, since --stu-sheet-h keeps a value either way. */
+  .start:has(> .stu-sheet) .be-bulkbar {
+    bottom: calc(var(--stu-sheet-h) + var(--vv-bottom, 0px) + 12px);
+    transition: bottom .34s var(--ease-out);
+  }
+  .start.is-stu-sheet-dragging .be-bulkbar { transition: none; }
+  .start[data-palette-visible] > .stu-sheet,
+  .start[data-palette-visible] > .stu-sheet-grip { display: none; }
+  .start[data-palette-visible] .be-bulkbar { bottom: calc(12px + var(--safe-bottom) + var(--vv-bottom, 0px)); }
+
+
+  .start > .stu-sheet {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: var(--stu-sheet-h);
+    max-height: 92dvh;
+    z-index: 50; /* over the sticky action row (20) and the swatch popover (30) - taps land at peek, where the popover sits above the strip */
+    background: hsl(var(--card));
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -10px 34px hsl(var(--foreground) / .18);
+    padding-bottom: var(--safe-bottom);
+    /* Clip the body to the rounded edge; the grip is a SIBLING, never cropped. */
+    overflow: hidden;
+    transition: height .34s var(--ease-out); /* the tool sheet's settle */
+  }
+  .start.is-stu-sheet-dragging > .stu-sheet { transition: none; } /* 1:1 finger tracking */
+
+  /* Peek strip - the always-visible horizontal swatch row, and the sheet's wide
+     drag handle (the handle guard skips buttons, so chips stay tappable).
+     touch-action: the head takes vertical gestures for the drag; the strip
+     keeps pan-x so it still scrolls sideways under a finger. */
+  .stu-sheet-head {
+    flex: 0 0 auto;
+    padding: 12px 12px 8px;
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .start.is-stu-sheet-dragging .stu-sheet-head { cursor: grabbing; }
+  .stu-sheet-strip {
+    display: flex;
+    gap: var(--sp-4);
+    overflow-x: auto;
+    touch-action: pan-x;
+    scrollbar-width: none;
+  }
+  .stu-sheet-strip::-webkit-scrollbar { display: none; }
+
+  /* Grouped mirror grid - read-only; tapping navigates to the real tile. */
+  .stu-sheet-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 4px 12px 14px;
+    display: grid;
+    gap: 14px;
+    align-content: start;
+  }
+  .stu-sheet-group { display: grid; gap: var(--sp-3); }
+  .stu-sheet-group-label {
+    font-size: var(--fs-xs); font-weight: 700; letter-spacing: .05em;
+    text-transform: uppercase; color: hsl(var(--muted-foreground));
+  }
+  .stu-sheet-grid { display: flex; flex-wrap: wrap; gap: var(--sp-4); }
+
+  /* Mirror chip - the colour over a checkerboard so translucent swatches read
+     as translucent, same treatment as the real .be-swatch-chip. */
+  .stu-chip {
+    flex: 0 0 auto;
+    width: 36px; height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: calc(var(--radius) * .6);
+    cursor: pointer;
+    background:
+      linear-gradient(var(--sw, transparent), var(--sw, transparent)),
+      repeating-conic-gradient(hsl(var(--muted-foreground) / .35) 0% 25%, hsl(var(--card)) 0% 50%) 50% / 8px 8px;
+    box-shadow: var(--edge-faint);
+  }
+
+  /* The grip - fixed on the sheet's top edge (a full-perimeter pill, like the
+     tool sheet's, but riding `bottom` since this sheet rises from below). */
+  .start > .stu-sheet-grip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    left: 0; width: 100%;
+    bottom: var(--stu-sheet-h); /* tracks the sheet's free edge */
+    transform: translateY(50%);
+    height: 30px;               /* generous hit area straddling the edge */
+    z-index: 60;                /* above the sheet */
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: grab;
+    touch-action: none;
+    transition: bottom .34s var(--ease-out); /* match the sheet's settle */
+  }
+  .start.is-stu-sheet-dragging > .stu-sheet-grip { transition: none; cursor: grabbing; }
+  .start > .stu-sheet-grip::before {
+    content: "";
+    width: 44px;
+    height: 8px;
+    border-radius: var(--radius-pill);
+    background: hsl(var(--primary));
+    border: 1px solid hsl(var(--background) / .35);
+    box-shadow: 0 1px 4px hsl(var(--foreground) / .25);
+  }
+}
+/* Reduced motion (Neurospicy): no sheet/grip settle animation - the snap is
+   instant. Studio surfaces only; the tool view's sheet is deliberately left
+   as-is. After the mobile block so equal-specificity rules lose to these. */
+@media (prefers-reduced-motion: reduce) {
+  .start > .stu-sheet, .start > .stu-sheet-grip { transition: none; }
+  /* The bulk bar tracks the same edge, so it settles (or does not) with them.
+     Written at the same specificity as the rule that gives it the transition. */
+  .start:has(> .stu-sheet) .be-bulkbar { transition: none; }
+}
+html[data-a11y-motion="reduce"] .start:has(> .stu-sheet) .be-bulkbar { transition: none; }
+
+/* Keyboard focus on the studio's own form fields - their base rules suppress the
+   default outline (matching the app's mouse-focus treatment), which would ALSO
+   beat base.css's global :focus-visible ring (this sheet loads later). Restore a
+   real ring for keyboard users on every studio input in one place. */
+.be-tok-dim:focus-visible, .be-tok-num:focus-visible, .be-tok-add-kind:focus-visible,
+.be-tok-add-name:focus-visible, .be-tok-shadow-in input:focus-visible,
+.be-grad-angle input:focus-visible, .be-grad-nstops input:focus-visible, .be-logo-addmark-name:focus-visible,
+.be-logo-addidentity input:focus-visible, .be-lock-field input:focus-visible, .be-lock-field select:focus-visible,
+.be-cmyk-in input:focus-visible, .be-editor-name:focus-visible,
+.be-fmt-sel:focus-visible, .be-fmt-input:focus-visible,
+.be-stored-seg button:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 1px;
+}
+
+/* ── Font manager component (.fonts-*) ────────────────────────────────────── */
+.fonts-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fonts-upload-drop {
+  display: block;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.fonts-upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem 1.5rem;
+  border: 2px dashed hsl(var(--border));
+  border-radius: var(--radius);
+
+  text-align: center;
+  transition: all var(--dur-1) ease;
+}
+
+.fonts-upload-drop.is-dragging .fonts-upload-area {
+  border-color: hsl(var(--primary));
+  background-color: hsl(var(--primary) / 0.08);
+}
+
+.fonts-upload-drop.is-uploading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.fonts-upload-icon {
+  font-size: calc(1.5rem * var(--a11y-fs));
+}
+
+.fonts-upload-text {
+  font-size: var(--fs-lg);
+  line-height: 1.4;
+  color: hsl(var(--foreground));
+}
+
+.fonts-upload-text strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: .25rem;
+}
+
+/* The explicit browse affordance, now a SIBLING of the drop label (a <label>
+   may not contain a button) - a quiet line under the zone rather than a second
+   control competing inside it. */
+.fonts-upload-alt {
+  margin: .4rem 0 0;
+  text-align: center;
+  font-size: var(--fs-md);
+  color: hsl(var(--muted-foreground));
+}
+/* `is-uploading` lands on the LABEL, which used to contain this button - so the
+   sibling line has to opt back into the same suspended state or it stays bright
+   and clickable while the zone behind it is dimmed and inert. */
+.fonts-upload:has(.fonts-upload-drop.is-uploading) .fonts-upload-alt {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.fonts-upload-btn {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: hsl(var(--primary));
+  cursor: pointer;
+  text-decoration: underline;
+  font: inherit;
+  font-weight: 500;
+}
+
+.fonts-upload-btn:hover {
+  opacity: 0.8;
+}
+
+.fonts-upload-hint {
+  display: block;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  margin-top: .25rem;
+}
+
+.fonts-list {
+  min-height: 2rem;
+}
+
+.fonts-empty {
+  padding: 1rem;
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-lg);
+  font-style: italic;
+}
+
+.fonts-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: .75rem;
+}
+
+.fonts-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: .75rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * .8);
+  background-color: hsl(var(--card));
+  position: relative;
+  transition: all var(--dur-1) ease;
+}
+
+.fonts-item:hover {
+  border-color: hsl(var(--border) / 0.7);
+  background-color: hsl(var(--muted) / 0.3);
+}
+
+.fonts-item-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.fonts-item-btn {
+  flex: 1;
+  min-width: 50px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid hsl(var(--primary) / 0.3);
+  border-radius: calc(var(--radius) * 0.6);
+  background-color: hsl(var(--primary) / 0.08);
+  color: hsl(var(--primary));
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--dur-1) ease;
+}
+
+.fonts-item-btn:hover {
+  background-color: hsl(var(--primary) / 0.15);
+  border-color: hsl(var(--primary) / 0.5);
+}
+
+.fonts-item-name {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  word-break: break-word;
+  font-size: var(--fs-lg);
+}
+
+.fonts-item-meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+}
+
+.fonts-item-weight,
+.fonts-item-style,
+.fonts-item-size {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Each meta value carries its own key - the row prints "w: 400  style: normal
+   size: 42.1KB" with no extra spans. (Ported here when the duplicate
+   parts/fonts-manager.css sheet was deleted; these three were the only rules in
+   it without a counterpart above. `margin-inline-end`, not `margin-right`, so
+   the labels sit correctly in RTL.) */
+.fonts-item-weight::before { content: 'w:'; margin-inline-end: .25rem; }
+.fonts-item-style::before { content: 'style:'; margin-inline-end: .25rem; }
+.fonts-item-size::before { content: 'size:'; margin-inline-end: .25rem; }
+
+.fonts-item-delete {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  color: hsl(var(--destructive));
+  font-size: var(--fs-lg);
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--dur-1) ease;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fonts-item:hover .fonts-item-delete {
+  opacity: 1;
+}
+
+.fonts-item-delete:hover {
+  background-color: hsl(var(--destructive) / 0.1);
+}
+
+.fonts-loading {
+  padding: 1rem;
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-lg);
+}
+
+/* ── "In other spaces": the per-target face list ────────────────────────────
+   One row per space or press the swatch can be expressed in. A row is either
+   derived or authored, and the difference has to be readable at a glance -
+   that is the whole point of the control, so `is-set` carries weight and an
+   accent rail rather than a subtle tint. */
+.be-faces { display: flex; flex-direction: column; gap: var(--sp-1); }
+.be-face {
+  display: grid;
+  /* `minmax(0, 1fr)` on the value cell, not a bare `1fr`: a grid item's automatic
+     minimum is its content, so a long `color(rec2020 …)` string refused to shrink
+     and pushed the readout into an ellipsis while empty space sat beside it. */
+  grid-template-columns: 5.2rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: calc(var(--radius) * 0.6);
+  font-size: var(--fs-xs);
+}
+.be-face:nth-child(odd) { background: hsl(var(--muted) / 0.4); }
+.be-face-key { font-weight: 600; color: hsl(var(--muted-foreground)); }
+.be-face-val { font-family: var(--font-mono); font-size: var(--fs-xs); overflow: hidden; text-overflow: ellipsis; }
+/* Authored: an accent rail on the leading edge and a heavier key. Not a
+   one-sided BORDER on a card - this is a row in a list, and the rail is the
+   list's own emphasis, which is a different thing from a bordered box. */
+.be-face.is-set { background: hsl(var(--primary) / 0.09); box-shadow: inset 2px 0 0 hsl(var(--primary)); }
+.be-face.is-set .be-face-key { color: hsl(var(--foreground)); }
+/* An override whose profile is not mounted: shown, never actionable. Dimmed and
+   italic, carried by weight and colour rather than by a dashed border - dashed
+   means drop area in this language and nothing else. */
+.be-face.is-absent { opacity: 0.6; font-style: italic; }
+.be-face-drift {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-xs);
+  padding: 0.05rem 0.3rem;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  cursor: help;
+}
+.be-face-tag { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.be-face-acts { display: inline-flex; gap: var(--sp-1); }
+.be-face-btn {
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+.be-face-btn[aria-pressed="true"] {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+.be-face-btn:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 1px; }
+/* The value field spans the row beneath its own cells - a fifth column would
+   squeeze the readout on the narrow popover, and the input needs the width more
+   than the row needs to stay one line. */
+.be-face-in { grid-column: 1 / -1; font-family: var(--font-mono); font-size: var(--fs-xs); }
+
+/* ── Tonal-curve editor (lib/curve-editor.ts) - the inline per-ramp curve panel,
+      opened from a ramp row's curve toggle. Full-width under the derive preview.
+      No dashed borders, no accent-tinted card borders (house rules). */
+/* The per-ramp curve toggle sits in the ramp row's third column; it collapses to
+   nothing (auto column) on the ramps that don't render one. */
+.be-ramp-curve {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: calc(1.7rem * var(--a11y-fs)); height: calc(1.7rem * var(--a11y-fs));
+  padding: 0; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .45);
+  background: hsl(var(--background)); color: hsl(var(--muted-foreground));
+  cursor: pointer; transition: color var(--dur-1), background var(--dur-1), border-color var(--dur-1);
+}
+.be-ramp-curve:hover { color: hsl(var(--foreground)); background: hsl(var(--muted) / .5); }
+.be-ramp-curve.is-edited { color: hsl(var(--primary)); }
+/* Open state reads as a filled control (a background swap, not an accent border -
+   that's the pill/card border rule). */
+.be-ramp-curve.is-open { background: hsl(var(--primary) / .14); color: hsl(var(--primary)); border-color: hsl(var(--border)); }
+.be-ramp-curve:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+.be-ramp-curve svg { display: block; }
+@media (prefers-reduced-motion: reduce) { .be-ramp-curve { transition: none; } }
+html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
+
+.be-curve {
+  grid-column: 1 / -1; display: grid; gap: .55rem;
+  padding: .75rem .8rem; border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * .7); background: hsl(var(--muted) / .35);
+}
+.be-curve-head { display: flex; align-items: center; gap: .6rem; }
+.be-curve-title { font-size: var(--fs-sm); font-weight: 700; letter-spacing: .01em; color: hsl(var(--foreground)); margin-inline-end: auto; }
+.be-curve-head-actions { display: flex; align-items: center; gap: .4rem; }
+.be-curve-close {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: calc(1.5rem * var(--a11y-fs)); height: calc(1.5rem * var(--a11y-fs));
+  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .45);
+  background: hsl(var(--background)); color: hsl(var(--muted-foreground));
+  font-size: var(--fs-md); line-height: 1; cursor: pointer;
+}
+.be-curve-close:hover { color: hsl(var(--foreground)); background: hsl(var(--muted) / .5); }
+.be-curve-close:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+.be-curve-hint { margin: 0; font-size: var(--fs-xs); line-height: 1.45; color: hsl(var(--muted-foreground)); }
+.be-curve-mount { display: grid; gap: .5rem; }
+
+/* Channel toggle (L / C / H) + the axis-range readout. */
+.be-curve-toolbar { display: flex; align-items: center; gap: .3rem; }
+.be-curve-ch {
+  min-width: calc(1.9rem * var(--a11y-fs)); padding: .2rem .5rem;
+  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .45);
+  background: hsl(var(--background)); color: hsl(var(--muted-foreground));
+  font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer;
+}
+.be-curve-ch:hover { color: hsl(var(--foreground)); }
+.be-curve-ch.is-active { background: hsl(var(--primary) / .14); color: hsl(var(--primary)); }
+.be-curve-ch:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+.be-curve-axis { margin-inline-start: auto; font-family: var(--font-mono); font-size: var(--fs-2xs); color: hsl(var(--muted-foreground)); }
+
+/* The plot: fixed CSS height, viewBox stretched to it (preserveAspectRatio=none),
+   so a drag maps cleanly through the element's own box. */
+.be-curve-plot {
+  width: 100%; height: 120px; display: block; touch-action: none;
+  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .45);
+  background: hsl(var(--card)); cursor: crosshair;
+}
+.be-curve-grid { stroke: hsl(var(--border) / .7); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.be-curve-line { fill: none; stroke: hsl(var(--primary)); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.be-curve-pt { fill: hsl(var(--card)); stroke: hsl(var(--primary)); stroke-width: 2; cursor: grab; vector-effect: non-scaling-stroke; }
+.be-curve-plot.is-animated .be-curve-pt { transition: r .1s ease; }
+.be-curve-plot.is-dragging { cursor: grabbing; }
+.be-curve-plot.is-dragging .be-curve-pt { cursor: grabbing; }
+
+/* Live baked-swatch strip - the ramp the curve currently makes. */
+.be-curve-strip { display: flex; height: 1.6rem; border-radius: calc(var(--radius) * .45); overflow: hidden; box-shadow: 0 0 0 1px hsl(var(--border)); }
+.be-curve-cell { flex: 1 1 0; min-width: 0; }
+
+/* Contrast-lock - a one-shot curve transform under the plot. A hairline top rule
+   sets it apart from the curve editor above; deliberately NOT a bordered/accent
+   card (house rule: no accent-coloured border on rounded cards). */
+.be-cl { display: grid; gap: .5rem; padding-top: .6rem; border-top: 1px solid hsl(var(--border)); }
+.be-cl-head { display: grid; gap: .15rem; }
+.be-cl-title { font-size: calc(.74rem * var(--a11y-fs)); font-weight: 700; letter-spacing: .02em; color: hsl(var(--foreground)); }
+.be-cl-sub { font-size: var(--fs-xs); line-height: 1.4; color: hsl(var(--muted-foreground)); }
+.be-cl-controls { display: flex; flex-wrap: wrap; gap: .55rem .7rem; align-items: end; }
+.be-cl-controls .be-field { gap: .3rem; }
+.be-cl-custom-field { flex: 1 1 9rem; min-width: 8rem; }
+.be-cl-bg {
+  width: calc(2.4rem * var(--a11y-fs)); height: calc(1.9rem * var(--a11y-fs));
+  padding: 0; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .45);
+  background: hsl(var(--background)); cursor: pointer;
+}
+.be-cl-bg::-webkit-color-swatch-wrapper { padding: var(--sp-1); }
+.be-cl-bg::-webkit-color-swatch { border: none; border-radius: calc(var(--radius) * .3); }
+.be-cl-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; }
+.be-cl-readout { font-size: var(--fs-xs); line-height: 1.4; color: hsl(var(--muted-foreground)); }
+
+/* Rotate hue - a one-shot curve transform under the plot, same hairline-rule
+   treatment as contrast-lock (deliberately NOT a bordered/accent card). */
+.be-hr { display: grid; gap: .5rem; padding-top: .6rem; border-top: 1px solid hsl(var(--border)); }
+.be-hr-head { display: grid; gap: .15rem; }
+.be-hr-title { font-size: calc(.74rem * var(--a11y-fs)); font-weight: 700; letter-spacing: .02em; color: hsl(var(--foreground)); }
+.be-hr-sub { font-size: var(--fs-xs); line-height: 1.4; color: hsl(var(--muted-foreground)); }
+.be-hr-controls { display: flex; flex-wrap: wrap; gap: .55rem .7rem; align-items: end; }
+.be-hr-controls .be-field { gap: .3rem; }
+.be-hr-deg-field { flex: 1 1 10rem; min-width: 9rem; }
+.be-hr-deg-field .be-field-label { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
+.be-hr-val { font-family: var(--font-mono); font-size: var(--fs-md); font-weight: 700; color: hsl(var(--foreground)); }
+.be-hr-slider { width: 100%; cursor: pointer; }
+}
+
+/* ── Palette multi-select (the catalogue/projects pattern) ────────────────────
+      "Select" collects tiles into a set; one floating bar deletes the lot.
+      The bar is FIXED bottom-centre like .cat-bulkbar.
+
+      Z-INDEX 40 IS ITS PLACE IN ONE CONTEXT, AND CANNOT BE RAISED OUT OF IT.
+      The bar lives inside the editor mount, and start.css's
+      `.start > *:not(.gallery-topright)` gives every direct child of .start
+      `position: relative; z-index: 1` - a stacking context. So 40 is only a
+      ranking against its neighbours INSIDE that context (sticky action row 20,
+      swatch popover 30), and the whole context paints at level 1 against the
+      mobile palette sheet, a direct child of .start at 50. No value here beats
+      the sheet; 400 would paint under it exactly as 40 does.
+
+      Which matters, because the bar WAS painted under the sheet at half (50dvh)
+      and full (88dvh) - the two states the sheet exists for - leaving Delete and
+      Cancel unreachable on a phone that has no Escape key to leave select mode
+      with. The fix is geometry, not depth: on mobile the bar rides the sheet's
+      free edge the way the grip does (see the mobile block above), so it is
+      never behind it in the first place. It also stops fighting the download
+      dock, which stands down while selecting ([data-pal-selecting] below). */
+/* The selection ring: a 2px gap then a 2px accent ring, drawn OUTSIDE the tile
+   (plan 182 section 5.5's mockup). Outside is what makes it read on a white
+   swatch as well as a black one - the ring never has to contrast with the
+   colour it is marking, only with the panel behind it. */
+[data-be-tile].is-multi { position: relative; outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+/* The tick badge takes the page GROUND as its ink, not --primary-foreground:
+   that pair IS the primary-fill button recipe, declared exactly once in
+   buttons.css (rec 2 / primitive-guards R2), and a selection tick on a
+   pseudo-element can neither wear `.btn btn--primary` nor honestly join its
+   alias list. --background sits at the opposite end of the lightness scale from
+   --primary in every theme (light: near-white on dark teal; dark and both
+   high-contrast blocks: near-black on Pine Green), so the glyph reads either
+   way. */
+[data-be-tile].is-multi::after {
+  content: '✓';
+  position: absolute; top: -5px; right: -5px;
+  /* Glyph AND badge ride --a11y-fs: a tick frozen at 10px in a 15px disc is the
+     one control in this sheet that would stay put while everything around it
+     grows under Large text, and growing the type alone would clip it. */
+  width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); border-radius: var(--radius-pill);
+  display: grid; place-items: center;
+  font-size: var(--fs-2xs); line-height: 1; font-weight: 700;
+  background: hsl(var(--primary)); color: hsl(var(--background));
+  pointer-events: none;
+}
+/* The INK pill (plan 182 section 5.5's mockup). The palette under it is the
+   subject, so the bar is the one surface in this room that does not follow the
+   brand: it inverts the page pair, which reads the same way in either theme and
+   cannot be tinted into the swatches it sits over. */
+.be-bulkbar {
+  position: fixed; left: 50%; bottom: calc(4.2rem + var(--safe-bottom) + var(--vv-bottom, 0px));
+  transform: translateX(-50%); z-index: 40;
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: 8px 8px 8px 16px; border-radius: var(--radius-pill);
+  background: hsl(var(--foreground)); color: hsl(var(--background));
+  border: 1px solid hsl(var(--border)); box-shadow: 0 .6rem 2rem #0006;
+  font-size: var(--fs-md);
+  white-space: nowrap;
+  max-width: calc(100vw - 24px);
+}
+/* ≥1100px the palette pane is viewport-anchored, so the bar takes its bottom
+   edge (brand-editor.ts measures it - CSS cannot know the split's width, which
+   the divider makes a per-person number). Below that, and on the phone, it
+   stays the centred pill the sheet rules position against. */
+.be-bulkbar.is-docked {
+  left: var(--be-bulk-left); width: var(--be-bulk-w);
+  /* The measured edge PLUS the two insets the undocked pose already carries:
+     both are 0 on the desktop this pose is for, and neither may be dropped from
+     a fixed bottom anchor (plans/132, styles/mobile-chrome-contract.test.ts). */
+  bottom: calc(var(--be-bulk-bottom) + var(--safe-bottom) + var(--vv-bottom, 0px));
+  transform: none;
+}
+.be-bulkbar[hidden] { display: none; }
+/* A selection belongs to the Colours room. The bar is a fixed surface outside
+   the tab panels (it has to be, to sit over them), so leaving for the Type or
+   Logos room would otherwise leave it floating over a room it cannot act on.
+   The selection itself survives - come back and it is still there. */
+[data-brand-editor][data-active-tab]:not([data-active-tab="color"]) .be-bulkbar { display: none; }
+.be-bulkbar-n { font-weight: 700; }
+.be-bulkbar-sep { width: 1px; align-self: stretch; margin: 2px; background: hsl(var(--background) / .3); }
+.be-bulkbar-wrap { position: relative; display: inline-flex; }
+.be-bulkbar-wrap[hidden] { display: none; }
+/* The bar's own outline button - .be-btn's shape on an inverted ground, which
+   is why it cannot simply alias it. */
+.be-bulkbar-btn {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  border: 1px solid hsl(var(--background) / .35); border-radius: var(--radius-pill);
+  padding: .35rem .7rem; cursor: pointer;
+  font: inherit; font-weight: 600; font-size: var(--fs-sm);
+  background: transparent; color: inherit;
+}
+.be-bulkbar-btn:hover { background: hsl(var(--background) / .14); }
+.be-bulkbar-btn[aria-expanded="true"] { background: hsl(var(--background) / .2); }
+/* The menu opens UP from its button - the bar is already at the bottom edge. */
+.be-bulkbar-menu {
+  position: absolute; bottom: calc(100% + 6px); left: 0; z-index: 1;
+  min-width: 190px; max-height: 42dvh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 1px;
+  padding: var(--sp-2); border-radius: var(--radius-md);
+  background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border)); box-shadow: var(--shadow-3);
+  white-space: normal;
+}
+.be-bulkbar-menu[hidden] { display: none; }
+.be-bulkbar-menu-note {
+  margin: 0 0 var(--sp-2); padding: 0 var(--sp-3);
+  font-size: var(--fs-xs); color: hsl(var(--muted-foreground));
+}
+.be-bulkbar-item {
+  border: 0; background: transparent; color: inherit; cursor: pointer; text-align: start;
+  padding: .4rem var(--sp-3); border-radius: var(--radius-sm);
+  font: inherit; font-size: var(--fs-sm);
+}
+.be-bulkbar-item:hover { background: hsl(var(--muted) / .7); }
+.be-bulkbar-newgroup { display: flex; align-items: center; gap: var(--sp-2); }
+.be-bulkbar-newname { min-width: 0; flex: 1 1 auto; font-size: var(--fs-sm); }
+.be-bulkbar-del {
+  border: 0; border-radius: var(--radius-pill); padding: .45rem .95rem; cursor: pointer;
+  font: inherit; font-weight: 600;
+  background: hsl(var(--destructive)); color: hsl(var(--destructive-foreground));
+}
+.be-bulkbar-del:disabled { opacity: .45; cursor: default; }
+.be-bulkbar-x {
+  border: 0; background: transparent; color: inherit; cursor: pointer;
+  font: inherit; font-size: var(--fs-lg);
+  margin-inline-start: auto;
+  padding: .3rem .55rem; border-radius: var(--radius-pill);
+}
+.be-bulkbar-x:hover { background: hsl(var(--background) / .2); }
+/* Phone: the bar is a scrolling row rather than a wrap - it docks above the
+   sheet handle (see the mobile block), where there is one line of room. */
+@media (max-width: 640px) {
+  .be-bulkbar { gap: var(--sp-2); padding: 6px 6px 6px 12px; overflow-x: auto; }
+  .be-bulkbar-menu { max-height: 34dvh; }
+}
+/* While selecting, the download dock yields the floor to the action bar (both
+   are fixed, and on a phone they land on top of each other). The attribute is
+   set on the editor's MOUNT element (brand-editor.ts's `root`), which is the
+   PARENT of `.be` - `.be[data-pal-selecting]` matched nothing. */
+[data-pal-selecting] .be-pal-dock { display: none; }
+
+/* The sheet's mirror chips reflect multi-select the same way the real tiles
+   do (start.ts syncMarks copies the class over). */
+.stu-chip.is-multi { position: relative; outline: 2px solid hsl(var(--primary)); outline-offset: 1px; }
+.stu-chip.is-multi::after {
+  content: '✓';
+  position: absolute; top: -4px; right: -4px;
+  width: calc(13px * var(--a11y-fs, 1)); height: calc(13px * var(--a11y-fs, 1));
+  border-radius: var(--radius-pill);
+  display: grid; place-items: center;
+  font-size: calc(9px * var(--a11y-fs, 1)); line-height: 1; font-weight: 700;
+  background: hsl(var(--primary)); color: hsl(var(--background));
+  pointer-events: none;
+}

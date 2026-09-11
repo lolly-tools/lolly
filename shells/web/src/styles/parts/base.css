@@ -1,0 +1,289 @@
+/* ─── Skip link ─────────────────────────────────────────────────────────── */
+
+/* Accessibility skip-nav. Targets the persistent #view landmark, which exists on
+   every route, so the link works on all views (gallery / projects / catalog /
+   dashboard / profile / tool). Visually hidden until focused - clip-rect, NOT a
+   left:-9999px park: in an RTL document the scrollable area extends leftward,
+   so an off-left element adds 9999px of real horizontal scroll. */
+.skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* The router moves focus to #view on route change (tabindex=-1) for SR/keyboard
+   users; it's a programmatic target, so no visible focus ring. */
+.app-view:focus { outline: none; }
+.skip-link:focus {
+  position: fixed;
+  top: 0;
+  inset-inline-start: 0;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  padding: 8px 16px;
+  /* Fill (background/color) comes from buttons.css's .btn--primary alias list -
+     it imports after this sheet, so its single declaration wins. */
+  z-index: 9999;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  border-end-end-radius: var(--radius); /* logical: hugs the start corner in LTR and RTL alike */
+  overflow: visible;
+  text-decoration: none;
+}
+
+/* Screen-reader-only: visually hidden but exposed to assistive tech. Used for
+   per-view <h1>s, control hints, and live-region announcers. */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Honour a user's reduced-motion preference for app CHROME only: tame looping /
+   decorative keyframe animations and smooth scroll. Colours/layout unchanged.
+   We deliberately DO NOT zero transitions - functional state changes (the mobile
+   sheet sliding, the export popup, hovers) are short, non-vestibular, and reading
+   them as instant "jumps" feels broken; honouring reduced motion shouldn't make
+   the UI feel broken. Looping/entrance animations (the genuinely gratuitous kind)
+   are still reduced.
+   The tool render canvas (.tool-canvas / #tool-content) and its ENTIRE subtree -
+   descendants and their pseudo-elements - are exempt: that motion is the user's
+   creative output, and animated tools (e.g. Bag Video) must keep animating to
+   render as intended. The exemption is repeated on ::before/::after so the
+   pseudo-elements of canvas content aren't frozen.
+   The same reasoning covers the OFFSCREEN render stages, which hold the identical
+   tool markup and are what an export is captured FROM: .pro-export-canvas
+   (pro/render-export.ts - /pro batch rows, every authored `compose` child,
+   featured-row renders, boot personalize previews) and .me-scale/.me-canvas
+   (views/multi-edit.ts). Freezing those doesn't calm any chrome - nobody ever sees
+   them animate - it just writes a frozen or wrong frame into the exported file, so
+   a motion preference would change exported pixels. Every exempt selector names a
+   canvas/stage box, so the ':not()' list can only ever spare those subtrees. */
+@media (prefers-reduced-motion: reduce) {
+  *:not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *, .pro-export-canvas, .pro-export-canvas *, .me-scale, .me-scale *, .me-canvas, .me-canvas *),
+  *:not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *, .pro-export-canvas, .pro-export-canvas *, .me-scale, .me-scale *, .me-canvas, .me-canvas *)::before,
+  *:not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *, .pro-export-canvas, .pro-export-canvas *, .me-scale, .me-scale *, .me-canvas, .me-canvas *)::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+  /* The export shutter is painted on canvas, so neither the rule above nor a
+     CSS override reaches it - lib/shutter.ts checks prefers-reduced-motion
+     itself and jumps straight to sealed. It still hides the export "shake".
+     This only has to stop the closed-flash from pulsing. */
+  .export-shutter__flash.is-on { animation: none !important; }
+}
+
+/* The app's own "Reduce motion" preference (profile → data-a11y-motion on
+   <html>, lib/a11y-prefs.ts) - the SAME rules as the OS block above, gated on
+   the attribute instead, for users whose OS setting is out of reach or who only
+   want this app calmed. Kept adjacent so the two blocks can't drift; JS-driven
+   motion goes through lib/a11y-prefs.ts's prefersReducedMotion(), which ORs the
+   two signals the same way. Attribute absent (the default) ⇒ nothing matches. */
+html[data-a11y-motion="reduce"] :not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *, .pro-export-canvas, .pro-export-canvas *, .me-scale, .me-scale *, .me-canvas, .me-canvas *),
+html[data-a11y-motion="reduce"] :not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *, .pro-export-canvas, .pro-export-canvas *, .me-scale, .me-scale *, .me-canvas, .me-canvas *)::before,
+html[data-a11y-motion="reduce"] :not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *, .pro-export-canvas, .pro-export-canvas *, .me-scale, .me-scale *, .me-canvas, .me-canvas *)::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+}
+html[data-a11y-motion="reduce"] .export-shutter__flash.is-on { animation: none !important; }
+
+/* ─── Reset / base ──────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+
+}
+[hidden]{display:none;visibility:hidden}
+/* Form controls don't inherit font-family from their parent by default - browsers
+   give button/input/select/textarea their own UA font. Opt every control into the
+   brand font so no individual control can silently fall back (e.g. .folder-back). */
+button, input, select, textarea, optgroup {
+  font-family: inherit;
+}
+/* Always reserve the scrollbar gutter on the document scroller so the viewport width
+   is constant whether or not a view scrolls. Without this, switching between a scrolling
+   view (Tools / Catalog) and a short one shifts every viewport-centred fixed element -
+   notably the Tools|Projects|Catalog toggle pill (left:50%; translateX(-50%)) - by half
+   the scrollbar width. A no-op with overlay scrollbars (macOS default); a real fix with
+   classic ones. */
+html { scrollbar-gutter: stable; }
+
+body {
+  margin: 0;
+  font-family: var(--font-brand);
+  /* Deliberately NOT on the --a11y-fs multiplier, unlike every other chrome
+     font-size. This declaration is inherited by tool markup: neither #tool-content,
+     .pro-export-canvas nor .me-canvas sets a font-size of its own, and 13 shipped
+     templates (chart-creator, chart, text-helper, qr-code, battlecards, …) declare no
+     font-size at all while screencap sizes in `em` - so all of them resolve against
+     this value, in the live canvas AND on the offscreen stages an export is captured
+     from. Scaling it here would move exported text metrics, which no preference may
+     do. Large-text reaches chrome through the per-declaration calc()s instead. */
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── App-shell selection policy: chrome never selects, real text opts in ─────
+   Dragging to move / resize / reorder - by touch OR a trackpad pointer (iPad
+   Magic Keyboard) - must never paint a text selection across whatever lies
+   along the gesture path, and on touch it must not fire the long-press callout
+   + magnifier or pop the keyboard by dropping a stray selection into text.
+   This rule used to ENUMERATE manipulation surfaces (tool canvas, sidebar,
+   drag handles, [draggable]) and lost every time a new gesture surface
+   shipped - 2026-08-23: iPad trackpad drags swept blue selection across
+   gallery/catalog tiles and headings between the enumerated surfaces. So the
+   shell now defaults the whole page to none - it is an app, not a document -
+   and REAL text opts back in below: form fields, editable regions, the docs +
+   Ask readers, and the explicit `.selectable` hook for anything a tool renders
+   that a person should copy. Interaction-only: it changes no exported pixel,
+   since selection has no bearing on the canvas geometry the CLI export shares. */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+/* Real text still selects: form fields, editable regions, the two reader
+   surfaces whose content is meant to be copied, and the `.selectable` hook
+   (e.g. a URL/code a tool renders to the canvas). Opting in with `text`
+   overrides the inherited `none` for the element and its descendants. */
+input, textarea, select, [contenteditable]:not([contenteditable="false"]),
+.selectable, .selectable *,
+.docs-reader, .docs-reader *,
+.ask-answer-body, .ask-answer-body * {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+/* Brand type roles beyond the primary/mono pair. A brand may set an optional
+   DISPLAY face (top-level headings only) and an ITALIC face; both fall back to
+   the primary when the brand leaves them unset (the var's own fallback) or when
+   the chosen family can't load (the stack tail brand-vars.ts appends). Only h1/h2
+   take the display face - deeper headings stay on the primary. */
+h1, h2 { font-family: var(--font-display, var(--font-brand)); }
+em, i, cite { font-family: var(--font-italic, var(--font-brand)); }
+
+/* Smooth colour transitions only when the theme changes (class set by JS). */
+.theme-transitioning,
+.theme-transitioning * {
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.15s ease !important;
+}
+
+/* Global focus ring - keyboard navigation only. */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ─── App shell ─────────────────────────────────────────────────────────── */
+
+/* Ghost nav buttons */
+.nav-btn {
+  padding: 5px 12px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--fs-md);
+  transition: background var(--dur-1), color var(--dur-1);
+  white-space: nowrap;
+}
+
+.nav-btn:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  }
+
+  .nav-btn--active {
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    font-weight: 600;
+  }
+  
+  .app-view {
+
+    min-height: 100vh;
+    /* Reserve inline-end space for the edge dock (lib/edge-dock.ts). Unset ⇒ 0px, so
+       byte-identical when nothing is docked; the tool stage re-fits via its own
+       ResizeObserver when this shrinks #view. */
+    margin-inline-end: var(--dock-w, 0px);
+  }
+
+  /* Cross-view fade overlay (view-fade.ts). A pinned snapshot of the OUTGOING view
+     that fades out while the incoming view paints underneath at full opacity - so
+     the blank frame between the two is never seen, and chrome common to both views
+     (the tab bar, the language button) stays solid through the fade. The overlay
+     inherits #view's own classes, so it's styled exactly as the view it froze; only
+     these extras are needed. Positioning + the opacity transition are set inline by
+     the module (so the tunable vars below are the single place to retime it).
+     Under reduced motion the module never creates the overlay - the display:none is
+     belt-and-suspenders. */
+  :root {
+    --view-fade-dur: 480ms;
+    --view-fade-ease: cubic-bezier(.22, .61, .36, 1);
+  }
+  .view-fade {
+    /* No `contain` here on purpose: contain: layout/paint would make the overlay a
+       containing block for the fixed top bar and pull it out of viewport-fixed
+       positioning. will-change:opacity promotes the fade to its own compositor
+       layer (cheap GPU opacity) without that side effect - see view-fade.ts. */
+    will-change: opacity;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .view-fade { display: none; }
+  }
+  
+  /* Tool view is full-bleed - the sidebar provides its own visual edge. */
+  .app-view.tool-view {
+    padding: 0;
+    overflow: hidden;
+  }
+  
+  .pro-view {
+    padding: 48px 0
+  }
+  
+  .pro-wrap {
+    padding: 1em 0 !important
+  }
+  
+  .pro-col-head {
+    position: relative
+  }
+  
+  .pro-col-head .pro-fill-btn {
+    position: absolute;
+    right: 0
+  }
+  
+  .pro-col-head:hover .pro-fill-btn{opacity:1}
+.pro-col-head:not(:hover) .pro-fill-btn{opacity:0}
+/* No hover on touch, so the fill button has no other way to appear. */
+@media (hover: none) {
+  .pro-col-head:not(:hover) .pro-fill-btn{opacity:.6}
+}
+.pro-addrow .pro-btn{border-radius: 0em 0 1em 1em; padding: 1em 2em; }
+footer{text-align:right;}

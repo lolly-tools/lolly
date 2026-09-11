@@ -1,0 +1,131 @@
+// SPDX-License-Identifier: MPL-2.0
+// Tests for the markdown → HTML converter + helpers (lib/markdown.ts).
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { inlineMd, mdToHtml, looksLikeMarkdown, splitMarkdownIntoBlocks } from './markdown.ts';
+
+const norm = (s: string): string => s.replace(/\s+/g, ' ').trim();
+
+test('inline: bold, italic, strike, code, link, image', () => {
+  assert.equal(inlineMd('**bold**'), '<strong>bold</strong>');
+  assert.equal(inlineMd('_it_ and *it2*'), '<em>it</em> and <em>it2</em>');
+  assert.equal(inlineMd('~~gone~~'), '<del>gone</del>');
+  assert.equal(inlineMd('use `x < y` here'), 'use <code>x &lt; y</code> here');
+  assert.equal(inlineMd('[Lolly](https://lolly.tools)'), '<a href="https://lolly.tools">Lolly</a>');
+  assert.equal(inlineMd('![alt](a.png)'), '<img src="a.png" alt="alt">');
+  // code span content is NOT further parsed
+  assert.equal(inlineMd('`**not bold**`'), '<code>**not bold**</code>');
+});
+
+test('headings h1..h6', () => {
+  assert.equal(mdToHtml('# One'), '<h1>One</h1>');
+  assert.equal(mdToHtml('###### Six'), '<h6>Six</h6>');
+  assert.equal(mdToHtml('## Two **b**'), '<h2>Two <strong>b</strong></h2>');
+});
+
+test('paragraphs + emphasis', () => {
+  assert.equal(mdToHtml('Hello **world**'), '<p>Hello <strong>world</strong></p>');
+  assert.equal(norm(mdToHtml('a\n\nb')), '<p>a</p> <p>b</p>');
+});
+
+test('unordered + ordered lists', () => {
+  assert.equal(norm(mdToHtml('- a\n- b')), '<ul><li>a</li><li>b</li></ul>');
+  assert.equal(norm(mdToHtml('1. a\n2. b')), '<ol><li>a</li><li>b</li></ol>');
+});
+
+test('NESTED lists (2-space indent)', () => {
+  const html = norm(mdToHtml('- a\n  - a1\n  - a2\n- b'));
+  assert.equal(html, '<ul><li>a<ul><li>a1</li><li>a2</li></ul></li><li>b</li></ul>');
+});
+
+test('GFM table', () => {
+  const html = norm(mdToHtml('| A | B |\n| --- | --- |\n| 1 | 2 |'));
+  assert.equal(html, '<table><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table>');
+});
+
+test('fenced code preserves content + escapes, no inline parse', () => {
+  const html = mdToHtml('```\nconst x = a < b && **c**;\n```');
+  assert.equal(html, '<pre><code>const x = a &lt; b &amp;&amp; **c**;</code></pre>');
+});
+
+test('blockquote + hr', () => {
+  assert.equal(norm(mdToHtml('> quoted')), '<blockquote><p>quoted</p></blockquote>');
+  assert.equal(mdToHtml('---'), '<hr>');
+  assert.equal(mdToHtml('***'), '<hr>');
+});
+
+test('a full document round-trips into structural HTML', () => {
+  const md = [
+    '# Title', '', 'Intro **para**.', '', '## Section', '',
+    '- one', '- two', '  - nested', '', '> a quote', '', '```', 'code();', '```', '', '---', '',
+    '| H1 | H2 |', '| --- | --- |', '| a | b |',
+  ].join('\n');
+  const html = mdToHtml(md);
+  assert.match(html, /<h1>Title<\/h1>/);
+  assert.match(html, /<h2>Section<\/h2>/);
+  assert.match(html, /<ul><li>one<\/li><li>two<ul><li>nested<\/li><\/ul><\/li><\/ul>/);
+  assert.match(html, /<blockquote>/);
+  assert.match(html, /<pre><code>code\(\);<\/code><\/pre>/);
+  assert.match(html, /<hr>/);
+  assert.match(html, /<table>/);
+});
+
+test('looksLikeMarkdown detects markdown, rejects prose', () => {
+  assert.equal(looksLikeMarkdown('# Heading'), true);
+  assert.equal(looksLikeMarkdown('- a bullet'), true);
+  assert.equal(looksLikeMarkdown('1. ordered'), true);
+  assert.equal(looksLikeMarkdown('some **bold** text'), true);
+  assert.equal(looksLikeMarkdown('| a | b |\n| --- | --- |'), true);
+  assert.equal(looksLikeMarkdown('Just a normal sentence with no markup.'), false);
+  assert.equal(looksLikeMarkdown(''), false);
+});
+
+test('splitMarkdownIntoBlocks - one block per heading', () => {
+  const md = '# Intro\n\nlead text\n\n## A\n\nbody a\n\n## B\n\nbody b';
+  const blocks = splitMarkdownIntoBlocks(md);
+  assert.equal(blocks.length, 3);
+  assert.deepEqual(blocks.map((b) => b.heading), ['Intro', 'A', 'B']);
+  assert.equal(blocks[1]!.body, 'body a');
+  assert.equal(blocks[2]!.body, 'body b');
+});
+
+test('splitMarkdownIntoBlocks - lead content before first heading becomes a heading-less block', () => {
+  const blocks = splitMarkdownIntoBlocks('lead paragraph\n\n# First\n\nbody');
+  assert.equal(blocks.length, 2);
+  assert.equal(blocks[0]!.heading, '');
+  assert.equal(blocks[0]!.body, 'lead paragraph');
+  assert.equal(blocks[1]!.heading, 'First');
+});
+
+// ── regression fixes from the adversarial review ──────────────────────────────
+
+test('splitMarkdownIntoBlocks does NOT split on a # line inside a fenced code block', () => {
+  const md = '# Real\n\n```\n# not a heading\ncode line\n```\n\nmore body';
+  const blocks = splitMarkdownIntoBlocks(md);
+  assert.equal(blocks.length, 1);                       // one block, code intact
+  assert.equal(blocks[0]!.heading, 'Real');
+  assert.match(blocks[0]!.body, /```\n# not a heading\ncode line\n```/);
+});
+
+test('a longer fence is not closed early by an inner ``` line', () => {
+  const html = mdToHtml('````\n```\ninner\n```\n````');
+  assert.equal(html, '<pre><code>```\ninner\n```</code></pre>');   // single block
+});
+
+test('mixed markers at one nested indent keep all items (content never dropped)', () => {
+  // Niche limitation: a nested run mixing - and 1. stays in one list, but NO item is
+  // lost. (Top-level mixed markers DO split into <ul>/<ol> - covered elsewhere.)
+  const html = norm(mdToHtml('- a\n  - x\n  1. y'));
+  assert.match(html, /<li>x<\/li>/);
+  assert.match(html, /<li>y<\/li>/);
+});
+
+test('table column guard: a prose pipe over a mismatched alignment row is NOT a table', () => {
+  const html = mdToHtml('foo | bar | baz\n:-- | --:');
+  assert.doesNotMatch(html, /<table>/);
+});
+
+test('NUL bytes in the source cannot leak/duplicate the code-span sentinel', () => {
+  assert.equal(inlineMd('\u00005\u0000'), '5');            // no literal "undefined"
+  assert.equal(inlineMd('`x`\u00000\u0000'), '<code>x</code>0');  // no duplicated span
+});

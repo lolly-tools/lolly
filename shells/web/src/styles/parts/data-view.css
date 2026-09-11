@@ -1,0 +1,43 @@
+/* #/data spreadsheet viewer (plan 89, views/data.ts). Reuses .platform-layout /
+   .plat-header chrome; adds the drop zone, sheet tabs, honest-limits banner and the
+   download-as bar. The grid itself is styled by parts/data-grid.css. */
+.data-drop {
+  border: 2px dashed var(--ui-color-border-default);
+  border-radius: var(--ui-radius-panel);
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--ui-motion-feedback), background var(--ui-motion-feedback);
+}
+.data-drop.is-over { border-color: var(--ui-color-focus-ring); background: color-mix(in srgb, var(--ui-color-surface-muted) 40%, transparent); }
+.data-drop p { margin: 0 0 .75rem; color: var(--ui-color-text-muted); }
+
+.data-workspace { margin-top: 1rem; display: flex; flex-direction: column; gap: .75rem; }
+
+.data-tabs { display: flex; gap: .25rem; flex-wrap: wrap; }
+.data-tab.is-active { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
+
+/* Honest-limits banner - a calm note, NOT an accent-bordered card. */
+.data-limits {
+  margin: 0;
+  padding: .6rem .8rem;
+  border-radius: var(--ui-radius-control);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 55%, transparent);
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-type-caption);
+  line-height: 1.45;
+}
+.data-limits b { color: var(--ui-color-text-default); }
+
+.data-grid-host { min-height: 320px; }
+/* Let the grid use the available height in this view. */
+.data-view .data-grid .dg-viewport { height: min(60vh, 520px); }
+
+.data-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.data-actions-label {
+  font-size: var(--ui-type-caption); text-transform: uppercase; letter-spacing: .06em;
+  color: var(--ui-color-text-muted); margin-right: .25rem;
+}
+
+.data-drop:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
+.data-status { color: var(--ui-color-text-default); font-size: var(--ui-type-body); margin: 0; }

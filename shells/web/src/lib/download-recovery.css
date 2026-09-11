@@ -1,0 +1,27 @@
+/* The recovery controls beside a delivered file (plans/236). Flex-wrapped so the
+   message and both buttons stay visible at a narrow width and with large text. */
+.download-recovery {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2, .5rem);
+  margin-top: var(--ui-space-control-block);
+}
+.download-recovery-label {
+  display: block;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--fs-sm);
+}
+.download-recovery .btn { white-space: normal; overflow-wrap: anywhere; }
+.background-delivery {
+  position: fixed; inset: auto 1rem 5rem auto; z-index: 300;
+  box-sizing: border-box; width: min(28rem, calc(100vw - 2rem)); max-height: 60vh;
+  padding: 1rem; overflow: auto; overflow-wrap: anywhere;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
+  box-shadow: 0 4px 24px #0003;
+}
+.background-delivery > button { float: right; }
+@media (pointer: coarse) {
+  .download-recovery .btn { min-height: var(--ui-size-target); }
+}

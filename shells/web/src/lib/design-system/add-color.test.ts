@@ -1,0 +1,391 @@
+// SPDX-License-Identifier: MPL-2.0
+/**
+ * add-color.ts - the scanner that reads colours out of arbitrary pasted text
+ * (plan 97 section 7.1), and the one rule the row's primary button now keeps:
+ * Add always answers (plan 182 section 5.1).
+ *
+ * Most of this suite is the pure scanner, which is where every judgement call
+ * lives. The mount section at the bottom exists for one reason: `disabled` on a
+ * primary is the defect plan 182 was written about, and a ratchet against it has
+ * to press the real button. jsdom is set up there, not at the top, so the
+ * scanner half stays provable with no DOM behind it.
+ *
+ * Run with:
+ *   node --import ./tests/css-stub.mjs --test "shells/web/src/lib/design-system/add-color.test.ts"
+ */
+
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { JSDOM } from 'jsdom';
+
+import { parseColorEntries, MAX_ENTRIES, mountAddColor } from './add-color.ts';
+import type { ColorEntry } from './add-color.ts';
+
+const values = (text: string): string[] => parseColorEntries(text).map(e => e.value);
+const hexes = (text: string): string[] => parseColorEntries(text).map(e => e.hex);
+
+test('reads every notation family out of one blob, in first-seen order', () => {
+  const blob = `
+    :root {
+      --a: #f00;
+      --b: #00ff0080;
+      --c: rgb(0, 0, 255);
+      --d: rgba(255, 255, 0, 0.4);
+      --e: hsl(300 100% 50%);
+      --f: hsla(180, 100%, 25%, 1);
+      --g: oklch(62% 0.2 250);
+      --h: lch(50% 40 30);
+      --i: #abcd;
+    }
+    /* and one written out in words */
+    the accent is rebeccapurple.
+  `;
+  assert.deepEqual(values(blob), [
+    '#f00', '#00ff0080', 'rgb(0, 0, 255)', 'rgba(255, 255, 0, 0.4)',
+    'hsl(300 100% 50%)', 'hsla(180, 100%, 25%, 1)', 'oklch(62% 0.2 250)',
+    'lch(50% 40 30)', '#abcd', 'rebeccapurple',
+  ]);
+  assert.deepEqual(hexes(blob), [
+    '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#007f80',
+    '#0087f8', '#b25d57', '#aabbcc', '#663399',
+  ]);
+});
+
+test('the notation is preserved exactly as typed, spacing and case included', () => {
+  // Function names are case-insensitive in CSS, and the inner spacing is the
+  // author's; both survive verbatim.
+  assert.deepEqual(values('#7C3AED and RGB( 12 , 58 , 237 )'), ['#7C3AED', 'RGB( 12 , 58 , 237 )']);
+  assert.deepEqual(values('Tomato'), ['Tomato']);
+  // …but the resolved hex is always lowercase `#rrggbb`.
+  assert.deepEqual(hexes('#7C3AED'), ['#7c3aed']);
+});
+
+test('dedupes on the resolved colour, keeping the first spelling', () => {
+  const out = parseColorEntries('#ff0000 rgb(255,0,0) rgb(255 0 0) red RED #F00');
+  assert.deepEqual(out, [{ value: '#ff0000', hex: '#ff0000' }]);
+});
+
+test('a translucent value is not merged into its opaque twin', () => {
+  const out = parseColorEntries('#ff0000 #ff000080 rgba(255,0,0,.5)');
+  assert.deepEqual(out.map(e => e.value), ['#ff0000', '#ff000080']);
+  // Same resolved colour, different alpha - both kept, both reporting #ff0000.
+  assert.deepEqual(out.map(e => e.hex), ['#ff0000', '#ff0000']);
+});
+
+test('caps at MAX_ENTRIES and stops scanning there', () => {
+  const many = Array.from({ length: 200 }, (_, i) => `#${i.toString(16).padStart(6, '0')}`).join(' ');
+  const out = parseColorEntries(many);
+  assert.equal(out.length, MAX_ENTRIES);
+  assert.equal(out[0]!.value, '#000000');
+  assert.equal(out[MAX_ENTRIES - 1]!.value, `#${(MAX_ENTRIES - 1).toString(16).padStart(6, '0')}`);
+});
+
+test('non-colours are not colours', () => {
+  assert.deepEqual(parseColorEntries(''), []);
+  assert.deepEqual(parseColorEntries('Hello there, this is a sentence about nothing.'), []);
+  // Keywords that are colour-shaped but paint nothing.
+  assert.deepEqual(parseColorEntries('none transparent currentColor inherit initial unset'), []);
+  // Fully transparent resolves to nothing to add.
+  assert.deepEqual(parseColorEntries('rgba(12, 34, 56, 0)'), []);
+  // Malformed hex is skipped whole, never read as a shorter prefix.
+  assert.deepEqual(parseColorEntries('#12 #12345 #1234567 #ff0000abc'), []);
+  // Paint servers and assets.
+  assert.deepEqual(parseColorEntries('fill: url(#grad); background: url(red.png)'), []);
+});
+
+test('a url() is consumed in every form CSS writes it, quotes included', () => {
+  // The quoted forms are the ORDINARY way a stylesheet spells this, and they are
+  // the ones a charset that banned the quote could not span - the filename fell
+  // through to the bare-word alternative and reported a colour nobody chose.
+  assert.deepEqual(parseColorEntries('background: url("red.png");'), []);
+  assert.deepEqual(parseColorEntries("background: url('gold.svg');"), []);
+  assert.deepEqual(parseColorEntries('background-image: url( "teal.png" );'), []);
+  assert.deepEqual(parseColorEntries("background: url( 'tomato-hero.jpg' )"), []);
+  // …and consuming it must not consume what follows it.
+  assert.deepEqual(values('a{background:url("plum.png");color:#ff0000}'), ['#ff0000']);
+  assert.deepEqual(values('url("gold.png") url(\'red.png\') teal'), ['teal']);
+});
+
+test('a word that is part of something larger is not read as a colour', () => {
+  assert.deepEqual(parseColorEntries('--brand-red: 1'), []);
+  assert.deepEqual(parseColorEntries('.red { }'), []);
+  assert.deepEqual(parseColorEntries('https://gold.example/tan'), []);
+  assert.deepEqual(parseColorEntries('12red plumx x-plum plum_2'), []);
+  // …but the same word standing on its own is.
+  assert.deepEqual(values('the mark is plum, the rule is gold'), ['plum', 'gold']);
+});
+
+test('survives hostile and degenerate input without throwing', () => {
+  const cases: unknown[] = [
+    null, undefined, 42, {}, [],
+    '#'.repeat(50_000),
+    'oklch('.repeat(20_000),
+    `rgb(${'9'.repeat(5_000)})`,
+    '<'.repeat(10_000) + '#fff',
+    '\u0000￿#00ff00\u0000',
+  ];
+  for (const c of cases) {
+    assert.doesNotThrow(() => parseColorEntries(c as string));
+  }
+  // The last one still finds its colour despite the junk around it.
+  assert.deepEqual(values('\u0000￿#00ff00\u0000'), ['#00ff00']);
+});
+
+test('an unterminated colour function does not eat the rest of the text', () => {
+  assert.deepEqual(values('rgb(1, 2, 3 then #00f'), ['#00f']);
+});
+
+test('no reported value can carry markup - the scanner gate, under the escaping', () => {
+  // `mountAddColor` renders each entry's value into a chip, and the primitive-
+  // guards R10 entry for this module says every interpolation is escape()d. This
+  // is the belt under that brace: the token charset itself admits no `<`, `>`,
+  // quote or backslash, so even a broken escape could not smuggle an element out
+  // of pasted text. Hostile shapes, all of which contain a real colour.
+  const nasty = [
+    '<img src=x onerror=alert(1)>#ff0000',
+    'rgb(1,2,3)"><script>alert(1)</script>',
+    "#00ff00' onmouseover='alert(1)",
+    'oklch(50% .1 20 <b>) lab(50% 0 0\\)',
+    'style="background:url(javascript:alert(1))" tomato',
+  ].join('\n');
+  const out = parseColorEntries(nasty);
+  assert.ok(out.length > 0, 'the colours inside the junk are still found');
+  for (const e of out) {
+    assert.doesNotMatch(e.value, /[<>"'\\]/, `a scanned value must carry no markup: ${e.value}`);
+    assert.match(e.hex, /^#[0-9a-f]{6}$/);
+  }
+});
+
+// ── Mount: no dead primaries (plan 182 section 5.1) ──────────────────────────
+// Add used to carry `disabled` in its markup and re-derive it on every keystroke
+// (`entries.length !== 1`), which made the first thing a person can press on a
+// blank Colours room a greyed button with nothing beside it naming the step it
+// was waiting for. These pin the press answering in every state instead.
+
+const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost/#/start' });
+globalThis.window = dom.window as unknown as typeof globalThis.window;
+globalThis.document = dom.window.document;
+
+/** The identity translator - the module's copy is English source strings. */
+const t = (source: string, params?: Record<string, string | number>): string => {
+  let out = source;
+  for (const [k, v] of Object.entries(params ?? {})) out = out.replaceAll(`{${k}}`, String(v));
+  return out;
+};
+
+interface Row {
+  el: HTMLElement;
+  input: HTMLInputElement;
+  add: HTMLButtonElement;
+  hint: HTMLElement;
+  chip: HTMLButtonElement | null;
+  image: HTMLButtonElement | null;
+  added: ColorEntry[][];
+  picker: number;
+  /** Every `onOpenPicker(anchor, current)` the row made, in order. */
+  opens: Array<{ anchor: HTMLElement; current: string | null }>;
+  images: File[];
+  type(value: string): void;
+  teardown(): void;
+}
+
+function row(opts: { picker?: boolean; image?: boolean } = {}): Row {
+  const el = dom.window.document.createElement('div');
+  dom.window.document.body.append(el);
+  const added: ColorEntry[][] = [];
+  const opens: Array<{ anchor: HTMLElement; current: string | null }> = [];
+  const images: File[] = [];
+  const teardown = mountAddColor(el as unknown as HTMLElement, {
+    t,
+    onAdd: (entries) => { added.push(entries); },
+    ...(opts.picker === false ? {} : {
+      onOpenPicker: (anchor: HTMLElement, current: string | null): void => { opens.push({ anchor, current }); },
+    }),
+    ...(opts.image ? { onImageFile: (file: File): void => { images.push(file); } } : {}),
+  });
+  const input = el.querySelector('[data-ds-addc-input]') as HTMLInputElement;
+  return {
+    el: el as unknown as HTMLElement,
+    input,
+    add: el.querySelector('[data-ds-addc-add]') as HTMLButtonElement,
+    hint: el.querySelector('[data-ds-addc-hint]') as HTMLElement,
+    chip: el.querySelector('[data-ds-addc-pick]'),
+    image: el.querySelector('[data-ds-addc-image]'),
+    added,
+    opens,
+    images,
+    get picker() { return opens.length; },
+    type(value: string) {
+      input.value = value;
+      input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+    },
+    teardown() { teardown(); el.remove(); },
+  };
+}
+
+test('Add is never disabled, in any state the row can be in', () => {
+  const r = row();
+  assert.equal(r.add.disabled, false, 'empty');
+  r.type('#e0452b');
+  assert.equal(r.add.disabled, false, 'one colour');
+  r.type('#e0452b, #30ba78, rebeccapurple');
+  assert.equal(r.add.disabled, false, 'a group');
+  r.type('not a colour at all');
+  assert.equal(r.add.disabled, false, 'text that reads as nothing');
+  assert.equal(/\sdisabled/.test(r.el.innerHTML.replace(/data-[a-z-]+/g, '')), false,
+    'and the attribute is nowhere in the row');
+  r.teardown();
+});
+
+test('pressing Add on an empty field opens the picker, and adds nothing', () => {
+  const r = row();
+  r.add.click();
+  assert.equal(r.picker, 1, 'the press is the door to the picker');
+  assert.deepEqual(r.added, []);
+  assert.equal(r.hint.hidden, true, 'an empty field is not an error to explain');
+  r.teardown();
+});
+
+test('Enter on an empty field does the same thing the button does', () => {
+  const r = row();
+  r.input.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  assert.equal(r.picker, 1);
+  assert.deepEqual(r.added, []);
+  r.teardown();
+});
+
+test('text that is not a colour says so AND opens the picker; the next keystroke clears it', () => {
+  const r = row();
+  r.type('brandish greenish');
+  r.add.click();
+
+  assert.equal(r.hint.hidden, false);
+  assert.equal(r.hint.textContent, 'Not a colour I can read - try #hex, rgb(), oklch() or a name');
+  assert.equal(r.picker, 1, 'the press still leads somewhere');
+  assert.deepEqual(r.added, []);
+
+  r.type('brandish greenish#');
+  assert.equal(r.hint.hidden, true, 'the hint described text that has since changed');
+  r.teardown();
+});
+
+test('one colour is added by the press, and no picker opens', () => {
+  const r = row();
+  r.type('#e0452b');
+  r.add.click();
+  assert.deepEqual(r.added, [[{ value: '#e0452b', hex: '#e0452b' }]]);
+  assert.equal(r.picker, 0);
+  assert.equal(r.input.value, '', 'the row empties for the next one');
+  r.teardown();
+});
+
+test('a group hands the keyboard to the group buttons rather than adding or opening', () => {
+  const r = row();
+  r.type('#e0452b, #30ba78, rebeccapurple');
+  r.add.click();
+  assert.deepEqual(r.added, [], 'a group needs an explicit Add all / Add selected');
+  assert.equal(r.picker, 0);
+  assert.equal(dom.window.document.activeElement?.getAttribute('data-ds-addc-all'), '');
+  r.teardown();
+});
+
+test('with no picker wired the press still answers - it takes the field', () => {
+  const r = row({ picker: false });
+  r.add.click();
+  assert.equal(dom.window.document.activeElement, r.input as unknown as Element);
+  r.teardown();
+});
+
+// ── The live chip (plan 182 section 5.1) ─────────────────────────────────────
+// Nobody chooses a colour by typing oklch(55% .24 292). The chip leads the row,
+// shows what the row is holding, and is the door to the studio's own picker.
+
+test('the chip leads the row, and starts visibly empty rather than on a colour', () => {
+  const r = row();
+  assert.ok(r.chip, 'the chip is rendered');
+  const kids = [...(r.chip!.parentElement?.children ?? [])];
+  assert.ok(kids.indexOf(r.chip!) < kids.indexOf(r.input as unknown as Element),
+    'the chip comes before the field');
+  assert.equal(r.chip!.classList.contains('is-empty'), true);
+  assert.equal(r.chip!.style.getPropertyValue('--sw'), 'transparent');
+  r.teardown();
+});
+
+test('the chip paints what the field parses to, and goes empty again when it stops', () => {
+  const r = row();
+  r.type('#e0452b');
+  assert.equal(r.chip!.classList.contains('is-empty'), false);
+  assert.equal(r.chip!.style.getPropertyValue('--sw'), '#e0452b');
+
+  // A LIST has no single colour to be, and neither has unreadable text.
+  r.type('#e0452b, #30ba78');
+  assert.equal(r.chip!.classList.contains('is-empty'), true);
+  r.type('brandish greenish');
+  assert.equal(r.chip!.classList.contains('is-empty'), true);
+  r.teardown();
+});
+
+test('pressing the chip opens the picker on the chip, carrying the colour in hand', () => {
+  const r = row();
+  r.chip!.click();
+  assert.equal(r.picker, 1);
+  assert.equal(r.opens[0]!.anchor, r.chip as unknown as HTMLElement, 'the card belongs to the chip');
+  assert.equal(r.opens[0]!.current, null, 'an empty row holds no colour');
+  assert.deepEqual(r.added, [], 'opening the picker adds nothing');
+
+  r.type('#e0452b');
+  r.chip!.click();
+  assert.equal(r.opens[1]!.current, '#e0452b', 'the card opens on what the row is showing');
+  r.teardown();
+});
+
+test('Add with nothing to add opens the picker on ADD, not on the chip', () => {
+  // The card belongs to the control that was pressed - anchoring it to a chip
+  // the person did not touch would put it somewhere they are not looking.
+  const r = row();
+  r.add.click();
+  assert.equal(r.opens[0]!.anchor, r.add as unknown as HTMLElement);
+  r.teardown();
+});
+
+// ── The name a picked colour carries (plan 182 section 5.1) ──────────────────
+
+test('a scan never names a colour - the name is the picker card\'s to supply', () => {
+  // `ColorEntry.name` is optional and only the picker sets it, so the room's
+  // `e.name || nameColor(e.hex)` falls through to its own namer for every
+  // pasted colour. A scanner that guessed names would beat the picker's.
+  const r = row();
+  r.type('#e0452b');
+  r.add.click();
+  assert.deepEqual(r.added, [[{ value: '#e0452b', hex: '#e0452b' }]]);
+  assert.equal('name' in r.added[0]![0]!, false);
+  r.teardown();
+});
+
+// ── "From an image" (plan 182 section 5.3) ───────────────────────────────────
+
+test('the image door is rendered only when the host owns the pipeline', () => {
+  const without = row();
+  assert.equal(without.image, null, 'a door that leads nowhere is worse than no door');
+  assert.equal(without.el.querySelector('[data-ds-addc-file]'), null);
+  without.teardown();
+
+  const withIt = row({ image: true });
+  assert.ok(withIt.image);
+  assert.ok(withIt.el.querySelector('[data-ds-addc-file]'));
+  withIt.teardown();
+});
+
+test('a chosen image is handed straight to the host, and nothing is added', () => {
+  const r = row({ image: true });
+  const file = new dom.window.File(['x'], 'shot.png', { type: 'image/png' });
+  const input = r.el.querySelector('[data-ds-addc-file]') as HTMLInputElement;
+  // jsdom's FileList is read-only, so the files are installed the way the
+  // platform would have and the same `change` the browser fires is dispatched.
+  Object.defineProperty(input, 'files', { value: [file], configurable: true });
+  input.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  assert.equal(r.images.length, 1);
+  assert.equal(r.images[0]!.name, 'shot.png');
+  assert.deepEqual(r.added, [], 'an image is candidates for the tray, never a write');
+  r.teardown();
+});

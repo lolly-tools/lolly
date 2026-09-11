@@ -1,0 +1,476 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* OKLCH gamut charts (oklch-slice.ts). */
+
+/* ONE grid, two columns: the y-axis gutter and the plot. The x axis and the
+   legend are placed in column 2, so they line up with the plot BY CONSTRUCTION.
+   They used to carry a hardcoded `margin-left` guessing the gutter's width, and
+   the guess was wrong at every size (the rotated axis name made the real gutter
+   44.3px against a 40px margin on a phone) - so every x tick sat ~10px left of
+   the value it labelled and the last one overhung the page. There is no number
+   to keep in sync now. */
+.okls {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0.35rem 0.4rem;
+  width: 100%;
+  /* So the axes can thin their ticks against the chart's OWN width rather than
+     the viewport's - the same chart is 350px wide two-up and 130px wide four-up,
+     and only the second one collides. See `.okls-tick--thin` below. */
+  container-type: inline-size;
+}
+
+/* The plot and its vertical axis are the grid's first row directly: the wrapper
+   exists in the markup for the axis/plot pairing and hands its children to the
+   grid rather than being a second layout context they have to agree with. */
+.okls-frame { display: contents; }
+
+.okls-plot {
+  position: relative;
+  aspect-ratio: 8 / 5;
+  min-width: 0;
+  /* `start`, NOT the grid's default stretch - and this is a WebKit correctness
+     fix, not a preference.
+     Stretched, the plot has a definite height from its row, and `aspect-ratio`
+     then resolves the WIDTH from that height instead of the other way round. The
+     row's height is itself only known from the plot, so the circularity falls back
+     to a min-content guess: measured in WebKit at a 390px viewport the plot came
+     out 83x52 inside a 284px column, while its own x-axis spanned the full 284 -
+     the tiny-chart-with-full-width-labels Andy screenshotted on iOS. Chrome
+     happened to resolve it width-first and looked correct, which is why it stood.
+     Unstretched, the width is definite (the 1fr column), the height follows from
+     the ratio, and the row height follows from that - no circularity, and both
+     engines agree. The y-axis still stretches to it, which is what its absolutely
+     positioned ticks need. */
+  align-self: start;
+  border-radius: var(--radius);
+  overflow: hidden;
+  /* The checkerboard shows through wherever no display can reach - the
+     transparent region past Rec.2020 - so "nothing here" reads as absence
+     rather than as a colour choice. */
+  background:
+    repeating-conic-gradient(hsl(var(--muted) / 0.55) 0% 25%, hsl(var(--background)) 0% 50%)
+    50% / 10px 10px;
+  box-shadow: inset 0 0 0 1px hsl(var(--border));
+}
+/* `pan-y`, not `none`: three of these stacked down a phone report used to be
+   three ~180px bands where a vertical swipe did nothing at all - the page could
+   not be scrolled past step 2 except through the narrow axis gutters, and the
+   dead gesture reads as a frozen page. The dot below keeps `none`, so dragging a
+   dot still moves freely in both axes; a swipe that starts on bare plot is handed
+   back to the page, which is all it could ever have done here anyway (a drag from
+   empty space is not a recolour - see `wireSliceChart`). */
+.okls-plot.is-editable { cursor: crosshair; touch-action: pan-y; }
+
+.okls-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* The backing store is deliberately lower-resolution than the box during a
+     scrub; let the browser smooth it rather than showing the blocks. */
+  image-rendering: auto;
+}
+
+/* The HDR slice: a Rec.2100-PQ cICP PNG laid over the canvas on an HDR display
+   (see paintHdrOverlay in oklch-slice.ts). Same box as the canvas, above it and
+   below the boundary contours; its transparent pixels reveal the canvas/checker
+   below, so it never has to be a full opaque replacement. */
+.okls-hdr {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  image-rendering: auto;
+}
+.okls-hdr[hidden] { display: none; }
+
+/* Tier A: the live HDR WebGL canvas (see hdr-canvas.ts). Same box/layer role as
+   .okls-hdr; at most one of the two is shown. Inert (hidden, no GL context) on every
+   display that lacks the HDR-canvas API. */
+.okls-hdr-gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+.okls-hdr-gl[hidden] { display: none; }
+
+.okls-edges {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.okls-edges.is-empty { display: none; }
+
+/* The two boundary lines. Both SOLID - a dashed line reads as provisional, and
+   these are the most definite thing on the chart. They are told apart by weight
+   and opacity instead: sRGB is the heavier, brighter line because it is the one
+   you actually have to design within. Each carries a dark halo so it stays
+   legible over both the pale top-left and the near-black bottom of a plot. */
+.okls-edge {
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  paint-order: stroke;
+}
+.okls-edge--srgb {
+  stroke: hsl(0 0% 100% / 0.95);
+  stroke-width: 2.5px;
+  filter: drop-shadow(0 0 1.5px hsl(0 0% 0% / 0.8));
+}
+.okls-edge--p3 {
+  stroke: hsl(0 0% 100% / 0.55);
+  stroke-width: 1.25px;
+  filter: drop-shadow(0 0 1.5px hsl(0 0% 0% / 0.6));
+}
+/* When the chart reaches wider than the screen does, one of these contours is THIS
+   display's boundary - and then weight says which: the strong line is the limit of
+   what you are actually seeing, the fine line is the other gamut. The two weights
+   are the two that already exist, so nothing new is introduced; on an sRGB display
+   this resolves to sRGB strong / P3 fine, which is exactly the drawing this file has
+   always produced. Stated by the line rather than by added prose. */
+.okls-edges[data-display] .okls-edge[data-display='1'] {
+  stroke: hsl(0 0% 100% / 0.95);
+  stroke-width: 2.5px;
+  filter: drop-shadow(0 0 1.5px hsl(0 0% 0% / 0.8));
+}
+.okls-edges[data-display] .okls-edge:not([data-display='1']) {
+  stroke: hsl(0 0% 100% / 0.55);
+  stroke-width: 1.25px;
+  filter: drop-shadow(0 0 1.5px hsl(0 0% 0% / 0.6));
+}
+
+/* ── Dots - the palette, projected onto the plane ───────────────────────────
+   `--off` is how far the swatch is from this slice (0 on it … 1 opposite).
+   A dot that isn't really on the plane fades and shrinks rather than
+   disappearing: you still need to see the palette while scrubbing, but a
+   full-strength dot on a plane it doesn't belong to would be a lie. */
+.okls-dot {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;   /* centre the dot on its point */
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background:
+    linear-gradient(var(--dot), var(--dot)),
+    repeating-conic-gradient(hsl(0 0% 60% / 0.9) 0% 25%, hsl(0 0% 96%) 0% 50%) 50% / 6px 6px;
+  box-shadow: 0 0 0 1.5px hsl(0 0% 0% / 0.55), 0 1px 3px hsl(0 0% 0% / 0.4);
+  opacity: calc(1 - var(--off, 0) * 0.72);
+  transform: scale(calc(1 - var(--off, 0) * 0.3));
+  cursor: pointer;
+  /* The dot owns the 2D drag: the plot around it is `pan-y` so the page can be
+     scrolled, and this is the one box where both axes belong to us. */
+  touch-action: none;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
+}
+.okls-dot.is-light { box-shadow: 0 0 0 1.5px hsl(0 0% 0% / 0.35), 0 1px 3px hsl(0 0% 0% / 0.3); }
+.okls-dot:hover,
+.okls-dot:focus-visible {
+  opacity: 1;
+  transform: scale(1.5);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.45), 0 2px 8px hsl(0 0% 0% / 0.45);
+  z-index: 3;
+  outline: none;
+}
+
+/* ── Axes ─────────────────────────────────────────────────────────────────── */
+
+.okls-axis {
+  position: relative;
+  font-size: calc(0.62rem * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+.okls-axis--y {
+  /* The column is `max-content`, so this only states the FLOOR - enough room for
+     a "100%" tick to sit right-aligned in it without leaving the chart. */
+  min-width: 2.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.okls-axis--x {
+  grid-column: 2;
+  height: 1.9rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+.okls-tick {
+  position: absolute;
+  white-space: nowrap;
+}
+.okls-axis--y .okls-tick { right: 0; transform: translateY(-50%); }
+.okls-axis--x .okls-tick { top: 0; transform: translateX(-50%); }
+/* The two END labels are anchored to the plot's edges instead of centred on them:
+   a centred "0.50" hung ~10px past the chart into the page gutter (and into the
+   next column's chart when the charts sit side by side). The gridline it names is
+   the plot's own edge, so the label reads correctly flush against it. */
+.okls-axis--x .okls-tick--first { transform: translateX(0); }
+.okls-axis--x .okls-tick--last { transform: translateX(-100%); }
+
+/* A hue axis carries seven labels (0°…360°); below about 210px of plot they run
+   into each other and read as one string - "120°180°240°300°360°" - which is
+   worse than fewer numbers. Drop every second one instead, counted from the LAST
+   (`tickThinned` in oklch-slice-geom.ts): the survivors are still evenly spaced,
+   and the axis MAXIMUM - the number the chart is about, 0.50 on a Rec.2020 chroma
+   axis - is never the one dropped. Labels only; nothing about the plot changes. */
+@container (max-width: 260px) {
+  .okls-axis--x .okls-tick--thin { display: none; }
+}
+
+/* The axis NAME sits along the axis, clear of the ticks. */
+.okls-axis-name {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: calc(0.58rem * var(--a11y-fs));
+  color: hsl(var(--foreground) / 0.75);
+}
+.okls-axis--y .okls-axis-name {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  margin-right: 1.9rem;
+}
+.okls-axis--x .okls-axis-name { margin-top: 0.95rem; }
+
+/* ── Legend ───────────────────────────────────────────────────────────────── */
+
+.okls-legend {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.8rem;
+  margin: 0.1rem 0 0;
+  font-size: calc(0.66rem * var(--a11y-fs));
+  color: hsl(var(--muted-foreground));
+}
+/* `baseline`, not `center`: a key whose text wraps to two lines in a narrow chart
+   column had its chip floating vertically between them. Aligned to the first
+   line's baseline it stays beside the words it belongs to at every width. */
+.okls-key { display: inline-flex; align-items: baseline; gap: 0.35rem; }
+
+/* A line key, drawn at the weight its contour is drawn at - thickness is the whole
+   signal, sRGB the heavier line and Display-P3 the finer one.
+   Painted in the page's own INK rather than in white-with-a-halo: on the chart the
+   white line has a colour field under it, but a legend sits on a card, and in the
+   light theme the white core vanished and left a 1px outline around nothing - two
+   near-identical hollow capsules, which is the one thing this key must not be. */
+.okls-key--line::before {
+  content: '';
+  width: 1rem;
+  height: var(--key-w, 2px);
+  border-radius: 1px;
+  background: hsl(var(--foreground) / 0.85);
+}
+.okls-key--srgb { --key-w: 3px; }
+.okls-key--p3 { --key-w: 1.5px; }
+/* The key follows the chart: when one contour is the display's, that key takes the
+   heavy weight and the other takes the fine one - same swap, same meaning. */
+.okls-legend[data-display] .okls-key--line { --key-w: 1.5px; }
+.okls-legend[data-display] .okls-key[data-display='1'] { --key-w: 3px; }
+
+/* The "past everything" key: the plot's checkerboard, small. No ring around it -
+   a 0.7rem rounded square with a 1px border and a checker too faint to see in the
+   light theme read as an unchecked CHECKBOX, sitting a couple of hundred pixels
+   under a real one ("Keep in bounds"), and invited a click that does nothing. The
+   squares carry enough contrast to be the picture on both themes, and the fill
+   states its own edge. */
+.okls-key--none::before {
+  content: '';
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 2px;
+  background:
+    repeating-conic-gradient(hsl(var(--muted-foreground) / 0.42) 0% 25%, hsl(var(--background)) 0% 50%)
+    50% / 5px 5px;
+}
+
+@media (max-width: 640px) {
+  .okls-axis--y { min-width: 2.1rem; }
+}
+
+/* The bigger dot is a TOUCH concern, not a width one: a phone held in landscape is
+   844px wide and used to fall out of the rule above, so a thumb got the 16px
+   desktop dot. Keyed off the pointer instead - every touch device, either way up. */
+@media (max-width: 640px), (pointer: coarse) {
+  .okls-dot { width: 20px; height: 20px; margin: -10px 0 0 -10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .okls-dot { transition: none; }
+}
+
+/* ── Broken gamut sliders (gamut-slider.ts) ─────────────────────────────────
+   One axis of OKLCH, with the track cut where the colour stops being
+   displayable: the vivid stretches are reachable, the faint ones hint at the rest
+   of the axis without promising it. A hue track at high chroma shows several vivid
+   arcs - which is the point. */
+.gsl {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.gsl-key {
+  flex: 0 0 auto;
+  width: 1rem;
+  font-size: calc(0.65rem * var(--a11y-fs));
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+}
+.gsl-well {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--gsl-h, 1.35rem);
+  border-radius: 999px;
+  /* The same faint rail the picker's tracks carry (--track-rail, styles/tokens.css).
+     It used to be unnecessary because the ghost segments covered the full axis at a
+     flat 13%; now the stretch beyond EVERY gamut paints nothing at all - the honest
+     thing to paint, since past Rec.2020 the browser would clamp the colour - so the
+     rail is what keeps the pill's shape and says the axis continues.
+
+     No border on top of it: the edge is already apparent from the fill, and an
+     outline there would be a line doing nothing. */
+  background: var(--track-rail, hsl(var(--muted) / 0.55));
+}
+.gsl-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.gsl-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* Square ends: a rounded segment would imply the range tapers off, when it
+     stops dead at the gamut boundary. */
+
+  /* The unreachable stretches paint as a faint wash rather than a hole: the axis
+     continues, this gamut just cannot reach it, and a broken hue track stays
+     readable as one continuous 0–360 instead of a row of floating fragments.
+     paintGamutSlider sets --seg-a per segment from the --track-tier-* scale in
+     styles/tokens.css - the ring it belongs to, so a stretch a wider screen could
+     show reads brighter than one nothing can. Deliberately low: much above that
+     scale and a wash starts to look available.
+
+     The 100% DEFAULT matters: views/color-lab.ts hand-builds a .gsl-seg for
+     the blend-steps gradient preview, which is not a gamut axis and must stay fully
+     opaque. */
+  opacity: var(--seg-a, 100%);
+}
+
+/* The real input sits over the top and stays the only thing that handles
+   interaction - keyboard, touch and AT come free. Its track is invisible; the
+   thumb is ours. */
+.gsl-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+.gsl-input::-webkit-slider-runnable-track { background: transparent; height: 100%; }
+.gsl-input::-moz-range-track { background: transparent; height: 100%; }
+/* A diamond, so the handle reads as a position marker rather than a knob you
+   could mistake for a segment end. */
+.gsl-input::-webkit-slider-thumb {
+  appearance: none;
+  width: var(--gsl-thumb, 0.85rem);
+  height: var(--gsl-thumb, 0.85rem);
+  border-radius: 2px;
+  transform: rotate(45deg);
+  background: hsl(var(--background));
+  box-shadow: 0 0 0 2px hsl(var(--foreground)), 0 1px 3px hsl(0 0% 0% / 0.4);
+}
+.gsl-input::-moz-range-thumb {
+  width: var(--gsl-thumb, 0.85rem);
+  height: var(--gsl-thumb, 0.85rem);
+  border: 0;
+  border-radius: 2px;
+  transform: rotate(45deg);
+  background: hsl(var(--background));
+  box-shadow: 0 0 0 2px hsl(var(--foreground)), 0 1px 3px hsl(0 0% 0% / 0.4);
+}
+.gsl-input:focus-visible { outline: none; }
+.gsl-input:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 2px hsl(var(--primary)), 0 0 0 5px hsl(var(--primary) / 0.35); }
+.gsl-input:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 2px hsl(var(--primary)), 0 0 0 5px hsl(var(--primary) / 0.35); }
+
+.gsl-val {
+  flex: 0 0 auto;
+  min-width: 3.1rem;
+  text-align: right;
+  font-size: calc(0.72rem * var(--a11y-fs));
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--foreground));
+}
+
+/* Out of the target gamut. A MARK, not a refusal - the thumb picks up a ring AND
+   an exclamation mark so you can see you have left the reachable range at the
+   moment you leave it, without anything stopping you. Paired with the "Keep in
+   bounds" toggle, which is off by default.
+
+   The glyph rides in as a background-image because a native range thumb cannot
+   hold child content, and it is drawn PRE-ROTATED -45deg inside the SVG so it
+   lands upright once the thumb's own rotate(45deg) applies. Its colour is baked
+   (#e85e00 = the ring's oklch(0.65 0.19 45) - data URIs cannot read a custom
+   property); mid-lightness, so it carries on the light AND dark thumb fill.
+   Sized to the diamond's UPRIGHT inscribed square (0.85rem / √2 ≈ 0.6rem), not
+   to the rotated box, or the mark would overrun the corners.
+
+   Scoped to `.gsl` deliberately: this is the charts' indicator. The LCH colour
+   picker marks the same state its own way (a round thumb over an amber track
+   outline - styles/parts/color-field.css), and the .lab-mix stop-count slider
+   borrows the `.gsl` skin but counts stops, so it never carries `is-out`. */
+.gsl.is-out .gsl-input::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px oklch(0.65 0.19 45), 0 1px 3px hsl(0 0% 0% / 0.4);
+  background-image: var(--gsl-bang);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: var(--gsl-bang-size, 0.6rem) var(--gsl-bang-size, 0.6rem);
+}
+.gsl.is-out .gsl-input::-moz-range-thumb {
+  box-shadow: 0 0 0 2px oklch(0.65 0.19 45), 0 1px 3px hsl(0 0% 0% / 0.4);
+  background-image: var(--gsl-bang);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: var(--gsl-bang-size, 0.6rem) var(--gsl-bang-size, 0.6rem);
+}
+.gsl.is-out .gsl-val { color: oklch(0.58 0.19 40); }
+/* Declared on the component root so both vendor thumbs share one copy of the
+   glyph, and a theme could override it without touching the rules above. */
+.gsl {
+  --gsl-bang: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cg transform='rotate(-45 6 6)' fill='%23e85e00'%3E%3Crect x='5' y='2' width='2' height='5' rx='1'/%3E%3Ccircle cx='6' cy='9.2' r='1.15'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Touch. These are real <input type=range> and they always worked on a thumb, but
+   a 21.6px rail with a 13.6px handle is half the 44px target floor - measured on a
+   phone where the charts' sliders are also the shortest (97px in landscape). Keyed
+   off the POINTER, not the viewport, so a phone in landscape is included and a
+   desktop mouse keeps the fine rail. Shared with the brand editor's slice panel on
+   purpose: the same thumb is holding the same slider there. */
+@media (pointer: coarse) {
+  .gsl { --gsl-h: 2.1rem; --gsl-thumb: 1.15rem; --gsl-bang-size: 0.8rem; }
+}
+}

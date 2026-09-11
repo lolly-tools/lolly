@@ -1,0 +1,88 @@
+/* Cascade layer: this lazy-loaded sheet sits in the `views` layer (order declared
+   once in styles/app.css) - same reasoning as instance-sheet.css. It is imported
+   directly by components/easing-editor.ts rather than through app.css's static
+   list, so wrapping pins its priority whenever Vite injects the chunk. */
+@layer views {
+
+/*
+ * The cubic-bezier curve editor (components/easing-editor.ts).
+ *
+ * The readout is a shared `.field-row`/`.field-label`/`.field-input` (parts/fields.css
+ * owns that look) - nothing about padding, radius or shadow is restated here. What is
+ * here is the plot: its own grid, curve and handles, which no other control has.
+ *
+ * Every line is SOLID. Dashed strokes mean "drop something here" everywhere else in
+ * this app, and a dashed grid would say that about a graph you cannot drop onto.
+ */
+.ease-ed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 200px;
+}
+
+.ease-ed-plot {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* The plot is the gesture surface: a browser pan would steal the drag. */
+  touch-action: none;
+  overflow: visible;
+}
+
+.ease-ed-grid {
+  stroke: hsl(var(--border) / 0.55);
+  stroke-width: 1;
+}
+.ease-ed-box {
+  fill: hsl(var(--muted) / 0.35);
+  stroke: hsl(var(--border));
+  stroke-width: 1;
+}
+.ease-ed-curve {
+  fill: none;
+  stroke: hsl(var(--primary));
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.ease-ed-leg {
+  stroke: hsl(var(--muted-foreground) / 0.75);
+  stroke-width: 1.5;
+}
+.ease-ed-handle {
+  fill: hsl(var(--background));
+  stroke: hsl(var(--primary));
+  stroke-width: 2.5;
+  cursor: grab;
+}
+.ease-ed-handle:hover { fill: hsl(var(--primary) / 0.25); }
+.ease-ed-handle:active { cursor: grabbing; }
+/* :focus-visible alone loses the ring on a pointer-then-keyboard handoff, which is
+   exactly how these are used - grab one, then fine-tune it with the arrows. */
+.ease-ed-handle:focus {
+  outline: none;
+  stroke: hsl(var(--ring));
+  fill: hsl(var(--ring) / 0.3);
+}
+
+.ease-ed-read { justify-content: space-between; gap: 8px; }
+.ease-ed-input {
+  width: 15ch;
+  font-size: calc(11.5px * var(--a11y-fs));
+  padding: 4px 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ease-ed-preview {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.ease-ed-track {
+  stroke: hsl(var(--border));
+  stroke-width: 1;
+}
+.ease-ed-dot { fill: hsl(var(--primary)); }
+.ease-ed-dot--ghost { fill: hsl(var(--primary)); }
+
+}

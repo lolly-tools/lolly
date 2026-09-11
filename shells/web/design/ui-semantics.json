@@ -1,0 +1,85 @@
+{
+  "$description": "Stable semantic roles for the Lolly application UI. Components consume the generated --ui-* aliases, not foundation values or raw brand paths. $value keeps DTCG references for Penpot; tools.lolly.css expresses runtime theme aliases that DTCG cannot represent.",
+  "lolly": {
+    "ui": {
+      "color": {
+        "text": {
+          "default": { "$type": "color", "$value": "#0b1021", "$extensions": { "tools.lolly": { "css": "hsl(var(--foreground))" } } },
+          "muted": { "$type": "color", "$value": "#64748b", "$extensions": { "tools.lolly": { "css": "hsl(var(--muted-foreground))" } } }
+        },
+        "surface": {
+          "canvas": { "$type": "color", "$value": "#ffffff", "$extensions": { "tools.lolly": { "css": "hsl(var(--background))" } } },
+          "raised": { "$type": "color", "$value": "#ffffff", "$extensions": { "tools.lolly": { "css": "hsl(var(--card))" } } },
+          "overlay": { "$type": "color", "$value": "#ffffff", "$extensions": { "tools.lolly": { "css": "hsl(var(--popover))" } } },
+          "muted": { "$type": "color", "$value": "#f1f5f9", "$extensions": { "tools.lolly": { "css": "hsl(var(--muted))" } } }
+        },
+        "action": {
+          "primary": { "$type": "color", "$value": "#0c322c", "$extensions": { "tools.lolly": { "css": "hsl(var(--primary))" } } },
+          "on-primary": { "$type": "color", "$value": "#ffffff", "$extensions": { "tools.lolly": { "css": "hsl(var(--primary-foreground))" } } }
+        },
+        "selection": {
+          "surface": { "$type": "color", "$value": "#0c322c1f", "$extensions": { "tools.lolly": { "css": "hsl(var(--primary) / .12)" } } },
+          "border": { "$type": "color", "$value": "#0c322c", "$extensions": { "tools.lolly": { "css": "hsl(var(--primary))" } } }
+        },
+        "border": { "default": { "$type": "color", "$value": "#cfd8e3", "$extensions": { "tools.lolly": { "css": "hsl(var(--border))" } } } },
+        "focus": { "ring": { "$type": "color", "$value": "#0c322c", "$extensions": { "tools.lolly": { "css": "hsl(var(--ring))" } } } }
+      },
+      "size": { "target": { "$type": "sizing", "$value": "44px", "$description": "Minimum comfortable library action target.", "$extensions": { "tools.lolly": { "css": "44px" } } } },
+      "space": {
+        "section": { "$type": "spacing", "$value": "64px", "$description": "Space between library sections.", "$extensions": { "tools.lolly": { "css": "64px" } } },
+        "control-inline": { "$type": "spacing", "$value": "{lolly.foundation.space.4}" },
+        "control-block": { "$type": "spacing", "$value": "{lolly.foundation.space.3}" },
+        "panel": { "$type": "spacing", "$value": "{lolly.foundation.space.7}" },
+        "page": { "$type": "spacing", "$value": "{lolly.foundation.space.8}" }
+      },
+        "radius": {
+          "control": { "$type": "borderRadius", "$value": "{lolly.foundation.radius.sm}" },
+          "choice": { "$type": "borderRadius", "$value": "{lolly.foundation.radius.xs}" },
+          "choice-round": { "$type": "borderRadius", "$value": "{lolly.foundation.radius.round}" },
+          "surface": { "$type": "borderRadius", "$value": "{lolly.foundation.radius.lg}" },
+        "card": { "$type": "borderRadius", "$value": "20px", "$extensions": { "tools.lolly": { "css": "calc(var(--radius) * 1.25)" } } },
+        "panel": { "$type": "borderRadius", "$value": "1rem", "$extensions": { "tools.lolly": { "css": "var(--radius)" } } },
+        "pill": { "$type": "borderRadius", "$value": "{lolly.foundation.radius.pill}" }
+      },
+      "elevation": {
+        "control": { "$type": "shadow", "$value": "{lolly.foundation.elevation.1}" },
+        "panel": { "$type": "shadow", "$value": "{lolly.foundation.elevation.2}" },
+        "floating": { "$type": "shadow", "$value": "{lolly.foundation.elevation.3}" },
+        "sheet": { "$type": "shadow", "$value": "{lolly.foundation.elevation.4}" },
+        "overlay": { "$type": "shadow", "$value": "{lolly.foundation.elevation.5}" }
+      },
+      "edge": {
+        "default": { "$type": "shadow", "$value": "{lolly.foundation.edge.default}" },
+        "faint": { "$type": "shadow", "$value": "{lolly.foundation.edge.faint}" },
+        "strong": { "$type": "shadow", "$value": "{lolly.foundation.edge.strong}" }
+      },
+      "effect": {
+        "bevel": { "$type": "shadow", "$value": "{lolly.foundation.bevel.default}" },
+        "focus-halo": { "$type": "shadow", "$value": "{lolly.foundation.focus.default}" },
+        "selected": { "$type": "shadow", "$value": { "color": "#0c322c33", "offsetX": "0px", "offsetY": "0px", "blur": "0px", "spread": "1px" }, "$extensions": { "tools.lolly": { "css": "inset 0 0 0 1px hsl(var(--primary) / .20)" } } }
+      },
+      "type": {
+        "display": { "$type": "fontSize", "$value": "64px", "$description": "Editorial page title; scale down fluidly on narrow screens.", "$extensions": { "tools.lolly": { "css": "calc(64px * var(--a11y-fs))" } } },
+        "heading": { "$type": "fontSize", "$value": "28px", "$description": "Section heading.", "$extensions": { "tools.lolly": { "css": "calc(28px * var(--a11y-fs))" } } },
+        "lead": { "$type": "fontSize", "$value": "18px", "$description": "Introductory copy and component names.", "$extensions": { "tools.lolly": { "css": "calc(18px * var(--a11y-fs))" } } },
+        "caption": { "$type": "fontSize", "$value": "12px", "$description": "Supporting metadata; never the only accessible label.", "$extensions": { "tools.lolly": { "css": "calc(12px * var(--a11y-fs))" } } },
+        "body": { "$type": "fontSize", "$value": "{lolly.foundation.type.size.md}" },
+        "label": { "$type": "fontSize", "$value": "{lolly.foundation.type.size.sm}" },
+        "title": { "$type": "fontSize", "$value": "{lolly.foundation.type.size.lg}" },
+        "ui-family": { "$type": "fontFamilies", "$value": "{lolly.foundation.font.brand}" },
+        "mono-family": { "$type": "fontFamilies", "$value": "{lolly.foundation.font.mono}" }
+      },
+      "motion": {
+        "feedback": { "$type": "duration", "$value": "{lolly.foundation.motion.duration.1}" },
+        "overlay": { "$type": "duration", "$value": "{lolly.foundation.motion.duration.2}" },
+        "navigation": { "$type": "duration", "$value": "{lolly.foundation.motion.duration.3}" },
+        "standard": { "$type": "cubicBezier", "$value": "{lolly.foundation.motion.easing.out}" }
+      },
+      "layer": {
+        "chrome": { "$type": "number", "$value": "{lolly.foundation.layer.chrome}" },
+        "overlay": { "$type": "number", "$value": "{lolly.foundation.layer.overlay}" },
+        "toast": { "$type": "number", "$value": "{lolly.foundation.layer.toast}" }
+      }
+    }
+  }
+}

@@ -1,0 +1,139 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* ── Disclosure / fold primitive (component audit rec 7) ────────────────────
+   One shared anatomy for every "icon/label head + revealed body" card, split
+   into the two flavours the app actually uses:
+
+   1. Real <details> disclosures - a <summary> head (title + rotating chevron)
+      folds a body. `.plat-section` (platform.css) is the oldest and most
+      complete of these - dashboard reuses it wholesale as `.dash-collapse` -
+      so its disclosure rules (everything below except the box's own
+      page-layout margin) move here verbatim and merge via a selector list,
+      the same `.card, .plat-section` idiom chips.css already uses for the
+      surface itself. `.profile-collapse` (profile.css), `.input-section`
+      (tool.css) and `.be-subst-details` (brand-studio.css) are the same
+      anatomy again, each with a real, deliberate local delta (sidebar-row
+      height matching + a `:has()` focus-ring workaround for `.input-section`;
+      a compact border-top card for `.be-subst-details`; profile.css scopes
+      everything under `.profile-view`) - those deltas are why they keep
+      their own rules rather than folding in here too.
+
+   2. Plain always-mounted cards - the export panel's settings cards
+      (tool-actions.ts: .export-cmyk/.export-pdfpass/.export-c2pa/.export-print,
+      tool-chrome.css) aren't foldable <details> - their visibility is
+      format-gated by JS (style.display), and only .export-pdfpass/.export-c2pa/
+      .export-print additionally reveal an inner body on click/check. They used
+      to restate the same icon-head + hint-line anatomy four times under four
+      unrelated class families; the box + head + hint are declared once here
+      as `.section-card`/`.section-card-head`/`.section-card__hint`, and every
+      card now also carries the literal `section-card` class - only what
+      genuinely differs (which fields a card holds, .export-pdfpass's extra
+      click-to-expand chevron, .export-print's wider row gap) stays under its
+      own name. .export-pdfpass/.export-c2pa/.export-imprint/.export-print (the
+      genuinely provenance/protection four - .export-cmyk is a print-quality
+      setting, not protection, so it stays outside) are further nested inside
+      one more collapsed wrapper, `.export-protection` ("Content protection"),
+      whose own header button reuses the exact `.pdfpass-head` button-reset +
+      rotating-caret idiom under its own name, `.protection-head` (tool-chrome.css) -
+      the four inner cards' own classes, data-actions and per-format gating are
+      completely unchanged; the wrapper only adds one more outer show/hide layer. */
+
+.plat-section {   /* platform.css - the shared <details> flavour's page-layout margin */
+  margin: 0 0 1.1rem;
+  border: 0;
+}
+/* The plain, always-mounted flavour (part 2 above) never wants that page
+   margin - it sits inside a sidebar flex stack instead - so it gets its own
+   box surface. */
+.section-card,
+.export-audio {   /* tool-chrome.css - same box, but not a named rec-7 variant
+                     (no icon-head/hint changes needed), so it keeps its own
+                     class instead of also taking the literal `section-card` one */
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--ui-radius-panel);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent);
+}
+
+.section-card-summary,
+.plat-section-summary {   /* platform.css */
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; gap: 1rem; border-radius: var(--ui-radius-panel);
+  padding: 1.1rem 1.4rem;
+}
+.section-card-summary::-webkit-details-marker,
+.plat-section-summary::-webkit-details-marker { display: none; }
+.section-card-title,
+.plat-section-title {   /* platform.css */
+  flex: 1 1 auto; margin: 0; text-align: left;
+  font-size: calc(.72rem * var(--a11y-fs));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--ui-color-text-muted);
+}
+.section-card-chev,
+.plat-section-chev {   /* platform.css */
+  flex: 0 0 auto; color: var(--ui-color-text-muted); transition: transform .15s ease;
+}
+.section-card-summary:hover .section-card-title,
+.section-card-summary:hover .section-card-chev,
+.plat-section-summary:hover .plat-section-title,
+.plat-section-summary:hover .plat-section-chev { color: var(--ui-color-text-default); }
+.plat-section[open] .plat-section-summary .plat-section-chev { transform: rotate(90deg); }
+.section-card-summary:focus-visible,
+.plat-section-summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -3px; border-radius: var(--ui-radius-card); }
+.section-card-body,
+.plat-section-body { padding: 0 1.4rem 1.4rem; }
+/* Mobile: the 1.4rem gutter is a desktop measure that never had a phone override, and
+   it COMPOUNDS - a page pad (.dash-layout/.platform-layout, 1rem) plus this fold plus
+   any sub-card nested in it. Measured on a 390px dashboard, the deepest text ran at
+   313px: 77px, a fifth of the screen, spent on nested gutters before a word is set.
+   Tighten the fold's own gutter (its widest contributor) rather than the page pad,
+   which is the one that keeps content off the screen edge. The vertical rhythm is
+   untouched - this is a width problem, not a density one. */
+@media (max-width: 640px) {
+  .section-card-summary,
+  .plat-section-summary { padding: 1rem .85rem; }
+  .section-card-body,
+  .plat-section-body { padding: 0 .85rem 1.1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .section-card-chev, .plat-section-chev { transition: none; }
+}
+
+/* ── Export panel's settings cards - the prime target for this rec: identical
+   icon-head + body + hint anatomy, four separate class families. */
+.section-card-head,
+.cmyk-head, .audio-head, .c2pa-head, .print-head, .pdfpass-head, .protection-head, .hdr-head {   /* tool-chrome.css -
+  .pdfpass-head/.protection-head are <button>s, so their reset (width/margin/
+  padding/background/border/cursor) plus their own hover + rotating-caret
+  pseudo stay local deltas */
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+.section-card-icon,
+.cmyk-icon, .audio-icon, .pdfpass-icon, .c2pa-icon, .print-icon, .protection-icon, .hdr-icon {   /* tool-chrome.css */
+  /* Chrome icon scale (tokens.css) - the mark grows with the 11px uppercase
+     head it sits beside, for all eight of the families that share this block. */
+  width: var(--fs-lg);
+  height: var(--fs-lg);
+  flex: 0 0 auto;
+  color: var(--ui-color-action-primary);
+}
+.section-card__hint,
+.cmyk-hint, .pdfpass-hint, .c2pa-hint, .print-hint {   /* tool-chrome.css */
+  margin: 0;
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--ui-color-text-muted);
+}

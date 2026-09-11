@@ -1,0 +1,691 @@
+/* ─── Projects view (/p) - gallery-style page over folders of saved sessions ─ */
+.projects-view { display: block; }
+
+/* "Batch" button - moved off the shared bottom bar (Andy, 2026-08-26) into the
+   Projects content header of BOTH the root (.projects-roothead, right-aligned above
+   the grid) and folder (.projects-head, beside Render folder) views. In-flow content,
+   so it never fights the fixed centred view-toggle the way the top-right cluster did.
+   A neutral pill - "Render folder" keeps the primary accent. */
+.projects-roothead { display: flex; justify-content: flex-end; margin: 0 0 .75rem; }
+.projects-batch-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 40px; padding: 0 14px;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  font-size: var(--fs-md); font-weight: 600; white-space: nowrap;
+}
+.projects-batch-btn svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.projects-batch-btn:hover, .projects-batch-btn:focus-visible {
+  border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.08);
+}
+/* Full-bleed like the gallery so the window uses all the space; the top-right
+   profile/history cluster reuses .gallery-topright (position:fixed; right:2em) verbatim,
+   so the profile button sits in the SAME window spot when toggling Tools ↔ Projects. */
+/* Fill the viewport so the empty area BELOW the tiles is still part of the Projects
+   surface - desktop marquee-drag + click-to-deselect need somewhere to grab. */
+/* top clears the fixed toggle band; bottom clears the fixed footer bar (search + nav links).
+   NOTE: these clearances do NOT follow the type multiplier, and the band they clear does
+   (--chrome-h) - 52px is only 2.4px clear of it at rest, so the band's bottom edge crosses
+   the padding at a factor of ~1.05. Fixing it here would mean scaling `padding`, which the
+   a11y contract deliberately forbids at a use site (that is how the multiplier turns back
+   into a whole-UI zoom); it wants a scaled TOKEN in styles/tokens.css instead. */
+/* (Footer clearance comes from #view's shared .has-search-footer padding - gallery.css.) */
+.projects { padding: calc(52px + var(--chrome-grow)) 20px 0; min-height: 100vh; box-sizing: border-box; }
+
+/* Tools | Projects segmented toggle - FIXED at the SAME top as the profile/history
+   cluster (.gallery-topright top:.5em) and horizontally centred, so it's vertically
+   centred with those icons AND sits identically on the gallery and Projects views
+   (in-flow positioning made it drift between the two). Shrinks to the pill so it
+   never blocks clicks elsewhere in the top band. */
+/* Top offset comes from the shared top-row geometry (--chrome-top, tokens.css) -
+   the same property .gallery-topright and the back pill read. The old `.5em`
+   resolved against the wrapper's inherited 14px (7px) rather than the row's
+   0.5rem (8px), which is why the pill sat a pixel proud of the cluster it is
+   supposed to line up with. */
+.view-toggle-wrap {
+  /* Centred in the space the edge dock (lib/edge-dock.ts) leaves: #view and the
+     top-right cluster both step inline-end by --dock-w, so a pill centred on the
+     whole viewport drifts right of the content and runs under the cluster once
+     the Neurospicy player is docked. Unset ⇒ exactly 50%, byte-identical at rest.
+     Above 640px topbar.css additionally bounds the pill while a dock is up. */
+  position: fixed; top: var(--chrome-top); left: calc((100% - var(--dock-w, 0px)) / 2); transform: translateX(-50%);
+  z-index: 99999; display: flex; justify-content: center; margin: 0;
+}
+/* The pill was padding-driven, so its height was whatever its own font-size and
+   paddings happened to add up to - 3.4px short of the row at rest, and a growing
+   gap under largeText, because the type inside scales on --a11y-fs while the px
+   paddings do not. It is a member of the top row like any other, so it takes the
+   row's height from the one source of truth instead: min-height (not height) so a
+   locale whose labels wrap can still push it taller, and align-items so the tabs
+   centre in the extra space rather than sitting on the top padding. */
+.view-toggle {
+  display: inline-flex; gap: 2px; padding: 3px; box-sizing: border-box;
+  min-height: var(--chrome-h); align-items: center;
+  border:0; border-radius: var(--ui-radius-panel); background: color-mix(in srgb, var(--ui-color-surface-muted) 65%, transparent); backdrop-filter: blur(5px);
+  box-shadow:inset 0 0 4px -.5px var(--ui-color-border-default), var(--shadow-2);
+}
+.view-toggle-opt {
+  display: inline-flex; align-items: center;
+  padding: var(--sp-3) var(--sp-6); border-radius: calc(var(--ui-radius-control)*1.5); font-size: var(--ui-type-body); font-weight: 600; line-height: 1.4;
+  color: var(--ui-color-text-default); text-decoration: none; transition: background var(--ui-motion-feedback), color var(--ui-motion-feedback);
+}
+/* Each tab holds an icon + a label. BOTH show on desktop (Andy, 2026-08-20 -
+   the tabs must be identifiable by glyph on every form factor); under 640px
+   topbar.css hides the label and the toggle shrinks to the icons alone.
+   Inactive tabs mute their glyph so the active one reads at a glance (the
+   a11y ask, same date) - opacity, not colour, so it works over any brand. */
+.view-toggle-ic { display: inline-flex; align-items: center; margin-inline-end: 7px; opacity: .42; }
+.view-toggle-opt.is-active .view-toggle-ic,
+.view-toggle-opt:hover .view-toggle-ic { opacity: 1; }
+/* Second cue riding the same states: a lighter stroke on inactive glyphs, the
+   authored weight on the active one (stroke-width in viewBox units - these are
+   24-unit Lucide strokes, so 1 here is half the authored 2). Both cues ease
+   (durations hand-tuned) so a tab switch reads as one soft emphasis shift. */
+.view-toggle-ic { transition: opacity var(--ui-motion-navigation); }
+.view-toggle-ic svg { transition: stroke-width var(--ui-motion-feedback), transform var(--ui-motion-navigation);  }
+
+.view-toggle-opt {font-weight:500; }
+
+
+@media (min-width: 641px) {
+ .view-toggle-ic svg {stroke-width: 2; }
+}
+.view-toggle-opt.is-active .view-toggle-ic svg,
+.view-toggle-opt:hover .view-toggle-ic svg { stroke-width: 2; transform:none }
+/* Scales on --a11y-fs like the label it replaces: below 640px (topbar.css) the
+   label is hidden and this glyph is the WHOLE of the app's top-level navigation,
+   so a fixed 18px would mean largeText does nothing at all for getting around the
+   app on a phone. */
+.view-toggle-ic svg { display: block; width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.view-toggle-opt:hover { color: var(--ui-color-text-default); }
+.view-toggle-opt.is-active {
+  background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); box-shadow: var(--ui-elevation-control);
+}
+/* Jelly effects mode (lib/jelly.ts): ONE persistent <jelly-segmented> pill,
+   mounted at body level by syncJellyNavToggle (view-toggle.ts) so it lives
+   ABOVE the view-fade snapshot layer (z 100000) and never re-mounts on
+   navigation - the pill slides once, continuously, while views cross-fade
+   beneath. Desktop only: while it's shown, [data-jelly-nav] hides each view's
+   own centred toggle; the ≤640px topbar keeps the native icon links (segments
+   can't render icons) and hides the floating pill instead. */
+.jelly-nav-wrap {
+  /* Same --chrome-top as the native pill it stands in for - the two are never on
+     screen together, so a differing offset would make the row jump when the jelly
+     flag is toggled. Height is left to the segmented component: it paints to a
+     canvas it sizes itself, and a min-height here would stretch the frosted track
+     away from the mark drawn inside it. */
+  position: fixed; top: var(--chrome-top); left: calc((100% - var(--dock-w, 0px)) / 2); transform: translateX(-50%);
+  z-index: 100001;
+  /* The frosted pill: same glass recipe as the native .view-toggle. The
+     segmented control's own canvas track is made transparent below, so this
+     wrapper IS the track surface - giving the inactive-tab area the blurred
+     backdrop a canvas fill can't produce. */
+  padding: 3px;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-pill);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 65%, transparent);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+.jelly-nav-wrap[hidden] { display: none; }
+.jelly-nav-wrap .view-toggle-seg {
+  --jelly-segmented-font-size: var(--fs-md);
+  /* Painted per-frame via getComputedStyle - `transparent` resolves to a no-op
+     fill, leaving only the sliding accent pill on the frosted wrapper. */
+  --jelly-track: transparent;
+  /* Tighter halo around the active pill (component defaults: 4px / 18px). */
+  --jelly-segmented-padding: 2px;
+  --jelly-segmented-padding-inline: 15px;
+}
+@media (min-width: 641px) {
+  :root[data-jelly-nav] .view-toggle-wrap { display: none; }
+}
+@media (max-width: 640px) {
+  .jelly-nav-wrap { display: none; }
+}
+/* The gallery no longer needs its own top clearance for the fixed toggle band - the
+   featured hero (.featured, 3.4rem top pad) or the .tool-masonry (3.6rem top pad, when
+   no hero) already holds that space, so a .gallery padding-top just doubled it up. */
+
+/* Fixed-width tiles packed top-left (file-manager convention). Folders are now
+   DELIBERATELY a different shape from sessions (2026-08-20, plans/133 WP-1 -
+   supersedes the 2026-08-09 "all tiles the same size" call): a folder wears the
+   short tabbed silhouette (.folder-cover, folders.css) while sessions keep the
+   4/3 document card. Rows top-align, so the folders-first band sits compact
+   above the taller session cards - the Finder read. */
+.projects-grid {
+  grid-template-columns: repeat(auto-fill, 180px); justify-content: start;
+  gap: var(--grid-gap);   /* tokens.css - collapses to --grid-gap-tight ≤640px */
+  align-items: start;
+  padding:3.6rem 0 1rem;
+}
+/* Create covers keep the sessions' 4/3 - projects grid only, and NOT in list mode
+   (whose own row rule sizes covers to a 52×40 chip and must keep winning). */
+.projects-grid:not(.projects-list) .tile-cover--create {
+  aspect-ratio: 4 / 3; height: auto;
+}
+/* The Trash system tile: muted, no preview noise. */
+.folder-tile--trash .tile-cover { height: 74px; margin-top: 9px; aspect-ratio: auto; }
+.folder-tile--trash .tile-cover svg { opacity: 0.45; }
+.projects-list .folder-tile--trash .tile-cover { height: calc(40px * var(--a11y-fs)); margin-top: 0; }
+
+/* Mobile: the fixed 180px columns drop to a SINGLE column below ~376px (a 360px
+   phone can't fit two 180px tiles + gap). Force two equal fractional columns on
+   narrow screens so at least two folders/sessions always sit side by side; the
+   desktop fixed-width file-manager packing and equal-height stretch are untouched.
+   Scoped `:not(.projects-list)` so list mode (a flex column) is unaffected. */
+@media (max-width: 560px) {
+  .projects-grid:not(.projects-list) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--grid-gap-tight);
+  }
+}
+
+/* ── List view = one table (plans/133 WP-12) ──────────────────────────────
+   Header and rows share ONE column template (--list-cols) so they can only ever
+   line up: every row's .tile-primary is a grid of [chip][name][Kind][Size][Modified]
+   with the pre-rendered .tile-cols spread into it via display:contents. Flat,
+   full-width, hairline-separated rows with a whole-row hover (the GNOME Files
+   read), not the grid's cards reflowed. align-items:stretch overrides the grid's
+   `start`, which was shrinking the header to its content width. */
+.projects-grid.projects-list {
+  --list-chip: calc(52px * var(--a11y-fs));
+  --list-cols: minmax(7rem, 9rem) 6rem 7rem;
+  --list-gutter: 84px;   /* room for the ⋯ menu + selection dot in the right gutter */
+  display: flex; flex-direction: column; gap: 0; max-width: none; align-items: stretch;
+}
+.projects-list .folder-tile {
+  width: 100%; border: 0; border-radius: 0; background: transparent; box-shadow: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-color-border-default) 70%, transparent);
+}
+.projects-list .folder-tile:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 55%, transparent); border-color: color-mix(in srgb, var(--ui-color-border-default) 70%, transparent); box-shadow: none; }
+.projects-list .folder-tile.is-selected { background: color-mix(in srgb, var(--ui-color-selection-surface) 84%, transparent); box-shadow: none; }
+.projects-list .folder-tile.is-selected:hover { background: color-mix(in srgb, var(--ui-color-selection-surface) 100%, transparent); }
+.projects-list .folder-tile.is-drop { background: color-mix(in srgb, var(--ui-color-selection-surface) 67%, transparent); border-color: color-mix(in srgb, var(--ui-color-selection-border) 50%, transparent); box-shadow: var(--ui-effect-selected); }
+.projects-list .folder-tile .tile-primary {
+  display: grid; grid-template-columns: var(--list-chip) minmax(0, 1fr) var(--list-cols);
+  align-items: center; column-gap: 14px; padding: 5px var(--list-gutter) 5px 12px; box-sizing: border-box;
+}
+.projects-list .tile-cols { display: contents; }
+.projects-list .tile-col { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(11.5px * var(--a11y-fs)); color: var(--ui-color-text-muted); }
+/* The 52×40 cover chip - sessions, images, create/batch/trash glyph boxes. */
+.projects-list .tile-cover, .projects-list .tile-cover--create, .projects-list .tile-cover--batch {
+  width: var(--list-chip); height: calc(40px * var(--a11y-fs)); aspect-ratio: auto; margin: 0; overflow: hidden;
+  border-radius: var(--ui-radius-control); border: 1px solid var(--ui-color-border-default);
+}
+.projects-list .tile-cover--create svg, .projects-list .tile-cover--batch svg { width: calc(20px * var(--a11y-fs)); height: calc(20px * var(--a11y-fs)); }
+/* The folder silhouette scaled to the chip: a 5px tab over a 35px body, mosaic
+   and emoji inside it - so a folder row is the same height as a session row. */
+.projects-list .folder-cover { width: var(--list-chip); height: calc(35px * var(--a11y-fs)); margin-top: 5px; border-radius: 0 6px 6px 6px; }
+.projects-list .folder-cover::before { top: -5px; height: 6px; border-radius: 4px 6px 0 0; }
+.projects-list .folder-cover .folder-mosaic { inset: 3px; gap: 1px; }
+.projects-list .folder-cover .folder-mosaic .folder-cell { border-radius: 2px; }
+.projects-list .folder-cover-glyph svg { width: var(--fs-xl); height: var(--fs-xl); }
+.projects-list .folder-emoji { font-size: var(--fs-lg); bottom: -3px; right: -3px; }
+.projects-list .folder-star { font-size: calc(9px * var(--a11y-fs)); top: 1px; right: 3px; }
+.projects-list .folder-cell--batch svg { width: var(--fs-2xs); height: var(--fs-2xs); }
+.projects-list .tile-meta { padding: 0; min-width: 0; }
+.projects-list .tile-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+.projects-list .folder-count { display: none; }   /* the Size column carries the count */
+.projects-list .tile-menu-btn { top: 50%; right: 10px; transform: translateY(-50%); }
+/* In a compact row the top-left grid position would sit over the 52px cover thumbnail -
+   move the selection toggle into the right gutter, just inside the ⋯ menu button. */
+.projects-list .tile-check { top: 50%; left: auto; right: 42px; transform: translateY(-50%); }
+/* Cut items (WP-7) read as "on the clipboard, leaving" until pasted - both views. */
+.folder-tile.is-cut { opacity: 0.5; }
+/* List mode's create actions: compact buttons up top (Andy, 2026-08-22) - at the
+   root an actions row above the table (holding the grid's old 3.6rem clearance so
+   the table tucks up beneath it), in a folder view inline in the header. The
+   create TILES render only in grid mode. */
+.projects-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 3.4rem 0 0; }
+.projects-actions + .projects-grid.projects-list { padding-top: 0.8rem; }
+.projects-create-btn { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.projects-create-btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+
+/* Empty-folder blank state (Andy, 2026-08-22): no grid - an invitation to the
+   two create actions the header also carries. */
+.projects-blank {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 4rem 1rem 2.5rem; text-align: center;
+}
+.projects-blank-icon svg { width: calc(44px * var(--a11y-fs)); height: calc(44px * var(--a11y-fs)); color: var(--ui-color-text-muted); opacity: 0.45; }
+.projects-blank-title { margin: 8px 0 0; font-size: calc(15px * var(--a11y-fs)); font-weight: 650; }
+.projects-blank-sub { margin: 0; font-size: calc(12.5px * var(--a11y-fs)); color: var(--ui-color-text-muted); }
+.projects-blank-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+.projects-blank-actions .btn { padding: 9px 16px; }
+
+/* Search / tools results wrap each hit as [tile][location crumb]: in list mode the
+   row separator belongs under the crumb, not between the two. */
+.projects-list .projects-result { border-bottom: 1px solid color-mix(in srgb, var(--ui-color-border-default) 70%, transparent); padding-bottom: 4px; }
+.projects-list .projects-result .folder-tile { border-bottom: 0; }
+/* Narrow screens drop the Kind/Size columns (Name + Modified stay legible), and
+   the Name track keeps the width: the fixed parts shrink with the screen. */
+@media (max-width: 640px) {
+  .projects-grid.projects-list { --list-cols: 5rem; }
+  .projects-list .tile-cols .tile-col:nth-child(1), .projects-list .tile-cols .tile-col:nth-child(2),
+  .projects-listhead > .listhead-col:nth-of-type(1), .projects-listhead > .listhead-col:nth-of-type(2) { display: none; }
+}
+@media (max-width: 400px) {
+  .projects-grid.projects-list { --list-cols: 0px; }
+  .projects-list .tile-cols .tile-col:nth-child(3), .projects-listhead > .listhead-col:nth-of-type(3) { display: none; }
+}
+
+/* ── Search results mode (a query reaches INTO sub-folders) ────────
+   The field itself is the shell's persistent bar (components/search-bar.ts,
+   plans/99 M1 - gallery.css owns its chrome); this block styles only the
+   in-body results chrome. */
+.projects-search-status { margin: 0.6rem 0 0; font-size: calc(12.5px * var(--a11y-fs)); color: var(--ui-color-text-muted); }
+.projects-search-grid { padding-top: 0.7rem; }
+
+/* A search hit = the normal tile + a breadcrumb of where it lives. */
+.projects-result { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.projects-result-path {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 100%;
+  padding: 2px 6px; border: 0; border-radius: var(--ui-radius-control);
+  background: transparent; color: var(--ui-color-text-muted);
+  font: inherit; font-size: calc(11.5px * var(--a11y-fs)); line-height: 1.3; text-align: left; cursor: pointer;
+}
+button.projects-result-path:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.projects-result-path--static { cursor: default; }
+.projects-result-path svg { width: var(--fs-sm); height: var(--fs-sm); flex: none; opacity: 0.8; }
+.projects-result-path span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Inline "clear the search" link inside the no-results message. */
+.projects-linkbtn {
+  border: 0; background: none; padding: 0; font: inherit; color: hsl(var(--primary));
+  text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
+}
+
+/* Active option in the view-options popover. */
+.projects-viewmenu .folder-menu-item.is-on { font-weight: 700; }
+
+/* Both panels use the shared body popover's viewport-relative positioning. */
+.projects-menu, .projects-viewmenu { position: fixed; }
+.projects-viewmenu {
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+.projects-viewmenu .folder-menu-item { white-space: normal; overflow-wrap: anywhere; }
+/* The bulk menu's "{n} selected" head sits outside its nested role="menu" (see
+   views/projects.ts bulkMenuHtml) - same flex-column list layout as the outer
+   .folder-menu, just one level deeper. */
+.projects-menu .folder-menu-list { display: flex; flex-direction: column; gap: 1px; }
+
+/* "Render folder" progress toast - the .pro-toast family's BAR variant (projects +
+   multi-edit): pin to the TOP (under the profile/history row, not the default bottom)
+   and span the full screen length so the rotating quip + per-render log read at a
+   glance. Two classes outrank the base .pro-toast positioning from run-overlay.css.
+   (Distinct from .pro-toast--top, profile's compact corner variant.) */
+.pro-toast.pro-toast--bar { top: calc(56px + var(--chrome-grow)); left: 2em; right: 2em; bottom: auto; }
+
+/* "Create new" tiles (+ icon) - kept deliberately muted so they read as
+   affordances, not content. Unlike a real tile, the icon area has NO preview fill and
+   NO divider border: it's one continuous transparent panel flowing straight into the
+   label, so the whole tile is just a quiet outline. Solid, not dashed: a dashed
+   border is the app's DROP-AREA signal and these accept nothing. */
+.folder-tile--create { border-color: color-mix(in srgb, var(--ui-color-border-default) 70%, transparent); background: transparent; }
+.folder-tile--create:hover { border-color: color-mix(in srgb, var(--ui-color-action-primary) 70%, transparent); background: color-mix(in srgb, var(--ui-color-selection-surface) 34%, transparent); }
+.tile-cover--create {
+  display: flex; align-items: center; justify-content: center; height: 90px;   /* compact, matches folder tiles */
+  color: var(--ui-color-text-muted); background: transparent;
+  border-bottom: 0;   /* override the base .tile-cover divider - create tiles are seamless */
+}
+.folder-tile--create:hover .tile-cover--create { color: var(--ui-color-action-primary); }
+.tile-cover--create svg { width: calc(30px * var(--a11y-fs)); height: calc(30px * var(--a11y-fs)); }
+
+/* Breadcrumb trail above a folder's header - links each ancestor back up the tree. */
+.projects-crumbs {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  margin: 0 0 8px; font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground));
+}
+.projects-crumbs a { color: hsl(var(--muted-foreground)); text-decoration: none; border-radius: 4px; }
+.projects-crumbs a:hover { color: hsl(var(--foreground)); text-decoration: underline; text-underline-offset: 2px; }
+.projects-crumb-sep { opacity: 0.5; }
+
+/* Folder-contents header. */
+.projects-head { display: flex; align-items: center; gap: 12px; margin: 0 0 18px; }
+.projects-back {
+  display: inline-flex; align-items: center; justify-content: center; width: calc(34px * var(--a11y-fs)); height: calc(34px * var(--a11y-fs)); flex: none;
+  /* paint comes from buttons.css's .btn--glass alias list */
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius); text-decoration: none;
+}
+.projects-back:hover { background: hsl(var(--muted)); }
+.projects-back svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+/* Truncate to a single line so a long folder name never wraps into a tall column
+   or shoves the header actions off-screen. min-width:0 lets it shrink inside the
+   flex row (the default min-width:auto would refuse, forcing overflow). */
+.projects-title { font-size: calc(20px * var(--a11y-fs)); font-weight: 700; margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.projects-title[data-rename-folder] { cursor: text; }
+.projects-title[data-rename-folder]:hover { text-decoration: underline dotted; text-underline-offset: 4px; }
+.projects-count { font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
+.projects-head-spacer { flex: 1; }
+.projects-render { display: inline-flex; align-items: center; gap: 7px; }
+.projects-render svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+/* Render is the primary action - fill it with the brand colour so it reads as the
+   pronounced CTA (folder header, bulk bar, move-picker confirm all share this class).
+   Two-class `.projects-render.btn` beats the generic `.btn` base by specificity -
+   same trick as .modal-danger. Fill (background/color) + hover are
+   aliased in parts/buttons.css's .btn--primary list; only the border-color delta lives here. */
+.projects-render.btn {
+  border-color: hsl(var(--primary));
+}
+.projects-render.btn svg { opacity: 1; }
+
+/* Uncategorised preview ribbon - the gallery's Featured strip (drift · Cover Flow ·
+   mobile grip, see components/featured-row.ts) reused over the loose sessions, floated
+   above the "Move to" rail. The hero is full-bleed + square by design; here it's the same
+   commanding height as the Tools hero (--ftile-h lives in featured.css - one source for
+   all three strips) inside a CONTAINED rounded frame, so it reads as a browsable ribbon
+   atop the folder view. All the motion/interaction chrome comes from featured.css unchanged. */
+.projects-featured {
+  margin: 0 0 20px;
+  border-radius: var(--radius);
+  overflow: hidden;                                  /* clip the filmstrip to the rounded frame */
+  box-shadow: var(--edge);
+}
+.projects-featured .featured-viewport { border-radius: inherit; }
+/* Preview-strip view switcher - the shared .view-seg (Gallery | Cover Flow), centred just
+   below the ribbon. Pulled up under the ribbon's own bottom gap so the two read as a unit.
+   width:fit-content keeps it a compact segmented control (its .view-seg-btn children are
+   flex:1, which would otherwise stretch across the full-width row). */
+.projects-featured-switch { width: fit-content; max-width: 100%; margin: -10px auto 18px; }
+.projects-featured-switch .view-seg-btn { white-space: nowrap; }
+@media (max-width: 640px) {
+  .projects-featured { margin-bottom: 16px; }
+}
+
+/* "Move to" rail - drop targets in a folder view. */
+.projects-rail { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 16px; }
+.projects-chip {
+  padding: 6px 12px; border: 1px solid hsl(var(--border)); border-radius: var(--radius-pill);
+  background: hsl(var(--card)); color: hsl(var(--foreground)); font-size: calc(12.5px * var(--a11y-fs)); cursor: pointer;
+  transition: border-color var(--dur-1), background var(--dur-1), box-shadow var(--dur-1);
+}
+.projects-chip:hover { border-color: hsl(var(--primary) / 0.6); }
+/* While dragging a session OR a folder, hint the rail chips as live drop targets. */
+.projects.is-dragging-session .projects-chip,
+.projects.is-dragging-folder .projects-chip { border-color: hsl(var(--primary) / 0.5); background: hsl(var(--primary) / 0.04); }
+
+/* Drag feedback. */
+.folder-tile.is-dragging { opacity: 0.45; }
+.folder-tile[data-kind="session"], .folder-tile--folder { cursor: grab; }
+.folder-tile.is-drop, .projects-chip.is-drop {
+  border-color: hsl(var(--primary)); box-shadow: var(--ring-focus-strong); background: hsl(var(--primary) / 0.06);
+}
+
+/* Inline name input (create / rename). */
+.projects-name-input {
+  width: 100%; padding: 4px 6px; font-size: var(--fs-md); font-weight: 600;
+  border: 1px solid hsl(var(--primary)); border-radius: calc(var(--radius) / 1.5);
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+}
+.projects-empty { color: hsl(var(--muted-foreground)); font-size: var(--fs-lg); margin: 18px 2px; }
+
+/* .folder-menu-head (the per-tile menu's group label) now shares the .folder-menu-sep
+   recipe in parts/folders.css - the whole .folder-menu-* family lives there. */
+
+/* The bespoke "+ New tool" chooser is retired - the shared asset picker (views/picker.ts)
+   now handles "+ New asset" in "collect into this folder" mode, so its Library / Saved
+   creations / Projects / Tools tabs are reused here. Its own SVG-sizing rule was shared
+   with the Move-to picker rows, kept below. */
+.movepicker-row-icon svg,
+.movepicker-row-chev svg { width: 100%; height: 100%; }
+
+/* Folder-image lightbox - a plain preview modal (mountModal chrome + Escape-to-close);
+   clicking the figure also dismisses it. */
+.projects-imgpreview-modal { max-width: min(92vw, 1100px); }
+.projects-imgpreview {
+  margin: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: zoom-out;
+}
+.projects-imgpreview img {
+  max-width: 100%; max-height: 78vh; object-fit: contain;
+  border-radius: var(--radius); background: hsl(var(--muted));
+}
+.projects-imgpreview figcaption { font-size: var(--fs-md); color: hsl(var(--muted-foreground)); text-align: center; }
+
+/* Folder-actions overflow button in the folder-view header (rename / render / delete).
+   It's not inside a .folder-tile, so undo the tile-menu's absolute, hover-to-reveal styling. */
+.projects-head-menu { position: static; opacity: 1; flex: none; width: calc(32px * var(--a11y-fs)); height: calc(32px * var(--a11y-fs)); }
+
+/* The shared modal chrome (.modal / .modal-title / .modal-actions / …) used by the
+   confirm/choice/notice/prompt dialogs, the New-folder name prompt below, and the
+   password/lock prompts elsewhere now lives in dialogs.css (component audit rec 4) -
+   moved out of this file since it long outgrew being a Projects-only thing. */
+
+/* New-folder-from-selection name prompt (reuses .modal chrome). */
+.projects-prompt-input { width: 100%; margin: 0 0 16px; }
+
+/* The desktop click-drag marquee box now lives in components.css (.tile-marquee) - it is
+   shared verbatim with the Catalogue, along with the gesture itself (lib/tile-select.ts). */
+
+/* ─── Multi-select bulk-action bar ──────────────────────────────────────────
+   Floating, bottom-centre, above content but below the fixed view-toggle (99999).
+   Shown by JS (syncBulkBar toggles [hidden]) whenever the selection is non-empty. */
+.projects-bulkbar {
+  /* Sits ABOVE the fixed footer bar (search + nav links), and spans the full viewport width
+     (inset a little) so every action fits on one row instead of wrapping into a pill. */
+  position: fixed; left: 12px; right: 12px; bottom: calc(4.5rem + var(--safe-bottom) + var(--vv-bottom, 0px)); z-index: 9000;
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 10px 8px 16px; border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-pill); background: hsl(var(--card)); box-shadow: 0 12px 32px hsl(0 0% 0% / 0.28);
+}
+.projects-bulkbar[hidden] { display: none; }
+.projects-bulkbar-count { font-size: calc(12.5px * var(--a11y-fs)); font-weight: 600; white-space: nowrap; }
+.projects-bulkbar-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex: 1 1 auto; justify-content: center; }
+.projects-bulkbar-actions .btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: calc(12.5px * var(--a11y-fs)); }
+.projects-bulkbar-actions .btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+/* Two-class so the destructive red beats the generic `.btn { color: foreground }`
+   defined later in the file (equal specificity, later wins) - same trick as
+   .projects-render.btn / .modal-danger. */
+.projects-bulk-danger.btn { color: hsl(var(--destructive, 0 70% 50%)); }
+.projects-bulk-danger.btn:hover { background: hsl(var(--destructive, 0 70% 50%) / 0.1); }
+.projects-bulkbar-clear {
+  display: inline-flex; align-items: center; justify-content: center; width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); flex: none;
+  border: 0; border-radius: var(--radius-round); background: hsl(var(--muted)); color: hsl(var(--foreground));
+  cursor: pointer; font-size: var(--fs-md); line-height: 1;
+}
+.projects-bulkbar-clear:hover { background: hsl(var(--border)); }
+/* Phones: let the bar wrap its buttons and hug the safe area (clear the home
+   indicator with var(--safe-bottom), matching the app's other bottom bars). */
+@media (max-width: 560px) {
+  /* Phones: a full-width ICON-ONLY row above the two-row footer (lifted to clear it). Labels
+     are clipped (kept for assistive tech), so all the actions fit without wrapping. */
+  .projects-bulkbar { flex-direction: row; align-items: center; border-radius: var(--radius-pill); bottom: calc(7rem + var(--safe-bottom) + var(--vv-bottom, 0px)); padding: 8px 10px; gap: 8px; }
+  .projects-bulkbar-clear { position: static; }
+  .projects-bulkbar-count { font-size: calc(11.5px * var(--a11y-fs)); }
+  .projects-bulkbar-actions { flex: 1 1 auto; justify-content: space-around; gap: 2px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .projects-bulkbar-actions::-webkit-scrollbar { display: none; }
+  .projects-bulkbar-actions .btn { padding: 8px; gap: 0; }
+  .projects-bulkbar-actions .btn > span {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+  }
+}
+
+/* ─── Projects: mobile layout ────────────────────────────────────────────────
+   The folder header can't fit its back button + full title + count + a text
+   "Render folder" button + ⋯ menu on one phone row, so it collapses to TWO rows:
+   [‹ back] [title - truncates] [count] [⋯]  /  [ Render folder - full-width CTA ].
+   Placed after the base rules so these win without needing extra specificity. */
+@media (max-width: 640px) {
+  /* Clear the fixed top bar (offset by the safe-area inset on notched PWAs). */
+  .projects { padding-top: calc(52px + var(--chrome-grow) + var(--safe-top)); }
+
+  .projects-head { flex-wrap: wrap; column-gap: 8px; row-gap: 10px; margin-bottom: 14px; }
+  /* flex-basis 0 so a long title never forces the count/menu to wrap - it just
+     grows into the leftover space on row 1 and ellipsis-truncates. */
+  .projects-title { flex: 1 1 0; font-size: calc(17px * var(--a11y-fs)); }
+  .projects-head-spacer { display: none; }
+  .projects-count { order: 3; flex: 0 0 auto; }
+  .projects-head-menu { order: 4; }
+  /* Scoped to the header - `.projects-render.btn` is a SHARED class (bulk bar's
+     "Render selection", move-picker confirm, new-folder Create), and an unscoped
+     order/flex here would reorder + full-width those too (e.g. shove the bulk bar's
+     primary Render below Delete). The header button is a direct child of .projects-head. */
+  .projects-head .projects-render.btn { order: 5; flex: 1 1 100%; justify-content: center; padding: 11px 14px; font-size: var(--fs-lg); }
+
+  /* When a selection is active the floating bulk bar covers the bottom of the grid;
+     reserve room so the last row can scroll clear of it. Toggled by syncBulkBar(). */
+  .projects.has-selection { padding-bottom: calc(190px + var(--safe-bottom)); }
+}
+
+/* Touch: no hover, so reveal the per-tile ⋯ menu (its only trigger otherwise is
+   desktop right-click) and grow the small header/overlay controls to a comfortable
+   ~40-44px tap size - matching the app-wide coarse-pointer target convention.
+   Each target carries the type multiplier so the floor rises WITH largeText: these
+   rules sit after the base ones and would otherwise clamp a scaled control back
+   down to the touch minimum, leaving the only unlabelled controls on the page as
+   the one thing that didn't grow. Unlike --chrome-h in tokens.css these are px, not
+   rem, so `* 1` is exactly today's value at any root font size and the multiplier
+   needs no attribute gate. */
+@media (pointer: coarse) {
+  .tile-menu-btn { opacity: 1; width: calc(40px * var(--a11y-fs)); height: calc(40px * var(--a11y-fs)); }
+  .tile-check { width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); }
+  /* List view pins BOTH controls to the right gutter (menu right:10, check right:42);
+     with the enlarged coarse sizes they'd overlap (~8px), so push the check clear of
+     the 40px menu. In grid view they sit in opposite corners, so no change needed. */
+  .projects-list .tile-check { right: 56px; }
+  .projects-back, .projects-head-menu { width: calc(40px * var(--a11y-fs)); height: calc(40px * var(--a11y-fs)); }
+  .projects-chip { padding-top: 9px; padding-bottom: 9px; }
+  .folder-menu-item { min-height: calc(44px * var(--a11y-fs)); }
+  .movepicker-row { min-height: calc(44px * var(--a11y-fs)); }
+  .movepicker-close { width: calc(40px * var(--a11y-fs)); height: calc(40px * var(--a11y-fs)); font-size: calc(18px * var(--a11y-fs)); }
+  .movepicker-crumb { min-height: calc(32px * var(--a11y-fs)); display: inline-flex; align-items: center; }
+}
+
+/* ─── Drill-down "Move to" picker ───────────────────────────────────────────
+   A modal that navigates the folder tree one level at a time. */
+.projects-movepicker {
+  border: 0; padding: 0; width: min(420px, 94vw); max-height: min(560px, 86vh);
+  border-radius: calc(var(--radius) * 1.2); background: hsl(var(--card)); color: hsl(var(--foreground));
+  box-shadow: 0 24px 64px hsl(0 0% 0% / 0.4); overflow: hidden;
+}
+.projects-movepicker::backdrop { background: hsl(0 0% 0% / 0.42); }
+.movepicker-head { display: flex; align-items: center; gap: 10px; padding: 16px 16px 8px; }
+.movepicker-title { margin: 0; font-size: calc(15px * var(--a11y-fs)); font-weight: 700; flex: 1; }
+.movepicker-close {
+  border: 0; background: none; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: var(--fs-xl); padding: 4px;
+}
+.movepicker-crumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 0 16px 10px; font-size: var(--fs-sm); }
+.movepicker-crumb { border: 0; background: none; color: hsl(var(--muted-foreground)); cursor: pointer; padding: 2px 4px; border-radius: 4px; font-size: var(--fs-sm); }
+.movepicker-crumb:hover { color: hsl(var(--foreground)); }
+.movepicker-crumb.is-current { color: hsl(var(--foreground)); font-weight: 600; }
+.movepicker-list { padding: 4px 8px; overflow-y: auto; max-height: 340px; border-top: 1px solid hsl(var(--border)); border-bottom: 1px solid hsl(var(--border)); }
+.movepicker-row {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 8px;
+  border: 0; background: none; color: inherit; cursor: pointer; border-radius: calc(var(--radius) / 1.5); font-size: var(--fs-md);
+}
+.movepicker-row:hover { background: hsl(var(--muted)); }
+.movepicker-row-icon { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); flex: none; color: hsl(var(--muted-foreground)); }
+.movepicker-row-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.movepicker-row-chev { width: var(--fs-xl); height: var(--fs-xl); flex: none; color: hsl(var(--muted-foreground)); }
+.movepicker-row.is-blocked { opacity: 0.4; cursor: not-allowed; }
+.movepicker-empty { padding: 18px 10px; text-align: center; color: hsl(var(--muted-foreground)); font-size: calc(12.5px * var(--a11y-fs)); }
+.movepicker-foot { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 12px 16px; }
+.movepicker-newfolder { display: inline-flex; align-items: center; gap: 6px; }
+.movepicker-newfolder svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+
+
+/* ── List-view columns (plans/133 WP-2 → WP-12) ─────────────────────────────
+   The tiles carry pre-formatted .tile-cols (Kind · Items/Size · Modified);
+   grid mode hides them, list mode spreads them into the row's own grid (see the
+   .projects-list block above). The header is the SAME grid: an empty chip cell,
+   the Name cell, then one clickable column per .tile-col. */
+.tile-cols { display: none; }
+/* Row badges duplicate the columns in list mode - the columns win. */
+.projects-list .tile-badges, .projects-list .tile-sub { display: none; }
+.projects-listhead {
+  display: grid; grid-template-columns: var(--list-chip) minmax(0, 1fr) var(--list-cols);
+  align-items: center; column-gap: 14px;
+  padding: 2px var(--list-gutter) 2px 12px; box-sizing: border-box;
+  font-size: calc(11.5px * var(--a11y-fs));
+  border-top: 1px solid var(--ui-color-border-default); border-bottom: 1px solid var(--ui-color-border-default);
+}
+.projects-listhead::before { content: ''; }   /* the chip column - nothing to label */
+.listhead-name { min-width: 0; display: flex; align-items: center; gap: 8px; }
+.listhead-col {
+  border: 0; background: none; padding: 4px 6px; margin: 0 -6px; cursor: pointer;
+  font: inherit; font-size: inherit; font-weight: 600; text-align: left;
+  color: var(--ui-color-text-muted);
+  border-radius: var(--ui-radius-control); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.listhead-col:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.listhead-col.is-on { color: var(--ui-color-text-default); }
+/* A sort with no column of its own (Date added) is still named in the header,
+   so the list never reads as unsorted. */
+.listhead-sortnote { font-size: var(--fs-xs); color: var(--ui-color-text-muted); font-weight: 500; white-space: nowrap; }
+
+/* "My library" label over the loose-session block at the root (plans/170
+   keeping-model naming): a full-width grid row between the folder tiles and
+   the library tiles, so the place the save dialog names is visible as one. */
+.projects-sec-label {
+  grid-column: 1 / -1;
+  margin: 6px 0 -2px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ui-color-text-muted);
+}
+
+/* ─── Templates collection (#/p/__templates__, plans/226 section 4.3) ────────
+   The collection reads as a CONTAINER wherever it is a door: the root grid tile
+   wears the folder tile's short cover (never the sessions' 4/3 document card),
+   and the rail chip is navigation only - no data-drop-folder, so nothing can be
+   dropped into it. The tiles INSIDE it are the chooser's card: a rounded card
+   with a neutral hairline border, a live preview, name, description and tool. */
+.folder-tile--templates .tile-cover { height: 90px; aspect-ratio: auto; }
+.folder-tile--templates .tile-cover svg { opacity: 0.5; }
+.projects-list .folder-tile--templates .tile-cover { height: calc(40px * var(--a11y-fs)); }
+/* A navigation chip sits apart from the "Move to" drop targets, and must NOT light
+   up as one mid-drag (the drag rules above key on .projects-chip, so opt back out). */
+.projects-chip--nav { margin-left: auto; }
+.projects.is-dragging-session .projects-chip--nav,
+.projects.is-dragging-folder .projects-chip--nav {
+  border-color: var(--ui-color-border-default); background: var(--ui-color-surface-raised);
+}
+.tpl-lede { margin: -6px 0 14px; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.tpl-chips { margin-bottom: 18px; }
+/* The chosen tool chip is a tinted FILL, not an accent outline (house rule). */
+.projects-chip.is-on {
+  background: color-mix(in srgb, var(--ui-color-selection-surface) 75%, transparent);
+  color: var(--ui-color-text-default); font-weight: 600;
+}
+.tpl-sec { margin: 0 0 22px; }
+.tpl-sec .projects-sec-label { margin: 0 0 8px; }
+.tpl-hidden-toggle {
+  display: inline-flex; align-items: center; gap: 8px; margin: 0 0 8px;
+  padding: 6px 10px; border: 0; border-radius: var(--ui-radius-control);
+  background: none; color: var(--ui-color-text-muted); cursor: pointer;
+  font: inherit; font-size: var(--fs-xs); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.tpl-hidden-toggle:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.tpl-hidden-count {
+  min-width: 18px; padding: 1px 6px; border-radius: var(--radius-pill);
+  background: var(--ui-color-surface-muted); color: var(--ui-color-text-muted);
+  font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0;
+}
+/* A hidden template still shows its preview, just calmer, so Restore is an informed
+   choice rather than a name in a list. */
+.tpl-sec--hidden .tpl-tile { opacity: 0.62; }
+.tpl-sec--hidden .tpl-tile:hover { opacity: 1; }
+.tpl-cover {
+  display: grid; place-items: center;
+  background: var(--preview-checker), var(--preview-surface);
+}
+.tpl-cover > * { grid-area: 1 / 1; }
+.tpl-cover-glyph { display: flex; color: var(--ui-color-text-muted); opacity: 0.55; }
+.tpl-cover-glyph svg { width: calc(30px * var(--a11y-fs)); height: calc(30px * var(--a11y-fs)); }
+.tpl-cover-img { width: 100%; height: 100%; object-fit: contain; display: block; opacity: 0; }
+.tpl-cover-img[src] { opacity: 1; transition: opacity .25s ease; }
+.tpl-cover:has(.tpl-cover-img[src]) .tpl-cover-glyph { visibility: hidden; }
+/* "Starts here" - the tool's current Start-with. A tinted fill, never a border. */
+.tpl-starts {
+  padding: 2px 7px; border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--ui-color-selection-surface) 85%, transparent);
+  color: var(--ui-color-text-default);
+  font-size: var(--fs-xs); font-weight: 600;
+}

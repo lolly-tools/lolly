@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>Connecting…</title>
+<body style="font: 14px system-ui, sans-serif; color: #444; display: grid; place-items: center; min-height: 90vh; margin: 0">
+<p id="msg">Finishing sign-in…</p>
+<script>
+  // The OAuth popup lands here with the token in the URL fragment - for ANY
+  // send-target provider (lib/send-target.ts): the message carries only the
+  // fragment, and each provider validates origin AND its own request state
+  // before touching it (see lib/google-drive.ts). The fragment never hits any
+  // server: it exists only in this page's location.
+  //
+  // TWO delivery channels, same payload (plans/127 cross-origin isolation):
+  // under COOP: same-origin the opener handle is SEVERED once the popup has
+  // been through the provider's cross-origin pages, so window.opener is null
+  // here - BroadcastChannel is the same-origin channel that still reaches the
+  // app (both ends carry the same isolation headers, so they share a
+  // partition). Non-isolated browsers keep working through the opener path.
+  (function () {
+    // A bare visit (no fragment AND no query) is NOT a sign-in return - say so
+    // honestly rather than broadcasting an empty payload and claiming success.
+    // Token grants return in the FRAGMENT, code grants (Dropbox, Microsoft -
+    // plans/129) in the QUERY; both are forwarded verbatim and parsed by the
+    // opener, which owns the state validation.
+    if (!location.hash && !location.search) {
+      document.getElementById('msg').textContent = 'This page only works as part of signing in from the app.';
+      return;
+    }
+    var payload = { source: 'lolly-oauth', hash: location.hash, search: location.search };
+    var delivered = false;
+    try {
+      var bc = new BroadcastChannel('lolly-oauth');
+      bc.postMessage(payload);
+      bc.close();
+      delivered = true;
+    } catch (e) { /* no BroadcastChannel - the opener path below covers it */ }
+    try {
+      if (window.opener) {
+        window.opener.postMessage(payload, location.origin);
+        delivered = true;
+      }
+    } catch (e) { /* fall through */ }
+    if (delivered) {
+      document.getElementById('msg').textContent = 'You can close this window.';
+      setTimeout(function () { window.close(); }, 250);
+    } else {
+      document.getElementById('msg').textContent = 'This page only works as part of signing in from the app.';
+    }
+  })();
+</script>
+</body>
+</html>

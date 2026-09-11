@@ -1,0 +1,7 @@
+{
+  "name": "Lolly bridge",
+  "description": "Apply Lolly brand tokens (DTCG JSON) as Penpot token sets and place Lolly session SVGs as editable shapes - all on-device, no server.",
+  "code": "/penpot-plugin/plugin.js",
+  "icon": "/icon.svg",
+  "permissions": ["content:write", "library:read", "library:write"]
+}

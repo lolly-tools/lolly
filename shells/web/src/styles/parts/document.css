@@ -1,0 +1,265 @@
+/* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
+   (order declared once in styles/app.css). Wrapping it means its rules keep a
+   fixed priority - above chrome/primitives/base, below overrides/a11y - no
+   matter when Vite injects this chunk at runtime. Do not rely on load order. */
+@layer views {
+/* ─── Document layout (render.layout:'document') ──────────────────────────────
+   A chromeless multi-page rich-text editor (shells/web/src/views/doc-editor.js).
+   Reuses the editor rail (.fc-toolbar / .fc-btn / .fc-popover / .fc-panel) from
+   editor.css; this file adds the top format ribbon and the on-canvas edit affordances.
+   All chrome carries [data-export-hide] and sits OUTSIDE #tool-canvas, so it never
+   appears in exported files. Shares .is-editor (set on .tool-layout) for the chromeless
+   stage + hidden render pill. */
+
+/* Top format ribbon - always visible, docked at the top of the stage. This is the
+   "settings you can see on the canvas": paragraph style, bold/italic, lists, colour,
+   plus per-block controls (width / align / move / delete). */
+.doc-ribbon-dock {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: center;
+  padding-top: calc(10px + var(--vv-top, 0px));
+  pointer-events: none;
+  z-index: 17;
+}
+.doc-ribbon {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+  max-width: min(94vw, 720px);
+  padding: 5px 7px;
+  border-radius: var(--radius-lg);
+  background: hsl(var(--card) / 0.72);
+  isolation: isolate;
+  box-shadow: var(--shadow-3), 0 0 0 1px hsl(var(--border));
+}
+/* Frosted backing (same technique as the editor bars - blur on a ::before behind
+   content, never on the element, so hosted popovers keep position:fixed). */
+.doc-ribbon::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  border-radius: inherit;
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+}
+.doc-ribbon .fc-sep-v { height: 22px; }
+
+/* Ribbon selects - paragraph style, font, line height, letter spacing. The box is
+   the shared `.field-select .field-select--sm .field-select--auto` primitive
+   (fields.css); only three things are genuinely local: the cap width per control,
+   the ribbon's 32px control height, and the heavier label weight that lets a
+   one-word value hold its own next to the icon buttons. Disabled comes from the
+   primitive (opacity .5 + not-allowed) - do not restate it here, this sheet is in
+   `@layer views` and would silently win. */
+.doc-style-select,
+.doc-font-select,
+.doc-lh-select,
+.doc-ls-select { height: 32px; font-weight: 600; }
+.doc-style-select { max-width: 132px; }
+.doc-font-select { max-width: 116px; }
+.doc-lh-select { max-width: 104px; }
+.doc-ls-select { max-width: 116px; }
+/* "New page" sits under the block-kind items in the Insert popover, set off by a rule. */
+.fc-pop-item--sep { margin-top: 4px; padding-top: 8px; border-top: 1px solid hsl(var(--border)); }
+
+.doc-ribbon .fc-cbtn:disabled { opacity: 0.32; cursor: default; }
+.doc-ribbon .fc-cbtn.is-on { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary)); }
+.doc-ribbon .fc-cbtn i { font-style: italic; }
+/* Text-colour swatch trigger in the ribbon. */
+.doc-color { position: relative; overflow: hidden; }
+/* Our own colour picker fills the button invisibly (the visible face is the
+   ::after glyph); clicking anywhere opens our popover - never the OS picker. The
+   field collapses to zero box so it doesn't push the glyph around. */
+.doc-color .color-picker-field { position: static; }
+.doc-color .color-trigger {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; cursor: pointer; border: none; padding: 0; margin: 0;
+}
+.doc-color::after {
+  content: "A"; font-weight: 800; font-size: var(--fs-md); line-height: 1;
+  border-bottom: 3px solid var(--sw, #30ba78); padding-bottom: 1px;
+}
+
+/* On-canvas edit affordances (added to the tool's own rendered nodes). These classes
+   are editor-only - doc-editor strips them before any state write, and they sit on
+   nodes that are rebuilt each paint, so they never reach export. */
+.doc-rt { cursor: text; }
+.doc-block { position: relative; }
+/* Hover hint: a soft rule down the left of the block the pointer is over. */
+.tool-layout.is-document #tool-canvas .doc-block:hover::before {
+  content: ""; position: absolute; left: -14px; top: 0; bottom: 0; width: 3px;
+  border-radius: var(--radius-xs); background: hsl(var(--primary) / 0.28);
+}
+.doc-rt.doc-editing {
+  outline: 2px solid #2d7ff9; outline-offset: 4px;
+  border-radius: 2px; caret-color: #2d7ff9;
+  min-height: 1em; min-width: 8px;
+}
+.doc-block.doc-block-active::before {
+  content: ""; position: absolute; left: -14px; top: 0; bottom: 0; width: 3px;
+  border-radius: var(--radius-xs); background: hsl(var(--primary));
+}
+/* Empty editable paragraph / cell shows a gentle prompt while focused. */
+.doc-rt.doc-editing:empty::before {
+  content: "Type\2026"; opacity: 0.4; pointer-events: none;
+}
+/* Empty image block invites a click to pick a Lolly / upload. */
+.tool-layout.is-document .doc-media--empty { cursor: pointer; }
+.tool-layout.is-document .doc-media--empty:hover {
+  border-color: hsl(var(--primary)); color: hsl(var(--primary));
+}
+
+/* Settings (page setup) mini-form inside a .fc-panel popover. */
+.doc-setup-row { display: flex; align-items: center; gap: 10px; font-size: calc(12.5px * var(--a11y-fs)); }
+.doc-setup-row > span { flex: 0 0 92px; color: hsl(var(--muted-foreground)); }
+/* The controls carry `.field-select`/`.field-input` (+ `--sm`) and the tick carries
+   `.field-check`; the only local truth is that a row's control takes the leftover
+   width. */
+.doc-setup-row select,
+.doc-setup-row input[type="text"] { flex: 1; min-width: 0; }
+/* (A `revert-layer` opt-out lived here: the page-setup input sits in a `.fc-panel`,
+   and editor.css's `.fc-panel input[type="text"]` rule - same `views` layer, same
+   specificity - was stranding it on the old outlined generation. Fixed at source
+   instead: that rule now carries `:not(.field-input)` and yields to the primitive.) */
+.doc-setup-row .doc-setup-color { flex: 1; min-width: 0; display: flex; }
+
+/* Touch: keep the ribbon compact and always visible. */
+@media (pointer: coarse) {
+  .doc-ribbon { gap: 2px; }
+  .doc-ribbon .fc-cbtn { min-width: 36px; height: 36px; }
+}
+@media (max-width: 640px) {
+  .doc-style-select { max-width: 96px; }
+  .doc-font-select { max-width: 84px; }
+  .doc-lh-select, .doc-ls-select { max-width: 84px; }
+}
+
+/* ─── TipTap rich-document editor (views/doc-editor.js) ─────────────────────────
+   A continuous, page-width editing surface layered over #tool-canvas (which still
+   holds the hook-rendered pages that export rasterises). The ProseMirror content is
+   styled to mirror the template's .doc-* look, so editor and export match. */
+.tool-layout.is-document .tool-stage { overflow: hidden; }
+.doc-tt-surface {
+  position: absolute; inset: 0; z-index: 6;
+  overflow-y: auto; overflow-x: hidden;
+  background: hsl(var(--muted));
+  padding: 96px 16px 72px;                 /* top clears the floating ribbon(s) */
+  display: flex; flex-direction: column; align-items: center;
+}
+.doc-tt-paper {
+  width: min(794px, 100%); min-height: 70vh;
+  /* The surface is a column flexbox; default flex-shrink:1 would let a multi-page paper
+     shrink below its content height and spill text past the white background. Keep the
+     paper at its natural (content) height so the document grows and the surface scrolls. */
+  flex-shrink: 0;
+  background: #ffffff; color: #10231f;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, .16);
+  padding: 72px 67px;
+  font-family: 'SUSE', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+.doc-tt-holder { outline: none; }
+.doc-tt-holder .ProseMirror { outline: none; min-height: 50vh; white-space: pre-wrap; word-wrap: break-word; }
+.doc-tt-holder .ProseMirror:focus, .doc-tt-holder .ProseMirror-focused { outline: none; }
+
+/* Content - mirrors template.html's .doc-* rules. */
+.doc-tt-holder p { font-size: 15px; line-height: 1.5; margin: 0 0 .55em; }
+.doc-tt-holder h1, .doc-tt-holder h2, .doc-tt-holder h3, .doc-tt-holder h4 {
+  font-weight: 700; line-height: 1.15; letter-spacing: -.01em; margin: .8em 0 .3em;
+}
+.doc-tt-holder > h1:first-child, .doc-tt-holder > h2:first-child,
+.doc-tt-holder > h3:first-child, .doc-tt-holder > h4:first-child { margin-top: 0; }
+.doc-tt-holder h1 { font-size: 2.1em; padding-bottom: .18em; border-bottom: 2px solid hsl(var(--primary)); }
+.doc-tt-holder h2 { font-size: 1.6em; padding-bottom: .16em; border-bottom: 2px solid hsl(var(--primary)); }
+.doc-tt-holder h3 { font-size: 1.28em; }
+.doc-tt-holder h4 { font-size: 1.08em; }
+.doc-tt-holder ul, .doc-tt-holder ol { font-size: 15px; line-height: 1.5; margin: .3em 0 .6em; padding-left: 1.5em; }
+.doc-tt-holder ul { list-style: none; }
+.doc-tt-holder ul > li { position: relative; }
+.doc-tt-holder ul > li::before { content: ""; position: absolute; left: -1em; top: .62em; width: .34em; height: .34em; border-radius: var(--radius-round); background: hsl(var(--primary)); }
+.doc-tt-holder ol { list-style: decimal; }
+.doc-tt-holder ol > li::marker { color: hsl(var(--primary)); font-weight: 700; }
+.doc-tt-holder li { margin: 0 0 .2em; }
+.doc-tt-holder li > p { margin: 0; }
+.doc-tt-holder blockquote { margin: .5em 0; padding-left: .9em; border-left: 3px solid hsl(var(--primary)); color: #5b6b66; }
+.doc-tt-holder pre { font-family: var(--font-mono); font-size: 13.5px; background: hsl(var(--primary) / .08); padding: .7em .9em; border-radius: var(--radius-sm); overflow-x: auto; }
+.doc-tt-holder code { font-family: var(--font-mono); }
+.doc-tt-holder hr { border: none; border-top: 1px solid rgba(16, 35, 31, .18); margin: 1em 0; }
+.doc-tt-holder img { max-width: 100%; height: auto; border-radius: 4px; display: block; }
+.doc-tt-holder .ProseMirror-selectednode { outline: 2px solid #2d7ff9; }
+/* Resizable image (ResizableImage NodeView): the wrap carries the width; a corner
+   handle drags it. Handle appears on hover / when the image node is selected. */
+.doc-tt-holder .doc-img-wrap { position: relative; display: inline-block; max-width: 100%; line-height: 0; }
+.doc-tt-holder .doc-img-wrap img { width: 100%; height: auto; display: block; }
+.doc-tt-holder .doc-img-handle {
+  position: absolute; right: -6px; bottom: -6px; width: 14px; height: 14px;
+  border-radius: var(--radius-xs); background: hsl(var(--primary)); border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .3); cursor: nwse-resize;
+  opacity: 0; transition: opacity var(--dur-1);
+}
+.doc-tt-holder .doc-img-wrap:hover .doc-img-handle,
+.doc-tt-holder .ProseMirror-selectednode .doc-img-handle { opacity: 1; }
+
+/* Tables (prosemirror-tables base + brand skin). */
+.doc-tt-holder .tableWrapper { overflow-x: auto; margin: .6em 0; }
+.doc-tt-holder table { border-collapse: collapse; table-layout: fixed; width: 100%; }
+.doc-tt-holder td, .doc-tt-holder th { min-width: 2em; border: 1px solid rgba(16, 35, 31, .2); padding: .38em .55em; vertical-align: top; box-sizing: border-box; position: relative; font-size: 14px; }
+.doc-tt-holder th { font-weight: 700; background: hsl(var(--primary) / .1); text-align: left; }
+/* Border + padding presets mirror the hook's export. The DocTable ProseMirror plugin
+   stamps a doc-tb- and doc-pad- class on each table's node-view DOM (the .tableWrapper, since
+   a resizable table's DOM is owned by the column-resize node view and ignores data-* attrs),
+   so these target the class on any ancestor of the cells. */
+.doc-tt-holder .doc-tb-rows td, .doc-tt-holder .doc-tb-rows th { border-left: none; border-right: none; }
+.doc-tt-holder .doc-tb-none td, .doc-tt-holder .doc-tb-none th { border: none; }
+.doc-tt-holder .doc-pad-tight td, .doc-tt-holder .doc-pad-tight th { padding: .2em .35em; }
+.doc-tt-holder .doc-pad-roomy td, .doc-tt-holder .doc-pad-roomy th { padding: .62em .85em; }
+.doc-tt-holder .selectedCell::after { content: ''; position: absolute; inset: 0; background: hsl(var(--primary) / .14); pointer-events: none; }
+.doc-tt-holder .column-resize-handle { position: absolute; right: -2px; top: 0; bottom: 0; width: 4px; background: hsl(var(--primary)); pointer-events: none; }
+.doc-tt-holder .ProseMirror-gapcursor { display: none; pointer-events: none; position: absolute; }
+.doc-tt-holder .ProseMirror-gapcursor::after { content: ''; display: block; position: absolute; top: -2px; width: 20px; border-top: 1px solid currentColor; }
+
+/* Placeholder (empty first paragraph). */
+.doc-tt-holder .is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; color: rgba(16, 35, 31, .34); pointer-events: none; height: 0; }
+
+/* Table controls - a second ribbon row, shown only when the caret is in a table. */
+.doc-tablebar-dock { top: 56px; }
+/* Cell-fill swatch reads as a filled square (not the text-colour "A"). */
+.doc-cellfill::after { content: ""; width: 15px; height: 12px; border: 1px solid hsl(var(--border)); border-radius: 2px; background: var(--sw, #e8f6ee); padding: 0; }
+
+/* ── Pages: soft page-boundary guides + explicit page break (views/doc-pages.js) ──── */
+.doc-tt-paper { position: relative; }
+.doc-tt-guides { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.doc-tt-guide {
+  position: absolute; left: 0; right: 0; height: 0;
+  border-top: 1px dashed hsl(var(--primary) / .45);
+}
+.doc-tt-guide-lbl {
+  position: absolute; right: 6px; top: 2px;
+  font-family: var(--font-mono); font-size: calc(9.5px * var(--a11y-fs)); letter-spacing: .04em;
+  color: hsl(var(--primary)); background: #fff; padding: 0 5px; border-radius: var(--radius-pill);
+  box-shadow: 0 0 0 1px hsl(var(--primary) / .3);
+}
+/* Explicit hard page break rendered inside the editor content. */
+.doc-tt-holder .doc-pagebreak {
+  position: relative; height: 0; margin: 1.4em 0;
+  border-top: 2px dashed hsl(var(--primary) / .6);
+  text-align: center; user-select: none;
+}
+.doc-tt-holder .doc-pagebreak.ProseMirror-selectednode { border-top-color: #2d7ff9; }
+.doc-pagebreak-label {
+  position: absolute; left: 50%; top: -.75em; transform: translateX(-50%);
+  background: #fff; padding: 0 .6em; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em;
+  color: hsl(var(--primary)); text-transform: uppercase;
+}
+
+/* ── Images: float/wrap alignment + the floating image toolbar (views/doc-image.js) ── */
+.doc-tt-holder img[data-align="center"] { margin-left: auto; margin-right: auto; }
+.doc-tt-holder img[data-align="left"]  { float: left;  margin: .2em 1.1em .6em 0; }
+.doc-tt-holder img[data-align="right"] { float: right; margin: .2em 0 .6em 1.1em; }
+.doc-imgbar {
+  position: absolute; z-index: 18; transform: translateX(-50%);
+  flex-wrap: nowrap; max-width: none;
+}
+.doc-imgbar-lbl { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); padding: 0 2px; align-self: center; }
+}
