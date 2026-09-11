@@ -316,13 +316,16 @@ async function checkFont(font: LollyFont): Promise<string | null> {
   return null;
 }
 
-/** Read a shell-served font path (`/fonts/…`, `/catalog/…`) off this checkout. */
+/** Read a shell-served font path (`/fonts/…`, `/catalog/…`) off this checkout. A
+ *  catalog path is resolved (the pack it lives in), not joined onto the root. */
 async function readShellFile(url: string): Promise<Uint8Array | null> {
   if (!url.startsWith('/')) return null;   // an absolute or blob URL is not ours to resolve
   const { repoRoot } = await import('@lolly-tools/node-shell/repo-root');
+  const { contentUrlFile } = await import('@lolly-tools/node-shell/content-roots');
   const root = repoRoot();
-  const candidates = url.startsWith('/catalog/')
-    ? [join(root, url.slice(1))]
+  const inContent = contentUrlFile(url);
+  const candidates = inContent
+    ? [inContent]
     : [join(root, 'shells', 'web', 'public', url.slice(1)), join(root, url.slice(1))];
   for (const p of candidates) {
     try { return new Uint8Array(await readFile(p)); } catch { /* try the next */ }

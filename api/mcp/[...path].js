@@ -23144,7 +23144,7 @@ function finiteContour(c) {
 }
 function buildOffset(c, d, opts) {
   const tol = opts.tol ?? DEFAULT_TOL2;
-  const join17 = opts.join ?? "miter";
+  const join16 = opts.join ?? "miter";
   const miterLimit = opts.miterLimit ?? DEFAULT_MITER_LIMIT;
   const seq = [];
   const corners = [];
@@ -23173,7 +23173,7 @@ function buildOffset(c, d, opts) {
     const pivot = corners[i] ?? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     const t0 = cur.dirEnd ?? endTangent2(cur.curve);
     const t1 = next.dirStart ?? startTangent2(next.curve);
-    out.push(...joinPieces(a, b, pivot, t0, t1, d, join17, miterLimit));
+    out.push(...joinPieces(a, b, pivot, t0, t1, d, join16, miterLimit));
   }
   return out;
 }
@@ -24054,7 +24054,7 @@ function hbSystem(pts, wrap, startTh, endTh, ths) {
   const a = new Array(m2).fill(0);
   const b = new Array(m2).fill(1);
   const c = new Array(m2).fill(0);
-  const join17 = (k, prevIx, nextIx) => {
+  const join16 = (k, prevIx, nextIx) => {
     const prev = segs[prevIx], next = segs[nextIx];
     const j = hbJoin(prev, next);
     r3[k] = j.r;
@@ -24063,10 +24063,10 @@ function hbSystem(pts, wrap, startTh, endTh, ths) {
     c[k] = j.dB * -next.d01;
   };
   if (wrap) {
-    for (let k = 0; k < m2; k++) join17(k, (k - 1 + m2) % m2, k);
+    for (let k = 0; k < m2; k++) join16(k, (k - 1 + m2) % m2, k);
     return { r: r3, a, b, c, segs };
   }
-  for (let k = 1; k < m2 - 1; k++) join17(k, k - 1, k);
+  for (let k = 1; k < m2 - 1; k++) join16(k, k - 1, k);
   const first = segs[0];
   if (startTh !== null) {
     r3[0] = mod2pi3(ths[0] - startTh);
@@ -32760,7 +32760,7 @@ function clusterLeaves(idx, boxes, gapScale = 1, sizeRatio = Infinity) {
     }
     return i;
   };
-  const join17 = (a, b) => {
+  const join16 = (a, b) => {
     const ra = find(a), rb = find(b);
     if (ra !== rb) parent[ra] = rb;
   };
@@ -32777,7 +32777,7 @@ function clusterLeaves(idx, boxes, gapScale = 1, sizeRatio = Infinity) {
         const [lo, hi] = area(ba) < area(bb) ? [area(ba), area(bb)] : [area(bb), area(ba)];
         if (hi > lo * sizeRatio) continue;
       }
-      if (boxesOverlap2(grown, bb)) join17(a, b);
+      if (boxesOverlap2(grown, bb)) join16(a, b);
     }
   }
   const byRoot = /* @__PURE__ */ new Map();
@@ -34543,13 +34543,13 @@ function cleanAudioPcm(input, sampleRate, opts = {}) {
   const right = channels[1] ?? left;
   const [headL, headR] = limiter.process(left, right);
   const [tailL, tailR] = limiter.flush();
-  const join17 = (a, b) => {
+  const join16 = (a, b) => {
     const out = new Float32Array(a.length + b.length);
     out.set(a);
     out.set(b, a.length);
     return out;
   };
-  const limited2 = [join17(headL, tailL), join17(headR, tailR)];
+  const limited2 = [join16(headL, tailL), join16(headR, tailR)];
   channels = channels.length === 1 ? [limited2[0]] : limited2;
   if (limiter.engaged()) operations.push("Limited true peak to -1 dBTP");
   return {
@@ -51601,7 +51601,7 @@ function cluster(items) {
     }
     return i;
   };
-  const join17 = (a, b) => {
+  const join16 = (a, b) => {
     const ra = find(a), rb = find(b);
     if (ra !== rb) parent[ra] = rb;
   };
@@ -51611,7 +51611,7 @@ function cluster(items) {
     const a = expand(items[i].rect, gap);
     for (let j = i + 1; j < items.length; j++) {
       if (find(i) === find(j)) continue;
-      if (overlaps(a, items[j].rect)) join17(i, j);
+      if (overlaps(a, items[j].rect)) join16(i, j);
     }
   }
   const collect2 = () => {
@@ -51648,7 +51648,7 @@ function cluster(items) {
           if (find(ra) === find(rb)) continue;
           const reach = Math.min(diagonal(rectA), diagonal(rectB)) * GROUP_REACH;
           if (gapBetween(rectA, rectB) <= Math.max(gap, reach)) {
-            join17(ra, rb);
+            join16(ra, rb);
             merged = true;
           }
         }
@@ -60996,6 +60996,7 @@ import {
   statSync,
   writeFileSync
 } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { basename, dirname as dirname2, join as join2, relative, resolve as resolve2 } from "node:path";
 function loadProfiles(root) {
   const path = join2(root, "profiles.json");
@@ -61181,6 +61182,23 @@ function toolFile(id, rel, r3) {
     return existsSync2(p) ? p : null;
   };
   return pick(0, segs, dir, base);
+}
+async function readToolText(path, r3) {
+  const [id, ...rest] = path.split(/[\\/]/).filter(Boolean);
+  let abs = null;
+  if (id && rest.length && !rest.includes("..")) {
+    try {
+      abs = toolFile(id, rest.join("/"), r3);
+    } catch {
+      abs = null;
+    }
+  }
+  if (!abs) {
+    const err = new Error(`ENOENT: no such tool file, open '${path}'`);
+    err.code = "ENOENT";
+    throw err;
+  }
+  return readFile(abs, "utf8");
 }
 function catalogFile(rel, r3) {
   const roots2 = r3 ?? contentRoots();
@@ -63380,7 +63398,6 @@ import { readFile as readFile2 } from "node:fs/promises";
 // services/mcp/src/paths.ts
 init_repo_root();
 init_content_roots();
-import { readFile } from "node:fs/promises";
 import { dirname as dirname3, join as join3 } from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
 var REPO_ROOT = repoRoot();
@@ -63405,16 +63422,8 @@ function contentUrl(url) {
   return contentUrlFile(url, content());
 }
 var BROWSERS_DIR = join3(dirname3(fileURLToPath2(import.meta.url)), "..", ".browsers");
-async function fetchToolFile(path) {
-  const [id, ...rest] = path.split("/").filter(Boolean);
-  const rel = rest.join("/");
-  const abs = id && rel && !rest.includes("..") ? toolFile(id, rel, content()) : null;
-  if (!abs) {
-    const err = new Error(`ENOENT: no such tool file, open '${path}'`);
-    err.code = "ENOENT";
-    throw err;
-  }
-  return readFile(abs, "utf8");
+function fetchToolFile(path) {
+  return readToolText(path, content());
 }
 
 // services/mcp/src/catalog.ts
@@ -63630,7 +63639,6 @@ async function assetBytes(target, opts = {}) {
 
 // shells/cli/src/bridge.ts
 init_src2();
-import { join as join13 } from "node:path";
 import { zipSync as zipSync2 } from "fflate";
 
 // engine/src/deep-encode.ts
@@ -64504,6 +64512,7 @@ function gdiFaceName(stack) {
 
 // shells/cli/src/bridge.ts
 init_repo_root();
+init_content_roots();
 
 // packages/node-shell/src/text.ts
 init_content_roots();
@@ -68283,9 +68292,14 @@ function urlAssetKind(mime2, id) {
 }
 async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion, capturePublicOnly = false, aiEnabled = true } = {}) {
   const w = dom.window;
-  const assetCatalogPath = join13(REPO_ROOT2, "catalog", "assets", "index.json");
+  const assetCatalogPath = catalogFile("assets/index.json");
   const assetIndex = JSON.parse(await readFile12(assetCatalogPath, "utf8"));
   const assetById = new Map(assetIndex.assets.map((a) => [a.id, a]));
+  const assetFilePath = (url) => {
+    const path = contentUrlFile(url);
+    if (!path) throw new Error(`Asset file not in this catalog: ${url}`);
+    return path;
+  };
   const state = /* @__PURE__ */ new Map();
   const host = {
     version: "1",
@@ -68337,7 +68351,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     iconThemesCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("icon-themes"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile12(join13(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile12(assetFilePath(pal.formats[0].url), "utf8"));
       return parseIconThemesDoc(doc);
     })().catch(() => []);
     return iconThemesCache;
@@ -68347,7 +68361,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     photoTreatmentsCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("photo-treatments"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile12(join13(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile12(assetFilePath(pal.formats[0].url), "utf8"));
       return parsePhotoTreatmentsDoc(doc);
     })().catch(() => []);
     return photoTreatmentsCache;
@@ -68355,7 +68369,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   const tokensAssets = assetIndex.assets.filter((a) => a.type === "tokens");
   const headTokensId = pickHeadAssetId(tokensAssets.map((a) => a.id));
   const headTokensAsset2 = tokensAssets.find((a) => a.id === headTokensId) ?? null;
-  const readAssetDoc = async (asset) => JSON.parse(await readFile12(join13(REPO_ROOT2, asset.formats[0].url.replace(/^\//, "")), "utf8"));
+  const readAssetDoc = async (asset) => JSON.parse(await readFile12(assetFilePath(asset.formats[0].url), "utf8"));
   let tokensDocCache = null;
   let tokensDocRevision = "";
   async function tokensDoc() {
@@ -68501,7 +68515,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       if (opts.version && opts.version !== meta.version) throw new Error(`Asset version unavailable: ${baseId} (${opts.version})`);
       const fmt3 = opts.format ? meta.formats.find((f) => f.format === opts.format) : meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
       if (!fmt3) throw new Error(`Asset format unavailable: ${baseId} (${opts.format})`);
-      const localPath = join13(REPO_ROOT2, fmt3.url.replace(/^\//, ""));
+      const localPath = assetFilePath(fmt3.url);
       let buf = await readFile12(localPath);
       let extraMeta = { name: meta.name, tags: meta.tags };
       if (meta.type === "palette" && fmt3.format === "json") {
@@ -68909,7 +68923,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     }
   };
   host.pptx = createPptxAPI({ parseXml: (xml) => new w.DOMParser().parseFromString(xml, "application/xml") });
-  const composeFetchFile = async (p) => readFile12(join13(REPO_ROOT2, "tools", p), "utf8");
+  const composeFetchFile = readToolText;
   host.compose = {
     async render(spec) {
       const { toolId, inputs = {}, format, width, height, unit: unit2, dpi, _stack = [] } = spec ?? {};
@@ -69137,7 +69151,7 @@ import { createServer } from "node:http";
 import { spawn } from "node:child_process";
 import { readFile as readFile13, stat } from "node:fs/promises";
 import { existsSync as existsSync8 } from "node:fs";
-import { join as join14, resolve as resolve3, extname, normalize } from "node:path";
+import { join as join13, resolve as resolve3, extname, normalize } from "node:path";
 
 // services/mcp/src/egress.ts
 import { lookup } from "node:dns/promises";
@@ -69287,15 +69301,15 @@ async function webShellBase() {
   return (await served).base;
 }
 async function buildAndServe() {
-  const dist2 = process.env.LOLLY_WEB_DIST || join14(REPO_ROOT, "shells", "web", "dist");
-  if (!existsSync8(join14(dist2, "index.html"))) {
-    if (!existsSync8(join14(REPO_ROOT, "shells", "web", "package.json"))) {
+  const dist2 = process.env.LOLLY_WEB_DIST || join13(REPO_ROOT, "shells", "web", "dist");
+  if (!existsSync8(join13(dist2, "index.html"))) {
+    if (!existsSync8(join13(REPO_ROOT, "shells", "web", "package.json"))) {
       throw new Error(
         `No built web shell at ${dist2}. Set LOLLY_WEB_DIST to a prebuilt shell, or LOLLY_WEB_BASE to a running one. Tier-B (pdf/video/HTML-raster) needs it; SVG/data formats render without it.`
       );
     }
     await buildWebShell();
-    if (!existsSync8(join14(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
+    if (!existsSync8(join13(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
   }
   return serveDist(dist2);
 }
@@ -69321,7 +69335,7 @@ function serveDist(dist2) {
         return;
       }
       if (urlPath === "/" || !existsSync8(filePath) || !(await stat(filePath)).isFile()) {
-        filePath = join14(root, "index.html");
+        filePath = join13(root, "index.html");
       }
       const data = await readFile13(filePath);
       res.setHeader("Content-Type", MIME2[extname(filePath)] ?? "application/octet-stream");
@@ -70944,7 +70958,7 @@ ${listing}`;
 // services/mcp/src/resources.ts
 init_src2();
 import { readFile as readFile15 } from "node:fs/promises";
-import { join as join15 } from "node:path";
+import { join as join14 } from "node:path";
 init_schema();
 var RESOURCES = [
   { uri: "lolly://catalog", name: "Tool catalog", description: "The full generated Lolly tool index.", mimeType: "application/json" },
@@ -70991,7 +71005,7 @@ async function assetsListing(uri) {
 async function previewResource(uri, id) {
   for (const file of [`${id}.svg`, `${id}.look0.svg`]) {
     try {
-      const text3 = await readFile15(join15(previewsDir(), file), "utf8");
+      const text3 = await readFile15(join14(previewsDir(), file), "utf8");
       return { uri, mimeType: "image/svg+xml", text: text3 };
     } catch {
     }
@@ -71037,7 +71051,7 @@ async function readResource(uri) {
 // services/mcp/src/file-resources.ts
 import { mkdtemp, writeFile as writeFile3, unlink, rm as rm2 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join as join16 } from "node:path";
+import { join as join15 } from "node:path";
 import { randomUUID } from "node:crypto";
 
 // packages/node-shell/src/file-operations.ts
@@ -71350,8 +71364,8 @@ var PrivateFileResources = class {
     const id = randomUUID();
     let path;
     try {
-      this.directory ??= mkdtemp(join16(tmpdir(), "lolly-private-files-"));
-      path = join16(await this.directory, id);
+      this.directory ??= mkdtemp(join15(tmpdir(), "lolly-private-files-"));
+      path = join15(await this.directory, id);
       const facts2 = await describeOperationFile(file);
       await writeFile3(path, Buffer.from(await file.arrayBuffer()), { flag: "wx", mode: 384 });
       const ref = { id, version: facts2.sha256, role, facts: facts2, ...source ? { derivedFrom: { id: source.ref.id, version: source.ref.version, sha256: source.ref.facts.sha256 } } : {} };

@@ -10,7 +10,7 @@
  *     for one) appears here automatically, with no second list to keep in sync
  *   - flags, from VALUE_FLAGS plus the four global boolean flags (--json, --quiet,
  *     --verbose, --strict)
- *   - tool ids, read from the active profile's catalog/tools/index.json at the moment
+ *   - tool ids, read from the active profile's catalog index at the moment
  *     the script is generated and baked into it as a flat word list
  *   - the flags whose value is a filesystem path (--output, --out-dir, --inputs,
  *     --template, --trust-anchor, --sign-key, --sign-cert, --rebuild) fall through to
@@ -23,8 +23,7 @@
  * function without a lot more plumbing than a small tool catalog is worth.
  */
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { repoRoot } from '@lolly-tools/node-shell/repo-root';
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 import { RESERVED_SUBCOMMANDS, VALUE_FLAGS } from './args.ts';
 
 export type CompletionShell = 'bash' | 'zsh' | 'fish';
@@ -38,13 +37,13 @@ const PATH_FLAGS = new Set([
 ]);
 
 /**
- * Tool ids from the active profile's catalog, best-effort. Empty (not thrown) when the
- * profile view has not been built yet - a fresh clone before `pnpm install`'s postinstall
- * has no catalog/tools/index.json - so the script still completes verbs and flags.
+ * Tool ids from the active profile's catalog, best-effort. Empty (not thrown) when no
+ * profile resolves here - a published CLI with no content packs, or a brand whose
+ * catalog index has never been built - so the script still completes verbs and flags.
  */
 export async function catalogToolIds(): Promise<string[]> {
   try {
-    const indexPath = join(repoRoot(), 'catalog', 'tools', 'index.json');
+    const indexPath = catalogFile('tools/index.json');
     const index = JSON.parse(await readFile(indexPath, 'utf8')) as { tools: Array<{ id: string }> };
     return index.tools.map(t => t.id).filter(Boolean).sort();
   } catch {

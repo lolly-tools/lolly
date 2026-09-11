@@ -12,7 +12,6 @@
 
 import { readFile } from 'node:fs/promises';
 import { assetBytes } from '@lolly-tools/node-shell/asset-bytes';
-import { join } from 'node:path';
 // The .penpot archive's zip step (plans/178). fflate is already this shell's zip codec
 // (the pptx read path uses it); the engine hands back entries and the caller zips them,
 // exactly the split the web shell's lib/zip.ts sits on.
@@ -63,6 +62,12 @@ import type { FontStyleSlice } from '../../../packages/node-shell/src/text-svg.t
 // that function by scripts/build-mcp-fn.ts, whose esbuild config leaves bare package
 // specifiers external - a `@lolly-tools/node-shell` import would dangle in the bundle.
 import { repoRoot } from '../../../packages/node-shell/src/repo-root.ts';
+// Where the active profile's tools and catalog are - the resolver that replaced the
+// repo-root `tools/` and `catalog/` views. RELATIVE for the same MCP-bundle reason as
+// repo-root above.
+import {
+  catalogFile, contentUrlFile, readToolText,
+} from '../../../packages/node-shell/src/content-roots.ts';
 // host.text (HarfBuzz text-to-path). RELATIVE for the same reason as repo-root above - 
 // this file is inlined into the Vercel MCP function, where a bare @lolly-tools/node-shell
 // specifier would dangle. Lazily loads its WASM on first shape, so attaching it is free.
@@ -264,9 +269,17 @@ export async function createCliBridge(
 ): Promise<HostV1> {
   const w = dom.window;
   // Pre-load the asset catalog so query/get can be synchronous-ish.
-  const assetCatalogPath = join(REPO_ROOT, 'catalog', 'assets', 'index.json');
+  const assetCatalogPath = catalogFile('assets/index.json');
   const assetIndex = JSON.parse(await readFile(assetCatalogPath, 'utf8')) as { assets: CatalogAsset[] };
   const assetById = new Map<string, CatalogAsset>(assetIndex.assets.map((a): [string, CatalogAsset] => [a.id, a]));
+
+  /** An asset format's site-absolute url (`/catalog/assets/...`) onto disk. Assets
+   *  live in the brand pack, so the url is resolved, never joined onto a root. */
+  const assetFilePath = (url: string): string => {
+    const path = contentUrlFile(url);
+    if (!path) throw new Error(`Asset file not in this catalog: ${url}`);
+    return path;
+  };
 
   const state = new Map<string, { data: object; updatedAt: string }>();
 
@@ -327,7 +340,7 @@ export async function createCliBridge(
     iconThemesCache ??= (async () => {
       const pal = [...assetById.values()].find(a => a.type === 'palette' && a.tags?.includes('icon-themes'));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile(join(REPO_ROOT, pal.formats[0]!.url.replace(/^\//, '')), 'utf8'));
+      const doc = JSON.parse(await readFile(assetFilePath(pal.formats[0]!.url), 'utf8'));
       return parseIconThemesDoc(doc);
     })().catch(() => []); // unavailable ≠ broken: icons just stay default
     return iconThemesCache;
@@ -340,7 +353,7 @@ export async function createCliBridge(
     photoTreatmentsCache ??= (async () => {
       const pal = [...assetById.values()].find(a => a.type === 'palette' && a.tags?.includes('photo-treatments'));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile(join(REPO_ROOT, pal.formats[0]!.url.replace(/^\//, '')), 'utf8'));
+      const doc = JSON.parse(await readFile(assetFilePath(pal.formats[0]!.url), 'utf8'));
       return parsePhotoTreatmentsDoc(doc);
     })().catch(() => []); // unavailable ≠ broken: photos just stay untreated
     return photoTreatmentsCache;
@@ -362,7 +375,7 @@ export async function createCliBridge(
   const headTokensAsset = tokensAssets.find(a => a.id === headTokensId) ?? null;
 
   const readAssetDoc = async (asset: CatalogAsset): Promise<unknown> =>
-    JSON.parse(await readFile(join(REPO_ROOT, asset.formats[0]!.url.replace(/^\//, '')), 'utf8'));
+    JSON.parse(await readFile(assetFilePath(asset.formats[0]!.url), 'utf8'));
 
   let tokensDocCache: Promise<unknown> | null = null;
   let tokensDocRevision = '';
@@ -608,7 +621,7 @@ export async function createCliBridge(
         ? (meta.formats.find(f => f.format === 'json') ?? meta.formats[0]!)
         : meta.formats[0]!;
       if (!fmt) throw new Error(`Asset format unavailable: ${baseId} (${opts.format})`);
-      const localPath = join(REPO_ROOT, fmt.url.replace(/^\//, ''));
+      const localPath = assetFilePath(fmt.url);
       let buf = await readFile(localPath);
       // For palette JSON, embed swatches in meta for templates to use.
       let extraMeta: Record<string, unknown> = { name: meta.name, tags: meta.tags };
@@ -1190,7 +1203,7 @@ function rootSvgOf(node: Element | null): Element | null {
   // runtime omits that slot gracefully. Result is a data: URL (jsdom has no
   // URL.createObjectURL). Mirrors run.js's render path (hydrate into a node →
   // host.export.render), with watermark/provenance suppressed (intermediate asset).
-  const composeFetchFile = async (p: string): Promise<string> => readFile(join(REPO_ROOT, 'tools', p), 'utf8');
+  const composeFetchFile = readToolText;
   host.compose = {
     async render(spec) {
       const { toolId, inputs = {}, format, width, height, unit, dpi, _stack = [] } = (spec ?? {}) as ComposeSpec;

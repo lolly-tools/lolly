@@ -13,13 +13,12 @@
 import { readFile, mkdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { parseBatchCsv, batchCsvTemplateWithNotes, loadTool } from '@lolly/engine';
-import { repoRoot } from '@lolly-tools/node-shell/repo-root';
-import { runToolCli } from './run.ts';
+import { readToolFile, runToolCli } from './run.ts';
 import { EXIT, exitCodeFor, usageError } from './exit-codes.ts';
 import { warn } from './output.ts';
 
-const REPO_ROOT = repoRoot();
-const fetchFile = (p: string): Promise<string> => readFile(join(REPO_ROOT, 'tools', p), 'utf8');
+// The one tool reader this shell has (run.ts), not a second path join of its own.
+const fetchFile = readToolFile;
 const slug = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'out';
 
 /** Print a starter CSV grid for the given tool ids (their input columns + reserved). */

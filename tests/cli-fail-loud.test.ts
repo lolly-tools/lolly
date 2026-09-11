@@ -106,6 +106,23 @@ await writeFile(
   'function exportFile(){ return { bytes: new Uint8Array([1,2,3]), filename: "out.bin" }; }\n',
 );
 
+// broken-tool: its onInit throws, so the runtime records a hookError and
+// assertRenderOk refuses - the RenderIntegrityError the escalation-gating case below
+// asserts on. Written HERE with the rest of the fixture rather than inside that test:
+// the content resolver walks the packs once per process (as the profile view it
+// replaced was built once), so a tool directory created after the first resolution is
+// not part of this root's tool set.
+await mkdir(join(root, 'tools', 'broken-tool'), { recursive: true });
+await writeFile(join(root, 'tools', 'broken-tool', 'tool.json'), JSON.stringify({
+  id: 'broken-tool', name: 'broken-tool', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
+  render: { width: 120, height: 80, formats: ['svg'] }, hooks: { onInit: true }, inputs: [],
+}));
+await writeFile(join(root, 'tools', 'broken-tool', 'template.html'), VEC_TEMPLATE);
+await writeFile(
+  join(root, 'tools', 'broken-tool', 'hooks.js'),
+  'function onInit() { throw new Error("deliberate hook failure"); }\n',
+);
+
 // Pin the run → bridge chain to the fixture BEFORE the first import, and pin the
 // browser tier to a directory with no built shell so it is deterministically absent.
 process.env.LOLLY_ROOT = root;
@@ -191,13 +208,6 @@ test('escalation is gated on the error TYPE, not its wording', async () => {
   // A RenderIntegrityError means this runtime's own render is broken; re-running it in a
   // browser would only launder the bug, so it must NOT escalate. Modelled by a tool whose
   // onInit throws - the runtime records it in hookErrors and assertRenderOk refuses.
-  await mkdir(join(root, 'tools', 'broken-tool'), { recursive: true });
-  await writeFile(join(root, 'tools', 'broken-tool', 'tool.json'), JSON.stringify({
-    id: 'broken-tool', name: 'broken-tool', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
-    render: { width: 120, height: 80, formats: ['svg'] }, hooks: { onInit: true }, inputs: [],
-  }));
-  await writeFile(join(root, 'tools', 'broken-tool', 'template.html'), VEC_TEMPLATE);
-  await writeFile(join(root, 'tools', 'broken-tool', 'hooks.js'), 'function onInit() { throw new Error("deliberate hook failure"); }\n');
   const out = outPath('svg');
   const chunks: string[] = [];
   const orig = process.stderr.write.bind(process.stderr);

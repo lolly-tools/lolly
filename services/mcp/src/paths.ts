@@ -15,14 +15,13 @@
  * one request that needed it.
  */
 
-import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // Relative imports (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // serverless bundle, same as render.ts's node-shell imports.
 import { repoRoot } from '../../../packages/node-shell/src/repo-root.ts';
 import {
-  catalogFile, contentRoots, contentUrlFile, toolFile, type ContentRoots,
+  catalogFile, contentRoots, contentUrlFile, readToolText, type ContentRoots,
 } from '../../../packages/node-shell/src/content-roots.ts';
 
 // The root holding the content packs comes from the ONE shared resolver
@@ -77,22 +76,15 @@ export function contentUrl(url: string): string | null {
 export const BROWSERS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '.browsers');
 
 /**
- * The `fetchFile` loadTool() expects: resolve a `<id>/<rel>` path to its text.
+ * The `fetchFile` loadTool() expects: resolve a `<id>/<rel>` path to its text, through
+ * the one reader every Node host shares (node-shell/content-roots readToolText).
  *
  * The resolver answers per tool, so an id is only ever matched against the profile's
  * own tool directories and can never name a path - stronger than the old join onto a
  * tools/ root, which is why tools.ts's id slug rule is a request-shape check now
  * rather than the thing standing between a crafted id and the filesystem. A `..` in
- * the tool-relative part is refused here for the same reason.
+ * the tool-relative part is refused there for the same reason.
  */
-export async function fetchToolFile(path: string): Promise<string> {
-  const [id, ...rest] = path.split('/').filter(Boolean);
-  const rel = rest.join('/');
-  const abs = id && rel && !rest.includes('..') ? toolFile(id, rel, content()) : null;
-  if (!abs) {
-    const err = new Error(`ENOENT: no such tool file, open '${path}'`) as Error & { code?: string };
-    err.code = 'ENOENT';
-    throw err;
-  }
-  return readFile(abs, 'utf8');
+export function fetchToolFile(path: string): Promise<string> {
+  return readToolText(path, content());
 }

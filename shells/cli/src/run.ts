@@ -9,7 +9,7 @@
  */
 
 import { readFile, writeFile, stat } from 'node:fs/promises';
-import { join, resolve, basename, extname } from 'node:path';
+import { resolve, basename, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
 import { loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
@@ -25,7 +25,7 @@ import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 // The enrolled signing identity (key + x5chain) - type only here; the module itself is
 // imported lazily in the render path so a run without --sign-key never loads it.
 import type { SigningIdentity } from '@lolly-tools/node-shell/signing-identity';
-import { repoRoot } from '@lolly-tools/node-shell/repo-root';
+import { catalogFile, readToolManifest, readToolText } from '@lolly-tools/node-shell/content-roots';
 // Fail loud: never write a degenerate file + exit 0 when the render silently failed.
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
 // Fail loud, part two: refuse bytes that are demonstrably not the requested container
@@ -57,8 +57,6 @@ function hookExecutorOpts(): { hookExecutor?: ReturnType<typeof createNodeHookEx
   nodeHookExecutor ??= createNodeHookExecutor();
   return { hookExecutor: nodeHookExecutor };
 }
-
-const REPO_ROOT = repoRoot();
 
 interface RunToolCliArgs {
   toolId: string;
@@ -1521,13 +1519,15 @@ export async function decryptLinkQuery(query: string, password: string | undefin
 }
 
 /**
- * Read one file out of the ACTIVE PROFILE's `tools/` view - the single reader every
- * entry point in this shell hands to `loadTool`. It was duplicated inline in two
- * places; `preflight.ts` needs a third, and three copies of a path join is how one of
- * them ends up reading a different tree.
+ * Read one file out of the ACTIVE PROFILE's tools - the single reader every entry
+ * point in this shell hands to `loadTool`. It was duplicated inline in two places;
+ * `preflight.ts` needed a third, and three copies of a path join is how one of them
+ * ends up reading a different tree. The join itself is gone: a tool lives in its pack
+ * (community/, brands/*), so the resolver answers where, and the ENOENT a missing
+ * tool used to raise is raised by the reader (loadToolOrThrow below reads its code).
  */
 export async function readToolFile(path: string): Promise<string> {
-  return readFile(join(REPO_ROOT, 'tools', path), 'utf8');
+  return readToolText(path);
 }
 
 // Load a tool, turning a missing tool dir (ENOENT on tool.json) into a clean, THROWN
@@ -1715,7 +1715,7 @@ export interface ToolListing {
 }
 
 export async function listToolsCli(opts: { json?: boolean } = {}): Promise<void> {
-  const indexPath = join(REPO_ROOT, 'catalog', 'tools', 'index.json');
+  const indexPath = catalogFile('tools/index.json');
   const index = JSON.parse(await readFile(indexPath, 'utf8')) as {
     tools: Array<{ id: string; status: string; name: string; description?: string; category?: string; formats?: string[] }>;
   };
@@ -1736,7 +1736,7 @@ export async function listToolsCli(opts: { json?: boolean } = {}): Promise<void>
     let capabilities: string[] = [];
     let formats = t.formats ?? [];
     try {
-      const m = JSON.parse(await readFile(join(REPO_ROOT, 'tools', t.id, 'tool.json'), 'utf8')) as {
+      const m = readToolManifest(t.id) as {
         capabilities?: string[]; render?: { formats?: string[] };
       };
       capabilities = m.capabilities ?? [];
@@ -1769,7 +1769,7 @@ export async function listToolsCli(opts: { json?: boolean } = {}): Promise<void>
  * `--type=` filter (raster/vector/lottie/palette/tokens/font/audio/video).
  */
 export async function listAssetsCli(query?: string, opts: { type?: string; json?: boolean } = {}): Promise<void> {
-  const indexPath = join(REPO_ROOT, 'catalog', 'assets', 'index.json');
+  const indexPath = catalogFile('assets/index.json');
   const index = JSON.parse(await readFile(indexPath, 'utf8')) as {
     assets: Array<{ id: string; name?: string; type: string; tags?: string[] }>;
   };

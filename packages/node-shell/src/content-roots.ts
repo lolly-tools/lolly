@@ -43,6 +43,7 @@
 import {
   cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync,
 } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 
 import { isMaterializedRoot, repoRoot } from './repo-root.ts';
@@ -312,6 +313,32 @@ export function toolFile(id: string, rel: string, r?: ContentRoots): string | nu
     return existsSync(p) ? p : null;
   };
   return pick(0, segs, dir, base);
+}
+
+/**
+ * Read one file out of a tool as text: the `fetchFile` callback loadTool() takes,
+ * whose paths are `<id>/<rel>`. Every Node host wants exactly this - the CLI's
+ * readToolFile, its batch and smoke loops, host.compose's child loader, and the MCP
+ * server's fetchToolFile - so it lives here once.
+ *
+ * A miss throws an Error carrying `code: 'ENOENT'`, the way the readFile it replaces
+ * did, because callers key their own "unknown tool" message off that code
+ * (shells/cli/src/run.ts loadToolOrThrow). A `..` segment is refused: the resolver
+ * matches an id against the profile's tool directories, so the id can name no path,
+ * and the tool-relative part must not either.
+ */
+export async function readToolText(path: string, r?: ContentRoots): Promise<string> {
+  const [id, ...rest] = path.split(/[\\/]/).filter(Boolean);
+  let abs: string | null = null;
+  if (id && rest.length && !rest.includes('..')) {
+    try { abs = toolFile(id, rest.join('/'), r); } catch { abs = null; } // no such tool in this profile
+  }
+  if (!abs) {
+    const err = new Error(`ENOENT: no such tool file, open '${path}'`) as Error & { code?: string };
+    err.code = 'ENOENT';
+    throw err;
+  }
+  return readFile(abs, 'utf8');
 }
 
 /** Tool-relative paths of every file under `dir`, '/' separated, sorted. */

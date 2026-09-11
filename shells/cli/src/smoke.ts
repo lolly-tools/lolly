@@ -39,9 +39,9 @@ import { join } from 'node:path';
 import { createRuntime, loadTool, parseUrlState } from '@lolly/engine';
 import { NODE_FORMATS } from '@lolly-tools/node-shell/raster';
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
-import { repoRoot } from '@lolly-tools/node-shell/repo-root';
-
-const REPO_ROOT = repoRoot();
+import {
+  catalogFile, readToolManifest, readToolText,
+} from '@lolly-tools/node-shell/content-roots';
 
 /** Capabilities that only a live browser/device session can fulfil - the CLI host has
  *  no camera, mic, screen, or page-capture Chromium (smoke never launches a browser). */
@@ -121,7 +121,7 @@ export async function smokeCli({ only, format, out, json = false }: SmokeArgs = 
     return fail(`smoke is browser-free - --format must be one of: ${NODE_FORMATS.join(', ')}\n`, 'BAD_FLAG_VALUE');
   }
 
-  const index = JSON.parse(await readFile(join(REPO_ROOT, 'catalog', 'tools', 'index.json'), 'utf8')) as {
+  const index = JSON.parse(await readFile(catalogFile('tools/index.json'), 'utf8')) as {
     tools: Array<{ id: string }>;
   };
   let ids = index.tools.map(t => t.id);
@@ -145,7 +145,7 @@ export async function smokeCli({ only, format, out, json = false }: SmokeArgs = 
   let layout = 0;
 
   for (const id of ids) {
-    const manifest = JSON.parse(await readFile(join(REPO_ROOT, 'tools', id, 'tool.json'), 'utf8')) as SmokeManifest;
+    const manifest = readToolManifest(id) as SmokeManifest;
 
     const reason = skipReason(manifest, format);
     if (reason) {
@@ -265,7 +265,7 @@ async function renderHtmlHeadless(toolId: string, outputPath: string): Promise<v
   globalThis.document = dom.window.document;
   globalThis.Element = dom.window.Element;
 
-  const fetchFile = async (path: string): Promise<string> => readFile(join(REPO_ROOT, 'tools', path), 'utf8');
+  const fetchFile = readToolText;
   const tool = await loadTool(toolId, fetchFile);
   const { createCliBridge, applyBrandVars } = await import('./bridge.ts');
   // Same per-tool host.net gate as run.ts - a network-capable tool's onInit fetch
