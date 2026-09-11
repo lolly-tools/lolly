@@ -29,19 +29,19 @@ import { encodeExr, encodeRadiance, encodePng16, encodeDither8 } from '../../../
 // used to live in shells/web and be imported across the submodule boundary;
 // plans/202 WP1.1 moved it here and left the web file as a re-export. RELATIVE
 // import for the same MCP-bundle reason as repo-root below.
-import { createPdfAPI } from '../../../packages/node-shell/src/pdf.ts';
+import { createPdfAPI } from '@lolly-tools/node-shell/pdf';
 // PPTX inspect/rebrand is engine primitives + fflate (plain JS) with the XML
 // parser injected, so the CLI shares one impl with the web shell and supplies
 // jsdom's DOMParser. RELATIVE import on purpose, same reason as repo-root below:
 // this file is inlined into the Vercel MCP function by scripts/build-mcp-fn.ts,
 // whose esbuild config leaves bare package specifiers external, so a
 // `@lolly-tools/node-shell/pptx` import would dangle in the bundle.
-import { createPptxAPI } from '../../../packages/node-shell/src/pptx.ts';
+import { createPptxAPI } from '@lolly-tools/node-shell/pptx';
 // host.net allowlisted fetch is DOM-free too (global fetch + TransformStream, both
 // Node ≥18 globals), so every shell builds it from one module - the prefix-match
 // rules and the 64 MB counting-stream cap can never drift. RELATIVE for the same
 // MCP-bundle reason as above.
-import { createNetAPI } from '../../../packages/node-shell/src/net.ts';
+import { createNetAPI } from '@lolly-tools/node-shell/net';
 // SVG→EMF IR walk is DOM-light (attribute reads), so it runs under jsdom for
 // native-SVG tools - the same "no layout engine" constraint as the svg branch.
 // Moved out of shells/web by plans/202 WP1.1; RELATIVE for the MCP-bundle reason.
@@ -52,61 +52,60 @@ import { createNetAPI } from '../../../packages/node-shell/src/net.ts';
 // so with no resolver every run reads as an unresolvable family and the export
 // throws (which is what the byte-pinned goldens in tests/cli-export-golden.test.ts
 // caught).
-import { svgDomToIr } from '../../../packages/node-shell/src/svg-ir.ts';
-import type { SvgIrFont } from '../../../packages/node-shell/src/svg-ir.ts';
-import type { FontStyleSlice } from '../../../packages/node-shell/src/text-svg.ts';
+import { svgDomToIr } from '@lolly-tools/node-shell/svg-ir';
+import type { SvgIrFont } from '@lolly-tools/node-shell/svg-ir';
+import type { FontStyleSlice } from '@lolly-tools/node-shell/text-svg';
 
 // Repo root holding catalog/ - the shared resolver (LOLLY_ROOT → marker walk → cwd;
 // see packages/node-shell/src/repo-root.ts for why a fixed `../../..` can't work in
 // the bundled Vercel function). RELATIVE import on purpose: this file is inlined into
 // that function by scripts/build-mcp-fn.ts, whose esbuild config leaves bare package
 // specifiers external - a `@lolly-tools/node-shell` import would dangle in the bundle.
-import { repoRoot } from '../../../packages/node-shell/src/repo-root.ts';
+import { repoRoot } from '@lolly-tools/node-shell/repo-root';
 // Where the active profile's tools and catalog are - the resolver that replaced the
-// repo-root `tools/` and `catalog/` views. RELATIVE for the same MCP-bundle reason as
-// repo-root above.
+// repo-root tools/ and catalog/ views.
 import {
   catalogFile, contentUrlFile, readToolText,
-} from '../../../packages/node-shell/src/content-roots.ts';
+} from '@lolly-tools/node-shell/content-roots';
 // host.text (HarfBuzz text-to-path). RELATIVE for the same reason as repo-root above - 
 // this file is inlined into the Vercel MCP function, where a bare @lolly-tools/node-shell
 // specifier would dangle. Lazily loads its WASM on first shape, so attaching it is free.
-import { createNodeTextAPI } from '../../../packages/node-shell/src/text.ts';
+import { createNodeTextAPI } from '@lolly-tools/node-shell/text';
 // host.audio (WAV/ZzFXM decode + the engine's frame analysis). RELATIVE for the same
 // MCP-bundle reason; it pulls no codec and no WASM, so attaching it is free.
-import { createNodeAudioAPI } from '../../../packages/node-shell/src/audio.ts';
+import { createNodeAudioAPI } from '@lolly-tools/node-shell/audio';
 // url-shot page capture (scoped Chromium). RELATIVE for the MCP bundle; its browser is
 // lazy-loaded, so importing it costs nothing until a capture actually runs.
-import { captureUrl } from '../../../packages/node-shell/src/url-capture.ts';
+import { captureUrl } from '@lolly-tools/node-shell/url-capture';
 // host.images (decode/resize/encode via sharp). RELATIVE for the same MCP-bundle reason;
 // it resolves sharp lazily and returns null when it isn't installed, so importing it is
 // free and a lean install simply leaves host.images undefined.
-import { createNodeImagesAPI } from '../../../packages/node-shell/src/images.ts';
+import { createNodeImagesAPI } from '@lolly-tools/node-shell/images';
 // The on-device ML utilities (upscale / matte / OCR over onnxruntime-node + sharp).
 // RELATIVE for the same MCP-bundle reason; each factory is a require.resolve probe and
 // the runtimes load on first use, so importing them costs nothing.
 import {
   createNodeMatteAPI, createNodeOcrAPI, createNodeUpscaleAPI,
-} from '../../../packages/node-shell/src/ml/index.ts';
+} from '@lolly-tools/node-shell/ml';
 // pdf.redact/pdf.pages + host.raster, over @napi-rs/canvas. Same conditional-attach
 // stance as images.ts: the import is free, the native module loads lazily, and both
 // factories return null on a lean install so the capability stays honestly absent.
-import { createNodePdfRedact } from '../../../packages/node-shell/src/pdf-redact.ts';
-import { createNodeRasterAPI } from '../../../packages/node-shell/src/canvas.ts';
+import { createNodePdfRedact } from '@lolly-tools/node-shell/pdf-redact';
+import { createNodeRasterAPI } from '@lolly-tools/node-shell/canvas';
 // host.speech (Kokoro TTS + Whisper transcription). RELATIVE for the same MCP-bundle
 // reason; it resolves transformers.js lazily and returns null when the runtime is
 // absent, so importing it costs nothing and a lean install leaves host.speech undefined.
-import { createNodeSpeechAPI } from '../../../packages/node-shell/src/speech.ts';
-import { createNodeScanAPI } from '../../../packages/node-shell/src/scan.ts';
+import { createNodeSpeechAPI } from '@lolly-tools/node-shell/speech';
+import { createNodeScanAPI } from '@lolly-tools/node-shell/scan';
 // LOLLY_STATE_DIR resolution (shared with the TUI). RELATIVE for the MCP-bundle reason.
-import { resolveStateDir } from '../../../packages/node-shell/src/state-dir.ts';
+import { resolveStateDir } from '@lolly-tools/node-shell/state-dir';
 // The saved-session files on this machine, in the layout the desktop app writes
 // (plans/202 WP3.1). Same relative-import reason.
 import {
   deleteSessionRecord, listSessionSlots, loadSessionData, writeSessionRecord,
   type SessionData,
-} from '../../../packages/node-shell/src/session-store.ts';
-import { activeNodeDesignSystem, readActiveDesignSystemTokens } from '../../../packages/node-shell/src/design-systems.ts';
+} from '@lolly-tools/node-shell/session-store';
+import { activeNodeDesignSystem, readActiveDesignSystemTokens } from '@lolly-tools/node-shell/design-systems';
 // Text-as-paths on the svg branch (contract section 6a). Local to this shell: it resolves
 // fonts through host.text's headless registry, not the web shell's fetching one.
 import { familyStack, numericWeight, outlineSvgText } from './svg-outline.ts';
@@ -539,6 +538,7 @@ export async function createCliBridge(
   host.scan = createNodeScanAPI();
   host.prepare = (await import('@lolly/engine')).createPrepareAPI();
   host.compare = (await import('@lolly/engine')).createCompareAPI();
+  host.textTools = (await import('@lolly-tools/node-shell/text-tools')).createNodeTextTools();
 
   // host.net - allowlisted fetch for tools that declared the 'network' capability,
   // built per-invocation from the loaded manifest's network.allowlist (callers thread
@@ -1011,7 +1011,7 @@ function rootSvgOf(node: Element | null): Element | null {
         const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         // Lazy: pulls in resvg (a native module) and the engine's EXR/Radiance writers
         // only when a pro format is actually asked for.
-        const { renderDeepRaster, deepFormatMime } = await import('../../../packages/node-shell/src/raster.ts');
+        const { renderDeepRaster, deepFormatMime } = await import('@lolly-tools/node-shell/raster');
         // Physical units convert through the engine's own unit maths at the export
         // DPI, exactly like every other CLI format (--width=210 --unit=mm --dpi=300).
         const dpi = opts.dpi ?? 300;
@@ -1040,7 +1040,7 @@ function rootSvgOf(node: Element | null): Element | null {
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('BMP export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
         const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
-        const { rasterizeSvgToBmp } = await import('../../../packages/node-shell/src/raster.ts');
+        const { rasterizeSvgToBmp } = await import('@lolly-tools/node-shell/raster');
         const dpi = opts.dpi ?? 300;
         const px = (v: string | number | undefined, fallback: number): number => {
           const d = parseDimension(v);
@@ -1057,7 +1057,7 @@ function rootSvgOf(node: Element | null): Element | null {
       // The remedy list is NODE_FORMATS itself, not a hand-kept copy of it: the two
       // drifted, so the message offered formats the engine no longer claims and omitted
       // `md`, which works. A remedy a reader cannot act on is worse than no remedy.
-      const { NODE_FORMATS } = await import('../../../packages/node-shell/src/raster.ts');
+      const { NODE_FORMATS } = await import('@lolly-tools/node-shell/raster');
       throw new Error(`CLI shell does not support format "${format}" (needs a browser engine). Use one of the browser-free formats (${NODE_FORMATS.join(', ')}), a pro float format (exr, hdr - with hdr=1), install the render tier with \`lolly install-browser\`, or run the Tauri-bundled CLI for raster/pdf/zip.`);
     },
     async download() {

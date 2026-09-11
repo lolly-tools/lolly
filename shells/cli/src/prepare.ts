@@ -74,7 +74,7 @@ export async function prepareCli(paths: string[], flags: Record<string, string>)
     if (flags['save-recipe']) await writeFile(flags['save-recipe'], JSON.stringify(preparationRecipe(recipe?.categories ?? [...new Set(inspection.groups.map(g => g.category))], rules), null, 2), { flag: 'wx', mode: 0o600 });
     let result = await applyPreparation(sources, inspection, choices, removeScopes, options);
     if (isOn(flags['strip-hidden-data'])) {
-      const { createPdfAPI } = await import('../../../packages/node-shell/src/pdf.ts');
+      const { createPdfAPI } = await import('@lolly-tools/node-shell/pdf');
       result = await applyPreparationMetadata(result, sources.filter(s => /\.(pdf|png|jpe?g|svg)$/i.test(s.name)).map(s => s.id), createPdfAPI(), options);
     }
     let delivery: { id: string; saved: boolean }[] = [];
