@@ -5,7 +5,7 @@
     "HOST_V1_OPTIONAL_APIS": {
       "module": "apis.ts",
       "kind": "FirstStatement",
-      "sha256": "22e9287189cda12564bf8dcdedce20528b869dd9557489c45a8836422bd4413e"
+      "sha256": "c496275809c4ce277c04c6455d735879fb1d94cd809a34745bb96988678da80e"
     },
     "HostApiName": {
       "module": "apis.ts",
@@ -70,7 +70,7 @@
     "AssetPickerOpts": {
       "module": "assets.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "4dea1322b10f99373af83e9ca4545116b24db040d80cc74f1fc56c9a82ef72e6"
+      "sha256": "43e95a72e9fc0db6ac35850ec012807928546166a5e89dfb3839fa433b65d37e"
     },
     "AudioAPI": {
       "module": "audio.ts",
@@ -475,7 +475,7 @@
     "HostV1": {
       "module": "host.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "c8c5821811bc1a6b063a4b006304edf8c8f2661bd66010995cd7621cf35e1ba7"
+      "sha256": "d06279cb9449bd2f6adec82b0a85f887b4bdececc5df9b193150711547e90602"
     },
     "Capability": {
       "module": "host.ts",
@@ -972,10 +972,30 @@
       "kind": "InterfaceDeclaration",
       "sha256": "bef0decf5f73c6db3a0c2849e4d0b7c7ac80b535ae5d42fcdabebf07a9990c5d"
     },
+    "TextOperation": {
+      "module": "text-tools.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "ac784ca4096dfe21537c2ebed9e6a031382a0c0b367f850b97145de013ee0993"
+    },
+    "TextToolRequest": {
+      "module": "text-tools.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "26f1310e21c23e5b3a7bfecb51beb81f0c63ea6eddcd56e5a79e8f955db59350"
+    },
+    "TextToolResult": {
+      "module": "text-tools.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "39ffa28e3124b2506bde7e4f10a4415300f0455fa5cfe8ef1a4eb30ef5d12528"
+    },
+    "TextToolsAPI": {
+      "module": "text-tools.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "011dfdd4af4034543ff9bf0d2bec41ef593e6ebc58aad0dc7b1a5a3dfeef906d"
+    },
     "TextAPI": {
       "module": "text.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "81116368692488400a3a660ac46c6bbfcae5d352b9d9f7b7de9db3667f35b26f"
+      "sha256": "3bf61cb8b04617a0988367a58ce2a686c0a8def180e54c9efde6c0b48fc70ad5"
     },
     "TextToPathOpts": {
       "module": "text.ts",

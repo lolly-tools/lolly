@@ -36,7 +36,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { createNodeTextAPI } from '../packages/node-shell/src/text.ts';
+import { createNodeTextAPI } from '@lolly-tools/node-shell/text';
 import { findSkera, skeraVersion, skeraSubset } from '../tests/helpers/skera.ts';
 
 const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));

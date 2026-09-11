@@ -84,7 +84,12 @@ var init_tool_schema = __esm({
         },
         category: {
           type: "string",
-          enum: ["everyone", "designer", "utility", "event"],
+          enum: [
+            "everyone",
+            "designer",
+            "utility",
+            "event"
+          ],
           description: "Free-form, used for gallery grouping. Examples: 'everyone', 'event', 'product', 'designer'."
         },
         new: {
@@ -409,10 +414,19 @@ var init_tool_schema = __esm({
             liveCameraWhen: {
               type: "object",
               additionalProperties: false,
-              required: ["input", "value"],
+              required: [
+                "input",
+                "value"
+              ],
               properties: {
-                input: { type: "string", description: "Id of an input whose value drives the live camera." },
-                value: { type: "string", description: "The input value that means 'camera on'." }
+                input: {
+                  type: "string",
+                  description: "Id of an input whose value drives the live camera."
+                },
+                value: {
+                  type: "string",
+                  description: "The input value that means 'camera on'."
+                }
               },
               description: "For onFrame (live camera) tools: AUTO-start the camera when the named input holds `value`, and stop it otherwise - so a reader/scanner turns the camera on when it loads in that mode (and when the user selects it) without a manual 'Use camera' tap. Prompts for permission the first time; a denial degrades to the tool's non-camera modes. Honoured only where a camera is usable."
             },
@@ -529,6 +543,11 @@ var init_tool_schema = __esm({
                   description: "The warning text shown to the editor."
                 }
               }
+            },
+            urlSync: {
+              type: "boolean",
+              default: true,
+              description: "Set false to keep live edits out of the address bar. Explicit URL inputs and generated share links remain supported; local recovery uses the session slot."
             }
           }
         },
@@ -567,6 +586,7 @@ var init_tool_schema = __esm({
               "net",
               "tokens",
               "text",
+              "textTools",
               "pdf",
               "prepare",
               "compare",
@@ -857,7 +877,9 @@ var init_tool_schema = __esm({
               type: "array",
               minItems: 1,
               uniqueItems: true,
-              items: { type: "string" },
+              items: {
+                type: "string"
+              },
               description: "On flat scalar blocks, edit rows using the shared table in this field-id order; unlisted fields follow in declaration order. Stored block objects and URL field order are unchanged. Fixed headings, spreadsheet paste, copy, and pop-out are available. Complex/nested blocks keep the block editor."
             },
             columnEditors: {
@@ -3014,7 +3036,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.190.0";
+    ENGINE_VERSION = "1.191.0";
   }
 });
 
@@ -3144,15 +3166,15 @@ function applyManifestI18n(manifest, overlay) {
     const fieldMatch = /^fields\.([^.]+)\.(.+)$/.exec(rest);
     if (fieldMatch) {
       const [, fieldId, fieldRest] = fieldMatch;
-      const field = input.fields?.find((f) => f.id === fieldId);
-      if (!field) continue;
+      const field2 = input.fields?.find((f) => f.id === fieldId);
+      if (!field2) continue;
       if (fieldRest === "label" || fieldRest === "help" || fieldRest === "placeholder") {
-        field[fieldRest] = value;
+        field2[fieldRest] = value;
         continue;
       }
       const fieldOptMatch = /^options\.(.*)$/.exec(fieldRest);
       if (fieldOptMatch) {
-        const fieldOpt = field.options?.find((o) => o.value === fieldOptMatch[1]);
+        const fieldOpt = field2.options?.find((o) => o.value === fieldOptMatch[1]);
         if (fieldOpt) fieldOpt.label = value;
       }
     }
@@ -3167,14 +3189,14 @@ function applyGuideI18n(manifest, rest, value) {
   }
   const m2 = /^tracks\.([^.]+)\.(.+)$/.exec(rest);
   if (!m2) return;
-  const [, trackId, field] = m2;
+  const [, trackId, field2] = m2;
   const track = guide.tracks?.find((t) => t.id === trackId);
   if (!track) return;
-  if (field === "label" || field === "note") {
-    track[field] = value;
+  if (field2 === "label" || field2 === "note") {
+    track[field2] = value;
     return;
   }
-  const stepMatch = /^steps\.(\d+)$/.exec(field);
+  const stepMatch = /^steps\.(\d+)$/.exec(field2);
   if (stepMatch && track.steps?.[Number(stepMatch[1])] !== void 0) track.steps[Number(stepMatch[1])] = value;
 }
 async function assertEnvelopeTrusted(integrity) {
@@ -6043,12 +6065,12 @@ function paletteScssVariables(swatches) {
 }
 function paletteGpl(swatches, paletteName = "Lolly brand") {
   const pad = (n2) => String(n2).padStart(3, " ");
-  const rows = resolved(swatches).map((s) => `${pad(s.rgb[0])} ${pad(s.rgb[1])} ${pad(s.rgb[2])}	${s.group} ${s.name}`);
+  const rows2 = resolved(swatches).map((s) => `${pad(s.rgb[0])} ${pad(s.rgb[1])} ${pad(s.rgb[2])}	${s.group} ${s.name}`);
   return `GIMP Palette
 Name: ${paletteName}
 Columns: 0
 #
-${rows.join("\n")}
+${rows2.join("\n")}
 `;
 }
 function utf16beNameBytes(name) {
@@ -6662,8 +6684,8 @@ function validateChartSpec(spec) {
       );
     datasetIds.add(dataset.id);
     const fieldIds = /* @__PURE__ */ new Set();
-    for (const [fi, field] of (dataset.fields ?? []).entries()) {
-      if (!ID.test(field.id || ""))
+    for (const [fi, field2] of (dataset.fields ?? []).entries()) {
+      if (!ID.test(field2.id || ""))
         finding(
           findings,
           "chart.field.id",
@@ -6671,15 +6693,15 @@ function validateChartSpec(spec) {
           "Field id is invalid.",
           `datasets.${di}.fields.${fi}.id`
         );
-      if (fieldIds.has(field.id))
+      if (fieldIds.has(field2.id))
         finding(
           findings,
           "chart.field.duplicate",
           "error",
-          `Duplicate field id \u201C${field.id}\u201D.`,
+          `Duplicate field id \u201C${field2.id}\u201D.`,
           `datasets.${di}.fields.${fi}.id`
         );
-      fieldIds.add(field.id);
+      fieldIds.add(field2.id);
     }
     fieldsByDataset.set(dataset.id, fieldIds);
     if ((dataset.rows?.length ?? 0) > 1e5)
@@ -6974,8 +6996,16 @@ var init_apis = __esm({
       "connectors",
       "c2pa",
       "prepare",
-      "compare"
+      "compare",
+      "textTools"
     ];
+  }
+});
+
+// packages/core/src/host-v1/text-tools.ts
+var init_text_tools = __esm({
+  "packages/core/src/host-v1/text-tools.ts"() {
+    "use strict";
   }
 });
 
@@ -7240,6 +7270,7 @@ var init_host_v1 = __esm({
   "packages/core/src/host-v1.ts"() {
     "use strict";
     init_apis();
+    init_text_tools();
     init_asset_ref();
     init_assets();
     init_audio();
@@ -7384,7 +7415,7 @@ function inspectDesignV1(boxes, opts = {}) {
     return finish([], [], findings, opts);
   }
   const layers = [];
-  const rows = /* @__PURE__ */ new Map();
+  const rows2 = /* @__PURE__ */ new Map();
   const seen = /* @__PURE__ */ new Set();
   boxes.forEach((value, index) => {
     const path = `/boxes/${index}`;
@@ -7415,7 +7446,7 @@ function inspectDesignV1(boxes, opts = {}) {
       );
     } else {
       seen.add(id);
-      rows.set(id, row);
+      rows2.set(id, row);
     }
     if (kind === "unknown") {
       finding2(
@@ -7517,7 +7548,7 @@ function inspectDesignV1(boxes, opts = {}) {
     }
   }
   const artboards = artboardLayers.map((layer) => {
-    const row = rows.get(layer.id) ?? {};
+    const row = rows2.get(layer.id) ?? {};
     const childLayerIds = children.get(layer.id) ?? [];
     if (!layer.name) {
       finding2(
@@ -8108,12 +8139,12 @@ function normalizeTableValue(v) {
   if (!Array.isArray(o.columns) || !Array.isArray(o.rows)) return null;
   const cell = (c) => typeof c === "string" ? c : typeof c === "number" || typeof c === "boolean" ? String(c) : "";
   const columns = o.columns.map(cell);
-  const rows = o.rows.filter((r3) => Array.isArray(r3)).map((r3) => {
+  const rows2 = o.rows.filter((r3) => Array.isArray(r3)).map((r3) => {
     const out = r3.slice(0, columns.length).map(cell);
     while (out.length < columns.length) out.push("");
     return out;
   });
-  return { columns, rows };
+  return { columns, rows: rows2 };
 }
 function isObjectValue(v) {
   return typeof v === "object" && v !== null;
@@ -8762,8 +8793,8 @@ var init_template = __esm({
           const h = line.match(MD_HEADING);
           if (h) {
             flushRun();
-            const level = h[1].length;
-            out.push(`<h${level}>${inline(h[2])}</h${level}>`);
+            const level2 = h[1].length;
+            out.push(`<h${level2}>${inline(h[2])}</h${level2}>`);
           } else {
             run.push(line);
           }
@@ -8773,10 +8804,10 @@ var init_template = __esm({
       }).join("");
       return new Handlebars.SafeString(html);
     });
-    Handlebars.registerHelper("asset", (ref, field) => {
+    Handlebars.registerHelper("asset", (ref, field2) => {
       if (!ref || typeof ref !== "object") return "";
-      if (typeof field === "string") {
-        const v = Reflect.get(ref, field);
+      if (typeof field2 === "string") {
+        const v = Reflect.get(ref, field2);
         return v ?? "";
       }
       const url = Reflect.get(ref, "url");
@@ -8922,10 +8953,10 @@ async function buildExportMeta(host, manifest, profile, inputs) {
   };
   if (inputs) {
     for (const i of inputs) {
-      const field = i.bindToMeta;
-      if (!field) continue;
+      const field2 = i.bindToMeta;
+      if (!field2) continue;
       const v = clean2(i.value == null ? "" : String(i.value));
-      if (v) meta[field] = v;
+      if (v) meta[field2] = v;
     }
   }
   return meta;
@@ -9325,10 +9356,10 @@ function assetIdForUrl(ref) {
   if (isBakedRef(ref)) return typeof ref.meta?.bakedFrom === "string" ? ref.meta.bakedFrom : ref.id;
   return encodeAssetVersion(ref.id, assetVersionPin(ref));
 }
-function blocksForUrl(rows) {
-  if (!Array.isArray(rows)) return rows;
+function blocksForUrl(rows2) {
+  if (!Array.isArray(rows2)) return rows2;
   let changed = false;
-  const out = rows.map((row) => {
+  const out = rows2.map((row) => {
     if (!row || typeof row !== "object") return row;
     const rec2 = row;
     let next = null;
@@ -9343,7 +9374,7 @@ function blocksForUrl(rows) {
     }
     return row;
   });
-  return changed ? out : rows;
+  return changed ? out : rows2;
 }
 var MAX_COMPOSE_DEPTH, MAX_BAKED_URL_CHARS, ComposeGuardError;
 var init_bake = __esm({
@@ -10601,8 +10632,8 @@ function placeOgg(ogg, manifest) {
   const tags = parseOpusTags(loc.packet);
   if (!tags) throw new Error("C2PA embed: malformed OpusTags comment header");
   const kept = tags.comments.filter((c) => commentKey(c) !== OGG_C2PA_KEY);
-  const field = concatBytes([te4.encode(`${OGG_C2PA_KEY}=`), te4.encode(btoa(bytesToBin(manifest)))]);
-  const page2 = buildOggPage(loc.first22, buildOpusTags(tags.vendor, [...kept, field]));
+  const field2 = concatBytes([te4.encode(`${OGG_C2PA_KEY}=`), te4.encode(btoa(bytesToBin(manifest)))]);
+  const page2 = buildOggPage(loc.first22, buildOpusTags(tags.vendor, [...kept, field2]));
   return {
     out: concatBytes([ogg.subarray(0, loc.commentStart), page2, ogg.subarray(loc.commentEnd)]),
     exclusions: [{ start: loc.commentStart, length: page2.length }]
@@ -13897,9 +13928,9 @@ function extractC2paFromOgg(ogg) {
   if (!loc) return null;
   const tags = parseOpusTags(loc.packet);
   if (!tags) return null;
-  const field = tags.comments.find((c) => commentKey(c) === OGG_C2PA_KEY);
-  if (!field) return null;
-  const b64 = bytesToBin(commentValue(field)).replace(/\s+/g, "");
+  const field2 = tags.comments.find((c) => commentKey(c) === OGG_C2PA_KEY);
+  if (!field2) return null;
+  const b64 = bytesToBin(commentValue(field2)).replace(/\s+/g, "");
   if (!b64) return null;
   try {
     return { manifest: base64ToBytes(b64) };
@@ -14644,12 +14675,12 @@ function parseCertSigAlg(cert, algId) {
       let saltLength = 20;
       const params2 = kids[1];
       if (params2 && params2.tag === 48) {
-        for (const field of derChildren(cert, params2)) {
-          if (field.tag === 160) {
-            const h = derChildren(cert, field)[0];
+        for (const field2 of derChildren(cert, params2)) {
+          if (field2.tag === 160) {
+            const h = derChildren(cert, field2)[0];
             if (h && h.tag === 6) hash = HASH_OIDS[bytesToHex(cert.slice(h.contentStart, h.end))] || hash;
-          } else if (field.tag === 162) {
-            const s = derChildren(cert, field)[0];
+          } else if (field2.tag === 162) {
+            const s = derChildren(cert, field2)[0];
             if (s && s.tag === 2) {
               let n2 = 0;
               for (const b of cert.slice(s.contentStart, s.end)) n2 = n2 * 256 + b;
@@ -15537,18 +15568,16 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   let recordGeneration = 0;
   let recordStarting = false;
   let recordSession = null;
-  const isMetering = () => meterUnsub != null && recordSession == null;
-  const isRecording = () => recordSession != null;
   function driveLevels(source) {
     const generation = ++levelGeneration;
     let pending = false;
     const onLevel = hooks?.onLevel;
     if (!onLevel) return () => {
     };
-    return source.subscribe((level) => {
+    return source.subscribe((level2) => {
       if (pending || generation !== levelGeneration || destroyed) return;
       pending = true;
-      Promise.resolve(onLevel({ level, model: modelForHooks(model2), host })).then((patch) => {
+      Promise.resolve(onLevel({ level: level2, model: modelForHooks(model2), host })).then((patch) => {
         if (patch && meterUnsub && generation === levelGeneration && !destroyed) {
           ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
           emit();
@@ -15612,10 +15641,10 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   function hydratePaginated(sourceId) {
     const base = templateContext();
     const t = normalizeTableValue(model2.find((i) => i.id === sourceId)?.value);
-    const rows = t && t.rows.length ? t.rows : [[]];
+    const rows2 = t && t.rows.length ? t.rows : [[]];
     const columns = t?.columns ?? [];
-    const count2 = rows.length;
-    return rows.map((row, index) => {
+    const count2 = rows2.length;
+    return rows2.map((row, index) => {
       const cells = columns.map((column, i) => ({ column, value: row[i] ?? "", col: i }));
       const byColumn = /* @__PURE__ */ Object.create(null);
       columns.forEach((column, i) => {
@@ -15859,7 +15888,6 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     // audio levels. The shell still gates the actual meter/record affordance on
     // host.recorder being present.
     hasLevelHook: Boolean(hooks?.onLevel),
-    isMetering,
     /**
      * Start driving the tool's `onLevel` hook from the host mic meter (a pre-record
      * sound check). Rejects if permission is denied or there's no mic (the shell
@@ -15893,7 +15921,6 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       return true;
     },
     stopMeter: stopMeterLoop,
-    isRecording,
     /**
      * Begin a recording session via host.recorder and (if the tool has onLevel)
      * drive its coaching hook from the session's live levels. Rejects on denial /
@@ -16990,8 +17017,8 @@ function decodeTableCompact(str7) {
   };
   const segments = str7.split("~");
   const columns = (segments[0] ?? "").split(",").map(dec);
-  const rows = segments.slice(1).filter(Boolean).map((seg) => splitToFields(seg, columns.length).map(dec));
-  return normalizeTableValue({ columns, rows }) ?? { columns: [], rows: [] };
+  const rows2 = segments.slice(1).filter(Boolean).map((seg) => splitToFields(seg, columns.length).map(dec));
+  return normalizeTableValue({ columns, rows: rows2 }) ?? { columns: [], rows: [] };
 }
 function splitToFields(str7, count2) {
   const parts = str7.split(",");
@@ -18008,6 +18035,7 @@ var init_zip_crypto = __esm({
 });
 
 // engine/src/gzip.ts
+import { Inflate } from "fflate";
 function gzip(bytes, opts) {
   const body = deflateRaw(bytes, opts);
   const out = new Uint8Array(10 + body.length + 8);
@@ -18069,10 +18097,10 @@ function gunzip(bytes, opts = {}) {
   if (crc322(out) !== expectedCrc) throw new Error("gunzip: CRC-32 mismatch (corrupt stream)");
   return out;
 }
-function skipZeroString(bytes, from, field) {
+function skipZeroString(bytes, from, field2) {
   let i = from;
   while (i < bytes.length && bytes[i] !== 0) i++;
-  if (i >= bytes.length) throw new Error(`gunzip: unterminated ${field}`);
+  if (i >= bytes.length) throw new Error(`gunzip: unterminated ${field2}`);
   return i + 1;
 }
 function readU32LE(bytes, off) {
@@ -18080,85 +18108,27 @@ function readU32LE(bytes, off) {
 }
 function inflateRaw(data, sizeHint) {
   const cap = sizeHint !== void 0 && sizeHint >= 0 ? sizeHint : Math.max(1 << 20, data.length * 1024);
-  const r3 = new BitReader(data);
+  if (data.length === 0) throw new Error("inflate: unexpected end of stream");
   const out = new OutBuffer(cap);
-  let final = false;
-  while (!final) {
-    final = r3.bits(1) === 1;
-    const type = r3.bits(2);
-    if (type === 0) {
-      r3.alignByte();
-      const len2 = r3.readU16();
-      const nlen = r3.readU16();
-      if ((len2 ^ 65535) !== nlen) throw new Error("inflate: stored block LEN/NLEN mismatch");
-      out.pushBytes(r3.readBytes(len2));
-    } else if (type === 1) {
-      inflateBlock(r3, out, FIXED_LIT_TREE, FIXED_DIST_TREE);
-    } else if (type === 2) {
-      const { litTree, distTree } = readDynamicTables(r3);
-      inflateBlock(r3, out, litTree, distTree);
-    } else {
-      throw new Error("inflate: invalid block type 3 (reserved)");
+  const stream = new Inflate((chunk6) => {
+    if (chunk6.length > 0) out.pushBytes(chunk6);
+  });
+  try {
+    let at = 0;
+    while (at < data.length) {
+      const headroom = Math.ceil(Math.max(0, cap - out.len) / MAX_INFLATE_RATIO) + 64;
+      const slab = Math.min(INFLATE_PUSH_BYTES, Math.max(INFLATE_MIN_PUSH_BYTES, headroom));
+      const end = Math.min(at + slab, data.length);
+      stream.push(data.subarray(at, end), end === data.length);
+      at = end;
     }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw message.startsWith("inflate:") ? err : new Error(`inflate: ${message}`);
   }
   return out.take();
 }
-function inflateBlock(r3, out, litTree, distTree) {
-  for (; ; ) {
-    const sym = litTree.decode(r3);
-    if (sym < 256) {
-      out.pushByte(sym);
-    } else if (sym === 256) {
-      return;
-    } else {
-      const li = sym - 257;
-      if (li >= LEN_BASE2.length) throw new Error("inflate: invalid length symbol");
-      const len2 = LEN_BASE2[li] + r3.bits(LEN_EXTRA2[li]);
-      const dsym = distTree.decode(r3);
-      if (dsym >= DIST_BASE2.length) throw new Error("inflate: invalid distance symbol");
-      const dist2 = DIST_BASE2[dsym] + r3.bits(DIST_EXTRA2[dsym]);
-      out.copyBack(dist2, len2);
-    }
-  }
-}
-function readDynamicTables(r3) {
-  const hlit = r3.bits(5) + 257;
-  const hdist = r3.bits(5) + 1;
-  const hclen = r3.bits(4) + 4;
-  if (hlit > 286 || hdist > 30) throw new Error("inflate: dynamic table count out of range");
-  const clenLengths = new Uint8Array(19);
-  for (let i2 = 0; i2 < hclen; i2++) clenLengths[CLEN_ORDER[i2]] = r3.bits(3);
-  const clenTree = new HuffTree(clenLengths, 7);
-  const total = hlit + hdist;
-  const lengths = new Uint8Array(total);
-  let i = 0;
-  while (i < total) {
-    const sym = clenTree.decode(r3);
-    if (sym < 16) {
-      lengths[i++] = sym;
-    } else if (sym === 16) {
-      if (i === 0) throw new Error("inflate: repeat with no previous code length");
-      const repeat = 3 + r3.bits(2);
-      const prev = lengths[i - 1];
-      if (i + repeat > total) throw new Error("inflate: code-length repeat overruns tables");
-      for (let k = 0; k < repeat; k++) lengths[i++] = prev;
-    } else if (sym === 17) {
-      const repeat = 3 + r3.bits(3);
-      if (i + repeat > total) throw new Error("inflate: zero-run overruns tables");
-      i += repeat;
-    } else if (sym === 18) {
-      const repeat = 11 + r3.bits(7);
-      if (i + repeat > total) throw new Error("inflate: zero-run overruns tables");
-      i += repeat;
-    } else {
-      throw new Error("inflate: invalid code-length symbol");
-    }
-  }
-  const litTree = new HuffTree(lengths.subarray(0, hlit), 15);
-  const distTree = new HuffTree(lengths.subarray(hlit, total), 15);
-  return { litTree, distTree };
-}
-var ID1, ID2, CM_DEFLATE, FTEXT, FHCRC, FEXTRA, FNAME, FCOMMENT, FLG_RESERVED, GUNZIP_MAX_OUTPUT_BYTES, LEN_BASE2, LEN_EXTRA2, DIST_BASE2, DIST_EXTRA2, CLEN_ORDER, BitReader, HuffTree, FIXED_LIT_TREE, FIXED_DIST_TREE, OutBuffer;
+var ID1, ID2, CM_DEFLATE, FTEXT, FHCRC, FEXTRA, FNAME, FCOMMENT, FLG_RESERVED, GUNZIP_MAX_OUTPUT_BYTES, INFLATE_PUSH_BYTES, INFLATE_MIN_PUSH_BYTES, MAX_INFLATE_RATIO, OutBuffer;
 var init_gzip = __esm({
   "engine/src/gzip.ts"() {
     "use strict";
@@ -18174,224 +18144,9 @@ var init_gzip = __esm({
     FCOMMENT = 16;
     FLG_RESERVED = 224;
     GUNZIP_MAX_OUTPUT_BYTES = 320 * 1024 * 1024;
-    LEN_BASE2 = [
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      13,
-      15,
-      17,
-      19,
-      23,
-      27,
-      31,
-      35,
-      43,
-      51,
-      59,
-      67,
-      83,
-      99,
-      115,
-      131,
-      163,
-      195,
-      227,
-      258
-    ];
-    LEN_EXTRA2 = [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      1,
-      2,
-      2,
-      2,
-      2,
-      3,
-      3,
-      3,
-      3,
-      4,
-      4,
-      4,
-      4,
-      5,
-      5,
-      5,
-      5,
-      0
-    ];
-    DIST_BASE2 = [
-      1,
-      2,
-      3,
-      4,
-      5,
-      7,
-      9,
-      13,
-      17,
-      25,
-      33,
-      49,
-      65,
-      97,
-      129,
-      193,
-      257,
-      385,
-      513,
-      769,
-      1025,
-      1537,
-      2049,
-      3073,
-      4097,
-      6145,
-      8193,
-      12289,
-      16385,
-      24577
-    ];
-    DIST_EXTRA2 = [
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      2,
-      2,
-      3,
-      3,
-      4,
-      4,
-      5,
-      5,
-      6,
-      6,
-      7,
-      7,
-      8,
-      8,
-      9,
-      9,
-      10,
-      10,
-      11,
-      11,
-      12,
-      12,
-      13,
-      13
-    ];
-    CLEN_ORDER = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
-    BitReader = class {
-      pos = 0;
-      bitBuf = 0;
-      bitCnt = 0;
-      data;
-      constructor(data) {
-        this.data = data;
-      }
-      /** Read `count` bits (0..24), LSB first. Throws on end-of-input. */
-      bits(count2) {
-        while (this.bitCnt < count2) {
-          if (this.pos >= this.data.length) throw new Error("inflate: unexpected end of stream");
-          this.bitBuf |= this.data[this.pos++] << this.bitCnt;
-          this.bitCnt += 8;
-        }
-        const v = this.bitBuf & (1 << count2) - 1;
-        this.bitBuf >>>= count2;
-        this.bitCnt -= count2;
-        return v;
-      }
-      /** Drop any partial bits, aligning to the next byte (stored-block start, section 3.2.4). */
-      alignByte() {
-        this.bitBuf = 0;
-        this.bitCnt = 0;
-      }
-      /** Copy `len` raw bytes (stored block); the reader must be byte-aligned. */
-      readBytes(len2) {
-        if (this.pos + len2 > this.data.length) throw new Error("inflate: truncated stored block");
-        const out = this.data.subarray(this.pos, this.pos + len2);
-        this.pos += len2;
-        return out;
-      }
-      /** Read a byte-aligned little-endian uint16 (stored block LEN/NLEN). */
-      readU16() {
-        if (this.pos + 2 > this.data.length) throw new Error("inflate: truncated stored header");
-        const v = this.data[this.pos] | this.data[this.pos + 1] << 8;
-        this.pos += 2;
-        return v;
-      }
-    };
-    HuffTree = class {
-      counts;
-      // number of codes of each length
-      symbols;
-      // symbols sorted by (length, value)
-      maxLen;
-      constructor(lengths, maxLen) {
-        this.maxLen = maxLen;
-        this.counts = new Uint16Array(maxLen + 1);
-        for (let i = 0; i < lengths.length; i++) {
-          const l = lengths[i];
-          if (l > maxLen) throw new Error("inflate: code length exceeds maximum");
-          this.counts[l]++;
-        }
-        this.counts[0] = 0;
-        const offsets = new Uint16Array(maxLen + 2);
-        for (let l = 1; l <= maxLen; l++) offsets[l + 1] = offsets[l] + this.counts[l];
-        this.symbols = new Uint16Array(lengths.length);
-        for (let i = 0; i < lengths.length; i++) {
-          const l = lengths[i];
-          if (l !== 0) this.symbols[offsets[l]++] = i;
-        }
-      }
-      /** Decode one symbol from `r`, walking one bit per length (RFC 1951 section 3.2.2). */
-      decode(r3) {
-        let code = 0;
-        let first = 0;
-        let index = 0;
-        for (let len2 = 1; len2 <= this.maxLen; len2++) {
-          code |= r3.bits(1);
-          const count2 = this.counts[len2];
-          if (code - first < count2) return this.symbols[index + (code - first)];
-          index += count2;
-          first = first + count2 << 1;
-          code <<= 1;
-        }
-        throw new Error("inflate: invalid Huffman code");
-      }
-    };
-    FIXED_LIT_TREE = (() => {
-      const lengths = new Uint8Array(288);
-      for (let i = 0; i < 144; i++) lengths[i] = 8;
-      for (let i = 144; i < 256; i++) lengths[i] = 9;
-      for (let i = 256; i < 280; i++) lengths[i] = 7;
-      for (let i = 280; i < 288; i++) lengths[i] = 8;
-      return new HuffTree(lengths, 9);
-    })();
-    FIXED_DIST_TREE = (() => {
-      const lengths = new Uint8Array(30).fill(5);
-      return new HuffTree(lengths, 5);
-    })();
+    INFLATE_PUSH_BYTES = 1 << 16;
+    INFLATE_MIN_PUSH_BYTES = 1024;
+    MAX_INFLATE_RATIO = 1032;
     OutBuffer = class {
       buf;
       cap;
@@ -18410,21 +18165,10 @@ var init_gzip = __esm({
         grown.set(this.buf.subarray(0, this.len));
         this.buf = grown;
       }
-      pushByte(b) {
-        this.ensure(1);
-        this.buf[this.len++] = b;
-      }
       pushBytes(src) {
         this.ensure(src.length);
         this.buf.set(src, this.len);
         this.len += src.length;
-      }
-      /** Copy `len` bytes from `dist` back: the LZ77 back-reference (section 3.2.3). */
-      copyBack(dist2, len2) {
-        if (dist2 > this.len) throw new Error("inflate: distance points before start of output");
-        this.ensure(len2);
-        let from = this.len - dist2;
-        for (let i = 0; i < len2; i++) this.buf[this.len++] = this.buf[from++];
       }
       take() {
         return this.buf.subarray(0, this.len);
@@ -20278,15 +20022,15 @@ function documentSchema(tool) {
 function inputSchema(input) {
   const base = { title: input.label ?? input.id, ...input.help ? { description: input.help } : {} };
   if (input.type === "number") {
-    const number = { type: "number", ...input.min !== void 0 ? { minimum: input.min } : {}, ...input.max !== void 0 ? { maximum: input.max } : {} };
-    return { ...base, ...input.default === "" ? { anyOf: [number, { const: "" }] } : number, ...input.default !== void 0 ? { default: input.default } : {} };
+    const number2 = { type: "number", ...input.min !== void 0 ? { minimum: input.min } : {}, ...input.max !== void 0 ? { maximum: input.max } : {} };
+    return { ...base, ...input.default === "" ? { anyOf: [number2, { const: "" }] } : number2, ...input.default !== void 0 ? { default: input.default } : {} };
   }
   if (input.type === "boolean") return { ...base, ...input.default === "" ? { anyOf: [{ type: "boolean" }, { const: "" }] } : { type: "boolean" }, ...input.default !== void 0 ? { default: input.default } : {} };
   if (input.type === "blocks") {
-    const fields = (input.fields ?? []).map((field) => ({ ...field, type: field.type ?? "text", label: field.label ?? field.id }));
-    return { ...base, type: "array", items: { type: "object", properties: Object.fromEntries(fields.map((field) => [field.id, inputSchema(field)])), additionalProperties: false } };
+    const fields = (input.fields ?? []).map((field2) => ({ ...field2, type: field2.type ?? "text", label: field2.label ?? field2.id }));
+    return { ...base, type: "array", items: { type: "object", properties: Object.fromEntries(fields.map((field2) => [field2.id, inputSchema(field2)])), additionalProperties: false } };
   }
-  if (input.type === "vector") return { ...base, type: "object", properties: Object.fromEntries((input.fields ?? []).map((field) => [field.id, { type: "number", ...field.min !== void 0 ? { minimum: field.min } : {}, ...field.max !== void 0 ? { maximum: field.max } : {} }])), additionalProperties: false };
+  if (input.type === "vector") return { ...base, type: "object", properties: Object.fromEntries((input.fields ?? []).map((field2) => [field2.id, { type: "number", ...field2.min !== void 0 ? { minimum: field2.min } : {}, ...field2.max !== void 0 ? { maximum: field2.max } : {} }])), additionalProperties: false };
   if (input.type === "table") return { ...base, type: "object", required: ["columns", "rows"], properties: { columns: { type: "array", items: { type: "string" } }, rows: { type: "array", items: { type: "array", items: { type: "string" } } } }, additionalProperties: false };
   if (input.type === "asset") return { ...base, anyOf: [{ type: "string", description: "Catalog id, URL, or provider:// reference" }, { type: "object" }, { type: "null" }] };
   if (input.type === "file") return { ...base, anyOf: [{ type: "object" }, ...input.multiple ? [{ type: "array", items: { type: "object" } }] : [], { type: "null" }] };
@@ -20319,16 +20063,16 @@ function validateInputValue(input, value, path, errors) {
     if (input.options?.length && !input.options.some((option) => option.value === value)) errors.push({ path, message: "must be one of the declared options" });
   }
   if (input.type === "blocks" && Array.isArray(value)) {
-    const fields = new Map((input.fields ?? []).map((field) => [field.id, { ...field, type: field.type ?? "text" }]));
+    const fields = new Map((input.fields ?? []).map((field2) => [field2.id, { ...field2, type: field2.type ?? "text" }]));
     value.forEach((row, index) => {
       if (!row || typeof row !== "object" || Array.isArray(row)) {
         errors.push({ path: `${path}/${index}`, message: "must be an object" });
         return;
       }
       for (const [key, item] of Object.entries(row)) {
-        const field = fields.get(key);
-        if (!field) errors.push({ path: `${path}/${index}/${key}`, message: "unknown field" });
-        else validateInputValue(field, item, `${path}/${index}/${key}`, errors);
+        const field2 = fields.get(key);
+        if (!field2) errors.push({ path: `${path}/${index}/${key}`, message: "unknown field" });
+        else validateInputValue(field2, item, `${path}/${index}/${key}`, errors);
       }
     });
   }
@@ -20347,8 +20091,8 @@ function assetIds(value) {
 function collectModelAssetIds(input) {
   if (input.type === "asset") return assetIds(input.value);
   if (input.type !== "blocks" || !Array.isArray(input.value)) return [];
-  const fields = (input.fields ?? []).filter((field) => field.type === "asset");
-  return input.value.flatMap((row) => row && typeof row === "object" && !Array.isArray(row) ? fields.flatMap((field) => assetIds(row[field.id])) : []);
+  const fields = (input.fields ?? []).filter((field2) => field2.type === "asset");
+  return input.value.flatMap((row) => row && typeof row === "object" && !Array.isArray(row) ? fields.flatMap((field2) => assetIds(row[field2.id])) : []);
 }
 function diffDocuments(a, b) {
   if (typeof a === "string" && typeof b === "string") return { inputs: diffRecords(params(a), params(b)), boxes: empty(), tokens: empty(), assets: empty(), designVersion: empty() };
@@ -20406,8 +20150,8 @@ function collectModelAssetWeights(input, out) {
   };
   if (input.type === "asset") weigh(input.value);
   else if (input.type === "blocks" && Array.isArray(input.value)) {
-    const fields = (input.fields ?? []).filter((field) => field.type === "asset");
-    for (const row of input.value) if (row && typeof row === "object" && !Array.isArray(row)) for (const field of fields) weigh(row[field.id]);
+    const fields = (input.fields ?? []).filter((field2) => field2.type === "asset");
+    for (const row of input.value) if (row && typeof row === "object" && !Array.isArray(row)) for (const field2 of fields) weigh(row[field2.id]);
   }
 }
 async function optimizeDocument(value, opts = {}) {
@@ -21006,12 +20750,12 @@ function clipToFatLine(c, fat) {
     return h;
   };
   const upper = chain2(-1), lower3 = chain2(1);
-  const crossings = (h, level) => {
+  const crossings = (h, level2) => {
     const ts2 = [];
     for (let i = 1; i < h.length; i++) {
       const a = h[i - 1], b = h[i];
-      if ((a.y - level) * (b.y - level) <= 0 && Math.abs(b.y - a.y) > 1e-18) {
-        ts2.push(a.x + (level - a.y) * (b.x - a.x) / (b.y - a.y));
+      if ((a.y - level2) * (b.y - level2) <= 0 && Math.abs(b.y - a.y) > 1e-18) {
+        ts2.push(a.x + (level2 - a.y) * (b.x - a.x) / (b.y - a.y));
       }
     }
     return ts2;
@@ -22971,16 +22715,16 @@ function rootsInUnit(poly) {
 }
 function bernsteinFromPower(a) {
   const n2 = a.length - 1;
-  const rows = [];
+  const rows2 = [];
   for (let i = 0; i <= n2; i++) {
     const row = [1];
     for (let k = 1; k <= i; k++) row.push(row[k - 1] * (i - k + 1) / k);
-    rows.push(row);
+    rows2.push(row);
   }
   const out = [];
   for (let k = 0; k <= n2; k++) {
     let s = 0;
-    for (let i = 0; i <= k; i++) s += rows[k][i] / rows[n2][i] * a[i];
+    for (let i = 0; i <= k; i++) s += rows2[k][i] / rows2[n2][i] * a[i];
     out.push(s);
   }
   return out;
@@ -23004,14 +22748,14 @@ function isolateRoots(b, t0, t1, depth, out) {
   isolateRoots(hi, mid3, t1, depth + 1, out);
 }
 function splitBernstein(b) {
-  const rows = [b.slice()];
+  const rows2 = [b.slice()];
   for (let lvl = 1; lvl < b.length; lvl++) {
-    const prev = rows[lvl - 1];
+    const prev = rows2[lvl - 1];
     const row = [];
     for (let i = 0; i + 1 < prev.length; i++) row.push((prev[i] + prev[i + 1]) / 2);
-    rows.push(row);
+    rows2.push(row);
   }
-  return [rows.map((r3) => r3[0]), rows.map((r3) => r3[r3.length - 1]).reverse()];
+  return [rows2.map((r3) => r3[0]), rows2.map((r3) => r3[r3.length - 1]).reverse()];
 }
 function offsetContour(c, distance, opts = {}) {
   const src = finiteContour(c);
@@ -24894,7 +24638,7 @@ function validatePathData(d) {
     SEP_RE.exec(d);
     i = SEP_RE.lastIndex;
   };
-  const number = () => {
+  const number2 = () => {
     skipSep();
     NUM_RE.lastIndex = i;
     const m2 = NUM_RE.exec(d);
@@ -24943,7 +24687,7 @@ function validatePathData(d) {
       if (!NUM_START.test(d[i])) break;
       for (let a = 0; a < arity; a++) {
         const isFlag = C === "A" && (a === 3 || a === 4);
-        const v = isFlag ? flag() : number();
+        const v = isFlag ? flag() : number2();
         if (isFail(v)) return v;
         if (v === null) {
           return fail2("invalid-path", `geom: "${letter}" has an incomplete argument group at offset ${i}`);
@@ -25467,9 +25211,9 @@ function createHookWorkerCore(port, opts = {}) {
       version: "1",
       shell: msg2.shell,
       capabilities: msg2.capabilities,
-      log: (level, m2, ctx) => {
+      log: (level2, m2, ctx) => {
         const r3 = run();
-        r3.logBuf.push({ level, msg: m2, ctx });
+        r3.logBuf.push({ level: level2, msg: m2, ctx });
         scheduleFlush(runId, r3);
       },
       color: apis.color,
@@ -26687,8 +26431,8 @@ function readLayerRecord(c, end, psb, warn) {
   c.p = extraEnd;
   return { top, left, bottom, right, channels, blendKey, opacity, clipping, hidden: (flags & 2) !== 0, name, section, mask, dataAt: 0 };
 }
-function decodePlane(bytes, at, chLen, rows, cols, depth, psb, inflate, reserve, warn) {
-  if (rows <= 0 || cols <= 0) return new Uint8Array(0);
+function decodePlane(bytes, at, chLen, rows2, cols, depth, psb, inflate, reserve, warn) {
+  if (rows2 <= 0 || cols <= 0) return new Uint8Array(0);
   const end = Math.min(at + chLen, bytes.length);
   if (at + 2 > end) {
     warn("channel.bad", "truncated channel header");
@@ -26699,26 +26443,26 @@ function decodePlane(bytes, at, chLen, rows, cols, depth, psb, inflate, reserve,
   let p = at + 2;
   const bytesPerSample = depth === 16 ? 2 : 1;
   const rowBytes = cols * bytesPerSample;
-  if (!reserve(rows * cols + (depth === 16 ? rows * rowBytes : 0))) return null;
-  const raw = new Uint8Array(rows * rowBytes);
+  if (!reserve(rows2 * cols + (depth === 16 ? rows2 * rowBytes : 0))) return null;
+  const raw = new Uint8Array(rows2 * rowBytes);
   if (comp2 === 0) {
-    if (p + rows * rowBytes > end) {
+    if (p + rows2 * rowBytes > end) {
       warn("channel.bad", "raw channel truncated");
       return null;
     }
-    raw.set(bytes.subarray(p, p + rows * rowBytes));
+    raw.set(bytes.subarray(p, p + rows2 * rowBytes));
   } else if (comp2 === 1) {
     const entry = psb ? 4 : 2;
-    if (p + rows * entry > end) {
+    if (p + rows2 * entry > end) {
       warn("channel.bad", "RLE row table truncated");
       return null;
     }
-    const lens = new Array(rows);
-    for (let y = 0; y < rows; y++) {
+    const lens = new Array(rows2);
+    for (let y = 0; y < rows2; y++) {
       lens[y] = psb ? v.getUint32(p) : v.getUint16(p);
       p += entry;
     }
-    for (let y = 0; y < rows; y++) {
+    for (let y = 0; y < rows2; y++) {
       const rl = lens[y];
       if (p + rl > end) {
         warn("channel.bad", `RLE row ${y} truncated`);
@@ -26747,27 +26491,27 @@ function decodePlane(bytes, at, chLen, rows, cols, depth, psb, inflate, reserve,
       return null;
     }
     raw.set(inflated2.subarray(0, raw.length));
-    if (comp2 === 3) undoPrediction(raw, rows, cols, depth);
+    if (comp2 === 3) undoPrediction(raw, rows2, cols, depth);
   } else {
     warn("channel.bad", `unknown compression ${comp2}`);
     return null;
   }
   if (depth === 8) return raw;
-  const out = new Uint8Array(rows * cols);
+  const out = new Uint8Array(rows2 * cols);
   for (let i = 0, s = 0; i < out.length; i++, s += 2) {
     out[i] = Math.round((raw[s] << 8 | raw[s + 1]) * 255 / 65535);
   }
   return out;
 }
-function undoPrediction(raw, rows, cols, depth) {
+function undoPrediction(raw, rows2, cols, depth) {
   if (depth === 8) {
-    for (let y = 0; y < rows; y++) {
+    for (let y = 0; y < rows2; y++) {
       const at = y * cols;
       for (let x = 1; x < cols; x++) raw[at + x] = raw[at + x] + raw[at + x - 1] & 255;
     }
   } else {
     const rowBytes = cols * 2;
-    for (let y = 0; y < rows; y++) {
+    for (let y = 0; y < rows2; y++) {
       const at = y * rowBytes;
       let prev = raw[at] << 8 | raw[at + 1];
       for (let x = 1; x < cols; x++) {
@@ -26788,10 +26532,10 @@ function decodeLayerPixels(c, rec2, depth, colorMode, psb, icc, reserve, warn, o
   let at = rec2.dataAt;
   for (const ch of rec2.channels) {
     const isMask = ch.id === -2 || ch.id === -3;
-    const rows = isMask && rec2.mask ? Math.max(0, rec2.mask.bottom - rec2.mask.top) : h;
+    const rows2 = isMask && rec2.mask ? Math.max(0, rec2.mask.bottom - rec2.mask.top) : h;
     const cols = isMask && rec2.mask ? Math.max(0, rec2.mask.right - rec2.mask.left) : w;
     if (ch.id >= -1 || isMask && rec2.mask && opts.applyLayerMasks !== false) {
-      const plane = decodePlane(c.b, at, ch.length, rows, cols, depth, psb, opts.inflate, reserve, warn);
+      const plane = decodePlane(c.b, at, ch.length, rows2, cols, depth, psb, opts.inflate, reserve, warn);
       if (plane) planes.set(ch.id, plane);
       else if (ch.id >= 0) {
         warn("layer.skipped", rec2.name);
@@ -27028,9 +26772,9 @@ function readComposite(c, width, height, depth, headerChannels, colorMode, merge
   }
   return { width, height, pixels: out };
 }
-function foldPlane(bytes, at, rows, cols, depth) {
-  if (depth === 8) return bytes.slice(at, at + rows * cols);
-  return fold16(bytes.subarray(at, at + rows * cols * 2), rows * cols);
+function foldPlane(bytes, at, rows2, cols, depth) {
+  if (depth === 8) return bytes.slice(at, at + rows2 * cols);
+  return fold16(bytes.subarray(at, at + rows2 * cols * 2), rows2 * cols);
 }
 function fold16(raw, samples) {
   const out = new Uint8Array(samples);
@@ -27982,12 +27726,12 @@ function parseTableText(text3) {
   grid = grid.filter((r3) => r3.some((c) => c.trim() !== ""));
   if (!grid.length || !grid[0].length) return null;
   const width = Math.max(...grid.map((r3) => r3.length));
-  const rows = grid.map((r3) => {
+  const rows2 = grid.map((r3) => {
     const out = r3.slice(0, width);
     while (out.length < width) out.push("");
     return out;
   });
-  return { columns: rows[0], rows: rows.slice(1) };
+  return { columns: rows2[0], rows: rows2.slice(1) };
 }
 function splitCsvLine(line) {
   const cells = [];
@@ -28262,19 +28006,19 @@ function csvCell(value) {
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 function parseDelimited(text3, delim = ",") {
-  const rows = [];
+  const rows2 = [];
   let row = [];
-  let field = "";
+  let field2 = "";
   let inQuotes = false;
   let i = 0;
   const n2 = text3.length;
   const endField = () => {
-    row.push(field);
-    field = "";
+    row.push(field2);
+    field2 = "";
   };
   const endRow = () => {
     endField();
-    rows.push(row);
+    rows2.push(row);
     row = [];
   };
   while (i < n2) {
@@ -28282,7 +28026,7 @@ function parseDelimited(text3, delim = ",") {
     if (inQuotes) {
       if (ch === '"') {
         if (text3[i + 1] === '"') {
-          field += '"';
+          field2 += '"';
           i += 2;
           continue;
         }
@@ -28290,7 +28034,7 @@ function parseDelimited(text3, delim = ",") {
         i++;
         continue;
       }
-      field += ch;
+      field2 += ch;
       i++;
       continue;
     }
@@ -28313,11 +28057,11 @@ function parseDelimited(text3, delim = ",") {
       i++;
       continue;
     }
-    field += ch;
+    field2 += ch;
     i++;
   }
-  if (field !== "" || row.length) endRow();
-  return rows.filter((r3) => !(r3.length === 1 && r3[0] === ""));
+  if (field2 !== "" || row.length) endRow();
+  return rows2.filter((r3) => !(r3.length === 1 && r3[0] === ""));
 }
 function detectDelimiter(text3) {
   const firstLine2 = text3.slice(0, text3.indexOf("\n") >= 0 ? text3.indexOf("\n") : text3.length);
@@ -28371,8 +28115,8 @@ function batchCsvTemplateWithNotes(tools) {
     }
   }
   const header = [...TEMPLATE_OUTPUT_COLUMNS, ...inputIds];
-  const rows = tools.map((t) => ({ toolId: t.id }));
-  return { csv: toCSV(header, rows), shadowedInputs: shadowed };
+  const rows2 = tools.map((t) => ({ toolId: t.id }));
+  return { csv: toCSV(header, rows2), shadowedInputs: shadowed };
 }
 var RESERVED_HEADERS, TEMPLATE_OUTPUT_COLUMNS;
 var init_batch = __esm({
@@ -32242,7 +31986,7 @@ function priceQuantity(line, breakMode, rateExact, breaksExact, q, ctx) {
       { ...base, quantity: q, unitRate: Math.round(t.rate), subtotal: Math.round(q * t.rate), breakApplied: { mode: "flat", min: t.min } }
     ];
   }
-  const rows = [];
+  const rows2 = [];
   const active = breaksExact.filter((b) => b.min <= q);
   for (let i = 0; i < active.length; i++) {
     const b = active[i];
@@ -32250,7 +31994,7 @@ function priceQuantity(line, breakMode, rateExact, breaksExact, q, ctx) {
     const upper = next === void 0 ? q : next.min - 1;
     const units = upper - b.min + 1;
     if (units <= 0) continue;
-    rows.push({
+    rows2.push({
       ...base,
       quantity: units,
       unitRate: Math.round(b.rate),
@@ -32258,7 +32002,7 @@ function priceQuantity(line, breakMode, rateExact, breaksExact, q, ctx) {
       breakApplied: { mode: "marginal", min: b.min, upTo: upper }
     });
   }
-  return rows;
+  return rows2;
 }
 function countsForLine(line, counts) {
   switch (line.kind) {
@@ -32290,7 +32034,7 @@ function isExpired(card, now2) {
 }
 function computeCost(card, counts, input = {}) {
   const exponent = minorUnitExponent(card.currency);
-  const rows = [];
+  const rows2 = [];
   const uncosted = [];
   let coveredLines = 0;
   for (const line of card.lines) {
@@ -32354,11 +32098,11 @@ function computeCost(card, counts, input = {}) {
       uncosted.push({ lineId: line.id, reason: gapReason(line) });
       continue;
     }
-    rows.push(...lineRows);
+    rows2.push(...lineRows);
     coveredLines++;
   }
-  const subtotalOfCovered = rows.reduce((s, r3) => s + r3.subtotal, 0);
-  const bound = rows.some((r3) => r3.subtotalBound === "ceiling") ? "ceiling" : "exact";
+  const subtotalOfCovered = rows2.reduce((s, r3) => s + r3.subtotal, 0);
+  const bound = rows2.some((r3) => r3.subtotalBound === "ceiling") ? "ceiling" : "exact";
   const fullCoverage = uncosted.length === 0;
   const adjustments = [];
   let headline = subtotalOfCovered;
@@ -32380,7 +32124,7 @@ function computeCost(card, counts, input = {}) {
   return {
     currency: card.currency,
     expired: isExpired(card, input.now),
-    rows,
+    rows: rows2,
     adjustments,
     uncosted,
     coveredLines,
@@ -39569,12 +39313,12 @@ function audioPicXml(audio, id, emuW, emuH, rids) {
 function audioNodeXml(id, embedRid) {
   return `<p:audio isNarration="1"><p:cMediaNode><p:cTn id="${id}" fill="hold" display="0"><p:stCondLst><p:cond delay="0"/></p:stCondLst></p:cTn><p:tgtEl><p:sndTgt r:embed="${embedRid}"/></p:tgtEl></p:cMediaNode></p:audio>`;
 }
-function buildTableGrid(nCols, rows) {
-  const nRows = rows.length;
+function buildTableGrid(nCols, rows2) {
+  const nRows = rows2.length;
   const grid = Array.from({ length: nRows }, () => Array(nCols).fill(null));
   for (let r3 = 0; r3 < nRows; r3++) {
     let c = 0;
-    for (const cell of rows[r3].cells) {
+    for (const cell of rows2[r3].cells) {
       while (c < nCols && grid[r3][c] !== null) c++;
       if (c >= nCols) break;
       let cs = Math.min(spanOf(cell.colSpan), nCols - c);
@@ -39630,13 +39374,13 @@ function tableXml(t, id) {
   const rawCols = Array.isArray(t.cols) && t.cols.length ? t.cols : [t.cx];
   const colW = rawCols.slice(0, MAX_TABLE_COLS).map((w) => Math.max(1, finInt(w, 914400)));
   const nCols = colW.length;
-  const rows = (t.rows ?? []).slice(0, MAX_TABLE_ROWS);
-  const grid = buildTableGrid(nCols, rows);
+  const rows2 = (t.rows ?? []).slice(0, MAX_TABLE_ROWS);
+  const grid = buildTableGrid(nCols, rows2);
   const styleId = t.styleId ?? DEFAULT_TABLE_STYLE;
   const tblPr = `<a:tblPr firstRow="${t.firstRow ? 1 : 0}" bandRow="1"><a:tableStyleId>${styleId}</a:tableStyleId></a:tblPr>`;
   const tblGrid = `<a:tblGrid>${colW.map((w) => `<a:gridCol w="${w}"/>`).join("")}</a:tblGrid>`;
-  const fallbackH = Math.max(1, finInt((finInt(t.cy) || 0) / Math.max(1, rows.length))) || 370840;
-  const trs = rows.map((row, r3) => {
+  const fallbackH = Math.max(1, finInt((finInt(t.cy) || 0) / Math.max(1, rows2.length))) || 370840;
+  const trs = rows2.map((row, r3) => {
     const h = row.h != null ? Math.max(1, finInt(row.h, fallbackH)) : fallbackH;
     return `<a:tr h="${h}">${grid[r3].map(tcXml).join("")}</a:tr>`;
   }).join("");
@@ -39711,29 +39455,29 @@ function effectParXml(nextId, spid, grpId, cls, fx, nodeType) {
   return `<p:par><p:cTn id="${id}" presetID="${EFFECT_PRESET_IDS[fx.preset]}" presetClass="${cls}" presetSubtype="${presetSubtype}" fill="hold" grpId="${grpId}" nodeType="${nodeType}"><p:stCondLst><p:cond delay="${delay}"/></p:stCondLst>${it}<p:childTnLst>${effectBehaviorsXml(nextId, spid, cls, fx)}</p:childTnLst></p:cTn></p:par>`;
 }
 function timingXml(slide) {
-  const rows = [];
+  const rows2 = [];
   slide.shapes.forEach((s, i) => {
     const anim = s.anim;
     if (!anim) return;
     const spid = i + 2;
     const click = clampInt3(Number.isFinite(anim.click) ? anim.click : 0, 0, 999);
     let grp = 0;
-    if (anim.enter) rows.push({ spid, grpId: grp++, cls: "entr", fx: anim.enter, click, text: s.kind === "text" });
-    if (anim.exit) rows.push({ spid, grpId: grp++, cls: "exit", fx: anim.exit, click, text: s.kind === "text" });
+    if (anim.enter) rows2.push({ spid, grpId: grp++, cls: "entr", fx: anim.enter, click, text: s.kind === "text" });
+    if (anim.exit) rows2.push({ spid, grpId: grp++, cls: "exit", fx: anim.exit, click, text: s.kind === "text" });
   });
   const audio = audioOf(slide);
   const wantAudio = !!(audio && audio.autoplay);
-  if (!rows.length && !wantAudio) return "";
+  if (!rows2.length && !wantAudio) return "";
   const embedRid = wantAudio ? audioRids(slide.media.length, (slide.notes ?? "").trim() !== "").embed : "";
   let n2 = 2;
   const nextId = () => ++n2;
-  const clickSet = new Set(rows.map((r3) => r3.click));
+  const clickSet = new Set(rows2.map((r3) => r3.click));
   if (wantAudio) clickSet.add(0);
   const clicks = [...clickSet].sort((a, b) => a - b);
   const groups = clicks.map((click) => {
     const groupId = nextId();
     const innerId = nextId();
-    const inGroup = rows.filter((r3) => r3.click === click).sort((a, b) => (a.fx.delayMs ?? 0) - (b.fx.delayMs ?? 0) || a.spid - b.spid);
+    const inGroup = rows2.filter((r3) => r3.click === click).sort((a, b) => (a.fx.delayMs ?? 0) - (b.fx.delayMs ?? 0) || a.spid - b.spid);
     const effects = inGroup.map((r3, idx) => effectParXml(
       nextId,
       r3.spid,
@@ -39746,7 +39490,7 @@ function timingXml(slide) {
     const sound = click === 0 && wantAudio ? audioNodeXml(nextId(), embedRid) : "";
     return `<p:par><p:cTn id="${groupId}" fill="hold"><p:stCondLst><p:cond delay="${click === 0 ? "0" : "indefinite"}"/></p:stCondLst><p:childTnLst><p:par><p:cTn id="${innerId}" fill="hold"><p:stCondLst><p:cond delay="0"/></p:stCondLst><p:childTnLst>${effects}${sound}</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par>`;
   }).join("");
-  const bldRows = rows.filter((r3) => r3.text);
+  const bldRows = rows2.filter((r3) => r3.text);
   const bld = bldRows.length ? `<p:bldLst>${bldRows.map((r3) => `<p:bldP spid="${r3.spid}" grpId="${r3.grpId}"/>`).join("")}</p:bldLst>` : "";
   return `<p:timing><p:tnLst><p:par><p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"><p:childTnLst><p:seq concurrent="1" nextAc="seek"><p:cTn id="2" dur="indefinite" nodeType="mainSeq"><p:childTnLst>${groups}</p:childTnLst></p:cTn><p:prevCondLst><p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:prevCondLst><p:nextCondLst><p:cond evt="onNext" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:nextCondLst></p:seq></p:childTnLst></p:cTn></p:par></p:tnLst>${bld}</p:timing>`;
 }
@@ -41457,18 +41201,18 @@ function readGraphicFrame(gf, theme) {
   const gData = graphic ? firstChildByLocal(graphic, "graphicData") : null;
   const tbl = gData ? firstChildByLocal(gData, "tbl") : null;
   if (tbl) {
-    const rows = [];
+    const rows2 = [];
     for (const tr of childrenByLocal(tbl, "tr")) {
-      if (rows.length >= MAX_TABLE_ROWS2) break;
+      if (rows2.length >= MAX_TABLE_ROWS2) break;
       const cells = [];
       for (const tc of childrenByLocal(tr, "tc")) {
         if (cells.length >= MAX_TABLE_COLS2) break;
         const paras = readTxBody(firstChildByLocal(tc, "txBody"), theme);
         cells.push(paras.map((p) => p.runs.map((r3) => r3.text).join("")).join("\n"));
       }
-      rows.push(cells);
+      rows2.push(cells);
     }
-    return { type: "table", ...box2, rows };
+    return { type: "table", ...box2, rows: rows2 };
   }
   const uri = gData ? attrByLocal(gData, "uri") : null;
   const node = { type: "unknown", ...box2 };
@@ -42222,18 +41966,18 @@ function cellOf(v) {
   return flatten2(str4(v)).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").trim();
 }
 function tableOf(node) {
-  const rows = (Array.isArray(node.rows) ? node.rows : []).filter(Array.isArray).slice(0, MAX_TABLE_ROWS3);
-  if (!rows.length) return "";
+  const rows2 = (Array.isArray(node.rows) ? node.rows : []).filter(Array.isArray).slice(0, MAX_TABLE_ROWS3);
+  if (!rows2.length) return "";
   let cols = 0;
-  for (const row of rows) cols = Math.max(cols, row.length);
+  for (const row of rows2) cols = Math.max(cols, row.length);
   cols = Math.min(Math.max(cols, 1), MAX_TABLE_COLS3);
   const line = (cells) => {
     const out = [];
     for (let i = 0; i < cols; i++) out.push(cellOf(cells[i]));
     return `| ${out.join(" | ")} |`;
   };
-  const lines = [line(rows[0]), `| ${Array.from({ length: cols }, () => "---").join(" | ")} |`];
-  for (let r3 = 1; r3 < rows.length; r3++) lines.push(line(rows[r3]));
+  const lines = [line(rows2[0]), `| ${Array.from({ length: cols }, () => "---").join(" | ")} |`];
+  for (let r3 = 1; r3 < rows2.length; r3++) lines.push(line(rows2[r3]));
   return lines.join("\n");
 }
 function notesOf(slide) {
@@ -42391,10 +42135,10 @@ function hasSpans(block) {
 }
 function mdTable(block) {
   if (hasSpans(block)) return htmlTable(block);
-  const rows = (Array.isArray(block.rows) ? block.rows : []).map((r3) => Array.isArray(r3) ? r3 : []);
+  const rows2 = (Array.isArray(block.rows) ? block.rows : []).map((r3) => Array.isArray(r3) ? r3 : []);
   const width = Math.max(
     block.header?.length ?? 0,
-    ...rows.map((r3) => r3.length),
+    ...rows2.map((r3) => r3.length),
     1
   );
   const cellText = (c) => (c ? mdInlines(c.inlines, { inTable: true }, 0) : "").replace(/\n/g, " ").trim();
@@ -42404,7 +42148,7 @@ function mdTable(block) {
     return `| ${out.join(" | ")} |`;
   };
   const lines = [line(block.header), `|${" --- |".repeat(width)}`];
-  for (const r3 of rows) lines.push(line(r3));
+  for (const r3 of rows2) lines.push(line(r3));
   return lines.join("\n");
 }
 function mdBlock(block) {
@@ -42487,13 +42231,13 @@ function htmlList(items, ordered) {
   const list2 = (Array.isArray(items) ? items : []).filter((i2) => i2 && typeof i2 === "object");
   const tag2 = ordered ? "ol" : "ul";
   let i = 0;
-  const walk2 = (level) => {
+  const walk2 = (level2) => {
     const lis = [];
     while (i < list2.length) {
       const item = list2[i];
       const lvl = clampListLevel(item.level);
-      if (lvl < level) break;
-      if (lvl > level) {
+      if (lvl < level2) break;
+      if (lvl > level2) {
         const child = walk2(lvl);
         if (lis.length) lis[lis.length - 1] = `${lis[lis.length - 1].slice(0, -5)}${child}</li>`;
         else lis.push(`<li>${child}</li>`);
@@ -42747,9 +42491,9 @@ function readStyles(store, parseXml) {
     if (!id) continue;
     const name = (valOf(firstChildByLocal2(st, "name")) || "").toLowerCase();
     const pPr = firstChildByLocal2(st, "pPr");
-    const level = headingFromName(id) ?? headingFromName(name) ?? levelFromOutline(valOf(firstChildByLocal2(pPr, "outlineLvl")));
+    const level2 = headingFromName(id) ?? headingFromName(name) ?? levelFromOutline(valOf(firstChildByLocal2(pPr, "outlineLvl")));
     const base = (valOf(firstChildByLocal2(st, "basedOn")) || "").toLowerCase();
-    if (level != null) levels.set(id, level);
+    if (level2 != null) levels.set(id, level2);
     else if (base) basedOn.set(id, base);
     if (/^(intense)?quote$/.test(id) || /^(intense )?quote$/.test(name)) quotes.add(id);
   }
@@ -42993,8 +42737,8 @@ function readParagraph(p, ctx, depth) {
   const inlines = [];
   collectInlines(p, ctx, depth, images, inlines);
   const styleId = valOf(firstChildByLocal2(pPr, "pStyle"));
-  const level = headingLevel(styleId, pPr, ctx);
-  const num7 = level > 0 ? null : readNumPr(pPr);
+  const level2 = headingLevel(styleId, pPr, ctx);
+  const num7 = level2 > 0 ? null : readNumPr(pPr);
   const text3 = hasText(inlines);
   if (num7 && text3) {
     const lvls = ctx.numbering.get(num7.numId);
@@ -43008,7 +42752,7 @@ function readParagraph(p, ctx, depth) {
     }
   } else if (text3) {
     closeList(ctx);
-    if (level > 0) pushBlock(ctx, { type: "heading", level, inlines });
+    if (level2 > 0) pushBlock(ctx, { type: "heading", level: level2, inlines });
     else if (styleId && ctx.styles.quotes.has(styleId.toLowerCase())) {
       pushBlock(ctx, { type: "quote", inlines });
     } else pushBlock(ctx, { type: "para", inlines });
@@ -43061,7 +42805,7 @@ function looksLikeHeaderRow(tr) {
 }
 function readTable(tbl, ctx, depth) {
   const images = [];
-  const rows = [];
+  const rows2 = [];
   let spans = false;
   let firstRow = null;
   const openMerge = /* @__PURE__ */ new Map();
@@ -43101,15 +42845,15 @@ function readTable(tbl, ctx, depth) {
     }
     if (!cells.length) continue;
     if (firstRow === null) firstRow = cells;
-    rows.push(cells);
+    rows2.push(cells);
   }
-  if (rows.length) {
+  if (rows2.length) {
     let header;
     const firstTr = trs[0];
-    if (rows.length > 1 && firstTr && rows[0] === firstRow && looksLikeHeaderRow(firstTr)) {
-      header = rows.shift();
+    if (rows2.length > 1 && firstTr && rows2[0] === firstRow && looksLikeHeaderRow(firstTr)) {
+      header = rows2.shift();
     }
-    const block = { type: "table", rows };
+    const block = { type: "table", rows: rows2 };
     if (header) block.header = header;
     if (spans) block.htmlSpans = true;
     closeList(ctx);
@@ -46275,9 +46019,9 @@ function readXlsx(bytes, opts = {}) {
   const sheetXml = store.text(chosen.path);
   if (sheetXml == null) throw new Error("The chosen sheet is missing or too large.");
   const shared = readSharedStrings(store);
-  const { rows, truncated } = readSheet(sheetXml, shared, limit);
-  if (!rows.length) throw new Error("That sheet has no cells.");
-  return { rows, truncated, sheetPath: chosen.path, sheetName: chosen.name || void 0 };
+  const { rows: rows2, truncated } = readSheet(sheetXml, shared, limit);
+  if (!rows2.length) throw new Error("That sheet has no cells.");
+  return { rows: rows2, truncated, sheetPath: chosen.path, sheetName: chosen.name || void 0 };
 }
 function listXlsxSheets(bytes) {
   if (!(bytes instanceof Uint8Array) || bytes.length === 0) throw new Error("The file is empty.");
@@ -46463,15 +46207,15 @@ function readSheet(xml, shared, limit) {
   }
   if (maxRow < 0 || maxCol < 0) return { rows: [], truncated };
   const width = maxCol + 1;
-  const rows = [];
+  const rows2 = [];
   for (let r3 = 0; r3 <= maxRow; r3++) {
     const src = grid.get(r3);
     const row = new Array(width).fill("");
     if (src) for (const [c, v] of src) row[c] = v;
-    rows.push(row);
+    rows2.push(row);
   }
-  while (rows.length && rows[rows.length - 1].every((c) => c === "")) rows.pop();
-  return { rows, truncated };
+  while (rows2.length && rows2[rows2.length - 1].every((c) => c === "")) rows2.pop();
+  return { rows: rows2, truncated };
 }
 function cellValue(attrs, inner, shared) {
   const t = attr(attrs, "t") || "n";
@@ -46570,7 +46314,7 @@ var init_xlsx_import = __esm({
 
 // engine/src/xlsx-write.ts
 function writeXlsx(sheet) {
-  const rows = Array.isArray(sheet.rows) ? sheet.rows : [];
+  const rows2 = Array.isArray(sheet.rows) ? sheet.rows : [];
   const name = sheetName(sheet.name);
   const strings = [];
   const stringIndex = /* @__PURE__ */ new Map();
@@ -46584,7 +46328,7 @@ function writeXlsx(sheet) {
     stringIndex.set(s, idx);
     return idx;
   };
-  const sheetXml = worksheetXml(rows, internString);
+  const sheetXml = worksheetXml(rows2, internString);
   const sharedXml = sharedStringsXml(strings, stringRefs);
   const parts = [
     { name: "[Content_Types].xml", bytes: encoder2.encode(contentTypesXml2()) },
@@ -46597,10 +46341,10 @@ function writeXlsx(sheet) {
   ];
   return storeZip(parts);
 }
-function worksheetXml(rows, internString) {
+function worksheetXml(rows2, internString) {
   let body = "";
-  for (let r3 = 0; r3 < rows.length; r3++) {
-    const cells = rows[r3];
+  for (let r3 = 0; r3 < rows2.length; r3++) {
+    const cells = rows2[r3];
     if (!Array.isArray(cells)) continue;
     const rowNum = r3 + 1;
     let rowBody = "";
@@ -46687,9 +46431,9 @@ var init_xlsx_write = __esm({
 });
 
 // engine/src/data-import.ts
-function rowsToCsv(rows) {
+function rowsToCsv(rows2) {
   const cell = (v) => /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
-  return rows.map((r3) => r3.map(cell).join(",")).join("\n");
+  return rows2.map((r3) => r3.map(cell).join(",")).join("\n");
 }
 function parseDataRows(text3, opts = {}) {
   const fields = (opts.fields || []).filter((f) => f && f.id);
@@ -46747,11 +46491,11 @@ function parseDataRows(text3, opts = {}) {
     }
     return (rec2) => rec2[fi];
   });
-  const rows = [];
+  const rows2 = [];
   let truncated = false;
   for (const rec2 of records) {
     if (rec2 == null) continue;
-    if (rows.length >= limit) {
+    if (rows2.length >= limit) {
       truncated = true;
       break;
     }
@@ -46762,10 +46506,10 @@ function parseDataRows(text3, opts = {}) {
       row[fields[i].id] = val;
       if (val !== "") any = true;
     }
-    if (any) rows.push(row);
+    if (any) rows2.push(row);
   }
-  if (!rows.length) throw new Error("No usable rows - check the column names match the fields.");
-  return { rows, truncated };
+  if (!rows2.length) throw new Error("No usable rows - check the column names match the fields.");
+  return { rows: rows2, truncated };
 }
 function detectFormat(text3) {
   const t = text3.replace(/^/, "").trim();
@@ -46797,14 +46541,14 @@ function unionKeys(records) {
 }
 function readCsv(text3) {
   const s = text3.replace(/^/, "");
-  const rows = [];
-  let row = [], field = "", inQuotes = false, i = 0;
+  const rows2 = [];
+  let row = [], field2 = "", inQuotes = false, i = 0;
   while (i < s.length) {
     const c = s[i];
     if (inQuotes) {
       if (c === '"') {
         if (s[i + 1] === '"') {
-          field += '"';
+          field2 += '"';
           i += 2;
           continue;
         }
@@ -46812,7 +46556,7 @@ function readCsv(text3) {
         i++;
         continue;
       }
-      field += c;
+      field2 += c;
       i++;
       continue;
     }
@@ -46822,8 +46566,8 @@ function readCsv(text3) {
       continue;
     }
     if (c === ",") {
-      row.push(field);
-      field = "";
+      row.push(field2);
+      field2 = "";
       i++;
       continue;
     }
@@ -46832,26 +46576,26 @@ function readCsv(text3) {
       continue;
     }
     if (c === "\n") {
-      row.push(field);
-      rows.push(row);
+      row.push(field2);
+      rows2.push(row);
       row = [];
-      field = "";
+      field2 = "";
       i++;
       continue;
     }
-    field += c;
+    field2 += c;
     i++;
   }
-  if (field !== "" || row.length) {
-    row.push(field);
-    rows.push(row);
+  if (field2 !== "" || row.length) {
+    row.push(field2);
+    rows2.push(row);
   }
-  return rows;
+  return rows2;
 }
-function coerce(raw, field) {
+function coerce(raw, field2) {
   if (raw == null) return "";
   const v = typeof raw === "string" ? raw.trim() : String(raw);
-  if (field.type === "boolean") {
+  if (field2.type === "boolean") {
     const t = v.toLowerCase();
     if (["true", "1", "yes", "y", "on"].includes(t)) return "true";
     if (["false", "0", "no", "n", "off", ""].includes(t)) return "false";
@@ -47344,16 +47088,16 @@ var init_epub_read = __esm({
 });
 
 // engine/src/odt.ts
-function clampLevel(level) {
-  const n2 = Math.trunc(level ?? 1);
+function clampLevel(level2) {
+  const n2 = Math.trunc(level2 ?? 1);
   if (!Number.isFinite(n2) || n2 < 1) return 1;
   return n2 > 10 ? 10 : n2;
 }
 function bodyBlock(block) {
   const text3 = escapeXml(block.text);
   if (block.type === "heading") {
-    const level = clampLevel(block.level);
-    return `      <text:h text:style-name="Heading_20_${level}" text:outline-level="${level}">${text3}</text:h>`;
+    const level2 = clampLevel(block.level);
+    return `      <text:h text:style-name="Heading_20_${level2}" text:outline-level="${level2}">${text3}</text:h>`;
   }
   return `      <text:p text:style-name="Standard">${text3}</text:p>`;
 }
@@ -47366,9 +47110,9 @@ function usedHeadingLevels(blocks) {
 }
 function contentXml(doc) {
   const body = doc.blocks.map(bodyBlock).join("\n");
-  const headingStyles = usedHeadingLevels(doc.blocks).map((level) => {
-    const size = Math.max(12, 22 - (level - 1) * 2);
-    return `    <style:style style:name="Heading_20_${level}" style:family="paragraph" style:parent-style-name="Standard" style:default-outline-level="${level}">
+  const headingStyles = usedHeadingLevels(doc.blocks).map((level2) => {
+    const size = Math.max(12, 22 - (level2 - 1) * 2);
+    return `    <style:style style:name="Heading_20_${level2}" style:family="paragraph" style:parent-style-name="Standard" style:default-outline-level="${level2}">
       <style:text-properties fo:font-size="${size}pt" fo:font-weight="bold"/>
     </style:style>`;
   }).join("\n");
@@ -47610,8 +47354,8 @@ function imageXml(ref, alt, ctx) {
   const descr = xmlEsc4(alt ?? "");
   return `<w:p><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${id}" name="${name}" descr="${descr}"/><a:graphic xmlns:a="${A_NS}"><a:graphicData uri="${PIC_NS}"><pic:pic xmlns:pic="${PIC_NS}"><pic:nvPicPr><pic:cNvPr id="${id}" name="${name}" descr="${descr}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
 }
-function tableXml2(header, rows, ctx) {
-  const all = header ? [header, ...rows] : rows;
+function tableXml2(header, rows2, ctx) {
+  const all = header ? [header, ...rows2] : rows2;
   if (!all.length) return "";
   if (header) ctx.needTableHeader = true;
   const pending = /* @__PURE__ */ new Map();
@@ -47656,10 +47400,10 @@ function tableXml2(header, rows, ctx) {
 function blockXml(block, ctx) {
   switch (block.type) {
     case "heading": {
-      const level = clampLevel2(block.level);
+      const level2 = clampLevel2(block.level);
       const offBold = hasMark(block.inlines ?? []);
       return paraXml2(
-        `<w:pStyle w:val="Heading${level}"/>`,
+        `<w:pStyle w:val="Heading${level2}"/>`,
         inlinesXml(block.inlines ?? [], ctx, NO_MARKS, offBold, false, 0)
       );
     }
@@ -49047,20 +48791,20 @@ function readingOrder2(items, rect) {
   const heights = items.map((t) => rect(t).h).sort((a, b) => a - b);
   const tol = Math.max(1, (heights[Math.floor(heights.length / 2)] ?? 0) / 2);
   const byY = [...items].sort((a, b) => rect(a).y + rect(a).h / 2 - (rect(b).y + rect(b).h / 2));
-  const rows = [];
+  const rows2 = [];
   let rowYc = -Infinity;
   for (const t of byY) {
     const yc = rect(t).y + rect(t).h / 2;
-    if (!rows.length || yc - rowYc > tol) {
-      rows.push([t]);
+    if (!rows2.length || yc - rowYc > tol) {
+      rows2.push([t]);
       rowYc = yc;
     } else {
-      const row = rows[rows.length - 1];
+      const row = rows2[rows2.length - 1];
       row.push(t);
       rowYc = row.reduce((s, r3) => s + rect(r3).y + rect(r3).h / 2, 0) / row.length;
     }
   }
-  return rows.flatMap((row) => row.sort((a, b) => rect(a).x - rect(b).x));
+  return rows2.flatMap((row) => row.sort((a, b) => rect(a).x - rect(b).x));
 }
 function figmaNodesToScenes(nodeChanges, blobs) {
   const list2 = Array.isArray(nodeChanges) ? nodeChanges : [];
@@ -52065,13 +51809,13 @@ function taggedBlocks(items, tagged) {
     let text3 = "";
     for (const l of lines) text3 = appendLine(text3, l.text);
     const marker = LIST_MARKER.exec(text3)?.[0]?.trim();
-    const { kind, level } = kindFromType(el.type);
+    const { kind, level: level2 } = kindFromType(el.type);
     if (marker) text3 = text3.replace(LIST_MARKER, "");
     text3 = text3.trim();
     if (!text3) continue;
     blocks.push({
       kind,
-      ...level ? { level } : {},
+      ...level2 ? { level: level2 } : {},
       text: text3,
       ...marker ? { marker } : {},
       size: median3(lines.map((l) => l.size)),
@@ -53393,7 +53137,7 @@ function parseCubeLut(text3) {
 function parse3dlLut(text3) {
   const lines = String(text3).split(/\r?\n/);
   let mesh = null;
-  const rows = [];
+  const rows2 = [];
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line || line[0] === "#" || /^[A-Za-z]/.test(line)) continue;
@@ -53403,14 +53147,14 @@ function parse3dlLut(text3) {
       mesh = parts;
       continue;
     }
-    if (parts.length >= 3) rows.push(parts.slice(0, 3));
+    if (parts.length >= 3) rows2.push(parts.slice(0, 3));
   }
-  const size = mesh ? mesh.length : Math.round(Math.pow(rows.length, 1 / 3));
-  if (!(size >= 2) || rows.length < size * size * size) throw new Error("Not a .3dl LUT");
+  const size = mesh ? mesh.length : Math.round(Math.pow(rows2.length, 1 / 3));
+  if (!(size >= 2) || rows2.length < size * size * size) throw new Error("Not a .3dl LUT");
   if (size > TDL_MAX_N) throw new Error(`LUT grid too large (max ${TDL_MAX_N} for .3dl)`);
   let peak = 0;
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
+  for (let i = 0; i < rows2.length; i++) {
+    const row = rows2[i];
     peak = Math.max(peak, row[0], row[1], row[2]);
   }
   const scale = peak > 4095 ? 65535 : peak > 1023 ? 4095 : peak > 255 ? 1023 : 255;
@@ -53419,7 +53163,7 @@ function parse3dlLut(text3) {
   for (let rI = 0; rI < size; rI++) {
     for (let gI = 0; gI < size; gI++) {
       for (let bI = 0; bI < size; bI++) {
-        const row = rows[k++];
+        const row = rows2[k++];
         const out = ((bI * size + gI) * size + rI) * 3;
         data[out] = row[0] / scale;
         data[out + 1] = row[1] / scale;
@@ -54557,12 +54301,12 @@ function camelOf(k) {
 function scanPenpotAppliedTokens(entries) {
   const warnings = [];
   const budget2 = newParseBudget();
-  const rows = /* @__PURE__ */ new Map();
+  const rows2 = /* @__PURE__ */ new Map();
   const bump = (name, cls) => {
-    let r3 = rows.get(name);
+    let r3 = rows2.get(name);
     if (!r3) {
       r3 = { fills: 0, strokes: 0, text: 0, type: 0, geometry: 0 };
-      rows.set(name, r3);
+      rows2.set(name, r3);
     }
     r3[cls]++;
   };
@@ -54579,7 +54323,7 @@ function scanPenpotAppliedTokens(entries) {
       if (cls) bump(rawName, cls);
     }
   }
-  return [...rows.entries()].map(([name, r3]) => ({ name, ...r3, total: r3.fills + r3.strokes + r3.text + r3.type + r3.geometry })).sort((a, b) => b.total - a.total || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  return [...rows2.entries()].map(([name, r3]) => ({ name, ...r3, total: r3.fills + r3.strokes + r3.text + r3.type + r3.geometry })).sort((a, b) => b.total - a.total || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 }
 function summarizeTokensDoc(doc) {
   const sets = tokenSetNames(doc) ?? [];
@@ -58562,9 +58306,9 @@ var init_prepare_pii = __esm({
 });
 
 // engine/src/prepare-text.ts
-function sensitiveField(field, rules) {
-  const normalized = field.replace(/[-_\s]/g, "");
-  return FIELD.test(normalized) || rules.some((r3) => r3.kind === "field" && r3.value.toLowerCase() === field.toLowerCase());
+function sensitiveField(field2, rules) {
+  const normalized = field2.replace(/[-_\s]/g, "");
+  return FIELD.test(normalized) || rules.some((r3) => r3.kind === "field" && r3.value.toLowerCase() === field2.toLowerCase());
 }
 function validatePreparationRules(rules) {
   if (!Array.isArray(rules) || rules.length > PREPARE_MAX_RULES) throw new Error("Use at most 100 local rules.");
@@ -58575,7 +58319,7 @@ function validatePreparationRules(rules) {
     return { id: r3.id, kind: r3.kind, value: r3.value, label: r3.label };
   });
 }
-function inspectPrivateText(text3, rules = [], field) {
+function inspectPrivateText(text3, rules = [], field2) {
   if (text3.length > PREPARE_MAX_TEXT) throw new Error("Text inspection is limited to 1 MiB per value.");
   const spans = [];
   let truncated = false;
@@ -58594,7 +58338,7 @@ function inspectPrivateText(text3, rules = [], field) {
     }
     spans.push({ start, end, value, category, label, rule, uncertain, ...encoding ? { encoding } : {} });
   };
-  if (field && sensitiveField(field, rules) && text3.trim()) {
+  if (field2 && sensitiveField(field2, rules) && text3.trim()) {
     const prefix = /^(?:Bearer|Basic)\s+/i.exec(text3)?.[0].length ?? 0;
     add(prefix, text3.length, "credential", "Sensitive field", "sensitive-field");
     return { spans, truncated };
@@ -58710,13 +58454,13 @@ function textDocument(doc, bytes, text3, structured, json, rules, budget2) {
     return low;
   };
   const edits = [];
-  const add = (value, start, end, location, field, encode) => {
+  const add = (value, start, end, location, field2, encode) => {
     if (value.length > PREPARE_MAX_TEXT || ++budget2.units > 2e4) {
       doc.scope.status = "partial";
       return;
     }
     const id = `${doc.scope.id}:u${doc.units.length}`;
-    doc.units.push({ id, scopeId: doc.scope.id, text: value, field, location, line: lineAt(start) });
+    doc.units.push({ id, scopeId: doc.scope.id, text: value, field: field2, location, line: lineAt(start) });
     edits.push({ id, start, end, encode });
   };
   if (!structured) add(text3, 0, text3.length, "Text", void 0, (s) => s);
@@ -58737,7 +58481,7 @@ function textDocument(doc, bytes, text3, structured, json, rules, budget2) {
         doc.scope.limitations.push("The structured node limit was reached.");
         break;
       }
-      const { node, path, field, base64, depth } = queue[cursor];
+      const { node, path, field: field2, base64, depth } = queue[cursor];
       if (depth > 64) {
         doc.scope.status = "partial";
         doc.scope.limitations.push("Nested content beyond 64 levels was not inspected.");
@@ -58758,7 +58502,7 @@ function textDocument(doc, bytes, text3, structured, json, rules, budget2) {
           queue.push({ node: pair.value, path: `${path}.${key}`, field: key === "value" && path.includes(".cookies[") ? "cookie" : key === "value" && context ? context : key, base64: encoded && key === "text", depth: depth + 1 });
         }
       } else if (isSeq(node)) node.items.forEach((item, i) => {
-        queue.push({ node: item, path: `${path}[${i}]`, field, depth: depth + 1 });
+        queue.push({ node: item, path: `${path}[${i}]`, field: field2, depth: depth + 1 });
       });
       else if (isScalar(node) && node.range) {
         const [start, end] = node.range;
@@ -58774,7 +58518,7 @@ function textDocument(doc, bytes, text3, structured, json, rules, budget2) {
             doc.scope.status = "partial";
             doc.scope.limitations.push("A base64 body is binary, invalid or too large to inspect.");
           } else add(decoded, start, end, `${path} (decoded body)`, void 0, (v) => encode(encodeBase64(v)));
-        } else add(value, start, end, path, field && sensitiveField(field, rules) ? field : void 0, encode);
+        } else add(value, start, end, path, field2 && sensitiveField(field2, rules) ? field2 : void 0, encode);
       }
     }
     if (!json) {
@@ -59026,22 +58770,22 @@ async function applyPreparation(sources, inspection, choices, removeScopes = [],
   if (JSON.stringify(fresh.inspection.sources) !== JSON.stringify(inspection.sources) || JSON.stringify(fresh.inspection.findings) !== JSON.stringify(inspection.findings)) throw new Error("The source or inspection changed. Inspect again before applying choices.");
   if (!Array.isArray(choices) || choices.length > PREPARE_MAX_FINDINGS || !Array.isArray(removeScopes) || removeScopes.length > 300) throw new Error("Too many preparation choices.");
   const chosen = /* @__PURE__ */ new Map();
-  for (const choice of choices) {
-    if (!fresh.inspection.groups.some((g2) => g2.id === choice.groupId) || chosen.has(choice.groupId) || typeof choice.replacement !== "string" || choice.replacement.length > 4096) throw new Error("Invalid replacement choice.");
-    if (choice.findings && (!Array.isArray(choice.findings) || choice.findings.some((id) => !fresh.inspection.findings.some((f) => f.id === id && f.groupId === choice.groupId)))) throw new Error("A selected occurrence no longer belongs to this group.");
-    chosen.set(choice.groupId, choice);
+  for (const choice2 of choices) {
+    if (!fresh.inspection.groups.some((g2) => g2.id === choice2.groupId) || chosen.has(choice2.groupId) || typeof choice2.replacement !== "string" || choice2.replacement.length > 4096) throw new Error("Invalid replacement choice.");
+    if (choice2.findings && (!Array.isArray(choice2.findings) || choice2.findings.some((id) => !fresh.inspection.findings.some((f) => f.id === id && f.groupId === choice2.groupId)))) throw new Error("A selected occurrence no longer belongs to this group.");
+    chosen.set(choice2.groupId, choice2);
   }
   const remove = new Set(removeScopes);
   for (const id of remove) if (!fresh.inspection.scopes.some((s) => s.id === id && s.id !== s.sourceId)) throw new Error("Only listed archive members can be removed.");
   const byUnit = /* @__PURE__ */ new Map();
   const replaced = /* @__PURE__ */ new Map();
   for (const finding3 of fresh.inspection.findings) {
-    const choice = chosen.get(finding3.groupId);
-    if (choice?.replacement === finding3.value) continue;
-    if (!choice || choice.findings && !choice.findings.includes(finding3.id)) continue;
+    const choice2 = chosen.get(finding3.groupId);
+    if (choice2?.replacement === finding3.value) continue;
+    if (!choice2 || choice2.findings && !choice2.findings.includes(finding3.id)) continue;
     const entry = fresh.spans.get(finding3.id);
     const group = byUnit.get(entry.unit.id) ?? { unit: entry.unit, edits: [] };
-    group.edits.push({ span: entry.span, replacement: choice.replacement });
+    group.edits.push({ span: entry.span, replacement: choice2.replacement });
     byUnit.set(entry.unit.id, group);
     replaced.set(finding3.scopeId, (replaced.get(finding3.scopeId) ?? 0) + 1);
   }
@@ -59179,9 +58923,9 @@ var init_prepare_metadata = __esm({
 // engine/src/compare-budget.ts
 function comparisonBudget(options2, signal) {
   let work = 0;
-  const bounded = (value, fallback, max) => Number.isFinite(value) ? Math.max(1, Math.min(max, Math.floor(value))) : fallback;
-  const maxWork = bounded(options2.maxWork, 1e6, 2e6);
-  const maxChanges = bounded(options2.maxChanges, 200, 1e3);
+  const bounded2 = (value, fallback, max) => Number.isFinite(value) ? Math.max(1, Math.min(max, Math.floor(value))) : fallback;
+  const maxWork = bounded2(options2.maxWork, 1e6, 2e6);
+  const maxChanges = bounded2(options2.maxChanges, 200, 1e3);
   const budget2 = {
     changes: [],
     summary: { added: 0, removed: 0, changed: 0, moved: 0, total: 0 },
@@ -59616,6 +59360,1237 @@ var init_compare2 = __esm({
   }
 });
 
+// engine/src/text-syntax.ts
+function detectCodeLanguage(code) {
+  if (/^\s*FROM\s+\S+/m.test(code)) return "dockerfile";
+  if (/^\s*<(!DOCTYPE|html)/i.test(code)) return "html";
+  if (/^\s*[{[]/.test(code)) {
+    try {
+      JSON.parse(code);
+      return "json";
+    } catch {
+    }
+  }
+  if (/\bdef \w+\(|^from \w+ import|\bprint\(/m.test(code)) return "python";
+  if (/\bfn \w+\(|\blet mut\b|\bimpl\b|\buse std::/m.test(code)) return "rust";
+  if (/\bfunc \w+\(|\bpackage \w|\bfmt\.\w/m.test(code)) return "go";
+  if (/^#!.*(?:bash|sh)|^\s*(?:echo|export)\s/m.test(code)) return "bash";
+  if (/^\s*(?:SELECT|CREATE TABLE|INSERT INTO)\s/im.test(code)) return "sql";
+  if (/\{[^}]*:\s*[^;]+;/.test(code) && !code.includes("function")) return "css";
+  if (/\binterface\s+\w|\btype\s+\w+\s*=/.test(code)) return "typescript";
+  if (/\b(?:const|let|function|import)\s|=>/.test(code)) return "javascript";
+  if (/^[\w.-]+\s*=\s*\S/m.test(code)) return "toml";
+  if (/^[\w.-]+:\s+\S/m.test(code)) return "yaml";
+  return "plain";
+}
+function escapeCode(value) {
+  return value.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
+  );
+}
+function callout(raw, opts) {
+  if (!opts.calloutMode || opts.calloutMode === "off") return null;
+  const text3 = raw.replace(/^(?:\/\/|#)\s*/, "");
+  const matches2 = opts.calloutMode === "all" || opts.calloutMode === "tags" && /^(TODO|FIXME|FIX|NOTE|HACK|XXX|BUG|WIP|WARNING|WARN|OPTIMIZE|REVIEW|DEPRECATED)\b/i.test(
+    text3
+  ) || opts.calloutMode === "custom" && opts.calloutPrefixes?.some((p) => text3.toLowerCase().startsWith(p.toLowerCase()));
+  if (!matches2) return null;
+  const html = escapeCode(text3).replace(/\*\*([^*]+?)\*\*/g, "<strong>$1</strong>").replace(/(^|[^\w*])__([^_]+?)__(?![\w])/g, "$1<strong>$2</strong>").replace(/\*([^*]+?)\*/g, "<em>$1</em>").replace(/(^|[^\w*])_([^_]+?)_(?![\w])/g, "$1<em>$2</em>");
+  return `<span class="cc-callout"><span class="cc-callout-arrow">\u2190</span><span class="cc-callout-text">${html}</span></span>`;
+}
+function highlightCode(source, language = "auto", opts = {}) {
+  const lang = language === "auto" ? detectCodeLanguage(source) : language;
+  if (lang === "plain" || !SYNTAX_LANGUAGES.includes(lang))
+    return { html: escapeCode(source), language: "plain", truncated: false };
+  const end = Math.min(source.length, 8e4), parts = [];
+  const keywords = new Set(
+    (KW[lang] ?? (lang === "sql" ? "SELECT|FROM|WHERE|AS|JOIN|ON|AND|OR|NOT|NULL|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|ORDER|BY|GROUP|LIMIT" : "true|false|null")).split("|")
+  );
+  const emit = (start, stop, token2) => {
+    const value = escapeCode(source.slice(start, stop));
+    parts.push(token2 ? `<span class="tok-${token2}">${value}</span>` : value);
+  };
+  let i = 0;
+  while (i < end) {
+    const start = i, c = source[i];
+    const lineComment = c === "/" && source[i + 1] === "/" && source[i - 1] !== ":" && !["css", "json"].includes(lang) || c === "#" && ["python", "bash", "dockerfile", "yaml", "toml"].includes(lang) || c === "-" && source[i + 1] === "-" && lang === "sql";
+    if (lineComment) {
+      i = source.indexOf("\n", i);
+      if (i < 0) i = source.length;
+      const before = source.slice(source.lastIndexOf("\n", start - 1) + 1, start);
+      const special = before.trim() ? callout(source.slice(start, i), opts) : null;
+      if (special) parts.push(special);
+      else emit(start, i, "comment");
+      continue;
+    }
+    if (source.startsWith("/*", i) || ["html", "xml"].includes(lang) && source.startsWith("<!--", i)) {
+      const close = source.startsWith("<!--", i) ? "-->" : "*/";
+      const at = source.indexOf(close, i + 2);
+      i = at < 0 ? source.length : at + close.length;
+      emit(start, i, "comment");
+      continue;
+    }
+    if ("'\"`".includes(c)) {
+      i++;
+      while (i < source.length) {
+        if (source[i] === "\\") {
+          i += 2;
+          continue;
+        }
+        if (source[i++] === c) break;
+      }
+      i = Math.min(i, source.length);
+      emit(start, i, "string");
+      continue;
+    }
+    if ((lang === "html" || lang === "xml") && c === "<") {
+      const at = source.indexOf(">", i + 1);
+      i = at < 0 ? source.length : at + 1;
+      emit(start, i, "keyword");
+      continue;
+    }
+    if (/\d/.test(c) && !/[\w$]/.test(source[i - 1] ?? "")) {
+      i++;
+      while (i < source.length && /[\w.]/.test(source[i])) i++;
+      emit(start, i, "number");
+      continue;
+    }
+    if (/[A-Za-z_$]/.test(c)) {
+      i++;
+      while (i < source.length && /[\w$-]/.test(source[i])) i++;
+      const word = source.slice(start, i);
+      let after = i;
+      while (/\s/.test(source[after] ?? "") && after < source.length) after++;
+      emit(
+        start,
+        i,
+        keywords.has(word) || lang === "sql" && keywords.has(word.toUpperCase()) ? "keyword" : source[after] === "(" ? "function" : /^[A-Z][a-zA-Z]+$/.test(word) ? "type" : void 0
+      );
+      continue;
+    }
+    i++;
+    emit(start, i, /[+*=!<>|&?:%-]/.test(c) ? "operator" : void 0);
+  }
+  if (i < source.length) parts.push(escapeCode(source.slice(i)));
+  return { html: parts.join(""), language: lang, truncated: end < source.length };
+}
+var KW, SYNTAX_LANGUAGES;
+var init_text_syntax = __esm({
+  "engine/src/text-syntax.ts"() {
+    "use strict";
+    KW = {
+      javascript: "const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|new|delete|typeof|instanceof|in|of|class|extends|import|export|default|from|async|await|try|catch|finally|throw|this|super|true|false|null|undefined|void|yield|static",
+      typescript: "const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|new|delete|typeof|instanceof|in|of|class|extends|import|export|default|from|async|await|try|catch|finally|throw|this|super|true|false|null|undefined|void|yield|static|type|interface|enum|implements|abstract|readonly|private|public|protected|namespace|declare|as|keyof|infer|never|unknown|any|string|number|boolean|object",
+      python: "def|class|return|if|elif|else|for|while|in|not|and|or|import|from|as|try|except|finally|raise|with|lambda|yield|global|nonlocal|pass|break|continue|True|False|None|del|assert|is|self|print",
+      rust: "fn|let|mut|const|struct|enum|impl|trait|use|mod|pub|return|if|else|match|for|while|loop|break|continue|in|where|type|async|await|move|ref|self|Self|super|crate|true|false",
+      go: "func|var|const|type|struct|interface|return|if|else|for|range|switch|case|break|continue|default|import|package|go|chan|select|defer|fallthrough|map|make|new|nil|true|false|iota",
+      css: "important|media|keyframes|charset|import|supports|root|hover|focus|active|before|after|not|nth-child|first-child|last-child",
+      bash: "if|then|else|elif|fi|for|do|done|while|case|esac|in|function|return|exit|echo|export|local|source|readonly|set|unset|true|false",
+      dockerfile: "FROM|AS|RUN|CMD|LABEL|MAINTAINER|EXPOSE|ENV|ADD|COPY|ENTRYPOINT|VOLUME|USER|WORKDIR|ARG|ONBUILD|STOPSIGNAL|HEALTHCHECK|SHELL",
+      json: "",
+      html: "",
+      plain: ""
+    };
+    SYNTAX_LANGUAGES = [...Object.keys(KW), "yaml", "toml", "sql", "xml"];
+  }
+});
+
+// engine/src/text-operations.ts
+var choice, field, number, rows, TEXT_OPERATIONS;
+var init_text_operations = __esm({
+  "engine/src/text-operations.ts"() {
+    "use strict";
+    choice = (id, label, choices, value = choices[0]) => ({
+      id,
+      label,
+      type: "select",
+      choices,
+      default: value
+    });
+    field = (id, label, value = "") => ({ id, label, type: "text", default: value });
+    number = (id, label, value) => ({ id, label, type: "number", default: value });
+    rows = [
+      ["upper", "UPPERCASE", "Edit", ["case"]],
+      ["lower", "lowercase", "Edit", ["case"]],
+      ["title", "Title Case", "Edit", ["case"]],
+      ["sentence", "Sentence case", "Edit", ["case"]],
+      ["kebab", "kebab-case", "Edit", ["case", "slug"]],
+      ["snake", "snake_case", "Edit", ["case"]],
+      ["pascal", "PascalCase", "Edit", ["case"]],
+      ["camel", "camelCase", "Edit", ["case"]],
+      ["trim", "Trim line edges", "Edit", ["whitespace"]],
+      ["blank", "Remove empty lines", "Edit", ["whitespace"]],
+      ["dedupe", "Remove duplicate lines", "Edit", ["unique"]],
+      [
+        "sort",
+        "Sort lines",
+        "Edit",
+        ["alphabetical"],
+        [choice("order", "Order", ["ascending", "descending"])]
+      ],
+      [
+        "endings",
+        "Line endings",
+        "Edit",
+        ["LF", "CRLF"],
+        [choice("style", "Line endings", ["LF", "CRLF"])]
+      ],
+      [
+        "normalize",
+        "Normalize Unicode",
+        "Edit",
+        ["NFC", "NFD"],
+        [choice("form", "Form", ["NFC", "NFD", "NFKC", "NFKD"])]
+      ],
+      [
+        "replace",
+        "Find and replace",
+        "Edit",
+        ["search"],
+        [field("find", "Find"), field("replacement", "Replace with")]
+      ],
+      ["clean", "Clean typography", "Edit", ["humanize", "invisible", "characters"]],
+      ["reword-rules", "Plain language suggestions", "Inspect", ["rewrite", "verify", "catalog"]],
+      [
+        "inspect",
+        "Inspect text",
+        "Inspect",
+        ["statistics", "words", "reading", "hidden", "unicode", "AI", "verify"]
+      ],
+      [
+        "redact",
+        "De-identify",
+        "Inspect",
+        ["privacy", "pii", "names", "aliases"],
+        [field("literals", "Also replace (one name or value per line)")]
+      ],
+      ["restore", "Restore aliases", "Edit", ["de-identify"], [field("map", "Alias map (JSON)")]],
+      [
+        "logs",
+        "Analyse logs",
+        "Inspect",
+        ["error", "system", "syslog", "journal", "JSONL"],
+        [
+          field("query", "Search"),
+          choice("match", "Search mode", ["contains", "exact"]),
+          choice("severity", "Level", [
+            "all",
+            "important",
+            "error",
+            "warning",
+            "info",
+            "debug",
+            "unclassified"
+          ]),
+          field("source", "Source"),
+          field("from", "From (ISO date and time)"),
+          field("until", "Until (ISO date and time)")
+        ]
+      ],
+      [
+        "regex",
+        "Test regular expression",
+        "Inspect",
+        ["pattern", "matches"],
+        [
+          field("pattern", "Pattern"),
+          field("flags", "Flags", "gu"),
+          choice("mode", "Action", ["matches", "replace"]),
+          field("replacement", "Replace with (may be empty)")
+        ]
+      ],
+      [
+        "diff",
+        "Compare text",
+        "Inspect",
+        ["difference", "diff"],
+        [field("after", "Compare with"), choice("granularity", "Compare by", ["line", "word"])]
+      ],
+      [
+        "schema",
+        "Validate JSON schema",
+        "Inspect",
+        ["json", "schema"],
+        [field("schema", "JSON schema")]
+      ],
+      ["jwt", "Decode JWT", "Inspect", ["token", "header", "payload"]],
+      [
+        "hash",
+        "Hash text",
+        "Inspect",
+        ["SHA256", "checksum"],
+        [
+          choice("algorithm", "Algorithm", ["SHA-256", "SHA-384", "SHA-512", "SHA-1"]),
+          field("expected", "Expected checksum (optional)")
+        ]
+      ],
+      [
+        "json",
+        "Format JSON",
+        "Convert",
+        ["pretty", "minify"],
+        [choice("style", "Style", ["pretty", "compact"])]
+      ],
+      ["yaml", "Format YAML", "Convert", ["validate"]],
+      [
+        "helm",
+        "Inspect Helm templates",
+        "Inspect",
+        ["yaml", "kubernetes", "values", "lint"],
+        [choice("mode", "Action", ["values", "lint"])]
+      ],
+      [
+        "structured",
+        "Convert JSON, YAML or TOML",
+        "Convert",
+        ["data", "configuration"],
+        [
+          choice("from", "From", ["json", "yaml", "toml"]),
+          choice("to", "To", ["yaml", "json", "toml"])
+        ]
+      ],
+      [
+        "format",
+        "Format code",
+        "Convert",
+        ["javascript", "css", "html", "sql", "markdown"],
+        [
+          choice("language", "Language", [
+            "javascript",
+            "typescript",
+            "css",
+            "html",
+            "markdown",
+            "sql"
+          ]),
+          choice("style", "Style (compact: JavaScript or CSS)", ["pretty", "compact"])
+        ]
+      ],
+      [
+        "xml",
+        "Format or validate XML",
+        "Inspect",
+        ["xsd", "schema"],
+        [choice("mode", "Action", ["validate", "format"]), field("schema", "XSD schema (optional)")]
+      ],
+      [
+        "base64-encode",
+        "Encode Base64",
+        "Convert",
+        ["unicode"],
+        [choice("alphabet", "Alphabet", ["standard", "url-safe"])]
+      ],
+      ["base64-decode", "Decode Base64", "Convert", ["unicode"]],
+      ["url-encode", "Encode URL component", "Convert", ["percent"]],
+      ["url-decode", "Decode URL component", "Convert", ["percent"]],
+      ["html-escape", "Escape HTML", "Convert", ["entities"]],
+      ["html-unescape", "Unescape HTML", "Convert", ["entities"]],
+      [
+        "table",
+        "Convert a table",
+        "Convert",
+        ["csv", "tsv", "markdown", "html"],
+        [choice("format", "Output", ["markdown", "tsv", "html"])]
+      ],
+      ["rot13", "ROT13", "Convert", ["cipher"]],
+      [
+        "qwerty",
+        "QWERTY cipher",
+        "Convert",
+        ["cipher"],
+        [choice("direction", "Direction", ["encode", "decode"])]
+      ],
+      [
+        "emoji-cipher",
+        "Emoji cipher",
+        "Convert",
+        ["cipher"],
+        [choice("direction", "Direction", ["encode", "decode"])]
+      ],
+      [
+        "ascii",
+        "ASCII art from text",
+        "Generate",
+        ["banner", "letters"],
+        [
+          choice("style", "Lettering", ["compact", "block", "slant"]),
+          field("ink", "Ink character", "#"),
+          number("spacing", "Letter spacing", 1),
+          number("width", "Width (0 for automatic)", 0),
+          choice("align", "Align", ["left", "center", "right"])
+        ]
+      ],
+      [
+        "lorem",
+        "Placeholder text",
+        "Generate",
+        ["lorem", "ipsum"],
+        [number("paragraphs", "Paragraphs", 3)]
+      ],
+      ["uuid", "UUID", "Generate", ["random", "identifier"], [number("count", "Count", 1)]],
+      [
+        "random",
+        "Random text",
+        "Generate",
+        ["password", "string"],
+        [
+          number("length", "Length", 32),
+          field(
+            "alphabet",
+            "Alphabet",
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+          )
+        ]
+      ],
+      [
+        "timestamp",
+        "Convert timestamp",
+        "Convert",
+        ["unix", "epoch", "date"],
+        [choice("unit", "Numeric timestamp unit", ["seconds", "milliseconds"])]
+      ]
+    ];
+    TEXT_OPERATIONS = rows.map(
+      ([id, label, group, keywords, options2]) => ({
+        id,
+        label,
+        group,
+        keywords,
+        ...options2 ? { options: options2 } : {}
+      })
+    );
+  }
+});
+
+// engine/src/text-ascii.ts
+function textAscii(text3, opts = {}) {
+  if (text3.length > 300) throw new Error("Use 300 characters or fewer for an ASCII banner.");
+  if (/[^\x20-\x7e\r\n]/.test(text3))
+    throw new Error(
+      "This banner alphabet supports ASCII letters, numbers, spaces, and basic punctuation."
+    );
+  const source = text3.toUpperCase().replace(/\r\n?/g, "\n");
+  const missing = [...new Set([...source].filter((c) => c !== "\n" && !GLYPHS[c]))];
+  if (missing.length)
+    throw new Error(`This banner alphabet has no lettering for: ${missing.join(" ")}`);
+  const ink = opts.ink || "#";
+  if (!/^[!-~]$/.test(ink)) throw new Error("Choose one visible ASCII character for the ink.");
+  const scale = opts.style === "block" ? 2 : 1;
+  const gap = " ".repeat(Math.min(8, Math.max(0, Math.trunc(opts.spacing ?? 1))));
+  const width = Math.min(500, Math.max(0, Math.trunc(opts.width ?? 0)));
+  const blocks = [];
+  for (const line of source.split("\n")) {
+    const glyphs = [...line].map((c) => GLYPHS[c].split("/"));
+    const rows2 = Array.from({ length: 7 }, (_, row) => {
+      const indent = opts.style === "slant" ? " ".repeat(6 - row) : "";
+      return indent + glyphs.map((g2) => [...g2[row]].map((v) => (v === "1" ? ink : " ").repeat(scale)).join("")).join(gap);
+    });
+    const used = Math.max(0, ...rows2.map((r3) => r3.length));
+    if (width && used > width)
+      throw new Error(`This banner needs ${used} columns. Increase the width or use shorter text.`);
+    blocks.push(
+      rows2.map((r3) => {
+        const pad = Math.max(0, width - used);
+        return " ".repeat(
+          opts.align === "right" ? pad : opts.align === "center" ? Math.floor(pad / 2) : 0
+        ) + r3;
+      }).join("\n")
+    );
+  }
+  return blocks.join("\n\n");
+}
+var GLYPHS;
+var init_text_ascii = __esm({
+  "engine/src/text-ascii.ts"() {
+    "use strict";
+    GLYPHS = {
+      A: "01110/10001/10001/11111/10001/10001/10001",
+      B: "11110/10001/10001/11110/10001/10001/11110",
+      C: "01111/10000/10000/10000/10000/10000/01111",
+      D: "11110/10001/10001/10001/10001/10001/11110",
+      E: "11111/10000/10000/11110/10000/10000/11111",
+      F: "11111/10000/10000/11110/10000/10000/10000",
+      G: "01111/10000/10000/10111/10001/10001/01111",
+      H: "10001/10001/10001/11111/10001/10001/10001",
+      I: "11111/00100/00100/00100/00100/00100/11111",
+      J: "00111/00010/00010/00010/10010/10010/01100",
+      K: "10001/10010/10100/11000/10100/10010/10001",
+      L: "10000/10000/10000/10000/10000/10000/11111",
+      M: "10001/11011/10101/10101/10001/10001/10001",
+      N: "10001/11001/10101/10011/10001/10001/10001",
+      O: "01110/10001/10001/10001/10001/10001/01110",
+      P: "11110/10001/10001/11110/10000/10000/10000",
+      Q: "01110/10001/10001/10001/10101/10010/01101",
+      R: "11110/10001/10001/11110/10100/10010/10001",
+      S: "01111/10000/10000/01110/00001/00001/11110",
+      T: "11111/00100/00100/00100/00100/00100/00100",
+      U: "10001/10001/10001/10001/10001/10001/01110",
+      V: "10001/10001/10001/10001/10001/01010/00100",
+      W: "10001/10001/10001/10101/10101/11011/10001",
+      X: "10001/10001/01010/00100/01010/10001/10001",
+      Y: "10001/10001/01010/00100/00100/00100/00100",
+      Z: "11111/00001/00010/00100/01000/10000/11111",
+      "0": "01110/10001/10011/10101/11001/10001/01110",
+      "1": "00100/01100/00100/00100/00100/00100/01110",
+      "2": "01110/10001/00001/00010/00100/01000/11111",
+      "3": "11110/00001/00001/01110/00001/00001/11110",
+      "4": "00010/00110/01010/10010/11111/00010/00010",
+      "5": "11111/10000/10000/11110/00001/00001/11110",
+      "6": "01110/10000/10000/11110/10001/10001/01110",
+      "7": "11111/00001/00010/00100/01000/01000/01000",
+      "8": "01110/10001/10001/01110/10001/10001/01110",
+      "9": "01110/10001/10001/01111/00001/00001/01110",
+      " ": "000/000/000/000/000/000/000",
+      ".": "00/00/00/00/00/11/11",
+      ",": "00/00/00/00/01/01/10",
+      "!": "1/1/1/1/1/0/1",
+      "?": "01110/10001/00001/00010/00100/00000/00100",
+      "-": "00000/00000/00000/11111/00000/00000/00000",
+      _: "00000/00000/00000/00000/00000/00000/11111",
+      ":": "0/1/0/0/1/0/0",
+      "/": "00001/00001/00010/00100/01000/10000/10000",
+      "+": "00000/00100/00100/11111/00100/00100/00000",
+      "=": "00000/00000/11111/00000/11111/00000/00000"
+    };
+  }
+});
+
+// engine/src/text-logs.ts
+function level(value) {
+  if (typeof value === "number" || /^\d$/.test(String(value)))
+    return PRIORITIES[Number(value)] ?? "unclassified";
+  const s = String(value ?? "").toLowerCase();
+  return { warn: "warning", fatal: "critical", err: "error", information: "info" }[s] ?? (PRIORITIES.includes(s) || s === "trace" ? s : "unclassified");
+}
+function stringField(fields, names) {
+  for (const name of names)
+    if (typeof fields[name] === "string" || typeof fields[name] === "number")
+      return String(fields[name]);
+  return "";
+}
+function parseTextLogs(text3) {
+  if (new TextEncoder().encode(text3).length > LOG_MAX_BYTES)
+    throw new Error("Open a log excerpt of 4 MiB or less.");
+  const events = [];
+  let at = 0, line = 0;
+  for (const match of text3.matchAll(/[^\n]*\n|[^\n]+$/g)) {
+    const raw = match[0];
+    line++;
+    const body = raw.replace(/\r?\n$/, "");
+    const last = events[events.length - 1];
+    if (last && (/^\s+(?:at\s|File\s|\S)/.test(body) || /^(?:Caused by:|During handling|Traceback|\.{3} \d+ more)/.test(body))) {
+      last.raw += raw;
+      last.message += `
+${body}`;
+      last.end += raw.length;
+      last.lastLine = line;
+      at += raw.length;
+      continue;
+    }
+    let fields = {};
+    if (body.trimStart().startsWith("{")) {
+      try {
+        const v = JSON.parse(body);
+        if (v && typeof v === "object" && !Array.isArray(v)) fields = v;
+      } catch {
+      }
+    }
+    const priority = /^<(\d{1,3})>/.exec(body);
+    const content = priority ? body.slice(priority[0].length) : body;
+    const prefix = PREFIX.exec(content);
+    const journalTime = typeof fields.__REALTIME_TIMESTAMP === "string" && /^\d+$/.test(fields.__REALTIME_TIMESTAMP) ? Number(fields.__REALTIME_TIMESTAMP) / 1e3 : NaN;
+    const journalIso = Number.isFinite(journalTime) && Number.isFinite(new Date(journalTime).getTime()) ? new Date(journalTime).toISOString() : "";
+    const time = /^(?:\[)?(\d{4}-\d\d-\d\d[T ][\d:.]+(?:Z|[+-]\d\d:?\d\d)?|[A-Z][a-z]{2}\s+\d{1,2}\s+\d\d:\d\d:\d\d)/.exec(
+      content
+    );
+    const syslog = /^(?:[A-Z][a-z]{2}\s+\d{1,2}\s+[\d:]+|\d{4}-\d\d-\d\d[T ][\d:.Z+-]+)\s+\S+\s+([^ :]+)(?:\[\d+\])?:\s*(.*)$/.exec(
+      content
+    );
+    events.push({
+      id: line,
+      line,
+      lastLine: line,
+      start: at,
+      end: at + raw.length,
+      raw,
+      fields,
+      timestamp: journalIso || stringField(fields, ["timestamp", "time", "@timestamp"]) || prefix?.groups?.time || time?.[1] || "",
+      severity: level(
+        fields.level ?? fields.severity ?? fields.PRIORITY ?? (priority ? Number(priority[1]) % 8 : void 0) ?? prefix?.groups?.level1 ?? prefix?.groups?.level2
+      ),
+      source: stringField(fields, [
+        "service",
+        "source",
+        "logger",
+        "_SYSTEMD_UNIT",
+        "SYSLOG_IDENTIFIER",
+        "_COMM"
+      ]) || syslog?.[1] || "",
+      message: stringField(fields, ["message", "msg", "MESSAGE"]) || syslog?.[2] || content.slice(prefix?.[0].length ?? 0)
+    });
+    at += raw.length;
+    if (events.length > 5e4) throw new Error("Open a log excerpt with 50,000 events or fewer.");
+  }
+  const counts = {};
+  for (const event of events) counts[event.severity] = (counts[event.severity] ?? 0) + 1;
+  return {
+    events,
+    counts,
+    sources: [...new Set(events.map((e) => e.source).filter(Boolean))].sort()
+  };
+}
+function filterTextLogs(events, filter) {
+  const query = filter.query?.toLowerCase() ?? "";
+  if (filter.from && !Number.isFinite(Date.parse(filter.from)) || filter.until && !Number.isFinite(Date.parse(filter.until)))
+    throw new Error("Enter valid ISO dates for the time range.");
+  if (filter.from && filter.until && Date.parse(filter.from) > Date.parse(filter.until))
+    throw new Error("The end of the time range must follow its start.");
+  return events.filter((e) => {
+    if (filter.severity === "important" && !["emergency", "alert", "critical", "error", "warning"].includes(e.severity))
+      return false;
+    if (filter.severity && filter.severity !== "all" && filter.severity !== "important" && e.severity !== filter.severity)
+      return false;
+    if (filter.source && e.source !== filter.source) return false;
+    if (query && !(filter.exact ? e.message.toLowerCase() === query : e.raw.toLowerCase().includes(query)))
+      return false;
+    if (filter.from || filter.until) {
+      const time = /^\d{4}-\d\d-\d\d[T ]/.test(e.timestamp) ? Date.parse(e.timestamp) : NaN;
+      if (!Number.isFinite(time)) return false;
+      if (filter.from && time < Date.parse(filter.from)) return false;
+      if (filter.until && time > Date.parse(filter.until)) return false;
+    }
+    return true;
+  });
+}
+function groupTextLogs(events) {
+  const groups = [];
+  for (const event of events) {
+    const last = groups[groups.length - 1];
+    const first = last?.[0];
+    if (first && last.at(-1).lastLine + 1 === event.line && first.message === event.message && first.source === event.source && first.severity === event.severity)
+      last.push(event);
+    else groups.push([event]);
+  }
+  return groups;
+}
+var LOG_MAX_BYTES, PRIORITIES, PREFIX;
+var init_text_logs = __esm({
+  "engine/src/text-logs.ts"() {
+    "use strict";
+    LOG_MAX_BYTES = 4 * 1024 * 1024;
+    PRIORITIES = [
+      "emergency",
+      "alert",
+      "critical",
+      "error",
+      "warning",
+      "notice",
+      "info",
+      "debug"
+    ];
+    PREFIX = /^(?:(?<time>\d{4}-\d\d-\d\d[T ][\d:.]+(?:Z|[+-]\d\d:?\d\d)?|[A-Z][a-z]{2}\s+\d{1,2}\s+\d\d:\d\d:\d\d)\s+)?(?:\[(?<level1>TRACE|DEBUG|INFO|NOTICE|WARN(?:ING)?|ERROR|FATAL|CRITICAL)\]|(?<level2>TRACE|DEBUG|INFO|NOTICE|WARN(?:ING)?|ERROR|FATAL|CRITICAL)\b)[:\s-]*/i;
+  }
+});
+
+// engine/src/text-formats.ts
+import { parseAllDocuments as parseAllDocuments2, stringify } from "yaml";
+function readYaml(text3) {
+  return parseAllDocuments2(text3).map((doc) => {
+    if (doc.errors.length) throw new Error(doc.errors.map((e) => e.message).join("\n"));
+    return doc.toJS({ maxAliasCount: 100 });
+  });
+}
+function writeYaml(values) {
+  return values.map((v) => stringify(v)).join("---\n");
+}
+function ensureConvertible(value, to, seen = /* @__PURE__ */ new Set()) {
+  if (value === null && to === "toml")
+    throw new Error("TOML cannot represent null. No values have been discarded.");
+  if (typeof value === "bigint" || typeof value === "number" && (!Number.isFinite(value) || Number.isInteger(value) && !Number.isSafeInteger(value)))
+    throw new Error("This value cannot be converted without losing numeric precision.");
+  if (value instanceof Date)
+    throw new Error("Date types cannot be converted without changing their meaning.");
+  if (value && typeof value === "object") {
+    if (seen.has(value)) throw new Error("Cyclic aliases cannot be converted.");
+    seen.add(value);
+    for (const v of Object.values(value)) ensureConvertible(v, to, seen);
+    seen.delete(value);
+  }
+}
+async function convertStructured(text3, from, to) {
+  const toml = from === "toml" || to === "toml" ? await import("smol-toml") : null;
+  const values = from === "yaml" ? readYaml(text3) : [from === "toml" ? toml.parse(text3, { integersAsBigInt: "asNeeded" }) : JSON.parse(text3)];
+  for (const value of values) ensureConvertible(value, to);
+  if (to === "yaml") return writeYaml(values);
+  if (values.length !== 1)
+    throw new Error(`Choose a single YAML document to convert to ${to.toUpperCase()}.`);
+  if (to === "toml") {
+    if (!values[0] || typeof values[0] !== "object" || Array.isArray(values[0]))
+      throw new Error("TOML needs an object at the top level.");
+    return toml.stringify(values[0]);
+  }
+  return JSON.stringify(values[0], null, 2);
+}
+async function formatCode(text3, language) {
+  if (language === "sql") return (await import("sql-formatter")).format(text3);
+  const { format } = await import("prettier/standalone");
+  const parser = {
+    javascript: "babel",
+    typescript: "babel-ts",
+    css: "css",
+    html: "html",
+    markdown: "markdown"
+  }[language];
+  if (!parser) throw new Error("Choose a supported code language.");
+  const plugins = parser.startsWith("babel") ? [await import("prettier/plugins/babel"), await import("prettier/plugins/estree")] : parser === "css" ? [await import("prettier/plugins/postcss")] : parser === "html" ? [await import("prettier/plugins/html")] : [await import("prettier/plugins/markdown")];
+  return format(text3, { parser, plugins });
+}
+async function compactCode(text3, language) {
+  if (language === "javascript") {
+    const { minify } = await import("terser");
+    const result = await minify(text3, {
+      compress: false,
+      mangle: false,
+      format: { comments: "some" }
+    });
+    if (result.code == null) throw new Error("JavaScript could not be compacted.");
+    return result.code;
+  }
+  if (language === "css") {
+    const { parse, generate } = await import("css-tree");
+    return generate(
+      parse(text3, {
+        onParseError: (error) => {
+          throw error;
+        }
+      })
+    );
+  }
+  throw new Error("Compact mode supports JavaScript and CSS.");
+}
+var init_text_formats = __esm({
+  "engine/src/text-formats.ts"() {
+    "use strict";
+  }
+});
+
+// engine/src/text-tools.ts
+function encode64(text3) {
+  const bytes = new TextEncoder().encode(text3);
+  let out = "";
+  for (let i = 0; i < bytes.length; i += 3) {
+    const n2 = bytes[i] << 16 | (bytes[i + 1] ?? 0) << 8 | (bytes[i + 2] ?? 0);
+    out += B64[n2 >>> 18 & 63] + B64[n2 >>> 12 & 63] + (i + 1 < bytes.length ? B64[n2 >>> 6 & 63] : "=") + (i + 2 < bytes.length ? B64[n2 & 63] : "=");
+  }
+  return out;
+}
+function decode64(text3) {
+  const s = text3.replace(/\s/g, "").replace(/-/g, "+").replace(/_/g, "/");
+  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(s) || s.replace(/=+$/, "").length % 4 === 1 || s.includes("=") && s.length % 4 !== 0)
+    throw new Error("This is not valid Base64.");
+  const body = s.replace(/=+$/, "");
+  const bytes = [];
+  let bits = 0, n2 = 0;
+  for (const c of body) {
+    n2 = n2 << 6 | B64.indexOf(c);
+    bits += 6;
+    if (bits >= 8) {
+      bits -= 8;
+      bytes.push(n2 >>> bits & 255);
+    }
+  }
+  if (bits && n2 & (1 << bits) - 1) throw new Error("This Base64 has invalid padding bits.");
+  return new TextDecoder("utf-8", { fatal: true }).decode(new Uint8Array(bytes));
+}
+function bounded(value, fallback, min, max) {
+  const n2 = Number(value ?? fallback);
+  if (!Number.isFinite(n2) || n2 < min || n2 > max)
+    throw new Error(`Choose a number from ${min} to ${max}.`);
+  return Math.trunc(n2);
+}
+function createTextToolsAPI(env) {
+  return {
+    async highlight(text3, language, options2) {
+      return highlightCode(text3, language, options2);
+    },
+    async operations() {
+      return structuredClone(TEXT_OPERATIONS);
+    },
+    async run(request) {
+      return runTextTool(request, env);
+    }
+  };
+}
+async function runTextTool(request, env) {
+  const { text: text3, operation } = request;
+  const o = request.options ?? {};
+  if (typeof text3 !== "string" || new TextEncoder().encode(text3).length > 4 * 1024 * 1024)
+    throw new Error("Use a text excerpt of 4 MiB or less.");
+  const s = (key, fallback = "") => String(o[key] ?? fallback);
+  let out = text3, format = "txt";
+  const notes = [];
+  let details;
+  const lines = () => text3.split(/\r\n|\r|\n/);
+  const words = () => text3.replace(/([\p{Ll}\d])([\p{Lu}])/gu, "$1 $2").match(/[\p{L}\p{N}]+/gu) ?? [];
+  switch (operation) {
+    case "identity":
+      break;
+    case "upper":
+      out = text3.toUpperCase();
+      break;
+    case "lower":
+      out = text3.toLowerCase();
+      break;
+    case "title":
+      out = text3.toLowerCase().replace(new RegExp("\\b\\p{L}", "gu"), (c) => c.toUpperCase());
+      break;
+    case "sentence":
+      out = text3.toLowerCase().replace(new RegExp("(^|[.!?]\\s+)(\\p{L})", "gu"), (_, a, b) => a + b.toUpperCase());
+      break;
+    case "kebab":
+    case "snake":
+      out = words().map((w) => w.toLowerCase()).join(operation === "kebab" ? "-" : "_");
+      break;
+    case "pascal":
+    case "camel":
+      out = words().map(
+        (w, i) => i || operation === "pascal" ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w.toLowerCase()
+      ).join("");
+      break;
+    case "trim":
+      out = lines().map((l) => l.trim()).join("\n");
+      break;
+    case "blank":
+      out = lines().filter((l) => l.trim()).join("\n");
+      break;
+    case "dedupe":
+      out = [...new Set(lines())].join("\n");
+      break;
+    case "sort":
+      out = lines().sort((a, b) => a < b ? -1 : a > b ? 1 : 0).join("\n");
+      if (s("order") === "descending") out = out.split("\n").reverse().join("\n");
+      break;
+    case "endings":
+      out = lines().join(s("style") === "CRLF" ? "\r\n" : "\n");
+      break;
+    case "normalize":
+      out = text3.normalize(s("form", "NFC"));
+      if (s("form").startsWith("NFK"))
+        notes.push(
+          "Compatibility normalization can change the appearance and meaning of characters."
+        );
+      break;
+    case "replace":
+      if (!s("find")) throw new Error("Enter text to find.");
+      out = text3.split(s("find")).join(s("replacement"));
+      break;
+    case "clean": {
+      const r3 = humanizeText(text3);
+      out = r3.text;
+      details = { changes: r3.changes };
+      break;
+    }
+    case "reword-rules":
+      details = { suggestions: suggestRewrites(text3) };
+      out = JSON.stringify(details, null, 2);
+      format = "json";
+      break;
+    case "inspect": {
+      const facts2 = textFacts(text3);
+      const signals = analyzeTextSignals(text3, { source: "digital" });
+      details = { facts: facts2, signals };
+      out = `${facts2.words} words \xB7 ${[...text3].length} code points \xB7 ${new TextEncoder().encode(text3).length} UTF-8 bytes
+${facts2.sentences} sentences \xB7 ${facts2.paragraphs} paragraphs
+
+${signals.summary}
+
+${facts2.hidden.map((h) => `${h.name}: ${h.count}`).join("\n")}
+
+${signals.findings.map((f) => f.label).join("\n")}`;
+      notes.push("Style signals are observations, not proof of who wrote the text.");
+      break;
+    }
+    case "redact": {
+      const literals = s("literals").split("\n").filter(Boolean);
+      const report = inspectPrivateText(
+        text3,
+        literals.map((value, i) => ({
+          id: `text-${i}`,
+          kind: "literal",
+          value,
+          label: "Custom value"
+        }))
+      );
+      const map = {};
+      const values = /* @__PURE__ */ new Map();
+      out = replacePrivateSpans(
+        text3,
+        report.spans.map((span) => {
+          let alias = values.get(span.value);
+          if (!alias) {
+            alias = `[PRIVATE_${values.size + 1}]`;
+            while (text3.includes(alias)) alias = `[${alias}]`;
+            values.set(span.value, alias);
+            map[alias] = span.value;
+          }
+          return { span, replacement: alias };
+        })
+      );
+      details = { aliases: map, findings: report.spans };
+      notes.push(
+        "Review suggestions before replacing. The alias map contains the original private values."
+      );
+      if (report.truncated) notes.push("The finding limit was reached. Review the remaining text.");
+      break;
+    }
+    case "restore": {
+      const map = JSON.parse(s("map"));
+      if (!map || typeof map !== "object" || Array.isArray(map))
+        throw new Error("Use an alias map object.");
+      const entries = Object.entries(map);
+      if (entries.some(([k, v]) => !k || typeof v !== "string"))
+        throw new Error("Alias names and values must be text.");
+      const keys = entries.map(([k]) => k).sort((a, b) => b.length - a.length);
+      const pattern = keys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+      out = pattern ? text3.replace(
+        new RegExp(pattern, "g"),
+        (key) => String(map[key])
+      ) : text3;
+      break;
+    }
+    case "logs": {
+      const report = parseTextLogs(text3);
+      const visible = filterTextLogs(report.events, {
+        query: s("query"),
+        exact: s("match") === "exact",
+        severity: s("severity"),
+        source: s("source"),
+        from: s("from"),
+        until: s("until")
+      });
+      const groups = groupTextLogs(visible);
+      details = { ...report, visible, groups };
+      out = visible.map((e) => e.raw).join("");
+      notes.push(
+        `${visible.length} of ${report.events.length} events. Unclassified lines are retained.`
+      );
+      if (s("from") || s("until"))
+        notes.push("Time filters omit events without a complete date and timestamp.");
+      break;
+    }
+    case "regex": {
+      if (!s("pattern")) throw new Error("Enter a regular expression.");
+      const flags = s("flags", "gu");
+      const re = new RegExp(s("pattern"), flags.includes("g") ? flags : flags + "g");
+      const matches2 = [];
+      for (const m2 of text3.matchAll(re)) {
+        matches2.push({ at: m2.index, text: m2[0], groups: m2.groups ?? m2.slice(1) });
+        if (matches2.length >= 1e4) {
+          notes.push("Showing the first 10,000 matches.");
+          break;
+        }
+      }
+      const replacing = s("mode") === "replace" || !s("mode") && !!s("replacement");
+      details = { matches: matches2, source: text3, replacing };
+      out = replacing ? text3.replace(re, s("replacement")) : JSON.stringify(matches2, null, 2);
+      format = replacing ? "txt" : "json";
+      break;
+    }
+    case "diff": {
+      const result = compareSources({
+        version: 1,
+        before: {
+          identity: { id: "before", label: "Text", kind: "text" },
+          content: { kind: "text", text: text3 }
+        },
+        after: {
+          identity: { id: "after", label: "Compared text", kind: "text" },
+          content: { kind: "text", text: s("after") }
+        },
+        options: { granularity: s("granularity") === "word" ? "word" : "line" }
+      });
+      details = { comparison: result };
+      out = JSON.stringify(result, null, 2);
+      notes.push(...result.limitations);
+      format = "json";
+      break;
+    }
+    case "schema": {
+      const { default: Ajv3 } = await import("ajv");
+      const ajv3 = new Ajv3({ allErrors: true, strict: true, validateFormats: false });
+      const validate = ajv3.compile(JSON.parse(s("schema")));
+      const valid2 = validate(JSON.parse(text3));
+      out = valid2 ? "Valid against this schema." : JSON.stringify(validate.errors, null, 2);
+      notes.push(
+        "JSON Schema draft-07. External references are not fetched. Format annotations are not validated."
+      );
+      details = { valid: valid2, errors: validate.errors };
+      break;
+    }
+    case "jwt": {
+      const parts = text3.trim().split(".");
+      if (parts.length !== 3) throw new Error("A JWT has three dot-separated parts.");
+      const header = JSON.parse(decode64(parts[0]));
+      const payload = JSON.parse(decode64(parts[1]));
+      out = JSON.stringify({ header, payload }, null, 2);
+      format = "json";
+      notes.push("Decoded only. The signature and claims have not been verified.");
+      break;
+    }
+    case "hash":
+      out = [...await env.digest(s("algorithm", "SHA-256"), new TextEncoder().encode(text3))].map((b) => b.toString(16).padStart(2, "0")).join("");
+      if (s("expected")) {
+        const matches2 = out.toLowerCase() === s("expected").trim().toLowerCase();
+        notes.push(matches2 ? "Checksum matches." : "Checksum does not match.");
+        details = { matches: matches2 };
+      }
+      break;
+    case "json":
+      out = JSON.stringify(JSON.parse(text3), null, s("style") === "compact" ? void 0 : 2);
+      format = "json";
+      break;
+    case "yaml":
+      out = writeYaml(readYaml(text3));
+      format = "yaml";
+      notes.push("Formatting keeps values; comments and anchors may be rewritten.");
+      break;
+    case "helm": {
+      const directive = /\{\{-?[\s\S]*?-?\}\}/g;
+      const paths = [
+        ...new Set(
+          [...text3.matchAll(directive)].flatMap(
+            (m2) => [
+              ...m2[0].matchAll(
+                /\.(Values|Release|Chart|Capabilities|Files|Template)((?:\.[A-Za-z0-9_]+)*)/g
+              )
+            ].map((r3) => "." + r3[1] + r3[2])
+          )
+        )
+      ].sort();
+      if (s("mode") === "lint") {
+        const neutral = text3.split(/\r\n|\r|\n/).map(
+          (line) => line.replace(directive, "").trim() ? line.replace(directive, "__helmval__") : ""
+        ).join("\n");
+        readYaml(neutral);
+        out = "YAML structure is valid after masking template directives.";
+      } else out = paths.join("\n");
+      details = { paths };
+      notes.push(
+        "Static template inspection. Go templates, chart schemas and Kubernetes resources are not evaluated."
+      );
+      break;
+    }
+    case "structured":
+      out = await convertStructured(text3, s("from", "json"), s("to", "yaml"));
+      format = s("to", "yaml");
+      notes.push(
+        "Conversion preserves supported values; comments, anchors, and source formatting do not carry across formats."
+      );
+      break;
+    case "format":
+      out = s("style") === "compact" ? await compactCode(text3, s("language", "javascript")) : await formatCode(text3, s("language", "javascript"));
+      if (s("style") === "compact")
+        notes.push("Review before applying. Comments and source formatting may change.");
+      format = { javascript: "js", typescript: "ts", markdown: "md" }[s("language")] ?? s("language", "js");
+      break;
+    case "xml":
+      if (!env.xml) throw new Error("XML support is unavailable in this shell.");
+      out = await env.xml(text3, s("schema"), s("mode") === "format");
+      format = s("mode") === "format" ? "xml" : "txt";
+      notes.push("Single-document XML and XSD 1.0. External resources are not loaded.");
+      break;
+    case "base64-encode":
+      out = encode64(text3);
+      if (s("alphabet") === "url-safe")
+        out = out.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      break;
+    case "base64-decode":
+      out = decode64(text3);
+      break;
+    case "url-encode":
+      out = encodeURIComponent(text3);
+      break;
+    case "url-decode":
+      out = decodeURIComponent(text3);
+      break;
+    case "html-escape":
+      out = text3.replace(
+        /[&<>"']/g,
+        (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
+      );
+      break;
+    case "html-unescape":
+      out = text3.replace(/&(#x[\da-f]+|#\d+|amp|lt|gt|quot|apos|nbsp);/gi, (raw, v) => {
+        const names = {
+          amp: "&",
+          lt: "<",
+          gt: ">",
+          quot: '"',
+          apos: "'",
+          nbsp: "\xA0"
+        };
+        if (names[v]) return names[v];
+        if (!v.startsWith("#")) return raw;
+        const n2 = v[1].toLowerCase() === "x" ? Number.parseInt(v.slice(2), 16) : Number(v.slice(1));
+        return n2 > 0 && n2 <= 1114111 && !(n2 >= 55296 && n2 <= 57343) ? String.fromCodePoint(n2) : raw;
+      });
+      notes.push("Decodes numeric and basic HTML entities. Other named entities are retained.");
+      break;
+    case "table": {
+      const value = parseTableText(text3);
+      if (!value) throw new Error("Paste CSV, TSV or a Markdown table.");
+      const target = s("format", "markdown");
+      out = target === "html" ? toHtmlTable(value) : target === "tsv" ? toTsv(value) : toMarkdown(value);
+      format = target === "markdown" ? "md" : target;
+      break;
+    }
+    case "rot13":
+      out = text3.replace(
+        /[a-z]/gi,
+        (c) => String.fromCharCode(c.charCodeAt(0) + (c.toLowerCase() <= "m" ? 13 : -13))
+      );
+      break;
+    case "qwerty": {
+      const q = "qwertyuiopasdfghjklzxcvbnm";
+      const from = s("direction") === "decode" ? q : ALPHABET;
+      const to = from === q ? ALPHABET : q;
+      out = text3.replace(/[a-z]/gi, (c) => {
+        const v = to[from.indexOf(c.toLowerCase())];
+        return c === c.toUpperCase() ? v.toUpperCase() : v;
+      });
+      break;
+    }
+    case "emoji-cipher": {
+      if (s("direction") === "decode") {
+        out = text3;
+        EMOJI.forEach((e, i) => {
+          out = out.split(e).join((ALPHABET + "0123456789")[i]);
+        });
+      } else
+        out = text3.replace(
+          /[a-z0-9]/gi,
+          (c) => EMOJI[(ALPHABET + "0123456789").indexOf(c.toLowerCase())]
+        );
+      notes.push("A novelty cipher, not encryption. Emoji encoding does not preserve letter case.");
+      break;
+    }
+    case "ascii":
+      out = textAscii(text3, {
+        style: s("style"),
+        ink: s("ink", "#"),
+        spacing: bounded(o.spacing, 1, 0, 8),
+        width: bounded(o.width, 0, 0, 500),
+        align: s("align")
+      });
+      notes.push(
+        "This original alphabet renders letters in uppercase. Copy preserves spaces and line breaks."
+      );
+      break;
+    case "lorem":
+      out = Array.from({ length: bounded(o.paragraphs, 3, 1, 100) }, () => LOREM).join("\n\n");
+      break;
+    case "uuid":
+      out = Array.from({ length: bounded(o.count, 1, 1, 1e3) }, () => {
+        const b = env.random(16);
+        b[6] = b[6] & 15 | 64;
+        b[8] = b[8] & 63 | 128;
+        const h = [...b].map((v) => v.toString(16).padStart(2, "0")).join("");
+        return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+      }).join("\n");
+      break;
+    case "random": {
+      const alphabet = [
+        .../* @__PURE__ */ new Set([...s("alphabet", ALPHABET + ALPHABET.toUpperCase() + "0123456789")])
+      ];
+      if (!alphabet.length || alphabet.length > 256)
+        throw new Error("Choose 1 to 256 different characters.");
+      const length = bounded(o.length, 32, 1, 1e4);
+      const limit = 256 - 256 % alphabet.length;
+      out = "";
+      while ([...out].length < length) {
+        for (const b of env.random(Math.min(2e4, length * 2))) {
+          if (b < limit) out += alphabet[b % alphabet.length];
+          if ([...out].length === length) break;
+        }
+      }
+      break;
+    }
+    case "timestamp": {
+      const input = text3.trim();
+      const date = /^-?\d+(?:\.\d+)?$/.test(input) ? new Date(Number(input) * (s("unit") === "milliseconds" ? 1 : 1e3)) : new Date(input);
+      if (!Number.isFinite(date.getTime()))
+        throw new Error("Enter an ISO date or a numeric timestamp.");
+      out = `${date.toISOString()}
+${date.getTime()} milliseconds
+${date.getTime() / 1e3} seconds`;
+      break;
+    }
+    default:
+      throw new Error(`Unknown text action: ${operation}`);
+  }
+  return { text: out, format, notes, ...details ? { details } : {} };
+}
+var B64, EMOJI, ALPHABET, LOREM;
+var init_text_tools2 = __esm({
+  "engine/src/text-tools.ts"() {
+    "use strict";
+    init_text_syntax();
+    init_text_operations();
+    init_text_facts();
+    init_text_signals();
+    init_humanize();
+    init_reword();
+    init_prepare_text();
+    init_compare2();
+    init_table_text();
+    init_text_ascii();
+    init_text_logs();
+    init_text_formats();
+    B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    EMOJI = [
+      "\u{1F34E}",
+      "\u{1F41D}",
+      "\u{1F431}",
+      "\u{1F42C}",
+      "\u{1F95A}",
+      "\u{1F438}",
+      "\u{1F347}",
+      "\u{1F33B}",
+      "\u{1F366}",
+      "\u{1F939}",
+      "\u{1F511}",
+      "\u{1F981}",
+      "\u{1F319}",
+      "\u{1F3B5}",
+      "\u{1F419}",
+      "\u{1F355}",
+      "\u{1F451}",
+      "\u{1F308}",
+      "\u{1F40D}",
+      "\u{1F334}",
+      "\u2602\uFE0F",
+      "\u{1F3BB}",
+      "\u{1F349}",
+      "\u274C",
+      "\u{1FA80}",
+      "\u26A1",
+      "\u{1F311}",
+      "1\uFE0F\u20E3",
+      "2\uFE0F\u20E3",
+      "3\uFE0F\u20E3",
+      "4\uFE0F\u20E3",
+      "5\uFE0F\u20E3",
+      "6\uFE0F\u20E3",
+      "7\uFE0F\u20E3",
+      "8\uFE0F\u20E3",
+      "9\uFE0F\u20E3"
+    ];
+    ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+    LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae arcu quis lectus consequat posuere. Sed interdum, nibh et cursus finibus, est neque feugiat justo, vitae facilisis lorem sem vitae mi.";
+  }
+});
+
 // engine/src/index.ts
 var src_exports = {};
 __export(src_exports, {
@@ -59896,10 +60871,12 @@ __export(src_exports, {
   SVG_PATH_MAX_CHARS: () => SVG_PATH_MAX_CHARS,
   SVG_PATH_MAX_SEGMENTS: () => SVG_PATH_MAX_SEGMENTS,
   SVG_PATH_MAX_SUBPATHS: () => SVG_PATH_MAX_SUBPATHS,
+  SYNTAX_LANGUAGES: () => SYNTAX_LANGUAGES,
   TAR_MAX_ARCHIVE_BYTES: () => TAR_MAX_ARCHIVE_BYTES,
   TAR_MAX_MEMBERS: () => TAR_MAX_MEMBERS,
   TAR_MAX_PAYLOAD_BYTES: () => TAR_MAX_PAYLOAD_BYTES,
   TDL_MAX_N: () => TDL_MAX_N,
+  TEXT_OPERATIONS: () => TEXT_OPERATIONS,
   TOKEN_EXT: () => TOKEN_EXT,
   TRUSTMARK_MIN_SIDE: () => TRUSTMARK_MIN_SIDE,
   TRUSTMARK_MODEL_RESOLUTION: () => TRUSTMARK_MODEL_RESOLUTION,
@@ -60076,6 +61053,7 @@ __export(src_exports, {
   createLoudnessMeter: () => createLoudnessMeter,
   createPrepareAPI: () => createPrepareAPI,
   createRuntime: () => createRuntime,
+  createTextToolsAPI: () => createTextToolsAPI,
   createTokenSet: () => createTokenSet,
   createTruePeakLimiter: () => createTruePeakLimiter,
   cubicAsSource: () => cubicAsSource,
@@ -60126,6 +61104,7 @@ __export(src_exports, {
   designSystemNamespace: () => designSystemNamespace,
   designTextRuns: () => designTextRuns,
   desktopEntry: () => desktopEntry,
+  detectCodeLanguage: () => detectCodeLanguage,
   detectDelimiter: () => detectDelimiter,
   detectWatermark: () => detectWatermark,
   detectWatermarkSearch: () => detectWatermarkSearch,
@@ -60190,6 +61169,7 @@ __export(src_exports, {
   fftInPlace: () => fftInPlace,
   figmaNodesToNodes: () => figmaNodesToNodes,
   figmaNodesToScenes: () => figmaNodesToScenes,
+  filterTextLogs: () => filterTextLogs,
   filterToVocab: () => filterToVocab,
   finalizeBoxes: () => finalizeBoxes,
   findColorToken: () => findColorToken,
@@ -60241,6 +61221,7 @@ __export(src_exports, {
   grainCellPx: () => grainCellPx,
   greenListZ: () => greenListZ,
   gridToTarget: () => gridToTarget,
+  groupTextLogs: () => groupTextLogs,
   groupWordsToCues: () => groupWordsToCues,
   gunzip: () => gunzip,
   gzip: () => gzip,
@@ -60254,6 +61235,7 @@ __export(src_exports, {
   hdrViewTransform: () => hdrViewTransform,
   hexToOklch: () => hexToOklch,
   hiddenCharSeverity: () => hiddenCharSeverity,
+  highlightCode: () => highlightCode,
   htmlFromBlocks: () => htmlFromBlocks,
   hullBounds: () => hullBounds,
   humanizeText: () => humanizeText,
@@ -60478,6 +61460,7 @@ __export(src_exports, {
   parseSvgPath: () => parseSvgPath,
   parseSvgPathArgs: () => parseSvgPathArgs,
   parseTableText: () => parseTableText,
+  parseTextLogs: () => parseTextLogs,
   parseTextShadow: () => parseTextShadow,
   parseThemedAssetId: () => parseThemedAssetId,
   parseToUnicode: () => parseToUnicode,
@@ -60595,6 +61578,7 @@ __export(src_exports, {
   roundedRectPath: () => roundedRectPath,
   routedLineSvg: () => routedLineSvg,
   rowsToCsv: () => rowsToCsv,
+  runTextTool: () => runTextTool,
   safeColor: () => safeColor,
   sampleBilinear: () => sampleBilinear,
   sampleCurve: () => sampleCurve,
@@ -60947,6 +61931,10 @@ var init_src2 = __esm({
     init_prepare_metadata();
     init_compare2();
     init_compare_visual();
+    init_text_tools2();
+    init_text_syntax();
+    init_text_operations();
+    init_text_logs();
   }
 });
 
@@ -61000,10 +61988,10 @@ function withMeta(schema, item, extraDesc) {
 }
 function numberField(f) {
   const declaredDefault = f.default;
-  const number = { type: "number" };
-  if (f.min !== void 0) number["minimum"] = f.min;
-  if (f.max !== void 0) number["maximum"] = f.max;
-  const s = declaredDefault === "" ? { anyOf: [number, { const: "" }] } : number;
+  const number2 = { type: "number" };
+  if (f.min !== void 0) number2["minimum"] = f.min;
+  if (f.max !== void 0) number2["maximum"] = f.max;
+  const s = declaredDefault === "" ? { anyOf: [number2, { const: "" }] } : number2;
   if (declaredDefault !== void 0) s["default"] = declaredDefault;
   const desc = describe(f);
   if (desc) s["description"] = desc;
@@ -62778,6 +63766,55 @@ var init_mcp_fn_absent_runtime = __esm({
   }
 });
 
+// packages/node-shell/src/text-tools.ts
+var text_tools_exports = {};
+__export(text_tools_exports, {
+  createNodeTextTools: () => createNodeTextTools
+});
+import { Worker as Worker2 } from "node:worker_threads";
+function createNodeTextTools() {
+  return {
+    async operations() {
+      return structuredClone(TEXT_OPERATIONS);
+    },
+    async highlight(text3, language, options2) {
+      return highlightCode(text3, language, options2);
+    },
+    run(request) {
+      return new Promise((resolve3, reject) => {
+        const worker = new Worker2(new URL("./text-tools-worker.ts", import.meta.url), {
+          workerData: request
+        });
+        const timer = setTimeout(() => {
+          void worker.terminate();
+          reject(new Error("This text action exceeded ten seconds."));
+        }, 1e4);
+        worker.once("message", (value) => {
+          clearTimeout(timer);
+          void worker.terminate();
+          if (value.result) resolve3(value.result);
+          else reject(new Error(value.error));
+        });
+        worker.once("error", (error) => {
+          clearTimeout(timer);
+          void worker.terminate();
+          reject(error);
+        });
+        worker.once("exit", (code) => {
+          clearTimeout(timer);
+          if (code) reject(new Error("The text action stopped."));
+        });
+      });
+    }
+  };
+}
+var init_text_tools3 = __esm({
+  "packages/node-shell/src/text-tools.ts"() {
+    "use strict";
+    init_src2();
+  }
+});
+
 // packages/node-shell/src/trust-anchors.ts
 import { homedir as homedir3 } from "node:os";
 function expandHome(p) {
@@ -64413,6 +65450,9 @@ function clustersFrom(pieces, textLength) {
 }
 function createNodeTextAPI({ repoRoot: repoRoot2 }) {
   return {
+    async characters(fontUrl) {
+      return [...(await loadFace(fontUrl, repoRoot2)).unicodes].sort((a, b) => a - b);
+    },
     async toPath({ text: text3, fontUrl, fontSize, features, letterSpacing = 0, variations, fallbackFonts, clusters: wantClusters }) {
       if (!text3 || !text3.trim()) {
         return { d: "", advanceWidth: 0, bbox: null, notdef: 0, ...wantClusters ? { clusters: [] } : {} };
@@ -68005,9 +69045,9 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     // where a tool's one chatty log line interleaved itself into a piped PNG - and
     // tools ship as data from another repository, so this shell cannot assume they are
     // quiet. stdout carries the payload and nothing else.
-    log: (level, msg2, ctx) => {
-      if (level === "debug" && !process.env.DEBUG) return;
-      process.stderr.write(`[${level}] ${msg2}${ctx ? " " + JSON.stringify(ctx) : ""}
+    log: (level2, msg2, ctx) => {
+      if (level2 === "debug" && !process.env.DEBUG) return;
+      process.stderr.write(`[${level2}] ${msg2}${ctx ? " " + JSON.stringify(ctx) : ""}
 `);
     }
     // The literal is built in stages below (profile, assets, state, export, …), so the
@@ -68147,6 +69187,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   host.scan = createNodeScanAPI();
   host.prepare = (await Promise.resolve().then(() => (init_src2(), src_exports))).createPrepareAPI();
   host.compare = (await Promise.resolve().then(() => (init_src2(), src_exports))).createCompareAPI();
+  host.textTools = (await Promise.resolve().then(() => (init_text_tools3(), text_tools_exports))).createNodeTextTools();
   host.net = createNetAPI({ allowlist: networkAllowlist });
   host.assets = {
     // v1.183: bytes behind a ref. This bridge inlines catalog files as data:
@@ -68486,7 +69527,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
           format,
           hdr: opts.hdr ?? null,
           depth: opts.depth,
-          log: (level, message) => host.log(level, message)
+          log: (level2, message) => host.log(level2, message)
         });
         return new Blob([bytes], { type: mime2 || deepFormatMime2(format) });
       }
@@ -68825,8 +69866,8 @@ function withHost(profile, fn) {
     g2["Element"] = dom.window.Element;
     try {
       const host = await createCliBridge({ dom, profile, capturePublicOnly: true, aiEnabled: false });
-      host.log = (level, msg2, ctx) => {
-        process.stderr.write(`[mcp:${level}] ${msg2}${ctx ? " " + safeJson(ctx) : ""}
+      host.log = (level2, msg2, ctx) => {
+        process.stderr.write(`[mcp:${level2}] ${msg2}${ctx ? " " + safeJson(ctx) : ""}
 `);
       };
       return await fn(dom, host);
@@ -69976,9 +71017,9 @@ function designRows(manifest, inputs, argName) {
   if (!Array.isArray(source)) throw new Error(`${argName} requires a Design boxes array or template.`);
   return source.map((row) => row && typeof row === "object" && !Array.isArray(row) ? { ...row } : row);
 }
-function rowAt(rows, id, path) {
+function rowAt(rows2, id, path) {
   if (typeof id !== "string" || !id.trim()) throw new Error(`${path}: a stable layer id is required.`);
-  const matches2 = rows.map((row, index) => ({ row, index })).filter(({ row }) => Boolean(row && typeof row === "object" && !Array.isArray(row) && row.id === id));
+  const matches2 = rows2.map((row, index) => ({ row, index })).filter(({ row }) => Boolean(row && typeof row === "object" && !Array.isArray(row) && row.id === id));
   if (matches2.length !== 1)
     throw new Error(`${path}: layer "${id}" ${matches2.length ? "is duplicated" : "does not exist"}.`);
   return matches2[0];
@@ -69998,10 +71039,10 @@ function optionalAnchorOf(record3, path) {
   if (record3.beforeId === void 0 && record3.afterId === void 0) return null;
   return anchorOf(record3, path);
 }
-function assertNewDesignId(rows, value, path) {
+function assertNewDesignId(rows2, value, path) {
   if (typeof value !== "string" || !value.trim())
     throw new Error(`${path}: a new stable layer id is required.`);
-  if (rows.some((row) => row && typeof row === "object" && !Array.isArray(row) && row.id === value))
+  if (rows2.some((row) => row && typeof row === "object" && !Array.isArray(row) && row.id === value))
     throw new Error(`${path}: layer "${value}" already exists.`);
   return value;
 }
@@ -70011,43 +71052,43 @@ function sameReorderDomain(a, b) {
   if (aFrame || bFrame) return aFrame && bFrame;
   return String(a.frame ?? "") === String(b.frame ?? "");
 }
-function reorderDesignRow(rows, id, anchor, path) {
-  const target = rowAt(rows, id, `${path}/id`);
-  const relative = rowAt(rows, anchor.id, `${path}/${anchor.side}Id`);
+function reorderDesignRow(rows2, id, anchor, path) {
+  const target = rowAt(rows2, id, `${path}/id`);
+  const relative = rowAt(rows2, anchor.id, `${path}/${anchor.side}Id`);
   if (target.index === relative.index) throw new Error(`${path}: a layer cannot be reordered relative to itself.`);
   if (!sameReorderDomain(target.row, relative.row))
     throw new Error(`${path}: reorder targets must be sibling layers or two artboards.`);
   const isFrame = target.row.kind === "frame";
   const parent = String(target.row.frame ?? "");
-  const domain = rows.map((row, index) => ({ row, index })).filter(({ row }) => {
+  const domain = rows2.map((row, index) => ({ row, index })).filter(({ row }) => {
     if (!row || typeof row !== "object" || Array.isArray(row)) return false;
     const r3 = row;
     return isFrame ? r3.kind === "frame" : r3.kind !== "frame" && String(r3.frame ?? "") === parent;
   }).sort((a, b) => {
-    const field2 = isFrame ? "order" : "z";
-    const av = typeof a.row[field2] === "number" ? a.row[field2] : a.index;
-    const bv = typeof b.row[field2] === "number" ? b.row[field2] : b.index;
+    const field3 = isFrame ? "order" : "z";
+    const av = typeof a.row[field3] === "number" ? a.row[field3] : a.index;
+    const bv = typeof b.row[field3] === "number" ? b.row[field3] : b.index;
     return av - bv || a.index - b.index;
   }).map(({ row }) => row);
   const movingAt = domain.indexOf(target.row);
   domain.splice(movingAt, 1);
   const anchorAt = domain.indexOf(relative.row);
   domain.splice(anchorAt + (anchor.side === "after" ? 1 : 0), 0, target.row);
-  const field = isFrame ? "order" : "z";
+  const field2 = isFrame ? "order" : "z";
   domain.forEach((row, index) => {
-    row[field] = index;
+    row[field2] = index;
   });
-  const [moving] = rows.splice(target.index, 1);
-  const anchorNow = rows.indexOf(relative.row);
-  rows.splice(anchorNow + (anchor.side === "after" ? 1 : 0), 0, moving);
+  const [moving] = rows2.splice(target.index, 1);
+  const anchorNow = rows2.indexOf(relative.row);
+  rows2.splice(anchorNow + (anchor.side === "after" ? 1 : 0), 0, moving);
 }
 function applyDesignLayerOperations(toolId, manifest, inputs, value) {
   if (value === void 0) return inputs;
   if (toolId !== "design") throw new Error("layerOperations is available only for the Design tool.");
   if (!Array.isArray(value)) throw new Error("layerOperations must be an array.");
-  const rows = designRows(manifest, inputs, "layerOperations");
+  const rows2 = designRows(manifest, inputs, "layerOperations");
   const boxesInput = manifest.inputs?.find((input) => input.id === "boxes" && input.type === "blocks");
-  const fieldDefault = (id, fallback) => boxesInput?.fields?.find((field) => field.id === id)?.default ?? fallback;
+  const fieldDefault = (id, fallback) => boxesInput?.fields?.find((field2) => field2.id === id)?.default ?? fallback;
   for (let index = 0; index < value.length; index++) {
     const path = `/layerOperations/${index}`;
     const operation = value[index];
@@ -70069,7 +71110,7 @@ function applyDesignLayerOperations(toolId, manifest, inputs, value) {
       const supplied = valueLayer;
       const id2 = supplied.id;
       if (typeof id2 !== "string" || !id2.trim()) throw new Error(`${path}/layer/id: a stable layer id is required.`);
-      if (rows.some((row) => row && typeof row === "object" && !Array.isArray(row) && row.id === id2))
+      if (rows2.some((row) => row && typeof row === "object" && !Array.isArray(row) && row.id === id2))
         throw new Error(`${path}/layer/id: layer "${id2}" already exists.`);
       const layer = {
         kind: fieldDefault("kind", "box"),
@@ -70080,26 +71121,26 @@ function applyDesignLayerOperations(toolId, manifest, inputs, value) {
         ...supplied
       };
       const hasAnchor = record3.beforeId !== void 0 || record3.afterId !== void 0;
-      if (!hasAnchor) rows.push(layer);
+      if (!hasAnchor) rows2.push(layer);
       else {
         const anchor = anchorOf(record3, path);
-        const relative = rowAt(rows, anchor.id, `${path}/${anchor.side}Id`);
+        const relative = rowAt(rows2, anchor.id, `${path}/${anchor.side}Id`);
         if (!sameReorderDomain(layer, relative.row))
           throw new Error(`${path}: an added layer and its anchor must be siblings or two artboards.`);
-        rows.splice(relative.index + (anchor.side === "after" ? 1 : 0), 0, layer);
-        reorderDesignRow(rows, id2, anchor, path);
+        rows2.splice(relative.index + (anchor.side === "after" ? 1 : 0), 0, layer);
+        reorderDesignRow(rows2, id2, anchor, path);
       }
       continue;
     }
     if (op === "duplicate") {
-      const source = rowAt(rows, record3.id, `${path}/id`);
-      const newId = assertNewDesignId(rows, record3.newId, `${path}/newId`);
+      const source = rowAt(rows2, record3.id, `${path}/id`);
+      const newId = assertNewDesignId(rows2, record3.newId, `${path}/newId`);
       const anchor = optionalAnchorOf(record3, path) ?? {
         side: "after",
         id: String(source.row.id)
       };
       const isFrame = source.row.kind === "frame";
-      const children = isFrame ? rows.filter((row) => row && typeof row === "object" && !Array.isArray(row) && row.kind !== "frame" && row.frame === source.row.id) : [];
+      const children = isFrame ? rows2.filter((row) => row && typeof row === "object" && !Array.isArray(row) && row.kind !== "frame" && row.frame === source.row.id) : [];
       const childIdsValue = record3.childIds;
       if (!isFrame && childIdsValue !== void 0)
         throw new Error(`${path}/childIds: only an artboard duplicate may supply child ids.`);
@@ -70128,14 +71169,14 @@ function applyDesignLayerOperations(toolId, manifest, inputs, value) {
       const duplicateProposed = proposed.find((id2, proposedIndex) => proposed.indexOf(id2) !== proposedIndex);
       if (duplicateProposed)
         throw new Error(`${path}: new layer id "${duplicateProposed}" is used more than once.`);
-      const collision = proposed.find((id2) => rows.some((row) => row && typeof row === "object" && !Array.isArray(row) && row.id === id2));
+      const collision = proposed.find((id2) => rows2.some((row) => row && typeof row === "object" && !Array.isArray(row) && row.id === id2));
       if (collision)
         throw new Error(`${path}: layer "${collision}" already exists.`);
       const clone3 = { ...source.row, id: newId };
-      rows.push(clone3);
-      reorderDesignRow(rows, newId, anchor, path);
+      rows2.push(clone3);
+      reorderDesignRow(rows2, newId, anchor, path);
       for (const child of children) {
-        rows.push({
+        rows2.push({
           ...child,
           id: mappedChildIds.get(String(child.id)),
           frame: newId
@@ -70144,57 +71185,57 @@ function applyDesignLayerOperations(toolId, manifest, inputs, value) {
       continue;
     }
     if (op === "remove") {
-      const target = rowAt(rows, record3.id, `${path}/id`);
-      const children = target.row.kind === "frame" ? rows.filter((row) => row && typeof row === "object" && !Array.isArray(row) && row.frame === target.row.id) : [];
+      const target = rowAt(rows2, record3.id, `${path}/id`);
+      const children = target.row.kind === "frame" ? rows2.filter((row) => row && typeof row === "object" && !Array.isArray(row) && row.frame === target.row.id) : [];
       if (children.length && record3.cascade !== true)
         throw new Error(`${path}/cascade: artboard "${String(target.row.id)}" has ${children.length} child layer${children.length === 1 ? "" : "s"}; pass cascade:true to remove them.`);
       const removeIds = /* @__PURE__ */ new Set([target.row.id, ...children.map((row) => row.id)]);
-      for (let rowIndex = rows.length - 1; rowIndex >= 0; rowIndex--) {
-        const row = rows[rowIndex];
-        if (row && typeof row === "object" && !Array.isArray(row) && removeIds.has(row.id)) rows.splice(rowIndex, 1);
+      for (let rowIndex = rows2.length - 1; rowIndex >= 0; rowIndex--) {
+        const row = rows2[rowIndex];
+        if (row && typeof row === "object" && !Array.isArray(row) && removeIds.has(row.id)) rows2.splice(rowIndex, 1);
       }
       continue;
     }
     if (op === "reparent") {
-      const target = rowAt(rows, record3.id, `${path}/id`);
+      const target = rowAt(rows2, record3.id, `${path}/id`);
       if (target.row.kind === "frame")
         throw new Error(`${path}/id: artboards cannot be reparented.`);
       const artboardId = record3.artboardId;
       if (artboardId !== null && (typeof artboardId !== "string" || !artboardId.trim()))
         throw new Error(`${path}/artboardId: expected an artboard stable id or null for the pasteboard.`);
       if (typeof artboardId === "string") {
-        const destination = rowAt(rows, artboardId, `${path}/artboardId`);
+        const destination = rowAt(rows2, artboardId, `${path}/artboardId`);
         if (destination.row.kind !== "frame")
           throw new Error(`${path}/artboardId: layer "${artboardId}" is not an artboard.`);
       }
       target.row.frame = artboardId ?? "";
       const anchor = optionalAnchorOf(record3, path);
       if (anchor) {
-        reorderDesignRow(rows, String(target.row.id), anchor, path);
+        reorderDesignRow(rows2, String(target.row.id), anchor, path);
       } else {
         const parent = String(target.row.frame ?? "");
-        const siblings = rows.filter((row) => row && typeof row === "object" && !Array.isArray(row) && row !== target.row && row.kind !== "frame" && String(row.frame ?? "") === parent);
+        const siblings = rows2.filter((row) => row && typeof row === "object" && !Array.isArray(row) && row !== target.row && row.kind !== "frame" && String(row.frame ?? "") === parent);
         target.row.z = siblings.reduce((max, sibling) => Math.max(max, typeof sibling.z === "number" ? sibling.z : -1), -1) + 1;
-        const [moving] = rows.splice(target.index, 1);
+        const [moving] = rows2.splice(target.index, 1);
         let lastSibling = -1;
-        rows.forEach((row, rowIndex) => {
+        rows2.forEach((row, rowIndex) => {
           if (siblings.includes(row)) lastSibling = rowIndex;
         });
-        rows.splice(lastSibling >= 0 ? lastSibling + 1 : rows.length, 0, moving);
+        rows2.splice(lastSibling >= 0 ? lastSibling + 1 : rows2.length, 0, moving);
       }
       continue;
     }
     const id = record3.id;
     if (typeof id !== "string" || !id.trim()) throw new Error(`${path}/id: a stable layer id is required.`);
-    reorderDesignRow(rows, id, anchorOf(record3, path), path);
+    reorderDesignRow(rows2, id, anchorOf(record3, path), path);
   }
-  return { ...inputs, boxes: rows };
+  return { ...inputs, boxes: rows2 };
 }
 function applyDesignLayerPatches(toolId, manifest, inputs, value) {
   if (value === void 0) return inputs;
   if (toolId !== "design") throw new Error("layerPatches is available only for the Design tool.");
   if (!Array.isArray(value)) throw new Error("layerPatches must be an array.");
-  const rows = designRows(manifest, inputs, "layerPatches");
+  const rows2 = designRows(manifest, inputs, "layerPatches");
   for (let index = 0; index < value.length; index++) {
     const patch = value[index];
     if (!patch || typeof patch !== "object" || Array.isArray(patch))
@@ -70207,10 +71248,10 @@ function applyDesignLayerPatches(toolId, manifest, inputs, value) {
     const set = record3.set;
     if (!set || typeof set !== "object" || Array.isArray(set)) throw new Error(`/layerPatches/${index}/set: fields must be an object.`);
     if (Object.hasOwn(set, "id")) throw new Error(`/layerPatches/${index}/set/id: a stable layer id cannot be changed.`);
-    const match = rowAt(rows, id, `/layerPatches/${index}/id`);
-    rows[match.index] = { ...match.row, ...set };
+    const match = rowAt(rows2, id, `/layerPatches/${index}/id`);
+    rows2[match.index] = { ...match.row, ...set };
   }
-  return { ...inputs, boxes: rows };
+  return { ...inputs, boxes: rows2 };
 }
 function validateToolInputs(manifest, inputs) {
   const base = validateDocument({ kind: "inputs", manifest, value: inputs });

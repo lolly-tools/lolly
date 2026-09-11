@@ -6,7 +6,7 @@
 // walkers (the SVG walker and the PDF walker in shells/web/src/bridge/export.ts) so
 // the two vector renderers compute identical shapes and can never drift. The shell
 // reads getComputedStyle, passes the raw CSS strings/numbers in, and turns the plain
-// geometry returned here into SVG elements or jsPDF path ops. NOTHING here touches the
+// geometry returned here into SVG elements or PDF path ops. NOTHING here touches the
 // DOM (engine stays platform-agnostic, like css-box.ts / units.ts / color.ts).
 
 import { findColorToken, parseColor, colorToHexString } from './css-color.ts';

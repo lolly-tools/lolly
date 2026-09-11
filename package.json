@@ -115,6 +115,7 @@
     "check:host-v1-api": "node scripts/check-host-v1-api.ts --check",
     "cli": "node shells/cli/bin/lolly.ts",
     "install:browser": "node shells/cli/bin/lolly.ts install-browser",
+    "prune:caches": "node scripts/prune-caches.ts",
     "smoke": "node shells/cli/bin/lolly.ts smoke",
     "tui": "pnpm --filter ./shells/tui run start",
     "mcp": "node services/mcp/bin/lolly-mcp.ts",

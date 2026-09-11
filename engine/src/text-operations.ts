@@ -1,0 +1,275 @@
+// SPDX-License-Identifier: MPL-2.0
+/** Discoverable text actions and their portable option declarations. */
+import type { TextOperation } from '@lolly-tools/core/host-v1';
+const choice = (
+  id: string,
+  label: string,
+  choices: string[],
+  value = choices[0]!
+): NonNullable<TextOperation['options']>[number] => ({
+  id,
+  label,
+  type: 'select',
+  choices,
+  default: value,
+});
+const field = (
+  id: string,
+  label: string,
+  value = ''
+): NonNullable<TextOperation['options']>[number] => ({ id, label, type: 'text', default: value });
+const number = (
+  id: string,
+  label: string,
+  value: number
+): NonNullable<TextOperation['options']>[number] => ({ id, label, type: 'number', default: value });
+const rows: Array<[string, string, TextOperation['group'], string[], TextOperation['options']?]> = [
+  ['upper', 'UPPERCASE', 'Edit', ['case']],
+  ['lower', 'lowercase', 'Edit', ['case']],
+  ['title', 'Title Case', 'Edit', ['case']],
+  ['sentence', 'Sentence case', 'Edit', ['case']],
+  ['kebab', 'kebab-case', 'Edit', ['case', 'slug']],
+  ['snake', 'snake_case', 'Edit', ['case']],
+  ['pascal', 'PascalCase', 'Edit', ['case']],
+  ['camel', 'camelCase', 'Edit', ['case']],
+  ['trim', 'Trim line edges', 'Edit', ['whitespace']],
+  ['blank', 'Remove empty lines', 'Edit', ['whitespace']],
+  ['dedupe', 'Remove duplicate lines', 'Edit', ['unique']],
+  [
+    'sort',
+    'Sort lines',
+    'Edit',
+    ['alphabetical'],
+    [choice('order', 'Order', ['ascending', 'descending'])],
+  ],
+  [
+    'endings',
+    'Line endings',
+    'Edit',
+    ['LF', 'CRLF'],
+    [choice('style', 'Line endings', ['LF', 'CRLF'])],
+  ],
+  [
+    'normalize',
+    'Normalize Unicode',
+    'Edit',
+    ['NFC', 'NFD'],
+    [choice('form', 'Form', ['NFC', 'NFD', 'NFKC', 'NFKD'])],
+  ],
+  [
+    'replace',
+    'Find and replace',
+    'Edit',
+    ['search'],
+    [field('find', 'Find'), field('replacement', 'Replace with')],
+  ],
+  ['clean', 'Clean typography', 'Edit', ['humanize', 'invisible', 'characters']],
+  ['reword-rules', 'Plain language suggestions', 'Inspect', ['rewrite', 'verify', 'catalog']],
+  [
+    'inspect',
+    'Inspect text',
+    'Inspect',
+    ['statistics', 'words', 'reading', 'hidden', 'unicode', 'AI', 'verify'],
+  ],
+  [
+    'redact',
+    'De-identify',
+    'Inspect',
+    ['privacy', 'pii', 'names', 'aliases'],
+    [field('literals', 'Also replace (one name or value per line)')],
+  ],
+  ['restore', 'Restore aliases', 'Edit', ['de-identify'], [field('map', 'Alias map (JSON)')]],
+  [
+    'logs',
+    'Analyse logs',
+    'Inspect',
+    ['error', 'system', 'syslog', 'journal', 'JSONL'],
+    [
+      field('query', 'Search'),
+      choice('match', 'Search mode', ['contains', 'exact']),
+      choice('severity', 'Level', [
+        'all',
+        'important',
+        'error',
+        'warning',
+        'info',
+        'debug',
+        'unclassified',
+      ]),
+      field('source', 'Source'),
+      field('from', 'From (ISO date and time)'),
+      field('until', 'Until (ISO date and time)'),
+    ],
+  ],
+  [
+    'regex',
+    'Test regular expression',
+    'Inspect',
+    ['pattern', 'matches'],
+    [
+      field('pattern', 'Pattern'),
+      field('flags', 'Flags', 'gu'),
+      choice('mode', 'Action', ['matches', 'replace']),
+      field('replacement', 'Replace with (may be empty)'),
+    ],
+  ],
+  [
+    'diff',
+    'Compare text',
+    'Inspect',
+    ['difference', 'diff'],
+    [field('after', 'Compare with'), choice('granularity', 'Compare by', ['line', 'word'])],
+  ],
+  [
+    'schema',
+    'Validate JSON schema',
+    'Inspect',
+    ['json', 'schema'],
+    [field('schema', 'JSON schema')],
+  ],
+  ['jwt', 'Decode JWT', 'Inspect', ['token', 'header', 'payload']],
+  [
+    'hash',
+    'Hash text',
+    'Inspect',
+    ['SHA256', 'checksum'],
+    [
+      choice('algorithm', 'Algorithm', ['SHA-256', 'SHA-384', 'SHA-512', 'SHA-1']),
+      field('expected', 'Expected checksum (optional)'),
+    ],
+  ],
+  [
+    'json',
+    'Format JSON',
+    'Convert',
+    ['pretty', 'minify'],
+    [choice('style', 'Style', ['pretty', 'compact'])],
+  ],
+  ['yaml', 'Format YAML', 'Convert', ['validate']],
+  [
+    'helm',
+    'Inspect Helm templates',
+    'Inspect',
+    ['yaml', 'kubernetes', 'values', 'lint'],
+    [choice('mode', 'Action', ['values', 'lint'])],
+  ],
+  [
+    'structured',
+    'Convert JSON, YAML or TOML',
+    'Convert',
+    ['data', 'configuration'],
+    [
+      choice('from', 'From', ['json', 'yaml', 'toml']),
+      choice('to', 'To', ['yaml', 'json', 'toml']),
+    ],
+  ],
+  [
+    'format',
+    'Format code',
+    'Convert',
+    ['javascript', 'css', 'html', 'sql', 'markdown'],
+    [
+      choice('language', 'Language', [
+        'javascript',
+        'typescript',
+        'css',
+        'html',
+        'markdown',
+        'sql',
+      ]),
+      choice('style', 'Style (compact: JavaScript or CSS)', ['pretty', 'compact']),
+    ],
+  ],
+  [
+    'xml',
+    'Format or validate XML',
+    'Inspect',
+    ['xsd', 'schema'],
+    [choice('mode', 'Action', ['validate', 'format']), field('schema', 'XSD schema (optional)')],
+  ],
+  [
+    'base64-encode',
+    'Encode Base64',
+    'Convert',
+    ['unicode'],
+    [choice('alphabet', 'Alphabet', ['standard', 'url-safe'])],
+  ],
+  ['base64-decode', 'Decode Base64', 'Convert', ['unicode']],
+  ['url-encode', 'Encode URL component', 'Convert', ['percent']],
+  ['url-decode', 'Decode URL component', 'Convert', ['percent']],
+  ['html-escape', 'Escape HTML', 'Convert', ['entities']],
+  ['html-unescape', 'Unescape HTML', 'Convert', ['entities']],
+  [
+    'table',
+    'Convert a table',
+    'Convert',
+    ['csv', 'tsv', 'markdown', 'html'],
+    [choice('format', 'Output', ['markdown', 'tsv', 'html'])],
+  ],
+  ['rot13', 'ROT13', 'Convert', ['cipher']],
+  [
+    'qwerty',
+    'QWERTY cipher',
+    'Convert',
+    ['cipher'],
+    [choice('direction', 'Direction', ['encode', 'decode'])],
+  ],
+  [
+    'emoji-cipher',
+    'Emoji cipher',
+    'Convert',
+    ['cipher'],
+    [choice('direction', 'Direction', ['encode', 'decode'])],
+  ],
+  [
+    'ascii',
+    'ASCII art from text',
+    'Generate',
+    ['banner', 'letters'],
+    [
+      choice('style', 'Lettering', ['compact', 'block', 'slant']),
+      field('ink', 'Ink character', '#'),
+      number('spacing', 'Letter spacing', 1),
+      number('width', 'Width (0 for automatic)', 0),
+      choice('align', 'Align', ['left', 'center', 'right']),
+    ],
+  ],
+  [
+    'lorem',
+    'Placeholder text',
+    'Generate',
+    ['lorem', 'ipsum'],
+    [number('paragraphs', 'Paragraphs', 3)],
+  ],
+  ['uuid', 'UUID', 'Generate', ['random', 'identifier'], [number('count', 'Count', 1)]],
+  [
+    'random',
+    'Random text',
+    'Generate',
+    ['password', 'string'],
+    [
+      number('length', 'Length', 32),
+      field(
+        'alphabet',
+        'Alphabet',
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+      ),
+    ],
+  ],
+  [
+    'timestamp',
+    'Convert timestamp',
+    'Convert',
+    ['unix', 'epoch', 'date'],
+    [choice('unit', 'Numeric timestamp unit', ['seconds', 'milliseconds'])],
+  ],
+];
+export const TEXT_OPERATIONS: TextOperation[] = rows.map(
+  ([id, label, group, keywords, options]) => ({
+    id,
+    label,
+    group,
+    keywords,
+    ...(options ? { options } : {}),
+  })
+);

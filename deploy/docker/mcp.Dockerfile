@@ -23,19 +23,35 @@
 #
 # Tier-B (browser/Chromium) render formats are DISABLED unless LOLLY_WEB_BASE is
 # set at runtime; svg/data + resvg-png work without a browser. We deliberately do
-# NOT install Playwright's Chromium here to keep the image slim - set env
-# LOLLY_WEB_BASE=https://<your-web-host> to point at your web deployment's
-# renderer instead.
+# NOT install Chromium here. LOLLY_WEB_BASE alone does not supply a browser;
+# browser formats need a separately reviewed browser-enabled MCP deployment.
+# Keep Tier B disabled for this image's initial hosted scope.
 # ============================================================================
 
-FROM node:26-bookworm-slim@sha256:367679cf9792759492a486e4aa4b421764d71a9546a6dae8aab81a99eb797b3e AS build
+FROM node:24-alpine@sha256:50c8e8ca1d27439048670df5883f32d57cf81cff6233222c893fd0d9884cbd81 AS build
 WORKDIR /src
+RUN apk add --no-cache libcrypto3=3.5.8-r0 libssl3=3.5.8-r0
 # Neutral by default; a public image must not ship the private SUSE pack.
 ARG LOLLY_PROFILE=lolly-start
 ENV LOLLY_PROFILE=${LOLLY_PROFILE}
 ENV NODE_ENV=production
 
-COPY . .
+# Keep model weights and web/docs outputs out of the build context snapshot.
+# Runtime workspace manifests are still present for the frozen-lockfile install.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml profiles.json ./
+COPY engine ./engine
+COPY schemas ./schemas
+COPY packages ./packages
+COPY shells/cli ./shells/cli
+COPY shells/web/package.json ./shells/web/package.json
+COPY shells/web/build/materialize-directory.ts ./shells/web/build/materialize-directory.ts
+COPY shells/web/public/fonts ./shells/web/public/fonts
+COPY shells/tui/package.json ./shells/tui/package.json
+COPY services/ca/package.json ./services/ca/package.json
+COPY services/mcp ./services/mcp
+COPY scripts ./scripts
+COPY community ./community
+COPY brands ./brands
 
 # Runtime deps only (omit dev). postinstall materialises the tools/ + catalog/
 # views for LOLLY_PROFILE. PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD keeps the optional
@@ -43,19 +59,43 @@ COPY . .
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN npm install --global pnpm@11.26.0
 RUN pnpm install --frozen-lockfile --prod
+# Hosted MCP deliberately omits model APIs. These native inference packages and
+# their archive installer are not needed by its supported headless render paths.
+RUN rm -rf node_modules/onnxruntime-node node_modules/@huggingface/transformers \
+    node_modules/phonemizer node_modules/adm-zip
+
+# Profile views may contain absolute build-directory symlinks. Materialise the
+# selected content before moving it to /app, using the same verified copy helper
+# as the web build. The runtime needs no source brand pack or web model cache.
+RUN node --input-type=module -e "import { materializeDirectory } from './shells/web/build/materialize-directory.ts'; for (const dir of ['tools', 'catalog']) materializeDirectory(dir, '/runtime-content/' + dir);"
+# Retain each runtime package's workspace links as well as its source. Remove
+# the service's deployment recipes and tests before copying the package.
+RUN rm -rf services/mcp/deploy services/mcp/test
 
 # ── runtime stage ───────────────────────────────────────────────────────────
-FROM node:26-bookworm-slim@sha256:367679cf9792759492a486e4aa4b421764d71a9546a6dae8aab81a99eb797b3e AS runtime
+FROM node:24-alpine@sha256:50c8e8ca1d27439048670df5883f32d57cf81cff6233222c893fd0d9884cbd81 AS runtime
 WORKDIR /app
+RUN apk add --no-cache libcrypto3=3.5.8-r0 libssl3=3.5.8-r0
 ENV NODE_ENV=production
 # Default transport port; the chart sets PORT explicitly too.
 ENV PORT=8790
 
-# Bring the installed monorepo across whole - the .ts entrypoint resolves engine
-# and tool/catalog paths by relative position, so the layout must be preserved.
-COPY --from=build /src /app
+# Preserve the source layout and workspace links used by the headless host,
+# without shipping the entire web app, model weights or unrelated brand sources.
+COPY --from=build /src/node_modules ./node_modules
+COPY --from=build /src/engine ./engine
+COPY --from=build /src/schemas ./schemas
+COPY --from=build /src/packages/core ./packages/core
+COPY --from=build /src/packages/node-shell ./packages/node-shell
+COPY --from=build /src/shells/cli ./shells/cli
+COPY --from=build /src/services/mcp ./services/mcp
+COPY --from=build /src/shells/web/public/fonts ./shells/web/public/fonts
+COPY --from=build /runtime-content/tools ./tools
+COPY --from=build /runtime-content/catalog ./catalog
+COPY LICENSE THIRD-PARTY-NOTICES.md ./
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
-# node:*-slim ships a non-root `node` user (uid 1000).
+# The Node base ships a non-root `node` user (uid 1000).
 USER node
 EXPOSE 8790
 # Match the chart's TCP liveness probe; this is not an OAuth/readiness test.

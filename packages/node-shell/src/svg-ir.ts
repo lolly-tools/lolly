@@ -5,7 +5,7 @@
  * Walks a rendered SVG element into the flat, device-pixel, sRGB, alpha-composited
  * IR that engine/src/emf.js serializes. Mirrors drawSvgVectorsInRegion in
  * export.js (viewBox mapping, <g> translate+scale incl. d3.zoom, non-scaling
- * stroke) but emits IR prims instead of jsPDF calls - and, critically, ALWAYS
+ * stroke) but emits IR prims instead of PDF calls - and, critically, ALWAYS
  * outlines <text> to vector paths via host.text.toPath (the "always text-as-paths"
  * rule). A <text> run that can't be vectorized throws, so EMF never ships a
  * partially-textless file. See plans/63-emf-support.md.

@@ -18,6 +18,7 @@
 import { readFileSync, readdirSync, statSync, existsSync, writeFileSync } from 'node:fs';
 import { resolve, join, relative } from 'node:path';
 import { BANNED_PHRASES } from './check-docs-vernacular.ts';
+import { printVernacularWhy } from './lib/vernacular-why.ts';
 
 const ROOT = resolve(new URL('..', import.meta.url).pathname);
 const BASELINE_PATH = join(ROOT, 'scripts/vernacular-ui-baseline.json');
@@ -121,10 +122,10 @@ if (import.meta.url === new URL(process.argv[1] ?? '', 'file://').href) {
     console.log(`wrote ${BASELINE_PATH}`);
   } else {
     const d = drift();
-    for (const x of d.over) console.error(`ROSE   ${x.file}: ${x.was} → ${x.now}`);
-    for (const x of d.fresh) console.error(`NEW    ${x.file}: ${x.now}`);
+    for (const x of d.over) console.error(`ROSE   ${x.file}: AI-vernacular hits in UI copy ${x.was} -> ${x.now}`);
+    for (const x of d.fresh) console.error(`NEW    ${x.file}: ${x.now} AI-vernacular hit(s) in UI copy`);
     for (const x of d.under) console.log(`better ${x.file}: ${x.was} → ${x.now} (run --write to lock)`);
-    if (d.over.length || d.fresh.length || d.under.length) process.exitCode = 1;
+    if (d.over.length || d.fresh.length || d.under.length) { printVernacularWhy(); process.exitCode = 1; }
     else console.log('ui copy vernacular: no drift');
   }
 }

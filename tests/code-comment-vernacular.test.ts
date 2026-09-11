@@ -18,13 +18,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { drift } from '../scripts/check-code-comment-vernacular.ts';
+import { VERNACULAR_WHY } from '../scripts/lib/vernacular-why.ts';
 
 test('code comments carry no new em dashes or claudism phrases (ratchet only goes down)', () => {
   const d = drift();
   const lines = [
     ...d.over.map(x => `${x.file}: rose ${x.was} → ${x.now}`),
-    ...d.fresh.map(x => `${x.file}: new file with ${x.now} comment claudism(s)`),
+    ...d.fresh.map(x => `${x.file}: new file with ${x.now} AI-vernacular hit(s) in comments`),
     ...d.under.map(x => `${x.file}: improved ${x.was} → ${x.now} (run --write to lock)`),
   ];
-  assert.deepEqual(lines, [], 'code-comment vernacular ratchet drifted - see scripts/check-code-comment-vernacular.ts');
+  assert.deepEqual(lines, [], `code-comment vernacular ratchet drifted (comments gained em dashes, section signs or banned phrases).\n${VERNACULAR_WHY}`);
 });

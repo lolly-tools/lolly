@@ -54,7 +54,7 @@ import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import type { AddressInfo } from 'node:net';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
-import { getBrowser, closeBrowser, resolveBrowsersDir } from '../packages/node-shell/src/browsers.ts';
+import { getBrowser, closeBrowser, resolveBrowsersDir } from '@lolly-tools/node-shell/browsers';
 import { windowPdfSvg } from '../engine/src/index.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');

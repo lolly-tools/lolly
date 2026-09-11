@@ -9,7 +9,7 @@
  * only mark every Rust crate `unknown`. This tool closes that gap: it runs
  * `cargo metadata` over each Tauri shell's crate graph (the resolver reads the
  * declared `license` field of every crate in Cargo.lock) and writes the result
- * to a committed map, `cargo-licenses.json` (repo root), which build-sbom.ts
+ * to a committed map, `security/cargo-licenses.json`, which build-sbom.ts
  * consumes to attribute pkg:cargo components.
  *
  * Design notes:
@@ -39,7 +39,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const OUT_PATH = join(ROOT, 'cargo-licenses.json');
+const OUT_PATH = join(ROOT, 'security/cargo-licenses.json');
 
 // The two Rust crate graphs Lolly ships (same set scripts/build-sbom.ts reads).
 const CRATE_DIRS = [
@@ -140,7 +140,7 @@ const doc = {
   ),
 };
 writeFileSync(OUT_PATH, JSON.stringify(doc, null, 2) + '\n');
-console.log(`✓ Wrote cargo-licenses.json - ${licenses.size} crates attributed`);
+console.log(`✓ Wrote security/cargo-licenses.json - ${licenses.size} crates attributed`);
 for (const k of [...new Set(overridden)].sort()) {
   console.log(`  license-file resolved by hand: ${k} → ${LICENSE_FILE_OVERRIDES[k]!.spdx}`);
 }

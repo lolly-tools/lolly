@@ -831,3 +831,9 @@ export { applyPreparationMetadata } from './prepare-metadata.ts';
 
 export { compareSources, createCompareAPI } from './compare.ts';
 export { compareVisualSources, renderComparisonPage } from './compare-visual.ts';
+
+export { createTextToolsAPI, runTextTool } from './text-tools.ts';
+export { highlightCode, detectCodeLanguage, SYNTAX_LANGUAGES } from './text-syntax.ts';
+export { TEXT_OPERATIONS } from './text-operations.ts';
+export { parseTextLogs, filterTextLogs, groupTextLogs } from './text-logs.ts';
+export type { TextLogEvent, TextLogReport } from './text-logs.ts';

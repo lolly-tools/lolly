@@ -34,7 +34,7 @@ This is the repository-closure checklist. Commands are authoritative; tick boxes
 | api-ca | `api/ca/[...path].js` | `npm run build:ca-fn` | `git diff --exit-code -- 'api/ca/[...path].js'` |
 | api-penpot | `api/penpot/[...path].js` | `npm run build:penpot-fn` | `git diff --exit-code -- 'api/penpot/[...path].js'` |
 | sbom | `sbom.cdx.json` | `npm run build:sbom` | `git diff --exit-code -- sbom.cdx.json` |
-| licenses | `THIRD-PARTY-NOTICES.md`<br>`cargo-licenses.json` | `npm run build:licenses && npm run build:cargo-licenses` | `npm run check:cargo-licenses` |
+| licenses | `THIRD-PARTY-NOTICES.md`<br>`security/cargo-licenses.json` | `npm run build:licenses && npm run build:cargo-licenses` | `npm run check:cargo-licenses` |
 | engine-map | `engine/README.md` | `npm run build:engine-modules` | `npm run check:engine-modules` |
 | web-map | `shells/web/src/README.md` | `npm run build:web-src-readme` | `npm run check:web-src-readme` |
 | parser-inventory | `docs/parser-inventory.md` | `npm run build:parser-inventory` | `npm run check:parser-inventory` |

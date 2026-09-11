@@ -100,7 +100,27 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 // the growth is many ~1 KB first-paint slices, no single leak. The template and
 // asset-version readers may be lazy-able with feature-owner knowledge - a deliberate
 // boot-diet pass, not a release edit. Next growth needs its own argument, not this note.
-const MAX_PRELOAD_JS_GZ = 156 * 1024;
+// Moved 156 -> 157 on 2026-09-11. HEAD passed at 156.0; the tree that follows it measured
+// 156.6 KB gz over 98 preloaded files. Two parts, one of them now paid back:
+//   - The escaper dedupe (shells/web/src/lib/util/escape.ts, one implementation each for
+//     HTML, regex and selector escaping, replacing a dozen drifted local copies) put a
+//     second shared chunk on the preload set, because src/utils.ts re-exports it at boot
+//     while the views that need the other two escapers are lazy. Two chunks and two
+//     preload links for ~600 B of source. The `web-utils` group in
+//     shells/web/vite.config.js puts utils.ts and the escaper leaf in one chunk again:
+//     156.6 -> 156.5 KB over 97 files, measured on this tree.
+//   - The remaining 0.5 KB is NOT attributed to a single module. It is first-paint weight
+//     from the same 1.0.7 wave the 146 -> 156 note covers, arriving after that note was
+//     written: the PDF writer split (bridge/export-pdf-*), the 1.191 text-operation
+//     contract in packages/core, and the engine module reshuffle behind them. A HEAD
+//     baseline build was not available to split it finer - the tree carries several
+//     sessions' uncommitted work at once, and the submodule worktree a clean baseline
+//     needs was out of scope for this fix.
+// Rule 1 still passes: no engine/handlebars/ajv/html2canvas chunk on boot, and jsPDF is
+// gone from the build entirely. Next growth needs its own argument, not this note - the
+// standing candidate for a real diet is the template + asset-version reader cluster the
+// previous note names, which needs its feature owner.
+const MAX_PRELOAD_JS_GZ = 157 * 1024;
 // -----------------------------------------------------------------------------
 
 function fail(msg: string): never {

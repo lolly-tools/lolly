@@ -85,3 +85,16 @@ test('provenance meta becomes a comment and a dc:description', () => {
   assert.match(svg, /<!-- Made with Lolly · lolly -->/);
   assert.match(svg, /<dc:description>Made with Lolly · lolly<\/dc:description>/);
 });
+
+test('quotes stay literal in the comment and escaped in the dc:description', () => {
+  const svg = assembleAnimatedSvg({
+    frames: ['<rect/>', '<rect/>'], widthAttr: '10px', heightAttr: '10px', viewBox: '0 0 10 10',
+    frameMs: 100, loops: 0, meta: { description: `Andy's "studio" -- east <wing>` },
+  });
+  // A comment expands no character reference, so an entity there would be read
+  // back as its own characters. `--` cannot appear in one at all.
+  assert.match(svg, /<!-- Andy's "studio" - east &lt;wing&gt; -->/);
+  assert.doesNotMatch(svg, /<!--[^>]*&#39;/);
+  // The element value is character data, so every one of the five is escaped.
+  assert.match(svg, /<dc:description>Andy&#39;s &quot;studio&quot; -- east &lt;wing&gt;<\/dc:description>/);
+});

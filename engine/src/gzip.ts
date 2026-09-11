@@ -1,15 +1,30 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * gzip (RFC 1952): the member wrapper around raw DEFLATE, plus a self-contained
+ * gzip (RFC 1952): the member wrapper around raw DEFLATE, plus a synchronous
  * inflater so a `.gz`/`.svgz` can be read back without a platform decoder.
  *
  * The engine already emits raw DEFLATE (deflate.ts) and the zlib wrapper it
- * feeds PNG IDAT, but had no gzip framing and, deliberately, no synchronous
+ * feeds PNG IDAT, but had no gzip framing and, at first, no synchronous
  * INFLATE at all: url-pack.ts inflates its `z` tokens through the platform
  * DecompressionStream (async, browser-only), which is the wrong shape for a
  * format writer/reader that must run identically in web, CLI and MCP. gzip is
  * what SVGZ is (section "SVGZ is exactly this"), what `.tar.gz` needs, and the most
  * requested "just give me a .gz" export, so both halves live here.
+ *
+ * ─── Which half is ours, and why ─────────────────────────────────────────────
+ * DECODE is fflate's (`Inflate`), wrapped in this file's cap - see the block
+ * comment above {@link inflateRaw}. A decoder's output is defined by the input,
+ * so swapping one for another that the engine already depends on is free: 147
+ * round-trips across every node:zlib level x strategy decoded to identical
+ * bytes, and ~200 lines of hand-written bit reader, Huffman decoder and block
+ * loop went with the swap.
+ *
+ * ENCODE stays in-house, because it is NOT free. fflate's `gzipSync` writes a
+ * different member for the same input: a wall-clock MTIME (so two runs a second
+ * apart disagree, which the goldens and C2PA hashes cannot have) and OS=3 rather
+ * than 0xff, over a body its own deflate produces - dynamic Huffman where
+ * deflate.ts emits fixed, so not one fixture of fourteen matched byte for byte.
+ * See deflate.ts's header for the same measurement on the raw DEFLATE side.
  *
  * ─── Encode (RFC 1952 section 2.3) ──────────────────────────────────────────────────
  * 10-byte fixed header: ID1 0x1f, ID2 0x8b, CM 8 (deflate), FLG 0 (no name /
@@ -22,13 +37,17 @@
  *
  * ─── Decode ──────────────────────────────────────────────────────────────────
  * Validate magic + CM + FLG (skipping any FEXTRA/FNAME/FCOMMENT/FHCRC fields a
- * third-party gzip may carry), INFLATE the body with the in-file bounded
+ * third-party gzip may carry), INFLATE the body with the bounded
  * inflater, then verify BOTH the trailer CRC-32 and ISIZE against the recovered
  * bytes. A truncated or corrupt stream fails loudly rather than returning short
- * data. Every field read is bounds-checked before deref, and the inflater can
- * neither loop forever nor over-allocate on a crafted length/distance (the "GIF
- * lesson"): the output is capped and every back-reference is validated against
- * bytes actually produced.
+ * data: the trailer check is what makes that true end to end, since fflate's
+ * decoder will hand back a short result for some corrupt streams the old
+ * in-house one rejected outright, and ISIZE/CRC-32 catch every one of those.
+ * Every field read is bounds-checked before deref, and the inflater can
+ * neither loop forever nor over-allocate on a crafted length (the "GIF
+ * lesson"): the output is capped at the declared size, and the compressed input
+ * is fed in through pushes sized to the remaining headroom, so peak memory
+ * tracks the declared size rather than whatever a hostile stream could expand to.
  *
  * ─── SVGZ is exactly this ────────────────────────────────────────────────────
  * SVGZ (`image/svg+xml` + `Content-Encoding: gzip`, `.svgz`) is a gzip member
@@ -38,6 +57,7 @@
  * Pure math + typed arrays; DOM-free, deterministic, no network/filesystem.
  */
 
+import { Inflate } from 'fflate';
 import { crc32 } from './zip-crypto.ts';
 import { deflateRaw, type DeflateOptions } from './deflate.ts';
 
@@ -156,141 +176,47 @@ function readU32LE(bytes: Uint8Array, off: number): number {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Raw DEFLATE inflate (RFC 1951): the decode half the engine lacked.
+// Raw DEFLATE inflate (RFC 1951): fflate's decoder behind the engine's cap.
 //
-// Stored blocks (section 3.2.4), fixed Huffman (section 3.2.6) and dynamic Huffman (section 3.2.7).
-// Bounded on every axis a hostile stream could exploit: a bit reader that
-// reports end-of-input instead of reading past the buffer, an output that
-// cannot exceed `sizeHint` (the gzip ISIZE, so a crafted length code cannot make
-// us allocate gigabytes), and back-references validated against bytes actually
-// produced (distance <= current output length). No recursion, no unbounded loop.
+// The bit reader, canonical-Huffman decoder and block loop used to live here.
+// They were measured against fflate's `Inflate` over 147 round-trips (every
+// node:zlib level x strategy over an ascii/random/zero/source-file corpus) and
+// the decoded bytes matched on every one, so the hand-written half went and the
+// dependency the engine already carries does the decoding. The measurement is
+// written up in engine/CHANGELOG.md under 2026-09-11.
+//
+// What did NOT move is the bound. fflate never grows a caller-supplied buffer
+// and never reports having overrun one, so feeding it the whole stream at once
+// would trade `sizeHint` for a silent truncation. Instead the compressed input
+// is pushed through fflate's STREAMING decoder in slabs and each decoded chunk
+// is appended to {@link OutBuffer}, which throws on the first byte past `sizeHint`.
+//
+// The slab size is the part that has to be got right. fflate decodes an ENTIRE
+// push into its own growing buffer before it calls back (`Inflate.prototype.c`
+// runs `inflt` to completion, then hands the result to `ondata`), so the cap in
+// {@link OutBuffer} can only fire AFTER a whole slab has expanded. A fixed 64 KB
+// slab therefore let a bomb materialise ~64 MB before the throw - measured at
+// 187 MB RSS for 65 KB of input declaring `sizeHint` 1. So each push is instead
+// sized to the OUTPUT headroom that is left, divided by DEFLATE's worst-case
+// 1032:1 expansion. Peak transient allocation is then on the order of the
+// declared size (with a ~1 MB floor from the minimum slab), never on the order
+// of what a lying declared size would otherwise unlock. An honest stream is
+// unaffected in output and bounded in push count: the slab shrinks as the
+// headroom does, so the loop runs at most ~1032 pushes whatever the size.
 // ────────────────────────────────────────────────────────────────────────────
 
-// RFC 1951 section 3.2.5: length codes 257..285 (base + extra bits).
-const LEN_BASE = [
-  3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
-  35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258,
-];
-const LEN_EXTRA = [
-  0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
-  3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0,
-];
-// RFC 1951 section 3.2.5: distance codes 0..29 (base + extra bits).
-const DIST_BASE = [
-  1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
-  257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577,
-];
-const DIST_EXTRA = [
-  0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
-  7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13,
-];
-// RFC 1951 section 3.2.7: the order in which code-length-code lengths are stored.
-const CLEN_ORDER = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
+/** Ceiling on compressed bytes handed to fflate per push. Bounds its per-push scratch. */
+const INFLATE_PUSH_BYTES = 1 << 16;
 
-/** LSB-first bit reader (RFC 1951 section 3.1.1) with hard bounds; never reads past `data`. */
-class BitReader {
-  private pos = 0;
-  private bitBuf = 0;
-  private bitCnt = 0;
-  private readonly data: Uint8Array;
-  constructor(data: Uint8Array) { this.data = data; }
-
-  /** Read `count` bits (0..24), LSB first. Throws on end-of-input. */
-  bits(count: number): number {
-    while (this.bitCnt < count) {
-      if (this.pos >= this.data.length) throw new Error('inflate: unexpected end of stream');
-      this.bitBuf |= this.data[this.pos++]! << this.bitCnt;
-      this.bitCnt += 8;
-    }
-    const v = this.bitBuf & ((1 << count) - 1);
-    this.bitBuf >>>= count;
-    this.bitCnt -= count;
-    return v;
-  }
-
-  /** Drop any partial bits, aligning to the next byte (stored-block start, section 3.2.4). */
-  alignByte(): void {
-    this.bitBuf = 0;
-    this.bitCnt = 0;
-  }
-
-  /** Copy `len` raw bytes (stored block); the reader must be byte-aligned. */
-  readBytes(len: number): Uint8Array {
-    if (this.pos + len > this.data.length) throw new Error('inflate: truncated stored block');
-    const out = this.data.subarray(this.pos, this.pos + len);
-    this.pos += len;
-    return out;
-  }
-
-  /** Read a byte-aligned little-endian uint16 (stored block LEN/NLEN). */
-  readU16(): number {
-    if (this.pos + 2 > this.data.length) throw new Error('inflate: truncated stored header');
-    const v = this.data[this.pos]! | (this.data[this.pos + 1]! << 8);
-    this.pos += 2;
-    return v;
-  }
-}
+/** Floor on that push size, so a tiny declared size still makes progress. */
+const INFLATE_MIN_PUSH_BYTES = 1024;
 
 /**
- * Canonical Huffman decoder built from a list of code lengths (RFC 1951 section 3.2.2).
- * Decodes one symbol per `decode()` call, bit by bit, so no code is ever read
- * beyond its length. `maxLen` bounds the walk; a bit reader hitting end-of-input
- * throws rather than spinning.
+ * Largest expansion one DEFLATE byte can produce (RFC 1951): a 258-byte match
+ * costs as little as ~2 bits, so 1032:1 is the standard worst case. Used to turn
+ * "output bytes still allowed" into "compressed bytes safe to push".
  */
-class HuffTree {
-  private readonly counts: Uint16Array;   // number of codes of each length
-  private readonly symbols: Uint16Array;  // symbols sorted by (length, value)
-  private readonly maxLen: number;
-
-  constructor(lengths: Uint8Array | number[], maxLen: number) {
-    this.maxLen = maxLen;
-    this.counts = new Uint16Array(maxLen + 1);
-    for (let i = 0; i < lengths.length; i++) {
-      const l = lengths[i]!;
-      if (l > maxLen) throw new Error('inflate: code length exceeds maximum');
-      this.counts[l]!++;
-    }
-    this.counts[0] = 0; // length-0 symbols are absent, not codes
-    // Offsets of each length's block within the sorted symbol table.
-    const offsets = new Uint16Array(maxLen + 2);
-    for (let l = 1; l <= maxLen; l++) offsets[l + 1] = offsets[l]! + this.counts[l]!;
-    this.symbols = new Uint16Array(lengths.length);
-    for (let i = 0; i < lengths.length; i++) {
-      const l = lengths[i]!;
-      if (l !== 0) this.symbols[offsets[l]!++] = i;
-    }
-  }
-
-  /** Decode one symbol from `r`, walking one bit per length (RFC 1951 section 3.2.2). */
-  decode(r: BitReader): number {
-    let code = 0;
-    let first = 0;   // first canonical code of the current length
-    let index = 0;   // running symbol-table base for the current length
-    for (let len = 1; len <= this.maxLen; len++) {
-      code |= r.bits(1);
-      const count = this.counts[len]!;
-      if (code - first < count) return this.symbols[index + (code - first)]!;
-      index += count;
-      first = (first + count) << 1;
-      code <<= 1;
-    }
-    throw new Error('inflate: invalid Huffman code');
-  }
-}
-
-// Fixed literal/length + distance trees (RFC 1951 section 3.2.6), built once.
-const FIXED_LIT_TREE = (() => {
-  const lengths = new Uint8Array(288);
-  for (let i = 0; i < 144; i++) lengths[i] = 8;
-  for (let i = 144; i < 256; i++) lengths[i] = 9;
-  for (let i = 256; i < 280; i++) lengths[i] = 7;
-  for (let i = 280; i < 288; i++) lengths[i] = 8;
-  return new HuffTree(lengths, 9);
-})();
-const FIXED_DIST_TREE = (() => {
-  const lengths = new Uint8Array(30).fill(5);
-  return new HuffTree(lengths, 5);
-})();
+const MAX_INFLATE_RATIO = 1032;
 
 /** Growable output buffer capped at `sizeHint` so a crafted stream can't over-allocate. */
 class OutBuffer {
@@ -311,21 +237,10 @@ class OutBuffer {
     grown.set(this.buf.subarray(0, this.len));
     this.buf = grown;
   }
-  pushByte(b: number): void {
-    this.ensure(1);
-    this.buf[this.len++] = b;
-  }
   pushBytes(src: Uint8Array): void {
     this.ensure(src.length);
     this.buf.set(src, this.len);
     this.len += src.length;
-  }
-  /** Copy `len` bytes from `dist` back: the LZ77 back-reference (section 3.2.3). */
-  copyBack(dist: number, len: number): void {
-    if (dist > this.len) throw new Error('inflate: distance points before start of output');
-    this.ensure(len);
-    let from = this.len - dist;
-    for (let i = 0; i < len; i++) this.buf[this.len++] = this.buf[from++]!;
   }
   take(): Uint8Array {
     return this.buf.subarray(0, this.len);
@@ -341,95 +256,28 @@ class OutBuffer {
 export function inflateRaw(data: Uint8Array, sizeHint?: number): Uint8Array {
   // Cap: the declared size when known, else a bounded default. Never unbounded.
   const cap = sizeHint !== undefined && sizeHint >= 0 ? sizeHint : Math.max(1 << 20, data.length * 1024);
-  const r = new BitReader(data);
-  const out = new OutBuffer(cap);
-  let final = false;
+  // An empty buffer is not a DEFLATE stream. fflate hands back an empty result
+  // for one; the engine's callers want the same loud failure a truncated stream gets.
+  if (data.length === 0) throw new Error('inflate: unexpected end of stream');
 
-  while (!final) {
-    final = r.bits(1) === 1;
-    const type = r.bits(2);
-    if (type === 0) {
-      // Stored (section 3.2.4): align, LEN + one's-complement NLEN, then raw bytes.
-      r.alignByte();
-      const len = r.readU16();
-      const nlen = r.readU16();
-      if ((len ^ 0xffff) !== nlen) throw new Error('inflate: stored block LEN/NLEN mismatch');
-      out.pushBytes(r.readBytes(len));
-    } else if (type === 1) {
-      inflateBlock(r, out, FIXED_LIT_TREE, FIXED_DIST_TREE);
-    } else if (type === 2) {
-      const { litTree, distTree } = readDynamicTables(r);
-      inflateBlock(r, out, litTree, distTree);
-    } else {
-      throw new Error('inflate: invalid block type 3 (reserved)');
+  const out = new OutBuffer(cap);
+  const stream = new Inflate((chunk) => { if (chunk.length > 0) out.pushBytes(chunk); });
+  try {
+    let at = 0;
+    while (at < data.length) {
+      // fflate decodes a whole push before it calls back, so the push size - not
+      // the cap - is what bounds the transient allocation. Size each push to the
+      // output headroom that is left, divided by DEFLATE's worst-case expansion.
+      const headroom = Math.ceil(Math.max(0, cap - out.len) / MAX_INFLATE_RATIO) + 64;
+      const slab = Math.min(INFLATE_PUSH_BYTES, Math.max(INFLATE_MIN_PUSH_BYTES, headroom));
+      const end = Math.min(at + slab, data.length);
+      stream.push(data.subarray(at, end), end === data.length);
+      at = end;
     }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    // OutBuffer's own cap message already carries the prefix; fflate's does not.
+    throw message.startsWith('inflate:') ? err : new Error(`inflate: ${message}`);
   }
   return out.take();
-}
-
-/** Decode one Huffman-coded block body (fixed or dynamic) until end-of-block (256). */
-function inflateBlock(r: BitReader, out: OutBuffer, litTree: HuffTree, distTree: HuffTree): void {
-  for (;;) {
-    const sym = litTree.decode(r);
-    if (sym < 256) {
-      out.pushByte(sym);
-    } else if (sym === 256) {
-      return; // end of block (section 3.2.3)
-    } else {
-      const li = sym - 257;
-      if (li >= LEN_BASE.length) throw new Error('inflate: invalid length symbol');
-      const len = LEN_BASE[li]! + r.bits(LEN_EXTRA[li]!);
-      const dsym = distTree.decode(r);
-      if (dsym >= DIST_BASE.length) throw new Error('inflate: invalid distance symbol');
-      const dist = DIST_BASE[dsym]! + r.bits(DIST_EXTRA[dsym]!);
-      out.copyBack(dist, len);
-    }
-  }
-}
-
-/**
- * Read a dynamic block's Huffman tables (RFC 1951 section 3.2.7): HLIT/HDIST/HCLEN, the
- * code-length-code lengths (in CLEN_ORDER), then the run-length-encoded literal
- * and distance code lengths. Every count and repeat is bounds-checked.
- */
-function readDynamicTables(r: BitReader): { litTree: HuffTree; distTree: HuffTree } {
-  const hlit = r.bits(5) + 257;  // 257..286
-  const hdist = r.bits(5) + 1;   // 1..32
-  const hclen = r.bits(4) + 4;   // 4..19
-  if (hlit > 286 || hdist > 30) throw new Error('inflate: dynamic table count out of range');
-
-  const clenLengths = new Uint8Array(19);
-  for (let i = 0; i < hclen; i++) clenLengths[CLEN_ORDER[i]!] = r.bits(3);
-  const clenTree = new HuffTree(clenLengths, 7);
-
-  const total = hlit + hdist;
-  const lengths = new Uint8Array(total);
-  let i = 0;
-  while (i < total) {
-    const sym = clenTree.decode(r);
-    if (sym < 16) {
-      lengths[i++] = sym;
-    } else if (sym === 16) {
-      // Repeat previous length 3..6 times.
-      if (i === 0) throw new Error('inflate: repeat with no previous code length');
-      const repeat = 3 + r.bits(2);
-      const prev = lengths[i - 1]!;
-      if (i + repeat > total) throw new Error('inflate: code-length repeat overruns tables');
-      for (let k = 0; k < repeat; k++) lengths[i++] = prev;
-    } else if (sym === 17) {
-      const repeat = 3 + r.bits(3); // 3..10 zeros
-      if (i + repeat > total) throw new Error('inflate: zero-run overruns tables');
-      i += repeat; // Uint8Array is already zero-filled
-    } else if (sym === 18) {
-      const repeat = 11 + r.bits(7); // 11..138 zeros
-      if (i + repeat > total) throw new Error('inflate: zero-run overruns tables');
-      i += repeat;
-    } else {
-      throw new Error('inflate: invalid code-length symbol');
-    }
-  }
-
-  const litTree = new HuffTree(lengths.subarray(0, hlit), 15);
-  const distTree = new HuffTree(lengths.subarray(hlit, total), 15);
-  return { litTree, distTree };
 }

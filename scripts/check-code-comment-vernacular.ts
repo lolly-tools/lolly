@@ -22,6 +22,7 @@
  * Trailing comments after code are out of scope for the same safety reason.
  */
 import { readFileSync, readdirSync, lstatSync, existsSync, writeFileSync } from 'node:fs';
+import { printVernacularWhy } from './lib/vernacular-why.ts';
 import { resolve, join, relative } from 'node:path';
 import ts from 'typescript';
 import { BANNED_PHRASES } from './check-docs-vernacular.ts';
@@ -231,11 +232,12 @@ if (invokedDirectly) {
     process.exit(0);
   }
   const d = drift(current);
-  for (const x of d.over) console.error(`✗ ${x.file}: comment claudisms rose ${x.was} → ${x.now}`);
-  for (const x of d.fresh) console.error(`✗ ${x.file}: new file has ${x.now} comment claudism(s) — write comments in plain English (no em dashes, no section signs, no tics)`);
-  for (const x of d.under) console.error(`✗ ${x.file}: improved ${x.was} → ${x.now} — run: node scripts/check-code-comment-vernacular.ts --write`);
+  for (const x of d.over) console.error(`✗ ${x.file}: AI-vernacular hits in comments rose ${x.was} -> ${x.now} (em dashes, section signs or banned phrases)`);
+  for (const x of d.fresh) console.error(`✗ ${x.file}: new file has ${x.now} AI-vernacular hit(s) in comments - write comments in plain English (no em dashes, no section signs, no banned phrases)`);
+  for (const x of d.under) console.error(`✗ ${x.file}: improved ${x.was} -> ${x.now} - record it: node scripts/check-code-comment-vernacular.ts --write`);
   if (d.over.length || d.fresh.length || d.under.length) {
     console.error(`\n${d.over.length} regressed, ${d.fresh.length} new-dirty, ${d.under.length} improved-but-unrecorded. Total now ${total(current)}.`);
+    printVernacularWhy();
     process.exit(1);
   }
   console.log(`✓ code-comment vernacular clean against baseline (${total(current)} tokens across ${Object.keys(current).length} files)`);

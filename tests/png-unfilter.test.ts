@@ -2,7 +2,7 @@
 /**
  * Unit tests for engine/src/png-unfilter.ts - unfilterPng(), the pure, DOM-free
  * reversal of PNG row filters (types 0 None, 1 Sub, 2 Up, 3 Average, 4 Paeth)
- * that PDF /Predictor >= 10 (and jsPDF's addImage(png,'PNG'), /Predictor 15)
+ * that PDF /Predictor >= 10 (and a PNG passed to addImage, /Predictor 15)
  * apply before DEFLATE.
  *
  * The per-filter cases below carry HAND-COMPUTED filtered inputs and HAND-COMPUTED

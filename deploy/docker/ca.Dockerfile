@@ -16,28 +16,23 @@
 # CA_ROOT_KEY_PEM, CA_ROOT_CERT_PEM, CA_ALLOWED_ORIGINS, plus at least one OIDC
 # provider pair (GITHUB_*, GOOGLE_*, SUSE_*). Generate the root once with
 # `node services/ca/scripts/gen-root.mjs`. Without the root + secret, /enroll and
-# auth fail (health still answers). The Helm chart wires these from a Secret.
+# auth fail. With neither configured, all routes (including health) return 404;
+# do not deploy this optional service without its approved configuration.
+# The Helm chart wires these from a Secret. Health is liveness, not OIDC readiness.
 # ============================================================================
 
-FROM node:26-bookworm-slim@sha256:367679cf9792759492a486e4aa4b421764d71a9546a6dae8aab81a99eb797b3e AS build
-WORKDIR /src
-ENV NODE_ENV=production
-
-COPY . .
-
-# CA itself is zero-dependency, but it lives in the workspace and imports the
-# engine sibling, so install the workspace graph (runtime deps only).
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-RUN npm install --global pnpm@11.26.0
-RUN pnpm install --frozen-lockfile --prod
-
-# ── runtime stage ───────────────────────────────────────────────────────────
-FROM node:26-bookworm-slim@sha256:367679cf9792759492a486e4aa4b421764d71a9546a6dae8aab81a99eb797b3e AS runtime
+FROM node:24-alpine@sha256:50c8e8ca1d27439048670df5883f32d57cf81cff6233222c893fd0d9884cbd81 AS runtime
 WORKDIR /app
+RUN apk add --no-cache libcrypto3=3.5.8-r0 libssl3=3.5.8-r0
 ENV NODE_ENV=production
 ENV PORT=8787
 
-COPY --from=build /src /app
+# The CA has no third-party runtime dependencies. Preserve its relative engine
+# imports without carrying private tool packs, web models or package managers.
+COPY services/ca ./services/ca
+COPY engine/src/x509.ts engine/src/bytes.ts engine/src/der-read.ts ./engine/src/
+COPY LICENSE ./LICENSE
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 USER node
 EXPOSE 8787

@@ -6,6 +6,10 @@
  * a whole markdown deck back into slides that the branded .pptx writer exports.
  * This module is the join between them, so "drop an old deck, get it back in the
  * current brand" is a tested contract rather than two halves that nearly agree.
+ * Direction map for the repo's other markdown converters, none of which does this
+ * job: `doc-md.ts` (doc-model → markdown and → HTML), `shells/web/src/bridge/
+ * export.ts` renderMarkdown (rendered DOM → markdown), `shells/web/src/lib/
+ * markdown.ts` (markdown text → HTML).
  * The contract test is `tests/deck-roundtrip.test.ts`, which feeds this output
  * through deck-studio's own `parseSpec`.
  *

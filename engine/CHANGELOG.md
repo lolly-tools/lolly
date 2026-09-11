@@ -6,6 +6,38 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+1.191.0 - Portable text operations. Optional `host.textTools.operations/run/highlight` lists and
+runs on-device text work - the Edit / Inspect / Convert / Generate groups, each operation
+declaring its own options - and returns the new text plus notes and optional observations
+(never a claim of authorship or a cause). Optional `host.text.characters` reports the real
+Unicode coverage of one font file with no fallback chain applied, so a caller can decide
+which characters to offer in a font browser. `AssetPickerOpts.types` lets a picker
+accept text and data together. The optional manifest `render.urlSync: false`
+keeps live edits out of the address bar while explicit URL inputs keep working.
+These additions preserve older HostV1 implementations.
+
+(2026-09-11, no version change) `inflateRaw` in `src/gzip.ts` is now fflate's streaming
+`Inflate` behind this engine's own output cap, replacing ~200 lines of hand-written bit
+reader, canonical-Huffman decoder and block loop (gzip.ts 435 -> 254 lines). fflate was
+already a direct engine dependency. Decoded bytes were measured identical over 147
+round-trips: an ascii / pseudo-random / all-zero / source-file corpus compressed at every
+`node:zlib` level 0/1/6/9 crossed with every strategy 0-4, plus a no-size-hint pass. The
+cap did not move to fflate: fflate never grows a caller-supplied buffer and never says it
+overran one, so the compressed input is pushed through its streaming decoder and each
+decoded chunk is appended to the existing `OutBuffer`, which still throws on the first byte
+past the declared size. The push size is what holds the memory bound, because fflate
+decodes an entire push before it calls back: each push is sized to the output headroom that
+is left divided by DEFLATE's worst-case 1032:1 expansion (capped at 64 KB, floored at
+1 KB), so peak transient allocation tracks the declared size instead of whatever a lying
+one would unlock. A 65 KB bomb declaring 10 bytes costs ~1.5 MB rather than the ~187 MB a
+fixed 64 KB slab cost. One behaviour did change: fflate
+skips a stored block's NLEN check and accepts some incomplete Huffman tables, so a corrupt
+stream can now return short data where the old decoder threw. Both engine callers
+(`gunzip`, `readZip`) verify CRC-32 against the recovered bytes, so neither returns short
+data. Nothing encodes through fflate: `deflateRaw`, `zlibCompress`, `gzip` and `storeZip`
+all stay in-house, measured to differ from fflate byte for byte (fixed vs dynamic Huffman,
+wall-clock gzip MTIME, different zip header fields) - see those modules' headers.
+
 (2026-09-09, no version change) The barrel `engine/src/index.ts` dropped 180 names that no
 shell, script, service or test referenced; each stays exported from its own module. The
 exact export list is pinned by `tests/engine-barrel.test.ts`, so the next change to the

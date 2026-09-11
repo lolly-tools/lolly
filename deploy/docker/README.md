@@ -63,3 +63,30 @@ node scripts/verify-release-catalog.ts --root /path/to/extracted-dist \
 
 This checks every signed tool file and refuses paths or symlinks escaping the
 extracted root. It does not verify application access or the image's provenance.
+
+## Optional service images
+
+CA and MCP use the pinned Node 24 Alpine base and explicit OpenSSL updates used
+by Work. CA carries only its dependency-free handler and certificate helpers;
+it does not need the tool packs or browser model files. Its health route is active
+only when the CA is configured. Successful liveness does not verify the issuer,
+root-key custody or enrollment flow.
+
+MCP carries its required source, schemas, dependencies, fonts and materialised
+selected profile content. Build-directory symlinks must not survive packaging.
+Hosted model APIs and their unused native inference packages are omitted. This
+image supports headless SVG/data and resvg PNG rendering; it has no Chromium.
+Setting `LOLLY_WEB_BASE` alone cannot enable working browser formats. Use a
+separately reviewed browser-enabled MCP deployment if those formats are needed.
+
+Production MCP needs its approved token/signing-secret references and canonical
+`LOLLY_MCP_PUBLIC_ORIGIN`, plus `LOLLY_RATE_LIMIT_REST_URL` and the matching
+`LOLLY_RATE_LIMIT_REST_TOKEN` secret reference for its Redis-compatible HTTPS
+REST limiter. CA needs its approved keys/issuer and `CA_RATE_LIMIT_REST_URL` /
+`CA_RATE_LIMIT_REST_TOKEN` (or the shared `LOLLY_RATE_LIMIT_REST_*` pair).
+Without a durable limiter, hosted admission fails closed unless an operator
+explicitly accepts the weaker per-instance fallback. Do not use that fallback
+to stand in for the approved production control. TCP/HTTP health checks do not
+establish these controls.
+Keep unused services out of the deployed scope. The existing private-content
+access boundary still applies to every public render route and direct asset URL.

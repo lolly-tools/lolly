@@ -230,7 +230,7 @@ test('the set of shells is pinned (a new shell must wire host.net deliberately)'
     .sort();
   assert.deepEqual(found, KNOWN_SHELLS,
     'shells/ changed. A new shell must route host.net through ' + NET_MODULE
-    + " (the CLI's `import { createNetAPI } from '../../../packages/node-shell/src/net.ts'` is the pattern),"
+    + " (the CLI's `import { createNetAPI } from '@lolly-tools/node-shell/net'` is the pattern),"
     + ' then be added to KNOWN_SHELLS here.');
 });
 

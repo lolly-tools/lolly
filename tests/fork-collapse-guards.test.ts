@@ -56,7 +56,7 @@ test('the TUI Profile panel consumes the shared verdict renderer', () => {
 });
 
 test('the MCP verify tool consumes the shared facts + checks, keeping its own headline', () => {
-  assert.match(MCP, /from '\.\.\/\.\.\/\.\.\/packages\/node-shell\/src\/verdict-report\.ts'/);
+  assert.match(MCP, /from '@lolly-tools\/node-shell\/verdict-report'/);
   assert.match(MCP, /verdictFacts\(report\)/);
   assert.match(MCP, /verdictChecks\(report\)/);
   // MCP deliberately does NOT elevate parts - that quirk stays a property of the
@@ -81,7 +81,7 @@ test('repoRoot is resolved by the ONE shared resolver in TUI and MCP', () => {
   assert.match(tuiCatalog, /import \{ repoRoot \} from '@lolly-tools\/node-shell\/repo-root'/);
   assert.doesNotMatch(tuiCatalog, /export function repoRoot\(\)/,
     'the TUI must not carry its own weaker repoRoot twin');
-  assert.match(mcpPaths, /repoRoot \} from '\.\.\/\.\.\/\.\.\/packages\/node-shell\/src\/repo-root\.ts'/);
+  assert.match(mcpPaths, /repoRoot \} from '@lolly-tools\/node-shell\/repo-root'/);
   assert.match(mcpPaths, /REPO_ROOT = repoRoot\(\)/);
   assert.doesNotMatch(mcpPaths, /function resolveRoot\(\)/,
     'the MCP must not carry its own weaker resolveRoot twin');

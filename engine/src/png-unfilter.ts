@@ -6,7 +6,7 @@
 // every row is prefixed with a 1-byte filter tag (0 None, 1 Sub, 2 Up,
 // 3 Average, 4 Paeth) and the bytes are differences against reconstructed
 // neighbours. This reverses that step. It is the last thing standing between an
-// inflated jsPDF `addImage(png,'PNG')` embed (which writes /Predictor 15) and
+// inflated `addImage(png,'PNG')` embed (which writes /Predictor 15) and
 // the actual pixels the /verify Lolly-Imprint scan needs to read.
 //
 // Pure + DOM-free (engine contract): no DOM, no deps, defensive on every input.

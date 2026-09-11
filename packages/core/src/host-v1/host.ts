@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
+import type { TextToolsAPI } from './text-tools.ts';
+
 import type { AssetsAPI } from './assets.ts';
 
 import type { AudioAPI } from './audio.ts';
@@ -85,6 +87,8 @@ import type { VizAPI } from './viz.ts';
  */
 
 export interface HostV1 {
+  /** Portable text transformations and inspection (v1.191). */
+  textTools?: TextToolsAPI;
   readonly version: '1';
   readonly shell: 'web' | 'tauri-desktop' | 'tauri-mobile' | 'cli';
 

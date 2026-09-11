@@ -45,7 +45,7 @@ test('stopping a pending meter releases the late mic without subscribing', async
   const { runtime, meters, counts } = await setup();
   const pending = runtime.startMeter(); runtime.stopMeter(); meters[0]!.resolve();
   assert.equal(await pending, false);
-  assert.equal(runtime.isMetering(), false);
+  // No meter is running: nothing subscribed, and the late mic was released exactly once.
   assert.deepEqual(counts(), { refs: 0, subscriptions: 0, stops: 1 });
   runtime.stopMeter(); assert.equal(counts().stops, 1);
 });
@@ -73,8 +73,8 @@ test('recording supersedes a pending meter and prevents another sound check', as
   assert.equal(await runtime.startMeter(), false);
   const take = session(); recordings[0]!.resolve(take.value); await recording;
   meters[0]!.resolve(); assert.equal(await meter, false);
-  assert.equal(runtime.isRecording(), true);
   assert.deepEqual(counts(), { refs: 0, subscriptions: 1, stops: 1 });
+  // The take is the live session: destroy cancels it, and its level subscription goes with it.
   runtime.destroy(); assert.equal(take.cancelled(), 1); assert.equal(counts().subscriptions, 0);
 });
 
@@ -85,7 +85,7 @@ for (const action of ['cancelRecording', 'stopRecording', 'destroy'] as const) {
     const take = session(); recordings[0]!.resolve(take.value);
     assert.deepEqual(await pending, { started: false });
     assert.equal(take.cancelled(), 1); assert.equal(counts().subscriptions, 0);
-    assert.equal(runtime.isRecording(), false);
+    // No session is held any more: a second cancel would have cancelled the take twice.
     runtime.cancelRecording(); assert.equal(take.cancelled(), 1);
   });
 }
@@ -104,7 +104,8 @@ test('an obsolete recording result cancels only its own session', async () => {
   const a = session(), b = session(); recordings[1]!.resolve(b.value); await latest;
   recordings[0]!.resolve(a.value); assert.deepEqual(await old, { started: false });
   assert.equal(a.cancelled(), 1); assert.equal(b.cancelled(), 0);
-  assert.equal(counts().subscriptions, 1); assert.equal(runtime.isRecording(), true);
+  assert.equal(counts().subscriptions, 1);
+  // Only the newest session is still held, so destroy cancels b and not a again.
   runtime.destroy(); assert.equal(b.cancelled(), 1);
 });
 

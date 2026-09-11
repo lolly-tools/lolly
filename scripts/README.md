@@ -98,7 +98,7 @@ These drive tools in a real browser and export through the app's own render path
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
-| `build-cargo-licenses.ts` | `build:cargo-licenses` | Generates `cargo-licenses.json` (crate licences for the Tauri shells, via `cargo metadata`). Needs `cargo`. | DESTRUCTIVE |
+| `build-cargo-licenses.ts` | `build:cargo-licenses` | Generates `security/cargo-licenses.json` (crate licences for the Tauri shells, via `cargo metadata`). Needs `cargo`. | DESTRUCTIVE |
 | `build-sbom.ts` | `build:sbom` | Generates the Software Bill of Materials. | DESTRUCTIVE |
 | `build-licenses.ts` | `build:licenses` | Generates the third-party licence and NOTICE file. | DESTRUCTIVE |
 
@@ -127,6 +127,7 @@ These drive tools in a real browser and export through the app's own render path
 | `copy-ort.ts` | `build:ort` | Copies the onnxruntime-web runtime files out of `node_modules`, tolerating either hoisting layout. | DESTRUCTIVE, submodule |
 | `copy-viz-presets.ts` | none | Stages the curated MilkDrop artist presets from `node_modules/butterchurn-presets` into `shells/web/public/viz-presets/`. Depend, do not vendor: these are community works by roughly 118 authors and are never committed here. | DESTRUCTIVE, submodule |
 | `build-viz-preset-list.ts` | none | Rebuilds `scripts/viz-preset-list.json` and the matching option list in `community/audiogram/tool.json` from butterchurn's own packs, replacing what used to be a hand-assembled selection. | DESTRUCTIVE, submodule |
+| `prune-caches.ts` | `prune:caches` | Reports the regenerable build caches (Tauri Rust targets, Playwright browsers, Xcode DerivedData, the MCP browser install, unreferenced pnpm store packages) with sizes; `--yes` deletes them, `--when-below=<GiB>` acts only when the disk is that low. The Claude Code SessionStart hook runs it with `--yes --when-below=10 --quiet`. | DESTRUCTIVE |
 | `check-bundle-budget.ts` | `check:bundle` | Regression guard on the web shell's boot-path bundle size. | |
 | `build-docs-shots.ts` | `docs:shots` | Captures, compares and credentials the docs screenshots that are declared as ordinary markdown images in the docs pages. Switches profile while it runs and restores it afterwards. | DESTRUCTIVE, submodule, browser, native |
 | `lib/shot-compare.ts` | none | The pure comparison logic behind `build-docs-shots.ts`. | |
@@ -136,6 +137,14 @@ These drive tools in a real browser and export through the app's own render path
 | `characterize-export.ts` | none | Characterisation harness for `shells/web/src/bridge/export.ts`, the large web-shell export bridge with no direct tests. Snapshots to `scratch/export-characterization.json`. | DESTRUCTIVE, browser |
 | `probe-tool-paint-order.ts` | none | A/B probe for `ExportOpts.stackingOrder` against real tools. Evidence, not a gate. | browser |
 | `build-libopenmpt-wasm.sh` | none | Reproducibly rebuilds the vendored libopenmpt WebAssembly tracker decoder as a single self-contained ES module. Needs Emscripten. | DESTRUCTIVE, submodule, native, network |
+
+### Vernacular gates: why CI fails on wording
+
+Three checks fail a merge on wording alone: `check-docs-vernacular.ts` (English docs sources), `check-code-comment-vernacular.ts` (`check:code-comments`, comments in the owned TypeScript) and `check-ui-copy-vernacular.ts` (`check:ui-copy`, the strings a person reads in the app). They look like style police to a newcomer, so here is the case in full.
+
+Much of this repo is written with AI assistance, and AI-written text has habits a reader recognises: em dashes, filler phrases ("seamless", "worth noting") and a few words nobody says out loud. Readers notice, the product's promise is output a person directed, and every doc page is machine-translated into 26 languages where those habits translate badly. The maintainer asked for them gone and kept gone (2026-08-16), and a rule that lives in a memory file only binds whoever reads it. A script binds everyone, including the assistant that keeps reintroducing them.
+
+What the gates do: match a fixed list of characters and phrases, literally. No model judges the text. They read wording only and never run behaviour. The comment and UI-copy gates are ratchets: `scripts/vernacular-code-baseline.json` and `scripts/vernacular-ui-baseline.json` hold a per-file count that may only go down, a new file must be clean, and a reviewed improvement is recorded with `--write`. Every gate prints the same short explanation (`scripts/lib/vernacular-why.ts`) when it fails. To pass, reword the flagged line in plain English; do not extend the allow list unless the use is literal (a waveform's shape, not a metaphor).
 
 ## Audio and media ingest
 

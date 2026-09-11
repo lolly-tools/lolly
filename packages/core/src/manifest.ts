@@ -117,6 +117,8 @@ export interface RenderSpec {
    *  panes). A full-bleed tool that still exports keeps its export pill and canvas.
    *  The declared inputs are a pure DATA channel the template must NOT reference. */
   sidebar?: boolean;
+  /** Keep live edits out of the address bar; explicit URL inputs remain supported. */
+  urlSync?: boolean;
   dims?: boolean;
   /** Set false to offer pixels only. The download bar hides the physical-unit
    *  selector and DPI field, so an on-screen pixel is an exported pixel. */

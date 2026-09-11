@@ -6,7 +6,7 @@
  * `deflate.ts` emits raw DEFLATE, `gzip.ts` inflates it back (`inflateRaw`),
  * `zip-crypto.ts` owns CRC-32 and frames an *encrypted* archive, and both
  * `xlsx-import.ts` (read) and `epub.ts` (write) reach for `fflate` or roll their
- * own OOXML/OCF framing ad hoc. This module fills that gap: a dependency-free
+ * own OOXML/OCF framing ad hoc. This module fills that gap: one
  * `readZip` + `storeZip` over the engine's own primitives, so the archive-import,
  * epub-read, odt and docx/xlsx-write paths share ONE zip implementation instead
  * of each re-deriving the container.
@@ -37,11 +37,21 @@
  * exactly `mimetype` to be STORED and written first, the OCF magic every EPUB/ODT
  * reader sniffs before it trusts the container.
  *
+ * The writer stays ours rather than becoming fflate's `zipSync`, and the reason
+ * is measured: over the same fourteen fixtures gzip.ts and deflate.ts were
+ * measured on, not one archive matched byte for byte. fflate writes a different
+ * container as well as a different body - no GPBF UTF-8 bit (0 where storeZip
+ * sets 0x0800), method 8 where storeZip picks STORED for an entry DEFLATE would
+ * grow, and its own dynamic-Huffman deflate underneath. The pptx/docx/odt/epub
+ * and .lolly goldens pin those bytes. READ is a different story: `readZip`
+ * keeps its EOCD scan, its central-directory trust and its four resource
+ * budgets, but the inflate under it is fflate's by way of gzip.ts.
+ *
  * ── SCOPE ────────────────────────────────────────────────────────────────────
  * 32-bit sizes/offsets only - a ZIP64 archive (>4 GiB, or the 0xffffffff sentinel
  * fields) is refused with a clear Error rather than silently misread. Methods
  * other than STORED/DEFLATE are refused. Pure math + typed arrays; DOM-free,
- * dependency-free beyond the named engine primitives.
+ * with no dependency beyond the named engine primitives.
  */
 
 import { concatBytes } from './bytes.ts';

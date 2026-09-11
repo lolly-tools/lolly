@@ -29,6 +29,7 @@
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { printVernacularWhy } from './lib/vernacular-why.ts';
 
 const ROOT = resolve(new URL('..', import.meta.url).pathname);
 
@@ -388,6 +389,7 @@ if (invokedDirectly) {
   for (const s of stale) console.error(`✗ stale allow entry: ${s}`);
   if (v.length || stale.length) {
     console.error(`\n${v.length} violation(s), ${stale.length} stale allow(s).`);
+    printVernacularWhy();
     process.exit(1);
   }
   console.log(`✓ vernacular + unicode clean across ${targets().length} source files and the built pages`);

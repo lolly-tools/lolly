@@ -149,8 +149,7 @@ ${MIT_BODY}
 license of the upstream project, https://github.com/evanw/kiwi.)`;
 
 // ─── npm components that are DISTRIBUTED to users ────────────────────────────
-// `where: 'web'`  → bundled into the web PWA (engine runtime deps + web deps +
-//                    the two transitive deps jspdf pulls in that get bundled).
+// `where: 'web'`  → bundled into the web PWA (engine runtime deps + web deps).
 // `where: 'cli'`  → ships only with the Node CLI shell.
 // Order here is the order they appear in the output. Versions + license text
 // are read live from node_modules; only the curation/scoping is declared.
@@ -159,11 +158,24 @@ const NPM_COMPONENTS: NpmComponent[] = [
   // drives the CLI). Listed under the web group; cross-referenced from the CLI.
   { pkg: 'handlebars', where: 'web' },
   { pkg: 'ajv', where: 'web' },
+  // Engine dep since 1.188 (src/prepare-document.ts parses YAML sources). Pure
+  // JS, no DOM/fs/network, so it rides into the web bundle with the engine and
+  // also reaches the CLI - documented once here, in the web group.
+  { pkg: 'yaml', where: 'web' },
+  // Engine deps for the 1.191 text operations (format/convert source text).
+  // Same story as yaml: declared by engine/package.json, so they reach both the
+  // web bundle and the CLI. Rescope to 'cli' if the text tools ever stop
+  // shipping in the PWA.
+  { pkg: 'prettier', where: 'web' },
+  { pkg: 'sql-formatter', where: 'web' },
+  { pkg: 'smol-toml', where: 'web' },
+  { pkg: 'css-tree', where: 'web' },
+  { pkg: 'terser', where: 'web' },
+  { pkg: 'libxml2-wasm', where: 'web', note: 'The XML/XSD adapter is shared with the Node shells. Includes libxml2 under its MIT license.' },
 
   // shells/web direct dependencies - bundled into the PWA.
   { pkg: 'dompurify', where: 'web', elect: 'MPL-2.0' },
   { pkg: 'pdf-lib', where: 'web' },
-  { pkg: 'jspdf', where: 'web' },
   { pkg: 'dom-to-image-more', where: 'web' },
   { pkg: 'fflate', where: 'web' },
   { pkg: 'flatpickr', where: 'web' },
@@ -236,10 +248,6 @@ const NPM_COMPONENTS: NpmComponent[] = [
     where: 'web',
     note: lgplDynamicNote('@breezystack/lamejs', 'the LAME MP3 encoder ported to JavaScript'),
   },
-
-  // Transitive deps that jspdf pulls in and that land in the web bundle.
-  { pkg: 'html2canvas', where: 'web', transitiveVia: 'jspdf' },
-  { pkg: 'core-js', where: 'web', transitiveVia: 'jspdf' },
 
   // shells/cli direct dependencies that are NOT shared with the web build.
   // (pdf-lib and fflate are also CLI deps but are documented once, above.)
@@ -709,11 +717,11 @@ const LICENSE_NAMES = [
 function readLicenseText(dir: string): string {
   for (const name of LICENSE_NAMES) {
     const p = join(dir, name);
-    if (existsSync(p)) return readFileSync(p, 'utf8').trim();
+    if (existsSync(p)) return readFileSync(p, 'utf8').replace(/\r\n/g, '\n').trim();
   }
   // Last resort: any file whose name starts with LICEN.
   const hit = readdirSync(dir).find((f) => /^licen[cs]e/i.test(f));
-  if (hit) return readFileSync(join(dir, hit), 'utf8').trim();
+  if (hit) return readFileSync(join(dir, hit), 'utf8').replace(/\r\n/g, '\n').trim();
   throw new Error(`No LICENSE file found for ${dir}`);
 }
 
