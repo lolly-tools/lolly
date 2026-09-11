@@ -1,0 +1,12 @@
+# D-Bus activation for the GNOME Shell search provider bus name. The app owns this
+# name itself while running (DBusActivatable stays false in the .desktop - Tauri's
+# GTK main is not a GApplication); this file only lets the bus LAUNCH the app when
+# the shell queries while it is not running, after which the freshly started app
+# claims the name. If activation races or fails, the shell simply skips the
+# provider - it degrades, never blocks search.
+# The internal flag keeps the configured main window hidden while GNOME/KRunner
+# issue queries. Activating a result promotes that same process to the full app.
+# Exec must be an absolute path for dbus-daemon; Flatpak rewrites it on export.
+[D-BUS Service]
+Name=tools.lolly.Desktop.SearchProvider
+Exec=/usr/bin/lolly-desktop --search-provider

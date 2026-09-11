@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+# lolly-thumbnail - freedesktop thumbnailer for .lolly bundles (application/vnd.lolly+zip).
+#
+# Invoked by the file manager per lolly.thumbnailer as:
+#     lolly-thumbnail %i %o %s      (input path-or-uri, output PNG path, size)
+#
+# A .lolly is a zip whose manifest.json MAY carry a top-level `thumb` - a session
+# thumbnail as a data URL, put there "so an importer has a tile immediately"
+# (shells/web/src/lib/lolly-pack.ts). This script does nothing cleverer than lift
+# that tile out: unzip manifest.json, base64-decode `thumb`, write the PNG.
+#
+# HONESTY, deliberately traded for zero dependencies (python3 stdlib only):
+#   - PNG thumbs only. The app's canonical thumb shape allows png/jpeg/webp/gif/avif
+#     data URLs (THUMB_DATA_URL in lib/beam-pack.ts), and the thumbnail spec wants
+#     PNG out - transcoding needs an image library we refuse to depend on, so a
+#     non-PNG thumb exits 1 and the file keeps its generic mime icon. In practice
+#     session thumbs are PNG canvas grabs.
+#   - No scaling. The size argument is accepted (spec compliance) but unused - a
+#     session tile is a small raster already, and managers downscale oversized
+#     thumbnails; stdlib cannot resize a PNG.
+#   - Brand packs ('lolly-brand') and manifests without `thumb` exit 1: generic icon,
+#     never a wrong or stale picture.
+#
+# Any failure = exit 1. Never write a partial file: write to a temp sibling and
+# os.replace() into place, so the manager can never cache a truncated PNG.
+
+import base64
+import json
+import os
+import re
+import sys
+import zipfile
+from urllib.parse import unquote, urlparse
+
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+# Mirrors THUMB_DATA_URL in shells/web/src/lib/beam-pack.ts (raster data URLs only).
+DATA_URL = re.compile(r"^data:image/(png|jpe?g|webp|gif|avif);base64,([A-Za-z0-9+/=\s]+)$")
+# Bound the members we read - a manifest is small; refuse a zip-bomb manifest.
+MAX_MANIFEST_BYTES = 32 * 1024 * 1024
+
+
+def local_path(src: str) -> str | None:
+    # The thumbnailer spec hands %i as a path; some managers hand %u (a URI).
+    # Accept both, but only file:// - remote documents are not ours to fetch.
+    if "://" in src:
+        u = urlparse(src)
+        if u.scheme != "file" or not u.path:
+            return None
+        return unquote(u.path)
+    return src
+
+
+def main(argv: list[str]) -> int:
+    if len(argv) < 3:
+        print("usage: lolly-thumbnail <in-uri-or-path> <out-png> [size]", file=sys.stderr)
+        return 1
+    src = local_path(argv[1])
+    out = argv[2]
+    if src is None:
+        return 1
+
+    with zipfile.ZipFile(src) as z:
+        info = z.getinfo("manifest.json")
+        if info.file_size > MAX_MANIFEST_BYTES:
+            return 1
+        manifest = json.loads(z.read("manifest.json"))
+
+    thumb = manifest.get("thumb") if isinstance(manifest, dict) else None
+    if not isinstance(thumb, str):
+        return 1
+    m = DATA_URL.match(thumb)
+    if m is None or m.group(1) != "png":
+        return 1  # non-PNG thumb: no conversion deps here - generic icon instead
+    data = base64.b64decode(m.group(2), validate=False)
+    if not data.startswith(PNG_MAGIC):
+        return 1
+
+    tmp = out + ".part"
+    with open(tmp, "wb") as f:
+        f.write(data)
+    os.replace(tmp, out)
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main(sys.argv))
+    except Exception:
+        # Corrupt zip, missing manifest, unreadable input - all the same to the
+        # file manager: no thumbnail. Exit 1, never a traceback into its log.
+        sys.exit(1)

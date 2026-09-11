@@ -1,0 +1,234 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Lolly",
+  "version": "1.0.7",
+  "identifier": "tools.lolly.Desktop",
+  "build": {
+    "beforeDevCommand": "pnpm run dev:frontend",
+    "beforeBuildCommand": "pnpm run build:frontend:release && pnpm run build:quicklook && pnpm run build:cli-sidecar",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Lolly",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 300,
+        "minHeight": 300
+      }
+    ],
+    "security": {
+      "csp": null,
+      "devCsp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": false,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": {
+      "icons/lolly-document.icns": "lolly-document.icns",
+      "icons/Assets.car": "Assets.car",
+      "cli-lib": "cli-lib"
+    },
+    "externalBin": ["bin/lolly-cli"],
+    "fileAssociations": [
+      {
+        "ext": [
+          "lolly"
+        ],
+        "mimeType": "application/vnd.lolly+zip",
+        "description": "Lolly bundle (session share or brand pack)",
+        "name": "Lolly bundle",
+        "role": "Editor",
+        "rank": "Owner",
+        "exportedType": {
+          "identifier": "tools.lolly.pack",
+          "conformsTo": [
+            "public.data",
+            "public.archive"
+          ]
+        }
+      },
+      {
+        "ext": ["penpot"],
+        "mimeType": "application/x-penpot",
+        "description": "Penpot project",
+        "name": "Penpot project",
+        "role": "Editor",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["fig"],
+        "mimeType": "application/x-figma",
+        "description": "Figma design file",
+        "name": "Figma design file",
+        "role": "Editor",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["idml"],
+        "mimeType": "application/vnd.adobe.indesign-idml-package",
+        "description": "InDesign Markup document",
+        "name": "InDesign Markup document",
+        "role": "Editor",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["ai"],
+        "contentTypes": ["com.adobe.illustrator.ai-image"],
+        "mimeType": "application/illustrator",
+        "description": "Adobe Illustrator document",
+        "name": "Adobe Illustrator document",
+        "role": "Editor",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["svg"],
+        "contentTypes": ["public.svg-image"],
+        "mimeType": "image/svg+xml",
+        "description": "SVG document",
+        "name": "SVG document",
+        "role": "Editor",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["pdf"],
+        "contentTypes": ["com.adobe.pdf"],
+        "mimeType": "application/pdf",
+        "description": "PDF document",
+        "name": "PDF document",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["xlsx"],
+        "contentTypes": ["org.openxmlformats.spreadsheetml.sheet"],
+        "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "description": "Excel spreadsheet",
+        "name": "Excel spreadsheet",
+        "role": "Editor",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["csv"],
+        "contentTypes": ["public.comma-separated-values-text"],
+        "mimeType": "text/csv",
+        "description": "CSV table",
+        "name": "CSV table",
+        "role": "Editor",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["tsv"],
+        "contentTypes": ["public.tab-separated-values-text"],
+        "mimeType": "text/tab-separated-values",
+        "description": "Tab-separated table",
+        "name": "Tab-separated table",
+        "role": "Editor",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["pptx"],
+        "contentTypes": ["org.openxmlformats.presentationml.presentation"],
+        "mimeType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "description": "PowerPoint presentation",
+        "name": "PowerPoint presentation",
+        "role": "Editor",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["docx"],
+        "contentTypes": ["org.openxmlformats.wordprocessingml.document"],
+        "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "description": "Word document",
+        "name": "Word document",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["psd", "psb"],
+        "mimeType": "image/vnd.adobe.photoshop",
+        "description": "Photoshop document",
+        "name": "Photoshop document",
+        "role": "Editor",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["xcf"],
+        "mimeType": "image/x-xcf",
+        "description": "GIMP image",
+        "name": "GIMP image",
+        "role": "Editor",
+        "rank": "Alternate"
+      }
+    ],
+    "linux": {
+      "deb": {
+        "desktopTemplate": "../linux/deb/lolly.desktop.hbs",
+        "files": {
+          "/usr/share/mime/packages/tools.lolly.Desktop.xml": "../linux/mime/tools.lolly.Desktop.xml",
+          "/usr/bin/lolly-thumbnail": "../linux/thumbnailer/lolly-thumbnail",
+          "/usr/share/thumbnailers/lolly.thumbnailer": "../linux/thumbnailer/lolly.thumbnailer",
+          "/usr/share/gnome-shell/search-providers/tools.lolly.Desktop.search-provider.ini": "../linux/search/packaged.search-provider.ini",
+          "/usr/share/dbus-1/services/tools.lolly.Desktop.SearchProvider.service": "../linux/search/tools.lolly.Desktop.SearchProvider.service",
+          "/usr/share/dbus-1/services/org.lolly.Desktop1.service": "../linux/search/org.lolly.Desktop1.service",
+          "/usr/share/kio/servicemenus/lolly-utilities.desktop": "../linux/kde/lolly-utilities.desktop",
+          "/usr/share/krunner/dbusplugins/tools.lolly.Desktop.desktop": "../linux/kde/tools.lolly.Desktop.runner.desktop",
+          "/usr/share/icons/hicolor/32x32/mimetypes/application-vnd.lolly+zip.png": "../linux/icons/32x32/application-vnd.lolly+zip.png",
+          "/usr/share/icons/hicolor/48x48/mimetypes/application-vnd.lolly+zip.png": "../linux/icons/48x48/application-vnd.lolly+zip.png",
+          "/usr/share/icons/hicolor/64x64/mimetypes/application-vnd.lolly+zip.png": "../linux/icons/64x64/application-vnd.lolly+zip.png",
+          "/usr/share/icons/hicolor/128x128/mimetypes/application-vnd.lolly+zip.png": "../linux/icons/128x128/application-vnd.lolly+zip.png",
+          "/usr/share/icons/hicolor/256x256/mimetypes/application-vnd.lolly+zip.png": "../linux/icons/256x256/application-vnd.lolly+zip.png"
+        }
+      },
+      "rpm": {
+        "files": {
+          "/usr/share/mime/packages/tools.lolly.Desktop.xml": "../linux/mime/tools.lolly.Desktop.xml",
+          "/usr/bin/lolly-thumbnail": "../linux/thumbnailer/lolly-thumbnail",
+          "/usr/share/thumbnailers/lolly.thumbnailer": "../linux/thumbnailer/lolly.thumbnailer",
+          "/usr/share/gnome-shell/search-providers/tools.lolly.Desktop.search-provider.ini": "../linux/search/packaged.search-provider.ini",
+          "/usr/share/dbus-1/services/tools.lolly.Desktop.SearchProvider.service": "../linux/search/tools.lolly.Desktop.SearchProvider.service",
+          "/usr/share/dbus-1/services/org.lolly.Desktop1.service": "../linux/search/org.lolly.Desktop1.service",
+          "/usr/share/kio/servicemenus/lolly-utilities.desktop": "../linux/kde/lolly-utilities.desktop",
+          "/usr/share/krunner/dbusplugins/tools.lolly.Desktop.desktop": "../linux/kde/tools.lolly.Desktop.runner.desktop",
+          "/usr/share/icons/hicolor/32x32/mimetypes/application-vnd.lolly+zip.png": "../linux/icons/32x32/application-vnd.lolly+zip.png",
+          "/usr/share/icons/hicolor/48x48/mimetypes/application-vnd.lolly+zip.png": "../linux/icons/48x48/application-vnd.lolly+zip.png",
+          "/usr/share/icons/hicolor/64x64/mimetypes/application-vnd.lolly+zip.png": "../linux/icons/64x64/application-vnd.lolly+zip.png",
+          "/usr/share/icons/hicolor/128x128/mimetypes/application-vnd.lolly+zip.png": "../linux/icons/128x128/application-vnd.lolly+zip.png",
+          "/usr/share/icons/hicolor/256x256/mimetypes/application-vnd.lolly+zip.png": "../linux/icons/256x256/application-vnd.lolly+zip.png"
+        }
+      }
+    },
+    "macOS": {
+      "files": {
+        "PlugIns/LollyThumbnail.appex": "../macos/quicklook/build/LollyThumbnail.appex",
+        "PlugIns/LollyPreview.appex": "../macos/quicklook/build/LollyPreview.appex"
+      }
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": [
+          "lolly"
+        ]
+      }
+    },
+    "updater": {
+      "endpoints": [
+        "https://lolli.li/updates/{{target}}/{{arch}}/latest.json"
+      ],
+      "pubkey": "PLACEHOLDER-RUN-TAURI-SIGNER-GENERATE"
+    }
+  }
+}

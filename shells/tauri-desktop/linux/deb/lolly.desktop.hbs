@@ -1,0 +1,50 @@
+{{!--
+  Handlebars template for the .deb's desktop entry (bundle.linux.deb.desktopTemplate).
+
+  WHY THIS EXISTS: Tauri's auto-generated entry carries only the .lolly MIME type -
+  no x-scheme-handler/lolly, no image/svg+xml, no desktop Actions. The RPM and the
+  Flatpak install the curated flatpak/tools.lolly.Desktop.desktop and get all three;
+  the deb did not, so deb users - AND Arch users, since linux/arch/PKGBUILD repacks
+  this exact .deb - lost lolly:// deep links and the right-click verbs.
+
+  The exec/icon Handlebars variables are used rather than the curated entry's literal
+  "tools.lolly.Desktop", because Tauri installs the deb's icon as lolly-desktop.png;
+  hardcoding the app-id name would give a .desktop whose Icon= resolves to nothing.
+
+  Comment and Categories are literals: bundle.shortDescription and bundle.category are
+  unset in tauri.conf.json, so those variables render EMPTY - which is what Tauri's own
+  entry shipped (Categories= with no value) and what this template's first draft did.
+
+  This block is a Handlebars comment, so it does NOT reach the installed file. An
+  earlier draft used "#" comments, which DID ship - and had their own variable
+  references substituted mid-sentence.
+
+  Keep MimeType and Actions in step with flatpak/tools.lolly.Desktop.desktop.
+--}}
+[Desktop Entry]
+Type=Application
+Name={{name}}
+Comment=Generate on-brand creative assets from simple inputs
+{{!-- %U forwards both file:// URLs and lolly:// deep links to the argv router. --}}
+Exec={{exec}} %U
+Icon={{icon}}
+Terminal=false
+Categories=Graphics;2DGraphics;
+Keywords=brand;design;qr;svg;pdf;chart;template;
+MimeType=application/vnd.lolly+zip;application/x-penpot;application/x-figma;application/vnd.adobe.indesign-idml-package;application/illustrator;image/svg+xml;application/pdf;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;text/csv;text/tab-separated-values;application/vnd.openxmlformats-officedocument.presentationml.presentation;application/vnd.openxmlformats-officedocument.wordprocessingml.document;image/vnd.adobe.photoshop;image/x-xcf;x-scheme-handler/lolly;
+Actions=new-qr;colour-lab;strip-data;
+
+[Desktop Action new-qr]
+Name=New QR code
+Exec={{exec}} lolly://tool/qr-code
+Icon={{icon}}
+
+[Desktop Action colour-lab]
+Name=Open Colour Lab
+Exec={{exec}} lolly://lab
+Icon={{icon}}
+
+[Desktop Action strip-data]
+Name=Strip hidden data
+Exec={{exec}} lolly://tool/strip-data
+Icon={{icon}}

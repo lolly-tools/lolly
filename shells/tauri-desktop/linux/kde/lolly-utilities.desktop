@@ -1,0 +1,33 @@
+# KDE (Dolphin) service menu - right-click verbs on images and PDFs. Installed to
+# <datadir>/kio/servicemenus/ (the KF5 >= 5.85 / KF6 location; the pre-5.85
+# kservices5/ServiceMenus path is legacy and not shipped).
+#
+# Each verb carries a narrow internal target plus the selected path. The native
+# queue grants custody of only that delivered file; the web shell preloads it into
+# the named utility's ordinary file input. No second chooser discards the action
+# the person already selected.
+# desktop-file-validate rejects Type=Service + MimeType/Actions - that is the KDE
+# service-menu dialect, not a spec .desktop, and Dolphin is the only reader. The
+# repo test lints this file as a keyfile, not with desktop-file-validate.
+[Desktop Entry]
+Type=Service
+Name=Lolly
+X-KDE-ServiceTypes=KonqPopupMenu/Plugin
+MimeType=image/*;application/pdf;
+Actions=lollyStrip;lollyConvert;lollyRedact;
+X-KDE-Submenu=Lolly
+
+[Desktop Action lollyStrip]
+Name=Strip hidden data with Lolly
+Icon=tools.lolly.Desktop
+Exec=lolly-desktop --open-with=strip-data %f
+
+[Desktop Action lollyConvert]
+Name=Convert with Lolly
+Icon=tools.lolly.Desktop
+Exec=lolly-desktop --open-with=convert %f
+
+[Desktop Action lollyRedact]
+Name=Redact with Lolly
+Icon=tools.lolly.Desktop
+Exec=lolly-desktop --open-with=redact %f

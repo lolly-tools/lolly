@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Rust's bundled lld intermittently crashes when an amd64 release container is
+# emulated on Apple silicon. Keep Cargo's linker name stable (so its object cache
+# remains reusable) and replace only the failing driver selection.
+set -euo pipefail
+
+args=()
+for arg in "$@"; do
+  if [[ "$arg" == "-fuse-ld=lld" ]]; then
+    args+=("-fuse-ld=bfd")
+  else
+    args+=("$arg")
+  fi
+done
+
+exec /usr/bin/cc "${args[@]}"

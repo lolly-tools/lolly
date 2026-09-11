@@ -1,0 +1,8 @@
+# D-Bus activation for the org.lolly.Desktop1 automation interface (Render/
+# Activate/ShowTool - plans/174-linux-desktop-home.md item 10). Same model as the
+# search provider: the running app owns the name (DBusActivatable stays false);
+# this file lets a caller's first method call start the app cold.
+# Exec must be an absolute path for dbus-daemon; Flatpak rewrites it on export.
+[D-BUS Service]
+Name=org.lolly.Desktop1
+Exec=/usr/bin/lolly-desktop

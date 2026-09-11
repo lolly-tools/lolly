@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: MPL-2.0
+# A self-contained amd64 Linux release toolchain for non-Linux hosts. Unlike
+# Dockerfile.deb (which deliberately borrows Node and Cargo from a Linux host),
+# this image owns target-native Node, Rust, Tauri CLI, esbuild and resvg bits so
+# an Apple-silicon Mac can build the exact local checkout under emulation.
+FROM node:22-bookworm
+
+# Keep emulated lld links serialized enough to avoid QEMU's intermittent
+# SIGSEGV under the six-way default used by the local Colima builder.
+ENV DEBIAN_FRONTEND=noninteractive \
+    RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    CARGO_BUILD_JOBS=2 \
+    PATH=/usr/local/cargo/bin:/opt/tauri-cli/node_modules/.bin:$PATH
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      libwebkit2gtk-4.1-dev \
+      libgtk-3-dev \
+      librsvg2-dev \
+      libayatana-appindicator3-dev \
+      libsoup-3.0-dev \
+      libssl-dev \
+      build-essential \
+      pkg-config \
+      patchelf \
+      file \
+      ca-certificates \
+      curl \
+      xz-utils \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+       | sh -s -- -y --profile minimal --default-toolchain stable \
+    && mkdir -p /opt/tauri-cli /opt/lolly-sidecar-deps \
+    && npm install --prefix /opt/tauri-cli @tauri-apps/cli@2.11.2 \
+    && npm install --prefix /opt/lolly-sidecar-deps \
+       @esbuild/linux-x64@0.28.2 @resvg/resvg-js-linux-x64-gnu@2.6.2 \
+    && chmod -R a+rX /usr/local/rustup /usr/local/cargo /opt/tauri-cli /opt/lolly-sidecar-deps
+
+COPY cc-bfd /opt/lolly-linker/cc
+RUN chmod 0755 /opt/lolly-linker/cc
+ENV PATH=/opt/lolly-linker:$PATH

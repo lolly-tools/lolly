@@ -1,0 +1,22 @@
+pkgbase = lolly-desktop-bin
+	pkgdesc = Constraint-first studio for on-brand creative assets (official binary release)
+	pkgver = 1.0.7
+	pkgrel = 1
+	url = https://lolly.tools
+	arch = x86_64
+	license = MPL-2.0
+	depends = webkit2gtk-4.1
+	depends = gtk3
+	depends = libayatana-appindicator
+	depends = hicolor-icon-theme
+	optdepends = python: .lolly file thumbnails in GNOME Files (lolly-thumbnail is python3 stdlib only)
+	optdepends = xdg-desktop-portal-gtk: screen colour picker + set-as-wallpaper on GNOME and other GTK desktops
+	optdepends = xdg-desktop-portal-kde: screen colour picker on KDE Plasma (wallpaper where the Plasma portal ships it)
+	optdepends = xdg-desktop-portal-hyprland: screen colour picker on Hyprland/wlroots (no wallpaper portal there)
+	provides = lolly-desktop
+	conflicts = lolly-desktop
+	options = !strip
+	source = https://lolli.li/lolly-desktop-1.0.7_amd64.deb
+	sha256sums = ced524a5378c417d51aa3eec61356bb87e8f0cb552ccb41a9a8b4a3cc787763b
+
+pkgname = lolly-desktop-bin

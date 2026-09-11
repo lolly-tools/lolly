@@ -1,0 +1,22 @@
+# EXAMPLE ONLY - shipped as documentation, installed by no package. The supported
+# hot-folder experience is the in-app one (/profile, plans/174 item 9); this pair
+# of user units is the headless CLI flavour for people who want a folder watched
+# with the app closed.
+#
+# Install by hand:
+#   mkdir -p ~/.config/systemd/user
+#   cp lolly-hotfolder.{path,service} ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now lolly-hotfolder.path
+[Unit]
+Description=Watch the Lolly hot folder for dropped files
+
+[Path]
+# Fires lolly-hotfolder.service whenever the folder has content; the service is
+# responsible for consuming (moving/deleting) what it processes, or this unit
+# keeps re-triggering - that is DirectoryNotEmpty's contract, and it is what makes
+# the pair robust across files dropped while the service was already running.
+DirectoryNotEmpty=%h/LollyInbox
+MakeDirectory=true
+
+[Install]
+WantedBy=default.target

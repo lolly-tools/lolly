@@ -1,0 +1,6 @@
+# Build artifacts staged/produced here - never commit these.
+lolly.deb
+*.flatpak
+build-dir/
+repo/
+.flatpak-builder/

@@ -1,0 +1,21 @@
+# KRunner D-Bus plugin metadata. The implementation shares the GNOME search
+# provider's service and object path; this file is what makes Plasma discover it.
+# Installed to <datadir>/krunner/dbusplugins/ for both Plasma 5 and 6.
+[Desktop Entry]
+Type=Service
+Name=Lolly tools
+Description=Find and open a Lolly creative tool
+Icon=tools.lolly.Desktop
+X-KDE-ServiceTypes=Plasma/Runner
+X-KDE-PluginInfo-Author=Lolly
+X-KDE-PluginInfo-Name=tools.lolly.Desktop
+X-KDE-PluginInfo-Version=1.0
+X-KDE-PluginInfo-License=MPL-2.0
+X-KDE-PluginInfo-EnabledByDefault=true
+X-Plasma-API=DBus
+X-Plasma-DBusRunner-Service=tools.lolly.Desktop.SearchProvider
+X-Plasma-DBusRunner-Path=/tools/lolly/Desktop/SearchProvider
+X-Plasma-Runner-Min-Letter-Count=1
+X-Plasma-Request-Actions-Once=true
+X-Plasma-Runner-Syntaxes=:q:
+X-Plasma-Runner-Syntax-Descriptions=Find a Lolly tool

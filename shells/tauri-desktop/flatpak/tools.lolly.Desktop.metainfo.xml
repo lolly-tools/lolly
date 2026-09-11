@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream metainfo. The component id MUST equal the Flatpak app id, and the
+     launchable MUST equal the installed .desktop file name, or `appstreamcli compose`
+     (run by flatpak-builder) will drop the app from the catalog. -->
+<component type="desktop-application">
+  <id>tools.lolly.Desktop</id>
+  <name>Lolly</name>
+  <summary>Generate on-brand creative assets from simple inputs</summary>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MPL-2.0</project_license>
+
+  <developer id="tools.lolly">
+    <name>Lolly</name>
+  </developer>
+
+  <description>
+    <p>
+      Lolly is a constraint-first, template-driven tool for generating on-brand
+      creative assets - QR codes, charts, diagrams, event badges, documents, filters
+      and more - as PNG, SVG, PDF or video. Everything renders on your device; nothing
+      is uploaded.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">tools.lolly.Desktop.desktop</launchable>
+
+  <!-- Software-center polish. Branding colours are the brand greens the app ships
+       (light: the primary green; dark: the deep pine the dark theme grounds on) -
+       GNOME Software paints the banner with these. Categories mirror the .desktop's
+       Categories=; keywords extend its Keywords= for store search. -->
+  <branding>
+    <color type="primary" scheme_preference="light">#30ba78</color>
+    <color type="primary" scheme_preference="dark">#0c322c</color>
+  </branding>
+
+  <categories>
+    <category>Graphics</category>
+    <category>2DGraphics</category>
+  </categories>
+
+  <keywords>
+    <keyword>brand</keyword>
+    <keyword>design</keyword>
+    <keyword>qr</keyword>
+    <keyword>svg</keyword>
+    <keyword>pdf</keyword>
+    <keyword>chart</keyword>
+    <keyword>template</keyword>
+    <keyword>badge</keyword>
+    <keyword>poster</keyword>
+  </keywords>
+
+  <!-- What the package integrates with, machine-readably: the .lolly bundle type
+       (linux/mime/tools.lolly.Desktop.xml) and the automation bus name the running
+       app owns (linux/search/org.lolly.Desktop1.service). -->
+  <provides>
+    <mediatype>application/vnd.lolly+zip</mediatype>
+    <dbus type="user">org.lolly.Desktop1</dbus>
+  </provides>
+
+  <!-- Captured from the app's own documentation shots (docs/shots), rasterised
+       from the vector originals. Served from this repo on `main`, which is what
+       AppStream needs: an absolute, publicly reachable URL. -->
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/lolly-tools/lolly-desktop/main/flatpak/flathub/screenshots/gallery.png</image>
+      <caption>The tool gallery - every tool is data, not bundled code</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/lolly-tools/lolly-desktop/main/flatpak/flathub/screenshots/utilities.png</image>
+      <caption>Utilities for everyday jobs: verify, unpack, convert, capture</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/lolly-tools/lolly-desktop/main/flatpak/flathub/screenshots/brand-studio.png</image>
+      <caption>The brand studio - colours, type and tokens define what every tool renders</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/lolly-tools/lolly-desktop/main/flatpak/flathub/screenshots/export.png</image>
+      <caption>Export to PNG, SVG, PDF or video, rendered on your device</caption>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1" />
+
+  <url type="homepage">https://lolly.tools</url>
+
+  <releases>
+    <release version="1.0.7" date="2026-09-05">
+      <description>
+        <p>Lolly files now use one manifest-led opening flow across the app and
+           operating system. Shared designs, design systems and brand workspaces
+           are identified before import, with measured size and content details.</p>
+        <ul>
+          <li>Large bundles are inspected without expanding their payload first,
+              then verified once after confirmation.</li>
+          <li>Design systems import separately without replacing existing systems;
+              cancelled file pickers make no changes.</li>
+          <li>Finder and Linux file managers recognise Lolly documents, while
+              supported third-party formats remain alternate opening choices.</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.0.6" date="2026-09-03">
+      <description>
+        <p>A formal release across every platform. The design-system studio now
+           starts with one colour and grows as you add to it; what shipped is tagged
+           Starter and what you chose is tinted; the first colour is a picker; a
+           Google Font previews on the first press; swatches can be selected in bulk
+           by dragging across the palette.</p>
+        <ul>
+          <li>Design tool: one motion model, a top bar, a navigator and an inspector;
+              text animation with native PowerPoint export; tilt, Choreograph
+              showcases and camera moves; sub-slide stacks and transcript-driven
+              editing.</li>
+          <li>Sequence audio: pan, crossfades, signal-following ducking, a true-peak
+              limiter, pitch-preserving time-stretch, a three-band EQ, loudness
+              normalisation and an effect rack with on-device voice cleanup.</li>
+          <li>Narrated slides: speaker notes become a voice track, captions travel in
+              the file, PPTX carries real slide audio and a deck exports as a SCORM
+              package.</li>
+          <li>lolly:// deep links open a tool with its inputs filled from another
+              app, a shortcut or a QR code.</li>
+          <li>The service worker heals cache entries that left on-device models stuck
+              at 100% for returning users.</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.0.5" date="2026-08-31">
+      <description>
+        <p>Version alignment across every Lolly shell - desktop, mobile and the
+           control plane now share one number - plus two fixes carried in from
+           the web shell:</p>
+        <ul>
+          <li>In a narrow export panel the Copy, Save and Share actions collapse
+              cleanly to their icons again, keeping their meaning through tooltips
+              and screen-reader labels. They previously tried to stack as
+              full-width labelled rows, which only half-applied and overflowed the
+              sheet.</li>
+          <li>Vector export is more faithful: text stroke and paint-order are
+              honoured, and transformed elements decompose correctly, so SVG and
+              PDF output better matches what is on screen.</li>
+        </ul>
+        <p>This build also carries the 1.0.3 fixes forward - the bundled tray
+           indicator library and the guard that skips the tray rather than
+           aborting startup, openSUSE Leap 16 packages, and a native aarch64
+           Debian package.</p>
+      </description>
+    </release>
+    <release version="1.0.3" date="2026-08-30">
+      <description>
+        <p>Fixes a crash on startup. No change to what the app renders or exports:</p>
+        <ul>
+          <li>The system tray loads its indicator library lazily, so nothing in the
+              build could catch that the Flatpak did not ship it. The app started and
+              died immediately. It is now bundled.</li>
+          <li>The RPM never declared that library as a dependency, so it could install
+              on a system without it and hit the same crash. It does now.</li>
+          <li>If the library is ever missing anyway, the tray is skipped with a warning
+              instead of aborting startup.</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.0.2" date="2026-08-30">
+      <description>
+        <p>Packaging fix, no change to what the app renders or exports:</p>
+        <ul>
+          <li>The Flatpak build now carries the same desktop integration the RPM and
+              Debian packages already shipped - the .lolly file association, the
+              GNOME Files thumbnailer and the GNOME Shell search provider.</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.0.1" date="2026-08-30">
+      <description>
+        <p>At home on the Linux desktop:</p>
+        <ul>
+          <li>.lolly files open from the file manager, with thumbnails for shared sessions</li>
+          <li>lolly:// links deep-link straight into tools</li>
+          <li>Pick colours from anywhere on screen - the eyedropper now reaches every window</li>
+          <li>Set any render as your wallpaper, with your desktop confirming first</li>
+          <li>Find tools from GNOME search and KRunner</li>
+          <li>A tray shortcut turns a copied link into a QR code - the clipboard is read only when you click</li>
+          <li>Watch a hot folder to pull new files into your uploads</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.0.0" date="2026-08-29">
+      <description>
+        <p>
+          First packaged release: the full tool gallery and brand studio, with
+          on-device export to PNG, SVG, PDF and video.
+        </p>
+      </description>
+    </release>
+  </releases>
+</component>

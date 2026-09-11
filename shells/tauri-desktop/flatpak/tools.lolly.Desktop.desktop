@@ -1,0 +1,34 @@
+[Desktop Entry]
+Type=Application
+Name=Lolly
+Comment=Generate on-brand creative assets from simple inputs
+# Exec is the in-sandbox command; Flatpak rewrites it to `flatpak run tools.lolly.Desktop`
+# in the exported host entry. Icon name matches the installed hicolor icon (the app id).
+# %U forwards both selected documents and lolly:// links to the app's argv router.
+Exec=lolly-desktop %U
+Icon=tools.lolly.Desktop
+Terminal=false
+Categories=Graphics;2DGraphics;
+Keywords=brand;design;qr;svg;pdf;chart;template;
+# Lolly owns its canonical bundle MIME. The remaining document MIME types are
+# alternate Open With routes into real on-device importers; installing this entry
+# does not change a person's default application. The final handler is lolly://.
+MimeType=application/vnd.lolly+zip;application/x-penpot;application/x-figma;application/vnd.adobe.indesign-idml-package;application/illustrator;image/svg+xml;application/pdf;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;text/csv;text/tab-separated-values;application/vnd.openxmlformats-officedocument.presentationml.presentation;application/vnd.openxmlformats-officedocument.wordprocessingml.document;image/vnd.adobe.photoshop;image/x-xcf;x-scheme-handler/lolly;
+Actions=new-qr;colour-lab;strip-data;
+
+# Desktop actions ride the same deep-link route as x-scheme-handler/lolly above - the
+# argv parser classifies lolly://* and navigates, so a verb here is just a frozen URL.
+[Desktop Action new-qr]
+Name=New QR code
+Exec=lolly-desktop lolly://tool/qr-code
+Icon=tools.lolly.Desktop
+
+[Desktop Action colour-lab]
+Name=Open Colour Lab
+Exec=lolly-desktop lolly://lab
+Icon=tools.lolly.Desktop
+
+[Desktop Action strip-data]
+Name=Strip hidden data
+Exec=lolly-desktop lolly://tool/strip-data
+Icon=tools.lolly.Desktop

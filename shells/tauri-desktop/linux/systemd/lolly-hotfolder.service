@@ -1,0 +1,18 @@
+# EXAMPLE ONLY - the companion to lolly-hotfolder.path; see the header there.
+#
+# The ExecStart below is a WORKING demonstration, not a product: it treats each
+# dropped *.txt as a URL and renders a QR code next to it via the desktop binary's
+# CLI mode (the same headless render path as `npm run cli` - one render path, so
+# CLI and GUI never drift). Swap the loop body for the tool and inputs you want;
+# `lolly-desktop <tool-id>` with no inputs prints that tool's accepted flags.
+[Unit]
+Description=Process files dropped into the Lolly hot folder
+
+[Service]
+Type=oneshot
+# %h is the user's home - path units and this loop deliberately agree on the folder.
+ExecStart=/bin/sh -c '\
+  for f in "%h/LollyInbox"/*.txt; do \
+    [ -e "$f" ] || continue; \
+    lolly-desktop qr-code --url="$(cat "$f")" --output="${f%%.txt}.svg" && rm -- "$f"; \
+  done'

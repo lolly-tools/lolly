@@ -1,0 +1,167 @@
+# Flatpak manifest for the Lolly desktop app (Tauri v2).
+#
+# STRATEGY: this manifest does NOT build Lolly from source. flatpak-builder runs
+# offline (no network in the build sandbox), and vendoring every cargo crate + npm
+# package as Flatpak sources is fragile and huge. Instead, CI builds a Debian package
+# with `tauri build --bundles deb` (which has network + the webkit2gtk toolchain), and
+# this manifest just unpacks that prebuilt binary into /app. See ./README.md and
+# ../../../.github/workflows/flatpak.yml.
+#
+# The .deb must be staged next to this file as `lolly.deb` before building - CI does
+# that from the build-deb job's artifact; locally, copy it there yourself.
+#
+# app-id == the Tauri `identifier` in ../src-tauri/tauri.conf.json, so the Flatpak,
+# the .desktop file, the GTK app-id and the AppStream component all agree.
+id: tools.lolly.Desktop
+
+# Tauri v2 renders through webkit2gtk-4.1 (GTK3), which the GNOME runtime provides.
+# Keep runtime-version in lockstep with the flatpak-builder container image tag in the
+# CI workflow (gnome-50 -> '50'). Bump both together.
+#
+# Was '49' until 2026-08-30, and '47' before that. That was never buildable by anyone who did not already
+# have the runtime cached: GNOME 47 is EOL and Flathub no longer publishes
+# org.gnome.Platform//47 at all, so `flatpak-builder` could not resolve it. Flathub
+# currently offers 49 and 50; 49 is the more settled of the two.
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+
+# The in-sandbox executable (Cargo package name `lolly-desktop`; no mainBinaryName
+# override in tauri.conf.json, so this is what lands in /usr/bin inside the .deb).
+command: lolly-desktop
+
+finish-args:
+  # Rendering: Wayland first, X11 fallback, GPU access for the webview compositor.
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --share=ipc
+  # Network: catalog/asset sync, the tauri-plugin-http net bridge, and the url-shot
+  # tool's local headless-Chrome DevTools connection.
+  - --share=network
+  # Let users save exports to their Downloads/Documents (state lives in the app's
+  # per-app dir, which Flatpak grants automatically - no extra permission needed).
+  - --filesystem=xdg-download
+  - --filesystem=xdg-documents
+  # Common Tauri-on-Flatpak fix: the DMABUF renderer shows a blank window on some
+  # GPUs/drivers under the sandbox. Drop this once you confirm rendering is fine.
+  - --env=WEBKIT_DISABLE_DMABUF_RENDERER=1
+  # The app itself owns the GNOME Shell search-provider bus name and the
+  # org.lolly.Desktop1 automation name while running (DBusActivatable stays false -
+  # the shell falls back to launching). Without these, the sandbox proxy silently
+  # refuses the name grab and both integrations go dark. Flathub review of
+  # --own-name is standard (plans/174-linux-desktop-home.md, "out of wave" notes).
+  - --own-name=tools.lolly.Desktop.SearchProvider
+  - --own-name=org.lolly.Desktop1
+
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /share/man
+
+modules:
+  # The tray dlopens libayatana-appindicator3 lazily, and NO org.gnome.Platform ships
+  # it - so without this the .deb unpacks fine, the bundle lints and installs, and the
+  # app then dies on launch. It shipped that way: every Flatpak built from this manifest
+  # since c939965d was dead on arrival, because the artifact was verified by inspecting
+  # installed files rather than by running it.
+  #
+  # Flathub's shared-modules maintains the whole stack (intltool -> libdbusmenu ->
+  # ayatana-ido -> libayatana-indicator -> libayatana-appindicator) with the patches it
+  # needs against a modern toolchain. It is a submodule of ../ (one real copy;
+  # flathub/shared-modules is a symlink to it), so `git submodule update --init` is
+  # enough - and CI's recursive checkout already does that.
+  - shared-modules/libayatana-appindicator/libayatana-appindicator-gtk3.json
+
+  - name: lolly
+    buildsystem: simple
+    build-commands:
+      # 1) Unpack the Tauri-built .deb (ar archive -> data.tar.gz) and install its app
+      #    binary BY NAME as /app/bin/lolly-desktop (matches `command:` above). This used
+      #    to take "the first file in usr/bin": since 1.0.3 the .deb also ships the 3.5 KB
+      #    lolly-thumbnail there, `find` returned it first, and every CI Flatpak from then
+      #    on was a 313 KB bundle whose "app" was the thumbnailer script. (Tauri gzips
+      #    the data member, hence -xzf; see README if a future version switches to xz/zst.)
+      - ar x lolly.deb
+      - tar -xzf data.tar.gz
+      - install -Dm755 usr/bin/lolly-desktop /app/bin/lolly-desktop
+      # 2) Ship a deterministic desktop entry, AppStream metainfo, and icons rather
+      #    than fishing them out of the .deb's internal layout (names/paths vary by
+      #    Tauri version). flatpak-builder auto-exports the .desktop + metainfo.
+      - install -Dm644 tools.lolly.Desktop.desktop /app/share/applications/tools.lolly.Desktop.desktop
+      - install -Dm644 tools.lolly.Desktop.metainfo.xml /app/share/metainfo/tools.lolly.Desktop.metainfo.xml
+      - install -Dm644 icon-32.png  /app/share/icons/hicolor/32x32/apps/tools.lolly.Desktop.png
+      - install -Dm644 icon-64.png  /app/share/icons/hicolor/64x64/apps/tools.lolly.Desktop.png
+      - install -Dm644 icon-128.png /app/share/icons/hicolor/128x128/apps/tools.lolly.Desktop.png
+      - install -Dm644 icon-256.png /app/share/icons/hicolor/256x256/apps/tools.lolly.Desktop.png
+      - install -Dm644 icon-512.png /app/share/icons/hicolor/512x512/apps/tools.lolly.Desktop.png
+      # 3) Freedesktop integration, single-sourced from ../linux (see its README).
+      #    mime/packages, gnome-shell/search-providers and dbus-1/services are on
+      #    Flatpak's export whitelist, so the host sees them; share/thumbnailers is
+      #    NOT exported - installed anyway for forward-compatibility, the RPM/deb is
+      #    the packaging that thumbnails on the host today. The KDE service menu is
+      #    deliberately absent here: Flatpak never exports kio/servicemenus.
+      #    KRunner D-Bus metadata is exportable since Flatpak 1.16.
+      - install -Dm644 tools.lolly.Desktop.xml /app/share/mime/packages/tools.lolly.Desktop.xml
+      - install -Dm644 tools.lolly.Desktop.search-provider.ini /app/share/gnome-shell/search-providers/tools.lolly.Desktop.search-provider.ini
+      - install -Dm644 tools.lolly.Desktop.SearchProvider.service /app/share/dbus-1/services/tools.lolly.Desktop.SearchProvider.service
+      - install -Dm644 org.lolly.Desktop1.service /app/share/dbus-1/services/org.lolly.Desktop1.service
+      - install -Dm644 tools.lolly.Desktop.runner.desktop /app/share/krunner/dbusplugins/tools.lolly.Desktop.desktop
+      - install -Dm755 lolly-thumbnail /app/bin/lolly-thumbnail
+      - install -Dm644 lolly.thumbnailer /app/share/thumbnailers/lolly.thumbnailer
+      - install -Dm644 lolly-mime-32.png /app/share/icons/hicolor/32x32/mimetypes/application-vnd.lolly+zip.png
+      - install -Dm644 lolly-mime-48.png /app/share/icons/hicolor/48x48/mimetypes/application-vnd.lolly+zip.png
+      - install -Dm644 lolly-mime-64.png /app/share/icons/hicolor/64x64/mimetypes/application-vnd.lolly+zip.png
+      - install -Dm644 lolly-mime-128.png /app/share/icons/hicolor/128x128/mimetypes/application-vnd.lolly+zip.png
+      - install -Dm644 lolly-mime-256.png /app/share/icons/hicolor/256x256/mimetypes/application-vnd.lolly+zip.png
+    sources:
+      - type: file
+        path: lolly.deb
+      - type: file
+        path: tools.lolly.Desktop.desktop
+      - type: file
+        path: tools.lolly.Desktop.metainfo.xml
+      - type: file
+        path: icon-32.png
+      - type: file
+        path: icon-64.png
+      - type: file
+        path: icon-128.png
+      - type: file
+        path: icon-256.png
+      - type: file
+        path: icon-512.png
+      # The integration files stay in ../linux so the RPM installs the identical
+      # bytes (same single-source reasoning as rpm/make-sources.sh copying this
+      # directory's .desktop). flatpak-builder resolves file paths relative to the
+      # manifest, so ../ is fine and deterministic; each lands in the build dir
+      # under its basename, which the install lines above use.
+      - type: file
+        path: ../linux/mime/tools.lolly.Desktop.xml
+      - type: file
+        path: ../linux/search/tools.lolly.Desktop.search-provider.ini
+      - type: file
+        path: ../linux/search/tools.lolly.Desktop.SearchProvider.service
+      - type: file
+        path: ../linux/search/org.lolly.Desktop1.service
+      - type: file
+        path: ../linux/kde/tools.lolly.Desktop.runner.desktop
+      - type: file
+        path: ../linux/thumbnailer/lolly-thumbnail
+      - type: file
+        path: ../linux/thumbnailer/lolly.thumbnailer
+      - type: file
+        path: ../linux/icons/32x32/application-vnd.lolly+zip.png
+        dest-filename: lolly-mime-32.png
+      - type: file
+        path: ../linux/icons/48x48/application-vnd.lolly+zip.png
+        dest-filename: lolly-mime-48.png
+      - type: file
+        path: ../linux/icons/64x64/application-vnd.lolly+zip.png
+        dest-filename: lolly-mime-64.png
+      - type: file
+        path: ../linux/icons/128x128/application-vnd.lolly+zip.png
+        dest-filename: lolly-mime-128.png
+      - type: file
+        path: ../linux/icons/256x256/application-vnd.lolly+zip.png
+        dest-filename: lolly-mime-256.png

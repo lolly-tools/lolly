@@ -1,0 +1,98 @@
+[package]
+name = "lolly-desktop"
+version = "1.0.7"
+edition = "2021"
+
+[lib]
+name = "lolly_desktop_lib"
+# This shell never targets iOS or Android. The desktop binary imports this rlib
+# directly; emitting the mobile template's staticlib + cdylib duplicates the
+# embedded frontend into two unused products and can add gigabytes to a build.
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# tray-icon: the clipboard-lens tray (src/desktop_integration/tray.rs, plans/174 #5).
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-fs = "2"
+tauri-plugin-dialog = "2"
+# Native HTTPS is exposed only through the bounded `remote_fetch` and
+# `site_fetch` commands; there is deliberately no raw HTTP plugin/ACL surface.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "http2", "charset"] }
+tauri-plugin-window-state = "2"
+# One running app per user (plans/174): a second launch forwards its argv (file
+# paths from the file manager, lolly:// links) to the live window and exits.
+tauri-plugin-single-instance = "2"
+# lolly:// registration (plans/174). The bundler reads tauri.conf.json's
+# plugins.deep-link block and writes the scheme into the macOS Info.plist
+# (CFBundleURLTypes), the Windows installer's registry keys and the generated
+# .desktop MimeType; this crate is what makes that block a real config, and in
+# a dev build it registers the scheme at runtime on Windows/Linux (register_all).
+# Delivery does NOT go through the plugin's events: argv stays with classify_argv
+# and macOS's RunEvent::Opened goes into the same DesktopEvents queue (lib.rs).
+tauri-plugin-deep-link = "2"
+# Self-update (plans/202 WP4.1). Reads plugins.updater in tauri.conf.json, checks
+# the endpoint for this target/arch, and verifies the artifact's minisign
+# signature against the configured public key before it writes anything. No byte
+# moves without a yes: bridge-overrides/updater.ts asks once to download and
+# again to install.
+tauri-plugin-updater = "2"
+# Relaunch after an update installs - that is the only call site. The plugin also
+# exposes exit(), which nothing here uses, and the capability grants only restart.
+tauri-plugin-process = "2"
+# OS notification for a finished background job (shells/web/src/lib/job-toast.ts).
+# Fires only while the window is hidden, and only after the user answered the
+# permission prompt their first long job raised.
+tauri-plugin-notification = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Page capture (url-shot tool): drives a headless Chrome over the DevTools
+# Protocol to screenshot arbitrary URLs. Requires Chrome/Chromium installed.
+# CDP returns screenshots already base64-encoded, so no separate base64 dep.
+headless_chrome = "1"
+# Native ONNX Runtime for the reword generator (src/reword.rs), the only native
+# inference left here - background removal dropped its native path when the full
+# BiRefNet was removed from the catalogue, so every matte model now runs on the
+# shared wasm runner. `download-binaries` (a default feature) fetches a prebuilt
+# onnxruntime at build time and LINKS it (~+30 MB to the .app). That linked dylib
+# is not a frontendDist asset, so the ~2 GB `ar` archive-offset trap the README
+# documents for embedded models does not apply.
+ort = "=2.0.0-rc.10"
+# Native reword generation (src/reword.rs, plans/127): SmolLM2 tokenizer loading
+# (reads the staged tokenizer.json verbatim) + temperature/top-p sampling. The
+# fancy-regex feature keeps the pretokenizer pure Rust (no oniguruma C dep) -
+# the same no-C rule that picked snow's default-resolver.
+tokenizers = { version = "0.21", default-features = false, features = ["fancy-regex"] }
+rand = "0.8"
+# Nearby discovery (src/nearby.rs, plans/110 section 3): pure-Rust mDNS/DNS-SD, no Bonjour
+# daemon and no C dependency, so it builds the same on macOS/Linux/Windows. Runs its
+# own background thread; the invite exchange itself is plain std::net TCP, no async
+# runtime added.
+mdns-sd = "0.11"
+# Native LAN socket transport (src/native_transport.rs, plans/110 section 4): Noise
+# XX_25519_ChaChaPoly_BLAKE2s. The pure-Rust resolver (no `ring`/C dependency) keeps
+# cross-compilation to Linux/Windows/macOS - and later the Android NDK - unchanged.
+snow = { version = "0.9", default-features = false, features = ["default-resolver"] }
+
+# Clipboard lens (plans/174 #5): one-shot clipboard read when the tray menu is
+# opened - never a watcher. arboard over tauri-plugin-clipboard-manager because
+# the read happens on the Rust side (tray callback, no webview round-trip) and
+# arboard is the same maintainers' underlying crate with no plugin/ACL surface
+# to declare; its Linux deps (x11rb + wl-clipboard-rs) are pure Rust, no C.
+arboard = "3"
+# Hot folder (plans/174 #9): inotify/FSEvents/ReadDirectoryChanges watcher
+# behind desktop_hotfolder_set. Non-recursive by design.
+notify = "8"
+# lolly:// deep links and file:// argv arrive as URLs; parse, never string-split.
+url = "2"
+
+# Linux desktop integration (plans/174): XDG portals (colour picker, wallpaper,
+# accent read) + the GNOME/KRunner search providers and org.lolly.Desktop1 bus.
+# ashpd's default `tokio` feature rides the same runtime tauri already embeds;
+# zbus matches ashpd's major with the tokio executor (async-io default OFF so
+# there is exactly one reactor in the process).
+[target.'cfg(target_os = "linux")'.dependencies]
+ashpd = { version = "0.13", features = ["screenshot", "wallpaper", "settings"] }
+zbus = { version = "5", default-features = false, features = ["tokio"] }

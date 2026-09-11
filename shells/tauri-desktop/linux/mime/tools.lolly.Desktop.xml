@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- shared-mime-info definition for the .lolly bundle.
+
+     The MIME type is the app's canonical one - LOLLY_MIME in
+     shells/web/src/lib/lolly-pack.ts ('application/vnd.lolly+zip', RFC 6839 +zip
+     structured suffix). Two .lolly flavours ride the same zip envelope
+     ('lolly-share' session files and 'lolly-brand' packs); the desktop cannot tell
+     them apart without unzipping, so both carry this one type and the app's drop
+     router disambiguates on manifest.json after open.
+
+     Magic: a .lolly IS a zip, so the only magic available is the zip local-file
+     header. Priority 40 - deliberately below the default 50 that freedesktop.org.xml
+     uses for application/zip - so a plain .zip never sniffs as a .lolly; the
+     *.lolly glob is what actually claims our files, and sub-class-of keeps every
+     "can open zip" handler working on them as a fallback. -->
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/vnd.lolly+zip">
+    <comment>Lolly bundle</comment>
+    <sub-class-of type="application/zip"/>
+    <glob pattern="*.lolly"/>
+    <magic priority="40">
+      <match type="string" offset="0" value="PK\003\004"/>
+    </magic>
+    <icon name="tools.lolly.Desktop"/>
+  </mime-type>
+  <!-- Penpot and Figma have no shared-mime-info entries on many desktops, and
+       older databases also miss IDML. These extension-only definitions let the
+       desktop entry offer Lolly as an Open With fallback. They deliberately have
+       no Lolly icon or magic: the foreign format remains the foreign format. -->
+  <mime-type type="application/x-penpot">
+    <comment>Penpot project</comment>
+    <sub-class-of type="application/zip"/>
+    <glob pattern="*.penpot"/>
+  </mime-type>
+  <mime-type type="application/x-figma">
+    <comment>Figma design file</comment>
+    <glob pattern="*.fig"/>
+  </mime-type>
+  <mime-type type="application/vnd.adobe.indesign-idml-package">
+    <comment>InDesign Markup document</comment>
+    <sub-class-of type="application/zip"/>
+    <glob pattern="*.idml"/>
+  </mime-type>
+</mime-info>

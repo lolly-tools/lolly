@@ -1,0 +1,62 @@
+# Maintainer: Andy Fitzsimon <andy@fitzsimon.com.au>
+#
+# lolly-desktop-bin - repack of the official Lolly desktop .deb for Arch.
+#
+# Why -bin: the desktop shell is a Tauri app - building from source pulls
+# ~500 Rust crates plus the whole npm workspace, and the official deb IS the
+# canonical build (the exact artifact lolli.li serves to every other distro).
+# Repackaging it keeps the AUR install byte-identical to that build, per the
+# AUR convention for repackaged official binaries.
+#
+# The deb already carries the entire Linux desktop integration wave
+# (plans/174-linux-desktop-home.md): /usr/bin/lolly-desktop, the .desktop
+# entry, hicolor app + mimetype icons, the shared-mime-info XML for
+# application/vnd.lolly+zip, the .lolly thumbnailer (/usr/bin/lolly-thumbnail
+# + its /usr/share/thumbnailers registration), the GNOME Shell search-provider
+# ini and its D-Bus .service files, and the KDE Dolphin service menu. Nothing
+# extra to install here - package() is a straight extraction.
+#
+# Desktop notes: the screen colour picker and set-as-wallpaper go through
+# xdg-desktop-portal, so Hyprland/wlroots users get them from their own portal
+# implementation (see optdepends - per-backend coverage differs). The
+# gnome-shell search-provider ini is inert outside GNOME - a harmless file,
+# not a GNOME dependency.
+#
+# Post-install cache refreshes (update-mime-database, update-desktop-database,
+# gtk-update-icon-cache) are handled by pacman's stock hooks - no .install
+# file needed.
+
+pkgname=lolly-desktop-bin
+pkgver=1.0.7
+pkgrel=1
+pkgdesc="Constraint-first studio for on-brand creative assets (official binary release)"
+arch=('x86_64')
+url="https://lolly.tools"
+license=('MPL-2.0')
+depends=('webkit2gtk-4.1'
+         'gtk3'
+         'libayatana-appindicator'
+         'hicolor-icon-theme')
+optdepends=('python: .lolly file thumbnails in GNOME Files (lolly-thumbnail is python3 stdlib only)'
+            'xdg-desktop-portal-gtk: screen colour picker + set-as-wallpaper on GNOME and other GTK desktops'
+            'xdg-desktop-portal-kde: screen colour picker on KDE Plasma (wallpaper where the Plasma portal ships it)'
+            'xdg-desktop-portal-hyprland: screen colour picker on Hyprland/wlroots (no wallpaper portal there)')
+provides=('lolly-desktop')
+conflicts=('lolly-desktop')
+# !strip: keep the shipped binary byte-identical to the canonical build.
+options=('!strip')
+source=("https://lolli.li/lolly-desktop-${pkgver}_amd64.deb")
+sha256sums=('ced524a5378c417d51aa3eec61356bb87e8f0cb552ccb41a9a8b4a3cc787763b')
+
+package() {
+  # makepkg has already unpacked the .deb (an ar archive bsdtar understands)
+  # into $srcdir: debian-binary, control.tar.*, data.tar.*. Debian permits
+  # gzip, xz and zstd members, so do not couple this repack to one compressor.
+  # Everything installable lives in that data member with its final /usr paths
+  # and modes, so it extracts straight into $pkgdir - no rebuild, no file moves,
+  # and -p keeps the deb's file modes (the thumbnailer's exec bit included).
+  local data_archive
+  data_archive=$(find "$srcdir" -maxdepth 1 -type f -name 'data.tar.*' -print -quit)
+  [[ -n "$data_archive" ]] || return 1
+  bsdtar -xpf "$data_archive" -C "$pkgdir"
+}

@@ -1,0 +1,23 @@
+.DS_Store
+node_modules/
+dist/
+.vercel
+src-tauri/target/
+src-tauri/gen/
+
+# The bundled Node CLI (plans/202 WP1.3), staged by
+# `node scripts/build-cli-sidecar.ts --install` in the parent repo before a release
+# build. bin/ holds a copy of the Node runtime per target (about 120 MB each) and
+# cli-lib/ the CLI's compiled payload. Built from source every release, never in git.
+src-tauri/binaries/
+src-tauri/cli-sidecar/
+src-tauri/bin/
+src-tauri/cli-lib/
+
+# `cargo vendor` output, produced by rpm/make-sources.sh for the offline OBS build.
+# ~900 MB of third-party crate sources - it ships as vendor.tar.zst, never in git.
+src-tauri/vendor/
+
+# Python bytecode from release/lolli.py (created when it is imported rather
+# than run as a script - e.g. to reuse its S3 client from another snippet).
+__pycache__/

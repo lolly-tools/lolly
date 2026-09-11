@@ -1,0 +1,9 @@
+# flatpak-builder scratch - never commit.
+.flatpak-builder/
+build-dir/
+repo/
+*.flatpak
+
+# shared-modules is a SYMLINK to ../shared-modules (the real submodule), committed so
+# both manifests can reference `shared-modules/...` at their own level: this one has to
+# stay copyable verbatim into the Flathub repo, where the path is a submodule.

@@ -1,0 +1,8 @@
+# Registers lolly-thumbnail with GNOME Files (and other thumbnail-spec managers)
+# for .lolly bundles. Installed to <datadir>/thumbnailers/. Dolphin does NOT read
+# this - KDE thumbnails need a compiled KIO ThumbCreator plugin (out of this wave,
+# recorded in plans/174-linux-desktop-home.md).
+[Thumbnailer Entry]
+TryExec=lolly-thumbnail
+Exec=lolly-thumbnail %i %o %s
+MimeType=application/vnd.lolly+zip;

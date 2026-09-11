@@ -1,0 +1,25 @@
+# Builder for the openSUSE RPMs. Unlike the .deb image this one is
+# self-contained (its own rust/cargo), because rpmbuild runs the whole compile
+# itself from the tarballs rpm/make-sources.sh produced.
+#
+# BASE selects the target: opensuse/tumbleweed or opensuse/leap:16.0. The
+# pkgconfig() BuildRequires in the spec are what let one spec serve both.
+ARG BASE=opensuse/tumbleweed
+FROM ${BASE}
+RUN zypper --non-interactive --gpg-auto-import-keys refresh && \
+    zypper --non-interactive install \
+      rpm-build rpmdevtools zstd tar gzip gcc gcc-c++ make \
+      cargo rust fdupes hicolor-icon-theme update-desktop-files \
+      'pkgconfig(webkit2gtk-4.1)' \
+      'pkgconfig(javascriptcoregtk-4.1)' \
+      'pkgconfig(gtk+-3.0)' \
+      'pkgconfig(libsoup-3.0)' \
+      'pkgconfig(glib-2.0)' \
+      'pkgconfig(gdk-pixbuf-2.0)' \
+      'pkgconfig(cairo)' \
+      'pkgconfig(librsvg-2.0)' \
+      'pkgconfig(openssl)' \
+      'pkgconfig(ayatana-appindicator3-0.1)' \
+    && zypper clean -a
+RUN rustc --version && cargo --version && \
+    pkg-config --modversion webkit2gtk-4.1 gtk+-3.0 libsoup-3.0 openssl
