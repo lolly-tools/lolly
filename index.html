@@ -12,9 +12,9 @@
        modules ("disallowed MIME type text/plain"). Bounce off the alternate to
        the canonical before those scripts are even fetched. Scoped to the lolly
        public domain family, so Vercel preview URLs (*.vercel.app) and localhost
-       are never touched; brandChrome() (vite.config.js) rewrites CANON for
-       non-SUSE brands, e.g. lolly.art, and blanks it (guard off) for any brand
-       with no canonical host. -->
+       are never touched; brandChrome() (vite.config.js) rewrites CANON per
+       profile (lolly-start also canonicalises to lolly.tools) and blanks it
+       (guard off) for any brand with no canonical host. -->
   <script>
     (() => {
       var CANON = 'lolly.tools';

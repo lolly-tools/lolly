@@ -87,7 +87,7 @@ export const NEUROSPICY_FLAG: FeatureFlag = { id: 'neurospicy', label: 'Neurospi
 // Jelly effects - flag-gated soft-body chrome controls (the vendored Jelly UI web
 // components, see lib/jelly.ts). The default is BRAND-AWARE, resolved at boot by
 // setJellyDefault (main.ts): OFF on a locked brand build (SUSE - its chrome stays
-// stock), ON for the customisable start profile (lolly.art). A user's explicit
+// stock), ON for the customisable start profile (lolly-start). A user's explicit
 // toggle always wins over the default. Turning it off reverts the upgraded
 // controls to the plain CSS primitives and skips loading the bundle.
 export const JELLY_FLAG: FeatureFlag = {

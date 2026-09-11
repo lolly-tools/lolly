@@ -346,7 +346,7 @@ export function precacheManifest() {
 
 // Bake per-brand browser/PWA chrome into index.html at build time. The static
 // theme-color in index.html is SUSE pine (#0c322c); on any OTHER brand (e.g. the
-// blank lolly.art profile) that would wrongly tint the mobile address bar / PWA
+// blank lolly-start profile) that would wrongly tint the mobile address bar / PWA
 // titlebar SUSE green, and the SUSE webfont preload would just 404. Resolve the
 // active profile (LOLLY_PROFILE env on Vercel → the repo-root .lolly-profile
 // sticky file → the suse default) and, for a non-SUSE brand, neutralise the
@@ -363,8 +363,8 @@ function brandChrome() {
   // Canonical host for the origin guard baked into index.html. index.html hardcodes
   // the SUSE default ('lolly.tools'); an unknown brand gets '' so the guard no-ops
   // rather than force-redirecting somewhere wrong. As of 2026-08-30 lolly-start also
-  // canonicalises to lolly.tools (the lolly.art/start split folded in), so lolly.tools
-  // no longer bounces and lolly.art redirects TO lolly.tools.
+  // canonicalises to lolly.tools (the lolly.art/start split folded in); lolly.art was
+  // retired on 2026-09-10 and 308s to lolly.tools at the Vercel domain level.
   const CANON_BY_PROFILE = { suse: 'lolly.tools', 'lolly-start': 'lolly.tools' };
   return {
     name: 'lolly-brand-chrome',

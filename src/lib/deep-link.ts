@@ -30,6 +30,8 @@ import { APP_PATH_WORDS, parseToolUrl } from '../../../../engine/src/tool-url.ts
 const SCHEME_RE = /^(?:web\+)?lolly:\/\/+/i;
 // The PWA spelling's prefix, stripped before anything reads the link.
 const WEB_PREFIX_RE = /^web\+/i;
+// lolly.art was retired on 2026-09-10 (a 308 to lolly.tools at the domain level); its
+// links keep opening in the app here rather than bouncing through the web first.
 const HOST_RE = /^(?:www\.)?lolly\.(?:tools|art)(?=[/?#]|$)\/?/i;
 const WEB_HOSTS = new Set(['lolly.tools', 'www.lolly.tools', 'lolly.art', 'www.lolly.art']);
 // The engine's own cap on a Lolly URL (tool-url.ts MAX_URL), so a link the engine
