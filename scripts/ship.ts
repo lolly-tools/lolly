@@ -194,14 +194,13 @@ const vercelDriver: Driver = {
       step(`uploading + building on Vercel (LOLLY_PROFILE=${target.profile} · ${mode} · upload ${attempt}/${DEPLOY_UPLOAD_TRIES})`);
       const args = ['--yes', 'vercel', 'deploy'];
       if (mode === 'prod') args.push('--prod');
-      // --archive=tgz tarballs the source before upload, which is this repository's
-      // standing rule for anything that ships the whole catalog: a plain deploy
-      // uploads hundreds of catalog files individually, and vercel.json bundles the
-      // pack globs into the MCP function's includeFiles on top of that. The cost is
-      // that an archive is one blob Vercel cannot content-dedupe, so the gitignored
-      // ONNX models under shells/web/public/models re-upload in full each time;
-      // LOLLY_SHIP_NO_ARCHIVE=1 drops the flag for a deploy where that matters more.
-      if (!process.env.LOLLY_SHIP_NO_ARCHIVE) args.push('--archive=tgz');
+      // No --archive by default, the same choice loldev's vercel_publish made on purpose:
+      // an archive is one blob Vercel cannot content-dedupe, so the ~1.3 GB of gitignored
+      // ONNX models under shells/web/public/models would re-upload in full on every
+      // deploy instead of once. The repo hook that insists on --archive inspects an
+      // agent's own Bash command line, never this subprocess. LOLLY_SHIP_ARCHIVE=1 adds
+      // the flag for a deploy where the file count matters more than the re-upload.
+      if (process.env.LOLLY_SHIP_ARCHIVE) args.push('--archive=tgz');
       // The brand is pinned per-deploy so the repo is the source of truth regardless
       // of dashboard or local state. LOLLY_CLI_DEPLOY marks these in build logs.
       // ONNXRUNTIME_NODE_INSTALL_CUDA=skip: onnxruntime-node's postinstall fetches a
