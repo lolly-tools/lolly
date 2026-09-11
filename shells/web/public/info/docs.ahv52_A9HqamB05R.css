@@ -128,6 +128,13 @@
   --ui-color-selection-border: hsl(var(--primary));
   --ui-color-border-default: hsl(var(--border));
   --ui-color-focus-ring: hsl(var(--ring));
+  --ui-color-syntax-keyword: hsl(var(--primary));
+  --ui-color-syntax-string: var(--ui-color-text-default);
+  --ui-color-syntax-comment: var(--ui-color-text-muted);
+  --ui-color-syntax-number: hsl(var(--primary));
+  --ui-color-syntax-function: var(--ui-color-text-default);
+  --ui-color-syntax-type: hsl(var(--primary));
+  --ui-color-syntax-operator: var(--ui-color-text-muted);
   --ui-size-target: 44px;
   --ui-space-section: 64px;
   --ui-space-control-inline: var(--sp-4);

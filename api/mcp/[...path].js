@@ -45,7 +45,7 @@ var init_tool_schema = __esm({
           enum: [
             "community"
           ],
-          description: `Brand-overlay marker - only valid on a tool inside a brand pack (brands/<brand>/tools/<id>/), never on a community tool. Declares this directory a per-file OVERLAY of the base pack's tool with the SAME id: scripts/use-profile.ts composes the profile view from community/<id>/ plus this dir (overlay file wins on filename collision, recursing one level into subdirs such as i18n/ and assets/) and strips this field from the composed tool.json, so shells and the engine never see it. The base community/<id>/tool.json must exist - a missing base fails the profile build loudly (never a silent partial tool). v1 supports only "community" as the base pack.`
+          description: `Brand-overlay marker - only valid on a tool inside a brand pack (brands/<brand>/tools/<id>/), never on a community tool. Declares this directory a per-file OVERLAY of the base pack's tool with the SAME id: packages/node-shell/src/content-roots.ts reads the tool as the union of community/<id>/ plus this dir (overlay file wins on filename collision, recursing one level into subdirs such as i18n/ and assets/) and strips this field from the manifest it hands out, so shells and the engine never see it. The base community/<id>/tool.json must exist - a missing base is an error, never a silent partial tool. v1 supports only "community" as the base pack.`
         },
         name: {
           type: "string",
@@ -2697,8 +2697,8 @@ function derLen2(n2) {
   if (n2 < 65536) return Uint8Array.of(130, n2 >>> 8, n2 & 255);
   return Uint8Array.of(131, n2 >>> 16, n2 >>> 8 & 255, n2 & 255);
 }
-function der(tag2, ...content) {
-  const body = concatBytes(content);
+function der(tag2, ...content2) {
+  const body = concatBytes(content2);
   return concatBytes([Uint8Array.of(tag2), derLen2(body.length), body]);
 }
 function derUint(bytes) {
@@ -7898,7 +7898,7 @@ function buildMergedMap(doc, theme) {
 }
 function resolveAliases(map) {
   const resolving = /* @__PURE__ */ new Set();
-  function resolve3(path) {
+  function resolve4(path) {
     const e = map.get(path);
     if (!e) return void 0;
     if (e._done) return e.value;
@@ -7907,7 +7907,7 @@ function resolveAliases(map) {
     if (isAlias(e.value)) {
       const target = aliasPath(e.value);
       if (target != null) {
-        const tv = resolve3(target);
+        const tv = resolve4(target);
         if (tv !== void 0) {
           e.value = tv;
           if (e.type == null) {
@@ -7921,7 +7921,7 @@ function resolveAliases(map) {
       const stops = e.value.map((s) => {
         if (!isRecord(s) || !isAlias(s.color)) return s;
         const target = aliasPath(s.color);
-        const tv = target != null ? resolve3(target) : void 0;
+        const tv = target != null ? resolve4(target) : void 0;
         if (tv === void 0 || isAlias(tv)) return s;
         changed = true;
         return { ...s, color: tv };
@@ -7932,7 +7932,7 @@ function resolveAliases(map) {
     resolving.delete(path);
     return e.value;
   }
-  for (const path of [...map.keys()]) resolve3(path);
+  for (const path of [...map.keys()]) resolve4(path);
   for (const e of map.values()) delete e._done;
   return map;
 }
@@ -9014,12 +9014,12 @@ async function resolveNestedRenders(tool, model2, extras, host, composeStack = [
   return out;
 }
 function withTimeout(promise, ms, toolId) {
-  return new Promise((resolve3, reject) => {
+  return new Promise((resolve4, reject) => {
     const t = setTimeout(() => reject(new Error(`timed out after ${ms}ms (${toolId})`)), ms);
     Promise.resolve(promise).then(
       (v) => {
         clearTimeout(t);
-        resolve3(v);
+        resolve4(v);
       },
       (e) => {
         clearTimeout(t);
@@ -9571,10 +9571,10 @@ function seekHeadEntrySplice(bytes, scan2, seekId, pos) {
   if (!voidEl || voidEl.id !== VOID || voidEl.unknown) return null;
   const shPayload = sh.off + sh.idWidth + sh.sizeWidth;
   if (readId(bytes, shPayload)?.value === CRC32) return null;
-  const entry = ebml(ID_SEEK, concat(ebml(ID_SEEKID, seekId), ebml(ID_SEEKPOS, beUint(pos))));
-  const newShSize = writeVint(sh.size + entry.length, sh.sizeWidth);
+  const entry2 = ebml(ID_SEEK, concat(ebml(ID_SEEKID, seekId), ebml(ID_SEEKPOS, beUint(pos))));
+  const newShSize = writeVint(sh.size + entry2.length, sh.sizeWidth);
   const voidSpan = voidEl.idWidth + voidEl.sizeWidth + voidEl.size;
-  const newVoid = voidSpan - entry.length >= 2 ? voidElement(voidSpan - entry.length) : null;
+  const newVoid = voidSpan - entry2.length >= 2 ? voidElement(voidSpan - entry2.length) : null;
   if (!newShSize || !newVoid) return null;
   const voidEnd = voidEl.off + voidSpan;
   return {
@@ -9584,7 +9584,7 @@ function seekHeadEntrySplice(bytes, scan2, seekId, pos) {
       bytes.subarray(sh.off, sh.off + sh.idWidth),
       newShSize,
       bytes.subarray(shPayload, shPayload + sh.size),
-      entry,
+      entry2,
       newVoid
     )
   };
@@ -10208,9 +10208,9 @@ function catalogSource(bin, info) {
   const { num: num7, gen } = info.root;
   const headRe = new RegExp(`^${num7}\\s+${gen}\\s+obj\\b`);
   let at = -1;
-  const entry = info.entries.get(num7);
-  if (entry && entry.type === "n") {
-    const i2 = skipWs(bin, entry.offset);
+  const entry2 = info.entries.get(num7);
+  if (entry2 && entry2.type === "n") {
+    const i2 = skipWs(bin, entry2.offset);
     if (headRe.test(bin.slice(i2, i2 + 32))) at = i2;
   }
   if (at < 0) {
@@ -10906,9 +10906,9 @@ function placeMp3(mp3, manifest) {
     kept = concatBytes(frames.filter((f) => !f.c2pa).map((f) => mp3.subarray(f.start, f.end)));
   }
   const geob = mp3GeobFrame(manifest, ver === 4);
-  const content = concatBytes([geob, kept]);
-  if (content.length >= 1 << 28) throw new Error("C2PA embed: ID3v2 tag too large");
-  const tag2 = concatBytes([asciiBytes("ID3"), Uint8Array.of(ver, 0, 0), syncsafe(content.length), content]);
+  const content2 = concatBytes([geob, kept]);
+  if (content2.length >= 1 << 28) throw new Error("C2PA embed: ID3v2 tag too large");
+  const tag2 = concatBytes([asciiBytes("ID3"), Uint8Array.of(ver, 0, 0), syncsafe(content2.length), content2]);
   return {
     out: concatBytes([tag2, mp3.subarray(audioStart)]),
     exclusions: [{ start: 0, length: tag2.length }]
@@ -13790,11 +13790,11 @@ function extractC2paFromTiff(tiff) {
     off = ifd.next;
   }
   if (!last) return null;
-  const entry = last.entries.find((e) => e.tag === 52545) || first.entries.find((e) => e.tag === 52545);
-  if (!entry) return null;
-  if (entry.type !== 7) throw new Error("TIFF C2PA entry must be type UNDEFINED(7)");
-  if (entry.valueOffset + entry.count > tiff.length) throw new Error("TIFF C2PA value overruns the file");
-  return { manifest: tiff.slice(entry.valueOffset, entry.valueOffset + entry.count) };
+  const entry2 = last.entries.find((e) => e.tag === 52545) || first.entries.find((e) => e.tag === 52545);
+  if (!entry2) return null;
+  if (entry2.type !== 7) throw new Error("TIFF C2PA entry must be type UNDEFINED(7)");
+  if (entry2.valueOffset + entry2.count > tiff.length) throw new Error("TIFF C2PA value overruns the file");
+  return { manifest: tiff.slice(entry2.valueOffset, entry2.valueOffset + entry2.count) };
 }
 function extractC2paFromRiff(riff) {
   const dv = new DataView(riff.buffer, riff.byteOffset);
@@ -14835,14 +14835,14 @@ async function verifyCoseSignature(alg, spki, sigRaw, sigStructure) {
   const key = await subtle4.importKey("spki", asBufferSource(spki), { name: "Ed25519" }, false, ["verify"]);
   return subtle4.verify({ name: "Ed25519" }, key, asBufferSource(sigRaw), asBufferSource(sigStructure));
 }
-function parseCreatorEntry(entry) {
-  let name = entry;
+function parseCreatorEntry(entry2) {
+  let name = entry2;
   const em = name.match(/<([^<>\s]+@[^<>\s]+)>/);
   if (em) name = name.replace(em[0], "");
   const ur = name.match(/\(([^()\s]+\.[^()\s]+)\)/);
   if (ur) name = name.replace(ur[0], "");
   name = name.replace(/\s+/g, " ").trim();
-  if (!name) name = em?.[1] ?? ur?.[1] ?? entry.trim();
+  if (!name) name = em?.[1] ?? ur?.[1] ?? entry2.trim();
   return { name, ...em ? { email: em[1] } : {}, ...ur ? { url: ur[1] } : {} };
 }
 function untrustedReason(signer) {
@@ -14908,11 +14908,11 @@ function htmlCodeExclusionConformance(binding, advisory, alternates, declared) {
     message: `the data hash excludes ${shown(declared)} but ${where} occupies ${shown(want)} - content outside the credential is not covered by the binding`
   };
 }
-function readAiDisclosure(content) {
+function readAiDisclosure(content2) {
   try {
-    let m2 = decodeCbor(content);
+    let m2 = decodeCbor(content2);
     if (!(m2 instanceof Map)) {
-      const json = JSON.parse(td2.decode(content));
+      const json = JSON.parse(td2.decode(content2));
       m2 = json && typeof json === "object" && !Array.isArray(json) ? new Map(Object.entries(json)) : null;
     }
     if (!(m2 instanceof Map)) return void 0;
@@ -16356,12 +16356,12 @@ async function loadHooks(tool, host) {
   };
 }
 function withTimeout2(promise, ms, toolId) {
-  return new Promise((resolve3, reject) => {
+  return new Promise((resolve4, reject) => {
     const t = setTimeout(() => reject(new Error(`timed out after ${ms}ms (${toolId})`)), ms);
     Promise.resolve(promise).then(
       (v) => {
         clearTimeout(t);
-        resolve3(v);
+        resolve4(v);
       },
       (e) => {
         clearTimeout(t);
@@ -18415,13 +18415,13 @@ function storeZip(entries, opts = {}) {
   return concatBytes([localBlob, centralBlob, eocd]);
 }
 function orderEntries(entries, mimetypeFirst) {
-  if (!mimetypeFirst) return entries.map((entry) => ({ entry, forceStored: false }));
+  if (!mimetypeFirst) return entries.map((entry2) => ({ entry: entry2, forceStored: false }));
   const idx = entries.findIndex((e) => e.name === "mimetype");
-  if (idx < 0) return entries.map((entry) => ({ entry, forceStored: false }));
+  if (idx < 0) return entries.map((entry2) => ({ entry: entry2, forceStored: false }));
   const rest = entries.filter((_, i) => i !== idx);
   return [
     { entry: entries[idx], forceStored: true },
-    ...rest.map((entry) => ({ entry, forceStored: false }))
+    ...rest.map((entry2) => ({ entry: entry2, forceStored: false }))
   ];
 }
 var SIG_LOCAL, SIG_CENTRAL, SIG_EOCD, METHOD_STORED, METHOD_DEFLATE, U32_MAX, U16_MAX, DOS_DATE_1980, GPBF_UTF8, encoder, decoder, ZIP_READ_MAX_INPUT_BYTES, ZIP_READ_MAX_ENTRIES, ZIP_READ_MAX_ENTRY_BYTES, ZIP_READ_MAX_TOTAL_BYTES;
@@ -19076,8 +19076,8 @@ function bmffDuration(seconds) {
   const h = Math.floor(whole / 3600), m2 = Math.floor(whole % 3600 / 60), s = whole % 60;
   return h ? `${h} h ${m2} min ${s} s` : `${m2} min ${s} s`;
 }
-function ilstText(bytes, entry) {
-  for (const d of bmffChildren(bytes, entry.payload, entry.end)) {
+function ilstText(bytes, entry2) {
+  for (const d of bmffChildren(bytes, entry2.payload, entry2.end)) {
     if (d.type !== "data" || d.end - d.payload < 8) continue;
     const kind = u323(bytes, d.payload) & 16777215;
     if (kind !== 1 && kind !== 0) continue;
@@ -19116,12 +19116,12 @@ function detectProducer(handlerNotes, encoder5, hasVideo) {
 }
 function readIlst(bytes, ilst, out) {
   let encoder5 = null;
-  for (const entry of bmffChildren(bytes, ilst.payload, ilst.end)) {
-    const tag2 = ILST_TAGS[entry.type];
+  for (const entry2 of bmffChildren(bytes, ilst.payload, ilst.end)) {
+    const tag2 = ILST_TAGS[entry2.type];
     if (!tag2) continue;
-    const text3 = ilstText(bytes, entry);
+    const text3 = ilstText(bytes, entry2);
     if (!text3) continue;
-    if (entry.type === "\xA9too") encoder5 = text3;
+    if (entry2.type === "\xA9too") encoder5 = text3;
     if (out.fields.length < MAX_FIELDS) {
       out.fields.push({ label: tag2.label, value: text3, group: tag2.group, ...tag2.sensitive ? { sensitive: true } : {} });
     }
@@ -19148,12 +19148,12 @@ function readMdtaMeta(bytes, kids, out) {
       p += size;
     }
   }
-  for (const entry of bmffChildren(bytes, ilst.payload, ilst.end)) {
-    const idx = entry.type.charCodeAt(0) << 24 | entry.type.charCodeAt(1) << 16 | entry.type.charCodeAt(2) << 8 | entry.type.charCodeAt(3);
+  for (const entry2 of bmffChildren(bytes, ilst.payload, ilst.end)) {
+    const idx = entry2.type.charCodeAt(0) << 24 | entry2.type.charCodeAt(1) << 16 | entry2.type.charCodeAt(2) << 8 | entry2.type.charCodeAt(3);
     const key = idx >= 1 && idx <= names.length ? names[idx - 1] : "";
     const known = MDTA_KEYS[key];
     if (!known) continue;
-    const text3 = ilstText(bytes, entry);
+    const text3 = ilstText(bytes, entry2);
     if (!text3) continue;
     if (key === "com.apple.quicktime.location.ISO6709") {
       const fix = parseIso6709(text3);
@@ -20828,10 +20828,10 @@ function chordFractionToParam(c, u) {
   const B = 3 * g2[0] - 6 * g2[1] + 3 * g2[2];
   const C = -3 * g2[0] + 3 * g2[1];
   const D = g2[0] - u;
-  const roots = cubicRoots01(A, B, C, D);
-  if (!roots.length) return u;
-  let best = roots[0], bestErr = Infinity;
-  for (const t of roots) {
+  const roots2 = cubicRoots01(A, B, C, D);
+  if (!roots2.length) return u;
+  let best = roots2[0], bestErr = Infinity;
+  for (const t of roots2) {
     const mt = 1 - t;
     const val = mt * mt * mt * g2[0] + 3 * mt * mt * t * g2[1] + 3 * mt * t * t * g2[2] + t * t * t * g2[3];
     const err = Math.abs(val - u);
@@ -21948,27 +21948,27 @@ function candidates(f) {
   const a2 = 12 * ((((70 * mx + 15 * area) * s1 * s1 + c1 * (9 * s1 - 70 * c1 * mx - 5 * c1 * area)) * c0 - 5 * s0 * s1 * (3 * s1 - 4 * c1 * (7 * mx + area))) * c0 - c1 * (9 * s1 - 70 * c1 * mx - 5 * c1 * area));
   const a1 = 16 * (((12 * s0 - 5 * c0 * (42 * mx - 17 * area)) * s1 - 70 * c1 * (3 * mx - area) * s0 - 75 * c0 * c1 * area * area) * s1 - 75 * c1 * c1 * area * area * s0);
   const a0 = 80 * s1 * (42 * s1 * mx - 25 * area * (s1 - c1 * area));
-  const roots = [];
+  const roots2 = [];
   const EPS4 = 1e-12;
   if (Math.abs(a4) > EPS4) {
     const quads = factorQuartic(a3 / a4, a2 / a4, a1 / a4, a0 / a4);
     if (quads) {
       for (const [qc1, qc0] of quads) {
         const qr = solveQuadratic(qc0, qc1, 1);
-        if (qr.length === 0) roots.push(-0.5 * qc1);
-        else roots.push(...qr);
+        if (qr.length === 0) roots2.push(-0.5 * qc1);
+        else roots2.push(...qr);
       }
     }
   } else if (Math.abs(a3) > EPS4) {
-    roots.push(...solveCubic(a0, a1, a2, a3));
+    roots2.push(...solveCubic(a0, a1, a2, a3));
   } else if (Math.abs(a2) > EPS4 || Math.abs(a1) > EPS4 || Math.abs(a0) > EPS4) {
-    roots.push(...solveQuadratic(a0, a1, a2));
+    roots2.push(...solveQuadratic(a0, a1, a2));
   } else {
     return [mapCandidate(f, 1 / 3, 1 / 3)];
   }
   const s01 = s0 * c1 + s1 * c0;
   const out = [];
-  for (const root of roots) {
+  for (const root of roots2) {
     if (!Number.isFinite(root)) continue;
     let d0, d1;
     if (root > 0) {
@@ -22888,7 +22888,7 @@ function finiteContour(c) {
 }
 function buildOffset(c, d, opts) {
   const tol = opts.tol ?? DEFAULT_TOL2;
-  const join18 = opts.join ?? "miter";
+  const join16 = opts.join ?? "miter";
   const miterLimit = opts.miterLimit ?? DEFAULT_MITER_LIMIT;
   const seq = [];
   const corners = [];
@@ -22917,7 +22917,7 @@ function buildOffset(c, d, opts) {
     const pivot = corners[i] ?? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     const t0 = cur.dirEnd ?? endTangent2(cur.curve);
     const t1 = next.dirStart ?? startTangent2(next.curve);
-    out.push(...joinPieces(a, b, pivot, t0, t1, d, join18, miterLimit));
+    out.push(...joinPieces(a, b, pivot, t0, t1, d, join16, miterLimit));
   }
   return out;
 }
@@ -23798,7 +23798,7 @@ function hbSystem(pts, wrap, startTh, endTh, ths) {
   const a = new Array(m2).fill(0);
   const b = new Array(m2).fill(1);
   const c = new Array(m2).fill(0);
-  const join18 = (k, prevIx, nextIx) => {
+  const join16 = (k, prevIx, nextIx) => {
     const prev = segs[prevIx], next = segs[nextIx];
     const j = hbJoin(prev, next);
     r3[k] = j.r;
@@ -23807,10 +23807,10 @@ function hbSystem(pts, wrap, startTh, endTh, ths) {
     c[k] = j.dB * -next.d01;
   };
   if (wrap) {
-    for (let k = 0; k < m2; k++) join18(k, (k - 1 + m2) % m2, k);
+    for (let k = 0; k < m2; k++) join16(k, (k - 1 + m2) % m2, k);
     return { r: r3, a, b, c, segs };
   }
-  for (let k = 1; k < m2 - 1; k++) join18(k, k - 1, k);
+  for (let k = 1; k < m2 - 1; k++) join16(k, k - 1, k);
   const first = segs[0];
   if (startTh !== null) {
     r3[0] = mod2pi3(ths[0] - startTh);
@@ -24914,8 +24914,8 @@ function makeGeomApi() {
       if (!list2.length) return fail2("invalid-argument", "geom: expected at least one authored path");
       const built = [];
       let total = 0;
-      for (const entry of list2) {
-        const src = entry;
+      for (const entry2 of list2) {
+        const src = entry2;
         if (!src || typeof src !== "object") return fail2("invalid-argument", "geom: expected an authored path");
         if (!Array.isArray(src.nodes) || !src.nodes.length) {
           return fail2("invalid-argument", "geom: authored path needs at least one node");
@@ -25250,8 +25250,8 @@ function createHookWorkerCore(port, opts = {}) {
     const r3 = runs.get(runId);
     if (!r3) return Promise.reject(new Error(`host-call after dispose (${method})`));
     const hostCallId = nextHostCallId();
-    return new Promise((resolve3, reject) => {
-      r3.waiters.set(hostCallId, { resolve: resolve3, reject });
+    return new Promise((resolve4, reject) => {
+      r3.waiters.set(hostCallId, { resolve: resolve4, reject });
       port.post({ t: "host-call", runId, hostCallId, method, args });
     });
   }
@@ -26452,15 +26452,15 @@ function decodePlane(bytes, at, chLen, rows2, cols, depth, psb, inflate, reserve
     }
     raw.set(bytes.subarray(p, p + rows2 * rowBytes));
   } else if (comp2 === 1) {
-    const entry = psb ? 4 : 2;
-    if (p + rows2 * entry > end) {
+    const entry2 = psb ? 4 : 2;
+    if (p + rows2 * entry2 > end) {
       warn("channel.bad", "RLE row table truncated");
       return null;
     }
     const lens = new Array(rows2);
     for (let y = 0; y < rows2; y++) {
       lens[y] = psb ? v.getUint32(p) : v.getUint16(p);
-      p += entry;
+      p += entry2;
     }
     for (let y = 0; y < rows2; y++) {
       const rl = lens[y];
@@ -26707,8 +26707,8 @@ function readComposite(c, width, height, depth, headerChannels, colorMode, merge
     }
   } else if (comp2 === 1) {
     const psb = compositeIsPsb(c);
-    const entry = psb ? 4 : 2;
-    const tableLen = headerChannels * height * entry;
+    const entry2 = psb ? 4 : 2;
+    const tableLen = headerChannels * height * entry2;
     if (p + tableLen > end) {
       warn("composite.bad", "composite RLE table truncated");
       return void 0;
@@ -26716,7 +26716,7 @@ function readComposite(c, width, height, depth, headerChannels, colorMode, merge
     const lens = new Array(headerChannels * height);
     for (let i = 0; i < lens.length; i++) {
       lens[i] = psb ? v.getUint32(p) : v.getUint16(p);
-      p += entry;
+      p += entry2;
     }
     let rowAt2 = p;
     for (let ch = 0; ch < headerChannels; ch++) {
@@ -28525,36 +28525,36 @@ function buildCarryExifTiff(fields, gps) {
   dv.setUint16(2, 42, true);
   dv.setUint32(4, 8, true);
   dv.setUint16(8, n0, true);
-  let entry = 10;
+  let entry2 = 10;
   let dataOff = 8 + ifd0Size;
   const writeAscii = (tag2, data) => {
-    dv.setUint16(entry, tag2, true);
-    dv.setUint16(entry + 2, 2, true);
-    dv.setUint32(entry + 4, data.length, true);
-    if (data.length <= 4) tiff.set(data, entry + 8);
+    dv.setUint16(entry2, tag2, true);
+    dv.setUint16(entry2 + 2, 2, true);
+    dv.setUint32(entry2 + 4, data.length, true);
+    if (data.length <= 4) tiff.set(data, entry2 + 8);
     else {
-      dv.setUint32(entry + 8, dataOff, true);
+      dv.setUint32(entry2 + 8, dataOff, true);
       tiff.set(data, dataOff);
       dataOff += data.length;
     }
-    entry += 12;
+    entry2 += 12;
   };
   for (const e of ifd0Ascii) writeAscii(e.tag, e.data);
   if (date) {
-    dv.setUint16(entry, 34665, true);
-    dv.setUint16(entry + 2, 4, true);
-    dv.setUint32(entry + 4, 1, true);
-    dv.setUint32(entry + 8, exifOff, true);
-    entry += 12;
+    dv.setUint16(entry2, 34665, true);
+    dv.setUint16(entry2 + 2, 4, true);
+    dv.setUint32(entry2 + 4, 1, true);
+    dv.setUint32(entry2 + 8, exifOff, true);
+    entry2 += 12;
   }
   if (gps) {
-    dv.setUint16(entry, 34853, true);
-    dv.setUint16(entry + 2, 4, true);
-    dv.setUint32(entry + 4, 1, true);
-    dv.setUint32(entry + 8, gpsOff, true);
-    entry += 12;
+    dv.setUint16(entry2, 34853, true);
+    dv.setUint16(entry2 + 2, 4, true);
+    dv.setUint32(entry2 + 4, 1, true);
+    dv.setUint32(entry2 + 8, gpsOff, true);
+    entry2 += 12;
   }
-  dv.setUint32(entry, 0, true);
+  dv.setUint32(entry2, 0, true);
   if (date) {
     dv.setUint16(exifOff, 1, true);
     dv.setUint16(exifOff + 2, 36867, true);
@@ -29647,7 +29647,7 @@ function gSqrt(engine, a) {
   return a ? engine.exponents[gMod(engine, 2 * engine.logarithms[a])] : 0;
 }
 function getRoots(engine, k, poly) {
-  const roots = [];
+  const roots2 = [];
   if (poly.deg > 2) {
     const kk = k * 8 + engine.eccBits;
     const rep = new Array(engine.t * 2).fill(0);
@@ -29665,18 +29665,18 @@ function getRoots(engine, k, poly) {
         if (m2 >= 0) syn = syn ^ gPow(engine, m2 + j * i);
       }
       if (syn === 0) {
-        roots.push(engine.n - i);
-        if (roots.length === poly.deg) break;
+        roots2.push(engine.n - i);
+        if (roots2.length === poly.deg) break;
       }
     }
-    if (roots.length < poly.deg) {
+    if (roots2.length < poly.deg) {
       engine.errloc = [];
       return -1;
     }
   }
   if (poly.deg === 1) {
     if (poly.c[0]) {
-      roots.push(gMod(engine, engine.n - engine.logarithms[poly.c[0]] + engine.logarithms[poly.c[1]]));
+      roots2.push(gMod(engine, engine.n - engine.logarithms[poly.c[0]] + engine.logarithms[poly.c[1]]));
     }
   }
   if (poly.deg === 2) {
@@ -29693,13 +29693,13 @@ function getRoots(engine, k, poly) {
         v = v ^ 1 << i;
       }
       if ((gSqrt(engine, r3) ^ r3) === u) {
-        roots.push(gModN(engine, 2 * engine.n - l1 - engine.logarithms[r3] + l2));
-        roots.push(gModN(engine, 2 * engine.n - l1 - engine.logarithms[r3 ^ 1] + l2));
+        roots2.push(gModN(engine, 2 * engine.n - l1 - engine.logarithms[r3] + l2));
+        roots2.push(gModN(engine, 2 * engine.n - l1 - engine.logarithms[r3 ^ 1] + l2));
       }
     }
   }
-  engine.errloc = roots;
-  return roots.length;
+  engine.errloc = roots2;
+  return roots2.length;
 }
 function buildCyclic(engine, g2) {
   const l = ceilDiv(engine.m * engine.t, 32);
@@ -29759,18 +29759,18 @@ function createBchEngine(t, poly) {
   engine.logarithms[0] = 0;
   engine.exponents[n2] = 1;
   const g2 = { deg: 0, c: new Array(m2 * t + 1).fill(0) };
-  const roots = new Array(n2 + 1).fill(0);
+  const roots2 = new Array(n2 + 1).fill(0);
   for (let i = 0; i < t; i++) {
     let r3 = 2 * i + 1;
     for (let j = 0; j < m2; j++) {
-      roots[r3] = 1;
+      roots2[r3] = 1;
       r3 = gMod(engine, 2 * r3);
     }
   }
   g2.deg = 0;
   g2.c[0] = 1;
   for (let i = 0; i < n2; i++) {
-    if (roots[i]) {
+    if (roots2[i]) {
       const r3 = engine.exponents[i];
       g2.c[g2.deg + 1] = 1;
       for (let j = g2.deg; j > 0; j--) {
@@ -32504,7 +32504,7 @@ function clusterLeaves(idx, boxes, gapScale = 1, sizeRatio = Infinity) {
     }
     return i;
   };
-  const join18 = (a, b) => {
+  const join16 = (a, b) => {
     const ra = find(a), rb = find(b);
     if (ra !== rb) parent[ra] = rb;
   };
@@ -32521,7 +32521,7 @@ function clusterLeaves(idx, boxes, gapScale = 1, sizeRatio = Infinity) {
         const [lo, hi] = area(ba) < area(bb) ? [area(ba), area(bb)] : [area(bb), area(ba)];
         if (hi > lo * sizeRatio) continue;
       }
-      if (boxesOverlap2(grown, bb)) join18(a, b);
+      if (boxesOverlap2(grown, bb)) join16(a, b);
     }
   }
   const byRoot = /* @__PURE__ */ new Map();
@@ -34287,13 +34287,13 @@ function cleanAudioPcm(input, sampleRate, opts = {}) {
   const right = channels[1] ?? left;
   const [headL, headR] = limiter.process(left, right);
   const [tailL, tailR] = limiter.flush();
-  const join18 = (a, b) => {
+  const join16 = (a, b) => {
     const out = new Float32Array(a.length + b.length);
     out.set(a);
     out.set(b, a.length);
     return out;
   };
-  const limited2 = [join18(headL, tailL), join18(headR, tailR)];
+  const limited2 = [join16(headL, tailL), join16(headR, tailR)];
   channels = channels.length === 1 ? [limited2[0]] : limited2;
   if (limiter.engaged()) operations.push("Limited true peak to -1 dBTP");
   return {
@@ -36945,17 +36945,17 @@ function readEntry(v) {
   if (!isRec3(v)) return null;
   const slug3 = str3(v.slug);
   if (!slug3 || !isVersionSlug(slug3)) return null;
-  const entry = {
+  const entry2 = {
     slug: slug3,
     label: str3(v.label) || slug3,
     date: str3(v.date) ?? "",
     checksum: str3(v.checksum) ?? ""
   };
   const note = str3(v.note);
-  if (note) entry.note = note;
+  if (note) entry2.note = note;
   const assets = readPinnedAssets(v.assets);
-  if (assets) entry.assets = assets;
-  return entry;
+  if (assets) entry2.assets = assets;
+  return entry2;
 }
 function extOf2(doc) {
   if (!isRec3(doc)) return null;
@@ -36972,10 +36972,10 @@ function readVersionIndex(doc) {
   const versions = [];
   const seen = /* @__PURE__ */ new Set();
   for (const item of listRaw) {
-    const entry = readEntry(item);
-    if (!entry || seen.has(entry.slug)) continue;
-    seen.add(entry.slug);
-    versions.push(entry);
+    const entry2 = readEntry(item);
+    if (!entry2 || seen.has(entry2.slug)) continue;
+    seen.add(entry2.slug);
+    versions.push(entry2);
   }
   const activeRaw = isRec3(raw) ? str3(raw.active) : str3(ext.active);
   return { versions, active: activeRaw && seen.has(activeRaw) ? activeRaw : null };
@@ -36985,10 +36985,10 @@ function withVersionIndex(doc, index) {
   const versions = [];
   const seen = /* @__PURE__ */ new Set();
   for (const item of index.versions ?? []) {
-    const entry = readEntry(item);
-    if (!entry || seen.has(entry.slug)) continue;
-    seen.add(entry.slug);
-    versions.push(entry);
+    const entry2 = readEntry(item);
+    if (!entry2 || seen.has(entry2.slug)) continue;
+    seen.add(entry2.slug);
+    versions.push(entry2);
   }
   const active = index.active && seen.has(index.active) ? index.active : null;
   if (!versions.length) {
@@ -40047,8 +40047,8 @@ function lower2(svgText, targetW, targetH, withText) {
     if (!mVb) return true;
     const f = c.frame;
     if (f.defs) return true;
-    const content = decodeEntities(svgText.slice(c.start, endIndex).replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
-    if (!content) return true;
+    const content2 = decodeEntities(svgText.slice(c.start, endIndex).replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
+    if (!content2) return true;
     const runAlpha = typeof f.fill === "object" && f.fill ? f.groupAlpha * f.fillOpacity * f.fill.a : 0;
     if (f.fill === "none" || runAlpha <= 5e-3) return true;
     if (f.stroke !== "none" && f.stroke != null) return false;
@@ -40075,8 +40075,8 @@ function lower2(svgText, targetW, targetH, withText) {
       by = ey - boxH / 2;
       vAnchor = "ctr";
     } else return false;
-    const wide = /[ᄀ-ᇿ⺀-꓏가-힣豈-﫿＀-￦]/.test(content);
-    const bw = sizeEmu * ((wide ? 1.05 : 0.72) * content.length + 2);
+    const wide = /[ᄀ-ᇿ⺀-꓏가-힣豈-﫿＀-￦]/.test(content2);
+    const bw = sizeEmu * ((wide ? 1.05 : 0.72) * content2.length + 2);
     const bx = f.textAnchor === "middle" ? ex - bw / 2 : f.textAnchor === "end" ? ex - bw : ex;
     const align = f.textAnchor === "middle" ? "ctr" : f.textAnchor === "end" ? "r" : "l";
     texts.push({
@@ -40089,7 +40089,7 @@ function lower2(svgText, targetW, targetH, withText) {
       paras: [{
         align,
         runs: [{
-          text: content,
+          text: content2,
           sizePt,
           color: typeof f.fill === "object" && f.fill ? f.fill.hex : "#000000",
           ...runAlpha < 0.995 ? { alpha: runAlpha } : {},
@@ -41095,14 +41095,14 @@ function readSp(sp, theme, cascade) {
   );
   let inherit;
   if (layers.length) {
-    const cache2 = new Array(LVL_COUNT);
+    const cache3 = new Array(LVL_COUNT);
     inherit = (lvl) => {
       const at = lvl >= 0 && lvl < LVL_COUNT ? lvl : 0;
-      let hit = cache2[at];
+      let hit = cache3[at];
       if (!hit) {
         hit = {};
         for (const l of layers) inheritInto(hit, l[at]);
-        cache2[at] = hit;
+        cache3[at] = hit;
       }
       return hit;
     };
@@ -41137,12 +41137,12 @@ function readPhLayer(store, path, parseXml, theme) {
       const read = readPlaceholder(sp);
       if (!read) continue;
       const txBody = firstChildByLocal(sp, "txBody");
-      const entry = { type: read.ph.type, idx: read.ph.idx };
+      const entry2 = { type: read.ph.type, idx: read.ph.idx };
       const lvls = readLevels(txBody ? firstChildByLocal(txBody, "lstStyle") : null, theme);
-      if (lvls) entry.lvls = lvls;
+      if (lvls) entry2.lvls = lvls;
       const box2 = readXfrm(firstChildByLocal(sp, "spPr"));
-      if (box2.cxEmu > 0 || box2.cyEmu > 0) entry.box = box2;
-      layer.phs.push(entry);
+      if (box2.cxEmu > 0 || box2.cyEmu > 0) entry2.box = box2;
+      layer.phs.push(entry2);
     }
     walkTree(spTree, theme, relsById, layer.furniture, 0, void 0, true);
   }
@@ -44647,12 +44647,12 @@ function packPng(pixels, opts) {
     phys[8] = 1;
     parts.push(chunk5("pHYs", phys));
   }
-  for (const entry of opts.text ?? []) {
-    const keyword = latin1(entry.keyword);
+  for (const entry2 of opts.text ?? []) {
+    const keyword = latin1(entry2.keyword);
     if (keyword.length < 1 || keyword.length > 79) {
       throw new Error(`packPng: iTXt keyword must be 1-79 characters, got ${keyword.length}.`);
     }
-    if (/\0/.test(entry.keyword) || /^ | $|  /.test(entry.keyword)) {
+    if (/\0/.test(entry2.keyword) || /^ | $|  /.test(entry2.keyword)) {
       throw new Error("packPng: iTXt keyword must not contain NUL or leading/trailing/consecutive spaces.");
     }
     parts.push(chunk5("iTXt", concat4([
@@ -44660,11 +44660,11 @@ function packPng(pixels, opts) {
       Uint8Array.of(0),
       Uint8Array.of(0, 0),
       // compression flag 0, method 0
-      latin1(entry.languageTag ?? ""),
+      latin1(entry2.languageTag ?? ""),
       Uint8Array.of(0),
-      utf82(entry.translatedKeyword ?? ""),
+      utf82(entry2.translatedKeyword ?? ""),
       Uint8Array.of(0),
-      utf82(entry.text)
+      utf82(entry2.text)
     ])));
   }
   const idatMax = Math.max(1, Math.floor(opts.idatChunkBytes ?? DEFAULT_IDAT_CHUNK_BYTES));
@@ -46044,7 +46044,7 @@ function makeStore3(entries) {
   const lower3 = /* @__PURE__ */ new Map();
   const keys = Object.keys(entries);
   for (const k of keys) if (!lower3.has(k.toLowerCase())) lower3.set(k.toLowerCase(), k);
-  const resolve3 = (path) => {
+  const resolve4 = (path) => {
     const direct = entries[path];
     if (direct !== void 0) return direct;
     const real = lower3.get(path.toLowerCase());
@@ -46052,9 +46052,9 @@ function makeStore3(entries) {
   };
   return {
     keys: () => keys,
-    has: (path) => resolve3(path) !== void 0,
+    has: (path) => resolve4(path) !== void 0,
     bytes(path) {
-      const raw = resolve3(path);
+      const raw = resolve4(path);
       if (raw === void 0 || raw.byteLength > MAX_PART_BYTES3) return null;
       return raw;
     },
@@ -46100,9 +46100,9 @@ function resolveSheet(store, want) {
     const path = firstSheetPath(store);
     return path ? { name: "", path } : null;
   }
-  const entry = typeof want === "number" ? sheets[want] : sheets.find((s) => s.name === want);
-  if (!entry || !store.has(entry.path)) return null;
-  return entry;
+  const entry2 = typeof want === "number" ? sheets[want] : sheets.find((s) => s.name === want);
+  if (!entry2 || !store.has(entry2.path)) return null;
+  return entry2;
 }
 function relTarget(store, rid) {
   const rels = store.text("xl/_rels/workbook.xml.rels");
@@ -47140,13 +47140,13 @@ function metaXml(title) {
 `;
 }
 function manifestXml(hasMeta) {
-  const entry = (path, mediaType) => `  <manifest:file-entry manifest:full-path="${path}" manifest:media-type="${mediaType}"/>`;
+  const entry2 = (path, mediaType) => `  <manifest:file-entry manifest:full-path="${path}" manifest:media-type="${mediaType}"/>`;
   return `<?xml version="1.0" encoding="UTF-8"?>
 <manifest:manifest xmlns:manifest="${NS_MANIFEST}" manifest:version="1.2">
-${entry("/", MIMETYPE)}
-${entry("content.xml", "text/xml")}
-${entry("styles.xml", "text/xml")}
-${hasMeta ? `${entry("meta.xml", "text/xml")}
+${entry2("/", MIMETYPE)}
+${entry2("content.xml", "text/xml")}
+${entry2("styles.xml", "text/xml")}
+${hasMeta ? `${entry2("meta.xml", "text/xml")}
 ` : ""}</manifest:manifest>
 `;
 }
@@ -47330,22 +47330,22 @@ function imagePx(bytes) {
   return null;
 }
 function imageXml(ref, alt, ctx) {
-  const entry = ctx.mediaByName.get(ref);
-  if (!entry) return "";
+  const entry2 = ctx.mediaByName.get(ref);
+  if (!entry2) return "";
   let rid = ctx.imageRel.get(ref);
   if (!rid) {
     const ext = extOf4(ref);
     const path = `media/image${ctx.media.length + 1}.${ext}`;
-    ctx.media.push({ name: `word/${path}`, bytes: entry.bytes });
+    ctx.media.push({ name: `word/${path}`, bytes: entry2.bytes });
     ctx.exts.add(ext);
     rid = addRel(ctx, "image", path, false);
     ctx.imageRel.set(ref, rid);
   }
   ctx.needR = true;
   ctx.needWp = true;
-  const nat = imagePx(entry.bytes) ?? FALLBACK_PX;
-  const w = Number.isFinite(entry.width) && entry.width > 0 ? entry.width : nat.w;
-  const h = Number.isFinite(entry.height) && entry.height > 0 ? entry.height : nat.h;
+  const nat = imagePx(entry2.bytes) ?? FALLBACK_PX;
+  const w = Number.isFinite(entry2.width) && entry2.width > 0 ? entry2.width : nat.w;
+  const h = Number.isFinite(entry2.height) && entry2.height > 0 ? entry2.height : nat.h;
   const scale = Math.min(1, MAX_IMAGE_EMU / (w * EMU_PER_PX2));
   const cx = Math.max(1, Math.round(w * EMU_PER_PX2 * scale));
   const cy = Math.max(1, Math.round(h * EMU_PER_PX2 * scale));
@@ -47991,14 +47991,14 @@ function penpotUnequalCorners(sh) {
   if (sh.flipY === true) c = [c[3], c[2], c[1], c[0]];
   return c;
 }
-function penpotPathContentToD(content) {
-  if (typeof content === "string") {
-    const d = content.trim();
+function penpotPathContentToD(content2) {
+  if (typeof content2 === "string") {
+    const d = content2.trim();
     return /^[Mm]/.test(d) ? d : "";
   }
-  if (Array.isArray(content)) {
+  if (Array.isArray(content2)) {
     const parts = [];
-    for (const seg of content) {
+    for (const seg of content2) {
       const cmd = String(pget(seg, "command") ?? "").replace(/^:/, "");
       const p = pget(seg, "params");
       const n2 = (k) => num5(pget(p, k), 0);
@@ -48437,11 +48437,11 @@ function applyPenpotBlur(sh, node) {
 function penpotBackgroundBlurPx(sh) {
   const own = get(sh, "backgroundBlur");
   const legacy = get(sh, "blur");
-  const entry = own && typeof own === "object" ? own : legacy && typeof legacy === "object" && String(get(legacy, "type") || "") === "background-blur" ? legacy : null;
-  if (!entry) return 0;
-  if (get(entry, "hidden") === true) return 0;
-  if (entry === own && String(get(entry, "type") || "background-blur") !== "background-blur") return 0;
-  const v = num5(get(entry, "value"), 0);
+  const entry2 = own && typeof own === "object" ? own : legacy && typeof legacy === "object" && String(get(legacy, "type") || "") === "background-blur" ? legacy : null;
+  if (!entry2) return 0;
+  if (get(entry2, "hidden") === true) return 0;
+  if (entry2 === own && String(get(entry2, "type") || "background-blur") !== "background-blur") return 0;
+  const v = num5(get(entry2, "value"), 0);
   if (!(v > 0)) return 0;
   return clamp(round1(v * BG_BLUR_SIGMA_A + BG_BLUR_SIGMA_B), 0, 300);
 }
@@ -48706,8 +48706,8 @@ function figmaNode(node, abs, blobs) {
   if (type === "VECTOR" && blobs && Array.isArray(node.fillGeometry) && node.fillGeometry.length) {
     const d = node.fillGeometry.map((g2) => {
       const cb = get(g2, "commandsBlob");
-      const entry = g2 && cb != null && blobs ? blobs[cb] : null;
-      const blob = entry ? entry.bytes : null;
+      const entry2 = g2 && cb != null && blobs ? blobs[cb] : null;
+      const blob = entry2 ? entry2.bytes : null;
       return blob ? decodeFigVectorPath(blob) : "";
     }).filter(Boolean).join(" ");
     if (d) {
@@ -49530,13 +49530,13 @@ function interpretPdfPage(page2) {
       onWarn("content.budget.exhausted", "characters");
     }
   };
-  const run = (content, res, baseCtm, depth, parentGroups, baseClips = [], baseFill = "", sink = pageSink, inherit = null, glyphRun = false) => {
+  const run = (content2, res, baseCtm, depth, parentGroups, baseClips = [], baseFill = "", sink = pageSink, inherit = null, glyphRun = false) => {
     if (depth > PDF_MAP_MAX_RUN_DEPTH) return;
     if (tokensSpent >= PDF_MAP_MAX_TOKENS) {
       tokenExhausted();
       return;
     }
-    const source = content || "";
+    const source = content2 || "";
     if (source.length > PDF_MAP_MAX_CONTENT_CHARS || contentCharsSpent + source.length > PDF_MAP_MAX_TOTAL_CONTENT_CHARS) {
       contentExhausted();
       return;
@@ -50908,13 +50908,13 @@ function pdfNodesToSvg(nodes, opts) {
     const g2 = n2._gradient;
     if (!g2) return "";
     const key = JSON.stringify([g2.type, g2.coords, g2.matrix, g2.extend, g2.stops, g2.domain, g2.tileKey]);
-    let entry = gradDefs.get(key);
-    if (!entry) {
+    let entry2 = gradDefs.get(key);
+    if (!entry2) {
       const id = `${idp}grad${gradDefs.size}`;
-      entry = { id, markup: gradientMarkup(g2, id, images) };
-      gradDefs.set(key, entry);
+      entry2 = { id, markup: gradientMarkup(g2, id, images) };
+      gradDefs.set(key, entry2);
     }
-    return entry.markup ? `url(#${entry.id})` : "";
+    return entry2.markup ? `url(#${entry2.id})` : "";
   };
   let openGroup = "";
   const setGroup = (g2) => {
@@ -50954,8 +50954,8 @@ function pdfNodesToSvg(nodes, opts) {
   const maskWrap = (n2, el) => {
     const m2 = n2._softMask;
     if (!el || !m2 || !(m2.w > 0) || !(m2.h > 0)) return el;
-    let entry = maskDefs.get(m2.key);
-    if (!entry) {
+    let entry2 = maskDefs.get(m2.key);
+    if (!entry2) {
       const id = `${idp}mask${maskDefs.size}`;
       const grefs = [];
       let kids = "";
@@ -50967,16 +50967,16 @@ function pdfNodesToSvg(nodes, opts) {
         kids += clipWrap(k, got.el);
       }
       const ty = m2.subtype === "Alpha" ? ' mask-type="alpha"' : "";
-      entry = {
+      entry2 = {
         id,
         grefs,
         markup: kids ? `<mask id="${id}" maskUnits="userSpaceOnUse" x="${r(m2.x)}" y="${r(m2.y)}" width="${r(m2.w)}" height="${r(m2.h)}"${ty} style="color-interpolation:sRGB">${kids}</mask>` : ""
       };
-      maskDefs.set(m2.key, entry);
+      maskDefs.set(m2.key, entry2);
     }
-    if (!entry.markup) return "";
-    for (const g2 of entry.grefs) usedGrads.add(g2);
-    return `<g mask="url(#${entry.id})">${el}</g>`;
+    if (!entry2.markup) return "";
+    for (const g2 of entry2.grefs) usedGrads.add(g2);
+    return `<g mask="url(#${entry2.id})">${el}</g>`;
   };
   const pathDefs = /* @__PURE__ */ new Map();
   const useRef = (el) => {
@@ -51345,7 +51345,7 @@ function cluster(items) {
     }
     return i;
   };
-  const join18 = (a, b) => {
+  const join16 = (a, b) => {
     const ra = find(a), rb = find(b);
     if (ra !== rb) parent[ra] = rb;
   };
@@ -51355,7 +51355,7 @@ function cluster(items) {
     const a = expand(items[i].rect, gap);
     for (let j = i + 1; j < items.length; j++) {
       if (find(i) === find(j)) continue;
-      if (overlaps(a, items[j].rect)) join18(i, j);
+      if (overlaps(a, items[j].rect)) join16(i, j);
     }
   }
   const collect2 = () => {
@@ -51392,7 +51392,7 @@ function cluster(items) {
           if (find(ra) === find(rb)) continue;
           const reach = Math.min(diagonal(rectA), diagonal(rectB)) * GROUP_REACH;
           if (gapBetween(rectA, rectB) <= Math.max(gap, reach)) {
-            join18(ra, rb);
+            join16(ra, rb);
             merged = true;
           }
         }
@@ -54175,7 +54175,7 @@ function penpotPagePaths(entries, warnings, budget2) {
     candidates2.push({ path, fileId: match[1] });
   }
   if (!manifestFiles) {
-    return candidates2.map((entry) => entry.path).sort();
+    return candidates2.map((entry2) => entry2.path).sort();
   }
   if (manifestFiles.length > BRAND_IMPORT_MAX_ENTRIES) {
     warnings.push(`manifest carries more than ${BRAND_IMPORT_MAX_ENTRIES.toLocaleString("en")} file records`);
@@ -54186,7 +54186,7 @@ function penpotPagePaths(entries, warnings, budget2) {
   for (const [index, file] of manifestFiles.entries()) {
     if (isRecord2(file) && typeof file.id === "string" && !fileOrder.has(file.id)) fileOrder.set(file.id, index);
   }
-  return candidates2.filter((entry) => fileOrder.has(entry.fileId)).sort((a, b) => fileOrder.get(a.fileId) - fileOrder.get(b.fileId) || a.path.localeCompare(b.path)).map((entry) => entry.path);
+  return candidates2.filter((entry2) => fileOrder.has(entry2.fileId)).sort((a, b) => fileOrder.get(a.fileId) - fileOrder.get(b.fileId) || a.path.localeCompare(b.path)).map((entry2) => entry2.path);
 }
 function scanPenpotUsage(entries) {
   const warnings = [];
@@ -54262,10 +54262,10 @@ function scanPenpotUsage(entries) {
     if (!isRecord2(shape)) continue;
     seePaints(pv(shape, "fills"), "fillColor", "fillColorGradient", "fills");
     seePaints(pv(shape, "strokes"), "strokeColor", "strokeColorGradient", "strokes");
-    const content = pv(shape, "content");
-    if (String(pv(shape, "type") ?? "") === "text" && content != null) {
-      walkText(content);
-      for (const u of collectPenpotFontUsage(content)) {
+    const content2 = pv(shape, "content");
+    if (String(pv(shape, "type") ?? "") === "text" && content2 != null) {
+      walkText(content2);
+      for (const u of collectPenpotFontUsage(content2)) {
         const key = `${u.fontId}|${u.fontVariantId}|${u.fontStyle}`;
         const cur = fonts.get(key);
         if (cur) cur.runs += u.runs;
@@ -54995,10 +54995,10 @@ function buildPenpotEntries(doc, opts = {}) {
           break;
         }
         case "text": {
-          const content = textContentRecord(sh, google, nextKey);
-          if (!content) return null;
+          const content2 = textContentRecord(sh, google, nextKey);
+          if (!content2) return null;
           rec2 = baseRecord(id, "text", { ...sh, fills: [] }, parentId, frameId, pageId, media, uuid, warn, nameOf3("Text"));
-          rec2.content = content;
+          rec2.content = content2;
           rec2.growType = sh.growType ?? "fixed";
           shapeCount++;
           break;
@@ -58653,8 +58653,8 @@ function openPreparationDocument(bytes, name, sourceId, id, rules, budget2, dept
   if (doc.scope.status === "partial") scope.limitations = [.../* @__PURE__ */ new Set([...scope.limitations, "Some structured content was not inspected."])];
   return doc;
 }
-function preparationDocuments(roots) {
-  const all = [], queue = [...roots];
+function preparationDocuments(roots2) {
+  const all = [], queue = [...roots2];
   while (queue.length) {
     const doc = queue.shift();
     all.push(doc);
@@ -58697,7 +58697,7 @@ async function scan(sources, rules, options2 = {}) {
   sources = sources.map((s) => ({ ...s, bytes: Uint8Array.from(s.bytes) }));
   rules = validatePreparationRules(rules);
   const inspection = { version: 1, sources: [], scopes: [], findings: [], groups: [], rules };
-  const roots = [];
+  const roots2 = [];
   const spans = /* @__PURE__ */ new Map();
   const groups = /* @__PURE__ */ new Map();
   const budget2 = { scopes: 0, expanded: 0, units: 0 };
@@ -58706,7 +58706,7 @@ async function scan(sources, rules, options2 = {}) {
     const digest2 = await preparationDigest(source.bytes);
     inspection.sources.push({ id: source.id, sha256: digest2, size: source.bytes.length, ...source.revision ? { revision: source.revision } : {} });
     const root = openPreparationDocument(source.bytes, source.name, source.id, source.id, rules, budget2);
-    roots.push(root);
+    roots2.push(root);
     for (const doc of preparationDocuments([root])) {
       inspection.scopes.push(doc.scope);
       for (const unit2 of doc.units) {
@@ -58738,14 +58738,14 @@ async function scan(sources, rules, options2 = {}) {
       }
     }
     options2.progress?.({ completed: index + 1, total: sources.length, phase: "input" });
-    await new Promise((resolve3) => setTimeout(resolve3, 0));
+    await new Promise((resolve4) => setTimeout(resolve4, 0));
   }
   options2.signal?.throwIfAborted();
   inspection.groups = [...groups.values()];
   inspection.scopes.forEach((scope) => {
     scope.limitations = [...new Set(scope.limitations)];
   });
-  return { inspection, roots, spans };
+  return { inspection, roots: roots2, spans };
 }
 async function inspectPreparation(sources, rules = [], options2) {
   return (await scan(sources, rules, options2)).inspection;
@@ -58783,10 +58783,10 @@ async function applyPreparation(sources, inspection, choices, removeScopes = [],
     const choice2 = chosen.get(finding3.groupId);
     if (choice2?.replacement === finding3.value) continue;
     if (!choice2 || choice2.findings && !choice2.findings.includes(finding3.id)) continue;
-    const entry = fresh.spans.get(finding3.id);
-    const group = byUnit.get(entry.unit.id) ?? { unit: entry.unit, edits: [] };
-    group.edits.push({ span: entry.span, replacement: choice2.replacement });
-    byUnit.set(entry.unit.id, group);
+    const entry2 = fresh.spans.get(finding3.id);
+    const group = byUnit.get(entry2.unit.id) ?? { unit: entry2.unit, edits: [] };
+    group.edits.push({ span: entry2.span, replacement: choice2.replacement });
+    byUnit.set(entry2.unit.id, group);
     replaced.set(finding3.scopeId, (replaced.get(finding3.scopeId) ?? 0) + 1);
   }
   const values = new Map([...byUnit].map(([id, { unit: unit2, edits }]) => [id, replacePrivateSpans(unit2.text, edits)]));
@@ -59897,15 +59897,15 @@ ${body}`;
       }
     }
     const priority = /^<(\d{1,3})>/.exec(body);
-    const content = priority ? body.slice(priority[0].length) : body;
-    const prefix = PREFIX.exec(content);
+    const content2 = priority ? body.slice(priority[0].length) : body;
+    const prefix = PREFIX.exec(content2);
     const journalTime = typeof fields.__REALTIME_TIMESTAMP === "string" && /^\d+$/.test(fields.__REALTIME_TIMESTAMP) ? Number(fields.__REALTIME_TIMESTAMP) / 1e3 : NaN;
     const journalIso = Number.isFinite(journalTime) && Number.isFinite(new Date(journalTime).getTime()) ? new Date(journalTime).toISOString() : "";
     const time = /^(?:\[)?(\d{4}-\d\d-\d\d[T ][\d:.]+(?:Z|[+-]\d\d:?\d\d)?|[A-Z][a-z]{2}\s+\d{1,2}\s+\d\d:\d\d:\d\d)/.exec(
-      content
+      content2
     );
     const syslog = /^(?:[A-Z][a-z]{2}\s+\d{1,2}\s+[\d:]+|\d{4}-\d\d-\d\d[T ][\d:.Z+-]+)\s+\S+\s+([^ :]+)(?:\[\d+\])?:\s*(.*)$/.exec(
-      content
+      content2
     );
     events.push({
       id: line,
@@ -59927,7 +59927,7 @@ ${body}`;
         "SYSLOG_IDENTIFIER",
         "_COMM"
       ]) || syslog?.[1] || "",
-      message: stringField(fields, ["message", "msg", "MESSAGE"]) || syslog?.[2] || content.slice(prefix?.[0].length ?? 0)
+      message: stringField(fields, ["message", "msg", "MESSAGE"]) || syslog?.[2] || content2.slice(prefix?.[0].length ?? 0)
     });
     at += raw.length;
     if (events.length > 5e4) throw new Error("Open a log excerpt with 50,000 events or fewer.");
@@ -61942,23 +61942,27 @@ var init_src2 = __esm({
 import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-function hasCatalogMarker(root) {
+function isMaterializedRoot(root) {
+  if (!existsSync(join(root, "tools"))) return false;
   return existsSync(join(root, "catalog", "tools", "index.json")) || existsSync(join(root, "catalog", "assets", "index.json"));
+}
+function hasContentMarker(root) {
+  return existsSync(join(root, "profiles.json")) || isMaterializedRoot(root);
 }
 function repoRoot() {
   if (!cached) cached = resolve();
   return cached;
 }
 function resolve() {
-  if (process.env.LOLLY_ROOT && hasCatalogMarker(process.env.LOLLY_ROOT)) return process.env.LOLLY_ROOT;
+  if (process.env.LOLLY_ROOT && hasContentMarker(process.env.LOLLY_ROOT)) return process.env.LOLLY_ROOT;
   let dir = dirname(fileURLToPath(import.meta.url));
   for (; ; ) {
-    if (hasCatalogMarker(dir)) return dir;
+    if (hasContentMarker(dir)) return dir;
     const parent = dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
-  if (hasCatalogMarker(process.cwd())) return process.cwd();
+  if (hasContentMarker(process.cwd())) return process.cwd();
   return join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 }
 var cached;
@@ -61966,6 +61970,300 @@ var init_repo_root = __esm({
   "packages/node-shell/src/repo-root.ts"() {
     "use strict";
     cached = null;
+  }
+});
+
+// packages/node-shell/src/content-roots.ts
+import {
+  cpSync,
+  existsSync as existsSync2,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync
+} from "node:fs";
+import { readFile } from "node:fs/promises";
+import { basename, dirname as dirname2, join as join2, relative, resolve as resolve2 } from "node:path";
+function loadProfiles(root) {
+  const path = join2(root, "profiles.json");
+  if (!existsSync2(path)) {
+    throw new Error(`content-roots: no profiles.json at ${root} - is this a Lolly checkout?`);
+  }
+  return JSON.parse(readFileSync(path, "utf8"));
+}
+function isComplete(root, p) {
+  return [...p.tools, p.catalog].every((r3) => existsSync2(join2(root, r3)));
+}
+function stickyProfile(root) {
+  try {
+    return readFileSync(join2(root, ".lolly-profile"), "utf8").trim() || null;
+  } catch {
+    return null;
+  }
+}
+function resolveProfileName(root, cfg, explicit) {
+  const envChoice = process.env.LOLLY_PROFILE?.trim();
+  if (explicit) return explicit;
+  if (envChoice) return envChoice;
+  const sticky = stickyProfile(root);
+  if (sticky && cfg.profiles[sticky] && isComplete(root, cfg.profiles[sticky])) return sticky;
+  const fallbackDefault = cfg.profiles[cfg.default];
+  if (fallbackDefault && isComplete(root, fallbackDefault)) return cfg.default;
+  if (process.env.LOLLY_STRICT_PROFILE) {
+    throw new Error(
+      `content-roots: default profile "${cfg.default}" is incomplete and LOLLY_STRICT_PROFILE is set, so this build will not fall back to another brand. The private brands/suse pack is not present in a git build. Deploy an archive of the local tree (packs included), or set LOLLY_PROFILE=lolly-start on the project to intentionally ship the blank brand.`
+    );
+  }
+  const complete = Object.entries(cfg.profiles).find(([, p]) => isComplete(root, p))?.[0];
+  if (!complete) {
+    throw new Error(
+      `content-roots: no complete profile - none of [${Object.keys(cfg.profiles).join(", ")}] has all its packs on disk at ${root}.`
+    );
+  }
+  return complete;
+}
+function materializedRoots(root) {
+  return {
+    profile: MATERIALIZED,
+    toolRoots: [join2(root, "tools")],
+    catalogRoot: join2(root, "catalog"),
+    exclude: /* @__PURE__ */ new Set()
+  };
+}
+function contentRoots(opts) {
+  const root = resolve2(opts?.root ?? repoRoot());
+  const key = [
+    root,
+    opts?.profile ?? "",
+    process.env.LOLLY_PROFILE ?? "",
+    process.env.LOLLY_STRICT_PROFILE ?? ""
+  ].join("\0");
+  const hit = cache2.get(key);
+  if (hit) return hit;
+  if (!existsSync2(join2(root, "profiles.json")) && isMaterializedRoot(root)) {
+    const materialized = materializedRoots(root);
+    rootOf.set(materialized, root);
+    cache2.set(key, materialized);
+    return materialized;
+  }
+  const cfg = loadProfiles(root);
+  const name = resolveProfileName(root, cfg, opts?.profile);
+  const profile = cfg.profiles[name];
+  if (!profile) {
+    throw new Error(
+      `content-roots: unknown profile "${name}" - known: ${Object.keys(cfg.profiles).join(", ")}`
+    );
+  }
+  if (!isComplete(root, profile)) {
+    const missing = [...profile.tools, profile.catalog].filter((r3) => !existsSync2(join2(root, r3)));
+    throw new Error(
+      `content-roots: profile "${name}" is missing: ${missing.join(", ")} (a private pack needs: git submodule update --init --checkout ${missing[0]})`
+    );
+  }
+  const resolved2 = {
+    profile: name,
+    toolRoots: profile.tools.map((r3) => join2(root, r3)),
+    catalogRoot: join2(root, profile.catalog),
+    exclude: new Set(profile.exclude ?? [])
+  };
+  rootOf.set(resolved2, root);
+  cache2.set(key, resolved2);
+  return resolved2;
+}
+function readExtends(manifestPath) {
+  try {
+    const v = JSON.parse(readFileSync(manifestPath, "utf8")).extends;
+    return typeof v === "string" && v.length ? v : null;
+  } catch {
+    return null;
+  }
+}
+function toolDirs(r3) {
+  const roots2 = r3 ?? contentRoots();
+  const memo2 = plans.get(roots2);
+  if (memo2) return new Map(memo2);
+  const plan = buildPlan(roots2);
+  plans.set(roots2, plan);
+  return new Map(plan);
+}
+function buildPlan(roots2) {
+  const plan = /* @__PURE__ */ new Map();
+  const root = rootFor(roots2);
+  for (const rootAbs of roots2.toolRoots) {
+    const packRel = relative(root, rootAbs);
+    const isBasePack = packRel === BASE_PACK;
+    for (const entry2 of readdirSync(rootAbs)) {
+      if (entry2.startsWith(".") || entry2 === "node_modules") continue;
+      if (entry2.startsWith("_")) continue;
+      const dir = join2(rootAbs, entry2);
+      if (!statSync(dir).isDirectory()) continue;
+      const extendsTarget = readExtends(join2(dir, "tool.json"));
+      if (!extendsTarget) {
+        plan.set(entry2, { dir });
+        continue;
+      }
+      if (isBasePack) {
+        throw new Error(
+          `${packRel}/${entry2}/tool.json declares "extends" - community tools are overlay BASES; only a brand pack may declare an overlay`
+        );
+      }
+      if (extendsTarget !== BASE_PACK) {
+        throw new Error(
+          `${packRel}/${entry2}/tool.json declares "extends": "${extendsTarget}" - v1 supports only "${BASE_PACK}" as the base pack`
+        );
+      }
+      const base = join2(root, BASE_PACK, entry2);
+      if (!existsSync2(join2(base, "tool.json"))) {
+        throw new Error(
+          `${packRel}/${entry2} extends "${BASE_PACK}" but ${BASE_PACK}/${entry2}/tool.json does not exist - an overlay and its base share the same tool id (ids are permanent contracts); refusing to resolve a partial tool`
+        );
+      }
+      plan.set(entry2, { dir, base });
+    }
+  }
+  for (const id of roots2.exclude) {
+    if (!plan.delete(id)) {
+      console.warn(`\u26A0 profile exclude: "${id}" is not among the profile's tools - nothing to drop (typo?)`);
+    }
+  }
+  return plan;
+}
+function rootFor(roots2) {
+  const known = rootOf.get(roots2);
+  if (known) return known;
+  const community = roots2.toolRoots.find((p) => basename(p) === BASE_PACK);
+  return community ? dirname2(community) : repoRoot();
+}
+function entry(id, r3) {
+  const found = toolDirs(r3).get(id);
+  if (!found) {
+    const roots2 = r3 ?? contentRoots();
+    throw new Error(`content-roots: no tool "${id}" in profile "${roots2.profile}"`);
+  }
+  return found;
+}
+function isDir(p) {
+  try {
+    return statSync(p).isDirectory();
+  } catch {
+    return false;
+  }
+}
+function toolFile(id, rel, r3) {
+  const { dir, base } = entry(id, r3);
+  const segs = rel.split(/[\\/]/).filter(Boolean);
+  if (!segs.length) return null;
+  if (!base) {
+    const p = join2(dir, ...segs);
+    return existsSync2(p) ? p : null;
+  }
+  const pick = (level2, rest, overlayDir, baseDir) => {
+    const [name, ...tail] = rest;
+    const overlayPath = join2(overlayDir, name);
+    const basePath = join2(baseDir, name);
+    if (!tail.length) {
+      if (existsSync2(overlayPath)) return overlayPath;
+      return existsSync2(basePath) ? basePath : null;
+    }
+    if (level2 === 0 && isDir(overlayPath) && isDir(basePath)) {
+      return pick(level2 + 1, tail, overlayPath, basePath);
+    }
+    const winner = existsSync2(overlayPath) ? overlayPath : basePath;
+    const p = join2(winner, ...tail);
+    return existsSync2(p) ? p : null;
+  };
+  return pick(0, segs, dir, base);
+}
+async function readToolText(path, r3) {
+  const [id, ...rest] = path.split(/[\\/]/).filter(Boolean);
+  let abs = null;
+  if (id && rest.length && !rest.includes("..")) {
+    try {
+      abs = toolFile(id, rest.join("/"), r3);
+    } catch {
+      abs = null;
+    }
+    if (abs && rest.join("/") === "tool.json") return readToolManifestText(id, r3);
+  }
+  if (!abs) {
+    const err = new Error(`ENOENT: no such tool file, open '${path}'`);
+    err.code = "ENOENT";
+    throw err;
+  }
+  return readFile(abs, "utf8");
+}
+function topLevelExtendsKeyOffset(raw) {
+  let depth = 0;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (ch === '"') {
+      const keyStart = i;
+      for (i++; i < raw.length && raw[i] !== '"'; i++) {
+        if (raw[i] === "\\") i++;
+      }
+      if (depth !== 1 || raw.slice(keyStart + 1, i) !== "extends") continue;
+      let j = i + 1;
+      while (j < raw.length && " 	\r\n".includes(raw[j])) j++;
+      if (raw[j] === ":") return keyStart;
+    } else if (ch === "{" || ch === "[") depth++;
+    else if (ch === "}" || ch === "]") depth--;
+  }
+  return -1;
+}
+function stripExtendsField(raw) {
+  const manifest = JSON.parse(raw);
+  if (!("extends" in manifest)) return raw;
+  delete manifest.extends;
+  const keyAt = topLevelExtendsKeyOffset(raw);
+  if (keyAt !== -1) {
+    const lineStart = raw.lastIndexOf("\n", keyAt) + 1;
+    const nextNl = raw.indexOf("\n", keyAt);
+    const stripped = raw.slice(0, lineStart) + (nextNl === -1 ? "" : raw.slice(nextNl + 1));
+    try {
+      if (JSON.stringify(JSON.parse(stripped)) === JSON.stringify(manifest)) return stripped;
+    } catch {
+    }
+  }
+  return JSON.stringify(manifest, null, 2) + "\n";
+}
+function readToolManifestText(id, r3) {
+  const { dir, base } = entry(id, r3);
+  const raw = readFileSync(join2(dir, "tool.json"), "utf8");
+  return base ? stripExtendsField(raw) : raw;
+}
+function catalogFile(rel, r3) {
+  const roots2 = r3 ?? contentRoots();
+  return join2(roots2.catalogRoot, ...rel.split(/[\\/]/).filter(Boolean));
+}
+function contentUrlFile(url, r3) {
+  const segs = url.split("?")[0].split("#")[0].split("/").filter(Boolean);
+  const [head2, ...rest] = segs;
+  if (!head2 || !rest.length) return null;
+  try {
+    const roots2 = r3 ?? contentRoots();
+    if (head2 === "catalog") {
+      const p = catalogFile(rest.join("/"), roots2);
+      return existsSync2(p) ? p : null;
+    }
+    if (head2 === "tools" && rest.length > 1) {
+      return toolFile(rest[0], rest.slice(1).join("/"), roots2);
+    }
+  } catch {
+  }
+  return null;
+}
+var BASE_PACK, MATERIALIZED, cache2, plans, rootOf;
+var init_content_roots = __esm({
+  "packages/node-shell/src/content-roots.ts"() {
+    "use strict";
+    init_repo_root();
+    BASE_PACK = "community";
+    MATERIALIZED = "materialized";
+    cache2 = /* @__PURE__ */ new Map();
+    plans = /* @__PURE__ */ new WeakMap();
+    rootOf = /* @__PURE__ */ new WeakMap();
   }
 });
 
@@ -62582,13 +62880,22 @@ __export(raster_exports, {
   rasterizeTierAPng: () => rasterizeTierAPng,
   renderDeepRaster: () => renderDeepRaster
 });
-import { join as join3 } from "node:path";
 function deepFormatMime(fmt3) {
   return fmt3.toLowerCase() === "exr" ? "image/x-exr" : "image/vnd.radiance";
 }
 function isDeepFormat(fmt3) {
   const f = fmt3.toLowerCase();
   return f === "exr" || f === "hdr";
+}
+function catalogFontDirs() {
+  if (!fontDirs) {
+    try {
+      fontDirs = [catalogFile("fonts")];
+    } catch {
+      fontDirs = [];
+    }
+  }
+  return fontDirs;
 }
 function pxDims(dims, manifest) {
   const dpi = dims.dpi && dims.dpi > 0 ? dims.dpi : 300;
@@ -62611,7 +62918,7 @@ async function rasterizeSvgToPng(svg, width, height, dpi) {
   const { Resvg } = await import("@resvg/resvg-js");
   const r3 = new Resvg(sizeSvg(svg, width, height), {
     fitTo: { mode: "original" },
-    font: { fontDirs: [FONTS_DIR3], loadSystemFonts: true }
+    font: { fontDirs: catalogFontDirs(), loadSystemFonts: true }
   });
   return r3.render().asPng();
 }
@@ -62649,7 +62956,7 @@ async function rasterizeSvgToRgba(svg, width, height) {
   const { Resvg } = await import("@resvg/resvg-js");
   const r3 = new Resvg(sizeSvg(svg, width, height), {
     fitTo: { mode: "original" },
-    font: { fontDirs: [FONTS_DIR3], loadSystemFonts: true }
+    font: { fontDirs: catalogFontDirs(), loadSystemFonts: true }
   });
   const img = r3.render();
   const src = img.pixels;
@@ -62770,17 +63077,17 @@ function matchedExportFormat(manifest, model2) {
   const formats = (manifest.render?.formats ?? []).map((x) => x.toLowerCase());
   return f && formats.includes(f) ? f : null;
 }
-var NODE_FORMATS, DEEP_FORMATS, FONTS_DIR3, PRINT_PREP_FORMATS, DeepSourceError;
+var NODE_FORMATS, DEEP_FORMATS, fontDirs, PRINT_PREP_FORMATS, DeepSourceError;
 var init_raster2 = __esm({
   "packages/node-shell/src/raster.ts"() {
     "use strict";
     init_src2();
     init_exr();
     init_radiance();
-    init_repo_root();
+    init_content_roots();
     NODE_FORMATS = ["svg", "svgz", "emf", "wmf", "eps", "eps-cmyk", "dxf", "penpot", "bmp", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "md"];
     DEEP_FORMATS = ["exr", "hdr"];
-    FONTS_DIR3 = join3(repoRoot(), "catalog", "fonts");
+    fontDirs = null;
     PRINT_PREP_FORMATS = /* @__PURE__ */ new Set(["pdf", "pdf-cmyk", "cmyk-tiff"]);
     DeepSourceError = class extends Error {
       constructor(message) {
@@ -63305,7 +63612,7 @@ async function canvasToJpeg(canvas, quality) {
   if (typeof canvas.convertToBlob === "function") {
     return canvas.convertToBlob({ type: "image/jpeg", quality });
   }
-  return new Promise((resolve3) => canvas.toBlob(resolve3, "image/jpeg", quality));
+  return new Promise((resolve4) => canvas.toBlob(resolve4, "image/jpeg", quality));
 }
 async function recodeJpeg(jpgBytes, { maxDim, quality, grayscale }) {
   let bmp;
@@ -63781,7 +64088,7 @@ function createNodeTextTools() {
       return highlightCode(text3, language, options2);
     },
     run(request) {
-      return new Promise((resolve3, reject) => {
+      return new Promise((resolve4, reject) => {
         const worker = new Worker2(new URL("./text-tools-worker.ts", import.meta.url), {
           workerData: request
         });
@@ -63792,7 +64099,7 @@ function createNodeTextTools() {
         worker.once("message", (value) => {
           clearTimeout(timer);
           void worker.terminate();
-          if (value.result) resolve3(value.result);
+          if (value.result) resolve4(value.result);
           else reject(new Error(value.error));
         });
         worker.once("error", (error) => {
@@ -64172,23 +64479,39 @@ import { readFile as readFile2 } from "node:fs/promises";
 
 // services/mcp/src/paths.ts
 init_repo_root();
-import { readFile } from "node:fs/promises";
-import { dirname as dirname2, join as join2 } from "node:path";
+init_content_roots();
+import { dirname as dirname3, join as join3 } from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
 var REPO_ROOT = repoRoot();
-var TOOLS_DIR = join2(REPO_ROOT, "tools");
-var CATALOG_INDEX = join2(REPO_ROOT, "catalog", "tools", "index.json");
-var ASSET_INDEX = join2(REPO_ROOT, "catalog", "assets", "index.json");
-var FONTS_DIR2 = join2(REPO_ROOT, "catalog", "fonts");
-var BROWSERS_DIR = join2(dirname2(fileURLToPath2(import.meta.url)), "..", ".browsers");
+var roots = null;
+function content() {
+  if (!roots) roots = contentRoots();
+  return roots;
+}
+function catalogIndexPath() {
+  return catalogFile("tools/index.json", content());
+}
+function assetIndexPath() {
+  return catalogFile("assets/index.json", content());
+}
+function fontsDir() {
+  return catalogFile("fonts", content());
+}
+function previewsDir() {
+  return catalogFile("previews", content());
+}
+function contentUrl(url) {
+  return contentUrlFile(url, content());
+}
+var BROWSERS_DIR = join3(dirname3(fileURLToPath2(import.meta.url)), "..", ".browsers");
 function fetchToolFile(path) {
-  return readFile(join2(TOOLS_DIR, path), "utf8");
+  return readToolText(path, content());
 }
 
 // services/mcp/src/catalog.ts
 var indexCache = null;
 function loadIndex() {
-  return indexCache ??= readFile2(CATALOG_INDEX, "utf8").then((s) => JSON.parse(s));
+  return indexCache ??= readFile2(catalogIndexPath(), "utf8").then((s) => JSON.parse(s));
 }
 var toolCache = /* @__PURE__ */ new Map();
 function loadToolCached(id) {
@@ -64217,8 +64540,8 @@ async function listTools(filter = {}) {
 }
 var TEMPLATE_ID_RE = /^[a-z0-9-]+$/;
 async function listToolTemplates(toolId) {
-  const entry = (await loadIndex()).tools.find((tool) => tool.id === toolId);
-  return entry?.templates ?? [];
+  const entry2 = (await loadIndex()).tools.find((tool) => tool.id === toolId);
+  return entry2?.templates ?? [];
 }
 async function loadTemplateSeed(toolId, templateId, presetId) {
   if (!TEMPLATE_ID_RE.test(templateId)) throw new Error(`Invalid templateId: ${templateId}.`);
@@ -64398,7 +64721,6 @@ async function assetBytes(target, opts = {}) {
 
 // shells/cli/src/bridge.ts
 init_src2();
-import { join as join14 } from "node:path";
 import { zipSync as zipSync2 } from "fflate";
 
 // engine/src/deep-encode.ts
@@ -64512,11 +64834,11 @@ async function inflatePptx(bytes) {
     return data;
   };
   if (typeof Worker === "undefined") return Promise.resolve().then(() => guard2(unzipSync2(u82, { filter })));
-  return new Promise((resolve3, reject) => {
+  return new Promise((resolve4, reject) => {
     unzip(u82, { filter }, (err, data) => {
       if (err) return reject(err);
       try {
-        resolve3(guard2(data));
+        resolve4(guard2(data));
       } catch (e) {
         reject(e);
       }
@@ -64561,14 +64883,14 @@ async function inspectPptx(bytes, opts, parseXml) {
       seenFont.add(key);
       fonts.push({ family });
     };
-    const content = { pictures: 0, texts: 0, shapes: 0, tables: 0, unknown: 0 };
+    const content2 = { pictures: 0, texts: 0, shapes: 0, tables: 0, unknown: 0 };
     for (const slide of deck.slides) {
       for (const node of slide.nodes) {
-        if (node.type === "pic") content.pictures++;
-        else if (node.type === "text") content.texts++;
-        else if (node.type === "shape") content.shapes++;
-        else if (node.type === "table") content.tables++;
-        else content.unknown++;
+        if (node.type === "pic") content2.pictures++;
+        else if (node.type === "text") content2.texts++;
+        else if (node.type === "shape") content2.shapes++;
+        else if (node.type === "table") content2.tables++;
+        else content2.unknown++;
         if (node.type === "text") {
           addColor(node.fill);
           for (const para of node.paras) {
@@ -64590,7 +64912,7 @@ async function inspectPptx(bytes, opts, parseXml) {
     const theme = { colors: themeColors };
     if (deck.theme.majorFont) theme.majorFont = deck.theme.majorFont;
     if (deck.theme.minorFont) theme.minorFont = deck.theme.minorFont;
-    const result = { ok: true, slideCount: deck.slides.length, theme, colors, fonts, content };
+    const result = { ok: true, slideCount: deck.slides.length, theme, colors, fonts, content: content2 };
     const swatches = opts?.swatches;
     if (Array.isArray(swatches) && swatches.length > 0) {
       for (const c of colors) {
@@ -64652,8 +64974,8 @@ async function rebrandPptx(bytes, plan) {
   const { zipSync: zipSync3 } = await import("fflate");
   const enc5 = new TextEncoder();
   const files = {};
-  for (const [path, content] of Object.entries(outParts)) {
-    files[path] = typeof content === "string" ? enc5.encode(content) : content;
+  for (const [path, content2] of Object.entries(outParts)) {
+    files[path] = typeof content2 === "string" ? enc5.encode(content2) : content2;
   }
   return { bytes: zipSync3(files), report };
 }
@@ -65272,10 +65594,12 @@ function gdiFaceName(stack) {
 
 // shells/cli/src/bridge.ts
 init_repo_root();
+init_content_roots();
 
 // packages/node-shell/src/text.ts
+init_content_roots();
 import { readFile as readFile4, readdir } from "node:fs/promises";
-import { existsSync as existsSync2 } from "node:fs";
+import { existsSync as existsSync3 } from "node:fs";
 import { join as join4 } from "node:path";
 import { fileURLToPath as fileURLToPath4 } from "node:url";
 var _hb = null;
@@ -65303,8 +65627,9 @@ async function loadFontBytes(fontUrl, repoRoot2) {
   if (fontUrl.startsWith("file://")) {
     filePath = fileURLToPath4(fontUrl);
   } else if (fontUrl.startsWith("/")) {
-    filePath = join4(repoRoot2, fontUrl.slice(1));
-    if (!existsSync2(filePath) && fontUrl.startsWith("/fonts/")) {
+    const roots2 = rootsFor(repoRoot2);
+    filePath = (roots2 ? contentUrlFile(fontUrl, roots2) : null) ?? join4(repoRoot2, fontUrl.slice(1));
+    if (!existsSync3(filePath) && fontUrl.startsWith("/fonts/")) {
       filePath = join4(repoRoot2, "shells", "web", "public", fontUrl.slice(1));
     }
   } else {
@@ -65321,9 +65646,9 @@ async function loadFace(fontUrl, repoRoot2) {
   }
   const blob = new hb.Blob(buf);
   const face = new hb.Face(blob);
-  const entry = { blob, face, upem: face.upem, unicodes: new Set(face.collectUnicodes()) };
-  faceCache.set(fontUrl, entry);
-  return entry;
+  const entry2 = { blob, face, upem: face.upem, unicodes: new Set(face.collectUnicodes()) };
+  faceCache.set(fontUrl, entry2);
+  return entry2;
 }
 async function loadFont(fontUrl, repoRoot2, variations) {
   const vars = Array.isArray(variations) ? variations.filter((v) => typeof v === "string") : [];
@@ -65336,9 +65661,9 @@ async function loadFont(fontUrl, repoRoot2, variations) {
     const parsed = vars.map((v) => hb.Variation.fromString(v)).filter(Boolean);
     if (parsed.length) font.setVariations(parsed);
   }
-  const entry = { font, upem, unicodes };
-  fontCache.set(key, entry);
-  return entry;
+  const entry2 = { font, upem, unicodes };
+  fontCache.set(key, entry2);
+  return entry2;
 }
 function segmentByFace(text3, chain2) {
   const segs = [];
@@ -65358,10 +65683,20 @@ function segmentByFace(text3, chain2) {
 function fmt2(n2) {
   return Math.round(n2 * 100) / 100;
 }
-var FONT_DIRS = [
-  { rel: join4("catalog", "fonts", "ttf"), url: "/catalog/fonts/ttf/" },
-  { rel: join4("shells", "web", "public", "fonts"), url: "/fonts/" }
-];
+function rootsFor(root) {
+  try {
+    return contentRoots({ root });
+  } catch {
+    return void 0;
+  }
+}
+function fontDirs2(root) {
+  const roots2 = rootsFor(root);
+  const dirs = [];
+  if (roots2) dirs.push({ abs: catalogFile("fonts/ttf", roots2), url: "/catalog/fonts/ttf/" });
+  dirs.push({ abs: join4(root, "shells", "web", "public", "fonts"), url: "/fonts/" });
+  return dirs;
+}
 var WEIGHT_NAMES = {
   thin: 100,
   hairline: 100,
@@ -65405,9 +65740,9 @@ function scanDiskFaces(repoRoot2) {
   if (!cached2) {
     cached2 = (async () => {
       const faces = [];
-      for (const dir of FONT_DIRS) {
-        const abs = join4(repoRoot2, dir.rel);
-        if (!existsSync2(abs)) continue;
+      for (const dir of fontDirs2(repoRoot2)) {
+        const abs = dir.abs;
+        if (!existsSync3(abs)) continue;
         let names;
         try {
           names = await readdir(abs);
@@ -65557,7 +65892,7 @@ function createNodeTextAPI({ repoRoot: repoRoot2 }) {
       const italic = Boolean(opts?.italic);
       const matches2 = (await scanDiskFaces(repoRoot2)).filter((f) => f.family === want && f.italic === italic);
       if (!matches2.length) return null;
-      const dir = FONT_DIRS.find((d) => matches2[0].url.startsWith(d.url));
+      const dir = fontDirs2(repoRoot2).find((d) => matches2[0].url.startsWith(d.url));
       const pool = matches2.filter((f) => f.url.startsWith(dir.url));
       const variable = pool.find((f) => f.variable);
       if (variable) return { url: variable.url, variations: [`wght=${weight}`] };
@@ -65569,9 +65904,17 @@ function createNodeTextAPI({ repoRoot: repoRoot2 }) {
 
 // packages/node-shell/src/audio.ts
 init_src2();
+init_content_roots();
 import { readFile as readFile5 } from "node:fs/promises";
 import { fileURLToPath as fileURLToPath5 } from "node:url";
 import { isAbsolute, join as join5 } from "node:path";
+function rootsFor2(root) {
+  try {
+    return contentRoots({ root });
+  } catch {
+    return void 0;
+  }
+}
 var NEEDS_PLATFORM_CODEC = /\.(mp3|m4a|aac|ogg|oga|opus|flac|weba|webm|mp4)$/i;
 function isRef(src) {
   return typeof src === "object" && src !== null && "url" in src && typeof src.url === "string";
@@ -65593,7 +65936,9 @@ async function bytesOf(src, repoRoot2) {
     return new Uint8Array(await res.arrayBuffer());
   }
   if (url.startsWith("file:")) return new Uint8Array(await readFile5(fileURLToPath5(url)));
-  const path = isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join5(repoRoot2, url.replace(/^\//, ""));
+  const roots2 = url.startsWith("/") ? rootsFor2(repoRoot2) : void 0;
+  const content2 = roots2 ? contentUrlFile(url, roots2) : null;
+  const path = content2 ?? (isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join5(repoRoot2, url.replace(/^\//, "")));
   return new Uint8Array(await readFile5(path));
 }
 async function songOf(src, repoRoot2) {
@@ -65678,15 +66023,15 @@ function createNodeAudioAPI(opts) {
 // packages/node-shell/src/browsers.ts
 init_repo_root();
 import { join as join6 } from "node:path";
-import { existsSync as existsSync3 } from "node:fs";
+import { existsSync as existsSync4 } from "node:fs";
 var INSTALL_BROWSERS_DIR = join6(repoRoot(), ".browsers");
 var SIBLING_BROWSERS_DIR = join6(repoRoot(), "services", "mcp", ".browsers");
 var BrowserError = class extends Error {
 };
 function resolveBrowsersDir() {
   if (process.env.PLAYWRIGHT_BROWSERS_PATH) return process.env.PLAYWRIGHT_BROWSERS_PATH;
-  if (existsSync3(INSTALL_BROWSERS_DIR)) return INSTALL_BROWSERS_DIR;
-  if (existsSync3(SIBLING_BROWSERS_DIR)) return SIBLING_BROWSERS_DIR;
+  if (existsSync4(INSTALL_BROWSERS_DIR)) return INSTALL_BROWSERS_DIR;
+  if (existsSync4(SIBLING_BROWSERS_DIR)) return SIBLING_BROWSERS_DIR;
   return INSTALL_BROWSERS_DIR;
 }
 var browserPromise = null;
@@ -66236,12 +66581,12 @@ function packNchw01(rgba, w, h) {
 
 // packages/node-shell/src/ml/session.ts
 import { createRequire as createRequire2 } from "node:module";
-import { existsSync as existsSync5, statSync as statSync2 } from "node:fs";
+import { existsSync as existsSync6, statSync as statSync3 } from "node:fs";
 import { join as join8 } from "node:path";
 
 // packages/node-shell/src/models-dir.ts
 init_repo_root();
-import { existsSync as existsSync4, statSync } from "node:fs";
+import { existsSync as existsSync5, statSync as statSync2 } from "node:fs";
 import { homedir } from "node:os";
 import { join as join7 } from "node:path";
 function stagedModelsDir(root) {
@@ -66263,20 +66608,20 @@ function resolveModelsDir(opts = {}) {
   const env = opts.env ?? process.env;
   const fromEnv = env.LOLLY_MODELS_DIR;
   if (fromEnv) return fromEnv;
-  const exists = opts.exists ?? existsSync4;
+  const exists = opts.exists ?? existsSync5;
   const staged = stagedModelsDir(opts.repoRoot);
   if (exists(staged)) return staged;
   return userCacheModelsDir();
 }
-function isDir(path) {
+function isDir2(path) {
   try {
-    return statSync(path).isDirectory();
+    return statSync2(path).isDirectory();
   } catch {
     return false;
   }
 }
 function resolveExistingModelsDir(env = process.env) {
-  for (const candidate of modelsDirCandidates(env)) if (isDir(candidate)) return candidate;
+  for (const candidate of modelsDirCandidates(env)) if (isDir2(candidate)) return candidate;
   return stagedModelsDir();
 }
 function missingPinnedFiles(familyDir2, pins, only) {
@@ -66286,7 +66631,7 @@ function missingPinnedFiles(familyDir2, pins, only) {
     const path = join7(familyDir2, ...pin.path.split("/"));
     let size = -1;
     try {
-      size = statSync(path).size;
+      size = statSync2(path).size;
     } catch {
       size = -1;
     }
@@ -66307,7 +66652,7 @@ function modelPath(family, file, env = process.env) {
 }
 function modelFileExists(family, file, env = process.env) {
   try {
-    return statSync2(modelPath(family, file, env)).isFile();
+    return statSync3(modelPath(family, file, env)).isFile();
   } catch {
     return false;
   }
@@ -66394,9 +66739,9 @@ var sessions = /* @__PURE__ */ new Map();
 function createSession(path, env = process.env) {
   const threads = sessionThreads(env);
   const key = `${path}\0${executionProviders(env).join(",")}|${threads ?? ""}`;
-  let entry = sessions.get(key);
-  if (entry) return entry;
-  entry = (async () => {
+  let entry2 = sessions.get(key);
+  if (entry2) return entry2;
+  entry2 = (async () => {
     const ort = await loadOrt();
     const opts = { executionProviders: executionProviders(env) };
     if (threads) {
@@ -66405,11 +66750,11 @@ function createSession(path, env = process.env) {
     }
     return ort.InferenceSession.create(path, opts);
   })();
-  sessions.set(key, entry);
-  void entry.catch(() => {
+  sessions.set(key, entry2);
+  void entry2.catch(() => {
     sessions.delete(key);
   });
-  return entry;
+  return entry2;
 }
 function firstOutput(out, name) {
   const picked = (name ? out[name] : void 0) ?? Object.values(out)[0];
@@ -67690,15 +68035,14 @@ async function openPdfForRender(bytes) {
 }
 
 // packages/node-shell/src/canvas.ts
-init_repo_root();
+init_content_roots();
 import { createRequire as createRequire3 } from "node:module";
-import { join as join9 } from "node:path";
 var fontsRegistered = false;
 function registerCatalogFonts(mod) {
   if (fontsRegistered) return;
   fontsRegistered = true;
   try {
-    mod.GlobalFonts?.loadFontsFromDir(join9(repoRoot(), "catalog", "fonts"));
+    mod.GlobalFonts?.loadFontsFromDir(catalogFile("fonts"));
   } catch {
   }
 }
@@ -67975,10 +68319,10 @@ function createNodePdfRedact() {
 
 // packages/node-shell/src/speech.ts
 init_src2();
-import { readFileSync } from "node:fs";
+import { readFileSync as readFileSync2 } from "node:fs";
 import { readFile as readFile7 } from "node:fs/promises";
 import { createRequire as createRequire4 } from "node:module";
-import { isAbsolute as isAbsolute2, join as join10 } from "node:path";
+import { isAbsolute as isAbsolute2, join as join9 } from "node:path";
 import { fileURLToPath as fileURLToPath6 } from "node:url";
 
 // packages/node-shell/src/tts-blend.ts
@@ -68143,10 +68487,10 @@ var FAMILY_DIR = {
   whisper: WHISPER_MODEL_ID
 };
 function modelFilePath(modelsDir, family, rel) {
-  return join10(modelsDir, FAMILY_DIR[family], rel);
+  return join9(modelsDir, FAMILY_DIR[family], rel);
 }
 function missingModelFiles(modelsDir, family, only) {
-  return missingPinnedFiles(join10(modelsDir, FAMILY_DIR[family]), SPEECH_MODEL_FILES[family], only);
+  return missingPinnedFiles(join9(modelsDir, FAMILY_DIR[family]), SPEECH_MODEL_FILES[family], only);
 }
 function mb(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -68157,7 +68501,7 @@ function missingModelError(family, modelsDir, missing, consentBytes) {
   const head2 = bySize.slice(0, 3).join(", ");
   const more = bySize.length > 3 ? `, and ${bySize.length - 3} more` : "";
   const err = new Error(
-    `speech: the ${family} model is not on this machine - missing ${head2}${more} under ${join10(modelsDir, FAMILY_DIR[family])}. It is a one-time ${mb(consentBytes)} (${consentBytes} bytes) download: run  lolly models fetch ${family}`
+    `speech: the ${family} model is not on this machine - missing ${head2}${more} under ${join9(modelsDir, FAMILY_DIR[family])}. It is a one-time ${mb(consentBytes)} (${consentBytes} bytes) download: run  lolly models fetch ${family}`
   );
   return Object.assign(err, { modelMissing: family, kind: "MODEL_NOT_STAGED" });
 }
@@ -68232,7 +68576,7 @@ function voiceMatrix(modelsDir, voice) {
   const held = voiceMatrices.get(key);
   if (held) return held;
   const path = modelFilePath(modelsDir, "kokoro", `voices/${voice}.bin`);
-  const raw = readFileSync(path);
+  const raw = readFileSync2(path);
   const data = new Float32Array(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength));
   if (data.byteLength !== KOKORO_VOICE_BYTES) {
     throw new Error(
@@ -68249,13 +68593,13 @@ function withAbort(signal, message, work) {
   if (!signal) return work(() => false);
   if (signal.aborted) return Promise.reject(abortError2(message));
   let stop = false;
-  return new Promise((resolve3, reject) => {
+  return new Promise((resolve4, reject) => {
     const onAbort = () => {
       stop = true;
       reject(abortError2(message));
     };
     signal.addEventListener("abort", onAbort, { once: true });
-    work(() => stop || signal.aborted).then(resolve3, reject).finally(() => signal.removeEventListener("abort", onAbort));
+    work(() => stop || signal.aborted).then(resolve4, reject).finally(() => signal.removeEventListener("abort", onAbort));
   });
 }
 var NEEDS_PLATFORM_CODEC2 = /\.(mp3|m4a|aac|ogg|oga|opus|flac|weba|webm|mp4|mov)$/i;
@@ -68279,7 +68623,7 @@ async function bytesOf2(src, root) {
     return new Uint8Array(await res.arrayBuffer());
   }
   if (url.startsWith("file:")) return new Uint8Array(await readFile7(fileURLToPath6(url)));
-  const path = isAbsolute2(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join10(root, url.replace(/^\//, ""));
+  const path = isAbsolute2(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join9(root, url.replace(/^\//, ""));
   return new Uint8Array(await readFile7(path));
 }
 function resampleMono(pcm, from, to) {
@@ -68323,8 +68667,8 @@ function downmix2(channels) {
   return mono;
 }
 var RUNTIME_SPECIFIERS = ["@huggingface/transformers", "onnxruntime-node"];
-function isSpeechRuntimeAvailable(resolve3) {
-  const r3 = resolve3 ?? createRequire4(import.meta.url).resolve;
+function isSpeechRuntimeAvailable(resolve4) {
+  const r3 = resolve4 ?? createRequire4(import.meta.url).resolve;
   try {
     for (const spec of RUNTIME_SPECIFIERS) r3(spec);
     return true;
@@ -68332,8 +68676,8 @@ function isSpeechRuntimeAvailable(resolve3) {
     return false;
   }
 }
-function isPhonemizerAvailable(resolve3) {
-  const r3 = resolve3 ?? createRequire4(import.meta.url).resolve;
+function isPhonemizerAvailable(resolve4) {
+  const r3 = resolve4 ?? createRequire4(import.meta.url).resolve;
   try {
     r3("phonemizer");
     return true;
@@ -68659,20 +69003,20 @@ function createNodeScanAPI() {
 
 // packages/node-shell/src/state-dir.ts
 import { homedir as homedir2 } from "node:os";
-import { join as join11 } from "node:path";
-import { existsSync as existsSync6 } from "node:fs";
+import { join as join10 } from "node:path";
+import { existsSync as existsSync7 } from "node:fs";
 var deprecationNoted = false;
 var DESKTOP_APP_IDENTIFIER = "tools.lolly.Desktop";
 function desktopAppDataDir(env = process.env, probe = {}) {
   const platform = probe.platform ?? process.platform;
   const home = probe.home ?? homedir2();
-  if (platform === "darwin") return join11(home, "Library", "Application Support", DESKTOP_APP_IDENTIFIER);
+  if (platform === "darwin") return join10(home, "Library", "Application Support", DESKTOP_APP_IDENTIFIER);
   if (platform === "win32") {
     const appdata = env.APPDATA?.trim();
-    return appdata ? join11(appdata, DESKTOP_APP_IDENTIFIER) : null;
+    return appdata ? join10(appdata, DESKTOP_APP_IDENTIFIER) : null;
   }
   const xdg = env.XDG_DATA_HOME?.trim();
-  return join11(xdg || join11(home, ".local", "share"), DESKTOP_APP_IDENTIFIER);
+  return join10(xdg || join10(home, ".local", "share"), DESKTOP_APP_IDENTIFIER);
 }
 function resolveStateDir(env = process.env, onNote = (m2) => process.stderr.write(m2), probe = {}) {
   const fresh = env.LOLLY_STATE_DIR?.trim();
@@ -68685,24 +69029,24 @@ function resolveStateDir(env = process.env, onNote = (m2) => process.stderr.writ
     }
     return { dir: old, explicit: true, deprecated: true, source: "env-deprecated", shared: false };
   }
-  const exists = probe.exists ?? existsSync6;
+  const exists = probe.exists ?? existsSync7;
   const app = desktopAppDataDir(env, probe);
   if (app && exists(app)) return { dir: app, explicit: false, deprecated: false, source: "app", shared: true };
   const home = probe.home ?? homedir2();
-  return { dir: join11(home, ".lolly"), explicit: false, deprecated: false, source: "default", shared: false };
+  return { dir: join10(home, ".lolly"), explicit: false, deprecated: false, source: "default", shared: false };
 }
 
 // packages/node-shell/src/session-store.ts
 init_fs_token();
 init_session_record();
 import { mkdir, readdir as readdir2, readFile as readFile9, rm, writeFile } from "node:fs/promises";
-import { join as join12 } from "node:path";
+import { join as join11 } from "node:path";
 var SESSION_SUBDIR = "saved-state";
 function sessionsDir(stateDir) {
-  return join12(stateDir, SESSION_SUBDIR);
+  return join11(stateDir, SESSION_SUBDIR);
 }
 function sessionFilePath(stateDir, slot) {
-  return join12(sessionsDir(stateDir), `${encodeFsToken(slot)}.json`);
+  return join11(sessionsDir(stateDir), `${encodeFsToken(slot)}.json`);
 }
 async function readSessionRecord(stateDir, slot) {
   try {
@@ -68784,12 +69128,12 @@ function normalise4(raw) {
 }
 
 // packages/node-shell/src/design-systems.ts
-import { basename, join as join13 } from "node:path";
+import { basename as basename2, join as join12 } from "node:path";
 import { mkdir as mkdir2, readFile as readFile10, rename, writeFile as writeFile2 } from "node:fs/promises";
 var FORMAT = 1;
 var INDEX_FILE = "design-systems.json";
 var emptyRegistry = () => ({ format: FORMAT, active: null, startSeen: false, systems: [] });
-var indexPath = () => join13(resolveStateDir().dir, INDEX_FILE);
+var indexPath = () => join12(resolveStateDir().dir, INDEX_FILE);
 function safeRegistry(value) {
   if (!value || typeof value !== "object") return emptyRegistry();
   const v = value;
@@ -68815,7 +69159,7 @@ async function readActiveDesignSystemTokens() {
   const active = await activeNodeDesignSystem();
   if (!active?.tokensFile) return null;
   try {
-    return JSON.parse(await readFile10(join13(resolveStateDir().dir, active.tokensFile), "utf8"));
+    return JSON.parse(await readFile10(join12(resolveStateDir().dir, active.tokensFile), "utf8"));
   } catch {
     return null;
   }
@@ -69033,9 +69377,14 @@ function urlAssetKind(mime2, id) {
 }
 async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion, capturePublicOnly = false, aiEnabled = true } = {}) {
   const w = dom.window;
-  const assetCatalogPath = join14(REPO_ROOT2, "catalog", "assets", "index.json");
+  const assetCatalogPath = catalogFile("assets/index.json");
   const assetIndex = JSON.parse(await readFile12(assetCatalogPath, "utf8"));
   const assetById = new Map(assetIndex.assets.map((a) => [a.id, a]));
+  const assetFilePath = (url) => {
+    const path = contentUrlFile(url);
+    if (!path) throw new Error(`Asset file not in this catalog: ${url}`);
+    return path;
+  };
   const state = /* @__PURE__ */ new Map();
   const host = {
     version: "1",
@@ -69087,7 +69436,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     iconThemesCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("icon-themes"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile12(join14(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile12(assetFilePath(pal.formats[0].url), "utf8"));
       return parseIconThemesDoc(doc);
     })().catch(() => []);
     return iconThemesCache;
@@ -69097,7 +69446,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     photoTreatmentsCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("photo-treatments"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile12(join14(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile12(assetFilePath(pal.formats[0].url), "utf8"));
       return parsePhotoTreatmentsDoc(doc);
     })().catch(() => []);
     return photoTreatmentsCache;
@@ -69105,7 +69454,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   const tokensAssets = assetIndex.assets.filter((a) => a.type === "tokens");
   const headTokensId = pickHeadAssetId(tokensAssets.map((a) => a.id));
   const headTokensAsset2 = tokensAssets.find((a) => a.id === headTokensId) ?? null;
-  const readAssetDoc = async (asset) => JSON.parse(await readFile12(join14(REPO_ROOT2, asset.formats[0].url.replace(/^\//, "")), "utf8"));
+  const readAssetDoc = async (asset) => JSON.parse(await readFile12(assetFilePath(asset.formats[0].url), "utf8"));
   let tokensDocCache = null;
   let tokensDocRevision = "";
   async function tokensDoc() {
@@ -69133,14 +69482,14 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         host.log("warn", `--designv=${override} names no design-system version in this catalog - rendering against ${slug3 === DESIGN_VERSION_LATEST ? "the edit head" : `"${slug3}"`} instead.`);
       }
       if (slug3 === DESIGN_VERSION_LATEST) return head2;
-      const entry = index.versions.find((v) => v.slug === slug3);
+      const entry2 = index.versions.find((v) => v.slug === slug3);
       const asset = headTokensAsset2 ? assetById.get(versionAssetId(headTokensAsset2.id, slug3)) : void 0;
-      if (!entry || !asset) {
+      if (!entry2 || !asset) {
         host.log("warn", `design-system version "${slug3}" is listed but ships no tokens asset - rendering against the edit head instead.`);
         return head2;
       }
       try {
-        return applyPinnedAssets(await readAssetDoc(asset), entry.assets ?? []);
+        return applyPinnedAssets(await readAssetDoc(asset), entry2.assets ?? []);
       } catch (e) {
         host.log("warn", `design-system version "${slug3}" could not be read (${e instanceof Error ? e.message : e}) - rendering against the edit head instead.`);
         return head2;
@@ -69252,7 +69601,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
       if (opts.version && opts.version !== meta.version) throw new Error(`Asset version unavailable: ${baseId} (${opts.version})`);
       const fmt3 = opts.format ? meta.formats.find((f) => f.format === opts.format) : meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
       if (!fmt3) throw new Error(`Asset format unavailable: ${baseId} (${opts.format})`);
-      const localPath = join14(REPO_ROOT2, fmt3.url.replace(/^\//, ""));
+      const localPath = assetFilePath(fmt3.url);
       let buf = await readFile12(localPath);
       let extraMeta = { name: meta.name, tags: meta.tags };
       if (meta.type === "palette" && fmt3.format === "json") {
@@ -69476,8 +69825,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         for (const wmsg of build2.warnings) host.log("warn", `penpot: ${wmsg}`);
         const files = {};
         const enc5 = new TextEncoder();
-        for (const [path, content] of Object.entries(build2.entries)) {
-          files[path] = typeof content === "string" ? enc5.encode(content) : content;
+        for (const [path, content2] of Object.entries(build2.entries)) {
+          files[path] = typeof content2 === "string" ? enc5.encode(content2) : content2;
         }
         return new Blob([zipSync2(files)], { type: PENPOT_MIME });
       }
@@ -69660,7 +70009,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
     }
   };
   host.pptx = createPptxAPI({ parseXml: (xml) => new w.DOMParser().parseFromString(xml, "application/xml") });
-  const composeFetchFile = async (p) => readFile12(join14(REPO_ROOT2, "tools", p), "utf8");
+  const composeFetchFile = readToolText;
   host.compose = {
     async render(spec) {
       const { toolId, inputs = {}, format, width, height, unit: unit2, dpi, _stack = [] } = spec ?? {};
@@ -69887,8 +70236,8 @@ function withHost(profile, fn) {
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
 import { readFile as readFile13, stat } from "node:fs/promises";
-import { existsSync as existsSync7 } from "node:fs";
-import { join as join15, resolve as resolve2, extname, normalize } from "node:path";
+import { existsSync as existsSync8 } from "node:fs";
+import { join as join13, resolve as resolve3, extname, normalize } from "node:path";
 
 // services/mcp/src/egress.ts
 import { lookup } from "node:dns/promises";
@@ -69974,12 +70323,12 @@ async function assertBrowserRequestAllowed(raw, base, env, resolver = resolveHos
   }
 }
 async function installBrowserEgressPolicy(page2, base, env = process.env) {
-  const cache2 = /* @__PURE__ */ new Map();
+  const cache3 = /* @__PURE__ */ new Map();
   const resolver = (hostname) => {
-    let pending = cache2.get(hostname);
+    let pending = cache3.get(hostname);
     if (!pending) {
       pending = resolveHost(hostname);
-      cache2.set(hostname, pending);
+      cache3.set(hostname, pending);
     }
     return pending;
   };
@@ -70038,15 +70387,15 @@ async function webShellBase() {
   return (await served).base;
 }
 async function buildAndServe() {
-  const dist2 = process.env.LOLLY_WEB_DIST || join15(REPO_ROOT, "shells", "web", "dist");
-  if (!existsSync7(join15(dist2, "index.html"))) {
-    if (!existsSync7(join15(REPO_ROOT, "shells", "web", "package.json"))) {
+  const dist2 = process.env.LOLLY_WEB_DIST || join13(REPO_ROOT, "shells", "web", "dist");
+  if (!existsSync8(join13(dist2, "index.html"))) {
+    if (!existsSync8(join13(REPO_ROOT, "shells", "web", "package.json"))) {
       throw new Error(
         `No built web shell at ${dist2}. Set LOLLY_WEB_DIST to a prebuilt shell, or LOLLY_WEB_BASE to a running one. Tier-B (pdf/video/HTML-raster) needs it; SVG/data formats render without it.`
       );
     }
     await buildWebShell();
-    if (!existsSync7(join15(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
+    if (!existsSync8(join13(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
   }
   return serveDist(dist2);
 }
@@ -70062,17 +70411,17 @@ function buildWebShell() {
   });
 }
 function serveDist(dist2) {
-  const root = resolve2(dist2);
+  const root = resolve3(dist2);
   const server = createServer(async (req, res) => {
     try {
       const urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
-      let filePath = resolve2(root, "." + normalize(urlPath));
+      let filePath = resolve3(root, "." + normalize(urlPath));
       if (!filePath.startsWith(root)) {
         res.writeHead(403).end();
         return;
       }
-      if (urlPath === "/" || !existsSync7(filePath) || !(await stat(filePath)).isFile()) {
-        filePath = join15(root, "index.html");
+      if (urlPath === "/" || !existsSync8(filePath) || !(await stat(filePath)).isFile()) {
+        filePath = join13(root, "index.html");
       }
       const data = await readFile13(filePath);
       res.setHeader("Content-Type", MIME2[extname(filePath)] ?? "application/octet-stream");
@@ -70142,7 +70491,7 @@ var BrowserJobQueue = class {
       return Promise.resolve();
     }
     if (this.#waiting.length >= this.maxQueued) return Promise.reject(new BrowserQueueFullError());
-    return new Promise((resolve3, reject) => {
+    return new Promise((resolve4, reject) => {
       const waiting = {
         reject,
         timer: setTimeout(() => {
@@ -70154,7 +70503,7 @@ var BrowserJobQueue = class {
         start: () => {
           clearTimeout(waiting.timer);
           this.#active += 1;
-          resolve3();
+          resolve4();
         }
       };
       this.#waiting.push(waiting);
@@ -70321,7 +70670,7 @@ async function svgToPng(svg, width, background, maxPixels) {
   const r3 = new Resvg(svg, {
     ...background ? { background } : {},
     fitTo,
-    font: { fontDirs: [FONTS_DIR2], loadSystemFonts: true }
+    font: { fontDirs: [fontsDir()], loadSystemFonts: true }
   });
   return r3.render().asPng();
 }
@@ -71054,9 +71403,9 @@ function sameReorderDomain(a, b) {
 }
 function reorderDesignRow(rows2, id, anchor, path) {
   const target = rowAt(rows2, id, `${path}/id`);
-  const relative = rowAt(rows2, anchor.id, `${path}/${anchor.side}Id`);
-  if (target.index === relative.index) throw new Error(`${path}: a layer cannot be reordered relative to itself.`);
-  if (!sameReorderDomain(target.row, relative.row))
+  const relative2 = rowAt(rows2, anchor.id, `${path}/${anchor.side}Id`);
+  if (target.index === relative2.index) throw new Error(`${path}: a layer cannot be reordered relative to itself.`);
+  if (!sameReorderDomain(target.row, relative2.row))
     throw new Error(`${path}: reorder targets must be sibling layers or two artboards.`);
   const isFrame = target.row.kind === "frame";
   const parent = String(target.row.frame ?? "");
@@ -71072,14 +71421,14 @@ function reorderDesignRow(rows2, id, anchor, path) {
   }).map(({ row }) => row);
   const movingAt = domain.indexOf(target.row);
   domain.splice(movingAt, 1);
-  const anchorAt = domain.indexOf(relative.row);
+  const anchorAt = domain.indexOf(relative2.row);
   domain.splice(anchorAt + (anchor.side === "after" ? 1 : 0), 0, target.row);
   const field2 = isFrame ? "order" : "z";
   domain.forEach((row, index) => {
     row[field2] = index;
   });
   const [moving] = rows2.splice(target.index, 1);
-  const anchorNow = rows2.indexOf(relative.row);
+  const anchorNow = rows2.indexOf(relative2.row);
   rows2.splice(anchorNow + (anchor.side === "after" ? 1 : 0), 0, moving);
 }
 function applyDesignLayerOperations(toolId, manifest, inputs, value) {
@@ -71124,10 +71473,10 @@ function applyDesignLayerOperations(toolId, manifest, inputs, value) {
       if (!hasAnchor) rows2.push(layer);
       else {
         const anchor = anchorOf(record3, path);
-        const relative = rowAt(rows2, anchor.id, `${path}/${anchor.side}Id`);
-        if (!sameReorderDomain(layer, relative.row))
+        const relative2 = rowAt(rows2, anchor.id, `${path}/${anchor.side}Id`);
+        if (!sameReorderDomain(layer, relative2.row))
           throw new Error(`${path}: an added layer and its anchor must be siblings or two artboards.`);
-        rows2.splice(relative.index + (anchor.side === "after" ? 1 : 0), 0, layer);
+        rows2.splice(relative2.index + (anchor.side === "after" ? 1 : 0), 0, layer);
         reorderDesignRow(rows2, id2, anchor, path);
       }
       continue;
@@ -71516,25 +71865,25 @@ ${links.renderUrl ?? "(unavailable)"}${check}`);
           args.link === false ? "" : `Edit: ${links.editUrl}`,
           `Provenance: ${provenance}`
         ].filter(Boolean).join("\n");
-        const content = [{ type: "text", text: header }];
+        const content2 = [{ type: "text", text: header }];
         const b64 = Buffer.from(result.bytes).toString("base64");
         const fmt3 = normFormat(result.format);
         const RASTER = ["png", "jpg", "webp", "avif", "gif", "apng"];
         if (RASTER.includes(fmt3)) {
-          content.push({ type: "image", data: b64, mimeType: result.mime });
+          content2.push({ type: "image", data: b64, mimeType: result.mime });
         } else if (fmt3 === "svg") {
           try {
             const preview = await render(toolId, links.query, { ...opts, format: "png" });
-            content.push({ type: "image", data: Buffer.from(preview.bytes).toString("base64"), mimeType: "image/png" });
+            content2.push({ type: "image", data: Buffer.from(preview.bytes).toString("base64"), mimeType: "image/png" });
           } catch {
           }
-          content.push({ type: "resource", resource: { uri: `${links.renderUrl ?? `lolly://render/${toolId}.svg`}`, mimeType: "image/svg+xml", text: new TextDecoder().decode(result.bytes) } });
+          content2.push({ type: "resource", resource: { uri: `${links.renderUrl ?? `lolly://render/${toolId}.svg`}`, mimeType: "image/svg+xml", text: new TextDecoder().decode(result.bytes) } });
         } else if (isTextFormat(fmt3)) {
-          content.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt3}`, mimeType: result.mime, text: new TextDecoder().decode(result.bytes) } });
+          content2.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt3}`, mimeType: result.mime, text: new TextDecoder().decode(result.bytes) } });
         } else {
-          content.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt3}`, mimeType: result.mime, blob: b64 } });
+          content2.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt3}`, mimeType: result.mime, blob: b64 } });
         }
-        return { content };
+        return { content: content2 };
       }
       case "lolly_transform": {
         const toolId = String(args.toolId ?? "");
@@ -71695,7 +72044,7 @@ ${listing}`;
 // services/mcp/src/resources.ts
 init_src2();
 import { readFile as readFile15 } from "node:fs/promises";
-import { join as join16 } from "node:path";
+import { join as join14 } from "node:path";
 init_schema();
 var RESOURCES = [
   { uri: "lolly://catalog", name: "Tool catalog", description: "The full generated Lolly tool index.", mimeType: "application/json" },
@@ -71713,10 +72062,13 @@ function headTokensAsset(assets) {
   return tokens2.find((a) => a.id === headId);
 }
 async function tokensResource(uri) {
-  const idx = JSON.parse(await readFile15(ASSET_INDEX, "utf8"));
+  const idx = JSON.parse(await readFile15(assetIndexPath(), "utf8"));
   const tokenAsset = headTokensAsset(idx.assets);
   if (!tokenAsset) return { uri, mimeType: "application/json", text: JSON.stringify({ colors: [], note: "No tokens asset in catalog." }) };
-  const doc = JSON.parse(await readFile15(join16(REPO_ROOT, tokenAsset.formats[0].url.replace(/^\//, "")), "utf8"));
+  const tokenUrl = tokenAsset.formats[0].url;
+  const tokenPath = contentUrl(tokenUrl);
+  if (!tokenPath) throw new Error(`Tokens asset ${tokenAsset.id}: ${tokenUrl} is not in this profile's catalog.`);
+  const doc = JSON.parse(await readFile15(tokenPath, "utf8"));
   const set = createTokenSet(doc);
   return { uri, mimeType: "application/json", text: JSON.stringify({ colors: set.colors() }, null, 2) };
 }
@@ -71726,7 +72078,7 @@ function parseDataUrl(url) {
   return { mime: m2[1] || "application/octet-stream", base64: m2[2] ? m2[3] : Buffer.from(decodeURIComponent(m2[3])).toString("base64") };
 }
 async function assetsListing(uri) {
-  const idx = JSON.parse(await readFile15(ASSET_INDEX, "utf8"));
+  const idx = JSON.parse(await readFile15(assetIndexPath(), "utf8"));
   const assets = idx.assets.map((a) => ({
     id: a.id,
     type: a.type,
@@ -71736,11 +72088,10 @@ async function assetsListing(uri) {
   }));
   return { uri, mimeType: "application/json", text: JSON.stringify({ count: assets.length, assets }, null, 2) };
 }
-var PREVIEWS_DIR = join16(REPO_ROOT, "catalog", "previews");
 async function previewResource(uri, id) {
   for (const file of [`${id}.svg`, `${id}.look0.svg`]) {
     try {
-      const text3 = await readFile15(join16(PREVIEWS_DIR, file), "utf8");
+      const text3 = await readFile15(join14(previewsDir(), file), "utf8");
       return { uri, mimeType: "image/svg+xml", text: text3 };
     } catch {
     }
@@ -71786,14 +72137,14 @@ async function readResource(uri) {
 // services/mcp/src/file-resources.ts
 import { mkdtemp, writeFile as writeFile3, unlink, rm as rm2 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join as join17 } from "node:path";
+import { join as join15 } from "node:path";
 import { randomUUID } from "node:crypto";
 
 // packages/node-shell/src/file-operations.ts
 init_file_operation_v1();
 init_file_v1();
 import { open } from "node:fs/promises";
-import { basename as basename2 } from "node:path";
+import { basename as basename3 } from "node:path";
 import { createHash } from "node:crypto";
 
 // packages/core/src/image-operation-v1.ts
@@ -71984,7 +72335,7 @@ async function readOperationFile(path) {
       if (total > MAX_CONVERT_FILE_BYTES) throw new Error("File exceeds 128 MB.");
       chunks.push(chunk6.subarray(0, bytesRead));
     }
-    const name = basename2(path);
+    const name = basename3(path);
     return new File(chunks, name, { type: mime[name.split(".").pop()?.toLowerCase() ?? ""] ?? "application/octet-stream" });
   } finally {
     await handle.close();
@@ -72069,9 +72420,9 @@ var PrivateFileResources = class {
     this.reservations.clear();
   }
   async prune() {
-    for (const [id, entry] of this.entries) if (entry.expires <= Date.now()) {
+    for (const [id, entry2] of this.entries) if (entry2.expires <= Date.now()) {
       this.entries.delete(id);
-      await unlink(entry.path).catch(() => {
+      await unlink(entry2.path).catch(() => {
       });
     }
   }
@@ -72090,17 +72441,17 @@ var PrivateFileResources = class {
     };
   }
   get(owner, id) {
-    const entry = typeof id === "string" ? this.entries.get(id) : void 0;
-    if (!entry || entry.owner !== owner || entry.expires <= Date.now()) throw new Error("File handle not found or expired.");
-    return entry;
+    const entry2 = typeof id === "string" ? this.entries.get(id) : void 0;
+    if (!entry2 || entry2.owner !== owner || entry2.expires <= Date.now()) throw new Error("File handle not found or expired.");
+    return entry2;
   }
   async save(owner, file, role, source, report) {
     const release = this.reserve(owner, file.size);
     const id = randomUUID();
     let path;
     try {
-      this.directory ??= mkdtemp(join17(tmpdir(), "lolly-private-files-"));
-      path = join17(await this.directory, id);
+      this.directory ??= mkdtemp(join15(tmpdir(), "lolly-private-files-"));
+      path = join15(await this.directory, id);
       const facts2 = await describeOperationFile(file);
       await writeFile3(path, Buffer.from(await file.arrayBuffer()), { flag: "wx", mode: 384 });
       const ref = { id, version: facts2.sha256, role, facts: facts2, ...source ? { derivedFrom: { id: source.ref.id, version: source.ref.version, sha256: source.ref.facts.sha256 } } : {} };
@@ -72123,42 +72474,42 @@ var PrivateFileResources = class {
       if (bytes.length > INPUT_LIMIT || bytes.toString("base64") !== args.base64) throw new Error("Invalid or oversized base64.");
       return { file: await this.save(owner, new File([bytes], safeFileName(String(args.name ?? "file")), { type: typeof args.mime === "string" && args.mime.length <= 255 ? args.mime : "application/octet-stream" }), "original"), retention: "Private to this token/process; expires after one hour or server restart. Keep a downloaded copy." };
     }
-    if (name === "files_list") return { files: [...this.entries.values()].filter((entry2) => entry2.owner === owner).map((entry2) => ({ ...entry2.ref, expiresAt: new Date(entry2.expires).toISOString() })) };
-    const entry = this.get(owner, args.id);
+    if (name === "files_list") return { files: [...this.entries.values()].filter((entry3) => entry3.owner === owner).map((entry3) => ({ ...entry3.ref, expiresAt: new Date(entry3.expires).toISOString() })) };
+    const entry2 = this.get(owner, args.id);
     if (name === "files_delete") {
-      this.entries.delete(entry.ref.id);
-      await unlink(entry.path).catch(() => {
+      this.entries.delete(entry2.ref.id);
+      await unlink(entry2.path).catch(() => {
       });
-      return { deleted: entry.ref.id };
+      return { deleted: entry2.ref.id };
     }
-    if (name === "files_report") return { report: entry.report ?? null, file: entry.ref };
+    if (name === "files_report") return { report: entry2.report ?? null, file: entry2.ref };
     if (name === "files_convert") {
       assertFileOperationRequest(args.request);
       const release = this.reserve(owner, 32 * 1024 * 1024);
       let outcome;
       try {
-        const raw = await readOperationFile(entry.path);
-        const source = new File([raw], entry.ref.facts.name, { type: entry.ref.facts.mime });
+        const raw = await readOperationFile(entry2.path);
+        const source = new File([raw], entry2.ref.facts.name, { type: entry2.ref.facts.mime });
         const facts2 = await describeOperationFile(source);
-        if (facts2.sha256 !== entry.ref.facts.sha256) throw new Error("Source integrity check failed. Import the original again.");
+        if (facts2.sha256 !== entry2.ref.facts.sha256) throw new Error("Source integrity check failed. Import the original again.");
         outcome = await runNodeFileOperation(source, args.request, void 0, "instance");
         if (outcome.output && outcome.output.size > 32 * 1024 * 1024) throw new Error("Private operation output exceeds 32 MB. Use the local CLI for larger files.");
       } finally {
         release();
       }
-      return { report: outcome.report, ...outcome.output ? { file: await this.save(owner, outcome.output, "output", entry, outcome.report) } : {} };
+      return { report: outcome.report, ...outcome.output ? { file: await this.save(owner, outcome.output, "output", entry2, outcome.report) } : {} };
     }
     throw new Error("Unknown private file operation.");
   }
   async read(owner, uri) {
     const match = /^lolly:\/\/files\/([a-f0-9-]{36})\/(report|content)$/.exec(uri);
     if (!match) throw new Error("Invalid file resource URI.");
-    const entry = this.get(owner, match[1]);
-    if (match[2] === "report") return { uri, mimeType: "application/json", text: JSON.stringify({ file: entry.ref, report: entry.report ?? null }) };
-    if (entry.ref.facts.size > 4 * 1024 * 1024) throw new Error("Inline resource reads are limited to 4 MB. Use the local CLI for larger output.");
-    const file = await readOperationFile(entry.path);
-    if ((await describeOperationFile(file)).sha256 !== entry.ref.facts.sha256) throw new Error("Saved result integrity check failed.");
-    return { uri, mimeType: entry.ref.facts.mime, blob: Buffer.from(await file.arrayBuffer()).toString("base64") };
+    const entry2 = this.get(owner, match[1]);
+    if (match[2] === "report") return { uri, mimeType: "application/json", text: JSON.stringify({ file: entry2.ref, report: entry2.report ?? null }) };
+    if (entry2.ref.facts.size > 4 * 1024 * 1024) throw new Error("Inline resource reads are limited to 4 MB. Use the local CLI for larger output.");
+    const file = await readOperationFile(entry2.path);
+    if ((await describeOperationFile(file)).sha256 !== entry2.ref.facts.sha256) throw new Error("Saved result integrity check failed.");
+    return { uri, mimeType: entry2.ref.facts.mime, blob: Buffer.from(await file.arrayBuffer()).toString("base64") };
   }
 };
 var PRIVATE_FILE_TOOLS = [
@@ -72419,16 +72770,16 @@ function memoPut(etag, rendered) {
 var AdmissionRefused = class extends Error {
 };
 function openSlot(etag) {
-  let resolve3;
+  let resolve4;
   let reject;
   const promise = new Promise((res, rej) => {
-    resolve3 = res;
+    resolve4 = res;
     reject = rej;
   });
   promise.catch(() => {
   });
   inFlight.set(etag, promise);
-  return { promise, resolve: resolve3, reject };
+  return { promise, resolve: resolve4, reject };
 }
 function closeSlot(etag, slot) {
   if (inFlight.get(etag) === slot.promise) inFlight.delete(etag);
@@ -72489,11 +72840,11 @@ async function renderGet(path, query, opts) {
   const dimErr = dimensionError(params2, pngRequested);
   if (dimErr) return errorResponse(400, dimErr);
   const index = await loadIndex();
-  const entry = index.tools.find((t) => t.id === match.toolId);
-  if (!entry || entry.status !== "official" && entry.status !== "community") {
+  const entry2 = index.tools.find((t) => t.id === match.toolId);
+  if (!entry2 || entry2.status !== "official" && entry2.status !== "community") {
     return errorResponse(404, "not_found");
   }
-  const formats = (entry.formats ?? []).map((f) => f.toLowerCase());
+  const formats = (entry2.formats ?? []).map((f) => f.toLowerCase());
   if (pngRequested && !formats.includes("svg")) {
     return errorResponse(400, "png is only served for SVG-native tools on this endpoint - request svg, or use the app for full raster.");
   }
@@ -72867,7 +73218,7 @@ function readBody(req, maxBytes = MCP_BODY_MAX) {
       return Promise.reject(error);
     }
   }
-  return new Promise((resolve3, reject) => {
+  return new Promise((resolve4, reject) => {
     const declared = Number(req.headers["content-length"]);
     if (Number.isFinite(declared) && declared > maxBytes) {
       reject(new BodyTooLargeError(maxBytes));
@@ -72884,7 +73235,7 @@ function readBody(req, maxBytes = MCP_BODY_MAX) {
       }
       chunks.push(c);
     });
-    req.on("end", () => resolve3(Buffer.concat(chunks).toString("utf8")));
+    req.on("end", () => resolve4(Buffer.concat(chunks).toString("utf8")));
     req.on("error", reject);
   });
 }
