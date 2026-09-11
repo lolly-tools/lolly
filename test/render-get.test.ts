@@ -10,13 +10,23 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { renderGet, matchRenderGetPath } from '../src/render-get.ts';
+import { renderGet, matchRenderGetPath, _resetRenderGetCaches, MAX_RASTER_PIXELS } from '../src/render-get.ts';
 import { loadIndex } from '../src/catalog.ts';
 import { createGateway } from '../src/gateway.ts';
+import { MemoryRateLimiter, RateLimitUnavailableError, type RateLimiter } from '../src/rate-limit.ts';
 
 const env = {} as NodeJS.ProcessEnv;
 let ipSeq = 0;
 const ip = (): string => `10.0.0.${++ipSeq}`;
+
+/** A limiter that admits everything and counts what it was asked to admit. */
+function countingLimiter(): RateLimiter & { calls: string[] } {
+  const calls: string[] = [];
+  return {
+    calls,
+    async consume(scope, subject) { calls.push(`${scope}:${subject}`); return { ok: true, retryAfter: 0, remaining: 1 }; },
+  };
+}
 
 test('path matcher accepts the embed shape and nothing else', () => {
   assert.deepEqual(matchRenderGetPath('/tool/qr-code.svg'), { toolId: 'qr-code', ext: 'svg' });
@@ -30,7 +40,7 @@ test('happy path: svg render carries bytes + the cache/robots headers', async ()
   const r = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com', { ip: ip(), env });
   assert.equal(r.status, 200);
   assert.match(r.headers['content-type']!, /^image\/svg\+xml/);
-  assert.equal(r.headers['cache-control'], 'public, s-maxage=86400, stale-while-revalidate=604800');
+  assert.equal(r.headers['cache-control'], 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800');
   assert.match(r.headers['etag']!, /^"[0-9a-f]{32}"$/);
   assert.equal(r.headers['x-robots-tag'], 'noindex');
   assert.equal(r.headers['content-security-policy'], 'sandbox');
@@ -97,14 +107,103 @@ test('LOLLY_DISABLE_RENDER_GET=1 turns the whole route into 404s', async () => {
 test('per-IP rate limit answers 429 with Retry-After once the window fills', async () => {
   const limited = { LOLLY_RENDER_GET_RPM: '1' } as NodeJS.ProcessEnv;
   const me = ip();
-  const first = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com', { ip: me, env: limited });
+  // Only RENDERS are limited: a repeat the instance memoised would be served
+  // outside the limit, so each call here asks for a URL nobody has rendered yet.
+  _resetRenderGetCaches();
+  const first = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2Fa', { ip: me, env: limited });
   assert.equal(first.status, 200);
-  const second = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com', { ip: me, env: limited });
+  const second = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2Fb', { ip: me, env: limited });
   assert.equal(second.status, 429);
   assert.ok(Number(second.headers['retry-after']) >= 1, 'carries Retry-After seconds');
   // …and another client is unaffected.
-  const other = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com', { ip: ip(), env: limited });
+  const other = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2Fc', { ip: ip(), env: limited });
   assert.equal(other.status, 200);
+});
+
+test('a repeat of a URL this instance rendered is served from the memo, outside the limits', async () => {
+  _resetRenderGetCaches();
+  const limiter = countingLimiter();
+  const q = 'url=https%3A%2F%2Fsuse.com%2Fmemo';
+  const first = await renderGet('/tool/qr-code.svg', q, { ip: ip(), env, rateLimiter: limiter });
+  assert.equal(first.status, 200);
+  assert.deepEqual(limiter.calls.map(c => c.split(':')[0]), ['render', 'render-all'], 'one render = one per-address and one global admission');
+  const again = await renderGet('/tool/qr-code.svg', q, { ip: ip(), env, rateLimiter: limiter });
+  assert.equal(again.status, 200);
+  assert.equal(limiter.calls.length, 2, 'the repeat asked the limiter for nothing');
+  const { etag: firstTag } = first.headers;
+  const { etag: againTag } = again.headers;
+  assert.equal(againTag, firstTag);
+  assert.deepEqual(again.body, first.body, 'the exact bytes of the first render');
+});
+
+test('identical requests in flight share one render', async () => {
+  _resetRenderGetCaches();
+  const limiter = countingLimiter();
+  const q = 'url=https%3A%2F%2Fsuse.com%2Fcoalesce';
+  const [a, b, c] = await Promise.all([
+    renderGet('/tool/qr-code.svg', q, { ip: ip(), env, rateLimiter: limiter }),
+    renderGet('/tool/qr-code.svg', q, { ip: ip(), env, rateLimiter: limiter }),
+    renderGet('/tool/qr-code.svg', q, { ip: ip(), env, rateLimiter: limiter }),
+  ]);
+  assert.deepEqual([a.status, b.status, c.status], [200, 200, 200]);
+  assert.equal(limiter.calls.filter(x => x.startsWith('render:')).length, 1, 'one render admitted for three identical requests');
+  assert.deepEqual(b.body, a.body);
+  assert.deepEqual(c.body, a.body);
+});
+
+test('a joiner whose leader was refused admits itself rather than inheriting the refusal', async () => {
+  _resetRenderGetCaches();
+  // The leader's address is over quota; the joiner's is not. Both ask for the
+  // same URL at the same moment.
+  let calls = 0;
+  const limiter: RateLimiter = {
+    async consume(scope, subject) {
+      calls++;
+      const ok = !(scope === 'render' && subject === 'leader');
+      return { ok, retryAfter: ok ? 0 : 7, remaining: 0 };
+    },
+  };
+  const q = 'url=https%3A%2F%2Fsuse.com%2Fjoiner';
+  const [leader, joiner] = await Promise.all([
+    renderGet('/tool/qr-code.svg', q, { ip: 'leader', env, rateLimiter: limiter }),
+    renderGet('/tool/qr-code.svg', q, { ip: 'joiner', env, rateLimiter: limiter }),
+  ]);
+  assert.equal(leader.status, 429);
+  assert.equal(joiner.status, 200, 'the joiner rendered on its own admission');
+  assert.equal(calls, 3, 'leader: 1 refused; joiner: per-address + global');
+});
+
+test('the global render budget answers 429 across addresses', async () => {
+  _resetRenderGetCaches();
+  // Its own limiter: the module-level one has counted every render above.
+  const limiter = new MemoryRateLimiter();
+  const limited = { LOLLY_RENDER_GET_GLOBAL_RPM: '1' } as NodeJS.ProcessEnv;
+  const first = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2Fg1', { ip: ip(), env: limited, rateLimiter: limiter });
+  assert.equal(first.status, 200);
+  const second = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2Fg2', { ip: ip(), env: limited, rateLimiter: limiter });
+  assert.equal(second.status, 429, 'a different address, a different URL - the shared budget is spent');
+  assert.match(JSON.parse(second.body as string).error, /busy/);
+  assert.ok(Number(second.headers['retry-after']) >= 1);
+});
+
+test('a png raster is bounded by area, not just by edge', async () => {
+  // 5000 x 5000 passes the 10000px edge cap and is still 25 MP - over the budget.
+  const r = await renderGet('/tool/qr-code.png', 'url=https%3A%2F%2Fsuse.com&width=5000&height=5000', { ip: ip(), env });
+  assert.equal(r.status, 400);
+  assert.match(JSON.parse(r.body as string).error, /raster cap/);
+  assert.ok(MAX_RASTER_PIXELS < 5000 * 5000);
+  // The same size as svg is text, not a raster: allowed.
+  const svg = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com&width=5000&height=5000', { ip: ip(), env });
+  assert.equal(svg.status, 200);
+});
+
+test('an unconfigured hosted limiter answers 503 + Retry-After instead of crashing the function', async () => {
+  _resetRenderGetCaches();
+  const unavailable: RateLimiter = { async consume() { throw new RateLimitUnavailableError('unconfigured'); } };
+  const r = await renderGet('/tool/qr-code.svg', 'url=https%3A%2F%2Fsuse.com%2F503', { ip: ip(), env, rateLimiter: unavailable });
+  assert.equal(r.status, 503);
+  assert.equal(r.headers['retry-after'], '5');
+  assert.equal(r.headers['cache-control'], 'no-store');
 });
 
 // ── gateway routing ──────────────────────────────────────────────────────────
@@ -146,4 +245,24 @@ test('gateway HEAD answers headers only', async () => {
   assert.equal(r.status, 200);
   assert.ok(r.headers['etag']);
   assert.equal(r.body, undefined);
+});
+
+test('a hosted gateway with no durable limiter still boots: renders 503, the rest of the surface answers', async () => {
+  _resetRenderGetCaches();
+  // VERCEL=1 and no LOLLY_RATE_LIMIT_REST_* pair, no opt-in - the 2026-09-10 outage shape.
+  const handler = createGateway({ VERCEL: '1' } as NodeJS.ProcessEnv);
+  const call = (url: string, method = 'GET'): Promise<FakeRes> => new Promise((resolve, reject) => {
+    const req = { method, url, headers: { host: 'lolly.tools' }, socket: { remoteAddress: '127.0.0.1' } } as unknown as IncomingMessage;
+    const out: FakeRes = { status: 0, headers: {}, body: undefined };
+    const res = {
+      writeHead(status: number, headers?: Record<string, string>) { out.status = status; out.headers = headers ?? {}; return this; },
+      end(body?: string | Buffer) { out.body = body === undefined ? undefined : Buffer.from(body); resolve(out); },
+    } as unknown as ServerResponse;
+    handler(req, res).catch(reject);
+  });
+  const render = await call('/tool/qr-code.svg?url=https%3A%2F%2Fsuse.com%2Fhosted');
+  assert.equal(render.status, 503);
+  assert.equal(render.headers['retry-after'], '5');
+  const rpc = await call('/api/mcp', 'POST');
+  assert.equal(rpc.status, 404, 'no MCP secrets: the endpoint cleanly does not exist, and nothing threw');
 });

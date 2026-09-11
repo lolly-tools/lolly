@@ -3,9 +3,10 @@
  * Cross-instance fixed-window limiting over a Redis-compatible HTTPS REST API.
  * The configured store sees only SHA-256 key digests, never raw IP addresses,
  * bearer tokens, or email addresses. Local development retains a bounded
- * in-memory implementation; hosted/production gateways fail at construction
- * unless a durable store is configured or the operator explicitly accepts the
- * weaker fallback.
+ * in-memory implementation; a hosted/production gateway with neither a durable
+ * store nor the operator's explicit acceptance of the weaker fallback admits
+ * nothing - every rate-limited route answers 503 (UnconfiguredRateLimiter) while
+ * the routes that need no admission keep working.
  */
 
 import { createHash } from 'node:crypto';
@@ -111,6 +112,28 @@ export class RedisRestRateLimiter implements RateLimiter {
   }
 }
 
+/**
+ * A hosted deployment with no durable store configured and no explicit opt-in.
+ * Every admission fails as unavailable - the gateway answers 503 + Retry-After -
+ * instead of the function refusing to boot. The boot throw it replaces took the
+ * public health, discovery and render routes down with it on 2026-09-10, a far
+ * wider failure than the policy (no unlimited admission) ever needed.
+ */
+export class UnconfiguredRateLimiter implements RateLimiter {
+  readonly reason: string;
+  constructor(reason: string) {
+    this.reason = reason;
+  }
+
+  async consume(scope: string, subject: string, limit: number, windowMs: number): Promise<RateLimitDecision> {
+    validateBudget(limit, windowMs);
+    throw new RateLimitUnavailableError(this.reason);
+  }
+}
+
+export const UNCONFIGURED_REASON =
+  'No durable rate limiter is configured for this hosted deployment: set LOLLY_RATE_LIMIT_REST_URL + LOLLY_RATE_LIMIT_REST_TOKEN (a Redis-compatible HTTPS REST store), or LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT=1 to accept per-instance limiting';
+
 export function createRateLimiter(env: NodeJS.ProcessEnv, namespace = 'mcp'): RateLimiter {
   const url = env.LOLLY_RATE_LIMIT_REST_URL?.trim();
   const token = env.LOLLY_RATE_LIMIT_REST_TOKEN?.trim();
@@ -118,7 +141,8 @@ export function createRateLimiter(env: NodeJS.ProcessEnv, namespace = 'mcp'): Ra
   if (url && token) return new RedisRestRateLimiter({ url, token, namespace });
   const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === '1' || env.NODE_ENV === 'production';
   if (hosted && env.LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT !== '1') {
-    throw new Error('A durable rate limiter is required in hosted/production mode');
+    console.warn(`[rate-limit] ${UNCONFIGURED_REASON}`);
+    return new UnconfiguredRateLimiter(UNCONFIGURED_REASON);
   }
   return new MemoryRateLimiter();
 }

@@ -82,6 +82,11 @@ export interface RenderOpts {
    *  render. Always set by the public unauthenticated GET endpoint, whose
    *  stated policy is browser-free formats only (render-get.ts). */
   noBrowser?: boolean;
+  /** Pixel-AREA budget for the resvg PNG fast path, on top of the fixed edge cap.
+   *  Set by the public GET endpoint (render-get.ts MAX_RASTER_PIXELS): the edge
+   *  cap alone still admits a 10000 x 10000 raster, a 400 MB allocation an
+   *  unauthenticated request must not be able to ask for. Unset = edge cap only. */
+  maxRasterPixels?: number;
 }
 
 export interface RenderResult {
@@ -223,14 +228,16 @@ async function renderTierA(
 
 /** Rasterise an SVG string to PNG via resvg. Text renders from catalog fonts.
  *  Output is ALWAYS bounded by MAX_RASTER_EDGE_PX, independent of the caller's
- *  `width` and of the SVG's intrinsic size (see the constant's comment). */
-async function svgToPng(svg: string, width: number | undefined, background: string | undefined): Promise<Uint8Array> {
+ *  `width` and of the SVG's intrinsic size (see the constant's comment), and by
+ *  `maxPixels` (total area) when the caller sets one. */
+async function svgToPng(svg: string, width: number | undefined, background: string | undefined, maxPixels?: number): Promise<Uint8Array> {
   const { Resvg } = await import('@resvg/resvg-js');
   // Cheap parse-only probe for the intrinsic size (viewBox/width/height) - no raster.
   const probe = new Resvg(svg, { font: { loadSystemFonts: false } });
   const iw = probe.width, ih = probe.height;
   if (!(iw > 0) || !(ih > 0)) throw new RenderError('SVG has no rasterisable size');
-  const capScale = Math.min(MAX_RASTER_EDGE_PX / iw, MAX_RASTER_EDGE_PX / ih);
+  let capScale = Math.min(MAX_RASTER_EDGE_PX / iw, MAX_RASTER_EDGE_PX / ih);
+  if (maxPixels && maxPixels > 0) capScale = Math.min(capScale, Math.sqrt(maxPixels / (iw * ih)));
   const wantScale = width && width > 0 ? width / iw : 1;
   const scale = Math.min(wantScale, capScale);
   // Beyond MAX_RASTER_EDGE_PX:1 aspect the capped raster's short edge drops
@@ -531,7 +538,7 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
     try {
       const svg = await renderTierA(toolId, values, 'svg', exportOpts({ ...merged, width: undefined, height: undefined, unit: 'px' }), profile);
       const px = targetPx(merged.width, merged.unit, merged.dpi);
-      const png = await svgToPng(new TextDecoder().decode(svg.bytes), px, merged.background);
+      const png = await svgToPng(new TextDecoder().decode(svg.bytes), px, merged.background, o.maxRasterPixels);
       out = { bytes: png, mime: 'image/png', tier: 'A(resvg)' };
     } catch (e) {
       if (o.noBrowser) {

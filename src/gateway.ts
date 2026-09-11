@@ -178,8 +178,8 @@ async function limited(
 export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
   // Is the MCP configured to actually run on THIS deployment? It needs a shared
   // token / signing secret (or an explicit anonymous opt-in). A deployment with
-  // none, for example the blank-brand site (lolly.art), which carries no
-  // LOLLY_MCP_* secrets, should not advertise an OAuth/discovery/registration
+  // none, for example a blank-brand deployment that carries no LOLLY_MCP_*
+  // secrets, should not advertise an OAuth/discovery/registration
   // surface that can only dead-end. Return 404 for every route so the endpoint
   // cleanly doesn't exist.
   const mcpEnabled = !!signingSecret(env) || env.LOLLY_MCP_ALLOW_ANONYMOUS === '1';
