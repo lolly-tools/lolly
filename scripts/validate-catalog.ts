@@ -51,6 +51,7 @@ import { analyseRequires } from './tool-requires.ts';
 import {
   catalogFile, toolDirs as resolveToolDirs, toolFile, readToolManifest, listToolFiles,
 } from '@lolly-tools/node-shell/content-roots';
+import { applyProfileArg } from './lib/profile-arg.ts';
 import { createHash } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -160,6 +161,10 @@ const toolsIndex = readCatalogJson('tools/index.json');
 // Tool ids for the active profile, overlay-aware and already excluding pack
 // infrastructure (community/_shared etc - content-roots drops any "_"-prefixed
 // entry itself, the same rule use-profile.ts's view used to apply).
+// `--profile=<name>` pins the content profile for this process, so a per-brand loop
+// can run this script once per profile without switching anything shared.
+applyProfileArg();
+
 const toolDirs = [...resolveToolDirs().keys()];
 
 // ─── Tool validation ────────────────────────────────────────────────────────

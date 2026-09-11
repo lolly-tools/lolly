@@ -56,6 +56,7 @@ import { createToolCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
 import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-browser.ts';
 import { stampBitmap } from './lib/stamp-media.ts';
 import { catalogFile, toolFile } from '@lolly-tools/node-shell/content-roots';
+import { applyProfileArg } from './lib/profile-arg.ts';
 
 // Catalog index entries are dynamic JSON; only the fields this script reads are typed.
 interface ToolEntry {
@@ -65,6 +66,10 @@ interface ToolEntry {
   icon?: string;
   preview?: string;
 }
+
+// `--profile=<name>` pins the content profile for this process, so a per-brand loop
+// can run this script once per profile without switching anything shared.
+applyProfileArg();
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE_URL = 'https://lolly.tools';

@@ -38,6 +38,11 @@ import { pathToFileURL } from 'node:url';
 import { depthHint } from '../shells/web/src/lib/image-sample.ts';
 import { catalogFile } from '../packages/node-shell/src/content-roots.ts';
 import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
+import { applyProfileArg } from './lib/profile-arg.ts';
+
+// `--profile=<name>` pins the content profile for this process, so a per-brand loop
+// can run this script once per profile without switching anything shared.
+applyProfileArg();
 
 const ROOT = repoRoot();
 const INDEX_PATH = catalogFile('assets/index.json');

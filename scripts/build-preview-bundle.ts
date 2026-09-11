@@ -38,6 +38,11 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { toolDirs, toolFile, readToolManifest, catalogFile } from '@lolly-tools/node-shell/content-roots';
+import { applyProfileArg } from './lib/profile-arg.ts';
+
+// `--profile=<name>` pins the content profile for this process, so a per-brand loop
+// can run this script once per profile without switching anything shared.
+applyProfileArg();
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PREVIEWS_DIR = catalogFile('previews');

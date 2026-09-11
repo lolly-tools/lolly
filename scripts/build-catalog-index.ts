@@ -33,6 +33,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   toolDirs, toolFile, listToolFiles, readToolManifest, catalogFile,
 } from '@lolly-tools/node-shell/content-roots';
+import { applyProfileArg } from './lib/profile-arg.ts';
 
 // Tool manifests and index entries are dynamic JSON; full typing is
 // disproportionate, so they're loosely typed and accessed with localized casts.
@@ -44,6 +45,10 @@ interface IndexFile {
 }
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+// `--profile=<name>` pins the content profile for this process, so a per-brand loop
+// can run this script once per profile without switching anything shared.
+applyProfileArg();
+
 const INDEX_PATH = catalogFile('tools/index.json');
 const SLIM_INDEX_PATH = catalogFile('tools/index.slim.json');
 
