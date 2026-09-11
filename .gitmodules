@@ -1,6 +1,3 @@
-[submodule "shells/tui"]
-	path = shells/tui
-	url = https://github.com/lolly-tools/lolly-tui.git
 [submodule "shells/tauri-desktop"]
 	path = shells/tauri-desktop
 	url = https://github.com/lolly-tools/lolly-desktop.git
