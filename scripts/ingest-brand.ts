@@ -709,6 +709,9 @@ function activateProfile(name: string): void {
     }
   }
   console.log(`✓ profile "${name}" registered - catalog built and validated`);
+  // Nothing is switched globally any more, so say how to select it rather than
+  // leaving the reader to infer that "activate" made it the default.
+  console.log(`  run under it with: LOLLY_PROFILE=${name} pnpm run dev:web`);
 }
 
 function main(): void {

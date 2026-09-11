@@ -26,7 +26,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import {
-  catalogFile, contentRoots, listToolFiles, materializeInto, readToolManifest, toolDirs, toolFile,
+  catalogFile, contentRoots, listToolFiles, materializeInto, readToolManifest,
+  readToolManifestText, readToolText, toolDirs, toolFile,
 } from '../src/content-roots.ts';
 
 /** Every file under `dir`, '/' separated and relative to it, links followed. */
@@ -135,6 +136,37 @@ test('the composed manifest drops only the extends line', () => {
   }
 });
 
+/**
+ * Every consumer that wants manifest BYTES must get the composed form, not the
+ * overlay file on disk. The signer hashes these bytes, the dev server serves them
+ * and materializeInto writes them into dist, so a disagreement signs one manifest
+ * and ships another - a release that fails its own verifier.
+ */
+test('manifest BYTES are the composed form everywhere they are read', async () => {
+  const root = fixtureRoot();
+  try {
+    const roots = contentRoots({ root, profile: 'brand-x' });
+    const composed = '{\n  "id": "alpha",\n  "title": "Brand alpha"\n}\n';
+    assert.equal(readToolManifestText('alpha', roots), composed);
+    assert.equal(await readToolText('alpha/tool.json', roots), composed);
+    // The path on disk still declares the overlay marker - which is exactly why a
+    // caller must not read it directly.
+    assert.match(readFileSync(toolFile('alpha', 'tool.json', roots)!, 'utf8'), /"extends"/);
+    const dest = mkdtempSync(join(tmpdir(), 'lolly-manifest-bytes-'));
+    try {
+      materializeInto(dest, roots);
+      assert.equal(readFileSync(join(dest, 'tools/alpha/tool.json'), 'utf8'), composed);
+    } finally {
+      rmSync(dest, { recursive: true, force: true });
+    }
+    // A plain (non-overlay) tool is unchanged, byte for byte.
+    const plain = readFileSync(toolFile('beta', 'tool.json', roots)!, 'utf8');
+    assert.equal(await readToolText('beta/tool.json', roots), plain);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('pack infrastructure and loose files are not tools; exclude drops an id', () => {
   const root = fixtureRoot();
   try {
@@ -170,20 +202,22 @@ test('a declared overlay with no base fails closed', () => {
  * resolves once and keeps the answer. Mutating one root's sticky file and asking
  * again would read the memo, not the disk, so the cases must not share a root.
  */
+const ENV_KEYS = ['LOLLY_PROFILE', 'LOLLY_STRICT_PROFILE', 'VERCEL'] as const;
+
 function withPrecedenceRoot(
-  env: { LOLLY_PROFILE?: string; VERCEL?: string },
+  env: Partial<Record<(typeof ENV_KEYS)[number], string>>,
   body: (root: string) => void,
 ): void {
   const root = fixtureRoot();
-  const saved = { LOLLY_PROFILE: process.env.LOLLY_PROFILE, VERCEL: process.env.VERCEL };
+  const saved = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
   try {
-    for (const key of ['LOLLY_PROFILE', 'VERCEL'] as const) {
+    for (const key of ENV_KEYS) {
       if (env[key] === undefined) delete process.env[key];
       else process.env[key] = env[key];
     }
     body(root);
   } finally {
-    for (const key of ['LOLLY_PROFILE', 'VERCEL'] as const) {
+    for (const key of ENV_KEYS) {
       if (saved[key] === undefined) delete process.env[key];
       else process.env[key] = saved[key];
     }
@@ -243,10 +277,18 @@ test('precedence 5: the first complete profile when the default is incomplete', 
     breakDefault(root);
     assert.equal(contentRoots({ root }).profile, 'brand-x');
   });
-  // Under $VERCEL that fallback would once have shipped the wrong brand, so it throws.
+  // With LOLLY_STRICT_PROFILE that fallback would once have shipped the wrong brand
+  // from a hosted BUILD, so it throws instead. vercel.json's buildCommand sets it.
+  withPrecedenceRoot({ LOLLY_STRICT_PROFILE: '1' }, (root) => {
+    breakDefault(root);
+    assert.throws(() => contentRoots({ root }), /LOLLY_STRICT_PROFILE/);
+  });
+  // $VERCEL alone does NOT refuse: that is the deployed FUNCTION, which only ever
+  // received the packs one build chose for it, so the first complete profile is the
+  // right answer rather than a 500 on every content request.
   withPrecedenceRoot({ VERCEL: '1' }, (root) => {
     breakDefault(root);
-    assert.throws(() => contentRoots({ root }), /incomplete on Vercel/);
+    assert.equal(contentRoots({ root }).profile, 'brand-x');
   });
 });
 

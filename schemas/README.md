@@ -18,7 +18,7 @@ This file, not the prose, is the authority for what a manifest may contain. It s
 
 The prose counterpart is [`../docs/authoring-tools.md`](../docs/authoring-tools.md), which is the guide you read to learn how to write a manifest, and [`../docs/url-mode.md`](../docs/url-mode.md) for how every input is expressed as a URL parameter. When the guide and the schema disagree, the schema wins, and the docs are wrong and should be fixed. The docs already state this in the places it matters most: `docs/host-api.md` and `docs/overview.md` both point at the export-format enum in this schema as the authority rather than at the `ExportFormat` type in the bridge, which is known to be stale.
 
-`extends` deserves a note, because it is stripped before most consumers ever see it. A brand-pack tool may declare `"extends": "community"` and ship only the files that differ from the community base; `scripts/use-profile.ts` then composes the view directory as the per-file union of base and overlay and removes the `extends` marker from the composed `tool.json`. So the engine, the shells and the catalog scripts all validate a plain manifest with no `extends` key.
+`extends` deserves a note, because it is stripped before most consumers ever see it. A brand-pack tool may declare `"extends": "community"` and ship only the files that differ from the community base; `packages/node-shell/src/content-roots.ts` then reads that tool as the per-file union of base and overlay and removes the `extends` marker from the manifest it hands out. So the engine, the shells and the catalog scripts all validate a plain manifest with no `extends` key.
 
 ## `asset.schema.json` and `asset-ref.schema.json` are two halves of one story
 

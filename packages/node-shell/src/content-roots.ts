@@ -27,9 +27,11 @@
  * Two caveats a consumer has to know:
  *
  *  - `toolFile(id, 'tool.json')` returns a path on disk, so for an OVERLAY tool
- *    those bytes still carry the `extends` member. Read a manifest through
- *    `readToolManifest(id)`, which strips it; `materializeInto` writes the stripped
- *    form. Every other file is a plain path on either side of the union.
+ *    those bytes still carry the `extends` member. Anything that consumes manifest
+ *    BYTES - the catalog signer, the dev server, readToolText, materializeInto -
+ *    goes through `readToolManifestText(id)` (or `readToolManifest` for the parsed
+ *    form), which strips it, so one set of bytes is signed, served and shipped.
+ *    Every other file is a plain path on either side of the union.
  *  - A root that already IS a materializeInto output (the desktop app's exported
  *    content root, the RPM payload, a Docker image, a CLI test fixture) has real
  *    `tools/` and `catalog/` directories and no profiles.json. Such a root resolves as
@@ -94,10 +96,14 @@ function stickyProfile(root: string): string | null {
  * are complete, then profiles.json `default`, then the first profile whose packs
  * are all on disk.
  *
- * Under $VERCEL an incomplete profile throws instead of falling back: a git build
- * clones submodules anonymously and skips the private brands/suse pack
- * (update = none), and a silent fallback once shipped the blank brand to
- * production.
+ * With LOLLY_STRICT_PROFILE set an incomplete profile throws instead of falling
+ * back. vercel.json's buildCommand sets it, because a git build clones submodules
+ * anonymously and skips the private brands/suse pack (update = none), and a silent
+ * fallback once shipped the blank brand to production. The flag names a BUILD, not
+ * the platform: a deployed function only ever received the packs one build chose for
+ * it, so refusing to serve them would turn a build-time question into a 500 on every
+ * content request (the flag is not in the function's runtime env, so the fall-through
+ * below is what runs there).
  */
 function resolveProfileName(root: string, cfg: ProfilesFile, explicit?: string): string {
   const envChoice = process.env.LOLLY_PROFILE?.trim();
@@ -107,12 +113,12 @@ function resolveProfileName(root: string, cfg: ProfilesFile, explicit?: string):
   if (sticky && cfg.profiles[sticky] && isComplete(root, cfg.profiles[sticky]!)) return sticky;
   const fallbackDefault = cfg.profiles[cfg.default];
   if (fallbackDefault && isComplete(root, fallbackDefault)) return cfg.default;
-  if (process.env.VERCEL) {
+  if (process.env.LOLLY_STRICT_PROFILE) {
     throw new Error(
-      `content-roots: default profile "${cfg.default}" is incomplete on Vercel - the private ` +
-      'brands/suse pack is not present in a git build. Deploy an archive of the local tree ' +
-      '(packs included), or set LOLLY_PROFILE=lolly-start on the project to intentionally ' +
-      'ship the blank brand.',
+      `content-roots: default profile "${cfg.default}" is incomplete and LOLLY_STRICT_PROFILE ` +
+      'is set, so this build will not fall back to another brand. The private brands/suse pack ' +
+      'is not present in a git build. Deploy an archive of the local tree (packs included), or ' +
+      'set LOLLY_PROFILE=lolly-start on the project to intentionally ship the blank brand.',
     );
   }
   const complete = Object.entries(cfg.profiles).find(([, p]) => isComplete(root, p))?.[0];
@@ -147,7 +153,10 @@ function materializedRoots(root: string): ContentRoots {
 /** Resolve once per process. `profile` overrides env; `root` overrides the marker walk. */
 export function contentRoots(opts?: { profile?: string; root?: string }): ContentRoots {
   const root = resolve(opts?.root ?? repoRoot());
-  const key = [root, opts?.profile ?? '', process.env.LOLLY_PROFILE ?? '', process.env.VERCEL ?? ''].join('\u0000');
+  const key = [
+    root, opts?.profile ?? '', process.env.LOLLY_PROFILE ?? '',
+    process.env.LOLLY_STRICT_PROFILE ?? '',
+  ].join('\u0000');
   const hit = cache.get(key);
   if (hit) return hit;
 
@@ -326,12 +335,18 @@ export function toolFile(id: string, rel: string, r?: ContentRoots): string | nu
  * (shells/cli/src/run.ts loadToolOrThrow). A `..` segment is refused: the resolver
  * matches an id against the profile's tool directories, so the id can name no path,
  * and the tool-relative part must not either.
+ *
+ * `<id>/tool.json` comes back through readToolManifestText, so an overlay tool's
+ * manifest reads the same here as it does in dist and in the signed envelope. Reading
+ * the overlay file's raw bytes instead would hand a caller an `extends` member no
+ * consumer of a composed tool expects.
  */
 export async function readToolText(path: string, r?: ContentRoots): Promise<string> {
   const [id, ...rest] = path.split(/[\\/]/).filter(Boolean);
   let abs: string | null = null;
   if (id && rest.length && !rest.includes('..')) {
     try { abs = toolFile(id, rest.join('/'), r); } catch { abs = null; } // no such tool in this profile
+    if (abs && rest.join('/') === 'tool.json') return readToolManifestText(id!, r);
   }
   if (!abs) {
     const err = new Error(`ENOENT: no such tool file, open '${path}'`) as Error & { code?: string };
@@ -429,10 +444,18 @@ function stripExtendsField(raw: string): string {
   return JSON.stringify(manifest, null, 2) + '\n';
 }
 
-/** The manifest TEXT a consumer should see: the winning side's bytes with the
- *  `extends` marker stripped. One code path for readToolManifest and for the
- *  file materializeInto writes, so the two can never disagree. */
-function manifestText(id: string, r?: ContentRoots): string {
+/**
+ * The manifest TEXT a consumer should see: the winning side's bytes with the
+ * `extends` marker stripped. One code path for readToolManifest, for readToolText,
+ * for the catalog signer and for the file materializeInto writes, so no two of them
+ * can disagree about what `<id>/tool.json` is.
+ *
+ * Use this, not `readFileSync(toolFile(id, 'tool.json'))`, anywhere the BYTES matter.
+ * For an overlay tool the path on disk still carries the `extends` member, so hashing
+ * or serving that file would sign one manifest and ship another - a signed release
+ * that fails its own verifier.
+ */
+export function readToolManifestText(id: string, r?: ContentRoots): string {
   const { dir, base } = entry(id, r);
   const raw = readFileSync(join(dir, 'tool.json'), 'utf8');
   return base ? stripExtendsField(raw) : raw;
@@ -440,7 +463,7 @@ function manifestText(id: string, r?: ContentRoots): string {
 
 /** The tool's manifest with the `extends` marker stripped, as consumers see it today. */
 export function readToolManifest(id: string, r?: ContentRoots): unknown {
-  return JSON.parse(manifestText(id, r));
+  return JSON.parse(readToolManifestText(id, r));
 }
 
 /** Absolute path inside the active catalog: catalogFile('tools/index.json'). */
@@ -499,7 +522,7 @@ export function materializeInto(dest: string, r?: ContentRoots): void {
     const out = join(toolsOut, id);
     if (!base) { copyTree(dir, out); continue; }
     mkdirSync(out, { recursive: true });
-    writeFileSync(join(out, 'tool.json'), manifestText(id, roots));
+    writeFileSync(join(out, 'tool.json'), readToolManifestText(id, roots));
     for (const rel of listToolFiles(id, roots)) {
       if (rel === 'tool.json') continue;
       const from = toolFile(id, rel, roots);

@@ -8,10 +8,12 @@
  * logic both Tauri shells must agree on lives outside both submodules.
  *
  * What the mode means (each shell picks its own default):
- *   'profile' - embed the active repo-root tools/ + catalog/ views as ever.
+ *   'profile' - embed the active profile's tools + catalog, as materializeInto
+ *               writes them.
  *   'neutral' - the community/app-store build: the lolly-start TOOLSET
- *               (community ∪ brands/lolly-start/tools, composed independently
- *               of the ACTIVE view) plus a ~1 MB neutral catalog seed - the
+ *               (community ∪ brands/lolly-start/tools, resolved independently
+ *               of whichever profile is active here) plus a ~1 MB neutral
+ *               catalog seed - the
  *               generated tool index, the asset index filtered to the entries
  *               whose bytes ride along, and those bytes - plus the tool
  *               gallery previews/ so the gallery paints on first run offline.
@@ -20,9 +22,12 @@
  *               .lolly pack. Also drops the /info narration audio (plans/131
  *               B.3: Listen moves to device TTS in the apps).
  *
- * Plain .mjs, node built-ins only: it runs inside each shell's own Vite
- * process via a relative import, so it can depend on nothing either shell
- * would have to install.
+ * Plain .mjs: it runs inside each shell's own Vite process via a relative
+ * import, so it can depend on nothing either shell would have to install. Node
+ * built-ins plus ONE relative source import, the parent's content resolver -
+ * both Tauri configs already reach across the same way (they import
+ * shells/web/vite.config.js, which imports the resolver at top level), and
+ * Vite's config bundler resolves the .ts for them.
  */
 
 import {
@@ -30,6 +35,15 @@ import {
   rmSync, statSync, writeFileSync,
 } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
+
+// Where the active profile's tools and catalog are (plan 244): content lives in
+// mounted packs, not under a repo-root tools/ or catalog/ directory. This file used
+// to copy those two root paths straight into dist and serve them from dev, which
+// stopped existing with the view.
+import {
+  catalogFile, contentRoots, listToolFiles, materializeInto, readToolManifestText,
+  toolDirs, toolFile,
+} from '../../packages/node-shell/src/content-roots.ts';
 
 // Asset-id prefixes the neutral seed EXCLUDES. An id prefix, not a path glob,
 // so a future asset added to an excluded family stays excluded. Everything
@@ -80,45 +94,36 @@ function copyTreeDereferenced(src, dest) {
   }
 }
 
-/** The blank-brand profile's tool set: community ∪ brands/lolly-start/tools,
- *  later roots winning on id collisions - the same merge
- *  scripts/use-profile.ts performs, minus the overlay (`extends`) machinery,
- *  which the lolly-start profile does not use. A manifest in these roots
- *  declaring `extends` fails the build loudly rather than embedding a
- *  partial tool. */
-function planNeutralTools(repoRoot) {
-  const cfg = JSON.parse(readFileSync(join(repoRoot, 'profiles.json'), 'utf8'));
-  const profile = cfg.profiles['lolly-start'];
-  if (!profile) throw new Error('profiles.json has no "lolly-start" profile - the neutral build embeds the blank brand');
-  const plan = new Map();
-  for (const root of profile.tools) {
-    const rootAbs = join(repoRoot, root);
-    for (const entry of readdirSync(rootAbs)) {
-      if (entry.startsWith('.') || entry.startsWith('_') || entry === 'node_modules') continue;
-      const src = join(rootAbs, entry);
-      if (!statSync(src).isDirectory()) continue;
-      let manifest = null;
-      try { manifest = JSON.parse(readFileSync(join(src, 'tool.json'), 'utf8')); }
-      catch { /* missing/malformed manifest - validate:catalog owns reporting that */ }
-      if (manifest && typeof manifest.extends === 'string') {
-        throw new Error(
-          `${root}/${entry} declares "extends" - the neutral embed has no overlay composer; ` +
-          `port scripts/use-profile.ts's composeToolDir before embedding overlay tools`,
-        );
-      }
-      plan.set(entry, src);
-    }
+/** The blank brand's content roots, asked for by NAME rather than taken from
+ *  whichever profile is active on this machine: the neutral build is the
+ *  community/app-store artifact and must be the same whoever builds it. The
+ *  resolver applies the profile's pack order, its exclusions and the overlay
+ *  (`extends`) union, so the neutral embed no longer has to refuse an overlay
+ *  tool - it composes one the same way dist and the CLI do. */
+function neutralRoots() {
+  return contentRoots({ profile: 'lolly-start' });
+}
+
+/** Write one composed tool into dist/tools/<id>, manifest first so an overlay
+ *  ships the stripped form the signer hashed. */
+function copyToolTree(id, roots, outDir) {
+  const dest = join(outDir, 'tools', id);
+  mkdirSync(dest, { recursive: true });
+  writeFileSync(join(dest, 'tool.json'), readToolManifestText(id, roots));
+  for (const rel of listToolFiles(id, roots)) {
+    if (rel === 'tool.json') continue;
+    const from = toolFile(id, rel, roots);
+    if (!from) continue;
+    copyTreeDereferenced(from, join(dest, ...rel.split('/')));
   }
-  for (const id of profile.exclude ?? []) plan.delete(id);
-  return plan;
 }
 
 /** The neutral catalog seed: the generated tool index, the filtered asset
  *  index, and exactly the bytes the kept entries reference - resolved from
  *  each entry's format urls, no dir-level heuristics, so the seed can never
  *  silently include an excluded family or reference a file it didn't embed. */
-function copyNeutralCatalog(repoRoot, outDir) {
-  const brandCatalog = join(repoRoot, 'brands/lolly-start/catalog');
+function copyNeutralCatalog(roots, outDir) {
+  const brandCatalog = catalogFile('.', roots);
   const destCatalog = join(outDir, 'catalog');
   copyTreeDereferenced(join(brandCatalog, 'tools'), join(destCatalog, 'tools'));
   // Gallery thumbnails (~7 MB of rendered previews) ride along so the gallery
@@ -143,21 +148,32 @@ function copyNeutralCatalog(repoRoot, outDir) {
 }
 
 /**
- * In dev the Vite dev-server middleware handles /tools/ and /catalog/
- * requests (always against the ACTIVE profile views - the neutral mode is a
- * build concern). In production they must be copied into dist/ so the Tauri
- * WebView can reach them.
+ * `/tools/<id>/<rel>` and `/catalog/<rel>` are URL namespaces, not directories: the
+ * resolver says which pack answers each one. In dev this middleware answers them
+ * against the ACTIVE profile (the neutral mode is a build concern); in production
+ * they are written into dist/ so the Tauri WebView can reach them offline.
  */
-export function bundleRepoDirs({ repoRoot, outDirDefault, mode }) {
+export function bundleRepoDirs({ outDirDefault, mode }) {
   return {
     name: 'bundle-repo-dirs',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const url = req.url?.split('?')[0];
         if (!url?.startsWith('/tools/') && !url?.startsWith('/catalog/')) return next();
-        const filePath = resolve(repoRoot, url.slice(1));
-        if (!existsSync(filePath) || !statSync(filePath).isFile()) return next();
-        const data = readFileSync(filePath);
+        const segs = url.split('/').filter(Boolean).map(decodeURIComponent);
+        if (segs.some((seg) => seg === '..')) return next();
+        const [head, ...rest] = segs;
+        let filePath = null;
+        try {
+          if (head === 'catalog' && rest.length) filePath = catalogFile(rest.join('/'));
+          if (head === 'tools' && rest.length > 1) filePath = toolFile(rest[0], rest.slice(1).join('/'));
+        } catch { /* no such tool in this profile, or no profile at all */ }
+        if (!filePath || !existsSync(filePath) || !statSync(filePath).isFile()) return next();
+        // A manifest is served as the composed text - an overlay's file on disk still
+        // declares `extends`, and dev must not be the one surface that shows it.
+        const data = (head === 'tools' && rest.length === 2 && rest[1] === 'tool.json')
+          ? Buffer.from(readToolManifestText(rest[0]), 'utf8')
+          : readFileSync(filePath);
         res.setHeader('Content-Type', MIME[extname(filePath)] ?? 'application/octet-stream');
         res.setHeader('Content-Length', data.byteLength);
         res.end(data);
@@ -166,17 +182,16 @@ export function bundleRepoDirs({ repoRoot, outDirDefault, mode }) {
     writeBundle(options) {
       const outDir = options.dir ?? outDirDefault;
       if (mode === 'profile') {
-        for (const dir of ['catalog', 'tools']) {
-          copyTreeDereferenced(resolve(repoRoot, dir), resolve(outDir, dir));
-        }
+        // The one copy the resolver keeps, shared with the web shell's build: a real
+        // tools/ + catalog/ tree, because the WebView serves both over HTTP.
+        materializeInto(outDir);
         return;
       }
-      // neutral: the blank-brand tool set + the seed catalog; the active repo
-      // views are not consulted, so any profile can stay active locally.
-      for (const [id, src] of planNeutralTools(repoRoot)) {
-        copyTreeDereferenced(src, join(outDir, 'tools', id));
-      }
-      copyNeutralCatalog(repoRoot, outDir);
+      // neutral: the blank-brand tool set + the seed catalog, asked for by profile
+      // name, so whichever brand is active here does not change the artifact.
+      const roots = neutralRoots();
+      for (const id of toolDirs(roots).keys()) copyToolTree(id, roots, outDir);
+      copyNeutralCatalog(roots, outDir);
       // Plans/131 B.3: the apps drop the baked Listen narration (~30 MB of
       // .opus that compresses no further). Removing audio-index.json with it
       // makes the player's track resolution return null, so a Listen press

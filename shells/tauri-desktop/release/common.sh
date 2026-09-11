@@ -23,9 +23,18 @@ DOCKER_RUN=(docker run --rm --security-opt label=disable
 
 # The active content profile decides what gets baked into the binary.
 # brands/suse is a PRIVATE pack and must never reach a published artifact.
+#
+# Ask the resolver, not the .lolly-profile file: nothing writes that file since the
+# subrepo collapse removed the view builder and its postinstall, so a checkout that
+# selects the private pack with LOLLY_PROFILE=suse used to read back as 'unknown' and
+# sail past this guard. An unresolvable profile is fatal for the same reason - a guard
+# that cannot see the answer must not pass.
 assert_public_profile() {
   local profile
-  profile="$(cat "$REPO/.lolly-profile" 2>/dev/null || echo unknown)"
-  [ "$profile" != "suse" ] || die "active profile is 'suse' (private pack) - run 'pnpm run profile:start'"
+  # `|| true`: the resolver exits non-zero when no profile is mounted, and under
+  # `set -e` that would kill the script before the message below is printed.
+  profile="$(cd "$REPO" && node scripts/profile.ts 2>/dev/null | sed -n 's/^profile[[:space:]]*//p' || true)"
+  [ -n "$profile" ] || die "could not resolve the content profile - run 'pnpm run profile' in $REPO to see why"
+  [ "$profile" != "suse" ] || die "content profile is 'suse' (private pack) - build with LOLLY_PROFILE=lolly-start"
   echo "active content profile: $profile"
 }

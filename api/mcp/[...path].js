@@ -45,7 +45,7 @@ var init_tool_schema = __esm({
           enum: [
             "community"
           ],
-          description: `Brand-overlay marker - only valid on a tool inside a brand pack (brands/<brand>/tools/<id>/), never on a community tool. Declares this directory a per-file OVERLAY of the base pack's tool with the SAME id: scripts/use-profile.ts composes the profile view from community/<id>/ plus this dir (overlay file wins on filename collision, recursing one level into subdirs such as i18n/ and assets/) and strips this field from the composed tool.json, so shells and the engine never see it. The base community/<id>/tool.json must exist - a missing base fails the profile build loudly (never a silent partial tool). v1 supports only "community" as the base pack.`
+          description: `Brand-overlay marker - only valid on a tool inside a brand pack (brands/<brand>/tools/<id>/), never on a community tool. Declares this directory a per-file OVERLAY of the base pack's tool with the SAME id: packages/node-shell/src/content-roots.ts reads the tool as the union of community/<id>/ plus this dir (overlay file wins on filename collision, recursing one level into subdirs such as i18n/ and assets/) and strips this field from the manifest it hands out, so shells and the engine never see it. The base community/<id>/tool.json must exist - a missing base is an error, never a silent partial tool. v1 supports only "community" as the base pack.`
         },
         name: {
           type: "string",
@@ -61023,9 +61023,9 @@ function resolveProfileName(root, cfg, explicit) {
   if (sticky && cfg.profiles[sticky] && isComplete(root, cfg.profiles[sticky])) return sticky;
   const fallbackDefault = cfg.profiles[cfg.default];
   if (fallbackDefault && isComplete(root, fallbackDefault)) return cfg.default;
-  if (process.env.VERCEL) {
+  if (process.env.LOLLY_STRICT_PROFILE) {
     throw new Error(
-      `content-roots: default profile "${cfg.default}" is incomplete on Vercel - the private brands/suse pack is not present in a git build. Deploy an archive of the local tree (packs included), or set LOLLY_PROFILE=lolly-start on the project to intentionally ship the blank brand.`
+      `content-roots: default profile "${cfg.default}" is incomplete and LOLLY_STRICT_PROFILE is set, so this build will not fall back to another brand. The private brands/suse pack is not present in a git build. Deploy an archive of the local tree (packs included), or set LOLLY_PROFILE=lolly-start on the project to intentionally ship the blank brand.`
     );
   }
   const complete = Object.entries(cfg.profiles).find(([, p]) => isComplete(root, p))?.[0];
@@ -61046,7 +61046,12 @@ function materializedRoots(root) {
 }
 function contentRoots(opts) {
   const root = resolve2(opts?.root ?? repoRoot());
-  const key = [root, opts?.profile ?? "", process.env.LOLLY_PROFILE ?? "", process.env.VERCEL ?? ""].join("\0");
+  const key = [
+    root,
+    opts?.profile ?? "",
+    process.env.LOLLY_PROFILE ?? "",
+    process.env.LOLLY_STRICT_PROFILE ?? ""
+  ].join("\0");
   const hit = cache2.get(key);
   if (hit) return hit;
   if (!existsSync2(join2(root, "profiles.json")) && isMaterializedRoot(root)) {
@@ -61192,6 +61197,7 @@ async function readToolText(path, r3) {
     } catch {
       abs = null;
     }
+    if (abs && rest.join("/") === "tool.json") return readToolManifestText(id, r3);
   }
   if (!abs) {
     const err = new Error(`ENOENT: no such tool file, open '${path}'`);
@@ -61199,6 +61205,45 @@ async function readToolText(path, r3) {
     throw err;
   }
   return readFile(abs, "utf8");
+}
+function topLevelExtendsKeyOffset(raw) {
+  let depth = 0;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (ch === '"') {
+      const keyStart = i;
+      for (i++; i < raw.length && raw[i] !== '"'; i++) {
+        if (raw[i] === "\\") i++;
+      }
+      if (depth !== 1 || raw.slice(keyStart + 1, i) !== "extends") continue;
+      let j = i + 1;
+      while (j < raw.length && " 	\r\n".includes(raw[j])) j++;
+      if (raw[j] === ":") return keyStart;
+    } else if (ch === "{" || ch === "[") depth++;
+    else if (ch === "}" || ch === "]") depth--;
+  }
+  return -1;
+}
+function stripExtendsField(raw) {
+  const manifest = JSON.parse(raw);
+  if (!("extends" in manifest)) return raw;
+  delete manifest.extends;
+  const keyAt = topLevelExtendsKeyOffset(raw);
+  if (keyAt !== -1) {
+    const lineStart = raw.lastIndexOf("\n", keyAt) + 1;
+    const nextNl = raw.indexOf("\n", keyAt);
+    const stripped = raw.slice(0, lineStart) + (nextNl === -1 ? "" : raw.slice(nextNl + 1));
+    try {
+      if (JSON.stringify(JSON.parse(stripped)) === JSON.stringify(manifest)) return stripped;
+    } catch {
+    }
+  }
+  return JSON.stringify(manifest, null, 2) + "\n";
+}
+function readToolManifestText(id, r3) {
+  const { dir, base } = entry(id, r3);
+  const raw = readFileSync(join2(dir, "tool.json"), "utf8");
+  return base ? stripExtendsField(raw) : raw;
 }
 function catalogFile(rel, r3) {
   const roots2 = r3 ?? contentRoots();

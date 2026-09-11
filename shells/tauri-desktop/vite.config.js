@@ -118,7 +118,6 @@ export default defineConfig({
     // views/profile.ts), so the whole model list read "Not offered by this server"
     // even though lolly.tools was serving the models correctly.
     ...embedContentPlugins({
-      repoRoot,
       outDirDefault: resolve(__dirname, 'dist'),
       mode: EMBED_CATALOG,
     }),

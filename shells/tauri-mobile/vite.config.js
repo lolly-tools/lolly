@@ -108,7 +108,6 @@ export default defineConfig({
       // way - see README.md, "Website source transport".
     }),
     ...embedContentPlugins({
-      repoRoot,
       outDirDefault: resolve(__dirname, 'dist'),
       mode: EMBED_CATALOG,
     }),

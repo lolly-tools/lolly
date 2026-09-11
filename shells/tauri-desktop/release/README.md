@@ -16,8 +16,8 @@ The Arch step depends on the `.deb` already being **published**, because the
 PKGBUILD repacks the artifact users actually download. So:
 
 ```bash
-git submodule update --init --recursive     # BEFORE pnpm install
-pnpm install && pnpm run profile:start        # public brand - never ship `suse`
+pnpm install
+export LOLLY_PROFILE=lolly-start            # public brand - never ship `suse`
 pnpm -C shells/tauri-desktop install
 
 release/build-deb.sh                        # amd64 .deb

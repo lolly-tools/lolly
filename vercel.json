@@ -2,12 +2,12 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install --frozen-lockfile",
   "git": { "deploymentEnabled": true },
-  "buildCommand": "pnpm run build:web:release && pnpm run build:mcp-fn && pnpm run build:ca-fn && pnpm run build:penpot-fn",
+  "buildCommand": "export LOLLY_STRICT_PROFILE=1 && pnpm run build:web:release && pnpm run build:mcp-fn && pnpm run build:ca-fn && pnpm run build:penpot-fn",
   "outputDirectory": "shells/web/dist",
   "functions": {
     "api/mcp/**": {
       "maxDuration": 60,
-      "includeFiles": "{community/**,brands/lolly-start/**,profiles.json}",
+      "includeFiles": "{community/**,brands/lolly-start/tools/**,brands/lolly-start/catalog/assets/**,brands/lolly-start/catalog/fonts/**,brands/lolly-start/catalog/tools/**,brands/lolly-start/catalog/previews/*.svg,brands/lolly-start/catalog/previews/*.json,profiles.json}",
       "regions": ["fra1"]
     },
     "api/ca/**": {

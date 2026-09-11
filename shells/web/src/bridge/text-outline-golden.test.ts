@@ -75,9 +75,16 @@ const api = createTextAPI();
 
 // ── font files under test ────────────────────────────────────────────────────
 // Statics: brand-critical weights/styles actually shipped for outline export.
-const REGULAR      = 'catalog/fonts/ttf/SUSE-Regular.ttf';
-const BOLD         = 'catalog/fonts/ttf/SUSE-Bold.ttf';
-const BOLD_ITALIC  = 'catalog/fonts/ttf/SUSE-BoldItalic.ttf';
+//
+// Named in the PACK that owns them, not through a repo-root `catalog/` path. That
+// path was the gitignored profile view, and the subrepo collapse removed it, so
+// these three cases had gone from skipping on a non-SUSE profile to skipping on
+// every checkout there is. Naming the pack also drops the profile coupling the
+// VARIABLE note below complains about: the bytes are here whenever the private
+// pack is mounted, whichever brand happens to be active.
+const REGULAR      = 'brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf';
+const BOLD         = 'brands/suse/catalog/fonts/ttf/SUSE-Bold.ttf';
+const BOLD_ITALIC  = 'brands/suse/catalog/fonts/ttf/SUSE-BoldItalic.ttf';
 // The actual VARIABLE master (the statics above are pre-instanced weights baked
 // from this at build time - SUSE-Regular.ttf itself carries no fvar axis).
 //
@@ -103,8 +110,8 @@ const suseVariableAvailable = fontExists(VARIABLE);
 const outfitAvailable = fontExists(OUTFIT_VARIABLE);
 
 const SKIP_NO_SUSE = suseStaticsAvailable ? false
-  : `SUSE static fonts not present at ${REGULAR} etc. - this checkout's active profile ` +
-    `(see profiles.json) has no SUSE fonts mounted under catalog/fonts/. Skipping.`;
+  : `SUSE static fonts not present at ${REGULAR} etc. - the private brands/suse pack is ` +
+    'not mounted in this checkout (git submodule update --init --checkout brands/suse). Skipping.';
 // Not profile-gated any more - the face ships with the shell this file lives in,
 // so this reads as a corrupt checkout rather than as an unmounted brand pack, and
 // it must never quietly become the normal state again.

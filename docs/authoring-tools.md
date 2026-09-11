@@ -991,12 +991,12 @@ A brand pack that only needs to tweak a community tool - a different template, a
 }
 ```
 
-and keep **only the files that differ** in the overlay dir. When `scripts/use-profile.ts` builds the `tools/` view, that tool's view dir becomes the per-file union of the base (`community/<id>/`) and the overlay (`brands/<brand>/tools/<id>/`):
+and keep **only the files that differ** in the overlay dir. The content resolver (`packages/node-shell/src/content-roots.ts`) then reads that tool as the per-file union of the base (`community/<id>/`) and the overlay (`brands/<brand>/tools/<id>/`), the same union for every consumer - a `dist/` build, the CLI, the dev server, the catalog signer:
 
 - **Overlay wins** on any filename collision; everything else comes from the base.
 - Composition recurses **one level** into subdirs (`i18n/`, `assets/`) - files there union per-file too; anything nested deeper is taken wholesale from the winning side.
-- The `extends` field is **stripped from the composed `tool.json`**, so the engine, shells and catalog scripts always see a plain tool. That one file is materialised (a real file, not a symlink) - edit the pack source, not the view copy; every other composed file keeps normal write-through symlinks in local (symlink) mode, and the Vercel copy mode composes identically.
-- Overlay and base **share the same tool id** (ids are permanent contracts; the view path `tools/<id>/` never changes), so the overlay's `tool.json` doubles as the marker carrier even when it's otherwise identical to the base's.
+- The `extends` field is **stripped from the composed `tool.json`**, so the engine, shells and catalog scripts always see a plain tool. Anything that reads manifest *bytes* goes through `readToolManifestText(id)` for exactly that reason, so the signed, served and shipped manifests are one set of bytes. Edit the pack source; there is no composed copy on disk to edit.
+- Overlay and base **share the same tool id** (ids are permanent contracts; the URL `tools/<id>/` never changes), so the overlay's `tool.json` doubles as the marker carrier even when it's otherwise identical to the base's.
 
 **Fail-closed:** a declared overlay whose base is missing (`community/<id>/tool.json` doesn't exist), an `extends` value other than `"community"` (the only base pack in v1) or an `extends` declared on a community tool itself fails the profile build loudly - even in `postinstall --auto` - and is also rejected by `pnpm run validate:catalog`. You never get a silent partial tool. The composed result is validated like any other tool, since the validator runs against the `tools/` view.
 

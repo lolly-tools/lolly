@@ -82,9 +82,10 @@ embed stale art.
 ## Profile safety
 
 The active content profile decides what gets baked in. **`brands/suse` is private and
-must never reach a public artifact.** `pnpm run profile` shows the active one;
-`pnpm run profile:start` selects the public blank brand. `rpm/make-sources.sh` refuses
-to run on the `suse` profile for this reason; the Flathub manifest gets it right
+must never reach a public artifact.** `pnpm run profile` shows which one this checkout
+resolves to; `LOLLY_PROFILE=lolly-start` selects the public blank brand for one command.
+`rpm/make-sources.sh` and `release/common.sh` both ask the resolver and refuse to run on
+the `suse` profile for this reason; the Flathub manifest gets it right
 structurally, by pinning only public submodules and never fetching `brands/suse`.
 
 ## Flatpak / Flathub

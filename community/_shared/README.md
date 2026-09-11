@@ -39,9 +39,8 @@ matching markers:
   depending at most on `host` being in scope.
 - Region names are global across all files here; the sync fails on duplicates,
   malformed or nested markers, and CRLF line endings.
-- This is not a tool directory - underscore-prefixed directories are excluded
-  from the `tools/` profile view (`scripts/use-profile.ts`) and from catalog
-  validation.
+- This is not a tool directory - underscore-prefixed directories are skipped by
+  the content resolver's pack walk and by catalog validation.
 - Only add a region when consumers are genuinely byte-identical **today**;
   helpers that legitimately differ per tool (e.g. the various `getImage`
   caches) stay per-tool.

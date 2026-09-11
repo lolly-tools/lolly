@@ -17,8 +17,8 @@
  *   node scripts/compose-deck.ts deck.json --export=pdf > deck.pdf
  *   node scripts/compose-deck.ts deck.json --lint-only      # warnings only, no render
  *
- * deck-builder ships in the SUSE profile - switch to a profile that has it first
- * (`pnpm run profile:suse`). Rendering PPTX/PDF/video is deck-builder's own
+ * deck-builder ships in the SUSE profile - run this under a profile that has it
+ * (`LOLLY_PROFILE=suse`). Rendering PPTX/PDF/video is deck-builder's own
  * browser-tier export, so it needs `lolly install-browser` + a built web shell,
  * exactly as `lolly deck-builder --export=pptx` does; --lint-only needs neither.
  *

@@ -180,8 +180,8 @@ export function inspect(argv = process.argv.slice(2)): Finding[] {
   add(
     profile ? 'PASS' : 'FAIL',
     'profile',
-    profile ?? 'catalog view does not match profiles.json',
-    'pnpm run profile:start'
+    profile ?? 'no profile in profiles.json has all its packs on disk',
+    'LOLLY_PROFILE=lolly-start'
   );
   const submodule = run('git', ['submodule', 'status', '--recursive']);
   const parsed = parseSubmoduleStatus(submodule.output);

@@ -170,9 +170,10 @@ const vercelDriver: Driver = {
   // passed the first-load check - rather than deploying again, so the bytes that
   // were measured are the bytes that go live. The build being promoted resolved the
   // project's PREVIEW environment, which is why every brand-critical variable is
-  // pinned per-deploy with --build-env in publish() instead of being trusted from
-  // the dashboard; verifyDeploy still asserts the live brand on the domain
-  // afterwards, and ship() only calls this once our deployment's identity is known.
+  // pinned per-deploy in publish() (--build-env for the build, --env for the
+  // function's own runtime) instead of being trusted from the dashboard; verifyDeploy
+  // still asserts the live brand on the domain afterwards, and ship() only calls this
+  // once our deployment's identity is known.
   promote(handle) {
     return spawnSync('npx', ['--yes', 'vercel', 'promote', handle, '--yes'], {
       cwd: ROOT,
@@ -208,8 +209,14 @@ const vercelDriver: Driver = {
       // (a timeout killed a production build on 2026-08-10), and the GPU execution
       // provider is useless in a serverless build. It is also set as project env on
       // both projects; this flag is the backstop if that is ever lost.
+      // `--env` as well as `--build-env` for the brand: since the subrepo collapse the
+      // MCP function resolves the content profile at REQUEST time (services/mcp/src/paths.ts
+      // asks the resolver on first use), so a build-only value would render the right
+      // site and then serve /tool/*.svg out of whichever profile the function falls back
+      // to. One deploy, one brand, both phases.
       args.push(
         '--build-env', `LOLLY_PROFILE=${target.profile}`,
+        '--env', `LOLLY_PROFILE=${target.profile}`,
         '--build-env', 'LOLLY_CLI_DEPLOY=1',
         '--build-env', 'ONNXRUNTIME_NODE_INSTALL_CUDA=skip',
         '--yes',

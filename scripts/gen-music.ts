@@ -164,4 +164,4 @@ writeFileSync(INDEX_PATH, JSON.stringify(index, null, 2) + '\n');
 
 console.log(`\n${anyBad ? '⚠ some tracks out of range - check flags above' : '✓'} Generated ${newEntries.length} ZzFXM tracks → ${SONGS_DIR}`);
 console.log('  Checksums/sizes are self-filled; no build:catalog needed for the songs.');
-console.log('  To hear them: pnpm run profile:start && pnpm run dev:web (they live in the lolly-start brand).');
+console.log('  To hear them: LOLLY_PROFILE=lolly-start pnpm run dev:web (they live in the lolly-start brand).');

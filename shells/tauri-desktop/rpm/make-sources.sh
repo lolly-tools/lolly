@@ -54,10 +54,26 @@ rm -rf "$out"
 mkdir -p "$stage"
 
 # --------------------------------------------------------------------------
-# 1. Frontend. Vite is rooted at shells/web and copies the repo-root tools/ and
-#    catalog/ PROFILE VIEWS into dist/, so the active profile decides what ships.
-#    Public builds must be on a public profile - brands/suse is a private pack and
-#    must never be baked into a published RPM.
+# 0. Which brand is this? Ask the resolver, and ask BEFORE building the frontend -
+#    the build bakes the brand into dist/, so a check afterwards is a check on an
+#    artifact that already exists. There is no .lolly-profile state file any more
+#    (the subrepo collapse removed the view builder that wrote it), so reading one
+#    would report 'unknown' for every checkout, including one pointed at the private
+#    pack with LOLLY_PROFILE=suse.
+# --------------------------------------------------------------------------
+active_profile="$(cd "$repo" && node scripts/profile.ts 2>/dev/null | sed -n 's/^profile[[:space:]]*//p' || true)"
+echo "    content profile: ${active_profile:-<unresolved>}"
+case "$active_profile" in
+  lolly-start) ;;  # the public blank brand - the only thing we may publish
+  suse) die "refusing to package the private SUSE profile; build with LOLLY_PROFILE=lolly-start" ;;
+  *) die "could not resolve a publishable profile (got '${active_profile:-}'); build with LOLLY_PROFILE=lolly-start" ;;
+esac
+
+# --------------------------------------------------------------------------
+# 1. Frontend. Vite is rooted at shells/web and writes a real tools/ + catalog/
+#    tree into dist/ from the profile above (materializeInto), so that profile
+#    decides what ships. Public builds must be on a public profile - brands/suse
+#    is a private pack and must never be baked into a published RPM.
 # --------------------------------------------------------------------------
 if [ "$skip_frontend" -eq 0 ]; then
   step "Building signed frontend (LOLLY_EMBED_CATALOG=profile pnpm run build:frontend:release)"
@@ -75,17 +91,6 @@ else
   step "Reusing existing dist/ (--skip-frontend)"
 fi
 [ -d "$desktop/dist" ] || die "no dist/ - drop --skip-frontend"
-
-# The active profile lives in the .lolly-profile STATE FILE, not in profiles.json -
-# profiles.json only carries the `default` (which is "suse"), and reading `.active`
-# off it returns undefined, so an earlier version of this guard could never fire.
-active_profile="$(cat "$repo/.lolly-profile" 2>/dev/null || echo unknown)"
-echo "    active content profile: $active_profile"
-case "$active_profile" in
-  lolly-start) ;;  # the public blank brand - the only thing we may publish
-  suse) die "refusing to package the private SUSE profile; run 'pnpm run profile:start' first" ;;
-  *) die "unrecognised or unset profile '$active_profile'; run 'pnpm run profile:start'" ;;
-esac
 
 # --------------------------------------------------------------------------
 # 2. Cargo vendor tree.

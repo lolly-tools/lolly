@@ -78,7 +78,10 @@ test('the MCP verify path documents why it ignores caller/env pinned roots', () 
 test('repoRoot is resolved by the ONE shared resolver in TUI and MCP', () => {
   const tuiCatalog = read('../shells/tui/src/catalog.ts');
   const mcpPaths = read('../services/mcp/src/paths.ts');
-  assert.match(tuiCatalog, /import \{ repoRoot \} from '@lolly-tools\/node-shell\/repo-root'/);
+  // The TUI reaches the shared root through content-roots (plan 244): the resolver
+  // layers on repo-root.ts, so asking it where a tool or the catalog lives is the
+  // same one answer, and the TUI still has no root-walk of its own.
+  assert.match(tuiCatalog, /from '@lolly-tools\/node-shell\/content-roots'/);
   assert.doesNotMatch(tuiCatalog, /export function repoRoot\(\)/,
     'the TUI must not carry its own weaker repoRoot twin');
   assert.match(mcpPaths, /repoRoot \} from '\.\.\/\.\.\/\.\.\/packages\/node-shell\/src\/repo-root\.ts'/);

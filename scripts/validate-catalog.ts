@@ -49,7 +49,8 @@ import type { ToolManifest } from '../engine/src/loader.ts';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { analyseRequires } from './tool-requires.ts';
 import {
-  catalogFile, toolDirs as resolveToolDirs, toolFile, readToolManifest, listToolFiles,
+  catalogFile, contentUrlFile, toolDirs as resolveToolDirs, toolFile, readToolManifest,
+  listToolFiles,
 } from '@lolly-tools/node-shell/content-roots';
 import { applyProfileArg } from './lib/profile-arg.ts';
 import { createHash } from 'node:crypto';
@@ -525,10 +526,13 @@ for (const entry of toolsIndex.tools) {
   // only when the derived path points at a file that exists: a fresh checkout with no
   // generated previews yet is fine (the gallery tolerates an absent preview), so we
   // don't force a regeneration there.
+  // contentUrlFile, not catalogUrlPath: a derived preview can be a tool CARD
+  // (/tools/<id>/card.svg) as well as a catalog file, and mapping a /tools/ url under
+  // the catalog root would make this gate unreachable for every tool that has one.
   if (
     entry.preview !== derived.preview &&
     typeof derived.preview === 'string' &&
-    existsSync(catalogUrlPath(derived.preview))
+    contentUrlFile(derived.preview) !== null
   ) {
     errors.push(`tools/index.json: "${entry.id}" preview ${entry.preview} ≠ derived ${derived.preview} - run \`pnpm run build:catalog\` (after \`pnpm run previews\`)`);
   }
@@ -1762,12 +1766,12 @@ for (const [toolId, manifest] of toolManifests) {
 }
 
 // ─── Brand overlay declarations (extends) ───────────────────────────────────
-// A brand-pack tool may declare `"extends": "community"` - scripts/use-profile.ts
-// then composes its view dir per-file from community/<id>/ + the overlay
-// (overlay wins, `extends` stripped from the composed tool.json). The composed
-// RESULT is already validated as a normal tool by the per-tool checks above,
-// which run against the tools/ VIEW. What the view can't tell us is whether the
-// DECLARATIONS in the pack sources are sound - so walk the real packs here
+// A brand-pack tool may declare `"extends": "community"` - the content resolver
+// then reads it per-file from community/<id>/ + the overlay (overlay wins,
+// `extends` stripped from the manifest it hands out). The composed RESULT is
+// already validated as a normal tool by the per-tool checks above, which see the
+// composed form. What that cannot tell us is whether the DECLARATIONS in the pack
+// sources are sound - so walk the real packs here
 // (community/ + brands/*/tools/, same as the shared-hooks guard below), even
 // for tools outside the active profile:
 //   - community tools must never declare an overlay (they are the bases)

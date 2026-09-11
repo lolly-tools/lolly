@@ -35,6 +35,8 @@ import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { contentRoots } from '@lolly-tools/node-shell/content-roots';
+
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 export const MANIFEST = join(ROOT, 'deploy', 'yunohost', 'manifest.toml');
 export const DIST = join(ROOT, 'shells', 'web', 'dist');
@@ -108,8 +110,17 @@ function run(cmd: string, args: string[], opts: { env?: NodeJS.ProcessEnv; cwd?:
   if (r.status !== 0) throw new Error(`${cmd} ${args.join(' ')} exited ${r.status}`);
 }
 
+/**
+ * Which brand this tarball would carry, from the resolver every build reads.
+ *
+ * This used to read the `.lolly-profile` state file, which nothing writes since the
+ * subrepo collapse removed the view builder and its postinstall: it returned
+ * 'unknown' for every checkout, so the guard below passed even with LOLLY_PROFILE=suse
+ * selecting the private pack. An unresolvable profile throws rather than reporting a
+ * placeholder, because the caller's next move is to publish.
+ */
 function activeProfile(): string {
-  try { return readFileSync(join(ROOT, '.lolly-profile'), 'utf8').trim(); } catch { return 'unknown'; }
+  return contentRoots().profile;
 }
 
 function isGnuTar(): boolean {
@@ -123,9 +134,9 @@ export function packDist(dist: string, outFile: string, excludes: string[]): voi
   if (!existsSync(join(dist, 'precache.json'))) throw new Error(`${dist} has no precache.json - the "Available offline" list would read empty`);
   if (!existsSync(join(dist, 'info', 'index.html'))) throw new Error(`${dist} has no info/index.html - in-app docs would 404`);
   const gnu = isGnuTar();
-  // Dereference symlinks: the tools/ and catalog/ views the build copies into dist
-  // are symlink farms on a developer checkout (scripts/use-profile.ts), and a
-  // tarball of links points at nothing on the host that unpacks it.
+  // Dereference symlinks (-h): the build writes real files into dist, but a
+  // developer checkout can still carry a linked asset somewhere under public/, and
+  // a tarball of links points at nothing on the host that unpacks it.
   const args = ['-czhf', outFile];
   for (const e of excludes) args.push('--exclude', e);
   // Owner-free entries either way; macOS bsdtar also stores provenance xattrs as
@@ -158,7 +169,7 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   const args = parseArgs(argv);
   const version = args.version ?? upstreamVersion();
   const profile = activeProfile();
-  if (profile === 'suse') throw new Error("active profile is 'suse' (private pack) - run 'pnpm run profile:start' first; the YunoHost tarball is public");
+  if (profile === 'suse') throw new Error("content profile is 'suse' (private pack) - build with LOLLY_PROFILE=lolly-start; the YunoHost tarball is public");
 
   if (args.build) {
     console.log(`[yunohost-release] release web build (profile ${profile}, models from ${MODELS_BASE})`);

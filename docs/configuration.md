@@ -16,15 +16,18 @@ A **profile** binds a set of tool packs to a brand catalog. `profiles.json` at t
 }
 ```
 
-The repo-root `tools/` and `catalog/` are **gitignored views** of the active profile - never edit or commit them directly. Switch profiles with:
+Content lives in the packs and nowhere else: there is no `tools/` or `catalog/` directory at the repo root, and nothing to switch. A profile is **resolved per process**:
 
 ```bash
-pnpm run profile            # show the active profile + what's available
-pnpm run profile:suse       # community + SUSE tools, SUSE catalog
-pnpm run profile:start      # blank brand: community tools + one neutral tokens asset
+pnpm run profile                        # which brand does this checkout resolve to, and from where
+pnpm run profile suse                   # what would that profile resolve to
+LOLLY_PROFILE=lolly-start pnpm run dev:web    # run one command under another brand
+pnpm run build:catalog --profile=suse   # or name it on a catalog script
 ```
 
-`scripts/use-profile.ts` builds the views: `catalog` becomes a symlink to the brand's catalog, and `tools/` becomes a directory of per-tool symlinks merged from the profile's tool roots - **later roots win on id collisions**, so a brand pack can override a community tool of the same id. The optional `exclude` list drops tool ids from *this* profile's view after that merge - a community tool one brand would rather not ship stays available to every other profile, and an id that isn't there is warned about, not fatal. In a hosted or serverless build, pass `--copy` to materialise the views as real copies instead of symlinks (symlinks don't survive a function bundle). Writes through the views land in the real pack checkouts, so the normal edit → commit workflow is unchanged.
+`packages/node-shell/src/content-roots.ts` is the resolver every script, shell and service asks. Precedence: an explicit `--profile=<name>`, then `LOLLY_PROFILE`, then `profiles.json`'s `default`, then the first profile whose packs are all on disk - which is what makes a public clone with no `brands/suse` land on `lolly-start` by itself. It answers "where does tool `<id>` live" (`toolFile`, `listToolFiles`, `readToolManifest`) and "where is the catalog" (`catalogFile`) against the profile's roots, **later roots winning on id collisions**, so a brand pack can override a community tool of the same id. The optional `exclude` list drops tool ids from *this* profile after that merge - a community tool one brand would rather not ship stays available to every other profile, and an id that isn't there is warned about, not fatal.
+
+One copy survives, because a browser still fetches `/tools/<id>/…` and `/catalog/…` over HTTP: `materializeInto(dest)` writes a real `tools/` + `catalog/` tree, and that is what a `dist/` build, an RPM payload or a Docker image carries. Nothing materialises anything into your working tree, so an edit to a tool is an edit in its pack, committed there.
 
 ## Brand packs
 
@@ -36,7 +39,7 @@ Stand a new pack up from a design-tokens export:
 pnpm run ingest:brand <source> --name <brand> [--label "Label"] [--register|--activate]
 ```
 
-`<source>` is any container Penpot / Tokens Studio export the same DTCG document in - a monolithic `tokens.json`, a one-file-per-set directory, or a `project.penpot` archive. The extracted document is written to `catalog/assets/<ns>/tokens/brand.json` as the pack's core-tier `tokens` asset, where `<ns>` is `<brand>` with hyphens stripped (an asset id can't carry `-` in its first segment, so `--name acme-co` yields `assets/acmeco/…`). Ingest also *derives* the pack's photo-treatment and icon-theme palette documents under `catalog/assets/<ns>/palette/`, so uploaded photos get on-brand washes and themable icons get colour pairings out of the box (icon themes are skipped when the palette has no accent). `--register` upserts the pack into `profiles.json`; `--activate` also switches to it and rebuilds the catalog; `--out` picks a different destination and `--force` overwrites an existing pack. See [Design Tokens](/info/design-tokens.html) for the token model and [Quickstart](/info/quickstart.html) for the end-user brand flow.
+`<source>` is any container Penpot / Tokens Studio export the same DTCG document in - a monolithic `tokens.json`, a one-file-per-set directory, or a `project.penpot` archive. The extracted document is written to `catalog/assets/<ns>/tokens/brand.json` as the pack's core-tier `tokens` asset, where `<ns>` is `<brand>` with hyphens stripped (an asset id can't carry `-` in its first segment, so `--name acme-co` yields `assets/acmeco/…`). Ingest also *derives* the pack's photo-treatment and icon-theme palette documents under `catalog/assets/<ns>/palette/`, so uploaded photos get on-brand washes and themable icons get colour pairings out of the box (icon themes are skipped when the palette has no accent). `--register` upserts the pack into `profiles.json`; `--activate` also builds and validates the catalog for it and prints the `LOLLY_PROFILE=<brand>` line that selects it (nothing is switched globally); `--out` picks a different destination and `--force` overwrites an existing pack. See [Design Tokens](/info/design-tokens.html) for the token model and [Quickstart](/info/quickstart.html) for the end-user brand flow.
 
 ### Brand lock
 

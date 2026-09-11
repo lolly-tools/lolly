@@ -10,7 +10,7 @@ import { materializeDirectory } from './build/materialize-directory.ts';
 // from ../web/vite.config.js and are separate pnpm projects that do not depend on
 // node-shell, so a bare specifier would not resolve in either of their builds.
 import {
-  catalogFile, materializeInto, toolFile,
+  catalogFile, contentRoots, materializeInto, readToolManifestText, toolFile,
 } from '../../packages/node-shell/src/content-roots.ts';
 
 // This file's directory (shells/web/). Computed from import.meta.url rather
@@ -151,7 +151,13 @@ function serveRepoStatic() {
         // which pack answers each one. /schemas/ IS a real repo directory.
         const filePath = contentFilePath(url);
         if (!filePath || !existsSync(filePath) || !statSync(filePath).isFile()) return next();
-        const data = readFileSync(filePath);
+        // A manifest is served as the COMPOSED text, the same bytes dist carries and
+        // the catalog signer hashes. An overlay tool's file on disk still declares
+        // `extends`, and dev must not be the one surface that shows it.
+        const manifestId = /^\/tools\/([^/]+)\/tool\.json$/.exec(url)?.[1];
+        const data = manifestId
+          ? Buffer.from(readToolManifestText(decodeURIComponent(manifestId)), 'utf8')
+          : readFileSync(filePath);
         res.setHeader('Content-Type', MIME[extname(filePath)] ?? 'application/octet-stream');
         res.setHeader('Content-Length', data.byteLength);
         isolationHeaders(res);
@@ -381,18 +387,19 @@ export function precacheManifest() {
 // Bake per-brand browser/PWA chrome into index.html at build time. The static
 // theme-color in index.html is SUSE pine (#0c322c); on any OTHER brand (e.g. the
 // blank lolly-start profile) that would wrongly tint the mobile address bar / PWA
-// titlebar SUSE green, and the SUSE webfont preload would just 404. Resolve the
-// active profile (LOLLY_PROFILE env on Vercel → the repo-root .lolly-profile
-// sticky file → the suse default) and, for a non-SUSE brand, neutralise the
+// titlebar SUSE green, and the SUSE webfont preload would just 404. So ask the
+// resolver which brand this build is, and for a non-SUSE brand neutralise the
 // theme-color and drop the dead SUSE font preload. SUSE builds are untouched.
 // (Longer term the colour should come from the active brand's own tokens.)
+//
+// The profile comes from contentRoots(), the same call that decides which packs the
+// rest of this build reads. It used to re-derive it here (LOLLY_PROFILE, then the
+// .lolly-profile sticky file, then a hardcoded 'suse'), which agreed with the content
+// only while the removed postinstall kept writing that sticky file: on a fresh public
+// clone with no env var it would bake SUSE chrome around lolly-start content.
 function brandChrome() {
   const NEUTRAL = '#4f84ba'; // the app's canonical brand fallback (brand-vars.ts)
-  let profile = process.env.LOLLY_PROFILE?.trim();
-  if (!profile) {
-    try { profile = readFileSync(resolve(repoRoot, '.lolly-profile'), 'utf8').trim(); } catch { /* no sticky file */ }
-  }
-  if (!profile) profile = 'suse';
+  const profile = contentRoots().profile;
   const isSuse = profile === 'suse';
   // Canonical host for the origin guard baked into index.html. index.html hardcodes
   // the SUSE default ('lolly.tools'); an unknown brand gets '' so the guard no-ops

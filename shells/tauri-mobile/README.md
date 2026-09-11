@@ -63,7 +63,7 @@ The `export` override opens with `export * from '../../web/src/bridge/export.ts'
 ### `vite.config.js` also carries two other plugins
 
 - **`jsToTsFallback`** maps a missing `.js` specifier to its sibling `.ts`. The web shell's `index.html` still names `/src/main.js`; the plugin only fires when the `.js` is genuinely absent and the `.ts` exists.
-- **`bundleRepoDirs`** serves `/tools/` and `/catalog/` from the repo root in dev, and copies them into `dist/` on build with `dereference: true`, because those paths are symlink farms built by `scripts/use-profile.ts`.
+- **`bundleRepoDirs`** answers `/tools/` and `/catalog/` in dev through the content resolver, and on build writes a real tree into `dist/` (`materializeInto`, or the neutral seed), because those are URL namespaces rather than directories.
 
 `build.target` and `optimizeDeps.esbuildOptions.target` are both `esnext` because harfbuzzjs, the text-to-path WASM, uses top-level await, which the default `es2020` target rejects. Without it `build:ios` fails in esbuild transpile.
 

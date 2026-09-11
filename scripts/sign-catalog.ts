@@ -47,7 +47,9 @@ import {
 } from '../engine/src/catalog-integrity.ts';
 import type { UnsignedCatalogEnvelope } from '../engine/src/catalog-integrity.ts';
 import { pemToDer, derToPem } from '../engine/src/x509.ts';
-import { catalogFile, toolDirs, toolFile, listToolFiles } from '@lolly-tools/node-shell/content-roots';
+import {
+  catalogFile, listToolFiles, readToolManifestText, toolDirs, toolFile,
+} from '@lolly-tools/node-shell/content-roots';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const KEYS_DIR = join(ROOT, 'keys');
@@ -206,7 +208,15 @@ async function run(args: Args): Promise<void> {
       for (const filename of CATALOG_SIGNED_TOOL_FILES) {
         const path = toolFile(id, filename);
         if (!path) continue;
-        files[`${id}/${filename}`] = await sha256Hex(readFileSync(path));
+        // tool.json is hashed as the COMPOSED manifest text, not as the bytes on
+        // disk: an overlay's file still carries its `extends` member, and dist,
+        // the dev server and readToolText all serve the stripped form. Hashing
+        // the raw overlay would sign a manifest no client ever receives, and a
+        // release build would then fail its own verify-release-catalog step.
+        const bytes = filename === 'tool.json'
+          ? new TextEncoder().encode(readToolManifestText(id))
+          : readFileSync(path);
+        files[`${id}/${filename}`] = await sha256Hex(bytes);
       }
       for (const rel of listToolFiles(id)) {
         const signed = (rel.startsWith('i18n/') && CATALOG_SIGNED_I18N_SIDECAR.test(rel))
