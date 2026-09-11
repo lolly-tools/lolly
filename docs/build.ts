@@ -14,6 +14,10 @@ import { ENGINE_VERSION } from '../engine/src/version.ts';
 import { buildAgentDocs, AGENT_FILES } from './agents-pages.ts';
 import { readShotProvenance } from './shot-provenance.ts';
 import { scan as scanVernacular, staleAllows as staleVernacularAllows } from '../scripts/check-docs-vernacular.ts';
+// Where the active profile's catalog is (plan 244): it belongs to a brand pack, not to
+// a repo-root catalog/ directory. Relative import, the way this file already reaches
+// engine/src and scripts/.
+import { catalogFile } from '../packages/node-shell/src/content-roots.ts';
 
 // Deterministic vernacular + fingerprint-unicode gate (owner-mandated, no model
 // in the loop): the build refuses to produce /info from sources that carry a
@@ -117,7 +121,7 @@ const LANDING_TITLE = 'Lolly Tools';
 // Tool count for the hero badge - read from the generated catalog index so it
 // tracks the real number of tools rather than drifting as a hand-edited literal.
 const TOOL_COUNT = JSON.parse(
-  readFileSync(resolve(repoRoot, 'catalog/tools/index.json'), 'utf8')
+  readFileSync(catalogFile('tools/index.json'), 'utf8')
 ).tools.length;
 
 type Pathway = 'quickstart' | 'builders' | 'creators' | 'operators' | 'trust';
@@ -5428,7 +5432,7 @@ async function build() {
   // A brand whose catalog has no preview for a look ships that card without a
   // picture (makeSomethingBlock checks), which is why this is a warning, not a fail.
   rmSync(resolve(outDir, 'examples'), { recursive: true, force: true });
-  const previewDir = resolve(repoRoot, 'catalog', 'previews');
+  const previewDir = catalogFile('previews');
   const havePreviews = LANDING_SCENES.filter(s => existsSync(resolve(previewDir, s.look)));
   if (havePreviews.length) {
     mkdirSync(resolve(outDir, 'examples'), { recursive: true });
