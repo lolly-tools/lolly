@@ -29,8 +29,8 @@ import {
   createNodeRewordAPI, createNodeUpscaleAPI, decodeRgba, depthMapToRgba, encodeRgbaPng,
   formatBytes, MATTE_DEFAULT_MODEL, ModelNotInstalledError, modelsDirNote, resolveMatteModel,
   UPSCALE_DEFAULT_MODEL,
-} from '../../../packages/node-shell/src/ml/index.ts';
-import { REWORD_STYLES } from '../../../packages/node-shell/src/ml/reword.ts';
+} from '@lolly-tools/node-shell/ml';
+import { REWORD_STYLES } from '@lolly-tools/node-shell/ml/reword';
 import { EXIT, CliError, unavailableHere, usageError } from './exit-codes.ts';
 import { note, writeOut } from './output.ts';
 
