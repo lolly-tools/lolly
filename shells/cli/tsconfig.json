@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // "DOM" for the same reason as engine/tsconfig.json: the CLI pulls in
+    // engine/src/bridge/host-v1.ts (via engine imports), whose contract uses DOM
+    // structural types (Element, Blob). No DOM APIs are used at runtime.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"]
+  },
+  "include": ["src/**/*", "bin/**/*"]
+}
