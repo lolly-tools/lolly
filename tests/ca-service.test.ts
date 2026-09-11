@@ -240,7 +240,9 @@ test('CA durable limiter hashes subjects, uses atomic REST admission and is mand
   assert.match(requestBody, /"EVAL"/);
   assert.doesNotMatch(requestBody, /private@example\.test/);
 
-  assert.throws(() => createRateLimiter({ VERCEL: '1' }), /durable CA rate limiter/i);
+  // No store and no opt-in: the limiter is constructed (the function boots) but
+  // admits nothing - every consume is "unavailable", which the handler maps to 503.
+  await assert.rejects(createRateLimiter({ VERCEL: '1' }).consume('email-address', 'x', 1, 60_000), /no durable CA rate limiter is configured/i);
   assert.doesNotThrow(() => createRateLimiter({ VERCEL: '1', CA_ALLOW_IN_MEMORY_RATE_LIMIT: '1' }));
 
   let now = 0;

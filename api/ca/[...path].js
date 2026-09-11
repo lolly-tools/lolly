@@ -589,6 +589,17 @@ var RedisRestRateLimiter = class {
     return decision(count, limit, Math.max(1, ttl));
   }
 };
+var UnconfiguredRateLimiter = class {
+  #reason;
+  constructor(reason) {
+    this.#reason = reason;
+  }
+  async consume(scope, subject, limit, windowMs) {
+    validateBudget(limit, windowMs);
+    throw new RateLimitUnavailableError(this.#reason);
+  }
+};
+var UNCONFIGURED_REASON = "No durable CA rate limiter is configured for this hosted deployment: set CA_RATE_LIMIT_REST_URL + CA_RATE_LIMIT_REST_TOKEN (or the LOLLY_RATE_LIMIT_REST_* pair), or CA_ALLOW_IN_MEMORY_RATE_LIMIT=1 to accept per-instance limiting";
 function createRateLimiter(env) {
   const url = String(env.CA_RATE_LIMIT_REST_URL || env.LOLLY_RATE_LIMIT_REST_URL || "").trim();
   const token = String(env.CA_RATE_LIMIT_REST_TOKEN || env.LOLLY_RATE_LIMIT_REST_TOKEN || "").trim();
@@ -596,7 +607,8 @@ function createRateLimiter(env) {
   if (url && token) return new RedisRestRateLimiter({ url, token });
   const hosted = !!env.VERCEL || env.CA_HOSTED === "1" || env.NODE_ENV === "production";
   if (hosted && env.CA_ALLOW_IN_MEMORY_RATE_LIMIT !== "1") {
-    throw new Error("A durable CA rate limiter is required in hosted/production mode");
+    console.warn(`[ca rate-limit] ${UNCONFIGURED_REASON}`);
+    return new UnconfiguredRateLimiter(UNCONFIGURED_REASON);
   }
   return new MemoryRateLimiter();
 }
