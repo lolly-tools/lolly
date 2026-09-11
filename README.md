@@ -71,6 +71,7 @@ security posture).
 | [builders.md](builders.md) | tool author | Pathway hub. A router: three lanes - designers, developers, infrastructure - each listing the pages that carry it. |
 | [overview.md](overview.md) | contributor | **The architecture document.** The three-layer separation (engine, shells, tool/brand packs), the capability-bridge boundary, the repository layout, the ten architectural commitments, and where the engine ends and the host begins. Opens with the product rationale, so use its navigation note to jump straight to the architecture. |
 | [design-tokens.md](design-tokens.md) | tool author | The DTCG token model as the single source of truth for brand primitives, and what round-trips with Penpot and Tokens Studio. |
+| [glossary.md](glossary.md) | end user | The words Lolly uses with exact meanings (engine, shell, bridge, tool, brand pack, profile, view, catalog, session, utility, collab) and what each is not. Read before the architecture page or CLAUDE.md. |
 | [constraints.md](constraints.md) | end user | The constraints concept page: why output comes out right by construction, with the mechanism, the enforcing tests and the limits. |
 | [determinism.md](determinism.md) | end user | The determinism concept page: same inputs, same file, one render path behind every shell, and what is byte-reproducible against what is not. |
 | [reproducibility.md](reproducibility.md) | end user | The reproducibility concept page: the URL as the artifact, what travels in a link and what a bare link cannot carry. |

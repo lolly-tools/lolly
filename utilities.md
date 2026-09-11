@@ -8,13 +8,23 @@ A tool is data - a manifest, a template, inputs that live in the URL - so it sav
 
 That trade buys the things a tool cannot have. A view can use the shell's own controls (the Colour Lab is built on the app's multi-space colour picker), it can simply be a very tall page instead of a fixed canvas and it can hold a 200,000-row grid or a 400-page document that no render path would want. The cost is honest and easy to name before you start: no saved sessions, and nothing to keep offline per view, since they ship inside the app shell and are available whenever it is.
 
-They live in the **Utilities** tab (`#/u`), alongside the on-device utility *tools* - Strip Hidden Data, Compress PDF, Pages, Trim, Sign, Clean, Convert Image, Convert Font, Redact, Screen Capture, Text Helper and the rest - because to anyone using them they are the same kind of thing: something you open from that grid. A view's tile can be starred like a tool's ([Your favourites](/info/favourites.html) covers the strip that puts starred things on top), and each carries a details dialog. What a view's tile does not offer is *keep offline* or *saved sessions*, for the reasons above.
+They live in the **Utilities** tab (`#/u`), alongside the on-device utility *tools* - Strip Hidden Data, Compress PDF, Pages, Trim, Sign, Clean, Convert Image, Convert Font, Redact, Screen Capture, Text and the rest - because to anyone using them they are the same kind of thing: something you open from that grid. A view's tile can be starred like a tool's ([Your favourites](/info/favourites.html) covers the strip that puts starred things on top), and each carries a details dialog. What a view's tile does not offer is *keep offline* or *saved sessions*, for the reasons above.
 
 ![Strip Hidden Data: the file arrives on the canvas and the badge states plainly that nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1200&height=750&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-strip-data)
 
 > **Verify & Inspect** (`#/verify`) is the sixth member of the family and has pages of its own: [Verify It Yourself](/info/verify-yourself.html) and [Security & Verification](/info/security.html).
 
 ## Everyday file tools
+
+**[Text](/t/text-helper)** brings character exploration and text work into one utility. Start with **Characters** to browse the loaded brand font or search emoji; picking a character copies its exact Unicode sequence. **Work with text** opens a persistent editor with syntax highlighting, selection actions and Undo. The label is Text; its permanent tool ID remains `text-helper` so existing links still work.
+
+**All actions** groups editing, inspection, conversion and generation behind a searchable chooser. It includes the existing Verify and Catalog writing signals and plain-language suggestions, de-identification with reviewable aliases, line and word comparison, regular-expression matches and replacement, JSON/YAML/TOML conversion, formatting and validation, encodings, checksums and ASCII lettering. Markdown can be previewed or downloaded as a document. QR codes remain in the QR utility.
+
+Open a file, pick a catalog text asset, or use **Open in Text** in Catalog, Projects or a Verify text extract. **Save a copy** adds the result to the catalog and its source project when present. **Save to source** updates a user-owned asset under the same ID, so project references keep working. It refuses to overwrite a source changed since it was opened. Catalog previews can be shortened for display; Text reads the complete supported file, up to 4 MiB. Drafts use normal saved-session storage and recovery; edits do not put document contents into the address bar automatically.
+
+Log analysis accepts pasted or opened log text, including JSON lines and journal-style fields. It retains unclassified lines, groups consecutive repeated events, filters by text, severity, source and time, and lets a row open its original lines and fields. It does not read the system journal. **AI synopsis** uses the existing optional local model to select original excerpts, with source references; **AI rewrite** checks names, numbers and links before offering a result. Both need review, and neither replaces the document automatically. Model download is explicit, actions show progress and Cancel, and results from an older edit cannot overwrite newer text.
+
+Syntax highlighting is shared by Text, Snippet, Sandbox and code assets in the Catalog modal. The editor and character grid use the active brand's font and semantic UI tokens. Highlighting is a display aid, not a code validator; unknown languages remain readable as plain text.
 
 **Pages** is the PDF page manager: give it a 1-based expression such as `1-3,7,10-` to reorder, rotate, extract or delete those pages, append a second PDF, or split comma-separated ranges into separate files. The page strip shows the selection before download. It preserves the primary document's own metadata, adds none of Lolly's, and refuses encrypted PDFs and XFA forms rather than risking a partial document.
 
@@ -28,7 +38,7 @@ They live in the **Utilities** tab (`#/u`), alongside the on-device utility *too
 
 Inspect text, JSON, YAML, HAR and ZIP files locally, choose replacements, review
 originals beside the resulting copies, then copy, download, send or save a result
-to the library. Text Helper opens the same panel for the selected input text (or
+to the library. Text opens the same panel for the selected input text (or
 all input when there is no selection). Catalog assets and saved file results have
 a **Prepare for sharing** action; exported file utilities offer it for the copy.
 

@@ -235,6 +235,7 @@ const pages: Page[] = [
   // ── Builders pathway ─────────────────────────────────────────────────────
   { slug: 'overview',         title: 'Architecture',      src: 'overview.md',        pathway: 'builders', description: "How the Lolly platform is put together: the engine, the shells, the capability bridge, and why tools are data rather than bundled code." },
   { slug: 'design-tokens',    title: 'Design Tokens',     src: 'design-tokens.md',   pathway: 'builders' },
+  { slug: 'glossary',         title: 'Glossary',          src: 'glossary.md',        pathway: 'builders', description: "The words Lolly uses with exact meanings: engine, shell, bridge, tool, brand pack, profile, view, catalog, session, utility, collab, and what each is not." },
   { slug: 'constraints',      title: 'Constraints',       src: 'constraints.md',     pathway: 'builders', description: "Why output comes out right by construction: inputs declared in the manifest, logic-less templates and brand values resolved from tokens, with the tests that enforce each." },
   { slug: 'determinism',      title: 'Determinism',       src: 'determinism.md',     pathway: 'builders', description: "Same inputs, same file: one render path behind every shell, what is byte-reproducible and what is not, and the receipts for both." },
   { slug: 'reproducibility',  title: 'Reproducibility',   src: 'reproducibility.md', pathway: 'builders', description: "The URL is the artifact: every input travels as parameters, so a link re-renders next year, and the limits of what a bare link can carry." },
@@ -495,7 +496,8 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'quickstart', label: 'Quickstart' } ] },
       { label: 'Architecture', items: [
         { slug: 'overview',      label: 'Architecture' },
-        { slug: 'design-tokens', label: 'Design Tokens' } ] },
+        { slug: 'design-tokens', label: 'Design Tokens' },
+        { slug: 'glossary',      label: 'Glossary' } ] },
       // The three concept pages: each takes one term the landing states in plain
       // words and shows the mechanism, the receipts and the limits (plan 117 section 2).
       { label: 'Concepts', items: [
@@ -4601,7 +4603,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'creators', label: 'For Creators', slugs: [
     'using', 'templates', 'brand-studio', 'design-import', 'sequence-editor', 'animating', 'utilities', 'extension'] },
   { hub: 'builders', label: 'For Builders', slugs: [
-    'overview', 'design-tokens', 'authoring-tools', 'authoring-assets', 'host-api', 'url-mode'] },
+    'overview', 'design-tokens', 'glossary', 'authoring-tools', 'authoring-assets', 'host-api', 'url-mode'] },
   { hub: 'operators', label: 'For Operators', slugs: [
     'sales', 'press', 'marketing', 'legal',
     'adoption-governance', 'sovereign-production', 'deployment', 'configuration', 'build-guide', 'cli-signing'] },
@@ -4728,7 +4730,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   ask: 'sparkle', dashboard: 'monitor', utilities: 'wrench',
   collaborate: 'people', search: 'search', favourites: 'star',
   // Builders - architecture & authoring
-  overview: 'layers', 'design-tokens': 'hash', 'authoring-tools': 'wrench', 'authoring-assets': 'photos',
+  overview: 'layers', 'design-tokens': 'hash', glossary: 'document', 'authoring-tools': 'wrench', 'authoring-assets': 'photos',
   'host-api': 'code', 'url-mode': 'link',
   // Builders - run & integrate
   cli: 'code', 'cli-signing': 'seal', tui: 'monitor', mcp: 'server', 'ai-agents': 'sparkle', extension: 'globe',

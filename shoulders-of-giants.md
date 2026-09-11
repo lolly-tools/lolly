@@ -47,7 +47,7 @@ The traffic runs both ways: Lolly ships as openSUSE RPMs and a Flatpak, and regi
 - **D3** (Mike Bostock, 2011) draws the Chart tool, projects the street maps and spins that globe.
 - **BWIPP**, Terry Burton's Barcode Writer in Pure PostScript, encodes Data Matrix, PDF417, Aztec and a dozen other symbologies - a reference implementation written in Adobe's 1984 page description language, executed in the browser by bwip-js. **qrcode-svg** draws QR codes; the QR code itself is Masahiro Hara's 1994 design, which Denso Wave chose never to enforce a patent on. **ZXing**, begun at Google in 2008 for the first Android phones, is the scanner going the other way.
 - Every compressed design link and every .lolly file is DEFLATE, the format Phil Katz published in 1993, implemented today by **fflate**. **Zstandard** (Yann Collet) and **kiwi** - Evan Wallace's binary schema format, written at Figma - together let Lolly unpack a .fig file; Penpot's open .penpot format asks for no such effort and imports directly.
-- And the small exact parts: **yaml** (Eemeli Aro) in the Text Helper, **idb** (Jake Archibald) over IndexedDB, **flatpickr** for dates, Julien Marcou's emoji picker, **woff2-encoder** for font subsetting.
+- And the small exact parts: **yaml** (Eemeli Aro) in the Text, **idb** (Jake Archibald) over IndexedDB, **flatpickr** for dates, Julien Marcou's emoji picker, **woff2-encoder** for font subsetting.
 
 ## The new giants
 

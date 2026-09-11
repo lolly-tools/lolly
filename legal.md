@@ -5,7 +5,7 @@ You are the last pair of eyes before a file leaves the building, and the file is
 ## Nothing leaves to be cleaned
 
 - **Black out, for good.** [Redact](/#/tool/redact) rebuilds the file around the boxes you draw, so the words under them are gone rather than covered, and it verifies the output before it downloads. PDFs and images alike.
-- **Anonymise the text.** The de-identify mode in [Text Helper](/#/tool/text-helper) swaps the personal identifiers in a block of text for placeholders, so an interview, a log or an export can be shared without the people in it.
+- **Anonymise the text.** The de-identify mode in [Text](/#/tool/text-helper) swaps the personal identifiers in a block of text for placeholders, so an interview, a log or an export can be shared without the people in it.
 - **Strip what the pages do not show.** [Strip Hidden Data](/#/tool/strip-data) reveals and removes the metadata riding inside images and PDFs: locations, devices, authors, edit history.
 - **Shrink without sending.** [Compress](/#/tool/compress-pdf) recompresses a PDF's images on the device. The "free online compressor" is the exfiltration your data-loss policy exists to prevent.
 - **Check what you were sent.** [Verify](/#/verify) reads a file's Content Credential where you are: who made it, with what, and whether AI was involved. The walk-through is [Verify it yourself](/info/verify-yourself.html).
