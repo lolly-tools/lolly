@@ -25,9 +25,6 @@
 [submodule "docs"]
 	path = docs
 	url = https://github.com/lolly-tools/lolly-docs.git
-[submodule "community"]
-	path = community
-	url = https://github.com/lolly-tools/lolly-tools.git
 [submodule "brands/suse"]
 	path = brands/suse
 	url = https://github.com/lolly-tools/suse-lolly.git
