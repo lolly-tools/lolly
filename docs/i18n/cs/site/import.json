@@ -1,0 +1,25 @@
+{
+  "eyebrow": "Přines to, co už máš hotové",
+  "heading": "Tvoje návrhové soubory nejsou uvězněné",
+  "lead": "Hotová práce v **Figmě, Penpotu, Illustratoru, InDesignu nebo jakékoli SVG appce** nemusí zůstat uvězněná v jedné aplikaci. Otevři **Design**, klikni na **Importuj návrh** a soubor se otevře jako živý layout - ne jako zploštělý obrázek. Každá vrstva se stane editovatelným boxem, se kterým můžeš dál pracovat, kombinovat ho s nástroji a renderovat podle stejných pravidel.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "Libovolné SVG", "fmt": "univerzální", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "Tvůj návrhový soubor", "desc": "Figma, Penpot, Illustrator, InDesign nebo jakékoli SVG" },
+    { "icon": "importFlowCanvas", "title": "Editovatelné plátno", "desc": "Každá vrstva je box, který můžeš přepsat, přestylovat a přesunout" },
+    { "icon": "importFlowMix", "title": "Kombinuj s nástroji", "desc": "Přidej QR kód, živý graf nebo další render" },
+    { "icon": "importFlowRender", "title": "Renderuj kdekoli", "desc": "SVG, PDF, PNG, video - reprodukovatelné z URL" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "Zůstává to editovatelné", "desc": "Text zůstává textem, tvary zůstávají tvary, obrázky se přidají do tvé knihovny. Dál pracuješ na návrhu - nikdy nepřekresluješ screenshot." },
+    { "icon": "importPointShield", "title": "Přichází to sladěné", "desc": "Písma se přemapují na tvé řezy a každá výplň projde stejnou kontrolou barev jako nativní box. Cizí plátno přistává už podřízené pravidlům." },
+    { "icon": "importPointGrid", "title": "Stává se to šablonou", "desc": "Ulož to a layout se stane znovupoužitelným nástrojem adresovatelným přes URL - takovým, který může kdokoli s Lolly otevřít, znovu naplnit obsahem a vyrenderovat. Bez potřeby návrhové appky." }
+  ],
+  "cta": "Podívej se, jak funguje import návrhu →",
+  "ctaHref": "/info/design-import.html"
+}

@@ -1,0 +1,29 @@
+{
+  "heading": "Tous les formats, à l'entrée comme à la sortie",
+  "_lead_note": "Deliberately count-free: the in/out/round-trip numbers are computed live in docs/build.ts from formats-catalog.json's dir fields, so no string in this file may hard-code one.",
+  "lead": "Lolly lit des dizaines de formats source et en rend des dizaines d'autres - voici l'ensemble complet, regroupé selon ce qu'est chacun. Les {roundtrip} sont lus *et* écrits, donc ils apparaissent une seule fois, au milieu.",
+  "ingestsLabel": "Entrées",
+  "ingestsCount": "en entrée",
+  "exportsLabel": "Sorties",
+  "exportsCount": "en sortie",
+  "ingests": [
+    { "category": "Vectoriel", "list": "SVG · PDF · Illustrator · InDesign · Figma · Penpot" },
+    { "category": "Matriciel", "list": "PNG · JPG · WEBP · GIF · HEIC · TIFF · AVIF" },
+    { "category": "Calques", "list": "PSD · PSB · XCF" },
+    { "category": "Animation", "list": "MP4 · WEBM · MOV · Lottie" },
+    { "category": "Audio", "list": "MP3 · WAV · OGG · M4A · FLAC · MIDI · MOD" },
+    { "category": "Document", "list": "PPTX" },
+    { "category": "Données", "list": "CSV · JSON" },
+    { "category": "3D", "list": "GLB · glTF" }
+  ],
+  "exports": [
+    { "category": "Vectoriel", "list": "SVG · PDF · CMYK PDF · EPS · CMYK EPS · EMF · DXF" },
+    { "category": "Matriciel", "list": "PNG · JPG · WEBP · AVIF · TIFF · CMYK TIFF · ICO" },
+    { "category": "Calques", "list": "PSD" },
+    { "category": "Animation", "list": "MP4 · WEBM · GIF · APNG · WebP animé · SVG animé" },
+    { "category": "Audio", "list": "MP3 · M4A" },
+    { "category": "Document", "list": "PPTX · HTML · MD · TXT" },
+    { "category": "Données", "list": "CSV · JSON · ICS · VCF" },
+    { "category": "Archive", "list": "ZIP" }
+  ]
+}

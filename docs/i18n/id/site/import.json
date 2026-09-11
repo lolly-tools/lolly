@@ -1,0 +1,25 @@
+{
+  "eyebrow": "Bawa apa yang sudah Anda buat",
+  "heading": "Berkas desain Anda tidak terjebak",
+  "lead": "Karya yang sudah selesai di **Figma, Penpot, Illustrator, InDesign atau aplikasi SVG apa pun** tidak harus tetap terkunci di satu aplikasi saja. Buka **Design**, klik **Impor desain**, dan berkasnya terbuka sebagai layout yang hidup - bukan gambar yang sudah diratakan. Setiap layer menjadi kotak yang dapat diedit, siap untuk terus dikerjakan, digabungkan dengan alat dan dirender melalui aturan yang sama.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "SVG Apa Saja", "fmt": "universal", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "Berkas desain Anda", "desc": "Figma, Penpot, Illustrator, InDesign atau SVG apa pun" },
+    { "icon": "importFlowCanvas", "title": "Kanvas yang dapat diedit", "desc": "Setiap layer menjadi kotak yang bisa Anda ketik ulang, ubah gayanya dan pindahkan" },
+    { "icon": "importFlowMix", "title": "Gabungkan dengan alat", "desc": "Tambahkan kode QR, bagan langsung atau render lain" },
+    { "icon": "importFlowRender", "title": "Render di mana saja", "desc": "SVG, PDF, PNG, video - dapat direproduksi dari sebuah URL" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "Tetap dapat diedit", "desc": "Teks tetap menjadi teks, bentuk tetap menjadi bentuk, gambar bergabung ke pustaka Anda. Anda terus mengerjakan desainnya - Anda tidak pernah mengecat ulang tangkapan layar." },
+    { "icon": "importPointShield", "title": "Tiba sudah sesuai aturan", "desc": "Font dipetakan ulang ke jenis huruf Anda, dan setiap isian melewati penjaga warna yang sama seperti kotak native. Artboard dari luar tiba dalam keadaan sudah terkendali." },
+    { "icon": "importPointGrid", "title": "Menjadi template", "desc": "Simpan, dan layout tersebut menjadi alat yang dapat digunakan kembali dan dapat diakses lewat URL - yang dapat dibuka, diisi ulang, dan dirender oleh siapa saja yang punya Lolly. Tidak perlu aplikasi desain." }
+  ],
+  "cta": "Lihat cara kerja impor desain →",
+  "ctaHref": "/info/design-import.html"
+}

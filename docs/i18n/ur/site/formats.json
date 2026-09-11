@@ -1,0 +1,29 @@
+{
+  "heading": "ہر فارمیٹ، اندر اور باہر",
+  "_lead_note": "Deliberately count-free: the in/out/round-trip numbers are computed live in docs/build.ts from formats-catalog.json's dir fields, so no string in this file may hard-code one.",
+  "lead": "Lolly درجنوں سورس فارمیٹس پڑھتا ہے اور درجنوں مزید رینڈر کرتا ہے - یہ رہا مکمل سیٹ، اس بنیاد پر گروپ کیا گیا کہ ہر ایک کیا ہے۔ {roundtrip} والے پڑھے *اور* لکھے دونوں جاتے ہیں، اس لیے وہ ایک ہی بار درمیان میں آتے ہیں۔",
+  "ingestsLabel": "درآمدات",
+  "ingestsCount": "اندر",
+  "exportsLabel": "برآمدات",
+  "exportsCount": "باہر",
+  "ingests": [
+    { "category": "ویکٹر", "list": "SVG · PDF · Illustrator · InDesign · Figma · Penpot" },
+    { "category": "راسٹر", "list": "PNG · JPG · WEBP · GIF · HEIC · TIFF · AVIF" },
+    { "category": "تہہ دار", "list": "PSD · PSB · XCF" },
+    { "category": "حرکت", "list": "MP4 · WEBM · MOV · Lottie" },
+    { "category": "آڈیو", "list": "MP3 · WAV · OGG · M4A · FLAC · MIDI · MOD" },
+    { "category": "دستاویزات", "list": "PPTX" },
+    { "category": "ڈیٹا", "list": "CSV · JSON" },
+    { "category": "3D", "list": "GLB · glTF" }
+  ],
+  "exports": [
+    { "category": "ویکٹر", "list": "SVG · PDF · CMYK PDF · EPS · CMYK EPS · EMF · DXF" },
+    { "category": "راسٹر", "list": "PNG · JPG · WEBP · AVIF · TIFF · CMYK TIFF · ICO" },
+    { "category": "تہہ دار", "list": "PSD" },
+    { "category": "حرکت", "list": "MP4 · WEBM · GIF · APNG · متحرک WebP · متحرک SVG" },
+    { "category": "آڈیو", "list": "MP3 · M4A" },
+    { "category": "دستاویزات", "list": "PPTX · HTML · MD · TXT" },
+    { "category": "ڈیٹا", "list": "CSV · JSON · ICS · VCF" },
+    { "category": "بنڈل", "list": "ZIP" }
+  ]
+}

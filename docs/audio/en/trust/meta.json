@@ -1,0 +1,11 @@
+{
+  "slug": "trust",
+  "lang": "en",
+  "voice": "bf_lily",
+  "speed": 0.8,
+  "modelVersion": "onnx-community/Kokoro-82M-v1.0-ONNX",
+  "textHash": "19563d14ce69ec99278e939dcab521d4748acaefabacd8694adad559b106a009",
+  "duration": 342.025,
+  "bytes": 1020786,
+  "generated": "2026-09-02T08:11:52.663Z"
+}

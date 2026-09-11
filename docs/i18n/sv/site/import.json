@@ -1,0 +1,25 @@
+{
+  "eyebrow": "Ta med det du redan har skapat",
+  "heading": "Dina designfiler är inte strandsatta",
+  "lead": "Färdigt arbete i **Figma, Penpot, Illustrator, InDesign eller vilken SVG-app som helst** behöver inte förbli inlåst i en enda app. Öppna **Design**, klicka på **Importera en design**, så öppnas filen som en levande layout - inte en platt bild. Varje lager blir en redigerbar box, redo att jobba vidare på, blanda med verktyg och rendera genom samma regler.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "Valfri SVG", "fmt": "universellt", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "Din designfil", "desc": "Figma, Penpot, Illustrator, InDesign eller valfri SVG" },
+    { "icon": "importFlowCanvas", "title": "Redigerbar yta", "desc": "Varje lager blir en box som du kan skriva om, ändra stil på och flytta" },
+    { "icon": "importFlowMix", "title": "Blanda in verktyg", "desc": "Lägg till en QR-kod, ett live-diagram eller en annan rendering" },
+    { "icon": "importFlowRender", "title": "Rendera var som helst", "desc": "SVG, PDF, PNG, video - reproducerbart från en URL" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "Den förblir redigerbar", "desc": "Text förblir text, former förblir former, bilder läggs till i ditt bibliotek. Du fortsätter jobba på designen - du målar aldrig om en skärmdump." },
+    { "icon": "importPointShield", "title": "Den landar redan anpassad", "desc": "Typsnitt mappas om till dina typsnitt och varje fyllning går igenom samma färgvakt som en inbyggd box. En extern artboard landar redan reglerad." },
+    { "icon": "importPointGrid", "title": "Den blir en mall", "desc": "Spara den så blir layouten ett återanvändbart verktyg som går att adressera via URL - ett som vem som helst med Lolly kan öppna, fylla i på nytt och rendera. Ingen designapp behövs." }
+  ],
+  "cta": "Se hur det går till att importera en design →",
+  "ctaHref": "/info/design-import.html"
+}

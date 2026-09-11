@@ -1,0 +1,25 @@
+{
+  "eyebrow": "把你已經做好的作品帶進來",
+  "heading": "你的設計檔案不會被困住",
+  "lead": "在 **Figma、Penpot、Illustrator、InDesign 或任何 SVG 應用程式**裡完成的作品，不必被鎖在單一應用程式裡。開啟 **Design**，按一下**匯入設計**，檔案就會以活的版面打開，而不是一張攤平的圖片。每個圖層都會變成可編輯的方框，讓你繼續編輯、與工具混搭，並依照相同的規則渲染。",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "任何 SVG", "fmt": "通用", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "你的設計檔案", "desc": "Figma、Penpot、Illustrator、InDesign 或任何 SVG" },
+    { "icon": "importFlowCanvas", "title": "可編輯畫布", "desc": "每個圖層都是一個方框，可以重新輸入文字、更改樣式、移動位置" },
+    { "icon": "importFlowMix", "title": "與工具混搭", "desc": "加入 QR code、即時圖表或另一個渲染結果" },
+    { "icon": "importFlowRender", "title": "隨處渲染", "desc": "SVG、PDF、PNG、影片，都能從一個 URL 重現" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "它保持可編輯", "desc": "文字仍是文字，圖形仍是圖形，圖片則會加入你的資料庫。你可以繼續處理這份設計，不必重新描繪一張截圖。" },
+    { "icon": "importPointShield", "title": "它一進來就已合規", "desc": "字型會對應到你的字體，每個填色都會通過與原生方框相同的色彩防護。外來的畫板一落地就已受到規範。" },
+    { "icon": "importPointGrid", "title": "它會變成範本", "desc": "儲存後，這個版面就是一個可重複使用、可用 URL 開啟的工具，任何有 Lolly 的人都能開啟、重新填入內容並渲染。不需要設計軟體。" }
+  ],
+  "cta": "看看匯入設計如何運作 →",
+  "ctaHref": "/info/design-import.html"
+}

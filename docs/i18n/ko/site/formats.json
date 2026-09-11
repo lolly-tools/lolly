@@ -1,0 +1,29 @@
+{
+  "heading": "모든 포맷, 가져오기부터 내보내기까지",
+  "_lead_note": "Deliberately count-free: the in/out/round-trip numbers are computed live in docs/build.ts from formats-catalog.json's dir fields, so no string in this file may hard-code one.",
+  "lead": "Lolly는 수십 가지 소스 포맷을 읽고, 다시 수십 가지 포맷으로 렌더링해요. 아래는 각각이 무엇인지에 따라 묶은 전체 목록이에요. {roundtrip} 포맷은 읽기 *그리고* 쓰기가 모두 되기 때문에 가운데에 한 번만 자리해요.",
+  "ingestsLabel": "가져오기",
+  "ingestsCount": "안으로",
+  "exportsLabel": "내보내기",
+  "exportsCount": "밖으로",
+  "ingests": [
+    { "category": "벡터", "list": "SVG · PDF · Illustrator · InDesign · Figma · Penpot" },
+    { "category": "래스터", "list": "PNG · JPG · WEBP · GIF · HEIC · TIFF · AVIF" },
+    { "category": "레이어", "list": "PSD · PSB · XCF" },
+    { "category": "모션", "list": "MP4 · WEBM · MOV · Lottie" },
+    { "category": "오디오", "list": "MP3 · WAV · OGG · M4A · FLAC · MIDI · MOD" },
+    { "category": "문서", "list": "PPTX" },
+    { "category": "데이터", "list": "CSV · JSON" },
+    { "category": "3D", "list": "GLB · glTF" }
+  ],
+  "exports": [
+    { "category": "벡터", "list": "SVG · PDF · CMYK PDF · EPS · CMYK EPS · EMF · DXF" },
+    { "category": "래스터", "list": "PNG · JPG · WEBP · AVIF · TIFF · CMYK TIFF · ICO" },
+    { "category": "레이어", "list": "PSD" },
+    { "category": "모션", "list": "MP4 · WEBM · GIF · APNG · 애니메이션 WebP · 애니메이션 SVG" },
+    { "category": "오디오", "list": "MP3 · M4A" },
+    { "category": "문서", "list": "PPTX · HTML · MD · TXT" },
+    { "category": "데이터", "list": "CSV · JSON · ICS · VCF" },
+    { "category": "번들", "list": "ZIP" }
+  ]
+}

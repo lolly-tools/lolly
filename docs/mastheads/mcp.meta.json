@@ -1,0 +1,7 @@
+{
+  "generator": { "name": "Claude" },
+  "model": { "name": "Claude", "identifier": "claude-fable-5", "vendor": "Anthropic" },
+  "oversight": "prompt_guided",
+  "source": "trainedAlgorithmicMedia",
+  "author": { "name": "Andy Fitzsimon" }
+}

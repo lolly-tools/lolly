@@ -1,0 +1,1033 @@
+WEBVTT
+
+00:00:00.425 --> 00:00:02.047
+Lolly Tools
+
+00:00:03.040 --> 00:00:07.143
+Powerfully reproducible assets & tools.
+
+00:00:07.907 --> 00:00:11.191
+Deterministic, fast, open-source platform
+
+00:00:11.224 --> 00:00:13.269
+- bring your own brand.
+
+00:00:14.038 --> 00:00:15.843
+Try it now.
+
+00:00:16.638 --> 00:00:19.068
+lolly-tools runs in the browser and
+
+00:00:19.124 --> 00:00:21.569
+installs as an app.
+
+00:00:22.367 --> 00:00:25.125
+Nothing you make ever leaves your device
+
+00:00:25.183 --> 00:00:26.969
+without your say.
+
+00:00:27.767 --> 00:00:30.522
+lolly-art is the same app on a blank
+
+00:00:30.584 --> 00:00:31.719
+brand.
+
+00:00:32.489 --> 00:00:35.366
+Desktop, mobile and command-line builds
+
+00:00:35.476 --> 00:00:37.919
+are on the releases page.
+
+00:00:38.714 --> 00:00:40.468
+Read first.
+
+00:00:41.239 --> 00:00:43.181
+The platform is explained at
+
+00:00:43.242 --> 00:00:46.948
+lolly-tools/info, with one door each for
+
+00:00:47.009 --> 00:00:50.101
+creators, builders and operators, a
+
+00:00:50.163 --> 00:00:53.309
+quickstart, and the trust pages that back
+
+00:00:53.395 --> 00:00:55.544
+each claim with the mechanism that
+
+00:00:55.604 --> 00:00:57.294
+enforces it.
+
+00:00:58.084 --> 00:01:01.193
+We built Lolly for ourselves.
+
+00:01:01.993 --> 00:01:05.329
+SUSE needed thousands of on-brand files,
+
+00:01:05.398 --> 00:01:08.552
+each with its name sealed inside, made
+
+00:01:08.588 --> 00:01:10.903
+without handing anything to outside
+
+00:01:10.967 --> 00:01:12.345
+services.
+
+00:01:13.136 --> 00:01:16.088
+So we built a tool that does all of it on
+
+00:01:16.140 --> 00:01:19.418
+the device, and released it as open
+
+00:01:19.529 --> 00:01:22.370
+source, like everything else we make.
+
+00:01:23.146 --> 00:01:26.286
+We keep maintaining it because we use it
+
+00:01:26.349 --> 00:01:27.694
+every day.
+
+00:01:28.469 --> 00:01:31.317
+There is no obligation: everything here
+
+00:01:31.380 --> 00:01:33.919
+works with or without us.
+
+00:01:35.065 --> 00:01:37.391
+What is Lolly Tools
+
+00:01:38.331 --> 00:01:41.600
+A platform that hosts a library of small,
+
+00:01:41.689 --> 00:01:44.858
+focused tools that produce deterministic
+
+00:01:44.919 --> 00:01:46.744
+creative assets.
+
+00:01:47.532 --> 00:01:50.543
+Users need no design skill, no vendor
+
+00:01:50.604 --> 00:01:53.892
+lock-in and no internet to render, and the
+
+00:01:53.954 --> 00:01:56.782
+platform is designed to add premium
+
+00:01:56.842 --> 00:01:59.788
+production-quality rendering certainty to
+
+00:01:59.856 --> 00:02:01.645
+variable data.
+
+00:02:02.399 --> 00:02:05.811
+It's also your personal DAM - every logo,
+
+00:02:05.885 --> 00:02:08.626
+palette, font and upload lives in an
+
+00:02:08.708 --> 00:02:11.513
+on-device catalog, hydrated and
+
+00:02:11.618 --> 00:02:14.218
+supercharged by your design system and
+
+00:02:14.282 --> 00:02:15.469
+tools.
+
+00:02:16.248 --> 00:02:19.368
+Tools can be used via a:
+
+00:02:20.160 --> 00:02:23.188
+Web app - installable offline progressive
+
+00:02:23.256 --> 00:02:24.196
+web app
+
+00:02:25.238 --> 00:02:29.493
+Mobile and Desktop installable packages.
+
+00:02:30.261 --> 00:02:33.031
+and of course, the Command Line - plus a
+
+00:02:33.122 --> 00:02:36.019
+full-screen terminal UI «TUI».
+
+00:02:37.157 --> 00:02:41.093
+Why deploy Lolly in your organization?
+
+00:02:41.878 --> 00:02:44.555
+Hard-coded constraints of design
+
+00:02:44.611 --> 00:02:46.068
+decisions.
+
+00:02:46.858 --> 00:02:49.627
+Free, open-source platform - the engine,
+
+00:02:49.688 --> 00:02:52.417
+every shell, the schemas and docs are
+
+00:02:52.481 --> 00:02:55.069
+MPL-2 point 0.
+
+00:02:55.846 --> 00:02:59.405
+Tools and assets are just data: bring your
+
+00:02:59.469 --> 00:03:02.470
+own brand content «SUSE's tool & asset
+
+00:03:02.539 --> 00:03:05.413
+packs are proprietary - see Licensing &
+
+00:03:05.473 --> 00:03:06.744
+structure».
+
+00:03:07.522 --> 00:03:10.870
+Unlimited scale, No SaaS fees.
+
+00:03:11.673 --> 00:03:15.499
+Low-or-Zero server costs: Lolly uses local
+
+00:03:15.561 --> 00:03:17.319
+device compute.
+
+00:03:18.069 --> 00:03:21.321
+Builds for Mac, Windows, Linux, iOS,
+
+00:03:21.381 --> 00:03:24.045
+Android, web and the command line.
+
+00:03:24.812 --> 00:03:29.066
+Huge format support - 37 in, 40 out «21
+
+00:03:29.126 --> 00:03:30.470
+round-trip».
+
+00:03:31.218 --> 00:03:34.849
+Export: SVG · EPS · CMYK EPS · EMF · DXF ·
+
+00:03:34.906 --> 00:03:38.901
+PDF · Print PDF «CMYK» · PPTX · PNG ·
+
+00:03:38.956 --> 00:03:42.474
+Animated PNG · JPEG · WebP · Animated WebP
+
+00:03:42.508 --> 00:03:45.280
+· AVIF · TIFF · CMYK TIFF · ICO · PSD ·
+
+00:03:45.332 --> 00:03:48.703
+EXR · Radiance HDR · MP4 · WebM · GIF ·
+
+00:03:48.764 --> 00:03:52.624
+Animated SVG · MP3 · M4A · WAV · Opus ·
+
+00:03:52.661 --> 00:03:57.414
+HTML · MD · TXT · CSV · JSON · ICS · VCF ·
+
+00:03:57.493 --> 00:03:58.395
+ZIP.
+
+00:03:59.164 --> 00:04:03.425
+Import adds layered PSD · PSB · XCF, HEIC,
+
+00:04:03.487 --> 00:04:07.675
+MOV · Lottie, GLB · glTF, audio & tracker
+
+00:04:07.761 --> 00:04:10.422
+«OGG · FLAC · MIDI · MOD» and live designs
+
+00:04:10.514 --> 00:04:12.903
+from Illustrator · InDesign · Figma ·
+
+00:04:12.963 --> 00:04:14.170
+Penpot.
+
+00:04:14.931 --> 00:04:18.275
+EXR and Radiance HDR are floating-point
+
+00:04:18.361 --> 00:04:21.569
+HDR masters «via host-codec».
+
+00:04:22.321 --> 00:04:25.153
+Plus design tokens & palettes - import
+
+00:04:25.216 --> 00:04:29.920
+DTCG and Tokens Studio; export DTCG ·
+
+00:04:29.998 --> 00:04:33.345
+ASE · GPL · CSS variables.
+
+00:04:34.093 --> 00:04:37.650
+Print-ready output: CMYK PDF & TIFF,
+
+00:04:37.717 --> 00:04:40.887
+physical units, bleed, crop/registration
+
+00:04:40.944 --> 00:04:44.059
+marks, colour bars and press «FOGRA/SWOP»
+
+00:04:44.120 --> 00:04:45.569
+profiles.
+
+00:04:46.336 --> 00:04:50.244
+Infinite deterministic media creation.
+
+00:04:51.020 --> 00:04:55.002
+Renders and exports 100% offline - the
+
+00:04:55.108 --> 00:04:58.395
+shells need no network at render time.
+
+00:04:59.166 --> 00:05:02.672
+«The optional hosted services - MCP agent
+
+00:05:02.733 --> 00:05:05.831
+endpoint, Content Credentials CA - are
+
+00:05:05.914 --> 00:05:07.761
+separate opt-ins; see
+
+00:05:07.825 --> 00:05:10.594
+docs/server-surface-md.»
+
+00:05:11.387 --> 00:05:14.218
+Full command-line support.
+
+00:05:14.995 --> 00:05:18.067
+Save tokens, tell your model to try Lolly
+
+00:05:18.160 --> 00:05:19.245
+first!
+
+00:05:20.376 --> 00:05:22.287
+What this is not
+
+00:05:23.247 --> 00:05:26.376
+A general-purpose design tool
+
+00:05:27.268 --> 00:05:29.745
+It does include an open canvas - the
+
+00:05:29.803 --> 00:05:32.890
+Design tool - but even there, colours,
+
+00:05:32.955 --> 00:05:35.479
+type and assets conform to the brand
+
+00:05:35.539 --> 00:05:38.836
+globals, so free arrangement never becomes
+
+00:05:38.926 --> 00:05:40.770
+off-brand output.
+
+00:05:41.565 --> 00:05:44.765
+See docs/positioning-md for the full
+
+00:05:44.827 --> 00:05:46.719
+market comparison.
+
+00:05:47.854 --> 00:05:50.093
+Repository layout
+
+00:05:51.088 --> 00:05:54.236
+lolly is an umbrella repo: the app core
+
+00:05:54.296 --> 00:05:57.332
+lives here, and each shippable unit is a
+
+00:05:57.403 --> 00:05:59.204
+git submodule hosted under
+
+00:05:59.267 --> 00:06:01.895
+github-com/lolly-tools.
+
+00:06:02.660 --> 00:06:05.862
+Every submodule is mounted at its original
+
+00:06:05.940 --> 00:06:09.285
+path, so the monorepo builds and runs
+
+00:06:09.351 --> 00:06:11.494
+exactly as before.
+
+00:06:12.272 --> 00:06:15.093
+Code example omitted.
+
+00:06:15.854 --> 00:06:19.466
+Critical separation: engine/ knows nothing
+
+00:06:19.507 --> 00:06:21.119
+about SUSE.
+
+00:06:21.886 --> 00:06:24.273
+Brand-specific content lives in brand
+
+00:06:24.335 --> 00:06:27.151
+packs «brands/suse - private;
+
+00:06:27.214 --> 00:06:29.910
+brands/lolly-start - the blank starter
+
+00:06:29.971 --> 00:06:32.355
+brand», brand-agnostic tools in
+
+00:06:32.417 --> 00:06:36.303
+community/; the shells, services, engine
+
+00:06:36.362 --> 00:06:39.944
+and docs are MPL-2 point 0.
+
+00:06:40.713 --> 00:06:44.256
+The repo-root tools/ and catalog/ paths
+
+00:06:44.334 --> 00:06:46.414
+every script and shell consumes are
+
+00:06:46.475 --> 00:06:48.023
+profile views built by
+
+00:06:48.084 --> 00:06:52.163
+scripts/use-profile-ts from profiles-json
+
+00:06:52.237 --> 00:06:56.062
+- switch brands with npm run profile:suse
+
+00:06:56.142 --> 00:06:59.620
+/ npm run profile:start.
+
+00:07:00.376 --> 00:07:03.430
+Keeping each unit in its own repo lets it
+
+00:07:03.538 --> 00:07:06.443
+ship on its own cadence while the umbrella
+
+00:07:06.528 --> 00:07:09.495
+pins a known-good combination.
+
+00:07:10.630 --> 00:07:12.956
+Architectural commitments
+
+00:07:13.880 --> 00:07:16.869
+These decisions are settled.
+
+00:07:17.631 --> 00:07:20.405
+Changing any of them is a major
+
+00:07:20.484 --> 00:07:21.994
+undertaking:
+
+00:07:22.777 --> 00:07:25.093
+Declarative tools.
+
+00:07:25.853 --> 00:07:30.369
+A tool is a manifest + template + assets.
+
+00:07:31.126 --> 00:07:34.153
+Inputs are declared in the manifest, not
+
+00:07:34.210 --> 00:07:37.020
+inferred from template tokens.
+
+00:07:37.779 --> 00:07:41.140
+hooks-js is an optional escape hatch for
+
+00:07:41.223 --> 00:07:43.537
+tools that need imperative behavior
+
+00:07:43.607 --> 00:07:47.195
+«chart-js rendering, QR encoding».
+
+00:07:47.970 --> 00:07:51.109
+Tools and assets are data, not bundled
+
+00:07:51.193 --> 00:07:52.318
+code.
+
+00:07:53.092 --> 00:07:56.154
+Clients sync them from a signed manifest
+
+00:07:56.236 --> 00:07:57.643
+URL.
+
+00:07:58.451 --> 00:08:01.562
+New tools and assets don't require app
+
+00:08:01.604 --> 00:08:02.868
+updates.
+
+00:08:03.636 --> 00:08:05.993
+Capability bridge.
+
+00:08:06.771 --> 00:08:10.103
+Tools never touch the filesystem, network
+
+00:08:10.150 --> 00:08:13.368
+or DOM-outside-template directly.
+
+00:08:14.145 --> 00:08:17.068
+They call a versioned host.
+
+00:08:17.845 --> 00:08:20.394
+* API.
+
+00:08:21.150 --> 00:08:23.781
+This is what makes the same tool work in
+
+00:08:23.840 --> 00:08:26.445
+browser, Tauri and CLI.
+
+00:08:27.235 --> 00:08:30.493
+Stable asset ID'S forever.
+
+00:08:31.292 --> 00:08:35.794
+suse/logo/primary is a contract.
+
+00:08:36.597 --> 00:08:39.544
+Never reuse, never rename.
+
+00:08:40.339 --> 00:08:43.073
+Version in the manifest, never in the
+
+00:08:43.148 --> 00:08:44.194
+path.
+
+00:08:45.002 --> 00:08:48.193
+URL mode is first-class.
+
+00:08:48.964 --> 00:08:52.261
+Every input must be expressible as URL
+
+00:08:52.323 --> 00:08:53.544
+params.
+
+00:08:54.305 --> 00:08:58.864
+CLI mode = headless DOM «jsdom» + URL mode
+
+00:08:58.932 --> 00:09:00.844
++ file output.
+
+00:09:01.637 --> 00:09:03.818
+One render path.
+
+00:09:04.616 --> 00:09:07.293
+Storage via the bridge.
+
+00:09:08.055 --> 00:09:10.486
+Tools call host-state-save«» /
+
+00:09:10.547 --> 00:09:12.319
+host-state-load«».
+
+00:09:13.077 --> 00:09:15.741
+The bridge picks IndexedDB «web»,
+
+00:09:15.811 --> 00:09:18.745
+filesystem «Tauri» or memory «CLI».
+
+00:09:19.509 --> 00:09:22.119
+Tools never know which.
+
+00:09:22.902 --> 00:09:25.293
+Maturity tags.
+
+00:09:26.072 --> 00:09:28.958
+Every tool declares status: official |
+
+00:09:29.021 --> 00:09:31.593
+community | experimental.
+
+00:09:32.369 --> 00:09:34.933
+Experimental tools watermark their
+
+00:09:34.995 --> 00:09:36.319
+exports.
+
+00:09:37.085 --> 00:09:39.602
+This is the structural answer to the
+
+00:09:39.657 --> 00:09:42.644
+"brand approved by default" risk.
+
+00:09:43.779 --> 00:09:45.614
+Getting started
+
+00:09:46.609 --> 00:09:50.643
+Fresh macOS or openSUSE machine?
+
+00:09:51.437 --> 00:09:54.168
+One command does it all:
+
+00:09:54.947 --> 00:09:57.768
+Code example omitted.
+
+00:09:58.557 --> 00:10:02.424
+/setup-sh installs the prerequisites «git,
+
+00:10:02.496 --> 00:10:06.277
+Node», checks out the submodules, runs npm
+
+00:10:06.352 --> 00:10:09.159
+install and builds a content profile -
+
+00:10:09.211 --> 00:10:12.020
+then tells you what to run next.
+
+00:10:12.809 --> 00:10:15.910
+SUSE devs add --suse to mount the private
+
+00:10:15.972 --> 00:10:17.344
+brand pack.
+
+00:10:18.119 --> 00:10:20.640
+Full details, the manual path and
+
+00:10:20.702 --> 00:10:23.869
+troubleshooting are in INSTALL-md.
+
+00:10:24.632 --> 00:10:27.718
+Prefer to do it by hand?
+
+00:10:28.480 --> 00:10:30.525
+Because the shippable units are
+
+00:10:30.614 --> 00:10:33.494
+submodules, clone recursively:
+
+00:10:34.272 --> 00:10:37.093
+Code example omitted.
+
+00:10:37.866 --> 00:10:41.373
+Once it is running, docs/make-something-md
+
+00:10:41.453 --> 00:10:44.334
+walks a first render in about 60 seconds
+
+00:10:44.395 --> 00:10:47.757
+«no account, nothing to configure», and
+
+00:10:47.820 --> 00:10:50.934
+docs/quickstart-md covers making Lolly
+
+00:10:50.999 --> 00:10:53.044
+wear your own brand.
+
+00:10:53.816 --> 00:10:56.218
+Content profiles.
+
+00:10:56.991 --> 00:11:00.687
+tools/ and catalog/ are gitignored views
+
+00:11:00.792 --> 00:11:02.727
+assembled from the mounted packs
+
+00:11:02.789 --> 00:11:06.785
+«profiles-json»: the private brands/suse
+
+00:11:06.849 --> 00:11:09.921
+pack «skipped automatically on clone if
+
+00:11:09.971 --> 00:11:12.582
+you don't have access - it's update =
+
+00:11:12.701 --> 00:11:16.295
+none» plus the public community/ tools.
+
+00:11:17.048 --> 00:11:19.999
+Without SUSE access you land on the blank
+
+00:11:20.067 --> 00:11:22.729
+lolly-start brand and everything still
+
+00:11:22.791 --> 00:11:24.645
+builds and runs.
+
+00:11:25.432 --> 00:11:27.594
+Switch explicitly:
+
+00:11:28.372 --> 00:11:31.193
+Code example omitted.
+
+00:11:31.981 --> 00:11:35.350
+See docs/authoring-tools-md to build your
+
+00:11:35.441 --> 00:11:38.528
+first tool, and Development below for the
+
+00:11:38.632 --> 00:11:40.545
+submodule workflow.
+
+00:11:41.323 --> 00:11:43.854
+Writing a tool without cloning the
+
+00:11:43.916 --> 00:11:45.244
+platform?
+
+00:11:46.016 --> 00:11:49.990
+npm i -D @lolly-tools/core installs the
+
+00:11:50.081 --> 00:11:54.298
+tool-author SDK from npm: the HostV1
+
+00:11:54.360 --> 00:11:57.830
+contract types, the manifest validator and
+
+00:11:57.905 --> 00:12:00.796
+a mock host for testing hooks headlessly
+
+00:12:00.882 --> 00:12:04.669
+«see packages/core/README-md».
+
+00:12:05.436 --> 00:12:07.960
+A new brand pack can be generated from
+
+00:12:08.016 --> 00:12:12.513
+design tokens with npm run ingest:brand
+
+00:12:12.589 --> 00:12:17.544
+«DTCG / Tokens Studio / Penpot exports».
+
+00:12:18.683 --> 00:12:19.795
+The CLI
+
+00:12:20.765 --> 00:12:23.166
+lolly runs any tool from the terminal
+
+00:12:23.264 --> 00:12:25.823
+through the same engine and the same
+
+00:12:25.883 --> 00:12:29.488
+render path as the web shell - it is URL
+
+00:12:29.564 --> 00:12:32.461
+mode under a different transport, so
+
+00:12:32.526 --> 00:12:36.945
+--url=x is the value the app reads from ?
+
+00:12:37.755 --> 00:12:40.418
+url=x.
+
+00:12:41.190 --> 00:12:43.859
+That makes it the build-pipeline, CI and
+
+00:12:43.921 --> 00:12:47.553
+scripting surface: generate an OG card at
+
+00:12:47.614 --> 00:12:52.366
+build time, fan a CSV out into 400 badges,
+
+00:12:52.432 --> 00:12:55.969
+render-check the whole catalog as a gate.
+
+00:12:56.747 --> 00:12:59.568
+Code example omitted.
+
+00:13:00.340 --> 00:13:03.164
+Every export carries Content Credentials
+
+00:13:03.225 --> 00:13:06.269
+by default, signed on-device.
+
+00:13:07.038 --> 00:13:10.519
+To sign as you - so a recipient who pins
+
+00:13:10.581 --> 00:13:13.388
+your root reads Verified with your address
+
+00:13:13.478 --> 00:13:16.202
+on it rather than an anonymous signer -
+
+00:13:16.262 --> 00:13:19.095
+point it at your own key and certificate
+
+00:13:19.155 --> 00:13:20.245
+chain:
+
+00:13:21.022 --> 00:13:23.843
+Code example omitted.
+
+00:13:24.624 --> 00:13:28.302
+Full command surface in docs/cli-md; the
+
+00:13:28.392 --> 00:13:31.084
+setup path from a clean machine to a
+
+00:13:31.145 --> 00:13:34.059
+working, trusted signing identity is
+
+00:13:34.134 --> 00:13:36.769
+docs/cli-signing-md.
+
+00:13:37.897 --> 00:13:39.228
+Development
+
+00:13:40.138 --> 00:13:42.444
+New contributor?
+
+00:13:43.222 --> 00:13:45.971
+Start at CONTRIBUTING-md - it routes you
+
+00:13:46.058 --> 00:13:48.401
+through the recursive clone, content
+
+00:13:48.461 --> 00:13:53.065
+profiles, the tools//catalog/ symlink-view
+
+00:13:53.126 --> 00:13:56.127
+trap, which repo owns which file and the
+
+00:13:56.187 --> 00:13:59.245
+commands to run before a PR.
+
+00:14:00.013 --> 00:14:03.222
+Auditors and anyone touching a parser or a
+
+00:14:03.284 --> 00:14:05.194
+crypto module should read
+
+00:14:05.265 --> 00:14:07.688
+docs/threat-model-md and
+
+00:14:07.749 --> 00:14:10.594
+docs/parser-inventory-md.
+
+00:14:11.386 --> 00:14:14.858
+Lolly is an umbrella repo composed of git
+
+00:14:14.941 --> 00:14:18.119
+submodules «see Repository layout».
+
+00:14:18.877 --> 00:14:21.741
+That changes two things: how you clone,
+
+00:14:21.792 --> 00:14:24.520
+and where each change is committed.
+
+00:14:25.297 --> 00:14:27.617
+Clone / update
+
+00:14:28.597 --> 00:14:31.418
+Code example omitted.
+
+00:14:32.176 --> 00:14:34.799
+Each submodule is checked out on its own
+
+00:14:34.860 --> 00:14:37.151
+main, tracking its repo under
+
+00:14:37.214 --> 00:14:40.819
+github-com/lolly-tools/*.
+
+00:14:41.592 --> 00:14:44.660
+Where your changes go - the umbrella pins
+
+00:14:44.756 --> 00:14:48.161
+a specific commit of each submodule, so a
+
+00:14:48.223 --> 00:14:51.100
+change is committed to the repo that owns
+
+00:14:51.159 --> 00:14:54.116
+the file, then the umbrella records the
+
+00:14:54.176 --> 00:14:55.645
+new pointer.
+
+00:14:56.410 --> 00:14:58.898
+The full path-to-repo ownership table
+
+00:14:58.968 --> 00:15:02.562
+lives in CONTRIBUTING-md section 4, which
+
+00:15:02.629 --> 00:15:05.994
+is the single source of truth for it.
+
+00:15:06.773 --> 00:15:09.935
+⚠️ Committing from the umbrella root does
+
+00:15:09.994 --> 00:15:13.254
+not capture edits made inside a submodule
+
+00:15:13.308 --> 00:15:16.070
+- git only sees the pointer.
+
+00:15:16.832 --> 00:15:20.198
+Commit inside the submodule, or use loldev
+
+00:15:20.260 --> 00:15:21.419
+«below».
+
+00:15:22.186 --> 00:15:26.080
+The tools/ and catalog/ views are symlinks
+
+00:15:26.113 --> 00:15:28.989
+into the packs, so editing through them
+
+00:15:29.085 --> 00:15:31.350
+flows to the right pack checkout
+
+00:15:31.417 --> 00:15:32.969
+automatically.
+
+00:15:33.733 --> 00:15:36.650
+Editing a SUSE tool touches two repos
+
+00:15:36.790 --> 00:15:39.922
+«suse-lolly + umbrella pointer»; a
+
+00:15:39.983 --> 00:15:42.664
+community tool touches three «lolly-tools
+
+00:15:42.726 --> 00:15:46.453
+manifest, suse-lolly regenerated index,
+
+00:15:46.540 --> 00:15:48.320
+umbrella pointer».
+
+00:15:49.115 --> 00:15:52.919
+loldev - one command to ship a change.
+
+00:15:53.688 --> 00:15:56.549
+A helper that does the multi-repo dance
+
+00:15:56.649 --> 00:15:57.994
+for you.
+
+00:15:58.789 --> 00:16:01.718
+Install it on your PATH:
+
+00:16:02.497 --> 00:16:05.318
+Code example omitted.
+
+00:16:06.097 --> 00:16:08.918
+Code example omitted.
+
+00:16:09.718 --> 00:16:13.950
+loldev operates on ~/Build/lolly by
+
+00:16:14.004 --> 00:16:16.994
+default «override with LOLLY_ROOT».
+
+00:16:17.760 --> 00:16:19.554
+The underlying scripts live in
+
+00:16:19.613 --> 00:16:24.390
+scripts/subrepo/ - sync-sh, status-sh,
+
+00:16:24.448 --> 00:16:28.881
+verify-sh, plus migrate-sh/snap-history-sh
+
+00:16:28.949 --> 00:16:30.845
+«the one-time split».
+
+00:16:31.973 --> 00:16:33.501
+Current tools
+
+00:16:34.490 --> 00:16:36.990
+The Lolly Start «blank brand» catalog
+
+00:16:37.099 --> 00:16:40.405
+ships 61 tools today - 60 listed in the
+
+00:16:40.466 --> 00:16:43.648
+gallery, plus one unlisted helper «Asset
+
+00:16:43.716 --> 00:16:44.969
+Export».
+
+00:16:45.744 --> 00:16:50.238
+Generated from catalog/tools/index-json by
+
+00:16:50.321 --> 00:16:53.669
+npm run build:readme-tools:
+
+00:16:54.444 --> 00:16:57.716
+The utility "Offline Utilities" section
+
+00:16:57.818 --> 00:17:00.869
+always renders last in the gallery.
+
+00:17:02.028 --> 00:17:04.442
+Licensing & structure
+
+00:17:05.538 --> 00:17:08.668
+Every unit now lives in its own repo under
+
+00:17:08.732 --> 00:17:12.366
+github-com/lolly-tools, pinned as a
+
+00:17:12.486 --> 00:17:15.463
+submodule of this umbrella «see Repository
+
+00:17:15.524 --> 00:17:16.694
+layout».
+
+00:17:17.455 --> 00:17:21.975
+Code - engine/, shells/, services/, docs/
+
+00:17:22.008 --> 00:17:24.819
+- is MPL-2 point 0.
+
+00:17:25.597 --> 00:17:29.118
+Tool content ships as brand packs.
+
+00:17:29.884 --> 00:17:32.835
+community/ «public lolly-tools» holds the
+
+00:17:32.909 --> 00:17:36.866
+brand-agnostic tools; brands/suse/
+
+00:17:36.928 --> 00:17:39.883
+«private suse-lolly» holds the SUSE tools
+
+00:17:39.945 --> 00:17:42.944
+and catalog - including its licensed
+
+00:17:43.011 --> 00:17:45.899
+PremiumBeat music, which stays private
+
+00:17:45.955 --> 00:17:47.419
+with the pack.
+
+00:17:48.188 --> 00:17:51.931
+The repo-root tools/ and catalog/ are
+
+00:17:51.992 --> 00:17:54.471
+gitignored profile views assembled from
+
+00:17:54.531 --> 00:17:58.520
+those packs; see each pack's NOTICE-md.
+
+00:17:59.305 --> 00:18:01.823
+Fonts ship inside each brand pack under
+
+00:18:01.872 --> 00:18:05.800
+the SIL Open Font License 1 point 1 - the
+
+00:18:05.915 --> 00:18:09.006
+SUSE pack carries the SUSE and SUSE Mono
+
+00:18:09.069 --> 00:18:11.754
+typefaces «neither the MPL nor
+
+00:18:11.847 --> 00:18:15.233
+SUSE-proprietary; "SUSE" is a SUSE
+
+00:18:15.295 --> 00:18:16.644
+trademark».
+
+00:18:17.411 --> 00:18:21.092
+They appear at catalog/fonts/ in a built
+
+00:18:21.154 --> 00:18:22.819
+profile view.
+
+00:18:23.592 --> 00:18:26.288
+Bundled third-party attributions are
+
+00:18:26.350 --> 00:18:29.744
+listed in THIRD-PARTY-NOTICES-md.

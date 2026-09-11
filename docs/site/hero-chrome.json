@@ -1,0 +1,14 @@
+{
+  "lead": "Lolly",
+  "cycle": [
+    { "word": "is sovereign", "slug": "trust" },
+    { "word": "is inclusive", "slug": "inclusive-design" },
+    { "word": "is ethical AI", "slug": "ai-stance" },
+    { "word": "is private", "slug": "privacy" },
+    { "word": "is free", "slug": "positioning" }
+  ],
+  "ctas": [
+    { "href": "/", "label": "Launch App ↗", "class": "btn btn-primary" },
+    { "href": "/info/quickstart.html", "label": "Documentation", "class": "btn btn-secondary" }
+  ]
+}

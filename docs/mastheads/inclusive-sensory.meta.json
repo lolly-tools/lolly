@@ -1,0 +1,6 @@
+{
+  "generator": { "name": "Gemini" },
+  "model": { "name": "Gemini" },
+  "oversight": "prompt_guided",
+  "source": "trainedAlgorithmicMedia"
+}

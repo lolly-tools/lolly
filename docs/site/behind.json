@@ -1,0 +1,19 @@
+{
+  "eyebrow": "Who is behind this",
+  "sceptic": "**We built Lolly for ourselves.** SUSE needed thousands of on-brand files, each with its name sealed inside, made without handing anything to outside services. So we built a tool that does all of it on the device, and released it as open source, like everything else we make. We keep maintaining it because we use it every day. **There is no obligation:** everything here works with or without us.",
+  "links": [
+    {
+      "label": "Trust",
+      "slug": "trust"
+    },
+    {
+      "label": "About",
+      "slug": "about"
+    },
+    {
+      "label": "FAQ",
+      "slug": "faq"
+    }
+  ],
+  "quiet": "No cookies · No analytics · Nothing reported back"
+}

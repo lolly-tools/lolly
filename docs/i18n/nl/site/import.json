@@ -1,0 +1,25 @@
+{
+  "eyebrow": "Breng wat je al hebt gemaakt",
+  "heading": "Je ontwerpbestanden zitten niet vast",
+  "lead": "Afgewerkt werk in **Figma, Penpot, Illustrator, InDesign of een willekeurige SVG-app** hoeft niet in één app opgesloten te blijven. Open **Design**, klik op **Een ontwerp importeren**, en het bestand wordt geopend als een levende lay-out - geen platgeslagen plaatje. Elke laag wordt een bewerkbaar vak, klaar om mee verder te werken, te combineren met tools, en te renderen volgens dezelfde regels.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "Elke SVG", "fmt": "universeel", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "Je ontwerpbestand", "desc": "Figma, Penpot, Illustrator, InDesign of een willekeurige SVG" },
+    { "icon": "importFlowCanvas", "title": "Bewerkbaar canvas", "desc": "Elke laag een vak dat je herschrijft, herstylt en verplaatst" },
+    { "icon": "importFlowMix", "title": "Combineer met tools", "desc": "Voeg een QR-code, een live grafiek of een andere render toe" },
+    { "icon": "importFlowRender", "title": "Render overal", "desc": "SVG, PDF, PNG, video - reproduceerbaar vanaf een URL" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "Het blijft bewerkbaar", "desc": "Tekst blijft tekst, vormen blijven vormen, afbeeldingen worden toegevoegd aan je bibliotheek. Je blijft aan het ontwerp werken - je hertekent nooit een screenshot." },
+    { "icon": "importPointShield", "title": "Het komt meteen conform binnen", "desc": "Lettertypen worden hertoegewezen aan jouw fonts en elke vulling doorloopt dezelfde kleurbewaking als een native vak. Een extern artboard komt al gereguleerd binnen." },
+    { "icon": "importPointGrid", "title": "Het wordt een sjabloon", "desc": "Sla het op en de lay-out wordt een herbruikbare, via URL benaderbare tool - een tool die iedereen met Lolly kan openen, opnieuw vullen en renderen. Geen ontwerp-app nodig." }
+  ],
+  "cta": "Bekijk hoe het importeren van een ontwerp werkt →",
+  "ctaHref": "/info/design-import.html"
+}

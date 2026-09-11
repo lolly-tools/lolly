@@ -1,0 +1,78 @@
+{
+  "eyebrow": "Wykorzystaj to, co już masz",
+  "heading": "Twoje pliki projektowe nie są uwięzione",
+  "lead": "Gotowy projekt w **Figmie, Penpocie, Illustratorze, InDesignie lub jakiejkolwiek aplikacji SVG** nie musi zostać zablokowany w jednej aplikacji. Otwórz **Design**, kliknij **Zaimportuj projekt**, a plik otworzy się jako żywy układ - nie spłaszczony obrazek. Każda warstwa staje się edytowalnym polem, gotowym do dalszej pracy, łączenia z narzędziami i renderowania według tych samych reguł.",
+  "sources": [
+    {
+      "mono": "Fig",
+      "name": "Figma",
+      "fmt": ".fig · SVG",
+      "color": "#a259ff"
+    },
+    {
+      "mono": "Pen",
+      "name": "Penpot",
+      "fmt": ".penpot",
+      "color": "#12b886"
+    },
+    {
+      "mono": "Ai",
+      "name": "Illustrator",
+      "fmt": ".ai · PDF",
+      "color": "#ff9a00"
+    },
+    {
+      "mono": "Id",
+      "name": "InDesign",
+      "fmt": ".idml",
+      "color": "#fe4a72"
+    },
+    {
+      "mono": "SVG",
+      "name": "Dowolny SVG",
+      "fmt": "uniwersalny",
+      "color": "#2453ff"
+    }
+  ],
+  "flow": [
+    {
+      "icon": "importFlowFile",
+      "title": "Twój plik projektowy",
+      "desc": "Figma, Penpot, Illustrator, InDesign lub dowolny SVG"
+    },
+    {
+      "icon": "importFlowCanvas",
+      "title": "Edytowalne płótno",
+      "desc": "Każda warstwa to pole, które możesz przepisać, przestylizować i przenieść"
+    },
+    {
+      "icon": "importFlowMix",
+      "title": "Dodaj narzędzia",
+      "desc": "Dodaj kod QR, aktywny wykres lub inny render"
+    },
+    {
+      "icon": "importFlowRender",
+      "title": "Renderuj wszędzie",
+      "desc": "SVG, PDF, PNG, wideo - powtarzalne z adresu URL"
+    }
+  ],
+  "points": [
+    {
+      "icon": "importPointEdit",
+      "title": "Pozostaje edytowalny",
+      "desc": "Tekst zostaje tekstem, kształty zostają kształtami, a obrazy trafiają do twojej biblioteki. Nadal pracujesz nad projektem - nigdy nie przemalowujesz zrzutu ekranu."
+    },
+    {
+      "icon": "importPointShield",
+      "title": "Trafia już dopasowany",
+      "desc": "Czcionki są zamieniane na twoje kroje pisma, a każde wypełnienie przechodzi tę samą kontrolę kolorów co natywne pole. Zewnętrzny obszar roboczy trafia już w pełni uregulowany."
+    },
+    {
+      "icon": "importPointGrid",
+      "title": "Staje się szablonem",
+      "desc": "Zapisz go, a układ stanie się wielokrotnego użytku narzędziem z własnym adresem URL - takim, które każdy, kto ma Lolly, może otworzyć, wypełnić na nowo i wyrenderować. Aplikacja projektowa nie jest potrzebna."
+    }
+  ],
+  "cta": "Zobacz, jak działa importowanie projektu →",
+  "ctaHref": "/info/design-import.html"
+}

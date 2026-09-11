@@ -1,0 +1,25 @@
+{
+  "eyebrow": "Bringen Sie mit, was Sie bereits erstellt haben",
+  "heading": "Ihre Design-Dateien sitzen nicht fest",
+  "lead": "Fertige Arbeiten aus **Figma, Penpot, Illustrator, InDesign oder einer beliebigen SVG-App** müssen nicht in einer einzigen App eingesperrt bleiben. Öffnen Sie **Design**, klicken Sie auf **Design importieren**, und die Datei öffnet sich als lebendiges Layout - kein flaches Bild. Jede Ebene wird zu einer bearbeitbaren Box, mit der Sie weiterarbeiten, die Sie mit Tools kombinieren und nach denselben Regeln rendern können.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "Beliebiges SVG", "fmt": "universell", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "Ihre Design-Datei", "desc": "Figma, Penpot, Illustrator, InDesign oder ein beliebiges SVG" },
+    { "icon": "importFlowCanvas", "title": "Bearbeitbare Arbeitsfläche", "desc": "Jede Ebene wird zu einer Box, die Sie neu betexten, neu gestalten und verschieben können" },
+    { "icon": "importFlowMix", "title": "Mit Tools kombinieren", "desc": "Fügen Sie einen QR-Code, ein Live-Diagramm oder eine weitere gerenderte Grafik ein" },
+    { "icon": "importFlowRender", "title": "Überall rendern", "desc": "SVG, PDF, PNG, Video - reproduzierbar aus einer URL" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "Es bleibt bearbeitbar", "desc": "Text bleibt Text, Formen bleiben Formen, Bilder werden Teil Ihrer Bibliothek. Sie arbeiten am Design weiter - Sie übermalen nie einen Screenshot." },
+    { "icon": "importPointShield", "title": "Es kommt bereits konform an", "desc": "Schriften werden auf Ihre Schriftschnitte umgemappt, und jede Füllung durchläuft denselben Farbwächter wie eine native Box. Eine fremde Zeichenfläche kommt bereits regelkonform an." },
+    { "icon": "importPointGrid", "title": "Es wird zur Vorlage", "desc": "Speichern Sie es, und das Layout wird zu einem wiederverwendbaren, per URL adressierbaren Tool - eines, das jeder mit Lolly öffnen, neu befüllen und rendern kann. Keine Design-App erforderlich." }
+  ],
+  "cta": "Erfahren Sie, wie der Design-Import funktioniert →",
+  "ctaHref": "/info/design-import.html"
+}

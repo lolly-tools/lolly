@@ -1,0 +1,29 @@
+{
+  "heading": "Jedes Format, ein und aus",
+  "_lead_note": "Deliberately count-free: the in/out/round-trip numbers are computed live in docs/build.ts from formats-catalog.json's dir fields, so no string in this file may hard-code one.",
+  "lead": "Lolly liest Dutzende Quellformate und rendert Dutzende weitere - hier ist die vollständige Liste, gruppiert danach, was jedes davon ist. Die {roundtrip} werden gelesen *und* geschrieben und stehen daher einmal in der Mitte.",
+  "ingestsLabel": "Importe",
+  "ingestsCount": "ein",
+  "exportsLabel": "Exporte",
+  "exportsCount": "aus",
+  "ingests": [
+    { "category": "Vektor", "list": "SVG · PDF · Illustrator · InDesign · Figma · Penpot" },
+    { "category": "Raster", "list": "PNG · JPG · WEBP · GIF · HEIC · TIFF · AVIF" },
+    { "category": "Ebenen", "list": "PSD · PSB · XCF" },
+    { "category": "Bewegtbild", "list": "MP4 · WEBM · MOV · Lottie" },
+    { "category": "Audio", "list": "MP3 · WAV · OGG · M4A · FLAC · MIDI · MOD" },
+    { "category": "Dokument", "list": "PPTX" },
+    { "category": "Daten", "list": "CSV · JSON" },
+    { "category": "3D", "list": "GLB · glTF" }
+  ],
+  "exports": [
+    { "category": "Vektor", "list": "SVG · PDF · CMYK PDF · EPS · CMYK EPS · EMF · DXF" },
+    { "category": "Raster", "list": "PNG · JPG · WEBP · AVIF · TIFF · CMYK TIFF · ICO" },
+    { "category": "Ebenen", "list": "PSD" },
+    { "category": "Bewegtbild", "list": "MP4 · WEBM · GIF · APNG · Animiertes WebP · Animiertes SVG" },
+    { "category": "Audio", "list": "MP3 · M4A" },
+    { "category": "Dokument", "list": "PPTX · HTML · MD · TXT" },
+    { "category": "Daten", "list": "CSV · JSON · ICS · VCF" },
+    { "category": "Paket", "list": "ZIP" }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "heading": "हर फ़ॉर्मैट, अंदर और बाहर",
+  "_lead_note": "Deliberately count-free: the in/out/round-trip numbers are computed live in docs/build.ts from formats-catalog.json's dir fields, so no string in this file may hard-code one.",
+  "lead": "Lolly दर्जनों स्रोत फ़ॉर्मैट पढ़ता है और दर्जनों और रेंडर करता है - यहाँ पूरा सेट है, जो इस आधार पर समूहित है कि हर एक क्या है। {roundtrip} वाले पढ़े *और* लिखे जाते हैं, इसलिए वे बीच में एक ही बार बैठते हैं।",
+  "ingestsLabel": "इनजेस्ट",
+  "ingestsCount": "अंदर",
+  "exportsLabel": "एक्सपोर्ट",
+  "exportsCount": "बाहर",
+  "ingests": [
+    { "category": "वेक्टर", "list": "SVG · PDF · Illustrator · InDesign · Figma · Penpot" },
+    { "category": "रास्टर", "list": "PNG · JPG · WEBP · GIF · HEIC · TIFF · AVIF" },
+    { "category": "लेयर्ड", "list": "PSD · PSB · XCF" },
+    { "category": "मोशन", "list": "MP4 · WEBM · MOV · Lottie" },
+    { "category": "ऑडियो", "list": "MP3 · WAV · OGG · M4A · FLAC · MIDI · MOD" },
+    { "category": "डॉक्युमेंट", "list": "PPTX" },
+    { "category": "डेटा", "list": "CSV · JSON" },
+    { "category": "3D", "list": "GLB · glTF" }
+  ],
+  "exports": [
+    { "category": "वेक्टर", "list": "SVG · PDF · CMYK PDF · EPS · CMYK EPS · EMF · DXF" },
+    { "category": "रास्टर", "list": "PNG · JPG · WEBP · AVIF · TIFF · CMYK TIFF · ICO" },
+    { "category": "लेयर्ड", "list": "PSD" },
+    { "category": "मोशन", "list": "MP4 · WEBM · GIF · APNG · एनिमेटेड WebP · एनिमेटेड SVG" },
+    { "category": "ऑडियो", "list": "MP3 · M4A" },
+    { "category": "डॉक्युमेंट", "list": "PPTX · HTML · MD · TXT" },
+    { "category": "डेटा", "list": "CSV · JSON · ICS · VCF" },
+    { "category": "बंडल", "list": "ZIP" }
+  ]
+}

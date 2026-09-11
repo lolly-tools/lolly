@@ -1,0 +1,29 @@
+{
+  "heading": "あらゆるフォーマットに、入力も出力も対応",
+  "_lead_note": "Deliberately count-free: the in/out/round-trip numbers are computed live in docs/build.ts from formats-catalog.json's dir fields, so no string in this file may hard-code one.",
+  "lead": "Lollyは何十ものソース形式を読み込み、さらに何十もの形式で書き出します - こちらが全形式で、それぞれが何であるかごとにまとめてあります。{roundtrip}は読み込みと書き出しの*両方*に対応するため、中央に一度だけ並びます。",
+  "ingestsLabel": "読み込み",
+  "ingestsCount": "入力",
+  "exportsLabel": "書き出し",
+  "exportsCount": "出力",
+  "ingests": [
+    { "category": "ベクター", "list": "SVG · PDF · Illustrator · InDesign · Figma · Penpot" },
+    { "category": "ラスター", "list": "PNG · JPG · WEBP · GIF · HEIC · TIFF · AVIF" },
+    { "category": "レイヤー", "list": "PSD · PSB · XCF" },
+    { "category": "モーション", "list": "MP4 · WEBM · MOV · Lottie" },
+    { "category": "音声", "list": "MP3 · WAV · OGG · M4A · FLAC · MIDI · MOD" },
+    { "category": "ドキュメント", "list": "PPTX" },
+    { "category": "データ", "list": "CSV · JSON" },
+    { "category": "3D", "list": "GLB · glTF" }
+  ],
+  "exports": [
+    { "category": "ベクター", "list": "SVG · PDF · CMYK PDF · EPS · CMYK EPS · EMF · DXF" },
+    { "category": "ラスター", "list": "PNG · JPG · WEBP · AVIF · TIFF · CMYK TIFF · ICO" },
+    { "category": "レイヤー", "list": "PSD" },
+    { "category": "モーション", "list": "MP4 · WEBM · GIF · APNG · アニメーション WebP · アニメーション SVG" },
+    { "category": "音声", "list": "MP3 · M4A" },
+    { "category": "ドキュメント", "list": "PPTX · HTML · MD · TXT" },
+    { "category": "データ", "list": "CSV · JSON · ICS · VCF" },
+    { "category": "バンドル", "list": "ZIP" }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "heading": "Bawat format, papasok at palabas",
+  "_lead_note": "Deliberately count-free: the in/out/round-trip numbers are computed live in docs/build.ts from formats-catalog.json's dir fields, so no string in this file may hard-code one.",
+  "lead": "Nagbabasa ang Lolly ng dose-dosenang source format at nagre-render pa ng dose-dosena - narito ang buong set, nakapangkat ayon sa kung ano ang bawat isa. Ang mga {roundtrip} ay binabasa *at* isinusulat, kaya minsan lang silang lumalabas, sa gitna.",
+  "ingestsLabel": "Papasok",
+  "ingestsCount": "papasok",
+  "exportsLabel": "Palabas",
+  "exportsCount": "palabas",
+  "ingests": [
+    { "category": "Vector", "list": "SVG · PDF · Illustrator · InDesign · Figma · Penpot" },
+    { "category": "Raster", "list": "PNG · JPG · WEBP · GIF · HEIC · TIFF · AVIF" },
+    { "category": "Naka-layer", "list": "PSD · PSB · XCF" },
+    { "category": "Motion", "list": "MP4 · WEBM · MOV · Lottie" },
+    { "category": "Audio", "list": "MP3 · WAV · OGG · M4A · FLAC · MIDI · MOD" },
+    { "category": "Dokumento", "list": "PPTX" },
+    { "category": "Datos", "list": "CSV · JSON" },
+    { "category": "3D", "list": "GLB · glTF" }
+  ],
+  "exports": [
+    { "category": "Vector", "list": "SVG · PDF · CMYK PDF · EPS · CMYK EPS · EMF · DXF" },
+    { "category": "Raster", "list": "PNG · JPG · WEBP · AVIF · TIFF · CMYK TIFF · ICO" },
+    { "category": "Naka-layer", "list": "PSD" },
+    { "category": "Motion", "list": "MP4 · WEBM · GIF · APNG · Animated WebP · Animated SVG" },
+    { "category": "Audio", "list": "MP3 · M4A" },
+    { "category": "Dokumento", "list": "PPTX · HTML · MD · TXT" },
+    { "category": "Datos", "list": "CSV · JSON · ICS · VCF" },
+    { "category": "Bundle", "list": "ZIP" }
+  ]
+}

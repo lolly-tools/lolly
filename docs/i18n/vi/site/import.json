@@ -1,0 +1,25 @@
+{
+  "eyebrow": "Mang những gì bạn đã tạo ra",
+  "heading": "Tệp thiết kế của bạn không bị mắc kẹt",
+  "lead": "Thành phẩm từ **Figma, Penpot, Illustrator, InDesign hoặc bất kỳ ứng dụng SVG nào** không cần phải bị khoá trong một ứng dụng duy nhất. Mở **Design**, nhấn **Nhập thiết kế**, và tệp sẽ mở ra thành một bố cục sống động - không phải một hình ảnh đã làm phẳng. Mọi lớp trở thành một khối có thể chỉnh sửa, sẵn sàng để tiếp tục làm việc, kết hợp với các công cụ khác, và kết xuất theo cùng một bộ quy tắc.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "SVG bất kỳ", "fmt": "phổ quát", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "Tệp thiết kế của bạn", "desc": "Figma, Penpot, Illustrator, InDesign hoặc bất kỳ SVG nào" },
+    { "icon": "importFlowCanvas", "title": "Khung vẽ có thể chỉnh sửa", "desc": "Mỗi lớp là một khối bạn có thể gõ lại nội dung, đổi kiểu và di chuyển" },
+    { "icon": "importFlowMix", "title": "Kết hợp với công cụ", "desc": "Thêm vào một mã QR, một biểu đồ trực tiếp hoặc một bản kết xuất khác" },
+    { "icon": "importFlowRender", "title": "Kết xuất ở bất kỳ đâu", "desc": "SVG, PDF, PNG, video - có thể tái tạo từ một URL" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "Vẫn có thể chỉnh sửa", "desc": "Văn bản vẫn là văn bản, hình khối vẫn là hình khối, hình ảnh được thêm vào thư viện của bạn. Bạn tiếp tục làm việc trên thiết kế - chứ không bao giờ phải vẽ lại một ảnh chụp màn hình." },
+    { "icon": "importPointShield", "title": "Được chuẩn hoá ngay khi nhập vào", "desc": "Phông chữ được ánh xạ lại theo bộ phông của bạn, và mọi lớp tô đều đi qua cùng một lớp kiểm soát màu như một khối gốc. Một artboard từ ứng dụng khác khi được nhập vào đã tuân thủ quy tắc sẵn." },
+    { "icon": "importPointGrid", "title": "Nó trở thành một mẫu", "desc": "Lưu lại và bố cục trở thành một công cụ có thể tái sử dụng, truy cập được qua URL - bất kỳ ai có Lolly cũng có thể mở, điền lại nội dung và kết xuất. Không cần ứng dụng thiết kế nào cả." }
+  ],
+  "cta": "Xem cách nhập một thiết kế hoạt động →",
+  "ctaHref": "/info/design-import.html"
+}

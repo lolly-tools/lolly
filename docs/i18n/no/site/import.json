@@ -1,0 +1,25 @@
+{
+  "eyebrow": "Ta med det du allerede har laget",
+  "heading": "Designfilene dine er ikke strandet",
+  "lead": "Ferdig arbeid i **Figma, Penpot, Illustrator, InDesign eller en hvilken som helst SVG-app** trenger ikke å forbli låst inne i én app. Åpne **Design**, klikk på **Importer en design**, og filen åpnes som en levende layout - ikke et flatt bilde. Hvert lag blir en redigerbar boks, klar til å jobbes videre på, blandes med verktøy og rendres gjennom de samme reglene.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "Valgfri SVG", "fmt": "universelt", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "Designfilen din", "desc": "Figma, Penpot, Illustrator, InDesign eller valgfri SVG" },
+    { "icon": "importFlowCanvas", "title": "Redigerbart canvas", "desc": "Hvert lag blir en boks du kan skrive om, endre stil på og flytte" },
+    { "icon": "importFlowMix", "title": "Bland inn verktøy", "desc": "Legg til en QR-kode, et live-diagram eller en annen rendering" },
+    { "icon": "importFlowRender", "title": "Rendre hvor som helst", "desc": "SVG, PDF, PNG, video - reproduserbart fra en URL" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "Den forblir redigerbar", "desc": "Tekst forblir tekst, former forblir former, bilder legges til i biblioteket ditt. Du fortsetter å jobbe med designen - du maler aldri om et skjermbilde." },
+    { "icon": "importPointShield", "title": "Den ankommer allerede tilpasset", "desc": "Skrifttyper mappes om til dine egne skrifter, og hver fyll går gjennom den samme fargevakten som en innebygd boks. Et fremmed artboard ankommer allerede regulert." },
+    { "icon": "importPointGrid", "title": "Den blir en mal", "desc": "Lagre den, så blir layouten et gjenbrukbart verktøy som kan adresseres via URL - et som hvem som helst med Lolly kan åpne, fylle inn på nytt og rendre. Ingen designapp nødvendig." }
+  ],
+  "cta": "Se hvordan design-import fungerer →",
+  "ctaHref": "/info/design-import.html"
+}

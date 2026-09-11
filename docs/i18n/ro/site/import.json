@@ -1,0 +1,25 @@
+{
+  "eyebrow": "Adu ce ai creat deja",
+  "heading": "Fișierele tale de design nu sunt blocate",
+  "lead": "Lucrările finalizate în **Figma, Penpot, Illustrator, InDesign sau orice aplicație SVG** nu trebuie să rămână blocate într-o singură aplicație. Deschide **Design**, apasă pe **Importă un design**, iar fișierul se deschide ca un layout viu - nu o imagine aplatizată. Fiecare strat devine o casetă editabilă, gata să fie lucrată în continuare, combinată cu instrumente și randată după aceleași reguli.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "Orice SVG", "fmt": "universal", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "Fișierul tău de design", "desc": "Figma, Penpot, Illustrator, InDesign sau orice SVG" },
+    { "icon": "importFlowCanvas", "title": "Canvas editabil", "desc": "Fiecare strat devine o casetă la care poți schimba textul, stilul și poziția" },
+    { "icon": "importFlowMix", "title": "Combină cu instrumente", "desc": "Adaugă un cod QR, un grafic live sau o altă randare" },
+    { "icon": "importFlowRender", "title": "Randează oriunde", "desc": "SVG, PDF, PNG, video - reproductibil dintr-un URL" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "Rămâne editabil", "desc": "Textul rămâne text, formele rămân forme, imaginile se alătură bibliotecii tale. Continui să lucrezi la design - nu redesenezi niciodată o simplă captură de ecran." },
+    { "icon": "importPointShield", "title": "Ajunge deja conform", "desc": "Fonturile sunt remapate la propriile tale fonturi, iar fiecare umplere trece prin aceeași verificare de culoare ca o casetă nativă. O planșă de lucru venită din altă aplicație ajunge deja supusă acestor reguli." },
+    { "icon": "importPointGrid", "title": "Devine un template", "desc": "Salvează-l, iar layout-ul devine un instrument reutilizabil, adresabil prin URL - unul pe care oricine are Lolly îl poate deschide, reumple și randa. Nu ai nevoie de nicio aplicație de design." }
+  ],
+  "cta": "Vezi cum funcționează importul unui design →",
+  "ctaHref": "/info/design-import.html"
+}

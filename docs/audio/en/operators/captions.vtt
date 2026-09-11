@@ -1,0 +1,484 @@
+WEBVTT
+
+00:00:00.392 --> 00:00:03.250
+You get to be the person who said yes to
+
+00:00:03.312 --> 00:00:06.095
+something both safe and popular.
+
+00:00:06.866 --> 00:00:09.412
+You close an exfiltration hole, gain
+
+00:00:09.472 --> 00:00:12.042
+capability and delete a request queue in
+
+00:00:12.101 --> 00:00:15.116
+one move, which is the rare security win
+
+00:00:15.172 --> 00:00:17.018
+that makes you more liked rather than
+
+00:00:17.077 --> 00:00:21.192
+less: no 3am call because embargoed files
+
+00:00:21.267 --> 00:00:24.132
+reached a random web tool, fewer vendors
+
+00:00:24.192 --> 00:00:26.835
+and contracts on your plate and a record
+
+00:00:26.894 --> 00:00:29.770
+you can point at when someone asks.
+
+00:00:30.513 --> 00:00:32.963
+Pick the lane below that matches the
+
+00:00:33.055 --> 00:00:35.294
+function you answer for.
+
+00:00:36.089 --> 00:00:38.991
+You govern the whole relay: a creative
+
+00:00:39.079 --> 00:00:42.140
+authors the rules and a developer scales
+
+00:00:42.197 --> 00:00:45.369
+them, and it is the operator who makes
+
+00:00:45.425 --> 00:00:49.143
+that safe to run across an organisation,
+
+00:00:49.203 --> 00:00:52.162
+which The lifecycle of a campaign follows
+
+00:00:52.250 --> 00:00:53.869
+end to end.
+
+00:00:54.669 --> 00:00:56.106
+New here?
+
+00:00:56.905 --> 00:01:00.107
+Adoption & Governance is the rollout in
+
+00:01:00.229 --> 00:01:01.268
+full.
+
+00:01:02.034 --> 00:01:04.642
+Deployment covers deploy, serve and
+
+00:01:04.703 --> 00:01:08.023
+hybrid, and Configuration is what shapes a
+
+00:01:08.127 --> 00:01:09.844
+single instance.
+
+00:01:10.992 --> 00:01:11.920
+Sales
+
+00:01:12.919 --> 00:01:15.385
+Walk into the meeting with exactly the
+
+00:01:15.482 --> 00:01:18.719
+file you need, made on the way there.
+
+00:01:19.484 --> 00:01:21.805
+Drop the deck you already have in and
+
+00:01:21.860 --> 00:01:25.100
+rebuild it sharp as a native deck file,
+
+00:01:25.158 --> 00:01:27.796
+with no request queue between you and the
+
+00:01:27.858 --> 00:01:28.995
+asset.
+
+00:01:29.788 --> 00:01:32.611
+Lolly for sales teams - the playbook:
+
+00:01:32.686 --> 00:01:35.288
+fixing the deck you have, rebuilding it
+
+00:01:35.359 --> 00:01:37.891
+natively and making the one-off asset
+
+00:01:37.945 --> 00:01:39.169
+yourself.
+
+00:01:39.944 --> 00:01:43.535
+Exporting & Formats - the deck, PDF and
+
+00:01:43.609 --> 00:01:46.700
+image side of the export panel, when the
+
+00:01:46.790 --> 00:01:50.519
+file has to open on someone else's laptop.
+
+00:01:51.633 --> 00:01:52.446
+Press
+
+00:01:53.475 --> 00:01:56.749
+Live data into charts, maps and tables
+
+00:01:56.797 --> 00:01:59.419
+that already match the house style.
+
+00:02:00.190 --> 00:02:03.181
+Build the story format once and reuse it
+
+00:02:03.247 --> 00:02:06.379
+every time the story runs, for print and
+
+00:02:06.474 --> 00:02:07.944
+for screen.
+
+00:02:08.744 --> 00:02:11.726
+Lolly for the newsroom - the playbook: the
+
+00:02:11.809 --> 00:02:15.179
+info-editorial style, live data in and
+
+00:02:15.242 --> 00:02:17.819
+publication-quality output.
+
+00:02:18.594 --> 00:02:21.190
+Utility views - the spreadsheet and the
+
+00:02:21.251 --> 00:02:24.844
+converter, for the step before the chart.
+
+00:02:25.993 --> 00:02:27.212
+Marketing
+
+00:02:28.111 --> 00:02:31.169
+Every size, every language, one source of
+
+00:02:31.263 --> 00:02:32.319
+truth.
+
+00:02:33.071 --> 00:02:35.679
+Paste a spreadsheet and get one finished
+
+00:02:35.750 --> 00:02:39.221
+file per row, with no agency in the middle
+
+00:02:39.281 --> 00:02:41.495
+of the routine files.
+
+00:02:42.286 --> 00:02:45.264
+Lolly for marketing teams - the playbook:
+
+00:02:45.342 --> 00:02:48.565
+variants at volume, localisation and what
+
+00:02:48.627 --> 00:02:50.919
+stops being a bottleneck.
+
+00:02:51.702 --> 00:02:54.498
+Using Lolly - the batch run itself: a
+
+00:02:54.621 --> 00:02:57.594
+sheet in, a folder of assets out.
+
+00:02:58.737 --> 00:03:00.223
+Security
+
+00:03:01.134 --> 00:03:04.075
+The usual way routine creative work gets
+
+00:03:04.142 --> 00:03:08.164
+done is a liability surface: files emailed
+
+00:03:08.255 --> 00:03:11.348
+to outside contractors, brand assets
+
+00:03:11.419 --> 00:03:14.811
+uploaded to a dozen web editors, customer
+
+00:03:14.871 --> 00:03:18.047
+data pasted into a stranger's site to make
+
+00:03:18.099 --> 00:03:19.795
+a quick graphic.
+
+00:03:20.589 --> 00:03:23.184
+Lolly is the immune response to that,
+
+00:03:23.241 --> 00:03:25.628
+because it replaces the work rather than
+
+00:03:25.713 --> 00:03:29.006
+adding a control on top of it: the quote
+
+00:03:29.067 --> 00:03:31.533
+card, the localised banner and the
+
+00:03:31.593 --> 00:03:33.806
+redacted screenshot are made on the
+
+00:03:33.863 --> 00:03:36.995
+employee's own device against your brand,
+
+00:03:37.069 --> 00:03:39.491
+so nothing uploads that you did not put
+
+00:03:39.550 --> 00:03:42.163
+there and every result is reproducible
+
+00:03:42.224 --> 00:03:43.970
+from its inputs.
+
+00:03:44.720 --> 00:03:46.807
+Exports can carry several layers of
+
+00:03:46.866 --> 00:03:50.055
+cryptographic record - a C2PA Content
+
+00:03:50.113 --> 00:03:52.560
+Credential signed by a key generated on
+
+00:03:52.596 --> 00:03:55.370
+the device and never readable off it, the
+
+00:03:55.431 --> 00:03:57.808
+invisible Lolly Imprint and an opt-in
+
+00:03:57.868 --> 00:04:00.164
+durable mark that outlives a re-save -
+
+00:04:00.222 --> 00:04:02.198
+each of which is tamper-evident and
+
+00:04:02.250 --> 00:04:05.240
+strippable: a credential flags a change
+
+00:04:05.300 --> 00:04:07.834
+rather than preventing one, and that is
+
+00:04:07.894 --> 00:04:10.146
+precisely what makes fully offline
+
+00:04:10.206 --> 00:04:11.658
+verification
+
+00:04:12.499 --> 00:04:13.741
+possible.
+
+00:04:14.510 --> 00:04:17.208
+The cryptography and the file parsers are
+
+00:04:17.268 --> 00:04:19.484
+going through SUSE's enterprise-grade
+
+00:04:19.544 --> 00:04:22.944
+hardening: the seals, on-device signing
+
+00:04:23.026 --> 00:04:25.534
+and encryption are real and defensible
+
+00:04:25.593 --> 00:04:28.561
+now, so where a contract calls for
+
+00:04:28.658 --> 00:04:31.453
+certified assurance, deploy them as
+
+00:04:31.513 --> 00:04:33.621
+defence-in-depth while that process
+
+00:04:33.681 --> 00:04:34.945
+completes.
+
+00:04:35.712 --> 00:04:38.624
+Trust - every claim this site makes, with
+
+00:04:38.686 --> 00:04:42.544
+the mechanism that enforces it beside it.
+
+00:04:43.326 --> 00:04:46.507
+Security & Verification - the standards,
+
+00:04:46.569 --> 00:04:49.221
+primitives, trust model and testing,
+
+00:04:49.283 --> 00:04:51.594
+written for a reviewer.
+
+00:04:52.376 --> 00:04:54.865
+Threat Model & Trust Boundaries - what
+
+00:04:54.929 --> 00:04:58.180
+Lolly defends against, what it explicitly
+
+00:04:58.242 --> 00:05:01.544
+does not and where each boundary falls.
+
+00:05:01.925 --> 00:05:11.825
+Server Surface - the complete inventory of what runs server-side «two optional components» against what runs on the device.
+
+00:05:12.549 --> 00:05:15.026
+Parser Inventory - every parser that
+
+00:05:15.093 --> 00:05:18.949
+touches a file a user opens and what each
+
+00:05:18.989 --> 00:05:21.219
+one is hardened against.
+
+00:05:22.005 --> 00:05:24.540
+Verify It Yourself - check the claims
+
+00:05:24.587 --> 00:05:28.192
+against a real export, step by step, with
+
+00:05:28.263 --> 00:05:30.844
+nothing you cannot run yourself.
+
+00:05:31.592 --> 00:05:34.386
+Privacy Policy - the formal statement of
+
+00:05:34.448 --> 00:05:37.673
+what is and is not collected, stored and
+
+00:05:37.774 --> 00:05:38.819
+sent.
+
+00:05:39.617 --> 00:05:42.281
+Sovereign creative production - air-gapped
+
+00:05:42.342 --> 00:05:45.475
+deployment, consent-gated networking and
+
+00:05:45.537 --> 00:05:47.369
+on-device signing.
+
+00:05:48.155 --> 00:05:50.776
+Adoption & Governance - who approves a
+
+00:05:50.873 --> 00:05:54.522
+tool, how brand rules become enforceable
+
+00:05:54.611 --> 00:05:57.003
+and what the catalog-as-a-repository
+
+00:05:57.066 --> 00:05:59.019
+option buys you.
+
+00:06:00.172 --> 00:06:01.125
+Legal
+
+00:06:02.019 --> 00:06:05.971
+MPL-2 point 0 with no contributor licence
+
+00:06:06.017 --> 00:06:09.200
+agreement, stated plainly, with what is
+
+00:06:09.263 --> 00:06:13.119
+not claimed stated as clearly as what is.
+
+00:06:13.878 --> 00:06:16.908
+Content Credentials are tamper-evident and
+
+00:06:16.980 --> 00:06:20.536
+strippable, so the pages below say what a
+
+00:06:20.634 --> 00:06:23.425
+signature actually asserts before anyone
+
+00:06:23.486 --> 00:06:25.995
+writes it into a contract.
+
+00:06:26.770 --> 00:06:31.353
+AI marking and the EU AI Act - Article 50,
+
+00:06:31.415 --> 00:06:34.562
+the Code of Practice that points at C2PA
+
+00:06:34.623 --> 00:06:36.769
+and Lolly's honest fit.
+
+00:06:37.544 --> 00:06:40.685
+How Lolly compares - the licence facts:
+
+00:06:40.761 --> 00:06:44.429
+MPL-2 point 0, no contributor licence
+
+00:06:44.478 --> 00:06:47.114
+agreement and what free forever actually
+
+00:06:47.175 --> 00:06:48.520
+rests on.
+
+00:06:49.283 --> 00:06:52.272
+Content Credentials Identity - what a
+
+00:06:52.367 --> 00:06:55.408
+signed credential asserts, what it does
+
+00:06:55.470 --> 00:06:58.394
+not and who the certificate names.
+
+00:06:59.162 --> 00:07:01.983
+Data Transfer - the backup bundle a
+
+00:07:02.045 --> 00:07:05.230
+records request or a device handover is
+
+00:07:05.327 --> 00:07:06.844
+answered with.
+
+00:07:07.974 --> 00:07:08.887
+AI
+
+00:07:09.922 --> 00:07:13.793
+Agents supply inputs, never a persona.
+
+00:07:14.562 --> 00:07:17.889
+AI helps when it is asked, what it made
+
+00:07:17.949 --> 00:07:20.405
+says so and your work carries your name
+
+00:07:20.465 --> 00:07:22.495
+rather than a model's.
+
+00:07:23.284 --> 00:07:26.412
+Our AI Stance - what Lolly does and does
+
+00:07:26.474 --> 00:07:29.664
+not do with generated content, and what
+
+00:07:29.727 --> 00:07:32.194
+enforces each commitment.
+
+00:07:32.957 --> 00:07:36.267
+Generated once, rendered the same - the AI
+
+00:07:36.359 --> 00:07:39.166
+features that ship, and why inventing
+
+00:07:39.226 --> 00:07:41.682
+pixels is marked while removing them is
+
+00:07:41.742 --> 00:07:42.720
+not.
+
+00:07:43.484 --> 00:07:46.681
+Input, not impersonation - why an agent
+
+00:07:46.742 --> 00:07:50.370
+supplies inputs and never a persona, how
+
+00:07:50.419 --> 00:07:53.241
+that is enforced and what a rogue agent
+
+00:07:53.310 --> 00:07:55.069
+still cannot do.
+
+00:07:55.846 --> 00:07:59.040
+AI Agents - what an agent can actually
+
+00:07:59.107 --> 00:08:02.335
+drive, if your teams are already pointing
+
+00:08:02.396 --> 00:08:03.819
+one at this.

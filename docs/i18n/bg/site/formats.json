@@ -1,0 +1,29 @@
+{
+  "heading": "Всеки формат - за вход и изход",
+  "_lead_note": "Deliberately count-free: the in/out/round-trip numbers are computed live in docs/build.ts from formats-catalog.json's dir fields, so no string in this file may hard-code one.",
+  "lead": "Lolly чете десетки изходни формата и рендира още десетки - ето пълния набор, групиран според това какъв е всеки. {roundtrip} от тях се четат *и* се записват, затова стоят веднъж в средата.",
+  "ingestsLabel": "Приема",
+  "ingestsCount": "навътре",
+  "exportsLabel": "Експортира",
+  "exportsCount": "навън",
+  "ingests": [
+    { "category": "Векторни", "list": "SVG · PDF · Illustrator · InDesign · Figma · Penpot" },
+    { "category": "Растерни", "list": "PNG · JPG · WEBP · GIF · HEIC · TIFF · AVIF" },
+    { "category": "Слоести", "list": "PSD · PSB · XCF" },
+    { "category": "Движение", "list": "MP4 · WEBM · MOV · Lottie" },
+    { "category": "Аудио", "list": "MP3 · WAV · OGG · M4A · FLAC · MIDI · MOD" },
+    { "category": "Документи", "list": "PPTX" },
+    { "category": "Данни", "list": "CSV · JSON" },
+    { "category": "3D", "list": "GLB · glTF" }
+  ],
+  "exports": [
+    { "category": "Векторни", "list": "SVG · PDF · CMYK PDF · EPS · CMYK EPS · EMF · DXF" },
+    { "category": "Растерни", "list": "PNG · JPG · WEBP · AVIF · TIFF · CMYK TIFF · ICO" },
+    { "category": "Слоести", "list": "PSD" },
+    { "category": "Движение", "list": "MP4 · WEBM · GIF · APNG · Анимиран WebP · Анимиран SVG" },
+    { "category": "Аудио", "list": "MP3 · M4A" },
+    { "category": "Документи", "list": "PPTX · HTML · MD · TXT" },
+    { "category": "Данни", "list": "CSV · JSON · ICS · VCF" },
+    { "category": "Пакет", "list": "ZIP" }
+  ]
+}

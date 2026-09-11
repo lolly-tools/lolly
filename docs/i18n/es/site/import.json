@@ -1,0 +1,25 @@
+{
+  "eyebrow": "Trae lo que ya has creado",
+  "heading": "Tus archivos de diseño no se quedan atrapados",
+  "lead": "El trabajo terminado en **Figma, Penpot, Illustrator, InDesign o cualquier app de SVG** no tiene por qué quedarse encerrado en una sola app. Abre **Design**, haz clic en **Importar un diseño**, y el archivo se abre como un layout vivo - no como una imagen aplanada. Cada capa se convierte en una caja editable, lista para seguir trabajando en ella, combinar con herramientas y renderizar bajo las mismas reglas.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "Cualquier SVG", "fmt": "universal", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "Tu archivo de diseño", "desc": "Figma, Penpot, Illustrator, InDesign o cualquier SVG" },
+    { "icon": "importFlowCanvas", "title": "Lienzo editable", "desc": "Cada capa es una caja en la que puedes cambiar el texto, el estilo y la posición" },
+    { "icon": "importFlowMix", "title": "Combina herramientas", "desc": "Añade un código QR, un gráfico en vivo u otro render" },
+    { "icon": "importFlowRender", "title": "Renderiza donde quieras", "desc": "SVG, PDF, PNG, vídeo - reproducible desde una URL" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "Se mantiene editable", "desc": "El texto sigue siendo texto, las formas siguen siendo formas, y las imágenes se suman a tu biblioteca. Sigues trabajando sobre el diseño - nunca repintas una captura de pantalla." },
+    { "icon": "importPointShield", "title": "Llega ya conforme a las reglas", "desc": "Las fuentes se remapean a tus tipografías y cada relleno pasa por el mismo control de color que una caja nativa. Una mesa de trabajo externa llega ya gobernada." },
+    { "icon": "importPointGrid", "title": "Se convierte en una plantilla", "desc": "Guárdalo y el layout se convierte en una herramienta reutilizable y direccionable por URL - una que cualquiera con Lolly puede abrir, rellenar y renderizar. No hace falta ninguna app de diseño." }
+  ],
+  "cta": "Descubre cómo funciona importar un diseño →",
+  "ctaHref": "/info/design-import.html"
+}

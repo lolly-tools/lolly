@@ -1,0 +1,12 @@
+{
+  "generator": { "name": "Gemini" },
+  "model": {
+    "name": "Gemini",
+    "identifier": "gemini-2.5-pro",
+    "vendor": "Google DeepMind",
+    "region": { "country": "United Kingdom" }
+  },
+  "oversight": "prompt_guided",
+  "source": "trainedAlgorithmicMedia",
+  "author": { "name": "Andy Fitzsimon" }
+}

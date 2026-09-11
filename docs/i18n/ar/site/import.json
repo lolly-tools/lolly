@@ -1,0 +1,25 @@
+{
+  "eyebrow": "أحضر ما صنعته من قبل",
+  "heading": "ملفات تصميمك ليست عالقة",
+  "lead": "العمل المنجز في **Figma أو Penpot أو Illustrator أو InDesign أو أي تطبيق SVG** لا يجب أن يبقى حبيس تطبيق واحد. افتح **Design** وانقر **استيراد تصميم**، فيفتح الملف كتخطيط حي - لا كصورة مسطحة. كل طبقة تصبح مربعا قابلا للتحرير، جاهزا لمواصلة العمل عليه ومزجه مع الأدوات وتصديره عبر القواعد نفسها.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "أي SVG", "fmt": "عام", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "ملف تصميمك", "desc": "Figma أو Penpot أو Illustrator أو InDesign أو أي SVG" },
+    { "icon": "importFlowCanvas", "title": "لوحة قابلة للتحرير", "desc": "كل طبقة مربع يمكنك إعادة كتابته وتنسيقه ونقله" },
+    { "icon": "importFlowMix", "title": "امزج الأدوات", "desc": "أدرج رمز QR أو مخططا حيا أو ناتج أداة أخرى" },
+    { "icon": "importFlowRender", "title": "صدر في أي مكان", "desc": "SVG وPDF وPNG وفيديو - قابلة لإعادة الإنتاج من عنوان URL" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "يبقى قابلا للتحرير", "desc": "النص يبقى نصا، والأشكال تبقى أشكالا، والصور تنضم إلى مكتبتك. تواصل العمل على التصميم - ولن تعيد رسم لقطة شاشة أبدا." },
+    { "icon": "importPointShield", "title": "يصل مطابقا للهوية", "desc": "الخطوط تستبدل بخطوطك وكل تعبئة تمر عبر حارس الألوان نفسه كأي مربع أصلي. اللوحة الخارجية تصل خاضعة للقواعد سلفا." },
+    { "icon": "importPointGrid", "title": "يتحول إلى قالب", "desc": "احفظه فيصبح التخطيط أداة قابلة لإعادة الاستخدام وقابلة للعنونة عبر URL - يمكن لأي شخص لديه Lolly فتحها وإعادة تعبئتها وتصديرها. دون الحاجة إلى تطبيق تصميم." }
+  ],
+  "cta": "شاهد كيف يعمل استيراد التصميم →",
+  "ctaHref": "/info/design-import.html"
+}

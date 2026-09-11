@@ -1,0 +1,205 @@
+<!--
+  Concept: "Input, not impersonation." A fluid wave of input (AI) flows malleably but is mathematically forced to part perfectly around a rigid, unforgeable cryptographic seal (Identity), proving input cannot spoof the boundary.
+  Band Contract: Absolute positioned full-bleed backdrop, safely scoped, legible under text, respects device constraints and reads live theme tokens.
+  Provenance: Gemini 1.5 Pro (Google) for the Lolly docs directed by Andy Fitzsimon on 2026-08-13; datacenter region: United Kingdom. The C2PA text is omitted to maintain file integrity as the first provenance record.
+-->
+<div class="ns-input-imp" aria-hidden="true">
+  <canvas></canvas>
+  <style>
+    .ns-input-imp {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .ns-input-imp canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <script>
+    (function(){
+      const root = document.querySelector('.ns-input-imp');
+      const canvas = root.querySelector('canvas');
+      const ctx = canvas.getContext('2d');
+
+      let width = 0, height = 0;
+      let isVisible = false, isPlaying = true;
+      let time = 0, rafId = null;
+      let colors = {};
+
+      function tok(name, fallback) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+      }
+
+      function updateColors() {
+        colors.page = tok('--page', '#ffffff');
+        colors.muted = tok('--muted', '#5a7067');
+        colors.green = tok('--green', '#30ba78');
+        colors.navy = tok('--navy', '#192072');
+        colors.border = tok('--border', '#d8ede4');
+        colors.blue = tok('--blue', '#2453ff');
+      }
+
+      function draw(t) {
+        ctx.clearRect(0, 0, width, height);
+
+        const R = Math.min(width, height) * 0.25;
+        const padding = R * 0.3;
+        // Keep the focal seal safe from the right edge scrims on mobile
+        const cx = Math.min(width * 0.75, width - R - 40);
+        const cy = height * 0.5;
+
+        const linesCount = 45;
+        const spacing = (height * 1.5) / linesCount;
+
+        // 1. Draw fluid generative input lines
+        ctx.lineJoin = 'round';
+        for (let i = 0; i < linesCount; i++) {
+          const y0 = -height * 0.25 + i * spacing;
+
+          if (i % 7 === 0) {
+            ctx.strokeStyle = colors.green;
+            ctx.globalAlpha = 0.7;
+            ctx.lineWidth = 2.5;
+          } else if (i % 3 === 0) {
+            ctx.strokeStyle = colors.muted;
+            ctx.globalAlpha = 0.5;
+            ctx.lineWidth = 1.5;
+          } else {
+            ctx.strokeStyle = colors.border;
+            ctx.globalAlpha = 0.8;
+            ctx.lineWidth = 1;
+          }
+
+          ctx.beginPath();
+          for (let x = -50; x <= width + 50; x += 15) {
+            const baseDy = y0 - cy;
+            const sign = baseDy >= 0 ? 1 : -1;
+            const absDy = Math.abs(baseDy);
+
+            // The absolute mathematical offset ensuring no line crosses the identity seal
+            const targetOffset = Math.max(0, R + padding - absDy);
+
+            const dx = x - cx;
+            const W = R * 1.8;
+            const push = targetOffset * Math.exp(-(dx * dx) / (W * W));
+
+            // Generative input variation (the AI wave)
+            const wave = Math.sin(x * 0.003 + t * 0.8 + i * 0.15) * 20 + Math.cos(x * 0.005 - t * 0.4) * 15;
+            // The input goes flat and strictly compliant as it reaches the cryptographic identity barrier
+            const waveDamping = 1 - Math.exp(-(dx * dx) / ((R * 1.2) * (R * 1.2)));
+
+            const y = y0 + sign * push + wave * waveDamping;
+
+            if (x === -50) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+
+        // 2. Draw the rigid, unforgeable Identity/Cryptographic Seal
+        ctx.globalAlpha = 1;
+        ctx.save();
+        ctx.translate(cx, cy);
+
+        // Mask the background to simulate absolute opacity of the seal
+        ctx.beginPath();
+        ctx.arc(0, 0, R + 2, 0, Math.PI * 2);
+        ctx.fillStyle = colors.page;
+        ctx.fill();
+
+        // Outer cryptographic boundary
+        ctx.beginPath();
+        ctx.arc(0, 0, R, 0, Math.PI * 2);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = colors.navy;
+        ctx.setLineDash([R * 0.15, R * 0.08]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Inner rigid ring
+        ctx.beginPath();
+        ctx.arc(0, 0, R * 0.75, 0, Math.PI * 2);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = colors.navy;
+        ctx.stroke();
+
+        // Core Identity block (unchanging geometric truth)
+        const s = R * 0.35;
+
+        ctx.beginPath();
+        ctx.rect(-s, -s, s * 2, s * 2);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = colors.blue;
+        ctx.stroke();
+
+        ctx.rotate(Math.PI / 4);
+        ctx.beginPath();
+        ctx.rect(-s, -s, s * 2, s * 2);
+        ctx.stroke();
+
+        // Authentic locus point
+        ctx.beginPath();
+        ctx.arc(0, 0, R * 0.15, 0, Math.PI * 2);
+        ctx.fillStyle = colors.navy;
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function loop(timestamp) {
+        if (!isPlaying || !isVisible) return;
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        time = reduced ? 0 : timestamp * 0.001;
+        draw(time);
+
+        if (!reduced) rafId = requestAnimationFrame(loop);
+      }
+
+      const ro = new ResizeObserver(entries => {
+        const rect = entries[0].contentRect;
+        const dpr = window.devicePixelRatio || 1;
+        width = rect.width;
+        height = rect.height;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+        updateColors();
+        draw(time);
+      });
+      ro.observe(root);
+
+      const io = new IntersectionObserver(entries => {
+        isVisible = entries[0].isIntersecting;
+        if (isVisible && isPlaying && !rafId) {
+          rafId = requestAnimationFrame(loop);
+        } else if (!isVisible && rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+      });
+      io.observe(root);
+
+      document.addEventListener('visibilitychange', () => {
+        isPlaying = !document.hidden;
+        if (isPlaying && isVisible && !rafId) rafId = requestAnimationFrame(loop);
+      });
+
+      const mo = new MutationObserver(() => {
+        updateColors();
+        draw(time);
+      });
+      mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        updateColors();
+        draw(time);
+      });
+
+      updateColors();
+    })();
+  </script>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKE2p1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAntanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDowZGFmNzdmMS01YmFmLTRiOTktOTBkOC1jNmU3ZWI2YmI3Y2MAAAAEaGp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEIY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254NUF1dGhvcmVkIHdpdGggR2VtaW5pIGZvciB0aGUgTG9sbHkgZG9jcyBtYXN0aGVhZCBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjEyMi4wZHdoZW50MjAyNi0wOC0xM1QwNzo1NDowOVoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GRpzZmxlbmd0aBkN0mRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggM3WsPd39AHHOUomZFtwSUKTIEjIPJru6MsMbLbJ7ArJjcGFkSAAAAAAAAAAAAAABC2p1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAANdjYm9yqmdzdXJmYWNlZGRvY3NmZW5naW5lbW5vZGUgdjI0LjE5LjBib3NmZGFyd2luZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2x3aW5wdXQtbm90LWltcGVyc29uYXRpb25kZGF0ZXgYMjAyNi0wOC0xM1QwNzo1NDowOS45NDNaaGFydGlmYWN0aG1hc3RoZWFkaWdlbmVyYXRvcmZHZW1pbmlrbW9kZWxWZW5kb3JmR29vZ2xla21vZGVsUmVnaW9ublVuaXRlZCBLaW5nZG9tAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAump1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAIZjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVmR2VtaW5pb21vZGVsSWRlbnRpZmllcm5nZW1pbmktMS41LXByb25jb250ZW50UHJvZmlsZaFzaHVtYW5PdmVyc2lnaHRMZXZlbG1wcm9tcHRfZ3VpZGVkAAAC1Wp1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAKmY2JvcqZoZGM6dGl0bGV3aW5wdXQtbm90LWltcGVyc29uYXRpb25qaW5zdGFuY2VJRHgtdXJuOnV1aWQ6MTk4OWMzYzktODNkYS00OWYxLTkxNTItMmJjZWY1NGVkMDk3dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4xMjIuMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOFomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCDEx3QAruk3WgsHsJAsgf0F1yCyDeNkalrdKzmXuVZAbqJjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCDrvL5UR35Yh2BBT9osKBIbCmd8x3PDnDoAiBe67u6MHKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFggvk4Lv2fIQNAe6yqpRcUBUGA79Cs65aFjj5Yxw+lVUlmiY3VybHgoc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvY2F3Zy5tZXRhZGF0YWRoYXNoWCDuJiUol/9ndNv6gbMRLa4CPvJcm24MrBQ3oMM0RtpuhKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFpLWRpc2Nsb3N1cmVkaGFzaFggNqNApSMvX2WDzCD/3fOEcxxmp2ktD2Oqd6klz1LlZjxpc2lnbmF0dXJleBlzZWxmI2p1bWJmPWMycGEuc2lnbmF0dXJlY2FsZ2ZzaGEyNTYAAAJhanVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAAAIxY2JvctKEWQHgogEmGCGBWQHXMIIB0zCCAXmgAwIBAgIJWOa/XB2rjy+7MAoGCCqGSM49BAMCMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDAeFw0yNjA4MTMwNzUzMDlaFw0zNjA4MTAwNzU0MDlaMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABMAXm3lgwFIoPlWCcpRxErBU9mAO+a0NqSS+z3lja399yddfytVX5sqOWtSYD0KqC5P5FET/JXQnX9uwV05tPLujcjBwMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMEMB0GA1UdDgQWBBQpY8aR/jf027y7QXZRZJuO/u4yoTAfBgNVHSMEGDAWgBQpY8aR/jf027y7QXZRZJuO/u4yoTAKBggqhkjOPQQDAgNIADBFAiEAvmfId9Xhuwt9fGG0uXvsGVTXxCf5Ijyt5DNT2d23focCIADEiNJXZMAjW5+pBPBJCOTaMLf39Ff0m9T6zjb51RZfoPZYQMTtqm/emKtMigKjW/MdqtEa/BkZCDcDdAARhDwm5ppGssyK3zwzl0j/NmNzhoRXcF5Rj09tKImKWegfUvMP1EQ= -----END C2PA MANIFEST----- -->

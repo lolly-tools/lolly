@@ -1,0 +1,29 @@
+{
+  "heading": "كل الصيغ، دخولا وخروجا",
+  "_lead_note": "Deliberately count-free: the in/out/round-trip numbers are computed live in docs/build.ts from formats-catalog.json's dir fields, so no string in this file may hard-code one.",
+  "lead": "تقرأ Lolly عشرات صيغ المصدر وتصدر عشرات أخرى - وإليك المجموعة الكاملة، مصنفة حسب طبيعة كل صيغة. صيغ {roundtrip} تقرأ *و* تكتب، لذا تظهر مرة واحدة في المنتصف.",
+  "ingestsLabel": "الاستيراد",
+  "ingestsCount": "وارد",
+  "exportsLabel": "التصدير",
+  "exportsCount": "صادر",
+  "ingests": [
+    { "category": "متجهات", "list": "SVG · PDF · Illustrator · InDesign · Figma · Penpot" },
+    { "category": "نقطية", "list": "PNG · JPG · WEBP · GIF · HEIC · TIFF · AVIF" },
+    { "category": "طبقية", "list": "PSD · PSB · XCF" },
+    { "category": "حركة", "list": "MP4 · WEBM · MOV · Lottie" },
+    { "category": "صوت", "list": "MP3 · WAV · OGG · M4A · FLAC · MIDI · MOD" },
+    { "category": "مستندات", "list": "PPTX" },
+    { "category": "بيانات", "list": "CSV · JSON" },
+    { "category": "3D", "list": "GLB · glTF" }
+  ],
+  "exports": [
+    { "category": "متجهات", "list": "SVG · PDF · CMYK PDF · EPS · CMYK EPS · EMF · DXF" },
+    { "category": "نقطية", "list": "PNG · JPG · WEBP · AVIF · TIFF · CMYK TIFF · ICO" },
+    { "category": "طبقية", "list": "PSD" },
+    { "category": "حركة", "list": "MP4 · WEBM · GIF · APNG · WebP متحرك · SVG متحرك" },
+    { "category": "صوت", "list": "MP3 · M4A" },
+    { "category": "مستندات", "list": "PPTX · HTML · MD · TXT" },
+    { "category": "بيانات", "list": "CSV · JSON · ICS · VCF" },
+    { "category": "حزم", "list": "ZIP" }
+  ]
+}

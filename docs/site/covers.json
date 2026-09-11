@@ -1,0 +1,141 @@
+{
+  "label": "The Lolly studios",
+  "open": "Open {name}",
+  "prev": "Previous",
+  "next": "Next",
+  "pick": "Pick a cover",
+  "covers": [
+    {
+      "img": "covers/darkroom.webp",
+      "hue": 0,
+      "name": "Darkroom",
+      "href": "#/tool/darkroom",
+      "promise": "Film looks, LUTs and grading for photos",
+      "alt": "A lorikeet portrait washed in the brand red, open in the Darkroom"
+    },
+    {
+      "img": "covers/filter.svg",
+      "hue": 22.5,
+      "name": "Filter",
+      "href": "#/tool/filter",
+      "promise": "Halftone, dither, duotone, ASCII and more, on a picture or live camera",
+      "alt": "The Lolly logo as a halftone dot screen in the brand orange, exported as SVG"
+    },
+    {
+      "img": "covers/gradient-poster.webp",
+      "video": "covers/gradient.mp4",
+      "hue": 45,
+      "name": "Gradient",
+      "href": "#/tool/gradient",
+      "promise": "Five ways to build a gradient from the swatches you set",
+      "alt": "A flowing mesh gradient in amber brand swatches, moving"
+    },
+    {
+      "img": "covers/chart.webp",
+      "hue": 67.5,
+      "name": "Chart",
+      "href": "#/tool/chart",
+      "promise": "Paste a table and get a chart in your palette, vector-clean",
+      "alt": "A bar chart drawn in a yellow brand palette"
+    },
+    {
+      "img": "covers/qr-code.webp",
+      "hue": 90,
+      "name": "QR code",
+      "href": "#/tool/qr-code",
+      "promise": "A QR code in your colours, from a link, a card or a Wi-Fi network",
+      "alt": "A QR code for lolly.tools drawn in the brand green"
+    },
+    {
+      "img": "covers/backdrop-poster.webp",
+      "video": "covers/backdrop.mp4",
+      "hue": 112.5,
+      "name": "Backdrop",
+      "href": "#/tool/backdrop",
+      "promise": "Living backgrounds in the colours you set",
+      "alt": "Metaballs drifting through a muted green backdrop with one warm accent"
+    },
+    {
+      "img": "covers/lab.webp",
+      "hue": 135,
+      "name": "Colour Lab",
+      "href": "#/lab",
+      "promise": "One colour, reported in full: contrast, harmonies, screen and print",
+      "alt": "The Colour Lab's report on a green, with its contrast checks and harmonies"
+    },
+    {
+      "img": "covers/design.webp",
+      "hue": 157.5,
+      "name": "Design",
+      "href": "#/tool/design",
+      "promise": "Free-form layouts on an open canvas, held to the design system",
+      "alt": "The Design canvas with a finished poster layout"
+    },
+    {
+      "img": "covers/sequence.webp",
+      "hue": 180,
+      "name": "Sequence",
+      "href": "#/tool/design",
+      "promise": "Design's video timeline: clips, music and voiceover, cut in place",
+      "alt": "The Sequence timeline with clips laid out, in a teal brand"
+    },
+    {
+      "img": "covers/audiogram-poster.webp",
+      "video": "covers/audiogram.mp4",
+      "hue": 202.5,
+      "name": "Audiogram",
+      "href": "#/tool/audiogram",
+      "promise": "A clip becomes a finished video that moves with the sound, MilkDrop included",
+      "alt": "A MilkDrop visualiser filling the frame to a loop, in a sky-blue brand, with the track title centred"
+    },
+    {
+      "img": "covers/street-map.webp",
+      "hue": 225,
+      "name": "Street map",
+      "href": "#/tool/street-map",
+      "promise": "Any city as a poster, its streets in your colours",
+      "alt": "Melbourne's streets drawn in a blue brand palette"
+    },
+    {
+      "img": "covers/3d-poster.webp",
+      "video": "covers/3d.webm",
+      "hue": 247.5,
+      "name": "3D",
+      "href": "#/tool/3d",
+      "promise": "Pose a model, render a still or a turntable",
+      "alt": "A 3D model turning on a turntable, in an indigo brand"
+    },
+    {
+      "img": "covers/colours.webp",
+      "hue": 270,
+      "name": "Colours",
+      "href": "#/start",
+      "promise": "A palette built on a real colour wheel, kept in step everywhere",
+      "alt": "The Colours room of the design system studio, in violet"
+    },
+    {
+      "img": "covers/snippet.webp",
+      "hue": 292.5,
+      "name": "Snippet",
+      "href": "#/tool/snippet",
+      "promise": "Code as a card: syntax highlighted, in your theme, ready to post",
+      "alt": "A TypeScript snippet card highlighted in a purple brand theme"
+    },
+    {
+      "img": "covers/catalogue.webp",
+      "hue": 315,
+      "name": "Catalogue",
+      "href": "#/c",
+      "promise": "Every file, font and colour in one place",
+      "alt": "The Catalogue's swatches in a magenta brand"
+    },
+    {
+      "img": "covers/utilities.svg",
+      "hue": 337.5,
+      "name": "Utilities",
+      "href": "#/utilities",
+      "promise": "Use offline, files never leave your device",
+      "alt": "The Utilities shelf in a rose brand: Scan, Verify, Unpack and Spreadsheet among the tiles, captured as vector"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/*
+ * PAGE-level styles for the docs "Listen" player (plans/40-docs-audio-listen.md).
+ *
+ * Phase 2c: the DOCK itself is now the shared @lolly-tools/audio-dock shell, whose
+ * stylesheet (DOCK_CSS) the shell injects as its own <style> at runtime. All that
+ * is left here is what lives on the PAGE rather than in the dock: the follow-along
+ * highlight on the narrated block, and the seek-target cursor on headings while
+ * the player is open. Built to /info/docs-player.css by docs/build.ts and linked
+ * by the player bundle on first open - pages that never press Listen never fetch
+ * it.
+ *
+ * Colours come from the app tokens docs/build.ts inlines (tokens.css → :root),
+ * so a single rule reads correctly in light / dark / brand: `--primary` re-themes
+ * per [data-theme], the same brand-reactive surround the app's in-reader host
+ * uses (shells/web/src/styles/parts/docs.css `.docs-narr-here`). Deliberately
+ * UNSCOPED (not under `.docs-content`) so it also lands on the landing page,
+ * whose narrated blocks sit directly under <body>.
+ */
+
+.docs-narr-here {
+  background: hsl(var(--primary) / 0.14);
+  box-shadow: 0 0 0 6px hsl(var(--primary) / 0.14);
+  border-radius: 4px;
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+  cursor: pointer;
+}
+
+/* While the player is open, headings are seek targets (cues.json chapters). */
+html.docs-narr-open .docs-content h1[id],
+html.docs-narr-open .docs-content h2[id],
+html.docs-narr-open .docs-content h3[id],
+html.docs-narr-open .docs-content h4[id] { cursor: pointer; }
+
+@media (prefers-reduced-motion: reduce) {
+  .docs-narr-here { transition: none; }
+}

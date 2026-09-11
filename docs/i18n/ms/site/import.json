@@ -1,0 +1,25 @@
+{
+  "eyebrow": "Bawa apa yang anda sudah hasilkan",
+  "heading": "Fail reka bentuk anda tidak terkandas",
+  "lead": "Kerja siap dalam **Figma, Penpot, Illustrator, InDesign atau mana-mana aplikasi SVG** tidak perlu kekal terkunci dalam satu aplikasi sahaja. Buka **Design**, klik **Import reka bentuk**, dan fail itu terbuka sebagai reka letak yang hidup - bukan gambar rata. Setiap lapisan menjadi kotak yang boleh disunting, sedia untuk diteruskan kerjanya, digabungkan dengan alat, dan dirender melalui peraturan yang sama.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "Mana-mana SVG", "fmt": "sejagat", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "Fail reka bentuk anda", "desc": "Figma, Penpot, Illustrator, InDesign atau mana-mana SVG" },
+    { "icon": "importFlowCanvas", "title": "Kanvas boleh disunting", "desc": "Setiap lapisan menjadi kotak yang boleh anda taip semula, ubah gaya dan gerakkan" },
+    { "icon": "importFlowMix", "title": "Gabungkan alat", "desc": "Masukkan kod QR, carta langsung atau render lain" },
+    { "icon": "importFlowRender", "title": "Render di mana-mana", "desc": "SVG, PDF, PNG, video - boleh dihasilkan semula daripada URL" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "Ia kekal boleh disunting", "desc": "Teks kekal sebagai teks, bentuk kekal sebagai bentuk, imej menyertai pustaka anda. Anda terus mengusahakan reka bentuk itu - anda tidak sesekali mengecat semula tangkapan skrin." },
+    { "icon": "importPointShield", "title": "Ia tiba dalam keadaan selaras", "desc": "Fon dipeta semula kepada muka taip anda dan setiap isian melalui semakan warna yang sama seperti kotak asli. Artboard luar tiba dalam keadaan telah dikawal selia." },
+    { "icon": "importPointGrid", "title": "Ia menjadi templat", "desc": "Simpan dan reka letak itu menjadi alat yang boleh digunakan semula serta boleh dicapai melalui URL - satu yang boleh dibuka, diisi semula dan dirender oleh sesiapa sahaja yang mempunyai Lolly. Tiada aplikasi reka bentuk diperlukan." }
+  ],
+  "cta": "Lihat cara mengimport reka bentuk berfungsi →",
+  "ctaHref": "/info/design-import.html"
+}

@@ -1,0 +1,25 @@
+{
+  "eyebrow": "이미 만든 것을 그대로 가져오세요",
+  "heading": "디자인 파일은 어디에도 갇히지 않아요",
+  "lead": "**Figma, Penpot, Illustrator, InDesign, 또는 어떤 SVG 앱**에서 완성한 작업물도 하나의 앱 안에 갇혀 있을 필요는 없어요. **Design**을 열고 **디자인 가져오기**를 클릭하면, 파일이 평평해진 그림이 아니라 살아 있는 레이아웃으로 열려요. 모든 레이어가 편집 가능한 상자가 되어, 계속 작업하고, 도구와 섞어 쓰고, 동일한 규칙으로 렌더링할 준비가 돼요.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "모든 SVG", "fmt": "범용", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "디자인 파일", "desc": "Figma, Penpot, Illustrator, InDesign 또는 모든 SVG" },
+    { "icon": "importFlowCanvas", "title": "편집 가능한 캔버스", "desc": "모든 레이어가 다시 입력하고, 스타일을 바꾸고, 옮길 수 있는 상자가 돼요" },
+    { "icon": "importFlowMix", "title": "도구와 섞어 쓰기", "desc": "QR 코드, 라이브 차트, 또는 다른 렌더링 결과를 끌어다 놓을 수 있어요" },
+    { "icon": "importFlowRender", "title": "어디서든 렌더링", "desc": "SVG, PDF, PNG, 동영상 - URL 하나로 그대로 재현할 수 있어요" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "계속 편집할 수 있어요", "desc": "텍스트는 텍스트로, 도형은 도형으로 남고, 이미지는 라이브러리에 합류해요. 디자인 작업은 계속 이어갈 수 있어요 - 스크린샷을 다시 그릴 일은 없어요." },
+    { "icon": "importPointShield", "title": "가져오는 순간 규칙에 맞춰져요", "desc": "폰트는 브랜드 서체로 다시 매핑되고, 모든 채우기는 네이티브 상자와 동일한 색상 가드를 통과해요. 외부에서 온 아트보드도 도착하는 순간 이미 통제된 상태예요." },
+    { "icon": "importPointGrid", "title": "템플릿이 돼요", "desc": "저장하면 그 레이아웃은 재사용 가능하고 URL로 접근할 수 있는 도구가 돼요 - Lolly가 있는 사람이라면 누구나 열어서 내용을 다시 채우고 렌더링할 수 있어요. 디자인 앱은 필요 없어요." }
+  ],
+  "cta": "디자인을 가져오는 방법 알아보기 →",
+  "ctaHref": "/info/design-import.html"
+}

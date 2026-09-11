@@ -1,0 +1,25 @@
+{
+  "eyebrow": "Apporte ce que tu as déjà créé",
+  "heading": "Tes fichiers de design ne sont pas coincés",
+  "lead": "Un travail terminé dans **Figma, Penpot, Illustrator, InDesign ou n'importe quelle appli SVG** n'a pas à rester enfermé dans une seule appli. Ouvre **Design**, clique sur **Importer un design**, et le fichier s'ouvre comme une mise en page vivante - pas une image aplatie. Chaque calque devient une boîte modifiable, prête à être retravaillée, mélangée avec des outils, et rendue selon les mêmes règles.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "Tout SVG", "fmt": "universel", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "Ton fichier de design", "desc": "Figma, Penpot, Illustrator, InDesign ou n'importe quel SVG" },
+    { "icon": "importFlowCanvas", "title": "Canevas modifiable", "desc": "Chaque calque devient une boîte que tu peux retaper, restyliser et déplacer" },
+    { "icon": "importFlowMix", "title": "Mélange des outils", "desc": "Ajoute un QR code, un graphique en direct ou un autre rendu" },
+    { "icon": "importFlowRender", "title": "Rends n'importe où", "desc": "SVG, PDF, PNG, vidéo - reproductible depuis une URL" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "Ça reste modifiable", "desc": "Le texte reste du texte, les formes restent des formes, les images rejoignent ta bibliothèque. Tu continues à travailler sur le design - tu ne repeins jamais une capture d'écran." },
+    { "icon": "importPointShield", "title": "Ça arrive déjà conforme", "desc": "Les polices se réassocient à tes propres polices et chaque remplissage passe par le même contrôle de couleur qu'une boîte native. Un plan de travail externe arrive déjà encadré." },
+    { "icon": "importPointGrid", "title": "Ça devient un modèle", "desc": "Enregistre-le et la mise en page devient un outil réutilisable, adressable par URL - que n'importe qui avec Lolly peut ouvrir, remplir et générer. Aucune appli de design requise." }
+  ],
+  "cta": "Découvre comment fonctionne l'import d'un design →",
+  "ctaHref": "/info/design-import.html"
+}

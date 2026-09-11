@@ -1,0 +1,15 @@
+{
+  "eyebrow": "lolly.work",
+  "heading": "Lolly for the whole organisation",
+  "body": "The same tools, with what a team needs around them: sign in with your own identity provider, roles and approvals, shared catalogues and shared projects, inputs locked where the brand must not move, links that expire, and an audit trail. Open source as well (MPL-2.0), hosted by you.",
+  "links": [
+    {
+      "label": "Try the sandbox at lolly.work ↗",
+      "href": "https://lolly.work"
+    },
+    {
+      "label": "The lolly-work repository ↗",
+      "href": "https://github.com/lolly-tools/lolly-work"
+    }
+  ]
+}

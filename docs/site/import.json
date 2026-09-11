@@ -1,0 +1,25 @@
+{
+  "eyebrow": "Bring what you've already made",
+  "heading": "Your design files aren't stranded",
+  "lead": "Finished work in **Figma, Penpot, Illustrator, InDesign or any SVG app** doesn't have to stay locked in one app. Open **Design**, click **Import a design** and the file opens as a living layout - not a flattened picture. Every layer becomes an editable box, ready to keep working on, mix with tools and render through the same rules.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "Any SVG", "fmt": "universal", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "Your design file", "desc": "Figma, Penpot, Illustrator, InDesign or any SVG" },
+    { "icon": "importFlowCanvas", "title": "Editable canvas", "desc": "Every layer a box you can retype, restyle and move" },
+    { "icon": "importFlowMix", "title": "Mix in tools", "desc": "Drop in a QR code, a live chart or another render" },
+    { "icon": "importFlowRender", "title": "Render anywhere", "desc": "SVG, PDF, PNG, video - reproducible from a URL" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "It stays editable", "desc": "Text stays text, shapes stay shapes, images join your library. You keep working on the design - you never repaint a screenshot." },
+    { "icon": "importPointShield", "title": "It arrives conformed", "desc": "Fonts remap to your faces and every fill passes the same colour guard as a native box. A foreign artboard arrives already governed." },
+    { "icon": "importPointGrid", "title": "It becomes a template", "desc": "Save it and the layout is a reusable, URL-addressable tool - one anyone with Lolly can open, refill and render. No design app required." }
+  ],
+  "cta": "See how importing a design works →",
+  "ctaHref": "/info/design-import.html"
+}

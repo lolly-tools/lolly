@@ -1,0 +1,334 @@
+WEBVTT
+
+00:00:00.410 --> 00:00:04.068
+Most software asks you to trust it.
+
+00:00:04.836 --> 00:00:07.927
+This section is the opposite: every claim
+
+00:00:07.988 --> 00:00:11.177
+Lolly makes about your content, your data
+
+00:00:11.270 --> 00:00:14.204
+and its own behaviour is written down here
+
+00:00:14.266 --> 00:00:17.495
+with the mechanism that enforces it, so
+
+00:00:17.561 --> 00:00:20.295
+you can check rather than believe.
+
+00:00:21.061 --> 00:00:24.163
+The internet is optional with Lolly: use
+
+00:00:24.222 --> 00:00:27.645
+it when it helps, never surrender control.
+
+00:00:28.400 --> 00:00:31.414
+A font you pick, a place you look up, a
+
+00:00:31.474 --> 00:00:34.097
+link you share - things happen online only
+
+00:00:34.157 --> 00:00:35.870
+because you asked.
+
+00:00:36.657 --> 00:00:39.123
+Nothing you make ever leaves your device
+
+00:00:39.174 --> 00:00:42.440
+without your control and informed consent,
+
+00:00:42.528 --> 00:00:44.745
+Nobody is listening in.
+
+00:00:45.521 --> 00:00:49.393
+Go offline and everything you have works.
+
+00:00:50.192 --> 00:00:52.368
+Freedom is sweet.
+
+00:00:53.143 --> 00:00:55.918
+The receipts: the Privacy Policy names
+
+00:00:56.027 --> 00:00:59.154
+every request the app can ever make, and
+
+00:00:59.216 --> 00:01:02.211
+Verify It Yourself shows you how to check
+
+00:01:02.257 --> 00:01:03.469
+each one.
+
+00:01:04.604 --> 00:01:07.769
+Where did this content come from?
+
+00:01:08.533 --> 00:01:11.102
+The media Lolly renders carries Content
+
+00:01:11.161 --> 00:01:14.409
+Credentials by default - a signed record
+
+00:01:14.445 --> 00:01:17.670
+of what made it, from what and when.
+
+00:01:18.437 --> 00:01:21.287
+When a file arrives with a history already
+
+00:01:21.347 --> 00:01:24.372
+attached, Lolly preserves it rather than
+
+00:01:24.462 --> 00:01:27.544
+flattening it, so the chain stays intact
+
+00:01:27.622 --> 00:01:29.220
+through an edit.
+
+00:01:29.977 --> 00:01:32.756
+Content Credentials - what gets signed,
+
+00:01:32.817 --> 00:01:35.102
+what the signature proves and who the
+
+00:01:35.195 --> 00:01:36.669
+signer is.
+
+00:01:37.429 --> 00:01:39.999
+Content Credentials - Engineering - the
+
+00:01:40.085 --> 00:01:44.029
+C2PA implementation itself: manifests,
+
+00:01:44.092 --> 00:01:47.294
+ingredients, action histories, formats.
+
+00:01:48.081 --> 00:01:52.183
+Our AI Stance - where AI is welcome, where
+
+00:01:52.246 --> 00:01:55.468
+it is not and why AI-generated content
+
+00:01:55.512 --> 00:01:57.219
+declares itself.
+
+00:01:58.343 --> 00:02:01.568
+Can I check that for myself?
+
+00:02:02.354 --> 00:02:04.761
+You can, and you should - the point of
+
+00:02:04.844 --> 00:02:07.564
+provenance is that it does not need our
+
+00:02:07.628 --> 00:02:08.694
+word.
+
+00:02:09.478 --> 00:02:12.397
+Verify It Yourself - walk the claims on
+
+00:02:12.458 --> 00:02:15.641
+this site against a real export, step by
+
+00:02:15.718 --> 00:02:16.744
+step.
+
+00:02:17.531 --> 00:02:20.810
+Security & Verification - how the code is
+
+00:02:20.882 --> 00:02:23.419
+built, signed and checked.
+
+00:02:24.201 --> 00:02:27.106
+Threat Model - what Lolly defends against,
+
+00:02:27.171 --> 00:02:30.244
+and what it explicitly does not.
+
+00:02:31.002 --> 00:02:33.603
+Parser Inventory - every format Lolly
+
+00:02:33.666 --> 00:02:36.212
+parses, because parsers are where
+
+00:02:36.318 --> 00:02:39.494
+untrusted input meets your device.
+
+00:02:40.286 --> 00:02:43.248
+Server Surface - the complete list of what
+
+00:02:43.300 --> 00:02:45.494
+a server ever sees.
+
+00:02:46.634 --> 00:02:49.668
+What happens to my data?
+
+00:02:50.474 --> 00:02:53.593
+Lolly renders on your device.
+
+00:02:54.368 --> 00:02:57.435
+That is not a privacy posture bolted on
+
+00:02:57.540 --> 00:03:01.131
+afterwards - it is the architecture, and
+
+00:03:01.196 --> 00:03:04.370
+it is why most of the usual questions have
+
+00:03:04.464 --> 00:03:06.119
+short answers.
+
+00:03:06.875 --> 00:03:09.990
+Privacy Policy - what is collected, what
+
+00:03:10.050 --> 00:03:13.144
+is not and what leaves your device.
+
+00:03:13.918 --> 00:03:16.818
+Data Transfer - moving your work in and
+
+00:03:16.880 --> 00:03:19.644
+out, with nothing held hostage.
+
+00:03:20.417 --> 00:03:23.181
+Inclusive Design - who the software is
+
+00:03:23.243 --> 00:03:25.194
+built to work for.
+
+00:03:26.335 --> 00:03:28.013
+The refusal
+
+00:03:28.980 --> 00:03:32.468
+Nothing to sell you, nothing to take.
+
+00:03:33.258 --> 00:03:35.655
+Four commitments, stated once and
+
+00:03:35.718 --> 00:03:36.943
+checkable:
+
+00:03:37.741 --> 00:03:40.568
+Free, and it stays free.
+
+00:03:41.336 --> 00:03:43.736
+A version that has been released is
+
+00:03:43.811 --> 00:03:47.444
+licensed so it can never be taken back.
+
+00:03:48.211 --> 00:03:51.137
+The free Lolly always exists, whatever
+
+00:03:51.198 --> 00:03:54.212
+happens next - the exact mechanism is on
+
+00:03:54.274 --> 00:03:56.295
+How Lolly compares.
+
+00:03:57.069 --> 00:03:58.969
+Open source.
+
+00:03:59.745 --> 00:04:02.945
+Read it, run it, fork it, keep it.
+
+00:04:03.744 --> 00:04:06.965
+Nothing on this page needs to be believed:
+
+00:04:07.027 --> 00:04:09.616
+the code is public and the claims are
+
+00:04:09.679 --> 00:04:10.869
+checkable.
+
+00:04:11.634 --> 00:04:13.969
+Blind by design.
+
+00:04:14.773 --> 00:04:17.568
+Lolly reports nothing back.
+
+00:04:18.352 --> 00:04:21.339
+Nobody, the makers included, can see who
+
+00:04:21.407 --> 00:04:23.871
+runs it or what they make - see the
+
+00:04:23.932 --> 00:04:25.695
+Privacy Policy.
+
+00:04:26.443 --> 00:04:29.306
+A tool that cannot see you has nothing to
+
+00:04:29.400 --> 00:04:31.045
+sell about you.
+
+00:04:31.846 --> 00:04:34.068
+Your vote, visible.
+
+00:04:34.868 --> 00:04:37.416
+Your work never goes where you have no
+
+00:04:37.526 --> 00:04:38.543
+say.
+
+00:04:39.310 --> 00:04:42.008
+Anything that touches the internet happens
+
+00:04:42.068 --> 00:04:45.004
+because you chose it, at the moment you
+
+00:04:45.065 --> 00:04:48.004
+chose it, and the code that keeps that
+
+00:04:48.065 --> 00:04:49.919
+promise is open.
+
+00:04:51.056 --> 00:04:53.157
+Why this is free
+
+00:04:54.159 --> 00:04:57.268
+We built Lolly for ourselves.
+
+00:04:58.068 --> 00:05:01.404
+SUSE needed thousands of on-brand files,
+
+00:05:01.473 --> 00:05:04.627
+each with its name sealed inside, made
+
+00:05:04.663 --> 00:05:06.978
+without handing anything to outside
+
+00:05:07.042 --> 00:05:08.420
+services.
+
+00:05:09.211 --> 00:05:12.163
+So we built a tool that does all of it on
+
+00:05:12.215 --> 00:05:15.493
+the device, and released it as open
+
+00:05:15.604 --> 00:05:18.445
+source, like everything else we make.
+
+00:05:19.221 --> 00:05:22.361
+We keep maintaining it because we use it
+
+00:05:22.424 --> 00:05:23.769
+every day.
+
+00:05:24.544 --> 00:05:27.392
+There is no obligation: everything here
+
+00:05:27.455 --> 00:05:29.994
+works with or without us.
+
+00:05:30.744 --> 00:05:33.684
+If you find a place where these pages and
+
+00:05:33.718 --> 00:05:37.292
+the code disagree, the code is the bug -
+
+00:05:37.350 --> 00:05:39.980
+and the repository is public so you can
+
+00:05:40.049 --> 00:05:41.995
+prove it either way.

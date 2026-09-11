@@ -1,0 +1,25 @@
+{
+  "eyebrow": "Zaten yaptığını getir",
+  "heading": "Tasarım dosyaların artık mahsur kalmıyor",
+  "lead": "**Figma, Penpot, Illustrator, InDesign ya da herhangi bir SVG uygulamasında** tamamlanmış çalışmaların tek bir uygulamaya kilitli kalmak zorunda değil. **Design**'ı aç, **Import a design**'a tıkla, dosya düzleştirilmiş bir resim değil, canlı bir düzen olarak açılır. Her katman; üzerinde çalışmaya devam edebileceğin, araçlarla karıştırabileceğin ve aynı kurallarla oluşturabileceğin, düzenlenebilir bir kutuya dönüşür.",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "Herhangi bir SVG", "fmt": "evrensel", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "Tasarım dosyan", "desc": "Figma, Penpot, Illustrator, InDesign ya da herhangi bir SVG" },
+    { "icon": "importFlowCanvas", "title": "Düzenlenebilir kanvas", "desc": "Yeniden yazabileceğin, yeniden biçimlendirebileceğin ve taşıyabileceğin her katman bir kutu" },
+    { "icon": "importFlowMix", "title": "Araçlarla karıştır", "desc": "Bir QR kodu, canlı bir grafik ya da başka bir çıktı ekle" },
+    { "icon": "importFlowRender", "title": "Her yerde oluştur", "desc": "SVG, PDF, PNG, video - bir URL'den yeniden üretilebilir" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "Düzenlenebilir kalır", "desc": "Metin metin kalır, şekiller şekil kalır, görseller kütüphanene katılır. Tasarım üzerinde çalışmaya devam edersin - asla bir ekran görüntüsünü yeniden boyamazsın." },
+    { "icon": "importPointShield", "title": "Kurallara uygun şekilde gelir", "desc": "Yazı tipleri markanın yazı tiplerine yeniden eşlenir ve her dolgu, yerel bir kutuyla aynı renk denetiminden geçer. Yabancı bir çalışma alanı, zaten yönetilmiş biçimde gelir." },
+    { "icon": "importPointGrid", "title": "Bir şablona dönüşür", "desc": "Kaydet, düzen; Lolly kullanan herkesin açabileceği, yeniden doldurabileceği ve oluşturabileceği, yeniden kullanılabilir, URL üzerinden erişilebilir bir araca dönüşür. Tasarım uygulaması gerekmez." }
+  ],
+  "cta": "Bir tasarımı içe aktarmanın nasıl çalıştığını gör →",
+  "ctaHref": "/info/design-import.html"
+}

@@ -1,0 +1,77 @@
+{
+  "heading": "Кожен формат - на вхід і на вихід",
+  "_lead_note": "Deliberately count-free: the in/out/round-trip numbers are computed live in docs/build.ts from formats-catalog.json's dir fields, so no string in this file may hard-code one.",
+  "lead": "Lolly читає десятки вихідних форматів і рендерить ще десятки - ось повний перелік, згрупований за типом кожного. {roundtrip} із них читаються *і* записуються, тому стоять один раз посередині.",
+  "ingestsLabel": "Імпорт",
+  "ingestsCount": "на вхід",
+  "exportsLabel": "Експорт",
+  "exportsCount": "на вихід",
+  "ingests": [
+    {
+      "category": "Вектор",
+      "list": "SVG · PDF · Illustrator · InDesign · Figma · Penpot"
+    },
+    {
+      "category": "Растр",
+      "list": "PNG · JPG · WEBP · GIF · HEIC · TIFF · AVIF"
+    },
+    {
+      "category": "Багатошарові",
+      "list": "PSD · PSB · XCF"
+    },
+    {
+      "category": "Анімація",
+      "list": "MP4 · WEBM · MOV · Lottie"
+    },
+    {
+      "category": "Аудіо",
+      "list": "MP3 · WAV · OGG · M4A · FLAC · MIDI · MOD"
+    },
+    {
+      "category": "Документ",
+      "list": "PPTX"
+    },
+    {
+      "category": "Дані",
+      "list": "CSV · JSON"
+    },
+    {
+      "category": "3D",
+      "list": "GLB · glTF"
+    }
+  ],
+  "exports": [
+    {
+      "category": "Вектор",
+      "list": "SVG · PDF · CMYK PDF · EPS · CMYK EPS · EMF · DXF"
+    },
+    {
+      "category": "Растр",
+      "list": "PNG · JPG · WEBP · AVIF · TIFF · CMYK TIFF · ICO"
+    },
+    {
+      "category": "Багатошарові",
+      "list": "PSD"
+    },
+    {
+      "category": "Анімація",
+      "list": "MP4 · WEBM · GIF · APNG · Анімований WebP · Анімований SVG"
+    },
+    {
+      "category": "Аудіо",
+      "list": "MP3 · M4A"
+    },
+    {
+      "category": "Документ",
+      "list": "PPTX · HTML · MD · TXT"
+    },
+    {
+      "category": "Дані",
+      "list": "CSV · JSON · ICS · VCF"
+    },
+    {
+      "category": "Пакет",
+      "list": "ZIP"
+    }
+  ]
+}

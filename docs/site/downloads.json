@@ -1,0 +1,64 @@
+{
+  "label": "Get the app",
+  "lead": "Same tools, same files, whichever one you pick.",
+  "items": [
+    {
+      "logo": "apple",
+      "os": "macOS",
+      "name": "Apple silicon",
+      "ext": "DMG",
+      "note": "M1 and later",
+      "slug": "install",
+      "hash": "macos"
+    },
+    {
+      "logo": "opensuse",
+      "os": "openSUSE",
+      "name": "Tumbleweed",
+      "ext": "RPM",
+      "note": "x86_64",
+      "slug": "install",
+      "hash": "tumbleweed"
+    },
+    {
+      "logo": "opensuse",
+      "os": "openSUSE",
+      "name": "Leap 16",
+      "ext": "RPM",
+      "note": "x86_64",
+      "slug": "install",
+      "hash": "leap"
+    },
+    {
+      "logo": "flatpak",
+      "os": "Linux",
+      "name": "Flatpak",
+      "ext": "FLATPAK",
+      "note": "any distro",
+      "slug": "install",
+      "hash": "flatpak"
+    },
+    {
+      "logo": "android",
+      "os": "Android",
+      "name": "Phone, tablet",
+      "ext": "APK",
+      "note": "no store",
+      "slug": "install",
+      "hash": "android"
+    },
+    {
+      "logo": "debian",
+      "os": "Linux",
+      "name": "Debian, Ubuntu",
+      "ext": "DEB",
+      "note": "x86_64",
+      "slug": "install",
+      "hash": "deb"
+    }
+  ],
+  "more": {
+    "label": "Windows, iOS, the terminal and the rest",
+    "slug": "install"
+  }
+}

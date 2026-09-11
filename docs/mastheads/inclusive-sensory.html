@@ -1,0 +1,234 @@
+<!-- Sensory Mixer masthead — the inclusive-design page's thesis as artwork: a
+     stimulation dial. Pointer position runs calm (left) to spicy (right); the
+     hard-left edge is an absolute stop, and a mild resting level keeps it gently
+     alive at middle-left when the pointer is away. Adapted
+     from a Gemini-generated draft sketch directed by Andy (confirmed 2026-08-12; the source arrived carrying no C2PA, so the signature on this file is its first provenance record) to the docs masthead contract: fills
+     its host band, palette read live from the docs tokens (re-read on the .dark
+     toggle and on prefers-color-scheme, repainting live even at rest), reduced-motion
+     renders one static calm frame with no loop, and the rAF idles only when the
+     pointer parks at the hard-left stop. -->
+<div class="ism" aria-hidden="true">
+  <canvas class="ism-canvas"></canvas>
+  <div class="ism-overlay">
+    <div class="ism-icons">
+      <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" fill="currentColor" stroke="none"/></svg>
+    </div>
+    <div class="ism-icons">
+      <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor" stroke="none"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+  </div>
+</div>
+<style>
+  /* The host band's .docs-mast-art wrapper is pointer-events:none (it is decoration);
+     re-enable here so the field itself is the interactive layer the dial needs. The
+     icon overlay below stays none, so only the canvas responds. */
+  .ism { position: absolute; inset: 0; overflow: hidden; cursor: crosshair; pointer-events: auto; }
+  .ism-canvas { display: block; width: 100%; height: 100%; }
+  .ism-overlay {
+    position: absolute; inset: 0 0 auto 0; padding: 18px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    pointer-events: none; color: var(--muted, rgba(128,128,128,.8)); opacity: .55;
+  }
+  .ism-icons { display: flex; align-items: center; gap: 8px; }
+  .ism-icons svg {
+    width: 18px; height: 18px; stroke: currentColor; stroke-width: 2;
+    fill: none; stroke-linecap: round; stroke-linejoin: round;
+  }
+  @media (prefers-reduced-motion: reduce) { .ism { cursor: default; } }
+</style>
+<script>
+(function () {
+  var root = document.currentScript.previousElementSibling.previousElementSibling;
+  if (!root || !root.classList || !root.classList.contains('ism')) {
+    root = document.querySelector('.ism');
+  }
+  if (!root) return;
+  var canvas = root.querySelector('.ism-canvas');
+  var ctx = canvas.getContext('2d');
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var width, height, particles = [], NUM = 1500;
+  // Mild resting level — the field lands gently alive at middle-left rather than
+  // dead-still. The pointer runs it up (right) or all the way down to a hard stop
+  // (far-left); when the pointer leaves, it eases back to REST_STIM, not to 0.
+  var REST_STIM = 0.25;
+  var targetStim = REST_STIM, currentStim = REST_STIM, time = 0;
+  var rafId = 0, visible = true;
+
+  // Palette: read the DOCS tokens live so the band always matches the page.
+  // --page is the docs page ground; --muted paints the icons via CSS above.
+  // Calm sits in the site's green family (hue 152, quiet); spicy is the full
+  // wheel — that contrast IS the artwork. Fallbacks keep a standalone preview
+  // honest when the tokens are absent.
+  var theme = {};
+  function hexToRgb(hex) {
+    hex = (hex || '').trim().replace('#', '');
+    if (hex.length === 3) hex = hex.replace(/./g, function (c) { return c + c; });
+    if (!/^[0-9a-fA-F]{6}$/.test(hex)) return null;
+    var n = parseInt(hex, 16);
+    return ((n >> 16) & 255) + ', ' + ((n >> 8) & 255) + ', ' + (n & 255);
+  }
+  function darkNow() {
+    var el = document.documentElement;
+    if (el.classList.contains('dark')) return true;
+    if (el.classList.contains('light')) return false;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  function updateThemeVars() {
+    var rootStyles = getComputedStyle(document.documentElement);
+    var page = hexToRgb(rootStyles.getPropertyValue('--page'));
+    var dark = darkNow();
+    theme = {
+      bgRgb: page || (dark ? '6, 24, 22' : '255, 255, 255'),
+      calmHue: 152,
+      calmSat: dark ? 20 : 25,
+      calmLit: dark ? 38 : 65,
+      spicySat: dark ? 100 : 85,
+      spicyLit: dark ? 65 : 50
+    };
+  }
+  updateThemeVars();
+  // Repaint the moment the palette changes, not just on the next resize/refresh: a
+  // running loop picks up the new theme on its own next frame, but at rest the loop
+  // is idle, so an idle field needs one explicit opaque repaint to switch live.
+  function repaintForTheme() {
+    if (still) { drawStaticFrame(); return; }
+    if (!rafId) paintField(currentStim);
+  }
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+    updateThemeVars(); repaintForTheme();
+  });
+  new MutationObserver(function () {
+    updateThemeVars(); repaintForTheme();
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+  function resize() {
+    width = root.clientWidth || 800;
+    height = root.clientHeight || 240;
+    canvas.width = width;
+    canvas.height = height;
+    initParticles();
+    if (still) { drawStaticFrame(); return; }
+    // Setting canvas.width/height just cleared the surface, so repaint the fresh grid
+    // at the current level immediately, and make sure the loop is running — a resize
+    // must never leave the field frozen (it may have idled at the hard-left stop).
+    paintField(currentStim);
+    wake();
+  }
+  function initParticles() {
+    particles = [];
+    var cols = Math.max(1, Math.floor(Math.sqrt(NUM * (width / Math.max(1, height)))));
+    var spacingX = width / cols, spacingY = height / Math.max(1, Math.floor(NUM / cols));
+    for (var i = 0; i < NUM; i++) {
+      var tx = (i % cols) * spacingX + spacingX / 2;
+      var ty = Math.floor(i / cols) * spacingY + spacingY / 2;
+      particles.push({
+        x: tx, y: ty, originX: tx, originY: ty,
+        vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
+        hueOffset: Math.random() * 360
+      });
+    }
+  }
+  window.addEventListener('resize', resize);
+
+  function paintField(stim) {
+    ctx.fillStyle = 'rgb(' + theme.bgRgb + ')';
+    ctx.fillRect(0, 0, width, height);
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      var x = p.originX + Math.sin(time + p.originY * 0.01) * 10;
+      var y = p.originY + Math.cos(time + p.originX * 0.01) * 10;
+      ctx.fillStyle = 'hsl(' + theme.calmHue + ', ' + theme.calmSat + '%, ' + theme.calmLit + '%)';
+      ctx.beginPath();
+      ctx.arc(x, y, 1.5 + stim * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  // Reduced motion: ONE static calm frame, no loop, no pointer response — the
+  // stopped state the artwork itself treats as first-class.
+  function drawStaticFrame() { time = 0; paintField(0); }
+
+  if (still) { resize(); return; }
+
+  root.addEventListener('pointermove', function (e) {
+    var rect = root.getBoundingClientRect();
+    var ratio = (e.clientX - rect.left) / Math.max(1, rect.width);
+    // The leftmost 5% is an ABSOLUTE stop: freeze to a clean, still calm frame and
+    // halt the loop entirely the moment the pointer enters it, rather than easing
+    // down over a second or two. Moving back out (below) wakes it and ramps up again.
+    if (ratio <= 0.05) {
+      targetStim = 0;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = 0; currentStim = 0; paintField(0); }
+      return;
+    }
+    targetStim = Math.min(1, (ratio - 0.05) / 0.95);
+    wake();
+  });
+  root.addEventListener('pointerleave', function () { targetStim = REST_STIM; wake(); });
+
+  function render() {
+    rafId = 0;
+    currentStim += (targetStim - currentStim) * 0.05;
+    if (currentStim < 0.001) currentStim = 0;
+    var timeIncrement = currentStim === 0 ? 0 : 0.005 + currentStim * 0.035;
+    time += timeIncrement;
+
+    ctx.fillStyle = 'rgba(' + theme.bgRgb + ', 0.2)';
+    ctx.fillRect(0, 0, width, height);
+
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      var calmX = p.originX + Math.sin(time + p.originY * 0.01) * 10;
+      var calmY = p.originY + Math.cos(time + p.originX * 0.01) * 10;
+      if (currentStim > 0) {
+        p.vx += Math.sin(p.y * 0.01 + time) * 0.5;
+        p.vy += Math.cos(p.x * 0.01 + time) * 0.5;
+        p.vx *= 0.95; p.vy *= 0.95;
+      }
+      var spicyX = p.x + p.vx, spicyY = p.y + p.vy;
+      if (p.x < 0) p.x = width; if (p.x > width) p.x = 0;
+      if (p.y < 0) p.y = height; if (p.y > height) p.y = 0;
+      p.x = calmX * (1 - currentStim) + spicyX * currentStim;
+      p.y = calmY * (1 - currentStim) + spicyY * currentStim;
+
+      var sat = theme.calmSat * (1 - currentStim) + theme.spicySat * currentStim;
+      var lit = theme.calmLit * (1 - currentStim) + theme.spicyLit * currentStim;
+      var dynamicHue = (p.hueOffset + time * 50) % 360;
+      var hue = theme.calmHue * (1 - currentStim) + dynamicHue * currentStim;
+      ctx.fillStyle = 'hsl(' + hue + ', ' + sat + '%, ' + lit + '%)';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 1.5 + currentStim * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // The loop only truly idles at the hard-left stop (target AND current at 0);
+    // its mild resting level keeps it gently breathing everywhere else, and wake()
+    // restarts it from the parked stop when the pointer returns.
+    var settled = currentStim === 0 && targetStim === 0;
+    if (!settled && visible && !document.hidden
+        && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      rafId = requestAnimationFrame(render);
+    }
+  }
+  function wake() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!rafId && visible && !document.hidden) rafId = requestAnimationFrame(render);
+  }
+
+  new IntersectionObserver(function (entries) {
+    visible = !!(entries[0] && entries[0].isIntersecting);
+    if (visible) wake(); else if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+  }).observe(root);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    else wake();
+  });
+
+  // resize() paints the fresh grid at the mild resting level and starts the loop, so
+  // the field lands gently alive at middle-left rather than dead-still.
+  resize();
+})();
+</script>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAI72p1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAjJanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDowODBlNjEyYS1mNjhiLTQ2ZDQtODExNC1iYWUyNTgyNDA1YWUAAAADn2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEIY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254NUF1dGhvcmVkIHdpdGggR2VtaW5pIGZvciB0aGUgTG9sbHkgZG9jcyBtYXN0aGVhZCBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjExOC4wZHdoZW50MjAyNi0wOC0xMlQwMzo0NDo1OVoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GSlZZmxlbmd0aBkMTmRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggNJLgBcLRHJ/OpcceiimUWFt0dvtIfqjBK4yMmYHa8pNjcGFkSAAAAAAAAAAAAAAA7mp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAALpjYm9yqWdzdXJmYWNlZGRvY3NmZW5naW5lbW5vZGUgdjI0LjE5LjBib3NmZGFyd2luZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xxaW5jbHVzaXZlLXNlbnNvcnlkZGF0ZXgYMjAyNi0wOC0xMlQwMzo0NDo1OS45MzJaamRpbWVuc2lvbnNrMjQgw5cgMjQgcHhoYXJ0aWZhY3RobWFzdGhlYWRpZ2VuZXJhdG9yZkdlbWluaQAAAJtqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAABnY2JvcqNpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lZkdlbWluaW5jb250ZW50UHJvZmlsZaFzaHVtYW5PdmVyc2lnaHRMZXZlbG1wcm9tcHRfZ3VpZGVkAAACeWp1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAJKY2JvcqZoZGM6dGl0bGVxaW5jbHVzaXZlLXNlbnNvcnlqaW5zdGFuY2VJRHgtdXJuOnV1aWQ6ZjE0YTAzMzMtODQwYy00ZTg3LWJlZmItNmUzNjRhOWQ2YzdldGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4xMTguMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOEomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCAR/85zDSCjwMOUJ404jIauMTxEqqbR++qZmrcT7oIHPqJjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCAvF7QYScVFY0RU0VJKZ6q96tAqaQMXPXSZHyIO1LKtd6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFggI2iz2wbcd2Pisi2+AIJOnZiZDKh0L04JxNzGuIuXuxuiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYIHYi+FvfPUclKEeK9njS8FVMeXQDxM9QZ6YP+ZvFK4Z0aXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYmp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMmNib3LShFkB4aIBJhghgVkB2DCCAdQwggF5oAMCAQICCXCcHTcOdUX9mzAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYwODEyMDM0MzU5WhcNMzYwODA5MDM0NDU5WjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAREK/m4u0Root1komTOtkPNIniRtBR6ZJnYlV2XIMo8cNpF2LDeYIZOtlVE51owcxrxCpGEEoHne3s8K26pdxDko3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQUWixcEtOeWHjXajYvCrOyxff1UlAwHwYDVR0jBBgwFoAUWixcEtOeWHjXajYvCrOyxff1UlAwCgYIKoZIzj0EAwIDSQAwRgIhAMr9R2reUyWlJKyOdCgN5oazpPAfNHjk8NFUcId7NAuWAiEA9YBWqN205bW6vsshUHGq4BnCmftXs9NTWb9tHPySZhSg9lhAiO76INgu2+8yz8ZOQA0VVI+E5tK0ipHtzrW5QH2czhwea0HF+FzCYxghha0CI+3Nm09dlbW0/sQlFpvuCPp+pg== -----END C2PA MANIFEST----- -->

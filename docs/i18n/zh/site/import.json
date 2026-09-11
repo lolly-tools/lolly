@@ -1,0 +1,25 @@
+{
+  "eyebrow": "把你已经做好的设计带进来",
+  "heading": "你的设计文件不会被困住",
+  "lead": "完成的作品，无论来自 **Figma、Penpot、Illustrator、InDesign 或任何 SVG 应用**，都不必被困在某一个应用里。打开 **设计**，点击 **导入设计**，文件就会以一个鲜活的布局打开--而不是一张压平的图片。每一层都会变成一个可编辑的框，可以继续编辑、与工具混合使用，并通过相同的规则渲染。",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "任意 SVG", "fmt": "通用", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "你的设计文件", "desc": "Figma、Penpot、Illustrator、InDesign 或任意 SVG" },
+    { "icon": "importFlowCanvas", "title": "可编辑画布", "desc": "每一层都是可以重新输入文字、调整样式、移动位置的框" },
+    { "icon": "importFlowMix", "title": "混入其他工具", "desc": "拖入一个二维码、一张实时图表，或另一个渲染结果" },
+    { "icon": "importFlowRender", "title": "随处渲染", "desc": "SVG、PDF、PNG、视频--可通过一个 URL 复现" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "它依然可编辑", "desc": "文字仍然是文字，形状仍然是形状，图片会加入你的素材库。你可以继续编辑这个设计--而不是重新画一张截图。" },
+    { "icon": "importPointShield", "title": "它落地时已经合规", "desc": "字体会重新映射为你的品牌字体，每一处填充都会经过与原生图层相同的颜色校验。外部画板导入后即已被纳入统一管理。" },
+    { "icon": "importPointGrid", "title": "它会变成一个模板", "desc": "保存后，这个布局就成为一个可复用、可通过 URL 访问的工具--任何使用 Lolly 的人都可以打开、重新填充并渲染它。不需要设计软件。" }
+  ],
+  "cta": "查看导入设计如何运作 →",
+  "ctaHref": "/info/design-import.html"
+}

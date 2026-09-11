@@ -1,0 +1,631 @@
+WEBVTT
+
+00:00:00.413 --> 00:00:03.172
+Lolly turns your rules - colours, type,
+
+00:00:03.236 --> 00:00:06.182
+layouts, logic - into tools anyone can use
+
+00:00:06.270 --> 00:00:09.856
+to make finished files: images, PDF'S,
+
+00:00:09.917 --> 00:00:12.566
+social cards, video, by filling in a few
+
+00:00:12.654 --> 00:00:13.819
+fields.
+
+00:00:14.592 --> 00:00:16.991
+There's little to learn and nothing to
+
+00:00:17.054 --> 00:00:20.288
+upload: making and exporting runs on your
+
+00:00:20.349 --> 00:00:22.894
+device, online or off.
+
+00:00:23.680 --> 00:00:27.443
+This is the one page to read first.
+
+00:00:28.207 --> 00:00:31.030
+Two things get you productive: make Lolly
+
+00:00:31.095 --> 00:00:33.538
+yours and bring in what you already have
+
+00:00:33.598 --> 00:00:36.395
+«your design files and tokens».
+
+00:00:37.169 --> 00:00:40.394
+Everything else is a link away.
+
+00:00:41.183 --> 00:00:43.664
+New to Lolly and just want to make
+
+00:00:43.726 --> 00:00:44.894
+something?
+
+00:00:45.670 --> 00:00:48.171
+Make something in 60 seconds walks you
+
+00:00:48.262 --> 00:00:51.348
+through three, or open the app, pick any
+
+00:00:51.421 --> 00:00:53.893
+tool from the gallery, fill in the blanks
+
+00:00:53.940 --> 00:00:55.644
+and hit Export.
+
+00:00:56.402 --> 00:00:58.740
+Come back here when you want it wearing
+
+00:00:58.802 --> 00:01:00.219
+your brand.
+
+00:01:01.362 --> 00:01:02.330
+1.
+
+00:01:03.130 --> 00:01:05.823
+Make it yours - configure your Design
+
+00:01:05.886 --> 00:01:06.845
+System
+
+00:01:07.782 --> 00:01:10.094
+Your brand in Lolly is a small
+
+00:01:10.155 --> 00:01:13.273
+design-tokens document - colours, fonts
+
+00:01:13.349 --> 00:01:16.074
+and a few rules - that every tool renders
+
+00:01:16.134 --> 00:01:17.344
+against.
+
+00:01:18.116 --> 00:01:20.583
+Set it once and everything you make is
+
+00:01:20.659 --> 00:01:24.420
+on-brand by construction, not by review.
+
+00:01:25.199 --> 00:01:28.091
+There are three ways in; pick the one that
+
+00:01:28.154 --> 00:01:31.418
+matches where your brand already lives.
+
+00:01:32.560 --> 00:01:35.306
+Start from scratch «the design system
+
+00:01:35.399 --> 00:01:36.331
+builder»
+
+00:01:37.361 --> 00:01:40.107
+First run drops you on the gallery, with a
+
+00:01:40.212 --> 00:01:42.375
+short welcome dialog over it offering
+
+00:01:42.465 --> 00:01:44.422
+three ways in - Make it yours «the Brand
+
+00:01:44.479 --> 00:01:47.417
+Studio at #/start», Bring your design
+
+00:01:47.472 --> 00:01:50.617
+«drop a Figma, Penpot, InDesign or PDF
+
+00:01:50.676 --> 00:01:53.352
+file and it opens as an editable layout -
+
+00:01:53.395 --> 00:01:55.588
+the fastest route to Bring in what you
+
+00:01:55.671 --> 00:01:57.570
+already have below» and Explore the
+
+00:01:57.629 --> 00:02:00.840
+community tools - plus a row of languages
+
+00:02:00.887 --> 00:02:02.970
+if English isn't yours.
+
+00:02:03.733 --> 00:02:06.547
+Take the first card and you land in the
+
+00:02:06.609 --> 00:02:08.294
+Brand Studio.
+
+00:02:09.059 --> 00:02:11.772
+Give it a name and a primary colour and
+
+00:02:11.832 --> 00:02:14.664
+Lolly derives a complete, accessible
+
+00:02:14.725 --> 00:02:18.156
+palette from it - light/dark surfaces,
+
+00:02:18.240 --> 00:02:20.978
+text, accents - using the same colour
+
+00:02:21.038 --> 00:02:24.295
+maths the engine uses everywhere else.
+
+00:02:25.040 --> 00:02:28.128
+Pick a font, and you have a working brand
+
+00:02:28.167 --> 00:02:29.919
+in under a minute.
+
+00:02:30.703 --> 00:02:32.734
+From there the studio's six rooms -
+
+00:02:32.770 --> 00:02:36.145
+Overview, Colours, Type, Logos, Tokens,
+
+00:02:36.226 --> 00:02:38.761
+Files - let you take it as far as you
+
+00:02:38.815 --> 00:02:41.853
+like, in any order, refining any of it
+
+00:02:41.910 --> 00:02:43.820
+whenever you come back.
+
+00:02:44.585 --> 00:02:47.897
+The dashboard's Design system tab «#/d»
+
+00:02:48.013 --> 00:02:50.768
+shows the result read-only and points back
+
+00:02:50.802 --> 00:02:54.178
+at #/start, which is where the editing
+
+00:02:54.239 --> 00:02:56.668
+happens «unless you're on a brand-locked
+
+00:02:56.728 --> 00:02:59.717
+build of Lolly, where the brand is fixed
+
+00:02:59.763 --> 00:03:02.245
+and there's nothing to change».
+
+00:03:03.387 --> 00:03:06.419
+Import a brand you already have
+
+00:03:07.453 --> 00:03:10.016
+If your brand is already captured as
+
+00:03:10.077 --> 00:03:13.947
+design tokens - from Penpot, Tokens Studio
+
+00:03:14.039 --> 00:03:17.914
+«Figma» or any plain DTCG file - bring it
+
+00:03:17.975 --> 00:03:21.244
+in wholesale rather than retyping it.
+
+00:03:22.018 --> 00:03:23.469
+Two routes:
+
+00:03:24.229 --> 00:03:26.942
+In the app: the design system builder:
+
+00:03:27.005 --> 00:03:29.967
+Brand Studio «#/start» takes it through
+
+00:03:30.053 --> 00:03:31.369
+Add from…
+
+00:03:32.129 --> 00:03:34.711
+at the foot of its room rail - a token
+
+00:03:34.802 --> 00:03:38.613
+file, a Penpot export, an SVG or a
+
+00:03:38.674 --> 00:03:40.394
+LollyBrand pack.
+
+00:03:41.165 --> 00:03:44.469
+Drop it in and the palette lights up.
+
+00:03:45.245 --> 00:03:47.931
+From the command line, to stand up a
+
+00:03:47.993 --> 00:03:50.069
+reusable brand pack:
+
+00:03:50.847 --> 00:03:53.668
+Code example omitted.
+
+00:03:54.433 --> 00:03:57.500
+ingest:brand accepts all three containers
+
+00:03:57.574 --> 00:04:01.142
+Penpot / Tokens Studio export the same
+
+00:04:01.202 --> 00:04:04.622
+document in - a single tokens-json, a
+
+00:04:04.681 --> 00:04:08.674
+directory «$metadata-json + per-set files»
+
+00:04:08.772 --> 00:04:11.520
+or a project-penpot archive.
+
+00:04:12.285 --> 00:04:15.368
+With --activate it registers the brand as
+
+00:04:15.430 --> 00:04:18.886
+a profile, switches to it and rebuilds the
+
+00:04:18.948 --> 00:04:20.294
+catalog.
+
+00:04:21.093 --> 00:04:24.253
+See Configuration for how brand packs and
+
+00:04:24.315 --> 00:04:26.519
+profiles fit together.
+
+00:04:27.643 --> 00:04:29.855
+Tune it in the app
+
+00:04:30.869 --> 00:04:34.023
+Once a brand is active, keep shaping it in
+
+00:04:34.061 --> 00:04:37.438
+the Brand Studio «#/start» - change a
+
+00:04:37.508 --> 00:04:40.376
+colour or a role and every preview across
+
+00:04:40.437 --> 00:04:43.169
+the app updates as you type.
+
+00:04:43.936 --> 00:04:47.486
+«The dashboard's Design system tab at #/d
+
+00:04:47.589 --> 00:04:50.891
+shows the brand read-only; the Studio is
+
+00:04:50.952 --> 00:04:52.744
+where you edit it.»
+
+00:04:53.501 --> 00:04:55.806
+The same brand is summarised on the
+
+00:04:55.866 --> 00:04:59.145
+Profile → Your brand card.
+
+00:04:59.922 --> 00:05:03.027
+Fonts are real: pick from Google Fonts and
+
+00:05:03.087 --> 00:05:06.152
+Lolly stores the file on your device as a
+
+00:05:06.212 --> 00:05:09.368
+brand asset, so your typography travels
+
+00:05:09.455 --> 00:05:11.923
+offline and nothing is fetched at render
+
+00:05:11.986 --> 00:05:13.095
+time.
+
+00:05:13.860 --> 00:05:16.576
+When you're happy, export the brand as a
+
+00:05:16.637 --> 00:05:19.480
+LollyBrand pack - a single file a
+
+00:05:19.555 --> 00:05:22.293
+colleague can import to get the exact same
+
+00:05:22.353 --> 00:05:24.745
+palette, fonts and rules.
+
+00:05:25.504 --> 00:05:28.205
+That's how a brand moves between people
+
+00:05:28.294 --> 00:05:31.067
+and machines without a server in the
+
+00:05:31.128 --> 00:05:32.095
+middle.
+
+00:05:32.859 --> 00:05:36.294
+Brand tokens round-trip both ways.
+
+00:05:37.044 --> 00:05:40.317
+Because Lolly's brand is DTCG tokens - the
+
+00:05:40.409 --> 00:05:43.569
+format Penpot reads and writes natively
+
+00:05:43.646 --> 00:05:46.346
+and Tokens Studio brings to Figma - the
+
+00:05:46.406 --> 00:05:49.131
+palette you design with and the palette
+
+00:05:49.191 --> 00:05:52.335
+Lolly enforces are one document, not two
+
+00:05:52.394 --> 00:05:55.120
+lists you keep in sync by hand.
+
+00:05:55.922 --> 00:05:58.418
+See Design Tokens.
+
+00:05:59.557 --> 00:06:00.531
+2.
+
+00:06:01.333 --> 00:06:04.130
+Bring in what you already have
+
+00:06:05.177 --> 00:06:08.469
+You don't start from a blank page.
+
+00:06:09.264 --> 00:06:12.365
+Lolly opens the design work and the open
+
+00:06:12.458 --> 00:06:14.919
+formats you already own.
+
+00:06:16.052 --> 00:06:18.963
+Open-source design files
+
+00:06:19.911 --> 00:06:22.260
+Finished work in Figma, Penpot,
+
+00:06:22.320 --> 00:06:26.065
+Illustrator, InDesign or any SVG app
+
+00:06:26.125 --> 00:06:28.550
+doesn't have to stay locked in the app you
+
+00:06:28.610 --> 00:06:29.970
+drew it in.
+
+00:06:30.732 --> 00:06:34.178
+Open Design, click Import a design, and
+
+00:06:34.215 --> 00:06:37.541
+the file opens as a living layout - not a
+
+00:06:37.617 --> 00:06:39.244
+flattened picture.
+
+00:06:40.015 --> 00:06:43.598
+Every layer becomes an editable box: text
+
+00:06:43.641 --> 00:06:46.741
+stays retypable, shapes stay shapes,
+
+00:06:46.805 --> 00:06:49.651
+images land in your library and complex
+
+00:06:49.712 --> 00:06:52.694
+vector art is preserved faithfully.
+
+00:06:53.445 --> 00:06:56.375
+It arrives already conformed to your brand
+
+00:06:56.440 --> 00:06:58.744
+faces and colour rules.
+
+00:06:59.512 --> 00:07:02.342
+The whole import happens on your device -
+
+00:07:02.398 --> 00:07:05.224
+the file is parsed in your browser and
+
+00:07:05.287 --> 00:07:07.244
+nothing is uploaded.
+
+00:07:08.026 --> 00:07:10.720
+Full details, and exactly what carries
+
+00:07:10.786 --> 00:07:14.069
+over, are in Import a design.
+
+00:07:14.855 --> 00:07:18.118
+Got a PowerPoint deck instead?
+
+00:07:18.904 --> 00:07:20.250
+Drop the .
+
+00:07:21.077 --> 00:07:24.601
+pptx on any upload surface to file its
+
+00:07:24.667 --> 00:07:27.976
+slides as assets, write a new deck from
+
+00:07:28.037 --> 00:07:31.111
+Markdown in Markdown Slides, or run
+
+00:07:31.171 --> 00:07:33.507
+Rebrand to get the same deck back
+
+00:07:33.573 --> 00:07:37.594
+re-themed, charts and animations intact.
+
+00:07:38.729 --> 00:07:41.674
+From a one-off to a template
+
+00:07:42.643 --> 00:07:45.844
+Here's the payoff: an imported layout is
+
+00:07:45.905 --> 00:07:48.633
+an ordinary Design session, so once you
+
+00:07:48.722 --> 00:07:52.144
+save it, it lives at a URL.
+
+00:07:52.905 --> 00:07:55.955
+Anyone with Lolly can open that URL,
+
+00:07:56.019 --> 00:07:59.170
+change the words, swap an image and render
+
+00:07:59.229 --> 00:08:02.104
+their own version - no design app, and the
+
+00:08:02.164 --> 00:08:04.270
+locked parts stay locked.
+
+00:08:05.057 --> 00:08:09.792
+A once-off design becomes a reusable tool.
+
+00:08:10.564 --> 00:08:13.293
+That's the whole idea, reached without
+
+00:08:13.355 --> 00:08:16.444
+writing a line of configuration.
+
+00:08:17.582 --> 00:08:20.796
+Open data and open tools
+
+00:08:21.736 --> 00:08:24.622
+The community tool set is open source and
+
+00:08:24.683 --> 00:08:28.311
+brand-agnostic - QR codes, street maps,
+
+00:08:28.393 --> 00:08:31.265
+filters, privacy utilities - and it
+
+00:08:31.325 --> 00:08:33.849
+renders against your brand the moment you
+
+00:08:33.929 --> 00:08:35.470
+activate it.
+
+00:08:36.249 --> 00:08:39.675
+Feed tools your own open data too: paste
+
+00:08:39.714 --> 00:08:43.716
+or drop a CSV or JSON table and a tool's
+
+00:08:43.774 --> 00:08:46.422
+repeating fields fill from it, one
+
+00:08:46.515 --> 00:08:48.795
+finished asset per row.
+
+00:08:49.931 --> 00:08:51.013
+3.
+
+00:08:51.832 --> 00:08:55.256
+Make something, then share or automate it
+
+00:08:56.208 --> 00:08:59.071
+With a brand active and your material in
+
+00:08:59.133 --> 00:09:03.319
+hand, every tool produces a finished file:
+
+00:09:04.087 --> 00:09:08.399
+Render any tool to SVG, PDF, PNG,
+
+00:09:08.460 --> 00:09:11.798
+JPG, WebP, video and more - at true print
+
+00:09:11.873 --> 00:09:14.236
+sizes and physical units when you need
+
+00:09:14.295 --> 00:09:15.195
+them.
+
+00:09:15.985 --> 00:09:18.844
+See Exporting & formats.
+
+00:09:19.649 --> 00:09:21.369
+Share a link.
+
+00:09:22.127 --> 00:09:25.824
+Every tool state is a URL, so a finished
+
+00:09:25.910 --> 00:09:27.790
+asset is reproducible and
+
+00:09:27.850 --> 00:09:30.464
+parameter-addressable - commit the link,
+
+00:09:30.528 --> 00:09:32.870
+regenerate on demand.
+
+00:09:33.658 --> 00:09:35.818
+Do it in bulk.
+
+00:09:36.592 --> 00:09:39.481
+Drive a template from a spreadsheet in the
+
+00:09:39.542 --> 00:09:43.344
+batch grid: one finished asset per row.
+
+00:09:44.130 --> 00:09:45.868
+Automate it.
+
+00:09:46.629 --> 00:09:49.552
+The same render runs from the CLI and from
+
+00:09:49.622 --> 00:09:54.195
+an AI agent - a URL is the API.
+
+00:09:54.935 --> 00:09:59.018
+"A URL is the API" is literal.
+
+00:09:59.787 --> 00:10:03.182
+The chart below was not drawn by anyone:
+
+00:10:03.246 --> 00:10:06.187
+its type, its heading and its whole data
+
+00:10:06.249 --> 00:10:09.285
+table were typed into the address bar, and
+
+00:10:09.324 --> 00:10:11.892
+the same link renders the same chart on
+
+00:10:11.951 --> 00:10:13.470
+any device.
+
+00:10:14.609 --> 00:10:16.672
+Where to go next
+
+00:10:17.702 --> 00:10:20.150
+Three pathways, depending on what you're
+
+00:10:20.213 --> 00:10:21.843
+here to do:
+
+00:10:22.641 --> 00:10:25.994
+Lolly for Creators - you make things.
+
+00:10:26.759 --> 00:10:29.752
+The advantages, and how to get the most
+
+00:10:29.812 --> 00:10:31.420
+out of the app.
+
+00:10:32.212 --> 00:10:34.997
+Lolly for Builders - you author tools,
+
+00:10:35.057 --> 00:10:37.269
+integrate and deploy.
+
+00:10:38.051 --> 00:10:41.094
+The technical documentation.
+
+00:10:41.895 --> 00:10:44.742
+Lolly for Operators - you're responsible
+
+00:10:44.836 --> 00:10:48.523
+for brand, security and rollout across an
+
+00:10:48.585 --> 00:10:50.344
+organisation.

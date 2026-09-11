@@ -1,0 +1,87 @@
+{
+  "title": "Who is it for?",
+  "doors": [
+    { "id": "creators", "name": "Creators", "sub": "I make things", "mascot": "quokka", "lanes": [
+      { "tab": "Make", "mascot": "bandicoot",
+        "pitch": "Pick a tool and fill in a few fields, or lay it out yourself on an open canvas. The finished file comes out right either way: colours, fonts and layout are already sorted.",
+        "cta": { "label": "Open the app ↗", "href": "#/" },
+        "doc": { "label": "Make something", "slug": "make-something" } },
+      { "tab": "Animate", "mascot": "pelican",
+        "pitch": "Text that moves, scenes on a timeline, motion that stays on-brand. Cut clips, music and voiceover in Sequence, then export video, GIF or animated SVG.",
+        "cta": { "label": "Open Design ↗", "href": "#/tool/design" },
+        "doc": { "label": "Animating", "slug": "animating" } },
+      { "tab": "Record", "mascot": "wombat",
+        "pitch": "Record a clean take with live coaching, or turn a voice note into a finished video with Audiogram. No camera, no makeup needed.",
+        "cta": { "label": "Open Record ↗", "href": "#/tool/record" },
+        "doc": { "label": "Using Lolly", "slug": "using" } },
+      { "tab": "Collaborate", "mascot": "dolphin",
+        "pitch": "Two people, two devices, one design, edited live. Scan a code across the table and both screens hold the same session: there is no server in the middle.",
+        "cta": { "label": "Start in Design ↗", "href": "#/tool/design" },
+        "doc": { "label": "Working together", "slug": "collaborate" } },
+      { "tab": "Post", "mascot": "whale",
+        "pitch": "Send it where it was asked for: a link that carries the design, one .lolly file, print-true PDF, video or slides - or straight to Discord, Google Drive and the places you already post.",
+        "cta": { "label": "Open the app ↗", "href": "#/" },
+        "doc": { "label": "Exporting", "slug": "exporting" } }
+    ] },
+    { "id": "builders", "name": "Builders", "sub": "I set up the system", "mascot": "koala", "lanes": [
+      { "tab": "Designers", "mascot": "lorikeet",
+        "pitch": "Bring finished work in, set the rules once, keep the tools you already use.",
+        "links": [
+          { "label": "Importing from other tools", "slug": "design-import", "note": ".fig .penpot .ai .idml svg" },
+          { "label": "Building the design system", "slug": "brand-studio", "note": "#/start" },
+          { "label": "Design tokens", "slug": "design-tokens", "note": "DTCG" }
+        ],
+        "cta": { "label": "Set up a design system ↗", "href": "#/start" },
+        "doc": { "label": "For Builders", "slug": "builders" } },
+      { "tab": "Developers", "mascot": "kookaburra-lolly",
+        "pitch": "One render path. The GUI, the CLI and an agent all make the same file.",
+        "links": [
+          { "label": "CLI", "slug": "cli", "note": "lolly qr-code --url=…" },
+          { "label": "MCP Server", "slug": "mcp", "note": "agents" },
+          { "label": "Host API", "slug": "host-api", "note": "host.*" }
+        ],
+        "doc": { "label": "For Builders", "slug": "builders" } },
+      { "tab": "Infrastructure",
+        "pitch": "A static host is the easy path. Air-gapped is the same install.",
+        "links": [
+          { "label": "Deployment", "slug": "deployment", "note": "static · MDM · hybrid" },
+          { "label": "Configuration", "slug": "configuration", "note": "profiles · policy" },
+          { "label": "Build Guide", "slug": "build-guide", "note": "MPL-2.0" }
+        ],
+        "doc": { "label": "For Operators", "slug": "operators" } }
+    ] },
+    { "id": "operators", "name": "Operators", "sub": "I answer for it", "mascot": "platypus", "lanes": [
+      { "tab": "AI", "mascot": "bin-chicken",
+        "pitch": "Agents are first-class users. Anything a person can make in the app, an agent can make through the MCP server or the CLI: the same tools, the same brand rules, the same render path, and the file still says who made it.",
+        "links": [
+          { "label": "MCP Server", "slug": "mcp", "note": "agents" },
+          { "label": "CLI", "slug": "cli", "note": "lolly qr-code --url=… --export=png" },
+          { "label": "Our AI stance", "slug": "ai-stance" }
+        ],
+        "doc": { "label": "For Builders", "slug": "builders" } },
+      { "tab": "Sales", "mascot": "wedge-tailed-eagle",
+        "pitch": "Walk into every meeting with exactly the file you need, made on the way there. Drop the old deck on Lolly and rebuild it sharp, as a native deck file.",
+        "cta": { "label": "Open the app ↗", "href": "#/" },
+        "doc": { "label": "For sales teams", "slug": "sales" } },
+      { "tab": "Marketing", "mascot": "ringtail-possum",
+        "pitch": "Every size, every language, one source of truth. Paste a spreadsheet and get one finished file per row.",
+        "cta": { "label": "Open the app ↗", "href": "#/" },
+        "doc": { "label": "For marketing teams", "slug": "marketing" } },
+      { "tab": "Security", "mascot": "magpie",
+        "pitch": "Most data exfiltration is mundane: a confidential file handed to a stranger's website for a ten-second job. Lolly's utilities do those jobs inside the app, with no account and no server in the middle, so there is nothing for a data-loss policy to chase.",
+        "cta": { "label": "Open the utilities ↗", "href": "#/utilities" },
+        "doc": { "label": "Trust", "slug": "trust" } },
+      { "tab": "Press", "mascot": "quoll",
+        "pitch": "Live data into charts, maps and tables that match the house style. Build the story format once, reuse it every time it runs.",
+        "cta": { "label": "Open Chart ↗", "href": "#/tool/chart" },
+        "doc": { "label": "For the newsroom", "slug": "press" } },
+      { "tab": "Legal", "mascot": "echidna",
+        "pitch": "Names, faces and hidden metadata come out before a file travels, without the file going anywhere first. Redaction, anonymising, verification and compression run with nothing sent anywhere, and the licence and the EU AI Act position are stated plainly, with what is not claimed stated too.",
+        "links": [
+          { "label": "Redact", "href": "#/tool/redact", "note": "pdf · png · svg" },
+          { "label": "Text Helper", "href": "#/tool/text-helper", "note": "de-identify" }
+        ],
+        "doc": { "label": "For legal teams", "slug": "legal" } }
+    ] }
+  ]
+}

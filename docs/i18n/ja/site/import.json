@@ -1,0 +1,25 @@
+{
+  "eyebrow": "すでに作ったものを持ち込みましょう",
+  "heading": "デザインファイルは取り残されません",
+  "lead": "**Figma、Penpot、Illustrator、InDesign、またはあらゆるSVGアプリ**で仕上げた作品を、ひとつのアプリの中に閉じ込めておく必要はありません。**Design**を開いて**デザインをインポート**をクリックすると、そのファイルは平坦化された画像ではなく、生きたレイアウトとして開きます。すべてのレイヤーが編集可能なボックスになり、そのまま作業を続けたり、ツールを組み合わせたり、同じルールでレンダリングしたりできます。",
+  "sources": [
+    { "mono": "Fig", "name": "Figma", "fmt": ".fig · SVG", "color": "#a259ff" },
+    { "mono": "Pen", "name": "Penpot", "fmt": ".penpot", "color": "#12b886" },
+    { "mono": "Ai", "name": "Illustrator", "fmt": ".ai · PDF", "color": "#ff9a00" },
+    { "mono": "Id", "name": "InDesign", "fmt": ".idml", "color": "#fe4a72" },
+    { "mono": "SVG", "name": "任意のSVG", "fmt": "汎用", "color": "#2453ff" }
+  ],
+  "flow": [
+    { "icon": "importFlowFile", "title": "デザインファイル", "desc": "Figma、Penpot、Illustrator、InDesign、またはあらゆるSVG" },
+    { "icon": "importFlowCanvas", "title": "編集可能なキャンバス", "desc": "すべてのレイヤーが、テキストを打ち直し、スタイルを変え、移動できるボックスになります" },
+    { "icon": "importFlowMix", "title": "ツールを組み合わせる", "desc": "QRコードやライブチャート、別のレンダリングを追加できます" },
+    { "icon": "importFlowRender", "title": "どこでもレンダリング", "desc": "SVG、PDF、PNG、動画 - URLから再現可能です" }
+  ],
+  "points": [
+    { "icon": "importPointEdit", "title": "編集可能なまま", "desc": "テキストはテキストのまま、図形は図形のまま、画像はライブラリに加わります。デザインの作業をそのまま続けられます - スクリーンショットを描き直すことは決してありません。" },
+    { "icon": "importPointShield", "title": "取り込んだ時点で準拠済み", "desc": "フォントはブランドの書体に置き換わり、すべての塗りはネイティブのボックスと同じカラーガードを通過します。外部で作られたアートボードも、届いた時点ですでに統制されています。" },
+    { "icon": "importPointGrid", "title": "テンプレートになる", "desc": "保存すると、そのレイアウトは再利用できてURLから開けるツールになります - Lollyを使える人なら誰でも開いて、中身を入れ替えてレンダリングできます。デザインアプリは要りません。" }
+  ],
+  "cta": "デザインのインポートの仕組みを見る →",
+  "ctaHref": "/info/design-import.html"
+}
