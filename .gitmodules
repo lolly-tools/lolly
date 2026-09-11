@@ -1,6 +1,3 @@
-[submodule "shells/chrome-extension"]
-	path = shells/chrome-extension
-	url = https://github.com/lolly-tools/lolly-chrome-extension.git
 [submodule "brands/suse"]
 	path = brands/suse
 	url = https://github.com/lolly-tools/suse-lolly.git
