@@ -33,9 +33,17 @@ import type {
   AudioAPI, AudioSource, AudioAnalyseOpts, AudioAnalysis, AssetRef, AudioCleanOpts,
 } from '@lolly-tools/core/host-v1';
 
+import { contentRoots, contentUrlFile, type ContentRoots } from './content-roots.ts';
+
 export interface NodeAudioOptions {
-  /** Repo root, for resolving a catalog asset's site-absolute `/catalog/...` url. */
+  /** Content root, for resolving a catalog asset's site-absolute `/catalog/...` url. */
   repoRoot: string;
+}
+
+/** The content roots for a root, or undefined when none resolve there - a caller with
+ *  a plain filesystem path needs no packs at all. */
+function rootsFor(root: string): ContentRoots | undefined {
+  try { return contentRoots({ root }); } catch { return undefined; }
 }
 
 /** Formats we can name but not decode. These get a specific message, since "unsupported"
@@ -67,10 +75,15 @@ async function bytesOf(src: AudioSource, repoRoot: string): Promise<Uint8Array> 
     return new Uint8Array(await res.arrayBuffer());
   }
   if (url.startsWith('file:')) return new Uint8Array(await readFile(fileURLToPath(url)));
-  // A site-absolute catalog path (`/catalog/assets/...`) or a plain filesystem path.
-  const path = isAbsolute(url) && !url.startsWith('/catalog/') && !url.startsWith('/community/')
-    ? url
-    : join(repoRoot, url.replace(/^\//, ''));
+  // A site-absolute content path (`/catalog/assets/...`, `/tools/<id>/...`) goes through
+  // the content resolver, which knows which pack it lives in - it is not a directory
+  // under the root. Anything else is a plain filesystem path.
+  const roots = url.startsWith('/') ? rootsFor(repoRoot) : undefined;
+  const content = roots ? contentUrlFile(url, roots) : null;
+  const path = content
+    ?? (isAbsolute(url) && !url.startsWith('/catalog/') && !url.startsWith('/community/')
+      ? url
+      : join(repoRoot, url.replace(/^\//, '')));
   return new Uint8Array(await readFile(path));
 }
 

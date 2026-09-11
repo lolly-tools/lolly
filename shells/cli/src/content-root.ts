@@ -7,7 +7,12 @@
  * It renders from a root someone points it at. In a checkout that root is found by the
  * marker walk in packages/node-shell/src/repo-root.ts and nobody ever thinks about it;
  * from `npm i -g` there is no marker anywhere above node_modules, and the first thing a
- * new user used to see was a raw ENOENT on catalog/tools/index.json.
+ * new user used to see was a raw ENOENT on the catalog index.
+ *
+ * The question asked here is the resolver's, not a file test: can contentRoots() resolve
+ * a complete profile at this root (plan 244 step 5.1). That covers a checkout whose
+ * private pack is not mounted, a typo in LOLLY_PROFILE and a root with no content at
+ * all, where a marker test only ever covered the last one.
  *
  * So a command that needs content checks first and exits 3 UNAVAILABLE_HERE - the
  * retry-somewhere-else code (see exit-codes.ts) - with the three real routes to a root.
@@ -18,7 +23,8 @@
  * see system.ts), NOT as a source of tools, because it is not one.
  */
 
-import { hasCatalogMarker, repoRoot } from '@lolly-tools/node-shell/repo-root';
+import { contentRoots } from '@lolly-tools/node-shell/content-roots';
+import { repoRoot } from '@lolly-tools/node-shell/repo-root';
 import { unavailableHere } from './exit-codes.ts';
 
 /**
@@ -45,20 +51,26 @@ export function needsContentRoot(cmd: string | undefined): boolean {
  * The message, built for the environment it is printed in. The root is taken for the
  * call shape (and so a caller reads as one), but the text names LOLLY_ROOT and the
  * working directory rather than the root that was searched.
+ *
+ * `reason` is the resolver's own sentence when there was one, appended so a mounted-but-
+ * incomplete profile (or a misspelled LOLLY_PROFILE) says what it actually found. The
+ * three routes stay exactly three either way.
  */
-export function noContentRootMessage(_root: string, env: NodeJS.ProcessEnv = process.env): string {
+export function noContentRootMessage(
+  _root: string, env: NodeJS.ProcessEnv = process.env, reason?: string,
+): string {
   const named = env.LOLLY_ROOT?.trim();
   const head = named
-    ? `LOLLY_ROOT is set to ${named}, but there is no catalog/tools/index.json under it.`
+    ? `LOLLY_ROOT is set to ${named}, but no Lolly content resolves under it.`
     : 'No tools or catalog here.';
   return `${head}
 
 This CLI ships without content, so it renders from a root you point it at.
 Three ways to get one:
 
-  1. A directory holding tools/ and catalog/
+  1. A Lolly checkout, or any directory holding tools/ and catalog/
        LOLLY_ROOT=/path/to/lolly lolly list
-     A Lolly checkout has both after \`pnpm install\` builds the profile views.
+     A checkout carries its content packs and profiles.json, straight from a clone.
 
   2. The desktop app
      Lolly for macOS, Windows and Linux carries its own tools and catalog, and
@@ -68,17 +80,30 @@ Three ways to get one:
      Your design system: colours, fonts and logos, kept on this machine and used
      by every render. It adds no tools, so it needs 1 or 2 beside it.
 
-Looked in: ${named ? `LOLLY_ROOT, ` : ''}the directories above this install, and ${process.cwd()}.`;
+Looked in: ${named ? `LOLLY_ROOT, ` : ''}the directories above this install, and ${process.cwd()}.${reason ? `\n\n${reason}` : ''}`;
 }
 
 /**
  * Throw the exit-3 refusal when this installation has no content.
+ *
+ * The test is the resolver: a root passes when contentRoots() resolves a profile with
+ * all of its packs on disk (or is itself a materialized tools/ + catalog/ tree). Every
+ * way of not having content - no profiles.json, a profile whose private pack is not
+ * mounted, an unknown LOLLY_PROFILE - arrives here as the one refusal, carrying the
+ * resolver's sentence.
  *
  * `root` is injectable so a test can drive a directory that has none without depending
  * on where the test process happens to live (repoRoot() caches, and inside a checkout it
  * always answers the checkout).
  */
 export function assertContentRoot(root: string = repoRoot(), env: NodeJS.ProcessEnv = process.env): void {
-  if (hasCatalogMarker(root)) return;
-  throw unavailableHere(noContentRootMessage(root, env), 'NO_CONTENT_ROOT');
+  try {
+    contentRoots({ root });
+    return;
+  } catch (err) {
+    throw unavailableHere(
+      noContentRootMessage(root, env, err instanceof Error ? err.message : undefined),
+      'NO_CONTENT_ROOT',
+    );
+  }
 }

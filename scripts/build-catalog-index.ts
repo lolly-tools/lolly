@@ -27,9 +27,12 @@
  * disagrees with the manifests, so CI catches a forgotten regeneration.
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, statSync, existsSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import {
+  toolDirs, toolFile, listToolFiles, readToolManifest, catalogFile,
+} from '@lolly-tools/node-shell/content-roots';
 
 // Tool manifests and index entries are dynamic JSON; full typing is
 // disproportionate, so they're loosely typed and accessed with localized casts.
@@ -41,8 +44,8 @@ interface IndexFile {
 }
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const INDEX_PATH = join(ROOT, 'catalog/tools/index.json');
-const SLIM_INDEX_PATH = join(ROOT, 'catalog/tools/index.slim.json');
+const INDEX_PATH = catalogFile('tools/index.json');
+const SLIM_INDEX_PATH = catalogFile('tools/index.slim.json');
 
 // Tool id → the date its tool.json was first added (YYYY-MM-DD), minted by
 // scripts/gen-tool-added-dates.ts from the packs' git history and COMMITTED -
@@ -118,8 +121,8 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   // every card with no per-card fetch. It uses stroke="currentColor", so the
   // shell themes it via CSS. Read here (not from the manifest) so build:catalog
   // and validate-catalog's drift check stay in lock-step.
-  const iconPath = join(ROOT, 'tools', manifest.id, 'icon.svg');
-  if (existsSync(iconPath)) entry.icon = readFileSync(iconPath, 'utf8').replace(/\s*[\r\n]+\s*/g, '').trim();
+  const iconPath = toolFile(manifest.id, 'icon.svg');
+  if (iconPath) entry.icon = readFileSync(iconPath, 'utf8').replace(/\s*[\r\n]+\s*/g, '').trim();
   // Demo preview thumbnail - shown for a tool with no saved session yet, for a
   // fuller gallery on a fresh install. Resolution, highest priority first:
   //   1. A committed authored override: tools/<id>/card.html (self-contained animated
@@ -141,17 +144,17 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   // surface a file it has to download just to paint a thumbnail. An APNG card.png is
   // therefore NOT a candidate for `preview` either - hence the acTL sniff below, which is
   // the only way to tell one from a still PNG of the same name.
-  const animCard = join(ROOT, 'tools', manifest.id, 'card.webm');
-  const pngCard = join(ROOT, 'tools', manifest.id, 'card.png');
-  const pngCardAnimated = existsSync(pngCard) && isAnimatedPng(pngCard);
-  if (existsSync(animCard)) entry.anim = `/tools/${manifest.id}/card.webm`;
+  const animCard = toolFile(manifest.id, 'card.webm');
+  const pngCard = toolFile(manifest.id, 'card.png');
+  const pngCardAnimated = !!pngCard && isAnimatedPng(pngCard);
+  if (animCard) entry.anim = `/tools/${manifest.id}/card.webm`;
   else if (pngCardAnimated) entry.anim = `/tools/${manifest.id}/card.png`;
 
-  if (existsSync(join(ROOT, 'tools', manifest.id, 'card.html'))) {
+  if (toolFile(manifest.id, 'card.html')) {
     entry.preview = `/tools/${manifest.id}/card.html`;
-  } else if (existsSync(join(ROOT, 'tools', manifest.id, 'card.svg'))) {
+  } else if (toolFile(manifest.id, 'card.svg')) {
     entry.preview = `/tools/${manifest.id}/card.svg`;
-  } else if (existsSync(pngCard) && !pngCardAnimated) {
+  } else if (pngCard && !pngCardAnimated) {
     entry.preview = `/tools/${manifest.id}/card.png`;
   } else {
     // Vector tools default to a crisp .svg preview; raster/HTML tools to .png. But
@@ -163,7 +166,7 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
     // (dev / pre-generation) do we fall back to the format-based default, keeping the
     // path stable. This disk check is why build:catalog must run after regenerating
     // previews (validate-catalog guards the drift - see scripts/validate-catalog.ts).
-    const pv = join(ROOT, 'catalog', 'previews');
+    const pv = catalogFile('previews');
     const hasSvg = existsSync(join(pv, `${manifest.id}.svg`));
     const hasWebp = existsSync(join(pv, `${manifest.id}.webp`));
     const hasPng = existsSync(join(pv, `${manifest.id}.png`));
@@ -214,13 +217,16 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   // the i18n subdir walk below (same ROOT/tools/<id>/<subdir> join + existsSync guard +
   // sorted readdir for a deterministic, idempotent order); it is excluded from
   // INDEX_FIELDS' scalar drift check, and validate-catalog re-derives + asserts it.
-  const templatesDir = join(ROOT, 'tools', manifest.id, 'templates');
-  if (existsSync(templatesDir)) {
+  const templateRels = listToolFiles(manifest.id)
+    .filter((rel) => rel.startsWith('templates/') && rel.endsWith('.json'))
+    .sort();
+  if (templateRels.length) {
     const templates: Array<Record<string, unknown>> = [];
-    for (const file of readdirSync(templatesDir).sort()) {
-      if (!file.endsWith('.json')) continue;
+    for (const rel of templateRels) {
+      const file = toolFile(manifest.id, rel);
+      if (!file) continue;
       let t: Record<string, unknown>;
-      try { t = JSON.parse(readFileSync(join(templatesDir, file), 'utf8')); } catch { continue; }
+      try { t = JSON.parse(readFileSync(file, 'utf8')); } catch { continue; }
       if (typeof t.id !== 'string' || !t.id) continue;
       if (typeof t.name !== 'string' || !t.name) continue;
       const meta: Record<string, unknown> = {};
@@ -257,14 +263,15 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   // sidecar (input labels, etc.) is loader-only and never reaches the index.
   // A locale only gets an entry when its sidecar actually supplies one of
   // these, so the index doesn't carry empty `{}` noise for partial sidecars.
-  const i18nDir = join(ROOT, 'tools', manifest.id, 'i18n');
-  if (existsSync(i18nDir)) {
+  const i18nRels = listToolFiles(manifest.id).filter((rel) => rel.startsWith('i18n/') && rel.endsWith('.json'));
+  if (i18nRels.length) {
     const i18n: Record<string, { name?: string; description?: string; blurb?: string }> = {};
-    for (const file of readdirSync(i18nDir)) {
-      if (!file.endsWith('.json')) continue;
-      const lang = file.replace(/\.json$/, '');
+    for (const rel of i18nRels) {
+      const lang = rel.slice('i18n/'.length).replace(/\.json$/, '');
+      const file = toolFile(manifest.id, rel);
+      if (!file) continue;
       let overlay: Record<string, unknown>;
-      try { overlay = JSON.parse(readFileSync(join(i18nDir, file), 'utf8')); } catch { continue; }
+      try { overlay = JSON.parse(readFileSync(file, 'utf8')); } catch { continue; }
       const localeEntry: { name?: string; description?: string; blurb?: string } = {};
       if (typeof overlay.name === 'string') localeEntry.name = overlay.name;
       if (typeof overlay.description === 'string') localeEntry.description = overlay.description;
@@ -334,13 +341,9 @@ export function slimEntry(entry: Record<string, unknown>): Record<string, unknow
 }
 
 function loadManifests(): Map<string, Manifest> {
-  const toolsDir = join(ROOT, 'tools');
   const manifests = new Map<string, Manifest>(); // id → manifest
-  for (const dir of readdirSync(toolsDir)) {
-    if (!statSync(join(toolsDir, dir)).isDirectory()) continue;
-    const p = join(toolsDir, dir, 'tool.json');
-    if (!existsSync(p)) continue;
-    const manifest = JSON.parse(readFileSync(p, 'utf8'));
+  for (const id of toolDirs().keys()) {
+    const manifest = readToolManifest(id) as Manifest;
     manifests.set(manifest.id, manifest);
   }
   return manifests;

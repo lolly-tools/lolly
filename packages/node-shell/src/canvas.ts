@@ -32,8 +32,7 @@
  * would otherwise land on different pixels here.
  */
 import { createRequire } from 'node:module';
-import { join } from 'node:path';
-import { repoRoot } from './repo-root.ts';
+import { catalogFile } from './content-roots.ts';
 import type {
   ImageEncodeOpts, ImageInfo, ImageResult, RasterAPI, RasterFrame, RasterSource,
 } from '@lolly-tools/core/host-v1';
@@ -85,7 +84,9 @@ let fontsRegistered = false;
 function registerCatalogFonts(mod: NodeCanvasModule): void {
   if (fontsRegistered) return;
   fontsRegistered = true;
-  try { mod.GlobalFonts?.loadFontsFromDir(join(repoRoot(), 'catalog', 'fonts')); } catch { /* system fonts it is */ }
+  // catalogFile throws when no profile resolves here (a content-free install), which
+  // this catch already treats the same way as a missing directory: system fonts.
+  try { mod.GlobalFonts?.loadFontsFromDir(catalogFile('fonts')); } catch { /* system fonts it is */ }
 }
 
 /** True when @napi-rs/canvas is installed and loadable here. Sync + cheap. */

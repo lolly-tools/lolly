@@ -103,6 +103,7 @@ import { buildInputModel, serializeUrlState } from '../engine/src/index.ts';
 import { stampVector, stampBitmap } from './lib/stamp-media.ts';
 import { previewUnchanged, sharpDecoder, type RasterDecoder } from './lib/preview-compare.ts';
 import type { InputValue } from '../engine/src/inputs.ts';
+import { toolFile, readToolManifest, catalogFile } from '@lolly-tools/node-shell/content-roots';
 
 /** Parsed CLI options. */
 interface Opts {
@@ -167,7 +168,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'shells', 'web', 'dist');
 // Generated previews land here (git-ignored). Served by the shell's /catalog static
 // handler in dev + prod, exactly like the committed catalog assets/index.
-const PREVIEWS_DIR = join(ROOT, 'catalog', 'previews');
+const PREVIEWS_DIR = catalogFile('previews');
 // Sidebar tools render into #tool-canvas; full-bleed/display tools into #tool-content.
 const CANVAS_SEL = '#tool-canvas, #tool-content';
 
@@ -566,7 +567,7 @@ async function captureLooks(context: BrowserContext, baseUrl: string, tool: Tool
     // A committed authored look override (tools/<id>/look<i>.{png,webp,svg}) - e.g. an
     // animated APNG - wins in the preview bundle and must never be clobbered. Skip it (and
     // skip the wasted render). Mirrors the card-override skip in the main capture loop.
-    if (['png', 'webp', 'svg'].some((ext) => existsSync(join(ROOT, 'tools', tool.id, `look${i}.${ext}`)))) continue;
+    if (['png', 'webp', 'svg'].some((ext) => toolFile(tool.id, `look${i}.${ext}`))) continue;
     const query = lookQuery(manifest, tool.looks[i]);
     if (query === null) continue;
     if (await captureLookAt(context, baseUrl, tool, i, query).catch(() => false)) ok++;
@@ -577,7 +578,7 @@ async function captureLooks(context: BrowserContext, baseUrl: string, tool: Tool
 /** The tool's manifest as buildInputModel wants it, or null when it can't be read. */
 async function loadManifest(toolId: string): Promise<Parameters<typeof buildInputModel>[0] | null> {
   try {
-    return JSON.parse(await readFile(join(ROOT, 'tools', toolId, 'tool.json'), 'utf8'));
+    return readToolManifest(toolId) as Parameters<typeof buildInputModel>[0];
   } catch {
     return null;
   }
@@ -885,7 +886,7 @@ async function shrinkRasters(
 // ── Tool list ───────────────────────────────────────────────────────────────
 
 async function toolList(): Promise<Tool[]> {
-  const index = JSON.parse(await readFile(join(ROOT, 'catalog', 'tools', 'index.json'), 'utf8')) as {
+  const index = JSON.parse(await readFile(catalogFile('tools/index.json'), 'utf8')) as {
     tools: RawToolEntry[];
   };
   let tools: Tool[] = index.tools.map((t) => ({
@@ -893,7 +894,7 @@ async function toolList(): Promise<Tool[]> {
     formats: Array.isArray(t.formats) ? t.formats : [],
     capabilities: Array.isArray(t.capabilities) ? t.capabilities : [],
     // A committed override (tools/<id>/card.svg|png) short-circuits generation.
-    hasCard: existsSync(join(ROOT, 'tools', t.id, 'card.svg')) || existsSync(join(ROOT, 'tools', t.id, 'card.png')),
+    hasCard: !!toolFile(t.id, 'card.svg') || !!toolFile(t.id, 'card.png'),
     // A previously generated preview (catalog/previews/<id>.svg|webp|png). .webp is the
     // form a raster preview actually ships in, and it was missing from this list - so
     // --skip-existing considered every WebP tool uncovered and re-rendered it on EVERY

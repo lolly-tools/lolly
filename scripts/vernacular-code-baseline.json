@@ -71,7 +71,6 @@
   "packages/node-shell/src/image-redact.ts": 1,
   "packages/node-shell/src/inspect.ts": 1,
   "packages/node-shell/src/pdf-structure.ts": 1,
-  "packages/node-shell/src/repo-root.ts": 1,
   "packages/node-shell/src/speech-whisper.ts": 1,
   "packages/node-shell/src/url-capture.ts": 2,
   "scripts/audit-vector-render.ts": 1,

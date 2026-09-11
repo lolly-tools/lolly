@@ -24,6 +24,8 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { catalogFile, contentRoots, contentUrlFile } from './content-roots.ts';
+
 import type { TextAPI, TextPathCluster } from '@lolly-tools/core/host-v1';
 import type { Blob as HbBlob, Face as HbFace, Font as HbFont, Feature as HbFeature } from 'harfbuzzjs';
 
@@ -64,9 +66,10 @@ const fontCache = new Map<string, FontEntry>();
  *   • `data:` URI            → decoded inline bytes
  *   • `http(s)://`           → global fetch (Node ≥18)
  *   • `file://`              → the pointed-at file
- *   • rooted `/tools/…`, `/catalog/…`, `/fonts/…` → disk under the repo root
- *     (`/fonts/…` also falls back to the web shell's public dir, where the platform
- *      faces live, mirroring shells/cli/src/bridge.ts's asset resolution)
+ *   • rooted `/tools/…`, `/catalog/…` → the content resolver, which knows where the
+ *     packs are (neither is a directory under the repo root)
+ *   • rooted `/fonts/…` → disk under the root, falling back to the web shell's public
+ *     dir, where the platform faces live
  *   • bare relative          → resolved under the repo root
  */
 async function loadFontBytes(fontUrl: string, repoRoot: string): Promise<Uint8Array> {
@@ -87,7 +90,8 @@ async function loadFontBytes(fontUrl: string, repoRoot: string): Promise<Uint8Ar
   if (fontUrl.startsWith('file://')) {
     filePath = fileURLToPath(fontUrl);
   } else if (fontUrl.startsWith('/')) {
-    filePath = join(repoRoot, fontUrl.slice(1));
+    const roots = rootsFor(repoRoot);
+    filePath = (roots ? contentUrlFile(fontUrl, roots) : null) ?? join(repoRoot, fontUrl.slice(1));
     if (!existsSync(filePath) && fontUrl.startsWith('/fonts/')) {
       filePath = join(repoRoot, 'shells', 'web', 'public', fontUrl.slice(1));
     }
@@ -173,10 +177,23 @@ function fmt(n: number): number {
 // anyway). Scanned once per repo root, catalog dir first, so a brand's own
 // statics still shadow the shell's variable face.
 
-const FONT_DIRS: Array<{ rel: string; url: string }> = [
-  { rel: join('catalog', 'fonts', 'ttf'), url: '/catalog/fonts/ttf/' },
-  { rel: join('shells', 'web', 'public', 'fonts'), url: '/fonts/' },
-];
+/** The content roots for a given root, or undefined where none resolve (a
+ *  content-free install still shapes text: the platform faces under the web shell
+ *  are enough on their own). */
+function rootsFor(root: string): ReturnType<typeof contentRoots> | undefined {
+  try { return contentRoots({ root }); } catch { return undefined; }
+}
+
+/** Absolute dir + url prefix, catalog first so a brand's own statics shadow the
+ *  shell's variable face. The catalog's path comes from the resolver; the web shell's
+ *  public fonts dir is a plain path in the tree. */
+function fontDirs(root: string): Array<{ abs: string; url: string }> {
+  const roots = rootsFor(root);
+  const dirs: Array<{ abs: string; url: string }> = [];
+  if (roots) dirs.push({ abs: catalogFile('fonts/ttf', roots), url: '/catalog/fonts/ttf/' });
+  dirs.push({ abs: join(root, 'shells', 'web', 'public', 'fonts'), url: '/fonts/' });
+  return dirs;
+}
 
 const WEIGHT_NAMES: Record<string, number> = {
   thin: 100, hairline: 100, extralight: 200, ultralight: 200, light: 300,
@@ -223,9 +240,9 @@ function scanDiskFaces(repoRoot: string): Promise<DiskFace[]> {
   if (!cached) {
     cached = (async () => {
       const faces: DiskFace[] = [];
-      for (const dir of FONT_DIRS) {
-        const abs = join(repoRoot, dir.rel);
-        if (!existsSync(abs)) continue;
+      for (const dir of fontDirs(repoRoot)) {
+        const abs = dir.abs;
+        if (!existsSync(abs)) continue; // an unmounted pack, or a shell with no public fonts
         let names: string[];
         try { names = await readdir(abs); } catch { continue; }
         for (const name of names) {
@@ -401,11 +418,11 @@ export function createNodeTextAPI({ repoRoot }: { repoRoot: string }): TextAPI {
       const italic = Boolean(opts?.italic);
       const matches = (await scanDiskFaces(repoRoot)).filter(f => f.family === want && f.italic === italic);
       if (!matches.length) return null;
-      // Faces scan in FONT_DIRS order, so the first match's dir is the highest-
+      // Faces scan in fontDirs() order, so the first match's dir is the highest-
       // precedence one carrying this family. The catalog's brand faces shadow
       // a same-named platform face. Within that dir a variable face covers
       // every weight and is preferred (as the web registry does).
-      const dir = FONT_DIRS.find(d => matches[0]!.url.startsWith(d.url))!;
+      const dir = fontDirs(repoRoot).find(d => matches[0]!.url.startsWith(d.url))!;
       const pool = matches.filter(f => f.url.startsWith(dir.url));
       const variable = pool.find(f => f.variable);
       if (variable) return { url: variable.url, variations: [`wght=${weight}`] };

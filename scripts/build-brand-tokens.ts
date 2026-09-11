@@ -26,9 +26,9 @@
  */
 
 import { writeFileSync, mkdirSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
 import { PALETTE, type PaletteEntry } from '../shells/web/src/palette.ts';
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 
 type Token = {
   $value: string;
@@ -38,8 +38,7 @@ type Token = {
 // A DTCG group node: nested groups and/or tokens, plus optional meta keys ($type).
 type TokenNode = Record<string, unknown>;
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const OUT = resolve(ROOT, 'catalog/assets/suse/tokens/brand.json');
+const OUT = catalogFile('assets/suse/tokens/brand.json');
 const TOKEN_EXT = 'com.suse.lolly';
 
 const slug = (s: unknown): string => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');

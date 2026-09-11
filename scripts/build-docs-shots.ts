@@ -94,12 +94,12 @@ import {
   type RawImage, type ShotDef, type ShotVerdict,
 } from './lib/shot-compare.ts';
 import { optimizeShotSvg, svgFidelityGate } from './lib/svgo-shots.ts';
+import { catalogFile, contentRoots } from '@lolly-tools/node-shell/content-roots';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'shells', 'web', 'dist');
 const DOCS_DIR = join(ROOT, 'docs');
 const SHOTS_DIR = join(ROOT, 'docs', 'shots');
-const PROFILE_STICKY = join(ROOT, '.lolly-profile');
 const CAPTURE_PROFILE = 'lolly-start';
 const SITE_URL = 'https://lolly.tools';
 
@@ -1534,37 +1534,22 @@ function summarize(results: ShotResult[]): void {
 // ── Profile pin ───────────────────────────────────────────────────────────────
 
 /**
- * Switch the tools/ + catalog/ views to the neutral capture profile; returns the
- * restore function. Restore rules mirror loldev's do_build: sticky file, else
- * $LOLLY_PROFILE, else profiles.json's default - never silently leave the blank
- * brand pinned on a machine that had chosen another one.
+ * Pin LOLLY_PROFILE to the neutral capture profile for the duration of the run
+ * (buildWebShell spawns `pnpm --filter ./shells/web run build`, which inherits
+ * this process's env, so the resolver picks it up there too); returns the
+ * restore function. Never silently leave the blank brand pinned for the rest
+ * of the caller's shell session.
  */
 function pinProfile(): () => void {
-  const sticky = existsSync(PROFILE_STICKY) ? readFileSync(PROFILE_STICKY, 'utf-8').trim() : '';
-  if (sticky !== CAPTURE_PROFILE) {
-    console.log(`Pinning the '${CAPTURE_PROFILE}' profile for capture (was: ${sticky || 'unset'})`);
-    useProfile(CAPTURE_PROFILE);
+  const prior = process.env.LOLLY_PROFILE;
+  if (prior !== CAPTURE_PROFILE) {
+    console.log(`Pinning the '${CAPTURE_PROFILE}' profile for capture (was: ${prior || 'unset'})`);
+    process.env.LOLLY_PROFILE = CAPTURE_PROFILE;
   }
   return () => {
-    let restore = sticky;
-    if (!restore) {
-      restore = process.env.LOLLY_PROFILE ?? '';
-      if (!restore) {
-        try { restore = (JSON.parse(readFileSync(join(ROOT, 'profiles.json'), 'utf-8')) as { default?: string }).default ?? ''; } catch {}
-      }
-    }
-    if (restore && restore !== CAPTURE_PROFILE) {
-      console.log(`Restoring the '${restore}' profile`);
-      try { useProfile(restore); } catch (e) {
-        console.warn(`⚠  couldn't restore profile '${restore}': ${(e as Error).message}`);
-      }
-    }
+    if (prior === undefined) delete process.env.LOLLY_PROFILE;
+    else process.env.LOLLY_PROFILE = prior;
   };
-}
-
-function useProfile(name: string): void {
-  const r = spawnSync(process.execPath, ['scripts/use-profile.ts', name], { cwd: ROOT, stdio: 'pipe' }).status ?? 1;
-  if (r !== 0) throw new Error(`use-profile ${name} failed (is the '${name}' pack mounted?)`);
 }
 
 /** With --no-build the dist may have been built under another brand - say so. */
@@ -1574,7 +1559,7 @@ function checkDistBrand(): void {
       ((JSON.parse(readFileSync(p, 'utf-8')) as { tools?: Array<{ id?: string }> }).tools ?? [])
         .map((t) => t.id).sort().join(',');
     const dist = ids(join(DIST, 'catalog', 'tools', 'index.json'));
-    const view = ids(join(ROOT, 'catalog', 'tools', 'index.json'));
+    const view = ids(catalogFile('tools/index.json', contentRoots({ profile: CAPTURE_PROFILE })));
     if (dist !== view) {
       console.warn(`⚠  ${rel(DIST)} was built from a DIFFERENT tool set than the '${CAPTURE_PROFILE}' view - captures will show the wrong brand. Re-run without --no-build.`);
     }

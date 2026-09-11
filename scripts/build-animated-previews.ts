@@ -78,6 +78,7 @@ import type { BrowserContext } from 'playwright';
 // inputs the live carousel would render from.
 import { buildInputModel, serializeUrlState } from '../engine/src/index.ts';
 import type { InputValue } from '../engine/src/inputs.ts';
+import { toolDirs, readToolManifest } from '@lolly-tools/node-shell/content-roots';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CANVAS_SEL = '#tool-canvas, #tool-content';
@@ -225,8 +226,10 @@ async function main(): Promise<void> {
 
 async function runJob(context: BrowserContext, job: Job): Promise<void> {
   let manifest: Parameters<typeof buildInputModel>[0];
+  let toolDir: string;
   try {
-    manifest = JSON.parse(await readFile(join(ROOT, 'tools', job.tool, 'tool.json'), 'utf8'));
+    toolDir = toolDirs().get(job.tool)?.dir ?? (() => { throw new Error('no such tool'); })();
+    manifest = readToolManifest(job.tool) as Parameters<typeof buildInputModel>[0];
   } catch {
     console.log(`  · ${job.tool}: no manifest - skipped`);
     return;
@@ -237,7 +240,7 @@ async function runJob(context: BrowserContext, job: Job): Promise<void> {
   if (job.kind === 'card') {
     const query = seedQuery(manifest, job.values ?? {});
     const bytes = await renderMotion(context, job.tool, query, job);
-    if (bytes) await writeAndReport(join(ROOT, 'tools', job.tool, `card.${ext}`), bytes, job);
+    if (bytes) await writeAndReport(join(toolDir, `card.${ext}`), bytes, job);
     else console.log(`  ✗ ${job.tool} card - capture failed`);
     return;
   }
@@ -254,7 +257,7 @@ async function runJob(context: BrowserContext, job: Job): Promise<void> {
     if (!values || typeof values !== 'object') continue;
     const query = seedQuery(manifest, values);
     const bytes = await renderMotion(context, job.tool, query, job);
-    if (bytes) await writeAndReport(join(ROOT, 'tools', job.tool, `look${i}.${ext}`), bytes, job);
+    if (bytes) await writeAndReport(join(toolDir, `look${i}.${ext}`), bytes, job);
     else console.log(`  ✗ ${job.tool} look${i} - capture failed`);
   }
 }

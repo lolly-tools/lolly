@@ -34,13 +34,13 @@
  *
  *   node scripts/build-preview-bundle.ts
  */
-import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { toolDirs, toolFile, readToolManifest, catalogFile } from '@lolly-tools/node-shell/content-roots';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const TOOLS_DIR = join(ROOT, 'tools');
-const PREVIEWS_DIR = join(ROOT, 'catalog', 'previews');
+const PREVIEWS_DIR = catalogFile('previews');
 const BUNDLE_PATH = join(PREVIEWS_DIR, 'bundle.json');
 
 /** One example look, as authored in a manifest. */
@@ -67,10 +67,8 @@ interface BundleEntry { src: string; sig: string }
 
 function loadManifests(): Manifest[] {
   const out: Manifest[] = [];
-  for (const dir of readdirSync(TOOLS_DIR)) {
-    const p = join(TOOLS_DIR, dir, 'tool.json');
-    if (!statSync(join(TOOLS_DIR, dir)).isDirectory() || !existsSync(p)) continue;
-    out.push(JSON.parse(readFileSync(p, 'utf8')) as Manifest);
+  for (const id of toolDirs().keys()) {
+    out.push(readToolManifest(id) as Manifest);
   }
   return out;
 }
@@ -96,14 +94,13 @@ function build(): void {
       // build-generated catalog/previews/<id>.look<i>.* - so it survives `pnpm run previews`
       // (which never writes into tools/). Referenced at its tool-dir path, same as a
       // generated look is referenced at its previews path.
-      const ovrDir = join(TOOLS_DIR, m.id);
-      const ovrSvg = join(ovrDir, `look${i}.svg`);
-      if (existsSync(ovrSvg)) {
+      const ovrSvg = toolFile(m.id, `look${i}.svg`);
+      if (ovrSvg) {
         bundle[`${m.id}:${i}`] = { src: `/tools/${m.id}/look${i}.svg`, sig };
         svgRef++;
         continue;
       }
-      const ovrRaster = ['png', 'webp'].find((ext) => existsSync(join(ovrDir, `look${i}.${ext}`)));
+      const ovrRaster = ['png', 'webp'].find((ext) => toolFile(m.id, `look${i}.${ext}`));
       if (ovrRaster) {
         bundle[`${m.id}:${i}`] = { src: `/tools/${m.id}/look${i}.${ovrRaster}`, sig };
         rasterRef++;

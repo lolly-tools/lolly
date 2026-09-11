@@ -37,6 +37,7 @@ import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { createNodeTextAPI } from '../packages/node-shell/src/text.ts';
+import { catalogFile } from '@lolly-tools/node-shell/content-roots';
 import { findSkera, skeraVersion, skeraSubset } from '../tests/helpers/skera.ts';
 
 const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -78,13 +79,13 @@ const FONT_CASES: FontCase[] = [
   {
     label: 'SUSE-SemiBold (static)',
     url: '/catalog/fonts/ttf/SUSE-SemiBold.ttf',
-    disk: join(REPO_ROOT, 'catalog/fonts/ttf/SUSE-SemiBold.ttf'),
+    disk: catalogFile('fonts/ttf/SUSE-SemiBold.ttf'),
     variable: false,
   },
   {
     label: 'SUSE VF (default)',
     url: '/catalog/fonts/variable/SUSE[wght].ttf',
-    disk: join(REPO_ROOT, 'catalog/fonts/variable/SUSE[wght].ttf'),
+    disk: catalogFile('fonts/variable/SUSE[wght].ttf'),
     variable: true,
   },
 ];

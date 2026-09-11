@@ -30,6 +30,11 @@
  *    those bytes still carry the `extends` member. Read a manifest through
  *    `readToolManifest(id)`, which strips it; `materializeInto` writes the stripped
  *    form. Every other file is a plain path on either side of the union.
+ *  - A root that already IS a materializeInto output (the desktop app's exported
+ *    content root, the RPM payload, a Docker image, a CLI test fixture) has real
+ *    `tools/` and `catalog/` directories and no profiles.json. Such a root resolves as
+ *    the single composed profile it carries, so every consumer below works against a
+ *    packaged install and a checkout alike, with no second code path.
  *  - `materializeInto` writes no `.lolly-view.json` marker. That file was view
  *    bookkeeping (it carried a build timestamp, so it could never be byte-stable
  *    anyway) and nothing reads it after the collapse.
@@ -40,10 +45,14 @@ import {
 } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 
-import { repoRoot } from './repo-root.ts';
+import { isMaterializedRoot, repoRoot } from './repo-root.ts';
 
 /** The only base pack `extends` may name in v1 (brand overlays of community tools). */
 const BASE_PACK = 'community';
+
+/** The profile name reported for a materialized root (a real tools/ + catalog/ tree,
+ *  with no profiles.json to name a profile). See materializedRoots. */
+const MATERIALIZED = 'materialized';
 
 export interface ContentRoots {
   /** Resolved profile name, e.g. 'suse' or 'lolly-start'. */
@@ -117,12 +126,36 @@ function resolveProfileName(root: string, cfg: ProfilesFile, explicit?: string):
 
 const cache = new Map<string, ContentRoots>();
 
+/**
+ * A root that carries a real `tools/` + `catalog/` tree instead of packs and a
+ * profiles.json: what materializeInto writes, and therefore what the desktop app
+ * exports beside itself, what the RPM payload and the Docker image ship, and what the
+ * CLI contract suites build as a fixture. The tree is already one profile's composed
+ * output - overlays resolved, `extends` stripped, exclusions applied - so there is
+ * nothing left to choose and a profile name is not consulted for such a root.
+ */
+function materializedRoots(root: string): ContentRoots {
+  return {
+    profile: MATERIALIZED,
+    toolRoots: [join(root, 'tools')],
+    catalogRoot: join(root, 'catalog'),
+    exclude: new Set<string>(),
+  };
+}
+
 /** Resolve once per process. `profile` overrides env; `root` overrides the marker walk. */
 export function contentRoots(opts?: { profile?: string; root?: string }): ContentRoots {
   const root = resolve(opts?.root ?? repoRoot());
   const key = [root, opts?.profile ?? '', process.env.LOLLY_PROFILE ?? '', process.env.VERCEL ?? ''].join('\u0000');
   const hit = cache.get(key);
   if (hit) return hit;
+
+  if (!existsSync(join(root, 'profiles.json')) && isMaterializedRoot(root)) {
+    const materialized = materializedRoots(root);
+    rootOf.set(materialized, root);
+    cache.set(key, materialized);
+    return materialized;
+  }
 
   const cfg = loadProfiles(root);
   const name = resolveProfileName(root, cfg, opts?.profile);
@@ -387,6 +420,33 @@ export function readToolManifest(id: string, r?: ContentRoots): unknown {
 export function catalogFile(rel: string, r?: ContentRoots): string {
   const roots = r ?? contentRoots();
   return join(roots.catalogRoot, ...rel.split(/[\\/]/).filter(Boolean));
+}
+
+/**
+ * A rooted content URL onto disk. `/catalog/<rel>` and `/tools/<id>/<rel>` are the two
+ * URL namespaces the site serves, and tool data is full of them: an asset's
+ * `formats[].url`, a font url a hook hands host.text, a music track. Neither is a
+ * directory under the repo root any more, so a Node consumer holding one asks here
+ * instead of joining it onto a root.
+ *
+ * null when the url names neither namespace, when the tool is not in this profile, or
+ * when the file is not there - the caller decides what a miss means.
+ */
+export function contentUrlFile(url: string, r?: ContentRoots): string | null {
+  const segs = url.split('?')[0]!.split('#')[0]!.split('/').filter(Boolean);
+  const [head, ...rest] = segs;
+  if (!head || !rest.length) return null;
+  try {
+    const roots = r ?? contentRoots();
+    if (head === 'catalog') {
+      const p = catalogFile(rest.join('/'), roots);
+      return existsSync(p) ? p : null;
+    }
+    if (head === 'tools' && rest.length > 1) {
+      return toolFile(rest[0]!, rest.slice(1).join('/'), roots);
+    }
+  } catch { /* no profile resolves here, or no such tool: a miss like any other */ }
+  return null;
 }
 
 /** Copy a tree as real bytes. `filter` forces Node's JS copy path, because the

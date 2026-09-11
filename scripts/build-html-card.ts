@@ -22,9 +22,10 @@
  *   pnpm run cards:html digi-ad
  */
 import { spawnSync } from 'node:child_process';
-import { writeFileSync, existsSync, readFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { toolDirs, readToolManifest } from '@lolly-tools/node-shell/content-roots';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -37,8 +38,9 @@ const FONT_FACES = `
 @font-face{font-family:'SUSE Mono';src:url('/catalog/fonts/webfonts/SUSEMono[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:normal;font-display:swap}`;
 
 function buildCard(toolId: string): void {
-  const dir = join(ROOT, 'tools', toolId);
-  const manifest = JSON.parse(readFileSync(join(dir, 'tool.json'), 'utf8'));
+  const dir = toolDirs().get(toolId)?.dir;
+  if (!dir) throw new Error(`${toolId}: no such tool`);
+  const manifest = readToolManifest(toolId) as { render?: { formats?: string[] } };
   if (!(manifest.render?.formats ?? []).includes('html')) {
     throw new Error(`${toolId}: render.formats must include "html" (it's the export this lifts)`);
   }
@@ -69,6 +71,6 @@ body>*>*{width:100%;height:100%}</style></head>
 const ids = process.argv.slice(2);
 if (!ids.length) { console.error('usage: node scripts/build-html-card.ts <toolId> [...]'); process.exit(1); }
 for (const id of ids) {
-  if (!existsSync(join(ROOT, 'tools', id))) { console.error(`✗ ${id}: no such tool`); continue; }
+  if (!toolDirs().has(id)) { console.error(`✗ ${id}: no such tool`); continue; }
   try { buildCard(id); } catch (e) { console.error(`✗ ${id}: ${(e as Error).message}`); }
 }

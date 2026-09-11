@@ -5,7 +5,6 @@
  * a few-MB native module, not a browser). Each shell keeps its own orchestration on
  * top (the CLI's renderRaster, the TUI's exportToFile).
  */
-import { join } from 'node:path';
 import { parseDimension, toPixels, fromU8Srgb, hdrViewTransform } from '@lolly/engine';
 import type { DeepFrame } from '@lolly/engine';
 // DEEP RELATIVE IMPORTS, not the `@lolly/engine` barrel: exr.ts and radiance.ts are
@@ -15,7 +14,7 @@ import type { DeepFrame } from '@lolly/engine';
 // engine/src/pptx-read.ts. Nothing was added to the barrel for this feature.
 import { packExr, type ExrPixelType } from '../../../engine/src/exr.ts';
 import { packRadiance } from '../../../engine/src/radiance.ts';
-import { repoRoot } from './repo-root.ts';
+import { catalogFile } from './content-roots.ts';
 
 /** Formats the DOM-free engine writes on its own (svg/emf/eps + text/data), plus the
  *  pro float formats (exr/hdr) the engine's own writers emit over a resvg-rasterised
@@ -59,8 +58,18 @@ export function isDeepFormat(fmt: string): fmt is DeepFormat {
 }
 
 // Catalog fonts feed resvg so text-bearing SVG tools rasterise with the brand faces,
-// not whatever the OS happens to have.
-const FONTS_DIR = join(repoRoot(), 'catalog', 'fonts');
+// not whatever the OS happens to have. Resolved on first use, not at import: this
+// module is imported by the file-in file-out commands too, and those must run on an
+// install that has no content at all (shells/cli/src/content-root.ts) rather than
+// throw on the way in. No profile means no catalog fonts, which resvg answers with
+// the system ones.
+let fontDirs: string[] | null = null;
+function catalogFontDirs(): string[] {
+  if (!fontDirs) {
+    try { fontDirs = [catalogFile('fonts')]; } catch { fontDirs = []; }
+  }
+  return fontDirs;
+}
 
 /** The dimension subset pxDims reads (both shells' export-dims shapes satisfy it). */
 export interface PxDimsInput { width?: number; height?: number; unit?: string; dpi?: number }
@@ -103,7 +112,7 @@ export async function rasterizeSvgToPng(svg: string, width: number, height: numb
   const { Resvg } = await import('@resvg/resvg-js');
   const r = new Resvg(sizeSvg(svg, width, height), {
     fitTo: { mode: 'original' },
-    font: { fontDirs: [FONTS_DIR], loadSystemFonts: true },
+    font: { fontDirs: catalogFontDirs(), loadSystemFonts: true },
   });
   return r.render().asPng();
 }
@@ -219,7 +228,7 @@ export async function rasterizeSvgToRgba(
   const { Resvg } = await import('@resvg/resvg-js');
   const r = new Resvg(sizeSvg(svg, width, height), {
     fitTo: { mode: 'original' },
-    font: { fontDirs: [FONTS_DIR], loadSystemFonts: true },
+    font: { fontDirs: catalogFontDirs(), loadSystemFonts: true },
   });
   const img = r.render();
   const src = img.pixels;

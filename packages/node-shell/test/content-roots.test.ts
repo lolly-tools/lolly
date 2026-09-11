@@ -366,6 +366,36 @@ test('profiles.json is required, and the error says where it looked', () => {
   }
 });
 
+/**
+ * A materializeInto output is itself a content root, and must resolve without a
+ * profiles.json: that tree is what the desktop app exports beside itself and points
+ * LOLLY_ROOT at, what the RPM payload and the Docker image carry, and what the CLI
+ * contract suites build as a fixture. One code path serves a packaged install and a
+ * checkout, which is why the resolver reads such a root as the single composed profile
+ * it is - overlays already applied, `extends` already stripped.
+ */
+test('a materialized tools/ + catalog/ tree resolves with no profiles.json', () => {
+  const root = fixtureRoot();
+  const dest = mkdtempSync(join(tmpdir(), 'lolly-packaged-'));
+  try {
+    materializeInto(dest, contentRoots({ root, profile: 'brand-x' }));
+    assert.equal(existsSync(join(dest, 'profiles.json')), false, 'a packaged root carries no profiles.json');
+
+    const packaged = contentRoots({ root: dest });
+    assert.equal(packaged.profile, 'materialized');
+    assert.deepEqual([...toolDirs(packaged).keys()].sort(), ['alpha', 'beta', 'gamma']);
+    assert.equal(catalogFile('tools/index.json', packaged), join(dest, 'catalog', 'tools', 'index.json'));
+    // The overlay arrives composed: the brand's title, and no marker left to follow.
+    const manifest = readToolManifest('alpha', packaged) as Record<string, unknown>;
+    assert.equal(manifest.title, 'Brand alpha');
+    assert.equal('extends' in manifest, false);
+    assert.equal(readFileSync(toolFile('alpha', 'i18n/fr.json', packaged)!, 'utf8'), '{"t":"base fr"}\n');
+  } finally {
+    rmSync(dest, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('the farm case list is not silently empty', { skip: !farmBuilt }, () => {
   assert.ok(farmIds().length > 10, `expected a mounted profile, saw ${farmIds().length} tools`);
   assert.ok(relative(REPO_ROOT, FARM) === 'tools');
