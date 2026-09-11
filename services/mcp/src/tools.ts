@@ -13,8 +13,8 @@ import type { C2paVerdict } from '@lolly/engine';
 import { inspectDesignV1 } from '@lolly-tools/core';
 // Relative import (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // serverless bundle, same as render.ts's node-shell imports.
-import { VERDICT_SLUGS } from '../../../packages/node-shell/src/verdict-slugs.ts';
-import { cleanControlChars, verdictFacts, verdictChecks } from '../../../packages/node-shell/src/verdict-report.ts';
+import { VERDICT_SLUGS } from '@lolly-tools/node-shell/verdict-slugs';
+import { cleanControlChars, verdictFacts, verdictChecks } from '@lolly-tools/node-shell/verdict-report';
 import type { ToolManifest } from '../../../engine/src/loader.ts';
 import type { ContentBlock, ToolCallResult } from './protocol.ts';
 import { listTools, loadToolCached, loadIndex, listToolTemplates, loadTemplateSeed } from './catalog.ts';

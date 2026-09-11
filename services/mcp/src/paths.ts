@@ -19,10 +19,10 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // Relative imports (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // serverless bundle, same as render.ts's node-shell imports.
-import { repoRoot } from '../../../packages/node-shell/src/repo-root.ts';
+import { repoRoot } from '@lolly-tools/node-shell/repo-root';
 import {
   catalogFile, contentRoots, contentUrlFile, readToolText, type ContentRoots,
-} from '../../../packages/node-shell/src/content-roots.ts';
+} from '@lolly-tools/node-shell/content-roots';
 
 // The root holding the content packs comes from the ONE shared resolver
 // (node-shell/repo-root), in this order: LOLLY_ROOT, then a marker walk UP from

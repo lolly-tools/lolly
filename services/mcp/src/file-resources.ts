@@ -4,7 +4,7 @@ import { mkdtemp, writeFile, unlink, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { readOperationFile, describeOperationFile, runNodeFileOperation } from '../../../packages/node-shell/src/file-operations.ts';
+import { readOperationFile, describeOperationFile, runNodeFileOperation } from '@lolly-tools/node-shell/file-operations';
 import { assertFileOperationRequest, fileOperationRequestSchemaV1 } from '@lolly-tools/core/file-operation-v1';
 import { safeFileName, type FileReferenceV1, type FileOperationReportV1 } from '@lolly-tools/core/file-v1';
 
