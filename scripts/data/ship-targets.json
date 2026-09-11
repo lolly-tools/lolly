@@ -1,0 +1,12 @@
+{
+  "$comment": "Deploy targets for scripts/gate.ts and scripts/ship.ts, moved out of the retired scripts/subrepo/config.sh by the subrepo collapse (plan 244). Every entry is built and validated by the gate and shipped by `pnpm run ship`, uniformly. `name`/`project` target one Vercel project through VERCEL_ORG_ID/VERCEL_PROJECT_ID, so the local .vercel/project.json link (pointed at bt for `vercel dev`) is never touched. `profile` must be a key in profiles.json: it drives the brand at three points - the gate builds and validates that profile's catalog before anything is uploaded, ship pins it per-deploy with --build-env LOLLY_PROFILE=<profile> so the repo is the source of truth, and verifyDeploy asserts the live domain serves it afterwards. The optional `driver` picks the deploy adapter (default 'vercel'); ship() dispatches every host-specific step to that driver, so moving a target to internal IT is an adapter plus this field. 2026-08-29: lolly.tools flipped from the SUSE brand to lolly-start. 2026-09-10: lolly.art retired - the domain sits on the bt project as a 308 redirect to lolly.tools at the Vercel domain level, and its own project is deleted.",
+  "team": "team_6XAaRitEb6CnNoNPwI3pI6hb",
+  "targets": [
+    {
+      "name": "bt",
+      "project": "prj_13zlzrOV2VHeK0CGUCyHGx4cPLu7",
+      "profile": "lolly-start",
+      "domain": "lolly.tools"
+    }
+  ]
+}
